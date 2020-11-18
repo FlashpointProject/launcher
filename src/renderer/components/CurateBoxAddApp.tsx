@@ -1,4 +1,4 @@
-import { BackIn, LaunchCurationAddAppData } from '@shared/back/types';
+import { BackIn } from '@shared/back/types';
 import { EditAddAppCuration, EditAddAppCurationMeta } from '@shared/curate/types';
 import * as React from 'react';
 import { useCallback } from 'react';
@@ -63,7 +63,7 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
   }, [props.curationKey, props.curation.key, props.dispatch]);
   // Callback for the "run" button
   const onRun = useCallback(() => {
-    return window.Shared.back.sendP<any, LaunchCurationAddAppData>(BackIn.LAUNCH_CURATION_ADDAPP, {
+    return window.Shared.back.request(BackIn.LAUNCH_CURATION_ADDAPP, {
       curationKey: props.curationKey,
       curation: props.curation,
       platform: props.platform,

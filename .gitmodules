@@ -1,3 +1,6 @@
 [submodule "extern/7zip-bin"]
 	path = extern/7zip-bin
 	url = https://github.com/develar/7zip-bin.git
+[submodule "docs/api"]
+	path = docs/api
+	url = https://github.com/FlashpointProject/launcher_ApiDocs.git

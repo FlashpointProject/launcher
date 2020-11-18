@@ -6,14 +6,18 @@ import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
 import { Initial1593172736527 } from '@database/migration/1593172736527-Initial';
-import { BackInit, BackInitArgs, BackOut, LanguageChangeData, LanguageListChangeData, ThemeChangeData, ThemeListChangeData } from '@shared/back/types';
+import { AddExtremeToPlaylist1599706152407 } from '@database/migration/1599706152407-AddExtremeToPlaylist';
+import { BackIn, BackInit, BackInitArgs, BackOut } from '@shared/back/types';
+import { ILogoSet, LogoSet } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
 import { getDefaultLocalization, LangFileContent } from '@shared/lang';
+import { ILogEntry, LogLevel } from '@shared/Log/interface';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
-import { parseThemeMetaData, themeEntryFilename, ThemeMeta } from '@shared/ThemeFile';
+import { Theme } from '@shared/ThemeFile';
 import { createErrorProxy, removeFileExtension, stringifyArray } from '@shared/Util';
 import * as child_process from 'child_process';
 import { EventEmitter } from 'events';
+import * as flashpoint from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as http from 'http';
 import * as https from 'https';
@@ -25,15 +29,27 @@ import 'sqlite3';
 import { Tail } from 'tail';
 import { ConnectionOptions, createConnection } from 'typeorm';
 import { ConfigFile } from './ConfigFile';
-import { CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE } from './constants';
+import { CONFIG_FILENAME, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE } from './constants';
 import { loadExecMappingsFile } from './Execs';
+import { ExtConfigFile } from './ExtConfigFile';
+import { ApiEmitter } from './extensions/ApiEmitter';
+import { ExtensionService } from './extensions/ExtensionService';
+import { FPLNodeModuleFactory, INodeModuleFactory, installNodeInterceptor, registerInterceptor } from './extensions/NodeInterceptor';
+import { Command } from './extensions/types';
+import { GameManager } from './game/GameManager';
+import { onWillImportCuration } from './importGame';
+import { ManagedChildProcess, onServiceChange } from './ManagedChildProcess';
 import { registerRequestCallbacks } from './responses';
 import { ServicesFile } from './ServicesFile';
 import { SocketServer } from './SocketServer';
+import { newThemeWatcher } from './Themes';
 import { BackState, ImageDownloadItem } from './types';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
-import { createContainer, exit, log, newLogEntry, runService } from './util/misc';
+import { logFactory } from './util/logging';
+import { createContainer, exit, runService } from './util/misc';
+
+const DEFAULT_LOGO_PATH = 'window/images/Logos/404.png';
 
 // Make sure the process.send function is available
 type Required<T> = T extends undefined ? never : T;
@@ -47,6 +63,7 @@ const state: BackState = {
   isInit: false,
   isExit: false,
   isDev: false,
+  verbose: false,
   socketServer: new SocketServer(),
   fileServer: new http.Server(onFileServerRequest),
   fileServerPort: -1,
@@ -56,6 +73,7 @@ const state: BackState = {
   },
   preferences: createErrorProxy('preferences'),
   config: createErrorProxy('config'),
+  extConfig: createErrorProxy('extConfig'),
   configFolder: createErrorProxy('configFolder'),
   exePath: createErrorProxy('exePath'),
   localeCode: createErrorProxy('countryCode'),
@@ -64,7 +82,6 @@ const state: BackState = {
   gameManager: {
     platformsPath: '',
     saveQueue: new EventQueue(),
-    log: (content) => log(state, { source: 'GameManager', content }),
   },
   messageQueue: [],
   isHandling: false,
@@ -77,24 +94,115 @@ const state: BackState = {
   queries: {},
   log: [],
   serviceInfo: undefined,
-  services: {},
+  services: new Map<string, ManagedChildProcess>(),
   languageWatcher: new FolderWatcher(),
   languageQueue: new EventQueue(),
   languages: [],
   languageContainer: getDefaultLocalization(), // Cache of the latest lang container - used by back when it needs lang strings
-  themeWatcher: new FolderWatcher(),
-  themeQueue: new EventQueue(),
-  themeFiles: [],
+  themeState: {
+    watchers: [],
+    queue: new EventQueue()
+  },
   playlists: [],
   execMappings: [],
   lastLinkedCurationKey: '',
+  moduleInterceptor: {
+    alternatives: [],
+    factories: new Map<string, INodeModuleFactory>(),
+  },
+  apiEmitters: {
+    onDidInit: new ApiEmitter<void>(),
+    onDidConnect: new ApiEmitter<void>(),
+    games: {
+      onWillLaunchGame: new ApiEmitter<flashpoint.GameLaunchInfo>(),
+      onWillLaunchAddApp: new ApiEmitter<flashpoint.AdditionalApp>(),
+      onWillLaunchCurationGame: new ApiEmitter<flashpoint.GameLaunchInfo>(),
+      onWillLaunchCurationAddApp: new ApiEmitter<flashpoint.AdditionalApp>(),
+      onDidLaunchGame: new ApiEmitter<flashpoint.Game>(),
+      onDidLaunchAddApp: new ApiEmitter<flashpoint.AdditionalApp>(),
+      onDidLaunchCurationGame: new ApiEmitter<flashpoint.Game>(),
+      onDidLaunchCurationAddApp: new ApiEmitter<flashpoint.AdditionalApp>(),
+      onDidUpdateGame: GameManager.onDidUpdateGame,
+      onDidRemoveGame: GameManager.onDidRemoveGame,
+      onDidUpdatePlaylist: GameManager.onDidUpdatePlaylist,
+      onDidUpdatePlaylistGame: GameManager.onDidUpdatePlaylistGame,
+      onDidRemovePlaylistGame: GameManager.onDidRemovePlaylistGame,
+      onWillImportCuration: onWillImportCuration,
+    },
+    services: {
+      onServiceNew: new ApiEmitter<flashpoint.ManagedChildProcess>(),
+      onServiceRemove: new ApiEmitter<flashpoint.ManagedChildProcess>(),
+      onServiceChange: onServiceChange,
+    }
+  },
+  status: {
+    devConsole: ''
+  },
+  registry: {
+    commands: new Map<string, Command>(),
+    logoSets: new Map<string, LogoSet>(),
+    themes: new Map<string, Theme>(),
+  },
+  extensionsService: createErrorProxy('extensionsService'),
   connection: undefined,
 };
 
-registerRequestCallbacks(state);
+main();
 
-process.on('message', onProcessMessage);
-process.on('disconnect', () => { exit(state); }); // (Exit when the main process does)
+async function main() {
+  registerRequestCallbacks(state);
+
+  // Database manipulation
+  // Anything that reads from the database and then writes to it (or a file) should go in this queue!
+  // (Since it can cause rare race conditions that corrupts data permanently)
+  state.socketServer.addQueue([
+    // Game
+    BackIn.SAVE_GAME,
+    BackIn.DELETE_GAME,
+    BackIn.DUPLICATE_GAME,
+    BackIn.EXPORT_GAME,
+    // Playlist
+    BackIn.DUPLICATE_PLAYLIST,
+    BackIn.IMPORT_PLAYLIST,
+    BackIn.EXPORT_PLAYLIST,
+    BackIn.EXPORT_PLAYLIST,
+    BackIn.GET_PLAYLISTS,
+    BackIn.GET_PLAYLIST,
+    BackIn.SAVE_PLAYLIST,
+    BackIn.DELETE_PLAYLIST,
+    BackIn.DELETE_ALL_PLAYLISTS,
+    BackIn.ADD_PLAYLIST_GAME,
+    BackIn.SAVE_PLAYLIST_GAME,
+    BackIn.DELETE_PLAYLIST_GAME,
+    BackIn.SAVE_LEGACY_PLATFORM,
+    // Tags
+    BackIn.GET_OR_CREATE_TAG,
+    BackIn.SAVE_TAG,
+    BackIn.DELETE_TAG,
+    BackIn.MERGE_TAGS,
+    BackIn.CLEANUP_TAG_ALIASES,
+    BackIn.CLEANUP_TAGS,
+    BackIn.FIX_TAG_PRIMARY_ALIASES,
+    BackIn.EXPORT_TAGS,
+    BackIn.IMPORT_TAGS,
+    // Tag Categories
+    BackIn.SAVE_TAG_CATEGORY,
+    BackIn.GET_TAG_CATEGORY_BY_ID,
+    BackIn.DELETE_TAG_CATEGORY,
+    // Curation
+    BackIn.IMPORT_CURATION,
+    BackIn.LAUNCH_CURATION,
+    BackIn.LAUNCH_CURATION_ADDAPP,
+    // ?
+    BackIn.SYNC_GAME_METADATA,
+    // Meta Edits
+    BackIn.EXPORT_META_EDIT,
+    BackIn.IMPORT_META_EDITS,
+  ]);
+
+  process.on('message', onProcessMessage);
+  process.on('disconnect', () => { exit(state); }); // (Exit when the main process does)
+}
 
 async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   if (state.isInit) { return; }
@@ -102,22 +210,35 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   const content: BackInitArgs = JSON.parse(message);
   state.isDev = content.isDev;
+  state.verbose = content.verbose;
   state.configFolder = content.configFolder;
   state.localeCode = content.localeCode;
   state.exePath = content.exePath;
   state.version = content.version;
 
+  const addLog = (entry: ILogEntry): number => { return state.log.push(entry) - 1; };
+  global.log = {
+    trace: logFactory(LogLevel.TRACE, state.socketServer, addLog, state.verbose),
+    debug: logFactory(LogLevel.DEBUG, state.socketServer, addLog, state.verbose),
+    info:  logFactory(LogLevel.INFO,  state.socketServer, addLog, state.verbose),
+    warn:  logFactory(LogLevel.WARN,  state.socketServer, addLog, state.verbose),
+    error: logFactory(LogLevel.ERROR, state.socketServer, addLog, state.verbose)
+  };
+
   state.socketServer.secret = content.secret;
 
-  log(state, { source: 'Launcher', content: `Starting Flashpoint Launcher ${content.version} ${content.isDev ? 'DEV' : ''}` });
+  const versionStr = `${content.version} ${content.isDev ? 'DEV' : ''}`;
+  log.info('Launcher', `Starting Flashpoint Launcher ${versionStr}`);
 
   // Read configs & preferences
-  const [pref, conf] = await (Promise.all([
+  const [pref, conf, extConf] = await (Promise.all([
     PreferencesFile.readOrCreateFile(path.join(state.configFolder, PREFERENCES_FILENAME)),
-    ConfigFile.readOrCreateFile(path.join(state.configFolder, CONFIG_FILENAME))
+    ConfigFile.readOrCreateFile(path.join(state.configFolder, CONFIG_FILENAME)),
+    ExtConfigFile.readOrCreateFile(path.join(state.configFolder, EXT_CONFIG_FILENAME)),
   ]));
   state.preferences = pref;
   state.config = conf;
+  state.extConfig = extConf;
 
   // Check for custom version to report
   const versionFilePath = content.isDev ? path.join(process.cwd(), 'version.txt') : path.join(state.config.flashpointPath, 'version.txt');
@@ -125,7 +246,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   .then(async () => {
     const data = await fs.readFile(versionFilePath, 'utf8');
     state.customVersion = data;
-    log(state, { source: 'Launcher', content: `Data Version Detected: ${state.customVersion}`});
+    log.info('Launcher', `Data Version Detected: ${state.customVersion}`);
   })
   .catch(() => { /** File doesn't exist */ });
 
@@ -135,21 +256,67 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
       type: 'sqlite',
       database: path.join(state.config.flashpointPath, 'Data', 'flashpoint.sqlite'),
       entities: [Game, AdditionalApp, Playlist, PlaylistGame, Tag, TagAlias, TagCategory],
-      migrations: [Initial1593172736527]
+      migrations: [Initial1593172736527, AddExtremeToPlaylist1599706152407]
     };
     state.connection = await createConnection(options);
     // TypeORM forces on but breaks Playlist Game links to unimported games
     await state.connection.query('PRAGMA foreign_keys=off;');
     await state.connection.runMigrations();
-    log(state, { source: 'Launcher', content: 'Database connection established' });
+    log.info('Launcher', 'Database connection established');
   }
+
+  // Init extensions
+  const addExtLogFactory = (extId: string) => (entry: ILogEntry) => {
+    state.extensionsService.logExtension(extId, entry);
+  };
+  state.extensionsService = new ExtensionService(state.config);
+  // Create module interceptor
+  registerInterceptor(new FPLNodeModuleFactory(
+    await state.extensionsService.getExtensionPathIndex(),
+    addExtLogFactory,
+    versionStr,
+    state
+  ),
+  state.moduleInterceptor);
+  await installNodeInterceptor(state.moduleInterceptor);
+  // Load each extension
+  await state.extensionsService.getExtensions()
+  .then(async (exts) => {
+    // Set any ext config defaults
+    for (const contrib of (await state.extensionsService.getContributions('configuration'))) {
+      for (const extConfig of contrib.value) {
+        for (const key in extConfig.properties) {
+          // Value not set, use default
+          if (!(key in state.extConfig)) {
+            state.extConfig[key] = extConfig.properties[key].default;
+          } else {
+            const prop = extConfig.properties[key];
+            // If type is different, reset it
+            if (typeof state.extConfig[key] !== prop.type) {
+              log.debug('Extensions', `Invalid value type for "${key}", resetting to default`);
+              state.extConfig[key] = prop.default;
+            }
+            if (prop.enum.length > 0 && !(prop.enum.includes(state.extConfig[key]))) {
+              log.debug('Extensions', `Invalid value for "${key}", not in enum, resetting to default`);
+              state.extConfig[key] = prop.default;
+            }
+          }
+        }
+      }
+    }
+    ExtConfigFile.saveFile(path.join(state.configFolder, EXT_CONFIG_FILENAME), state.extConfig);
+    exts.forEach(ext => {
+      state.extensionsService.loadExtension(ext.id);
+    });
+  });
+
 
   // Init services
   try {
     state.serviceInfo = await ServicesFile.readFile(
       path.join(state.config.flashpointPath, state.config.jsonFolderPath),
       state.config,
-      error => { log(state, { source: SERVICES_SOURCE, content: error.toString() }); }
+      error => { log.info(SERVICES_SOURCE, error.toString()); }
     );
   } catch (error) { /* @TODO Do something about this error */ }
   if (state.serviceInfo) {
@@ -160,7 +327,13 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     // Run processes
     if (state.serviceInfo.server.length > 0) {
       const chosenServer = state.serviceInfo.server.find(i => i.name === state.config.server);
-      state.services.server = runService(state, 'server', 'Server', chosenServer || state.serviceInfo.server[0]);
+      runService(state, 'server', 'Server', state.config.flashpointPath, {}, chosenServer || state.serviceInfo.server[0]);
+    }
+    // Start daemons
+    for (let i = 0; i < state.serviceInfo.daemon.length; i++) {
+      const service = state.serviceInfo.daemon[i];
+      const id = 'daemon_' + i;
+      runService(state, id, service.name || id, state.config.flashpointPath, {}, service);
     }
     // Start file watchers
     for (let i = 0; i < state.serviceInfo.watch.length; i++) {
@@ -169,14 +342,14 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
         // Windows requires fs.watchFile to properly update
         const tail = new Tail(filePath, { follow: true, useWatchFile: true });
         tail.on('line', (data) => {
-          log(state, newLogEntry('Log Watcher', data));
+          log.info('Log Watcher', data);
         });
         tail.on('error', (error) => {
-          log(state, newLogEntry('Log Watcher', `Error while watching file "${filePath}" - ${error}`));
+          log.info('Log Watcher', `Error while watching file "${filePath}" - ${error}`);
         });
-        log(state, newLogEntry('Log Watcher', `Watching file "${filePath}"`));
+        log.info('Log Watcher', `Watching file "${filePath}"`);
       } catch (error) {
-        log(state, newLogEntry('Log Watcher', `Failed to watch file "${filePath}" - ${error}`));
+        log.info('Log Watcher', `Failed to watch file "${filePath}" - ${error}`);
       }
     }
   }
@@ -214,11 +387,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
           state.languages.push(lang);
         }
 
-        state.socketServer.broadcast<LanguageListChangeData>({
-          id: '',
-          type: BackOut.LANGUAGE_LIST_CHANGE,
-          data: state.languages,
-        });
+        state.socketServer.broadcast(BackOut.LANGUAGE_LIST_CHANGE, state.languages);
 
         if (lang.code === state.preferences.currentLanguage ||
             lang.code === state.localeCode ||
@@ -229,11 +398,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
             state.localeCode,
             state.preferences.fallbackLanguage
           );
-          state.socketServer.broadcast<LanguageChangeData>({
-            id: '',
-            type: BackOut.LANGUAGE_CHANGE,
-            data: state.languageContainer,
-          });
+          state.socketServer.broadcast(BackOut.LANGUAGE_CHANGE, state.languageContainer);
         }
       });
     }
@@ -243,142 +408,114 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   fs.stat(langFolder, (error) => {
     if (!error) { state.languageWatcher.watch(langFolder); }
     else {
-      log(state, { source: 'Back', content: (typeof error.toString === 'function') ? error.toString() : (error + '') });
+      log.info('Back', (typeof error.toString === 'function') ? error.toString() : (error + ''));
       if (error.code === 'ENOENT') {
-        log(state, { source: 'Back', content: `Failed to watch language folder. Folder does not exist (Path: "${langFolder}")` });
+        log.info('Back', `Failed to watch language folder. Folder does not exist (Path: "${langFolder}")`);
       } else {
-        log(state, { source: 'Back', content: (typeof error.toString === 'function') ? error.toString() : (error + '') });
+        log.info('Back', (typeof error.toString === 'function') ? error.toString() : (error + ''));
       }
     }
   });
 
   // Init themes
-  state.themeWatcher.on('ready', () => {
-    // Add event listeners
-    state.themeWatcher.on('add', onThemeAdd);
-    state.themeWatcher.on('change', (filename: string, offsetPath: string) => {
-      state.themeQueue.push(() => {
-        const item = findOwner(filename, offsetPath);
-        if (item) {
-          // A file in a theme has been changed
-          state.socketServer.broadcast<ThemeChangeData>({
-            id: '',
-            type: BackOut.THEME_CHANGE,
-            data: item.entryPath,
-          });
-        } else {
-          console.warn('A file has been changed in a theme that is not registered '+
-                        `(Filename: "${filename}", OffsetPath: "${offsetPath}")`);
+  const dataThemeFolder = path.join(state.config.flashpointPath, state.config.themeFolderPath);
+  await fs.ensureDir(dataThemeFolder);
+  try {
+    await fs.promises.readdir(dataThemeFolder, { withFileTypes: true })
+    .then(async (files) => {
+      for (const file of files) {
+        if (file.isDirectory()) {
+          await newThemeWatcher(`${file.name}`, dataThemeFolder, path.join(dataThemeFolder, file.name), state.themeState, state.registry, state.socketServer);
         }
-      });
+      }
     });
-    state.themeWatcher.on('remove', (filename: string, offsetPath: string) => {
-      state.themeQueue.push(() => {
-        const item = findOwner(filename, offsetPath);
-        if (item) {
-          if (item.entryPath === path.join(offsetPath, filename)) { // (Entry file was removed)
-            state.themeFiles.splice(state.themeFiles.indexOf(item), 1);
-            // A theme has been removed
-            state.socketServer.broadcast<ThemeListChangeData>({
-              id: '',
-              type: BackOut.THEME_LIST_CHANGE,
-              data: state.themeFiles,
-            });
-          } else { // (Non-entry file was removed)
-            // A file in a theme has been removed
-            state.socketServer.broadcast<ThemeChangeData>({
-              id: '',
-              type: BackOut.THEME_CHANGE,
-              data: item.entryPath,
-            });
-          }
-        } else {
-          console.warn('A file has been removed from a theme that is not registered '+
-                        `(Filename: "${filename}", OffsetPath: "${offsetPath}")`);
+  } catch (error) {
+    log.error('Launcher', `Error loading default Themes folder\n${error.message}`);
+  }
+  const themeContributions = await state.extensionsService.getContributions('themes');
+  for (const c of themeContributions) {
+    for (const theme of c.value) {
+      const ext = await state.extensionsService.getExtension(c.extId);
+      if (ext) {
+        const realPath = path.join(ext.extensionPath, theme.path);
+        try {
+          await newThemeWatcher(theme.id, ext.extensionPath, realPath, state.themeState, state.registry, state.socketServer, ext.manifest.displayName || ext.manifest.name, theme.logoSet);
+        } catch (error) {
+          log.error('Extensions', `[${ext.manifest.displayName || ext.manifest.name}] Error loading theme "${theme.id}"\n${error}`);
         }
-      });
-    });
-    // Add initial files
-    for (const filename of state.themeWatcher.filenames) {
-      onThemeAdd(filename, '', false);
+      }
     }
-    // Functions
-    function onThemeAdd(filename: string, offsetPath: string, doBroadcast = true) {
-      state.themeQueue.push(async () => {
-        const item = findOwner(filename, offsetPath);
-        if (item) {
-          // A file has been added to this theme
-          state.socketServer.broadcast<ThemeChangeData>({
-            id: '',
-            type: BackOut.THEME_CHANGE,
-            data: item.entryPath,
-          });
-        } else {
-          // Check if it is a potential entry file
-          // (Entry files are either directly inside the "Theme Folder", or one folder below that and named "theme.css")
-          const folders = offsetPath.split(path.sep);
-          const folderName = folders[0] || offsetPath;
-          const file = state.themeWatcher.getFile(folderName ? [...folders, filename] : [filename]);
-          if ((file && file.isFile()) && (offsetPath === '' || (offsetPath === folderName && filename === themeEntryFilename))) {
-            const themeFolder = state.themeWatcher.getFolder() || '';
-            const entryPath = path.join(themeFolder, folderName, filename);
-            let meta: Partial<ThemeMeta> | undefined;
-            try {
-              const data = await fs.readFile(entryPath, 'utf8');
-              meta = parseThemeMetaData(data) || {};
-            } catch (error) { console.warn(`Failed to load theme entry file (File: "${entryPath}")`, error); }
-            if (meta) {
-              state.themeFiles.push({
-                basename: folderName || filename,
-                meta: meta,
-                entryPath: path.relative(themeFolder, entryPath),
-              });
-              if (doBroadcast) {
-                state.socketServer.broadcast<ThemeListChangeData>({
-                  id: '',
-                  type: BackOut.THEME_LIST_CHANGE,
-                  data: state.themeFiles,
-                });
-              }
+  }
+
+  // Init Logo Sets
+  const dataLogoSetsFolder = path.join(state.config.flashpointPath, state.config.logoSetsFolderPath);
+  await fs.ensureDir(dataLogoSetsFolder);
+  try {
+    await fs.promises.readdir(dataLogoSetsFolder, { withFileTypes: true })
+    .then(async (files) => {
+      for (const file of files) {
+        if (file.isDirectory()) {
+          const logoSet: ILogoSet = {
+            id: `${file.name.replace(' ', '-')}`,
+            name: `${file.name}`,
+            path: file.name
+          };
+          const realPath = path.join(dataLogoSetsFolder, logoSet.path);
+          try {
+            if (state.registry.logoSets.has(logoSet.id)) {
+              throw new Error(`Logo set "${logoSet.id}" already registered!`);
             }
+            const files = (await fs.promises.readdir(realPath, { withFileTypes: true }))
+            .filter(f => f.isFile())
+            .map(f => f.name);
+            state.registry.logoSets.set(logoSet.id, {
+              ...logoSet,
+              fullPath: realPath,
+              files: files
+            });
+            log.debug('Extensions', `[SYSTEM] Registered Logo Set "${logoSet.id}"`);
+          } catch (error) {
+            log.error('Extensions', `[SYSTEM] Error loading logo set "${logoSet.id}"\n${error}`);
           }
         }
-      });
-    }
-    function findOwner(filename: string, offsetPath: string) {
-      if (offsetPath) { // (Sub-folder)
-        const index = offsetPath.indexOf(path.sep);
-        const folderName = (index >= 0) ? offsetPath.substr(0, index) : offsetPath;
-        return state.themeFiles.find(item => item.basename === folderName);
-      } else { // (Theme folder)
-        return state.themeFiles.find(item => item.entryPath === filename || item.basename === filename);
+      }
+    });
+  } catch (error) {
+    log.error('Launcher', `Error loading default Themes folder\n${error.message}`);
+  }
+  const logoSetContributions = await state.extensionsService.getContributions('logoSets');
+  for (const c of logoSetContributions) {
+    for (const logoSet of c.value) {
+      const ext = await state.extensionsService.getExtension(c.extId);
+      if (ext) {
+        const realPath = path.join(ext.extensionPath, logoSet.path);
+        try {
+          if (state.registry.logoSets.has(logoSet.id)) {
+            throw new Error(`Logo set "${logoSet.id}" already registered!`);
+          }
+          const files = (await fs.promises.readdir(realPath, { withFileTypes: true }))
+          .filter(f => f.isFile())
+          .map(f => f.name);
+          state.registry.logoSets.set(logoSet.id, {
+            ...logoSet,
+            fullPath: realPath,
+            files: files
+          });
+          log.debug('Extensions', `[${ext.manifest.displayName || ext.manifest.name}] Registered Logo Set "${logoSet.id}"`);
+        } catch (error) {
+          log.error('Extensions', `[${ext.manifest.displayName || ext.manifest.name}] Error loading logo set "${logoSet.id}"\n${error}`);
+        }
       }
     }
-  });
-  state.themeWatcher.on('error', console.error);
-  const themeFolder = path.join(state.config.flashpointPath, state.config.themeFolderPath);
-  fs.stat(themeFolder, (error) => {
-    if (!error) { state.themeWatcher.watch(themeFolder, { recursionDepth: -1 }); }
-    else {
-      log(state, { source: 'Back', content: (typeof error.toString === 'function') ? error.toString() : (error + '') });
-      if (error.code === 'ENOENT') {
-        log(state, { source: 'Back', content: `Failed to watch theme folder. Folder does not exist (Path: "${themeFolder}")` });
-      } else {
-        log(state, { source: 'Back', content: (typeof error.toString === 'function') ? error.toString() : (error + '') });
-      }
-    }
-  });
+  }
 
   // Load Exec Mappings
-  loadExecMappingsFile(path.join(state.config.flashpointPath, state.config.jsonFolderPath), content => log(state, { source: 'Launcher', content }))
+  loadExecMappingsFile(path.join(state.config.flashpointPath, state.config.jsonFolderPath), content => log.info('Launcher', content))
   .then(data => {
     state.execMappings = data;
   })
   .catch(error => {
-    log(state, {
-      source: 'Launcher',
-      content: `Failed to load exec mappings file. Ignore if on Windows. - ${error}`,
-    });
+    log.info('Launcher', `Failed to load exec mappings file. Ignore if on Windows. - ${error}`);
   })
   .finally(() => {
     state.init[BackInit.EXEC] = true;
@@ -419,10 +556,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
       state.fileServer.off('listening', onceListening);
       state.fileServer.off('error', onError);
       if (error) {
-        log(state, {
-          source: 'Back',
-          content: 'Failed to open HTTP server.\n'+error,
-        });
+        log.info('Back', 'Failed to open HTTP server.\n' + error);
         resolve(-1);
       } else {
         resolve(port);
@@ -436,7 +570,10 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   }
 
   // Respond
-  send(state.socketServer.port);
+  send(state.socketServer.port, () => {
+    state.apiEmitters.onDidInit.fire();
+  });
+
 }
 
 function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse): void {
@@ -520,23 +657,99 @@ function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse
 
       // Theme folder
       case 'themes': {
-        const themeFolder = path.join(state.config.flashpointPath, state.config.themeFolderPath);
         const index = urlPath.indexOf('/');
-        const relativeUrl = (index >= 0) ? urlPath.substr(index + 1) : urlPath;
-        const filePath = path.join(themeFolder, relativeUrl);
-        if (filePath.startsWith(themeFolder)) {
-          serveFile(req, res, filePath);
+        // Split URL section into parts (/Themes/<themeId>/<relativePath>)
+        const themeUrl = (index >= 0) ? urlPath.substr(index + 1) : urlPath;
+        const nameIndex = themeUrl.indexOf('/');
+        const themeId = (nameIndex >= 0) ? themeUrl.substr(0, nameIndex) : themeUrl;
+        const relativePath = (nameIndex >= 0) ? themeUrl.substr(nameIndex + 1): themeUrl;
+        // Find theme associated with the path
+        const theme = state.registry.themes.get(themeId);
+        if (theme) {
+          const filePath = path.join(theme.basePath, theme.themePath, relativePath);
+          // Don't allow files outside of theme path
+          const relative = path.relative(theme.basePath, filePath);
+          if (relative && !relative.startsWith('..') && !path.isAbsolute(relative)) {
+            serveFile(req, res, filePath);
+          } else {
+            log.warn('Launcher', `Illegal file request: "${filePath}"`);
+          }
         }
       } break;
 
       // Logos folder
       case 'logos': {
-        const logoFolder = path.join(state.config.flashpointPath, state.config.logoFolderPath);
-        const filePath = path.join(logoFolder, urlPath.substr(index + 1));
+        const logoSet = state.registry.logoSets.get(state.preferences.currentLogoSet || '');
+        const relativePath = urlPath.substr(index + 1);
+        const logoFolder = logoSet && logoSet.files.includes(relativePath)
+          ? logoSet.fullPath
+          : path.join(state.config.flashpointPath, state.config.logoFolderPath);
+        const filePath = path.join(logoFolder, relativePath);
         if (filePath.startsWith(logoFolder)) {
-          serveFile(req, res, filePath);
+          fs.access(filePath, fs.constants.F_OK, (err) => {
+            if (err) {
+              // File doesn't exist, serve default image
+              const basePath = state.isDev ? path.join(process.cwd(), 'build') : path.join(path.dirname(state.exePath), 'resources/app.asar/build');
+              const replacementFilePath = path.join(basePath, 'window/images/Logos', relativePath);
+              if (replacementFilePath.startsWith(basePath)) {
+                fs.access(replacementFilePath, fs.constants.F_OK, (err) => {
+                  if (err) {
+                    log.debug('Launcher', `SERVING: ${path.join(basePath, DEFAULT_LOGO_PATH)}`);
+                    serveFile(req, res, path.join(basePath, DEFAULT_LOGO_PATH));
+                  } else {
+                    serveFile(req, res, replacementFilePath);
+                  }
+                });
+              }
+            } else {
+              serveFile(req, res, filePath);
+            }
+          });
+        } else {
+          log.warn('Launcher', `Illegal file request: "${filePath}"`);
         }
       } break;
+
+      // Extension icons
+      case 'exticons': {
+        const relativePath = urlPath.substr(index + 1);
+        // /extIcons/<extId>
+        state.extensionsService.getExtension(relativePath)
+        .then((ext) => {
+          if (ext && ext.manifest.icon) {
+            const filePath = path.join(ext.extensionPath, ext.manifest.icon);
+            if (filePath.startsWith(ext.extensionPath)) {
+              serveFile(req, res, filePath);
+            } else {
+              log.warn('Launcher', `Illegal file request: "${filePath}"`);
+            }
+          }
+        });
+        break;
+      }
+
+      case 'extdata': {
+        const index = urlPath.indexOf('/');
+        // Split URL section into parts (/extdata/<extId>/<relativePath>)
+        const fullPath = (index >= 0) ? urlPath.substr(index + 1) : urlPath;
+        const nameIndex = fullPath.indexOf('/');
+        const extId = (nameIndex >= 0) ? fullPath.substr(0, nameIndex) : fullPath;
+        const relativePath = (nameIndex >= 0) ? fullPath.substr(nameIndex + 1): fullPath;
+        state.extensionsService.getExtension(extId)
+        .then(ext => {
+          if (ext) {
+            // Only serve from <extPath>/static/
+            const staticPath = path.join(ext.extensionPath, 'static');
+            const filePath = path.join(staticPath, relativePath);
+            if (filePath.startsWith(staticPath)) {
+              serveFile(req, res, filePath);
+            } else {
+              log.warn('Launcher', `Illegal file request: "${filePath}"`);
+            }
+          }
+        });
+        break;
+      }
 
       // JSON file(s)
       case 'credits.json': {
@@ -589,10 +802,7 @@ function serveFile(req: http.IncomingMessage, res: http.ServerResponse, filePath
  */
 async function execProcess(proc: IBackProcessInfo, sync?: boolean): Promise<void> {
   const cwd: string = path.join(state.config.flashpointPath, proc.path);
-  log(state, {
-    source: SERVICES_SOURCE,
-    content: `Executing "${proc.filename}" ${stringifyArray(proc.arguments)} in "${proc.path}"`
-  });
+  log.info(SERVICES_SOURCE, `Executing "${proc.filename}" ${stringifyArray(proc.arguments)} in "${proc.path}"`);
   try {
     if (sync) {
       child_process.execFileSync(proc.filename, proc.arguments, { cwd: cwd });
@@ -601,10 +811,7 @@ async function execProcess(proc: IBackProcessInfo, sync?: boolean): Promise<void
       await awaitEvents(childProc, ['exit', 'error']);
     }
   } catch (error) {
-    log(state, {
-      source: SERVICES_SOURCE,
-      content: `An unexpected error occurred while executing a command:\n  "${error}"`
-    });
+    log.info(SERVICES_SOURCE, `An unexpected error occurred while executing a command:\n  "${error}"`);
   }
 }
 

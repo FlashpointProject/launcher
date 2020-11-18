@@ -1,4 +1,4 @@
-import { IAppConfigData } from '@shared/config/interfaces';
+import { AppConfigData, AppExtConfigData } from '@shared/config/interfaces';
 import { deepCopy, fixSlashes, parseVarStr } from '@shared/Util';
 import { Coerce } from '@shared/utils/Coerce';
 import { ObjectParser } from '@shared/utils/ObjectParser';
@@ -6,19 +6,22 @@ import { ObjectParser } from '@shared/utils/ObjectParser';
 const { num, str } = Coerce;
 
 type IConfigDataDefaults = {
-  [key: string]: Readonly<IAppConfigData>;
+  [key: string]: Readonly<AppConfigData>;
 };
 
 /** Default config values used as a "base" for the different platform defaults. */
-const configDataDefaultBase: Readonly<IAppConfigData> = Object.freeze({
+const configDataDefaultBase: Readonly<AppConfigData> = Object.freeze({
   flashpointPath: '',
   imageFolderPath: 'Data/Images',
   logoFolderPath: 'Data/Logos',
   playlistFolderPath: 'Data/Playlists',
   jsonFolderPath: 'Data',
+  htdocsFolderPath: 'Legacy/htdocs',
   platformFolderPath: 'Data/Platforms',
   themeFolderPath: 'Data/Themes',
+  logoSetsFolderPath: 'Data/LogoSets',
   metaEditsFolderPath: 'Data/MetaEdits',
+  extensionsPath: 'Data/Extensions',
   useCustomTitlebar: false,
   startServer: true,
   server: 'Apache Webserver', // @TODO Read from IServiceInfos to find first valid
@@ -34,6 +37,7 @@ const configDataDefaultBase: Readonly<IAppConfigData> = Object.freeze({
   lastSync: 0,
   onDemandBaseUrl: 'https://unstable.life/Flashpoint/Data/Images/',
   logsBaseUrl: 'https://logs.unstable.life/',
+  browserModeProxy: 'localhost:22500',
   updatesEnabled: true,
 });
 
@@ -59,7 +63,7 @@ const configDataDefaults: IConfigDataDefaults = {
  * Get the default config data for a specific platform.
  * @param platform Platform to get the defaults for.
  */
-export function getDefaultConfigData(platform: NodeJS.Platform): IAppConfigData {
+export function getDefaultConfigData(platform: NodeJS.Platform): AppConfigData {
   return configDataDefaults[platform] || configDataDefaultBase;
 }
 
@@ -70,10 +74,10 @@ export function getDefaultConfigData(platform: NodeJS.Platform): IAppConfigData 
  * @returns Source argument (not a copy).
  */
 export function overwriteConfigData(
-  source: IAppConfigData,
-  data: Partial<IAppConfigData>,
+  source: AppConfigData,
+  data: Partial<AppConfigData>,
   onError?: (error: string) => void
-): IAppConfigData {
+): AppConfigData {
   const parser = new ObjectParser({
     input: data,
     onError: onError && (e => onError(`Error while parsing Config: ${e.toString()}`)),
@@ -83,9 +87,12 @@ export function overwriteConfigData(
   parser.prop('logoFolderPath',      v => source.logoFolderPath      = parseVarStr(str(v)));
   parser.prop('playlistFolderPath',  v => source.playlistFolderPath  = parseVarStr(str(v)));
   parser.prop('jsonFolderPath',      v => source.jsonFolderPath      = parseVarStr(str(v)));
+  parser.prop('htdocsFolderPath',    v => source.htdocsFolderPath    = parseVarStr(str(v)));
   parser.prop('platformFolderPath',  v => source.platformFolderPath  = parseVarStr(str(v)));
   parser.prop('themeFolderPath',     v => source.themeFolderPath     = parseVarStr(str(v)));
+  parser.prop('logoSetsFolderPath',  v => source.logoSetsFolderPath  = parseVarStr(str(v)));
   parser.prop('metaEditsFolderPath', v => source.metaEditsFolderPath = parseVarStr(str(v)));
+  parser.prop('extensionsPath',      v => source.extensionsPath      = parseVarStr(str(v)));
   parser.prop('useCustomTitlebar',   v => source.useCustomTitlebar   = !!v);
   parser.prop('startServer',         v => source.startServer         = !!v);
   parser.prop('disableExtremeGames', v => source.disableExtremeGames = !!v);
@@ -100,12 +107,33 @@ export function overwriteConfigData(
   parser.prop('server',              v => source.server              = str(v));
   parser.prop('onDemandBaseUrl',     v => source.onDemandBaseUrl     = parseVarStr(str(v)));
   parser.prop('logsBaseUrl',         v => source.logsBaseUrl         = parseVarStr(str(v)));
+  parser.prop('browserModeProxy',    v => source.browserModeProxy    = str(v));
   parser.prop('updatesEnabled',      v => source.updatesEnabled      = !!v);
   // Do some alterations
   source.flashpointPath = fixSlashes(source.flashpointPath); // (Clean path)
   // Return
   return source;
 }
+
+/**
+ * Overwrite a config data object with data from another object.
+ * @param source Object to overwrite.
+ * @param data Object with data to overwrite the source with.
+ * @returns Source argument (not a copy).
+ */
+export function overwriteExtConfigData(
+  source: AppExtConfigData,
+  data: any,
+  onError?: (error: string) => void
+): AppExtConfigData {
+  for (const key in data) {
+    source[key] = data[key];
+  }
+
+  // Return
+  return source;
+}
+
 
 function strArray(array: any): string[] {
   return Array.isArray(array)

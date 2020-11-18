@@ -2,7 +2,7 @@ import { LangContext } from '@renderer/util/lang';
 import { ViewGame } from '@shared/back/types';
 import { LOGOS } from '@shared/constants';
 import * as React from 'react';
-import { findElementAncestor, getGameImageURL } from '../Util';
+import { findElementAncestor, getExtremeIconURL, getGameImageURL } from '../Util';
 import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
 import { SimpleButton } from './SimpleButton';
@@ -11,6 +11,8 @@ type RandomGamesProps = {
   games: ViewGame[];
   onLaunchGame: (gameId: string) => void;
   rollRandomGames: () => void;
+  /** Update to clear platform icon cache */
+  logoVersion: number;
 };
 
 /** A small "grid" of randomly selected games. */
@@ -21,6 +23,10 @@ export function RandomGames(props: RandomGamesProps) {
     props.onLaunchGame(gameId);
   }, [props.onLaunchGame]);
 
+  const onRerollPicks = React.useCallback(() => {
+    props.rollRandomGames();
+  }, [props.rollRandomGames]);
+
   const gameItems = React.useMemo(() => (
     /* Games is a long queue, only render front */
     props.games.slice(0, 5).map(game => (
@@ -29,7 +35,10 @@ export function RandomGames(props: RandomGamesProps) {
         id={game.id}
         title={game.title}
         platform={game.platform}
+        extreme={game.extreme}
+        extremeIconPath={getExtremeIconURL(props.logoVersion)}
         thumbnail={getGameImageURL(LOGOS, game.id)}
+        logoVersion={props.logoVersion}
         isSelected={false}
         isDragged={false} />
     ))
@@ -47,7 +56,7 @@ export function RandomGames(props: RandomGamesProps) {
         </GameItemContainer>
         <SimpleButton
           value={strings.home.rerollPicks}
-          onClick={props.rollRandomGames} />
+          onClick={onRerollPicks} />
       </ul>
     </div>
   );

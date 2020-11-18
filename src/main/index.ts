@@ -1,12 +1,12 @@
 import { Coerce } from '@shared/utils/Coerce';
-import { flash } from './Flash';
+import { startBrowserMode } from './BrowserMode';
 import { main } from './Main';
 import { Init } from './types';
 
 const init = getArgs();
 
-if (init.args['flash']) {
-  flash(init);
+if (init.args['browser_mode']) {
+  startBrowserMode(init);
 } else {
   main(init);
 }
@@ -35,8 +35,12 @@ function getArgs(): Init {
         // Boolean value
         case 'host-remote':
         case 'back-only':
-        case 'flash':
+        case 'browser_mode':
           init.args[name] = Coerce.strToBool(value);
+          lastArgIndex = i;
+          break;
+        case 'browser_url':
+          init.args[name] = Coerce.str(value);
           lastArgIndex = i;
           break;
         // Numerical value
@@ -44,6 +48,9 @@ function getArgs(): Init {
         case 'height':
           init.args[name] = Coerce.num(value);
           lastArgIndex = i;
+          break;
+        case 'verbose':
+          init.args[name] = Coerce.strToBool(value);
           break;
       }
     }

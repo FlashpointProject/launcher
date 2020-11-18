@@ -1,4 +1,5 @@
 import { autoCode } from '@shared/lang';
+import { LogLevel } from '@shared/Log/interface';
 import { BackIn } from '../back/types';
 import { BrowsePageLayout } from '../BrowsePageLayout';
 import { ARCADE } from '../constants';
@@ -7,9 +8,9 @@ import { gameOrderByOptions, gameOrderReverseOptions } from '../order/util';
 import { deepCopy } from '../Util';
 import { Coerce } from '../utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
-import { IAppPreferencesData, IAppPreferencesDataMainWindow } from './interfaces';
+import { AppPreferencesData, AppPreferencesDataMainWindow, AppPathOverride } from './interfaces';
 
-export function updatePreferencesData(data: DeepPartial<IAppPreferencesData>, send = true) {
+export function updatePreferencesData(data: DeepPartial<AppPreferencesData>, send = true) {
   const preferences = window.Shared.preferences;
   // @TODO Figure out the delta change of the object tree, and only send the changes
   preferences.data = overwritePreferenceData(deepCopy(preferences.data), data);
@@ -25,7 +26,7 @@ export function updatePreferencesData(data: DeepPartial<IAppPreferencesData>, se
 const { num, str } = Coerce;
 
 /** Default Preferences Data used for values that are not found in the file */
-export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.freeze<IAppPreferencesData>({
+export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freeze<AppPreferencesData>({
   browsePageGameScale: 0.087,
   browsePageShowExtreme: false,
   enableEditing: true,
@@ -39,6 +40,7 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
   curatePageLeftSidebarWidth: 320,
   showDeveloperTab: false,
   currentTheme: 'Metal\\theme.css',
+  currentLogoSet: undefined,
   lastSelectedLibrary: '',
   gamesOrderBy: 'title',
   gamesOrder: 'ASC',
@@ -51,12 +53,22 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
     maximized: false,
   }),
   saveImportedCurations: true,
+  keepArchiveKey: true,
   symlinkCurationContent: true,
   onDemandImages: false,
   showLogSource: Object.freeze({
     // (Add log sources that should be hidden by default here)
   }),
+  showLogLevel: Object.freeze({
+    [LogLevel.TRACE]: false,
+    [LogLevel.DEBUG]: false,
+    [LogLevel.INFO]: true,
+    [LogLevel.WARN]: true,
+    [LogLevel.ERROR]: true,
+    [LogLevel.SILENT]: true,
+  }),
   excludedRandomLibraries: [],
+  appPathOverrides: [],
 });
 
 /**
@@ -66,10 +78,10 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
  * @returns Source argument (not a copy).
  */
 export function overwritePreferenceData(
-  source: IAppPreferencesData,
-  data: DeepPartial<IAppPreferencesData>,
+  source: AppPreferencesData,
+  data: DeepPartial<AppPreferencesData>,
   onError?: (error: string) => void
-): IAppPreferencesData {
+): AppPreferencesData {
   const parser = new ObjectParser({
     input: data,
     onError: onError && (e => onError(`Error while parsing Preferences: ${e.toString()}`)),
@@ -93,22 +105,42 @@ export function overwritePreferenceData(
   parser.prop('gamesOrder',                  v => source.gamesOrder                  = strOpt(v, gameOrderReverseOptions, 'ASC'));
   parser.prop('defaultLibrary',              v => source.defaultLibrary              = str(v));
   parser.prop('saveImportedCurations',       v => source.saveImportedCurations       = !!v);
+  parser.prop('keepArchiveKey',              v => source.keepArchiveKey              = !!v);
   parser.prop('symlinkCurationContent',      v => source.symlinkCurationContent      = !!v);
   parser.prop('onDemandImages',              v => source.onDemandImages              = !!v);
   parser.prop('excludedRandomLibraries',     v => source.excludedRandomLibraries     = strArray(v), true);
+  if (data.appPathOverrides) {
+    const newAppPathOverrides: AppPathOverride[] = [];
+    parser.prop('appPathOverrides').array((item, index) => newAppPathOverrides[index] = parseAppPathOverride(item));
+    source.appPathOverrides = newAppPathOverrides;
+  }
   // Parse window object
   parseMainWindow(parser.prop('mainWindow'), source.mainWindow);
   parser.prop('showLogSource').mapRaw((item, label) => source.showLogSource[label] = !!item);
+  parser.prop('showLogLevel').mapRaw((item, label) => source.showLogLevel[label as LogLevel] = !!item);
+  parser.prop('currentLogoSet',              v => source.currentLogoSet              = str(v), true);
   // Done
   return source;
 }
 
-function parseMainWindow(parser: IObjectParserProp<any>, output: IAppPreferencesDataMainWindow): void {
+function parseMainWindow(parser: IObjectParserProp<any>, output: AppPreferencesDataMainWindow): void {
   parser.prop('x',         v => output.x         = num(v), true);
   parser.prop('y',         v => output.y         = num(v), true);
   parser.prop('width',     v => output.width     = num(v), true);
   parser.prop('height',    v => output.height    = num(v), true);
   parser.prop('maximized', v => output.maximized = !!v);
+}
+
+function parseAppPathOverride(parser: IObjectParserProp<any>): AppPathOverride {
+  const override: AppPathOverride = {
+    path: '',
+    override: '',
+    enabled: true
+  };
+  parser.prop('path',     v => override.path     = str(v));
+  parser.prop('override', v => override.override = str(v));
+  parser.prop('enabled',  v => override.enabled  = !!v);
+  return override;
 }
 
 /**

@@ -1,5 +1,5 @@
 /** Data contained in the Config file */
-export type IAppConfigData = {
+export type AppConfigData = {
   /** Path to the FlashPoint root folder (relative or absolute) */
   flashpointPath: string;
   /** Path to the image folder (relative to the flashpoint path) */
@@ -10,12 +10,18 @@ export type IAppConfigData = {
   playlistFolderPath: string;
   /** Path to the json folder (relative to the flashpoint path) */
   jsonFolderPath: string;
+  /** Path to the htdocs folder (relative to the flashpoint path) */
+  htdocsFolderPath: string;
   /** Path to the platform folder (relative to the flashpoint path) */
   platformFolderPath: string;
   /** Path to the theme folder (relative to the flashpoint path) */
   themeFolderPath: string;
+  /** Path to the logo sets folder (relative to the flashpoint path) */
+  logoSetsFolderPath: string;
   /** Path of the meta edits folder (relative to the flashpoint path) */
   metaEditsFolderPath: string;
+  /** Path to load User extensions from (relative to the flashpoint path) */
+  extensionsPath: string;
   /** If the custom title bar should be used in MainWindow */
   useCustomTitlebar: boolean;
   /**
@@ -47,6 +53,12 @@ export type IAppConfigData = {
   onDemandBaseUrl: string;
   /** Base URL of the server to do pastes of the Logs to. */
   logsBaseUrl: string;
+  /** Proxy server to use during Browser Mode */
+  browserModeProxy: string;
   /** Whether to notify that launcher updates are available */
   updatesEnabled: boolean;
 };
+
+export type AppExtConfigData = {
+  [key: string]: any;
+}

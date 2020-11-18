@@ -9,7 +9,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { GameManager } from './game/GameManager';
 import { TagManager } from './game/TagManager';
-import { OpenDialogFunc } from './types';
+import { ShowMessageBoxFunc } from './types';
 import { copyError } from './util/misc';
 
 const { str, strToBool } = Coerce;
@@ -85,7 +85,7 @@ type CombinedMetas = {
  * Import all meta edits from a folder.
  * @param fullMetaEditsFolderPath Path to load meta edit files from.
  */
-export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDialog: OpenDialogFunc): Promise<ImportMetaEditResult> {
+export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDialog: ShowMessageBoxFunc): Promise<ImportMetaEditResult> {
   const errors: Error[] = [];
 
   // Load all meta edit files

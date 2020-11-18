@@ -30,7 +30,7 @@
     "node_modules",
     "dist",
     "build",
-    "./src/shared",
+    "./src/shared"
   ],
   "include": [
     "./typings/**/*",

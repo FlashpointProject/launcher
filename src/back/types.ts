@@ -2,18 +2,22 @@ import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { TagCategory } from '@database/entity/TagCategory';
 import { BackInit, ViewGame } from '@shared/back/types';
-import { IAppConfigData } from '@shared/config/interfaces';
+import { AppConfigData, AppExtConfigData } from '@shared/config/interfaces';
 import { ExecMapping, IBackProcessInfo, INamedBackProcessInfo } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
-import { ILogEntry, ILogPreEntry } from '@shared/Log/interface';
+import { ILogEntry } from '@shared/Log/interface';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
-import { IAppPreferencesData } from '@shared/preferences/interfaces';
-import { Theme } from '@shared/ThemeFile';
-import { MessageBoxOptions, OpenExternalOptions } from 'electron';
+import { AppPreferencesData } from '@shared/preferences/interfaces';
+import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
 import { EventEmitter } from 'events';
+import * as flashpoint from 'flashpoint-launcher';
 import { IncomingMessage, Server, ServerResponse } from 'http';
 import { Connection } from 'typeorm';
 import * as WebSocket from 'ws';
+import { ApiEmitter } from './extensions/ApiEmitter';
+import { ExtensionService } from './extensions/ExtensionService';
+import { InterceptorState as ModuleInterceptorState } from './extensions/NodeInterceptor';
+import { Registry } from './extensions/types';
 import { GameManagerState } from './game/types';
 import { ManagedChildProcess } from './ManagedChildProcess';
 import { SocketServer } from './SocketServer';
@@ -26,6 +30,7 @@ export type BackState = {
   isInit: boolean;
   isExit: boolean;
   isDev: boolean;
+  verbose: boolean;
   socketServer: SocketServer;
   fileServer: Server;
   fileServerPort: number;
@@ -33,8 +38,9 @@ export type BackState = {
     queue: ImageDownloadItem[];
     current: ImageDownloadItem[];
   };
-  preferences: IAppPreferencesData;
-  config: IAppConfigData;
+  preferences: AppPreferencesData;
+  config: AppConfigData;
+  extConfig: AppExtConfigData;
   configFolder: string;
   exePath: string;
   localeCode: string;
@@ -48,17 +54,20 @@ export type BackState = {
   queries: Record<string, BackQueryChache>;
   log: ILogEntry[];
   serviceInfo?: ServiceFileData;
-  services: Record<string, ManagedChildProcess>;
+  services: Map<string, ManagedChildProcess>;
   languageWatcher: FolderWatcher;
   languageQueue: EventQueue;
   languages: LangFile[];
   languageContainer: LangContainer;
-  themeWatcher: FolderWatcher;
-  themeQueue: EventQueue;
-  themeFiles: ThemeListItem[];
+  readonly themeState: ThemeState;
   playlists: Playlist[];
   execMappings: ExecMapping[];
   lastLinkedCurationKey: string;
+  moduleInterceptor: ModuleInterceptorState;
+  readonly status: StatusState,
+  readonly apiEmitters: ApiEmittersState,
+  readonly registry: Registry;
+  extensionsService: ExtensionService;
   connection: Connection | undefined;
 }
 
@@ -101,6 +110,8 @@ export interface EmitterPart<E extends string | number | symbol, F extends (...a
 
 export type ServiceFileData = {
   server: INamedBackProcessInfo[];
+  /** Processes to run as background services. */
+  daemon: INamedBackProcessInfo[];
   /** Processes to run before the launcher starts. */
   start: IBackProcessInfo[];
   /** Processes to run when the launcher closes. */
@@ -109,7 +120,12 @@ export type ServiceFileData = {
   watch: string[];
 };
 
-export type ThemeListItem = Theme & {
+export type ThemeState = {
+  watchers: FolderWatcher[];
+  queue: EventQueue;
+}
+
+export type ThemeListItem = {
   /**
    * File or folder name of the theme (relative to the theme folder).
    * Format: X in "\X" or "\X\theme.css"
@@ -129,6 +145,37 @@ export type TagsFile = {
   tags: BareTag[]
 }
 
-export type LogFunc = (entry: ILogPreEntry) => void;
-export type OpenDialogFunc = (options: MessageBoxOptions) => Promise<number>;
+export type ShowMessageBoxFunc = (options: MessageBoxOptions) => Promise<number>;
+export type ShowSaveDialogFunc = (options: SaveDialogOptions) => Promise<string | undefined>;
+export type ShowOpenDialogFunc = (options: OpenDialogOptions) => Promise<string[] | undefined>;
 export type OpenExternalFunc = (url: string, options?: OpenExternalOptions) => Promise<void>;
+
+export type StatusState = {
+  devConsole: string;
+}
+
+export type ApiEmittersState = Readonly<{
+  onDidInit: ApiEmitter<void>;
+  onDidConnect: ApiEmitter<void>;
+  games: Readonly<{
+    onWillLaunchGame: ApiEmitter<flashpoint.GameLaunchInfo>;
+    onWillLaunchAddApp: ApiEmitter<flashpoint.AdditionalApp>;
+    onWillLaunchCurationGame: ApiEmitter<flashpoint.GameLaunchInfo>;
+    onWillLaunchCurationAddApp: ApiEmitter<flashpoint.AdditionalApp>;
+    onDidLaunchGame: ApiEmitter<flashpoint.Game>;
+    onDidLaunchAddApp: ApiEmitter<flashpoint.AdditionalApp>;
+    onDidLaunchCurationGame: ApiEmitter<flashpoint.Game>;
+    onDidLaunchCurationAddApp: ApiEmitter<flashpoint.AdditionalApp>;
+    onDidUpdateGame: ApiEmitter<{oldGame: flashpoint.Game, newGame: flashpoint.Game}>;
+    onDidRemoveGame: ApiEmitter<flashpoint.Game>;
+    onDidUpdatePlaylist: ApiEmitter<{oldPlaylist: flashpoint.Playlist, newPlaylist: flashpoint.Playlist}>;
+    onDidUpdatePlaylistGame: ApiEmitter<{oldGame: flashpoint.PlaylistGame, newGame: flashpoint.PlaylistGame}>;
+    onDidRemovePlaylistGame: ApiEmitter<flashpoint.PlaylistGame>;
+    onWillImportCuration: ApiEmitter<flashpoint.CurationImportState>;
+  }>,
+  services: Readonly<{
+    onServiceNew: ApiEmitter<flashpoint.ManagedChildProcess>;
+    onServiceRemove: ApiEmitter<flashpoint.ManagedChildProcess>;
+    onServiceChange: ApiEmitter<flashpoint.ServiceChange>;
+  }>,
+}>

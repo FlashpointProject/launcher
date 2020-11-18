@@ -3,7 +3,7 @@ import { Game } from '@database/entity/Game';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
 import { validateSemiUUID } from '@renderer/util/uuid';
-import { htdocsPath, LOGOS, SCREENSHOTS } from '@shared/constants';
+import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertEditToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { CurationIndexImage, EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '@shared/curate/types';
 import { getContentFolderByKey, getCurationFolder, indexContentFolder } from '@shared/curate/util';
@@ -12,27 +12,38 @@ import { execFile } from 'child_process';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as YAML from 'yaml';
+import { ApiEmitter } from './extensions/ApiEmitter';
 import { GameManager } from './game/GameManager';
 import { TagManager } from './game/TagManager';
 import { GameManagerState } from './game/types';
-import { GameLauncher, LaunchAddAppOpts, LaunchGameOpts } from './GameLauncher';
-import { LogFunc, OpenDialogFunc, OpenExternalFunc } from './types';
+import { GameLauncher, GameLaunchInfo, LaunchAddAppOpts, LaunchGameOpts } from './GameLauncher';
+import { OpenExternalFunc, ShowMessageBoxFunc } from './types';
 import { getMklinkBatPath } from './util/elevate';
 import { uuid } from './util/uuid';
 
 type ImportCurationOpts = {
   curation: EditCuration;
   gameManager: GameManagerState;
-  /** If the status should be logged to the console (for debugging purposes). */
-  log?: LogFunc;
   date?: Date;
   saveCuration: boolean;
   fpPath: string;
+  htdocsPath: string;
   imageFolderPath: string;
-  openDialog: OpenDialogFunc;
+  openDialog: ShowMessageBoxFunc;
   openExternal: OpenExternalFunc;
   tagCategories: TagCategory[];
 }
+
+export type CurationImportState = {
+  /** Game being imported */
+  game: Game;
+  /** Files being copied, and to where */
+  contentToMove: string[][];
+  /** Path of the curation */
+  curationPath: string;
+}
+
+export const onWillImportCuration: ApiEmitter<CurationImportState> = new ApiEmitter<CurationImportState>();
 
 /**
  * Import a curation.
@@ -41,8 +52,8 @@ type ImportCurationOpts = {
 export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   if (opts.date === undefined) { opts.date = new Date(); }
   const {
+    htdocsPath,
     curation,
-    log,
     date,
     saveCuration,
     fpPath,
@@ -95,25 +106,20 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
       throw new Error('User Cancelled Import');
     }
   }
+
+  // Add game to database
   const game = await createGameFromCurationMeta(gameId, curation.meta, curation.addApps, date);
-  // Make a copy if not deleting the curation afterwards
-  const moveFiles = !saveCuration;
-  // curationLog(log, 'Importing Curation Meta');
-  // Copy/extract content and image files
   GameManager.updateGame(game).then(() => logMessage('Meta Added', curation));
 
-  // Copy Thumbnail
-  // curationLog(log, 'Importing Curation Thumbnail');
-  await importGameImage(curation.thumbnail, game.id, LOGOS, path.join(fpPath, imagePath), log)
-  .then(() => { if (log) { logMessage('Thumbnail Copied', curation); } });
-
-  // Copy Screenshot
-  // curationLog(log, 'Importing Curation Screenshot');
-  await importGameImage(curation.screenshot, game.id, SCREENSHOTS, path.join(fpPath, imagePath), log)
-  .then(() => { if (log) { logMessage('Screenshot Copied', curation); } });
+  // Store curation state for extension use later
+  const curationState: CurationImportState = {
+    game,
+    contentToMove,
+    curationPath: getCurationFolder(curation, fpPath)
+  };
 
   // Copy content and Extra files
-  // curationLog(log, 'Importing Curation Content');
+  // curationLog('Importing Curation Content');
   await (async () => {
     // Remove read-only flags from all files (since they can cause issues when moving/copying)
     // Note: This is only tested on Windows (Node's file permission implementation on Windows is incomplete, check the docs).
@@ -127,29 +133,23 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
               mode = mode | 0o666; // read & write permissions for everyone
               if (mode !== stats.mode) { await fs.chmod(filePath, mode); }
             } catch (error) {
-              curationLog(log, `Failed to get/set permissions of file (Path: "${filePath}").`);
+              curationLog(`Failed to get/set permissions of file (Path: "${filePath}").`);
               didFail = true;
             }
           });
         } catch (error) {
-          curationLog(log, `Failed to iterate through files before copying (From: "${pair[0]}", To: "${pair[1]}"). Error: ${error}`);
+          curationLog(`Failed to iterate through files before copying (From: "${pair[0]}", To: "${pair[1]}"). Error: ${error}`);
           didFail = true;
         }
       }
       if (didFail) {
-        curationLog(log, 'WARNING! One or more files failed to get unflagged as read-only. This may cause files to fail to import! Check the errors above for more information.');
+        curationLog('WARNING! One or more files failed to get unflagged as read-only. This may cause files to fail to import! Check the errors above for more information.');
       }
     }
   })()
   .then(async () => {
-    // Copy each paired content folder one at a time (allows for cancellation)
-    for (const pair of contentToMove) {
-      await fs.copy(pair[0], pair[1], { recursive: true, preserveTimestamps: true });
-      // await copyFolder(pair[0], pair[1], moveFiles, opts.openDialog, log);
-    }
-  })
-  .then(async () => {
-    curationLog(log, 'Saving Imported Content');
+    // If configured, save a copy of the curation before importing
+    curationLog('Saving Imported Content');
     try {
       if (saveCuration) {
         // Save working meta
@@ -162,13 +162,15 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
                         (date.getUTCMonth() + 1).toString().padStart(2, '0') + '-' +
                         date.getUTCDate().toString().padStart(2, '0');
         const backupPath = path.join(fpPath, 'Curations', 'Imported', `${dateStr}__${curation.key}`);
-        await copyFolder(getCurationFolder(curation, fpPath), backupPath, true, opts.openDialog, log);
+        await fs.copy(getCurationFolder(curation, fpPath), backupPath);
+        // Why does this return before finishing coying? Replaced with line above for now.
+        // await copyFolder(getCurationFolder(curation, fpPath), backupPath, true, opts.openDialog);
       }
       if (log) {
         logMessage('Content Copied', curation);
       }
     } catch (error) {
-      curationLog(log, `Error importing ${curation.meta.title} - Informing user...`);
+      curationLog(`Error importing ${curation.meta.title} - Informing user...`);
       const res = await opts.openDialog({
         title: 'Error saving curation',
         message: 'Saving curation import failed. Some/all files failed to move. Please check the content folder yourself before removing manually.\n\nOpen folder now?',
@@ -180,8 +182,30 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
       }
     }
   })
+  .then(async () => {
+    // Copy Thumbnail
+    // curationLog('Importing Curation Thumbnail');
+    await importGameImage(curation.thumbnail, game.id, LOGOS, path.join(fpPath, imagePath))
+    .then(() => { if (log) { logMessage('Thumbnail Copied', curation); } });
+
+    // Copy Screenshot
+    // curationLog('Importing Curation Screenshot');
+    await importGameImage(curation.screenshot, game.id, SCREENSHOTS, path.join(fpPath, imagePath))
+    .then(() => { if (log) { logMessage('Screenshot Copied', curation); } });
+  })
+  .then(async () => {
+    // Notify extensions and let them make changes
+    await onWillImportCuration.fire(curationState);
+  })
+  .then(async () => {
+    // Copy each paired content folder one at a time (allows for cancellation)
+    for (const pair of curationState.contentToMove) {
+      await fs.copy(pair[0], pair[1], { recursive: true, preserveTimestamps: true });
+      // await copyFolder(pair[0], pair[1], moveFiles, opts.openDialog, log);
+    }
+  })
   .catch((error) => {
-    curationLog(log, error.message);
+    curationLog(error.message);
     console.warn(error.message);
   });
 }
@@ -190,13 +214,17 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
  * Create and launch a game from curation metadata.
  * @param curation Curation to launch
  */
-export async function launchCuration(key: string, meta: EditCurationMeta, addAppMetas: EditAddAppCurationMeta[], symlinkCurationContent: boolean, skipLink: boolean, opts: Omit<LaunchGameOpts, 'game'|'addApps'>) {
-  if (!skipLink || !symlinkCurationContent) { await linkContentFolder(key, opts.fpPath, opts.isDev, opts.exePath, symlinkCurationContent); }
-  curationLog(opts.log, `Launching Curation ${meta.title}`);
+export async function launchCuration(key: string, meta: EditCurationMeta, addAppMetas: EditAddAppCurationMeta[], symlinkCurationContent: boolean,
+  skipLink: boolean, opts: Omit<LaunchGameOpts, 'game'|'addApps'>, onWillEvent:ApiEmitter<GameLaunchInfo>, onDidEvent: ApiEmitter<Game>) {
+  if (!skipLink || !symlinkCurationContent) { await linkContentFolder(key, opts.fpPath, opts.isDev, opts.exePath, opts.htdocsPath, symlinkCurationContent); }
+  curationLog(`Launching Curation ${meta.title}`);
+  const game = await createGameFromCurationMeta(key, meta, [], new Date());
   GameLauncher.launchGame({
     ...opts,
-    game: await createGameFromCurationMeta(key, meta, [], new Date()),
-  });
+    game: game,
+  },
+  onWillEvent);
+  onDidEvent.fire(game);
 }
 
 /**
@@ -204,12 +232,16 @@ export async function launchCuration(key: string, meta: EditCurationMeta, addApp
  * @param curationKey Key of the parent curation index
  * @param appCuration Add App Curation to launch
  */
-export async function launchAddAppCuration(curationKey: string, appCuration: EditAddAppCuration, symlinkCurationContent: boolean, skipLink: boolean, opts: Omit<LaunchAddAppOpts, 'addApp'>) {
-  if (!skipLink || !symlinkCurationContent) { await linkContentFolder(curationKey, opts.fpPath, opts.isDev, opts.exePath, symlinkCurationContent); }
+export async function launchAddAppCuration(curationKey: string, appCuration: EditAddAppCuration, symlinkCurationContent: boolean,
+  skipLink: boolean, opts: Omit<LaunchAddAppOpts, 'addApp'>, onWillEvent: ApiEmitter<AdditionalApp>, onDidEvent: ApiEmitter<AdditionalApp>) {
+  if (!skipLink || !symlinkCurationContent) { await linkContentFolder(curationKey, opts.fpPath, opts.isDev, opts.exePath, opts.htdocsPath, symlinkCurationContent); }
+  const addApp = createAddAppFromCurationMeta(appCuration, createPlaceholderGame());
+  await onWillEvent.fire(addApp);
   GameLauncher.launchAdditionalApplication({
     ...opts,
-    addApp: createAddAppFromCurationMeta(appCuration, createPlaceholderGame()),
+    addApp: addApp,
   });
+  onDidEvent.fire(addApp);
 }
 
 function logMessage(text: string, curation: EditCuration): void {
@@ -266,7 +298,7 @@ function createAddAppFromCurationMeta(addAppMeta: EditAddAppCuration, game: Game
   };
 }
 
-async function importGameImage(image: CurationIndexImage, gameId: string, folder: typeof LOGOS | typeof SCREENSHOTS, fullImagePath: string, log: LogFunc | undefined): Promise<void> {
+async function importGameImage(image: CurationIndexImage, gameId: string, folder: typeof LOGOS | typeof SCREENSHOTS, fullImagePath: string): Promise<void> {
   if (image.exists) {
     const last = path.join(gameId.substr(0, 2), gameId.substr(2, 2), gameId+'.png');
     const imagePath = path.join(fullImagePath, folder, last);
@@ -274,7 +306,8 @@ async function importGameImage(image: CurationIndexImage, gameId: string, folder
       // Check if the image is its own file
       if (image.filePath !== undefined) {
         await fs.promises.mkdir(path.dirname(imagePath), { recursive: true });
-        await copyOrMoveFile(image.filePath, imagePath, false, log);
+        await fs.promises.access(image.filePath, fs.constants.R_OK).then(() => log.debug('TEST', 'CAN READ')).catch(() => log.debug('TEST', 'CAN NOT READ'));
+        await fs.promises.copyFile(image.filePath, imagePath);
       }
       // Check if the image is extracted
       else if (image.fileName !== undefined && image.rawData !== undefined) {
@@ -287,7 +320,7 @@ async function importGameImage(image: CurationIndexImage, gameId: string, folder
 /** Symlinks (or copies if unavailble) a curations `content` folder to `htdocs\content`
  * @param curationKey Key of the (game) curation to link
  */
-async function linkContentFolder(curationKey: string, fpPath: string, isDev: boolean, exePath: string, symlinkCurationContent: boolean) {
+async function linkContentFolder(curationKey: string, fpPath: string, isDev: boolean, exePath: string, htdocsPath: string, symlinkCurationContent: boolean) {
   const curationPath = path.join(fpPath, 'Curations', 'Working', curationKey);
   const htdocsContentPath = path.join(fpPath, htdocsPath, 'content');
   // Clear out old folder if exists
@@ -329,8 +362,8 @@ async function linkContentFolder(curationKey: string, fpPath: string, isDev: boo
  * @param inFolder Folder to copy from
  * @param outFolder Folder to copy to
  */
-async function copyFolder(inFolder: string, outFolder: string, move: boolean, openDialog: OpenDialogFunc, log: LogFunc | undefined) {
-  const contentIndex = await indexContentFolder(inFolder, curationLog.bind(undefined, log));
+async function copyFolder(inFolder: string, outFolder: string, move: boolean, openDialog: ShowMessageBoxFunc) {
+  const contentIndex = await indexContentFolder(inFolder, curationLog);
   let yesToAll = false;
   return Promise.all(
     contentIndex.map(async (content) => {
@@ -347,7 +380,7 @@ async function copyFolder(inFolder: string, outFolder: string, move: boolean, op
         // Only ask when files don't match
         if (filesDifferent) {
           if (!yesToAll) {
-            await copyOrMoveFile(source, dest, move, log);
+            await copyOrMoveFile(source, dest, move);
             return;
           }
           const newStats = await fs.lstat(source);
@@ -363,57 +396,52 @@ async function copyFolder(inFolder: string, outFolder: string, move: boolean, op
           });
           switch (response) {
             case 0:
-              await copyOrMoveFile(source, dest, move, log);
+              await copyOrMoveFile(source, dest, move);
               break;
             case 2:
               yesToAll = true;
-              await copyOrMoveFile(source, dest, move, log);
+              await copyOrMoveFile(source, dest, move);
               break;
             case 3:
               cancel = true;
               break;
           }
           if (response === 0) {
-            await copyOrMoveFile(source, dest, move, log);
+            await copyOrMoveFile(source, dest, move);
           }
           if (response === 2) { cancel = true; }
         }
       })
       .catch(async () => {
         // Dest file doesn't exist, just move
-        copyOrMoveFile(source, dest, move, log);
+        copyOrMoveFile(source, dest, move);
       });
       if (cancel) { throw new Error('Import cancelled by user.'); }
     })
   );
 }
 
-async function copyOrMoveFile(source: string, dest: string, move: boolean, log: LogFunc | undefined) {
+async function copyOrMoveFile(source: string, dest: string, move: boolean) {
   try {
     if (move) { await fs.rename(source, dest); } // @TODO Make sure this overwrites files
     else      { await fs.copyFile(source, dest); }
   } catch (error) {
-    curationLog(log, `Error copying file '${source}' to '${dest}' - ${error.message}`);
+    curationLog(`Error copying file '${source}' to '${dest}' - ${error.message}`);
     if (move) {
-      curationLog(log, 'Attempting to copy file instead of move...');
+      curationLog('Attempting to copy file instead of move...');
       try {
         await fs.copyFile(source, dest);
       } catch (error) {
-        curationLog(log, 'Copy unsuccessful');
+        curationLog('Copy unsuccessful');
         throw error;
       }
-      curationLog(log, 'Copy successful');
+      curationLog('Copy successful');
     }
   }
 }
 
-function curationLog(log: LogFunc | undefined, content: string): void {
-  if (log) {
-    log({
-      source: 'Curation',
-      content,
-    });
-  }
+function curationLog(content: string): void {
+  log.info('Curate', content);
 }
 
 /**

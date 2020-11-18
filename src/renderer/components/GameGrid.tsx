@@ -1,11 +1,11 @@
-import { BackOut, ImageChangeData, WrappedResponse } from '@shared/back/types';
+import { BackOut, BackOutTemplate } from '@shared/back/types';
 import { LOGOS, VIEW_PAGE_SIZE } from '@shared/constants';
-import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
+import { memoizeOne } from '@shared/memoize';
 import * as React from 'react';
 import { ArrowKeyStepper, AutoSizer, ScrollIndices } from 'react-virtualized';
 import { Grid, GridCellProps, RenderedSection } from 'react-virtualized/dist/es/Grid';
 import { UpdateView, ViewGameSet } from '../interfaces';
-import { findElementAncestor, getGameImageURL } from '../Util';
+import { findElementAncestor, getExtremeIconURL, getGameImageURL } from '../Util';
 import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
 
@@ -44,11 +44,10 @@ export type GameGridProps = {
   /** Called when the user stops dragging a game (when they release it). */
   onGameDragEnd?: (event: React.DragEvent, gameId: string) => void;
   updateView: UpdateView;
-  // React-Virtualized pass-through props (their values are not used for anything other than updating the grid when changed)
-  orderBy?: GameOrderBy;
-  orderReverse?: GameOrderReverse;
   /** Function for getting a reference to grid element. Called whenever the reference could change. */
   gridRef?: RefFunc<HTMLDivElement>;
+  /** Updates to clear platform icon cache */
+  logoVersion: number;
 };
 
 /** A grid of cells, where each cell displays a game. */
@@ -69,7 +68,7 @@ export class GameGrid extends React.Component<GameGridProps> {
   grid: React.RefObject<Grid> = React.createRef();
 
   componentDidMount(): void {
-    window.Shared.back.on('message', this.onResponse);
+    window.Shared.back.registerAny(this.onResponse);
     this.updateCssVars();
     this.updatePropRefs();
   }
@@ -95,7 +94,7 @@ export class GameGrid extends React.Component<GameGridProps> {
   }
 
   componentWillUnmount(): void {
-    window.Shared.back.off('message', this.onResponse);
+    window.Shared.back.unregisterAny(this.onResponse);
   }
 
   render() {
@@ -165,8 +164,6 @@ export class GameGrid extends React.Component<GameGridProps> {
                       onSectionRendered={(params: RenderedSection) => this.onSectionRendered(params, columns, onSectionRendered)}
                       // Pass-through props (they have no direct effect on the grid)
                       // (If any property is changed the grid is re-rendered, even these)
-                      pass_orderBy={this.props.orderBy}
-                      pass_orderReverse={this.props.orderReverse}
                       pass_currentGamesCount={this.currentGamesCount} />
                   );
                 }}
@@ -180,6 +177,7 @@ export class GameGrid extends React.Component<GameGridProps> {
 
   /** Renders a single cell in the game grid. */
   cellRenderer = (props: GridCellProps): React.ReactNode => {
+    const extremeIconPath = this.extremeIconPathMemo(this.props.logoVersion);
     const { draggedGameId, games, gamesTotal, selectedGameId } = this.props;
     const index = props.rowIndex * this.columns + props.columnIndex;
     if (index < (gamesTotal || 0)) {
@@ -191,7 +189,10 @@ export class GameGrid extends React.Component<GameGridProps> {
           id={game ? game.id : ''}
           title={game ? game.title : ''}
           platform={game ? game.platform : ''}
+          extreme={game ? game.extreme : false}
+          extremeIconPath={extremeIconPath}
           thumbnail={game ? getGameImageURL(LOGOS, game.id) : ''}
+          logoVersion={this.props.logoVersion}
           isDraggable={true}
           isSelected={game ? game.id === selectedGameId : false}
           isDragged={game ? game.id === draggedGameId : false} />
@@ -201,19 +202,19 @@ export class GameGrid extends React.Component<GameGridProps> {
     }
   }
 
-  onResponse = (res: WrappedResponse) => {
-    if (res.type === BackOut.IMAGE_CHANGE) {
-      const resData: ImageChangeData = res.data;
+  onResponse: Parameters<typeof window.Shared.back.registerAny>[0] = (event, type, args) => {
+    if (type === BackOut.IMAGE_CHANGE) {
+      const [ folder, id ] = args as Parameters<BackOutTemplate[typeof type]>;
 
       // Update the image in the browsers cache
-      if (resData.folder === LOGOS) {
-        fetch(getGameImageURL(resData.folder, resData.id))
+      if (folder === LOGOS) {
+        fetch(getGameImageURL(folder, id))
         .then(() => {
           // Refresh the image for the game(s) that uses it
           const elements = document.getElementsByClassName('game-grid-item');
           for (let i = 0; i < elements.length; i++) {
             const item = elements.item(i);
-            if (item && GameGridItem.getId(item) === resData.id) {
+            if (item && GameGridItem.getId(item) === id) {
               const img: HTMLElement | null = item.querySelector('.game-grid-item__thumb__image') as any;
               if (img) {
                 const val = img.style.backgroundImage;
@@ -345,6 +346,10 @@ export class GameGrid extends React.Component<GameGridProps> {
 
     this.props.updateView(trailingPage, (leadingPage - trailingPage) + 2);
   }
+
+  extremeIconPathMemo = memoizeOne((logoVersion: number) => {
+    return getExtremeIconURL(logoVersion);
+  });
 }
 
 function findGameIndex(games: ViewGameSet | undefined, gameId: string | undefined): number {

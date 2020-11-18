@@ -1,15 +1,19 @@
 import { Playlist } from '@database/entity/Playlist';
 import { TagCategory } from '@database/entity/TagCategory';
+import { SocketClient } from '@shared/back/SocketClient';
+import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/extensions/interfaces';
 import { OpenDialogOptions } from 'electron';
-import { SharedSocket } from './back/SharedSocket';
-import { IAppConfigData } from './config/interfaces';
+import { AppConfigData, AppExtConfigData } from './config/interfaces';
 import { LangContainer, LangFile } from './lang';
 import { ILogEntry } from './Log/interface';
-import { IAppPreferencesData } from './preferences/interfaces';
-import { Theme } from './ThemeFile';
+import { AppPreferencesData } from './preferences/interfaces';
+import { ITheme } from './ThemeFile';
 
 /** Replacement of "object" type. Note: I'm not sure how effective it is though //obelisk */
 type ObjectLike = Record<string, unknown> | Record<number, unknown>
+
+/** Type for all global logging functions */
+export type LogFunc = (source: string, message: string) => ILogEntry;
 
 /** Recursively set all properties as optional. */
 export type DeepPartial<T> = {
@@ -49,14 +53,14 @@ export interface IMainWindowExternal {
 
   preferences: {
     /** Current preferences. */
-    data: IAppPreferencesData;
+    data: AppPreferencesData;
     /** Emitter for preference related events. */
     onUpdate?: () => void;
   };
 
   /** Renderers interface for the Config data */
   config: {
-    data: IAppConfigData;
+    data: AppConfigData;
     /** Full path of the Flashpoint folder. */
     fullFlashpointPath: string;
     /** Full path of the JSON folder. */
@@ -70,7 +74,7 @@ export interface IMainWindowExternal {
   }
 
   /** Current status of the services. */
-  services: IService[];
+  initialServices: IService[];
 
   /** If the launcher is running in development mode (using something like "npm run start"). */
   isDev: boolean;
@@ -79,7 +83,7 @@ export interface IMainWindowExternal {
   isBackRemote: boolean;
 
   /** Socket to the back API. */
-  back: SharedSocket<WebSocket>;
+  back: SocketClient<WebSocket>;
 
   /** Port of the back file server. */
   fileServerPort: number;
@@ -92,7 +96,7 @@ export interface IMainWindowExternal {
 
   initialLang: LangContainer;
   initialLangList: LangFile[];
-  initialThemes: Theme[];
+  initialThemes: ITheme[];
   initialPlaylists?: Playlist[];
   initialLibraries: string[];
   initialServerNames: string[];
@@ -100,6 +104,12 @@ export interface IMainWindowExternal {
   initialPlatforms: Record<string, string[]>;
   initialLocaleCode: string;
   initialTagCategories: TagCategory[];
+  initialExtensions: IExtensionDescription[];
+  initialDevScripts: ExtensionContribution<'devScripts'>[];
+  initialContextButtons: ExtensionContribution<'contextButtons'>[];
+  initialLogoSets: LogoSet[];
+  initialExtConfigs: ExtensionContribution<'configuration'>[];
+  initialExtConfig: AppExtConfigData;
 
   /**
    * Wait for the preload to initialize.
@@ -176,11 +186,11 @@ export type IBackProcessInfo = {
 /** State of a managed process. */
 export enum ProcessState {
   /** The process is not running. */
-  STOPPED,
+  STOPPED = 0,
   /** The process is running. */
-  RUNNING,
+  RUNNING = 1,
   /** The process is being killed (it has been requested to terminate, but it hasn't been terminated yet). */
-  KILLING
+  KILLING = 2
 }
 
 /** Actions that can be performed on a service. */

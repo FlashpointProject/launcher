@@ -2,7 +2,7 @@ import { ConfigFile } from '@back/ConfigFile';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import { STATIC_PATH, RESULT_PATH } from '@tests/setup';
-import { IAppConfigData } from '@shared/config/interfaces';
+import { AppConfigData } from '@shared/config/interfaces';
 import { getDefaultConfigData } from '@shared/config/util';
 
 const BASE_PATH = 'ConfigFile';
@@ -58,7 +58,7 @@ describe('Config File', () => {
   });
 });
 
-const staticConfig: IAppConfigData = {
+const staticConfig: AppConfigData = {
   flashpointPath: 'TestSuccess',
   imageFolderPath: 'TestSuccess',
   logoFolderPath: 'TestSuccess',

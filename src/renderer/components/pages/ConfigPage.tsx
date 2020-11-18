@@ -1,30 +1,48 @@
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
-import { BackIn, UpdateConfigData } from '@shared/back/types';
+import { BackIn } from '@shared/back/types';
+import { AppExtConfigData } from '@shared/config/interfaces';
+import { ExtConfigurationProp, ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { autoCode, LangContainer, LangFile } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
 import { updatePreferencesData } from '@shared/preferences/util';
-import { Theme } from '@shared/ThemeFile';
+import { ITheme } from '@shared/ThemeFile';
 import { formatString } from '@shared/utils/StringFormatter';
+import { AppPathOverride } from 'flashpoint-launcher';
 import * as React from 'react';
-import { isFlashpointValidCheck } from '../../Util';
+import { getExtIconURL, getPlatformIconURL, isFlashpointValidCheck } from '../../Util';
 import { LangContext } from '../../util/lang';
 import { CheckBox } from '../CheckBox';
+import { ConfigBox } from '../ConfigBox';
+import { ConfigBoxCheckbox } from '../ConfigBoxCheckbox';
+import { ConfigBoxInput } from '../ConfigBoxInput';
+import { ConfigBoxMultiSelect, MultiSelectItem } from '../ConfigBoxMultiSelect';
+import { ConfigBoxSelect, SelectItem } from '../ConfigBoxSelect';
+import { ConfigBoxSelectInput } from '../ConfigBoxSelectInput';
 import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
-import { Dropdown } from '../Dropdown';
-import { DropdownInputField } from '../DropdownInputField';
 import { InputField } from '../InputField';
+import { OpenIcon } from '../OpenIcon';
 
 type OwnProps = {
   /** List of all game libraries */
   libraries: string[];
   /** List of all platforms */
   platforms: string[];
-  /** Filenames of all files in the themes folder. */
-  themeList: Theme[];
+  /** List of all available themes */
+  themeList: ITheme[];
+  /** List of all available logo sets */
+  logoSets: ILogoSet[];
+  /** Version of logos to render */
+  logoVersion: number;
   /** List of available languages. */
   availableLangs: LangFile[];
   /** List of available server names. */
   serverNames: string[];
+  /** All available extensions */
+  extensions: IExtensionDescription[];
+  /** All available extension configurations */
+  extConfigs: ExtensionContribution<'configuration'>[];
+  /** Current extension config data */
+  extConfig: AppExtConfigData;
   localeCode: string;
 };
 
@@ -56,8 +74,6 @@ export interface ConfigPage {
  * @TODO Make it clear which settings are "configs" and which are "preferences" (or at least which require you to "save & restart")?
  */
 export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState> {
-  /** Reference to the input element of the "current theme" drop-down field. */
-  currentThemeInputRef: HTMLInputElement | HTMLTextAreaElement | null = null;
 
   constructor(props: ConfigPageProps) {
     super(props);
@@ -73,13 +89,16 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   }
 
   render() {
-    const libraryStrings = this.context.libraries;
     const strings = this.context.config;
-    const { platforms, libraries } = this.props;
-    const { nativePlatforms } = this.state;
     const autoString = formatString(strings.auto, this.props.localeCode);
-    const langOptions = this.renderLangOptionsMemo(this.props.availableLangs);
-    const serverOptions = this.renderServerOptionsMemo(this.props.serverNames);
+    const langOptions = this.itemizeLangOptionsMemo(this.props.availableLangs, autoString);
+    const serverOptions = this.itemizeServerOptionsMemo(this.props.serverNames);
+    const libraryOptions = this.itemizeLibraryOptionsMemo(this.props.libraries, this.props.preferencesData.excludedRandomLibraries, this.context.libraries);
+    const platformOptions = this.itemizePlatformOptionsMemo(this.props.platforms, this.state.nativePlatforms);
+    const appPathOverrides = this.renderAppPathOverridesMemo(this.props.preferencesData.appPathOverrides);
+    const logoSetPreviewRows = this.renderLogoSetMemo(this.props.platforms, this.props.logoVersion);
+    const extensions = this.renderExtensionsMemo(this.props.extensions, strings);
+    const extConfigSections = this.renderExtensionConfigs(this.props.extConfigs, this.props.extConfig);
     return (
       <div className='config-page simple-scroll'>
         <div className='config-page__inner'>
@@ -92,82 +111,31 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
             <div className='setting__body'>
               {/* Show Extreme Games */}
               {((!window.Shared.config.data.disableExtremeGames)) ? (
-                <div className='setting__row'>
-                  <div className='setting__row__top'>
-                    <div className='setting__row__title'>
-                      <p>{strings.extremeGames}</p>
-                    </div>
-                    <div className='setting__row__content setting__row__content--toggle'>
-                      <div>
-                        <CheckBox
-                          checked={this.props.preferencesData.browsePageShowExtreme}
-                          onToggle={this.onShowExtremeChange} />
-                      </div>
-                    </div>
-                  </div>
-                  <div className='setting__row__bottom'>
-                    <p>{strings.extremeGamesDesc}</p>
-                  </div>
-                </div>
+                <ConfigBoxCheckbox
+                  title={strings.extremeGames}
+                  description={strings.extremeGamesDesc}
+                  checked={this.props.preferencesData.browsePageShowExtreme}
+                  onToggle={this.onShowExtremeChange} />
               ) : undefined }
               {/* Enable Editing */}
-              <div className='setting__row'>
-                <div className='setting__row__top'>
-                  <div className='setting__row__title'>
-                    <p>{strings.enableEditing}</p>
-                  </div>
-                  <div className='setting__row__content setting__row__content--toggle'>
-                    <div>
-                      <CheckBox
-                        checked={this.props.preferencesData.enableEditing}
-                        onToggle={this.onEnableEditingChange} />
-                    </div>
-                  </div>
-                </div>
-                <div className='setting__row__bottom'>
-                  <p>{strings.enableEditingDesc}</p>
-                </div>
-              </div>
+              <ConfigBoxCheckbox
+                title={strings.enableEditing}
+                description={strings.enableEditingDesc}
+                checked={this.props.preferencesData.enableEditing}
+                onToggle={this.onEnableEditingChange} />
               {/* On Demand Images */}
-              <div className='setting__row'>
-                <div className='setting__row__top'>
-                  <div className='setting__row__title'>
-                    <p>{strings.onDemandImages}</p>
-                  </div>
-                  <div className='setting__row__content setting__row__content--toggle'>
-                    <div>
-                      <CheckBox
-                        checked={this.props.preferencesData.onDemandImages}
-                        onToggle={this.onOnDemandImagesChange} />
-                    </div>
-                  </div>
-                </div>
-                <div className='setting__row__bottom'>
-                  <p>{strings.onDemandImagesDesc}</p>
-                </div>
-              </div>
+              <ConfigBoxCheckbox
+                title={strings.onDemandImages}
+                description={strings.onDemandImagesDesc}
+                checked={this.props.preferencesData.onDemandImages}
+                onToggle={this.onOnDemandImagesChange} />
               {/* Current Language */}
-              <div className='setting__row'>
-                <div className='setting__row__top'>
-                  <div className='setting__row__title'>
-                    <p>{strings.currentLanguage}</p>
-                  </div>
-                  <div className='setting__row__content setting__row__content--toggle'>
-                    <div>
-                      <select
-                        className='simple-selector'
-                        value={this.props.preferencesData.currentLanguage || ''}
-                        onChange={this.onCurrentLanguageSelect}>
-                        <option value={autoCode}>{autoString}</option>
-                        {langOptions}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-                <div className='setting__row__bottom'>
-                  <p>{strings.currentLanguageDesc}</p>
-                </div>
-              </div>
+              <ConfigBoxSelect
+                title={strings.currentLanguage}
+                description={strings.currentLanguageDesc}
+                value={this.props.preferencesData.currentLanguage || ''}
+                onChange={this.onCurrentLanguageSelect}
+                items={langOptions} />
             </div>
           </div>
           {/* -- Flashpoint -- */}
@@ -175,92 +143,42 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
             <p className='setting__title'>{strings.flashpointHeader}</p>
             <div className='setting__body'>
               {/* Flashpoint Path */}
-              <div className='setting__row'>
-                <div className='setting__row__top'>
-                  <p className='setting__row__title'>{strings.flashpointPath}</p>
-                  <div className='setting__row__content setting__row__content--filepath-path'>
-                    <ConfigFlashpointPathInput
-                      input={this.state.flashpointPath}
-                      buttonText={strings.browse}
-                      onInputChange={this.onFlashpointPathChange}
-                      isValid={this.state.isFlashpointPathValid} />
-                  </div>
-                </div>
-                <div className='setting__row__bottom'>
-                  <p>{strings.flashpointPathDesc}</p>
-                </div>
-              </div>
+              <ConfigBox
+                title={strings.flashpointPath}
+                description={strings.flashpointPathDesc}
+                contentClassName='setting__row__content--filepath-path'>
+                <ConfigFlashpointPathInput
+                  input={this.state.flashpointPath}
+                  buttonText={strings.browse}
+                  onInputChange={this.onFlashpointPathChange}
+                  isValid={this.state.isFlashpointPathValid} />
+              </ConfigBox>
               {/* Random Libraries */}
-              <div className='setting__row'>
-                <div className='setting__row__top'>
-                  <div className='setting__row__title'>
-                    <p>{strings.randomLibraries}</p>
-                  </div>
-                  <div className='setting__row__content setting__row__content--toggle'>
-                    <div>
-                      <Dropdown text={strings.libraries}>
-                        { libraries.map((library, index) => (
-                          <label
-                            key={index}
-                            className='log-page__dropdown-item'>
-                            <div className='simple-center'>
-                              {/** We flip the checked value so the render shows Included, but we keep them as Excluded */}
-                              <input
-                                type='checkbox'
-                                checked={this.props.preferencesData.excludedRandomLibraries.findIndex((item) => item === library) === -1}
-                                onChange={() => { this.onExcludedLibraryCheckboxChange(library); }}
-                                className='simple-center__vertical-inner' />
-                            </div>
-                            <div className='simple-center'>
-                              <p className='simple-center__vertical-inner log-page__dropdown-item-text'>
-                                {libraryStrings[library] || library}
-                              </p>
-                            </div>
-                          </label>
-                        )) }
-                      </Dropdown>
-                    </div>
-                  </div>
-                </div>
-                <div className='setting__row__bottom'>
-                  <p>{strings.randomLibrariesDesc}</p>
-                </div>
-              </div>
+              <ConfigBoxMultiSelect
+                title={strings.randomLibraries}
+                description={strings.randomLibrariesDesc}
+                text={strings.libraries}
+                onChange={this.onExcludedLibraryCheckboxChange}
+                items={libraryOptions} />
               {/* Native Platforms */}
-              <div className='setting__row'>
-                <div className='setting__row__top'>
-                  <div className='setting__row__title'>
-                    <p>{strings.nativePlatforms}</p>
-                  </div>
-                  <div className='setting__row__content setting__row__content--toggle'>
-                    <div>
-                      <Dropdown text={strings.platforms}>
-                        { platforms.map((platform, index) => (
-                          <label
-                            key={index}
-                            className='log-page__dropdown-item'>
-                            <div className='simple-center'>
-                              <input
-                                type='checkbox'
-                                checked={nativePlatforms.findIndex((item) => item === platform) !== -1}
-                                onChange={() => { this.onNativeCheckboxChange(platform); }}
-                                className='simple-center__vertical-inner' />
-                            </div>
-                            <div className='simple-center'>
-                              <p className='simple-center__vertical-inner log-page__dropdown-item-text'>
-                                {platform}
-                              </p>
-                            </div>
-                          </label>
-                        )) }
-                      </Dropdown>
-                    </div>
-                  </div>
+              <ConfigBoxMultiSelect
+                title={strings.nativePlatforms}
+                description={strings.nativePlatformsDesc}
+                text={strings.platforms}
+                onChange={this.onNativeCheckboxChange}
+                items={platformOptions} />
+              {/* App Path Overrides */}
+              <ConfigBox
+                title={strings.appPathOverrides}
+                description={strings.appPathOverridesDesc} >
+                {appPathOverrides}
+                <div
+                  onClick={this.onNewAppPathOverride}
+                  className='setting__row__content--override-row__new'>
+                  <OpenIcon
+                    icon='plus' />
                 </div>
-                <div className='setting__row__bottom'>
-                  <p>{strings.nativePlatformsDesc}</p>
-                </div>
-              </div>
+              </ConfigBox>
             </div>
           </div>
 
@@ -268,45 +186,32 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
           <div className='setting'>
             <p className='setting__title'>{strings.visualsHeader}</p>
             <div className='setting__body'>
-              {/* Custom Title Bar */}
-              <div className='setting__row'>
-                <div className='setting__row__top'>
-                  <div className='setting__row__title'>
-                    <p>{strings.useCustomTitleBar}</p>
-                  </div>
-                  <div className='setting__row__content setting__row__content--toggle'>
-                    <div>
-                      <CheckBox
-                        checked={this.state.useCustomTitlebar}
-                        onToggle={this.onUseCustomTitlebarChange} />
-                    </div>
-                  </div>
-                </div>
-                <div className='setting__row__bottom'>
-                  <p>{strings.useCustomTitleBarDesc}</p>
-                </div>
-              </div>
+              <ConfigBoxCheckbox
+                title={strings.useCustomTitleBar}
+                description={strings.useCustomTitleBarDesc}
+                checked={this.state.useCustomTitlebar}
+                onToggle={this.onUseCustomTitlebarChange}/>
               {/* Theme */}
-              <div className='setting__row'>
-                <div className='setting__row__top'>
-                  <div className='setting__row__title'>
-                    <p>{strings.theme}</p>
-                  </div>
-                  <div className='setting__row__content setting__row__content--input-field setting__row__content--theme-input-field'>
-                    <DropdownInputField
-                      text={this.props.preferencesData.currentTheme || ''}
-                      placeholder={strings.noTheme}
-                      onChange={this.onCurrentThemeChange}
-                      editable={true}
-                      items={[ ...this.props.themeList.map(formatThemeItemName), 'No Theme' ]}
-                      onItemSelect={this.onCurrentThemeItemSelect}
-                      inputRef={this.currentThemeInputRefFunc} />
-                  </div>
-                </div>
-                <div className='setting__row__bottom'>
-                  <p>{strings.themeDesc}</p>
-                </div>
-              </div>
+              <ConfigBoxSelectInput
+                title={strings.theme}
+                description={strings.themeDesc}
+                text={this.getThemeName(this.props.preferencesData.currentTheme || '') || ''}
+                placeholder={strings.noTheme}
+                editable={true}
+                items={[ ...this.props.themeList.map(formatThemeItemName), 'No Theme' ]}
+                onChange={this.onCurrentThemeChange}
+                onItemSelect={this.onCurrentThemeItemSelect}/>
+              {/* Logo Set */}
+              <ConfigBoxSelectInput
+                title={strings.logoSet}
+                description={strings.logoSetDesc}
+                text={this.getLogoSetName(this.props.preferencesData.currentLogoSet || '') || ''}
+                placeholder={strings.noLogoSet}
+                editable={true}
+                items={[ ...this.props.logoSets.map(formatLogoSetName), 'No Logo Set' ]}
+                onChange={this.onCurrentLogoSetChange}
+                onItemSelect={this.onCurrentLogoSetSelect}
+                bottomChildren={logoSetPreviewRows}/>
             </div>
           </div>
 
@@ -315,84 +220,47 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
             <p className='setting__title'>{strings.advancedHeader}</p>
             <div className='setting__body'>
               {/* Show Developer Tab */}
-              <div className='setting__row'>
-                <div className='setting__row__top'>
-                  <div className='setting__row__title'>
-                    <p>{strings.showDeveloperTab}</p>
-                  </div>
-                  <div className='setting__row__content setting__row__content--toggle'>
-                    <div>
-                      <CheckBox
-                        checked={this.props.preferencesData.showDeveloperTab}
-                        onToggle={this.onShowDeveloperTab} />
-                    </div>
-                  </div>
-                </div>
-                <div className='setting__row__bottom'>
-                  <p>{strings.showDeveloperTabDesc}</p>
-                </div>
-              </div>
+              <ConfigBoxCheckbox
+                title={strings.showDeveloperTab}
+                description={strings.showDeveloperTabDesc}
+                checked={this.props.preferencesData.showDeveloperTab}
+                onToggle={this.onShowDeveloperTab} />
               {/* Server */}
-              <div className='setting__row'>
-                <div className='setting__row__top'>
-                  <div className='setting__row__title'>
-                    <p>{strings.server}</p>
-                  </div>
-                  <div className='setting__row__content setting__row__content--toggle'>
-                    <div>
-                      <select
-                        className='simple-selector'
-                        value={this.state.server}
-                        onChange={this.onServerSelect}>
-                        {serverOptions}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-                <div className='setting__row__bottom'>
-                  <p>{strings.serverDesc}</p>
-                </div>
-              </div>
+              <ConfigBoxSelect
+                title={strings.server}
+                description={strings.serverDesc}
+                value={this.state.server}
+                onChange={this.onServerSelect}
+                items={serverOptions} />
               {/* Metadata Server Host */}
-              <div className='setting__row'>
-                <div className='setting__row__top'>
-                  <p className='setting__row__title'>{strings.metadataServerHost}</p>
-                  <div className='setting__row__content setting__row__content--filepath-path'>
-                    <InputField
-                      editable={true}
-                      text={this.state.metadataServerHost}
-                      onChange={this.onMetadataServerHostChange} />
-                  </div>
-                </div>
-                <div className='setting__row__bottom'>
-                  <p>{strings.metadataServerHostDesc}</p>
-                </div>
-              </div>
+              <ConfigBoxInput
+                title={`(INDEV) ${strings.metadataServerHost}`}
+                description={strings.metadataServerHostDesc}
+                contentClassName='setting__row__content--filepath-path'
+                editable={true}
+                text={this.state.metadataServerHost}
+                onChange={this.onMetadataServerHostChange} />
               {/* Fallback Language */}
-              <div className='setting__row'>
-                <div className='setting__row__top'>
-                  <div className='setting__row__title'>
-                    <p>{strings.fallbackLanguage}</p>
-                  </div>
-                  <div className='setting__row__content setting__row__content--toggle'>
-                    <div>
-                      <select
-                        className='simple-selector'
-                        value={this.props.preferencesData.fallbackLanguage || ''}
-                        onChange={this.onFallbackLanguageSelect}>
-                        <option value='<none>'>None</option>
-                        <option value={autoCode}>{autoString}</option>
-                        {langOptions}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-                <div className='setting__row__bottom'>
-                  <p>{strings.fallbackLanguageDesc}</p>
-                </div>
-              </div>
+              <ConfigBoxSelect
+                title={strings.fallbackLanguage}
+                description={strings.fallbackLanguageDesc}
+                value={this.props.preferencesData.fallbackLanguage || ''}
+                onChange={this.onFallbackLanguageSelect}
+                items={langOptions} />
             </div>
           </div>
+
+          {/* -- Advanced -- */}
+          <div className='setting'>
+            <p className='setting__title'>{strings.extensionsHeader}</p>
+            { extensions.length > 0 ? (
+              <div className='setting__body'>
+                {extensions}
+              </div>
+            ) : <div>{formatString(strings.noExtensionsLoaded, window.Shared.config.data.extensionsPath)}</div>}
+          </div>
+
+          {extConfigSections}
 
           {/* -- Save & Restart -- */}
           <div className='setting'>
@@ -409,25 +277,186 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     );
   }
 
-  renderLangOptionsMemo = memoizeOne((langs: LangFile[]) =>
-    langs.map((lang, index) => (
-      <option
-        key={index}
-        value={lang.code}>
-        {lang.data.name ? `${lang.data.name} (${lang.code})` : lang.code}
-      </option>
-    ))
+  itemizeLangOptionsMemo = memoizeOne((langs: LangFile[], autoString: string): SelectItem[] => {
+    const items: SelectItem[] = langs.map((lang) => {
+      return {
+        value: lang.code,
+        display: lang.data.name ? `${lang.data.name} (${lang.code})` : lang.code
+      };
+    });
+    items.push({ value: '<none>', display: 'None'});
+    items.push({ value: autoCode, display: autoString});
+    return items;
+  });
+
+  itemizeServerOptionsMemo = memoizeOne((serverNames: string[]): SelectItem[] =>
+    serverNames.map((name) => {
+      return {
+        value: name
+      };
+    })
   );
 
-  renderServerOptionsMemo = memoizeOne((serverNames: string[]) =>
-    serverNames.map((name, index) => (
-      <option
-        key={index}
-        value={name}>
-        {name}
-      </option>
-    ))
-  );
+  itemizeLibraryOptionsMemo = memoizeOne((libraries: string[], excludedRandomLibraries: string[], libraryStrings: LangContainer['libraries']): MultiSelectItem[] => {
+    return libraries.map(library => {
+      return {
+        value: library,
+        display: libraryStrings[library] || library,
+        checked: !excludedRandomLibraries.includes(library)
+      };
+    });
+  });
+
+  itemizePlatformOptionsMemo = memoizeOne((platforms: string[], nativePlatforms: string[]) => {
+    return platforms.map(platform => {
+      return {
+        value: platform,
+        checked: nativePlatforms.includes(platform)
+      };
+    });
+  });
+
+  renderAppPathOverridesMemo = memoizeOne((appPathOverrides: AppPathOverride[]) => {
+    return appPathOverrides.map((item, index) => {
+      return (
+        <div
+          className='setting__row__content--override-row'
+          key={index}>
+          <CheckBox
+            checked={item.enabled}
+            onToggle={(checked) => this.onAppPathOverrideEnabledToggle(index, checked)}/>
+          <InputField
+            editable={true}
+            onChange={(event) => this.onAppPathOverridePathChange(index, event.target.value)}
+            text={item.path} />
+          <div
+            className='setting__row__content--override-row__seperator'>
+            {'->'}
+          </div>
+          <InputField
+            editable={true}
+            onChange={(event) => this.onAppPathOverrideOverrideChange(index, event.target.value)}
+            text={item.override} />
+          <div
+            onClick={() => this.onRemoveAppPathOverride(index)}
+            className='setting__row__content--remove-app-override'>
+            <OpenIcon
+              className='setting__row__content--override-row__delete'
+              icon='delete' />
+          </div>
+        </div>
+      );
+    });
+  });
+
+  renderLogoSetMemo = memoizeOne((platforms: string[], logoVersion: number) => {
+    const allRows: JSX.Element[] = [];
+    const toRender = [...platforms, 'Extreme'];
+    // Render 16 logos per row, vertically stacked
+    for (let i = 0; i < toRender.length; i = i + 16) {
+      const slice = toRender.slice(i, i+16);
+      allRows.push(
+        <div
+          className='config-page__logo-row'
+          key={i} >
+          { slice.map((platform, index) =>
+            <div
+              key={index}
+              className='config-page__logo-row__logo'
+              title={platform}
+              style={{ backgroundImage: `url('${getPlatformIconURL(platform, logoVersion)}')` }} />
+          ) }
+        </div>
+      );
+    }
+    return allRows;
+  });
+
+  renderExtensionsMemo = memoizeOne((extensions: IExtensionDescription[], strings: LangContainer['config']): JSX.Element[] => {
+    return extensions.map((ext) => {
+      const shortContribs = [];
+      if (ext.contributes) {
+        if (ext.contributes.devScripts && ext.contributes.devScripts.length > 0) {
+          shortContribs.push(
+            <div key='devScripts'>
+              {`${ext.contributes.devScripts.length} ${strings.extDevScripts}`}
+            </div>
+          );
+        }
+        if (ext.contributes.themes && ext.contributes.themes.length > 0) {
+          shortContribs.push(
+            <div key='themes'>
+              {`${ext.contributes.themes.length} ${strings.extThemes}`}
+            </div>
+          );
+        }
+        if (ext.contributes.logoSets && ext.contributes.logoSets.length > 0) {
+          shortContribs.push(
+            <div key='logoSets'>
+              {`${ext.contributes.logoSets.length} ${strings.extLogoSets}`}
+            </div>
+          );
+        }
+        if (ext.contributes.applications && ext.contributes.applications.length > 0) {
+          shortContribs.push(
+            <div key='applications'>
+              {`${ext.contributes.applications.length} ${strings.extApplications}`}
+            </div>
+          );
+        }
+      }
+      return (
+        <div key={ext.id}>
+          <div className='setting__row'>
+            <div className='setting__row__top'>
+              <div className='setting__row__title setting__row__title--flex setting__row__title--align-left'>
+                { ext.icon ? (
+                  <div
+                    style={{ backgroundImage: `url(${getExtIconURL(ext.id)})`}}
+                    className='setting__row__ext-icon' />
+                ): undefined }
+                <div>
+                  <div>{ext.displayName || ext.name}</div>
+                  <div>{ext.author}</div>
+                </div>
+              </div>
+              <div className='setting__row__content setting__row__content--right-align'>
+                {shortContribs}
+              </div>
+            </div>
+            <div className='setting__row__bottom'>
+              <p>{ext.description}</p>
+            </div>
+          </div>
+        </div>
+      );
+    });
+  });
+
+  renderExtensionConfigs = memoizeOne((extConfigs: ExtensionContribution<'configuration'>[], extConfig: AppExtConfigData) => {
+    let sections: JSX.Element[] = [];
+
+    extConfigs.forEach((contrib, idx) => {
+      sections = sections.concat(contrib.value.map((config, configIdx) => {
+        const propBoxes = [];
+        for (const key in config.properties) {
+          propBoxes.push(renderExtConfigProp(key, config.properties[key], extConfig[key]));
+        }
+        return (
+          <div
+            className='setting'
+            key={`${idx}_${configIdx}`}>
+            <p className='setting__title'>{config.title}</p>
+            <div className='setting__body'>
+              {propBoxes}
+            </div>
+          </div>
+        );
+      }));
+    });
+
+    return sections;
+  });
 
   onShowExtremeChange = (isChecked: boolean): void => {
     updatePreferencesData({ browsePageShowExtreme: isChecked });
@@ -466,16 +495,49 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     updatePreferencesData({ excludedRandomLibraries });
   }
 
+  onRemoveAppPathOverride = (index: number): void => {
+    const newPaths = [...this.props.preferencesData.appPathOverrides];
+    newPaths.splice(index, 1);
+    console.log('SPLICED');
+    updatePreferencesData({ appPathOverrides: newPaths });
+  }
+
+  onNewAppPathOverride = (): void => {
+    const newPaths = [...this.props.preferencesData.appPathOverrides];
+    newPaths.push({path: '', override: '', enabled: true});
+    updatePreferencesData({ appPathOverrides: newPaths });
+  }
+
+  onAppPathOverridePathChange = (index: number, newPath: string): void => {
+    const newPaths = [...this.props.preferencesData.appPathOverrides];
+    newPaths[index] = { ...newPaths[index], path: newPath };
+    updatePreferencesData({ appPathOverrides: newPaths });
+  }
+
+  onAppPathOverrideOverrideChange = (index: number, newOverride: string): void => {
+    const newPaths = [...this.props.preferencesData.appPathOverrides];
+    newPaths[index] = { ...newPaths[index], override: newOverride };
+    updatePreferencesData({ appPathOverrides: newPaths });
+  }
+
+  onAppPathOverrideEnabledToggle = (index: number, checked: boolean): void => {
+    const newPaths = [...this.props.preferencesData.appPathOverrides];
+    newPaths[index] = { ...newPaths[index], enabled: checked };
+    updatePreferencesData({ appPathOverrides: newPaths });
+  }
+
   onNativeCheckboxChange = (platform: string): void => {
-    const { nativePlatforms } = this.state;
-    const index = nativePlatforms.findIndex(item => item === platform);
+    const newPlatforms = [...this.state.nativePlatforms];
+    const index = newPlatforms.findIndex(item => item === platform);
 
     if (index !== -1) {
-      nativePlatforms.splice(index, 1);
+      log.info('launcher', `WE CHANGED ${platform} TO false`);
+      newPlatforms.splice(index, 1);
     } else {
-      nativePlatforms.push(platform);
+      log.info('launcher', `WE CHANGED ${platform} TO true`);
+      newPlatforms.push(platform);
     }
-    this.setState({ nativePlatforms: nativePlatforms });
+    this.setState({ nativePlatforms: newPlatforms });
   }
 
   /** When the "FlashPoint Folder Path" input text is changed. */
@@ -498,44 +560,120 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     this.setState({ metadataServerHost: event.currentTarget.value });
   }
 
-  onCurrentThemeChange = (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>): void => {
-    updatePreferencesData({ currentTheme: event.currentTarget.value });
-  }
-
-  onCurrentThemeItemSelect = (text: string, index: number): void => {
-    // Note: Suggestions with index 0 to "length - 1" are filenames of themes.
-    //       Directly after that comes the "No Theme" suggestion.
-    let theme: string | undefined;
-    if (index < this.props.themeList.length) { // (Select a Theme)
-      theme = this.props.themeList[index].entryPath;
-    } else { theme = undefined; } // (Deselect the current theme)
-    updatePreferencesData({ currentTheme: theme });
-    // Select the input field
-    if (this.currentThemeInputRef) {
-      this.currentThemeInputRef.focus();
+  onCurrentThemeChange = (value: string): void => {
+    const selectedTheme = this.props.themeList.find(t => t.id === value);
+    if (selectedTheme) {
+      const suggestedLogoSet = this.props.logoSets.find(ls => ls.id === selectedTheme.logoSet);
+      const logoSetId = suggestedLogoSet ? suggestedLogoSet.id : this.props.preferencesData.currentLogoSet;
+      updatePreferencesData({ currentTheme: selectedTheme.id, currentLogoSet: logoSetId });
     }
   }
 
-  currentThemeInputRefFunc = (ref: HTMLInputElement | HTMLTextAreaElement | null): void => {
-    this.currentThemeInputRef = ref;
+  onCurrentLogoSetChange = (value: string): void => {
+    updatePreferencesData({ currentLogoSet: value });
+  }
+
+  onCurrentThemeItemSelect = (value: string, index: number): void => {
+    // Note: Suggestions with index 0 to "length - 1" registered themes.
+    //       Directly after that comes the "No Theme" suggestion.
+    let theme: ITheme | undefined;
+    if (index < this.props.themeList.length) { // (Select a Theme)
+      theme = this.props.themeList[index];
+    } else { theme = undefined; } // (Deselect the current theme)
+    const suggestedLogoSet = this.props.logoSets.find(ls => ls.id === (theme ? theme.logoSet : undefined));
+    const logoSetId = suggestedLogoSet ? suggestedLogoSet.id : this.props.preferencesData.currentLogoSet;
+    updatePreferencesData({ currentTheme: theme ? theme.id : '', currentLogoSet: logoSetId });
+  }
+
+  onCurrentLogoSetSelect = (value: string, index: number): void => {
+    // Note: Suggestions with index 0 to "length - 1" registered logo sets.
+    //       Directly after that comes the "No Theme" suggestion.
+    let logoSet: ILogoSet | undefined;
+    if (index < this.props.logoSets.length) { // (Select a Logo Set)
+      logoSet = this.props.logoSets[index];
+    } else { logoSet = undefined; } // (Deselect the current logo set)
+    updatePreferencesData({ currentLogoSet: logoSet ? logoSet.id : '' });
+  }
+
+  getThemeName(id: string) {
+    const theme = this.props.themeList.find(t => t.id === id);
+    if (theme) { return theme.meta.name || theme.id; }
+  }
+
+  getLogoSetName(id: string) {
+    const logoSet = this.props.logoSets.find(ls => ls.id === id);
+    if (logoSet) { return logoSet.name; }
   }
 
   /** When the "Save & Restart" button is clicked. */
   onSaveAndRestartClick = () => {
     // Save new config to file, then restart the app
-    window.Shared.back.send<any, UpdateConfigData>(BackIn.UPDATE_CONFIG, {
+    window.Shared.back.request(BackIn.UPDATE_CONFIG, {
       flashpointPath: this.state.flashpointPath,
       metadataServerHost: this.state.metadataServerHost,
       useCustomTitlebar: this.state.useCustomTitlebar,
       nativePlatforms: this.state.nativePlatforms,
       server: this.state.server,
-    }, () => { window.Shared.restart(); });
+    }).then(() => { window.Shared.restart(); });
   }
 
   static contextType = LangContext;
 }
 
+function setExtConfigValue(key: string, value: any): void {
+  return window.Shared.back.send(BackIn.SET_EXT_CONFIG_VALUE, key, value);
+}
+
+function renderExtConfigProp(key: string, prop: ExtConfigurationProp, value: any): JSX.Element {
+  switch (prop.type) {
+    case 'boolean':
+      return (
+        <ConfigBoxCheckbox
+          key={key}
+          title={prop.title}
+          description={prop.description}
+          checked={!!value}
+          onToggle={checked => setExtConfigValue(key, checked)}/>
+      );
+    case 'string': {
+      if (prop.enum.length > 0) {
+        return (
+          <ConfigBoxSelect
+            key={key}
+            title={prop.title}
+            description={prop.description}
+            value={value}
+            items={itemizeExtEnums(prop.enum)}
+            onChange={event => setExtConfigValue(key, event.target.value)} />
+        );
+      } else {
+        return (
+          <ConfigBoxInput
+            key={key}
+            title={prop.title}
+            description={prop.description}
+            text={value}
+            onChange={event => setExtConfigValue(key, event.target.value)} />
+        );
+      }
+    }
+    default: throw new Error(`Unsupported config type to render "${prop.type}"`);
+  }
+}
+
 /** Format a theme item into a displayable name for the themes drop-down. */
-function formatThemeItemName(item: Theme): string {
-  return `${item.meta.name} (${item.entryPath})`;
+function formatThemeItemName(item: ITheme): string {
+  return `${item.meta.name} (${item.id})`;
+}
+
+function formatLogoSetName(item: ILogoSet): string {
+  return `${item.name} (${item.id})`;
+}
+
+function itemizeExtEnums(enums: string[]): SelectItem[] {
+  return enums.map(e => {
+    return {
+      value: e
+    };
+  });
 }

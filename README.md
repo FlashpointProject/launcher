@@ -18,6 +18,10 @@ The launcher for BlueMaxima's Flashpoint (the web preservation project).
 ## About
 The Flashpoint Launcher (FPL) is a desktop application made for browsing, storing and launching other applications (games, animations, web apps etc.). It is specifically made for BlueMaxima's Flashpoint, which is a web preservation project.
 
+See the `docs` folder for more information on setting up Flashpoint and Extension authoring.
+
+Extension API Documentation: https://flashpointproject.github.io/launcher_ApiDocs/
+
 ## Building from source
 
 ### External Dependencies
@@ -30,11 +34,13 @@ The Flashpoint Launcher (FPL) is a desktop application made for browsing, storin
 * `libgtk-3-0`
 * `libnss3`
 
+Follow Development Setup, using ``master`` branch for a stable release or ``develop`` for the latest features. After setup is complete, run ``npm run release`` to generate release builds in ``/dist``.
+
 Install by running ``sudo apt install libgtk-3-0 libnss3``
 
 ### Development Setup
 
-1. Clone the repository with ``git clone --recurse-submodules https://github.com/FlashpointProject/launcher.git launcher`` (where ``launcher`` is the path of the directory you want to be the root of the repository).
+1. Clone the repository with ``git clone --branch develop --recurse-submodules https://github.com/FlashpointProject/launcher.git launcher`` (where ``launcher`` is the path of the directory you want to be the root of the repository).
 
 2. Navigate to the root of the repository and run ``npm install`` - this will download and install all the dependencies from npm (it may take a few minutes).
 

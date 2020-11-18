@@ -1,16 +1,17 @@
 import { SERVICES_SOURCE } from '@back/constants';
 import { createTagsFromLegacy } from '@back/importGame';
-import { ManagedChildProcess } from '@back/ManagedChildProcess';
-import { BackState } from '@back/types';
+import { ManagedChildProcess, ProcessOpts } from '@back/ManagedChildProcess';
+import { SocketServer } from '@back/SocketServer';
+import { BackState, ShowMessageBoxFunc, ShowOpenDialogFunc, ShowSaveDialogFunc, StatusState } from '@back/types';
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { Tag } from '@database/entity/Tag';
 import { BackOut } from '@shared/back/types';
+import { BrowserApplicationOpts } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, INamedBackProcessInfo, IService, ProcessState } from '@shared/interfaces';
 import { autoCode, getDefaultLocalization, LangContainer, LangFile } from '@shared/lang';
 import { Legacy_IAdditionalApplicationInfo, Legacy_IGameInfo } from '@shared/legacy/interfaces';
-import { ILogEntry, ILogPreEntry } from '@shared/Log/interface';
 import { deepCopy, recursiveReplace, stringifyArray } from '@shared/Util';
 import * as child_process from 'child_process';
 import * as fs from 'fs';
@@ -105,10 +106,9 @@ export function exit(state: BackState): void {
 
     if (state.serviceInfo) {
       // Kill services
-      if (state.serviceInfo.server.length > 0) {
-        const server = state.serviceInfo.server.find(i => i.name === state.config.server) || state.serviceInfo.server[0];
-        if (state.services.server && server && server.kill) {
-          state.services.server.kill();
+      for (const service of state.services.values()) {
+        if (service.info.kill) {
+          service.kill();
         }
       }
       // Run stop commands
@@ -118,7 +118,9 @@ export function exit(state: BackState): void {
     }
 
     state.languageWatcher.abort();
-    state.themeWatcher.abort();
+    for (const watcher of state.themeState.watchers) {
+      watcher.abort();
+    }
 
     Promise.all([
       // Close WebSocket server
@@ -150,48 +152,14 @@ export function exit(state: BackState): void {
   }
 }
 
-export function log(state: BackState, preEntry: ILogPreEntry, id?: string): void {
-  const entry: ILogEntry = {
-    source: preEntry.source,
-    content: preEntry.content,
-    timestamp: Date.now(),
-  };
-
-  if (typeof entry.source !== 'string') {
-    console.warn(`Type Warning! A log entry has a source of an incorrect type!\n  Type: "${typeof entry.source}"\n  Value: "${entry.source}"`);
-    entry.source = entry.source+'';
-  }
-  if (typeof entry.content !== 'string') {
-    console.warn(`Type Warning! A log entry has content of an incorrect type!\n  Type: "${typeof entry.content}"\n  Value: "${entry.content}"`);
-    entry.content = entry.content+'';
-  }
-
-  state.log.push(entry);
-
-  state.socketServer.broadcast({
-    id: id || '',
-    type: BackOut.LOG_ENTRY_ADDED,
-    data: {
-      entry,
-      index: state.log.length - 1,
-    }
-  });
-}
-
 export async function execProcess(state: BackState, proc: IBackProcessInfo, sync?: boolean): Promise<void> {
   const cwd: string = path.join(state.config.flashpointPath, proc.path);
-  log(state, {
-    source: SERVICES_SOURCE,
-    content: `Executing "${proc.filename}" ${stringifyArray(proc.arguments)} in "${proc.path}"`,
-  });
+  log.info(SERVICES_SOURCE, `Executing "${proc.filename}" ${stringifyArray(proc.arguments)} in "${proc.path}"`);
   try {
     if (sync) { child_process.execFileSync(  proc.filename, proc.arguments, { cwd: cwd }); }
     else      { await child_process.execFile(proc.filename, proc.arguments, { cwd: cwd }); }
   } catch (error) {
-    log(state, {
-      source: SERVICES_SOURCE,
-      content: `An unexpected error occurred while executing a command:\n  "${error}"`,
-    });
+    log.error(SERVICES_SOURCE, `An unexpected error occurred while executing a command:\n  "${error}"`);
   }
 }
 
@@ -241,7 +209,7 @@ export async function createGameFromLegacy(game: Legacy_IGameInfo, tagCache: Rec
   };
 }
 
-export function createPlaylist(jsonData: any, library?: string): Playlist {
+export function createPlaylistFromJson(jsonData: any, library?: string): Playlist {
   const playlist: Playlist = {
     id: jsonData['id'] || uuid(),
     title: jsonData['title'] || 'No Name',
@@ -249,7 +217,8 @@ export function createPlaylist(jsonData: any, library?: string): Playlist {
     author: jsonData['author'] || '',
     icon: jsonData['icon'] || '',
     library: library || jsonData['library'] || 'arcade',
-    games: []
+    games: [],
+    extreme: jsonData['extreme'] || false
   };
 
   for (let i = 0; i < jsonData['games'].length ; i++) {
@@ -276,33 +245,41 @@ export function chunkArray<T>(array: T[], chunkSize: number): T[][] {
   return chunks;
 }
 
-export function runService(state: BackState, id: string, name: string, info: INamedBackProcessInfo | IBackProcessInfo): ManagedChildProcess {
+export function runService(state: BackState, id: string, name: string, basePath: string, opts: ProcessOpts, info: INamedBackProcessInfo | IBackProcessInfo): ManagedChildProcess {
+  // Already exists, bad!
+  if (state.services.has(id)) {
+    throw new Error(`Service already running! (ID: "${id}")`);
+  }
   const proc = new ManagedChildProcess(
     id,
     name,
-    path.join(state.config.flashpointPath, info.path),
-    false,
-    true,
+    opts.cwd || path.join(basePath, info.path),
+    opts,
     info
   );
-  proc.on('output', log.bind(undefined, state));
+  state.services.set(id, proc);
+  proc.on('output', (entry) => { log.info(entry.source, entry.content); });
   proc.on('change', () => {
-    state.socketServer.broadcast<IService>({
-      id: '',
-      type: BackOut.SERVICE_CHANGE,
-      data: procToService(proc),
-    });
+    state.socketServer.broadcast(BackOut.SERVICE_CHANGE, procToService(proc));
   });
   try {
     proc.spawn();
   } catch (error) {
-    log(state, {
-      source: SERVICES_SOURCE,
-      content: `An unexpected error occurred while trying to run the background process "${proc.name}".`+
-               `  ${error.toString()}`
-    });
+    log.error(SERVICES_SOURCE, `An unexpected error occurred while trying to run the background process "${proc.name}".` +
+              `  ${error.toString()}`);
   }
+  state.apiEmitters.services.onServiceNew.fire(proc);
   return proc;
+}
+
+export async function removeService(state: BackState, processId: string): Promise<void> {
+  const service = state.services.get(processId);
+  if (service) {
+    await waitForServiceDeath(service);
+    state.services.delete(processId);
+    state.apiEmitters.services.onServiceRemove.fire(service);
+    state.socketServer.broadcast(BackOut.SERVICE_REMOVED, processId);
+  }
 }
 
 export async function waitForServiceDeath(service: ManagedChildProcess) : Promise<void> {
@@ -321,9 +298,33 @@ export async function waitForServiceDeath(service: ManagedChildProcess) : Promis
   }
 }
 
-export function newLogEntry(source: string, content: string): ILogPreEntry {
-  return {
-    source: source,
-    content: content
-  };
+export function setStatus<T extends keyof StatusState>(state: BackState, key: T, val: StatusState[T]): void {
+  switch (key) {
+    case 'devConsole':
+      state.socketServer.broadcast(BackOut.DEV_CONSOLE_CHANGE, val);
+      break;
+  }
+}
+
+export function getOpenMessageBoxFunc(socketServer: SocketServer): ShowMessageBoxFunc | undefined {
+  if (socketServer.lastClient) {
+    return socketServer.showMessageBoxBack(socketServer.lastClient);
+  }
+}
+
+export function getOpenSaveDialogFunc(socketServer: SocketServer): ShowSaveDialogFunc | undefined {
+  if (socketServer.lastClient) {
+    return socketServer.showSaveDialogBack(socketServer.lastClient);
+  }
+}
+
+export function getOpenOpenDialogFunc(socketServer: SocketServer): ShowOpenDialogFunc | undefined {
+  if (socketServer.lastClient) {
+    return socketServer.showOpenDialogFunc(socketServer.lastClient);
+  }
+}
+
+export function isBrowserOpts(val: any): val is BrowserApplicationOpts {
+  return typeof val.url === 'string' &&
+   (val.proxy === undefined || typeof val.proxy === 'string');
 }

@@ -4,7 +4,7 @@ import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
 import { findElementAncestor, gameScaleSpan } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
-import { BackIn, TagCategoryByIdData, TagCategoryByIdResponse, TagCategoryDeleteData, TagCategoryDeleteResponse, TagCategorySaveData, TagCategorySaveResponse, WrappedResponse } from '@shared/back/types';
+import { BackIn } from '@shared/back/types';
 import { LangContainer } from '@shared/lang';
 import { deepCopy, getRandomHexColor } from '@shared/Util';
 import * as React from 'react';
@@ -13,9 +13,7 @@ import { SimpleButton } from '../SimpleButton';
 import { TagCategoriesList } from '../TagCategoriesList';
 import { TagListItem } from '../TagListItem';
 
-
 type OwnProps = {
-  tagScale: number;
 }
 
 export type TagCategoriesPageProps = OwnProps & WithTagCategoriesProps & WithPreferencesProps;
@@ -46,7 +44,7 @@ export class TagCategoriesPage extends React.Component<TagCategoriesPageProps, T
   }
 
   render() {
-    const rowHeight = calcScale(40, this.props.tagScale);
+    const rowHeight = calcScale(40, this.props.preferencesData.browsePageGameScale);
     const strings = this.context.tags;
 
     return (
@@ -120,9 +118,10 @@ export class TagCategoriesPage extends React.Component<TagCategoriesPageProps, T
     });
     if (this.state.currentCategory) {
       // Update tag
-      saveTagCategory(this.state.currentCategory, (res) => {
-        if (res.data) {
-          this.setState({ currentCategory: res.data });
+      window.Shared.back.request(BackIn.SAVE_TAG_CATEGORY, this.state.currentCategory)
+      .then(data => {
+        if (data) {
+          this.setState({ currentCategory: data });
         }
       });
     }
@@ -141,16 +140,18 @@ export class TagCategoriesPage extends React.Component<TagCategoriesPageProps, T
       newCat.name = name;
       newCat.color = getRandomHexColor();
       newCat.tags = [];
-      saveTagCategory(newCat);
+
+      window.Shared.back.send(BackIn.SAVE_TAG_CATEGORY, newCat);
     }
   }
 
   updateCurrentCategory = (categoryId: number) => {
-    window.Shared.back.send<TagCategoryByIdResponse, TagCategoryByIdData>(BackIn.GET_TAG_CATEGORY_BY_ID, categoryId, (res) => {
-      if (res.data) {
+    window.Shared.back.request(BackIn.GET_TAG_CATEGORY_BY_ID, categoryId)
+    .then((data) => {
+      if (data) {
         this.setState({
-          currentCategory: res.data,
-          originalCategory: deepCopy(res.data)
+          currentCategory: data,
+          originalCategory: deepCopy(data)
         });
       }
     });
@@ -159,11 +160,10 @@ export class TagCategoriesPage extends React.Component<TagCategoriesPageProps, T
   deleteCurrentCategory = () => {
     if (this.state.selectedCategoryId) {
       console.log('DELETING');
-      window.Shared.back.send<TagCategoryDeleteResponse, TagCategoryDeleteData>(BackIn.DELETE_TAG_CATEGORY, this.state.selectedCategoryId, (res) => {
-        if (res.data) {
-          if (res.data.success) {
-            this.setState({ selectedCategoryId: undefined, currentCategory: undefined });
-          }
+      window.Shared.back.request(BackIn.DELETE_TAG_CATEGORY, this.state.selectedCategoryId)
+      .then(success => {
+        if (success) {
+          this.setState({ selectedCategoryId: undefined, currentCategory: undefined });
         }
       });
     }
@@ -174,8 +174,4 @@ export class TagCategoriesPage extends React.Component<TagCategoriesPageProps, T
 
 function calcScale(defHeight: number, scale: number): number {
   return (defHeight + (scale - 0.5) * 2 * defHeight * gameScaleSpan) | 0;
-}
-
-function saveTagCategory(tagCategory: TagCategory, callback?: (res: WrappedResponse<TagCategorySaveResponse>) => void) {
-  window.Shared.back.send<TagCategorySaveResponse, TagCategorySaveData>(BackIn.SAVE_TAG_CATEGORY, tagCategory, callback);
 }

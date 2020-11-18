@@ -1,6 +1,7 @@
-import { BackIn, BackOut, UploadLogResponse, WrappedResponse } from '@shared/back/types';
+import { BackIn, BackOut } from '@shared/back/types';
 import { ArgumentTypesOf } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
+import { LogLevel } from '@shared/Log/interface';
 import { stringifyLogEntries } from '@shared/Log/LogCommon';
 import { memoizeOne } from '@shared/memoize';
 import { updatePreferencesData } from '@shared/preferences/util';
@@ -17,14 +18,22 @@ type OwnProps = {};
 export type LogsPageProps = OwnProps & WithPreferencesProps;
 
 const urlRegex = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=+$,\w]+@)?[A-Za-z0-9.-]+|(?:www\.|[-;:&=+$,\w]+@)[A-Za-z0-9.-]+)((?:\/[+~%/.\w\-_]*)?\??(?:[-+=&;%@.\w_]*)#?(?:[.!/\\\w]*))?)/;
-const labels = [
+const sourceLabels = [
   'Background Services',
+  'Curation',
   'Game Launcher',
   'Language',
-  'Redirector',
-  'Server',
-  'Curation',
+  'Launcher',
   'Log Watcher',
+  'Server',
+  'Extensions',
+];
+const levelLabels = [
+  LogLevel[0],
+  LogLevel[1],
+  LogLevel[2],
+  LogLevel[3],
+  LogLevel[4],
 ];
 
 export type LogsPageState = {
@@ -52,21 +61,22 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
 
   getLogString() {
     const logEntries = [ ...window.Shared.log.entries ];
-    const filter = { ...this.props.preferencesData.showLogSource };
-    return this.stringifyLogEntriesMemo(logEntries, filter);
+    const sourceFilter = { ...this.props.preferencesData.showLogSource };
+    const levelFilter  = { ...this.props.preferencesData.showLogLevel  };
+    return this.stringifyLogEntriesMemo(logEntries, sourceFilter, levelFilter);
   }
 
   componentDidMount() {
-    window.Shared.back.on('message', this.onMessage);
+    window.Shared.back.registerAny(this.onMessage);
   }
 
   componentWillUnmount() {
-    window.Shared.back.off('message', this.onMessage);
+    window.Shared.back.unregisterAny(this.onMessage);
   }
 
   render() {
     const strings = this.context.logs;
-    const { preferencesData: { showLogSource } } = this.props;
+    const { preferencesData: { showLogSource, showLogLevel } } = this.props;
     const logData = this.getLogString();
     return (
       <div className='log-page'>
@@ -74,26 +84,48 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
         <div className='log-page__bar'>
           {/* Left */}
           <div className='log-page__bar__wrap'>
-            <Dropdown text={strings.filters}>
-              { labels.map((label, index) => (
-                <label
-                  key={index}
-                  className='log-page__dropdown-item'>
-                  <div className='simple-center'>
-                    <input
-                      type='checkbox'
-                      checked={getBoolean(showLogSource[label])}
-                      onChange={() => this.onCheckboxClick(index)}
-                      className='simple-center__vertical-inner' />
-                  </div>
-                  <div className='simple-center'>
-                    <p className='simple-center__vertical-inner log-page__dropdown-item-text'>
-                      {label}
-                    </p>
-                  </div>
-                </label>
-              )) }
-            </Dropdown>
+            <div className='log-page__bar__row'>
+              <Dropdown text={strings.filters}>
+                { sourceLabels.map((label, index) => (
+                  <label
+                    key={index}
+                    className='log-page__dropdown-item'>
+                    <div className='simple-center'>
+                      <input
+                        type='checkbox'
+                        checked={getBoolean(showLogSource[label])}
+                        onChange={() => this.onSourceCheckboxClick(index)}
+                        className='simple-center__vertical-inner' />
+                    </div>
+                    <div className='simple-center'>
+                      <p className='simple-center__vertical-inner log-page__dropdown-item-text'>
+                        {label}
+                      </p>
+                    </div>
+                  </label>
+                )) }
+              </Dropdown>
+              <Dropdown text={strings.logLevels}>
+                { levelLabels.map((label, index) => (
+                  <label
+                    key={index}
+                    className='log-page__dropdown-item'>
+                    <div className='simple-center'>
+                      <input
+                        type='checkbox'
+                        checked={getBoolean(showLogLevel[index as LogLevel])}
+                        onChange={() => this.onLevelCheckboxClick(index)}
+                        className='simple-center__vertical-inner' />
+                    </div>
+                    <div className='simple-center'>
+                      <p className='simple-center__vertical-inner log-page__dropdown-item-text'>
+                        {label}
+                      </p>
+                    </div>
+                  </label>
+                )) }
+              </Dropdown>
+            </div>
           </div>
           {/* Right */}
           <div className='log-page__bar__wrap log-page__bar__right'>
@@ -195,11 +227,12 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
     });
     if (res.response === 0) {
       // Ask backend to upload logs, sends back a log URL
-      window.Shared.back.send<UploadLogResponse, any>(BackIn.UPLOAD_LOG, undefined, (res) => {
+      window.Shared.back.request(BackIn.UPLOAD_LOG)
+      .then((data) => {
         this.setState({ uploaded: true, uploading: false });
-        if (res.data) {
+        if (data) {
           // Write log URL to clipboard
-          clipboard.writeText(res.data);
+          clipboard.writeText(data);
         }
       });
     } else {
@@ -207,22 +240,29 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
     }
   }
 
-  onCheckboxClick = (index: number): void => {
-    const label = labels[index];
+  onSourceCheckboxClick = (index: number): void => {
+    const label = sourceLabels[index];
     const { showLogSource } = this.props.preferencesData;
     updatePreferencesData({
-      showLogSource: Object.assign(
-        {},
-        showLogSource,
-        { [label]: !getBoolean(showLogSource[label]) }
-      )
+      showLogSource: {
+        ...showLogSource,
+        [label]: !getBoolean(showLogSource[label]),
+      },
     });
   }
 
-  onMessage = (response: WrappedResponse): void => {
-    if (response.type === BackOut.LOG_ENTRY_ADDED) {
-      this.forceUpdate();
-    }
+  onLevelCheckboxClick = (index: number): void => {
+    const { showLogLevel } = this.props.preferencesData;
+    updatePreferencesData({
+      showLogLevel: {
+        ...showLogLevel,
+        [index]: !getBoolean(showLogLevel[index as LogLevel]),
+      },
+    });
+  }
+
+  onMessage: Parameters<typeof window.Shared.back.registerAny>[0] = (event, type) => {
+    if (type === BackOut.LOG_ENTRY_ADDED) { this.forceUpdate(); }
   }
 
   static contextType = LangContext;
@@ -246,6 +286,11 @@ function getBoolean(value?: boolean): boolean {
 
 type ArgsType = ArgumentTypesOf<typeof stringifyLogEntries>;
 function stringifyLogEntriesEquals(newArgs: ArgsType, prevArgs: ArgsType): boolean {
-  return (newArgs[0].length === prevArgs[0].length) && // (Only compare lengths of log entry arrays)
-         shallowStrictEquals(newArgs[1], prevArgs[1]); // (Do a proper compare of the filters)
+  return (
+    // Only compare lengths of log entry arrays (to save performance)
+    (newArgs[0].length === prevArgs[0].length) &&
+    // Do a proper compare of the filters
+    shallowStrictEquals(newArgs[1], prevArgs[1]) &&
+    shallowStrictEquals(newArgs[2], prevArgs[2])
+  );
 }

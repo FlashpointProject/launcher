@@ -31,4 +31,8 @@ export class Playlist {
   @Column()
   /** Route of the library this playlist is for. */
   library: string;
+
+  @Column({ default: false })
+  /** Attribute for if playlist contains games not suitable for children */
+  extreme: boolean;
 }

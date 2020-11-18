@@ -1,8 +1,8 @@
-import { IAppPreferencesData } from '@shared/preferences/interfaces';
+import { AppPreferencesData } from '@shared/preferences/interfaces';
 import { deepCopy } from '@shared/Util';
 import * as React from 'react';
 
-export const PreferencesContext = React.createContext<IAppPreferencesData>({} as any);
+export const PreferencesContext = React.createContext<AppPreferencesData>({} as any);
 
 type PreferencesContextProviderProps = {
   children?: React.ReactNode;

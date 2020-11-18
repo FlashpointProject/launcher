@@ -343,7 +343,8 @@
     "noAuthor": "Χωρίς Δημιουργό",
     "authorPlaceholder": "Δημιουργός...",
     "id": "ID",
-    "by": "από"
+    "by": "από",
+    "extreme": "ακραίον"
   },
   "misc": {
     "noBlankFound": "Δε βρέθηκαν καθόλου {0}",

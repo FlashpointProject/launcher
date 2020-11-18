@@ -1,10 +1,10 @@
-import { SharedSocket } from '@shared/back/SharedSocket';
-import { BackIn, BackInitArgs, BackOut, GetMainInitDataResponse, SetLocaleData, WrappedRequest, WrappedResponse } from '@shared/back/types';
-import { IAppConfigData } from '@shared/config/interfaces';
+import { SocketClient } from '@shared/back/SocketClient';
+import { BackIn, BackInitArgs, BackOut } from '@shared/back/types';
+import { AppConfigData } from '@shared/config/interfaces';
 import { APP_TITLE } from '@shared/constants';
 import { WindowIPC } from '@shared/interfaces';
 import { InitRendererChannel, InitRendererData } from '@shared/IPC';
-import { IAppPreferencesData } from '@shared/preferences/interfaces';
+import { AppPreferencesData } from '@shared/preferences/interfaces';
 import { createErrorProxy } from '@shared/Util';
 import { ChildProcess, fork } from 'child_process';
 import { randomBytes } from 'crypto';
@@ -21,6 +21,16 @@ const writeFile = promisify(fs.writeFile);
 
 const TIMEOUT_DELAY = 60_000;
 
+const ALLOWED_HOSTS = [
+  'localhost',
+  '127.0.0.1',
+  // Devtools installer
+  'clients2.googleusercontent.com',
+  'clients2.google.com',
+  // React Devtools
+  'react-developer-tools',
+];
+
 type MainState = {
   window?: BrowserWindow;
   _installed?: boolean;
@@ -28,9 +38,9 @@ type MainState = {
   _secret: string;
   /** Version of the launcher (timestamp of when it was built). Negative value if not found or not yet loaded. */
   _version: number;
-  preferences?: IAppPreferencesData;
-  config?: IAppConfigData;
-  socket: SharedSocket<WebSocket>;
+  preferences?: AppPreferencesData;
+  config?: AppConfigData;
+  socket: SocketClient<WebSocket>;
   backProc?: ChildProcess;
   _sentLocaleCode: boolean;
   /** If the main is about to quit. */
@@ -49,7 +59,7 @@ export function main(init: Init): void {
     _version: -2,
     preferences: undefined,
     config: undefined,
-    socket: new SharedSocket(WebSocket),
+    socket: new SocketClient(WebSocket),
     backProc: undefined,
     _sentLocaleCode: false,
     isQuitting: false,
@@ -82,7 +92,10 @@ export function main(init: Init): void {
     ipcMain.on(InitRendererChannel, onInit);
 
     // Add Socket event listener(s)
-    state.socket.on('message', onMessage);
+    state.socket.register(BackOut.QUIT, () => {
+      state.isQuitting = true;
+      app.quit();
+    });
 
     app.commandLine.appendSwitch('ignore-connections-limit', 'localhost');
 
@@ -146,6 +159,7 @@ export function main(init: Init): void {
           configFolder: state.mainFolderPath,
           secret: state._secret,
           isDev: Util.isDev,
+          verbose: !!init.args['verbose'],
           // On windows you have to wait for app to be ready before you call app.getLocale() (so it will be sent later)
           localeCode: localeCode,
           exePath: app.getPath('exe'),
@@ -159,39 +173,43 @@ export function main(init: Init): void {
     if (!init.args['back-only']) {
       // Connect to back process
       p = p.then<WebSocket>(() => timeout(new Promise((resolve, reject) => {
-        const ws = new WebSocket(state.backHost.href);
-        ws.onclose = () => { reject(new Error('Failed to authenticate connection to back.')); };
-        ws.onerror = (event) => { reject(event.error); };
-        ws.onopen  = () => {
-          ws.onmessage = () => {
-            ws.onclose = noop;
-            ws.onerror = noop;
-            resolve(ws);
+        const sock = new WebSocket(state.backHost.href);
+        sock.onclose = () => { reject(new Error('Failed to authenticate connection to back.')); };
+        sock.onerror = (event) => { reject(event.error); };
+        sock.onopen  = () => {
+          sock.onmessage = () => {
+            sock.onclose = noop;
+            sock.onerror = noop;
+            resolve(sock);
           };
-          ws.send(state._secret);
+          sock.send(state._secret);
         };
       }), TIMEOUT_DELAY))
       // Send init message
       .then(ws => timeout(new Promise((resolve, reject) => {
-        ws.onmessage = (event) => {
-          const res: WrappedResponse = JSON.parse(event.data.toString());
-          if (res.type === BackOut.GET_MAIN_INIT_DATA) {
-            const data: GetMainInitDataResponse = res.data;
-            state.preferences = data.preferences;
-            state.config = data.config;
-            state.socket.setSocket(ws);
-            resolve();
-          }
-        };
-        const req: WrappedRequest = {
-          id: 'init',
-          type: BackIn.GET_MAIN_INIT_DATA,
-          data: undefined,
-        };
-        ws.send(JSON.stringify(req));
+        state.socket.setSocket(ws);
+
+        state.socket.request(BackIn.GET_MAIN_INIT_DATA)
+        .then((data) => {
+          state.preferences = data.preferences;
+          state.config = data.config;
+          state.socket.setSocket(ws);
+          resolve();
+        });
       }), TIMEOUT_DELAY))
       // Create main window
       .then(() => app.whenReady())
+      // Install React Devtools Extension
+      .then(() => {
+        if (Util.isDev) {
+          // Requiring here is intentional, seems to fix crashes in release builds
+          // eslint-disable-next-line @typescript-eslint/no-var-requires
+          const { default: installExtension } = require('electron-devtools-installer');
+          installExtension(['REACT_DEVELOPER_TOOLS'])
+          .then((name: string) => console.log(`Added Extension:  ${name}`))
+          .catch((err: any) => console.log('An error occurred: ', err));
+        }
+      })
       .then(() => {
         if (!state.window) {
           state.window = createMainWindow();
@@ -213,20 +231,11 @@ export function main(init: Init): void {
     });
   }
 
-  function onMessage(res: WrappedResponse): void {
-    switch (res.type) {
-      case BackOut.QUIT: {
-        state.isQuitting = true;
-        app.quit();
-      } break;
-    }
-  }
-
   function onAppReady(): void {
     // Send locale code (if it has no been sent already)
-    if (process.platform === 'win32' && !state._sentLocaleCode) {
-      const didSend = state.socket.send<any, SetLocaleData>(BackIn.SET_LOCALE, app.getLocale().toLowerCase());
-      if (didSend) { state._sentLocaleCode = true; }
+    if (process.platform === 'win32' && !state._sentLocaleCode && state.socket.client.socket) {
+      state.socket.send(BackIn.SET_LOCALE, app.getLocale().toLowerCase());
+      state._sentLocaleCode = true;
     }
     // Reject all permission requests since we don't need any permissions.
     session.defaultSession.setPermissionRequestHandler(
@@ -256,12 +265,13 @@ export function main(init: Init): void {
           (url.protocol === 'devtools:') ||
           (
             url.hostname === remoteHostname ||
-            // Treat "localhost" and "127.0.0.1" as the same hostname
-            ((url.hostname   === 'localhost' || url.hostname   === '127.0.0.1') &&
-            (remoteHostname === 'localhost' || remoteHostname === '127.0.0.1'))
+            (ALLOWED_HOSTS.includes(url.hostname) && ALLOWED_HOSTS.includes(remoteHostname))
           )
         )
       );
+      if (!allow) {
+        console.log(`Request Denied to ${url?.hostname || remoteHostname}`);
+      }
 
       callback({
         ...details,
@@ -279,9 +289,9 @@ export function main(init: Init): void {
   }
 
   function onAppWillQuit(event: Event): void {
-    if (!init.args['connect-remote'] && !state.isQuitting) { // (Local back)
-      const result = state.socket.send(BackIn.QUIT, undefined);
-      if (result) { event.preventDefault(); }
+    if (!init.args['connect-remote'] && !state.isQuitting && state.socket.client.socket) { // (Local back)
+      state.socket.send(BackIn.QUIT);
+      event.preventDefault();
     }
   }
 

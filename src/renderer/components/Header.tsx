@@ -1,7 +1,8 @@
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
-import { TagSuggestion, BackIn } from '@shared/back/types';
+import { BackIn, TagSuggestion } from '@shared/back/types';
 import { LangContainer } from '@shared/lang';
 import { getLibraryItemTitle } from '@shared/library/util';
+import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import * as React from 'react';
 import { Link, RouteComponentProps } from 'react-router-dom';
 import { WithPreferencesProps } from '../containers/withPreferences';
@@ -17,8 +18,10 @@ import { TagInputField } from './TagInputField';
 type OwnProps = {
   /** The most recent search query. */
   searchQuery: SearchQuery;
-  /** The current parameters for ordering games. */
-  order: GameOrderChangeEvent;
+  /** Current value of the "order by" drop down. */
+  orderBy: GameOrderBy;
+  /** Current value of the "order reverse" drop down. */
+  orderReverse: GameOrderReverse;
   /** Array of library routes */
   libraries: string[];
   /** Called when a search is made. */
@@ -163,8 +166,8 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
           <div>
             <GameOrder
               onChange={onOrderChange}
-              orderBy={this.props.order.orderBy}
-              orderReverse={this.props.order.orderReverse} />
+              orderBy={this.props.orderBy}
+              orderReverse={this.props.orderReverse} />
           </div>
         </div>
         {/* Right-most portion */}
@@ -198,12 +201,9 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
       const match = tagRegex.exec(this.state.searchText);
       if (match) {
         const tagName = match[1];
-        window.Shared.back.send<any, any>(BackIn.GET_TAG_SUGGESTIONS, tagName, (res) => {
-          if (res.data) {
-            this.setState({
-              tagSuggestions: res.data
-            });
-          }
+        window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, tagName)
+        .then(data => {
+          if (data) { this.setState({ tagSuggestions: data }); }
         });
       } else {
         // Not searching by tag

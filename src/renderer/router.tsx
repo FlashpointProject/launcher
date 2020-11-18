@@ -1,14 +1,15 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
-import { BrowsePageLayout } from '@shared/BrowsePageLayout';
-import { GamePropSuggestions } from '@shared/interfaces';
+import { ViewGame } from '@shared/back/types';
+import { AppExtConfigData } from '@shared/config/interfaces';
+import { ExtensionContribution, ILogoSet, IExtensionDescription } from '@shared/extensions/interfaces';
+import { GamePropSuggestions, IService } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
-import { Theme } from '@shared/ThemeFile';
+import { ITheme } from '@shared/ThemeFile';
 import { AppUpdater, UpdateInfo } from 'electron-updater';
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
-import { GameOrderChangeEvent } from './components/GameOrder';
 import { AboutPage, AboutPageProps } from './components/pages/AboutPage';
 import { DeveloperPage, DeveloperPageProps } from './components/pages/DeveloperPage';
 import { NotFoundPage } from './components/pages/NotFoundPage';
@@ -17,13 +18,12 @@ import { ConnectedConfigPage, ConnectedConfigPageProps } from './containers/Conn
 import { ConnectedCuratePage, ConnectedCuratePageProps } from './containers/ConnectedCuratePage';
 import { ConnectedHomePage, ConnectedHomePageProps } from './containers/ConnectedHomePage';
 import { ConnectedLogsPage } from './containers/ConnectedLogsPage';
-import { ConnectedTagCategoriesPage, ConnectedTagCategoriesPageProps } from './containers/ConnectedTagCategoriesPage';
-import { ConnectedTagsPage, ConnectedTagsPageProps } from './containers/ConnectedTagsPage';
+import { ConnectedTagCategoriesPage } from './containers/ConnectedTagCategoriesPage';
+import { ConnectedTagsPage } from './containers/ConnectedTagsPage';
 import { CreditsData } from './credits/types';
 import { UpdateView, ViewGameSet } from './interfaces';
 import { Paths } from './Paths';
 import { UpgradeStage } from './upgrade/types';
-import { ViewGame } from '@shared/back/types';
 
 export type AppRouterProps = {
   games: ViewGameSet;
@@ -46,14 +46,13 @@ export type AppRouterProps = {
   serverNames: string[];
   mad4fpEnabled: boolean;
   localeCode: string;
+  devConsole: string;
 
   upgrades: UpgradeStage[];
   creditsData?: CreditsData;
   creditsDoneLoading: boolean;
-  order?: GameOrderChangeEvent;
-  gameScale: number;
-  gameLayout: BrowsePageLayout;
   selectedGameId?: string;
+  gameRunning: boolean;
   selectedPlaylistId?: string;
   onSelectGame: (gameId?: string) => void;
   onUpdatePlaylist: (playlist: Playlist) => void;
@@ -62,10 +61,18 @@ export type AppRouterProps = {
   wasNewGameClicked: boolean;
   onDownloadUpgradeClick: (stage: UpgradeStage, strings: LangContainer) => void;
   gameLibrary: string;
-  themeList: Theme[];
+  themeList: ITheme[];
   languages: LangFile[];
   updateInfo: UpdateInfo | undefined,
   autoUpdater: AppUpdater,
+  extensions: IExtensionDescription[],
+  devScripts: ExtensionContribution<'devScripts'>[],
+  contextButtons: ExtensionContribution<'contextButtons'>[],
+  logoSets: ILogoSet[],
+  extConfigs: ExtensionContribution<'configuration'>[],
+  extConfig: AppExtConfigData,
+  services: IService[],
+  logoVersion: number,
 };
 
 export class AppRouter extends React.Component<AppRouterProps> {
@@ -81,6 +88,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       autoUpdater: this.props.autoUpdater,
       randomGames: this.props.randomGames,
       rollRandomGames: this.props.rollRandomGames,
+      logoVersion: this.props.logoVersion,
     };
     const browseProps: ConnectedBrowsePageProps = {
       games: this.props.games,
@@ -93,10 +101,8 @@ export class AppRouter extends React.Component<AppRouterProps> {
       onDeleteGame: this.props.onDeleteGame,
       onQuickSearch: this.props.onQuickSearch,
       onOpenExportMetaEdit: this.props.onOpenExportMetaEdit,
-      order: this.props.order,
-      gameScale: this.props.gameScale,
-      gameLayout: this.props.gameLayout,
       selectedGameId: this.props.selectedGameId,
+      gameRunning: this.props.gameRunning,
       selectedPlaylistId: this.props.selectedPlaylistId,
       onSelectGame: this.props.onSelectGame,
       onUpdatePlaylist: this.props.onUpdatePlaylist,
@@ -104,20 +110,21 @@ export class AppRouter extends React.Component<AppRouterProps> {
       onSelectPlaylist: this.props.onSelectPlaylist,
       wasNewGameClicked: this.props.wasNewGameClicked,
       gameLibrary: this.props.gameLibrary,
-    };
-    const tagsProps: ConnectedTagsPageProps = {
-      tagScale: this.props.gameScale
-    };
-    const tagCategoriesProps: ConnectedTagCategoriesPageProps = {
-      tagScale: this.props.gameScale
+      logoVersion: this.props.logoVersion,
+      contextButtons: this.props.contextButtons,
     };
     const configProps: ConnectedConfigPageProps = {
       themeList: this.props.themeList,
+      logoSets: this.props.logoSets,
+      logoVersion: this.props.logoVersion,
       availableLangs: this.props.languages,
       libraries: this.props.libraries,
       platforms: this.props.platformsFlat,
       localeCode: this.props.localeCode,
       serverNames: this.props.serverNames,
+      extensions: this.props.extensions,
+      extConfigs: this.props.extConfigs,
+      extConfig: this.props.extConfig,
     };
     const aboutProps: AboutPageProps = {
       creditsData: this.props.creditsData,
@@ -128,10 +135,14 @@ export class AppRouter extends React.Component<AppRouterProps> {
       appPaths: this.props.appPaths,
       libraries: this.props.libraries,
       mad4fpEnabled: this.props.mad4fpEnabled,
+      logoVersion: this.props.logoVersion,
     };
     const developerProps: DeveloperPageProps = {
+      devConsole: this.props.devConsole,
       platforms: this.props.platformsFlat,
       playlists: this.props.playlists,
+      devScripts: this.props.devScripts,
+      services: this.props.services
     };
     return (
       <Switch>
@@ -146,12 +157,10 @@ export class AppRouter extends React.Component<AppRouterProps> {
           { ...browseProps } />
         <PropsRoute
           path={Paths.TAGS}
-          component={ConnectedTagsPage}
-          { ...tagsProps } />
+          component={ConnectedTagsPage} />
         <PropsRoute
           path={Paths.CATEGORIES}
-          component={ConnectedTagCategoriesPage}
-          { ...tagCategoriesProps } />
+          component={ConnectedTagCategoriesPage} />
         <PropsRoute
           path={Paths.LOGS}
           component={ConnectedLogsPage} />

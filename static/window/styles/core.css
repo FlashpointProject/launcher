@@ -1128,6 +1128,12 @@ body {
   flex-direction: column;
   justify-content: center;
 }
+.log-page__bar__row {
+  display: flex;
+}
+.log-page__bar__row .simple-dropdown {
+  margin-right: 0.5rem;
+}
 .log-page__bar__right {
   flex-grow: 1;
 }
@@ -1230,6 +1236,18 @@ body {
   display: flex;
   flex-direction: column;
   flex: 1 0 auto;
+}
+/* Browse-Right-Sidebar Play Button */
+.browse-right-sidebar__play-button,
+.browse-right-sidebar__play-button--running {
+  width: 100%;
+  font-size: 2.5em;
+  text-align: center;
+  margin: auto;
+  margin-bottom: 0.5rem;
+  padding: 0.3rem 0;
+  user-select: none;
+  cursor: pointer;
 }
 /* Browse-Right-Sidebar Additional-Application */
 .browse-right-sidebar__additional-application {
@@ -1601,6 +1619,13 @@ body {
   position: absolute;
   bottom: 0;
 }
+.game-grid-item__thumb__icons--upper {
+  display: flex;
+  width: 100%;
+  padding: calc(0.001rem * var(--width));
+  position: absolute;
+  top: 0;
+}
 .game-grid-item__thumb__icons__icon {
   width: calc(0.144px * var(--width));
   height: calc(0.144px * var(--width));
@@ -1608,6 +1633,9 @@ body {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
+}
+.game-grid-item__thumb__icons__icon:nth-child(2) {
+  margin-right: 0.15rem;
 }
 /* GameGrid Item Title */
 .game-grid-item__title {
@@ -1790,6 +1818,16 @@ body {
   white-space: pre-wrap;
   user-select: none;
 }
+.playlist-list-content__extreme {
+  user-select: none;
+}
+.playlist-list-content__extreme span {
+  vertical-align: middle;
+}
+.playlist-list-content__extreme input[type="checkbox"] {
+  vertical-align: middle;
+  margin-right: 0.3rem;
+}
 /* Playlist-List-Fake-Item */
 .playlist-list-fake-item {
   display: flex;
@@ -1946,6 +1984,18 @@ body {
 .config-page label {
   padding-left: 0.15em;
 }
+.config-page__logo-row {
+  width: 100%;
+  display: flex;
+  margin-top: 0.5rem;
+}
+.config-page__logo-row__logo {
+  width: 2rem;
+  height: 2rem;
+  background-repeat: no-repeat;
+  background-size: contain;
+  margin: auto;
+}
 /* Setting */
 .setting {
   margin: 0 auto;
@@ -1990,8 +2040,17 @@ body {
   font-weight: bold;
   user-select: none;
 }
+.setting__row__title--flex {
+  display: flex;
+}
+.setting__row__title--align-left {
+  text-align: left;
+}
 .setting__row__content {
   flex: 1 1 auto;
+}
+.setting__row__content--right-align {
+  text-align: right;
 }
 .setting__row__content .simple-selector {
   margin-right: 0;
@@ -2044,6 +2103,35 @@ body {
 .setting__row__content--input-field .input-dropdown__content {
   border: 0px;
 }
+.setting__row__content--override-row {
+  display: flex;
+  margin: auto;
+  margin-bottom: 0.15rem;
+  flex: auto;
+  padding: 0 1rem;
+  align-items: center;
+}
+.setting__row__content--override-row__seperator{
+  margin-left: 0.3rem;
+  margin-right: 0.3rem;
+  font-weight: bold;
+  font-size: 1.2em;
+  flex-shrink: 0;
+}
+.setting__row__content--override-row__delete {
+  margin-left: 0.3rem;
+  flex-shrink: 0;
+}
+.setting__row__content--override-row__new {
+  float: right;
+  margin-right: 1rem;
+}
+.setting__row__ext-icon {
+  background-size: contain;
+  background-repeat: no-repeat;
+  width: 4rem;
+  margin-right: 0.5rem; 
+}
 
 /** ----- Progress Components ------ **/
 /* Wrapper (all components) */
@@ -2092,7 +2180,7 @@ body {
   /* Keep the mask's aspect ratio */
   --zoom: 1800%;
   width: var(--size);
-  height: calc(var(--size) * 0.9);
+  height: var(--size);
 }
 .fp-logo {
   width: 100%;

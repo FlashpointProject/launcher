@@ -26,12 +26,17 @@
     "platforms": "Platforms",
     "nativePlatforms": "Native Platforms",
     "nativePlatformsDesc": "Use Native versions of these platforms. (If not available it will use Wine)",
+    "appPathOverrides": "App Path Overrides",
+    "appPathOverridesDesc": "Overrides the application path on the left with the one on the right when launching games.",
     "visualsHeader": "Visuals",
     "useCustomTitleBar": "Use Custom Title Bar",
     "useCustomTitleBarDesc": "Use a custom title bar at the top of this window.",
     "theme": "Theme",
     "noTheme": "No Theme",
-    "themeDesc": "File path of the theme to use (relative to the themes folder).",
+    "themeDesc": "ID of the theme to use.",
+    "logoSet": "Logo Set",
+    "noLogoSet": "No Logo Set",
+    "logoSetDesc": "ID of the logo set to use.",
     "advancedHeader": "Advanced",
     "showDeveloperTab": "Show Developer Tab",
     "showDeveloperTabDesc": "Show the 'Developer' tab. This is most likely only useful for developers and curators.",
@@ -39,6 +44,12 @@
     "serverDesc": "Which Server Process to run at launcher startup.",
     "metadataServerHost": "Metadata Server Host",
     "metadataServerHostDesc": "Host of a metadata server. Used for syncing new and updated game info to the launcher.",
+    "extensionsHeader": "Extensions",
+    "noExtensionsLoaded": "No Extensions loaded, Install them to '{0}'",
+    "extDevScripts": "Developer Script(s)",
+    "extThemes": "Theme(s)",
+    "extLogoSets": "Logo Set(s)",
+    "extApplications": "Application(s)",
     "saveAndRestart": "Save and Restart"
   },
   "home": {
@@ -79,6 +90,7 @@
   },
   "logs": {
     "filters": "Filters",
+    "logLevels": "Log Levels",
     "copyText": "Copy Text",
     "clearLog": "Clear Log",
     "copy404Urls": "Copy 404 URLs",
@@ -186,6 +198,8 @@
   "browse": {
     "noTitle": "No Title",
     "by": "by",
+    "play": "Play",
+    "stop": "Stop",
     "noDeveloper": "No Developer",
     "alternateTitles": "Alternate Titles",
     "noAlternateTitles": "No Alternate Titles",
@@ -287,6 +301,7 @@
     "deleteAll": "Delete All",
     "deleteAllDesc": "Delete all curations that are currently loaded",
     "saveImportedCurations": "Save Imported Curations",
+    "keepArchiveKey": "Keep Curation Archive UUID",
     "symlinkCurationContent": "Symlink Curation Content Folder (Admin prompts on Windows, Required for MAD4FP)",
     "openCurationsFolder": "Curations Folder",
     "openCurationsFolderDesc": "Open the Curations folder in explorer",
@@ -357,7 +372,8 @@
     "noAuthor": "No Author",
     "authorPlaceholder": "Author...",
     "id": "ID",
-    "by": "by"
+    "by": "by",
+    "extreme": "extreme"
   },
   "misc": {
     "noBlankFound": "No {0} Found",

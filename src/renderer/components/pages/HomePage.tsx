@@ -42,6 +42,8 @@ type OwnProps = {
   randomGames: ViewGame[];
   /** Re-rolls the Random Games */
   rollRandomGames: () => void;
+  /** Update to clear platform icon cache */
+  logoVersion: number;
 };
 
 export type HomePageProps = OwnProps & WithPreferencesProps & WithSearchProps;
@@ -298,7 +300,8 @@ export function HomePage(props: HomePageProps) {
       <RandomGames
         games={props.randomGames}
         rollRandomGames={props.rollRandomGames}
-        onLaunchGame={onLaunchGame} />
+        onLaunchGame={onLaunchGame}
+        logoVersion={props.logoVersion} />
     </SizeProvider>
   ), [strings, props.randomGames, onLaunchGame, props.rollRandomGames]);
 

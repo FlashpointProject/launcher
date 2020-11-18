@@ -1,11 +1,13 @@
 import { BrowsePageLayout } from '../BrowsePageLayout';
 import { GameOrderBy, GameOrderReverse } from '../order/interfaces';
+import { LogLevel } from '@shared/Log/interface';
 
 /**
  * Contains state of all non-config settings the user can change in the application.
  * This is the data contained in the Preferences file.
  */
-export type IAppPreferencesData = {
+export type AppPreferencesData = {
+  [key: string]: any;
   /** Scale of the games at the BrowsePage. */
   browsePageGameScale: number;
   /** If "Extreme" games should be shown at the BrowsePage. */
@@ -32,6 +34,8 @@ export type IAppPreferencesData = {
   showDeveloperTab: boolean;
   /** Filename of the current theme. */
   currentTheme: string | undefined;
+  /** Filename of the current logo set */
+  currentLogoSet: string | undefined;
   /** The "route" of the last selected library (empty string selects the default). */
   lastSelectedLibrary: string;
   /** What property to order the games by. */
@@ -39,11 +43,13 @@ export type IAppPreferencesData = {
   /** What order the games should appear in. */
   gamesOrder: GameOrderReverse;
   /** Position and size of the main window. */
-  mainWindow: IAppPreferencesDataMainWindow;
+  mainWindow: AppPreferencesDataMainWindow;
   /** Default Library for new games etc. */
   defaultLibrary: string;
   /** Save curations after importing */
   saveImportedCurations: boolean;
+  /** Assign the same UUID to imported games as in the curation archive */
+  keepArchiveKey: boolean;
   /** Whether to symlink or copy curation content when running (Symlink required for MAD4FP) */
   symlinkCurationContent: boolean;
   /** Download missing thumbnails/screenshots from a remote server. */
@@ -52,11 +58,23 @@ export type IAppPreferencesData = {
   showLogSource: {
     [key: string]: boolean;
   }
+  /** Levels to show/hide in the log page. */
+  showLogLevel: {
+    [key in LogLevel]: boolean;
+  }
   /** Libraries that should be excluded from random picks. */
   excludedRandomLibraries: string[];
+  /** Application path overrides to check during app launches */
+  appPathOverrides: AppPathOverride[];
 };
 
-export type IAppPreferencesDataMainWindow = {
+export type AppPathOverride = {
+  path: string;
+  override: string;
+  enabled: boolean;
+}
+
+export type AppPreferencesDataMainWindow = {
   x?: number;
   y?: number;
   width?: number;

@@ -3,7 +3,7 @@ import { ConnectedRightTagsSidebar } from '@renderer/containers/ConnectedRightTa
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
 import { findElementAncestor, gameScaleSpan } from '@renderer/Util';
-import { BackIn, TagByIdData, TagByIdResponse, TagDeleteData, TagDeleteResponse, TagFindData, TagFindResponse, TagSaveData, TagSaveResponse } from '@shared/back/types';
+import { BackIn } from '@shared/back/types';
 import { deepCopy } from '@shared/Util';
 import * as React from 'react';
 import { ResizableSidebar } from '../ResizableSidebar';
@@ -11,7 +11,6 @@ import { TagList } from '../TagList';
 import { TagListItem } from '../TagListItem';
 
 type OwnProps = {
-  tagScale: number;
 }
 
 export type TagsPageProps = OwnProps & WithTagCategoriesProps & WithPreferencesProps;
@@ -46,15 +45,14 @@ export class TagsPage extends React.Component<TagsPageProps, TagsPageState> {
   }
 
   componentDidMount() {
-    window.Shared.back.send<TagFindResponse, TagFindData>(BackIn.GET_TAGS, '', (res) => {
-      if (res.data) {
-        this.onTagsChange(res.data);
-      }
+    window.Shared.back.request(BackIn.GET_TAGS, '')
+    .then((data) => {
+      if (data) { this.onTagsChange(data); }
     });
   }
 
   render() {
-    const rowHeight = calcScale(40, this.props.tagScale);
+    const rowHeight = calcScale(40, this.props.preferencesData.browsePageGameScale);
 
     return (
       <div className='tags-page'>
@@ -134,18 +132,19 @@ export class TagsPage extends React.Component<TagsPageProps, TagsPageState> {
     });
     if (this.state.currentTag) {
       // Update tag
-      window.Shared.back.send<TagSaveResponse, TagSaveData>(BackIn.SAVE_TAG, this.state.currentTag, (res) => {
-        if (res.data) {
+      window.Shared.back.request(BackIn.SAVE_TAG, this.state.currentTag)
+      .then((data) => {
+        if (data) {
           const newTags = deepCopy(this.state.tags);
           for (const key in newTags) {
             const oldTag = newTags[key];
-            if (oldTag && oldTag.id == res.data.id) {
-              newTags[key] = res.data;
+            if (oldTag && oldTag.id == data.id) {
+              newTags[key] = data;
               break;
             }
           }
-          this.setState({ tags: newTags, currentTag: res.data });
-          window.Shared.back.send<any, any>(BackIn.CLEANUP_TAG_ALIASES, undefined);
+          this.setState({ tags: newTags, currentTag: data });
+          window.Shared.back.send(BackIn.CLEANUP_TAG_ALIASES);
         }
       });
     }
@@ -167,18 +166,19 @@ export class TagsPage extends React.Component<TagsPageProps, TagsPageState> {
   }
 
   updateCurrentTag = (tagId: number) => {
-    window.Shared.back.send<TagByIdResponse, TagByIdData>(BackIn.GET_TAG_BY_ID, tagId, (res) => {
-      if (res.data) {
+    window.Shared.back.request(BackIn.GET_TAG_BY_ID, tagId)
+    .then((data) => {
+      if (data) {
         const allTags = deepCopy(this.state.tags);
         const tagIndex = allTags.findIndex(t => t.id === tagId);
         if (tagIndex > -1) {
-          allTags[tagIndex] = res.data;
+          allTags[tagIndex] = data;
         }
         this.setState({
           tags: allTags,
           selectedTagId: tagId,
-          currentTag: res.data,
-          originalTag: deepCopy(res.data)
+          currentTag: data,
+          originalTag: deepCopy(data)
         });
       }
     });
@@ -187,17 +187,16 @@ export class TagsPage extends React.Component<TagsPageProps, TagsPageState> {
   deleteCurrentTag = () => {
     if (this.state.selectedTagId) {
       console.log('DELETING');
-      window.Shared.back.send<TagDeleteResponse, TagDeleteData>(BackIn.DELETE_TAG, this.state.selectedTagId, (res) => {
-        if (res.data) {
-          if (res.data.success) {
-            const newTags = deepCopy(this.state.tags);
-            const newTagIndex = newTags.findIndex(t => t.id == this.state.selectedTagId);
-            if (newTagIndex > -1) {
-              newTags.splice(newTagIndex, 1);
-            }
-            this.setState({ tags: newTags, currentTag: undefined });
-            window.Shared.back.send<any, any>(BackIn.CLEANUP_TAG_ALIASES, undefined);
+      window.Shared.back.request(BackIn.DELETE_TAG, this.state.selectedTagId)
+      .then((data) => {
+        if (data && data.success) {
+          const newTags = deepCopy(this.state.tags);
+          const newTagIndex = newTags.findIndex(t => t.id == this.state.selectedTagId);
+          if (newTagIndex > -1) {
+            newTags.splice(newTagIndex, 1);
           }
+          this.setState({ tags: newTags, currentTag: undefined });
+          window.Shared.back.send(BackIn.CLEANUP_TAG_ALIASES);
         }
       });
     }

@@ -1,10 +1,10 @@
 import { SocketServer } from '@back/SocketServer';
-import { OpenDialogFunc } from '@back/types';
+import { ShowMessageBoxFunc } from '@back/types';
 import { chunkArray } from '@back/util/misc';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
-import { BackOut, MergeTagData, TagCategoriesChangeData, TagSuggestion } from '@shared/back/types';
+import { BackOut, MergeTagData, TagSuggestion } from '@shared/back/types';
 import { getManager, Like, Not } from 'typeorm';
 import { GameManager } from './GameManager';
 
@@ -13,7 +13,7 @@ export namespace TagManager {
     return getManager().getRepository(TagCategory).find();
   }
 
-  export async function deleteTag(tagId: number, openDialog: OpenDialogFunc, skipWarn?: boolean): Promise<boolean> {
+  export async function deleteTag(tagId: number, openDialog: ShowMessageBoxFunc, skipWarn?: boolean): Promise<boolean> {
     const tagRepository = getManager().getRepository(Tag);
     const tagAliasRepository = getManager().getRepository(TagAlias);
 
@@ -67,7 +67,7 @@ export namespace TagManager {
   }
 
   // @TODO : Localize
-  export async function mergeTags(mergeData: MergeTagData, openDialog: OpenDialogFunc): Promise<Tag | undefined> {
+  export async function mergeTags(mergeData: MergeTagData, openDialog: ShowMessageBoxFunc): Promise<Tag | undefined> {
     const mergeSorc = await TagManager.findTag(mergeData.toMerge);
     const mergeDest = await TagManager.findTag(mergeData.mergeInto);
     if (mergeDest && mergeSorc) {
@@ -297,7 +297,7 @@ export namespace TagManager {
     return fixed;
   }
 
-  export async function deleteTagCategory(tagCategoryId: number, openDialog: OpenDialogFunc): Promise<boolean> {
+  export async function deleteTagCategory(tagCategoryId: number, openDialog: ShowMessageBoxFunc): Promise<boolean> {
     const tagCategoryRepository = getManager().getRepository(TagCategory);
     const tagRepository = getManager().getRepository(Tag);
 
@@ -348,10 +348,6 @@ export namespace TagManager {
   export async function sendTagCategories(socketServer: SocketServer) {
     const tagCategoryRepository = getManager().getRepository(TagCategory);
     const cats = await tagCategoryRepository.find();
-    socketServer.broadcast<TagCategoriesChangeData>({
-      id: '',
-      type: BackOut.TAG_CATEGORIES_CHANGE,
-      data: cats
-    });
+    socketServer.broadcast(BackOut.TAG_CATEGORIES_CHANGE, cats);
   }
 }

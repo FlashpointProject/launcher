@@ -343,7 +343,8 @@
     "noAuthor": "Nincs szerző",
     "authorPlaceholder": "Szerző...",
     "id": "ID",
-    "by": "által"
+    "by": "által",
+    "extreme": "extrém"
   },
   "misc": {
     "noBlankFound": "Nem Található",

@@ -1,24 +1,20 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseViewKeysetData, BrowseViewKeysetResponse, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, ExportMetaEditData, GetGamesTotalResponseData, GetPlaylistsResponse, GetSuggestionsResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LocaleUpdateData, LogEntryAddedData, PageKeyset, PlaylistsChangeData, RandomGamesData, RandomGamesResponseData, SaveGameData, SavePlaylistGameData, SearchGamesOpts, ServiceChangeData, TagCategoriesChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, ViewGame } from '@shared/back/types';
-import { BrowsePageLayout } from '@shared/BrowsePageLayout';
+import { BackIn, BackInit, BackOut } from '@shared/back/types';
 import { APP_TITLE, VIEW_PAGE_SIZE } from '@shared/constants';
-import { parseSearchText } from '@shared/game/GameFilter';
-import { GamePropSuggestions, ProcessState, WindowIPC } from '@shared/interfaces';
-import { LangContainer, LangFile } from '@shared/lang';
-import { getLibraryItemTitle } from '@shared/library/util';
+import { IService, ProcessState, WindowIPC } from '@shared/interfaces';
+import { LangContainer } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { setTheme } from '@shared/Theme';
-import { Theme } from '@shared/ThemeFile';
 import { getUpgradeString } from '@shared/upgrade/util';
 import { canReadWrite, deepCopy, getFileServerURL, recursiveReplace } from '@shared/Util';
 import { arrayShallowStrictEquals } from '@shared/utils/compare';
 import { debounce } from '@shared/utils/debounce';
 import { formatString } from '@shared/utils/StringFormatter';
 import { ipcRenderer, remote } from 'electron';
-import { AppUpdater, UpdateInfo } from 'electron-updater';
+import { AppUpdater } from 'electron-updater';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as React from 'react';
@@ -30,201 +26,48 @@ import { SplashScreen } from './components/SplashScreen';
 import { TitleBar } from './components/TitleBar';
 import { ConnectedFooter } from './containers/ConnectedFooter';
 import HeaderContainer from './containers/HeaderContainer';
+import { WithMainStateProps } from './containers/withMainState';
 import { WithPreferencesProps } from './containers/withPreferences';
 import { WithTagCategoriesProps } from './containers/withTagCategories';
 import { CreditsFile } from './credits/CreditsFile';
-import { CreditsData } from './credits/types';
-import { UpdateView, UpgradeStageState, ViewGameSet } from './interfaces';
+import { UpdateView, UpgradeStageState } from './interfaces';
 import { Paths } from './Paths';
 import { AppRouter, AppRouterProps } from './router';
+import { MainActionType, RequestState } from './store/main/enums';
+import { MainState } from './store/main/types';
 import { SearchQuery } from './store/search';
 import { UpgradeStage } from './upgrade/types';
 import { UpgradeFile } from './upgrade/UpgradeFile';
-import { isFlashpointValidCheck, joinLibraryRoute, openConfirmDialog } from './Util';
+import { getBrowseSubPath, isFlashpointValidCheck, joinLibraryRoute, openConfirmDialog } from './Util';
 import { LangContext } from './util/lang';
 import { checkUpgradeStateInstalled, checkUpgradeStateUpdated, downloadAndInstallUpgrade } from './util/upgrade';
 
 const autoUpdater: AppUpdater = remote.require('electron-updater').autoUpdater;
-
-type View = {
-  /** The most recent query used for this view. */
-  query: ViewQuery;
-  /** Flags of which pages have already been requested (undefined until fetched, then true). */
-  pageRequests: Partial<Record<number, true>>;
-  /** Most recent meta. */
-  meta?: {
-    /** Total number of results in the query. */
-    total: number;
-    /** Page keyset of the results. */
-    pageKeyset: PageKeyset;
-  };
-  /** Games to display. */
-  games: ViewGameSet;
-  /** If a new meta has been applied but the games of the old query are still present (this means the games should be discarded the next time a game page is received). */
-  isDirty: boolean;
-  /** Total number of results in the query of the most recent game page response. */
-  total?: number;
-  /** ID of the selected playlist. */
-  selectedPlaylistId?: string;
-  /** ID of the selected game. */
-  selectedGameId?: string;
-  /** Most recent "start" page index that has been viewed. */
-  lastStart: number;
-  /** Most recent "count" of pages that has been viewed. */
-  lastCount: number;
-}
-
-type ViewQuery = SearchGamesOpts & {
-  /** Query string. */
-  text: string;
-  /** If extreme games are included. */
-  extreme: boolean;
-}
 
 type AppOwnProps = {
   /** Most recent search query. */
   search: SearchQuery;
 };
 
-export type AppProps = AppOwnProps & RouteComponentProps & WithPreferencesProps & WithTagCategoriesProps;
+export type AppProps = AppOwnProps & RouteComponentProps & WithPreferencesProps & WithTagCategoriesProps & WithMainStateProps;
 
-export type AppState = {
-  views: Record<string, View | undefined>; // views[id] = view
-  libraries: string[];
-  serverNames: string[];
-  mad4fpEnabled: boolean;
-  playlists: Playlist[];
-  playlistIconCache: Record<string, string>; // [PLAYLIST_ID] = ICON_BLOB_URL
-  suggestions: Partial<GamePropSuggestions>;
-  appPaths: Record<string, string>;
-  platforms: Record<string, string[]>;
-  loaded: { [key in BackInit]: boolean; };
-  themeList: Theme[];
-  gamesTotal: number;
-  localeCode: string;
-
-  /** Random games for the Home page box */
-  randomGames: ViewGame[];
-  /** Whether we're currently requesting random games */
-  requestingRandomGames: boolean;
-  /** Data and state used for the upgrade system (optional install-able downloads from the HomePage). */
-  upgrades: UpgradeStage[];
-  /** If the Random games have loaded - Masked as 'Games' */
-  gamesDoneLoading: boolean;
-  /** If upgrades files have loaded */
-  upgradesDoneLoading: boolean;
-  /** Stop rendering to force component unmounts */
-  stopRender: boolean;
-  /** Credits data (if any). */
-  creditsData?: CreditsData;
-  creditsDoneLoading: boolean;
-  /** Current parameters for ordering games. */
-  order: GameOrderChangeEvent;
-  /** Scale of the games. */
-  gameScale: number;
-  /** Layout of the browse page */
-  gameLayout: BrowsePageLayout;
-  /** If the "New Game" button was clicked (silly way of passing the event from the footer the the browse page). */
-  wasNewGameClicked: boolean;
-  /** Current language container. */
-  lang: LangContainer;
-  /** Current list of available language files. */
-  langList: LangFile[];
-  /** Info of the update, if one was found */
-  updateInfo: UpdateInfo | undefined;
-  /** If the "Meta Edit Popup" is open. */
-  metaEditExporterOpen: boolean;
-  /** ID of the game used in the "Meta Edit Popup". */
-  metaEditExporterGameId: string;
-};
-
-export class App extends React.Component<AppProps, AppState> {
+export class App extends React.Component<AppProps> {
   constructor(props: AppProps) {
     super(props);
-
-    const preferencesData = this.props.preferencesData;
-    const order: GameOrderChangeEvent = {
-      orderBy: preferencesData.gamesOrderBy,
-      orderReverse: preferencesData.gamesOrder
-    };
-
-    // Prepare libraries
-    const libraries = window.Shared.initialLibraries.sort();
-    const serverNames = window.Shared.initialServerNames.sort();
-    const mad4fpEnabled = window.Shared.initialMad4fpEnabled;
-    const views: Record<string, View> = {};
-    for (const library of libraries) {
-      views[library] = {
-        query: this.rebuildQuery(library, undefined, order),
-        pageRequests: {},
-        meta: undefined,
-        games: {},
-        isDirty: false,
-        total: undefined,
-        selectedPlaylistId: undefined,
-        selectedGameId: undefined,
-        lastStart: 0,
-        lastCount: 0,
-      };
-    }
-
-    // Prepare platforms
-    const platforms: Record<string, string[]> = {};
-    for (const library of libraries) {
-      platforms[library] = window.Shared.initialPlatforms[library].slice().sort();
-    }
-
-    // Set initial state
-    this.state = {
-      views: views,
-      libraries: libraries,
-      serverNames: serverNames,
-      mad4fpEnabled: mad4fpEnabled,
-      playlists: window.Shared.initialPlaylists || [],
-      playlistIconCache: {},
-      suggestions: {},
-      appPaths: {},
-      platforms: platforms,
-      loaded: {
-        0: false,
-        1: false,
-        2: false,
-      },
-      themeList: window.Shared.initialThemes,
-      gamesTotal: -1,
-      randomGames: [],
-      requestingRandomGames: false,
-      localeCode: window.Shared.initialLocaleCode,
-      upgrades: [],
-      gamesDoneLoading: false,
-      upgradesDoneLoading: false,
-      stopRender: false,
-      creditsData: undefined,
-      creditsDoneLoading: false,
-      gameScale: preferencesData.browsePageGameScale,
-      gameLayout: preferencesData.browsePageLayout,
-      lang: window.Shared.initialLang,
-      langList: window.Shared.initialLangList,
-      wasNewGameClicked: false,
-      updateInfo: undefined,
-      order,
-      metaEditExporterOpen: false,
-      metaEditExporterGameId: '',
-    };
 
     // Initialize app
     this.init();
   }
 
   init() {
-    const strings = this.state.lang;
+    const strings = this.props.main.lang;
     const fullFlashpointPath = window.Shared.config.fullFlashpointPath;
     const fullJsonFolderPath = window.Shared.config.fullJsonFolderPath;
     // Warn the user when closing the launcher WHILE downloading or installing an upgrade
     (() => {
       let askBeforeClosing = true;
       window.onbeforeunload = (event: BeforeUnloadEvent) => {
-        const { upgrades } = this.state;
+        const { upgrades } = this.props.main;
         let stillDownloading = false;
         for (const stage of upgrades) {
           if (stage.state.isInstalling) {
@@ -269,124 +112,179 @@ export class App extends React.Component<AppProps, AppState> {
       updatePreferencesData({ mainWindow: { maximized: isMaximized } });
     });
 
-    window.Shared.back.send<InitEventData>(BackIn.INIT_LISTEN, undefined, res => {
-      if (!res.data) { throw new Error('INIT_LISTEN response is missing data.'); }
-      const nextLoaded = { ...this.state.loaded };
-      for (const key of res.data.done) {
-        nextLoaded[key] = true;
-      }
-      this.setState({ loaded: nextLoaded });
+    window.Shared.back.request(BackIn.INIT_LISTEN)
+    .then(data => {
+      if (!data) { throw new Error('INIT_LISTEN response is missing data.'); }
+      this.props.dispatchMain({
+        type: MainActionType.ADD_LOADED,
+        loaded: data.done,
+      });
     });
 
-    window.Shared.back.send<GetGamesTotalResponseData>(BackIn.GET_GAMES_TOTAL, undefined, res => {
-      if (res.data) {
-        this.setState({ gamesTotal: res.data });
-      }
-    });
-
-    window.Shared.back.send<GetSuggestionsResponseData>(BackIn.GET_SUGGESTIONS, undefined, res => {
-      if (res.data) {
-        this.setState({
-          suggestions: res.data.suggestions,
-          appPaths: res.data.appPaths,
+    window.Shared.back.request(BackIn.GET_GAMES_TOTAL)
+    .then(data => {
+      if (data) {
+        this.props.dispatchMain({
+          type: MainActionType.SET_GAMES_TOTAL,
+          total: data,
         });
       }
     });
 
-    window.Shared.back.on('message', res => {
-      // console.log('IN', res);
-      switch (res.type) {
-        case BackOut.INIT_EVENT: {
-          const resData: InitEventData = res.data;
-
-          const loaded = { ...this.state.loaded };
-          for (const index of resData.done) {
-            loaded[index] = true;
-
-            switch (parseInt(index+'', 10)) { // (It is a string, even though TS thinks it is a number)
-              case BackInit.PLAYLISTS:
-                window.Shared.back.send<GetPlaylistsResponse>(BackIn.GET_PLAYLISTS, undefined, res => {
-                  if (res.data) {
-                    this.setState({ playlists: res.data });
-                    this.cachePlaylistIcons(res.data);
-                  }
-                });
-                break;
-            }
-          }
-
-          this.setState({ loaded });
-        } break;
-
-        case BackOut.LOG_ENTRY_ADDED: {
-          const resData: LogEntryAddedData = res.data;
-          window.Shared.log.entries[resData.index - window.Shared.log.offset] = resData.entry;
-        } break;
-
-        case BackOut.LOCALE_UPDATE: {
-          const resData: LocaleUpdateData = res.data;
-          this.setState({ localeCode: resData });
-        } break;
-
-        case BackOut.SERVICE_CHANGE: {
-          const resData: ServiceChangeData = res.data;
-          if (resData.id) {
-            const service = window.Shared.services.find(item => item.id === resData.id);
-            if (service) {
-              recursiveReplace(service, resData);
-            } else {
-              window.Shared.services.push(recursiveReplace({
-                id: 'invalid',
-                name: 'Invalid',
-                state: ProcessState.STOPPED,
-                pid: -1,
-                startTime: 0,
-                info: {
-                  path: '',
-                  filename: '',
-                  arguments: [],
-                  kill: false,
-                },
-              }, resData));
-            }
-          } else { throw new Error('Service update did not reference a service.'); }
-        } break;
-
-        case BackOut.LANGUAGE_CHANGE: {
-          const resData: LanguageChangeData = res.data;
-          this.setState({ lang: resData });
-        } break;
-
-        case BackOut.LANGUAGE_LIST_CHANGE: {
-          const resData: LanguageListChangeData = res.data;
-          this.setState({ langList: resData });
-        } break;
-
-        case BackOut.THEME_CHANGE: {
-          const resData: ThemeChangeData = res.data;
-          if (resData === this.props.preferencesData.currentTheme) { setTheme(resData); }
-        } break;
-
-        case BackOut.THEME_LIST_CHANGE: {
-          const resData: ThemeListChangeData = res.data;
-          this.setState({ themeList: resData });
-        } break;
-
-        case BackOut.PLAYLISTS_CHANGE: {
-          const resData: PlaylistsChangeData = res.data;
-          this.setState({ playlists: resData });
-          this.cachePlaylistIcons(resData);
-        } break;
-
-        case BackOut.TAG_CATEGORIES_CHANGE: {
-          const resData: TagCategoriesChangeData = res.data;
-          this.props.setTagCategories(resData);
-        } break;
+    window.Shared.back.request(BackIn.GET_SUGGESTIONS)
+    .then(data => {
+      if (data) {
+        this.props.dispatchMain({
+          type: MainActionType.SET_SUGGESTIONS,
+          suggestions: data.suggestions,
+          appPaths: data.appPaths,
+        });
       }
     });
 
+    // Register API handlers
+
+    // console.log('IN', res);
+    window.Shared.back.register(BackOut.INIT_EVENT, (event, data) => {
+      for (const index of data.done) {
+        switch (parseInt(index+'', 10)) { // (It is a string, even though TS thinks it is a number)
+          case BackInit.PLAYLISTS:
+            window.Shared.back.request(BackIn.GET_PLAYLISTS).then(data => {
+              if (data) {
+                this.props.setMainState({ playlists: data });
+                this.cachePlaylistIcons(data);
+              }
+            });
+            break;
+        }
+      }
+
+      this.props.dispatchMain({
+        type: MainActionType.ADD_LOADED,
+        loaded: data.done,
+      });
+    });
+
+    window.Shared.back.register(BackOut.INIT_EVENT, (event, data) => {
+      for (const index of data.done) {
+        switch (parseInt(index+'', 10)) { // (It is a string, even though TS thinks it is a number)
+          case BackInit.PLAYLISTS:
+            window.Shared.back.request(BackIn.GET_PLAYLISTS)
+            .then(data => {
+              if (data) {
+                this.props.setMainState({ playlists: data });
+                this.cachePlaylistIcons(data);
+              }
+            });
+            break;
+        }
+      }
+
+      this.props.dispatchMain({
+        type: MainActionType.ADD_LOADED,
+        loaded: data.done,
+      });
+    });
+
+    window.Shared.back.register(BackOut.LOG_ENTRY_ADDED, (event, entry, index) => {
+      window.Shared.log.entries[index - window.Shared.log.offset] = entry;
+    });
+
+    window.Shared.back.register(BackOut.LOCALE_UPDATE, (event, data) => {
+      this.props.dispatchMain({
+        type: MainActionType.SET_LOCALE,
+        localeCode: data,
+      });
+    });
+
+    window.Shared.back.register(BackOut.SERVICE_CHANGE, (event, data) => {
+      if (data.id) {
+        const newServices = [...this.props.main.services];
+        const service = newServices.find(item => item.id === data.id);
+        if (service) {
+          recursiveReplace(service, data);
+        } else {
+          newServices.push(recursiveReplace({
+            id: 'invalid',
+            name: 'Invalid',
+            state: ProcessState.STOPPED,
+            pid: -1,
+            startTime: 0,
+            info: {
+              path: '',
+              filename: '',
+              arguments: [],
+              kill: false,
+            },
+          }, data));
+        }
+        this.props.setMainState({ services: newServices });
+      } else { throw new Error('Service update did not reference a service.'); }
+    });
+
+    window.Shared.back.register(BackOut.SERVICE_REMOVED, (event, id) => {
+      const newServices = [...this.props.main.services];
+      const index = newServices.findIndex(s => s.id === id);
+      if (index > -1) {
+        newServices.splice(index, 1);
+        this.props.setMainState({ services: newServices });
+      }
+    });
+
+    window.Shared.back.register(BackOut.LANGUAGE_CHANGE, (event, data) => {
+      this.props.dispatchMain({
+        type: MainActionType.SET_LANGUAGE,
+        lang: data,
+      });
+    });
+
+    window.Shared.back.register(BackOut.LANGUAGE_LIST_CHANGE, (event, data) => {
+      this.props.dispatchMain({
+        type: MainActionType.SET_LANGUAGE_LIST,
+        langList: data,
+      });
+    });
+
+    window.Shared.back.register(BackOut.THEME_CHANGE, (event, theme) => {
+      if (theme.id === this.props.preferencesData.currentTheme) { setTheme(theme); }
+    });
+
+    window.Shared.back.register(BackOut.THEME_LIST_CHANGE, (event, data) => {
+      this.props.dispatchMain({
+        type: MainActionType.SET_THEME_LIST,
+        themeList: data,
+      });
+    });
+
+    window.Shared.back.register(BackOut.PLAYLISTS_CHANGE, (event, data) => {
+      this.props.dispatchMain({
+        type: MainActionType.SET_PLAYLISTS,
+        playlists: data,
+      });
+      this.cachePlaylistIcons(data);
+    });
+
+    window.Shared.back.register(BackOut.UPDATE_PREFERENCES_RESPONSE, (event, data) => {
+      window.Shared.preferences.data = data;
+      if (window.Shared.preferences.onUpdate) {
+        window.Shared.preferences.onUpdate();
+      }
+    });
+
+    window.Shared.back.register(BackOut.UPDATE_EXT_CONFIG_DATA, (event, data) => {
+      this.props.setMainState({ extConfig: data });
+    });
+
+    window.Shared.back.register(BackOut.TAG_CATEGORIES_CHANGE, (event, data) => {
+      this.props.setTagCategories(data);
+    });
+
+    window.Shared.back.register(BackOut.DEV_CONSOLE_CHANGE, (event, text) => {
+      this.props.setMainState({ devConsole: text });
+    });
+
     // Cache playlist icons (if they are loaded)
-    if (this.state.playlists.length > 0) { this.cachePlaylistIcons(this.state.playlists); }
+    if (this.props.main.playlists.length > 0) { this.cachePlaylistIcons(this.props.main.playlists); }
 
     // -- Stuff that should probably be moved to the back --
 
@@ -395,7 +293,10 @@ export class App extends React.Component<AppProps, AppState> {
       ? process.cwd()
       : path.dirname(remote.app.getPath('exe'));
     const upgradeCatch = (error: Error) => { console.warn(error); };
-    Promise.all([UpgradeFile.readFile(folderPath, log), UpgradeFile.readFile(fullJsonFolderPath, log)].map(p => p.catch(upgradeCatch)))
+    const launcherLogFunc = (message: string) => {
+      log.warn('Launcher', message);
+    };
+    Promise.all([UpgradeFile.readFile(folderPath, launcherLogFunc), UpgradeFile.readFile(fullJsonFolderPath, launcherLogFunc)].map(p => p.catch(upgradeCatch)))
     .then(async (fileData) => {
       // Combine all file data
       let allData: UpgradeStage[] = [];
@@ -404,9 +305,9 @@ export class App extends React.Component<AppProps, AppState> {
           allData = allData.concat(data);
         }
       }
-      this.setState({
+      this.props.dispatchMain({
+        type: MainActionType.SET_UPGRADES,
         upgrades: allData,
-        upgradesDoneLoading: true,
       });
       const isValid = await isFlashpointValidCheck(window.Shared.config.data.flashpointPath);
       // Notify of downloading initial data (if available)
@@ -441,19 +342,20 @@ export class App extends React.Component<AppProps, AppState> {
         }
       }));
     });
+
     // Load Credits
     fetch(`${getFileServerURL()}/credits.json`)
     .then(res => res.json())
     .then(async (data) => {
-      this.setState({
+      this.props.dispatchMain({
+        type: MainActionType.SET_CREDITS,
         creditsData: CreditsFile.parseCreditsData(data),
-        creditsDoneLoading: true
       });
     })
     .catch((error) => {
       console.warn(error);
-      log(`Failed to load credits.\n${error}`);
-      this.setState({ creditsDoneLoading: true });
+      log.warn('Launcher', `Failed to load credits.\n${error}`);
+      this.props.dispatchMain({ type: MainActionType.SET_CREDITS });
     });
 
     // Updater code - DO NOT run in development environment!
@@ -463,19 +365,20 @@ export class App extends React.Component<AppProps, AppState> {
         console.log(error);
       });
       autoUpdater.on('update-available', (info) => {
-        log(`Update Available - ${info.version}`);
+        log.info('Launcher', `Update Available - ${info.version}`);
         console.log(info);
-        this.setState({
-          updateInfo: info
+        this.props.dispatchMain({
+          type: MainActionType.SET_UPDATE_INFO,
+          updateInfo: info,
         });
       });
       autoUpdater.on('update-downloaded', onUpdateDownloaded);
       if (window.Shared.config.data.updatesEnabled) {
         autoUpdater.checkForUpdates()
-        .catch((error) => { log(`Error Fetching Update Info - ${error.message}`); });
-        log('Checking for updates...');
+        .catch((error) => { log.error('Launcher', `Error Fetching Update Info - ${error.message}`); });
+        log.info('Launcher', 'Checking for updates...');
       } else {
-        log('Update check disabled, skipping...');
+        log.info('Launcher', 'Update check disabled, skipping...');
       }
     }
 
@@ -483,7 +386,7 @@ export class App extends React.Component<AppProps, AppState> {
     if (process.platform !== 'win32') {
       which('php', function(err: Error | null) {
         if (err) {
-          log('Warning: PHP not found in path, may cause unexpected behaviour.');
+          log.warn('Launcher', 'Warning: PHP not found in path, may cause unexpected behaviour.');
           remote.dialog.showMessageBox({
             type: 'error',
             title: strings.dialog.programNotFound,
@@ -499,52 +402,126 @@ export class App extends React.Component<AppProps, AppState> {
 
   componentDidMount() {
     // Call first batch of random games
-    if (this.state.randomGames.length < 5) { this.rollRandomGames(); }
+    if (this.props.main.randomGames.length < 5) { this.rollRandomGames(true); }
   }
 
-  componentDidUpdate(prevProps: AppProps, prevState: AppState) {
+  componentDidUpdate(prevProps: AppProps) {
     const { history, location, preferencesData } = this.props;
     const library = getBrowseSubPath(this.props.location.pathname);
-    const prevLibrary = getBrowseSubPath(prevProps.location.pathname);
-    const view = this.state.views[library];
-    const prevView = prevState.views[prevLibrary];
+    const view = this.props.main.views[library];
 
     // Check if theme changed
     if (preferencesData.currentTheme !== prevProps.preferencesData.currentTheme) {
-      setTheme(preferencesData.currentTheme);
+      const theme = this.props.main.themeList.find(t => t.id === preferencesData.currentTheme);
+      setTheme(theme);
+    }
+
+    // Check if logo set changed
+    if (preferencesData.currentLogoSet !== prevProps.preferencesData.currentLogoSet) {
+      this.props.dispatchMain({
+        type: MainActionType.INCREMENT_LOGO_VERSION
+      });
+    }
+
+    // Check if playlists need to be updated based on extreme filtering
+    if (preferencesData.browsePageShowExtreme !== prevProps.preferencesData.browsePageShowExtreme) {
+      window.Shared.back.request(BackIn.GET_PLAYLISTS)
+      .then(data => {
+        if (data) {
+          this.props.setMainState({ playlists: data });
+          this.cachePlaylistIcons(data);
+        }
+      });
     }
 
     // Check if renderer finished initializing
-    if (isInitDone(this.state) && !isInitDone(prevState)) {
+    if (isInitDone(this.props.main) && !isInitDone(prevProps.main)) {
       // Pre-request all libraries
-      for (const library of this.state.libraries) {
-        this.requestMeta(library);
+      for (const library of this.props.main.libraries) {
+        this.setViewQuery(library);
       }
     }
 
     if (view) {
-      const prevPlaylist = prevView && prevView.selectedPlaylistId;
-
-      // Check if the search query has changed (or is different from the current view's)
-      if (view.query.text              !== this.props.search.text ||
-          view.query.extreme           !== this.props.preferencesData.browsePageShowExtreme ||
-          prevState.order.orderBy      !== this.state.order.orderBy ||
-          prevState.order.orderReverse !== this.state.order.orderReverse ||
-          prevPlaylist                 !== view.selectedPlaylistId) {
-        this.setState({
-          views: {
-            ...this.state.views,
-            [library]: {
-              ...view,
-              query: this.rebuildQuery(library, view.selectedPlaylistId, this.state.order),
-            },
-          },
-        }, () => { this.requestMeta(library); });
+      // Check if any parameters for the search query has changed (they don't match the current view's)
+      if (view.query.text                   !== this.props.search.text ||
+          view.query.extreme                !== this.props.preferencesData.browsePageShowExtreme ||
+          view.query.orderBy                !== this.props.preferencesData.gamesOrderBy ||
+          view.query.orderReverse           !== this.props.preferencesData.gamesOrder ||
+          prevProps.main.playlists          !== this.props.main.playlists) {
+        this.setViewQuery(library);
       }
-      // Check if the playlist selection changed
-      else if (view.selectedPlaylistId !== prevPlaylist ||
-               prevState.playlists     !== this.state.playlists) {
-        this.requestMeta(library);
+      // Fetch pages
+      else if (view.metaState === RequestState.RECEIVED) {
+        let pages: number[] | undefined;
+
+        for (const index in view.pageState) {
+          if (view.pageState[index] === RequestState.WAITING) {
+            if (!pages) { pages = []; }
+            pages.push(+index);
+          }
+        }
+
+        if (pages && pages.length > 0) {
+          // Request pages
+          window.Shared.back.request(BackIn.BROWSE_VIEW_PAGE, {
+            ranges: pages.map(index => ({
+              start: index * VIEW_PAGE_SIZE,
+              length: VIEW_PAGE_SIZE,
+              index: view.meta && view.meta.pageKeyset[index + 1], // Page keyset indices are one-indexed (start at 1 instead of 0)
+            })),
+            library: library,
+            query: view.query,
+            shallow: true,
+          })
+          .then((data) => {
+            if (data) {
+              this.props.dispatchMain({
+                type: MainActionType.ADD_VIEW_PAGES,
+                library: library,
+                queryId: view.queryId,
+                ranges: data.ranges,
+              });
+            } else {
+              console.error('BROWSE_VIEW_PAGE response contains no data.');
+            }
+          });
+
+          // Flag pages as requested
+          this.props.dispatchMain({
+            type: MainActionType.REQUEST_VIEW_PAGES,
+            library: library,
+            queryId: view.queryId,
+            pages: pages,
+          });
+        }
+      }
+    }
+
+    for (const l in this.props.main.views) {
+      const v = this.props.main.views[l];
+      // Check if the meta has not yet been requested
+      if (v && v.metaState === RequestState.WAITING) {
+        // Request meta
+        window.Shared.back.request(BackIn.BROWSE_VIEW_KEYSET, l, v.query)
+        .then((data) => {
+          if (data) {
+            this.props.dispatchMain({
+              type: MainActionType.SET_VIEW_META,
+              library: l,
+              queryId: v.queryId,
+              keyset: data.keyset,
+              total: data.total,
+            });
+          }
+        });
+
+        // Flag meta as requested
+        this.props.dispatchMain({
+          type: MainActionType.REQUEST_VIEW_META,
+          library: l,
+          queryId: v.queryId,
+        });
       }
     }
 
@@ -556,20 +533,19 @@ export class App extends React.Component<AppProps, AppState> {
     }
 
     // Create a new game
-    if (this.state.wasNewGameClicked) {
+    if (this.props.main.wasNewGameClicked) {
       const route = preferencesData.lastSelectedLibrary || preferencesData.defaultLibrary || '';
 
       if (location.pathname.startsWith(Paths.BROWSE)) {
-        this.setState({ wasNewGameClicked: false });
+        this.props.dispatchMain({ type: MainActionType.CLICK_NEW_GAME_END });
         // Deselect the current game
-        const view = this.state.views[route];
+        const view = this.props.main.views[route];
         if (view && view.selectedGameId !== undefined) {
-          const views = { ...this.state.views };
-          views[route] = {
-            ...view,
-            selectedGameId: undefined,
-          };
-          this.setState({ views });
+          this.props.dispatchMain({
+            type: MainActionType.SET_VIEW_SELECTED_GAME,
+            library: route,
+            gameId: undefined,
+          });
         }
       } else {
         history.push(joinLibraryRoute(route));
@@ -577,76 +553,81 @@ export class App extends React.Component<AppProps, AppState> {
     }
 
     // Clear random picks queue
-    if (this.state.randomGames.length > 5 && (
+    if (this.props.main.randomGames.length > 5 && (
       this.props.preferencesData.browsePageShowExtreme !== prevProps.preferencesData.browsePageShowExtreme ||
       !arrayShallowStrictEquals(this.props.preferencesData.excludedRandomLibraries, prevProps.preferencesData.excludedRandomLibraries)
     )) {
-      this.setState({
-        randomGames: this.state.randomGames.slice(0, 5),
-      });
+      this.props.dispatchMain({ type: MainActionType.CLEAR_RANDOM_GAMES });
     }
   }
 
   render() {
-    const loaded = isInitDone(this.state);
+    const loaded = isInitDone(this.props.main);
     const libraryPath = getBrowseSubPath(this.props.location.pathname);
-    const view = this.state.views[libraryPath];
-    const playlists = this.filterAndOrderPlaylistsMemo(this.state.playlists, libraryPath);
+    const view = this.props.main.views[libraryPath];
+    const playlists = this.filterAndOrderPlaylistsMemo(this.props.main.playlists, libraryPath);
 
     // Props to set to the router
     const routerProps: AppRouterProps = {
       games: view && view.games || {},
-      randomGames: this.state.randomGames,
+      randomGames: this.props.main.randomGames,
       rollRandomGames: this.rollRandomGames,
       updateView: this.updateView,
       gamesTotal: view && view.total || 0,
       playlists: playlists,
-      suggestions: this.state.suggestions,
-      appPaths: this.state.appPaths,
-      platforms: this.state.platforms,
-      platformsFlat: this.flattenPlatformsMemo(this.state.platforms),
-      playlistIconCache: this.state.playlistIconCache,
+      suggestions: this.props.main.suggestions,
+      appPaths: this.props.main.appPaths,
+      platforms: this.props.main.platforms,
+      platformsFlat: this.flattenPlatformsMemo(this.props.main.platforms),
+      playlistIconCache: this.props.main.playlistIconCache,
       onSaveGame: this.onSaveGame,
       onDeleteGame: this.onDeleteGame,
       onLaunchGame: this.onLaunchGame,
       onQuickSearch: this.onQuickSearch,
       onOpenExportMetaEdit: this.onOpenExportMetaEdit,
-      libraries: this.state.libraries,
-      serverNames: this.state.serverNames,
-      mad4fpEnabled: this.state.mad4fpEnabled,
-      localeCode: this.state.localeCode,
-      upgrades: this.state.upgrades,
-      creditsData: this.state.creditsData,
-      creditsDoneLoading: this.state.creditsDoneLoading,
-      order: this.state.order,
-      gameScale: this.state.gameScale,
-      gameLayout: this.state.gameLayout,
+      libraries: this.props.main.libraries,
+      serverNames: this.props.main.serverNames,
+      mad4fpEnabled: this.props.main.mad4fpEnabled,
+      localeCode: this.props.main.localeCode,
+      devConsole: this.props.main.devConsole,
+      upgrades: this.props.main.upgrades,
+      creditsData: this.props.main.creditsData,
+      creditsDoneLoading: this.props.main.creditsDoneLoading,
       selectedGameId: view && view.selectedGameId,
-      selectedPlaylistId: view && view.selectedPlaylistId,
+      gameRunning: view ? this.checkGameRunningMemo(view.selectedGameId, this.props.main.services) : false,
+      selectedPlaylistId: view && view.query.filter.playlistId,
       onSelectGame: this.onSelectGame,
       onDeletePlaylist: this.onPlaylistDelete,
       onUpdatePlaylist: this.onUpdatePlaylist,
       onSelectPlaylist: this.onSelectPlaylist,
-      wasNewGameClicked: this.state.wasNewGameClicked,
+      wasNewGameClicked: this.props.main.wasNewGameClicked,
       onDownloadUpgradeClick: this.onDownloadUpgradeClick,
       gameLibrary: libraryPath,
-      themeList: this.state.themeList,
-      languages: this.state.langList,
-      updateInfo: this.state.updateInfo,
+      themeList: this.props.main.themeList,
+      languages: this.props.main.langList,
+      updateInfo: this.props.main.updateInfo,
       autoUpdater: autoUpdater,
+      extensions: this.props.main.extensions,
+      devScripts: this.props.main.devScripts,
+      contextButtons: this.props.main.contextButtons,
+      logoSets: this.props.main.logoSets,
+      extConfigs: this.props.main.extConfigs,
+      extConfig: this.props.main.extConfig,
+      logoVersion: this.props.main.logoVersion,
+      services: this.props.main.services,
     };
 
     // Render
     return (
-      <LangContext.Provider value={this.state.lang}>
-        { !this.state.stopRender ? (
+      <LangContext.Provider value={this.props.main.lang}>
+        { !this.props.main.stopRender ? (
           <>
             {/* Splash screen */}
             <SplashScreen
-              gamesLoaded={this.state.gamesDoneLoading}
-              upgradesLoaded={this.state.upgradesDoneLoading}
-              creditsLoaded={this.state.creditsDoneLoading}
-              miscLoaded={this.state.loaded[BackInit.EXEC]} />
+              gamesLoaded={this.props.main.gamesDoneLoading}
+              upgradesLoaded={this.props.main.upgradesDoneLoading}
+              creditsLoaded={this.props.main.creditsDoneLoading}
+              miscLoaded={this.props.main.loaded[BackInit.EXEC]} />
             {/* Title-bar (if enabled) */}
             { window.Shared.config.data.useCustomTitlebar ?
               window.Shared.customVersion ? (
@@ -659,11 +640,12 @@ export class App extends React.Component<AppProps, AppState> {
               <>
                 {/* Header */}
                 <HeaderContainer
-                  libraries={this.state.libraries}
+                  libraries={this.props.main.libraries}
                   onOrderChange={this.onOrderChange}
                   onToggleLeftSidebarClick={this.onToggleLeftSidebarClick}
                   onToggleRightSidebarClick={this.onToggleRightSidebarClick}
-                  order={this.state.order} />
+                  orderBy={this.props.preferencesData.gamesOrderBy}
+                  orderReverse={this.props.preferencesData.gamesOrder} />
                 {/* Main */}
                 <div className='main'>
                   <AppRouter { ...routerProps } />
@@ -674,17 +656,11 @@ export class App extends React.Component<AppProps, AppState> {
                   </noscript>
                 </div>
                 {/* Footer */}
-                <ConnectedFooter
-                  totalCount={this.state.gamesTotal}
-                  currentLabel={libraryPath && getLibraryItemTitle(libraryPath, this.state.lang.libraries)}
-                  currentCount={view && view.total || 0}
-                  onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale}
-                  onLayoutChange={this.onLayoutSelectorChange} layout={this.state.gameLayout}
-                  onNewGameClick={this.onNewGameClick} />
+                <ConnectedFooter />
                 {/* Meta Edit Popup */}
-                { this.state.metaEditExporterOpen ? (
+                { this.props.main.metaEditExporterOpen ? (
                   <MetaEditExporter
-                    gameId={this.state.metaEditExporterGameId}
+                    gameId={this.props.main.metaEditExporterGameId}
                     onCancel={this.onCancelExportMetaEdit}
                     onConfirm={this.onConfirmExportMetaEdit} />
                 ) : undefined }
@@ -697,47 +673,10 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   private onOrderChange = (event: GameOrderChangeEvent): void => {
-    const library = getBrowseSubPath(this.props.location.pathname);
-    const view = this.state.views[library];
-    if (view) {
-      // @TODO I'm thinking about moving the order options to be specific to each view,
-      //       instead of global. But maybe that is unnecessary and just adds complexity.
-      this.setState({
-        order: event,
-        views: {
-          ...this.state.views,
-          [library]: {
-            ...view,
-            query: {
-              ...view.query,
-              orderBy: event.orderBy,
-              orderReverse: event.orderReverse,
-            },
-          }
-        }
-      }, () => { this.requestMeta(library); });
-    }
-    // Update Preferences Data (this is to make it get saved on disk)
     updatePreferencesData({
       gamesOrderBy: event.orderBy,
-      gamesOrder: event.orderReverse
+      gamesOrder: event.orderReverse,
     });
-  }
-
-  private onScaleSliderChange = (value: number): void => {
-    this.setState({ gameScale: value });
-    // Update Preferences Data (this is to make it get saved on disk)
-    updatePreferencesData({ browsePageGameScale: value });
-  }
-
-  private onLayoutSelectorChange = (value: BrowsePageLayout): void => {
-    this.setState({ gameLayout: value });
-    // Update Preferences Data (this is to make it get saved on disk)
-    updatePreferencesData({ browsePageLayout: value });
-  }
-
-  private onNewGameClick = (): void => {
-    this.setState({ wasNewGameClicked: true });
   }
 
   private onToggleLeftSidebarClick = (): void => {
@@ -750,43 +689,19 @@ export class App extends React.Component<AppProps, AppState> {
 
   private onSelectGame = (gameId?: string): void => {
     const library = getBrowseSubPath(this.props.location.pathname);
-    const view = this.state.views[library];
+    const view = this.props.main.views[library];
     if (view) {
-      this.setState({
-        views: {
-          ...this.state.views,
-          [library]: {
-            ...view,
-            selectedGameId: gameId,
-          }
-        }
+      this.props.dispatchMain({
+        type: MainActionType.SET_VIEW_SELECTED_GAME,
+        library: library,
+        gameId: gameId,
       });
     }
   }
 
   /** Set the selected playlist for a single "browse route" */
   private onSelectPlaylist = (library: string, playlistId: string | undefined): void => {
-    const view = this.state.views[library];
-    if (view) {
-      this.setState({
-        views: {
-          ...this.state.views,
-          [library]: {
-            ...view,
-            selectedPlaylistId: playlistId,
-            selectedGameId: undefined,
-          }
-        }
-      });
-    }
-  }
-
-  /** Updates the playlists state */
-  private updatePlaylists = (playlists: Playlist[], cache: Record<string, string>): void => {
-    this.setState({
-      playlists: playlists,
-      playlistIconCache: cache
-    });
+    this.setViewQuery(library, playlistId);
   }
 
   private onDownloadUpgradeClick = (stage: UpgradeStage, strings: LangContainer) => {
@@ -794,13 +709,14 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   private setUpgradeStageState = (id: string, data: Partial<UpgradeStageState>) => {
-    const { upgrades } = this.state;
+    const { upgrades } = this.props.main;
     const index = upgrades.findIndex(u => u.id === id);
     if (index !== -1) {
       const newUpgrades = deepCopy(upgrades);
       const newStageState = Object.assign({}, upgrades[index].state, data);
       newUpgrades[index].state = newStageState;
-      this.setState({
+      this.props.dispatchMain({
+        type: MainActionType.SET_UPGRADES,
         upgrades: newUpgrades,
       });
     }
@@ -808,16 +724,16 @@ export class App extends React.Component<AppProps, AppState> {
 
   private onPlaylistDelete = (playlist: Playlist) => {
     if (playlist) {
-      const index = this.state.playlists.findIndex(p => p.id === playlist.id);
+      const index = this.props.main.playlists.findIndex(p => p.id === playlist.id);
       if (index >= 0) {
-        const playlists = [ ...this.state.playlists ];
+        const playlists = [ ...this.props.main.playlists ];
         playlists.splice(index, 1);
 
-        const cache: Record<string, string> = { ...this.state.playlistIconCache };
-        const id = this.state.playlists[index].id;
+        const cache: Record<string, string> = { ...this.props.main.playlistIconCache };
+        const id = this.props.main.playlists[index].id;
         if (id in cache) { delete cache[id]; }
 
-        this.setState({
+        this.props.setMainState({
           playlists: playlists,
           playlistIconCache: cache
         });
@@ -826,30 +742,30 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   private onUpdatePlaylist = (playlist: Playlist) => {
-    const state: Partial<Pick<AppState, 'playlistIconCache' | 'playlists' | 'views'>> = {};
+    const state: Partial<Pick<MainState, 'playlistIconCache' | 'playlists' | 'views'>> = {};
 
     // Update or add playlist
-    const index = this.state.playlists.findIndex(p => p.id === playlist.id);
+    const index = this.props.main.playlists.findIndex(p => p.id === playlist.id);
     if (index >= 0) {
-      state.playlists = [ ...this.state.playlists ];
+      state.playlists = [ ...this.props.main.playlists ];
       state.playlists[index] = playlist;
     } else {
-      state.playlists = [ ...this.state.playlists, playlist ];
+      state.playlists = [ ...this.props.main.playlists, playlist ];
     }
 
     // Remove old icon from cache
-    if (playlist.id in this.state.playlistIconCache) {
-      state.playlistIconCache = { ...this.state.playlistIconCache };
+    if (playlist.id in this.props.main.playlistIconCache) {
+      state.playlistIconCache = { ...this.props.main.playlistIconCache };
       delete state.playlistIconCache[playlist.id];
-      URL.revokeObjectURL(this.state.playlistIconCache[playlist.id]); // Free blob from memory
+      URL.revokeObjectURL(this.props.main.playlistIconCache[playlist.id]); // Free blob from memory
     }
 
     // Cache new icon
     if (playlist.icon !== undefined) {
       cacheIcon(playlist.icon).then(url => {
-        this.setState({
+        this.props.setMainState({
           playlistIconCache: {
-            ...this.state.playlistIconCache,
+            ...this.props.main.playlistIconCache,
             [playlist.id]: url,
           }
         });
@@ -857,37 +773,34 @@ export class App extends React.Component<AppProps, AppState> {
     }
 
     // Clear view caches (that use this playlist)
-    for (const library in this.state.views) {
-      const view = this.state.views[library];
-      if (view && (view.selectedPlaylistId === playlist.id)) {
-        this.requestMeta(library);
+    for (const library in this.props.main.views) {
+      const view = this.props.main.views[library];
+      if (view && (view.query.filter.playlistId === playlist.id)) {
+        this.setViewQuery(library);
       }
     }
 
-    this.setState(
-      state as any, // (This is very annoying to make typesafe)
-      () => { if (state.views && playlist.library !== undefined) { this.requestGames(playlist.library); } }
-    );
+    this.props.setMainState(state as any); // (This is very annoying to make typesafe)
   }
 
   onSaveGame = (game: Game, playlistEntry?: PlaylistGame): void => {
-    window.Shared.back.sendP<any, SaveGameData>(BackIn.SAVE_GAME, game)
+    window.Shared.back.request(BackIn.SAVE_GAME, game)
     .then(async () => {
       if (playlistEntry) {
-        await window.Shared.back.sendP<unknown, SavePlaylistGameData>(BackIn.SAVE_PLAYLIST_GAME, playlistEntry);
+        await window.Shared.back.send(BackIn.SAVE_PLAYLIST_GAME, playlistEntry);
       }
     })
-    .then(() => { this.requestMeta(game.library); });
+    .then(() => { this.setViewQuery(game.library); });
   }
 
   onDeleteGame = (gameId: string): void => {
     const library = getBrowseSubPath(this.props.location.pathname);
-    window.Shared.back.sendP<unknown, DeleteGameData>(BackIn.DELETE_GAME, { id: gameId })
-    .then(() => { this.requestMeta(library); });
+    window.Shared.back.request(BackIn.DELETE_GAME, gameId)
+    .then(() => { this.setViewQuery(library); });
   }
 
   onLaunchGame(gameId: string): void {
-    window.Shared.back.send<LaunchGameData>(BackIn.LAUNCH_GAME, { id: gameId });
+    window.Shared.back.send(BackIn.LAUNCH_GAME, gameId);
   }
 
   onQuickSearch = (search: string): void => {
@@ -904,7 +817,7 @@ export class App extends React.Component<AppProps, AppState> {
         const url = urls[i];
         if (url) { cache[playlists[i].id] = url; }
       }
-      this.setState({ playlistIconCache: cache });
+      this.props.setMainState({ playlistIconCache: cache });
     });
   }
 
@@ -923,7 +836,7 @@ export class App extends React.Component<AppProps, AppState> {
   });
 
   private unmountBeforeClose = (): void => {
-    this.setState({ stopRender: true });
+    this.props.dispatchMain({ type: MainActionType.STOP_RENDER });
     setTimeout(() => { window.close(); }, 100);
   }
 
@@ -940,214 +853,76 @@ export class App extends React.Component<AppProps, AppState> {
     return names;
   });
 
-  private rebuildQuery(library: string, selectedPlaylistId: string | undefined, order: GameOrderChangeEvent): ViewQuery {
-    const text = this.props.search.text;
-    const extreme = this.props.preferencesData.browsePageShowExtreme;
+  private checkGameRunningMemo = memoizeOne((gameId: string | undefined, services: IService[]) => {
+    return gameId ? !!services.find(s => s.id === `game.${gameId}`) : false;
+  });
 
-    const searchQuery = parseSearchText(text);
-    searchQuery.whitelist.push({ field: 'library', value: library });
-    if (!extreme)                                   { searchQuery.whitelist.push({ field: 'extreme', value: false }); }
-    if (!window.Shared.config.data.showBrokenGames) { searchQuery.whitelist.push({ field: 'broken',  value: false }); }
-
-    return {
-      text: text,
-      extreme: extreme,
-      filter: {
-        searchQuery: searchQuery,
-        playlistId: selectedPlaylistId,
-      },
-      orderBy: order.orderBy,
-      orderReverse: order.orderReverse,
-    };
-  }
-
-  requestGames(library: string): void {
-    const view = this.state.views[library];
-
-    // console.log(`requestGames("${library}")`);
-
-    if (view) {
-      if (view.meta) {
-        const pages: number[] = [];
-
-        for (let i = 0; i < view.lastCount; i++) {
-          const index = view.lastStart + i;
-          if (!view.pageRequests[index]) {
-            pages.push(index);
-          }
-        }
-
-        if (pages.length > 0) {
-          // Request pages
-          window.Shared.back.sendP<BrowseViewPageResponseData<boolean>, BrowseViewPageData>(BackIn.BROWSE_VIEW_PAGE, {
-            ranges: pages.map(index => ({
-              start: index * VIEW_PAGE_SIZE,
-              length: VIEW_PAGE_SIZE,
-              index: view.meta && view.meta.pageKeyset[index + 1], // Page keyset indices are one-indexed (start at 1 instead of 0)
-            })),
-            library: library,
-            query: view.query,
-            shallow: true,
-          }).then((res) => {
-            if (res.data) {
-              const view = this.state.views[library];
-              if (view && view.meta) {
-                const newGames = (view.isDirty) ? {} : { ...view.games };
-
-                for (const range of res.data.ranges) {
-                  const length = Math.min(range.games.length, view.meta.total);
-                  for (let i = 0; i < length; i++) {
-                    newGames[range.start + i] = range.games[i];
-                  }
-                }
-
-                this.setState({
-                  views: {
-                    ...this.state.views,
-                    [library]: {
-                      ...view,
-                      games: newGames,
-                      isDirty: false,
-                      total: view.meta.total, // Update dirty total
-                    }
-                  }
-                });
-              } else {
-                console.error('Failed to apply game page response. View or view meta has been removed since the request was made.');
-              }
-            } else {
-              console.error('BROWSE_VIEW_PAGE response contains no data.');
-            }
-          });
-
-          // Flag pages as requested
-          const newPageRequests = { ...view.pageRequests };
-          for (let i = 0; i < pages.length; i++) {
-            newPageRequests[pages[i]] = true;
-          }
-
-          this.setState({
-            views: {
-              ...this.state.views,
-              [library]: {
-                ...view,
-                pageRequests: newPageRequests,
-              }
-            }
-          });
-        }
-      } else {
-        // Note: This is probably unnecessary since the meta is already requested for all libraries on startup, but better safe than sorry
-        this.requestMeta(library);
-      }
-    }
-  }
-
-  /** Request the meta of a view and then apply it. */
-  requestMeta = async (library: string = getBrowseSubPath(this.props.location.pathname)): Promise<void> => {
-    const view = this.state.views[library];
-
-    // console.log(`requestMeta("${library}")`, view);
-
-    if (view) {
-      window.Shared.back.sendP<BrowseViewKeysetResponse, BrowseViewKeysetData>(BackIn.BROWSE_VIEW_KEYSET, {
-        query: view.query,
-        library: library,
-      }).then((res) => {
-        if (res.data) {
-          const view = this.state.views[library];
-
-          if (view) {
-            this.setState({
-              views: {
-                ...this.state.views,
-                [library]: {
-                  ...view,
-                  meta: {
-                    pageKeyset: res.data.keyset,
-                    total: res.data.total,
-                  },
-                  // Dirty games
-                  isDirty: true,
-                  pageRequests: {},
-                  // Update total (for the first reponse only)
-                  total: (view.total === undefined)
-                    ? res.data.total
-                    : view.total,
-                }
-              }
-            });
-          }
-
-          this.requestGames(library);
-        }
-      });
-    }
-  }
+  /**
+   * Set the query of a view.
+   * Note: If there is only one argument (counted by length) then the playlistId will remain the same.
+   */
+  setViewQuery = (function(this: App, library: string = getBrowseSubPath(this.props.location.pathname), playlistId?: string): void {
+    this.props.dispatchMain({
+      type: MainActionType.SET_VIEW_QUERY,
+      library: library,
+      searchText: this.props.search.text,
+      showExtreme: this.props.preferencesData.browsePageShowExtreme,
+      orderBy: this.props.preferencesData.gamesOrderBy,
+      orderReverse: this.props.preferencesData.gamesOrder,
+      playlistId: (arguments.length >= 2)
+        ? playlistId
+        : null,
+    });
+  }).bind(this);
 
   updateView: UpdateView = (start, count) => {
-    const library = getBrowseSubPath(this.props.location.pathname);
-    const view = this.state.views[library];
-
-    // console.log(`updateView(${start}, ${count})`, library, view);
-
-    if (view && (view.lastStart !== start || view.lastCount !== count)) {
-      this.setState({
-        views: {
-          ...this.state.views,
-          [library]: {
-            ...view,
-            lastStart: start,
-            lastCount: count,
-          },
-        },
-      }, () => { this.requestGames(library); });
-    }
+    this.props.dispatchMain({
+      type: MainActionType.SET_VIEW_BOUNDRIES,
+      library: getBrowseSubPath(this.props.location.pathname),
+      start: start,
+      count: count,
+    });
   }
 
   onOpenExportMetaEdit = (gameId: string): void => {
-    this.setState({
-      metaEditExporterOpen: true,
-      metaEditExporterGameId: gameId,
+    this.props.dispatchMain({
+      type: MainActionType.OPEN_META_EXPORTER,
+      gameId: gameId,
     });
   }
 
   onCancelExportMetaEdit = (): void => {
-    this.setState({ metaEditExporterOpen: false });
+    this.props.dispatchMain({ type: MainActionType.CLOSE_META_EXPORTER });
   }
 
   onConfirmExportMetaEdit = (data: MetaEditExporterConfirmData): void => {
-    this.setState({ metaEditExporterOpen: false });
-    window.Shared.back.sendP<any, ExportMetaEditData>(BackIn.EXPORT_META_EDIT, {
-      id: data.id,
-      properties: data.properties,
-    });
+    this.props.dispatchMain({ type: MainActionType.CLOSE_META_EXPORTER });
+    window.Shared.back.send(BackIn.EXPORT_META_EDIT, data.id, data.properties);
   }
 
-  rollRandomGames = () => {
-    const { randomGames, requestingRandomGames } = this.state;
-    /** If there are more games, shift them forward */
-    if (randomGames.length >= 10) {
-      this.setState({ randomGames: randomGames.slice(5) });
+  rollRandomGames = (first?: boolean) => {
+    const { randomGames, requestingRandomGames } = this.props.main;
+
+    // Shift in new games from the queue
+    if (first !== true) {
+      this.props.dispatchMain({ type: MainActionType.SHIFT_RANDOM_GAMES });
     }
-    /** If there are less than 3 rolls on the queue, request 10 more */
+
+    // Request more games to the queue
     if (randomGames.length <= 15 && !requestingRandomGames) {
-      this.setState({ requestingRandomGames: true });
-      window.Shared.back.send<RandomGamesResponseData, RandomGamesData>(BackIn.RANDOM_GAMES, {
+      this.props.dispatchMain({ type: MainActionType.REQUEST_RANDOM_GAMES });
+
+      window.Shared.back.request(BackIn.RANDOM_GAMES, {
         count: 50,
         broken: window.Shared.config.data.showBrokenGames,
         extreme: this.props.preferencesData.browsePageShowExtreme,
         excludedLibraries: this.props.preferencesData.excludedRandomLibraries,
-      }, (res) => {
-        this.setState({ requestingRandomGames: false, gamesDoneLoading: true });
-        if (res.data) {
-          /** If we couldn't move the queue last time, do it now */
-          const newGames = [...randomGames];
-          if (newGames.length >= 5) {
-            newGames.splice(0, 5);
-          }
-          this.setState({ randomGames: newGames.concat(res.data) });
-        }
+      })
+      .then((data) => {
+        this.props.dispatchMain({
+          type: MainActionType.RESPONSE_RANDOM_GAMES,
+          games: data || [],
+        });
       });
     }
   };
@@ -1198,9 +973,10 @@ async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: 
       flashpointPath = chosenPath;
       fs.ensureDirSync(flashpointPath);
       // Save picked folder to config
-      window.Shared.back.send<any, UpdateConfigData>(BackIn.UPDATE_CONFIG, {
+      window.Shared.back.request(BackIn.UPDATE_CONFIG, {
         flashpointPath: flashpointPath,
-      }, () => { /* window.Shared.restart(); */ });
+      })
+      .then(() => { /* window.Shared.restart(); */ });
     }
   }
   // Flag as installing
@@ -1248,21 +1024,11 @@ async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: 
       setStageState(stage.id, {
         isInstalling: false,
       });
-      log(`Error installing '${stage.title}' - ${error.message}`);
+      log.error('Launcher', `Error installing '${stage.title}' - ${error.message}`);
       console.error(error);
     })
     .on('warn', console.warn);
   }
-}
-
-/** Get the "library route" of a url (returns empty string if URL is not a valid "sub-browse path") */
-function getBrowseSubPath(urlPath: string): string {
-  if (urlPath.startsWith(Paths.BROWSE)) {
-    let str = urlPath.substr(Paths.BROWSE.length);
-    if (str[0] === '/') { str = str.substring(1); }
-    return str;
-  }
-  return '';
 }
 
 async function cacheIcon(icon: string): Promise<string> {
@@ -1282,18 +1048,11 @@ function onUpdateDownloaded() {
   });
 }
 
-function isInitDone(state: AppState): boolean {
+function isInitDone(state: MainState): boolean {
   return (
     state.gamesDoneLoading &&
     state.upgradesDoneLoading &&
     state.creditsDoneLoading &&
     state.loaded[BackInit.EXEC]
   );
-}
-
-function log(content: string): void {
-  window.Shared.back.send<any, AddLogData>(BackIn.ADD_LOG, {
-    source: 'Launcher',
-    content: content,
-  });
 }

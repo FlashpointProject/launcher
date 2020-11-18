@@ -25,6 +25,9 @@ The launcher provides multiple ways to run programs alongside. An example config
     {
       ...
     }
+  ],
+  "daemon": [
+
   ]
 }
 ```
@@ -60,9 +63,9 @@ A server is started alongside the launcher. Multiple servers can be defined but 
 }
 ```
 
-### Stop / Start
+### Stop / Start / Daemon
 
-Stop and Start services are run at the starting and stopping of the launcher. Multiple can be defined and they are all run exactly once.
+Stop / Start processes and Daemon services can be given to run with the launcher. Start / Stop processes are run exactly once during startup and shutdown of the launcher. Daemon processes and started at startup can be controlled via the Developer page.
 
 **Path** - Path to set as the working directory when executing.
 

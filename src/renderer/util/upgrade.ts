@@ -1,4 +1,3 @@
-import { AddLogData, BackIn } from '@shared/back/types';
 import { indexContentFolder } from '@shared/curate/util';
 import * as crypto from 'crypto';
 import { EventEmitter } from 'events';
@@ -69,7 +68,7 @@ class UpgradeDownloadStatus extends EventEmitter {
 export function downloadAndInstallUpgrade(upgrade: UpgradeStage, opts: IGetUpgradeOpts): UpgradeStatus {
   const status = new UpgradeStatus();
   status.currentTask = 'downloading';
-  log(`Download of upgrade "${upgrade.title}" started.`);
+  upgradeLog(`Download of upgrade "${upgrade.title}" started.`);
   const dlStatus = (
     downloadUpgrade(upgrade, opts.downloadFilename, (offset) => { status.downloadProgress = offset / 1; })
     .on('progress', () => {
@@ -83,8 +82,8 @@ export function downloadAndInstallUpgrade(upgrade: UpgradeStage, opts: IGetUpgra
       const extractionPath = path.join(opts.installPath, 'Upgrade Data', upgrade.id);
       await fs.ensureDir(extractionPath);
       status.currentTask = 'extracting';
-      log(`Download of the "${upgrade.title}" upgrade complete!`);
-      log(`Extraction of the "${upgrade.title}" upgrade started.`);
+      upgradeLog(`Download of the "${upgrade.title}" upgrade complete!`);
+      upgradeLog(`Extraction of the "${upgrade.title}" upgrade started.`);
       extractFull(zipPath, extractionPath, { $bin: pathTo7z, $progress: true })
       .on('progress', (progress) => {
         status.extractProgress = progress.percent / 100;
@@ -123,17 +122,17 @@ export function downloadAndInstallUpgrade(upgrade: UpgradeStage, opts: IGetUpgra
         // Clean up extraction folder
         await fs.remove(extractionPath);
         // Install complete
-        log(`Installation of the "${upgrade.title}" upgrade complete!\n`+
+        upgradeLog(`Installation of the "${upgrade.title}" upgrade complete!\n`+
             'Restart the launcher for the upgrade to take effect.');
         status.emit('done');
       })
       .once('error', (error) => {
-        log(`Installation of the "${upgrade.title}" upgrade failed!\n${error}`);
+        upgradeLog(`Installation of the "${upgrade.title}" upgrade failed!\n${error}`);
         status.emit('error', error);
       });
     })
     .once('error', (error) => {
-      log(`Download of the "${upgrade.title}" upgrade failed!\n${error}`);
+      upgradeLog(`Download of the "${upgrade.title}" upgrade failed!\n${error}`);
       status.emit('error', error);
     })
   );
@@ -221,7 +220,7 @@ export async function checkUpgradeStateUpdated(stage: UpgradeStage, baseFolder: 
           return (false);
         })
         .catch((error) => {
-          log(`Error calculating SHA256 sum of upgrade. - ${error.message}`);
+          upgradeLog(`Error calculating SHA256 sum of upgrade. - ${error.message}`);
           console.error(error);
           resolve(true);
         });
@@ -251,11 +250,8 @@ async function getSha256FromFile(filePath: string): Promise<string> {
   });
 }
 
-function log(content: string): void {
-  window.Shared.back.send<any, AddLogData>(BackIn.ADD_LOG, {
-    source: 'Upgrade',
-    content: content
-  });
+function upgradeLog(content: string): void {
+  log.info('Upgrade', content);
 }
 
 /** Create a transform stream that reads the length of the data being passed along */
