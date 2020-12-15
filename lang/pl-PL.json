@@ -193,13 +193,13 @@
     "license": "Licencja",
     "licenseInfo": "MIT (Przeczytaj plik 'LICENSE' by dowiedzieć się więcej)",
     "creditsHeader": "Twórcy",
-    "specialThanks": "Special Thanks"
+    "specialThanks": "Podziękowania"
   },
   "browse": {
     "noTitle": "Brak Tytułu",
     "by": "autorstwa",
-    "play": "Play",
-    "stop": "Stop",
+    "play": "Graj",
+    "stop": "Zatrzymaj",
     "noDeveloper": "Brak Dewelopera",
     "alternateTitles": "Alternatywne Tytuły",
     "noAlternateTitles": "Brak Alternatywnych Tytułów",
@@ -276,8 +276,8 @@
   "tags": {
     "noName": "No Name",
     "description": "Opis",
-    "noDescription": "No Description",
-    "category": "Category",
+    "noDescription": "Brak Opisu",
+    "category": "Kategoria",
     "noCategory": "No Category",
     "newCategory": "New Category",
     "enterAlias": "Enter Alias",
@@ -291,7 +291,7 @@
     "mergeIntoTag": "Merge into Tag",
     "mergeTag": "Merge Tag",
     "makeAliasWhenMerged": "Make this an alias of the tag?",
-    "deleteTag": "Delete Tag",
+    "deleteTag": "Usuń Tag",
     "deleteTagCategory": "Delete Tag Category",
     "locked": "Locked while processing..."
   },
