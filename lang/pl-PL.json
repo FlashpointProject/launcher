@@ -47,7 +47,7 @@
     "extensionsHeader": "Rozszerzenia",
     "noExtensionsLoaded": "No Extensions loaded, Install them to '{0}'",
     "extDevScripts": "Developer Script(s)",
-    "extThemes": "Theme(s)",
+    "extThemes": "Motyw(y)",
     "extLogoSets": "Logo Set(s)",
     "extApplications": "Application(s)",
     "saveAndRestart": "Zapisz i Uruchom Ponownie"
@@ -112,7 +112,7 @@
     "showRightSidebar": "Pokaż prawy pasek boczny",
     "hideLeftSidebar": "Ukryj lewy pasek boczny",
     "showLeftSidebar": "Pokaż lewy pasek boczny",
-    "total": "Suma",
+    "total": "Ogółem",
     "newGame": "Nowa Gra",
     "list": "Lista",
     "grid": "Siatka",
