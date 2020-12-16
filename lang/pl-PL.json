@@ -8,8 +8,8 @@
     "extremeGamesDesc": "Pokaż gry zawierające przemoc, seks lub inną zawartość nie nadającą się dla dzieci.",
     "enableEditing": "Uruchom tryb Edycji",
     "enableEditingDesc": "Enable editing of games and additional applications. Also shows tabs related to editing.",
-    "onDemandImages": "Loga i Miniaturki na żądanie",
-    "onDemandImagesDesc": "Pobierz i zapisz brakujące loga i zrzuty ekranu, jeśli są potrzebne.",
+    "onDemandImages": "Logotypy i Miniaturki na żądanie",
+    "onDemandImagesDesc": "Pobierz i zapisz brakujące logotypy i zrzuty ekranu, jeśli są potrzebne.",
     "currentLanguage": "Język",
     "currentLanguageDesc": "Główny język używany w Laucherze.",
     "fallbackLanguage": "Drugi Język",
@@ -453,6 +453,6 @@
     "tech": "Inne Technologie",
     "techDesc": "Dodaje wsparcie dla wszystkich innych technologii - Shockwave, Unity, Java, HTML5, itp.",
     "screenshots": "Logo i Zrzuty Ekranu",
-    "screenshotsDesc": "Dodaje logo dla widoku siatki i zrzutów ekranu dla wszystkich gier."
+    "screenshotsDesc": "Dodaje logotypy dla widoku siatki i zrzuty ekranu do wszystkich gier."
   }
 }
