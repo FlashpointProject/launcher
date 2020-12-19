@@ -396,13 +396,13 @@ function escapeWin(str: string): string {
 function escapeLinuxArgs(str: string): string {
   // Characters to always escape:
   const escapeChars: string[] = ['~','`','#','$','&','*','(',')','\\\\','|','[','\\]','{','}',';','<','>','?','!'];
-  if(str.match(/\'/gi) == null || (str.match(/\'/gi)!.join("").length) % 2 == 0) {
+  if (str.match(/\'/gi) == null || (str.match(/\'/gi)!.join('').length) % 2 == 0) {
     escapeChars.unshift('[');
     escapeChars.push(']');
     return (
       splitQuotes(str)
       .reduce((acc, val, i) => acc + ((i % 2 === 0)
-        ? val.replace(new RegExp(escapeChars.join(""), 'g'), '\\$&')
+        ? val.replace(new RegExp(escapeChars.join(''), 'g'), '\\$&')
         : '"' + val.replace(/[$!\\]/g, '\\$&') + '"'
       ), '')
     );
@@ -413,7 +413,7 @@ function escapeLinuxArgs(str: string): string {
     return (
       splitQuotes(str)
       .reduce((acc, val, i) => acc + ((i % 2 === 0)
-        ? val.replace(new RegExp(escapeChars.join(""), 'g'), '\\$&')
+        ? val.replace(new RegExp(escapeChars.join(''), 'g'), '\\$&')
         : '"' + val.replace(/[$!\\]/g, '\\$&') + '"'
       ), '')
     );
