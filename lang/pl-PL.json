@@ -25,7 +25,7 @@
     "randomLibrariesDesc": "Libraries to use for Random Picks on the home page.",
     "platforms": "Platformy",
     "nativePlatforms": "Natywne Platformy",
-    "nativePlatformsDesc": "Użyj natywnej wersji tych platform. (Jeśli nie dostępne użyje Wine)",
+    "nativePlatformsDesc": "Użyj natywnej wersji tych platform. (Jeśli nie jest dostępne, zostanie użyte Wine)",
     "appPathOverrides": "App Path Overrides",
     "appPathOverridesDesc": "Overrides the application path on the left with the one on the right when launching games.",
     "visualsHeader": "Wygląd",
