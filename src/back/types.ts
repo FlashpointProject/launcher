@@ -23,6 +23,7 @@ import { ManagedChildProcess } from './ManagedChildProcess';
 import { SocketServer } from './SocketServer';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
+import { LogFile } from './util/LogFile';
 
 /** Contains most state for the back process. */
 export type BackState = {
@@ -45,6 +46,7 @@ export type BackState = {
   exePath: string;
   localeCode: string;
   version: string;
+  logFile: LogFile;
   customVersion?: string,
   gameManager: GameManagerState;
   messageQueue: WebSocket.MessageEvent[];

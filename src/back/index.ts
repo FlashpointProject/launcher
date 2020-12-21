@@ -46,6 +46,7 @@ import { newThemeWatcher } from './Themes';
 import { BackState, ImageDownloadItem } from './types';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
+import { LogFile } from './util/LogFile';
 import { logFactory } from './util/logging';
 import { createContainer, exit, runService } from './util/misc';
 
@@ -64,6 +65,7 @@ const state: BackState = {
   isExit: false,
   isDev: false,
   verbose: false,
+  logFile: createErrorProxy('logFile'),
   socketServer: new SocketServer(),
   fileServer: new http.Server(onFileServerRequest),
   fileServerPort: -1,
@@ -215,14 +217,18 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   state.localeCode = content.localeCode;
   state.exePath = content.exePath;
   state.version = content.version;
+  state.logFile = new LogFile(
+    state.isDev ?
+      path.join(process.cwd(), 'launcher.log')
+      : path.join(path.dirname(content.exePath), 'launcher.log'));
 
   const addLog = (entry: ILogEntry): number => { return state.log.push(entry) - 1; };
   global.log = {
-    trace: logFactory(LogLevel.TRACE, state.socketServer, addLog, state.verbose),
-    debug: logFactory(LogLevel.DEBUG, state.socketServer, addLog, state.verbose),
-    info:  logFactory(LogLevel.INFO,  state.socketServer, addLog, state.verbose),
-    warn:  logFactory(LogLevel.WARN,  state.socketServer, addLog, state.verbose),
-    error: logFactory(LogLevel.ERROR, state.socketServer, addLog, state.verbose)
+    trace: logFactory(LogLevel.TRACE, state.socketServer, addLog, state.logFile, state.verbose),
+    debug: logFactory(LogLevel.DEBUG, state.socketServer, addLog, state.logFile, state.verbose),
+    info:  logFactory(LogLevel.INFO,  state.socketServer, addLog, state.logFile, state.verbose),
+    warn:  logFactory(LogLevel.WARN,  state.socketServer, addLog, state.logFile, state.verbose),
+    error: logFactory(LogLevel.ERROR, state.socketServer, addLog, state.logFile, state.verbose)
   };
 
   state.socketServer.secret = content.secret;

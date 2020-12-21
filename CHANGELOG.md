@@ -1,3 +1,8 @@
+# Upcoming
+
+## New
+- Logs save to a `launcher.log` file next to the Launcher.
+
 # Release 9.1.0
 
 ## New
