@@ -396,28 +396,22 @@ function escapeWin(str: string): string {
 function escapeLinuxArgs(str: string): string {
   // Characters to always escape:
   const escapeChars: string[] = ['~','`','#','$','&','*','(',')','\\\\','|','[','\\]','{','}',';','<','>','?','!'];
-  if (str.match(/\'/gi) == null || (str.match(/\'/gi)!.join('').length) % 2 == 0) {
+  const match = str.match(/'/gi);
+  if (match == null || match.join('').length % 2 == 0) {
     escapeChars.unshift('[');
     escapeChars.push(']');
-    return (
-      splitQuotes(str)
-      .reduce((acc, val, i) => acc + ((i % 2 === 0)
-        ? val.replace(new RegExp(escapeChars.join(''), 'g'), '\\$&')
-        : '"' + val.replace(/[$!\\]/g, '\\$&') + '"'
-      ), '')
-    );
   } else { // If there's an odd number of single quotes, escape those too.
     escapeChars.unshift('[');
     escapeChars.push('\'');
     escapeChars.push(']');
-    return (
-      splitQuotes(str)
-      .reduce((acc, val, i) => acc + ((i % 2 === 0)
-        ? val.replace(new RegExp(escapeChars.join(''), 'g'), '\\$&')
-        : '"' + val.replace(/[$!\\]/g, '\\$&') + '"'
-      ), '')
-    );
   }
+  return (
+    splitQuotes(str)
+    .reduce((acc, val, i) => acc + ((i % 2 === 0)
+      ? val.replace(new RegExp(escapeChars.join(''), 'g'), '\\$&')
+      : '"' + val.replace(/[$!\\]/g, '\\$&') + '"'
+    ), '')
+  );
 }
 
 /**
