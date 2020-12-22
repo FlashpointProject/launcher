@@ -394,10 +394,21 @@ function escapeWin(str: string): string {
  * ( According to this: https://stackoverflow.com/questions/15783701/which-characters-need-to-be-escaped-when-using-bash )
  */
 function escapeLinuxArgs(str: string): string {
+  // Characters to always escape:
+  const escapeChars: string[] = ['~','`','#','$','&','*','(',')','\\\\','|','[','\\]','{','}',';','<','>','?','!'];
+  const match = str.match(/'/gi);
+  if (match == null || match.join('').length % 2 == 0) {
+    escapeChars.unshift('[');
+    escapeChars.push(']');
+  } else { // If there's an odd number of single quotes, escape those too.
+    escapeChars.unshift('[');
+    escapeChars.push('\'');
+    escapeChars.push(']');
+  }
   return (
     splitQuotes(str)
     .reduce((acc, val, i) => acc + ((i % 2 === 0)
-      ? val.replace(/[~`#$&*()\\|[\]{};<>?!]/g, '\\$&')
+      ? val.replace(new RegExp(escapeChars.join(''), 'g'), '\\$&')
       : '"' + val.replace(/[$!\\]/g, '\\$&') + '"'
     ), '')
   );
