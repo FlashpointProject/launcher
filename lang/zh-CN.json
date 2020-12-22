@@ -105,7 +105,7 @@
     "logs": "日志",
     "config": "设置",
     "about": "关于",
-    "curate": "管理",
+    "curate": "项目",
     "developer": "开发者",
     "searchPlaceholder": "搜索...",
     "hideRightSidebar": "隐藏右边栏",
@@ -198,7 +198,7 @@
   "browse": {
     "noTitle": "无标题",
     "by": "来自",
-    "play": "开始",
+    "play": "启动",
     "stop": "停止",
     "noDeveloper": "无开发者",
     "alternateTitles": "副标题",
