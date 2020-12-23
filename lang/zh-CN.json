@@ -158,8 +158,8 @@
     "importLegacyPlaylistsDesc": "从 `Data/Playlists` 导入旧版播放列表",
     "deleteAllPlaylists": "删除所有播放列表",
     "deleteAllPlaylistsDesc": "危险！将删除所有播放列表。",
-    "importMetaEdits": "导入元编辑",
-    "importMetaEditsDesc": "从 `/Data/MetaEdits` 导入所有元编辑",
+    "importMetaEdits": "导入元数据变更",
+    "importMetaEditsDesc": "从 `/Data/MetaEdits` 导入所有元数据变更",
     "fixPrimaryAliases": "修复主别名",
     "fixPrimaryAliasesDesc": "为任何缺少别名的标签添加一个主别名",
     "fixCommaTags": "修复逗号标签",
@@ -385,7 +385,7 @@
     "extracting": "提取中",
     "installingFiles": "文件安装中...",
     "complete": "已完成",
-    "exportMetaEditTitle": "导出元编辑（Meta Edit）",
+    "exportMetaEditTitle": "导出元数据变更",
     "exportMetaEditDesc": "选择所有要导出的属性："
   },
   "menu": {
@@ -397,7 +397,7 @@
     "copyGameUUID": "复制游戏 UUID",
     "exportMetaOnly": "导出（仅元数据）",
     "exportMetaAndImages": "创建副本（元数据与图像）",
-    "exportMetaEdit": "导出元编辑（Meta Edit）",
+    "exportMetaEdit": "导出元数据变更",
     "duplicatePlaylist": "创建游戏列表副本",
     "exportPlaylist": "导出游戏列表"
   },
