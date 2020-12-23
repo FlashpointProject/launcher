@@ -436,12 +436,12 @@
     "newPlaylist": "不合并",
     "uploadPrivacyWarning": "这将公开您的日志。\n链接将被复制到剪贴板。\n\n您确定吗？",
     "overwriteFileTitle": "文件已存在！",
-    "overwriteFileMessage": "同名文件已经存在，您想覆盖它吗？",
+    "overwriteFileMessage": "同名文件已经存在。您想覆盖它吗？",
     "overwriteFileDetail": "文件路径："
   },
   "libraries": {
     "arcade": "游戏",
-    "arcadePlural": "全部游戏",
+    "arcadePlural": "所有游戏",
     "theatre": "动画",
     "theatrePlural": "所有动画",
     "auditorium": "NG Auditorium",
@@ -449,10 +449,10 @@
   },
   "upgrades": {
     "infinity": "Flashpoint Infinity",
-    "infinityDesc": "包含对Flash游戏的支持",
-    "tech": "其他技术支持",
-    "techDesc": "添加对其他技术的支持，如Shockwave，Unity，Java，H5等",
-    "screenshots": "Logo及截图",
-    "screenshotsDesc": "为所有网格试图添加Logo，为所有游戏添加截图"
+    "infinityDesc": "必须文件。用于支持 Flash 游戏。",
+    "tech": "其他技术",
+    "techDesc": "添加对其他技术的支持，如 Shockwave、Unity、Java、HTML5 等。",
+    "screenshots": "图标与屏幕截图",
+    "screenshotsDesc": "为所有游戏添加网格视图图标与屏幕截图。"
   }
 }
