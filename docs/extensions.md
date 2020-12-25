@@ -63,7 +63,7 @@ The example below logs `Hello World!` to the Logs page, check it after launch to
 
 JavaScript file example
 ```javascript
-import * as flashpoint from 'flashpoint-launcher';
+const flashpoint = require('flashpoint-launcher');
 
 function activate(context) {
   flashpoint.log.info('Hello World!');
