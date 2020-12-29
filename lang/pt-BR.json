@@ -45,7 +45,7 @@
     "metadataServerHost": "Host de servidor de metadados",
     "metadataServerHostDesc": "Host de um servidor de metadados. Usado para sincronizar informações do jogo novas e atualizadas com o launcher.",
     "extensionsHeader": "Extensões",
-    "noExtensionsLoaded": "No Extensions loaded, Install them to '{0}'",
+    "noExtensionsLoaded": "Nenhuma Extensão carregada, Instale elas em '{0}'",
     "extDevScripts": "Developer Script(s)",
     "extThemes": "Tema(s)",
     "extLogoSets": "Conjunto(s) de logotipos",
@@ -341,8 +341,8 @@
     "import": "Importar",
     "contentFiles": "Arquivos de Conteúdo",
     "warnings": "Avisos",
-    "noLaunchCommand": "'Iniciar Comando' é um campo obrigatório. Por favor, preencha-o antes de importar.",
-    "invalidLaunchCommand": "'Executar Comando' não corresponde a estes requisitos de URL:",
+    "noLaunchCommand": "'Comando de Início' é um campo obrigatório. Por favor, preencha-o antes de importar.",
+    "invalidLaunchCommand": "'Comando de Início' não corresponde a estes requisitos de URL:",
     "releaseDateInvalid": "'Data de Lançamento' deve seguir YYYY-MM-DD (mês e dia são opcionais).",
     "unusedApplicationPath": "'Caminho da Aplicação' tem um valor não utilizado. Certifique-se que ele está escrito corretamente!",
     "unusedTags": "As seguintes tags não estão presentes em nenhum outro jogo. Elas estão corretas?",
@@ -437,7 +437,7 @@
     "uploadPrivacyWarning": "This will make your Logs available publically.\nA link will be copied to your clipboard.\n\nAre you sure?",
     "overwriteFileTitle": "File already exists!",
     "overwriteFileMessage": "A file with the same name already exists. Do you want to overwrite it?",
-    "overwriteFileDetail": "File path:"
+    "overwriteFileDetail": "Caminho do arquivo:"
   },
   "libraries": {
     "arcade": "Jogos",
