@@ -298,8 +298,8 @@
   "curate": {
     "importAll": "Importar Todos",
     "importAllDesc": "Importar todas as preservações que estão atualmente carregadas",
-    "deleteAll": "Excluir Tudo",
-    "deleteAllDesc": "Excluir todas as curações atualmente carregadas",
+    "deleteAll": "Deletar Tudo",
+    "deleteAllDesc": "Deletar todas as curações atualmente carregadas",
     "saveImportedCurations": "Salvar Curações Importadas",
     "keepArchiveKey": "Keep Curation Archive UUID",
     "symlinkCurationContent": "Symlink Curation Content Folder (Admin prompts on Windows, Required for MAD4FP)",
@@ -361,7 +361,7 @@
     "discardDesc": "Descartar alterações feitas e parar de editar",
     "edit": "Edit",
     "editDesc": "Edit this playlist",
-    "delete": "Eliminar",
+    "delete": "Deletar",
     "deleteDesc": "Eliminar esta lista de jogos",
     "changeIcon": "Change Playlist Icon",
     "duplicatePlaylistDesc": "Duplicate Playlist",
@@ -378,7 +378,7 @@
   "misc": {
     "noBlankFound": "{0} Não Foi Encontrada",
     "addBlank": "Adicionar {0}",
-    "deleteAllBlankImages": "Eliminar TODAS as {0} para este jogo",
+    "deleteAllBlankImages": "Deletar TODAS as {0} imagens para este jogo",
     "yes": "Sim",
     "no": "Não",
     "downloading": "Baixando",
