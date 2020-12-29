@@ -162,7 +162,7 @@
     "importMetaEditsDesc": "Importa TODAS as Meta Edições de `/ Data / MetaEdits`",
     "fixPrimaryAliases": "Fix Primary Aliases",
     "fixPrimaryAliasesDesc": "Add a primary alias to any tags that are missing one",
-    "fixCommaTags": "Fix Tags with Commas",
+    "fixCommaTags": "Consertar Tags com Vírgulas",
     "fixCommaTagsDesc": "Splits tags with commas into many tags and applies them to all applicable games",
     "exportTags": "Export Tags",
     "exportTagsDesc": "Creates a file full of tags and tag categories that can be used by 'Import Tags'",
