@@ -47,9 +47,9 @@
     "extensionsHeader": "Extensões",
     "noExtensionsLoaded": "No Extensions loaded, Install them to '{0}'",
     "extDevScripts": "Developer Script(s)",
-    "extThemes": "Theme(s)",
+    "extThemes": "Tema(s)",
     "extLogoSets": "Conjunto(s) de logotipos",
-    "extApplications": "Application(s)",
+    "extApplications": "Aplicativo(s)",
     "saveAndRestart": "Salvar e Reiniciar"
   },
   "home": {
@@ -156,8 +156,8 @@
     "importLegacyPlatformsDesc": "Importa plataformas legadas de `Dados / Plataformas /` - AVISO: Substituirá jogos conflitantes",
     "importLegacyPlaylists": "Importar listas de reprodução herdadas",
     "importLegacyPlaylistsDesc": "Importa listas de reprodução herdadas de `/ Data / Playlists`",
-    "deleteAllPlaylists": "Delete All Playlists",
-    "deleteAllPlaylistsDesc": "DANGEROUS! Deletes all playlists.",
+    "deleteAllPlaylists": "Deletar Todas as Playlists",
+    "deleteAllPlaylistsDesc": "PERIGO! Deleta todas as playlists.",
     "importMetaEdits": "Importar Edições Meta",
     "importMetaEditsDesc": "Importa TODAS as Meta Edições de `/ Data / MetaEdits`",
     "fixPrimaryAliases": "Fix Primary Aliases",
@@ -291,8 +291,8 @@
     "mergeIntoTag": "Merge into Tag",
     "mergeTag": "Merge Tag",
     "makeAliasWhenMerged": "Make this an alias of the tag?",
-    "deleteTag": "Delete Tag",
-    "deleteTagCategory": "Delete Tag Category",
+    "deleteTag": "Deletar Tag",
+    "deleteTagCategory": "Deletar Categoria de Tag",
     "locked": "Locked while processing..."
   },
   "curate": {
@@ -403,7 +403,7 @@
   },
   "dialog": {
     "programNotFound": "Programa não encontrado!",
-    "phpNotFound": "PHP não foi encontrado no caminho. Ele está instalado?\nVocê pode ter comportamentos inesperados sem ele.",
+    "phpNotFound": "PHP não foi encontrado no caminho. Ele está instalado?\nVocê pode encontrar comportamentos inesperados e quebrados sem ele.",
     "wineNotFound": "O Wine não está instalado, mas é necessário para executar este jogo.\nPor favor, consulte o artigo wiki Linux Support para mais detalhes.",
     "flashpointPathNotFound": "A pasta Flashpoint não está definida ou é inválida. Você deseja escolher uma pasta para instalar agora?",
     "fileNotFound": "Arquivo não encontrado!",
