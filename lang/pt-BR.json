@@ -360,13 +360,13 @@
     "discard": "Descartar",
     "discardDesc": "Descartar alterações feitas e parar de editar",
     "edit": "Edit",
-    "editDesc": "Edit this playlist",
+    "editDesc": "Editar esta playlist",
     "delete": "Deletar",
     "deleteDesc": "Eliminar esta lista de jogos",
-    "changeIcon": "Change Playlist Icon",
-    "duplicatePlaylistDesc": "Duplicate Playlist",
+    "changeIcon": "Trocar Ícone da Playlist",
+    "duplicatePlaylistDesc": "Duplicar Playlist",
     "exportPlaylistDesc": "Exportar playlist para um arquivo",
-    "areYouSure": "Tem certeza?",
+    "areYouSure": "Você tem certeza?",
     "noTitle": "Sem Título",
     "titlePlaceholder": "Título...",
     "noAuthor": "Sem Autor",
@@ -398,8 +398,8 @@
     "exportMetaOnly": "Exportar (Só Metadados)",
     "exportMetaAndImages": "Exportar (Metadados && Imagens)",
     "exportMetaEdit": "Export Meta Edit",
-    "duplicatePlaylist": "Duplicate Playlist",
-    "exportPlaylist": "Export Playlist"
+    "duplicatePlaylist": "Duplicar Playlist",
+    "exportPlaylist": "Exportar Playlist"
   },
   "dialog": {
     "programNotFound": "Programa não encontrado!",
@@ -434,7 +434,7 @@
     "cancel": "Cancel",
     "mergePlaylists": "Merge Playlists",
     "newPlaylist": "Stay Seperate",
-    "uploadPrivacyWarning": "This will make your Logs available publically.\nA link will be copied to your clipboard.\n\nAre you sure?",
+    "uploadPrivacyWarning": "Isto tornará seus Logs disponíveis publicamente.\nUm link será copiado para a sua área de transferência.\n\nVocê tem certeza?",
     "overwriteFileTitle": "File already exists!",
     "overwriteFileMessage": "A file with the same name already exists. Do you want to overwrite it?",
     "overwriteFileDetail": "Caminho do arquivo:"
