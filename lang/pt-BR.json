@@ -94,7 +94,7 @@
     "copyText": "Copiar Texto",
     "clearLog": "Limpar Log",
     "copy404Urls": "Copiar URLs 404",
-    "uploadLog": "enviar registro",
+    "uploadLog": "Enviar Log",
     "copiedToClipboard": "Copiado para a área de transferência"
   },
   "app": {
@@ -240,7 +240,7 @@
     "autoRunBefore": "Início Automático Antes de",
     "waitForExit": "Esperar pela Saída",
     "applicationPath": "Caminho de Aplicativo",
-    "noApplicationPath": "Nenhum Caminho de Aplicativo",
+    "noApplicationPath": "Sem Caminho de Aplicativo",
     "launchCommand": "Comando de Início",
     "noLaunchCommand": "Sem Comando de Início",
     "searching": "Procurando...",
