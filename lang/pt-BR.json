@@ -86,7 +86,7 @@
     "linuxSupport": "Problemas no Linux? {0}",
     "linuxSupportLinkText": "Abra o FAQ",
     "randomPicks": "Seleções Aleatórias",
-    "rerollPicks": "Regerar Seleções"
+    "rerollPicks": "Re-escolher Seleções"
   },
   "logs": {
     "filters": "Filtros",
@@ -185,7 +185,7 @@
   "about": {
     "aboutHeader": "Sobre",
     "flashpoint": "BlueMaxima's Flashpoint",
-    "flashpointDesc": "O projeto de preservação, que este Launcher foi feito para, tem a intenção de ser um arquivo, um museu e uma coleção jogável de jogos web-based da Internet.",
+    "flashpointDesc": "O projeto de preservação para o qual que este Launcher foi feito, tem a intenção de ser um arquivo, um museu e uma coleção jogável de jogos web-based da Internet.",
     "website": "Website",
     "flashpointLauncher": "Flashpoint Launcher",
     "flashpointLauncherDesc": "Um aplicativo desktop open-source feito para navegar, gerenciar e jogar jogos do projeto Flashpoint.",
