@@ -38,7 +38,7 @@
     "noLogoSet": "Nenhum conjunto de logotipos",
     "logoSetDesc": "ID do conjunto de logotipos a ser utilizado.",
     "advancedHeader": "Avançado",
-    "showDeveloperTab": "Mostrar aba de Desenvolvedor",
+    "showDeveloperTab": "Mostrar Aba de Desenvolvedor",
     "showDeveloperTabDesc": "Mostra a aba de 'Desenvolvedor'. Isto provavelmente só é útil para desenvolvedores e curadores.",
     "server": "Servidor",
     "serverDesc": "Qual processo de servidor deve ser executado na inicialização do launcher.",
