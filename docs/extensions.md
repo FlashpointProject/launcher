@@ -74,7 +74,7 @@ exports.activate = activate;
 
 If you're using TypeScript then make sure that TypeScript is installed as a dev dependency with `npm install --save-dev typescript` as well. An example tsconfig.json is provided below to build from `./src` into `./dist` (E.G `./src/extension.ts` to `./dist/extension.js`)
 
-You should also copy `/typings/flashpoint.d.ts` from the Launcher repository into your own `/typings` folder to allow TypeScript to find the API declarations.
+You should also install the `@types/flashpoint-launcher` package so TypeScript can detect the proper API typings.
 
 Example tsconfig.json
 
