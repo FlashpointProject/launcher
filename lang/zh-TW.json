@@ -124,13 +124,13 @@
     "platform": "平台",
     "series": "系列",
     "title": "標題",
-    "developer": "開發商",
-    "publisher": "發行商",
+    "developer": "開發者",
+    "publisher": "發行者",
     "ascending": "遞增",
     "descending": "遞減"
   },
   "developer": {
-    "developerHeader": "開發商",
+    "developerHeader": "開發者",
     "developerDesc": "這裡有著各種方便的開發工具",
     "checkMissingImages": "檢查圖片缺失",
     "checkMissingImagesDesc": "列出所有無縮圖或截圖的遊戲",
