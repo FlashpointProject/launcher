@@ -44,7 +44,7 @@
     "serverDesc": "於瀏覽器啟動時所使用的伺服器",
     "metadataServerHost": "元資料檔伺服器主機",
     "metadataServerHostDesc": "放置元資料檔的伺服器主機位置，用來同步新增與更新的遊戲",
-    "extensionsHeader": "Extensions",
+    "extensionsHeader": "附加元件",
     "noExtensionsLoaded": "No Extensions loaded, Install them to '{0}'",
     "extDevScripts": "Developer Script(s)",
     "extThemes": "Theme(s)",
@@ -54,7 +54,7 @@
   },
   "home": {
     "updateHeader": "瀏覽器更新",
-    "currentVersion": "當前版本",
+    "currentVersion": "目前版本",
     "nextVersion": "下一版本",
     "updateAvailable": "有可用的更新",
     "upToDate": "已是最新版本",
