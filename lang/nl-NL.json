@@ -26,8 +26,8 @@
     "platforms": "Platformen",
     "nativePlatforms": "Oorspronkelijke platformen",
     "nativePlatformsDesc": "Gebruik originele versies van deze platformen. (Indien niet beschikbaar zal het 'Wine' gebruiken)",
-    "appPathOverrides": "App Path Overrides",
-    "appPathOverridesDesc": "Overrides the application path on the left with the one on the right when launching games.",
+    "appPathOverrides": "App Pad overschrijvingen",
+    "appPathOverridesDesc": "Overschrijft het toepassingstraject links met degene aan de rechterkant bij het starten van games.",
     "visualsHeader": "Uiterlijk",
     "useCustomTitleBar": "Gebruik aangepaste titelbalk",
     "useCustomTitleBarDesc": "Gebruik een aangepaste titelbalk bovenaan dit venster.",
@@ -35,7 +35,7 @@
     "noTheme": "Geen thema",
     "themeDesc": "ID van het te gebruiken thema.",
     "logoSet": "Logo Set",
-    "noLogoSet": "No Logo Set",
+    "noLogoSet": "Geen logo ingesteld",
     "logoSetDesc": "ID van het te gebruiken logo.",
     "advancedHeader": "Geavanceerd",
     "showDeveloperTab": "Toon Ontwikkelaar Tabblad",
@@ -48,8 +48,8 @@
     "noExtensionsLoaded": "Geen extensies geladen, installeer ze op '{0}'",
     "extDevScripts": "Ontwikkelaar Script(s)",
     "extThemes": "Thema",
-    "extLogoSets": "Logo Set(s)",
-    "extApplications": "Application(s)",
+    "extLogoSets": "Logo set(s)",
+    "extApplications": "Applicatie(s)",
     "saveAndRestart": "Opslaan en herstarten"
   },
   "home": {
@@ -301,7 +301,7 @@
     "deleteAll": "Verwijder alles",
     "deleteAllDesc": "Verwijder alle curaties die momenteel zijn geladen",
     "saveImportedCurations": "Sla geïmporteerde curaties op",
-    "keepArchiveKey": "Keep Curation Archive UUID",
+    "keepArchiveKey": "Houd Curation Archive UUID",
     "symlinkCurationContent": "Symlink inhoud map voor curatie (Admin aanvragingen in Windows, vereist voor MAD4FP)",
     "openCurationsFolder": "Curatie map",
     "openCurationsFolderDesc": "Open de curatiesmap in de verkenner",
@@ -373,7 +373,7 @@
     "authorPlaceholder": "Auteur...",
     "id": "ID",
     "by": "door",
-    "extreme": "extreme"
+    "extreme": "extreem"
   },
   "misc": {
     "noBlankFound": "Geen {0} gevonden",
