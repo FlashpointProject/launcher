@@ -198,8 +198,8 @@
   "browse": {
     "noTitle": "Walang Titulo",
     "by": "ni",
-    "play": "Play",
-    "stop": "Stop",
+    "play": "Maglaro",
+    "stop": "Tigilan mo na",
     "noDeveloper": "Walang nakasaad na Developer",
     "alternateTitles": "Alternatibong Titulo",
     "noAlternateTitles": "Walang Alternatibong Titulo",
@@ -301,7 +301,7 @@
     "deleteAll": "I-tangal ang lahat",
     "deleteAllDesc": "I-tangal ang lahat na curation na naka-load ngayon",
     "saveImportedCurations": "I-save ang mga na-import na curation",
-    "keepArchiveKey": "Keep Curation Archive UUID",
+    "keepArchiveKey": "Panatilihin ang Curation Archive UUID",
     "symlinkCurationContent": "Folder ng Symlink Curation Content (May admin prompt sa Windows, kailangan para sa MAD4FP)",
     "openCurationsFolder": "Curations Folder",
     "openCurationsFolderDesc": "I-buksan ang \"Curations Folder\" sa explorer",
@@ -373,7 +373,7 @@
     "authorPlaceholder": "Awtor...",
     "id": "ID",
     "by": "mula kay",
-    "extreme": "extreme"
+    "extreme": "matindi"
   },
   "misc": {
     "noBlankFound": "Walang {0} nahanap",
