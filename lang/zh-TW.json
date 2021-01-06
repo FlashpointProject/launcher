@@ -45,11 +45,11 @@
     "metadataServerHost": "元資料檔伺服器主機",
     "metadataServerHostDesc": "放置元資料檔的伺服器主機位置，用來同步新增與更新的遊戲",
     "extensionsHeader": "附加元件",
-    "noExtensionsLoaded": "No Extensions loaded, Install them to '{0}'",
+    "noExtensionsLoaded": "未加載擴展程序，將其安裝到 '{0}'",
     "extDevScripts": "開發人員腳本",
     "extThemes": "主題",
     "extLogoSets": "徽標集",
-    "extApplications": "Application(s)",
+    "extApplications": "應用程序",
     "saveAndRestart": "儲存並重新啟動"
   },
   "home": {
@@ -198,7 +198,7 @@
   "browse": {
     "noTitle": "無標題",
     "by": "作者︰",
-    "play": "Play",
+    "play": "開始",
     "stop": "停止",
     "noDeveloper": "無開發商",
     "alternateTitles": "其他標題",
@@ -301,7 +301,7 @@
     "deleteAll": "刪除全部",
     "deleteAllDesc": "刪除所有已讀取之上傳內容",
     "saveImportedCurations": "保存已匯入之上傳檔案",
-    "keepArchiveKey": "Keep Curation Archive UUID",
+    "keepArchiveKey": "保持策展檔案UUID",
     "symlinkCurationContent": "於上傳資料夾進行符號連結(Windows的管理員指令，使用MAD4FP時必備)",
     "openCurationsFolder": "上傳檔案之資料夾",
     "openCurationsFolderDesc": "開啟上傳檔案之資料夾",
@@ -373,7 +373,7 @@
     "authorPlaceholder": "作者...",
     "id": "ID",
     "by": "作者︰",
-    "extreme": "extreme"
+    "extreme": "極端"
   },
   "misc": {
     "noBlankFound": "無法找到「 {0} 」",
