@@ -274,6 +274,7 @@
     "noGameMatchedSearch": "Prøv at søge på noget mindre restriktivt."
   },
   "tags": {
+    "name": "Name",
     "noName": "No Name",
     "description": "Description",
     "noDescription": "No Description",
