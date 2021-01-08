@@ -274,6 +274,7 @@
     "noGameMatchedSearch": "좀 더 넓은 범위의 조건을 사용해 검색해보세요."
   },
   "tags": {
+    "name": "Name",
     "noName": "No Name",
     "description": "Description",
     "noDescription": "No Description",
