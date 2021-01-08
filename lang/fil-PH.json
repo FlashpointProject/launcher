@@ -274,6 +274,7 @@
     "noGameMatchedSearch": "Subukan mo i-search na di-gaanong strikto."
   },
   "tags": {
+    "name": "Name",
     "noName": "Walang pangalan",
     "description": "Deskripsyon",
     "noDescription": "Walang deskripsyon",
