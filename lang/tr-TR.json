@@ -274,6 +274,7 @@
     "noGameMatchedSearch": "Daha az kısıtlayıcı bir şey aramayı deneyin."
   },
   "tags": {
+    "name": "Name",
     "noName": "İsim Yok",
     "description": "Açıklama",
     "noDescription": "Açıklama Yok",
