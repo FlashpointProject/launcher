@@ -274,6 +274,7 @@
     "noGameMatchedSearch": "Próbáljon meg szélesebb körben keresni."
   },
   "tags": {
+    "name": "Name",
     "noName": "Nincs név",
     "description": "Leírás",
     "noDescription": "Nincs Leírás",
