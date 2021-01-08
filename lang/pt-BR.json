@@ -132,7 +132,7 @@
   "developer": {
     "developerHeader": "Desenvolvedor",
     "developerDesc": "Aqui é onde todas as ferramentas úteis de desenvolvedor se encontram.",
-    "checkMissingImages": "Verificar Imagens em Falta",
+    "checkMissingImages": "Verificar Imagens Ausentes",
     "checkMissingImagesDesc": "Listar todos os jogos sem minatura ou captura de tela",
     "checkGameIds": "Verificar IDs dos Jogos",
     "checkGameIdsDesc": "Listar todos os jogos com IDs duplicados ou inválidos",
@@ -150,7 +150,7 @@
     "renameImagesTitleToIdDesc": "Encontra todas as imagens de jogos com o título do jogo no nome do arquivo e renomeia elas para usar a ID do jogo em seu lugar",
     "renameImagesIdToTitle": "Renomear Imagens (ID => Título)",
     "renameImagesIdToTitleDesc": "Encontrar todas as imagens dos jogos com os IDs dos jogos no nome do ficheiro e renomear-las para usar o título do jogo",
-    "createMissingFolders": "Criar Pastas em Falta",
+    "createMissingFolders": "Criar Pastas Ausentes",
     "createMissingFoldersDesc": "Encontrar todas as pastas em falta na estrutura da pasta do Flashpoint e criá-las",
     "importLegacyPlatforms": "Importar Plataformas Legadas",
     "importLegacyPlatformsDesc": "Importa Plataformas Legadas de `Data/Platforms/` - AVISO: Substituirá jogos conflitantes",
