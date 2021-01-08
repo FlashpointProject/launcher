@@ -274,6 +274,7 @@
     "noGameMatchedSearch": "Provu serĉi ion malpli restriktan."
   },
   "tags": {
+    "name": "Name",
     "noName": "Sen Nomo",
     "description": "Priskribo",
     "noDescription": "Sen Priskribo",
