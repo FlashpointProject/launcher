@@ -377,7 +377,7 @@
     "extreme": "extremo"
   },
   "misc": {
-    "noBlankFound": "{0} Não Foi Encontrada",
+    "noBlankFound": "Nenhuma {0} Encontrada",
     "addBlank": "Adicionar {0}",
     "deleteAllBlankImages": "Deletar TODAS as {0} imagens para este jogo",
     "yes": "Sim",
