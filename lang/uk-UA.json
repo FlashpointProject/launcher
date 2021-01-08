@@ -274,6 +274,7 @@
     "noGameMatchedSearch": "Спробуйте пошукати менше обмежуючих."
   },
   "tags": {
+    "name": "Name",
     "noName": "Без імені",
     "description": "Опис",
     "noDescription": "Немає опису",
