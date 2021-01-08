@@ -161,7 +161,7 @@
     "importMetaEdits": "Importar Edições Meta",
     "importMetaEditsDesc": "Importa TODAS as Meta Edições de `/ Data / MetaEdits`",
     "fixPrimaryAliases": "Corrigir Apelidos Primários",
-    "fixPrimaryAliasesDesc": "Adicionar um apelido primário a quaisquer tags que não tenham um",
+    "fixPrimaryAliasesDesc": "Adiciona um apelido primário a quaisquer tags que não tenham um",
     "fixCommaTags": "Corrigir Tags com Vírgulas",
     "fixCommaTagsDesc": "Separa tags com vírgulas em várias tags e as aplica a todos os jogos aplicáveis",
     "exportTags": "Exportar Tags",
