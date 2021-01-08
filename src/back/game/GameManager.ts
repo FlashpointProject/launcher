@@ -198,9 +198,9 @@ export namespace GameManager {
   /** Find an add apps with the specified ID. */
   export async function findAddApp(id?: string, filter?: FindOneOptions<AdditionalApp>): Promise<AdditionalApp | undefined> {
     if (id || filter) {
-      if(!filter) {
+      if (!filter) {
         filter = {
-          relations: ["parentGame"]
+          relations: ['parentGame']
         };
       }
       const addAppRepository = getManager().getRepository(AdditionalApp);
