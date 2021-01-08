@@ -274,6 +274,7 @@
     "noGameMatchedSearch": "Zkuste méně omezit výběr hledání."
   },
   "tags": {
+    "name": "Name",
     "noName": "No Name",
     "description": "Description",
     "noDescription": "Žádný popis",
