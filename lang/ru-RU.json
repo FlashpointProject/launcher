@@ -274,6 +274,7 @@
     "noGameMatchedSearch": "Попробуйте изменить запрос на менее конкретный."
   },
   "tags": {
+    "name": "Name",
     "noName": "Нет названия",
     "description": "Описание",
     "noDescription": "Нет описания",
