@@ -274,6 +274,7 @@
     "noGameMatchedSearch": "Încercați alte cuvinte cheie."
   },
   "tags": {
+    "name": "Name",
     "noName": "Lipsă nume",
     "description": "Descriere",
     "noDescription": "Lipsă descriere",
