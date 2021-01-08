@@ -133,7 +133,7 @@
     "developerHeader": "Desenvolvedor",
     "developerDesc": "Aqui é onde todas as ferramentas úteis de desenvolvedor se encontram.",
     "checkMissingImages": "Verificar Imagens Ausentes",
-    "checkMissingImagesDesc": "Listar todos os jogos sem minatura ou captura de tela",
+    "checkMissingImagesDesc": "Listar todos os jogos sem miniatura ou captura de tela",
     "checkGameIds": "Verificar IDs dos Jogos",
     "checkGameIdsDesc": "Listar todos os jogos com IDs duplicados ou inválidos",
     "checkGameTitles": "Verificar Títulos dos Jogos",
