@@ -274,6 +274,7 @@
     "noGameMatchedSearch": "Покушај да тражиш нешто мање рестриктивно."
   },
   "tags": {
+    "name": "Name",
     "noName": "Без имена",
     "description": "Опис",
     "noDescription": "Без описа",
