@@ -274,6 +274,7 @@
     "noGameMatchedSearch": "Yritä etsiä yleisemmillä hakusanoilla."
   },
   "tags": {
+    "name": "Name",
     "noName": "No Name",
     "description": "Description",
     "noDescription": "No Description",
