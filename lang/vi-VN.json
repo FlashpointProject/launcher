@@ -274,6 +274,7 @@
     "noGameMatchedSearch": "Hãy tìm từ khoá chung chung hơn."
   },
   "tags": {
+    "name": "Name",
     "noName": "Không tên",
     "description": "Mô tả",
     "noDescription": "Không có",
