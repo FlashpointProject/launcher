@@ -226,7 +226,7 @@
     "noLanguage": "Sem Idioma",
     "dateAdded": "Data Adicionada",
     "dateModified": "Data Modificada",
-    "brokenInInfinity": "Sem Funcionamento (no Infinity)",
+    "brokenInInfinity": "Não Funciona (no Infinity)",
     "extreme": "Extremo",
     "playlistNotes": "Notas da Playlist",
     "noPlaylistNotes": "Sem Notas da Playlist",
@@ -274,7 +274,7 @@
     "noGameMatchedSearch": "Tente procurar por algo menos restritivo."
   },
   "tags": {
-    "name": "Name",
+    "name": "Nome",
     "noName": "Sem Nome",
     "description": "Descrição",
     "noDescription": "Sem Descrição",
