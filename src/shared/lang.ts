@@ -286,6 +286,7 @@ const langTemplate = {
     'defaultLibrary',
   ] as const,
   tags: [
+    'name',
     'noName',
     'description',
     'noDescription',
