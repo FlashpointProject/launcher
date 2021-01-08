@@ -274,6 +274,7 @@
     "noGameMatchedSearch": "请尝试用更宽泛的关键词搜索。"
   },
   "tags": {
+    "name": "Name",
     "noName": "无名称",
     "description": "描述",
     "noDescription": "无描述",
