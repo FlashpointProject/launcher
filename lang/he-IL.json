@@ -169,7 +169,7 @@
     "importTags": "Import Tags",
     "importTagsDesc": "Imports Tags from an file created by 'Export Tags'",
     "servicesHeader": "Background Services",
-    "servicesMissing": "There are no services.",
+    "servicesMissing": "אין שירותים.",
     "running": "Running",
     "stopped": "Stopped",
     "killing": "Killing",
