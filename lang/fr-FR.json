@@ -198,8 +198,8 @@
   "browse": {
     "noTitle": "Pas de titre",
     "by": "par",
-    "play": "Play",
-    "stop": "Stop",
+    "play": "Jouer",
+    "stop": "Arrêter",
     "noDeveloper": "Pas de développeur",
     "alternateTitles": "Titres alternatifs",
     "noAlternateTitles": "Il n'y a pas d'autres titre",
@@ -274,7 +274,7 @@
     "noGameMatchedSearch": "Essaie de chercher quelque chose de moins restrictif."
   },
   "tags": {
-    "name": "Name",
+    "name": "Nom",
     "noName": "Pas de nom",
     "description": "Description",
     "noDescription": "Pas de description",
