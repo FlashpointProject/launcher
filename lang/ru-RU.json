@@ -1,7 +1,7 @@
 {
-  "name": "Английский",
+  "name": "Русский",
   "config": {
-    "configHeader": "Конфигурация",
+    "configHeader": "Настройки",
     "configDesc": "(Вы должны нажать 'Сохранить и перезапустить' для того, чтобы изменения вошли в силу)",
     "preferencesHeader": "Персонализация",
     "extremeGames": "Жестокие игры",
@@ -49,7 +49,7 @@
     "extDevScripts": "Скрипт(ы) разработчика",
     "extThemes": "Тема(ы)",
     "extLogoSets": "Набор логотипа(ов)",
-    "extApplications": "Приложение(я)",
+    "extApplications": "Application(s)",
     "saveAndRestart": "Сохранить и перезапустить"
   },
   "home": {
@@ -374,7 +374,7 @@
     "authorPlaceholder": "Автор...",
     "id": "ID",
     "by": "от",
-    "extreme": "экстрим"
+    "extreme": "extreme"
   },
   "misc": {
     "noBlankFound": "{0} не найден",
