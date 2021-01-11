@@ -7,7 +7,7 @@
     "extremeGames": "Jogos Extremos",
     "extremeGamesDesc": "Mostrar jogos com conteúdo sexual, violento ou que seja inadequado para crianças.",
     "enableEditing": "Habilitar Edição",
-    "enableEditingDesc": "Habilita a edição de jogos, aplicações extra e playlists. Também revela a guia de 'Curar'.",
+    "enableEditingDesc": "Habilita a edição de jogos e aplicativos adicionais. Também revela abas relacionadas a edição.",
     "onDemandImages": "Imagens sob demanda",
     "onDemandImagesDesc": "Transferir e guardar ícones e screenshots em falta quando necessário.",
     "currentLanguage": "Língua",
@@ -193,7 +193,7 @@
     "license": "Licença",
     "licenseInfo": "MIT (Leia o arquivo chamado 'LICENSE' para obter mais informações)",
     "creditsHeader": "Créditos",
-    "specialThanks": "agradecimentos especiais"
+    "specialThanks": "Agradecimentos Especiais"
   },
   "browse": {
     "noTitle": "Sem título",
