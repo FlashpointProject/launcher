@@ -47,7 +47,7 @@
     "extensionsHeader": "Extensies",
     "noExtensionsLoaded": "Geen extensies geladen, installeer ze op '{0}'",
     "extDevScripts": "Ontwikkelaar Script(s)",
-    "extThemes": "Thema",
+    "extThemes": "Thema('s)",
     "extLogoSets": "Logo set(s)",
     "extApplications": "Applicatie(s)",
     "saveAndRestart": "Opslaan en herstarten"
