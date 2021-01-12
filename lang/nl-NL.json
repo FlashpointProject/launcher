@@ -274,7 +274,7 @@
     "noGameMatchedSearch": "Probeer naar iets gemakkelijker te zoeken."
   },
   "tags": {
-    "name": "Name",
+    "name": "Naam",
     "noName": "Geen naam",
     "description": "Beschrijving",
     "noDescription": "Geen beschrijving",
@@ -302,7 +302,7 @@
     "deleteAll": "Verwijder alles",
     "deleteAllDesc": "Verwijder alle curaties die momenteel zijn geladen",
     "saveImportedCurations": "Sla geïmporteerde curaties op",
-    "keepArchiveKey": "Houd Curation Archive UUID",
+    "keepArchiveKey": "Houd Curatie-Archief UUID",
     "symlinkCurationContent": "Symlink inhoud map voor curatie (Admin aanvragingen in Windows, vereist voor MAD4FP)",
     "openCurationsFolder": "Curatie map",
     "openCurationsFolderDesc": "Open de curatiesmap in de verkenner",
