@@ -429,7 +429,7 @@
     "dataRequiredDesc": "Você deve instalar a Atualização na tela inicial antes de poder usar o launcher.\n\nDeseja fazer isso agora?",
     "upgradeWillInstallTo": "{0} será instalado em",
     "verifyPathSelection": "Atualizações futuras também serão instaladas aqui. Isto está correto?",
-    "restartNow": "Reiniciar agora?",
+    "restartNow": "Reiniciar Agora?",
     "restartToApplyUpgrade": "Esta atualização não será aplicada até que você reinicie.\nDeseja fazer isso agora?",
     "areYouSure": "Você tem certeza?",
     "cancel": "Cancelar",
