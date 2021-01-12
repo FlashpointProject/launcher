@@ -167,7 +167,7 @@
     "exportTags": "Exportar Tags",
     "exportTagsDesc": "Cria um arquivo cheio de tags e categorias de tags que pode ser usado por 'Importar Tags'",
     "importTags": "Importar Tags",
-    "importTagsDesc": "Importa Tags a partir de um arquivo criado por 'Exportar Tags'",
+    "importTagsDesc": "Importa Tags de um arquivo criado por 'Exportar Tags'",
     "servicesHeader": "Serviços de Plano de Fundo",
     "servicesMissing": "Não há serviços.",
     "running": "Em execução",
@@ -180,7 +180,7 @@
     "restart": "Reiniciar",
     "restartDesc": "Reiniciar o serviço",
     "details": "Detalhes",
-    "detailsDesc": "Abrir janela com detalhes de serviço"
+    "detailsDesc": "Abrir janela com detalhes do serviço"
   },
   "about": {
     "aboutHeader": "Sobre",
