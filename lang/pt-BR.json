@@ -30,7 +30,7 @@
     "appPathOverridesDesc": "Sobrepõe o caminho de aplicativo na esquerda com o da direita ao iniciar jogos.",
     "visualsHeader": "Visuais",
     "useCustomTitleBar": "Usar Barra de Título Customizada",
-    "useCustomTitleBarDesc": "Usar uma Barra de Título customizada no topo desta janela.",
+    "useCustomTitleBarDesc": "Usar uma barra de título customizada no topo desta janela.",
     "theme": "Tema",
     "noTheme": "Nenhum tema",
     "themeDesc": "ID do tema a ser usado.",
