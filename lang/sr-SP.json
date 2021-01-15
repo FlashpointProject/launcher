@@ -303,7 +303,7 @@
     "deleteAllDesc": "Избриши све галерије које су тренутно учитане",
     "saveImportedCurations": "Сачувај увезене галерије",
     "keepArchiveKey": "Задржи UUID кураторске архиве",
-    "symlinkCurationContent": "Symlink Curation Content Folder (Admin prompts on Windows, Required for MAD4FP)",
+    "symlinkCurationContent": "Симлинк фолдер за садржај уређења (Упити за администратора на Виндоусу, потребно за MAD4FP)",
     "openCurationsFolder": "Фасцикла са галеријама",
     "openCurationsFolderDesc": "Отвори фасциклу са галеријама у прегледачу",
     "openExportsFolder": "Извезене галерије",
@@ -374,7 +374,7 @@
     "authorPlaceholder": "Аутор...",
     "id": "ID",
     "by": "од",
-    "extreme": "extreme"
+    "extreme": "екстремно"
   },
   "misc": {
     "noBlankFound": "{0} није пронађена",
@@ -386,7 +386,7 @@
     "extracting": "Распакује се",
     "installingFiles": "Инсталирам фајлове...",
     "complete": "Готово",
-    "exportMetaEditTitle": "Export Meta Edit",
+    "exportMetaEditTitle": "Извоз измена метаподатка",
     "exportMetaEditDesc": "Изаберите све поставке за изношење:"
   },
   "menu": {
@@ -398,7 +398,7 @@
     "copyGameUUID": "Корирај UUID игре",
     "exportMetaOnly": "Извези (само метаподатак)",
     "exportMetaAndImages": "Извези (метаподатке и слике)",
-    "exportMetaEdit": "Export Meta Edit",
+    "exportMetaEdit": "Извоз измена метаподатка",
     "duplicatePlaylist": "Дуплирај плејлисту",
     "exportPlaylist": "Изнеси плејлисту"
   },
