@@ -49,7 +49,7 @@
     "extDevScripts": "Скрипт(ы) разработчика",
     "extThemes": "Тема(ы)",
     "extLogoSets": "Набор логотипа(ов)",
-    "extApplications": "Application(s)",
+    "extApplications": "Приложение(я)",
     "saveAndRestart": "Сохранить и перезапустить"
   },
   "home": {
@@ -198,8 +198,8 @@
   "browse": {
     "noTitle": "Без названия",
     "by": "разработано",
-    "play": "Play",
-    "stop": "Stop",
+    "play": "Играть",
+    "stop": "Остановить",
     "noDeveloper": "Без разработчика",
     "alternateTitles": "Альтерн. названия",
     "noAlternateTitles": "Без альтернативных названий",
@@ -274,7 +274,7 @@
     "noGameMatchedSearch": "Попробуйте изменить запрос на менее конкретный."
   },
   "tags": {
-    "name": "Name",
+    "name": "Наименование",
     "noName": "Нет названия",
     "description": "Описание",
     "noDescription": "Нет описания",
@@ -374,7 +374,7 @@
     "authorPlaceholder": "Автор...",
     "id": "ID",
     "by": "от",
-    "extreme": "extreme"
+    "extreme": "крайний"
   },
   "misc": {
     "noBlankFound": "{0} не найден",
