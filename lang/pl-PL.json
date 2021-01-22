@@ -291,10 +291,10 @@
     "setPrimaryAlias": "Ustaw podstawowy alias",
     "mergeIntoTag": "Scal w tag",
     "mergeTag": "Scal tag",
-    "makeAliasWhenMerged": "Make this an alias of the tag?",
+    "makeAliasWhenMerged": "Czy ustawić to jako alias tagu?",
     "deleteTag": "Usuń Tag",
-    "deleteTagCategory": "Delete Tag Category",
-    "locked": "Locked while processing..."
+    "deleteTagCategory": "Usuń kategorię znaczników",
+    "locked": "Zablokowano podczas przetwarzania..."
   },
   "curate": {
     "importAll": "Importuj Wszystko",
@@ -302,8 +302,8 @@
     "deleteAll": "Usuń Wszystko",
     "deleteAllDesc": "Usuń wszystkie archiwizowane gry, które są obecnie załadowane",
     "saveImportedCurations": "Zapisz Zaimportowane Gry",
-    "keepArchiveKey": "Keep Curation Archive UUID",
-    "symlinkCurationContent": "Symlink Curation Content Folder (Admin prompts on Windows, Required for MAD4FP)",
+    "keepArchiveKey": "Zachowaj identyfikator UUID archiwum kuracji",
+    "symlinkCurationContent": "Symlink Curation Content Folder (monity administratora w systemie Windows, wymagane dla MAD4FP)",
     "openCurationsFolder": "Folder z Archiwizowanymi Grami",
     "openCurationsFolderDesc": "Otwórz folder archiwizowanych gier w eksploratorze plików",
     "openExportsFolder": "Eksportowane Gry",
@@ -337,7 +337,7 @@
     "deleteCurationDesc": "Usuń tą archiwizowaną grę (Pliki nie mogą zostać odzyskane)",
     "openFolder": "Otwórz Folder",
     "run": "Uruchom",
-    "runWithMAD4FP": "Run with MAD4FP",
+    "runWithMAD4FP": "Uruchom z MAD4FP",
     "export": "Eksportuj",
     "import": "Importuj",
     "contentFiles": "Pliki Zawartości",
@@ -360,8 +360,8 @@
     "saveDesc": "Zapisz zmiany i skończ edycję",
     "discard": "Anuluj",
     "discardDesc": "Anuluj zmiany i skończ edycję",
-    "edit": "Edit",
-    "editDesc": "Edit this playlist",
+    "edit": "Edytować",
+    "editDesc": "Edytuj tę listę odtwarzania",
     "delete": "Usuń",
     "deleteDesc": "Usuń tę playlistę",
     "changeIcon": "Zmień Ikonę Listy Odtwarzań",
@@ -374,7 +374,7 @@
     "authorPlaceholder": "Autor...",
     "id": "ID",
     "by": "autorstwa",
-    "extreme": "extreme"
+    "extreme": "skrajny"
   },
   "misc": {
     "noBlankFound": "Nie Znaleziono {0}",
@@ -386,8 +386,8 @@
     "extracting": "Wypakowywanie",
     "installingFiles": "Instalowanie Plików...",
     "complete": "Ukończono",
-    "exportMetaEditTitle": "Export Meta Edit",
-    "exportMetaEditDesc": "Select all properties to export:"
+    "exportMetaEditTitle": "Eksportuj Meta Edit",
+    "exportMetaEditDesc": "Wybierz wszystkie właściwości do wyeksportowania:"
   },
   "menu": {
     "viewThumbnailInFolder": "Zobacz Miniaturki w Folderze",
@@ -395,12 +395,12 @@
     "openFileLocation": "Otwórz Lokalizację Pliku",
     "duplicateMetaOnly": "Duplikuj (Tylko Metadane)",
     "duplicateMetaAndImages": "Duplikuj (Metadane i Zdjęcia)",
-    "copyGameUUID": "Copy Game UUID",
+    "copyGameUUID": "Skopiuj UUID gry",
     "exportMetaOnly": "Eksportuj (Tylko Metadane)",
     "exportMetaAndImages": "Eksportuj (Metadane i Zdjęcia)",
-    "exportMetaEdit": "Export Meta Edit",
-    "duplicatePlaylist": "Duplicate Playlist",
-    "exportPlaylist": "Export Playlist"
+    "exportMetaEdit": "Eksportuj Meta Edit",
+    "duplicatePlaylist": "Zduplikowana playlista",
+    "exportPlaylist": "Eksportuj listę odtwarzania"
   },
   "dialog": {
     "programNotFound": "Programu nie znaleziono!",
@@ -410,9 +410,9 @@
     "fileNotFound": "Pliku nie znaleziono!",
     "flashpointPathInvalid": "Nieprawidłowa ścieżka Flashpointa!",
     "pathNotFound": "Ścieżki nie znaleziono!",
-    "playlistConflict": "Playlist Conflict",
-    "importedPlaylistAlreadyExists": "Imported playlist already exists with same name! - '{0}'",
-    "importPlaylistAs": "Import playlist as",
+    "playlistConflict": "Konflikt listy odtwarzania",
+    "importedPlaylistAlreadyExists": "Zaimportowana lista odtwarzania o tej samej nazwie już istnieje! - '{0}'",
+    "importPlaylistAs": "Importuj playlistę jako",
     "selectFileToExportMeta": "Wybierz plik w którym zapisać metadane",
     "selectFolderToExportMetaAndImages": "Wybierz folder w którym zapisać metadane i zdjęcia",
     "replaceFilesQuestion": "Zastąp pliki?",
@@ -423,8 +423,8 @@
     "selectCurationFolder": "Wybierz folder(y) archiwizowanych gier",
     "selectCurationArchive": "Wybierz Archiwum/wa Archiwizowanych Gier",
     "selectCurationMeta": "Wybierz Plik(i) Metadanych Archiwizowanych Gier",
-    "selectPlaylistToImport": "Select Playlist to Import",
-    "selectFileToExportPlaylist": "Select file to save the Playlist to",
+    "selectPlaylistToImport": "Wybierz Playlistę do zaimportowania",
+    "selectFileToExportPlaylist": "Wybierz plik, w którym chcesz zapisać listę odtwarzania",
     "dataRequired": "Wymagane Dodatkowe Dane",
     "dataRequiredDesc": "Musisz zainstalować dodatek na ekranie startowym zanim będziesz w stanie używać Launchera.\n\nCzy chcesz zrobić to teraz?",
     "upgradeWillInstallTo": "{0} zostanie zainstalowane w",
@@ -434,10 +434,10 @@
     "areYouSure": "Czy na pewno?",
     "cancel": "Anuluj",
     "mergePlaylists": "Scal Listy Odtwarzania",
-    "newPlaylist": "Stay Seperate",
-    "uploadPrivacyWarning": "This will make your Logs available publically.\nA link will be copied to your clipboard.\n\nAre you sure?",
+    "newPlaylist": "Trzymaj się z dala",
+    "uploadPrivacyWarning": "Dzięki temu Twoje dzienniki będą publicznie dostępne.\nLink zostanie skopiowany do schowka.\n\nJesteś pewny?",
     "overwriteFileTitle": "Plik już istnieje!",
-    "overwriteFileMessage": "A file with the same name already exists. Do you want to overwrite it?",
+    "overwriteFileMessage": "Plik o tej samej nazwie już istnieje. Czy chcesz to nadpisać?",
     "overwriteFileDetail": "Ścieżka pliku:"
   },
   "libraries": {
@@ -446,7 +446,7 @@
     "theatre": "Animacje",
     "theatrePlural": "Wszystkie Animacje",
     "auditorium": "NG Auditorium",
-    "auditoriumPlural": "All NG Animations"
+    "auditoriumPlural": "Wszystkie animacje NG"
   },
   "upgrades": {
     "infinity": "Flashpoint Infinity",
