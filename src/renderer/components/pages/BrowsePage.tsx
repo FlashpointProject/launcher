@@ -408,9 +408,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         label: strings.menu.addToPlaylist,
         enabled: playlists.length > 0,
         submenu: UniquePlaylistMenuFactory(playlists,
-          (playlistId) => {
-            window.Shared.back.send(BackIn.ADD_PLAYLIST_GAME, playlistId, gameId)
-          },
+          (playlistId) => window.Shared.back.send(BackIn.ADD_PLAYLIST_GAME, playlistId, gameId),
           selectedPlaylistId)
       }, {  type: 'separator' }, {
         /* Duplicate Meta */
@@ -987,11 +985,11 @@ function toDataURL(url: string): Promise<FileReaderResult> {
 
 function UniquePlaylistMenuFactory(playlists: Playlist[], onClick: (playlistId: string) => any, selectedPlaylistId?: string): MenuItemConstructorOptions[] {
   return playlists.filter(p => p.id != selectedPlaylistId)
-    .map(p => {
-      return {
-        label: p.title || 'No Title',
-        enabled: true,
-        click: () => onClick(p.id)
-      }
-    });
+  .map(p => {
+    return {
+      label: p.title || 'No Title',
+      enabled: true,
+      click: () => onClick(p.id)
+    };
+  });
 }

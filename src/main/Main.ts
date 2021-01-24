@@ -8,7 +8,7 @@ import { AppPreferencesData } from '@shared/preferences/interfaces';
 import { createErrorProxy } from '@shared/Util';
 import { ChildProcess, fork } from 'child_process';
 import { randomBytes } from 'crypto';
-import { app, BrowserWindow, dialog, ipcMain, IpcMainEvent, Menu, session, shell, Tray, WebContents } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, IpcMainEvent, session, shell, WebContents } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
@@ -199,20 +199,6 @@ export function main(init: Init): void {
       }), TIMEOUT_DELAY))
       // Create main window
       .then(() => app.whenReady())
-      // Set up tray icon
-      .then(() => {
-        const appIcon = new Tray('icons/icon.png');
-        const contextMenu = Menu.buildFromTemplate([
-          { label: 'Item1', type: 'radio' },
-          { label: 'Item2', type: 'radio' }
-        ]);
-      
-        // Make a change to the context menu
-        contextMenu.items[1].checked = false;
-      
-        // Call this again for Linux because we modified the context menu
-        appIcon.setContextMenu(contextMenu);
-      })
       // Install React Devtools Extension
       .then(() => {
         if (Util.isDev) {
