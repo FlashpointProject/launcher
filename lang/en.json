@@ -393,6 +393,7 @@
     "viewThumbnailInFolder": "View Thumbnail in Folder",
     "viewScreenshotInFolder": "View Screenshot in Folder",
     "openFileLocation": "Open File Location",
+    "addToPlaylist": "Add to Playlist",
     "duplicateMetaOnly": "Duplicate (Meta Only)",
     "duplicateMetaAndImages": "Duplicate (Meta && Images)",
     "copyGameUUID": "Copy Game UUID",

@@ -232,7 +232,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   noRowsRenderer={this.noRowsRendererMemo(strings.browse)}
                   onGameSelect={this.onGameSelect}
                   onGameLaunch={this.onGameLaunch}
-                  onContextMenu={this.onGameContextMenuMemo(strings)}
+                  onContextMenu={this.onGameContextMenuMemo(this.props.playlists, strings, this.props.selectedPlaylistId)}
                   onGameDragStart={this.onGameDragStart}
                   onGameDragEnd={this.onGameDragEnd}
                   cellWidth={width}
@@ -252,7 +252,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   noRowsRenderer={this.noRowsRendererMemo(strings.browse)}
                   onGameSelect={this.onGameSelect}
                   onGameLaunch={this.onGameLaunch}
-                  onContextMenu={this.onGameContextMenuMemo(strings)}
+                  onContextMenu={this.onGameContextMenuMemo(this.props.playlists, strings, this.props.selectedPlaylistId)}
                   onGameDragStart={this.onGameDragStart}
                   onGameDragEnd={this.onGameDragEnd}
                   updateView={this.props.updateView}
@@ -361,7 +361,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     };
   });
 
-  private onGameContextMenuMemo = memoizeOne((strings: LangContainer) => {
+  private onGameContextMenuMemo = memoizeOne((playlists: Playlist[], strings: LangContainer, selectedPlaylistId?: string, ) => {
     return (gameId: string) => {
       const contextButtons: MenuItemConstructorOptions[] = [{
         /* File Location */
@@ -403,6 +403,15 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             }
           });
         },
+      }, {
+        type: 'submenu',
+        label: strings.menu.addToPlaylist,
+        enabled: playlists.length > 0,
+        submenu: UniquePlaylistMenuFactory(playlists,
+          (playlistId) => {
+            window.Shared.back.send(BackIn.ADD_PLAYLIST_GAME, playlistId, gameId)
+          },
+          selectedPlaylistId)
       }, {  type: 'separator' }, {
         /* Duplicate Meta */
         label: strings.menu.duplicateMetaOnly,
@@ -974,4 +983,15 @@ function toDataURL(url: string): Promise<FileReaderResult> {
     reader.onerror = reject;
     reader.readAsDataURL(blob);
   }));
+}
+
+function UniquePlaylistMenuFactory(playlists: Playlist[], onClick: (playlistId: string) => any, selectedPlaylistId?: string): MenuItemConstructorOptions[] {
+  return playlists.filter(p => p.id != selectedPlaylistId)
+    .map(p => {
+      return {
+        label: p.title || 'No Title',
+        enabled: true,
+        click: () => onClick(p.id)
+      }
+    });
 }
