@@ -30,7 +30,7 @@ export function AutoProgressComponent(props: ProgressComponentProps) {
   }
 }
 
-/** Large centered primar text, smaller underneath secondary text. */
+/** Large centered primary text, smaller underneath secondary text. */
 export function StatusBar(props: ProgressComponentProps) {
   return (
     <div className={(props.wrapperClass ? ' ' + props.wrapperClass : '') + 'progress-component__wrapper'}>

@@ -681,7 +681,7 @@ function scrollToDiv(id: string) {
   }
 }
 
-/* Returns the width of a div ref, minumum 10 */
+/* Returns the width of a div ref, minimum 10 */
 function getDivWidth(ref: React.RefObject<HTMLDivElement>) {
   if (!document.defaultView) { throw new Error('"document.defaultView" missing.'); }
   if (!ref.current) { throw new Error('div is missing.'); }

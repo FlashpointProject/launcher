@@ -351,7 +351,7 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
   }
 
   onDeleteTagClick = (): void => {
-    console.log('clalled');
+    console.log('called');
     if (this.props.onDeleteTag) {
       this.props.onDeleteTag();
     }

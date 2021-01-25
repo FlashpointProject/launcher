@@ -32,7 +32,7 @@ There is now a TypeScript / JavaScript API available to interact with the Flashp
 
 ## Changed
 
-- Flash Mode (:flash: applicaton path) has now been reworked into a general use Browser Mode so it can be used by Extensions.
+- Flash Mode (:flash: application path) has now been reworked into a general use Browser Mode so it can be used by Extensions.
 
 ## Fixed
 

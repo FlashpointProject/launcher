@@ -24,7 +24,7 @@ export type View = {
     /** Page keyset of the results. */
     pageKeyset: PageKeyset;
   };
-  /** State of the meta request (undfined means the view is "idle" and no request should be made). */
+  /** State of the meta request (undefined means the view is "idle" and no request should be made). */
   metaState?: RequestState;
   /** Games to display. */
   games: ViewGameSet;
@@ -75,7 +75,7 @@ export type MainState = {
   randomGames: ViewGame[];
   /** Whether we're currently requesting random games */
   requestingRandomGames: boolean;
-  /** If the random games should be shiften when the request is complete. */
+  /** If the random games should be shifted when the request is complete. */
   shiftRandomGames: boolean;
 
   /** Data and state used for the upgrade system (optional install-able downloads from the HomePage). */

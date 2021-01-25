@@ -33,7 +33,7 @@ export function getExtensionEntry(ext: IExtension): string {
 /** Creates an Extension log (Message format "[extension-name] <message>")
  * @param extManifest Manifest of the Extension
  * @param message Message to fill in
- * @param func Log function to use (log.info, warn, error etc)
+ * @param func Log function to use (log.info, warn, error etc.)
  * @returns Complete Log Entry
 */
 export function newExtLog(extManifest: IExtensionManifest, message: string, func: LogFunc): ILogEntry {
@@ -43,7 +43,7 @@ export function newExtLog(extManifest: IExtensionManifest, message: string, func
 /** Creates an Extension Log Function
  * @param extManifest Manifest of the Extension
  * @param addLog Function to push new log onto Logs page stack
- * @param func Log function to use (log.info, warn, error etc)
+ * @param func Log function to use (log.info, warn, error etc.)
  * @returns Function that logs an extensions message given just a message string
  */
 export function extLogFactory(extManifest: IExtensionManifest, addLog: (entry: ILogEntry) => void, func: LogFunc): ExtensionLogFunc {

@@ -174,7 +174,7 @@ function progressReducer(prevState: Record<string, (ProgressData[]|undefined)>, 
 }
 
 /**
- * Returns the ProgressData of a parent (initalizes it if necessary)
+ * Returns the ProgressData of a parent (initializes it if necessary)
  * @param state Mutable ProgressState
  * @param key Parent's Key
  */
@@ -213,7 +213,7 @@ function ensureProgressIndex(state: ProgressData[], key: string): number {
 
 /**
  * Return a new ProgressHandle to be given out to other functions
- * @param parentKey Identifier of parent (page, component etc)
+ * @param parentKey Identifier of parent (page, component etc.)
  * @param dispatch Dispatcher to ProgressContext
  * @returns Handle containing all data necessary to dispatch ProgressAction's
  */

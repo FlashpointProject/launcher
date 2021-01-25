@@ -125,7 +125,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
             // Dirty games
             isDirty: true,
             pageState: {},
-            // Update total (for the first reponse only)
+            // Update total (for the first response only)
             total: (view.total === undefined)
               ? action.total
               : view.total,

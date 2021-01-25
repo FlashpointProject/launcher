@@ -118,7 +118,7 @@ export type ServiceFileData = {
   start: IBackProcessInfo[];
   /** Processes to run when the launcher closes. */
   stop: IBackProcessInfo[];
-  /** Files to watch and run continous logging on */
+  /** Files to watch and run continuous logging on */
   watch: string[];
 };
 

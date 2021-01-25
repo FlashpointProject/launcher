@@ -128,7 +128,7 @@ export function exit(state: BackState): void {
       .catch(e => { console.error(e); }),
       // Close file server
       new Promise(resolve => state.fileServer.close(error => {
-        if (error) { console.warn('An error occurred whie closing the file server.', error); }
+        if (error) { console.warn('An error occurred while closing the file server.', error); }
         resolve();
       })),
       // Wait for game manager to complete all saves

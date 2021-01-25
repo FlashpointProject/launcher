@@ -1,7 +1,7 @@
 import * as path from 'path';
 import { pathExists, copyError } from '@back/util/misc';
 
-describe('Miscellanous Backend', () => {
+describe('Miscellaneous Backend', () => {
   test('Check Path Exists', async () => {
     const realPath = './';
     const fakePath = path.join('./', 'FAKE_PATH');

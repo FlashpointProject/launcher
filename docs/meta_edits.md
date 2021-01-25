@@ -24,7 +24,7 @@ To import *all* meta edits:
 * Go the the Developer tab
     - If the tab is not displayed, go to the "Config" tab and enable "Show Developer Tab"
 * Click the "Import Meta Edits" button
-* If there are any conficts in the meta edits you will be promted to select which value to apply
+* If there are any conflicts in the meta edits you will be promoted to select which value to apply
 
 **Note:** This does *NOT* delete the meta edit files. The files have to be moved / deleted manually.
 
@@ -70,7 +70,7 @@ Reasons for discarding includes:
 Discarded changes (X changes in Y games):
 
   <Game title> (<Game ID>)
-    <Property name>: <Discarde value>
+    <Property name>: <Discarded value>
     ...
 
   ...

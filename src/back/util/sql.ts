@@ -7,7 +7,7 @@
  */
 export function validateSqlName(name: string): void {
   // The first character is not allowed to be @ or # because they denote special values
-  // (They might be safe to use, but I don't know enough to evaludate that //obelisk)
+  // (They might be safe to use, but I don't know enough to evaluate that //obelisk)
 
   if (name.length > 128) {
     throw new Error(`SQL name validation failed! The name contains more than 128 characters (name: "${name}", length: ${name.length})!`);
