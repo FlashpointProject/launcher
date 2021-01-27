@@ -434,8 +434,8 @@
     "areYouSure": "Вы уверены?",
     "cancel": "Отмена",
     "mergePlaylists": "Объединить плейлисты",
-    "newPlaylist": "Оставить раздельно",
-    "uploadPrivacyWarning": "Это сделает ваш журнал общедоступным.\nСсылка будет скопирована в буфер обмена.\n\nВы уверены?",
+    "newPlaylist": "Stay Separate",
+    "uploadPrivacyWarning": "This will make your Logs available publicly.\nA link will be copied to your clipboard.\n\nAre you sure?",
     "overwriteFileTitle": "Файл уже существует!",
     "overwriteFileMessage": "Файл с таким именем уже существует. Вы хотите перезаписать его?",
     "overwriteFileDetail": "Путь к файлу:"
