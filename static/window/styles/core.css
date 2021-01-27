@@ -2286,3 +2286,48 @@ body {
   bottom: 2rem;
   right: 0.5rem;
 }
+
+/** Confirm Dialog */
+.confirm-dialog {
+  font-size: 2rem;
+}
+
+.confirm-dialog__buttons {
+  margin-top: 0.4rem;
+  display: flex;
+  width: 100%;
+  justify-content: space-evenly;
+}
+
+/** Floating Containers */
+.floating-container__wrapper {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.floating-container {
+  text-align: center;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid;
+}
+
+.page-wrap {
+  width: 100%;
+  height: 100%;
+}
+
+/** Game Data Browser */
+.game-data-browser {
+  font-size: 1.5rem;
+}
+
+.game-data-browser__buttons {
+  margin-top: 0.4rem;
+}

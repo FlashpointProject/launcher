@@ -1,6 +1,7 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
+import { WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
 import { BackIn } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
@@ -70,7 +71,7 @@ type OwnProps = {
   contextButtons: ExtensionContribution<'contextButtons'>[];
 };
 
-export type BrowsePageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps;
+export type BrowsePageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps & WithConfirmDialogProps;
 
 export type BrowsePageState = {
   /** Current quick search string (used to jump to a game in the list, not to filter the list). */
@@ -552,22 +553,27 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     event.dataTransfer.clearData(gameIdDataType);
   }
 
-  onDeleteSelectedGame = (): void => {
-    // Delete the game
-    if (this.props.selectedGameId) {
-      this.props.onDeleteGame(this.props.selectedGameId);
+  onDeleteSelectedGame = async (): Promise<void> => {
+    const strings = this.context;
+    // Confirm Deletion
+    const res = await this.props.openConfirmDialog(strings.dialog.areYouSureDelete, [strings.misc.yes, strings.misc.no], 1, true);
+    if (res === 0) {
+      // Delete the game
+      if (this.props.selectedGameId) {
+        this.props.onDeleteGame(this.props.selectedGameId);
+      }
+      // Deselect the game
+      this.props.onSelectGame(undefined);
+      // Reset the state related to the selected game
+      this.setState({
+        currentGame: undefined,
+        currentPlaylistEntry: undefined,
+        isNewGame: false,
+        isEditingGame: false
+      });
+      // Focus the game grid/list
+      this.focusGameGridOrList();
     }
-    // Deselect the game
-    this.props.onSelectGame(undefined);
-    // Reset the state related to the selected game
-    this.setState({
-      currentGame: undefined,
-      currentPlaylistEntry: undefined,
-      isNewGame: false,
-      isEditingGame: false
-    });
-    // Focus the game grid/list
-    this.focusGameGridOrList();
   }
 
   onRemoveSelectedGameFromPlaylist = async (): Promise<void> => {
@@ -704,6 +710,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           orderTitle: '',
           addApps: [],
           placeholder: false,
+          activeDataOnDisk: false
         },
         isEditingGame: true,
         isNewGame: true,

@@ -447,6 +447,7 @@ const langTemplate = {
     'restartNow',
     'restartToApplyUpgrade',
     'areYouSure',
+    'areYouSureDelete',
     'cancel',
     'mergePlaylists',
     'newPlaylist',

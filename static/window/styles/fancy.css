@@ -35,6 +35,7 @@
   --layout__secondary-background:  #2d2d30;
   --layout__tertiary-background:   #141417;
   --layout__quaternary-background: #242428;
+  --layout__background-faded:      #1b1b1cb8;
   /* Outline Color */
   --layout__primary-outline-color: #47474d;
   /* Scrollbar */
@@ -1018,4 +1019,19 @@ body {
 }
 .sketch-picker input {
   background-color: var(--layout__quaternary-background);
+}
+
+/** Confirm Dialog */
+.confirm-dialog__message {
+  font-weight: bold;
+}
+
+/** Floating Containers */
+.floating-container__wrapper {
+  background-color: var(--layout__background-faded);
+}
+
+.floating-container {
+  background-color: var(--layout__home-page-box-background);
+  border-color: var(--layout__home-page-box-border);
 }
