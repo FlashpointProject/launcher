@@ -434,8 +434,8 @@
     "areYouSure": "Jste si jisti?",
     "cancel": "Zrušit",
     "mergePlaylists": "Sloučit seznamy",
-    "newPlaylist": "Nechat oddělené",
-    "uploadPrivacyWarning": "Toto udělá vaše Logy dostupné veřejně.\nOdkaz bude zkopírován do schránky.\n\nJste si jistý?",
+    "newPlaylist": "Stay Separate",
+    "uploadPrivacyWarning": "This will make your Logs available publicly.\nA link will be copied to your clipboard.\n\nAre you sure?",
     "overwriteFileTitle": "Soubor již existuje!",
     "overwriteFileMessage": "Soubor se stejným názvem již existuje. Přejete si jej přepsat?",
     "overwriteFileDetail": "Cesta k souboru:"
