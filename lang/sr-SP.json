@@ -434,8 +434,8 @@
     "areYouSure": "Да ли си сигуран?",
     "cancel": "Откажи",
     "mergePlaylists": "Споји плејлисте",
-    "newPlaylist": "Остани раздвојена",
-    "uploadPrivacyWarning": "Ово ће учинити ваше записе доступним јавношћу.\nЛинк ће бити копиран.\n\nДа ли сте сигурни?",
+    "newPlaylist": "Stay Separate",
+    "uploadPrivacyWarning": "This will make your Logs available publicly.\nA link will be copied to your clipboard.\n\nAre you sure?",
     "overwriteFileTitle": "Датотека већ постоји!",
     "overwriteFileMessage": "Датотека са истим именом већ постоји. Да ли желиш да је замениш?",
     "overwriteFileDetail": "Путања дадотеке:"
