@@ -1,5 +1,6 @@
 import { Column, Entity, Index, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { AdditionalApp } from './AdditionalApp';
+import { GameData } from './GameData';
 import { Tag } from './Tag';
 
 @Index('IDX_lookup_title',        ['library', 'title'])
@@ -125,4 +126,15 @@ export class Game {
 
   /** If the game is a placeholder (and can therefore not be saved) */
   placeholder: boolean;
+
+  /** ID of the active data */
+  @Column({ nullable: true })
+  activeDataId?: number;
+
+  /** Whether the data is present on disk */
+  @Column({ default: false })
+  activeDataOnDisk: boolean;
+
+  @OneToMany(type => GameData, datas => datas.game)
+  data?: GameData[];
 }

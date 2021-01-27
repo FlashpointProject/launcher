@@ -29,7 +29,8 @@ export namespace ModelUtils {
       library: '',
       orderTitle: '',
       addApps: [],
-      placeholder: false
+      placeholder: false,
+      activeDataOnDisk: false
     };
   }
 

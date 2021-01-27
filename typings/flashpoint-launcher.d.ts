@@ -470,7 +470,33 @@ declare module 'flashpoint-launcher' {
         orderTitle: string;
         /** If the game is a placeholder (and can therefore not be saved) */
         placeholder: boolean;
+        /** ID of the active data */
+        activeDataId?: number;
+        /** Whether the data is present on disk */
+        activeDataOnDisk: boolean;
+        data?: GameData[];
     };
+
+    type GameData = {
+        id: number;
+        /** ID of the related game */
+        game?: Game;
+        gameId?: string;
+        /** Title of this data pack */
+        title: string;
+        /** Date this data pack was added on */
+        dateAdded: Date;
+        /** Expected SHA256 hash of this data pack */
+        sha256: string;
+        /** Expected CRC32 of this data pack */
+        crc32: number;
+        /** Is the data pack present on disk */
+        presentOnDisk: boolean;
+        /** Path this data pack should reside at, if present on disk */
+        path?: string;
+        /** Size of this data pack */
+        size: number;
+      }
 
     type AdditionalApp = {
         /** ID of the additional application (unique identifier) */

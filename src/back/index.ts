@@ -1,12 +1,16 @@
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
+import { GameData } from '@database/entity/GameData';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
+import { Source } from '@database/entity/Source';
+import { SourceData } from '@database/entity/SourceData';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
 import { Initial1593172736527 } from '@database/migration/1593172736527-Initial';
 import { AddExtremeToPlaylist1599706152407 } from '@database/migration/1599706152407-AddExtremeToPlaylist';
+import { GameData1611753257950 } from '@database/migration/1611753257950-GameData';
 import { BackIn, BackInit, BackInitArgs, BackOut } from '@shared/back/types';
 import { ILogoSet, LogoSet } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
@@ -261,8 +265,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     const options: ConnectionOptions = {
       type: 'sqlite',
       database: path.join(state.config.flashpointPath, 'Data', 'flashpoint.sqlite'),
-      entities: [Game, AdditionalApp, Playlist, PlaylistGame, Tag, TagAlias, TagCategory],
-      migrations: [Initial1593172736527, AddExtremeToPlaylist1599706152407]
+      entities: [Game, AdditionalApp, Playlist, PlaylistGame, Tag, TagAlias, TagCategory, GameData, Source, SourceData],
+      migrations: [Initial1593172736527, AddExtremeToPlaylist1599706152407, GameData1611753257950]
     };
     state.connection = await createConnection(options);
     // TypeORM forces on but breaks Playlist Game links to unimported games

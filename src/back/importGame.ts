@@ -280,7 +280,8 @@ async function createGameFromCurationMeta(gameId: string, gameMeta: EditCuration
     library:             gameMeta.library || '',
     orderTitle: '', // This will be set when saved
     addApps: [],
-    placeholder: false
+    placeholder: false,
+    activeDataOnDisk: false
   };
   game.addApps = addApps.map(addApp => createAddAppFromCurationMeta(addApp, game));
   return game;
@@ -486,7 +487,8 @@ function createPlaceholderGame(): Game {
     library: '',
     orderTitle: '',
     addApps: [],
-    placeholder: true
+    placeholder: true,
+    activeDataOnDisk: false
   };
 }
 
