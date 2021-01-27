@@ -434,8 +434,8 @@
     "areYouSure": "Weet je het zeker?",
     "cancel": "Annuleren",
     "mergePlaylists": "Afspeellijsten samenvoegen",
-    "newPlaylist": "Blijf apart",
-    "uploadPrivacyWarning": "Hiermee worden uw logboeken openbaar beschikbaar.\nEen link wordt naar uw klembord gekopieerd.\n\nWeet u het zeker?",
+    "newPlaylist": "Stay Separate",
+    "uploadPrivacyWarning": "This will make your Logs available publicly.\nA link will be copied to your clipboard.\n\nAre you sure?",
     "overwriteFileTitle": "Dit bestand bestaat al!",
     "overwriteFileMessage": "Er bestaat al een bestand met dezelfde naam. Wil je het overschrijven?",
     "overwriteFileDetail": "Bestandspad:"
