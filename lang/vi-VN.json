@@ -434,8 +434,8 @@
     "areYouSure": "Bạn có chắc?",
     "cancel": "Huỷ",
     "mergePlaylists": "Nhập danh sách",
-    "newPlaylist": "Ở riêng biệt",
-    "uploadPrivacyWarning": "Điều này sẽ làm cho Nhật ký của bạn có sẵn công khai.\nMột liên kết sẽ được sao chép vào khay nhớ tạm của bạn.\n\nBạn có chắc không?",
+    "newPlaylist": "Stay Separate",
+    "uploadPrivacyWarning": "This will make your Logs available publicly.\nA link will be copied to your clipboard.\n\nAre you sure?",
     "overwriteFileTitle": "Tập tin đã tồn tại!",
     "overwriteFileMessage": "Một tệp có cùng tên đã tồn tại. Bạn có muốn ghi đè lên nó?",
     "overwriteFileDetail": "Đường dẫn tập tin:"
