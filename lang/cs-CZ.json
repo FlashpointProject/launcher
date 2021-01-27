@@ -435,7 +435,7 @@
     "cancel": "Zrušit",
     "mergePlaylists": "Sloučit seznamy",
     "newPlaylist": "Ponechat Oddělené",
-    "uploadPrivacyWarning": "This will make your Logs available publicly.\nA link will be copied to your clipboard.\n\nAre you sure?",
+    "uploadPrivacyWarning": "Toto udělá vaše Logy veřejně přístupné.\nOdkaz bude zkopírován do schránky.\n\nJste si jistí?",
     "overwriteFileTitle": "Soubor již existuje!",
     "overwriteFileMessage": "Soubor se stejným názvem již existuje. Přejete si jej přepsat?",
     "overwriteFileDetail": "Cesta k souboru:"
