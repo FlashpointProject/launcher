@@ -434,8 +434,8 @@
     "areYouSure": "Är du säker?",
     "cancel": "Avbryt",
     "mergePlaylists": "Slå ihop spellistor",
-    "newPlaylist": "Stanna åtskilda",
-    "uploadPrivacyWarning": "Detta kommer att göra dina loggar tillgängliga offentligt.\nEn länk kommer att kopieras till ditt urklipp.\n\nÄr du säker?",
+    "newPlaylist": "Stay Separate",
+    "uploadPrivacyWarning": "This will make your Logs available publicly.\nA link will be copied to your clipboard.\n\nAre you sure?",
     "overwriteFileTitle": "Filen finns redan!",
     "overwriteFileMessage": "En fil med samma namn finns redan. Vill du skriva över den?",
     "overwriteFileDetail": "Sökväg till fil:"
