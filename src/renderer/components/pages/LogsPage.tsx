@@ -218,7 +218,7 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
   onUploadClick = async (): Promise<void> => {
     this.setState({ uploading: true });
     const strings = this.context;
-    // IMPORTANT - Make sure they want to *publically* post their info
+    // IMPORTANT - Make sure they want to *publicly* post their info
     const res = await remote.dialog.showMessageBox({
       title: strings.dialog.areYouSure,
       message: strings.dialog.uploadPrivacyWarning,

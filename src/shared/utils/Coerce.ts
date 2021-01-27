@@ -20,7 +20,7 @@ export namespace Coerce {
   }
 
   /**
-   * Coere a value to a number.
+   * Coerce a value to a number.
    * If the coerced value is NaN, 0 will be returned instead.
    * @param value Value to coerce.
    */

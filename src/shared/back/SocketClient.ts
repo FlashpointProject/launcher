@@ -44,7 +44,7 @@ export class SocketClient<SOCKET extends BaseSocket> {
     this.socketCon = socketCon;
   }
 
-  /** Resolves when the socket starts listening. If it is already listeningm this is resolved immediately. */
+  /** Resolves when the socket starts listening. If it is already listening this is resolved immediately. */
   whenListening(): Promise<void> {
     return new Promise((resolve, reject) => {
       if (this.client.socket && this.client.socket.readyState === WebSocket.OPEN) {

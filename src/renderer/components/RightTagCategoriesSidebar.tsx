@@ -199,7 +199,7 @@ export class RightTagCategoriesSidebar extends React.Component<RightTagCategorie
   }
 
   onDeleteCategoryClick = (): void => {
-    console.log('clalled');
+    console.log('called');
     if (this.props.onDeleteCategory) {
       this.props.onDeleteCategory();
     }

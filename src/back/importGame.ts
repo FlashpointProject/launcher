@@ -163,7 +163,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
                         date.getUTCDate().toString().padStart(2, '0');
         const backupPath = path.join(fpPath, 'Curations', 'Imported', `${dateStr}__${curation.key}`);
         await fs.copy(getCurationFolder(curation, fpPath), backupPath);
-        // Why does this return before finishing coying? Replaced with line above for now.
+        // Why does this return before finishing copying? Replaced with line above for now.
         // await copyFolder(getCurationFolder(curation, fpPath), backupPath, true, opts.openDialog);
       }
       if (log) {
@@ -317,7 +317,7 @@ async function importGameImage(image: CurationIndexImage, gameId: string, folder
   }
 }
 
-/** Symlinks (or copies if unavailble) a curations `content` folder to `htdocs\content`
+/** Symlinks (or copies if unavailable) a curations `content` folder to `htdocs\content`
  * @param curationKey Key of the (game) curation to link
  */
 async function linkContentFolder(curationKey: string, fpPath: string, isDev: boolean, exePath: string, htdocsPath: string, symlinkCurationContent: boolean) {

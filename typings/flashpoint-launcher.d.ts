@@ -671,7 +671,7 @@ declare module 'flashpoint-launcher' {
         games: T extends true ? ViewGame[] : Game[];
     };
 
-    /** Shortend version of {@link Game} returned in searches, makes for better performance. */
+    /** Shorten version of {@link Game} returned in searches, makes for better performance. */
     type ViewGame = {
         id: string;
         title: string;

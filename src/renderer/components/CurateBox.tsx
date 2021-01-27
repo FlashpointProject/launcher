@@ -619,7 +619,7 @@ export function CurateBox(props: CurateBoxProps) {
     }
   }, [props.curation && props.curation.thumbnail, props.curation && props.curation.screenshot, disabled]);
 
-  // Own Lirary Options
+  // Own Library Options
   const ownLibraryOptions = useMemo(() => {
     // Add meta's library if invalid (special option)
     if (warnings.nonExistingLibrary && props.curation) {

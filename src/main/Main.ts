@@ -74,7 +74,7 @@ export function main(init: Init): void {
     app.allowRendererProcessReuse = true; // Hides the "new default value" warning message (remove this line after upgrading to electron 9)
 
     // Single process
-    // No more than one "main" instance should exist at any time. Mutliple "flash" instances are fine.
+    // No more than one "main" instance should exist at any time. Multiple "flash" instances are fine.
     if (!app.requestSingleInstanceLock()) {
       app.exit();
       return;
@@ -164,7 +164,7 @@ export function main(init: Init): void {
           localeCode: localeCode,
           exePath: app.getPath('exe'),
           acceptRemote: !!init.args['host-remote'],
-          version: app.getVersion(), // @TODO Manually load this from the package.json file while in a dev enviroment (so it doesn't use Electron's version)
+          version: app.getVersion(), // @TODO Manually load this from the package.json file while in a dev environment (so it doesn't use Electron's version)
         };
         state.backProc.send(JSON.stringify(msg));
       }));
@@ -403,7 +403,7 @@ export function main(init: Init): void {
       const isMaximized = window.isMaximized();
       window.webContents.send(WindowIPC.WINDOW_RESIZE, size[0], size[1], isMaximized);
     });
-    // Derefence window when closed
+    // Dereference window when closed
     window.on('closed', () => {
       if (state.window === window) {
         state.window = undefined;

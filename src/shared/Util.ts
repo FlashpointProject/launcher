@@ -366,10 +366,10 @@ export function createErrorProxy(title: string): any {
     // @TODO Make it throw errors for all(?) cases (delete, construct etc.)
     get: (target, p, receiver) => {
       if (p === errorProxySymbol) { return errorProxyValue; }
-      throw new Error(`You must not get a value from ${title} before it is initialzed (property: "${p.toString()}").`);
+      throw new Error(`You must not get a value from ${title} before it is initialized (property: "${p.toString()}").`);
     },
     set: (target, p, value, receiver) => {
-      throw new Error(`You must not set a value from ${title} before it is initialzed (property: "${p.toString()}").`);
+      throw new Error(`You must not set a value from ${title} before it is initialized (property: "${p.toString()}").`);
     },
   });
 }

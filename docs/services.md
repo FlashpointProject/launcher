@@ -2,7 +2,7 @@
 
 The launcher provides multiple ways to run programs alongside. An example config is provided at the bottom of the page.
 
-`<fpPath>` can be used in any file path. These will be substitued out for the absolute Flashpoint path as defined in Config.
+`<fpPath>` can be used in any file path. These will be substituted out for the absolute Flashpoint path as defined in Config.
 
 ### File Layout
 

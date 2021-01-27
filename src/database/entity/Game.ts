@@ -77,7 +77,7 @@ export class Game {
 
   @ManyToMany(type => Tag, t => t.gamesUsing, { cascade: true, eager: true })
   @JoinTable()
-  /** Tags of the game (seperated by semi-colon) */
+  /** Tags of the game (separated by semi-colon) */
   tags: Tag[];
 
   @Column({collation: 'NOCASE'})

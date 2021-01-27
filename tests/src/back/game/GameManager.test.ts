@@ -56,7 +56,7 @@ describe('GameManager', () => {
     }
   });
 
-  test('Add Games & AddApps (to differnt and non-existing platforms)', () => {
+  test('Add Games & AddApps (to different and non-existing platforms)', () => {
     // Setup
     const state = createState();
     for (let i = 0; i < 10; i++) {

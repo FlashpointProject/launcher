@@ -130,7 +130,7 @@ function convertAddApp(item: IObjectParserProp<any>, label: string | number | sy
 // Coerce an object into a sensible string
 function arrayStr(rawStr: any): string {
   if (Array.isArray(rawStr)) {
-    // Convert lists to ; seperated strings
+    // Convert lists to ; separated strings
     return rawStr.join('; ');
   }
   return str(rawStr);

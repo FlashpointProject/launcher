@@ -23,7 +23,7 @@ import { Command } from './types';
 /**
  * Create a Flashpoint API implementation specific to an extension, used during module load interception
  * @param extManifest Manifest of the caller
- * @param registry Registry to register commands etc to
+ * @param registry Registry to register commands etc. to
  * @param addExtLog Function to add an Extensions log to the Logs page
  * @param version Version of the Flashpoint Launcher
  * @returns API Implementation specific to the caller
@@ -305,6 +305,6 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     registerDisposable: registerDisposable,
     newDisposable: newDisposable
 
-    // Note - Types are defined in the decleration file, not here
+    // Note - Types are defined in the declaration file, not here
   };
 }

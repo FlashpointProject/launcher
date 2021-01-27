@@ -1035,7 +1035,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.RUN_COMMAND, async (event, command, args = []) => {
-    // Find comamnd
+    // Find command
     const c = state.registry.commands.get(command);
     let res = undefined;
     let success = false;

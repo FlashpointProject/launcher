@@ -64,7 +64,7 @@ export enum MainActionType {
 export enum RequestState {
   /** Request is waiting to be made. */
   WAITING,
-  /** Reqest has been made. Waiting for the response to be received. */
+  /** Request has been made. Waiting for the response to be received. */
   REQUESTED,
   /** Response has been received. */
   RECEIVED,
