@@ -434,8 +434,8 @@
     "areYouSure": "האם אתם בטוחים?",
     "cancel": "ביטול",
     "mergePlaylists": "מזג רשימות הפעלה",
-    "newPlaylist": "להישאר נפרד",
-    "uploadPrivacyWarning": "זה יגרום לרשימות היומן להיות זמינים לציבור.\nקישור יועתק ללוח הגזירים(קליק ימני> הדבק).\n\nהאם אתם בטוחים?",
+    "newPlaylist": "Stay Separate",
+    "uploadPrivacyWarning": "This will make your Logs available publicly.\nA link will be copied to your clipboard.\n\nAre you sure?",
     "overwriteFileTitle": "הקובץ כבר קיים!",
     "overwriteFileMessage": "קובץ עם אותו השם כבר קיים. האם ברצונך להחליפו?",
     "overwriteFileDetail": "נתיב הקובץ:"
