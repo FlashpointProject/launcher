@@ -434,8 +434,8 @@
     "areYouSure": "Tem a certeza?",
     "cancel": "Cancelar",
     "mergePlaylists": "Juntar Playlists",
-    "newPlaylist": "Manter separado",
-    "uploadPrivacyWarning": "Isto vai fazer os teus registos disponíveis publicamente.\nUm link será copiado para a tua área de transferência.\n\nTens a certeza?",
+    "newPlaylist": "Stay Separate",
+    "uploadPrivacyWarning": "This will make your Logs available publicly.\nA link will be copied to your clipboard.\n\nAre you sure?",
     "overwriteFileTitle": "Ficheiro já existente!",
     "overwriteFileMessage": "O ficheiro com este nome já existe, deseja substituí-lo?",
     "overwriteFileDetail": "Caminho do ficheiro:"
