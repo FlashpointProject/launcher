@@ -434,8 +434,8 @@
     "areYouSure": "Biztos benne?",
     "cancel": "Mégsem",
     "mergePlaylists": "Lejátszólisták összevonása",
-    "newPlaylist": "Stay Separate",
-    "uploadPrivacyWarning": "This will make your Logs available publicly.\nA link will be copied to your clipboard.\n\nAre you sure?",
+    "newPlaylist": "Maradjanak külön",
+    "uploadPrivacyWarning": "Ez a logfájlokat nyilvánosan elérhetővé fogja tenni. Egy link be lesz másolva a vágólapra.\n\nBiztos benne?",
     "overwriteFileTitle": "A fájl már létezik!",
     "overwriteFileMessage": "Egy azonos nevű fájl már létezik. Szeretné felülírni?",
     "overwriteFileDetail": "Fájl útvonal:"
