@@ -434,8 +434,8 @@
     "areYouSure": "确定吗？",
     "cancel": "取消",
     "mergePlaylists": "合并播放列表",
-    "newPlaylist": "Stay Separate",
-    "uploadPrivacyWarning": "This will make your Logs available publicly.\nA link will be copied to your clipboard.\n\nAre you sure?",
+    "newPlaylist": "不合并",
+    "uploadPrivacyWarning": "这将公开您的日志。\n链接将被复制到剪贴板。\n\n您确定吗？",
     "overwriteFileTitle": "文件已存在！",
     "overwriteFileMessage": "同名文件已经存在。您想覆盖它吗？",
     "overwriteFileDetail": "文件路径："
