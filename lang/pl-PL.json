@@ -434,8 +434,8 @@
     "areYouSure": "Czy na pewno?",
     "cancel": "Anuluj",
     "mergePlaylists": "Scal Listy Odtwarzania",
-    "newPlaylist": "Trzymaj się z dala",
-    "uploadPrivacyWarning": "Dzięki temu Twoje dzienniki będą publicznie dostępne.\nLink zostanie skopiowany do schowka.\n\nJesteś pewny?",
+    "newPlaylist": "Stay Separate",
+    "uploadPrivacyWarning": "This will make your Logs available publicly.\nA link will be copied to your clipboard.\n\nAre you sure?",
     "overwriteFileTitle": "Plik już istnieje!",
     "overwriteFileMessage": "Plik o tej samej nazwie już istnieje. Czy chcesz to nadpisać?",
     "overwriteFileDetail": "Ścieżka pliku:"
