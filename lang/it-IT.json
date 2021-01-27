@@ -434,8 +434,8 @@
     "areYouSure": "Sei sicuro?",
     "cancel": "Annulla",
     "mergePlaylists": "Unisci le playlist",
-    "newPlaylist": "Soggiorno Seperate",
-    "uploadPrivacyWarning": "Questo renderà i tuoi log disponibili pubblicamente.\nUn link sarà copiato negli appunti.\n\nSei sicuro?",
+    "newPlaylist": "Stay Separate",
+    "uploadPrivacyWarning": "This will make your Logs available publicly.\nA link will be copied to your clipboard.\n\nAre you sure?",
     "overwriteFileTitle": "Il file esiste già!",
     "overwriteFileMessage": "Un file con lo stesso nome esiste già, desideri sovrascriverlo?",
     "overwriteFileDetail": "Percorso del file:"
