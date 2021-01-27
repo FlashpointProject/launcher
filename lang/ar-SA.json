@@ -434,8 +434,8 @@
     "areYouSure": "Are you sure?",
     "cancel": "Cancel",
     "mergePlaylists": "Merge Playlists",
-    "newPlaylist": "Stay Seperate",
-    "uploadPrivacyWarning": "This will make your Logs available publically.\nA link will be copied to your clipboard.\n\nAre you sure?",
+    "newPlaylist": "Stay Separate",
+    "uploadPrivacyWarning": "This will make your Logs available publicly.\nA link will be copied to your clipboard.\n\nAre you sure?",
     "overwriteFileTitle": "File already exists!",
     "overwriteFileMessage": "A file with the same name already exists. Do you want to overwrite it?",
     "overwriteFileDetail": "File path:"
