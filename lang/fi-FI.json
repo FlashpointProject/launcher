@@ -434,8 +434,8 @@
     "areYouSure": "Oletko varma?",
     "cancel": "Peruuta",
     "mergePlaylists": "Yhdistä Soittolistat",
-    "newPlaylist": "Pysy Erillisenä",
-    "uploadPrivacyWarning": "Tämä asettaa lokisi julkisesti saataville.\nLinkki kopioidaan leikepöydällesi.\n\nOletko varma?",
+    "newPlaylist": "Stay Separate",
+    "uploadPrivacyWarning": "This will make your Logs available publicly.\nA link will be copied to your clipboard.\n\nAre you sure?",
     "overwriteFileTitle": "Tiedosto on jo olemassa!",
     "overwriteFileMessage": "Samanniminen tiedosto on jo olemassa. Haluatko korvata sen?",
     "overwriteFileDetail": "Tiedoston polku:"
