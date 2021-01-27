@@ -434,8 +434,8 @@
     "areYouSure": "本当によろしいですか？",
     "cancel": "キャンセル",
     "mergePlaylists": "プレイリストを統合",
-    "newPlaylist": "離れたまま",
-    "uploadPrivacyWarning": "ログを公開します。\nリンクはクリップボードにコピーされます。\n\nよろしいですか？",
+    "newPlaylist": "Stay Separate",
+    "uploadPrivacyWarning": "This will make your Logs available publicly.\nA link will be copied to your clipboard.\n\nAre you sure?",
     "overwriteFileTitle": "ファイルは既に存在します！",
     "overwriteFileMessage": "同じ名前のファイルが既に存在します。上書きしますか？",
     "overwriteFileDetail": "ファイルパス:"
