@@ -434,8 +434,8 @@
     "areYouSure": "Sunteți sigur(ă)?",
     "cancel": "Revocare",
     "mergePlaylists": "Îmbinați liste de jocuri",
-    "newPlaylist": "Păstrați listele separat",
-    "uploadPrivacyWarning": "Acest lucru va face jurnalele instalației dv. de lansator publice.\nVa fi copiat linkul paginii Web cu jurnalele.\n\nSunteți sigur?",
+    "newPlaylist": "Stay Separate",
+    "uploadPrivacyWarning": "This will make your Logs available publicly.\nA link will be copied to your clipboard.\n\nAre you sure?",
     "overwriteFileTitle": "Fişierul există deja!",
     "overwriteFileMessage": "Există deja un fișier cu acest nume! Doriți să suprascrieți fișierul existent?",
     "overwriteFileDetail": "Calea fișierului:"
