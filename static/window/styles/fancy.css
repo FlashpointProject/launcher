@@ -1021,6 +1021,16 @@ body {
   background-color: var(--layout__quaternary-background);
 }
 
+/** Game Data Browser */
+.game-data-info {
+  border-color: var(--layout__home-page-box-border);
+  background-color: var(--layout__secondary-background);
+}
+
+.game-data-info__table {
+  border-color: var(--layout__home-page-box-border);
+}
+
 /** Confirm Dialog */
 .confirm-dialog__message {
   font-weight: bold;

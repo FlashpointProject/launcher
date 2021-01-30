@@ -426,6 +426,7 @@ const langTemplate = {
     'playlistConflict',
     'importedPlaylistAlreadyExists',
     'importPlaylistAs',
+    'selectDataPackToImport',
     'selectFileToExportMeta',
     'selectFolderToExportMetaAndImages',
     'selectFileToExportPlaylist',

@@ -2314,8 +2314,10 @@ body {
 .floating-container {
   text-align: center;
   padding: 1rem;
-  border-radius: 0.75rem;
   border: 1px solid;
+  overflow: auto;
+  max-height: 90%;
+  max-width: 90%;
 }
 
 .page-wrap {
@@ -2326,6 +2328,43 @@ body {
 /** Game Data Browser */
 .game-data-browser {
   font-size: 1.5rem;
+}
+
+.game-data-info {
+  padding: 0.1rem;
+  margin-top: 0.5rem;
+  border: 1px solid;
+}
+
+.game-data-info__table {
+  border-top: 1px solid;
+}
+
+.game-data-info__top {
+  display: flex;
+  align-items: center;
+}
+
+.game-data-info__top-buttons {
+  display: flex;
+}
+
+.game-data-info__top-buttons > input[type='checkbox'] {
+  margin-left: 0.2rem;
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.game-data-info__title {
+  font-size: 2em;
+  text-align: left;
+  padding-left: 0.2rem;
+  flex-grow: 1;
+}
+
+.game-data-browser__cross {
+  width: 100%;
+  text-align: right;
 }
 
 .game-data-browser__buttons {

@@ -250,6 +250,9 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   state.config = conf;
   state.extConfig = extConf;
 
+  // Create Game Data Directory
+  await fs.promises.mkdir(path.join(state.config.flashpointPath, state.config.dataPacksFolderPath), { recursive: true });
+
   // Check for custom version to report
   const versionFilePath = content.isDev ? path.join(process.cwd(), 'version.txt') : path.join(state.config.flashpointPath, 'version.txt');
   await fs.access(versionFilePath, fs.constants.F_OK)

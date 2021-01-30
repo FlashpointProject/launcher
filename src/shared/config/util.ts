@@ -22,6 +22,7 @@ const configDataDefaultBase: Readonly<AppConfigData> = Object.freeze({
   logoSetsFolderPath: 'Data/LogoSets',
   metaEditsFolderPath: 'Data/MetaEdits',
   extensionsPath: 'Data/Extensions',
+  dataPacksFolderPath: 'Data/Games',
   useCustomTitlebar: false,
   startServer: true,
   server: 'Apache Webserver', // @TODO Read from IServiceInfos to find first valid
@@ -93,6 +94,7 @@ export function overwriteConfigData(
   parser.prop('logoSetsFolderPath',  v => source.logoSetsFolderPath  = parseVarStr(str(v)));
   parser.prop('metaEditsFolderPath', v => source.metaEditsFolderPath = parseVarStr(str(v)));
   parser.prop('extensionsPath',      v => source.extensionsPath      = parseVarStr(str(v)));
+  parser.prop('dataPacksFolderPath', v => source.dataPacksFolderPath = parseVarStr(str(v)));
   parser.prop('useCustomTitlebar',   v => source.useCustomTitlebar   = !!v);
   parser.prop('startServer',         v => source.startServer         = !!v);
   parser.prop('disableExtremeGames', v => source.disableExtremeGames = !!v);

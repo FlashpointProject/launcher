@@ -1,6 +1,7 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
+import { SourceData } from '@database/entity/SourceData';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
 import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/extensions/interfaces';
@@ -10,6 +11,7 @@ import { ChangedMeta, MetaEditFlags } from '@shared/MetaEdit';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { SocketTemplate } from '@shared/socket/types';
 import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
+import { GameData } from 'flashpoint-launcher';
 import { AppConfigData, AppExtConfigData } from '../config/interfaces';
 import { EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '../curate/types';
 import { ExecMapping, GamePropSuggestions, IService, ProcessAction } from '../interfaces';
@@ -28,6 +30,11 @@ export enum BackIn {
   GET_EXEC,
   SAVE_GAME,
   GET_GAME,
+  GET_GAME_DATA,
+  IMPORT_GAME_DATA,
+  UNINSTALL_GAME_DATA,
+  SAVE_GAME_DATAS,
+  GET_SOURCE_DATA,
   GET_ALL_GAMES,
   RANDOM_GAMES,
   LAUNCH_GAME,
@@ -155,6 +162,11 @@ export type BackInTemplate = SocketTemplate<BackIn, {
 
   [BackIn.INIT_LISTEN]: () => InitEventData;
   [BackIn.GET_SUGGESTIONS]: () => GetSuggestionsResponseData;
+  [BackIn.GET_GAME_DATA]: (gameId: string) => GameData[];
+  [BackIn.GET_SOURCE_DATA]: (hashes: string[]) => SourceData[];
+  [BackIn.UNINSTALL_GAME_DATA]: (id: number) => Game | undefined;
+  [BackIn.IMPORT_GAME_DATA]: (gameId: string, path: string) => GameData;
+  [BackIn.SAVE_GAME_DATAS]: (gameData: GameData[]) => void;
   [BackIn.GET_GAMES_TOTAL]: () => number;
   [BackIn.SET_LOCALE]: (data: string) => string;
   [BackIn.GET_EXEC]: () => ExecMapping[];

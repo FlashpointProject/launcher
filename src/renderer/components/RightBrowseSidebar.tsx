@@ -20,11 +20,13 @@ import { uuid } from '../util/uuid';
 import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { DropdownInputField } from './DropdownInputField';
+import { GameDataBrowser } from './GameDataBrowser';
 import { GameImageSplit } from './GameImageSplit';
 import { ImagePreview } from './ImagePreview';
 import { InputElement, InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { RightBrowseSidebarAddApp } from './RightBrowseSidebarAddApp';
+import { SimpleButton } from './SimpleButton';
 import { TagInputField } from './TagInputField';
 
 type OwnProps = {
@@ -71,6 +73,7 @@ type RightBrowseSidebarState = {
   thumbnailExists: boolean;
   currentTagInput: string;
   tagSuggestions: TagSuggestion[];
+  gameDataBrowserOpen: boolean;
 };
 
 export interface RightBrowseSidebar {
@@ -126,6 +129,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       thumbnailExists: false,
       currentTagInput: '',
       tagSuggestions: [],
+      gameDataBrowserOpen: false
     };
   }
 
@@ -230,6 +234,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                           {/* "Delete Game" Button */}
                           { (isPlaceholder || isNewGame || currentPlaylistEntry) ? undefined : (
                             <ConfirmElement
+                              activationLimit={0}
                               onConfirm={this.onDeleteGameClick}
                               render={this.renderDeleteGameButton}
                               extra={strings} />
@@ -608,6 +613,18 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
               src={screenshotSrc}
               onCancel={this.onScreenshotPreviewClick} />
           ) : undefined }
+          <SimpleButton
+            value='Open Game Data Browser'
+            onClick={() => this.setState({ gameDataBrowserOpen: !this.state.gameDataBrowserOpen })}/>
+          { this.state.gameDataBrowserOpen && (
+            <GameDataBrowser
+              onClose={() => this.setState({ gameDataBrowserOpen: false })}
+              game={game}
+              onEditGame={(game) => {
+                this.props.onEditGame(game);
+                this.props.onSaveGame();
+              }} />
+          )}
         </div>
       );
     } else {
