@@ -1,4 +1,5 @@
-import { Column, Entity, Index, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { GameDataManager } from '@back/game/GameDataManager';
+import { BeforeUpdate, Column, Entity, Index, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { AdditionalApp } from './AdditionalApp';
 import { GameData } from './GameData';
 import { Tag } from './Tag';
@@ -137,4 +138,14 @@ export class Game {
 
   @OneToMany(type => GameData, datas => datas.game)
   data?: GameData[];
+
+  @BeforeUpdate()
+  async beforeUpdate(game: Game) {
+    if (game.activeDataId) {
+      const activeData = await GameDataManager.find(game.activeDataId);
+      if (activeData) {
+        game.activeDataOnDisk = activeData.presentOnDisk;
+      }
+    }
+  }
 }

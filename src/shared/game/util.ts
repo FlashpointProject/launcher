@@ -3,7 +3,7 @@ import { Game } from '../../database/entity/Game';
 
 export namespace ModelUtils {
   export function createGame(): Game {
-    return {
+    return Object.assign(new Game(), {
       id: '',
       title: '',
       alternateTitles: '',
@@ -31,7 +31,7 @@ export namespace ModelUtils {
       addApps: [],
       placeholder: false,
       activeDataOnDisk: false
-    };
+    });
   }
 
   export function createAddApp(game: Game): AdditionalApp {

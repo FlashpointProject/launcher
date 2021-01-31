@@ -178,7 +178,7 @@ export function createAddAppFromLegacy(addApps: Legacy_IAdditionalApplicationInf
 }
 
 export async function createGameFromLegacy(game: Legacy_IGameInfo, tagCache: Record<string, Tag>): Promise<Game> {
-  return {
+  return Object.assign(new Game(), {
     id: game.id,
     parentGameId: game.id,
     title: game.title,
@@ -207,7 +207,7 @@ export async function createGameFromLegacy(game: Legacy_IGameInfo, tagCache: Rec
     placeholder: false,
     addApps: [],
     activeDataOnDisk: false
-  };
+  });
 }
 
 export function createPlaylistFromJson(jsonData: any, library?: string): Playlist {

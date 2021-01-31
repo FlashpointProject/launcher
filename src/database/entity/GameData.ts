@@ -41,5 +41,4 @@ export class GameData {
   @Column()
   /** Size of this data pack */
   size: number;
-
 }
