@@ -374,7 +374,7 @@
     "authorPlaceholder": "Autor...",
     "id": "ID",
     "by": "autorstwa",
-    "extreme": "ekstremalny"
+    "extreme": "ekstremalne"
   },
   "misc": {
     "noBlankFound": "Nie znaleziono {0}",
@@ -424,7 +424,7 @@
     "selectCurationArchive": "Wybierz archiwum/wa archiwizowanych gier",
     "selectCurationMeta": "Wybierz plik(i) metadanych archiwizowanych gier",
     "selectPlaylistToImport": "Wybierz playlistę do zaimportowania",
-    "selectFileToExportPlaylist": "Wybierz plik, w którym chcesz zapisać playlistę odtwarzania",
+    "selectFileToExportPlaylist": "Wybierz plik, w którym chcesz zapisać playlistę",
     "dataRequired": "Wymagane dodatkowe dane",
     "dataRequiredDesc": "Musisz zainstalować dodatek na ekranie startowym zanim będziesz w stanie używać Launchera.\n\nCzy chcesz zrobić to teraz?",
     "upgradeWillInstallTo": "{0} zostanie zainstalowane w",
