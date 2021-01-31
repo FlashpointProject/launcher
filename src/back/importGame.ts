@@ -254,7 +254,7 @@ function logMessage(text: string, curation: EditCuration): void {
  * @param gameId ID to use for Game
  */
 async function createGameFromCurationMeta(gameId: string, gameMeta: EditCurationMeta, addApps : EditAddAppCuration[], date: Date): Promise<Game> {
-  const game: Game = Object.assign(new Game(), {
+  const game: Game = {
     id:                  gameId, // (Re-use the id of the curation)
     title:               gameMeta.title               || '',
     alternateTitles:     gameMeta.alternateTitles     || '',
@@ -282,7 +282,7 @@ async function createGameFromCurationMeta(gameId: string, gameMeta: EditCuration
     addApps: [],
     placeholder: false,
     activeDataOnDisk: false
-  });
+  };
   game.addApps = addApps.map(addApp => createAddAppFromCurationMeta(addApp, game));
   return game;
 }
@@ -460,7 +460,7 @@ async function equalFileHashes(filePath: string, secondFilePath: string) {
 
 function createPlaceholderGame(): Game {
   const id = uuid();
-  return Object.assign(new Game(), {
+  return {
     id: id,
     parentGameId: id,
     title: '',
@@ -489,7 +489,7 @@ function createPlaceholderGame(): Game {
     addApps: [],
     placeholder: true,
     activeDataOnDisk: false
-  });
+  };
 }
 
 export async function createTagsFromLegacy(tags: string, tagCache: Record<string, Tag>): Promise<Tag[]> {

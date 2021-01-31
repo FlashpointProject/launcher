@@ -473,6 +473,7 @@ export function registerRequestCallbacks(state: BackState): void {
               const game = await GameManager.findGame(gameId);
               if (game) {
                 game.activeDataId = gameData.id;
+                game.activeDataOnDisk = gameData.presentOnDisk;
                 resolve(gameData);
               }
             })

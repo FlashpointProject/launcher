@@ -475,8 +475,6 @@ declare module 'flashpoint-launcher' {
         /** Whether the data is present on disk */
         activeDataOnDisk: boolean;
         data?: GameData[];
-        /** TypeORM event listener */
-        beforeUpdate: (game: Game) => Promise<void>;
     };
 
     type GameData = {
