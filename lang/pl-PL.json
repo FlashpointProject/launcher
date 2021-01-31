@@ -12,7 +12,7 @@
     "onDemandImagesDesc": "Pobierz i zapisz brakujące logotypy i zrzuty ekranu, jeśli są potrzebne.",
     "currentLanguage": "Język",
     "currentLanguageDesc": "Główny język używany w Laucherze.",
-    "fallbackLanguage": "Drugi Język",
+    "fallbackLanguage": "Drugi język",
     "fallbackLanguageDesc": "Język używany w przypadku nieprzetłumaczenia czegoś na pierwszy.",
     "auto": "Automatycznie ({0})",
     "none": "Brak",
