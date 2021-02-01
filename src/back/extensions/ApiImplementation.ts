@@ -1,7 +1,7 @@
 import { EXT_CONFIG_FILENAME, PREFERENCES_FILENAME } from '@back/constants';
 import { ExtConfigFile } from '@back/ExtConfigFile';
-import { GameManager } from '@back/game/GameManager';
-import { TagManager } from '@back/game/TagManager';
+import * as GameManager from '@back/game/GameManager';
+import * as TagManager from '@back/game/TagManager';
 import { DisposableChildProcess, ManagedChildProcess } from '@back/ManagedChildProcess';
 import { BackState, StatusState } from '@back/types';
 import { clearDisposable, dispose, newDisposable, registerDisposable } from '@back/util/lifecycle';

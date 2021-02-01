@@ -40,7 +40,7 @@ import { ApiEmitter } from './extensions/ApiEmitter';
 import { ExtensionService } from './extensions/ExtensionService';
 import { FPLNodeModuleFactory, INodeModuleFactory, installNodeInterceptor, registerInterceptor } from './extensions/NodeInterceptor';
 import { Command } from './extensions/types';
-import { GameManager } from './game/GameManager';
+import * as GameManager from './game/GameManager';
 import { onWillImportCuration } from './importGame';
 import { ManagedChildProcess, onServiceChange } from './ManagedChildProcess';
 import { registerRequestCallbacks } from './responses';
