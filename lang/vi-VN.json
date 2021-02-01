@@ -374,7 +374,7 @@
     "authorPlaceholder": "Tác giả...",
     "id": "ID",
     "by": "của",
-    "extreme": "cực"
+    "extreme": "extreme"
   },
   "misc": {
     "noBlankFound": "Không tìm thấy {0}",
@@ -425,17 +425,17 @@
     "selectCurationMeta": "Chọn (các) tệp tin meta của bản đóng góp",
     "selectPlaylistToImport": "Chọn danh sách muốn nhập",
     "selectFileToExportPlaylist": "Chọn tập tin để lưu danh sách vào",
-    "dataRequired": "Dữ liệu bổ sung được yêu cầu",
-    "dataRequiredDesc": "Bạn phải cài đặt Nâng cấp trên màn hình chính trước khi có thể sử dụng trình khởi chạy.\n\nBạn có muốn làm điều này ngay bây giờ?",
+    "dataRequired": "Cần thêm dữ liệu bổ sung",
+    "dataRequiredDesc": "Bạn phải cài đặt nâng cấp trên màn hình chính trước khi có thể dùng trình khởi chạy.\n\nBạn muốn cài ngay không?",
     "upgradeWillInstallTo": "{0} sẽ được cài đặt vào",
-    "verifyPathSelection": "Các bản nâng cấp trong tương lai cũng sẽ cài đặt tại đây. Điều này có chính xác?",
+    "verifyPathSelection": "Các bản nâng cấp trong tương lai cũng sẽ được cài đặt vào đây, đúng không?",
     "restartNow": "Khởi động lại ngay?",
-    "restartToApplyUpgrade": "Nâng cấp này sẽ không được áp dụng cho đến khi bạn khởi động lại.\nBạn có muốn làm điều này ngay bây giờ?",
+    "restartToApplyUpgrade": "Nâng cấp này sẽ không được áp dụng đến khi khởi động lại.\nBạn muốn khởi động lại ngay không?",
     "areYouSure": "Bạn có chắc?",
     "cancel": "Huỷ",
     "mergePlaylists": "Nhập danh sách",
     "newPlaylist": "Giữ riêng",
-    "uploadPrivacyWarning": "Điều này sẽ công khai Bản ghi của bạn.\nMột liên kết sẽ được sao chép vào khay nhớ tạm của bạn.\n\nBạn có chắc không?",
+    "uploadPrivacyWarning": "Làm thế này sẽ công khai Bản ghi của bạn.\nMột liên kết sẽ được sao chép vào khay nhớ tạm.\n\nBạn có chắc không?",
     "overwriteFileTitle": "Tập tin đã tồn tại!",
     "overwriteFileMessage": "Tồn tại một tệp cùng tên. Bạn có muốn ghi đè?",
     "overwriteFileDetail": "Đường dẫn tập tin:"
