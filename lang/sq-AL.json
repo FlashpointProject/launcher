@@ -1,9 +1,9 @@
 {
-  "name": "English",
+  "name": "Shqip",
   "config": {
     "configHeader": "Config",
     "configDesc": "(You must press 'Save & Restart' for some changes to take effect)",
-    "preferencesHeader": "Preferences",
+    "preferencesHeader": "Preferencat",
     "extremeGames": "Extreme Games",
     "extremeGamesDesc": "Show games with sexual, violent or other content unsuitable for children.",
     "enableEditing": "Enable Editing",
@@ -15,7 +15,7 @@
     "fallbackLanguage": "Fallback Language",
     "fallbackLanguageDesc": "Which language to use in place of an incomplete current language.",
     "auto": "Auto ({0})",
-    "none": "None",
+    "none": "Asnjë",
     "flashpointHeader": "Flashpoint",
     "flashpointPath": "Flashpoint Path",
     "flashpointPathDesc": "Path to the Flashpoint folder (can be relative)",
