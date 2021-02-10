@@ -17,4 +17,7 @@ export class SourceData {
   /** SHA256 hash of this download */
   sha256: string;
 
+  @Column()
+  urlPath: string;
+
 }

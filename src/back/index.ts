@@ -11,6 +11,9 @@ import { TagCategory } from '@database/entity/TagCategory';
 import { Initial1593172736527 } from '@database/migration/1593172736527-Initial';
 import { AddExtremeToPlaylist1599706152407 } from '@database/migration/1599706152407-AddExtremeToPlaylist';
 import { GameData1611753257950 } from '@database/migration/1611753257950-GameData';
+import { SourceDataUrlPath1612434225789 } from '@database/migration/1612434225789-SourceData_UrlPath';
+import { SourceFileURL1612435692266 } from '@database/migration/1612435692266-Source_FileURL';
+import { SourceFileCount1612436426353 } from '@database/migration/1612436426353-SourceFileCount';
 import { BackIn, BackInit, BackInitArgs, BackOut } from '@shared/back/types';
 import { ILogoSet, LogoSet } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
@@ -244,7 +247,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   const [pref, conf, extConf] = await (Promise.all([
     PreferencesFile.readOrCreateFile(path.join(state.configFolder, PREFERENCES_FILENAME)),
     ConfigFile.readOrCreateFile(path.join(state.configFolder, CONFIG_FILENAME)),
-    ExtConfigFile.readOrCreateFile(path.join(state.configFolder, EXT_CONFIG_FILENAME)),
+    ExtConfigFile.readOrCreateFile(path.join(state.configFolder, EXT_CONFIG_FILENAME))
   ]));
   state.preferences = pref;
   state.config = conf;
@@ -269,7 +272,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
       type: 'sqlite',
       database: path.join(state.config.flashpointPath, 'Data', 'flashpoint.sqlite'),
       entities: [Game, AdditionalApp, Playlist, PlaylistGame, Tag, TagAlias, TagCategory, GameData, Source, SourceData],
-      migrations: [Initial1593172736527, AddExtremeToPlaylist1599706152407, GameData1611753257950]
+      migrations: [Initial1593172736527, AddExtremeToPlaylist1599706152407, GameData1611753257950, SourceDataUrlPath1612434225789, SourceFileURL1612435692266,
+        SourceFileCount1612436426353]
     };
     state.connection = await createConnection(options);
     // TypeORM forces on but breaks Playlist Game links to unimported games

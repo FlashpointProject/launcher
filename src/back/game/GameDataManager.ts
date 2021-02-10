@@ -2,7 +2,7 @@ import { GameData } from '@database/entity/GameData';
 import { SourceData } from '@database/entity/SourceData';
 import { getManager, In } from 'typeorm';
 
-export function find(id: number): Promise<GameData | undefined> {
+export function findOne(id: number): Promise<GameData | undefined> {
   const gameDataRepository = getManager().getRepository(GameData);
   return gameDataRepository.findOne(id);
 }

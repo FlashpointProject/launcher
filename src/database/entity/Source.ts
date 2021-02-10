@@ -13,7 +13,15 @@ export class Source {
 
   @Column()
   /** Base URL of the Source */
-  url: string;
+  sourceFileUrl: string;
+
+  @Column()
+  /** Base URL of the Source */
+  baseUrl: string;
+
+  @Column()
+  /** File Count provided as SourceData */
+  count: number;
 
   @Column({ type: 'datetime' })
   /** When this Source was added */

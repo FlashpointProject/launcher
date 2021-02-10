@@ -1,6 +1,7 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
+import { Source } from '@database/entity/Source';
 import { SourceData } from '@database/entity/SourceData';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
@@ -63,6 +64,9 @@ export enum BackIn {
   LAUNCH_CURATION,
   LAUNCH_CURATION_ADDAPP,
   QUIT,
+
+  // Sources
+  ADD_SOURCE_BY_URL,
 
   // Tag funcs
   GET_OR_CREATE_TAG,
@@ -220,6 +224,9 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.SAVE_TAG_CATEGORY]: (data: TagCategory) => TagCategory;
   [BackIn.GET_TAG_CATEGORY_BY_ID]: (data: number) => TagCategory | undefined;
   [BackIn.DELETE_TAG_CATEGORY]: (data: number) => boolean;
+
+  // Sources
+  [BackIn.ADD_SOURCE_BY_URL]: (url: string) => Source;
 
   [BackIn.BROWSE_VIEW_PAGE]: (data: BrowseViewPageData) => BrowseViewPageResponseData;
   /** @returns Index of the game (equal to or greater than 0 if found, otherwise -1). */

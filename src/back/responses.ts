@@ -24,6 +24,7 @@ import { ensureDir } from 'fs-extra';
 import * as crypto from 'crypto';
 import * as path from 'path';
 import * as url from 'url';
+import * as SourceManager from '@back/game/SourceManager';
 import * as util from 'util';
 import * as YAML from 'yaml';
 import { ConfigFile } from './ConfigFile';
@@ -490,7 +491,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.UNINSTALL_GAME_DATA, async (event, id) => {
-    const gameData = await GameDataManager.find(id);
+    const gameData = await GameDataManager.findOne(id);
     if (gameData && gameData.path && gameData.presentOnDisk) {
       // Delete Game Data
       const gameDataPath = path.join(state.config.flashpointPath, state.config.dataPacksFolderPath, gameData.path);
@@ -505,6 +506,14 @@ export function registerRequestCallbacks(state: BackState): void {
         return GameManager.updateGame(game);
       }
     }
+  });
+
+  state.socketServer.register(BackIn.ADD_SOURCE_BY_URL, async (event, url) => {
+    const sourceDir = path.join(state.config.flashpointPath, 'Data/Sources');
+    await fs.promises.mkdir(sourceDir, { recursive: true });
+    return SourceManager.importFromURL(url.trim(), sourceDir, (percent) => {
+      log.debug('Launcher', `Progress: ${percent * 100}%`);
+    });
   });
 
   state.socketServer.register(BackIn.GET_SOURCE_DATA, async (event, hashes) => {

@@ -19,7 +19,7 @@ import { ConfigBoxMultiSelect, MultiSelectItem } from '../ConfigBoxMultiSelect';
 import { ConfigBoxSelect, SelectItem } from '../ConfigBoxSelect';
 import { ConfigBoxSelectInput } from '../ConfigBoxSelectInput';
 import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
-import { InputField } from '../InputField';
+import { InputElement, InputField } from '../InputField';
 import { OpenIcon } from '../OpenIcon';
 
 type OwnProps = {
@@ -61,6 +61,8 @@ type ConfigPageState = {
   nativePlatforms: string[];
   /** Current Server */
   server: string;
+  /** Currently entered new Source URL */
+  newSourceUrl: string;
 };
 
 export interface ConfigPage {
@@ -84,7 +86,8 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       metadataServerHost: configData.metadataServerHost,
       useCustomTitlebar: configData.useCustomTitlebar,
       nativePlatforms: configData.nativePlatforms,
-      server: configData.server
+      server: configData.server,
+      newSourceUrl: ''
     };
   }
 
@@ -178,6 +181,15 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   <OpenIcon
                     icon='plus' />
                 </div>
+              </ConfigBox>
+              <ConfigBox
+                title={'Sources'}
+                description={'List of all sources providing on-demand game data'}>
+                <InputField
+                  text={this.state.newSourceUrl}
+                  editable={true}
+                  onChange={this.onNewSourceURLChange}
+                  onKeyDown={(event) => event.key === 'Enter' && this.onSubmitSourceURL()}/>
               </ConfigBox>
             </div>
           </div>
@@ -493,6 +505,14 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     }
 
     updatePreferencesData({ excludedRandomLibraries });
+  }
+
+  onNewSourceURLChange = (event: React.ChangeEvent<InputElement>) => {
+    this.setState({ newSourceUrl: event.target.value });
+  }
+
+  onSubmitSourceURL = async () => {
+    const source = await window.Shared.back.request(BackIn.ADD_SOURCE_BY_URL, this.state.newSourceUrl);
   }
 
   onRemoveAppPathOverride = (index: number): void => {
