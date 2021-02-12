@@ -240,7 +240,6 @@ body {
 /* Input Dropdown */
 .input-dropdown {
   font-family: var(--layout__primary-font);
-  background-color: var(--layout__primary-background);
   color: var(--layout__primary-text-color);
 }
 .input-dropdown--disabled {
@@ -946,11 +945,8 @@ body {
 }
 
 /* ----- Tag Related Elements ----- */
-.tag:hover {
+.tag-static:hover {
   color: var(--layout__browse-right-sidebar-searchable-hover)
-}
-.tag-editable:hover {
-  color: var(--layout__warning-bright-color)
 }
 .tag_alias-joiner {
   color: var(--layout__secondary-text-color)
@@ -1044,4 +1040,8 @@ body {
 .floating-container {
   background-color: var(--layout__home-page-box-background);
   border-color: var(--layout__home-page-box-border);
+}
+
+.tag-filter-editor__header {
+  font-style: italic;  
 }

@@ -11,6 +11,7 @@ import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { deepCopy, fixSlashes, sizeToString } from '@shared/Util';
 import { remote } from 'electron';
+import { TagFilterGroup } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import { add } from 'node-7z';
 import * as path from 'path';
@@ -51,6 +52,7 @@ type CurateBoxProps = {
   tagCategories: TagCategory[];
   mad4fpEnabled: boolean;
   symlinkCurationContent: boolean;
+  tagFilters: TagFilterGroup[];
 }
 
 /** A box that displays and lets the user edit a curation. */
@@ -99,7 +101,8 @@ export function CurateBox(props: CurateBoxProps) {
 
     if (newTag !== '') {
       // Delayed set
-      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag)
+      // TODO: Add tag suggestion filtering here
+      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag, props.tagFilters.filter(tfg => tfg.enabled))
       .then((data) => {
         if (data) { setTagSuggestions(data); }
       });
@@ -109,7 +112,7 @@ export function CurateBox(props: CurateBoxProps) {
 
     setTagInputText(newTag);
     setTagSuggestions(newSuggestions);
-  }, [tagSuggestions]);
+  }, [tagSuggestions, props.tagFilters]);
 
   const onAddTagSuggestion = useCallback((suggestion: TagSuggestion) => {
     if (suggestion.tag.id) {

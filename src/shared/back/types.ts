@@ -12,7 +12,7 @@ import { ChangedMeta, MetaEditFlags } from '@shared/MetaEdit';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { SocketTemplate } from '@shared/socket/types';
 import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
-import { GameData } from 'flashpoint-launcher';
+import { GameData, TagFilterGroup } from 'flashpoint-launcher';
 import { AppConfigData, AppExtConfigData } from '../config/interfaces';
 import { EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '../curate/types';
 import { ExecMapping, GamePropSuggestions, IService, ProcessAction } from '../interfaces';
@@ -207,7 +207,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
 
   // Tag funcs
   [BackIn.GET_OR_CREATE_TAG]: (tagName: string, tagCategory?: string) => Tag;
-  [BackIn.GET_TAG_SUGGESTIONS]: (data: string) => TagSuggestion[];
+  [BackIn.GET_TAG_SUGGESTIONS]: (data: string, tagFilters: TagFilterGroup[]) => TagSuggestion[];
   [BackIn.GET_TAG_BY_ID]: (data: number) => Tag | undefined;
   [BackIn.GET_TAGS]: (data: string) => Tag[];
   [BackIn.GET_TAG]: (data: string) => Tag | undefined;

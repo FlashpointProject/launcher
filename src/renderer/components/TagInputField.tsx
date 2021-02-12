@@ -149,7 +149,7 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
 
   /** Renders the list of items in the drop-down menu. */
   renderItems = memoizeOne<(items: Tag[]) => JSX.Element[]>((items: Tag[]) => {
-    const className = this.props.editable ? 'tag-editable' : '';
+    const className = this.props.editable ? 'tag-editable' : 'tag-static';
     return items.map((tag, index) => {
       const category = this.props.categories.find(c => c.id == tag.categoryId);
       const shownAlias = tag.primaryAlias ? tag.primaryAlias.name : 'No Primary Alias Set';
@@ -159,7 +159,7 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
             className='tag-icon'
             color={category ? category.color : '#FFFFFF'}
             key={index * 2}
-            icon='tag'/>
+            icon={category ? 'tag' : 'question-mark'}/>
           <label
             className='tag-label'
             title={tag.description}
@@ -168,6 +168,14 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
             tabIndex={0}>
             { shownAlias }
           </label>
+          { this.props.editable && (
+            <div
+              className='browse-right-sidebar__title-row__buttons__discard-button'
+              onClick={() => this.props.onTagEditableSelect && this.props.onTagEditableSelect(this.props.tags[index], index)}>
+              <OpenIcon
+                icon='delete' />
+            </div>
+          )}
         </div>
       );
     });
@@ -178,12 +186,7 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
   onListItemClick = (event: React.MouseEvent): void => {
     if (!this.props.disabled) {
       if (this.props.editable) {
-        if (this.props.onTagEditableSelect) {
-          const index = getListItemIndex(event.target);
-          if (index >= 0) {
-            this.props.onTagEditableSelect(this.props.tags[index], index);
-          }
-        }
+
       } else {
         if (this.props.onTagSelect) {
           const index = getListItemIndex(event.target);

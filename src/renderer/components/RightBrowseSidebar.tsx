@@ -722,7 +722,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
 
     if (newTag !== '') {
       // Delayed set
-      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag)
+      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag, this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled))
       .then(data => {
         if (data) { this.setState({ tagSuggestions: data }); }
       });

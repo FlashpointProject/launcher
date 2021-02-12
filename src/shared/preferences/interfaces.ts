@@ -66,6 +66,10 @@ export type AppPreferencesData = {
   excludedRandomLibraries: string[];
   /** Application path overrides to check during app launches */
   appPathOverrides: AppPathOverride[];
+  /** Tag filter groups */
+  tagFilters: TagFilterGroup[];
+  /** Use Tag Filters in the Curate suggestions */
+  tagFiltersInCurate: boolean;
 };
 
 export type AppPathOverride = {
@@ -81,3 +85,18 @@ export type AppPreferencesDataMainWindow = {
   height?: number;
   maximized: boolean;
 };
+
+
+export type TagFilterGroup = {
+  name: string;
+  /** Enabled */
+  enabled: boolean;
+  /** Tags to filter */
+  tags: TagFilter;
+  /** Tag categories to filter */
+  categories: TagFilter;
+  /** Filters to auto apply when this is applied */
+  childFilters: string[];
+}
+
+export type TagFilter = string[];

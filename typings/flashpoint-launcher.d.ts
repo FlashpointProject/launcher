@@ -764,6 +764,20 @@ declare module 'flashpoint-launcher' {
         updatesEnabled: boolean;
     };
 
+    export type TagFilterGroup = {
+        name: string;
+        /** Enabled */
+        enabled: boolean;
+        /** Tags to filter */
+        tags: TagFilter;
+        /** Tag categories to filter */
+        categories: TagFilter;
+        /** Filters to auto apply when this is applied */
+        childFilters: string[];
+    }
+    
+    export type TagFilter = string[];
+
     /**
      * Contains state of all non-config settings the user can change in the application.
      * This is the data contained in the Preferences file.
@@ -826,6 +840,10 @@ declare module 'flashpoint-launcher' {
         excludedRandomLibraries: string[];
         /** Application path overrides to check during app launches */
         appPathOverrides: AppPathOverride[];
+        /** Tag filter groups */
+        tagFilters: TagFilterGroup[];
+        /** Use Tag Filters in the Curate suggestions */
+        tagFiltersInCurate: boolean;
     };
 
     type AppPathOverride = {

@@ -1469,6 +1469,12 @@ body {
 }
 /* GameList */
 .game-list,
+.tag {
+  display: flex;
+}
+.tag-label {
+  flex-grow: 1;
+}
 .tag-list {}
 /* GameList Item */
 .game-list-item,
@@ -2122,6 +2128,10 @@ body {
   margin-left: 0.3rem;
   flex-shrink: 0;
 }
+.setting__row__content--override-row__edit {
+  margin-left: 0.3rem;
+  flex-shrink: 0;
+}
 .setting__row__content--override-row__new {
   float: right;
   margin-right: 1rem;
@@ -2131,6 +2141,11 @@ body {
   background-repeat: no-repeat;
   width: 4rem;
   margin-right: 0.5rem; 
+}
+.setting__row__content--tag-filter-title {
+  flex-grow: 1;
+  text-align: left;
+  margin-left: 0.1rem;
 }
 
 /** ----- Progress Components ------ **/
@@ -2369,4 +2384,47 @@ body {
 
 .game-data-browser__buttons {
   margin-top: 0.4rem;
+}
+
+.tag-filter-editor__header {
+  font-size: 2em;
+  margin-bottom: 1rem;
+}
+
+.tag-filter-editor__content {
+  width: 100%;
+  display: flex;
+
+}
+
+.tag-filter-editor__content-section {
+  text-align: left;
+  flex-grow: 1;
+  margin-right: 0.25rem;
+}
+
+.tag-filter-editor__list-entry {
+  display: flex;
+  width: 100%;
+}
+
+.tag-filter-editor__list-entry > :first-child {
+  flex-grow: 1;
+}
+
+.tag-filter-editor__content-section > .input-dropdown {
+  height: initial;
+}
+
+.tag-filter-editor__wrapper {
+  height: 50%;
+}
+
+/** TODO - Stop this being so awful to look at */
+.tag-filter-editor__content-section > .input-dropdown {
+  width: 24rem;
+}
+.tag-filter-editor__content-section > .input-dropdown > .input-dropdown__content {
+  position: fixed;
+  width: inherit;
 }

@@ -666,8 +666,10 @@ export function registerRequestCallbacks(state: BackState): void {
     return result;
   });
 
-  state.socketServer.register(BackIn.GET_TAG_SUGGESTIONS, async (event, data) => {
-    const result = await TagManager.findTagSuggestions(data);
+  state.socketServer.register(BackIn.GET_TAG_SUGGESTIONS, async (event, text, tagFilters) => {
+    const flatTagFilter = tagFilters.filter(tfg => tfg.enabled).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
+    const flatCatFilter = tagFilters.filter(tfg => tfg.enabled).reduce<string[]>((prev, cur) => prev.concat(cur.categories), []);
+    const result = await TagManager.findTagSuggestions(text, flatTagFilter, flatCatFilter);
     state.socketServer.send(event.client, BackOut.GET_TAG_SUGGESTIONS, result);
     return result;
   });

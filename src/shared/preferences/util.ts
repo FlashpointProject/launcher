@@ -1,5 +1,7 @@
 import { autoCode } from '@shared/lang';
 import { LogLevel } from '@shared/Log/interface';
+import { TagFilterGroup } from 'flashpoint-launcher';
+import { parse } from 'yaml';
 import { BackIn } from '../back/types';
 import { BrowsePageLayout } from '../BrowsePageLayout';
 import { ARCADE } from '../constants';
@@ -69,6 +71,8 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   }),
   excludedRandomLibraries: [],
   appPathOverrides: [],
+  tagFilters: [],
+  tagFiltersInCurate: false
 });
 
 /**
@@ -107,6 +111,7 @@ export function overwritePreferenceData(
   parser.prop('saveImportedCurations',       v => source.saveImportedCurations       = !!v);
   parser.prop('keepArchiveKey',              v => source.keepArchiveKey              = !!v);
   parser.prop('symlinkCurationContent',      v => source.symlinkCurationContent      = !!v);
+  parser.prop('tagFiltersInCurate',          v => source.tagFiltersInCurate          = !!v);
   parser.prop('onDemandImages',              v => source.onDemandImages              = !!v);
   parser.prop('excludedRandomLibraries',     v => source.excludedRandomLibraries     = strArray(v), true);
   if (data.appPathOverrides) {
@@ -119,6 +124,12 @@ export function overwritePreferenceData(
   parser.prop('showLogSource').mapRaw((item, label) => source.showLogSource[label] = !!item);
   parser.prop('showLogLevel').mapRaw((item, label) => source.showLogLevel[label as LogLevel] = !!item);
   parser.prop('currentLogoSet',              v => source.currentLogoSet              = str(v), true);
+  if (data.tagFilters) {
+    // Why is this or undefined anyway?
+    const newTagFilters: TagFilterGroup[] = [];
+    parser.prop('tagFilters').array((item, index) => newTagFilters[index] = parseTagFilterGroup(item as IObjectParserProp<TagFilterGroup>));
+    source.tagFilters = newTagFilters;
+  }
   // Done
   return source;
 }
@@ -141,6 +152,22 @@ function parseAppPathOverride(parser: IObjectParserProp<any>): AppPathOverride {
   parser.prop('override', v => override.override = str(v));
   parser.prop('enabled',  v => override.enabled  = !!v);
   return override;
+}
+
+function parseTagFilterGroup(parser: IObjectParserProp<TagFilterGroup>): TagFilterGroup {
+  const tfg: TagFilterGroup = {
+    name: '',
+    enabled: false,
+    tags: [],
+    categories: [],
+    childFilters: []
+  };
+  parser.prop('name',    v => tfg.name    = str(v));
+  parser.prop('enabled', v => tfg.enabled = !!v);
+  parser.prop('tags').arrayRaw((item) => tfg.tags.push(str(item)));
+  parser.prop('categories').arrayRaw((item) => tfg.categories.push(str(item)));
+  parser.prop('childFilters').arrayRaw((item) => tfg.childFilters.push(str(item)));
+  return tfg;
 }
 
 /**

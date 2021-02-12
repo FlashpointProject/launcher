@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { parseVariableString } from './utils/VariableString';
 import { AppConfigData } from './config/interfaces';
+import { Tag } from 'flashpoint-launcher';
 
 export function getFileServerURL() {
   return `http://${window.Shared.backUrl.hostname}:${window.Shared.fileServerPort}`;
@@ -420,4 +421,16 @@ export function canReadWrite(folder: string): Promise<boolean> {
 export function getRandomHexColor(): string {
   const num = '#'+(Math.random()*(1<<24)|0).toString(16);
   return num.padEnd(7, '0');
+}
+
+export function tagSort(tagA: Tag, tagB: Tag): number {
+  const catIdA = tagA.category ? tagA.category.id : tagA.categoryId;
+  const catIdB = tagB.category ? tagB.category.id : tagB.categoryId;
+  if (catIdA && catIdB) {
+    if (catIdA > catIdB) { return 1;  }
+    if (catIdB > catIdA) { return -1; }
+  }
+  if (tagA.primaryAlias.name > tagB.primaryAlias.name) { return 1;  }
+  if (tagB.primaryAlias.name > tagA.primaryAlias.name) { return -1; }
+  return 0;
 }

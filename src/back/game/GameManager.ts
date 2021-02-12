@@ -11,6 +11,7 @@ import { PageKeyset, PageTuple, RequestGameRange, ResponseGameRange, ViewGame } 
 import { VIEW_PAGE_SIZE } from '@shared/constants';
 import { FilterGameOpts } from '@shared/game/GameFilter';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
+import { tagSort } from '@shared/Util';
 import { Coerce } from '@shared/utils/Coerce';
 import { Brackets, FindOneOptions, getManager, SelectQueryBuilder } from 'typeorm';
 
@@ -40,17 +41,7 @@ export async function findGame(id?: string, filter?: FindOneOptions<Game>): Prom
     const gameRepository = getManager().getRepository(Game);
     const game = await gameRepository.findOne(id, filter);
     if (game) {
-      game.tags.sort((tagA, tagB) => {
-        const catIdA = tagA.category ? tagA.category.id : tagA.categoryId;
-        const catIdB = tagB.category ? tagB.category.id : tagB.categoryId;
-        if (catIdA && catIdB) {
-          if (catIdA > catIdB) { return 1;  }
-          if (catIdB > catIdA) { return -1; }
-        }
-        if (tagA.primaryAlias.name > tagB.primaryAlias.name) { return 1;  }
-        if (tagB.primaryAlias.name > tagA.primaryAlias.name) { return -1; }
-        return 0;
-      });
+      game.tags.sort(tagSort);
     }
     return game;
   }
