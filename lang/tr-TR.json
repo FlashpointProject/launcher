@@ -434,8 +434,8 @@
     "areYouSure": "Emin misin?",
     "cancel": "İptal Et",
     "mergePlaylists": "Oynama Listelerini Birleştir",
-    "newPlaylist": "Stay Separate",
-    "uploadPrivacyWarning": "This will make your Logs available publicly.\nA link will be copied to your clipboard.\n\nAre you sure?",
+    "newPlaylist": "Ayrı Tut",
+    "uploadPrivacyWarning": "Bu, Kayıtlarını herkese açık yapacak.\nPanoya bir link kopyalanacak.\n\nEmin misin?",
     "overwriteFileTitle": "Dosya zaten mevcut!",
     "overwriteFileMessage": "Aynı adı taşıyan bir dosya zaten var. Üzerine yazmak istiyor musunuz?",
     "overwriteFileDetail": "Dosya yolu:"
