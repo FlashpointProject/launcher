@@ -96,16 +96,16 @@ export function TagFilterGroupEditor(props: TagFilterGroupEditorProps) {
         <div className='tag-filter-editor__header'>
           {'Tag Filter Group Editor'}
         </div>
-        <b className='tag-filter-editor__content-header'>
+        <div className='tag-filter-editor__content-header'>
           {'Name'}
-        </b>
+        </div>
         <InputField
           editable={true}
           onChange={(event) => props.onChangeName(event.target.value)}
           text={props.tagFilterGroup.name}/>
         <div className='tag-filter-editor__content'>
           <div className='tag-filter-editor__content-section'>
-            <b className='tag-filter-editor__content-header'>{'Tags'}</b>
+            <div className='tag-filter-editor__content-header'>{'Tags'}</div>
             <TagInputField
               tags={parsedTagsList.sort(tagSort)}
               editable={true}

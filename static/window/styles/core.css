@@ -2428,3 +2428,8 @@ body {
   position: fixed;
   width: inherit;
 }
+.tag-filter-editor__content-header {
+  width:100%;
+  text-align: center;
+  font-weight: bold;
+}

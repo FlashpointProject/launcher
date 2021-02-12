@@ -109,7 +109,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     const libraryOptions = this.itemizeLibraryOptionsMemo(this.props.libraries, this.props.preferencesData.excludedRandomLibraries, this.context.libraries);
     const platformOptions = this.itemizePlatformOptionsMemo(this.props.platforms, this.state.nativePlatforms);
     const appPathOverrides = this.renderAppPathOverridesMemo(this.props.preferencesData.appPathOverrides);
-    const tagFilters = this.renderTagFiltersMemo(this.props.preferencesData.tagFilters);
+    const tagFilters = this.renderTagFiltersMemo(this.props.preferencesData.tagFilters, strings);
     const logoSetPreviewRows = this.renderLogoSetMemo(this.props.platforms, this.props.logoVersion);
     const extensions = this.renderExtensionsMemo(this.props.extensions, strings);
     const extConfigSections = this.renderExtensionConfigs(this.props.extConfigs, this.props.extConfig);
@@ -397,7 +397,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     });
   });
 
-  renderTagFiltersMemo = memoizeOne((tagFilters: TagFilterGroup[]) => {
+  renderTagFiltersMemo = memoizeOne((tagFilters: TagFilterGroup[], strings: LangContainer['config']) => {
     return tagFilters.map((item, index) => {
       return (
         <div
@@ -414,13 +414,23 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
           </i>
           <div
             onClick={() => this.onEditTagFilterGroup(index)}
+            title={strings.editTagFilter}
             className='browse-right-sidebar__title-row__buttons__edit-button'>
             <OpenIcon
               className='setting__row__content--override-row__edit'
               icon='pencil' />
           </div>
           <div
+            onClick={() => this.onDuplicateTagFilterGroup(index)}
+            title={strings.duplicateTagFilter}
+            className='browse-right-sidebar__title-row__buttons__edit-button'>
+            <OpenIcon
+              className='setting__row__content--override-row__edit'
+              icon='layers' />
+          </div>
+          <div
             className={'browse-right-sidebar__title-row__buttons__discard-button'}
+            title={strings.deleteTagFilter}
             onClick={() => this.onConfirmTagFilterGroupDelete(index)} >
             <OpenIcon
               className='setting__row__content--override-row__delete'
@@ -678,6 +688,12 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       const newTFG = {...this.state.editingTagFilterGroup, name };
       this.setState({ editingTagFilterGroup: newTFG });
     }
+  }
+
+  onDuplicateTagFilterGroup = (index: number): void => {
+    const newTagFilters = [...this.props.preferencesData.tagFilters];
+    newTagFilters.push({...newTagFilters[index], name: `${newTagFilters[index].name} - Copy`});
+    updatePreferencesData({ tagFilters: newTagFilters });
   }
 
   onEditTagFilterGroup = (index: number): void => {
