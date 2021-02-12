@@ -2286,3 +2286,58 @@ body {
   bottom: 2rem;
   right: 0.5rem;
 }
+
+/** Checkboxes */
+.checkbox {
+  width: 3rem;
+  height: 1.5rem;
+  position: relative;
+  display: inline-block;
+}
+
+.checkbox--icon-check {
+  height: 100%;
+  width: 80%;
+}
+
+.checkbox--icon-cross {
+  height: 100%;
+  width: 75%;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0.05rem;
+  background-color: #ccc;
+  border-radius: 1rem;
+  transition: .2s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 80%;
+  width: 40%;
+  left: 0.2rem;
+  bottom: 11.25%;
+  background-color: white;
+  border-radius: 50%;
+  transition: .2s;
+}
+
+.slider-checked:before {
+  transform: translateX(1.4rem);
+}
+
+.checkbox__wrapper {
+  width: 3rem;
+}
+
+.checkbox__text {
+  font-size: 0.6rem;
+  text-align: center;
+}

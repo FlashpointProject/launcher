@@ -1019,3 +1019,13 @@ body {
 .sketch-picker input {
   background-color: var(--layout__quaternary-background);
 }
+
+/** Checkboxes */
+
+.slider {
+  background-color: var(--layout__simple-button-background);
+}
+
+.slider-checked {
+  background-color: var(--layout__confirm-color);
+}
