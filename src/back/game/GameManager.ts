@@ -14,11 +14,11 @@ import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { Coerce } from '@shared/utils/Coerce';
 import { Brackets, FindOneOptions, getManager, SelectQueryBuilder } from 'typeorm';
 
-const exactFields = [ 'broken', 'extreme', 'library' ];
+const exactFields = [ 'broken', 'extreme', 'library', 'activeDataOnDisk' ];
 enum flatGameFields {
   'id', 'title', 'alternateTitles', 'developer', 'publisher', 'dateAdded', 'dateModified', 'series',
   'platform', 'broken', 'extreme', 'playMode', 'status', 'notes', 'source', 'applicationPath', 'launchCommand', 'releaseDate',
-  'version', 'originalDescription', 'language', 'library'
+  'version', 'originalDescription', 'language', 'library', 'activeDataOnDisk'
 }
 
 // Events
