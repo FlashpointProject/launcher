@@ -1,7 +1,6 @@
 import { autoCode } from '@shared/lang';
 import { LogLevel } from '@shared/Log/interface';
 import { TagFilterGroup } from 'flashpoint-launcher';
-import { parse } from 'yaml';
 import { BackIn } from '../back/types';
 import { BrowsePageLayout } from '../BrowsePageLayout';
 import { ARCADE } from '../constants';
@@ -10,7 +9,7 @@ import { gameOrderByOptions, gameOrderReverseOptions } from '../order/util';
 import { deepCopy } from '../Util';
 import { Coerce } from '../utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
-import { AppPreferencesData, AppPreferencesDataMainWindow, AppPathOverride } from './interfaces';
+import { AppPathOverride, AppPreferencesData, AppPreferencesDataMainWindow } from './interfaces';
 
 export function updatePreferencesData(data: DeepPartial<AppPreferencesData>, send = true) {
   const preferences = window.Shared.preferences;

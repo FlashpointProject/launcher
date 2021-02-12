@@ -582,7 +582,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   }
 
   onSubmitSourceURL = async () => {
-    const source = await window.Shared.back.request(BackIn.ADD_SOURCE_BY_URL, this.state.newSourceUrl);
+    await window.Shared.back.request(BackIn.ADD_SOURCE_BY_URL, this.state.newSourceUrl);
   }
 
   onRemoveAppPathOverride = (index: number): void => {

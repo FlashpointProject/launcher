@@ -2,11 +2,10 @@ import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
 import { BackIn, TagSuggestion } from '@shared/back/types';
-import { TagFilter, TagFilterGroup } from '@shared/preferences/interfaces';
+import { TagFilterGroup } from '@shared/preferences/interfaces';
 import { tagSort } from '@shared/Util';
 import * as React from 'react';
 import { InputField } from './InputField';
-import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
 import { TagInputField } from './TagInputField';
 
@@ -23,12 +22,12 @@ export type TagFilterGroupEditorProps = {
 
 export function TagFilterGroupEditor(props: TagFilterGroupEditorProps) {
   const [editTag, setEditTag] = React.useState('');
-  const [editCategory, setEditCategory] = React.useState('');
+  // const [editCategory, setEditCategory] = React.useState('');
   const [tagSuggestions, setTagSuggestions] = React.useState<TagSuggestion[]>([]);
   const [parsedTagsList, setParsedTagsList] = React.useState<Tag[]>(buildPlaceholderTags(props.tagFilterGroup.tags));
 
   // const tags = React.useMemo(() => tagsFactory(props.tagFilterGroup.tags, props.onRemoveTag), [props.tagFilterGroup.tags, props.onRemoveTag]);
-  const categories = React.useMemo(() => categoriesFactory(props.tagFilterGroup.categories, props.onRemoveCategory), [props.tagFilterGroup.categories, props.onRemoveCategory]);
+  // const categories = React.useMemo(() => categoriesFactory(props.tagFilterGroup.categories, props.onRemoveCategory), [props.tagFilterGroup.categories, props.onRemoveCategory]);
 
   React.useEffect(() => {
     /** Parse the tags into 'real tags' on first load */
@@ -70,12 +69,12 @@ export function TagFilterGroupEditor(props: TagFilterGroupEditorProps) {
     setEditTag('');
   }, [onAddTag, props.onAddTag]);
 
-  const checkCategorySubmit = React.useCallback((key: string) => {
-    if (key === 'Enter' && editCategory) {
-      props.onAddCategory(editCategory);
-      setEditCategory('');
-    }
-  }, [editCategory, props.onAddCategory]);
+  // const checkCategorySubmit = React.useCallback((key: string) => {
+  //   if (key === 'Enter' && editCategory) {
+  //     props.onAddCategory(editCategory);
+  //     setEditCategory('');
+  //   }
+  // }, [editCategory, props.onAddCategory]);
 
   const updateSuggestions = React.useCallback(async (tag: string) => {
     setEditTag(tag);
@@ -90,36 +89,36 @@ export function TagFilterGroupEditor(props: TagFilterGroupEditorProps) {
 
   return React.useMemo(() => {
     return (
-    <div className='tag-filter-editor__wrapper'>
-      <SimpleButton
-        onClick={props.closeEditor}
-        value={'Save & Close'}/>
-      <div className='tag-filter-editor__header'>
-        {'Tag Filter Group Editor'}
-      </div>
-      <b className='tag-filter-editor__content-header'>
-        {'Name'}
-      </b>
-      <InputField
-        editable={true}
-        onChange={(event) => props.onChangeName(event.target.value)}
-        text={props.tagFilterGroup.name}/>
-      <div className='tag-filter-editor__content'>
-        <div className='tag-filter-editor__content-section'>
-          <b className='tag-filter-editor__content-header'>{'Tags'}</b>
-          <TagInputField
-            tags={parsedTagsList.sort(tagSort)}
-            editable={true}
-            text={editTag}
-            suggestions={tagSuggestions}
-            categories={props.tagCategories}
-            onTagEditableSelect={(tag) => onRemoveTag(tag)}
-            onTagSuggestionSelect={(suggestion) => onTagSubmit(suggestion.primaryAlias)}
-            onChange={(event) => updateSuggestions(event.target.value)}
-            onTagSubmit={(tag) => onTagSubmit(tag)} />
+      <div className='tag-filter-editor__wrapper'>
+        <SimpleButton
+          onClick={props.closeEditor}
+          value={'Save & Close'}/>
+        <div className='tag-filter-editor__header'>
+          {'Tag Filter Group Editor'}
         </div>
-        {/* TODO: Add back when Categories work better filtered */}
-        {/* <div className='tag-filter-editor__content-section'>
+        <b className='tag-filter-editor__content-header'>
+          {'Name'}
+        </b>
+        <InputField
+          editable={true}
+          onChange={(event) => props.onChangeName(event.target.value)}
+          text={props.tagFilterGroup.name}/>
+        <div className='tag-filter-editor__content'>
+          <div className='tag-filter-editor__content-section'>
+            <b className='tag-filter-editor__content-header'>{'Tags'}</b>
+            <TagInputField
+              tags={parsedTagsList.sort(tagSort)}
+              editable={true}
+              text={editTag}
+              suggestions={tagSuggestions}
+              categories={props.tagCategories}
+              onTagEditableSelect={(tag) => onRemoveTag(tag)}
+              onTagSuggestionSelect={(suggestion) => onTagSubmit(suggestion.primaryAlias)}
+              onChange={(event) => updateSuggestions(event.target.value)}
+              onTagSubmit={(tag) => onTagSubmit(tag)} />
+          </div>
+          {/* TODO: Add back when Categories work better filtered */}
+          {/* <div className='tag-filter-editor__content-section'>
           <b>{'Categories'}</b>
           <InputField
             editable={true}
@@ -128,44 +127,27 @@ export function TagFilterGroupEditor(props: TagFilterGroupEditorProps) {
             onKeyDown={(event) => checkCategorySubmit(event.key)} />
           {categories}
         </div> */}
-      </div>
-    </div>
-  )}, [parsedTagsList, editTag, tagSuggestions, props.tagCategories, onAddTag, onRemoveTag, onTagSubmit, updateSuggestions]);
-}
-
-function tagsFactory(tags: TagFilter, onRemoveTag: (tag: string) => void): JSX.Element[] {
-  return tags.sort().map(tag => {
-    return (
-      <div className='tag-filter-editor__list-entry'
-        key={tag}>
-        <div>{tag}</div>
-        <div onClick={() => onRemoveTag(tag)}
-          className='setting__row__content--remove-app-override'>
-          <OpenIcon
-            className='setting__row__content--override-row__delete'
-            icon='delete'/>
         </div>
       </div>
-    );
-  });
+    );}, [parsedTagsList, editTag, tagSuggestions, props.tagCategories, onAddTag, onRemoveTag, onTagSubmit, updateSuggestions]);
 }
 
-function categoriesFactory(categories: TagFilter, onRemoveCategory: (category: string) => void): JSX.Element[] {
-  return categories.sort().map(category => {
-    return (
-      <div className='tag-filter-editor__list-entry'
-        key={category}>
-        <div>{category}</div>
-        <div onClick={() => onRemoveCategory(category)}
-          className='setting__row__content--remove-app-override'>
-          <OpenIcon
-            className='setting__row__content--override-row__delete'
-            icon='delete'/>
-        </div>
-      </div>
-    );
-  });
-}
+// function categoriesFactory(categories: TagFilter, onRemoveCategory: (category: string) => void): JSX.Element[] {
+//   return categories.sort().map(category => {
+//     return (
+//       <div className='tag-filter-editor__list-entry'
+//         key={category}>
+//         <div>{category}</div>
+//         <div onClick={() => onRemoveCategory(category)}
+//           className='setting__row__content--remove-app-override'>
+//           <OpenIcon
+//             className='setting__row__content--override-row__delete'
+//             icon='delete'/>
+//         </div>
+//       </div>
+//     );
+//   });
+// }
 
 function buildPlaceholderTags(tags: string[]): Tag[] {
   return tags.map(t => {
