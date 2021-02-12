@@ -138,6 +138,9 @@ const state: BackState = {
       onDidRemovePlaylistGame: GameManager.onDidRemovePlaylistGame,
       onWillImportCuration: onWillImportCuration,
     },
+    gameData: {
+      onDidImportGameData: new ApiEmitter<flashpoint.GameData>(),
+    },
     services: {
       onServiceNew: new ApiEmitter<flashpoint.ManagedChildProcess>(),
       onServiceRemove: new ApiEmitter<flashpoint.ManagedChildProcess>(),
@@ -711,7 +714,6 @@ function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse
               if (replacementFilePath.startsWith(basePath)) {
                 fs.access(replacementFilePath, fs.constants.F_OK, (err) => {
                   if (err) {
-                    log.debug('Launcher', `SERVING: ${path.join(basePath, DEFAULT_LOGO_PATH)}`);
                     serveFile(req, res, path.join(basePath, DEFAULT_LOGO_PATH));
                   } else {
                     serveFile(req, res, replacementFilePath);

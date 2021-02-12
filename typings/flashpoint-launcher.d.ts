@@ -209,6 +209,16 @@ declare module 'flashpoint-launcher' {
         const onWillImportGame: Event<CurationImportState>;
     }
 
+    /** Collection of Game Data related API functions */
+    namespace gameData {
+        function findOne(id: number): Promise<GameData | undefined>;
+        function findGameData(gameId: string): Promise<GameData[]>;
+        function findSourceDataForHashes(hashes: string[]): Promise<SourceData[]>;
+        function save(gameData: GameData): Promise<GameData>;
+        function importGameData(gameId: string, filePath: string): Promise<GameData>;
+        const onDidImportGameData: Event<GameData>;
+    }
+
     /** Collection of Tag related API functions */
     namespace tags {
         // Tags
@@ -496,7 +506,35 @@ declare module 'flashpoint-launcher' {
         path?: string;
         /** Size of this data pack */
         size: number;
-      }
+    };
+
+    type SourceData = {
+        id: number;
+        /** Source providing the download */
+        source?: Source;
+        sourceId: number;
+        /** SHA256 hash of this download */
+        sha256: string;
+        urlPath: string;
+    }
+
+    type Source = {
+        id: number;
+        /** Name of the Source */
+        name: string;
+        /** Base URL of the Source */
+        sourceFileUrl: string;
+        /** Base URL of the Source */
+        baseUrl: string;
+        /** File Count provided as SourceData */
+        count: number;
+        /** When this Source was added */
+        dateAdded: Date;
+        /** Last time this Source was updated */
+        lastUpdated: Date;
+        /** Any data provided by this Source */
+        data?: SourceData[];
+    }  
 
     type AdditionalApp = {
         /** ID of the additional application (unique identifier) */
@@ -719,6 +757,8 @@ declare module 'flashpoint-launcher' {
         playlistFolderPath: string;
         /** Path to the json folder (relative to the flashpoint path) */
         jsonFolderPath: string;
+        /** Path to the htdocs folder (relative to the flashpoint path) */
+        htdocsFolderPath: string;
         /** Path to the platform folder (relative to the flashpoint path) */
         platformFolderPath: string;
         /** Path to the theme folder (relative to the flashpoint path) */
@@ -932,6 +972,7 @@ declare module 'flashpoint-launcher' {
     /** Info type passed to onWillLaunch events */
     type GameLaunchInfo = {
         game: Game;
+        activeData?: GameData;
         launchInfo: LaunchInfo;
     };
 

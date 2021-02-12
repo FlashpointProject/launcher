@@ -1,5 +1,5 @@
+import * as SourceManager from '@back/game/SourceManager';
 import { Game } from '@database/entity/Game';
-import { GameData } from '@database/entity/GameData';
 import { Playlist } from '@database/entity/Playlist';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
@@ -21,10 +21,8 @@ import { formatString } from '@shared/utils/StringFormatter';
 import * as axiosImport from 'axios';
 import * as fs from 'fs';
 import { ensureDir } from 'fs-extra';
-import * as crypto from 'crypto';
 import * as path from 'path';
 import * as url from 'url';
-import * as SourceManager from '@back/game/SourceManager';
 import * as util from 'util';
 import * as YAML from 'yaml';
 import { ConfigFile } from './ConfigFile';
@@ -434,60 +432,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.IMPORT_GAME_DATA, async (event, gameId, filePath) => {
-    return new Promise<GameData>((resolve, reject) => {
-      fs.promises.access(filePath, fs.constants.R_OK)
-      .then(async () => {
-        // Gather basic info
-        const stats = await fs.promises.stat(filePath);
-        const hash = crypto.createHash('sha256');
-        hash.setEncoding('hex');
-        const stream = fs.createReadStream(filePath);
-        stream.on('end', async () => {
-          const sha256 = hash.digest('hex').toUpperCase();
-          const gameData = await GameDataManager.findGameData(gameId);
-          const existingGameData = gameData.find(g => g.sha256 === sha256);
-          // Copy file
-          const dateAdded = new Date();
-          const newFilename = existingGameData ? `${gameId}-${existingGameData.dateAdded.getTime()}.zip` : `${gameId}-${dateAdded.getTime()}.zip`;
-          const newPath = path.join(state.config.flashpointPath, state.config.dataPacksFolderPath, newFilename);
-          await fs.promises.copyFile(filePath, newPath);
-          if (existingGameData) {
-            if (existingGameData.presentOnDisk === false) {
-              existingGameData.path = newFilename;
-              existingGameData.presentOnDisk = true;
-              GameDataManager.save(existingGameData)
-              .then(resolve)
-              .catch(reject);
-            }
-          } else {
-            const newGameData = new GameData();
-            newGameData.title = 'Data Pack';
-            newGameData.gameId = gameId;
-            newGameData.size = stats.size;
-            newGameData.dateAdded = dateAdded;
-            newGameData.presentOnDisk = true;
-            newGameData.path = newFilename;
-            newGameData.sha256 = sha256;
-            newGameData.crc32 = 0; // TODO: Find decent lib for CRC32
-            GameDataManager.save(newGameData)
-            .then(async (gameData) => {
-              const game = await GameManager.findGame(gameId);
-              if (game) {
-                game.activeDataId = gameData.id;
-                game.activeDataOnDisk = gameData.presentOnDisk;
-                resolve(gameData);
-              }
-            })
-            .catch(reject);
-          }
-
-        });
-        stream.pipe(hash);
-
-
-      })
-      .catch(reject);
-    });
+    return GameDataManager.importGameData(gameId, filePath, path.join(state.config.flashpointPath, state.config.dataPacksFolderPath));
   });
 
   state.socketServer.register(BackIn.UNINSTALL_GAME_DATA, async (event, id) => {

@@ -1,6 +1,7 @@
 import { EXT_CONFIG_FILENAME, PREFERENCES_FILENAME } from '@back/constants';
 import { ExtConfigFile } from '@back/ExtConfigFile';
 import * as GameManager from '@back/game/GameManager';
+import * as GameDataManager from '@back/game/GameDataManager';
 import * as TagManager from '@back/game/TagManager';
 import { DisposableChildProcess, ManagedChildProcess } from '@back/ManagedChildProcess';
 import { BackState, StatusState } from '@back/types';
@@ -175,6 +176,17 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     }
   };
 
+  const extGameData: typeof flashpoint.gameData = {
+    findOne: GameDataManager.findOne,
+    findGameData: GameDataManager.findGameData,
+    findSourceDataForHashes: GameDataManager.findSourceDataForHashes,
+    save: GameDataManager.save,
+    importGameData: (gameId, filePath) => GameDataManager.importGameData(gameId, filePath, path.join(state.config.flashpointPath, state.config.dataPacksFolderPath)),
+    get onDidImportGameData() {
+      return apiEmitters.gameData.onDidImportGameData.event;
+    }
+  };
+
   const extTags: typeof flashpoint.tags = {
     // Tags
     getTagById: TagManager.getTagById,
@@ -281,6 +293,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     log: extLog,
     commands: extCommands,
     games: extGames,
+    gameData: extGameData,
     tags: extTags,
     status: extStatus,
     services: extServices,

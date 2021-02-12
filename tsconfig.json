@@ -22,7 +22,8 @@
     },
     "plugins": [
       {
-          "transform": "ts-transform-paths",
+        "name": "empty",
+        "transform": "ts-transform-paths",
       }
     ]
   },
