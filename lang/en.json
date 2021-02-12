@@ -436,6 +436,7 @@
     "restartToApplyUpgrade": "This upgrade will not be applied until you restart.\nDo you wish to do this now?",
     "areYouSure": "Are you sure?",
     "areYouSureDelete": "Are you sure you want to delete this entry?",
+    "areYouSurePlaylistRemove": "Are you sure you want to remove this entry from the playlist?",
     "cancel": "Cancel",
     "mergePlaylists": "Merge Playlists",
     "newPlaylist": "Stay Seperate",

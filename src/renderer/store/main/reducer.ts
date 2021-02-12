@@ -38,7 +38,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
                 orderBy: action.orderBy,
                 orderReverse: action.orderReverse,
               },
-              tagFilters: action.tagFilters.filter(tfg => tfg.enabled)
+              tagFilters: playlistId ? [] : action.tagFilters.filter(tfg => tfg.enabled)
             }),
             queryId: (view.queryId + 1) % 0x80000000, // 32 bit signed integer
             metaState: RequestState.WAITING,

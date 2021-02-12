@@ -172,6 +172,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
 
       const removeGameFromPlaylistElement = (
         <ConfirmElement
+          activationLimit={-1}
           onConfirm={this.props.onRemoveSelectedGameFromPlaylist}
           render={this.renderRemoveFromPlaylistButton}
           extra={strings} />

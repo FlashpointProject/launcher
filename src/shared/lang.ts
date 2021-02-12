@@ -452,6 +452,7 @@ const langTemplate = {
     'restartToApplyUpgrade',
     'areYouSure',
     'areYouSureDelete',
+    'areYouSurePlaylistRemove',
     'cancel',
     'mergePlaylists',
     'newPlaylist',
