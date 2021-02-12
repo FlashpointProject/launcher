@@ -16,6 +16,7 @@ export function convertGameToCurationMetaFile(game: Game, categories: TagCategor
   });
   // Game meta
   parsed['Title']                = game.title;
+  parsed['Alternate Titles']     = game.alternateTitles;
   parsed['Series']               = game.series;
   parsed['Developer']            = game.developer;
   parsed['Publisher']            = game.publisher;
