@@ -15,6 +15,7 @@ import { debounce } from '@shared/utils/debounce';
 import { formatString } from '@shared/utils/StringFormatter';
 import { ipcRenderer, remote } from 'electron';
 import { AppUpdater } from 'electron-updater';
+import { TagFilterGroup } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as React from 'react';
@@ -449,7 +450,7 @@ export class App extends React.Component<AppProps> {
           view.query.orderBy                !== this.props.preferencesData.gamesOrderBy ||
           view.query.orderReverse           !== this.props.preferencesData.gamesOrder ||
           prevProps.main.playlists          !== this.props.main.playlists ||
-          prevProps.preferencesData.tagFilters !== this.props.preferencesData.tagFilters) {
+          view.tagFilters                   !== this.props.preferencesData.tagFilters) {
         this.setViewQuery(library);
       }
       // Fetch pages
@@ -873,7 +874,7 @@ export class App extends React.Component<AppProps> {
       playlistId: (arguments.length >= 2)
         ? playlistId
         : null,
-      tagFilters: this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled)
+      tagFilters: this.props.preferencesData.tagFilters
     });
   }).bind(this);
 

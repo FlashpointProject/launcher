@@ -89,6 +89,7 @@ function createInitialMainState(): MainState {
       selectedGameId: undefined,
       lastStart: 0,
       lastCount: 0,
+      tagFilters: [],
     };
   }
 

@@ -41,6 +41,8 @@ export type View = {
   lastStart: number;
   /** Most recent "count" of pages that has been viewed. */
   lastCount: number;
+  /** Tag filters used when building */
+  tagFilters: TagFilterGroup[];
 }
 
 export type ViewQuery = SearchGamesOpts & {
