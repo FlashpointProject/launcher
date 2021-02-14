@@ -126,6 +126,16 @@
   --layout__header-menu-item-hover-border: #d33682;
   /* Splash Screen */
   --layout__splash-screen_loading:                 #eb4b4b;
+  /* Play Button */
+  --layout__play-button:                      #5cb468;
+  --layout__play-button--hover:               #559e5f;
+  --layout__play-button--active:              #407947;
+  --layout__play-button--running:             #a22020;
+  --layout__play-button--running--hover:      #731919;
+  --layout__play-button--running--active:     #5a1010;
+  --layout__play-button--download:            #00c6f8;
+  --layout__play-button--download--hover:     #00aaf8;
+  --layout__play-button--download--active:    #019ee7;
   /* Misc */
   --layout__title-bar-cross-color:                 #eb4b4b;
   --layout__no-theme-suggestion-color:             #bfbfbf;
@@ -574,7 +584,8 @@ body {
 }
 /* Browse-Right-Sidebar Play Button */
 .browse-right-sidebar__play-button,
-.browse-right-sidebar__play-button--running {
+.browse-right-sidebar__play-button--running,
+.browse-right-sidebar__play-button--download {
   border-width: 2px;
   border-style: solid;
   border-color: var(--layout__primary-outline-color);
@@ -583,23 +594,33 @@ body {
   -webkit-text-stroke-color: var(--layout__primary-outline-color);
 }
 .browse-right-sidebar__play-button {
-  background-color: var(--layout__confirm-color);
+  background-color: var(--layout__play-button);
 }
 .browse-right-sidebar__play-button:hover {
-  background-color: var(--layout__confirm-hover-color);
+  background-color: var(--layout__play-button--hover);
 }
 .browse-right-sidebar__play-button:active {
-  background-color: var(--layout__confirm-active-color);
+  background-color: var(--layout__play-button--active);
 }
 .browse-right-sidebar__play-button--running {
-  background-color: var(--layout__warning-bright-color);
+  background-color: var(--layout__play-button--running);
 }
 .browse-right-sidebar__play-button--running:hover {
-  background-color: var(--layout__warning-medium-color);
+  background-color: var(--layout__play-button--running--hover);
 }
 .browse-right-sidebar__play-button--running:active {
-  background-color: var(--layout__warning-dark-color);
+  background-color: var(--layout__play-button--running--active);
 }
+.browse-right-sidebar__play-button--download {
+  background-color: var(--layout__play-button--download);
+}
+.browse-right-sidebar__play-button--download:hover {
+  background-color: var(--layout__play-button--download--hover);
+}
+.browse-right-sidebar__play-button--download:active {
+  background-color: var(--layout__play-button--download--active);
+}
+.browse
 /* BrowseSidebar Title-Row Buttons */
 .browse-right-sidebar__title-row__buttons .icon__use {
   fill: var(--layout__primary-text-color);

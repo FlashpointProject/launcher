@@ -284,6 +284,10 @@ const langTemplate = {
     'searching',
     'library',
     'defaultLibrary',
+    'legacyGame',
+    'notInstalled',
+    'installed',
+    'download',
   ] as const,
   tags: [
     'name',

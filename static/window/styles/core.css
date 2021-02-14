@@ -1239,7 +1239,8 @@ body {
 }
 /* Browse-Right-Sidebar Play Button */
 .browse-right-sidebar__play-button,
-.browse-right-sidebar__play-button--running {
+.browse-right-sidebar__play-button--running,
+.browse-right-sidebar__play-button--download {
   width: 100%;
   font-size: 2.5em;
   text-align: center;
@@ -1401,6 +1402,11 @@ body {
   text-align: center;
   font-size: 2em;
   font-style: bold;
+}
+.browse-right-sidebar__mini-download-info {
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
 }
 /* GameImageSplit */
 .game-image-split {
