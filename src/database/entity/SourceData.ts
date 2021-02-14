@@ -1,6 +1,8 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, Index, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Source } from './Source';
 
+@Index('IDX_sourcedata_sourceid', ['sourceId'])
+@Index('IDX_sourcedata_hash', ['sha256'])
 @Entity()
 export class SourceData {
   @PrimaryGeneratedColumn()

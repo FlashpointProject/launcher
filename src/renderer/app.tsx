@@ -20,8 +20,10 @@ import * as path from 'path';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import * as which from 'which';
+import { FloatingContainer } from './components/FloatingContainer';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { MetaEditExporter, MetaEditExporterConfirmData } from './components/MetaEditExporter';
+import { placeholderProgressData, ProgressBar } from './components/ProgressComponents';
 import { SplashScreen } from './components/SplashScreen';
 import { TitleBar } from './components/TitleBar';
 import { ConnectedFooter } from './containers/ConnectedFooter';
@@ -281,6 +283,26 @@ export class App extends React.Component<AppProps> {
 
     window.Shared.back.register(BackOut.DEV_CONSOLE_CHANGE, (event, text) => {
       this.props.setMainState({ devConsole: text });
+    });
+
+    window.Shared.back.register(BackOut.OPEN_ALERT, (event, text) => {
+      alert(text);
+    });
+
+    window.Shared.back.register(BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT, (event, percent) => {
+      if (percent === 100) {
+        this.props.setMainState({ downloadVerifying: true, downloadPercent: percent });
+      } else {
+        this.props.setMainState({ downloadPercent: percent });
+      }
+    });
+
+    window.Shared.back.register(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG, (event) => {
+      this.props.setMainState({ downloadOpen: true, downloadVerifying: false, downloadPercent: 0 });
+    });
+
+    window.Shared.back.register(BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG, (event) => {
+      this.props.setMainState({ downloadOpen: false, downloadPercent: 0 });
     });
 
     // Cache playlist icons (if they are loaded)
@@ -668,6 +690,32 @@ export class App extends React.Component<AppProps> {
             ) : undefined }
           </>
         ) : undefined }
+        { this.props.main.downloadOpen && (
+          <FloatingContainer>
+            { this.props.main.downloadVerifying ? (
+              <>
+                <div className='placeholder-download-bar--title'>
+                  {'Verifying Game...'}
+                </div>
+                <div>{'This may take a few minutes'}</div>
+              </>
+            ) : (
+              <div className='placeholder-download-bar--title'>
+                {'Downloading Game...'}
+              </div>
+            )}
+            { this.props.main.downloadVerifying ? <></> : (
+              <ProgressBar
+                wrapperClass='placeholder-download-bar__wrapper'
+                progressData={{
+                  ...placeholderProgressData,
+                  percentDone: this.props.main.downloadPercent,
+                  usePercentDone: true
+                }}
+              />
+            )}
+          </FloatingContainer>
+        )}
       </LangContext.Provider>
     );
   }

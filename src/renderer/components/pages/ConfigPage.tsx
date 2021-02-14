@@ -1,3 +1,4 @@
+import { Source } from '@database/entity/Source';
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { BackIn } from '@shared/back/types';
 import { AppExtConfigData } from '@shared/config/interfaces';
@@ -63,6 +64,8 @@ type ConfigPageState = {
   server: string;
   /** Currently entered new Source URL */
   newSourceUrl: string;
+  /** List of Sources given from the backend */
+  sources?: Source[];
 };
 
 export interface ConfigPage {
@@ -87,8 +90,13 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       useCustomTitlebar: configData.useCustomTitlebar,
       nativePlatforms: configData.nativePlatforms,
       server: configData.server,
-      newSourceUrl: ''
+      newSourceUrl: '',
     };
+  }
+
+  async componentDidMount() {
+    const sources = await window.Shared.back.request(BackIn.GET_SOURCES);
+    this.setState({ sources });
   }
 
   render() {
@@ -98,6 +106,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     const serverOptions = this.itemizeServerOptionsMemo(this.props.serverNames);
     const libraryOptions = this.itemizeLibraryOptionsMemo(this.props.libraries, this.props.preferencesData.excludedRandomLibraries, this.context.libraries);
     const platformOptions = this.itemizePlatformOptionsMemo(this.props.platforms, this.state.nativePlatforms);
+    const sources = this.renderSourcesMemo(this.state.sources);
     const appPathOverrides = this.renderAppPathOverridesMemo(this.props.preferencesData.appPathOverrides);
     const logoSetPreviewRows = this.renderLogoSetMemo(this.props.platforms, this.props.logoVersion);
     const extensions = this.renderExtensionsMemo(this.props.extensions, strings);
@@ -185,11 +194,14 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
               <ConfigBox
                 title={'Sources'}
                 description={'List of all sources providing on-demand game data'}>
-                <InputField
-                  text={this.state.newSourceUrl}
-                  editable={true}
-                  onChange={this.onNewSourceURLChange}
-                  onKeyDown={(event) => event.key === 'Enter' && this.onSubmitSourceURL()}/>
+                <div className='setting__row__header--sources'>
+                  <InputField
+                    text={this.state.newSourceUrl}
+                    editable={true}
+                    onChange={this.onNewSourceURLChange}
+                    onKeyDown={(event) => event.key === 'Enter' && this.onSubmitSourceURL()}/>
+                  {sources}
+                </div>
               </ConfigBox>
             </div>
           </div>
@@ -326,6 +338,40 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
         checked: nativePlatforms.includes(platform)
       };
     });
+  });
+
+  renderSourcesMemo = memoizeOne((sources?: Source[]) => {
+    if (sources) {
+      return sources.map(s => {
+        return (
+          <div
+            key={s.id}
+            className='setting__row__content--source-row'>
+            <div className='setting__row__content--source-row__name'>{s.name}</div>
+            <div
+              className='setting__row__content--source-row__count'>
+              {`${s.count} Data Packs`}
+            </div>
+            <div
+              onClick={() => this.submitSourceURL(s.sourceFileUrl)}>
+              <OpenIcon
+                className='setting__row__content--override-row__edit'
+                icon='data-transfer-download' />
+            </div>
+            <div
+              className='setting__row__content--remove-app-override'>
+              <OpenIcon
+                className='setting__row__content--override-row__delete'
+                icon='delete' />
+            </div>
+          </div>
+        );
+      });
+    } else {
+      return (
+        <p>{'...'}</p>
+      );
+    }
   });
 
   renderAppPathOverridesMemo = memoizeOne((appPathOverrides: AppPathOverride[]) => {
@@ -511,8 +557,21 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     this.setState({ newSourceUrl: event.target.value });
   }
 
-  onSubmitSourceURL = async () => {
-    const source = await window.Shared.back.request(BackIn.ADD_SOURCE_BY_URL, this.state.newSourceUrl);
+  onSubmitSourceURL = () => {
+    this.submitSourceURL(this.state.newSourceUrl);
+    this.setState({ newSourceUrl: '' });
+  }
+
+  submitSourceURL = async (url: string) => {
+    const source = await window.Shared.back.request(BackIn.ADD_SOURCE_BY_URL, url);
+    const newSources = [...(this.state.sources || [])];
+    const idx = newSources.findIndex(s => s.id === source.id);
+    if (idx > -1) {
+      newSources[idx] = source;
+    } else {
+      newSources.push(source);
+    }
+    this.setState({ sources: newSources });
   }
 
   onRemoveAppPathOverride = (index: number): void => {

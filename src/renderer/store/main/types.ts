@@ -111,6 +111,10 @@ export type MainState = {
   extConfig: AppExtConfigData;
   /** Services */
   services: IService[];
+  /** PLACEHOLDER - Download percent of Game */
+  downloadPercent: number;
+  downloadOpen: boolean;
+  downloadVerifying: boolean;
 }
 
 export type MainAction = {

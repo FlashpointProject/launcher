@@ -31,10 +31,13 @@ export enum BackIn {
   GET_EXEC,
   SAVE_GAME,
   GET_GAME,
+  GET_GAMES_GAME_DATA,
   GET_GAME_DATA,
   IMPORT_GAME_DATA,
+  DOWNLOAD_GAME_DATA,
   UNINSTALL_GAME_DATA,
   SAVE_GAME_DATAS,
+  GET_SOURCES,
   GET_SOURCE_DATA,
   GET_ALL_GAMES,
   RANDOM_GAMES,
@@ -159,6 +162,10 @@ export enum BackOut {
   RUN_COMMAND,
   UPLOAD_LOG,
   DEV_CONSOLE_CHANGE,
+  OPEN_ALERT,
+  SET_PLACEHOLDER_DOWNLOAD_PERCENT,
+  OPEN_PLACEHOLDER_DOWNLOAD_DIALOG,
+  CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG,
 }
 
 export type BackInTemplate = SocketTemplate<BackIn, {
@@ -166,8 +173,11 @@ export type BackInTemplate = SocketTemplate<BackIn, {
 
   [BackIn.INIT_LISTEN]: () => InitEventData;
   [BackIn.GET_SUGGESTIONS]: () => GetSuggestionsResponseData;
-  [BackIn.GET_GAME_DATA]: (gameId: string) => GameData[];
+  [BackIn.GET_GAMES_GAME_DATA]: (gameId: string) => GameData[];
+  [BackIn.GET_GAME_DATA]: (gameDataId: number) => GameData | undefined;
+  [BackIn.GET_SOURCES]: () => Source[];
   [BackIn.GET_SOURCE_DATA]: (hashes: string[]) => SourceData[];
+  [BackIn.DOWNLOAD_GAME_DATA]: (gameDataId: number) => void;
   [BackIn.UNINSTALL_GAME_DATA]: (id: number) => Game | undefined;
   [BackIn.IMPORT_GAME_DATA]: (gameId: string, path: string) => GameData;
   [BackIn.SAVE_GAME_DATAS]: (gameData: GameData[]) => void;
@@ -293,6 +303,10 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.RUN_COMMAND]: (data: RunCommandResponse) => void;
   [BackOut.UPLOAD_LOG]: (getUrl: string | undefined) => void;
   [BackOut.DEV_CONSOLE_CHANGE]: (text: string) => void;
+  [BackOut.OPEN_ALERT]: (text: string) => void;
+  [BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT]: (percent: number) => void;
+  [BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG]: () => void;
+  [BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG]: () => void;
 }>
 
 export type BackInitArgs = {

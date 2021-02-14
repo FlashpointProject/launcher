@@ -65,3 +65,12 @@ export function ProgressBar(props: ProgressComponentProps) {
     </div>
   );
 }
+
+export const placeholderProgressData: ProgressData = {
+  key: '',
+  itemCount: 0,
+  totalItems: 0,
+  percentDone: 0,
+  usePercentDone: true,
+  isDone: false
+};

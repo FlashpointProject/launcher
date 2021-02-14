@@ -2132,6 +2132,21 @@ body {
   width: 4rem;
   margin-right: 0.5rem; 
 }
+.setting__row__header--sources {
+  margin-left: 1rem;
+}
+.setting__row__content--source-row {
+  display: flex;
+  width: 100%;
+}
+.setting__row__content--source-row__name {
+  flex-grow: 1;
+  text-align: left;
+}
+.setting__row__content--source-row__count {
+  font-style: italic;
+  margin-right: 0.5rem;
+}
 
 /** ----- Progress Components ------ **/
 /* Wrapper (all components) */
@@ -2369,4 +2384,13 @@ body {
 
 .game-data-browser__buttons {
   margin-top: 0.4rem;
+}
+
+/** PLACEHOLDER */
+.placeholder-download-bar--title {
+  font-size: 3rem;
+  font-weight: bold;
+}
+.placeholder-download-bar__wrapper {
+  min-width: 25rem;
 }

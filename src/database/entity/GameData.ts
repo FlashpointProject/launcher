@@ -12,7 +12,7 @@ export class GameData {
   game?: Game;
 
   @Column({ nullable: true })
-  gameId?: string;
+  gameId: string;
 
   @Column({collation: 'NOCASE'})
   /** Title of this data pack */

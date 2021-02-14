@@ -19,6 +19,7 @@ import { defaultPreferencesData, overwritePreferenceData } from '@shared/prefere
 import { deepCopy } from '@shared/Util';
 import { formatString } from '@shared/utils/StringFormatter';
 import * as axiosImport from 'axios';
+import { GameData } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import { ensureDir } from 'fs-extra';
 import * as path from 'path';
@@ -188,6 +189,32 @@ export function registerRequestCallbacks(state: BackState): void {
   state.socketServer.register(BackIn.LAUNCH_ADDAPP, async (event, id) => {
     const addApp = await GameManager.findAddApp(id);
     if (addApp) {
+      // If it has GameData, make sure it's present
+      let gameData: GameData | undefined;
+      if (addApp.parentGame.activeDataId) {
+        gameData = await GameDataManager.findOne(addApp.parentGame.activeDataId);
+        if (gameData && !gameData.presentOnDisk) {
+          // Download GameData
+          const onProgress = (percent: number) => {
+            // Sent to PLACEHOLDER download dialog on client
+            state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT, percent);
+          };
+          state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
+          try {
+            await GameDataManager.downloadGameData(gameData.id, path.join(state.config.flashpointPath, state.config.dataPacksFolderPath), onProgress)
+            .finally(() => {
+              // Close PLACEHOLDER download dialog on client, cosmetic delay to look nice
+              setTimeout(() => {
+                state.socketServer.broadcast(BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG);
+              }, 250);
+            });
+          } catch (error) {
+            state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
+            log.info('Game Launcher', `Game Launch Aborted: ${error}`);
+            return;
+          }
+        }
+      }
       await state.apiEmitters.games.onWillLaunchAddApp.fire(addApp);
       const platform = addApp.parentGame ? addApp.parentGame : '';
       GameLauncher.launchAdditionalApplication({
@@ -222,6 +249,32 @@ export function registerRequestCallbacks(state: BackState): void {
           // Server is different, change now
           if (server) { await removeService(state, 'server'); }
           runService(state, 'server', 'Server', state.config.flashpointPath, {}, configServer);
+        }
+      }
+      // If it has GameData, make sure it's present
+      let gameData: GameData | undefined;
+      if (game.activeDataId) {
+        gameData = await GameDataManager.findOne(game.activeDataId);
+        if (gameData && !gameData.presentOnDisk) {
+          // Download GameData
+          const onProgress = (percent: number) => {
+            // Sent to PLACEHOLDER download dialog on client
+            state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT, percent);
+          };
+          state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
+          try {
+            await GameDataManager.downloadGameData(gameData.id, path.join(state.config.flashpointPath, state.config.dataPacksFolderPath), onProgress)
+            .finally(() => {
+              // Close PLACEHOLDER download dialog on client, cosmetic delay to look nice
+              setTimeout(() => {
+                state.socketServer.broadcast(BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG);
+              }, 250);
+            });
+          } catch (error) {
+            state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
+            log.info('Game Launcher', `Game Launch Aborted: ${error}`);
+            return;
+          }
         }
       }
       // Launch game
@@ -420,19 +473,48 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.GET_GAME, async (event, id) => {
-    return await GameManager.findGame(id);
+    return GameManager.findGame(id);
   });
 
   state.socketServer.register(BackIn.GET_GAME_DATA, async (event, id) => {
-    return await GameDataManager.findGameData(id);
+    return GameDataManager.findOne(id);
+  });
+
+  state.socketServer.register(BackIn.GET_GAMES_GAME_DATA, async (event, id) => {
+    return GameDataManager.findGameData(id);
   });
 
   state.socketServer.register(BackIn.SAVE_GAME_DATAS, async (event, data) => {
-    await Promise.all(data.map(d => GameDataManager.save(d)));
+    // Ignore presentOnDisk, client isn't the most aware
+    await Promise.all(data.map(async (d) => {
+      const existingData = await GameDataManager.findOne(d.id);
+      if (existingData) {
+        existingData.title = d.title;
+        return GameDataManager.save(existingData);
+      }
+    }));
   });
 
   state.socketServer.register(BackIn.IMPORT_GAME_DATA, async (event, gameId, filePath) => {
     return GameDataManager.importGameData(gameId, filePath, path.join(state.config.flashpointPath, state.config.dataPacksFolderPath));
+  });
+
+  state.socketServer.register(BackIn.DOWNLOAD_GAME_DATA, async (event, gameDataId) => {
+    const onProgress = (percent: number) => {
+      // Sent to PLACEHOLDER download dialog on client
+      state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT, percent);
+    };
+    state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
+    await GameDataManager.downloadGameData(gameDataId, path.join(state.config.flashpointPath, state.config.dataPacksFolderPath), onProgress)
+    .catch((error) => {
+      state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
+    })
+    .finally(() => {
+      // Close PLACEHOLDER download dialog on client, cosmetic delay to look nice
+      setTimeout(() => {
+        state.socketServer.broadcast(BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG);
+      }, 250);
+    });
   });
 
   state.socketServer.register(BackIn.UNINSTALL_GAME_DATA, async (event, id) => {
@@ -459,6 +541,10 @@ export function registerRequestCallbacks(state: BackState): void {
     return SourceManager.importFromURL(url.trim(), sourceDir, (percent) => {
       log.debug('Launcher', `Progress: ${percent * 100}%`);
     });
+  });
+
+  state.socketServer.register(BackIn.GET_SOURCES, async (event) => {
+    return SourceManager.find();
   });
 
   state.socketServer.register(BackIn.GET_SOURCE_DATA, async (event, hashes) => {

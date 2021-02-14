@@ -1,5 +1,7 @@
+import { chunkArray } from '@back/util/misc';
+import { Source } from '@database/entity/Source';
 import { SourceData } from '@database/entity/SourceData';
-import { getManager } from 'typeorm';
+import { DeleteResult, getManager } from 'typeorm';
 
 export function findBySource(sourceId: number): Promise<SourceData[]> {
   const sourceDataRepository = getManager().getRepository(SourceData);
@@ -37,4 +39,20 @@ export function countBySource(sourceId: number): Promise<number> {
       sourceId
     }
   });
+}
+
+export async function clearSource(sourceId: number): Promise<void> {
+  const sourceDataRepository = getManager().getRepository(SourceData);
+  await sourceDataRepository.delete({ sourceId });
+}
+
+export async function updateData(sourceData: SourceData[]): Promise<void> {
+  const chunks = chunkArray(sourceData, 2000);
+  for (const chunk of chunks) {
+    await getManager().transaction(async transEntityManager => {
+      for (const sd of chunk) {
+        await transEntityManager.save(SourceData, sd);
+      }
+    });
+  }
 }

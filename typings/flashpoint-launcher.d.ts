@@ -216,7 +216,12 @@ declare module 'flashpoint-launcher' {
         function findSourceDataForHashes(hashes: string[]): Promise<SourceData[]>;
         function save(gameData: GameData): Promise<GameData>;
         function importGameData(gameId: string, filePath: string): Promise<GameData>;
+        function downloadGameData(gameDataId: number): Promise<void>;
         const onDidImportGameData: Event<GameData>;
+    }
+
+    namespace sources {
+        function findOne(sourceId: number): Promise<Source | undefined>;
     }
 
     /** Collection of Tag related API functions */
@@ -491,7 +496,7 @@ declare module 'flashpoint-launcher' {
         id: number;
         /** ID of the related game */
         game?: Game;
-        gameId?: string;
+        gameId: string;
         /** Title of this data pack */
         title: string;
         /** Date this data pack was added on */
@@ -769,6 +774,8 @@ declare module 'flashpoint-launcher' {
         metaEditsFolderPath: string;
         /** Path to load User extensions from (relative to the flashpoint path) */
         extensionsPath: string;
+        /** Path to store Game Data packs */
+        dataPacksFolderPath: string;
         /** If the custom title bar should be used in MainWindow */
         useCustomTitlebar: boolean;
         /**

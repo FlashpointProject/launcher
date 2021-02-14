@@ -6,7 +6,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { Paths } from './Paths';
+import * as axiosImport from 'axios';
 import { ViewQuery } from './store/main/types';
+import { throttle } from '@shared/utils/throttle';
+
+const axios = axiosImport.default;
 
 export const gameIdDataType = 'text/game-id';
 
@@ -291,4 +295,37 @@ export function getBrowseSubPath(urlPath: string): string {
     return str;
   }
   return '';
+}
+
+export async function downloadFile(url: string, filePath: string, onProgress?: (percent: number) => void): Promise<number> {
+  try {
+    const res = await axios.get(url, {
+      responseType: 'stream'
+    });
+    let progress = 0;
+    const contentLength = res.headers['content-length'];
+    const progressThrottle = onProgress && throttle(onProgress, 200);
+    const fileStream = fs.createWriteStream(filePath);
+    return new Promise<number>((resolve, reject) => {
+      fileStream.on('close', () => {
+        resolve(res.status);
+      });
+      res.data.on('end', () => {
+        fileStream.close();
+        onProgress && onProgress(100);
+      });
+      res.data.on('data', (chunk: any) => {
+        progress = progress + chunk.length;
+        progressThrottle && progressThrottle((progress / contentLength) * 100);
+        fileStream.write(chunk);
+      });
+      res.data.on('error', async () => {
+        fileStream.close();
+        await fs.promises.unlink(filePath);
+        reject(res.status);
+      });
+    });
+  } catch (error) {
+    throw `Error opening Axios request. Do you have internet access?: ${error}`;
+  }
 }

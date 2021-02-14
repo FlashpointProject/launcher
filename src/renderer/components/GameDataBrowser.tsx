@@ -49,7 +49,7 @@ export class GameDataBrowser extends React.Component<GameDataBrowserProps, GameD
 
   async componentDidMount() {
     /** Get all data packs */
-    const gameData = await window.Shared.back.request(BackIn.GET_GAME_DATA, this.props.game.id);
+    const gameData = await window.Shared.back.request(BackIn.GET_GAMES_GAME_DATA, this.props.game.id);
     const sourceData = await window.Shared.back.request(BackIn.GET_SOURCE_DATA, gameData.map(gData => gData.sha256));
     const pairedData = gameData.map(gData => new GameDataPaired(gData, sourceData.filter(s => s.sha256 === gData.sha256)));
     this.setState({
@@ -102,6 +102,18 @@ export class GameDataBrowser extends React.Component<GameDataBrowserProps, GameD
     this.setState({ pairedData: newData });
   }
 
+  updateGameData = async (id: number) => {
+    const gameData = await window.Shared.back.request(BackIn.GET_GAME_DATA, id);
+    if (gameData) {
+      const newData = [...this.state.pairedData];
+      const idx = newData.findIndex(pd => pd.id === gameData.id);
+      if (idx > -1) {
+        newData[idx] = {...newData[idx], ...gameData, title: newData[idx].title };
+        this.setState({ pairedData: newData });
+      }
+    }
+  }
+
   render() {
     const dataInfoMemo = memoizeOne((data) => {
       return this.state.pairedData.map((data, index) => {
@@ -130,13 +142,14 @@ export class GameDataBrowser extends React.Component<GameDataBrowserProps, GameD
               newDatas[index].presentOnDisk = false;
               newDatas[index].path = undefined;
               this.setState({ pairedData: newDatas });
-            }} />
+            }}
+            update={() => this.updateGameData(data.id) }/>
         );
       });
     });
 
     return (
-      <FloatingContainer >
+      <FloatingContainer>
         { this.state.dataFetched ? (
           <>
             <div className='game-data-browser__cross'

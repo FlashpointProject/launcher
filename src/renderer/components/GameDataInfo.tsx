@@ -1,4 +1,5 @@
 import { SourceData } from '@database/entity/SourceData';
+import { BackIn } from '@shared/back/types';
 import { sizeToString } from '@shared/Util';
 import { GameData } from 'flashpoint-launcher';
 import * as React from 'react';
@@ -14,6 +15,7 @@ export type GameDataInfoProps = {
   onActiveToggle: () => void;
   onUninstall: () => void;
   onUpdateTitle: (title: string) => void;
+  update: () => void;
 }
 
 export function GameDataInfo(props: GameDataInfoProps) {
@@ -41,6 +43,12 @@ export function GameDataInfo(props: GameDataInfoProps) {
               onClick={props.onUninstall}/>
           ) : ( props.sourceData.length > 0 ? (
             <SimpleButton
+              onClick={() => {
+                window.Shared.back.request(BackIn.DOWNLOAD_GAME_DATA, props.data.id)
+                .then(() => {
+                  props.update();
+                });
+              }}
               value='Download'/>
           ) :
             <SimpleButton

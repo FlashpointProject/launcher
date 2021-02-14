@@ -10,6 +10,11 @@ import * as path from 'path';
 import * as readline from 'readline';
 import { getManager } from 'typeorm';
 
+export function find(): Promise<Source[]> {
+  const sourceRepository = getManager().getRepository(Source);
+  return sourceRepository.find();
+}
+
 export function findOne(sourceId: number): Promise<Source | undefined> {
   const sourceRepository = getManager().getRepository(Source);
   return sourceRepository.findOne(sourceId);
@@ -59,25 +64,41 @@ export async function importFromURL(url: string, saveDir: string, onProgress?: (
       source.sourceFileUrl = url;
       source.count = -1;
       source = await SourceManager.save(source);
+      // Clear old SourceData
+      log.debug('Launcher', 'Clearing old SourceData...');
+      await SourceDataManager.clearSource(source.id);
+      log.debug('Launcher', 'Loading new Source file...');
       // Parse Source file
-      const readStream = fs.createReadStream(filePath);
+      const readStream = fs.createReadStream(filePath, { encoding: 'utf8' });
       const rl = readline.createInterface({
         input: readStream
       });
       let hash: string | undefined = undefined;
+      log.debug('Launcher', 'Reading Source file into DB');
+      let sdBuffer: SourceData[] = [];
       for await (const line of rl) {
         if (hash) {
-          const sourceData = (await SourceDataManager.findSourceHash(source.id, hash)) ||  new SourceData();
+          const sourceData = new SourceData();
           sourceData.sha256 = hash;
           sourceData.sourceId = source.id;
           sourceData.urlPath = line;
-          SourceDataManager.save(sourceData);
+          sdBuffer.push(sourceData);
+          if (sdBuffer.length > 2000) {
+            // Push a transaction when 500 stored
+            await SourceDataManager.updateData(sdBuffer);
+            sdBuffer = [];
+          }
           hash = undefined;
         } else {
           hash = line;
         }
       }
+      if (sdBuffer.length > 0) {
+        await SourceDataManager.updateData(sdBuffer);
+      }
+      log.info('Launcher', 'Updated Source.');
       source.count = await SourceDataManager.countBySource(source.id);
+      log.info('Launcher', `Found ${source.count} Data Packs.`);
       resolve(await SourceManager.save(source));
     });
     res.data.on('data', (chunk: any) => {
