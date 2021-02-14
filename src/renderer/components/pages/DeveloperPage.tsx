@@ -212,7 +212,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
 
   onCheckFileLocation = async (): Promise<void> => {
     const res = await fetchAllGames();
-    this.setState({ text: checkFileLocation(res) });
+    this.setState({ text: await checkFileLocation(res) });
   }
 
   onCheckMissingExecMappings = async (): Promise<void> => {
@@ -666,7 +666,7 @@ function checkDupes<T>(array: T[], fn: (element: T) => string): { [key: string]:
   return clean;
 }
 
-function checkFileLocation(games: Game[]): string {
+async function checkFileLocation(games: Game[]): Promise<string> {
   const timeStart = Date.now(); // Start timing
   const pathFailed: Game[] = []; // (Games that it failed to get the path from)
   const pathError: [ Game, Error ][] = []; // (Games that it threw an error while attempting to get the path)
@@ -676,7 +676,7 @@ function checkFileLocation(games: Game[]): string {
     if (game.broken) { skippedCount += 1; }
     else {
       try {
-        const gamePath = getGamePath(game, window.Shared.config.fullFlashpointPath, window.Shared.config.data.htdocsFolderPath);
+        const gamePath = await getGamePath(game, window.Shared.config.fullFlashpointPath, window.Shared.config.data.htdocsFolderPath, window.Shared.config.data.dataPacksFolderPath);
         if (gamePath === undefined) { pathFailed.push(game); }
       } catch (error) {
         pathError.push([ game, error ]);

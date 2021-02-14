@@ -371,36 +371,44 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         enabled: !window.Shared.isBackRemote, // (Local "back" only)
         click: () => {
           window.Shared.back.request(BackIn.GET_GAME, gameId)
-          .then(game => {
+          .then(async (game) => {
             if (game) {
-              const gamePath = getGamePath(game, window.Shared.config.fullFlashpointPath, window.Shared.config.data.htdocsFolderPath);
-              if (gamePath) {
-                fs.stat(gamePath, error => {
-                  if (!error) { remote.shell.showItemInFolder(gamePath); }
-                  else {
-                    const opts: Electron.MessageBoxOptions = {
-                      type: 'warning',
-                      message: '',
-                      buttons: ['Ok'],
-                    };
-                    if (error.code === 'ENOENT') {
-                      opts.title = this.context.dialog.fileNotFound;
-                      opts.message = (
-                        'Failed to find the game file.\n'+
-                        'If you are using Flashpoint Infinity, make sure you download the game first.\n'
-                      );
-                    } else {
-                      opts.title = 'Unexpected error';
-                      opts.message = (
-                        'Failed to check the game file.\n'+
-                        'If you see this, please report it back to us (a screenshot would be great)!\n\n'+
-                        `Error: ${error}\n`
-                      );
-                    }
-                    opts.message += `Path: "${gamePath}"\n\nNote: If the path is too long, some portion will be replaced with three dots ("...").`;
-                    remote.dialog.showMessageBox(opts);
-                  }
-                });
+              const gamePath = await getGamePath(game, window.Shared.config.fullFlashpointPath, window.Shared.config.data.htdocsFolderPath, window.Shared.config.data.dataPacksFolderPath);
+              try {
+                if (gamePath) {
+                  await fs.promises.stat(gamePath);
+                  remote.shell.showItemInFolder(gamePath);
+                } else {
+                  const opts: Electron.MessageBoxOptions = {
+                    type: 'warning',
+                    message: 'GameData has not been downloaded yet, cannot open the file location!',
+                    buttons: ['Ok'],
+                  };
+                  remote.dialog.showMessageBox(opts);
+                  return;
+                }
+              } catch (error) {
+                const opts: Electron.MessageBoxOptions = {
+                  type: 'warning',
+                  message: '',
+                  buttons: ['Ok'],
+                };
+                if (error.code === 'ENOENT') {
+                  opts.title = this.context.dialog.fileNotFound;
+                  opts.message = (
+                    'Failed to find the game file.\n'+
+                    'If you are using Flashpoint Infinity, make sure you download the game first.\n'
+                  );
+                } else {
+                  opts.title = 'Unexpected error';
+                  opts.message = (
+                    'Failed to check the game file.\n'+
+                    'If you see this, please report it back to us (a screenshot would be great)!\n\n'+
+                    `Error: ${error}\n`
+                  );
+                }
+                opts.message += `Path: "${gamePath}"\n\nNote: If the path is too long, some portion will be replaced with three dots ("...").`;
+                remote.dialog.showMessageBox(opts);
               }
             }
           });

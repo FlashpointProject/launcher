@@ -1,5 +1,5 @@
 import { Game } from '@database/entity/Game';
-import { DownloadDetails } from '@shared/back/types';
+import { BackIn, DownloadDetails } from '@shared/back/types';
 import { parseSearchText } from '@shared/game/GameFilter';
 import { getFileServerURL } from '@shared/Util';
 import { throttle } from '@shared/utils/throttle';
@@ -128,7 +128,16 @@ export function getGameImagePath(folderName: string, gameId: string): string {
 type IGamePathInfo = Pick<Game, 'platform' | 'launchCommand'>;
 
 /* istanbul ignore next */
-export function getGamePath(game: IGamePathInfo, fpPath: string, htdocsPath: string): string | undefined {
+export async function getGamePath(game: Game, fpPath: string, htdocsPath: string, dataPacksPath: string): Promise<string | undefined> {
+  // Check for GameData first
+  if (game.activeDataId) {
+    const gameData = await window.Shared.back.request(BackIn.GET_GAME_DATA, game.activeDataId);
+    if (gameData && gameData.path) {
+      return path.resolve(fpPath, dataPacksPath, gameData.path);
+    } else {
+      return undefined;
+    }
+  }
   // @TODO Because some strings can be interpreted as different paths/URLs, maybe this should return an array
   //       of strings with all the possible paths of the "main" file?
   //       Example: Some web server files are stored in "Server/htdocs" while other are stored in "Server/cgi-bin".
