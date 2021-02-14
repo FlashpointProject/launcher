@@ -33,6 +33,7 @@ export enum BackIn {
   GET_GAME,
   GET_GAMES_GAME_DATA,
   GET_GAME_DATA,
+  DELETE_GAME_DATA,
   IMPORT_GAME_DATA,
   DOWNLOAD_GAME_DATA,
   UNINSTALL_GAME_DATA,
@@ -176,6 +177,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.GET_SUGGESTIONS]: () => GetSuggestionsResponseData;
   [BackIn.GET_GAMES_GAME_DATA]: (gameId: string) => GameData[];
   [BackIn.GET_GAME_DATA]: (gameDataId: number) => GameData | undefined;
+  [BackIn.DELETE_GAME_DATA]: (gameDataId: number) => void;
   [BackIn.GET_SOURCES]: () => Source[];
   [BackIn.GET_SOURCE_DATA]: (hashes: string[]) => SourceData[];
   [BackIn.DOWNLOAD_GAME_DATA]: (gameDataId: number) => void;

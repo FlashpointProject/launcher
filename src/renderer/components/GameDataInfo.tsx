@@ -16,6 +16,7 @@ export type GameDataInfoProps = {
   onUninstall: () => void;
   onUpdateTitle: (title: string) => void;
   update: () => void;
+  delete: () => void;
 }
 
 export function GameDataInfo(props: GameDataInfoProps) {
@@ -55,6 +56,9 @@ export function GameDataInfo(props: GameDataInfoProps) {
               disabled={true}
               value='Unavailable'/>
           )}
+          <SimpleButton
+            onClick={props.delete}
+            value='Delete'/>
         </div>
       </div>
       <table className='curate-box-table game-data-info__table'>

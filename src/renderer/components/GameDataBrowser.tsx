@@ -31,7 +31,7 @@ export type GameDataBrowserProps = {
   game: Game;
   onClose: () => void;
   onEditGame: (game: Partial<Game>) => void;
-  onUpdateActiveGameData: (activeDataId: number, activeDataOnDisk: boolean) => void;
+  onUpdateActiveGameData: (activeDataOnDisk: boolean, activeDataId?: number) => void;
 }
 
 export interface GameDataBrowser {
@@ -78,7 +78,7 @@ export class GameDataBrowser extends React.Component<GameDataBrowserProps, GameD
         if (existingIndex === -1) {
           const sourceData = await window.Shared.back.request(BackIn.GET_SOURCE_DATA, [gameData.sha256]);
           newData.push(new GameDataPaired(gameData, sourceData));
-          this.props.onUpdateActiveGameData(gameData.id,  gameData.presentOnDisk);
+          this.props.onUpdateActiveGameData(gameData.presentOnDisk, gameData.id);
         } else {
           newData[existingIndex] = new GameDataPaired(gameData, newData[existingIndex].sourceData);
         }
@@ -112,6 +112,19 @@ export class GameDataBrowser extends React.Component<GameDataBrowserProps, GameD
     }
   }
 
+  deleteGameData = async (id: number) => {
+    await window.Shared.back.request(BackIn.DELETE_GAME_DATA, id);
+    if (this.props.game.activeDataId === id) {
+      this.props.onUpdateActiveGameData(false);
+    }
+    const newPairedData = [...this.state.pairedData];
+    const idx = newPairedData.findIndex(pr => pr.id === id);
+    if (idx > -1) {
+      newPairedData.splice(idx, 1);
+      this.setState({ pairedData: newPairedData });
+    }
+  }
+
   render() {
     const dataInfoMemo = memoizeOne((data) => {
       return this.state.pairedData.map((data, index) => {
@@ -123,7 +136,7 @@ export class GameDataBrowser extends React.Component<GameDataBrowserProps, GameD
             active={data.id === this.props.game.activeDataId}
             onUpdateTitle={(title) => this.onUpdateTitle(index, title)}
             onActiveToggle={() => {
-              this.props.onUpdateActiveGameData(data.id, data.presentOnDisk);
+              this.props.onUpdateActiveGameData(data.presentOnDisk, data.id);
             }}
             onUninstall={async () => {
               const game = await window.Shared.back.request(BackIn.UNINSTALL_GAME_DATA, data.id);
@@ -138,7 +151,8 @@ export class GameDataBrowser extends React.Component<GameDataBrowserProps, GameD
               newDatas[index].path = undefined;
               this.setState({ pairedData: newDatas });
             }}
-            update={() => this.updateGameData(data.id) }/>
+            update={() => this.updateGameData(data.id)}
+            delete={() => this.deleteGameData(data.id)}/>
         );
       });
     });

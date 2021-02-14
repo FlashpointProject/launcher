@@ -63,7 +63,7 @@ type OwnProps = {
   onSaveGame: () => void;
 
   onEditGame: (game: Partial<Game>) => void;
-  onUpdateActiveGameData: (activeDataId: number, activeDataOnDisk: boolean) => void;
+  onUpdateActiveGameData: (activeDataOnDisk: boolean, activeDataId?: number) => void;
 };
 
 export type RightBrowseSidebarProps = OwnProps & WithPreferencesProps & WithSearchProps;

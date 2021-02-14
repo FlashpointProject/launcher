@@ -677,7 +677,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     this.focusGameGridOrList();
   }
 
-  onUpdateActiveGameData = (activeDataId: number, activeDataOnDisk: boolean): void => {
+  onUpdateActiveGameData = (activeDataOnDisk: boolean, activeDataId?: number): void => {
     if (this.state.currentGame) {
       window.Shared.back.request(BackIn.SAVE_GAME, {...this.state.currentGame, activeDataOnDisk, activeDataId })
       .then(() => {

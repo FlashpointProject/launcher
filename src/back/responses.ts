@@ -1,5 +1,6 @@
 import * as SourceManager from '@back/game/SourceManager';
 import { Game } from '@database/entity/Game';
+import { GameData } from '@database/entity/GameData';
 import { Playlist } from '@database/entity/Playlist';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
@@ -19,7 +20,6 @@ import { defaultPreferencesData, overwritePreferenceData } from '@shared/prefere
 import { deepCopy } from '@shared/Util';
 import { formatString } from '@shared/utils/StringFormatter';
 import * as axiosImport from 'axios';
-import { GameData } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import { ensureDir } from 'fs-extra';
 import * as path from 'path';
@@ -497,6 +497,23 @@ export function registerRequestCallbacks(state: BackState): void {
         return GameDataManager.save(existingData);
       }
     }));
+  });
+
+  state.socketServer.register(BackIn.DELETE_GAME_DATA, async (event, gameDataId) => {
+    const gameData = await GameDataManager.findOne(gameDataId);
+    await GameDataManager.remove(gameDataId);
+    if (gameData) {
+      if (gameData.presentOnDisk && gameData.path) {
+        const gameDataPath = path.join(state.config.flashpointPath, state.config.dataPacksFolderPath, gameData.path);
+        await fs.promises.unlink(gameDataPath);
+      }
+      const game = await GameManager.findGame(gameData.gameId);
+      if (game) {
+        game.activeDataId = undefined;
+        game.activeDataOnDisk = false;
+        await GameManager.updateGame(game);
+      }
+    }
   });
 
   state.socketServer.register(BackIn.IMPORT_GAME_DATA, async (event, gameId, filePath) => {
