@@ -835,7 +835,7 @@ export class App extends React.Component<AppProps> {
     window.Shared.back.request(BackIn.SAVE_GAME, game)
     .then(async () => {
       if (playlistEntry) {
-        await window.Shared.back.send(BackIn.SAVE_PLAYLIST_GAME, playlistEntry);
+        window.Shared.back.send(BackIn.SAVE_PLAYLIST_GAME, playlistEntry);
       }
     })
     .then(() => { this.setViewQuery(game.library); });

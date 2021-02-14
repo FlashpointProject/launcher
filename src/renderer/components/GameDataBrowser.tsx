@@ -31,6 +31,7 @@ export type GameDataBrowserProps = {
   game: Game;
   onClose: () => void;
   onEditGame: (game: Partial<Game>) => void;
+  onUpdateActiveGameData: (activeDataId: number, activeDataOnDisk: boolean) => void;
 }
 
 export interface GameDataBrowser {
@@ -77,10 +78,7 @@ export class GameDataBrowser extends React.Component<GameDataBrowserProps, GameD
         if (existingIndex === -1) {
           const sourceData = await window.Shared.back.request(BackIn.GET_SOURCE_DATA, [gameData.sha256]);
           newData.push(new GameDataPaired(gameData, sourceData));
-          this.props.onEditGame({
-            activeDataId: gameData.id,
-            activeDataOnDisk: gameData.presentOnDisk
-          });
+          this.props.onUpdateActiveGameData(gameData.id,  gameData.presentOnDisk);
         } else {
           newData[existingIndex] = new GameDataPaired(gameData, newData[existingIndex].sourceData);
         }
@@ -125,10 +123,7 @@ export class GameDataBrowser extends React.Component<GameDataBrowserProps, GameD
             active={data.id === this.props.game.activeDataId}
             onUpdateTitle={(title) => this.onUpdateTitle(index, title)}
             onActiveToggle={() => {
-              this.props.onEditGame({
-                activeDataId: data.id,
-                activeDataOnDisk: data.presentOnDisk
-              });
+              this.props.onUpdateActiveGameData(data.id, data.presentOnDisk);
             }}
             onUninstall={async () => {
               const game = await window.Shared.back.request(BackIn.UNINSTALL_GAME_DATA, data.id);

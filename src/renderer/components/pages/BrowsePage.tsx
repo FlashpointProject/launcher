@@ -282,6 +282,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             isEditing={this.state.isEditingGame}
             isNewGame={this.state.isNewGame}
             onEditGame={this.onEditGame}
+            onUpdateActiveGameData={this.onUpdateActiveGameData}
             onEditClick={this.onStartEditClick}
             onDiscardClick={this.onDiscardEditClick}
             onSaveGame={this.onSaveEditClick}
@@ -605,6 +606,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   onEditGame = (game: Partial<Game>) => {
+    log.debug('Launcher', `Editing: ${JSON.stringify(game)}`);
     if (this.state.currentGame) {
       this.setState({
         currentGame: {...this.state.currentGame, ...game}
@@ -673,6 +675,17 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       isNewGame: false
     });
     this.focusGameGridOrList();
+  }
+
+  onUpdateActiveGameData = (activeDataId: number, activeDataOnDisk: boolean): void => {
+    if (this.state.currentGame) {
+      window.Shared.back.request(BackIn.SAVE_GAME, {...this.state.currentGame, activeDataOnDisk, activeDataId })
+      .then(() => {
+        if (this.state.currentGame) {
+          this.setState({ currentGame: {...this.state.currentGame, activeDataOnDisk, activeDataId }});
+        }
+      });
+    }
   }
 
   /** Create a new game if the "New Game" button was clicked */

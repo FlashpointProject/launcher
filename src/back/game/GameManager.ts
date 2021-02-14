@@ -12,7 +12,10 @@ import { VIEW_PAGE_SIZE } from '@shared/constants';
 import { FilterGameOpts } from '@shared/game/GameFilter';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { Coerce } from '@shared/utils/Coerce';
+import * as fs from 'fs';
+import * as path from 'path';
 import { Brackets, FindOneOptions, getManager, SelectQueryBuilder } from 'typeorm';
+import * as GameDataManager from './GameDataManager';
 
 const exactFields = [ 'broken', 'extreme', 'library', 'activeDataOnDisk' ];
 enum flatGameFields {
@@ -269,14 +272,23 @@ export async function updateGame(game: Game): Promise<Game> {
   return savedGame;
 }
 
-export async function removeGameAndAddApps(gameId: string): Promise<Game | undefined> {
+export async function removeGameAndAddApps(gameId: string, dataPacksFolderPath: string): Promise<Game | undefined> {
   const gameRepository = getManager().getRepository(Game);
   const addAppRepository = getManager().getRepository(AdditionalApp);
   const game = await findGame(gameId);
   if (game) {
+    // Delete GameData
+    for (const gameData of (await GameDataManager.findGameData(game.id))) {
+      if (gameData.presentOnDisk && gameData.path) {
+        await fs.promises.unlink(path.join(dataPacksFolderPath, gameData.path));
+      }
+      await GameDataManager.remove(gameData.id);
+    }
+    // Delete Add Apps
     for (const addApp of game.addApps) {
       await addAppRepository.remove(addApp);
     }
+    // Delete Game
     await gameRepository.remove(game);
     onDidRemoveGame.fire(game);
   }

@@ -62,6 +62,7 @@ type OwnProps = {
   onSaveGame: () => void;
 
   onEditGame: (game: Partial<Game>) => void;
+  onUpdateActiveGameData: (activeDataId: number, activeDataOnDisk: boolean) => void;
 };
 
 export type RightBrowseSidebarProps = OwnProps & WithPreferencesProps & WithSearchProps;
@@ -623,7 +624,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
               onEditGame={(game) => {
                 this.props.onEditGame(game);
                 this.props.onSaveGame();
-              }} />
+              }}
+              onUpdateActiveGameData={this.props.onUpdateActiveGameData} />
           )}
         </div>
       );

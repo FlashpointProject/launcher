@@ -10,16 +10,14 @@ import * as SourceManager from './SourceManager';
 
 export async function downloadGameData(gameDataId: number, dataPacksFolderPath: string, onProgress?: (percent: number) => void): Promise<void> {
   const gameData = await findOne(gameDataId);
-  console.log('fetching gamedata');
   if (gameData) {
     if (gameData.presentOnDisk) { return; }
-    console.log('fetching sourcedata');
     // GameData real, check each source that's available
     const sourceData = await findSourceDataForHashes([gameData.sha256]);
+    log.debug('Game Launcher', `Found ${sourceData.length} Sources for this GameData, trying each...`);
     for (const sd of sourceData) {
       const source = await SourceManager.findOne(sd.sourceId);
       if (source) {
-        console.log(`trying ${source.name}`);
         const fullUrl = new URL(sd.urlPath, source?.baseUrl).href;
         const tempPath = path.join(dataPacksFolderPath, `${gameData.gameId}-${gameData.dateAdded.getTime()}.zip.temp`);
         try {
@@ -36,7 +34,6 @@ export async function downloadGameData(gameDataId: number, dataPacksFolderPath: 
                 reject('Hash of download does not match! Download aborted.');
               } else {
                 await importGameDataSkipHash(gameData.gameId, tempPath, dataPacksFolderPath, sha256);
-                console.log('imported, cleaning up');
                 await fs.promises.unlink(tempPath);
                 resolve();
               }
@@ -77,6 +74,11 @@ export function findSourceDataForHashes(hashes: string[]): Promise<SourceData[]>
 export function save(gameData: GameData): Promise<GameData> {
   const gameDataRepository = getManager().getRepository(GameData);
   return gameDataRepository.save(gameData);
+}
+
+export async function remove(gameDataId: number): Promise<void> {
+  const gameDataRepository = getManager().getRepository(GameData);
+  await gameDataRepository.delete({ id: gameDataId });
 }
 
 export async function importGameDataSkipHash(gameId: string, filePath: string, dataPacksFolderPath: string, sha256: string): Promise<GameData> {
@@ -159,6 +161,7 @@ export function importGameData(gameId: string, filePath: string, dataPacksFolder
             if (game) {
               game.activeDataId = gameData.id;
               game.activeDataOnDisk = gameData.presentOnDisk;
+              await GameManager.updateGame(game);
               resolve(gameData);
             }
           })

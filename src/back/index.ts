@@ -256,8 +256,17 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   state.config = conf;
   state.extConfig = extConf;
 
-  // Create Game Data Directory
-  await fs.promises.mkdir(path.join(state.config.flashpointPath, state.config.dataPacksFolderPath), { recursive: true });
+  // Create Game Data Directory and clean up temp files
+  const fullDataPacksFolderPath = path.join(state.config.flashpointPath, state.config.dataPacksFolderPath);
+  await fs.promises.mkdir(fullDataPacksFolderPath, { recursive: true });
+  fs.promises.readdir(fullDataPacksFolderPath)
+  .then((files) => {
+    for (const f of files) {
+      if (f.endsWith('.temp')) {
+        fs.promises.unlink(path.join(fullDataPacksFolderPath, f));
+      }
+    }
+  });
 
   // Check for custom version to report
   const versionFilePath = content.isDev ? path.join(process.cwd(), 'version.txt') : path.join(state.config.flashpointPath, 'version.txt');

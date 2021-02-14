@@ -39,6 +39,7 @@ import { ManagedChildProcess } from './ManagedChildProcess';
 import { MetadataServerApi, SyncableGames } from './MetadataServerApi';
 import { importAllMetaEdits } from './MetaEdit';
 import { BackState, BareTag, TagsFile } from './types';
+import { pathToBluezip } from './util/Bluezip';
 import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylistFromJson, exit, pathExists, procToService, removeService, runService } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
 import { uuid } from './util/uuid';
@@ -310,7 +311,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.DELETE_GAME, async (event, id) => {
-    const game = await GameManager.removeGameAndAddApps(id);
+    const game = await GameManager.removeGameAndAddApps(id, path.join(state.config.flashpointPath, state.config.dataPacksFolderPath));
 
     state.queries = {}; // Clear entire cache
 
@@ -951,7 +952,8 @@ export function registerRequestCallbacks(state: BackState): void {
         date: (data.date !== undefined) ? new Date(data.date) : undefined,
         saveCuration: data.saveCuration,
         fpPath: state.config.flashpointPath,
-        htdocsPath: state.config.htdocsFolderPath,
+        dataPacksFolderPath: path.join(state.config.flashpointPath, state.config.dataPacksFolderPath),
+        bluezipPath: pathToBluezip(state.isDev, state.exePath),
         imageFolderPath: state.config.imageFolderPath,
         openDialog: state.socketServer.showMessageBoxBack(event.client),
         openExternal: state.socketServer.openExternal(event.client),

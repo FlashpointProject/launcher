@@ -126,7 +126,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     findGamesWithTag: GameManager.findGamesWithTag,
     updateGame: GameManager.updateGame,
     updateGames: GameManager.updateGames,
-    removeGameAndAddApps: GameManager.removeGameAndAddApps,
+    removeGameAndAddApps: (gameId: string) => GameManager.removeGameAndAddApps(gameId, path.join(state.config.flashpointPath, state.config.dataPacksFolderPath)),
 
     // Misc
     findPlatforms: GameManager.findPlatforms,
