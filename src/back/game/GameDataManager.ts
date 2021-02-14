@@ -1,6 +1,7 @@
 import { GameData } from '@database/entity/GameData';
 import { SourceData } from '@database/entity/SourceData';
 import { downloadFile } from '@renderer/Util';
+import { DownloadDetails } from '@shared/back/types';
 import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -8,7 +9,7 @@ import { getManager, In } from 'typeorm';
 import * as GameManager from './GameManager';
 import * as SourceManager from './SourceManager';
 
-export async function downloadGameData(gameDataId: number, dataPacksFolderPath: string, onProgress?: (percent: number) => void): Promise<void> {
+export async function downloadGameData(gameDataId: number, dataPacksFolderPath: string, onProgress?: (percent: number) => void, onDetails?: (details: DownloadDetails) => void): Promise<void> {
   const gameData = await findOne(gameDataId);
   if (gameData) {
     if (gameData.presentOnDisk) { return; }
@@ -21,7 +22,7 @@ export async function downloadGameData(gameDataId: number, dataPacksFolderPath: 
         const fullUrl = new URL(sd.urlPath, source?.baseUrl).href;
         const tempPath = path.join(dataPacksFolderPath, `${gameData.gameId}-${gameData.dateAdded.getTime()}.zip.temp`);
         try {
-          await downloadFile(fullUrl, tempPath, onProgress);
+          await downloadFile(fullUrl, tempPath, onProgress, onDetails);
           // Check hash of download
           const hash = crypto.createHash('sha256');
           hash.setEncoding('hex');

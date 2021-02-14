@@ -1,14 +1,15 @@
 import { Game } from '@database/entity/Game';
+import { DownloadDetails } from '@shared/back/types';
 import { parseSearchText } from '@shared/game/GameFilter';
 import { getFileServerURL } from '@shared/Util';
+import { throttle } from '@shared/utils/throttle';
+import * as axiosImport from 'axios';
 import { remote } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { Paths } from './Paths';
-import * as axiosImport from 'axios';
 import { ViewQuery } from './store/main/types';
-import { throttle } from '@shared/utils/throttle';
 
 const axios = axiosImport.default;
 
@@ -297,13 +298,14 @@ export function getBrowseSubPath(urlPath: string): string {
   return '';
 }
 
-export async function downloadFile(url: string, filePath: string, onProgress?: (percent: number) => void): Promise<number> {
+export async function downloadFile(url: string, filePath: string, onProgress?: (percent: number) => void, onDetails?: (details: DownloadDetails) => void): Promise<number> {
   try {
     const res = await axios.get(url, {
       responseType: 'stream'
     });
     let progress = 0;
     const contentLength = res.headers['content-length'];
+    onDetails && onDetails({ downloadSize: contentLength });
     const progressThrottle = onProgress && throttle(onProgress, 200);
     const fileStream = fs.createWriteStream(filePath);
     return new Promise<number>((resolve, reject) => {

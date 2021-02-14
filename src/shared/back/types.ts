@@ -163,6 +163,7 @@ export enum BackOut {
   UPLOAD_LOG,
   DEV_CONSOLE_CHANGE,
   OPEN_ALERT,
+  SET_PLACEHOLDER_DOWNLOAD_DETAILS,
   SET_PLACEHOLDER_DOWNLOAD_PERCENT,
   OPEN_PLACEHOLDER_DOWNLOAD_DIALOG,
   CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG,
@@ -304,6 +305,7 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.UPLOAD_LOG]: (getUrl: string | undefined) => void;
   [BackOut.DEV_CONSOLE_CHANGE]: (text: string) => void;
   [BackOut.OPEN_ALERT]: (text: string) => void;
+  [BackOut.SET_PLACEHOLDER_DOWNLOAD_DETAILS]: (details: DownloadDetails) => void;
   [BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT]: (percent: number) => void;
   [BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG]: () => void;
   [BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG]: () => void;
@@ -536,4 +538,8 @@ export type MetaEditGameNotFound = {
 export type RunCommandResponse = {
   success: boolean;
   res: any;
+}
+
+export type DownloadDetails = {
+  downloadSize: number;
 }

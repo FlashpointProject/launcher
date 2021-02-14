@@ -9,7 +9,7 @@ import { memoizeOne } from '@shared/memoize';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { setTheme } from '@shared/Theme';
 import { getUpgradeString } from '@shared/upgrade/util';
-import { canReadWrite, deepCopy, getFileServerURL, recursiveReplace } from '@shared/Util';
+import { canReadWrite, deepCopy, getFileServerURL, recursiveReplace, sizeToString } from '@shared/Util';
 import { arrayShallowStrictEquals } from '@shared/utils/compare';
 import { debounce } from '@shared/utils/debounce';
 import { formatString } from '@shared/utils/StringFormatter';
@@ -287,6 +287,11 @@ export class App extends React.Component<AppProps> {
 
     window.Shared.back.register(BackOut.OPEN_ALERT, (event, text) => {
       alert(text);
+    });
+
+    window.Shared.back.register(BackOut.SET_PLACEHOLDER_DOWNLOAD_DETAILS, (event, details) => {
+      const { downloadSize } = details;
+      this.props.setMainState({ downloadSize });
     });
 
     window.Shared.back.register(BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT, (event, percent) => {
@@ -700,9 +705,12 @@ export class App extends React.Component<AppProps> {
                 <div>{'This may take a few minutes'}</div>
               </>
             ) : (
-              <div className='placeholder-download-bar--title'>
-                {'Downloading Game...'}
-              </div>
+              <>
+                <div className='placeholder-download-bar--title'>
+                  {'Downloading Game...'}
+                </div>
+                <div>{`${sizeToString(this.props.main.downloadSize * (this.props.main.downloadPercent / 100))} / ${sizeToString(this.props.main.downloadSize)}`}</div>
+              </>
             )}
             { this.props.main.downloadVerifying ? <></> : (
               <ProgressBar

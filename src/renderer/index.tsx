@@ -140,6 +140,7 @@ function createInitialMainState(): MainState {
     services: window.Shared.initialServices,
     logoVersion: 0,
     downloadPercent: 0,
+    downloadSize: 0,
     downloadOpen: false,
     downloadVerifying: false
   };

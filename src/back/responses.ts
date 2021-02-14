@@ -4,7 +4,7 @@ import { Playlist } from '@database/entity/Playlist';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
-import { BackIn, BackInit, BackOut } from '@shared/back/types';
+import { BackIn, BackInit, BackOut, DownloadDetails } from '@shared/back/types';
 import { overwriteConfigData } from '@shared/config/util';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
@@ -258,13 +258,16 @@ export function registerRequestCallbacks(state: BackState): void {
         gameData = await GameDataManager.findOne(game.activeDataId);
         if (gameData && !gameData.presentOnDisk) {
           // Download GameData
+          const onDetails = (details: DownloadDetails) => {
+            state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_DETAILS, details);
+          };
           const onProgress = (percent: number) => {
             // Sent to PLACEHOLDER download dialog on client
             state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT, percent);
           };
           state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
           try {
-            await GameDataManager.downloadGameData(gameData.id, path.join(state.config.flashpointPath, state.config.dataPacksFolderPath), onProgress)
+            await GameDataManager.downloadGameData(gameData.id, path.join(state.config.flashpointPath, state.config.dataPacksFolderPath), onProgress, onDetails)
             .finally(() => {
               // Close PLACEHOLDER download dialog on client, cosmetic delay to look nice
               setTimeout(() => {
