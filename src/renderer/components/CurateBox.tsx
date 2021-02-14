@@ -1,13 +1,14 @@
 import { sanitizeFilename } from '@back/util/sanitizeFilename';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
+import { withConfirmDialog, WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
 import { createCurationIndexImage } from '@renderer/curate/importCuration';
 import { useDelayedThrottle } from '@renderer/hooks/useThrottle';
 import { BackIn, TagSuggestion } from '@shared/back/types';
 import { convertEditToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { CurationIndex, EditCuration, EditCurationMeta, IndexedContent } from '@shared/curate/types';
 import { getContentFolderByKey, getCurationFolder, indexContentFolder } from '@shared/curate/util';
-import { GamePropSuggestions } from '@shared/interfaces';
+import { GamePropSuggestions, Subtract } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { deepCopy, fixSlashes, sizeToString } from '@shared/Util';
 import { remote } from 'electron';
@@ -36,7 +37,7 @@ import { AutoProgressComponent } from './ProgressComponents';
 import { SimpleButton } from './SimpleButton';
 import { TagInputField } from './TagInputField';
 
-type CurateBoxProps = {
+type OwnProps = {
   /** Meta data of the curation to display. */
   curation?: EditCuration;
   /** Dispatcher for the curate page state reducer. */
@@ -53,8 +54,10 @@ type CurateBoxProps = {
   symlinkCurationContent: boolean;
 }
 
+type CurateBoxComponentProps = OwnProps & WithConfirmDialogProps;
+
 /** A box that displays and lets the user edit a curation. */
-export function CurateBox(props: CurateBoxProps) {
+function CurateBoxComponent(props: CurateBoxComponentProps) {
   // Localized strings
   const strings = React.useContext(LangContext);
   const [progressState, progressDispatch] = React.useContext(ProgressContext.context);
@@ -365,14 +368,17 @@ export function CurateBox(props: CurateBoxProps) {
     }
   }, [props.curation && props.curation.key]);
   // Callback for when the remove button is clicked
-  const onRemoveClick = useCallback(() => {
-    if (props.curation) {
-      props.dispatch({
-        type: 'remove-curation',
-        payload: { key: props.curation.key }
-      });
+  const onRemoveClick = useCallback(async () => {
+    const res = await props.openConfirmDialog('Deleting Curation. Are you sure?', ['Yes', 'No'], 1);
+    if (res === 0) {
+      if (props.curation) {
+        props.dispatch({
+          type: 'remove-curation',
+          payload: { key: props.curation.key }
+        });
+      }
     }
-  }, [props.dispatch, props.curation && props.curation.key]);
+  }, [props.dispatch, props.curation && props.curation.key, props.openConfirmDialog]);
   // Callback for when the new additional application button is clicked
   const onNewAddApp = useCallback(() => {
     if (props.curation) {
@@ -925,6 +931,7 @@ export function CurateBox(props: CurateBoxProps) {
         </div>
         <div className='curate-box-buttons__right'>
           <ConfirmElement
+            activationLimit={-1}
             onConfirm={onRemoveClick}
             render={renderRemoveButton}
             extra={[strings.curate, disabled]} />
@@ -1238,3 +1245,6 @@ function getPathOfHtdocsUrl(url: string): string | undefined {
     );
   }
 }
+
+export type CurateBoxProps = Subtract<CurateBoxComponentProps, WithConfirmDialogProps>;
+export const CurateBox = withConfirmDialog(CurateBoxComponent);

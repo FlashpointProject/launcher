@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { ConfirmDialog, ConfirmDialogProps } from '@renderer/components/ConfirmDialog';
 import { FloatingContainer } from '@renderer/components/FloatingContainer';
+import { Subtract } from '@shared/interfaces';
 
 type ConfirmDialogExtraProps = ConfirmDialogProps & {
   disableCancel?: boolean;
@@ -17,7 +18,7 @@ export type WithConfirmDialogProps = {
 
 export function withConfirmDialog<P>(Component: React.ComponentType<P>) {
   // eslint-disable-next-line react/display-name
-  return class extends React.Component<{}, WithConfirmDialogState> {
+  return class extends React.Component<Subtract<P, WithConfirmDialogProps>, WithConfirmDialogState> {
     state: WithConfirmDialogState = {
       open: false,
       confirmProps: {
