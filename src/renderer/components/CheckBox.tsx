@@ -1,6 +1,6 @@
+import { Omit } from '@shared/interfaces';
 import * as React from 'react';
 import { useCallback } from 'react';
-import { Omit } from '@shared/interfaces';
 
 /** Props for an input element. */
 type InputProps = React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>;
@@ -14,15 +14,15 @@ export type CheckBoxProps = Omit<InputProps, 'type'> & {
 export function CheckBox(props: CheckBoxProps) {
   const { onToggle, onChange, ...rest } = props;
   // Hooks
-  const onChangeCallback = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    if (onChange) { onChange(event); }
-    if (onToggle) { onToggle(event.target.checked); }
-  }, [onToggle, onChange]);
+  const onChangeCallback = useCallback(() => {
+    if (onToggle) { onToggle(!props.checked); }
+  }, [props.checked, onToggle, onChange]);
   // Render
   return (
-    <input
-      { ...rest }
-      type='checkbox'
-      onChange={onChangeCallback} />
+    <div
+      className={(props.checked ? 'checkbox--checked' : 'checkbox--unchecked') + ' checkbox ' + rest.className}
+      onClick={onChangeCallback}>
+      <div className={(props.checked ? 'slider slider-checked' : 'slider')}/>
+    </div>
   );
 }

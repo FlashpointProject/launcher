@@ -1066,3 +1066,12 @@ body {
 .tag-filter-editor__header {
   font-style: italic;  
 }
+
+/** Checkboxes */
+.slider {
+  background-color: var(--layout__simple-button-background);
+}
+
+.slider-checked {
+  background-color: var(--layout__confirm-color);
+}
