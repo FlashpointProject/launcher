@@ -444,7 +444,7 @@
     "restartToApplyUpgrade": "Cette mise à niveau ne sera appliquée qu'après un redémarrage.\nVeux-tu le faire maintenant ?",
     "areYouSure": "Es-tu sûr ?",
     "areYouSureDelete": "Êtes-vous sûr de vouloir supprimer cette entrée ?",
-    "areYouSurePlaylistRemove": "Are you sure you want to remove this entry from the playlist?",
+    "areYouSurePlaylistRemove": "Êtes-vous sûr de vouloir supprimer cette entrée de la liste de lecture?",
     "cancel": "Annuler",
     "mergePlaylists": "Fusionner les listes de lecture",
     "newPlaylist": "Les laisser séparées",
