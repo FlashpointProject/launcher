@@ -313,7 +313,7 @@
     "saveImportedCurations": "Salvar Curações Importadas",
     "keepArchiveKey": "Manter UUID do Arquivo da Curação",
     "symlinkCurationContent": "Symlink a Pasta de Conteúdo da Curação (Prompt de administrador no Windows, Requerido para uso do MAD4FP)",
-    "useTagFilters": "Use Tag Filters in Suggestions",
+    "useTagFilters": "Usar Filtros de Tags nas Sugestões",
     "openCurationsFolder": "Pasta das Curações",
     "openCurationsFolderDesc": "Abre a pasta das curações no explorador",
     "openExportsFolder": "Curações Exportadas",
