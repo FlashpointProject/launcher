@@ -1475,6 +1475,12 @@ body {
 }
 /* GameList */
 .game-list,
+.tag {
+  display: flex;
+}
+.tag-label {
+  flex-grow: 1;
+}
 .tag-list {}
 /* GameList Item */
 .game-list-item,
@@ -2128,6 +2134,10 @@ body {
   margin-left: 0.3rem;
   flex-shrink: 0;
 }
+.setting__row__content--override-row__edit {
+  margin-left: 0.3rem;
+  flex-shrink: 0;
+}
 .setting__row__content--override-row__new {
   float: right;
   margin-right: 1rem;
@@ -2152,6 +2162,11 @@ body {
 .setting__row__content--source-row__count {
   font-style: italic;
   margin-right: 0.5rem;
+}
+.setting__row__content--tag-filter-title {
+  flex-grow: 1;
+  text-align: left;
+  margin-left: 0.1rem;
 }
 
 /** ----- Progress Components ------ **/
@@ -2399,4 +2414,53 @@ body {
 }
 .placeholder-download-bar__wrapper {
   min-width: 25rem;
+}
+
+/** Tag Filter Editor */
+.tag-filter-editor__header {
+  font-size: 2em;
+  margin-bottom: 1rem;
+}
+
+.tag-filter-editor__content {
+  width: 100%;
+  display: flex;
+
+}
+
+.tag-filter-editor__content-section {
+  text-align: left;
+  flex-grow: 1;
+  margin-right: 0.25rem;
+}
+
+.tag-filter-editor__list-entry {
+  display: flex;
+  width: 100%;
+}
+
+.tag-filter-editor__list-entry > :first-child {
+  flex-grow: 1;
+}
+
+.tag-filter-editor__content-section > .input-dropdown {
+  height: initial;
+}
+
+.tag-filter-editor__wrapper {
+  height: 50%;
+}
+
+/** TODO - Stop this being so awful to look at */
+.tag-filter-editor__content-section > .input-dropdown {
+  width: 24rem;
+}
+.tag-filter-editor__content-section > .input-dropdown > .input-dropdown__content {
+  position: fixed;
+  width: inherit;
+}
+.tag-filter-editor__content-header {
+  width:100%;
+  text-align: center;
+  font-weight: bold;
 }

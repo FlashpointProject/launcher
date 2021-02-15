@@ -40,6 +40,7 @@ const configDataDefaultBase: Readonly<AppConfigData> = Object.freeze({
   logsBaseUrl: 'https://logs.unstable.life/',
   browserModeProxy: 'localhost:22500',
   updatesEnabled: true,
+  tagFilters: []
 });
 
 /**

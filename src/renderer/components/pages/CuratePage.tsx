@@ -431,6 +431,12 @@ export function CuratePage(props: CuratePageProps) {
     });
   }, []);
 
+  const onUseTagFiltersToggle = useCallback((isChecked: boolean) => {
+    updatePreferencesData({
+      tagFiltersInCurate: isChecked
+    });
+  }, []);
+
   // On Left Sidebar Size change
   const onLeftSidebarResize = useCallback((event) => {
     const maxWidth = getDivWidth(pageRef) - 5;
@@ -492,7 +498,8 @@ export function CuratePage(props: CuratePageProps) {
             libraries={props.libraries}
             tagCategories={props.tagCategories}
             mad4fpEnabled={props.mad4fpEnabled}
-            symlinkCurationContent={props.preferencesData.symlinkCurationContent} />
+            symlinkCurationContent={props.preferencesData.symlinkCurationContent}
+            tagFilters={props.preferencesData.tagFiltersInCurate ? props.preferencesData.tagFilters : []} />
       ));
     } else {
       return (
@@ -502,7 +509,7 @@ export function CuratePage(props: CuratePageProps) {
       );
     }
   }, [state.curations, props.suggestions, strings, props.preferencesData.saveImportedCurations,
-    props.tagCategories, props.preferencesData.symlinkCurationContent]);
+    props.tagCategories, props.preferencesData.symlinkCurationContent, props.preferencesData.tagFiltersInCurate]);
 
   // Render Curation Index (left sidebar)
   const curateIndex = React.useMemo(() => {
@@ -605,6 +612,12 @@ export function CuratePage(props: CuratePageProps) {
                 onToggle={onSymlinkCurationContentToggle}
                 checked={props.preferencesData.symlinkCurationContent} />
             </div>
+            <div className='curate-page__checkbox'>
+              <div className='curate-page__checkbox-text'>{strings.curate.useTagFilters}</div>
+              <CheckBox
+                onToggle={onUseTagFiltersToggle}
+                checked={props.preferencesData.tagFiltersInCurate} />
+            </div>
           </div>
         </div>
       </div>
@@ -612,7 +625,8 @@ export function CuratePage(props: CuratePageProps) {
   ), [curateBoxes, progressComponent, strings, state.curations.length,
     onImportAllClick, onLoadCurationArchiveClick, onLoadCurationFolderClick, onLoadMetaClick,
     props.preferencesData.curatePageLeftSidebarWidth, props.preferencesData.browsePageShowLeftSidebar,
-    props.preferencesData.saveImportedCurations, props.preferencesData.keepArchiveKey, props.preferencesData.symlinkCurationContent]);
+    props.preferencesData.saveImportedCurations, props.preferencesData.keepArchiveKey, props.preferencesData.symlinkCurationContent,
+    props.preferencesData.tagFiltersInCurate]);
 }
 
 function renderImportAllButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {

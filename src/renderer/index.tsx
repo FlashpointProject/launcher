@@ -77,6 +77,7 @@ function createInitialMainState(): MainState {
           orderBy: preferencesData.gamesOrderBy,
           orderReverse: preferencesData.gamesOrder
         },
+        tagFilters: preferencesData.tagFilters.filter(tfg => tfg.enabled)
       }),
       pageState: {},
       meta: undefined,
@@ -88,6 +89,7 @@ function createInitialMainState(): MainState {
       selectedGameId: undefined,
       lastStart: 0,
       lastCount: 0,
+      tagFilters: [],
     };
   }
 

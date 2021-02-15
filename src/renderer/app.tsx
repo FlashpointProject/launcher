@@ -475,7 +475,8 @@ export class App extends React.Component<AppProps> {
           view.query.extreme                !== this.props.preferencesData.browsePageShowExtreme ||
           view.query.orderBy                !== this.props.preferencesData.gamesOrderBy ||
           view.query.orderReverse           !== this.props.preferencesData.gamesOrder ||
-          prevProps.main.playlists          !== this.props.main.playlists) {
+          prevProps.main.playlists          !== this.props.main.playlists ||
+          view.tagFilters                   !== this.props.preferencesData.tagFilters) {
         this.setViewQuery(library);
       }
       // Fetch pages
@@ -928,6 +929,7 @@ export class App extends React.Component<AppProps> {
       playlistId: (arguments.length >= 2)
         ? playlistId
         : null,
+      tagFilters: this.props.preferencesData.tagFilters
     });
   }).bind(this);
 

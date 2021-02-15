@@ -1,6 +1,7 @@
 import { Game } from '@database/entity/Game';
 import { BackIn, DownloadDetails } from '@shared/back/types';
 import { parseSearchText } from '@shared/game/GameFilter';
+import { TagFilterGroup } from '@shared/preferences/interfaces';
 import { getFileServerURL } from '@shared/Util';
 import { throttle } from '@shared/utils/throttle';
 import * as axiosImport from 'axios';
@@ -277,11 +278,19 @@ type RebuildQueryOpts = {
   library: string;
   playlistId: string | undefined;
   order: GameOrderChangeEvent;
+  tagFilters: TagFilterGroup[];
 }
 
 export function rebuildQuery(opts: RebuildQueryOpts): ViewQuery {
   const searchQuery = parseSearchText(opts.text);
+  // Currently library filter
   searchQuery.whitelist.push({ field: 'library', value: opts.library });
+  // Tag Filter... filter
+  for (const tfg of opts.tagFilters) {
+    for (const key of tfg.tags) {
+      searchQuery.blacklist.push({ field: 'tag', value: key });
+    }
+  }
   if (!opts.extreme)                              { searchQuery.whitelist.push({ field: 'extreme', value: false }); }
   if (!window.Shared.config.data.showBrokenGames) { searchQuery.whitelist.push({ field: 'broken',  value: false }); }
 

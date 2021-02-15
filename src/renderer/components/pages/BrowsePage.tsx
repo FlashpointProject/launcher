@@ -593,30 +593,35 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   onRemoveSelectedGameFromPlaylist = async (): Promise<void> => {
-    // Remove game from playlist
-    if (this.state.currentGame) {
+    const strings = this.context;
+    // Confirm Deletion
+    const res = await this.props.openConfirmDialog(strings.dialog.areYouSurePlaylistRemove, [strings.misc.yes, strings.misc.no], 1, true);
+    if (res === 0) {
+      // Remove game from playlist
+      if (this.state.currentGame) {
+        if (this.state.currentPlaylist) {
+          await window.Shared.back.request(BackIn.DELETE_PLAYLIST_GAME, this.state.currentPlaylist.id, this.state.currentGame.id);
+        } else { logError('No playlist is selected'); }
+      } else { logError('No game is selected'); }
+
+      // Deselect the game
+      this.props.onSelectGame(undefined);
+
+      // Reset the state related to the selected game
+      this.setState({
+        currentGame: undefined,
+        currentPlaylistEntry: undefined,
+        isNewGame: false,
+        isEditingGame: false
+      });
+
       if (this.state.currentPlaylist) {
-        await window.Shared.back.request(BackIn.DELETE_PLAYLIST_GAME, this.state.currentPlaylist.id, this.state.currentGame.id);
-      } else { logError('No playlist is selected'); }
-    } else { logError('No game is selected'); }
+        this.props.onUpdatePlaylist(this.state.currentPlaylist);
+      }
 
-    // Deselect the game
-    this.props.onSelectGame(undefined);
-
-    // Reset the state related to the selected game
-    this.setState({
-      currentGame: undefined,
-      currentPlaylistEntry: undefined,
-      isNewGame: false,
-      isEditingGame: false
-    });
-
-    if (this.state.currentPlaylist) {
-      this.props.onUpdatePlaylist(this.state.currentPlaylist);
-    }
-
-    function logError(text: string) {
-      console.error('Unable to remove game from selected playlist - ' + text);
+      function logError(text: string) {
+        console.error('Unable to remove game from selected playlist - ' + text);
+      }
     }
   }
 

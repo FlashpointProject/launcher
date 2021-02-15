@@ -10,6 +10,7 @@ import { LangContainer, LangFile } from '@shared/lang';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { ITheme, Theme } from '@shared/ThemeFile';
 import { UpdateInfo } from 'electron-updater';
+import { TagFilterGroup } from 'flashpoint-launcher';
 import { MainActionType, RequestState } from './enums';
 import * as axiosImport from 'axios';
 
@@ -41,6 +42,8 @@ export type View = {
   lastStart: number;
   /** Most recent "count" of pages that has been viewed. */
   lastCount: number;
+  /** Tag filters used when building */
+  tagFilters: TagFilterGroup[];
 }
 
 export type ViewQuery = SearchGamesOpts & {
@@ -130,6 +133,7 @@ export type MainAction = {
   showExtreme: boolean;
   orderBy: GameOrderBy;
   orderReverse: GameOrderReverse;
+  tagFilters: TagFilterGroup[];
   /** The playlistId can be of type string or undefined. Null means it will remain the same as before. */
   playlistId: string | undefined | null;
 } | {

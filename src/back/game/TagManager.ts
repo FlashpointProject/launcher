@@ -143,13 +143,18 @@ export async function findTag(name: string): Promise<Tag | undefined> {
   }
 }
 
-export async function findTagSuggestions(name: string): Promise<TagSuggestion[]> {
+export async function findTagSuggestions(name: string, flatTagFilter: string[] = [], flatCatFilter: string[] = []): Promise<TagSuggestion[]> {
   const tagAliasRepostiory = getManager().getRepository(TagAlias);
+  const tagCategoryRepository = getManager().getRepository(TagCategory);
+  const tagCategories = (await Promise.all(flatCatFilter.map(async (cat) => tagCategoryRepository.findOne({ where: { name: cat }})))).filter(t => t !== undefined) as TagCategory[];
+  const flatCatIds = tagCategories.map(tg => tg.id);
 
   const subQuery = tagAliasRepostiory.createQueryBuilder('tag_alias')
   .leftJoin(Tag, 'tag', 'tag_alias.tagId = tag.id')
   .select('tag.id, tag.categoryId, tag.primaryAliasId, tag_alias.name')
   .where('tag_alias.name like :partial', { partial: name + '%' })
+  .andWhere('tag_alias.name NOT IN (:...flatTagFilter)', { flatTagFilter: flatTagFilter || [] })
+  .andWhere('tag.categoryId NOT IN (:...flatCatIds)', { flatCatIds })
   .limit(25);
 
   const tagAliases = await getManager().createQueryBuilder()

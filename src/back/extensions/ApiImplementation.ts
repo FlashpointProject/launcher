@@ -235,7 +235,8 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     },
 
     // Tag Suggestions
-    findTagSuggestions: TagManager.findTagSuggestions,
+    // TODO: Update event to allow custom filters from ext
+    findTagSuggestions: (text: string) => TagManager.findTagSuggestions(text, []),
 
     // Misc
     mergeTags: (mergeData: flashpoint.MergeTagData) => {
