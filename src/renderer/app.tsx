@@ -15,7 +15,6 @@ import { debounce } from '@shared/utils/debounce';
 import { formatString } from '@shared/utils/StringFormatter';
 import { ipcRenderer, remote } from 'electron';
 import { AppUpdater } from 'electron-updater';
-import { TagFilterGroup } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as React from 'react';
