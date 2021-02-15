@@ -1,7 +1,6 @@
+import { Omit } from '@shared/interfaces';
 import * as React from 'react';
 import { useCallback } from 'react';
-import { Omit } from '@shared/interfaces';
-import { OpenIcon } from './OpenIcon';
 
 /** Props for an input element. */
 type InputProps = React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>;
@@ -20,11 +19,10 @@ export function CheckBox(props: CheckBoxProps) {
   }, [props.checked, onToggle, onChange]);
   // Render
   return (
-      <div
-        className={(props.checked ? 'checkbox--checked' : 'checkbox--unchecked') + ' checkbox ' + rest.className}
-        onClick={onChangeCallback}>
-        <div className={(props.checked ? 'slider slider-checked' : 'slider')}/>
-      </div>
-
+    <div
+      className={(props.checked ? 'checkbox--checked' : 'checkbox--unchecked') + ' checkbox ' + rest.className}
+      onClick={onChangeCallback}>
+      <div className={(props.checked ? 'slider slider-checked' : 'slider')}/>
+    </div>
   );
 }
