@@ -1,7 +1,6 @@
 import { chunkArray } from '@back/util/misc';
-import { Source } from '@database/entity/Source';
 import { SourceData } from '@database/entity/SourceData';
-import { DeleteResult, getManager } from 'typeorm';
+import { getManager } from 'typeorm';
 
 export function findBySource(sourceId: number): Promise<SourceData[]> {
   const sourceDataRepository = getManager().getRepository(SourceData);
