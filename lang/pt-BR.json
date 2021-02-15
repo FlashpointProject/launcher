@@ -30,7 +30,7 @@
     "tagFilterGroupsDesc": "These groups will filter suggestions and games out of search results",
     "editTagFilter": "Editar Grupo de Filtragem de Tags",
     "duplicateTagFilter": "Duplicar Grupo de Filtragem de Tags",
-    "deleteTagFilter": "Delete Tag Filter Group",
+    "deleteTagFilter": "Deletar Grupo de Filtragem de Tags",
     "appPathOverrides": "Sobreposições do Caminho de Aplicativo",
     "appPathOverridesDesc": "Sobrepõe o caminho de aplicativo na esquerda com o da direita ao iniciar jogos.",
     "visualsHeader": "Visuais",
