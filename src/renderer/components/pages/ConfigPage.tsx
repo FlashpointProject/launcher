@@ -395,6 +395,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 icon='data-transfer-download' />
             </div>
             <div
+              onClick={() => this.deleteSource(s)}
               className='setting__row__content--remove-app-override'>
               <OpenIcon
                 className='setting__row__content--override-row__delete'
@@ -652,6 +653,16 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       newSources.push(source);
     }
     this.setState({ sources: newSources });
+  }
+
+  deleteSource = async (source: Source) => {
+    await window.Shared.back.request(BackIn.DELETE_SOURCE, source.id);
+    const newSources = [...(this.state.sources || [])];
+    const idx = newSources.findIndex(s => s.id === source.id);
+    if (idx > -1) {
+      newSources.splice(idx, 1);
+      this.setState({ sources: newSources });
+    }
   }
 
   onRemoveAppPathOverride = (index: number): void => {

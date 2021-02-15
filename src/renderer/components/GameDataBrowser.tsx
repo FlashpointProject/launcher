@@ -138,18 +138,23 @@ export class GameDataBrowser extends React.Component<GameDataBrowserProps, GameD
             onActiveToggle={() => {
               this.props.onUpdateActiveGameData(data.presentOnDisk, data.id);
             }}
-            onUninstall={async () => {
-              const game = await window.Shared.back.request(BackIn.UNINSTALL_GAME_DATA, data.id);
-              if (game) {
-                this.props.onEditGame({
-                  activeDataId: game.activeDataId,
-                  activeDataOnDisk: game.activeDataOnDisk
-                });
-              }
-              const newDatas = [...this.state.pairedData];
-              newDatas[index].presentOnDisk = false;
-              newDatas[index].path = undefined;
-              this.setState({ pairedData: newDatas });
+            onUninstall={() => {
+              window.Shared.back.request(BackIn.UNINSTALL_GAME_DATA, data.id)
+              .then((game) => {
+                if (game) {
+                  this.props.onEditGame({
+                    activeDataId: game.activeDataId,
+                    activeDataOnDisk: game.activeDataOnDisk
+                  });
+                }
+                const newDatas = [...this.state.pairedData];
+                newDatas[index].presentOnDisk = false;
+                newDatas[index].path = undefined;
+                this.setState({ pairedData: newDatas });
+              })
+              .catch((error) => {
+                alert('Failed to uninstall. Has it been played this session? Try restarting FP first.');
+              });
             }}
             update={() => this.updateGameData(data.id)}
             delete={() => this.deleteGameData(data.id)}/>

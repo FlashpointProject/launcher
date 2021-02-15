@@ -19,7 +19,7 @@ export async function downloadGameData(gameDataId: number, dataPacksFolderPath: 
     for (const sd of sourceData) {
       const source = await SourceManager.findOne(sd.sourceId);
       if (source) {
-        const fullUrl = new URL(sd.urlPath, source?.baseUrl).href;
+        const fullUrl = new URL(sd.urlPath, source.baseUrl).href;
         const tempPath = path.join(dataPacksFolderPath, `${gameData.gameId}-${gameData.dateAdded.getTime()}.zip.temp`);
         try {
           await downloadFile(fullUrl, tempPath, onProgress, onDetails);

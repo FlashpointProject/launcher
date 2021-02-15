@@ -71,6 +71,7 @@ export enum BackIn {
 
   // Sources
   ADD_SOURCE_BY_URL,
+  DELETE_SOURCE,
 
   // Tag funcs
   GET_OR_CREATE_TAG,
@@ -240,6 +241,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
 
   // Sources
   [BackIn.ADD_SOURCE_BY_URL]: (url: string) => Source;
+  [BackIn.DELETE_SOURCE]: (id: number) => void;
 
   [BackIn.BROWSE_VIEW_PAGE]: (data: BrowseViewPageData) => BrowseViewPageResponseData;
   /** @returns Index of the game (equal to or greater than 0 if found, otherwise -1). */

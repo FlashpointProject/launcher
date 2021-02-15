@@ -34,11 +34,18 @@ export function save(source: Source): Promise<Source> {
   return sourceRepository.save(source);
 }
 
+export async function remove(sourceId: number): Promise<void> {
+  const sourceDataRepository = getManager().getRepository(SourceData);
+  const sourceRepository = getManager().getRepository(Source);
+  await sourceDataRepository.delete({ sourceId });
+  await sourceRepository.delete({ id: sourceId });
+}
+
 export async function importFromURL(url: string, saveDir: string, onProgress?: (progress: number) => void): Promise<Source> {
   const progressThrottle = onProgress && throttle(onProgress, 250);
   // Generate / Open File to save
   const parsedUrl = new URL(url);
-  const filePath = path.join(saveDir, `${parsedUrl.hostname}${parsedUrl.pathname.replace('/', '.')}.source`);
+  const filePath = path.join(saveDir, `${parsedUrl.hostname}${parsedUrl.pathname.replace(/\\/g, '.').replace(/\//g, '.')}`);
   // Fetch URL
   const res = await axios.get(url,
     {
@@ -54,7 +61,7 @@ export async function importFromURL(url: string, saveDir: string, onProgress?: (
       onProgress && onProgress(1);
       // Set up Source
       const splitUrl = parsedUrl.href.split('/');
-      const baseUrl = splitUrl.slice(0, splitUrl.length - 1).join('/');
+      const baseUrl = `${splitUrl.slice(0, splitUrl.length - 1).join('/')}/`;
       let source = (await SourceManager.findBySourceFileUrl(url)) || new Source();
       const date = new Date();
       source.name = source.name || url;

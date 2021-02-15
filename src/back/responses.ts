@@ -564,6 +564,10 @@ export function registerRequestCallbacks(state: BackState): void {
     });
   });
 
+  state.socketServer.register(BackIn.DELETE_SOURCE, async (event, id) => {
+    return SourceManager.remove(id);
+  });
+
   state.socketServer.register(BackIn.GET_SOURCES, async (event) => {
     return SourceManager.find();
   });
