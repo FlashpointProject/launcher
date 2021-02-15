@@ -107,7 +107,7 @@ export function main(init: Init): void {
       state.mainFolderPath = Util.getMainFolderPath(state._installed);
     })
     // Load version number
-    .then(() => new Promise(resolve => {
+    .then(() => new Promise<void>(resolve => {
       fs.readFile(path.join(state.mainFolderPath, '.version'), (error, data) => {
         state._version = (data)
           ? parseInt(data.toString().replace(/[^\d]/g, ''), 10) // (Remove all non-numerical characters, then parse it as a string)
@@ -186,7 +186,7 @@ export function main(init: Init): void {
         };
       }), TIMEOUT_DELAY))
       // Send init message
-      .then(ws => timeout(new Promise((resolve, reject) => {
+      .then(ws => timeout(new Promise<void>((resolve, reject) => {
         state.socket.setSocket(ws);
 
         state.socket.request(BackIn.GET_MAIN_INIT_DATA)

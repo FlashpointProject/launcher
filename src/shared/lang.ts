@@ -410,6 +410,7 @@ const langTemplate = {
     'viewThumbnailInFolder',
     'viewScreenshotInFolder',
     'openFileLocation',
+    'addToPlaylist',
     'duplicateMetaOnly',
     'duplicateMetaAndImages',
     'copyGameUUID',
