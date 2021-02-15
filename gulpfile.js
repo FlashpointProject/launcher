@@ -24,6 +24,11 @@ const config = {
 // Files to copy after packing
 const copyFiles = [
   {
+    from :'./extern/utils',
+    to: './extern/utils',
+    filter: ['**']
+  },
+  {
     from :'./extern/bluezip',
     to: './extern/bluezip',
     filter: ['**']

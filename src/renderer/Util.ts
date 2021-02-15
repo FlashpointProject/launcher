@@ -1,18 +1,14 @@
 import { Game } from '@database/entity/Game';
-import { BackIn, DownloadDetails } from '@shared/back/types';
+import { BackIn } from '@shared/back/types';
 import { parseSearchText } from '@shared/game/GameFilter';
 import { TagFilterGroup } from '@shared/preferences/interfaces';
 import { getFileServerURL } from '@shared/Util';
-import { throttle } from '@shared/utils/throttle';
-import * as axiosImport from 'axios';
 import { remote } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { Paths } from './Paths';
 import { ViewQuery } from './store/main/types';
-
-const axios = axiosImport.default;
 
 export const gameIdDataType = 'text/game-id';
 
@@ -314,38 +310,4 @@ export function getBrowseSubPath(urlPath: string): string {
     return str;
   }
   return '';
-}
-
-export async function downloadFile(url: string, filePath: string, onProgress?: (percent: number) => void, onDetails?: (details: DownloadDetails) => void): Promise<number> {
-  try {
-    const res = await axios.get(url, {
-      responseType: 'stream'
-    });
-    let progress = 0;
-    const contentLength = res.headers['content-length'];
-    onDetails && onDetails({ downloadSize: contentLength });
-    const progressThrottle = onProgress && throttle(onProgress, 200);
-    const fileStream = fs.createWriteStream(filePath);
-    return new Promise<number>((resolve, reject) => {
-      fileStream.on('close', () => {
-        resolve(res.status);
-      });
-      res.data.on('end', () => {
-        fileStream.close();
-        onProgress && onProgress(100);
-      });
-      res.data.on('data', (chunk: any) => {
-        progress = progress + chunk.length;
-        progressThrottle && progressThrottle((progress / contentLength) * 100);
-        fileStream.write(chunk);
-      });
-      res.data.on('error', async () => {
-        fileStream.close();
-        await fs.promises.unlink(filePath);
-        reject(res.status);
-      });
-    });
-  } catch (error) {
-    throw `Error opening Axios request. Do you have internet access?: ${error}`;
-  }
 }

@@ -25,9 +25,9 @@ import { createErrorProxy, removeFileExtension, stringifyArray } from '@shared/U
 import * as child_process from 'child_process';
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint-launcher';
+import { http as httpFollow, https as httpsFollow } from 'follow-redirects';
 import * as fs from 'fs-extra';
 import * as http from 'http';
-import * as https from 'https';
 import * as mime from 'mime';
 import * as path from 'path';
 import 'reflect-metadata';
@@ -901,7 +901,7 @@ function updateFileServerDownloadQueue() {
 
     // Start download
     const url = state.config.onDemandBaseUrl + (state.config.onDemandBaseUrl.endsWith('/') ? '' : '/') + item.subPath;
-    const protocol = url.startsWith('https://') ? https : http;
+    const protocol = url.startsWith('https://') ? httpsFollow : httpFollow;
     try {
       const req = protocol.get(url, async (res) => {
         try {

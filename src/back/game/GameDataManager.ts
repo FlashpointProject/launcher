@@ -1,6 +1,6 @@
 import { GameData } from '@database/entity/GameData';
 import { SourceData } from '@database/entity/SourceData';
-import { downloadFile } from '@renderer/Util';
+import { downloadFile } from '@shared/Util';
 import { DownloadDetails } from '@shared/back/types';
 import * as crypto from 'crypto';
 import * as fs from 'fs';
