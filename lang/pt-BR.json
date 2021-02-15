@@ -27,7 +27,7 @@
     "nativePlatforms": "Plataformas Nativas",
     "nativePlatformsDesc": "Usar versões nativas destas plataformas. (Se não disponível, Wine será usado)",
     "tagFilterGroups": "Grupos de Filtragem de Tags",
-    "tagFilterGroupsDesc": "These groups will filter suggestions and games out of search results",
+    "tagFilterGroupsDesc": "Esses grupos vão filtrar sugestões e jogos nos resultados de pesquisa",
     "editTagFilter": "Editar Grupo de Filtragem de Tags",
     "duplicateTagFilter": "Duplicar Grupo de Filtragem de Tags",
     "deleteTagFilter": "Deletar Grupo de Filtragem de Tags",
