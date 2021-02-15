@@ -1,7 +1,9 @@
 import { EXT_CONFIG_FILENAME, PREFERENCES_FILENAME } from '@back/constants';
 import { ExtConfigFile } from '@back/ExtConfigFile';
-import { GameManager } from '@back/game/GameManager';
-import { TagManager } from '@back/game/TagManager';
+import * as GameDataManager from '@back/game/GameDataManager';
+import * as GameManager from '@back/game/GameManager';
+import * as SourceManager from '@back/game/SourceManager';
+import * as TagManager from '@back/game/TagManager';
 import { DisposableChildProcess, ManagedChildProcess } from '@back/ManagedChildProcess';
 import { BackState, StatusState } from '@back/types';
 import { clearDisposable, dispose, newDisposable, registerDisposable } from '@back/util/lifecycle';
@@ -124,7 +126,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     findGamesWithTag: GameManager.findGamesWithTag,
     updateGame: GameManager.updateGame,
     updateGames: GameManager.updateGames,
-    removeGameAndAddApps: GameManager.removeGameAndAddApps,
+    removeGameAndAddApps: (gameId: string) => GameManager.removeGameAndAddApps(gameId, path.join(state.config.flashpointPath, state.config.dataPacksFolderPath)),
 
     // Misc
     findPlatforms: GameManager.findPlatforms,
@@ -173,6 +175,38 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     get onWillImportGame() {
       return apiEmitters.games.onWillImportCuration.event;
     }
+  };
+
+  const extGameData: typeof flashpoint.gameData = {
+    findOne: GameDataManager.findOne,
+    findGameData: GameDataManager.findGameData,
+    findSourceDataForHashes: GameDataManager.findSourceDataForHashes,
+    save: GameDataManager.save,
+    importGameData: (gameId, filePath) => GameDataManager.importGameData(gameId, filePath, path.join(state.config.flashpointPath, state.config.dataPacksFolderPath)),
+    downloadGameData: async (gameDataId) => {
+      const onProgress = (percent: number) => {
+        // Sent to PLACEHOLDER download dialog on client
+        state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT, percent);
+      };
+      state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
+      await GameDataManager.downloadGameData(gameDataId, path.join(state.config.flashpointPath, state.config.dataPacksFolderPath), onProgress)
+      .catch((error) => {
+        state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
+      })
+      .finally(() => {
+        // Close PLACEHOLDER download dialog on client, cosmetic delay to look nice
+        setTimeout(() => {
+          state.socketServer.broadcast(BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG);
+        }, 250);
+      });
+    },
+    get onDidImportGameData() {
+      return apiEmitters.gameData.onDidImportGameData.event;
+    }
+  };
+
+  const extSources: typeof flashpoint.sources = {
+    findOne: SourceManager.findOne
   };
 
   const extTags: typeof flashpoint.tags = {
@@ -281,6 +315,8 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     log: extLog,
     commands: extCommands,
     games: extGames,
+    gameData: extGameData,
+    sources: extSources,
     tags: extTags,
     status: extStatus,
     services: extServices,

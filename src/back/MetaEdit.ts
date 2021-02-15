@@ -7,8 +7,8 @@ import { Coerce } from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import * as fs from 'fs';
 import * as path from 'path';
-import { GameManager } from './game/GameManager';
-import { TagManager } from './game/TagManager';
+import * as GameManager from './game/GameManager';
+import * as TagManager from './game/TagManager';
 import { ShowMessageBoxFunc } from './types';
 import { copyError } from './util/misc';
 

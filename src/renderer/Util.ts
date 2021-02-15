@@ -1,12 +1,17 @@
 import { Game } from '@database/entity/Game';
+import { BackIn, DownloadDetails } from '@shared/back/types';
 import { parseSearchText } from '@shared/game/GameFilter';
 import { getFileServerURL } from '@shared/Util';
+import { throttle } from '@shared/utils/throttle';
+import * as axiosImport from 'axios';
 import { remote } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { Paths } from './Paths';
 import { ViewQuery } from './store/main/types';
+
+const axios = axiosImport.default;
 
 export const gameIdDataType = 'text/game-id';
 
@@ -123,7 +128,16 @@ export function getGameImagePath(folderName: string, gameId: string): string {
 type IGamePathInfo = Pick<Game, 'platform' | 'launchCommand'>;
 
 /* istanbul ignore next */
-export function getGamePath(game: IGamePathInfo, fpPath: string, htdocsPath: string): string | undefined {
+export async function getGamePath(game: Game, fpPath: string, htdocsPath: string, dataPacksPath: string): Promise<string | undefined> {
+  // Check for GameData first
+  if (game.activeDataId) {
+    const gameData = await window.Shared.back.request(BackIn.GET_GAME_DATA, game.activeDataId);
+    if (gameData && gameData.path) {
+      return path.resolve(fpPath, dataPacksPath, gameData.path);
+    } else {
+      return undefined;
+    }
+  }
   // @TODO Because some strings can be interpreted as different paths/URLs, maybe this should return an array
   //       of strings with all the possible paths of the "main" file?
   //       Example: Some web server files are stored in "Server/htdocs" while other are stored in "Server/cgi-bin".
@@ -291,4 +305,38 @@ export function getBrowseSubPath(urlPath: string): string {
     return str;
   }
   return '';
+}
+
+export async function downloadFile(url: string, filePath: string, onProgress?: (percent: number) => void, onDetails?: (details: DownloadDetails) => void): Promise<number> {
+  try {
+    const res = await axios.get(url, {
+      responseType: 'stream'
+    });
+    let progress = 0;
+    const contentLength = res.headers['content-length'];
+    onDetails && onDetails({ downloadSize: contentLength });
+    const progressThrottle = onProgress && throttle(onProgress, 200);
+    const fileStream = fs.createWriteStream(filePath);
+    return new Promise<number>((resolve, reject) => {
+      fileStream.on('close', () => {
+        resolve(res.status);
+      });
+      res.data.on('end', () => {
+        fileStream.close();
+        onProgress && onProgress(100);
+      });
+      res.data.on('data', (chunk: any) => {
+        progress = progress + chunk.length;
+        progressThrottle && progressThrottle((progress / contentLength) * 100);
+        fileStream.write(chunk);
+      });
+      res.data.on('error', async () => {
+        fileStream.close();
+        await fs.promises.unlink(filePath);
+        reject(res.status);
+      });
+    });
+  } catch (error) {
+    throw `Error opening Axios request. Do you have internet access?: ${error}`;
+  }
 }

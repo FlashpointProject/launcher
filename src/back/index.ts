@@ -1,12 +1,19 @@
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
+import { GameData } from '@database/entity/GameData';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
+import { Source } from '@database/entity/Source';
+import { SourceData } from '@database/entity/SourceData';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
 import { Initial1593172736527 } from '@database/migration/1593172736527-Initial';
 import { AddExtremeToPlaylist1599706152407 } from '@database/migration/1599706152407-AddExtremeToPlaylist';
+import { GameData1611753257950 } from '@database/migration/1611753257950-GameData';
+import { SourceDataUrlPath1612434225789 } from '@database/migration/1612434225789-SourceData_UrlPath';
+import { SourceFileURL1612435692266 } from '@database/migration/1612435692266-Source_FileURL';
+import { SourceFileCount1612436426353 } from '@database/migration/1612436426353-SourceFileCount';
 import { BackIn, BackInit, BackInitArgs, BackOut } from '@shared/back/types';
 import { ILogoSet, LogoSet } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
@@ -36,7 +43,7 @@ import { ApiEmitter } from './extensions/ApiEmitter';
 import { ExtensionService } from './extensions/ExtensionService';
 import { FPLNodeModuleFactory, INodeModuleFactory, installNodeInterceptor, registerInterceptor } from './extensions/NodeInterceptor';
 import { Command } from './extensions/types';
-import { GameManager } from './game/GameManager';
+import * as GameManager from './game/GameManager';
 import { onWillImportCuration } from './importGame';
 import { ManagedChildProcess, onServiceChange } from './ManagedChildProcess';
 import { registerRequestCallbacks } from './responses';
@@ -130,6 +137,9 @@ const state: BackState = {
       onDidUpdatePlaylistGame: GameManager.onDidUpdatePlaylistGame,
       onDidRemovePlaylistGame: GameManager.onDidRemovePlaylistGame,
       onWillImportCuration: onWillImportCuration,
+    },
+    gameData: {
+      onDidImportGameData: new ApiEmitter<flashpoint.GameData>(),
     },
     services: {
       onServiceNew: new ApiEmitter<flashpoint.ManagedChildProcess>(),
@@ -240,11 +250,23 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   const [pref, conf, extConf] = await (Promise.all([
     PreferencesFile.readOrCreateFile(path.join(state.configFolder, PREFERENCES_FILENAME)),
     ConfigFile.readOrCreateFile(path.join(state.configFolder, CONFIG_FILENAME)),
-    ExtConfigFile.readOrCreateFile(path.join(state.configFolder, EXT_CONFIG_FILENAME)),
+    ExtConfigFile.readOrCreateFile(path.join(state.configFolder, EXT_CONFIG_FILENAME))
   ]));
   state.preferences = pref;
   state.config = conf;
   state.extConfig = extConf;
+
+  // Create Game Data Directory and clean up temp files
+  const fullDataPacksFolderPath = path.join(state.config.flashpointPath, state.config.dataPacksFolderPath);
+  await fs.promises.mkdir(fullDataPacksFolderPath, { recursive: true });
+  fs.promises.readdir(fullDataPacksFolderPath)
+  .then((files) => {
+    for (const f of files) {
+      if (f.endsWith('.temp')) {
+        fs.promises.unlink(path.join(fullDataPacksFolderPath, f));
+      }
+    }
+  });
 
   // Check for custom version to report
   const versionFilePath = content.isDev ? path.join(process.cwd(), 'version.txt') : path.join(state.config.flashpointPath, 'version.txt');
@@ -261,8 +283,9 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     const options: ConnectionOptions = {
       type: 'sqlite',
       database: path.join(state.config.flashpointPath, 'Data', 'flashpoint.sqlite'),
-      entities: [Game, AdditionalApp, Playlist, PlaylistGame, Tag, TagAlias, TagCategory],
-      migrations: [Initial1593172736527, AddExtremeToPlaylist1599706152407]
+      entities: [Game, AdditionalApp, Playlist, PlaylistGame, Tag, TagAlias, TagCategory, GameData, Source, SourceData],
+      migrations: [Initial1593172736527, AddExtremeToPlaylist1599706152407, GameData1611753257950, SourceDataUrlPath1612434225789, SourceFileURL1612435692266,
+        SourceFileCount1612436426353]
     };
     state.connection = await createConnection(options);
     // TypeORM forces on but breaks Playlist Game links to unimported games
@@ -700,7 +723,6 @@ function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse
               if (replacementFilePath.startsWith(basePath)) {
                 fs.access(replacementFilePath, fs.constants.F_OK, (err) => {
                   if (err) {
-                    log.debug('Launcher', `SERVING: ${path.join(basePath, DEFAULT_LOGO_PATH)}`);
                     serveFile(req, res, path.join(basePath, DEFAULT_LOGO_PATH));
                   } else {
                     serveFile(req, res, replacementFilePath);

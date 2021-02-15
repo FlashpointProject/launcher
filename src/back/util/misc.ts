@@ -205,7 +205,8 @@ export async function createGameFromLegacy(game: Legacy_IGameInfo, tagCache: Rec
     library: game.library,
     orderTitle: game.orderTitle,
     placeholder: false,
-    addApps: []
+    addApps: [],
+    activeDataOnDisk: false
   };
 }
 

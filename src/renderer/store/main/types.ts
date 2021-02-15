@@ -11,6 +11,7 @@ import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { ITheme, Theme } from '@shared/ThemeFile';
 import { UpdateInfo } from 'electron-updater';
 import { MainActionType, RequestState } from './enums';
+import * as axiosImport from 'axios';
 
 export type View = {
   /** The most recent query used for this view. */
@@ -111,6 +112,12 @@ export type MainState = {
   extConfig: AppExtConfigData;
   /** Services */
   services: IService[];
+  /** PLACEHOLDER - Download percent of Game */
+  downloadPercent: number;
+  downloadSize: number;
+  downloadOpen: boolean;
+  cancelToken?: axiosImport.CancelToken;
+  downloadVerifying: boolean;
 }
 
 export type MainAction = {

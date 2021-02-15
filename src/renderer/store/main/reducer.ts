@@ -427,5 +427,9 @@ function createInitialState(): MainState {
     devScripts: [],
     contextButtons: [],
     services: [],
+    downloadOpen: false,
+    downloadPercent: 0,
+    downloadSize: 0,
+    downloadVerifying: false
   };
 }

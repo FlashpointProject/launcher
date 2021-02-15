@@ -1,6 +1,8 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
+import { Source } from '@database/entity/Source';
+import { SourceData } from '@database/entity/SourceData';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
 import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/extensions/interfaces';
@@ -10,6 +12,7 @@ import { ChangedMeta, MetaEditFlags } from '@shared/MetaEdit';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { SocketTemplate } from '@shared/socket/types';
 import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
+import { GameData } from 'flashpoint-launcher';
 import { AppConfigData, AppExtConfigData } from '../config/interfaces';
 import { EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '../curate/types';
 import { ExecMapping, GamePropSuggestions, IService, ProcessAction } from '../interfaces';
@@ -28,6 +31,15 @@ export enum BackIn {
   GET_EXEC,
   SAVE_GAME,
   GET_GAME,
+  GET_GAMES_GAME_DATA,
+  GET_GAME_DATA,
+  DELETE_GAME_DATA,
+  IMPORT_GAME_DATA,
+  DOWNLOAD_GAME_DATA,
+  UNINSTALL_GAME_DATA,
+  SAVE_GAME_DATAS,
+  GET_SOURCES,
+  GET_SOURCE_DATA,
   GET_ALL_GAMES,
   RANDOM_GAMES,
   LAUNCH_GAME,
@@ -56,6 +68,9 @@ export enum BackIn {
   LAUNCH_CURATION,
   LAUNCH_CURATION_ADDAPP,
   QUIT,
+
+  // Sources
+  ADD_SOURCE_BY_URL,
 
   // Tag funcs
   GET_OR_CREATE_TAG,
@@ -148,6 +163,11 @@ export enum BackOut {
   RUN_COMMAND,
   UPLOAD_LOG,
   DEV_CONSOLE_CHANGE,
+  OPEN_ALERT,
+  SET_PLACEHOLDER_DOWNLOAD_DETAILS,
+  SET_PLACEHOLDER_DOWNLOAD_PERCENT,
+  OPEN_PLACEHOLDER_DOWNLOAD_DIALOG,
+  CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG,
 }
 
 export type BackInTemplate = SocketTemplate<BackIn, {
@@ -155,6 +175,15 @@ export type BackInTemplate = SocketTemplate<BackIn, {
 
   [BackIn.INIT_LISTEN]: () => InitEventData;
   [BackIn.GET_SUGGESTIONS]: () => GetSuggestionsResponseData;
+  [BackIn.GET_GAMES_GAME_DATA]: (gameId: string) => GameData[];
+  [BackIn.GET_GAME_DATA]: (gameDataId: number) => GameData | undefined;
+  [BackIn.DELETE_GAME_DATA]: (gameDataId: number) => void;
+  [BackIn.GET_SOURCES]: () => Source[];
+  [BackIn.GET_SOURCE_DATA]: (hashes: string[]) => SourceData[];
+  [BackIn.DOWNLOAD_GAME_DATA]: (gameDataId: number) => void;
+  [BackIn.UNINSTALL_GAME_DATA]: (id: number) => Game | undefined;
+  [BackIn.IMPORT_GAME_DATA]: (gameId: string, path: string) => GameData;
+  [BackIn.SAVE_GAME_DATAS]: (gameData: GameData[]) => void;
   [BackIn.GET_GAMES_TOTAL]: () => number;
   [BackIn.SET_LOCALE]: (data: string) => string;
   [BackIn.GET_EXEC]: () => ExecMapping[];
@@ -208,6 +237,9 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.SAVE_TAG_CATEGORY]: (data: TagCategory) => TagCategory;
   [BackIn.GET_TAG_CATEGORY_BY_ID]: (data: number) => TagCategory | undefined;
   [BackIn.DELETE_TAG_CATEGORY]: (data: number) => boolean;
+
+  // Sources
+  [BackIn.ADD_SOURCE_BY_URL]: (url: string) => Source;
 
   [BackIn.BROWSE_VIEW_PAGE]: (data: BrowseViewPageData) => BrowseViewPageResponseData;
   /** @returns Index of the game (equal to or greater than 0 if found, otherwise -1). */
@@ -274,6 +306,11 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.RUN_COMMAND]: (data: RunCommandResponse) => void;
   [BackOut.UPLOAD_LOG]: (getUrl: string | undefined) => void;
   [BackOut.DEV_CONSOLE_CHANGE]: (text: string) => void;
+  [BackOut.OPEN_ALERT]: (text: string) => void;
+  [BackOut.SET_PLACEHOLDER_DOWNLOAD_DETAILS]: (details: DownloadDetails) => void;
+  [BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT]: (percent: number) => void;
+  [BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG]: () => void;
+  [BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG]: () => void;
 }>
 
 export type BackInitArgs = {
@@ -503,4 +540,8 @@ export type MetaEditGameNotFound = {
 export type RunCommandResponse = {
   success: boolean;
   res: any;
+}
+
+export type DownloadDetails = {
+  downloadSize: number;
 }

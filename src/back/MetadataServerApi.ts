@@ -3,7 +3,7 @@ import { Tag } from '@database/entity/Tag';
 import { Coerce } from '@shared/utils/Coerce';
 import { ObjectParser } from '@shared/utils/ObjectParser';
 import * as axiosImport from 'axios';
-import { TagManager } from './game/TagManager';
+import * as TagManager from './game/TagManager';
 
 const { str } = Coerce;
 const userAgentHeader = { 'User-Agent': 'Flashpoint Launcher 9.0.0' };

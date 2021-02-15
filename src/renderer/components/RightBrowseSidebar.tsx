@@ -8,8 +8,9 @@ import { wrapSearchTerm } from '@shared/game/GameFilter';
 import { ModelUtils } from '@shared/game/util';
 import { GamePropSuggestions, PickType, ProcessAction } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
-import { deepCopy } from '@shared/Util';
+import { deepCopy, sizeToString } from '@shared/Util';
 import { Menu, MenuItemConstructorOptions, remote } from 'electron';
+import { GameData } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as React from 'react';
 import { WithPreferencesProps } from '../containers/withPreferences';
@@ -20,11 +21,13 @@ import { uuid } from '../util/uuid';
 import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { DropdownInputField } from './DropdownInputField';
+import { GameDataBrowser } from './GameDataBrowser';
 import { GameImageSplit } from './GameImageSplit';
 import { ImagePreview } from './ImagePreview';
 import { InputElement, InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { RightBrowseSidebarAddApp } from './RightBrowseSidebarAddApp';
+import { SimpleButton } from './SimpleButton';
 import { TagInputField } from './TagInputField';
 
 type OwnProps = {
@@ -60,6 +63,7 @@ type OwnProps = {
   onSaveGame: () => void;
 
   onEditGame: (game: Partial<Game>) => void;
+  onUpdateActiveGameData: (activeDataOnDisk: boolean, activeDataId?: number) => void;
 };
 
 export type RightBrowseSidebarProps = OwnProps & WithPreferencesProps & WithSearchProps;
@@ -71,6 +75,8 @@ type RightBrowseSidebarState = {
   thumbnailExists: boolean;
   currentTagInput: string;
   tagSuggestions: TagSuggestion[];
+  gameDataBrowserOpen: boolean;
+  activeData?: GameData;
 };
 
 export interface RightBrowseSidebar {
@@ -126,6 +132,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       thumbnailExists: false,
       currentTagInput: '',
       tagSuggestions: [],
+      gameDataBrowserOpen: false
     };
   }
 
@@ -149,6 +156,17 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
           screenshotExists: false,
           thumbnailExists: false,
         });
+      }
+    }
+    if (prevProps.currentGame && prevProps.currentGame.activeDataId && (!this.props.currentGame || !this.props.currentGame.activeDataId)) {
+      /** No game data, clear */
+      this.setState({ activeData: undefined });
+    }
+    if ((prevProps.currentGame && prevProps.currentGame.activeDataId) !== (this.props.currentGame && this.props.currentGame.activeDataId)) {
+      /** Game Data changed */
+      if (this.props.currentGame && this.props.currentGame.activeDataId) {
+        window.Shared.back.request(BackIn.GET_GAME_DATA, this.props.currentGame.activeDataId)
+        .then((gameData) => this.setState({ activeData: gameData }));
       }
     }
   }
@@ -230,6 +248,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                           {/* "Delete Game" Button */}
                           { (isPlaceholder || isNewGame || currentPlaylistEntry) ? undefined : (
                             <ConfirmElement
+                              activationLimit={0}
                               onConfirm={this.onDeleteGameClick}
                               render={this.renderDeleteGameButton}
                               extra={strings} />
@@ -255,6 +274,17 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
               </div>
             ) }
           </div>
+          {/** Mini download info */}
+          <div className='browse-right-sidebar__mini-download-info'>
+            <div className='browse-right-sidebar__mini-download-info__state'>
+              {this.state.activeData ? (this.state.activeData.presentOnDisk ? strings.installed : strings.notInstalled): strings.legacyGame}
+            </div>
+            { this.state.activeData && (
+              <div className='browse-right-sidebar__mini-download-info__size'>
+                {`${sizeToString(this.state.activeData.size)}`}
+              </div>
+            )}
+          </div>
           {/* -- Play Button -- */}
           { isPlaceholder ? undefined :
             this.props.gameRunning ? (
@@ -267,13 +297,20 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                 }}>
                 {strings.stop}
               </div>
-            ) : (
+            ) : (this.state.activeData && !this.state.activeData.presentOnDisk) ? (
               <div
-                className='browse-right-sidebar__play-button'
+                className='browse-right-sidebar__play-button--download'
                 onClick={() => this.props.currentGame && this.props.onGameLaunch(this.props.currentGame.id)}>
-                {strings.play}
+                {strings.download}
               </div>
             )
+              : (
+                <div
+                  className='browse-right-sidebar__play-button'
+                  onClick={() => this.props.currentGame && this.props.onGameLaunch(this.props.currentGame.id)}>
+                  {strings.play}
+                </div>
+              )
           }
           {/* -- Most Fields -- */}
           { isPlaceholder ? undefined : (
@@ -608,6 +645,19 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
               src={screenshotSrc}
               onCancel={this.onScreenshotPreviewClick} />
           ) : undefined }
+          <SimpleButton
+            value='Open Game Data Browser'
+            onClick={() => this.setState({ gameDataBrowserOpen: !this.state.gameDataBrowserOpen })}/>
+          { this.state.gameDataBrowserOpen && (
+            <GameDataBrowser
+              onClose={() => this.setState({ gameDataBrowserOpen: false })}
+              game={game}
+              onEditGame={(game) => {
+                this.props.onEditGame(game);
+                this.props.onSaveGame();
+              }}
+              onUpdateActiveGameData={this.props.onUpdateActiveGameData} />
+          )}
         </div>
       );
     } else {

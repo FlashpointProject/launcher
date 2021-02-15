@@ -138,6 +138,10 @@ function createInitialMainState(): MainState {
     extConfigs: window.Shared.initialExtConfigs,
     extConfig: window.Shared.initialExtConfig,
     services: window.Shared.initialServices,
-    logoVersion: 0
+    logoVersion: 0,
+    downloadPercent: 0,
+    downloadSize: 0,
+    downloadOpen: false,
+    downloadVerifying: false
   };
 }

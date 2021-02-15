@@ -1,6 +1,7 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
+import { WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
 import { BackIn } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
@@ -70,7 +71,7 @@ type OwnProps = {
   contextButtons: ExtensionContribution<'contextButtons'>[];
 };
 
-export type BrowsePageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps;
+export type BrowsePageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps & WithConfirmDialogProps;
 
 export type BrowsePageState = {
   /** Current quick search string (used to jump to a game in the list, not to filter the list). */
@@ -281,6 +282,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             isEditing={this.state.isEditingGame}
             isNewGame={this.state.isNewGame}
             onEditGame={this.onEditGame}
+            onUpdateActiveGameData={this.onUpdateActiveGameData}
             onEditClick={this.onStartEditClick}
             onDiscardClick={this.onDiscardEditClick}
             onSaveGame={this.onSaveEditClick}
@@ -369,36 +371,44 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         enabled: !window.Shared.isBackRemote, // (Local "back" only)
         click: () => {
           window.Shared.back.request(BackIn.GET_GAME, gameId)
-          .then(game => {
+          .then(async (game) => {
             if (game) {
-              const gamePath = getGamePath(game, window.Shared.config.fullFlashpointPath, window.Shared.config.data.htdocsFolderPath);
-              if (gamePath) {
-                fs.stat(gamePath, error => {
-                  if (!error) { remote.shell.showItemInFolder(gamePath); }
-                  else {
-                    const opts: Electron.MessageBoxOptions = {
-                      type: 'warning',
-                      message: '',
-                      buttons: ['Ok'],
-                    };
-                    if (error.code === 'ENOENT') {
-                      opts.title = this.context.dialog.fileNotFound;
-                      opts.message = (
-                        'Failed to find the game file.\n'+
-                        'If you are using Flashpoint Infinity, make sure you download the game first.\n'
-                      );
-                    } else {
-                      opts.title = 'Unexpected error';
-                      opts.message = (
-                        'Failed to check the game file.\n'+
-                        'If you see this, please report it back to us (a screenshot would be great)!\n\n'+
-                        `Error: ${error}\n`
-                      );
-                    }
-                    opts.message += `Path: "${gamePath}"\n\nNote: If the path is too long, some portion will be replaced with three dots ("...").`;
-                    remote.dialog.showMessageBox(opts);
-                  }
-                });
+              const gamePath = await getGamePath(game, window.Shared.config.fullFlashpointPath, window.Shared.config.data.htdocsFolderPath, window.Shared.config.data.dataPacksFolderPath);
+              try {
+                if (gamePath) {
+                  await fs.promises.stat(gamePath);
+                  remote.shell.showItemInFolder(gamePath);
+                } else {
+                  const opts: Electron.MessageBoxOptions = {
+                    type: 'warning',
+                    message: 'GameData has not been downloaded yet, cannot open the file location!',
+                    buttons: ['Ok'],
+                  };
+                  remote.dialog.showMessageBox(opts);
+                  return;
+                }
+              } catch (error) {
+                const opts: Electron.MessageBoxOptions = {
+                  type: 'warning',
+                  message: '',
+                  buttons: ['Ok'],
+                };
+                if (error.code === 'ENOENT') {
+                  opts.title = this.context.dialog.fileNotFound;
+                  opts.message = (
+                    'Failed to find the game file.\n'+
+                    'If you are using Flashpoint Infinity, make sure you download the game first.\n'
+                  );
+                } else {
+                  opts.title = 'Unexpected error';
+                  opts.message = (
+                    'Failed to check the game file.\n'+
+                    'If you see this, please report it back to us (a screenshot would be great)!\n\n'+
+                    `Error: ${error}\n`
+                  );
+                }
+                opts.message += `Path: "${gamePath}"\n\nNote: If the path is too long, some portion will be replaced with three dots ("...").`;
+                remote.dialog.showMessageBox(opts);
               }
             }
           });
@@ -552,22 +562,27 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     event.dataTransfer.clearData(gameIdDataType);
   }
 
-  onDeleteSelectedGame = (): void => {
-    // Delete the game
-    if (this.props.selectedGameId) {
-      this.props.onDeleteGame(this.props.selectedGameId);
+  onDeleteSelectedGame = async (): Promise<void> => {
+    const strings = this.context;
+    // Confirm Deletion
+    const res = await this.props.openConfirmDialog(strings.dialog.areYouSureDelete, [strings.misc.yes, strings.misc.no], 1, true);
+    if (res === 0) {
+      // Delete the game
+      if (this.props.selectedGameId) {
+        this.props.onDeleteGame(this.props.selectedGameId);
+      }
+      // Deselect the game
+      this.props.onSelectGame(undefined);
+      // Reset the state related to the selected game
+      this.setState({
+        currentGame: undefined,
+        currentPlaylistEntry: undefined,
+        isNewGame: false,
+        isEditingGame: false
+      });
+      // Focus the game grid/list
+      this.focusGameGridOrList();
     }
-    // Deselect the game
-    this.props.onSelectGame(undefined);
-    // Reset the state related to the selected game
-    this.setState({
-      currentGame: undefined,
-      currentPlaylistEntry: undefined,
-      isNewGame: false,
-      isEditingGame: false
-    });
-    // Focus the game grid/list
-    this.focusGameGridOrList();
   }
 
   onRemoveSelectedGameFromPlaylist = async (): Promise<void> => {
@@ -599,6 +614,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   onEditGame = (game: Partial<Game>) => {
+    log.debug('Launcher', `Editing: ${JSON.stringify(game)}`);
     if (this.state.currentGame) {
       this.setState({
         currentGame: {...this.state.currentGame, ...game}
@@ -669,6 +685,17 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     this.focusGameGridOrList();
   }
 
+  onUpdateActiveGameData = (activeDataOnDisk: boolean, activeDataId?: number): void => {
+    if (this.state.currentGame) {
+      window.Shared.back.request(BackIn.SAVE_GAME, {...this.state.currentGame, activeDataOnDisk, activeDataId })
+      .then(() => {
+        if (this.state.currentGame) {
+          this.setState({ currentGame: {...this.state.currentGame, activeDataOnDisk, activeDataId }});
+        }
+      });
+    }
+  }
+
   /** Create a new game if the "New Game" button was clicked */
   createNewGameIfClicked(prevWasNewGameClicked: boolean, cb: (state: StateCallback1) => void = this.boundSetState): void {
     const { wasNewGameClicked } = this.props;
@@ -704,6 +731,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           orderTitle: '',
           addApps: [],
           placeholder: false,
+          activeDataOnDisk: false
         },
         isEditingGame: true,
         isNewGame: true,

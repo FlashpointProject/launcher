@@ -23,6 +23,11 @@ const config = {
 };
 // Files to copy after packing
 const copyFiles = [
+  {
+    from :'./extern/bluezip',
+    to: './extern/bluezip',
+    filter: ['**']
+  },
   { // Only copy 7zip execs for packed platform
     from: './extern/7zip-bin',
     to: './extern/7zip-bin',

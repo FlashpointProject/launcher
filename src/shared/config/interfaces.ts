@@ -22,6 +22,8 @@ export type AppConfigData = {
   metaEditsFolderPath: string;
   /** Path to load User extensions from (relative to the flashpoint path) */
   extensionsPath: string;
+  /** Path to store Game Data packs */
+  dataPacksFolderPath: string;
   /** If the custom title bar should be used in MainWindow */
   useCustomTitlebar: boolean;
   /**

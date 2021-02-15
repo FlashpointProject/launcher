@@ -209,6 +209,21 @@ declare module 'flashpoint-launcher' {
         const onWillImportGame: Event<CurationImportState>;
     }
 
+    /** Collection of Game Data related API functions */
+    namespace gameData {
+        function findOne(id: number): Promise<GameData | undefined>;
+        function findGameData(gameId: string): Promise<GameData[]>;
+        function findSourceDataForHashes(hashes: string[]): Promise<SourceData[]>;
+        function save(gameData: GameData): Promise<GameData>;
+        function importGameData(gameId: string, filePath: string): Promise<GameData>;
+        function downloadGameData(gameDataId: number): Promise<void>;
+        const onDidImportGameData: Event<GameData>;
+    }
+
+    namespace sources {
+        function findOne(sourceId: number): Promise<Source | undefined>;
+    }
+
     /** Collection of Tag related API functions */
     namespace tags {
         // Tags
@@ -470,7 +485,61 @@ declare module 'flashpoint-launcher' {
         orderTitle: string;
         /** If the game is a placeholder (and can therefore not be saved) */
         placeholder: boolean;
+        /** ID of the active data */
+        activeDataId?: number;
+        /** Whether the data is present on disk */
+        activeDataOnDisk: boolean;
+        data?: GameData[];
     };
+
+    type GameData = {
+        id: number;
+        /** ID of the related game */
+        game?: Game;
+        gameId: string;
+        /** Title of this data pack */
+        title: string;
+        /** Date this data pack was added on */
+        dateAdded: Date;
+        /** Expected SHA256 hash of this data pack */
+        sha256: string;
+        /** Expected CRC32 of this data pack */
+        crc32: number;
+        /** Is the data pack present on disk */
+        presentOnDisk: boolean;
+        /** Path this data pack should reside at, if present on disk */
+        path?: string;
+        /** Size of this data pack */
+        size: number;
+    };
+
+    type SourceData = {
+        id: number;
+        /** Source providing the download */
+        source?: Source;
+        sourceId: number;
+        /** SHA256 hash of this download */
+        sha256: string;
+        urlPath: string;
+    }
+
+    type Source = {
+        id: number;
+        /** Name of the Source */
+        name: string;
+        /** Base URL of the Source */
+        sourceFileUrl: string;
+        /** Base URL of the Source */
+        baseUrl: string;
+        /** File Count provided as SourceData */
+        count: number;
+        /** When this Source was added */
+        dateAdded: Date;
+        /** Last time this Source was updated */
+        lastUpdated: Date;
+        /** Any data provided by this Source */
+        data?: SourceData[];
+    }  
 
     type AdditionalApp = {
         /** ID of the additional application (unique identifier) */
@@ -693,6 +762,8 @@ declare module 'flashpoint-launcher' {
         playlistFolderPath: string;
         /** Path to the json folder (relative to the flashpoint path) */
         jsonFolderPath: string;
+        /** Path to the htdocs folder (relative to the flashpoint path) */
+        htdocsFolderPath: string;
         /** Path to the platform folder (relative to the flashpoint path) */
         platformFolderPath: string;
         /** Path to the theme folder (relative to the flashpoint path) */
@@ -703,6 +774,8 @@ declare module 'flashpoint-launcher' {
         metaEditsFolderPath: string;
         /** Path to load User extensions from (relative to the flashpoint path) */
         extensionsPath: string;
+        /** Path to store Game Data packs */
+        dataPacksFolderPath: string;
         /** If the custom title bar should be used in MainWindow */
         useCustomTitlebar: boolean;
         /**
@@ -906,6 +979,7 @@ declare module 'flashpoint-launcher' {
     /** Info type passed to onWillLaunch events */
     type GameLaunchInfo = {
         game: Game;
+        activeData?: GameData;
         launchInfo: LaunchInfo;
     };
 
