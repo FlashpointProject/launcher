@@ -1,7 +1,6 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
-import { WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
 import { BackIn } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
@@ -71,7 +70,7 @@ type OwnProps = {
   contextButtons: ExtensionContribution<'contextButtons'>[];
 };
 
-export type BrowsePageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps & WithConfirmDialogProps;
+export type BrowsePageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps;
 
 export type BrowsePageState = {
   /** Current quick search string (used to jump to a game in the list, not to filter the list). */
@@ -570,58 +569,48 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   onDeleteSelectedGame = async (): Promise<void> => {
-    const strings = this.context;
-    // Confirm Deletion
-    const res = await this.props.openConfirmDialog(strings.dialog.areYouSureDelete, [strings.misc.yes, strings.misc.no], 1, true);
-    if (res === 0) {
-      // Delete the game
-      if (this.props.selectedGameId) {
-        this.props.onDeleteGame(this.props.selectedGameId);
-      }
-      // Deselect the game
-      this.props.onSelectGame(undefined);
-      // Reset the state related to the selected game
-      this.setState({
-        currentGame: undefined,
-        currentPlaylistEntry: undefined,
-        isNewGame: false,
-        isEditingGame: false
-      });
-      // Focus the game grid/list
-      this.focusGameGridOrList();
+    // Delete the game
+    if (this.props.selectedGameId) {
+      this.props.onDeleteGame(this.props.selectedGameId);
     }
+    // Deselect the game
+    this.props.onSelectGame(undefined);
+    // Reset the state related to the selected game
+    this.setState({
+      currentGame: undefined,
+      currentPlaylistEntry: undefined,
+      isNewGame: false,
+      isEditingGame: false
+    });
+    // Focus the game grid/list
+    this.focusGameGridOrList();
   }
 
   onRemoveSelectedGameFromPlaylist = async (): Promise<void> => {
-    const strings = this.context;
-    // Confirm Deletion
-    const res = await this.props.openConfirmDialog(strings.dialog.areYouSurePlaylistRemove, [strings.misc.yes, strings.misc.no], 1, true);
-    if (res === 0) {
-      // Remove game from playlist
-      if (this.state.currentGame) {
-        if (this.state.currentPlaylist) {
-          await window.Shared.back.request(BackIn.DELETE_PLAYLIST_GAME, this.state.currentPlaylist.id, this.state.currentGame.id);
-        } else { logError('No playlist is selected'); }
-      } else { logError('No game is selected'); }
-
-      // Deselect the game
-      this.props.onSelectGame(undefined);
-
-      // Reset the state related to the selected game
-      this.setState({
-        currentGame: undefined,
-        currentPlaylistEntry: undefined,
-        isNewGame: false,
-        isEditingGame: false
-      });
-
+    // Remove game from playlist
+    if (this.state.currentGame) {
       if (this.state.currentPlaylist) {
-        this.props.onUpdatePlaylist(this.state.currentPlaylist);
-      }
+        await window.Shared.back.request(BackIn.DELETE_PLAYLIST_GAME, this.state.currentPlaylist.id, this.state.currentGame.id);
+      } else { logError('No playlist is selected'); }
+    } else { logError('No game is selected'); }
 
-      function logError(text: string) {
-        console.error('Unable to remove game from selected playlist - ' + text);
-      }
+    // Deselect the game
+    this.props.onSelectGame(undefined);
+
+    // Reset the state related to the selected game
+    this.setState({
+      currentGame: undefined,
+      currentPlaylistEntry: undefined,
+      isNewGame: false,
+      isEditingGame: false
+    });
+
+    if (this.state.currentPlaylist) {
+      this.props.onUpdatePlaylist(this.state.currentPlaylist);
+    }
+
+    function logError(text: string) {
+      console.error('Unable to remove game from selected playlist - ' + text);
     }
   }
 

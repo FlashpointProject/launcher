@@ -58,7 +58,7 @@ export function withConfirmDialog<P>(Component: React.ComponentType<P>) {
 
     render() {
       return (
-        <div className='page-wrap'>
+        <>
           <Component
             {...this.props as P} // @HACK This is annoying to make typsafe
             openConfirmDialog={this.openConfirmDialog} />
@@ -68,7 +68,7 @@ export function withConfirmDialog<P>(Component: React.ComponentType<P>) {
               <ConfirmDialog {...this.state.confirmProps} />
             </FloatingContainer>
           )}
-        </div>
+        </>
       );
     }
   };

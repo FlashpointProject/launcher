@@ -1,5 +1,4 @@
 import { Source } from '@database/entity/Source';
-import { WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
 import { BackIn } from '@shared/back/types';
@@ -23,6 +22,7 @@ import { ConfigBoxMultiSelect, MultiSelectItem } from '../ConfigBoxMultiSelect';
 import { ConfigBoxSelect, SelectItem } from '../ConfigBoxSelect';
 import { ConfigBoxSelectInput } from '../ConfigBoxSelectInput';
 import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
+import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
 import { FloatingContainer } from '../FloatingContainer';
 import { InputElement, InputField } from '../InputField';
 import { OpenIcon } from '../OpenIcon';
@@ -52,7 +52,7 @@ type OwnProps = {
   localeCode: string;
 };
 
-export type ConfigPageProps = OwnProps & WithPreferencesProps & WithConfirmDialogProps & WithTagCategoriesProps;
+export type ConfigPageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps;
 
 type ConfigPageState = {
   /** If the currently entered Flashpoint path points to a "valid" Flashpoint folder (it exists and "looks" like a Flashpoint folder). */
@@ -118,7 +118,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     const platformOptions = this.itemizePlatformOptionsMemo(this.props.platforms, this.state.nativePlatforms);
     const sources = this.renderSourcesMemo(this.state.sources);
     const appPathOverrides = this.renderAppPathOverridesMemo(this.props.preferencesData.appPathOverrides);
-    const tagFilters = this.renderTagFiltersMemo(this.props.preferencesData.tagFilters, strings);
+    const tagFilters = this.renderTagFiltersMemo(this.props.preferencesData.tagFilters, this.context);
     const logoSetPreviewRows = this.renderLogoSetMemo(this.props.platforms, this.props.logoVersion);
     const extensions = this.renderExtensionsMemo(this.props.extensions, strings);
     const extConfigSections = this.renderExtensionConfigs(this.props.extConfigs, this.props.extConfig);
@@ -444,7 +444,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     });
   });
 
-  renderTagFiltersMemo = memoizeOne((tagFilters: TagFilterGroup[], strings: LangContainer['config']) => {
+  renderTagFiltersMemo = memoizeOne((tagFilters: TagFilterGroup[], strings: LangContainer) => {
     return tagFilters.map((item, index) => {
       return (
         <div
@@ -461,7 +461,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
           </i>
           <div
             onClick={() => this.onEditTagFilterGroup(index)}
-            title={strings.editTagFilter}
+            title={strings.config.editTagFilter}
             className='browse-right-sidebar__title-row__buttons__edit-button'>
             <OpenIcon
               className='setting__row__content--override-row__edit'
@@ -469,20 +469,16 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
           </div>
           <div
             onClick={() => this.onDuplicateTagFilterGroup(index)}
-            title={strings.duplicateTagFilter}
+            title={strings.config.duplicateTagFilter}
             className='browse-right-sidebar__title-row__buttons__edit-button'>
             <OpenIcon
               className='setting__row__content--override-row__edit'
               icon='layers' />
           </div>
-          <div
-            className={'browse-right-sidebar__title-row__buttons__discard-button'}
-            title={strings.deleteTagFilter}
-            onClick={() => this.onConfirmTagFilterGroupDelete(index)} >
-            <OpenIcon
-              className='setting__row__content--override-row__delete'
-              icon='delete' />
-          </div>
+          <ConfirmElement
+            message={strings.dialog.deleteTagFilterGroup}
+            onConfirm={() => this.onTagFilterGroupDelete(index)}
+            render={this.renderTagFilterGroupDelete} />
         </div>
       );
     });
@@ -596,6 +592,20 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
     return sections;
   });
+
+  renderTagFilterGroupDelete = ({ confirm }: ConfirmElementArgs) => {
+    const strings = this.context.config;
+    return (
+      <div
+        className={'browse-right-sidebar__title-row__buttons__discard-button'}
+        title={strings.deleteTagFilter}
+        onClick={confirm} >
+        <OpenIcon
+          className='setting__row__content--override-row__delete'
+          icon='delete' />
+      </div>
+    );
+  }
 
   onShowExtremeChange = (isChecked: boolean): void => {
     updatePreferencesData({ browsePageShowExtreme: isChecked });
@@ -859,14 +869,10 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     }
   }
 
-  onConfirmTagFilterGroupDelete = async (index: number) => {
-    const tfg = this.props.preferencesData.tagFilters[index];
-    const res = await this.props.openConfirmDialog(`Deleting "${tfg.name}" Tag Filter Group. Are you sure?`, ['Yes', 'No'], 1, true);
-    if (res == 0) {
-      const newTagFilters = [...this.props.preferencesData.tagFilters];
-      newTagFilters.splice(index, 1);
-      updatePreferencesData({ tagFilters: newTagFilters });
-    }
+  onTagFilterGroupDelete = async (index: number) => {
+    const newTagFilters = [...this.props.preferencesData.tagFilters];
+    newTagFilters.splice(index, 1);
+    updatePreferencesData({ tagFilters: newTagFilters });
   }
 
   /** When the "Save & Restart" button is clicked. */

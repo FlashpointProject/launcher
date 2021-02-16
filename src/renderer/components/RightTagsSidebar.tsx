@@ -126,6 +126,7 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
                             <OpenIcon icon='pencil' />
                           </div>
                           <ConfirmElement
+                            message={allStrings.dialog.deleteTag}
                             onConfirm={this.onDeleteTagClick}
                             render={this.renderDeleteTagButton}
                             extra={allStrings.tags} />
@@ -211,14 +212,13 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
     }
   }
 
-  renderDeleteTagButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<LangContainer['tags']>): JSX.Element {
+  renderDeleteTagButton({ confirm, extra }: ConfirmElementArgs<LangContainer['tags']>): JSX.Element {
     const className = 'tag-alias__buttons-delete';
     return (
       <div
-        className={className + ((activationCounter > 0) ? ` ${className}--active simple-vertical-shake` : '')}
+        className={className}
         title={extra.deleteTag}
-        onClick={activate}
-        onMouseLeave={reset}>
+        onClick={confirm} >
         <OpenIcon icon='trash' />
       </div>
     );

@@ -172,7 +172,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   }
 
   render() {
-    const strings = this.context.browse;
+    const allStrings = this.context;
+    const strings = allStrings.browse;
     const game: Game | undefined = this.props.currentGame;
     if (game) {
       const { isEditing, isNewGame, currentPlaylistEntry, preferencesData, suggestions, tagCategories } = this.props;
@@ -186,7 +187,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
 
       const removeGameFromPlaylistElement = (
         <ConfirmElement
-          activationLimit={-1}
+          message={allStrings.dialog.removePlaylistGame}
           onConfirm={this.props.onRemoveSelectedGameFromPlaylist}
           render={this.renderRemoveFromPlaylistButton}
           extra={strings} />
@@ -249,7 +250,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                           {/* "Delete Game" Button */}
                           { (isPlaceholder || isNewGame || currentPlaylistEntry) ? undefined : (
                             <ConfirmElement
-                              activationLimit={0}
+                              message={allStrings.dialog.deleteGame}
                               onConfirm={this.onDeleteGameClick}
                               render={this.renderDeleteGameButton}
                               extra={strings} />
@@ -671,31 +672,23 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     }
   }
 
-  renderDeleteGameButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<LangContainer['browse']>): JSX.Element {
+  renderDeleteGameButton({ confirm, extra }: ConfirmElementArgs<LangContainer['browse']>): JSX.Element {
     return (
       <div
-        className={
-          'browse-right-sidebar__title-row__buttons__delete-game' +
-          ((activationCounter > 0) ? ' browse-right-sidebar__title-row__buttons__delete-game--active simple-vertical-shake' : '')
-        }
+        className='browse-right-sidebar__title-row__buttons__delete-game'
         title={extra.deleteGameAndAdditionalApps}
-        onClick={activate}
-        onMouseLeave={reset}>
+        onClick={confirm} >
         <OpenIcon icon='trash' />
       </div>
     );
   }
 
-  renderRemoveFromPlaylistButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<LangContainer['browse']>): JSX.Element {
+  renderRemoveFromPlaylistButton({ confirm, extra }: ConfirmElementArgs<LangContainer['browse']>): JSX.Element {
     return (
       <div
-        className={
-          'browse-right-sidebar__title-row__buttons__remove-from-playlist' +
-          ((activationCounter > 0) ? ' browse-right-sidebar__title-row__buttons__remove-from-playlist--active simple-vertical-shake' : '')
-        }
+        className='browse-right-sidebar__title-row__buttons__remove-from-playlist'
         title={extra.removeGameFromPlaylist}
-        onClick={activate}
-        onMouseLeave={reset}>
+        onClick={confirm} >
         <OpenIcon icon='circle-x' />
       </div>
     );

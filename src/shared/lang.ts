@@ -468,6 +468,18 @@ const langTemplate = {
     'overwriteFileTitle',
     'overwriteFileMessage',
     'overwriteFileDetail',
+    'deleteTagFilterGroup',
+    'deleteCuration',
+    'deleteGameImage',
+    'deletePlaylist',
+    'importAllCurations',
+    'deleteAllCurations',
+    'removePlaylistGame',
+    'deleteGame',
+    'deleteAddApp',
+    'deleteTagCategory',
+    'deleteTag',
+    'deleteTagAlias',
   ] as const,
   // libraries: [], // (This is dynamically populated in run-time)
 } as const;

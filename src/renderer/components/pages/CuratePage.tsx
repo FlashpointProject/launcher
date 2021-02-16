@@ -146,7 +146,7 @@ export function CuratePage(props: CuratePageProps) {
       date: date,
       saveCuration: props.preferencesData.saveImportedCurations
     })
-    .then<undefined>(data => new Promise((resolve, reject) => {
+    .then(data => new Promise<void>((resolve, reject) => {
       if (data && data.error) {
         reject(data.error);
       } else {
@@ -583,11 +583,13 @@ export function CuratePage(props: CuratePageProps) {
               onClick={onOpenImportedFolder} />
             <div className='curate-page__floating-box__divider'/>
             <ConfirmElement
+              message={strings.dialog.importAllCurations}
               onConfirm={onImportAllClick}
               render={renderImportAllButton}
               extra={[strings.curate, allLock]} />
             <div className='curate-page__floating-box__divider'/>
             <ConfirmElement
+              message={strings.dialog.deleteAllCurations}
               onConfirm={onDeleteAllClick}
               render={renderDeleteAllButton}
               extra={[strings.curate, allLock]} />
@@ -629,27 +631,25 @@ export function CuratePage(props: CuratePageProps) {
     props.preferencesData.tagFiltersInCurate]);
 }
 
-function renderImportAllButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {
+function renderImportAllButton({ confirm, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {
+  const [ strings, disabled ] = extra;
   return (
     <SimpleButton
-      className={(activationCounter > 0) ? 'simple-button--red simple-vertical-shake' : ''}
-      value={extra[0].importAll}
-      title={extra[0].importAllDesc}
-      onClick={activate}
-      disabled={extra[1]}
-      onMouseLeave={reset} />
+      value={strings.importAll}
+      title={strings.importAllDesc}
+      onClick={confirm}
+      disabled={disabled} />
   );
 }
 
-function renderDeleteAllButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {
+function renderDeleteAllButton({ confirm, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {
+  const [ strings, disabled ] = extra;
   return (
     <SimpleButton
-      className={(activationCounter > 0) ? 'simple-button--red simple-vertical-shake' : ''}
-      value={extra[0].deleteAll}
-      title={extra[0].deleteAllDesc}
-      onClick={activate}
-      disabled={extra[1]}
-      onMouseLeave={reset} />
+      value={strings.deleteAll}
+      title={strings.deleteAllDesc}
+      onClick={confirm}
+      disabled={disabled} />
   );
 }
 

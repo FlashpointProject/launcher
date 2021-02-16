@@ -1,14 +1,13 @@
 import { sanitizeFilename } from '@back/util/sanitizeFilename';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
-import { withConfirmDialog, WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
 import { createCurationIndexImage } from '@renderer/curate/importCuration';
 import { useDelayedThrottle } from '@renderer/hooks/useThrottle';
 import { BackIn, TagSuggestion } from '@shared/back/types';
 import { convertEditToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { CurationIndex, EditCuration, EditCurationMeta, IndexedContent } from '@shared/curate/types';
 import { getContentFolderByKey, getCurationFolder, indexContentFolder } from '@shared/curate/util';
-import { GamePropSuggestions, Subtract } from '@shared/interfaces';
+import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { deepCopy, fixSlashes, sizeToString } from '@shared/Util';
 import { remote } from 'electron';
@@ -38,7 +37,7 @@ import { AutoProgressComponent } from './ProgressComponents';
 import { SimpleButton } from './SimpleButton';
 import { TagInputField } from './TagInputField';
 
-type OwnProps = {
+export type CurateBoxProps = {
   /** Meta data of the curation to display. */
   curation?: EditCuration;
   /** Dispatcher for the curate page state reducer. */
@@ -56,10 +55,8 @@ type OwnProps = {
   tagFilters: TagFilterGroup[];
 }
 
-type CurateBoxComponentProps = OwnProps & WithConfirmDialogProps;
-
 /** A box that displays and lets the user edit a curation. */
-function CurateBoxComponent(props: CurateBoxComponentProps) {
+export function CurateBox(props: CurateBoxProps) {
   // Localized strings
   const strings = React.useContext(LangContext);
   const [progressState, progressDispatch] = React.useContext(ProgressContext.context);
@@ -372,16 +369,13 @@ function CurateBoxComponent(props: CurateBoxComponentProps) {
   }, [props.curation && props.curation.key]);
   // Callback for when the remove button is clicked
   const onRemoveClick = useCallback(async () => {
-    const res = await props.openConfirmDialog('Deleting Curation. Are you sure?', ['Yes', 'No'], 1);
-    if (res === 0) {
-      if (props.curation) {
-        props.dispatch({
-          type: 'remove-curation',
-          payload: { key: props.curation.key }
-        });
-      }
+    if (props.curation) {
+      props.dispatch({
+        type: 'remove-curation',
+        payload: { key: props.curation.key }
+      });
     }
-  }, [props.dispatch, props.curation && props.curation.key, props.openConfirmDialog]);
+  }, [props.dispatch, props.curation && props.curation.key]);
   // Callback for when the new additional application button is clicked
   const onNewAddApp = useCallback(() => {
     if (props.curation) {
@@ -934,9 +928,9 @@ function CurateBoxComponent(props: CurateBoxComponentProps) {
         </div>
         <div className='curate-box-buttons__right'>
           <ConfirmElement
-            activationLimit={-1}
             onConfirm={onRemoveClick}
             render={renderRemoveButton}
+            message={strings.dialog.deleteCuration}
             extra={[strings.curate, disabled]} />
           <SimpleButton
             className='curate-box-buttons__button'
@@ -956,19 +950,15 @@ function CurateBoxComponent(props: CurateBoxComponentProps) {
     tagInputText, tagSuggestions, onRun, onRunWithMAD4FP]);
 }
 
-function renderRemoveButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {
+function renderRemoveButton({ confirm, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {
   const [ strings, disabled ] = extra;
   return (
     <SimpleButton
-      className={
-        'curate-box-buttons__button' +
-        ((activationCounter > 0) ? ' curate-box-buttons__button--active simple-vertical-shake' : '')
-      }
+      className='curate-box-buttons__button'
       value={strings.delete}
       title={strings.deleteCurationDesc}
       disabled={disabled}
-      onClick={activate}
-      onMouseLeave={reset} />
+      onClick={confirm} />
   );
 }
 
@@ -1248,6 +1238,3 @@ function getPathOfHtdocsUrl(url: string): string | undefined {
     );
   }
 }
-
-export type CurateBoxProps = Subtract<CurateBoxComponentProps, WithConfirmDialogProps>;
-export const CurateBox = withConfirmDialog(CurateBoxComponent);

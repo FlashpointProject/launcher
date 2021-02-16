@@ -7,7 +7,6 @@ import { SearchQuery } from '../store/search';
 import * as searchActions from '../store/search/actions';
 import { withPreferences, WithPreferencesProps } from './withPreferences';
 import { WithTagCategoriesProps, withTagCategories } from './withTagCategories';
-import { WithConfirmDialogProps, withConfirmDialog } from './withConfirmDialog';
 
 type StateToProps = {
   /** The most recent search query. */
@@ -19,7 +18,7 @@ type DispatchToProps = {
   clearSearch: () => void;
 };
 
-export type ConnectedBrowsePageProps = Subtract<BrowsePageProps, StateToProps & DispatchToProps & WithPreferencesProps & WithTagCategoriesProps & WithConfirmDialogProps>;
+export type ConnectedBrowsePageProps = Subtract<BrowsePageProps, StateToProps & DispatchToProps & WithPreferencesProps & WithTagCategoriesProps>;
 
 const mapStateToProps = ({ search }: ApplicationState): StateToProps => ({
   search: search.query,
@@ -29,7 +28,7 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchToProps => bindActionCr
   clearSearch: () => searchActions.setQuery({ text: '' }),
 }, dispatch);
 
-export default withConfirmDialog(withTagCategories(withPreferences(connect(
+export default withTagCategories(withPreferences(connect(
   mapStateToProps,
   mapDispatchToProps
-)(BrowsePage))));
+)(BrowsePage)));
