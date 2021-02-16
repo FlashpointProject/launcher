@@ -451,7 +451,19 @@
     "uploadPrivacyWarning": "Twoje logi będą publicznie dostępne.\nLink zostanie skopiowany do schowka.\n\nJesteś pewien?",
     "overwriteFileTitle": "Plik już istnieje!",
     "overwriteFileMessage": "Plik o tej samej nazwie już istnieje. Czy chcesz go nadpisać?",
-    "overwriteFileDetail": "Ścieżka pliku:"
+    "overwriteFileDetail": "Ścieżka pliku:",
+    "deleteTagFilterGroup": "Delete this Tag Filter Group?",
+    "deleteCuration": "Delete this Curation?",
+    "deleteGameImage": "Delete this Game Image?",
+    "deletePlaylist": "Delete this Playlist?",
+    "importAllCurations": "Import all Curations?",
+    "deleteAllCurations": "Delete all Curations?",
+    "removePlaylistGame": "Remove this Game from the Playlist?",
+    "deleteGame": "Delete this Game? (non-recoverable)",
+    "deleteAddApp": "Delete this Add App?",
+    "deleteTagCategory": "Delete this Tag Category?",
+    "deleteTag": "Delete this Tag?",
+    "deleteTagAlias": "Delete this Tag Alias?"
   },
   "libraries": {
     "arcade": "Gry",
