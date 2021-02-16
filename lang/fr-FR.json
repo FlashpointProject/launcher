@@ -451,7 +451,19 @@
     "uploadPrivacyWarning": "Cela va rendre ton historique public.\nUn lien va être copié dans ton presse-papier.\n\nEs-tu sûr ?",
     "overwriteFileTitle": "Le fichier existe déjà !",
     "overwriteFileMessage": "Un fichier du même nom existe déjà. Veux-tu l'écraser ?",
-    "overwriteFileDetail": "Chemin du fichier :"
+    "overwriteFileDetail": "Chemin du fichier :",
+    "deleteTagFilterGroup": "Delete this Tag Filter Group?",
+    "deleteCuration": "Delete this Curation?",
+    "deleteGameImage": "Delete this Game Image?",
+    "deletePlaylist": "Delete this Playlist?",
+    "importAllCurations": "Import all Curations?",
+    "deleteAllCurations": "Delete all Curations?",
+    "removePlaylistGame": "Remove this Game from the Playlist?",
+    "deleteGame": "Delete this Game? (non-recoverable)",
+    "deleteAddApp": "Delete this Add App?",
+    "deleteTagCategory": "Delete this Tag Category?",
+    "deleteTag": "Delete this Tag?",
+    "deleteTagAlias": "Delete this Tag Alias?"
   },
   "libraries": {
     "arcade": "Jeux",
