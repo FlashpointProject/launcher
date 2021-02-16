@@ -22,6 +22,7 @@ npm-debug.log.*
 /.version
 /secret.txt
 /launcher.log
+/extern/bluezip/bluezip.db
 /flashpoint.sqlite
 Data/flashpoint.sqlite
 

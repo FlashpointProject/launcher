@@ -75,33 +75,50 @@ export async function importFromURL(url: string, saveDir: string, onProgress?: (
       log.debug('Launcher', 'Clearing old SourceData...');
       await SourceDataManager.clearSource(source.id);
       log.debug('Launcher', 'Loading new Source file...');
-      // Parse Source file
       const readStream = fs.createReadStream(filePath, { encoding: 'utf8' });
-      const rl = readline.createInterface({
-        input: readStream
-      });
-      let hash: string | undefined = undefined;
-      log.debug('Launcher', 'Reading Source file into DB');
-      let sdBuffer: SourceData[] = [];
-      for await (const line of rl) {
-        if (hash) {
-          const sourceData = new SourceData();
-          sourceData.sha256 = hash;
-          sourceData.sourceId = source.id;
-          sourceData.urlPath = line;
-          sdBuffer.push(sourceData);
-          if (sdBuffer.length > 2000) {
-            // Push a transaction when 500 stored
-            await SourceDataManager.updateData(sdBuffer);
-            sdBuffer = [];
+      try {
+        // Parse Source file
+        const rl = readline.createInterface({
+          input: readStream
+        });
+        let hash: string | undefined = undefined;
+        log.debug('Launcher', 'Reading Source file into DB');
+        let sdBuffer: SourceData[] = [];
+        for await (const line of rl) {
+          if (hash) {
+            const sourceData = new SourceData();
+            sourceData.sha256 = hash;
+            sourceData.sourceId = source.id;
+            sourceData.urlPath = line;
+            sdBuffer.push(sourceData);
+            if (sdBuffer.length > 2000) {
+              // Push a transaction when 500 stored
+              await SourceDataManager.updateData(sdBuffer);
+              sdBuffer = [];
+            }
+            hash = undefined;
+          } else {
+            if (line.length === 64) {
+              hash = line;
+            } else {
+              throw 'Improper Source File Format.';
+            }
           }
-          hash = undefined;
-        } else {
-          hash = line;
         }
-      }
-      if (sdBuffer.length > 0) {
-        await SourceDataManager.updateData(sdBuffer);
+        if (sdBuffer.length > 0) {
+          await SourceDataManager.updateData(sdBuffer);
+        }
+      } catch (error) {
+        // Clean up lingering data
+        await SourceManager.remove(source.id);
+        log.error('Launcher', 'Format error when parsing Source file, aborted.');
+        reject(error);
+        return;
+      } finally {
+        readStream.on('close', () => {
+          fs.promises.unlink(filePath);
+        });
+        readStream.close();
       }
       log.info('Launcher', 'Updated Source.');
       source.count = await SourceDataManager.countBySource(source.id);

@@ -663,16 +663,21 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     this.setState({ newSourceUrl: '' });
   }
 
-  submitSourceURL = async (url: string) => {
-    const source = await window.Shared.back.request(BackIn.ADD_SOURCE_BY_URL, url);
-    const newSources = [...(this.state.sources || [])];
-    const idx = newSources.findIndex(s => s.id === source.id);
-    if (idx > -1) {
-      newSources[idx] = source;
-    } else {
-      newSources.push(source);
-    }
-    this.setState({ sources: newSources });
+  submitSourceURL = (url: string) => {
+    window.Shared.back.request(BackIn.ADD_SOURCE_BY_URL, url)
+    .then((source) => {
+      const newSources = [...(this.state.sources || [])];
+      const idx = newSources.findIndex(s => s.id === source.id);
+      if (idx > -1) {
+        newSources[idx] = source;
+      } else {
+        newSources.push(source);
+      }
+      this.setState({ sources: newSources });
+    })
+    .catch((error) => {
+      alert(error);
+    });
   }
 
   deleteSource = async (source: Source) => {
