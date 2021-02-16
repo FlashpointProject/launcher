@@ -451,7 +451,19 @@
     "uploadPrivacyWarning": "Bu, Kayıtlarını herkese açık yapacak.\nPanoya bir link kopyalanacak.\n\nEmin misin?",
     "overwriteFileTitle": "Dosya zaten mevcut!",
     "overwriteFileMessage": "Aynı adı taşıyan bir dosya zaten var. Üzerine yazmak istiyor musunuz?",
-    "overwriteFileDetail": "Dosya yolu:"
+    "overwriteFileDetail": "Dosya yolu:",
+    "deleteTagFilterGroup": "Delete this Tag Filter Group?",
+    "deleteCuration": "Delete this Curation?",
+    "deleteGameImage": "Delete this Game Image?",
+    "deletePlaylist": "Delete this Playlist?",
+    "importAllCurations": "Import all Curations?",
+    "deleteAllCurations": "Delete all Curations?",
+    "removePlaylistGame": "Remove this Game from the Playlist?",
+    "deleteGame": "Delete this Game? (non-recoverable)",
+    "deleteAddApp": "Delete this Add App?",
+    "deleteTagCategory": "Delete this Tag Category?",
+    "deleteTag": "Delete this Tag?",
+    "deleteTagAlias": "Delete this Tag Alias?"
   },
   "libraries": {
     "arcade": "Oyunlar",
