@@ -451,7 +451,19 @@
     "uploadPrivacyWarning": "Làm thế này sẽ công khai Bản ghi của bạn.\nMột liên kết sẽ được sao chép vào khay nhớ tạm.\n\nBạn có chắc không?",
     "overwriteFileTitle": "Tập tin đã tồn tại!",
     "overwriteFileMessage": "Tồn tại một tệp cùng tên. Bạn có muốn ghi đè?",
-    "overwriteFileDetail": "Đường dẫn tập tin:"
+    "overwriteFileDetail": "Đường dẫn tập tin:",
+    "deleteTagFilterGroup": "Delete this Tag Filter Group?",
+    "deleteCuration": "Delete this Curation?",
+    "deleteGameImage": "Delete this Game Image?",
+    "deletePlaylist": "Delete this Playlist?",
+    "importAllCurations": "Import all Curations?",
+    "deleteAllCurations": "Delete all Curations?",
+    "removePlaylistGame": "Remove this Game from the Playlist?",
+    "deleteGame": "Delete this Game? (non-recoverable)",
+    "deleteAddApp": "Delete this Add App?",
+    "deleteTagCategory": "Delete this Tag Category?",
+    "deleteTag": "Delete this Tag?",
+    "deleteTagAlias": "Delete this Tag Alias?"
   },
   "libraries": {
     "arcade": "Trò chơi",
