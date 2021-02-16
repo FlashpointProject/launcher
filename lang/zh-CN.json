@@ -451,7 +451,19 @@
     "uploadPrivacyWarning": "这将公开您的日志。\n链接将被复制到剪贴板。\n\n您确定吗？",
     "overwriteFileTitle": "文件已存在！",
     "overwriteFileMessage": "同名文件已经存在。您想覆盖它吗？",
-    "overwriteFileDetail": "文件路径："
+    "overwriteFileDetail": "文件路径：",
+    "deleteTagFilterGroup": "Delete this Tag Filter Group?",
+    "deleteCuration": "Delete this Curation?",
+    "deleteGameImage": "Delete this Game Image?",
+    "deletePlaylist": "Delete this Playlist?",
+    "importAllCurations": "Import all Curations?",
+    "deleteAllCurations": "Delete all Curations?",
+    "removePlaylistGame": "Remove this Game from the Playlist?",
+    "deleteGame": "Delete this Game? (non-recoverable)",
+    "deleteAddApp": "Delete this Add App?",
+    "deleteTagCategory": "Delete this Tag Category?",
+    "deleteTag": "Delete this Tag?",
+    "deleteTagAlias": "Delete this Tag Alias?"
   },
   "libraries": {
     "arcade": "游戏",
