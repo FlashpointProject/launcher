@@ -69,23 +69,16 @@ export function TagFilterGroupEditor(props: TagFilterGroupEditorProps) {
     setEditTag('');
   }, [onAddTag, props.onAddTag]);
 
-  // const checkCategorySubmit = React.useCallback((key: string) => {
-  //   if (key === 'Enter' && editCategory) {
-  //     props.onAddCategory(editCategory);
-  //     setEditCategory('');
-  //   }
-  // }, [editCategory, props.onAddCategory]);
-
   const updateSuggestions = React.useCallback(async (tag: string) => {
     setEditTag(tag);
     if (tag === '') {
       setTagSuggestions([]);
     } else {
-      /** Don't use filters inside filter editor */
-      const suggs = await window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, tag, []);
+      const existingTagsList = parsedTagsList.filter(t => t.id ? t.id >= 0 : false).map(t => t.primaryAlias.name);
+      const suggs = await window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, tag, [{name: '', enabled: true, tags: existingTagsList, categories: [], childFilters: []}]);
       setTagSuggestions(suggs);
     }
-  }, []);
+  }, [parsedTagsList]);
 
   return React.useMemo(() => {
     return (
