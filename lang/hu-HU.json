@@ -457,7 +457,7 @@
     "deleteGameImage": "Delete this Game Image?",
     "deletePlaylist": "Delete this Playlist?",
     "importAllCurations": "Import all Curations?",
-    "deleteAllCurations": "Delete all Curations?",
+    "deleteAllCurations": "Törölni akarja az összes Kurációt?",
     "removePlaylistGame": "Remove this Game from the Playlist?",
     "deleteGame": "Delete this Game? (non-recoverable)",
     "deleteAddApp": "Delete this Add App?",
