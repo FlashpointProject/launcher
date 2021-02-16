@@ -430,7 +430,7 @@ body {
 .title-bar {
   padding: 4px 0 0 4px;
   -webkit-user-select: none; /* Disable text selection */
-  z-index: 1; /* Hacky way of displaying it in from of the splash screen. */
+  z-index: 1001; /* Hacky way of displaying it in from of the splash screen. */
 }
 .title-bar__inner {
   display: flex;
@@ -954,9 +954,6 @@ body {
   flex-grow: 1;
   font-size: 0.75em;
   user-select: none;
-}
-.curate-page__checkbox input[type="checkbox"] {
-  min-width: 1rem;
 }
 /* Curate Page Left Sidebar */
 .curate-page__left-sidebar-item {
@@ -2345,6 +2342,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 1000;
 }
 
 .floating-container {
@@ -2467,6 +2465,7 @@ body {
 /** Checkboxes */
 .checkbox {
   width: 3rem;
+  min-width: 3rem; /** Prevents stretching / compression */
   height: 1.5rem;
   position: relative;
   display: inline-block;
