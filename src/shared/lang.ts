@@ -471,6 +471,7 @@ const langTemplate = {
     'overwriteFileDetail',
     'deleteTagFilterGroup',
     'deleteCuration',
+    'importCuration',
     'deleteGameImage',
     'deletePlaylist',
     'importAllCurations',

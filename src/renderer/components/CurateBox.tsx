@@ -937,17 +937,28 @@ export function CurateBox(props: CurateBoxProps) {
             value={strings.curate.export}
             onClick={onExportClick}
             disabled={disabled} />
-          <SimpleButton
-            className='curate-box-buttons__button'
-            value={strings.curate.import}
-            onClick={onImportClick}
-            disabled={disabled} />
+          <ConfirmElement
+            onConfirm={onImportClick}
+            render={renderImportButton}
+            message={strings.dialog.importCuration}
+            extra={[strings.curate, disabled]} />
         </div>
       </div>
       {progressComponent}
     </div>
   ), [props.curation, strings, disabled, warnings, onImportClick, progressComponent,
     tagInputText, tagSuggestions, onRun, onRunWithMAD4FP]);
+}
+
+function renderImportButton({ confirm, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {
+  const [ strings, disabled ] = extra;
+  return (
+    <SimpleButton
+      className='curate-box-buttons__button'
+      value={strings.import}
+      disabled={disabled}
+      onClick={confirm} />
+  );
 }
 
 function renderRemoveButton({ confirm, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {
@@ -961,7 +972,6 @@ function renderRemoveButton({ confirm, extra }: ConfirmElementArgs<[LangContaine
       onClick={confirm} />
   );
 }
-
 
 type InputElement = HTMLInputElement | HTMLTextAreaElement;
 
