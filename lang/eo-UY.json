@@ -451,7 +451,19 @@
     "uploadPrivacyWarning": "Ĉi tio disponigos viajn Registrojn publike. Ligo estos kopiita al via tondejo.\n\nĈu vi certas?",
     "overwriteFileTitle": "La dosiero jam eksistas!",
     "overwriteFileMessage": "Dosiero kun la sama nomo jam ekzistas. Ĉu vi volas anstataŭigi ĝin?",
-    "overwriteFileDetail": "Dosiera vojo:"
+    "overwriteFileDetail": "Dosiera vojo:",
+    "deleteTagFilterGroup": "Delete this Tag Filter Group?",
+    "deleteCuration": "Delete this Curation?",
+    "deleteGameImage": "Delete this Game Image?",
+    "deletePlaylist": "Delete this Playlist?",
+    "importAllCurations": "Import all Curations?",
+    "deleteAllCurations": "Delete all Curations?",
+    "removePlaylistGame": "Remove this Game from the Playlist?",
+    "deleteGame": "Delete this Game? (non-recoverable)",
+    "deleteAddApp": "Delete this Add App?",
+    "deleteTagCategory": "Delete this Tag Category?",
+    "deleteTag": "Delete this Tag?",
+    "deleteTagAlias": "Delete this Tag Alias?"
   },
   "libraries": {
     "arcade": "Ludoj",
