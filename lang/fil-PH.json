@@ -451,7 +451,19 @@
     "uploadPrivacyWarning": "This will make your Logs available publicly.\nA link will be copied to your clipboard.\n\nAre you sure?",
     "overwriteFileTitle": "Mayroong file na!",
     "overwriteFileMessage": "Mayroon nang isang file na may parehong pangalan. Gusto mo bang i-overwrite ang file na ito?",
-    "overwriteFileDetail": "Path ng file:"
+    "overwriteFileDetail": "Path ng file:",
+    "deleteTagFilterGroup": "Delete this Tag Filter Group?",
+    "deleteCuration": "Delete this Curation?",
+    "deleteGameImage": "Delete this Game Image?",
+    "deletePlaylist": "Delete this Playlist?",
+    "importAllCurations": "Import all Curations?",
+    "deleteAllCurations": "Delete all Curations?",
+    "removePlaylistGame": "Remove this Game from the Playlist?",
+    "deleteGame": "Delete this Game? (non-recoverable)",
+    "deleteAddApp": "Delete this Add App?",
+    "deleteTagCategory": "Delete this Tag Category?",
+    "deleteTag": "Delete this Tag?",
+    "deleteTagAlias": "Delete this Tag Alias?"
   },
   "libraries": {
     "arcade": "Laro",
