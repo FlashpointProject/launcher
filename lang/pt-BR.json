@@ -452,7 +452,7 @@
     "overwriteFileTitle": "Arquivo já existe!",
     "overwriteFileMessage": "Já existe um arquivo com o mesmo nome. Deseja substituí-lo?",
     "overwriteFileDetail": "Caminho do arquivo:",
-    "deleteTagFilterGroup": "Delete this Tag Filter Group?",
+    "deleteTagFilterGroup": "Deletar este Grupo de Filtragem de Tags?",
     "deleteCuration": "Delete this Curation?",
     "deleteGameImage": "Delete this Game Image?",
     "deletePlaylist": "Deletar esta playlist?",
@@ -461,9 +461,9 @@
     "removePlaylistGame": "Remove this Game from the Playlist?",
     "deleteGame": "Delete this Game? (non-recoverable)",
     "deleteAddApp": "Delete this Add App?",
-    "deleteTagCategory": "Delete this Tag Category?",
-    "deleteTag": "Delete this Tag?",
-    "deleteTagAlias": "Delete this Tag Alias?"
+    "deleteTagCategory": "Deletar esta Categoria de Tag?",
+    "deleteTag": "Deletar esta Tag?",
+    "deleteTagAlias": "Deletar este Apelido da Tag?"
   },
   "libraries": {
     "arcade": "Jogos",
