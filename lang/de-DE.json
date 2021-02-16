@@ -451,7 +451,19 @@
     "uploadPrivacyWarning": "Dies wird deine Logs öffentlich zugänglich machen.\nEin Link wird in deine Zwischenablage kopiert.\n\nBist du sicher?",
     "overwriteFileTitle": "Datei existiert bereits!",
     "overwriteFileMessage": "Eine Datei mit dem gleichen Namen existiert bereits. Möchtest du sie überschreiben?",
-    "overwriteFileDetail": "Dateipfad:"
+    "overwriteFileDetail": "Dateipfad:",
+    "deleteTagFilterGroup": "Delete this Tag Filter Group?",
+    "deleteCuration": "Delete this Curation?",
+    "deleteGameImage": "Delete this Game Image?",
+    "deletePlaylist": "Delete this Playlist?",
+    "importAllCurations": "Import all Curations?",
+    "deleteAllCurations": "Delete all Curations?",
+    "removePlaylistGame": "Remove this Game from the Playlist?",
+    "deleteGame": "Delete this Game? (non-recoverable)",
+    "deleteAddApp": "Delete this Add App?",
+    "deleteTagCategory": "Delete this Tag Category?",
+    "deleteTag": "Delete this Tag?",
+    "deleteTagAlias": "Delete this Tag Alias?"
   },
   "libraries": {
     "arcade": "Spiele",
