@@ -208,7 +208,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   })
   .then(async () => {
     // Build bluezip
-    const curationPath = getCurationFolder(curation, fpPath);
+    const curationPath = path.resolve(getCurationFolder(curation, fpPath));
     const bluezipProc = child_process.spawn('bluezip', [curationPath, '-no', curationPath], {cwd: path.dirname(bluezipPath)});
     await new Promise<void>((resolve, reject) => {
       bluezipProc.stdout.on('data', (data: any) => {
@@ -235,6 +235,10 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   .catch((error) => {
     curationLog(error.message);
     console.warn(error.message);
+    if (game.id) {
+      // Clean up half imported entries
+      GameManager.removeGameAndAddApps(game.id, dataPacksFolderPath);
+    }
   });
 }
 
