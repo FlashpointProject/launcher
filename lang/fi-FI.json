@@ -451,7 +451,19 @@
     "uploadPrivacyWarning": "Tämä tekee lokisi saataville julkisesti.\nLinkki kopioidaan leikepöydälle.\n\nOletko varma?",
     "overwriteFileTitle": "Tiedosto on jo olemassa!",
     "overwriteFileMessage": "Samanniminen tiedosto on jo olemassa. Haluatko korvata sen?",
-    "overwriteFileDetail": "Tiedoston polku:"
+    "overwriteFileDetail": "Tiedoston polku:",
+    "deleteTagFilterGroup": "Delete this Tag Filter Group?",
+    "deleteCuration": "Delete this Curation?",
+    "deleteGameImage": "Delete this Game Image?",
+    "deletePlaylist": "Delete this Playlist?",
+    "importAllCurations": "Import all Curations?",
+    "deleteAllCurations": "Delete all Curations?",
+    "removePlaylistGame": "Remove this Game from the Playlist?",
+    "deleteGame": "Delete this Game? (non-recoverable)",
+    "deleteAddApp": "Delete this Add App?",
+    "deleteTagCategory": "Delete this Tag Category?",
+    "deleteTag": "Delete this Tag?",
+    "deleteTagAlias": "Delete this Tag Alias?"
   },
   "libraries": {
     "arcade": "Pelit",
