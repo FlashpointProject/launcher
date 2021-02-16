@@ -83,7 +83,7 @@ export async function mergeTags(mergeData: MergeTagData, openDialog: ShowMessage
       // Move names first
       if (mergeData.makeAlias) {
         for (const alias of mergeSorc.aliases) {
-          mergeDest.aliases.push(alias);
+          mergeDest.aliases.push({ ...alias, tagId: mergeDest.id });
         }
       }
       // Move game tag references next
