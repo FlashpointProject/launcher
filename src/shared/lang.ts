@@ -29,6 +29,7 @@ const langTemplate = {
     'libraries',
     'randomLibraries',
     'randomLibrariesDesc',
+    'updateSource',
     'platforms',
     'nativePlatforms',
     'nativePlatformsDesc',
@@ -480,6 +481,7 @@ const langTemplate = {
     'deleteTagCategory',
     'deleteTag',
     'deleteTagAlias',
+    'deleteSource',
   ] as const,
   // libraries: [], // (This is dynamically populated in run-time)
 } as const;

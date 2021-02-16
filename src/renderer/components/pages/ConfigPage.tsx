@@ -116,7 +116,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     const serverOptions = this.itemizeServerOptionsMemo(this.props.serverNames);
     const libraryOptions = this.itemizeLibraryOptionsMemo(this.props.libraries, this.props.preferencesData.excludedRandomLibraries, this.context.libraries);
     const platformOptions = this.itemizePlatformOptionsMemo(this.props.platforms, this.state.nativePlatforms);
-    const sources = this.renderSourcesMemo(this.state.sources);
+    const sources = this.renderSourcesMemo(this.context, this.state.sources);
     const appPathOverrides = this.renderAppPathOverridesMemo(this.props.preferencesData.appPathOverrides);
     const tagFilters = this.renderTagFiltersMemo(this.props.preferencesData.tagFilters, this.context);
     const logoSetPreviewRows = this.renderLogoSetMemo(this.props.platforms, this.props.logoVersion);
@@ -376,7 +376,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     });
   });
 
-  renderSourcesMemo = memoizeOne((sources?: Source[]) => {
+  renderSourcesMemo = memoizeOne((strings: LangContainer, sources?: Source[]) => {
     if (sources) {
       return sources.map(s => {
         return (
@@ -389,18 +389,16 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
               {`${s.count} Data Packs`}
             </div>
             <div
+              title={strings.config.updateSource}
+              className='browse-right-sidebar__title-row__buttons__edit-button'
               onClick={() => this.submitSourceURL(s.sourceFileUrl)}>
               <OpenIcon
-                className='setting__row__content--override-row__edit'
                 icon='data-transfer-download' />
             </div>
-            <div
-              onClick={() => this.deleteSource(s)}
-              className='setting__row__content--remove-app-override'>
-              <OpenIcon
-                className='setting__row__content--override-row__delete'
-                icon='delete' />
-            </div>
+            <ConfirmElement
+              message={strings.dialog.deleteSource}
+              onConfirm={() => this.deleteSource(s)}
+              render={this.renderDeleteSource} />
           </div>
         );
       });
@@ -410,6 +408,18 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       );
     }
   });
+
+  renderDeleteSource = ({ confirm }: ConfirmElementArgs) => {
+    return (
+      <div
+        onClick={confirm}
+        className='setting__row__content--remove-app-override'>
+        <OpenIcon
+          className='setting__row__content--override-row__delete'
+          icon='delete' />
+      </div>
+    );
+  }
 
   renderAppPathOverridesMemo = memoizeOne((appPathOverrides: AppPathOverride[]) => {
     return appPathOverrides.map((item, index) => {
