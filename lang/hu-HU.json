@@ -451,7 +451,19 @@
     "uploadPrivacyWarning": "Ez a logfájlokat nyilvánosan elérhetővé fogja tenni. Egy link be lesz másolva a vágólapra.\n\nBiztos benne?",
     "overwriteFileTitle": "A fájl már létezik!",
     "overwriteFileMessage": "Egy azonos nevű fájl már létezik. Szeretné felülírni?",
-    "overwriteFileDetail": "Fájl útvonal:"
+    "overwriteFileDetail": "Fájl útvonal:",
+    "deleteTagFilterGroup": "Delete this Tag Filter Group?",
+    "deleteCuration": "Delete this Curation?",
+    "deleteGameImage": "Delete this Game Image?",
+    "deletePlaylist": "Delete this Playlist?",
+    "importAllCurations": "Import all Curations?",
+    "deleteAllCurations": "Delete all Curations?",
+    "removePlaylistGame": "Remove this Game from the Playlist?",
+    "deleteGame": "Delete this Game? (non-recoverable)",
+    "deleteAddApp": "Delete this Add App?",
+    "deleteTagCategory": "Delete this Tag Category?",
+    "deleteTag": "Delete this Tag?",
+    "deleteTagAlias": "Delete this Tag Alias?"
   },
   "libraries": {
     "arcade": "Játékok",
