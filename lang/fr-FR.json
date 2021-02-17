@@ -458,12 +458,12 @@
     "deletePlaylist": "Supprimer cette liste de lecture?",
     "importAllCurations": "Importer toutes les curations?",
     "deleteAllCurations": "Supprimer toutes les curations?",
-    "removePlaylistGame": "Remove this Game from the Playlist?",
-    "deleteGame": "Delete this Game? (non-recoverable)",
+    "removePlaylistGame": "Retirer ce jeu de la liste de lecture?",
+    "deleteGame": "Supprimer ce jeu? (non récupérable)",
     "deleteAddApp": "Delete this Add App?",
-    "deleteTagCategory": "Delete this Tag Category?",
-    "deleteTag": "Delete this Tag?",
-    "deleteTagAlias": "Delete this Tag Alias?"
+    "deleteTagCategory": "Supprimer cette catégorie de balises?",
+    "deleteTag": "Supprimer cette balise?",
+    "deleteTagAlias": "Supprimer cet alias de balise?"
   },
   "libraries": {
     "arcade": "Jeux",
