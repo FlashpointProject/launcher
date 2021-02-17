@@ -226,7 +226,7 @@ export function CurateBox(props: CurateBoxProps) {
         },
       });
       // Check for warnings before importing
-      const warnings = getCurationWarnings(curation, props.suggestions, props.libraries, strings.curate);
+      const warnings = getCurationWarnings(curation, props.suggestions, props.libraries, strings.curate, tagInputText);
       const warningCount = getWarningCount(warnings);
       if (warningCount > 0) {
         // Prompt user
@@ -423,7 +423,7 @@ export function CurateBox(props: CurateBoxProps) {
           lock: true,
         },
       });
-      const warnings = getCurationWarnings(curation, props.suggestions, props.libraries, strings.curate);
+      const warnings = getCurationWarnings(curation, props.suggestions, props.libraries, strings.curate, tagInputText);
       const warningCount = getWarningCount(warnings);
       if (warningCount > 0) {
         // Prompt user
@@ -589,10 +589,10 @@ export function CurateBox(props: CurateBoxProps) {
   // Generate Warnings
   const warnings = useMemo(() => {
     if (props.curation) {
-      return getCurationWarnings(props.curation, props.suggestions, props.libraries, strings.curate);
+      return getCurationWarnings(props.curation, props.suggestions, props.libraries, strings.curate, tagInputText);
     }
     return {};
-  }, [props.curation, strings]);
+  }, [props.curation, strings, tagInputText]);
 
   // Render images (logo + ss)
   const imageSplit = useMemo(() => {
@@ -1205,7 +1205,7 @@ function isValidDate(str: string): boolean {
   return (/^\d{4}(-(0?[1-9]|1[012])(-(0?[1-9]|[12][0-9]|3[01]))?)?$/).test(str);
 }
 
-export function getCurationWarnings(curation: EditCuration, suggestions: Partial<GamePropSuggestions> | undefined, libraries: string[], strings: LangContainer['curate']) {
+export function getCurationWarnings(curation: EditCuration, suggestions: Partial<GamePropSuggestions> | undefined, libraries: string[], strings: LangContainer['curate'], tagInputText: string) {
   const warns: CurationWarnings = {};
   // Check launch command exists
   const launchCommand = curation.meta.launchCommand || '';
@@ -1214,6 +1214,10 @@ export function getCurationWarnings(curation: EditCuration, suggestions: Partial
   if (!warns.noLaunchCommand) {
     warns.invalidLaunchCommand = invalidLaunchCommandWarnings(getContentFolderByKey2(curation.key), launchCommand, strings);
   }
+  warns.noLogo = !curation.thumbnail.exists;
+  warns.noScreenshot = !curation.screenshot.exists;
+  warns.noTags = (!curation.meta.tags || curation.meta.tags.length === 0);
+  warns.unenteredTag = !!tagInputText;
   // Validate release date
   const releaseDate = curation.meta.releaseDate;
   if (releaseDate) { warns.releaseDateInvalid = !isValidDate(releaseDate); }

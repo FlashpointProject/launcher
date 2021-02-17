@@ -40,7 +40,7 @@ type OwnProps = {
   /** Currently selected game entry (if any) */
   currentPlaylistEntry?: PlaylistGame;
   /** Called when the play button is pressed */
-  onGameLaunch: (gameId: string) => void;
+  onGameLaunch: (gameId: string) => Promise<void>;
   /** Called when the selected game is deleted by this */
   onDeleteSelectedGame: () => void;
   /** Called when the selected game is removed from the selected by this */
@@ -302,7 +302,10 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
             ) : (this.state.activeData && !this.state.activeData.presentOnDisk) ? (
               <div
                 className='browse-right-sidebar__play-button--download'
-                onClick={() => this.props.currentGame && this.props.onGameLaunch(this.props.currentGame.id)}>
+                onClick={() => {
+                  this.props.currentGame && this.props.onGameLaunch(this.props.currentGame.id)
+                  .then(this.onForceUpdateGameData);
+                }}>
                 {strings.download}
               </div>
             )
@@ -658,7 +661,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                 this.props.onEditGame(game);
                 this.props.onSaveGame();
               }}
-              onUpdateActiveGameData={this.props.onUpdateActiveGameData} />
+              onUpdateActiveGameData={this.props.onUpdateActiveGameData}
+              onForceUpdateGameData={this.onForceUpdateGameData} />
           )}
         </div>
       );
@@ -923,6 +927,15 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       currentTagInput: ''
     });
   }
+
+  onForceUpdateGameData = (): void => {
+    if (this.props.currentGame && this.props.currentGame.activeDataId) {
+      window.Shared.back.request(BackIn.GET_GAME_DATA, this.props.currentGame.activeDataId)
+      .then((gameData) => {
+        this.setState({ activeData: gameData });
+      });
+    }
+  };
 
   onAddTagByString = (text: string): void => {
     if (text !== '') {

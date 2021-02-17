@@ -182,7 +182,7 @@ export function CuratePage(props: CuratePageProps) {
           console.log(`Importing... (id: ${curation.key})`);
           ProgressDispatch.setText(statusProgress, `Importing Curation ${i+1} of ${curations.length}`);
           // Check for warnings
-          const warnings = getCurationWarnings(curation, props.suggestions, props.libraries, strings.curate);
+          const warnings = getCurationWarnings(curation, props.suggestions, props.libraries, strings.curate, '');
           const warningCount = getWarningCount(warnings);
           if (warningCount > 0) {
             // Prompt user

@@ -374,6 +374,10 @@ const langTemplate = {
     'unusedPlatform',
     'nonExistingLibrary',
     'nonContentFolders',
+    'noTags',
+    'unenteredTag',
+    'noLogo',
+    'noScreenshot',
     'ilc_notHttp',
     'ilc_nonExistant',
   ] as const,
@@ -483,6 +487,9 @@ const langTemplate = {
     'deleteTag',
     'deleteTagAlias',
     'deleteSource',
+    'uninstallGame',
+    'deleteGameData',
+    'unableToUninstallGameData',
   ] as const,
   // libraries: [], // (This is dynamically populated in run-time)
 } as const;

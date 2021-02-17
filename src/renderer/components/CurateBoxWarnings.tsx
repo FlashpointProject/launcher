@@ -19,6 +19,14 @@ export type CurationWarnings = {
   unusedApplicationPath?: boolean;
   /** If the tags value contains values not used by any other game. */
   unusedTags?: string[];
+  /** Missing Logo */
+  noLogo?: boolean;
+  /** Missing Screenshot */
+  noScreenshot?: boolean;
+  /** No Tags on Curation */
+  noTags?: boolean;
+  /** Text in Tags field that hasn't been entered */
+  unenteredTag?: boolean;
   /** If the platform value isn't used by any other game. */
   unusedPlatform?: boolean;
   /** If the library value does not point to an existing library. */

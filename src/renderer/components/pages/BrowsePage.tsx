@@ -530,8 +530,8 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     }
   }
 
-  onGameLaunch = (gameId: string): void => {
-    window.Shared.back.send(BackIn.LAUNCH_GAME, gameId);
+  onGameLaunch = async (gameId: string): Promise<void> => {
+    await window.Shared.back.request(BackIn.LAUNCH_GAME, gameId);
   }
 
   onCenterKeyDown = (event: React.KeyboardEvent): void => {

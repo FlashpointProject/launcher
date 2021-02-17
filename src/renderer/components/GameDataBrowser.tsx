@@ -32,6 +32,7 @@ export type GameDataBrowserProps = {
   onClose: () => void;
   onEditGame: (game: Partial<Game>) => void;
   onUpdateActiveGameData: (activeDataOnDisk: boolean, activeDataId?: number) => void;
+  onForceUpdateGameData: () => void;
 }
 
 export interface GameDataBrowser {
@@ -126,6 +127,8 @@ export class GameDataBrowser extends React.Component<GameDataBrowserProps, GameD
   }
 
   render() {
+    const strings = this.context;
+
     const dataInfoMemo = memoizeOne((data) => {
       return this.state.pairedData.map((data, index) => {
         return (
@@ -141,23 +144,27 @@ export class GameDataBrowser extends React.Component<GameDataBrowserProps, GameD
             onUninstall={() => {
               window.Shared.back.request(BackIn.UNINSTALL_GAME_DATA, data.id)
               .then((game) => {
-                if (game) {
-                  this.props.onEditGame({
-                    activeDataId: game.activeDataId,
-                    activeDataOnDisk: game.activeDataOnDisk
-                  });
-                }
                 const newDatas = [...this.state.pairedData];
                 newDatas[index].presentOnDisk = false;
                 newDatas[index].path = undefined;
                 this.setState({ pairedData: newDatas });
+                this.props.onForceUpdateGameData();
               })
               .catch((error) => {
-                alert('Failed to uninstall. Has it been played this session? Try restarting FP first.');
+                alert(strings.dialog.unableToUninstallGameData);
               });
             }}
-            update={() => this.updateGameData(data.id)}
-            delete={() => this.deleteGameData(data.id)}/>
+            update={async () => {
+              await this.updateGameData(data.id);
+              this.props.onForceUpdateGameData();
+            }}
+            delete={async () => {
+              await this.deleteGameData(data.id)
+              .catch((error) => {
+                alert(strings.dialog.unableToUninstallGameData);
+              });
+              this.props.onForceUpdateGameData();
+            }}/>
         );
       });
     });

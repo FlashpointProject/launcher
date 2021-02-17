@@ -1,9 +1,11 @@
 import { SourceData } from '@database/entity/SourceData';
+import { LangContext } from '@renderer/util/lang';
 import { BackIn } from '@shared/back/types';
 import { sizeToString } from '@shared/Util';
 import { GameData } from 'flashpoint-launcher';
 import * as React from 'react';
 import { CheckBox } from './CheckBox';
+import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { CurateBoxRow } from './CurateBoxRow';
 import { InputField } from './InputField';
 import { SimpleButton } from './SimpleButton';
@@ -21,6 +23,24 @@ export type GameDataInfoProps = {
 
 export function GameDataInfo(props: GameDataInfoProps) {
   const { data } = props;
+  const strings = React.useContext(LangContext);
+
+  const renderUninstallButton = ({ confirm }: ConfirmElementArgs) => {
+    return (
+      <SimpleButton
+        value='Uninstall'
+        onClick={confirm}/>
+    );
+  };
+
+  const renderDeleteButton = ({ confirm }: ConfirmElementArgs) => {
+    return (
+      <SimpleButton
+        onClick={confirm}
+        value='Delete'/>
+    );
+  };
+
   return (
     <div className='game-data-info'>
       <div className='game-data-info__top'>
@@ -39,9 +59,10 @@ export function GameDataInfo(props: GameDataInfoProps) {
           <CheckBox checked={props.active}
             onToggle={props.onActiveToggle}/>
           { props.data.presentOnDisk ? (
-            <SimpleButton
-              value='Uninstall'
-              onClick={props.onUninstall}/>
+            <ConfirmElement
+              message={strings.dialog.uninstallGame}
+              render={renderUninstallButton}
+              onConfirm={props.onUninstall}/>
           ) : ( props.sourceData.length > 0 ? (
             <SimpleButton
               onClick={() => {
@@ -56,9 +77,10 @@ export function GameDataInfo(props: GameDataInfoProps) {
               disabled={true}
               value='Unavailable'/>
           )}
-          <SimpleButton
-            onClick={props.delete}
-            value='Delete'/>
+          <ConfirmElement
+            message={strings.dialog.deleteGameData}
+            render={renderDeleteButton}
+            onConfirm={props.delete}/>
         </div>
       </div>
       <table className='curate-box-table game-data-info__table'>

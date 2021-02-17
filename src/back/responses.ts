@@ -282,7 +282,7 @@ export function registerRequestCallbacks(state: BackState): void {
         }
       }
       // Launch game
-      GameLauncher.launchGame({
+      await GameLauncher.launchGame({
         game,
         fpPath: path.resolve(state.config.flashpointPath),
         htdocsPath: state.config.htdocsFolderPath,
@@ -299,7 +299,7 @@ export function registerRequestCallbacks(state: BackState): void {
         runGame: runGameFactory(state),
       },
       state.apiEmitters.games.onWillLaunchGame);
-      state.apiEmitters.games.onDidLaunchGame.fire(game);
+      await state.apiEmitters.games.onDidLaunchGame.fire(game);
     }
   });
 
@@ -501,7 +501,6 @@ export function registerRequestCallbacks(state: BackState): void {
 
   state.socketServer.register(BackIn.DELETE_GAME_DATA, async (event, gameDataId) => {
     const gameData = await GameDataManager.findOne(gameDataId);
-    await GameDataManager.remove(gameDataId);
     if (gameData) {
       if (gameData.presentOnDisk && gameData.path) {
         const gameDataPath = path.join(state.config.flashpointPath, state.config.dataPacksFolderPath, gameData.path);
@@ -513,6 +512,7 @@ export function registerRequestCallbacks(state: BackState): void {
         game.activeDataOnDisk = false;
         await GameManager.updateGame(game);
       }
+      await GameDataManager.remove(gameDataId);
     }
   });
 
@@ -543,7 +543,13 @@ export function registerRequestCallbacks(state: BackState): void {
     if (gameData && gameData.path && gameData.presentOnDisk) {
       // Delete Game Data
       const gameDataPath = path.join(state.config.flashpointPath, state.config.dataPacksFolderPath, gameData.path);
-      await fs.promises.unlink(gameDataPath);
+      await fs.promises.unlink(gameDataPath)
+      .catch((error) => {
+        if (error.code !== 'ENOENT') {
+          log.error('Launcher', `Error Deleting Game: ${error}`);
+          throw error;
+        }
+      });
       gameData.path = '';
       gameData.presentOnDisk = false;
       await GameDataManager.save(gameData);
