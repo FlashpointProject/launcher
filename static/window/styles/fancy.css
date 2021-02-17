@@ -592,13 +592,19 @@ body {
   -webkit-text-stroke-width: 1px;
   -webkit-text-stroke-color: var(--layout__primary-outline-color);
 }
+.browse-right-sidebar__play-button--dropdown {
+  border-left: solid 2px;
+  border-color: var(--layout__primary-outline-color);
+}
 .browse-right-sidebar__play-button {
   background-color: var(--layout__play-button);
 }
-.browse-right-sidebar__play-button:hover {
+.browse-right-sidebar__play-button--text:hover,
+.browse-right-sidebar__play-button--dropdown:hover {
   background-color: var(--layout__play-button--hover);
 }
-.browse-right-sidebar__play-button:active {
+.browse-right-sidebar__play-button--text:active
+.browse-right-sidebar__play-button--dropdown:active {
   background-color: var(--layout__play-button--active);
 }
 .browse-right-sidebar__play-button--running {

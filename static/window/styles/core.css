@@ -1234,6 +1234,7 @@ body {
   flex-direction: column;
   flex: 1 0 auto;
 }
+
 /* Browse-Right-Sidebar Play Button */
 .browse-right-sidebar__play-button,
 .browse-right-sidebar__play-button--running,
@@ -1243,9 +1244,23 @@ body {
   text-align: center;
   margin: auto;
   margin-bottom: 0.5rem;
-  padding: 0.3rem 0;
   user-select: none;
   cursor: pointer;
+  max-height: 3.2rem;
+}
+.browse-right-sidebar__play-button {
+  display: flex;
+  height: 100%;
+}
+.browse-right-sidebar__play-button--text {
+  text-align: center;
+  flex-grow: 1;
+}
+.browse-right-sidebar__play-button--dropdown {
+  min-width: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 /* Browse-Right-Sidebar Additional-Application */
 .browse-right-sidebar__additional-application {

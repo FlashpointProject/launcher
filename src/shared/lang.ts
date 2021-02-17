@@ -294,6 +294,7 @@ const langTemplate = {
     'notInstalled',
     'installed',
     'download',
+    'uninstallGame',
   ] as const,
   tags: [
     'name',

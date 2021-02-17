@@ -2,6 +2,7 @@ import { Game } from '@database/entity/Game';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
+import { WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
 import { BackIn, BackOut, BackOutTemplate, TagSuggestion } from '@shared/back/types';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { wrapSearchTerm } from '@shared/game/GameFilter';
@@ -66,7 +67,7 @@ type OwnProps = {
   onUpdateActiveGameData: (activeDataOnDisk: boolean, activeDataId?: number) => void;
 };
 
-export type RightBrowseSidebarProps = OwnProps & WithPreferencesProps & WithSearchProps;
+export type RightBrowseSidebarProps = OwnProps & WithPreferencesProps & WithSearchProps & WithConfirmDialogProps;
 
 type RightBrowseSidebarState = {
   /** If a preview of the current game's screenshot should be shown. */
@@ -310,10 +311,36 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
               </div>
             )
               : (
-                <div
-                  className='browse-right-sidebar__play-button'
-                  onClick={() => this.props.currentGame && this.props.onGameLaunch(this.props.currentGame.id)}>
-                  {strings.play}
+                <div className='browse-right-sidebar__play-button' >
+                  <div className='browse-right-sidebar__play-button--text'
+                    onClick={() => this.props.currentGame && this.props.onGameLaunch(this.props.currentGame.id)} >
+                    {strings.play}
+                  </div>
+                  { this.state.activeData ? (
+                    <div className='browse-right-sidebar__play-button--dropdown'
+                      onClick={() =>
+                        openContextMenu([{
+                          label: strings.uninstallGame,
+                          click: async () => {
+                            if (this.state.activeData) {
+                              const res = await this.props.openConfirmDialog(allStrings.dialog.uninstallGame, [allStrings.misc.yes, allStrings.misc.no], 1);
+                              if (res === 0) {
+                                window.Shared.back.request(BackIn.UNINSTALL_GAME_DATA, this.state.activeData.id)
+                                .then((game) => {
+                                  this.onForceUpdateGameData();
+                                })
+                                .catch((error) => {
+                                  alert(allStrings.dialog.unableToUninstallGameData);
+                                });
+                              }
+                            }
+                          }
+                        }])
+                      }>
+                      <OpenIcon icon='chevron-bottom'/>
+                    </div>
+                  ) : undefined }
+
                 </div>
               )
           }
