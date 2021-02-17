@@ -63,7 +63,9 @@ const langTemplate = {
     'extLogoSets',
     'extApplications',
     'saveAndRestart',
+    'saveAndClose',
     'browse',
+    'tagFilterGroupEditor',
   ] as const,
   home: [
     'updateHeader',

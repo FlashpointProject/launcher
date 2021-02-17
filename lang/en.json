@@ -56,7 +56,9 @@
     "extThemes": "Theme(s)",
     "extLogoSets": "Logo Set(s)",
     "extApplications": "Application(s)",
-    "saveAndRestart": "Save and Restart"
+    "saveAndRestart": "Save and Restart",
+    "saveAndClose": "Save and Close",
+    "tagFilterGroupEditor": "Tag Filter Group Editor"
   },
   "home": {
     "updateHeader": "Launcher Update",

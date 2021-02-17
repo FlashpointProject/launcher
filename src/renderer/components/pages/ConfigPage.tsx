@@ -118,7 +118,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     const platformOptions = this.itemizePlatformOptionsMemo(this.props.platforms, this.state.nativePlatforms);
     const sources = this.renderSourcesMemo(this.context, this.state.sources);
     const appPathOverrides = this.renderAppPathOverridesMemo(this.props.preferencesData.appPathOverrides);
-    const tagFilters = this.renderTagFiltersMemo(this.props.preferencesData.tagFilters, this.context);
+    const tagFilters = this.renderTagFiltersMemo(this.props.preferencesData.tagFilters, this.props.preferencesData.browsePageShowExtreme, this.context);
     const logoSetPreviewRows = this.renderLogoSetMemo(this.props.platforms, this.props.logoVersion);
     const extensions = this.renderExtensionsMemo(this.props.extensions, strings);
     const extConfigSections = this.renderExtensionConfigs(this.props.extConfigs, this.props.extConfig);
@@ -331,6 +331,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
               onChangeName={this.onChangeTagEditorNameEvent}
               onToggleExtreme={this.onToggleExtremeTagEditorEvent}
               closeEditor={this.onCloseTagFilterGroupEditor}
+              showExtreme={this.props.preferencesData.browsePageShowExtreme}
               tagCategories={this.props.tagCategories} />
           </FloatingContainer>
         )}
@@ -455,8 +456,8 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     });
   });
 
-  renderTagFiltersMemo = memoizeOne((tagFilters: TagFilterGroup[], strings: LangContainer) => {
-    return tagFilters.map((item, index) => {
+  renderTagFiltersMemo = memoizeOne((tagFilters: TagFilterGroup[], showExtreme: boolean, strings: LangContainer) => {
+    return tagFilters.filter(tfg => showExtreme ? true : !tfg.extreme).map((item, index) => {
       return (
         <div
           className='setting__row__content--override-row'
