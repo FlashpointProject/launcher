@@ -111,7 +111,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
 
   // Add game to database
   let game = await createGameFromCurationMeta(gameId, curation.meta, curation.addApps, date);
-  game = await GameManager.updateGame(game);
+  game = await GameManager.save(game);
 
   // Store curation state for extension use later
   const curationState: CurationImportState = {
@@ -286,7 +286,8 @@ function logMessage(text: string, curation: EditCuration): void {
  * @param gameId ID to use for Game
  */
 async function createGameFromCurationMeta(gameId: string, gameMeta: EditCurationMeta, addApps : EditAddAppCuration[], date: Date): Promise<Game> {
-  const game: Game = {
+  const game: Game = new Game();
+  Object.assign(game, {
     id:                  gameId, // (Re-use the id of the curation)
     title:               gameMeta.title               || '',
     alternateTitles:     gameMeta.alternateTitles     || '',
@@ -314,7 +315,7 @@ async function createGameFromCurationMeta(gameId: string, gameMeta: EditCuration
     addApps: [],
     placeholder: false,
     activeDataOnDisk: false
-  };
+  });
   game.addApps = addApps.map(addApp => createAddAppFromCurationMeta(addApp, game));
   return game;
 }
@@ -492,7 +493,8 @@ function curationLog(content: string): void {
 
 function createPlaceholderGame(): Game {
   const id = uuid();
-  return {
+  const game = new Game();
+  Object.assign(game, {
     id: id,
     parentGameId: id,
     title: '',
@@ -521,7 +523,8 @@ function createPlaceholderGame(): Game {
     addApps: [],
     placeholder: true,
     activeDataOnDisk: false
-  };
+  });
+  return game;
 }
 
 export async function createTagsFromLegacy(tags: string, tagCache: Record<string, Tag>): Promise<Tag[]> {

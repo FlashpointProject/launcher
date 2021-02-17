@@ -18,10 +18,10 @@ import * as path from 'path';
 import { Brackets, FindOneOptions, getManager, SelectQueryBuilder } from 'typeorm';
 import * as GameDataManager from './GameDataManager';
 
-const exactFields = [ 'broken', 'extreme', 'library', 'activeDataOnDisk' ];
+const exactFields = [ 'broken', 'library', 'activeDataOnDisk' ];
 enum flatGameFields {
   'id', 'title', 'alternateTitles', 'developer', 'publisher', 'dateAdded', 'dateModified', 'series',
-  'platform', 'broken', 'extreme', 'playMode', 'status', 'notes', 'source', 'applicationPath', 'launchCommand', 'releaseDate',
+  'platform', 'broken', 'playMode', 'status', 'notes', 'source', 'applicationPath', 'launchCommand', 'releaseDate',
   'version', 'originalDescription', 'language', 'library', 'activeDataOnDisk'
 }
 
@@ -153,6 +153,11 @@ export type FindGamesOpts = {
   getTotal?: boolean;
 }
 
+export async function findAllGames(): Promise<Game[]> {
+  const gameRepository = getManager().getRepository(Game);
+  return gameRepository.find();
+}
+
 /** Search the database for games. */
 export async function findGames<T extends boolean>(opts: FindGamesOpts, shallow: T): Promise<Array<ResponseGameRange<T>>> {
   const ranges = opts.ranges || [{ start: 0, length: undefined }];
@@ -171,7 +176,7 @@ export async function findGames<T extends boolean>(opts: FindGamesOpts, shallow:
     // @TODO Make it infer the type of T from the value of "shallow", and then use that to make "games" get the correct type, somehow?
     // @PERF When multiple pages are requested as individual ranges, select all of them with a single query then split them up
     const games = (shallow)
-      ? (await query.select('game.id, game.title, game.platform, game.developer, game.publisher, game.extreme').getRawMany()) as ViewGame[]
+      ? (await query.select('game.id, game.title, game.platform, game.developer, game.publisher, game.extreme, game.tagsStr').getRawMany()) as ViewGame[]
       : await query.getMany();
     rangesOut.push({
       start: range.start,
@@ -256,8 +261,9 @@ export async function updateGames(games: Game[]): Promise<void> {
   }
 }
 
-export async function updateGame(game: Game): Promise<Game> {
+export async function save(game: Game): Promise<Game> {
   const gameRepository = getManager().getRepository(Game);
+  log.debug('Launcher', 'Saving game...');
   const savedGame = await gameRepository.save(game);
   if (savedGame) { onDidUpdateGame.fire({oldGame: game, newGame: savedGame}); }
   return savedGame;

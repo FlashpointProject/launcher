@@ -463,6 +463,8 @@ declare module 'flashpoint-launcher' {
         notes: string;
         /** List of tags attached to the game */
         tags: Tag[];
+        /** List of tags attached to the game in a string format */
+        tagsStr: string;
         /** Source if the game files, either full URL or the name of the website */
         source: string;
         /** Path to the application that runs the game */
@@ -490,6 +492,7 @@ declare module 'flashpoint-launcher' {
         /** Whether the data is present on disk */
         activeDataOnDisk: boolean;
         data?: GameData[];
+        updateTagsStr: () => void;
     };
 
     type GameData = {
@@ -745,7 +748,7 @@ declare module 'flashpoint-launcher' {
         id: string;
         title: string;
         platform: string;
-        tags: Tag[];
+        tagsStr: string;
         developer: string;
         publisher: string;
     };
@@ -821,6 +824,8 @@ declare module 'flashpoint-launcher' {
         categories: TagFilter;
         /** Filters to auto apply when this is applied */
         childFilters: string[];
+        /** Are these tags considered Extreme? */
+        extreme: boolean;
     }
     
     export type TagFilter = string[];

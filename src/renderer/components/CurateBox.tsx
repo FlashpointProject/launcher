@@ -25,7 +25,6 @@ import { createCurationImage, curationLog } from '../curate/util';
 import { toForcedURL } from '../Util';
 import { LangContext } from '../util/lang';
 import { pathTo7z } from '../util/SevenZip';
-import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { CurateBoxAddApp } from './CurateBoxAddApp';
 import { CurateBoxRow } from './CurateBoxRow';
@@ -202,7 +201,6 @@ export function CurateBox(props: CurateBoxProps) {
   const onNotesChange               = useOnInputChange('notes',               key, props.dispatch);
   const onOriginalDescriptionChange = useOnInputChange('originalDescription', key, props.dispatch);
   const onCurationNotesChange       = useOnInputChange('curationNotes',       key, props.dispatch);
-  const onExtremeChange             = useOnCheckboxToggle('extreme',          key, props.dispatch);
   // Callbacks for the fields (onItemSelect)
   const onPlayModeSelect            = useCallback(transformOnItemSelect(onPlayModeChange),        [onPlayModeChange]);
   const onStatusSelect              = useCallback(transformOnItemSelect(onStatusChange),          [onStatusChange]);
@@ -839,12 +837,6 @@ export function CurateBox(props: CurateBoxProps) {
               className={curationNotes.length > 0 ? 'input-field--info' : ''}
               { ...sharedInputProps } />
           </CurateBoxRow>
-          <CurateBoxRow title={strings.browse.extreme + ':'}>
-            <CheckBox
-              checked={props.curation && props.curation.meta.extreme}
-              onToggle={onExtremeChange}
-              disabled={disabled} />
-          </CurateBoxRow>
         </tbody>
       </table>
       <hr className='curate-box-divider' />
@@ -1004,21 +996,6 @@ function useOnInputChange(property: keyof EditCurationMeta, key: string | undefi
           key: key,
           property: property,
           value: event.currentTarget.value
-        }
-      });
-    }
-  }, [dispatch, key]);
-}
-
-function useOnCheckboxToggle(property: keyof EditCurationMeta, key: string | undefined, dispatch: React.Dispatch<CurationAction>) {
-  return useCallback((checked: boolean) => {
-    if (key !== undefined) {
-      dispatch({
-        type: 'edit-curation-meta',
-        payload: {
-          key: key,
-          property: property,
-          value: checked
         }
       });
     }

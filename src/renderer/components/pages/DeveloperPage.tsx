@@ -1,4 +1,5 @@
 /* eslint-disable react/no-unused-state */
+import { chunkArray } from '@back/util/misc';
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { getGamePath } from '@renderer/Util';
@@ -151,9 +152,13 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               title={strings.importTagsDesc}
               onClick={this.onImportTagsClick} />
             <SimpleButton
-              value={strings.forceGameMetaSync}
-              title={strings.forceGameMetaSyncDesc}
-              onClick={this.onForceGameMetaSync} />
+              value={strings.updateTagsString}
+              title={strings.updateTagsStringDesc}
+              onClick={this.onUpdateTagsStr} />
+            <SimpleButton
+              value={strings.migrateExtremeGames}
+              title={strings.migrateExtremeGamesDesc}
+              onClick={this.onMigrateExtremeGamesClick} />
             <SimpleButton
               value={strings.importMetaEdits}
               title={strings.importMetaEditsDesc}
@@ -297,21 +302,66 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     });
   }
 
-  onForceGameMetaSync = () : void => {
+  onUpdateTagsStr = (): void => {
     setTimeout(async () => {
-      this.setState({ text: 'Syncing...' });
-      window.Shared.back.request(BackIn.SYNC_GAME_METADATA)
-      .then((data) => {
-        if (data) {
-          if (data.error) {
-            this.setState({ text: `ERROR: ${data.error}` });
-          } else {
-            this.setState({ text: `Requested ${data.total} modified games, successfully saved ${data.successes}.`});
+      const text = 'Updating Tag Strings...';
+      this.setState({ text });
+      const createTextBarProgress = (current: number, total: number) => {
+        const filledSegments = (current / total) * 30;
+        return `Progress: [${'#'.repeat(filledSegments)}${'-'.repeat(30 - filledSegments)}] (${current}/${total})`;
+      };
+      const games = await fetchAllGames();
+      let processed = 0;
+      const buffer: Game[] = [];
+      for (const chunk of chunkArray(games, 250)) {
+        for (const game of chunk) {
+          const newGame = new Game();
+          Object.assign(newGame, { ...game });
+          newGame.updateTagsStr();
+          buffer.push(newGame);
+        }
+        processed += chunk.length;
+        await window.Shared.back.request(BackIn.SAVE_GAMES, buffer);
+        buffer.length = 0;
+        this.setState({ text: text + '\n' + createTextBarProgress(processed, games.length)});
+      }
+      this.setState({ text: text + '\n' + createTextBarProgress(processed, games.length) + '\n' + `Finished, updated ${processed} games.`});
+    });
+  }
+
+  onMigrateExtremeGamesClick = (): void => {
+    setTimeout(async () => {
+      const text = 'Migrating Extreme Games...';
+      this.setState({ text });
+      const createTextBarProgress = (current: number, total: number) => {
+        const filledSegments = (current / total) * 30;
+        return `Progress: [${'#'.repeat(filledSegments)}${'-'.repeat(30 - filledSegments)}] (${current}/${total})`;
+      };
+      const extremeTag = await window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, 'LEGACY-Extreme');
+      const games = await fetchAllGames();
+      let processed = 0;
+      let edited = 0;
+      const buffer: Game[] = [];
+      for (const chunk of chunkArray(games, 250)) {
+        for (const game of chunk) {
+          if (game.extreme) {
+            game.extreme = false;
+            if (game.tags.findIndex(t => t.id === extremeTag.id) === -1)
+            {
+              game.tags.push(extremeTag);
+            }
+            buffer.push(game);
           }
         }
-      });
+        edited += buffer.length;
+        processed += chunk.length;
+        await window.Shared.back.request(BackIn.SAVE_GAMES, buffer);
+        buffer.length = 0;
+        this.setState({ text: text + '\n' + createTextBarProgress(processed, games.length)});
+      }
+      this.setState({ text: text + '\n' + createTextBarProgress(processed, games.length) + '\n' + `Finished, converted ${edited} games. Please restart the Launcher.`});
     });
-  };
+  }
 
   onImportMetaEdits = (): void => {
     setTimeout(async () => {

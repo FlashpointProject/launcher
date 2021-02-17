@@ -29,6 +29,7 @@ export enum BackIn {
   GET_GAMES_TOTAL,
   SET_LOCALE,
   GET_EXEC,
+  SAVE_GAMES,
   SAVE_GAME,
   GET_GAME,
   GET_GAMES_GAME_DATA,
@@ -189,6 +190,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.SET_LOCALE]: (data: string) => string;
   [BackIn.GET_EXEC]: () => ExecMapping[];
   [BackIn.SAVE_GAME]: (data: Game) => BrowseChangeData;
+  [BackIn.SAVE_GAMES]: (data: Game[]) => void;
   [BackIn.GET_GAME]: (id: string) => Game | undefined;
   [BackIn.GET_ALL_GAMES]: () => Game[];
   [BackIn.RANDOM_GAMES]: (data: RandomGamesData) => ViewGame[];
@@ -456,7 +458,7 @@ export type ViewGame = {
   title: string;
   platform: string;
   // List view only
-  tags: Tag[];
+  tagsStr: string;
   developer: string;
   publisher: string;
   extreme: boolean;

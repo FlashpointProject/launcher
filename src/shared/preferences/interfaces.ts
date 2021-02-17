@@ -97,6 +97,8 @@ export type TagFilterGroup = {
   categories: TagFilter;
   /** Filters to auto apply when this is applied */
   childFilters: string[];
+  /** Are these tags considered Extreme? */
+  extreme: boolean;
 }
 
 export type TagFilter = string[];

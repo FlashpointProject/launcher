@@ -14,6 +14,7 @@ import { GameData1611753257950 } from '@database/migration/1611753257950-GameDat
 import { SourceDataUrlPath1612434225789 } from '@database/migration/1612434225789-SourceData_UrlPath';
 import { SourceFileURL1612435692266 } from '@database/migration/1612435692266-Source_FileURL';
 import { SourceFileCount1612436426353 } from '@database/migration/1612436426353-SourceFileCount';
+import { GameTagsStr1613571078561 } from '@database/migration/1613571078561-GameTagsStr';
 import { BackIn, BackInit, BackInitArgs, BackOut } from '@shared/back/types';
 import { ILogoSet, LogoSet } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
@@ -285,7 +286,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
       database: path.join(state.config.flashpointPath, 'Data', 'flashpoint.sqlite'),
       entities: [Game, AdditionalApp, Playlist, PlaylistGame, Tag, TagAlias, TagCategory, GameData, Source, SourceData],
       migrations: [Initial1593172736527, AddExtremeToPlaylist1599706152407, GameData1611753257950, SourceDataUrlPath1612434225789, SourceFileURL1612435692266,
-        SourceFileCount1612436426353]
+        SourceFileCount1612436426353, GameTagsStr1613571078561]
     };
     state.connection = await createConnection(options);
     // TypeORM forces on but breaks Playlist Game links to unimported games

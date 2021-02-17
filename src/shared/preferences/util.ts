@@ -159,13 +159,15 @@ function parseTagFilterGroup(parser: IObjectParserProp<TagFilterGroup>): TagFilt
     enabled: false,
     tags: [],
     categories: [],
-    childFilters: []
+    childFilters: [],
+    extreme: false
   };
   parser.prop('name',    v => tfg.name    = str(v));
   parser.prop('enabled', v => tfg.enabled = !!v);
   parser.prop('tags').arrayRaw((item) => tfg.tags.push(str(item)));
   parser.prop('categories').arrayRaw((item) => tfg.categories.push(str(item)));
   parser.prop('childFilters').arrayRaw((item) => tfg.childFilters.push(str(item)));
+  parser.prop('extreme', v => tfg.extreme = !!v);
   return tfg;
 }
 

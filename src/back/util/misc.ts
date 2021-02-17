@@ -127,7 +127,7 @@ export function exit(state: BackState): void {
       state.socketServer.close()
       .catch(e => { console.error(e); }),
       // Close file server
-      new Promise(resolve => state.fileServer.close(error => {
+      new Promise<void>(resolve => state.fileServer.close(error => {
         if (error) { console.warn('An error occurred while closing the file server.', error); }
         resolve();
       })),
@@ -178,7 +178,8 @@ export function createAddAppFromLegacy(addApps: Legacy_IAdditionalApplicationInf
 }
 
 export async function createGameFromLegacy(game: Legacy_IGameInfo, tagCache: Record<string, Tag>): Promise<Game> {
-  return {
+  const newGame = new Game();
+  Object.assign(newGame, {
     id: game.id,
     parentGameId: game.id,
     title: game.title,
@@ -207,7 +208,8 @@ export async function createGameFromLegacy(game: Legacy_IGameInfo, tagCache: Rec
     placeholder: false,
     addApps: [],
     activeDataOnDisk: false
-  };
+  });
+  return newGame;
 }
 
 export function createPlaylistFromJson(jsonData: any, library?: string): Playlist {

@@ -303,14 +303,22 @@ export function registerRequestCallbacks(state: BackState): void {
     }
   });
 
-  state.socketServer.register(BackIn.SAVE_GAME, async (event, data) => {
-    const game = await GameManager.updateGame(data);
-    state.queries = {}; // Clear entire cache
+  state.socketServer.register(BackIn.SAVE_GAMES, async (event, data) => {
+    await GameManager.updateGames(data);
+  });
 
-    return {
-      library: game.library,
-      gamesTotal: await GameManager.countGames(),
-    };
+  state.socketServer.register(BackIn.SAVE_GAME, async (event, data) => {
+    try {
+      const game = await GameManager.save(data);
+      state.queries = {}; // Clear entire cache
+      return {
+        library: game.library,
+        gamesTotal: await GameManager.countGames(),
+      };
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
   });
 
   state.socketServer.register(BackIn.DELETE_GAME, async (event, id) => {
@@ -340,7 +348,7 @@ export function registerRequestCallbacks(state: BackState): void {
       newGame.addApps = newAddApps;
 
       // Add copies
-      result = await GameManager.updateGame(newGame);
+      result = await GameManager.save(newGame);
 
       // Copy images
       if (dupeImages) {
@@ -510,7 +518,7 @@ export function registerRequestCallbacks(state: BackState): void {
       if (game) {
         game.activeDataId = undefined;
         game.activeDataOnDisk = false;
-        await GameManager.updateGame(game);
+        await GameManager.save(game);
       }
       await GameDataManager.remove(gameDataId);
     }
@@ -557,7 +565,7 @@ export function registerRequestCallbacks(state: BackState): void {
       const game = await GameManager.findGame(gameData.gameId);
       if (game && game.activeDataId === gameData.id) {
         game.activeDataOnDisk = false;
-        return GameManager.updateGame(game);
+        return GameManager.save(game);
       }
     }
   });
@@ -583,12 +591,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.GET_ALL_GAMES, async (event) => {
-    const results = await GameManager.findGames({}, false);
-
-    const range = results[0];
-    if (!range) { throw new Error('Failed to fetch all games. No range of games was in the result.'); }
-
-    return range.games;
+    return GameManager.findAllGames();
   });
 
   state.socketServer.register(BackIn.RANDOM_GAMES, async (event, data) => {
@@ -612,18 +615,6 @@ export function registerRequestCallbacks(state: BackState): void {
       orderBy: data.query.orderBy,
       direction: data.query.orderReverse,
     }, !!data.shallow);
-
-    // idk why this is done, but it is probably here for a reason
-    // @PERF Copying all game objects seems wasteful (I think both sets of objects are thrown away after this response? //obelisk)
-    for (let i = 0; i < results.length; i++) {
-      const range = results[i];
-      for (let j = 0; j < range.games.length; j++) {
-        range.games[j] = {
-          ...range.games[j],
-          tags: [],
-        };
-      }
-    }
 
     return {
       ranges: results,
@@ -1093,12 +1084,12 @@ export function registerRequestCallbacks(state: BackState): void {
 
     // Top level games
     for (const game of syncableGames.games.filter(g => g.parentGameId === g.id)) {
-      await GameManager.updateGame(game);
+      await GameManager.save(game);
     }
     // Child games, Constraint will throw if parent game is missing
     for (const game of syncableGames.games.filter(g => g.parentGameId !== g.id)) {
       try {
-        await GameManager.updateGame(game);
+        await GameManager.save(game);
       } catch (error) {
         console.error('Parent Game Missing? - ' + error);
       }

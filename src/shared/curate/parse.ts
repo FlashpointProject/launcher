@@ -1,3 +1,4 @@
+import { BackIn } from '@shared/back/types';
 import { Coerce } from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
 import { CurationFormatObject, parseCurationFormat } from './format/parser';
@@ -94,6 +95,14 @@ export async function parseCurationMetaFile(data: any, onError?: (error: string)
   if (lowerCaseData.genre)  { parsed.game.tags = await getTagsFromStr(arrayStr(lowerCaseData.genre), str(lowerCaseData['tag categories']));  }
   if (lowerCaseData.genres) { parsed.game.tags = await getTagsFromStr(arrayStr(lowerCaseData.genres), str(lowerCaseData['tag categories'])); }
   if (lowerCaseData.tags)   { parsed.game.tags = await getTagsFromStr(arrayStr(lowerCaseData.tags), str(lowerCaseData['tag categories']));   }
+  // Extreme Migration
+  if (parsed.game.extreme) {
+    parsed.game.extreme = false;
+    const extremeTag = await window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, 'LEGACY-Extreme');
+    if (parsed.game.tags && parsed.game.tags.findIndex(t => t.id === extremeTag.id) === -1) {
+      parsed.game.tags.push(extremeTag);
+    }
+  }
   // property aliases
   parser.prop('animation notes',      v => parsed.game.notes               = str(v));
   // Add-apps

@@ -1,5 +1,6 @@
 import { Game } from '@database/entity/Game';
 import { Tag } from '@database/entity/Tag';
+import { BackIn } from '@shared/back/types';
 import { Coerce } from '@shared/utils/Coerce';
 import { ObjectParser } from '@shared/utils/ObjectParser';
 import * as axiosImport from 'axios';
@@ -83,6 +84,14 @@ async function parseGame(data: any, onError?: (error: string) => void): Promise<
   // Temporary
   if (data.tags) {
     parsed.tags = await parseTagsString(str(data.tags));
+  }
+  // Extreme Migration
+  if (parsed.extreme) {
+    parsed.extreme = false;
+    const extremeTag = await window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, 'LEGACY-Extreme');
+    if (parsed.tags && parsed.tags.findIndex(t => t.id === extremeTag.id) === -1) {
+      parsed.tags.push(extremeTag);
+    }
   }
 
   return parsed;

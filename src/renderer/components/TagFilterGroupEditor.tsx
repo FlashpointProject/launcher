@@ -5,6 +5,7 @@ import { BackIn, TagSuggestion } from '@shared/back/types';
 import { TagFilterGroup } from '@shared/preferences/interfaces';
 import { tagSort } from '@shared/Util';
 import * as React from 'react';
+import { CheckBox } from './CheckBox';
 import { InputField } from './InputField';
 import { SimpleButton } from './SimpleButton';
 import { TagInputField } from './TagInputField';
@@ -16,6 +17,7 @@ export type TagFilterGroupEditorProps = {
   onAddCategory: (category: string) => void;
   onRemoveCategory: (category: string) => void;
   onChangeName: (name: string) => void;
+  onToggleExtreme: (checked: boolean) => void;
   closeEditor: () => void;
   tagCategories: TagCategory[];
 }
@@ -75,7 +77,7 @@ export function TagFilterGroupEditor(props: TagFilterGroupEditorProps) {
       setTagSuggestions([]);
     } else {
       const existingTagsList = parsedTagsList.filter(t => t.id ? t.id >= 0 : false).map(t => t.primaryAlias.name);
-      const suggs = await window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, tag, [{name: '', enabled: true, tags: existingTagsList, categories: [], childFilters: []}]);
+      const suggs = await window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, tag, [{name: '', enabled: true, tags: existingTagsList, categories: [], childFilters: [], extreme: false}]);
       setTagSuggestions(suggs);
     }
   }, [parsedTagsList]);
@@ -89,6 +91,9 @@ export function TagFilterGroupEditor(props: TagFilterGroupEditorProps) {
         <div className='tag-filter-editor__header'>
           {'Tag Filter Group Editor'}
         </div>
+        <CheckBox
+          onToggle={props.onToggleExtreme}
+          checked={props.tagFilterGroup.extreme} />
         <div className='tag-filter-editor__content-header'>
           {'Name'}
         </div>

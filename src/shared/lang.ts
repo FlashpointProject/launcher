@@ -179,8 +179,10 @@ const langTemplate = {
     'fixPrimaryAliasesDesc', // @NOT_ASSIGNED
     'fixCommaTags', // @NOT_ASSIGNED
     'fixCommaTagsDesc', // @NOT_ASSIGNED
-    'forceGameMetaSync', // @NOT_ASSIGNED
-    'forceGameMetaSyncDesc', // @NOT_ASSIGNED
+    'updateTagsString',
+    'updateTagsStringDesc',
+    'migrateExtremeGames',
+    'migrateExtremeGamesDesc',
     'importMetaEdits',
     'importMetaEditsDesc',
     'servicesHeader',

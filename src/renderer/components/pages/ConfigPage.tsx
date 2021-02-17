@@ -329,6 +329,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
               onRemoveTag={(tag) => this.onRemoveTagEditorTagEvent(this.state.editingTagFilterGroupIdx || -1, tag)}
               onRemoveCategory={(category) => this.onRemoveTagEditorCategoryEvent(this.state.editingTagFilterGroupIdx || -1, category)}
               onChangeName={this.onChangeTagEditorNameEvent}
+              onToggleExtreme={this.onToggleExtremeTagEditorEvent}
               closeEditor={this.onCloseTagFilterGroupEditor}
               tagCategories={this.props.tagCategories} />
           </FloatingContainer>
@@ -727,7 +728,8 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       enabled: true,
       tags: [],
       categories: [],
-      childFilters: []
+      childFilters: [],
+      extreme: false
     };
     const newTagFilters = [...this.props.preferencesData.tagFilters];
     newTagFilters.push(tfg);
@@ -781,6 +783,13 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   onChangeTagEditorNameEvent = (name: string): void => {
     if (this.state.editingTagFilterGroup) {
       const newTFG = {...this.state.editingTagFilterGroup, name };
+      this.setState({ editingTagFilterGroup: newTFG });
+    }
+  }
+
+  onToggleExtremeTagEditorEvent = (checked: boolean): void => {
+    if (this.state.editingTagFilterGroup) {
+      const newTFG = {...this.state.editingTagFilterGroup, extreme: checked };
       this.setState({ editingTagFilterGroup: newTFG });
     }
   }

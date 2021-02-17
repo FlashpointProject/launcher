@@ -1,4 +1,4 @@
-import { Column, Entity, Index, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { BeforeUpdate, Column, Entity, Index, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { AdditionalApp } from './AdditionalApp';
 import { GameData } from './GameData';
 import { Tag } from './Tag';
@@ -81,6 +81,9 @@ export class Game {
   /** Tags of the game (separated by semi-colon) */
   tags: Tag[];
 
+  @Column({collation: 'NOCASE', default: '' })
+  tagsStr: string;
+
   @Column({collation: 'NOCASE'})
   /** Source if the game files, either full URL or the name of the website */
   source: string;
@@ -137,5 +140,23 @@ export class Game {
 
   @OneToMany(type => GameData, datas => datas.game)
   data?: GameData[];
+
+  // This doesn't run... sometimes.
+  @BeforeUpdate()
+  updateTagsStr() {
+    try {
+      this.tagsStr = this.tags.map(t => {
+        if (t.primaryAlias) {
+          return t.primaryAlias.name;
+        } else {
+          throw 'PrimaryAliases missing';
+        }
+      }).join('; ');
+    } catch (err) {
+      // Skip setting tagsStr if the entities tag info isn't loaded properly
+      return;
+    }
+    log.debug('Launcher', `NEW TAGS STR ${this.tags.length} tags: ${this.tagsStr}`);
+  }
 
 }

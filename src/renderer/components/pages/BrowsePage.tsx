@@ -617,8 +617,11 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   onEditGame = (game: Partial<Game>) => {
     log.debug('Launcher', `Editing: ${JSON.stringify(game)}`);
     if (this.state.currentGame) {
+      const newGame = new Game();
+      Object.assign(newGame, {...this.state.currentGame, ...game});
+      newGame.updateTagsStr();
       this.setState({
-        currentGame: {...this.state.currentGame, ...game}
+        currentGame: newGame
       });
     }
   }
@@ -688,10 +691,14 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
 
   onUpdateActiveGameData = (activeDataOnDisk: boolean, activeDataId?: number): void => {
     if (this.state.currentGame) {
-      window.Shared.back.request(BackIn.SAVE_GAME, {...this.state.currentGame, activeDataOnDisk, activeDataId })
+      const newGame = new Game();
+      Object.assign(newGame, {...this.state.currentGame, activeDataOnDisk, activeDataId });
+      window.Shared.back.request(BackIn.SAVE_GAME, newGame)
       .then(() => {
         if (this.state.currentGame) {
-          this.setState({ currentGame: {...this.state.currentGame, activeDataOnDisk, activeDataId }});
+          const newGame = new Game();
+          Object.assign(newGame, {...this.state.currentGame, activeDataOnDisk, activeDataId });
+          this.setState({ currentGame: newGame });
         }
       });
     }
@@ -703,37 +710,39 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     const id = uuid();
     // Create a new game if the "New Game" button is pushed
     if (wasNewGameClicked && !prevWasNewGameClicked) {
+      const newGame = new Game();
+      Object.assign(newGame, {
+        id: id,
+        parentGameId: id,
+        title: '',
+        alternateTitles: '',
+        series: '',
+        developer: '',
+        publisher: '',
+        platform: '',
+        dateAdded: new Date().toISOString(),
+        dateModified: new Date().toISOString(),
+        broken: false,
+        extreme: false,
+        playMode: '',
+        status: '',
+        notes: '',
+        tags: [],
+        source: '',
+        applicationPath: '',
+        launchCommand: '',
+        releaseDate: '',
+        version: '',
+        originalDescription: '',
+        language: '',
+        library: this.props.gameLibrary,
+        orderTitle: '',
+        addApps: [],
+        placeholder: false,
+        activeDataOnDisk: false
+      });
       cb({
-        currentGame: {
-          id: id,
-          parentGameId: id,
-          title: '',
-          alternateTitles: '',
-          series: '',
-          developer: '',
-          publisher: '',
-          platform: '',
-          dateAdded: new Date().toISOString(),
-          dateModified: new Date().toISOString(),
-          broken: false,
-          extreme: false,
-          playMode: '',
-          status: '',
-          notes: '',
-          tags: [],
-          source: '',
-          applicationPath: '',
-          launchCommand: '',
-          releaseDate: '',
-          version: '',
-          originalDescription: '',
-          language: '',
-          library: this.props.gameLibrary,
-          orderTitle: '',
-          addApps: [],
-          placeholder: false,
-          activeDataOnDisk: false
-        },
+        currentGame: newGame,
         isEditingGame: true,
         isNewGame: true,
       });

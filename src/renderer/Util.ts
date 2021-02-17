@@ -287,7 +287,6 @@ export function rebuildQuery(opts: RebuildQueryOpts): ViewQuery {
       searchQuery.blacklist.push({ field: 'tag', value: key });
     }
   }
-  if (!opts.extreme)                              { searchQuery.whitelist.push({ field: 'extreme', value: false }); }
   if (!window.Shared.config.data.showBrokenGames) { searchQuery.whitelist.push({ field: 'broken',  value: false }); }
 
   return {

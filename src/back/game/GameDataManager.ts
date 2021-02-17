@@ -114,7 +114,7 @@ export async function importGameDataSkipHash(gameId: string, filePath: string, d
     if (game) {
       game.activeDataId = gameData.id;
       game.activeDataOnDisk = gameData.presentOnDisk;
-      await GameManager.updateGame(game);
+      await GameManager.save(game);
       return gameData;
     }
   }
@@ -163,7 +163,7 @@ export function importGameData(gameId: string, filePath: string, dataPacksFolder
             if (game) {
               game.activeDataId = gameData.id;
               game.activeDataOnDisk = gameData.presentOnDisk;
-              await GameManager.updateGame(game);
+              await GameManager.save(game);
               resolve(gameData);
             }
           })

@@ -513,22 +513,6 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     </div>
                   </div>
                 ) : undefined }
-                { game.extreme || editable ? (
-                  <div className='browse-right-sidebar__row'>
-                    <div
-                      className='browse-right-sidebar__row__check-box-wrapper'
-                      onClick={this.onExtremeChange}>
-                      { editable ? (
-                        <>
-                          <CheckBox
-                            checked={game.extreme}
-                            className='browse-right-sidebar__row__check-box' />
-                          <p> {strings.extreme}</p>
-                        </>
-                      ) : ( <b> {strings.extreme}</b> ) }
-                    </div>
-                  </div>
-                ) : undefined }
               </div>
             </>
           ) }
@@ -922,10 +906,10 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
 
   /** When a key is pressed while an input field is selected (except for multiline fields). */
   onInputKeyDown = (event: React.KeyboardEvent): void => {
-    if (event.key === 'Enter') {
-      this.props.onSaveGame();
-      event.preventDefault();
-    }
+    // if (event.key === 'Enter') {
+    //   this.props.onSaveGame();
+    //   event.preventDefault();
+    // }
   }
 
   onTagSelect = (tag: Tag, index: number): void => {

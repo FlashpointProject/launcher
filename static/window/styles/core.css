@@ -1485,6 +1485,10 @@ body {
   flex-direction: column;
   height: 100%;
 }
+/** TODO: Figure out why AutoSizer isn't working */
+.game-list > div[class='ReactVirtualized__Grid__innerScrollContainer'] {
+  width: 100% !important;
+}
 /* GameList */
 .game-list,
 .tag {
@@ -1592,10 +1596,6 @@ body {
 .game-list-item__field--title {
   max-width: 40%;
 }
-/* .game-list-header-column--tags,
-.game-list-item__field--tags {
-  max-width: 15%;
-} */
 .game-list-header-column--developer,
 .game-list-item__field--developer {
   max-width: 30%;
@@ -1604,6 +1604,10 @@ body {
 .game-list-item__field--publisher {
   max-width: 30%;
 }
+/*.game-list-header-column--tagsStr,
+.game-list-item__field--tagsStr {
+  max-width: 30%;
+} */
 
 /* GameGrid */
 .game-grid {
