@@ -489,7 +489,18 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.GET_GAME_DATA, async (event, id) => {
-    return GameDataManager.findOne(id);
+    const gameData = await GameDataManager.findOne(id);
+    // Verify it's still on disk
+    if (gameData && gameData.presentOnDisk && gameData.path) {
+      try {
+        await fs.promises.access(path.join(state.config.flashpointPath, state.config.dataPacksFolderPath, gameData.path), fs.constants.F_OK);
+      } catch (err) {
+        gameData.path = undefined;
+        gameData.presentOnDisk = false;
+        return await GameDataManager.save(gameData);
+      }
+    }
+    return gameData;
   });
 
   state.socketServer.register(BackIn.GET_GAMES_GAME_DATA, async (event, id) => {

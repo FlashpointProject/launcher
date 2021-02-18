@@ -471,13 +471,15 @@
     "deleteAllCurations": "Delete all Curations?",
     "removePlaylistGame": "Remove this Game from the Playlist?",
     "deleteGame": "Delete this Game? This cannot be undone.",
+    "deleteGameData": "Delete this Game Data? This cannot be undone.",
     "deleteAddApp": "Delete this Add App?",
     "deleteTagCategory": "Delete this Tag Category?",
     "deleteTag": "Delete this Tag?",
     "deleteTagAlias": "Delete this Tag Alias?",
     "deleteSource": "Delete this Source?",
     "uninstallGame": "Uninstall this Game?",
-    "unableToUninstallGameData": "Unable to delete data pack. Is it in use? Try restarting the launcher."
+    "unableToUninstallGameData": "Unable to delete data pack. Is it in use? Try restarting the launcher.",
+    "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher."
   },
   "libraries": {
     "arcade": "Games",

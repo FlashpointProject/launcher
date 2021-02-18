@@ -9,7 +9,6 @@ import * as React from 'react';
 import { CheckBox } from './CheckBox';
 import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
-import { SimpleButton } from './SimpleButton';
 import { TagInputField } from './TagInputField';
 
 export type TagFilterGroupEditorProps = {

@@ -851,9 +851,14 @@ export class App extends React.Component<AppProps> {
   }
 
   onDeleteGame = (gameId: string): void => {
+    const strings = this.props.main.lang;
     const library = getBrowseSubPath(this.props.location.pathname);
     window.Shared.back.request(BackIn.DELETE_GAME, gameId)
-    .then(() => { this.setViewQuery(library); });
+    .then(() => { this.setViewQuery(library); })
+    .catch((error) => {
+      log.error('Launcher', `Error deleting game: ${error}`);
+      alert(strings.dialog.unableToDeleteGame + '\n\n' + error);
+    });
   }
 
   onLaunchGame(gameId: string): void {
