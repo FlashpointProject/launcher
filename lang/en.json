@@ -371,7 +371,8 @@
     "noLogo": "There is no logo on this curation.",
     "noScreenshot": "There is no screenshot on this curation.",
     "ilc_notHttp": "Use HTTP.",
-    "ilc_nonExistant": "Point to an existing file in your curation's 'content' folder."
+    "ilc_nonExistant": "Point to an existing file in your curation's 'content' folder.",
+    "sort": "Sort Curations (A-Z)"
   },
   "playlist": {
     "enterDescriptionHere": "Enter a description here...",

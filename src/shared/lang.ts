@@ -385,6 +385,7 @@ const langTemplate = {
     'noScreenshot',
     'ilc_notHttp',
     'ilc_nonExistant',
+    'sort',
   ] as const,
   playlist: [
     'enterDescriptionHere',

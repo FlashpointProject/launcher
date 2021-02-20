@@ -956,6 +956,9 @@ body {
   user-select: none;
 }
 /* Curate Page Left Sidebar */
+.curate-page__left-sidebar__sort-button {
+  width: 100%;
+}
 .curate-page__left-sidebar-item {
   display: flex;
   align-items: center;

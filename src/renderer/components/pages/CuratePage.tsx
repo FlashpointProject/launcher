@@ -513,22 +513,33 @@ export function CuratePage(props: CuratePageProps) {
 
   // Render Curation Index (left sidebar)
   const curateIndex = React.useMemo(() => {
-    return state.curations.map((curation, index) => {
-      const platformIconPath = curation.meta.platform ? getPlatformIconURL(curation.meta.platform, props.logoVersion) : '';
-      return (
-        curation.delete ? undefined :
-          <div
-            key={index}
-            className='curate-page__left-sidebar-item'
-            onClick={() => { scrollToDiv(curation.key); }}>
-            <div
-              className='curate-page__left-sidebar-item__icon'
-              style={{backgroundImage: `url('${platformIconPath}')`}}/>
-            {curation.meta.title ? curation.meta.title : 'No Title'}
-          </div>
-      );
-    });
-  }, [state.curations]);
+    return (
+      <div>
+        <SimpleButton
+          className='curate-page__left-sidebar__sort-button'
+          value={strings.curate.sort}
+          onClick={() => dispatch({
+            type: 'sort-curations',
+            payload: {}
+          })}/>
+        {state.curations.map((curation, index) => {
+          const platformIconPath = curation.meta.platform ? getPlatformIconURL(curation.meta.platform, props.logoVersion) : '';
+          return (
+            curation.delete ? undefined :
+              <div
+                key={index}
+                className='curate-page__left-sidebar-item'
+                onClick={() => { scrollToDiv(curation.key); }}>
+                <div
+                  className='curate-page__left-sidebar-item__icon'
+                  style={{backgroundImage: `url('${platformIconPath}')`}}/>
+                {curation.meta.title ? curation.meta.title : 'No Title'}
+              </div>
+          );
+        })}
+      </div>
+    );
+  }, [state.curations, dispatch]);
 
   // Render
   return React.useMemo(() => (
