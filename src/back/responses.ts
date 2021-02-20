@@ -659,8 +659,9 @@ export function registerRequestCallbacks(state: BackState): void {
     return tag;
   });
 
-  state.socketServer.register(BackIn.GET_TAGS, async (event, data) => {
-    const tags = await TagManager.findTags(data);
+  state.socketServer.register(BackIn.GET_TAGS, async (event, name, tagFilters) => {
+    const flatFilters: string[] = tagFilters ? tagFilters.reduce<string[]>((prev, cur) => prev.concat(cur.tags), []) : [];
+    const tags = await TagManager.findTags(name, flatFilters);
     state.socketServer.send(event.client, BackOut.GET_TAGS, tags);
     return tags;
   });

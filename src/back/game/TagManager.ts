@@ -47,13 +47,16 @@ export async function saveTagAlias(tagAlias: TagAlias): Promise<TagAlias> {
   return tagAliasRepository.save(tagAlias);
 }
 
-export async function findTags(name?: string): Promise<Tag[]> {
+export async function findTags(name?: string, flatFilters?: string[]): Promise<Tag[]> {
   const tagRepository = getManager().getRepository(Tag);
   const tagAliasRepostiory = getManager().getRepository(TagAlias);
 
-  const subQ = tagAliasRepostiory.createQueryBuilder('tag_alias')
+  let subQ = tagAliasRepostiory.createQueryBuilder('tag_alias')
   .select('tag_alias.tagId')
   .where('tag_alias.name LIKE :name', { name: name + '%' });
+  if (flatFilters) {
+    subQ = subQ.andWhere('tag_alias.name NOT IN (:...flatFilters)', { flatFilters });
+  }
 
   return tagRepository.createQueryBuilder('tag')
   .leftJoinAndSelect('tag.aliases', 'alias')
