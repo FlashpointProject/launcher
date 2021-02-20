@@ -497,6 +497,9 @@ const langTemplate = {
     'deleteGameData',
     'unableToUninstallGameData',
     'unableToDeleteGame',
+    'downloadingGame',
+    'verifyingGame',
+    'aFewMinutes',
   ] as const,
   // libraries: [], // (This is dynamically populated in run-time)
 } as const;

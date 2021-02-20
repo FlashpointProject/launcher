@@ -480,7 +480,10 @@
     "deleteSource": "Delete this Source?",
     "uninstallGame": "Uninstall this Game?",
     "unableToUninstallGameData": "Unable to delete data pack. Is it in use? Try restarting the launcher.",
-    "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher."
+    "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher.",
+    "downloadingGame": "Downloading Game...",
+    "verifyingGame": "Verifying Game...",
+    "aFewMinutes": "This may take a few minutes."
   },
   "libraries": {
     "arcade": "Games",

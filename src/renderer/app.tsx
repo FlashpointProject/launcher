@@ -701,14 +701,14 @@ export class App extends React.Component<AppProps> {
             { this.props.main.downloadVerifying ? (
               <>
                 <div className='placeholder-download-bar--title'>
-                  {'Verifying Game...'}
+                  {this.props.main.lang.dialog.verifyingGame}
                 </div>
-                <div>{'This may take a few minutes'}</div>
+                <div>{this.props.main.lang.dialog.aFewMinutes}</div>
               </>
             ) : (
               <>
                 <div className='placeholder-download-bar--title'>
-                  {'Downloading Game...'}
+                  {this.props.main.lang.dialog.downloadingGame}
                 </div>
                 <div>{`${sizeToString(this.props.main.downloadSize * (this.props.main.downloadPercent / 100))} / ${sizeToString(this.props.main.downloadSize)}`}</div>
               </>
