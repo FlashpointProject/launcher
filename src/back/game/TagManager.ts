@@ -5,7 +5,7 @@ import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
 import { BackOut, MergeTagData, TagSuggestion } from '@shared/back/types';
-import { getManager, Like, Not } from 'typeorm';
+import { getManager, Not } from 'typeorm';
 import * as GameManager from './GameManager';
 
 export async function findTagCategories(): Promise<TagCategory[]> {
@@ -51,21 +51,15 @@ export async function findTags(name?: string): Promise<Tag[]> {
   const tagRepository = getManager().getRepository(Tag);
   const tagAliasRepostiory = getManager().getRepository(TagAlias);
 
-  let aliases: TagAlias[] = [];
-  if (name) {
-    aliases = await tagAliasRepostiory.find({
-      where: [
-        { name: Like(name + '%') }
-      ],
-    });
-  } else {
-    aliases = await tagAliasRepostiory.find();
-  }
+  const subQ = tagAliasRepostiory.createQueryBuilder('tag_alias')
+  .select('tag_alias.tagId')
+  .where('tag_alias.name LIKE :name', { name: name + '%' });
 
   return tagRepository.createQueryBuilder('tag')
   .leftJoinAndSelect('tag.aliases', 'alias')
   .leftJoinAndSelect('tag.primaryAlias', 'primaryAlias')
-  .whereInIds(aliases.map(a => a.tagId))
+  .where('tag.id IN (' + subQ.getQuery() + ')')
+  .setParameters(subQ.getParameters())
   .orderBy('tag.categoryId DESC, primaryAlias.name', 'ASC')
   .getMany();
 }

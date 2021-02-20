@@ -523,7 +523,7 @@ export function CuratePage(props: CuratePageProps) {
             onClick={() => { scrollToDiv(curation.key); }}>
             <div
               className='curate-page__left-sidebar-item__icon'
-              style={{backgroundImage: `url(${platformIconPath})`}}/>
+              style={{backgroundImage: `url('${platformIconPath}')`}}/>
             {curation.meta.title ? curation.meta.title : 'No Title'}
           </div>
       );
