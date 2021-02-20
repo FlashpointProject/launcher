@@ -12,7 +12,7 @@ import { ChangedMeta, MetaEditFlags } from '@shared/MetaEdit';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { SocketTemplate } from '@shared/socket/types';
 import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
-import { GameData, TagFilterGroup } from 'flashpoint-launcher';
+import { GameData, TagAlias, TagFilterGroup } from 'flashpoint-launcher';
 import { AppConfigData, AppExtConfigData } from '../config/interfaces';
 import { EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '../curate/types';
 import { ExecMapping, GamePropSuggestions, IService, ProcessAction } from '../interfaces';
@@ -81,6 +81,7 @@ export enum BackIn {
   GET_TAGS,
   GET_TAG,
   SAVE_TAG,
+  SAVE_TAG_ALIAS,
   DELETE_TAG,
   MERGE_TAGS,
   CLEANUP_TAG_ALIASES,
@@ -228,6 +229,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.GET_TAGS]: (data: string) => Tag[];
   [BackIn.GET_TAG]: (data: string) => Tag | undefined;
   [BackIn.SAVE_TAG]: (data: Tag) => Tag;
+  [BackIn.SAVE_TAG_ALIAS]: (data: TagAlias) => TagAlias;
   [BackIn.DELETE_TAG]: (data: number) => TagDeleteResponse;
   [BackIn.MERGE_TAGS]: (data: MergeTagData) => Tag;
   [BackIn.CLEANUP_TAG_ALIASES]: () => void;

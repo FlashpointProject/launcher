@@ -730,6 +730,10 @@ export function registerRequestCallbacks(state: BackState): void {
     return result;
   });
 
+  state.socketServer.register(BackIn.SAVE_TAG_ALIAS, async (event, data) => {
+    return TagManager.saveTagAlias(data);
+  });
+
   state.socketServer.register(BackIn.GET_TAG_SUGGESTIONS, async (event, text, tagFilters) => {
     const flatTagFilter = tagFilters.filter(tfg => tfg.enabled).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
     const flatCatFilter = tagFilters.filter(tfg => tfg.enabled).reduce<string[]>((prev, cur) => prev.concat(cur.categories), []);

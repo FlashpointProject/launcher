@@ -331,15 +331,16 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
   onAddTagAliasByString = (text: string): void => {
     if (text !== '') {
       window.Shared.back.request(BackIn.GET_TAG, text)
-      .then(data => {
+      .then(async (data) => {
         if (data) {
           // Tag alias exists
           remote.dialog.showErrorBox('Alias Error!',`Alias already exists on tag '${data.primaryAlias.name}'!`);
         } else if (this.props.currentTag && this.props.currentTag.id) {
           // Tag alias doesn't exist
-          const newTagAlias = new TagAlias();
+          let newTagAlias = new TagAlias();
           newTagAlias.name = text;
           newTagAlias.tagId = this.props.currentTag.id;
+          newTagAlias = await window.Shared.back.request(BackIn.SAVE_TAG_ALIAS, newTagAlias);
           this.props.onEditTag({ aliases: [...this.props.currentTag.aliases, newTagAlias] });
         }
       });

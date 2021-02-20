@@ -42,6 +42,11 @@ export async function saveTag(tag: Tag): Promise<Tag> {
   return tagRepository.save(tag);
 }
 
+export async function saveTagAlias(tagAlias: TagAlias): Promise<TagAlias> {
+  const tagAliasRepository = getManager().getRepository(TagAlias);
+  return tagAliasRepository.save(tagAlias);
+}
+
 export async function findTags(name?: string): Promise<Tag[]> {
   const tagRepository = getManager().getRepository(Tag);
   const tagAliasRepostiory = getManager().getRepository(TagAlias);
