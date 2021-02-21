@@ -23,6 +23,7 @@
     "libraries": "展馆",
     "randomLibraries": "随机展馆",
     "randomLibrariesDesc": "主页上的“随便看看”功能将会在这些展馆中选择展品。",
+    "updateSource": "Update Source",
     "platforms": "平台",
     "nativePlatforms": "本地平台",
     "nativePlatformsDesc": "使用这些平台的本地版本。（如不可用，将会使用 Wine）",
@@ -55,7 +56,9 @@
     "extThemes": "主题",
     "extLogoSets": "图标集",
     "extApplications": "应用",
-    "saveAndRestart": "保存并重启"
+    "saveAndRestart": "保存并重启",
+    "saveAndClose": "Save and Close",
+    "tagFilterGroupEditor": "Tag Filter Group Editor"
   },
   "home": {
     "updateHeader": "启动器更新",
@@ -173,6 +176,8 @@
     "exportTagsDesc": "创建一个可用于导入标签的文件，内容包含标签与标签类别信息",
     "importTags": "导入标签",
     "importTagsDesc": "从“导出标签”创建的文件中导入标签",
+    "migrateExtremeGames": "Migrate Extreme Games",
+    "migrateExtremeGamesDesc": "Removes 'Extreme' from any games and assigns the 'LEGACY-Extreme' tag to them",
     "servicesHeader": "后台服务",
     "servicesMissing": "无后台服务",
     "running": "运行中",
@@ -251,6 +256,7 @@
     "searching": "搜索中...",
     "library": "展馆",
     "defaultLibrary": "默认展馆",
+    "uninstallGame": "Uninstall Game",
     "installed": "已安装",
     "notInstalled": "未安装",
     "legacyGame": "旧版游戏",
@@ -360,8 +366,13 @@
     "unusedPlatform": "'平台' 有未使用的值。请确保拼写正确！",
     "nonExistingLibrary": "'展馆' 名称不存在！（将使用默认展馆）",
     "nonContentFolders": "展品文件夹中发现非内容文件夹。它们应该在那里吗？",
+    "noTags": "There are no tags on this curation.",
+    "unenteredTag": "The Tags text field hasn't been submitted.",
+    "noLogo": "There is no logo on this curation.",
+    "noScreenshot": "There is no screenshot on this curation.",
     "ilc_notHttp": "使用 HTTP。",
-    "ilc_nonExistant": "指向您展品的 'content' 文件夹中已存在的文件。"
+    "ilc_nonExistant": "指向您展品的 'content' 文件夹中已存在的文件。",
+    "sort": "Sort Curations (A-Z)"
   },
   "playlist": {
     "enterDescriptionHere": "在此输入描述...",
@@ -454,16 +465,25 @@
     "overwriteFileDetail": "文件路径：",
     "deleteTagFilterGroup": "删除此标签筛选器组？",
     "deleteCuration": "删除此展品？",
+    "importCuration": "Import this Curation?",
     "deleteGameImage": "删除此游戏图片？",
     "deletePlaylist": "删除此播放列表？",
     "importAllCurations": "导入所有展品？",
     "deleteAllCurations": "删除所有展品？",
     "removePlaylistGame": "从播放列表中删除此游戏？",
-    "deleteGame": "删除此游戏？（无法恢复）",
+    "deleteGame": "Delete this Game? This cannot be undone.",
+    "deleteGameData": "Delete this Game Data? This cannot be undone.",
     "deleteAddApp": "删除此附加应用？",
     "deleteTagCategory": "删除此标签类别？",
     "deleteTag": "删除此标签？",
-    "deleteTagAlias": "删除此标签别名？"
+    "deleteTagAlias": "删除此标签别名？",
+    "deleteSource": "Delete this Source?",
+    "uninstallGame": "Uninstall this Game?",
+    "unableToUninstallGameData": "Unable to delete data pack. Is it in use? Try restarting the launcher.",
+    "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher.",
+    "downloadingGame": "Downloading Game...",
+    "verifyingGame": "Verifying Game...",
+    "aFewMinutes": "This may take a few minutes."
   },
   "libraries": {
     "arcade": "游戏",
