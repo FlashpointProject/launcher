@@ -1,5 +1,5 @@
 {
-  "name": "Italiano",
+  "name": "Inglese",
   "config": {
     "configHeader": "Impostazioni",
     "configDesc": "(Devi premere 'Salva & riavvia' per rendere effettive alcune modifiche)",
@@ -482,8 +482,8 @@
     "unableToUninstallGameData": "Impossibile eliminare il pacchetto dati. È in uso? Prova a riavviare il launcher.",
     "unableToDeleteGame": "Impossibile eliminare la partita. È in uso? Prova a riavviare il launcher.",
     "downloadingGame": "Scaricamento Gioco...",
-    "verifyingGame": "Verifying Game...",
-    "aFewMinutes": "This may take a few minutes."
+    "verifyingGame": "Verifica Gioco...",
+    "aFewMinutes": "Questo può richiedere alcuni minuti."
   },
   "libraries": {
     "arcade": "Giochi",
