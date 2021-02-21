@@ -23,6 +23,7 @@
     "libraries": "Biblioteci",
     "randomLibraries": "Biblioteci aleatoare",
     "randomLibrariesDesc": "Biblioteci de utilizat pentru alegeri aleatorii de pe pagina principală.",
+    "updateSource": "Update Source",
     "platforms": "Platforme",
     "nativePlatforms": "Platforme native",
     "nativePlatformsDesc": "Folosește versiuni native ale acestor platforme. (Dacă nu sunt disponibile, se vor folosi prin Wine)",
@@ -55,7 +56,9 @@
     "extThemes": "Teme vizuale",
     "extLogoSets": "Set de logo-uri",
     "extApplications": "Aplicații",
-    "saveAndRestart": "Salvare și repornire"
+    "saveAndRestart": "Salvare și repornire",
+    "saveAndClose": "Save and Close",
+    "tagFilterGroupEditor": "Tag Filter Group Editor"
   },
   "home": {
     "updateHeader": "Actualizare lansator",
@@ -173,6 +176,8 @@
     "exportTagsDesc": "Creează un fișier cu etichete și categorii de etichete care pot fi folosite de către operațiunea \"Importați etichete\"",
     "importTags": "Importați etichete",
     "importTagsDesc": "Importați etichete dintr-un fișier creat cu operațiunea 'Exportă etichete'",
+    "migrateExtremeGames": "Migrate Extreme Games",
+    "migrateExtremeGamesDesc": "Removes 'Extreme' from any games and assigns the 'LEGACY-Extreme' tag to them",
     "servicesHeader": "Servicii ce rulează în fundal",
     "servicesMissing": "Nu există astfel de servicii.",
     "running": "Rulează",
@@ -251,6 +256,7 @@
     "searching": "Se caută...",
     "library": "Categorie",
     "defaultLibrary": "Categoria implicită",
+    "uninstallGame": "Uninstall Game",
     "installed": "Instalat",
     "notInstalled": "Nu e instalat",
     "legacyGame": "Joc depășit",
@@ -360,8 +366,13 @@
     "unusedPlatform": "Platforma are o valoare nefolosită. Asigurați-vă că ați scris corect!",
     "nonExistingLibrary": "Categoria are un nume care nu coincide niciunei categorii predefinite. Se va folosi categoria implicită.",
     "nonContentFolders": "Au fost găsite dosare neutilizare în dosarul de reparații. Doriți să continuați astfel?",
+    "noTags": "There are no tags on this curation.",
+    "unenteredTag": "The Tags text field hasn't been submitted.",
+    "noLogo": "There is no logo on this curation.",
+    "noScreenshot": "There is no screenshot on this curation.",
     "ilc_notHttp": "Folosiți HTTP.",
-    "ilc_nonExistant": "Selectați un fișier existent din dosarul reparației."
+    "ilc_nonExistant": "Selectați un fișier existent din dosarul reparației.",
+    "sort": "Sort Curations (A-Z)"
   },
   "playlist": {
     "enterDescriptionHere": "Iintroduceți descrierea aici...",
@@ -454,16 +465,25 @@
     "overwriteFileDetail": "Calea fișierului:",
     "deleteTagFilterGroup": "Delete this Tag Filter Group?",
     "deleteCuration": "Delete this Curation?",
+    "importCuration": "Import this Curation?",
     "deleteGameImage": "Delete this Game Image?",
     "deletePlaylist": "Delete this Playlist?",
     "importAllCurations": "Import all Curations?",
     "deleteAllCurations": "Delete all Curations?",
     "removePlaylistGame": "Remove this Game from the Playlist?",
-    "deleteGame": "Delete this Game? (non-recoverable)",
+    "deleteGame": "Delete this Game? This cannot be undone.",
+    "deleteGameData": "Delete this Game Data? This cannot be undone.",
     "deleteAddApp": "Delete this Add App?",
     "deleteTagCategory": "Delete this Tag Category?",
     "deleteTag": "Delete this Tag?",
-    "deleteTagAlias": "Delete this Tag Alias?"
+    "deleteTagAlias": "Delete this Tag Alias?",
+    "deleteSource": "Delete this Source?",
+    "uninstallGame": "Uninstall this Game?",
+    "unableToUninstallGameData": "Unable to delete data pack. Is it in use? Try restarting the launcher.",
+    "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher.",
+    "downloadingGame": "Downloading Game...",
+    "verifyingGame": "Verifying Game...",
+    "aFewMinutes": "This may take a few minutes."
   },
   "libraries": {
     "arcade": "Jocuri",
