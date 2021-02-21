@@ -23,6 +23,7 @@
     "libraries": "ライブラリ",
     "randomLibraries": "ランダムライブラリ",
     "randomLibrariesDesc": "ホームページのランダムピックに使用するライブラリ。",
+    "updateSource": "Update Source",
     "platforms": "プラットフォーム",
     "nativePlatforms": "ネイティブプラットフォーム",
     "nativePlatformsDesc": "ネイティブなバージョンを使用するプラットフォームを選択します。 (Wineを使っている場合は選択しないでください。)",
@@ -55,7 +56,9 @@
     "extThemes": "テーマ",
     "extLogoSets": "ロゴセット",
     "extApplications": "アプリケーション",
-    "saveAndRestart": "変更を保存して再起動"
+    "saveAndRestart": "変更を保存して再起動",
+    "saveAndClose": "Save and Close",
+    "tagFilterGroupEditor": "Tag Filter Group Editor"
   },
   "home": {
     "updateHeader": "ランチャーの更新",
@@ -173,6 +176,8 @@
     "exportTagsDesc": "「タグをインポート」で使用できるタグとタグのカテゴリでいっぱいのファイルを作成します。",
     "importTags": "タグをインポート",
     "importTagsDesc": "「タグのエクスポート」によって作成されたファイルからタグをインポートします",
+    "migrateExtremeGames": "Migrate Extreme Games",
+    "migrateExtremeGamesDesc": "Removes 'Extreme' from any games and assigns the 'LEGACY-Extreme' tag to them",
     "servicesHeader": "バックグラウンドサービス",
     "servicesMissing": "サービスがありません。",
     "running": "実行中",
@@ -251,6 +256,7 @@
     "searching": "検索中...",
     "library": "ライブラリ",
     "defaultLibrary": "デフォルトライブラリ",
+    "uninstallGame": "Uninstall Game",
     "installed": "Installed",
     "notInstalled": "Not Installed",
     "legacyGame": "Legacy Game",
@@ -360,8 +366,13 @@
     "unusedPlatform": "'プラットフォーム' には使用されていない値があります。正しく綴られていることを確認してください。",
     "nonExistingLibrary": "'Library'は既存のライブラリの名前ではありません！（デフォルトは使用されます）",
     "nonContentFolders": "キュレーションフォルダに非コンテンツフォルダがあります。そこにあるはずですか？",
+    "noTags": "There are no tags on this curation.",
+    "unenteredTag": "The Tags text field hasn't been submitted.",
+    "noLogo": "There is no logo on this curation.",
+    "noScreenshot": "There is no screenshot on this curation.",
     "ilc_notHttp": "HTTPを使用してください",
-    "ilc_nonExistant": "キュレーションの「コンテンツ」フォルダにある既存のファイルをポイントします。"
+    "ilc_nonExistant": "キュレーションの「コンテンツ」フォルダにある既存のファイルをポイントします。",
+    "sort": "Sort Curations (A-Z)"
   },
   "playlist": {
     "enterDescriptionHere": "ここに説明を入力...",
@@ -454,16 +465,25 @@
     "overwriteFileDetail": "ファイルパス:",
     "deleteTagFilterGroup": "Delete this Tag Filter Group?",
     "deleteCuration": "Delete this Curation?",
+    "importCuration": "Import this Curation?",
     "deleteGameImage": "Delete this Game Image?",
     "deletePlaylist": "Delete this Playlist?",
     "importAllCurations": "Import all Curations?",
     "deleteAllCurations": "Delete all Curations?",
     "removePlaylistGame": "Remove this Game from the Playlist?",
-    "deleteGame": "Delete this Game? (non-recoverable)",
+    "deleteGame": "Delete this Game? This cannot be undone.",
+    "deleteGameData": "Delete this Game Data? This cannot be undone.",
     "deleteAddApp": "Delete this Add App?",
     "deleteTagCategory": "Delete this Tag Category?",
     "deleteTag": "Delete this Tag?",
-    "deleteTagAlias": "Delete this Tag Alias?"
+    "deleteTagAlias": "Delete this Tag Alias?",
+    "deleteSource": "Delete this Source?",
+    "uninstallGame": "Uninstall this Game?",
+    "unableToUninstallGameData": "Unable to delete data pack. Is it in use? Try restarting the launcher.",
+    "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher.",
+    "downloadingGame": "Downloading Game...",
+    "verifyingGame": "Verifying Game...",
+    "aFewMinutes": "This may take a few minutes."
   },
   "libraries": {
     "arcade": "ゲーム",
