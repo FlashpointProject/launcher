@@ -23,6 +23,7 @@
     "libraries": "Libraries",
     "randomLibraries": "Random Libraries",
     "randomLibrariesDesc": "Libraries to use for Random Picks on the home page.",
+    "updateSource": "Update Source",
     "platforms": "Πλατφόρμες",
     "nativePlatforms": "Εγγενείς Πλατφόρμες",
     "nativePlatformsDesc": "Χρήση Εγγενών εκδόσεων αυτών των πλατφορμών. (Σε περίπτωση μη διαθεσιμότητας θα χρησιμοποιείται το Γουάιν)",
@@ -55,7 +56,9 @@
     "extThemes": "Theme(s)",
     "extLogoSets": "Logo Set(s)",
     "extApplications": "Application(s)",
-    "saveAndRestart": "Αποθήκευση και Επανεκκίνηση"
+    "saveAndRestart": "Αποθήκευση και Επανεκκίνηση",
+    "saveAndClose": "Save and Close",
+    "tagFilterGroupEditor": "Tag Filter Group Editor"
   },
   "home": {
     "updateHeader": "Ενημέρωση Εκτοξευτή",
@@ -173,6 +176,8 @@
     "exportTagsDesc": "Creates a file full of tags and tag categories that can be used by 'Import Tags'",
     "importTags": "Import Tags",
     "importTagsDesc": "Imports Tags from an file created by 'Export Tags'",
+    "migrateExtremeGames": "Migrate Extreme Games",
+    "migrateExtremeGamesDesc": "Removes 'Extreme' from any games and assigns the 'LEGACY-Extreme' tag to them",
     "servicesHeader": "Υπηρεσία Υποβάθρου",
     "servicesMissing": "Δεν υπάρχουν υπηρεσίες.",
     "running": "Σε εκτέλεση",
@@ -251,6 +256,7 @@
     "searching": "Searching...",
     "library": "Βιβλιοθήκη",
     "defaultLibrary": "Προεπιλεγμένη Βιβλιοθήκη",
+    "uninstallGame": "Uninstall Game",
     "installed": "Installed",
     "notInstalled": "Not Installed",
     "legacyGame": "Legacy Game",
@@ -360,8 +366,13 @@
     "unusedPlatform": "Η πλατφόρμα 'Platform' έχει μία αχρησιμοποίητη μεταβλητή. Σιγουρευτείτε πως είναι σωστά γραμμένη!",
     "nonExistingLibrary": "Η βιβλιοθήκη 'Library' δεν είναι το όνομα υπάρχουσας βιβλιοθήκης! (Η προεπιλεγμένη θα χρησιμοποιηθεί)",
     "nonContentFolders": "Βρέθηκαν φάκελοι δίχως περιεχόμενο στον φάκελο Επιμέλειας. Υποτίθεται ότι πρέπει να είναι εκεί;",
+    "noTags": "There are no tags on this curation.",
+    "unenteredTag": "The Tags text field hasn't been submitted.",
+    "noLogo": "There is no logo on this curation.",
+    "noScreenshot": "There is no screenshot on this curation.",
     "ilc_notHttp": "Χρήση HTTP.",
-    "ilc_nonExistant": "Παραπεμφθείτε σε ένα υπάρχον αρχείο στον φάκελο 'content' των επιμέλειάς σας."
+    "ilc_nonExistant": "Παραπεμφθείτε σε ένα υπάρχον αρχείο στον φάκελο 'content' των επιμέλειάς σας.",
+    "sort": "Sort Curations (A-Z)"
   },
   "playlist": {
     "enterDescriptionHere": "Εισάγετε μία περιγραφή εδώ...",
@@ -454,16 +465,25 @@
     "overwriteFileDetail": "File path:",
     "deleteTagFilterGroup": "Delete this Tag Filter Group?",
     "deleteCuration": "Delete this Curation?",
+    "importCuration": "Import this Curation?",
     "deleteGameImage": "Delete this Game Image?",
     "deletePlaylist": "Delete this Playlist?",
     "importAllCurations": "Import all Curations?",
     "deleteAllCurations": "Delete all Curations?",
     "removePlaylistGame": "Remove this Game from the Playlist?",
-    "deleteGame": "Delete this Game? (non-recoverable)",
+    "deleteGame": "Delete this Game? This cannot be undone.",
+    "deleteGameData": "Delete this Game Data? This cannot be undone.",
     "deleteAddApp": "Delete this Add App?",
     "deleteTagCategory": "Delete this Tag Category?",
     "deleteTag": "Delete this Tag?",
-    "deleteTagAlias": "Delete this Tag Alias?"
+    "deleteTagAlias": "Delete this Tag Alias?",
+    "deleteSource": "Delete this Source?",
+    "uninstallGame": "Uninstall this Game?",
+    "unableToUninstallGameData": "Unable to delete data pack. Is it in use? Try restarting the launcher.",
+    "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher.",
+    "downloadingGame": "Downloading Game...",
+    "verifyingGame": "Verifying Game...",
+    "aFewMinutes": "This may take a few minutes."
   },
   "libraries": {
     "arcade": "Παιχνίδια",
