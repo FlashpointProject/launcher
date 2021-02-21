@@ -23,6 +23,7 @@
     "libraries": "Thư viện",
     "randomLibraries": "Thư viện ngẫu nhiên",
     "randomLibrariesDesc": "Thư viện dùng cho mục Ngẫu nhiên trên trang chủ.",
+    "updateSource": "Update Source",
     "platforms": "Nền tảng",
     "nativePlatforms": "Nền tảng gốc",
     "nativePlatformsDesc": "Dùng bản gốc của các nền tảng này. (Nếu không có sẵn thì sẽ dùng Wine)",
@@ -55,7 +56,9 @@
     "extThemes": "Giao diện",
     "extLogoSets": "Bộ biểu trưng",
     "extApplications": "Phần mềm",
-    "saveAndRestart": "Lưu và Khởi động lại"
+    "saveAndRestart": "Lưu và Khởi động lại",
+    "saveAndClose": "Save and Close",
+    "tagFilterGroupEditor": "Tag Filter Group Editor"
   },
   "home": {
     "updateHeader": "Cập nhật trình khởi chạy",
@@ -173,6 +176,8 @@
     "exportTagsDesc": "Tạo một tệp chứa tất cả nhãn và danh mục nhãn mà có thể dùng tính năng 'Nhập nhãn' để nhập vào phần mềm được",
     "importTags": "Nhập nhãn",
     "importTagsDesc": "Nhập nhãn từ một tệp được tạo bởi 'Xuất nhãn'",
+    "migrateExtremeGames": "Migrate Extreme Games",
+    "migrateExtremeGamesDesc": "Removes 'Extreme' from any games and assigns the 'LEGACY-Extreme' tag to them",
     "servicesHeader": "Dịch vụ ngầm",
     "servicesMissing": "Không có dịch vụ nào.",
     "running": "Đang chạy",
@@ -251,6 +256,7 @@
     "searching": "Đang tìm...",
     "library": "Thư viện",
     "defaultLibrary": "Thư viện mặc định",
+    "uninstallGame": "Uninstall Game",
     "installed": "Installed",
     "notInstalled": "Not Installed",
     "legacyGame": "Legacy Game",
@@ -360,8 +366,13 @@
     "unusedPlatform": "'Nền tảng' có giá trị không được sử dụng. Xem thử bạn nhập đúng chưa nhé!",
     "nonExistingLibrary": "'Thư viện' không phải là tên của một thư viện hiện có! (Sẽ dùng mặc định)",
     "nonContentFolders": "Tìm thấy thư mục không chứa nội dung trong thư mục chứa bản đóng góp. Thư mục đó có cần thiết không?",
+    "noTags": "There are no tags on this curation.",
+    "unenteredTag": "The Tags text field hasn't been submitted.",
+    "noLogo": "There is no logo on this curation.",
+    "noScreenshot": "There is no screenshot on this curation.",
     "ilc_notHttp": "Dùng HTTP.",
-    "ilc_nonExistant": "Trỏ đến một tệp hiện có trong thư mục 'nội dung' của bản đóng góp của bạn."
+    "ilc_nonExistant": "Trỏ đến một tệp hiện có trong thư mục 'nội dung' của bản đóng góp của bạn.",
+    "sort": "Sort Curations (A-Z)"
   },
   "playlist": {
     "enterDescriptionHere": "Hãy điền mô tả vào đây...",
@@ -454,16 +465,25 @@
     "overwriteFileDetail": "Đường dẫn tập tin:",
     "deleteTagFilterGroup": "Delete this Tag Filter Group?",
     "deleteCuration": "Delete this Curation?",
+    "importCuration": "Import this Curation?",
     "deleteGameImage": "Delete this Game Image?",
     "deletePlaylist": "Delete this Playlist?",
     "importAllCurations": "Import all Curations?",
     "deleteAllCurations": "Delete all Curations?",
     "removePlaylistGame": "Remove this Game from the Playlist?",
-    "deleteGame": "Delete this Game? (non-recoverable)",
+    "deleteGame": "Delete this Game? This cannot be undone.",
+    "deleteGameData": "Delete this Game Data? This cannot be undone.",
     "deleteAddApp": "Delete this Add App?",
     "deleteTagCategory": "Delete this Tag Category?",
     "deleteTag": "Delete this Tag?",
-    "deleteTagAlias": "Delete this Tag Alias?"
+    "deleteTagAlias": "Delete this Tag Alias?",
+    "deleteSource": "Delete this Source?",
+    "uninstallGame": "Uninstall this Game?",
+    "unableToUninstallGameData": "Unable to delete data pack. Is it in use? Try restarting the launcher.",
+    "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher.",
+    "downloadingGame": "Downloading Game...",
+    "verifyingGame": "Verifying Game...",
+    "aFewMinutes": "This may take a few minutes."
   },
   "libraries": {
     "arcade": "Trò chơi",
