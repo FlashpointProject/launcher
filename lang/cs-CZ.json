@@ -23,6 +23,7 @@
     "libraries": "Knihovny",
     "randomLibraries": "Náhodné knihovny",
     "randomLibrariesDesc": "Knihovny, které se mají použít pro náhodný výběr na domovské stránce.",
+    "updateSource": "Update Source",
     "platforms": "Platformy",
     "nativePlatforms": "Nativní platformy",
     "nativePlatformsDesc": "Použít nativní verze těchto platforem. (Pokud není k dispozici, použije se Wine)",
@@ -55,7 +56,9 @@
     "extThemes": "Motiv(y)",
     "extLogoSets": "Sada/y log",
     "extApplications": "Aplikace",
-    "saveAndRestart": "Uložit a restartovat"
+    "saveAndRestart": "Uložit a restartovat",
+    "saveAndClose": "Save and Close",
+    "tagFilterGroupEditor": "Tag Filter Group Editor"
   },
   "home": {
     "updateHeader": "Aktualizace spouštěče",
@@ -173,6 +176,8 @@
     "exportTagsDesc": "Vytvoří soubor obsahující štítky a kategorie štítků, který může být použit v 'Importovat Štítky'",
     "importTags": "Importovat Štítky",
     "importTagsDesc": "Importuje Štítky ze souboru vytvořeného pomocí 'Exportovat Štítky'",
+    "migrateExtremeGames": "Migrate Extreme Games",
+    "migrateExtremeGamesDesc": "Removes 'Extreme' from any games and assigns the 'LEGACY-Extreme' tag to them",
     "servicesHeader": "Služby na pozadí",
     "servicesMissing": "Nebyly nalezeny žádné služby.",
     "running": "Spuštěno",
@@ -251,6 +256,7 @@
     "searching": "Vyhledávání...",
     "library": "Knihovna",
     "defaultLibrary": "Výchozí knihovna",
+    "uninstallGame": "Uninstall Game",
     "installed": "Instalováno",
     "notInstalled": "Není nainstalováno",
     "legacyGame": "Starší hra",
@@ -360,8 +366,13 @@
     "unusedPlatform": "'Platforma' se nepoužívá. Ujistěte se, že je napsána správně!",
     "nonExistingLibrary": "'Knihovna' není název existující knihovny! (Bude použita výchozí)",
     "nonContentFolders": "Ve složce Kurace se nacházejí složky bez obsahu. Opravdu tam mají být?",
+    "noTags": "There are no tags on this curation.",
+    "unenteredTag": "The Tags text field hasn't been submitted.",
+    "noLogo": "There is no logo on this curation.",
+    "noScreenshot": "There is no screenshot on this curation.",
     "ilc_notHttp": "Použít HTTP.",
-    "ilc_nonExistant": "Míří na existující soubor ve složce 'content' ve vaší složce kurace."
+    "ilc_nonExistant": "Míří na existující soubor ve složce 'content' ve vaší složce kurace.",
+    "sort": "Sort Curations (A-Z)"
   },
   "playlist": {
     "enterDescriptionHere": "Zadejte popis...",
@@ -454,16 +465,25 @@
     "overwriteFileDetail": "Cesta k souboru:",
     "deleteTagFilterGroup": "Odstranit tuto Skupinu Filtrů Štítků?",
     "deleteCuration": "Odstranit tuto Kuraci?",
+    "importCuration": "Import this Curation?",
     "deleteGameImage": "Odstranit tento Obrázek Hry?",
     "deletePlaylist": "Odstranit tento Seznam?",
     "importAllCurations": "Importovat všechny Kurace?",
     "deleteAllCurations": "Odstranit všechny Kurace?",
     "removePlaylistGame": "Odstranit tuto Hru ze Seznamu?",
-    "deleteGame": "Odstranit tuto hru? (nevratné)",
+    "deleteGame": "Delete this Game? This cannot be undone.",
+    "deleteGameData": "Delete this Game Data? This cannot be undone.",
     "deleteAddApp": "Odstranit tuto Přídatnou Aplikaci?",
     "deleteTagCategory": "Odstranit tuto Kategorii Štítků?",
     "deleteTag": "Odstranit tento Štítek?",
-    "deleteTagAlias": "Odstranit tento Alias Štítku?"
+    "deleteTagAlias": "Odstranit tento Alias Štítku?",
+    "deleteSource": "Delete this Source?",
+    "uninstallGame": "Uninstall this Game?",
+    "unableToUninstallGameData": "Unable to delete data pack. Is it in use? Try restarting the launcher.",
+    "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher.",
+    "downloadingGame": "Downloading Game...",
+    "verifyingGame": "Verifying Game...",
+    "aFewMinutes": "This may take a few minutes."
   },
   "libraries": {
     "arcade": "Hry",
