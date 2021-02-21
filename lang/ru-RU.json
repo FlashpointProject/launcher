@@ -23,6 +23,7 @@
     "libraries": "Библиотеки",
     "randomLibraries": "Случайные библиотеки",
     "randomLibrariesDesc": "Библиотеки для случайных выбора на домашней странице.",
+    "updateSource": "Update Source",
     "platforms": "Платформы",
     "nativePlatforms": "Платформы Native",
     "nativePlatformsDesc": "Используйте Native версии этих платформ. (Если нет, он будет использовать Wine)",
@@ -55,7 +56,9 @@
     "extThemes": "Тема(ы)",
     "extLogoSets": "Набор логотипа(ов)",
     "extApplications": "Приложение(я)",
-    "saveAndRestart": "Сохранить и перезапустить"
+    "saveAndRestart": "Сохранить и перезапустить",
+    "saveAndClose": "Save and Close",
+    "tagFilterGroupEditor": "Tag Filter Group Editor"
   },
   "home": {
     "updateHeader": "Обновление Лаунчера",
@@ -173,6 +176,8 @@
     "exportTagsDesc": "Создаёт файл с тегами и категориями, которые могут быть использованы при импорте тегов",
     "importTags": "Импорт тегов",
     "importTagsDesc": "Импортировать теги из файла, созданного 'Экспорт тегов'",
+    "migrateExtremeGames": "Migrate Extreme Games",
+    "migrateExtremeGamesDesc": "Removes 'Extreme' from any games and assigns the 'LEGACY-Extreme' tag to them",
     "servicesHeader": "Фоновые сервисы",
     "servicesMissing": "Нет сервисов.",
     "running": "Работает",
@@ -251,6 +256,7 @@
     "searching": "Идёт поиск...",
     "library": "Библиотека",
     "defaultLibrary": "Библиотека по умолчанию",
+    "uninstallGame": "Uninstall Game",
     "installed": "Installed",
     "notInstalled": "Not Installed",
     "legacyGame": "Legacy Game",
@@ -360,8 +366,13 @@
     "unusedPlatform": "'Платформа' имеет неиспользуемое значение. Убедитесь, что указали его правильно!",
     "nonExistingLibrary": "'Библиотека' не является именем существующей библиотеки! (Будет использована библиотека по умолчанию)",
     "nonContentFolders": "Папки без содержимого, найденные в папке Курации. Они должны быть там?",
+    "noTags": "There are no tags on this curation.",
+    "unenteredTag": "The Tags text field hasn't been submitted.",
+    "noLogo": "There is no logo on this curation.",
+    "noScreenshot": "There is no screenshot on this curation.",
     "ilc_notHttp": "Использовать HTTP.",
-    "ilc_nonExistant": "Укажите на существующий файл в папке 'содержимое' вашего курирования."
+    "ilc_nonExistant": "Укажите на существующий файл в папке 'содержимое' вашего курирования.",
+    "sort": "Sort Curations (A-Z)"
   },
   "playlist": {
     "enterDescriptionHere": "Введите описание сюда...",
@@ -454,16 +465,25 @@
     "overwriteFileDetail": "Путь к файлу:",
     "deleteTagFilterGroup": "Delete this Tag Filter Group?",
     "deleteCuration": "Delete this Curation?",
+    "importCuration": "Import this Curation?",
     "deleteGameImage": "Delete this Game Image?",
     "deletePlaylist": "Delete this Playlist?",
     "importAllCurations": "Import all Curations?",
     "deleteAllCurations": "Delete all Curations?",
     "removePlaylistGame": "Remove this Game from the Playlist?",
-    "deleteGame": "Delete this Game? (non-recoverable)",
+    "deleteGame": "Delete this Game? This cannot be undone.",
+    "deleteGameData": "Delete this Game Data? This cannot be undone.",
     "deleteAddApp": "Delete this Add App?",
     "deleteTagCategory": "Delete this Tag Category?",
     "deleteTag": "Delete this Tag?",
-    "deleteTagAlias": "Delete this Tag Alias?"
+    "deleteTagAlias": "Delete this Tag Alias?",
+    "deleteSource": "Delete this Source?",
+    "uninstallGame": "Uninstall this Game?",
+    "unableToUninstallGameData": "Unable to delete data pack. Is it in use? Try restarting the launcher.",
+    "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher.",
+    "downloadingGame": "Downloading Game...",
+    "verifyingGame": "Verifying Game...",
+    "aFewMinutes": "This may take a few minutes."
   },
   "libraries": {
     "arcade": "Игры",
