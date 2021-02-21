@@ -23,7 +23,7 @@
     "libraries": "展馆",
     "randomLibraries": "随机展馆",
     "randomLibrariesDesc": "主页上的“随便看看”功能将会在这些展馆中选择展品。",
-    "updateSource": "Update Source",
+    "updateSource": "更新源",
     "platforms": "平台",
     "nativePlatforms": "本地平台",
     "nativePlatformsDesc": "使用这些平台的本地版本。（如不可用，将会使用 Wine）",
@@ -57,7 +57,7 @@
     "extLogoSets": "图标集",
     "extApplications": "应用",
     "saveAndRestart": "保存并重启",
-    "saveAndClose": "Save and Close",
+    "saveAndClose": "保存并关闭",
     "tagFilterGroupEditor": "Tag Filter Group Editor"
   },
   "home": {
@@ -253,7 +253,7 @@
     "noApplicationPath": "无应用程序路径",
     "launchCommand": "启动命令",
     "noLaunchCommand": "无启动命令",
-    "searching": "搜索中...",
+    "searching": "正在搜索...",
     "library": "展馆",
     "defaultLibrary": "默认展馆",
     "uninstallGame": "Uninstall Game",
@@ -405,7 +405,7 @@
     "no": "否",
     "downloading": "下载中",
     "extracting": "提取中",
-    "installingFiles": "文件安装中...",
+    "installingFiles": "正在安装文件...",
     "complete": "已完成",
     "exportMetaEditTitle": "导出元数据变更",
     "exportMetaEditDesc": "选择所有要导出的属性："
@@ -477,13 +477,13 @@
     "deleteTagCategory": "删除此标签类别？",
     "deleteTag": "删除此标签？",
     "deleteTagAlias": "删除此标签别名？",
-    "deleteSource": "Delete this Source?",
-    "uninstallGame": "Uninstall this Game?",
-    "unableToUninstallGameData": "Unable to delete data pack. Is it in use? Try restarting the launcher.",
-    "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher.",
-    "downloadingGame": "Downloading Game...",
-    "verifyingGame": "Verifying Game...",
-    "aFewMinutes": "This may take a few minutes."
+    "deleteSource": "删除此源？",
+    "uninstallGame": "卸载此游戏？",
+    "unableToUninstallGameData": "无法删除数据包。您正在使用它吗？请尝试重启启动器。",
+    "unableToDeleteGame": "无法删除游戏。您正在运行它吗？请尝试重启启动器。",
+    "downloadingGame": "正在下载游戏...",
+    "verifyingGame": "正在验证游戏...",
+    "aFewMinutes": "这需要几分钟的时间。"
   },
   "libraries": {
     "arcade": "游戏",
