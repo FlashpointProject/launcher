@@ -23,6 +23,7 @@
     "libraries": "Mga Librerya",
     "randomLibraries": "Random na Librerya",
     "randomLibrariesDesc": "Libreryang gagamitin para sa Random Picks sa home page.",
+    "updateSource": "Update Source",
     "platforms": "Platforms",
     "nativePlatforms": "Orihinal na Platforms",
     "nativePlatformsDesc": "Gamitin ang orihinal na bersyon ng mga platforms. (Kung hindi maari, Wine ang gagamitin)",
@@ -55,7 +56,9 @@
     "extThemes": "Mga Tema",
     "extLogoSets": "Mga Set ng Logo",
     "extApplications": "(Mga) Application",
-    "saveAndRestart": "Isave at irestart"
+    "saveAndRestart": "Isave at irestart",
+    "saveAndClose": "Save and Close",
+    "tagFilterGroupEditor": "Tag Filter Group Editor"
   },
   "home": {
     "updateHeader": "I-update ang Launcher",
@@ -173,6 +176,8 @@
     "exportTagsDesc": "Gumawa ng file na puno ng mga tag at kategorya ng tag na maaring gagamitin sa 'I-import ang mga tag'",
     "importTags": "I-import ang mga tag",
     "importTagsDesc": "I-import ang mga tag mula sa file na ginawa ng 'I-export ang tag'",
+    "migrateExtremeGames": "Migrate Extreme Games",
+    "migrateExtremeGamesDesc": "Removes 'Extreme' from any games and assigns the 'LEGACY-Extreme' tag to them",
     "servicesHeader": "Background Services",
     "servicesMissing": "Walang services na gumagana.",
     "running": "Gumagana",
@@ -251,6 +256,7 @@
     "searching": "Hinahanap...",
     "library": "Aklatan",
     "defaultLibrary": "Default na aklatan",
+    "uninstallGame": "Uninstall Game",
     "installed": "Installed",
     "notInstalled": "Not Installed",
     "legacyGame": "Legacy Game",
@@ -360,8 +366,13 @@
     "unusedPlatform": "Ang 'Platform' ay mali. Tiyaking tama ang baybay nito!",
     "nonExistingLibrary": "Ang 'Library' ay mali! (Default ang gagamitin)",
     "nonContentFolders": "May mga folders sa Curation folder na hindi kasali. Kasama ba talaga sila doon?",
+    "noTags": "There are no tags on this curation.",
+    "unenteredTag": "The Tags text field hasn't been submitted.",
+    "noLogo": "There is no logo on this curation.",
+    "noScreenshot": "There is no screenshot on this curation.",
     "ilc_notHttp": "Gamitin ang HTTP.",
-    "ilc_nonExistant": "Piliin ang file sa inyong curation's 'content' folder."
+    "ilc_nonExistant": "Piliin ang file sa inyong curation's 'content' folder.",
+    "sort": "Sort Curations (A-Z)"
   },
   "playlist": {
     "enterDescriptionHere": "Maglagay ng deskripsyon dito...",
@@ -454,16 +465,25 @@
     "overwriteFileDetail": "Path ng file:",
     "deleteTagFilterGroup": "Delete this Tag Filter Group?",
     "deleteCuration": "Delete this Curation?",
+    "importCuration": "Import this Curation?",
     "deleteGameImage": "Delete this Game Image?",
     "deletePlaylist": "Delete this Playlist?",
     "importAllCurations": "Import all Curations?",
     "deleteAllCurations": "Delete all Curations?",
     "removePlaylistGame": "Remove this Game from the Playlist?",
-    "deleteGame": "Delete this Game? (non-recoverable)",
+    "deleteGame": "Delete this Game? This cannot be undone.",
+    "deleteGameData": "Delete this Game Data? This cannot be undone.",
     "deleteAddApp": "Delete this Add App?",
     "deleteTagCategory": "Delete this Tag Category?",
     "deleteTag": "Delete this Tag?",
-    "deleteTagAlias": "Delete this Tag Alias?"
+    "deleteTagAlias": "Delete this Tag Alias?",
+    "deleteSource": "Delete this Source?",
+    "uninstallGame": "Uninstall this Game?",
+    "unableToUninstallGameData": "Unable to delete data pack. Is it in use? Try restarting the launcher.",
+    "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher.",
+    "downloadingGame": "Downloading Game...",
+    "verifyingGame": "Verifying Game...",
+    "aFewMinutes": "This may take a few minutes."
   },
   "libraries": {
     "arcade": "Laro",
