@@ -23,6 +23,7 @@
     "libraries": "Biblioteki",
     "randomLibraries": "Losowe biblioteki",
     "randomLibrariesDesc": "Biblioteki do użycia w Losowych Wyborach na głównej stronie.",
+    "updateSource": "Update Source",
     "platforms": "Platformy",
     "nativePlatforms": "Natywne platformy",
     "nativePlatformsDesc": "Użyj natywnej wersji tych platform. (Jeśli nie jest dostępne, zostanie użyte Wine)",
@@ -55,7 +56,9 @@
     "extThemes": "Motyw(y)",
     "extLogoSets": "Pakiet(y) ikon",
     "extApplications": "Aplikacja(-e)",
-    "saveAndRestart": "Zapisz i uruchom ponownie"
+    "saveAndRestart": "Zapisz i uruchom ponownie",
+    "saveAndClose": "Save and Close",
+    "tagFilterGroupEditor": "Tag Filter Group Editor"
   },
   "home": {
     "updateHeader": "Aktualizacja launchera",
@@ -173,6 +176,8 @@
     "exportTagsDesc": "Tworzy plik pełen tagów i kategorii tagów, których może używać funkcja „Importuj tagi”",
     "importTags": "Importuj tagi",
     "importTagsDesc": "Importuje tagi z pliku utworzonego przez 'Eksport tagów'",
+    "migrateExtremeGames": "Migrate Extreme Games",
+    "migrateExtremeGamesDesc": "Removes 'Extreme' from any games and assigns the 'LEGACY-Extreme' tag to them",
     "servicesHeader": "Usługi w tle",
     "servicesMissing": "Brak aktywnych usług.",
     "running": "Działające",
@@ -251,6 +256,7 @@
     "searching": "Wyszukiwanie...",
     "library": "Biblioteka",
     "defaultLibrary": "Domyślna biblioteka",
+    "uninstallGame": "Uninstall Game",
     "installed": "Installed",
     "notInstalled": "Not Installed",
     "legacyGame": "Legacy Game",
@@ -360,8 +366,13 @@
     "unusedPlatform": "'Platforma' ma niewykorzystywaną wartość. Upewnij się że jest poprawnie wpisana!",
     "nonExistingLibrary": "'Biblioteka' nie jest nazwą istniejącej biblioteki! (Zostanie użyta domyślna wartość)",
     "nonContentFolders": "Subfolder inny niż 'content' znajduje się w folderze archiwizowanej gry. Czy powinien tam być?",
+    "noTags": "There are no tags on this curation.",
+    "unenteredTag": "The Tags text field hasn't been submitted.",
+    "noLogo": "There is no logo on this curation.",
+    "noScreenshot": "There is no screenshot on this curation.",
     "ilc_notHttp": "Użyj HTTP.",
-    "ilc_nonExistant": "Wskaż istniejący plik w folderze 'content' archiwizowanej gry."
+    "ilc_nonExistant": "Wskaż istniejący plik w folderze 'content' archiwizowanej gry.",
+    "sort": "Sort Curations (A-Z)"
   },
   "playlist": {
     "enterDescriptionHere": "Dodaj opis...",
@@ -454,16 +465,25 @@
     "overwriteFileDetail": "Ścieżka pliku:",
     "deleteTagFilterGroup": "Delete this Tag Filter Group?",
     "deleteCuration": "Delete this Curation?",
+    "importCuration": "Import this Curation?",
     "deleteGameImage": "Delete this Game Image?",
     "deletePlaylist": "Delete this Playlist?",
     "importAllCurations": "Import all Curations?",
     "deleteAllCurations": "Delete all Curations?",
     "removePlaylistGame": "Remove this Game from the Playlist?",
-    "deleteGame": "Delete this Game? (non-recoverable)",
+    "deleteGame": "Delete this Game? This cannot be undone.",
+    "deleteGameData": "Delete this Game Data? This cannot be undone.",
     "deleteAddApp": "Delete this Add App?",
     "deleteTagCategory": "Delete this Tag Category?",
     "deleteTag": "Delete this Tag?",
-    "deleteTagAlias": "Delete this Tag Alias?"
+    "deleteTagAlias": "Delete this Tag Alias?",
+    "deleteSource": "Delete this Source?",
+    "uninstallGame": "Uninstall this Game?",
+    "unableToUninstallGameData": "Unable to delete data pack. Is it in use? Try restarting the launcher.",
+    "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher.",
+    "downloadingGame": "Downloading Game...",
+    "verifyingGame": "Verifying Game...",
+    "aFewMinutes": "This may take a few minutes."
   },
   "libraries": {
     "arcade": "Gry",
