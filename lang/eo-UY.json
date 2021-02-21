@@ -23,6 +23,7 @@
     "libraries": "Bibliotekoj",
     "randomLibraries": "Hazardaj Bibliotekoj",
     "randomLibrariesDesc": "Bibliotekoj por la uzado de Hazardaj Elektoj en la ĉefpaĝo.",
+    "updateSource": "Update Source",
     "platforms": "Platformoj",
     "nativePlatforms": "Denaskaj Platformoj",
     "nativePlatformsDesc": "Uzu denaskajn versiojn de ĉi tiuj platformoj. (Se ne havebla, ĝi uzos \"Wine\"-n)",
@@ -55,7 +56,9 @@
     "extThemes": "Temo(j)",
     "extLogoSets": "Logo-aro(j)",
     "extApplications": "Apliko(j)",
-    "saveAndRestart": "Konservu kaj Rekomencu"
+    "saveAndRestart": "Konservu kaj Rekomencu",
+    "saveAndClose": "Save and Close",
+    "tagFilterGroupEditor": "Tag Filter Group Editor"
   },
   "home": {
     "updateHeader": "Lanĉila Ĝisdatigo",
@@ -173,6 +176,8 @@
     "exportTagsDesc": "Kreas dosieron plenan de etikedoj kaj etikedaj kategorioj uzeblaj ĉe 'Importu Etikedojn'",
     "importTags": "Importu Etikedojn",
     "importTagsDesc": "Importas Etikedojn el dosiero kreita ĉe 'Eksportu Etikedojn'",
+    "migrateExtremeGames": "Migrate Extreme Games",
+    "migrateExtremeGamesDesc": "Removes 'Extreme' from any games and assigns the 'LEGACY-Extreme' tag to them",
     "servicesHeader": "Fonaj Servoj",
     "servicesMissing": "Neniuj servoj.",
     "running": "Aktiva",
@@ -251,6 +256,7 @@
     "searching": "Serĉado...",
     "library": "Biblioteko",
     "defaultLibrary": "Defaŭlta Biblioteko",
+    "uninstallGame": "Uninstall Game",
     "installed": "Installed",
     "notInstalled": "Not Installed",
     "legacyGame": "Legacy Game",
@@ -360,8 +366,13 @@
     "unusedPlatform": "'Platformo' havas neuzatan valoron. Certigu, ke ĝi estas literumita ĝuste!",
     "nonExistingLibrary": "'Biblioteko' ne estas la nomo de ekzistanta biblioteko! (Defaŭlta estos uzata)",
     "nonContentFolders": "Nekontenaj dosierujoj trovitaj en ŝanĝdosierujo. Ĉu ili supozas esti tie?",
+    "noTags": "There are no tags on this curation.",
+    "unenteredTag": "The Tags text field hasn't been submitted.",
+    "noLogo": "There is no logo on this curation.",
+    "noScreenshot": "There is no screenshot on this curation.",
     "ilc_notHttp": "Uzu HTTP.",
-    "ilc_nonExistant": "Indiku ekzistantan dosieron en la dosierujo 'enhavo' de via ŝanĝo."
+    "ilc_nonExistant": "Indiku ekzistantan dosieron en la dosierujo 'enhavo' de via ŝanĝo.",
+    "sort": "Sort Curations (A-Z)"
   },
   "playlist": {
     "enterDescriptionHere": "Enigu priskribon ĉi tie...",
@@ -454,16 +465,25 @@
     "overwriteFileDetail": "Dosiera vojo:",
     "deleteTagFilterGroup": "Delete this Tag Filter Group?",
     "deleteCuration": "Delete this Curation?",
+    "importCuration": "Import this Curation?",
     "deleteGameImage": "Delete this Game Image?",
     "deletePlaylist": "Delete this Playlist?",
     "importAllCurations": "Import all Curations?",
     "deleteAllCurations": "Delete all Curations?",
     "removePlaylistGame": "Remove this Game from the Playlist?",
-    "deleteGame": "Delete this Game? (non-recoverable)",
+    "deleteGame": "Delete this Game? This cannot be undone.",
+    "deleteGameData": "Delete this Game Data? This cannot be undone.",
     "deleteAddApp": "Delete this Add App?",
     "deleteTagCategory": "Delete this Tag Category?",
     "deleteTag": "Delete this Tag?",
-    "deleteTagAlias": "Delete this Tag Alias?"
+    "deleteTagAlias": "Delete this Tag Alias?",
+    "deleteSource": "Delete this Source?",
+    "uninstallGame": "Uninstall this Game?",
+    "unableToUninstallGameData": "Unable to delete data pack. Is it in use? Try restarting the launcher.",
+    "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher.",
+    "downloadingGame": "Downloading Game...",
+    "verifyingGame": "Verifying Game...",
+    "aFewMinutes": "This may take a few minutes."
   },
   "libraries": {
     "arcade": "Ludoj",
