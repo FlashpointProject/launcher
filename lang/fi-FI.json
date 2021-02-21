@@ -23,6 +23,7 @@
     "libraries": "Kirjastot",
     "randomLibraries": "Satunnaiset Kirjastot",
     "randomLibrariesDesc": "Kirjastot, joita käytetään satunnaisille Pickeille kotisivulla.",
+    "updateSource": "Update Source",
     "platforms": "Alustat",
     "nativePlatforms": "Natiivialustat",
     "nativePlatformsDesc": "Käytä natiiviversioita näistä alustoista. (Ei saatavilla jos Wine on käytössä)",
@@ -55,7 +56,9 @@
     "extThemes": "Teema(t)",
     "extLogoSets": "Logon Sarja(t)",
     "extApplications": "Sovellukset",
-    "saveAndRestart": "Tallenna ja uudelleenkäynnistä"
+    "saveAndRestart": "Tallenna ja uudelleenkäynnistä",
+    "saveAndClose": "Save and Close",
+    "tagFilterGroupEditor": "Tag Filter Group Editor"
   },
   "home": {
     "updateHeader": "Flashpointin päivitys",
@@ -173,6 +176,8 @@
     "exportTagsDesc": "Luo tiedosto täynnä tageja ja tagikategorioita, joita voi käyttää 'Tuo tageja'",
     "importTags": "Tuo Tagit",
     "importTagsDesc": "Tuo tunnisteet tiedostosta, joka on luotu 'Vie Tageilla'",
+    "migrateExtremeGames": "Migrate Extreme Games",
+    "migrateExtremeGamesDesc": "Removes 'Extreme' from any games and assigns the 'LEGACY-Extreme' tag to them",
     "servicesHeader": "Taustapalvelut",
     "servicesMissing": "Ei taustapalveluita.",
     "running": "Käynnissä",
@@ -251,6 +256,7 @@
     "searching": "Etsitään...",
     "library": "Kirjasto",
     "defaultLibrary": "Oletuskirjasto",
+    "uninstallGame": "Uninstall Game",
     "installed": "Installed",
     "notInstalled": "Not Installed",
     "legacyGame": "Legacy Game",
@@ -360,8 +366,13 @@
     "unusedPlatform": "'Alusta' sisältää käyttämättömän tiedon. Tarkista että se on kirjoitettu oikein!",
     "nonExistingLibrary": "'Kirjasto' ei ole olemassa olevan kirjaston nimi. (Oletuskirjastoa käytetään)",
     "nonContentFolders": "Ylimääräisiä kansioita löydetty kuratointi-kansiosta. Ovatko ne siellä tarkoituksellisesti?",
+    "noTags": "There are no tags on this curation.",
+    "unenteredTag": "The Tags text field hasn't been submitted.",
+    "noLogo": "There is no logo on this curation.",
+    "noScreenshot": "There is no screenshot on this curation.",
     "ilc_notHttp": "Käytä HTTP.",
-    "ilc_nonExistant": "Osoitus olemassaolevaan tiedostoon kuratoinnin 'content'-kansiossa."
+    "ilc_nonExistant": "Osoitus olemassaolevaan tiedostoon kuratoinnin 'content'-kansiossa.",
+    "sort": "Sort Curations (A-Z)"
   },
   "playlist": {
     "enterDescriptionHere": "Kirjoita kuvaus tähän...",
@@ -454,16 +465,25 @@
     "overwriteFileDetail": "Tiedoston polku:",
     "deleteTagFilterGroup": "Delete this Tag Filter Group?",
     "deleteCuration": "Delete this Curation?",
+    "importCuration": "Import this Curation?",
     "deleteGameImage": "Delete this Game Image?",
     "deletePlaylist": "Delete this Playlist?",
     "importAllCurations": "Import all Curations?",
     "deleteAllCurations": "Delete all Curations?",
     "removePlaylistGame": "Remove this Game from the Playlist?",
-    "deleteGame": "Delete this Game? (non-recoverable)",
+    "deleteGame": "Delete this Game? This cannot be undone.",
+    "deleteGameData": "Delete this Game Data? This cannot be undone.",
     "deleteAddApp": "Delete this Add App?",
     "deleteTagCategory": "Delete this Tag Category?",
     "deleteTag": "Delete this Tag?",
-    "deleteTagAlias": "Delete this Tag Alias?"
+    "deleteTagAlias": "Delete this Tag Alias?",
+    "deleteSource": "Delete this Source?",
+    "uninstallGame": "Uninstall this Game?",
+    "unableToUninstallGameData": "Unable to delete data pack. Is it in use? Try restarting the launcher.",
+    "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher.",
+    "downloadingGame": "Downloading Game...",
+    "verifyingGame": "Verifying Game...",
+    "aFewMinutes": "This may take a few minutes."
   },
   "libraries": {
     "arcade": "Pelit",
