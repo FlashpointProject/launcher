@@ -23,6 +23,7 @@
     "libraries": "收藏庫",
     "randomLibraries": "隨機挑選使用之收藏庫",
     "randomLibrariesDesc": "選擇要顯示於首頁之「隨機挑選」欄位的收藏庫類別",
+    "updateSource": "Update Source",
     "platforms": "平台",
     "nativePlatforms": "使用原生應用程式平台",
     "nativePlatformsDesc": "使原生版本之應用程式來執行(若不存在時將使用Wine)",
@@ -55,7 +56,9 @@
     "extThemes": "主題",
     "extLogoSets": "徽標集",
     "extApplications": "應用程序",
-    "saveAndRestart": "儲存並重新啟動"
+    "saveAndRestart": "儲存並重新啟動",
+    "saveAndClose": "Save and Close",
+    "tagFilterGroupEditor": "Tag Filter Group Editor"
   },
   "home": {
     "updateHeader": "瀏覽器更新",
@@ -173,6 +176,8 @@
     "exportTagsDesc": "建立一個含有標籤與標籤分類的檔案，方便之後以「匯入標籤」功能匯入",
     "importTags": "匯入標籤",
     "importTagsDesc": "匯入以「匯出標籤」功能建立之檔案",
+    "migrateExtremeGames": "Migrate Extreme Games",
+    "migrateExtremeGamesDesc": "Removes 'Extreme' from any games and assigns the 'LEGACY-Extreme' tag to them",
     "servicesHeader": "背景服務",
     "servicesMissing": "沒有任何服務",
     "running": "執行中",
@@ -251,6 +256,7 @@
     "searching": "正在搜尋...",
     "library": "收藏庫",
     "defaultLibrary": "初始收藏庫",
+    "uninstallGame": "Uninstall Game",
     "installed": "已安裝",
     "notInstalled": "未安裝",
     "legacyGame": "Legacy Game",
@@ -360,8 +366,13 @@
     "unusedPlatform": "「平台」欄位含有未使用之值，請確認拼字是否有誤！",
     "nonExistingLibrary": "「Library」並非現有收藏庫的名稱！ (將會使用預設值)",
     "nonContentFolders": "在上傳檔案的資料夾中存在非內容相關之資料夾，確定這些應該在此處嗎？",
+    "noTags": "There are no tags on this curation.",
+    "unenteredTag": "The Tags text field hasn't been submitted.",
+    "noLogo": "There is no logo on this curation.",
+    "noScreenshot": "There is no screenshot on this curation.",
     "ilc_notHttp": "請使用 HTTP。",
-    "ilc_nonExistant": "請將路徑指向「content」資料夾內所存在的上傳檔案"
+    "ilc_nonExistant": "請將路徑指向「content」資料夾內所存在的上傳檔案",
+    "sort": "Sort Curations (A-Z)"
   },
   "playlist": {
     "enterDescriptionHere": "在此輸入敘述...",
@@ -454,16 +465,25 @@
     "overwriteFileDetail": "檔案路徑：",
     "deleteTagFilterGroup": "Delete this Tag Filter Group?",
     "deleteCuration": "Delete this Curation?",
+    "importCuration": "Import this Curation?",
     "deleteGameImage": "Delete this Game Image?",
     "deletePlaylist": "Delete this Playlist?",
     "importAllCurations": "Import all Curations?",
     "deleteAllCurations": "Delete all Curations?",
     "removePlaylistGame": "Remove this Game from the Playlist?",
-    "deleteGame": "Delete this Game? (non-recoverable)",
+    "deleteGame": "Delete this Game? This cannot be undone.",
+    "deleteGameData": "Delete this Game Data? This cannot be undone.",
     "deleteAddApp": "Delete this Add App?",
     "deleteTagCategory": "Delete this Tag Category?",
     "deleteTag": "Delete this Tag?",
-    "deleteTagAlias": "Delete this Tag Alias?"
+    "deleteTagAlias": "Delete this Tag Alias?",
+    "deleteSource": "Delete this Source?",
+    "uninstallGame": "Uninstall this Game?",
+    "unableToUninstallGameData": "Unable to delete data pack. Is it in use? Try restarting the launcher.",
+    "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher.",
+    "downloadingGame": "Downloading Game...",
+    "verifyingGame": "Verifying Game...",
+    "aFewMinutes": "This may take a few minutes."
   },
   "libraries": {
     "arcade": "遊戲",
