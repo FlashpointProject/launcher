@@ -23,6 +23,7 @@
     "libraries": "Библиотеке",
     "randomLibraries": "Случајне библиотеке",
     "randomLibrariesDesc": "Библиотеке које се користе за случајни избор на почетној страни.",
+    "updateSource": "Update Source",
     "platforms": "Платформе",
     "nativePlatforms": "Домаће платформе",
     "nativePlatformsDesc": "Користи домаће верзије ових патформи. (Ако нису доступне користиће Wine)",
@@ -55,7 +56,9 @@
     "extThemes": "Тема(е)",
     "extLogoSets": "Скуп(ови) логотипа",
     "extApplications": "Апликација(е)",
-    "saveAndRestart": "Сачувај и поново покрени"
+    "saveAndRestart": "Сачувај и поново покрени",
+    "saveAndClose": "Save and Close",
+    "tagFilterGroupEditor": "Tag Filter Group Editor"
   },
   "home": {
     "updateHeader": "Ажурирање покретача",
@@ -173,6 +176,8 @@
     "exportTagsDesc": "Прави фајл пун тагова и категорија тагова који може бити коришћен од стране \"Унеси тагове\"",
     "importTags": "Унеси тагове",
     "importTagsDesc": "Уноси тагове из фајла креираног од стране \"Изнеси тагове\"",
+    "migrateExtremeGames": "Migrate Extreme Games",
+    "migrateExtremeGamesDesc": "Removes 'Extreme' from any games and assigns the 'LEGACY-Extreme' tag to them",
     "servicesHeader": "Позадинске услуге",
     "servicesMissing": "Нема услуга.",
     "running": "Покренуто",
@@ -251,6 +256,7 @@
     "searching": "Тражим...",
     "library": "Библиотека",
     "defaultLibrary": "Уобичајена библиотека",
+    "uninstallGame": "Uninstall Game",
     "installed": "Installed",
     "notInstalled": "Not Installed",
     "legacyGame": "Legacy Game",
@@ -360,8 +366,13 @@
     "unusedPlatform": "'Платформа' има неупотребљену вредност. Увери се је тачно написана!",
     "nonExistingLibrary": "'Библиотека' није име постојеће библиотеке! (Уобичајена ће бити коришћена)",
     "nonContentFolders": "Фасцикла без садржаја је пронађена у фасцикли са галеријама. Да ли су требали да буду тамо?",
+    "noTags": "There are no tags on this curation.",
+    "unenteredTag": "The Tags text field hasn't been submitted.",
+    "noLogo": "There is no logo on this curation.",
+    "noScreenshot": "There is no screenshot on this curation.",
     "ilc_notHttp": "Користити HTTP.",
-    "ilc_nonExistant": "Покажи постојећи фајл у фасцикли садржаја твоје галерије."
+    "ilc_nonExistant": "Покажи постојећи фајл у фасцикли садржаја твоје галерије.",
+    "sort": "Sort Curations (A-Z)"
   },
   "playlist": {
     "enterDescriptionHere": "Унеси опис овде...",
@@ -454,16 +465,25 @@
     "overwriteFileDetail": "Путања дадотеке:",
     "deleteTagFilterGroup": "Delete this Tag Filter Group?",
     "deleteCuration": "Delete this Curation?",
+    "importCuration": "Import this Curation?",
     "deleteGameImage": "Delete this Game Image?",
     "deletePlaylist": "Delete this Playlist?",
     "importAllCurations": "Import all Curations?",
     "deleteAllCurations": "Delete all Curations?",
     "removePlaylistGame": "Remove this Game from the Playlist?",
-    "deleteGame": "Delete this Game? (non-recoverable)",
+    "deleteGame": "Delete this Game? This cannot be undone.",
+    "deleteGameData": "Delete this Game Data? This cannot be undone.",
     "deleteAddApp": "Delete this Add App?",
     "deleteTagCategory": "Delete this Tag Category?",
     "deleteTag": "Delete this Tag?",
-    "deleteTagAlias": "Delete this Tag Alias?"
+    "deleteTagAlias": "Delete this Tag Alias?",
+    "deleteSource": "Delete this Source?",
+    "uninstallGame": "Uninstall this Game?",
+    "unableToUninstallGameData": "Unable to delete data pack. Is it in use? Try restarting the launcher.",
+    "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher.",
+    "downloadingGame": "Downloading Game...",
+    "verifyingGame": "Verifying Game...",
+    "aFewMinutes": "This may take a few minutes."
   },
   "libraries": {
     "arcade": "Игре",
