@@ -23,6 +23,7 @@
     "libraries": "Kütüphaneler",
     "randomLibraries": "Rastgele Kütüphaneler",
     "randomLibrariesDesc": "Ana sayfada Rastgele Seçimler için kullanılabilen kütüphaneler.",
+    "updateSource": "Update Source",
     "platforms": "Platformlar",
     "nativePlatforms": "Yerli Platformlar",
     "nativePlatformsDesc": "Platformların Yerli sürümlerini kullan. (Uygun değilse Wine kullanır)",
@@ -55,7 +56,9 @@
     "extThemes": "Tema(lar)",
     "extLogoSets": "Logo Setleri",
     "extApplications": "Uygulamalar",
-    "saveAndRestart": "Kaydet ve Yeniden Başlat"
+    "saveAndRestart": "Kaydet ve Yeniden Başlat",
+    "saveAndClose": "Save and Close",
+    "tagFilterGroupEditor": "Tag Filter Group Editor"
   },
   "home": {
     "updateHeader": "Başlatıcı Güncellemesi",
@@ -173,6 +176,8 @@
     "exportTagsDesc": "'Etiketleri İçe Aktar' için kullanılabilen tamamen etiketler ve etiket kategorileriyle dolu bir dosya yaratır",
     "importTags": "Etiketleri İçe Aktar",
     "importTagsDesc": "Etiketleri 'Etiketleri Dışa Aktar' dan yaratılan bir dosyadan içe aktarır",
+    "migrateExtremeGames": "Migrate Extreme Games",
+    "migrateExtremeGamesDesc": "Removes 'Extreme' from any games and assigns the 'LEGACY-Extreme' tag to them",
     "servicesHeader": "Arka Plan Hizmetleri",
     "servicesMissing": "Burada bir hizmet yok.",
     "running": "Çalışıyor",
@@ -251,6 +256,7 @@
     "searching": "Aranıyor...",
     "library": "Arşiv",
     "defaultLibrary": "Varsayılan Arşiv",
+    "uninstallGame": "Uninstall Game",
     "installed": "Installed",
     "notInstalled": "Not Installed",
     "legacyGame": "Legacy Game",
@@ -360,8 +366,13 @@
     "unusedPlatform": "'Platform' kullanılmayan bir değere sahip. Doğru yazıldığından emin olun!",
     "nonExistingLibrary": "'Library' var olan bir arşivin ismi değil! (Varsayılan kullanılacak)",
     "nonContentFolders": "Kürasyon klasörünün içinde İçerik olmayan klasörler bulundu. Orada mı olmaları gerekiyor?",
+    "noTags": "There are no tags on this curation.",
+    "unenteredTag": "The Tags text field hasn't been submitted.",
+    "noLogo": "There is no logo on this curation.",
+    "noScreenshot": "There is no screenshot on this curation.",
     "ilc_notHttp": "HTTP kullan.",
-    "ilc_nonExistant": "Kürasyon'unun içinde var olan bir 'içerik' dosyasına yönlendirin."
+    "ilc_nonExistant": "Kürasyon'unun içinde var olan bir 'içerik' dosyasına yönlendirin.",
+    "sort": "Sort Curations (A-Z)"
   },
   "playlist": {
     "enterDescriptionHere": "Buraya bir açıklama yazın...",
@@ -454,16 +465,25 @@
     "overwriteFileDetail": "Dosya yolu:",
     "deleteTagFilterGroup": "Delete this Tag Filter Group?",
     "deleteCuration": "Delete this Curation?",
+    "importCuration": "Import this Curation?",
     "deleteGameImage": "Delete this Game Image?",
     "deletePlaylist": "Delete this Playlist?",
     "importAllCurations": "Import all Curations?",
     "deleteAllCurations": "Delete all Curations?",
     "removePlaylistGame": "Remove this Game from the Playlist?",
-    "deleteGame": "Delete this Game? (non-recoverable)",
+    "deleteGame": "Delete this Game? This cannot be undone.",
+    "deleteGameData": "Delete this Game Data? This cannot be undone.",
     "deleteAddApp": "Delete this Add App?",
     "deleteTagCategory": "Delete this Tag Category?",
     "deleteTag": "Delete this Tag?",
-    "deleteTagAlias": "Delete this Tag Alias?"
+    "deleteTagAlias": "Delete this Tag Alias?",
+    "deleteSource": "Delete this Source?",
+    "uninstallGame": "Uninstall this Game?",
+    "unableToUninstallGameData": "Unable to delete data pack. Is it in use? Try restarting the launcher.",
+    "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher.",
+    "downloadingGame": "Downloading Game...",
+    "verifyingGame": "Verifying Game...",
+    "aFewMinutes": "This may take a few minutes."
   },
   "libraries": {
     "arcade": "Oyunlar",
