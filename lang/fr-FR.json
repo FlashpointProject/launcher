@@ -23,6 +23,7 @@
     "libraries": "Bibliothèques",
     "randomLibraries": "Bibliothèques aléatoires",
     "randomLibrariesDesc": "Bibliothèques à utiliser pour les sélections aléatoires sur la page d'accueil.",
+    "updateSource": "Update Source",
     "platforms": "Plateformes",
     "nativePlatforms": "Plateformes natives",
     "nativePlatformsDesc": "Utilisez des versions natives de ces plateformes. (Si non disponibles, Wine sera utilisé)",
@@ -55,7 +56,9 @@
     "extThemes": "Thème(s)",
     "extLogoSets": "Ensemble(s) de logos",
     "extApplications": "Application(s)",
-    "saveAndRestart": "Sauvegarder et redémarrer"
+    "saveAndRestart": "Sauvegarder et redémarrer",
+    "saveAndClose": "Save and Close",
+    "tagFilterGroupEditor": "Tag Filter Group Editor"
   },
   "home": {
     "updateHeader": "Mise à jour du lanceur",
@@ -173,6 +176,8 @@
     "exportTagsDesc": "Crée un fichier plein de tags et de catégories de tags pouvant être utilisés par 'Importer des tags'",
     "importTags": "Importer des tags",
     "importTagsDesc": "Importe les tags à partir d'un fichier créé par 'Exporter les tags'",
+    "migrateExtremeGames": "Migrate Extreme Games",
+    "migrateExtremeGamesDesc": "Removes 'Extreme' from any games and assigns the 'LEGACY-Extreme' tag to them",
     "servicesHeader": "Services de fond",
     "servicesMissing": "Il n'y a aucun service.",
     "running": "En cours",
@@ -251,6 +256,7 @@
     "searching": "Recherche en cours...",
     "library": "Bibliothèque",
     "defaultLibrary": "Bibliothèque par défaut",
+    "uninstallGame": "Uninstall Game",
     "installed": "Installé",
     "notInstalled": "Pas installé",
     "legacyGame": "Ancien jeu",
@@ -360,8 +366,13 @@
     "unusedPlatform": "Le champ 'Plateforme' contient une valeur inutilisée. Assure-toi qu'elle est orthographiée correctement !",
     "nonExistingLibrary": "Le champ 'Bibliothèque' ne correspond à aucune bibliothèque existante ! (La bibliothèque par défaut sera utilisée)",
     "nonContentFolders": "D'autres types de dossier été trouvés dans le dossier des curations. Sont-ils censés y être ?",
+    "noTags": "There are no tags on this curation.",
+    "unenteredTag": "The Tags text field hasn't been submitted.",
+    "noLogo": "There is no logo on this curation.",
+    "noScreenshot": "There is no screenshot on this curation.",
     "ilc_notHttp": "Utiliser HTTP.",
-    "ilc_nonExistant": "Indique un fichier existant dans ton dossier de curations."
+    "ilc_nonExistant": "Indique un fichier existant dans ton dossier de curations.",
+    "sort": "Sort Curations (A-Z)"
   },
   "playlist": {
     "enterDescriptionHere": "Ajouter une description ici...",
@@ -454,16 +465,25 @@
     "overwriteFileDetail": "Chemin du fichier :",
     "deleteTagFilterGroup": "Supprimer ce groupe de filtres de balises?",
     "deleteCuration": "Supprimer cette curation?",
+    "importCuration": "Import this Curation?",
     "deleteGameImage": "Supprimer cette image de jeu?",
     "deletePlaylist": "Supprimer cette liste de lecture?",
     "importAllCurations": "Importer toutes les curations?",
     "deleteAllCurations": "Supprimer toutes les curations?",
     "removePlaylistGame": "Retirer ce jeu de la liste de lecture?",
-    "deleteGame": "Supprimer ce jeu? (non récupérable)",
+    "deleteGame": "Delete this Game? This cannot be undone.",
+    "deleteGameData": "Delete this Game Data? This cannot be undone.",
     "deleteAddApp": "Delete this Add App?",
     "deleteTagCategory": "Supprimer cette catégorie de balises?",
     "deleteTag": "Supprimer cette balise?",
-    "deleteTagAlias": "Supprimer cet alias de balise?"
+    "deleteTagAlias": "Supprimer cet alias de balise?",
+    "deleteSource": "Delete this Source?",
+    "uninstallGame": "Uninstall this Game?",
+    "unableToUninstallGameData": "Unable to delete data pack. Is it in use? Try restarting the launcher.",
+    "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher.",
+    "downloadingGame": "Downloading Game...",
+    "verifyingGame": "Verifying Game...",
+    "aFewMinutes": "This may take a few minutes."
   },
   "libraries": {
     "arcade": "Jeux",
