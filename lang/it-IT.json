@@ -23,6 +23,7 @@
     "libraries": "Librerie",
     "randomLibraries": "Librerie Casuali",
     "randomLibrariesDesc": "Librerie da usare per le Scelte Casuali nella home page.",
+    "updateSource": "Update Source",
     "platforms": "Piattaforme",
     "nativePlatforms": "Piattaforme native",
     "nativePlatformsDesc": "Usa versioni native di queste piattaforme. (Se non sono disponibili utilizzerà Wine)",
@@ -55,7 +56,9 @@
     "extThemes": "Tema(i)",
     "extLogoSets": "Set Di Logo(hi)",
     "extApplications": "Applicazione(i)",
-    "saveAndRestart": "Salva e Riavvia"
+    "saveAndRestart": "Salva e Riavvia",
+    "saveAndClose": "Save and Close",
+    "tagFilterGroupEditor": "Tag Filter Group Editor"
   },
   "home": {
     "updateHeader": "Aggiornamento Launcher",
@@ -173,6 +176,8 @@
     "exportTagsDesc": "Crea un file pieno di eticehtte e categorie di eticehtte che possono essere utilizzati da 'Importa eticehtte'",
     "importTags": "Importa Etichette",
     "importTagsDesc": "Importa eticehtte da un file creato da 'Esporta etichetta'",
+    "migrateExtremeGames": "Migrate Extreme Games",
+    "migrateExtremeGamesDesc": "Removes 'Extreme' from any games and assigns the 'LEGACY-Extreme' tag to them",
     "servicesHeader": "Servizi in secondo piano",
     "servicesMissing": "Non ci sono servizi.",
     "running": "In esecuzione",
@@ -251,6 +256,7 @@
     "searching": "Ricerca...",
     "library": "Libreria",
     "defaultLibrary": "Libreria predefinita",
+    "uninstallGame": "Uninstall Game",
     "installed": "Installato",
     "notInstalled": "Non installato",
     "legacyGame": "Gioco Legacy",
@@ -360,8 +366,13 @@
     "unusedPlatform": "'Piattaforma' ha un valore non utilizzato. Assicurati che sia scritto correttamente!",
     "nonExistingLibrary": "'Libreria' non è il nome di una libreria esistente! (Verrà utilizzata quella predefinita)",
     "nonContentFolders": "Nessuna cartella di contenuto trovata nella cartella Curation. Dovrebbero esserci?",
+    "noTags": "There are no tags on this curation.",
+    "unenteredTag": "The Tags text field hasn't been submitted.",
+    "noLogo": "There is no logo on this curation.",
+    "noScreenshot": "There is no screenshot on this curation.",
     "ilc_notHttp": "Usa HTTP.",
-    "ilc_nonExistant": "Punta ad un file esistente nella cartella 'contenuto' della tua curva."
+    "ilc_nonExistant": "Punta ad un file esistente nella cartella 'contenuto' della tua curva.",
+    "sort": "Sort Curations (A-Z)"
   },
   "playlist": {
     "enterDescriptionHere": "Inserisci qui una descrizione...",
@@ -454,16 +465,25 @@
     "overwriteFileDetail": "Percorso del file:",
     "deleteTagFilterGroup": "Eliminare questo gruppo di filtri etichette?",
     "deleteCuration": "Eliminare questa Scelta?",
+    "importCuration": "Import this Curation?",
     "deleteGameImage": "Eliminare questa immagine di gioco?",
     "deletePlaylist": "Eliminare questa scaletta?",
     "importAllCurations": "Importare tutte le Selezioni?",
     "deleteAllCurations": "Eliminare tutte le Selezioni?",
     "removePlaylistGame": "Rimuovere questo gioco dalla scaletta?",
-    "deleteGame": "Eliminare questo gioco? (non recuperabile)",
+    "deleteGame": "Delete this Game? This cannot be undone.",
+    "deleteGameData": "Delete this Game Data? This cannot be undone.",
     "deleteAddApp": "Eliminare questa aggiunta di app?",
     "deleteTagCategory": "Eliminare questa etichetta di categoria?",
     "deleteTag": "Eliminare questa etichetta?",
-    "deleteTagAlias": "Eliminare questo Alias etichetta?"
+    "deleteTagAlias": "Eliminare questo Alias etichetta?",
+    "deleteSource": "Delete this Source?",
+    "uninstallGame": "Uninstall this Game?",
+    "unableToUninstallGameData": "Unable to delete data pack. Is it in use? Try restarting the launcher.",
+    "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher.",
+    "downloadingGame": "Downloading Game...",
+    "verifyingGame": "Verifying Game...",
+    "aFewMinutes": "This may take a few minutes."
   },
   "libraries": {
     "arcade": "Giochi",
