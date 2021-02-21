@@ -23,6 +23,7 @@
     "libraries": "Könyvtárak",
     "randomLibraries": "Véletlenszerű Könyvtárak",
     "randomLibrariesDesc": "Könyvtárak használata a Véletlenszerű Választásokhoz a főoldalon.",
+    "updateSource": "Update Source",
     "platforms": "Platformok",
     "nativePlatforms": "Natív Platformok",
     "nativePlatformsDesc": "Natív, elsődleges fejlesztett verziók használata ezekben a futtatható környezetekben (ha nem elérhető, akkor a  Wine  t fogja használni)",
@@ -55,7 +56,9 @@
     "extThemes": "Téma(k)",
     "extLogoSets": "Logó(k) beállítva",
     "extApplications": "Alkalmazás(ok)",
-    "saveAndRestart": "Mentés és Újraindítás"
+    "saveAndRestart": "Mentés és Újraindítás",
+    "saveAndClose": "Save and Close",
+    "tagFilterGroupEditor": "Tag Filter Group Editor"
   },
   "home": {
     "updateHeader": "Program frissítése",
@@ -173,6 +176,8 @@
     "exportTagsDesc": "Egy tagekkel és tag kategóriákkal teli fájlt készít, amelyet a \"Tagek Importálása\" használ",
     "importTags": "Tagek importálása",
     "importTagsDesc": "Tagek Importálása egy \"Tagek Exportálása\" által készített fájlból",
+    "migrateExtremeGames": "Migrate Extreme Games",
+    "migrateExtremeGamesDesc": "Removes 'Extreme' from any games and assigns the 'LEGACY-Extreme' tag to them",
     "servicesHeader": "Háttérszolgáltatások",
     "servicesMissing": "Nincs futó szolgáltatás",
     "running": "Folyamatban",
@@ -251,6 +256,7 @@
     "searching": "Keresés...",
     "library": "Könyvtár",
     "defaultLibrary": "Alapértelmezett könyvtár",
+    "uninstallGame": "Uninstall Game",
     "installed": "Telepítve",
     "notInstalled": "Nincs telepítve",
     "legacyGame": "\"Legacy\" játékok (nem gamezip formátumúak)",
@@ -360,8 +366,13 @@
     "unusedPlatform": "\"Platformnak' egy használaton kívüli értéke van. Győződjön meg róla, hogy helyesen lett-e leírva!",
     "nonExistingLibrary": "\"Könyvtár\" nem egy létező könyvtár neve (Alapértelmezett lesz használva)",
     "nonContentFolders": "Nem-Tartalmi mappák találhatók a Kurációs mappában. Ezeknek itt a helyük?",
+    "noTags": "There are no tags on this curation.",
+    "unenteredTag": "The Tags text field hasn't been submitted.",
+    "noLogo": "There is no logo on this curation.",
+    "noScreenshot": "There is no screenshot on this curation.",
     "ilc_notHttp": "HTTP használata.",
-    "ilc_nonExistant": "Egy meglétező fájl-ra mutat a kurátori \"tartalom\" mappában."
+    "ilc_nonExistant": "Egy meglétező fájl-ra mutat a kurátori \"tartalom\" mappában.",
+    "sort": "Sort Curations (A-Z)"
   },
   "playlist": {
     "enterDescriptionHere": "Adja meg a leírást itt.....",
@@ -454,16 +465,25 @@
     "overwriteFileDetail": "Fájl útvonal:",
     "deleteTagFilterGroup": "Tag szűrési csoport törlése?",
     "deleteCuration": "Kuráció törlése?",
+    "importCuration": "Import this Curation?",
     "deleteGameImage": "Játék kép törlése?",
     "deletePlaylist": "Lejátszólista törlése?",
     "importAllCurations": "Összes kuráció importálása?",
     "deleteAllCurations": "Összes kuráció törlése?",
     "removePlaylistGame": "Játék eltávolítása a lejátszólistáról?",
-    "deleteGame": "Játék törlése? (visszafordíthatatlan)",
+    "deleteGame": "Delete this Game? This cannot be undone.",
+    "deleteGameData": "Delete this Game Data? This cannot be undone.",
     "deleteAddApp": "Törli az alkalmazást?",
     "deleteTagCategory": "Tag kategória törlése?",
     "deleteTag": "Tag törlése?",
-    "deleteTagAlias": "Tag alias törlése?"
+    "deleteTagAlias": "Tag alias törlése?",
+    "deleteSource": "Delete this Source?",
+    "uninstallGame": "Uninstall this Game?",
+    "unableToUninstallGameData": "Unable to delete data pack. Is it in use? Try restarting the launcher.",
+    "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher.",
+    "downloadingGame": "Downloading Game...",
+    "verifyingGame": "Verifying Game...",
+    "aFewMinutes": "This may take a few minutes."
   },
   "libraries": {
     "arcade": "Játékok",
