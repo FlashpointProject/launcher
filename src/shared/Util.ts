@@ -1,5 +1,5 @@
 import * as axiosImport from 'axios';
-import { Tag } from 'flashpoint-launcher';
+import { Tag, TagFilterGroup } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as path from 'path';
 import { DownloadDetails } from './back/types';
@@ -474,3 +474,13 @@ export async function downloadFile(url: string, filePath: string, onProgress?: (
   }
 }
 
+export function generateTagFilterGroup(tags?: string[]): TagFilterGroup {
+  return {
+    name: '',
+    enabled: true,
+    extreme: false,
+    tags: tags || [],
+    categories: [],
+    childFilters: []
+  };
+}

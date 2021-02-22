@@ -3,7 +3,7 @@ import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
 import { BackIn, TagSuggestion } from '@shared/back/types';
 import { LangContainer } from '@shared/lang';
-import { deepCopy } from '@shared/Util';
+import { deepCopy, generateTagFilterGroup } from '@shared/Util';
 import { remote } from 'electron';
 import * as React from 'react';
 import { WithPreferencesProps } from '../containers/withPreferences';
@@ -256,9 +256,9 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
     const newTag = event.currentTarget.value;
     let newSuggestions: TagSuggestion[] = this.state.tagMergeSuggestions;
 
-    if (newTag !== '') {
+    if (newTag !== '' && this.props.currentTag) {
       // Delayed set
-      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag, this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled))
+      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag, this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled).concat([generateTagFilterGroup([this.props.currentTag.primaryAlias.name])]))
       .then((data) => {
         if (data) {
           this.setState({

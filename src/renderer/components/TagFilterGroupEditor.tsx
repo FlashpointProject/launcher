@@ -4,7 +4,7 @@ import { TagCategory } from '@database/entity/TagCategory';
 import { LangContext } from '@renderer/util/lang';
 import { BackIn, TagSuggestion } from '@shared/back/types';
 import { TagFilterGroup } from '@shared/preferences/interfaces';
-import { tagSort } from '@shared/Util';
+import { tagSort, generateTagFilterGroup } from '@shared/Util';
 import * as React from 'react';
 import { CheckBox } from './CheckBox';
 import { InputField } from './InputField';
@@ -22,6 +22,7 @@ export type TagFilterGroupEditorProps = {
   closeEditor: () => void;
   showExtreme: boolean;
   tagCategories: TagCategory[];
+  activeTagFilterGroups: TagFilterGroup[];
 }
 
 export function TagFilterGroupEditor(props: TagFilterGroupEditorProps) {
@@ -79,7 +80,7 @@ export function TagFilterGroupEditor(props: TagFilterGroupEditorProps) {
       setTagSuggestions([]);
     } else {
       const existingTagsList = parsedTagsList.filter(t => t.id ? t.id >= 0 : false).map(t => t.primaryAlias.name);
-      const suggs = await window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, tag, [{name: '', enabled: true, tags: existingTagsList, categories: [], childFilters: [], extreme: false}]);
+      const suggs = await window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, tag, props.activeTagFilterGroups.concat([generateTagFilterGroup(existingTagsList)]));
       setTagSuggestions(suggs);
     }
   }, [parsedTagsList]);

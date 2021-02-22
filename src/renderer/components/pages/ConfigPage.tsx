@@ -332,7 +332,8 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
               onToggleExtreme={this.onToggleExtremeTagEditorEvent}
               closeEditor={this.onCloseTagFilterGroupEditor}
               showExtreme={this.props.preferencesData.browsePageShowExtreme}
-              tagCategories={this.props.tagCategories} />
+              tagCategories={this.props.tagCategories}
+              activeTagFilterGroups={this.props.preferencesData.tagFilters.filter((tfg, index) => tfg.enabled && index != this.state.editingTagFilterGroupIdx)} />
           </FloatingContainer>
         )}
       </div>

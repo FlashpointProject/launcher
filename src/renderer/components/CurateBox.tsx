@@ -9,7 +9,7 @@ import { CurationIndex, EditCuration, EditCurationMeta, IndexedContent } from '@
 import { getContentFolderByKey, getCurationFolder, indexContentFolder } from '@shared/curate/util';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
-import { deepCopy, fixSlashes, sizeToString } from '@shared/Util';
+import { deepCopy, fixSlashes, generateTagFilterGroup, sizeToString } from '@shared/Util';
 import { remote } from 'electron';
 import { TagFilterGroup } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
@@ -98,10 +98,11 @@ export function CurateBox(props: CurateBoxProps) {
     const newTag = event.currentTarget.value;
     let newSuggestions: TagSuggestion[] = tagSuggestions;
 
-    if (newTag !== '') {
+    if (newTag !== '' && props.curation) {
       // Delayed set
       // TODO: Add tag suggestion filtering here
-      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag, props.tagFilters.filter(tfg => tfg.enabled))
+      const existingTags = props.curation.meta.tags ? props.curation.meta.tags.reduce<string[]>((prev, cur) => prev.concat(cur.primaryAlias.name), []) : undefined;
+      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag, props.tagFilters.filter(tfg => tfg.enabled).concat([generateTagFilterGroup(existingTags)]))
       .then((data) => {
         if (data) { setTagSuggestions(data); }
       });
@@ -144,13 +145,14 @@ export function CurateBox(props: CurateBoxProps) {
       .then((tag) => {
         if (tag) {
           const curation = props.curation;
-          if (curation && curation.meta.tags && curation.meta.tags.findIndex(t => t.id == tag.id) == -1) {
+          const oldTags = curation ? (curation.meta.tags || []) : [];
+          if (curation && oldTags.findIndex(t => t.id === tag.id) === -1) {
             props.dispatch({
               type: 'edit-curation-meta',
               payload: {
                 key: curation.key,
                 property: 'tags',
-                value: [...curation.meta.tags, tag]
+                value: [...oldTags, tag]
               }
             });
           }

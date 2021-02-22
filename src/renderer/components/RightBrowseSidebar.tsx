@@ -9,7 +9,7 @@ import { wrapSearchTerm } from '@shared/game/GameFilter';
 import { ModelUtils } from '@shared/game/util';
 import { GamePropSuggestions, PickType, ProcessAction } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
-import { deepCopy, sizeToString } from '@shared/Util';
+import { deepCopy, generateTagFilterGroup, sizeToString } from '@shared/Util';
 import { Menu, MenuItemConstructorOptions, remote } from 'electron';
 import { GameData } from 'flashpoint-launcher';
 import * as fs from 'fs';
@@ -762,9 +762,10 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     const newTag = event.currentTarget.value;
     let newSuggestions: TagSuggestion[] = this.state.tagSuggestions;
 
-    if (newTag !== '') {
+    if (newTag !== '' && this.props.currentGame) {
       // Delayed set
-      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag, this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled))
+      const existingTags = this.props.currentGame.tags.reduce<string[]>((prev, cur) => prev.concat(cur.primaryAlias.name), []);
+      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag, this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled).concat([generateTagFilterGroup(existingTags)]))
       .then(data => {
         if (data) { this.setState({ tagSuggestions: data }); }
       });
