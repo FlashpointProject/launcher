@@ -479,11 +479,11 @@
     "deleteTagAlias": "Odstranit tento Alias Štítku?",
     "deleteSource": "Odstranit tento Zdroj?",
     "uninstallGame": "Odinstalovat tuto Hru?",
-    "unableToUninstallGameData": "Unable to delete data pack. Is it in use? Try restarting the launcher.",
-    "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher.",
-    "downloadingGame": "Downloading Game...",
-    "verifyingGame": "Verifying Game...",
-    "aFewMinutes": "This may take a few minutes."
+    "unableToUninstallGameData": "Nepovedlo se odstranit datový balíček. Není právě používán? Zkuste restartovat spouštěč.",
+    "unableToDeleteGame": "Nepovedlo se odstranit hru. Není právě používána? Zkuste restartovat spouštěč.",
+    "downloadingGame": "Stahování Hry...",
+    "verifyingGame": "Ověřování Hry...",
+    "aFewMinutes": "Toto může zabrat pár minut."
   },
   "libraries": {
     "arcade": "Hry",
