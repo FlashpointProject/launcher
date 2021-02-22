@@ -23,7 +23,7 @@
     "libraries": "Bibliotheken",
     "randomLibraries": "Zufällige Bibliotheken",
     "randomLibrariesDesc": "Bibliotheken für die zufällige Auswahl auf der Startseite.",
-    "updateSource": "Update Source",
+    "updateSource": "Quelle aktualisieren",
     "platforms": "Plattformen",
     "nativePlatforms": "Native Plattformen",
     "nativePlatformsDesc": "Native Versionen dieser Plattformen verwenden. (Wenn nicht verfügbar wird Wine verwendet)",
@@ -57,8 +57,8 @@
     "extLogoSets": "Logo-Set(s)",
     "extApplications": "Anwendung(en)",
     "saveAndRestart": "Speichern und neu starten",
-    "saveAndClose": "Save and Close",
-    "tagFilterGroupEditor": "Tag Filter Group Editor"
+    "saveAndClose": "Speichern und schließen",
+    "tagFilterGroupEditor": "Tag-Filtergruppen-Editor"
   },
   "home": {
     "updateHeader": "Launcher Update",
@@ -176,7 +176,7 @@
     "exportTagsDesc": "Erstellt eine Datei voller Tags und Tag-Kategorien, die von 'Tags importieren' verwendet werden kann",
     "importTags": "Tags importieren",
     "importTagsDesc": "Importiert Tags aus einer Datei, die von 'Tags exportieren' erstellt wurde",
-    "migrateExtremeGames": "Migrate Extreme Games",
+    "migrateExtremeGames": "Extreme Spiele migrieren",
     "migrateExtremeGamesDesc": "Removes 'Extreme' from any games and assigns the 'LEGACY-Extreme' tag to them",
     "servicesHeader": "Hintergrunddienste",
     "servicesMissing": "Es gibt keine Dienste.",
@@ -256,7 +256,7 @@
     "searching": "Suche...",
     "library": "Verzeichnis",
     "defaultLibrary": "Standardverzeichnis",
-    "uninstallGame": "Uninstall Game",
+    "uninstallGame": "Spiel deinstallieren",
     "installed": "Installiert",
     "notInstalled": "Nicht installiert",
     "legacyGame": "Legacy-Spiel",
@@ -366,13 +366,13 @@
     "unusedPlatform": "\"Plattform\" hat einen ungenutzten Wert. Stelle sicher, dass er korrekt geschrieben ist!",
     "nonExistingLibrary": "\"Verzeichnis\" ist nicht der Name eines existierenden Verzeichnisses! (Standard wird verwendet)",
     "nonContentFolders": "Inhaltsfreie Ordner im Kurationsordner gefunden. Sollen sie dort sein?",
-    "noTags": "There are no tags on this curation.",
+    "noTags": "Es gibt keine Tags für diese Kuration.",
     "unenteredTag": "The Tags text field hasn't been submitted.",
     "noLogo": "There is no logo on this curation.",
     "noScreenshot": "There is no screenshot on this curation.",
     "ilc_notHttp": "HTTP verwenden.",
     "ilc_nonExistant": "Zeigen auf eine existierende Datei im Ordner 'Inhalte' deiner Kuration.",
-    "sort": "Sort Curations (A-Z)"
+    "sort": "Kurationen sortieren (A-Z)"
   },
   "playlist": {
     "enterDescriptionHere": "Beschreibung hier eingeben...",
@@ -481,9 +481,9 @@
     "uninstallGame": "Uninstall this Game?",
     "unableToUninstallGameData": "Unable to delete data pack. Is it in use? Try restarting the launcher.",
     "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher.",
-    "downloadingGame": "Downloading Game...",
-    "verifyingGame": "Verifying Game...",
-    "aFewMinutes": "This may take a few minutes."
+    "downloadingGame": "Spiel wird heruntergeladen...",
+    "verifyingGame": "Spiel wird überprüft...",
+    "aFewMinutes": "Dies kann einige Minuten dauern."
   },
   "libraries": {
     "arcade": "Spiele",
