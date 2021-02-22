@@ -23,7 +23,7 @@
     "libraries": "Librerías",
     "randomLibraries": "Librerías aleatorias",
     "randomLibrariesDesc": "Librerías a usar para las selecciones aleatorias en la página de inicio.",
-    "updateSource": "Update Source",
+    "updateSource": "Actualizar fuente",
     "platforms": "Plataformas",
     "nativePlatforms": "Plataformas nativas",
     "nativePlatformsDesc": "Usar versiones nativas de estas plataformas. (Si no está disponible, utilizará Wine)",
@@ -57,7 +57,7 @@
     "extLogoSets": "Conjunto(s) de logotipos",
     "extApplications": "Aplicación(es)",
     "saveAndRestart": "Guardar y reiniciar",
-    "saveAndClose": "Save and Close",
+    "saveAndClose": "Guardar y cerrar",
     "tagFilterGroupEditor": "Tag Filter Group Editor"
   },
   "home": {
