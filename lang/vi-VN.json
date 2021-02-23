@@ -366,7 +366,7 @@
     "unusedPlatform": "'Nền tảng' có giá trị không được sử dụng. Xem thử bạn nhập đúng chưa nhé!",
     "nonExistingLibrary": "'Thư viện' không phải là tên của một thư viện hiện có! (Sẽ dùng mặc định)",
     "nonContentFolders": "Tìm thấy thư mục không chứa nội dung trong thư mục chứa bản đóng góp. Thư mục đó có cần thiết không?",
-    "noTags": "There are no tags on this curation.",
+    "noTags": "Bản đóng góp này không có nhãn.",
     "unenteredTag": "The Tags text field hasn't been submitted.",
     "noLogo": "Bản đóng góp này không có biểu trưng.",
     "noScreenshot": "Bản đóng góp này không có ảnh chụp màn hình.",
