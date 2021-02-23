@@ -25,6 +25,8 @@ export type CurationWarnings = {
   noScreenshot?: boolean;
   /** No Tags on Curation */
   noTags?: boolean;
+  /** No Source on Curation */
+  noSource?: boolean;
   /** Text in Tags field that hasn't been entered */
   unenteredTag?: boolean;
   /** If the platform value isn't used by any other game. */

@@ -367,6 +367,7 @@
     "nonExistingLibrary": "'Library' is not the name of an existing library! (Default will be used)",
     "nonContentFolders": "Non-Content folders found in Curation folder. Are they supposed to be there?",
     "noTags": "There are no tags on this curation.",
+    "noSource": "'Source' is a required field.",
     "unenteredTag": "The Tags text field hasn't been submitted.",
     "noLogo": "There is no logo on this curation.",
     "noScreenshot": "There is no screenshot on this curation.",

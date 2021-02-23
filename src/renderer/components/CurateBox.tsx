@@ -1196,6 +1196,7 @@ export function getCurationWarnings(curation: EditCuration, suggestions: Partial
   warns.noLogo = !curation.thumbnail.exists;
   warns.noScreenshot = !curation.screenshot.exists;
   warns.noTags = (!curation.meta.tags || curation.meta.tags.length === 0);
+  warns.noSource = !curation.meta.source;
   warns.unenteredTag = !!tagInputText;
   // Validate release date
   const releaseDate = curation.meta.releaseDate;

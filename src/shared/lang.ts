@@ -380,6 +380,7 @@ const langTemplate = {
     'nonExistingLibrary',
     'nonContentFolders',
     'noTags',
+    'noSource',
     'unenteredTag',
     'noLogo',
     'noScreenshot',
