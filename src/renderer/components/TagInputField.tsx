@@ -233,10 +233,10 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
           const nextChild: any = nextParent.lastChild;
           if (nextChild && nextChild.focus) {
             nextChild.focus();
-            event.preventDefault();
           }
         }
       }
+      event.preventDefault();
     }
   }
 
