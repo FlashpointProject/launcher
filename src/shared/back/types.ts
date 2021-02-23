@@ -467,6 +467,7 @@ export type ViewGame = {
 }
 
 export type BrowseChangeData = {
+  game?: Game;
   library?: string;
   gamesTotal: number;
 }

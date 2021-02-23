@@ -36,7 +36,7 @@ type OwnProps = {
   playlists: Playlist[];
   suggestions: Partial<GamePropSuggestions>;
   playlistIconCache: Record<string, string>;
-  onSaveGame: (game: Game, playlistEntry?: PlaylistGame) => void;
+  onSaveGame: (game: Game, playlistEntry?: PlaylistGame) => Promise<Game | undefined>;
   onDeleteGame: (gameId: string) => void;
   onQuickSearch: (search: string) => void;
   onOpenExportMetaEdit: (gameId: string) => void;
@@ -676,13 +676,14 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     this.focusGameGridOrList();
   }
 
-  onSaveEditClick = (): void => {
+  onSaveEditClick = async (): Promise<void> => {
     if (!this.state.currentGame) {
       console.error('Can\'t save game. "currentGame" is missing.');
       return;
     }
-    this.props.onSaveGame(this.state.currentGame, this.state.currentPlaylistEntry);
+    const game = await this.props.onSaveGame(this.state.currentGame, this.state.currentPlaylistEntry);
     this.setState({
+      currentGame: game,
       isEditingGame: false,
       isNewGame: false
     });

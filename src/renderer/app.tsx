@@ -840,14 +840,13 @@ export class App extends React.Component<AppProps> {
     this.props.setMainState(state as any); // (This is very annoying to make typesafe)
   }
 
-  onSaveGame = (game: Game, playlistEntry?: PlaylistGame): void => {
-    window.Shared.back.request(BackIn.SAVE_GAME, game)
-    .then(async () => {
-      if (playlistEntry) {
-        window.Shared.back.send(BackIn.SAVE_PLAYLIST_GAME, playlistEntry);
-      }
-    })
-    .then(() => { this.setViewQuery(game.library); });
+  onSaveGame = async (game: Game, playlistEntry?: PlaylistGame): Promise<Game | undefined> => {
+    const data = await window.Shared.back.request(BackIn.SAVE_GAME, game);
+    if (playlistEntry) {
+      window.Shared.back.send(BackIn.SAVE_PLAYLIST_GAME, playlistEntry);
+    }
+    this.setViewQuery(game.library);
+    return data.game;
   }
 
   onDeleteGame = (gameId: string): void => {

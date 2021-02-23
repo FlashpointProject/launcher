@@ -312,6 +312,7 @@ export function registerRequestCallbacks(state: BackState): void {
       const game = await GameManager.save(data);
       state.queries = {}; // Clear entire cache
       return {
+        game,
         library: game.library,
         gamesTotal: await GameManager.countGames(),
       };
@@ -327,6 +328,7 @@ export function registerRequestCallbacks(state: BackState): void {
     state.queries = {}; // Clear entire cache
 
     return {
+      game,
       library: game && game.library,
       gamesTotal: await GameManager.countGames(),
     };
