@@ -15,6 +15,7 @@ import { tagSort } from '@shared/Util';
 import { Coerce } from '@shared/utils/Coerce';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as TagManager from './TagManager';
 import { Brackets, FindOneOptions, getManager, SelectQueryBuilder } from 'typeorm';
 import * as GameDataManager from './GameDataManager';
 
@@ -78,15 +79,21 @@ export async function findGameRow(gameId: string, filterOpts?: FilterGameOpts, o
   return raw ? Coerce.num(raw.row_num) : -1; // Coerce it, even though it is probably of type number or undefined
 }
 
-export async function findRandomGames(count: number, extreme: boolean, broken: boolean, excludedLibraries: string[]): Promise<ViewGame[]> {
+export async function findRandomGames(count: number, broken: boolean, excludedLibraries: string[], flatFilters: string[]): Promise<ViewGame[]> {
   const gameRepository = getManager().getRepository(Game);
   const query = gameRepository.createQueryBuilder('game');
-  query.select('game.id, game.title, game.platform, game.developer, game.publisher');
-  if (!extreme) { query.andWhere('extreme = false'); }
+  query.select('game.id, game.title, game.platform, game.developer, game.publisher')
+  .leftJoin('game_tags_tag', 'game_tag', 'game_tag.gameId = game.id');
   if (!broken)  { query.andWhere('broken = false');  }
   if (excludedLibraries.length > 0) {
     query.andWhere('library NOT IN (:...libs)', { libs: excludedLibraries });
   }
+  if (flatFilters.length > 0) {
+    const filterQuery = TagManager.getFilterIDsQuery(flatFilters);
+    query.andWhere(`game_tag.tagId NOT IN (${filterQuery.getQuery()})`)
+    .setParameters(filterQuery.getParameters());
+  }
+  query.groupBy('game.id');
   query.orderBy('RANDOM()').take(count);
   return (await query.getRawMany()) as ViewGame[];
 }

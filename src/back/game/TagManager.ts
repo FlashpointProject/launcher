@@ -365,7 +365,7 @@ export async function sendTagCategories(socketServer: SocketServer) {
   socketServer.broadcast(BackOut.TAG_CATEGORIES_CHANGE, cats);
 }
 
-function getFilterIDsQuery(flatFilters: string[]): SelectQueryBuilder<TagAlias> {
+export function getFilterIDsQuery(flatFilters: string[]): SelectQueryBuilder<TagAlias> {
   const tagAliasRepostiory = getManager().getRepository(TagAlias);
   return tagAliasRepostiory.createQueryBuilder('tag_alias')
   .select('tag_alias.tagId')

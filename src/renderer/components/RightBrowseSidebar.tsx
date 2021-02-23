@@ -10,7 +10,7 @@ import { ModelUtils } from '@shared/game/util';
 import { GamePropSuggestions, PickType, ProcessAction } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { deepCopy, generateTagFilterGroup, sizeToString } from '@shared/Util';
-import { Menu, MenuItemConstructorOptions, remote } from 'electron';
+import { clipboard, Menu, MenuItemConstructorOptions, remote } from 'electron';
 import { GameData } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as React from 'react';
@@ -62,6 +62,7 @@ type OwnProps = {
   onEditClick: () => void;
   onDiscardClick: () => void;
   onSaveGame: () => void;
+  onOpenExportMetaEdit: (gameId: string) => void;
 
   onEditGame: (game: Partial<Game>) => void;
   onUpdateActiveGameData: (activeDataOnDisk: boolean, activeDataId?: number) => void;
@@ -664,6 +665,17 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
           <SimpleButton
             value='Open Game Data Browser'
             onClick={() => this.setState({ gameDataBrowserOpen: !this.state.gameDataBrowserOpen })}/>
+          { this.props.preferencesData.enableEditing && !this.props.isEditing && (
+            <>
+              <SimpleButton
+                value={allStrings.misc.exportMetaEditTitle}
+                title={allStrings.misc.exportMetaEditDesc}
+                onClick={() => this.props.currentGame && this.props.onOpenExportMetaEdit(this.props.currentGame.id)} />
+              <SimpleButton
+                value={allStrings.menu.copyGameUUID}
+                onClick={() => this.props.currentGame && clipboard.writeText(this.props.currentGame.id)} />
+            </>
+          )}
           { this.state.gameDataBrowserOpen && (
             <GameDataBrowser
               onClose={() => this.setState({ gameDataBrowserOpen: false })}

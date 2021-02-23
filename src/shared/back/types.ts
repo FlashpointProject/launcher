@@ -382,8 +382,8 @@ export type GetSuggestionsResponseData = {
 export type RandomGamesData = {
   count: number;
   broken: boolean;
-  extreme: boolean;
   excludedLibraries: string[];
+  tagFilters: TagFilterGroup[];
 }
 
 /** Tuple of values from the last game of a previous page (look up "keyset pagination"). */

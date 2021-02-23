@@ -608,7 +608,8 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.RANDOM_GAMES, async (event, data) => {
-    return await GameManager.findRandomGames(data.count, data.extreme, data.broken, data.excludedLibraries);
+    const flatFilters = data.tagFilters ? data.tagFilters.reduce<string[]>((prev, cur) => prev.concat(cur.tags),  []) : [];
+    return await GameManager.findRandomGames(data.count, data.broken, data.excludedLibraries, flatFilters);
   });
 
   state.socketServer.register(BackIn.BROWSE_VIEW_KEYSET, async (event, library, query) => {

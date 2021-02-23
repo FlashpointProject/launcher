@@ -286,7 +286,8 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             onDiscardClick={this.onDiscardEditClick}
             onSaveGame={this.onSaveEditClick}
             tagCategories={this.props.tagCategories}
-            suggestions={this.props.suggestions} />
+            suggestions={this.props.suggestions}
+            onOpenExportMetaEdit={this.props.onOpenExportMetaEdit} />
         </ResizableSidebar>
       </div>
     );
