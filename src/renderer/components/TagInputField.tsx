@@ -185,9 +185,7 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
 
   onListItemClick = (event: React.MouseEvent): void => {
     if (!this.props.disabled) {
-      if (this.props.editable) {
-
-      } else {
+      if (!this.props.editable) {
         if (this.props.onTagSelect) {
           const index = getListItemIndex(event.target);
           if (index >= 0) {
