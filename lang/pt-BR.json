@@ -368,8 +368,8 @@
     "nonContentFolders": "Pastas além da 'content' encontradas na pasta da Curação. Elas deveriam estar lá?",
     "noTags": "There are no tags on this curation.",
     "unenteredTag": "The Tags text field hasn't been submitted.",
-    "noLogo": "There is no logo on this curation.",
-    "noScreenshot": "There is no screenshot on this curation.",
+    "noLogo": "Não há nenhum logotipo nesta curação.",
+    "noScreenshot": "Não há nenhuma captura de tela nesta curação.",
     "ilc_notHttp": "Use HTTP.",
     "ilc_nonExistant": "Aponte para um arquivo existente na pasta 'content' da sua curação.",
     "sort": "Sort Curations (A-Z)"
