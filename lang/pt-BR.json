@@ -58,7 +58,7 @@
     "extApplications": "Aplicativo(s)",
     "saveAndRestart": "Salvar e Reiniciar",
     "saveAndClose": "Salvar e Fechar",
-    "tagFilterGroupEditor": "Tag Filter Group Editor"
+    "tagFilterGroupEditor": "Editor de Grupo de Filtragem de Tags"
   },
   "home": {
     "updateHeader": "Atualização do Launcher",
@@ -256,7 +256,7 @@
     "searching": "Pesquisando...",
     "library": "Biblioteca",
     "defaultLibrary": "Biblioteca Padrão",
-    "uninstallGame": "Uninstall Game",
+    "uninstallGame": "Desinstalar Jogo",
     "installed": "Instalado",
     "notInstalled": "Não Instalado",
     "legacyGame": "Jogo Legado",
@@ -478,12 +478,12 @@
     "deleteTag": "Deletar esta Tag?",
     "deleteTagAlias": "Deletar este Apelido da Tag?",
     "deleteSource": "Delete this Source?",
-    "uninstallGame": "Uninstall this Game?",
+    "uninstallGame": "Desinstalar este Jogo?",
     "unableToUninstallGameData": "Unable to delete data pack. Is it in use? Try restarting the launcher.",
     "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher.",
-    "downloadingGame": "Downloading Game...",
-    "verifyingGame": "Verifying Game...",
-    "aFewMinutes": "This may take a few minutes."
+    "downloadingGame": "Baixando Jogo...",
+    "verifyingGame": "Verificando Jogo...",
+    "aFewMinutes": "Isto pode levar alguns minutos."
   },
   "libraries": {
     "arcade": "Jogos",
