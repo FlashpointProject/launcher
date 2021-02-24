@@ -83,6 +83,18 @@ export function CuratePage(props: CuratePageProps) {
     readInitialCurations();
   }, []);
 
+  const scanNewCurationFolders = React.useCallback(async () => {
+    const curationsPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations', 'Working');
+    await fs.ensureDir(curationsPath);
+    fs.promises.readdir(curationsPath, { withFileTypes: true })
+    .then(async (files) => {
+      for (const file of files.filter(f => f.isDirectory() && f.name != 'Exported' && f.name != 'Imported' && state.curations.findIndex(c => c.key === f.name) === -1)) {
+        const fullPath = path.join(curationsPath, file.name);
+        await loadCurationFolder(file.name, fullPath, defaultGameMetaValues, dispatch, props);
+      }
+    });
+  }, [state.curations]);
+
   // Called whenever the state changes
   React.useEffect(() => {
     localState.state = state;
@@ -579,6 +591,10 @@ export function CuratePage(props: CuratePageProps) {
               value={strings.curate.loadFolder}
               title={strings.curate.loadFolderDesc}
               onClick={onLoadCurationFolderClick} />
+            <SimpleButton
+              value={strings.curate.scanNewCurationFolders}
+              title={strings.curate.scanNewCurationFoldersDesc}
+              onClick={scanNewCurationFolders} />
             <div className='curate-page__floating-box__divider'/>
             <SimpleButton
               value={strings.curate.openCurationsFolder}

@@ -334,6 +334,8 @@
     "loadArchiveDesc": "Load one or more Curation archives",
     "loadFolder": "Load Folder",
     "loadFolderDesc": "Load one or more Curation folders",
+    "scanNewCurationFolders": "Scan For New Curations",
+    "scanNewCurationFoldersDesc": "Scans for curations that have been added after the initial scan",
     "noCurations": "No Curations",
     "id": "Curation Folder",
     "heading": "Heading",

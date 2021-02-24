@@ -342,6 +342,8 @@ const langTemplate = {
     'loadArchiveDesc',
     'loadFolder',
     'loadFolderDesc',
+    'scanNewCurationFolders',
+    'scanNewCurationFoldersDesc',
     'saveImportedCurations',
     'keepArchiveKey',
     'symlinkCurationContent',
