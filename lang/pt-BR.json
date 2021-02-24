@@ -176,7 +176,7 @@
     "exportTagsDesc": "Cria um arquivo cheio de tags e categorias de tags que pode ser usado por 'Importar Tags'",
     "importTags": "Importar Tags",
     "importTagsDesc": "Importa Tags de um arquivo criado por 'Exportar Tags'",
-    "migrateExtremeGames": "Migrate Extreme Games",
+    "migrateExtremeGames": "Migrar Jogos Extremos",
     "migrateExtremeGamesDesc": "Removes 'Extreme' from any games and assigns the 'LEGACY-Extreme' tag to them",
     "servicesHeader": "Serviços de Plano de Fundo",
     "servicesMissing": "Não há serviços.",
@@ -366,13 +366,13 @@
     "unusedPlatform": "'Plataforma' tem um valor não utilizado. Certifique-se que ele está escrito corretamente!",
     "nonExistingLibrary": "'Biblioteca' não é o nome de uma biblioteca existente! (A padrão será usada)",
     "nonContentFolders": "Pastas além da 'content' encontradas na pasta da Curação. Elas deveriam estar lá?",
-    "noTags": "There are no tags on this curation.",
+    "noTags": "Não há nenhuma tag nesta curação.",
     "unenteredTag": "The Tags text field hasn't been submitted.",
     "noLogo": "Não há nenhum logotipo nesta curação.",
     "noScreenshot": "Não há nenhuma captura de tela nesta curação.",
     "ilc_notHttp": "Use HTTP.",
     "ilc_nonExistant": "Aponte para um arquivo existente na pasta 'content' da sua curação.",
-    "sort": "Sort Curations (A-Z)"
+    "sort": "Ordenar Curações (A-Z)"
   },
   "playlist": {
     "enterDescriptionHere": "Escreva uma descrição aqui...",
@@ -465,7 +465,7 @@
     "overwriteFileDetail": "Caminho do arquivo:",
     "deleteTagFilterGroup": "Deletar este Grupo de Filtragem de Tags?",
     "deleteCuration": "Deletar esta Curação?",
-    "importCuration": "Import this Curation?",
+    "importCuration": "Importar esta Curação?",
     "deleteGameImage": "Deletar esta Imagem do Jogo?",
     "deletePlaylist": "Deletar esta playlist?",
     "importAllCurations": "Importar todas as Curações?",
