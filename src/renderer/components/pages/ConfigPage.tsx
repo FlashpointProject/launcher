@@ -333,7 +333,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
               closeEditor={this.onCloseTagFilterGroupEditor}
               showExtreme={this.props.preferencesData.browsePageShowExtreme}
               tagCategories={this.props.tagCategories}
-              activeTagFilterGroups={this.props.preferencesData.tagFilters.filter((tfg, index) => tfg.enabled && index != this.state.editingTagFilterGroupIdx)} />
+              activeTagFilterGroups={this.props.preferencesData.tagFilters.filter((tfg, index) => (tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme)) && index != this.state.editingTagFilterGroupIdx)} />
           </FloatingContainer>
         )}
       </div>
@@ -458,42 +458,44 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   });
 
   renderTagFiltersMemo = memoizeOne((tagFilters: TagFilterGroup[], showExtreme: boolean, strings: LangContainer) => {
-    return tagFilters.filter(tfg => showExtreme ? true : !tfg.extreme).map((item, index) => {
-      return (
-        <div
-          className='setting__row__content--override-row'
-          key={index}>
-          <CheckBox
-            checked={item.enabled}
-            onToggle={(checked) => this.onTagFilterGroupEnabledToggle(index, checked)}/>
-          <InputField
-            className='setting__row__content--tag-filter-title'
-            text={item.name} />
-          <i>
-            {`${item.tags.length} Tags`}
-          </i>
+    return tagFilters.map((item, index) => {
+      if (showExtreme ? true : !item.extreme) {
+        return (
           <div
-            onClick={() => this.onEditTagFilterGroup(index)}
-            title={strings.config.editTagFilter}
-            className='browse-right-sidebar__title-row__buttons__edit-button'>
-            <OpenIcon
-              className='setting__row__content--override-row__edit'
-              icon='pencil' />
+            className='setting__row__content--override-row'
+            key={index}>
+            <CheckBox
+              checked={item.enabled}
+              onToggle={(checked) => this.onTagFilterGroupEnabledToggle(index, checked)}/>
+            <InputField
+              className='setting__row__content--tag-filter-title'
+              text={item.name} />
+            <i>
+              {`${item.tags.length} Tags`}
+            </i>
+            <div
+              onClick={() => this.onEditTagFilterGroup(index)}
+              title={strings.config.editTagFilter}
+              className='browse-right-sidebar__title-row__buttons__edit-button'>
+              <OpenIcon
+                className='setting__row__content--override-row__edit'
+                icon='pencil' />
+            </div>
+            <div
+              onClick={() => this.onDuplicateTagFilterGroup(index)}
+              title={strings.config.duplicateTagFilter}
+              className='browse-right-sidebar__title-row__buttons__edit-button'>
+              <OpenIcon
+                className='setting__row__content--override-row__edit'
+                icon='layers' />
+            </div>
+            <ConfirmElement
+              message={strings.dialog.deleteTagFilterGroup}
+              onConfirm={() => this.onTagFilterGroupDelete(index)}
+              render={this.renderTagFilterGroupDelete} />
           </div>
-          <div
-            onClick={() => this.onDuplicateTagFilterGroup(index)}
-            title={strings.config.duplicateTagFilter}
-            className='browse-right-sidebar__title-row__buttons__edit-button'>
-            <OpenIcon
-              className='setting__row__content--override-row__edit'
-              icon='layers' />
-          </div>
-          <ConfirmElement
-            message={strings.dialog.deleteTagFilterGroup}
-            onConfirm={() => this.onTagFilterGroupDelete(index)}
-            render={this.renderTagFilterGroupDelete} />
-        </div>
-      );
+        );
+      }
     });
   });
 

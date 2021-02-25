@@ -511,7 +511,8 @@ export function CuratePage(props: CuratePageProps) {
             tagCategories={props.tagCategories}
             mad4fpEnabled={props.mad4fpEnabled}
             symlinkCurationContent={props.preferencesData.symlinkCurationContent}
-            tagFilters={props.preferencesData.tagFiltersInCurate ? props.preferencesData.tagFilters : []} />
+            tagFilters={props.preferencesData.tagFiltersInCurate ? props.preferencesData.tagFilters : []}
+            showExtremeSuggestions={props.preferencesData.browsePageShowExtreme} />
       ));
     } else {
       return (
@@ -521,7 +522,8 @@ export function CuratePage(props: CuratePageProps) {
       );
     }
   }, [state.curations, props.suggestions, strings, props.preferencesData.saveImportedCurations,
-    props.tagCategories, props.preferencesData.symlinkCurationContent, props.preferencesData.tagFiltersInCurate]);
+    props.tagCategories, props.preferencesData.symlinkCurationContent, props.preferencesData.tagFiltersInCurate,
+    props.preferencesData.browsePageShowExtreme]);
 
   // Render Curation Index (left sidebar)
   const curateIndex = React.useMemo(() => {

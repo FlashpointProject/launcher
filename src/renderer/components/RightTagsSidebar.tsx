@@ -258,7 +258,7 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
 
     if (newTag !== '' && this.props.currentTag) {
       // Delayed set
-      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag, this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled).concat([generateTagFilterGroup([this.props.currentTag.primaryAlias.name])]))
+      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag, this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme)).concat([generateTagFilterGroup([this.props.currentTag.primaryAlias.name])]))
       .then((data) => {
         if (data) {
           this.setState({

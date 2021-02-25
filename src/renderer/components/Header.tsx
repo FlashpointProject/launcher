@@ -201,7 +201,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
       const match = tagRegex.exec(this.state.searchText);
       if (match) {
         const tagName = match[1];
-        window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, tagName, this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled))
+        window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, tagName, this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme)))
         .then(data => {
           if (data) { this.setState({ tagSuggestions: data }); }
         });

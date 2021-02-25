@@ -623,12 +623,15 @@ export function registerRequestCallbacks(state: BackState): void {
 
   state.socketServer.register(BackIn.BROWSE_VIEW_PAGE, async (event, data) => {
     data.query.filter = adjustGameFilter(data.query.filter);
+    const startTime = new Date();
     const results = await GameManager.findGames({
       ranges: data.ranges,
       filter: data.query.filter,
       orderBy: data.query.orderBy,
       direction: data.query.orderReverse,
     }, !!data.shallow);
+    const timeTaken = (new Date()).getTime() - startTime.getTime();
+    log.debug('Launcher', `FindGames Time: ${timeTaken}ms`);
 
     return {
       ranges: results,
@@ -739,8 +742,8 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.GET_TAG_SUGGESTIONS, async (event, text, tagFilters) => {
-    const flatTagFilter = tagFilters.filter(tfg => tfg.enabled).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
-    const flatCatFilter = tagFilters.filter(tfg => tfg.enabled).reduce<string[]>((prev, cur) => prev.concat(cur.categories), []);
+    const flatTagFilter = tagFilters.reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
+    const flatCatFilter = tagFilters.reduce<string[]>((prev, cur) => prev.concat(cur.categories), []);
     const result = await TagManager.findTagSuggestions(text, flatTagFilter, flatCatFilter);
     state.socketServer.send(event.client, BackOut.GET_TAG_SUGGESTIONS, result);
     return result;

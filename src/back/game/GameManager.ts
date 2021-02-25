@@ -525,29 +525,20 @@ async function applyTagFilters(aliases: string[], alias: string, query: SelectQu
   const tagAliasRepository = getManager().getRepository(TagAlias);
   const comparator = whitelist ? 'IN' : 'NOT IN';
 
-  const tagIds = (await tagAliasRepository.createQueryBuilder('tag_alias')
+  const tagIdQuery = tagAliasRepository.createQueryBuilder('tag_alias')
   .where('tag_alias.name IN (:...aliases)', { aliases: aliases })
   .select('tag_alias.tagId')
+  .distinct();
+
+  const subQuery = getManager().createQueryBuilder()
+  .select('game_tag.gameId')
   .distinct()
-  .getRawMany()).map(r => r['tag_alias_tagId']);
+  .from('game_tags_tag', 'game_tag')
+  .where(`game_tag.tagId IN (${tagIdQuery.getQuery()})`);
 
-  for (let i = 0; i < tagIds.length; i++) {
-    const filterName = `tag_filter_${whereCount}_${i}`;
-
-    const tagId = tagIds[i];
-    const subQuery = getManager().createQueryBuilder()
-    .select('game_tag.gameId')
-    .distinct()
-    .from('game_tags_tag', 'game_tag')
-    .where(`game_tag.tagId = :${filterName}`, { [filterName]: tagId });
-    if (whereCount == 0 && i == 0) {
-      query.where(`${alias}.id ${comparator} (${subQuery.getQuery()})`);
-      query.setParameters(subQuery.getParameters());
-    } else {
-      query.andWhere(`${alias}.id ${comparator} (${subQuery.getQuery()})`);
-      query.setParameters(subQuery.getParameters());
-    }
-  }
+  query.andWhere(`${alias}.id ${comparator} (${subQuery.getQuery()})`);
+  query.setParameters(subQuery.getParameters());
+  query.setParameters(tagIdQuery.getParameters());
 }
 
 async function getGameQuery(

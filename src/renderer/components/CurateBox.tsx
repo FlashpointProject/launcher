@@ -52,6 +52,7 @@ export type CurateBoxProps = {
   mad4fpEnabled: boolean;
   symlinkCurationContent: boolean;
   tagFilters: TagFilterGroup[];
+  showExtremeSuggestions: boolean;
 }
 
 /** A box that displays and lets the user edit a curation. */
@@ -102,7 +103,7 @@ export function CurateBox(props: CurateBoxProps) {
       // Delayed set
       // TODO: Add tag suggestion filtering here
       const existingTags = props.curation.meta.tags ? props.curation.meta.tags.reduce<string[]>((prev, cur) => prev.concat(cur.primaryAlias.name), []) : undefined;
-      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag, props.tagFilters.filter(tfg => tfg.enabled).concat([generateTagFilterGroup(existingTags)]))
+      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag, props.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !props.showExtremeSuggestions)).concat([generateTagFilterGroup(existingTags)]))
       .then((data) => {
         if (data) { setTagSuggestions(data); }
       });

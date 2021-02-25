@@ -777,7 +777,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     if (newTag !== '' && this.props.currentGame) {
       // Delayed set
       const existingTags = this.props.currentGame.tags.reduce<string[]>((prev, cur) => prev.concat(cur.primaryAlias.name), []);
-      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag, this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled).concat([generateTagFilterGroup(existingTags)]))
+      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag, this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme)).concat([generateTagFilterGroup(existingTags)]))
       .then(data => {
         if (data) { this.setState({ tagSuggestions: data }); }
       });

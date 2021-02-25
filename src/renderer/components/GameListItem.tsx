@@ -78,11 +78,11 @@ export function GameListItem(props: GameListItemProps) {
             title={publisher}>
             {publisher}
           </div>
-          {/* <div
+          <div
             className='game-list-item__field game-list-item__field--tagsStr'
             title={tagsStr}>
             {tagsStr}
-          </div> */}
+          </div>
         </div>
       </li>
     );

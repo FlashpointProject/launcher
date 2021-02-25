@@ -978,7 +978,7 @@ export class App extends React.Component<AppProps> {
         count: 50,
         broken: window.Shared.config.data.showBrokenGames,
         excludedLibraries: this.props.preferencesData.excludedRandomLibraries,
-        tagFilters: this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled)
+        tagFilters: this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme))
       })
       .then((data) => {
         this.props.dispatchMain({
