@@ -524,9 +524,10 @@ async function applyTagFilters(aliases: string[], alias: string, query: SelectQu
 
   const tagAliasRepository = getManager().getRepository(TagAlias);
   const comparator = whitelist ? 'IN' : 'NOT IN';
+  const aliasKey = `${whitelist ? 'whitelist_' : 'blacklist_'}${whereCount}`;
 
   const tagIdQuery = tagAliasRepository.createQueryBuilder('tag_alias')
-  .where('tag_alias.name IN (:...aliases)', { aliases: aliases })
+  .where(`tag_alias.name IN (:...${aliasKey})`, { [aliasKey]: aliases })
   .select('tag_alias.tagId')
   .distinct();
 
