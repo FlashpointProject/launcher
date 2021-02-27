@@ -126,7 +126,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     findGamesWithTag: GameManager.findGamesWithTag,
     updateGame: GameManager.save,
     updateGames: GameManager.updateGames,
-    removeGameAndAddApps: (gameId: string) => GameManager.removeGameAndAddApps(gameId, path.join(state.config.flashpointPath, state.config.dataPacksFolderPath)),
+    removeGameAndAddApps: (gameId: string) => GameManager.removeGameAndAddApps(gameId, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath)),
 
     // Misc
     findPlatforms: GameManager.findPlatforms,
@@ -182,14 +182,14 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     findGameData: GameDataManager.findGameData,
     findSourceDataForHashes: GameDataManager.findSourceDataForHashes,
     save: GameDataManager.save,
-    importGameData: (gameId, filePath) => GameDataManager.importGameData(gameId, filePath, path.join(state.config.flashpointPath, state.config.dataPacksFolderPath)),
+    importGameData: (gameId, filePath) => GameDataManager.importGameData(gameId, filePath, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath)),
     downloadGameData: async (gameDataId) => {
       const onProgress = (percent: number) => {
         // Sent to PLACEHOLDER download dialog on client
         state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT, percent);
       };
       state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
-      await GameDataManager.downloadGameData(gameDataId, path.join(state.config.flashpointPath, state.config.dataPacksFolderPath), onProgress)
+      await GameDataManager.downloadGameData(gameDataId, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), onProgress)
       .catch((error) => {
         state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
       })

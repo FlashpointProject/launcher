@@ -376,7 +376,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           window.Shared.back.request(BackIn.GET_GAME, gameId)
           .then(async (game) => {
             if (game) {
-              const gamePath = await getGamePath(game, window.Shared.config.fullFlashpointPath, window.Shared.config.data.htdocsFolderPath, window.Shared.config.data.dataPacksFolderPath);
+              const gamePath = await getGamePath(game, window.Shared.config.fullFlashpointPath, window.Shared.preferences.data.htdocsFolderPath, window.Shared.preferences.data.dataPacksFolderPath);
               try {
                 if (gamePath) {
                   await fs.promises.stat(gamePath);

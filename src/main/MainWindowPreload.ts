@@ -117,7 +117,7 @@ const onInit = (async () => {
   window.Shared.back.secret = data.secret;
   window.Shared.back.setSocket(socket);
 })()
-.then(() => new Promise((resolve, reject) => {
+.then(() => new Promise<void>((resolve, reject) => {
   registerHandlers();
 
   // Fetch the config and preferences
@@ -129,7 +129,7 @@ const onInit = (async () => {
         data: data.config,
         // @FIXTHIS This should take if this is installed into account
         fullFlashpointPath: path.resolve(data.config.flashpointPath),
-        fullJsonFolderPath: path.resolve(data.config.flashpointPath, data.config.jsonFolderPath),
+        fullJsonFolderPath: path.resolve(data.config.flashpointPath, data.preferences.jsonFolderPath),
       };
       window.Shared.fileServerPort = data.fileServerPort;
       window.Shared.log.entries = data.log;

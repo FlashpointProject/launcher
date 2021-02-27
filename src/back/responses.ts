@@ -36,7 +36,6 @@ import * as TagManager from './game/TagManager';
 import { escapeArgsForShell, GameLauncher, GameLaunchInfo } from './GameLauncher';
 import { importCuration, launchAddAppCuration, launchCuration } from './importGame';
 import { ManagedChildProcess } from './ManagedChildProcess';
-import { MetadataServerApi, SyncableGames } from './MetadataServerApi';
 import { importAllMetaEdits } from './MetaEdit';
 import { BackState, BareTag, TagsFile } from './types';
 import { pathToBluezip } from './util/Bluezip';
@@ -202,7 +201,7 @@ export function registerRequestCallbacks(state: BackState): void {
           };
           state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
           try {
-            await GameDataManager.downloadGameData(gameData.id, path.join(state.config.flashpointPath, state.config.dataPacksFolderPath), onProgress)
+            await GameDataManager.downloadGameData(gameData.id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), onProgress)
             .finally(() => {
               // Close PLACEHOLDER download dialog on client, cosmetic delay to look nice
               setTimeout(() => {
@@ -221,15 +220,15 @@ export function registerRequestCallbacks(state: BackState): void {
       GameLauncher.launchAdditionalApplication({
         addApp,
         fpPath: path.resolve(state.config.flashpointPath),
-        htdocsPath: state.config.htdocsFolderPath,
-        native: addApp.parentGame && state.config.nativePlatforms.some(p => p === platform) || false,
+        htdocsPath: state.preferences.htdocsFolderPath,
+        native: addApp.parentGame && state.preferences.nativePlatforms.some(p => p === platform) || false,
         execMappings: state.execMappings,
         lang: state.languageContainer,
         isDev: state.isDev,
         exePath: state.exePath,
         appPathOverrides: state.preferences.appPathOverrides,
         providers: await getProviders(state),
-        proxy: state.config.browserModeProxy,
+        proxy: state.preferences.browserModeProxy,
         openDialog: state.socketServer.showMessageBoxBack(event.client),
         openExternal: state.socketServer.openExternal(event.client),
         runGame: runGameFactory(state)
@@ -267,7 +266,7 @@ export function registerRequestCallbacks(state: BackState): void {
           };
           state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
           try {
-            await GameDataManager.downloadGameData(gameData.id, path.join(state.config.flashpointPath, state.config.dataPacksFolderPath), onProgress, onDetails)
+            await GameDataManager.downloadGameData(gameData.id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), onProgress, onDetails)
             .finally(() => {
               // Close PLACEHOLDER download dialog on client, cosmetic delay to look nice
               setTimeout(() => {
@@ -285,15 +284,15 @@ export function registerRequestCallbacks(state: BackState): void {
       await GameLauncher.launchGame({
         game,
         fpPath: path.resolve(state.config.flashpointPath),
-        htdocsPath: state.config.htdocsFolderPath,
-        native: state.config.nativePlatforms.some(p => p === game.platform),
+        htdocsPath: state.preferences.htdocsFolderPath,
+        native: state.preferences.nativePlatforms.some(p => p === game.platform),
         execMappings: state.execMappings,
         lang: state.languageContainer,
         isDev: state.isDev,
         exePath: state.exePath,
         appPathOverrides: state.preferences.appPathOverrides,
         providers: await getProviders(state),
-        proxy: state.config.browserModeProxy,
+        proxy: state.preferences.browserModeProxy,
         openDialog: state.socketServer.showMessageBoxBack(event.client),
         openExternal: state.socketServer.openExternal(event.client),
         runGame: runGameFactory(state),
@@ -323,7 +322,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.DELETE_GAME, async (event, id) => {
-    const game = await GameManager.removeGameAndAddApps(id, path.join(state.config.flashpointPath, state.config.dataPacksFolderPath));
+    const game = await GameManager.removeGameAndAddApps(id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath));
 
     state.queries = {}; // Clear entire cache
 
@@ -354,7 +353,7 @@ export function registerRequestCallbacks(state: BackState): void {
 
       // Copy images
       if (dupeImages) {
-        const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
+        const imageFolder = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
         const oldLast = path.join(game.id.substr(0, 2), game.id.substr(2, 2), game.id+'.png');
         const newLast = path.join(newGame.id.substr(0, 2), newGame.id.substr(2, 2), newGame.id+'.png');
 
@@ -467,7 +466,7 @@ export function registerRequestCallbacks(state: BackState): void {
 
         // Copy images
         if (!metaOnly) {
-          const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
+          const imageFolder = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
           const last = path.join(game.id.substr(0, 2), game.id.substr(2, 2), game.id+'.png');
 
           const oldLogoPath = path.join(imageFolder, LOGOS, last);
@@ -495,7 +494,7 @@ export function registerRequestCallbacks(state: BackState): void {
     // Verify it's still on disk
     if (gameData && gameData.presentOnDisk && gameData.path) {
       try {
-        await fs.promises.access(path.join(state.config.flashpointPath, state.config.dataPacksFolderPath, gameData.path), fs.constants.F_OK);
+        await fs.promises.access(path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, gameData.path), fs.constants.F_OK);
       } catch (err) {
         gameData.path = undefined;
         gameData.presentOnDisk = false;
@@ -524,7 +523,7 @@ export function registerRequestCallbacks(state: BackState): void {
     const gameData = await GameDataManager.findOne(gameDataId);
     if (gameData) {
       if (gameData.presentOnDisk && gameData.path) {
-        const gameDataPath = path.join(state.config.flashpointPath, state.config.dataPacksFolderPath, gameData.path);
+        const gameDataPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, gameData.path);
         await fs.promises.unlink(gameDataPath);
       }
       const game = await GameManager.findGame(gameData.gameId);
@@ -538,7 +537,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.IMPORT_GAME_DATA, async (event, gameId, filePath) => {
-    return GameDataManager.importGameData(gameId, filePath, path.join(state.config.flashpointPath, state.config.dataPacksFolderPath));
+    return GameDataManager.importGameData(gameId, filePath, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath));
   });
 
   state.socketServer.register(BackIn.DOWNLOAD_GAME_DATA, async (event, gameDataId) => {
@@ -547,7 +546,7 @@ export function registerRequestCallbacks(state: BackState): void {
       state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT, percent);
     };
     state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
-    await GameDataManager.downloadGameData(gameDataId, path.join(state.config.flashpointPath, state.config.dataPacksFolderPath), onProgress)
+    await GameDataManager.downloadGameData(gameDataId, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), onProgress)
     .catch((error) => {
       state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
     })
@@ -563,7 +562,7 @@ export function registerRequestCallbacks(state: BackState): void {
     const gameData = await GameDataManager.findOne(id);
     if (gameData && gameData.path && gameData.presentOnDisk) {
       // Delete Game Data
-      const gameDataPath = path.join(state.config.flashpointPath, state.config.dataPacksFolderPath, gameData.path);
+      const gameDataPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, gameData.path);
       await fs.promises.unlink(gameDataPath)
       .catch((error) => {
         if (error.code !== 'ENOENT') {
@@ -761,7 +760,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.SAVE_IMAGE, async (event, raw_folder, raw_id, content) => {
-    const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
+    const imageFolder = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
     const folder = sanitizeFilename(raw_folder);
     const id = sanitizeFilename(raw_id);
     const fullPath = path.join(imageFolder, folder, id.substr(0, 2), id.substr(2, 2), id + '.png');
@@ -779,7 +778,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.DELETE_IMAGE, async (event, raw_folder, raw_id) => {
-    const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
+    const imageFolder = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
     const folder = sanitizeFilename(raw_folder);
     const id = sanitizeFilename(raw_id);
     const fullPath = path.join(imageFolder, folder, id.substr(0, 2), id.substr(2, 2), id + '.png');
@@ -997,9 +996,9 @@ export function registerRequestCallbacks(state: BackState): void {
         date: (data.date !== undefined) ? new Date(data.date) : undefined,
         saveCuration: data.saveCuration,
         fpPath: state.config.flashpointPath,
-        dataPacksFolderPath: path.join(state.config.flashpointPath, state.config.dataPacksFolderPath),
+        dataPacksFolderPath: path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath),
         bluezipPath: pathToBluezip(state.isDev, state.exePath),
-        imageFolderPath: state.config.imageFolderPath,
+        imageFolderPath: state.preferences.imageFolderPath,
         openDialog: state.socketServer.showMessageBoxBack(event.client),
         openExternal: state.socketServer.openExternal(event.client),
         tagCategories: await TagManager.findTagCategories()
@@ -1044,15 +1043,15 @@ export function registerRequestCallbacks(state: BackState): void {
 
       await launchCuration(data.key, data.meta, data.addApps, data.symlinkCurationContent, skipLink, {
         fpPath: path.resolve(state.config.flashpointPath),
-        htdocsPath: state.config.htdocsFolderPath,
-        native: state.config.nativePlatforms.some(p => p === data.meta.platform),
+        htdocsPath: state.preferences.htdocsFolderPath,
+        native: state.preferences.nativePlatforms.some(p => p === data.meta.platform),
         execMappings: state.execMappings,
         lang: state.languageContainer,
         isDev: state.isDev,
         exePath: state.exePath,
         appPathOverrides: state.preferences.appPathOverrides,
         providers: await getProviders(state),
-        proxy: state.config.browserModeProxy,
+        proxy: state.preferences.browserModeProxy,
         openDialog: state.socketServer.showMessageBoxBack(event.client),
         openExternal: state.socketServer.openExternal(event.client),
         runGame: runGameFactory(state),
@@ -1070,15 +1069,15 @@ export function registerRequestCallbacks(state: BackState): void {
     try {
       await launchAddAppCuration(data.curationKey, data.curation, data.symlinkCurationContent, skipLink, {
         fpPath: path.resolve(state.config.flashpointPath),
-        htdocsPath: state.config.htdocsFolderPath,
-        native: state.config.nativePlatforms.some(p => p === data.platform) || false,
+        htdocsPath: state.preferences.htdocsFolderPath,
+        native: state.preferences.nativePlatforms.some(p => p === data.platform) || false,
         execMappings: state.execMappings,
         lang: state.languageContainer,
         isDev: state.isDev,
         exePath: state.exePath,
         appPathOverrides: state.preferences.appPathOverrides,
         providers: await getProviders(state),
-        proxy: state.config.browserModeProxy,
+        proxy: state.preferences.browserModeProxy,
         openDialog: state.socketServer.showMessageBoxBack(event.client),
         openExternal: state.socketServer.openExternal(event.client),
         runGame: runGameFactory(state),
@@ -1088,41 +1087,6 @@ export function registerRequestCallbacks(state: BackState): void {
     } catch (e) {
       log.error('Launcher', e + '');
     }
-  });
-
-  state.socketServer.register(BackIn.SYNC_GAME_METADATA, async (event) => {
-    let syncableGames: SyncableGames = { total: 0, successes: 0, games: [] };
-    try {
-      syncableGames = await MetadataServerApi.getUpdatedGames(state.config.metadataServerHost, state.config.lastSync);
-    } catch (error) {
-      const result = {
-        total: 0,
-        successes: 0,
-        error: error.message
-      };
-      state.socketServer.send(event.client, BackOut.SYNC_GAME_METADATA, result);
-      return result;
-    }
-
-    // Top level games
-    for (const game of syncableGames.games.filter(g => g.parentGameId === g.id)) {
-      await GameManager.save(game);
-    }
-    // Child games, Constraint will throw if parent game is missing
-    for (const game of syncableGames.games.filter(g => g.parentGameId !== g.id)) {
-      try {
-        await GameManager.save(game);
-      } catch (error) {
-        console.error('Parent Game Missing? - ' + error);
-      }
-    }
-
-    const result = {
-      total: syncableGames.total,
-      successes: syncableGames.successes
-    };
-    state.socketServer.send(event.client, BackOut.SYNC_GAME_METADATA, result);
-    return result;
   });
 
   state.socketServer.register(BackIn.UPLOAD_LOG, async (event) => {
@@ -1173,7 +1137,7 @@ export function registerRequestCallbacks(state: BackState): void {
         launcherVersion: state.version,
       };
 
-      const folderPath = path.join(state.config.flashpointPath, state.config.metaEditsFolderPath);
+      const folderPath = path.join(state.config.flashpointPath, state.preferences.metaEditsFolderPath);
       const filePath = path.join(folderPath, game.id + '.json');
       try {
         let save = true;
@@ -1204,7 +1168,7 @@ export function registerRequestCallbacks(state: BackState): void {
 
   state.socketServer.register(BackIn.IMPORT_META_EDITS, async (event) => {
     const result = await importAllMetaEdits(
-      path.join(state.config.flashpointPath, state.config.metaEditsFolderPath),
+      path.join(state.config.flashpointPath, state.preferences.metaEditsFolderPath),
       state.socketServer.showMessageBoxBack(event.client),
     );
 

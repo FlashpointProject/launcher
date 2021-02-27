@@ -6,7 +6,7 @@ import { BrowsePageLayout } from '../BrowsePageLayout';
 import { ARCADE } from '../constants';
 import { DeepPartial } from '../interfaces';
 import { gameOrderByOptions, gameOrderReverseOptions } from '../order/util';
-import { deepCopy } from '../Util';
+import { deepCopy, parseVarStr } from '../Util';
 import { Coerce } from '../utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
 import { AppPathOverride, AppPreferencesData, AppPreferencesDataMainWindow } from './interfaces';
@@ -28,6 +28,17 @@ const { num, str } = Coerce;
 
 /** Default Preferences Data used for values that are not found in the file */
 export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freeze<AppPreferencesData>({
+  imageFolderPath: 'Data/Images',
+  logoFolderPath: 'Data/Logos',
+  playlistFolderPath: 'Data/Playlists',
+  jsonFolderPath: 'Data',
+  htdocsFolderPath: 'Legacy/htdocs',
+  platformFolderPath: 'Data/Platforms',
+  themeFolderPath: 'Data/Themes',
+  logoSetsFolderPath: 'Data/LogoSets',
+  metaEditsFolderPath: 'Data/MetaEdits',
+  extensionsPath: 'Data/Extensions',
+  dataPacksFolderPath: 'Data/Games',
   browsePageGameScale: 0.087,
   browsePageShowExtreme: false,
   enableEditing: true,
@@ -57,6 +68,8 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   keepArchiveKey: true,
   symlinkCurationContent: true,
   onDemandImages: false,
+  onDemandBaseUrl: 'https://unstable.life/Flashpoint/Data/Images/',
+  browserModeProxy: 'localhost:22500',
   showLogSource: Object.freeze({
     // (Add log sources that should be hidden by default here)
   }),
@@ -71,7 +84,10 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   excludedRandomLibraries: [],
   appPathOverrides: [],
   tagFilters: [],
-  tagFiltersInCurate: false
+  tagFiltersInCurate: false,
+  nativePlatforms: [],
+  disableExtremeGames: false,
+  showBrokenGames: false,
 });
 
 /**
@@ -90,6 +106,17 @@ export function overwritePreferenceData(
     onError: onError && (e => onError(`Error while parsing Preferences: ${e.toString()}`)),
   });
   // Parse root object
+  parser.prop('imageFolderPath',             v => source.imageFolderPath             = parseVarStr(str(v)));
+  parser.prop('logoFolderPath',              v => source.logoFolderPath              = parseVarStr(str(v)));
+  parser.prop('playlistFolderPath',          v => source.playlistFolderPath          = parseVarStr(str(v)));
+  parser.prop('jsonFolderPath',              v => source.jsonFolderPath              = parseVarStr(str(v)));
+  parser.prop('htdocsFolderPath',            v => source.htdocsFolderPath            = parseVarStr(str(v)));
+  parser.prop('platformFolderPath',          v => source.platformFolderPath          = parseVarStr(str(v)));
+  parser.prop('themeFolderPath',             v => source.themeFolderPath             = parseVarStr(str(v)));
+  parser.prop('logoSetsFolderPath',          v => source.logoSetsFolderPath          = parseVarStr(str(v)));
+  parser.prop('metaEditsFolderPath',         v => source.metaEditsFolderPath         = parseVarStr(str(v)));
+  parser.prop('extensionsPath',              v => source.extensionsPath              = parseVarStr(str(v)));
+  parser.prop('dataPacksFolderPath',         v => source.dataPacksFolderPath         = parseVarStr(str(v)));
   parser.prop('browsePageGameScale',         v => source.browsePageGameScale         = num(v));
   parser.prop('browsePageShowExtreme',       v => source.browsePageShowExtreme       = !!v);
   parser.prop('enableEditing',               v => source.enableEditing               = !!v);
@@ -112,7 +139,12 @@ export function overwritePreferenceData(
   parser.prop('symlinkCurationContent',      v => source.symlinkCurationContent      = !!v);
   parser.prop('tagFiltersInCurate',          v => source.tagFiltersInCurate          = !!v);
   parser.prop('onDemandImages',              v => source.onDemandImages              = !!v);
+  parser.prop('browserModeProxy',            v => source.browserModeProxy            = str(v));
+  parser.prop('onDemandBaseUrl',             v => source.onDemandBaseUrl             = parseVarStr(str(v)));
   parser.prop('excludedRandomLibraries',     v => source.excludedRandomLibraries     = strArray(v), true);
+  parser.prop('nativePlatforms',             v => source.nativePlatforms             = strArray(v));
+  parser.prop('disableExtremeGames',         v => source.disableExtremeGames         = !!v);
+  parser.prop('showBrokenGames',             v => source.showBrokenGames             = !!v);
   if (data.appPathOverrides) {
     const newAppPathOverrides: AppPathOverride[] = [];
     parser.prop('appPathOverrides').array((item, index) => newAppPathOverrides[index] = parseAppPathOverride(item));

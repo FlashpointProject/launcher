@@ -248,17 +248,17 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   log.info('Launcher', `Starting Flashpoint Launcher ${versionStr}`);
 
   // Read configs & preferences
-  const [pref, conf, extConf] = await (Promise.all([
-    PreferencesFile.readOrCreateFile(path.join(state.configFolder, PREFERENCES_FILENAME)),
-    ConfigFile.readOrCreateFile(path.join(state.configFolder, CONFIG_FILENAME)),
-    ExtConfigFile.readOrCreateFile(path.join(state.configFolder, EXT_CONFIG_FILENAME))
+  const conf = await ConfigFile.readOrCreateFile(path.join(state.configFolder, CONFIG_FILENAME));
+  state.config = conf;
+  const [pref, extConf] = await (Promise.all([
+    PreferencesFile.readOrCreateFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME)),
+    ExtConfigFile.readOrCreateFile(path.join(state.config.flashpointPath, EXT_CONFIG_FILENAME))
   ]));
   state.preferences = pref;
-  state.config = conf;
   state.extConfig = extConf;
 
   // Create Game Data Directory and clean up temp files
-  const fullDataPacksFolderPath = path.join(state.config.flashpointPath, state.config.dataPacksFolderPath);
+  const fullDataPacksFolderPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath);
   await fs.promises.mkdir(fullDataPacksFolderPath, { recursive: true });
   fs.promises.readdir(fullDataPacksFolderPath)
   .then((files) => {
@@ -299,7 +299,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   const addExtLogFactory = (extId: string) => (entry: ILogEntry) => {
     state.extensionsService.logExtension(extId, entry);
   };
-  state.extensionsService = new ExtensionService(state.config);
+  state.extensionsService = new ExtensionService(state.config, path.join(state.config.flashpointPath, state.preferences.extensionsPath));
   // Create module interceptor
   registerInterceptor(new FPLNodeModuleFactory(
     await state.extensionsService.getExtensionPathIndex(),
@@ -344,7 +344,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   // Init services
   try {
     state.serviceInfo = await ServicesFile.readFile(
-      path.join(state.config.flashpointPath, state.config.jsonFolderPath),
+      path.join(state.config.flashpointPath, state.preferences.jsonFolderPath),
       state.config,
       error => { log.info(SERVICES_SOURCE, error.toString()); }
     );
@@ -448,7 +448,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   });
 
   // Init themes
-  const dataThemeFolder = path.join(state.config.flashpointPath, state.config.themeFolderPath);
+  const dataThemeFolder = path.join(state.config.flashpointPath, state.preferences.themeFolderPath);
   await fs.ensureDir(dataThemeFolder);
   try {
     await fs.promises.readdir(dataThemeFolder, { withFileTypes: true })
@@ -478,7 +478,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   }
 
   // Init Logo Sets
-  const dataLogoSetsFolder = path.join(state.config.flashpointPath, state.config.logoSetsFolderPath);
+  const dataLogoSetsFolder = path.join(state.config.flashpointPath, state.preferences.logoSetsFolderPath);
   await fs.ensureDir(dataLogoSetsFolder);
   try {
     await fs.promises.readdir(dataLogoSetsFolder, { withFileTypes: true })
@@ -540,7 +540,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   }
 
   // Load Exec Mappings
-  loadExecMappingsFile(path.join(state.config.flashpointPath, state.config.jsonFolderPath), content => log.info('Launcher', content))
+  loadExecMappingsFile(path.join(state.config.flashpointPath, state.preferences.jsonFolderPath), content => log.info('Launcher', content))
   .then(data => {
     state.execMappings = data;
   })
@@ -627,7 +627,7 @@ function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse
     switch (firstItem) {
       // Image folder
       case 'images': {
-        const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
+        const imageFolder = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
         const fileSubPath = urlPath.substr(index + 1);
         const filePath = path.join(imageFolder, fileSubPath);
         if (filePath.startsWith(imageFolder)) {
@@ -713,7 +713,7 @@ function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse
         const relativePath = urlPath.substr(index + 1);
         const logoFolder = logoSet && logoSet.files.includes(relativePath)
           ? logoSet.fullPath
-          : path.join(state.config.flashpointPath, state.config.logoFolderPath);
+          : path.join(state.config.flashpointPath, state.preferences.logoFolderPath);
         const filePath = path.join(logoFolder, relativePath);
         if (filePath.startsWith(logoFolder)) {
           fs.access(filePath, fs.constants.F_OK, (err) => {
@@ -782,7 +782,7 @@ function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse
 
       // JSON file(s)
       case 'credits.json': {
-        serveFile(req, res, path.join(state.config.flashpointPath, state.config.jsonFolderPath, 'credits.json'));
+        serveFile(req, res, path.join(state.config.flashpointPath, state.preferences.jsonFolderPath, 'credits.json'));
       } break;
 
       // Nothing
@@ -901,13 +901,13 @@ function updateFileServerDownloadQueue() {
     state.fileServerDownloads.current.push(item);
 
     // Start download
-    const url = state.config.onDemandBaseUrl + (state.config.onDemandBaseUrl.endsWith('/') ? '' : '/') + item.subPath;
+    const url = state.preferences.onDemandBaseUrl + (state.preferences.onDemandBaseUrl.endsWith('/') ? '' : '/') + item.subPath;
     const protocol = url.startsWith('https://') ? httpsFollow : httpFollow;
     try {
       const req = protocol.get(url, async (res) => {
         try {
           if (res.statusCode === 200) {
-            const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
+            const imageFolder = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
             const filePath = path.join(imageFolder, item.subPath);
 
             await fs.ensureDir(path.dirname(filePath));

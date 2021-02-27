@@ -4,7 +4,6 @@ import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { getGamePath } from '@renderer/Util';
 import { BackIn, BackOut } from '@shared/back/types';
-import { AppConfigData } from '@shared/config/interfaces';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { DevScript, ExtensionContribution } from '@shared/extensions/interfaces';
 import { ExecMapping, IService } from '@shared/interfaces';
@@ -239,14 +238,14 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
 
   onImportLegacyPlatformsClick = (): void => {
     setTimeout(async () => {
-      importLegacyPlatforms(window.Shared.config.data, (text) => this.setState({ text: text }));
+      importLegacyPlatforms(path.join(window.Shared.config.data.flashpointPath, window.Shared.preferences.data.platformFolderPath), (text) => this.setState({ text: text }));
     });
   }
 
   onImportLegacyPlaylistsClick = () : void => {
     setTimeout(async () => {
       this.setState({ text: 'Importing playlists...' });
-      importLegacyPlaylists(window.Shared.config.data).then(num => {
+      importLegacyPlaylists(path.join(window.Shared.config.data.flashpointPath, window.Shared.preferences.data.playlistFolderPath)).then(num => {
         this.setState({ text: `${num} Playlists Imported!` });
       });
     });
@@ -726,7 +725,7 @@ async function checkFileLocation(games: Game[]): Promise<string> {
     if (game.broken) { skippedCount += 1; }
     else {
       try {
-        const gamePath = await getGamePath(game, window.Shared.config.fullFlashpointPath, window.Shared.config.data.htdocsFolderPath, window.Shared.config.data.dataPacksFolderPath);
+        const gamePath = await getGamePath(game, window.Shared.config.fullFlashpointPath, window.Shared.preferences.data.htdocsFolderPath, window.Shared.preferences.data.dataPacksFolderPath);
         if (gamePath === undefined) { pathFailed.push(game); }
       } catch (error) {
         pathError.push([ game, error ]);
@@ -848,12 +847,11 @@ function fetchAllGames(): Promise<Game[]> {
   return window.Shared.back.request(BackIn.GET_ALL_GAMES);
 }
 
-async function importLegacyPlatforms(config: AppConfigData, setText: (text: string) => void): Promise<void> {
+async function importLegacyPlatforms(platformsPath: string, setText: (text: string) => void): Promise<void> {
   const text: string[] = [];
   text.push('Finding XMLs...');
   setText(text.join('\n'));
 
-  const platformsPath = path.join(config.flashpointPath, config.platformFolderPath);
   const iterator = new Legacy_PlatformFileIterator(platformsPath);
   await iterator.init();
   if (iterator.initialized) {
@@ -875,9 +873,8 @@ async function importLegacyPlatforms(config: AppConfigData, setText: (text: stri
   }
 }
 
-async function importLegacyPlaylists(config: AppConfigData): Promise<number> {
+async function importLegacyPlaylists(playlistsPath: string): Promise<number> {
   let playlistsImported = 0;
-  const playlistsPath = path.join(config.flashpointPath, config.playlistFolderPath);
   const files = await fs.promises.readdir(playlistsPath);
   console.log(files);
   for (const file of files) {

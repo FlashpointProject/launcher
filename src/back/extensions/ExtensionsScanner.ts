@@ -10,13 +10,13 @@ const { str, num } = Coerce;
 const fsPromises = fs.promises;
 
 /** Scans all extensions in System and User paths and returns them. */
-export async function scanExtensions(configData: AppConfigData): Promise<IExtension[]> {
+export async function scanExtensions(configData: AppConfigData, extensionPath: string): Promise<IExtension[]> {
   const result = new Map<string, IExtension>();
 
   // TODO: System extensions (?)
 
   // User extensions
-  const userExtPath = path.join(configData.flashpointPath, configData.extensionsPath);
+  const userExtPath = path.resolve(extensionPath);
   await fs.promises.access(userExtPath, fs.constants.F_OK | fs.constants.R_OK)
   .then(() => {/** Folder exists */})
   .catch(() => fs.promises.mkdir(userExtPath));

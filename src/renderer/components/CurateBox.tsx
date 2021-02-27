@@ -1220,7 +1220,7 @@ function getCurationFolder2(curation: EditCuration | CurationIndex) {
 }
 
 function isPlatformNativeLocked(platform: string) {
-  return window.Shared.config.data.nativePlatforms.findIndex((item) => { return item === platform; }) != -1;
+  return window.Shared.preferences.data.nativePlatforms.findIndex((item) => { return item === platform; }) != -1;
 }
 
 function getPathOfHtdocsUrl(url: string): string | undefined {
@@ -1228,7 +1228,7 @@ function getPathOfHtdocsUrl(url: string): string | undefined {
   if (urlObj) {
     return path.join(
       window.Shared.config.fullFlashpointPath,
-      window.Shared.config.data.htdocsFolderPath,
+      window.Shared.preferences.data.htdocsFolderPath,
       decodeURIComponent(path.join(urlObj.hostname, urlObj.pathname))
     );
   }

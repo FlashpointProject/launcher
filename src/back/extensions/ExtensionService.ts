@@ -21,7 +21,8 @@ export class ExtensionService {
   private readonly _installedExtensionsReady: Barrier;
 
   constructor(
-    protected readonly _configData: AppConfigData
+    protected readonly _configData: AppConfigData,
+    protected readonly _extensionPath: string
   ) {
     this._extensions = [];
     this._extensionData = {};
@@ -34,7 +35,7 @@ export class ExtensionService {
   }
 
   private async _scanExtensions(): Promise<void> {
-    const exts = await scanExtensions(this._configData);
+    const exts = await scanExtensions(this._configData, this._extensionPath);
     exts.forEach(e => this._extensions.push(e));
     this._installedExtensionsReady.open();
   }

@@ -59,12 +59,8 @@ type ConfigPageState = {
   isFlashpointPathValid?: boolean;
   /** Currently entered Flashpoint path. */
   flashpointPath: string;
-  /** Currently entered Metadata Server Host */
-  metadataServerHost: string;
   /** If the "use custom title bar" checkbox is checked. */
   useCustomTitlebar: boolean;
-  /** Array of native platforms */
-  nativePlatforms: string[];
   /** Current Server */
   server: string;
   /** Currently entered new Source URL */
@@ -95,9 +91,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     this.state = {
       isFlashpointPathValid: undefined,
       flashpointPath: configData.flashpointPath,
-      metadataServerHost: configData.metadataServerHost,
       useCustomTitlebar: configData.useCustomTitlebar,
-      nativePlatforms: configData.nativePlatforms,
       server: configData.server,
       newSourceUrl: '',
       editorOpen: false,
@@ -115,7 +109,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     const langOptions = this.itemizeLangOptionsMemo(this.props.availableLangs, autoString);
     const serverOptions = this.itemizeServerOptionsMemo(this.props.serverNames);
     const libraryOptions = this.itemizeLibraryOptionsMemo(this.props.libraries, this.props.preferencesData.excludedRandomLibraries, this.context.libraries);
-    const platformOptions = this.itemizePlatformOptionsMemo(this.props.platforms, this.state.nativePlatforms);
+    const platformOptions = this.itemizePlatformOptionsMemo(this.props.platforms, this.props.preferencesData.nativePlatforms);
     const sources = this.renderSourcesMemo(this.context, this.state.sources);
     const appPathOverrides = this.renderAppPathOverridesMemo(this.props.preferencesData.appPathOverrides);
     const tagFilters = this.renderTagFiltersMemo(this.props.preferencesData.tagFilters, this.props.preferencesData.browsePageShowExtreme, this.context);
@@ -133,7 +127,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
             <p className='setting__title'>{strings.preferencesHeader}</p>
             <div className='setting__body'>
               {/* Show Extreme Games */}
-              {((!window.Shared.config.data.disableExtremeGames)) ? (
+              {((!this.props.preferencesData.disableExtremeGames)) ? (
                 <ConfigBoxCheckbox
                   title={strings.extremeGames}
                   description={strings.extremeGamesDesc}
@@ -279,14 +273,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 value={this.state.server}
                 onChange={this.onServerSelect}
                 items={serverOptions} />
-              {/* Metadata Server Host */}
-              <ConfigBoxInput
-                title={`(INDEV) ${strings.metadataServerHost}`}
-                description={strings.metadataServerHostDesc}
-                contentClassName='setting__row__content--filepath-path'
-                editable={true}
-                text={this.state.metadataServerHost}
-                onChange={this.onMetadataServerHostChange} />
               {/* Fallback Language */}
               <ConfigBoxSelect
                 title={strings.fallbackLanguage}
@@ -304,7 +290,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
               <div className='setting__body'>
                 {extensions}
               </div>
-            ) : <div>{formatString(strings.noExtensionsLoaded, window.Shared.config.data.extensionsPath)}</div>}
+            ) : <div>{formatString(strings.noExtensionsLoaded, this.props.preferencesData.extensionsPath)}</div>}
           </div>
 
           {extConfigSections}
@@ -810,7 +796,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   }
 
   onNativeCheckboxChange = (platform: string): void => {
-    const newPlatforms = [...this.state.nativePlatforms];
+    const newPlatforms = [...this.props.preferencesData.nativePlatforms];
     const index = newPlatforms.findIndex(item => item === platform);
 
     if (index !== -1) {
@@ -820,7 +806,8 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       log.info('launcher', `WE CHANGED ${platform} TO true`);
       newPlatforms.push(platform);
     }
-    this.setState({ nativePlatforms: newPlatforms });
+
+    updatePreferencesData({ nativePlatforms: newPlatforms });
   }
 
   /** When the "FlashPoint Folder Path" input text is changed. */
@@ -837,10 +824,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   onShowDeveloperTab = (isChecked: boolean): void => {
     updatePreferencesData({ showDeveloperTab: isChecked });
-  }
-
-  onMetadataServerHostChange = async (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>): Promise<void> => {
-    this.setState({ metadataServerHost: event.currentTarget.value });
   }
 
   onCurrentThemeChange = (value: string): void => {
@@ -908,9 +891,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     // Save new config to file, then restart the app
     window.Shared.back.request(BackIn.UPDATE_CONFIG, {
       flashpointPath: this.state.flashpointPath,
-      metadataServerHost: this.state.metadataServerHost,
       useCustomTitlebar: this.state.useCustomTitlebar,
-      nativePlatforms: this.state.nativePlatforms,
       server: this.state.server,
     }).then(() => { window.Shared.restart(); });
   }

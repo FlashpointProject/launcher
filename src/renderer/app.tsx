@@ -976,7 +976,7 @@ export class App extends React.Component<AppProps> {
 
       window.Shared.back.request(BackIn.RANDOM_GAMES, {
         count: 50,
-        broken: window.Shared.config.data.showBrokenGames,
+        broken: this.props.preferencesData.showBrokenGames,
         excludedLibraries: this.props.preferencesData.excludedRandomLibraries,
         tagFilters: this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme))
       })

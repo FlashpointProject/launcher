@@ -138,7 +138,7 @@ export function exit(state: BackState): void {
         state.fileServerDownloads.queue.length = 0; // Clear array
         const current = state.fileServerDownloads.current.splice(0); // Copy & clear array
         for (let i = 0; i < current.length; i++) { // Delete all partial files
-          const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
+          const imageFolder = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
           const filePath = path.join(imageFolder, current[i].subPath);
 
           try {

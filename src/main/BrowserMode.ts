@@ -1,5 +1,8 @@
 import { ConfigFile } from '@back/ConfigFile';
+import { CONFIG_FILENAME, PREFERENCES_FILENAME } from '@back/constants';
 import { AppConfigData } from '@shared/config/interfaces';
+import { AppPreferencesData } from '@shared/preferences/interfaces';
+import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { createErrorProxy } from '@shared/Util';
 import { app, BrowserWindow, session, shell } from 'electron';
 import * as fs from 'fs';
@@ -13,22 +16,24 @@ type State = {
   url: string;
   mainFolderPath: string;
   config: AppConfigData;
+  prefs: AppPreferencesData;
 }
 
-export function startBrowserMode(init: Init): void {
+export async function startBrowserMode(init: Init): Promise<void> {
   const state: State = {
     window: undefined,
     url: init.args.browser_url || '',
     entry: init.rest,
     mainFolderPath: createErrorProxy('mainFolderPath'),
     config: createErrorProxy('config'),
+    prefs: createErrorProxy('prefs'),
   };
 
-  startup();
+  await startup();
 
   // -- Functions --
 
-  function startup() {
+  async function startup() {
     app.once('ready', onAppReady);
     app.once('window-all-closed', onAppWindowAllClosed);
     app.once('web-contents-created', onAppWebContentsCreated);
@@ -36,7 +41,8 @@ export function startBrowserMode(init: Init): void {
 
     const installed = fs.existsSync('./.installed');
     state.mainFolderPath = getMainFolderPath(installed);
-    state.config = ConfigFile.readOrCreateFileSync(path.join(state.mainFolderPath, 'config.json'));
+    state.config = ConfigFile.readOrCreateFileSync(path.join(state.mainFolderPath, CONFIG_FILENAME));
+    state.prefs = await PreferencesFile.readOrCreateFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME));
 
     let extension = '';
     switch (process.platform) {
@@ -65,7 +71,7 @@ export function startBrowserMode(init: Init): void {
 
     session.defaultSession.setProxy({
       pacScript: '',
-      proxyRules: state.config.browserModeProxy, // @TODO Make the proxy not hard coded?
+      proxyRules: state.prefs.browserModeProxy, // @TODO Make the proxy not hard coded?
       proxyBypassRules: '',
     });
 

@@ -8,6 +8,28 @@ import { LogLevel } from '@shared/Log/interface';
  */
 export type AppPreferencesData = {
   [key: string]: any;
+  /** Path to the image folder (relative to the flashpoint path) */
+  imageFolderPath: string;
+  /** Path to the logo folder (relative to the flashpoint path) */
+  logoFolderPath: string;
+  /** Path to the playlist folder (relative to the flashpoint path) */
+  playlistFolderPath: string;
+  /** Path to the json folder (relative to the flashpoint path) */
+  jsonFolderPath: string;
+  /** Path to the htdocs folder (relative to the flashpoint path) */
+  htdocsFolderPath: string;
+  /** Path to the platform folder (relative to the flashpoint path) */
+  platformFolderPath: string;
+  /** Path to the theme folder (relative to the flashpoint path) */
+  themeFolderPath: string;
+  /** Path to the logo sets folder (relative to the flashpoint path) */
+  logoSetsFolderPath: string;
+  /** Path of the meta edits folder (relative to the flashpoint path) */
+  metaEditsFolderPath: string;
+  /** Path to load User extensions from (relative to the flashpoint path) */
+  extensionsPath: string;
+  /** Path to store Game Data packs */
+  dataPacksFolderPath: string;
   /** Scale of the games at the BrowsePage. */
   browsePageGameScale: number;
   /** If "Extreme" games should be shown at the BrowsePage. */
@@ -54,6 +76,10 @@ export type AppPreferencesData = {
   symlinkCurationContent: boolean;
   /** Download missing thumbnails/screenshots from a remote server. */
   onDemandImages: boolean;
+  /** Base URL of the server to download missing thumbnails/screenshots from. */
+  onDemandBaseUrl: string;
+  /** Proxy server to use during Browser Mode */
+  browserModeProxy: string;
   /** Sources to show/hide in the log page. */
   showLogSource: {
     [key: string]: boolean;
@@ -70,6 +96,12 @@ export type AppPreferencesData = {
   tagFilters: TagFilterGroup[];
   /** Use Tag Filters in the Curate suggestions */
   tagFiltersInCurate: boolean;
+  /** Array of native locked platforms */
+  nativePlatforms: string[];
+  /** If games flagged as "extreme" should be hidden (mainly for parental control) */
+  disableExtremeGames: boolean;
+  /** If games flagged as "broken" should be hidden */
+  showBrokenGames: boolean;
 };
 
 export type AppPathOverride = {

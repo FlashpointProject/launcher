@@ -116,7 +116,7 @@ export function getExtIconURL(id: string): string {
 export function getGameImagePath(folderName: string, gameId: string): string {
   return path.join(
     window.Shared.config.fullFlashpointPath,
-    window.Shared.config.data.imageFolderPath,
+    window.Shared.preferences.data.imageFolderPath,
     folderName,
     `${gameId.substr(0, 2)}/${gameId.substr(2, 2)}/${gameId}.png`
   );
@@ -287,7 +287,7 @@ export function rebuildQuery(opts: RebuildQueryOpts): ViewQuery {
       searchQuery.blacklist.push({ field: 'tag', value: key });
     }
   }
-  if (!window.Shared.config.data.showBrokenGames) { searchQuery.whitelist.push({ field: 'broken',  value: false }); }
+  if (!window.Shared.preferences.data.showBrokenGames) { searchQuery.whitelist.push({ field: 'broken',  value: false }); }
 
   return {
     text: opts.text,
