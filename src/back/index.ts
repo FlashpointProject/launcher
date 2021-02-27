@@ -334,7 +334,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
         }
       }
     }
-    ExtConfigFile.saveFile(path.join(state.configFolder, EXT_CONFIG_FILENAME), state.extConfig);
+    ExtConfigFile.saveFile(path.join(state.config.flashpointPath, EXT_CONFIG_FILENAME), state.extConfig);
     exts.forEach(ext => {
       state.extensionsService.loadExtension(ext.id);
     });
@@ -902,6 +902,7 @@ function updateFileServerDownloadQueue() {
 
     // Start download
     const url = state.preferences.onDemandBaseUrl + (state.preferences.onDemandBaseUrl.endsWith('/') ? '' : '/') + item.subPath;
+    log.debug('Launcher', url);
     const protocol = url.startsWith('https://') ? httpsFollow : httpFollow;
     try {
       const req = protocol.get(url, async (res) => {

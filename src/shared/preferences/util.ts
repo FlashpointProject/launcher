@@ -68,7 +68,7 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   keepArchiveKey: true,
   symlinkCurationContent: true,
   onDemandImages: false,
-  onDemandBaseUrl: 'https://unstable.life/Flashpoint/Data/Images/',
+  onDemandBaseUrl: 'https://infinity.unstable.life/Flashpoint/Data/Images/',
   browserModeProxy: 'localhost:22500',
   showLogSource: Object.freeze({
     // (Add log sources that should be hidden by default here)
