@@ -140,6 +140,12 @@ declare module 'flashpoint-launcher' {
          * @param playlistGames Playlist Game entries to save
          */
         function updatePlaylistGames(playlistGames: PlaylistGame[]): Promise<void>;
+        /**
+         * Adds a Game to a Playlist
+         * @param playlistId Playlist to add the Game to
+         * @param gameId ID of the Game to add
+         */
+        function addPlaylistGame(playlistId: string, gameId: string): Promise<void>;
 
         // Games
         /** Returns the total number of games in the database */

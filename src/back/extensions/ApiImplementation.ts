@@ -112,6 +112,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     findPlaylists: GameManager.findPlaylists,
     updatePlaylist: GameManager.updatePlaylist,
     removePlaylist: GameManager.removePlaylist,
+    addPlaylistGame: GameManager.addPlaylistGame,
 
     // Playlist Game
     findPlaylistGame: GameManager.findPlaylistGame,
