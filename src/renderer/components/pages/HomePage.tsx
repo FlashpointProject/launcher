@@ -14,7 +14,7 @@ import { WithSearchProps } from '../../containers/withSearch';
 import { newProgress, ProgressContext, ProgressDispatch } from '../../context/ProgressContext';
 import { Paths } from '../../Paths';
 import { UpgradeStage } from '../../upgrade/types';
-import { joinLibraryRoute } from '../../Util';
+import { getPlatformIconURL, joinLibraryRoute } from '../../Util';
 import { LangContext } from '../../util/lang';
 import { OpenIcon, OpenIconType } from '../OpenIcon';
 import { AutoProgressComponent } from '../ProgressComponents';
@@ -102,32 +102,41 @@ export function HomePage(props: HomePageProps) {
   const platformList = React.useMemo(() => {
     const libraries = Object.keys(props.platforms);
     const elements: JSX.Element[] = [];
-    let index = 0;
+    let key = 0;
     for (let i = 0; i < libraries.length; i++) {
       const library = libraries[i];
       const platforms = props.platforms[library];
       if (platforms.length > 0) {
         // Add a space between library platforms
         if (i !== 0) {
-          elements.push(<br key={index++} />);
-          elements.push(<br key={index++} />);
+          elements.push(<br key={key++} />);
+          elements.push(<br key={key++} />);
         }
         // Add library name above links
-        elements.push(<p key={index++}>{allStrings.libraries[library] || library}</p>);
+        elements.push(<p key={key++}>{allStrings.libraries[library] || library}</p>);
         // Add all libraries from the platform
-        elements.push(...platforms.map((platform, j) => (
-          <span key={index++}>
-            <Link
-              to={joinLibraryRoute(library)}
-              onClick={() => {
-                props.onSearch('!' + wrapSearchTerm(platform));
-                props.onSelectPlaylist(library, undefined);
-              }}>
-              {platform}
-            </Link>
-            { (j < platforms.length - 1) ? ', ' : undefined }
-          </span>
-        )));
+        elements.push(
+          <div
+            className='home-page__platform-box'
+            key={key++} >
+            {platforms.map((platform, j) => (
+              <Link
+                key={j}
+                className='home-page__platform-entry'
+                to={joinLibraryRoute(library)}
+                onClick={() => {
+                  props.onSearch('!' + wrapSearchTerm(platform));
+                  props.onSelectPlaylist(library, undefined);
+                }}>
+                <div
+                  className='home-page__platform-entry__logo'
+                  style={{ backgroundImage: `url("${getPlatformIconURL(platform, props.logoVersion)}")` }}/>
+                <div className='home-page__platform-entry__text'>{platform}</div>
+              </Link>
+            )
+            )}
+          </div>
+        );
       }
     }
     return elements;
@@ -301,6 +310,7 @@ export function HomePage(props: HomePageProps) {
         games={props.randomGames}
         rollRandomGames={props.rollRandomGames}
         onLaunchGame={onLaunchGame}
+        extremeTags={props.preferencesData.tagFilters.filter(tfg => !tfg.enabled && tfg.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), [])}
         logoVersion={props.logoVersion} />
     </SizeProvider>
   ), [strings, props.randomGames, onLaunchGame, props.rollRandomGames]);

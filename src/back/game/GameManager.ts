@@ -82,7 +82,7 @@ export async function findGameRow(gameId: string, filterOpts?: FilterGameOpts, o
 export async function findRandomGames(count: number, broken: boolean, excludedLibraries: string[], flatFilters: string[]): Promise<ViewGame[]> {
   const gameRepository = getManager().getRepository(Game);
   const query = gameRepository.createQueryBuilder('game');
-  query.select('game.id, game.title, game.platform, game.developer, game.publisher')
+  query.select('game.id, game.title, game.platform, game.developer, game.publisher, game.tagsStr')
   .leftJoin('game_tags_tag', 'game_tag', 'game_tag.gameId = game.id');
   if (!broken)  { query.andWhere('broken = false');  }
   if (excludedLibraries.length > 0) {

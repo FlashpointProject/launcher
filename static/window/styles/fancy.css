@@ -471,6 +471,9 @@ body {
 .home-page__box--upgrades .home-page__grayed-out {
   color: var(--layout__disabled-text-color);
 }
+.home-page__platform-entry:hover {
+  background-color: var(--layout__secondary-background);
+}
 
 
 /* ------ About ------ */

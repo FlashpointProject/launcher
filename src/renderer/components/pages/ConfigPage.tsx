@@ -576,19 +576,22 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       sections = sections.concat(contrib.value.map((config, configIdx) => {
         const propBoxes = [];
         for (const key in config.properties) {
-          propBoxes.push(renderExtConfigProp(key, config.properties[key], extConfig[key]));
+          const configRender = renderExtConfigProp(key, config.properties[key], extConfig[key]);
+          if (configRender) { propBoxes.push(renderExtConfigProp(key, config.properties[key], extConfig[key])); }
         }
-        return (
-          <div
-            className='setting'
-            key={`${idx}_${configIdx}`}>
-            <p className='setting__title'>{config.title}</p>
-            <div className='setting__body'>
-              {propBoxes}
+        if (propBoxes.length > 0) {
+          return (
+            <div
+              className='setting'
+              key={`${idx}_${configIdx}`}>
+              <p className='setting__title'>{config.title}</p>
+              <div className='setting__body'>
+                {propBoxes}
+              </div>
             </div>
-          </div>
-        );
-      }));
+          );
+        }
+      }).filter(p => !!p) as JSX.Element[]);
     });
 
     return sections;
@@ -903,7 +906,7 @@ function setExtConfigValue(key: string, value: any): void {
   return window.Shared.back.send(BackIn.SET_EXT_CONFIG_VALUE, key, value);
 }
 
-function renderExtConfigProp(key: string, prop: ExtConfigurationProp, value: any): JSX.Element {
+function renderExtConfigProp(key: string, prop: ExtConfigurationProp, value: any): JSX.Element | undefined {
   switch (prop.type) {
     case 'boolean':
       return (
@@ -936,7 +939,6 @@ function renderExtConfigProp(key: string, prop: ExtConfigurationProp, value: any
         );
       }
     }
-    default: throw new Error(`Unsupported config type to render "${prop.type}"`);
   }
 }
 

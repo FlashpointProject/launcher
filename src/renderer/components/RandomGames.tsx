@@ -11,6 +11,7 @@ type RandomGamesProps = {
   games: ViewGame[];
   onLaunchGame: (gameId: string) => void;
   rollRandomGames: () => void;
+  extremeTags: string[];
   /** Update to clear platform icon cache */
   logoVersion: number;
 };
@@ -35,7 +36,7 @@ export function RandomGames(props: RandomGamesProps) {
         id={game.id}
         title={game.title}
         platform={game.platform}
-        extreme={game.extreme}
+        extreme={game ? game.tagsStr.split(';').findIndex(t => props.extremeTags.includes(t.trim())) !== -1 : false}
         extremeIconPath={getExtremeIconURL(props.logoVersion)}
         thumbnail={getGameImageURL(LOGOS, game.id)}
         logoVersion={props.logoVersion}

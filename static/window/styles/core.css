@@ -754,6 +754,29 @@ body {
   display: block;
   text-align: center;
 }
+.home-page__platform-entry {
+  display: flex;
+  align-items: center;
+  width: 33%;
+  margin-bottom: 0.1rem;
+}
+.home-page__platform-entry__logo {
+  width: 1.5rem;
+  height: 1.5rem;
+  background-repeat: no-repeat;
+  background-size: contain;
+  margin: auto;
+}
+.home-page__platform-entry__text {
+  flex-grow: 1;
+  text-align: left;
+  padding-left: 0.1rem;
+}
+.home-page__platform-box {
+  width: 100%;
+  display: inline-flex;
+  flex-wrap: wrap;
+}
 .random-games {
   display: flex;
 }
