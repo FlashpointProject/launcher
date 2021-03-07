@@ -23,7 +23,7 @@
     "libraries": "Biblioteker",
     "randomLibraries": "Tilfældige Biblioteker",
     "randomLibrariesDesc": "Biblioteker, der skal bruges til tilfældige valg på hjemmesiden.",
-    "updateSource": "Update Source",
+    "updateSource": "Opdater Kilde",
     "platforms": "Platforme",
     "nativePlatforms": "Lokale Platforme",
     "nativePlatformsDesc": "Brug indfødte versioner af disse platforme. (Hvis det ikke er tilgængeligt, vil det bruge vin)",
@@ -57,7 +57,7 @@
     "extLogoSets": "Logo Indstilling(er)",
     "extApplications": "Applikation(er)",
     "saveAndRestart": "Gem og Genstart",
-    "saveAndClose": "Save and Close",
+    "saveAndClose": "Gem og luk",
     "tagFilterGroupEditor": "Tag Filter Group Editor"
   },
   "home": {
