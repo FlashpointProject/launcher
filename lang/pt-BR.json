@@ -479,8 +479,8 @@
     "deleteTagAlias": "Deletar este Apelido da Tag?",
     "deleteSource": "Deletar esta Fonte?",
     "uninstallGame": "Desinstalar este Jogo?",
-    "unableToUninstallGameData": "Não foi possível deletar pacote de dados. Ele está em uso? Tente reiniciar o launcher.",
-    "unableToDeleteGame": "Não foi possível deletar jogo. Ele está em uso? Tente reiniciar o launcher.",
+    "unableToUninstallGameData": "Não foi possível deletar o pacote de dados. Ele está em uso? Tente reiniciar o launcher.",
+    "unableToDeleteGame": "Não foi possível deletar o jogo. Ele está em uso? Tente reiniciar o launcher.",
     "downloadingGame": "Baixando Jogo...",
     "verifyingGame": "Verificando Jogo...",
     "aFewMinutes": "Isto pode levar alguns minutos."
