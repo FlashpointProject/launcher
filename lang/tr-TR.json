@@ -454,7 +454,7 @@
     "restartNow": "Şimdi Yeniden Başlat?",
     "restartToApplyUpgrade": "Bu güncelleme yeniden başlatana kadar geçerli olmaz.\nŞimdi yapmak istiyor musun?",
     "areYouSure": "Emin misin?",
-    "areYouSureDelete": "Are you sure you want to delete this entry?",
+    "areYouSureDelete": "Bu girişi silmek istediğinden emin misin?",
     "areYouSurePlaylistRemove": "Bu girişi oynama listesinden çıkarmak istediğinizden emin misiniz?",
     "cancel": "İptal Et",
     "mergePlaylists": "Oynama Listelerini Birleştir",
