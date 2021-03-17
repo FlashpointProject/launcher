@@ -902,7 +902,6 @@ function updateFileServerDownloadQueue() {
 
     // Start download
     const url = state.preferences.onDemandBaseUrl + (state.preferences.onDemandBaseUrl.endsWith('/') ? '' : '/') + item.subPath;
-    log.debug('Launcher', url);
     const protocol = url.startsWith('https://') ? httpsFollow : httpFollow;
     try {
       const req = protocol.get(url, async (res) => {

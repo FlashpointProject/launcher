@@ -22,6 +22,8 @@ import { RandomGames } from '../RandomGames';
 import { SimpleButton } from '../SimpleButton';
 import { SizeProvider } from '../SizeProvider';
 import { ViewGame } from '@shared/back/types';
+import { HomePageBox } from '../HomePageBox';
+import { updatePreferencesData } from '@shared/preferences/util';
 
 type OwnProps = {
   platforms: Record<string, string[]>;
@@ -64,6 +66,19 @@ export function HomePage(props: HomePageProps) {
   /** Whether the Update Available button has been pressed */
   const [updateStarted, setUpdateStarted] = React.useState(false);
   const [progressState, progressDispatch] = React.useContext(ProgressContext.context);
+
+  const toggleMinimizeBox = React.useCallback((cssKey: string) => {
+    const newBoxes = [...props.preferencesData.minimizedHomePageBoxes];
+    const idx = newBoxes.findIndex(s => s === cssKey);
+    if (idx === -1) {
+      newBoxes.push(cssKey);
+    } else {
+      newBoxes.splice(idx, 1);
+    }
+    updatePreferencesData({
+      minimizedHomePageBoxes: newBoxes
+    });
+  }, [props.preferencesData.minimizedHomePageBoxes]);
 
   const onLaunchGame = React.useCallback((gameId: string) => {
     props.onLaunchGame(gameId);
@@ -207,55 +222,54 @@ export function HomePage(props: HomePageProps) {
     }
   }, [strings, props.autoUpdater, props.updateInfo, updateStarted, setUpdateStarted, updateProgressComponent]);
 
-  const renderedQuickStart = React.useMemo(() => (
-    <div className='home-page__box'>
-      <div className='home-page__box-head'>{strings.quickStartHeader}</div>
-      <ul className='home-page__box-body'>
+  const renderedQuickStart = React.useMemo(() => {
+    const render = (
+      <>
         <QuickStartItem icon='badge'>
           {formatString(strings.hallOfFameInfo, <Link to={joinLibraryRoute(ARCADE)} onClick={onHallOfFameClick}>{strings.hallOfFame}</Link>)}
-        </QuickStartItem>
-        <QuickStartItem icon='play-circle'>
+        </QuickStartItem><QuickStartItem icon='play-circle'>
           {formatString(strings.allGamesInfo, <Link to={joinLibraryRoute(ARCADE)} onClick={onAllGamesClick}>{strings.allGames}</Link>)}
-        </QuickStartItem>
-        <QuickStartItem icon='video'>
+        </QuickStartItem><QuickStartItem icon='video'>
           {formatString(strings.allAnimationsInfo, <Link to={joinLibraryRoute(THEATRE)} onClick={onAllAnimationsClick}>{strings.allAnimations}</Link>)}
-        </QuickStartItem>
-        <QuickStartItem icon='wrench'>
+        </QuickStartItem><QuickStartItem icon='wrench'>
           {formatString(strings.configInfo, <Link to={Paths.CONFIG}>{strings.config}</Link>)}
         </QuickStartItem>
         <QuickStartItem icon='info'>
           {formatString(strings.helpInfo, <Link to='#' onClick={onHelpClick}>{strings.help}</Link>)}
         </QuickStartItem>
-      </ul>
-    </div>
-  ), [strings, onHallOfFameClick, onAllGamesClick, onAllAnimationsClick, onHelpClick]);
+      </>
+    );
+    return (
+      <HomePageBox
+        minimized={props.preferencesData.minimizedHomePageBoxes.includes('quickStart')}
+        cssKey={'quickStart'}
+        title={strings.quickStartHeader}
+        onToggleMinimize={() => toggleMinimizeBox('quickStart')}>
+        {render}
+      </HomePageBox>
+    );
+  }, [strings, onHallOfFameClick, onAllGamesClick, onAllAnimationsClick, onHelpClick, props.preferencesData.minimizedHomePageBoxes, toggleMinimizeBox]);
 
-  const renderedExtras = React.useMemo(() => (
-    <div className='home-page__box home-page__box--extras'>
-      <div className='home-page__box-head'>{strings.extrasHeader}</div>
-      <ul className='home-page__box-body'>
+  const renderedExtras = React.useMemo(() => {
+    const render = (
+      <>
         <QuickStartItem icon='heart'>
           <Link
             to={joinLibraryRoute(ARCADE)}
             onClick={onFavoriteClick}>
             {strings.favoritesPlaylist}
           </Link>
-        </QuickStartItem>
-        <QuickStartItem icon='list'>
+        </QuickStartItem><QuickStartItem icon='list'>
           <a
             href='http://bluemaxima.org/flashpoint/datahub/Tags'
             target='_top'>
             {strings.tagList}
           </a>
-        </QuickStartItem>
-        <br />
-        <QuickStartItem icon='tag'>
+        </QuickStartItem><br /><QuickStartItem icon='puzzle-piece'>
           {strings.filterByPlatform}:
-        </QuickStartItem>
-        <QuickStartItem className='home-page__box-item--platforms'>
-          { platformList }
-        </QuickStartItem>
-        <br />
+        </QuickStartItem><QuickStartItem className='home-page__box-item--platforms'>
+          {platformList}
+        </QuickStartItem><br />
         <QuickStartItem icon='code'>
           <a
             href='https://trello.com/b/Tu9E5GLk/launcher'
@@ -263,9 +277,19 @@ export function HomePage(props: HomePageProps) {
             {strings.plannedFeatures}
           </a>
         </QuickStartItem>
-      </ul>
-    </div>
-  ), [strings, onFavoriteClick, platformList]);
+      </>
+    );
+
+    return (
+      <HomePageBox
+        minimized={props.preferencesData.minimizedHomePageBoxes.includes('extras')}
+        cssKey={'extras'}
+        title={strings.extrasHeader}
+        onToggleMinimize={() => toggleMinimizeBox('extras')}>
+        {render}
+      </HomePageBox>
+    );
+  }, [strings, onFavoriteClick, platformList, props.preferencesData.minimizedHomePageBoxes, toggleMinimizeBox]);
 
   const renderedUpgrades = React.useMemo(() => {
     if (upgradeStages.length > 0) {
@@ -283,26 +307,33 @@ export function HomePage(props: HomePageProps) {
       // Remove trailing <br/>
       if (renderedStages.length > 0) { renderedStages.pop(); }
       return (
-        <div className='home-page__box home-page__box--upgrades'>
-          <div className='home-page__box-head'>{strings.upgradesHeader}</div>
-          <ul className='home-page__box-body'>
-            { renderedStages }
-          </ul>
-        </div>
+        <HomePageBox
+          minimized={props.preferencesData.minimizedHomePageBoxes.includes('upgrades')}
+          cssKey='upgrades'
+          title={strings.upgradesHeader}
+          onToggleMinimize={() => toggleMinimizeBox('upgrades')}>
+          {renderedStages}
+        </HomePageBox>
       );
     }
   }, [allStrings, upgradeStages, onDownloadUpgradeClick]);
 
-  const renderedNotes = React.useMemo(() => (
-    <div className='home-page__box'>
-      <div className='home-page__box-head'>{strings.notesHeader}</div>
-      <ul className='home-page__box-body'>
-        <QuickStartItem>
-          {strings.notes}
-        </QuickStartItem>
-      </ul>
-    </div>
-  ), [strings]);
+  const renderedNotes = React.useMemo(() => {
+    const render = (
+      <QuickStartItem>
+        {strings.notes}
+      </QuickStartItem>
+    );
+    return (
+      <HomePageBox
+        minimized={props.preferencesData.minimizedHomePageBoxes.includes('notes')}
+        title={strings.notesHeader}
+        cssKey='notes'
+        onToggleMinimize={() => toggleMinimizeBox('notes')}>
+        {render}
+      </HomePageBox>
+    );
+  }, [strings, props.preferencesData.minimizedHomePageBoxes, toggleMinimizeBox]);
 
   const renderedRandomGames = React.useMemo(() => (
     <SizeProvider width={width} height={height}>
@@ -311,9 +342,11 @@ export function HomePage(props: HomePageProps) {
         rollRandomGames={props.rollRandomGames}
         onLaunchGame={onLaunchGame}
         extremeTags={props.preferencesData.tagFilters.filter(tfg => !tfg.enabled && tfg.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), [])}
-        logoVersion={props.logoVersion} />
+        logoVersion={props.logoVersion}
+        minimized={props.preferencesData.minimizedHomePageBoxes.includes('random-games')}
+        onToggleMinimize={() => toggleMinimizeBox('random-games')} />
     </SizeProvider>
-  ), [strings, props.randomGames, onLaunchGame, props.rollRandomGames]);
+  ), [strings, props.randomGames, onLaunchGame, props.rollRandomGames, props.preferencesData.minimizedHomePageBoxes, toggleMinimizeBox]);
 
   // Render
   return React.useMemo(() => (
@@ -329,14 +362,14 @@ export function HomePage(props: HomePageProps) {
         { renderedUpdates }
         {/* Quick Start */}
         { renderedQuickStart }
-        {/* Upgrades */}
-        { renderedUpgrades }
-        {/* Extras */}
-        { renderedExtras }
         {/* Notes */}
         { renderedNotes }
+        {/* Upgrades */}
+        { renderedUpgrades }
         {/* Random Games */}
         { renderedRandomGames }
+        {/* Extras */}
+        { renderedExtras }
       </div>
     </div>
   ), [renderedUpdates, renderedQuickStart, renderedUpgrades, renderedExtras, renderedNotes, renderedRandomGames]);

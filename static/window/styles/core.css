@@ -671,7 +671,8 @@ body {
 .home-page {
   width: 100%;
   height: 100%;
-  overflow: auto;
+  overflow-y: scroll;
+  overflow-x: auto;
 }
 .home-page__inner {
   min-width: 40em;
@@ -689,16 +690,27 @@ body {
 .home-page__box {
   display: block;
   margin: 0 auto 1em;
-  width: 30em;
+  width: 36em;
   line-height: 1.3;
   border: 1px solid;
   user-select: none;
 }
 .home-page__box-head {
-  padding: 0.15rem 0.3rem;
+  display: flex;
+  justify-content: space-between;
   border-bottom: 1px solid;
   font-weight: bold;
   text-align: left;
+}
+.home-page__box-head--title {
+  padding: 0.15rem 0.3rem;
+}
+.home-page__box-head--minimize {
+  width: 2rem;
+  border-left: 1px solid;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .home-page__box-body {
   padding: 0.3rem;
@@ -757,7 +769,7 @@ body {
 .home-page__platform-entry {
   display: flex;
   align-items: center;
-  width: 33%;
+  width: 25%;
   margin-bottom: 0.1rem;
 }
 .home-page__platform-entry__logo {
@@ -779,6 +791,7 @@ body {
 }
 .random-games {
   display: flex;
+  justify-content: space-between;
 }
 
 /* ------ Page-Not-Found (404) ------ */

@@ -102,6 +102,8 @@ export type AppPreferencesData = {
   disableExtremeGames: boolean;
   /** If games flagged as "broken" should be hidden */
   showBrokenGames: boolean;
+  /** Whether home page boxes are minimized */
+  minimizedHomePageBoxes: string[];
 };
 
 export type AppPathOverride = {

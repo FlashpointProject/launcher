@@ -930,7 +930,7 @@ export function registerRequestCallbacks(state: BackState): void {
     try {
       const allTagCategories = await TagManager.findTagCategories();
       jsonTagsFile.categories = allTagCategories;
-      const allTags = await TagManager.findTags();
+      const allTags = await TagManager.findTags('');
       jsonTagsFile.tags = allTags.map(t => {
         const primaryAlias = t.aliases.find(a => a.id === t.primaryAliasId);
         const bareTag: BareTag = {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/indent */
 import { LangContext } from '@renderer/util/lang';
 import { ViewGame } from '@shared/back/types';
 import { LOGOS } from '@shared/constants';
@@ -5,6 +6,7 @@ import * as React from 'react';
 import { findElementAncestor, getExtremeIconURL, getGameImageURL } from '../Util';
 import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
+import { HomePageBox } from './HomePageBox';
 import { SimpleButton } from './SimpleButton';
 
 type RandomGamesProps = {
@@ -14,6 +16,8 @@ type RandomGamesProps = {
   extremeTags: string[];
   /** Update to clear platform icon cache */
   logoVersion: number;
+  minimized: boolean;
+  onToggleMinimize: () => void;
 };
 
 /** A small "grid" of randomly selected games. */
@@ -30,7 +34,7 @@ export function RandomGames(props: RandomGamesProps) {
 
   const gameItems = React.useMemo(() => (
     /* Games is a long queue, only render front */
-    props.games.slice(0, 5).map(game => (
+    props.games.slice(0, 6).map(game => (
       <GameGridItem
         key={game.id}
         id={game.id}
@@ -45,21 +49,28 @@ export function RandomGames(props: RandomGamesProps) {
     ))
   ), [props.games]);
 
+  const render = (
+    <>
+      <GameItemContainer
+        className='random-games'
+        onGameLaunch={onLaunchGame}
+        findGameId={findGameId}>
+        {gameItems}
+      </GameItemContainer>
+      <SimpleButton
+        value={strings.home.rerollPicks}
+        onClick={onRerollPicks} />
+    </>
+  );
+
   return (
-    <div className='home-page__box home-page__box--random_picks'>
-      <div className='home-page__box-head'>{strings.home.randomPicks}</div>
-      <ul className='home-page__box-body'>
-        <GameItemContainer
-          className='random-games'
-          onGameLaunch={onLaunchGame}
-          findGameId={findGameId}>
-          { gameItems }
-        </GameItemContainer>
-        <SimpleButton
-          value={strings.home.rerollPicks}
-          onClick={onRerollPicks} />
-      </ul>
-    </div>
+    <HomePageBox
+      minimized={props.minimized}
+      title={strings.home.randomPicks}
+      cssKey='random-games'
+      onToggleMinimize={props.onToggleMinimize}>
+        {render}
+    </HomePageBox>
   );
 }
 

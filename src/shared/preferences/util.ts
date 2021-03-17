@@ -88,6 +88,7 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   nativePlatforms: [],
   disableExtremeGames: false,
   showBrokenGames: false,
+  minimizedHomePageBoxes: [],
 });
 
 /**
@@ -142,6 +143,7 @@ export function overwritePreferenceData(
   parser.prop('browserModeProxy',            v => source.browserModeProxy            = str(v));
   parser.prop('onDemandBaseUrl',             v => source.onDemandBaseUrl             = parseVarStr(str(v)));
   parser.prop('excludedRandomLibraries',     v => source.excludedRandomLibraries     = strArray(v), true);
+  parser.prop('minimizedHomePageBoxes',      v => source.minimizedHomePageBoxes      = strArray(v), true);
   parser.prop('nativePlatforms',             v => source.nativePlatforms             = strArray(v));
   parser.prop('disableExtremeGames',         v => source.disableExtremeGames         = !!v);
   parser.prop('showBrokenGames',             v => source.showBrokenGames             = !!v);

@@ -429,7 +429,7 @@ export class App extends React.Component<AppProps> {
 
   componentDidMount() {
     // Call first batch of random games
-    if (this.props.main.randomGames.length < 5) { this.rollRandomGames(true); }
+    if (this.props.main.randomGames.length < 6) { this.rollRandomGames(true); }
   }
 
   componentDidUpdate(prevProps: AppProps) {
@@ -581,7 +581,7 @@ export class App extends React.Component<AppProps> {
     }
 
     // Clear random picks queue
-    if (this.props.main.randomGames.length > 5 && (
+    if (this.props.main.randomGames.length > 6 && (
       this.props.preferencesData.browsePageShowExtreme !== prevProps.preferencesData.browsePageShowExtreme ||
       !arrayShallowStrictEquals(this.props.preferencesData.excludedRandomLibraries, prevProps.preferencesData.excludedRandomLibraries)
     )) {
@@ -971,7 +971,7 @@ export class App extends React.Component<AppProps> {
     }
 
     // Request more games to the queue
-    if (randomGames.length <= 15 && !requestingRandomGames) {
+    if (randomGames.length <= 18 && !requestingRandomGames) {
       this.props.dispatchMain({ type: MainActionType.REQUEST_RANDOM_GAMES });
 
       window.Shared.back.request(BackIn.RANDOM_GAMES, {
