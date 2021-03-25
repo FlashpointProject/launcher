@@ -183,6 +183,8 @@ const langTemplate = {
     'fixCommaTagsDesc', // @NOT_ASSIGNED
     'updateTagsString',
     'updateTagsStringDesc',
+    'massImportGameData',
+    'massImportGameDataDesc',
     'migrateExtremeGames',
     'migrateExtremeGamesDesc',
     'importMetaEdits',

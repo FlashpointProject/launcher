@@ -155,6 +155,10 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               title={strings.updateTagsStringDesc}
               onClick={this.onUpdateTagsStr} />
             <SimpleButton
+              value={strings.massImportGameData}
+              title={strings.massImportGameDataDesc}
+              onClick={this.onMassImportGameData} />
+            <SimpleButton
               value={strings.migrateExtremeGames}
               title={strings.migrateExtremeGamesDesc}
               onClick={this.onMigrateExtremeGamesClick} />
@@ -326,6 +330,42 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
       }
       this.setState({ text: text + '\n' + createTextBarProgress(processed, games.length) + '\n' + `Finished, updated ${processed} games.`});
     });
+  }
+
+  onMassImportGameData = (): void => {
+    const files = window.Shared.showOpenDialogSync({
+      title: 'Select Game Data',
+      filters: [{
+        name: 'Game Data',
+        extensions: ['zip']
+      }],
+      properties: ['openFile', 'multiSelections', 'dontAddToRecent']
+    });
+
+    if (files && files.length > 0) {
+      const addLine = (line: string) => this.setState({ text: this.state.text + line });
+      setTimeout(async () => {
+        addLine(`Selected ${files.length} Files...`);
+        for (const filePath of files) {
+          // Extract UUID from filename
+          if (filePath.length >= 39) {
+            const uuid = filePath.substring(0, 35);
+            if (validateSemiUUID(uuid)) {
+              const game = await window.Shared.back.request(BackIn.GET_GAME, uuid);
+              if (game) {
+                // Game exists, import the data
+                window.Shared.back.request(BackIn.IMPORT_GAME_DATA, game.id, filePath)
+                .then((gameData) => addLine(`Success - ${filePath} - ${game.title} - SHA256: ${gameData.sha256}`))
+                .catch((error) => {
+                  addLine(`Failure - ${filePath} - ERROR: ${error}`);
+                });
+              }
+            }
+          }
+        }
+        addLine('FINISHED!');
+      });
+    }
   }
 
   onMigrateExtremeGamesClick = (): void => {
