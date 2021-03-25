@@ -42,7 +42,7 @@ export async function startBrowserMode(init: Init): Promise<void> {
     const installed = fs.existsSync('./.installed');
     state.mainFolderPath = getMainFolderPath(installed);
     state.config = ConfigFile.readOrCreateFileSync(path.join(state.mainFolderPath, CONFIG_FILENAME));
-    state.prefs = await PreferencesFile.readOrCreateFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME));
+    state.prefs = PreferencesFile.readOrCreateFileSync(path.join(state.config.flashpointPath, PREFERENCES_FILENAME));
 
     let extension = '';
     switch (process.platform) {
@@ -69,6 +69,7 @@ export async function startBrowserMode(init: Init): Promise<void> {
     // Reject all permission requests since we don't need any permissions.
     session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => callback(false));
 
+    console.log(state.prefs.browserModeProxy);
     session.defaultSession.setProxy({
       pacScript: '',
       proxyRules: state.prefs.browserModeProxy, // @TODO Make the proxy not hard coded?

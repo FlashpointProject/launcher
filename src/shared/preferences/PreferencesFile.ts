@@ -1,12 +1,26 @@
 import * as fs from 'fs';
 import { AppPreferencesData } from './interfaces';
 import { defaultPreferencesData, overwritePreferenceData } from './util';
-import { deepCopy, readJsonFile, stringifyJsonDataFile } from '../Util';
+import { deepCopy, readJsonFile, readJsonFileSync, stringifyJsonDataFile } from '../Util';
 
 /** Static class with methods for saving, loading and parsing the Preferences file */
 export namespace PreferencesFile {
   /** Encoding used by preferences file. */
   const fileEncoding = 'utf8';
+
+  /**
+   * Synchronous way to read Preferences, used in BrowserMode - Note: Will not save default values
+   * @param onError Called for each error that occurs while parsing.
+   */
+  export function readOrCreateFileSync(filePath: string, onError?: (error: string) => void): AppPreferencesData {
+    // Try to get the data from the file
+    const data: AppPreferencesData | undefined = readJsonFileSync(filePath, fileEncoding);
+    if (!data) {
+      throw 'Error reading Preferences file!';
+    }
+    // Return
+    return data;
+  }
 
   /**
    * Attempt to read and parse the preferences file, then return the result.
@@ -26,7 +40,7 @@ export namespace PreferencesFile {
     if (error || !data) {
       data = deepCopy(defaultPreferencesData);
       await saveFile(filePath, data)
-      .catch(() => console.log('Failed to save default preferences file!'));
+      .catch(() => console.error('Failed to save default preferences file!'));
     }
     // Return
     return data;
