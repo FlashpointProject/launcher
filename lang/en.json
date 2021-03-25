@@ -178,6 +178,8 @@
     "importTagsDesc": "Imports Tags from an file created by 'Export Tags'",
     "migrateExtremeGames": "Migrate Extreme Games",
     "migrateExtremeGamesDesc": "Removes 'Extreme' from any games and assigns the 'LEGACY-Extreme' tag to them",
+    "massImportGameData": "Mass Import Game Data",
+    "massImportGameDataDesc": "Mass imports Game Data packs, attempting to match their filename to a games UUID.",
     "servicesHeader": "Background Services",
     "servicesMissing": "There are no services.",
     "running": "Running",
