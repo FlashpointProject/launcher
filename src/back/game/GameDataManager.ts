@@ -141,13 +141,18 @@ export function importGameData(gameId: string, filePath: string, dataPacksFolder
         await fs.promises.copyFile(filePath, newPath);
         if (existingGameData) {
           if (existingGameData.presentOnDisk === false) {
+            // File wasn't on disk before but is now, update GameData info
             existingGameData.path = newFilename;
             existingGameData.presentOnDisk = true;
             save(existingGameData)
             .then(resolve)
             .catch(reject);
+          } else {
+            // File exists on disk already
+            resolve(existingGameData);
           }
         } else {
+          // SHA256 not matching any existing GameData, create a new one
           const newGameData = new GameData();
           newGameData.title = 'Data Pack';
           newGameData.gameId = gameId;

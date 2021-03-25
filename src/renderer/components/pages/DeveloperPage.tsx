@@ -343,26 +343,27 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     });
 
     if (files && files.length > 0) {
-      const addLine = (line: string) => this.setState({ text: this.state.text + line });
+      const addLine = (line: string) => this.setState({ text: this.state.text + '\n' + line });
       setTimeout(async () => {
-        addLine(`Selected ${files.length} Files...`);
-        for (const filePath of files) {
+        this.setState({ text: `Selected ${files.length} Files...` });
+        await Promise.all(files.map(async (filePath) => {
           // Extract UUID from filename
-          if (filePath.length >= 39) {
-            const uuid = filePath.substring(0, 35);
+          const fileName = path.basename(filePath);
+          if (fileName.length >= 39) {
+            const uuid = fileName.substring(0, 36);
             if (validateSemiUUID(uuid)) {
               const game = await window.Shared.back.request(BackIn.GET_GAME, uuid);
               if (game) {
                 // Game exists, import the data
-                window.Shared.back.request(BackIn.IMPORT_GAME_DATA, game.id, filePath)
-                .then((gameData) => addLine(`Success - ${filePath} - ${game.title} - SHA256: ${gameData.sha256}`))
+                return window.Shared.back.request(BackIn.IMPORT_GAME_DATA, game.id, filePath)
+                .then((gameData) => addLine(`Success - ${fileName} - ${game.title} - SHA256: ${gameData.sha256}`))
                 .catch((error) => {
-                  addLine(`Failure - ${filePath} - ERROR: ${error}`);
+                  addLine(`Failure - ${fileName} - ERROR: ${error}`);
                 });
               }
             }
           }
-        }
+        }));
         addLine('FINISHED!');
       });
     }
