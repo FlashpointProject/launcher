@@ -95,7 +95,7 @@ export function registerRequestCallbacks(state: BackState): void {
     const mad4fpEnabled = state.serviceInfo ? (state.serviceInfo.server.findIndex(s => s.mad4fp === true) !== -1) : false;
     const platforms: Record<string, string[]> = {};
     for (const library of libraries) {
-      platforms[library] = await GameManager.findPlatforms(library);
+      platforms[library] = (await GameManager.findPlatforms(library)).sort();
     }
 
     // Fire after return has sent
@@ -153,7 +153,7 @@ export function registerRequestCallbacks(state: BackState): void {
     const startTime = Date.now();
     const suggestions: GamePropSuggestions = {
       tags: await GameManager.findUniqueValues(TagAlias, 'name'),
-      platform: await GameManager.findUniqueValues(Game, 'platform'),
+      platform: (await GameManager.findUniqueValues(Game, 'platform')).sort(),
       playMode: await GameManager.findUniqueValues(Game, 'playMode'),
       status: await GameManager.findUniqueValues(Game, 'status'),
       applicationPath: await GameManager.findUniqueValues(Game, 'applicationPath'),
