@@ -260,22 +260,22 @@ export function HomePage(props: HomePageProps) {
             {strings.favoritesPlaylist}
           </Link>
         </QuickStartItem><QuickStartItem icon='list'>
-          <a
-            href='http://bluemaxima.org/flashpoint/datahub/Tags'
-            target='_top'>
+          <div
+            onClick={() => remote.shell.openExternal('http://bluemaxima.org/flashpoint/datahub/Tags')}
+            className='clickable-url' >
             {strings.tagList}
-          </a>
+          </div>
         </QuickStartItem><br /><QuickStartItem icon='puzzle-piece'>
           {strings.filterByPlatform}:
         </QuickStartItem><QuickStartItem className='home-page__box-item--platforms'>
           {platformList}
         </QuickStartItem><br />
         <QuickStartItem icon='code'>
-          <a
-            href='https://trello.com/b/Tu9E5GLk/launcher'
-            target='_top'>
+          <div
+            onClick={() => remote.shell.openExternal('https://trello.com/b/Tu9E5GLk/launcher')}
+            className='clickable-url' >
             {strings.plannedFeatures}
-          </a>
+          </div>
         </QuickStartItem>
       </>
     );

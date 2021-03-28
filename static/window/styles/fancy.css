@@ -1090,3 +1090,8 @@ body {
 .slider-checked {
   background-color: var(--layout__confirm-color);
 }
+
+.clickable-url {
+  text-decoration: underline;
+  cursor: pointer;
+}
