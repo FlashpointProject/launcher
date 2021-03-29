@@ -5,7 +5,7 @@
     "configDesc": "（您必须点击 '保存并重启' 才能使部分设置生效）",
     "preferencesHeader": "首选项",
     "extremeGames": "成人内容",
-    "extremeGamesDesc": "Allow tags inside 'Extreme' tag filter groups and corresponding games to be shown.",
+    "extremeGamesDesc": "允许显示包含于 'Extreme' 标签筛选器组内的标签和游戏。",
     "enableEditing": "启用编辑",
     "enableEditingDesc": "启用对游戏与附加应用的编辑。也显示与编辑有关的标签页。",
     "onDemandImages": "按需显示图像",
