@@ -336,7 +336,7 @@
     "loadArchiveDesc": "Carregar um ou mais arquivos de Curação",
     "loadFolder": "Carregar Pasta",
     "loadFolderDesc": "Carregar uma ou mais pastas de Curação",
-    "scanNewCurationFolders": "Scan For New Curations",
+    "scanNewCurationFolders": "Procurar Novas Curações",
     "scanNewCurationFoldersDesc": "Scans for curations that have been added after the initial scan",
     "noCurations": "Nenhuma Curação",
     "id": "Pasta da Curação",
