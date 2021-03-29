@@ -1,8 +1,11 @@
+import { TagCategory } from '@database/entity/TagCategory';
 import { CurateBoxCheckBox } from '@renderer/components/CurateBoxCheckBoxRow';
-import { CurateBoxDropdownInputRow, CurateBoxInputRow } from '@renderer/components/CurateBoxInputRow';
+import { CurateBoxDropdownInputRow, CurateBoxInputRow, CurateBoxTagDropdownInputRow } from '@renderer/components/CurateBoxInputRow';
 import { GameImageSplit } from '@renderer/components/GameImageSplit';
+import { useMouse } from '@renderer/hooks/useMouse';
 import { CurateActionType } from '@renderer/store/curate/enums';
-import { CurateAction } from '@renderer/store/curate/types';
+import { CurateAction, CurationState } from '@renderer/store/curate/types';
+import { findElementAncestor } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
 import { LoadedCuration } from '@shared/curate/types';
 import { GamePropSuggestions } from '@shared/interfaces';
@@ -10,12 +13,16 @@ import * as React from 'react';
 import { Dispatch } from 'redux';
 import { CurateBoxRow } from './CurateBoxRow';
 import { CurateBoxWarnings } from './CurateBoxWarnings';
-import { InputField } from './InputField';
+import { InputElement, InputField } from './InputField';
+import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
 
+const tagIndexAttr = 'data-tag-index';
+
 export type CurateBoxProps = {
-  curation: LoadedCuration;
+  curation: CurationState;
   suggestions: Partial<GamePropSuggestions>;
+  tagCategories: TagCategory[];
   dispatch: Dispatch<CurateAction>;
 }
 
@@ -35,6 +42,62 @@ export function CurateBox(props: CurateBoxProps) {
   const onNewAddApp  = useCreateAddAppCallback('normal',  props.curation.folder, props.dispatch);
   const onAddExtras  = useCreateAddAppCallback('extras',  props.curation.folder, props.dispatch);
   const onAddMessage = useCreateAddAppCallback('message', props.curation.folder, props.dispatch);
+
+
+  const onTagChange = React.useCallback((event: React.ChangeEvent<InputElement>): void => {
+    props.dispatch({
+      type: CurateActionType.EDIT_CURATION_TAG_TEXT,
+      text: event.currentTarget.value,
+    });
+  }, []);
+
+  const onTagKeyDown = React.useCallback((event: React.KeyboardEvent<InputElement>): void => {
+    console.log(event.key)
+    if (event.defaultPrevented) { return; }
+
+    if (event.key === 'Enter') {
+      if (props.suggestions.tags) {
+        const index = props.suggestions.tags.findIndex(tag => tag === event.currentTarget.value);
+        if (index !== -1) {
+          console.log(index, props.suggestions.tags[index])
+        }
+      }
+    }
+  }, []);
+
+  const onTagItemSelect = React.useCallback((item: string, index: number) => {
+    props.dispatch({
+      type: CurateActionType.ADD_TAG,
+      tag: item,
+      category: undefined, // @TODO Get the category somehow?
+    });
+
+    console.log(!!tagInputRef.current, tagInputRef.current)
+    
+    if (tagInputRef.current) { tagInputRef.current.focus(); }
+  }, [props.curation.folder]);
+  
+  const tagInputRef = React.useRef<InputElement>(null);
+
+
+  const [onTagMouseDown, onTagMouseUp] = useMouse<number>(() => ({
+    chain_delay: 500,
+    find_id: (event) => {
+      let index: number | undefined;
+      try { index = findAncestorRowIndex(event.target as Element); }
+      catch (error) { console.error(error); }
+      return index;
+    },
+    on_click: (event, id, clicks) => {
+      if (event.button === 0 && clicks === 1) { // Single left click
+        props.dispatch({
+          type: CurateActionType.REMOVE_TAG,
+          index: id,
+        });
+      }
+    },
+  }));
+
 
   const disabled = false; // props.curation ? props.curation.locked : false;
 
@@ -108,7 +171,45 @@ export function CurateBox(props: CurateBoxProps) {
                 placeholder={strings.browse.noPublisher}
                 property='publisher'
                 { ...shared } />
-              <tr><td/><td>@TODO Tags</td></tr>
+              <CurateBoxTagDropdownInputRow
+                title={strings.browse.tags}
+                tagCategories={props.tagCategories}
+                text={props.curation.tagText}
+                items={props.suggestions.tags}
+                onItemSelect={onTagItemSelect}
+                inputRef={tagInputRef}
+                onChange={onTagChange}
+                onKeyDown={onTagKeyDown}
+                property='tags'
+                { ...shared } />
+              {/* Tag List */}
+              <tr>
+                <td/>
+                <td 
+                  onMouseDown={onTagMouseDown}
+                  onMouseUp={onTagMouseUp}>
+                  { props.curation.game.tags ? (
+                    props.curation.game.tags.map((tag, index) => {
+                      const category = props.tagCategories.find(c => c.name === tag.category);
+                      
+                      return (
+                        <div
+                          className='curate-tag'
+                          key={index}
+                          { ...{ [tagIndexAttr]: index } }>
+                          <OpenIcon
+                            className='curate-tag__icon'
+                            icon='x' />
+                          <span className='curate-tag__text'>
+                            {tag.tag}
+                          </span>
+                        </div>
+                      );
+                    })
+                  ) : undefined }                  
+                </td>
+              </tr>
+              {/* End of Tag List */}
               <CurateBoxInputRow
                 title={strings.browse.playMode}
                 text={props.curation.game.playMode}
@@ -241,7 +342,7 @@ export function CurateBox(props: CurateBoxProps) {
           {/* Curation Folder */}
           <table>
             <tbody>
-              <CurateBoxRow title={strings.curate.id + ':'}>
+              <CurateBoxRow title={strings.curate.id}>
                 <InputField
                   text={props.curation && props.curation.folder || ''}
                   placeholder={'No ID? Something\'s broken.'}
@@ -352,4 +453,17 @@ function useCreateAddAppCallback(type: 'normal' | 'extras' | 'message', curation
       }
     });
   }, [dispatch, curationFolder]);
+}
+
+function findAncestorRowIndex(element: Element): number | undefined {
+  const ancestor = findElementAncestor(element, target => target.getAttribute(tagIndexAttr) !== null, true);
+  if (!ancestor) { return undefined; }
+
+  const index = ancestor.getAttribute(tagIndexAttr);
+  if (typeof index !== 'string') { throw new Error('Failed to get attribute from ancestor!'); }
+
+  const index_number = (index as any) * 1; // Coerce to number
+  if (isNaN(index_number)) { throw new Error('Failed to convert attribute to a number!'); }
+
+  return index_number;
 }

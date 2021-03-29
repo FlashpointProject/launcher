@@ -19,7 +19,7 @@ export function CurateBoxCheckBox(props: CurateBoxCheckBoxProps) {
   const onChange = useOnCheckboxToggle(props.property, props.curationFolder, props.dispatch);
 
   return (
-    <CurateBoxRow title={props.title + ':'}>
+    <CurateBoxRow title={props.title}>
       <CheckBox
         checked={props.checked}
         onToggle={onChange}

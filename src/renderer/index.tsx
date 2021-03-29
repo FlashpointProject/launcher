@@ -41,7 +41,7 @@ import { logFactory } from './util/logging';
   const store = configureStore(history, {
     main: createInitialMainState(),
     curate: {
-      curations: [ ...window.Shared.initialCurations ],
+      curations: window.Shared.initialCurations.map(c => ({ ...c, tagText: '' })),
       current: -1,
     },
   });

@@ -164,7 +164,10 @@ export class App extends React.Component<AppProps> {
           case BackInit.CURATE:
             window.Shared.back.request(BackIn.CURATE_GET_LIST)
             .then(curations => {
-              (this.props.dispatchMain as any as Dispatch<CurateAction>)({ type: CurateActionType.SET_ALL_CURATIONS, curations });
+              (this.props.dispatchMain as any as Dispatch<CurateAction>)({
+                type: CurateActionType.SET_ALL_CURATIONS,
+                curations: curations.map(c => ({ ...c, tagText: '' })),
+              });
             });
             break;
         }
@@ -259,7 +262,11 @@ export class App extends React.Component<AppProps> {
     });
 
     window.Shared.back.register(BackOut.CURATE_LIST_CHANGE, (event, added, removed) => {
-      (this.props.dispatchMain as any as Dispatch<CurateAction>)({ type: CurateActionType.APPLY_DELTA, added, removed });
+      (this.props.dispatchMain as any as Dispatch<CurateAction>)({
+        type: CurateActionType.APPLY_DELTA,
+        added: added && added.map(c => ({ ...c, tagText: '' })),
+        removed,
+      });
     });
 
     // Cache playlist icons (if they are loaded)

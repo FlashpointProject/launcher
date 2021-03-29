@@ -546,6 +546,21 @@ body {
 .curate-list-item--selected {
   background-color: var(--layout__game-item-background-selected);
 }
+/* Curate Tag (Game tag for the curate page) */
+.curate-tag {
+  background-color: var(--layout__contrast-text-color);
+}
+.curate-tag:hover {
+  background-color: var(--layout__warning-dark-color);
+}
+
+/* Tag Dropdown Item */
+.tag-dropdown-item:hover {
+  background-color: var(--layout__game-item-background-hover);
+}
+.tag-dropdown-item--selected {
+  background-color: var(--layout__game-item-background-selected);
+}
 
 
 /* ------ Log ------ */

@@ -5,10 +5,10 @@ import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
 import { useMouse } from '@renderer/hooks/useMouse';
 import { CurateActionType } from '@renderer/store/curate/enums';
+import { CurationState } from '@renderer/store/curate/types';
 import { findElementAncestor, getPlatformIconURL } from '@renderer/Util';
 import { uuid } from '@renderer/util/uuid';
 import { BackIn } from '@shared/back/types';
-import { LoadedCuration } from '@shared/curate/types';
 import * as electron from 'electron';
 import * as React from 'react';
 
@@ -21,7 +21,7 @@ type OwnProps = {
 export type CuratePageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps & WithMainStateProps & WithCurateStateProps
 
 export function CuratePage(props: CuratePageProps) {
-  const curation: LoadedCuration | undefined = props.curate.curations[props.curate.current];
+  const curation: CurationState | undefined = props.curate.curations[props.curate.current];
 
   const [onListMouseDown, onListMouseUp] = useMouse<number>(() => ({
     chain_delay: 500,
@@ -83,6 +83,7 @@ export function CuratePage(props: CuratePageProps) {
           <CurateBox
             curation={curation}
             suggestions={props.main.suggestions}
+            tagCategories={props.tagCategories}
             dispatch={props.dispatchCurate} />
         ) : (
           <div>
