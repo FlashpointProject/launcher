@@ -371,7 +371,7 @@
     "nonExistingLibrary": "'Biblioteca' não é o nome de uma biblioteca existente! (A padrão será usada)",
     "nonContentFolders": "Pastas além da 'content' encontradas na pasta da Curação. Elas deveriam estar lá?",
     "noTags": "Não há nenhuma tag nesta curação.",
-    "noSource": "'Source' is a required field.",
+    "noSource": "'Fonte' é um campo obrigatório.",
     "unenteredTag": "O campo de texto Tags não foi enviado.",
     "noLogo": "Não há nenhum logotipo nesta curação.",
     "noScreenshot": "Não há nenhuma captura de tela nesta curação.",
