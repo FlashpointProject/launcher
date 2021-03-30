@@ -9,6 +9,7 @@ import { BackIn, BackInit, BackOut, DownloadDetails } from '@shared/back/types';
 import { overwriteConfigData } from '@shared/config/util';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
+import { LoadedCuration } from '@shared/curate/types';
 import { getContentFolderByKey } from '@shared/curate/util';
 import { AppProvider, BrowserApplicationOpts } from '@shared/extensions/interfaces';
 import { FilterGameOpts } from '@shared/game/GameFilter';
@@ -21,13 +22,16 @@ import { deepCopy } from '@shared/Util';
 import { formatString } from '@shared/utils/StringFormatter';
 import * as axiosImport from 'axios';
 import * as fs from 'fs';
-import { ensureDir } from 'fs-extra';
+import * as fs_extra from 'fs-extra';
+import { extractFull } from 'node-7z';
 import * as path from 'path';
 import * as url from 'url';
 import * as util from 'util';
 import * as YAML from 'yaml';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME } from './constants';
+import { CURATIONS_FOLDER_EXTRACTING, CURATIONS_FOLDER_LOADED, CURATION_META_FILENAMES } from './consts';
+import { readCurationMeta } from './curate/read';
 import { ExtConfigFile } from './ExtConfigFile';
 import { parseAppVar } from './extensions/util';
 import * as GameDataManager from './game/GameDataManager';
@@ -129,6 +133,7 @@ export function registerRequestCallbacks(state: BackState): void {
       logoSets: Array.from(state.registry.logoSets.values()),
       extConfigs: await state.extensionsService.getContributions('configuration'),
       extConfig: state.extConfig,
+      curations: state.loadedCurations,
     };
 
   });
@@ -164,6 +169,7 @@ export function registerRequestCallbacks(state: BackState): void {
       appPaths[platform] = (await GameManager.findPlatformAppPaths(platform))[0] || '';
     }
     console.log(Date.now() - startTime);
+    state.recentAppPaths = appPaths; // Update cache
     return {
       suggestions: suggestions,
       appPaths: appPaths,
@@ -1157,7 +1163,7 @@ export function registerRequestCallbacks(state: BackState): void {
         }
 
         if (save) {
-          await ensureDir(folderPath);
+          await fs_extra.ensureDir(folderPath);
           await writeFile(filePath, JSON.stringify(output, null, '\t'));
         }
       } catch (error) {
@@ -1173,6 +1179,72 @@ export function registerRequestCallbacks(state: BackState): void {
     );
 
     return result;
+  });
+
+  state.socketServer.register(BackIn.CURATE_LOAD_ARCHIVES, async (event, filePaths) => {
+    for (const filePath of filePaths) {
+      const key = uuid();
+      const extractPath = path.resolve(state.config.flashpointPath, CURATIONS_FOLDER_EXTRACTING, key);
+      try {
+        // Extract to temp folder
+        await fs_extra.ensureDir(extractPath);
+        await new Promise<void>((resolve, reject) => {
+          extractFull(filePath, extractPath, { $bin: state.sevenZipPath, $progress: true })
+          .once('end', () => resolve())
+          .once('error', err => reject(err));
+        });
+
+        // Find the "root" path of the curation
+        // (Sometimes curations are not at the root of the archive, but instead nested one or more folders deep)
+        const rootPath = await getRootPath(extractPath);
+        if (!rootPath) { throw new Error('Meta.yaml/yml/txt not found in extracted archive'); }
+
+        // Move all files from the root folder to the curation folder
+        const curationPath = path.resolve(state.config.flashpointPath, CURATIONS_FOLDER_LOADED, key);
+        await fs_extra.ensureDir(curationPath);
+        for (const file of await fs.promises.readdir(rootPath)) {
+          await fs_extra.move(path.join(rootPath, file), path.join(curationPath, file));
+        }
+
+        // Delete extract folder
+        await fs_extra.remove(extractPath);
+
+        // Load curation
+        const parsedMeta = await readCurationMeta(curationPath, state.recentAppPaths);
+        if (!parsedMeta) { throw new Error('Fail'); }
+
+        const curation: LoadedCuration = {
+          folder: key,
+          game: parsedMeta.game,
+          addApps: parsedMeta.addApps,
+        };
+
+        state.loadedCurations.push(curation);
+        state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [ curation ]);
+      } catch (error) {
+        log.error('Curate', `Failed to load curation archive! ${error.toString()}`);
+      }
+    }
+
+    async function getRootPath(dir: string): Promise<string | undefined> {
+      for (const fileName of await fs.promises.readdir(dir)) {
+        const fullPath = path.join(dir, fileName);
+        const stats = await fs.promises.lstat(fullPath);
+        // Found root, pass back
+        if (stats.isFile() && CURATION_META_FILENAMES.indexOf(fileName.toLowerCase()) !== -1) {
+          return dir;
+        } else if (stats.isDirectory()) {
+          const foundRoot = await getRootPath(fullPath);
+          if (foundRoot) {
+            return foundRoot;
+          }
+        }
+      }
+    }
+  });
+
+  state.socketServer.register(BackIn.CURATE_GET_LIST, async (event) => {
+    return state.loadedCurations;
   });
 
   state.socketServer.register(BackIn.RUN_COMMAND, async (event, command, args = []) => {

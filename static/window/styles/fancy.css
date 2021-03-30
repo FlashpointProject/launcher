@@ -498,6 +498,9 @@ body {
 
 
 /* ------ Curate ------ */
+.curate-page__center {
+  background-color: var(--layout__curate-page-box-background);
+}
 /* Curate Page Top */
 .curate-page__floating-box {
   border-color: var(--layout__curate-page-floating-box-border);
@@ -515,10 +518,6 @@ body {
   background-color: var(--layout__playlist-list-item-drag-over-background);
 }
 /* Curate Box */
-.curate-box {
-  background-color: var(--layout__curate-page-box-background);
-  border-color: var(--layout__curate-page-box-border);
-}
 .curate-box input[type="checkbox"] {
   vertical-align: middle;
   transform: scale(1rem);
@@ -560,6 +559,28 @@ body {
 }
 .curate-box-select--warn select option:not(.curate-box-select__invalid-option) {
   background-color: var(--layout__secondary-background);
+}
+/* Curate List Item */
+.curate-list-item:nth-child(n+2) { /* All but first */
+  border-color: var(--layout__tertiary-background);
+}
+.curate-list-item--selected {
+  background-color: var(--layout__game-item-background-selected);
+}
+/* Curate Tag (Game tag for the curate page) */
+.curate-tag {
+  background-color: var(--layout__contrast-text-color);
+}
+.curate-tag:hover {
+  background-color: var(--layout__warning-dark-color);
+}
+
+/* Tag Dropdown Item */
+.tag-dropdown-item:hover {
+  background-color: var(--layout__game-item-background-hover);
+}
+.tag-dropdown-item--selected {
+  background-color: var(--layout__game-item-background-selected);
 }
 
 

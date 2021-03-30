@@ -10,11 +10,10 @@ type CurateRowProps = {
 
 /** A row inside a curate box. */
 export function CurateBoxRow(props: CurateRowProps) {
-  const { children, className, title } = props;
   return (
-    <tr className={'curate-box-row' + (className ? (' ' + className) : '')}>
-      <td className='curate-box-row__title'>{title}</td>
-      <td className='curate-box-row__content'>{children}</td>
+    <tr className={'curate-box-row' + (props.className ? (' ' + props.className) : '')}>
+      <td className='curate-box-row__title'>{props.title ? (props.title + ':') : ''}</td>
+      <td className='curate-box-row__content'>{props.children}</td>
     </tr>
   );
 }

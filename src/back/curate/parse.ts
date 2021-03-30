@@ -1,19 +1,17 @@
-import { BackIn } from '@shared/back/types';
+import { AddAppCurationMeta, CurationMeta, CurationMetaTag } from '@shared/curate/types';
 import { Coerce } from '@shared/utils/Coerce';
-import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
+import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import { CurationFormatObject, parseCurationFormat } from './format/parser';
 import { CFTokenizer, tokenizeCurationFormat } from './format/tokenizer';
-import { EditAddAppCurationMeta, EditCurationMeta } from './OLD_types';
-import { getTagsFromStr } from './util';
 
 const { str } = Coerce;
 
 /** Return value type of the parseCurationMeta function. */
 export type ParsedCurationMeta = {
   /** Meta data of the game. */
-  game: EditCurationMeta;
+  game: CurationMeta;
   /** Meta data of the additional applications. */
-  addApps: EditAddAppCurationMeta[];
+  addApps: AddAppCurationMeta[];
 };
 
 /**
@@ -27,16 +25,6 @@ export async function parseCurationMetaOld(text: string): Promise<ParsedCuration
   tokens = tokenizeCurationFormat(text);
   rawMeta = parseCurationFormat(tokens);
   // Convert the raw meta to a programmer friendly object
-  return await parseCurationMetaFile(rawMeta);
-}
-
-/**
- * Parse a string containing meta for an new style (YAML) curation
- * @param text A string of curation meta.
- */
-export async function parseCurationMetaNew(rawMeta: any): Promise<ParsedCurationMeta> {
-  // Try parsing yaml file
-  // Convert raw meta into a ParsedCurationMeta object
   return await parseCurationMetaFile(rawMeta);
 }
 
@@ -95,14 +83,6 @@ export async function parseCurationMetaFile(data: any, onError?: (error: string)
   if (lowerCaseData.genre)  { parsed.game.tags = await getTagsFromStr(arrayStr(lowerCaseData.genre), str(lowerCaseData['tag categories']));  }
   if (lowerCaseData.genres) { parsed.game.tags = await getTagsFromStr(arrayStr(lowerCaseData.genres), str(lowerCaseData['tag categories'])); }
   if (lowerCaseData.tags)   { parsed.game.tags = await getTagsFromStr(arrayStr(lowerCaseData.tags), str(lowerCaseData['tag categories']));   }
-  // Extreme Migration
-  if (parsed.game.extreme) {
-    parsed.game.extreme = false;
-    const extremeTag = await window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, 'LEGACY-Extreme');
-    if (parsed.game.tags && parsed.game.tags.findIndex(t => t.id === extremeTag.id) === -1) {
-      parsed.game.tags.push(extremeTag);
-    }
-  }
   // property aliases
   parser.prop('animation notes',      v => parsed.game.notes               = str(v));
   // Add-apps
@@ -118,8 +98,8 @@ export async function parseCurationMetaFile(data: any, onError?: (error: string)
  * @param item Object parser, wrapped around the "raw" add-app meta object to convert.
  * @param label Label of the object.
  */
-function convertAddApp(item: IObjectParserProp<any>, label: string | number | symbol, rawValue: any): EditAddAppCurationMeta {
-  const addApp: EditAddAppCurationMeta = {};
+function convertAddApp(item: IObjectParserProp<any>, label: string | number | symbol, rawValue: any): AddAppCurationMeta {
+  const addApp: AddAppCurationMeta = {};
   const labelStr = str(label);
   switch (labelStr.toLowerCase()) {
     case 'extras': // (Extras add-app)
@@ -139,13 +119,13 @@ function convertAddApp(item: IObjectParserProp<any>, label: string | number | sy
 // Coerce an object into a sensible string
 function arrayStr(rawStr: any): string {
   if (Array.isArray(rawStr)) {
-    // Convert lists to ; separated strings
+    // Convert lists to ; seperated strings
     return rawStr.join('; ');
   }
   return str(rawStr);
 }
 
-export function generateExtrasAddApp(folderName: string) : EditAddAppCurationMeta {
+function generateExtrasAddApp(folderName: string) : AddAppCurationMeta {
   return {
     heading: 'Extras',
     applicationPath: ':extras:',
@@ -153,10 +133,25 @@ export function generateExtrasAddApp(folderName: string) : EditAddAppCurationMet
   };
 }
 
-export function generateMessageAddApp(message: string) : EditAddAppCurationMeta {
+function generateMessageAddApp(message: string) : AddAppCurationMeta {
   return {
     heading: 'Message',
     applicationPath: ':message:',
     launchCommand: message
   };
+}
+
+async function getTagsFromStr(tagsStr: string, tagCategoriesStr: string): Promise<CurationMetaTag[]> {
+  const allTags: CurationMetaTag[] = [];
+  const splitTags = tagsStr.split(';');
+  const splitCategories = tagCategoriesStr.split(';');
+
+  for (let i = 0; i < splitTags.length; i++) {
+    allTags.push({
+      tag: splitTags[i].trim(),
+      category: splitCategories[i] ? splitCategories[i].trim() : undefined,
+    });
+  }
+
+  return allTags.filter((tag, index) => allTags.findIndex(tag2 => (tag.tag === tag2.tag) && (tag.category === tag2.category)) == index); // remove dupes
 }

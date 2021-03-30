@@ -4,6 +4,7 @@ import { SocketClient } from '@shared/back/SocketClient';
 import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/extensions/interfaces';
 import { OpenDialogOptions } from 'electron';
 import { AppConfigData, AppExtConfigData } from './config/interfaces';
+import { LoadedCuration } from './curate/types';
 import { LangContainer, LangFile } from './lang';
 import { ILogEntry } from './Log/interface';
 import { AppPreferencesData } from './preferences/interfaces';
@@ -94,6 +95,7 @@ export interface IMainWindowExternal {
   /** Custom version to display alongside launcher version (useful for packaged copies) */
   customVersion?: string;
 
+  // @REFACTOR Figure out a way to delete these after they have been used (put them in a sub-object and just set it to undefined after it has been used?)
   initialLang: LangContainer;
   initialLangList: LangFile[];
   initialThemes: ITheme[];
@@ -110,6 +112,7 @@ export interface IMainWindowExternal {
   initialLogoSets: LogoSet[];
   initialExtConfigs: ExtensionContribution<'configuration'>[];
   initialExtConfig: AppExtConfigData;
+  initialCurations: LoadedCuration[];
 
   /**
    * Wait for the preload to initialize.

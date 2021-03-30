@@ -5,6 +5,7 @@ import { Source } from '@database/entity/Source';
 import { SourceData } from '@database/entity/SourceData';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
+import { LoadedCuration } from '@shared/curate/types';
 import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/extensions/interfaces';
 import { FilterGameOpts } from '@shared/game/GameFilter';
 import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
@@ -14,7 +15,7 @@ import { SocketTemplate } from '@shared/socket/types';
 import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
 import { GameData, TagAlias, TagFilterGroup } from 'flashpoint-launcher';
 import { AppConfigData, AppExtConfigData } from '../config/interfaces';
-import { EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '../curate/types';
+import { EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '../curate/OLD_types';
 import { ExecMapping, GamePropSuggestions, IService, ProcessAction } from '../interfaces';
 import { LangContainer, LangFile } from '../lang';
 import { ILogEntry, ILogPreEntry, LogLevel } from '../Log/interface';
@@ -120,6 +121,10 @@ export enum BackIn {
   // Extensions
   RUN_COMMAND,
 
+  // Curate
+  CURATE_LOAD_ARCHIVES,
+  CURATE_GET_LIST,
+
   // Misc
   UPLOAD_LOG,
   SET_EXT_CONFIG_VALUE,
@@ -171,6 +176,9 @@ export enum BackOut {
   SET_PLACEHOLDER_DOWNLOAD_PERCENT,
   OPEN_PLACEHOLDER_DOWNLOAD_DIALOG,
   CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG,
+
+  // Curate
+  CURATE_LIST_CHANGE,
 }
 
 export type BackInTemplate = SocketTemplate<BackIn, {
@@ -266,6 +274,10 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   // Extensions
   [BackIn.RUN_COMMAND]: (command: string, args?: any[]) => RunCommandResponse;
 
+  // Curate
+  [BackIn.CURATE_LOAD_ARCHIVES]: (filePaths: string[]) => void;
+  [BackIn.CURATE_GET_LIST]: () => LoadedCuration[];
+
   // Misc
   [BackIn.UPLOAD_LOG]: () => string | undefined;
   [BackIn.SET_EXT_CONFIG_VALUE]: (key: string, value: any) => void;
@@ -317,6 +329,9 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT]: (percent: number) => void;
   [BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG]: () => void;
   [BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG]: () => void;
+
+  // Curate
+  [BackOut.CURATE_LIST_CHANGE]: (added?: LoadedCuration[], removed?: string[]) => void; // "removed" is the folder names of the removed curations
 }>
 
 export type BackInitArgs = {
@@ -338,6 +353,7 @@ export enum BackInit {
   GAMES,
   PLAYLISTS,
   EXEC,
+  CURATE,
 }
 
 export type InitEventData = {
@@ -372,6 +388,7 @@ export type GetRendererInitDataResponse = {
   logoSets: LogoSet[];
   extConfigs: ExtensionContribution<'configuration'>[];
   extConfig: AppExtConfigData;
+  curations: LoadedCuration[];
 }
 
 export type GetSuggestionsResponseData = {

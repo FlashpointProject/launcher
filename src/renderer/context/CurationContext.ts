@@ -1,6 +1,6 @@
 import { GameMetaDefaults } from '@shared/curate/defaultValues';
 import { generateExtrasAddApp, generateMessageAddApp, ParsedCurationMeta } from '@shared/curate/parse';
-import { CurationIndexImage, EditAddAppCurationMeta, EditCuration, EditCurationMeta, IndexedContent } from '@shared/curate/types';
+import { CurationIndexImage, EditAddAppCurationMeta, EditCuration, EditCurationMeta, IndexedContent } from '@shared/curate/OLD_types';
 import { createContextReducer } from '../context-reducer/contextReducer';
 import { ReducerAction } from '../context-reducer/interfaces';
 import { createCurationIndexImage } from '../curate/importCuration';

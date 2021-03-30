@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
 import { fixSlashes } from '../Util';
-import { CurationIndex, EditCuration, IndexedContent } from './types';
+import { CurationIndex, EditCuration, IndexedContent } from './OLD_types';
 
 const access = promisify(fs.access);
 const lstat = promisify(fs.lstat);

@@ -2,6 +2,8 @@ import { TagCategory } from '@database/entity/TagCategory';
 import { connectRouter, RouterState } from 'connected-react-router';
 import { History } from 'history';
 import { combineReducers } from 'redux';
+import { curateStateReducer } from './curate/reducer';
+import { CurateState } from './curate/types';
 import { mainStateReducer } from './main/reducer';
 import { MainState } from './main/types';
 import { searchReducer, SearchState } from './search';
@@ -13,6 +15,7 @@ export interface ApplicationState {
   search: SearchState;
   tagCategories: TagCategory[];
   main: MainState;
+  curate: CurateState;
 }
 
 // Top-level reducer
@@ -21,4 +24,5 @@ export const createRootReducer = (history: History) => combineReducers<Applicati
   search: searchReducer,
   tagCategories: tagCategoriesReducer,
   main: mainStateReducer,
+  curate: curateStateReducer,
 });
