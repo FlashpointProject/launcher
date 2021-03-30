@@ -476,7 +476,7 @@
     "importAllCurations": "Import all Curations?",
     "deleteAllCurations": "Избрисати све курације?",
     "removePlaylistGame": "Уклонити ову игру са плејлисте?",
-    "deleteGame": "Delete this Game? This cannot be undone.",
+    "deleteGame": "Избрисати ову игру? Ово се не може поништити.",
     "deleteGameData": "Delete this Game Data? This cannot be undone.",
     "deleteAddApp": "Delete this Add App?",
     "deleteTagCategory": "Delete this Tag Category?",
