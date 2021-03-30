@@ -38,7 +38,7 @@ import { Tail } from 'tail';
 import { ConnectionOptions, createConnection } from 'typeorm';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE } from './constants';
-import { CURATIONS_FOLDER_LOADED } from './consts';
+import { CURATIONS_FOLDER_WORKING } from './consts';
 import { loadCurationIndexImage } from './curate/parse';
 import { readCurationMeta } from './curate/read';
 import { loadExecMappingsFile } from './Execs';
@@ -317,7 +317,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   {
     try {
       // Go through all curation folders
-      const rootPath = path.resolve(state.config.flashpointPath, CURATIONS_FOLDER_LOADED);
+      const rootPath = path.resolve(state.config.flashpointPath, CURATIONS_FOLDER_WORKING);
       for (const folderName of await fs.promises.readdir(rootPath)) {
         const parsedMeta = await readCurationMeta(path.join(rootPath, folderName), state.recentAppPaths);
         if (parsedMeta) {

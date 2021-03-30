@@ -5,7 +5,7 @@ import { Playlist } from '@database/entity/Playlist';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
-import { BackIn, BackInit, BackOut, DownloadDetails } from '@shared/back/types';
+import { BackIn, BackInit, BackOut, CurationImageEnum, DownloadDetails } from '@shared/back/types';
 import { overwriteConfigData } from '@shared/config/util';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
@@ -30,7 +30,8 @@ import * as util from 'util';
 import * as YAML from 'yaml';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME } from './constants';
-import { CURATIONS_FOLDER_EXTRACTING, CURATIONS_FOLDER_LOADED, CURATION_META_FILENAMES } from './consts';
+import { CURATIONS_FOLDER_EXTRACTING, CURATIONS_FOLDER_WORKING, CURATION_META_FILENAMES } from './consts';
+import { loadCurationIndexImage } from './curate/parse';
 import { readCurationMeta } from './curate/read';
 import { ExtConfigFile } from './ExtConfigFile';
 import { parseAppVar } from './extensions/util';
@@ -1200,7 +1201,7 @@ export function registerRequestCallbacks(state: BackState): void {
         if (!rootPath) { throw new Error('Meta.yaml/yml/txt not found in extracted archive'); }
 
         // Move all files from the root folder to the curation folder
-        const curationPath = path.resolve(state.config.flashpointPath, CURATIONS_FOLDER_LOADED, key);
+        const curationPath = path.resolve(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, key);
         await fs_extra.ensureDir(curationPath);
         for (const file of await fs.promises.readdir(rootPath)) {
           await fs_extra.move(path.join(rootPath, file), path.join(curationPath, file));
@@ -1217,6 +1218,8 @@ export function registerRequestCallbacks(state: BackState): void {
           folder: key,
           game: parsedMeta.game,
           addApps: parsedMeta.addApps,
+          thumbnail: await loadCurationIndexImage(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, key, 'logo.png')),
+          screenshot: await loadCurationIndexImage(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, key, 'ss.png'))
         };
 
         state.loadedCurations.push(curation);
@@ -1245,6 +1248,66 @@ export function registerRequestCallbacks(state: BackState): void {
 
   state.socketServer.register(BackIn.CURATE_GET_LIST, async (event) => {
     return state.loadedCurations;
+  });
+
+  state.socketServer.register(BackIn.CURATE_EDIT_UPDATE_IMAGE, async (event, folder, type, filePath) => {
+    const curationIdx = state.loadedCurations.findIndex(c => c.folder === folder);
+    if (curationIdx > -1) {
+      const curation = state.loadedCurations[curationIdx];
+      switch (type) {
+        case CurationImageEnum.THUMBNAIL: {
+          const imagePath = path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, folder, 'logo.png');
+          if (imagePath) {
+            await fs.promises.copyFile(filePath, imagePath);
+            curation.thumbnail.exists = true;
+            curation.thumbnail.version += 1;
+            state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
+            // TODO: Send update
+          }
+          break;
+        }
+        case CurationImageEnum.SCREENSHOT: {
+          const imagePath = path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, folder, 'ss.png');
+          if (imagePath) {
+            await fs.promises.copyFile(filePath, imagePath);
+            curation.screenshot.exists = true;
+            curation.screenshot.version += 1;
+            state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
+            // TODO: Send update
+          }
+          break;
+        }
+      }
+    }
+  });
+
+  state.socketServer.register(BackIn.CURATE_EDIT_REMOVE_IMAGE, async (event, folder, type) => {
+    const curationIdx = state.loadedCurations.findIndex(c => c.folder === folder);
+    if (curationIdx > -1) {
+      const curation = state.loadedCurations[curationIdx];
+      switch (type) {
+        case CurationImageEnum.THUMBNAIL: {
+          const imagePath = curation.thumbnail.exists ? curation.thumbnail.filePath : undefined;
+          if (imagePath) {
+            await fs.promises.unlink(imagePath);
+            curation.thumbnail.exists = false;
+            state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
+            // TODO: Send update
+          }
+          break;
+        }
+        case CurationImageEnum.SCREENSHOT: {
+          const imagePath = curation.screenshot.exists ? curation.screenshot.filePath : undefined;
+          if (imagePath) {
+            await fs.promises.unlink(imagePath);
+            curation.screenshot.exists = false;
+            state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
+            // TODO: Send update
+          }
+          break;
+        }
+      }
+    }
   });
 
   state.socketServer.register(BackIn.RUN_COMMAND, async (event, command, args = []) => {

@@ -42,7 +42,7 @@ import { logFactory } from './util/logging';
     main: createInitialMainState(),
     curate: {
       curations: window.Shared.initialCurations.map(c => ({ ...c, tagText: '' })),
-      current: -1,
+      current: '',
     },
   });
 

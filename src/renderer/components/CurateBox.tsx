@@ -6,9 +6,11 @@ import { CurateActionType } from '@renderer/store/curate/enums';
 import { CurateAction, CurationState } from '@renderer/store/curate/types';
 import { findElementAncestor } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
+import { BackIn, CurationImageEnum } from '@shared/back/types';
 import { LoadedCuration } from '@shared/curate/types';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { fixSlashes } from '@shared/Util';
+import { remote } from 'electron';
 import * as React from 'react';
 import { Dispatch } from 'redux';
 import { CurateBoxRow } from './CurateBoxRow';
@@ -29,10 +31,10 @@ export type CurateBoxProps = {
 export function CurateBox(props: CurateBoxProps) {
   const strings = React.useContext(LangContext);
 
-  const onAddThumbnailClick  = useAddImageCallback('logo.png', props.curation, props.dispatch);
-  const onAddScreenshotClick = useAddImageCallback('ss.png',   props.curation, props.dispatch);
-  const onRemoveThumbnailClick  = useRemoveImageCallback('logo.png', props.curation, props.dispatch);
-  const onRemoveScreenshotClick = useRemoveImageCallback('ss.png',  props.curation, props.dispatch);
+  const onAddThumbnailClick  = useAddImageCallback(CurationImageEnum.THUMBNAIL, props.curation, props.dispatch);
+  const onAddScreenshotClick = useAddImageCallback(CurationImageEnum.SCREENSHOT,   props.curation, props.dispatch);
+  const onRemoveThumbnailClick  = useRemoveImageCallback(CurationImageEnum.THUMBNAIL, props.curation, props.dispatch);
+  const onRemoveScreenshotClick = useRemoveImageCallback(CurationImageEnum.SCREENSHOT,  props.curation, props.dispatch);
   const onDropThumbnail  = useDropImageCallback('logo.png', props.curation, props.dispatch);
   const onDropScreenshot = useDropImageCallback('ss.png',   props.curation, props.dispatch);
 
@@ -344,30 +346,23 @@ export function CurateBox(props: CurateBoxProps) {
   );
 }
 
-function useAddImageCallback(filename: 'logo.png' | 'ss.png', curation: LoadedCuration | undefined, dispatch: Dispatch<CurateAction>): () => void {
+function useAddImageCallback(type: CurationImageEnum, curation: LoadedCuration | undefined, dispatch: Dispatch<CurateAction>): () => void {
   return React.useCallback(async () => {
-    // @TODO Request the back to add the image
-    /*
-    const filePaths = window.Shared.showOpenDialogSync({
-      title: strings.dialog.selectScreenshot,
-      properties: ['openFile'],
-      filters: [{ extensions: ['png', 'PNG'], name: 'Image File' }]
-    });
-    if (curation && filePaths && filePaths[0].toLowerCase().endsWith('.png')) {
-      const isLogo = filename === 'logo.png';
-      const dest = path.join(getCurationFolder2(curation), filename);
-      await fs.copyFile(filePaths[0], dest);
-      const newImage = await createCurationImage(dest);
-      newImage.version = isLogo ? curation.thumbnail.version + 1 : curation.screenshot.version + 1;
-      dispatch({
-        type: isLogo ? 'set-curation-logo' : 'set-curation-screenshot',
-        payload: {
-          key: curation.folder,
-          image: newImage
-        }
+    if (curation) {
+      const filePath = remote.dialog.showOpenDialogSync({
+        title: 'Select Image',
+        filters: [
+          {
+            name: 'Image File',
+            extensions: ['png']
+          }
+        ],
+        properties: ['openFile']
       });
+      if (filePath && filePath.length > 0) {
+        return window.Shared.back.request(BackIn.CURATE_EDIT_UPDATE_IMAGE, curation.folder, type, filePath[0]);
+      }
     }
-    */
   }, [curation && curation.folder]);
 }
 
@@ -376,35 +371,11 @@ function useAddImageCallback(filename: 'logo.png' | 'ss.png', curation: LoadedCu
  * @param filename Name of the image file.
  * @param curation Curation to delete it from.
  */
-function useRemoveImageCallback(filename: 'logo.png' | 'ss.png', curation: LoadedCuration | undefined, dispatch: Dispatch<CurateAction>): () => Promise<void> {
+function useRemoveImageCallback(type: CurationImageEnum, curation: LoadedCuration | undefined, dispatch: Dispatch<CurateAction>): () => Promise<void> {
   return React.useCallback(async () => {
-    // @TODO Request the back to remove the image
-    /*
     if (curation) {
-      const filePath = path.join(getCurationFolder2(curation), filename);
-      try {
-        const isLogo = filename === 'logo.png';
-        try {
-          await fs.access(filePath, fs.constants.F_OK | fs.constants.W_OK);
-          await fs.unlink(filePath);
-        } catch (error) {
-          curationLog('Curation image already deleted, probably missing, skipping...');
-        }
-        const newImage = createCurationIndexImage();
-        newImage.version = isLogo ? curation.thumbnail.version + 1 : curation.screenshot.version + 1;
-        dispatch({
-          type: isLogo ? 'set-curation-logo' : 'set-curation-screenshot',
-          payload: {
-            key: curation.folder,
-            image: createCurationIndexImage()
-          }
-        });
-      } catch (error) {
-        curationLog('Error replacing image - ' + error.message);
-        console.log(error);
-      }
+      return window.Shared.back.request(BackIn.CURATE_EDIT_REMOVE_IMAGE, curation.folder, type);
     }
-    */
   }, [curation && curation.folder]);
 }
 

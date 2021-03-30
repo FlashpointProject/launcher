@@ -28,10 +28,11 @@ export function CuratePage(props: CuratePageProps) {
   const curation: CurationState | undefined = props.curate.curations.find(c => c.folder === props.curate.current);
   const strings = React.useContext(LangContext);
 
-  const [onListMouseDown, onListMouseUp] = useMouse<number>(() => ({
+  const [onListMouseDown, onListMouseUp] = useMouse<string>(() => ({
     chain_delay: 500,
     find_id: (event) => {
-      let index: number | undefined;
+      let index: string | undefined;
+      console.log(event.target);
       try { index = findAncestorRowIndex(event.target as Element); }
       catch (error) { console.error(error); }
       return index;
@@ -40,7 +41,7 @@ export function CuratePage(props: CuratePageProps) {
       if (event.button === 0 && clicks === 1) { // Single left click
         props.dispatchCurate({
           type: CurateActionType.SET_CURRENT_CURATION,
-          folder: props.curate.curations[id].folder,
+          folder: id,
         });
       }
     },
@@ -81,7 +82,7 @@ export function CuratePage(props: CuratePageProps) {
               ((curation.folder === props.curate.current) ? ' curate-list-item--selected' : '')
             }
             key={curation.folder}
-            { ...{ [index_attr]: index } }>
+            { ...{ [index_attr]: curation.folder } }>
             <div
               className='curate-list-item__icon'
               style={{ backgroundImage: `url('${getPlatformIconURL('Flash'/* curation.meta.platform*/, props.main.logoVersion)}')` }} />
@@ -129,15 +130,15 @@ export function CuratePage(props: CuratePageProps) {
   );
 }
 
-function findAncestorRowIndex(element: Element): number | undefined {
+function findAncestorRowIndex(element: Element): string | undefined {
   const ancestor = findElementAncestor(element, target => target.getAttribute(index_attr) !== null, true);
   if (!ancestor) { return undefined; }
 
   const index = ancestor.getAttribute(index_attr);
+  console.log(index);
   if (typeof index !== 'string') { throw new Error('Failed to get attribute from ancestor!'); }
 
-  const index_number = (index as any) * 1; // Coerce to number
-  if (isNaN(index_number)) { throw new Error('Failed to convert attribute to a number!'); }
+  const index_str = (index as any) + ''; // Coerce to number
 
-  return index_number;
+  return index_str;
 }

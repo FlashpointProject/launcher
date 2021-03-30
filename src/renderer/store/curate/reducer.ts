@@ -78,7 +78,16 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
         }
       }
 
-      if (action.added) { newCurations.push(...action.added); }
+      if (action.added) {
+        for (const curation of action.added) {
+          const existingIdx = newCurations.findIndex(c => c.folder === curation.folder);
+          if (existingIdx > -1) {
+            newCurations[existingIdx] = curation;
+          } else {
+            newCurations.push(...action.added);
+          }
+        }
+      }
 
       return {
         ...state,

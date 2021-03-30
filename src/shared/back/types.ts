@@ -124,6 +124,8 @@ export enum BackIn {
   // Curate
   CURATE_LOAD_ARCHIVES,
   CURATE_GET_LIST,
+  CURATE_EDIT_UPDATE_IMAGE,
+  CURATE_EDIT_REMOVE_IMAGE,
 
   // Misc
   UPLOAD_LOG,
@@ -277,6 +279,8 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   // Curate
   [BackIn.CURATE_LOAD_ARCHIVES]: (filePaths: string[]) => void;
   [BackIn.CURATE_GET_LIST]: () => LoadedCuration[];
+  [BackIn.CURATE_EDIT_UPDATE_IMAGE]: (folder: string, type: CurationImageEnum, filePath: string) => void;
+  [BackIn.CURATE_EDIT_REMOVE_IMAGE]: (folder: string, type: CurationImageEnum) => void;
 
   // Misc
   [BackIn.UPLOAD_LOG]: () => string | undefined;
@@ -568,4 +572,9 @@ export type RunCommandResponse = {
 
 export type DownloadDetails = {
   downloadSize: number;
+}
+
+export enum CurationImageEnum {
+  THUMBNAIL,
+  SCREENSHOT
 }
