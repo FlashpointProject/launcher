@@ -373,11 +373,11 @@
     "noTags": "There are no tags on this curation.",
     "noSource": "'Source' is a required field.",
     "unenteredTag": "The Tags text field hasn't been submitted.",
-    "noLogo": "There is no logo on this curation.",
-    "noScreenshot": "There is no screenshot on this curation.",
+    "noLogo": "Не постоји лого у овој курацији.",
+    "noScreenshot": "У овој курацији не постоји снимак екрана.",
     "ilc_notHttp": "Користити HTTP.",
     "ilc_nonExistant": "Покажи постојећи фајл у фасцикли садржаја твоје галерије.",
-    "sort": "Sort Curations (A-Z)"
+    "sort": "Сортирај Курације (A-Z)"
   },
   "playlist": {
     "enterDescriptionHere": "Унеси опис овде...",
