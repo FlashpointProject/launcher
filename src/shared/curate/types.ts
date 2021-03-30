@@ -1,7 +1,11 @@
+import { CurationIndexImage } from './OLD_types';
+
 export type LoadedCuration = {
   folder: string;
   game: CurationMeta;
   addApps: AddAppCurationMeta[];
+  thumbnail: CurationIndexImage;
+  screenshot: CurationIndexImage;
 }
 
 export type CurationMeta = Partial<{

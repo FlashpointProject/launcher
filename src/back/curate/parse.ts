@@ -1,8 +1,11 @@
+import { CurationIndexImage } from '@shared/curate/OLD_types';
 import { AddAppCurationMeta, CurationMeta, CurationMetaTag } from '@shared/curate/types';
 import { Coerce } from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import { CurationFormatObject, parseCurationFormat } from './format/parser';
 import { CFTokenizer, tokenizeCurationFormat } from './format/tokenizer';
+import * as fs from 'fs';
+import * as path from 'path';
 
 const { str } = Coerce;
 
@@ -154,4 +157,26 @@ async function getTagsFromStr(tagsStr: string, tagCategoriesStr: string): Promis
   }
 
   return allTags.filter((tag, index) => allTags.findIndex(tag2 => (tag.tag === tag2.tag) && (tag.category === tag2.category)) == index); // remove dupes
+}
+
+export async function loadCurationIndexImage(filePath: string): Promise<CurationIndexImage> {
+  return fs.promises.access(filePath, fs.constants.F_OK)
+  .then(() => {
+    const image: CurationIndexImage = {
+      exists: true,
+      fileName: path.basename(filePath),
+      filePath: filePath,
+      version: 0
+    };
+    return image;
+  })
+  .catch(() => {
+    const image: CurationIndexImage = {
+      exists: false,
+      fileName: path.basename(filePath),
+      filePath: filePath,
+      version: 0
+    };
+    return image;
+  });
 }

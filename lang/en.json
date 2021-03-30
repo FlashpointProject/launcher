@@ -314,6 +314,9 @@
     "locked": "Locked while processing..."
   },
   "curate": {
+    "noCurationSelected": "No Curation Selected",
+    "headerFileOperations": "File",
+    "headerEditCuration": "Edit",
     "importAll": "Import All",
     "importAllDesc": "Import all curations that are currently loaded",
     "deleteAll": "Delete All",

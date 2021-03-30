@@ -326,6 +326,9 @@ const langTemplate = {
     'locked',
   ] as const,
   curate: [
+    'noCurationSelected',
+    'headerFileOperations',
+    'headerEditCuration',
     'importAll',
     'importAllDesc',
     'deleteAll',

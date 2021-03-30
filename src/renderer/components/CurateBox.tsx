@@ -1,5 +1,4 @@
 import { TagCategory } from '@database/entity/TagCategory';
-import { CurateBoxCheckBox } from '@renderer/components/CurateBoxCheckBoxRow';
 import { CurateBoxDropdownInputRow, CurateBoxInputRow, CurateBoxTagDropdownInputRow } from '@renderer/components/CurateBoxInputRow';
 import { GameImageSplit } from '@renderer/components/GameImageSplit';
 import { useMouse } from '@renderer/hooks/useMouse';
@@ -9,6 +8,7 @@ import { findElementAncestor } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
 import { LoadedCuration } from '@shared/curate/types';
 import { GamePropSuggestions } from '@shared/interfaces';
+import { fixSlashes } from '@shared/Util';
 import * as React from 'react';
 import { Dispatch } from 'redux';
 import { CurateBoxRow } from './CurateBoxRow';
@@ -36,8 +36,8 @@ export function CurateBox(props: CurateBoxProps) {
   const onDropThumbnail  = useDropImageCallback('logo.png', props.curation, props.dispatch);
   const onDropScreenshot = useDropImageCallback('ss.png',   props.curation, props.dispatch);
 
-  const thumbnailPath  = ''; // props.curation.thumbnail.exists  ? fixSlashes(`${props.curation.thumbnail.filePath }?v=${props.curation.thumbnail.version }`) : undefined;
-  const screenshotPath = ''; // props.curation.screenshot.exists ? fixSlashes(`${props.curation.screenshot.filePath}?v=${props.curation.screenshot.version}`) : undefined;
+  const thumbnailPath  = props.curation.thumbnail.exists  ? fixSlashes(`${props.curation.thumbnail.filePath }?v=${props.curation.thumbnail.version }`) : undefined;
+  const screenshotPath = props.curation.screenshot.exists ? fixSlashes(`${props.curation.screenshot.filePath}?v=${props.curation.screenshot.version}`) : undefined;
 
   const onNewAddApp  = useCreateAddAppCallback('normal',  props.curation.folder, props.dispatch);
   const onAddExtras  = useCreateAddAppCallback('extras',  props.curation.folder, props.dispatch);
@@ -285,11 +285,6 @@ export function CurateBox(props: CurateBoxProps) {
                 property='curationNotes'
                 multiline={true}
                 { ...shared } />
-              <CurateBoxCheckBox
-                title={strings.browse.extreme}
-                checked={props.curation.game.extreme}
-                property='extreme'
-                { ...shared } />
             </tbody>
           </table>
         </div>
@@ -329,7 +324,7 @@ export function CurateBox(props: CurateBoxProps) {
           </div>
           <hr />
           {/* Warnings */}
-          <p>Warnings</p>
+          <p>@TODO Warnings</p>
           <CurateBoxWarnings warnings={{}} />
           <hr />
           {/* Curation Folder */}

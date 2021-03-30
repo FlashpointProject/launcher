@@ -9,8 +9,8 @@ export type CurationState = LoadedCuration & {
 export type CurateState = {
   /** Loaded curations. */
   curations: CurationState[];
-  /** Index of the currently selected curation (-1 if none). */
-  current: number;
+  /** Folder of the currently selected curation (-1 if none). */
+  current: string;
 }
 
 export type CurateAction = {
@@ -18,7 +18,7 @@ export type CurateAction = {
   folder: string;
 } | {
   type: CurateActionType.SET_CURRENT_CURATION;
-  index: number;
+  folder: string;
 } | {
   type: CurateActionType.NEW_ADDAPP;
 } | {

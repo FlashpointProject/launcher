@@ -949,10 +949,28 @@ body {
   flex: 1 1 auto;
   overflow: auto;
 }
+.curate-page__header-text {
+  margin-top: 1rem;
+  width: 100%;
+  text-align: center;
+  font-size: 2em;
+}
 .curate-page__right {
   width: 15rem;
   flex: 0 0 auto;
+  flex-direction: column;
   overflow: auto;
+}
+.curate-page__right--header {
+  text-align: center;
+  font-size: 1.25em;
+}
+.curate-page__right--section {
+  margin: 1% 5%;
+}
+.curate-page__right--button {
+  width: 100%;
+  margin-bottom: 0.2rem;
 }
 .curate-page .input-field--multiline.input-field--edit {
   height: 5em;
@@ -975,6 +993,8 @@ body {
 }
 .curate-box__images {
   position: relative;
+  height: 10rem;
+  display: flex;
 }
 .curate-page__left-sidebar-item {
   display: flex;

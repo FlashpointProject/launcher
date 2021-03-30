@@ -16,6 +16,14 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
             game: {},
             addApps: [],
             tagText: '',
+            thumbnail: {
+              exists: false,
+              version: 0
+            },
+            screenshot: {
+              exists: false,
+              version: 0
+            }
           },
         ],
       };
@@ -23,7 +31,7 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
     case CurateActionType.SET_CURRENT_CURATION:
       return {
         ...state,
-        current: action.index,
+        current: action.folder,
       };
 
     case CurateActionType.NEW_ADDAPP:
@@ -77,94 +85,12 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
         curations: newCurations,
       };
     }
-
-    case CurateActionType.ADD_TAG: {
-      if (!state.curations[state.current]) { return { ...state }; }
-
-      const oldCuration = state.curations[state.current];
-
-      const newTag = {
-        tag: action.tag,
-        category: action.category,
-      };
-
-      // No duplicate tags allowed
-      if (oldCuration.game.tags) {
-        for (const tag of oldCuration.game.tags) {
-          if (tag.tag === newTag.tag && tag.category === newTag.category) {
-            return { ...state };
-          }
-        }
-        oldCuration.game.tags
-      }
-
-      const newCurations = [ ...state.curations ];
-      newCurations[state.current] = {
-        ...oldCuration,
-        game: {
-          ...oldCuration.game,
-          tags: oldCuration.game.tags
-            ? [...oldCuration.game.tags, newTag]
-            : [newTag],
-        },
-      };
-
-      return {
-        ...state,
-        curations: newCurations,
-      };
-    }
-
-    case CurateActionType.REMOVE_TAG: {
-      const oldCuration = state.curations[state.current];
-
-      if (!oldCuration
-        || !oldCuration.game.tags
-        || oldCuration.game.tags.length < action.index) {
-        return { ...state };
-      }
-
-      const newCurations = [ ...state.curations ];
-
-      const newTags = [ ...oldCuration.game.tags ];
-      newTags.splice(action.index, 1);
-
-      newCurations[state.current] = {
-        ...oldCuration,
-        game: {
-          ...oldCuration.game,
-          tags: newTags,
-        }
-      };
-
-      return {
-        ...state,
-        curations: newCurations,
-      };
-    }
-    
-    case CurateActionType.EDIT_CURATION_TAG_TEXT: {
-      const oldCuration = state.curations[state.current];
-
-      if (!oldCuration) { return { ...state }; }
-
-      const newCurations = [ ...state.curations ];
-      newCurations[state.current] = {
-        ...oldCuration,
-        tagText: action.text,
-      };
-
-      return {
-        ...state,
-        curations: newCurations,
-      };
-    }
   }
 }
 
 function createInitialState(): CurateState {
   return {
     curations: [],
-    current: -1,
+    current: '',
   };
 }
