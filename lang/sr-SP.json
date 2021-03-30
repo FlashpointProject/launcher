@@ -480,14 +480,14 @@
     "deleteGameData": "Delete this Game Data? This cannot be undone.",
     "deleteAddApp": "Delete this Add App?",
     "deleteTagCategory": "Delete this Tag Category?",
-    "deleteTag": "Delete this Tag?",
+    "deleteTag": "Избрисати ову ознаку?",
     "deleteTagAlias": "Delete this Tag Alias?",
-    "deleteSource": "Delete this Source?",
-    "uninstallGame": "Uninstall this Game?",
+    "deleteSource": "Избрисати овај извор?",
+    "uninstallGame": "Деинсталирати ову игру?",
     "unableToUninstallGameData": "Unable to delete data pack. Is it in use? Try restarting the launcher.",
     "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher.",
     "downloadingGame": "Преузимање игре...",
-    "verifyingGame": "Verifying Game...",
+    "verifyingGame": "Верификовање игре...",
     "aFewMinutes": "Ово ће потрајати неколико минута."
   },
   "libraries": {
