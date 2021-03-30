@@ -337,7 +337,7 @@
     "loadFolder": "Учитај фасциклу",
     "loadFolderDesc": "Учитај једну или више фасцикли галерије",
     "scanNewCurationFolders": "Скенирај за нове курације",
-    "scanNewCurationFoldersDesc": "Scans for curations that have been added after the initial scan",
+    "scanNewCurationFoldersDesc": "Скенирај за курације које су додате након почетног скенирања",
     "noCurations": "Нема галерија",
     "id": "Фасцикла са галеријама",
     "heading": "Заглавље",
