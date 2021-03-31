@@ -5,16 +5,16 @@ import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
 import { useMouse } from '@renderer/hooks/useMouse';
 import { CurateActionType } from '@renderer/store/curate/enums';
-import { CurationState } from '@renderer/store/curate/types';
 import { findElementAncestor, getPlatformIconURL } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
 import { uuid } from '@renderer/util/uuid';
-import { BackIn } from '@shared/back/types';
+import { BackIn, TagSuggestion } from '@shared/back/types';
 import * as electron from 'electron';
 import * as React from 'react';
 import { SimpleButton } from '../SimpleButton';
 import * as path from 'path';
 import { compare } from '@back/util/strings';
+import { LoadedCuration } from '@shared/curate/types';
 
 const index_attr = 'data-index';
 
@@ -25,8 +25,21 @@ type OwnProps = {
 export type CuratePageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps & WithMainStateProps & WithCurateStateProps
 
 export function CuratePage(props: CuratePageProps) {
-  const curation: CurationState | undefined = props.curate.curations.find(c => c.folder === props.curate.current);
+  const curation: LoadedCuration | undefined = props.curate.curations.find(c => c.folder === props.curate.current);
   const strings = React.useContext(LangContext);
+
+  const [tagText, setTagText] = React.useState<string>('');
+  const [tagSuggestions, setTagSuggestions] = React.useState<TagSuggestion[]>([]);
+
+  const onTagTextChange = React.useCallback((tagText: string) => {
+    setTagText(tagText);
+    if (tagText !== '') {
+      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, tagText, props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !props.preferencesData.browsePageShowExtreme)))
+      .then(setTagSuggestions);
+    } else {
+      setTagSuggestions([]);
+    }
+  }, [setTagText, setTagSuggestions]);
 
   const [onListMouseDown, onListMouseUp] = useMouse<string>(() => ({
     chain_delay: 500,
@@ -98,6 +111,9 @@ export function CuratePage(props: CuratePageProps) {
             curation={curation}
             suggestions={props.main.suggestions}
             tagCategories={props.tagCategories}
+            tagText={tagText}
+            onTagTextChange={onTagTextChange}
+            tagSuggestions={tagSuggestions}
             dispatch={props.dispatchCurate} />
         ) : (
           <div className='curate-page__header-text'>

@@ -77,6 +77,7 @@ export enum BackIn {
 
   // Tag funcs
   GET_OR_CREATE_TAG,
+  GET_OR_CREATE_TAGS,
   GET_TAG_SUGGESTIONS,
   GET_TAG_BY_ID,
   GET_TAGS,
@@ -234,6 +235,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
 
   // Tag funcs
   [BackIn.GET_OR_CREATE_TAG]: (tagName: string, tagCategory?: string) => Tag;
+  [BackIn.GET_OR_CREATE_TAGS]: (tagNames: string[], tagCategories?: string[]) => Tag[];
   [BackIn.GET_TAG_SUGGESTIONS]: (data: string, tagFilters: TagFilterGroup[]) => TagSuggestion[];
   [BackIn.GET_TAG_BY_ID]: (data: number) => Tag | undefined;
   [BackIn.GET_TAGS]: (data: string, tagFilters?: TagFilterGroup[]) => Tag[];

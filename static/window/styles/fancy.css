@@ -575,7 +575,8 @@ body {
 }
 /* Curate Tag (Game tag for the curate page) */
 .curate-tag {
-  background-color: var(--layout__contrast-text-color);
+  border: 1px solid;
+  border-color: var(--layout__home-page-box-border);
 }
 .curate-tag:hover {
   background-color: var(--layout__warning-dark-color);

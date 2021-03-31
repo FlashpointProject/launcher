@@ -1,9 +1,10 @@
+import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
 import { CurateBoxDropdownInputRow, CurateBoxInputRow, CurateBoxTagDropdownInputRow } from '@renderer/components/CurateBoxInputRow';
 import { GameImageSplit } from '@renderer/components/GameImageSplit';
 import { useMouse } from '@renderer/hooks/useMouse';
 import { CurateActionType } from '@renderer/store/curate/enums';
-import { CurateAction, CurationState } from '@renderer/store/curate/types';
+import { CurateAction } from '@renderer/store/curate/types';
 import { findElementAncestor } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
 import { BackIn, CurationImageEnum } from '@shared/back/types';
@@ -11,6 +12,7 @@ import { LoadedCuration } from '@shared/curate/types';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { fixSlashes } from '@shared/Util';
 import { remote } from 'electron';
+import { TagSuggestion } from 'flashpoint-launcher';
 import * as React from 'react';
 import { Dispatch } from 'redux';
 import { CurateBoxRow } from './CurateBoxRow';
@@ -22,9 +24,12 @@ import { SimpleButton } from './SimpleButton';
 const tagIndexAttr = 'data-tag-index';
 
 export type CurateBoxProps = {
-  curation: CurationState;
+  curation: LoadedCuration;
   suggestions: Partial<GamePropSuggestions>;
+  tagSuggestions: TagSuggestion[];
   tagCategories: TagCategory[];
+  tagText: string;
+  onTagTextChange: (tagText: string) => void;
   dispatch: Dispatch<CurateAction>;
 }
 
@@ -47,11 +52,8 @@ export function CurateBox(props: CurateBoxProps) {
 
 
   const onTagChange = React.useCallback((event: React.ChangeEvent<InputElement>): void => {
-    props.dispatch({
-      type: CurateActionType.EDIT_CURATION_TAG_TEXT,
-      text: event.currentTarget.value,
-    });
-  }, []);
+    props.onTagTextChange(event.currentTarget.value);
+  }, [props.onTagTextChange]);
 
   const onTagKeyDown = React.useCallback((event: React.KeyboardEvent<InputElement>): void => {
     console.log(event.key);
@@ -67,34 +69,32 @@ export function CurateBox(props: CurateBoxProps) {
     }
   }, []);
 
-  const onTagItemSelect = React.useCallback((item: string, index: number) => {
-    props.dispatch({
-      type: CurateActionType.ADD_TAG,
-      tag: item,
-      category: undefined, // @TODO Get the category somehow?
-    });
-
-    console.log(!!tagInputRef.current, tagInputRef.current);
-
-    if (tagInputRef.current) { tagInputRef.current.focus(); }
+  const onAddTag = React.useCallback((tag: Tag) => {
+    const tags = props.curation.game.tags || [];
+    if (!tags.find(t => t.id === tag.id)) {
+      props.dispatch({
+        type: CurateActionType.ADD_TAG,
+        folder: props.curation.folder,
+        tag: tag
+      });
+    }
+    props.onTagTextChange('');
   }, [props.curation.folder]);
 
-  const tagInputRef = React.useRef<InputElement>(null);
-
-
-  const [onTagMouseDown, onTagMouseUp] = useMouse<number>(() => ({
+  const [onTagMouseDown, onTagMouseUp] = useMouse<string>(() => ({
     chain_delay: 500,
     find_id: (event) => {
-      let index: number | undefined;
-      try { index = findAncestorRowIndex(event.target as Element); }
+      let tagName: string | undefined;
+      try { tagName = findAncestorRowTagName(event.target as Element); }
       catch (error) { console.error(error); }
-      return index;
+      return tagName;
     },
-    on_click: (event, id, clicks) => {
+    on_click: (event, tagName, clicks) => {
       if (event.button === 0 && clicks === 1) { // Single left click
         props.dispatch({
           type: CurateActionType.REMOVE_TAG,
-          index: id,
+          folder: props.curation.folder,
+          tagName: tagName,
         });
       }
     },
@@ -176,10 +176,9 @@ export function CurateBox(props: CurateBoxProps) {
               <CurateBoxTagDropdownInputRow
                 title={strings.browse.tags}
                 tagCategories={props.tagCategories}
-                text={props.curation.tagText}
-                items={props.suggestions.tags}
-                onItemSelect={onTagItemSelect}
-                inputRef={tagInputRef}
+                text={props.tagText}
+                tagSuggestions={props.tagSuggestions}
+                onAddTag={onAddTag}
                 onChange={onTagChange}
                 onKeyDown={onTagKeyDown}
                 property='tags'
@@ -192,6 +191,7 @@ export function CurateBox(props: CurateBoxProps) {
                   onMouseUp={onTagMouseUp}>
                   { props.curation.game.tags ? (
                     props.curation.game.tags.map((tag, index) => {
+                      const category = props.tagCategories.find(tc => tc.id === tag.categoryId);
                       return (
                         <div
                           className='curate-tag'
@@ -199,9 +199,10 @@ export function CurateBox(props: CurateBoxProps) {
                           { ...{ [tagIndexAttr]: index } }>
                           <OpenIcon
                             className='curate-tag__icon'
+                            color={category ? category.color : '#FFFFFF'}
                             icon='x' />
                           <span className='curate-tag__text'>
-                            {tag.tag}
+                            {tag.primaryAlias.name}
                           </span>
                         </div>
                       );
@@ -414,15 +415,14 @@ function useCreateAddAppCallback(type: 'normal' | 'extras' | 'message', curation
   }, [dispatch, curationFolder]);
 }
 
-function findAncestorRowIndex(element: Element): number | undefined {
+function findAncestorRowTagName(element: Element): string | undefined {
   const ancestor = findElementAncestor(element, target => target.getAttribute(tagIndexAttr) !== null, true);
   if (!ancestor) { return undefined; }
 
   const index = ancestor.getAttribute(tagIndexAttr);
   if (typeof index !== 'string') { throw new Error('Failed to get attribute from ancestor!'); }
 
-  const index_number = (index as any) * 1; // Coerce to number
-  if (isNaN(index_number)) { throw new Error('Failed to convert attribute to a number!'); }
+  const index_number = (index as string); // Coerce to number
 
   return index_number;
 }

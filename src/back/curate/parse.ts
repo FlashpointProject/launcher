@@ -1,11 +1,13 @@
+import { BackIn } from '@shared/back/types';
 import { CurationIndexImage } from '@shared/curate/OLD_types';
-import { AddAppCurationMeta, CurationMeta, CurationMetaTag } from '@shared/curate/types';
+import { AddAppCurationMeta, CurationMeta } from '@shared/curate/types';
 import { Coerce } from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
-import { CurationFormatObject, parseCurationFormat } from './format/parser';
-import { CFTokenizer, tokenizeCurationFormat } from './format/tokenizer';
+import { Tag } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as path from 'path';
+import { CurationFormatObject, parseCurationFormat } from './format/parser';
+import { CFTokenizer, tokenizeCurationFormat } from './format/tokenizer';
 
 const { str } = Coerce;
 
@@ -144,19 +146,15 @@ function generateMessageAddApp(message: string) : AddAppCurationMeta {
   };
 }
 
-async function getTagsFromStr(tagsStr: string, tagCategoriesStr: string): Promise<CurationMetaTag[]> {
-  const allTags: CurationMetaTag[] = [];
+async function getTagsFromStr(tagsStr: string, tagCategoriesStr: string): Promise<Tag[]> {
   const splitTags = tagsStr.split(';');
   const splitCategories = tagCategoriesStr.split(';');
 
-  for (let i = 0; i < splitTags.length; i++) {
-    allTags.push({
-      tag: splitTags[i].trim(),
-      category: splitCategories[i] ? splitCategories[i].trim() : undefined,
-    });
-  }
+  const tags = await window.Shared.back.request(BackIn.GET_OR_CREATE_TAGS, splitTags, splitCategories);
+  console.log('LOADING');
+  console.log(tags);
 
-  return allTags.filter((tag, index) => allTags.findIndex(tag2 => (tag.tag === tag2.tag) && (tag.category === tag2.category)) == index); // remove dupes
+  return tags;
 }
 
 export async function loadCurationIndexImage(filePath: string): Promise<CurationIndexImage> {

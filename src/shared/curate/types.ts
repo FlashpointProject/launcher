@@ -1,3 +1,4 @@
+import { Tag } from 'flashpoint-launcher';
 import { CurationIndexImage } from './OLD_types';
 
 export type LoadedCuration = {
@@ -17,7 +18,7 @@ export type CurationMeta = Partial<{
   publisher: string;
   status: string;
   extreme: boolean;
-  tags: CurationMetaTag[];
+  tags: Tag[];
   source: string;
   launchCommand: string;
   library: string;
@@ -37,8 +38,3 @@ export type AddAppCurationMeta = Partial<{
   applicationPath: string;
   launchCommand: string;
 }>
-
-export type CurationMetaTag = {
-  tag: string;
-  category: string | undefined;
-}

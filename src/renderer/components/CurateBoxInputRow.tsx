@@ -1,13 +1,17 @@
+import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
 import { CurateBoxRow } from '@renderer/components/CurateBoxRow';
 import { InputElement, InputField } from '@renderer/components/InputField';
 import { CurateActionType } from '@renderer/store/curate/enums';
 import { CurateAction } from '@renderer/store/curate/types';
+import { LangContext } from '@renderer/util/lang';
+import { BackIn } from '@shared/back/types';
 import { CurationMeta } from '@shared/curate/types';
+import { TagSuggestion } from 'flashpoint-launcher';
 import * as React from 'react';
 import { Dispatch } from 'redux';
-import { DDI_INDEX, DropdownInput, RefFunc } from './DropdownInput';
 import { DropdownInputField } from './DropdownInputField';
+import { TagInputField } from './TagInputField';
 
 export type CurateBoxInputRowProps = {
   title: string;
@@ -63,43 +67,37 @@ export function CurateBoxDropdownInputRow(props: CurateBoxDropdownInputRowProps)
 
 export type CurateBoxTagDropdownInputRowProps = CurateBoxInputRowProps & {
   className?: string;
-  tagCategories?: TagCategory[];
-  items?: string[];
-  inputRef?: RefFunc<InputElement> | React.RefObject<InputElement>;
-  onItemSelect?: (item: string, index: number) => void;
+  tagCategories: TagCategory[];
+  tagSuggestions: TagSuggestion[];
+  onAddTag: (tag: Tag) => void;
   onChange?: (event: React.ChangeEvent<InputElement>) => void;
   onKeyDown?: (event: React.KeyboardEvent<InputElement>) => void;
 }
 
 export function CurateBoxTagDropdownInputRow(props: CurateBoxTagDropdownInputRowProps) {
-  const onItemSelect = React.useCallback((item: string, index: number) => {
-    if (props.onItemSelect) { props.onItemSelect(item, index); }
-  }, [props.onItemSelect]);
+  const strings = React.useContext(LangContext);
 
-  const render = React.useCallback((item: string, index: number) => {
-    return (
-      <div
-        key={index}
-        {...{ [DDI_INDEX]: index }}
-        className='tag-dropdown-item'>
-        {item}
-      </div>
-    )
-  }, []);
+  const onSubmitTag = React.useCallback((text: string) => {
+    window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, text)
+    .then(props.onAddTag);
+  }, [props.onAddTag]);
+
+  const onTagSuggestionSelect = React.useCallback((sug: TagSuggestion) => {
+    window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, sug.primaryAlias)
+    .then(props.onAddTag);
+  }, [props.onAddTag]);
 
   return (
     <CurateBoxRow title={props.title}>
-      <DropdownInput<string>
-        className={props.className}
-        items={props.items}
-        onItemSelect={onItemSelect}
-        render={render}
+      <TagInputField
         text={props.text || ''}
-        placeholder={props.placeholder}
+        tags={[]}
+        suggestions={props.tagSuggestions}
+        categories={props.tagCategories}
+        placeholder={strings.browse.enterTag}
+        onTagSubmit={onSubmitTag}
+        onTagSuggestionSelect={onTagSuggestionSelect}
         onChange={props.onChange}
-        onKeyDown={props.onKeyDown}
-        disabled={props.disabled}
-        multiline={props.multiline}
         editable={true} />
     </CurateBoxRow>
   );

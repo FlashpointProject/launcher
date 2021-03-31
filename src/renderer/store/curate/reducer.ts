@@ -1,3 +1,4 @@
+import { LoadedCuration } from '@shared/curate/types';
 import { CurateActionType } from './enums';
 import { CurateAction, CurateState } from './types';
 
@@ -15,7 +16,6 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
             folder: action.folder,
             game: {},
             addApps: [],
-            tagText: '',
             thumbnail: {
               exists: false,
               version: 0
@@ -61,6 +61,35 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
       };
     }
 
+    case CurateActionType.ADD_TAG: {
+      const { index, newCurations } = genCurationState(action.folder, state);
+      const newTags = [...(newCurations[index].game.tags || [])];
+      if (!newTags.find(t => t.id === action.tag.id)) {
+        newTags.push(action.tag);
+      }
+      newCurations[index].game.tags = newTags;
+
+      return {
+        ...state,
+        curations: newCurations
+      };
+    }
+
+    case CurateActionType.REMOVE_TAG: {
+      const { index, newCurations } = genCurationState(action.folder, state);
+      const newTags = [...(newCurations[index].game.tags || [])];
+      const tagIdx = newTags.findIndex(t => t.primaryAlias.name.toLowerCase() === action.tagName.toLowerCase());
+      if (tagIdx > -1) {
+        newTags.splice(tagIdx, 1);
+      }
+      newCurations[index].game.tags = newTags;
+
+      return {
+        ...state,
+        curations: newCurations
+      };
+    }
+
     case CurateActionType.SET_ALL_CURATIONS:
       return {
         ...state,
@@ -95,6 +124,24 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
       };
     }
   }
+}
+
+type NewCurationStateInfo = {
+  index: number;
+  newCurations: LoadedCuration[];
+}
+
+function genCurationState(folder: string, state: CurateState): NewCurationStateInfo {
+  const index = state.curations.findIndex(curation => curation.folder === folder);
+  const oldCuration = state.curations[index];
+  const newCurations = [ ...state.curations ];
+  newCurations[index] = {
+    ...oldCuration
+  };
+  return {
+    index,
+    newCurations
+  };
 }
 
 function createInitialState(): CurateState {
