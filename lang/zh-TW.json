@@ -62,7 +62,7 @@
   },
   "home": {
     "updateHeader": "瀏覽器更新",
-    "currentVersion": "目前版本",
+    "currentVersion": "當前版本",
     "nextVersion": "下一版本",
     "updateAvailable": "有可用的更新",
     "upToDate": "已是最新版本",
