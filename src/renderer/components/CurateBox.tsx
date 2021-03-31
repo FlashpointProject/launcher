@@ -81,20 +81,20 @@ export function CurateBox(props: CurateBoxProps) {
     props.onTagTextChange('');
   }, [props.curation.folder]);
 
-  const [onTagMouseDown, onTagMouseUp] = useMouse<string>(() => ({
+  const [onTagMouseDown, onTagMouseUp] = useMouse<number>(() => ({
     chain_delay: 500,
     find_id: (event) => {
-      let tagName: string | undefined;
-      try { tagName = findAncestorRowTagName(event.target as Element); }
+      let tagId: number | undefined;
+      try { tagId = findAncestorRowTagID(event.target as Element); }
       catch (error) { console.error(error); }
-      return tagName;
+      return tagId;
     },
-    on_click: (event, tagName, clicks) => {
+    on_click: (event, tagId, clicks) => {
       if (event.button === 0 && clicks === 1) { // Single left click
         props.dispatch({
           type: CurateActionType.REMOVE_TAG,
           folder: props.curation.folder,
-          tagName: tagName,
+          tagId,
         });
       }
     },
@@ -196,7 +196,7 @@ export function CurateBox(props: CurateBoxProps) {
                         <div
                           className='curate-tag'
                           key={index}
-                          { ...{ [tagIndexAttr]: index } }>
+                          { ...{ [tagIndexAttr]: tag.id } }>
                           <OpenIcon
                             className='curate-tag__icon'
                             color={category ? category.color : '#FFFFFF'}
@@ -415,14 +415,14 @@ function useCreateAddAppCallback(type: 'normal' | 'extras' | 'message', curation
   }, [dispatch, curationFolder]);
 }
 
-function findAncestorRowTagName(element: Element): string | undefined {
+function findAncestorRowTagID(element: Element): number | undefined {
   const ancestor = findElementAncestor(element, target => target.getAttribute(tagIndexAttr) !== null, true);
   if (!ancestor) { return undefined; }
 
   const index = ancestor.getAttribute(tagIndexAttr);
   if (typeof index !== 'string') { throw new Error('Failed to get attribute from ancestor!'); }
 
-  const index_number = (index as string); // Coerce to number
+  const index_number = (index as any) * 1; // Coerce to number
 
   return index_number;
 }

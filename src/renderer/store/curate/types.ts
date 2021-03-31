@@ -36,5 +36,5 @@ export type CurateAction = {
 } | {
   type: CurateActionType.REMOVE_TAG;
   folder: string;
-  tagName: string;
+  tagId: number;
 }

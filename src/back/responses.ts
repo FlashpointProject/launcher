@@ -882,19 +882,6 @@ export function registerRequestCallbacks(state: BackState): void {
     return tag as Tag; // @TYPESAFE fix this?
   });
 
-  state.socketServer.register(BackIn.GET_OR_CREATE_TAGS, async (event, tagNames, tagCategories = []) => {
-    return Promise.all(tagNames.map(async (tagName, index) => {
-      const trimmedName = tagName.trim();
-      const category = tagCategories.length > index ? tagCategories[index].trim() : undefined;
-      let tag = await TagManager.findTag(trimmedName);
-      if (!tag) {
-        // Tag doesn't exist, make a new one
-        tag = await TagManager.createTag(trimmedName, category);
-      }
-      return tag as Tag; // @TYPESAFE fix this?
-    }));
-  });
-
   state.socketServer.register(BackIn.GET_PLAYLISTS, async (event) => {
     return await GameManager.findPlaylists(state.preferences.browsePageShowExtreme); // @TYPESAFE fix this?
   });

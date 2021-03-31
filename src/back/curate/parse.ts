@@ -1,4 +1,3 @@
-import { BackIn } from '@shared/back/types';
 import { CurationIndexImage } from '@shared/curate/OLD_types';
 import { AddAppCurationMeta, CurationMeta } from '@shared/curate/types';
 import { Coerce } from '@shared/utils/Coerce';
@@ -6,6 +5,7 @@ import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import { Tag } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as TagManager from '@back/game/TagManager';
 import { CurationFormatObject, parseCurationFormat } from './format/parser';
 import { CFTokenizer, tokenizeCurationFormat } from './format/tokenizer';
 
@@ -150,9 +150,16 @@ async function getTagsFromStr(tagsStr: string, tagCategoriesStr: string): Promis
   const splitTags = tagsStr.split(';');
   const splitCategories = tagCategoriesStr.split(';');
 
-  const tags = await window.Shared.back.request(BackIn.GET_OR_CREATE_TAGS, splitTags, splitCategories);
-  console.log('LOADING');
-  console.log(tags);
+  const tags = await Promise.all(splitTags.map(async (tagName, index) => {
+    const trimmedName = tagName.trim();
+    const category = splitCategories.length > index ? splitCategories[index].trim() : undefined;
+    let tag = await TagManager.findTag(trimmedName);
+    if (!tag) {
+      // Tag doesn't exist, make a new one
+      tag = await TagManager.createTag(trimmedName, category);
+    }
+    return tag as Tag; // @TYPESAFE fix this?
+  }));
 
   return tags;
 }

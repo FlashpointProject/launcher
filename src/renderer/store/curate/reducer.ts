@@ -78,7 +78,7 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
     case CurateActionType.REMOVE_TAG: {
       const { index, newCurations } = genCurationState(action.folder, state);
       const newTags = [...(newCurations[index].game.tags || [])];
-      const tagIdx = newTags.findIndex(t => t.primaryAlias.name.toLowerCase() === action.tagName.toLowerCase());
+      const tagIdx = newTags.findIndex(t => t.id === action.tagId);
       if (tagIdx > -1) {
         newTags.splice(tagIdx, 1);
       }
