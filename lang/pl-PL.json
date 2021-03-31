@@ -39,7 +39,7 @@
     "useCustomTitleBarDesc": "Użyj własnego paska tytułowego na górze tego okna.",
     "theme": "Motyw",
     "noTheme": "Brak motywu",
-    "themeDesc": "Ścieżka do używanego tła (względem folderu z tłami).",
+    "themeDesc": "ID używanego motywu.",
     "logoSet": "Pakiet ikon",
     "noLogoSet": "Brak pakietu ikon",
     "logoSetDesc": "ID używanego pakietu ikon.",
