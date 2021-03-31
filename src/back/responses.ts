@@ -879,11 +879,11 @@ export function registerRequestCallbacks(state: BackState): void {
       // Tag doesn't exist, make a new one
       tag = await TagManager.createTag(name, category);
     }
-    return tag as Tag; // @TYPESAFE fix this?
+    return tag;
   });
 
   state.socketServer.register(BackIn.GET_PLAYLISTS, async (event) => {
-    return await GameManager.findPlaylists(state.preferences.browsePageShowExtreme); // @TYPESAFE fix this?
+    return await GameManager.findPlaylists(state.preferences.browsePageShowExtreme);
   });
 
   state.socketServer.register(BackIn.SAVE_PLAYLIST, async (event, playlist) => {

@@ -209,7 +209,7 @@ export async function findGameTags(gameId: string): Promise<Tag[] | undefined> {
   return tags;
 }
 
-export async function createTag(name: string, categoryName?: string, aliases?: string[]): Promise<Tag | undefined> {
+export async function createTag(name: string, categoryName?: string, aliases?: string[]): Promise<Tag> {
   const tagRepository = getManager().getRepository(Tag);
   const tagAliasRepostiory = getManager().getRepository(TagAlias);
   const tagCategoryRepository = getManager().getRepository(TagCategory);
@@ -237,30 +237,28 @@ export async function createTag(name: string, categoryName?: string, aliases?: s
 
   const tagAliases: TagAlias[] = [];
 
-  if (category) {
-    // Create tag and alias
-    const tag = tagRepository.create({ category: category });
-    // Save the newly created tag, return it
-    let savedTag = await tagRepository.save(tag);
-    const tagAlias = tagAliasRepostiory.create();
-    tagAlias.name = name;
-    tagAlias.tagId = savedTag.id;
-    if (aliases) {
-      for (const a of aliases) {
-        const tagAlias = tagAliasRepostiory.create();
-        tagAlias.name = a;
-        tagAlias.tagId = savedTag.id;
-        tagAliases.push(await tagAliasRepostiory.save(tagAlias));
-      }
+  // Create tag and alias
+  const tag = tagRepository.create({ category: category });
+  // Save the newly created tag, return it
+  let savedTag = await tagRepository.save(tag);
+  const tagAlias = tagAliasRepostiory.create();
+  tagAlias.name = name;
+  tagAlias.tagId = savedTag.id;
+  if (aliases) {
+    for (const a of aliases) {
+      const tagAlias = tagAliasRepostiory.create();
+      tagAlias.name = a;
+      tagAlias.tagId = savedTag.id;
+      tagAliases.push(await tagAliasRepostiory.save(tagAlias));
     }
-    savedTag.primaryAlias = tagAlias;
-    savedTag = await tagRepository.save(savedTag);
-    savedTag.aliases = [await tagAliasRepostiory.save(tagAlias), ...tagAliases];
-    return savedTag;
   }
+  savedTag.primaryAlias = tagAlias;
+  savedTag = await tagRepository.save(savedTag);
+  savedTag.aliases = [await tagAliasRepostiory.save(tagAlias), ...tagAliases];
+  return savedTag;
 }
 
-export async function createTagCategory(name: string, color: string): Promise<TagCategory | undefined> {
+export async function createTagCategory(name: string, color: string): Promise<TagCategory> {
   const tagCategoryRepository = getManager().getRepository(TagCategory);
 
   const category = tagCategoryRepository.create({
