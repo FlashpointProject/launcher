@@ -97,7 +97,7 @@
     "rerollPicks": "Re-Roll Picks"
   },
   "logs": {
-    "filters": "Filters",
+    "filters": "Филтри",
     "logLevels": "Log Levels",
     "copyText": "Copy Text",
     "clearLog": "Clear Log",
@@ -474,9 +474,9 @@
     "deleteGameImage": "Delete this Game Image?",
     "deletePlaylist": "Delete this Playlist?",
     "importAllCurations": "Import all Curations?",
-    "deleteAllCurations": "Delete all Curations?",
-    "removePlaylistGame": "Remove this Game from the Playlist?",
-    "deleteGame": "Delete this Game? This cannot be undone.",
+    "deleteAllCurations": "Избриши ги сите Курации?",
+    "removePlaylistGame": "Тргни ја играта од плејлистот?",
+    "deleteGame": "Да се ​​избриши играта? Тоа не може да се врати назад.",
     "deleteGameData": "Да се ​​избришат податоците на играта? Тоа не може да се врати назад.",
     "deleteAddApp": "Избриши го Додади Апликација?",
     "deleteTagCategory": "Избриши ја Категоријата на Ознаката?",
