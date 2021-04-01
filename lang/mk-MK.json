@@ -310,8 +310,8 @@
     "mergeTag": "Merge Tag",
     "makeAliasWhenMerged": "Make this an alias of the tag?",
     "deleteTag": "Delete Tag",
-    "deleteTagCategory": "Delete Tag Category",
-    "locked": "Locked while processing..."
+    "deleteTagCategory": "Избриши ја Категоријата на Ознаката",
+    "locked": "Заклучено додека се обработува..."
   },
   "curate": {
     "importAll": "Увози се",
@@ -363,8 +363,8 @@
     "contentFiles": "Содржински Фајлови",
     "warnings": "Преопредувања",
     "noLaunchCommand": "'Launch Command' е задолжително поле. Пополнете го пред увозот.",
-    "invalidLaunchCommand": "'Launch Command' does not fit these URL requirements:",
-    "releaseDateInvalid": "'Release Date' must follow YYYY-MM-DD (month and day are optional).",
+    "invalidLaunchCommand": "'Launch Command' не одговара на овие барања за URL:",
+    "releaseDateInvalid": "„Издадениот датум“ мора да го следи YYYY-MM-DD (месецот и денот се по избор).",
     "unusedApplicationPath": "'Application Path' has an unused value. Make sure it's spelled correctly!",
     "unusedTags": "The following tags are not present on any other game. Are they correct?",
     "unusedPlatform": "'Platform' has an unused value. Make sure it's spelled correctly!",
