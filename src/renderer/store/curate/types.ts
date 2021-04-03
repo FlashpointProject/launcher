@@ -1,10 +1,10 @@
 import { Tag } from '@database/entity/Tag';
-import { CurationMeta, LoadedCuration } from '@shared/curate/types';
+import { CurationMeta, CurationState } from '@shared/curate/types';
 import { CurateActionType } from './enums';
 
 export type CurateState = {
   /** Loaded curations. */
-  curations: LoadedCuration[];
+  curations: CurationState[];
   /** Folder of the currently selected curation (-1 if none). */
   current: string;
 }
@@ -24,10 +24,10 @@ export type CurateAction = {
   value: CurationMeta[keyof CurationMeta];
 } | {
   type: CurateActionType.SET_ALL_CURATIONS;
-  curations: LoadedCuration[];
+  curations: CurationState[];
 } | {
   type: CurateActionType.APPLY_DELTA;
-  added?: LoadedCuration[];
+  added?: CurationState[];
   removed?: string[];
 } | {
   type: CurateActionType.ADD_TAG;

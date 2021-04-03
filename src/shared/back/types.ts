@@ -5,7 +5,7 @@ import { Source } from '@database/entity/Source';
 import { SourceData } from '@database/entity/SourceData';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
-import { LoadedCuration } from '@shared/curate/types';
+import { CurationState, LoadedCuration } from '@shared/curate/types';
 import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/extensions/interfaces';
 import { FilterGameOpts } from '@shared/game/GameFilter';
 import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
@@ -124,6 +124,7 @@ export enum BackIn {
   // Curate
   CURATE_LOAD_ARCHIVES,
   CURATE_GET_LIST,
+  CURATE_SYNC_CURATIONS,
   CURATE_EDIT_UPDATE_IMAGE,
   CURATE_EDIT_REMOVE_IMAGE,
 
@@ -278,7 +279,8 @@ export type BackInTemplate = SocketTemplate<BackIn, {
 
   // Curate
   [BackIn.CURATE_LOAD_ARCHIVES]: (filePaths: string[]) => void;
-  [BackIn.CURATE_GET_LIST]: () => LoadedCuration[];
+  [BackIn.CURATE_GET_LIST]: () => CurationState[];
+  [BackIn.CURATE_SYNC_CURATIONS]: (curations: CurationState[]) => void;
   [BackIn.CURATE_EDIT_UPDATE_IMAGE]: (folder: string, type: CurationImageEnum, filePath: string) => void;
   [BackIn.CURATE_EDIT_REMOVE_IMAGE]: (folder: string, type: CurationImageEnum) => void;
 
@@ -335,7 +337,7 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG]: () => void;
 
   // Curate
-  [BackOut.CURATE_LIST_CHANGE]: (added?: LoadedCuration[], removed?: string[]) => void; // "removed" is the folder names of the removed curations
+  [BackOut.CURATE_LIST_CHANGE]: (added?: CurationState[], removed?: string[]) => void; // "removed" is the folder names of the removed curations
 }>
 
 export type BackInitArgs = {
@@ -392,7 +394,7 @@ export type GetRendererInitDataResponse = {
   logoSets: LogoSet[];
   extConfigs: ExtensionContribution<'configuration'>[];
   extConfig: AppExtConfigData;
-  curations: LoadedCuration[];
+  curations: CurationState[];
 }
 
 export type GetSuggestionsResponseData = {

@@ -14,7 +14,7 @@ import * as React from 'react';
 import { SimpleButton } from '../SimpleButton';
 import * as path from 'path';
 import { compare } from '@back/util/strings';
-import { LoadedCuration } from '@shared/curate/types';
+import { CurationState } from '@shared/curate/types';
 
 const index_attr = 'data-index';
 
@@ -25,7 +25,7 @@ type OwnProps = {
 export type CuratePageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps & WithMainStateProps & WithCurateStateProps
 
 export function CuratePage(props: CuratePageProps) {
-  const curation: LoadedCuration | undefined = props.curate.curations.find(c => c.folder === props.curate.current);
+  const curation: CurationState | undefined = props.curate.curations.find(c => c.folder === props.curate.current);
   const strings = React.useContext(LangContext);
 
   const [tagText, setTagText] = React.useState<string>('');

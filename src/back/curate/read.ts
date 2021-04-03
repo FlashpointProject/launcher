@@ -55,6 +55,7 @@ export async function readCurationMeta(folderPath: string, appPaths: { [platform
         let parsed: ParsedCurationMeta;
         if (fileType === 'old') {
           parsed = await parseCurationMetaOld(stripBOM(fileData.toString()));
+          // @TODO Resave as new file
         } else {
           parsed = await parseCurationMetaFile(YAML.parse(stripBOM(fileData.toString())));
         }

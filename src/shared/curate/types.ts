@@ -9,6 +9,10 @@ export type LoadedCuration = {
   screenshot: CurationIndexImage;
 }
 
+export type CurationState = LoadedCuration & {
+
+}
+
 export type CurationMeta = Partial<{
   // Game fields
   title: string;

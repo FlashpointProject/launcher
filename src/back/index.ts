@@ -213,6 +213,7 @@ async function main() {
     BackIn.IMPORT_CURATION,
     BackIn.LAUNCH_CURATION,
     BackIn.LAUNCH_CURATION_ADDAPP,
+    BackIn.CURATE_SYNC_CURATIONS,
     // ?
     BackIn.SYNC_GAME_METADATA,
     // Meta Edits

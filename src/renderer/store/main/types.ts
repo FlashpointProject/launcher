@@ -9,10 +9,10 @@ import { GamePropSuggestions, IService } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { ITheme, Theme } from '@shared/ThemeFile';
+import * as axiosImport from 'axios';
 import { UpdateInfo } from 'electron-updater';
 import { TagFilterGroup } from 'flashpoint-launcher';
 import { MainActionType, RequestState } from './enums';
-import * as axiosImport from 'axios';
 
 export type View = {
   /** The most recent query used for this view. */

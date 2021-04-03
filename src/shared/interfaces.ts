@@ -4,7 +4,7 @@ import { SocketClient } from '@shared/back/SocketClient';
 import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/extensions/interfaces';
 import { OpenDialogOptions } from 'electron';
 import { AppConfigData, AppExtConfigData } from './config/interfaces';
-import { LoadedCuration } from './curate/types';
+import { CurationState } from './curate/types';
 import { LangContainer, LangFile } from './lang';
 import { ILogEntry } from './Log/interface';
 import { AppPreferencesData } from './preferences/interfaces';
@@ -112,7 +112,7 @@ export interface IMainWindowExternal {
   initialLogoSets: LogoSet[];
   initialExtConfigs: ExtensionContribution<'configuration'>[];
   initialExtConfig: AppExtConfigData;
-  initialCurations: LoadedCuration[];
+  initialCurations: CurationState[];
 
   /**
    * Wait for the preload to initialize.

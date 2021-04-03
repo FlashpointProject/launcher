@@ -168,7 +168,7 @@ export class App extends React.Component<AppProps> {
             .then(curations => {
               (this.props.dispatchMain as any as Dispatch<CurateAction>)({
                 type: CurateActionType.SET_ALL_CURATIONS,
-                curations: curations.map(c => ({ ...c, tagText: '' })),
+                curations: curations,
               });
             });
             break;
@@ -306,7 +306,7 @@ export class App extends React.Component<AppProps> {
     window.Shared.back.register(BackOut.CURATE_LIST_CHANGE, (event, added, removed) => {
       (this.props.dispatchMain as any as Dispatch<CurateAction>)({
         type: CurateActionType.APPLY_DELTA,
-        added: added && added.map(c => ({ ...c, tagText: '' })),
+        added,
         removed,
       });
     });

@@ -1,4 +1,4 @@
-import { LoadedCuration } from '@shared/curate/types';
+import { CurationState } from '@shared/curate/types';
 import { CurateActionType } from './enums';
 import { CurateAction, CurateState } from './types';
 
@@ -128,7 +128,7 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
 
 type NewCurationStateInfo = {
   index: number;
-  newCurations: LoadedCuration[];
+  newCurations: CurationState[];
 }
 
 function genCurationState(folder: string, state: CurateState): NewCurationStateInfo {

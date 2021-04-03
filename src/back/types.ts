@@ -3,7 +3,7 @@ import { Playlist } from '@database/entity/Playlist';
 import { TagCategory } from '@database/entity/TagCategory';
 import { BackInit, ViewGame } from '@shared/back/types';
 import { AppConfigData, AppExtConfigData } from '@shared/config/interfaces';
-import { LoadedCuration } from '@shared/curate/types';
+import { CurationState } from '@shared/curate/types';
 import { ExecMapping, IBackProcessInfo, INamedBackProcessInfo } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { ILogEntry } from '@shared/Log/interface';
@@ -75,7 +75,7 @@ export type BackState = {
   /** Path of the SevenZip binary. */
   sevenZipPath: string;
   /** All currently loaded curations. */
-  loadedCurations: LoadedCuration[];
+  loadedCurations: CurationState[];
   /** Most recent app paths that were fetched from the database (cached in the back so it's available for the curation stuff /obelisk). */
   recentAppPaths: { [platform: string]: string; };
 }

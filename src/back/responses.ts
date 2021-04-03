@@ -9,7 +9,7 @@ import { BackIn, BackInit, BackOut, CurationImageEnum, DownloadDetails } from '@
 import { overwriteConfigData } from '@shared/config/util';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
-import { LoadedCuration } from '@shared/curate/types';
+import { CurationState } from '@shared/curate/types';
 import { getContentFolderByKey } from '@shared/curate/util';
 import { AppProvider, BrowserApplicationOpts } from '@shared/extensions/interfaces';
 import { FilterGameOpts } from '@shared/game/GameFilter';
@@ -33,6 +33,7 @@ import { CONFIG_FILENAME, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME } from './co
 import { CURATIONS_FOLDER_EXTRACTING, CURATIONS_FOLDER_WORKING, CURATION_META_FILENAMES } from './consts';
 import { loadCurationIndexImage } from './curate/parse';
 import { readCurationMeta } from './curate/read';
+import { saveCuration } from './curate/write';
 import { ExtConfigFile } from './ExtConfigFile';
 import { parseAppVar } from './extensions/util';
 import * as GameDataManager from './game/GameDataManager';
@@ -1214,7 +1215,7 @@ export function registerRequestCallbacks(state: BackState): void {
         const parsedMeta = await readCurationMeta(curationPath, state.recentAppPaths);
         if (!parsedMeta) { throw new Error('Fail'); }
 
-        const curation: LoadedCuration = {
+        const curation: CurationState = {
           folder: key,
           game: parsedMeta.game,
           addApps: parsedMeta.addApps,
@@ -1248,6 +1249,17 @@ export function registerRequestCallbacks(state: BackState): void {
 
   state.socketServer.register(BackIn.CURATE_GET_LIST, async (event) => {
     return state.loadedCurations;
+  });
+
+  state.socketServer.register(BackIn.CURATE_SYNC_CURATIONS, async (event, curations) => {
+    for (const curation of curations) {
+      const idx = state.loadedCurations.findIndex(c => c.folder === curation.folder);
+      if (idx > -1) {
+        state.loadedCurations[idx] = curation;
+        // Save curation
+        saveCuration(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, curation.folder), curation);
+      }
+    }
   });
 
   state.socketServer.register(BackIn.CURATE_EDIT_UPDATE_IMAGE, async (event, folder, type, filePath) => {
