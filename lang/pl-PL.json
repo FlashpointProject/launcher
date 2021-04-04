@@ -4,7 +4,7 @@
     "configHeader": "Konfiguracja",
     "configDesc": "(By niektóre ze zmian zadziałały musisz kliknąć 'Zapisz i uruchom ponownie')",
     "preferencesHeader": "Ustawienia",
-    "extremeGames": "Gry Ekstremalne",
+    "extremeGames": "Zawartość ekstremalna",
     "extremeGamesDesc": "Pokaż gry ekstremalne (zawierające przemoc, seks lub inną zawartość nie nadającą się dla dzieci).",
     "enableEditing": "Uruchom tryb edycji",
     "enableEditingDesc": "Pozwala na edytowanie gier oraz dodatkowych aplikacji. Pokazuje także zakładkę \"Dodaj do Flashpointa\".",
@@ -22,7 +22,7 @@
     "browse": "Przeglądaj",
     "libraries": "Biblioteki",
     "randomLibraries": "Losowe biblioteki",
-    "randomLibrariesDesc": "Biblioteki do użycia w Losowych Wyborach na głównej stronie.",
+    "randomLibrariesDesc": "Biblioteki używane w losowych grach na stronie głównej.",
     "updateSource": "Aktualizuj źródło",
     "platforms": "Platformy",
     "nativePlatforms": "Natywne platformy",
@@ -178,7 +178,7 @@
     "importTagsDesc": "Importuje tagi z pliku utworzonego przez 'Eksport tagów'",
     "migrateExtremeGames": "Migrate Extreme Games",
     "migrateExtremeGamesDesc": "Usuwa oznaczenie \"ekstremalne\" z każdej gry i przypisuje im tag \"LEGACY-Extreme\"",
-    "massImportGameData": "Mass Import Game Data",
+    "massImportGameData": "Masowy import danych gry",
     "massImportGameDataDesc": "Mass imports Game Data packs, attempting to match their filename to a games UUID.",
     "servicesHeader": "Usługi w tle",
     "servicesMissing": "Brak aktywnych usług.",
@@ -374,7 +374,7 @@
     "noSource": "\"Źródło\" jest wymaganym polem.",
     "unenteredTag": "The Tags text field hasn't been submitted.",
     "noLogo": "There is no logo on this curation.",
-    "noScreenshot": "There is no screenshot on this curation.",
+    "noScreenshot": "Brakuje zrzutu ekranu w tej kuracji.",
     "ilc_notHttp": "Użyj HTTP.",
     "ilc_nonExistant": "Wskaż istniejący plik w folderze 'content' archiwizowanej gry.",
     "sort": "Sortuj kuracje (A-Z)"
@@ -504,6 +504,6 @@
     "tech": "Inne technologie",
     "techDesc": "Dodaje wsparcie dla wszystkich innych technologii - Shockwave, Unity, Java, HTML5, itp.",
     "screenshots": "Loga i zrzuty ekranu",
-    "screenshotsDesc": "Dodaje logotypy dla widoku siatki i zrzuty ekranu do wszystkich gier."
+    "screenshotsDesc": "Dodaje loga dla widoku siatki i zrzuty ekranu do wszystkich gier."
   }
 }
