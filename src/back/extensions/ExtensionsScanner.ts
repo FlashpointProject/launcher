@@ -227,7 +227,7 @@ function parseConfigurationProperty(parser: IObjectParserProp<ExtConfigurationPr
 }
 
 function toPropType(v: any): ExtConfigurationProp['type'] {
-  if (v === 'object' || v === 'string' || v === 'boolean') {
+  if (v === 'object' || v === 'string' || v === 'boolean' || v === 'number') {
     return v;
   } else {
     throw new Error('Configuration prop type is not valid. (string, object, number or boolean)');
