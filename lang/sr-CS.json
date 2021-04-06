@@ -1,7 +1,7 @@
 {
-  "name": "English",
+  "name": "Srpski",
   "config": {
-    "configHeader": "Config",
+    "configHeader": "Postavke",
     "configDesc": "(You must press 'Save & Restart' for some changes to take effect)",
     "preferencesHeader": "Preferences",
     "extremeGames": "Extreme Content",
