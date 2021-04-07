@@ -5,7 +5,7 @@
     "configDesc": "(Мораш да притиснеш 'Сачувај и покрени поново' да би неке промене ступиле на снагу)",
     "preferencesHeader": "Поставке",
     "extremeGames": "Екстремни садржај",
-    "extremeGamesDesc": "Allow tags inside 'Extreme' tag filter groups and corresponding games to be shown.",
+    "extremeGamesDesc": "Дозволите приказивање ознака унутар група филтера за ознаке „Екстреме“ и одговарајућих игара.",
     "enableEditing": "Укључи уређивање",
     "enableEditingDesc": "Омогућава уређивање игара и додатних апликација. Такође приказује картице везане за уређивање.",
     "onDemandImages": "Слике на захтев",
