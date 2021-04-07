@@ -141,7 +141,7 @@
     "developerHeader": "Програмер",
     "developerDesc": "Овде ће се налазити сви важни програмерски алати.",
     "checkMissingImages": "Провери недостајуће слике",
-    "checkMissingImagesDesc": "Листај све игре без портрета или слике",
+    "checkMissingImagesDesc": "Листај све игре без сличица или снимка екрана",
     "checkGameIds": "Провери ID игре",
     "checkGameIdsDesc": "Листај све игре са дуплираним или неважећим ID",
     "checkGameTitles": "Провери називе игара",
