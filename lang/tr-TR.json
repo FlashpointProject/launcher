@@ -5,7 +5,7 @@
     "configDesc": "(Bazı değişikliklerin meydana gelmesi için 'Kaydet & Yeniden Başlat'a basmanız gerekir)",
     "preferencesHeader": "Tercihler",
     "extremeGames": "Ekstrem İçerik",
-    "extremeGamesDesc": "Allow tags inside 'Extreme' tag filter groups and corresponding games to be shown.",
+    "extremeGamesDesc": "\"Ekstrem\" etiket filtreleme grubu ve \"ekstrem\" etiket filtreleme grubuna karşılık gelen oyunların gösterilmesine izin ver.",
     "enableEditing": "Değişikliklere İzin Ver",
     "enableEditingDesc": "Oyunların ve fazladan eklentilerin düzenlenmesine izin verir. Ayrıca düzenlemeye bağlı seçenekleri gösterir.",
     "onDemandImages": "İsteğe Bağlı Görüntüler",
