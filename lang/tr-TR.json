@@ -4,7 +4,7 @@
     "configHeader": "Yapılandırma",
     "configDesc": "(Bazı değişikliklerin meydana gelmesi için 'Kaydet & Yeniden Başlat'a basmanız gerekir)",
     "preferencesHeader": "Tercihler",
-    "extremeGames": "Extreme Content",
+    "extremeGames": "Ekstrem İçerik",
     "extremeGamesDesc": "Allow tags inside 'Extreme' tag filter groups and corresponding games to be shown.",
     "enableEditing": "Değişikliklere İzin Ver",
     "enableEditingDesc": "Oyunların ve fazladan eklentilerin düzenlenmesine izin verir. Ayrıca düzenlemeye bağlı seçenekleri gösterir.",
@@ -58,7 +58,7 @@
     "extApplications": "Uygulamalar",
     "saveAndRestart": "Kaydet ve Yeniden Başlat",
     "saveAndClose": "Kaydet ve Kapat",
-    "tagFilterGroupEditor": "Tag Filter Group Editor"
+    "tagFilterGroupEditor": "Etiket Filtreleme Grubu Düzenleyicisi"
   },
   "home": {
     "updateHeader": "Başlatıcı Güncellemesi",
@@ -481,7 +481,7 @@
     "deleteAddApp": "Delete this Add App?",
     "deleteTagCategory": "Bu Etiket Kategorisi silinsin mi?",
     "deleteTag": "Bu etiketi sil?",
-    "deleteTagAlias": "Delete this Tag Alias?",
+    "deleteTagAlias": "Bu isim etiketini sil?",
     "deleteSource": "Bu Kaynağı Sil?",
     "uninstallGame": "Bu Oyunu Sil?",
     "unableToUninstallGameData": "Veri paketi silinemedi. Kullanımda mı? Başlatıcıyı yeniden başlatmayı deneyin.",
