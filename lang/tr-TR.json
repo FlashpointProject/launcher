@@ -372,7 +372,7 @@
     "nonContentFolders": "Kürasyon klasörünün içinde İçerik olmayan klasörler bulundu. Orada mı olmaları gerekiyor?",
     "noTags": "Bu kürasyonun etiketi yok.",
     "noSource": "\"Kaynak\" gerekli bir alandır.",
-    "unenteredTag": "The Tags text field hasn't been submitted.",
+    "unenteredTag": "Etiketlerin metin alanı gönderilmedi.",
     "noLogo": "Bu kürasyonun logosu yok.",
     "noScreenshot": "Bu kürasyonun ekran görüntüsü yok.",
     "ilc_notHttp": "HTTP kullan.",
