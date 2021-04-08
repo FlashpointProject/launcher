@@ -482,28 +482,28 @@
     "deleteTagCategory": "Izbrisati ovu kategoriju oznaka?",
     "deleteTag": "Izbrisati ovu oznaku?",
     "deleteTagAlias": "Delete this Tag Alias?",
-    "deleteSource": "Delete this Source?",
-    "uninstallGame": "Uninstall this Game?",
-    "unableToUninstallGameData": "Unable to delete data pack. Is it in use? Try restarting the launcher.",
-    "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher.",
-    "downloadingGame": "Downloading Game...",
-    "verifyingGame": "Verifying Game...",
-    "aFewMinutes": "This may take a few minutes."
+    "deleteSource": "Izbrisati ovaj izvor?",
+    "uninstallGame": "Deinstalirati ovu igru?",
+    "unableToUninstallGameData": "Nije moguće izbrisati paket podataka. Da li je u upotrebi? Pokušajte ponovo pokrenuti pokretač.",
+    "unableToDeleteGame": "Nije moguće izbrisati igru. Da li je u upotrebi? Pokušajte ponovo pokrenuti pokretač.",
+    "downloadingGame": "Preuzimanje igre...",
+    "verifyingGame": "Verifikovanje igre...",
+    "aFewMinutes": "Ovo će potrajati nekoliko minuta."
   },
   "libraries": {
-    "arcade": "Games",
-    "arcadePlural": "All Games",
-    "theatre": "Animations",
-    "theatrePlural": "All Animations",
+    "arcade": "Igre",
+    "arcadePlural": "Sve igre",
+    "theatre": "Animacije",
+    "theatrePlural": "Sve animacije",
     "auditorium": "NG Auditorium",
-    "auditoriumPlural": "All NG Animations"
+    "auditoriumPlural": "Sve NG animacije"
   },
   "upgrades": {
     "infinity": "Flashpoint Infinity",
-    "infinityDesc": "Required files. Adds support for Flash games.",
-    "tech": "Other Technologies",
-    "techDesc": "Adds support for all other tech - Shockwave, Unity, Java, HTML5, etc.",
-    "screenshots": "Logos & Screenshots",
-    "screenshotsDesc": "Adds logos for Grid view and screenshots for all games."
+    "infinityDesc": "Neophodni fajlovi. Dodaje podršku za Flash igre.",
+    "tech": "Ostale tehnologije",
+    "techDesc": "Dodaje podršku za ostale tehnologije - Shockwave, Unity, Java, HTML5, itd.",
+    "screenshots": "Logotipi i slike ekrana",
+    "screenshotsDesc": "Dodaje logotip za pregled u rešetki i slike ekrana za sve igre."
   }
 }
