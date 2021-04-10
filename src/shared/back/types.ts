@@ -5,7 +5,7 @@ import { Source } from '@database/entity/Source';
 import { SourceData } from '@database/entity/SourceData';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
-import { CurationState, LoadedCuration } from '@shared/curate/types';
+import { CurationState } from '@shared/curate/types';
 import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/extensions/interfaces';
 import { FilterGameOpts } from '@shared/game/GameFilter';
 import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
@@ -125,7 +125,6 @@ export enum BackIn {
   CURATE_LOAD_ARCHIVES,
   CURATE_GET_LIST,
   CURATE_SYNC_CURATIONS,
-  CURATE_EDIT_UPDATE_IMAGE,
   CURATE_EDIT_REMOVE_IMAGE,
 
   // Misc
@@ -281,7 +280,6 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.CURATE_LOAD_ARCHIVES]: (filePaths: string[]) => void;
   [BackIn.CURATE_GET_LIST]: () => CurationState[];
   [BackIn.CURATE_SYNC_CURATIONS]: (curations: CurationState[]) => void;
-  [BackIn.CURATE_EDIT_UPDATE_IMAGE]: (folder: string, type: CurationImageEnum, filePath: string) => void;
   [BackIn.CURATE_EDIT_REMOVE_IMAGE]: (folder: string, type: CurationImageEnum) => void;
 
   // Misc

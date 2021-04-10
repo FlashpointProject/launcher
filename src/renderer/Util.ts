@@ -113,6 +113,10 @@ export function getExtIconURL(id: string): string {
   return `${getFileServerURL()}/exticons/${id}`;
 }
 
+export function getCurationURL(folder: string): string {
+  return `${getFileServerURL()}/curations/${folder}`;
+}
+
 export function getGameImagePath(folderName: string, gameId: string): string {
   return path.join(
     window.Shared.config.fullFlashpointPath,

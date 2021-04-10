@@ -14,8 +14,8 @@ type GameImageSplitProps = {
   imgSrc?: string;
   /** Whether to show the text above images */
   showHeaders: boolean;
-  /** Called when the "add" button is clicked. This button is only shown while there is no image. */
-  onAddClick: () => void;
+  /** Called when the image file has been set by the user */
+  onSetImage: (data: ArrayBuffer) => void;
   /** Called when the "remove" button is clicked. This button is only shown while there is an image. */
   onRemoveClick: () => void;
   /** Called when something is dropped on this component. */
@@ -41,6 +41,8 @@ export interface GameImageSplit {
  * It's meant to be used for displaying the current, or allowing the user to add a new, image for a game.
  */
 export class GameImageSplit extends React.Component<GameImageSplitProps, GameImageSplitState> {
+  inputRef: HTMLInputElement | null;
+
   constructor(props: GameImageSplitProps) {
     super(props);
     this.state = {
@@ -70,9 +72,16 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
         { (imgSrc === undefined) ? (
           <div className='game-image-split__not-found'>
             <h1>{formatString(strings.misc.noBlankFound, text)}</h1>
+            <input
+              hidden={true}
+              ref={(ref) => this.inputRef = ref}
+              accept='image/png'
+              id='test'
+              onChange={this.onInputFileChange}
+              type='file'/>
             <SimpleButton
               value={formatString(strings.misc.addBlank, text)}
-              onClick={this.onAddClick}
+              onClick={() => this.inputRef && this.inputRef.click()}
               disabled={disabled} />
           </div>
         ) : (
@@ -94,8 +103,12 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
     );
   }
 
-  onAddClick = () => {
-    this.props.onAddClick();
+  onInputFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files.length > 0) {
+      const file = event.target.files[0];
+      const data = await file.arrayBuffer();
+      this.props.onSetImage(data);
+    }
   }
 
   onRemoveClick = () => {

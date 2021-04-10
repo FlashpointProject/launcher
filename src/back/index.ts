@@ -41,6 +41,7 @@ import { CONFIG_FILENAME, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SO
 import { CURATIONS_FOLDER_WORKING } from './consts';
 import { loadCurationIndexImage } from './curate/parse';
 import { readCurationMeta } from './curate/read';
+import { onFileServerRequestCurationFileFactory } from './curate/util';
 import { loadExecMappingsFile } from './Execs';
 import { ExtConfigFile } from './ExtConfigFile';
 import { ApiEmitter } from './extensions/ApiEmitter';
@@ -56,7 +57,7 @@ import { SocketServer } from './SocketServer';
 import { newThemeWatcher } from './Themes';
 import { BackState, ImageDownloadItem } from './types';
 import { EventQueue } from './util/EventQueue';
-import { FileServer } from './util/FileServer';
+import { FileServer, serveFile } from './util/FileServer';
 import { FolderWatcher } from './util/FolderWatcher';
 import { LogFile } from './util/LogFile';
 import { logFactory } from './util/logging';
@@ -178,7 +179,7 @@ async function main() {
   state.fileServer.registerRequestHandler('exticons', onFileServerRequestExtIcons);
   state.fileServer.registerRequestHandler('extdata', onFileServerRequestExtData);
   state.fileServer.registerRequestHandler('credits.json', (p, u, req, res) => serveFile(req, res, path.join(state.config.flashpointPath, state.preferences.jsonFolderPath, 'credits.json')));
-
+  state.fileServer.registerRequestHandler('curations', onFileServerRequestCurationFileFactory(getCurationFilePath, onUpdateCurationFile, onRemoveCurationFile));
 
 
 
@@ -660,6 +661,53 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
 }
 
+function getCurationFilePath(folder: string, relativePath: string) {
+  return path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, folder, relativePath);
+}
+
+async function onUpdateCurationFile(folder: string, relativePath: string, data: Buffer) {
+  const filePath = getCurationFilePath(folder, relativePath);
+  await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
+  await fs.promises.writeFile(filePath, data);
+  // Send updates for image changes
+  const curationIdx = state.loadedCurations.findIndex(c => c.folder === folder);
+  if (curationIdx !== -1) {
+    const curation = state.loadedCurations[curationIdx];
+    if (relativePath === 'logo.png') {
+      curation.thumbnail.exists = true;
+      curation.thumbnail.version += 1;
+      curation.thumbnail.fileName = 'logo.png';
+      curation.thumbnail.filePath = filePath;
+      state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
+    } else if (relativePath === 'ss.png') {
+      curation.screenshot.exists = true;
+      curation.screenshot.version += 1;
+      curation.screenshot.fileName = 'ss.png';
+      curation.screenshot.filePath = filePath;
+      state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
+    }
+  }
+}
+
+async function onRemoveCurationFile(folder: string, relativePath: string) {
+  const filePath = getCurationFilePath(folder, relativePath);
+  await fs.remove(filePath);
+  // Send updates for image changes
+  const curationIdx = state.loadedCurations.findIndex(c => c.folder === folder);
+  if (curationIdx !== -1) {
+    const curation = state.loadedCurations[curationIdx];
+    if (relativePath === 'logo.png') {
+      curation.thumbnail.exists = false;
+      curation.thumbnail.version += 1;
+      state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
+    } else if (relativePath === 'ss.png') {
+      curation.screenshot.exists = false;
+      curation.screenshot.version += 1;
+      state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
+    }
+  }
+}
+
 function onFileServerRequestExtData(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): void {
   // Split URL section into parts (/extdata/<extId>/<relativePath>)
   const splitPath = pathname.split('/');
@@ -771,7 +819,6 @@ function onFileServerRequestImages(pathname: string, url: URL, req: http.Incomin
 }
 
 function onFileServerRequestLogos(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): void {
-  console.log(pathname);
   const logoSet = state.registry.logoSets.get(state.preferences.currentLogoSet || '');
   const logoFolder = logoSet && logoSet.files.includes(pathname)
     ? logoSet.fullPath
@@ -796,36 +843,6 @@ function onFileServerRequestLogos(pathname: string, url: URL, req: http.Incoming
         serveFile(req, res, filePath);
       }
     });
-  }
-}
-
-function serveFile(req: http.IncomingMessage, res: http.ServerResponse, filePath: string): void {
-  if (req.method === 'GET' || req.method === 'HEAD') {
-    fs.stat(filePath, (error, stats) => {
-      if (error || stats && !stats.isFile()) {
-        res.writeHead(404);
-        res.end();
-      } else {
-        res.writeHead(200, {
-          'Content-Type': mime.getType(path.extname(filePath)) || '',
-          'Content-Length': stats.size,
-        });
-        if (req.method === 'GET') {
-          const stream = fs.createReadStream(filePath);
-          stream.on('error', error => {
-            console.warn(`File server failed to stream file. ${error}`);
-            stream.destroy(); // Calling "destroy" inside the "error" event seems like it could case an endless loop (although it hasn't thus far)
-            if (!res.finished) { res.end(); }
-          });
-          stream.pipe(res);
-        } else {
-          res.end();
-        }
-      }
-    });
-  } else {
-    res.writeHead(404);
-    res.end();
   }
 }
 

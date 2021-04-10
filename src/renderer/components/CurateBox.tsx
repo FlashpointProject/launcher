@@ -5,13 +5,13 @@ import { GameImageSplit } from '@renderer/components/GameImageSplit';
 import { useMouse } from '@renderer/hooks/useMouse';
 import { CurateActionType } from '@renderer/store/curate/enums';
 import { CurateAction } from '@renderer/store/curate/types';
-import { findElementAncestor } from '@renderer/Util';
+import { findElementAncestor, getCurationURL } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
 import { BackIn, CurationImageEnum } from '@shared/back/types';
 import { LoadedCuration } from '@shared/curate/types';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { fixSlashes } from '@shared/Util';
-import { remote } from 'electron';
+import axios from 'axios';
 import { TagSuggestion } from 'flashpoint-launcher';
 import * as React from 'react';
 import { Dispatch } from 'redux';
@@ -36,8 +36,8 @@ export type CurateBoxProps = {
 export function CurateBox(props: CurateBoxProps) {
   const strings = React.useContext(LangContext);
 
-  const onAddThumbnailClick  = useAddImageCallback(CurationImageEnum.THUMBNAIL, props.curation, props.dispatch);
-  const onAddScreenshotClick = useAddImageCallback(CurationImageEnum.SCREENSHOT,   props.curation, props.dispatch);
+  const onSetThumbnail  = useAddImageCallback(CurationImageEnum.THUMBNAIL, props.curation, props.dispatch);
+  const onSetScreenshot = useAddImageCallback(CurationImageEnum.SCREENSHOT,   props.curation, props.dispatch);
   const onRemoveThumbnailClick  = useRemoveImageCallback(CurationImageEnum.THUMBNAIL, props.curation, props.dispatch);
   const onRemoveScreenshotClick = useRemoveImageCallback(CurationImageEnum.SCREENSHOT,  props.curation, props.dispatch);
   const onDropThumbnail  = useDropImageCallback('logo.png', props.curation, props.dispatch);
@@ -120,7 +120,7 @@ export function CurateBox(props: CurateBoxProps) {
               text={strings.browse.thumbnail}
               imgSrc={thumbnailPath}
               showHeaders={false}
-              onAddClick={onAddThumbnailClick}
+              onSetImage={onSetThumbnail}
               onRemoveClick={onRemoveThumbnailClick}
               disabled={disabled}
               onDrop={onDropThumbnail} />
@@ -128,7 +128,7 @@ export function CurateBox(props: CurateBoxProps) {
               text={strings.browse.screenshot}
               imgSrc={screenshotPath}
               showHeaders={false}
-              onAddClick={onAddScreenshotClick}
+              onSetImage={onSetScreenshot}
               onRemoveClick={onRemoveScreenshotClick}
               disabled={disabled}
               onDrop={onDropScreenshot} />
@@ -347,21 +347,13 @@ export function CurateBox(props: CurateBoxProps) {
   );
 }
 
-function useAddImageCallback(type: CurationImageEnum, curation: LoadedCuration | undefined, dispatch: Dispatch<CurateAction>): () => void {
-  return React.useCallback(async () => {
+function useAddImageCallback(type: CurationImageEnum, curation: LoadedCuration | undefined, dispatch: Dispatch<CurateAction>): (data: ArrayBuffer) => void {
+  return React.useCallback(async (data: ArrayBuffer) => {
     if (curation) {
-      const filePath = remote.dialog.showOpenDialogSync({
-        title: 'Select Image',
-        filters: [
-          {
-            name: 'Image File',
-            extensions: ['png']
-          }
-        ],
-        properties: ['openFile']
-      });
-      if (filePath && filePath.length > 0) {
-        return window.Shared.back.request(BackIn.CURATE_EDIT_UPDATE_IMAGE, curation.folder, type, filePath[0]);
+      const suffix = type === CurationImageEnum.THUMBNAIL ? 'logo.png' : 'ss.png';
+      const res = await axios.post(`${getCurationURL(curation.folder)}/${suffix}`, data);
+      if (res.status !== 200) {
+        alert(`ERROR: Server Returned ${res.status} - ${res.statusText}`);
       }
     }
   }, [curation && curation.folder]);
