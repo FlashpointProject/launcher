@@ -10,6 +10,7 @@ import { ModelUtils } from '@shared/game/util';
 import { GamePropSuggestions, PickType, ProcessAction } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { deepCopy, generateTagFilterGroup, sizeToString } from '@shared/Util';
+import axios from 'axios';
 import { clipboard, Menu, MenuItemConstructorOptions, remote } from 'electron';
 import { GameData } from 'flashpoint-launcher';
 import * as fs from 'fs';
@@ -631,14 +632,14 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                         text={strings.thumbnail}
                         imgSrc={this.state.thumbnailExists ? getGameImageURL(LOGOS, game.id) : undefined}
                         showHeaders={true}
-                        onAddClick={this.onAddThumbnailDialog}
+                        onSetImage={this.onSetThumbnail}
                         onRemoveClick={this.onRemoveThumbnailClick}
                         onDrop={this.onThumbnailDrop} />
                       <GameImageSplit
                         text={strings.screenshot}
                         imgSrc={this.state.screenshotExists ? screenshotSrc : undefined}
                         showHeaders={true}
-                        onAddClick={this.onAddScreenshotDialog}
+                        onSetImage={this.onSetScreenshot}
                         onRemoveClick={this.onRemoveScreenshotClick}
                         onDrop={this.onScreenshotDrop} />
                     </div>
@@ -812,8 +813,17 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     }
   }
 
-  onAddScreenshotDialog = this.addImageDialog(SCREENSHOTS);
-  onAddThumbnailDialog = this.addImageDialog(LOGOS);
+  setImageFactory = (folder: typeof LOGOS | typeof SCREENSHOTS) => async (data: ArrayBuffer) => {
+    if (this.props.currentGame) {
+      const res = await axios.post(`${getGameImageURL(folder, this.props.currentGame.id)}`, data);
+      if (res.status !== 200) {
+        alert(`ERROR: Server Returned ${res.status} - ${res.statusText}`);
+      }
+    }
+  };
+
+  onSetThumbnail = this.setImageFactory(LOGOS);
+  onSetScreenshot = this.setImageFactory(SCREENSHOTS);
 
   addImageDialog(folder: typeof LOGOS | typeof SCREENSHOTS) {
     return () => {

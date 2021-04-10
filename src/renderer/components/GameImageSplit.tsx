@@ -76,7 +76,6 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
               hidden={true}
               ref={(ref) => this.inputRef = ref}
               accept='image/png'
-              id='test'
               onChange={this.onInputFileChange}
               type='file'/>
             <SimpleButton

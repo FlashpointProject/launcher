@@ -15,6 +15,7 @@ import { SourceDataUrlPath1612434225789 } from '@database/migration/161243422578
 import { SourceFileURL1612435692266 } from '@database/migration/1612435692266-Source_FileURL';
 import { SourceFileCount1612436426353 } from '@database/migration/1612436426353-SourceFileCount';
 import { GameTagsStr1613571078561 } from '@database/migration/1613571078561-GameTagsStr';
+import { validateSemiUUID } from '@renderer/util/uuid';
 import { BackIn, BackInit, BackInitArgs, BackOut } from '@shared/back/types';
 import { ILogoSet, LogoSet } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
@@ -760,11 +761,41 @@ function onFileServerRequestThemes(pathname: string, url: URL, req: http.Incomin
   }
 }
 
-function onFileServerRequestImages(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): void {
+async function onFileServerRequestImages(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): void {
+  const splitPath = pathname.split('/');
+  const folder = splitPath.length > 0 ? splitPath[0] : '';
   const imageFolder = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
   const filePath = path.join(imageFolder, pathname);
   if (filePath.startsWith(imageFolder)) {
-    if (req.method === 'GET' || req.method === 'HEAD') {
+    if (req.method === 'POST') {
+      const fileName = path.basename(pathname);
+      if (fileName.length >= 39 && fileName.endsWith('.png') && splitPath.length === 4) {
+        const gameId = fileName.substr(0,36);
+        if (validateSemiUUID(gameId) && splitPath[1] === gameId.substr(0,2) && splitPath[2] === gameId.substr(2,2)) {
+          await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
+          const chunks: any[] = [];
+          req.on('data', (chunk) => {
+            chunks.push(chunk);
+          });
+          req.on('end', async () => {
+            const data = Buffer.concat(chunks);
+            await fs.promises.writeFile(filePath, data);
+            state.socketServer.broadcast(BackOut.IMAGE_CHANGE, folder, gameId);
+            res.writeHead(200);
+            res.end();
+          });
+          req.on('error', async (err) => {
+            log.error('Launcher', `Error writing Game image - ${err}`);
+            res.writeHead(500);
+            res.end();
+          });
+          return;
+        }
+      }
+      res.writeHead(400);
+      res.end();
+    }
+    else if (req.method === 'GET' || req.method === 'HEAD') {
       fs.stat(filePath, (error, stats) => {
         if (error && error.code !== 'ENOENT') {
           res.writeHead(404);

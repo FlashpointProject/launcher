@@ -1262,35 +1262,6 @@ export function registerRequestCallbacks(state: BackState): void {
     }
   });
 
-  state.socketServer.register(BackIn.CURATE_EDIT_UPDATE_IMAGE, async (event, folder, type, filePath) => {
-    const curationIdx = state.loadedCurations.findIndex(c => c.folder === folder);
-    if (curationIdx > -1) {
-      const curation = state.loadedCurations[curationIdx];
-      switch (type) {
-        case CurationImageEnum.THUMBNAIL: {
-          const imagePath = path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, folder, 'logo.png');
-          if (imagePath) {
-            await fs.promises.copyFile(filePath, imagePath);
-            curation.thumbnail.exists = true;
-            curation.thumbnail.version += 1;
-            state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
-          }
-          break;
-        }
-        case CurationImageEnum.SCREENSHOT: {
-          const imagePath = path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, folder, 'ss.png');
-          if (imagePath) {
-            await fs.promises.copyFile(filePath, imagePath);
-            curation.screenshot.exists = true;
-            curation.screenshot.version += 1;
-            state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
-          }
-          break;
-        }
-      }
-    }
-  });
-
   state.socketServer.register(BackIn.CURATE_EDIT_REMOVE_IMAGE, async (event, folder, type) => {
     const curationIdx = state.loadedCurations.findIndex(c => c.folder === folder);
     if (curationIdx > -1) {
