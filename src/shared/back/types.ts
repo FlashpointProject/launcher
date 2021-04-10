@@ -5,7 +5,7 @@ import { Source } from '@database/entity/Source';
 import { SourceData } from '@database/entity/SourceData';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
-import { CurationState } from '@shared/curate/types';
+import { AddAppCuration, CurationState } from '@shared/curate/types';
 import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/extensions/interfaces';
 import { FilterGameOpts } from '@shared/game/GameFilter';
 import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
@@ -15,7 +15,7 @@ import { SocketTemplate } from '@shared/socket/types';
 import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
 import { GameData, TagAlias, TagFilterGroup } from 'flashpoint-launcher';
 import { AppConfigData, AppExtConfigData } from '../config/interfaces';
-import { EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '../curate/OLD_types';
+import { EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '../curate/OLD_types';
 import { ExecMapping, GamePropSuggestions, IService, ProcessAction } from '../interfaces';
 import { LangContainer, LangFile } from '../lang';
 import { ILogEntry, ILogPreEntry, LogLevel } from '../Log/interface';
@@ -517,8 +517,8 @@ export type LaunchCurationData = {
 }
 
 export type LaunchCurationAddAppData = {
-  curationKey: string;
-  curation: EditAddAppCuration;
+  folder: string;
+  addApp: AddAppCuration;
   platform?: string;
   symlinkCurationContent: boolean;
 }

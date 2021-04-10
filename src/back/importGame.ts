@@ -7,6 +7,7 @@ import { validateSemiUUID } from '@renderer/util/uuid';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertEditToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { CurationIndexImage, EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '@shared/curate/OLD_types';
+import { AddAppCuration } from '@shared/curate/types';
 import { getCurationFolder } from '@shared/curate/util';
 import * as child_process from 'child_process';
 import { execFile } from 'child_process';
@@ -261,12 +262,12 @@ export async function launchCuration(key: string, meta: EditCurationMeta, addApp
 
 /**
  * Create and launch an additional application from curation metadata.
- * @param curationKey Key of the parent curation index
+ * @param folder Key of the parent curation index
  * @param appCuration Add App Curation to launch
  */
-export async function launchAddAppCuration(curationKey: string, appCuration: EditAddAppCuration, symlinkCurationContent: boolean,
+export async function launchAddAppCuration(folder: string, appCuration: AddAppCuration, symlinkCurationContent: boolean,
   skipLink: boolean, opts: Omit<LaunchAddAppOpts, 'addApp'>, onWillEvent: ApiEmitter<AdditionalApp>, onDidEvent: ApiEmitter<AdditionalApp>) {
-  if (!skipLink || !symlinkCurationContent) { await linkContentFolder(curationKey, opts.fpPath, opts.isDev, opts.exePath, opts.htdocsPath, symlinkCurationContent); }
+  if (!skipLink || !symlinkCurationContent) { await linkContentFolder(folder, opts.fpPath, opts.isDev, opts.exePath, opts.htdocsPath, symlinkCurationContent); }
   const addApp = createAddAppFromCurationMeta(appCuration, createPlaceholderGame());
   await onWillEvent.fire(addApp);
   GameLauncher.launchAdditionalApplication({
@@ -320,12 +321,12 @@ async function createGameFromCurationMeta(gameId: string, gameMeta: EditCuration
   return game;
 }
 
-function createAddAppFromCurationMeta(addAppMeta: EditAddAppCuration, game: Game): AdditionalApp {
+function createAddAppFromCurationMeta(addAppMeta: AddAppCuration, game: Game): AdditionalApp {
   return {
     id: addAppMeta.key,
-    name: addAppMeta.meta.heading || '',
-    applicationPath: addAppMeta.meta.applicationPath || '',
-    launchCommand: addAppMeta.meta.launchCommand || '',
+    name: addAppMeta.heading || '',
+    applicationPath: addAppMeta.applicationPath || '',
+    launchCommand: addAppMeta.launchCommand || '',
     autoRunBefore: false,
     waitForExit: false,
     parentGame: game

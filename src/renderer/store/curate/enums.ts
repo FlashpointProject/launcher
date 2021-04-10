@@ -6,5 +6,7 @@ export enum CurateActionType {
   SET_ALL_CURATIONS = '@@curate/SET_ALL_CURATIONS',
   APPLY_DELTA = '@@curate/APPLY_DELTA',
   ADD_TAG = '@@curate/ADD_TAG',
-  REMOVE_TAG = '@@curate/REMOVE_TAG'
+  REMOVE_TAG = '@@curate/REMOVE_TAG',
+  EDIT_ADDAPP = '@@curate/EDIT_ADDAPP',
+  REMOVE_ADDAPP = '@@curate/REMOVE_ADDAPP',
 }

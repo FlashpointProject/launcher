@@ -4,7 +4,7 @@ import { CurateBoxDropdownInputRow, CurateBoxInputRow, CurateBoxTagDropdownInput
 import { GameImageSplit } from '@renderer/components/GameImageSplit';
 import { useMouse } from '@renderer/hooks/useMouse';
 import { CurateActionType } from '@renderer/store/curate/enums';
-import { CurateAction } from '@renderer/store/curate/types';
+import { AddAppType, CurateAction } from '@renderer/store/curate/types';
 import { findElementAncestor, getCurationURL } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
 import { BackIn, CurationImageEnum } from '@shared/back/types';
@@ -15,6 +15,7 @@ import axios from 'axios';
 import { TagSuggestion } from 'flashpoint-launcher';
 import * as React from 'react';
 import { Dispatch } from 'redux';
+import { CurateBoxAddApp } from './CurateBoxAddApp';
 import { CurateBoxRow } from './CurateBoxRow';
 import { CurateBoxWarnings } from './CurateBoxWarnings';
 import { InputElement, InputField } from './InputField';
@@ -31,6 +32,7 @@ export type CurateBoxProps = {
   tagText: string;
   onTagTextChange: (tagText: string) => void;
   dispatch: Dispatch<CurateAction>;
+  symlinkCurationContent: boolean;
 }
 
 export function CurateBox(props: CurateBoxProps) {
@@ -100,6 +102,16 @@ export function CurateBox(props: CurateBoxProps) {
     },
   }));
 
+  const addAppBoxes = props.curation.addApps.map((addApp, idx) => {
+    return (
+      <CurateBoxAddApp
+        key={idx}
+        folder={props.curation.folder}
+        addApp={addApp}
+        dispatch={props.dispatch}
+        symlinkCurationContent={props.symlinkCurationContent} />
+    );
+  });
 
   const disabled = false; // props.curation ? props.curation.locked : false;
 
@@ -313,7 +325,9 @@ export function CurateBox(props: CurateBoxProps) {
                 onClick={onAddMessage}
                 disabled={disabled} />
             </div>
-            <span>@TODO List add apps</span>
+            <span>
+              {addAppBoxes}
+            </span>
           </div>
           <hr />
           {/* Content */}
@@ -395,16 +409,14 @@ function useDropImageCallback(filename: 'logo.png' | 'ss.png', curation: LoadedC
   }, [curation && curation.folder]);
 }
 
-function useCreateAddAppCallback(type: 'normal' | 'extras' | 'message', curationFolder: string, dispatch: Dispatch<CurateAction>) {
+function useCreateAddAppCallback(type: AddAppType, folder: string, dispatch: Dispatch<CurateAction>) {
   return React.useCallback(() => {
     dispatch({
       type: CurateActionType.NEW_ADDAPP,
-      payload: {
-        key: curationFolder,
-        type: type,
-      }
+      folder: folder,
+      addAppType: type,
     });
-  }, [dispatch, curationFolder]);
+  }, [dispatch, folder]);
 }
 
 function findAncestorRowTagID(element: Element): number | undefined {

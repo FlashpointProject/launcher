@@ -5,6 +5,9 @@ import { CurateState } from './types';
 export const curationSyncMiddleware = (store: any) => (next: any) => (action: any) => {
   next(action);
   switch (action.type) {
+    case CurateActionType.EDIT_ADDAPP:
+    case CurateActionType.NEW_ADDAPP:
+    case CurateActionType.REMOVE_ADDAPP:
     case CurateActionType.EDIT_CURATION_META:
     case CurateActionType.ADD_TAG:
     case CurateActionType.REMOVE_TAG: {

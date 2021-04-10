@@ -761,7 +761,7 @@ function onFileServerRequestThemes(pathname: string, url: URL, req: http.Incomin
   }
 }
 
-async function onFileServerRequestImages(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): void {
+async function onFileServerRequestImages(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
   const splitPath = pathname.split('/');
   const folder = splitPath.length > 0 ? splitPath[0] : '';
   const imageFolder = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);

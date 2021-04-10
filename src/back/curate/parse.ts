@@ -1,11 +1,12 @@
+import * as TagManager from '@back/game/TagManager';
+import { uuid } from '@back/util/uuid';
 import { CurationIndexImage } from '@shared/curate/OLD_types';
-import { AddAppCurationMeta, CurationMeta } from '@shared/curate/types';
+import { AddAppCuration, CurationMeta } from '@shared/curate/types';
 import { Coerce } from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import { Tag } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as TagManager from '@back/game/TagManager';
 import { CurationFormatObject, parseCurationFormat } from './format/parser';
 import { CFTokenizer, tokenizeCurationFormat } from './format/tokenizer';
 
@@ -16,7 +17,7 @@ export type ParsedCurationMeta = {
   /** Meta data of the game. */
   game: CurationMeta;
   /** Meta data of the additional applications. */
-  addApps: AddAppCurationMeta[];
+  addApps: AddAppCuration[];
 };
 
 /**
@@ -103,8 +104,10 @@ export async function parseCurationMetaFile(data: any, onError?: (error: string)
  * @param item Object parser, wrapped around the "raw" add-app meta object to convert.
  * @param label Label of the object.
  */
-function convertAddApp(item: IObjectParserProp<any>, label: string | number | symbol, rawValue: any): AddAppCurationMeta {
-  const addApp: AddAppCurationMeta = {};
+function convertAddApp(item: IObjectParserProp<any>, label: string | number | symbol, rawValue: any): AddAppCuration {
+  const addApp: AddAppCuration = {
+    key: uuid()
+  };
   const labelStr = str(label);
   switch (labelStr.toLowerCase()) {
     case 'extras': // (Extras add-app)
@@ -130,16 +133,18 @@ function arrayStr(rawStr: any): string {
   return str(rawStr);
 }
 
-function generateExtrasAddApp(folderName: string) : AddAppCurationMeta {
+function generateExtrasAddApp(folderName: string) : AddAppCuration {
   return {
+    key: uuid(),
     heading: 'Extras',
     applicationPath: ':extras:',
     launchCommand: folderName
   };
 }
 
-function generateMessageAddApp(message: string) : AddAppCurationMeta {
+function generateMessageAddApp(message: string) : AddAppCuration {
   return {
+    key: uuid(),
     heading: 'Message',
     applicationPath: ':message:',
     launchCommand: message

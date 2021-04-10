@@ -1,5 +1,5 @@
 import { Tag } from '@database/entity/Tag';
-import { CurationMeta, CurationState } from '@shared/curate/types';
+import { AddAppCurationMeta, CurationMeta, CurationState } from '@shared/curate/types';
 import { CurateActionType } from './enums';
 
 export type CurateState = {
@@ -9,6 +9,8 @@ export type CurateState = {
   current: string;
 }
 
+export type AddAppType = 'normal' | 'extras' | 'message';
+
 export type CurateAction = {
   type: CurateActionType.CREATE_CURATION;
   folder: string;
@@ -17,6 +19,8 @@ export type CurateAction = {
   folder: string;
 } | {
   type: CurateActionType.NEW_ADDAPP;
+  folder: string;
+  addAppType: AddAppType;
 } | {
   type: CurateActionType.EDIT_CURATION_META;
   folder: string;
@@ -37,4 +41,14 @@ export type CurateAction = {
   type: CurateActionType.REMOVE_TAG;
   folder: string;
   tagId: number;
+} | {
+  type: CurateActionType.EDIT_ADDAPP;
+  folder: string;
+  key: string;
+  property: keyof AddAppCurationMeta;
+  value: string;
+} | {
+  type: CurateActionType.REMOVE_ADDAPP;
+  folder: string;
+  key: string;
 }

@@ -1,4 +1,5 @@
-import { CurationState } from '@shared/curate/types';
+import { AddAppCuration, CurationState } from '@shared/curate/types';
+import uuid = require('uuid');
 import { CurateActionType } from './enums';
 import { CurateAction, CurateState } from './types';
 
@@ -34,10 +35,75 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
         current: action.folder,
       };
 
-    case CurateActionType.NEW_ADDAPP:
+    case CurateActionType.NEW_ADDAPP: {
+      const { index, newCurations } = genCurationState(action.folder, state);
+
+      if (index === -1) { return { ...state }; }
+
+      const newAddApp: AddAppCuration = {
+        key: uuid(),
+        launchCommand: ''
+      };
+
+      switch (action.addAppType) {
+        case 'extras':
+          newAddApp.heading = 'Extras';
+          newAddApp.applicationPath = ':extras:';
+          break;
+        case 'message':
+          newAddApp.heading = 'Message';
+          newAddApp.applicationPath = ':message:';
+          break;
+        case 'normal':
+          newAddApp.heading = '';
+          newAddApp.applicationPath = '';
+          break;
+      }
+
+      newCurations[index].addApps.push(newAddApp);
+
       return {
         ...state,
+        curations: newCurations
       };
+    }
+
+    case CurateActionType.REMOVE_ADDAPP: {
+      const { index, newCurations } = genCurationState(action.folder, state);
+
+      if (index === -1) { return { ...state }; }
+
+      const oldCuration = state.curations[index];
+      const addAppIdx = oldCuration.addApps.findIndex(a => a.key === action.key);
+
+      if (addAppIdx === -1) { return { ...state }; }
+
+      newCurations[index].addApps.splice(addAppIdx, 1);
+
+      return {
+        ...state,
+        curations: newCurations
+      };
+    }
+
+    case CurateActionType.EDIT_ADDAPP: {
+      const { index, newCurations } = genCurationState(action.folder, state);
+
+      if (index === -1) { return { ...state }; }
+
+      const oldCuration = state.curations[index];
+      const addAppIdx = oldCuration.addApps.findIndex(a => a.key === action.key);
+
+      if (addAppIdx === -1) { return { ...state }; }
+
+      const newAddApp = { ...oldCuration.addApps[addAppIdx] };
+      newAddApp[action.property] = action.value;
+      newCurations[index].addApps[addAppIdx] = newAddApp;
+      return {
+        ...state,
+        curations: newCurations
+      };
+    }
 
     case CurateActionType.EDIT_CURATION_META: {
       const index = state.curations.findIndex(curation => curation.folder === action.folder);

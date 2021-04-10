@@ -1072,10 +1072,10 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.LAUNCH_CURATION_ADDAPP, async (event, data) => {
-    const skipLink = (data.curationKey === state.lastLinkedCurationKey);
-    state.lastLinkedCurationKey = data.curationKey;
+    const skipLink = (data.folder === state.lastLinkedCurationKey);
+    state.lastLinkedCurationKey = data.folder;
     try {
-      await launchAddAppCuration(data.curationKey, data.curation, data.symlinkCurationContent, skipLink, {
+      await launchAddAppCuration(data.folder, data.addApp, data.symlinkCurationContent, skipLink, {
         fpPath: path.resolve(state.config.flashpointPath),
         htdocsPath: state.preferences.htdocsFolderPath,
         native: state.preferences.nativePlatforms.some(p => p === data.platform) || false,
