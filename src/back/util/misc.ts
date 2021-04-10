@@ -127,7 +127,7 @@ export function exit(state: BackState): void {
       state.socketServer.close()
       .catch(e => { console.error(e); }),
       // Close file server
-      new Promise<void>(resolve => state.fileServer.close(error => {
+      new Promise<void>(resolve => state.fileServer.server.close(error => {
         if (error) { console.warn('An error occurred while closing the file server.', error); }
         resolve();
       })),

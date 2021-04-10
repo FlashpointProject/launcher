@@ -56,6 +56,7 @@ import { SocketServer } from './SocketServer';
 import { newThemeWatcher } from './Themes';
 import { BackState, ImageDownloadItem } from './types';
 import { EventQueue } from './util/EventQueue';
+import { FileServer } from './util/FileServer';
 import { FolderWatcher } from './util/FolderWatcher';
 import { LogFile } from './util/LogFile';
 import { logFactory } from './util/logging';
@@ -78,7 +79,7 @@ const state: BackState = {
   verbose: false,
   logFile: createErrorProxy('logFile'),
   socketServer: new SocketServer(),
-  fileServer: new http.Server(onFileServerRequest),
+  fileServer: new FileServer(),
   fileServerPort: -1,
   fileServerDownloads: {
     queue: [],
@@ -171,6 +172,15 @@ main();
 
 async function main() {
   registerRequestCallbacks(state);
+  state.fileServer.registerRequestHandler('themes', onFileServerRequestThemes);
+  state.fileServer.registerRequestHandler('images', onFileServerRequestImages);
+  state.fileServer.registerRequestHandler('logos', onFileServerRequestLogos);
+  state.fileServer.registerRequestHandler('exticons', onFileServerRequestExtIcons);
+  state.fileServer.registerRequestHandler('extdata', onFileServerRequestExtData);
+  state.fileServer.registerRequestHandler('credits.json', (p, u, req, res) => serveFile(req, res, path.join(state.config.flashpointPath, state.preferences.jsonFolderPath, 'credits.json')));
+
+
+
 
   // Database manipulation
   // Anything that reads from the database and then writes to it (or a file) should go in this queue!
@@ -607,8 +617,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     const maxPort = state.config.imagesPortMax;
 
     let port = minPort - 1;
-    state.fileServer.once('listening', onceListening);
-    state.fileServer.on('error', onError);
+    state.fileServer.server.once('listening', onceListening);
+    state.fileServer.server.on('error', onError);
     tryListen();
 
     function onceListening() { done(undefined); }
@@ -621,14 +631,14 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     }
     function tryListen() {
       if (port++ < maxPort) {
-        state.fileServer.listen(port, hostname);
+        state.fileServer.server.listen(port, hostname);
       } else {
         done(new Error(`All attempted ports are already in use (Ports: ${minPort} - ${maxPort}).`));
       }
     }
     function done(error: Error | undefined) {
-      state.fileServer.off('listening', onceListening);
-      state.fileServer.off('error', onError);
+      state.fileServer.server.off('listening', onceListening);
+      state.fileServer.server.off('error', onError);
       if (error) {
         log.info('Back', 'Failed to open HTTP server.\n' + error);
         resolve(-1);
@@ -650,192 +660,143 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
 }
 
-function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse): void {
-  try {
-    let urlPath = decodeURIComponent(req.url || '');
-
-    // Remove the get parameters
-    const qIndex = urlPath.indexOf('?');
-    if (qIndex >= 0) { urlPath = urlPath.substr(0, qIndex); }
-
-    // Remove all leading slashes
-    for (let i = 0; i < urlPath.length; i++) {
-      if (urlPath[i] !== '/') {
-        urlPath = urlPath.substr(i);
-        break;
+function onFileServerRequestExtData(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): void {
+  // Split URL section into parts (/extdata/<extId>/<relativePath>)
+  const splitPath = pathname.split('/');
+  const extId = splitPath.length > 0 ? splitPath[0] : '';
+  const relativePath = splitPath.length > 1 ? splitPath.slice(1).join('/') : '';
+  state.extensionsService.getExtension(extId)
+  .then(ext => {
+    if (ext) {
+      // Only serve from <extPath>/static/
+      const staticPath = path.join(ext.extensionPath, 'static');
+      const filePath = path.join(staticPath, relativePath);
+      if (filePath.startsWith(staticPath)) {
+        serveFile(req, res, filePath);
+      } else {
+        log.warn('Launcher', `Illegal file request: "${filePath}"`);
       }
     }
+  });
+}
 
-    const index = urlPath.indexOf('/');
-    const firstItem = (index >= 0 ? urlPath.substr(0, index) : urlPath).toLowerCase(); // First filename in the path string ("A/B/C" => "A" | "D" => "D")
-    switch (firstItem) {
-      // Image folder
-      case 'images': {
-        const imageFolder = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
-        const fileSubPath = urlPath.substr(index + 1);
-        const filePath = path.join(imageFolder, fileSubPath);
-        if (filePath.startsWith(imageFolder)) {
-          if (req.method === 'GET' || req.method === 'HEAD') {
-            fs.stat(filePath, (error, stats) => {
-              if (error && error.code !== 'ENOENT') {
-                res.writeHead(404);
-                res.end();
-              } else if (stats && stats.isFile()) {
-                // Respond with file
-                res.writeHead(200, {
-                  'Content-Type': mime.getType(path.extname(filePath)) || '',
-                  'Content-Length': stats.size,
-                });
-                if (req.method === 'GET') {
-                  const stream = fs.createReadStream(filePath);
-                  stream.on('error', error => {
-                    console.warn(`File server failed to stream file. ${error}`);
-                    stream.destroy(); // Calling "destroy" inside the "error" event seems like it could case an endless loop (although it hasn't thus far)
-                    if (!res.finished) { res.end(); }
-                  });
-                  stream.pipe(res);
-                } else {
-                  res.end();
-                }
-              } else if (state.preferences.onDemandImages) {
-                // Remove any older duplicate requests
-                const index = state.fileServerDownloads.queue.findIndex(v => v.subPath === fileSubPath);
-                if (index >= 0) {
-                  const item = state.fileServerDownloads.queue[index];
-                  item.res.writeHead(404);
-                  item.res.end();
-                  state.fileServerDownloads.queue.splice(index, 1);
-                }
+function onFileServerRequestExtIcons(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): void {
+  state.extensionsService.getExtension(pathname)
+  .then((ext) => {
+    if (ext && ext.manifest.icon) {
+      const filePath = path.join(ext.extensionPath, ext.manifest.icon);
+      if (filePath.startsWith(ext.extensionPath)) {
+        serveFile(req, res, filePath);
+      } else {
+        log.warn('Launcher', `Illegal file request: "${filePath}"`);
+      }
+    }
+  });
+}
 
-                // Add to download queue
-                const item: ImageDownloadItem = {
-                  subPath: fileSubPath,
-                  req: req,
-                  res: res,
-                  cancelled: false,
-                };
-                state.fileServerDownloads.queue.push(item);
-                req.once('close', () => { item.cancelled = true; });
-                updateFileServerDownloadQueue();
-              } else {
-                res.writeHead(404);
-                res.end();
-              }
+function onFileServerRequestThemes(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): void {
+  const splitPath = pathname.split('/');
+  // Find theme associated with the path (/Theme/<themeId>/<relativePath>)
+  const themeId = splitPath.length > 0 ? splitPath[0] : '';
+  const relativePath = splitPath.length > 1 ? splitPath.slice(1).join('/') : '';
+  const theme = state.registry.themes.get(themeId);
+  if (theme) {
+    const filePath = path.join(theme.basePath, theme.themePath, relativePath);
+    // Don't allow files outside of theme path
+    const relative = path.relative(theme.basePath, filePath);
+    if (relative && !relative.startsWith('..') && !path.isAbsolute(relative)) {
+      serveFile(req, res, filePath);
+    } else {
+      log.warn('Launcher', `Illegal file request: "${filePath}"`);
+    }
+  }
+}
+
+function onFileServerRequestImages(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): void {
+  const imageFolder = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
+  const filePath = path.join(imageFolder, pathname);
+  if (filePath.startsWith(imageFolder)) {
+    if (req.method === 'GET' || req.method === 'HEAD') {
+      fs.stat(filePath, (error, stats) => {
+        if (error && error.code !== 'ENOENT') {
+          res.writeHead(404);
+          res.end();
+        } else if (stats && stats.isFile()) {
+          // Respond with file
+          res.writeHead(200, {
+            'Content-Type': mime.getType(path.extname(filePath)) || '',
+            'Content-Length': stats.size,
+          });
+          if (req.method === 'GET') {
+            const stream = fs.createReadStream(filePath);
+            stream.on('error', error => {
+              console.warn(`File server failed to stream file. ${error}`);
+              stream.destroy(); // Calling "destroy" inside the "error" event seems like it could case an endless loop (although it hasn't thus far)
+              if (!res.finished) { res.end(); }
             });
+            stream.pipe(res);
           } else {
-            res.writeHead(404);
             res.end();
           }
-        }
-      } break;
-
-      // Theme folder
-      case 'themes': {
-        const index = urlPath.indexOf('/');
-        // Split URL section into parts (/Themes/<themeId>/<relativePath>)
-        const themeUrl = (index >= 0) ? urlPath.substr(index + 1) : urlPath;
-        const nameIndex = themeUrl.indexOf('/');
-        const themeId = (nameIndex >= 0) ? themeUrl.substr(0, nameIndex) : themeUrl;
-        const relativePath = (nameIndex >= 0) ? themeUrl.substr(nameIndex + 1): themeUrl;
-        // Find theme associated with the path
-        const theme = state.registry.themes.get(themeId);
-        if (theme) {
-          const filePath = path.join(theme.basePath, theme.themePath, relativePath);
-          // Don't allow files outside of theme path
-          const relative = path.relative(theme.basePath, filePath);
-          if (relative && !relative.startsWith('..') && !path.isAbsolute(relative)) {
-            serveFile(req, res, filePath);
-          } else {
-            log.warn('Launcher', `Illegal file request: "${filePath}"`);
+        } else if (state.preferences.onDemandImages) {
+          // Remove any older duplicate requests
+          const index = state.fileServerDownloads.queue.findIndex(v => v.subPath === pathname);
+          if (index >= 0) {
+            const item = state.fileServerDownloads.queue[index];
+            item.res.writeHead(404);
+            item.res.end();
+            state.fileServerDownloads.queue.splice(index, 1);
           }
-        }
-      } break;
 
-      // Logos folder
-      case 'logos': {
-        const logoSet = state.registry.logoSets.get(state.preferences.currentLogoSet || '');
-        const relativePath = urlPath.substr(index + 1);
-        const logoFolder = logoSet && logoSet.files.includes(relativePath)
-          ? logoSet.fullPath
-          : path.join(state.config.flashpointPath, state.preferences.logoFolderPath);
-        const filePath = path.join(logoFolder, relativePath);
-        if (filePath.startsWith(logoFolder)) {
-          fs.access(filePath, fs.constants.F_OK, (err) => {
+          // Add to download queue
+          const item: ImageDownloadItem = {
+            subPath: pathname,
+            req: req,
+            res: res,
+            cancelled: false,
+          };
+          state.fileServerDownloads.queue.push(item);
+          req.once('close', () => { item.cancelled = true; });
+          updateFileServerDownloadQueue();
+        } else {
+          res.writeHead(404);
+          res.end();
+        }
+      });
+    } else {
+      res.writeHead(404);
+      res.end();
+    }
+  }
+}
+
+function onFileServerRequestLogos(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): void {
+  console.log(pathname);
+  const logoSet = state.registry.logoSets.get(state.preferences.currentLogoSet || '');
+  const logoFolder = logoSet && logoSet.files.includes(pathname)
+    ? logoSet.fullPath
+    : path.join(state.config.flashpointPath, state.preferences.logoFolderPath);
+  const filePath = path.join(logoFolder, pathname);
+  if (filePath.startsWith(logoFolder)) {
+    fs.access(filePath, fs.constants.F_OK, (err) => {
+      if (err) {
+        // File doesn't exist, serve default image
+        const basePath = state.isDev ? path.join(process.cwd(), 'build') : path.join(path.dirname(state.exePath), 'resources/app.asar/build');
+        const replacementFilePath = path.join(basePath, 'window/images/Logos', pathname);
+        if (replacementFilePath.startsWith(basePath)) {
+          fs.access(replacementFilePath, fs.constants.F_OK, (err) => {
             if (err) {
-              // File doesn't exist, serve default image
-              const basePath = state.isDev ? path.join(process.cwd(), 'build') : path.join(path.dirname(state.exePath), 'resources/app.asar/build');
-              const replacementFilePath = path.join(basePath, 'window/images/Logos', relativePath);
-              if (replacementFilePath.startsWith(basePath)) {
-                fs.access(replacementFilePath, fs.constants.F_OK, (err) => {
-                  if (err) {
-                    serveFile(req, res, path.join(basePath, DEFAULT_LOGO_PATH));
-                  } else {
-                    serveFile(req, res, replacementFilePath);
-                  }
-                });
-              }
+              serveFile(req, res, path.join(basePath, DEFAULT_LOGO_PATH));
             } else {
-              serveFile(req, res, filePath);
+              serveFile(req, res, replacementFilePath);
             }
           });
-        } else {
-          log.warn('Launcher', `Illegal file request: "${filePath}"`);
         }
-      } break;
-
-      // Extension icons
-      case 'exticons': {
-        const relativePath = urlPath.substr(index + 1);
-        // /extIcons/<extId>
-        state.extensionsService.getExtension(relativePath)
-        .then((ext) => {
-          if (ext && ext.manifest.icon) {
-            const filePath = path.join(ext.extensionPath, ext.manifest.icon);
-            if (filePath.startsWith(ext.extensionPath)) {
-              serveFile(req, res, filePath);
-            } else {
-              log.warn('Launcher', `Illegal file request: "${filePath}"`);
-            }
-          }
-        });
-        break;
+      } else {
+        serveFile(req, res, filePath);
       }
-
-      case 'extdata': {
-        const index = urlPath.indexOf('/');
-        // Split URL section into parts (/extdata/<extId>/<relativePath>)
-        const fullPath = (index >= 0) ? urlPath.substr(index + 1) : urlPath;
-        const nameIndex = fullPath.indexOf('/');
-        const extId = (nameIndex >= 0) ? fullPath.substr(0, nameIndex) : fullPath;
-        const relativePath = (nameIndex >= 0) ? fullPath.substr(nameIndex + 1): fullPath;
-        state.extensionsService.getExtension(extId)
-        .then(ext => {
-          if (ext) {
-            // Only serve from <extPath>/static/
-            const staticPath = path.join(ext.extensionPath, 'static');
-            const filePath = path.join(staticPath, relativePath);
-            if (filePath.startsWith(staticPath)) {
-              serveFile(req, res, filePath);
-            } else {
-              log.warn('Launcher', `Illegal file request: "${filePath}"`);
-            }
-          }
-        });
-        break;
-      }
-
-      // JSON file(s)
-      case 'credits.json': {
-        serveFile(req, res, path.join(state.config.flashpointPath, state.preferences.jsonFolderPath, 'credits.json'));
-      } break;
-
-      // Nothing
-      default: {
-        res.writeHead(404);
-        res.end();
-      } break;
-    }
-  } catch (error) { console.warn(error); }
+    });
+  }
 }
 
 function serveFile(req: http.IncomingMessage, res: http.ServerResponse, filePath: string): void {

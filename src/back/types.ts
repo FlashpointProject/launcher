@@ -12,7 +12,7 @@ import { AppPreferencesData } from '@shared/preferences/interfaces';
 import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint-launcher';
-import { IncomingMessage, Server, ServerResponse } from 'http';
+import { IncomingMessage, ServerResponse } from 'http';
 import { Connection } from 'typeorm';
 import * as WebSocket from 'ws';
 import { ApiEmitter } from './extensions/ApiEmitter';
@@ -23,6 +23,7 @@ import { GameManagerState } from './game/types';
 import { ManagedChildProcess } from './ManagedChildProcess';
 import { SocketServer } from './SocketServer';
 import { EventQueue } from './util/EventQueue';
+import { FileServer } from './util/FileServer';
 import { FolderWatcher } from './util/FolderWatcher';
 import { LogFile } from './util/LogFile';
 
@@ -34,7 +35,7 @@ export type BackState = {
   isDev: boolean;
   verbose: boolean;
   socketServer: SocketServer;
-  fileServer: Server;
+  fileServer: FileServer;
   fileServerPort: number;
   fileServerDownloads: {
     queue: ImageDownloadItem[];
