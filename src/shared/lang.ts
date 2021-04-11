@@ -508,6 +508,8 @@ const langTemplate = {
     'downloadingGame',
     'verifyingGame',
     'aFewMinutes',
+    'importCurationWithWarnings',
+    'errorImportingCuration',
   ] as const,
   // libraries: [], // (This is dynamically populated in run-time)
 } as const;

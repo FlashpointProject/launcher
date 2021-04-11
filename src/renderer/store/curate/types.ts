@@ -55,4 +55,12 @@ export type CurateAction = {
   type: CurateActionType.SET_WARNINGS;
   folder: string;
   warnings: CurationWarnings;
+} | {
+  type: CurateActionType.IMPORT;
+  folder: string;
+  saveCuration: boolean;
+} | {
+  type: CurateActionType.SET_LOCK;
+  folder: string;
+  locked: boolean;
 }

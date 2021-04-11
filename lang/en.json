@@ -491,7 +491,9 @@
     "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher.",
     "downloadingGame": "Downloading Game...",
     "verifyingGame": "Verifying Game...",
-    "aFewMinutes": "This may take a few minutes."
+    "aFewMinutes": "This may take a few minutes.",
+    "importCurationWithWarnings": "Import this curation? There are still warnings present.",
+    "errorImportingCuration": "Error import curation '{0}', check logs page for details."
   },
   "libraries": {
     "arcade": "Games",

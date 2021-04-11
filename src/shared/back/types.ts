@@ -181,6 +181,7 @@ export enum BackOut {
 
   // Curate
   CURATE_LIST_CHANGE,
+  SET_CURATION_LOCK,
 }
 
 export type BackInTemplate = SocketTemplate<BackIn, {
@@ -336,6 +337,7 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
 
   // Curate
   [BackOut.CURATE_LIST_CHANGE]: (added?: CurationState[], removed?: string[]) => void; // "removed" is the folder names of the removed curations
+  [BackOut.SET_CURATION_LOCK]: (folder: string, locked: boolean) => void;
 }>
 
 export type BackInitArgs = {

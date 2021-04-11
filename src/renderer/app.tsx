@@ -311,6 +311,14 @@ export class App extends React.Component<AppProps> {
       });
     });
 
+    window.Shared.back.register(BackOut.SET_CURATION_LOCK, (event, folder, locked) => {
+      (this.props.dispatchMain as any as Dispatch<CurateAction>)({
+        type: CurateActionType.SET_LOCK,
+        folder,
+        locked,
+      });
+    });
+
     // Cache playlist icons (if they are loaded)
     if (this.props.main.playlists.length > 0) { this.cachePlaylistIcons(this.props.main.playlists); }
 

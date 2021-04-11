@@ -37,6 +37,7 @@ export type CurateBoxProps = {
 
 export function CurateBox(props: CurateBoxProps) {
   const strings = React.useContext(LangContext);
+  const disabled = !!props.curation.locked;
 
   const onSetThumbnail  = useAddImageCallback(CurationImageEnum.THUMBNAIL, props.curation, props.dispatch);
   const onSetScreenshot = useAddImageCallback(CurationImageEnum.SCREENSHOT,   props.curation, props.dispatch);
@@ -108,6 +109,7 @@ export function CurateBox(props: CurateBoxProps) {
         { props.curation.addApps.map((addApp, idx) => (
           <CurateBoxAddApp
             key={idx}
+            disabled={disabled}
             folder={props.curation.folder}
             addApp={addApp}
             dispatch={props.dispatch}
@@ -116,8 +118,6 @@ export function CurateBox(props: CurateBoxProps) {
       </tbody>
     </table>
   );
-
-  const disabled = false; // props.curation ? props.curation.locked : false;
 
   const shared = {
     curationFolder: props.curation.folder,

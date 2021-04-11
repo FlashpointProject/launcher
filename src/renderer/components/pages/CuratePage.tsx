@@ -15,6 +15,8 @@ import { SimpleButton } from '../SimpleButton';
 import * as path from 'path';
 import { compare } from '@back/util/strings';
 import { CurationState } from '@shared/curate/types';
+import { getWarningCount } from '../CurateBoxWarnings';
+import { WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
 
 const index_attr = 'data-index';
 
@@ -22,7 +24,7 @@ type OwnProps = {
 
 }
 
-export type CuratePageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps & WithMainStateProps & WithCurateStateProps
+export type CuratePageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps & WithMainStateProps & WithCurateStateProps & WithConfirmDialogProps;
 
 export function CuratePage(props: CuratePageProps) {
   const curation: CurationState | undefined = props.curate.curations.find(c => c.folder === props.curate.current);
@@ -78,6 +80,24 @@ export function CuratePage(props: CuratePageProps) {
       const p = path.join(window.Shared.config.fullFlashpointPath, 'Curations', 'Working', curation.folder);
       console.log(p);
       electron.remote.shell.openExternal(path.join(window.Shared.config.fullFlashpointPath, 'Curations', 'Working', curation.folder));
+    }
+  }, [curation]);
+
+  const onImportCuration = React.useCallback(async () => {
+    if (curation) {
+      const warningCount = getWarningCount(curation.warnings);
+      const importMessage = warningCount > 0 ? strings.dialog.importCurationWithWarnings : strings.dialog.importCuration;
+      // Check if we still want to import
+      const res = await props.openConfirmDialog(importMessage, [strings.misc.yes, strings.misc.no], 1, true);
+      if (res === 1) {
+        // Rejected, abort import
+        return;
+      }
+      props.dispatchCurate({
+        type: CurateActionType.IMPORT,
+        folder: curation.folder,
+        saveCuration: props.preferencesData.saveImportedCurations
+      });
     }
   }, [curation]);
 
@@ -140,6 +160,11 @@ export function CuratePage(props: CuratePageProps) {
             onClick={onOpenCurationFolder}
             disabled={!curation}
             value={strings.curate.openFolder}/>
+          <SimpleButton
+            className='curate-page__right--button'
+            onClick={onImportCuration}
+            disabled={!curation}
+            value={strings.curate.import}/>
         </div>
       </div>
     </div>

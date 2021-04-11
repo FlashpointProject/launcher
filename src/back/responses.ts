@@ -999,6 +999,7 @@ export function registerRequestCallbacks(state: BackState): void {
   state.socketServer.register(BackIn.IMPORT_CURATION, async (event, data) => {
     let error: any | undefined;
     try {
+      state.socketServer.broadcast(BackOut.SET_CURATION_LOCK, data.curation.folder, true);
       await importCuration({
         curation: data.curation,
         gameManager: state.gameManager,
@@ -1013,7 +1014,13 @@ export function registerRequestCallbacks(state: BackState): void {
         tagCategories: await TagManager.findTagCategories()
       })
       .then(() => {
+        console.log(`Broadcasting removal of ${data.curation.folder}`);
         state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, undefined, [data.curation.folder]);
+      })
+      .catch(() => {
+        state.socketServer.broadcast(BackOut.SET_CURATION_LOCK, data.curation.folder, false);
+        const alertString = formatString(state.languageContainer.dialog.errorImportingCuration, data.curation.folder);
+        state.socketServer.broadcast(BackOut.OPEN_ALERT, alertString);
       });
       state.queries = {};
     } catch (e) {

@@ -11,6 +11,7 @@ export type LoadedCuration = {
 
 export type CurationState = LoadedCuration & {
   warnings: CurationWarnings;
+  locked?: boolean;
 }
 
 /** A set of warnings for things that should be fixed in a curation. */

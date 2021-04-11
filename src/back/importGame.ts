@@ -206,6 +206,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
       await fs.copy(pair[0], pair[1], { recursive: true, preserveTimestamps: true });
       // await copyFolder(pair[0], pair[1], moveFiles, opts.openDialog, log);
     }
+    logMessage('Content Copied', curation.folder);
   })
   .then(async () => {
     // Build bluezip
@@ -219,6 +220,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
         log.debug('Curate', `Bluezip error: ${data}`);
       });
       bluezipProc.on('close', (code: any) => {
+
         if (code) {
           log.error('Curate', `Bluezip exited with code: ${code}`);
           reject();
@@ -234,12 +236,14 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
     await fs.promises.unlink(filePath);
   })
   .catch((error) => {
-    curationLog(error.message);
-    console.warn(error.message);
+    curationLog(error ? error.message : 'Unknown');
+    console.warn(error ? error.message : 'Unknown');
     if (game.id) {
       // Clean up half imported entries
       GameManager.removeGameAndAddApps(game.id, dataPacksFolderPath);
     }
+    // Let it bubble up
+    throw error;
   });
 }
 

@@ -150,12 +150,30 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
 
     case CurateActionType.REMOVE_TAG: {
       const { index, newCurations } = genCurationState(action.folder, state);
-      const newTags = [...(newCurations[index].game.tags || [])];
-      const tagIdx = newTags.findIndex(t => t.id === action.tagId);
-      if (tagIdx > -1) {
-        newTags.splice(tagIdx, 1);
+
+      if (index === -1) { return { ...state }; }
+
+      // @TODO Apply disabling to onMouse instead?
+      if (!newCurations[index].locked) {
+        const newTags = [...(newCurations[index].game.tags || [])];
+        const tagIdx = newTags.findIndex(t => t.id === action.tagId);
+        if (tagIdx > -1) {
+          newTags.splice(tagIdx, 1);
+        }
+        newCurations[index].game.tags = newTags;
       }
-      newCurations[index].game.tags = newTags;
+      return {
+        ...state,
+        curations: newCurations
+      };
+    }
+
+    case CurateActionType.SET_LOCK: {
+      const { index, newCurations } = genCurationState(action.folder, state);
+
+      if (index === -1) { return { ...state }; }
+
+      newCurations[index].locked = action.locked;
 
       return {
         ...state,
@@ -184,10 +202,11 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
 
     case CurateActionType.APPLY_DELTA: {
       const newCurations = [ ...state.curations ];
+      let newCurrent = state.current;
 
       if (action.removed) {
         for (let i = newCurations.length - 1; i >= 0; i--) {
-          if (action.removed.indexOf(newCurations[i].folder) !== -1) {
+          if (action.removed.includes(newCurations[i].folder)) {
             newCurations.splice(i, 1);
           }
         }
@@ -204,9 +223,15 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
         }
       }
 
+      if (action.removed && action.removed.includes(state.current)) {
+        // Current view removed, choose new one
+        newCurrent = newCurations.length > 0 ? newCurations[0].folder : '';
+      }
+
       return {
         ...state,
         curations: newCurations,
+        current: newCurrent,
       };
     }
   }
