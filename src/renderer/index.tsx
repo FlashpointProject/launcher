@@ -110,7 +110,7 @@ function createInitialMainState(): MainState {
     mad4fpEnabled: mad4fpEnabled,
     playlists: window.Shared.initialPlaylists || [],
     playlistIconCache: {},
-    suggestions: {},
+    suggestions: window.Shared.initialSuggestions,
     appPaths: {},
     platforms: platforms,
     loaded: {

@@ -1,4 +1,5 @@
 import { rebuildQuery } from '@renderer/Util';
+import { GamePropSuggestions } from '@shared/interfaces';
 import { createLangContainer } from '@shared/lang';
 import { MainActionType, RequestState } from './enums';
 import { MainAction, MainState, View, ViewPageStates } from './types';
@@ -386,6 +387,15 @@ export function mainStateReducer(state: MainState = createInitialState(), action
   }
 }
 
+const defaultSuggestionsState: GamePropSuggestions = {
+  platform: [],
+  playMode: [],
+  status: [],
+  applicationPath: [],
+  tags: [],
+  library: []
+};
+
 function createInitialState(): MainState {
   return {
     views: {},
@@ -394,7 +404,7 @@ function createInitialState(): MainState {
     mad4fpEnabled: false,
     playlists: [],
     playlistIconCache: {},
-    suggestions: {},
+    suggestions: { ...defaultSuggestionsState },
     appPaths: {},
     platforms: {},
     loaded: {

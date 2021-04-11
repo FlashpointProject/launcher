@@ -4,7 +4,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
 import { fixSlashes } from '../Util';
-import { CurationIndex, EditCuration, IndexedContent } from './OLD_types';
+import { IndexedContent } from './OLD_types';
+import { LoadedCuration } from './types';
 
 const access = promisify(fs.access);
 const lstat = promisify(fs.lstat);
@@ -13,8 +14,8 @@ const readdir = promisify(fs.readdir);
 /** Full path to a Curation's folder
  * @param curation: Curation to fetch folder from
  */
-export function getCurationFolder(curation: CurationIndex | EditCuration, fpPath: string): string {
-  return path.join(fpPath, 'Curations', 'Working', curation.key);
+export function getCurationFolder(curation: LoadedCuration, fpPath: string): string {
+  return path.join(fpPath, 'Curations', 'Working', curation.folder);
 }
 
 /** Full path to a Curation's content folder

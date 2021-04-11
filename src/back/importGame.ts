@@ -6,8 +6,8 @@ import { TagCategory } from '@database/entity/TagCategory';
 import { validateSemiUUID } from '@renderer/util/uuid';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertEditToCurationMetaFile } from '@shared/curate/metaToMeta';
-import { CurationIndexImage, EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '@shared/curate/OLD_types';
-import { AddAppCuration } from '@shared/curate/types';
+import { CurationIndexImage, EditAddAppCurationMeta, EditCurationMeta } from '@shared/curate/OLD_types';
+import { AddAppCuration, CurationMeta, LoadedCuration } from '@shared/curate/types';
 import { getCurationFolder } from '@shared/curate/util';
 import * as child_process from 'child_process';
 import { execFile } from 'child_process';
@@ -25,7 +25,7 @@ import { uuid } from './util/uuid';
 
 
 type ImportCurationOpts = {
-  curation: EditCuration;
+  curation: LoadedCuration;
   gameManager: GameManagerState;
   date?: Date;
   saveCuration: boolean;
@@ -67,10 +67,10 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
 
   // TODO: Consider moving this check outside importCuration
   // Warn if launch command is already present on another game
-  if (curation.meta.launchCommand) {
+  if (curation.game.launchCommand) {
     const existingGame = await GameManager.findGame(undefined, {
       where: {
-        launchCommand: curation.meta.launchCommand
+        launchCommand: curation.game.launchCommand
       }
     });
     if (existingGame) {
@@ -78,7 +78,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
       const response = await opts.openDialog({
         title: 'Possible Duplicate',
         message: 'There is already a game using this launch command. It may be a duplicate.\nContinue importing this curation?\n\n'
-                + `Curation:\n\tTitle: ${curation.meta.title}\n\tLaunch Command: ${curation.meta.launchCommand}\n\tPlatform: ${curation.meta.platform}\n\n`
+                + `Curation:\n\tTitle: ${curation.game.title}\n\tLaunch Command: ${curation.game.launchCommand}\n\tPlatform: ${curation.game.platform}\n\n`
                 + `Existing Game:\n\tID: ${existingGame.id}\n\tTitle: ${existingGame.title}\n\tPlatform: ${existingGame.platform}`,
         buttons: ['Yes', 'No']
       });
@@ -89,19 +89,19 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   }
   // Build content list
   const contentToMove = [];
-  const extrasAddApp = curation.addApps.find(a => a.meta.applicationPath === ':extras:');
-  if (extrasAddApp && extrasAddApp.meta.launchCommand && extrasAddApp.meta.launchCommand.length > 0) {
+  const extrasAddApp = curation.addApps.find(a => a.applicationPath === ':extras:');
+  if (extrasAddApp && extrasAddApp.launchCommand && extrasAddApp.launchCommand.length > 0) {
     // Add extras folder if meta has an entry
-    contentToMove.push([path.join(getCurationFolder(curation, fpPath), 'Extras'), path.join(fpPath, 'Extras', extrasAddApp.meta.launchCommand)]);
+    contentToMove.push([path.join(getCurationFolder(curation, fpPath), 'Extras'), path.join(fpPath, 'Extras', extrasAddApp.launchCommand)]);
   }
   // Create and add game and additional applications
-  const gameId = validateSemiUUID(curation.key) ? curation.key : uuid();
+  const gameId = validateSemiUUID(curation.folder) ? curation.folder : uuid();
   const oldGame = await GameManager.findGame(gameId);
   if (oldGame) {
     const response = await opts.openDialog({
       title: 'Overwriting Game',
       message: 'There is already a game using this id. Importing will override it.\nContinue importing this curation?\n\n'
-              + `Curation:\n\tTitle: ${curation.meta.title}\n\tLaunch Command: ${curation.meta.launchCommand}\n\tPlatform: ${curation.meta.platform}\n\n`
+              + `Curation:\n\tTitle: ${curation.game.title}\n\tLaunch Command: ${curation.game.launchCommand}\n\tPlatform: ${curation.game.platform}\n\n`
               + `Existing Game:\n\tTitle: ${oldGame.title}\n\tLaunch Command: ${oldGame.launchCommand}\n\tPlatform: ${oldGame.platform}`,
       buttons: ['Yes', 'No']
     });
@@ -111,7 +111,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   }
 
   // Add game to database
-  let game = await createGameFromCurationMeta(gameId, curation.meta, curation.addApps, date);
+  let game = await createGameFromCurationMeta(gameId, curation.game, curation.addApps, date);
   game = await GameManager.save(game);
 
   // Store curation state for extension use later
@@ -157,23 +157,23 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
       if (saveCuration) {
         // Save working meta
         const metaPath = path.join(getCurationFolder(curation, fpPath), 'meta.yaml');
-        const meta = YAML.stringify(convertEditToCurationMetaFile(curation.meta, opts.tagCategories, curation.addApps));
+        const meta = YAML.stringify(convertEditToCurationMetaFile(curation.game, opts.tagCategories, curation.addApps));
         await fs.writeFile(metaPath, meta);
         // Date in form 'YYYY-MM-DD' for folder sorting
         const date = new Date();
         const dateStr = date.getFullYear().toString() + '-' +
                         (date.getUTCMonth() + 1).toString().padStart(2, '0') + '-' +
                         date.getUTCDate().toString().padStart(2, '0');
-        const backupPath = path.join(fpPath, 'Curations', 'Imported', `${dateStr}__${curation.key}`);
+        const backupPath = path.join(fpPath, 'Curations', 'Imported', `${dateStr}__${curation.folder}`);
         await fs.copy(getCurationFolder(curation, fpPath), backupPath);
         // Why does this return before finishing copying? Replaced with line above for now.
         // await copyFolder(getCurationFolder(curation, fpPath), backupPath, true, opts.openDialog);
       }
       if (log) {
-        logMessage('Content Copied', curation);
+        logMessage('Content Copied', curation.folder);
       }
     } catch (error) {
-      curationLog(`Error importing ${curation.meta.title} - Informing user...`);
+      curationLog(`Error importing ${curation.game.title} - Informing user...`);
       const res = await opts.openDialog({
         title: 'Error saving curation',
         message: 'Saving curation import failed. Some/all files failed to move. Please check the content folder yourself before removing manually.\n\nOpen folder now?',
@@ -189,12 +189,12 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
     // Copy Thumbnail
     // curationLog('Importing Curation Thumbnail');
     await importGameImage(curation.thumbnail, game.id, LOGOS, path.join(fpPath, imagePath))
-    .then(() => { if (log) { logMessage('Thumbnail Copied', curation); } });
+    .then(() => { if (log) { logMessage('Thumbnail Copied', curation.folder); } });
 
     // Copy Screenshot
     // curationLog('Importing Curation Screenshot');
     await importGameImage(curation.screenshot, game.id, SCREENSHOTS, path.join(fpPath, imagePath))
-    .then(() => { if (log) { logMessage('Screenshot Copied', curation); } });
+    .then(() => { if (log) { logMessage('Screenshot Copied', curation.folder); } });
   })
   .then(async () => {
     // Notify extensions and let them make changes
@@ -277,8 +277,8 @@ export async function launchAddAppCuration(folder: string, appCuration: AddAppCu
   onDidEvent.fire(addApp);
 }
 
-function logMessage(text: string, curation: EditCuration): void {
-  console.log(`- ${text}\n  (id: ${curation.key})`);
+function logMessage(text: string, folder: string): void {
+  console.log(`- ${text}\n  (id: ${folder})`);
 }
 
 /**
@@ -286,7 +286,7 @@ function logMessage(text: string, curation: EditCuration): void {
  * @param curation Curation to get data from.
  * @param gameId ID to use for Game
  */
-async function createGameFromCurationMeta(gameId: string, gameMeta: EditCurationMeta, addApps : EditAddAppCuration[], date: Date): Promise<Game> {
+async function createGameFromCurationMeta(gameId: string, gameMeta: CurationMeta, addApps : AddAppCuration[], date: Date): Promise<Game> {
   const game: Game = new Game();
   Object.assign(game, {
     id:                  gameId, // (Re-use the id of the curation)

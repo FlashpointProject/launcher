@@ -119,6 +119,7 @@ export function registerRequestCallbacks(state: BackState): void {
       themes: Array.from(state.registry.themes.values()),
       playlists: playlists,
       libraries: libraries,
+      suggestions: state.suggestions,
       serverNames: serverNames,
       mad4fpEnabled: mad4fpEnabled,
       platforms: platforms,
@@ -1010,6 +1011,9 @@ export function registerRequestCallbacks(state: BackState): void {
         openDialog: state.socketServer.showMessageBoxBack(event.client),
         openExternal: state.socketServer.openExternal(event.client),
         tagCategories: await TagManager.findTagCategories()
+      })
+      .then(() => {
+        state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, undefined, [data.curation.folder]);
       });
       state.queries = {};
     } catch (e) {

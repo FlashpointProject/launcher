@@ -183,7 +183,7 @@ export type MainAction = {
   total: number;
 } | {
   type: MainActionType.SET_SUGGESTIONS;
-  suggestions: Partial<GamePropSuggestions>;
+  suggestions: GamePropSuggestions;
   appPaths: Record<string, string>;
 } | {
   type: MainActionType.SET_LOCALE;

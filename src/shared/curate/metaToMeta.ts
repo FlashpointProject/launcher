@@ -1,7 +1,7 @@
 import { Game } from '@database/entity/Game';
 import { TagCategory } from '@database/entity/TagCategory';
 import { ParsedCurationMeta } from './parse';
-import { EditAddAppCuration, EditCurationMeta } from './OLD_types';
+import { AddAppCurationMeta, CurationMeta } from './types';
 
 /**
  * Convert game and its additional applications into a raw object representation in the curation format.
@@ -75,7 +75,7 @@ export function convertGameToCurationMetaFile(game: Game, categories: TagCategor
  * @param curation Curation to convert.
  * @param addApps Additional applications of the curation.
  */
-export function convertEditToCurationMetaFile(curation: EditCurationMeta, categories: TagCategory[], addApps?: EditAddAppCuration[]): CurationMetaFile {
+export function convertEditToCurationMetaFile(curation: CurationMeta, categories: TagCategory[], addApps?: AddAppCurationMeta[]): CurationMetaFile {
   const parsed: CurationMetaFile = {};
   const tagCategories = curation.tags ? curation.tags.map(t => {
     const cat = categories.find(c => c.id === t.categoryId);
@@ -107,7 +107,7 @@ export function convertEditToCurationMetaFile(curation: EditCurationMeta, catego
   const parsedAddApps: CurationFormatAddApps = {};
   if (addApps) {
     for (let i = 0; i < addApps.length; i++) {
-      const addApp = addApps[i].meta;
+      const addApp = addApps[i];
       if (addApp.applicationPath === ':extras:') {
         parsedAddApps['Extras'] = addApp.launchCommand;
       } else if (addApp.applicationPath === ':message:') {

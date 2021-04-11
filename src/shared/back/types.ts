@@ -5,7 +5,7 @@ import { Source } from '@database/entity/Source';
 import { SourceData } from '@database/entity/SourceData';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
-import { AddAppCuration, CurationState } from '@shared/curate/types';
+import { AddAppCuration, CurationState, LoadedCuration } from '@shared/curate/types';
 import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/extensions/interfaces';
 import { FilterGameOpts } from '@shared/game/GameFilter';
 import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
@@ -15,7 +15,7 @@ import { SocketTemplate } from '@shared/socket/types';
 import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
 import { GameData, TagAlias, TagFilterGroup } from 'flashpoint-launcher';
 import { AppConfigData, AppExtConfigData } from '../config/interfaces';
-import { EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '../curate/OLD_types';
+import { EditAddAppCurationMeta, EditCurationMeta } from '../curate/OLD_types';
 import { ExecMapping, GamePropSuggestions, IService, ProcessAction } from '../interfaces';
 import { LangContainer, LangFile } from '../lang';
 import { ILogEntry, ILogPreEntry, LogLevel } from '../Log/interface';
@@ -380,6 +380,7 @@ export type GetRendererInitDataResponse = {
   language: LangContainer;
   themes: Theme[];
   libraries: string[];
+  suggestions: GamePropSuggestions;
   serverNames: string[];
   mad4fpEnabled: boolean;
   platforms: Record<string, string[]>;
@@ -396,7 +397,7 @@ export type GetRendererInitDataResponse = {
 }
 
 export type GetSuggestionsResponseData = {
-  suggestions: Partial<GamePropSuggestions>;
+  suggestions: GamePropSuggestions;
   appPaths: { [platform: string]: string; };
 }
 
@@ -494,7 +495,7 @@ export type BrowseChangeData = {
 }
 
 export type ImportCurationData = {
-  curation: EditCuration;
+  curation: LoadedCuration;
   log?: boolean;
   /**
    * Note: This will have the incorrect prototype after being sent.

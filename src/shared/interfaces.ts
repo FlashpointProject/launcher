@@ -113,6 +113,7 @@ export interface IMainWindowExternal {
   initialExtConfigs: ExtensionContribution<'configuration'>[];
   initialExtConfig: AppExtConfigData;
   initialCurations: CurationState[];
+  initialSuggestions: GamePropSuggestions;
 
   /**
    * Wait for the preload to initialize.
