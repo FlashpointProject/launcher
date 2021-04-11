@@ -11,12 +11,13 @@ import { uuid } from '@renderer/util/uuid';
 import { BackIn, TagSuggestion } from '@shared/back/types';
 import * as electron from 'electron';
 import * as React from 'react';
-import { SimpleButton } from '../SimpleButton';
+import { SimpleButton, SimpleButtonProps } from '../SimpleButton';
 import * as path from 'path';
 import { compare } from '@back/util/strings';
 import { CurationState } from '@shared/curate/types';
 import { getWarningCount } from '../CurateBoxWarnings';
 import { WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
+import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
 
 const index_attr = 'data-index';
 
@@ -75,24 +76,18 @@ export function CuratePage(props: CuratePageProps) {
     .then(value => window.Shared.back.send(BackIn.CURATE_LOAD_ARCHIVES, value.filePaths));
   }, []);
 
+  const onOpenCurationsFolder = React.useCallback(() => {
+    electron.remote.shell.openExternal(path.join(window.Shared.config.fullFlashpointPath, 'Curations'));
+  }, []);
+
   const onOpenCurationFolder = React.useCallback(() => {
     if (curation) {
-      const p = path.join(window.Shared.config.fullFlashpointPath, 'Curations', 'Working', curation.folder);
-      console.log(p);
       electron.remote.shell.openExternal(path.join(window.Shared.config.fullFlashpointPath, 'Curations', 'Working', curation.folder));
     }
   }, [curation]);
 
   const onImportCuration = React.useCallback(async () => {
     if (curation) {
-      const warningCount = getWarningCount(curation.warnings);
-      const importMessage = warningCount > 0 ? strings.dialog.importCurationWithWarnings : strings.dialog.importCuration;
-      // Check if we still want to import
-      const res = await props.openConfirmDialog(importMessage, [strings.misc.yes, strings.misc.no], 1, true);
-      if (res === 1) {
-        // Rejected, abort import
-        return;
-      }
       props.dispatchCurate({
         type: CurateActionType.IMPORT,
         folder: curation.folder,
@@ -100,6 +95,18 @@ export function CuratePage(props: CuratePageProps) {
       });
     }
   }, [curation]);
+
+  const onDeleteCuration = React.useCallback(async () => {
+    if (curation) {
+      props.dispatchCurate({
+        type: CurateActionType.DELETE,
+        folder: curation.folder
+      });
+    }
+  }, [curation]);
+
+  const warningCount = React.useMemo(() => curation ? getWarningCount(curation.warnings) : 0, [curation]);
+  const disabled = !curation;
 
   return (
     <div className='curate-page'>
@@ -152,22 +159,48 @@ export function CuratePage(props: CuratePageProps) {
             className='curate-page__right--button'
             onClick={onLoadCuration}
             value={strings.curate.loadArchive}/>
+          <SimpleButton
+            className='curate-page__right--button'
+            onClick={onOpenCurationsFolder}
+            value={strings.curate.openCurationsFolder}
+            title={strings.curate.openCurationsFolderDesc}/>
         </div>
         <div className='curate-page__right--section'>
           <div className='curate-page__right--header'>{strings.curate.headerEditCuration}</div>
           <SimpleButton
             className='curate-page__right--button'
             onClick={onOpenCurationFolder}
-            disabled={!curation}
+            disabled={disabled}
             value={strings.curate.openFolder}/>
-          <SimpleButton
-            className='curate-page__right--button'
-            onClick={onImportCuration}
-            disabled={!curation}
-            value={strings.curate.import}/>
+          <ConfirmElement
+            render={renderConfirmButton}
+            message={strings.dialog.deleteCuration}
+            onConfirm={onDeleteCuration}
+            extra={{
+              className: 'curate-page__right--button',
+              value: strings.curate.delete,
+              disabled
+            }}/>
+          <ConfirmElement
+            render={renderConfirmButton}
+            message={warningCount > 0 ? strings.dialog.importCurationWithWarnings : strings.dialog.importCuration}
+            onConfirm={onImportCuration}
+            extra={{
+              className: 'curate-page__right--button',
+              value: strings.curate.import,
+              disabled
+            }}/>
         </div>
       </div>
     </div>
+  );
+}
+
+function renderConfirmButton({ confirm, extra }: ConfirmElementArgs<SimpleButtonProps>) {
+  return (
+    <SimpleButton
+      onClick={confirm}
+      { ...extra }/>
   );
 }
 
