@@ -9,7 +9,7 @@ import { BackIn, BackInit, BackOut, CurationImageEnum, DownloadDetails } from '@
 import { overwriteConfigData } from '@shared/config/util';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
-import { CurationState } from '@shared/curate/types';
+import { CurationState, LoadedCuration } from '@shared/curate/types';
 import { getContentFolderByKey } from '@shared/curate/util';
 import { AppProvider, BrowserApplicationOpts } from '@shared/extensions/interfaces';
 import { FilterGameOpts } from '@shared/game/GameFilter';
@@ -18,7 +18,7 @@ import { LogLevel } from '@shared/Log/interface';
 import { MetaEditFile, MetaEditMeta } from '@shared/MetaEdit';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { defaultPreferencesData, overwritePreferenceData } from '@shared/preferences/util';
-import { deepCopy } from '@shared/Util';
+import { deepCopy, genCurationWarnings } from '@shared/Util';
 import { formatString } from '@shared/utils/StringFormatter';
 import * as axiosImport from 'axios';
 import * as fs from 'fs';
@@ -1215,15 +1215,21 @@ export function registerRequestCallbacks(state: BackState): void {
         const parsedMeta = await readCurationMeta(curationPath, state.recentAppPaths);
         if (!parsedMeta) { throw new Error('Fail'); }
 
-        const curation: CurationState = {
+        const loadedCuration: LoadedCuration = {
           folder: key,
           game: parsedMeta.game,
           addApps: parsedMeta.addApps,
           thumbnail: await loadCurationIndexImage(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, key, 'logo.png')),
-          screenshot: await loadCurationIndexImage(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, key, 'ss.png'))
+          screenshot: await loadCurationIndexImage(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, key, 'ss.png')),
+        };
+        const curation: CurationState = {
+          ...loadedCuration,
+          warnings: genCurationWarnings(loadedCuration, state.config.flashpointPath, state.suggestions, state.languageContainer.curate)
         };
 
-        state.loadedCurations.push(curation);
+        state.loadedCurations.push({
+          ...curation,
+        });
         state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [ curation ]);
       } catch (error) {
         log.error('Curate', `Failed to load curation archive! ${error.toString()}`);

@@ -87,7 +87,7 @@ export const ProgressContext = createContextReducer(
 );
 
 /** Reducer for the progress state. */
-function progressReducer(prevState: Record<string, (ProgressData[]|undefined)>, action: ProgressAction) {
+function progressReducer(prevState: Record<string, (ProgressData[]|undefined)>, action: ProgressAction): Record<string, (ProgressData[]|undefined)> {
   // Things to keep in mind when writing an action handler:
   // * Don't mutate the previous state or the action object.
   // * Objects/Arrays that have at least one property/element change value should be copied, so that

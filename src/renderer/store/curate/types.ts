@@ -1,5 +1,5 @@
 import { Tag } from '@database/entity/Tag';
-import { AddAppCurationMeta, CurationMeta, CurationState } from '@shared/curate/types';
+import { AddAppCurationMeta, CurationMeta, CurationState, CurationWarnings } from '@shared/curate/types';
 import { CurateActionType } from './enums';
 
 export type CurateState = {
@@ -51,4 +51,8 @@ export type CurateAction = {
   type: CurateActionType.REMOVE_ADDAPP;
   folder: string;
   key: string;
+} | {
+  type: CurateActionType.SET_WARNINGS;
+  folder: string;
+  warnings: CurationWarnings;
 }

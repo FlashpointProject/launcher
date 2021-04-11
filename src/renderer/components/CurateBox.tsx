@@ -8,7 +8,7 @@ import { AddAppType, CurateAction } from '@renderer/store/curate/types';
 import { findElementAncestor, getCurationURL } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
 import { BackIn, CurationImageEnum } from '@shared/back/types';
-import { LoadedCuration } from '@shared/curate/types';
+import { CurationState, LoadedCuration } from '@shared/curate/types';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { fixSlashes } from '@shared/Util';
 import axios from 'axios';
@@ -25,7 +25,7 @@ import { SimpleButton } from './SimpleButton';
 const tagIndexAttr = 'data-tag-index';
 
 export type CurateBoxProps = {
-  curation: LoadedCuration;
+  curation: CurationState;
   suggestions: Partial<GamePropSuggestions>;
   tagSuggestions: TagSuggestion[];
   tagCategories: TagCategory[];
@@ -102,16 +102,20 @@ export function CurateBox(props: CurateBoxProps) {
     },
   }));
 
-  const addAppBoxes = props.curation.addApps.map((addApp, idx) => {
-    return (
-      <CurateBoxAddApp
-        key={idx}
-        folder={props.curation.folder}
-        addApp={addApp}
-        dispatch={props.dispatch}
-        symlinkCurationContent={props.symlinkCurationContent} />
-    );
-  });
+  const addAppBoxes = (
+    <table className="curate-box-table">
+      <tbody>
+        { props.curation.addApps.map((addApp, idx) => (
+          <CurateBoxAddApp
+            key={idx}
+            folder={props.curation.folder}
+            addApp={addApp}
+            dispatch={props.dispatch}
+            symlinkCurationContent={props.symlinkCurationContent} />
+        ))}
+      </tbody>
+    </table>
+  );
 
   const disabled = false; // props.curation ? props.curation.locked : false;
 
@@ -325,9 +329,7 @@ export function CurateBox(props: CurateBoxProps) {
                 onClick={onAddMessage}
                 disabled={disabled} />
             </div>
-            <span>
-              {addAppBoxes}
-            </span>
+            {addAppBoxes}
           </div>
           <hr />
           {/* Content */}
@@ -341,8 +343,7 @@ export function CurateBox(props: CurateBoxProps) {
           </div>
           <hr />
           {/* Warnings */}
-          <p>@TODO Warnings</p>
-          <CurateBoxWarnings warnings={{}} />
+          <CurateBoxWarnings warnings={props.curation.warnings} />
           <hr />
           {/* Curation Folder */}
           <table>

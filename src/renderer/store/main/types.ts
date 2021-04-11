@@ -62,7 +62,7 @@ export type MainState = {
   mad4fpEnabled: boolean;
   playlists: Playlist[];
   playlistIconCache: Record<string, string>; // [PLAYLIST_ID] = ICON_BLOB_URL
-  suggestions: Partial<GamePropSuggestions>;
+  suggestions: GamePropSuggestions;
   appPaths: Record<string, string>;
   platforms: Record<string, string[]>;
   loaded: { [key in BackInit]: boolean; };

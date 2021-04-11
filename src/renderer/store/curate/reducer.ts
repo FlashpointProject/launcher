@@ -1,7 +1,7 @@
-import { AddAppCuration, CurationState } from '@shared/curate/types';
-import uuid = require('uuid');
+import { AddAppCuration, CurationState, LoadedCuration } from '@shared/curate/types';
 import { CurateActionType } from './enums';
 import { CurateAction, CurateState } from './types';
+import uuid = require('uuid');
 
 export function curateStateReducer(state: CurateState = createInitialState(), action: CurateAction): CurateState {
   switch (action.type) {
@@ -9,25 +9,32 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
       return state;
 
     case CurateActionType.CREATE_CURATION:
+    {
+      const loadedCuration: LoadedCuration = {
+        folder: action.folder,
+        game: {},
+        addApps: [],
+        thumbnail: {
+          exists: false,
+          version: 0
+        },
+        screenshot: {
+          exists: false,
+          version: 0
+        }
+      };
+      const curation = {
+        ...loadedCuration,
+        warnings: {}
+      };
       return {
         ...state,
         curations: [
           ...state.curations,
-          {
-            folder: action.folder,
-            game: {},
-            addApps: [],
-            thumbnail: {
-              exists: false,
-              version: 0
-            },
-            screenshot: {
-              exists: false,
-              version: 0
-            }
-          },
+          curation,
         ],
       };
+    }
 
     case CurateActionType.SET_CURRENT_CURATION:
       return {
@@ -149,6 +156,19 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
         newTags.splice(tagIdx, 1);
       }
       newCurations[index].game.tags = newTags;
+
+      return {
+        ...state,
+        curations: newCurations
+      };
+    }
+
+    case CurateActionType.SET_WARNINGS: {
+      const { index, newCurations } = genCurationState(action.folder, state);
+
+      if (index === -1) { return { ...state }; }
+
+      newCurations[index].warnings = action.warnings;
 
       return {
         ...state,

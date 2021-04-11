@@ -17,13 +17,14 @@ import { SourceFileCount1612436426353 } from '@database/migration/1612436426353-
 import { GameTagsStr1613571078561 } from '@database/migration/1613571078561-GameTagsStr';
 import { validateSemiUUID } from '@renderer/util/uuid';
 import { BackIn, BackInit, BackInitArgs, BackOut } from '@shared/back/types';
+import { CurationState } from '@shared/curate/types';
 import { ILogoSet, LogoSet } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
 import { getDefaultLocalization, LangFileContent } from '@shared/lang';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { Theme } from '@shared/ThemeFile';
-import { createErrorProxy, removeFileExtension, stringifyArray } from '@shared/Util';
+import { createErrorProxy, genCurationWarnings, removeFileExtension, stringifyArray } from '@shared/Util';
 import * as child_process from 'child_process';
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint-launcher';
@@ -94,6 +95,7 @@ const state: BackState = {
   exePath: createErrorProxy('exePath'),
   localeCode: createErrorProxy('countryCode'),
   version: createErrorProxy('version'),
+  suggestions: createErrorProxy('suggestions'),
   customVersion: undefined,
   gameManager: {
     platformsPath: '',
@@ -326,6 +328,16 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     log.info('Launcher', 'Database connection established');
   }
 
+  // Populate unique values
+  state.suggestions = {
+    tags: await GameManager.findUniqueValues(TagAlias, 'name'),
+    platform: (await GameManager.findUniqueValues(Game, 'platform')).sort(),
+    playMode: await GameManager.findUniqueValues(Game, 'playMode'),
+    status: await GameManager.findUniqueValues(Game, 'status'),
+    applicationPath: await GameManager.findUniqueValues(Game, 'applicationPath'),
+    library: await GameManager.findUniqueValues(Game, 'library'),
+  };
+
   // Load curations
   {
     try {
@@ -334,13 +346,18 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
       for (const folderName of await fs.promises.readdir(rootPath)) {
         const parsedMeta = await readCurationMeta(path.join(rootPath, folderName), state.recentAppPaths);
         if (parsedMeta) {
-          state.loadedCurations.push({
+          const loadedCuration = {
             folder: folderName,
             game: parsedMeta.game,
             addApps: parsedMeta.addApps,
             thumbnail: await loadCurationIndexImage(path.join(rootPath, folderName, 'logo.png')),
             screenshot: await loadCurationIndexImage(path.join(rootPath, folderName, 'ss.png'))
-          });
+          };
+          const curation: CurationState = {
+            ...loadedCuration,
+            warnings: genCurationWarnings(loadedCuration, state.config.flashpointPath, state.suggestions, state.languageContainer.curate)
+          };
+          state.loadedCurations.push(curation);
         }
       }
     } catch (error) {

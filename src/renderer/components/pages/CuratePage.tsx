@@ -45,7 +45,6 @@ export function CuratePage(props: CuratePageProps) {
     chain_delay: 500,
     find_id: (event) => {
       let index: string | undefined;
-      console.log(event.target);
       try { index = findAncestorRowIndex(event.target as Element); }
       catch (error) { console.error(error); }
       return index;
@@ -114,7 +113,8 @@ export function CuratePage(props: CuratePageProps) {
             tagText={tagText}
             onTagTextChange={onTagTextChange}
             tagSuggestions={tagSuggestions}
-            dispatch={props.dispatchCurate} />
+            dispatch={props.dispatchCurate}
+            symlinkCurationContent={props.preferencesData.symlinkCurationContent} />
         ) : (
           <div className='curate-page__header-text'>
             {strings.curate.noCurationSelected}
@@ -151,7 +151,6 @@ function findAncestorRowIndex(element: Element): string | undefined {
   if (!ancestor) { return undefined; }
 
   const index = ancestor.getAttribute(index_attr);
-  console.log(index);
   if (typeof index !== 'string') { throw new Error('Failed to get attribute from ancestor!'); }
 
   const index_str = (index as any) + ''; // Coerce to number

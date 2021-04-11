@@ -6,6 +6,10 @@ import { DownloadDetails } from './back/types';
 import { AppConfigData } from './config/interfaces';
 import { parseVariableString } from './utils/VariableString';
 import { throttle } from './utils/throttle';
+import { CurationWarnings, LoadedCuration } from './curate/types';
+import { LangContainer } from './lang';
+import { getContentFolderByKey } from './curate/util';
+import { GamePropSuggestions } from './interfaces';
 
 const axios = axiosImport.default;
 
@@ -483,4 +487,87 @@ export function generateTagFilterGroup(tags?: string[]): TagFilterGroup {
     categories: [],
     childFilters: []
   };
+}
+
+export function genCurationWarnings(curation: LoadedCuration, fpPath: string, suggestions: GamePropSuggestions, strings: LangContainer['curate']): CurationWarnings {
+  const warns: CurationWarnings = {};
+  // Check launch command exists
+  const launchCommand = curation.game.launchCommand || '';
+  warns.noLaunchCommand = launchCommand === '';
+  // Check launch command is valid (if exists)
+  if (!warns.noLaunchCommand) {
+    warns.invalidLaunchCommand = invalidLaunchCommandWarnings(getContentFolderByKey(curation.folder, fpPath), launchCommand, strings);
+  }
+  warns.noLogo = !curation.thumbnail.exists;
+  warns.noScreenshot = !curation.screenshot.exists;
+  warns.noTags = (!curation.game.tags || curation.game.tags.length === 0);
+  warns.noSource = !curation.game.source;
+  // Validate release date
+  const releaseDate = curation.game.releaseDate;
+  if (releaseDate) { warns.releaseDateInvalid = !isValidDate(releaseDate); }
+  // Check for unused values (with suggestions)
+  warns.unusedPlatform = !isValueSuggested(curation, suggestions, 'platform');
+  warns.unusedApplicationPath = !isValueSuggested(curation, suggestions, 'applicationPath');
+  // Check if library is set
+  const curLibrary = curation.game.library;
+  warns.nonExistingLibrary = suggestions.library.findIndex(l => l === curLibrary) === -1;
+  return warns;
+}
+
+/**
+ * Check of a string is a valid date.
+ * Format: "YYYY(-M(M)(-D(D)))"
+ * Explanation: "M" and "D" can be one or two digits long.
+ *              "M" must be between 1 and 12, and "D" must be between 1 and 31.
+ * Examples: "2007", "2010-11", "2019-07-17"
+ * Source: https://stackoverflow.com/questions/22061723/regex-date-validation-for-yyyy-mm-dd (but slightly modified)
+ * @param str String to check.
+ */
+function isValidDate(str: string): boolean {
+  return (/^\d{4}(-(0?[1-9]|1[012])(-(0?[1-9]|[12][0-9]|3[01]))?)?$/).test(str);
+}
+
+function invalidLaunchCommandWarnings(folderPath: string, launchCommand: string, strings: LangContainer['curate']): string[] {
+  // Keep list of warns for end
+  const warns: string[] = [];
+  // Extract first string from launch command via regex
+  const match = launchCommand.match(/[^\s"']+|"([^"]*)"|'([^']*)'/);
+  if (match) {
+    // Match 1 - Inside quotes, Match 0 - No Quotes Found
+    let lc = match[1] || match[0];
+    // Extract protocol from potential URL
+    const protocol = lc.match(/(.+?):\/\//);
+    if (protocol) {
+      // Protocol found, must be URL
+      if (protocol[1] !== 'http') {
+        // Not using HTTP
+        warns.push(strings.ilc_notHttp);
+      }
+      const ending = lc.split('/').pop();
+      // If the string ends in file, cut off parameters
+      if (ending && ending.includes('.')) {
+        lc = lc.split('?')[0];
+      }
+      const filePath = path.join(folderPath, unescape(lc).replace(/(^\w+:|^)\/\//, ''));
+      // Push a game to the list if its launch command file is missing
+      if (!fs.existsSync(filePath)) {
+        warns.push(strings.ilc_nonExistant);
+      }
+    }
+  }
+  return warns;
+}
+
+/**
+ * Check if a the value of a field is in the suggestions for that field.
+ * @param props Properties of the CurateBox.
+ * @param key Key of the field to check.
+ */
+function isValueSuggested<T extends keyof GamePropSuggestions>(curation: LoadedCuration, suggestions: GamePropSuggestions, key: T & string): boolean {
+  // Get the values used
+  // (the dumb compiler doesn't understand that this is a string >:((( )
+  const value = (curation.game[key] || '') as string;
+  const valueSuggestions = suggestions[key];
+  // Check if the value is suggested
+  return valueSuggestions.indexOf(value) >= 0;
 }

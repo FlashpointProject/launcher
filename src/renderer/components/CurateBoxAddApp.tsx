@@ -71,8 +71,8 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
   }, [props.addApp && props.folder, props.symlinkCurationContent, props.platform]);
   // Render
   return (
-    <tr className='curate-box-add-app'>
-      <CurateBoxRow title={strings.curate.heading + ':'}>
+    <>
+      <CurateBoxRow title={strings.curate.heading}>
         <InputField
           text={props.addApp && props.addApp.heading || ''}
           placeholder={strings.curate.noHeading}
@@ -82,7 +82,7 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
           onKeyDown={props.onInputKeyDown} />
       </CurateBoxRow>
       { specialType ? undefined : (
-        <CurateBoxRow title={strings.browse.applicationPath + ':'}>
+        <CurateBoxRow title={strings.browse.applicationPath}>
           <InputField
             text={props.addApp && props.addApp.applicationPath || ''}
             placeholder={strings.browse.noApplicationPath}
@@ -92,7 +92,7 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
             onKeyDown={props.onInputKeyDown} />
         </CurateBoxRow>
       ) }
-      <CurateBoxRow title={lcString + ':'}>
+      <CurateBoxRow title={lcString}>
         <InputField
           text={props.addApp && props.addApp.launchCommand || ''}
           placeholder={lcPlaceholderString}
@@ -101,17 +101,20 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
           disabled={disabled}
           onKeyDown={props.onInputKeyDown} />
       </CurateBoxRow>
-      <SimpleButton
-        className='curate-box-buttons__button'
-        value={strings.curate.removeAddApp}
-        disabled={disabled}
-        onClick={onRemove} />
-      <SimpleButton
-        className='curate-box-buttons__button'
-        value={strings.curate.run}
-        disabled={disabled}
-        onClick={onRun} />
-    </tr>
+      <tr>
+        <td className='curate-box-buttons'><SimpleButton
+          className='curate-box-buttons__button'
+          value={strings.curate.removeAddApp}
+          disabled={disabled}
+          onClick={onRemove} />
+        <SimpleButton
+          className='curate-box-buttons__button'
+          value={strings.curate.run}
+          disabled={disabled}
+          onClick={onRun} />
+        </td>
+      </tr>
+    </>
   );
 }
 
