@@ -10,7 +10,7 @@ import { overwriteConfigData } from '@shared/config/util';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { CurationState, LoadedCuration } from '@shared/curate/types';
-import { getContentFolderByKey } from '@shared/curate/util';
+import { getContentFolderByKey, getCurationFolder } from '@shared/curate/util';
 import { AppProvider, BrowserApplicationOpts } from '@shared/extensions/interfaces';
 import { FilterGameOpts } from '@shared/game/GameFilter';
 import { DeepPartial, GamePropSuggestions, ProcessAction, ProcessState } from '@shared/interfaces';
@@ -21,7 +21,7 @@ import { defaultPreferencesData, overwritePreferenceData } from '@shared/prefere
 import { deepCopy, genCurationWarnings } from '@shared/Util';
 import { formatString } from '@shared/utils/StringFormatter';
 import * as axiosImport from 'axios';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as fs_extra from 'fs-extra';
 import { extractFull } from 'node-7z';
 import * as path from 'path';
@@ -50,10 +50,6 @@ import { sanitizeFilename } from './util/sanitizeFilename';
 import { uuid } from './util/uuid';
 
 const axios = axiosImport.default;
-const copyFile  = util.promisify(fs.copyFile);
-const stat      = util.promisify(fs.stat);
-const unlink    = util.promisify(fs.unlink);
-const writeFile = util.promisify(fs.writeFile);
 
 /**
  * Register all request callbacks to the socket server.
@@ -371,7 +367,7 @@ export function registerRequestCallbacks(state: BackState): void {
         try {
           if (await pathExists(oldLogoPath)) {
             await fs.promises.mkdir(path.dirname(newLogoPath), { recursive: true });
-            await copyFile(oldLogoPath, newLogoPath);
+            await fs.promises.copyFile(oldLogoPath, newLogoPath);
           }
         } catch (e) { console.error(e); }
 
@@ -380,7 +376,7 @@ export function registerRequestCallbacks(state: BackState): void {
         try {
           if (await pathExists(oldScreenshotPath)) {
             await fs.promises.mkdir(path.dirname(newScreenshotPath), { recursive: true });
-            await copyFile(oldScreenshotPath, newScreenshotPath);
+            await fs.promises.copyFile(oldScreenshotPath, newScreenshotPath);
           }
         } catch (e) { console.error(e); }
       }
@@ -457,7 +453,7 @@ export function registerRequestCallbacks(state: BackState): void {
     const playlist = await GameManager.findPlaylist(id, true);
     if (playlist) {
       try {
-        await writeFile(location, JSON.stringify(playlist, null, '\t'));
+        await fs.promises.writeFile(location, JSON.stringify(playlist, null, '\t'));
       } catch (e) { console.error(e); }
     }
   });
@@ -468,7 +464,7 @@ export function registerRequestCallbacks(state: BackState): void {
       if (game) {
         // Save to file
         try {
-          await writeFile(
+          await fs.promises.writeFile(
             metaOnly ? location : path.join(location, 'meta.yaml'),
             YAML.stringify(convertGameToCurationMetaFile(game, await TagManager.findTagCategories())));
         } catch (e) { console.error(e); }
@@ -481,13 +477,13 @@ export function registerRequestCallbacks(state: BackState): void {
           const oldLogoPath = path.join(imageFolder, LOGOS, last);
           const newLogoPath = path.join(location, 'logo.png');
           try {
-            if (await pathExists(oldLogoPath)) { await copyFile(oldLogoPath, newLogoPath); }
+            if (await pathExists(oldLogoPath)) { await fs.promises.copyFile(oldLogoPath, newLogoPath); }
           } catch (e) { console.error(e); }
 
           const oldScreenshotPath = path.join(imageFolder, SCREENSHOTS, last);
           const newScreenshotPath = path.join(location, 'ss.png');
           try {
-            if (await pathExists(oldScreenshotPath)) { await copyFile(oldScreenshotPath, newScreenshotPath); }
+            if (await pathExists(oldScreenshotPath)) { await fs.promises.copyFile(oldScreenshotPath, newScreenshotPath); }
           } catch (e) { console.error(e); }
         }
       }
@@ -777,7 +773,7 @@ export function registerRequestCallbacks(state: BackState): void {
     if (fullPath.startsWith(imageFolder)) { // (Ensure that it does not climb out of the image folder)
       try {
         await fs.promises.mkdir(path.dirname(fullPath), { recursive: true });
-        await writeFile(fullPath, Buffer.from(content, 'base64'));
+        await fs.promises.writeFile(fullPath, Buffer.from(content, 'base64'));
       } catch (e) {
         log.error('Launcher', e + '');
       }
@@ -794,8 +790,8 @@ export function registerRequestCallbacks(state: BackState): void {
 
     if (fullPath.startsWith(imageFolder)) { // (Ensure that it does not climb out of the image folder)
       try {
-        if ((await stat(fullPath)).isFile()) {
-          await unlink(fullPath);
+        if ((await fs.promises.stat(fullPath)).isFile()) {
+          await fs.promises.unlink(fullPath);
           // @TODO Remove the two top folders if they are empty (so no empty folders are left hanging)
         }
       } catch (error) {
@@ -1014,7 +1010,8 @@ export function registerRequestCallbacks(state: BackState): void {
         tagCategories: await TagManager.findTagCategories()
       })
       .then(() => {
-        console.log(`Broadcasting removal of ${data.curation.folder}`);
+        // Delete curation afterwards
+        deleteCuration(data.curation.folder);
         state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, undefined, [data.curation.folder]);
       })
       .catch(() => {
@@ -1177,7 +1174,7 @@ export function registerRequestCallbacks(state: BackState): void {
 
         if (save) {
           await fs_extra.ensureDir(folderPath);
-          await writeFile(filePath, JSON.stringify(output, null, '\t'));
+          await fs.promises.writeFile(filePath, JSON.stringify(output, null, '\t'));
         }
       } catch (error) {
         log.error('Launcher', `Failed to export meta edit.\nError: ${error.message || error}`);
@@ -1305,6 +1302,45 @@ export function registerRequestCallbacks(state: BackState): void {
           break;
         }
       }
+    }
+  });
+
+  async function deleteCuration(folder: string) {
+    const curationIdx = state.loadedCurations.findIndex(c => c.folder === folder);
+    if (curationIdx !== -1) {
+      const curationPath = getCurationFolder(state.loadedCurations[curationIdx], state.config.flashpointPath);
+      await fs.remove(curationPath);
+      state.loadedCurations.splice(curationIdx, 1);
+      state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, undefined, [folder]);
+    }
+  }
+
+  state.socketServer.register(BackIn.CURATE_DELETE, async (event, folder) => {
+    deleteCuration(folder);
+  });
+
+  state.socketServer.register(BackIn.CURATE_CREATE_CURATION, async (event, folder) => {
+    const existingCuration = state.loadedCurations.find(c => c.folder === folder);
+    if (!existingCuration) {
+      const curPath = path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, folder);
+      await fs.promises.mkdir(curPath, { recursive: true });
+      const contentFolder = path.join(curPath, 'content');
+      await fs.promises.mkdir(contentFolder, { recursive: true });
+
+      const data: LoadedCuration = {
+        folder,
+        game: {},
+        addApps: [],
+        thumbnail: await loadCurationIndexImage(path.join(curPath, 'logo.png')),
+        screenshot: await loadCurationIndexImage(path.join(curPath, 'ss.png'))
+      };
+      const curation: CurationState = {
+        ...data,
+        warnings: genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate)
+      };
+      await saveCuration(curPath, curation);
+      state.loadedCurations.push(curation);
+      state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
     }
   });
 

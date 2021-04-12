@@ -11,5 +11,6 @@ export enum CurateActionType {
   REMOVE_ADDAPP = '@@curate/REMOVE_ADDAPP',
   SET_WARNINGS = '@@curate/SET_WARNINGS',
   IMPORT = '@@curate/IMPORT',
+  DELETE = '@@curate/DELETE',
   SET_LOCK = '@@curate/SET_LOCK'
 }

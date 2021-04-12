@@ -7,6 +7,17 @@ import { CurateState } from './types';
 
 export const curationSyncMiddleware: Middleware<{}, ApplicationState> = (store) => (next) => (action: any) => {
   switch (action.type) {
+    case CurateActionType.DELETE: {
+      // Lock curation from further edits
+      store.dispatch({
+        type: CurateActionType.SET_LOCK,
+        folder: action.folder,
+        locked: true
+      });
+      window.Shared.back.send(BackIn.CURATE_DELETE, action.folder);
+      next(action);
+      break;
+    }
     case CurateActionType.IMPORT: {
       // Lock curation from further edits
       store.dispatch({

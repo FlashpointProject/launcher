@@ -37,7 +37,7 @@ export type BrowserApplicationOpts = {
   proxy?: string;
 }
 
-export type ButtonContext = 'game' | 'playlist';
+export type ButtonContext = 'game' | 'playlist' | 'curation';
 
 export type ExtTheme = {
   id: string;

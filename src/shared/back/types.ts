@@ -126,6 +126,8 @@ export enum BackIn {
   CURATE_GET_LIST,
   CURATE_SYNC_CURATIONS,
   CURATE_EDIT_REMOVE_IMAGE,
+  CURATE_DELETE,
+  CURATE_CREATE_CURATION,
 
   // Misc
   UPLOAD_LOG,
@@ -282,6 +284,8 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.CURATE_GET_LIST]: () => CurationState[];
   [BackIn.CURATE_SYNC_CURATIONS]: (curations: CurationState[]) => void;
   [BackIn.CURATE_EDIT_REMOVE_IMAGE]: (folder: string, type: CurationImageEnum) => void;
+  [BackIn.CURATE_DELETE]: (folder: string) => void;
+  [BackIn.CURATE_CREATE_CURATION]: (folder: string) => void;
 
   // Misc
   [BackIn.UPLOAD_LOG]: () => string | undefined;

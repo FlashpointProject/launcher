@@ -18,11 +18,12 @@ import { CurationState } from '@shared/curate/types';
 import { getWarningCount } from '../CurateBoxWarnings';
 import { WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
 import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
+import { ExtensionContribution } from '@shared/extensions/interfaces';
 
 const index_attr = 'data-index';
 
 type OwnProps = {
-
+  extContribs: ExtensionContribution<'contextButtons'>[];
 }
 
 export type CuratePageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps & WithMainStateProps & WithCurateStateProps & WithConfirmDialogProps;
@@ -108,6 +109,34 @@ export function CuratePage(props: CuratePageProps) {
   const warningCount = React.useMemo(() => curation ? getWarningCount(curation.warnings) : 0, [curation]);
   const disabled = !curation;
 
+  const runExtCommand = (command: string) => {
+    window.Shared.back.send(BackIn.RUN_COMMAND, command, [curation]);
+  };
+
+  // Gen extension buttons
+  const extButtons = React.useMemo(() =>
+    props.extContribs.map((c, index) => {
+      const ext = props.main.extensions.find(e => e.id === c.extId);
+      const buttons = c.value.filter(c => c.context === 'curation').map((contextButton, index) => (
+        <SimpleButton
+          key={index}
+          className='curate-page__right--button'
+          disabled={disabled}
+          onClick={() => runExtCommand(contextButton.command)}
+          value={contextButton.name} />
+      ));
+      if (buttons.length > 0) {
+        return (
+          <div
+            className='curate-page__right--section'
+            key={index}>
+            <div className='curate-page__right--header'>{ext ? ext.displayName || ext.name : c.extId}</div>
+            {buttons}
+          </div>
+        );
+      }
+    }), [disabled, props.extContribs]);
+
   return (
     <div className='curate-page'>
       <div
@@ -191,6 +220,7 @@ export function CuratePage(props: CuratePageProps) {
               disabled
             }}/>
         </div>
+        {extButtons}
       </div>
     </div>
   );

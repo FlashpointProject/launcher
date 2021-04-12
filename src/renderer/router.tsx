@@ -131,11 +131,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       creditsDoneLoading: this.props.creditsDoneLoading
     };
     const curateProps: ConnectedCuratePageProps = {
-      suggestions: this.props.suggestions,
-      appPaths: this.props.appPaths,
-      libraries: this.props.libraries,
-      mad4fpEnabled: this.props.mad4fpEnabled,
-      logoVersion: this.props.logoVersion,
+      extContribs: this.props.contextButtons
     };
     const developerProps: DeveloperPageProps = {
       devConsole: this.props.devConsole,

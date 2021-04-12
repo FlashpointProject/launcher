@@ -21,6 +21,7 @@ import { extractFull } from 'node-7z';
 import * as path from 'path';
 import { newExtLog } from './ExtensionUtils';
 import { Command } from './types';
+import uuid = require('uuid');
 
 /**
  * Create a Flashpoint API implementation specific to an extension, used during module load interception
@@ -299,6 +300,66 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     }
   };
 
+  const extCurations: typeof flashpoint.curations = {
+    getCurations: () => {
+      return [...state.loadedCurations];
+    },
+    getCuration: (folder: string) => {
+      const curation = state.loadedCurations.find(c => c.folder === folder);
+      return curation ? {...curation} : undefined;
+    },
+    setCurationGameMeta: (folder: string, meta: flashpoint.CurationMeta) => {
+      const curation = state.loadedCurations.find(c => c.folder === folder);
+      if (curation) {
+        if (curation.locked) {
+          return false;
+        }
+        curation.game = meta;
+        state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
+        return true;
+      } else {
+        throw 'Not a valid curation folder';
+      }
+    },
+    setCurationAddAppMeta: (folder: string, key: string, meta: flashpoint.AddAppCurationMeta) => {
+      const curation = state.loadedCurations.find(c => c.folder === folder);
+      if (curation) {
+        if (curation.locked) {
+          return false;
+        }
+        const addAppIdx = curation.addApps.findIndex(a => a.key === key);
+        if (addAppIdx !== -1) {
+          const existingAddApp = curation.addApps[addAppIdx];
+          curation.addApps[addAppIdx] = {
+            key: existingAddApp.key,
+            ...meta
+          };
+          state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
+          return true;
+        } else {
+          throw 'Not a valid add app.';
+        }
+      } else {
+        throw 'Not a valid curation folder';
+      }
+    },
+    newCuration: () => {
+      // @TODO
+      return {
+        folder: uuid(),
+        game: {},
+        addApps: [],
+        thumbnail: { exists: false, version: 0 },
+        screenshot: { exists: false, version: 0 },
+        warnings: {}
+      };
+    },
+    deleteCuration: (folder: string) => {
+      // @TODO
+      return false;
+    }
+  };
+
   // Create API Module to give to caller
   return <typeof flashpoint>{
     // General information
@@ -316,6 +377,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     // Namespaces
     log: extLog,
     commands: extCommands,
+    curations: extCurations,
     games: extGames,
     gameData: extGameData,
     sources: extSources,

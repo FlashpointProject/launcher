@@ -1,4 +1,5 @@
-import { AddAppCuration, CurationState, LoadedCuration } from '@shared/curate/types';
+import { BackIn } from '@shared/back/types';
+import { AddAppCuration, CurationState } from '@shared/curate/types';
 import { CurateActionType } from './enums';
 import { CurateAction, CurateState } from './types';
 import uuid = require('uuid');
@@ -10,29 +11,9 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
 
     case CurateActionType.CREATE_CURATION:
     {
-      const loadedCuration: LoadedCuration = {
-        folder: action.folder,
-        game: {},
-        addApps: [],
-        thumbnail: {
-          exists: false,
-          version: 0
-        },
-        screenshot: {
-          exists: false,
-          version: 0
-        }
-      };
-      const curation = {
-        ...loadedCuration,
-        warnings: {}
-      };
+      window.Shared.back.send(BackIn.CURATE_CREATE_CURATION, action.folder);
       return {
-        ...state,
-        curations: [
-          ...state.curations,
-          curation,
-        ],
+        ...state
       };
     }
 

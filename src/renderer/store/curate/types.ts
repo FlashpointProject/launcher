@@ -63,4 +63,7 @@ export type CurateAction = {
   type: CurateActionType.SET_LOCK;
   folder: string;
   locked: boolean;
+} | {
+  type: CurateActionType.DELETE;
+  folder: string;
 }
