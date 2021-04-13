@@ -1032,8 +1032,9 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.LAUNCH_CURATION, async (event, data) => {
-    const skipLink = (data.key === state.lastLinkedCurationKey);
-    state.lastLinkedCurationKey = data.symlinkCurationContent ? data.key : '';
+    const { curation } = data;
+    const skipLink = (curation.folder === state.lastLinkedCurationKey);
+    state.lastLinkedCurationKey = data.symlinkCurationContent ? curation.folder : '';
     try {
       if (state.serviceInfo) {
         // Make sure all 3 relevant server infos are present before considering MAD4FP opt
@@ -1046,7 +1047,7 @@ export function registerRequestCallbacks(state: BackState): void {
             // Swap to mad4fp server
             const mad4fpServerCopy = deepCopy(mad4fpServer);
             // Set the content folder path as the final parameter
-            mad4fpServerCopy.arguments.push(getContentFolderByKey(data.key, state.config.flashpointPath));
+            mad4fpServerCopy.arguments.push(getContentFolderByKey(curation.folder, state.config.flashpointPath));
             await removeService(state, 'server');
             runService(state, 'server', 'Server', state.config.flashpointPath, {}, mad4fpServerCopy);
           } else if (!data.mad4fp && activeServerInfo && activeServerInfo.mad4fp && !configServer.mad4fp) {
@@ -1057,10 +1058,10 @@ export function registerRequestCallbacks(state: BackState): void {
         }
       }
 
-      await launchCuration(data.key, data.meta, data.addApps, data.symlinkCurationContent, skipLink, {
+      await launchCuration(data.curation, data.symlinkCurationContent, skipLink, {
         fpPath: path.resolve(state.config.flashpointPath),
         htdocsPath: state.preferences.htdocsFolderPath,
-        native: state.preferences.nativePlatforms.some(p => p === data.meta.platform),
+        native: state.preferences.nativePlatforms.some(p => p === data.curation.game.platform),
         execMappings: state.execMappings,
         lang: state.languageContainer,
         isDev: state.isDev,

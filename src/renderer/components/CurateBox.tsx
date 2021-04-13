@@ -1,3 +1,4 @@
+import { CURATIONS_FOLDER_WORKING } from '@back/consts';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
 import { CurateBoxDropdownInputRow, CurateBoxInputRow, CurateBoxTagDropdownInputRow } from '@renderer/components/CurateBoxInputRow';
@@ -114,7 +115,6 @@ export function CurateBox(props: CurateBoxProps) {
   }, [props.curation.folder, props.curation.contents]);
 
   const onContentTreeNodeMenuFactory = (node: ContentTreeNode, tree: string[]) => (event: React.MouseEvent<HTMLDivElement>) => {
-    console.log('LOGGG');
     const contextButtons: MenuItemConstructorOptions[] = [{
       label: strings.curate.contextCopyName,
       click: () => clipboard.writeText(node.name)
@@ -127,6 +127,17 @@ export function CurateBox(props: CurateBoxProps) {
     }, {
       type: 'separator'
     }];
+    if (node.type === 'file') {
+      contextButtons.push({
+        label: strings.curate.contextShowInExplorer,
+        click: () => remote.shell.showItemInFolder(path.join(window.Shared.config.fullFlashpointPath, CURATIONS_FOLDER_WORKING, props.curation.folder, 'content', tree.join(path.sep)))
+      });
+    } else if (node.type === 'directory') {
+      contextButtons.push({
+        label: strings.curate.contextOpenFolderInExplorer,
+        click: () => remote.shell.openExternal(path.join(window.Shared.config.fullFlashpointPath, CURATIONS_FOLDER_WORKING, props.curation.folder, 'content', tree.join(path.sep)))
+      });
+    }
     const menu = remote.Menu.buildFromTemplate(contextButtons);
     menu.popup({ window: remote.getCurrentWindow() });
     return menu;
@@ -146,7 +157,7 @@ export function CurateBox(props: CurateBoxProps) {
               { depth > 0 && (
                 <div style={{ width: `${depth}rem` }}/>
               )}
-              <div className='curate-box-content__entry-icon'
+              <div className='curate-box-content__entry-icon curate-box-content__entry-icon--collapse'
                 onClick={() => toggleContentNodeView(tree)} >
                 <OpenIcon icon={node.expanded ? 'chevron-bottom': 'chevron-right' }/>
               </div>
@@ -160,6 +171,7 @@ export function CurateBox(props: CurateBoxProps) {
         return (
           <div
             key={`${tree.join('_')}_${key}`}
+            onContextMenu={onContentTreeNodeMenuFactory(node, tree)}
             className='curate-box-content__entry'>
             { depth > 0 && (
               <div style={{ width: `${depth}rem` }}/>

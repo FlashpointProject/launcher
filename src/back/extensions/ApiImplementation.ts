@@ -1,4 +1,7 @@
 import { EXT_CONFIG_FILENAME, PREFERENCES_FILENAME } from '@back/constants';
+import { CURATIONS_FOLDER_WORKING } from '@back/consts';
+import { loadCurationIndexImage } from '@back/curate/parse';
+import { saveCuration } from '@back/curate/write';
 import { ExtConfigFile } from '@back/ExtConfigFile';
 import * as GameDataManager from '@back/game/GameDataManager';
 import * as GameManager from '@back/game/GameManager';
@@ -11,12 +14,16 @@ import { createPlaylistFromJson, getOpenMessageBoxFunc, getOpenOpenDialogFunc, g
 import { pathTo7zBack } from '@back/util/SevenZip';
 import { BackOut } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
+import { CurationState, LoadedCuration } from '@shared/curate/types';
+import { getContentFolderByKey } from '@shared/curate/util';
 import { IExtensionManifest } from '@shared/extensions/interfaces';
 import { ProcessState } from '@shared/interfaces';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { overwritePreferenceData } from '@shared/preferences/util';
+import { genContentTree, genCurationWarnings } from '@shared/Util';
 import * as flashpoint from 'flashpoint-launcher';
+import * as fs from 'fs';
 import { extractFull } from 'node-7z';
 import * as path from 'path';
 import { newExtLog } from './ExtensionUtils';
@@ -343,8 +350,31 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
         throw 'Not a valid curation folder';
       }
     },
-    newCuration: () => {
-      // @TODO
+    newCuration: async () => {
+      const folder = uuid();
+      const existingCuration = state.loadedCurations.find(c => c.folder === folder);
+      if (!existingCuration) {
+        const curPath = path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, folder);
+        await fs.promises.mkdir(curPath, { recursive: true });
+        const contentFolder = path.join(curPath, 'content');
+        await fs.promises.mkdir(contentFolder, { recursive: true });
+
+        const data: LoadedCuration = {
+          folder,
+          game: {},
+          addApps: [],
+          thumbnail: await loadCurationIndexImage(path.join(curPath, 'logo.png')),
+          screenshot: await loadCurationIndexImage(path.join(curPath, 'ss.png'))
+        };
+        const curation: CurationState = {
+          ...data,
+          warnings: genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate),
+          contents: await genContentTree(getContentFolderByKey(folder, state.config.flashpointPath))
+        };
+        await saveCuration(curPath, curation);
+        state.loadedCurations.push(curation);
+        state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
+      }
       return {
         folder: uuid(),
         game: {},

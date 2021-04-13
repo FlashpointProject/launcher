@@ -1027,6 +1027,9 @@ body {
 .curate-box-content__entry-icon {
   height: 1em;
 }
+.curate-box-content__entry-icon--collapse {
+  cursor: pointer;
+}
 /* Curate Box Image Titles */
 .curate-box-image-titles {
   display: flex;

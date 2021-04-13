@@ -6,7 +6,7 @@ import { TagCategory } from '@database/entity/TagCategory';
 import { validateSemiUUID } from '@renderer/util/uuid';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertEditToCurationMetaFile } from '@shared/curate/metaToMeta';
-import { CurationIndexImage, EditAddAppCurationMeta, EditCurationMeta } from '@shared/curate/OLD_types';
+import { CurationIndexImage } from '@shared/curate/OLD_types';
 import { AddAppCuration, CurationMeta, LoadedCuration } from '@shared/curate/types';
 import { getCurationFolder } from '@shared/curate/util';
 import * as child_process from 'child_process';
@@ -251,11 +251,11 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
  * Create and launch a game from curation metadata.
  * @param curation Curation to launch
  */
-export async function launchCuration(key: string, meta: EditCurationMeta, addAppMetas: EditAddAppCurationMeta[], symlinkCurationContent: boolean,
+export async function launchCuration(curation: LoadedCuration, symlinkCurationContent: boolean,
   skipLink: boolean, opts: Omit<LaunchGameOpts, 'game'|'addApps'>, onWillEvent:ApiEmitter<GameLaunchInfo>, onDidEvent: ApiEmitter<Game>) {
-  if (!skipLink || !symlinkCurationContent) { await linkContentFolder(key, opts.fpPath, opts.isDev, opts.exePath, opts.htdocsPath, symlinkCurationContent); }
-  curationLog(`Launching Curation ${meta.title}`);
-  const game = await createGameFromCurationMeta(key, meta, [], new Date());
+  if (!skipLink || !symlinkCurationContent) { await linkContentFolder(curation.folder, opts.fpPath, opts.isDev, opts.exePath, opts.htdocsPath, symlinkCurationContent); }
+  curationLog(`Launching Curation ${curation.game.title}`);
+  const game = await createGameFromCurationMeta(curation.folder, curation.game, [], new Date());
   GameLauncher.launchGame({
     ...opts,
     game: game,

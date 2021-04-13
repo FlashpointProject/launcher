@@ -93,7 +93,7 @@ declare module 'flashpoint-launcher' {
         function getCuration(folder: string): CurationState | undefined;
         function setCurationGameMeta(folder: string, meta: CurationMeta): boolean;
         function setCurationAddAppMeta(folder: string, key: string, meta: AddAppCurationMeta): boolean;
-        function newCuration(): CurationState;
+        function newCuration(): Promise<CurationState>;
         function deleteCuration(folder: string): boolean;
     }
 

@@ -581,6 +581,9 @@ body {
 .curate-tag:hover {
   background-color: var(--layout__warning-dark-color);
 }
+.curate-box-content__entry:hover {
+  background-color: var(--layout__secondary-background);
+}
 
 /* Tag Dropdown Item */
 .tag-dropdown-item:hover {

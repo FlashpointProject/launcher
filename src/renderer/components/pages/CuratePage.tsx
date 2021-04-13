@@ -24,6 +24,7 @@ const index_attr = 'data-index';
 
 type OwnProps = {
   extContribs: ExtensionContribution<'contextButtons'>[];
+  mad4fpEnabled: boolean;
 }
 
 export type CuratePageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps & WithMainStateProps & WithCurateStateProps & WithConfirmDialogProps;
@@ -104,6 +105,26 @@ export function CuratePage(props: CuratePageProps) {
       props.dispatchCurate({
         type: CurateActionType.DELETE,
         folder: curation.folder
+      });
+    }
+  }, [curation]);
+
+  const onRunCuration = React.useCallback(async () => {
+    if (curation) {
+      window.Shared.back.send(BackIn.LAUNCH_CURATION, {
+        curation,
+        mad4fp: false,
+        symlinkCurationContent: props.preferencesData.symlinkCurationContent
+      });
+    }
+  }, [curation]);
+
+  const onRunMAD4FPCuration = React.useCallback(async () => {
+    if (curation) {
+      window.Shared.back.send(BackIn.LAUNCH_CURATION, {
+        curation,
+        mad4fp: true,
+        symlinkCurationContent: props.preferencesData.symlinkCurationContent
       });
     }
   }, [curation]);
@@ -221,6 +242,21 @@ export function CuratePage(props: CuratePageProps) {
               value: strings.curate.import,
               disabled
             }}/>
+        </div>
+        <div className='curate-page__right--section'>
+          <div className='curate-page__right--header'>{strings.curate.headerTest}</div>
+          <SimpleButton
+            className='curate-page__right--button'
+            disabled={disabled}
+            value={strings.curate.run}
+            onClick={onRunCuration}/>
+          { props.mad4fpEnabled && (
+            <SimpleButton
+              className='curate-page__right--button'
+              disabled={disabled || !props.preferencesData.symlinkCurationContent}
+              value={strings.curate.runWithMAD4FP}
+              onClick={onRunMAD4FPCuration}/>
+          )}
         </div>
         {extButtons}
       </div>

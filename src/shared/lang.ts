@@ -329,6 +329,7 @@ const langTemplate = {
     'noCurationSelected',
     'headerFileOperations',
     'headerEditCuration',
+    'headerTest',
     'importAll',
     'importAllDesc',
     'deleteAll',
@@ -398,7 +399,7 @@ const langTemplate = {
     'contextCopyPath',
     'contextCopyAsURL',
     'contextShowInExplorer',
-    'contextUseAsHttpLaunchCommand'
+    'contextOpenFolderInExplorer',
   ] as const,
   playlist: [
     'enterDescriptionHere',

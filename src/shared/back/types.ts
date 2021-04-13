@@ -15,7 +15,6 @@ import { SocketTemplate } from '@shared/socket/types';
 import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
 import { GameData, TagAlias, TagFilterGroup } from 'flashpoint-launcher';
 import { AppConfigData, AppExtConfigData } from '../config/interfaces';
-import { EditAddAppCurationMeta, EditCurationMeta } from '../curate/OLD_types';
 import { ExecMapping, GamePropSuggestions, IService, ProcessAction } from '../interfaces';
 import { LangContainer, LangFile } from '../lang';
 import { ILogEntry, ILogPreEntry, LogLevel } from '../Log/interface';
@@ -516,9 +515,7 @@ export type ImportCurationResponseData = {
 }
 
 export type LaunchCurationData = {
-  key: string;
-  meta: EditCurationMeta;
-  addApps: EditAddAppCurationMeta[];
+  curation: LoadedCuration;
   mad4fp: boolean;
   symlinkCurationContent: boolean;
 }
