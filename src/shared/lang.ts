@@ -394,6 +394,11 @@ const langTemplate = {
     'ilc_notHttp',
     'ilc_nonExistant',
     'sort',
+    'contextCopyName',
+    'contextCopyPath',
+    'contextCopyAsURL',
+    'contextShowInExplorer',
+    'contextUseAsHttpLaunchCommand'
   ] as const,
   playlist: [
     'enterDescriptionHere',

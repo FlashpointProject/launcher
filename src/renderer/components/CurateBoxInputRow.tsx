@@ -78,8 +78,11 @@ export function CurateBoxTagDropdownInputRow(props: CurateBoxTagDropdownInputRow
   const strings = React.useContext(LangContext);
 
   const onSubmitTag = React.useCallback((text: string) => {
-    window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, text)
-    .then(props.onAddTag);
+    const tags = text.split(';');
+    tags.map(t => {
+      window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, t.trim())
+      .then(props.onAddTag);
+    });
   }, [props.onAddTag]);
 
   const onTagSuggestionSelect = React.useCallback((sug: TagSuggestion) => {

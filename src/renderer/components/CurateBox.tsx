@@ -12,7 +12,9 @@ import { ContentTreeNode, CurationState, LoadedCuration } from '@shared/curate/t
 import { GamePropSuggestions } from '@shared/interfaces';
 import { fixSlashes, sizeToString } from '@shared/Util';
 import axios from 'axios';
+import { clipboard, MenuItemConstructorOptions, remote } from 'electron';
 import { TagSuggestion } from 'flashpoint-launcher';
+import * as path from 'path';
 import * as React from 'react';
 import { Dispatch } from 'redux';
 import { CurateBoxAddApp } from './CurateBoxAddApp';
@@ -111,21 +113,41 @@ export function CurateBox(props: CurateBoxProps) {
     });
   }, [props.curation.folder, props.curation.contents]);
 
-  function renderContentNode(depth: number, node: ContentTreeNode, key: number, path: string[] = []): JSX.Element | JSX.Element[] {
+  const onContentTreeNodeMenuFactory = (node: ContentTreeNode, tree: string[]) => (event: React.MouseEvent<HTMLDivElement>) => {
+    console.log('LOGGG');
+    const contextButtons: MenuItemConstructorOptions[] = [{
+      label: strings.curate.contextCopyName,
+      click: () => clipboard.writeText(node.name)
+    }, {
+      label: strings.curate.contextCopyPath,
+      click: () => clipboard.writeText(tree.join(path.sep))
+    }, {
+      label: strings.curate.contextCopyAsURL,
+      click: () => clipboard.writeText(`http://${tree.join('/')}`)
+    }, {
+      type: 'separator'
+    }];
+    const menu = remote.Menu.buildFromTemplate(contextButtons);
+    menu.popup({ window: remote.getCurrentWindow() });
+    return menu;
+  };
+
+  function renderContentNode(depth: number, node: ContentTreeNode, key: number, tree: string[] = []): JSX.Element | JSX.Element[] {
     switch (node.type) {
       case 'directory': {
-        const children = node.expanded ? node.children.map((node, index) => renderContentNode(depth + 1, node, index, path.concat([node.name])))
+        const children = node.expanded ? node.children.map((node, index) => renderContentNode(depth + 1, node, index, tree.concat([node.name])))
         .reduce<JSX.Element[]>((prev, next) => Array.isArray(next) ? prev.concat(next) : [...prev, next], []) : [];
         return [
           (
             <div
-              key={`${path.join('_')}_${key}`}
+              key={`${tree.join('_')}_${key}`}
+              onContextMenu={onContentTreeNodeMenuFactory(node, tree)}
               className='curate-box-content__entry'>
               { depth > 0 && (
                 <div style={{ width: `${depth}rem` }}/>
               )}
               <div className='curate-box-content__entry-icon'
-                onClick={() => toggleContentNodeView(path)} >
+                onClick={() => toggleContentNodeView(tree)} >
                 <OpenIcon icon={node.expanded ? 'chevron-bottom': 'chevron-right' }/>
               </div>
               <div>{node.name}</div>
@@ -137,7 +159,7 @@ export function CurateBox(props: CurateBoxProps) {
       case 'file':
         return (
           <div
-            key={`${path.join('_')}_${key}`}
+            key={`${tree.join('_')}_${key}`}
             className='curate-box-content__entry'>
             { depth > 0 && (
               <div style={{ width: `${depth}rem` }}/>

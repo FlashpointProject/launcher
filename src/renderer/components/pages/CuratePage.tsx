@@ -36,9 +36,11 @@ export function CuratePage(props: CuratePageProps) {
   const [tagSuggestions, setTagSuggestions] = React.useState<TagSuggestion[]>([]);
 
   const onTagTextChange = React.useCallback((tagText: string) => {
+    const splitTags = tagText.split(';');
+    const lastTag = (splitTags.length > 0 ? splitTags.pop() || '' : '').trim();
     setTagText(tagText);
     if (tagText !== '') {
-      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, tagText, props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !props.preferencesData.browsePageShowExtreme)))
+      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, lastTag, props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !props.preferencesData.browsePageShowExtreme)))
       .then(setTagSuggestions);
     } else {
       setTagSuggestions([]);

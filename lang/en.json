@@ -380,7 +380,10 @@
     "noScreenshot": "There is no screenshot on this curation.",
     "ilc_notHttp": "Use HTTP.",
     "ilc_nonExistant": "Point to an existing file in your curation's 'content' folder.",
-    "sort": "Sort Curations (A-Z)"
+    "sort": "Sort Curations (A-Z)",
+    "contextCopyName": "Copy File Name",
+    "contextCopyPath": "Copy File Path",
+    "contextCopyAsURL": "Copy File Path as URL"
   },
   "playlist": {
     "enterDescriptionHere": "Enter a description here...",
