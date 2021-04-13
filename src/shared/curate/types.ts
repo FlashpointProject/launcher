@@ -9,9 +9,22 @@ export type LoadedCuration = {
   screenshot: CurationIndexImage;
 }
 
+export type ContentTree = {
+  root: ContentTreeNode;
+}
+
+export type ContentTreeNode = {
+  name: string;
+  expanded: boolean;
+  size?: number;
+  type: 'file' | 'directory';
+  children: ContentTreeNode[];
+}
+
 export type CurationState = LoadedCuration & {
   warnings: CurationWarnings;
   locked?: boolean;
+  contents: ContentTree;
 }
 
 /** A set of warnings for things that should be fixed in a curation. */

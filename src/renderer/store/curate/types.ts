@@ -66,4 +66,8 @@ export type CurateAction = {
 } | {
   type: CurateActionType.DELETE;
   folder: string;
+} | {
+  type: CurateActionType.TOGGLE_CONTENT_NODE_VIEW;
+  folder: string;
+  tree: string[];
 }

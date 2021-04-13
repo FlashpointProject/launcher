@@ -18,13 +18,14 @@ import { GameTagsStr1613571078561 } from '@database/migration/1613571078561-Game
 import { validateSemiUUID } from '@renderer/util/uuid';
 import { BackIn, BackInit, BackInitArgs, BackOut } from '@shared/back/types';
 import { CurationState } from '@shared/curate/types';
+import { getContentFolderByKey } from '@shared/curate/util';
 import { ILogoSet, LogoSet } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
 import { getDefaultLocalization, LangFileContent } from '@shared/lang';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { Theme } from '@shared/ThemeFile';
-import { createErrorProxy, genCurationWarnings, removeFileExtension, stringifyArray } from '@shared/Util';
+import { createErrorProxy, genContentTree, genCurationWarnings, removeFileExtension, stringifyArray } from '@shared/Util';
 import * as child_process from 'child_process';
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint-launcher';
@@ -355,7 +356,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
           };
           const curation: CurationState = {
             ...loadedCuration,
-            warnings: genCurationWarnings(loadedCuration, state.config.flashpointPath, state.suggestions, state.languageContainer.curate)
+            warnings: genCurationWarnings(loadedCuration, state.config.flashpointPath, state.suggestions, state.languageContainer.curate),
+            contents: await genContentTree(getContentFolderByKey(folderName, state.config.flashpointPath))
           };
           state.loadedCurations.push(curation);
         }

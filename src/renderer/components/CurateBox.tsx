@@ -8,9 +8,9 @@ import { AddAppType, CurateAction } from '@renderer/store/curate/types';
 import { findElementAncestor, getCurationURL } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
 import { BackIn, CurationImageEnum } from '@shared/back/types';
-import { CurationState, LoadedCuration } from '@shared/curate/types';
+import { ContentTreeNode, CurationState, LoadedCuration } from '@shared/curate/types';
 import { GamePropSuggestions } from '@shared/interfaces';
-import { fixSlashes } from '@shared/Util';
+import { fixSlashes, sizeToString } from '@shared/Util';
 import axios from 'axios';
 import { TagSuggestion } from 'flashpoint-launcher';
 import * as React from 'react';
@@ -102,6 +102,62 @@ export function CurateBox(props: CurateBoxProps) {
       }
     },
   }));
+
+  const toggleContentNodeView = React.useCallback((tree: string[]) => {
+    props.dispatch({
+      type: CurateActionType.TOGGLE_CONTENT_NODE_VIEW,
+      folder: props.curation.folder,
+      tree
+    });
+  }, [props.curation.folder, props.curation.contents]);
+
+  function renderContentNode(depth: number, node: ContentTreeNode, key: number, path: string[] = []): JSX.Element | JSX.Element[] {
+    switch (node.type) {
+      case 'directory': {
+        const children = node.expanded ? node.children.map((node, index) => renderContentNode(depth + 1, node, index, path.concat([node.name])))
+        .reduce<JSX.Element[]>((prev, next) => Array.isArray(next) ? prev.concat(next) : [...prev, next], []) : [];
+        return [
+          (
+            <div
+              key={`${path.join('_')}_${key}`}
+              className='curate-box-content__entry'>
+              { depth > 0 && (
+                <div style={{ width: `${depth}rem` }}/>
+              )}
+              <div className='curate-box-content__entry-icon'
+                onClick={() => toggleContentNodeView(path)} >
+                <OpenIcon icon={node.expanded ? 'chevron-bottom': 'chevron-right' }/>
+              </div>
+              <div>{node.name}</div>
+            </div>
+          ),
+          ...children
+        ];
+      }
+      case 'file':
+        return (
+          <div
+            key={`${path.join('_')}_${key}`}
+            className='curate-box-content__entry'>
+            { depth > 0 && (
+              <div style={{ width: `${depth}rem` }}/>
+            )}
+            <OpenIcon className='curate-box-content__entry-icon' icon='file'/>
+            <div>{node.name} ({sizeToString(node.size || 0)})</div>
+          </div>
+        );
+    }
+  }
+
+  const renderContentTree = React.useMemo(() => {
+    return (
+      <div className='curate-box-content simple-scroll'>
+        {props.curation.contents.root.children.map((node, index) => {
+          return renderContentNode(0, node, index, [node.name]);
+        })}
+      </div>
+    );
+  }, [props.curation.contents]);
 
   const addAppBoxes = (
     <table className="curate-box-table">
@@ -338,7 +394,7 @@ export function CurateBox(props: CurateBoxProps) {
               {strings.curate.contentFiles + ': '}
             </div>
             <pre className='curate-box-files__body simple-scroll'>
-              @TODO Content filenames
+              {renderContentTree}
             </pre>
           </div>
           <hr />

@@ -1018,6 +1018,15 @@ body {
   background-repeat: no-repeat;
   background-position: center;
 }
+.curate-box-content {
+  height: 10rem;
+}
+.curate-box-content__entry {
+  display: flex;
+}
+.curate-box-content__entry-icon {
+  height: 1em;
+}
 /* Curate Box Image Titles */
 .curate-box-image-titles {
   display: flex;

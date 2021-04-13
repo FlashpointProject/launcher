@@ -6,7 +6,7 @@ import { DownloadDetails } from './back/types';
 import { AppConfigData } from './config/interfaces';
 import { parseVariableString } from './utils/VariableString';
 import { throttle } from './utils/throttle';
-import { CurationWarnings, LoadedCuration } from './curate/types';
+import { ContentTree, ContentTreeNode, CurationWarnings, LoadedCuration } from './curate/types';
 import { LangContainer } from './lang';
 import { getContentFolderByKey } from './curate/util';
 import { GamePropSuggestions } from './interfaces';
@@ -512,6 +512,51 @@ export function genCurationWarnings(curation: LoadedCuration, fpPath: string, su
   const curLibrary = curation.game.library;
   warns.nonExistingLibrary = suggestions.library.findIndex(l => l === curLibrary) === -1;
   return warns;
+}
+
+export async function genContentTree(folder: string): Promise<ContentTree> {
+  return fs.promises.lstat(folder)
+  .then(async (stats) => {
+    if (stats.isDirectory()) {
+      // Get root node
+      const root: ContentTreeNode = {
+        name: '',
+        expanded: true,
+        type: 'directory',
+        children: await loadBranch(folder, '')
+      };
+      return {
+        root
+      };
+    } else {
+      throw 'Not a directory';
+    }
+  });
+}
+
+async function loadBranch(root: string, relativePath: string): Promise<ContentTreeNode[]> {
+  const nodes: ContentTreeNode[] = [];
+  const files = await fs.promises.readdir(path.join(root, relativePath), { withFileTypes: true });
+  for (const f of files) {
+    const childRelPath = path.join(relativePath, f.name);
+    if (f.isDirectory()) {
+      nodes.push({
+        name: f.name,
+        expanded: true,
+        type: 'directory',
+        children: await loadBranch(root, childRelPath)
+      });
+    } else {
+      nodes.push({
+        name: f.name,
+        expanded: true,
+        type: 'file',
+        size: (await fs.promises.lstat(path.join(root, childRelPath))).size,
+        children: []
+      });
+    }
+  }
+  return nodes;
 }
 
 /**

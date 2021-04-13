@@ -18,7 +18,7 @@ import { LogLevel } from '@shared/Log/interface';
 import { MetaEditFile, MetaEditMeta } from '@shared/MetaEdit';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { defaultPreferencesData, overwritePreferenceData } from '@shared/preferences/util';
-import { deepCopy, genCurationWarnings } from '@shared/Util';
+import { deepCopy, genContentTree, genCurationWarnings } from '@shared/Util';
 import { formatString } from '@shared/utils/StringFormatter';
 import * as axiosImport from 'axios';
 import * as fs from 'fs-extra';
@@ -1232,7 +1232,8 @@ export function registerRequestCallbacks(state: BackState): void {
         };
         const curation: CurationState = {
           ...loadedCuration,
-          warnings: genCurationWarnings(loadedCuration, state.config.flashpointPath, state.suggestions, state.languageContainer.curate)
+          warnings: genCurationWarnings(loadedCuration, state.config.flashpointPath, state.suggestions, state.languageContainer.curate),
+          contents: await genContentTree(getContentFolderByKey(key, state.config.flashpointPath))
         };
 
         state.loadedCurations.push({
@@ -1336,7 +1337,8 @@ export function registerRequestCallbacks(state: BackState): void {
       };
       const curation: CurationState = {
         ...data,
-        warnings: genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate)
+        warnings: genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate),
+        contents: await genContentTree(getContentFolderByKey(folder, state.config.flashpointPath))
       };
       await saveCuration(curPath, curation);
       state.loadedCurations.push(curation);
