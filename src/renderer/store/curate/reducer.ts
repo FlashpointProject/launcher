@@ -11,7 +11,7 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
 
     case CurateActionType.CREATE_CURATION:
     {
-      window.Shared.back.send(BackIn.CURATE_CREATE_CURATION, action.folder);
+      window.Shared.back.send(BackIn.CURATE_CREATE_CURATION, action.folder, action.meta);
       return {
         ...state
       };

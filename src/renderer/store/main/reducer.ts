@@ -439,6 +439,7 @@ function createInitialState(): MainState {
     extConfigs: [],
     devScripts: [],
     contextButtons: [],
+    curationTemplates: [],
     services: [],
     downloadOpen: false,
     downloadPercent: 0,

@@ -331,3 +331,13 @@ export function isBrowserOpts(val: any): val is BrowserApplicationOpts {
   return typeof val.url === 'string' &&
    (val.proxy === undefined || typeof val.proxy === 'string');
 }
+
+/**
+ * Converts a date to a filename safe string in the form YYYY-MM-DD_HH-MM-SS
+ * @param date Date to convert
+ */
+export function dateToFilenameString(date: Date): string {
+  const padFour = (num: number) => { return `${num}`.padStart(4,'0'); };
+  const padTwo = (num: number) => { return `${num}`.padStart(2,'0'); };
+  return `${padFour(date.getFullYear())}-${padTwo(date.getMonth())}-${padTwo(date.getDay())}_${padTwo(date.getHours())}-${padTwo(date.getMinutes())}-${padTwo(date.getSeconds())}`;
+}

@@ -141,6 +141,7 @@ function createInitialMainState(): MainState {
     extensions: window.Shared.initialExtensions,
     devScripts: window.Shared.initialDevScripts,
     contextButtons: window.Shared.initialContextButtons,
+    curationTemplates: window.Shared.initialCurationTemplates,
     logoSets: window.Shared.initialLogoSets,
     extConfigs: window.Shared.initialExtConfigs,
     extConfig: window.Shared.initialExtConfig,

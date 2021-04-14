@@ -19,11 +19,14 @@ import { getWarningCount } from '../CurateBoxWarnings';
 import { WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
 import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
 import { ExtensionContribution } from '@shared/extensions/interfaces';
+import { Dropdown } from '../Dropdown';
+import { EditCurationMeta } from '@shared/curate/OLD_types';
 
 const index_attr = 'data-index';
 
 type OwnProps = {
-  extContribs: ExtensionContribution<'contextButtons'>[];
+  extCurationTemplates: ExtensionContribution<'curationTemplates'>[];
+  extContextButtons: ExtensionContribution<'contextButtons'>[];
   mad4fpEnabled: boolean;
 }
 
@@ -66,10 +69,11 @@ export function CuratePage(props: CuratePageProps) {
     },
   }));
 
-  const onNewCuration = React.useCallback(() => {
+  const onNewCuration = React.useCallback((meta?: EditCurationMeta) => {
     props.dispatchCurate({
       type: CurateActionType.CREATE_CURATION,
       folder: uuid(),
+      meta
     });
   }, []);
 
@@ -96,6 +100,15 @@ export function CuratePage(props: CuratePageProps) {
         type: CurateActionType.IMPORT,
         folder: curation.folder,
         saveCuration: props.preferencesData.saveImportedCurations
+      });
+    }
+  }, [curation]);
+
+  const onExportCuration = React.useCallback(async () => {
+    if (curation) {
+      props.dispatchCurate({
+        type: CurateActionType.EXPORT,
+        folder: curation.folder
       });
     }
   }, [curation]);
@@ -138,7 +151,7 @@ export function CuratePage(props: CuratePageProps) {
 
   // Gen extension buttons
   const extButtons = React.useMemo(() =>
-    props.extContribs.map((c, index) => {
+    props.extContextButtons.map((c, index) => {
       const ext = props.main.extensions.find(e => e.id === c.extId);
       const buttons = c.value.filter(c => c.context === 'curation').map((contextButton, index) => (
         <SimpleButton
@@ -158,7 +171,31 @@ export function CuratePage(props: CuratePageProps) {
           </div>
         );
       }
-    }), [disabled, props.extContribs]);
+    }), [disabled, props.extContextButtons]);
+
+  const curationTemplateButtons = React.useMemo(() => {
+    return props.extCurationTemplates.map(c => {
+      return c.value.map((template, index) => {
+        console.log(JSON.stringify(template));
+        return (
+          <div
+            className='curate-page__right-dropdown-content simple-dropdown-button'
+            key={index}
+            onClick={() => {
+              onNewCuration(template.meta);
+            }}>
+            <div
+              className='curate-page__right-dropdown-content-icon'
+              style={{ backgroundImage: `url('${getPlatformIconURL(template.logo, props.main.logoVersion)}')` }} />
+            <div>
+              {template.name}
+            </div>
+          </div>
+
+        );
+      });
+    });
+  }, [props.extCurationTemplates]);
 
   return (
     <div className='curate-page'>
@@ -203,9 +240,15 @@ export function CuratePage(props: CuratePageProps) {
       <div className='curate-page__right simple-scroll'>
         <div className='curate-page__right--section'>
           <div className='curate-page__right--header'>{strings.curate.headerFileOperations}</div>
+          <Dropdown
+            className='curate-page__right--button'
+            headerClassName='simple-dropdown-button'
+            text={strings.curate.newCurationFromTemplate}>
+            {curationTemplateButtons}
+          </Dropdown>
           <SimpleButton
             className='curate-page__right--button'
-            onClick={onNewCuration}
+            onClick={() => onNewCuration()}
             value={strings.curate.newCuration}/>
           <SimpleButton
             className='curate-page__right--button'
@@ -242,6 +285,22 @@ export function CuratePage(props: CuratePageProps) {
               value: strings.curate.import,
               disabled
             }}/>
+          { warningCount > 0 ? (
+            <ConfirmElement
+              render={renderConfirmButton}
+              message={strings.dialog.exportCurationWithWarnings}
+              onConfirm={onExportCuration}
+              extra={{
+                className: 'curate-page__right--button',
+                value: strings.curate.export,
+                disabled
+              }}/>
+          ) : (
+            <SimpleButton
+              className='curate-page__right--button'
+              onClick={onExportCuration}
+              value={strings.curate.export}/>
+          )}
         </div>
         <div className='curate-page__right--section'>
           <div className='curate-page__right--header'>{strings.curate.headerTest}</div>

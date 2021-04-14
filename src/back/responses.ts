@@ -23,14 +23,14 @@ import { formatString } from '@shared/utils/StringFormatter';
 import * as axiosImport from 'axios';
 import * as fs from 'fs-extra';
 import * as fs_extra from 'fs-extra';
-import { extractFull } from 'node-7z';
+import { add, extractFull } from 'node-7z';
 import * as path from 'path';
 import * as url from 'url';
 import * as util from 'util';
 import * as YAML from 'yaml';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME } from './constants';
-import { CURATIONS_FOLDER_EXTRACTING, CURATIONS_FOLDER_WORKING, CURATION_META_FILENAMES } from './consts';
+import { CURATIONS_FOLDER_EXTRACTING, CURATIONS_FOLDER_WORKING, CURATION_META_FILENAMES, CURATIONS_FOLDER_EXPORTED } from './consts';
 import { loadCurationIndexImage } from './curate/parse';
 import { readCurationMeta } from './curate/read';
 import { saveCuration } from './curate/write';
@@ -45,8 +45,9 @@ import { ManagedChildProcess } from './ManagedChildProcess';
 import { importAllMetaEdits } from './MetaEdit';
 import { BackState, BareTag, TagsFile } from './types';
 import { pathToBluezip } from './util/Bluezip';
-import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylistFromJson, exit, pathExists, procToService, removeService, runService } from './util/misc';
+import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylistFromJson, dateToFilenameString, exit, pathExists, procToService, removeService, runService } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
+import { pathTo7zBack } from './util/SevenZip';
 import { uuid } from './util/uuid';
 
 const axios = axiosImport.default;
@@ -129,6 +130,7 @@ export function registerRequestCallbacks(state: BackState): void {
       }),
       devScripts: await state.extensionsService.getContributions('devScripts'),
       contextButtons: await state.extensionsService.getContributions('contextButtons'),
+      curationTemplates: await state.extensionsService.getContributions('curationTemplates'),
       logoSets: Array.from(state.registry.logoSets.values()),
       extConfigs: await state.extensionsService.getContributions('configuration'),
       extConfig: state.extConfig,
@@ -1321,7 +1323,33 @@ export function registerRequestCallbacks(state: BackState): void {
     deleteCuration(folder);
   });
 
-  state.socketServer.register(BackIn.CURATE_CREATE_CURATION, async (event, folder) => {
+  state.socketServer.register(BackIn.CURATE_EXPORT, async (event, curation) => {
+    // Find most appropriate filepath based on what already exists
+    const name = (curation.game.title ? sanitizeFilename(curation.game.title) : curation.folder);
+    const filePathCheck = path.join(state.config.flashpointPath, CURATIONS_FOLDER_EXPORTED, `${name}.7z`);
+    const filePath = await fs.promises.access(filePathCheck, fs.constants.F_OK)
+    .then(() => {
+      // Exists, use date instead
+      return path.join(state.config.flashpointPath, CURATIONS_FOLDER_EXPORTED, `${name}_${dateToFilenameString(new Date())}.7z`);
+    })
+    .catch(() => { return filePathCheck; /** Doesn't exist, carry on */ });
+    await fs.ensureDir(path.dirname(filePath));
+    const curPath = path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, curation.folder);
+    await saveCuration(curPath, curation);
+    new Promise<void>((resolve) => {
+      return add(filePath, curPath, { recursive: true, $bin: pathTo7zBack(state.isDev, state.exePath) })
+      .on('end', () => { resolve(); })
+      .on('error', (error) => {
+        log.error('Curate', error.message);
+        resolve();
+      });
+    })
+    .finally(() => {
+      state.socketServer.broadcast(BackOut.SET_CURATION_LOCK, curation.folder, false);
+    });
+  });
+
+  state.socketServer.register(BackIn.CURATE_CREATE_CURATION, async (event, folder, meta) => {
     const existingCuration = state.loadedCurations.find(c => c.folder === folder);
     if (!existingCuration) {
       const curPath = path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, folder);
@@ -1331,7 +1359,7 @@ export function registerRequestCallbacks(state: BackState): void {
 
       const data: LoadedCuration = {
         folder,
-        game: {},
+        game: meta || {},
         addApps: [],
         thumbnail: await loadCurationIndexImage(path.join(curPath, 'logo.png')),
         screenshot: await loadCurationIndexImage(path.join(curPath, 'ss.png'))

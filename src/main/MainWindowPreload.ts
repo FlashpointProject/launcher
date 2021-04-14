@@ -93,6 +93,7 @@ window.Shared = {
   initialExtensions: createErrorProxy('initialExtensions'),
   initialDevScripts: createErrorProxy('initialDevScripts'),
   initialContextButtons: createErrorProxy('initialContextButtons'),
+  initialCurationTemplates: createErrorProxy('initialCurationTemplates'),
   initialLogoSets: createErrorProxy('initialLogoSets'),
   initialExtConfigs: createErrorProxy('initialExtConfigs'),
   initialExtConfig: createErrorProxy('initialExtConfig'),
@@ -150,6 +151,7 @@ const onInit = (async () => {
       window.Shared.initialExtensions = data.extensions;
       window.Shared.initialDevScripts = data.devScripts;
       window.Shared.initialContextButtons = data.contextButtons;
+      window.Shared.initialCurationTemplates = data.curationTemplates;
       window.Shared.initialLogoSets = data.logoSets;
       window.Shared.initialExtConfigs = data.extConfigs;
       window.Shared.initialExtConfig = data.extConfig;

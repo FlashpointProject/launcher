@@ -1,10 +1,11 @@
 import { AppConfigData } from '@shared/config/interfaces';
+import { EditCurationMeta } from '@shared/curate/OLD_types';
 import { readJsonFile } from '@shared/Util';
 import { Coerce } from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Application, ButtonContext, ContextButton, Contributions, DevScript, ExtConfiguration, ExtConfigurationProp, ExtensionType, ExtTheme, IExtension, IExtensionManifest, ILogoSet } from '../../shared/extensions/interfaces';
+import { Application, ButtonContext, ContextButton, Contributions, CurationTemplate, DevScript, ExtConfiguration, ExtConfigurationProp, ExtensionType, ExtTheme, IExtension, IExtensionManifest, ILogoSet } from '../../shared/extensions/interfaces';
 
 const { str, num } = Coerce;
 const fsPromises = fs.promises;
@@ -116,13 +117,15 @@ function parseContributions(parser: IObjectParserProp<Contributions>): Contribut
     contextButtons: [],
     applications: [],
     configuration: [],
+    curationTemplates: [],
   };
-  parser.prop('logoSets',       true).array(item => contributes.logoSets.push(parseLogoSet(item)));
-  parser.prop('themes',         true).array(item => contributes.themes.push(parseTheme(item)));
-  parser.prop('devScripts',     true).array(item => contributes.devScripts.push(parseDevScript(item)));
-  parser.prop('contextButtons', true).array(item => contributes.contextButtons.push(parseContextButton(item)));
-  parser.prop('applications',   true).array(item => contributes.applications.push(parseApplication(item)));
-  parser.prop('configuration', true).array(item => contributes.configuration.push(parseConfiguration(item)));
+  parser.prop('logoSets',          true).array(item => contributes.logoSets.push(parseLogoSet(item)));
+  parser.prop('themes',            true).array(item => contributes.themes.push(parseTheme(item)));
+  parser.prop('devScripts',        true).array(item => contributes.devScripts.push(parseDevScript(item)));
+  parser.prop('contextButtons',    true).array(item => contributes.contextButtons.push(parseContextButton(item)));
+  parser.prop('applications',      true).array(item => contributes.applications.push(parseApplication(item)));
+  parser.prop('configuration',     true).array(item => contributes.configuration.push(parseConfiguration(item)));
+  parser.prop('curationTemplates', true).array(item => contributes.curationTemplates.push(parseCurationTemplate(item)));
   return contributes;
 }
 
@@ -208,6 +211,48 @@ function parseConfiguration(parser: IObjectParserProp<ExtConfiguration>): ExtCon
   return configuration;
 }
 
+function parseCurationTemplate(parser: IObjectParserProp<CurationTemplate>): CurationTemplate {
+  const curationTemplate: CurationTemplate = {
+    name: '',
+    logo: '',
+    meta: {}
+  };
+
+  parser.prop('name', v => curationTemplate.name = str(v));
+  parser.prop('logo', v => curationTemplate.logo = str(v));
+  curationTemplate.meta = parseCurationMeta(parser.prop('meta'));
+
+  // @TODO reuse code
+
+  return curationTemplate;
+}
+
+function parseCurationMeta(parser: IObjectParserProp<EditCurationMeta>): EditCurationMeta {
+  const parsed: EditCurationMeta = {};
+
+  parser.prop('notes',                v => parsed.notes               = str(v));
+  parser.prop('applicationPath',      v => parsed.applicationPath     = str(v));
+  parser.prop('curationNotes',        v => parsed.curationNotes       = str(v));
+  parser.prop('developer',            v => parsed.developer           = arrayStr(v));
+  parser.prop('extreme',              v => parsed.extreme             = str(v).toLowerCase() === 'yes' ? true : false);
+  parser.prop('language',             v => parsed.language            = arrayStr(v));
+  parser.prop('launchCommand',        v => parsed.launchCommand       = str(v));
+  parser.prop('originalDescription',  v => parsed.originalDescription = str(v));
+  parser.prop('playMode',             v => parsed.playMode            = arrayStr(v));
+  parser.prop('platform',             v => parsed.platform            = str(v));
+  parser.prop('publisher',            v => parsed.publisher           = arrayStr(v));
+  parser.prop('releaseDate',          v => parsed.releaseDate         = str(v));
+  parser.prop('series',               v => parsed.series              = str(v));
+  parser.prop('source',               v => parsed.source              = str(v));
+  parser.prop('status',               v => parsed.status              = str(v));
+  parser.prop('title',                v => parsed.title               = str(v));
+  parser.prop('alternateTitles',      v => parsed.alternateTitles     = arrayStr(v));
+  parser.prop('version',              v => parsed.version             = str(v));
+  parser.prop('library',              v => parsed.library             = str(v).toLowerCase()); // must be lower case
+
+  return parsed;
+}
+
 function parseConfigurationProperty(parser: IObjectParserProp<ExtConfigurationProp>): ExtConfigurationProp {
   const prop: ExtConfigurationProp = {
     title: '',
@@ -232,4 +277,13 @@ function toPropType(v: any): ExtConfigurationProp['type'] {
   } else {
     throw new Error('Configuration prop type is not valid. (string, object, number or boolean)');
   }
+}
+
+// Coerce an object into a sensible string
+function arrayStr(rawStr: any): string {
+  if (Array.isArray(rawStr)) {
+    // Convert lists to ; separated strings
+    return rawStr.join('; ');
+  }
+  return str(rawStr);
 }

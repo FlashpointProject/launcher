@@ -5,6 +5,7 @@ import { Source } from '@database/entity/Source';
 import { SourceData } from '@database/entity/SourceData';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
+import { EditCurationMeta } from '@shared/curate/OLD_types';
 import { AddAppCuration, CurationState, LoadedCuration } from '@shared/curate/types';
 import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/extensions/interfaces';
 import { FilterGameOpts } from '@shared/game/GameFilter';
@@ -127,6 +128,7 @@ export enum BackIn {
   CURATE_EDIT_REMOVE_IMAGE,
   CURATE_DELETE,
   CURATE_CREATE_CURATION,
+  CURATE_EXPORT,
 
   // Misc
   UPLOAD_LOG,
@@ -284,7 +286,8 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.CURATE_SYNC_CURATIONS]: (curations: CurationState[]) => void;
   [BackIn.CURATE_EDIT_REMOVE_IMAGE]: (folder: string, type: CurationImageEnum) => void;
   [BackIn.CURATE_DELETE]: (folder: string) => void;
-  [BackIn.CURATE_CREATE_CURATION]: (folder: string) => void;
+  [BackIn.CURATE_CREATE_CURATION]: (folder: string, meta?: EditCurationMeta) => void;
+  [BackIn.CURATE_EXPORT]: (curation: LoadedCuration) => void;
 
   // Misc
   [BackIn.UPLOAD_LOG]: () => string | undefined;
@@ -395,6 +398,7 @@ export type GetRendererInitDataResponse = {
   extensions: IExtensionDescription[];
   devScripts: ExtensionContribution<'devScripts'>[];
   contextButtons: ExtensionContribution<'contextButtons'>[];
+  curationTemplates: ExtensionContribution<'curationTemplates'>[];
   logoSets: LogoSet[];
   extConfigs: ExtensionContribution<'configuration'>[];
   extConfig: AppExtConfigData;

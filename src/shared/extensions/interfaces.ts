@@ -1,4 +1,5 @@
 import { Game } from '@database/entity/Game';
+import { EditCurationMeta } from '@shared/curate/OLD_types';
 
 export const enum ExtensionType {
   System,
@@ -75,6 +76,13 @@ export type Contributions = {
   contextButtons: ContextButton[];
   applications: Application[];
   configuration: ExtConfiguration[];
+  curationTemplates: CurationTemplate[];
+}
+
+export interface CurationTemplate {
+  name: string;
+  logo: string;
+  meta: EditCurationMeta;
 }
 
 export interface IExtensionDescription extends IExtensionManifest {

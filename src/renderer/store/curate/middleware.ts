@@ -37,6 +37,21 @@ export const curationSyncMiddleware: Middleware<{}, ApplicationState> = (store) 
       next(action);
       break;
     }
+    case CurateActionType.EXPORT: {
+      store.dispatch({
+        type: CurateActionType.SET_LOCK,
+        folder: action.folder,
+        locked: true
+      });
+      const state = store.getState();
+      const curation = state.curate.curations.find(c => c.folder === action.folder);
+      // Send curation import request to back
+      if (curation) {
+        window.Shared.back.send(BackIn.CURATE_EXPORT, curation);
+      }
+      next(action);
+      break;
+    }
     case CurateActionType.CREATE_CURATION: {
       // Set new curation as current
       store.dispatch({

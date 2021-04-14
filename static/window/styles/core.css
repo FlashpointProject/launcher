@@ -196,7 +196,7 @@ body {
 }
 .simple-dropdown__content {
   z-index: 10;
-  width: var(--width);
+  width: inherit;
   display: block;
   position: absolute;
   /* Pimp */
@@ -971,6 +971,14 @@ body {
 .curate-page__right--button {
   width: 100%;
   margin-bottom: 0.2rem;
+}
+.curate-page__right-dropdown-content {
+  display: flex;
+}
+.curate-page__right-dropdown-content-icon {
+  width: 1.5rem;
+  background-repeat: no-repeat;
+  background-size: contain;
 }
 .curate-page .input-field--multiline.input-field--edit {
   height: 5em;

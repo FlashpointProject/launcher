@@ -342,6 +342,7 @@ const langTemplate = {
     'openImportedFolderDesc',
     'newCuration',
     'newCurationDesc',
+    'newCurationFromTemplate',
     'loadMeta',
     'loadMetaDesc',
     'loadArchive',
@@ -515,6 +516,7 @@ const langTemplate = {
     'verifyingGame',
     'aFewMinutes',
     'importCurationWithWarnings',
+    'exportCurationWithWarnings',
     'errorImportingCuration',
   ] as const,
   // libraries: [], // (This is dynamically populated in run-time)

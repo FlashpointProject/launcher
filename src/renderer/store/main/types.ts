@@ -109,6 +109,8 @@ export type MainState = {
   devScripts: ExtensionContribution<'devScripts'>[];
   /** Context buttons added by extensions */
   contextButtons: ExtensionContribution<'contextButtons'>[];
+  /** Curation Templates added by extensions */
+  curationTemplates: ExtensionContribution<'curationTemplates'>[];
   /** Extension config options */
   extConfigs: ExtensionContribution<'configuration'>[];
   /** Current extension config data */

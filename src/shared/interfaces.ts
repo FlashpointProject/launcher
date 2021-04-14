@@ -109,6 +109,7 @@ export interface IMainWindowExternal {
   initialExtensions: IExtensionDescription[];
   initialDevScripts: ExtensionContribution<'devScripts'>[];
   initialContextButtons: ExtensionContribution<'contextButtons'>[];
+  initialCurationTemplates: ExtensionContribution<'curationTemplates'>[];
   initialLogoSets: LogoSet[];
   initialExtConfigs: ExtensionContribution<'configuration'>[];
   initialExtConfig: AppExtConfigData;

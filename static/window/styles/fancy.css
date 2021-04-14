@@ -237,6 +237,10 @@ body {
   background-color: var(--layout__primary-background);
   color: var(--layout__primary-text-color);
 }
+.simple-dropdown-button:hover {
+  background-color: var(--layout__simple-button-background);
+  border-color: var(--layout__simple-button-border);
+}
 .simple-dropdown__select-box {
   background-color: var(--layout__primary-background);
   color: var(--layout__primary-text-color);

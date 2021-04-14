@@ -1,4 +1,5 @@
 import { Tag } from '@database/entity/Tag';
+import { EditCurationMeta } from '@shared/curate/OLD_types';
 import { AddAppCurationMeta, CurationMeta, CurationState, CurationWarnings } from '@shared/curate/types';
 import { CurateActionType } from './enums';
 
@@ -14,6 +15,7 @@ export type AddAppType = 'normal' | 'extras' | 'message';
 export type CurateAction = {
   type: CurateActionType.CREATE_CURATION;
   folder: string;
+  meta?: EditCurationMeta;
 } | {
   type: CurateActionType.SET_CURRENT_CURATION;
   folder: string;
@@ -65,6 +67,9 @@ export type CurateAction = {
   locked: boolean;
 } | {
   type: CurateActionType.DELETE;
+  folder: string;
+} | {
+  type: CurateActionType.EXPORT;
   folder: string;
 } | {
   type: CurateActionType.TOGGLE_CONTENT_NODE_VIEW;

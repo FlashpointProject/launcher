@@ -3,6 +3,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { checkIfAncestor } from '../Util';
 
 export type DropdownProps = {
+  /** Extra class name to add to dropdown frame */
+  className?: string;
+  headerClassName?: string;
   /** Element(s) to show in the drop-down element (only visible when expanded). */
   children: React.ReactNode;
   /** Text to show in the text field (always visible). */
@@ -34,9 +37,9 @@ export function Dropdown(props: DropdownProps) {
   }, [expanded]);
   // Render
   return (
-    <div className='simple-dropdown'>
+    <div className={`simple-dropdown ${props.className}`}>
       <div
-        className='simple-dropdown__select-box'
+        className={`simple-dropdown__select-box ${props.headerClassName}`}
         onMouseDown={onMouseDown}
         tabIndex={0}>
         <div className='simple-dropdown__select-text'>
@@ -46,6 +49,7 @@ export function Dropdown(props: DropdownProps) {
       </div>
       <div
         className={'simple-dropdown__content' + (expanded ? '' : ' simple-dropdown__content--hidden')}
+        onMouseUp={() => setExpanded(false)}
         ref={contentRef}>
         { props.children }
       </div>

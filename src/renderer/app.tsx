@@ -647,6 +647,7 @@ export class App extends React.Component<AppProps> {
       extensions: this.props.main.extensions,
       devScripts: this.props.main.devScripts,
       contextButtons: this.props.main.contextButtons,
+      curationTemplates: this.props.main.curationTemplates,
       logoSets: this.props.main.logoSets,
       extConfigs: this.props.main.extConfigs,
       extConfig: this.props.main.extConfig,

@@ -12,6 +12,7 @@ export enum CurateActionType {
   SET_WARNINGS = '@@curate/SET_WARNINGS',
   IMPORT = '@@curate/IMPORT',
   DELETE = '@@curate/DELETE',
+  EXPORT = '@@curate/EXPORT',
   SET_LOCK = '@@curate/SET_LOCK',
   TOGGLE_CONTENT_NODE_VIEW = '@@curate/TOGGLE_CONTENT_NODE_VIEW',
 }
