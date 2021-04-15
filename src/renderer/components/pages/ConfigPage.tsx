@@ -935,6 +935,7 @@ function renderExtConfigProp(key: string, prop: ExtConfigurationProp, value: any
             title={prop.title}
             description={prop.description}
             text={value}
+            editable={true}
             onChange={event => setExtConfigValue(key, event.target.value)} />
         );
       }

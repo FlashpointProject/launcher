@@ -16,6 +16,7 @@ export type ContextButton = {
   context: ButtonContext;
   name: string;
   command: string;
+  runWithNoCuration?: boolean;
 }
 
 export type Application = {

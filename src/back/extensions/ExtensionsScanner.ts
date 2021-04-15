@@ -170,9 +170,10 @@ function parseContextButton(parser: IObjectParserProp<ContextButton>): ContextBu
     name: '',
     command: ''
   };
-  parser.prop('context',     v => contextButton.context     = parseButtonContext(v));
-  parser.prop('name',        v => contextButton.name        = str(v));
-  parser.prop('command',     v => contextButton.command     = str(v));
+  parser.prop('context',           v => contextButton.context           = parseButtonContext(v));
+  parser.prop('name',              v => contextButton.name              = str(v));
+  parser.prop('command',           v => contextButton.command           = str(v));
+  parser.prop('runWithNoCuration', v => contextButton.runWithNoCuration = !!v, true);
   return contextButton;
 }
 

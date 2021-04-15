@@ -157,7 +157,7 @@ export function CuratePage(props: CuratePageProps) {
         <SimpleButton
           key={index}
           className='curate-page__right--button'
-          disabled={disabled}
+          disabled={disabled && !contextButton.runWithNoCuration}
           onClick={() => runExtCommand(contextButton.command)}
           value={contextButton.name} />
       ));

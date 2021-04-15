@@ -167,19 +167,49 @@ Logos for platforms will then be read relative to the folder, e.g `./logoSets/My
 
 Extensions can provide context buttons to show when right-clicking Playlists or Games. The registered command is then run with either the Playlist or Game as an argument when clicked. See API documentation on ``commands.registerCommand` and for more details.
 
+NOTE: runWithNoCuration will allow Curation context buttons to be pressed without a selected Curation (The curation will still be passed as an argument if selected) 
+
 ```json
 {
   "contributes": {
     "contextButtons": [
       {
-        "context": "game" / "playlist",
+        "context": "game" / "playlist" / "curation",
         "name": "Click Me",
-        "command": "my-first-extension.do-something"
+        "command": "my-first-extension.do-something",
+        "runWithNoCuration": true
       }
     ]
   }
 }
 ```
+
+### Curation Templates
+
+Curation templates can be used when creating new curations, selectable in a dropdown. The meta is applied to the empty curation before being saved.
+
+```json
+{
+  "contributes": {
+    "curationTemplates": [
+      {
+        "name": "Example Template",
+        "logo": "Flash",
+        "meta": {
+          "title": "Example Title",
+          "originalDescription": "I'm a description"
+        }
+      }
+    ]
+  }
+}
+```
+
+`name` is the name to display on the new curation button.
+
+`logo` will choose the Logo to display next to the name in the dropdown, these are the same as defined by the Logo Set.
+
+`meta` is a subset of CurationMeta (see typescript docs) with the ommission of the `tags` field. (Will come at a later date)
 
 ### Applications
 
