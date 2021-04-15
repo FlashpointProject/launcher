@@ -1,28 +1,25 @@
 import { CurateBox } from '@renderer/components/CurateBox';
+import { WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
 import { WithCurateStateProps } from '@renderer/containers/withCurateState';
 import { WithMainStateProps } from '@renderer/containers/withMainState';
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
-import { useMouse } from '@renderer/hooks/useMouse';
 import { CurateActionType } from '@renderer/store/curate/enums';
-import { findElementAncestor, getPlatformIconURL } from '@renderer/Util';
+import { getPlatformIconURL } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
 import { uuid } from '@renderer/util/uuid';
 import { BackIn, TagSuggestion } from '@shared/back/types';
-import * as electron from 'electron';
-import * as React from 'react';
-import { SimpleButton, SimpleButtonProps } from '../SimpleButton';
-import * as path from 'path';
-import { compare } from '@back/util/strings';
-import { CurationState } from '@shared/curate/types';
-import { getWarningCount } from '../CurateBoxWarnings';
-import { WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
-import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
-import { ExtensionContribution } from '@shared/extensions/interfaces';
-import { Dropdown } from '../Dropdown';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
-
-const index_attr = 'data-index';
+import { CurationState } from '@shared/curate/types';
+import { ExtensionContribution } from '@shared/extensions/interfaces';
+import * as electron from 'electron';
+import * as path from 'path';
+import * as React from 'react';
+import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
+import { getWarningCount } from '../CurateBoxWarnings';
+import { CuratePageLeftSidebar } from '../CuratePageLeftSidebar';
+import { Dropdown } from '../Dropdown';
+import { SimpleButton, SimpleButtonProps } from '../SimpleButton';
 
 type OwnProps = {
   extCurationTemplates: ExtensionContribution<'curationTemplates'>[];
@@ -51,23 +48,12 @@ export function CuratePage(props: CuratePageProps) {
     }
   }, [setTagText, setTagSuggestions]);
 
-  const [onListMouseDown, onListMouseUp] = useMouse<string>(() => ({
-    chain_delay: 500,
-    find_id: (event) => {
-      let index: string | undefined;
-      try { index = findAncestorRowIndex(event.target as Element); }
-      catch (error) { console.error(error); }
-      return index;
-    },
-    on_click: (event, id, clicks) => {
-      if (event.button === 0 && clicks === 1) { // Single left click
-        props.dispatchCurate({
-          type: CurateActionType.SET_CURRENT_CURATION,
-          folder: id,
-        });
-      }
-    },
-  }));
+  const onLeftSidebarCurationClick = React.useCallback((folder: string) => {
+    props.dispatchCurate({
+      type: CurateActionType.SET_CURRENT_CURATION,
+      folder,
+    });
+  }, [props.curate]);
 
   const onNewCuration = React.useCallback((meta?: EditCurationMeta) => {
     props.dispatchCurate({
@@ -197,29 +183,21 @@ export function CuratePage(props: CuratePageProps) {
     });
   }, [props.extCurationTemplates]);
 
+  const onLoadCurationDrop = React.useCallback((data: Buffer) => {
+
+  }, []);
+
+  const leftSidebar = React.useMemo(() => (
+    <CuratePageLeftSidebar
+      curate={props.curate}
+      logoVersion={props.main.logoVersion}
+      onCurationClick={onLeftSidebarCurationClick}
+      onCurationDrop={onLoadCurationDrop} />
+  ), [props.curate, props.main.logoVersion]);
+
   return (
     <div className='curate-page'>
-      <div
-        className='curate-page__left simple-scroll'
-        onMouseDown={onListMouseDown}
-        onMouseUp={onListMouseUp}>
-        {props.curate.curations.sort((a,b) => compare(a.game.title || `ZZZZZ_${a.folder}`, b.game.title || `ZZZZZ_${b.folder}`)).map((curation, index) => (
-          <div
-            className={
-              'curate-list-item'+
-              ((curation.folder === props.curate.current) ? ' curate-list-item--selected' : '')
-            }
-            key={curation.folder}
-            { ...{ [index_attr]: curation.folder } }>
-            <div
-              className='curate-list-item__icon'
-              style={{ backgroundImage: `url('${getPlatformIconURL('Flash'/* curation.meta.platform*/, props.main.logoVersion)}')` }} />
-            <p className='curate-list-item__title'>
-              {curation.game.title || curation.folder}
-            </p>
-          </div>
-        ))}
-      </div>
+      {leftSidebar}
       <div className='curate-page__center simple-scroll'>
         { curation ? (
           <CurateBox
@@ -329,16 +307,4 @@ function renderConfirmButton({ confirm, extra }: ConfirmElementArgs<SimpleButton
       onClick={confirm}
       { ...extra }/>
   );
-}
-
-function findAncestorRowIndex(element: Element): string | undefined {
-  const ancestor = findElementAncestor(element, target => target.getAttribute(index_attr) !== null, true);
-  if (!ancestor) { return undefined; }
-
-  const index = ancestor.getAttribute(index_attr);
-  if (typeof index !== 'string') { throw new Error('Failed to get attribute from ancestor!'); }
-
-  const index_str = (index as any) + ''; // Coerce to number
-
-  return index_str;
 }
