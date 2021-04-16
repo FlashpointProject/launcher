@@ -31,7 +31,7 @@ function ConfirmElementComponent<T = undefined>(props: ConfirmElementComponentPr
   const strings = React.useContext(LangContext);
   const confirm = React.useCallback(async () => {
     if (onConfirm) {
-      const res = await props.openConfirmDialog(message, [strings.misc.yes, strings.misc.no], 1);
+      const res = await props.openConfirmDialog(message, [strings.misc.yes, strings.misc.no], 1, 0);
       if (res === 0) {
         onConfirm();
       }

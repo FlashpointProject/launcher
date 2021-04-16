@@ -325,7 +325,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                           label: strings.uninstallGame,
                           click: async () => {
                             if (this.state.activeData) {
-                              const res = await this.props.openConfirmDialog(allStrings.dialog.uninstallGame, [allStrings.misc.yes, allStrings.misc.no], 1);
+                              const res = await this.props.openConfirmDialog(allStrings.dialog.uninstallGame, [allStrings.misc.yes, allStrings.misc.no], 1, 0);
                               if (res === 0) {
                                 window.Shared.back.request(BackIn.UNINSTALL_GAME_DATA, this.state.activeData.id)
                                 .then((game) => {
