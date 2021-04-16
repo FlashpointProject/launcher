@@ -10,10 +10,12 @@ export type CuratePageLeftSidebarProps = {
   curate: CurateState;
   logoVersion: number;
   onCurationClick: (folder: string) => void;
-  onCurationDrop: (data: Buffer) => void;
+  onCurationDrop: (event: React.DragEvent<Element>) => void;
 }
 
 export function CuratePageLeftSidebar(props: CuratePageLeftSidebarProps) {
+  const [isHovering, setIsHovering] = React.useState(false);
+
   const [onListMouseDown, onListMouseUp] = useMouse<string>(() => ({
     chain_delay: 500,
     find_id: (event) => {
@@ -29,9 +31,30 @@ export function CuratePageLeftSidebar(props: CuratePageLeftSidebarProps) {
     },
   }));
 
+  const onDragOver = (event: React.DragEvent): void => {
+    const types = event.dataTransfer.types;
+    if (types.length === 1 && types[0] === 'Files') {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'copy';
+      setIsHovering(true);
+    }
+  };
+
+  const onDrop = (event: React.DragEvent): void => {
+    if (isHovering) { setIsHovering(false); }
+    props.onCurationDrop(event);
+  };
+
+  const onDragLeave = (event: React.DragEvent): void => {
+    if (isHovering) { setIsHovering(false); }
+  };
+
   return (
     <div
-      className='curate-page__left simple-scroll'
+      className={`curate-page__left simple-scroll ${isHovering ? 'curate-page__left--hover' : ''}`}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
       onMouseDown={onListMouseDown}
       onMouseUp={onListMouseUp}>
       {props.curate.curations.sort((a,b) => compare(a.game.title || `ZZZZZ_${a.folder}`, b.game.title || `ZZZZZ_${b.folder}`)).map((curation, index) => (

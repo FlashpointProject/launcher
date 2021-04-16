@@ -11,6 +11,7 @@ import { LangContext } from '@renderer/util/lang';
 import { BackIn, CurationImageEnum } from '@shared/back/types';
 import { ContentTreeNode, CurationState, LoadedCuration } from '@shared/curate/types';
 import { GamePropSuggestions } from '@shared/interfaces';
+import { LangContainer } from '@shared/lang';
 import { fixSlashes, sizeToString } from '@shared/Util';
 import axios from 'axios';
 import { clipboard, MenuItemConstructorOptions, remote } from 'electron';
@@ -46,8 +47,8 @@ export function CurateBox(props: CurateBoxProps) {
   const onSetScreenshot = useAddImageCallback(CurationImageEnum.SCREENSHOT,   props.curation, props.dispatch);
   const onRemoveThumbnailClick  = useRemoveImageCallback(CurationImageEnum.THUMBNAIL, props.curation, props.dispatch);
   const onRemoveScreenshotClick = useRemoveImageCallback(CurationImageEnum.SCREENSHOT,  props.curation, props.dispatch);
-  const onDropThumbnail  = useDropImageCallback('logo.png', props.curation, props.dispatch);
-  const onDropScreenshot = useDropImageCallback('ss.png',   props.curation, props.dispatch);
+  const onDropThumbnail  = useDropImageCallback('logo.png', props.curation, strings.dialog);
+  const onDropScreenshot = useDropImageCallback('ss.png',   props.curation, strings.dialog);
 
   const thumbnailPath  = props.curation.thumbnail.exists  ? fixSlashes(`${props.curation.thumbnail.filePath }?v=${props.curation.thumbnail.version }`) : undefined;
   const screenshotPath = props.curation.screenshot.exists ? fixSlashes(`${props.curation.screenshot.filePath}?v=${props.curation.screenshot.version}`) : undefined;
@@ -477,27 +478,18 @@ function useRemoveImageCallback(type: CurationImageEnum, curation: LoadedCuratio
   }, [curation && curation.folder]);
 }
 
-function useDropImageCallback(filename: 'logo.png' | 'ss.png', curation: LoadedCuration | undefined, dispatch: Dispatch<CurateAction>) {
+function useDropImageCallback(filename: 'logo.png' | 'ss.png', curation: CurationState, strings: LangContainer['dialog']) {
   return React.useCallback(async (event: React.DragEvent<Element>) => {
-    // @TODO Request the back to import the image
-    /*
     const files = event.dataTransfer.files;
-    if (curation && files && files[0].name.toLowerCase().endsWith('.png')) {
-      const isLogo = filename === 'logo.png';
-      const dest = path.join(getCurationFolder2(curation), filename);
-      await fs.copyFile(files[0].path, dest);
-      const newImage = await createCurationImage(dest);
-      newImage.version = isLogo ? curation.thumbnail.version + 1 : curation.screenshot.version + 1;
-      dispatch({
-        type: isLogo ? 'set-curation-logo' : 'set-curation-screenshot',
-        payload: {
-          key: curation.folder,
-          image: newImage
-        }
-      });
+
+    if (curation && !curation.locked && files.length > 0) {
+      if (files[0].name.toLocaleLowerCase().endsWith('.png')) {
+        axios.post(`${getCurationURL(curation.folder)}/${filename}`, await files[0].arrayBuffer());
+      } else {
+        alert(strings.mustBePngImage);
+      }
     }
-    */
-  }, [curation && curation.folder]);
+  }, [curation && curation.folder, strings]);
 }
 
 function useCreateAddAppCallback(type: AddAppType, folder: string, dispatch: Dispatch<CurateAction>) {

@@ -5,13 +5,15 @@ import { WithMainStateProps } from '@renderer/containers/withMainState';
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
 import { CurateActionType } from '@renderer/store/curate/enums';
-import { getPlatformIconURL } from '@renderer/Util';
+import { getCurationPostURL, getPlatformIconURL } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
 import { uuid } from '@renderer/util/uuid';
 import { BackIn, TagSuggestion } from '@shared/back/types';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
 import { CurationState } from '@shared/curate/types';
 import { ExtensionContribution } from '@shared/extensions/interfaces';
+import { formatString } from '@shared/utils/StringFormatter';
+import axios from 'axios';
 import * as electron from 'electron';
 import * as path from 'path';
 import * as React from 'react';
@@ -162,7 +164,6 @@ export function CuratePage(props: CuratePageProps) {
   const curationTemplateButtons = React.useMemo(() => {
     return props.extCurationTemplates.map(c => {
       return c.value.map((template, index) => {
-        console.log(JSON.stringify(template));
         return (
           <div
             className='curate-page__right-dropdown-content simple-dropdown-button'
@@ -183,8 +184,21 @@ export function CuratePage(props: CuratePageProps) {
     });
   }, [props.extCurationTemplates]);
 
-  const onLoadCurationDrop = React.useCallback((data: Buffer) => {
+  const onLoadCurationDrop = React.useCallback(async (event: React.DragEvent<Element>) => {
+    const files = event.dataTransfer.files;
 
+    if (files.length > 0) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files.item(i);
+        if (file) {
+          if (file.name.endsWith('.7z')) {
+            await axios.post(getCurationPostURL(), await file.arrayBuffer());
+          } else {
+            alert(formatString(strings.dialog.mustBe7zArchiveSkipping, file.name));
+          }
+        }
+      }
+    }
   }, []);
 
   const leftSidebar = React.useMemo(() => (

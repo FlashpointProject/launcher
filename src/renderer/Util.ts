@@ -117,6 +117,10 @@ export function getCurationURL(folder: string): string {
   return `${getFileServerURL()}/curations/${folder}`;
 }
 
+export function getCurationPostURL(): string {
+  return `${getFileServerURL()}/curation`;
+}
+
 export function getGameImagePath(folderName: string, gameId: string): string {
   return path.join(
     window.Shared.config.fullFlashpointPath,

@@ -500,7 +500,10 @@
     "verifyingGame": "Verifying Game...",
     "aFewMinutes": "This may take a few minutes.",
     "importCurationWithWarnings": "Import this curation? There are still warnings present.",
-    "errorImportingCuration": "Error import curation '{0}', check logs page for details."
+    "errorImportingCuration": "Error import curation '{0}', check logs page for details.",
+    "mustBePngImage": "Must be a .PNG Image.",
+    "mustBe7zArchiveSkipping": "Must be a .7z archive, skipping {0}",
+    "failedToLoadCuration": "Failed to load curation! {0}"
   },
   "libraries": {
     "arcade": "Games",

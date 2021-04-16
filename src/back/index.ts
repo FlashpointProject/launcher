@@ -17,7 +17,7 @@ import { SourceFileCount1612436426353 } from '@database/migration/1612436426353-
 import { GameTagsStr1613571078561 } from '@database/migration/1613571078561-GameTagsStr';
 import { validateSemiUUID } from '@renderer/util/uuid';
 import { BackIn, BackInit, BackInitArgs, BackOut } from '@shared/back/types';
-import { CurationState } from '@shared/curate/types';
+import { CurationState, LoadedCuration } from '@shared/curate/types';
 import { getContentFolderByKey } from '@shared/curate/util';
 import { ILogoSet, LogoSet } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
@@ -33,6 +33,7 @@ import { http as httpFollow, https as httpsFollow } from 'follow-redirects';
 import * as fs from 'fs-extra';
 import * as http from 'http';
 import * as mime from 'mime';
+import { extractFull } from 'node-7z';
 import * as path from 'path';
 import 'reflect-metadata';
 // Required for the DB Models to function
@@ -41,10 +42,10 @@ import { Tail } from 'tail';
 import { ConnectionOptions, createConnection } from 'typeorm';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE } from './constants';
-import { CURATIONS_FOLDER_WORKING } from './consts';
+import { CURATIONS_FOLDER_EXTRACTING, CURATIONS_FOLDER_TEMP, CURATIONS_FOLDER_WORKING, CURATION_META_FILENAMES } from './consts';
 import { loadCurationIndexImage } from './curate/parse';
 import { readCurationMeta } from './curate/read';
-import { onFileServerRequestCurationFileFactory } from './curate/util';
+import { onFileServerRequestCurationFileFactory, onFileServerRequestPostCuration } from './curate/util';
 import { loadExecMappingsFile } from './Execs';
 import { ExtConfigFile } from './ExtConfigFile';
 import { ApiEmitter } from './extensions/ApiEmitter';
@@ -65,6 +66,7 @@ import { FolderWatcher } from './util/FolderWatcher';
 import { LogFile } from './util/LogFile';
 import { logFactory } from './util/logging';
 import { createContainer, exit, runService } from './util/misc';
+import { uuid } from './util/uuid';
 
 const DEFAULT_LOGO_PATH = 'window/images/Logos/404.png';
 
@@ -184,7 +186,7 @@ async function main() {
   state.fileServer.registerRequestHandler('extdata', onFileServerRequestExtData);
   state.fileServer.registerRequestHandler('credits.json', (p, u, req, res) => serveFile(req, res, path.join(state.config.flashpointPath, state.preferences.jsonFolderPath, 'credits.json')));
   state.fileServer.registerRequestHandler('curations', onFileServerRequestCurationFileFactory(getCurationFilePath, onUpdateCurationFile, onRemoveCurationFile));
-
+  state.fileServer.registerRequestHandler('curation', (p, u, req, res) => onFileServerRequestPostCuration(p, u, req, res, path.join(state.config.flashpointPath, CURATIONS_FOLDER_TEMP), loadCurationArchive));
 
 
   // Database manipulation
@@ -1033,4 +1035,70 @@ function removeFileServerDownloadItem(item: ImageDownloadItem): void {
   if (index >= 0) { state.fileServerDownloads.current.splice(index, 1); }
 
   updateFileServerDownloadQueue();
+}
+
+export async function loadCurationArchive(filePath: string): Promise<CurationState> {
+  const key = uuid();
+  const extractPath = path.resolve(state.config.flashpointPath, CURATIONS_FOLDER_EXTRACTING, key);
+  // Extract to temp folder
+  await fs.ensureDir(extractPath);
+  await new Promise<void>((resolve, reject) => {
+    extractFull(filePath, extractPath, { $bin: state.sevenZipPath, $progress: true })
+    .once('end', () => resolve())
+    .once('error', err => reject(err));
+  });
+
+  // Find the "root" path of the curation
+  // (Sometimes curations are not at the root of the archive, but instead nested one or more folders deep)
+  const rootPath = await getRootPath(extractPath);
+  if (!rootPath) { throw new Error('Meta.yaml/yml/txt not found in extracted archive'); }
+
+  // Move all files from the root folder to the curation folder
+  const curationPath = path.resolve(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, key);
+  await fs.ensureDir(curationPath);
+  for (const file of await fs.promises.readdir(rootPath)) {
+    await fs.move(path.join(rootPath, file), path.join(curationPath, file));
+  }
+
+  // Delete extract folder
+  await fs.remove(extractPath);
+
+  // Load curation
+  const parsedMeta = await readCurationMeta(curationPath, state.recentAppPaths);
+  if (!parsedMeta) { throw new Error('Fail'); }
+
+  const loadedCuration: LoadedCuration = {
+    folder: key,
+    game: parsedMeta.game,
+    addApps: parsedMeta.addApps,
+    thumbnail: await loadCurationIndexImage(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, key, 'logo.png')),
+    screenshot: await loadCurationIndexImage(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, key, 'ss.png')),
+  };
+  const curation: CurationState = {
+    ...loadedCuration,
+    warnings: genCurationWarnings(loadedCuration, state.config.flashpointPath, state.suggestions, state.languageContainer.curate),
+    contents: await genContentTree(getContentFolderByKey(key, state.config.flashpointPath))
+  };
+
+  state.loadedCurations.push({
+    ...curation,
+  });
+  state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [ curation ]);
+  return curation;
+}
+
+async function getRootPath(dir: string): Promise<string | undefined> {
+  for (const fileName of await fs.promises.readdir(dir)) {
+    const fullPath = path.join(dir, fileName);
+    const stats = await fs.promises.lstat(fullPath);
+    // Found root, pass back
+    if (stats.isFile() && CURATION_META_FILENAMES.indexOf(fileName.toLowerCase()) !== -1) {
+      return dir;
+    } else if (stats.isDirectory()) {
+      const foundRoot = await getRootPath(fullPath);
+      if (foundRoot) {
+        return foundRoot;
+      }
+    }
+  }
 }

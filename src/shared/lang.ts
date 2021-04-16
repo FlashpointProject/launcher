@@ -518,6 +518,9 @@ const langTemplate = {
     'importCurationWithWarnings',
     'exportCurationWithWarnings',
     'errorImportingCuration',
+    'mustBePngImage',
+    'mustBe7zArchiveSkipping',
+    'failedToLoadCuration',
   ] as const,
   // libraries: [], // (This is dynamically populated in run-time)
 } as const;

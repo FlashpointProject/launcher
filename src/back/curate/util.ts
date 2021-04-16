@@ -1,7 +1,10 @@
 import { serveFile } from '@back/util/FileServer';
 import * as http from 'http';
+import * as path from 'path';
 import * as fs from 'fs';
 import { fixSlashes } from '@shared/Util';
+import { uuid } from '@back/util/uuid';
+import { CurationState } from 'flashpoint-launcher';
 
 const whitelistedBaseFiles = ['logo.png', 'ss.png'];
 
@@ -10,6 +13,38 @@ export type GetCurationFileFunc = (folder: string, relativePath: string) => stri
 export type UpdateCurationFileFunc = (folder: string, relativePath: string, data: Buffer) => Promise<void>;
 
 export type RemoveCurationFileFunc = (folder: string, relativePath: string) => Promise<void>;
+
+export const onFileServerRequestPostCuration =
+  async (pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse, tempCurationsPath: string, onNewCuration: (filePath: string) => Promise<CurationState>) => {
+    if (req.method === 'POST') {
+      const chunks: any[] = [];
+      req.on('data', (chunk) => {
+        chunks.push(chunk);
+      });
+      req.on('end', async () => {
+        const data = Buffer.concat(chunks);
+        const randomFilePath = path.join(tempCurationsPath, `${uuid()}.7z`);
+        await fs.promises.mkdir(path.dirname(randomFilePath), { recursive: true });
+        await fs.promises.writeFile(randomFilePath, data);
+        await onNewCuration(randomFilePath)
+        .then((curation) => {
+          res.writeHead(200);
+          res.end();
+        })
+        .catch((error) => {
+          log.error('Curate', `Failed to load curation archive! ${error.toString()}`);
+          res.writeHead(500);
+          res.end();
+        })
+        .finally(() => {
+          fs.promises.unlink(randomFilePath);
+        });
+      });
+    } else {
+      res.writeHead(400);
+      res.end();
+    }
+  };
 
 export const onFileServerRequestCurationFileFactory = (getCurationFilePath: GetCurationFileFunc, onUpdateCurationFile: UpdateCurationFileFunc, onRemoveCurationFile: RemoveCurationFileFunc) =>
   async (pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse) => {

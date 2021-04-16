@@ -516,6 +516,9 @@ body {
   border-color: var(--layout__curate-page-floating-box-border);
   background-color: var(--layout__curate-page-floating-box-background);
 }
+.curate-page__left--hover {
+  background-color: var(--layout__game-image-split-hover-color);
+}
 /* Curate Page Left Sidebar Items */
 .curate-page__left-sidebar-item {
   background-color: var(--layout__playlist-list-fake-even-background);
