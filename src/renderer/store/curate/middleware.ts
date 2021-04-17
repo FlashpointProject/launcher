@@ -1,4 +1,5 @@
 import { BackIn } from '@shared/back/types';
+import { CurationState } from '@shared/curate/types';
 import { genCurationWarnings } from '@shared/Util';
 import { Middleware } from 'redux';
 import { ApplicationState } from '..';
@@ -11,10 +12,10 @@ export const curationSyncMiddleware: Middleware<{}, ApplicationState> = (store) 
       // Lock curation from further edits
       store.dispatch({
         type: CurateActionType.SET_LOCK,
-        folder: action.folder,
+        folders: action.folders,
         locked: true
       });
-      window.Shared.back.send(BackIn.CURATE_DELETE, action.folder);
+      window.Shared.back.send(BackIn.CURATE_DELETE, action.folders);
       next(action);
       break;
     }
@@ -22,15 +23,16 @@ export const curationSyncMiddleware: Middleware<{}, ApplicationState> = (store) 
       // Lock curation from further edits
       store.dispatch({
         type: CurateActionType.SET_LOCK,
-        folder: action.folder,
+        folders: action.folders,
         locked: true
       });
       const state = store.getState();
-      const curation = state.curate.curations.find(c => c.folder === action.folder);
+      const folders: string[] = action.folders;
+      const curations = folders.map(f => state.curate.curations.find(c => c.folder === f)).filter(c => c !== undefined) as CurationState[];
       // Send curation import request to back
-      if (curation) {
+      if (curations.length > 0) {
         window.Shared.back.send(BackIn.IMPORT_CURATION, {
-          curation: curation,
+          curations: curations,
           saveCuration: action.saveCuration
         });
       }
@@ -40,14 +42,15 @@ export const curationSyncMiddleware: Middleware<{}, ApplicationState> = (store) 
     case CurateActionType.EXPORT: {
       store.dispatch({
         type: CurateActionType.SET_LOCK,
-        folder: action.folder,
+        folders: action.folders,
         locked: true
       });
       const state = store.getState();
-      const curation = state.curate.curations.find(c => c.folder === action.folder);
+      const folders: string[] = action.folders;
+      const curations = folders.map(f => state.curate.curations.find(c => c.folder === f)).filter(c => c !== undefined) as CurationState[];
       // Send curation import request to back
-      if (curation) {
-        window.Shared.back.send(BackIn.CURATE_EXPORT, curation);
+      if (curations.length > 0) {
+        window.Shared.back.send(BackIn.CURATE_EXPORT, curations);
       }
       next(action);
       break;

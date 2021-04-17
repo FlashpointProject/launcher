@@ -8,6 +8,10 @@ export type CurateState = {
   curations: CurationState[];
   /** Folder of the currently selected curation (-1 if none). */
   current: string;
+  /** List of curations that are selected */
+  selected: string[];
+  /** Last curation that was clicked */
+  lastSelected: string;
 }
 
 export type AddAppType = 'normal' | 'extras' | 'message';
@@ -19,6 +23,8 @@ export type CurateAction = {
 } | {
   type: CurateActionType.SET_CURRENT_CURATION;
   folder: string;
+  ctrl?: boolean;
+  shift?: boolean;
 } | {
   type: CurateActionType.NEW_ADDAPP;
   folder: string;
@@ -59,18 +65,18 @@ export type CurateAction = {
   warnings: CurationWarnings;
 } | {
   type: CurateActionType.IMPORT;
-  folder: string;
+  folders: string[];
   saveCuration: boolean;
 } | {
   type: CurateActionType.SET_LOCK;
-  folder: string;
+  folders: string[];
   locked: boolean;
 } | {
   type: CurateActionType.DELETE;
-  folder: string;
+  folders: string[];
 } | {
   type: CurateActionType.EXPORT;
-  folder: string;
+  folders: string[];
 } | {
   type: CurateActionType.TOGGLE_CONTENT_NODE_VIEW;
   folder: string;

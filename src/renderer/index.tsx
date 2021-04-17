@@ -43,6 +43,8 @@ import { logFactory } from './util/logging';
     curate: {
       curations: window.Shared.initialCurations,
       current: '',
+      selected: [],
+      lastSelected: ''
     },
   });
 

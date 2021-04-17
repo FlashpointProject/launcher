@@ -49,13 +49,14 @@
   /* Game Item */
   --layout__game-item-color: var(--layout__secondary-text-color);
   --layout__game-item-color-hover: var(--layout__primary-text-color);
-  --layout__game-item-color-selected:            #cecece;
+  --layout__game-item-color-selected:                       #cecece;
   --layout__game-item-color-selected-hover: var(--layout__game-item-color-hover);
-  --layout__game-list-item-background-even:      #1e1e1f; /* Only used in "list" mode. */
-  --layout__game-item-background-hover:          #3c3c41;
-  --layout__game-item-background-selected:       #791c76;
-  --layout__game-item-background-selected-hover: #a72aa2;
-  --layout__game-item-thumb-image-rendering:       normal; /* Used to set the "image-rendering" of the thumbnail. */
+  --layout__game-list-item-background-even:                 #1e1e1f; /* Only used in "list" mode. */
+  --layout__game-item-background-hover:                     #3c3c41;
+  --layout__game-item-background-selected:                  #791c76;
+  --layout__game-item-background-selected--secondary:       #571354;
+  --layout__game-item-background-selected-hover:            #a72aa2;
+  --layout__game-item-thumb-image-rendering:                  normal; /* Used to set the "image-rendering" of the thumbnail. */
   /* Browse Sidebar(s) */
   --layout__browse-sidebar-background:         #181819;
   --layout__browse-sidebar-divider-background: #131313;
@@ -577,8 +578,14 @@ body {
 .curate-list-item:nth-child(n+2) { /* All but first */
   border-color: var(--layout__tertiary-background);
 }
+.curate-list-item:hover {
+  background-color: var(--layout__game-item-background-hover);
+}
 .curate-list-item--selected {
   background-color: var(--layout__game-item-background-selected);
+}
+.curate-list-item--selected--secondary {
+  background-color: var(--layout__game-item-background-selected--secondary);
 }
 /* Curate Tag (Game tag for the curate page) */
 .curate-tag {

@@ -9,7 +9,7 @@ const index_attr = 'data-index';
 export type CuratePageLeftSidebarProps = {
   curate: CurateState;
   logoVersion: number;
-  onCurationClick: (folder: string) => void;
+  onCurationSelect: (folder: string, ctrl?: boolean, shift?: boolean) => void;
   onCurationDrop: (event: React.DragEvent<Element>) => void;
 }
 
@@ -26,7 +26,7 @@ export function CuratePageLeftSidebar(props: CuratePageLeftSidebarProps) {
     },
     on_click: (event, folder, clicks) => {
       if (event.button === 0 && clicks === 1) { // Single left click
-        props.onCurationClick(folder);
+        props.onCurationSelect(folder, event.ctrlKey, event.shiftKey);
       }
     },
   }));
@@ -57,22 +57,24 @@ export function CuratePageLeftSidebar(props: CuratePageLeftSidebarProps) {
       onDrop={onDrop}
       onMouseDown={onListMouseDown}
       onMouseUp={onListMouseUp}>
-      {props.curate.curations.sort((a,b) => compare(a.game.title || `ZZZZZ_${a.folder}`, b.game.title || `ZZZZZ_${b.folder}`)).map((curation, index) => (
-        <div
-          className={
-            'curate-list-item'+
-          ((curation.folder === props.curate.current) ? ' curate-list-item--selected' : '')
-          }
-          key={curation.folder}
-          { ...{ [index_attr]: curation.folder } }>
+      {props.curate.curations.sort((a,b) => compare(a.game.title || `ZZZZZ_${a.folder}`, b.game.title || `ZZZZZ_${b.folder}`)).map((curation, index) => {
+        let className = '';
+        if (props.curate.selected.includes(curation.folder)) { className = 'curate-list-item--selected--secondary'; }
+        if (props.curate.current === curation.folder)        { className = 'curate-list-item--selected';            }
+        return (
           <div
-            className='curate-list-item__icon'
-            style={{ backgroundImage: `url('${getPlatformIconURL('Flash'/* curation.meta.platform*/, props.logoVersion)}')` }} />
-          <p className='curate-list-item__title'>
-            {curation.game.title || curation.folder}
-          </p>
-        </div>
-      ))}
+            className={`curate-list-item ${className}`}
+            key={curation.folder}
+            { ...{ [index_attr]: curation.folder } }>
+            <div
+              className='curate-list-item__icon'
+              style={{ backgroundImage: `url('${getPlatformIconURL('Flash'/* curation.meta.platform*/, props.logoVersion)}')` }} />
+            <p className='curate-list-item__title'>
+              {curation.game.title || curation.folder}
+            </p>
+          </div>
+        );
+      })}
     </div>
   );
 }

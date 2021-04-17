@@ -285,9 +285,9 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.CURATE_GET_LIST]: () => CurationState[];
   [BackIn.CURATE_SYNC_CURATIONS]: (curations: CurationState[]) => void;
   [BackIn.CURATE_EDIT_REMOVE_IMAGE]: (folder: string, type: CurationImageEnum) => void;
-  [BackIn.CURATE_DELETE]: (folder: string) => void;
+  [BackIn.CURATE_DELETE]: (folders: string[]) => void;
   [BackIn.CURATE_CREATE_CURATION]: (folder: string, meta?: EditCurationMeta) => void;
-  [BackIn.CURATE_EXPORT]: (curation: LoadedCuration) => void;
+  [BackIn.CURATE_EXPORT]: (curations: LoadedCuration[]) => void;
 
   // Misc
   [BackIn.UPLOAD_LOG]: () => string | undefined;
@@ -504,7 +504,7 @@ export type BrowseChangeData = {
 }
 
 export type ImportCurationData = {
-  curation: LoadedCuration;
+  curations: LoadedCuration[];
   log?: boolean;
   /**
    * Note: This will have the incorrect prototype after being sent.

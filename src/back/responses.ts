@@ -996,37 +996,39 @@ export function registerRequestCallbacks(state: BackState): void {
 
   state.socketServer.register(BackIn.IMPORT_CURATION, async (event, data) => {
     let error: any | undefined;
-    try {
-      state.socketServer.broadcast(BackOut.SET_CURATION_LOCK, data.curation.folder, true);
-      await importCuration({
-        curation: data.curation,
-        gameManager: state.gameManager,
-        date: (data.date !== undefined) ? new Date(data.date) : undefined,
-        saveCuration: data.saveCuration,
-        fpPath: state.config.flashpointPath,
-        dataPacksFolderPath: path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath),
-        bluezipPath: pathToBluezip(state.isDev, state.exePath),
-        imageFolderPath: state.preferences.imageFolderPath,
-        openDialog: state.socketServer.showMessageBoxBack(event.client),
-        openExternal: state.socketServer.openExternal(event.client),
-        tagCategories: await TagManager.findTagCategories()
-      })
-      .then(() => {
-        // Delete curation afterwards
-        deleteCuration(data.curation.folder);
-        state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, undefined, [data.curation.folder]);
-      })
-      .catch(() => {
-        state.socketServer.broadcast(BackOut.SET_CURATION_LOCK, data.curation.folder, false);
-        const alertString = formatString(state.languageContainer.dialog.errorImportingCuration, data.curation.folder);
-        state.socketServer.broadcast(BackOut.OPEN_ALERT, alertString);
-      });
-      state.queries = {};
-    } catch (e) {
-      if (util.types.isNativeError(e)) {
-        error = copyError(e);
-      } else {
-        error = e;
+    for (const curation of data.curations) {
+      try {
+        state.socketServer.broadcast(BackOut.SET_CURATION_LOCK, curation.folder, true);
+        await importCuration({
+          curation: curation,
+          gameManager: state.gameManager,
+          date: (data.date !== undefined) ? new Date(data.date) : undefined,
+          saveCuration: data.saveCuration,
+          fpPath: state.config.flashpointPath,
+          dataPacksFolderPath: path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath),
+          bluezipPath: pathToBluezip(state.isDev, state.exePath),
+          imageFolderPath: state.preferences.imageFolderPath,
+          openDialog: state.socketServer.showMessageBoxBack(event.client),
+          openExternal: state.socketServer.openExternal(event.client),
+          tagCategories: await TagManager.findTagCategories()
+        })
+        .then(() => {
+          // Delete curation afterwards
+          deleteCuration(curation.folder);
+          state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, undefined, [curation.folder]);
+        })
+        .catch(() => {
+          state.socketServer.broadcast(BackOut.SET_CURATION_LOCK, curation.folder, false);
+          const alertString = formatString(state.languageContainer.dialog.errorImportingCuration, curation.folder);
+          state.socketServer.broadcast(BackOut.OPEN_ALERT, alertString);
+        });
+        state.queries = {};
+      } catch (e) {
+        if (util.types.isNativeError(e)) {
+          error = copyError(e);
+        } else {
+          error = e;
+        }
       }
     }
 
@@ -1258,34 +1260,36 @@ export function registerRequestCallbacks(state: BackState): void {
     }
   }
 
-  state.socketServer.register(BackIn.CURATE_DELETE, async (event, folder) => {
-    deleteCuration(folder);
+  state.socketServer.register(BackIn.CURATE_DELETE, async (event, folders) => {
+    folders.map(f => deleteCuration(f));
   });
 
-  state.socketServer.register(BackIn.CURATE_EXPORT, async (event, curation) => {
-    // Find most appropriate filepath based on what already exists
-    const name = (curation.game.title ? sanitizeFilename(curation.game.title) : curation.folder);
-    const filePathCheck = path.join(state.config.flashpointPath, CURATIONS_FOLDER_EXPORTED, `${name}.7z`);
-    const filePath = await fs.promises.access(filePathCheck, fs.constants.F_OK)
-    .then(() => {
-      // Exists, use date instead
-      return path.join(state.config.flashpointPath, CURATIONS_FOLDER_EXPORTED, `${name}_${dateToFilenameString(new Date())}.7z`);
-    })
-    .catch(() => { return filePathCheck; /** Doesn't exist, carry on */ });
-    await fs.ensureDir(path.dirname(filePath));
-    const curPath = path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, curation.folder);
-    await saveCuration(curPath, curation);
-    new Promise<void>((resolve) => {
-      return add(filePath, curPath, { recursive: true, $bin: pathTo7zBack(state.isDev, state.exePath) })
-      .on('end', () => { resolve(); })
-      .on('error', (error) => {
-        log.error('Curate', error.message);
-        resolve();
+  state.socketServer.register(BackIn.CURATE_EXPORT, async (event, curations) => {
+    for (const curation of curations) {
+      // Find most appropriate filepath based on what already exists
+      const name = (curation.game.title ? sanitizeFilename(curation.game.title) : curation.folder);
+      const filePathCheck = path.join(state.config.flashpointPath, CURATIONS_FOLDER_EXPORTED, `${name}.7z`);
+      const filePath = await fs.promises.access(filePathCheck, fs.constants.F_OK)
+      .then(() => {
+        // Exists, use date instead
+        return path.join(state.config.flashpointPath, CURATIONS_FOLDER_EXPORTED, `${name}_${dateToFilenameString(new Date())}.7z`);
+      })
+      .catch(() => { return filePathCheck; /** Doesn't exist, carry on */ });
+      await fs.ensureDir(path.dirname(filePath));
+      const curPath = path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, curation.folder);
+      await saveCuration(curPath, curation);
+      await new Promise<void>((resolve) => {
+        return add(filePath, curPath, { recursive: true, $bin: pathTo7zBack(state.isDev, state.exePath) })
+        .on('end', () => { resolve(); })
+        .on('error', (error) => {
+          log.error('Curate', error.message);
+          resolve();
+        });
+      })
+      .finally(() => {
+        state.socketServer.broadcast(BackOut.SET_CURATION_LOCK, curation.folder, false);
       });
-    })
-    .finally(() => {
-      state.socketServer.broadcast(BackOut.SET_CURATION_LOCK, curation.folder, false);
-    });
+    }
   });
 
   state.socketServer.register(BackIn.CURATE_CREATE_CURATION, async (event, folder, meta) => {

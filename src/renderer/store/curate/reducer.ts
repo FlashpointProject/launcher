@@ -17,11 +17,65 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
       };
     }
 
-    case CurateActionType.SET_CURRENT_CURATION:
+    case CurateActionType.SET_CURRENT_CURATION: {
+      const { ctrl, shift, folder } = action;
+      let newSelected = [ ...state.selected ];
+      let newCurrent = state.current;
+
+      if (!ctrl && !shift) {
+        // Multi select not used, reset selection
+        newSelected = [folder];
+        newCurrent = folder;
+      }
+
+      // Ctrl Key - Toggle selection of the clicked curation
+      if (ctrl) {
+        const idx = newSelected.findIndex(f => f === folder);
+        if (idx !== -1) {
+          newSelected.splice(idx, 1);
+        } else {
+          newSelected.push(folder);
+        }
+      // Shift Key - Select everything between next and last selected
+      } else if (shift) {
+        if (state.lastSelected === '') {
+          // No last selected, treat as first non-multi select click
+          newSelected = [folder];
+          newCurrent = folder;
+        } else {
+          const lastSelectedIdx = state.curations.findIndex(c => c.folder === state.lastSelected);
+          const nextSelectedIdx = state.curations.findIndex(c => c.folder === folder);
+          if (lastSelectedIdx !== -1 && nextSelectedIdx !== -1) {
+            const startIdx = Math.min(lastSelectedIdx, nextSelectedIdx);
+            const endIdx = Math.max(lastSelectedIdx, nextSelectedIdx);
+            for (const c of state.curations.slice(startIdx, endIdx + 1)) {
+              if (!newSelected.includes(c.folder)) {
+                newSelected.push(c.folder);
+              }
+            }
+          } else {
+            // Something is out of sync?
+            log.debug('Curate', 'Tried multi-selection but something is out of sync? Ignoring action.');
+          }
+        }
+      }
+
+      // If the current curation is no longer selected, select a new one if possible
+      if (!newSelected.includes(newCurrent)) {
+        if (newSelected.length > 0) {
+          newCurrent = newSelected[0];
+        } else {
+          newCurrent = '';
+        }
+      }
+
       return {
         ...state,
-        current: action.folder,
+        current: newCurrent,
+        selected: newSelected,
+        lastSelected: folder
       };
+    }
 
     case CurateActionType.NEW_ADDAPP: {
       const { index, newCurations } = genCurationState(action.folder, state);
@@ -150,11 +204,14 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
     }
 
     case CurateActionType.SET_LOCK: {
-      const { index, newCurations } = genCurationState(action.folder, state);
+      const newCurations = [ ...state.curations ];
 
-      if (index === -1) { return { ...state }; }
-
-      newCurations[index].locked = action.locked;
+      for (const folder of action.folders) {
+        const idx = newCurations.findIndex(c => c.folder === folder);
+        if (idx !== -1) {
+          newCurations[idx].locked = action.locked;
+        }
+      }
 
       return {
         ...state,
@@ -213,38 +270,40 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
       };
 
     case CurateActionType.APPLY_DELTA: {
-      const newCurations = [ ...state.curations ];
-      let newCurrent = state.current;
+      const newState = genMultiCurationState(state);
 
       if (action.removed) {
-        for (let i = newCurations.length - 1; i >= 0; i--) {
-          if (action.removed.includes(newCurations[i].folder)) {
-            newCurations.splice(i, 1);
+        for (const removed of action.removed) {
+          const curationIdx = newState.curations.findIndex(c => c.folder === removed);
+          if (curationIdx !== -1) {
+            newState.curations.splice(curationIdx, 1);
           }
+          const selectedIdx = newState.selected.findIndex(s => s === removed);
+          newState.selected.splice(selectedIdx, 1);
         }
       }
 
       if (action.added) {
         for (const curation of action.added) {
-          const existingIdx = newCurations.findIndex(c => c.folder === curation.folder);
+          const existingIdx = newState.curations.findIndex(c => c.folder === curation.folder);
           if (existingIdx > -1) {
-            newCurations[existingIdx] = curation;
+            newState.curations[existingIdx] = curation;
           } else {
-            newCurations.push(...action.added);
+            newState.curations.push(...action.added);
           }
         }
       }
 
       if (action.removed && action.removed.includes(state.current)) {
         // Current view removed, choose new one
-        newCurrent = newCurations.length > 0 ? newCurations[0].folder : '';
+        if (newState.selected.length > 0) {
+          newState.current = newState.selected[0];
+        } else {
+          newState.current = '';
+        }
       }
 
-      return {
-        ...state,
-        curations: newCurations,
-        current: newCurrent,
-      };
+      return newState;
     }
   }
 }
@@ -252,6 +311,15 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
 type NewCurationStateInfo = {
   index: number;
   newCurations: CurationState[];
+}
+
+function genMultiCurationState(state: CurateState): CurateState {
+  return {
+    lastSelected: state.lastSelected,
+    curations: [ ...state.curations ],
+    selected: [ ...state.selected ],
+    current: state.current
+  };
 }
 
 function genCurationState(folder: string, state: CurateState): NewCurationStateInfo {
@@ -271,5 +339,7 @@ function createInitialState(): CurateState {
   return {
     curations: [],
     current: '',
+    selected: [],
+    lastSelected: ''
   };
 }

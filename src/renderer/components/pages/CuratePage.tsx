@@ -50,10 +50,12 @@ export function CuratePage(props: CuratePageProps) {
     }
   }, [setTagText, setTagSuggestions]);
 
-  const onLeftSidebarCurationClick = React.useCallback((folder: string) => {
+  const onLeftSidebarCurationClick = React.useCallback((folder: string, ctrl?: boolean, shift?: boolean) => {
     props.dispatchCurate({
       type: CurateActionType.SET_CURRENT_CURATION,
       folder,
+      ctrl,
+      shift
     });
   }, [props.curate]);
 
@@ -68,6 +70,7 @@ export function CuratePage(props: CuratePageProps) {
   const onLoadCuration = React.useCallback(() => {
     electron.remote.dialog.showOpenDialog({
       title: strings.dialog.selectCurationArchive,
+      properties: [ 'multiSelections' ],
     })
     .then(value => window.Shared.back.send(BackIn.CURATE_LOAD_ARCHIVES, value.filePaths));
   }, []);
@@ -83,32 +86,32 @@ export function CuratePage(props: CuratePageProps) {
   }, [curation]);
 
   const onImportCuration = React.useCallback(async () => {
-    if (curation) {
+    if (props.curate.selected.length > 0) {
       props.dispatchCurate({
         type: CurateActionType.IMPORT,
-        folder: curation.folder,
+        folders: props.curate.selected,
         saveCuration: props.preferencesData.saveImportedCurations
       });
     }
-  }, [curation]);
+  }, [props.curate.selected]);
 
-  const onExportCuration = React.useCallback(async () => {
-    if (curation) {
+  const onExportCurations = React.useCallback(async () => {
+    if (props.curate.selected.length > 0) {
       props.dispatchCurate({
         type: CurateActionType.EXPORT,
-        folder: curation.folder
+        folders: props.curate.selected
       });
     }
-  }, [curation]);
+  }, [props.curate.selected]);
 
-  const onDeleteCuration = React.useCallback(async () => {
-    if (curation) {
+  const onDeleteCurations = React.useCallback(async () => {
+    if (props.curate.selected.length > 0) {
       props.dispatchCurate({
         type: CurateActionType.DELETE,
-        folder: curation.folder
+        folders: props.curate.selected
       });
     }
-  }, [curation]);
+  }, [props.curate.selected]);
 
   const onRunCuration = React.useCallback(async () => {
     if (curation) {
@@ -205,7 +208,7 @@ export function CuratePage(props: CuratePageProps) {
     <CuratePageLeftSidebar
       curate={props.curate}
       logoVersion={props.main.logoVersion}
-      onCurationClick={onLeftSidebarCurationClick}
+      onCurationSelect={onLeftSidebarCurationClick}
       onCurationDrop={onLoadCurationDrop} />
   ), [props.curate, props.main.logoVersion]);
 
@@ -262,7 +265,7 @@ export function CuratePage(props: CuratePageProps) {
           <ConfirmElement
             render={renderConfirmButton}
             message={strings.dialog.deleteCuration}
-            onConfirm={onDeleteCuration}
+            onConfirm={onDeleteCurations}
             extra={{
               className: 'curate-page__right--button',
               value: strings.curate.delete,
@@ -281,7 +284,7 @@ export function CuratePage(props: CuratePageProps) {
             <ConfirmElement
               render={renderConfirmButton}
               message={strings.dialog.exportCurationWithWarnings}
-              onConfirm={onExportCuration}
+              onConfirm={onExportCurations}
               extra={{
                 className: 'curate-page__right--button',
                 value: strings.curate.export,
@@ -290,7 +293,8 @@ export function CuratePage(props: CuratePageProps) {
           ) : (
             <SimpleButton
               className='curate-page__right--button'
-              onClick={onExportCuration}
+              onClick={onExportCurations}
+              disabled={disabled}
               value={strings.curate.export}/>
           )}
         </div>

@@ -314,7 +314,7 @@ export class App extends React.Component<AppProps> {
     window.Shared.back.register(BackOut.SET_CURATION_LOCK, (event, folder, locked) => {
       (this.props.dispatchMain as any as Dispatch<CurateAction>)({
         type: CurateActionType.SET_LOCK,
-        folder,
+        folders: [folder],
         locked,
       });
     });
