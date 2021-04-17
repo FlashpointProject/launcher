@@ -531,6 +531,17 @@ export async function genContentTree(folder: string): Promise<ContentTree> {
     } else {
       throw 'Not a directory';
     }
+  })
+  .catch(() => {
+    // Folder doesn't exist
+    return {
+      root: {
+        name: '',
+        expanded: true,
+        type: 'directory',
+        children: []
+      }
+    };
   });
 }
 
