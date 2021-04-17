@@ -21,6 +21,7 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
       const { ctrl, shift, folder } = action;
       let newSelected = [ ...state.selected ];
       let newCurrent = state.current;
+      let nextSelected = action.folder;
 
       if (!ctrl && !shift) {
         // Multi select not used, reset selection
@@ -38,6 +39,8 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
         }
       // Shift Key - Select everything between next and last selected
       } else if (shift) {
+        // Next selected doesn't change with shift
+        nextSelected = state.lastSelected;
         if (state.lastSelected === '') {
           // No last selected, treat as first non-multi select click
           newSelected = [folder];
@@ -48,11 +51,7 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
           if (lastSelectedIdx !== -1 && nextSelectedIdx !== -1) {
             const startIdx = Math.min(lastSelectedIdx, nextSelectedIdx);
             const endIdx = Math.max(lastSelectedIdx, nextSelectedIdx);
-            for (const c of state.curations.slice(startIdx, endIdx + 1)) {
-              if (!newSelected.includes(c.folder)) {
-                newSelected.push(c.folder);
-              }
-            }
+            newSelected = state.curations.slice(startIdx, endIdx + 1).reduce<string[]>((prev, next) => prev.concat(next.folder), []);
           } else {
             // Something is out of sync?
             log.debug('Curate', 'Tried multi-selection but something is out of sync? Ignoring action.');
@@ -73,7 +72,7 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
         ...state,
         current: newCurrent,
         selected: newSelected,
-        lastSelected: folder
+        lastSelected: nextSelected
       };
     }
 
