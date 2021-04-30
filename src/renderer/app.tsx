@@ -36,6 +36,7 @@ import { UpdateView, UpgradeStageState } from './interfaces';
 import { Paths } from './Paths';
 import { AppRouter, AppRouterProps } from './router';
 import { MainActionType, RequestState } from './store/main/enums';
+import { RANDOM_GAME_ROW_COUNT } from './store/main/reducer';
 import { MainState } from './store/main/types';
 import { SearchQuery } from './store/search';
 import { UpgradeStage } from './upgrade/types';
@@ -429,7 +430,7 @@ export class App extends React.Component<AppProps> {
 
   componentDidMount() {
     // Call first batch of random games
-    if (this.props.main.randomGames.length < 6) { this.rollRandomGames(true); }
+    if (this.props.main.randomGames.length < RANDOM_GAME_ROW_COUNT) { this.rollRandomGames(true); }
   }
 
   componentDidUpdate(prevProps: AppProps) {
@@ -467,6 +468,29 @@ export class App extends React.Component<AppProps> {
       for (const library of this.props.main.libraries) {
         this.setViewQuery(library);
       }
+    }
+
+    // Reset random games if the filters change
+    // @TODO: Is this really the best way to compare array contents? I guess it works
+    if (JSON.stringify(prevProps.preferencesData.tagFilters) !== JSON.stringify(this.props.preferencesData.tagFilters)) {
+      this.props.dispatchMain({
+        type: MainActionType.CLEAR_RANDOM_GAMES
+      });
+      this.props.dispatchMain({
+        type: MainActionType.REQUEST_RANDOM_GAMES
+      });
+      window.Shared.back.request(BackIn.RANDOM_GAMES, {
+        count: RANDOM_GAME_ROW_COUNT * 10,
+        broken: this.props.preferencesData.showBrokenGames,
+        excludedLibraries: this.props.preferencesData.excludedRandomLibraries,
+        tagFilters: this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme))
+      })
+      .then((data) => {
+        this.props.dispatchMain({
+          type: MainActionType.RESPONSE_RANDOM_GAMES,
+          games: data || [],
+        });
+      });
     }
 
     if (view) {
@@ -971,11 +995,11 @@ export class App extends React.Component<AppProps> {
     }
 
     // Request more games to the queue
-    if (randomGames.length <= 18 && !requestingRandomGames) {
+    if (randomGames.length <= (RANDOM_GAME_ROW_COUNT * 5) && !requestingRandomGames) {
       this.props.dispatchMain({ type: MainActionType.REQUEST_RANDOM_GAMES });
 
       window.Shared.back.request(BackIn.RANDOM_GAMES, {
-        count: 50,
+        count: RANDOM_GAME_ROW_COUNT * 10,
         broken: this.props.preferencesData.showBrokenGames,
         excludedLibraries: this.props.preferencesData.excludedRandomLibraries,
         tagFilters: this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme))
