@@ -256,8 +256,9 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   state.config = await ConfigFile.readOrCreateFile(path.join(state.configFolder, CONFIG_FILENAME));
   // @TODO Figure out why async loading isn't always working?
   try {
-    state.preferences = PreferencesFile.readOrCreateFileSync(path.join(state.config.flashpointPath, PREFERENCES_FILENAME));
+    state.preferences = await PreferencesFile.readOrCreateFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME));
   } catch (e) {
+    console.log(e);
     exit(state);
     return;
   }

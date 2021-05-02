@@ -28,16 +28,17 @@ export namespace PreferencesFile {
    * @param onError Called for each error that occurs while parsing.
    */
   export async function readOrCreateFile(filePath: string, onError?: (error: string) => void): Promise<AppPreferencesData> {
-    let error: Error | undefined;
     let data: AppPreferencesData | undefined;
     // Try to get the data from the file
-    try {
-      data = await readFile(filePath, onError);
-    } catch (e) {
-      error = e;
-    }
+    data = await readFile(filePath, onError)
+    .catch((e) => {
+      if (e.code !== 'ENOENT') {
+        throw e;
+      }
+      return undefined;
+    });
     // If that failed, set data to default and save it to a new file
-    if (error || !data) {
+    if (!data) {
       data = deepCopy(defaultPreferencesData);
       await saveFile(filePath, data)
       .catch(() => console.error('Failed to save default preferences file!'));
