@@ -17,6 +17,7 @@ export type GameDataInfoProps = {
   onActiveToggle: () => void;
   onUninstall: () => void;
   onUpdateTitle: (title: string) => void;
+  onUpdateParameters: (parameters: string) => void;
   update: () => void;
   delete: () => void;
 }
@@ -96,6 +97,15 @@ export function GameDataInfo(props: GameDataInfoProps) {
           </CurateBoxRow>
           <CurateBoxRow title='SHA256:'>
             {data.sha256}
+          </CurateBoxRow>
+          <CurateBoxRow
+            title='Mount Parameters:'>
+            <InputField
+              text={data.parameters || ''}
+              editable={true}
+              onChange={(event) => {
+                props.onUpdateParameters(event.target.value);
+              }} />
           </CurateBoxRow>
         </tbody>
       </table>

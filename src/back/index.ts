@@ -15,6 +15,7 @@ import { SourceDataUrlPath1612434225789 } from '@database/migration/161243422578
 import { SourceFileURL1612435692266 } from '@database/migration/1612435692266-Source_FileURL';
 import { SourceFileCount1612436426353 } from '@database/migration/1612436426353-SourceFileCount';
 import { GameTagsStr1613571078561 } from '@database/migration/1613571078561-GameTagsStr';
+import { GameDataParams1619885915109 } from '@database/migration/1619885915109-GameDataParams';
 import { BackIn, BackInit, BackInitArgs, BackOut } from '@shared/back/types';
 import { ILogoSet, LogoSet } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
@@ -248,13 +249,17 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   log.info('Launcher', `Starting Flashpoint Launcher ${versionStr}`);
 
   // Read configs & preferences
-  const conf = await ConfigFile.readOrCreateFile(path.join(state.configFolder, CONFIG_FILENAME));
-  state.config = conf;
-  const [pref, extConf] = await (Promise.all([
-    PreferencesFile.readOrCreateFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME)),
+  state.config = await ConfigFile.readOrCreateFile(path.join(state.configFolder, CONFIG_FILENAME));
+  // @TODO Figure out why async loading isn't always working?
+  try {
+    state.preferences = PreferencesFile.readOrCreateFileSync(path.join(state.config.flashpointPath, PREFERENCES_FILENAME));
+  } catch (e) {
+    exit(state);
+    return;
+  }
+  const [extConf] = await (Promise.all([
     ExtConfigFile.readOrCreateFile(path.join(state.config.flashpointPath, EXT_CONFIG_FILENAME))
   ]));
-  state.preferences = pref;
   state.extConfig = extConf;
 
   // Create Game Data Directory and clean up temp files
@@ -286,7 +291,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
       database: path.join(state.config.flashpointPath, 'Data', 'flashpoint.sqlite'),
       entities: [Game, AdditionalApp, Playlist, PlaylistGame, Tag, TagAlias, TagCategory, GameData, Source, SourceData],
       migrations: [Initial1593172736527, AddExtremeToPlaylist1599706152407, GameData1611753257950, SourceDataUrlPath1612434225789, SourceFileURL1612435692266,
-        SourceFileCount1612436426353, GameTagsStr1613571078561]
+        SourceFileCount1612436426353, GameTagsStr1613571078561, GameDataParams1619885915109]
     };
     state.connection = await createConnection(options);
     // TypeORM forces on but breaks Playlist Game links to unimported games

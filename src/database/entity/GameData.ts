@@ -41,4 +41,8 @@ export class GameData {
   @Column()
   /** Size of this data pack */
   size: number;
+
+  @Column({ nullable: true })
+  /** Parameters passed to the mounter */
+  parameters?: string;
 }

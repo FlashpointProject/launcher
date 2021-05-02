@@ -520,6 +520,8 @@ declare module 'flashpoint-launcher' {
         path?: string;
         /** Size of this data pack */
         size: number;
+        /** Parameters passed to the mounter */
+        parameters?: string;
     };
 
     type SourceData = {

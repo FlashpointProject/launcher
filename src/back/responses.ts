@@ -514,6 +514,7 @@ export function registerRequestCallbacks(state: BackState): void {
       const existingData = await GameDataManager.findOne(d.id);
       if (existingData) {
         existingData.title = d.title;
+        existingData.parameters = d.parameters;
         return GameDataManager.save(existingData);
       }
     }));

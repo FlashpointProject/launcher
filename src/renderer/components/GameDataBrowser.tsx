@@ -101,6 +101,12 @@ export class GameDataBrowser extends React.Component<GameDataBrowserProps, GameD
     this.setState({ pairedData: newData });
   }
 
+  onUpdateParameters = (index: number, parameters: string) => {
+    const newData = [...this.state.pairedData];
+    newData[index].parameters = parameters;
+    this.setState({ pairedData: newData });
+  }
+
   updateGameData = async (id: number) => {
     const gameData = await window.Shared.back.request(BackIn.GET_GAME_DATA, id);
     if (gameData) {
@@ -138,6 +144,7 @@ export class GameDataBrowser extends React.Component<GameDataBrowserProps, GameD
             sourceData={data.sourceData}
             active={data.id === this.props.game.activeDataId}
             onUpdateTitle={(title) => this.onUpdateTitle(index, title)}
+            onUpdateParameters={(parameters) => this.onUpdateParameters(index, parameters)}
             onActiveToggle={() => {
               this.props.onUpdateActiveGameData(data.presentOnDisk, data.id);
             }}
