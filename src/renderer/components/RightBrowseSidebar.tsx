@@ -34,6 +34,8 @@ import { TagInputField } from './TagInputField';
 type OwnProps = {
   /** Currently selected game (if any) */
   currentGame?: Game;
+  /** Whether the current game is extreme */
+  isExtreme: boolean;
   /** Is the current game running? */
   gameRunning: boolean;
   /* Current Library */
@@ -79,6 +81,7 @@ type RightBrowseSidebarState = {
   tagSuggestions: TagSuggestion[];
   gameDataBrowserOpen: boolean;
   activeData?: GameData;
+  showExtremeScreenshots: boolean;
 };
 
 export interface RightBrowseSidebar {
@@ -134,7 +137,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       thumbnailExists: false,
       currentTagInput: '',
       tagSuggestions: [],
-      gameDataBrowserOpen: false
+      gameDataBrowserOpen: false,
+      showExtremeScreenshots: false,
     };
   }
 
@@ -159,6 +163,10 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
           thumbnailExists: false,
         });
       }
+    }
+    if (this.props.currentGame && this.props.currentGame.id !== (prevProps.currentGame && prevProps.currentGame.id)) {
+      // Hide again when changing games
+      this.setState({ showExtremeScreenshots: false });
     }
     if (prevProps.currentGame && prevProps.currentGame.activeDataId && (!this.props.currentGame || !this.props.currentGame.activeDataId)) {
       /** No game data, clear */
@@ -646,13 +654,23 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       <p>{strings.dropImageHere}</p>
                     </div>
                   </div>
-                ) : (
-                  <img
-                    className='browse-right-sidebar__row__screenshot-image'
-                    alt='' // Hide the broken link image if source is not found
-                    src={screenshotSrc}
-                    onClick={this.onScreenshotClick} />
-                ) }
+                ) :
+                  (this.props.isExtreme && this.props.preferencesData.hideExtremeScreenshots && !this.state.showExtremeScreenshots) ? (
+                    <div
+                      className='browse-right-sidebar__row__screenshot-image--hidden'
+                      onClick={this.onShowExtremeScreenshots}>
+                      <div className='browse-right-sidebar__row__screenshot-image--hidden-text'>
+                        {strings.showExtremeScreenshot}
+                      </div>
+                    </div>
+                  ) : (
+                    <img
+                      className='browse-right-sidebar__row__screenshot-image'
+                      alt='' // Hide the broken link image if source is not found
+                      src={screenshotSrc}
+                      onClick={this.onScreenshotClick} />
+                  )
+                }
               </div>
             </div>
           </div>
@@ -842,6 +860,10 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     if (this.props.currentGame) {
       window.Shared.back.send(BackIn.DELETE_IMAGE, folder, this.props.currentGame.id);
     }
+  }
+
+  onShowExtremeScreenshots = (): void => {
+    this.setState({ showExtremeScreenshots: true });
   }
 
   onThumbnailDrop = this.imageDrop(LOGOS);

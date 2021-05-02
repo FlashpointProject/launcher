@@ -104,6 +104,8 @@ export type AppPreferencesData = {
   showBrokenGames: boolean;
   /** Whether home page boxes are minimized */
   minimizedHomePageBoxes: string[];
+  /** Whether to hide extreme game screenshots by default */
+  hideExtremeScreenshots: boolean;
 };
 
 export type AppPathOverride = {

@@ -11,6 +11,8 @@ const langTemplate = {
     'preferencesHeader',
     'extremeGames',
     'extremeGamesDesc',
+    'hideExtremeScreenshots',
+    'hideExtremeScreenshotsDesc',
     'enableEditing',
     'enableEditingDesc',
     'onDemandImages',
@@ -303,6 +305,7 @@ const langTemplate = {
     'uninstallGame',
     'mountParameters',
     'noMountParameters',
+    'showExtremeScreenshot',
   ] as const,
   tags: [
     'name',
@@ -429,6 +432,7 @@ const langTemplate = {
     'complete',
     'exportMetaEditTitle',
     'exportMetaEditDesc',
+    'showImage',
   ] as const,
   menu: [
     'viewThumbnailInFolder',

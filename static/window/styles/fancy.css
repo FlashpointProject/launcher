@@ -683,6 +683,13 @@ body {
 .browse-right-sidebar__row__screenshot__placeholder p {
   color: var(--layout__disabled-text-color);
 }
+.browse-right-sidebar__row__screenshot-image--hidden {
+  background-color: var(--layout__secondary-background);
+  border: 1px solid var(--layout__simple-button-border);
+}
+.browse-right-sidebar__row__screenshot-image--hidden:hover {
+  background-color: var(--layout__simple-button-background);
+}
 /* GameImageSplit */
 .game-image-split {
   --inner-border-color: var(--layout__secondary-background);

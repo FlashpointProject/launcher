@@ -89,6 +89,7 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   disableExtremeGames: false,
   showBrokenGames: false,
   minimizedHomePageBoxes: [],
+  hideExtremeScreenshots: true,
 });
 
 /**
@@ -120,6 +121,7 @@ export function overwritePreferenceData(
   parser.prop('dataPacksFolderPath',         v => source.dataPacksFolderPath         = parseVarStr(str(v)));
   parser.prop('browsePageGameScale',         v => source.browsePageGameScale         = num(v));
   parser.prop('browsePageShowExtreme',       v => source.browsePageShowExtreme       = !!v);
+  parser.prop('hideExtremeScreenshots',      v => source.hideExtremeScreenshots      = !!v);
   parser.prop('enableEditing',               v => source.enableEditing               = !!v);
   parser.prop('fallbackLanguage',            v => source.fallbackLanguage            = str(v));
   parser.prop('currentLanguage',             v => source.currentLanguage             = str(v));

@@ -1418,6 +1418,17 @@ body {
   width: 100%;
   cursor: zoom-in;
 }
+.browse-right-sidebar__row__screenshot-image--hidden {
+  width: 100%;
+  min-height: 8rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.browse-right-sidebar__row__screenshot-image--hidden-text {
+  font-weight: bold;
+  font-size: 2rem;
+}
 .browse-right-sidebar__row__screenshot__placeholder {
   width: 100%;
   height: 15rem;

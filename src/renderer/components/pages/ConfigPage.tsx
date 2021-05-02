@@ -134,6 +134,13 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   checked={this.props.preferencesData.browsePageShowExtreme}
                   onToggle={this.onShowExtremeChange} />
               ) : undefined }
+              {this.props.preferencesData.browsePageShowExtreme && (
+                <ConfigBoxCheckbox
+                  title={strings.hideExtremeScreenshots}
+                  description={strings.hideExtremeScreenshotsDesc}
+                  checked={this.props.preferencesData.hideExtremeScreenshots}
+                  onToggle={this.onToggleHideExtremeScreenshots} />
+              )}
               {/* Enable Editing */}
               <ConfigBoxCheckbox
                 title={strings.enableEditing}
@@ -613,6 +620,10 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   onShowExtremeChange = (isChecked: boolean): void => {
     updatePreferencesData({ browsePageShowExtreme: isChecked });
+  }
+
+  onToggleHideExtremeScreenshots = (isChecked: boolean): void => {
+    updatePreferencesData({ hideExtremeScreenshots: isChecked });
   }
 
   onEnableEditingChange = (isChecked: boolean): void => {
