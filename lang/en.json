@@ -288,7 +288,9 @@
     "saveAndRestart": "Save & Restart",
     "thereAreNoGames": "There are no games.",
     "noGameMatchedDesc": "No game title matched your search.",
-    "noGameMatchedSearch": "Try searching for something less restrictive."
+    "noGameMatchedSearch": "Try searching for something less restrictive.",
+    "mountParameters": "Mount Parameters",
+    "noMountParameters": "No Mount Parameters"
   },
   "tags": {
     "name": "Name",

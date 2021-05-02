@@ -204,6 +204,7 @@ export function CurateBox(props: CurateBoxProps) {
   const onNotesChange               = useOnInputChange('notes',               key, props.dispatch);
   const onOriginalDescriptionChange = useOnInputChange('originalDescription', key, props.dispatch);
   const onCurationNotesChange       = useOnInputChange('curationNotes',       key, props.dispatch);
+  const onMountParametersChange     = useOnInputChange('mountParameters',     key, props.dispatch);
   // Callbacks for the fields (onItemSelect)
   const onPlayModeSelect            = useCallback(transformOnItemSelect(onPlayModeChange),        [onPlayModeChange]);
   const onStatusSelect              = useCallback(transformOnItemSelect(onStatusChange),          [onStatusChange]);
@@ -813,6 +814,13 @@ export function CurateBox(props: CurateBoxProps) {
               placeholder={strings.browse.noLaunchCommand}
               onChange={onLaunchCommandChange}
               className={(warnings.noLaunchCommand || (warnings.invalidLaunchCommand && warnings.invalidLaunchCommand.length !== 0)) ? 'input-field--warn' : ''}
+              { ...sharedInputProps } />
+          </CurateBoxRow>
+          <CurateBoxRow title={strings.browse.mountParameters + ':'}>
+            <InputField
+              text={props.curation && props.curation.meta.mountParameters || ''}
+              placeholder={strings.browse.noMountParameters}
+              onChange={onMountParametersChange}
               { ...sharedInputProps } />
           </CurateBoxRow>
           <CurateBoxRow title={strings.browse.notes + ':'}>

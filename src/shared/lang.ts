@@ -301,6 +301,8 @@ const langTemplate = {
     'installed',
     'download',
     'uninstallGame',
+    'mountParameters',
+    'noMountParameters',
   ] as const,
   tags: [
     'name',

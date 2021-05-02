@@ -200,10 +200,13 @@ declare module 'flashpoint-launcher' {
         const onWillLaunchAddApp: Event<AdditionalApp>;
         const onWillLaunchCurationGame: Event<GameLaunchInfo>;
         const onWillLaunchCurationAddApp: Event<AdditionalApp>;
+        const onWillUninstallGameData: Event<GameData>;
         const onDidLaunchGame: Event<Game>;
         const onDidLaunchAddApp: Event<AdditionalApp>;
         const onDidLaunchCurationGame: Event<Game>;
         const onDidLaunchCurationAddApp: Event<AdditionalApp>;
+        const onDidInstallGameData: Event<GameData>;
+        const onDidUninstallGameData: Event<GameData>;
 
         const onDidUpdateGame: Event<{ oldGame: Game; newGame: Game }>;
         const onDidRemoveGame: Event<Game>;

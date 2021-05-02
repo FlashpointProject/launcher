@@ -185,8 +185,17 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     get onDidRemovePlaylistGame() {
       return apiEmitters.games.onDidRemovePlaylistGame.event;
     },
+    get onDidInstallGameData() {
+      return apiEmitters.games.onDidInstallGameData.event;
+    },
+    get onDidUninstallGameData() {
+      return apiEmitters.games.onDidUninstallGameData.event;
+    },
     get onWillImportGame() {
       return apiEmitters.games.onWillImportCuration.event;
+    },
+    get onWillUninstallGameData() {
+      return apiEmitters.games.onWillUninstallGameData.event;
     }
   };
 

@@ -58,6 +58,7 @@ import { FolderWatcher } from './util/FolderWatcher';
 import { LogFile } from './util/LogFile';
 import { logFactory } from './util/logging';
 import { createContainer, exit, runService } from './util/misc';
+import * as GameDataManager from '@back/game/GameDataManager';
 
 const DEFAULT_LOGO_PATH = 'window/images/Logos/404.png';
 
@@ -129,6 +130,7 @@ const state: BackState = {
       onWillLaunchAddApp: new ApiEmitter<flashpoint.AdditionalApp>(),
       onWillLaunchCurationGame: new ApiEmitter<flashpoint.GameLaunchInfo>(),
       onWillLaunchCurationAddApp: new ApiEmitter<flashpoint.AdditionalApp>(),
+      onWillUninstallGameData: GameDataManager.onWillUninstallGameData,
       onDidLaunchGame: new ApiEmitter<flashpoint.Game>(),
       onDidLaunchAddApp: new ApiEmitter<flashpoint.AdditionalApp>(),
       onDidLaunchCurationGame: new ApiEmitter<flashpoint.Game>(),
@@ -138,6 +140,8 @@ const state: BackState = {
       onDidUpdatePlaylist: GameManager.onDidUpdatePlaylist,
       onDidUpdatePlaylistGame: GameManager.onDidUpdatePlaylistGame,
       onDidRemovePlaylistGame: GameManager.onDidRemovePlaylistGame,
+      onDidInstallGameData: GameDataManager.onDidInstallGameData,
+      onDidUninstallGameData: GameDataManager.onDidUninstallGameData,
       onWillImportCuration: onWillImportCuration,
     },
     gameData: {

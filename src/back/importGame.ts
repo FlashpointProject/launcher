@@ -229,7 +229,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
     });
     // Import bluezip
     const filePath = path.join(curationPath, `${game.id}.zip`);
-    await GameDataManager.importGameData(game.id, filePath, dataPacksFolderPath);
+    await GameDataManager.importGameData(game.id, filePath, dataPacksFolderPath, curation.meta.mountParameters);
     await fs.promises.unlink(filePath);
   })
   .catch((error) => {

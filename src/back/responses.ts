@@ -524,8 +524,12 @@ export function registerRequestCallbacks(state: BackState): void {
     const gameData = await GameDataManager.findOne(gameDataId);
     if (gameData) {
       if (gameData.presentOnDisk && gameData.path) {
+        await GameDataManager.onWillUninstallGameData.fire(gameData);
         const gameDataPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, gameData.path);
         await fs.promises.unlink(gameDataPath);
+        gameData.path = undefined;
+        gameData.presentOnDisk = false;
+        GameDataManager.onDidUninstallGameData.fire(gameData);
       }
       const game = await GameManager.findGame(gameData.gameId);
       if (game) {
@@ -562,6 +566,7 @@ export function registerRequestCallbacks(state: BackState): void {
   state.socketServer.register(BackIn.UNINSTALL_GAME_DATA, async (event, id) => {
     const gameData = await GameDataManager.findOne(id);
     if (gameData && gameData.path && gameData.presentOnDisk) {
+      await GameDataManager.onWillUninstallGameData.fire(gameData);
       // Delete Game Data
       const gameDataPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, gameData.path);
       await fs.promises.unlink(gameDataPath)
@@ -574,6 +579,7 @@ export function registerRequestCallbacks(state: BackState): void {
       gameData.path = '';
       gameData.presentOnDisk = false;
       await GameDataManager.save(gameData);
+      GameDataManager.onDidUninstallGameData.fire(gameData);
       // Update Game
       const game = await GameManager.findGame(gameData.gameId);
       if (game && game.activeDataId === gameData.id) {
