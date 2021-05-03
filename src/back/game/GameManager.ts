@@ -83,17 +83,19 @@ export async function findRandomGames(count: number, broken: boolean, excludedLi
   const gameRepository = getManager().getRepository(Game);
   const query = gameRepository.createQueryBuilder('game');
   query.select('game.id, game.title, game.platform, game.developer, game.publisher, game.tagsStr')
-  .leftJoin('game_tags_tag', 'game_tag', 'game_tag.gameId = game.id');
   if (!broken)  { query.andWhere('broken = false');  }
   if (excludedLibraries.length > 0) {
     query.andWhere('library NOT IN (:...libs)', { libs: excludedLibraries });
   }
   if (flatFilters.length > 0) {
-    const filterQuery = TagManager.getFilterIDsQuery(flatFilters);
-    query.andWhere(`game_tag.tagId NOT IN (${filterQuery.getQuery()})`)
-    .setParameters(filterQuery.getParameters());
+    const tagIdQuery = TagManager.getFilterIDsQuery(flatFilters);
+    const excludedGameIdQuery = getManager().createQueryBuilder()
+    .select('game_tag.gameId')
+    .from('game_tags_tag', 'game_tag')
+    .where(`game_tag.tagId IN (${tagIdQuery.getQuery()})`);
+    query.andWhere(`game.id NOT IN (${excludedGameIdQuery.getQuery()})`)
+    .setParameters(tagIdQuery.getParameters());
   }
-  query.groupBy('game.id');
   query.orderBy('RANDOM()').take(count);
   return (await query.getRawMany()) as ViewGame[];
 }
