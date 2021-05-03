@@ -472,7 +472,10 @@ export class App extends React.Component<AppProps> {
 
     // Reset random games if the filters change
     // @TODO: Is this really the best way to compare array contents? I guess it works
-    if (JSON.stringify(prevProps.preferencesData.tagFilters) !== JSON.stringify(this.props.preferencesData.tagFilters)) {
+    if (
+      this.props.preferencesData.browsePageShowExtreme !== prevProps.preferencesData.browsePageShowExtreme ||
+      !arrayShallowStrictEquals(this.props.preferencesData.excludedRandomLibraries, prevProps.preferencesData.excludedRandomLibraries) ||
+      JSON.stringify(prevProps.preferencesData.tagFilters) !== JSON.stringify(this.props.preferencesData.tagFilters)) {
       this.props.dispatchMain({
         type: MainActionType.CLEAR_RANDOM_GAMES
       });
@@ -602,14 +605,6 @@ export class App extends React.Component<AppProps> {
       } else {
         history.push(joinLibraryRoute(route));
       }
-    }
-
-    // Clear random picks queue
-    if (this.props.main.randomGames.length > 6 && (
-      this.props.preferencesData.browsePageShowExtreme !== prevProps.preferencesData.browsePageShowExtreme ||
-      !arrayShallowStrictEquals(this.props.preferencesData.excludedRandomLibraries, prevProps.preferencesData.excludedRandomLibraries)
-    )) {
-      this.props.dispatchMain({ type: MainActionType.CLEAR_RANDOM_GAMES });
     }
   }
 
