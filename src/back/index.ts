@@ -174,6 +174,9 @@ async function main() {
   // Anything that reads from the database and then writes to it (or a file) should go in this queue!
   // (Since it can cause rare race conditions that corrupts data permanently)
   state.socketServer.addQueue([
+    // Settings
+    BackIn.UPDATE_CONFIG,
+    BackIn.UPDATE_PREFERENCES,
     // Game
     BackIn.SAVE_GAME,
     BackIn.DELETE_GAME,
