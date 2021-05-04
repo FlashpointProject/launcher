@@ -17,6 +17,7 @@ export const onDidUninstallGameData = new ApiEmitter<flashpoint.GameData>();
 
 export async function downloadGameData(gameDataId: number, dataPacksFolderPath: string, onProgress?: (percent: number) => void, onDetails?: (details: DownloadDetails) => void): Promise<void> {
   const gameData = await findOne(gameDataId);
+  const sourceErrors: string[] = [];
   if (gameData) {
     if (gameData.presentOnDisk) { return; }
     // GameData real, check each source that's available
@@ -38,7 +39,7 @@ export async function downloadGameData(gameDataId: number, dataPacksFolderPath: 
               const sha256 = hash.digest('hex').toUpperCase();
               console.log(`hash ${sha256}`);
               if (sha256 !== gameData.sha256) {
-                reject('Hash of download does not match! Download aborted.');
+                reject('Hash of download does not match! Download aborted.\n (It may be a corrupted download, try again)');
               } else {
                 await importGameDataSkipHash(gameData.gameId, tempPath, dataPacksFolderPath, sha256);
                 await fs.promises.unlink(tempPath);
@@ -52,11 +53,13 @@ export async function downloadGameData(gameDataId: number, dataPacksFolderPath: 
           });
           return;
         } catch (error) {
-          log.info('Launcher', `Downloading from Source "${source.name}" (${fullUrl}) failed: ${error}`);
+          const sourceError = `Downloading from Source "${source.name}" failed:\n ${error}`;
+          sourceErrors.push(sourceError);
+
         }
       }
     }
-    throw 'No working Sources available for this GameData.';
+    throw ['No working Sources available for this GameData.'].concat(sourceErrors).join('\n\n');
   }
 }
 
