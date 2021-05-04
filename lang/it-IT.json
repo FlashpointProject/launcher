@@ -27,7 +27,7 @@
     "platforms": "Piattaforme",
     "nativePlatforms": "Piattaforme Native",
     "nativePlatformsDesc": "Usa le versioni native di queste piattaforme. (Se non sono disponibili si utilizzerà Wine)",
-    "tagFilterGroups": "Gruppi dei filtri di etichette",
+    "tagFilterGroups": "Filtra per Gruppi di Etichette",
     "tagFilterGroupsDesc": "Questi gruppi filtreranno i suggerimenti e i giochi dai risultati di ricerca",
     "editTagFilter": "Modifica i Gruppi di filtri di etichette",
     "duplicateTagFilter": "Duplica Gruppo di filtri di etichette",
