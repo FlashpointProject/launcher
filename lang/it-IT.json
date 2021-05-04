@@ -54,7 +54,7 @@
     "noExtensionsLoaded": "Nessuna Estensione caricata, installale su '{0}'",
     "extDevScripts": "Script Sviluppatore",
     "extThemes": "Tema(i)",
-    "extLogoSets": "Set Di Logo(hi)",
+    "extLogoSets": "Set di Loghi",
     "extApplications": "Applicazione(i)",
     "saveAndRestart": "Salva e Riavvia",
     "saveAndClose": "Salva e Chiudi",
@@ -63,7 +63,7 @@
   "home": {
     "updateHeader": "Aggiornamento Launcher",
     "currentVersion": "Versione Attuale",
-    "nextVersion": "Versione successiva",
+    "nextVersion": "Versione Successiva",
     "updateAvailable": "Aggiornamento Disponibile",
     "upToDate": "Aggiornato.",
     "downloadingUpdate": "Download aggiornamento...",
