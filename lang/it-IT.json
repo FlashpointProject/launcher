@@ -433,11 +433,11 @@
     "programNotFound": "Programma non trovato!",
     "phpNotFound": "PHP non è stato trovato nel percorso. È installato?\nPotresti incontrare comportamenti inattesi e malfunzionanti senza di esso.",
     "wineNotFound": "Wine non è installato, ma è necessario per avviare questo gioco.\nConsulta l'articolo del supporto della wiki Linux per maggiori dettagli.",
-    "flashpointPathNotFound": "La cartella Flashpoint non è impostata o non è valida. Vuoi scegliere una cartella su cui installare ora?",
+    "flashpointPathNotFound": "La cartella Flashpoint non è impostata o non è valida. Vuoi scegliere una cartella in cui installare ora?",
     "fileNotFound": "File non trovato!",
     "flashpointPathInvalid": "Percorso Flashpoint non valido!",
     "pathNotFound": "Percorso non trovato!",
-    "playlistConflict": "Conflitto Playlist",
+    "playlistConflict": "Conflitto fra Scalette",
     "importedPlaylistAlreadyExists": "La playlist importata esiste già con lo stesso nome! - '{0}'",
     "importPlaylistAs": "Importa playlist come",
     "selectFileToExportMeta": "Seleziona il file su cui salvare meta",
@@ -488,7 +488,7 @@
     "unableToDeleteGame": "Impossibile eliminare la partita. È in uso? Prova a riavviare il launcher.",
     "downloadingGame": "Scaricamento Gioco...",
     "verifyingGame": "Verifica Gioco...",
-    "aFewMinutes": "Questo può richiedere alcuni minuti."
+    "aFewMinutes": "Può richiedere alcuni minuti."
   },
   "libraries": {
     "arcade": "Giochi",
@@ -496,14 +496,14 @@
     "theatre": "Animazioni",
     "theatrePlural": "Tutte le Animazioni",
     "auditorium": "NG Auditorium",
-    "auditoriumPlural": "Tutte Le Animazioni Ng"
+    "auditoriumPlural": "Tutte le Animazioni NG"
   },
   "upgrades": {
     "infinity": "Flashpoint Infinity",
     "infinityDesc": "File richiesti. Aggiunge il supporto per i giochi Flash.",
-    "tech": "Altre tecnologie",
-    "techDesc": "Aggiunge supporto per tutte le altre tecnologie - Shockwave, Unità, Java, HTML5, ecc.",
-    "screenshots": "Loghi e schermate",
-    "screenshotsDesc": "Aggiunge loghi per la visualizzazione Grid e screenshot per tutti i giochi."
+    "tech": "Altre Tecnologie",
+    "techDesc": "Aggiunge supporto per tutte le altre tecnologie - Shockwave, Unity, Java, HTML5, ecc.",
+    "screenshots": "Loghi & Schermate",
+    "screenshotsDesc": "Aggiunge loghi per la visualizzazione a Griglia e schermate per tutti i giochi."
   }
 }
