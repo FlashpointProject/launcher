@@ -65,6 +65,10 @@ declare module 'flashpoint-launcher' {
      * Gets an extension configuration value given its key and a new value
      */
     function setExtConfigValue(key: string, value: any): Promise<void>;
+    /**
+     * Fires when an extension configuration value changes
+     */
+    const onExtConfigChange: Event<{key: string, value: any}>;
 
     /**
      * Log functions to properly pass messages to the Logs Page.

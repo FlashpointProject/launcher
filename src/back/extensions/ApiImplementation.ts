@@ -72,6 +72,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
   const setExtConfigValue = async (key: string, value: any): Promise<void> => {
     state.extConfig[key] = value;
     await ExtConfigFile.saveFile(path.join(state.config.flashpointPath, EXT_CONFIG_FILENAME), state.extConfig);
+    state.socketServer.broadcast(BackOut.UPDATE_EXT_CONFIG_DATA, state.extConfig);
   };
 
   // Log Namespace
@@ -333,6 +334,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     unzipFile: unzipFile,
     getExtConfigValue: getExtConfigValue,
     setExtConfigValue: setExtConfigValue,
+    onExtConfigChange: state.apiEmitters.ext.onExtConfigChange.event,
 
     // Namespaces
     log: extLog,

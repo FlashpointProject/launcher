@@ -186,4 +186,7 @@ export type ApiEmittersState = Readonly<{
     onServiceRemove: ApiEmitter<flashpoint.ManagedChildProcess>;
     onServiceChange: ApiEmitter<flashpoint.ServiceChange>;
   }>,
+  ext: Readonly<{
+    onExtConfigChange: ApiEmitter<{key: string, value: any}>;
+  }>,
 }>

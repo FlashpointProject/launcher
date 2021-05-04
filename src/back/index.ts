@@ -151,6 +151,9 @@ const state: BackState = {
       onServiceNew: new ApiEmitter<flashpoint.ManagedChildProcess>(),
       onServiceRemove: new ApiEmitter<flashpoint.ManagedChildProcess>(),
       onServiceChange: onServiceChange,
+    },
+    ext: {
+      onExtConfigChange: new ApiEmitter()
     }
   },
   status: {
