@@ -20,6 +20,9 @@
 declare module 'flashpoint-launcher' {
     /** Version of the Flashpoint Launcher */
     const version: string;
+    
+    /** Data Version of the Flashpoint Launcher */
+    const dataVersion: string | undefined;
 
     /** Path to own extension */
     const extensionPath: string;

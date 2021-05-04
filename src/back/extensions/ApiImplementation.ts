@@ -325,6 +325,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
   return <typeof flashpoint>{
     // General information
     version: version,
+    dataVersion: state.customVersion,
     extensionPath: extPath,
     config: state.config,
     getPreferences: getPreferences,
