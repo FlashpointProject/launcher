@@ -58,7 +58,7 @@
     "extApplications": "Applicazione(i)",
     "saveAndRestart": "Salva e Riavvia",
     "saveAndClose": "Salva e Chiudi",
-    "tagFilterGroupEditor": "Editor Gruppo Filtri Etichette"
+    "tagFilterGroupEditor": "Editor Filtri per Gruppi di Etichette"
   },
   "home": {
     "updateHeader": "Aggiornamento Launcher",
@@ -70,7 +70,7 @@
     "quickStartHeader": "Avvio Rapido",
     "hallOfFameInfo": "Vuoi solo il meglio del meglio? Visita la {0}!",
     "hallOfFame": "Hall of Fame",
-    "allGamesInfo": "Stai cercando un gioco? Dai un' occhiata a {0}.",
+    "allGamesInfo": "Stai cercando un gioco? Dai un'occhiata a {0}.",
     "allGames": "Tutti i Giochi",
     "allAnimationsInfo": "Vuoi solo vedere qualcosa? Guarda {0}.",
     "allAnimations": "Tutte le Animazioni",
@@ -98,11 +98,11 @@
   },
   "logs": {
     "filters": "Filtri",
-    "logLevels": "Livelli di Registri",
+    "logLevels": "Livelli di Registro",
     "copyText": "Copia Testo",
     "clearLog": "Svuota Registro Eventi",
     "copy404Urls": "Copia URL 404",
-    "uploadLog": "Carica Registri",
+    "uploadLog": "Carica Registro",
     "copiedToClipboard": "Copiato negli appunti"
   },
   "app": {
