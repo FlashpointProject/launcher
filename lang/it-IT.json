@@ -336,7 +336,7 @@
     "loadArchiveDesc": "Carica uno o più archivi",
     "loadFolder": "Carica Cartella",
     "loadFolderDesc": "Carica una o più cartelle",
-    "scanNewCurationFolders": "Scansiona in cerca di nuovi giochi curati",
+    "scanNewCurationFolders": "Scansione nuovi giochi curati",
     "scanNewCurationFoldersDesc": "Scansiona in cerca di giochi curati che sono stati aggiunti dopo la scansione iniziale",
     "noCurations": "Nessun Gioco Curato",
     "id": "Cartella Gioco Curato",
