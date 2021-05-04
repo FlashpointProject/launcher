@@ -2,7 +2,7 @@
   "name": "Italiano",
   "config": {
     "configHeader": "Impostazioni",
-    "configDesc": "(Devi premere 'Salva & riavvia' per rendere effettive alcune modifiche)",
+    "configDesc": "(Devi premere 'Salva e Riavvia' per rendere effettive alcune modifiche)",
     "preferencesHeader": "Preferenze",
     "extremeGames": "Contenuto Estremo",
     "extremeGamesDesc": "Consenti di mostrare le etichette all'interno dei gruppi di filtro etichette 'Estremo' e i giochi corrispondenti.",
