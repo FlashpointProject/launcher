@@ -94,14 +94,14 @@
     "linuxSupport": "Problemi su Linux? {0}",
     "linuxSupportLinkText": "Apri FAQ",
     "randomPicks": "Selezioni Casuali",
-    "rerollPicks": "Rilaminare le scelte"
+    "rerollPicks": "Rifai Scelte"
   },
   "logs": {
     "filters": "Filtri",
-    "logLevels": "Livelli Di Log",
-    "copyText": "Copia testo",
+    "logLevels": "Livelli di Registri",
+    "copyText": "Copia Testo",
     "clearLog": "Svuota Registro Eventi",
-    "copy404Urls": "Copia 404 URL",
+    "copy404Urls": "Copia URL 404",
     "uploadLog": "Carica Log",
     "copiedToClipboard": "Copiato negli appunti"
   },
