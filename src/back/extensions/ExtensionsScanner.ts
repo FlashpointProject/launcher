@@ -214,20 +214,21 @@ function parseConfigurationProperty(parser: IObjectParserProp<ExtConfigurationPr
     type: 'object',
     default: {},
     enum: [],
-    description: ''
+    description: '',
   };
 
   parser.prop('title',       v => prop.title       = str(v));
   parser.prop('type',        v => prop.type        = toPropType(v));
   parser.prop('description', v => prop.description = str(v));
-  parser.prop('default',     v => prop.default     = v);
+  parser.prop('default',     v => prop.default     = v, true);
+  parser.prop('command',     v => prop.command     = str(v), true);
   parser.prop('enum', true).arrayRaw(item => prop.enum.push(item));
 
   return prop;
 }
 
 function toPropType(v: any): ExtConfigurationProp['type'] {
-  if (v === 'object' || v === 'string' || v === 'boolean' || v === 'number') {
+  if (v === 'object' || v === 'string' || v === 'boolean' || v === 'number' || v === 'button') {
     return v;
   } else {
     throw new Error('Configuration prop type is not valid. (string, object, number or boolean)');

@@ -287,13 +287,15 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   // Check for custom version to report
   const versionFilePath = content.isDev ? path.join(process.cwd(), 'version.txt') : path.join(state.config.flashpointPath, 'version.txt');
-  await fs.access(versionFilePath, fs.constants.F_OK)
+  const customVersion = await fs.access(versionFilePath, fs.constants.F_OK)
   .then(async () => {
-    const data = await fs.readFile(versionFilePath, 'utf8');
-    state.customVersion = data;
-    log.info('Launcher', `Data Version Detected: ${state.customVersion}`);
+    return fs.readFile(versionFilePath, 'utf8');
   })
   .catch(() => { /** File doesn't exist */ });
+  if (customVersion) {
+    state.customVersion = customVersion;
+    log.info('Launcher', `Data Version Detected: ${state.customVersion}`);
+  }
 
   // Setup DB
   if (!state.connection) {
@@ -321,7 +323,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     await state.extensionsService.getExtensionPathIndex(),
     addExtLogFactory,
     versionStr,
-    state
+    state,
   ),
   state.moduleInterceptor);
   await installNodeInterceptor(state.moduleInterceptor);

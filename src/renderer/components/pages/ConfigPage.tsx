@@ -16,6 +16,7 @@ import { getExtIconURL, getPlatformIconURL, isFlashpointValidCheck } from '../..
 import { LangContext } from '../../util/lang';
 import { CheckBox } from '../CheckBox';
 import { ConfigBox } from '../ConfigBox';
+import { ConfigBoxButton } from '../ConfigBoxButton';
 import { ConfigBoxCheckbox } from '../ConfigBoxCheckbox';
 import { ConfigBoxInput } from '../ConfigBoxInput';
 import { ConfigBoxMultiSelect, MultiSelectItem } from '../ConfigBoxMultiSelect';
@@ -919,6 +920,16 @@ function setExtConfigValue(key: string, value: any): void {
 
 function renderExtConfigProp(key: string, prop: ExtConfigurationProp, value: any): JSX.Element | undefined {
   switch (prop.type) {
+    case 'button': {
+      return (
+        <ConfigBoxButton
+          key={key}
+          title={prop.title}
+          description={prop.description}
+          value='Run'
+          onClick={() => window.Shared.back.request(BackIn.RUN_COMMAND, prop.command || '')}/>
+      );
+    }
     case 'boolean':
       return (
         <ConfigBoxCheckbox

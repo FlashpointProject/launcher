@@ -20,6 +20,7 @@ npm-debug.log.*
 /extConfig.json
 /.installed
 /.version
+/version.txt
 /secret.txt
 /launcher.log
 /extern/bluezip/bluezip.db

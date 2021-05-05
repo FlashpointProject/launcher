@@ -2155,6 +2155,9 @@ body {
 .setting__row__content--toggle > div {
   float: right;
 }
+.setting__row__content--button > div {
+  float: right;
+}
 /* Setting Row Content - Redirector */
 .setting__row__content--redirector {
   text-align: right;
