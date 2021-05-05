@@ -249,7 +249,7 @@
     "additionalApplications": "Applicazioni Aggiuntive",
     "noName": "Nessun Nome",
     "launch": "Avvia",
-    "autoRunBefore": "Avvio Automatico Prima",
+    "autoRunBefore": "Avvia Automaticamente Prima",
     "waitForExit": "Attendi l'uscita",
     "applicationPath": "Percorso File dell'applicazione",
     "noApplicationPath": "Nessun Percorso File dell'applicazione",
