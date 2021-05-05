@@ -167,7 +167,7 @@
     "deleteAllPlaylists": "Elimina Tutte le Scalette",
     "deleteAllPlaylistsDesc": "PERICOLOSO! Elimina tutte le scalette.",
     "importMetaEdits": "Importa Modifiche dei Meta",
-    "importMetaEditsDesc": "Importa TUTTE le modifiche dei Meta da `/Data/MetaEdits`",
+    "importMetaEditsDesc": "Importa TUTTE le Modifiche dei Meta da `/Data/MetaEdits`",
     "fixPrimaryAliases": "Correggi Alias Primari",
     "fixPrimaryAliasesDesc": "Aggiungi un alias primario a ogni etichetta a cui ne manca uno",
     "fixCommaTags": "Correggi Etichette con le Virgole",
@@ -179,7 +179,7 @@
     "migrateExtremeGames": "Sposta Giochi Estremi",
     "migrateExtremeGamesDesc": "Rimuove 'Estremo' da ogni gioco e assegna loro l'etichetta 'LEGACY-Extreme'",
     "massImportGameData": "Importa Massivamente i Dati di Gioco",
-    "massImportGameDataDesc": "Importa massivamente pacchetti di dati di gioco, cercando di abbinare i nomi dei file all'UUID di un gioco.",
+    "massImportGameDataDesc": "Importa massivamente pacchetti di Dati dei Giochi, cercando di abbinare i loro nomi all'UUID di un gioco.",
     "servicesHeader": "Servizi in secondo piano",
     "servicesMissing": "Non ci sono servizi.",
     "running": "In esecuzione",
@@ -197,15 +197,15 @@
   "about": {
     "aboutHeader": "Informazioni",
     "flashpoint": "BlueMaxima's Flashpoint",
-    "flashpointDesc": "Il progetto di conservazione per cui è stato costruito questo launcher vuole essere un archivio, un museo e una collezione giocabile di giochi di Internet nati e basati sul web.",
+    "flashpointDesc": "Il progetto di preservazione per cui è stato costruito questo launcher vuole essere un archivio, un museo e una collezione giocabile di giochi di Internet nati e basati sul web.",
     "website": "Sito Web",
     "flashpointLauncher": "Launcher di Flashpoint",
-    "flashpointLauncherDesc": "Un programma open-source per computer desktop utilizzato per sfogliare, gestire e giocare ai giochi del progetto Flashpoint.",
+    "flashpointLauncherDesc": "Un programma open-source per computer desktop con lo scopo di sfogliare, gestire e giocare ai giochi del progetto Flashpoint.",
     "version": "Versione",
     "license": "Licenza",
     "licenseInfo": "MIT (Leggi il file chiamato \"LICENSE\" per maggiori informazioni)",
     "creditsHeader": "Ringraziamenti",
-    "specialThanks": "Ringraziamenti speciali"
+    "specialThanks": "Ringraziamenti Speciali"
   },
   "browse": {
     "noTitle": "Nessun Titolo",
