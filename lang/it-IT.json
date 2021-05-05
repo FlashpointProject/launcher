@@ -113,7 +113,7 @@
     "logs": "Registro Eventi",
     "config": "Impostazioni",
     "about": "Informazioni",
-    "curate": "Cura",
+    "curate": "Curatore",
     "developer": "Sviluppatore",
     "searchPlaceholder": "Cerca...",
     "hideRightSidebar": "Nascondi barra laterale destra",
@@ -127,8 +127,8 @@
     "searchResults": "Risultati Ricerca"
   },
   "filter": {
-    "dateAdded": "Data Aggiunta",
-    "dateModified": "Data Modifica",
+    "dateAdded": "Data di Aggiunta",
+    "dateModified": "Data di Modifica",
     "platform": "Piattaforma",
     "series": "Serie",
     "title": "Titolo",
