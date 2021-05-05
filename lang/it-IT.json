@@ -360,7 +360,7 @@
     "runWithMAD4FP": "Esegui con MAD4FP",
     "export": "Esporta",
     "import": "Importa",
-    "contentFiles": "File di contenuto",
+    "contentFiles": "Lista dei File della Cartella Content",
     "warnings": "Attenzione",
     "noLaunchCommand": "'Esegui Comando' è un campo richiesto. Per favore compilalo prima di importare.",
     "invalidLaunchCommand": "'Esegui comando' non corrisponde a questi requisiti di URL:",
