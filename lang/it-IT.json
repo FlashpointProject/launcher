@@ -431,7 +431,7 @@
   },
   "dialog": {
     "programNotFound": "Programma non trovato!",
-    "phpNotFound": "PHP non è stato trovato nel percorso. È installato?\nPotresti incontrare comportamenti inattesi e malfunzionanti senza di esso.",
+    "phpNotFound": "PHP non è stato trovato nel percorso. È installato?\nPotresti incontrare comportamenti inattesi e malfunzionamenti senza di esso.",
     "wineNotFound": "Wine non è installato, ma è necessario per avviare questo gioco.\nConsulta l'articolo del supporto della wiki Linux per maggiori dettagli.",
     "flashpointPathNotFound": "La cartella Flashpoint non è impostata o non è valida. Vuoi scegliere una cartella in cui installare ora?",
     "fileNotFound": "File non trovato!",
@@ -440,7 +440,7 @@
     "playlistConflict": "Conflitto fra Scalette",
     "importedPlaylistAlreadyExists": "La scaletta importata esiste già con lo stesso nome! - '{0}'",
     "importPlaylistAs": "Importa scaletta come",
-    "selectFileToExportMeta": "Seleziona il file su cui salvare i meta",
+    "selectFileToExportMeta": "Seleziona il file in cui salvare i meta",
     "selectFolderToExportMetaAndImages": "Seleziona la cartella in cui salvare meta e immagini",
     "replaceFilesQuestion": "Sostituire i file?",
     "exportedAlreadyExistsYesNo": "Uno o più file esportati esistono già.\n Sostituirli?",
