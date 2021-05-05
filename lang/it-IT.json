@@ -78,12 +78,12 @@
     "config": "Impostazioni",
     "helpInfo": "Serve aiuto? {0}.",
     "help": "Leggi il manuale",
-    "upgradesHeader": "Potenziamenti",
+    "upgradesHeader": "Aggiornamenti",
     "installComplete": "Installazione Completata",
     "alreadyInstalled": "Già Installato",
     "download": "Scarica",
     "update": "Aggiorna",
-    "checkingUpgradeState": "Controllo Stato Potenziamento...",
+    "checkingUpgradeState": "Controllo Stato Aggiornamenti...",
     "extrasHeader": "Extra",
     "favoritesPlaylist": "Scaletta dei Preferiti",
     "tagList": "Elenco Etichette",
@@ -93,8 +93,8 @@
     "notes": "Non dimenticare di leggere il manuale se riscontri dei problemi.",
     "linuxSupport": "Problemi su Linux? {0}",
     "linuxSupportLinkText": "Apri FAQ",
-    "randomPicks": "Selezioni Casuali",
-    "rerollPicks": "Rifai Scelte"
+    "randomPicks": "Scelta Casuale",
+    "rerollPicks": "Nuova Scelta"
   },
   "logs": {
     "filters": "Filtri",
