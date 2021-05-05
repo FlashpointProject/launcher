@@ -468,7 +468,7 @@
     "overwriteFileTitle": "Il file esiste già!",
     "overwriteFileMessage": "Un file con lo stesso nome esiste già, desideri sovrascriverlo?",
     "overwriteFileDetail": "Percorso del file:",
-    "deleteTagFilterGroup": "Eliminare questo Gruppo di Filtri Etichette?",
+    "deleteTagFilterGroup": "Eliminare questo Filtro per Gruppo di Etichette?",
     "deleteCuration": "Eliminare questo Gioco Curato?",
     "importCuration": "Importare questo Gioco Curato?",
     "deleteGameImage": "Eliminare questa Immagine del Gioco?",
