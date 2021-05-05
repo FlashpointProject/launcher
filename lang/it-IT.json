@@ -124,7 +124,7 @@
     "newGame": "Nuovo Gioco",
     "list": "Elenco",
     "grid": "Griglia",
-    "searchResults": "Risultati Ricerca"
+    "searchResults": "Risultati di Ricerca"
   },
   "filter": {
     "dateAdded": "Data di Aggiunta",
@@ -150,7 +150,7 @@
     "checkGameFieldsDesc": "Elenca tutti i giochi con campi necessari vuoti",
     "checkPlaylists": "Controlla Scalette",
     "checkPlaylistsDesc": "Elenca tutte le scalette con ID duplicati o non validi, o che hanno giochi con ID mancanti, non validi o duplicati",
-    "checkGameFileLocation": "Controlla la Posizione dei File di Gioco",
+    "checkGameFileLocation": "Controlla la Posizione dei File dei Giochi",
     "checkGameFileLocationDesc": "Elenca tutti i giochi con comandi di avvio che non possono essere trasformati in percorsi ai file (questo comando è correlato alla funzione 'Apri Posizione File', non all'avvio del gioco)",
     "checkMissingExecMappings": "Controlla Mappature Exec Mancanti",
     "checkMissingExecMappingsDesc": "Elenca tutte le exec esclusive per win32, linux e darwin che non hanno una mappatura exec",
