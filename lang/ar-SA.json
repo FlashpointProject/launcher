@@ -1,5 +1,5 @@
 {
-  "name": "الانجليزية",
+  "name": "العربية",
   "config": {
     "configHeader": "الإعدادات",
     "configDesc": "(يجب الضغط على \"حفظ وإعادة التشغيل\" حتى تصبح بعض التغييرات سارية المفعول)",
@@ -220,7 +220,7 @@
     "enterTag": "Enter Tag",
     "series": "Series",
     "noSeries": "No Series",
-    "publisher": "Publisher",
+    "publisher": "الناشر",
     "noPublisher": "No Publisher",
     "source": "Source",
     "noSource": "No Source",
