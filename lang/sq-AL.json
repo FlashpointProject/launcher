@@ -381,7 +381,7 @@
   },
   "playlist": {
     "enterDescriptionHere": "Enter a description here...",
-    "noDescription": "No Description",
+    "noDescription": "Asnjë përshkrim",
     "save": "Save",
     "saveDesc": "Save changes made and stop editing",
     "discard": "Discard",
@@ -394,7 +394,7 @@
     "duplicatePlaylistDesc": "Duplicate Playlist",
     "exportPlaylistDesc": "Export playlist to a file",
     "areYouSure": "Are you sure?",
-    "noTitle": "No Title",
+    "noTitle": "Asnjë titull",
     "titlePlaceholder": "Title...",
     "noAuthor": "No Author",
     "authorPlaceholder": "Author...",
