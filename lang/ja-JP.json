@@ -1,5 +1,5 @@
 {
-  "name": "英語",
+  "name": "日本語",
   "config": {
     "configHeader": "設定",
     "configDesc": "(一部の変更を有効にするには、”変更を保存して再起動”を押す必要があります)",
@@ -262,7 +262,7 @@
     "installed": "Installed",
     "notInstalled": "Not Installed",
     "legacyGame": "Legacy Game",
-    "download": "Download",
+    "download": "ダウンロード",
     "thumbnail": "サムネイル",
     "screenshot": "スクリーンショット",
     "dropImageHere": "追加する画像をここにドロップしてください。",
@@ -486,7 +486,7 @@
     "uninstallGame": "Uninstall this Game?",
     "unableToUninstallGameData": "Unable to delete data pack. Is it in use? Try restarting the launcher.",
     "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher.",
-    "downloadingGame": "Downloading Game...",
+    "downloadingGame": "ゲームをダウンロード中...",
     "verifyingGame": "Verifying Game...",
     "aFewMinutes": "This may take a few minutes."
   },
