@@ -201,6 +201,11 @@ declare module 'flashpoint-launcher' {
          * @param library Library to use instead of Playlist defined library
          */
         function createPlaylistFromJson(jsonData: any, library?: string): Playlist;
+        /**
+         * Returns whether a game is extreme based on its tags.
+         * @param game Game to check
+         */
+        function isGameExtreme(game: Game): boolean;
 
         // Events
         const onWillLaunchGame: Event<GameLaunchInfo>;

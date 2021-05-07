@@ -9,6 +9,7 @@ import { BackState, StatusState } from '@back/types';
 import { clearDisposable, dispose, newDisposable, registerDisposable } from '@back/util/lifecycle';
 import { createPlaylistFromJson, getOpenMessageBoxFunc, getOpenOpenDialogFunc, getOpenSaveDialogFunc, removeService, runService, setStatus } from '@back/util/misc';
 import { pathTo7zBack } from '@back/util/SevenZip';
+import { Game } from '@database/entity/Game';
 import { BackOut } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { IExtensionManifest } from '@shared/extensions/interfaces';
@@ -141,6 +142,10 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     updateGame: GameManager.save,
     updateGames: GameManager.updateGames,
     removeGameAndAddApps: (gameId: string) => GameManager.removeGameAndAddApps(gameId, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath)),
+    isGameExtreme: (game: Game) => {
+      const extremeTags = state.preferences.tagFilters.filter(t => t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
+      return game.tagsStr.split(';').findIndex(t => extremeTags.includes(t.trim())) !== -1;
+    },
 
     // Misc
     findPlatforms: GameManager.findPlatforms,
