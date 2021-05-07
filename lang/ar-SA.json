@@ -133,7 +133,7 @@
     "series": "Series",
     "title": "Title",
     "developer": "Developer",
-    "publisher": "Publisher",
+    "publisher": "الناشر",
     "ascending": "Ascending",
     "descending": "Descending"
   },
@@ -221,7 +221,7 @@
     "series": "Series",
     "noSeries": "No Series",
     "publisher": "الناشر",
-    "noPublisher": "No Publisher",
+    "noPublisher": "من غير ناشر",
     "source": "Source",
     "noSource": "No Source",
     "platform": "Platform",
