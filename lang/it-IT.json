@@ -364,7 +364,7 @@
     "warnings": "Attenzione",
     "noLaunchCommand": "'Esegui Comando' è un campo richiesto. Per favore compilalo prima di importare.",
     "invalidLaunchCommand": "'Esegui comando' non corrisponde a questi requisiti di URL:",
-    "releaseDateInvalid": "'Data di pubblicazione' deve seguire il formato AAAA-MM-GG (mese e giorno opzionali).",
+    "releaseDateInvalid": "'Data di pubblicazione' deve seguire il formato AAAA-MM-GG (MM e GG opzionali).",
     "unusedApplicationPath": "'Percorso Applicazione' non valido. Assicurati che sia scritto correttamente!",
     "unusedTags": "Le seguenti etichette non sono presenti in nessun altro gioco. Sono corrette?",
     "unusedPlatform": "'Piattaforma' non valida. Assicurati che sia scritta correttamente!",
