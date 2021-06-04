@@ -16,7 +16,7 @@
     "fallbackLanguageDesc": "اللغة التي سيتم استخدامها بدلًا من اللغة الحالية في حالة عدم اكتمالها.",
     "auto": "تلقائي ({0})",
     "none": "لا شيء",
-    "flashpointHeader": "نقطة مضيئة",
+    "flashpointHeader": "Flashpoint",
     "flashpointPath": "مكان Flashpoint",
     "flashpointPathDesc": "المكان إلى مجلد Flashpoint (يمكن أن يكون نسبيًا).",
     "browse": "تصفّح",
