@@ -32,7 +32,7 @@
     "editTagFilter": "Editar grupo de filtros de etiquetas",
     "duplicateTagFilter": "Duplicar grupo de filtros de etiquetas",
     "deleteTagFilter": "Eliminar grupo de filtros de etiquetas",
-    "appPathOverrides": "Reemplazos de Rutas de Aplicación",
+    "appPathOverrides": "Reemplazos de rutas de aplicación",
     "appPathOverridesDesc": "Reemplaza la ruta de la aplicación de la izquierda con la de la derecha al iniciar juegos.",
     "visualsHeader": "Visuales",
     "useCustomTitleBar": "Usar barra de título personalizada",
