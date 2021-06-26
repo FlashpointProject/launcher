@@ -2,7 +2,7 @@
   "name": "Türkçe",
   "config": {
     "configHeader": "Yapılandırma",
-    "configDesc": "(Bazı değişikliklerin meydana gelmesi için 'Kaydet & Yeniden Başlat'a basmanız gerekir)",
+    "configDesc": "(Bazı değişikliklerin güncellenmesi için 'Kaydet & Yeniden Başlat'a basmanız gerekiyor)",
     "preferencesHeader": "Tercihler",
     "extremeGames": "Ekstrem İçerik",
     "extremeGamesDesc": "'Ekstrem' etiket filtreleme grubu ve 'ekstrem' etiket filtreleme grubuna karşılık gelen oyunların gösterilmesine izin ver.",
