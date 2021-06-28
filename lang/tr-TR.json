@@ -6,7 +6,7 @@
     "preferencesHeader": "Tercihler",
     "extremeGames": "Ekstrem İçerik",
     "extremeGamesDesc": "'Ekstrem' etiket filtreleme grubu ve 'ekstrem' etiket filtreleme grubuna karşılık gelen oyunların gösterilmesine izin ver.",
-    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "hideExtremeScreenshots": "Ekstrem Ekran Görüntülerini Gizle",
     "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
     "enableEditing": "Değişikliklere İzin Ver",
     "enableEditingDesc": "Oyunların ve fazladan eklentilerin düzenlenmesine izin verir. Ayrıca düzenlemeye bağlı seçenekleri gösterir.",
@@ -293,7 +293,7 @@
     "noGameMatchedSearch": "Daha az kısıtlayıcı bir şey aramayı deneyin.",
     "mountParameters": "Mount Parameters",
     "noMountParameters": "No Mount Parameters",
-    "showExtremeScreenshot": "Show Extreme Screenshot"
+    "showExtremeScreenshot": "Ekstrem Ekran Görüntüsünü Göster"
   },
   "tags": {
     "name": "Adı",
@@ -419,7 +419,7 @@
     "complete": "Tamamlandı",
     "exportMetaEditTitle": "Meta Düzenlemesini Dışa Aktar",
     "exportMetaEditDesc": "Dışa aktarılacak tüm özellikleri seç:",
-    "showImage": "Show Image"
+    "showImage": "Resmi Göster"
   },
   "menu": {
     "viewThumbnailInFolder": "Klasördeki küçükresmi İncele",
