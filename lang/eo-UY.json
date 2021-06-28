@@ -6,6 +6,8 @@
     "preferencesHeader": "Agordoj",
     "extremeGames": "Extreme Content",
     "extremeGamesDesc": "Allow tags inside 'Extreme' tag filter groups and corresponding games to be shown.",
+    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
     "enableEditing": "Ebligu Redaktadon",
     "enableEditingDesc": "Ebligu redaktadon de ludoj kaj aldonaj programoj. Ankaŭ montras langetojn rilataj al redaktado.",
     "onDemandImages": "Laŭpetaj Bildoj",
@@ -288,7 +290,10 @@
     "saveAndRestart": "Konservu kaj Rekomencu",
     "thereAreNoGames": "Neniuj ludoj.",
     "noGameMatchedDesc": "Neniu ludotitolo konvenas vian serĉon.",
-    "noGameMatchedSearch": "Provu serĉi ion malpli restriktan."
+    "noGameMatchedSearch": "Provu serĉi ion malpli restriktan.",
+    "mountParameters": "Mount Parameters",
+    "noMountParameters": "No Mount Parameters",
+    "showExtremeScreenshot": "Show Extreme Screenshot"
   },
   "tags": {
     "name": "Nomo",
@@ -413,7 +418,8 @@
     "installingFiles": "Instalanta Dosieroj...",
     "complete": "Kompleta",
     "exportMetaEditTitle": "Eksportu Meta-redakton",
-    "exportMetaEditDesc": "Elektu ĉiujn eksportotajn ecojn:"
+    "exportMetaEditDesc": "Elektu ĉiujn eksportotajn ecojn:",
+    "showImage": "Show Image"
   },
   "menu": {
     "viewThumbnailInFolder": "Vidu Bildeton en Dosierujo",
