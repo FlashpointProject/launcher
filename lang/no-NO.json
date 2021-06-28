@@ -6,6 +6,8 @@
     "preferencesHeader": "Preferanser",
     "extremeGames": "Extreme Content",
     "extremeGamesDesc": "Allow tags inside 'Extreme' tag filter groups and corresponding games to be shown.",
+    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
     "enableEditing": "Tillat Redigering",
     "enableEditingDesc": "Aktivér redigering av spill og andre applikasjoner. Viser også faner knyttet til redigering.",
     "onDemandImages": "On Demand Images",
@@ -288,7 +290,10 @@
     "saveAndRestart": "Save & Restart",
     "thereAreNoGames": "Det er ingen spill her.",
     "noGameMatchedDesc": "Ingen spilltittel passet til søket ditt.",
-    "noGameMatchedSearch": "Prøv å søk etter noe som er mindre innsnevret."
+    "noGameMatchedSearch": "Prøv å søk etter noe som er mindre innsnevret.",
+    "mountParameters": "Mount Parameters",
+    "noMountParameters": "No Mount Parameters",
+    "showExtremeScreenshot": "Show Extreme Screenshot"
   },
   "tags": {
     "name": "Name",
@@ -413,7 +418,8 @@
     "installingFiles": "Installing Files...",
     "complete": "Complete",
     "exportMetaEditTitle": "Export Meta Edit",
-    "exportMetaEditDesc": "Select all properties to export:"
+    "exportMetaEditDesc": "Select all properties to export:",
+    "showImage": "Show Image"
   },
   "menu": {
     "viewThumbnailInFolder": "View Thumbnail in Folder",
