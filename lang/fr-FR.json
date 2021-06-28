@@ -6,6 +6,8 @@
     "preferencesHeader": "Préférences",
     "extremeGames": "Contenu Extrême",
     "extremeGamesDesc": "Allow tags inside 'Extreme' tag filter groups and corresponding games to be shown.",
+    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
     "enableEditing": "Activer le mode édition",
     "enableEditingDesc": "Active l'édition des jeux et des applications supplémentaires. Affiche également les onglets liés à l'édition.",
     "onDemandImages": "Images sur demande",
@@ -288,7 +290,10 @@
     "saveAndRestart": "Sauvegarder & redémarrer",
     "thereAreNoGames": "Il n'y a aucun jeu.",
     "noGameMatchedDesc": "Aucun titre de jeu ne correspond à ta recherche.",
-    "noGameMatchedSearch": "Essaie de chercher quelque chose de moins restrictif."
+    "noGameMatchedSearch": "Essaie de chercher quelque chose de moins restrictif.",
+    "mountParameters": "Mount Parameters",
+    "noMountParameters": "No Mount Parameters",
+    "showExtremeScreenshot": "Show Extreme Screenshot"
   },
   "tags": {
     "name": "Nom",
@@ -413,7 +418,8 @@
     "installingFiles": "Installation des fichiers...",
     "complete": "Fini",
     "exportMetaEditTitle": "Exporter les meta-modifications",
-    "exportMetaEditDesc": "Sélectionner toutes les propriétés à exporter :"
+    "exportMetaEditDesc": "Sélectionner toutes les propriétés à exporter :",
+    "showImage": "Show Image"
   },
   "menu": {
     "viewThumbnailInFolder": "Voir la miniature dans le dossier",
