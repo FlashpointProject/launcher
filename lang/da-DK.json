@@ -6,6 +6,8 @@
     "preferencesHeader": "Preferencer",
     "extremeGames": "Extreme Content",
     "extremeGamesDesc": "Allow tags inside 'Extreme' tag filter groups and corresponding games to be shown.",
+    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
     "enableEditing": "Tænd Redigering",
     "enableEditingDesc": "Aktiver redigering af spil og yderligere programmer. Viser også faner relateret til redigering.",
     "onDemandImages": "Ved Efterspørgselsbilleder",
@@ -288,7 +290,10 @@
     "saveAndRestart": "Gem & Genstart",
     "thereAreNoGames": "Der er ingen spil.",
     "noGameMatchedDesc": "Ingen game titel har matchet din søgning.",
-    "noGameMatchedSearch": "Prøv at søge på noget mindre restriktivt."
+    "noGameMatchedSearch": "Prøv at søge på noget mindre restriktivt.",
+    "mountParameters": "Mount Parameters",
+    "noMountParameters": "No Mount Parameters",
+    "showExtremeScreenshot": "Show Extreme Screenshot"
   },
   "tags": {
     "name": "Navn",
@@ -413,7 +418,8 @@
     "installingFiles": "Installerer filer...",
     "complete": "Færdig",
     "exportMetaEditTitle": "Eksporter Meta Rediger",
-    "exportMetaEditDesc": "Vælg alle egenskaber at eksportere:"
+    "exportMetaEditDesc": "Vælg alle egenskaber at eksportere:",
+    "showImage": "Show Image"
   },
   "menu": {
     "viewThumbnailInFolder": "Vis Thumbnail i Folderen",
