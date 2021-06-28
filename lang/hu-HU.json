@@ -6,6 +6,8 @@
     "preferencesHeader": "Preferenciák",
     "extremeGames": "Extrém tartalom",
     "extremeGamesDesc": "Tagek láthatóságának engedélyezése az 'Extrém' tag-el szűrt csoportokban és a megegyező játékok mutatása.",
+    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
     "enableEditing": "Szerkesztés engedélyezése",
     "enableEditingDesc": "Játékok és további alkalmazások módosítását engedélyezi, valamint a szerkesztéshez kapcsolódó lapokat is mutatja.",
     "onDemandImages": "Igény szerinti Képek",
@@ -288,7 +290,10 @@
     "saveAndRestart": "Mentés és újraindítás",
     "thereAreNoGames": "Nincsenek játékok.",
     "noGameMatchedDesc": "Nincs megfelelő találat a keresésre.",
-    "noGameMatchedSearch": "Próbáljon meg szélesebb körben keresni."
+    "noGameMatchedSearch": "Próbáljon meg szélesebb körben keresni.",
+    "mountParameters": "Mount Parameters",
+    "noMountParameters": "No Mount Parameters",
+    "showExtremeScreenshot": "Show Extreme Screenshot"
   },
   "tags": {
     "name": "Név",
@@ -413,7 +418,8 @@
     "installingFiles": "Fájlok telepítése...",
     "complete": "Kész",
     "exportMetaEditTitle": "Meta módosítás exportálása",
-    "exportMetaEditDesc": "Válassza ki az összes exportálni kívánt tulajdonságot"
+    "exportMetaEditDesc": "Válassza ki az összes exportálni kívánt tulajdonságot",
+    "showImage": "Show Image"
   },
   "menu": {
     "viewThumbnailInFolder": "Előnézeti kép megtekintése mappában",
