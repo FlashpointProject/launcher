@@ -6,6 +6,8 @@
     "preferencesHeader": "Tuỳ chọn",
     "extremeGames": "Nội dung cực đoan",
     "extremeGamesDesc": "Cho phép các thẻ bên trong các nhóm bộ lọc thẻ 'Cực đoan' và các trò chơi tương ứng được hiển thị.",
+    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
     "enableEditing": "Bật khả năng chỉnh sửa",
     "enableEditingDesc": "Cho phép sửa trò chơi và phần mềm đi kèm. Cũng hiện thêm các mục liên quan đến việc chỉnh sửa.",
     "onDemandImages": "Tải hình khi cần",
@@ -288,7 +290,10 @@
     "saveAndRestart": "Lưu & Khởi động lại",
     "thereAreNoGames": "Không có trò chơi nào cả.",
     "noGameMatchedDesc": "Không tìm thấy trò chơi phù hợp.",
-    "noGameMatchedSearch": "Hãy tìm từ khoá chung chung hơn."
+    "noGameMatchedSearch": "Hãy tìm từ khoá chung chung hơn.",
+    "mountParameters": "Mount Parameters",
+    "noMountParameters": "No Mount Parameters",
+    "showExtremeScreenshot": "Show Extreme Screenshot"
   },
   "tags": {
     "name": "Tên",
@@ -413,7 +418,8 @@
     "installingFiles": "Đang cài đặt tập tin...",
     "complete": "Hoàn thành",
     "exportMetaEditTitle": "Xuất sửa đổi meta",
-    "exportMetaEditDesc": "Chọn tất cả thuộc tính cần xuất:"
+    "exportMetaEditDesc": "Chọn tất cả thuộc tính cần xuất:",
+    "showImage": "Show Image"
   },
   "menu": {
     "viewThumbnailInFolder": "Xem ảnh thu nhỏ trong thư mục",
