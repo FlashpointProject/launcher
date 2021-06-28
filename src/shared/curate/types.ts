@@ -54,6 +54,7 @@ export type EditCurationMeta = Partial<{
   version: string;
   originalDescription: string;
   language: string;
+  mountParameters: string;
 }>
 
 /** Meta data of an additional application curation. */

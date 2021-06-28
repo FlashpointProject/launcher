@@ -23,6 +23,16 @@ const config = {
 };
 // Files to copy after packing
 const copyFiles = [
+  {
+    from :'./extern/utils',
+    to: './extern/utils',
+    filter: ['**']
+  },
+  {
+    from :'./extern/bluezip',
+    to: './extern/bluezip',
+    filter: ['**']
+  },
   { // Only copy 7zip execs for packed platform
     from: './extern/7zip-bin',
     to: './extern/7zip-bin',
@@ -140,7 +150,7 @@ gulp.task('pack', (done) => {
         './build',
       ],
       extraFiles: copyFiles, // Files to copy to the build folder
-      compression: 'maximum', // Only used if a compressed target (like 7z, nsis, dmg etc)
+      compression: 'maximum', // Only used if a compressed target (like 7z, nsis, dmg etc.)
       target: 'dir',
       asar: true,
       publish: publish,

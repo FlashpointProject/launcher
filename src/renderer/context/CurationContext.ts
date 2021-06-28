@@ -193,6 +193,19 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
       }
       return { ...prevState, curations: nextCurations };
     }
+    // Sorts all curations A-Z
+    case 'sort-curations': {
+      const newCurations = [...prevState.curations].sort((a, b) => {
+        if (a.meta.title) {
+          if (b.meta.title) {
+            return a.meta.title.localeCompare(b.meta.title);
+          }
+          return 1;
+        }
+        return -1;
+      });
+      return { ...prevState, curations: newCurations };
+    }
     // Change the lock status of a curation
     case 'change-curation-lock': {
       // Find the curation
@@ -324,6 +337,8 @@ export type CurationAction = (
     /** Value to set the property to. */
     value: EditAddAppCurationMeta[keyof EditAddAppCurationMeta];
   }> |
+  /** Sort Curations A-Z */
+  ReducerAction<'sort-curations', {}> |
   /** Change the lock status of a curation. */
   ReducerAction<'change-curation-lock', {
     /** Key of the curation to change the lock status of. */

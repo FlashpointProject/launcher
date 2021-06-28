@@ -16,6 +16,7 @@ export function convertGameToCurationMetaFile(game: Game, categories: TagCategor
   });
   // Game meta
   parsed['Title']                = game.title;
+  parsed['Alternate Titles']     = game.alternateTitles;
   parsed['Series']               = game.series;
   parsed['Developer']            = game.developer;
   parsed['Publisher']            = game.publisher;
@@ -102,6 +103,7 @@ export function convertEditToCurationMetaFile(curation: EditCurationMeta, catego
   parsed['Game Notes']           = curation.notes;
   parsed['Original Description'] = curation.originalDescription;
   parsed['Curation Notes']       = curation.curationNotes;
+  parsed['Mount Parameters']     = curation.mountParameters;
   // Add-apps meta
   const parsedAddApps: CurationFormatAddApps = {};
   if (addApps) {
@@ -175,6 +177,7 @@ export function convertParsedToCurationMeta(curation: ParsedCurationMeta, catego
   parsed['Game Notes']           = curation.game.notes;
   parsed['Original Description'] = curation.game.originalDescription;
   parsed['Curation Notes']       = curation.game.curationNotes;
+  parsed['Mount Parameters']     = curation.game.mountParameters;
   // Add-apps meta
   const parsedAddApps: CurationFormatAddApps = {};
   if (curation.addApps) {
@@ -238,6 +241,7 @@ type CurationMetaFile = {
   'Version'?: string;
   'Additional Applications'?: CurationFormatAddApps;
   'Curation Notes'?: string;
+  'Mount Parameters'?: string;
 };
 
 type CurationFormatAddApps = {

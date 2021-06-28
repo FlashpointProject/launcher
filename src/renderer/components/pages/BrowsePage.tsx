@@ -36,7 +36,7 @@ type OwnProps = {
   playlists: Playlist[];
   suggestions: Partial<GamePropSuggestions>;
   playlistIconCache: Record<string, string>;
-  onSaveGame: (game: Game, playlistEntry?: PlaylistGame) => void;
+  onSaveGame: (game: Game, playlistEntry?: PlaylistGame) => Promise<Game | undefined>;
   onDeleteGame: (gameId: string) => void;
   onQuickSearch: (search: string) => void;
   onOpenExportMetaEdit: (gameId: string) => void;
@@ -177,6 +177,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     const strings = this.context;
     const { games, selectedGameId, selectedPlaylistId } = this.props;
     const { draggedGameId } = this.state;
+    const extremeTags = this.props.preferencesData.tagFilters.filter(t => !t.enabled && t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
     // Render
     return (
       <div
@@ -229,10 +230,11 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   gamesTotal={this.props.gamesTotal}
                   selectedGameId={selectedGameId}
                   draggedGameId={draggedGameId}
+                  extremeTags={extremeTags}
                   noRowsRenderer={this.noRowsRendererMemo(strings.browse)}
                   onGameSelect={this.onGameSelect}
                   onGameLaunch={this.onGameLaunch}
-                  onContextMenu={this.onGameContextMenuMemo(strings)}
+                  onContextMenu={this.onGameContextMenuMemo(this.props.playlists, strings, this.props.selectedPlaylistId)}
                   onGameDragStart={this.onGameDragStart}
                   onGameDragEnd={this.onGameDragEnd}
                   cellWidth={width}
@@ -249,10 +251,11 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   selectedGameId={selectedGameId}
                   draggedGameId={draggedGameId}
                   showExtremeIcon={this.props.preferencesData.browsePageShowExtreme}
+                  extremeTags={extremeTags}
                   noRowsRenderer={this.noRowsRendererMemo(strings.browse)}
                   onGameSelect={this.onGameSelect}
                   onGameLaunch={this.onGameLaunch}
-                  onContextMenu={this.onGameContextMenuMemo(strings)}
+                  onContextMenu={this.onGameContextMenuMemo(this.props.playlists, strings, this.props.selectedPlaylistId)}
                   onGameDragStart={this.onGameDragStart}
                   onGameDragEnd={this.onGameDragEnd}
                   updateView={this.props.updateView}
@@ -270,6 +273,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           onResize={this.onRightSidebarResize}>
           <ConnectedRightBrowseSidebar
             currentGame={this.state.currentGame}
+            isExtreme={this.state.currentGame ? this.state.currentGame.tags.reduce<boolean>((prev, next) => extremeTags.includes(next.primaryAlias.name), false) : false}
             gameRunning={this.props.gameRunning}
             currentPlaylistEntry={this.state.currentPlaylistEntry}
             currentLibrary={this.props.gameLibrary}
@@ -281,11 +285,13 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             isEditing={this.state.isEditingGame}
             isNewGame={this.state.isNewGame}
             onEditGame={this.onEditGame}
+            onUpdateActiveGameData={this.onUpdateActiveGameData}
             onEditClick={this.onStartEditClick}
             onDiscardClick={this.onDiscardEditClick}
             onSaveGame={this.onSaveEditClick}
             tagCategories={this.props.tagCategories}
-            suggestions={this.props.suggestions} />
+            suggestions={this.props.suggestions}
+            onOpenExportMetaEdit={this.props.onOpenExportMetaEdit} />
         </ResizableSidebar>
       </div>
     );
@@ -361,7 +367,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     };
   });
 
-  private onGameContextMenuMemo = memoizeOne((strings: LangContainer) => {
+  private onGameContextMenuMemo = memoizeOne((playlists: Playlist[], strings: LangContainer, selectedPlaylistId?: string, ) => {
     return (gameId: string) => {
       const contextButtons: MenuItemConstructorOptions[] = [{
         /* File Location */
@@ -369,40 +375,55 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         enabled: !window.Shared.isBackRemote, // (Local "back" only)
         click: () => {
           window.Shared.back.request(BackIn.GET_GAME, gameId)
-          .then(game => {
+          .then(async (game) => {
             if (game) {
-              const gamePath = getGamePath(game, window.Shared.config.fullFlashpointPath, window.Shared.config.data.htdocsFolderPath);
-              if (gamePath) {
-                fs.stat(gamePath, error => {
-                  if (!error) { remote.shell.showItemInFolder(gamePath); }
-                  else {
-                    const opts: Electron.MessageBoxOptions = {
-                      type: 'warning',
-                      message: '',
-                      buttons: ['Ok'],
-                    };
-                    if (error.code === 'ENOENT') {
-                      opts.title = this.context.dialog.fileNotFound;
-                      opts.message = (
-                        'Failed to find the game file.\n'+
-                        'If you are using Flashpoint Infinity, make sure you download the game first.\n'
-                      );
-                    } else {
-                      opts.title = 'Unexpected error';
-                      opts.message = (
-                        'Failed to check the game file.\n'+
-                        'If you see this, please report it back to us (a screenshot would be great)!\n\n'+
-                        `Error: ${error}\n`
-                      );
-                    }
-                    opts.message += `Path: "${gamePath}"\n\nNote: If the path is too long, some portion will be replaced with three dots ("...").`;
-                    remote.dialog.showMessageBox(opts);
-                  }
-                });
+              const gamePath = await getGamePath(game, window.Shared.config.fullFlashpointPath, window.Shared.preferences.data.htdocsFolderPath, window.Shared.preferences.data.dataPacksFolderPath);
+              try {
+                if (gamePath) {
+                  await fs.promises.stat(gamePath);
+                  remote.shell.showItemInFolder(gamePath);
+                } else {
+                  const opts: Electron.MessageBoxOptions = {
+                    type: 'warning',
+                    message: 'GameData has not been downloaded yet, cannot open the file location!',
+                    buttons: ['Ok'],
+                  };
+                  remote.dialog.showMessageBox(opts);
+                  return;
+                }
+              } catch (error) {
+                const opts: Electron.MessageBoxOptions = {
+                  type: 'warning',
+                  message: '',
+                  buttons: ['Ok'],
+                };
+                if (error.code === 'ENOENT') {
+                  opts.title = this.context.dialog.fileNotFound;
+                  opts.message = (
+                    'Failed to find the game file.\n'+
+                    'If you are using Flashpoint Infinity, make sure you download the game first.\n'
+                  );
+                } else {
+                  opts.title = 'Unexpected error';
+                  opts.message = (
+                    'Failed to check the game file.\n'+
+                    'If you see this, please report it back to us (a screenshot would be great)!\n\n'+
+                    `Error: ${error}\n`
+                  );
+                }
+                opts.message += `Path: "${gamePath}"\n\nNote: If the path is too long, some portion will be replaced with three dots ("...").`;
+                remote.dialog.showMessageBox(opts);
               }
             }
           });
         },
+      }, {
+        type: 'submenu',
+        label: strings.menu.addToPlaylist,
+        enabled: playlists.length > 0,
+        submenu: UniquePlaylistMenuFactory(playlists,
+          (playlistId) => window.Shared.back.send(BackIn.ADD_PLAYLIST_GAME, playlistId, gameId),
+          selectedPlaylistId)
       }, {  type: 'separator' }, {
         /* Duplicate Meta */
         label: strings.menu.duplicateMetaOnly,
@@ -514,8 +535,8 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     }
   }
 
-  onGameLaunch = (gameId: string): void => {
-    window.Shared.back.send(BackIn.LAUNCH_GAME, gameId);
+  onGameLaunch = async (gameId: string): Promise<void> => {
+    await window.Shared.back.request(BackIn.LAUNCH_GAME, gameId);
   }
 
   onCenterKeyDown = (event: React.KeyboardEvent): void => {
@@ -552,7 +573,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     event.dataTransfer.clearData(gameIdDataType);
   }
 
-  onDeleteSelectedGame = (): void => {
+  onDeleteSelectedGame = async (): Promise<void> => {
     // Delete the game
     if (this.props.selectedGameId) {
       this.props.onDeleteGame(this.props.selectedGameId);
@@ -599,9 +620,13 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   onEditGame = (game: Partial<Game>) => {
+    log.debug('Launcher', `Editing: ${JSON.stringify(game)}`);
     if (this.state.currentGame) {
+      const newGame = new Game();
+      Object.assign(newGame, {...this.state.currentGame, ...game});
+      newGame.updateTagsStr();
       this.setState({
-        currentGame: {...this.state.currentGame, ...game}
+        currentGame: newGame
       });
     }
   }
@@ -656,17 +681,33 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     this.focusGameGridOrList();
   }
 
-  onSaveEditClick = (): void => {
+  onSaveEditClick = async (): Promise<void> => {
     if (!this.state.currentGame) {
       console.error('Can\'t save game. "currentGame" is missing.');
       return;
     }
-    this.props.onSaveGame(this.state.currentGame, this.state.currentPlaylistEntry);
+    const game = await this.props.onSaveGame(this.state.currentGame, this.state.currentPlaylistEntry);
     this.setState({
+      currentGame: game,
       isEditingGame: false,
       isNewGame: false
     });
     this.focusGameGridOrList();
+  }
+
+  onUpdateActiveGameData = (activeDataOnDisk: boolean, activeDataId?: number): void => {
+    if (this.state.currentGame) {
+      const newGame = new Game();
+      Object.assign(newGame, {...this.state.currentGame, activeDataOnDisk, activeDataId });
+      window.Shared.back.request(BackIn.SAVE_GAME, newGame)
+      .then(() => {
+        if (this.state.currentGame) {
+          const newGame = new Game();
+          Object.assign(newGame, {...this.state.currentGame, activeDataOnDisk, activeDataId });
+          this.setState({ currentGame: newGame });
+        }
+      });
+    }
   }
 
   /** Create a new game if the "New Game" button was clicked */
@@ -675,36 +716,39 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     const id = uuid();
     // Create a new game if the "New Game" button is pushed
     if (wasNewGameClicked && !prevWasNewGameClicked) {
+      const newGame = new Game();
+      Object.assign(newGame, {
+        id: id,
+        parentGameId: id,
+        title: '',
+        alternateTitles: '',
+        series: '',
+        developer: '',
+        publisher: '',
+        platform: '',
+        dateAdded: new Date().toISOString(),
+        dateModified: new Date().toISOString(),
+        broken: false,
+        extreme: false,
+        playMode: '',
+        status: '',
+        notes: '',
+        tags: [],
+        source: '',
+        applicationPath: '',
+        launchCommand: '',
+        releaseDate: '',
+        version: '',
+        originalDescription: '',
+        language: '',
+        library: this.props.gameLibrary,
+        orderTitle: '',
+        addApps: [],
+        placeholder: false,
+        activeDataOnDisk: false
+      });
       cb({
-        currentGame: {
-          id: id,
-          parentGameId: id,
-          title: '',
-          alternateTitles: '',
-          series: '',
-          developer: '',
-          publisher: '',
-          platform: '',
-          dateAdded: new Date().toISOString(),
-          dateModified: new Date().toISOString(),
-          broken: false,
-          extreme: false,
-          playMode: '',
-          status: '',
-          notes: '',
-          tags: [],
-          source: '',
-          applicationPath: '',
-          launchCommand: '',
-          releaseDate: '',
-          version: '',
-          originalDescription: '',
-          language: '',
-          library: this.props.gameLibrary,
-          orderTitle: '',
-          addApps: [],
-          placeholder: false,
-        },
+        currentGame: newGame,
         isEditingGame: true,
         isNewGame: true,
       });
@@ -974,4 +1018,15 @@ function toDataURL(url: string): Promise<FileReaderResult> {
     reader.onerror = reject;
     reader.readAsDataURL(blob);
   }));
+}
+
+function UniquePlaylistMenuFactory(playlists: Playlist[], onClick: (playlistId: string) => any, selectedPlaylistId?: string): MenuItemConstructorOptions[] {
+  return playlists.filter(p => p.id != selectedPlaylistId)
+  .map(p => {
+    return {
+      label: p.title || 'No Title',
+      enabled: true,
+      click: () => onClick(p.id)
+    };
+  });
 }

@@ -45,7 +45,7 @@ export class TagsPage extends React.Component<TagsPageProps, TagsPageState> {
   }
 
   componentDidMount() {
-    window.Shared.back.request(BackIn.GET_TAGS, '')
+    window.Shared.back.request(BackIn.GET_TAGS, '', this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme)))
     .then((data) => {
       if (data) { this.onTagsChange(data); }
     });

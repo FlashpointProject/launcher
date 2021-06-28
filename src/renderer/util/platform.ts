@@ -1,6 +1,6 @@
 import { Game } from '@database/entity/Game';
 
-/** platform.ts is suggestion.ts modified for retreival of platform type */
+/** platform.ts is suggestion.ts modified for retrieval of platform type */
 export function getPlatforms(games: Game[]): string [] {
   // Get the values from the game collection
   const map: { [key: string]: true } = {};

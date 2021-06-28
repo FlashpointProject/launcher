@@ -1,7 +1,13 @@
+import * as axiosImport from 'axios';
+import { Tag, TagFilterGroup } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as path from 'path';
-import { parseVariableString } from './utils/VariableString';
+import { DownloadDetails } from './back/types';
 import { AppConfigData } from './config/interfaces';
+import { parseVariableString } from './utils/VariableString';
+import { throttle } from './utils/throttle';
+
+const axios = axiosImport.default;
 
 export function getFileServerURL() {
   return `http://${window.Shared.backUrl.hostname}:${window.Shared.fileServerPort}`;
@@ -366,10 +372,10 @@ export function createErrorProxy(title: string): any {
     // @TODO Make it throw errors for all(?) cases (delete, construct etc.)
     get: (target, p, receiver) => {
       if (p === errorProxySymbol) { return errorProxyValue; }
-      throw new Error(`You must not get a value from ${title} before it is initialzed (property: "${p.toString()}").`);
+      throw new Error(`You must not get a value from ${title} before it is initialized (property: "${p.toString()}").`);
     },
     set: (target, p, value, receiver) => {
-      throw new Error(`You must not set a value from ${title} before it is initialzed (property: "${p.toString()}").`);
+      throw new Error(`You must not set a value from ${title} before it is initialized (property: "${p.toString()}").`);
     },
   });
 }
@@ -420,4 +426,61 @@ export function canReadWrite(folder: string): Promise<boolean> {
 export function getRandomHexColor(): string {
   const num = '#'+(Math.random()*(1<<24)|0).toString(16);
   return num.padEnd(7, '0');
+}
+
+export function tagSort(tagA: Tag, tagB: Tag): number {
+  const catIdA = tagA.category ? tagA.category.id : tagA.categoryId;
+  const catIdB = tagB.category ? tagB.category.id : tagB.categoryId;
+  if (catIdA && catIdB) {
+    if (catIdA > catIdB) { return 1;  }
+    if (catIdB > catIdA) { return -1; }
+  }
+  if (tagA.primaryAlias.name > tagB.primaryAlias.name) { return 1;  }
+  if (tagB.primaryAlias.name > tagA.primaryAlias.name) { return -1; }
+  return 0;
+}
+
+export async function downloadFile(url: string, filePath: string, onProgress?: (percent: number) => void, onDetails?: (details: DownloadDetails) => void): Promise<number> {
+  try {
+    const res = await axios.get(url, {
+      responseType: 'stream'
+    });
+    let progress = 0;
+    const contentLength = res.headers['content-length'];
+    onDetails && onDetails({ downloadSize: contentLength });
+    const progressThrottle = onProgress && throttle(onProgress, 200);
+    const fileStream = fs.createWriteStream(filePath);
+    return new Promise<number>((resolve, reject) => {
+      fileStream.on('close', () => {
+        resolve(res.status);
+      });
+      res.data.on('end', () => {
+        fileStream.close();
+        onProgress && onProgress(100);
+      });
+      res.data.on('data', (chunk: any) => {
+        progress = progress + chunk.length;
+        progressThrottle && progressThrottle((progress / contentLength) * 100);
+        fileStream.write(chunk);
+      });
+      res.data.on('error', async () => {
+        fileStream.close();
+        await fs.promises.unlink(filePath);
+        reject(res.status);
+      });
+    });
+  } catch (error) {
+    throw `Error opening Axios request. Do you have internet access?: ${error}`;
+  }
+}
+
+export function generateTagFilterGroup(tags?: string[]): TagFilterGroup {
+  return {
+    name: '',
+    enabled: true,
+    extreme: false,
+    tags: tags || [],
+    categories: [],
+    childFilters: []
+  };
 }

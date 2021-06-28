@@ -7,8 +7,8 @@ import { Coerce } from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import * as fs from 'fs';
 import * as path from 'path';
-import { GameManager } from './game/GameManager';
-import { TagManager } from './game/TagManager';
+import * as GameManager from './game/GameManager';
+import * as TagManager from './game/TagManager';
 import { ShowMessageBoxFunc } from './types';
 import { copyError } from './util/misc';
 
@@ -61,6 +61,13 @@ function parseMetaEditMeta(parser: IObjectParserProp<any>) : MetaEditMeta {
     if (!parsed.tags) { throw new Error('"parsed.tags" is missing (bug)'); }
     parsed.tags.push(str(v));
   });
+  // Extreme Migration
+  if (parsed.extreme) {
+    parsed.extreme = false;
+    if (parsed.tags && parsed.tags.findIndex(t => t === 'LEGACY-Extreme') === -1) {
+      parsed.tags.push('LEGACY-Extreme');
+    }
+  }
 
   return parsed;
 }
@@ -331,7 +338,7 @@ export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDi
       }
     }
 
-    GameManager.updateGame(game);
+    GameManager.save(game);
   }
 
   return {

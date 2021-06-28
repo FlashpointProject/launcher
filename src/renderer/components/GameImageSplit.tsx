@@ -50,7 +50,7 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
   }
 
   render() {
-    const strings = this.context.misc;
+    const strings = this.context;
     const { disabled, imgSrc, text, showHeaders } = this.props;
     const { hover, showPreview } = this.state;
     // Class name
@@ -69,9 +69,9 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
         onDrop={this.onDrop}>
         { (imgSrc === undefined) ? (
           <div className='game-image-split__not-found'>
-            <h1>{formatString(strings.noBlankFound, text)}</h1>
+            <h1>{formatString(strings.misc.noBlankFound, text)}</h1>
             <SimpleButton
-              value={formatString(strings.addBlank, text)}
+              value={formatString(strings.misc.addBlank, text)}
               onClick={this.onAddClick}
               disabled={disabled} />
           </div>
@@ -79,9 +79,10 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
           <div className='game-image-split__buttons'>
             {showHeaders ? <p>{text}</p> : undefined}
             <ConfirmElement
+              message={strings.dialog.deleteGameImage}
               onConfirm={this.onRemoveClick}
               render={renderDeleteImageButton}
-              extra={[strings, text, !!disabled]} />
+              extra={[strings.misc, text, !!disabled]} />
             { showPreview ? (
               <ImagePreview
                 src={this.props.imgSrc}
@@ -145,18 +146,16 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
   static contextType = LangContext;
 }
 
-function renderDeleteImageButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[LangContainer['misc'], string, boolean]>): JSX.Element {
+function renderDeleteImageButton({ confirm, extra }: ConfirmElementArgs<[LangContainer['misc'], string, boolean]>): JSX.Element {
   const [ strings, text, disabled ] = extra;
   return (
     <div
       className={
         'game-image-split__buttons__remove-image' +
-        ((activationCounter > 0) ? ' game-image-split__buttons__remove-image--active simple-vertical-shake' : '') +
         (disabled ? ' game-image-split__buttons__remove-image--disabled' : '')
       }
       title={formatString(strings.deleteAllBlankImages, text)}
-      onClick={!disabled ? activate : undefined}
-      onMouseLeave={reset}>
+      onClick={!disabled ? confirm : undefined} >
       <OpenIcon icon='trash' />
     </div>
   );

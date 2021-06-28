@@ -3,7 +3,8 @@ import { Game } from '../../database/entity/Game';
 
 export namespace ModelUtils {
   export function createGame(): Game {
-    return {
+    const game = new Game();
+    Object.assign(game, {
       id: '',
       title: '',
       alternateTitles: '',
@@ -19,6 +20,7 @@ export namespace ModelUtils {
       status: '',
       notes: '',
       tags: [],
+      tagsStr: '',
       source: '',
       applicationPath: '',
       launchCommand: '',
@@ -29,8 +31,10 @@ export namespace ModelUtils {
       library: '',
       orderTitle: '',
       addApps: [],
-      placeholder: false
-    };
+      placeholder: false,
+      activeDataOnDisk: false
+    });
+    return game;
   }
 
   export function createAddApp(game: Game): AdditionalApp {

@@ -9,8 +9,9 @@ import { CurationIndex, EditCuration, EditCurationMeta, IndexedContent } from '@
 import { getContentFolderByKey, getCurationFolder, indexContentFolder } from '@shared/curate/util';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
-import { deepCopy, fixSlashes, sizeToString } from '@shared/Util';
+import { deepCopy, fixSlashes, generateTagFilterGroup, sizeToString } from '@shared/Util';
 import { remote } from 'electron';
+import { TagFilterGroup } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import { add } from 'node-7z';
 import * as path from 'path';
@@ -24,7 +25,6 @@ import { createCurationImage, curationLog } from '../curate/util';
 import { toForcedURL } from '../Util';
 import { LangContext } from '../util/lang';
 import { pathTo7z } from '../util/SevenZip';
-import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { CurateBoxAddApp } from './CurateBoxAddApp';
 import { CurateBoxRow } from './CurateBoxRow';
@@ -36,7 +36,7 @@ import { AutoProgressComponent } from './ProgressComponents';
 import { SimpleButton } from './SimpleButton';
 import { TagInputField } from './TagInputField';
 
-type CurateBoxProps = {
+export type CurateBoxProps = {
   /** Meta data of the curation to display. */
   curation?: EditCuration;
   /** Dispatcher for the curate page state reducer. */
@@ -51,6 +51,8 @@ type CurateBoxProps = {
   tagCategories: TagCategory[];
   mad4fpEnabled: boolean;
   symlinkCurationContent: boolean;
+  tagFilters: TagFilterGroup[];
+  showExtremeSuggestions: boolean;
 }
 
 /** A box that displays and lets the user edit a curation. */
@@ -97,9 +99,11 @@ export function CurateBox(props: CurateBoxProps) {
     const newTag = event.currentTarget.value;
     let newSuggestions: TagSuggestion[] = tagSuggestions;
 
-    if (newTag !== '') {
+    if (newTag !== '' && props.curation) {
       // Delayed set
-      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag)
+      // TODO: Add tag suggestion filtering here
+      const existingTags = props.curation.meta.tags ? props.curation.meta.tags.reduce<string[]>((prev, cur) => prev.concat(cur.primaryAlias.name), []) : undefined;
+      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag, props.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !props.showExtremeSuggestions)).concat([generateTagFilterGroup(existingTags)]))
       .then((data) => {
         if (data) { setTagSuggestions(data); }
       });
@@ -109,7 +113,7 @@ export function CurateBox(props: CurateBoxProps) {
 
     setTagInputText(newTag);
     setTagSuggestions(newSuggestions);
-  }, [tagSuggestions]);
+  }, [tagSuggestions, props.tagFilters]);
 
   const onAddTagSuggestion = useCallback((suggestion: TagSuggestion) => {
     if (suggestion.tag.id) {
@@ -142,13 +146,14 @@ export function CurateBox(props: CurateBoxProps) {
       .then((tag) => {
         if (tag) {
           const curation = props.curation;
-          if (curation && curation.meta.tags && curation.meta.tags.findIndex(t => t.id == tag.id) == -1) {
+          const oldTags = curation ? (curation.meta.tags || []) : [];
+          if (curation && oldTags.findIndex(t => t.id === tag.id) === -1) {
             props.dispatch({
               type: 'edit-curation-meta',
               payload: {
                 key: curation.key,
                 property: 'tags',
-                value: [...curation.meta.tags, tag]
+                value: [...oldTags, tag]
               }
             });
           }
@@ -199,7 +204,7 @@ export function CurateBox(props: CurateBoxProps) {
   const onNotesChange               = useOnInputChange('notes',               key, props.dispatch);
   const onOriginalDescriptionChange = useOnInputChange('originalDescription', key, props.dispatch);
   const onCurationNotesChange       = useOnInputChange('curationNotes',       key, props.dispatch);
-  const onExtremeChange             = useOnCheckboxToggle('extreme',          key, props.dispatch);
+  const onMountParametersChange     = useOnInputChange('mountParameters',     key, props.dispatch);
   // Callbacks for the fields (onItemSelect)
   const onPlayModeSelect            = useCallback(transformOnItemSelect(onPlayModeChange),        [onPlayModeChange]);
   const onStatusSelect              = useCallback(transformOnItemSelect(onStatusChange),          [onStatusChange]);
@@ -223,7 +228,7 @@ export function CurateBox(props: CurateBoxProps) {
         },
       });
       // Check for warnings before importing
-      const warnings = getCurationWarnings(curation, props.suggestions, props.libraries, strings.curate);
+      const warnings = getCurationWarnings(curation, props.suggestions, props.libraries, strings.curate, tagInputText);
       const warningCount = getWarningCount(warnings);
       if (warningCount > 0) {
         // Prompt user
@@ -365,7 +370,7 @@ export function CurateBox(props: CurateBoxProps) {
     }
   }, [props.curation && props.curation.key]);
   // Callback for when the remove button is clicked
-  const onRemoveClick = useCallback(() => {
+  const onRemoveClick = useCallback(async () => {
     if (props.curation) {
       props.dispatch({
         type: 'remove-curation',
@@ -420,7 +425,7 @@ export function CurateBox(props: CurateBoxProps) {
           lock: true,
         },
       });
-      const warnings = getCurationWarnings(curation, props.suggestions, props.libraries, strings.curate);
+      const warnings = getCurationWarnings(curation, props.suggestions, props.libraries, strings.curate, tagInputText);
       const warningCount = getWarningCount(warnings);
       if (warningCount > 0) {
         // Prompt user
@@ -586,10 +591,10 @@ export function CurateBox(props: CurateBoxProps) {
   // Generate Warnings
   const warnings = useMemo(() => {
     if (props.curation) {
-      return getCurationWarnings(props.curation, props.suggestions, props.libraries, strings.curate);
+      return getCurationWarnings(props.curation, props.suggestions, props.libraries, strings.curate, tagInputText);
     }
     return {};
-  }, [props.curation, strings]);
+  }, [props.curation, strings, tagInputText]);
 
   // Render images (logo + ss)
   const imageSplit = useMemo(() => {
@@ -619,7 +624,7 @@ export function CurateBox(props: CurateBoxProps) {
     }
   }, [props.curation && props.curation.thumbnail, props.curation && props.curation.screenshot, disabled]);
 
-  // Own Lirary Options
+  // Own Library Options
   const ownLibraryOptions = useMemo(() => {
     // Add meta's library if invalid (special option)
     if (warnings.nonExistingLibrary && props.curation) {
@@ -811,6 +816,13 @@ export function CurateBox(props: CurateBoxProps) {
               className={(warnings.noLaunchCommand || (warnings.invalidLaunchCommand && warnings.invalidLaunchCommand.length !== 0)) ? 'input-field--warn' : ''}
               { ...sharedInputProps } />
           </CurateBoxRow>
+          <CurateBoxRow title={strings.browse.mountParameters + ':'}>
+            <InputField
+              text={props.curation && props.curation.meta.mountParameters || ''}
+              placeholder={strings.browse.noMountParameters}
+              onChange={onMountParametersChange}
+              { ...sharedInputProps } />
+          </CurateBoxRow>
           <CurateBoxRow title={strings.browse.notes + ':'}>
             <InputField
               text={props.curation && props.curation.meta.notes || ''}
@@ -835,12 +847,6 @@ export function CurateBox(props: CurateBoxProps) {
               multiline={true}
               className={curationNotes.length > 0 ? 'input-field--info' : ''}
               { ...sharedInputProps } />
-          </CurateBoxRow>
-          <CurateBoxRow title={strings.browse.extreme + ':'}>
-            <CheckBox
-              checked={props.curation && props.curation.meta.extreme}
-              onToggle={onExtremeChange}
-              disabled={disabled} />
           </CurateBoxRow>
         </tbody>
       </table>
@@ -927,17 +933,18 @@ export function CurateBox(props: CurateBoxProps) {
           <ConfirmElement
             onConfirm={onRemoveClick}
             render={renderRemoveButton}
+            message={strings.dialog.deleteCuration}
             extra={[strings.curate, disabled]} />
           <SimpleButton
             className='curate-box-buttons__button'
             value={strings.curate.export}
             onClick={onExportClick}
             disabled={disabled} />
-          <SimpleButton
-            className='curate-box-buttons__button'
-            value={strings.curate.import}
-            onClick={onImportClick}
-            disabled={disabled} />
+          <ConfirmElement
+            onConfirm={onImportClick}
+            render={renderImportButton}
+            message={strings.dialog.importCuration}
+            extra={[strings.curate, disabled]} />
         </div>
       </div>
       {progressComponent}
@@ -946,22 +953,28 @@ export function CurateBox(props: CurateBoxProps) {
     tagInputText, tagSuggestions, onRun, onRunWithMAD4FP]);
 }
 
-function renderRemoveButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {
+function renderImportButton({ confirm, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {
   const [ strings, disabled ] = extra;
   return (
     <SimpleButton
-      className={
-        'curate-box-buttons__button' +
-        ((activationCounter > 0) ? ' curate-box-buttons__button--active simple-vertical-shake' : '')
-      }
-      value={strings.delete}
-      title={strings.deleteCurationDesc}
+      className='curate-box-buttons__button'
+      value={strings.import}
       disabled={disabled}
-      onClick={activate}
-      onMouseLeave={reset} />
+      onClick={confirm} />
   );
 }
 
+function renderRemoveButton({ confirm, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {
+  const [ strings, disabled ] = extra;
+  return (
+    <SimpleButton
+      className='curate-box-buttons__button'
+      value={strings.delete}
+      title={strings.deleteCurationDesc}
+      disabled={disabled}
+      onClick={confirm} />
+  );
+}
 
 type InputElement = HTMLInputElement | HTMLTextAreaElement;
 
@@ -994,21 +1007,6 @@ function useOnInputChange(property: keyof EditCurationMeta, key: string | undefi
           key: key,
           property: property,
           value: event.currentTarget.value
-        }
-      });
-    }
-  }, [dispatch, key]);
-}
-
-function useOnCheckboxToggle(property: keyof EditCurationMeta, key: string | undefined, dispatch: React.Dispatch<CurationAction>) {
-  return useCallback((checked: boolean) => {
-    if (key !== undefined) {
-      dispatch({
-        type: 'edit-curation-meta',
-        payload: {
-          key: key,
-          property: property,
-          value: checked
         }
       });
     }
@@ -1195,7 +1193,7 @@ function isValidDate(str: string): boolean {
   return (/^\d{4}(-(0?[1-9]|1[012])(-(0?[1-9]|[12][0-9]|3[01]))?)?$/).test(str);
 }
 
-export function getCurationWarnings(curation: EditCuration, suggestions: Partial<GamePropSuggestions> | undefined, libraries: string[], strings: LangContainer['curate']) {
+export function getCurationWarnings(curation: EditCuration, suggestions: Partial<GamePropSuggestions> | undefined, libraries: string[], strings: LangContainer['curate'], tagInputText: string) {
   const warns: CurationWarnings = {};
   // Check launch command exists
   const launchCommand = curation.meta.launchCommand || '';
@@ -1204,6 +1202,11 @@ export function getCurationWarnings(curation: EditCuration, suggestions: Partial
   if (!warns.noLaunchCommand) {
     warns.invalidLaunchCommand = invalidLaunchCommandWarnings(getContentFolderByKey2(curation.key), launchCommand, strings);
   }
+  warns.noLogo = !curation.thumbnail.exists;
+  warns.noScreenshot = !curation.screenshot.exists;
+  warns.noTags = (!curation.meta.tags || curation.meta.tags.length === 0);
+  warns.noSource = !curation.meta.source;
+  warns.unenteredTag = !!tagInputText;
   // Validate release date
   const releaseDate = curation.meta.releaseDate;
   if (releaseDate) { warns.releaseDateInvalid = !isValidDate(releaseDate); }
@@ -1225,7 +1228,7 @@ function getCurationFolder2(curation: EditCuration | CurationIndex) {
 }
 
 function isPlatformNativeLocked(platform: string) {
-  return window.Shared.config.data.nativePlatforms.findIndex((item) => { return item === platform; }) != -1;
+  return window.Shared.preferences.data.nativePlatforms.findIndex((item) => { return item === platform; }) != -1;
 }
 
 function getPathOfHtdocsUrl(url: string): string | undefined {
@@ -1233,7 +1236,7 @@ function getPathOfHtdocsUrl(url: string): string | undefined {
   if (urlObj) {
     return path.join(
       window.Shared.config.fullFlashpointPath,
-      window.Shared.config.data.htdocsFolderPath,
+      window.Shared.preferences.data.htdocsFolderPath,
       decodeURIComponent(path.join(urlObj.hostname, urlObj.pathname))
     );
   }

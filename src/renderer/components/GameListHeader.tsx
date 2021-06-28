@@ -18,9 +18,9 @@ export function GameListHeader(props: GameListHeaderProps) {
       <Column modifier='icon' hideDivider={true} />
       <div className='game-list-header__right'>
         <Column title='Title'     modifier='title'     hideDivider={true} />
-        {/* <Column title='Tags'      modifier='tags'                         /> */}
         <Column title='Developer' modifier='developer'                    />
         <Column title='Publisher' modifier='publisher'                    />
+        {/* <Column title='Tags'      modifier='tagsStr'                      /> */}
       </div>
       <div className='game-list-header__scroll-fill' />
     </div>

@@ -10,7 +10,9 @@ import { LangContainer, LangFile } from '@shared/lang';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { ITheme, Theme } from '@shared/ThemeFile';
 import { UpdateInfo } from 'electron-updater';
+import { TagFilterGroup } from 'flashpoint-launcher';
 import { MainActionType, RequestState } from './enums';
+import * as axiosImport from 'axios';
 
 export type View = {
   /** The most recent query used for this view. */
@@ -24,7 +26,7 @@ export type View = {
     /** Page keyset of the results. */
     pageKeyset: PageKeyset;
   };
-  /** State of the meta request (undfined means the view is "idle" and no request should be made). */
+  /** State of the meta request (undefined means the view is "idle" and no request should be made). */
   metaState?: RequestState;
   /** Games to display. */
   games: ViewGameSet;
@@ -40,6 +42,8 @@ export type View = {
   lastStart: number;
   /** Most recent "count" of pages that has been viewed. */
   lastCount: number;
+  /** Tag filters used when building */
+  tagFilters: TagFilterGroup[];
 }
 
 export type ViewQuery = SearchGamesOpts & {
@@ -75,7 +79,7 @@ export type MainState = {
   randomGames: ViewGame[];
   /** Whether we're currently requesting random games */
   requestingRandomGames: boolean;
-  /** If the random games should be shiften when the request is complete. */
+  /** If the random games should be shifted when the request is complete. */
   shiftRandomGames: boolean;
 
   /** Data and state used for the upgrade system (optional install-able downloads from the HomePage). */
@@ -111,6 +115,12 @@ export type MainState = {
   extConfig: AppExtConfigData;
   /** Services */
   services: IService[];
+  /** PLACEHOLDER - Download percent of Game */
+  downloadPercent: number;
+  downloadSize: number;
+  downloadOpen: boolean;
+  cancelToken?: axiosImport.CancelToken;
+  downloadVerifying: boolean;
 }
 
 export type MainAction = {
@@ -123,6 +133,7 @@ export type MainAction = {
   showExtreme: boolean;
   orderBy: GameOrderBy;
   orderReverse: GameOrderReverse;
+  tagFilters: TagFilterGroup[];
   /** The playlistId can be of type string or undefined. Null means it will remain the same as before. */
   playlistId: string | undefined | null;
 } | {

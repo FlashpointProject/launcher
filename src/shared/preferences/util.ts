@@ -1,14 +1,15 @@
 import { autoCode } from '@shared/lang';
 import { LogLevel } from '@shared/Log/interface';
+import { TagFilterGroup } from 'flashpoint-launcher';
 import { BackIn } from '../back/types';
 import { BrowsePageLayout } from '../BrowsePageLayout';
 import { ARCADE } from '../constants';
 import { DeepPartial } from '../interfaces';
 import { gameOrderByOptions, gameOrderReverseOptions } from '../order/util';
-import { deepCopy } from '../Util';
+import { deepCopy, parseVarStr } from '../Util';
 import { Coerce } from '../utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
-import { AppPreferencesData, AppPreferencesDataMainWindow, AppPathOverride } from './interfaces';
+import { AppPathOverride, AppPreferencesData, AppPreferencesDataMainWindow } from './interfaces';
 
 export function updatePreferencesData(data: DeepPartial<AppPreferencesData>, send = true) {
   const preferences = window.Shared.preferences;
@@ -27,6 +28,17 @@ const { num, str } = Coerce;
 
 /** Default Preferences Data used for values that are not found in the file */
 export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freeze<AppPreferencesData>({
+  imageFolderPath: 'Data/Images',
+  logoFolderPath: 'Data/Logos',
+  playlistFolderPath: 'Data/Playlists',
+  jsonFolderPath: 'Data',
+  htdocsFolderPath: 'Legacy/htdocs',
+  platformFolderPath: 'Data/Platforms',
+  themeFolderPath: 'Data/Themes',
+  logoSetsFolderPath: 'Data/LogoSets',
+  metaEditsFolderPath: 'Data/MetaEdits',
+  extensionsPath: 'Data/Extensions',
+  dataPacksFolderPath: 'Data/Games',
   browsePageGameScale: 0.087,
   browsePageShowExtreme: false,
   enableEditing: true,
@@ -56,6 +68,8 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   keepArchiveKey: true,
   symlinkCurationContent: true,
   onDemandImages: false,
+  onDemandBaseUrl: 'https://infinity.unstable.life/Flashpoint/Data/Images/',
+  browserModeProxy: 'localhost:22500',
   showLogSource: Object.freeze({
     // (Add log sources that should be hidden by default here)
   }),
@@ -69,6 +83,13 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   }),
   excludedRandomLibraries: [],
   appPathOverrides: [],
+  tagFilters: [],
+  tagFiltersInCurate: false,
+  nativePlatforms: [],
+  disableExtremeGames: false,
+  showBrokenGames: false,
+  minimizedHomePageBoxes: [],
+  hideExtremeScreenshots: true,
 });
 
 /**
@@ -87,8 +108,20 @@ export function overwritePreferenceData(
     onError: onError && (e => onError(`Error while parsing Preferences: ${e.toString()}`)),
   });
   // Parse root object
+  parser.prop('imageFolderPath',             v => source.imageFolderPath             = parseVarStr(str(v)));
+  parser.prop('logoFolderPath',              v => source.logoFolderPath              = parseVarStr(str(v)));
+  parser.prop('playlistFolderPath',          v => source.playlistFolderPath          = parseVarStr(str(v)));
+  parser.prop('jsonFolderPath',              v => source.jsonFolderPath              = parseVarStr(str(v)));
+  parser.prop('htdocsFolderPath',            v => source.htdocsFolderPath            = parseVarStr(str(v)));
+  parser.prop('platformFolderPath',          v => source.platformFolderPath          = parseVarStr(str(v)));
+  parser.prop('themeFolderPath',             v => source.themeFolderPath             = parseVarStr(str(v)));
+  parser.prop('logoSetsFolderPath',          v => source.logoSetsFolderPath          = parseVarStr(str(v)));
+  parser.prop('metaEditsFolderPath',         v => source.metaEditsFolderPath         = parseVarStr(str(v)));
+  parser.prop('extensionsPath',              v => source.extensionsPath              = parseVarStr(str(v)));
+  parser.prop('dataPacksFolderPath',         v => source.dataPacksFolderPath         = parseVarStr(str(v)));
   parser.prop('browsePageGameScale',         v => source.browsePageGameScale         = num(v));
   parser.prop('browsePageShowExtreme',       v => source.browsePageShowExtreme       = !!v);
+  parser.prop('hideExtremeScreenshots',      v => source.hideExtremeScreenshots      = !!v);
   parser.prop('enableEditing',               v => source.enableEditing               = !!v);
   parser.prop('fallbackLanguage',            v => source.fallbackLanguage            = str(v));
   parser.prop('currentLanguage',             v => source.currentLanguage             = str(v));
@@ -107,8 +140,15 @@ export function overwritePreferenceData(
   parser.prop('saveImportedCurations',       v => source.saveImportedCurations       = !!v);
   parser.prop('keepArchiveKey',              v => source.keepArchiveKey              = !!v);
   parser.prop('symlinkCurationContent',      v => source.symlinkCurationContent      = !!v);
+  parser.prop('tagFiltersInCurate',          v => source.tagFiltersInCurate          = !!v);
   parser.prop('onDemandImages',              v => source.onDemandImages              = !!v);
+  parser.prop('browserModeProxy',            v => source.browserModeProxy            = str(v));
+  parser.prop('onDemandBaseUrl',             v => source.onDemandBaseUrl             = parseVarStr(str(v)));
   parser.prop('excludedRandomLibraries',     v => source.excludedRandomLibraries     = strArray(v), true);
+  parser.prop('minimizedHomePageBoxes',      v => source.minimizedHomePageBoxes      = strArray(v), true);
+  parser.prop('nativePlatforms',             v => source.nativePlatforms             = strArray(v));
+  parser.prop('disableExtremeGames',         v => source.disableExtremeGames         = !!v);
+  parser.prop('showBrokenGames',             v => source.showBrokenGames             = !!v);
   if (data.appPathOverrides) {
     const newAppPathOverrides: AppPathOverride[] = [];
     parser.prop('appPathOverrides').array((item, index) => newAppPathOverrides[index] = parseAppPathOverride(item));
@@ -119,6 +159,12 @@ export function overwritePreferenceData(
   parser.prop('showLogSource').mapRaw((item, label) => source.showLogSource[label] = !!item);
   parser.prop('showLogLevel').mapRaw((item, label) => source.showLogLevel[label as LogLevel] = !!item);
   parser.prop('currentLogoSet',              v => source.currentLogoSet              = str(v), true);
+  if (data.tagFilters) {
+    // Why is this or undefined anyway?
+    const newTagFilters: TagFilterGroup[] = [];
+    parser.prop('tagFilters').array((item, index) => newTagFilters[index] = parseTagFilterGroup(item as IObjectParserProp<TagFilterGroup>));
+    source.tagFilters = newTagFilters;
+  }
   // Done
   return source;
 }
@@ -141,6 +187,24 @@ function parseAppPathOverride(parser: IObjectParserProp<any>): AppPathOverride {
   parser.prop('override', v => override.override = str(v));
   parser.prop('enabled',  v => override.enabled  = !!v);
   return override;
+}
+
+function parseTagFilterGroup(parser: IObjectParserProp<TagFilterGroup>): TagFilterGroup {
+  const tfg: TagFilterGroup = {
+    name: '',
+    enabled: false,
+    tags: [],
+    categories: [],
+    childFilters: [],
+    extreme: false
+  };
+  parser.prop('name',    v => tfg.name    = str(v));
+  parser.prop('enabled', v => tfg.enabled = !!v);
+  parser.prop('tags').arrayRaw((item) => tfg.tags.push(str(item)));
+  parser.prop('categories').arrayRaw((item) => tfg.categories.push(str(item)));
+  parser.prop('childFilters').arrayRaw((item) => tfg.childFilters.push(str(item)));
+  parser.prop('extreme', v => tfg.extreme = !!v);
+  return tfg;
 }
 
 /**

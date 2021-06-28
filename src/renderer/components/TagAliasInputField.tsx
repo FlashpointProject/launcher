@@ -122,6 +122,7 @@ export class TagAliasInputField extends React.Component<TagAliasInputFieldProps,
                   <OpenIcon icon='check' />
                 </div>
                 <ConfirmElement
+                  message={this.context.dialog.deleteTagAlias}
                   onConfirm={() => this.onDeleteAliasClick(tagAlias, index)}
                   render={this.renderDeleteButton}
                   extra={this.context.tags} />
@@ -145,27 +146,25 @@ export class TagAliasInputField extends React.Component<TagAliasInputFieldProps,
     }
   }
 
-  renderPrimaryButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<LangContainer['tags']>): JSX.Element {
+  renderPrimaryButton({ confirm, extra }: ConfirmElementArgs<LangContainer['tags']>): JSX.Element {
     const className = 'tag-alias__buttons-primary';
     return (
       <div
-        className={className + ((activationCounter > 0) ? ` ${className}--active simple-vertical-shake` : '')}
+        className={className}
         title={extra.setPrimaryAlias}
-        onClick={activate}
-        onMouseLeave={reset}>
+        onClick={confirm} >
         <OpenIcon icon='check' />
       </div>
     );
   }
 
-  renderDeleteButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<LangContainer['tags']>): JSX.Element {
+  renderDeleteButton({ confirm, extra }: ConfirmElementArgs<LangContainer['tags']>): JSX.Element {
     const className = 'tag-alias__buttons-delete';
     return (
       <div
-        className={className + ((activationCounter > 0) ? ` ${className}--active simple-vertical-shake` : '')}
+        className={className}
         title={extra.deleteTagAlias}
-        onClick={activate}
-        onMouseLeave={reset}>
+        onClick={confirm} >
         <OpenIcon icon='trash' />
       </div>
     );

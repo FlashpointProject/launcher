@@ -1,5 +1,6 @@
-import { Column, Entity, Index, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { BeforeUpdate, Column, Entity, Index, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { AdditionalApp } from './AdditionalApp';
+import { GameData } from './GameData';
 import { Tag } from './Tag';
 
 @Index('IDX_lookup_title',        ['library', 'title'])
@@ -77,8 +78,11 @@ export class Game {
 
   @ManyToMany(type => Tag, t => t.gamesUsing, { cascade: true, eager: true })
   @JoinTable()
-  /** Tags of the game (seperated by semi-colon) */
+  /** Tags of the game (separated by semi-colon) */
   tags: Tag[];
+
+  @Column({collation: 'NOCASE', default: '' })
+  tagsStr: string;
 
   @Column({collation: 'NOCASE'})
   /** Source if the game files, either full URL or the name of the website */
@@ -125,4 +129,34 @@ export class Game {
 
   /** If the game is a placeholder (and can therefore not be saved) */
   placeholder: boolean;
+
+  /** ID of the active data */
+  @Column({ nullable: true })
+  activeDataId?: number;
+
+  /** Whether the data is present on disk */
+  @Column({ default: false })
+  activeDataOnDisk: boolean;
+
+  @OneToMany(type => GameData, datas => datas.game)
+  data?: GameData[];
+
+  // This doesn't run... sometimes.
+  @BeforeUpdate()
+  updateTagsStr() {
+    try {
+      this.tagsStr = this.tags.map(t => {
+        if (t.primaryAlias) {
+          return t.primaryAlias.name;
+        } else {
+          throw 'PrimaryAliases missing';
+        }
+      }).join('; ');
+    } catch (err) {
+      // Skip setting tagsStr if the entities tag info isn't loaded properly
+      return;
+    }
+    log.debug('Launcher', `NEW TAGS STR ${this.tags.length} tags: ${this.tagsStr}`);
+  }
+
 }

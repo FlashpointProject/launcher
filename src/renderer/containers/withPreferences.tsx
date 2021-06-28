@@ -14,7 +14,7 @@ export function withPreferences<P>(Component: React.ComponentType<P>) {
     const preferences = useContext(PreferencesContext);
     return (
       <Component
-        {...props as P} // @HACK This is annoying to make typsafe
+        {...props as P} // @HACK This is annoying to make typesafe
         preferencesData={preferences} />
     );
   };

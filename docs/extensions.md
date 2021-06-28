@@ -63,7 +63,7 @@ The example below logs `Hello World!` to the Logs page, check it after launch to
 
 JavaScript file example
 ```javascript
-import * as flashpoint from 'flashpoint-launcher';
+const flashpoint = require('flashpoint-launcher');
 
 function activate(context) {
   flashpoint.log.info('Hello World!');
@@ -74,7 +74,7 @@ exports.activate = activate;
 
 If you're using TypeScript then make sure that TypeScript is installed as a dev dependency with `npm install --save-dev typescript` as well. An example tsconfig.json is provided below to build from `./src` into `./dist` (E.G `./src/extension.ts` to `./dist/extension.js`)
 
-You should also copy `/typings/flashpoint.d.ts` from the Launcher repository into your own `/typings` folder to allow TypeScript to find the API declarations.
+You should also install the `@types/flashpoint-launcher` package so TypeScript can detect the proper API typings.
 
 Example tsconfig.json
 
@@ -205,13 +205,13 @@ In this example, any game run with the `:my-application:` application path will 
 
 However, Applications can also provide `url` or `command` instead. The full details of all 3 including `path` are listed below.
 
-`path` will launch the application with the launch command as its arguments. You must use the `<exePath>` or `<fpPath>` subtitutions to correctly reference the application.
+`path` will launch the application with the launch command as its arguments. You must use the `<exePath>` or `<fpPath>` substitutions to correctly reference the application.
 
-`url` will launch that URL in Flashpoints Browser Mode (Electron). The launch command must be subtituted since it can not be given as an argument this way. See below for allowed subtitutions.
+`url` will launch that URL in Flashpoints Browser Mode (Electron). The launch command must be substituted since it can not be given as an argument this way. See below for allowed substitutions.
 
-`command` will run a registered command that is given the launching Game as an argument and expects a valid response of either a string (`path`) or BrowserApplicationOpts (`url`) which will then be run accordingly. Subtitutions cannot be used on the returned values, although you may find their equiavelents in the API, with an exception of os, arch and cwd which you may use Node types for. (`@types/node`)
+`command` will run a registered command that is given the launching Game as an argument and expects a valid response of either a string (`path`) or BrowserApplicationOpts (`url`) which will then be run accordingly. Substitutions cannot be used on the returned values, although you may find their equivalents in the API, with an exception of os, arch and cwd which you may use Node types for. (`@types/node`)
 
-`url` and `path` string subtitutes:
+`url` and `path` string substitutes:
 
 - **\<exePath\>** - Path to the extension.
 - **\<fpPath\>** - Path to the Flashpoint folder.

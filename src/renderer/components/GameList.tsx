@@ -25,6 +25,8 @@ export type GameListProps = {
   rowHeight: number;
   /** Whether to render the extreme icon when possible */
   showExtremeIcon: boolean;
+  /** Extreme Tag Filters */
+  extremeTags: string[];
   /** Function that renders the elements to show instead of the grid if there are no games (render prop). */
   noRowsRenderer?: () => JSX.Element;
   /** Called when the user attempts to select a game. */
@@ -159,10 +161,10 @@ export class GameList extends React.Component<GameListProps> {
         id={game.id}
         title={game.title}
         platform={game.platform}
-        tags={game.tags}
+        tagsStr={game.tagsStr}
         developer={game.developer}
         publisher={game.publisher}
-        extreme={game.extreme}
+        extreme={game.tagsStr.split(';').findIndex(t => this.props.extremeTags.includes(t.trim())) !== -1}
         extremeIconPath={extremeIconPath}
         showExtremeIcon={showExtremeIcon}
         logoVersion={this.props.logoVersion}
