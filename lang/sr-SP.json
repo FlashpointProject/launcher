@@ -6,6 +6,8 @@
     "preferencesHeader": "Поставке",
     "extremeGames": "Екстремни садржај",
     "extremeGamesDesc": "Дозволите приказивање ознака унутар група филтера за ознаке „Екстреме“ и одговарајућих игара.",
+    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
     "enableEditing": "Укључи уређивање",
     "enableEditingDesc": "Омогућава уређивање игара и додатних апликација. Такође приказује картице везане за уређивање.",
     "onDemandImages": "Слике на захтев",
@@ -288,7 +290,10 @@
     "saveAndRestart": "Сачувај и поново покрени",
     "thereAreNoGames": "Нема игара.",
     "noGameMatchedDesc": "Ниједан наслов игре није одговарао са твојом претрагом.",
-    "noGameMatchedSearch": "Покушај да тражиш нешто мање рестриктивно."
+    "noGameMatchedSearch": "Покушај да тражиш нешто мање рестриктивно.",
+    "mountParameters": "Mount Parameters",
+    "noMountParameters": "No Mount Parameters",
+    "showExtremeScreenshot": "Show Extreme Screenshot"
   },
   "tags": {
     "name": "Име",
@@ -413,7 +418,8 @@
     "installingFiles": "Инсталирам фајлове...",
     "complete": "Готово",
     "exportMetaEditTitle": "Извоз измена метаподатка",
-    "exportMetaEditDesc": "Изаберите све поставке за изношење:"
+    "exportMetaEditDesc": "Изаберите све поставке за изношење:",
+    "showImage": "Show Image"
   },
   "menu": {
     "viewThumbnailInFolder": "Прегледај симболичну слику у фасцикли",
