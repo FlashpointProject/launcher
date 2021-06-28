@@ -6,6 +6,8 @@
     "preferencesHeader": "העדפות",
     "extremeGames": "Extreme Content",
     "extremeGamesDesc": "Allow tags inside 'Extreme' tag filter groups and corresponding games to be shown.",
+    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
     "enableEditing": "אפשר עריכה",
     "enableEditingDesc": "אפשר עריכת משחקים ותוכנות נוספות. גם מראה כרטיסיות הקשורות לעריכה.",
     "onDemandImages": "תמונות בדרישה",
@@ -288,7 +290,10 @@
     "saveAndRestart": "Save & Restart",
     "thereAreNoGames": "There are no games.",
     "noGameMatchedDesc": "No game title matched your search.",
-    "noGameMatchedSearch": "Try searching for something less restrictive."
+    "noGameMatchedSearch": "Try searching for something less restrictive.",
+    "mountParameters": "Mount Parameters",
+    "noMountParameters": "No Mount Parameters",
+    "showExtremeScreenshot": "Show Extreme Screenshot"
   },
   "tags": {
     "name": "Name",
@@ -413,7 +418,8 @@
     "installingFiles": "מתקין קבצים...",
     "complete": "הושלם",
     "exportMetaEditTitle": "ייצא עריכת מטא",
-    "exportMetaEditDesc": "בחר את כל המאפיינים לייצוא:"
+    "exportMetaEditDesc": "בחר את כל המאפיינים לייצוא:",
+    "showImage": "Show Image"
   },
   "menu": {
     "viewThumbnailInFolder": "הראה תמונה ממוזערת בתיקיה",
