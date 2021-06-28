@@ -6,6 +6,8 @@
     "preferencesHeader": "首选项",
     "extremeGames": "成人内容",
     "extremeGamesDesc": "允许显示包含于 'Extreme' 标签筛选器组内的标签和游戏。",
+    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
     "enableEditing": "启用编辑",
     "enableEditingDesc": "启用对游戏与附加应用的编辑。也显示与编辑有关的标签页。",
     "onDemandImages": "按需显示图像",
@@ -288,7 +290,10 @@
     "saveAndRestart": "保存并重启",
     "thereAreNoGames": "无游戏。",
     "noGameMatchedDesc": "未找到匹配您搜索词的游戏名。",
-    "noGameMatchedSearch": "请尝试用更宽泛的关键词搜索。"
+    "noGameMatchedSearch": "请尝试用更宽泛的关键词搜索。",
+    "mountParameters": "Mount Parameters",
+    "noMountParameters": "No Mount Parameters",
+    "showExtremeScreenshot": "Show Extreme Screenshot"
   },
   "tags": {
     "name": "名称",
@@ -413,7 +418,8 @@
     "installingFiles": "正在安装文件...",
     "complete": "已完成",
     "exportMetaEditTitle": "导出元数据变更",
-    "exportMetaEditDesc": "选择所有要导出的属性："
+    "exportMetaEditDesc": "选择所有要导出的属性：",
+    "showImage": "Show Image"
   },
   "menu": {
     "viewThumbnailInFolder": "在文件夹中查看缩略图",
