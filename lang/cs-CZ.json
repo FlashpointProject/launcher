@@ -6,6 +6,8 @@
     "preferencesHeader": "Předvolby",
     "extremeGames": "Obsah pro dospělé",
     "extremeGamesDesc": "Povolí zobrazování her a štítků patřících do filtrační skupiny \"Pro dospělé\".",
+    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
     "enableEditing": "Povolit upravování",
     "enableEditingDesc": "Povolit úpravy her a dalších aplikací. Také zobrazuje záložky související s úpravami.",
     "onDemandImages": "Obrázky na vyžádání",
@@ -288,7 +290,10 @@
     "saveAndRestart": "Uložit a restartovat",
     "thereAreNoGames": "Nebyly nalezeny žádné hry.",
     "noGameMatchedDesc": "Nebyly nalezeny žádné výsledky hledání.",
-    "noGameMatchedSearch": "Zkuste méně omezit výběr hledání."
+    "noGameMatchedSearch": "Zkuste méně omezit výběr hledání.",
+    "mountParameters": "Mount Parameters",
+    "noMountParameters": "No Mount Parameters",
+    "showExtremeScreenshot": "Show Extreme Screenshot"
   },
   "tags": {
     "name": "Název",
@@ -413,7 +418,8 @@
     "installingFiles": "Instaluji soubory...",
     "complete": "Dokončeno",
     "exportMetaEditTitle": "Exportovat úpravy metadat",
-    "exportMetaEditDesc": "Vyberte všechny vlastnosti k exportu:"
+    "exportMetaEditDesc": "Vyberte všechny vlastnosti k exportu:",
+    "showImage": "Show Image"
   },
   "menu": {
     "viewThumbnailInFolder": "Otevřít složku s umístěním miniatury",
