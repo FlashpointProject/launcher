@@ -6,6 +6,8 @@
     "preferencesHeader": "Voorkeuren",
     "extremeGames": "Extreme inhoud",
     "extremeGamesDesc": "Sta labels in 'Extreme' labelfilter groepen en overeenkomstige spellen toe om te laten zien.",
+    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
     "enableEditing": "Bewerken inschakelen",
     "enableEditingDesc": "Bewerken inschakelen voor spellen en extra applicaties. Toont ook de gerelateerde tabbladen voor het bewerken.",
     "onDemandImages": "Aangevraagde afbeeldingen",
@@ -288,7 +290,10 @@
     "saveAndRestart": "Opslaan en herstarten",
     "thereAreNoGames": "Er zijn geen spellen.",
     "noGameMatchedDesc": "Er is geen speltitel die overeenkomt met uw zoekopdracht.",
-    "noGameMatchedSearch": "Probeer naar iets gemakkelijker te zoeken."
+    "noGameMatchedSearch": "Probeer naar iets gemakkelijker te zoeken.",
+    "mountParameters": "Mount Parameters",
+    "noMountParameters": "No Mount Parameters",
+    "showExtremeScreenshot": "Show Extreme Screenshot"
   },
   "tags": {
     "name": "Naam",
@@ -413,7 +418,8 @@
     "installingFiles": "Bestanden installeren...",
     "complete": "Voltooid",
     "exportMetaEditTitle": "Exporteren van Metadata wijziging",
-    "exportMetaEditDesc": "Selecteer alle eigenschappen om te exporteren:"
+    "exportMetaEditDesc": "Selecteer alle eigenschappen om te exporteren:",
+    "showImage": "Show Image"
   },
   "menu": {
     "viewThumbnailInFolder": "Miniatuur in map bekijken",
