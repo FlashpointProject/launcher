@@ -6,6 +6,8 @@
     "preferencesHeader": "Editați preferințele",
     "extremeGames": "Extreme Content",
     "extremeGamesDesc": "Allow tags inside 'Extreme' tag filter groups and corresponding games to be shown.",
+    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
     "enableEditing": "Activați editarea",
     "enableEditingDesc": "Activați editarea jocurilor și a aplicațiilor suplimentare. De asemenea, arată categorii legate de editare.",
     "onDemandImages": "Imagini la cerere",
@@ -288,7 +290,10 @@
     "saveAndRestart": "Salvare și repornire",
     "thereAreNoGames": "Nu s-au găsit jocuri.",
     "noGameMatchedDesc": "Niciun joc nu se potrivește cu termenii de căutare.",
-    "noGameMatchedSearch": "Încercați alte cuvinte cheie."
+    "noGameMatchedSearch": "Încercați alte cuvinte cheie.",
+    "mountParameters": "Mount Parameters",
+    "noMountParameters": "No Mount Parameters",
+    "showExtremeScreenshot": "Show Extreme Screenshot"
   },
   "tags": {
     "name": "Nume",
@@ -413,7 +418,8 @@
     "installingFiles": "Se instalează fișierele...",
     "complete": "Finalizat",
     "exportMetaEditTitle": "Exportați modificări ale informațiilor jocurilor",
-    "exportMetaEditDesc": "Selectați proprietățile de exportat:"
+    "exportMetaEditDesc": "Selectați proprietățile de exportat:",
+    "showImage": "Show Image"
   },
   "menu": {
     "viewThumbnailInFolder": "Vizualizați imaginea în dosar",
