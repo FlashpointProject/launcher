@@ -6,6 +6,8 @@
     "preferencesHeader": "Preperensiya",
     "extremeGames": "Extreme na Content",
     "extremeGamesDesc": "I-allow ang mga tag na nasa 'Extreme' na pangkat ng tag filter at ang mga nakaukulang mga laro na ipakita.",
+    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
     "enableEditing": "Pahintulutan ang Pagbabago",
     "enableEditingDesc": "I-enable ang pag-edit ng mga laro at mga aplikasyon. Pati na rin ang pag-kita ng mga tab na may kaugnay sa pag-edit.",
     "onDemandImages": "On Demand na Imahe",
@@ -288,7 +290,10 @@
     "saveAndRestart": "I-save at i-restart",
     "thereAreNoGames": "Walang laro dito.",
     "noGameMatchedDesc": "Walang titulo ng laro ang nag-match sa na-search mo.",
-    "noGameMatchedSearch": "Subukan mo i-search na di-gaanong strikto."
+    "noGameMatchedSearch": "Subukan mo i-search na di-gaanong strikto.",
+    "mountParameters": "Mount Parameters",
+    "noMountParameters": "No Mount Parameters",
+    "showExtremeScreenshot": "Show Extreme Screenshot"
   },
   "tags": {
     "name": "Pangalan",
@@ -413,7 +418,8 @@
     "installingFiles": "Iniinstall ang mga files...",
     "complete": "Kumpleto na ang upgrade",
     "exportMetaEditTitle": "I-Export ang mga Meta Edits",
-    "exportMetaEditDesc": "I-select ang lahat ng mga property para I-export:"
+    "exportMetaEditDesc": "I-select ang lahat ng mga property para I-export:",
+    "showImage": "Show Image"
   },
   "menu": {
     "viewThumbnailInFolder": "Ipakita ang Thumbnail sa folder",
