@@ -6,6 +6,8 @@
     "preferencesHeader": "설정",
     "extremeGames": "자극적인 콘텐츠",
     "extremeGamesDesc": "'자극적인' 태그 필터 모음 안의 태그들을 허용하며 해당하는 게임들을 보여줍니다.",
+    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
     "enableEditing": "편집 허용하기",
     "enableEditingDesc": "Enable editing of games and additional applications. Also shows tabs related to editing.",
     "onDemandImages": "On Demand Images",
@@ -288,7 +290,10 @@
     "saveAndRestart": "저장 후 재시작",
     "thereAreNoGames": "게임을 찾을 수 없습니다.",
     "noGameMatchedDesc": "검색 조건에 맞는 게임이 없습니다.",
-    "noGameMatchedSearch": "좀 더 넓은 범위의 조건을 사용해 검색해보세요."
+    "noGameMatchedSearch": "좀 더 넓은 범위의 조건을 사용해 검색해보세요.",
+    "mountParameters": "Mount Parameters",
+    "noMountParameters": "No Mount Parameters",
+    "showExtremeScreenshot": "Show Extreme Screenshot"
   },
   "tags": {
     "name": "이름",
@@ -413,7 +418,8 @@
     "installingFiles": "파일 설치 중...",
     "complete": "완료",
     "exportMetaEditTitle": "Export Meta Edit",
-    "exportMetaEditDesc": "Select all properties to export:"
+    "exportMetaEditDesc": "Select all properties to export:",
+    "showImage": "Show Image"
   },
   "menu": {
     "viewThumbnailInFolder": "폴더에 있는 썸네일 보기",
