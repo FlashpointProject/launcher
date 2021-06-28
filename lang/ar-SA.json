@@ -6,6 +6,8 @@
     "preferencesHeader": "التفضيلات",
     "extremeGames": "المحتوى المتطرف",
     "extremeGamesDesc": "السماح للمحتوى المعلَّم 'متطرف' وما يشابهه بالظهور.",
+    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
     "enableEditing": "تمكين التعديل",
     "enableEditingDesc": "تمكين تعديل الألعاب والتطبيقات الإضافية. تُظهِر أيضًا علامات تبويب مُتعلّقة بالتعديل.",
     "onDemandImages": "تحميل صور عند الطلب",
@@ -288,7 +290,10 @@
     "saveAndRestart": "حفظ & إعادة التشغيل",
     "thereAreNoGames": "لا توجد ألعاب.",
     "noGameMatchedDesc": "لا يوجد عنوان لعبة يطابق بحثك.",
-    "noGameMatchedSearch": "حاول أن تبحث عن شيء أقلّ تفصيلًا."
+    "noGameMatchedSearch": "حاول أن تبحث عن شيء أقلّ تفصيلًا.",
+    "mountParameters": "Mount Parameters",
+    "noMountParameters": "No Mount Parameters",
+    "showExtremeScreenshot": "Show Extreme Screenshot"
   },
   "tags": {
     "name": "الاسم",
@@ -413,7 +418,8 @@
     "installingFiles": "يتم تثبيت الملفات...",
     "complete": "اكتمل",
     "exportMetaEditTitle": "Export Meta Edit",
-    "exportMetaEditDesc": "Select all properties to export:"
+    "exportMetaEditDesc": "Select all properties to export:",
+    "showImage": "Show Image"
   },
   "menu": {
     "viewThumbnailInFolder": "عرض الصورة المصغرة في المجلد",
