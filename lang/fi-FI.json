@@ -6,6 +6,8 @@
     "preferencesHeader": "Asetukset",
     "extremeGames": "Extreme Content",
     "extremeGamesDesc": "Allow tags inside 'Extreme' tag filter groups and corresponding games to be shown.",
+    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
     "enableEditing": "Muokkaustila",
     "enableEditingDesc": "Ota käyttöön pelien ja muiden sovellusten muokkaus. Näyttää myös muokkaukseen liittyvät välilehdet.",
     "onDemandImages": "Kysyntää Koskevissa Kuvissa",
@@ -288,7 +290,10 @@
     "saveAndRestart": "Tallennus ja uudelleenkäynnistys",
     "thereAreNoGames": "Pelejä ei löydy.",
     "noGameMatchedDesc": "Ei hakua vastaavia pelejä.",
-    "noGameMatchedSearch": "Yritä etsiä yleisemmillä hakusanoilla."
+    "noGameMatchedSearch": "Yritä etsiä yleisemmillä hakusanoilla.",
+    "mountParameters": "Mount Parameters",
+    "noMountParameters": "No Mount Parameters",
+    "showExtremeScreenshot": "Show Extreme Screenshot"
   },
   "tags": {
     "name": "Nimi",
@@ -413,7 +418,8 @@
     "installingFiles": "Asennetaan tiedostoja...",
     "complete": "Valmis",
     "exportMetaEditTitle": "Vie Meta Muokkaus",
-    "exportMetaEditDesc": "Valitse kaikki vietävät ominaisuudet:"
+    "exportMetaEditDesc": "Valitse kaikki vietävät ominaisuudet:",
+    "showImage": "Show Image"
   },
   "menu": {
     "viewThumbnailInFolder": "Katso kuvaketta kansiossa",
