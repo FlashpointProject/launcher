@@ -3,7 +3,7 @@ import { GameOrderBy, GameOrderReverse } from '../order/interfaces';
 
 const blacklistFields = ['not', 'no', 'missing'];
 const whitelistFields = ['is', 'has'];
-const booleanFields = ['broken', 'extreme'];
+const booleanFields = ['broken', 'activeDataOnDisk'];
 const falsePhrases = ['false', 'none', 'no'];
 
 /**

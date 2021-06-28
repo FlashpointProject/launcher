@@ -101,6 +101,7 @@ export class RightTagCategoriesSidebar extends React.Component<RightTagCategorie
                             <OpenIcon icon='pencil' />
                           </div>
                           <ConfirmElement
+                            message={allStrings.dialog.deleteTagCategory}
                             onConfirm={this.onDeleteCategoryClick}
                             render={this.renderDeleteCategoryButton}
                             extra={allStrings.tags} />
@@ -148,14 +149,13 @@ export class RightTagCategoriesSidebar extends React.Component<RightTagCategorie
     }
   }
 
-  renderDeleteCategoryButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<LangContainer['tags']>): JSX.Element {
+  renderDeleteCategoryButton({ confirm, extra }: ConfirmElementArgs<LangContainer['tags']>): JSX.Element {
     const className = 'tag-category__buttons-delete';
     return (
       <div
-        className={className + ((activationCounter > 0) ? ` ${className}--active simple-vertical-shake` : '')}
+        className={className}
         title={extra.deleteTagCategory}
-        onClick={activate}
-        onMouseLeave={reset}>
+        onClick={confirm} >
         <OpenIcon icon='trash' />
       </div>
     );
@@ -199,7 +199,7 @@ export class RightTagCategoriesSidebar extends React.Component<RightTagCategorie
   }
 
   onDeleteCategoryClick = (): void => {
-    console.log('clalled');
+    console.log('called');
     if (this.props.onDeleteCategory) {
       this.props.onDeleteCategory();
     }

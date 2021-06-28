@@ -1,3 +1,4 @@
+import { BackIn } from '@shared/back/types';
 import { Coerce } from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
 import { CurationFormatObject, parseCurationFormat } from './format/parser';
@@ -91,9 +92,18 @@ export async function parseCurationMetaFile(data: any, onError?: (error: string)
   parser.prop('alternate titles',     v => parsed.game.alternateTitles     = arrayStr(v));
   parser.prop('version',              v => parsed.game.version             = str(v));
   parser.prop('library',              v => parsed.game.library             = str(v).toLowerCase()); // must be lower case
+  parser.prop('mount parameters',     v => parsed.game.mountParameters     = str(v));
   if (lowerCaseData.genre)  { parsed.game.tags = await getTagsFromStr(arrayStr(lowerCaseData.genre), str(lowerCaseData['tag categories']));  }
   if (lowerCaseData.genres) { parsed.game.tags = await getTagsFromStr(arrayStr(lowerCaseData.genres), str(lowerCaseData['tag categories'])); }
   if (lowerCaseData.tags)   { parsed.game.tags = await getTagsFromStr(arrayStr(lowerCaseData.tags), str(lowerCaseData['tag categories']));   }
+  // Extreme Migration
+  if (parsed.game.extreme) {
+    parsed.game.extreme = false;
+    const extremeTag = await window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, 'LEGACY-Extreme');
+    if (parsed.game.tags && parsed.game.tags.findIndex(t => t.id === extremeTag.id) === -1) {
+      parsed.game.tags.push(extremeTag);
+    }
+  }
   // property aliases
   parser.prop('animation notes',      v => parsed.game.notes               = str(v));
   // Add-apps
@@ -130,7 +140,7 @@ function convertAddApp(item: IObjectParserProp<any>, label: string | number | sy
 // Coerce an object into a sensible string
 function arrayStr(rawStr: any): string {
   if (Array.isArray(rawStr)) {
-    // Convert lists to ; seperated strings
+    // Convert lists to ; separated strings
     return rawStr.join('; ');
   }
   return str(rawStr);

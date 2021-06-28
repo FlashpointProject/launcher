@@ -7,11 +7,12 @@ import { fixSlashes, padStart, stringifyArray } from '@shared/Util';
 import { Coerce } from '@shared/utils/Coerce';
 import { ChildProcess, exec } from 'child_process';
 import { EventEmitter } from 'events';
-import { AppPathOverride, ManagedChildProcess } from 'flashpoint-launcher';
+import { AppPathOverride, GameData, ManagedChildProcess } from 'flashpoint-launcher';
 import * as path from 'path';
 import { ApiEmitter } from './extensions/ApiEmitter';
 import { OpenExternalFunc, ShowMessageBoxFunc } from './types';
 import { isBrowserOpts } from './util/misc';
+import * as GameDataManager from '@back/game/GameDataManager';
 
 const { str } = Coerce;
 
@@ -27,6 +28,7 @@ export type LaunchGameOpts = LaunchBaseOpts & {
 
 export type GameLaunchInfo = {
   game: Game;
+  activeData?: GameData;
   launchInfo: LaunchInfo;
 }
 
@@ -176,8 +178,10 @@ export namespace GameLauncher {
           const browserLaunchArgs = [path.join(__dirname, '../main/index.js'), 'browser_mode=true'];
           if (res.proxy) { browserLaunchArgs.push(`proxy=${res.proxy}`); }
           browserLaunchArgs.push(`browser_url=${(res.url)}`);
+          const gameData = opts.game.activeDataId ? await GameDataManager.findOne(opts.game.activeDataId) : undefined;
           const gameLaunchInfo: GameLaunchInfo = {
             game: opts.game,
+            activeData: gameData,
             launchInfo: {
               gamePath: process.execPath,
               gameArgs: browserLaunchArgs,
@@ -187,11 +191,17 @@ export namespace GameLauncher {
               execFile: true
             }
           };
-          await onWillEvent.fire(gameLaunchInfo);
-          const managedProc = opts.runGame(gameLaunchInfo);
-          log.info(logSource, `Launch Game "${opts.game.title}" (PID: ${managedProc.getPid()}) [\n`+
-                    `    applicationPath: "${appPath}",\n`+
-                    `    launchCommand:   "${opts.game.launchCommand}" ]`);
+          onWillEvent.fire(gameLaunchInfo)
+          .then(() => {
+            const managedProc = opts.runGame(gameLaunchInfo);
+            log.info(logSource, `Launch Game "${opts.game.title}" (PID: ${managedProc.getPid()}) [\n`+
+                      `    applicationPath: "${appPath}",\n`+
+                      `    launchCommand:   "${opts.game.launchCommand}" ]`);
+          })
+          .catch((error) => {
+            log.info('Game Launcher', `Game Launch Aborted: ${error}`);
+            alert(`Game Launch Aborted: ${error}`);
+          });
           return;
         }
 
@@ -211,8 +221,10 @@ export namespace GameLauncher {
         if ('ELECTRON_RUN_AS_NODE' in env) {
           delete env['ELECTRON_RUN_AS_NODE']; // If this flag is present, it will disable electron features from the process
         }
+        const gameData = opts.game.activeDataId ? await GameDataManager.findOne(opts.game.activeDataId) : undefined;
         const gameLaunchInfo: GameLaunchInfo = {
           game: opts.game,
+          activeData: gameData,
           launchInfo: {
             gamePath: process.execPath,
             gameArgs: [path.join(__dirname, '../main/index.js'), 'browser_mode=true', `browser_url=${path.join(__dirname, '../window/flash_index.html')}?data=${encodeURI(opts.game.launchCommand)}`],
@@ -222,7 +234,17 @@ export namespace GameLauncher {
             execFile: true
           }
         };
-        await onWillEvent.fire(gameLaunchInfo);
+        onWillEvent.fire(gameLaunchInfo)
+        .then(() => {
+          const managedProc = opts.runGame(gameLaunchInfo);
+          log.info(logSource, `Launch Game "${opts.game.title}" (PID: ${managedProc.getPid()}) [\n`+
+                    `    applicationPath: "${appPath}",\n`+
+                    `    launchCommand:   "${opts.game.launchCommand}" ]`);
+        })
+        .catch((error) => {
+          log.info('Game Launcher', `Game Launch Aborted: ${error}`);
+          alert(`Game Launch Aborted: ${error}`);
+        });
         const managedProc = opts.runGame(gameLaunchInfo);
         log.info(logSource, `Launch Game "${opts.game.title}" (PID: ${managedProc.getPid()}) [\n`+
                   `    applicationPath: "${appPath}",\n`+
@@ -233,8 +255,10 @@ export namespace GameLauncher {
         const gameArgs: string[] = [...appArgs, opts.game.launchCommand];
         const useWine: boolean = process.platform != 'win32' && gamePath.endsWith('.exe');
         const env = getEnvironment(opts.fpPath, opts.proxy);
+        const gameData = opts.game.activeDataId ? await GameDataManager.findOne(opts.game.activeDataId) : undefined;
         const gameLaunchInfo: GameLaunchInfo = {
           game: opts.game,
+          activeData: gameData,
           launchInfo: {
             gamePath,
             gameArgs,
@@ -242,13 +266,18 @@ export namespace GameLauncher {
             env,
           }
         };
-        await onWillEvent.fire(gameLaunchInfo);
-        const command: string = createCommand(gameLaunchInfo.launchInfo);
-        const managedProc = opts.runGame(gameLaunchInfo);
-        log.info(logSource,`Launch Game "${opts.game.title}" (PID: ${managedProc.getPid()}) [\n`+
-                   `    applicationPath: "${opts.game.applicationPath}",\n`+
-                   `    launchCommand:   "${opts.game.launchCommand}",\n`+
-                   `    command:         "${command}" ]`);
+        onWillEvent.fire(gameLaunchInfo)
+        .then(() => {
+          const command: string = createCommand(gameLaunchInfo.launchInfo);
+          const managedProc = opts.runGame(gameLaunchInfo);
+          log.info(logSource,`Launch Game "${opts.game.title}" (PID: ${managedProc.getPid()}) [\n`+
+                     `    applicationPath: "${opts.game.applicationPath}",\n`+
+                     `    launchCommand:   "${opts.game.launchCommand}",\n`+
+                     `    command:         "${command}" ]`);
+        })
+        .catch((error) => {
+          log.info('Game Launcher', `Game Launch Aborted: ${error}`);
+        });
       } break;
     }
   }
@@ -394,10 +423,21 @@ function escapeWin(str: string): string {
  * ( According to this: https://stackoverflow.com/questions/15783701/which-characters-need-to-be-escaped-when-using-bash )
  */
 function escapeLinuxArgs(str: string): string {
+  // Characters to always escape:
+  const escapeChars: string[] = ['~','`','#','$','&','*','(',')','\\\\','|','[','\\]','{','}',';','<','>','?','!'];
+  const match = str.match(/'/gi);
+  if (match == null || match.join('').length % 2 == 0) {
+    escapeChars.unshift('[');
+    escapeChars.push(']');
+  } else { // If there's an odd number of single quotes, escape those too.
+    escapeChars.unshift('[');
+    escapeChars.push('\'');
+    escapeChars.push(']');
+  }
   return (
     splitQuotes(str)
     .reduce((acc, val, i) => acc + ((i % 2 === 0)
-      ? val.replace(/[~`#$&*()\\|[\]{};<>?!]/g, '\\$&')
+      ? val.replace(new RegExp(escapeChars.join(''), 'g'), '\\$&')
       : '"' + val.replace(/[$!\\]/g, '\\$&') + '"'
     ), '')
   );

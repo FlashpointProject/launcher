@@ -74,7 +74,7 @@ export function main(init: Init): void {
     app.allowRendererProcessReuse = true; // Hides the "new default value" warning message (remove this line after upgrading to electron 9)
 
     // Single process
-    // No more than one "main" instance should exist at any time. Mutliple "flash" instances are fine.
+    // No more than one "main" instance should exist at any time. Multiple "flash" instances are fine.
     if (!app.requestSingleInstanceLock()) {
       app.exit();
       return;
@@ -107,7 +107,7 @@ export function main(init: Init): void {
       state.mainFolderPath = Util.getMainFolderPath(state._installed);
     })
     // Load version number
-    .then(() => new Promise(resolve => {
+    .then(() => new Promise<void>(resolve => {
       fs.readFile(path.join(state.mainFolderPath, '.version'), (error, data) => {
         state._version = (data)
           ? parseInt(data.toString().replace(/[^\d]/g, ''), 10) // (Remove all non-numerical characters, then parse it as a string)
@@ -164,7 +164,7 @@ export function main(init: Init): void {
           localeCode: localeCode,
           exePath: app.getPath('exe'),
           acceptRemote: !!init.args['host-remote'],
-          version: app.getVersion(), // @TODO Manually load this from the package.json file while in a dev enviroment (so it doesn't use Electron's version)
+          version: app.getVersion(), // @TODO Manually load this from the package.json file while in a dev environment (so it doesn't use Electron's version)
         };
         state.backProc.send(JSON.stringify(msg));
       }));
@@ -186,7 +186,7 @@ export function main(init: Init): void {
         };
       }), TIMEOUT_DELAY))
       // Send init message
-      .then(ws => timeout(new Promise((resolve, reject) => {
+      .then(ws => timeout(new Promise<void>((resolve, reject) => {
         state.socket.setSocket(ws);
 
         state.socket.request(BackIn.GET_MAIN_INIT_DATA)
@@ -403,7 +403,7 @@ export function main(init: Init): void {
       const isMaximized = window.isMaximized();
       window.webContents.send(WindowIPC.WINDOW_RESIZE, size[0], size[1], isMaximized);
     });
-    // Derefence window when closed
+    // Dereference window when closed
     window.on('closed', () => {
       if (state.window === window) {
         state.window = undefined;

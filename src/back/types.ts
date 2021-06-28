@@ -23,6 +23,7 @@ import { ManagedChildProcess } from './ManagedChildProcess';
 import { SocketServer } from './SocketServer';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
+import { LogFile } from './util/LogFile';
 
 /** Contains most state for the back process. */
 export type BackState = {
@@ -45,6 +46,7 @@ export type BackState = {
   exePath: string;
   localeCode: string;
   version: string;
+  logFile: LogFile;
   customVersion?: string,
   gameManager: GameManagerState;
   messageQueue: WebSocket.MessageEvent[];
@@ -116,7 +118,7 @@ export type ServiceFileData = {
   start: IBackProcessInfo[];
   /** Processes to run when the launcher closes. */
   stop: IBackProcessInfo[];
-  /** Files to watch and run continous logging on */
+  /** Files to watch and run continuous logging on */
   watch: string[];
 };
 
@@ -162,6 +164,7 @@ export type ApiEmittersState = Readonly<{
     onWillLaunchAddApp: ApiEmitter<flashpoint.AdditionalApp>;
     onWillLaunchCurationGame: ApiEmitter<flashpoint.GameLaunchInfo>;
     onWillLaunchCurationAddApp: ApiEmitter<flashpoint.AdditionalApp>;
+    onWillUninstallGameData: ApiEmitter<flashpoint.GameData>;
     onDidLaunchGame: ApiEmitter<flashpoint.Game>;
     onDidLaunchAddApp: ApiEmitter<flashpoint.AdditionalApp>;
     onDidLaunchCurationGame: ApiEmitter<flashpoint.Game>;
@@ -171,11 +174,19 @@ export type ApiEmittersState = Readonly<{
     onDidUpdatePlaylist: ApiEmitter<{oldPlaylist: flashpoint.Playlist, newPlaylist: flashpoint.Playlist}>;
     onDidUpdatePlaylistGame: ApiEmitter<{oldGame: flashpoint.PlaylistGame, newGame: flashpoint.PlaylistGame}>;
     onDidRemovePlaylistGame: ApiEmitter<flashpoint.PlaylistGame>;
+    onDidInstallGameData: ApiEmitter<flashpoint.GameData>;
+    onDidUninstallGameData: ApiEmitter<flashpoint.GameData>;
     onWillImportCuration: ApiEmitter<flashpoint.CurationImportState>;
+  }>,
+  gameData: Readonly<{
+    onDidImportGameData: ApiEmitter<flashpoint.GameData>;
   }>,
   services: Readonly<{
     onServiceNew: ApiEmitter<flashpoint.ManagedChildProcess>;
     onServiceRemove: ApiEmitter<flashpoint.ManagedChildProcess>;
     onServiceChange: ApiEmitter<flashpoint.ServiceChange>;
+  }>,
+  ext: Readonly<{
+    onExtConfigChange: ApiEmitter<{key: string, value: any}>;
   }>,
 }>

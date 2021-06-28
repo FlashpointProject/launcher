@@ -1,9 +1,9 @@
 /* eslint-disable react/no-unused-state */
+import { chunkArray } from '@back/util/misc';
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { getGamePath } from '@renderer/Util';
 import { BackIn, BackOut } from '@shared/back/types';
-import { AppConfigData } from '@shared/config/interfaces';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { DevScript, ExtensionContribution } from '@shared/extensions/interfaces';
 import { ExecMapping, IService } from '@shared/interfaces';
@@ -151,9 +151,17 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               title={strings.importTagsDesc}
               onClick={this.onImportTagsClick} />
             <SimpleButton
-              value={strings.forceGameMetaSync}
-              title={strings.forceGameMetaSyncDesc}
-              onClick={this.onForceGameMetaSync} />
+              value={strings.updateTagsString}
+              title={strings.updateTagsStringDesc}
+              onClick={this.onUpdateTagsStr} />
+            <SimpleButton
+              value={strings.massImportGameData}
+              title={strings.massImportGameDataDesc}
+              onClick={this.onMassImportGameData} />
+            <SimpleButton
+              value={strings.migrateExtremeGames}
+              title={strings.migrateExtremeGamesDesc}
+              onClick={this.onMigrateExtremeGamesClick} />
             <SimpleButton
               value={strings.importMetaEdits}
               title={strings.importMetaEditsDesc}
@@ -212,7 +220,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
 
   onCheckFileLocation = async (): Promise<void> => {
     const res = await fetchAllGames();
-    this.setState({ text: checkFileLocation(res) });
+    this.setState({ text: await checkFileLocation(res) });
   }
 
   onCheckMissingExecMappings = async (): Promise<void> => {
@@ -234,14 +242,14 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
 
   onImportLegacyPlatformsClick = (): void => {
     setTimeout(async () => {
-      importLegacyPlatforms(window.Shared.config.data, (text) => this.setState({ text: text }));
+      importLegacyPlatforms(path.join(window.Shared.config.data.flashpointPath, window.Shared.preferences.data.platformFolderPath), (text) => this.setState({ text: text }));
     });
   }
 
   onImportLegacyPlaylistsClick = () : void => {
     setTimeout(async () => {
       this.setState({ text: 'Importing playlists...' });
-      importLegacyPlaylists(window.Shared.config.data).then(num => {
+      importLegacyPlaylists(path.join(window.Shared.config.data.flashpointPath, window.Shared.preferences.data.playlistFolderPath)).then(num => {
         this.setState({ text: `${num} Playlists Imported!` });
       });
     });
@@ -297,21 +305,103 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     });
   }
 
-  onForceGameMetaSync = () : void => {
+  onUpdateTagsStr = (): void => {
     setTimeout(async () => {
-      this.setState({ text: 'Syncing...' });
-      window.Shared.back.request(BackIn.SYNC_GAME_METADATA)
-      .then((data) => {
-        if (data) {
-          if (data.error) {
-            this.setState({ text: `ERROR: ${data.error}` });
-          } else {
-            this.setState({ text: `Requested ${data.total} modified games, successfully saved ${data.successes}.`});
+      const text = 'Updating Tag Strings...';
+      this.setState({ text });
+      const createTextBarProgress = (current: number, total: number) => {
+        const filledSegments = (current / total) * 30;
+        return `Progress: [${'#'.repeat(filledSegments)}${'-'.repeat(30 - filledSegments)}] (${current}/${total})`;
+      };
+      const games = await fetchAllGames();
+      let processed = 0;
+      const buffer: Game[] = [];
+      for (const chunk of chunkArray(games, 250)) {
+        for (const game of chunk) {
+          const newGame = new Game();
+          Object.assign(newGame, { ...game });
+          newGame.updateTagsStr();
+          buffer.push(newGame);
+        }
+        processed += chunk.length;
+        await window.Shared.back.request(BackIn.SAVE_GAMES, buffer);
+        buffer.length = 0;
+        this.setState({ text: text + '\n' + createTextBarProgress(processed, games.length)});
+      }
+      this.setState({ text: text + '\n' + createTextBarProgress(processed, games.length) + '\n' + `Finished, updated ${processed} games.`});
+    });
+  }
+
+  onMassImportGameData = (): void => {
+    const files = window.Shared.showOpenDialogSync({
+      title: 'Select Game Data',
+      filters: [{
+        name: 'Game Data',
+        extensions: ['zip']
+      }],
+      properties: ['openFile', 'multiSelections', 'dontAddToRecent']
+    });
+
+    if (files && files.length > 0) {
+      const addLine = (line: string) => this.setState({ text: this.state.text + '\n' + line });
+      setTimeout(async () => {
+        this.setState({ text: `Selected ${files.length} Files...` });
+        await Promise.all(files.map(async (filePath) => {
+          // Extract UUID from filename
+          const fileName = path.basename(filePath);
+          if (fileName.length >= 39) {
+            const uuid = fileName.substring(0, 36);
+            if (validateSemiUUID(uuid)) {
+              const game = await window.Shared.back.request(BackIn.GET_GAME, uuid);
+              if (game) {
+                // Game exists, import the data
+                return window.Shared.back.request(BackIn.IMPORT_GAME_DATA, game.id, filePath)
+                .then((gameData) => addLine(`Success - ${fileName} - ${game.title} - SHA256: ${gameData.sha256}`))
+                .catch((error) => {
+                  addLine(`Failure - ${fileName} - ERROR: ${error}`);
+                });
+              }
+            }
+          }
+        }));
+        addLine('FINISHED!');
+      });
+    }
+  }
+
+  onMigrateExtremeGamesClick = (): void => {
+    setTimeout(async () => {
+      const text = 'Migrating Extreme Games...';
+      this.setState({ text });
+      const createTextBarProgress = (current: number, total: number) => {
+        const filledSegments = (current / total) * 30;
+        return `Progress: [${'#'.repeat(filledSegments)}${'-'.repeat(30 - filledSegments)}] (${current}/${total})`;
+      };
+      const extremeTag = await window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, 'LEGACY-Extreme');
+      const games = await fetchAllGames();
+      let processed = 0;
+      let edited = 0;
+      const buffer: Game[] = [];
+      for (const chunk of chunkArray(games, 250)) {
+        for (const game of chunk) {
+          if (game.extreme) {
+            game.extreme = false;
+            if (game.tags.findIndex(t => t.id === extremeTag.id) === -1)
+            {
+              game.tags.push(extremeTag);
+            }
+            buffer.push(game);
           }
         }
-      });
+        edited += buffer.length;
+        processed += chunk.length;
+        await window.Shared.back.request(BackIn.SAVE_GAMES, buffer);
+        buffer.length = 0;
+        this.setState({ text: text + '\n' + createTextBarProgress(processed, games.length)});
+      }
+      this.setState({ text: text + '\n' + createTextBarProgress(processed, games.length) + '\n' + `Finished, converted ${edited} games. Please restart the Launcher.`});
     });
-  };
+  }
 
   onImportMetaEdits = (): void => {
     setTimeout(async () => {
@@ -666,7 +756,7 @@ function checkDupes<T>(array: T[], fn: (element: T) => string): { [key: string]:
   return clean;
 }
 
-function checkFileLocation(games: Game[]): string {
+async function checkFileLocation(games: Game[]): Promise<string> {
   const timeStart = Date.now(); // Start timing
   const pathFailed: Game[] = []; // (Games that it failed to get the path from)
   const pathError: [ Game, Error ][] = []; // (Games that it threw an error while attempting to get the path)
@@ -676,7 +766,7 @@ function checkFileLocation(games: Game[]): string {
     if (game.broken) { skippedCount += 1; }
     else {
       try {
-        const gamePath = getGamePath(game, window.Shared.config.fullFlashpointPath, window.Shared.config.data.htdocsFolderPath);
+        const gamePath = await getGamePath(game, window.Shared.config.fullFlashpointPath, window.Shared.preferences.data.htdocsFolderPath, window.Shared.preferences.data.dataPacksFolderPath);
         if (gamePath === undefined) { pathFailed.push(game); }
       } catch (error) {
         pathError.push([ game, error ]);
@@ -798,12 +888,11 @@ function fetchAllGames(): Promise<Game[]> {
   return window.Shared.back.request(BackIn.GET_ALL_GAMES);
 }
 
-async function importLegacyPlatforms(config: AppConfigData, setText: (text: string) => void): Promise<void> {
+async function importLegacyPlatforms(platformsPath: string, setText: (text: string) => void): Promise<void> {
   const text: string[] = [];
   text.push('Finding XMLs...');
   setText(text.join('\n'));
 
-  const platformsPath = path.join(config.flashpointPath, config.platformFolderPath);
   const iterator = new Legacy_PlatformFileIterator(platformsPath);
   await iterator.init();
   if (iterator.initialized) {
@@ -825,9 +914,8 @@ async function importLegacyPlatforms(config: AppConfigData, setText: (text: stri
   }
 }
 
-async function importLegacyPlaylists(config: AppConfigData): Promise<number> {
+async function importLegacyPlaylists(playlistsPath: string): Promise<number> {
   let playlistsImported = 0;
-  const playlistsPath = path.join(config.flashpointPath, config.playlistFolderPath);
   const files = await fs.promises.readdir(playlistsPath);
   console.log(files);
   for (const file of files) {

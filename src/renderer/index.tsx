@@ -77,6 +77,7 @@ function createInitialMainState(): MainState {
           orderBy: preferencesData.gamesOrderBy,
           orderReverse: preferencesData.gamesOrder
         },
+        tagFilters: preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !preferencesData.browsePageShowExtreme))
       }),
       pageState: {},
       meta: undefined,
@@ -88,6 +89,7 @@ function createInitialMainState(): MainState {
       selectedGameId: undefined,
       lastStart: 0,
       lastCount: 0,
+      tagFilters: [],
     };
   }
 
@@ -138,6 +140,10 @@ function createInitialMainState(): MainState {
     extConfigs: window.Shared.initialExtConfigs,
     extConfig: window.Shared.initialExtConfig,
     services: window.Shared.initialServices,
-    logoVersion: 0
+    logoVersion: 0,
+    downloadPercent: 0,
+    downloadSize: 0,
+    downloadOpen: false,
+    downloadVerifying: false
   };
 }

@@ -10,13 +10,13 @@ const { str, num } = Coerce;
 const fsPromises = fs.promises;
 
 /** Scans all extensions in System and User paths and returns them. */
-export async function scanExtensions(configData: AppConfigData): Promise<IExtension[]> {
+export async function scanExtensions(configData: AppConfigData, extensionPath: string): Promise<IExtension[]> {
   const result = new Map<string, IExtension>();
 
   // TODO: System extensions (?)
 
   // User extensions
-  const userExtPath = path.join(configData.flashpointPath, configData.extensionsPath);
+  const userExtPath = path.resolve(extensionPath);
   await fs.promises.access(userExtPath, fs.constants.F_OK | fs.constants.R_OK)
   .then(() => {/** Folder exists */})
   .catch(() => fs.promises.mkdir(userExtPath));
@@ -214,20 +214,21 @@ function parseConfigurationProperty(parser: IObjectParserProp<ExtConfigurationPr
     type: 'object',
     default: {},
     enum: [],
-    description: ''
+    description: '',
   };
 
   parser.prop('title',       v => prop.title       = str(v));
   parser.prop('type',        v => prop.type        = toPropType(v));
   parser.prop('description', v => prop.description = str(v));
-  parser.prop('default',     v => prop.default     = v);
+  parser.prop('default',     v => prop.default     = v, true);
+  parser.prop('command',     v => prop.command     = str(v), true);
   parser.prop('enum', true).arrayRaw(item => prop.enum.push(item));
 
   return prop;
 }
 
 function toPropType(v: any): ExtConfigurationProp['type'] {
-  if (v === 'object' || v === 'string' || v === 'boolean') {
+  if (v === 'object' || v === 'string' || v === 'boolean' || v === 'number' || v === 'button') {
     return v;
   } else {
     throw new Error('Configuration prop type is not valid. (string, object, number or boolean)');

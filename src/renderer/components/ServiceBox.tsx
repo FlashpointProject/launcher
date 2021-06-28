@@ -165,7 +165,7 @@ function useInterval(callback: () => void, ms: number, deps?: any[]): void {
 }
 
 /**
- * Stringify all entires that are from a specific source.
+ * Stringify all entries that are from a specific source.
  * @param entries Entries to stringify.
  * @param source The source to filter by.
  */

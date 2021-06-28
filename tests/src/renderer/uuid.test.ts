@@ -28,7 +28,7 @@ describe('uuid.validateSemiUUID()', function () {
     const str = 'asdhbgfgfgajk123214543612312323asadghfga';
     expect(validateSemiUUID(str)).toBe(false);
   });
-  test('Invalid hexidecimal characters', () => {
+  test('Invalid hexadecimal characters', () => {
     const str = 'bbzz1234-0abc-llll-abcd-abc12345678z';
     expect(validateSemiUUID(str)).toBe(false);
   });

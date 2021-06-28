@@ -80,7 +80,7 @@ export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
                     <p><b>{strings.version}:</b> {versionNumberToText(window.Shared.version)} ({window.Shared.version})</p>
                     <p><b>{strings.license}:</b> {strings.licenseInfo}</p>
                     <div className='about-page__section__links'>
-                      {link('Github', 'https://github.com/FlashpointProject/launcher')}
+                      {link('GitHub', 'https://github.com/FlashpointProject/launcher')}
                     </div>
                   </div>
                 </div>

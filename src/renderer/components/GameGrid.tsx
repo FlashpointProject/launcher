@@ -33,6 +33,8 @@ export type GameGridProps = {
   cellWidth: number;
   /** Height of each cell in the grid (in pixels). */
   cellHeight: number;
+  /** List of Extreme tags */
+  extremeTags: string[];
   /** Function that renders the elements to show instead of the grid if there are no games (render prop). */
   noRowsRenderer?: () => JSX.Element;
   /** Called when the user attempts to select a game. */
@@ -189,7 +191,7 @@ export class GameGrid extends React.Component<GameGridProps> {
           id={game ? game.id : ''}
           title={game ? game.title : ''}
           platform={game ? game.platform : ''}
-          extreme={game ? game.extreme : false}
+          extreme={game ? game.tagsStr.split(';').findIndex(t => this.props.extremeTags.includes(t.trim())) !== -1 : false}
           extremeIconPath={extremeIconPath}
           thumbnail={game ? getGameImageURL(LOGOS, game.id) : ''}
           logoVersion={this.props.logoVersion}

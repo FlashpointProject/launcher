@@ -83,6 +83,18 @@ export function CuratePage(props: CuratePageProps) {
     readInitialCurations();
   }, []);
 
+  const scanNewCurationFolders = React.useCallback(async () => {
+    const curationsPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations', 'Working');
+    await fs.ensureDir(curationsPath);
+    fs.promises.readdir(curationsPath, { withFileTypes: true })
+    .then(async (files) => {
+      for (const file of files.filter(f => f.isDirectory() && f.name != 'Exported' && f.name != 'Imported' && state.curations.findIndex(c => c.key === f.name) === -1)) {
+        const fullPath = path.join(curationsPath, file.name);
+        await loadCurationFolder(file.name, fullPath, defaultGameMetaValues, dispatch, props);
+      }
+    });
+  }, [state.curations]);
+
   // Called whenever the state changes
   React.useEffect(() => {
     localState.state = state;
@@ -146,7 +158,7 @@ export function CuratePage(props: CuratePageProps) {
       date: date,
       saveCuration: props.preferencesData.saveImportedCurations
     })
-    .then<undefined>(data => new Promise((resolve, reject) => {
+    .then(data => new Promise<void>((resolve, reject) => {
       if (data && data.error) {
         reject(data.error);
       } else {
@@ -182,7 +194,7 @@ export function CuratePage(props: CuratePageProps) {
           console.log(`Importing... (id: ${curation.key})`);
           ProgressDispatch.setText(statusProgress, `Importing Curation ${i+1} of ${curations.length}`);
           // Check for warnings
-          const warnings = getCurationWarnings(curation, props.suggestions, props.libraries, strings.curate);
+          const warnings = getCurationWarnings(curation, props.suggestions, props.libraries, strings.curate, '');
           const warningCount = getWarningCount(warnings);
           if (warningCount > 0) {
             // Prompt user
@@ -431,6 +443,12 @@ export function CuratePage(props: CuratePageProps) {
     });
   }, []);
 
+  const onUseTagFiltersToggle = useCallback((isChecked: boolean) => {
+    updatePreferencesData({
+      tagFiltersInCurate: isChecked
+    });
+  }, []);
+
   // On Left Sidebar Size change
   const onLeftSidebarResize = useCallback((event) => {
     const maxWidth = getDivWidth(pageRef) - 5;
@@ -492,7 +510,9 @@ export function CuratePage(props: CuratePageProps) {
             libraries={props.libraries}
             tagCategories={props.tagCategories}
             mad4fpEnabled={props.mad4fpEnabled}
-            symlinkCurationContent={props.preferencesData.symlinkCurationContent} />
+            symlinkCurationContent={props.preferencesData.symlinkCurationContent}
+            tagFilters={props.preferencesData.tagFiltersInCurate ? props.preferencesData.tagFilters : []}
+            showExtremeSuggestions={props.preferencesData.browsePageShowExtreme} />
       ));
     } else {
       return (
@@ -502,26 +522,38 @@ export function CuratePage(props: CuratePageProps) {
       );
     }
   }, [state.curations, props.suggestions, strings, props.preferencesData.saveImportedCurations,
-    props.tagCategories, props.preferencesData.symlinkCurationContent]);
+    props.tagCategories, props.preferencesData.symlinkCurationContent, props.preferencesData.tagFiltersInCurate,
+    props.preferencesData.browsePageShowExtreme]);
 
   // Render Curation Index (left sidebar)
   const curateIndex = React.useMemo(() => {
-    return state.curations.map((curation, index) => {
-      const platformIconPath = curation.meta.platform ? getPlatformIconURL(curation.meta.platform, props.logoVersion) : '';
-      return (
-        curation.delete ? undefined :
-          <div
-            key={index}
-            className='curate-page__left-sidebar-item'
-            onClick={() => { scrollToDiv(curation.key); }}>
-            <div
-              className='curate-page__left-sidebar-item__icon'
-              style={{backgroundImage: `url(${platformIconPath})`}}/>
-            {curation.meta.title ? curation.meta.title : 'No Title'}
-          </div>
-      );
-    });
-  }, [state.curations]);
+    return (
+      <div>
+        <SimpleButton
+          className='curate-page__left-sidebar__sort-button'
+          value={strings.curate.sort}
+          onClick={() => dispatch({
+            type: 'sort-curations',
+            payload: {}
+          })}/>
+        {state.curations.map((curation, index) => {
+          const platformIconPath = curation.meta.platform ? getPlatformIconURL(curation.meta.platform, props.logoVersion) : '';
+          return (
+            curation.delete ? undefined :
+              <div
+                key={index}
+                className='curate-page__left-sidebar-item'
+                onClick={() => { scrollToDiv(curation.key); }}>
+                <div
+                  className='curate-page__left-sidebar-item__icon'
+                  style={{backgroundImage: `url('${platformIconPath}')`}}/>
+                {curation.meta.title ? curation.meta.title : 'No Title'}
+              </div>
+          );
+        })}
+      </div>
+    );
+  }, [state.curations, dispatch]);
 
   // Render
   return React.useMemo(() => (
@@ -561,6 +593,10 @@ export function CuratePage(props: CuratePageProps) {
               value={strings.curate.loadFolder}
               title={strings.curate.loadFolderDesc}
               onClick={onLoadCurationFolderClick} />
+            <SimpleButton
+              value={strings.curate.scanNewCurationFolders}
+              title={strings.curate.scanNewCurationFoldersDesc}
+              onClick={scanNewCurationFolders} />
             <div className='curate-page__floating-box__divider'/>
             <SimpleButton
               value={strings.curate.openCurationsFolder}
@@ -576,11 +612,13 @@ export function CuratePage(props: CuratePageProps) {
               onClick={onOpenImportedFolder} />
             <div className='curate-page__floating-box__divider'/>
             <ConfirmElement
+              message={strings.dialog.importAllCurations}
               onConfirm={onImportAllClick}
               render={renderImportAllButton}
               extra={[strings.curate, allLock]} />
             <div className='curate-page__floating-box__divider'/>
             <ConfirmElement
+              message={strings.dialog.deleteAllCurations}
               onConfirm={onDeleteAllClick}
               render={renderDeleteAllButton}
               extra={[strings.curate, allLock]} />
@@ -605,6 +643,12 @@ export function CuratePage(props: CuratePageProps) {
                 onToggle={onSymlinkCurationContentToggle}
                 checked={props.preferencesData.symlinkCurationContent} />
             </div>
+            <div className='curate-page__checkbox'>
+              <div className='curate-page__checkbox-text'>{strings.curate.useTagFilters}</div>
+              <CheckBox
+                onToggle={onUseTagFiltersToggle}
+                checked={props.preferencesData.tagFiltersInCurate} />
+            </div>
           </div>
         </div>
       </div>
@@ -612,30 +656,29 @@ export function CuratePage(props: CuratePageProps) {
   ), [curateBoxes, progressComponent, strings, state.curations.length,
     onImportAllClick, onLoadCurationArchiveClick, onLoadCurationFolderClick, onLoadMetaClick,
     props.preferencesData.curatePageLeftSidebarWidth, props.preferencesData.browsePageShowLeftSidebar,
-    props.preferencesData.saveImportedCurations, props.preferencesData.keepArchiveKey, props.preferencesData.symlinkCurationContent]);
+    props.preferencesData.saveImportedCurations, props.preferencesData.keepArchiveKey, props.preferencesData.symlinkCurationContent,
+    props.preferencesData.tagFiltersInCurate]);
 }
 
-function renderImportAllButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {
+function renderImportAllButton({ confirm, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {
+  const [ strings, disabled ] = extra;
   return (
     <SimpleButton
-      className={(activationCounter > 0) ? 'simple-button--red simple-vertical-shake' : ''}
-      value={extra[0].importAll}
-      title={extra[0].importAllDesc}
-      onClick={activate}
-      disabled={extra[1]}
-      onMouseLeave={reset} />
+      value={strings.importAll}
+      title={strings.importAllDesc}
+      onClick={confirm}
+      disabled={disabled} />
   );
 }
 
-function renderDeleteAllButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {
+function renderDeleteAllButton({ confirm, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {
+  const [ strings, disabled ] = extra;
   return (
     <SimpleButton
-      className={(activationCounter > 0) ? 'simple-button--red simple-vertical-shake' : ''}
-      value={extra[0].deleteAll}
-      title={extra[0].deleteAllDesc}
-      onClick={activate}
-      disabled={extra[1]}
-      onMouseLeave={reset} />
+      value={strings.deleteAll}
+      title={strings.deleteAllDesc}
+      onClick={confirm}
+      disabled={disabled} />
   );
 }
 
@@ -681,7 +724,7 @@ function scrollToDiv(id: string) {
   }
 }
 
-/* Returns the width of a div ref, minumum 10 */
+/* Returns the width of a div ref, minimum 10 */
 function getDivWidth(ref: React.RefObject<HTMLDivElement>) {
   if (!document.defaultView) { throw new Error('"document.defaultView" missing.'); }
   if (!ref.current) { throw new Error('div is missing.'); }
@@ -780,7 +823,6 @@ async function loadCurationFolder(key: string, fullPath: string, defaultGameMeta
           image.exists = false;
         }
         loadedCuration.thumbnail = image;
-        log.debug('Curate', `Loaded Image:\n${JSON.stringify(image, null, 2)}`);
         break;
       }
       case 'ss.png': {

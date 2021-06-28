@@ -2,14 +2,16 @@ import { Game } from '@database/entity/Game';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
+import { WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
 import { BackIn, BackOut, BackOutTemplate, TagSuggestion } from '@shared/back/types';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { wrapSearchTerm } from '@shared/game/GameFilter';
 import { ModelUtils } from '@shared/game/util';
 import { GamePropSuggestions, PickType, ProcessAction } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
-import { deepCopy } from '@shared/Util';
-import { Menu, MenuItemConstructorOptions, remote } from 'electron';
+import { deepCopy, generateTagFilterGroup, sizeToString } from '@shared/Util';
+import { clipboard, Menu, MenuItemConstructorOptions, remote } from 'electron';
+import { GameData } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as React from 'react';
 import { WithPreferencesProps } from '../containers/withPreferences';
@@ -20,16 +22,20 @@ import { uuid } from '../util/uuid';
 import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { DropdownInputField } from './DropdownInputField';
+import { GameDataBrowser } from './GameDataBrowser';
 import { GameImageSplit } from './GameImageSplit';
 import { ImagePreview } from './ImagePreview';
 import { InputElement, InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { RightBrowseSidebarAddApp } from './RightBrowseSidebarAddApp';
+import { SimpleButton } from './SimpleButton';
 import { TagInputField } from './TagInputField';
 
 type OwnProps = {
   /** Currently selected game (if any) */
   currentGame?: Game;
+  /** Whether the current game is extreme */
+  isExtreme: boolean;
   /** Is the current game running? */
   gameRunning: boolean;
   /* Current Library */
@@ -37,7 +43,7 @@ type OwnProps = {
   /** Currently selected game entry (if any) */
   currentPlaylistEntry?: PlaylistGame;
   /** Called when the play button is pressed */
-  onGameLaunch: (gameId: string) => void;
+  onGameLaunch: (gameId: string) => Promise<void>;
   /** Called when the selected game is deleted by this */
   onDeleteSelectedGame: () => void;
   /** Called when the selected game is removed from the selected by this */
@@ -58,11 +64,13 @@ type OwnProps = {
   onEditClick: () => void;
   onDiscardClick: () => void;
   onSaveGame: () => void;
+  onOpenExportMetaEdit: (gameId: string) => void;
 
   onEditGame: (game: Partial<Game>) => void;
+  onUpdateActiveGameData: (activeDataOnDisk: boolean, activeDataId?: number) => void;
 };
 
-export type RightBrowseSidebarProps = OwnProps & WithPreferencesProps & WithSearchProps;
+export type RightBrowseSidebarProps = OwnProps & WithPreferencesProps & WithSearchProps & WithConfirmDialogProps;
 
 type RightBrowseSidebarState = {
   /** If a preview of the current game's screenshot should be shown. */
@@ -71,6 +79,9 @@ type RightBrowseSidebarState = {
   thumbnailExists: boolean;
   currentTagInput: string;
   tagSuggestions: TagSuggestion[];
+  gameDataBrowserOpen: boolean;
+  activeData?: GameData;
+  showExtremeScreenshots: boolean;
 };
 
 export interface RightBrowseSidebar {
@@ -126,6 +137,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       thumbnailExists: false,
       currentTagInput: '',
       tagSuggestions: [],
+      gameDataBrowserOpen: false,
+      showExtremeScreenshots: false,
     };
   }
 
@@ -151,10 +164,26 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
         });
       }
     }
+    if (this.props.currentGame && this.props.currentGame.id !== (prevProps.currentGame && prevProps.currentGame.id)) {
+      // Hide again when changing games
+      this.setState({ showExtremeScreenshots: false });
+    }
+    if (prevProps.currentGame && prevProps.currentGame.activeDataId && (!this.props.currentGame || !this.props.currentGame.activeDataId)) {
+      /** No game data, clear */
+      this.setState({ activeData: undefined });
+    }
+    if ((prevProps.currentGame && prevProps.currentGame.activeDataId) !== (this.props.currentGame && this.props.currentGame.activeDataId)) {
+      /** Game Data changed */
+      if (this.props.currentGame && this.props.currentGame.activeDataId) {
+        window.Shared.back.request(BackIn.GET_GAME_DATA, this.props.currentGame.activeDataId)
+        .then((gameData) => this.setState({ activeData: gameData }));
+      }
+    }
   }
 
   render() {
-    const strings = this.context.browse;
+    const allStrings = this.context;
+    const strings = allStrings.browse;
     const game: Game | undefined = this.props.currentGame;
     if (game) {
       const { isEditing, isNewGame, currentPlaylistEntry, preferencesData, suggestions, tagCategories } = this.props;
@@ -168,6 +197,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
 
       const removeGameFromPlaylistElement = (
         <ConfirmElement
+          message={allStrings.dialog.removePlaylistGame}
           onConfirm={this.props.onRemoveSelectedGameFromPlaylist}
           render={this.renderRemoveFromPlaylistButton}
           extra={strings} />
@@ -230,6 +260,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                           {/* "Delete Game" Button */}
                           { (isPlaceholder || isNewGame || currentPlaylistEntry) ? undefined : (
                             <ConfirmElement
+                              message={allStrings.dialog.deleteGame}
                               onConfirm={this.onDeleteGameClick}
                               render={this.renderDeleteGameButton}
                               extra={strings} />
@@ -255,6 +286,17 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
               </div>
             ) }
           </div>
+          {/** Mini download info */}
+          <div className='browse-right-sidebar__mini-download-info'>
+            <div className='browse-right-sidebar__mini-download-info__state'>
+              {this.state.activeData ? (this.state.activeData.presentOnDisk ? strings.installed : strings.notInstalled): strings.legacyGame}
+            </div>
+            { this.state.activeData && (
+              <div className='browse-right-sidebar__mini-download-info__size'>
+                {`${sizeToString(this.state.activeData.size)}`}
+              </div>
+            )}
+          </div>
           {/* -- Play Button -- */}
           { isPlaceholder ? undefined :
             this.props.gameRunning ? (
@@ -267,13 +309,49 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                 }}>
                 {strings.stop}
               </div>
-            ) : (
+            ) : (this.state.activeData && !this.state.activeData.presentOnDisk) ? (
               <div
-                className='browse-right-sidebar__play-button'
-                onClick={() => this.props.currentGame && this.props.onGameLaunch(this.props.currentGame.id)}>
-                {strings.play}
+                className='browse-right-sidebar__play-button--download'
+                onClick={() => {
+                  this.props.currentGame && this.props.onGameLaunch(this.props.currentGame.id)
+                  .then(this.onForceUpdateGameData);
+                }}>
+                {strings.download}
               </div>
             )
+              : (
+                <div className='browse-right-sidebar__play-button' >
+                  <div className='browse-right-sidebar__play-button--text'
+                    onClick={() => this.props.currentGame && this.props.onGameLaunch(this.props.currentGame.id)} >
+                    {strings.play}
+                  </div>
+                  { this.state.activeData ? (
+                    <div className='browse-right-sidebar__play-button--dropdown'
+                      onClick={() =>
+                        openContextMenu([{
+                          label: strings.uninstallGame,
+                          click: async () => {
+                            if (this.state.activeData) {
+                              const res = await this.props.openConfirmDialog(allStrings.dialog.uninstallGame, [allStrings.misc.yes, allStrings.misc.no], 1);
+                              if (res === 0) {
+                                window.Shared.back.request(BackIn.UNINSTALL_GAME_DATA, this.state.activeData.id)
+                                .then((game) => {
+                                  this.onForceUpdateGameData();
+                                })
+                                .catch((error) => {
+                                  alert(allStrings.dialog.unableToUninstallGameData);
+                                });
+                              }
+                            }
+                          }
+                        }])
+                      }>
+                      <OpenIcon icon='chevron-bottom'/>
+                    </div>
+                  ) : undefined }
+
+                </div>
+              )
           }
           {/* -- Most Fields -- */}
           { isPlaceholder ? undefined : (
@@ -444,22 +522,6 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     </div>
                   </div>
                 ) : undefined }
-                { game.extreme || editable ? (
-                  <div className='browse-right-sidebar__row'>
-                    <div
-                      className='browse-right-sidebar__row__check-box-wrapper'
-                      onClick={this.onExtremeChange}>
-                      { editable ? (
-                        <>
-                          <CheckBox
-                            checked={game.extreme}
-                            className='browse-right-sidebar__row__check-box' />
-                          <p> {strings.extreme}</p>
-                        </>
-                      ) : ( <b> {strings.extreme}</b> ) }
-                    </div>
-                  </div>
-                ) : undefined }
               </div>
             </>
           ) }
@@ -592,13 +654,23 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       <p>{strings.dropImageHere}</p>
                     </div>
                   </div>
-                ) : (
-                  <img
-                    className='browse-right-sidebar__row__screenshot-image'
-                    alt='' // Hide the broken link image if source is not found
-                    src={screenshotSrc}
-                    onClick={this.onScreenshotClick} />
-                ) }
+                ) :
+                  (this.props.isExtreme && this.props.preferencesData.hideExtremeScreenshots && !this.state.showExtremeScreenshots) ? (
+                    <div
+                      className='browse-right-sidebar__row__screenshot-image--hidden'
+                      onClick={this.onShowExtremeScreenshots}>
+                      <div className='browse-right-sidebar__row__screenshot-image--hidden-text'>
+                        {strings.showExtremeScreenshot}
+                      </div>
+                    </div>
+                  ) : (
+                    <img
+                      className='browse-right-sidebar__row__screenshot-image'
+                      alt='' // Hide the broken link image if source is not found
+                      src={screenshotSrc}
+                      onClick={this.onScreenshotClick} />
+                  )
+                }
               </div>
             </div>
           </div>
@@ -608,6 +680,31 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
               src={screenshotSrc}
               onCancel={this.onScreenshotPreviewClick} />
           ) : undefined }
+          <SimpleButton
+            value='Open Game Data Browser'
+            onClick={() => this.setState({ gameDataBrowserOpen: !this.state.gameDataBrowserOpen })}/>
+          { this.props.preferencesData.enableEditing && !this.props.isEditing && (
+            <>
+              <SimpleButton
+                value={allStrings.misc.exportMetaEditTitle}
+                title={allStrings.misc.exportMetaEditDesc}
+                onClick={() => this.props.currentGame && this.props.onOpenExportMetaEdit(this.props.currentGame.id)} />
+              <SimpleButton
+                value={allStrings.menu.copyGameUUID}
+                onClick={() => this.props.currentGame && clipboard.writeText(this.props.currentGame.id)} />
+            </>
+          )}
+          { this.state.gameDataBrowserOpen && (
+            <GameDataBrowser
+              onClose={() => this.setState({ gameDataBrowserOpen: false })}
+              game={game}
+              onEditGame={(game) => {
+                this.props.onEditGame(game);
+                this.props.onSaveGame();
+              }}
+              onUpdateActiveGameData={this.props.onUpdateActiveGameData}
+              onForceUpdateGameData={this.onForceUpdateGameData} />
+          )}
         </div>
       );
     } else {
@@ -620,31 +717,23 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     }
   }
 
-  renderDeleteGameButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<LangContainer['browse']>): JSX.Element {
+  renderDeleteGameButton({ confirm, extra }: ConfirmElementArgs<LangContainer['browse']>): JSX.Element {
     return (
       <div
-        className={
-          'browse-right-sidebar__title-row__buttons__delete-game' +
-          ((activationCounter > 0) ? ' browse-right-sidebar__title-row__buttons__delete-game--active simple-vertical-shake' : '')
-        }
+        className='browse-right-sidebar__title-row__buttons__delete-game'
         title={extra.deleteGameAndAdditionalApps}
-        onClick={activate}
-        onMouseLeave={reset}>
+        onClick={confirm} >
         <OpenIcon icon='trash' />
       </div>
     );
   }
 
-  renderRemoveFromPlaylistButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<LangContainer['browse']>): JSX.Element {
+  renderRemoveFromPlaylistButton({ confirm, extra }: ConfirmElementArgs<LangContainer['browse']>): JSX.Element {
     return (
       <div
-        className={
-          'browse-right-sidebar__title-row__buttons__remove-from-playlist' +
-          ((activationCounter > 0) ? ' browse-right-sidebar__title-row__buttons__remove-from-playlist--active simple-vertical-shake' : '')
-        }
+        className='browse-right-sidebar__title-row__buttons__remove-from-playlist'
         title={extra.removeGameFromPlaylist}
-        onClick={activate}
-        onMouseLeave={reset}>
+        onClick={confirm} >
         <OpenIcon icon='circle-x' />
       </div>
     );
@@ -703,9 +792,10 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     const newTag = event.currentTarget.value;
     let newSuggestions: TagSuggestion[] = this.state.tagSuggestions;
 
-    if (newTag !== '') {
+    if (newTag !== '' && this.props.currentGame) {
       // Delayed set
-      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag)
+      const existingTags = this.props.currentGame.tags.reduce<string[]>((prev, cur) => prev.concat(cur.primaryAlias.name), []);
+      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag, this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme)).concat([generateTagFilterGroup(existingTags)]))
       .then(data => {
         if (data) { this.setState({ tagSuggestions: data }); }
       });
@@ -770,6 +860,10 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     if (this.props.currentGame) {
       window.Shared.back.send(BackIn.DELETE_IMAGE, folder, this.props.currentGame.id);
     }
+  }
+
+  onShowExtremeScreenshots = (): void => {
+    this.setState({ showExtremeScreenshots: true });
   }
 
   onThumbnailDrop = this.imageDrop(LOGOS);
@@ -847,10 +941,10 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
 
   /** When a key is pressed while an input field is selected (except for multiline fields). */
   onInputKeyDown = (event: React.KeyboardEvent): void => {
-    if (event.key === 'Enter') {
-      this.props.onSaveGame();
-      event.preventDefault();
-    }
+    // if (event.key === 'Enter') {
+    //   this.props.onSaveGame();
+    //   event.preventDefault();
+    // }
   }
 
   onTagSelect = (tag: Tag, index: number): void => {
@@ -879,6 +973,15 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       currentTagInput: ''
     });
   }
+
+  onForceUpdateGameData = (): void => {
+    if (this.props.currentGame && this.props.currentGame.activeDataId) {
+      window.Shared.back.request(BackIn.GET_GAME_DATA, this.props.currentGame.activeDataId)
+      .then((gameData) => {
+        this.setState({ activeData: gameData });
+      });
+    }
+  };
 
   onAddTagByString = (text: string): void => {
     if (text !== '') {

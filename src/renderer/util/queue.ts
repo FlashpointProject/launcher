@@ -1,7 +1,7 @@
 type QueueOneWrapper<T extends (...args: any[]) => Promise<void>> = (...args: Parameters<T>) => void
 
 /**
- * Esnures that the wrapped function can not be called until its returned promise is pending.
+ * Ensures that the wrapped function can not be called until its returned promise is pending.
  * If the wrapper is called before that and there is no call queued,
  * the call will be queued and executed when the promise resolves or rejects.
  * If there is a call queued then it will replace the currently queued call (hence "queueOne").

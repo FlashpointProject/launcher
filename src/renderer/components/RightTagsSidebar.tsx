@@ -3,7 +3,7 @@ import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
 import { BackIn, TagSuggestion } from '@shared/back/types';
 import { LangContainer } from '@shared/lang';
-import { deepCopy } from '@shared/Util';
+import { deepCopy, generateTagFilterGroup } from '@shared/Util';
 import { remote } from 'electron';
 import * as React from 'react';
 import { WithPreferencesProps } from '../containers/withPreferences';
@@ -126,6 +126,7 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
                             <OpenIcon icon='pencil' />
                           </div>
                           <ConfirmElement
+                            message={allStrings.dialog.deleteTag}
                             onConfirm={this.onDeleteTagClick}
                             render={this.renderDeleteTagButton}
                             extra={allStrings.tags} />
@@ -211,14 +212,13 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
     }
   }
 
-  renderDeleteTagButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<LangContainer['tags']>): JSX.Element {
+  renderDeleteTagButton({ confirm, extra }: ConfirmElementArgs<LangContainer['tags']>): JSX.Element {
     const className = 'tag-alias__buttons-delete';
     return (
       <div
-        className={className + ((activationCounter > 0) ? ` ${className}--active simple-vertical-shake` : '')}
+        className={className}
         title={extra.deleteTag}
-        onClick={activate}
-        onMouseLeave={reset}>
+        onClick={confirm} >
         <OpenIcon icon='trash' />
       </div>
     );
@@ -256,9 +256,9 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
     const newTag = event.currentTarget.value;
     let newSuggestions: TagSuggestion[] = this.state.tagMergeSuggestions;
 
-    if (newTag !== '') {
+    if (newTag !== '' && this.props.currentTag) {
       // Delayed set
-      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag)
+      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag, this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme)).concat([generateTagFilterGroup([this.props.currentTag.primaryAlias.name])]))
       .then((data) => {
         if (data) {
           this.setState({
@@ -331,15 +331,16 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
   onAddTagAliasByString = (text: string): void => {
     if (text !== '') {
       window.Shared.back.request(BackIn.GET_TAG, text)
-      .then(data => {
+      .then(async (data) => {
         if (data) {
           // Tag alias exists
           remote.dialog.showErrorBox('Alias Error!',`Alias already exists on tag '${data.primaryAlias.name}'!`);
         } else if (this.props.currentTag && this.props.currentTag.id) {
           // Tag alias doesn't exist
-          const newTagAlias = new TagAlias();
+          let newTagAlias = new TagAlias();
           newTagAlias.name = text;
           newTagAlias.tagId = this.props.currentTag.id;
+          newTagAlias = await window.Shared.back.request(BackIn.SAVE_TAG_ALIAS, newTagAlias);
           this.props.onEditTag({ aliases: [...this.props.currentTag.aliases, newTagAlias] });
         }
       });
@@ -351,7 +352,7 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
   }
 
   onDeleteTagClick = (): void => {
-    console.log('clalled');
+    console.log('called');
     if (this.props.onDeleteTag) {
       this.props.onDeleteTag();
     }

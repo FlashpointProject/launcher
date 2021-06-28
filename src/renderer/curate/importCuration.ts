@@ -92,9 +92,12 @@ export async function importCurationArchive(filePath: string, preserveKey: boole
     } else {
       throw new Error('Meta.yaml/yml/txt not found in extracted archive');
     }
+    log.debug('Curate', `Import Success for ${filePath}`);
   } catch (error) {
-    curationLog('Error extracting archive - ' + error.message);
+    curationLog(`Error extracting archive ${filePath} - ${error.message}`);
     console.error(error.message);
+    log.error('Curate', `Import Failure for ${filePath}`);
+    alert(`Import Failure for ${filePath}`);
   } finally {
     // Mark progress as finished
     ProgressDispatch.finished(progress);

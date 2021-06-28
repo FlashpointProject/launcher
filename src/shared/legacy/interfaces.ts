@@ -35,7 +35,7 @@ export interface Legacy_IPureGameInfo {
   status: string;
   /** Information that could be useful for the player (of varying importance) */
   notes: string;
-  /** Tags of the game (seperated by semi-colon) */
+  /** Tags of the game (separated by semi-colon) */
   tags: string;
   /** Source if the game files, either full URL or the name of the website */
   source: string;

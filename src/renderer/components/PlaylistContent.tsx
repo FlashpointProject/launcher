@@ -25,7 +25,8 @@ export type PlaylistItemContentProps = {
 }
 
 export function PlaylistItemContent(props: PlaylistItemContentProps) {
-  const strings = React.useContext(LangContext).playlist;
+  const allStrings = React.useContext(LangContext);
+  const strings = allStrings.playlist;
 
   let className = 'playlist-list-content';
   if (props.editing) { className += ' playlist-list-content--edit'; }
@@ -86,6 +87,7 @@ export function PlaylistItemContent(props: PlaylistItemContentProps) {
                   </div>
                   {/* Delete Button */}
                   <ConfirmElement
+                    message={allStrings.dialog.deletePlaylist}
                     onConfirm={props.onDelete}
                     render={renderDeleteButton}
                     extra={strings} />
@@ -126,16 +128,12 @@ export function PlaylistItemContent(props: PlaylistItemContentProps) {
   );
 }
 
-function renderDeleteButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<LangContainer['playlist']>): JSX.Element {
+function renderDeleteButton({ confirm, extra }: ConfirmElementArgs<LangContainer['playlist']>): JSX.Element {
   return (
     <div
-      className={
-        'playlist-list-content__button playlist-list-content__button--warning' +
-        ((activationCounter > 0) ? ' playlist-list-content__button--active simple-vertical-shake' : '')
-      }
+      className='playlist-list-content__button playlist-list-content__button--warning'
       title={extra.deleteDesc}
-      onClick={activate}
-      onMouseLeave={reset}>
+      onClick={confirm} >
       <OpenIcon icon='trash' />
     </div>
   );

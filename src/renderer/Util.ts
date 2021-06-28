@@ -1,5 +1,7 @@
 import { Game } from '@database/entity/Game';
+import { BackIn } from '@shared/back/types';
 import { parseSearchText } from '@shared/game/GameFilter';
+import { TagFilterGroup } from '@shared/preferences/interfaces';
 import { getFileServerURL } from '@shared/Util';
 import { remote } from 'electron';
 import * as fs from 'fs';
@@ -114,7 +116,7 @@ export function getExtIconURL(id: string): string {
 export function getGameImagePath(folderName: string, gameId: string): string {
   return path.join(
     window.Shared.config.fullFlashpointPath,
-    window.Shared.config.data.imageFolderPath,
+    window.Shared.preferences.data.imageFolderPath,
     folderName,
     `${gameId.substr(0, 2)}/${gameId.substr(2, 2)}/${gameId}.png`
   );
@@ -123,7 +125,16 @@ export function getGameImagePath(folderName: string, gameId: string): string {
 type IGamePathInfo = Pick<Game, 'platform' | 'launchCommand'>;
 
 /* istanbul ignore next */
-export function getGamePath(game: IGamePathInfo, fpPath: string, htdocsPath: string): string | undefined {
+export async function getGamePath(game: Game, fpPath: string, htdocsPath: string, dataPacksPath: string): Promise<string | undefined> {
+  // Check for GameData first
+  if (game.activeDataId) {
+    const gameData = await window.Shared.back.request(BackIn.GET_GAME_DATA, game.activeDataId);
+    if (gameData && gameData.path) {
+      return path.resolve(fpPath, dataPacksPath, gameData.path);
+    } else {
+      return undefined;
+    }
+  }
   // @TODO Because some strings can be interpreted as different paths/URLs, maybe this should return an array
   //       of strings with all the possible paths of the "main" file?
   //       Example: Some web server files are stored in "Server/htdocs" while other are stored in "Server/cgi-bin".
@@ -263,13 +274,20 @@ type RebuildQueryOpts = {
   library: string;
   playlistId: string | undefined;
   order: GameOrderChangeEvent;
+  tagFilters: TagFilterGroup[];
 }
 
 export function rebuildQuery(opts: RebuildQueryOpts): ViewQuery {
   const searchQuery = parseSearchText(opts.text);
+  // Currently library filter
   searchQuery.whitelist.push({ field: 'library', value: opts.library });
-  if (!opts.extreme)                              { searchQuery.whitelist.push({ field: 'extreme', value: false }); }
-  if (!window.Shared.config.data.showBrokenGames) { searchQuery.whitelist.push({ field: 'broken',  value: false }); }
+  // Tag Filter... filter
+  for (const tfg of opts.tagFilters) {
+    for (const key of tfg.tags) {
+      searchQuery.blacklist.push({ field: 'tag', value: key });
+    }
+  }
+  if (!window.Shared.preferences.data.showBrokenGames) { searchQuery.whitelist.push({ field: 'broken',  value: false }); }
 
   return {
     text: opts.text,

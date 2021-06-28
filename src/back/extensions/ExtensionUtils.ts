@@ -15,7 +15,7 @@ export function extensionString(ext: IExtension): string {
  * @param ext Extension to read module from
  * @returns Path to module entry point
  */
-export function getExtensionEntry(ext: IExtension): string {
+export function getExtensionEntry(ext: IExtension): string | undefined {
   if (ext.manifest.main) {
     const filePath = path.join(ext.extensionPath, ext.manifest.main);
     const relative = path.relative(ext.extensionPath, filePath);
@@ -27,13 +27,12 @@ export function getExtensionEntry(ext: IExtension): string {
       throw new Error('Extension is trying to import files outside its path!');
     }
   }
-  throw new Error('Extension defines no entry point!');
 }
 
 /** Creates an Extension log (Message format "[extension-name] <message>")
  * @param extManifest Manifest of the Extension
  * @param message Message to fill in
- * @param func Log function to use (log.info, warn, error etc)
+ * @param func Log function to use (log.info, warn, error etc.)
  * @returns Complete Log Entry
 */
 export function newExtLog(extManifest: IExtensionManifest, message: string, func: LogFunc): ILogEntry {
@@ -43,7 +42,7 @@ export function newExtLog(extManifest: IExtensionManifest, message: string, func
 /** Creates an Extension Log Function
  * @param extManifest Manifest of the Extension
  * @param addLog Function to push new log onto Logs page stack
- * @param func Log function to use (log.info, warn, error etc)
+ * @param func Log function to use (log.info, warn, error etc.)
  * @returns Function that logs an extensions message given just a message string
  */
 export function extLogFactory(extManifest: IExtensionManifest, addLog: (entry: ILogEntry) => void, func: LogFunc): ExtensionLogFunc {

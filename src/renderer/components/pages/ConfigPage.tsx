@@ -1,4 +1,6 @@
+import { Source } from '@database/entity/Source';
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
+import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
 import { BackIn } from '@shared/back/types';
 import { AppExtConfigData } from '@shared/config/interfaces';
 import { ExtConfigurationProp, ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
@@ -6,21 +8,26 @@ import { autoCode, LangContainer, LangFile } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { ITheme } from '@shared/ThemeFile';
+import { deepCopy } from '@shared/Util';
 import { formatString } from '@shared/utils/StringFormatter';
-import { AppPathOverride } from 'flashpoint-launcher';
+import { AppPathOverride, TagFilterGroup } from 'flashpoint-launcher';
 import * as React from 'react';
 import { getExtIconURL, getPlatformIconURL, isFlashpointValidCheck } from '../../Util';
 import { LangContext } from '../../util/lang';
 import { CheckBox } from '../CheckBox';
 import { ConfigBox } from '../ConfigBox';
+import { ConfigBoxButton } from '../ConfigBoxButton';
 import { ConfigBoxCheckbox } from '../ConfigBoxCheckbox';
 import { ConfigBoxInput } from '../ConfigBoxInput';
 import { ConfigBoxMultiSelect, MultiSelectItem } from '../ConfigBoxMultiSelect';
 import { ConfigBoxSelect, SelectItem } from '../ConfigBoxSelect';
 import { ConfigBoxSelectInput } from '../ConfigBoxSelectInput';
 import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
-import { InputField } from '../InputField';
+import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
+import { FloatingContainer } from '../FloatingContainer';
+import { InputElement, InputField } from '../InputField';
 import { OpenIcon } from '../OpenIcon';
+import { TagFilterGroupEditor } from '../TagFilterGroupEditor';
 
 type OwnProps = {
   /** List of all game libraries */
@@ -46,21 +53,25 @@ type OwnProps = {
   localeCode: string;
 };
 
-export type ConfigPageProps = OwnProps & WithPreferencesProps;
+export type ConfigPageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps;
 
 type ConfigPageState = {
   /** If the currently entered Flashpoint path points to a "valid" Flashpoint folder (it exists and "looks" like a Flashpoint folder). */
   isFlashpointPathValid?: boolean;
   /** Currently entered Flashpoint path. */
   flashpointPath: string;
-  /** Currently entered Metadata Server Host */
-  metadataServerHost: string;
   /** If the "use custom title bar" checkbox is checked. */
   useCustomTitlebar: boolean;
-  /** Array of native platforms */
-  nativePlatforms: string[];
   /** Current Server */
   server: string;
+  /** Currently entered new Source URL */
+  newSourceUrl: string;
+  /** List of Sources given from the backend */
+  sources?: Source[];
+  /** Currently editable Tag Filter Group */
+  editingTagFilterGroupIdx?: number;
+  editingTagFilterGroup?: TagFilterGroup;
+  editorOpen: boolean;
 };
 
 export interface ConfigPage {
@@ -81,11 +92,16 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     this.state = {
       isFlashpointPathValid: undefined,
       flashpointPath: configData.flashpointPath,
-      metadataServerHost: configData.metadataServerHost,
       useCustomTitlebar: configData.useCustomTitlebar,
-      nativePlatforms: configData.nativePlatforms,
-      server: configData.server
+      server: configData.server,
+      newSourceUrl: '',
+      editorOpen: false,
     };
+  }
+
+  async componentDidMount() {
+    const sources = await window.Shared.back.request(BackIn.GET_SOURCES);
+    this.setState({ sources });
   }
 
   render() {
@@ -94,8 +110,10 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     const langOptions = this.itemizeLangOptionsMemo(this.props.availableLangs, autoString);
     const serverOptions = this.itemizeServerOptionsMemo(this.props.serverNames);
     const libraryOptions = this.itemizeLibraryOptionsMemo(this.props.libraries, this.props.preferencesData.excludedRandomLibraries, this.context.libraries);
-    const platformOptions = this.itemizePlatformOptionsMemo(this.props.platforms, this.state.nativePlatforms);
+    const platformOptions = this.itemizePlatformOptionsMemo(this.props.platforms, this.props.preferencesData.nativePlatforms);
+    const sources = this.renderSourcesMemo(this.context, this.state.sources);
     const appPathOverrides = this.renderAppPathOverridesMemo(this.props.preferencesData.appPathOverrides);
+    const tagFilters = this.renderTagFiltersMemo(this.props.preferencesData.tagFilters, this.props.preferencesData.browsePageShowExtreme, this.context);
     const logoSetPreviewRows = this.renderLogoSetMemo(this.props.platforms, this.props.logoVersion);
     const extensions = this.renderExtensionsMemo(this.props.extensions, strings);
     const extConfigSections = this.renderExtensionConfigs(this.props.extConfigs, this.props.extConfig);
@@ -110,13 +128,20 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
             <p className='setting__title'>{strings.preferencesHeader}</p>
             <div className='setting__body'>
               {/* Show Extreme Games */}
-              {((!window.Shared.config.data.disableExtremeGames)) ? (
+              {((!this.props.preferencesData.disableExtremeGames)) ? (
                 <ConfigBoxCheckbox
                   title={strings.extremeGames}
                   description={strings.extremeGamesDesc}
                   checked={this.props.preferencesData.browsePageShowExtreme}
                   onToggle={this.onShowExtremeChange} />
               ) : undefined }
+              {this.props.preferencesData.browsePageShowExtreme && (
+                <ConfigBoxCheckbox
+                  title={strings.hideExtremeScreenshots}
+                  description={strings.hideExtremeScreenshotsDesc}
+                  checked={this.props.preferencesData.hideExtremeScreenshots}
+                  onToggle={this.onToggleHideExtremeScreenshots} />
+              )}
               {/* Enable Editing */}
               <ConfigBoxCheckbox
                 title={strings.enableEditing}
@@ -160,6 +185,18 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 text={strings.libraries}
                 onChange={this.onExcludedLibraryCheckboxChange}
                 items={libraryOptions} />
+              {/* Tag Filter Groups */}
+              <ConfigBox
+                title={strings.tagFilterGroups}
+                description={strings.tagFilterGroupsDesc} >
+                {tagFilters}
+                <div
+                  onClick={this.onNewTagFilterGroup}
+                  className='setting__row__content--override-row__new'>
+                  <OpenIcon
+                    icon='plus' />
+                </div>
+              </ConfigBox>
               {/* Native Platforms */}
               <ConfigBoxMultiSelect
                 title={strings.nativePlatforms}
@@ -177,6 +214,18 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   className='setting__row__content--override-row__new'>
                   <OpenIcon
                     icon='plus' />
+                </div>
+              </ConfigBox>
+              <ConfigBox
+                title={'Sources'}
+                description={'List of all sources providing on-demand game data'}>
+                <div className='setting__row__header--sources'>
+                  <InputField
+                    text={this.state.newSourceUrl}
+                    editable={true}
+                    onChange={this.onNewSourceURLChange}
+                    onKeyDown={(event) => event.key === 'Enter' && this.onSubmitSourceURL()}/>
+                  {sources}
                 </div>
               </ConfigBox>
             </div>
@@ -232,14 +281,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 value={this.state.server}
                 onChange={this.onServerSelect}
                 items={serverOptions} />
-              {/* Metadata Server Host */}
-              <ConfigBoxInput
-                title={`(INDEV) ${strings.metadataServerHost}`}
-                description={strings.metadataServerHostDesc}
-                contentClassName='setting__row__content--filepath-path'
-                editable={true}
-                text={this.state.metadataServerHost}
-                onChange={this.onMetadataServerHostChange} />
               {/* Fallback Language */}
               <ConfigBoxSelect
                 title={strings.fallbackLanguage}
@@ -257,7 +298,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
               <div className='setting__body'>
                 {extensions}
               </div>
-            ) : <div>{formatString(strings.noExtensionsLoaded, window.Shared.config.data.extensionsPath)}</div>}
+            ) : <div>{formatString(strings.noExtensionsLoaded, this.props.preferencesData.extensionsPath)}</div>}
           </div>
 
           {extConfigSections}
@@ -273,6 +314,22 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
             </div>
           </div>
         </div>
+        { this.state.editorOpen && this.state.editingTagFilterGroup && (
+          <FloatingContainer>
+            <TagFilterGroupEditor
+              tagFilterGroup={this.state.editingTagFilterGroup}
+              onAddTag={(tag) => this.onAddTagEditorTagEvent(this.state.editingTagFilterGroupIdx || -1, tag)}
+              onAddCategory={(category) => this.onAddTagEditorCategoryEvent(this.state.editingTagFilterGroupIdx || -1, category)}
+              onRemoveTag={(tag) => this.onRemoveTagEditorTagEvent(this.state.editingTagFilterGroupIdx || -1, tag)}
+              onRemoveCategory={(category) => this.onRemoveTagEditorCategoryEvent(this.state.editingTagFilterGroupIdx || -1, category)}
+              onChangeName={this.onChangeTagEditorNameEvent}
+              onToggleExtreme={this.onToggleExtremeTagEditorEvent}
+              closeEditor={this.onCloseTagFilterGroupEditor}
+              showExtreme={this.props.preferencesData.browsePageShowExtreme}
+              tagCategories={this.props.tagCategories}
+              activeTagFilterGroups={this.props.preferencesData.tagFilters.filter((tfg, index) => (tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme)) && index != this.state.editingTagFilterGroupIdx)} />
+          </FloatingContainer>
+        )}
       </div>
     );
   }
@@ -316,6 +373,51 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     });
   });
 
+  renderSourcesMemo = memoizeOne((strings: LangContainer, sources?: Source[]) => {
+    if (sources) {
+      return sources.map(s => {
+        return (
+          <div
+            key={s.id}
+            className='setting__row__content--source-row'>
+            <div className='setting__row__content--source-row__name'>{s.name}</div>
+            <div
+              className='setting__row__content--source-row__count'>
+              {`${s.count} Data Packs`}
+            </div>
+            <div
+              title={strings.config.updateSource}
+              className='browse-right-sidebar__title-row__buttons__edit-button'
+              onClick={() => this.submitSourceURL(s.sourceFileUrl)}>
+              <OpenIcon
+                icon='data-transfer-download' />
+            </div>
+            <ConfirmElement
+              message={strings.dialog.deleteSource}
+              onConfirm={() => this.deleteSource(s)}
+              render={this.renderDeleteSource} />
+          </div>
+        );
+      });
+    } else {
+      return (
+        <p>{'...'}</p>
+      );
+    }
+  });
+
+  renderDeleteSource = ({ confirm }: ConfirmElementArgs) => {
+    return (
+      <div
+        onClick={confirm}
+        className='setting__row__content--remove-app-override'>
+        <OpenIcon
+          className='setting__row__content--override-row__delete'
+          icon='delete' />
+      </div>
+    );
+  }
+
   renderAppPathOverridesMemo = memoizeOne((appPathOverrides: AppPathOverride[]) => {
     return appPathOverrides.map((item, index) => {
       return (
@@ -346,6 +448,48 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
           </div>
         </div>
       );
+    });
+  });
+
+  renderTagFiltersMemo = memoizeOne((tagFilters: TagFilterGroup[], showExtreme: boolean, strings: LangContainer) => {
+    return tagFilters.map((item, index) => {
+      if (showExtreme ? true : !item.extreme) {
+        return (
+          <div
+            className='setting__row__content--override-row'
+            key={index}>
+            <CheckBox
+              checked={item.enabled}
+              onToggle={(checked) => this.onTagFilterGroupEnabledToggle(index, checked)}/>
+            <InputField
+              className='setting__row__content--tag-filter-title'
+              text={item.name} />
+            <i>
+              {`${item.tags.length} Tags`}
+            </i>
+            <div
+              onClick={() => this.onEditTagFilterGroup(index)}
+              title={strings.config.editTagFilter}
+              className='browse-right-sidebar__title-row__buttons__edit-button'>
+              <OpenIcon
+                className='setting__row__content--override-row__edit'
+                icon='pencil' />
+            </div>
+            <div
+              onClick={() => this.onDuplicateTagFilterGroup(index)}
+              title={strings.config.duplicateTagFilter}
+              className='browse-right-sidebar__title-row__buttons__edit-button'>
+              <OpenIcon
+                className='setting__row__content--override-row__edit'
+                icon='layers' />
+            </div>
+            <ConfirmElement
+              message={strings.dialog.deleteTagFilterGroup}
+              onConfirm={() => this.onTagFilterGroupDelete(index)}
+              render={this.renderTagFilterGroupDelete} />
+          </div>
+        );
+      }
     });
   });
 
@@ -440,26 +584,47 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       sections = sections.concat(contrib.value.map((config, configIdx) => {
         const propBoxes = [];
         for (const key in config.properties) {
-          propBoxes.push(renderExtConfigProp(key, config.properties[key], extConfig[key]));
+          const configRender = renderExtConfigProp(key, config.properties[key], extConfig[key]);
+          if (configRender) { propBoxes.push(renderExtConfigProp(key, config.properties[key], extConfig[key])); }
         }
-        return (
-          <div
-            className='setting'
-            key={`${idx}_${configIdx}`}>
-            <p className='setting__title'>{config.title}</p>
-            <div className='setting__body'>
-              {propBoxes}
+        if (propBoxes.length > 0) {
+          return (
+            <div
+              className='setting'
+              key={`${idx}_${configIdx}`}>
+              <p className='setting__title'>{config.title}</p>
+              <div className='setting__body'>
+                {propBoxes}
+              </div>
             </div>
-          </div>
-        );
-      }));
+          );
+        }
+      }).filter(p => !!p) as JSX.Element[]);
     });
 
     return sections;
   });
 
+  renderTagFilterGroupDelete = ({ confirm }: ConfirmElementArgs) => {
+    const strings = this.context.config;
+    return (
+      <div
+        className={'browse-right-sidebar__title-row__buttons__discard-button'}
+        title={strings.deleteTagFilter}
+        onClick={confirm} >
+        <OpenIcon
+          className='setting__row__content--override-row__delete'
+          icon='delete' />
+      </div>
+    );
+  }
+
   onShowExtremeChange = (isChecked: boolean): void => {
     updatePreferencesData({ browsePageShowExtreme: isChecked });
+  }
+
+  onToggleHideExtremeScreenshots = (isChecked: boolean): void => {
+    updatePreferencesData({ hideExtremeScreenshots: isChecked });
   }
 
   onEnableEditingChange = (isChecked: boolean): void => {
@@ -495,6 +660,42 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     updatePreferencesData({ excludedRandomLibraries });
   }
 
+  onNewSourceURLChange = (event: React.ChangeEvent<InputElement>) => {
+    this.setState({ newSourceUrl: event.target.value });
+  }
+
+  onSubmitSourceURL = () => {
+    this.submitSourceURL(this.state.newSourceUrl);
+    this.setState({ newSourceUrl: '' });
+  }
+
+  submitSourceURL = (url: string) => {
+    window.Shared.back.request(BackIn.ADD_SOURCE_BY_URL, url)
+    .then((source) => {
+      const newSources = [...(this.state.sources || [])];
+      const idx = newSources.findIndex(s => s.id === source.id);
+      if (idx > -1) {
+        newSources[idx] = source;
+      } else {
+        newSources.push(source);
+      }
+      this.setState({ sources: newSources });
+    })
+    .catch((error) => {
+      alert(error);
+    });
+  }
+
+  deleteSource = async (source: Source) => {
+    await window.Shared.back.request(BackIn.DELETE_SOURCE, source.id);
+    const newSources = [...(this.state.sources || [])];
+    const idx = newSources.findIndex(s => s.id === source.id);
+    if (idx > -1) {
+      newSources.splice(idx, 1);
+      this.setState({ sources: newSources });
+    }
+  }
+
   onRemoveAppPathOverride = (index: number): void => {
     const newPaths = [...this.props.preferencesData.appPathOverrides];
     newPaths.splice(index, 1);
@@ -526,8 +727,91 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     updatePreferencesData({ appPathOverrides: newPaths });
   }
 
+  onNewTagFilterGroup = (): void => {
+    const tfg: TagFilterGroup = {
+      name: 'New Group',
+      enabled: true,
+      tags: [],
+      categories: [],
+      childFilters: [],
+      extreme: false
+    };
+    const newTagFilters = [...this.props.preferencesData.tagFilters];
+    newTagFilters.push(tfg);
+    updatePreferencesData({ tagFilters: newTagFilters });
+  }
+
+  onTagFilterGroupEnabledToggle = (index: number, checked: boolean): void => {
+    const newTagFilters = [...this.props.preferencesData.tagFilters];
+    newTagFilters[index] = { ...newTagFilters[index], enabled: checked };
+    updatePreferencesData({ tagFilters: newTagFilters });
+  }
+
+  onAddTagEditorTagEvent = (index: number, tag: string): void => {
+    if (this.state.editingTagFilterGroup) {
+      const newTFG = deepCopy(this.state.editingTagFilterGroup);
+      newTFG.tags.push(tag);
+      this.setState({ editingTagFilterGroup: newTFG });
+    }
+  }
+
+  onAddTagEditorCategoryEvent = (index: number, category: string): void => {
+    if (this.state.editingTagFilterGroup) {
+      const newTFG = deepCopy(this.state.editingTagFilterGroup);
+      newTFG.categories.push(category);
+      this.setState({ editingTagFilterGroup: newTFG });
+    }
+  }
+
+  onRemoveTagEditorTagEvent = (index: number, tag: string): void => {
+    if (this.state.editingTagFilterGroup) {
+      const newTFG = deepCopy(this.state.editingTagFilterGroup);
+      const idx = newTFG.tags.findIndex(t => t === tag);
+      if (idx > -1) {
+        newTFG.tags.splice(idx, 1);
+      }
+      this.setState({ editingTagFilterGroup: newTFG });
+    }
+  }
+
+  onRemoveTagEditorCategoryEvent = (index: number, category: string): void => {
+    if (this.state.editingTagFilterGroup) {
+      const newTFG = deepCopy(this.state.editingTagFilterGroup);
+      const idx = newTFG.categories.findIndex(c => c === category);
+      if (idx > -1) {
+        newTFG.categories.splice(idx, 1);
+      }
+      this.setState({ editingTagFilterGroup: newTFG });
+    }
+  }
+
+  onChangeTagEditorNameEvent = (name: string): void => {
+    if (this.state.editingTagFilterGroup) {
+      const newTFG = {...this.state.editingTagFilterGroup, name };
+      this.setState({ editingTagFilterGroup: newTFG });
+    }
+  }
+
+  onToggleExtremeTagEditorEvent = (checked: boolean): void => {
+    if (this.state.editingTagFilterGroup) {
+      const newTFG = {...this.state.editingTagFilterGroup, extreme: checked };
+      this.setState({ editingTagFilterGroup: newTFG });
+    }
+  }
+
+  onDuplicateTagFilterGroup = (index: number): void => {
+    const newTagFilters = [...this.props.preferencesData.tagFilters];
+    newTagFilters.push({...newTagFilters[index], name: `${newTagFilters[index].name} - Copy`});
+    updatePreferencesData({ tagFilters: newTagFilters });
+  }
+
+  onEditTagFilterGroup = (index: number): void => {
+    const tagFilter = this.props.preferencesData.tagFilters[index];
+    this.setState({ editingTagFilterGroup: tagFilter, editingTagFilterGroupIdx: index, editorOpen: true });
+  }
+
   onNativeCheckboxChange = (platform: string): void => {
-    const newPlatforms = [...this.state.nativePlatforms];
+    const newPlatforms = [...this.props.preferencesData.nativePlatforms];
     const index = newPlatforms.findIndex(item => item === platform);
 
     if (index !== -1) {
@@ -537,7 +821,8 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       log.info('launcher', `WE CHANGED ${platform} TO true`);
       newPlatforms.push(platform);
     }
-    this.setState({ nativePlatforms: newPlatforms });
+
+    updatePreferencesData({ nativePlatforms: newPlatforms });
   }
 
   /** When the "FlashPoint Folder Path" input text is changed. */
@@ -554,10 +839,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   onShowDeveloperTab = (isChecked: boolean): void => {
     updatePreferencesData({ showDeveloperTab: isChecked });
-  }
-
-  onMetadataServerHostChange = async (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>): Promise<void> => {
-    this.setState({ metadataServerHost: event.currentTarget.value });
   }
 
   onCurrentThemeChange = (value: string): void => {
@@ -605,14 +886,27 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     if (logoSet) { return logoSet.name; }
   }
 
+  onCloseTagFilterGroupEditor = () => {
+    if (this.state.editingTagFilterGroup && this.state.editingTagFilterGroupIdx != undefined) {
+      const newTagFilters = [...this.props.preferencesData.tagFilters];
+      newTagFilters[this.state.editingTagFilterGroupIdx] = this.state.editingTagFilterGroup;
+      updatePreferencesData({ tagFilters: newTagFilters });
+      this.setState({ editingTagFilterGroup: undefined, editingTagFilterGroupIdx: undefined, editorOpen: false });
+    }
+  }
+
+  onTagFilterGroupDelete = async (index: number) => {
+    const newTagFilters = [...this.props.preferencesData.tagFilters];
+    newTagFilters.splice(index, 1);
+    updatePreferencesData({ tagFilters: newTagFilters });
+  }
+
   /** When the "Save & Restart" button is clicked. */
   onSaveAndRestartClick = () => {
     // Save new config to file, then restart the app
     window.Shared.back.request(BackIn.UPDATE_CONFIG, {
       flashpointPath: this.state.flashpointPath,
-      metadataServerHost: this.state.metadataServerHost,
       useCustomTitlebar: this.state.useCustomTitlebar,
-      nativePlatforms: this.state.nativePlatforms,
       server: this.state.server,
     }).then(() => { window.Shared.restart(); });
   }
@@ -624,8 +918,18 @@ function setExtConfigValue(key: string, value: any): void {
   return window.Shared.back.send(BackIn.SET_EXT_CONFIG_VALUE, key, value);
 }
 
-function renderExtConfigProp(key: string, prop: ExtConfigurationProp, value: any): JSX.Element {
+function renderExtConfigProp(key: string, prop: ExtConfigurationProp, value: any): JSX.Element | undefined {
   switch (prop.type) {
+    case 'button': {
+      return (
+        <ConfigBoxButton
+          key={key}
+          title={prop.title}
+          description={prop.description}
+          value='Run'
+          onClick={() => window.Shared.back.request(BackIn.RUN_COMMAND, prop.command || '')}/>
+      );
+    }
     case 'boolean':
       return (
         <ConfigBoxCheckbox
@@ -657,7 +961,6 @@ function renderExtConfigProp(key: string, prop: ExtConfigurationProp, value: any
         );
       }
     }
-    default: throw new Error(`Unsupported config type to render "${prop.type}"`);
   }
 }
 

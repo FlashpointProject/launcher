@@ -44,7 +44,7 @@ export class SocketClient<SOCKET extends BaseSocket> {
     this.socketCon = socketCon;
   }
 
-  /** Resolves when the socket starts listening. If it is already listeningm this is resolved immediately. */
+  /** Resolves when the socket starts listening. If it is already listening this is resolved immediately. */
   whenListening(): Promise<void> {
     return new Promise((resolve, reject) => {
       if (this.client.socket && this.client.socket.readyState === WebSocket.OPEN) {
@@ -91,7 +91,7 @@ export class SocketClient<SOCKET extends BaseSocket> {
   }
 
   /** Open a new socket and try to connect again. */
-  reconnect(): void {
+  reconnect(count?: number): void {
     if (this.keepOpen) {
       // Disconnect
       console.log('Reconnecting...');
@@ -105,8 +105,11 @@ export class SocketClient<SOCKET extends BaseSocket> {
       SocketClient.connect(this.socketCon, this.url, this.secret)
       .then(socket => { this.setSocket(socket); })
       .catch(error => {
-        console.error(error);
-        setTimeout(() => this.reconnect(), 50);
+        const c = count || 0;
+        if (c === 5) {
+          console.error(error);
+          setTimeout(() => this.reconnect(c + 1), 50);
+        }
       });
     }
   }

@@ -3,6 +3,8 @@ import { createLangContainer } from '@shared/lang';
 import { MainActionType, RequestState } from './enums';
 import { MainAction, MainState, View, ViewPageStates } from './types';
 
+export const RANDOM_GAME_ROW_COUNT = 6;
+
 export function mainStateReducer(state: MainState = createInitialState(), action: MainAction): MainState {
   switch (action.type) {
     default:
@@ -38,9 +40,11 @@ export function mainStateReducer(state: MainState = createInitialState(), action
                 orderBy: action.orderBy,
                 orderReverse: action.orderReverse,
               },
+              tagFilters: playlistId ? [] : action.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !action.showExtreme))
             }),
             queryId: (view.queryId + 1) % 0x80000000, // 32 bit signed integer
             metaState: RequestState.WAITING,
+            tagFilters: action.tagFilters
           },
         },
       };
@@ -125,7 +129,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
             // Dirty games
             isDirty: true,
             pageState: {},
-            // Update total (for the first reponse only)
+            // Update total (for the first response only)
             total: (view.total === undefined)
               ? action.total
               : view.total,
@@ -331,10 +335,10 @@ export function mainStateReducer(state: MainState = createInitialState(), action
     }
 
     case MainActionType.SHIFT_RANDOM_GAMES: {
-      if (state.randomGames.length >= 10) {
+      if (state.randomGames.length >= (RANDOM_GAME_ROW_COUNT * 2)) {
         return {
           ...state,
-          randomGames: state.randomGames.slice(5),
+          randomGames: state.randomGames.slice(RANDOM_GAME_ROW_COUNT),
         };
       } else {
         return {
@@ -357,7 +361,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
         randomGames: [
           ...(
             state.shiftRandomGames
-              ? state.randomGames.slice(5)
+              ? state.randomGames.slice(RANDOM_GAME_ROW_COUNT)
               : state.randomGames
           ),
           ...action.games,
@@ -371,7 +375,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
     case MainActionType.CLEAR_RANDOM_GAMES: {
       return {
         ...state,
-        randomGames: state.randomGames.slice(0, 5),
+        randomGames: [],
       };
     }
 
@@ -427,5 +431,9 @@ function createInitialState(): MainState {
     devScripts: [],
     contextButtons: [],
     services: [],
+    downloadOpen: false,
+    downloadPercent: 0,
+    downloadSize: 0,
+    downloadVerifying: false
   };
 }

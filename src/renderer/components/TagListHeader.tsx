@@ -1,3 +1,4 @@
+import { LangContext } from '@renderer/util/lang';
 import * as React from 'react';
 import { useMemo } from 'react';
 
@@ -8,13 +9,14 @@ export type TagListHeaderProps = {};
  * It contains the resizable columns that decide how wide each column is.
  */
 export function TagListHeader(props: TagListHeaderProps) {
+  const strings = React.useContext(LangContext);
   return useMemo(() => (
     <div className='tag-list-header'>
       <Column modifier='icon' hideDivider={true} />
       <div className='tag-list-header__right'>
-        <Column title='Name'        modifier='name'        hideDivider={true} />
-        <Column title='Aliases'     modifier='aliases'                        />
-        <Column title='Category'    modifier='category'                       />
+        <Column title={strings.tags.name}        modifier='name'        hideDivider={true} />
+        <Column title={strings.tags.aliases}     modifier='aliases'                        />
+        <Column title={strings.tags.category}    modifier='category'                       />
       </div>
       <div className='tag-list-header__scroll-fill' />
     </div>

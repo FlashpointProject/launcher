@@ -53,7 +53,7 @@ export class SocketServer {
 
   /**
    * Try to listen on one of the ports in the given range (starting from the lowest).
-   * If it succeedes it will set the "server" and "port" properties of this object.
+   * If it succeeds it will set the "server" and "port" properties of this object.
    * If it fails it will reject with the error.
    * @param minPort Minimum port number (tried first).
    * @param maxPort Maximum port number (tried last).
@@ -274,7 +274,7 @@ export class SocketServer {
 }
 
 type StartServerResult = {
-  /** WebScoket server (undefined if it failed to listen). */
+  /** WebSocket server (undefined if it failed to listen). */
   server: ws.Server;
   /** Port it is listening on (-1 if it failed to listen). */
   port: number;

@@ -33,7 +33,8 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
   onWaitForExitChange       = this.wrapOnCheckBoxChange((addApp) => { addApp.waitForExit = !addApp.waitForExit; });
 
   render() {
-    const strings = this.context.browse;
+    const allStrings = this.context;
+    const strings = allStrings.browse;
     const { addApp, editDisabled } = this.props;
     return (
       <div className='browse-right-sidebar__additional-application'>
@@ -94,6 +95,7 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
               {/* Delete Button */}
               { !editDisabled ? (
                 <ConfirmElement
+                  message={allStrings.dialog.deleteAddApp}
                   onConfirm={this.onDeleteClick}
                   render={this.renderDeleteButton}
                   extra={strings} />
@@ -105,14 +107,13 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
     );
   }
 
-  renderDeleteButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<LangContainer['browse']>): JSX.Element {
+  renderDeleteButton({ confirm, extra }: ConfirmElementArgs<LangContainer['browse']>): JSX.Element {
     const className = 'browse-right-sidebar__additional-application__delete-button';
     return (
       <div
-        className={className + ((activationCounter > 0) ? ` ${className}--active simple-vertical-shake` : '')}
+        className={className}
         title={extra.deleteAdditionalApplication}
-        onClick={activate}
-        onMouseLeave={reset}>
+        onClick={confirm} >
         <OpenIcon icon='trash' />
       </div>
     );

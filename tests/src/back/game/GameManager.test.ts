@@ -1,4 +1,4 @@
-import { GameManager } from '@back/game/GameManager';
+import * as GameManager from '@back/game/GameManager';
 import { GameManagerState } from '@back/game/types';
 import { EventQueue } from '@back/util/EventQueue';
 import { uuid } from '@back/util/uuid';
@@ -13,7 +13,7 @@ describe('GameManager', () => {
   test('Load Platforms', async () => {
     const state = createState();
     state.platformsPath = STATIC_PLATFORMS_PATH;
-    const errors = await GameManager.loadPlatforms(state);
+    const errors = await loadPlatforms(state);
     expect(state.platforms.length).toBe(3); // Total number of platforms loaded
     expect(errors.length).toBe(0); // No platforms should fail to load
     // @TODO Compare that parsed content to a "snapshot" to verify that it was parsed correctly
@@ -56,7 +56,7 @@ describe('GameManager', () => {
     }
   });
 
-  test('Add Games & AddApps (to differnt and non-existing platforms)', () => {
+  test('Add Games & AddApps (to different and non-existing platforms)', () => {
     // Setup
     const state = createState();
     for (let i = 0; i < 10; i++) {
