@@ -1,5 +1,5 @@
 {
-  "name": "Magyar",
+  "name": "Angol",
   "config": {
     "configHeader": "Beállítások",
     "configDesc": "(Bizonyos változások csak mentés és újraindítás után lépnek érvénybe)",
@@ -292,7 +292,7 @@
     "noGameMatchedDesc": "Nincs megfelelő találat a keresésre.",
     "noGameMatchedSearch": "Próbáljon meg szélesebb körben keresni.",
     "mountParameters": "Mount paraméterek",
-    "noMountParameters": "Nincsen mountolási paraméter(ek)",
+    "noMountParameters": "Nincsen mount paraméter(ek)",
     "showExtremeScreenshot": "Extrém képernyőmentések mutatása"
   },
   "tags": {
