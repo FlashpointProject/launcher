@@ -6,6 +6,8 @@
     "preferencesHeader": "Alternativ",
     "extremeGames": "Extremt innehåll",
     "extremeGamesDesc": "Låt taggar i 'Extreme' taggfiltergrupper och motsvarande spel visas.",
+    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
     "enableEditing": "Aktivera redigering",
     "enableEditingDesc": "Aktivera redigering av spel och andra applikationer. Visar också flikar relaterade till redigering.",
     "onDemandImages": "Bilder efter förfrågan",
@@ -288,7 +290,10 @@
     "saveAndRestart": "Spara & starta om",
     "thereAreNoGames": "Det finns inga spel.",
     "noGameMatchedDesc": "Inga spel matchade din sökning.",
-    "noGameMatchedSearch": "Pröva att söka efter någonting mindre specifikt."
+    "noGameMatchedSearch": "Pröva att söka efter någonting mindre specifikt.",
+    "mountParameters": "Mount Parameters",
+    "noMountParameters": "No Mount Parameters",
+    "showExtremeScreenshot": "Show Extreme Screenshot"
   },
   "tags": {
     "name": "Namn",
@@ -413,7 +418,8 @@
     "installingFiles": "Installerar filer...",
     "complete": "Klar",
     "exportMetaEditTitle": "Exportera Meta redigering",
-    "exportMetaEditDesc": "Välj alla egenskaper att exportera:"
+    "exportMetaEditDesc": "Välj alla egenskaper att exportera:",
+    "showImage": "Show Image"
   },
   "menu": {
     "viewThumbnailInFolder": "Visa miniatyr i mapp",
