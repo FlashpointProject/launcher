@@ -6,6 +6,8 @@
     "preferencesHeader": "Ustawienia",
     "extremeGames": "Zawartość ekstremalna",
     "extremeGamesDesc": "Pokaż gry ekstremalne (zawierające przemoc, seks lub inną zawartość nie nadającą się dla dzieci).",
+    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
     "enableEditing": "Uruchom tryb edycji",
     "enableEditingDesc": "Pozwala na edytowanie gier oraz dodatkowych aplikacji. Pokazuje także zakładkę \"Dodaj do Flashpointa\".",
     "onDemandImages": "Logotypy i miniaturki na żądanie",
@@ -288,7 +290,10 @@
     "saveAndRestart": "Zapisz i uruchom ponownie",
     "thereAreNoGames": "Brak pasujących gier.",
     "noGameMatchedDesc": "Żaden tytuł gry nie odpowiada twojemu zapytaniu.",
-    "noGameMatchedSearch": "Spróbuj użyć bardziej ogólnego zapytania."
+    "noGameMatchedSearch": "Spróbuj użyć bardziej ogólnego zapytania.",
+    "mountParameters": "Mount Parameters",
+    "noMountParameters": "No Mount Parameters",
+    "showExtremeScreenshot": "Show Extreme Screenshot"
   },
   "tags": {
     "name": "Nazwa",
@@ -413,7 +418,8 @@
     "installingFiles": "Instalowanie plików...",
     "complete": "Ukończono",
     "exportMetaEditTitle": "Eksportuj edycję metadanych",
-    "exportMetaEditDesc": "Wybierz wszystkie edycje metadanych do wyeksportowania:"
+    "exportMetaEditDesc": "Wybierz wszystkie edycje metadanych do wyeksportowania:",
+    "showImage": "Show Image"
   },
   "menu": {
     "viewThumbnailInFolder": "Zobacz miniaturki w folderze",
