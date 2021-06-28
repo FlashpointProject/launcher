@@ -6,6 +6,8 @@
     "preferencesHeader": "Персонализация",
     "extremeGames": "Взрослый контент",
     "extremeGamesDesc": "Разрешить отображение тегов внутри групп фильтров тегов «Extreme» и соответствующих игр.",
+    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
     "enableEditing": "Включить редактирование",
     "enableEditingDesc": "Включите редактирование игр и дополнительных приложений. Также показывает вкладки, связанные с редактированием.",
     "onDemandImages": "Изображения по требованию",
@@ -288,7 +290,10 @@
     "saveAndRestart": "Сохранить и перезапустить",
     "thereAreNoGames": "Игры не найдены.",
     "noGameMatchedDesc": "Нет игр, соответствующих вашему запросу.",
-    "noGameMatchedSearch": "Попробуйте изменить запрос на менее конкретный."
+    "noGameMatchedSearch": "Попробуйте изменить запрос на менее конкретный.",
+    "mountParameters": "Mount Parameters",
+    "noMountParameters": "No Mount Parameters",
+    "showExtremeScreenshot": "Show Extreme Screenshot"
   },
   "tags": {
     "name": "Наименование",
@@ -413,7 +418,8 @@
     "installingFiles": "Установка файлов...",
     "complete": "Завершено",
     "exportMetaEditTitle": "Экспорт мета-правок",
-    "exportMetaEditDesc": "Выберите все свойства для экспорта:"
+    "exportMetaEditDesc": "Выберите все свойства для экспорта:",
+    "showImage": "Show Image"
   },
   "menu": {
     "viewThumbnailInFolder": "Отображать превью в папке",
