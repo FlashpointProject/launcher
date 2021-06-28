@@ -6,6 +6,8 @@
     "preferencesHeader": "Властивості",
     "extremeGames": "Екстремальний вміст",
     "extremeGamesDesc": "Дозволити міткам у групах фільтрів \"Extreme\" та відповідних іграх, які будуть показані.",
+    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
     "enableEditing": "Увімкнути редагування",
     "enableEditingDesc": "Увімкніть редагування ігор та додаткових програм. Також показує вкладки, пов'язані з редагуванням.",
     "onDemandImages": "За запитами зображення",
@@ -288,7 +290,10 @@
     "saveAndRestart": "Зберегти і перезапустити",
     "thereAreNoGames": "Немає ігор.",
     "noGameMatchedDesc": "Жодна гра не відповідає назві вашого пошуку.",
-    "noGameMatchedSearch": "Спробуйте пошукати менше обмежуючих."
+    "noGameMatchedSearch": "Спробуйте пошукати менше обмежуючих.",
+    "mountParameters": "Mount Parameters",
+    "noMountParameters": "No Mount Parameters",
+    "showExtremeScreenshot": "Show Extreme Screenshot"
   },
   "tags": {
     "name": "Ім'я",
@@ -413,7 +418,8 @@
     "installingFiles": "Встановлення файлів...",
     "complete": "Complete",
     "exportMetaEditTitle": "Експорт мета-редагування",
-    "exportMetaEditDesc": "Виберіть усі властивості для експорту:"
+    "exportMetaEditDesc": "Виберіть усі властивості для експорту:",
+    "showImage": "Show Image"
   },
   "menu": {
     "viewThumbnailInFolder": "Переглянути мініатюру в папці",
