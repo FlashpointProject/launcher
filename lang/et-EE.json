@@ -6,6 +6,8 @@
     "preferencesHeader": "Eelistused",
     "extremeGames": "Ekstreemsed Mängud",
     "extremeGamesDesc": "Näita mänge seksuaalse, vägivaldse või muu sisuga, mis on sobimatu lastele",
+    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
     "enableEditing": "Luba Kohaldada",
     "enableEditingDesc": "Luba kohaldamist mängudele ja lisarakendustele. Avab ka selle jaoks akna.",
     "onDemandImages": "Pildid Nõudlusel",
@@ -288,7 +290,10 @@
     "saveAndRestart": "Salvesta & Ava Uuesti",
     "thereAreNoGames": "Siin pole ühtegi mängu.",
     "noGameMatchedDesc": "Ükski mängu pealkiri ei sarnanenud sinu otsinguga.",
-    "noGameMatchedSearch": "Proovi otsida midagi vähem piiravamat."
+    "noGameMatchedSearch": "Proovi otsida midagi vähem piiravamat.",
+    "mountParameters": "Mount Parameters",
+    "noMountParameters": "No Mount Parameters",
+    "showExtremeScreenshot": "Show Extreme Screenshot"
   },
   "tags": {
     "name": "Nimi",
@@ -413,7 +418,8 @@
     "installingFiles": "Installib Faile...",
     "complete": "Valmis",
     "exportMetaEditTitle": "Ekspordi Meta Muudatus",
-    "exportMetaEditDesc": "Vali kõik väljad, mida eksportida:"
+    "exportMetaEditDesc": "Vali kõik väljad, mida eksportida:",
+    "showImage": "Show Image"
   },
   "menu": {
     "viewThumbnailInFolder": "Vaata Logo Kaustas",
