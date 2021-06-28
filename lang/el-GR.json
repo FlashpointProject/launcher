@@ -6,6 +6,8 @@
     "preferencesHeader": "Προτιμήσεις",
     "extremeGames": "Extreme Content",
     "extremeGamesDesc": "Allow tags inside 'Extreme' tag filter groups and corresponding games to be shown.",
+    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
     "enableEditing": "Ενεργοποίηση Επεξεργασίας",
     "enableEditingDesc": "Enable editing of games and additional applications. Also shows tabs related to editing.",
     "onDemandImages": "On Demand Images",
@@ -288,7 +290,10 @@
     "saveAndRestart": "Αποθήκευση και Επανεκκίνηση",
     "thereAreNoGames": "Δεν υπάρχουν παιχνίδια.",
     "noGameMatchedDesc": "Κανένας τίτλος παιχνιδιού δεν ταιριάζει με την αναζήτησή σας.",
-    "noGameMatchedSearch": "Προσπαθήστε να αναζητήσετε κάτι λιγότερο περιοριστικό."
+    "noGameMatchedSearch": "Προσπαθήστε να αναζητήσετε κάτι λιγότερο περιοριστικό.",
+    "mountParameters": "Mount Parameters",
+    "noMountParameters": "No Mount Parameters",
+    "showExtremeScreenshot": "Show Extreme Screenshot"
   },
   "tags": {
     "name": "Name",
@@ -413,7 +418,8 @@
     "installingFiles": "Εγκατάσταση Αρχείων...",
     "complete": "Ολοκληρώθηκε",
     "exportMetaEditTitle": "Export Meta Edit",
-    "exportMetaEditDesc": "Select all properties to export:"
+    "exportMetaEditDesc": "Select all properties to export:",
+    "showImage": "Show Image"
   },
   "menu": {
     "viewThumbnailInFolder": "Προβολή Μικρογραφίας στον Φάκελο",
