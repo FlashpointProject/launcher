@@ -6,6 +6,8 @@
     "preferencesHeader": "Нагодувања",
     "extremeGames": "Екстремни игри",
     "extremeGamesDesc": "Покажете игри со сексуална, насилна или друга содржина несоодветна за деца.",
+    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
     "enableEditing": "Овозможи Уредувања",
     "enableEditingDesc": "Овозможи уредување на игри и дополнителни апликации. Исто така, покажува јазичиња поврзани со уредување.",
     "onDemandImages": "Слики на барање",
@@ -288,7 +290,10 @@
     "saveAndRestart": "Зачувај и Рестарт",
     "thereAreNoGames": "Тука нема игри.",
     "noGameMatchedDesc": "Ниту еден наслов на играта не одговара на вашето пребарување.",
-    "noGameMatchedSearch": "Обидете се да побарате нешто помалку ограничувачко."
+    "noGameMatchedSearch": "Обидете се да побарате нешто помалку ограничувачко.",
+    "mountParameters": "Mount Parameters",
+    "noMountParameters": "No Mount Parameters",
+    "showExtremeScreenshot": "Show Extreme Screenshot"
   },
   "tags": {
     "name": "Име",
@@ -413,7 +418,8 @@
     "installingFiles": "Инсталирање Фајлови...",
     "complete": "Завршено",
     "exportMetaEditTitle": "Изведувај Meta Edit",
-    "exportMetaEditDesc": "Изберете ги сите својства за извоз:"
+    "exportMetaEditDesc": "Изберете ги сите својства за извоз:",
+    "showImage": "Show Image"
   },
   "menu": {
     "viewThumbnailInFolder": "Прегледај лого во папката",
