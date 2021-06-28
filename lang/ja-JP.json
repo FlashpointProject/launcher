@@ -6,6 +6,8 @@
     "preferencesHeader": "基本設定",
     "extremeGames": "Extreme Content",
     "extremeGamesDesc": "Allow tags inside 'Extreme' tag filter groups and corresponding games to be shown.",
+    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
     "enableEditing": "カスタムを有効にする",
     "enableEditingDesc": "ゲームや追加のアプリケーションの編集を有効にします。編集に関連するタブも表示されます。",
     "onDemandImages": "オンデマンド画像",
@@ -288,7 +290,10 @@
     "saveAndRestart": "変更を保存して再起動",
     "thereAreNoGames": "ゲームはありません。",
     "noGameMatchedDesc": "検索条件に一致するゲームはありません。",
-    "noGameMatchedSearch": "制限の少ないものを探してみてください。"
+    "noGameMatchedSearch": "制限の少ないものを探してみてください。",
+    "mountParameters": "Mount Parameters",
+    "noMountParameters": "No Mount Parameters",
+    "showExtremeScreenshot": "Show Extreme Screenshot"
   },
   "tags": {
     "name": "名前",
@@ -413,7 +418,8 @@
     "installingFiles": "ファイルをインストール中...",
     "complete": "完了",
     "exportMetaEditTitle": "メタ編集をエクスポート",
-    "exportMetaEditDesc": "エクスポートするすべてのプロパティを選択:"
+    "exportMetaEditDesc": "エクスポートするすべてのプロパティを選択:",
+    "showImage": "Show Image"
   },
   "menu": {
     "viewThumbnailInFolder": "サムネイルフォルダーを表示します",
