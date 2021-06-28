@@ -1,16 +1,15 @@
 import { sanitizeFilename } from '@back/util/sanitizeFilename';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
-import { withConfirmDialog, WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
 import { createCurationIndexImage } from '@renderer/curate/importCuration';
 import { useDelayedThrottle } from '@renderer/hooks/useThrottle';
 import { BackIn, TagSuggestion } from '@shared/back/types';
 import { convertEditToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { CurationIndex, EditCuration, EditCurationMeta, IndexedContent } from '@shared/curate/types';
 import { getContentFolderByKey, getCurationFolder, indexContentFolder } from '@shared/curate/util';
-import { GamePropSuggestions, Subtract } from '@shared/interfaces';
+import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
-import { deepCopy, fixSlashes, sizeToString } from '@shared/Util';
+import { deepCopy, fixSlashes, generateTagFilterGroup, sizeToString } from '@shared/Util';
 import { remote } from 'electron';
 import { TagFilterGroup } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
@@ -26,7 +25,6 @@ import { createCurationImage, curationLog } from '../curate/util';
 import { toForcedURL } from '../Util';
 import { LangContext } from '../util/lang';
 import { pathTo7z } from '../util/SevenZip';
-import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { CurateBoxAddApp } from './CurateBoxAddApp';
 import { CurateBoxRow } from './CurateBoxRow';
@@ -38,7 +36,7 @@ import { AutoProgressComponent } from './ProgressComponents';
 import { SimpleButton } from './SimpleButton';
 import { TagInputField } from './TagInputField';
 
-type OwnProps = {
+export type CurateBoxProps = {
   /** Meta data of the curation to display. */
   curation?: EditCuration;
   /** Dispatcher for the curate page state reducer. */
@@ -54,12 +52,11 @@ type OwnProps = {
   mad4fpEnabled: boolean;
   symlinkCurationContent: boolean;
   tagFilters: TagFilterGroup[];
+  showExtremeSuggestions: boolean;
 }
 
-type CurateBoxComponentProps = OwnProps & WithConfirmDialogProps;
-
 /** A box that displays and lets the user edit a curation. */
-function CurateBoxComponent(props: CurateBoxComponentProps) {
+export function CurateBox(props: CurateBoxProps) {
   // Localized strings
   const strings = React.useContext(LangContext);
   const [progressState, progressDispatch] = React.useContext(ProgressContext.context);
@@ -102,10 +99,11 @@ function CurateBoxComponent(props: CurateBoxComponentProps) {
     const newTag = event.currentTarget.value;
     let newSuggestions: TagSuggestion[] = tagSuggestions;
 
-    if (newTag !== '') {
+    if (newTag !== '' && props.curation) {
       // Delayed set
       // TODO: Add tag suggestion filtering here
-      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag, props.tagFilters.filter(tfg => tfg.enabled))
+      const existingTags = props.curation.meta.tags ? props.curation.meta.tags.reduce<string[]>((prev, cur) => prev.concat(cur.primaryAlias.name), []) : undefined;
+      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag, props.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !props.showExtremeSuggestions)).concat([generateTagFilterGroup(existingTags)]))
       .then((data) => {
         if (data) { setTagSuggestions(data); }
       });
@@ -148,13 +146,14 @@ function CurateBoxComponent(props: CurateBoxComponentProps) {
       .then((tag) => {
         if (tag) {
           const curation = props.curation;
-          if (curation && curation.meta.tags && curation.meta.tags.findIndex(t => t.id == tag.id) == -1) {
+          const oldTags = curation ? (curation.meta.tags || []) : [];
+          if (curation && oldTags.findIndex(t => t.id === tag.id) === -1) {
             props.dispatch({
               type: 'edit-curation-meta',
               payload: {
                 key: curation.key,
                 property: 'tags',
-                value: [...curation.meta.tags, tag]
+                value: [...oldTags, tag]
               }
             });
           }
@@ -205,7 +204,7 @@ function CurateBoxComponent(props: CurateBoxComponentProps) {
   const onNotesChange               = useOnInputChange('notes',               key, props.dispatch);
   const onOriginalDescriptionChange = useOnInputChange('originalDescription', key, props.dispatch);
   const onCurationNotesChange       = useOnInputChange('curationNotes',       key, props.dispatch);
-  const onExtremeChange             = useOnCheckboxToggle('extreme',          key, props.dispatch);
+  const onMountParametersChange     = useOnInputChange('mountParameters',     key, props.dispatch);
   // Callbacks for the fields (onItemSelect)
   const onPlayModeSelect            = useCallback(transformOnItemSelect(onPlayModeChange),        [onPlayModeChange]);
   const onStatusSelect              = useCallback(transformOnItemSelect(onStatusChange),          [onStatusChange]);
@@ -229,7 +228,7 @@ function CurateBoxComponent(props: CurateBoxComponentProps) {
         },
       });
       // Check for warnings before importing
-      const warnings = getCurationWarnings(curation, props.suggestions, props.libraries, strings.curate);
+      const warnings = getCurationWarnings(curation, props.suggestions, props.libraries, strings.curate, tagInputText);
       const warningCount = getWarningCount(warnings);
       if (warningCount > 0) {
         // Prompt user
@@ -372,16 +371,13 @@ function CurateBoxComponent(props: CurateBoxComponentProps) {
   }, [props.curation && props.curation.key]);
   // Callback for when the remove button is clicked
   const onRemoveClick = useCallback(async () => {
-    const res = await props.openConfirmDialog('Deleting Curation. Are you sure?', ['Yes', 'No'], 1);
-    if (res === 0) {
-      if (props.curation) {
-        props.dispatch({
-          type: 'remove-curation',
-          payload: { key: props.curation.key }
-        });
-      }
+    if (props.curation) {
+      props.dispatch({
+        type: 'remove-curation',
+        payload: { key: props.curation.key }
+      });
     }
-  }, [props.dispatch, props.curation && props.curation.key, props.openConfirmDialog]);
+  }, [props.dispatch, props.curation && props.curation.key]);
   // Callback for when the new additional application button is clicked
   const onNewAddApp = useCallback(() => {
     if (props.curation) {
@@ -429,7 +425,7 @@ function CurateBoxComponent(props: CurateBoxComponentProps) {
           lock: true,
         },
       });
-      const warnings = getCurationWarnings(curation, props.suggestions, props.libraries, strings.curate);
+      const warnings = getCurationWarnings(curation, props.suggestions, props.libraries, strings.curate, tagInputText);
       const warningCount = getWarningCount(warnings);
       if (warningCount > 0) {
         // Prompt user
@@ -595,10 +591,10 @@ function CurateBoxComponent(props: CurateBoxComponentProps) {
   // Generate Warnings
   const warnings = useMemo(() => {
     if (props.curation) {
-      return getCurationWarnings(props.curation, props.suggestions, props.libraries, strings.curate);
+      return getCurationWarnings(props.curation, props.suggestions, props.libraries, strings.curate, tagInputText);
     }
     return {};
-  }, [props.curation, strings]);
+  }, [props.curation, strings, tagInputText]);
 
   // Render images (logo + ss)
   const imageSplit = useMemo(() => {
@@ -820,6 +816,13 @@ function CurateBoxComponent(props: CurateBoxComponentProps) {
               className={(warnings.noLaunchCommand || (warnings.invalidLaunchCommand && warnings.invalidLaunchCommand.length !== 0)) ? 'input-field--warn' : ''}
               { ...sharedInputProps } />
           </CurateBoxRow>
+          <CurateBoxRow title={strings.browse.mountParameters + ':'}>
+            <InputField
+              text={props.curation && props.curation.meta.mountParameters || ''}
+              placeholder={strings.browse.noMountParameters}
+              onChange={onMountParametersChange}
+              { ...sharedInputProps } />
+          </CurateBoxRow>
           <CurateBoxRow title={strings.browse.notes + ':'}>
             <InputField
               text={props.curation && props.curation.meta.notes || ''}
@@ -844,12 +847,6 @@ function CurateBoxComponent(props: CurateBoxComponentProps) {
               multiline={true}
               className={curationNotes.length > 0 ? 'input-field--info' : ''}
               { ...sharedInputProps } />
-          </CurateBoxRow>
-          <CurateBoxRow title={strings.browse.extreme + ':'}>
-            <CheckBox
-              checked={props.curation && props.curation.meta.extreme}
-              onToggle={onExtremeChange}
-              disabled={disabled} />
           </CurateBoxRow>
         </tbody>
       </table>
@@ -934,20 +931,20 @@ function CurateBoxComponent(props: CurateBoxComponentProps) {
         </div>
         <div className='curate-box-buttons__right'>
           <ConfirmElement
-            activationLimit={-1}
             onConfirm={onRemoveClick}
             render={renderRemoveButton}
+            message={strings.dialog.deleteCuration}
             extra={[strings.curate, disabled]} />
           <SimpleButton
             className='curate-box-buttons__button'
             value={strings.curate.export}
             onClick={onExportClick}
             disabled={disabled} />
-          <SimpleButton
-            className='curate-box-buttons__button'
-            value={strings.curate.import}
-            onClick={onImportClick}
-            disabled={disabled} />
+          <ConfirmElement
+            onConfirm={onImportClick}
+            render={renderImportButton}
+            message={strings.dialog.importCuration}
+            extra={[strings.curate, disabled]} />
         </div>
       </div>
       {progressComponent}
@@ -956,22 +953,28 @@ function CurateBoxComponent(props: CurateBoxComponentProps) {
     tagInputText, tagSuggestions, onRun, onRunWithMAD4FP]);
 }
 
-function renderRemoveButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {
+function renderImportButton({ confirm, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {
   const [ strings, disabled ] = extra;
   return (
     <SimpleButton
-      className={
-        'curate-box-buttons__button' +
-        ((activationCounter > 0) ? ' curate-box-buttons__button--active simple-vertical-shake' : '')
-      }
-      value={strings.delete}
-      title={strings.deleteCurationDesc}
+      className='curate-box-buttons__button'
+      value={strings.import}
       disabled={disabled}
-      onClick={activate}
-      onMouseLeave={reset} />
+      onClick={confirm} />
   );
 }
 
+function renderRemoveButton({ confirm, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {
+  const [ strings, disabled ] = extra;
+  return (
+    <SimpleButton
+      className='curate-box-buttons__button'
+      value={strings.delete}
+      title={strings.deleteCurationDesc}
+      disabled={disabled}
+      onClick={confirm} />
+  );
+}
 
 type InputElement = HTMLInputElement | HTMLTextAreaElement;
 
@@ -1004,21 +1007,6 @@ function useOnInputChange(property: keyof EditCurationMeta, key: string | undefi
           key: key,
           property: property,
           value: event.currentTarget.value
-        }
-      });
-    }
-  }, [dispatch, key]);
-}
-
-function useOnCheckboxToggle(property: keyof EditCurationMeta, key: string | undefined, dispatch: React.Dispatch<CurationAction>) {
-  return useCallback((checked: boolean) => {
-    if (key !== undefined) {
-      dispatch({
-        type: 'edit-curation-meta',
-        payload: {
-          key: key,
-          property: property,
-          value: checked
         }
       });
     }
@@ -1205,7 +1193,7 @@ function isValidDate(str: string): boolean {
   return (/^\d{4}(-(0?[1-9]|1[012])(-(0?[1-9]|[12][0-9]|3[01]))?)?$/).test(str);
 }
 
-export function getCurationWarnings(curation: EditCuration, suggestions: Partial<GamePropSuggestions> | undefined, libraries: string[], strings: LangContainer['curate']) {
+export function getCurationWarnings(curation: EditCuration, suggestions: Partial<GamePropSuggestions> | undefined, libraries: string[], strings: LangContainer['curate'], tagInputText: string) {
   const warns: CurationWarnings = {};
   // Check launch command exists
   const launchCommand = curation.meta.launchCommand || '';
@@ -1214,6 +1202,11 @@ export function getCurationWarnings(curation: EditCuration, suggestions: Partial
   if (!warns.noLaunchCommand) {
     warns.invalidLaunchCommand = invalidLaunchCommandWarnings(getContentFolderByKey2(curation.key), launchCommand, strings);
   }
+  warns.noLogo = !curation.thumbnail.exists;
+  warns.noScreenshot = !curation.screenshot.exists;
+  warns.noTags = (!curation.meta.tags || curation.meta.tags.length === 0);
+  warns.noSource = !curation.meta.source;
+  warns.unenteredTag = !!tagInputText;
   // Validate release date
   const releaseDate = curation.meta.releaseDate;
   if (releaseDate) { warns.releaseDateInvalid = !isValidDate(releaseDate); }
@@ -1235,7 +1228,7 @@ function getCurationFolder2(curation: EditCuration | CurationIndex) {
 }
 
 function isPlatformNativeLocked(platform: string) {
-  return window.Shared.config.data.nativePlatforms.findIndex((item) => { return item === platform; }) != -1;
+  return window.Shared.preferences.data.nativePlatforms.findIndex((item) => { return item === platform; }) != -1;
 }
 
 function getPathOfHtdocsUrl(url: string): string | undefined {
@@ -1243,11 +1236,8 @@ function getPathOfHtdocsUrl(url: string): string | undefined {
   if (urlObj) {
     return path.join(
       window.Shared.config.fullFlashpointPath,
-      window.Shared.config.data.htdocsFolderPath,
+      window.Shared.preferences.data.htdocsFolderPath,
       decodeURIComponent(path.join(urlObj.hostname, urlObj.pathname))
     );
   }
 }
-
-export type CurateBoxProps = Subtract<CurateBoxComponentProps, WithConfirmDialogProps>;
-export const CurateBox = withConfirmDialog(CurateBoxComponent);

@@ -1,4 +1,4 @@
-// Type definitions for non-npm package flashpoint-launcher 9.1
+// Type definitions for non-npm package flashpoint-launcher 10.0
 // Project: Flashpoint Launcher https://github.com/FlashpointProject/launcher
 // Definitions by: Colin Berry <https://github.com/colin969>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
@@ -20,6 +20,9 @@
 declare module 'flashpoint-launcher' {
     /** Version of the Flashpoint Launcher */
     const version: string;
+    
+    /** Data Version of the Flashpoint Launcher */
+    const dataVersion: string | undefined;
 
     /** Path to own extension */
     const extensionPath: string;
@@ -65,6 +68,10 @@ declare module 'flashpoint-launcher' {
      * Gets an extension configuration value given its key and a new value
      */
     function setExtConfigValue(key: string, value: any): Promise<void>;
+    /**
+     * Fires when an extension configuration value changes
+     */
+    const onExtConfigChange: Event<{key: string, value: any}>;
 
     /**
      * Log functions to properly pass messages to the Logs Page.
@@ -140,6 +147,12 @@ declare module 'flashpoint-launcher' {
          * @param playlistGames Playlist Game entries to save
          */
         function updatePlaylistGames(playlistGames: PlaylistGame[]): Promise<void>;
+        /**
+         * Adds a Game to a Playlist
+         * @param playlistId Playlist to add the Game to
+         * @param gameId ID of the Game to add
+         */
+        function addPlaylistGame(playlistId: string, gameId: string): Promise<void>;
 
         // Games
         /** Returns the total number of games in the database */
@@ -188,16 +201,24 @@ declare module 'flashpoint-launcher' {
          * @param library Library to use instead of Playlist defined library
          */
         function createPlaylistFromJson(jsonData: any, library?: string): Playlist;
+        /**
+         * Returns whether a game is extreme based on its tags.
+         * @param game Game to check
+         */
+        function isGameExtreme(game: Game): boolean;
 
         // Events
         const onWillLaunchGame: Event<GameLaunchInfo>;
         const onWillLaunchAddApp: Event<AdditionalApp>;
         const onWillLaunchCurationGame: Event<GameLaunchInfo>;
         const onWillLaunchCurationAddApp: Event<AdditionalApp>;
+        const onWillUninstallGameData: Event<GameData>;
         const onDidLaunchGame: Event<Game>;
         const onDidLaunchAddApp: Event<AdditionalApp>;
         const onDidLaunchCurationGame: Event<Game>;
         const onDidLaunchCurationAddApp: Event<AdditionalApp>;
+        const onDidInstallGameData: Event<GameData>;
+        const onDidUninstallGameData: Event<GameData>;
 
         const onDidUpdateGame: Event<{ oldGame: Game; newGame: Game }>;
         const onDidRemoveGame: Event<Game>;
@@ -463,6 +484,8 @@ declare module 'flashpoint-launcher' {
         notes: string;
         /** List of tags attached to the game */
         tags: Tag[];
+        /** List of tags attached to the game in a string format */
+        tagsStr: string;
         /** Source if the game files, either full URL or the name of the website */
         source: string;
         /** Path to the application that runs the game */
@@ -490,6 +513,7 @@ declare module 'flashpoint-launcher' {
         /** Whether the data is present on disk */
         activeDataOnDisk: boolean;
         data?: GameData[];
+        updateTagsStr: () => void;
     };
 
     type GameData = {
@@ -511,6 +535,8 @@ declare module 'flashpoint-launcher' {
         path?: string;
         /** Size of this data pack */
         size: number;
+        /** Parameters passed to the mounter */
+        parameters?: string;
     };
 
     type SourceData = {
@@ -745,15 +771,60 @@ declare module 'flashpoint-launcher' {
         id: string;
         title: string;
         platform: string;
-        tags: Tag[];
+        tagsStr: string;
         developer: string;
         publisher: string;
     };
 
     /** Data contained in the Config file */
     type AppConfigData = {
-        /** Path to the Flashpoint root folder (relative or absolute) */
+        /** Path to the FlashPoint root folder (relative or absolute) */
         flashpointPath: string;
+        /** If the custom title bar should be used in MainWindow */
+        useCustomTitlebar: boolean;
+        /**
+         * If the Server should be started, and closed, together with this application.
+         * The "server" is defined in "services.json".
+         */
+        startServer: boolean;
+        // Name of the Server process to run
+        server: string;
+        /** Lower limit of the range of ports that the back should listen on. */
+        backPortMin: number;
+        /** Upper limit of the range of ports that the back should listen on. */
+        backPortMax: number;
+        /** Lower limit of the range of ports that the back image server should listen on. */
+        imagesPortMin: number;
+        /** Upper limit of the range of ports that the back image server should listen on. */
+        imagesPortMax: number;
+        /** Base URL of the server to do pastes of the Logs to. */
+        logsBaseUrl: string;
+        /** Whether to notify that launcher updates are available */
+        updatesEnabled: boolean;
+    };
+
+    export type TagFilterGroup = {
+        name: string;
+        /** Enabled */
+        enabled: boolean;
+        /** Tags to filter */
+        tags: TagFilter;
+        /** Tag categories to filter */
+        categories: TagFilter;
+        /** Filters to auto apply when this is applied */
+        childFilters: string[];
+        /** Are these tags considered Extreme? */
+        extreme: boolean;
+    }
+    
+    export type TagFilter = string[];
+
+    /**
+     * Contains state of all non-config settings the user can change in the application.
+     * This is the data contained in the Preferences file.
+     */
+    type AppPreferencesData = {
+        [key: string]: any;
         /** Path to the image folder (relative to the flashpoint path) */
         imageFolderPath: string;
         /** Path to the logo folder (relative to the flashpoint path) */
@@ -776,61 +847,6 @@ declare module 'flashpoint-launcher' {
         extensionsPath: string;
         /** Path to store Game Data packs */
         dataPacksFolderPath: string;
-        /** If the custom title bar should be used in MainWindow */
-        useCustomTitlebar: boolean;
-        /**
-         * If the Server should be started, and closed, together with this application.
-         * The "server" is defined in "services.json".
-         */
-        startServer: boolean;
-        // Name of the Server process to run
-        server: string;
-        /** If games flagged as "extreme" should be hidden (mainly for parental control) */
-        disableExtremeGames: boolean;
-        /** If games flagged as "broken" should be hidden */
-        showBrokenGames: boolean;
-        /** Array of native locked platforms */
-        nativePlatforms: string[];
-        /** Lower limit of the range of ports that the back should listen on. */
-        backPortMin: number;
-        /** Upper limit of the range of ports that the back should listen on. */
-        backPortMax: number;
-        /** Lower limit of the range of ports that the back image server should listen on. */
-        imagesPortMin: number;
-        /** Upper limit of the range of ports that the back image server should listen on. */
-        imagesPortMax: number;
-        /** Metadata Server Host (For Online Sync) */
-        metadataServerHost: string;
-        /** Last time the Metadata Server Host was synced with */
-        lastSync: number;
-        /** Base URL of the server to download missing thumbnails/screenshots from. */
-        onDemandBaseUrl: string;
-        /** Base URL of the server to do pastes of the Logs to. */
-        logsBaseUrl: string;
-        /** Whether to notify that launcher updates are available */
-        updatesEnabled: boolean;
-    };
-
-    export type TagFilterGroup = {
-        name: string;
-        /** Enabled */
-        enabled: boolean;
-        /** Tags to filter */
-        tags: TagFilter;
-        /** Tag categories to filter */
-        categories: TagFilter;
-        /** Filters to auto apply when this is applied */
-        childFilters: string[];
-    }
-    
-    export type TagFilter = string[];
-
-    /**
-     * Contains state of all non-config settings the user can change in the application.
-     * This is the data contained in the Preferences file.
-     */
-    type AppPreferencesData = {
-        [key: string]: any;
         /** Scale of the games at the BrowsePage. */
         browsePageGameScale: number;
         /** If "Extreme" games should be shown at the BrowsePage. */
@@ -871,18 +887,24 @@ declare module 'flashpoint-launcher' {
         defaultLibrary: string;
         /** Save curations after importing */
         saveImportedCurations: boolean;
+        /** Assign the same UUID to imported games as in the curation archive */
+        keepArchiveKey: boolean;
         /** Whether to symlink or copy curation content when running (Symlink required for MAD4FP) */
         symlinkCurationContent: boolean;
         /** Download missing thumbnails/screenshots from a remote server. */
         onDemandImages: boolean;
+        /** Base URL of the server to download missing thumbnails/screenshots from. */
+        onDemandBaseUrl: string;
+        /** Proxy server to use during Browser Mode */
+        browserModeProxy: string;
         /** Sources to show/hide in the log page. */
         showLogSource: {
-            [key: string]: boolean;
-        };
+          [key: string]: boolean;
+        }
         /** Levels to show/hide in the log page. */
         showLogLevel: {
-            [key in LogLevel]: boolean;
-        };
+          [key in LogLevel]: boolean;
+        }
         /** Libraries that should be excluded from random picks. */
         excludedRandomLibraries: string[];
         /** Application path overrides to check during app launches */
@@ -891,6 +913,12 @@ declare module 'flashpoint-launcher' {
         tagFilters: TagFilterGroup[];
         /** Use Tag Filters in the Curate suggestions */
         tagFiltersInCurate: boolean;
+        /** Array of native locked platforms */
+        nativePlatforms: string[];
+        /** If games flagged as "extreme" should be hidden (mainly for parental control) */
+        disableExtremeGames: boolean;
+        /** If games flagged as "broken" should be hidden */
+        showBrokenGames: boolean;
     };
 
     type AppPathOverride = {

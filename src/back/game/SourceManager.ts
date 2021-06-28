@@ -34,11 +34,18 @@ export function save(source: Source): Promise<Source> {
   return sourceRepository.save(source);
 }
 
+export async function remove(sourceId: number): Promise<void> {
+  const sourceDataRepository = getManager().getRepository(SourceData);
+  const sourceRepository = getManager().getRepository(Source);
+  await sourceDataRepository.delete({ sourceId });
+  await sourceRepository.delete({ id: sourceId });
+}
+
 export async function importFromURL(url: string, saveDir: string, onProgress?: (progress: number) => void): Promise<Source> {
   const progressThrottle = onProgress && throttle(onProgress, 250);
   // Generate / Open File to save
   const parsedUrl = new URL(url);
-  const filePath = path.join(saveDir, `${parsedUrl.hostname}${parsedUrl.pathname.replace('/', '.')}.source`);
+  const filePath = path.join(saveDir, `${parsedUrl.hostname}${parsedUrl.pathname.replace(/\\/g, '.').replace(/\//g, '.')}`);
   // Fetch URL
   const res = await axios.get(url,
     {
@@ -54,7 +61,7 @@ export async function importFromURL(url: string, saveDir: string, onProgress?: (
       onProgress && onProgress(1);
       // Set up Source
       const splitUrl = parsedUrl.href.split('/');
-      const baseUrl = splitUrl.slice(0, splitUrl.length - 1).join('/');
+      const baseUrl = `${splitUrl.slice(0, splitUrl.length - 1).join('/')}/`;
       let source = (await SourceManager.findBySourceFileUrl(url)) || new Source();
       const date = new Date();
       source.name = source.name || url;
@@ -68,33 +75,50 @@ export async function importFromURL(url: string, saveDir: string, onProgress?: (
       log.debug('Launcher', 'Clearing old SourceData...');
       await SourceDataManager.clearSource(source.id);
       log.debug('Launcher', 'Loading new Source file...');
-      // Parse Source file
       const readStream = fs.createReadStream(filePath, { encoding: 'utf8' });
-      const rl = readline.createInterface({
-        input: readStream
-      });
-      let hash: string | undefined = undefined;
-      log.debug('Launcher', 'Reading Source file into DB');
-      let sdBuffer: SourceData[] = [];
-      for await (const line of rl) {
-        if (hash) {
-          const sourceData = new SourceData();
-          sourceData.sha256 = hash;
-          sourceData.sourceId = source.id;
-          sourceData.urlPath = line;
-          sdBuffer.push(sourceData);
-          if (sdBuffer.length > 2000) {
-            // Push a transaction when 500 stored
-            await SourceDataManager.updateData(sdBuffer);
-            sdBuffer = [];
+      try {
+        // Parse Source file
+        const rl = readline.createInterface({
+          input: readStream
+        });
+        let hash: string | undefined = undefined;
+        log.debug('Launcher', 'Reading Source file into DB');
+        let sdBuffer: SourceData[] = [];
+        for await (const line of rl) {
+          if (hash) {
+            const sourceData = new SourceData();
+            sourceData.sha256 = hash;
+            sourceData.sourceId = source.id;
+            sourceData.urlPath = line;
+            sdBuffer.push(sourceData);
+            if (sdBuffer.length > 2000) {
+              // Push a transaction when 500 stored
+              await SourceDataManager.updateData(sdBuffer);
+              sdBuffer = [];
+            }
+            hash = undefined;
+          } else {
+            if (line.length === 64) {
+              hash = line;
+            } else {
+              throw 'Improper Source File Format.';
+            }
           }
-          hash = undefined;
-        } else {
-          hash = line;
         }
-      }
-      if (sdBuffer.length > 0) {
-        await SourceDataManager.updateData(sdBuffer);
+        if (sdBuffer.length > 0) {
+          await SourceDataManager.updateData(sdBuffer);
+        }
+      } catch (error) {
+        // Clean up lingering data
+        await SourceManager.remove(source.id);
+        log.error('Launcher', 'Format error when parsing Source file, aborted.');
+        reject(error);
+        return;
+      } finally {
+        readStream.on('close', () => {
+          fs.promises.unlink(filePath);
+        });
+        readStream.close();
       }
       log.info('Launcher', 'Updated Source.');
       source.count = await SourceDataManager.countBySource(source.id);

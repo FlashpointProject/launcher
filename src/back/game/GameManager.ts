@@ -15,13 +15,14 @@ import { tagSort } from '@shared/Util';
 import { Coerce } from '@shared/utils/Coerce';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as TagManager from './TagManager';
 import { Brackets, FindOneOptions, getManager, SelectQueryBuilder } from 'typeorm';
 import * as GameDataManager from './GameDataManager';
 
-const exactFields = [ 'broken', 'extreme', 'library', 'activeDataOnDisk' ];
+const exactFields = [ 'broken', 'library', 'activeDataOnDisk' ];
 enum flatGameFields {
   'id', 'title', 'alternateTitles', 'developer', 'publisher', 'dateAdded', 'dateModified', 'series',
-  'platform', 'broken', 'extreme', 'playMode', 'status', 'notes', 'source', 'applicationPath', 'launchCommand', 'releaseDate',
+  'platform', 'broken', 'playMode', 'status', 'notes', 'source', 'applicationPath', 'launchCommand', 'releaseDate',
   'version', 'originalDescription', 'language', 'library', 'activeDataOnDisk'
 }
 
@@ -78,14 +79,22 @@ export async function findGameRow(gameId: string, filterOpts?: FilterGameOpts, o
   return raw ? Coerce.num(raw.row_num) : -1; // Coerce it, even though it is probably of type number or undefined
 }
 
-export async function findRandomGames(count: number, extreme: boolean, broken: boolean, excludedLibraries: string[]): Promise<ViewGame[]> {
+export async function findRandomGames(count: number, broken: boolean, excludedLibraries: string[], flatFilters: string[]): Promise<ViewGame[]> {
   const gameRepository = getManager().getRepository(Game);
   const query = gameRepository.createQueryBuilder('game');
-  query.select('game.id, game.title, game.platform, game.developer, game.publisher');
-  if (!extreme) { query.andWhere('extreme = false'); }
+  query.select('game.id, game.title, game.platform, game.developer, game.publisher, game.tagsStr');
   if (!broken)  { query.andWhere('broken = false');  }
   if (excludedLibraries.length > 0) {
     query.andWhere('library NOT IN (:...libs)', { libs: excludedLibraries });
+  }
+  if (flatFilters.length > 0) {
+    const tagIdQuery = TagManager.getFilterIDsQuery(flatFilters);
+    const excludedGameIdQuery = getManager().createQueryBuilder()
+    .select('game_tag.gameId')
+    .from('game_tags_tag', 'game_tag')
+    .where(`game_tag.tagId IN (${tagIdQuery.getQuery()})`);
+    query.andWhere(`game.id NOT IN (${excludedGameIdQuery.getQuery()})`)
+    .setParameters(tagIdQuery.getParameters());
   }
   query.orderBy('RANDOM()').take(count);
   return (await query.getRawMany()) as ViewGame[];
@@ -153,6 +162,11 @@ export type FindGamesOpts = {
   getTotal?: boolean;
 }
 
+export async function findAllGames(): Promise<Game[]> {
+  const gameRepository = getManager().getRepository(Game);
+  return gameRepository.find();
+}
+
 /** Search the database for games. */
 export async function findGames<T extends boolean>(opts: FindGamesOpts, shallow: T): Promise<Array<ResponseGameRange<T>>> {
   const ranges = opts.ranges || [{ start: 0, length: undefined }];
@@ -171,7 +185,7 @@ export async function findGames<T extends boolean>(opts: FindGamesOpts, shallow:
     // @TODO Make it infer the type of T from the value of "shallow", and then use that to make "games" get the correct type, somehow?
     // @PERF When multiple pages are requested as individual ranges, select all of them with a single query then split them up
     const games = (shallow)
-      ? (await query.select('game.id, game.title, game.platform, game.developer, game.publisher, game.extreme').getRawMany()) as ViewGame[]
+      ? (await query.select('game.id, game.title, game.platform, game.developer, game.publisher, game.extreme, game.tagsStr').getRawMany()) as ViewGame[]
       : await query.getMany();
     rangesOut.push({
       start: range.start,
@@ -256,8 +270,9 @@ export async function updateGames(games: Game[]): Promise<void> {
   }
 }
 
-export async function updateGame(game: Game): Promise<Game> {
+export async function save(game: Game): Promise<Game> {
   const gameRepository = getManager().getRepository(Game);
+  log.debug('Launcher', 'Saving game...');
   const savedGame = await gameRepository.save(game);
   if (savedGame) { onDidUpdateGame.fire({oldGame: game, newGame: savedGame}); }
   return savedGame;
@@ -511,30 +526,22 @@ async function applyTagFilters(aliases: string[], alias: string, query: SelectQu
 
   const tagAliasRepository = getManager().getRepository(TagAlias);
   const comparator = whitelist ? 'IN' : 'NOT IN';
+  const aliasKey = `${whitelist ? 'whitelist_' : 'blacklist_'}${whereCount}`;
 
-  const tagIds = (await tagAliasRepository.createQueryBuilder('tag_alias')
-  .where('tag_alias.name IN (:...aliases)', { aliases: aliases })
+  const tagIdQuery = tagAliasRepository.createQueryBuilder('tag_alias')
+  .where(`tag_alias.name IN (:...${aliasKey})`, { [aliasKey]: aliases })
   .select('tag_alias.tagId')
+  .distinct();
+
+  const subQuery = getManager().createQueryBuilder()
+  .select('game_tag.gameId')
   .distinct()
-  .getRawMany()).map(r => r['tag_alias_tagId']);
+  .from('game_tags_tag', 'game_tag')
+  .where(`game_tag.tagId IN (${tagIdQuery.getQuery()})`);
 
-  for (let i = 0; i < tagIds.length; i++) {
-    const filterName = `tag_filter_${whereCount}_${i}`;
-
-    const tagId = tagIds[i];
-    const subQuery = getManager().createQueryBuilder()
-    .select('game_tag.gameId')
-    .distinct()
-    .from('game_tags_tag', 'game_tag')
-    .where(`game_tag.tagId = :${filterName}`, { [filterName]: tagId });
-    if (whereCount == 0 && i == 0) {
-      query.where(`${alias}.id ${comparator} (${subQuery.getQuery()})`);
-      query.setParameters(subQuery.getParameters());
-    } else {
-      query.andWhere(`${alias}.id ${comparator} (${subQuery.getQuery()})`);
-      query.setParameters(subQuery.getParameters());
-    }
-  }
+  query.andWhere(`${alias}.id ${comparator} (${subQuery.getQuery()})`);
+  query.setParameters(subQuery.getParameters());
+  query.setParameters(tagIdQuery.getParameters());
 }
 
 async function getGameQuery(

@@ -2,28 +2,6 @@
 export type AppConfigData = {
   /** Path to the FlashPoint root folder (relative or absolute) */
   flashpointPath: string;
-  /** Path to the image folder (relative to the flashpoint path) */
-  imageFolderPath: string;
-  /** Path to the logo folder (relative to the flashpoint path) */
-  logoFolderPath: string;
-  /** Path to the playlist folder (relative to the flashpoint path) */
-  playlistFolderPath: string;
-  /** Path to the json folder (relative to the flashpoint path) */
-  jsonFolderPath: string;
-  /** Path to the htdocs folder (relative to the flashpoint path) */
-  htdocsFolderPath: string;
-  /** Path to the platform folder (relative to the flashpoint path) */
-  platformFolderPath: string;
-  /** Path to the theme folder (relative to the flashpoint path) */
-  themeFolderPath: string;
-  /** Path to the logo sets folder (relative to the flashpoint path) */
-  logoSetsFolderPath: string;
-  /** Path of the meta edits folder (relative to the flashpoint path) */
-  metaEditsFolderPath: string;
-  /** Path to load User extensions from (relative to the flashpoint path) */
-  extensionsPath: string;
-  /** Path to store Game Data packs */
-  dataPacksFolderPath: string;
   /** If the custom title bar should be used in MainWindow */
   useCustomTitlebar: boolean;
   /**
@@ -33,12 +11,6 @@ export type AppConfigData = {
   startServer: boolean;
   // Name of the Server process to run
   server: string;
-  /** If games flagged as "extreme" should be hidden (mainly for parental control) */
-  disableExtremeGames: boolean;
-  /** If games flagged as "broken" should be hidden */
-  showBrokenGames: boolean;
-  /** Array of native locked platforms */
-  nativePlatforms: string[];
   /** Lower limit of the range of ports that the back should listen on. */
   backPortMin: number;
   /** Upper limit of the range of ports that the back should listen on. */
@@ -47,16 +19,8 @@ export type AppConfigData = {
   imagesPortMin: number;
   /** Upper limit of the range of ports that the back image server should listen on. */
   imagesPortMax: number;
-  /** Metadata Server Host (For Online Sync) */
-  metadataServerHost: string;
-  /** Last time the Metadata Server Host was synced with */
-  lastSync: number;
-  /** Base URL of the server to download missing thumbnails/screenshots from. */
-  onDemandBaseUrl: string;
   /** Base URL of the server to do pastes of the Logs to. */
   logsBaseUrl: string;
-  /** Proxy server to use during Browser Mode */
-  browserModeProxy: string;
   /** Whether to notify that launcher updates are available */
   updatesEnabled: boolean;
 };

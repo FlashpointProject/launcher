@@ -21,7 +21,8 @@ export class ExtensionService {
   private readonly _installedExtensionsReady: Barrier;
 
   constructor(
-    protected readonly _configData: AppConfigData
+    protected readonly _configData: AppConfigData,
+    protected readonly _extensionPath: string
   ) {
     this._extensions = [];
     this._extensionData = {};
@@ -34,7 +35,7 @@ export class ExtensionService {
   }
 
   private async _scanExtensions(): Promise<void> {
-    const exts = await scanExtensions(this._configData);
+    const exts = await scanExtensions(this._configData, this._extensionPath);
     exts.forEach(e => this._extensions.push(e));
     this._installedExtensionsReady.open();
   }
@@ -109,16 +110,18 @@ export class ExtensionService {
     try {
       // Import extension as module
       const entryPath = getExtensionEntry(ext);
-      const extModule: ExtensionModule = await import(entryPath);
-      if (!extModule.activate) {
-        throw new Error('No "activate" export found in extension module!');
-      }
       // Build context
       const context: ExtensionContext = {
         subscriptions: extData.subscriptions
       };
-      // Activate extension
-      await Promise.resolve(extModule.activate.apply(global, [context]));
+      if (entryPath) {
+        const extModule: ExtensionModule = await import(entryPath);
+        if (!extModule.activate) {
+          throw new Error('No "activate" export found in extension module!');
+        }
+        // Activate extension
+        await Promise.resolve(extModule.activate.apply(global, [context]));
+      }
       this._setSubscriptions(ext.id, context.subscriptions);
       this._enableExtension(ext.id);
       log.info('Extensions', `[${ext.manifest.displayName || ext.manifest.name}] Extension Loaded (${ext.id})`);
@@ -147,12 +150,14 @@ export class ExtensionService {
   private async _unloadExtension(ext: IExtension): Promise<void> {
     const extData = this._extensionData[ext.id];
     const entryPath = getExtensionEntry(ext);
-    const extModule: ExtensionModule = await import(entryPath);
-    if (extModule.deactivate) {
-      try {
-        await Promise.resolve(extModule.deactivate.apply(global));
-      } catch (error) {
-        log.error('Extensions', `[${ext.manifest.displayName || ext.manifest.name}] Error in deactivation function.\n${error}'`);
+    if (entryPath) {
+      const extModule: ExtensionModule = await import(entryPath);
+      if (extModule.deactivate) {
+        try {
+          await Promise.resolve(extModule.deactivate.apply(global));
+        } catch (error) {
+          log.error('Extensions', `[${ext.manifest.displayName || ext.manifest.name}] Error in deactivation function.\n${error}'`);
+        }
       }
     }
     // Dispose of all subscriptions the extension made

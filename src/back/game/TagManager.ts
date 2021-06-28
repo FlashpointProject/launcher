@@ -5,7 +5,7 @@ import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
 import { BackOut, MergeTagData, TagSuggestion } from '@shared/back/types';
-import { getManager, Like, Not } from 'typeorm';
+import { getManager, Not, SelectQueryBuilder } from 'typeorm';
 import * as GameManager from './GameManager';
 
 export async function findTagCategories(): Promise<TagCategory[]> {
@@ -42,26 +42,32 @@ export async function saveTag(tag: Tag): Promise<Tag> {
   return tagRepository.save(tag);
 }
 
-export async function findTags(name?: string): Promise<Tag[]> {
+export async function saveTagAlias(tagAlias: TagAlias): Promise<TagAlias> {
+  const tagAliasRepository = getManager().getRepository(TagAlias);
+  return tagAliasRepository.save(tagAlias);
+}
+
+export async function findTags(name?: string, flatFilters?: string[]): Promise<Tag[]> {
   const tagRepository = getManager().getRepository(Tag);
   const tagAliasRepostiory = getManager().getRepository(TagAlias);
+  const filterQuery = flatFilters ? getFilterIDsQuery(flatFilters) : undefined;
 
-  let aliases: TagAlias[] = [];
-  if (name) {
-    aliases = await tagAliasRepostiory.find({
-      where: [
-        { name: Like(name + '%') }
-      ],
-    });
-  } else {
-    aliases = await tagAliasRepostiory.find();
-  }
+  // Get exclusion
+  const subQ = tagAliasRepostiory.createQueryBuilder('tag_alias')
+  .select('tag_alias.tagId')
+  .where('tag_alias.name NOT LIKE :name', { name: name + '%' });
 
-  return tagRepository.createQueryBuilder('tag')
+  let query = tagRepository.createQueryBuilder('tag')
   .leftJoinAndSelect('tag.aliases', 'alias')
   .leftJoinAndSelect('tag.primaryAlias', 'primaryAlias')
-  .whereInIds(aliases.map(a => a.tagId))
-  .orderBy('tag.categoryId DESC, primaryAlias.name', 'ASC')
+  .where(`tag.id NOT IN (${subQ.getQuery()})`)
+  .setParameters(subQ.getParameters());
+  if (filterQuery) {
+    query = query.andWhere(`tag.id NOT IN (${filterQuery.getQuery()})`)
+    .setParameters(filterQuery.getParameters());
+  }
+
+  return query.orderBy('tag.categoryId DESC, primaryAlias.name', 'ASC')
   .getMany();
 }
 
@@ -83,7 +89,7 @@ export async function mergeTags(mergeData: MergeTagData, openDialog: ShowMessage
       // Move names first
       if (mergeData.makeAlias) {
         for (const alias of mergeSorc.aliases) {
-          mergeDest.aliases.push(alias);
+          mergeDest.aliases.push({ ...alias, tagId: mergeDest.id });
         }
       }
       // Move game tag references next
@@ -148,14 +154,18 @@ export async function findTagSuggestions(name: string, flatTagFilter: string[] =
   const tagCategoryRepository = getManager().getRepository(TagCategory);
   const tagCategories = (await Promise.all(flatCatFilter.map(async (cat) => tagCategoryRepository.findOne({ where: { name: cat }})))).filter(t => t !== undefined) as TagCategory[];
   const flatCatIds = tagCategories.map(tg => tg.id);
+  const filterQuery = flatTagFilter.length > 0 ? getFilterIDsQuery(flatTagFilter) : undefined;
 
-  const subQuery = tagAliasRepostiory.createQueryBuilder('tag_alias')
+  let subQuery = tagAliasRepostiory.createQueryBuilder('tag_alias')
   .leftJoin(Tag, 'tag', 'tag_alias.tagId = tag.id')
   .select('tag.id, tag.categoryId, tag.primaryAliasId, tag_alias.name')
   .where('tag_alias.name like :partial', { partial: name + '%' })
-  .andWhere('tag_alias.name NOT IN (:...flatTagFilter)', { flatTagFilter: flatTagFilter || [] })
-  .andWhere('tag.categoryId NOT IN (:...flatCatIds)', { flatCatIds })
-  .limit(25);
+  .andWhere('tag.categoryId NOT IN (:...flatCatIds)', { flatCatIds });
+  if (filterQuery) {
+    subQuery = subQuery.andWhere(`tag.id NOT IN (${filterQuery.getQuery()})`)
+    .setParameters(filterQuery.getParameters());
+  }
+  subQuery = subQuery.limit(25);
 
   const tagAliases = await getManager().createQueryBuilder()
   .select('sugg.id, sugg.categoryId, sugg.name, COUNT(game_tag.gameId) as gameCount, primary_alias.name as primaryName')
@@ -353,4 +363,11 @@ export async function sendTagCategories(socketServer: SocketServer) {
   const tagCategoryRepository = getManager().getRepository(TagCategory);
   const cats = await tagCategoryRepository.find();
   socketServer.broadcast(BackOut.TAG_CATEGORIES_CHANGE, cats);
+}
+
+export function getFilterIDsQuery(flatFilters: string[]): SelectQueryBuilder<TagAlias> {
+  const tagAliasRepostiory = getManager().getRepository(TagAlias);
+  return tagAliasRepostiory.createQueryBuilder('tag_alias')
+  .select('tag_alias.tagId')
+  .where('tag_alias.name IN (:...flatFilters)', { flatFilters });
 }

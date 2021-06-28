@@ -127,7 +127,7 @@ export function exit(state: BackState): void {
       state.socketServer.close()
       .catch(e => { console.error(e); }),
       // Close file server
-      new Promise(resolve => state.fileServer.close(error => {
+      new Promise<void>(resolve => state.fileServer.close(error => {
         if (error) { console.warn('An error occurred while closing the file server.', error); }
         resolve();
       })),
@@ -138,7 +138,7 @@ export function exit(state: BackState): void {
         state.fileServerDownloads.queue.length = 0; // Clear array
         const current = state.fileServerDownloads.current.splice(0); // Copy & clear array
         for (let i = 0; i < current.length; i++) { // Delete all partial files
-          const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
+          const imageFolder = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
           const filePath = path.join(imageFolder, current[i].subPath);
 
           try {
@@ -178,7 +178,8 @@ export function createAddAppFromLegacy(addApps: Legacy_IAdditionalApplicationInf
 }
 
 export async function createGameFromLegacy(game: Legacy_IGameInfo, tagCache: Record<string, Tag>): Promise<Game> {
-  return {
+  const newGame = new Game();
+  Object.assign(newGame, {
     id: game.id,
     parentGameId: game.id,
     title: game.title,
@@ -207,7 +208,8 @@ export async function createGameFromLegacy(game: Legacy_IGameInfo, tagCache: Rec
     placeholder: false,
     addApps: [],
     activeDataOnDisk: false
-  };
+  });
+  return newGame;
 }
 
 export function createPlaylistFromJson(jsonData: any, library?: string): Playlist {

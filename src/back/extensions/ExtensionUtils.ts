@@ -15,7 +15,7 @@ export function extensionString(ext: IExtension): string {
  * @param ext Extension to read module from
  * @returns Path to module entry point
  */
-export function getExtensionEntry(ext: IExtension): string {
+export function getExtensionEntry(ext: IExtension): string | undefined {
   if (ext.manifest.main) {
     const filePath = path.join(ext.extensionPath, ext.manifest.main);
     const relative = path.relative(ext.extensionPath, filePath);
@@ -27,7 +27,6 @@ export function getExtensionEntry(ext: IExtension): string {
       throw new Error('Extension is trying to import files outside its path!');
     }
   }
-  throw new Error('Extension defines no entry point!');
 }
 
 /** Creates an Extension log (Message format "[extension-name] <message>")

@@ -1,12 +1,14 @@
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
+import { LangContext } from '@renderer/util/lang';
 import { BackIn, TagSuggestion } from '@shared/back/types';
 import { TagFilterGroup } from '@shared/preferences/interfaces';
-import { tagSort } from '@shared/Util';
+import { tagSort, generateTagFilterGroup } from '@shared/Util';
 import * as React from 'react';
+import { CheckBox } from './CheckBox';
 import { InputField } from './InputField';
-import { SimpleButton } from './SimpleButton';
+import { OpenIcon } from './OpenIcon';
 import { TagInputField } from './TagInputField';
 
 export type TagFilterGroupEditorProps = {
@@ -16,11 +18,15 @@ export type TagFilterGroupEditorProps = {
   onAddCategory: (category: string) => void;
   onRemoveCategory: (category: string) => void;
   onChangeName: (name: string) => void;
+  onToggleExtreme: (checked: boolean) => void;
   closeEditor: () => void;
+  showExtreme: boolean;
   tagCategories: TagCategory[];
+  activeTagFilterGroups: TagFilterGroup[];
 }
 
 export function TagFilterGroupEditor(props: TagFilterGroupEditorProps) {
+  const strings = React.useContext(LangContext);
   const [editTag, setEditTag] = React.useState('');
   // const [editCategory, setEditCategory] = React.useState('');
   const [tagSuggestions, setTagSuggestions] = React.useState<TagSuggestion[]>([]);
@@ -53,7 +59,6 @@ export function TagFilterGroupEditor(props: TagFilterGroupEditorProps) {
   }, [parsedTagsList, props.onAddTag]);
 
   const onRemoveTag = React.useCallback((tag: Tag) => {
-    console.log('Tag selected to remove');
     const newTagsList = [...parsedTagsList];
     const idx = newTagsList.findIndex(t => t.primaryAlias.name === tag.primaryAlias.name);
     if (idx > -1) {
@@ -69,35 +74,43 @@ export function TagFilterGroupEditor(props: TagFilterGroupEditorProps) {
     setEditTag('');
   }, [onAddTag, props.onAddTag]);
 
-  // const checkCategorySubmit = React.useCallback((key: string) => {
-  //   if (key === 'Enter' && editCategory) {
-  //     props.onAddCategory(editCategory);
-  //     setEditCategory('');
-  //   }
-  // }, [editCategory, props.onAddCategory]);
-
   const updateSuggestions = React.useCallback(async (tag: string) => {
     setEditTag(tag);
     if (tag === '') {
       setTagSuggestions([]);
     } else {
-      /** Don't use filters inside filter editor */
-      const suggs = await window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, tag, []);
+      const existingTagsList = parsedTagsList.filter(t => t.id ? t.id >= 0 : false).map(t => t.primaryAlias.name);
+      const suggs = await window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, tag, props.activeTagFilterGroups.concat([generateTagFilterGroup(existingTagsList)]));
       setTagSuggestions(suggs);
     }
-  }, []);
+  }, [parsedTagsList]);
 
   return React.useMemo(() => {
     return (
       <div className='tag-filter-editor__wrapper'>
-        <SimpleButton
-          onClick={props.closeEditor}
-          value={'Save & Close'}/>
-        <div className='tag-filter-editor__header'>
-          {'Tag Filter Group Editor'}
+        <div className='tag-filter-editor__buttons'>
+          <div
+            className='browse-right-sidebar__title-row__buttons__save-button'
+            title={strings.config.saveAndClose}
+            onClick={props.closeEditor}>
+            <OpenIcon icon='check' />
+          </div>
         </div>
+        <div className='tag-filter-editor__header'>
+          {strings.config.tagFilterGroupEditor}
+        </div>
+        { props.showExtreme && (
+          <>
+            <div className='tag-filter-editor__content-header'>
+              {strings.browse.extreme}
+            </div>
+            <CheckBox
+              onToggle={props.onToggleExtreme}
+              checked={props.tagFilterGroup.extreme} />
+          </>
+        )}
         <div className='tag-filter-editor__content-header'>
-          {'Name'}
+          {strings.tags.name}
         </div>
         <InputField
           editable={true}
@@ -105,7 +118,9 @@ export function TagFilterGroupEditor(props: TagFilterGroupEditorProps) {
           text={props.tagFilterGroup.name}/>
         <div className='tag-filter-editor__content'>
           <div className='tag-filter-editor__content-section'>
-            <div className='tag-filter-editor__content-header'>{'Tags'}</div>
+            <div className='tag-filter-editor__content-header'>
+              {strings.browse.tags}
+            </div>
             <TagInputField
               tags={parsedTagsList.sort(tagSort)}
               editable={true}
@@ -117,37 +132,10 @@ export function TagFilterGroupEditor(props: TagFilterGroupEditorProps) {
               onChange={(event) => updateSuggestions(event.target.value)}
               onTagSubmit={(tag) => onTagSubmit(tag)} />
           </div>
-          {/* TODO: Add back when Categories work better filtered */}
-          {/* <div className='tag-filter-editor__content-section'>
-          <b>{'Categories'}</b>
-          <InputField
-            editable={true}
-            text={editCategory}
-            onChange={(event) => setEditCategory(event.target.value)}
-            onKeyDown={(event) => checkCategorySubmit(event.key)} />
-          {categories}
-        </div> */}
         </div>
       </div>
     );}, [parsedTagsList, editTag, tagSuggestions, props.tagCategories, onAddTag, onRemoveTag, onTagSubmit, updateSuggestions]);
 }
-
-// function categoriesFactory(categories: TagFilter, onRemoveCategory: (category: string) => void): JSX.Element[] {
-//   return categories.sort().map(category => {
-//     return (
-//       <div className='tag-filter-editor__list-entry'
-//         key={category}>
-//         <div>{category}</div>
-//         <div onClick={() => onRemoveCategory(category)}
-//           className='setting__row__content--remove-app-override'>
-//           <OpenIcon
-//             className='setting__row__content--override-row__delete'
-//             icon='delete'/>
-//         </div>
-//       </div>
-//     );
-//   });
-// }
 
 function buildPlaceholderTags(tags: string[]): Tag[] {
   return tags.map(t => {

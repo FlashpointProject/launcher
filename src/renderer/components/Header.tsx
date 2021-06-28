@@ -197,11 +197,12 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
     const value = event.target.value;
     this.setState({ searchText: value }, () => {
       // Update tag suggestions if currently in `tag:` search
-      const tagRegex = /tag:([^\s]+)$/;
+      const tagRegex = /(#([^\s]+)|tag:([^\s]+))$/;
       const match = tagRegex.exec(this.state.searchText);
       if (match) {
-        const tagName = match[1];
-        window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, tagName, this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled))
+        console.log(match);
+        const tagName = match[2] || match[3];
+        window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, tagName, this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme)))
         .then(data => {
           if (data) { this.setState({ tagSuggestions: data }); }
         });
@@ -220,11 +221,13 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
   }
 
   onTagSuggestionSelect = (suggestion: TagSuggestion): void => {
-    const tagRegex = /tag:([^\s]+)$/;
+    const tagRegex = /((#)([^\s]+)|(tag:)([^\s]+))$/;
     const match = tagRegex.exec(this.state.searchText);
     if (match) {
-      // Why is it 2? It just is.
-      const index = match.index + match.length + 2;
+      console.log(match);
+      const quickSearch = match[4] ? false : true;
+      console.log(quickSearch);
+      const index = match.index + (quickSearch ? 1 : 4);
       this.setState({
         searchText: this.state.searchText.slice(0, index) + `"${suggestion.primaryAlias}"`,
         tagSuggestions: []

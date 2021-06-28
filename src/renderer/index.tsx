@@ -77,7 +77,7 @@ function createInitialMainState(): MainState {
           orderBy: preferencesData.gamesOrderBy,
           orderReverse: preferencesData.gamesOrder
         },
-        tagFilters: preferencesData.tagFilters.filter(tfg => tfg.enabled)
+        tagFilters: preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !preferencesData.browsePageShowExtreme))
       }),
       pageState: {},
       meta: undefined,

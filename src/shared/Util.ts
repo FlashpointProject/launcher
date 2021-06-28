@@ -1,8 +1,13 @@
+import * as axiosImport from 'axios';
+import { Tag, TagFilterGroup } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as path from 'path';
-import { parseVariableString } from './utils/VariableString';
+import { DownloadDetails } from './back/types';
 import { AppConfigData } from './config/interfaces';
-import { Tag } from 'flashpoint-launcher';
+import { parseVariableString } from './utils/VariableString';
+import { throttle } from './utils/throttle';
+
+const axios = axiosImport.default;
 
 export function getFileServerURL() {
   return `http://${window.Shared.backUrl.hostname}:${window.Shared.fileServerPort}`;
@@ -433,4 +438,49 @@ export function tagSort(tagA: Tag, tagB: Tag): number {
   if (tagA.primaryAlias.name > tagB.primaryAlias.name) { return 1;  }
   if (tagB.primaryAlias.name > tagA.primaryAlias.name) { return -1; }
   return 0;
+}
+
+export async function downloadFile(url: string, filePath: string, onProgress?: (percent: number) => void, onDetails?: (details: DownloadDetails) => void): Promise<number> {
+  try {
+    const res = await axios.get(url, {
+      responseType: 'stream'
+    });
+    let progress = 0;
+    const contentLength = res.headers['content-length'];
+    onDetails && onDetails({ downloadSize: contentLength });
+    const progressThrottle = onProgress && throttle(onProgress, 200);
+    const fileStream = fs.createWriteStream(filePath);
+    return new Promise<number>((resolve, reject) => {
+      fileStream.on('close', () => {
+        resolve(res.status);
+      });
+      res.data.on('end', () => {
+        fileStream.close();
+        onProgress && onProgress(100);
+      });
+      res.data.on('data', (chunk: any) => {
+        progress = progress + chunk.length;
+        progressThrottle && progressThrottle((progress / contentLength) * 100);
+        fileStream.write(chunk);
+      });
+      res.data.on('error', async () => {
+        fileStream.close();
+        await fs.promises.unlink(filePath);
+        reject(res.status);
+      });
+    });
+  } catch (error) {
+    throw `Error opening Axios request. Do you have internet access?: ${error}`;
+  }
+}
+
+export function generateTagFilterGroup(tags?: string[]): TagFilterGroup {
+  return {
+    name: '',
+    enabled: true,
+    extreme: false,
+    tags: tags || [],
+    categories: [],
+    childFilters: []
+  };
 }

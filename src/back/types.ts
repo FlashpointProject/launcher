@@ -164,6 +164,7 @@ export type ApiEmittersState = Readonly<{
     onWillLaunchAddApp: ApiEmitter<flashpoint.AdditionalApp>;
     onWillLaunchCurationGame: ApiEmitter<flashpoint.GameLaunchInfo>;
     onWillLaunchCurationAddApp: ApiEmitter<flashpoint.AdditionalApp>;
+    onWillUninstallGameData: ApiEmitter<flashpoint.GameData>;
     onDidLaunchGame: ApiEmitter<flashpoint.Game>;
     onDidLaunchAddApp: ApiEmitter<flashpoint.AdditionalApp>;
     onDidLaunchCurationGame: ApiEmitter<flashpoint.Game>;
@@ -173,6 +174,8 @@ export type ApiEmittersState = Readonly<{
     onDidUpdatePlaylist: ApiEmitter<{oldPlaylist: flashpoint.Playlist, newPlaylist: flashpoint.Playlist}>;
     onDidUpdatePlaylistGame: ApiEmitter<{oldGame: flashpoint.PlaylistGame, newGame: flashpoint.PlaylistGame}>;
     onDidRemovePlaylistGame: ApiEmitter<flashpoint.PlaylistGame>;
+    onDidInstallGameData: ApiEmitter<flashpoint.GameData>;
+    onDidUninstallGameData: ApiEmitter<flashpoint.GameData>;
     onWillImportCuration: ApiEmitter<flashpoint.CurationImportState>;
   }>,
   gameData: Readonly<{
@@ -182,5 +185,8 @@ export type ApiEmittersState = Readonly<{
     onServiceNew: ApiEmitter<flashpoint.ManagedChildProcess>;
     onServiceRemove: ApiEmitter<flashpoint.ManagedChildProcess>;
     onServiceChange: ApiEmitter<flashpoint.ServiceChange>;
+  }>,
+  ext: Readonly<{
+    onExtConfigChange: ApiEmitter<{key: string, value: any}>;
   }>,
 }>

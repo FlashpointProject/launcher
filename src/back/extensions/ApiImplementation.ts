@@ -9,6 +9,7 @@ import { BackState, StatusState } from '@back/types';
 import { clearDisposable, dispose, newDisposable, registerDisposable } from '@back/util/lifecycle';
 import { createPlaylistFromJson, getOpenMessageBoxFunc, getOpenOpenDialogFunc, getOpenSaveDialogFunc, removeService, runService, setStatus } from '@back/util/misc';
 import { pathTo7zBack } from '@back/util/SevenZip';
+import { Game } from '@database/entity/Game';
 import { BackOut } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { IExtensionManifest } from '@shared/extensions/interfaces';
@@ -71,7 +72,8 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
 
   const setExtConfigValue = async (key: string, value: any): Promise<void> => {
     state.extConfig[key] = value;
-    await ExtConfigFile.saveFile(path.join(state.configFolder, EXT_CONFIG_FILENAME), state.extConfig);
+    await ExtConfigFile.saveFile(path.join(state.config.flashpointPath, EXT_CONFIG_FILENAME), state.extConfig);
+    state.socketServer.broadcast(BackOut.UPDATE_EXT_CONFIG_DATA, state.extConfig);
   };
 
   // Log Namespace
@@ -105,28 +107,45 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     }
   };
 
+  function broadcastPlaylistWrapper<T, R>(cb: (arg: T) => Promise<R>): (args: T) => Promise<R>;
+  function broadcastPlaylistWrapper<T, T2, R>(cb: (arg: T, arg2: T2) => Promise<R>): (arg: T, arg2: T2) => Promise<R>;
+  function broadcastPlaylistWrapper<R>(cb: (...args: any[]) => Promise<R>): (args: any[]) => Promise<R> {
+    return async (args: any[]) => {
+      return cb(...args)
+      .then(async (r) => {
+        state.socketServer.broadcast(BackOut.PLAYLISTS_CHANGE, await GameManager.findPlaylists(state.preferences.browsePageShowExtreme));
+        return r;
+      });
+    };
+  }
+
   const extGames: typeof flashpoint.games = {
     // Playlists
     findPlaylist: GameManager.findPlaylist,
     findPlaylistByName: GameManager.findPlaylistByName,
     findPlaylists: GameManager.findPlaylists,
-    updatePlaylist: GameManager.updatePlaylist,
-    removePlaylist: GameManager.removePlaylist,
+    updatePlaylist: broadcastPlaylistWrapper(GameManager.updatePlaylist),
+    removePlaylist: broadcastPlaylistWrapper(GameManager.removePlaylist),
+    addPlaylistGame: broadcastPlaylistWrapper(GameManager.addPlaylistGame),
 
     // Playlist Game
     findPlaylistGame: GameManager.findPlaylistGame,
-    removePlaylistGame: GameManager.removePlaylistGame,
-    updatePlaylistGame: GameManager.updatePlaylistGame,
-    updatePlaylistGames: GameManager.updatePlaylistGames,
+    removePlaylistGame: broadcastPlaylistWrapper(GameManager.removePlaylistGame),
+    updatePlaylistGame: broadcastPlaylistWrapper(GameManager.updatePlaylistGame),
+    updatePlaylistGames: broadcastPlaylistWrapper(GameManager.updatePlaylistGames),
 
     // Games
     countGames: GameManager.countGames,
     findGame: GameManager.findGame,
     findGames: GameManager.findGames,
     findGamesWithTag: GameManager.findGamesWithTag,
-    updateGame: GameManager.updateGame,
+    updateGame: GameManager.save,
     updateGames: GameManager.updateGames,
-    removeGameAndAddApps: (gameId: string) => GameManager.removeGameAndAddApps(gameId, path.join(state.config.flashpointPath, state.config.dataPacksFolderPath)),
+    removeGameAndAddApps: (gameId: string) => GameManager.removeGameAndAddApps(gameId, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath)),
+    isGameExtreme: (game: Game) => {
+      const extremeTags = state.preferences.tagFilters.filter(t => t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
+      return game.tagsStr.split(';').findIndex(t => extremeTags.includes(t.trim())) !== -1;
+    },
 
     // Misc
     findPlatforms: GameManager.findPlatforms,
@@ -172,8 +191,17 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     get onDidRemovePlaylistGame() {
       return apiEmitters.games.onDidRemovePlaylistGame.event;
     },
+    get onDidInstallGameData() {
+      return apiEmitters.games.onDidInstallGameData.event;
+    },
+    get onDidUninstallGameData() {
+      return apiEmitters.games.onDidUninstallGameData.event;
+    },
     get onWillImportGame() {
       return apiEmitters.games.onWillImportCuration.event;
+    },
+    get onWillUninstallGameData() {
+      return apiEmitters.games.onWillUninstallGameData.event;
     }
   };
 
@@ -182,14 +210,14 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     findGameData: GameDataManager.findGameData,
     findSourceDataForHashes: GameDataManager.findSourceDataForHashes,
     save: GameDataManager.save,
-    importGameData: (gameId, filePath) => GameDataManager.importGameData(gameId, filePath, path.join(state.config.flashpointPath, state.config.dataPacksFolderPath)),
+    importGameData: (gameId, filePath) => GameDataManager.importGameData(gameId, filePath, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath)),
     downloadGameData: async (gameDataId) => {
       const onProgress = (percent: number) => {
         // Sent to PLACEHOLDER download dialog on client
         state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT, percent);
       };
       state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
-      await GameDataManager.downloadGameData(gameDataId, path.join(state.config.flashpointPath, state.config.dataPacksFolderPath), onProgress)
+      await GameDataManager.downloadGameData(gameDataId, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), onProgress)
       .catch((error) => {
         state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
       })
@@ -302,6 +330,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
   return <typeof flashpoint>{
     // General information
     version: version,
+    dataVersion: state.customVersion,
     extensionPath: extPath,
     config: state.config,
     getPreferences: getPreferences,
@@ -311,6 +340,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     unzipFile: unzipFile,
     getExtConfigValue: getExtConfigValue,
     setExtConfigValue: setExtConfigValue,
+    onExtConfigChange: state.apiEmitters.ext.onExtConfigChange.event,
 
     // Namespaces
     log: extLog,

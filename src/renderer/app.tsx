@@ -36,6 +36,7 @@ import { UpdateView, UpgradeStageState } from './interfaces';
 import { Paths } from './Paths';
 import { AppRouter, AppRouterProps } from './router';
 import { MainActionType, RequestState } from './store/main/enums';
+import { RANDOM_GAME_ROW_COUNT } from './store/main/reducer';
 import { MainState } from './store/main/types';
 import { SearchQuery } from './store/search';
 import { UpgradeStage } from './upgrade/types';
@@ -429,7 +430,7 @@ export class App extends React.Component<AppProps> {
 
   componentDidMount() {
     // Call first batch of random games
-    if (this.props.main.randomGames.length < 5) { this.rollRandomGames(true); }
+    if (this.props.main.randomGames.length < RANDOM_GAME_ROW_COUNT) { this.rollRandomGames(true); }
   }
 
   componentDidUpdate(prevProps: AppProps) {
@@ -467,6 +468,32 @@ export class App extends React.Component<AppProps> {
       for (const library of this.props.main.libraries) {
         this.setViewQuery(library);
       }
+    }
+
+    // Reset random games if the filters change
+    // @TODO: Is this really the best way to compare array contents? I guess it works
+    if (
+      this.props.preferencesData.browsePageShowExtreme !== prevProps.preferencesData.browsePageShowExtreme ||
+      !arrayShallowStrictEquals(this.props.preferencesData.excludedRandomLibraries, prevProps.preferencesData.excludedRandomLibraries) ||
+      JSON.stringify(prevProps.preferencesData.tagFilters) !== JSON.stringify(this.props.preferencesData.tagFilters)) {
+      this.props.dispatchMain({
+        type: MainActionType.CLEAR_RANDOM_GAMES
+      });
+      this.props.dispatchMain({
+        type: MainActionType.REQUEST_RANDOM_GAMES
+      });
+      window.Shared.back.request(BackIn.RANDOM_GAMES, {
+        count: RANDOM_GAME_ROW_COUNT * 10,
+        broken: this.props.preferencesData.showBrokenGames,
+        excludedLibraries: this.props.preferencesData.excludedRandomLibraries,
+        tagFilters: this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme))
+      })
+      .then((data) => {
+        this.props.dispatchMain({
+          type: MainActionType.RESPONSE_RANDOM_GAMES,
+          games: data || [],
+        });
+      });
     }
 
     if (view) {
@@ -578,14 +605,6 @@ export class App extends React.Component<AppProps> {
       } else {
         history.push(joinLibraryRoute(route));
       }
-    }
-
-    // Clear random picks queue
-    if (this.props.main.randomGames.length > 5 && (
-      this.props.preferencesData.browsePageShowExtreme !== prevProps.preferencesData.browsePageShowExtreme ||
-      !arrayShallowStrictEquals(this.props.preferencesData.excludedRandomLibraries, prevProps.preferencesData.excludedRandomLibraries)
-    )) {
-      this.props.dispatchMain({ type: MainActionType.CLEAR_RANDOM_GAMES });
     }
   }
 
@@ -701,14 +720,14 @@ export class App extends React.Component<AppProps> {
             { this.props.main.downloadVerifying ? (
               <>
                 <div className='placeholder-download-bar--title'>
-                  {'Verifying Game...'}
+                  {this.props.main.lang.dialog.verifyingGame}
                 </div>
-                <div>{'This may take a few minutes'}</div>
+                <div>{this.props.main.lang.dialog.aFewMinutes}</div>
               </>
             ) : (
               <>
                 <div className='placeholder-download-bar--title'>
-                  {'Downloading Game...'}
+                  {this.props.main.lang.dialog.downloadingGame}
                 </div>
                 <div>{`${sizeToString(this.props.main.downloadSize * (this.props.main.downloadPercent / 100))} / ${sizeToString(this.props.main.downloadSize)}`}</div>
               </>
@@ -840,20 +859,24 @@ export class App extends React.Component<AppProps> {
     this.props.setMainState(state as any); // (This is very annoying to make typesafe)
   }
 
-  onSaveGame = (game: Game, playlistEntry?: PlaylistGame): void => {
-    window.Shared.back.request(BackIn.SAVE_GAME, game)
-    .then(async () => {
-      if (playlistEntry) {
-        window.Shared.back.send(BackIn.SAVE_PLAYLIST_GAME, playlistEntry);
-      }
-    })
-    .then(() => { this.setViewQuery(game.library); });
+  onSaveGame = async (game: Game, playlistEntry?: PlaylistGame): Promise<Game | undefined> => {
+    const data = await window.Shared.back.request(BackIn.SAVE_GAME, game);
+    if (playlistEntry) {
+      window.Shared.back.send(BackIn.SAVE_PLAYLIST_GAME, playlistEntry);
+    }
+    this.setViewQuery(game.library);
+    return data.game;
   }
 
   onDeleteGame = (gameId: string): void => {
+    const strings = this.props.main.lang;
     const library = getBrowseSubPath(this.props.location.pathname);
     window.Shared.back.request(BackIn.DELETE_GAME, gameId)
-    .then(() => { this.setViewQuery(library); });
+    .then(() => { this.setViewQuery(library); })
+    .catch((error) => {
+      log.error('Launcher', `Error deleting game: ${error}`);
+      alert(strings.dialog.unableToDeleteGame + '\n\n' + error);
+    });
   }
 
   onLaunchGame(gameId: string): void {
@@ -967,14 +990,14 @@ export class App extends React.Component<AppProps> {
     }
 
     // Request more games to the queue
-    if (randomGames.length <= 15 && !requestingRandomGames) {
+    if (randomGames.length <= (RANDOM_GAME_ROW_COUNT * 5) && !requestingRandomGames) {
       this.props.dispatchMain({ type: MainActionType.REQUEST_RANDOM_GAMES });
 
       window.Shared.back.request(BackIn.RANDOM_GAMES, {
-        count: 50,
-        broken: window.Shared.config.data.showBrokenGames,
-        extreme: this.props.preferencesData.browsePageShowExtreme,
+        count: RANDOM_GAME_ROW_COUNT * 10,
+        broken: this.props.preferencesData.showBrokenGames,
         excludedLibraries: this.props.preferencesData.excludedRandomLibraries,
+        tagFilters: this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme))
       })
       .then((data) => {
         this.props.dispatchMain({

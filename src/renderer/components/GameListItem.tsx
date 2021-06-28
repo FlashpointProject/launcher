@@ -1,13 +1,12 @@
 import * as React from 'react';
 import { ListRowProps } from 'react-virtualized';
 import { getPlatformIconURL } from '../Util';
-import { Tag } from '@database/entity/Tag';
 
 export type GameListItemProps = ListRowProps & {
   id: string;
   title: string;
   platform: string;
-  tags: Tag[];
+  tagsStr: string;
   developer: string;
   publisher: string;
   extreme: boolean;
@@ -26,7 +25,7 @@ export type GameListItemProps = ListRowProps & {
 };
 
 export function GameListItem(props: GameListItemProps) {
-  const { id, title, platform, tags, developer, publisher, extreme, isDraggable, isSelected, isDragged, extremeIconPath, showExtremeIcon, index, style } = props;
+  const { id, title, platform, tagsStr, developer, publisher, extreme, isDraggable, isSelected, isDragged, extremeIconPath, showExtremeIcon, index, style } = props;
   // Get the platform icon path
   const platformIcon = React.useMemo(() => (
     getPlatformIconURL(platform, props.logoVersion)
@@ -69,13 +68,6 @@ export function GameListItem(props: GameListItemProps) {
             title={title}>
             {title}
           </div>
-          { tags.forEach(t => (
-            <div
-              className='game-list-item__field game-list-item__field--tags'
-              title={t.aliases[0].name}>
-              {t.aliases[0].name}
-            </div>
-          ))}
           <div
             className='game-list-item__field game-list-item__field--developer'
             title={developer}>
@@ -86,10 +78,15 @@ export function GameListItem(props: GameListItemProps) {
             title={publisher}>
             {publisher}
           </div>
+          <div
+            className='game-list-item__field game-list-item__field--tagsStr'
+            title={tagsStr}>
+            {tagsStr}
+          </div>
         </div>
       </li>
     );
-  }, [style, className, isDraggable, id, tags, title, platformIcon]);
+  }, [style, className, isDraggable, id, tagsStr, title, platformIcon]);
 }
 
 export namespace GameListItem { // eslint-disable-line no-redeclare

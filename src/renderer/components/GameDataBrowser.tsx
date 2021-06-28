@@ -32,6 +32,7 @@ export type GameDataBrowserProps = {
   onClose: () => void;
   onEditGame: (game: Partial<Game>) => void;
   onUpdateActiveGameData: (activeDataOnDisk: boolean, activeDataId?: number) => void;
+  onForceUpdateGameData: () => void;
 }
 
 export interface GameDataBrowser {
@@ -100,6 +101,12 @@ export class GameDataBrowser extends React.Component<GameDataBrowserProps, GameD
     this.setState({ pairedData: newData });
   }
 
+  onUpdateParameters = (index: number, parameters: string) => {
+    const newData = [...this.state.pairedData];
+    newData[index].parameters = parameters;
+    this.setState({ pairedData: newData });
+  }
+
   updateGameData = async (id: number) => {
     const gameData = await window.Shared.back.request(BackIn.GET_GAME_DATA, id);
     if (gameData) {
@@ -126,6 +133,8 @@ export class GameDataBrowser extends React.Component<GameDataBrowserProps, GameD
   }
 
   render() {
+    const strings = this.context;
+
     const dataInfoMemo = memoizeOne((data) => {
       return this.state.pairedData.map((data, index) => {
         return (
@@ -135,24 +144,34 @@ export class GameDataBrowser extends React.Component<GameDataBrowserProps, GameD
             sourceData={data.sourceData}
             active={data.id === this.props.game.activeDataId}
             onUpdateTitle={(title) => this.onUpdateTitle(index, title)}
+            onUpdateParameters={(parameters) => this.onUpdateParameters(index, parameters)}
             onActiveToggle={() => {
               this.props.onUpdateActiveGameData(data.presentOnDisk, data.id);
             }}
-            onUninstall={async () => {
-              const game = await window.Shared.back.request(BackIn.UNINSTALL_GAME_DATA, data.id);
-              if (game) {
-                this.props.onEditGame({
-                  activeDataId: game.activeDataId,
-                  activeDataOnDisk: game.activeDataOnDisk
-                });
-              }
-              const newDatas = [...this.state.pairedData];
-              newDatas[index].presentOnDisk = false;
-              newDatas[index].path = undefined;
-              this.setState({ pairedData: newDatas });
+            onUninstall={() => {
+              window.Shared.back.request(BackIn.UNINSTALL_GAME_DATA, data.id)
+              .then((game) => {
+                const newDatas = [...this.state.pairedData];
+                newDatas[index].presentOnDisk = false;
+                newDatas[index].path = undefined;
+                this.setState({ pairedData: newDatas });
+                this.props.onForceUpdateGameData();
+              })
+              .catch((error) => {
+                alert(strings.dialog.unableToUninstallGameData);
+              });
             }}
-            update={() => this.updateGameData(data.id)}
-            delete={() => this.deleteGameData(data.id)}/>
+            update={async () => {
+              await this.updateGameData(data.id);
+              this.props.onForceUpdateGameData();
+            }}
+            delete={async () => {
+              await this.deleteGameData(data.id)
+              .catch((error) => {
+                alert(strings.dialog.unableToUninstallGameData);
+              });
+              this.props.onForceUpdateGameData();
+            }}/>
         );
       });
     });

@@ -12,7 +12,7 @@ import { ChangedMeta, MetaEditFlags } from '@shared/MetaEdit';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { SocketTemplate } from '@shared/socket/types';
 import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
-import { GameData, TagFilterGroup } from 'flashpoint-launcher';
+import { GameData, TagAlias, TagFilterGroup } from 'flashpoint-launcher';
 import { AppConfigData, AppExtConfigData } from '../config/interfaces';
 import { EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '../curate/types';
 import { ExecMapping, GamePropSuggestions, IService, ProcessAction } from '../interfaces';
@@ -29,6 +29,7 @@ export enum BackIn {
   GET_GAMES_TOTAL,
   SET_LOCALE,
   GET_EXEC,
+  SAVE_GAMES,
   SAVE_GAME,
   GET_GAME,
   GET_GAMES_GAME_DATA,
@@ -71,6 +72,7 @@ export enum BackIn {
 
   // Sources
   ADD_SOURCE_BY_URL,
+  DELETE_SOURCE,
 
   // Tag funcs
   GET_OR_CREATE_TAG,
@@ -79,6 +81,7 @@ export enum BackIn {
   GET_TAGS,
   GET_TAG,
   SAVE_TAG,
+  SAVE_TAG_ALIAS,
   DELETE_TAG,
   MERGE_TAGS,
   CLEANUP_TAG_ALIASES,
@@ -188,6 +191,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.SET_LOCALE]: (data: string) => string;
   [BackIn.GET_EXEC]: () => ExecMapping[];
   [BackIn.SAVE_GAME]: (data: Game) => BrowseChangeData;
+  [BackIn.SAVE_GAMES]: (data: Game[]) => void;
   [BackIn.GET_GAME]: (id: string) => Game | undefined;
   [BackIn.GET_ALL_GAMES]: () => Game[];
   [BackIn.RANDOM_GAMES]: (data: RandomGamesData) => ViewGame[];
@@ -222,9 +226,10 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.GET_OR_CREATE_TAG]: (tagName: string, tagCategory?: string) => Tag;
   [BackIn.GET_TAG_SUGGESTIONS]: (data: string, tagFilters: TagFilterGroup[]) => TagSuggestion[];
   [BackIn.GET_TAG_BY_ID]: (data: number) => Tag | undefined;
-  [BackIn.GET_TAGS]: (data: string) => Tag[];
+  [BackIn.GET_TAGS]: (data: string, tagFilters?: TagFilterGroup[]) => Tag[];
   [BackIn.GET_TAG]: (data: string) => Tag | undefined;
   [BackIn.SAVE_TAG]: (data: Tag) => Tag;
+  [BackIn.SAVE_TAG_ALIAS]: (data: TagAlias) => TagAlias;
   [BackIn.DELETE_TAG]: (data: number) => TagDeleteResponse;
   [BackIn.MERGE_TAGS]: (data: MergeTagData) => Tag;
   [BackIn.CLEANUP_TAG_ALIASES]: () => void;
@@ -240,6 +245,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
 
   // Sources
   [BackIn.ADD_SOURCE_BY_URL]: (url: string) => Source;
+  [BackIn.DELETE_SOURCE]: (id: number) => void;
 
   [BackIn.BROWSE_VIEW_PAGE]: (data: BrowseViewPageData) => BrowseViewPageResponseData;
   /** @returns Index of the game (equal to or greater than 0 if found, otherwise -1). */
@@ -376,8 +382,8 @@ export type GetSuggestionsResponseData = {
 export type RandomGamesData = {
   count: number;
   broken: boolean;
-  extreme: boolean;
   excludedLibraries: string[];
+  tagFilters: TagFilterGroup[];
 }
 
 /** Tuple of values from the last game of a previous page (look up "keyset pagination"). */
@@ -454,13 +460,14 @@ export type ViewGame = {
   title: string;
   platform: string;
   // List view only
-  tags: Tag[];
+  tagsStr: string;
   developer: string;
   publisher: string;
   extreme: boolean;
 }
 
 export type BrowseChangeData = {
+  game?: Game;
   library?: string;
   gamesTotal: number;
 }

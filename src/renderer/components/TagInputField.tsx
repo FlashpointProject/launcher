@@ -39,7 +39,7 @@ type TagInputFieldState = {
 /** An input element with a drop-down menu that can list any number of selectable and clickable text elements. */
 export class TagInputField extends React.Component<TagInputFieldProps, TagInputFieldState> {
   rootRef: React.RefObject<HTMLDivElement> = React.createRef();
-  contentRef: React.RefObject<HTMLUListElement> = React.createRef();
+  contentRef: React.RefObject<HTMLDivElement> = React.createRef();
   inputRef: React.RefObject<InputElement> = React.createRef();
 
   constructor(props: TagInputFieldProps) {
@@ -87,8 +87,10 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
         { editable ? inputField : undefined }
         { expanded && suggestions.length > 0 ?
           <div
+            ref={this.contentRef}
+            onKeyDown={this.onSuggestionKeyDown}
             className={'input-dropdown__content simple-scroll'} >
-            { this.renderSuggestions(suggestions, expanded, this.contentRef) }
+            { this.renderSuggestions(suggestions, expanded) }
           </div>
           : undefined }
         <div
@@ -101,14 +103,8 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
   }
 
   /** Renders the list of items in the drop-down menu. */
-  renderSuggestions = memoizeOne<(items: TagSuggestion[], expanded: boolean, ref: React.RefObject<HTMLUListElement>) => JSX.Element>((items: TagSuggestion[], expanded: boolean,  ref: React.RefObject<HTMLUListElement>) => {
-    const itemsRendered = items.map((suggestion, index) => this.renderSuggestionItem(suggestion, index));
-    return (
-      <ul
-        ref={ref}>
-        {itemsRendered}
-      </ul>
-    );
+  renderSuggestions = memoizeOne<(items: TagSuggestion[], expanded: boolean) => JSX.Element[]>((items: TagSuggestion[], expanded: boolean) => {
+    return items.map((suggestion, index) => this.renderSuggestionItem(suggestion, index));
   }, ([ itemsA, expandedA ], [ itemsB, expandedB ]) => {
     return expandedA === expandedB ? checkIfArraysAreEqual(itemsA, itemsB) : false;
   });
@@ -127,9 +123,9 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
       </div>
     );
     return (
-      <li
+      <div
         onClick={() => this.onSuggestionItemClick(suggestion)}
-        onKeyDown={(event) => this.onSuggestionKeyDown(event, suggestion)}
+        data-dropdown-index={index}
         className='tag-input-dropdown__suggestion' key={index} >
         <OpenIcon
           className='tag-icon'
@@ -139,11 +135,10 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
         <label
           className='tag-suggestion-label'
           key={index * 2 + 1}
-          data-dropdown-index={index}
           tabIndex={0}>
           {aliasRender}
         </label>
-      </li>
+      </div>
     );
   };
 
@@ -154,7 +149,9 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
       const category = this.props.categories.find(c => c.id == tag.categoryId);
       const shownAlias = tag.primaryAlias ? tag.primaryAlias.name : 'No Primary Alias Set';
       return (
-        <div className={'tag ' + className} key={index}>
+        <div
+          className={'tag ' + className}
+          key={index}>
           <OpenIcon
             className='tag-icon'
             color={category ? category.color : '#FFFFFF'}
@@ -163,8 +160,8 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
           <label
             className='tag-label'
             title={tag.description}
-            key={index * 2 + 1}
             data-dropdown-index={index}
+            key={index * 2 + 1}
             tabIndex={0}>
             { shownAlias }
           </label>
@@ -185,9 +182,7 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
 
   onListItemClick = (event: React.MouseEvent): void => {
     if (!this.props.disabled) {
-      if (this.props.editable) {
-
-      } else {
+      if (!this.props.editable) {
         if (this.props.onTagSelect) {
           const index = getListItemIndex(event.target);
           if (index >= 0) {
@@ -216,25 +211,32 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
     this.setState({ expanded: true });
   }
 
-  onSuggestionKeyDown = (event: React.KeyboardEvent<HTMLLIElement>, tagSuggestion: TagSuggestion): void => {
+  onSuggestionKeyDown = (event: React.KeyboardEvent<HTMLDivElement>): void => {
     const { key } = event;
+    const element = document.activeElement ? document.activeElement.parentElement : document.activeElement;
     if (key === 'Enter' && this.props.onTagSuggestionSelect) {
-      this.props.onTagSuggestionSelect(tagSuggestion);
-      const element = this.inputRef.current;
-      if (element) { element.focus(); }
+      const idx = getListItemIndex(element);
+      if (idx > -1) {
+        const tagSuggestion = this.props.suggestions[idx];
+        this.props.onTagSuggestionSelect(tagSuggestion);
+        const inputElement = this.inputRef.current;
+        if (inputElement) { inputElement.focus(); }
+      }
     }
     if (key === 'ArrowUp' || key === 'ArrowDown') {
       // Focus the first or last item
-      const element = document.activeElement;
       if (element && checkIfAncestor(element, this.contentRef.current)) {
-        const next: any = (key === 'ArrowUp')
+        const nextParent = (key === 'ArrowUp')
           ? element.previousSibling
           : element.nextElementSibling;
-        if (next && next.focus) {
-          next.focus();
-          event.preventDefault();
+        if (nextParent) {
+          const nextChild: any = nextParent.lastChild;
+          if (nextChild && nextChild.focus) {
+            nextChild.focus();
+          }
         }
       }
+      event.preventDefault();
     }
   }
 
@@ -249,9 +251,13 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
         // Focus the first or last item
         event.preventDefault();
         const content = this.contentRef.current;
-        if (!content) { throw new Error('dropdown input field content div is missing'); }
-        const element: any = (key === 'ArrowUp') ? content.lastChild : content.firstChild;
-        if (element && element.focus) { element.focus(); }
+        if (content) {
+          const parentElement = (key === 'ArrowUp') ? content.lastChild : content.firstChild;
+          if (parentElement) {
+            const childElement: any = parentElement.lastChild;
+            if (childElement && childElement.focus) { childElement.focus(); }
+          }
+        }
       }
       // Relay event
       if (this.props.onKeyDown) { this.props.onKeyDown(event); }

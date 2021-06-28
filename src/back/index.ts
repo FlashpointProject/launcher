@@ -14,6 +14,8 @@ import { GameData1611753257950 } from '@database/migration/1611753257950-GameDat
 import { SourceDataUrlPath1612434225789 } from '@database/migration/1612434225789-SourceData_UrlPath';
 import { SourceFileURL1612435692266 } from '@database/migration/1612435692266-Source_FileURL';
 import { SourceFileCount1612436426353 } from '@database/migration/1612436426353-SourceFileCount';
+import { GameTagsStr1613571078561 } from '@database/migration/1613571078561-GameTagsStr';
+import { GameDataParams1619885915109 } from '@database/migration/1619885915109-GameDataParams';
 import { BackIn, BackInit, BackInitArgs, BackOut } from '@shared/back/types';
 import { ILogoSet, LogoSet } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
@@ -25,9 +27,9 @@ import { createErrorProxy, removeFileExtension, stringifyArray } from '@shared/U
 import * as child_process from 'child_process';
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint-launcher';
+import { http as httpFollow, https as httpsFollow } from 'follow-redirects';
 import * as fs from 'fs-extra';
 import * as http from 'http';
-import * as https from 'https';
 import * as mime from 'mime';
 import * as path from 'path';
 import 'reflect-metadata';
@@ -56,6 +58,7 @@ import { FolderWatcher } from './util/FolderWatcher';
 import { LogFile } from './util/LogFile';
 import { logFactory } from './util/logging';
 import { createContainer, exit, runService } from './util/misc';
+import * as GameDataManager from '@back/game/GameDataManager';
 
 const DEFAULT_LOGO_PATH = 'window/images/Logos/404.png';
 
@@ -127,6 +130,7 @@ const state: BackState = {
       onWillLaunchAddApp: new ApiEmitter<flashpoint.AdditionalApp>(),
       onWillLaunchCurationGame: new ApiEmitter<flashpoint.GameLaunchInfo>(),
       onWillLaunchCurationAddApp: new ApiEmitter<flashpoint.AdditionalApp>(),
+      onWillUninstallGameData: GameDataManager.onWillUninstallGameData,
       onDidLaunchGame: new ApiEmitter<flashpoint.Game>(),
       onDidLaunchAddApp: new ApiEmitter<flashpoint.AdditionalApp>(),
       onDidLaunchCurationGame: new ApiEmitter<flashpoint.Game>(),
@@ -136,6 +140,8 @@ const state: BackState = {
       onDidUpdatePlaylist: GameManager.onDidUpdatePlaylist,
       onDidUpdatePlaylistGame: GameManager.onDidUpdatePlaylistGame,
       onDidRemovePlaylistGame: GameManager.onDidRemovePlaylistGame,
+      onDidInstallGameData: GameDataManager.onDidInstallGameData,
+      onDidUninstallGameData: GameDataManager.onDidUninstallGameData,
       onWillImportCuration: onWillImportCuration,
     },
     gameData: {
@@ -145,6 +151,9 @@ const state: BackState = {
       onServiceNew: new ApiEmitter<flashpoint.ManagedChildProcess>(),
       onServiceRemove: new ApiEmitter<flashpoint.ManagedChildProcess>(),
       onServiceChange: onServiceChange,
+    },
+    ext: {
+      onExtConfigChange: new ApiEmitter()
     }
   },
   status: {
@@ -168,6 +177,9 @@ async function main() {
   // Anything that reads from the database and then writes to it (or a file) should go in this queue!
   // (Since it can cause rare race conditions that corrupts data permanently)
   state.socketServer.addQueue([
+    // Settings
+    BackIn.UPDATE_CONFIG,
+    BackIn.UPDATE_PREFERENCES,
     // Game
     BackIn.SAVE_GAME,
     BackIn.DELETE_GAME,
@@ -247,17 +259,22 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   log.info('Launcher', `Starting Flashpoint Launcher ${versionStr}`);
 
   // Read configs & preferences
-  const [pref, conf, extConf] = await (Promise.all([
-    PreferencesFile.readOrCreateFile(path.join(state.configFolder, PREFERENCES_FILENAME)),
-    ConfigFile.readOrCreateFile(path.join(state.configFolder, CONFIG_FILENAME)),
-    ExtConfigFile.readOrCreateFile(path.join(state.configFolder, EXT_CONFIG_FILENAME))
+  state.config = await ConfigFile.readOrCreateFile(path.join(state.configFolder, CONFIG_FILENAME));
+  // @TODO Figure out why async loading isn't always working?
+  try {
+    state.preferences = await PreferencesFile.readOrCreateFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME));
+  } catch (e) {
+    console.log(e);
+    exit(state);
+    return;
+  }
+  const [extConf] = await (Promise.all([
+    ExtConfigFile.readOrCreateFile(path.join(state.config.flashpointPath, EXT_CONFIG_FILENAME))
   ]));
-  state.preferences = pref;
-  state.config = conf;
   state.extConfig = extConf;
 
   // Create Game Data Directory and clean up temp files
-  const fullDataPacksFolderPath = path.join(state.config.flashpointPath, state.config.dataPacksFolderPath);
+  const fullDataPacksFolderPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath);
   await fs.promises.mkdir(fullDataPacksFolderPath, { recursive: true });
   fs.promises.readdir(fullDataPacksFolderPath)
   .then((files) => {
@@ -270,13 +287,15 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   // Check for custom version to report
   const versionFilePath = content.isDev ? path.join(process.cwd(), 'version.txt') : path.join(state.config.flashpointPath, 'version.txt');
-  await fs.access(versionFilePath, fs.constants.F_OK)
+  const customVersion = await fs.access(versionFilePath, fs.constants.F_OK)
   .then(async () => {
-    const data = await fs.readFile(versionFilePath, 'utf8');
-    state.customVersion = data;
-    log.info('Launcher', `Data Version Detected: ${state.customVersion}`);
+    return fs.readFile(versionFilePath, 'utf8');
   })
   .catch(() => { /** File doesn't exist */ });
+  if (customVersion) {
+    state.customVersion = customVersion;
+    log.info('Launcher', `Data Version Detected: ${state.customVersion}`);
+  }
 
   // Setup DB
   if (!state.connection) {
@@ -285,7 +304,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
       database: path.join(state.config.flashpointPath, 'Data', 'flashpoint.sqlite'),
       entities: [Game, AdditionalApp, Playlist, PlaylistGame, Tag, TagAlias, TagCategory, GameData, Source, SourceData],
       migrations: [Initial1593172736527, AddExtremeToPlaylist1599706152407, GameData1611753257950, SourceDataUrlPath1612434225789, SourceFileURL1612435692266,
-        SourceFileCount1612436426353]
+        SourceFileCount1612436426353, GameTagsStr1613571078561, GameDataParams1619885915109]
     };
     state.connection = await createConnection(options);
     // TypeORM forces on but breaks Playlist Game links to unimported games
@@ -298,13 +317,13 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   const addExtLogFactory = (extId: string) => (entry: ILogEntry) => {
     state.extensionsService.logExtension(extId, entry);
   };
-  state.extensionsService = new ExtensionService(state.config);
+  state.extensionsService = new ExtensionService(state.config, path.join(state.config.flashpointPath, state.preferences.extensionsPath));
   // Create module interceptor
   registerInterceptor(new FPLNodeModuleFactory(
     await state.extensionsService.getExtensionPathIndex(),
     addExtLogFactory,
     versionStr,
-    state
+    state,
   ),
   state.moduleInterceptor);
   await installNodeInterceptor(state.moduleInterceptor);
@@ -333,7 +352,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
         }
       }
     }
-    ExtConfigFile.saveFile(path.join(state.configFolder, EXT_CONFIG_FILENAME), state.extConfig);
+    ExtConfigFile.saveFile(path.join(state.config.flashpointPath, EXT_CONFIG_FILENAME), state.extConfig);
     exts.forEach(ext => {
       state.extensionsService.loadExtension(ext.id);
     });
@@ -343,7 +362,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   // Init services
   try {
     state.serviceInfo = await ServicesFile.readFile(
-      path.join(state.config.flashpointPath, state.config.jsonFolderPath),
+      path.join(state.config.flashpointPath, state.preferences.jsonFolderPath),
       state.config,
       error => { log.info(SERVICES_SOURCE, error.toString()); }
     );
@@ -447,7 +466,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   });
 
   // Init themes
-  const dataThemeFolder = path.join(state.config.flashpointPath, state.config.themeFolderPath);
+  const dataThemeFolder = path.join(state.config.flashpointPath, state.preferences.themeFolderPath);
   await fs.ensureDir(dataThemeFolder);
   try {
     await fs.promises.readdir(dataThemeFolder, { withFileTypes: true })
@@ -477,7 +496,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   }
 
   // Init Logo Sets
-  const dataLogoSetsFolder = path.join(state.config.flashpointPath, state.config.logoSetsFolderPath);
+  const dataLogoSetsFolder = path.join(state.config.flashpointPath, state.preferences.logoSetsFolderPath);
   await fs.ensureDir(dataLogoSetsFolder);
   try {
     await fs.promises.readdir(dataLogoSetsFolder, { withFileTypes: true })
@@ -539,7 +558,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   }
 
   // Load Exec Mappings
-  loadExecMappingsFile(path.join(state.config.flashpointPath, state.config.jsonFolderPath), content => log.info('Launcher', content))
+  loadExecMappingsFile(path.join(state.config.flashpointPath, state.preferences.jsonFolderPath), content => log.info('Launcher', content))
   .then(data => {
     state.execMappings = data;
   })
@@ -626,7 +645,7 @@ function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse
     switch (firstItem) {
       // Image folder
       case 'images': {
-        const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
+        const imageFolder = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
         const fileSubPath = urlPath.substr(index + 1);
         const filePath = path.join(imageFolder, fileSubPath);
         if (filePath.startsWith(imageFolder)) {
@@ -712,7 +731,7 @@ function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse
         const relativePath = urlPath.substr(index + 1);
         const logoFolder = logoSet && logoSet.files.includes(relativePath)
           ? logoSet.fullPath
-          : path.join(state.config.flashpointPath, state.config.logoFolderPath);
+          : path.join(state.config.flashpointPath, state.preferences.logoFolderPath);
         const filePath = path.join(logoFolder, relativePath);
         if (filePath.startsWith(logoFolder)) {
           fs.access(filePath, fs.constants.F_OK, (err) => {
@@ -781,7 +800,7 @@ function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse
 
       // JSON file(s)
       case 'credits.json': {
-        serveFile(req, res, path.join(state.config.flashpointPath, state.config.jsonFolderPath, 'credits.json'));
+        serveFile(req, res, path.join(state.config.flashpointPath, state.preferences.jsonFolderPath, 'credits.json'));
       } break;
 
       // Nothing
@@ -900,13 +919,13 @@ function updateFileServerDownloadQueue() {
     state.fileServerDownloads.current.push(item);
 
     // Start download
-    const url = state.config.onDemandBaseUrl + (state.config.onDemandBaseUrl.endsWith('/') ? '' : '/') + item.subPath;
-    const protocol = url.startsWith('https://') ? https : http;
+    const url = state.preferences.onDemandBaseUrl + (state.preferences.onDemandBaseUrl.endsWith('/') ? '' : '/') + item.subPath;
+    const protocol = url.startsWith('https://') ? httpsFollow : httpFollow;
     try {
       const req = protocol.get(url, async (res) => {
         try {
           if (res.statusCode === 200) {
-            const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
+            const imageFolder = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
             const filePath = path.join(imageFolder, item.subPath);
 
             await fs.ensureDir(path.dirname(filePath));

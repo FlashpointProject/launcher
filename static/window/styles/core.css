@@ -430,7 +430,7 @@ body {
 .title-bar {
   padding: 4px 0 0 4px;
   -webkit-user-select: none; /* Disable text selection */
-  z-index: 1; /* Hacky way of displaying it in from of the splash screen. */
+  z-index: 1001; /* Hacky way of displaying it in from of the splash screen. */
 }
 .title-bar__inner {
   display: flex;
@@ -671,7 +671,8 @@ body {
 .home-page {
   width: 100%;
   height: 100%;
-  overflow: auto;
+  overflow-y: scroll;
+  overflow-x: auto;
 }
 .home-page__inner {
   min-width: 40em;
@@ -689,16 +690,27 @@ body {
 .home-page__box {
   display: block;
   margin: 0 auto 1em;
-  width: 30em;
+  width: 36em;
   line-height: 1.3;
   border: 1px solid;
   user-select: none;
 }
 .home-page__box-head {
-  padding: 0.15rem 0.3rem;
+  display: flex;
+  justify-content: space-between;
   border-bottom: 1px solid;
   font-weight: bold;
   text-align: left;
+}
+.home-page__box-head--title {
+  padding: 0.15rem 0.3rem;
+}
+.home-page__box-head--minimize {
+  width: 2rem;
+  border-left: 1px solid;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .home-page__box-body {
   padding: 0.3rem;
@@ -754,8 +766,32 @@ body {
   display: block;
   text-align: center;
 }
+.home-page__platform-entry {
+  display: flex;
+  align-items: center;
+  width: 25%;
+  margin-bottom: 0.1rem;
+}
+.home-page__platform-entry__logo {
+  width: 1.5rem;
+  height: 1.5rem;
+  background-repeat: no-repeat;
+  background-size: contain;
+  margin: auto;
+}
+.home-page__platform-entry__text {
+  flex-grow: 1;
+  text-align: left;
+  padding-left: 0.1rem;
+}
+.home-page__platform-box {
+  width: 100%;
+  display: inline-flex;
+  flex-wrap: wrap;
+}
 .random-games {
   display: flex;
+  justify-content: space-between;
 }
 
 /* ------ Page-Not-Found (404) ------ */
@@ -955,10 +991,10 @@ body {
   font-size: 0.75em;
   user-select: none;
 }
-.curate-page__checkbox input[type="checkbox"] {
-  min-width: 1rem;
-}
 /* Curate Page Left Sidebar */
+.curate-page__left-sidebar__sort-button {
+  width: 100%;
+}
 .curate-page__left-sidebar-item {
   display: flex;
   align-items: center;
@@ -1237,6 +1273,7 @@ body {
   flex-direction: column;
   flex: 1 0 auto;
 }
+
 /* Browse-Right-Sidebar Play Button */
 .browse-right-sidebar__play-button,
 .browse-right-sidebar__play-button--running,
@@ -1246,9 +1283,23 @@ body {
   text-align: center;
   margin: auto;
   margin-bottom: 0.5rem;
-  padding: 0.3rem 0;
   user-select: none;
   cursor: pointer;
+  max-height: 3.2rem;
+}
+.browse-right-sidebar__play-button {
+  display: flex;
+  height: 100%;
+}
+.browse-right-sidebar__play-button--text {
+  text-align: center;
+  flex-grow: 1;
+}
+.browse-right-sidebar__play-button--dropdown {
+  min-width: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 /* Browse-Right-Sidebar Additional-Application */
 .browse-right-sidebar__additional-application {
@@ -1367,6 +1418,17 @@ body {
   width: 100%;
   cursor: zoom-in;
 }
+.browse-right-sidebar__row__screenshot-image--hidden {
+  width: 100%;
+  min-height: 8rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.browse-right-sidebar__row__screenshot-image--hidden-text {
+  font-weight: bold;
+  font-size: 2rem;
+}
 .browse-right-sidebar__row__screenshot__placeholder {
   width: 100%;
   height: 15rem;
@@ -1472,6 +1534,10 @@ body {
   display: flex;
   flex-direction: column;
   height: 100%;
+}
+/** TODO: Figure out why AutoSizer isn't working */
+.game-list > div[class='ReactVirtualized__Grid__innerScrollContainer'] {
+  width: 100% !important;
 }
 /* GameList */
 .game-list,
@@ -1580,10 +1646,6 @@ body {
 .game-list-item__field--title {
   max-width: 40%;
 }
-/* .game-list-header-column--tags,
-.game-list-item__field--tags {
-  max-width: 15%;
-} */
 .game-list-header-column--developer,
 .game-list-item__field--developer {
   max-width: 30%;
@@ -1592,6 +1654,10 @@ body {
 .game-list-item__field--publisher {
   max-width: 30%;
 }
+/*.game-list-header-column--tagsStr,
+.game-list-item__field--tagsStr {
+  max-width: 30%;
+} */
 
 /* GameGrid */
 .game-grid {
@@ -2089,6 +2155,9 @@ body {
 .setting__row__content--toggle > div {
   float: right;
 }
+.setting__row__content--button > div {
+  float: right;
+}
 /* Setting Row Content - Redirector */
 .setting__row__content--redirector {
   text-align: right;
@@ -2345,6 +2414,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 1000;
 }
 
 .floating-container {
@@ -2422,6 +2492,11 @@ body {
   margin-bottom: 1rem;
 }
 
+.tag-filter-editor__buttons {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .tag-filter-editor__content {
   width: 100%;
   display: flex;
@@ -2467,6 +2542,7 @@ body {
 /** Checkboxes */
 .checkbox {
   width: 3rem;
+  min-width: 3rem; /** Prevents stretching / compression */
   height: 1.5rem;
   position: relative;
   display: inline-block;
