@@ -5,8 +5,8 @@
     "configDesc": "（您必须点击 '保存并重启' 才能使部分设置生效）",
     "preferencesHeader": "首选项",
     "extremeGames": "成人内容",
-    "extremeGamesDesc": "允许显示包含于 'Extreme' 标签筛选器组内的标签和游戏。",
-    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "extremeGamesDesc": "允许显示包含于“Extreme”（成人）标签筛选器组内的标签和游戏。",
+    "hideExtremeScreenshots": "隐藏成人截图",
     "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
     "enableEditing": "启用编辑",
     "enableEditingDesc": "启用对游戏与附加应用的编辑。也显示与编辑有关的标签页。",
@@ -179,7 +179,7 @@
     "importTags": "导入标签",
     "importTagsDesc": "从“导出标签”创建的文件中导入标签",
     "migrateExtremeGames": "迁移成人游戏",
-    "migrateExtremeGamesDesc": "删除所有游戏的“成人”标记，并为它们打上“LEGACY-Extreme”标签",
+    "migrateExtremeGamesDesc": "删除所有游戏的“Extreme”（成人）标记，并为它们打上“LEGACY-Extreme”标签",
     "massImportGameData": "批量导入游戏数据",
     "massImportGameDataDesc": "批量导入游戏数据包，尝试将其文件名匹配到游戏 UUID。",
     "servicesHeader": "后台服务",
@@ -293,7 +293,7 @@
     "noGameMatchedSearch": "请尝试用更宽泛的关键词搜索。",
     "mountParameters": "Mount Parameters",
     "noMountParameters": "No Mount Parameters",
-    "showExtremeScreenshot": "Show Extreme Screenshot"
+    "showExtremeScreenshot": "显示成人截图"
   },
   "tags": {
     "name": "名称",
@@ -419,7 +419,7 @@
     "complete": "已完成",
     "exportMetaEditTitle": "导出元数据变更",
     "exportMetaEditDesc": "选择所有要导出的属性：",
-    "showImage": "Show Image"
+    "showImage": "显示图像"
   },
   "menu": {
     "viewThumbnailInFolder": "在文件夹中查看缩略图",
