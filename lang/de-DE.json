@@ -6,6 +6,8 @@
     "preferencesHeader": "Einstellungen",
     "extremeGames": "Extreme Inhalte",
     "extremeGamesDesc": "Erlaube Tags der \"Extrem\" Tag-Filtergruppen und entsprechende Spiele anzuzeigen.",
+    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
     "enableEditing": "Bearbeiten Erlauben",
     "enableEditingDesc": "Aktiviere Bearbeitung von Spielen und zusätzlichen Anwendungen. Zeigt auch Tabs im Zusammenhang mit der Bearbeitung.",
     "onDemandImages": "Bilder auf Nachfrage",
@@ -288,7 +290,10 @@
     "saveAndRestart": "Speichern & neu starten",
     "thereAreNoGames": "Es gibt keine Spiele.",
     "noGameMatchedDesc": "Kein Spieltitel entspricht deiner Suche.",
-    "noGameMatchedSearch": "Versuche, nach etwas weniger Restriktivem zu suchen."
+    "noGameMatchedSearch": "Versuche, nach etwas weniger Restriktivem zu suchen.",
+    "mountParameters": "Mount Parameters",
+    "noMountParameters": "No Mount Parameters",
+    "showExtremeScreenshot": "Show Extreme Screenshot"
   },
   "tags": {
     "name": "Name",
@@ -413,7 +418,8 @@
     "installingFiles": "Dateien werden installiert...",
     "complete": "Abgeschlossen",
     "exportMetaEditTitle": "Meta-Edit exportieren",
-    "exportMetaEditDesc": "Alle zu exportierenden Eigenschaften auswählen:"
+    "exportMetaEditDesc": "Alle zu exportierenden Eigenschaften auswählen:",
+    "showImage": "Show Image"
   },
   "menu": {
     "viewThumbnailInFolder": "Miniaturansicht im Ordner anzeigen",
