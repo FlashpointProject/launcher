@@ -6,8 +6,8 @@
     "preferencesHeader": "Předvolby",
     "extremeGames": "Obsah pro dospělé",
     "extremeGamesDesc": "Povolí zobrazování her a štítků patřících do filtrační skupiny \"Pro dospělé\".",
-    "hideExtremeScreenshots": "Hide Extreme Screenshots",
-    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
+    "hideExtremeScreenshots": "Skrývat snímky obrazovky pro dospělé",
+    "hideExtremeScreenshotsDesc": "Skrývá snímky obrazovky u her s označením \"Pro Dospělé\", může být odkryto kliknutím na rozostřený obrázek.",
     "enableEditing": "Povolit upravování",
     "enableEditingDesc": "Povolit úpravy her a dalších aplikací. Také zobrazuje záložky související s úpravami.",
     "onDemandImages": "Obrázky na vyžádání",
@@ -291,9 +291,9 @@
     "thereAreNoGames": "Nebyly nalezeny žádné hry.",
     "noGameMatchedDesc": "Nebyly nalezeny žádné výsledky hledání.",
     "noGameMatchedSearch": "Zkuste méně omezit výběr hledání.",
-    "mountParameters": "Mount Parameters",
-    "noMountParameters": "No Mount Parameters",
-    "showExtremeScreenshot": "Show Extreme Screenshot"
+    "mountParameters": "Zavádějící parametry",
+    "noMountParameters": "Žádné zavádějící parametry",
+    "showExtremeScreenshot": "Zobrazovat snímky obrazovky pro dospělé"
   },
   "tags": {
     "name": "Název",
@@ -419,7 +419,7 @@
     "complete": "Dokončeno",
     "exportMetaEditTitle": "Exportovat úpravy metadat",
     "exportMetaEditDesc": "Vyberte všechny vlastnosti k exportu:",
-    "showImage": "Show Image"
+    "showImage": "Zaostřit obrázek"
   },
   "menu": {
     "viewThumbnailInFolder": "Otevřít složku s umístěním miniatury",
