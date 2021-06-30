@@ -6,8 +6,8 @@
     "preferencesHeader": "Editați preferințele",
     "extremeGames": "Extreme Content",
     "extremeGamesDesc": "Allow tags inside 'Extreme' tag filter groups and corresponding games to be shown.",
-    "hideExtremeScreenshots": "Hide Extreme Screenshots",
-    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
+    "hideExtremeScreenshots": "Ascunde capt. de ecr. ale jocurilor extreme",
+    "hideExtremeScreenshotsDesc": "Ascunde capturile de ecran ale jocurilor cu eticheta „extrem“. Acțiunea poate fi anulată, apăsând pe cadranul imaginii.",
     "enableEditing": "Activați editarea",
     "enableEditingDesc": "Activați editarea jocurilor și a aplicațiilor suplimentare. De asemenea, arată categorii legate de editare.",
     "onDemandImages": "Imagini la cerere",
@@ -291,9 +291,9 @@
     "thereAreNoGames": "Nu s-au găsit jocuri.",
     "noGameMatchedDesc": "Niciun joc nu se potrivește cu termenii de căutare.",
     "noGameMatchedSearch": "Încercați alte cuvinte cheie.",
-    "mountParameters": "Mount Parameters",
-    "noMountParameters": "No Mount Parameters",
-    "showExtremeScreenshot": "Show Extreme Screenshot"
+    "mountParameters": "Parametri de montare",
+    "noMountParameters": "Fără parametri de montare",
+    "showExtremeScreenshot": "Arată capturile de ecran extreme"
   },
   "tags": {
     "name": "Nume",
