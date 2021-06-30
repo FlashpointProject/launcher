@@ -178,7 +178,7 @@
     "exportTagsDesc": "Creează un fișier cu etichete și categorii de etichete care pot fi folosite de către operațiunea \"Importați etichete\"",
     "importTags": "Importați etichete",
     "importTagsDesc": "Importați etichete dintr-un fișier creat cu operațiunea 'Exportă etichete'",
-    "migrateExtremeGames": "Migrați jocuri extreme",
+    "migrateExtremeGames": "Migrați jocurile extreme",
     "migrateExtremeGamesDesc": "Elimină „extrem“ din toate jocurile și le asociază eticheta „ÎNVECHIT-extrem“",
     "massImportGameData": "Importă date de joc în masă",
     "massImportGameDataDesc": "Importă în masă pachete de date ale jocurilor, încercând să le asimileze numele cu ID-ul unic.",
@@ -470,7 +470,7 @@
     "cancel": "Revocare",
     "mergePlaylists": "Îmbinați liste de jocuri",
     "newPlaylist": "Păstrare separat",
-    "uploadPrivacyWarning": "Această acțiune vor face jurnalele dv. publice și va copia linkul către acestea.\n\nDoriți să continuați?",
+    "uploadPrivacyWarning": "Această acțiune va face jurnalele dv. publice și va copia linkul către acestea.\n\nDoriți să continuați?",
     "overwriteFileTitle": "Fişierul există deja!",
     "overwriteFileMessage": "Există deja un fișier cu acest nume! Doriți să suprascrieți fișierul existent?",
     "overwriteFileDetail": "Calea fișierului:",
@@ -491,10 +491,10 @@
     "deleteSource": "Ștergeți această sursă?",
     "uninstallGame": "Dezinstalați jocul?",
     "unableToUninstallGameData": "Nu se poate șterge pachetul de date. Verificați dacă este în folosință sau reporniți lansatorul.",
-    "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher.",
-    "downloadingGame": "Downloading Game...",
-    "verifyingGame": "Verifying Game...",
-    "aFewMinutes": "This may take a few minutes."
+    "unableToDeleteGame": "Nu se poate șterge jocul. Verificați dacă este în folosință sau reporniți lansatorul.",
+    "downloadingGame": "Se descarcă jocul…",
+    "verifyingGame": "Se verifică jocul…",
+    "aFewMinutes": "Acțiunea poate dura câteva minute."
   },
   "libraries": {
     "arcade": "Jocuri",
