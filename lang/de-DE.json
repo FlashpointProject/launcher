@@ -6,8 +6,8 @@
     "preferencesHeader": "Einstellungen",
     "extremeGames": "Extreme Inhalte",
     "extremeGamesDesc": "Erlaube Tags der \"Extrem\" Tag-Filtergruppen und entsprechende Spiele anzuzeigen.",
-    "hideExtremeScreenshots": "Hide Extreme Screenshots",
-    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
+    "hideExtremeScreenshots": "Extreme Screenshots verstecken",
+    "hideExtremeScreenshotsDesc": "Versteckt Screenshots von als Extrem markierten Inhalten. Mit einem Klick auf das Bildfeld können sie wieder angezeigt werden.",
     "enableEditing": "Bearbeiten Erlauben",
     "enableEditingDesc": "Aktiviere Bearbeitung von Spielen und zusätzlichen Anwendungen. Zeigt auch Tabs im Zusammenhang mit der Bearbeitung.",
     "onDemandImages": "Bilder auf Nachfrage",
@@ -291,9 +291,9 @@
     "thereAreNoGames": "Es gibt keine Spiele.",
     "noGameMatchedDesc": "Kein Spieltitel entspricht deiner Suche.",
     "noGameMatchedSearch": "Versuche, nach etwas weniger Restriktivem zu suchen.",
-    "mountParameters": "Mount Parameters",
-    "noMountParameters": "No Mount Parameters",
-    "showExtremeScreenshot": "Show Extreme Screenshot"
+    "mountParameters": "Mount-Parameter",
+    "noMountParameters": "Keine Mount-Parameter",
+    "showExtremeScreenshot": "Extremen Screenshot anzeigen"
   },
   "tags": {
     "name": "Name",
@@ -419,7 +419,7 @@
     "complete": "Abgeschlossen",
     "exportMetaEditTitle": "Meta-Edit exportieren",
     "exportMetaEditDesc": "Alle zu exportierenden Eigenschaften auswählen:",
-    "showImage": "Show Image"
+    "showImage": "Bild anzeigen"
   },
   "menu": {
     "viewThumbnailInFolder": "Miniaturansicht im Ordner anzeigen",
