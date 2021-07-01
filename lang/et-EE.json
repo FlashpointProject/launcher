@@ -6,8 +6,8 @@
     "preferencesHeader": "Eelistused",
     "extremeGames": "Ekstreemsed Mängud",
     "extremeGamesDesc": "Näita mänge seksuaalse, vägivaldse või muu sisuga, mis on sobimatu lastele",
-    "hideExtremeScreenshots": "Hide Extreme Screenshots",
-    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
+    "hideExtremeScreenshots": "Peida Ekstreemseid Ekraanipilte",
+    "hideExtremeScreenshotsDesc": "Peidab ekstreemsete mängude ekraanipilte, neid saab avada klikkides pildi kastile.",
     "enableEditing": "Luba Kohaldada",
     "enableEditingDesc": "Luba kohaldamist mängudele ja lisarakendustele. Avab ka selle jaoks akna.",
     "onDemandImages": "Pildid Nõudlusel",
@@ -126,7 +126,7 @@
     "newGame": "Uus mäng",
     "list": "Nimekiri",
     "grid": "Ruudustik",
-    "searchResults": "Otsi Tulemusi"
+    "searchResults": "Tulemusi leitud"
   },
   "filter": {
     "dateAdded": "Kuupäev Lisatud",
@@ -291,9 +291,9 @@
     "thereAreNoGames": "Siin pole ühtegi mängu.",
     "noGameMatchedDesc": "Ükski mängu pealkiri ei sarnanenud sinu otsinguga.",
     "noGameMatchedSearch": "Proovi otsida midagi vähem piiravamat.",
-    "mountParameters": "Mount Parameters",
+    "mountParameters": "Rakendusparameetrid",
     "noMountParameters": "No Mount Parameters",
-    "showExtremeScreenshot": "Show Extreme Screenshot"
+    "showExtremeScreenshot": "Näita Ekstreemset Ekraanipilti"
   },
   "tags": {
     "name": "Nimi",
@@ -419,7 +419,7 @@
     "complete": "Valmis",
     "exportMetaEditTitle": "Ekspordi Meta Muudatus",
     "exportMetaEditDesc": "Vali kõik väljad, mida eksportida:",
-    "showImage": "Show Image"
+    "showImage": "Näita pilti"
   },
   "menu": {
     "viewThumbnailInFolder": "Vaata Logo Kaustas",
