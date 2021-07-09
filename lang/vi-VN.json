@@ -5,9 +5,9 @@
     "configDesc": "(Bạn phải nhấn 'Lưu và Khởi động lại' thì vài thay đổi mới có hiệu lực)",
     "preferencesHeader": "Tuỳ chọn",
     "extremeGames": "Nội dung phản cảm",
-    "extremeGamesDesc": "Cho phép hiện các nhãn thuộc các nhóm lọc thẻ 'Phản cảm' và các trò chơi tương ứng.",
+    "extremeGamesDesc": "Cho phép hiện các nhãn thuộc các nhóm bộ lọc nhãn 'Phản cảm' và các trò chơi tương ứng.",
     "hideExtremeScreenshots": "Ẩn ảnh chụp màn hình phản cảm",
-    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
+    "hideExtremeScreenshotsDesc": "Ẩn ảnh chụp màn hình của nội dung có nhãn Phản cảm, có thể hiện chỉ với một cái nhấp chuột lên khung ảnh.",
     "enableEditing": "Bật khả năng chỉnh sửa",
     "enableEditingDesc": "Cho phép sửa trò chơi và phần mềm đi kèm. Cũng hiện thêm các mục liên quan đến việc chỉnh sửa.",
     "onDemandImages": "Tải hình khi cần",
@@ -29,8 +29,8 @@
     "platforms": "Nền tảng",
     "nativePlatforms": "Nền tảng gốc",
     "nativePlatformsDesc": "Dùng bản gốc của các nền tảng này. (Nếu không có sẵn thì sẽ dùng Wine)",
-    "tagFilterGroups": "Nhóm bộ lọc thẻ",
-    "tagFilterGroupsDesc": "Các nhóm này sẽ lọc các đề xuất và trò chơi ra khỏi kết quả tìm kiếm",
+    "tagFilterGroups": "Nhóm bộ lọc nhãn",
+    "tagFilterGroupsDesc": "Các nhóm này sẽ ẩn các đề xuất và trò chơi khỏi kết quả tìm kiếm",
     "editTagFilter": "Chỉnh sửa Nhóm Bộ lọc Thẻ",
     "duplicateTagFilter": "Nhóm bộ lọc thẻ trùng lặp",
     "deleteTagFilter": "Xóa nhóm bộ lọc thẻ",
@@ -178,7 +178,7 @@
     "exportTagsDesc": "Tạo một tệp chứa tất cả nhãn và danh mục nhãn mà có thể dùng tính năng 'Nhập nhãn' để nhập vào phần mềm được",
     "importTags": "Nhập nhãn",
     "importTagsDesc": "Nhập nhãn từ một tệp được tạo bởi 'Xuất nhãn'",
-    "migrateExtremeGames": "Di chuyển các trò chơi khắc nghiệt",
+    "migrateExtremeGames": "Dịch chuyển trò chơi phản cảm",
     "migrateExtremeGamesDesc": "Xóa 'Phản cảm' khỏi mọi trò chơi và gán thẻ 'LEGACY-Extreme' cho chúng",
     "massImportGameData": "Nhập hàng loạt dữ liệu trò chơi",
     "massImportGameDataDesc": "Nhập hàng loạt gói Dữ liệu trò chơi, cố gắng khớp tên tệp của chúng với UUID trò chơi.",
@@ -293,7 +293,7 @@
     "noGameMatchedSearch": "Hãy tìm từ khoá chung chung hơn.",
     "mountParameters": "Mount Parameters",
     "noMountParameters": "No Mount Parameters",
-    "showExtremeScreenshot": "Show Extreme Screenshot"
+    "showExtremeScreenshot": "Hiện ảnh chụp màn hình phản cảm"
   },
   "tags": {
     "name": "Tên",
@@ -419,7 +419,7 @@
     "complete": "Hoàn thành",
     "exportMetaEditTitle": "Xuất sửa đổi meta",
     "exportMetaEditDesc": "Chọn tất cả thuộc tính cần xuất:",
-    "showImage": "Show Image"
+    "showImage": "Hiện ảnh"
   },
   "menu": {
     "viewThumbnailInFolder": "Xem ảnh thu nhỏ trong thư mục",
