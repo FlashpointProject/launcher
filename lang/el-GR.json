@@ -4,7 +4,7 @@
     "configHeader": "Ρυθμίσεις",
     "configDesc": "(Πρέπει να πατήσετε «Αποθήκευση και Επανεκκίνηση» ώστε κάποιες ρυθμίσεις να τεθούν σε ισχύ)",
     "preferencesHeader": "Προτιμήσεις",
-    "extremeGames": "Extreme Content",
+    "extremeGames": "Ακραίο Περιεχόμενο",
     "extremeGamesDesc": "Allow tags inside 'Extreme' tag filter groups and corresponding games to be shown.",
     "hideExtremeScreenshots": "Hide Extreme Screenshots",
     "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
