@@ -1627,8 +1627,21 @@ body {
   flex: 1 1 auto;
   overflow: hidden;
   user-select: none;
-  padding-left: 0.2rem;
   font-size: calc(0.8px * var(--height));
+  padding: 0.2rem;
+  cursor: pointer;
+}
+.game-list-header-column__title {
+  display: flex;
+  align-items: center;
+  padding: 0.2rem 1rem 0.2rem 0.2rem;
+}
+.game-list-header-column__sort-icon-wrapper {
+  margin-left: auto;
+}
+.game-list-header-column__sort-icon {
+  width: .65rem;
+  height: .65rem;
 }
 .game-list-header-column__divider,
 .tag-list-header-column__divider {
