@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useMemo } from 'react';
 import { updatePreferencesData } from '@shared/preferences/util';
-import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
+import { GameOrderBy } from '@shared/order/interfaces';
 import { OpenIcon } from './OpenIcon';
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 
@@ -27,7 +27,7 @@ export function GameListHeader(props: GameListHeaderProps) {
           title='Title'
           modifier='title'
           hideDivider={true}
-          orderBy="title"
+          orderBy='title'
           preferencesData={props.preferencesData} />
         <SortableColumn
           title='Developer'
@@ -102,9 +102,7 @@ function SortableColumn(props: SortableColumnProps) {
 
 }
 
-function toggleSorting(orderBy: GameOrderBy | undefined) {
-  if (!orderBy) return;
-
+function toggleSorting(orderBy: GameOrderBy) {
   const { gamesOrderBy, gamesOrder } = window.Shared.preferences.data;
   const direction = gamesOrderBy === orderBy && gamesOrder === 'ASC'? 'DESC' : 'ASC';
 
