@@ -1,3 +1,4 @@
+import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { VIEW_PAGE_SIZE } from '@shared/constants';
 import { memoizeOne } from '@shared/memoize';
 import * as React from 'react';
@@ -54,7 +55,7 @@ type RowsRenderedInfo = {
 }
 
 /** A list of rows, where each rows displays a game. */
-export class GameList extends React.Component<GameListProps> {
+export class GameList extends React.Component<GameListProps & WithPreferencesProps> {
   private _wrapper: React.RefObject<HTMLDivElement> = React.createRef();
   /** Currently displayed games. */
   currentGames: ViewGameSet | undefined = undefined;
@@ -95,7 +96,9 @@ export class GameList extends React.Component<GameListProps> {
       <div
         className='game-list-wrapper'
         ref={this._wrapper}>
-        <GameListHeader showExtremeIcon={this.props.showExtremeIcon} />
+        <GameListHeader
+          showExtremeIcon={this.props.showExtremeIcon}
+          preferencesData={this.props.preferencesData}  />
         <GameItemContainer
           className='game-browser__center-inner'
           onGameSelect={this.onGameSelect}
