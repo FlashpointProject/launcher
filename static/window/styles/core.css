@@ -2072,6 +2072,7 @@ body {
   height: 2rem;
   background-repeat: no-repeat;
   background-size: contain;
+  background-position: center center;
   margin: auto;
 }
 /* Setting */
