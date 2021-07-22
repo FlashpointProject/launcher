@@ -540,7 +540,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
             </div>
           ) : undefined }
           {/* -- Notes -- */}
-          { (!editDisabled || game.notes) && !isPlaceholder ? (
+          { ((!editDisabled && editable) || game.notes) && !isPlaceholder ? (
             <div className='browse-right-sidebar__section'>
               <div className='browse-right-sidebar__row'>
                 <p>{strings.notes}: </p>
@@ -554,7 +554,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
             </div>
           ) : undefined }
           {/* -- Original Description -- */}
-          { (!editDisabled || game.originalDescription) && !isPlaceholder ? (
+          { ((!editDisabled && editable) || game.originalDescription) && !isPlaceholder ? (
             <div className='browse-right-sidebar__section'>
               <div className='browse-right-sidebar__row'>
                 <p>{strings.originalDescription}: </p>
