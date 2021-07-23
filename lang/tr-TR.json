@@ -7,7 +7,7 @@
     "extremeGames": "Ekstrem İçerik",
     "extremeGamesDesc": "'Ekstrem' etiket filtreleme grubu ve 'ekstrem' etiket filtreleme grubuna karşılık gelen oyunların gösterilmesine izin ver.",
     "hideExtremeScreenshots": "Ekstrem Ekran Görüntülerini Gizle",
-    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
+    "hideExtremeScreenshotsDesc": "Ekstrem olarak belirtilmiş içeriğin ekran görüntüleri gizlenir, fotoğrafa tıklanınca gizlenme kaldırılır.",
     "enableEditing": "Değişikliklere İzin Ver",
     "enableEditingDesc": "Oyunların ve fazladan eklentilerin düzenlenmesine izin verir. Ayrıca düzenlemeye bağlı seçenekleri gösterir.",
     "onDemandImages": "İsteğe Bağlı Görüntüler",
@@ -291,8 +291,8 @@
     "thereAreNoGames": "Oyun yok.",
     "noGameMatchedDesc": "Aramanızla eşleşen bir oyun yok.",
     "noGameMatchedSearch": "Daha az kısıtlayıcı bir şey aramayı deneyin.",
-    "mountParameters": "Mount Parameters",
-    "noMountParameters": "No Mount Parameters",
+    "mountParameters": "Bağlama Parametresi",
+    "noMountParameters": "Bağlama Parametresi yok",
     "showExtremeScreenshot": "Ekstrem Ekran Görüntüsünü Göster"
   },
   "tags": {
