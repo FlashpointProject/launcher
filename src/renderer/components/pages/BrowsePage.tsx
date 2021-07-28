@@ -261,8 +261,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   updateView={this.props.updateView}
                   rowHeight={height}
                   logoVersion={this.props.logoVersion}
-                  listRef={this.gameGridOrListRefFunc}
-                  preferencesData={this.props.preferencesData} />
+                  listRef={this.gameGridOrListRefFunc} />
               );
             }
           })()}
