@@ -7,7 +7,7 @@
     "extremeGames": "Contenu Extrême",
     "extremeGamesDesc": "Allow tags inside 'Extreme' tag filter groups and corresponding games to be shown.",
     "hideExtremeScreenshots": "Masquer les captures d'écran extrêmes",
-    "hideExtremeScreenshotsDesc": "Masque les captures d'écran de contenu étiqueté Extrême, peut être affiché en un clic sur la zone d'image.",
+    "hideExtremeScreenshotsDesc": "Masque les captures d'écran de contenu étiqueté comme étant extrême, il est possible de les afficher en cliquant sur la zone de l'image.",
     "enableEditing": "Activer le mode édition",
     "enableEditingDesc": "Active l'édition des jeux et des applications supplémentaires. Affiche également les onglets liés à l'édition.",
     "onDemandImages": "Images sur demande",
@@ -293,7 +293,7 @@
     "noGameMatchedSearch": "Essaie de chercher quelque chose de moins restrictif.",
     "mountParameters": "Paramètres de montage",
     "noMountParameters": "Aucun paramètre de montage",
-    "showExtremeScreenshot": "Afficher la capture d'écran Extrême"
+    "showExtremeScreenshot": "Afficher la capture d'écran extrême"
   },
   "tags": {
     "name": "Nom",
