@@ -7,7 +7,7 @@
     "extremeGames": "Екстремни игри",
     "extremeGamesDesc": "Покажете игри со сексуална, насилна или друга содржина несоодветна за деца.",
     "hideExtremeScreenshots": "Hide Extreme Screenshots",
-    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
+    "hideExtremeScreenshotsDesc": "Сокрива слики од екранот на екстремно обележана содржина, може да се покажува со клик на полето за слики.",
     "enableEditing": "Овозможи Уредувања",
     "enableEditingDesc": "Овозможи уредување на игри и дополнителни апликации. Исто така, покажува јазичиња поврзани со уредување.",
     "onDemandImages": "Слики на барање",
@@ -291,9 +291,9 @@
     "thereAreNoGames": "Тука нема игри.",
     "noGameMatchedDesc": "Ниту еден наслов на играта не одговара на вашето пребарување.",
     "noGameMatchedSearch": "Обидете се да побарате нешто помалку ограничувачко.",
-    "mountParameters": "Mount Parameters",
-    "noMountParameters": "No Mount Parameters",
-    "showExtremeScreenshot": "Show Extreme Screenshot"
+    "mountParameters": "Моунт Параметри",
+    "noMountParameters": "Нема Моунт Параметри",
+    "showExtremeScreenshot": "Покажувај Eкстремни Cлики од Eкраноt"
   },
   "tags": {
     "name": "Име",
@@ -419,7 +419,7 @@
     "complete": "Завршено",
     "exportMetaEditTitle": "Изведувај Meta Edit",
     "exportMetaEditDesc": "Изберете ги сите својства за извоз:",
-    "showImage": "Show Image"
+    "showImage": "Покажи Слика"
   },
   "menu": {
     "viewThumbnailInFolder": "Прегледај лого во папката",
