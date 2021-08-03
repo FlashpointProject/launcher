@@ -6,8 +6,8 @@
     "preferencesHeader": "Персонализация",
     "extremeGames": "Взрослый контент",
     "extremeGamesDesc": "Разрешить отображение тегов внутри групп фильтров тегов «Extreme» и соответствующих игр.",
-    "hideExtremeScreenshots": "Hide Extreme Screenshots",
-    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
+    "hideExtremeScreenshots": "Скрыть экстремальные скриншоты",
+    "hideExtremeScreenshotsDesc": "Скрывает скриншоты экстремального содержимого, можно вернуть нажатием на окно изображения.",
     "enableEditing": "Включить редактирование",
     "enableEditingDesc": "Включите редактирование игр и дополнительных приложений. Также показывает вкладки, связанные с редактированием.",
     "onDemandImages": "Изображения по требованию",
@@ -23,11 +23,11 @@
     "flashpointPathDesc": "Путь к папке, в которой находится Flashpoint (может быть относительным)",
     "browse": "Обзор",
     "libraries": "Библиотеки",
-    "randomLibraries": "Случайные библиотеки",
-    "randomLibrariesDesc": "Библиотеки для случайных выбора на домашней странице.",
+    "randomLibraries": "Случайные Библиотеки",
+    "randomLibrariesDesc": "Библиотеки для случайного выбора на домашней странице.",
     "updateSource": "Обновить источник",
     "platforms": "Платформы",
-    "nativePlatforms": "Платформы Native",
+    "nativePlatforms": "Родные платформы",
     "nativePlatformsDesc": "Используйте Native версии этих платформ. (Если нет, он будет использовать Wine)",
     "tagFilterGroups": "Группы фильтров тегов",
     "tagFilterGroupsDesc": "Эти группы будут отфильтровывать предложения и игры от результатов поиска",
@@ -291,9 +291,9 @@
     "thereAreNoGames": "Игры не найдены.",
     "noGameMatchedDesc": "Нет игр, соответствующих вашему запросу.",
     "noGameMatchedSearch": "Попробуйте изменить запрос на менее конкретный.",
-    "mountParameters": "Mount Parameters",
-    "noMountParameters": "No Mount Parameters",
-    "showExtremeScreenshot": "Show Extreme Screenshot"
+    "mountParameters": "Параметры монтирования",
+    "noMountParameters": "Нет параметров шейдера",
+    "showExtremeScreenshot": "Показать Экстремальный Скриншот"
   },
   "tags": {
     "name": "Наименование",
@@ -419,7 +419,7 @@
     "complete": "Завершено",
     "exportMetaEditTitle": "Экспорт мета-правок",
     "exportMetaEditDesc": "Выберите все свойства для экспорта:",
-    "showImage": "Show Image"
+    "showImage": "Показать Изображение"
   },
   "menu": {
     "viewThumbnailInFolder": "Отображать превью в папке",
