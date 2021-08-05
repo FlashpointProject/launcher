@@ -291,8 +291,8 @@
     "thereAreNoGames": "Brak pasujących gier.",
     "noGameMatchedDesc": "Żaden tytuł gry nie odpowiada twojemu zapytaniu.",
     "noGameMatchedSearch": "Spróbuj użyć bardziej ogólnego zapytania.",
-    "mountParameters": "Mount Parameters",
-    "noMountParameters": "No Mount Parameters",
+    "mountParameters": "Parametry montowania",
+    "noMountParameters": "Brak parametrów montowania",
     "showExtremeScreenshot": "Pokaż ekstremalny zrzut ekranu"
   },
   "tags": {
