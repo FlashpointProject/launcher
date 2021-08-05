@@ -475,7 +475,7 @@
     "overwriteFileMessage": "Plik z taką samą nazwą już istnieje. Czy chcesz go nadpisać?",
     "overwriteFileDetail": "Ścieżka pliku:",
     "deleteTagFilterGroup": "Delete this Tag Filter Group?",
-    "deleteCuration": "Delete this Curation?",
+    "deleteCuration": "Usunąć tą kurację?",
     "importCuration": "Zaimportować tą kurację?",
     "deleteGameImage": "Delete this Game Image?",
     "deletePlaylist": "Usunąć tę playlistę?",
