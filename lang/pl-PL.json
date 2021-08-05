@@ -6,7 +6,7 @@
     "preferencesHeader": "Ustawienia",
     "extremeGames": "Zawartość ekstremalna",
     "extremeGamesDesc": "Pokaż gry ekstremalne (zawierające przemoc, seks lub inną zawartość nie nadającą się dla dzieci).",
-    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "hideExtremeScreenshots": "Ukryj ekstremalne zrzuty ekranu",
     "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
     "enableEditing": "Uruchom tryb edycji",
     "enableEditingDesc": "Pozwala na edytowanie gier oraz dodatkowych aplikacji. Pokazuje także zakładkę \"Dodaj do Flashpointa\".",
@@ -293,7 +293,7 @@
     "noGameMatchedSearch": "Spróbuj użyć bardziej ogólnego zapytania.",
     "mountParameters": "Mount Parameters",
     "noMountParameters": "No Mount Parameters",
-    "showExtremeScreenshot": "Show Extreme Screenshot"
+    "showExtremeScreenshot": "Pokaż ekstremalny zrzut ekranu"
   },
   "tags": {
     "name": "Nazwa",
@@ -419,7 +419,7 @@
     "complete": "Ukończono",
     "exportMetaEditTitle": "Eksportuj edycję metadanych",
     "exportMetaEditDesc": "Wybierz wszystkie edycje metadanych do wyeksportowania:",
-    "showImage": "Show Image"
+    "showImage": "Pokaż zdjęcie"
   },
   "menu": {
     "viewThumbnailInFolder": "Zobacz miniaturki w folderze",
@@ -477,7 +477,7 @@
     "deleteTagFilterGroup": "Delete this Tag Filter Group?",
     "deleteCuration": "Usunąć tą kurację?",
     "importCuration": "Zaimportować tą kurację?",
-    "deleteGameImage": "Delete this Game Image?",
+    "deleteGameImage": "Usunąć to zdjęcie gry?",
     "deletePlaylist": "Usunąć tę playlistę?",
     "importAllCurations": "Zaimportować wszystkie kuracje?",
     "deleteAllCurations": "Usunąć wszystkie kuracje?",
