@@ -4,6 +4,7 @@ npm-debug.log.*
 
 # Visual Studio Code
 /.vscode
+/.idea
 
 # Build
 /build

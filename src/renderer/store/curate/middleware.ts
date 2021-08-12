@@ -5,6 +5,7 @@ import { Middleware } from 'redux';
 import { ApplicationState } from '..';
 import { CurateActionType } from './enums';
 import { CurateState } from './types';
+import {updatePreferencesData} from "@shared/preferences/util";
 
 export const curationSyncMiddleware: Middleware<{}, ApplicationState> = (store) => (next) => (action: any) => {
   switch (action.type) {
@@ -53,6 +54,7 @@ export const curationSyncMiddleware: Middleware<{}, ApplicationState> = (store) 
         window.Shared.back.send(BackIn.CURATE_EXPORT, curations);
       }
       next(action);
+      alert(`Exporting ${folders.length} Curations`);
       break;
     }
     case CurateActionType.CREATE_CURATION: {
@@ -86,6 +88,15 @@ export const curationSyncMiddleware: Middleware<{}, ApplicationState> = (store) 
       }
       break;
     }
+    case CurateActionType.TOGGLE_GROUP_PIN: {
+      next(action);
+      const state = store.getState();
+      updatePreferencesData({
+        groups: state.curate.groups
+      });
+      break;
+    }
+    case CurateActionType.CHANGE_GROUP:
     case CurateActionType.SET_WARNINGS: {
       next(action);
       const state: CurateState = store.getState().curate;

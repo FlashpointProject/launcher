@@ -10,6 +10,7 @@ import { deepCopy, parseVarStr } from '../Util';
 import { Coerce } from '../utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
 import { AppPathOverride, AppPreferencesData, AppPreferencesDataMainWindow } from './interfaces';
+import {CurateGroup} from "@renderer/store/curate/types";
 
 export function updatePreferencesData(data: DeepPartial<AppPreferencesData>, send = true) {
   const preferences = window.Shared.preferences;
@@ -89,6 +90,7 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   disableExtremeGames: false,
   showBrokenGames: false,
   minimizedHomePageBoxes: [],
+  groups: [],
 });
 
 /**
@@ -147,6 +149,7 @@ export function overwritePreferenceData(
   parser.prop('nativePlatforms',             v => source.nativePlatforms             = strArray(v));
   parser.prop('disableExtremeGames',         v => source.disableExtremeGames         = !!v);
   parser.prop('showBrokenGames',             v => source.showBrokenGames             = !!v);
+  parser.prop('groups').array((item, idx) => source.groups.push(parseCurateGroup(item)));
   if (data.appPathOverrides) {
     const newAppPathOverrides: AppPathOverride[] = [];
     parser.prop('appPathOverrides').array((item, index) => newAppPathOverrides[index] = parseAppPathOverride(item));
@@ -203,6 +206,16 @@ function parseTagFilterGroup(parser: IObjectParserProp<TagFilterGroup>): TagFilt
   parser.prop('childFilters').arrayRaw((item) => tfg.childFilters.push(str(item)));
   parser.prop('extreme', v => tfg.extreme = !!v);
   return tfg;
+}
+
+function parseCurateGroup(parser: IObjectParserProp<any>): CurateGroup {
+  const g: CurateGroup = {
+    name: '',
+    icon: ''
+  };
+  parser.prop('name', v => g.name = str(v));
+  parser.prop('icon', v => g.icon = str(v));
+  return g;
 }
 
 /**

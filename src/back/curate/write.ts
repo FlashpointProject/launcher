@@ -26,6 +26,7 @@ type CurationMetaFile = {
   'Version'?: string;
   'Additional Applications'?: CurationFormatAddApps;
   'Curation Notes'?: string;
+  'Group'?: string;
 };
 
 type CurationFormatAddApps = {
@@ -75,6 +76,7 @@ function convertEditToCurationMetaFile(curation: LoadedCuration): CurationMetaFi
   parsed['Game Notes']           = curation.game.notes;
   parsed['Original Description'] = curation.game.originalDescription;
   parsed['Curation Notes']       = curation.game.curationNotes;
+  parsed['Group']                = curation.group;
   // Add-apps meta
   const parsedAddApps: CurationFormatAddApps = {};
   const addApps = curation.addApps;

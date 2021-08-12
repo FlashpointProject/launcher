@@ -184,6 +184,9 @@ export type ApiEmittersState = Readonly<{
     onDidRemovePlaylistGame: ApiEmitter<flashpoint.PlaylistGame>;
     onWillImportCuration: ApiEmitter<flashpoint.CurationImportState>;
   }>,
+  curations: Readonly <{
+    onDidCurationChange: ApiEmitter<flashpoint.CurationState>,
+  }>,
   gameData: Readonly<{
     onDidImportGameData: ApiEmitter<flashpoint.GameData>;
   }>,

@@ -151,6 +151,9 @@ const state: BackState = {
       onDidRemovePlaylistGame: GameManager.onDidRemovePlaylistGame,
       onWillImportCuration: onWillImportCuration,
     },
+    curations: {
+      onDidCurationChange: new ApiEmitter()
+    },
     gameData: {
       onDidImportGameData: new ApiEmitter<flashpoint.GameData>(),
     },
@@ -351,6 +354,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
         if (parsedMeta) {
           const loadedCuration = {
             folder: folderName,
+            group: parsedMeta.group,
             game: parsedMeta.game,
             addApps: parsedMeta.addApps,
             thumbnail: await loadCurationIndexImage(path.join(rootPath, folderName, 'logo.png')),
@@ -1069,6 +1073,7 @@ export async function loadCurationArchive(filePath: string): Promise<CurationSta
 
   const loadedCuration: LoadedCuration = {
     folder: key,
+    group: parsedMeta.group,
     game: parsedMeta.game,
     addApps: parsedMeta.addApps,
     thumbnail: await loadCurationIndexImage(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, key, 'logo.png')),

@@ -1,7 +1,7 @@
-import { BackIn } from '@shared/back/types';
-import { AddAppCuration, CurationState } from '@shared/curate/types';
-import { CurateActionType } from './enums';
-import { CurateAction, CurateState } from './types';
+import {BackIn} from '@shared/back/types';
+import {AddAppCuration, CurationState} from '@shared/curate/types';
+import {CurateActionType} from './enums';
+import {CurateAction, CurateState} from './types';
 import uuid = require('uuid');
 
 export function curateStateReducer(state: CurateState = createInitialState(), action: CurateAction): CurateState {
@@ -304,6 +304,74 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
 
       return newState;
     }
+
+    case CurateActionType.NEW_PERSISTANT_GROUP: {
+      const newGroups = [...state.groups];
+      if (newGroups.findIndex(g => g.name === action.name) === -1) {
+        newGroups.push({
+          name: action.name,
+          icon: action.icon,
+        });
+      }
+      return {
+        ...state,
+        groups: newGroups,
+      };
+    }
+
+    case CurateActionType.TOGGLE_GROUP_COLLAPSE: {
+      const newState = genMultiCurationState(state);
+      const idx = newState.collapsedGroups.findIndex(group => group === action.group);
+      if (idx !== -1) {
+        newState.collapsedGroups.splice(idx, 1);
+      } else {
+        newState.collapsedGroups.push(action.group);
+        // Deselect all games inside group
+        for (const c of state.curations) {
+          if (c.group === action.group) {
+            const selectedIdx = newState.selected.findIndex(s => s === c.folder);
+            if (selectedIdx !== -1) {
+              // Remove from selection
+              newState.selected.splice(selectedIdx, 1);
+            }
+          }
+        }
+        if (!newState.selected.includes(newState.current)) {
+          newState.current = '';
+        }
+        if (!newState.selected.includes(newState.lastSelected)) {
+          newState.lastSelected = '';
+        }
+      }
+      return newState;
+    }
+
+    case CurateActionType.TOGGLE_GROUP_PIN: {
+      const newGroups = [...state.groups];
+      const idx = newGroups.findIndex(g => g.name === action.group.name);
+      if (idx !== -1) {
+        newGroups.splice(idx, 1);
+      } else {
+        newGroups.push(action.group);
+      }
+      return {
+        ...state,
+        groups: newGroups
+      };
+    }
+
+    case CurateActionType.CHANGE_GROUP: {
+      const { index, newCurations } = genCurationState(action.folder, state);
+
+      if (index !== -1) {
+        newCurations[index].group = action.group;
+      }
+
+      return {
+        ...state,
+        curations: newCurations,
+      };
+    }
   }
 }
 
@@ -314,6 +382,8 @@ type NewCurationStateInfo = {
 
 function genMultiCurationState(state: CurateState): CurateState {
   return {
+    groups: [ ...state.groups ],
+    collapsedGroups: [ ...state.collapsedGroups ],
     lastSelected: state.lastSelected,
     curations: [ ...state.curations ],
     selected: [ ...state.selected ],
@@ -336,6 +406,8 @@ function genCurationState(folder: string, state: CurateState): NewCurationStateI
 
 function createInitialState(): CurateState {
   return {
+    groups: [],
+    collapsedGroups: [],
     curations: [],
     current: '',
     selected: [],

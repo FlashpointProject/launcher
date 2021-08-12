@@ -1149,6 +1149,21 @@ body {
 .curate-list-item:nth-child(n+2) { /* All but first */
   border-top: solid 1px;
 }
+.curate-list-group__header {
+  margin: 0.2rem 0.2rem 0 0.2rem;
+  padding: 0.2rem;
+  font-weight: bold;
+  display: flex;
+}
+.curate-list-group__header-text {
+  flex-grow: 1;
+}
+.curate-list-group__header-caret {
+  padding: 0 0.2rem;
+}
+.curate-list-group__header-pin {
+  padding: 0 0.2rem;
+}
 .curate-list-item__icon {
   flex: 0 0 auto;
   width: 1rem;

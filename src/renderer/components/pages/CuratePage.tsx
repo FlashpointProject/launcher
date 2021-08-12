@@ -1,27 +1,29 @@
-import { CurateBox } from '@renderer/components/CurateBox';
-import { WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
-import { WithCurateStateProps } from '@renderer/containers/withCurateState';
-import { WithMainStateProps } from '@renderer/containers/withMainState';
-import { WithPreferencesProps } from '@renderer/containers/withPreferences';
-import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
-import { CurateActionType } from '@renderer/store/curate/enums';
-import { getCurationPostURL, getPlatformIconURL } from '@renderer/Util';
-import { LangContext } from '@renderer/util/lang';
-import { uuid } from '@renderer/util/uuid';
-import { BackIn, TagSuggestion } from '@shared/back/types';
-import { EditCurationMeta } from '@shared/curate/OLD_types';
-import { CurationState } from '@shared/curate/types';
-import { ExtensionContribution } from '@shared/extensions/interfaces';
-import { formatString } from '@shared/utils/StringFormatter';
+import {CurateBox} from '@renderer/components/CurateBox';
+import {WithConfirmDialogProps} from '@renderer/containers/withConfirmDialog';
+import {WithCurateStateProps} from '@renderer/containers/withCurateState';
+import {WithMainStateProps} from '@renderer/containers/withMainState';
+import {WithPreferencesProps} from '@renderer/containers/withPreferences';
+import {WithTagCategoriesProps} from '@renderer/containers/withTagCategories';
+import {CurateActionType} from '@renderer/store/curate/enums';
+import {getCurationPostURL, getPlatformIconURL} from '@renderer/Util';
+import {LangContext} from '@renderer/util/lang';
+import {uuid} from '@renderer/util/uuid';
+import {BackIn, TagSuggestion} from '@shared/back/types';
+import {EditCurationMeta} from '@shared/curate/OLD_types';
+import {CurationState} from '@shared/curate/types';
+import {ExtensionContribution} from '@shared/extensions/interfaces';
+import {formatString} from '@shared/utils/StringFormatter';
 import axios from 'axios';
 import * as electron from 'electron';
 import * as path from 'path';
 import * as React from 'react';
-import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
-import { getWarningCount } from '../CurateBoxWarnings';
-import { CuratePageLeftSidebar } from '../CuratePageLeftSidebar';
-import { Dropdown } from '../Dropdown';
-import { SimpleButton, SimpleButtonProps } from '../SimpleButton';
+import {ConfirmElement, ConfirmElementArgs} from '../ConfirmElement';
+import {getWarningCount} from '../CurateBoxWarnings';
+import {CuratePageLeftSidebar} from '../CuratePageLeftSidebar';
+import {Dropdown} from '../Dropdown';
+import {SimpleButton, SimpleButtonProps} from '../SimpleButton';
+import {updatePreferencesData} from "@shared/preferences/util";
+import {CurateGroup} from "@renderer/store/curate/types";
 
 type OwnProps = {
   extCurationTemplates: ExtensionContribution<'curationTemplates'>[];
@@ -165,10 +167,10 @@ export function CuratePage(props: CuratePageProps) {
     }), [disabled, props.extContextButtons]);
 
   const curationTemplateButtons = React.useMemo(() => {
-    return props.extCurationTemplates.map(c => {
+    const arrays = props.extCurationTemplates.map(c => {
       return c.value.map((template, index) => {
         return (
-          <div
+          <label
             className='curate-page__right-dropdown-content simple-dropdown-button'
             key={index}
             onClick={() => {
@@ -180,14 +182,14 @@ export function CuratePage(props: CuratePageProps) {
             <div>
               {template.name}
             </div>
-          </div>
-
+          </label>
         );
       });
     });
+    return arrays.reduce((prev, cur) => prev.concat(cur), []);
   }, [props.extCurationTemplates]);
 
-  const onLoadCurationDrop = React.useCallback(async (event: React.DragEvent<Element>) => {
+  const onLoadCurationDrop = React.useCallback(async (event: React.DragEvent) => {
     const files = event.dataTransfer.files;
 
     if (files.length > 0) {
@@ -204,12 +206,50 @@ export function CuratePage(props: CuratePageProps) {
     }
   }, []);
 
+  const onToggleGroupCollapse = React.useCallback((group: string) => {
+    props.dispatchCurate({
+      type: CurateActionType.TOGGLE_GROUP_COLLAPSE,
+      group
+    });
+  }, [props.dispatchCurate]);
+
+  const onToggleGroupPin = React.useCallback((group: CurateGroup) => {
+    props.dispatchCurate({
+      type: CurateActionType.TOGGLE_GROUP_PIN,
+      group
+    });
+  }, [props.dispatchCurate]);
+
+  const createNewGroup = React.useCallback((group: string) => {
+    const newGroups = [...props.preferencesData.groups, { name: group, icon: '' }];
+    updatePreferencesData({
+      groups: newGroups
+    });
+    props.dispatchCurate({
+      type: CurateActionType.NEW_PERSISTANT_GROUP,
+      name: group,
+      icon: ''
+    });
+  }, [props.dispatchCurate]);
+
+  const moveCurationToGroup = React.useCallback((folder: string, group: string) => {
+    props.dispatchCurate({
+      type: CurateActionType.CHANGE_GROUP,
+      folder,
+      group,
+    });
+  }, [props.dispatchCurate]);
+
   const leftSidebar = React.useMemo(() => (
     <CuratePageLeftSidebar
       curate={props.curate}
       logoVersion={props.main.logoVersion}
       onCurationSelect={onLeftSidebarCurationClick}
-      onCurationDrop={onLoadCurationDrop} />
+      onCurationDrop={onLoadCurationDrop}
+      onToggleGroupCollapse={onToggleGroupCollapse}
+      onToggleGroupPin={onToggleGroupPin}
+      createNewGroup={createNewGroup}
+      moveCurationToGroup={moveCurationToGroup}/>
   ), [props.curate, props.main.logoVersion]);
 
   return (
@@ -235,12 +275,14 @@ export function CuratePage(props: CuratePageProps) {
       <div className='curate-page__right simple-scroll'>
         <div className='curate-page__right--section'>
           <div className='curate-page__right--header'>{strings.curate.headerFileOperations}</div>
-          <Dropdown
-            className='curate-page__right--button'
-            headerClassName='simple-dropdown-button'
-            text={strings.curate.newCurationFromTemplate}>
-            {curationTemplateButtons}
-          </Dropdown>
+          { curationTemplateButtons.length > 0 && (
+            <Dropdown
+              className='curate-page__right--button'
+              headerClassName='simple-dropdown-button'
+              text={strings.curate.newCurationFromTemplate}>
+              {curationTemplateButtons}
+            </Dropdown>
+          )}
           <SimpleButton
             className='curate-page__right--button'
             onClick={() => onNewCuration()}

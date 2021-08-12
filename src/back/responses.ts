@@ -1216,7 +1216,8 @@ export function registerRequestCallbacks(state: BackState): void {
       if (idx > -1) {
         state.loadedCurations[idx] = curation;
         // Save curation
-        saveCuration(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, curation.folder), curation);
+        saveCuration(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, curation.folder), curation)
+        .then(() => state.apiEmitters.curations.onDidCurationChange.fire(state.loadedCurations[idx]));
       }
     }
   });
@@ -1302,6 +1303,7 @@ export function registerRequestCallbacks(state: BackState): void {
 
       const data: LoadedCuration = {
         folder,
+        group: '',
         game: meta || {},
         addApps: [],
         thumbnail: await loadCurationIndexImage(path.join(curPath, 'logo.png')),

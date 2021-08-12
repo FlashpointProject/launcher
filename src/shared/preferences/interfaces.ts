@@ -1,6 +1,7 @@
 import { BrowsePageLayout } from '../BrowsePageLayout';
 import { GameOrderBy, GameOrderReverse } from '../order/interfaces';
 import { LogLevel } from '@shared/Log/interface';
+import {CurateGroup} from "@renderer/store/curate/types";
 
 /**
  * Contains state of all non-config settings the user can change in the application.
@@ -104,6 +105,8 @@ export type AppPreferencesData = {
   showBrokenGames: boolean;
   /** Whether home page boxes are minimized */
   minimizedHomePageBoxes: string[];
+  /** Persistant Curate groups */
+  groups: CurateGroup[];
 };
 
 export type AppPathOverride = {

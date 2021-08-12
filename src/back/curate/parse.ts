@@ -14,6 +14,8 @@ const { str } = Coerce;
 
 /** Return value type of the parseCurationMeta function. */
 export type ParsedCurationMeta = {
+  /** Group to sort into on Curate Page */
+  group: string;
   /** Meta data of the game. */
   game: CurationMeta;
   /** Meta data of the additional applications. */
@@ -42,6 +44,7 @@ export async function parseCurationMetaOld(text: string): Promise<ParsedCuration
 export async function parseCurationMetaFile(data: any, onError?: (error: string) => void): Promise<ParsedCurationMeta> {
   // Default parsed data
   const parsed: ParsedCurationMeta = {
+    group: '',
     game: {},
     addApps: [],
   };
@@ -86,6 +89,7 @@ export async function parseCurationMetaFile(data: any, onError?: (error: string)
   parser.prop('alternate titles',     v => parsed.game.alternateTitles     = arrayStr(v));
   parser.prop('version',              v => parsed.game.version             = str(v));
   parser.prop('library',              v => parsed.game.library             = str(v).toLowerCase()); // must be lower case
+  parser.prop('group',                v => parsed.group                    = str(v), true);
   if (lowerCaseData.genre)  { parsed.game.tags = await getTagsFromStr(arrayStr(lowerCaseData.genre), str(lowerCaseData['tag categories']));  }
   if (lowerCaseData.genres) { parsed.game.tags = await getTagsFromStr(arrayStr(lowerCaseData.genres), str(lowerCaseData['tag categories'])); }
   if (lowerCaseData.tags)   { parsed.game.tags = await getTagsFromStr(arrayStr(lowerCaseData.tags), str(lowerCaseData['tag categories']));   }

@@ -3,7 +3,16 @@ import { EditCurationMeta } from '@shared/curate/OLD_types';
 import { AddAppCurationMeta, CurationMeta, CurationState, CurationWarnings } from '@shared/curate/types';
 import { CurateActionType } from './enums';
 
+export type CurateGroup = {
+  name: string;
+  icon: string;
+}
+
 export type CurateState = {
+  /** Persistant Group Names */
+  groups: CurateGroup[];
+  /** Collapsed curation groups */
+  collapsedGroups: string[];
   /** Loaded curations. */
   curations: CurationState[];
   /** Folder of the currently selected curation (-1 if none). */
@@ -81,4 +90,18 @@ export type CurateAction = {
   type: CurateActionType.TOGGLE_CONTENT_NODE_VIEW;
   folder: string;
   tree: string[];
+} | {
+  type: CurateActionType.TOGGLE_GROUP_COLLAPSE;
+  group: string;
+} | {
+  type: CurateActionType.NEW_PERSISTANT_GROUP;
+  name: string;
+  icon: string;
+} | {
+  type: CurateActionType.CHANGE_GROUP;
+  folder: string;
+  group: string;
+} | {
+  type: CurateActionType.TOGGLE_GROUP_PIN;
+  group: CurateGroup;
 }

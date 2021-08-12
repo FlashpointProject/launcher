@@ -587,6 +587,15 @@ body {
 .curate-list-item--selected--secondary {
   background-color: var(--layout__game-item-background-selected--secondary);
 }
+.curate-list-group__hovered-curation {
+  background-color: var(--layout__secondary-background);
+}
+.curate-list-group__header {
+  background-color: var(--layout__secondary-background);
+}
+.curate-list-group__header-unpinned .icon__use {
+  fill: var(--layout__primary-background);
+}
 /* Curate Tag (Game tag for the curate page) */
 .curate-tag {
   border: 1px solid;

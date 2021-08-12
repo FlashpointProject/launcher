@@ -41,6 +41,8 @@ import { logFactory } from './util/logging';
   const store = configureStore(history, {
     main: createInitialMainState(),
     curate: {
+      groups: window.Shared.preferences.data.groups,
+      collapsedGroups: [],
       curations: window.Shared.initialCurations,
       current: '',
       selected: [],

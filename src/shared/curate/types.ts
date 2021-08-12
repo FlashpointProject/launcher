@@ -3,6 +3,7 @@ import { CurationIndexImage } from './OLD_types';
 
 export type LoadedCuration = {
   folder: string;
+  group: string;
   game: CurationMeta;
   addApps: AddAppCuration[];
   thumbnail: CurationIndexImage;

@@ -91,6 +91,7 @@ declare module 'flashpoint-launcher' {
     namespace curations {
         function getCurations(): CurationState[];
         function getCuration(folder: string): CurationState | undefined;
+        const onDidCurationChange: Event<CurationState>;
         function setCurationGameMeta(folder: string, meta: CurationMeta): boolean;
         function setCurationAddAppMeta(folder: string, key: string, meta: AddAppCurationMeta): boolean;
         function newCuration(): Promise<CurationState>;
@@ -269,6 +270,12 @@ declare module 'flashpoint-launcher' {
          * @param tag Tag data to save
          */
         function saveTag(tag: Tag): Promise<Tag>;
+        /**
+         * Updates a Tag with a new alias
+         * @param tagId Tag to add alias to
+         * @param alias Alias to add to tag
+         */
+        function addAliasToTag(tagId: number, alias: string): Promise<Tag>;
         /**
          * Removes a Tag (from all Games)
          * @param tagId ID of Tag to remove
@@ -1130,6 +1137,7 @@ declare module 'flashpoint-launcher' {
 
     export type LoadedCuration = {
         folder: string;
+        group: string;
         game: CurationMeta;
         addApps: AddAppCuration[];
         thumbnail: CurationIndexImage;
@@ -1139,6 +1147,19 @@ declare module 'flashpoint-launcher' {
     export type CurationState = LoadedCuration & {
         warnings: CurationWarnings;
         locked?: boolean;
+        contents: ContentTree;
+    }
+
+    export type ContentTree = {
+        root: ContentTreeNode;
+    }
+
+    export type ContentTreeNode = {
+        name: string;
+        expanded: boolean;
+        size?: number;
+        type: 'file' | 'directory';
+        children: ContentTreeNode[];
     }
 
     /** A set of warnings for things that should be fixed in a curation. */

@@ -225,6 +225,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     findTags: TagManager.findTags,
     createTag: TagManager.createTag,
     saveTag: TagManager.saveTag,
+    addAliasToTag: TagManager.addAliasToTag,
     deleteTag: (tagId: number, skipWarn?: boolean) => {
       const openDialogFunc = getOpenMessageBoxFunc(state.socketServer);
       if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
@@ -315,6 +316,9 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
       const curation = state.loadedCurations.find(c => c.folder === folder);
       return curation ? {...curation} : undefined;
     },
+    get onDidCurationChange() {
+      return apiEmitters.curations.onDidCurationChange.event;
+    },
     setCurationGameMeta: (folder: string, meta: flashpoint.CurationMeta) => {
       const curation = state.loadedCurations.find(c => c.folder === folder);
       if (curation) {
@@ -361,6 +365,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
 
         const data: LoadedCuration = {
           folder,
+          group: '',
           game: {},
           addApps: [],
           thumbnail: await loadCurationIndexImage(path.join(curPath, 'logo.png')),
@@ -377,11 +382,18 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
       }
       return {
         folder: uuid(),
+        group: '',
         game: {},
         addApps: [],
         thumbnail: { exists: false, version: 0 },
         screenshot: { exists: false, version: 0 },
-        warnings: {}
+        warnings: {},
+        contents: { root: {
+          name: '',
+          expanded: true,
+          type: 'directory',
+          children: []
+        } }
       };
     },
     deleteCuration: (folder: string) => {

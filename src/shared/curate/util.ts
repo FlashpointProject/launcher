@@ -13,6 +13,7 @@ const readdir = promisify(fs.readdir);
 
 /** Full path to a Curation's folder
  * @param curation: Curation to fetch folder from
+ * @param fpPath Flashpoint Path
  */
 export function getCurationFolder(curation: LoadedCuration, fpPath: string): string {
   return path.join(fpPath, 'Curations', 'Working', curation.folder);
@@ -20,6 +21,7 @@ export function getCurationFolder(curation: LoadedCuration, fpPath: string): str
 
 /** Full path to a Curation's content folder
  * @param key: Key to use
+ * @param fpPath Flashpoint Path
  */
 export function getContentFolderByKey(key: string, fpPath: string): string {
   return path.join(fpPath, 'Curations', 'Working', key, 'content');
@@ -28,6 +30,7 @@ export function getContentFolderByKey(key: string, fpPath: string): string {
 /**
  * Recursively index the content folder
  * @param contentPath Folder to index
+ * @param log Log function to use for errors
  */
 export async function indexContentFolder(contentPath: string, log: (content: string) => void): Promise<IndexedContent[]> {
   const content: IndexedContent[] = [];
@@ -39,7 +42,7 @@ export async function indexContentFolder(contentPath: string, log: (content: str
       console.error(error);
     });
   })
-  .catch((error) => {
+  .catch(() => {
     const msg = `Content folder given doesn't exist, skipping... (${contentPath})`;
     log(msg);
     console.log(msg);
