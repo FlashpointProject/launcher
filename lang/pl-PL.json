@@ -181,7 +181,7 @@
     "migrateExtremeGames": "Przenieś gry ekstremalne",
     "migrateExtremeGamesDesc": "Usuwa oznaczenie \"ekstremalne\" z każdej gry i przypisuje im tag \"LEGACY-Extreme\"",
     "massImportGameData": "Masowy import danych gry",
-    "massImportGameDataDesc": "Mass imports Game Data packs, attempting to match their filename to a games UUID.",
+    "massImportGameDataDesc": "Masowo importuje pakiety z danymi gry, próbując dopasować ich nazwę do UUID gier.",
     "servicesHeader": "Usługi w tle",
     "servicesMissing": "Brak aktywnych usług.",
     "running": "Działające",
