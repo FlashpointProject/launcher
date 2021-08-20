@@ -6,8 +6,8 @@
     "preferencesHeader": "偏好設定",
     "extremeGames": "成人内容",
     "extremeGamesDesc": "允許顯示包含於 'Extreme' 標籤篩選器組內的標籤和遊戲。",
-    "hideExtremeScreenshots": "Hide Extreme Screenshots",
-    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
+    "hideExtremeScreenshots": "隱藏成人截圖",
+    "hideExtremeScreenshotsDesc": "隱藏成人內容的截圖，點擊圖像框即可取消隱藏。",
     "enableEditing": "允許修改",
     "enableEditingDesc": "開啟修改遊戲與額外應用程式的功能，同時顯示其他修改相關之頁籤",
     "onDemandImages": "依需求下載圖片",
@@ -291,9 +291,9 @@
     "thereAreNoGames": "查無結果",
     "noGameMatchedDesc": "無符合搜尋條件之遊戲",
     "noGameMatchedSearch": "嘗試以較為寬鬆的關鍵字進行搜尋",
-    "mountParameters": "Mount Parameters",
-    "noMountParameters": "No Mount Parameters",
-    "showExtremeScreenshot": "Show Extreme Screenshot"
+    "mountParameters": "掛載參數",
+    "noMountParameters": "無掛載參數",
+    "showExtremeScreenshot": "顯示成人截圖"
   },
   "tags": {
     "name": "名稱",
