@@ -290,7 +290,7 @@
     "saveAndRestart": "Sauvegarder & redémarrer",
     "thereAreNoGames": "Il n'y a aucun jeux.",
     "noGameMatchedDesc": "Aucun titre de jeu correspond à votre recherche.",
-    "noGameMatchedSearch": "Essaie de chercher quelque chose de moins restrictif.",
+    "noGameMatchedSearch": "Essayez de chercher quelque chose moins restrictivement.",
     "mountParameters": "Paramètres de montage",
     "noMountParameters": "Aucun paramètre de montage",
     "showExtremeScreenshot": "Afficher la capture d'écran extrême"
@@ -313,7 +313,7 @@
     "setPrimaryAlias": "Définir l'alias principal",
     "mergeIntoTag": "Fusionner en tag",
     "mergeTag": "Fusionner les tags",
-    "makeAliasWhenMerged": "Faire de ce tag un alias ?",
+    "makeAliasWhenMerged": "Faire un alias de ce tag ?",
     "deleteTag": "Supprimer le tag",
     "deleteTagCategory": "Supprimer la catégorie tag",
     "locked": "Protégé pendant le traitement..."
@@ -328,7 +328,7 @@
     "symlinkCurationContent": "Lier symboliquement le dossier de contenu de curation (Nécessite les droits d'administrateur sous Windows, requis pour MAD4FP)",
     "useTagFilters": "Utiliser les filtres de tags dans les suggestions",
     "openCurationsFolder": "Dossier de conservations",
-    "openCurationsFolderDesc": "Ouvre le dossier de conservations dans explorer",
+    "openCurationsFolderDesc": "Ouvre le dossier de conservations dans l'explorateur",
     "openExportsFolder": "Conservations exportées",
     "openExportsFolderDesc": "Ouvre le dossier par défaut des conservations exportées.",
     "openImportedFolder": "Conservations importées",
