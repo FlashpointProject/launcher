@@ -367,7 +367,7 @@
     "import": "Importer",
     "contentFiles": "Fichiers Content",
     "warnings": "Avertissements",
-    "noLaunchCommand": "Le champ «Commande de lancement» est obligatoire. Merci de le remplir avant d'importer.",
+    "noLaunchCommand": "Le champ «Commande de lancement» est obligatoire. Remplissez le avant d'importer.",
     "invalidLaunchCommand": "Le champ «Commande de lancement» ne remplit pas les prérequis URL suivants :",
     "releaseDateInvalid": "La 'Date de sortie' doit suivre AAAA-MM-JJ (le mois et le jour sont optionnels).",
     "unusedApplicationPath": "'Chemin d'application' contient une valeur inutilisée. Assure-toi qu'elle est correctement orthographiée !",
