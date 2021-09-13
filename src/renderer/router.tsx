@@ -73,6 +73,7 @@ export type AppRouterProps = {
   extConfig: AppExtConfigData,
   services: IService[],
   logoVersion: number,
+  updateFeedMarkdown: string,
 };
 
 export class AppRouter extends React.Component<AppRouterProps> {
@@ -89,6 +90,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       randomGames: this.props.randomGames,
       rollRandomGames: this.props.rollRandomGames,
       logoVersion: this.props.logoVersion,
+      updateFeedMarkdown: this.props.updateFeedMarkdown,
     };
     const browseProps: ConnectedBrowsePageProps = {
       games: this.props.games,

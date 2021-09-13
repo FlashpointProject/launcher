@@ -662,6 +662,7 @@ export class App extends React.Component<AppProps> {
       extConfig: this.props.main.extConfig,
       logoVersion: this.props.main.logoVersion,
       services: this.props.main.services,
+      updateFeedMarkdown: window.Shared.initialUpdateFeedMarkdown,
     };
 
     // Render

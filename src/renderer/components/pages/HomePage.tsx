@@ -24,6 +24,8 @@ import { SizeProvider } from '../SizeProvider';
 import { ViewGame } from '@shared/back/types';
 import { HomePageBox } from '../HomePageBox';
 import { updatePreferencesData } from '@shared/preferences/util';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 type OwnProps = {
   platforms: Record<string, string[]>;
@@ -46,6 +48,8 @@ type OwnProps = {
   rollRandomGames: () => void;
   /** Update to clear platform icon cache */
   logoVersion: number;
+  /** Raw HTML of the Update page grabbed */
+  updateFeedMarkdown: string;
 };
 
 export type HomePageProps = OwnProps & WithPreferencesProps & WithSearchProps;
@@ -85,7 +89,7 @@ export function HomePage(props: HomePageProps) {
   }, [props.onLaunchGame]);
 
   const onHelpClick = React.useCallback(() => {
-    remote.shell.openItem(path.join(window.Shared.config.fullFlashpointPath, 'Manual.pdf'));
+    remote.shell.openPath(path.join(window.Shared.config.fullFlashpointPath, 'Manual.pdf'));
   }, [window.Shared.config.fullFlashpointPath]);
 
   const onHallOfFameClick = React.useCallback(() => {
@@ -348,6 +352,41 @@ export function HomePage(props: HomePageProps) {
     </SizeProvider>
   ), [strings, props.randomGames, onLaunchGame, props.rollRandomGames, props.preferencesData.minimizedHomePageBoxes, toggleMinimizeBox]);
 
+  const renderedUpdateFeed = React.useMemo(() => {
+    const markdownTest = `A paragraph with *emphasis* and **strong importance**.
+\n
+    | Feature    | Support              |
+    | ---------: | :------------------- |
+    | CommonMark | 100%                 |
+    | GFM        | 100% w/ 'remark-gfm' |
+    `
+    if (true) {
+      const markdownRender = <ReactMarkdown children={markdownTest} remarkPlugins={[remarkGfm]}/>;
+      return (
+        <HomePageBox
+          minimized={props.preferencesData.minimizedHomePageBoxes.includes('updateFeed')}
+          title={strings.updateFeedHeader}
+          cssKey='updateFeed'
+          onToggleMinimize={() => toggleMinimizeBox('updateFeed')}>
+          {markdownRender}
+        </HomePageBox>
+      );
+    } else {
+      const render = (
+        <i>No Updates Found</i>
+      );
+      return (
+        <HomePageBox
+          minimized={props.preferencesData.minimizedHomePageBoxes.includes('updateFeed')}
+          title={strings.updateFeedHeader}
+          cssKey='updateFeed'
+          onToggleMinimize={() => toggleMinimizeBox('updateFeed')}>
+          {render}
+        </HomePageBox>
+      );
+    }
+  }, [props.updateFeedMarkdown]);
+
   // Render
   return React.useMemo(() => (
     <div className='home-page simple-scroll'>
@@ -358,6 +397,8 @@ export function HomePage(props: HomePageProps) {
             className='fp-logo fp-logo--animated'
             style={{ animationDelay: logoDelay }} />
         </div>
+        {/* Update Feed */}
+        { renderedUpdateFeed }
         {/* Updates */}
         { renderedUpdates }
         {/* Quick Start */}

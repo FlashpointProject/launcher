@@ -119,6 +119,7 @@ export async function startBrowserMode(init: Init): Promise<void> {
       webPreferences: {
         nodeIntegration: false,
         plugins: true,
+        enableRemoteModule: true,
       },
     });
     window.setMenu(null); // Remove the menu bar

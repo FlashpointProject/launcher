@@ -129,6 +129,19 @@ export function registerRequestCallbacks(state: BackState): void {
       logoSets: Array.from(state.registry.logoSets.values()),
       extConfigs: await state.extensionsService.getContributions('configuration'),
       extConfig: state.extConfig,
+      updateFeedMarkdown: `A paragraph with *emphasis* and **strong importance**.
+
+      > A block quote with ~strikethrough~ and a URL: https://reactjs.org.
+      
+      * Lists
+      * [ ] todo
+      * [x] done
+      
+      A table:
+      
+      | a | b |
+      | - | - |
+      `
     };
 
   });

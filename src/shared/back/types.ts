@@ -372,6 +372,7 @@ export type GetRendererInitDataResponse = {
   logoSets: LogoSet[];
   extConfigs: ExtensionContribution<'configuration'>[];
   extConfig: AppExtConfigData;
+  updateFeedMarkdown: string;
 }
 
 export type GetSuggestionsResponseData = {
