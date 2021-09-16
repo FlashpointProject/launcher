@@ -90,7 +90,7 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   showBrokenGames: false,
   minimizedHomePageBoxes: [],
   hideExtremeScreenshots: true,
-  updateFeedUrl: "https://bluemaxima.org/flashpoint/updateFeed/stable.txt",
+  updateFeedUrl: 'https://bluemaxima.org/flashpoint/updateFeed/stable.txt',
 });
 
 /**
