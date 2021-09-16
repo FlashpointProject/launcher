@@ -513,7 +513,7 @@ function doWhereField(alias: string, query: SelectQueryBuilder<Game>, field: str
 
   // console.log(`W: ${count} - C: ${comparator} - F: ${field} - V:${value}`);
   // Do correct 'where' call
-  const ref = `field-${count}`;
+  const ref = `field_${count}`;
   if (count === 0) {
     query.where(`${alias}.${field} ${comparator} :${ref}`, { [ref]: formedValue });
   } else {
