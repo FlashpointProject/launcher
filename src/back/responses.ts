@@ -101,6 +101,19 @@ export function registerRequestCallbacks(state: BackState): void {
     // Fire after return has sent
     setTimeout(() => state.apiEmitters.onDidConnect.fire(), 100);
 
+    // Fetch update feed
+    let updateFeedMarkdown = "";
+    if (state.preferences.updateFeedUrl) {
+      const res = await axios.get(state.preferences.updateFeedUrl, { timeout: 3000 });
+      if (res.status === 200) {
+        updateFeedMarkdown = res.data;
+      } else {
+        log.debug('Launcher', 'Failed to fetch update feed, Status ' + res.status);
+      }
+    } else {
+      log.debug('Launcher', 'No Update Feed URL specified');
+    }
+
     return {
       preferences: state.preferences,
       config: state.config,
@@ -129,19 +142,7 @@ export function registerRequestCallbacks(state: BackState): void {
       logoSets: Array.from(state.registry.logoSets.values()),
       extConfigs: await state.extensionsService.getContributions('configuration'),
       extConfig: state.extConfig,
-      updateFeedMarkdown: `A paragraph with *emphasis* and **strong importance**.
-
-      > A block quote with ~strikethrough~ and a URL: https://reactjs.org.
-      
-      * Lists
-      * [ ] todo
-      * [x] done
-      
-      A table:
-      
-      | a | b |
-      | - | - |
-      `
+      updateFeedMarkdown: updateFeedMarkdown,
     };
 
   });

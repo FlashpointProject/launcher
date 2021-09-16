@@ -735,6 +735,9 @@ body {
   text-align: center;
   white-space: pre-line;
 }
+.home-page__box--updateFeed {
+  padding: unset;
+}
 /* HomePage Box Item - Platforms */
 .home-page__box-item--platforms {
   padding: 0 1rem;

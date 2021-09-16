@@ -90,6 +90,7 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   showBrokenGames: false,
   minimizedHomePageBoxes: [],
   hideExtremeScreenshots: true,
+  updateFeedUrl: "http://localhost:8000/stable.txt",
 });
 
 /**
@@ -149,6 +150,7 @@ export function overwritePreferenceData(
   parser.prop('nativePlatforms',             v => source.nativePlatforms             = strArray(v));
   parser.prop('disableExtremeGames',         v => source.disableExtremeGames         = !!v);
   parser.prop('showBrokenGames',             v => source.showBrokenGames             = !!v);
+  parser.prop('updateFeedUrl',               v => source.updateFeedUrl               = str(v));
   if (data.appPathOverrides) {
     const newAppPathOverrides: AppPathOverride[] = [];
     parser.prop('appPathOverrides').array((item, index) => newAppPathOverrides[index] = parseAppPathOverride(item));

@@ -353,15 +353,8 @@ export function HomePage(props: HomePageProps) {
   ), [strings, props.randomGames, onLaunchGame, props.rollRandomGames, props.preferencesData.minimizedHomePageBoxes, toggleMinimizeBox]);
 
   const renderedUpdateFeed = React.useMemo(() => {
-    const markdownTest = `A paragraph with *emphasis* and **strong importance**.
-\n
-    | Feature    | Support              |
-    | ---------: | :------------------- |
-    | CommonMark | 100%                 |
-    | GFM        | 100% w/ 'remark-gfm' |
-    `
-    if (true) {
-      const markdownRender = <ReactMarkdown children={markdownTest} remarkPlugins={[remarkGfm]}/>;
+    if (props.updateFeedMarkdown) {
+      const markdownRender = <ReactMarkdown children={props.updateFeedMarkdown} remarkPlugins={[remarkGfm]} linkTarget={'_blank'}/>;
       return (
         <HomePageBox
           minimized={props.preferencesData.minimizedHomePageBoxes.includes('updateFeed')}

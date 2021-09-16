@@ -106,6 +106,8 @@ export type AppPreferencesData = {
   minimizedHomePageBoxes: string[];
   /** Whether to hide extreme game screenshots by default */
   hideExtremeScreenshots: boolean;
+  /** URL to fetch for the update feed markdown */
+  updateFeedUrl: string;
 };
 
 export type AppPathOverride = {
