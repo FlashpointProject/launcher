@@ -102,7 +102,7 @@ export function registerRequestCallbacks(state: BackState): void {
     setTimeout(() => state.apiEmitters.onDidConnect.fire(), 100);
 
     // Fetch update feed
-    let updateFeedMarkdown = "";
+    let updateFeedMarkdown = '';
     if (state.preferences.updateFeedUrl) {
       const res = await axios.get(state.preferences.updateFeedUrl, { timeout: 3000 });
       if (res.status === 200) {
