@@ -111,7 +111,6 @@ export interface IMainWindowExternal {
   initialExtConfigs: ExtensionContribution<'configuration'>[];
   initialExtConfig: AppExtConfigData;
   initialUpdateFeedMarkdown: string;
-  
   /**
    * Wait for the preload to initialize.
    * @returns A promise that resolves when initialization is complete, or nothing if already initialized.
