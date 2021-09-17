@@ -104,12 +104,14 @@ export function registerRequestCallbacks(state: BackState): void {
     // Fetch update feed
     let updateFeedMarkdown = '';
     if (state.preferences.updateFeedUrl) {
-      const res = await axios.get(state.preferences.updateFeedUrl, { timeout: 3000 });
-      if (res.status === 200) {
-        updateFeedMarkdown = res.data;
-      } else {
-        log.debug('Launcher', 'Failed to fetch update feed, Status ' + res.status);
-      }
+      updateFeedMarkdown = await axios.get(state.preferences.updateFeedUrl, { timeout: 3000 })
+      .then((res) => {
+        return res.data;
+      })
+      .catch((err) => {
+        log.debug('Launcher', 'Failed to fetch update feed, ERROR: ' + err);
+        return '';
+      });
     } else {
       log.debug('Launcher', 'No Update Feed URL specified');
     }
