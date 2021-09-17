@@ -32,6 +32,9 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^1.2.36",
+    "@fortawesome/free-solid-svg-icons": "^5.15.4",
+    "@fortawesome/react-fontawesome": "^0.1.15",
     "axios": "0.21.2",
     "connected-react-router": "6.8.0",
     "electron-updater": "4.3.1",

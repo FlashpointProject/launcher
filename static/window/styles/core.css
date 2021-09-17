@@ -2091,7 +2091,7 @@ body {
 .config-page__tfg-extreme-logo {
   width: 1.75rem;
   height: 1.75rem;
-  margin-right: 0.2rem;
+  margin-right: 0.5rem;
   background-repeat: no-repeat;
   background-size: contain;
   background-position: center center;
@@ -2277,6 +2277,20 @@ body {
   font-size: 0.9em;
   margin-left: 0.5rem;
 }
+.setting__row__content--tag-filter-eye {
+  flex-shrink: 0;
+  user-select: none;
+  cursor: pointer;
+  margin-right: 0.5rem;
+}
+.setting__row__content--tag-filter-eye .svg-inline--fa {
+  width: 1.6rem;
+  height: 1.6rem;
+}
+.setting__row__content--tag-filter-eye--hidden {
+  opacity: 40%;
+}
+
 
 /** ----- Progress Components ------ **/
 /* Wrapper (all components) */

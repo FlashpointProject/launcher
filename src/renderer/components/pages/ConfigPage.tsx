@@ -28,6 +28,8 @@ import { FloatingContainer } from '../FloatingContainer';
 import { InputElement, InputField } from '../InputField';
 import { OpenIcon } from '../OpenIcon';
 import { TagFilterGroupEditor } from '../TagFilterGroupEditor';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
 type OwnProps = {
   /** List of all game libraries */
@@ -481,9 +483,12 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   className='config-page__tfg-extreme-logo' />
               ))
             }
-            <CheckBox
-              checked={item.enabled}
-              onToggle={(checked) => this.onTagFilterGroupEnabledToggle(index, checked)}/>
+            <div
+              title={item.enabled ? 'Hidden' : 'Visible'}
+              className={`setting__row__content--tag-filter-eye setting__row__content--tag-filter-eye--${item.enabled ? 'hidden' : 'visible'}`}
+              onClick={() => this.onTagFilterGroupEnabledToggle(index, !item.enabled)}>
+              <FontAwesomeIcon icon={item.enabled ? faEyeSlash : faEye} />
+            </div>
             <div className='setting__row__content--tag-filter-text'>
               <InputField
                 className='setting__row__content--tag-filter-title'
