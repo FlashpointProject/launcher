@@ -805,6 +805,7 @@ declare module 'flashpoint-launcher' {
 
     export type TagFilterGroup = {
         name: string;
+        description: string;
         /** Enabled */
         enabled: boolean;
         /** Tags to filter */

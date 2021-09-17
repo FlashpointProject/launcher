@@ -477,6 +477,7 @@ export async function downloadFile(url: string, filePath: string, onProgress?: (
 export function generateTagFilterGroup(tags?: string[]): TagFilterGroup {
   return {
     name: '',
+    description: '',
     enabled: true,
     extreme: false,
     tags: tags || [],

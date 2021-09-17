@@ -12,7 +12,7 @@ import { deepCopy } from '@shared/Util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { AppPathOverride, TagFilterGroup } from 'flashpoint-launcher';
 import * as React from 'react';
-import { getExtIconURL, getPlatformIconURL, isFlashpointValidCheck } from '../../Util';
+import {getExtIconURL, getExtremeIconURL, getPlatformIconURL, isFlashpointValidCheck} from '../../Util';
 import { LangContext } from '../../util/lang';
 import { CheckBox } from '../CheckBox';
 import { ConfigBox } from '../ConfigBox';
@@ -113,7 +113,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     const platformOptions = this.itemizePlatformOptionsMemo(this.props.platforms, this.props.preferencesData.nativePlatforms);
     const sources = this.renderSourcesMemo(this.context, this.state.sources);
     const appPathOverrides = this.renderAppPathOverridesMemo(this.props.preferencesData.appPathOverrides);
-    const tagFilters = this.renderTagFiltersMemo(this.props.preferencesData.tagFilters, this.props.preferencesData.browsePageShowExtreme, this.context);
+    const tagFilters = this.renderTagFiltersMemo(this.props.preferencesData.tagFilters, this.props.preferencesData.browsePageShowExtreme, this.context, this.props.logoVersion);
     const logoSetPreviewRows = this.renderLogoSetMemo(this.props.platforms, this.props.logoVersion);
     const extensions = this.renderExtensionsMemo(this.props.extensions, strings);
     const extConfigSections = this.renderExtensionConfigs(this.props.extConfigs, this.props.extConfig);
@@ -127,21 +127,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
           <div className='setting'>
             <p className='setting__title'>{strings.preferencesHeader}</p>
             <div className='setting__body'>
-              {/* Show Extreme Games */}
-              {((!this.props.preferencesData.disableExtremeGames)) ? (
-                <ConfigBoxCheckbox
-                  title={strings.extremeGames}
-                  description={strings.extremeGamesDesc}
-                  checked={this.props.preferencesData.browsePageShowExtreme}
-                  onToggle={this.onShowExtremeChange} />
-              ) : undefined }
-              {this.props.preferencesData.browsePageShowExtreme && (
-                <ConfigBoxCheckbox
-                  title={strings.hideExtremeScreenshots}
-                  description={strings.hideExtremeScreenshotsDesc}
-                  checked={this.props.preferencesData.hideExtremeScreenshots}
-                  onToggle={this.onToggleHideExtremeScreenshots} />
-              )}
               {/* Enable Editing */}
               <ConfigBoxCheckbox
                 title={strings.enableEditing}
@@ -163,6 +148,47 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 items={langOptions} />
             </div>
           </div>
+          {/* -- Content Filters -- */}
+          <div className='setting'>
+            <p className='setting__title'>{strings.contentFiltersHeader}</p>
+            <div className='setting__body'>
+              {/* Show Extreme Games */}
+              {((!this.props.preferencesData.disableExtremeGames)) ? (
+                <ConfigBoxCheckbox
+                  title={strings.extremeGames}
+                  description={strings.extremeGamesDesc}
+                  checked={this.props.preferencesData.browsePageShowExtreme}
+                  onToggle={this.onShowExtremeChange} />
+              ) : undefined }
+              {this.props.preferencesData.browsePageShowExtreme && (
+                <ConfigBoxCheckbox
+                  title={strings.hideExtremeScreenshots}
+                  description={strings.hideExtremeScreenshotsDesc}
+                  checked={this.props.preferencesData.hideExtremeScreenshots}
+                  onToggle={this.onToggleHideExtremeScreenshots} />
+              )}
+              {/* Tag Filter Groups */}
+              <ConfigBox
+                title={strings.tagFilterGroups}
+                description={strings.tagFilterGroupsDesc}
+                swapChildren={true}>
+                {tagFilters}
+                <div
+                  onClick={this.onNewTagFilterGroup}
+                  className='setting__row__content--override-row__new'>
+                  <OpenIcon
+                    icon='plus' />
+                </div>
+              </ConfigBox>
+              {/* Random Libraries */}
+              <ConfigBoxMultiSelect
+                title={strings.randomLibraries}
+                description={strings.randomLibrariesDesc}
+                text={strings.libraries}
+                onChange={this.onExcludedLibraryCheckboxChange}
+                items={libraryOptions} />
+            </div>
+          </div>
           {/* -- Flashpoint -- */}
           <div className='setting'>
             <p className='setting__title'>{strings.flashpointHeader}</p>
@@ -178,25 +204,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   onInputChange={this.onFlashpointPathChange}
                   isValid={this.state.isFlashpointPathValid} />
               </ConfigBox>
-              {/* Random Libraries */}
-              <ConfigBoxMultiSelect
-                title={strings.randomLibraries}
-                description={strings.randomLibrariesDesc}
-                text={strings.libraries}
-                onChange={this.onExcludedLibraryCheckboxChange}
-                items={libraryOptions} />
-              {/* Tag Filter Groups */}
-              <ConfigBox
-                title={strings.tagFilterGroups}
-                description={strings.tagFilterGroupsDesc} >
-                {tagFilters}
-                <div
-                  onClick={this.onNewTagFilterGroup}
-                  className='setting__row__content--override-row__new'>
-                  <OpenIcon
-                    icon='plus' />
-                </div>
-              </ConfigBox>
               {/* Native Platforms */}
               <ConfigBoxMultiSelect
                 title={strings.nativePlatforms}
@@ -207,7 +214,8 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
               {/* App Path Overrides */}
               <ConfigBox
                 title={strings.appPathOverrides}
-                description={strings.appPathOverridesDesc} >
+                description={strings.appPathOverridesDesc}
+                swapChildren={true} >
                 {appPathOverrides}
                 <div
                   onClick={this.onNewAppPathOverride}
@@ -218,7 +226,8 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
               </ConfigBox>
               <ConfigBox
                 title={'Sources'}
-                description={'List of all sources providing on-demand game data'}>
+                description={'List of all sources providing on-demand game data'}
+                swapChildren={true} >
                 <div className='setting__row__header--sources'>
                   <InputField
                     text={this.state.newSourceUrl}
@@ -323,6 +332,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
               onRemoveTag={(tag) => this.onRemoveTagEditorTagEvent(this.state.editingTagFilterGroupIdx || -1, tag)}
               onRemoveCategory={(category) => this.onRemoveTagEditorCategoryEvent(this.state.editingTagFilterGroupIdx || -1, category)}
               onChangeName={this.onChangeTagEditorNameEvent}
+              onChangeDescription={this.onChangeTagEditorDescriptionEvent}
               onToggleExtreme={this.onToggleExtremeTagEditorEvent}
               closeEditor={this.onCloseTagFilterGroupEditor}
               showExtreme={this.props.preferencesData.browsePageShowExtreme}
@@ -451,20 +461,40 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     });
   });
 
-  renderTagFiltersMemo = memoizeOne((tagFilters: TagFilterGroup[], showExtreme: boolean, strings: LangContainer) => {
+  renderTagFiltersMemo = memoizeOne((tagFilters: TagFilterGroup[], showExtreme: boolean, strings: LangContainer, logoVersion: number) => {
     return tagFilters.map((item, index) => {
       if (showExtreme ? true : !item.extreme) {
         return (
           <div
             className='setting__row__content--override-row'
             key={index}>
+            { showExtreme &&
+              (item.extreme ? (
+                <div
+                  key={index}
+                  className='config-page__tfg-extreme-logo'
+                  title={strings.browse.extreme}
+                  style={{ backgroundImage: `url('${getExtremeIconURL(logoVersion)}')` }} />
+              ) : (
+                <div
+                  key={index}
+                  className='config-page__tfg-extreme-logo' />
+              ))
+            }
             <CheckBox
               checked={item.enabled}
               onToggle={(checked) => this.onTagFilterGroupEnabledToggle(index, checked)}/>
-            <InputField
-              className='setting__row__content--tag-filter-title'
-              text={item.name} />
-            <i>
+            <div className='setting__row__content--tag-filter-text'>
+              <InputField
+                className='setting__row__content--tag-filter-title'
+                text={item.name} />
+              {item.description && (
+                <InputField
+                  className='setting__row__content--tag-filter-description'
+                  text={item.description} />
+              )}
+            </div>
+            <i className='setting__row__content--tag-filter-count'>
               {`${item.tags.length} Tags`}
             </i>
             <div
@@ -730,6 +760,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   onNewTagFilterGroup = (): void => {
     const tfg: TagFilterGroup = {
       name: 'New Group',
+      description: '',
       enabled: true,
       tags: [],
       categories: [],
@@ -788,6 +819,13 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   onChangeTagEditorNameEvent = (name: string): void => {
     if (this.state.editingTagFilterGroup) {
       const newTFG = {...this.state.editingTagFilterGroup, name };
+      this.setState({ editingTagFilterGroup: newTFG });
+    }
+  }
+
+  onChangeTagEditorDescriptionEvent = (description: string): void => {
+    if (this.state.editingTagFilterGroup) {
+      const newTFG = {...this.state.editingTagFilterGroup, description };
       this.setState({ editingTagFilterGroup: newTFG });
     }
   }

@@ -2088,6 +2088,15 @@ body {
   background-position: center center;
   margin: auto;
 }
+.config-page__tfg-extreme-logo {
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-right: 0.2rem;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center center;
+  flex-shrink: 0;
+}
 /* Setting */
 .setting {
   margin: 0 auto;
@@ -2118,13 +2127,21 @@ body {
 .setting__row__top {
   display: flex;
 }
-.setting__row__bottom {
+.setting__row__top--swapchildren {
+  display: block;
+}
+.setting__row__top--swapchildren > .setting__row__title {
+  width: 100%;
+  text-align: left;
+}
+.setting__row__description {
   padding: 0;
   border-top: 0;
   font-size: 0.8em;
   font-style: italic;
   text-align: left;
   user-select: none;
+  width: 100%;
 }
 .setting__row__title {
   flex: 0 1 auto;
@@ -2140,6 +2157,9 @@ body {
 }
 .setting__row__content {
   flex: 1 1 auto;
+}
+.setting__row__content--bottom-margin {
+  margin-bottom: 0.5rem;
 }
 .setting__row__content--right-align {
   text-align: right;
@@ -2200,13 +2220,11 @@ body {
 }
 .setting__row__content--override-row {
   display: flex;
-  margin: auto;
-  margin-bottom: 0.15rem;
+  margin-bottom: 0.35rem;
   flex: auto;
-  padding: 0 1rem;
   align-items: center;
 }
-.setting__row__content--override-row__seperator{
+.setting__row__content--override-row__seperator {
   margin-left: 0.3rem;
   margin-right: 0.3rem;
   font-weight: bold;
@@ -2222,17 +2240,13 @@ body {
   flex-shrink: 0;
 }
 .setting__row__content--override-row__new {
-  float: right;
-  margin-right: 1rem;
+  text-align: right;
 }
 .setting__row__ext-icon {
   background-size: contain;
   background-repeat: no-repeat;
   width: 4rem;
   margin-right: 0.5rem; 
-}
-.setting__row__header--sources {
-  margin-left: 1rem;
 }
 .setting__row__content--source-row {
   display: flex;
@@ -2246,10 +2260,22 @@ body {
   font-style: italic;
   margin-right: 0.5rem;
 }
-.setting__row__content--tag-filter-title {
+.setting__row__content--tag-filter-text {
   flex-grow: 1;
-  text-align: left;
   margin-left: 0.1rem;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+}
+.setting__row__content--tag-filter-count {
+  white-space: nowrap;
+}
+.setting__row__content--tag-filter-title {
+  font-weight: bold;
+}
+.setting__row__content--tag-filter-description {
+  font-size: 0.9em;
+  margin-left: 0.5rem;
 }
 
 /** ----- Progress Components ------ **/
