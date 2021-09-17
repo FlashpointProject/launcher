@@ -18,7 +18,7 @@
     "fallbackLanguageDesc": "Język używany w przypadku nieprzetłumaczenia czegoś na pierwszy.",
     "auto": "Automatycznie ({0})",
     "none": "Brak",
-    "contentFiltersHeader": "Content Filters",
+    "contentFiltersHeader": "Filtry treści",
     "flashpointHeader": "Flashpoint",
     "flashpointPath": "Ścieżka dostępu do Flashpointa",
     "flashpointPathDesc": "Ścieżka do folderu Flashpointa (może być względna)",
