@@ -354,7 +354,10 @@ export function HomePage(props: HomePageProps) {
 
   const renderedUpdateFeed = React.useMemo(() => {
     if (props.updateFeedMarkdown) {
-      const markdownRender = <ReactMarkdown children={props.updateFeedMarkdown} remarkPlugins={[remarkGfm]} linkTarget={'_blank'}/>;
+      const markdownRender =
+        <ReactMarkdown remarkPlugins={[remarkGfm]} linkTarget={'_blank'}>
+          {props.updateFeedMarkdown}
+        </ReactMarkdown>;
       return (
         <HomePageBox
           minimized={props.preferencesData.minimizedHomePageBoxes.includes('updateFeed')}
@@ -362,19 +365,6 @@ export function HomePage(props: HomePageProps) {
           cssKey='updateFeed'
           onToggleMinimize={() => toggleMinimizeBox('updateFeed')}>
           {markdownRender}
-        </HomePageBox>
-      );
-    } else {
-      const render = (
-        <i>No Updates Found</i>
-      );
-      return (
-        <HomePageBox
-          minimized={props.preferencesData.minimizedHomePageBoxes.includes('updateFeed')}
-          title={strings.updateFeedHeader}
-          cssKey='updateFeed'
-          onToggleMinimize={() => toggleMinimizeBox('updateFeed')}>
-          {render}
         </HomePageBox>
       );
     }
