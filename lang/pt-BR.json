@@ -5,7 +5,7 @@
     "configDesc": "(Você deve pressionar 'Salvar e Reiniciar' para que algumas alterações tenham efeito)",
     "preferencesHeader": "Preferências",
     "extremeGames": "Mostrar Filtros Extremos",
-    "extremeGamesDesc": "Allows Extreme tag filters to be toggled, created and modified to control content unsuitable for children.",
+    "extremeGamesDesc": "Permite que filtros de tag Extremos sejam ativados, criados e modificados para controlar conteúdo inadequado para crianças.",
     "hideExtremeScreenshots": "Ocultar Capturas de Tela Extremas",
     "hideExtremeScreenshotsDesc": "Oculta capturas de tela de conteúdo com tags Extremas, podem ser reveladas com um clique na caixa de imagem.",
     "enableEditing": "Habilitar Edição",
