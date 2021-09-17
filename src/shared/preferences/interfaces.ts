@@ -127,6 +127,7 @@ export type AppPreferencesDataMainWindow = {
 
 export type TagFilterGroup = {
   name: string;
+  description: string;
   /** Enabled */
   enabled: boolean;
   /** Tags to filter */

@@ -194,6 +194,7 @@ function parseAppPathOverride(parser: IObjectParserProp<any>): AppPathOverride {
 function parseTagFilterGroup(parser: IObjectParserProp<TagFilterGroup>): TagFilterGroup {
   const tfg: TagFilterGroup = {
     name: '',
+    description: '',
     enabled: false,
     tags: [],
     categories: [],
@@ -201,6 +202,7 @@ function parseTagFilterGroup(parser: IObjectParserProp<TagFilterGroup>): TagFilt
     extreme: false
   };
   parser.prop('name',    v => tfg.name    = str(v));
+  parser.prop('description', v => tfg.description = str(v));
   parser.prop('enabled', v => tfg.enabled = !!v);
   parser.prop('tags').arrayRaw((item) => tfg.tags.push(str(item)));
   parser.prop('categories').arrayRaw((item) => tfg.categories.push(str(item)));

@@ -493,6 +493,9 @@ export class App extends React.Component<AppProps> {
           type: MainActionType.RESPONSE_RANDOM_GAMES,
           games: data || [],
         });
+      })
+      .catch((error) => {
+        log.error('Launcher', `Error fetching random games - ${error}`);
       });
     }
 
@@ -569,6 +572,9 @@ export class App extends React.Component<AppProps> {
               total: data.total,
             });
           }
+        })
+        .catch((error) => {
+          log.error('Launcher', `Error getting browse view keyset - ${error}`);
         });
 
         // Flag meta as requested

@@ -23,6 +23,7 @@ const langTemplate = {
     'fallbackLanguageDesc',
     'auto',
     'none',
+    'contentFiltersHeader',
     'flashpointHeader',
     'flashpointPath',
     'flashpointPathDesc',
