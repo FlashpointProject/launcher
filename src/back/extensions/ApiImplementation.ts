@@ -82,7 +82,8 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     debug: (message: string) => addExtLog(newExtLog(extManifest, message, log.debug)),
     info:  (message: string) => addExtLog(newExtLog(extManifest, message, log.info)),
     warn:  (message: string) => addExtLog(newExtLog(extManifest, message, log.warn)),
-    error: (message: string) => addExtLog(newExtLog(extManifest, message, log.error))
+    error: (message: string) => addExtLog(newExtLog(extManifest, message, log.error)),
+    onLog: state.apiEmitters.onLog.event,
   };
 
   // Commands Namespace

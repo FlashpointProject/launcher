@@ -6,6 +6,7 @@ import { DownloadDetails } from './back/types';
 import { AppConfigData } from './config/interfaces';
 import { parseVariableString } from './utils/VariableString';
 import { throttle } from './utils/throttle';
+import ErrnoException = NodeJS.ErrnoException;
 
 const axios = axiosImport.default;
 
@@ -13,7 +14,7 @@ export function getFileServerURL() {
   return `http://${window.Shared.backUrl.hostname}:${window.Shared.fileServerPort}`;
 }
 
-type ReadFileOptions = { encoding?: string | null; flag?: string; } | string | undefined | null;
+type ReadFileOptions = { encoding?: BufferEncoding; flag?: string; } | BufferEncoding | undefined;
 
 /**
  * Read and parse a JSON file asynchronously.
@@ -23,7 +24,7 @@ type ReadFileOptions = { encoding?: string | null; flag?: string; } | string | u
  */
 export function readJsonFile(path: string, options?: ReadFileOptions): Promise<any> {
   return new Promise<any>((resolve, reject) => {
-    fs.readFile(path, options, (error, data) => {
+    fs.readFile(path, options, (error: ErrnoException | null, data: string | Buffer) => {
       // Check if reading file failed
       if (error) { return reject(error); }
       // Try to parse json (and callback error if it fails)
