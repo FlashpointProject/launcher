@@ -4,7 +4,7 @@
     "configHeader": "设置",
     "configDesc": "（您必须点击 '保存并重启' 才能使部分设置生效）",
     "preferencesHeader": "首选项",
-    "extremeGames": "Show Extreme Filters",
+    "extremeGames": "显示成人过滤器",
     "extremeGamesDesc": "Allows Extreme tag filters to be toggled, created and modified to control content unsuitable for children.",
     "hideExtremeScreenshots": "隐藏成人截图",
     "hideExtremeScreenshotsDesc": "隐藏成人内容的截图，点击图像框即可取消隐藏。",
