@@ -37,6 +37,7 @@ window.Shared = {
 
   close() {
     const currentWindow = remote.getCurrentWindow();
+    currentWindow.webContents.closeDevTools();
     currentWindow.close();
   },
 

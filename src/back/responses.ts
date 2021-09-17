@@ -1146,7 +1146,7 @@ export function registerRequestCallbacks(state: BackState): void {
       }
       loopFunc();
     })
-    await Promise.race([timeoutPromise])
+    await Promise.race([timeoutPromise, writePromise])
     .catch((err) => {
       /** Bit late to really do anything here */
     })
