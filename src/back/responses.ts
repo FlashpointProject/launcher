@@ -843,7 +843,9 @@ export function registerRequestCallbacks(state: BackState): void {
       }
 
       overwritePreferenceData(state.preferences, dif);
+      state.writeLocks += 1;
       await PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences);
+      state.writeLocks -= 1;
     }
     state.socketServer.send(event.client, BackOut.UPDATE_PREFERENCES_RESPONSE, state.preferences);
   });
@@ -1131,6 +1133,23 @@ export function registerRequestCallbacks(state: BackState): void {
 
   state.socketServer.register(BackIn.QUIT, async (event) => {
     // Unload all extensions before quitting
+    const timeoutPromise = new Promise((resolve, reject) => {
+      setTimeout(resolve, 20000);
+    });
+    const writePromise = new Promise((resolve, reject) => {
+      const loopFunc = () => {
+        if (state.writeLocks > 0) {
+          setTimeout(loopFunc, 100);
+        } else {
+          resolve();
+        }
+      }
+      loopFunc();
+    })
+    await Promise.race([timeoutPromise])
+    .catch((err) => {
+      /** Bit late to really do anything here */
+    })
     await state.extensionsService.unloadAll();
     state.socketServer.send(event.client, BackOut.QUIT);
     exit(state);

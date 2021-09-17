@@ -167,6 +167,7 @@ const state: BackState = {
   },
   extensionsService: createErrorProxy('extensionsService'),
   connection: undefined,
+  writeLocks: 0,
 };
 
 main();

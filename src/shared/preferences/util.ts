@@ -10,6 +10,7 @@ import { deepCopy, parseVarStr } from '../Util';
 import { Coerce } from '../utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
 import { AppPathOverride, AppPreferencesData, AppPreferencesDataMainWindow } from './interfaces';
+import {delayedThrottle} from "@shared/utils/throttle";
 
 export function updatePreferencesData(data: DeepPartial<AppPreferencesData>, send = true) {
   const preferences = window.Shared.preferences;
@@ -17,12 +18,17 @@ export function updatePreferencesData(data: DeepPartial<AppPreferencesData>, sen
   preferences.data = overwritePreferenceData(deepCopy(preferences.data), data);
   if (preferences.onUpdate) { preferences.onUpdate(); }
   if (send) {
-    window.Shared.back.send(
-      BackIn.UPDATE_PREFERENCES,
-      preferences.data
-    );
+    sendPrefs();
   }
 }
+
+const sendPrefs = delayedThrottle(() => {
+  const preferences = window.Shared.preferences;
+  window.Shared.back.send(
+    BackIn.UPDATE_PREFERENCES,
+    preferences.data
+  );
+}, 500);
 
 const { num, str } = Coerce;
 
