@@ -89,6 +89,7 @@ const langTemplate = {
     'helpInfo',
     'help',
     'upgradesHeader',
+    'updateFeedHeader',
     'installComplete',
     'alreadyInstalled',
     'download',

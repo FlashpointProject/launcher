@@ -368,6 +368,7 @@ export function main(init: Init): void {
       webPreferences: {
         preload: path.resolve(__dirname, './MainWindowPreload.js'),
         nodeIntegration: true,
+        enableRemoteModule: true,
       },
     });
     // Remove the menu bar
