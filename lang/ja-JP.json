@@ -82,6 +82,7 @@
     "helpInfo": "ヘルプが必要ですか？: {0}",
     "help": "マニュアルを読む",
     "upgradesHeader": "アップグレード",
+    "updateFeedHeader": "News Feed",
     "installComplete": "インストール完了",
     "alreadyInstalled": "既にインストールされています",
     "download": "ダウンロード",
