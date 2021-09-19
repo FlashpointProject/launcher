@@ -1143,13 +1143,13 @@ export function registerRequestCallbacks(state: BackState): void {
         } else {
           resolve();
         }
-      }
+      };
       loopFunc();
-    })
+    });
     await Promise.race([timeoutPromise, writePromise])
     .catch((err) => {
       /** Bit late to really do anything here */
-    })
+    });
     await state.extensionsService.unloadAll();
     state.socketServer.send(event.client, BackOut.QUIT);
     exit(state);

@@ -10,7 +10,7 @@ import { deepCopy, parseVarStr } from '../Util';
 import { Coerce } from '../utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
 import { AppPathOverride, AppPreferencesData, AppPreferencesDataMainWindow } from './interfaces';
-import {delayedThrottle} from "@shared/utils/throttle";
+import {delayedThrottle} from '@shared/utils/throttle';
 
 export function updatePreferencesData(data: DeepPartial<AppPreferencesData>, send = true) {
   const preferences = window.Shared.preferences;
