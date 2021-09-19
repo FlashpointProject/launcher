@@ -1,4 +1,4 @@
-// Type definitions for non-npm package flashpoint-launcher 10.0
+// Type definitions for non-npm package flashpoint-launcher 10.1
 // Project: Flashpoint Launcher https://github.com/FlashpointProject/launcher
 // Definitions by: Colin Berry <https://github.com/colin969>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
