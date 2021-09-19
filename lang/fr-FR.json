@@ -32,7 +32,7 @@
     "nativePlatformsDesc": "Utilisez des versions natives de ces plateformes. (Si non disponibles, Wine sera utilisé)",
     "tagFilterGroups": "Groupes de filtres de tags",
     "tagFilterGroupsDesc": "Ces groupes filtreront les suggestions et les jeux des résultats de recherche",
-    "editTagFilter": "Éditer le groupe de filtres de tags",
+    "editTagFilter": "Modifier le groupe de filtres de tags",
     "duplicateTagFilter": "Dupliquer le groupe de filtres de tags",
     "deleteTagFilter": "Supprimer le groupe de filtres de tags",
     "appPathOverrides": "Remplacements du chemin d'application",
