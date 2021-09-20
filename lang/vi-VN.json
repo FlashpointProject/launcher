@@ -32,9 +32,9 @@
     "nativePlatformsDesc": "Dùng bản gốc của các nền tảng này. (Nếu không có sẵn thì sẽ dùng Wine)",
     "tagFilterGroups": "Nhóm bộ lọc nhãn",
     "tagFilterGroupsDesc": "Các nhóm này sẽ ẩn các đề xuất và trò chơi khỏi kết quả tìm kiếm",
-    "editTagFilter": "Chỉnh sửa Nhóm Bộ lọc Thẻ",
-    "duplicateTagFilter": "Nhóm bộ lọc thẻ trùng lặp",
-    "deleteTagFilter": "Xóa nhóm bộ lọc thẻ",
+    "editTagFilter": "Chỉnh sửa nhóm bộ lọc nhãn",
+    "duplicateTagFilter": "Tạo bản sao của nhóm bộ lọc nhãn",
+    "deleteTagFilter": "Xóa nhóm bộ lọc nhãn",
     "appPathOverrides": "Ghi đè đường dẫn phần mềm",
     "appPathOverridesDesc": "Ghi đè đường dẫn phần mềm ở bên trái bằng đường dẫn ở bên phải khi khởi chạy trò chơi.",
     "visualsHeader": "Đồ hoạ",
@@ -50,7 +50,7 @@
     "showDeveloperTab": "Hiện mục Nhà phát triển",
     "showDeveloperTabDesc": "Hiện mục 'Nhà phát triển'. Hữu dụng nhất cho lập trình viên và người đóng góp.",
     "server": "Máy chủ",
-    "serverDesc": "Tiến trình máy chủ nào sẽ được khởi động khi mở trình khởi chạy.",
+    "serverDesc": "Tiến trình máy chủ sẽ khởi động khi mở trình khởi chạy.",
     "metadataServerHost": "Máy chủ lưu trữ siêu dữ liệu",
     "metadataServerHostDesc": "Máy chủ của máy chủ siêu dữ liệu. Được sử dụng để đồng bộ hóa thông tin trò chơi mới và cập nhật với trình khởi chạy.",
     "extensionsHeader": "Phần mở rộng",
@@ -61,7 +61,7 @@
     "extApplications": "Phần mềm",
     "saveAndRestart": "Lưu và Khởi động lại",
     "saveAndClose": "Lưu và thoát",
-    "tagFilterGroupEditor": "Trình chỉnh sửa nhóm bộ lọc thẻ"
+    "tagFilterGroupEditor": "Trình chỉnh sửa nhóm bộ lọc nhãn"
   },
   "home": {
     "updateHeader": "Cập nhật trình khởi chạy",
