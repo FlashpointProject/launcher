@@ -368,7 +368,7 @@ export function HomePage(props: HomePageProps) {
         </HomePageBox>
       );
     }
-  }, [props.updateFeedMarkdown]);
+  }, [strings, props.updateFeedMarkdown, props.preferencesData.minimizedHomePageBoxes, toggleMinimizeBox]);
 
   // Render
   return React.useMemo(() => (
