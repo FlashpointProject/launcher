@@ -478,7 +478,7 @@ function doWhereTitle(alias: string, query: SelectQueryBuilder<Game>, value: str
 
   const where = new Brackets(qb => {
     const q = and ? qb : query;
-    const ref = `generic-${count}`;
+    const ref = `generic_${count}`;
     q.where(  `${alias}.title ${comparator} :${ref}`,           { [ref]: formedValue });
     q.orWhere(`${alias}.alternateTitles ${comparator} :${ref}`, { [ref]: formedValue });
     q.orWhere(`${alias}.developer ${comparator} :${ref}`,       { [ref]: formedValue });
