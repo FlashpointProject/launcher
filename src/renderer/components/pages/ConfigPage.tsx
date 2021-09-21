@@ -141,6 +141,12 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 description={strings.onDemandImagesDesc}
                 checked={this.props.preferencesData.onDemandImages}
                 onToggle={this.onOnDemandImagesChange} />
+              {/* Fancy Animations */}
+              <ConfigBoxCheckbox
+                title={strings.fancyAnimations}
+                description={strings.fancyAnimationsDesc}
+                checked={this.props.preferencesData.fancyAnimations}
+                onToggle={this.onFancyAnimationsChange} />
               {/* Current Language */}
               <ConfigBoxSelect
                 title={strings.currentLanguage}
@@ -668,6 +674,10 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   onOnDemandImagesChange = (isChecked: boolean): void => {
     updatePreferencesData({ onDemandImages: isChecked });
+  }
+
+  onFancyAnimationsChange = (isChecked: boolean): void => {
+    updatePreferencesData({ fancyAnimations: isChecked });
   }
 
   onCurrentLanguageSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {

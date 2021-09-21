@@ -108,6 +108,8 @@ export type AppPreferencesData = {
   hideExtremeScreenshots: boolean;
   /** URL to fetch for the update feed markdown */
   updateFeedUrl: string;
+  /** Toggle for fancy client animations */
+  fancyAnimations: boolean;
 };
 
 export type AppPathOverride = {

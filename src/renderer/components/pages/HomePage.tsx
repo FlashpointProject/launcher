@@ -26,6 +26,7 @@ import { HomePageBox } from '../HomePageBox';
 import { updatePreferencesData } from '@shared/preferences/util';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import {FancyAnimation} from '@renderer/components/FancyAnimation';
 
 type OwnProps = {
   platforms: Record<string, string[]>;
@@ -376,9 +377,15 @@ export function HomePage(props: HomePageProps) {
       <div className='home-page__inner'>
         {/* Logo */}
         <div className='home-page__logo fp-logo-box'>
-          <div
-            className='fp-logo fp-logo--animated'
-            style={{ animationDelay: logoDelay }} />
+          <FancyAnimation
+            fancyRender={() => (
+              <div
+                className='fp-logo fp-logo--animated'
+                style={{ animationDelay: logoDelay }} />
+            )}
+            normalRender={() => (
+              <div className='fp-logo'/>
+            )}/>
         </div>
         {/* Update Feed */}
         { renderedUpdateFeed }

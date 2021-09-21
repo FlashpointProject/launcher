@@ -13,6 +13,8 @@ const langTemplate = {
     'extremeGamesDesc',
     'hideExtremeScreenshots',
     'hideExtremeScreenshotsDesc',
+    'fancyAnimations',
+    'fancyAnimationsDesc',
     'enableEditing',
     'enableEditingDesc',
     'onDemandImages',

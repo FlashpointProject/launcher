@@ -97,6 +97,7 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   minimizedHomePageBoxes: [],
   hideExtremeScreenshots: true,
   updateFeedUrl: 'https://bluemaxima.org/flashpoint/updateFeed/stable.txt',
+  fancyAnimations: true,
 });
 
 /**
@@ -157,6 +158,7 @@ export function overwritePreferenceData(
   parser.prop('disableExtremeGames',         v => source.disableExtremeGames         = !!v);
   parser.prop('showBrokenGames',             v => source.showBrokenGames             = !!v);
   parser.prop('updateFeedUrl',               v => source.updateFeedUrl               = str(v));
+  parser.prop('fancyAnimations',             v => source.fancyAnimations             = !!v);
   if (data.appPathOverrides) {
     const newAppPathOverrides: AppPathOverride[] = [];
     parser.prop('appPathOverrides').array((item, index) => newAppPathOverrides[index] = parseAppPathOverride(item));
