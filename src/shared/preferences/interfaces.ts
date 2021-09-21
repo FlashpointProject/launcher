@@ -110,6 +110,8 @@ export type AppPreferencesData = {
   updateFeedUrl: string;
   /** Toggle for fancy client animations */
   fancyAnimations: boolean;
+  /** Result limit for searches (0 if disabled) */
+  searchLimit: number;
 };
 
 export type AppPathOverride = {

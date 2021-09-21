@@ -30,6 +30,9 @@ import { OpenIcon } from '../OpenIcon';
 import { TagFilterGroupEditor } from '../TagFilterGroupEditor';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import { Coerce } from '@shared/utils/Coerce';
+
+const { num } = Coerce;
 
 type OwnProps = {
   /** List of all game libraries */
@@ -109,6 +112,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   render() {
     const strings = this.context.config;
     const autoString = formatString(strings.auto, this.props.localeCode);
+    const searchLimitOptions = this.itemizeSearchLimitOptionsMemo(this.context.config);
     const langOptions = this.itemizeLangOptionsMemo(this.props.availableLangs, autoString);
     const serverOptions = this.itemizeServerOptionsMemo(this.props.serverNames);
     const libraryOptions = this.itemizeLibraryOptionsMemo(this.props.libraries, this.props.preferencesData.excludedRandomLibraries, this.context.libraries);
@@ -147,6 +151,13 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 description={strings.fancyAnimationsDesc}
                 checked={this.props.preferencesData.fancyAnimations}
                 onToggle={this.onFancyAnimationsChange} />
+              {/* Short Search */}
+              <ConfigBoxSelect
+                title={strings.searchLimit}
+                description={strings.searchLimitDesc}
+                value={this.props.preferencesData.searchLimit.toString()}
+                onChange={this.onSearchLimitChange}
+                items={searchLimitOptions}/>
               {/* Current Language */}
               <ConfigBoxSelect
                 title={strings.currentLanguage}
@@ -371,6 +382,43 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       };
     })
   );
+
+  itemizeSearchLimitOptionsMemo = memoizeOne( (strings: LangContainer['config']) => {
+    return [
+      {
+        value: '0',
+        display: strings.searchLimitUnlimited
+      },
+      {
+        value: '50',
+        display: formatString(strings.searchLimitValue, '50')
+      },
+      {
+        value: '100',
+        display: formatString(strings.searchLimitValue, '100')
+      },
+      {
+        value: '250',
+        display: formatString(strings.searchLimitValue, '250')
+      },
+      {
+        value: '500',
+        display: formatString(strings.searchLimitValue, '500')
+      },
+      {
+        value: '1000',
+        display: formatString(strings.searchLimitValue, '1000')
+      },
+      {
+        value: '2500',
+        display: formatString(strings.searchLimitValue, '2500')
+      },
+      {
+        value: '5000',
+        display: formatString(strings.searchLimitValue, '5000')
+      }
+    ];
+  });
 
   itemizeLibraryOptionsMemo = memoizeOne((libraries: string[], excludedRandomLibraries: string[], libraryStrings: LangContainer['libraries']): MultiSelectItem[] => {
     return libraries.map(library => {
@@ -678,6 +726,10 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   onFancyAnimationsChange = (isChecked: boolean): void => {
     updatePreferencesData({ fancyAnimations: isChecked });
+  }
+
+  onSearchLimitChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
+    updatePreferencesData({ searchLimit: num(event.target.value) });
   }
 
   onCurrentLanguageSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {

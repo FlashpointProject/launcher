@@ -636,7 +636,7 @@ export function registerRequestCallbacks(state: BackState): void {
 
   state.socketServer.register(BackIn.BROWSE_VIEW_KEYSET, async (event, library, query) => {
     query.filter = adjustGameFilter(query.filter);
-    const result = await GameManager.findGamePageKeyset(query.filter, query.orderBy, query.orderReverse);
+    const result = await GameManager.findGamePageKeyset(query.filter, query.orderBy, query.orderReverse, query.searchLimit);
     return {
       keyset: result.keyset,
       total: result.total,
