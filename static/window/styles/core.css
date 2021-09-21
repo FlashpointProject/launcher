@@ -1228,7 +1228,10 @@ body {
   max-width: 100%;
 }
 .game-browser__sidebar--hidden {
-  display: none;
+  width: 0px !important;
+}
+.game-browser__sidebar--animated {
+  transition: 0.2s;
 }
 .game-browser__sidebar__inner {
   display: flex;
@@ -2624,6 +2627,9 @@ body {
   bottom: 0.05rem;
   background-color: #ccc;
   border-radius: 1rem;
+}
+
+.slider--animated {
   transition: .2s;
 }
 
@@ -2636,6 +2642,9 @@ body {
   bottom: 11.25%;
   background-color: white;
   border-radius: 50%;
+}
+
+.slider--animated:before {
   transition: .2s;
 }
 

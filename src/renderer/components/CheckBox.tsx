@@ -1,6 +1,7 @@
 import { Omit } from '@shared/interfaces';
 import * as React from 'react';
 import { useCallback } from 'react';
+import {FancyAnimation} from '@renderer/components/FancyAnimation';
 
 /** Props for an input element. */
 type InputProps = React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>;
@@ -22,7 +23,13 @@ export function CheckBox(props: CheckBoxProps) {
     <div
       className={(props.checked ? 'checkbox--checked' : 'checkbox--unchecked') + ' checkbox ' + rest.className}
       onClick={onChangeCallback}>
-      <div className={(props.checked ? 'slider slider-checked' : 'slider')}/>
+      <FancyAnimation
+        fancyRender={() => (
+          <div className={(props.checked ? 'slider slider--animated slider-checked' : 'slider slider--animated')}/>
+        )}
+        normalRender={() => (
+          <div className={(props.checked ? 'slider slider-checked' : 'slider')}/>
+        )}/>
     </div>
   );
 }
