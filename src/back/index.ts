@@ -125,6 +125,7 @@ const state: BackState = {
   apiEmitters: {
     onDidInit: new ApiEmitter<void>(),
     onDidConnect: new ApiEmitter<void>(),
+    onLog: new ApiEmitter<flashpoint.ILogEntry>(),
     games: {
       onWillLaunchGame: new ApiEmitter<flashpoint.GameLaunchInfo>(),
       onWillLaunchAddApp: new ApiEmitter<flashpoint.AdditionalApp>(),
@@ -166,6 +167,7 @@ const state: BackState = {
   },
   extensionsService: createErrorProxy('extensionsService'),
   connection: undefined,
+  writeLocks: 0,
 };
 
 main();
@@ -246,11 +248,11 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   const addLog = (entry: ILogEntry): number => { return state.log.push(entry) - 1; };
   global.log = {
-    trace: logFactory(LogLevel.TRACE, state.socketServer, addLog, state.logFile, state.verbose),
-    debug: logFactory(LogLevel.DEBUG, state.socketServer, addLog, state.logFile, state.verbose),
-    info:  logFactory(LogLevel.INFO,  state.socketServer, addLog, state.logFile, state.verbose),
-    warn:  logFactory(LogLevel.WARN,  state.socketServer, addLog, state.logFile, state.verbose),
-    error: logFactory(LogLevel.ERROR, state.socketServer, addLog, state.logFile, state.verbose)
+    trace: logFactory(LogLevel.TRACE, state.socketServer, addLog, state.logFile, state.verbose, state.apiEmitters.onLog),
+    debug: logFactory(LogLevel.DEBUG, state.socketServer, addLog, state.logFile, state.verbose, state.apiEmitters.onLog),
+    info:  logFactory(LogLevel.INFO,  state.socketServer, addLog, state.logFile, state.verbose, state.apiEmitters.onLog),
+    warn:  logFactory(LogLevel.WARN,  state.socketServer, addLog, state.logFile, state.verbose, state.apiEmitters.onLog),
+    error: logFactory(LogLevel.ERROR, state.socketServer, addLog, state.logFile, state.verbose, state.apiEmitters.onLog)
   };
 
   state.socketServer.secret = content.secret;

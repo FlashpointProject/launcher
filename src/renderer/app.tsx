@@ -493,6 +493,9 @@ export class App extends React.Component<AppProps> {
           type: MainActionType.RESPONSE_RANDOM_GAMES,
           games: data || [],
         });
+      })
+      .catch((error) => {
+        log.error('Launcher', `Error fetching random games - ${error}`);
       });
     }
 
@@ -503,7 +506,8 @@ export class App extends React.Component<AppProps> {
           view.query.orderBy                !== this.props.preferencesData.gamesOrderBy ||
           view.query.orderReverse           !== this.props.preferencesData.gamesOrder ||
           prevProps.main.playlists          !== this.props.main.playlists ||
-          view.tagFilters                   !== this.props.preferencesData.tagFilters) {
+          view.tagFilters                   !== this.props.preferencesData.tagFilters ||
+          view.query.searchLimit            !== this.props.preferencesData.searchLimit) {
         this.setViewQuery(library);
       }
       // Fetch pages
@@ -569,6 +573,9 @@ export class App extends React.Component<AppProps> {
               total: data.total,
             });
           }
+        })
+        .catch((error) => {
+          log.error('Launcher', `Error getting browse view keyset - ${error}`);
         });
 
         // Flag meta as requested
@@ -662,6 +669,7 @@ export class App extends React.Component<AppProps> {
       extConfig: this.props.main.extConfig,
       logoVersion: this.props.main.logoVersion,
       services: this.props.main.services,
+      updateFeedMarkdown: window.Shared.initialUpdateFeedMarkdown,
     };
 
     // Render
@@ -949,6 +957,7 @@ export class App extends React.Component<AppProps> {
       showExtreme: this.props.preferencesData.browsePageShowExtreme,
       orderBy: this.props.preferencesData.gamesOrderBy,
       orderReverse: this.props.preferencesData.gamesOrder,
+      searchLimit: this.props.preferencesData.searchLimit,
       playlistId: (arguments.length >= 2)
         ? playlistId
         : null,

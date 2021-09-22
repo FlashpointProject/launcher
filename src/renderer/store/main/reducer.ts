@@ -35,6 +35,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
               text: action.searchText,
               extreme: action.showExtreme,
               library: action.library,
+              searchLimit: action.searchLimit,
               playlistId: playlistId,
               order: {
                 orderBy: action.orderBy,

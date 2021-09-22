@@ -366,7 +366,7 @@ export function CurateBox(props: CurateBoxProps) {
   // Callback for when the open folder button is clicked
   const onOpenFolder = useCallback(() => {
     if (props.curation) {
-      remote.shell.openItem(getCurationFolder2(props.curation));
+      remote.shell.openPath(getCurationFolder2(props.curation));
     }
   }, [props.curation && props.curation.key]);
   // Callback for when the remove button is clicked

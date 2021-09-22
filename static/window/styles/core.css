@@ -735,6 +735,9 @@ body {
   text-align: center;
   white-space: pre-line;
 }
+.home-page__box--updateFeed {
+  padding: unset;
+}
 /* HomePage Box Item - Platforms */
 .home-page__box-item--platforms {
   padding: 0 1rem;
@@ -1225,7 +1228,10 @@ body {
   max-width: 100%;
 }
 .game-browser__sidebar--hidden {
-  display: none;
+  width: 0px !important;
+}
+.game-browser__sidebar--animated {
+  transition: 0.2s;
 }
 .game-browser__sidebar__inner {
   display: flex;
@@ -1258,7 +1264,6 @@ body {
   flex-direction: column;
   width: 100%;
   height: 100%;
-  padding: 0.5rem 0.8rem;
   font-size: 0.9rem;
 }
 /* Browse-Right-Sidebar Section */
@@ -1272,6 +1277,30 @@ body {
   display: flex;
   flex-direction: column;
   flex: 1 0 auto;
+}
+.browse-right-sidebar__top {
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  padding: 0.5rem 0.8rem 0 0.8rem;
+}
+.browse-right-sidebar__middle {
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-grow: 1;
+  min-height: 30%;
+  flex-direction: column;
+  padding: 0 0.8rem;
+}
+.browse-right-sidebar__bottom {
+  flex-shrink: 0;
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  padding: 0 0.8rem 0.5rem 0.8rem;
 }
 
 /* Browse-Right-Sidebar Play Button */
@@ -1627,8 +1656,21 @@ body {
   flex: 1 1 auto;
   overflow: hidden;
   user-select: none;
-  padding-left: 0.2rem;
   font-size: calc(0.8px * var(--height));
+  padding: 0.2rem;
+  cursor: pointer;
+}
+.game-list-header-column__title {
+  display: flex;
+  align-items: center;
+  padding: 0.2rem 1rem 0.2rem 0.2rem;
+}
+.game-list-header-column__sort-icon-wrapper {
+  margin-left: auto;
+}
+.game-list-header-column__sort-icon {
+  width: .65rem;
+  height: .65rem;
 }
 .game-list-header-column__divider,
 .tag-list-header-column__divider {
@@ -2072,7 +2114,17 @@ body {
   height: 2rem;
   background-repeat: no-repeat;
   background-size: contain;
+  background-position: center center;
   margin: auto;
+}
+.config-page__tfg-extreme-logo {
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-right: 0.5rem;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center center;
+  flex-shrink: 0;
 }
 /* Setting */
 .setting {
@@ -2104,13 +2156,21 @@ body {
 .setting__row__top {
   display: flex;
 }
-.setting__row__bottom {
+.setting__row__top--swapchildren {
+  display: block;
+}
+.setting__row__top--swapchildren > .setting__row__title {
+  width: 100%;
+  text-align: left;
+}
+.setting__row__description {
   padding: 0;
   border-top: 0;
   font-size: 0.8em;
   font-style: italic;
   text-align: left;
   user-select: none;
+  width: 100%;
 }
 .setting__row__title {
   flex: 0 1 auto;
@@ -2126,6 +2186,9 @@ body {
 }
 .setting__row__content {
   flex: 1 1 auto;
+}
+.setting__row__content--bottom-margin {
+  margin-bottom: 0.5rem;
 }
 .setting__row__content--right-align {
   text-align: right;
@@ -2186,13 +2249,11 @@ body {
 }
 .setting__row__content--override-row {
   display: flex;
-  margin: auto;
-  margin-bottom: 0.15rem;
+  margin-bottom: 0.35rem;
   flex: auto;
-  padding: 0 1rem;
   align-items: center;
 }
-.setting__row__content--override-row__seperator{
+.setting__row__content--override-row__seperator {
   margin-left: 0.3rem;
   margin-right: 0.3rem;
   font-weight: bold;
@@ -2208,17 +2269,13 @@ body {
   flex-shrink: 0;
 }
 .setting__row__content--override-row__new {
-  float: right;
-  margin-right: 1rem;
+  text-align: right;
 }
 .setting__row__ext-icon {
   background-size: contain;
   background-repeat: no-repeat;
   width: 4rem;
   margin-right: 0.5rem; 
-}
-.setting__row__header--sources {
-  margin-left: 1rem;
 }
 .setting__row__content--source-row {
   display: flex;
@@ -2232,11 +2289,37 @@ body {
   font-style: italic;
   margin-right: 0.5rem;
 }
-.setting__row__content--tag-filter-title {
+.setting__row__content--tag-filter-text {
   flex-grow: 1;
-  text-align: left;
   margin-left: 0.1rem;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
 }
+.setting__row__content--tag-filter-count {
+  white-space: nowrap;
+}
+.setting__row__content--tag-filter-title {
+  font-weight: bold;
+}
+.setting__row__content--tag-filter-description {
+  font-size: 0.9em;
+  margin-left: 0.5rem;
+}
+.setting__row__content--tag-filter-eye {
+  flex-shrink: 0;
+  user-select: none;
+  cursor: pointer;
+  margin-right: 0.5rem;
+}
+.setting__row__content--tag-filter-eye .svg-inline--fa {
+  width: 1.6rem;
+  height: 1.6rem;
+}
+.setting__row__content--tag-filter-eye--hidden {
+  opacity: 40%;
+}
+
 
 /** ----- Progress Components ------ **/
 /* Wrapper (all components) */
@@ -2567,6 +2650,9 @@ body {
   bottom: 0.05rem;
   background-color: #ccc;
   border-radius: 1rem;
+}
+
+.slider--animated {
   transition: .2s;
 }
 
@@ -2579,6 +2665,9 @@ body {
   bottom: 11.25%;
   background-color: white;
   border-radius: 50%;
+}
+
+.slider--animated:before {
   transition: .2s;
 }
 

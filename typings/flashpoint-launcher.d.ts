@@ -1,4 +1,4 @@
-// Type definitions for non-npm package flashpoint-launcher 10.0
+// Type definitions for non-npm package flashpoint-launcher 10.1
 // Project: Flashpoint Launcher https://github.com/FlashpointProject/launcher
 // Definitions by: Colin Berry <https://github.com/colin969>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
@@ -82,6 +82,7 @@ declare module 'flashpoint-launcher' {
         const info: (message: string) => void;
         const warn: (message: string) => void;
         const error: (message: string) => void;
+        const onLog: Event<ILogEntry>;
     }
 
     /** Collection of Command related API functions */
@@ -805,6 +806,7 @@ declare module 'flashpoint-launcher' {
 
     export type TagFilterGroup = {
         name: string;
+        description: string;
         /** Enabled */
         enabled: boolean;
         /** Tags to filter */
@@ -1135,4 +1137,20 @@ declare module 'flashpoint-launcher' {
     type DeepPartial<T> = {
         [K in keyof T]?: T[K] extends ObjectLike ? DeepPartial<T[K]> : T[K];
     };
+
+    /** A log entry _before_ it is added to the main log */
+    export type ILogPreEntry = {
+        /** Name of the source of the log entry (name of what added the log entry) */
+        source: string;
+        /** Content of the log entry */
+        content: string;
+    }
+
+    /** A log entry from the main log */
+    export type ILogEntry = ILogPreEntry & {
+        /** Timestamp of when the entry was added to the main's log */
+        timestamp: number;
+        /** Level of the log, 0-5, Trace, Info, Warn, Error, Fatal, Silent */
+        logLevel: number;
+    }
 }

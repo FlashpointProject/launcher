@@ -372,6 +372,7 @@ export type GetRendererInitDataResponse = {
   logoSets: LogoSet[];
   extConfigs: ExtensionContribution<'configuration'>[];
   extConfig: AppExtConfigData;
+  updateFeedMarkdown: string;
 }
 
 export type GetSuggestionsResponseData = {
@@ -452,6 +453,8 @@ export type SearchGamesOpts = {
   orderBy: GameOrderBy;
   /** The way to order the games. */
   orderReverse: GameOrderReverse;
+  /** Search Limit (0 if disabled) */
+  searchLimit: number;
 }
 
 /** Shorten version of Game returned in searches, makes for better performance. */

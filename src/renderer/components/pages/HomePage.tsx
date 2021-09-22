@@ -24,6 +24,9 @@ import { SizeProvider } from '../SizeProvider';
 import { ViewGame } from '@shared/back/types';
 import { HomePageBox } from '../HomePageBox';
 import { updatePreferencesData } from '@shared/preferences/util';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import {FancyAnimation} from '@renderer/components/FancyAnimation';
 
 type OwnProps = {
   platforms: Record<string, string[]>;
@@ -46,6 +49,8 @@ type OwnProps = {
   rollRandomGames: () => void;
   /** Update to clear platform icon cache */
   logoVersion: number;
+  /** Raw HTML of the Update page grabbed */
+  updateFeedMarkdown: string;
 };
 
 export type HomePageProps = OwnProps & WithPreferencesProps & WithSearchProps;
@@ -85,7 +90,7 @@ export function HomePage(props: HomePageProps) {
   }, [props.onLaunchGame]);
 
   const onHelpClick = React.useCallback(() => {
-    remote.shell.openItem(path.join(window.Shared.config.fullFlashpointPath, 'Manual.pdf'));
+    remote.shell.openPath(path.join(window.Shared.config.fullFlashpointPath, 'Manual.pdf'));
   }, [window.Shared.config.fullFlashpointPath]);
 
   const onHallOfFameClick = React.useCallback(() => {
@@ -348,16 +353,42 @@ export function HomePage(props: HomePageProps) {
     </SizeProvider>
   ), [strings, props.randomGames, onLaunchGame, props.rollRandomGames, props.preferencesData.minimizedHomePageBoxes, toggleMinimizeBox]);
 
+  const renderedUpdateFeed = React.useMemo(() => {
+    if (props.updateFeedMarkdown) {
+      const markdownRender =
+        <ReactMarkdown remarkPlugins={[remarkGfm]} linkTarget={'_blank'}>
+          {props.updateFeedMarkdown}
+        </ReactMarkdown>;
+      return (
+        <HomePageBox
+          minimized={props.preferencesData.minimizedHomePageBoxes.includes('updateFeed')}
+          title={strings.updateFeedHeader}
+          cssKey='updateFeed'
+          onToggleMinimize={() => toggleMinimizeBox('updateFeed')}>
+          {markdownRender}
+        </HomePageBox>
+      );
+    }
+  }, [strings, props.updateFeedMarkdown, props.preferencesData.minimizedHomePageBoxes, toggleMinimizeBox]);
+
   // Render
   return React.useMemo(() => (
     <div className='home-page simple-scroll'>
       <div className='home-page__inner'>
         {/* Logo */}
         <div className='home-page__logo fp-logo-box'>
-          <div
-            className='fp-logo fp-logo--animated'
-            style={{ animationDelay: logoDelay }} />
+          <FancyAnimation
+            fancyRender={() => (
+              <div
+                className='fp-logo fp-logo--animated'
+                style={{ animationDelay: logoDelay }} />
+            )}
+            normalRender={() => (
+              <div className='fp-logo'/>
+            )}/>
         </div>
+        {/* Update Feed */}
+        { renderedUpdateFeed }
         {/* Updates */}
         { renderedUpdates }
         {/* Quick Start */}
@@ -372,7 +403,7 @@ export function HomePage(props: HomePageProps) {
         { renderedExtras }
       </div>
     </div>
-  ), [renderedUpdates, renderedQuickStart, renderedUpgrades, renderedExtras, renderedNotes, renderedRandomGames]);
+  ), [renderedUpdates, renderedQuickStart, renderedUpgrades, renderedExtras, renderedNotes, renderedRandomGames, renderedUpdateFeed]);
 }
 
 function QuickStartItem(props: { icon?: OpenIconType, className?: string, children?: React.ReactNode }): JSX.Element {

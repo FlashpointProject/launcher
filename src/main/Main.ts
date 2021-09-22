@@ -140,7 +140,7 @@ export function main(init: Init): void {
         // Wait for process to initialize
         state.backProc.once('message', (port) => {
           if (port >= 0) {
-            state.backHost.port = port;
+            state.backHost.port = port as string;
             resolve();
           } else {
             reject(new Error('Failed to start server in back process. Perhaps because it could not find an available port.'));
@@ -368,6 +368,7 @@ export function main(init: Init): void {
       webPreferences: {
         preload: path.resolve(__dirname, './MainWindowPreload.js'),
         nodeIntegration: true,
+        enableRemoteModule: true,
       },
     });
     // Remove the menu bar

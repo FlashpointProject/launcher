@@ -406,21 +406,21 @@ export function CuratePage(props: CuratePageProps) {
   const onOpenCurationsFolder = useCallback(async () => {
     const curationsFolderPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations', 'Working');
     await fs.ensureDir(curationsFolderPath);
-    remote.shell.openItem(curationsFolderPath);
+    remote.shell.openPath(curationsFolderPath);
   }, []);
 
   // Open Exported Curations Folder
   const onOpenExportsFolder = useCallback(async () => {
     const exportsFolderPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations', 'Exported');
     await fs.ensureDir(exportsFolderPath);
-    remote.shell.openItem(exportsFolderPath);
+    remote.shell.openPath(exportsFolderPath);
   }, []);
 
   // Open Imported Curations Folder
   const onOpenImportedFolder = useCallback(async () => {
     const importedFolder = path.join(window.Shared.config.fullFlashpointPath, 'Curations', 'Imported');
     await fs.ensureDir(importedFolder);
-    remote.shell.openItem(importedFolder);
+    remote.shell.openPath(importedFolder);
   }, []);
 
   // On keep imports toggle

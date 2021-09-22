@@ -106,6 +106,12 @@ export type AppPreferencesData = {
   minimizedHomePageBoxes: string[];
   /** Whether to hide extreme game screenshots by default */
   hideExtremeScreenshots: boolean;
+  /** URL to fetch for the update feed markdown */
+  updateFeedUrl: string;
+  /** Toggle for fancy client animations */
+  fancyAnimations: boolean;
+  /** Result limit for searches (0 if disabled) */
+  searchLimit: number;
 };
 
 export type AppPathOverride = {
@@ -125,6 +131,7 @@ export type AppPreferencesDataMainWindow = {
 
 export type TagFilterGroup = {
   name: string;
+  description: string;
   /** Enabled */
   enabled: boolean;
   /** Tags to filter */

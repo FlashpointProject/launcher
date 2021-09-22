@@ -18,6 +18,7 @@ export type TagFilterGroupEditorProps = {
   onAddCategory: (category: string) => void;
   onRemoveCategory: (category: string) => void;
   onChangeName: (name: string) => void;
+  onChangeDescription: (description: string) => void;
   onToggleExtreme: (checked: boolean) => void;
   closeEditor: () => void;
   showExtreme: boolean;
@@ -116,6 +117,13 @@ export function TagFilterGroupEditor(props: TagFilterGroupEditorProps) {
           editable={true}
           onChange={(event) => props.onChangeName(event.target.value)}
           text={props.tagFilterGroup.name}/>
+        <div className='tag-filter-editor__content-header'>
+          {strings.tags.description}
+        </div>
+        <InputField
+          editable={true}
+          onChange={(event) => props.onChangeDescription(event.target.value)}
+          text={props.tagFilterGroup.description}/>
         <div className='tag-filter-editor__content'>
           <div className='tag-filter-editor__content-section'>
             <div className='tag-filter-editor__content-header'>

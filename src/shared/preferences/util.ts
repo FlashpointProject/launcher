@@ -10,6 +10,7 @@ import { deepCopy, parseVarStr } from '../Util';
 import { Coerce } from '../utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
 import { AppPathOverride, AppPreferencesData, AppPreferencesDataMainWindow } from './interfaces';
+import {delayedThrottle} from '@shared/utils/throttle';
 
 export function updatePreferencesData(data: DeepPartial<AppPreferencesData>, send = true) {
   const preferences = window.Shared.preferences;
@@ -17,12 +18,17 @@ export function updatePreferencesData(data: DeepPartial<AppPreferencesData>, sen
   preferences.data = overwritePreferenceData(deepCopy(preferences.data), data);
   if (preferences.onUpdate) { preferences.onUpdate(); }
   if (send) {
-    window.Shared.back.send(
-      BackIn.UPDATE_PREFERENCES,
-      preferences.data
-    );
+    sendPrefs();
   }
 }
+
+const sendPrefs = delayedThrottle(() => {
+  const preferences = window.Shared.preferences;
+  window.Shared.back.send(
+    BackIn.UPDATE_PREFERENCES,
+    preferences.data
+  );
+}, 500);
 
 const { num, str } = Coerce;
 
@@ -90,6 +96,9 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   showBrokenGames: false,
   minimizedHomePageBoxes: [],
   hideExtremeScreenshots: true,
+  updateFeedUrl: 'https://bluemaxima.org/flashpoint/updateFeed/stable.txt',
+  fancyAnimations: true,
+  searchLimit: 0,
 });
 
 /**
@@ -149,6 +158,9 @@ export function overwritePreferenceData(
   parser.prop('nativePlatforms',             v => source.nativePlatforms             = strArray(v));
   parser.prop('disableExtremeGames',         v => source.disableExtremeGames         = !!v);
   parser.prop('showBrokenGames',             v => source.showBrokenGames             = !!v);
+  parser.prop('updateFeedUrl',               v => source.updateFeedUrl               = str(v));
+  parser.prop('fancyAnimations',             v => source.fancyAnimations             = !!v);
+  parser.prop('searchLimit', v => source.searchLimit                 = num(v));
   if (data.appPathOverrides) {
     const newAppPathOverrides: AppPathOverride[] = [];
     parser.prop('appPathOverrides').array((item, index) => newAppPathOverrides[index] = parseAppPathOverride(item));
@@ -192,6 +204,7 @@ function parseAppPathOverride(parser: IObjectParserProp<any>): AppPathOverride {
 function parseTagFilterGroup(parser: IObjectParserProp<TagFilterGroup>): TagFilterGroup {
   const tfg: TagFilterGroup = {
     name: '',
+    description: '',
     enabled: false,
     tags: [],
     categories: [],
@@ -199,6 +212,7 @@ function parseTagFilterGroup(parser: IObjectParserProp<TagFilterGroup>): TagFilt
     extreme: false
   };
   parser.prop('name',    v => tfg.name    = str(v));
+  parser.prop('description', v => tfg.description = str(v));
   parser.prop('enabled', v => tfg.enabled = !!v);
   parser.prop('tags').arrayRaw((item) => tfg.tags.push(str(item)));
   parser.prop('categories').arrayRaw((item) => tfg.categories.push(str(item)));
