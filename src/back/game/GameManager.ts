@@ -105,7 +105,7 @@ export type GetPageKeysetResult = {
   total: number;
 }
 
-export async function findGamePageKeyset(filterOpts: FilterGameOpts, orderBy: GameOrderBy, direction: GameOrderReverse): Promise<GetPageKeysetResult> {
+export async function findGamePageKeyset(filterOpts: FilterGameOpts, orderBy: GameOrderBy, direction: GameOrderReverse, searchLimit?: number): Promise<GetPageKeysetResult> {
   // let startTime = Date.now();
 
   validateSqlName(orderBy);
@@ -123,6 +123,10 @@ export async function findGamePageKeyset(filterOpts: FilterGameOpts, orderBy: Ga
   .where('g.page_boundary = 1')
   .setParameters(subQ.getParameters());
 
+  if (searchLimit) {
+    query = query.limit(searchLimit);
+  }
+
   const raw = await query.getRawMany();
   const keyset: PageKeyset = {};
   for (const r of raw) {
@@ -134,10 +138,14 @@ export async function findGamePageKeyset(filterOpts: FilterGameOpts, orderBy: Ga
   // Count games
   let total = -1;
   // startTime = Date.now();
-  query = await getGameQuery('sub', filterOpts, orderBy, direction, 0, undefined, undefined);
+  const subGameQuery = await getGameQuery('sub', filterOpts, orderBy, direction, 0, searchLimit ? searchLimit : undefined, undefined);
+  query = getManager().createQueryBuilder()
+  .select('COUNT(*)')
+  .from('(' + subGameQuery.getQuery() + ')', 'g')
+  .setParameters(subGameQuery.getParameters())
+  .skip(0);
+  if (searchLimit) { query = query.limit(searchLimit); }
 
-  query.skip(0);
-  query.select('COUNT(*)');
   const result = await query.getRawOne();
   if (result) {
     total = Coerce.num(result['COUNT(*)']); // Coerce it, even though it is probably of type number or undefined
@@ -478,7 +486,7 @@ function doWhereTitle(alias: string, query: SelectQueryBuilder<Game>, value: str
 
   const where = new Brackets(qb => {
     const q = and ? qb : query;
-    const ref = `generic-${count}`;
+    const ref = `generic_${count}`;
     q.where(  `${alias}.title ${comparator} :${ref}`,           { [ref]: formedValue });
     q.orWhere(`${alias}.alternateTitles ${comparator} :${ref}`, { [ref]: formedValue });
     q.orWhere(`${alias}.developer ${comparator} :${ref}`,       { [ref]: formedValue });

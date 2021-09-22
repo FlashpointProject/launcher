@@ -131,6 +131,7 @@ export type MainAction = {
   library: string;
   searchText: string;
   showExtreme: boolean;
+  searchLimit: number;
   orderBy: GameOrderBy;
   orderReverse: GameOrderReverse;
   tagFilters: TagFilterGroup[];

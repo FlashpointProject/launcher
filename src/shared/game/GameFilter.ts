@@ -138,6 +138,8 @@ type FieldFilter = {
 export type FilterGameOpts = {
   /** Search query to filter by */
   searchQuery?: ParsedSearch;
+  /** Search Limit (0 if disabled */
+  searchLimit?: number;
   /** Playlist to limit the results to (no playlist limit will be applied if undefined). */
   playlistId?: string;
 };

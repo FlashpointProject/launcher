@@ -1228,7 +1228,10 @@ body {
   max-width: 100%;
 }
 .game-browser__sidebar--hidden {
-  display: none;
+  width: 0px !important;
+}
+.game-browser__sidebar--animated {
+  transition: 0.2s;
 }
 .game-browser__sidebar__inner {
   display: flex;
@@ -1261,7 +1264,6 @@ body {
   flex-direction: column;
   width: 100%;
   height: 100%;
-  padding: 0.5rem 0.8rem;
   font-size: 0.9rem;
 }
 /* Browse-Right-Sidebar Section */
@@ -1275,6 +1277,30 @@ body {
   display: flex;
   flex-direction: column;
   flex: 1 0 auto;
+}
+.browse-right-sidebar__top {
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  padding: 0.5rem 0.8rem 0 0.8rem;
+}
+.browse-right-sidebar__middle {
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-grow: 1;
+  min-height: 30%;
+  flex-direction: column;
+  padding: 0 0.8rem;
+}
+.browse-right-sidebar__bottom {
+  flex-shrink: 0;
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  padding: 0 0.8rem 0.5rem 0.8rem;
 }
 
 /* Browse-Right-Sidebar Play Button */
@@ -2624,6 +2650,9 @@ body {
   bottom: 0.05rem;
   background-color: #ccc;
   border-radius: 1rem;
+}
+
+.slider--animated {
   transition: .2s;
 }
 
@@ -2636,6 +2665,9 @@ body {
   bottom: 11.25%;
   background-color: white;
   border-radius: 50%;
+}
+
+.slider--animated:before {
   transition: .2s;
 }
 

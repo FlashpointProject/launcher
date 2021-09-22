@@ -10,7 +10,7 @@ import { deepCopy, parseVarStr } from '../Util';
 import { Coerce } from '../utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
 import { AppPathOverride, AppPreferencesData, AppPreferencesDataMainWindow } from './interfaces';
-import {delayedThrottle} from "@shared/utils/throttle";
+import {delayedThrottle} from '@shared/utils/throttle';
 
 export function updatePreferencesData(data: DeepPartial<AppPreferencesData>, send = true) {
   const preferences = window.Shared.preferences;
@@ -97,6 +97,8 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   minimizedHomePageBoxes: [],
   hideExtremeScreenshots: true,
   updateFeedUrl: 'https://bluemaxima.org/flashpoint/updateFeed/stable.txt',
+  fancyAnimations: true,
+  searchLimit: 0,
 });
 
 /**
@@ -157,6 +159,8 @@ export function overwritePreferenceData(
   parser.prop('disableExtremeGames',         v => source.disableExtremeGames         = !!v);
   parser.prop('showBrokenGames',             v => source.showBrokenGames             = !!v);
   parser.prop('updateFeedUrl',               v => source.updateFeedUrl               = str(v));
+  parser.prop('fancyAnimations',             v => source.fancyAnimations             = !!v);
+  parser.prop('searchLimit', v => source.searchLimit                 = num(v));
   if (data.appPathOverrides) {
     const newAppPathOverrides: AppPathOverride[] = [];
     parser.prop('appPathOverrides').array((item, index) => newAppPathOverrides[index] = parseAppPathOverride(item));

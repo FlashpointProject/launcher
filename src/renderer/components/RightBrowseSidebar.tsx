@@ -82,6 +82,7 @@ type RightBrowseSidebarState = {
   gameDataBrowserOpen: boolean;
   activeData?: GameData;
   showExtremeScreenshots: boolean;
+  middleScrollRef: React.RefObject<HTMLDivElement>;
 };
 
 export interface RightBrowseSidebar {
@@ -139,6 +140,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       tagSuggestions: [],
       gameDataBrowserOpen: false,
       showExtremeScreenshots: false,
+      middleScrollRef: React.createRef(),
     };
   }
 
@@ -167,6 +169,10 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     if (this.props.currentGame && this.props.currentGame.id !== (prevProps.currentGame && prevProps.currentGame.id)) {
       // Hide again when changing games
       this.setState({ showExtremeScreenshots: false });
+      // Move scroll bar of middle section back to the top
+      if (this.state.middleScrollRef.current) {
+        this.state.middleScrollRef.current.scrollTo(0,0);
+      }
     }
     if (prevProps.currentGame && prevProps.currentGame.activeDataId && (!this.props.currentGame || !this.props.currentGame.activeDataId)) {
       /** No game data, clear */
@@ -207,504 +213,512 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
         <div
           className={'browse-right-sidebar ' + (editable ? 'browse-right-sidebar--edit-enabled' : 'browse-right-sidebar--edit-disabled')}
           onKeyDown={this.onLocalKeyDown}>
-          {/* -- Title & Developer(s) -- */}
-          <div className='browse-right-sidebar__section'>
-            <div className='browse-right-sidebar__row'>
-              <div className='browse-right-sidebar__title-row'>
-                <div className='browse-right-sidebar__title-row__title'>
+          <div className='browse-right-sidebar__top'>
+            {/* -- Title & Developer(s) -- */}
+            <div className='browse-right-sidebar__section'>
+              <div className='browse-right-sidebar__row'>
+                <div className='browse-right-sidebar__title-row'>
+                  <div className='browse-right-sidebar__title-row__title'>
+                    <InputField
+                      text={game.title}
+                      placeholder={strings.noTitle}
+                      editable={editable}
+                      onChange={this.onTitleChange}
+                      onKeyDown={this.onInputKeyDown} />
+                  </div>
+                  <div className='browse-right-sidebar__title-row__buttons'>
+                    { editDisabled ? (
+                      <>
+                        {/* "Remove From Playlist" Button */}
+                        { currentPlaylistEntry ? removeGameFromPlaylistElement : undefined }
+                      </>
+                    ) : (
+                      <>
+                        { isEditing ? ( /* While Editing */
+                          <>
+                            {/* "Save" Button */}
+                            <div
+                              className='browse-right-sidebar__title-row__buttons__save-button'
+                              title={strings.saveChanges}
+                              onClick={this.props.onSaveGame}>
+                              <OpenIcon icon='check' />
+                            </div>
+                            {/* "Discard" Button */}
+                            <div
+                              className='browse-right-sidebar__title-row__buttons__discard-button'
+                              title={strings.discardChanges}
+                              onClick={this.props.onDiscardClick}>
+                              <OpenIcon icon='x' />
+                            </div>
+                          </>
+                        ) : ( /* While NOT Editing */
+                          <>
+                            {/* "Edit" Button */}
+                            { isPlaceholder ? undefined : (
+                              <div
+                                className='browse-right-sidebar__title-row__buttons__edit-button'
+                                title={strings.editGame}
+                                onClick={this.props.onEditClick}>
+                                <OpenIcon icon='pencil' />
+                              </div>
+                            ) }
+                            {/* "Remove From Playlist" Button */}
+                            { currentPlaylistEntry ? removeGameFromPlaylistElement : undefined }
+                            {/* "Delete Game" Button */}
+                            { (isPlaceholder || isNewGame || currentPlaylistEntry) ? undefined : (
+                              <ConfirmElement
+                                message={allStrings.dialog.deleteGame}
+                                onConfirm={this.onDeleteGameClick}
+                                render={this.renderDeleteGameButton}
+                                extra={strings} />
+                            ) }
+                          </>
+                        ) }
+                      </>
+                    ) }
+                  </div>
+                </div>
+              </div>
+              { isPlaceholder ? undefined : (
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                  <p>{strings.by} </p>
                   <InputField
-                    text={game.title}
-                    placeholder={strings.noTitle}
+                    text={game.developer}
+                    placeholder={strings.noDeveloper}
+                    className='browse-right-sidebar__searchable'
                     editable={editable}
-                    onChange={this.onTitleChange}
+                    onChange={this.onDeveloperChange}
+                    onClick={this.onDeveloperClick}
                     onKeyDown={this.onInputKeyDown} />
                 </div>
-                <div className='browse-right-sidebar__title-row__buttons'>
-                  { editDisabled ? (
-                    <>
-                      {/* "Remove From Playlist" Button */}
-                      { currentPlaylistEntry ? removeGameFromPlaylistElement : undefined }
-                    </>
-                  ) : (
-                    <>
-                      { isEditing ? ( /* While Editing */
-                        <>
-                          {/* "Save" Button */}
-                          <div
-                            className='browse-right-sidebar__title-row__buttons__save-button'
-                            title={strings.saveChanges}
-                            onClick={this.props.onSaveGame}>
-                            <OpenIcon icon='check' />
-                          </div>
-                          {/* "Discard" Button */}
-                          <div
-                            className='browse-right-sidebar__title-row__buttons__discard-button'
-                            title={strings.discardChanges}
-                            onClick={this.props.onDiscardClick}>
-                            <OpenIcon icon='x' />
-                          </div>
-                        </>
-                      ) : ( /* While NOT Editing */
-                        <>
-                          {/* "Edit" Button */}
-                          { isPlaceholder ? undefined : (
-                            <div
-                              className='browse-right-sidebar__title-row__buttons__edit-button'
-                              title={strings.editGame}
-                              onClick={this.props.onEditClick}>
-                              <OpenIcon icon='pencil' />
-                            </div>
-                          ) }
-                          {/* "Remove From Playlist" Button */}
-                          { currentPlaylistEntry ? removeGameFromPlaylistElement : undefined }
-                          {/* "Delete Game" Button */}
-                          { (isPlaceholder || isNewGame || currentPlaylistEntry) ? undefined : (
-                            <ConfirmElement
-                              message={allStrings.dialog.deleteGame}
-                              onConfirm={this.onDeleteGameClick}
-                              render={this.renderDeleteGameButton}
-                              extra={strings} />
-                          ) }
-                        </>
-                      ) }
-                    </>
-                  ) }
+              ) }
+            </div>
+            {/** Mini download info */}
+            <div className='browse-right-sidebar__mini-download-info'>
+              <div className='browse-right-sidebar__mini-download-info__state'>
+                {this.state.activeData ? (this.state.activeData.presentOnDisk ? strings.installed : strings.notInstalled): strings.legacyGame}
+              </div>
+              { this.state.activeData && (
+                <div className='browse-right-sidebar__mini-download-info__size'>
+                  {`${sizeToString(this.state.activeData.size)}`}
                 </div>
-              </div>
+              )}
             </div>
-            { isPlaceholder ? undefined : (
-              <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                <p>{strings.by} </p>
-                <InputField
-                  text={game.developer}
-                  placeholder={strings.noDeveloper}
-                  className='browse-right-sidebar__searchable'
-                  editable={editable}
-                  onChange={this.onDeveloperChange}
-                  onClick={this.onDeveloperClick}
-                  onKeyDown={this.onInputKeyDown} />
-              </div>
-            ) }
-          </div>
-          {/** Mini download info */}
-          <div className='browse-right-sidebar__mini-download-info'>
-            <div className='browse-right-sidebar__mini-download-info__state'>
-              {this.state.activeData ? (this.state.activeData.presentOnDisk ? strings.installed : strings.notInstalled): strings.legacyGame}
-            </div>
-            { this.state.activeData && (
-              <div className='browse-right-sidebar__mini-download-info__size'>
-                {`${sizeToString(this.state.activeData.size)}`}
-              </div>
-            )}
-          </div>
-          {/* -- Play Button -- */}
-          { isPlaceholder ? undefined :
-            this.props.gameRunning ? (
-              <div
-                className='browse-right-sidebar__play-button--running'
-                onClick={() => {
-                  if (this.props.currentGame) {
-                    window.Shared.back.send(BackIn.SERVICE_ACTION, ProcessAction.STOP, `game.${this.props.currentGame.id}`);
-                  }
-                }}>
-                {strings.stop}
-              </div>
-            ) : (this.state.activeData && !this.state.activeData.presentOnDisk) ? (
-              <div
-                className='browse-right-sidebar__play-button--download'
-                onClick={() => {
-                  this.props.currentGame && this.props.onGameLaunch(this.props.currentGame.id)
-                  .then(this.onForceUpdateGameData);
-                }}>
-                {strings.download}
-              </div>
-            )
-              : (
-                <div className='browse-right-sidebar__play-button' >
-                  <div className='browse-right-sidebar__play-button--text'
-                    onClick={() => this.props.currentGame && this.props.onGameLaunch(this.props.currentGame.id)} >
-                    {strings.play}
-                  </div>
-                  { this.state.activeData ? (
-                    <div className='browse-right-sidebar__play-button--dropdown'
-                      onClick={() =>
-                        openContextMenu([{
-                          label: strings.uninstallGame,
-                          click: async () => {
-                            if (this.state.activeData) {
-                              const res = await this.props.openConfirmDialog(allStrings.dialog.uninstallGame, [allStrings.misc.yes, allStrings.misc.no], 1);
-                              if (res === 0) {
-                                window.Shared.back.request(BackIn.UNINSTALL_GAME_DATA, this.state.activeData.id)
-                                .then((game) => {
-                                  this.onForceUpdateGameData();
-                                })
-                                .catch((error) => {
-                                  alert(allStrings.dialog.unableToUninstallGameData);
-                                });
-                              }
-                            }
-                          }
-                        }])
-                      }>
-                      <OpenIcon icon='chevron-bottom'/>
-                    </div>
-                  ) : undefined }
-
+            {/* -- Play Button -- */}
+            { isPlaceholder ? undefined :
+              this.props.gameRunning ? (
+                <div
+                  className='browse-right-sidebar__play-button--running'
+                  onClick={() => {
+                    if (this.props.currentGame) {
+                      window.Shared.back.send(BackIn.SERVICE_ACTION, ProcessAction.STOP, `game.${this.props.currentGame.id}`);
+                    }
+                  }}>
+                  {strings.stop}
+                </div>
+              ) : (this.state.activeData && !this.state.activeData.presentOnDisk) ? (
+                <div
+                  className='browse-right-sidebar__play-button--download'
+                  onClick={() => {
+                    this.props.currentGame && this.props.onGameLaunch(this.props.currentGame.id)
+                    .then(this.onForceUpdateGameData);
+                  }}>
+                  {strings.download}
                 </div>
               )
-          }
-          {/* -- Most Fields -- */}
-          { isPlaceholder ? undefined : (
-            <>
-              <div className='browse-right-sidebar__section'>
-                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                  <p>{strings.alternateTitles}: </p>
-                  <InputField
-                    text={game.alternateTitles}
-                    placeholder={strings.noAlternateTitles}
-                    className='browse-right-sidebar__searchable'
-                    onChange={this.onAlternateTitlesChange}
-                    editable={editable}
-                    onKeyDown={this.onInputKeyDown} />
-                </div>
-                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                  <p>{strings.tags}: </p>
-                  <TagInputField
-                    text={this.state.currentTagInput}
-                    placeholder={strings.enterTag}
-                    className='browse-right-sidebar__searchable'
-                    editable={editable}
-                    onChange={this.onCurrentTagChange}
-                    tags={game.tags}
-                    suggestions={this.state.tagSuggestions}
-                    categories={tagCategories}
-                    onTagSelect={this.onTagSelect}
-                    onTagEditableSelect={this.onRemoveTag}
-                    onTagSuggestionSelect={this.onAddTagSuggestion}
-                    onTagSubmit={this.onAddTagByString}
-                    onKeyDown={this.onInputKeyDown} />
-                </div>
-                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                  <p>{strings.series}: </p>
-                  <InputField
-                    text={game.series}
-                    placeholder={strings.noSeries}
-                    className='browse-right-sidebar__searchable'
-                    onChange={this.onSeriesChange}
-                    editable={editable}
-                    onClick={this.onSeriesClick}
-                    onKeyDown={this.onInputKeyDown} />
-                </div>
-                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                  <p>{strings.publisher}: </p>
-                  <InputField
-                    text={game.publisher}
-                    placeholder={strings.noPublisher}
-                    className='browse-right-sidebar__searchable'
-                    onChange={this.onPublisherChange}
-                    editable={editable}
-                    onClick={this.onPublisherClick}
-                    onKeyDown={this.onInputKeyDown} />
-                </div>
-                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                  <p>{strings.source}: </p>
-                  <InputField
-                    text={game.source}
-                    placeholder={strings.noSource}
-                    onChange={this.onSourceChange}
-                    className='browse-right-sidebar__searchable'
-                    editable={editable}
-                    onClick={this.onSourceClick}
-                    onKeyDown={this.onInputKeyDown} />
-                </div>
-                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                  <p>{strings.platform}: </p>
-                  <DropdownInputField
-                    text={game.platform}
-                    placeholder={strings.noPlatform}
-                    onChange={this.onPlatformChange}
-                    className='browse-right-sidebar__searchable'
-                    editable={editable}
-                    items={suggestions && filterSuggestions(suggestions.platform) || []}
-                    onItemSelect={text => this.props.onEditGame({ platform: text })}
-                    onClick={this.onPlatformClick}
-                    onKeyDown={this.onInputKeyDown} />
-                </div>
-                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                  <p>{strings.playMode}: </p>
-                  <DropdownInputField
-                    text={game.playMode}
-                    placeholder={strings.noPlayMode}
-                    onChange={this.onPlayModeChange}
-                    className='browse-right-sidebar__searchable'
-                    editable={editable}
-                    items={suggestions && filterSuggestions(suggestions.playMode) || []}
-                    onItemSelect={text => this.props.onEditGame({ playMode: text })}
-                    onClick={this.onPlayModeClick}
-                    onKeyDown={this.onInputKeyDown} />
+                : (
+                  <div className='browse-right-sidebar__play-button' >
+                    <div className='browse-right-sidebar__play-button--text'
+                      onClick={() => this.props.currentGame && this.props.onGameLaunch(this.props.currentGame.id)} >
+                      {strings.play}
+                    </div>
+                    { this.state.activeData ? (
+                      <div className='browse-right-sidebar__play-button--dropdown'
+                        onClick={() =>
+                          openContextMenu([{
+                            label: strings.uninstallGame,
+                            click: async () => {
+                              if (this.state.activeData) {
+                                const res = await this.props.openConfirmDialog(allStrings.dialog.uninstallGame, [allStrings.misc.yes, allStrings.misc.no], 1);
+                                if (res === 0) {
+                                  window.Shared.back.request(BackIn.UNINSTALL_GAME_DATA, this.state.activeData.id)
+                                  .then((game) => {
+                                    this.onForceUpdateGameData();
+                                  })
+                                  .catch((error) => {
+                                    alert(allStrings.dialog.unableToUninstallGameData);
+                                  });
+                                }
+                              }
+                            }
+                          }])
+                        }>
+                        <OpenIcon icon='chevron-bottom'/>
+                      </div>
+                    ) : undefined }
 
-                </div>
-                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                  <p>{strings.status}: </p>
-                  <DropdownInputField
-                    text={game.status}
-                    placeholder={strings.noStatus}
-                    onChange={this.onStatusChange}
-                    className='browse-right-sidebar__searchable'
-                    editable={editable}
-                    items={suggestions && filterSuggestions(suggestions.status) || []}
-                    onItemSelect={text => this.props.onEditGame({ status: text })}
-                    onClick={this.onStatusClick}
-                    onKeyDown={this.onInputKeyDown} />
-                </div>
-                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                  <p>{strings.version}: </p>
-                  <InputField
-                    text={game.version}
-                    placeholder={strings.noVersion}
-                    className='browse-right-sidebar__searchable'
-                    onChange={this.onVersionChange}
-                    editable={editable}
-                    onClick={this.onVersionClick}
-                    onKeyDown={this.onInputKeyDown} />
-                </div>
-                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                  <p>{strings.releaseDate}: </p>
-                  <InputField
-                    text={game.releaseDate}
-                    placeholder={strings.noReleaseDate}
-                    onChange={this.onReleaseDateChange}
-                    className='browse-right-sidebar__searchable'
-                    editable={editable}
-                    onClick={this.onReleaseDateClick}
-                    onKeyDown={this.onInputKeyDown} />
-                </div>
-                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                  <p>{strings.language}: </p>
-                  <InputField
-                    text={game.language}
-                    placeholder={strings.noLanguage}
-                    onChange={this.onLanguageChange}
-                    className='browse-right-sidebar__searchable'
-                    editable={editable}
-                    onClick={this.onLanguageClick}
-                    onKeyDown={this.onInputKeyDown} />
-                </div>
-                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                  <p>{strings.dateAdded}: </p>
-                  <p
-                    className='browse-right-sidebar__row__date-added'
-                    title={dateAdded}>
-                    {(new Date(dateAdded)).toUTCString()}
-                  </p>
-                </div>
-                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                  <p>{strings.dateModified}: </p>
-                  <p
-                    className='browse-right-sidebar__row__date-added'
-                    title={dateModified}>
-                    {(new Date(dateModified)).toUTCString()}
-                  </p>
-                </div>
-                { game.broken || editable ? (
-                  <div className='browse-right-sidebar__row'>
-                    <div
-                      className='browse-right-sidebar__row__check-box-wrapper'
-                      onClick={this.onBrokenChange}>
-                      { editable ? (
-                        <>
-                          <CheckBox
-                            checked={game.broken}
-                            className='browse-right-sidebar__row__check-box' />
-                          <p> {strings.brokenInInfinity}</p>
-                        </>
-                      ) : (<b> {strings.brokenInInfinity}</b>) }
-                    </div>
                   </div>
-                ) : undefined }
-              </div>
-            </>
-          ) }
-          {/* -- Playlist Game Entry Notes -- */}
-          { currentPlaylistEntry ? (
-            <div className='browse-right-sidebar__section'>
-              <div className='browse-right-sidebar__row'>
-                <p>{strings.playlistNotes}: </p>
-                <InputField
-                  text={currentPlaylistEntry.notes}
-                  placeholder={strings.noPlaylistNotes}
-                  onChange={this.onEditPlaylistNotes}
-                  editable={editable}
-                  multiline={true} />
-              </div>
-            </div>
-          ) : undefined }
-          {/* -- Notes -- */}
-          { ((!editDisabled && editable) || game.notes) && !isPlaceholder ? (
-            <div className='browse-right-sidebar__section'>
-              <div className='browse-right-sidebar__row'>
-                <p>{strings.notes}: </p>
-                <InputField
-                  text={game.notes}
-                  placeholder={strings.noNotes}
-                  onChange={this.onNotesChange}
-                  editable={editable}
-                  multiline={true} />
-              </div>
-            </div>
-          ) : undefined }
-          {/* -- Original Description -- */}
-          { ((!editDisabled && editable) || game.originalDescription) && !isPlaceholder ? (
-            <div className='browse-right-sidebar__section'>
-              <div className='browse-right-sidebar__row'>
-                <p>{strings.originalDescription}: </p>
-                <InputField
-                  text={game.originalDescription}
-                  placeholder={strings.noOriginalDescription}
-                  onChange={this.onOriginalDescriptionChange}
-                  editable={editable}
-                  multiline={true} />
-              </div>
-            </div>
-          ) : undefined }
-          {/* -- Additional Applications -- */}
-          { editable || (currentAddApps && currentAddApps.length > 0) ? (
-            <div className='browse-right-sidebar__section'>
-              <div className='browse-right-sidebar__row browse-right-sidebar__row--additional-applications-header'>
-                <p>{strings.additionalApplications}:</p>
-                { editable ? (
-                  <input
-                    type='button'
-                    value={strings.new}
-                    className='simple-button'
-                    onClick={this.onNewAddAppClick} />
-                ) : undefined }
-              </div>
-              { currentAddApps && currentAddApps.map((addApp) => (
-                <RightBrowseSidebarAddApp
-                  key={addApp.id}
-                  addApp={addApp}
-                  editDisabled={!editable}
-                  onLaunch={this.onAddAppLaunch}
-                  onDelete={this.onAddAppDelete} />
-              )) }
-            </div>
-          ) : undefined }
-          {/* -- Application Path & Launch Command -- */}
-          { editable && !isPlaceholder ? (
-            <div className='browse-right-sidebar__section'>
-              <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                <p>{strings.applicationPath}: </p>
-                <DropdownInputField
-                  text={game.applicationPath}
-                  placeholder={strings.noApplicationPath}
-                  onChange={this.onApplicationPathChange}
-                  editable={editable}
-                  items={suggestions && filterSuggestions(suggestions.applicationPath) || []}
-                  onItemSelect={text => this.props.onEditGame({ applicationPath: text })}
-                  onKeyDown={this.onInputKeyDown} />
-              </div>
-              <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                <p>{strings.launchCommand}: </p>
-                <InputField
-                  text={game.launchCommand}
-                  placeholder={strings.noLaunchCommand}
-                  onChange={this.onLaunchCommandChange}
-                  editable={editable}
-                  onKeyDown={this.onInputKeyDown}
-                  reference={this.launchCommandRef} />
-              </div>
-            </div>
-          ) : undefined }
-          {/* -- Game ID -- */}
-          { editable || isPlaceholder ? (
-            <div className='browse-right-sidebar__section'>
-              <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                <p>ID: </p>
-                <p className='browse-right-sidebar__row__game-id'>{game.id}</p>
-              </div>
-            </div>
-          ) : undefined }
-          {/* -- Screenshot -- */}
-          <div className='browse-right-sidebar__section browse-right-sidebar__section--below-gap'>
-            <div className='browse-right-sidebar__row browse-right-sidebar__row__spacer' />
-            <div className='browse-right-sidebar__row'>
-              <div
-                className='browse-right-sidebar__row__screenshot'
-                onContextMenu={this.onScreenshotContextMenu}>
-                { isEditing ? (
-                  <div className='browse-right-sidebar__row__screenshot__placeholder'>
-                    <div className='browse-right-sidebar__row__screenshot__placeholder__back'>
-                      <GameImageSplit
-                        text={strings.thumbnail}
-                        imgSrc={this.state.thumbnailExists ? getGameImageURL(LOGOS, game.id) : undefined}
-                        showHeaders={true}
-                        onAddClick={this.onAddThumbnailDialog}
-                        onRemoveClick={this.onRemoveThumbnailClick}
-                        onDrop={this.onThumbnailDrop} />
-                      <GameImageSplit
-                        text={strings.screenshot}
-                        imgSrc={this.state.screenshotExists ? screenshotSrc : undefined}
-                        showHeaders={true}
-                        onAddClick={this.onAddScreenshotDialog}
-                        onRemoveClick={this.onRemoveScreenshotClick}
-                        onDrop={this.onScreenshotDrop} />
-                    </div>
-                    <div className='browse-right-sidebar__row__screenshot__placeholder__front'>
-                      <p>{strings.dropImageHere}</p>
-                    </div>
+                )
+            }
+          </div>
+          <div
+            ref={this.state.middleScrollRef}
+            className='browse-right-sidebar__middle simple-scroll'>
+            {/* -- Most Fields -- */}
+            { isPlaceholder ? undefined : (
+              <>
+                <div className='browse-right-sidebar__section'>
+                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                    <p>{strings.alternateTitles}: </p>
+                    <InputField
+                      text={game.alternateTitles}
+                      placeholder={strings.noAlternateTitles}
+                      className='browse-right-sidebar__searchable'
+                      onChange={this.onAlternateTitlesChange}
+                      editable={editable}
+                      onKeyDown={this.onInputKeyDown} />
                   </div>
-                ) :
-                  (this.props.isExtreme && this.props.preferencesData.hideExtremeScreenshots && !this.state.showExtremeScreenshots) ? (
-                    <div
-                      className='browse-right-sidebar__row__screenshot-image--hidden'
-                      onClick={this.onShowExtremeScreenshots}>
-                      <div className='browse-right-sidebar__row__screenshot-image--hidden-text'>
-                        {strings.showExtremeScreenshot}
+                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                    <p>{strings.tags}: </p>
+                    <TagInputField
+                      text={this.state.currentTagInput}
+                      placeholder={strings.enterTag}
+                      className='browse-right-sidebar__searchable'
+                      editable={editable}
+                      onChange={this.onCurrentTagChange}
+                      tags={game.tags}
+                      suggestions={this.state.tagSuggestions}
+                      categories={tagCategories}
+                      onTagSelect={this.onTagSelect}
+                      onTagEditableSelect={this.onRemoveTag}
+                      onTagSuggestionSelect={this.onAddTagSuggestion}
+                      onTagSubmit={this.onAddTagByString}
+                      onKeyDown={this.onInputKeyDown} />
+                  </div>
+                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                    <p>{strings.series}: </p>
+                    <InputField
+                      text={game.series}
+                      placeholder={strings.noSeries}
+                      className='browse-right-sidebar__searchable'
+                      onChange={this.onSeriesChange}
+                      editable={editable}
+                      onClick={this.onSeriesClick}
+                      onKeyDown={this.onInputKeyDown} />
+                  </div>
+                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                    <p>{strings.publisher}: </p>
+                    <InputField
+                      text={game.publisher}
+                      placeholder={strings.noPublisher}
+                      className='browse-right-sidebar__searchable'
+                      onChange={this.onPublisherChange}
+                      editable={editable}
+                      onClick={this.onPublisherClick}
+                      onKeyDown={this.onInputKeyDown} />
+                  </div>
+                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                    <p>{strings.source}: </p>
+                    <InputField
+                      text={game.source}
+                      placeholder={strings.noSource}
+                      onChange={this.onSourceChange}
+                      className='browse-right-sidebar__searchable'
+                      editable={editable}
+                      onClick={this.onSourceClick}
+                      onKeyDown={this.onInputKeyDown} />
+                  </div>
+                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                    <p>{strings.platform}: </p>
+                    <DropdownInputField
+                      text={game.platform}
+                      placeholder={strings.noPlatform}
+                      onChange={this.onPlatformChange}
+                      className='browse-right-sidebar__searchable'
+                      editable={editable}
+                      items={suggestions && filterSuggestions(suggestions.platform) || []}
+                      onItemSelect={text => this.props.onEditGame({ platform: text })}
+                      onClick={this.onPlatformClick}
+                      onKeyDown={this.onInputKeyDown} />
+                  </div>
+                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                    <p>{strings.playMode}: </p>
+                    <DropdownInputField
+                      text={game.playMode}
+                      placeholder={strings.noPlayMode}
+                      onChange={this.onPlayModeChange}
+                      className='browse-right-sidebar__searchable'
+                      editable={editable}
+                      items={suggestions && filterSuggestions(suggestions.playMode) || []}
+                      onItemSelect={text => this.props.onEditGame({ playMode: text })}
+                      onClick={this.onPlayModeClick}
+                      onKeyDown={this.onInputKeyDown} />
+
+                  </div>
+                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                    <p>{strings.status}: </p>
+                    <DropdownInputField
+                      text={game.status}
+                      placeholder={strings.noStatus}
+                      onChange={this.onStatusChange}
+                      className='browse-right-sidebar__searchable'
+                      editable={editable}
+                      items={suggestions && filterSuggestions(suggestions.status) || []}
+                      onItemSelect={text => this.props.onEditGame({ status: text })}
+                      onClick={this.onStatusClick}
+                      onKeyDown={this.onInputKeyDown} />
+                  </div>
+                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                    <p>{strings.version}: </p>
+                    <InputField
+                      text={game.version}
+                      placeholder={strings.noVersion}
+                      className='browse-right-sidebar__searchable'
+                      onChange={this.onVersionChange}
+                      editable={editable}
+                      onClick={this.onVersionClick}
+                      onKeyDown={this.onInputKeyDown} />
+                  </div>
+                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                    <p>{strings.releaseDate}: </p>
+                    <InputField
+                      text={game.releaseDate}
+                      placeholder={strings.noReleaseDate}
+                      onChange={this.onReleaseDateChange}
+                      className='browse-right-sidebar__searchable'
+                      editable={editable}
+                      onClick={this.onReleaseDateClick}
+                      onKeyDown={this.onInputKeyDown} />
+                  </div>
+                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                    <p>{strings.language}: </p>
+                    <InputField
+                      text={game.language}
+                      placeholder={strings.noLanguage}
+                      onChange={this.onLanguageChange}
+                      className='browse-right-sidebar__searchable'
+                      editable={editable}
+                      onClick={this.onLanguageClick}
+                      onKeyDown={this.onInputKeyDown} />
+                  </div>
+                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                    <p>{strings.dateAdded}: </p>
+                    <p
+                      className='browse-right-sidebar__row__date-added'
+                      title={dateAdded}>
+                      {(new Date(dateAdded)).toUTCString()}
+                    </p>
+                  </div>
+                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                    <p>{strings.dateModified}: </p>
+                    <p
+                      className='browse-right-sidebar__row__date-added'
+                      title={dateModified}>
+                      {(new Date(dateModified)).toUTCString()}
+                    </p>
+                  </div>
+                  { game.broken || editable ? (
+                    <div className='browse-right-sidebar__row'>
+                      <div
+                        className='browse-right-sidebar__row__check-box-wrapper'
+                        onClick={this.onBrokenChange}>
+                        { editable ? (
+                          <>
+                            <CheckBox
+                              checked={game.broken}
+                              className='browse-right-sidebar__row__check-box' />
+                            <p> {strings.brokenInInfinity}</p>
+                          </>
+                        ) : (<b> {strings.brokenInInfinity}</b>) }
                       </div>
                     </div>
-                  ) : (
-                    <img
-                      className='browse-right-sidebar__row__screenshot-image'
-                      alt='' // Hide the broken link image if source is not found
-                      src={screenshotSrc}
-                      onClick={this.onScreenshotClick} />
-                  )
-                }
+                  ) : undefined }
+                </div>
+              </>
+            ) }
+            {/* -- Playlist Game Entry Notes -- */}
+            { currentPlaylistEntry ? (
+              <div className='browse-right-sidebar__section'>
+                <div className='browse-right-sidebar__row'>
+                  <p>{strings.playlistNotes}: </p>
+                  <InputField
+                    text={currentPlaylistEntry.notes}
+                    placeholder={strings.noPlaylistNotes}
+                    onChange={this.onEditPlaylistNotes}
+                    editable={editable}
+                    multiline={true} />
+                </div>
+              </div>
+            ) : undefined }
+            {/* -- Notes -- */}
+            { ((!editDisabled && editable) || game.notes) && !isPlaceholder ? (
+              <div className='browse-right-sidebar__section'>
+                <div className='browse-right-sidebar__row'>
+                  <p>{strings.notes}: </p>
+                  <InputField
+                    text={game.notes}
+                    placeholder={strings.noNotes}
+                    onChange={this.onNotesChange}
+                    editable={editable}
+                    multiline={true} />
+                </div>
+              </div>
+            ) : undefined }
+            {/* -- Original Description -- */}
+            { ((!editDisabled && editable) || game.originalDescription) && !isPlaceholder ? (
+              <div className='browse-right-sidebar__section'>
+                <div className='browse-right-sidebar__row'>
+                  <p>{strings.originalDescription}: </p>
+                  <InputField
+                    text={game.originalDescription}
+                    placeholder={strings.noOriginalDescription}
+                    onChange={this.onOriginalDescriptionChange}
+                    editable={editable}
+                    multiline={true} />
+                </div>
+              </div>
+            ) : undefined }
+            {/* -- Additional Applications -- */}
+            { editable || (currentAddApps && currentAddApps.length > 0) ? (
+              <div className='browse-right-sidebar__section'>
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--additional-applications-header'>
+                  <p>{strings.additionalApplications}:</p>
+                  { editable ? (
+                    <input
+                      type='button'
+                      value={strings.new}
+                      className='simple-button'
+                      onClick={this.onNewAddAppClick} />
+                  ) : undefined }
+                </div>
+                { currentAddApps && currentAddApps.map((addApp) => (
+                  <RightBrowseSidebarAddApp
+                    key={addApp.id}
+                    addApp={addApp}
+                    editDisabled={!editable}
+                    onLaunch={this.onAddAppLaunch}
+                    onDelete={this.onAddAppDelete} />
+                )) }
+              </div>
+            ) : undefined }
+            {/* -- Application Path & Launch Command -- */}
+            { editable && !isPlaceholder ? (
+              <div className='browse-right-sidebar__section'>
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                  <p>{strings.applicationPath}: </p>
+                  <DropdownInputField
+                    text={game.applicationPath}
+                    placeholder={strings.noApplicationPath}
+                    onChange={this.onApplicationPathChange}
+                    editable={editable}
+                    items={suggestions && filterSuggestions(suggestions.applicationPath) || []}
+                    onItemSelect={text => this.props.onEditGame({ applicationPath: text })}
+                    onKeyDown={this.onInputKeyDown} />
+                </div>
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                  <p>{strings.launchCommand}: </p>
+                  <InputField
+                    text={game.launchCommand}
+                    placeholder={strings.noLaunchCommand}
+                    onChange={this.onLaunchCommandChange}
+                    editable={editable}
+                    onKeyDown={this.onInputKeyDown}
+                    reference={this.launchCommandRef} />
+                </div>
+              </div>
+            ) : undefined }
+            {/* -- Game ID -- */}
+            { editable || isPlaceholder ? (
+              <div className='browse-right-sidebar__section'>
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                  <p>ID: </p>
+                  <p className='browse-right-sidebar__row__game-id'>{game.id}</p>
+                </div>
+              </div>
+            ) : undefined }
+          </div>
+          <div className='browse-right-sidebar__bottom'>
+            {/* -- Screenshot -- */}
+            <div className='browse-right-sidebar__section browse-right-sidebar__section--below-gap'>
+              <div className='browse-right-sidebar__row browse-right-sidebar__row__spacer' />
+              <div className='browse-right-sidebar__row'>
+                <div
+                  className='browse-right-sidebar__row__screenshot'
+                  onContextMenu={this.onScreenshotContextMenu}>
+                  { isEditing ? (
+                    <div className='browse-right-sidebar__row__screenshot__placeholder'>
+                      <div className='browse-right-sidebar__row__screenshot__placeholder__back'>
+                        <GameImageSplit
+                          text={strings.thumbnail}
+                          imgSrc={this.state.thumbnailExists ? getGameImageURL(LOGOS, game.id) : undefined}
+                          showHeaders={true}
+                          onAddClick={this.onAddThumbnailDialog}
+                          onRemoveClick={this.onRemoveThumbnailClick}
+                          onDrop={this.onThumbnailDrop} />
+                        <GameImageSplit
+                          text={strings.screenshot}
+                          imgSrc={this.state.screenshotExists ? screenshotSrc : undefined}
+                          showHeaders={true}
+                          onAddClick={this.onAddScreenshotDialog}
+                          onRemoveClick={this.onRemoveScreenshotClick}
+                          onDrop={this.onScreenshotDrop} />
+                      </div>
+                      <div className='browse-right-sidebar__row__screenshot__placeholder__front'>
+                        <p>{strings.dropImageHere}</p>
+                      </div>
+                    </div>
+                  ) :
+                    (this.props.isExtreme && this.props.preferencesData.hideExtremeScreenshots && !this.state.showExtremeScreenshots) ? (
+                      <div
+                        className='browse-right-sidebar__row__screenshot-image--hidden'
+                        onClick={this.onShowExtremeScreenshots}>
+                        <div className='browse-right-sidebar__row__screenshot-image--hidden-text'>
+                          {strings.showExtremeScreenshot}
+                        </div>
+                      </div>
+                    ) : (
+                      <img
+                        className='browse-right-sidebar__row__screenshot-image'
+                        alt='' // Hide the broken link image if source is not found
+                        src={screenshotSrc}
+                        onClick={this.onScreenshotClick} />
+                    )
+                  }
+                </div>
               </div>
             </div>
+            {/* -- Screenshot Preview -- */}
+            { this.state.showPreview ? (
+              <ImagePreview
+                src={screenshotSrc}
+                onCancel={this.onScreenshotPreviewClick} />
+            ) : undefined }
+            <SimpleButton
+              value='Open Game Data Browser'
+              onClick={() => this.setState({ gameDataBrowserOpen: !this.state.gameDataBrowserOpen })}/>
+            { this.props.preferencesData.enableEditing && !this.props.isEditing && (
+              <>
+                <SimpleButton
+                  value={allStrings.misc.exportMetaEditTitle}
+                  title={allStrings.misc.exportMetaEditDesc}
+                  onClick={() => this.props.currentGame && this.props.onOpenExportMetaEdit(this.props.currentGame.id)} />
+                <SimpleButton
+                  value={allStrings.menu.copyGameUUID}
+                  onClick={() => this.props.currentGame && clipboard.writeText(this.props.currentGame.id)} />
+              </>
+            )}
+            { this.state.gameDataBrowserOpen && (
+              <GameDataBrowser
+                onClose={() => this.setState({ gameDataBrowserOpen: false })}
+                game={game}
+                onEditGame={(game) => {
+                  this.props.onEditGame(game);
+                  this.props.onSaveGame();
+                }}
+                onUpdateActiveGameData={this.props.onUpdateActiveGameData}
+                onForceUpdateGameData={this.onForceUpdateGameData} />
+            )}
           </div>
-          {/* -- Screenshot Preview -- */}
-          { this.state.showPreview ? (
-            <ImagePreview
-              src={screenshotSrc}
-              onCancel={this.onScreenshotPreviewClick} />
-          ) : undefined }
-          <SimpleButton
-            value='Open Game Data Browser'
-            onClick={() => this.setState({ gameDataBrowserOpen: !this.state.gameDataBrowserOpen })}/>
-          { this.props.preferencesData.enableEditing && !this.props.isEditing && (
-            <>
-              <SimpleButton
-                value={allStrings.misc.exportMetaEditTitle}
-                title={allStrings.misc.exportMetaEditDesc}
-                onClick={() => this.props.currentGame && this.props.onOpenExportMetaEdit(this.props.currentGame.id)} />
-              <SimpleButton
-                value={allStrings.menu.copyGameUUID}
-                onClick={() => this.props.currentGame && clipboard.writeText(this.props.currentGame.id)} />
-            </>
-          )}
-          { this.state.gameDataBrowserOpen && (
-            <GameDataBrowser
-              onClose={() => this.setState({ gameDataBrowserOpen: false })}
-              game={game}
-              onEditGame={(game) => {
-                this.props.onEditGame(game);
-                this.props.onSaveGame();
-              }}
-              onUpdateActiveGameData={this.props.onUpdateActiveGameData}
-              onForceUpdateGameData={this.onForceUpdateGameData} />
-          )}
         </div>
       );
     } else {
