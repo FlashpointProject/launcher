@@ -4,11 +4,11 @@ import { SocketClient } from '@shared/back/SocketClient';
 import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/extensions/interfaces';
 import { OpenDialogOptions } from 'electron';
 import { AppConfigData, AppExtConfigData } from './config/interfaces';
-import { CurationState } from './curate/types';
 import { LangContainer, LangFile } from './lang';
 import { ILogEntry } from './Log/interface';
 import { AppPreferencesData } from './preferences/interfaces';
 import { ITheme } from './ThemeFile';
+import { CurationState } from '@shared/curate/types';
 
 /** Replacement of "object" type. Note: I'm not sure how effective it is though //obelisk */
 type ObjectLike = Record<string, unknown> | Record<number, unknown>
@@ -115,6 +115,7 @@ export interface IMainWindowExternal {
   initialExtConfig: AppExtConfigData;
   initialCurations: CurationState[];
   initialSuggestions: GamePropSuggestions;
+  initialUpdateFeedMarkdown: string;
 
   /**
    * Wait for the preload to initialize.

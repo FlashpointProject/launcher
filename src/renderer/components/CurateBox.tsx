@@ -1,7 +1,11 @@
 import { CURATIONS_FOLDER_WORKING } from '@back/consts';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
-import { CurateBoxDropdownInputRow, CurateBoxInputRow, CurateBoxTagDropdownInputRow } from '@renderer/components/CurateBoxInputRow';
+import {
+  CurateBoxDropdownInputRow,
+  CurateBoxInputRow,
+  CurateBoxTagDropdownInputRow
+} from '@renderer/components/CurateBoxInputRow';
 import { GameImageSplit } from '@renderer/components/GameImageSplit';
 import { useMouse } from '@renderer/hooks/useMouse';
 import { CurateActionType } from '@renderer/store/curate/enums';

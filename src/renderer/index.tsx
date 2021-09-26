@@ -81,6 +81,7 @@ function createInitialMainState(): MainState {
         extreme: preferencesData.browsePageShowExtreme,
         library: library,
         playlistId: undefined,
+        searchLimit: preferencesData.searchLimit,
         order: {
           orderBy: preferencesData.gamesOrderBy,
           orderReverse: preferencesData.gamesOrder

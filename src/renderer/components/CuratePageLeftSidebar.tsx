@@ -164,7 +164,6 @@ export function CuratePageLeftSidebar(props: CuratePageLeftSidebarProps) {
         groupRenders.set(g.name, renderCurationGroup(g, []));
       }
     }
-    console.log(groupRenders);
     return Array.from(groupRenders.entries()).sort((a, b) => {
       if (a[0] === '' && b[0] !== '') {
         return -1;
@@ -198,10 +197,18 @@ export function CuratePageLeftSidebar(props: CuratePageLeftSidebarProps) {
       onDrop={onDrop}
       onMouseDown={onListMouseDown}
       onMouseUp={onListMouseUp}>
-      <SimpleButton
-        onClick={openGroupEdit}
-        value={'New Group'}
-        className={'curate-list-group__new'} />
+      <div className="playlist-list-fake-item-buttons">
+        <div
+          className='playlist-list-fake-item'
+          onClick={openGroupEdit}>
+          <div className='playlist-list-fake-item__inner'>
+            <OpenIcon icon='plus' />
+          </div>
+          <div className='playlist-list-fake-item__inner'>
+            <p className='playlist-list-fake-item__inner__title'>{'New Group'}</p>
+          </div>
+        </div>
+      </div>
       {curationsRender}
       { newGroupOpen && (
         <FloatingContainer>

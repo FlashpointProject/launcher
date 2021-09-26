@@ -82,18 +82,20 @@ export async function findGameRow(gameId: string, filterOpts?: FilterGameOpts, o
 export async function findRandomGames(count: number, broken: boolean, excludedLibraries: string[], flatFilters: string[]): Promise<ViewGame[]> {
   const gameRepository = getManager().getRepository(Game);
   const query = gameRepository.createQueryBuilder('game');
-  query.select('game.id, game.title, game.platform, game.developer, game.publisher, game.tagsStr')
-  .leftJoin('game_tags_tag', 'game_tag', 'game_tag.gameId = game.id');
+  query.select('game.id, game.title, game.platform, game.developer, game.publisher, game.tagsStr');
   if (!broken)  { query.andWhere('broken = false');  }
   if (excludedLibraries.length > 0) {
     query.andWhere('library NOT IN (:...libs)', { libs: excludedLibraries });
   }
   if (flatFilters.length > 0) {
-    const filterQuery = TagManager.getFilterIDsQuery(flatFilters);
-    query.andWhere(`game_tag.tagId NOT IN (${filterQuery.getQuery()})`)
-    .setParameters(filterQuery.getParameters());
+    const tagIdQuery = TagManager.getFilterIDsQuery(flatFilters);
+    const excludedGameIdQuery = getManager().createQueryBuilder()
+    .select('game_tag.gameId')
+    .from('game_tags_tag', 'game_tag')
+    .where(`game_tag.tagId IN (${tagIdQuery.getQuery()})`);
+    query.andWhere(`game.id NOT IN (${excludedGameIdQuery.getQuery()})`)
+    .setParameters(tagIdQuery.getParameters());
   }
-  query.groupBy('game.id');
   query.orderBy('RANDOM()').take(count);
   return (await query.getRawMany()) as ViewGame[];
 }
@@ -103,7 +105,7 @@ export type GetPageKeysetResult = {
   total: number;
 }
 
-export async function findGamePageKeyset(filterOpts: FilterGameOpts, orderBy: GameOrderBy, direction: GameOrderReverse): Promise<GetPageKeysetResult> {
+export async function findGamePageKeyset(filterOpts: FilterGameOpts, orderBy: GameOrderBy, direction: GameOrderReverse, searchLimit?: number): Promise<GetPageKeysetResult> {
   // let startTime = Date.now();
 
   validateSqlName(orderBy);
@@ -121,6 +123,10 @@ export async function findGamePageKeyset(filterOpts: FilterGameOpts, orderBy: Ga
   .where('g.page_boundary = 1')
   .setParameters(subQ.getParameters());
 
+  if (searchLimit) {
+    query = query.limit(searchLimit);
+  }
+
   const raw = await query.getRawMany();
   const keyset: PageKeyset = {};
   for (const r of raw) {
@@ -132,10 +138,14 @@ export async function findGamePageKeyset(filterOpts: FilterGameOpts, orderBy: Ga
   // Count games
   let total = -1;
   // startTime = Date.now();
-  query = await getGameQuery('sub', filterOpts, orderBy, direction, 0, undefined, undefined);
+  const subGameQuery = await getGameQuery('sub', filterOpts, orderBy, direction, 0, searchLimit ? searchLimit : undefined, undefined);
+  query = getManager().createQueryBuilder()
+  .select('COUNT(*)')
+  .from('(' + subGameQuery.getQuery() + ')', 'g')
+  .setParameters(subGameQuery.getParameters())
+  .skip(0);
+  if (searchLimit) { query = query.limit(searchLimit); }
 
-  query.skip(0);
-  query.select('COUNT(*)');
   const result = await query.getRawOne();
   if (result) {
     total = Coerce.num(result['COUNT(*)']); // Coerce it, even though it is probably of type number or undefined
@@ -476,7 +486,7 @@ function doWhereTitle(alias: string, query: SelectQueryBuilder<Game>, value: str
 
   const where = new Brackets(qb => {
     const q = and ? qb : query;
-    const ref = `generic-${count}`;
+    const ref = `generic_${count}`;
     q.where(  `${alias}.title ${comparator} :${ref}`,           { [ref]: formedValue });
     q.orWhere(`${alias}.alternateTitles ${comparator} :${ref}`, { [ref]: formedValue });
     q.orWhere(`${alias}.developer ${comparator} :${ref}`,       { [ref]: formedValue });
@@ -511,7 +521,7 @@ function doWhereField(alias: string, query: SelectQueryBuilder<Game>, field: str
 
   // console.log(`W: ${count} - C: ${comparator} - F: ${field} - V:${value}`);
   // Do correct 'where' call
-  const ref = `field-${count}`;
+  const ref = `field_${count}`;
   if (count === 0) {
     query.where(`${alias}.${field} ${comparator} :${ref}`, { [ref]: formedValue });
   } else {

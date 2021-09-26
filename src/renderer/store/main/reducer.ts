@@ -4,6 +4,8 @@ import { createLangContainer } from '@shared/lang';
 import { MainActionType, RequestState } from './enums';
 import { MainAction, MainState, View, ViewPageStates } from './types';
 
+export const RANDOM_GAME_ROW_COUNT = 6;
+
 export function mainStateReducer(state: MainState = createInitialState(), action: MainAction): MainState {
   switch (action.type) {
     default:
@@ -34,6 +36,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
               text: action.searchText,
               extreme: action.showExtreme,
               library: action.library,
+              searchLimit: action.searchLimit,
               playlistId: playlistId,
               order: {
                 orderBy: action.orderBy,
@@ -334,10 +337,10 @@ export function mainStateReducer(state: MainState = createInitialState(), action
     }
 
     case MainActionType.SHIFT_RANDOM_GAMES: {
-      if (state.randomGames.length >= 10) {
+      if (state.randomGames.length >= (RANDOM_GAME_ROW_COUNT * 2)) {
         return {
           ...state,
-          randomGames: state.randomGames.slice(5),
+          randomGames: state.randomGames.slice(RANDOM_GAME_ROW_COUNT),
         };
       } else {
         return {
@@ -360,7 +363,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
         randomGames: [
           ...(
             state.shiftRandomGames
-              ? state.randomGames.slice(5)
+              ? state.randomGames.slice(RANDOM_GAME_ROW_COUNT)
               : state.randomGames
           ),
           ...action.games,
@@ -374,7 +377,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
     case MainActionType.CLEAR_RANDOM_GAMES: {
       return {
         ...state,
-        randomGames: state.randomGames.slice(0, 5),
+        randomGames: [],
       };
     }
 

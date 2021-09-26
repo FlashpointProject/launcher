@@ -80,6 +80,7 @@ export type CurationMeta = Partial<{
   version: string;
   originalDescription: string;
   language: string;
+  mountParameters: string;
 }>
 
 

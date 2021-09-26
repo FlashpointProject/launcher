@@ -8,9 +8,16 @@ import * as path from 'path';
 import { getManager, In } from 'typeorm';
 import * as GameManager from './GameManager';
 import * as SourceManager from './SourceManager';
+import { ApiEmitter } from '@back/extensions/ApiEmitter';
+import * as flashpoint from 'flashpoint-launcher';
+
+export const onDidInstallGameData = new ApiEmitter<flashpoint.GameData>();
+export const onWillUninstallGameData = new ApiEmitter<flashpoint.GameData>();
+export const onDidUninstallGameData = new ApiEmitter<flashpoint.GameData>();
 
 export async function downloadGameData(gameDataId: number, dataPacksFolderPath: string, onProgress?: (percent: number) => void, onDetails?: (details: DownloadDetails) => void): Promise<void> {
   const gameData = await findOne(gameDataId);
+  const sourceErrors: string[] = [];
   if (gameData) {
     if (gameData.presentOnDisk) { return; }
     // GameData real, check each source that's available
@@ -32,7 +39,7 @@ export async function downloadGameData(gameDataId: number, dataPacksFolderPath: 
               const sha256 = hash.digest('hex').toUpperCase();
               console.log(`hash ${sha256}`);
               if (sha256 !== gameData.sha256) {
-                reject('Hash of download does not match! Download aborted.');
+                reject('Hash of download does not match! Download aborted.\n (It may be a corrupted download, try again)');
               } else {
                 await importGameDataSkipHash(gameData.gameId, tempPath, dataPacksFolderPath, sha256);
                 await fs.promises.unlink(tempPath);
@@ -40,14 +47,19 @@ export async function downloadGameData(gameDataId: number, dataPacksFolderPath: 
               }
             });
             stream.pipe(hash);
+          })
+          .then(async () => {
+            await onDidInstallGameData.fire(gameData);
           });
           return;
         } catch (error) {
-          log.info('Launcher', `Downloading from Source "${source.name}" (${fullUrl}) failed: ${error}`);
+          const sourceError = `Downloading from Source "${source.name}" failed:\n ${error}`;
+          sourceErrors.push(sourceError);
+
         }
       }
     }
-    throw 'No working Sources available for this GameData.';
+    throw ['No working Sources available for this GameData.'].concat(sourceErrors).join('\n\n');
   }
 }
 
@@ -121,7 +133,7 @@ export async function importGameDataSkipHash(gameId: string, filePath: string, d
   throw 'Something went wrong importing (skipped hash)';
 }
 
-export function importGameData(gameId: string, filePath: string, dataPacksFolderPath: string): Promise<GameData> {
+export function importGameData(gameId: string, filePath: string, dataPacksFolderPath: string, mountParameters?: string): Promise<GameData> {
   return new Promise<GameData>((resolve, reject) => {
     fs.promises.access(filePath, fs.constants.F_OK)
     .then(async () => {
@@ -145,7 +157,10 @@ export function importGameData(gameId: string, filePath: string, dataPacksFolder
             existingGameData.path = newFilename;
             existingGameData.presentOnDisk = true;
             save(existingGameData)
-            .then(resolve)
+            .then(async (gameData) => {
+              await onDidInstallGameData.fire(gameData);
+              resolve(gameData);
+            })
             .catch(reject);
           } else {
             // File exists on disk already
@@ -161,6 +176,7 @@ export function importGameData(gameId: string, filePath: string, dataPacksFolder
           newGameData.presentOnDisk = true;
           newGameData.path = newFilename;
           newGameData.sha256 = sha256;
+          newGameData.parameters = mountParameters;
           newGameData.crc32 = 0; // TODO: Find decent lib for CRC32
           save(newGameData)
           .then(async (gameData) => {
@@ -169,6 +185,7 @@ export function importGameData(gameId: string, filePath: string, dataPacksFolder
               game.activeDataId = gameData.id;
               game.activeDataOnDisk = gameData.presentOnDisk;
               await GameManager.save(game);
+              await onDidInstallGameData.fire(gameData);
               resolve(gameData);
             }
           })

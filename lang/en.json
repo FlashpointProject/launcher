@@ -4,8 +4,16 @@
     "configHeader": "Config",
     "configDesc": "(You must press 'Save & Restart' for some changes to take effect)",
     "preferencesHeader": "Preferences",
-    "extremeGames": "Extreme Content",
-    "extremeGamesDesc": "Allow tags inside 'Extreme' tag filter groups and corresponding games to be shown.",
+    "extremeGames": "Show Extreme Filters",
+    "extremeGamesDesc": "Allows Extreme tag filters to be toggled, created and modified to control content unsuitable for children.",
+    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
+    "fancyAnimations": "Fancy Animations",
+    "fancyAnimationsDesc": "Enable fancy animations in the launcher.",
+    "searchLimit": "Search Limit",
+    "searchLimitDesc": "Limit the number of results returned in any search",
+    "searchLimitUnlimited": "Unlimited",
+    "searchLimitValue": "{0} Results",
     "enableEditing": "Enable Editing",
     "enableEditingDesc": "Enable editing of games and additional applications. Also shows tabs related to editing.",
     "onDemandImages": "On Demand Images",
@@ -16,6 +24,7 @@
     "fallbackLanguageDesc": "Which language to use in place of an incomplete current language.",
     "auto": "Auto ({0})",
     "none": "None",
+    "contentFiltersHeader": "Content Filters",
     "flashpointHeader": "Flashpoint",
     "flashpointPath": "Flashpoint Path",
     "flashpointPathDesc": "Path to the Flashpoint folder (can be relative)",
@@ -79,6 +88,7 @@
     "helpInfo": "Need help? {0}.",
     "help": "Read the manual",
     "upgradesHeader": "Upgrades",
+    "updateFeedHeader": "News Feed",
     "installComplete": "Install Complete",
     "alreadyInstalled": "Already Installed",
     "download": "Download",
@@ -288,7 +298,10 @@
     "saveAndRestart": "Save & Restart",
     "thereAreNoGames": "There are no games.",
     "noGameMatchedDesc": "No game title matched your search.",
-    "noGameMatchedSearch": "Try searching for something less restrictive."
+    "noGameMatchedSearch": "Try searching for something less restrictive.",
+    "mountParameters": "Mount Parameters",
+    "noMountParameters": "No Mount Parameters",
+    "showExtremeScreenshot": "Show Extreme Screenshot"
   },
   "tags": {
     "name": "Name",
@@ -423,7 +436,8 @@
     "installingFiles": "Installing Files...",
     "complete": "Complete",
     "exportMetaEditTitle": "Export Meta Edit",
-    "exportMetaEditDesc": "Select all properties to export:"
+    "exportMetaEditDesc": "Select all properties to export:",
+    "showImage": "Show Image"
   },
   "menu": {
     "viewThumbnailInFolder": "View Thumbnail in Folder",

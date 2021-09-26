@@ -15,6 +15,7 @@ import { SourceDataUrlPath1612434225789 } from '@database/migration/161243422578
 import { SourceFileURL1612435692266 } from '@database/migration/1612435692266-Source_FileURL';
 import { SourceFileCount1612436426353 } from '@database/migration/1612436426353-SourceFileCount';
 import { GameTagsStr1613571078561 } from '@database/migration/1613571078561-GameTagsStr';
+import { GameDataParams1619885915109 } from '@database/migration/1619885915109-GameDataParams';
 import { validateSemiUUID } from '@renderer/util/uuid';
 import { BackIn, BackInit, BackInitArgs, BackOut } from '@shared/back/types';
 import { CurationState, LoadedCuration } from '@shared/curate/types';
@@ -25,7 +26,13 @@ import { getDefaultLocalization, LangFileContent } from '@shared/lang';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { Theme } from '@shared/ThemeFile';
-import { createErrorProxy, genContentTree, genCurationWarnings, removeFileExtension, stringifyArray } from '@shared/Util';
+import {
+  createErrorProxy,
+  genContentTree,
+  genCurationWarnings,
+  removeFileExtension,
+  stringifyArray
+} from '@shared/Util';
 import * as child_process from 'child_process';
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint-launcher';
@@ -42,7 +49,12 @@ import { Tail } from 'tail';
 import { ConnectionOptions, createConnection } from 'typeorm';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE } from './constants';
-import { CURATIONS_FOLDER_EXTRACTING, CURATIONS_FOLDER_TEMP, CURATIONS_FOLDER_WORKING, CURATION_META_FILENAMES } from './consts';
+import {
+  CURATION_META_FILENAMES,
+  CURATIONS_FOLDER_EXTRACTING,
+  CURATIONS_FOLDER_TEMP,
+  CURATIONS_FOLDER_WORKING
+} from './consts';
 import { loadCurationIndexImage } from './curate/parse';
 import { readCurationMeta } from './curate/read';
 import { onFileServerRequestCurationFileFactory, onFileServerRequestPostCuration } from './curate/util';
@@ -50,7 +62,12 @@ import { loadExecMappingsFile } from './Execs';
 import { ExtConfigFile } from './ExtConfigFile';
 import { ApiEmitter } from './extensions/ApiEmitter';
 import { ExtensionService } from './extensions/ExtensionService';
-import { FPLNodeModuleFactory, INodeModuleFactory, installNodeInterceptor, registerInterceptor } from './extensions/NodeInterceptor';
+import {
+  FPLNodeModuleFactory,
+  INodeModuleFactory,
+  installNodeInterceptor,
+  registerInterceptor
+} from './extensions/NodeInterceptor';
 import { Command } from './extensions/types';
 import * as GameManager from './game/GameManager';
 import { onWillImportCuration } from './importGame';
@@ -66,6 +83,7 @@ import { FolderWatcher } from './util/FolderWatcher';
 import { LogFile } from './util/LogFile';
 import { logFactory } from './util/logging';
 import { createContainer, exit, runService } from './util/misc';
+import * as GameDataManager from '@back/game/GameDataManager';
 import { uuid } from './util/uuid';
 
 const DEFAULT_LOGO_PATH = 'window/images/Logos/404.png';
@@ -135,11 +153,13 @@ const state: BackState = {
   apiEmitters: {
     onDidInit: new ApiEmitter<void>(),
     onDidConnect: new ApiEmitter<void>(),
+    onLog: new ApiEmitter<flashpoint.ILogEntry>(),
     games: {
       onWillLaunchGame: new ApiEmitter<flashpoint.GameLaunchInfo>(),
       onWillLaunchAddApp: new ApiEmitter<flashpoint.AdditionalApp>(),
       onWillLaunchCurationGame: new ApiEmitter<flashpoint.GameLaunchInfo>(),
       onWillLaunchCurationAddApp: new ApiEmitter<flashpoint.AdditionalApp>(),
+      onWillUninstallGameData: GameDataManager.onWillUninstallGameData,
       onDidLaunchGame: new ApiEmitter<flashpoint.Game>(),
       onDidLaunchAddApp: new ApiEmitter<flashpoint.AdditionalApp>(),
       onDidLaunchCurationGame: new ApiEmitter<flashpoint.Game>(),
@@ -149,6 +169,8 @@ const state: BackState = {
       onDidUpdatePlaylist: GameManager.onDidUpdatePlaylist,
       onDidUpdatePlaylistGame: GameManager.onDidUpdatePlaylistGame,
       onDidRemovePlaylistGame: GameManager.onDidRemovePlaylistGame,
+      onDidInstallGameData: GameDataManager.onDidInstallGameData,
+      onDidUninstallGameData: GameDataManager.onDidUninstallGameData,
       onWillImportCuration: onWillImportCuration,
     },
     curations: {
@@ -161,6 +183,9 @@ const state: BackState = {
       onServiceNew: new ApiEmitter<flashpoint.ManagedChildProcess>(),
       onServiceRemove: new ApiEmitter<flashpoint.ManagedChildProcess>(),
       onServiceChange: onServiceChange,
+    },
+    ext: {
+      onExtConfigChange: new ApiEmitter()
     }
   },
   status: {
@@ -176,6 +201,7 @@ const state: BackState = {
   sevenZipPath: '',
   loadedCurations: [],
   recentAppPaths: {},
+  writeLocks: 0,
 };
 
 main();
@@ -196,6 +222,9 @@ async function main() {
   // Anything that reads from the database and then writes to it (or a file) should go in this queue!
   // (Since it can cause rare race conditions that corrupts data permanently)
   state.socketServer.addQueue([
+    // Settings
+    BackIn.UPDATE_CONFIG,
+    BackIn.UPDATE_PREFERENCES,
     // Game
     BackIn.SAVE_GAME,
     BackIn.DELETE_GAME,
@@ -263,11 +292,11 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   const addLog = (entry: ILogEntry): number => { return state.log.push(entry) - 1; };
   global.log = {
-    trace: logFactory(LogLevel.TRACE, state.socketServer, addLog, state.logFile, state.verbose),
-    debug: logFactory(LogLevel.DEBUG, state.socketServer, addLog, state.logFile, state.verbose),
-    info:  logFactory(LogLevel.INFO,  state.socketServer, addLog, state.logFile, state.verbose),
-    warn:  logFactory(LogLevel.WARN,  state.socketServer, addLog, state.logFile, state.verbose),
-    error: logFactory(LogLevel.ERROR, state.socketServer, addLog, state.logFile, state.verbose)
+    trace: logFactory(LogLevel.TRACE, state.socketServer, addLog, state.logFile, state.verbose, state.apiEmitters.onLog),
+    debug: logFactory(LogLevel.DEBUG, state.socketServer, addLog, state.logFile, state.verbose, state.apiEmitters.onLog),
+    info:  logFactory(LogLevel.INFO,  state.socketServer, addLog, state.logFile, state.verbose, state.apiEmitters.onLog),
+    warn:  logFactory(LogLevel.WARN,  state.socketServer, addLog, state.logFile, state.verbose, state.apiEmitters.onLog),
+    error: logFactory(LogLevel.ERROR, state.socketServer, addLog, state.logFile, state.verbose, state.apiEmitters.onLog)
   };
 
   state.socketServer.secret = content.secret;
@@ -287,13 +316,18 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   }
 
   // Read configs & preferences
-  const conf = await ConfigFile.readOrCreateFile(path.join(state.configFolder, CONFIG_FILENAME));
-  state.config = conf;
-  const [pref, extConf] = await (Promise.all([
-    PreferencesFile.readOrCreateFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME)),
+  state.config = await ConfigFile.readOrCreateFile(path.join(state.configFolder, CONFIG_FILENAME));
+  // @TODO Figure out why async loading isn't always working?
+  try {
+    state.preferences = await PreferencesFile.readOrCreateFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME));
+  } catch (e) {
+    console.log(e);
+    exit(state);
+    return;
+  }
+  const [extConf] = await (Promise.all([
     ExtConfigFile.readOrCreateFile(path.join(state.config.flashpointPath, EXT_CONFIG_FILENAME))
   ]));
-  state.preferences = pref;
   state.extConfig = extConf;
 
   // Create Game Data Directory and clean up temp files
@@ -310,13 +344,15 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   // Check for custom version to report
   const versionFilePath = content.isDev ? path.join(process.cwd(), 'version.txt') : path.join(state.config.flashpointPath, 'version.txt');
-  await fs.access(versionFilePath, fs.constants.F_OK)
+  const customVersion = await fs.access(versionFilePath, fs.constants.F_OK)
   .then(async () => {
-    const data = await fs.readFile(versionFilePath, 'utf8');
-    state.customVersion = data;
-    log.info('Launcher', `Data Version Detected: ${state.customVersion}`);
+    return fs.readFile(versionFilePath, 'utf8');
   })
   .catch(() => { /** File doesn't exist */ });
+  if (customVersion) {
+    state.customVersion = customVersion;
+    log.info('Launcher', `Data Version Detected: ${state.customVersion}`);
+  }
 
   // Setup DB
   if (!state.connection) {
@@ -325,7 +361,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
       database: path.join(state.config.flashpointPath, 'Data', 'flashpoint.sqlite'),
       entities: [Game, AdditionalApp, Playlist, PlaylistGame, Tag, TagAlias, TagCategory, GameData, Source, SourceData],
       migrations: [Initial1593172736527, AddExtremeToPlaylist1599706152407, GameData1611753257950, SourceDataUrlPath1612434225789, SourceFileURL1612435692266,
-        SourceFileCount1612436426353, GameTagsStr1613571078561]
+        SourceFileCount1612436426353, GameTagsStr1613571078561, GameDataParams1619885915109]
     };
     state.connection = await createConnection(options);
     // TypeORM forces on but breaks Playlist Game links to unimported games
@@ -386,7 +422,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     await state.extensionsService.getExtensionPathIndex(),
     addExtLogFactory,
     versionStr,
-    state
+    state,
   ),
   state.moduleInterceptor);
   await installNodeInterceptor(state.moduleInterceptor);

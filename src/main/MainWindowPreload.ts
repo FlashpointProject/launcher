@@ -4,7 +4,7 @@ import { InitRendererChannel, InitRendererData } from '@shared/IPC';
 import { setTheme } from '@shared/Theme';
 import { createErrorProxy } from '@shared/Util';
 import * as electron from 'electron';
-import { OpenDialogOptions } from 'electron';
+import { OpenDialogOptions, remote } from 'electron';
 import * as path from 'path';
 import { isDev } from './Util';
 
@@ -19,15 +19,15 @@ window.Shared = {
 
   version: createErrorProxy('version'),
 
-  platform: electron.remote.process.platform+'' as NodeJS.Platform, // (Coerce to string to make sure its not a remote object)
+  platform: remote.process.platform+ '' as NodeJS.Platform, // (Coerce to string to make sure its not a remote object)
 
   minimize() {
-    const currentWindow = electron.remote.getCurrentWindow();
+    const currentWindow = remote.getCurrentWindow();
     currentWindow.minimize();
   },
 
   maximize() {
-    const currentWindow = electron.remote.getCurrentWindow();
+    const currentWindow = remote.getCurrentWindow();
     if (currentWindow.isMaximized()) {
       currentWindow.unmaximize();
     } else {
@@ -36,22 +36,23 @@ window.Shared = {
   },
 
   close() {
-    const currentWindow = electron.remote.getCurrentWindow();
+    const currentWindow = remote.getCurrentWindow();
+    currentWindow.webContents.closeDevTools();
     currentWindow.close();
   },
 
   restart() {
-    electron.remote.app.relaunch();
-    electron.remote.app.quit();
+    remote.app.relaunch();
+    remote.app.quit();
   },
 
   showOpenDialogSync(options: OpenDialogOptions): string[] | undefined {
     // @HACK: Electron set the incorrect return type for "showOpenDialogSync".
-    return electron.remote.dialog.showOpenDialogSync(options) as any;
+    return remote.dialog.showOpenDialogSync(options) as any;
   },
 
   toggleDevtools(): void {
-    electron.remote.getCurrentWindow().webContents.toggleDevTools();
+    remote.getCurrentWindow().webContents.toggleDevTools();
   },
 
   preferences: {
@@ -99,6 +100,7 @@ window.Shared = {
   initialExtConfig: createErrorProxy('initialExtConfig'),
   initialCurations: createErrorProxy('initialCurations'),
   initialSuggestions: createErrorProxy('initialSuggestions'),
+  initialUpdateFeedMarkdown: createErrorProxy('initialUpdateFeedMarkdown'),
 
   waitUntilInitialized() {
     if (!isInitDone) { return onInit; }
@@ -155,8 +157,8 @@ const onInit = (async () => {
       window.Shared.initialLogoSets = data.logoSets;
       window.Shared.initialExtConfigs = data.extConfigs;
       window.Shared.initialExtConfig = data.extConfig;
+      window.Shared.initialUpdateFeedMarkdown = data.updateFeedMarkdown;
       window.Shared.initialCurations = data.curations;
-      window.Shared.initialSuggestions = data.suggestions;
       if (window.Shared.preferences.data.currentTheme) {
         const theme = window.Shared.initialThemes.find(t => t.id === window.Shared.preferences.data.currentTheme);
         if (theme) { setTheme(theme); }
@@ -173,21 +175,21 @@ function registerHandlers(): void {
   });
 
   window.Shared.back.register(BackOut.OPEN_MESSAGE_BOX, async (event, data) => {
-    const result = await electron.remote.dialog.showMessageBox(data);
+    const result = await remote.dialog.showMessageBox(data);
     return result.response;
   });
 
   window.Shared.back.register(BackOut.OPEN_SAVE_DIALOG, async (event, data) => {
-    const result = await electron.remote.dialog.showSaveDialog(data);
+    const result = await remote.dialog.showSaveDialog(data);
     return result.filePath;
   });
 
   window.Shared.back.register(BackOut.OPEN_OPEN_DIALOG, async (event, data) => {
-    const result = await electron.remote.dialog.showOpenDialog(data);
+    const result = await remote.dialog.showOpenDialog(data);
     return result.filePaths;
   });
 
   window.Shared.back.register(BackOut.OPEN_EXTERNAL, async (event, url, options) => {
-    await electron.remote.shell.openExternal(url, options);
+    await remote.shell.openExternal(url, options);
   });
 }

@@ -39,6 +39,7 @@ import { AppRouter, AppRouterProps } from './router';
 import { CurateActionType } from './store/curate/enums';
 import { CurateAction } from './store/curate/types';
 import { MainActionType, RequestState } from './store/main/enums';
+import { RANDOM_GAME_ROW_COUNT } from './store/main/reducer';
 import { MainState } from './store/main/types';
 import { SearchQuery } from './store/search';
 import { UpgradeStage } from './upgrade/types';
@@ -438,7 +439,7 @@ export class App extends React.Component<AppProps> {
 
   componentDidMount() {
     // Call first batch of random games
-    if (this.props.main.randomGames.length < 6) { this.rollRandomGames(true); }
+    if (this.props.main.randomGames.length < RANDOM_GAME_ROW_COUNT) { this.rollRandomGames(true); }
   }
 
   componentDidUpdate(prevProps: AppProps) {
@@ -478,6 +479,35 @@ export class App extends React.Component<AppProps> {
       }
     }
 
+    // Reset random games if the filters change
+    // @TODO: Is this really the best way to compare array contents? I guess it works
+    if (
+      this.props.preferencesData.browsePageShowExtreme !== prevProps.preferencesData.browsePageShowExtreme ||
+      !arrayShallowStrictEquals(this.props.preferencesData.excludedRandomLibraries, prevProps.preferencesData.excludedRandomLibraries) ||
+      JSON.stringify(prevProps.preferencesData.tagFilters) !== JSON.stringify(this.props.preferencesData.tagFilters)) {
+      this.props.dispatchMain({
+        type: MainActionType.CLEAR_RANDOM_GAMES
+      });
+      this.props.dispatchMain({
+        type: MainActionType.REQUEST_RANDOM_GAMES
+      });
+      window.Shared.back.request(BackIn.RANDOM_GAMES, {
+        count: RANDOM_GAME_ROW_COUNT * 10,
+        broken: this.props.preferencesData.showBrokenGames,
+        excludedLibraries: this.props.preferencesData.excludedRandomLibraries,
+        tagFilters: this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme))
+      })
+      .then((data) => {
+        this.props.dispatchMain({
+          type: MainActionType.RESPONSE_RANDOM_GAMES,
+          games: data || [],
+        });
+      })
+      .catch((error) => {
+        log.error('Launcher', `Error fetching random games - ${error}`);
+      });
+    }
+
     if (view) {
       // Check if any parameters for the search query has changed (they don't match the current view's)
       if (view.query.text                   !== this.props.search.text ||
@@ -485,7 +515,8 @@ export class App extends React.Component<AppProps> {
           view.query.orderBy                !== this.props.preferencesData.gamesOrderBy ||
           view.query.orderReverse           !== this.props.preferencesData.gamesOrder ||
           prevProps.main.playlists          !== this.props.main.playlists ||
-          view.tagFilters                   !== this.props.preferencesData.tagFilters) {
+          view.tagFilters                   !== this.props.preferencesData.tagFilters ||
+          view.query.searchLimit            !== this.props.preferencesData.searchLimit) {
         this.setViewQuery(library);
       }
       // Fetch pages
@@ -551,6 +582,9 @@ export class App extends React.Component<AppProps> {
               total: data.total,
             });
           }
+        })
+        .catch((error) => {
+          log.error('Launcher', `Error getting browse view keyset - ${error}`);
         });
 
         // Flag meta as requested
@@ -587,14 +621,6 @@ export class App extends React.Component<AppProps> {
       } else {
         history.push(joinLibraryRoute(route));
       }
-    }
-
-    // Clear random picks queue
-    if (this.props.main.randomGames.length > 6 && (
-      this.props.preferencesData.browsePageShowExtreme !== prevProps.preferencesData.browsePageShowExtreme ||
-      !arrayShallowStrictEquals(this.props.preferencesData.excludedRandomLibraries, prevProps.preferencesData.excludedRandomLibraries)
-    )) {
-      this.props.dispatchMain({ type: MainActionType.CLEAR_RANDOM_GAMES });
     }
   }
 
@@ -653,6 +679,7 @@ export class App extends React.Component<AppProps> {
       extConfig: this.props.main.extConfig,
       logoVersion: this.props.main.logoVersion,
       services: this.props.main.services,
+      updateFeedMarkdown: window.Shared.initialUpdateFeedMarkdown,
     };
 
     // Render
@@ -941,6 +968,7 @@ export class App extends React.Component<AppProps> {
       showExtreme: this.props.preferencesData.browsePageShowExtreme,
       orderBy: this.props.preferencesData.gamesOrderBy,
       orderReverse: this.props.preferencesData.gamesOrder,
+      searchLimit: this.props.preferencesData.searchLimit,
       playlistId: (arguments.length >= 2)
         ? playlistId
         : null,
@@ -982,11 +1010,11 @@ export class App extends React.Component<AppProps> {
     }
 
     // Request more games to the queue
-    if (randomGames.length <= 18 && !requestingRandomGames) {
+    if (randomGames.length <= (RANDOM_GAME_ROW_COUNT * 5) && !requestingRandomGames) {
       this.props.dispatchMain({ type: MainActionType.REQUEST_RANDOM_GAMES });
 
       window.Shared.back.request(BackIn.RANDOM_GAMES, {
-        count: 50,
+        count: RANDOM_GAME_ROW_COUNT * 10,
         broken: this.props.preferencesData.showBrokenGames,
         excludedLibraries: this.props.preferencesData.excludedRandomLibraries,
         tagFilters: this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme))

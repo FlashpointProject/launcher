@@ -1,7 +1,7 @@
 import { BrowsePageLayout } from '../BrowsePageLayout';
 import { GameOrderBy, GameOrderReverse } from '../order/interfaces';
 import { LogLevel } from '@shared/Log/interface';
-import {CurateGroup} from "@renderer/store/curate/types";
+import { CurateGroup } from '@renderer/store/curate/types';
 
 /**
  * Contains state of all non-config settings the user can change in the application.
@@ -105,6 +105,14 @@ export type AppPreferencesData = {
   showBrokenGames: boolean;
   /** Whether home page boxes are minimized */
   minimizedHomePageBoxes: string[];
+  /** Whether to hide extreme game screenshots by default */
+  hideExtremeScreenshots: boolean;
+  /** URL to fetch for the update feed markdown */
+  updateFeedUrl: string;
+  /** Toggle for fancy client animations */
+  fancyAnimations: boolean;
+  /** Result limit for searches (0 if disabled) */
+  searchLimit: number;
   /** Persistant Curate groups */
   groups: CurateGroup[];
 };
@@ -126,6 +134,7 @@ export type AppPreferencesDataMainWindow = {
 
 export type TagFilterGroup = {
   name: string;
+  description: string;
   /** Enabled */
   enabled: boolean;
   /** Tags to filter */

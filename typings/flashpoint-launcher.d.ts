@@ -1,4 +1,4 @@
-// Type definitions for non-npm package flashpoint-launcher 10.0
+// Type definitions for non-npm package flashpoint-launcher 10.1
 // Project: Flashpoint Launcher https://github.com/FlashpointProject/launcher
 // Definitions by: Colin Berry <https://github.com/colin969>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
@@ -20,6 +20,9 @@
 declare module 'flashpoint-launcher' {
     /** Version of the Flashpoint Launcher */
     const version: string;
+
+    /** Data Version of the Flashpoint Launcher */
+    const dataVersion: string | undefined;
 
     /** Path to own extension */
     const extensionPath: string;
@@ -53,7 +56,7 @@ declare module 'flashpoint-launcher' {
      * Unzips a file into a given directory (7zip)
      * @param filePath Path to archive
      * @param outDir Directory to output into
-     * @param onProgress Function called whenever a new file is extracted
+     * @param opts SevenZip Extraction Options
      */
     function unzipFile(filePath: string, outDir: string, opts: ZipExtractOptions): Promise<void>;
 
@@ -65,6 +68,10 @@ declare module 'flashpoint-launcher' {
      * Gets an extension configuration value given its key and a new value
      */
     function setExtConfigValue(key: string, value: any): Promise<void>;
+    /**
+     * Fires when an extension configuration value changes
+     */
+    const onExtConfigChange: Event<{key: string, value: any}>;
 
     /**
      * Log functions to properly pass messages to the Logs Page.
@@ -75,6 +82,7 @@ declare module 'flashpoint-launcher' {
         const info: (message: string) => void;
         const warn: (message: string) => void;
         const error: (message: string) => void;
+        const onLog: Event<ILogEntry>;
     }
 
     /** Collection of Command related API functions */
@@ -122,7 +130,7 @@ declare module 'flashpoint-launcher' {
         function updatePlaylist(playlist: Playlist): Promise<Playlist>;
         /**
          * Removes a playlist
-         * @param playlist Playlist ID to remove
+         * @param playlistId Playlist ID to remove
          * @returns Playlist that was removed
          */
         function removePlaylist(playlistId: string): Promise<Playlist | undefined>;
@@ -204,16 +212,24 @@ declare module 'flashpoint-launcher' {
          * @param library Library to use instead of Playlist defined library
          */
         function createPlaylistFromJson(jsonData: any, library?: string): Playlist;
+        /**
+         * Returns whether a game is extreme based on its tags.
+         * @param game Game to check
+         */
+        function isGameExtreme(game: Game): boolean;
 
         // Events
         const onWillLaunchGame: Event<GameLaunchInfo>;
         const onWillLaunchAddApp: Event<AdditionalApp>;
         const onWillLaunchCurationGame: Event<GameLaunchInfo>;
         const onWillLaunchCurationAddApp: Event<AdditionalApp>;
+        const onWillUninstallGameData: Event<GameData>;
         const onDidLaunchGame: Event<Game>;
         const onDidLaunchAddApp: Event<AdditionalApp>;
         const onDidLaunchCurationGame: Event<Game>;
         const onDidLaunchCurationAddApp: Event<AdditionalApp>;
+        const onDidInstallGameData: Event<GameData>;
+        const onDidUninstallGameData: Event<GameData>;
 
         const onDidUpdateGame: Event<{ oldGame: Game; newGame: Game }>;
         const onDidRemoveGame: Event<Game>;
@@ -351,6 +367,7 @@ declare module 'flashpoint-launcher' {
          * Runs a managed service given info, will die when the launcher exits.
          * @param name Name of the service
          * @param info Service info to run.
+         * @param opts Process Options
          * @param basePath Override for directory to start in (info is relative to this), Extension path if none given
          * @returns A managed process. Can be passed to removeService.
          */
@@ -359,6 +376,7 @@ declare module 'flashpoint-launcher' {
          * Creates a managed process given info, will die when disposed. (Does not start it)
          * @param name Name of the process
          * @param info Process info to run.
+         * @param opts Process Options
          * @param basePath Override for directory to start in (info is relative to this), Extension path if none given
          * @returns A managed process.
          */
@@ -536,6 +554,8 @@ declare module 'flashpoint-launcher' {
         path?: string;
         /** Size of this data pack */
         size: number;
+        /** Parameters passed to the mounter */
+        parameters?: string;
     };
 
     type SourceData = {
@@ -804,6 +824,7 @@ declare module 'flashpoint-launcher' {
 
     export type TagFilterGroup = {
         name: string;
+        description: string;
         /** Enabled */
         enabled: boolean;
         /** Tags to filter */
@@ -1135,6 +1156,22 @@ declare module 'flashpoint-launcher' {
         [K in keyof T]?: T[K] extends ObjectLike ? DeepPartial<T[K]> : T[K];
     };
 
+    /** A log entry _before_ it is added to the main log */
+    export type ILogPreEntry = {
+        /** Name of the source of the log entry (name of what added the log entry) */
+        source: string;
+        /** Content of the log entry */
+        content: string;
+    }
+
+    /** A log entry from the main log */
+    export type ILogEntry = ILogPreEntry & {
+        /** Timestamp of when the entry was added to the main's log */
+        timestamp: number;
+        /** Level of the log, 0-5, Trace, Info, Warn, Error, Fatal, Silent */
+        logLevel: number;
+    }
+
     export type LoadedCuration = {
         folder: string;
         group: string;
@@ -1240,5 +1277,5 @@ declare module 'flashpoint-launcher' {
         /** Version to force CSS refresh later */
         version: number;
     }
-    
+
 }

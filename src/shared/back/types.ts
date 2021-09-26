@@ -5,8 +5,6 @@ import { Source } from '@database/entity/Source';
 import { SourceData } from '@database/entity/SourceData';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
-import { EditCurationMeta } from '@shared/curate/OLD_types';
-import { AddAppCuration, CurationState, LoadedCuration } from '@shared/curate/types';
 import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/extensions/interfaces';
 import { FilterGameOpts } from '@shared/game/GameFilter';
 import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
@@ -21,6 +19,8 @@ import { LangContainer, LangFile } from '../lang';
 import { ILogEntry, ILogPreEntry, LogLevel } from '../Log/interface';
 import { AppPreferencesData } from '../preferences/interfaces';
 import { Theme } from '../ThemeFile';
+import { EditCurationMeta } from '@shared/curate/OLD_types';
+import { AddAppCuration, CurationState, LoadedCuration } from '@shared/curate/types';
 
 export enum BackIn {
   UNKNOWN,
@@ -402,6 +402,7 @@ export type GetRendererInitDataResponse = {
   logoSets: LogoSet[];
   extConfigs: ExtensionContribution<'configuration'>[];
   extConfig: AppExtConfigData;
+  updateFeedMarkdown: string;
   curations: CurationState[];
 }
 
@@ -483,6 +484,8 @@ export type SearchGamesOpts = {
   orderBy: GameOrderBy;
   /** The way to order the games. */
   orderReverse: GameOrderReverse;
+  /** Search Limit (0 if disabled) */
+  searchLimit: number;
 }
 
 /** Shorten version of Game returned in searches, makes for better performance. */

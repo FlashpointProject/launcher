@@ -280,6 +280,7 @@ type RebuildQueryOpts = {
   text: string;
   extreme: boolean;
   library: string;
+  searchLimit: number;
   playlistId: string | undefined;
   order: GameOrderChangeEvent;
   tagFilters: TagFilterGroup[];
@@ -304,6 +305,7 @@ export function rebuildQuery(opts: RebuildQueryOpts): ViewQuery {
       searchQuery: searchQuery,
       playlistId: opts.playlistId,
     },
+    searchLimit: opts.searchLimit,
     orderBy: opts.order.orderBy,
     orderReverse: opts.order.orderReverse,
   };

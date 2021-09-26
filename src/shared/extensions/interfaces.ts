@@ -117,9 +117,10 @@ export type ExtConfiguration = {
 }
 
 export type ExtConfigurationProp = {
-  type: 'string' | 'object' | 'boolean';
+  type: 'string' | 'object' | 'boolean' | 'button';
   default: any;
   enum: any[];
   title: string;
   description: string;
+  command?: string;
 }

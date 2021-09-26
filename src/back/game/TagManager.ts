@@ -67,7 +67,7 @@ export async function findTags(name?: string, flatFilters?: string[]): Promise<T
     .setParameters(filterQuery.getParameters());
   }
 
-  return query.orderBy('tag.categoryId DESC, primaryAlias.name', 'ASC')
+  return query.orderBy('tag.categoryId ASC, primaryAlias.name', 'ASC')
   .getMany();
 }
 

@@ -104,6 +104,21 @@ export function registerRequestCallbacks(state: BackState): void {
     // Fire after return has sent
     setTimeout(() => state.apiEmitters.onDidConnect.fire(), 100);
 
+    // Fetch update feed
+    let updateFeedMarkdown = '';
+    if (state.preferences.updateFeedUrl) {
+      updateFeedMarkdown = await axios.get(state.preferences.updateFeedUrl, { timeout: 3000 })
+      .then((res) => {
+        return res.data;
+      })
+      .catch((err) => {
+        log.debug('Launcher', 'Failed to fetch update feed, ERROR: ' + err);
+        return '';
+      });
+    } else {
+      log.debug('Launcher', 'No Update Feed URL specified');
+    }
+
     return {
       preferences: state.preferences,
       config: state.config,
@@ -134,6 +149,7 @@ export function registerRequestCallbacks(state: BackState): void {
       logoSets: Array.from(state.registry.logoSets.values()),
       extConfigs: await state.extensionsService.getContributions('configuration'),
       extConfig: state.extConfig,
+      updateFeedMarkdown: updateFeedMarkdown,
       curations: state.loadedCurations,
     };
 
@@ -521,6 +537,7 @@ export function registerRequestCallbacks(state: BackState): void {
       const existingData = await GameDataManager.findOne(d.id);
       if (existingData) {
         existingData.title = d.title;
+        existingData.parameters = d.parameters;
         return GameDataManager.save(existingData);
       }
     }));
@@ -530,8 +547,12 @@ export function registerRequestCallbacks(state: BackState): void {
     const gameData = await GameDataManager.findOne(gameDataId);
     if (gameData) {
       if (gameData.presentOnDisk && gameData.path) {
+        await GameDataManager.onWillUninstallGameData.fire(gameData);
         const gameDataPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, gameData.path);
         await fs.promises.unlink(gameDataPath);
+        gameData.path = undefined;
+        gameData.presentOnDisk = false;
+        GameDataManager.onDidUninstallGameData.fire(gameData);
       }
       const game = await GameManager.findGame(gameData.gameId);
       if (game) {
@@ -568,6 +589,7 @@ export function registerRequestCallbacks(state: BackState): void {
   state.socketServer.register(BackIn.UNINSTALL_GAME_DATA, async (event, id) => {
     const gameData = await GameDataManager.findOne(id);
     if (gameData && gameData.path && gameData.presentOnDisk) {
+      await GameDataManager.onWillUninstallGameData.fire(gameData);
       // Delete Game Data
       const gameDataPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, gameData.path);
       await fs.promises.unlink(gameDataPath)
@@ -580,6 +602,7 @@ export function registerRequestCallbacks(state: BackState): void {
       gameData.path = '';
       gameData.presentOnDisk = false;
       await GameDataManager.save(gameData);
+      GameDataManager.onDidUninstallGameData.fire(gameData);
       // Update Game
       const game = await GameManager.findGame(gameData.gameId);
       if (game && game.activeDataId === gameData.id) {
@@ -620,7 +643,7 @@ export function registerRequestCallbacks(state: BackState): void {
 
   state.socketServer.register(BackIn.BROWSE_VIEW_KEYSET, async (event, library, query) => {
     query.filter = adjustGameFilter(query.filter);
-    const result = await GameManager.findGamePageKeyset(query.filter, query.orderBy, query.orderReverse);
+    const result = await GameManager.findGamePageKeyset(query.filter, query.orderBy, query.orderReverse, query.searchLimit);
     return {
       keyset: result.keyset,
       total: result.total,
@@ -827,7 +850,9 @@ export function registerRequestCallbacks(state: BackState): void {
       }
 
       overwritePreferenceData(state.preferences, dif);
+      state.writeLocks += 1;
       await PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences);
+      state.writeLocks -= 1;
     }
     state.socketServer.send(event.client, BackOut.UPDATE_PREFERENCES_RESPONSE, state.preferences);
   });
@@ -1129,6 +1154,23 @@ export function registerRequestCallbacks(state: BackState): void {
 
   state.socketServer.register(BackIn.QUIT, async (event) => {
     // Unload all extensions before quitting
+    const timeoutPromise = new Promise((resolve, reject) => {
+      setTimeout(resolve, 20000);
+    });
+    const writePromise = new Promise((resolve, reject) => {
+      const loopFunc = () => {
+        if (state.writeLocks > 0) {
+          setTimeout(loopFunc, 100);
+        } else {
+          resolve();
+        }
+      };
+      loopFunc();
+    });
+    await Promise.race([timeoutPromise, writePromise])
+    .catch((err) => {
+      /** Bit late to really do anything here */
+    });
     await state.extensionsService.unloadAll();
     state.socketServer.send(event.client, BackOut.QUIT);
     exit(state);

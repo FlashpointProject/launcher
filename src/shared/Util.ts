@@ -6,10 +6,11 @@ import { DownloadDetails } from './back/types';
 import { AppConfigData } from './config/interfaces';
 import { parseVariableString } from './utils/VariableString';
 import { throttle } from './utils/throttle';
-import { ContentTree, ContentTreeNode, CurationWarnings, LoadedCuration } from './curate/types';
-import { LangContainer } from './lang';
-import { getContentFolderByKey } from './curate/util';
-import { GamePropSuggestions } from './interfaces';
+import { ContentTree, ContentTreeNode, CurationWarnings, LoadedCuration } from '@shared/curate/types';
+import { GamePropSuggestions } from '@shared/interfaces';
+import { getContentFolderByKey } from '@shared/curate/util';
+import { LangContainer } from '@shared/lang';
+import ErrnoException = NodeJS.ErrnoException;
 
 const axios = axiosImport.default;
 
@@ -17,7 +18,7 @@ export function getFileServerURL() {
   return `http://${window.Shared.backUrl.hostname}:${window.Shared.fileServerPort}`;
 }
 
-type ReadFileOptions = { encoding?: string | null; flag?: string; } | string | undefined | null;
+type ReadFileOptions = { encoding?: BufferEncoding; flag?: string; } | BufferEncoding | undefined;
 
 /**
  * Read and parse a JSON file asynchronously.
@@ -27,7 +28,7 @@ type ReadFileOptions = { encoding?: string | null; flag?: string; } | string | u
  */
 export function readJsonFile(path: string, options?: ReadFileOptions): Promise<any> {
   return new Promise<any>((resolve, reject) => {
-    fs.readFile(path, options, (error, data) => {
+    fs.readFile(path, options, (error: ErrnoException | null, data: string | Buffer) => {
       // Check if reading file failed
       if (error) { return reject(error); }
       // Try to parse json (and callback error if it fails)
@@ -104,6 +105,7 @@ export type StringifyArrayOpts = {
  * Write an array to a string in a pretty and readable way
  * Ex. [0,'test',null] => '[ 0, "test", null ]'
  * @param array Array to "stringify"
+ * @param opts Options to apply to resulting string
  * @returns Readable text representation of the array
  */
 export function stringifyArray(array: Array<any>, opts?: StringifyArrayOpts): string {
@@ -391,6 +393,7 @@ export function isErrorProxy(object: any) {
 /**
  * Convert a size (in bytes) to a more human readable format.
  * @param size Size in bytes.
+ * @param precision Precision of the returned number
  * @returns Size, but in a more human readable format.
  */
 export function sizeToString(size: number, precision = 3): string {
@@ -481,6 +484,7 @@ export async function downloadFile(url: string, filePath: string, onProgress?: (
 export function generateTagFilterGroup(tags?: string[]): TagFilterGroup {
   return {
     name: '',
+    description: '',
     enabled: true,
     extreme: false,
     tags: tags || [],
@@ -616,7 +620,8 @@ function invalidLaunchCommandWarnings(folderPath: string, launchCommand: string,
 
 /**
  * Check if a the value of a field is in the suggestions for that field.
- * @param props Properties of the CurateBox.
+ * @param curation Curation to check
+ * @param suggestions Game Prop Suggestions to check against
  * @param key Key of the field to check.
  */
 function isValueSuggested<T extends keyof GamePropSuggestions>(curation: LoadedCuration, suggestions: GamePropSuggestions, key: T & string): boolean {
