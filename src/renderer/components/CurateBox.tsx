@@ -47,8 +47,8 @@ export function CurateBox(props: CurateBoxProps) {
   const strings = React.useContext(LangContext);
   const disabled = !!props.curation.locked;
 
-  const onSetThumbnail  = useAddImageCallback(CurationImageEnum.THUMBNAIL, props.curation, props.dispatch);
-  const onSetScreenshot = useAddImageCallback(CurationImageEnum.SCREENSHOT,   props.curation, props.dispatch);
+  const onSetThumbnail  = useAddImageCallback(CurationImageEnum.THUMBNAIL, props.curation);
+  const onSetScreenshot = useAddImageCallback(CurationImageEnum.SCREENSHOT,   props.curation);
   const onRemoveThumbnailClick  = useRemoveImageCallback(CurationImageEnum.THUMBNAIL, props.curation, props.dispatch);
   const onRemoveScreenshotClick = useRemoveImageCallback(CurationImageEnum.SCREENSHOT,  props.curation, props.dispatch);
   const onDropThumbnail  = useDropImageCallback('logo.png', props.curation, strings.dialog);
@@ -119,7 +119,7 @@ export function CurateBox(props: CurateBoxProps) {
     });
   }, [props.curation.folder, props.curation.contents]);
 
-  const onContentTreeNodeMenuFactory = (node: ContentTreeNode, tree: string[]) => (event: React.MouseEvent<HTMLDivElement>) => {
+  const onContentTreeNodeMenuFactory = (node: ContentTreeNode, tree: string[]) => () => {
     const contextButtons: MenuItemConstructorOptions[] = [{
       label: strings.curate.contextCopyName,
       click: () => clipboard.writeText(node.name)
@@ -379,6 +379,12 @@ export function CurateBox(props: CurateBoxProps) {
                 property='launchCommand'
                 { ...shared } />
               <CurateBoxInputRow
+                title={strings.browse.mountParameters}
+                text={props.curation.game.mountParameters}
+                placeholder={strings.browse.noMountParameters}
+                property='mountParameters'
+                { ...shared } />
+              <CurateBoxInputRow
                 title={strings.browse.notes}
                 text={props.curation.game.notes}
                 placeholder={strings.browse.noNotes}
@@ -457,7 +463,7 @@ export function CurateBox(props: CurateBoxProps) {
   );
 }
 
-function useAddImageCallback(type: CurationImageEnum, curation: LoadedCuration | undefined, dispatch: Dispatch<CurateAction>): (data: ArrayBuffer) => void {
+function useAddImageCallback(type: CurationImageEnum, curation: LoadedCuration | undefined): (data: ArrayBuffer) => void {
   return React.useCallback(async (data: ArrayBuffer) => {
     if (curation) {
       const suffix = type === CurationImageEnum.THUMBNAIL ? 'logo.png' : 'ss.png';
@@ -471,8 +477,9 @@ function useAddImageCallback(type: CurationImageEnum, curation: LoadedCuration |
 
 /**
  * Delete an image file inside the curation's folder.
- * @param filename Name of the image file.
+ * @param type Enum (Logo or Screenshot)
  * @param curation Curation to delete it from.
+ * @param dispatch Curate Action Dispatch Func
  */
 function useRemoveImageCallback(type: CurationImageEnum, curation: LoadedCuration | undefined, dispatch: Dispatch<CurateAction>): () => Promise<void> {
   return React.useCallback(async () => {
@@ -483,12 +490,12 @@ function useRemoveImageCallback(type: CurationImageEnum, curation: LoadedCuratio
 }
 
 function useDropImageCallback(filename: 'logo.png' | 'ss.png', curation: CurationState, strings: LangContainer['dialog']) {
-  return React.useCallback(async (event: React.DragEvent<Element>) => {
+  return React.useCallback(async (event: React.DragEvent) => {
     const files = event.dataTransfer.files;
 
     if (curation && !curation.locked && files.length > 0) {
       if (files[0].name.toLocaleLowerCase().endsWith('.png')) {
-        axios.post(`${getCurationURL(curation.folder)}/${filename}`, await files[0].arrayBuffer());
+        await axios.post(`${getCurationURL(curation.folder)}/${filename}`, await files[0].arrayBuffer());
       } else {
         alert(strings.mustBePngImage);
       }
@@ -513,7 +520,5 @@ function findAncestorRowTagID(element: Element): number | undefined {
   const index = ancestor.getAttribute(tagIndexAttr);
   if (typeof index !== 'string') { throw new Error('Failed to get attribute from ancestor!'); }
 
-  const index_number = (index as any) * 1; // Coerce to number
-
-  return index_number;
+  return (index as any) * 1; // Coerce to number
 }

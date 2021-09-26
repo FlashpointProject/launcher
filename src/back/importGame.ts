@@ -181,7 +181,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
       });
       if (res === 0) {
         console.log('Opening curation folder after error');
-        opts.openExternal(getCurationFolder(curation, fpPath));
+        await opts.openExternal(getCurationFolder(curation, fpPath));
       }
     }
   })
@@ -256,12 +256,12 @@ export async function launchCuration(curation: LoadedCuration, symlinkCurationCo
   if (!skipLink || !symlinkCurationContent) { await linkContentFolder(curation.folder, opts.fpPath, opts.isDev, opts.exePath, opts.htdocsPath, symlinkCurationContent); }
   curationLog(`Launching Curation ${curation.game.title}`);
   const game = await createGameFromCurationMeta(curation.folder, curation.game, [], new Date());
-  GameLauncher.launchGame({
-    ...opts,
-    game: game,
-  },
-  onWillEvent);
-  onDidEvent.fire(game);
+  await GameLauncher.launchGame({
+      ...opts,
+      game: game,
+    },
+    onWillEvent);
+  await onDidEvent.fire(game);
 }
 
 /**
@@ -274,11 +274,11 @@ export async function launchAddAppCuration(folder: string, appCuration: AddAppCu
   if (!skipLink || !symlinkCurationContent) { await linkContentFolder(folder, opts.fpPath, opts.isDev, opts.exePath, opts.htdocsPath, symlinkCurationContent); }
   const addApp = createAddAppFromCurationMeta(appCuration, createPlaceholderGame());
   await onWillEvent.fire(addApp);
-  GameLauncher.launchAdditionalApplication({
+  await GameLauncher.launchAdditionalApplication({
     ...opts,
     addApp: addApp,
   });
-  onDidEvent.fire(addApp);
+  await onDidEvent.fire(addApp);
 }
 
 function logMessage(text: string, folder: string): void {
@@ -376,7 +376,7 @@ async function linkContentFolder(curationKey: string, fpPath: string, isDev: boo
         const mklinkBatPath = getMklinkBatPath(isDev, exePath);
         const mklinkDir = path.dirname(mklinkBatPath);
         await new Promise<void>((resolve, reject) => {
-          execFile('mklink.bat', [`"${htdocsContentPath}"`, `"${contentPath}"`], { cwd: mklinkDir, shell: true }, (err, stdout, stderr) => {
+          execFile('mklink.bat', [`"${htdocsContentPath}"`, `"${contentPath}"`], { cwd: mklinkDir, shell: true }, (err) => {
             if (err) { reject();  }
             else     { resolve(); }
           });
@@ -535,13 +535,12 @@ function createPlaceholderGame(): Game {
 export async function createTagsFromLegacy(tags: string, tagCache: Record<string, Tag>): Promise<Tag[]> {
   const allTags: Tag[] = [];
 
-  addTagLoop:
   for (const t of tags.split(';')) {
     const trimTag = t.trim();
     const cachedTag = tagCache[trimTag];
     if (cachedTag) {
       allTags.push(cachedTag);
-      continue addTagLoop;
+      continue;
     }
     let tag = await TagManager.findTag(trimTag);
     if (!tag && trimTag !== '') {

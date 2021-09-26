@@ -15,7 +15,7 @@ export type CuratePageLeftSidebarProps = {
   curate: CurateState;
   logoVersion: number;
   onCurationSelect: (folder: string, ctrl?: boolean, shift?: boolean) => void;
-  onCurationDrop: (event: React.DragEvent<Element>) => void;
+  onCurationDrop: (event: React.DragEvent) => void;
   onToggleGroupCollapse: (group: string) => void;
   onToggleGroupPin: (group: CurateGroup) => void;
   createNewGroup: (group: string) => void;
@@ -58,7 +58,7 @@ export function CuratePageLeftSidebar(props: CuratePageLeftSidebarProps) {
     props.onCurationDrop(event);
   };
 
-  const onDragLeave = (event: React.DragEvent): void => {
+  const onDragLeave = (): void => {
     if (isHovering) { setIsHovering(false); }
   };
 
@@ -95,7 +95,7 @@ export function CuratePageLeftSidebar(props: CuratePageLeftSidebarProps) {
     );
   }, [props.curate, draggedCuration, dragGroupTarget]);
 
-  const onCurationDragDrop = React.useCallback((event) => {
+  const onCurationDragDrop = React.useCallback(() => {
     if (draggedCuration !== '' && dragGroupTarget !== undefined) {
       props.moveCurationToGroup(draggedCuration, dragGroupTarget);
     }
@@ -145,7 +145,7 @@ export function CuratePageLeftSidebar(props: CuratePageLeftSidebarProps) {
     // Render all groups present on curations
     let stagingElems: JSX.Element[] = [];
     const groupRenders: Map<string, JSX.Element> = new Map();
-    sortedCurations.forEach((cur, idx, arr) => {
+    sortedCurations.forEach((cur) => {
       if (stagingGroup.name !== cur.group) {
         // New group, flush and set up new group
         groupRenders.set(stagingGroup.name, renderCurationGroup(stagingGroup, stagingElems));

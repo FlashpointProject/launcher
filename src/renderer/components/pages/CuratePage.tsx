@@ -77,13 +77,13 @@ export function CuratePage(props: CuratePageProps) {
     .then(value => window.Shared.back.send(BackIn.CURATE_LOAD_ARCHIVES, value.filePaths));
   }, []);
 
-  const onOpenCurationsFolder = React.useCallback(() => {
-    electron.remote.shell.openExternal(path.join(window.Shared.config.fullFlashpointPath, 'Curations'));
+  const onOpenCurationsFolder = React.useCallback(async () => {
+    await electron.remote.shell.openExternal(path.join(window.Shared.config.fullFlashpointPath, 'Curations'));
   }, []);
 
-  const onOpenCurationFolder = React.useCallback(() => {
+  const onOpenCurationFolder = React.useCallback(async () => {
     if (curation) {
-      electron.remote.shell.openExternal(path.join(window.Shared.config.fullFlashpointPath, 'Curations', 'Working', curation.folder));
+      await electron.remote.shell.openExternal(path.join(window.Shared.config.fullFlashpointPath, 'Curations', 'Working', curation.folder));
     }
   }, [curation]);
 
