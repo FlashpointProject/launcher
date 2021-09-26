@@ -10,7 +10,7 @@ import { overwriteConfigData } from '@shared/config/util';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { CurationState, LoadedCuration } from '@shared/curate/types';
-import { getContentFolderByKey, getCurationFolder } from '@shared/curate/util';
+import { getContentFolderByKey } from '@shared/curate/util';
 import { AppProvider, BrowserApplicationOpts } from '@shared/extensions/interfaces';
 import { FilterGameOpts } from '@shared/game/GameFilter';
 import { DeepPartial, GamePropSuggestions, ProcessAction, ProcessState } from '@shared/interfaces';
@@ -45,7 +45,20 @@ import { ManagedChildProcess } from './ManagedChildProcess';
 import { importAllMetaEdits } from './MetaEdit';
 import { BackState, BareTag, TagsFile } from './types';
 import { pathToBluezip } from './util/Bluezip';
-import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylistFromJson, dateToFilenameString, exit, pathExists, procToService, removeService, runService } from './util/misc';
+import {
+  copyError,
+  createAddAppFromLegacy,
+  createContainer,
+  createGameFromLegacy,
+  createPlaylistFromJson,
+  dateToFilenameString,
+  deleteCuration,
+  exit,
+  pathExists,
+  procToService,
+  removeService,
+  runService
+} from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
 import { pathTo7zBack } from './util/SevenZip';
 import { uuid } from './util/uuid';
@@ -1039,7 +1052,7 @@ export function registerRequestCallbacks(state: BackState): void {
         })
         .then(() => {
           // Delete curation afterwards
-          deleteCuration(curation.folder);
+          deleteCuration(state, curation.folder);
           state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, undefined, [curation.folder]);
         })
         .catch(() => {
@@ -1293,18 +1306,8 @@ export function registerRequestCallbacks(state: BackState): void {
     }
   });
 
-  async function deleteCuration(folder: string) {
-    const curationIdx = state.loadedCurations.findIndex(c => c.folder === folder);
-    if (curationIdx !== -1) {
-      const curationPath = getCurationFolder(state.loadedCurations[curationIdx], state.config.flashpointPath);
-      await fs.remove(curationPath);
-      state.loadedCurations.splice(curationIdx, 1);
-      state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, undefined, [folder]);
-    }
-  }
-
   state.socketServer.register(BackIn.CURATE_DELETE, async (event, folders) => {
-    folders.map(f => deleteCuration(f));
+    folders.map(f => deleteCuration(state, f));
   });
 
   state.socketServer.register(BackIn.CURATE_EXPORT, async (event, curations) => {

@@ -10,14 +10,23 @@ import * as TagManager from '@back/game/TagManager';
 import { DisposableChildProcess, ManagedChildProcess } from '@back/ManagedChildProcess';
 import { BackState, StatusState } from '@back/types';
 import { clearDisposable, dispose, newDisposable, registerDisposable } from '@back/util/lifecycle';
-import { createPlaylistFromJson, getOpenMessageBoxFunc, getOpenOpenDialogFunc, getOpenSaveDialogFunc, removeService, runService, setStatus } from '@back/util/misc';
+import {
+  createPlaylistFromJson,
+  deleteCuration,
+  getOpenMessageBoxFunc,
+  getOpenOpenDialogFunc,
+  getOpenSaveDialogFunc,
+  removeService,
+  runService,
+  setStatus
+} from '@back/util/misc';
 import { pathTo7zBack } from '@back/util/SevenZip';
 import { Game } from '@database/entity/Game';
 import { BackOut } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
-import { CurationState, LoadedCuration } from '@shared/curate/types';
+import { CurationMeta, CurationState, LoadedCuration } from '@shared/curate/types';
 import { getContentFolderByKey } from '@shared/curate/util';
-import { IExtensionManifest } from '@shared/extensions/interfaces';
+import { CurationTemplate, IExtensionManifest } from '@shared/extensions/interfaces';
 import { ProcessState } from '@shared/interfaces';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
@@ -33,10 +42,12 @@ import uuid = require('uuid');
 
 /**
  * Create a Flashpoint API implementation specific to an extension, used during module load interception
+ * @param extId Extension ID
  * @param extManifest Manifest of the caller
- * @param registry Registry to register commands etc. to
  * @param addExtLog Function to add an Extensions log to the Logs page
  * @param version Version of the Flashpoint Launcher
+ * @param state Back State
+ * @param extPath Folder Path to the Extension
  * @returns API Implementation specific to the caller
  */
 export function createApiFactory(extId: string, extManifest: IExtensionManifest, addExtLog: (log: ILogEntry) => void, version: string, state: BackState, extPath?: string): typeof flashpoint {
@@ -219,8 +230,8 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     findGameData: GameDataManager.findGameData,
     findSourceDataForHashes: GameDataManager.findSourceDataForHashes,
     save: GameDataManager.save,
-    importGameData: (gameId, filePath) => GameDataManager.importGameData(gameId, filePath, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath)),
-    downloadGameData: async (gameDataId) => {
+    importGameData: (gameId: string, filePath: string) => GameDataManager.importGameData(gameId, filePath, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath)),
+    downloadGameData: async (gameDataId: number) => {
       const onProgress = (percent: number) => {
         // Sent to PLACEHOLDER download dialog on client
         state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT, percent);
@@ -340,6 +351,10 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     getCurations: () => {
       return [...state.loadedCurations];
     },
+    async getCurationTemplates(): Promise<CurationTemplate[]> {
+      const contribs = await state.extensionsService.getContributions('curationTemplates');
+      return contribs.reduce<CurationTemplate[]>((prev, cur) => prev.concat(cur.value), []);
+    },
     getCuration: (folder: string) => {
       const curation = state.loadedCurations.find(c => c.folder === folder);
       return curation ? {...curation} : undefined;
@@ -382,51 +397,33 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
         throw 'Not a valid curation folder';
       }
     },
-    newCuration: async () => {
+    newCuration: async (meta?: CurationMeta) => {
       const folder = uuid();
-      const existingCuration = state.loadedCurations.find(c => c.folder === folder);
-      if (!existingCuration) {
-        const curPath = path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, folder);
-        await fs.promises.mkdir(curPath, { recursive: true });
-        const contentFolder = path.join(curPath, 'content');
-        await fs.promises.mkdir(contentFolder, { recursive: true });
+      const curPath = path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, folder);
+      await fs.promises.mkdir(curPath, { recursive: true });
+      const contentFolder = path.join(curPath, 'content');
+      await fs.promises.mkdir(contentFolder, { recursive: true });
 
-        const data: LoadedCuration = {
-          folder,
-          group: '',
-          game: {},
-          addApps: [],
-          thumbnail: await loadCurationIndexImage(path.join(curPath, 'logo.png')),
-          screenshot: await loadCurationIndexImage(path.join(curPath, 'ss.png'))
-        };
-        const curation: CurationState = {
-          ...data,
-          warnings: genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate),
-          contents: await genContentTree(getContentFolderByKey(folder, state.config.flashpointPath))
-        };
-        await saveCuration(curPath, curation);
-        state.loadedCurations.push(curation);
-        state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
-      }
-      return {
-        folder: uuid(),
+      const data: LoadedCuration = {
+        folder,
         group: '',
-        game: {},
+        game: meta || {},
         addApps: [],
-        thumbnail: { exists: false, version: 0 },
-        screenshot: { exists: false, version: 0 },
-        warnings: {},
-        contents: { root: {
-          name: '',
-          expanded: true,
-          type: 'directory',
-          children: []
-        } }
+        thumbnail: await loadCurationIndexImage(path.join(curPath, 'logo.png')),
+        screenshot: await loadCurationIndexImage(path.join(curPath, 'ss.png'))
       };
+      const curation: CurationState = {
+        ...data,
+        warnings: genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate),
+        contents: await genContentTree(getContentFolderByKey(folder, state.config.flashpointPath))
+      };
+      await saveCuration(curPath, curation);
+      state.loadedCurations.push(curation);
+      state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
+      return curation;
     },
     deleteCuration: (folder: string) => {
-      // @TODO
-      return false;
+      return deleteCuration(state, folder);
     }
   };
 

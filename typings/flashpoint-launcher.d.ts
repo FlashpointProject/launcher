@@ -97,13 +97,38 @@ declare module 'flashpoint-launcher' {
     }
 
     namespace curations {
+        /** Get all loaded curations */
         function getCurations(): CurationState[];
+        /** Get all curation templates */
+        function getCurationTemplates(): Promise<CurationTemplate[]>;
+        /**
+         * Gets a curation given its folder
+         * @param folder Folder of the curation
+         */
         function getCuration(folder: string): CurationState | undefined;
-        const onDidCurationChange: Event<CurationState>;
+        /**
+         * Writes metadata to a loaded curation
+         * @param folder Folder of the curation
+         * @param meta Metadata to write
+         */
         function setCurationGameMeta(folder: string, meta: CurationMeta): boolean;
+        /**
+         * Writes metadata to a loaded curation's AddApp
+         * @param folder Folder of the curation
+         * @param key Key of the AddApp
+         * @param meta AddApp Metadata to write
+         */
         function setCurationAddAppMeta(folder: string, key: string, meta: AddAppCurationMeta): boolean;
-        function newCuration(): Promise<CurationState>;
-        function deleteCuration(folder: string): boolean;
+        /** Creates a new curation
+         * @param meta Template Curation Metadata
+         */
+        function newCuration(meta?: CurationMeta): Promise<CurationState>;
+        /**
+         * Deletes a curation
+         * @param folder Folder of the curation
+         */
+        function deleteCuration(folder: string): Promise<void>;
+        const onDidCurationChange: Event<CurationState>;
     }
 
     /** Collection of Game related API functions */
@@ -584,7 +609,7 @@ declare module 'flashpoint-launcher' {
         lastUpdated: Date;
         /** Any data provided by this Source */
         data?: SourceData[];
-    }  
+    }
 
     type AdditionalApp = {
         /** ID of the additional application (unique identifier) */
@@ -836,7 +861,7 @@ declare module 'flashpoint-launcher' {
         /** Are these tags considered Extreme? */
         extreme: boolean;
     }
-    
+
     export type TagFilter = string[];
 
     /**
@@ -1278,4 +1303,35 @@ declare module 'flashpoint-launcher' {
         version: number;
     }
 
+    export interface CurationTemplate {
+        name: string;
+        logo: string;
+        meta: EditCurationMeta;
+    }
+
+    /** Meta data of a curation. */
+    export type EditCurationMeta = Partial<{
+        // Game fields
+        title: string;
+        alternateTitles: string;
+        series: string;
+        developer: string;
+        publisher: string;
+        status: string;
+        extreme: boolean;
+        tags: Tag[];
+        source: string;
+        launchCommand: string;
+        library: string;
+        notes: string;
+        curationNotes: string;
+        platform: string;
+        applicationPath: string;
+        playMode: string;
+        releaseDate: string;
+        version: string;
+        originalDescription: string;
+        language: string;
+        mountParameters: string;
+    }>
 }

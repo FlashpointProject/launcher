@@ -14,10 +14,11 @@ import { autoCode, getDefaultLocalization, LangContainer, LangFile } from '@shar
 import { Legacy_IAdditionalApplicationInfo, Legacy_IGameInfo } from '@shared/legacy/interfaces';
 import { deepCopy, recursiveReplace, stringifyArray } from '@shared/Util';
 import * as child_process from 'child_process';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as path from 'path';
 import { promisify } from 'util';
 import { uuid } from './uuid';
+import { getCurationFolder } from '@shared/curate/util';
 
 const unlink = promisify(fs.unlink);
 
@@ -340,4 +341,14 @@ export function dateToFilenameString(date: Date): string {
   const padFour = (num: number) => { return `${num}`.padStart(4,'0'); };
   const padTwo = (num: number) => { return `${num}`.padStart(2,'0'); };
   return `${padFour(date.getFullYear())}-${padTwo(date.getMonth())}-${padTwo(date.getDay())}_${padTwo(date.getHours())}-${padTwo(date.getMinutes())}-${padTwo(date.getSeconds())}`;
+}
+
+export async function deleteCuration(state: BackState, folder: string) {
+  const curationIdx = state.loadedCurations.findIndex(c => c.folder === folder);
+  if (curationIdx !== -1) {
+    const curationPath = getCurationFolder(state.loadedCurations[curationIdx], state.config.flashpointPath);
+    await fs.remove(curationPath);
+    state.loadedCurations.splice(curationIdx, 1);
+    state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, undefined, [folder]);
+  }
 }
