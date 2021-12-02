@@ -272,7 +272,7 @@
     "installed": "Installed",
     "notInstalled": "Not Installed",
     "legacyGame": "Legacy Game",
-    "download": "Download",
+    "download": "Lataa",
     "thumbnail": "Kuvake",
     "screenshot": "Ruutukaappaus",
     "dropImageHere": "Raahaa tänne kuvatiedosto lisätäksesi sen",
@@ -427,13 +427,13 @@
     "complete": "Valmis",
     "exportMetaEditTitle": "Vie Meta Muokkaus",
     "exportMetaEditDesc": "Valitse kaikki vietävät ominaisuudet:",
-    "showImage": "Show Image"
+    "showImage": "Näytä kuva"
   },
   "menu": {
     "viewThumbnailInFolder": "Katso kuvaketta kansiossa",
     "viewScreenshotInFolder": "Katso ruutukaappausta kansiossa",
     "openFileLocation": "Avaa tiedoston sijainti",
-    "addToPlaylist": "Add to Playlist",
+    "addToPlaylist": "Lisää soittolistaan",
     "duplicateMetaOnly": "Kopioi (Vain metatiedot)",
     "duplicateMetaAndImages": "Kopioi (Meta ja kuvat)",
     "copyGameUUID": "Kopioi Pelin UUID",
