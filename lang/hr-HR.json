@@ -53,8 +53,8 @@
     "noLogoSet": "No Logo Set",
     "logoSetDesc": "ID of the logo set to use.",
     "advancedHeader": "Advanced",
-    "showDeveloperTab": "Show Developer Tab",
-    "showDeveloperTabDesc": "Show the 'Developer' tab. This is most likely only useful for developers and curators.",
+    "showDeveloperTab": "Prikaži karticu za programere",
+    "showDeveloperTabDesc": "Prikazuje \"Programer\" karticu. Ovo je najvjerovatnije jedino korisno za programere i kustose.",
     "server": "Server",
     "serverDesc": "Which Server Process to run at launcher startup.",
     "metadataServerHost": "Metadata Server Host",
@@ -127,9 +127,9 @@
     "developer": "Developer",
     "searchPlaceholder": "Search...",
     "hideRightSidebar": "Hide right sidebar",
-    "showRightSidebar": "Show right sidebar",
+    "showRightSidebar": "Prikaži desnu traku",
     "hideLeftSidebar": "Hide left sidebar",
-    "showLeftSidebar": "Show left sidebar",
+    "showLeftSidebar": "Prikaži lijevu traku",
     "total": "Total",
     "newGame": "New Game",
     "list": "List",
@@ -301,7 +301,7 @@
     "noGameMatchedSearch": "Try searching for something less restrictive.",
     "mountParameters": "Mount Parameters",
     "noMountParameters": "No Mount Parameters",
-    "showExtremeScreenshot": "Show Extreme Screenshot"
+    "showExtremeScreenshot": "Prikaži ekstremne snimke zaslona"
   },
   "tags": {
     "name": "Name",
