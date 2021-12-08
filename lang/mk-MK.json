@@ -10,8 +10,8 @@
     "hideExtremeScreenshotsDesc": "Сокрива слики од екранот на екстремно обележана содржина, може да се покажува со клик на полето за слики.",
     "fancyAnimations": "Фенси Анимации",
     "fancyAnimationsDesc": "Овозможи фенси анимации во лаунчерот.",
-    "searchLimit": "Search Limit",
-    "searchLimitDesc": "Limit the number of results returned in any search",
+    "searchLimit": "Ограничи Пребарување",
+    "searchLimitDesc": "Ограничете го бројот на вратени резултати при секое пребарување",
     "searchLimitUnlimited": "Неограничено",
     "searchLimitValue": "{0} Резултати",
     "enableEditing": "Овозможи Уредувања",
@@ -104,7 +104,7 @@
     "linuxSupport": "Проблеми во Linux? {0}",
     "linuxSupportLinkText": "Отворен FAQ",
     "randomPicks": "Случајни Избори",
-    "rerollPicks": "Re-Roll Picks"
+    "rerollPicks": "Пре-Врти Избори"
   },
   "logs": {
     "filters": "Филтри",
