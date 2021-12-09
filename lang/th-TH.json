@@ -160,7 +160,7 @@
     "checkGameFieldsDesc": "ลงรายการเกมที่ฐานข้อมูลว่าง (ตรงส่วนที่ไม่ควรมีว่าง)",
     "checkPlaylists": "ตรวจสอบเพลย์ลิสต์",
     "checkPlaylistsDesc": "ลงรายการเพลย์ลิสต์ทั้งหมดที่มี ID ไม่ถูกต้อง ซ้ำกัน หรือมีเกมที่มี ID ซ้ำ บกพร่อง หรือขาดหายไป",
-    "checkGameFileLocation": "Check Game File Location",
+    "checkGameFileLocation": "ตรวจสอบตำแหน่งไฟล์เกม",
     "checkGameFileLocationDesc": "List all games with launch commands that can not be parsed into file paths (this is related to the 'Open File Location' function, not launching the game)",
     "checkMissingExecMappings": "Check Missing Exec Mappings",
     "checkMissingExecMappingsDesc": "List all unique execs for win32, linux and darwin which are missing an exec mapping",
