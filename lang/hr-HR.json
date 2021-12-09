@@ -3,7 +3,7 @@
   "config": {
     "configHeader": "Postavke",
     "configDesc": "(Moraš pritisnuti 'Spremi i ponovno pokreni' da bi neke promjene stupile na snagu)",
-    "preferencesHeader": "Preferences",
+    "preferencesHeader": "Preference",
     "extremeGames": "Prikaži ekstremne filtere",
     "extremeGamesDesc": "Allows Extreme tag filters to be toggled, created and modified to control content unsuitable for children.",
     "hideExtremeScreenshots": "Sakrij ekstremne snimke zaslona",
