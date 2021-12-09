@@ -7,7 +7,7 @@
     "extremeGames": "Prikaži ekstremne filtere",
     "extremeGamesDesc": "Allows Extreme tag filters to be toggled, created and modified to control content unsuitable for children.",
     "hideExtremeScreenshots": "Sakrij ekstremne snimke zaslona",
-    "hideExtremeScreenshotsDesc": "Skriva snimke ekstremnog sadržaja, mogu se otkriti klikom na njihov prozorčić.",
+    "hideExtremeScreenshotsDesc": "Skriva snimke zaslona ekstremnog sadržaja, mogu se otkriti klikom na njihov prozorčić.",
     "fancyAnimations": "Fancy Animations",
     "fancyAnimationsDesc": "Enable fancy animations in the launcher.",
     "searchLimit": "Search Limit",
@@ -486,7 +486,7 @@
     "deleteCuration": "Delete this Curation?",
     "importCuration": "Import this Curation?",
     "deleteGameImage": "Delete this Game Image?",
-    "deletePlaylist": "Obriši ovu playlistu?",
+    "deletePlaylist": "Obrisati ovu playlistu?",
     "importAllCurations": "Import all Curations?",
     "deleteAllCurations": "Delete all Curations?",
     "removePlaylistGame": "Ukloniti ovu igru sa playliste?",
@@ -514,9 +514,9 @@
   },
   "upgrades": {
     "infinity": "Flashpoint Infinity",
-    "infinityDesc": "Required files. Adds support for Flash games.",
-    "tech": "Other Technologies",
-    "techDesc": "Adds support for all other tech - Shockwave, Unity, Java, HTML5, etc.",
+    "infinityDesc": "Potrebne datoteke. Dodaje podršku za Flash igre.",
+    "tech": "Ostale tehnologije",
+    "techDesc": "Dodaje podršku za sve ostale tehnologije - Shockwave, Unity, Java, HTML5, itd.",
     "screenshots": "Logotipi i snimke zaslona",
     "screenshotsDesc": "Dodaje logotip za pregled u rešetki i snimke zaslona za sve igre."
   }
