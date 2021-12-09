@@ -1,5 +1,5 @@
 {
-  "name": "Thai",
+  "name": "อังกฤษ",
   "config": {
     "configHeader": "ตั้งค่า",
     "configDesc": "(คุณควรกด 'บันทึกและเริ่มโปรแกรมใหม่' เพื่อให้เห็นผลตั้งค่าบางตัว)",
@@ -161,8 +161,8 @@
     "checkPlaylists": "ตรวจสอบเพลย์ลิสต์",
     "checkPlaylistsDesc": "ลงรายการเพลย์ลิสต์ทั้งหมดที่มี ID ไม่ถูกต้อง ซ้ำกัน หรือมีเกมที่มี ID ซ้ำ บกพร่อง หรือขาดหายไป",
     "checkGameFileLocation": "ตรวจสอบตำแหน่งไฟล์เกม",
-    "checkGameFileLocationDesc": "List all games with launch commands that can not be parsed into file paths (this is related to the 'Open File Location' function, not launching the game)",
-    "checkMissingExecMappings": "Check Missing Exec Mappings",
+    "checkGameFileLocationDesc": "ลงเกมทั้งหมดที่คำสั่งเปิดไม่สามารถอ่านเป็นเส้นทางไปยังไฟล์ได้ (เกี่ยวข้องกับฟังก์ชั่น 'เปิดตำแหน่งไฟล์' ไม่เกี่ยวข้องกับการเปิดเกมทั้งสิ้น)",
+    "checkMissingExecMappings": "ตรวจสอบการวางแม็ปปิงปฎิบัติการที่ขาดหายไป",
     "checkMissingExecMappingsDesc": "List all unique execs for win32, linux and darwin which are missing an exec mapping",
     "renameImagesTitleToId": "Rename Images (Title => ID)",
     "renameImagesTitleToIdDesc": "Find all game images with the games title in their filename and rename them to use its ID instead",
