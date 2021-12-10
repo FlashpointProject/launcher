@@ -178,7 +178,7 @@
     "deleteAllPlaylistsDesc": "อันตราย!!! ลบเพลย์ลิสต์ของคุณทั้งหมด",
     "importMetaEdits": "นำเข้าข้อมูลตัดต่อแฝง",
     "importMetaEditsDesc": "นำเข้าข้อมูลตัดต่อแฝง ทั้งหมด จาก '/Data/MetaEdits'",
-    "fixPrimaryAliases": "Fix Primary Aliases",
+    "fixPrimaryAliases": "ซ่อมนามเสริมหลัก",
     "fixPrimaryAliasesDesc": "Add a primary alias to any tags that are missing one",
     "fixCommaTags": "Fix Tags with Commas",
     "fixCommaTagsDesc": "Splits tags with commas into many tags and applies them to all applicable games",
