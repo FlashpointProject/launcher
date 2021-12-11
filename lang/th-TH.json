@@ -202,10 +202,10 @@
     "restart": "รีสตาร์ท",
     "restartDesc": "เริ่มบริการใหม่",
     "details": "รายละเอียด",
-    "detailsDesc": "Open dialog with service details"
+    "detailsDesc": "เปิดกรอบไดอะล็อกพร้อมกับรายละเอียดบริการ"
   },
   "about": {
-    "aboutHeader": "About",
+    "aboutHeader": "เกี่ยวกับ",
     "flashpoint": "BlueMaxima's Flashpoint",
     "flashpointDesc": "The preservation project this launcher was built for, that aims to be an archive, museum and playable collection of web-based Internet games.",
     "website": "Website",
