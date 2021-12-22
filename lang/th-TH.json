@@ -324,10 +324,10 @@
     "makeAliasWhenMerged": "ใช้นามแฝงนี้กับแท็ก?",
     "deleteTag": "ลบ​แท็ก",
     "deleteTagCategory": "ลบประเภทแท็ก",
-    "locked": "Locked while processing..."
+    "locked": "ล็อกไว้ระหว่างประมวลผล..."
   },
   "curate": {
-    "importAll": "Import All",
+    "importAll": "นำ​เข้า​ทั้ง​หมด",
     "importAllDesc": "Import all curations that are currently loaded",
     "deleteAll": "Delete All",
     "deleteAllDesc": "Delete all curations that are currently loaded",
