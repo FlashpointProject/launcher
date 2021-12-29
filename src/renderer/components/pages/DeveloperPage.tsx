@@ -343,10 +343,17 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     });
 
     if (files && files.length > 0) {
-      const addLine = (line: string) => this.setState({ text: this.state.text + '\n' + line });
+      const createTextBarProgress = (current: number, total: number) => {
+        const filledSegments = (current / total) * 30;
+        return `Progress: [${'#'.repeat(filledSegments)}${'-'.repeat(30 - filledSegments)}] (${current}/${total})\n`;
+      };
+      let text = this.state.text + '\n';
       setTimeout(async () => {
         this.setState({ text: `Selected ${files.length} Files...` });
-        await Promise.all(files.map(async (filePath) => {
+        let current = 0;
+        let failures = 0;
+        for (const filePath of files) {
+          current += 1;
           // Extract UUID from filename
           const fileName = path.basename(filePath);
           if (fileName.length >= 39) {
@@ -355,16 +362,20 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               const game = await window.Shared.back.request(BackIn.GET_GAME, uuid);
               if (game) {
                 // Game exists, import the data
-                return window.Shared.back.request(BackIn.IMPORT_GAME_DATA, game.id, filePath)
-                .then((gameData) => addLine(`Success - ${fileName} - ${game.title} - SHA256: ${gameData.sha256}`))
+                await window.Shared.back.request(BackIn.IMPORT_GAME_DATA, game.id, filePath)
+                .then((gameData) => {
+                  this.setState({ text: text + filePath + '\n' +  createTextBarProgress(current, files.length) })
+                })
                 .catch((error) => {
-                  addLine(`Failure - ${fileName} - ERROR: ${error}`);
+                  text = text + `Failure - ${fileName} - ERROR: ${error}\n`;
+                  failures += 1;
+                  this.setState({ text: text });
                 });
               }
             }
           }
-        }));
-        addLine('FINISHED!');
+        }
+        this.setState({ text: text + `FINISHED - ${failures} Failures, ${files.length - failures} Successes\n` });
       });
     }
   }

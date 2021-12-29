@@ -26,7 +26,8 @@ const sendPrefs = delayedThrottle(() => {
   const preferences = window.Shared.preferences;
   window.Shared.back.send(
     BackIn.UPDATE_PREFERENCES,
-    preferences.data
+    preferences.data,
+    false
   );
 }, 500);
 
