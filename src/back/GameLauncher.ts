@@ -294,16 +294,27 @@ export namespace GameLauncher {
       return filePath.substr(0, filePath.length - 4) + '.sh';
     }
 
-    // Skip mapping if on Windows or Native application was not requested
-    if (platform !== 'win32' && native) {
+    // Skip mapping if on Windows
+    if (platform !== 'win32') {
       for (let i = 0; i < execMappings.length; i++) {
         const mapping = execMappings[i];
         if (mapping.win32 === filePath) {
           switch (platform) {
             case 'linux':
-              return mapping.linux || mapping.win32;
+              // If we are trying to run this game natively:
+              if (native) {
+                // Use the native binary (if configured.)
+                return mapping.linux || mapping.win32;
+              } else {
+                // Otherwise, use the wine binary (if configured.)
+                return mapping.wine || mapping.win32;
+              }
             case 'darwin':
-              return mapping.darwin || mapping.win32;
+              // If we are trying to run this game natively:
+              if (native) {
+                // Use the native binary (if configured.)
+                return mapping.darwin || mapping.win32;
+              }
             default:
               return filePath;
           }
