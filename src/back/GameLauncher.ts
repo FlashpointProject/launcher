@@ -315,6 +315,7 @@ export namespace GameLauncher {
                 // Use the native binary (if configured.)
                 return mapping.darwin || mapping.win32;
               }
+              break;
             default:
               return filePath;
           }
