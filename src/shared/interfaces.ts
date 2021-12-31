@@ -218,6 +218,8 @@ export type ExecMapping = {
   win32: string;
   /** Linux path (if exists) */
   linux?: string;
+  /** Wine path (if exists) */
+  wine?: string;
   /** Mac path (if exists) */
   darwin?: string;
 }
