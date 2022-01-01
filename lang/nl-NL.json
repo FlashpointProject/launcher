@@ -8,12 +8,12 @@
     "extremeGamesDesc": "Maakt het mogelijk om Extreme tag-filters aan te zetten, te maken en aan te passen aan inhoud die niet geschikt is voor kinderen.",
     "hideExtremeScreenshots": "Extreme Screenshots Verbergen",
     "hideExtremeScreenshotsDesc": "Verbergt screenshots van Extreme-gelabelde inhoud, kan niet worden verborgen met een klik op de afbeeldingsbox.",
-    "fancyAnimations": "Fancy Animations",
-    "fancyAnimationsDesc": "Enable fancy animations in the launcher.",
-    "searchLimit": "Search Limit",
-    "searchLimitDesc": "Limit the number of results returned in any search",
-    "searchLimitUnlimited": "Unlimited",
-    "searchLimitValue": "{0} Results",
+    "fancyAnimations": "Mooie Animaties",
+    "fancyAnimationsDesc": "Inschakelen van mooie animaties in de launcher.",
+    "searchLimit": "Zoek Limiet",
+    "searchLimitDesc": "Beperk het aantal resultaten dat bij elke zoekopdracht wordt verkregen",
+    "searchLimitUnlimited": "Onbeperkt",
+    "searchLimitValue": "{0} Resultaten",
     "enableEditing": "Bewerken inschakelen",
     "enableEditingDesc": "Bewerken inschakelen voor spellen en extra applicaties. Toont ook de gerelateerde tabbladen voor het bewerken.",
     "onDemandImages": "Aangevraagde afbeeldingen",
@@ -24,7 +24,7 @@
     "fallbackLanguageDesc": "Verandert de taal naar jouw alternatieve taal als er onvolledige taalpakketen zijn.",
     "auto": "Automatisch ({0})",
     "none": "Geen",
-    "contentFiltersHeader": "Content Filters",
+    "contentFiltersHeader": "Inhoud Filters",
     "flashpointHeader": "Flashpoint",
     "flashpointPath": "Flashpoint pad",
     "flashpointPathDesc": "Pad naar de Flashpoint map (kan relatief zijn)",
@@ -88,7 +88,7 @@
     "helpInfo": "Hulp nodig? {0}.",
     "help": "Lees de handleiding",
     "upgradesHeader": "Upgraden",
-    "updateFeedHeader": "News Feed",
+    "updateFeedHeader": "Nieuwsfeed",
     "installComplete": "Installatie voltooid",
     "alreadyInstalled": "Reeds geïnstalleerd",
     "download": "Downloaden",
@@ -299,9 +299,9 @@
     "thereAreNoGames": "Er zijn geen spellen.",
     "noGameMatchedDesc": "Er is geen speltitel die overeenkomt met uw zoekopdracht.",
     "noGameMatchedSearch": "Probeer naar iets gemakkelijker te zoeken.",
-    "mountParameters": "Mount Parameters",
-    "noMountParameters": "No Mount Parameters",
-    "showExtremeScreenshot": "Show Extreme Screenshot"
+    "mountParameters": "Koppel Parameters",
+    "noMountParameters": "Geen Koppel Parameters",
+    "showExtremeScreenshot": "Extreme Schermafbeelding Weergeven"
   },
   "tags": {
     "name": "Naam",
@@ -427,7 +427,7 @@
     "complete": "Voltooid",
     "exportMetaEditTitle": "Exporteren van Metadata wijziging",
     "exportMetaEditDesc": "Selecteer alle eigenschappen om te exporteren:",
-    "showImage": "Show Image"
+    "showImage": "Afbeelding Weergeven"
   },
   "menu": {
     "viewThumbnailInFolder": "Miniatuur in map bekijken",
