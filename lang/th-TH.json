@@ -343,7 +343,7 @@
     "openImportedFolderDesc": "เปิดโฟลเดอร์นำเข้าเริ่มต้นที่ได้เก็บรายการบันทึกนำเข้าไว้",
     "newCuration": "รายการบันทึกใหม่",
     "newCurationDesc": "สร้างรายการบันทึกใหม่ในโฟลเดอร์ใหม่",
-    "loadMeta": "Load Meta",
+    "loadMeta": "โหลดข้อมูลแฝง",
     "loadMetaDesc": "Load one or more Curation meta files",
     "loadArchive": "Load Archive",
     "loadArchiveDesc": "Load one or more Curation archives",
