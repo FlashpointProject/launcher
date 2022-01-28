@@ -344,7 +344,7 @@
     "newCuration": "รายการบันทึกใหม่",
     "newCurationDesc": "สร้างรายการบันทึกใหม่ในโฟลเดอร์ใหม่",
     "loadMeta": "โหลดข้อมูลแฝง",
-    "loadMetaDesc": "Load one or more Curation meta files",
+    "loadMetaDesc": "โหลดไฟล์ข้อมูลแฝงหนึ่งไฟล์หรือมากกว่านี้",
     "loadArchive": "Load Archive",
     "loadArchiveDesc": "Load one or more Curation archives",
     "loadFolder": "Load Folder",
