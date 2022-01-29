@@ -68,6 +68,8 @@
     "saveAndRestart": "Save and Restart",
     "saveAndClose": "Save and Close",
     "tagFilterGroupEditor": "Tag Filter Group Editor"
+    "disableExtreme": "Disable Extreme Games"
+    "disableExtremeDesc": "Hides the option to edit Extreme tag filters, and itself."
   },
   "home": {
     "updateHeader": "Launcher Update",

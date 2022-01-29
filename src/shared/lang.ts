@@ -75,6 +75,8 @@ const langTemplate = {
     'saveAndClose',
     'browse',
     'tagFilterGroupEditor',
+    'disableExtreme',
+    'disableExtremeDesc',
   ] as const,
   home: [
     'updateHeader',
