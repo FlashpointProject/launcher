@@ -309,7 +309,7 @@ function startServer(minPort: number, maxPort: number, host: string | undefined)
       }
     }
     function onError(error: Error): void {
-      if ((error as any).code === 'EADDRINUSE') {
+      if ((error as any).code === 'EADDRINUSE' || (error as any).code === 'EACCES') {
         tryListen();
       } else {
         reject(error);
