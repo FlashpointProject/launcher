@@ -460,7 +460,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     }
   });
   state.languageWatcher.on('error', console.error);
-  const langFolder = path.join(content.isDev ? process.cwd() : path.dirname(content.exePath), 'lang');
+  // On mac, exePath is Flashpoint.app/Contents/MacOS/flashpoint, and lang is at Flashpoint.app/Contents/lang.
+  const langFolder = path.join(content.isDev ? process.cwd() : process.platform == 'darwin' ? path.resolve(path.dirname(content.exePath), '..') : path.dirname(content.exePath), 'lang');
   fs.stat(langFolder, (error) => {
     if (!error) { state.languageWatcher.watch(langFolder); }
     else {
