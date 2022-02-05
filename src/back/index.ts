@@ -244,7 +244,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   state.logFile = new LogFile(
     state.isDev ?
       path.join(process.cwd(), 'launcher.log')
-      : path.join(path.dirname(content.exePath), 'launcher.log'));
+      : path.join(process.platform == 'darwin' ? state.configFolder : path.dirname(content.exePath), 'launcher.log'));
 
   const addLog = (entry: ILogEntry): number => { return state.log.push(entry) - 1; };
   global.log = {
@@ -262,6 +262,12 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   // Read configs & preferences
   state.config = await ConfigFile.readOrCreateFile(path.join(state.configFolder, CONFIG_FILENAME));
+
+  // If we're on mac and the flashpoint path is relative, resolve it relative to the configFolder path.
+  state.config.flashpointPath = process.platform == 'darwin' && state.config.flashpointPath[0] != '/'
+    ? path.resolve(state.configFolder, state.config.flashpointPath)
+    : state.config.flashpointPath;
+
   // @TODO Figure out why async loading isn't always working?
   try {
     state.preferences = await PreferencesFile.readOrCreateFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME));
