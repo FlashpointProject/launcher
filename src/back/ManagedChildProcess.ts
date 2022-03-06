@@ -131,7 +131,7 @@ export class ManagedChildProcess extends EventEmitter {
           }
           // @ts-ignore This won't be undefined, despite what tsc says.
           this.env.PATH = pathArr.join(':');
-          this.process = exec(this.info.filename + ' ' + this.info.arguments, { cwd: this.cwd, env: this.env});
+          this.process = exec(this.info.filename + ' "' + this.info.arguments.join('" "') + '"', { cwd: this.cwd, env: this.env});
         } else {
           this.process = spawn(this.info.filename, this.info.arguments, { cwd: this.cwd, detached: this.detached, shell: this.shell , env: this.env});
         }
