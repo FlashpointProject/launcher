@@ -335,7 +335,7 @@ export namespace GameLauncher {
     // When using WINE on mac, the proxy variable is needed as well.
     return {
       // Add proxy env vars if it's running on linux
-      ...((process.platform === 'linux' || process.platform === 'darwin' && proxy !== '') ? { http_proxy: `http://${proxy}/`, HTTP_PROXY: `http://${proxy}/` : null),
+      ...((process.platform === 'linux' || process.platform === 'darwin' && proxy !== '') ? { http_proxy: `http://${proxy}/`, HTTP_PROXY: `http://${proxy}/` } : null),
       // Copy this processes environment variables
       ...process.env,
     };
