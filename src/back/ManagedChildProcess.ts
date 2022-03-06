@@ -1,13 +1,14 @@
 import { IBackProcessInfo, INamedBackProcessInfo, ProcessState } from '@shared/interfaces';
 import { ILogPreEntry } from '@shared/Log/interface';
 import { Coerce } from '@shared/utils/Coerce';
-import { ChildProcess, execFile, spawn } from 'child_process';
+import { ChildProcess, execFile, spawn, exec } from 'child_process';
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint-launcher';
 import * as readline from 'readline';
 import * as treeKill from 'tree-kill';
 import { ApiEmitter } from './extensions/ApiEmitter';
 import { Disposable } from './util/lifecycle';
+import { readFileSync } from 'fs';
 
 const { str } = Coerce;
 
@@ -113,7 +114,22 @@ export class ManagedChildProcess extends EventEmitter {
       if (this.execFile) {
         this.process = execFile(this.info.filename, this.info.arguments, { cwd: this.cwd, env: this.env });
       } else {
-        this.process = spawn(this.info.filename, this.info.arguments, { cwd: this.cwd, detached: this.detached, shell: this.shell });
+        if (process.platform == 'darwin') {
+          // @ts-ignore This won't be undefined, despite what tsc says.
+          let pathArr: string[] = this.env.PATH.split(':');
+          // HACK: manually read in /etc/paths to PATH. Needs to be done on Mac, because otherwise
+          // the brew path won't be found.
+          for (const entry of readFileSync('/etc/paths').toString().split('\n')) {
+            if (entry != '' && !pathArr.includes(entry)) {
+              pathArr.push(entry);
+            }
+          }
+          // @ts-ignore This won't be undefined, despite what tsc says.
+          this.env.PATH = pathArr.join(':');
+          this.process = exec(this.info.filename + ' ' + this.info.arguments, { cwd: this.cwd, env: this.env});
+        } else {
+          this.process = spawn(this.info.filename, this.info.arguments, { cwd: this.cwd, detached: this.detached, shell: this.shell , env: this.env});
+        }
       }
       // Set start timestamp
       this.startTime = Date.now();
