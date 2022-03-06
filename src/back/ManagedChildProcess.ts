@@ -115,6 +115,11 @@ export class ManagedChildProcess extends EventEmitter {
         this.process = execFile(this.info.filename, this.info.arguments, { cwd: this.cwd, env: this.env });
       } else {
         if (process.platform == 'darwin') {
+          if (this.env === undefined) {
+            this.env = {PATH: ""};
+          } else if (this.env.PATH === undefined) {
+            this.env.PATH = "";
+          }
           // @ts-ignore This won't be undefined, despite what tsc says.
           let pathArr: string[] = this.env.PATH.split(':');
           // HACK: manually read in /etc/paths to PATH. Needs to be done on Mac, because otherwise
