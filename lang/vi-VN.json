@@ -82,7 +82,7 @@
     "allGamesInfo": "Bạn muốn chơi trò gì đó? Xem {0}.",
     "allGames": "Tất cả trò chơi",
     "allAnimationsInfo": "Chỉ muốn coi thứ gì đó? Xem {0}.",
-    "allAnimations": "Tất cả hoạt hình",
+    "allAnimations": "Tất cả Hoạt hình",
     "configInfo": "Muốn thay đổi gì đó? Hãy sang {0}.",
     "config": "Cài đặt",
     "helpInfo": "Cần được giúp? {0}.",
@@ -299,8 +299,8 @@
     "thereAreNoGames": "Không có trò chơi nào cả.",
     "noGameMatchedDesc": "Không tìm thấy trò chơi phù hợp.",
     "noGameMatchedSearch": "Hãy tìm từ khoá chung chung hơn.",
-    "mountParameters": "Mount Parameters",
-    "noMountParameters": "No Mount Parameters",
+    "mountParameters": "Tham Số Khởi Động Trò Chơi",
+    "noMountParameters": "Không có Tham Số Khởi Động Trò Chơi",
     "showExtremeScreenshot": "Hiện ảnh chụp màn hình phản cảm"
   },
   "tags": {
@@ -508,7 +508,7 @@
     "arcade": "Trò chơi",
     "arcadePlural": "Tất cả trò chơi",
     "theatre": "Hoạt hình",
-    "theatrePlural": "Tất cả hoạt hình",
+    "theatrePlural": "Tất cả Hoạt hình",
     "auditorium": "Khán phòng NG",
     "auditoriumPlural": "Tất cả hoạt hình NG"
   },
