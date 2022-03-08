@@ -8,7 +8,7 @@
     "extremeGamesDesc": "Cho phép bật - tắt, tạo và sửa các bộ lọc nhãn Phản cảm để kiểm soát nội dung không phù hợp với trẻ em.",
     "hideExtremeScreenshots": "Ẩn ảnh chụp màn hình phản cảm",
     "hideExtremeScreenshotsDesc": "Ẩn ảnh chụp màn hình của nội dung có nhãn Phản cảm, có thể hiện chỉ với một cái nhấp chuột lên khung ảnh.",
-    "fancyAnimations": "Hoạt hình đẹp đẽ",
+    "fancyAnimations": "Hoạt ảnh Bắt mắt",
     "fancyAnimationsDesc": "Bật hoạt ảnh bắt mắt trong trình khởi chạy.",
     "searchLimit": "Giới hạn tìm kiếm",
     "searchLimitDesc": "Giới hạn số kết quả đã trả về trong bất cứ lần tìm kiếm nào",
@@ -510,7 +510,7 @@
     "theatre": "Hoạt hình",
     "theatrePlural": "Tất cả Hoạt hình",
     "auditorium": "Khán phòng NG",
-    "auditoriumPlural": "Tất cả hoạt hình NG"
+    "auditoriumPlural": "Tất cả Hoạt hình Newgrounds"
   },
   "upgrades": {
     "infinity": "Flashpoint Infinity",
