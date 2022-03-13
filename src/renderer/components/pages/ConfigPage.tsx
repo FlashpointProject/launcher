@@ -1058,6 +1058,7 @@ function renderExtConfigProp(key: string, prop: ExtConfigurationProp, value: any
       } else {
         return (
           <ConfigBoxInput
+            editable
             key={key}
             title={prop.title}
             description={prop.description}
