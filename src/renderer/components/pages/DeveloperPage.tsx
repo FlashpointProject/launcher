@@ -2,6 +2,7 @@
 import { chunkArray } from '@back/util/misc';
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
+import * as remote from '@electron/remote';
 import { getGamePath } from '@renderer/Util';
 import { BackIn, BackOut } from '@shared/back/types';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
@@ -10,7 +11,6 @@ import { ExecMapping, IService } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { Legacy_PlatformFileIterator } from '@shared/legacy/GameManager';
 import { stringifyMetaValue } from '@shared/MetaEdit';
-import { remote } from 'electron';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as React from 'react';

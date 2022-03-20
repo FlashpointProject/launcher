@@ -1,6 +1,7 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
+import * as remote from '@electron/remote';
 import { BackIn, BackInit, BackOut } from '@shared/back/types';
 import { APP_TITLE, VIEW_PAGE_SIZE } from '@shared/constants';
 import { IService, ProcessState, WindowIPC } from '@shared/interfaces';
@@ -13,7 +14,7 @@ import { canReadWrite, deepCopy, getFileServerURL, recursiveReplace, sizeToStrin
 import { arrayShallowStrictEquals } from '@shared/utils/compare';
 import { debounce } from '@shared/utils/debounce';
 import { formatString } from '@shared/utils/StringFormatter';
-import { ipcRenderer, remote } from 'electron';
+import { ipcRenderer } from 'electron';
 import { AppUpdater } from 'electron-updater';
 import * as fs from 'fs-extra';
 import * as path from 'path';
