@@ -158,8 +158,8 @@ async function getRootPath(dir: string): Promise<string | undefined> {
   while (queue.length != 0) {
     // Pop the first element. We'll need to combine it with the root path to get
     // the full path.
-    const entry = queue.shift();
-    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const entry = queue.shift()!;
     const fullpath = path.join(dir, entry);
     // Call lstat() to check if it's a file or directory (or something else, I guess?)
     const stats = await fs.lstat(fullpath);
