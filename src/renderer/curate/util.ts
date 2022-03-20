@@ -1,8 +1,8 @@
+import * as remote from '@electron/remote';
 import { GameMetaDefaults } from '@shared/curate/defaultValues';
 import { parseCurationMetaNew, parseCurationMetaOld, ParsedCurationMeta } from '@shared/curate/parse';
 import { CurationIndexImage } from '@shared/curate/types';
 import { stripBOM } from '@shared/Util';
-import { remote } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';

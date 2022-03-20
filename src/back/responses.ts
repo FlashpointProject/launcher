@@ -1138,7 +1138,7 @@ export function registerRequestCallbacks(state: BackState): void {
     const timeoutPromise = new Promise((resolve, reject) => {
       setTimeout(resolve, 20000);
     });
-    const writePromise = new Promise((resolve, reject) => {
+    const writePromise = new Promise<void>((resolve, reject) => {
       const loopFunc = () => {
         if (state.writeLocks > 0) {
           setTimeout(loopFunc, 100);

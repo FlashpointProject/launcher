@@ -1,3 +1,4 @@
+import * as remote from '@electron/remote';
 import { BackIn, BackOut } from '@shared/back/types';
 import { ArgumentTypesOf } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
@@ -6,7 +7,7 @@ import { stringifyLogEntries } from '@shared/Log/LogCommon';
 import { memoizeOne } from '@shared/memoize';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { shallowStrictEquals } from '@shared/Util';
-import { clipboard, remote } from 'electron';
+import { clipboard } from 'electron';
 import * as React from 'react';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { LangContext } from '../../util/lang';

@@ -1,3 +1,4 @@
+import * as GameDataManager from '@back/game/GameDataManager';
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
 import { GameData } from '@database/entity/GameData';
@@ -58,7 +59,6 @@ import { FolderWatcher } from './util/FolderWatcher';
 import { LogFile } from './util/LogFile';
 import { logFactory } from './util/logging';
 import { createContainer, exit, runService } from './util/misc';
-import * as GameDataManager from '@back/game/GameDataManager';
 
 const DEFAULT_LOGO_PATH = 'window/images/Logos/404.png';
 
@@ -283,15 +283,20 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   // Create Game Data Directory and clean up temp files
   const fullDataPacksFolderPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath);
-  await fs.promises.mkdir(fullDataPacksFolderPath, { recursive: true });
-  fs.promises.readdir(fullDataPacksFolderPath)
-  .then((files) => {
-    for (const f of files) {
-      if (f.endsWith('.temp')) {
-        fs.promises.unlink(path.join(fullDataPacksFolderPath, f));
+  try {
+    await fs.promises.mkdir(fullDataPacksFolderPath, { recursive: true });
+    fs.promises.readdir(fullDataPacksFolderPath)
+    .then((files) => {
+      for (const f of files) {
+        if (f.endsWith('.temp')) {
+          fs.promises.unlink(path.join(fullDataPacksFolderPath, f));
+        }
       }
-    }
-  });
+    });
+  } catch (error) {
+    console.log('Failed to create default Data Packs folder!');
+  }
+
 
   // Check for custom version to report
   const versionFilePath = content.isDev ? path.join(process.cwd(), 'version.txt') : path.join(state.config.flashpointPath, 'version.txt');
@@ -476,8 +481,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   // Init themes
   const dataThemeFolder = path.join(state.config.flashpointPath, state.preferences.themeFolderPath);
-  await fs.ensureDir(dataThemeFolder);
   try {
+    await fs.ensureDir(dataThemeFolder);
     await fs.promises.readdir(dataThemeFolder, { withFileTypes: true })
     .then(async (files) => {
       for (const file of files) {
@@ -506,8 +511,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   // Init Logo Sets
   const dataLogoSetsFolder = path.join(state.config.flashpointPath, state.preferences.logoSetsFolderPath);
-  await fs.ensureDir(dataLogoSetsFolder);
   try {
+    await fs.ensureDir(dataLogoSetsFolder);
     await fs.promises.readdir(dataLogoSetsFolder, { withFileTypes: true })
     .then(async (files) => {
       for (const file of files) {
