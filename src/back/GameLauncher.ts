@@ -1,4 +1,3 @@
-import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
 import { AppProvider } from '@shared/extensions/interfaces';
 import { ExecMapping, Omit } from '@shared/interfaces';
@@ -16,9 +15,8 @@ import * as GameDataManager from '@back/game/GameDataManager';
 
 const { str } = Coerce;
 
-export type LaunchAddAppOpts = LaunchBaseOpts & {
-  addApp: AdditionalApp;
-  native: boolean;
+export type LaunchExtrasOpts = LaunchBaseOpts & {
+  extrasPath: string;
 }
 
 export type LaunchGameOpts = LaunchBaseOpts & {
@@ -59,60 +57,20 @@ type LaunchBaseOpts = {
 export namespace GameLauncher {
   const logSource = 'Game Launcher';
 
-  export function launchAdditionalApplication(opts: LaunchAddAppOpts): Promise<void> {
-    // @FIXTHIS It is not possible to open dialog windows from the back process (all electron APIs are undefined).
-    switch (opts.addApp.applicationPath) {
-      case ':message:':
-        return new Promise((resolve, reject) => {
-          opts.openDialog({
-            type: 'info',
-            title: 'About This Game',
-            message: opts.addApp.launchCommand,
-            buttons: ['Ok'],
-          }).finally(() => resolve());
-        });
-      case ':extras:': {
-        const folderPath = fixSlashes(path.join(opts.fpPath, path.posix.join('Extras', opts.addApp.launchCommand)));
-        return opts.openExternal(folderPath, { activate: true })
-        .catch(error => {
-          if (error) {
-            opts.openDialog({
-              type: 'error',
-              title: 'Failed to Open Extras',
-              message: `${error.toString()}\n`+
-                       `Path: ${folderPath}`,
-              buttons: ['Ok'],
-            });
-          }
+  export async function launchExtras(opts: LaunchExtrasOpts): Promise<void> {
+    const folderPath = fixSlashes(path.join(opts.fpPath, path.posix.join('Extras', opts.extrasPath)));
+    return opts.openExternal(folderPath, { activate: true })
+    .catch(error => {
+      if (error) {
+        opts.openDialog({
+          type: 'error',
+          title: 'Failed to Open Extras',
+          message: `${error.toString()}\n`+
+                   `Path: ${folderPath}`,
+          buttons: ['Ok'],
         });
       }
-      default: {
-        let appPath: string = fixSlashes(path.join(opts.fpPath, getApplicationPath(opts.addApp.applicationPath, opts.execMappings, opts.native)));
-        const appPathOverride = opts.appPathOverrides.filter(a => a.enabled).find(a => a.path === appPath);
-        if (appPathOverride) { appPath = appPathOverride.override; }
-        const appArgs: string = opts.addApp.launchCommand;
-        const useWine: boolean = process.platform != 'win32' && appPath.endsWith('.exe');
-        const launchInfo: LaunchInfo = {
-          gamePath: appPath,
-          gameArgs: appArgs,
-          useWine,
-          env: getEnvironment(opts.fpPath, opts.proxy),
-        };
-        const proc = exec(
-          createCommand(launchInfo),
-          { env: launchInfo.env }
-        );
-        logProcessOutput(proc);
-        log.info(logSource, `Launch Add-App "${opts.addApp.name}" (PID: ${proc.pid}) [ path: "${opts.addApp.applicationPath}", arg: "${opts.addApp.launchCommand}" ]`);
-        return new Promise((resolve, reject) => {
-          if (proc.killed) { resolve(); }
-          else {
-            proc.once('exit', () => { resolve(); });
-            proc.once('error', error => { reject(error); });
-          }
-        });
-      }
-    }
+    });
   }
 
   /**
@@ -122,29 +80,12 @@ export namespace GameLauncher {
   export async function launchGame(opts: LaunchGameOpts, onWillEvent: ApiEmitter<GameLaunchInfo>): Promise<void> {
     // Abort if placeholder (placeholders are not "actual" games)
     if (opts.game.placeholder) { return; }
-    // Run all provided additional applications with "AutoRunBefore" enabled
-    if (opts.game.addApps) {
-      const addAppOpts: Omit<LaunchAddAppOpts, 'addApp'> = {
-        fpPath: opts.fpPath,
-        htdocsPath: opts.htdocsPath,
-        native: opts.native,
-        execMappings: opts.execMappings,
-        lang: opts.lang,
-        isDev: opts.isDev,
-        exePath: opts.exePath,
-        appPathOverrides: opts.appPathOverrides,
-        providers: opts.providers,
-        proxy: opts.proxy,
-        openDialog: opts.openDialog,
-        openExternal: opts.openExternal,
-        runGame: opts.runGame
-      };
-      for (const addApp of opts.game.addApps) {
-        if (addApp.autoRunBefore) {
-          const promise = launchAdditionalApplication({ ...addAppOpts, addApp });
-          if (addApp.waitForExit) { await promise; }
-        }
-      }
+    if (opts.game.message) {
+      await opts.openDialog({type: 'info', 
+        title: 'About This Game', 
+        message: opts.game.message, 
+        buttons: ['Ok'],
+      });
     }
     // Launch game
     let appPath: string = getApplicationPath(opts.game.applicationPath, opts.execMappings, opts.native);

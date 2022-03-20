@@ -3,7 +3,7 @@ import { Coerce } from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
 import { CurationFormatObject, parseCurationFormat } from './format/parser';
 import { CFTokenizer, tokenizeCurationFormat } from './format/tokenizer';
-import { EditAddAppCurationMeta, EditCurationMeta } from './types';
+import { EditCurationMeta } from './types';
 import { getTagsFromStr } from './util';
 
 const { str } = Coerce;
@@ -12,8 +12,6 @@ const { str } = Coerce;
 export type ParsedCurationMeta = {
   /** Meta data of the game. */
   game: EditCurationMeta;
-  /** Meta data of the additional applications. */
-  addApps: EditAddAppCurationMeta[];
 };
 
 /**
@@ -49,7 +47,6 @@ export async function parseCurationMetaFile(data: any, onError?: (error: string)
   // Default parsed data
   const parsed: ParsedCurationMeta = {
     game: {},
-    addApps: [],
   };
   // Make sure it exists before calling Object.keys
   if (!data) {
@@ -93,6 +90,10 @@ export async function parseCurationMetaFile(data: any, onError?: (error: string)
   parser.prop('version',              v => parsed.game.version             = str(v));
   parser.prop('library',              v => parsed.game.library             = str(v).toLowerCase()); // must be lower case
   parser.prop('mount parameters',     v => parsed.game.mountParameters     = str(v));
+  parser.prop('extras',               v => parsed.game.extras              = str(v));
+  parser.prop('extras name',          v => parsed.game.extrasName          = str(v));
+  parser.prop('message',              v => parsed.game.message             = str(v));
+  parser.prop('parent game id',       v => parsed.game.parentGameId        = str(v));
   if (lowerCaseData.genre)  { parsed.game.tags = await getTagsFromStr(arrayStr(lowerCaseData.genre), str(lowerCaseData['tag categories']));  }
   if (lowerCaseData.genres) { parsed.game.tags = await getTagsFromStr(arrayStr(lowerCaseData.genres), str(lowerCaseData['tag categories'])); }
   if (lowerCaseData.tags)   { parsed.game.tags = await getTagsFromStr(arrayStr(lowerCaseData.tags), str(lowerCaseData['tag categories']));   }
@@ -106,35 +107,8 @@ export async function parseCurationMetaFile(data: any, onError?: (error: string)
   }
   // property aliases
   parser.prop('animation notes',      v => parsed.game.notes               = str(v));
-  // Add-apps
-  parser.prop('additional applications').map((item, label, map) => {
-    parsed.addApps.push(convertAddApp(item, label, map[label]));
-  });
   // Return
   return parsed;
-}
-
-/**
- * Convert a "raw" curation additional application meta object into a more programmer friendly object.
- * @param item Object parser, wrapped around the "raw" add-app meta object to convert.
- * @param label Label of the object.
- */
-function convertAddApp(item: IObjectParserProp<any>, label: string | number | symbol, rawValue: any): EditAddAppCurationMeta {
-  const addApp: EditAddAppCurationMeta = {};
-  const labelStr = str(label);
-  switch (labelStr.toLowerCase()) {
-    case 'extras': // (Extras add-app)
-      return generateExtrasAddApp(str(rawValue));
-    case 'message': // (Message add-app)
-      return generateMessageAddApp(str(rawValue));
-    default: // (Normal add-app)
-      addApp.heading = labelStr;
-      item.prop('Heading',          v => addApp.heading         = str(v), true);
-      item.prop('Application Path', v => addApp.applicationPath = str(v));
-      item.prop('Launch Command',   v => addApp.launchCommand   = str(v));
-      break;
-  }
-  return addApp;
 }
 
 // Coerce an object into a sensible string
@@ -144,20 +118,4 @@ function arrayStr(rawStr: any): string {
     return rawStr.join('; ');
   }
   return str(rawStr);
-}
-
-export function generateExtrasAddApp(folderName: string) : EditAddAppCurationMeta {
-  return {
-    heading: 'Extras',
-    applicationPath: ':extras:',
-    launchCommand: folderName
-  };
-}
-
-export function generateMessageAddApp(message: string) : EditAddAppCurationMeta {
-  return {
-    heading: 'Message',
-    applicationPath: ':message:',
-    launchCommand: message
-  };
 }

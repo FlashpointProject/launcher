@@ -1,6 +1,6 @@
 import { GameMetaDefaults } from '@shared/curate/defaultValues';
-import { generateExtrasAddApp, generateMessageAddApp, ParsedCurationMeta } from '@shared/curate/parse';
-import { CurationIndexImage, EditAddAppCurationMeta, EditCuration, EditCurationMeta, IndexedContent } from '@shared/curate/types';
+import { ParsedCurationMeta } from '@shared/curate/parse';
+import { CurationIndexImage, EditCuration, EditCurationMeta, IndexedContent } from '@shared/curate/types';
 import { createContextReducer } from '../context-reducer/contextReducer';
 import { ReducerAction } from '../context-reducer/interfaces';
 import { createCurationIndexImage } from '../curate/importCuration';
@@ -34,7 +34,7 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
       const index = nextCurations.findIndex(c => c.key === action.payload.key);
       if (index !== -1) {
         const prevCuration = nextCurations[index];
-        const nextCuration = { ...prevCuration, addApps: [ ...prevCuration.addApps ] };
+        const nextCuration = { ...prevCuration };
         // Mark curation for deletion
         nextCuration.delete = true;
         nextCurations[index] = nextCuration;
@@ -47,7 +47,7 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
       const index = nextCurations.findIndex(c => c.key === action.payload.key);
       if (index !== -1) {
         const prevCuration = nextCurations[index];
-        const nextCuration = { ...prevCuration, addApps: [ ...prevCuration.addApps ] };
+        const nextCuration = { ...prevCuration };
         // Mark curation for deletion
         nextCuration.deleted = true;
         nextCurations[index] = nextCuration;
@@ -59,17 +59,9 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
       const nextCurations = [ ...prevState.curations ];
       const index = ensureCurationIndex(nextCurations, action.payload.key);
       const prevCuration = nextCurations[index];
-      const nextCuration = { ...prevCuration, addApps: [ ...prevCuration.addApps ] };
+      const nextCuration = { ...prevCuration };
       const parsedMeta = action.payload.parsedMeta;
       nextCuration.meta = parsedMeta.game;
-      nextCuration.addApps = [];
-      for (let i = 0; i < parsedMeta.addApps.length; i++) {
-        const meta = parsedMeta.addApps[i];
-        nextCuration.addApps.push({
-          key: uuid(),
-          meta: meta,
-        });
-      }
       nextCurations[index] = nextCuration;
       return { ...prevState, curations: nextCurations };
     }
@@ -78,7 +70,7 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
       const nextCurations = [ ...prevState.curations ];
       const index = ensureCurationIndex(nextCurations, action.payload.key);
       const prevCuration = nextCurations[index];
-      const nextCuration = { ...prevCuration, addApps: [ ...prevCuration.addApps ] };
+      const nextCuration = { ...prevCuration };
       nextCuration.thumbnail = action.payload.image;
       nextCuration.thumbnail.version = prevCuration.thumbnail.version + 1;
       nextCurations[index] = nextCuration;
@@ -89,7 +81,7 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
       const nextCurations = [ ...prevState.curations ];
       const index = ensureCurationIndex(nextCurations, action.payload.key);
       const prevCuration = nextCurations[index];
-      const nextCuration = { ...prevCuration, addApps: [ ...prevCuration.addApps ] };
+      const nextCuration = { ...prevCuration };
       nextCuration.screenshot = action.payload.image;
       nextCuration.screenshot.version = prevCuration.screenshot.version + 1;
       nextCurations[index] = nextCuration;
@@ -100,57 +92,9 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
       const nextCurations = [ ...prevState.curations ];
       const index = ensureCurationIndex(nextCurations, action.payload.key);
       const prevCuration = nextCurations[index];
-      const nextCuration = { ...prevCuration, addApps: [ ...prevCuration.addApps ] };
+      const nextCuration = { ...prevCuration };
       nextCuration.content = action.payload.content;
       nextCurations[index] = nextCuration;
-      return { ...prevState, curations: nextCurations };
-    }
-    // Add an empty additional application to a curation
-    case 'new-addapp': {
-      const nextCurations = [ ...prevState.curations ];
-      const index = nextCurations.findIndex(c => c.key === action.payload.key);
-      if (index >= 0) {
-        // Copy the previous curation (and the nested addApps array)
-        const prevCuration = nextCurations[index];
-        const nextCuration = { ...prevCuration, addApps: [ ...prevCuration.addApps ] };
-        switch (action.payload.type) {
-          case 'normal':
-            nextCuration.addApps.push({
-              key: uuid(),
-              meta: {}
-            });
-            break;
-          case 'extras':
-            nextCuration.addApps.push({
-              key: uuid(),
-              meta: generateExtrasAddApp('')
-            });
-            break;
-          case 'message':
-            nextCuration.addApps.push({
-              key: uuid(),
-              meta: generateMessageAddApp('')
-            });
-            break;
-        }
-        nextCurations[index] = nextCuration;
-      }
-      return { ...prevState, curations: nextCurations };
-    }
-    // Remove an additional application from a curation
-    case 'remove-addapp': {
-      const nextCurations = [ ...prevState.curations ];
-      const index = nextCurations.findIndex(c => c.key === action.payload.curationKey);
-      if (index >= 0) {
-        // Copy the previous curation (and the nested addApps array)
-        const prevCuration = nextCurations[index];
-        const nextCuration = { ...prevCuration, addApps: [ ...prevCuration.addApps ] };
-        const addAppIndex = nextCuration.addApps.findIndex(c => c.key === action.payload.key);
-        if (addAppIndex >= 0) {
-          nextCuration.addApps.splice(addAppIndex, 1);
-        }
-        nextCurations[index] = nextCuration;
-      }
       return { ...prevState, curations: nextCurations };
     }
     // Edit curation's meta
@@ -164,30 +108,6 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
         const nextCuration: any = { ...prevCuration, meta: { ...prevCuration.meta } };
         // Replace the value (in the copied meta)
         nextCuration.meta[action.payload.property] = action.payload.value;
-        // Replace the previous curation with the new (in the copied array)
-        nextCurations[index] = nextCuration;
-      }
-      return { ...prevState, curations: nextCurations };
-    }
-    // Edit additional application's meta
-    case 'edit-addapp-meta': {
-      // Find the curation
-      const nextCurations = [ ...prevState.curations ]; // (New curations array to replace the current)
-      const index = nextCurations.findIndex(c => c.key === action.payload.curationKey);
-      if (index >= 0) {
-        // Copy the previous curation (and the nested addApps array)
-        const prevCuration = nextCurations[index];
-        const nextCuration = { ...prevCuration, addApps: [ ...prevCuration.addApps ] };
-        // Find the additional application
-        const addAppIndex = prevCuration.addApps.findIndex(c => c.key === action.payload.key);
-        if (addAppIndex >= 0) {
-          const prevAddApp = prevCuration.addApps[addAppIndex];
-          const nextAddApp = { ...prevAddApp };
-          // Replace the value (in the copied meta)
-          nextAddApp.meta[action.payload.property] = action.payload.value;
-          // Replace the previous additional application with the new (in the copied array)
-          nextCuration.addApps[addAppIndex] = nextAddApp;
-        }
         // Replace the previous curation with the new (in the copied array)
         nextCurations[index] = nextCuration;
       }
@@ -263,7 +183,6 @@ export function createEditCuration(key: string): EditCuration {
     key: key,
     meta: {},
     content: [],
-    addApps: [],
     thumbnail: createCurationIndexImage(),
     screenshot: createCurationIndexImage(),
     locked: false,
@@ -307,16 +226,6 @@ export type CurationAction = (
     key: string;
     content: IndexedContent[];
   }> |
-  /** Add an empty additional application to curation */
-  ReducerAction<'new-addapp', {
-    key: string;
-    type: 'normal' | 'extras' | 'message';
-  }> |
-  /** Remove an additional application (by key) from a curation */
-  ReducerAction<'remove-addapp', {
-    curationKey: string;
-    key: string;
-  }> |
   /** Edit the value of a curation's meta's property. */
   ReducerAction<'edit-curation-meta', {
     /** Key of the curation to change. */
@@ -325,17 +234,6 @@ export type CurationAction = (
     property: keyof EditCurationMeta;
     /** Value to set the property to. */
     value: EditCurationMeta[keyof EditCurationMeta];
-  }> |
-  /** Edit the value of an additional application's meta's property. */
-  ReducerAction<'edit-addapp-meta', {
-    /** Key of the curation the additional application belongs to. */
-    curationKey: string;
-    /** Key of the additional application to change. */
-    key: string;
-    /** Name of the property to change. */
-    property: keyof EditAddAppCurationMeta;
-    /** Value to set the property to. */
-    value: EditAddAppCurationMeta[keyof EditAddAppCurationMeta];
   }> |
   /** Sort Curations A-Z */
   ReducerAction<'sort-curations', {}> |

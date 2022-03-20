@@ -1,7 +1,6 @@
 import { ApiEmitter } from '@back/extensions/ApiEmitter';
 import { chunkArray } from '@back/util/misc';
 import { validateSqlName, validateSqlOrder } from '@back/util/sql';
-import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
@@ -16,8 +15,9 @@ import { Coerce } from '@shared/utils/Coerce';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as TagManager from './TagManager';
-import { Brackets, FindOneOptions, getManager, SelectQueryBuilder } from 'typeorm';
+import { Brackets, FindOneOptions, getManager, SelectQueryBuilder, IsNull } from 'typeorm';
 import * as GameDataManager from './GameDataManager';
+import { isNull } from 'util';
 
 const exactFields = [ 'broken', 'library', 'activeDataOnDisk' ];
 enum flatGameFields {
@@ -36,10 +36,10 @@ export const onDidRemovePlaylistGame = new ApiEmitter<PlaylistGame>();
 
 export async function countGames(): Promise<number> {
   const gameRepository = getManager().getRepository(Game);
-  return gameRepository.count();
+  return gameRepository.count({ parentGameId: IsNull() });
 }
 
-/** Find the game with the specified ID. */
+/** Find the game with the specified ID. Ardil TODO find refs*/
 export async function findGame(id?: string, filter?: FindOneOptions<Game>): Promise<Game | undefined> {
   if (id || filter) {
     const gameRepository = getManager().getRepository(Game);
@@ -50,7 +50,7 @@ export async function findGame(id?: string, filter?: FindOneOptions<Game>): Prom
     return game;
   }
 }
-
+/** Get the row number of an entry, specified by its gameId. */
 export async function findGameRow(gameId: string, filterOpts?: FilterGameOpts, orderBy?: GameOrderBy, direction?: GameOrderReverse, index?: PageTuple): Promise<number> {
   if (orderBy) { validateSqlName(orderBy); }
 
@@ -58,13 +58,15 @@ export async function findGameRow(gameId: string, filterOpts?: FilterGameOpts, o
   const gameRepository = getManager().getRepository(Game);
 
   const subQ = gameRepository.createQueryBuilder('game')
-  .select(`game.id, row_number() over (order by game.${orderBy}) row_num`);
+  .select(`game.id, row_number() over (order by game.${orderBy}) row_num`)
+  .where("game.parentGameId is null");
   if (index) {
     if (!orderBy) { throw new Error('Failed to get game row. "index" is set but "orderBy" is missing.'); }
-    subQ.where(`(game.${orderBy}, game.id) > (:orderVal, :id)`, { orderVal: index.orderVal, id: index.id });
+    subQ.andWhere(`(game.${orderBy}, game.id) > (:orderVal, :id)`, { orderVal: index.orderVal, id: index.id });
   }
   if (filterOpts) {
-    applyFlatGameFilters('game', subQ, filterOpts, index ? 1 : 0);
+    // The "whereCount" param doesn't make much sense now, TODO change it.
+    applyFlatGameFilters('game', subQ, filterOpts, index ? 2 : 1);
   }
   if (orderBy) { subQ.orderBy(`game.${orderBy}`, direction); }
 
@@ -78,11 +80,19 @@ export async function findGameRow(gameId: string, filterOpts?: FilterGameOpts, o
   // console.log(`${Date.now() - startTime}ms for row`);
   return raw ? Coerce.num(raw.row_num) : -1; // Coerce it, even though it is probably of type number or undefined
 }
-
+/**
+ * Randomly selects a number of games from the database
+ * @param count The number of games to find.
+ * @param broken Whether to include broken games.
+ * @param excludedLibraries A list of libraries to exclude.
+ * @param flatFilters A set of filters on tags.
+ * @returns A ViewGame[] representing the results.
+ */
 export async function findRandomGames(count: number, broken: boolean, excludedLibraries: string[], flatFilters: string[]): Promise<ViewGame[]> {
   const gameRepository = getManager().getRepository(Game);
   const query = gameRepository.createQueryBuilder('game');
   query.select('game.id, game.title, game.platform, game.developer, game.publisher, game.tagsStr');
+  query.where("game.parentGameId is null");
   if (!broken)  { query.andWhere('broken = false');  }
   if (excludedLibraries.length > 0) {
     query.andWhere('library NOT IN (:...libs)', { libs: excludedLibraries });
@@ -172,7 +182,7 @@ export type FindGamesOpts = {
 
 export async function findAllGames(): Promise<Game[]> {
   const gameRepository = getManager().getRepository(Game);
-  return gameRepository.find();
+  return gameRepository.find({parentGameId: IsNull()});
 }
 
 /** Search the database for games. */
@@ -188,6 +198,7 @@ export async function findGames<T extends boolean>(opts: FindGamesOpts, shallow:
 
     const range = ranges[i];
     query = await getGameQuery('game', opts.filter, opts.orderBy, opts.direction, range.start, range.length, range.index);
+    query.where("game.parentGameId is null");
 
     // Select games
     // @TODO Make it infer the type of T from the value of "shallow", and then use that to make "games" get the correct type, somehow?
@@ -210,15 +221,15 @@ export async function findGames<T extends boolean>(opts: FindGamesOpts, shallow:
   return rangesOut;
 }
 
-/** Find an add apps with the specified ID. */
-export async function findAddApp(id?: string, filter?: FindOneOptions<AdditionalApp>): Promise<AdditionalApp | undefined> {
+/** Find an add app with the specified ID. */
+export async function findAddApp(id?: string, filter?: FindOneOptions<Game>): Promise<Game | undefined> {
   if (id || filter) {
     if (!filter) {
       filter = {
-        relations: ['parentGame']
+        relations: ['parentGameId']
       };
     }
-    const addAppRepository = getManager().getRepository(AdditionalApp);
+    const addAppRepository = getManager().getRepository(Game);
     return addAppRepository.findOne(id, filter);
   }
 }
@@ -229,6 +240,7 @@ export async function findPlatformAppPaths(platform: string): Promise<string[]> 
   .select('game.applicationPath')
   .distinct()
   .where('game.platform = :platform', {platform: platform})
+  .andWhere("game.parentGameId is null")
   .groupBy('game.applicationPath')
   .orderBy('COUNT(*)', 'DESC')
   .getRawMany();
@@ -261,6 +273,7 @@ export async function findPlatforms(library: string): Promise<string[]> {
   const gameRepository = getManager().getRepository(Game);
   const libraries = await gameRepository.createQueryBuilder('game')
   .where('game.library = :library', {library: library})
+  .andWhere("game.parentGameId is null")
   .select('game.platform')
   .distinct()
   .getRawMany();
@@ -286,9 +299,10 @@ export async function save(game: Game): Promise<Game> {
   return savedGame;
 }
 
-export async function removeGameAndAddApps(gameId: string, dataPacksFolderPath: string): Promise<Game | undefined> {
+// Ardil TODO fix this.
+export async function removeGameAndChildren(gameId: string, dataPacksFolderPath: string): Promise<Game | undefined> {
   const gameRepository = getManager().getRepository(Game);
-  const addAppRepository = getManager().getRepository(AdditionalApp);
+  //const addAppRepository = getManager().getRepository(AdditionalApp);
   const game = await findGame(gameId);
   if (game) {
     // Delete GameData
@@ -298,9 +312,10 @@ export async function removeGameAndAddApps(gameId: string, dataPacksFolderPath: 
       }
       await GameDataManager.remove(gameData.id);
     }
-    // Delete Add Apps
-    for (const addApp of game.addApps) {
-      await addAppRepository.remove(addApp);
+    // Delete children
+    // Ardil TODO do Seirade's suggestion.
+    for (const child of game.children) {
+      await gameRepository.remove(child);
     }
     // Delete Game
     await gameRepository.remove(game);
@@ -472,6 +487,10 @@ function applyFlatGameFilters(alias: string, query: SelectQueryBuilder<Game>, fi
   return whereCount;
 }
 
+/**
+ * Add a position-independent search term (whitelist or blacklist) in or'd WHERE clauses on title, alternateTitles,
+ * developer, and publisher.
+ */
 function doWhereTitle(alias: string, query: SelectQueryBuilder<Game>, value: string, count: number, whitelist: boolean): void {
   validateSqlName(alias);
 
@@ -500,6 +519,16 @@ function doWhereTitle(alias: string, query: SelectQueryBuilder<Game>, value: str
   }
 }
 
+/**
+ * Add a search term in a WHERE clause on the given field to a selectquerybuilder.
+ * @param alias The name of the table.
+ * @param query The query to add to.
+ * @param field The field (column) to search on.
+ * @param value The value to search for. If it's a string, it will be interpreted as position-independent 
+ * if the field is not on the exactFields list.
+ * @param count How many conditions we've already filtered. Determines whether we use .where() or .andWhere().
+ * @param whitelist Whether this is a whitelist or a blacklist search.
+ */
 function doWhereField(alias: string, query: SelectQueryBuilder<Game>, field: string, value: any, count: number, whitelist: boolean) {
   // Create comparator
   const typing = typeof value;

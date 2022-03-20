@@ -1,4 +1,3 @@
-import { AdditionalApp } from '../../database/entity/AdditionalApp';
 import { Game } from '../../database/entity/Game';
 import { Playlist } from '../../database/entity/Playlist';
 import { OrderGamesOpts } from './GameFilter';
@@ -37,12 +36,6 @@ export type GameAppDeleteRequest = {
 export type GameAddRequest = {
   /** Game to add */
   game: Game;
-}
-
-/** Client Request - Add an additional application */
-export type AppAddRequest = {
-  /** Add App to add */
-  addApp: AdditionalApp;
 }
 
 /** Client Request - Information needed to make a search */

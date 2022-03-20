@@ -14,7 +14,7 @@ import { SocketTemplate } from '@shared/socket/types';
 import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
 import { GameData, TagAlias, TagFilterGroup } from 'flashpoint-launcher';
 import { AppConfigData, AppExtConfigData } from '../config/interfaces';
-import { EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '../curate/types';
+import { EditCuration, EditCurationMeta } from '../curate/types';
 import { ExecMapping, GamePropSuggestions, IService, ProcessAction } from '../interfaces';
 import { LangContainer, LangFile } from '../lang';
 import { ILogEntry, ILogPreEntry, LogLevel } from '../Log/interface';
@@ -47,7 +47,7 @@ export enum BackIn {
   DELETE_GAME,
   DUPLICATE_GAME,
   EXPORT_GAME,
-  LAUNCH_ADDAPP,
+  LAUNCH_EXTRAS,
   SAVE_IMAGE,
   DELETE_IMAGE,
   ADD_LOG,
@@ -67,7 +67,7 @@ export enum BackIn {
   SAVE_LEGACY_PLATFORM,
   IMPORT_CURATION,
   LAUNCH_CURATION,
-  LAUNCH_CURATION_ADDAPP,
+  LAUNCH_CURATION_EXTRAS,
   QUIT,
 
   // Sources
@@ -199,7 +199,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.DELETE_GAME]: (id: string) => BrowseChangeData;
   [BackIn.DUPLICATE_GAME]: (id: string, dupeImages: boolean) => BrowseChangeData;
   [BackIn.EXPORT_GAME]: (id: string, location: string, metaOnly: boolean) => void;
-  [BackIn.LAUNCH_ADDAPP]: (id: string) => void;
+  [BackIn.LAUNCH_EXTRAS]: (id: string) => void;
   [BackIn.SAVE_IMAGE]: (folder: string, id: string, content: string) => void;
   [BackIn.DELETE_IMAGE]: (folder: string, id: string) => void;
   [BackIn.ADD_LOG]: (data: ILogPreEntry & { logLevel: LogLevel }) => void;
@@ -219,7 +219,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.SAVE_LEGACY_PLATFORM]: (platform: Legacy_GamePlatform) => void;
   [BackIn.IMPORT_CURATION]: (data: ImportCurationData) => ImportCurationResponseData;
   [BackIn.LAUNCH_CURATION]: (data: LaunchCurationData) => void;
-  [BackIn.LAUNCH_CURATION_ADDAPP]: (data: LaunchCurationAddAppData) => void;
+  [BackIn.LAUNCH_CURATION_EXTRAS]: (data: LaunchCurationData) => void;
   [BackIn.QUIT]: () => void;
 
   // Tag funcs
@@ -493,15 +493,7 @@ export type ImportCurationResponseData = {
 export type LaunchCurationData = {
   key: string;
   meta: EditCurationMeta;
-  addApps: EditAddAppCurationMeta[];
   mad4fp: boolean;
-  symlinkCurationContent: boolean;
-}
-
-export type LaunchCurationAddAppData = {
-  curationKey: string;
-  curation: EditAddAppCuration;
-  platform?: string;
   symlinkCurationContent: boolean;
 }
 

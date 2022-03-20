@@ -7,40 +7,43 @@ import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 
-export type RightBrowseSidebarChildProps = {
-  /** Additional Application to show and edit */
-  child: Game;
+export type RightBrowseSidebarExtraProps = {
+  /** Extras to show and edit */
+  // These two are xplicitly non-nullable.
+  extrasPath: string;
+  extrasName: string;
+  game: Game;
   /** Called when a field is edited */
   onEdit?: () => void;
   /** Called when a field is edited */
-  onDelete?: (childId: string) => void;
+  onDelete?: (gameId: string) => void;
   /** Called when the launch button is clicked */
-  onLaunch?: (childId: string) => void;
+  onLaunch?: (gameId: string) => void;
   /** If the editing is disabled (it cant go into "edit mode") */
   editDisabled?: boolean;
 };
 
-export interface RightBrowseSidebarChild {
+export interface RightBrowseSidebarExtra {
   context: LangContainer;
 }
 
 /** Displays an additional application for a game in the right sidebar of BrowsePage. */
-export class RightBrowseSidebarChild extends React.Component<RightBrowseSidebarChildProps> {
+export class RightBrowseSidebarExtra extends React.Component<RightBrowseSidebarExtraProps> {
   onNameEditDone            = this.wrapOnTextChange((addApp, text) => { addApp.title = text; });
-  onApplicationPathEditDone = this.wrapOnTextChange((addApp, text) => { addApp.applicationPath = text; });
-  onLaunchCommandEditDone   = this.wrapOnTextChange((addApp, text) => { addApp.launchCommand = text; });
+  onExtrasNameEditDone      = this.wrapOnTextChange((addApp, text) => { addApp.applicationPath = text; });
+  onExtrasPathEditDone      = this.wrapOnTextChange((addApp, text) => { addApp.launchCommand = text; });
 
   render() {
     const allStrings = this.context;
     const strings = allStrings.browse;
-    const { child: addApp, editDisabled } = this.props;
+    const { extrasPath, extrasName, editDisabled } = this.props;
     return (
       <div className='browse-right-sidebar__additional-application'>
         {/* Title & Launch Button */}
         <div className='browse-right-sidebar__row browse-right-sidebar__row--additional-applications-name'>
           <InputField
-            text={addApp.title}
-            placeholder={strings.noName}
+            text={extrasName}
+            placeholder={strings.noExtrasName}
             onChange={this.onNameEditDone}
             editable={!editDisabled} />
           <input
@@ -51,35 +54,14 @@ export class RightBrowseSidebarChild extends React.Component<RightBrowseSidebarC
         </div>
         { editDisabled ? undefined : (
           <>
-            {/* Application Path */}
-            <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-              <p>{strings.applicationPath}: </p>
-              <InputField
-                text={addApp.applicationPath}
-                placeholder={strings.noApplicationPath}
-                onChange={this.onApplicationPathEditDone}
-                editable={!editDisabled} />
-            </div>
             {/* Launch Command */}
             <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-              <p>{strings.launchCommand}: </p>
+              <p>{strings.extras}: </p>
               <InputField
-                text={addApp.launchCommand}
-                placeholder={strings.noLaunchCommand}
-                onChange={this.onLaunchCommandEditDone}
+                text={extrasPath}
+                placeholder={strings.noExtras}
+                onChange={this.onExtrasPathEditDone}
                 editable={!editDisabled} />
-            </div>
-            
-            {/* Wait for Exit */}
-            <div className='browse-right-sidebar__row'>
-              {/* Delete Button */}
-              { !editDisabled ? (
-                <ConfirmElement
-                  message={allStrings.dialog.deleteAddApp}
-                  onConfirm={this.onDeleteClick}
-                  render={this.renderDeleteButton}
-                  extra={strings} />
-              ) : undefined}
             </div>
           </>
         ) }
@@ -101,13 +83,13 @@ export class RightBrowseSidebarChild extends React.Component<RightBrowseSidebarC
 
   onLaunchClick = (): void => {
     if (this.props.onLaunch) {
-      this.props.onLaunch(this.props.child.id);
+      this.props.onLaunch(this.props.game.id);
     }
   }
 
   onDeleteClick = (): void => {
     if (this.props.onDelete) {
-      this.props.onDelete(this.props.child.id);
+      this.props.onDelete(this.props.game.id);
     }
   }
 
@@ -120,7 +102,7 @@ export class RightBrowseSidebarChild extends React.Component<RightBrowseSidebarC
   /** Create a wrapper for a EditableTextWrap's onEditDone callback (this is to reduce redundancy). */
   wrapOnTextChange(func: (addApp: Game, text: string) => void): (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>) => void {
     return (event) => {
-      const addApp = this.props.child;
+      const addApp = this.props.game;
       if (addApp) {
         func(addApp, event.currentTarget.value);
         this.forceUpdate();
@@ -132,7 +114,7 @@ export class RightBrowseSidebarChild extends React.Component<RightBrowseSidebarC
   wrapOnCheckBoxChange(func: (addApp: Game) => void) {
     return () => {
       if (!this.props.editDisabled) {
-        func(this.props.child);
+        func(this.props.game);
         this.onEdit();
         this.forceUpdate();
       }
