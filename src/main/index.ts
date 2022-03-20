@@ -1,7 +1,10 @@
+import * as remoteMain from '@electron/remote/main';
 import { Coerce } from '@shared/utils/Coerce';
 import { startBrowserMode } from './BrowserMode';
 import { main } from './Main';
 import { Init } from './types';
+
+remoteMain.initialize();
 
 const init = getArgs();
 
