@@ -1,5 +1,4 @@
 import { BeforeUpdate, Column, Entity, Index, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-import { AdditionalApp } from './AdditionalApp';
 import { GameData } from './GameData';
 import { Tag } from './Tag';
 
@@ -17,11 +16,17 @@ export class Game {
   /** ID of the game (unique identifier) */
   id: string;
 
-  @ManyToOne(type => Game)
+  @ManyToOne(type => Game, game => game.children)
   parentGame?: Game;
 
   @Column({ nullable: true })
   parentGameId?: string;
+
+  @OneToMany(type => Game, game => game.parentGame, {
+    cascade: true,
+    eager: true
+  })
+  children: Game[];
 
   @Column({collation: 'NOCASE'})
   @Index('IDX_gameTitle')
@@ -120,13 +125,6 @@ export class Game {
   /** The title but reconstructed to be suitable for sorting and ordering (and not be shown visually) */
   orderTitle: string;
 
-  @OneToMany(type => AdditionalApp, addApp => addApp.parentGame, {
-    cascade: true,
-    eager: true
-  })
-  /** All attached Additional Apps of a game */
-  addApps: AdditionalApp[];
-
   /** If the game is a placeholder (and can therefore not be saved) */
   placeholder: boolean;
 
@@ -140,6 +138,15 @@ export class Game {
 
   @OneToMany(type => GameData, datas => datas.game)
   data?: GameData[];
+
+  @Column({ nullable: true })
+  extras?: string;
+
+  @Column({ nullable: true })
+  extrasName?: string;
+
+  @Column({ nullable: true })
+  message?: string;
 
   // This doesn't run... sometimes.
   @BeforeUpdate()

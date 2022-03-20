@@ -26,7 +26,6 @@ import { toForcedURL } from '../Util';
 import { LangContext } from '../util/lang';
 import { pathTo7z } from '../util/SevenZip';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
-import { CurateBoxAddApp } from './CurateBoxAddApp';
 import { CurateBoxRow } from './CurateBoxRow';
 import { CurateBoxWarnings, CurationWarnings, getWarningCount } from './CurateBoxWarnings';
 import { DropdownInputField } from './DropdownInputField';
@@ -87,7 +86,7 @@ export function CurateBox(props: CurateBoxProps) {
     saveThrottle(() => {
       if (props.curation) {
         const metaPath = path.join(getCurationFolder2(props.curation), 'meta.yaml');
-        const meta = YAML.stringify(convertEditToCurationMetaFile(props.curation.meta, props.tagCategories, props.curation.addApps));
+        const meta = YAML.stringify(convertEditToCurationMetaFile(props.curation.meta, props.tagCategories));
         fs.writeFile(metaPath, meta);
         console.log('Auto-Saved Curation');
       }
@@ -205,6 +204,10 @@ export function CurateBox(props: CurateBoxProps) {
   const onOriginalDescriptionChange = useOnInputChange('originalDescription', key, props.dispatch);
   const onCurationNotesChange       = useOnInputChange('curationNotes',       key, props.dispatch);
   const onMountParametersChange     = useOnInputChange('mountParameters',     key, props.dispatch);
+  const onParentGameIdChange        = useOnInputChange('parentGameId',        key, props.dispatch);
+  const onMessageChange             = useOnInputChange('message',             key, props.dispatch);
+  const onExtrasChange              = useOnInputChange('extras',              key, props.dispatch);
+  const onExtrasNameChange          = useOnInputChange('extrasName',          key, props.dispatch);
   // Callbacks for the fields (onItemSelect)
   const onPlayModeSelect            = useCallback(transformOnItemSelect(onPlayModeChange),        [onPlayModeChange]);
   const onStatusSelect              = useCallback(transformOnItemSelect(onStatusChange),          [onStatusChange]);
@@ -307,7 +310,6 @@ export function CurateBox(props: CurateBoxProps) {
       await window.Shared.back.request(BackIn.LAUNCH_CURATION, {
         key: props.curation.key,
         meta: props.curation.meta,
-        addApps: props.curation.addApps.map(addApp => addApp.meta),
         mad4fp: mad4fp,
         symlinkCurationContent: props.symlinkCurationContent
       });
@@ -378,42 +380,6 @@ export function CurateBox(props: CurateBoxProps) {
       });
     }
   }, [props.dispatch, props.curation && props.curation.key]);
-  // Callback for when the new additional application button is clicked
-  const onNewAddApp = useCallback(() => {
-    if (props.curation) {
-      props.dispatch({
-        type: 'new-addapp',
-        payload: {
-          key: props.curation.key,
-          type: 'normal'
-        }
-      });
-    }
-  }, [props.dispatch, props.curation && props.curation.key]);
-  // Callback for when adding an Extras add app
-  const onAddExtras = useCallback(() => {
-    if (props.curation) {
-      props.dispatch({
-        type: 'new-addapp',
-        payload: {
-          key: props.curation.key,
-          type: 'extras'
-        }
-      });
-    }
-  }, [props.dispatch, props.curation && props.curation.key]);
-  // Callback for when adding a Message add app
-  const onAddMessage = useCallback(() => {
-    if (props.curation) {
-      props.dispatch({
-        type: 'new-addapp',
-        payload: {
-          key: props.curation.key,
-          type: 'message'
-        }
-      });
-    }
-  }, [props.dispatch, props.curation && props.curation.key]);
   // Callback for when the export button is clicked
   const onExportClick = useCallback(async () => {
     if (props.curation) {
@@ -468,7 +434,7 @@ export function CurateBox(props: CurateBoxProps) {
         .catch((error) => { /* No file is okay, ignore error */ });
         // Save working meta
         const metaPath = path.join(getCurationFolder2(curation), 'meta.yaml');
-        const meta = YAML.stringify(convertEditToCurationMetaFile(curation.meta, props.tagCategories, curation.addApps));
+        const meta = YAML.stringify(convertEditToCurationMetaFile(curation.meta, props.tagCategories));
         const statusProgress = newProgress(props.curation.key, progressDispatch);
         ProgressDispatch.setText(statusProgress, 'Exporting Curation...');
         ProgressDispatch.setUsePercentDone(statusProgress, false);
@@ -520,36 +486,6 @@ export function CurateBox(props: CurateBoxProps) {
     }
     return false;
   }, [props.curation]);
-  // Render additional application elements
-  const addApps = useMemo(() => (
-    <>
-      { strings.browse.additionalApplications }:
-      { props.curation && props.curation.addApps.length > 0 ? (
-        <table className="curate-box-table">
-          <tbody>
-            { props.curation.addApps.map(addApp => (
-              <CurateBoxAddApp
-                key={addApp.key}
-                curationKey={props.curation && props.curation.key || ''}
-                curation={addApp}
-                dispatch={props.dispatch}
-                disabled={disabled}
-                platform={props.curation && props.curation.meta.platform}
-                symlinkCurationContent={props.symlinkCurationContent}
-                onInputKeyDown={onInputKeyDown} />
-            )) }
-          </tbody>
-        </table>
-      ) : undefined }
-    </>
-  ), [
-    props.curation && props.curation.addApps,
-    props.curation && props.curation.key,
-    props.symlinkCurationContent,
-    props.dispatch,
-    native,
-    disabled
-  ]);
 
   // Count the number of collisions
   const collisionCount: number | undefined = useMemo(() => {
@@ -848,32 +784,29 @@ export function CurateBox(props: CurateBoxProps) {
               className={curationNotes.length > 0 ? 'input-field--info' : ''}
               { ...sharedInputProps } />
           </CurateBoxRow>
+          <CurateBoxRow title={strings.browse.extrasName + ':'}>
+            <InputField
+              text={props.curation && props.curation.meta.extrasName || ''}
+              placeholder={strings.browse.noExtrasName}
+              onChange={onExtrasNameChange}
+              { ...sharedInputProps } />
+          </CurateBoxRow>
+          <CurateBoxRow title={strings.browse.extras + ':'}>
+            <InputField
+              text={props.curation && props.curation.meta.extras || ''}
+              placeholder={strings.browse.noExtras}
+              onChange={onExtrasChange}
+              { ...sharedInputProps } />
+          </CurateBoxRow>
+          <CurateBoxRow title={strings.browse.message + ':'}>
+            <InputField
+              text={props.curation && props.curation.meta.message || ''}
+              placeholder={strings.browse.noMessage}
+              onChange={onMessageChange}
+              { ...sharedInputProps } />
+          </CurateBoxRow>
         </tbody>
       </table>
-      <hr className='curate-box-divider' />
-      {/* Additional Application */}
-      <div className='curate-box-add-apps'>
-        <span>{addApps}</span>
-        <div className='curate-box-buttons'>
-          <div className='curate-box-buttons__left'>
-            <SimpleButton
-              className='curate-box-buttons__button'
-              value={strings.curate.newAddApp}
-              onClick={onNewAddApp}
-              disabled={disabled} />
-            <SimpleButton
-              className='curate-box-buttons__button'
-              value={strings.curate.addExtras}
-              onClick={onAddExtras}
-              disabled={disabled} />
-            <SimpleButton
-              className='curate-box-buttons__button'
-              value={strings.curate.addMessage}
-              onClick={onAddMessage}
-              disabled={disabled} />
-          </div>
-        </div>
-      </div>
       <hr className='curate-box-divider' />
       {/* Content */}
       <div className='curate-box-files'>

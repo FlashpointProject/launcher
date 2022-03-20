@@ -457,6 +457,8 @@ declare module 'flashpoint-launcher' {
         id: string;
         /** ID of the game which owns this game */
         parentGameId?: string;
+        /** A list of child games. */
+        children: Game[];
         /** Full title of the game */
         title: string;
         /** Any alternate titles to match against search */
@@ -503,8 +505,6 @@ declare module 'flashpoint-launcher' {
         language: string;
         /** Library this game belongs to */
         library: string;
-        /** All attached Additional Apps of a game */
-        addApps: AdditionalApp[];
         /** Unused */
         orderTitle: string;
         /** If the game is a placeholder (and can therefore not be saved) */
@@ -513,6 +513,13 @@ declare module 'flashpoint-launcher' {
         activeDataId?: number;
         /** Whether the data is present on disk */
         activeDataOnDisk: boolean;
+        /** The path to any extras. */
+        extras?: string;
+        /** The name to be displayed for those extras. */
+        extrasName?: string;
+        /** The message to display when the game starts. */
+        message?: string;
+
         data?: GameData[];
         updateTagsStr: () => void;
     };

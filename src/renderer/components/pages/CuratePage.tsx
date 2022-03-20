@@ -139,7 +139,7 @@ export function CuratePage(props: CuratePageProps) {
       // Save all working curation metas
       for (const curation of state.curations.filter(c => !c.delete)) {
         const metaPath = path.join(getCurationFolder2(curation), 'meta.yaml');
-        const meta = YAML.stringify(convertEditToCurationMetaFile(curation.meta, props.tagCategories, curation.addApps));
+        const meta = YAML.stringify(convertEditToCurationMetaFile(curation.meta, props.tagCategories));
         try {
           fs.writeFileSync(metaPath, meta);
         } catch (error) {
@@ -743,7 +743,6 @@ async function loadCurationFolder(key: string, fullPath: string, defaultGameMeta
   const loadedCuration: EditCuration = {
     key: key,
     meta: {},
-    addApps: [],
     thumbnail: createCurationIndexImage(),
     screenshot: createCurationIndexImage(),
     content: [],
@@ -790,13 +789,6 @@ async function loadCurationFolder(key: string, fullPath: string, defaultGameMeta
         await readCurationMeta(metaYamlPath, defaultGameMetaValues)
         .then(async (parsedMeta) => {
           loadedCuration.meta = parsedMeta.game;
-          for (let i = 0; i < parsedMeta.addApps.length; i++) {
-            const meta = parsedMeta.addApps[i];
-            loadedCuration.addApps.push({
-              key: uuid(),
-              meta: meta,
-            });
-          }
         })
         .catch((error) => {
           const formedMessage = `Error Parsing Curation Meta at ${metaYamlPath} - ${error.message}`;

@@ -142,7 +142,8 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     findGamesWithTag: GameManager.findGamesWithTag,
     updateGame: GameManager.save,
     updateGames: GameManager.updateGames,
-    removeGameAndAddApps: (gameId: string) => GameManager.removeGameAndAddApps(gameId, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath)),
+    // Ardil TODO
+    removeGameAndAddApps: (gameId: string) => GameManager.removeGameAndChildren(gameId, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath)),
     isGameExtreme: (game: Game) => {
       const extremeTags = state.preferences.tagFilters.filter(t => t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
       return game.tagsStr.split(';').findIndex(t => extremeTags.includes(t.trim())) !== -1;
@@ -156,24 +157,28 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     get onWillLaunchGame() {
       return apiEmitters.games.onWillLaunchGame.event;
     },
+    // Ardil TODO remove
     get onWillLaunchAddApp() {
       return apiEmitters.games.onWillLaunchAddApp.event;
     },
     get onWillLaunchCurationGame() {
       return apiEmitters.games.onWillLaunchCurationGame.event;
     },
+    // Ardil TODO remove
     get onWillLaunchCurationAddApp() {
       return apiEmitters.games.onWillLaunchCurationAddApp.event;
     },
     get onDidLaunchGame() {
       return apiEmitters.games.onDidLaunchGame.event;
     },
+    // Ardil TODO remove
     get onDidLaunchAddApp() {
       return apiEmitters.games.onDidLaunchAddApp.event;
     },
     get onDidLaunchCurationGame() {
       return apiEmitters.games.onDidLaunchCurationGame.event;
     },
+    // Ardil TODO remove
     get onDidLaunchCurationAddApp() {
       return apiEmitters.games.onDidLaunchCurationAddApp.event;
     },

@@ -314,6 +314,12 @@ const langTemplate = {
     'mountParameters',
     'noMountParameters',
     'showExtremeScreenshot',
+    'extras',
+    'noExtras',
+    'message',
+    'noMessage',
+    'extrasName',
+    'noExtrasName',
   ] as const,
   tags: [
     'name',
