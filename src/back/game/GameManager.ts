@@ -124,13 +124,14 @@ export async function findGamePageKeyset(filterOpts: FilterGameOpts, orderBy: Ga
   // console.log('FindGamePageKeyset:');
 
   const subQ = await getGameQuery('sub', filterOpts, orderBy, direction);
-  subQ.select(`sub.${orderBy}, sub.title, sub.id, case row_number() over(order by sub.${orderBy} ${direction}, sub.title ${direction}, sub.id) % ${VIEW_PAGE_SIZE} when 0 then 1 else 0 end page_boundary`);
+  subQ.select(`sub.${orderBy}, sub.title, sub.id, sub.parentGameId, case row_number() over(order by sub.${orderBy} ${direction}, sub.title ${direction}, sub.id) % ${VIEW_PAGE_SIZE} when 0 then 1 else 0 end page_boundary`);
   subQ.orderBy(`sub.${orderBy} ${direction}, sub.title`, direction);
 
   let query = getManager().createQueryBuilder()
   .select(`g.${orderBy}, g.title, g.id, row_number() over(order by g.${orderBy} ${direction}, g.title ${direction}) + 1 page_number`)
   .from('(' + subQ.getQuery() + ')', 'g')
   .where('g.page_boundary = 1')
+  .andWhere('g.parentGameId is null')
   .setParameters(subQ.getParameters());
 
   if (searchLimit) {
