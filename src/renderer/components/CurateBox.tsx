@@ -1,6 +1,7 @@
 import { CURATIONS_FOLDER_WORKING } from '@back/consts';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
+import * as remote from '@electron/remote';
 import {
   CurateBoxDropdownInputRow,
   CurateBoxInputRow,
@@ -18,7 +19,7 @@ import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { fixSlashes, sizeToString } from '@shared/Util';
 import axios from 'axios';
-import { clipboard, MenuItemConstructorOptions, remote } from 'electron';
+import { clipboard, MenuItemConstructorOptions } from 'electron';
 import { TagSuggestion } from 'flashpoint-launcher';
 import * as path from 'path';
 import * as React from 'react';
@@ -511,6 +512,15 @@ function useCreateAddAppCallback(type: AddAppType, folder: string, dispatch: Dis
       addAppType: type,
     });
   }, [dispatch, folder]);
+}
+
+/** Await a promise and return the value and error as a tuple (one will always be undefined). */
+async function safeAwait<T, E = Error>(promise: Promise<T>): Promise<[T | undefined, E | undefined]> {
+  let value: T | undefined = undefined;
+  let error: E | undefined = undefined;
+  try      { value = await promise; }
+  catch (e) { error = e; }
+  return [value, error];
 }
 
 function findAncestorRowTagID(element: Element): number | undefined {

@@ -1,9 +1,9 @@
 import { Game } from '@database/entity/Game';
+import * as remote from '@electron/remote';
 import { BackIn } from '@shared/back/types';
 import { parseSearchText } from '@shared/game/GameFilter';
 import { TagFilterGroup } from '@shared/preferences/interfaces';
 import { getFileServerURL } from '@shared/Util';
-import { remote } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 import { GameOrderChangeEvent } from './components/GameOrder';

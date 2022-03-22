@@ -2,6 +2,7 @@ import { Game } from '@database/entity/Game';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
+import * as remote from '@electron/remote';
 import { WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
 import { BackIn, BackOut, BackOutTemplate, TagSuggestion } from '@shared/back/types';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
@@ -11,7 +12,7 @@ import { GamePropSuggestions, PickType, ProcessAction } from '@shared/interfaces
 import { LangContainer } from '@shared/lang';
 import { deepCopy, generateTagFilterGroup, sizeToString } from '@shared/Util';
 import axios from 'axios';
-import { clipboard, Menu, MenuItemConstructorOptions, remote } from 'electron';
+import { clipboard, Menu, MenuItemConstructorOptions } from 'electron';
 import { GameData } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as React from 'react';
@@ -85,10 +86,6 @@ type RightBrowseSidebarState = {
   showExtremeScreenshots: boolean;
   middleScrollRef: React.RefObject<HTMLDivElement>;
 };
-
-export interface RightBrowseSidebar {
-  context: LangContainer;
-}
 
 /** Sidebar on the right side of BrowsePage. */
 export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps, RightBrowseSidebarState> {

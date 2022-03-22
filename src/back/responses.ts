@@ -848,7 +848,7 @@ export function registerRequestCallbacks(state: BackState): void {
     catch (error) { log.error('Launcher', error); }
   });
 
-  state.socketServer.register(BackIn.UPDATE_PREFERENCES, async (event, data) => {
+  state.socketServer.register(BackIn.UPDATE_PREFERENCES, async (event, data, refresh) => {
     const dif = difObjects(defaultPreferencesData, state.preferences, data);
     if (dif) {
       if ((typeof dif.currentLanguage  !== 'undefined' && dif.currentLanguage  !== state.preferences.currentLanguage) ||
@@ -867,7 +867,9 @@ export function registerRequestCallbacks(state: BackState): void {
       await PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences);
       state.writeLocks -= 1;
     }
-    state.socketServer.send(event.client, BackOut.UPDATE_PREFERENCES_RESPONSE, state.preferences);
+    if (refresh) {
+      state.socketServer.send(event.client, BackOut.UPDATE_PREFERENCES_RESPONSE, state.preferences);
+    }
   });
 
   state.socketServer.register(BackIn.SERVICE_ACTION, (event, action, id) => {
@@ -1170,7 +1172,7 @@ export function registerRequestCallbacks(state: BackState): void {
     const timeoutPromise = new Promise((resolve, reject) => {
       setTimeout(resolve, 20000);
     });
-    const writePromise = new Promise((resolve, reject) => {
+    const writePromise = new Promise<void>((resolve, reject) => {
       const loopFunc = () => {
         if (state.writeLocks > 0) {
           setTimeout(loopFunc, 100);

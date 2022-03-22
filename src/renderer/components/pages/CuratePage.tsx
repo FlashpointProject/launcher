@@ -5,6 +5,7 @@ import { WithMainStateProps } from '@renderer/containers/withMainState';
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
 import { CurateActionType } from '@renderer/store/curate/enums';
+import { CurateGroup } from '@renderer/store/curate/types';
 import { getCurationPostURL, getPlatformIconURL } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
 import { uuid } from '@renderer/util/uuid';
@@ -12,9 +13,10 @@ import { BackIn, TagSuggestion } from '@shared/back/types';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
 import { CurationState } from '@shared/curate/types';
 import { ExtensionContribution } from '@shared/extensions/interfaces';
+import { updatePreferencesData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import axios from 'axios';
-import * as electron from 'electron';
+import * as remote from '@electron/remote';
 import * as path from 'path';
 import * as React from 'react';
 import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
@@ -22,8 +24,6 @@ import { getWarningCount } from '../CurateBoxWarnings';
 import { CuratePageLeftSidebar } from '../CuratePageLeftSidebar';
 import { Dropdown } from '../Dropdown';
 import { SimpleButton, SimpleButtonProps } from '../SimpleButton';
-import { updatePreferencesData } from '@shared/preferences/util';
-import { CurateGroup } from '@renderer/store/curate/types';
 
 type OwnProps = {
   extCurationTemplates: ExtensionContribution<'curationTemplates'>[];
@@ -70,7 +70,7 @@ export function CuratePage(props: CuratePageProps) {
   }, []);
 
   const onLoadCuration = React.useCallback(() => {
-    electron.remote.dialog.showOpenDialog({
+    remote.dialog.showOpenDialog({
       title: strings.dialog.selectCurationArchive,
       properties: [ 'multiSelections' ],
     })
@@ -78,12 +78,12 @@ export function CuratePage(props: CuratePageProps) {
   }, []);
 
   const onOpenCurationsFolder = React.useCallback(async () => {
-    await electron.remote.shell.openExternal(path.join(window.Shared.config.fullFlashpointPath, 'Curations'));
+    await remote.shell.openExternal(path.join(window.Shared.config.fullFlashpointPath, 'Curations'));
   }, []);
 
   const onOpenCurationFolder = React.useCallback(async () => {
     if (curation) {
-      await electron.remote.shell.openExternal(path.join(window.Shared.config.fullFlashpointPath, 'Curations', 'Working', curation.folder));
+      await remote.shell.openExternal(path.join(window.Shared.config.fullFlashpointPath, 'Curations', 'Working', curation.folder));
     }
   }, [curation]);
 

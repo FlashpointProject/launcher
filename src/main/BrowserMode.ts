@@ -1,5 +1,6 @@
 import { ConfigFile } from '@back/ConfigFile';
 import { CONFIG_FILENAME, PREFERENCES_FILENAME } from '@back/constants';
+import * as remoteMain from '@electron/remote/main';
 import { AppConfigData } from '@shared/config/interfaces';
 import { AppPreferencesData } from '@shared/preferences/interfaces';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
@@ -119,9 +120,9 @@ export async function startBrowserMode(init: Init): Promise<void> {
       webPreferences: {
         nodeIntegration: false,
         plugins: true,
-        enableRemoteModule: true,
       },
     });
+    remoteMain.enable(window.webContents);
     window.setMenu(null); // Remove the menu bar
     window.loadURL(state.url);
 

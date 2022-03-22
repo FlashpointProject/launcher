@@ -268,7 +268,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.GET_RENDERER_INIT_DATA]: () => GetRendererInitDataResponse;
   [BackIn.GET_MAIN_INIT_DATA]: () => GetMainInitDataResponse;
   [BackIn.UPDATE_CONFIG]: (data: Partial<AppConfigData>) => void;
-  [BackIn.UPDATE_PREFERENCES]: (data: AppPreferencesData) => void;
+  [BackIn.UPDATE_PREFERENCES]: (data: AppPreferencesData, refresh: boolean) => void;
 
   // API
   [BackIn.SYNC_GAME_METADATA]: () => GameMetadataSyncResponse;
