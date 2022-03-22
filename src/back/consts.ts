@@ -9,5 +9,3 @@ export const CURATIONS_FOLDER_EXPORTED = path.join(CURATIONS_FOLDER, 'Exported')
 
 /** Valid curation meta filenames (case insensitive). */
 export const CURATION_META_FILENAMES = ['meta.txt', 'meta.yaml', 'meta.yml'];
-
-

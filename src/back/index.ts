@@ -1139,12 +1139,18 @@ export async function loadCurationArchive(filePath: string): Promise<CurationSta
   return curation;
 }
 
+/**
+ * Return the first path containing any valid meta name (undefined if none found)
+ * @param dir Path to search
+ */
 async function getRootPath(dir: string): Promise<string | undefined> {
-  for (const fileName of await fs.promises.readdir(dir)) {
-    const fullPath = path.join(dir, fileName);
-    const stats = await fs.promises.lstat(fullPath);
+  const files = await fs.readdir(dir);
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const fullPath = path.join(dir, file);
+    const stats = await fs.lstat(fullPath);
     // Found root, pass back
-    if (stats.isFile() && CURATION_META_FILENAMES.indexOf(fileName.toLowerCase()) !== -1) {
+    if (stats.isFile() && endsWithList(file.toLowerCase(), CURATION_META_FILENAMES)) {
       return dir;
     } else if (stats.isDirectory()) {
       const foundRoot = await getRootPath(fullPath);
@@ -1153,4 +1159,13 @@ async function getRootPath(dir: string): Promise<string | undefined> {
       }
     }
   }
+}
+
+function endsWithList(str: string, list: string[]): boolean {
+  for (const s of list) {
+    if (str.endsWith(s)) {
+      return true;
+    }
+  }
+  return false;
 }

@@ -514,15 +514,6 @@ function useCreateAddAppCallback(type: AddAppType, folder: string, dispatch: Dis
   }, [dispatch, folder]);
 }
 
-/** Await a promise and return the value and error as a tuple (one will always be undefined). */
-async function safeAwait<T, E = Error>(promise: Promise<T>): Promise<[T | undefined, E | undefined]> {
-  let value: T | undefined = undefined;
-  let error: E | undefined = undefined;
-  try      { value = await promise; }
-  catch (e) { error = e; }
-  return [value, error];
-}
-
 function findAncestorRowTagID(element: Element): number | undefined {
   const ancestor = findElementAncestor(element, target => target.getAttribute(tagIndexAttr) !== null, true);
   if (!ancestor) { return undefined; }
