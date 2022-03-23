@@ -1156,3 +1156,18 @@ body {
   text-decoration: underline;
   cursor: pointer;
 }
+
+/** Tasks */
+.task-status {
+  font-style: italic;
+  color: var(--layout__secondary-text-color);
+}
+
+.task-progress-bar {
+  color: var(--layout__contrast-text-color);
+  background-color: var(--layout__slider-background);
+}
+
+.task-progress-bar--fill {
+  background-color: var(--layout__confirm-color);
+}

@@ -76,6 +76,7 @@ export type CurateAction = {
   type: CurateActionType.IMPORT;
   folders: string[];
   saveCuration: boolean;
+  taskId?: string;
 } | {
   type: CurateActionType.SET_LOCK;
   folders: string[];
@@ -83,6 +84,7 @@ export type CurateAction = {
 } | {
   type: CurateActionType.DELETE;
   folders: string[];
+  taskId?: string;
 } | {
   type: CurateActionType.EXPORT;
   folders: string[];

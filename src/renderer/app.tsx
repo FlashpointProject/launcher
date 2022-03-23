@@ -27,12 +27,14 @@ import { GameOrderChangeEvent } from './components/GameOrder';
 import { MetaEditExporter, MetaEditExporterConfirmData } from './components/MetaEditExporter';
 import { placeholderProgressData, ProgressBar } from './components/ProgressComponents';
 import { SplashScreen } from './components/SplashScreen';
+import { TaskBar } from './components/TaskBar';
 import { TitleBar } from './components/TitleBar';
 import { ConnectedFooter } from './containers/ConnectedFooter';
 import HeaderContainer from './containers/HeaderContainer';
 import { WithMainStateProps } from './containers/withMainState';
 import { WithPreferencesProps } from './containers/withPreferences';
 import { WithTagCategoriesProps } from './containers/withTagCategories';
+import { WithTasksProps } from './containers/withTasks';
 import { CreditsFile } from './credits/CreditsFile';
 import { UpdateView, UpgradeStageState } from './interfaces';
 import { Paths } from './Paths';
@@ -56,7 +58,7 @@ type AppOwnProps = {
   search: SearchQuery;
 };
 
-export type AppProps = AppOwnProps & RouteComponentProps & WithPreferencesProps & WithTagCategoriesProps & WithMainStateProps;
+export type AppProps = AppOwnProps & RouteComponentProps & WithPreferencesProps & WithTagCategoriesProps & WithMainStateProps & WithTasksProps;
 
 export class App extends React.Component<AppProps> {
   constructor(props: AppProps) {
@@ -326,6 +328,11 @@ export class App extends React.Component<AppProps> {
         folders: [folder],
         locked,
       });
+    });
+
+    window.Shared.back.register(BackOut.UPDATE_TASK, (event, taskId, taskData) => {
+      log.debug('Launcher', `TASKID: ${taskId}, TASKDATA: /n${JSON.stringify(taskData, undefined, 2)}`);
+      this.props.setTask(taskId, taskData);
     });
 
     // Cache playlist icons (if they are loaded)
@@ -729,6 +736,8 @@ export class App extends React.Component<AppProps> {
                     </div>
                   </noscript>
                 </div>
+                {/* Tasks */}
+                <TaskBar />
                 {/* Footer */}
                 <ConnectedFooter />
                 {/* Meta Edit Popup */}

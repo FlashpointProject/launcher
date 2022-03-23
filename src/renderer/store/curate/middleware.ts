@@ -1,13 +1,13 @@
 import { BackIn } from '@shared/back/types';
 import { CurationState } from '@shared/curate/types';
+import { updatePreferencesData } from '@shared/preferences/util';
 import { genCurationWarnings } from '@shared/Util';
 import { Middleware } from 'redux';
 import { ApplicationState } from '..';
 import { CurateActionType } from './enums';
-import { CurateState } from './types';
-import {updatePreferencesData} from "@shared/preferences/util";
+import { CurateAction, CurateState } from './types';
 
-export const curationSyncMiddleware: Middleware<{}, ApplicationState> = (store) => (next) => (action: any) => {
+export const curationSyncMiddleware: Middleware<{}, ApplicationState> = (store) => (next) => (action: CurateAction) => {
   switch (action.type) {
     case CurateActionType.DELETE: {
       // Lock curation from further edits
@@ -16,7 +16,7 @@ export const curationSyncMiddleware: Middleware<{}, ApplicationState> = (store) 
         folders: action.folders,
         locked: true
       });
-      window.Shared.back.send(BackIn.CURATE_DELETE, action.folders);
+      window.Shared.back.send(BackIn.CURATE_DELETE, action.folders, action.taskId);
       next(action);
       break;
     }
@@ -30,11 +30,13 @@ export const curationSyncMiddleware: Middleware<{}, ApplicationState> = (store) 
       const state = store.getState();
       const folders: string[] = action.folders;
       const curations = folders.map(f => state.curate.curations.find(c => c.folder === f)).filter(c => c !== undefined) as CurationState[];
+
       // Send curation import request to back
       if (curations.length > 0) {
         window.Shared.back.send(BackIn.IMPORT_CURATION, {
           curations: curations,
-          saveCuration: action.saveCuration
+          saveCuration: action.saveCuration,
+          taskId: action.taskId
         });
       }
       next(action);

@@ -1,9 +1,11 @@
+import * as remote from '@electron/remote';
 import { CurateBox } from '@renderer/components/CurateBox';
 import { WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
 import { WithCurateStateProps } from '@renderer/containers/withCurateState';
 import { WithMainStateProps } from '@renderer/containers/withMainState';
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
+import { WithTasksProps } from '@renderer/containers/withTasks';
 import { CurateActionType } from '@renderer/store/curate/enums';
 import { CurateGroup } from '@renderer/store/curate/types';
 import { getCurationPostURL, getPlatformIconURL } from '@renderer/Util';
@@ -13,10 +15,10 @@ import { BackIn, TagSuggestion } from '@shared/back/types';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
 import { CurationState } from '@shared/curate/types';
 import { ExtensionContribution } from '@shared/extensions/interfaces';
+import { Task } from '@shared/interfaces';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import axios from 'axios';
-import * as remote from '@electron/remote';
 import * as path from 'path';
 import * as React from 'react';
 import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
@@ -31,7 +33,7 @@ type OwnProps = {
   mad4fpEnabled: boolean;
 }
 
-export type CuratePageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps & WithMainStateProps & WithCurateStateProps & WithConfirmDialogProps;
+export type CuratePageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps & WithMainStateProps & WithCurateStateProps & WithConfirmDialogProps & WithTasksProps;
 
 export function CuratePage(props: CuratePageProps) {
   const curation: CurationState | undefined = props.curate.curations.find(c => c.folder === props.curate.current);
@@ -89,10 +91,13 @@ export function CuratePage(props: CuratePageProps) {
 
   const onImportCuration = React.useCallback(async () => {
     if (props.curate.selected.length > 0) {
+      // Generate task
+      const newTask = newCurateTask(`Importing ${props.curate.selected.length} Curations`, 'Importing...', props.addTask);
       props.dispatchCurate({
         type: CurateActionType.IMPORT,
         folders: props.curate.selected,
-        saveCuration: props.preferencesData.saveImportedCurations
+        saveCuration: props.preferencesData.saveImportedCurations,
+        taskId: newTask.id
       });
     }
   }, [props.curate.selected]);
@@ -108,9 +113,11 @@ export function CuratePage(props: CuratePageProps) {
 
   const onDeleteCurations = React.useCallback(async () => {
     if (props.curate.selected.length > 0) {
+      const task = newCurateTask(`Deleting ${props.curate.selected.length} Curations`, 'Deleting...', props.addTask);
       props.dispatchCurate({
         type: CurateActionType.DELETE,
-        folders: props.curate.selected
+        folders: props.curate.selected,
+        taskId: task.id,
       });
     }
   }, [props.curate.selected]);
@@ -367,4 +374,16 @@ function renderConfirmButton({ confirm, extra }: ConfirmElementArgs<SimpleButton
       onClick={confirm}
       { ...extra }/>
   );
+}
+
+function newCurateTask(name: string, status: string, addTask: (task: Task) => void): Task {
+  const task: Task = {
+    id: uuid(),
+    name,
+    status,
+    progress: 0,
+    finished: false
+  };
+  addTask(task);
+  return task;
 }

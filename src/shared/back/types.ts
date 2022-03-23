@@ -5,6 +5,8 @@ import { Source } from '@database/entity/Source';
 import { SourceData } from '@database/entity/SourceData';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
+import { EditCurationMeta } from '@shared/curate/OLD_types';
+import { AddAppCuration, CurationState, LoadedCuration } from '@shared/curate/types';
 import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/extensions/interfaces';
 import { FilterGameOpts } from '@shared/game/GameFilter';
 import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
@@ -14,13 +16,11 @@ import { SocketTemplate } from '@shared/socket/types';
 import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
 import { GameData, TagAlias, TagFilterGroup } from 'flashpoint-launcher';
 import { AppConfigData, AppExtConfigData } from '../config/interfaces';
-import { ExecMapping, GamePropSuggestions, IService, ProcessAction } from '../interfaces';
+import { ExecMapping, GamePropSuggestions, IService, ProcessAction, Task } from '../interfaces';
 import { LangContainer, LangFile } from '../lang';
 import { ILogEntry, ILogPreEntry, LogLevel } from '../Log/interface';
 import { AppPreferencesData } from '../preferences/interfaces';
 import { Theme } from '../ThemeFile';
-import { EditCurationMeta } from '@shared/curate/OLD_types';
-import { AddAppCuration, CurationState, LoadedCuration } from '@shared/curate/types';
 
 export enum BackIn {
   UNKNOWN,
@@ -185,6 +185,8 @@ export enum BackOut {
   // Curate
   CURATE_LIST_CHANGE,
   SET_CURATION_LOCK,
+
+  UPDATE_TASK,
 }
 
 export type BackInTemplate = SocketTemplate<BackIn, {
@@ -285,7 +287,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.CURATE_GET_LIST]: () => CurationState[];
   [BackIn.CURATE_SYNC_CURATIONS]: (curations: CurationState[]) => void;
   [BackIn.CURATE_EDIT_REMOVE_IMAGE]: (folder: string, type: CurationImageEnum) => void;
-  [BackIn.CURATE_DELETE]: (folders: string[]) => void;
+  [BackIn.CURATE_DELETE]: (folders: string[], taskId?: string) => void;
   [BackIn.CURATE_CREATE_CURATION]: (folder: string, meta?: EditCurationMeta) => void;
   [BackIn.CURATE_EXPORT]: (curations: LoadedCuration[]) => void;
 
@@ -344,6 +346,9 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   // Curate
   [BackOut.CURATE_LIST_CHANGE]: (added?: CurationState[], removed?: string[]) => void; // "removed" is the folder names of the removed curations
   [BackOut.SET_CURATION_LOCK]: (folder: string, locked: boolean) => void;
+
+  // Tasks
+  [BackOut.UPDATE_TASK]: (taskId: string, taskData: Partial<Task>) => void;
 }>
 
 export type BackInitArgs = {
@@ -515,6 +520,7 @@ export type ImportCurationData = {
    */
   date?: Date;
   saveCuration: boolean;
+  taskId?: string;
 }
 
 export type ImportCurationResponseData = {

@@ -1036,8 +1036,17 @@ export function registerRequestCallbacks(state: BackState): void {
 
   state.socketServer.register(BackIn.IMPORT_CURATION, async (event, data) => {
     let error: any | undefined;
+    let processed = 0;
     for (const curation of data.curations) {
       try {
+        if (data.taskId) {
+          state.socketServer.broadcast(BackOut.UPDATE_TASK, data.taskId,
+            {
+              status: `Importing ${curation.game.title || curation.folder}...`,
+              progress: (processed / data.curations.length)
+            }
+          );
+        }
         state.socketServer.broadcast(BackOut.SET_CURATION_LOCK, curation.folder, true);
         await importCuration({
           curation: curation,
@@ -1057,6 +1066,9 @@ export function registerRequestCallbacks(state: BackState): void {
           deleteCuration(state, curation.folder);
           state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, undefined, [curation.folder]);
         })
+        .finally(() => {
+          processed += 1;
+        })
         .catch(() => {
           state.socketServer.broadcast(BackOut.SET_CURATION_LOCK, curation.folder, false);
           const alertString = formatString(state.languageContainer.dialog.errorImportingCuration, curation.folder);
@@ -1070,6 +1082,15 @@ export function registerRequestCallbacks(state: BackState): void {
           error = e;
         }
       }
+    }
+
+    if (data.taskId) {
+      state.socketServer.broadcast(BackOut.UPDATE_TASK, data.taskId,
+        {
+          finished: true,
+          error
+        }
+      );
     }
 
     return { error: error || undefined };
@@ -1308,8 +1329,31 @@ export function registerRequestCallbacks(state: BackState): void {
     }
   });
 
-  state.socketServer.register(BackIn.CURATE_DELETE, async (event, folders) => {
-    folders.map(f => deleteCuration(state, f));
+  state.socketServer.register(BackIn.CURATE_DELETE, async (event, folders, taskId) => {
+    try {
+      for (let idx = 0; idx < folders.length; idx++) {
+        if (taskId) {
+          state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
+            status: `Deleting ${folders[idx]}...`,
+            progress: idx / folders.length
+          });
+        }
+        await deleteCuration(state, folders[idx]);
+      }
+      if (taskId) {
+        state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
+          finished: true
+        });
+      }
+    } catch (e) {
+      log.error('Curate', `Failed to delete curation: ${e}`);
+      if (taskId) {
+        state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
+          error: e.toString(),
+          finished: true
+        });
+      }
+    }
   });
 
   state.socketServer.register(BackIn.CURATE_EXPORT, async (event, curations) => {

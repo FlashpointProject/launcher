@@ -2741,3 +2741,46 @@ body {
   font-size: 0.6rem;
   text-align: center;
 }
+
+/** Tasks */
+
+.task-bar {
+  width: 100%;
+  min-height: 8%;
+  overflow-y: auto;
+}
+
+.task {
+  width: 100%;
+  margin-bottom: 0.25rem;
+  padding: 0 0.5rem;
+}
+
+.task--upper {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
+.task--lower {
+  width: 100%;
+}
+
+.task-name {
+  flex: 0 0 35%;
+}
+
+.task-progress-bar {
+  margin-right: 0.5rem;
+  margin-left: 0.5rem;
+  width: 100%;
+  display: flex;
+}
+
+.task-progress-bar--fill-animated {
+  transition: .2s;
+}
+
+.task-status {
+  font-size: 0.8em;
+}
