@@ -607,6 +607,9 @@ body {
 .curate-box-content__entry:hover {
   background-color: var(--layout__secondary-background);
 }
+.curate-box-content__entry-icon--launch-path .icon__use {
+  fill: var(--layout__confirm-color);
+}
 
 /* Tag Dropdown Item */
 .tag-dropdown-item:hover {

@@ -55,7 +55,7 @@ function taskBar(props: TaskBarProps) {
   }, [props.tasks]);
 
   return (
-    <div className='task-bar'>
+    <div className='task-bar simple-scroll'>
       {tasksRender}
     </div>
   );

@@ -149,10 +149,13 @@ export function CurateBox(props: CurateBoxProps) {
     return menu;
   };
 
-  function renderContentNode(depth: number, node: ContentTreeNode, key: number, tree: string[] = []): JSX.Element | JSX.Element[] {
+  function renderContentNode(depth: number, node: ContentTreeNode, key: number, tree: string[] = [], launchPath?: string): JSX.Element | JSX.Element[] {
+    const filePath = tree.join('/');
+    console.log(filePath);
+    const isLaunchPath = filePath === launchPath;
     switch (node.type) {
       case 'directory': {
-        const children = node.expanded ? node.children.map((node, index) => renderContentNode(depth + 1, node, index, tree.concat([node.name])))
+        const children = node.expanded ? node.children.map((node, index) => renderContentNode(depth + 1, node, index, tree.concat([node.name]), launchPath))
         .reduce<JSX.Element[]>((prev, next) => Array.isArray(next) ? prev.concat(next) : [...prev, next], []) : [];
         return [
           (
@@ -165,7 +168,7 @@ export function CurateBox(props: CurateBoxProps) {
               )}
               <div className='curate-box-content__entry-icon curate-box-content__entry-icon--collapse'
                 onClick={() => toggleContentNodeView(tree)} >
-                <OpenIcon icon={node.expanded ? 'chevron-bottom': 'chevron-right' }/>
+                <OpenIcon className={isLaunchPath ? 'curate-box-content__entry-icon--launch-path' : ''} icon={node.expanded ? 'chevron-bottom': 'chevron-right' }/>
               </div>
               <div>{node.name}</div>
             </div>
@@ -182,7 +185,7 @@ export function CurateBox(props: CurateBoxProps) {
             { depth > 0 && (
               <div style={{ width: `${depth}rem` }}/>
             )}
-            <OpenIcon className='curate-box-content__entry-icon' icon='file'/>
+            <OpenIcon className={`curate-box-content__entry-icon ${isLaunchPath ? 'curate-box-content__entry-icon--launch-path' : ''}`} icon='file'/>
             <div>{node.name} ({sizeToString(node.size || 0)})</div>
           </div>
         );
@@ -190,14 +193,38 @@ export function CurateBox(props: CurateBoxProps) {
   }
 
   const renderContentTree = React.useMemo(() => {
+    // Extract first string from launch command via regex
+    let launchPath: string | undefined = undefined;
+    if (props.curation.game.launchCommand) {
+      const match = props.curation.game.launchCommand.match(/[^\s"']+|"([^"]*)"|'([^']*)'/);
+      if (match) {
+        // Match 1 - Inside quotes, Match 0 - No Quotes Found
+        let lc = match[1] || match[0];
+        const protocol = lc.match(/(.+?):\/\//);
+        console.log(protocol);
+        if (protocol) {
+          lc = lc.substring(protocol[0].length);
+        }
+        const ending = lc.split('/').pop();
+        // If the string ends in file, cut off parameters
+        if (ending && ending.includes('.')) {
+          lc = lc.split('?')[0];
+        }
+        if (lc.endsWith('/')) {
+          lc = lc.substring(0, lc.length - 1);
+        }
+        launchPath = lc;
+      }
+    }
+    log.debug('Launcher', 'Matching for ' + launchPath);
     return (
       <div className='curate-box-content simple-scroll'>
         {props.curation.contents.root.children.map((node, index) => {
-          return renderContentNode(0, node, index, [node.name]);
+          return renderContentNode(0, node, index, [node.name], launchPath);
         })}
       </div>
     );
-  }, [props.curation.contents]);
+  }, [props.curation.contents, props.curation.game.launchCommand]);
 
   const addAppBoxes = (
     <table className="curate-box-table">
