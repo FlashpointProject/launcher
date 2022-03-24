@@ -247,6 +247,13 @@ export function CuratePage(props: CuratePageProps) {
     });
   }, [props.dispatchCurate]);
 
+  const onSelectGroup = React.useCallback((group: string) => {
+    props.dispatchCurate({
+      type: CurateActionType.SET_CURRENT_CURATION_GROUP,
+      group
+    });
+  }, [props.dispatchCurate]);
+
   const leftSidebar = React.useMemo(() => (
     <CuratePageLeftSidebar
       curate={props.curate}
@@ -255,6 +262,7 @@ export function CuratePage(props: CuratePageProps) {
       onCurationDrop={onLoadCurationDrop}
       onToggleGroupCollapse={onToggleGroupCollapse}
       onToggleGroupPin={onToggleGroupPin}
+      onSelectGroup={onSelectGroup}
       createNewGroup={createNewGroup}
       moveCurationToGroup={moveCurationToGroup}/>
   ), [props.curate, props.main.logoVersion]);

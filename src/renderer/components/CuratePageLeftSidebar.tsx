@@ -18,6 +18,7 @@ export type CuratePageLeftSidebarProps = {
   onCurationDrop: (event: React.DragEvent) => void;
   onToggleGroupCollapse: (group: string) => void;
   onToggleGroupPin: (group: CurateGroup) => void;
+  onSelectGroup: (group: string) => void;
   createNewGroup: (group: string) => void;
   moveCurationToGroup: (folder: string, group: string) => void;
 }
@@ -111,7 +112,9 @@ export function CuratePageLeftSidebar(props: CuratePageLeftSidebarProps) {
         key={group.name || 'No Group'}
         onDragOver={() => setDragGroupTarget(group.name)}
         className={`curate-list-group ${group.name === dragGroupTarget ? 'curate-list-group__hovered-curation' : ''}`}>
-        <div className={'curate-list-group__header'}>
+        <div
+          className={'curate-list-group__header'}
+          onDoubleClick={() => props.onSelectGroup(group.name)} >
           <div className={'curate-list-group__header-text'}>{group.name || 'No Group'}</div>
           { group.name !== '' && (
             <div

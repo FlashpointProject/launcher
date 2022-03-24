@@ -35,6 +35,9 @@ export type CurateAction = {
   ctrl?: boolean;
   shift?: boolean;
 } | {
+  type: CurateActionType.SET_CURRENT_CURATION_GROUP;
+  group: string;
+} | {
   type: CurateActionType.NEW_ADDAPP;
   folder: string;
   addAppType: AddAppType;

@@ -17,6 +17,22 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
       };
     }
 
+    case CurateActionType.SET_CURRENT_CURATION_GROUP: {
+      const { group } = action;
+      const groupContents = state.curations.filter(c => c.group === group);
+
+      if (groupContents.length > 0) {
+        return {
+          ...state,
+          current: groupContents[0].folder,
+          selected: groupContents.map(g => g.folder),
+          lastSelected: groupContents[0].folder
+        };
+      } else {
+        return state;
+      }
+    }
+
     case CurateActionType.SET_CURRENT_CURATION: {
       const { ctrl, shift, folder } = action;
       let newSelected = [ ...state.selected ];
@@ -361,10 +377,26 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
     }
 
     case CurateActionType.CHANGE_GROUP: {
-      const { index, newCurations } = genCurationState(action.folder, state);
+      // eslint-disable-next-line prefer-const
+      let { index, newCurations } = genCurationState(action.folder, state);
 
       if (index !== -1) {
         newCurations[index].group = action.group;
+      }
+
+      const isSelected = state.selected.includes(action.folder);
+
+      if (isSelected) {
+        newCurations = newCurations.map<CurationState>(c => {
+          if (state.selected.includes(c.folder)) {
+            return {
+              ...c,
+              group: action.group
+            };
+          } else {
+            return c;
+          }
+        });
       }
 
       return {
