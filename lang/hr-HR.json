@@ -478,7 +478,7 @@
     "cancel": "Poništi",
     "mergePlaylists": "Sjedini playliste",
     "newPlaylist": "Ostavi razdvojeno",
-    "uploadPrivacyWarning": "Ovo će učiniti tvoje zapise dostupnim javnošću.\nPoveznica će se kopirati u međuspremnik.\n\nJesi li siguran?",
+    "uploadPrivacyWarning": "Ovo će učiniti tvoje zapise dostupnim javnošću.\nPoveznica će se kopirati u međuspremnik.\n\nDa li si siguran?",
     "overwriteFileTitle": "Datoteka već postoji!",
     "overwriteFileMessage": "Datoteka sa istim imenom već postoji. Želiš li je zamjeniti ovom?",
     "overwriteFileDetail": "Putanja datoteke:",
