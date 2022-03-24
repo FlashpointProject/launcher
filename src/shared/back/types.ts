@@ -283,13 +283,13 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.RUN_COMMAND]: (command: string, args?: any[]) => RunCommandResponse;
 
   // Curate
-  [BackIn.CURATE_LOAD_ARCHIVES]: (filePaths: string[]) => void;
+  [BackIn.CURATE_LOAD_ARCHIVES]: (filePaths: string[], taskId?: string) => void;
   [BackIn.CURATE_GET_LIST]: () => CurationState[];
   [BackIn.CURATE_SYNC_CURATIONS]: (curations: CurationState[]) => void;
   [BackIn.CURATE_EDIT_REMOVE_IMAGE]: (folder: string, type: CurationImageEnum) => void;
   [BackIn.CURATE_DELETE]: (folders: string[], taskId?: string) => void;
   [BackIn.CURATE_CREATE_CURATION]: (folder: string, meta?: EditCurationMeta) => void;
-  [BackIn.CURATE_EXPORT]: (curations: LoadedCuration[]) => void;
+  [BackIn.CURATE_EXPORT]: (curations: LoadedCuration[], taskId?: string) => void;
 
   // Misc
   [BackIn.UPLOAD_LOG]: () => string | undefined;

@@ -2746,7 +2746,7 @@ body {
 
 .task-bar {
   width: 100%;
-  min-height: 8%;
+  height: 8%;
   overflow-y: auto;
 }
 

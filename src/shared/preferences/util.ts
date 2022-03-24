@@ -164,7 +164,11 @@ export function overwritePreferenceData(
   parser.prop('updateFeedUrl',               v => source.updateFeedUrl               = str(v));
   parser.prop('fancyAnimations',             v => source.fancyAnimations             = !!v);
   parser.prop('searchLimit', v => source.searchLimit                 = num(v));
-  parser.prop('groups').array((item, idx) => source.groups.push(parseCurateGroup(item)));
+  if (data.groups) {
+    const newGroups: CurateGroup[] = [];
+    parser.prop('groups').array((item, index) => newGroups[index] = parseCurateGroup(item));
+    source.groups = newGroups;
+  }
   if (data.appPathOverrides) {
     const newAppPathOverrides: AppPathOverride[] = [];
     parser.prop('appPathOverrides').array((item, index) => newAppPathOverrides[index] = parseAppPathOverride(item));

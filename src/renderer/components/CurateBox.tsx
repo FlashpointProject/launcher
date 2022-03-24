@@ -151,7 +151,6 @@ export function CurateBox(props: CurateBoxProps) {
 
   function renderContentNode(depth: number, node: ContentTreeNode, key: number, tree: string[] = [], launchPath?: string): JSX.Element | JSX.Element[] {
     const filePath = tree.join('/');
-    console.log(filePath);
     const isLaunchPath = filePath === launchPath;
     switch (node.type) {
       case 'directory': {

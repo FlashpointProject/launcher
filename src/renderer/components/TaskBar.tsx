@@ -10,7 +10,6 @@ export type TaskBarProps = OwnProps & WithTasksProps;
 
 /** Title bar of the window (the top-most part of the window). */
 function taskBar(props: TaskBarProps) {
-  log.debug('Launcher', 'TASK BAR RENDER:' + JSON.stringify(props.tasks, undefined, 2));
   const tasksRender = React.useMemo(() => {
     return props.tasks.length == 0 ? 'No Tasks' : props.tasks.map(task => {
       const { progress, finished } = task;

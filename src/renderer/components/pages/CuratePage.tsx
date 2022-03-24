@@ -72,11 +72,17 @@ export function CuratePage(props: CuratePageProps) {
   }, []);
 
   const onLoadCuration = React.useCallback(() => {
+    // Generate task
     remote.dialog.showOpenDialog({
       title: strings.dialog.selectCurationArchive,
       properties: [ 'multiSelections' ],
     })
-    .then(value => window.Shared.back.send(BackIn.CURATE_LOAD_ARCHIVES, value.filePaths));
+    .then(value => {
+      if (value.filePaths.length > 0) {
+        const newTask = newCurateTask(`Loading ${value.filePaths.length} Archives`, 'Loading...', props.addTask);
+        window.Shared.back.send(BackIn.CURATE_LOAD_ARCHIVES, value.filePaths, newTask.id);
+      }
+    });
   }, []);
 
   const onOpenCurationsFolder = React.useCallback(async () => {
@@ -104,9 +110,12 @@ export function CuratePage(props: CuratePageProps) {
 
   const onExportCurations = React.useCallback(async () => {
     if (props.curate.selected.length > 0) {
+      // Generate task
+      const newTask = newCurateTask(`Exporting ${props.curate.selected.length} Curations`, 'Exporting...', props.addTask);
       props.dispatchCurate({
         type: CurateActionType.EXPORT,
-        folders: props.curate.selected
+        folders: props.curate.selected,
+        taskId: newTask.id
       });
     }
   }, [props.curate.selected]);
@@ -198,11 +207,16 @@ export function CuratePage(props: CuratePageProps) {
 
   const onLoadCurationDrop = React.useCallback(async (event: React.DragEvent) => {
     const files = event.dataTransfer.files;
+    const newTask = newCurateTask(`Loading ${files.length} Archives`, 'Loading...', props.addTask);
 
     if (files.length > 0) {
       for (let i = 0; i < files.length; i++) {
         const file = files.item(i);
         if (file) {
+          props.setTask(newTask.id, {
+            status: `Loading ${file.name}`,
+            progress: i / files.length
+          });
           if (file.name.endsWith('.7z')) {
             await axios.post(getCurationPostURL(), await file.arrayBuffer());
           } else {
@@ -211,6 +225,8 @@ export function CuratePage(props: CuratePageProps) {
         }
       }
     }
+
+    props.setTask(newTask.id, { finished: true });
   }, []);
 
   const onToggleGroupCollapse = React.useCallback((group: string) => {
@@ -228,15 +244,17 @@ export function CuratePage(props: CuratePageProps) {
   }, [props.dispatchCurate]);
 
   const createNewGroup = React.useCallback((group: string) => {
-    const newGroups = [...props.preferencesData.groups, { name: group, icon: '' }];
-    updatePreferencesData({
-      groups: newGroups
-    });
-    props.dispatchCurate({
-      type: CurateActionType.NEW_PERSISTANT_GROUP,
-      name: group,
-      icon: ''
-    });
+    if (props.curate.groups.findIndex(g => g.name === group) === -1) {
+      const newGroups = [ ...props.curate.groups, { name: group, icon: '' }];
+      updatePreferencesData({
+        groups: newGroups
+      });
+      props.dispatchCurate({
+        type: CurateActionType.NEW_PERSISTANT_GROUP,
+        name: group,
+        icon: ''
+      });
+    }
   }, [props.dispatchCurate]);
 
   const moveCurationToGroup = React.useCallback((folder: string, group: string) => {

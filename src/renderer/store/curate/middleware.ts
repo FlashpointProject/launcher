@@ -53,7 +53,7 @@ export const curationSyncMiddleware: Middleware<{}, ApplicationState> = (store) 
       const curations = folders.map(f => state.curate.curations.find(c => c.folder === f)).filter(c => c !== undefined) as CurationState[];
       // Send curation import request to back
       if (curations.length > 0) {
-        window.Shared.back.send(BackIn.CURATE_EXPORT, curations);
+        window.Shared.back.send(BackIn.CURATE_EXPORT, curations, action.taskId);
       }
       next(action);
       alert(`Exporting ${folders.length} Curations`);
@@ -90,6 +90,7 @@ export const curationSyncMiddleware: Middleware<{}, ApplicationState> = (store) 
       }
       break;
     }
+    case CurateActionType.NEW_PERSISTANT_GROUP:
     case CurateActionType.TOGGLE_GROUP_PIN: {
       next(action);
       const state = store.getState();

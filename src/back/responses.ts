@@ -1274,12 +1274,25 @@ export function registerRequestCallbacks(state: BackState): void {
     return result;
   });
 
-  state.socketServer.register(BackIn.CURATE_LOAD_ARCHIVES, async (event, filePaths) => {
+  state.socketServer.register(BackIn.CURATE_LOAD_ARCHIVES, async (event, filePaths, taskId) => {
+    let processed = 0;
     for (const filePath of filePaths) {
+      if (taskId) {
+        state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
+          status: `Loading ${filePath}`,
+          progress: processed / filePaths.length,
+        });
+      }
+      processed = processed + 1;
       await loadCurationArchive(filePath)
       .catch((error) => {
         log.error('Curate', `Failed to load curation archive! ${error.toString()}`);
         state.socketServer.broadcast(BackOut.OPEN_ALERT, formatString(state.languageContainer['dialog'].failedToLoadCuration, error.toString()));
+      });
+    }
+    if (taskId) {
+      state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
+        finished: true
       });
     }
   });
@@ -1356,8 +1369,16 @@ export function registerRequestCallbacks(state: BackState): void {
     }
   });
 
-  state.socketServer.register(BackIn.CURATE_EXPORT, async (event, curations) => {
+  state.socketServer.register(BackIn.CURATE_EXPORT, async (event, curations, taskId) => {
+    let processed = 0;
     for (const curation of curations) {
+      if (taskId) {
+        state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
+          status: `Exporting ${curation.game.title || curation.folder}`,
+          progress: processed / curations.length,
+        });
+      }
+      processed += 1;
       // Find most appropriate filepath based on what already exists
       const name = (curation.game.title ? sanitizeFilename(curation.game.title) : curation.folder);
       const filePathCheck = path.join(state.config.flashpointPath, CURATIONS_FOLDER_EXPORTED, `${name}.7z`);
@@ -1380,6 +1401,11 @@ export function registerRequestCallbacks(state: BackState): void {
       })
       .finally(() => {
         state.socketServer.broadcast(BackOut.SET_CURATION_LOCK, curation.folder, false);
+      });
+    }
+    if (taskId) {
+      state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
+        finished: true
       });
     }
   });
