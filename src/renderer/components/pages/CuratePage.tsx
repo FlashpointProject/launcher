@@ -108,6 +108,15 @@ export function CuratePage(props: CuratePageProps) {
     }
   }, [props.curate.selected]);
 
+  const onRegenerateUUID = React.useCallback(async () => {
+    if (curation) {
+      props.dispatchCurate({
+        type: CurateActionType.REGEN_UUID,
+        folder: curation.folder
+      });
+    }
+  }, [curation, props.dispatchCurate]);
+
   const onExportCurations = React.useCallback(async () => {
     if (props.curate.selected.length > 0) {
       // Generate task
@@ -372,6 +381,16 @@ export function CuratePage(props: CuratePageProps) {
               disabled={disabled}
               value={strings.curate.export}/>
           )}
+          <ConfirmElement
+            render={renderConfirmButton}
+            message={'Are you sure?'}
+            onConfirm={onRegenerateUUID}
+            extra={{
+              className: 'curate-page__right--button',
+              value: 'Regenerate UUID',
+              disabled
+            }}
+            />
         </div>
         <div className='curate-page__right--section'>
           <div className='curate-page__right--header'>{strings.curate.headerTest}</div>

@@ -3,6 +3,7 @@ import { CurationIndexImage } from './OLD_types';
 
 export type LoadedCuration = {
   folder: string;
+  uuid: string;
   group: string;
   game: CurationMeta;
   addApps: AddAppCuration[];
@@ -23,6 +24,7 @@ export type ContentTreeNode = {
 }
 
 export type CurationState = LoadedCuration & {
+  alreadyImported: boolean;
   warnings: CurationWarnings;
   locked?: boolean;
   contents: ContentTree;

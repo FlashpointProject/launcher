@@ -129,6 +129,7 @@ export enum BackIn {
   CURATE_DELETE,
   CURATE_CREATE_CURATION,
   CURATE_EXPORT,
+  CURATE_FROM_GAME,
 
   // Misc
   UPLOAD_LOG,
@@ -290,6 +291,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.CURATE_DELETE]: (folders: string[], taskId?: string) => void;
   [BackIn.CURATE_CREATE_CURATION]: (folder: string, meta?: EditCurationMeta) => void;
   [BackIn.CURATE_EXPORT]: (curations: LoadedCuration[], taskId?: string) => void;
+  [BackIn.CURATE_FROM_GAME]: (gameId: string) => void;
 
   // Misc
   [BackIn.UPLOAD_LOG]: () => string | undefined;

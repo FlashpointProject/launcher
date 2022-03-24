@@ -8,6 +8,7 @@ import {OpenIcon} from '@renderer/components/OpenIcon';
 import {FloatingContainer} from '@renderer/components/FloatingContainer';
 import {InputField} from '@renderer/components/InputField';
 import {SimpleButton} from '@renderer/components/SimpleButton';
+import { getWarningCount } from './CurateBoxWarnings';
 
 const index_attr = 'data-index';
 
@@ -92,6 +93,12 @@ export function CuratePageLeftSidebar(props: CuratePageLeftSidebarProps) {
         <p className='curate-list-item__title'>
           {curation.game.title || curation.folder}
         </p>
+        { curation.alreadyImported && (
+          <OpenIcon icon='file'/>
+        )}
+        { getWarningCount(curation.warnings) > 0 && (
+          <OpenIcon icon='warning' className='curate-list-item__warning' />
+        )}
       </div>
     );
   }, [props.curate, draggedCuration, dragGroupTarget]);

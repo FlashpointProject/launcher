@@ -1199,6 +1199,7 @@ declare module 'flashpoint-launcher' {
 
     export type LoadedCuration = {
         folder: string;
+        uuid: string;
         group: string;
         game: CurationMeta;
         addApps: AddAppCuration[];
@@ -1207,6 +1208,7 @@ declare module 'flashpoint-launcher' {
     }
 
     export type CurationState = LoadedCuration & {
+        alreadyImported: boolean;
         warnings: CurationWarnings;
         locked?: boolean;
         contents: ContentTree;

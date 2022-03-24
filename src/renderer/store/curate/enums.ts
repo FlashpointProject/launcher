@@ -20,4 +20,5 @@ export enum CurateActionType {
   TOGGLE_GROUP_PIN = '@@curate/TOGGLE_GROUP_PIN',
   NEW_PERSISTANT_GROUP = '@@curate/NEW_PERSISTANT_GROUP',
   CHANGE_GROUP = '@@curate/CHANGE_GROUP',
+  REGEN_UUID = '@@curate/REGEN_UUID',
 }

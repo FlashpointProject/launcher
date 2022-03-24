@@ -451,7 +451,8 @@
     "exportMetaAndImages": "Export (Meta && Images)",
     "exportMetaEdit": "Export Meta Edit",
     "duplicatePlaylist": "Duplicate Playlist",
-    "exportPlaylist": "Export Playlist"
+    "exportPlaylist": "Export Playlist",
+    "makeCurationFromGame": "Make Curation from Game"
   },
   "dialog": {
     "programNotFound": "Program not found!",

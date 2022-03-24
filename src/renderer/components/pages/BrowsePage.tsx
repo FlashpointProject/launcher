@@ -463,6 +463,11 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             window.Shared.back.request(BackIn.EXPORT_GAME, gameId, filePaths[0], false);
           }
         },
+      }, {
+        /* Duplicate Meta */
+        label: strings.menu.makeCurationFromGame,
+        enabled: this.props.preferencesData.enableEditing,
+        click: () => { window.Shared.back.request(BackIn.CURATE_FROM_GAME, gameId); },
       }, {  type: 'separator' }, {
         /* Copy Game UUID */
         label: strings.menu.copyGameUUID,

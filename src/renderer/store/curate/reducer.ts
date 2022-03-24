@@ -162,6 +162,19 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
       };
     }
 
+    case CurateActionType.REGEN_UUID: {
+      const { index, newCurations } = genCurationState(action.folder, state);
+
+      if (index === -1) { return { ...state }; }
+
+      newCurations[index].uuid = uuid();
+
+      return {
+        ...state,
+        curations: newCurations
+      };
+    }
+
     case CurateActionType.EDIT_CURATION_META: {
       const index = state.curations.findIndex(curation => curation.folder === action.folder);
 

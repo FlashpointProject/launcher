@@ -1410,6 +1410,45 @@ export function registerRequestCallbacks(state: BackState): void {
     }
   });
 
+  state.socketServer.register(BackIn.CURATE_FROM_GAME, async (event, gameId) => {
+    const game = await GameManager.findGame(gameId);
+    const folder = uuid();
+    if (game) {
+      const curPath = path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, folder);
+      await fs.promises.mkdir(curPath, { recursive: true });
+      const contentFolder = path.join(curPath, 'content');
+      await fs.promises.mkdir(contentFolder, { recursive: true });
+
+      // Copy images
+      const thumbnailPath = path.join(state.config.flashpointPath, state.preferences.imageFolderPath, 'Logos', game.id.substring(0, 2), game.id.substring(2, 4), `${game.id}.png`);
+      const ssPath = path.join(state.config.flashpointPath, state.preferences.imageFolderPath, 'Screenshots', game.id.substring(0, 2), game.id.substring(2, 4), `${game.id}.png`);
+
+      await fs.promises.copyFile(thumbnailPath, path.join(curPath, 'logo.png')).catch(console.log);
+      await fs.promises.copyFile(ssPath, path.join(curPath, 'ss.png')).catch(console.log);
+
+      const data: LoadedCuration = {
+        folder,
+        uuid: game.id,
+        group: '',
+        game: game,
+        addApps: game.addApps.map(a => {
+          return { ...a, key: uuid() };
+        }),
+        thumbnail: await loadCurationIndexImage(path.join(curPath, 'logo.png')),
+        screenshot: await loadCurationIndexImage(path.join(curPath, 'ss.png'))
+      };
+      const curation: CurationState = {
+        ...data,
+        alreadyImported: true,
+        warnings: genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate),
+        contents: await genContentTree(getContentFolderByKey(folder, state.config.flashpointPath))
+      };
+      await saveCuration(curPath, curation);
+      state.loadedCurations.push(curation);
+      state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
+    }
+  });
+
   state.socketServer.register(BackIn.CURATE_CREATE_CURATION, async (event, folder, meta) => {
     const existingCuration = state.loadedCurations.find(c => c.folder === folder);
     if (!existingCuration) {
@@ -1420,6 +1459,7 @@ export function registerRequestCallbacks(state: BackState): void {
 
       const data: LoadedCuration = {
         folder,
+        uuid: uuid(),
         group: '',
         game: meta || {},
         addApps: [],
@@ -1428,6 +1468,7 @@ export function registerRequestCallbacks(state: BackState): void {
       };
       const curation: CurationState = {
         ...data,
+        alreadyImported: false,
         warnings: genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate),
         contents: await genContentTree(getContentFolderByKey(folder, state.config.flashpointPath))
       };

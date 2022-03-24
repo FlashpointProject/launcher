@@ -95,7 +95,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
     contentToMove.push([path.join(getCurationFolder(curation, fpPath), 'Extras'), path.join(fpPath, 'Extras', extrasAddApp.launchCommand)]);
   }
   // Create and add game and additional applications
-  const gameId = validateSemiUUID(curation.folder) ? curation.folder : uuid();
+  const gameId = curation.uuid;
   const oldGame = await GameManager.findGame(gameId);
   if (oldGame) {
     const response = await opts.openDialog({
@@ -231,7 +231,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
       });
     });
     // Import bluezip
-    const filePath = path.join(curationPath, `${game.id}.zip`);
+    const filePath = path.join(curationPath, `${curation.folder}.zip`);
     await GameDataManager.importGameData(game.id, filePath, dataPacksFolderPath, curation.game.mountParameters);
     await fs.promises.unlink(filePath);
   })
@@ -257,10 +257,10 @@ export async function launchCuration(curation: LoadedCuration, symlinkCurationCo
   curationLog(`Launching Curation ${curation.game.title}`);
   const game = await createGameFromCurationMeta(curation.folder, curation.game, [], new Date());
   await GameLauncher.launchGame({
-      ...opts,
-      game: game,
-    },
-    onWillEvent);
+    ...opts,
+    game: game,
+  },
+  onWillEvent);
   await onDidEvent.fire(game);
 }
 

@@ -587,6 +587,9 @@ body {
 .curate-list-item--selected--secondary {
   background-color: var(--layout__game-item-background-selected--secondary);
 }
+.curate-list-item__warning .icon__use {
+  fill: var(--layout__warning-shallow);
+}
 .curate-list-group__hovered-curation {
   background-color: var(--layout__secondary-background);
 }

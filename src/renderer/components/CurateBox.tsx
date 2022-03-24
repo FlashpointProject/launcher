@@ -479,7 +479,13 @@ export function CurateBox(props: CurateBoxProps) {
               <CurateBoxRow title={strings.curate.id}>
                 <InputField
                   text={props.curation && props.curation.folder || ''}
-                  placeholder={'No ID? Something\'s broken.'}
+                  placeholder={'No Folder? Something\'s broken.'}
+                  disabled={true} />
+              </CurateBoxRow>
+              <CurateBoxRow title={'UUID'}>
+                <InputField
+                  text={props.curation && props.curation.uuid || ''}
+                  placeholder={'No ID'}
                   disabled={true} />
               </CurateBoxRow>
             </tbody>

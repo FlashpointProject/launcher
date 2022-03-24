@@ -406,6 +406,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
 
       const data: LoadedCuration = {
         folder,
+        uuid: uuid(),
         group: '',
         game: meta || {},
         addApps: [],
@@ -414,6 +415,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
       };
       const curation: CurationState = {
         ...data,
+        alreadyImported: false,
         warnings: genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate),
         contents: await genContentTree(getContentFolderByKey(folder, state.config.flashpointPath))
       };

@@ -465,6 +465,7 @@ const langTemplate = {
     'exportMetaEdit',
     'duplicatePlaylist',
     'exportPlaylist',
+    'makeCurationFromGame',
   ] as const,
   dialog: [
     'programNotFound',

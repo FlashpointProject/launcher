@@ -14,6 +14,8 @@ const { str } = Coerce;
 
 /** Return value type of the parseCurationMeta function. */
 export type ParsedCurationMeta = {
+  /** Existing UUID if present */
+  uuid: string;
   /** Group to sort into on Curate Page */
   group: string;
   /** Meta data of the game. */
@@ -45,6 +47,7 @@ export async function parseCurationMetaFile(data: any, onError?: (error: string)
   // Default parsed data
   const parsed: ParsedCurationMeta = {
     group: '',
+    uuid: uuid(),
     game: {},
     addApps: [],
   };
@@ -89,6 +92,7 @@ export async function parseCurationMetaFile(data: any, onError?: (error: string)
   parser.prop('alternate titles',     v => parsed.game.alternateTitles     = arrayStr(v));
   parser.prop('version',              v => parsed.game.version             = str(v));
   parser.prop('library',              v => parsed.game.library             = str(v).toLowerCase()); // must be lower case
+  parser.prop('uuid',                 v => parsed.uuid                     = str(v), true);
   parser.prop('group',                v => parsed.group                    = str(v), true);
   if (lowerCaseData.genre)  { parsed.game.tags = await getTagsFromStr(arrayStr(lowerCaseData.genre), str(lowerCaseData['tag categories']));  }
   if (lowerCaseData.genres) { parsed.game.tags = await getTagsFromStr(arrayStr(lowerCaseData.genres), str(lowerCaseData['tag categories'])); }

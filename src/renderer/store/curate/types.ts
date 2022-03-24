@@ -30,6 +30,9 @@ export type CurateAction = {
   folder: string;
   meta?: EditCurationMeta;
 } | {
+  type: CurateActionType.REGEN_UUID;
+  folder: string;
+} | {
   type: CurateActionType.SET_CURRENT_CURATION;
   folder: string;
   ctrl?: boolean;

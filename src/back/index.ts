@@ -398,16 +398,19 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
       for (const folderName of await fs.promises.readdir(rootPath)) {
         const parsedMeta = await readCurationMeta(path.join(rootPath, folderName), state.recentAppPaths);
         if (parsedMeta) {
-          const loadedCuration = {
+          const loadedCuration: LoadedCuration = {
             folder: folderName,
+            uuid: parsedMeta.uuid || uuid(),
             group: parsedMeta.group,
             game: parsedMeta.game,
             addApps: parsedMeta.addApps,
             thumbnail: await loadCurationIndexImage(path.join(rootPath, folderName, 'logo.png')),
             screenshot: await loadCurationIndexImage(path.join(rootPath, folderName, 'ss.png'))
           };
+          const alreadyImported = (await GameManager.findGame(loadedCuration.uuid)) !== undefined;
           const curation: CurationState = {
             ...loadedCuration,
+            alreadyImported,
             warnings: genCurationWarnings(loadedCuration, state.config.flashpointPath, state.suggestions, state.languageContainer.curate),
             contents: await genContentTree(getContentFolderByKey(folderName, state.config.flashpointPath))
           };
@@ -1120,14 +1123,17 @@ export async function loadCurationArchive(filePath: string): Promise<CurationSta
 
   const loadedCuration: LoadedCuration = {
     folder: key,
+    uuid: parsedMeta.uuid || uuid(),
     group: parsedMeta.group,
     game: parsedMeta.game,
     addApps: parsedMeta.addApps,
     thumbnail: await loadCurationIndexImage(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, key, 'logo.png')),
     screenshot: await loadCurationIndexImage(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, key, 'ss.png')),
   };
+  const alreadyImported = (await GameManager.findGame(loadedCuration.uuid)) !== undefined;
   const curation: CurationState = {
     ...loadedCuration,
+    alreadyImported,
     warnings: genCurationWarnings(loadedCuration, state.config.flashpointPath, state.suggestions, state.languageContainer.curate),
     contents: await genContentTree(getContentFolderByKey(key, state.config.flashpointPath))
   };
