@@ -42,6 +42,16 @@ export const curationSyncMiddleware: Middleware<{}, ApplicationState> = (store) 
       next(action);
       break;
     }
+    case CurateActionType.EXPORT_DATA_PACK: {
+      const state = store.getState();
+      const folders: string[] = action.folders;
+      const curations = folders.map(f => state.curate.curations.find(c => c.folder === f)).filter(c => c !== undefined) as CurationState[];
+      if (curations.length > 0) {
+        window.Shared.back.send(BackIn.CURATE_EXPORT_DATA_PACK, curations, action.taskId);
+      }
+      next(action);
+      break;
+    }
     case CurateActionType.EXPORT: {
       store.dispatch({
         type: CurateActionType.SET_LOCK,
@@ -51,12 +61,11 @@ export const curationSyncMiddleware: Middleware<{}, ApplicationState> = (store) 
       const state = store.getState();
       const folders: string[] = action.folders;
       const curations = folders.map(f => state.curate.curations.find(c => c.folder === f)).filter(c => c !== undefined) as CurationState[];
-      // Send curation import request to back
+      // Send curation export request to back
       if (curations.length > 0) {
         window.Shared.back.send(BackIn.CURATE_EXPORT, curations, action.taskId);
       }
       next(action);
-      alert(`Exporting ${folders.length} Curations`);
       break;
     }
     case CurateActionType.CREATE_CURATION: {
@@ -85,7 +94,6 @@ export const curationSyncMiddleware: Middleware<{}, ApplicationState> = (store) 
           folder: modifiedCuration.folder,
           warnings: genCurationWarnings(modifiedCuration, window.Shared.config.fullFlashpointPath, state.main.suggestions, state.main.lang.curate)
         });
-        log.debug('Curate', `Sync Requirable Action Performed: ${action.type}`);
       } else {
         log.error('Curate', `Action performed but no curation found to generate warnings for? ${JSON.stringify(action)}`);
       }

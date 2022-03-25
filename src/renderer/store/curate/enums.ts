@@ -14,6 +14,7 @@ export enum CurateActionType {
   IMPORT = '@@curate/IMPORT',
   DELETE = '@@curate/DELETE',
   EXPORT = '@@curate/EXPORT',
+  EXPORT_DATA_PACK = '@@curate/EXPORT_DATA_PACK',
   SET_LOCK = '@@curate/SET_LOCK',
   TOGGLE_CONTENT_NODE_VIEW = '@@curate/TOGGLE_CONTENT_NODE_VIEW',
   TOGGLE_GROUP_COLLAPSE = '@@curate/TOGGLE_COLLAPSED_GROUP',

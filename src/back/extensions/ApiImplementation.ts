@@ -27,7 +27,7 @@ import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { CurationMeta, CurationState, LoadedCuration } from '@shared/curate/types';
 import { getContentFolderByKey } from '@shared/curate/util';
 import { CurationTemplate, IExtensionManifest } from '@shared/extensions/interfaces';
-import { ProcessState } from '@shared/interfaces';
+import { ProcessState, Task } from '@shared/interfaces';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { overwritePreferenceData } from '@shared/preferences/util';
@@ -297,7 +297,18 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
 
   const extStatus: typeof flashpoint.status = {
     setStatus: <T extends keyof StatusState>(key: T, val: StatusState[T]) => setStatus(state, key, val),
-    getStatus: <T extends keyof StatusState>(key: T): StatusState[T] => state.status[key]
+    getStatus: <T extends keyof StatusState>(key: T): StatusState[T] => state.status[key],
+    newTask: (task: flashpoint.PreTask) => {
+      const newTask: Task = {
+        ...task,
+        id: uuid()
+      };
+      state.socketServer.broadcast(BackOut.CREATE_TASK, newTask);
+      return newTask;
+    },
+    setTask: (taskId: string, taskData: Partial<Task>) => {
+      state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, taskData);
+    },
   };
 
   const extServices: typeof flashpoint.services = {

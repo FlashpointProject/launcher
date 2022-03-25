@@ -139,6 +139,14 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 description={strings.enableEditingDesc}
                 checked={this.props.preferencesData.enableEditing}
                 onToggle={this.onEnableEditingChange} />
+              {/** Symlink Curation Content */}
+              { this.props.preferencesData.enableEditing && (
+                <ConfigBoxCheckbox
+                  title={strings.symlinkCuration}
+                  description={strings.symlinkCurationDesc}
+                  checked={this.props.preferencesData.symlinkCurationContent}
+                  onToggle={this.onSymlinkCurationContentChange}/>
+              )}
               {/* On Demand Images */}
               <ConfigBoxCheckbox
                 title={strings.onDemandImages}
@@ -718,6 +726,10 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   onEnableEditingChange = (isChecked: boolean): void => {
     updatePreferencesData({ enableEditing: isChecked });
+  }
+
+  onSymlinkCurationContentChange = (isChecked: boolean): void => {
+    updatePreferencesData({ symlinkCurationContent: isChecked });
   }
 
   onOnDemandImagesChange = (isChecked: boolean): void => {

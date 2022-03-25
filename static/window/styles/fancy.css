@@ -1177,3 +1177,7 @@ body {
 .task-progress-bar--fill {
   background-color: var(--layout__confirm-color);
 }
+
+.task-progress-bar--failure {
+  background-color: var(--layout__invalid-color);
+}

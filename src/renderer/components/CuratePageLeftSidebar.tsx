@@ -97,7 +97,9 @@ export function CuratePageLeftSidebar(props: CuratePageLeftSidebarProps) {
           <OpenIcon icon='file'/>
         )}
         { getWarningCount(curation.warnings) > 0 && (
-          <OpenIcon icon='warning' className='curate-list-item__warning' />
+          <div className='curate-list-item__icon'>
+            <OpenIcon icon='warning' className='curate-list-item__warning' />
+          </div>
         )}
       </div>
     );

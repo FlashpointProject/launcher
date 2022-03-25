@@ -384,6 +384,8 @@ declare module 'flashpoint-launcher' {
          * @param key Element to view
          */
         function getStatus<T extends keyof StatusState>(key: T): StatusState[T];
+        function newTask(task: PreTask): Task;
+        function setTask(taskId: string, taskData: Partial<Task>): void;
     }
 
     /** Collection of Service related API function */
@@ -1280,7 +1282,16 @@ declare module 'flashpoint-launcher' {
         language: string;
     }>
 
+    export type Task = {
+        id: string;
+        name: string;
+        status: string;
+        finished: boolean;
+        error?: string;
+        progress?: number;
+    }
 
+    export type PreTask = Omit<Task, 'id'>;
 
     export type AddAppCurationMeta = Partial<{
         heading: string;

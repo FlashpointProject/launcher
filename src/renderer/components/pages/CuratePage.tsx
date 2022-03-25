@@ -117,6 +117,18 @@ export function CuratePage(props: CuratePageProps) {
     }
   }, [curation, props.dispatchCurate]);
 
+  const onExportDataPacks = React.useCallback(async () => {
+    if (props.curate.selected.length > 0) {
+      // Generate task
+      const newTask = newCurateTask(`Exporting Data Packs for ${props.curate.selected.length} Curations`, 'Exporting...', props.addTask);
+      props.dispatchCurate({
+        type: CurateActionType.EXPORT_DATA_PACK,
+        folders: props.curate.selected,
+        taskId: newTask.id
+      });
+    }
+  }, [props.curate.selected, props.dispatchCurate]);
+
   const onExportCurations = React.useCallback(async () => {
     if (props.curate.selected.length > 0) {
       // Generate task
@@ -189,7 +201,7 @@ export function CuratePage(props: CuratePageProps) {
           </div>
         );
       }
-    }), [disabled, props.extContextButtons]);
+    }), [disabled, props.extContextButtons, props.curate]);
 
   const curationTemplateButtons = React.useMemo(() => {
     const arrays = props.extCurationTemplates.map(c => {
@@ -235,7 +247,10 @@ export function CuratePage(props: CuratePageProps) {
       }
     }
 
-    props.setTask(newTask.id, { finished: true });
+    props.setTask(newTask.id, {
+      status: '',
+      finished: true
+    });
   }, []);
 
   const onToggleGroupCollapse = React.useCallback((group: string) => {
@@ -389,8 +404,24 @@ export function CuratePage(props: CuratePageProps) {
               className: 'curate-page__right--button',
               value: 'Regenerate UUID',
               disabled
-            }}
-            />
+            }}/>
+          { warningCount > 0 ? (
+            <ConfirmElement
+              render={renderConfirmButton}
+              message={strings.dialog.exportCurationWithWarnings}
+              onConfirm={onExportDataPacks}
+              extra={{
+                className: 'curate-page__right--button',
+                value: strings.curate.exportDataPacks,
+                disabled
+              }}/>
+          ) : (
+            <SimpleButton
+              className='curate-page__right--button'
+              onClick={onExportDataPacks}
+              disabled={disabled}
+              value={strings.curate.exportDataPacks}/>
+          )}
         </div>
         <div className='curate-page__right--section'>
           <div className='curate-page__right--header'>{strings.curate.headerTest}</div>

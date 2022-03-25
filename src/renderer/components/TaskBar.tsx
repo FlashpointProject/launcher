@@ -22,16 +22,16 @@ function taskBar(props: TaskBarProps) {
               {progress != undefined && (
                 <FancyAnimation
                   normalRender={() => (
-                    <div className='task-progress-bar--fill' style={{width: (finished ? 100 : progress * 100) + '%'}}>
+                    <div className={`task-progress-bar--fill ${task.error ? 'task-progress-bar--error' : ''}`} style={{width: (finished ? 100 : progress * 100) + '%'}}>
                       {task.finished ? (
                         'Finished'
                       ) : (
-                        progress ? (progress * 100).toFixed(2) + '%' : 'Working...'
+                        progress ? (progress * 100).toFixed(1) + '%' : 'Working...'
                       )}
                     </div>
                   )}
                   fancyRender={() => (
-                    <div className='task-progress-bar--fill task-progress-bar--fill-animated' style={{width: (finished ? 100 : progress * 100) + '%'}}>
+                    <div className={`task-progress-bar--fill task-progress-bar--fill-animated ${task.error ? 'task-progress-bar--error' : ''}`} style={{width: (finished ? 100 : progress * 100) + '%'}}>
                       {task.finished ? (
                         'Finished'
                       ) : (
@@ -42,12 +42,9 @@ function taskBar(props: TaskBarProps) {
               )}
             </div>
           </div>
-          {/** Finished without errors, or not finished yet */}
-          {(!task.finished || (task.finished && task.error !== undefined)) && (
-            <div className='task--lower'>
-              <div className='task-status'>{task.error || task.status}</div>
-            </div>
-          )}
+          <div className='task--lower'>
+            <div className='task-status'>{task.error || task.status}</div>
+          </div>
         </div>
       );
     });

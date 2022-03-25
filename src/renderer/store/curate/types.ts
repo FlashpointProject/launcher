@@ -92,6 +92,10 @@ export type CurateAction = {
   folders: string[];
   taskId?: string;
 } | {
+  type: CurateActionType.EXPORT_DATA_PACK;
+  folders: string[];
+  taskId?: string;
+} | {
   type: CurateActionType.EXPORT;
   folders: string[];
   taskId?: string;

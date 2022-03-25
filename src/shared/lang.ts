@@ -21,6 +21,8 @@ const langTemplate = {
     'searchLimitValue',
     'enableEditing',
     'enableEditingDesc',
+    'symlinkCuration',
+    'symlinkCurationDesc',
     'onDemandImages',
     'onDemandImagesDesc',
     'currentLanguage',
@@ -414,6 +416,7 @@ const langTemplate = {
     'contextCopyAsURL',
     'contextShowInExplorer',
     'contextOpenFolderInExplorer',
+    'exportDataPacks',
   ] as const,
   playlist: [
     'enterDescriptionHere',

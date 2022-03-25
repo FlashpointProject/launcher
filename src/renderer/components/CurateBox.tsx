@@ -129,7 +129,7 @@ export function CurateBox(props: CurateBoxProps) {
       click: () => clipboard.writeText(tree.join(path.sep))
     }, {
       label: strings.curate.contextCopyAsURL,
-      click: () => clipboard.writeText(`http://${tree.join('/')}`)
+      click: () => clipboard.writeText(`"http://${tree.join('/')}"`)
     }, {
       type: 'separator'
     }];

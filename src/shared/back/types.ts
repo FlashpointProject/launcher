@@ -129,6 +129,7 @@ export enum BackIn {
   CURATE_DELETE,
   CURATE_CREATE_CURATION,
   CURATE_EXPORT,
+  CURATE_EXPORT_DATA_PACK,
   CURATE_FROM_GAME,
 
   // Misc
@@ -188,6 +189,7 @@ export enum BackOut {
   SET_CURATION_LOCK,
 
   UPDATE_TASK,
+  CREATE_TASK
 }
 
 export type BackInTemplate = SocketTemplate<BackIn, {
@@ -291,6 +293,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.CURATE_DELETE]: (folders: string[], taskId?: string) => void;
   [BackIn.CURATE_CREATE_CURATION]: (folder: string, meta?: EditCurationMeta) => void;
   [BackIn.CURATE_EXPORT]: (curations: LoadedCuration[], taskId?: string) => void;
+  [BackIn.CURATE_EXPORT_DATA_PACK]: (curations: LoadedCuration[], taskId?: string) => void;
   [BackIn.CURATE_FROM_GAME]: (gameId: string) => void;
 
   // Misc
@@ -351,6 +354,7 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
 
   // Tasks
   [BackOut.UPDATE_TASK]: (taskId: string, taskData: Partial<Task>) => void;
+  [BackOut.CREATE_TASK]: (task: Task) => void;
 }>
 
 export type BackInitArgs = {

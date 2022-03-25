@@ -66,7 +66,8 @@ import {
   FPLNodeModuleFactory,
   INodeModuleFactory,
   installNodeInterceptor,
-  registerInterceptor
+  registerInterceptor,
+  SqliteInterceptorFactory
 } from './extensions/NodeInterceptor';
 import { Command } from './extensions/types';
 import * as GameManager from './game/GameManager';
@@ -84,6 +85,7 @@ import { LogFile } from './util/LogFile';
 import { logFactory } from './util/logging';
 import { createContainer, exit, runService } from './util/misc';
 import { uuid } from './util/uuid';
+// Required for the DB Models to function
 
 const DEFAULT_LOGO_PATH = 'window/images/Logos/404.png';
 
@@ -438,6 +440,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     state,
   ),
   state.moduleInterceptor);
+  registerInterceptor(new SqliteInterceptorFactory(), state.moduleInterceptor);
   await installNodeInterceptor(state.moduleInterceptor);
   // Load each extension
   await state.extensionsService.getExtensions()

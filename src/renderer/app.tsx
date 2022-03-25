@@ -331,8 +331,11 @@ export class App extends React.Component<AppProps> {
     });
 
     window.Shared.back.register(BackOut.UPDATE_TASK, (event, taskId, taskData) => {
-      log.debug('Launcher', `TASKID: ${taskId}, TASKDATA: /n${JSON.stringify(taskData, undefined, 2)}`);
       this.props.setTask(taskId, taskData);
+    });
+
+    window.Shared.back.register(BackOut.CREATE_TASK, (event, task) => {
+      this.props.addTask(task);
     });
 
     // Cache playlist icons (if they are loaded)
