@@ -946,7 +946,7 @@ body {
 .curate-page__left {
   --image-size: 1.45rem;
   --image-padding: 0.15rem;
-  width: 15rem;
+  width: 16rem;
   flex: 0 0 auto;
   overflow: auto;
 }
@@ -961,7 +961,7 @@ body {
   font-size: 2em;
 }
 .curate-page__right {
-  width: 15rem;
+  width: 16rem;
   flex: 0 0 auto;
   flex-direction: column;
   overflow: auto;
@@ -987,6 +987,28 @@ body {
 }
 .curate-page .input-field--multiline.input-field--edit {
   height: 5em;
+}
+
+.curate-page-keybinds {
+  position: absolute;
+  width: 2rem;
+  height: 2rem;
+  padding: 0.5rem;
+}
+.curate-page-keybinds:hover .curate-page-keybinds-box {
+  display: initial;
+}
+.curate-page-keybinds-box {
+  z-index: 10;
+  display: none;
+  position: absolute;
+  white-space: nowrap;
+  margin-left: 1.5rem;
+  padding: 0.5rem;
+}
+.curate-page-keybinds-box-combo {
+  display: inline-table;
+  margin-right: 0.2rem;
 }
 
 /* Curate Box */
@@ -1030,9 +1052,6 @@ body {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-}
-.curate-box-content {
-  height: 10rem;
 }
 .curate-box-content__entry {
   display: flex;
@@ -1112,7 +1131,8 @@ body {
   user-select: none;
 }
 .curate-box-files__body {
-  max-height: 25rem;
+  min-height: 10rem;
+  max-height: 40rem;
   overflow: auto;
 }
 /* Curate Box Warnings */

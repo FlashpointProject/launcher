@@ -31,7 +31,7 @@ import * as util from 'util';
 import * as YAML from 'yaml';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME } from './constants';
-import { CURATIONS_FOLDER_EXPORTED, CURATIONS_FOLDER_WORKING, CURATIONS_FOLDER_TEMP } from './consts';
+import { CURATIONS_FOLDER_EXPORTED, CURATIONS_FOLDER_TEMP, CURATIONS_FOLDER_WORKING } from './consts';
 import { loadCurationIndexImage } from './curate/parse';
 import { saveCuration } from './curate/write';
 import { ExtConfigFile } from './ExtConfigFile';
@@ -1472,6 +1472,18 @@ export function registerRequestCallbacks(state: BackState): void {
         status: '',
         finished: true
       });
+    }
+  });
+
+  state.socketServer.register(BackIn.CURATE_REFRESH_CONTENT, async (event, folder) => {
+    const curationIdx = state.loadedCurations.findIndex(c => c.folder === folder);
+    if (curationIdx !== -1) {
+      const curation = state.loadedCurations[curationIdx];
+      const contentPath = getContentFolderByKey(curation.folder, state.config.flashpointPath);
+      curation.contents = await genContentTree(contentPath);
+      curation.warnings = genCurationWarnings(curation, state.config.flashpointPath, state.suggestions, state.languageContainer['curate']);
+      state.loadedCurations[curationIdx] = curation;
+      state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
     }
   });
 

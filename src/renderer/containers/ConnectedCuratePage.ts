@@ -1,4 +1,5 @@
 import { Subtract } from '@shared/interfaces';
+import { withShortcut } from 'react-keybind';
 import { CuratePage, CuratePageProps } from '../components/pages/CuratePage';
 import { withConfirmDialog, WithConfirmDialogProps } from './withConfirmDialog';
 import { withCurateState, WithCurateStateProps } from './withCurateState';
@@ -9,4 +10,4 @@ import { withTasks, WithTasksProps } from './withTasks';
 
 export type ConnectedCuratePageProps = Subtract<CuratePageProps, WithPreferencesProps & WithTagCategoriesProps & WithMainStateProps & WithCurateStateProps & WithConfirmDialogProps & WithTasksProps>;
 
-export const ConnectedCuratePage = withTasks(withTagCategories(withPreferences(withMainState(withCurateState(withConfirmDialog(CuratePage))))));
+export const ConnectedCuratePage = withShortcut(withTasks(withTagCategories(withPreferences(withMainState(withCurateState(withConfirmDialog(CuratePage)))))));

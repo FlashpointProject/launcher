@@ -3,6 +3,7 @@ import { ConnectedRouter } from 'connected-react-router';
 import { createMemoryHistory } from 'history';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
+import { ShortcutProvider } from 'react-keybind';
 import { Provider } from 'react-redux';
 import configureStore from './configureStore';
 import ConnectedApp from './containers/ConnectedApp';
@@ -53,15 +54,17 @@ import { logFactory } from './util/logging';
   // Render the application
   ReactDOM.render((
     <Provider store={store}>
-      <PreferencesContextProvider>
-        <ContextReducerProvider context={CurationContext}>
-          <ContextReducerProvider context={ProgressContext}>
-            <ConnectedRouter history={history}>
-              <ConnectedApp />
-            </ConnectedRouter>
+      <ShortcutProvider>
+        <PreferencesContextProvider>
+          <ContextReducerProvider context={CurationContext}>
+            <ContextReducerProvider context={ProgressContext}>
+              <ConnectedRouter history={history}>
+                <ConnectedApp />
+              </ConnectedRouter>
+            </ContextReducerProvider>
           </ContextReducerProvider>
-        </ContextReducerProvider>
-      </PreferencesContextProvider>
+        </PreferencesContextProvider>
+      </ShortcutProvider>
     </Provider>
   ), document.getElementById('root'));
 })();

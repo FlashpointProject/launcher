@@ -86,6 +86,7 @@
   --layout__curate-page-box-background: var(--layout__tertiary-background);
   --layout__curate-page-box-border: var(--layout__primary-outline-color);
   --layout__curate-page-floating-box-background: var(--layout__quaternary-background);
+  --layout__curate-page-floating-box-background-secondary: var(--layout__primary-background);
   --layout__curate-page-floating-box-border: var(--layout__tertiary-background);
   /* Log (at the Log Page) */
   --layout__log-time-stamp:                 #857df3;
@@ -530,6 +531,19 @@ body {
 }
 .curate-page__left-sidebar-item:hover {
   background-color: var(--layout__playlist-list-item-drag-over-background);
+}
+.curate-page-keybinds-box {
+  border: 1px solid;
+  border-color: var(--layout__curate-page-floating-box-border);
+  background-color: var(--layout__curate-page-floating-box-background);
+}
+.curate-page-keybinds-box-combo {
+  border-color: var(--layout__curate-page-floating-box-border);
+  background-color: var(--layout__curate-page-floating-box-background-secondary);
+}
+.curate-page-keybinds-box-row td:first-child {
+  border-right: 2px solid;
+  border-color: var(--layout__curate-page-floating-box-border);
 }
 
 .curate-box input[type="checkbox"] {

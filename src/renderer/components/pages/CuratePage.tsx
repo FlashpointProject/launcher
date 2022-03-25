@@ -21,10 +21,12 @@ import { formatString } from '@shared/utils/StringFormatter';
 import axios from 'axios';
 import * as path from 'path';
 import * as React from 'react';
+import { IWithShortcut } from 'react-keybind';
 import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
 import { getWarningCount } from '../CurateBoxWarnings';
 import { CuratePageLeftSidebar } from '../CuratePageLeftSidebar';
 import { Dropdown } from '../Dropdown';
+import { OpenIcon } from '../OpenIcon';
 import { SimpleButton, SimpleButtonProps } from '../SimpleButton';
 
 type OwnProps = {
@@ -33,7 +35,7 @@ type OwnProps = {
   mad4fpEnabled: boolean;
 }
 
-export type CuratePageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps & WithMainStateProps & WithCurateStateProps & WithConfirmDialogProps & WithTasksProps;
+export type CuratePageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps & WithMainStateProps & WithCurateStateProps & WithConfirmDialogProps & WithTasksProps & IWithShortcut;
 
 export function CuratePage(props: CuratePageProps) {
   const curation: CurationState | undefined = props.curate.curations.find(c => c.folder === props.curate.current);
@@ -41,6 +43,56 @@ export function CuratePage(props: CuratePageProps) {
 
   const [tagText, setTagText] = React.useState<string>('');
   const [tagSuggestions, setTagSuggestions] = React.useState<TagSuggestion[]>([]);
+
+  // Keybinds
+
+  // Refresh content tree
+  React.useEffect(() => {
+    if (props.shortcut && props.shortcut.registerShortcut) {
+      props.shortcut.registerShortcut(() => {
+        if (props.curate.current) {
+          window.Shared.back.request(BackIn.CURATE_REFRESH_CONTENT, props.curate.current);
+        }
+      }, ['ctrl+r', 'cmd+r'], 'Refresh', 'Refresh Active Curation + Content Tree');
+    }
+    return () => {
+      if (props.shortcut && props.shortcut.unregisterShortcut) {
+        props.shortcut.unregisterShortcut(['ctrl+r', 'cmd+r']);
+      }
+    };
+  }, [props.curate.current]);
+
+  // Export selected
+  React.useEffect(() => {
+    if (props.shortcut && props.shortcut.registerShortcut) {
+      props.shortcut.registerShortcut(() => {
+        if (props.curate.selected.length > 0) {
+          const newTask = newCurateTask(`Exporting ${props.curate.selected.length} Curations`, 'Exporting...', props.addTask);
+          props.dispatchCurate({
+            type: CurateActionType.EXPORT,
+            folders: props.curate.selected,
+            taskId: newTask.id
+          });
+        }
+      }, ['ctrl+s', 'cmd+s'], 'Export', 'Export Selected Curations');
+      props.shortcut.registerShortcut(() => {
+        if (props.curate.selected.length > 0) {
+          const newTask = newCurateTask(`Exporting Data Packs for ${props.curate.selected.length} Curations`, 'Exporting...', props.addTask);
+          props.dispatchCurate({
+            type: CurateActionType.EXPORT_DATA_PACK,
+            folders: props.curate.selected,
+            taskId: newTask.id
+          });
+        }
+      }, ['ctrl+shift+s', 'cmd+shift+s'], 'Export Data Packs', 'Export Data Packs for Selected Curations');
+    }
+    return () => {
+      if (props.shortcut && props.shortcut.unregisterShortcut) {
+        props.shortcut.unregisterShortcut(['ctrl+s', 'cmd+s']);
+        props.shortcut.unregisterShortcut(['ctrl+shift+s', 'cmd+shift+s']);
+      }
+    };
+  }, [props.curate.selected]);
 
   const onTagTextChange = React.useCallback((tagText: string) => {
     const splitTags = tagText.split(';');
@@ -309,10 +361,40 @@ export function CuratePage(props: CuratePageProps) {
       moveCurationToGroup={moveCurationToGroup}/>
   ), [props.curate, props.main.logoVersion]);
 
+  const keybindsRender = React.useMemo(() => {
+    return (
+      <div className='curate-page-keybinds-box'>
+        <h3>Available Keys</h3>
+        <table>
+          <tbody>
+            {props.shortcut && props.shortcut.shortcuts.map((binding, idx) => (
+              <tr key={idx} className='curate-page-keybinds-box-row'>
+                <td>
+                  {binding.keys.map((combo, idx) => {
+                    return (
+                      <div key={binding.title + idx} className='curate-page-keybinds-box-combo'>
+                        {combo}
+                      </div>
+                    );
+                  })}
+                </td>
+                <td>{binding.description}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }, [props.shortcut]);
+
   return (
     <div className='curate-page'>
       {leftSidebar}
       <div className='curate-page__center simple-scroll'>
+        <div className='curate-page-keybinds'>
+          <OpenIcon icon='info'/>
+          {keybindsRender}
+        </div>
         { curation ? (
           <CurateBox
             curation={curation}

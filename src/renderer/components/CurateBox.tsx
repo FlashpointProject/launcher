@@ -200,7 +200,6 @@ export function CurateBox(props: CurateBoxProps) {
         // Match 1 - Inside quotes, Match 0 - No Quotes Found
         let lc = match[1] || match[0];
         const protocol = lc.match(/(.+?):\/\//);
-        console.log(protocol);
         if (protocol) {
           lc = lc.substring(protocol[0].length);
         }

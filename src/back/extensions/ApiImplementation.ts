@@ -408,6 +408,19 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
         throw 'Not a valid curation folder';
       }
     },
+    updateCurationContentTree: async (folder: string) => {
+      const curationIdx = state.loadedCurations.findIndex(c => c.folder === folder);
+      if (curationIdx !== -1) {
+        const curation = state.loadedCurations[curationIdx];
+        curation.contents = await genContentTree(getContentFolderByKey(curation.folder, state.config.flashpointPath));
+        curation.warnings = genCurationWarnings(curation, state.config.flashpointPath, state.suggestions, state.languageContainer['curate']);
+        state.loadedCurations[curationIdx] = curation;
+        state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [state.loadedCurations[curationIdx]], undefined);
+        return curation.contents;
+      } else {
+        throw 'No curation with that folder.';
+      }
+    },
     newCuration: async (meta?: CurationMeta) => {
       const folder = uuid();
       const curPath = path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, folder);

@@ -119,6 +119,11 @@ declare module 'flashpoint-launcher' {
          * @param meta AddApp Metadata to write
          */
         function setCurationAddAppMeta(folder: string, key: string, meta: AddAppCurationMeta): boolean;
+        /**
+         * Updates a curations content tree
+         * @param folder Folder of the curation
+         */
+        function updateCurationContentTree(folder: string): Promise<ContentTree>;
         /** Creates a new curation
          * @param meta Template Curation Metadata
          */
