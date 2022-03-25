@@ -403,7 +403,8 @@
     "contextCopyPath": "Copy File Path",
     "contextCopyAsURL": "Copy File Path as URL",
     "contextShowInExplorer": "Show File in Explorer",
-    "contextOpenFolderInExplorer": "Open Folder in Explorer"
+    "contextOpenFolderInExplorer": "Open Folder in Explorer",
+    "shortcuts": "Shortcuts"
   },
   "playlist": {
     "enterDescriptionHere": "Enter a description here...",

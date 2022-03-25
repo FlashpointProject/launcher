@@ -94,6 +94,36 @@ export function CuratePage(props: CuratePageProps) {
     };
   }, [props.curate.selected]);
 
+  // Test Run
+  React.useEffect(() => {
+    if (props.shortcut && props.shortcut.registerShortcut) {
+      props.shortcut.registerShortcut(() => {
+        if (curation) {
+          window.Shared.back.request(BackIn.LAUNCH_CURATION, {
+            curation,
+            mad4fp: false,
+            symlinkCurationContent: props.preferencesData.symlinkCurationContent
+          });
+        }
+      }, ['ctrl+t', 'cmd+t'], 'Test', 'Run Active Curation');
+      props.shortcut.registerShortcut(() => {
+        if (curation && props.preferencesData.symlinkCurationContent) {
+          window.Shared.back.request(BackIn.LAUNCH_CURATION, {
+            curation,
+            mad4fp: true,
+            symlinkCurationContent: props.preferencesData.symlinkCurationContent
+          });
+        }
+      }, ['ctrl+shift+t', 'cmd+shift+t'], 'Test MAD4FP', 'Run Active Curation with MAD4FP');
+    }
+    return () => {
+      if (props.shortcut && props.shortcut.unregisterShortcut) {
+        props.shortcut.unregisterShortcut(['ctrl+t', 'cmd+t']);
+        props.shortcut.unregisterShortcut(['ctrl+shift+t', 'cmd+shift+t']);
+      }
+    };
+  }, [curation, props.preferencesData.symlinkCurationContent]);
+
   const onTagTextChange = React.useCallback((tagText: string) => {
     const splitTags = tagText.split(';');
     const lastTag = (splitTags.length > 0 ? splitTags.pop() || '' : '').trim();
@@ -364,13 +394,13 @@ export function CuratePage(props: CuratePageProps) {
   const keybindsRender = React.useMemo(() => {
     return (
       <div className='curate-page-keybinds-box'>
-        <h3>Available Keys</h3>
+        <h3>{strings.curate.shortcuts}</h3>
         <table>
           <tbody>
             {props.shortcut && props.shortcut.shortcuts.map((binding, idx) => (
               <tr key={idx} className='curate-page-keybinds-box-row'>
                 <td>
-                  {binding.keys.map((combo, idx) => {
+                  {filterKeysByOS(binding.keys).map((combo, idx) => {
                     return (
                       <div key={binding.title + idx} className='curate-page-keybinds-box-combo'>
                         {combo}
@@ -544,4 +574,13 @@ function newCurateTask(name: string, status: string, addTask: (task: Task) => vo
   };
   addTask(task);
   return task;
+}
+
+function filterKeysByOS(keys: string[]): string[] {
+  const platform = process.platform;
+  return keys.filter((key) => {
+    if (key.startsWith('ctrl') && platform === 'darwin') { return false; }
+    if (key.startsWith('meta') && platform !== 'darwin') { return false; }
+    return true;
+  });
 }

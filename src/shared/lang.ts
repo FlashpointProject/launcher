@@ -417,6 +417,7 @@ const langTemplate = {
     'contextShowInExplorer',
     'contextOpenFolderInExplorer',
     'exportDataPacks',
+    'shortcuts',
   ] as const,
   playlist: [
     'enterDescriptionHere',
