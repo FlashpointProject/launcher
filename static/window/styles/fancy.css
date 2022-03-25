@@ -538,6 +538,7 @@ body {
   background-color: var(--layout__curate-page-floating-box-background);
 }
 .curate-page-keybinds-box-combo {
+  font-weight: bold;
   border-color: var(--layout__curate-page-floating-box-border);
   background-color: var(--layout__curate-page-floating-box-background-secondary);
 }

@@ -44,7 +44,57 @@ export function CuratePage(props: CuratePageProps) {
   const [tagText, setTagText] = React.useState<string>('');
   const [tagSuggestions, setTagSuggestions] = React.useState<TagSuggestion[]>([]);
 
+  const onLoadCuration = React.useCallback(() => {
+    // Generate task
+    remote.dialog.showOpenDialog({
+      title: strings.dialog.selectCurationArchive,
+      properties: [ 'multiSelections' ],
+    })
+    .then(value => {
+      if (value.filePaths.length > 0) {
+        const newTask = newCurateTask(`Loading ${value.filePaths.length} Archives`, 'Loading...', props.addTask);
+        window.Shared.back.send(BackIn.CURATE_LOAD_ARCHIVES, value.filePaths, newTask.id);
+      }
+    });
+  }, []);
+
+  const onNewCuration = React.useCallback((meta?: EditCurationMeta) => {
+    props.dispatchCurate({
+      type: CurateActionType.CREATE_CURATION,
+      folder: uuid(),
+      meta
+    });
+  }, []);
+
   // Keybinds
+
+  // New Curation
+  React.useEffect(() => {
+    if (props.shortcut && props.shortcut.registerShortcut) {
+      props.shortcut.registerShortcut(() => {
+        onNewCuration();
+      }, ['ctrl+n', 'cmd+n'], 'New', 'New Curation');
+    }
+    return () => {
+      if (props.shortcut && props.shortcut.unregisterShortcut) {
+        props.shortcut.unregisterShortcut(['ctrl+n', 'cmd+n']);
+      }
+    };
+  }, []);
+
+  // Load Archives
+  React.useEffect(() => {
+    if (props.shortcut && props.shortcut.registerShortcut) {
+      props.shortcut.registerShortcut(() => {
+        onLoadCuration();
+      }, ['ctrl+o', 'cmd+o'], 'Load Archives', 'Load Curation Archives');
+    }
+    return () => {
+      if (props.shortcut && props.shortcut.unregisterShortcut) {
+        props.shortcut.unregisterShortcut(['ctrl+o', 'cmd+o']);
+      }
+    };
+  }, []);
 
   // Refresh content tree
   React.useEffect(() => {
@@ -144,28 +194,6 @@ export function CuratePage(props: CuratePageProps) {
       shift
     });
   }, [props.curate]);
-
-  const onNewCuration = React.useCallback((meta?: EditCurationMeta) => {
-    props.dispatchCurate({
-      type: CurateActionType.CREATE_CURATION,
-      folder: uuid(),
-      meta
-    });
-  }, []);
-
-  const onLoadCuration = React.useCallback(() => {
-    // Generate task
-    remote.dialog.showOpenDialog({
-      title: strings.dialog.selectCurationArchive,
-      properties: [ 'multiSelections' ],
-    })
-    .then(value => {
-      if (value.filePaths.length > 0) {
-        const newTask = newCurateTask(`Loading ${value.filePaths.length} Archives`, 'Loading...', props.addTask);
-        window.Shared.back.send(BackIn.CURATE_LOAD_ARCHIVES, value.filePaths, newTask.id);
-      }
-    });
-  }, []);
 
   const onOpenCurationsFolder = React.useCallback(async () => {
     await remote.shell.openExternal(path.join(window.Shared.config.fullFlashpointPath, 'Curations'));
@@ -361,7 +389,7 @@ export function CuratePage(props: CuratePageProps) {
         icon: ''
       });
     }
-  }, [props.dispatchCurate]);
+  }, [props.dispatchCurate, props.curate.groups]);
 
   const moveCurationToGroup = React.useCallback((folder: string, group: string) => {
     props.dispatchCurate({
@@ -582,5 +610,9 @@ function filterKeysByOS(keys: string[]): string[] {
     if (key.startsWith('ctrl') && platform === 'darwin') { return false; }
     if (key.startsWith('meta') && platform !== 'darwin') { return false; }
     return true;
-  });
+  }).map(formatKeybind);
+}
+
+function formatKeybind(key: string): string {
+  return key.split('+').map(s => s.toUpperCase()).join(' + ');
 }
