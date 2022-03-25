@@ -17,7 +17,7 @@ import * as path from 'path';
 import * as TagManager from './TagManager';
 import { Brackets, FindOneOptions, getManager, SelectQueryBuilder, IsNull } from 'typeorm';
 import * as GameDataManager from './GameDataManager';
-import { isNull } from 'util';
+import { isNull, isNullOrUndefined } from 'util';
 
 const exactFields = [ 'broken', 'library', 'activeDataOnDisk' ];
 enum flatGameFields {
@@ -53,13 +53,14 @@ export async function findGame(id?: string, filter?: FindOneOptions<Game>): Prom
 /** Get the row number of an entry, specified by its gameId. */
 export async function findGameRow(gameId: string, filterOpts?: FilterGameOpts, orderBy?: GameOrderBy, direction?: GameOrderReverse, index?: PageTuple): Promise<number> {
   if (orderBy) { validateSqlName(orderBy); }
+  log.debug('GameManager', 'findGameRow');
 
   // const startTime = Date.now();
   const gameRepository = getManager().getRepository(Game);
 
   const subQ = gameRepository.createQueryBuilder('game')
-  .select(`game.id, row_number() over (order by game.${orderBy}) row_num`)
-  .where("game.parentGameId is null");
+  .select(`game.id, row_number() over (order by game.${orderBy}) row_num, game.parentGameId`)
+  .where("game.parentGameId IS NULL");
   if (index) {
     if (!orderBy) { throw new Error('Failed to get game row. "index" is set but "orderBy" is missing.'); }
     subQ.andWhere(`(game.${orderBy}, game.id) > (:orderVal, :id)`, { orderVal: index.orderVal, id: index.id });
@@ -74,7 +75,9 @@ export async function findGameRow(gameId: string, filterOpts?: FilterGameOpts, o
   .setParameters(subQ.getParameters())
   .select('row_num')
   .from('(' + subQ.getQuery() + ')', 'g')
-  .where('g.id = :gameId', { gameId: gameId });
+  .where('g.id = :gameId', { gameId: gameId })
+  // Shouldn't be needed, but doing it anyway.
+  .andWhere('g.parentGameId IS NULL');
 
   const raw = await query.getRawOne();
   // console.log(`${Date.now() - startTime}ms for row`);
@@ -92,7 +95,7 @@ export async function findRandomGames(count: number, broken: boolean, excludedLi
   const gameRepository = getManager().getRepository(Game);
   const query = gameRepository.createQueryBuilder('game');
   query.select('game.id, game.title, game.platform, game.developer, game.publisher, game.tagsStr');
-  query.where("game.parentGameId is null");
+  query.where("game.parentGameId IS NULL");
   if (!broken)  { query.andWhere('broken = false');  }
   if (excludedLibraries.length > 0) {
     query.andWhere('library NOT IN (:...libs)', { libs: excludedLibraries });
@@ -165,6 +168,15 @@ export async function findGamePageKeyset(filterOpts: FilterGameOpts, orderBy: Ga
   }
 
   // console.log(`  Count: ${Date.now() - startTime}ms`);
+  let i = 0;
+  while (i < total) {
+    if (keyset[i]) {
+      // @ts-ignore
+      log.debug('GameManager', keyset[i].title);
+      i = total;
+    }
+    i++;
+  }
 
   return {
     keyset,
@@ -191,7 +203,7 @@ export async function findGames<T extends boolean>(opts: FindGamesOpts, shallow:
   const ranges = opts.ranges || [{ start: 0, length: undefined }];
   const rangesOut: ResponseGameRange<T>[] = [];
 
-  // console.log('FindGames:');
+  console.log('FindGames:');
 
   let query: SelectQueryBuilder<Game> | undefined;
   for (let i = 0; i < ranges.length; i++) {
@@ -199,7 +211,6 @@ export async function findGames<T extends boolean>(opts: FindGamesOpts, shallow:
 
     const range = ranges[i];
     query = await getGameQuery('game', opts.filter, opts.orderBy, opts.direction, range.start, range.length, range.index);
-    query.where("game.parentGameId is null");
 
     // Select games
     // @TODO Make it infer the type of T from the value of "shallow", and then use that to make "games" get the correct type, somehow?
@@ -207,6 +218,7 @@ export async function findGames<T extends boolean>(opts: FindGamesOpts, shallow:
     const games = (shallow)
       ? (await query.select('game.id, game.title, game.platform, game.developer, game.publisher, game.extreme, game.tagsStr').getRawMany()) as ViewGame[]
       : await query.getMany();
+    
     rangesOut.push({
       start: range.start,
       length: range.length,
@@ -222,26 +234,13 @@ export async function findGames<T extends boolean>(opts: FindGamesOpts, shallow:
   return rangesOut;
 }
 
-/** Find an add app with the specified ID. */
-export async function findAddApp(id?: string, filter?: FindOneOptions<Game>): Promise<Game | undefined> {
-  if (id || filter) {
-    if (!filter) {
-      filter = {
-        relations: ['parentGameId']
-      };
-    }
-    const addAppRepository = getManager().getRepository(Game);
-    return addAppRepository.findOne(id, filter);
-  }
-}
-
 export async function findPlatformAppPaths(platform: string): Promise<string[]> {
   const gameRepository = getManager().getRepository(Game);
   const values = await gameRepository.createQueryBuilder('game')
   .select('game.applicationPath')
   .distinct()
   .where('game.platform = :platform', {platform: platform})
-  .andWhere("game.parentGameId is null")
+  .andWhere("game.parentGameId IS NULL")
   .groupBy('game.applicationPath')
   .orderBy('COUNT(*)', 'DESC')
   .getRawMany();
@@ -274,7 +273,6 @@ export async function findPlatforms(library: string): Promise<string[]> {
   const gameRepository = getManager().getRepository(Game);
   const libraries = await gameRepository.createQueryBuilder('game')
   .where('game.library = :library', {library: library})
-  .andWhere("game.parentGameId is null")
   .select('game.platform')
   .distinct()
   .getRawMany();
@@ -450,7 +448,7 @@ async function chunkedFindByIds(gameIds: string[]): Promise<Game[]> {
   const chunks = chunkArray(gameIds, 100);
   let gamesFound: Game[] = [];
   for (const chunk of chunks) {
-    gamesFound = gamesFound.concat(await gameRepository.findByIds(chunk));
+    gamesFound = gamesFound.concat(await gameRepository.findByIds(chunk, {parentGameId: IsNull()}));
   }
 
   return gamesFound;
@@ -477,10 +475,12 @@ function applyFlatGameFilters(alias: string, query: SelectQueryBuilder<Game>, fi
       }
       for (const phrase of searchQuery.genericWhitelist) {
         doWhereTitle(alias, query, phrase, whereCount, true);
+        log.debug("GameManager", `Whitelist title string: ${phrase}`);
         whereCount++;
       }
       for (const phrase of searchQuery.genericBlacklist) {
         doWhereTitle(alias, query, phrase, whereCount, false);
+        log.debug("GameManager", `Blacklist title string: ${phrase}`);
         whereCount++;
       }
     }
@@ -586,6 +586,7 @@ async function getGameQuery(
   alias: string, filterOpts?: FilterGameOpts, orderBy?: GameOrderBy, direction?: GameOrderReverse, offset?: number, limit?: number, index?: PageTuple
 ): Promise<SelectQueryBuilder<Game>> {
   validateSqlName(alias);
+  log.debug('GameManager', 'getGameQuery');
   if (orderBy) { validateSqlName(orderBy); }
   if (direction) { validateSqlOrder(direction); }
 
@@ -600,6 +601,12 @@ async function getGameQuery(
     query.where(`(${alias}.${orderBy}, ${alias}.title, ${alias}.id) ${comparator} (:orderVal, :title, :id)`, { orderVal: index.orderVal, title: index.title, id: index.id });
     whereCount++;
   }
+  if (whereCount === 0) {
+    query.where('parentGameId IS NULL');
+  } else {
+    query.andWhere('parentGameId IS NULL');
+  }
+  whereCount++;
   // Apply all flat game filters
   if (filterOpts) {
     whereCount = applyFlatGameFilters(alias, query, filterOpts, whereCount);
@@ -615,8 +622,10 @@ async function getGameQuery(
     query.orderBy('pg.order', 'ASC');
     if (whereCount === 0) { query.where('pg.playlistId = :playlistId', { playlistId: filterOpts.playlistId }); }
     else                  { query.andWhere('pg.playlistId = :playlistId', { playlistId: filterOpts.playlistId }); }
+    whereCount++;
     query.skip(offset); // TODO: Why doesn't offset work here?
   }
+  
   // Tag filtering
   if (filterOpts && filterOpts.searchQuery) {
     const aliasWhitelist = filterOpts.searchQuery.whitelist.filter(f => f.field === 'tag').map(f => f.value);
