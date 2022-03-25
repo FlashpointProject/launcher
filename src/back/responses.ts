@@ -225,6 +225,9 @@ export function registerRequestCallbacks(state: BackState): void {
       });
     }
   });
+  state.socketServer.registerAny((event, type, args) => {
+    log.debug('Responses', BackIn[type]);
+  });
   // Ardil TODO
   state.socketServer.register(BackIn.LAUNCH_GAME, async (event, id) => {
     const game = await GameManager.findGame(id);
