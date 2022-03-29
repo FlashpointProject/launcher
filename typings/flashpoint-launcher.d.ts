@@ -188,7 +188,7 @@ declare module 'flashpoint-launcher' {
          * Removes a Game and all its AddApps
          * @param gameId ID of Game to remove
          */
-        function removeGameAndAddApps(gameId: string): Promise<Game | undefined>;
+        function removeGameAndChildren(gameId: string): Promise<Game | undefined>;
 
         // Misc
         /**
@@ -210,14 +210,10 @@ declare module 'flashpoint-launcher' {
 
         // Events
         const onWillLaunchGame: Event<GameLaunchInfo>;
-        const onWillLaunchAddApp: Event<AdditionalApp>;
         const onWillLaunchCurationGame: Event<GameLaunchInfo>;
-        const onWillLaunchCurationAddApp: Event<AdditionalApp>;
         const onWillUninstallGameData: Event<GameData>;
         const onDidLaunchGame: Event<Game>;
-        const onDidLaunchAddApp: Event<AdditionalApp>;
         const onDidLaunchCurationGame: Event<Game>;
-        const onDidLaunchCurationAddApp: Event<AdditionalApp>;
         const onDidInstallGameData: Event<GameData>;
         const onDidUninstallGameData: Event<GameData>;
 
@@ -573,28 +569,7 @@ declare module 'flashpoint-launcher' {
         lastUpdated: Date;
         /** Any data provided by this Source */
         data?: SourceData[];
-    }  
-
-    type AdditionalApp = {
-        /** ID of the additional application (unique identifier) */
-        id: string;
-        /** Path to the application that runs the additional application */
-        applicationPath: string;
-        /**
-         * If the additional application should run before the game.
-         * (If true, this will always run when the game is launched)
-         * (If false, this will only run when specifically launched)
-         */
-        autoRunBefore: boolean;
-        /** Command line argument(s) passed to the application to launch the game */
-        launchCommand: string;
-        /** Name of the additional application */
-        name: string;
-        /** Wait for this to exit before the Game will launch (if starting before launch) */
-        waitForExit: boolean;
-        /** Parent of this add app */
-        parentGame: Game;
-    };
+    }
 
     type Tag = {
         /** ID of the tag (unique identifier) */
