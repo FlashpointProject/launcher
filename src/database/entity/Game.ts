@@ -23,7 +23,6 @@ export class Game {
   parentGameId?: string;
 
   @OneToMany(type => Game, game => game.parentGame, {
-    cascade: true,
     eager: true
   })
   children: Game[];

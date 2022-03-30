@@ -53,7 +53,6 @@ export async function findGame(id?: string, filter?: FindOneOptions<Game>): Prom
 /** Get the row number of an entry, specified by its gameId. */
 export async function findGameRow(gameId: string, filterOpts?: FilterGameOpts, orderBy?: GameOrderBy, direction?: GameOrderReverse, index?: PageTuple): Promise<number> {
   if (orderBy) { validateSqlName(orderBy); }
-  log.debug('GameManager', 'findGameRow');
 
   // const startTime = Date.now();
   const gameRepository = getManager().getRepository(Game);
@@ -134,7 +133,6 @@ export async function findGamePageKeyset(filterOpts: FilterGameOpts, orderBy: Ga
   .select(`g.${orderBy}, g.title, g.id, row_number() over(order by g.${orderBy} ${direction}, g.title ${direction}) + 1 page_number`)
   .from('(' + subQ.getQuery() + ')', 'g')
   .where('g.page_boundary = 1')
-  .andWhere('g.parentGameId is null')
   .setParameters(subQ.getParameters());
 
   if (searchLimit) {
@@ -168,15 +166,6 @@ export async function findGamePageKeyset(filterOpts: FilterGameOpts, orderBy: Ga
   }
 
   // console.log(`  Count: ${Date.now() - startTime}ms`);
-  let i = 0;
-  while (i < total) {
-    if (keyset[i]) {
-      // @ts-ignore
-      log.debug('GameManager', keyset[i].title);
-      i = total;
-    }
-    i++;
-  }
 
   return {
     keyset,
@@ -203,7 +192,7 @@ export async function findGames<T extends boolean>(opts: FindGamesOpts, shallow:
   const ranges = opts.ranges || [{ start: 0, length: undefined }];
   const rangesOut: ResponseGameRange<T>[] = [];
 
-  console.log('FindGames:');
+  // console.log('FindGames:');
 
   let query: SelectQueryBuilder<Game> | undefined;
   for (let i = 0; i < ranges.length; i++) {
@@ -475,12 +464,10 @@ function applyFlatGameFilters(alias: string, query: SelectQueryBuilder<Game>, fi
       }
       for (const phrase of searchQuery.genericWhitelist) {
         doWhereTitle(alias, query, phrase, whereCount, true);
-        log.debug("GameManager", `Whitelist title string: ${phrase}`);
         whereCount++;
       }
       for (const phrase of searchQuery.genericBlacklist) {
         doWhereTitle(alias, query, phrase, whereCount, false);
-        log.debug("GameManager", `Blacklist title string: ${phrase}`);
         whereCount++;
       }
     }
@@ -586,7 +573,6 @@ async function getGameQuery(
   alias: string, filterOpts?: FilterGameOpts, orderBy?: GameOrderBy, direction?: GameOrderReverse, offset?: number, limit?: number, index?: PageTuple
 ): Promise<SelectQueryBuilder<Game>> {
   validateSqlName(alias);
-  log.debug('GameManager', 'getGameQuery');
   if (orderBy) { validateSqlName(orderBy); }
   if (direction) { validateSqlOrder(direction); }
 
