@@ -56,7 +56,7 @@
     "redux-devtools-extension": "2.13.8",
     "reflect-metadata": "0.1.10",
     "remark-gfm": "^2.0.0",
-    "sqlite3": "4.2.0",
+    "sqlite3": "^5.0.2",
     "tail": "2.0.3",
     "tree-kill": "1.2.2",
     "typeorm": "0.2.37",
