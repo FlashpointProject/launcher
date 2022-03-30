@@ -2,8 +2,8 @@
   "name": "Čeština",
   "config": {
     "configHeader": "Nastavení",
-    "configDesc": "(Pro aplikaci některých změn musíte stisknout tlačítko 'Uložit a restartovat')",
-    "preferencesHeader": "Předvolby",
+    "configDesc": "(Pro aplikaci některých změn musíte stisknout tlačítko \"Uložit a restartovat\")",
+    "preferencesHeader": "Přizpůsobení",
     "extremeGames": "Zobrazit filtry obsahu pro dospělé",
     "extremeGamesDesc": "Umožňuje přepínání, tvorbu a úpravy filtrů štítků označujících obsah nevhodný pro děti.",
     "hideExtremeScreenshots": "Skrývat snímky obrazovky pro dospělé",
