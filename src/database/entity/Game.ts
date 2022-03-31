@@ -1,4 +1,4 @@
-import { BeforeUpdate, Column, Entity, Index, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { BeforeUpdate, Column, Entity, Index, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, Tree, UpdateDateColumn } from 'typeorm';
 import { GameData } from './GameData';
 import { Tag } from './Tag';
 
@@ -16,16 +16,15 @@ export class Game {
   /** ID of the game (unique identifier) */
   id: string;
 
-  @ManyToOne(type => Game, game => game.children)
+  @ManyToOne((type) => Game, (game) => game.children)
   parentGame?: Game;
 
   @Column({ nullable: true })
   parentGameId?: string;
 
-  @OneToMany(type => Game, game => game.parentGame, {
-    eager: true
-  })
-  children: Game[];
+  // Careful: potential infinite loop here. DO NOT eager-load this.
+  @OneToMany((type) => Game, (game) => game.parentGame)
+  children?: Game[];
 
   @Column({collation: 'NOCASE'})
   @Index('IDX_gameTitle')

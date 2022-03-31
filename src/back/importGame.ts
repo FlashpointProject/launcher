@@ -71,7 +71,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
       where: {
         launchCommand: curation.meta.launchCommand
       }
-    });
+    }, true);
     if (existingGame) {
       // Warn user of possible duplicate
       const response = await opts.openDialog({
@@ -94,7 +94,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   }
   // Create and add game and additional applications
   const gameId = validateSemiUUID(curation.key) ? curation.key : uuid();
-  const oldGame = await GameManager.findGame(gameId);
+  const oldGame = await GameManager.findGame(gameId, undefined, true);
   if (oldGame) {
     const response = await opts.openDialog({
       title: 'Overwriting Game',

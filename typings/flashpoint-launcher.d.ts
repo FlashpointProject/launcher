@@ -451,10 +451,12 @@ declare module 'flashpoint-launcher' {
     type Game = {
         /** ID of the game (unique identifier) */
         id: string;
+        /** This game's parent game. */
+        parentGame?: Game;
         /** ID of the game which owns this game */
         parentGameId?: string;
         /** A list of child games. */
-        children: Game[];
+        children?: Game[];
         /** Full title of the game */
         title: string;
         /** Any alternate titles to match against search */

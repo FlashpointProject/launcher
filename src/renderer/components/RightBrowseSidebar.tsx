@@ -953,8 +953,9 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       const index = newChildren.findIndex(addApp => addApp.id === childId);
       if (index === -1) { throw new Error('Cant remove additional application because it was not found.'); }
       newChildren.splice(index, 1);
-      this.props.onEditGame({children: newChildren});
       this.props.onDeleteGame(childId);
+      // @TODO make this better.
+      this.props.onEditGame({children:newChildren});
     }
   }
 

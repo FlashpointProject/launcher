@@ -206,7 +206,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.LAUNCH_EXTRAS, async (event, id) => {
-    const game = await GameManager.findGame(id);
+    const game = await GameManager.findGame(id, undefined, true);
     if (game && game.extras) {
       await GameLauncher.launchExtras({
         extrasPath: game.extras,
@@ -225,19 +225,18 @@ export function registerRequestCallbacks(state: BackState): void {
       });
     }
   });
-  state.socketServer.registerAny((event, type, args) => {
-    log.debug('Responses', BackIn[type]);
-  });
   // Ardil TODO
   state.socketServer.register(BackIn.LAUNCH_GAME, async (event, id) => {
-    const game = await GameManager.findGame(id);
+    const game = await GameManager.findGame(id, undefined, true);
 
     if (game) {
-      // Ardil TODO not needed? Temp fix, see if it happens.
       if (game.parentGameId && !game.parentGame) {
         log.debug("Game Launcher", "Fetching parent game.");
-        game.parentGame = await GameManager.findGame(game.parentGameId)
+        // Note: we explicitly don't fetch the parent's children. We already have the only child we're interested in.
+        game.parentGame = await GameManager.findGame(game.parentGameId, undefined, true);
       }
+      // Ensure that the children is an array. Also enforce the no-multiple-generations rule.
+      //game.children = game.parentGameId ? [] : await game.children;
       // Make sure Server is set to configured server - Curations may have changed it
       const configServer = state.serviceInfo ? state.serviceInfo.server.find(s => s.name === state.config.server) : undefined;
       if (configServer) {
@@ -489,10 +488,10 @@ export function registerRequestCallbacks(state: BackState): void {
     }
   });
 
-  // Ardil TODO
+  // Ardil TODO ensure that we really don't need children for this.
   state.socketServer.register(BackIn.EXPORT_GAME, async (event, id, location, metaOnly) => {
     if (await pathExists(metaOnly ? path.dirname(location) : location)) {
-      const game = await GameManager.findGame(id);
+      const game = await GameManager.findGame(id, undefined, true);
       if (game) {
         // Save to file
         try {
@@ -524,7 +523,7 @@ export function registerRequestCallbacks(state: BackState): void {
 
   // Ardil TODO
   state.socketServer.register(BackIn.GET_GAME, async (event, id) => {
-    return GameManager.findGame(id);
+    return await GameManager.findGame(id);
   });
 
   // Ardil TODO
@@ -660,7 +659,8 @@ export function registerRequestCallbacks(state: BackState): void {
 
   // Ardil TODO
   state.socketServer.register(BackIn.GET_ALL_GAMES, async (event) => {
-    return GameManager.findAllGames();
+    let games: Game[] = await GameManager.findAllGames();
+    return games;
   });
 
   // Ardil TODO
@@ -959,6 +959,10 @@ export function registerRequestCallbacks(state: BackState): void {
 
   state.socketServer.register(BackIn.GET_PLAYLIST_GAME, async (event, playlistId, gameId) => {
     const playlistGame = await GameManager.findPlaylistGame(playlistId, gameId);
+    if (playlistGame && playlistGame.game) {
+      // Ensure that the children is an array. Also enforce the no-multiple-generations rule.
+      //playlistGame.game.children = playlistGame.game.parentGameId ? [] : await playlistGame.game.children;
+    }
     return playlistGame;
   });
 
@@ -985,7 +989,7 @@ export function registerRequestCallbacks(state: BackState): void {
     for (const game of platform.collection.games) {
       const addApps = platform.collection.additionalApplications.filter(a => a.gameId === game.id);
       const translatedGame = await createGameFromLegacy(game, tagCache);
-      translatedGame.children = createChildFromFromLegacyAddApp(addApps, translatedGame);
+      translatedGames.push(...createChildFromFromLegacyAddApp(addApps, translatedGame));
       translatedGames.push(translatedGame);
     }
     await GameManager.updateGames(translatedGames);
@@ -1220,7 +1224,7 @@ export function registerRequestCallbacks(state: BackState): void {
 
   // Ardil TODO
   state.socketServer.register(BackIn.EXPORT_META_EDIT, async (event, id, properties) => {
-    const game = await GameManager.findGame(id);
+    const game = await GameManager.findGame(id, undefined, true);
     if (game) {
       const meta: MetaEditMeta = {
         id: game.id,
