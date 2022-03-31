@@ -1,5 +1,5 @@
 {
-   "type": "sqlite",
+   "type": "better-sqlite3",
    "host": "localhost",
    "port": 3306,
    "username": "flashpoint",
