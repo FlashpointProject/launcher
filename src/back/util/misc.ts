@@ -181,6 +181,7 @@ export function createChildFromFromLegacyAddApp(addApps: Legacy_IAdditionalAppli
         applicationPath: addApp.applicationPath,
         launchCommand: addApp.launchCommand,
         parentGame: game,
+        parentGameId: game.id,
         library: game.library,
         alternateTitles: "",
         series: "",
@@ -205,8 +206,7 @@ export function createChildFromFromLegacyAddApp(addApps: Legacy_IAdditionalAppli
         tags: [],
         extras: undefined,
         extrasName: undefined,
-        message: undefined,
-        children: []
+        message: undefined
       })
       retVal.push(newGame);
     }

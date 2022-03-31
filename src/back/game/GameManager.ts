@@ -40,12 +40,27 @@ export async function countGames(): Promise<number> {
 }
 
 /** Find the game with the specified ID. Ardil TODO find refs*/
-export async function findGame(id?: string, filter?: FindOneOptions<Game>): Promise<Game | undefined> {
+export async function findGame(id?: string, filter?: FindOneOptions<Game>, noChildren?: boolean): Promise<Game | undefined> {
   if (id || filter) {
     const gameRepository = getManager().getRepository(Game);
     const game = await gameRepository.findOne(id, filter);
+    // Only fetch the children if the game exists, the caller didn't ask us not to, and it's not a child itself.
+    // This enforces the no-multiple-generations rule.
+    if (game && !noChildren && !game.parentGameId) {
+      game.children = await gameRepository.createQueryBuilder()
+      .relation("children")
+      .of(game)
+      .loadMany();
+    }
     if (game) {
-      game.tags.sort(tagSort);
+      if (game.tags) {
+        game.tags.sort(tagSort);
+      }
+      // Not sure why the standard "if (game.children)" wasn't working here, but it wasn't.
+      // Sort the child games. It's probably a good idea.
+      if (game.children !== undefined && game.children !== null && game.children.length > 1) {
+        game.children.sort((a, b) => a.title.toLowerCase().localeCompare(b.title.toLowerCase()));
+      }
     }
     return game;
   }
@@ -302,8 +317,10 @@ export async function removeGameAndChildren(gameId: string, dataPacksFolderPath:
     }
     // Delete children
     // Ardil TODO do Seirade's suggestion.
-    for (const child of game.children) {
-      await gameRepository.remove(child);
+    if (game.children) {
+      for (const child of game.children) {
+        await gameRepository.remove(child);
+      }
     }
     // Delete Game
     await gameRepository.remove(game);

@@ -9,7 +9,7 @@ import { OpenIcon } from './OpenIcon';
 
 export type RightBrowseSidebarExtraProps = {
   /** Extras to show and edit */
-  // These two are xplicitly non-nullable.
+  // These two are explicitly non-nullable.
   extrasPath: string;
   extrasName: string;
   game: Game;
