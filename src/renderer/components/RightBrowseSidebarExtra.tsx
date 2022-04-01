@@ -29,9 +29,6 @@ export interface RightBrowseSidebarExtra {
 
 /** Displays an additional application for a game in the right sidebar of BrowsePage. */
 export class RightBrowseSidebarExtra extends React.Component<RightBrowseSidebarExtraProps> {
-  onNameEditDone            = this.wrapOnTextChange((addApp, text) => { addApp.title = text; });
-  onExtrasNameEditDone      = this.wrapOnTextChange((addApp, text) => { addApp.applicationPath = text; });
-  onExtrasPathEditDone      = this.wrapOnTextChange((addApp, text) => { addApp.launchCommand = text; });
 
   render() {
     const allStrings = this.context;
@@ -44,27 +41,13 @@ export class RightBrowseSidebarExtra extends React.Component<RightBrowseSidebarE
           <InputField
             text={extrasName}
             placeholder={strings.noExtrasName}
-            onChange={this.onNameEditDone}
-            editable={!editDisabled} />
+            editable={false} />
           <input
             type='button'
             className='simple-button'
             value={strings.launch}
             onClick={this.onLaunchClick}/>
         </div>
-        { editDisabled ? undefined : (
-          <>
-            {/* Launch Command */}
-            <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-              <p>{strings.extras}: </p>
-              <InputField
-                text={extrasPath}
-                placeholder={strings.noExtras}
-                onChange={this.onExtrasPathEditDone}
-                editable={!editDisabled} />
-            </div>
-          </>
-        ) }
       </div>
     );
   }
