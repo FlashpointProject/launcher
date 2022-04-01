@@ -185,7 +185,7 @@ declare module 'flashpoint-launcher' {
          */
         function updateGames(games: Game[]): Promise<void>;
         /**
-         * Removes a Game and all its AddApps
+         * Removes a Game and all its children
          * @param gameId ID of Game to remove
          */
         function removeGameAndChildren(gameId: string): Promise<Game | undefined>;
