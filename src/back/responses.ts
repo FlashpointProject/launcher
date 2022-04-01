@@ -521,7 +521,6 @@ export function registerRequestCallbacks(state: BackState): void {
     }
   });
 
-  // Ardil TODO
   state.socketServer.register(BackIn.GET_GAME, async (event, id) => {
     return await GameManager.findGame(id);
   });

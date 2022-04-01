@@ -113,6 +113,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   onNotesChange               = this.wrapOnTextChange((game, text) => this.props.onEditGame({ notes: text }));
   onOriginalDescriptionChange = this.wrapOnTextChange((game, text) => this.props.onEditGame({ originalDescription: text }));
   onMessageChange             = this.wrapOnTextChange((game, text) => this.props.onEditGame({ message: text }));
+  onExtrasChange              = this.wrapOnTextChange((game, text) => this.props.onEditGame({ extras: text}));
+  onExtrasNameChange          = this.wrapOnTextChange((game, text) => this.props.onEditGame({ extrasName: text}));
   onBrokenChange              = this.wrapOnCheckBoxChange(game => {
     if (this.props.currentGame) {
       this.props.onEditGame({ broken: !this.props.currentGame.broken });
@@ -516,8 +518,28 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       className='browse-right-sidebar__searchable'
                       editable={editable}
                       onKeyDown={this.onInputKeyDown} />
-                  </div> 
+                  </div>
                   : undefined}
+                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                    <p>{strings.extrasName}: </p>
+                    <InputField
+                      text={game.extrasName ? game.extrasName : ""}
+                      placeholder={strings.noExtrasName}
+                      onChange={this.onExtrasNameChange}
+                      className='browse-right-sidebar__searchable'
+                      editable={editable}
+                      onKeyDown={this.onInputKeyDown} />
+                  </div>
+                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                    <p>{strings.extras}: </p>
+                    <InputField
+                      text={game.extras ? game.extras : ""}
+                      placeholder={strings.noExtras}
+                      onChange={this.onExtrasChange}
+                      className='browse-right-sidebar__searchable'
+                      editable={editable}
+                      onKeyDown={this.onInputKeyDown} />
+                  </div>
                   <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                     <p>{strings.dateAdded}: </p>
                     <p
@@ -597,7 +619,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
               </div>
             ) : undefined }
             {/* -- Additional Applications -- */}
-            { editable || (currentChildren && currentChildren.length > 0) ? (
+            { editable || (currentChildren && currentChildren.length > 0) || game.extras ? (
               <div className='browse-right-sidebar__section'>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--additional-applications-header'>
                   <p>{strings.additionalApplications}:</p>

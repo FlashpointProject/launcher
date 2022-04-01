@@ -59,7 +59,7 @@ export namespace GameLauncher {
 
   export async function launchExtras(opts: LaunchExtrasOpts): Promise<void> {
     const folderPath = fixSlashes(path.join(opts.fpPath, path.posix.join('Extras', opts.extrasPath)));
-    return opts.openExternal(folderPath, { activate: true })
+    return opts.openExternal(`file://${folderPath}`, { activate: true })
     .catch(error => {
       if (error) {
         opts.openDialog({
