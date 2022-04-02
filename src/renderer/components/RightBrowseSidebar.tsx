@@ -626,7 +626,10 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     key={addApp.id}
                     child={addApp}
                     editDisabled={!editable}
-                    onLaunch={this.onChildLaunch}
+                    onLaunch={() => {
+                      addApp && this.props.onGameLaunch(addApp.id)
+                      .then(this.onForceUpdateGameData);
+                    }}
                     onDelete={this.onChildDelete} />
                 )) }
                 {game.extras && game.extrasName ?
@@ -953,10 +956,6 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
 
   onDeleteGameClick = (): void => {
     this.props.onDeleteSelectedGame();
-  }
-
-  onChildLaunch(childId: string): void {
-    window.Shared.back.send(BackIn.LAUNCH_GAME, childId);
   }
 
   onExtrasLaunch(extrasPath: string) : void {
