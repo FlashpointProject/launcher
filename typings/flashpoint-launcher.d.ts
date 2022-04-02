@@ -194,8 +194,9 @@ declare module 'flashpoint-launcher' {
         /**
          * Returns all unique Platform strings in a library
          * @param library Library to search
+         * @param includeChildren Whether to include child curations in the platform search. Default: false.
          */
-        function findPlatforms(library: string): Promise<string[]>;
+        function findPlatforms(library: string, includeChildren?: boolean): Promise<string[]>;
         /**
          * Parses a Playlist JSON file and returns an object you can save later.
          * @param jsonData Raw JSON data of the Playlist file
