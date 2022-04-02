@@ -34,10 +34,11 @@ export function convertGameToCurationMetaFile(game: Game, categories: TagCategor
   parsed['Launch Command']       = game.launchCommand;
   parsed['Game Notes']           = game.notes;
   parsed['Original Description'] = game.originalDescription;
-  parsed['Parent Game ID']       = game.parentGameId;
-  parsed['Extras']               = game.extras;
-  parsed['Extras Name']          = game.extrasName;
-  parsed['Message']              = game.message;
+  // The meta files use undefined, the DB uses null.
+  parsed['Parent Game ID']       = game.parentGameId ? game.parentGameId : undefined;
+  parsed['Extras']               = game.extras ? game.extras : undefined;
+  parsed['Extras Name']          = game.extrasName ? game.extrasName : undefined;
+  parsed['Message']              = game.message ? game.message : undefined;
   // Return
   return parsed;
 }

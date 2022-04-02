@@ -506,18 +506,16 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       onClick={this.onLanguageClick}
                       onKeyDown={this.onInputKeyDown} />
                   </div>
-                  {game.message ?
-                    <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                      <p>{strings.message}: </p>
-                      <InputField
-                        text={game.message}
-                        placeholder={strings.noMessage}
-                        onChange={this.onMessageChange}
-                        className='browse-right-sidebar__searchable'
-                        editable={editable}
-                        onKeyDown={this.onInputKeyDown} />
-                    </div>
-                    : undefined}
+                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                    <p>{strings.message}: </p>
+                    <InputField
+                      text={game.message || ''}
+                      placeholder={strings.noMessage}
+                      onChange={this.onMessageChange}
+                      className='browse-right-sidebar__searchable'
+                      editable={editable}
+                      onKeyDown={this.onInputKeyDown} />
+                  </div>
                   <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                     <p>{strings.extrasName}: </p>
                     <InputField
@@ -616,7 +614,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
               </div>
             ) : undefined }
             {/* -- Additional Applications -- */}
-            { editable || (currentChildren && currentChildren.length > 0) || game.extras ? (
+            { editable || (currentChildren && currentChildren.length > 0) || (game.extras && game.extrasName) ? (
               <div className='browse-right-sidebar__section'>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--additional-applications-header'>
                   <p>{strings.additionalApplications}:</p>

@@ -305,7 +305,7 @@ async function createGameFromCurationMeta(gameId: string, gameMeta: EditCuration
   const game: Game = new Game();
   Object.assign(game, {
     id:                  gameId, // (Re-use the id of the curation)
-    parentGameId:        gameMeta.parentGameId === '' ? undefined : gameMeta.parentGameId,
+    parentGameId:        gameMeta.parentGameId === '' ? null : gameMeta.parentGameId ? gameMeta.parentGameId : null,
     title:               gameMeta.title               || '',
     alternateTitles:     gameMeta.alternateTitles     || '',
     series:              gameMeta.series              || '',
@@ -323,6 +323,9 @@ async function createGameFromCurationMeta(gameId: string, gameMeta: EditCuration
     version:             gameMeta.version             || '',
     originalDescription: gameMeta.originalDescription || '',
     language:            gameMeta.language            || '',
+    message:             gameMeta.message             || null,
+    extrasName:          gameMeta.extrasName          || null,
+    extras:              gameMeta.extras              || null,
     dateAdded:           date.toISOString(),
     dateModified:        date.toISOString(),
     broken:              false,

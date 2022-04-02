@@ -945,13 +945,13 @@ function useOnInputChange(property: keyof EditCurationMeta, key: string | undefi
   return useCallback((event: InputElementOnChangeEvent) => {
     if (key !== undefined) {
       // If it's one of the nullable types, treat '' as undefined.
-      if (property == 'parentGameId' || property == 'extras' || property == 'extrasName' || property == 'message') {
+      if (property === 'parentGameId' || property === 'extras' || property === 'extrasName' || property === 'message') {
         dispatch({
           type: 'edit-curation-meta',
           payload: {
             key: key,
             property: property,
-            value: event.currentTarget.value == '' ? undefined : event.currentTarget.value
+            value: event.currentTarget.value === '' ? undefined : event.currentTarget.value
           }
         });
       } else {
@@ -1163,7 +1163,7 @@ export function getCurationWarnings(curation: EditCuration, suggestions: Partial
   if (parentId !== '') {
     warns.invalidParentGameId = true;
     window.Shared.back.request(BackIn.GET_GAME, parentId).then((result) => {
-      warns.invalidParentGameId = result == undefined;
+      warns.invalidParentGameId = result === undefined;
     });
   } else {
     // If the parentGameId is undefined/empty, it's just a non-child game. That's fine.
