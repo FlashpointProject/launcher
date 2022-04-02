@@ -234,6 +234,13 @@ export function registerRequestCallbacks(state: BackState): void {
         // Note: we explicitly don't fetch the parent's children. We already have the only child we're interested in.
         game.parentGame = await GameManager.findGame(game.parentGameId, undefined, true);
       }
+      // Inherit empty fields.
+      if (game.parentGame) {
+        if (game.platform === '') {
+          game.platform = game.parentGame.platform;
+        }
+        // Ardil TODO any more I should add?
+      }
       // Make sure Server is set to configured server - Curations may have changed it
       const configServer = state.serviceInfo ? state.serviceInfo.server.find(s => s.name === state.config.server) : undefined;
       if (configServer) {
