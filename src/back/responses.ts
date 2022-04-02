@@ -205,11 +205,10 @@ export function registerRequestCallbacks(state: BackState): void {
     return state.execMappings;
   });
 
-  state.socketServer.register(BackIn.LAUNCH_EXTRAS, async (event, id) => {
-    const game = await GameManager.findGame(id, undefined, true);
-    if (game && game.extras) {
+  state.socketServer.register(BackIn.LAUNCH_EXTRAS, async (event, extrasPath) => {
+    if (extrasPath) {
       await GameLauncher.launchExtras({
-        extrasPath: game.extras,
+        extrasPath: extrasPath,
         fpPath: path.resolve(state.config.flashpointPath),
         htdocsPath: state.preferences.htdocsFolderPath,
         execMappings: state.execMappings,
@@ -231,12 +230,10 @@ export function registerRequestCallbacks(state: BackState): void {
 
     if (game) {
       if (game.parentGameId && !game.parentGame) {
-        log.debug("Game Launcher", "Fetching parent game.");
+        log.debug('Game Launcher', 'Fetching parent game.');
         // Note: we explicitly don't fetch the parent's children. We already have the only child we're interested in.
         game.parentGame = await GameManager.findGame(game.parentGameId, undefined, true);
       }
-      // Ensure that the children is an array. Also enforce the no-multiple-generations rule.
-      //game.children = game.parentGameId ? [] : await game.children;
       // Make sure Server is set to configured server - Curations may have changed it
       const configServer = state.serviceInfo ? state.serviceInfo.server.find(s => s.name === state.config.server) : undefined;
       if (configServer) {
@@ -362,13 +359,13 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   // Ardil TODO check that this was the right move.
-  /*state.socketServer.register(BackIn.DUPLICATE_GAME, async (event, id, dupeImages) => {
+  /* state.socketServer.register(BackIn.DUPLICATE_GAME, async (event, id, dupeImages) => {
     const game = await GameManager.findGame(id);
     let result: Game | undefined;
     if (game) {
 
       // Copy and apply new IDs
-      
+
       const newGame = deepCopy(game);
       /* Ardil TODO figure this out.
       const newAddApps = game.addApps.map(addApp => deepCopy(addApp));
@@ -658,7 +655,7 @@ export function registerRequestCallbacks(state: BackState): void {
 
   // Ardil TODO
   state.socketServer.register(BackIn.GET_ALL_GAMES, async (event) => {
-    let games: Game[] = await GameManager.findAllGames();
+    const games: Game[] = await GameManager.findAllGames();
     return games;
   });
 
@@ -957,12 +954,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.GET_PLAYLIST_GAME, async (event, playlistId, gameId) => {
-    const playlistGame = await GameManager.findPlaylistGame(playlistId, gameId);
-    if (playlistGame && playlistGame.game) {
-      // Ensure that the children is an array. Also enforce the no-multiple-generations rule.
-      //playlistGame.game.children = playlistGame.game.parentGameId ? [] : await playlistGame.game.children;
-    }
-    return playlistGame;
+    return await GameManager.findPlaylistGame(playlistId, gameId);
   });
 
   state.socketServer.register(BackIn.ADD_PLAYLIST_GAME, async (event, playlistId, gameId) => {
@@ -1121,7 +1113,7 @@ export function registerRequestCallbacks(state: BackState): void {
           exePath: state.exePath,
           appPathOverrides: state.preferences.appPathOverrides,
           providers: await getProviders(state),
-           proxy: state.preferences.browserModeProxy,
+          proxy: state.preferences.browserModeProxy,
           openDialog: state.socketServer.showMessageBoxBack(event.client),
           openExternal: state.socketServer.openExternal(event.client),
           runGame: runGameFactory(state)

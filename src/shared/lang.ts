@@ -410,6 +410,9 @@ const langTemplate = {
     'ilc_notHttp',
     'ilc_nonExistant',
     'sort',
+    'parentGameId',
+    'noParentGameId',
+    'invalidParentGameId',
   ] as const,
   playlist: [
     'enterDescriptionHere',

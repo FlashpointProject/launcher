@@ -721,7 +721,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       const newGame = new Game();
       Object.assign(newGame, {
         id: id,
-        parentGameId: id,
+        parentGameId: undefined,
         title: '',
         alternateTitles: '',
         series: '',

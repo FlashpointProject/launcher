@@ -1,26 +1,15 @@
-import { Game } from '@database/entity/Game';
 import { LangContainer } from '@shared/lang';
 import * as React from 'react';
 import { LangContext } from '../util/lang';
-import { CheckBox } from './CheckBox';
-import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { InputField } from './InputField';
-import { OpenIcon } from './OpenIcon';
 
 export type RightBrowseSidebarExtraProps = {
   /** Extras to show and edit */
   // These two are explicitly non-nullable.
   extrasPath: string;
   extrasName: string;
-  game: Game;
-  /** Called when a field is edited */
-  onEdit?: () => void;
-  /** Called when a field is edited */
-  onDelete?: (gameId: string) => void;
   /** Called when the launch button is clicked */
-  onLaunch?: (gameId: string) => void;
-  /** If the editing is disabled (it cant go into "edit mode") */
-  editDisabled?: boolean;
+  onLaunch?: (extrasPath: string) => void;
 };
 
 export interface RightBrowseSidebarExtra {
@@ -33,13 +22,12 @@ export class RightBrowseSidebarExtra extends React.Component<RightBrowseSidebarE
   render() {
     const allStrings = this.context;
     const strings = allStrings.browse;
-    const { extrasPath, extrasName, editDisabled } = this.props;
     return (
       <div className='browse-right-sidebar__additional-application'>
         {/* Title & Launch Button */}
         <div className='browse-right-sidebar__row browse-right-sidebar__row--additional-applications-name'>
           <InputField
-            text={extrasName}
+            text={this.props.extrasName}
             placeholder={strings.noExtrasName}
             editable={false} />
           <input
@@ -52,56 +40,10 @@ export class RightBrowseSidebarExtra extends React.Component<RightBrowseSidebarE
     );
   }
 
-  renderDeleteButton({ confirm, extra }: ConfirmElementArgs<LangContainer['browse']>): JSX.Element {
-    const className = 'browse-right-sidebar__additional-application__delete-button';
-    return (
-      <div
-        className={className}
-        title={extra.deleteAdditionalApplication}
-        onClick={confirm} >
-        <OpenIcon icon='trash' />
-      </div>
-    );
-  }
-
   onLaunchClick = (): void => {
     if (this.props.onLaunch) {
-      this.props.onLaunch(this.props.game.id);
+      this.props.onLaunch(this.props.extrasPath);
     }
-  }
-
-  onDeleteClick = (): void => {
-    if (this.props.onDelete) {
-      this.props.onDelete(this.props.game.id);
-    }
-  }
-
-  onEdit(): void {
-    if (this.props.onEdit) {
-      this.props.onEdit();
-    }
-  }
-
-  /** Create a wrapper for a EditableTextWrap's onEditDone callback (this is to reduce redundancy). */
-  wrapOnTextChange(func: (addApp: Game, text: string) => void): (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>) => void {
-    return (event) => {
-      const addApp = this.props.game;
-      if (addApp) {
-        func(addApp, event.currentTarget.value);
-        this.forceUpdate();
-      }
-    };
-  }
-
-  /** Create a wrapper for a CheckBox's onChange callback (this is to reduce redundancy). */
-  wrapOnCheckBoxChange(func: (addApp: Game) => void) {
-    return () => {
-      if (!this.props.editDisabled) {
-        func(this.props.game);
-        this.onEdit();
-        this.forceUpdate();
-      }
-    };
   }
 
   static contextType = LangContext;

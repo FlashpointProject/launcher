@@ -364,7 +364,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
                 // Game exists, import the data
                 await window.Shared.back.request(BackIn.IMPORT_GAME_DATA, game.id, filePath)
                 .then((gameData) => {
-                  this.setState({ text: text + filePath + '\n' +  createTextBarProgress(current, files.length) })
+                  this.setState({ text: text + filePath + '\n' +  createTextBarProgress(current, files.length) });
                 })
                 .catch((error) => {
                   text = text + `Failure - ${fileName} - ERROR: ${error}\n`;
