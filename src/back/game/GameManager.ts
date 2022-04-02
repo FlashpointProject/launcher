@@ -272,13 +272,16 @@ export async function findUniqueValuesInOrder(entity: any, column: string): Prom
   return Coerce.strArray(values.map(v => v[`entity_${column}`]));
 }
 
-export async function findPlatforms(library: string): Promise<string[]> {
+export async function findPlatforms(library: string, includeChildren?: boolean): Promise<string[]> {
   const gameRepository = getManager().getRepository(Game);
-  const libraries = await gameRepository.createQueryBuilder('game')
+  const query = gameRepository.createQueryBuilder('game')
   .where('game.library = :library', {library: library})
   .select('game.platform')
-  .distinct()
-  .getRawMany();
+  .distinct();
+  if (!includeChildren) {
+    query.andWhere('game.parentGameId IS NULL');
+  }
+  const libraries = await query.getRawMany();
   return Coerce.strArray(libraries.map(l => l.game_platform));
 }
 

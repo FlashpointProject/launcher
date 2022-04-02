@@ -95,7 +95,8 @@ export function registerRequestCallbacks(state: BackState): void {
     const mad4fpEnabled = state.serviceInfo ? (state.serviceInfo.server.findIndex(s => s.mad4fp === true) !== -1) : false;
     const platforms: Record<string, string[]> = {};
     for (const library of libraries) {
-      platforms[library] = (await GameManager.findPlatforms(library)).sort();
+      // Explicitly exclude the platforms of child curations - they're mostly blank.
+      platforms[library] = (await GameManager.findPlatforms(library, false)).sort();
     }
 
     // Fire after return has sent
