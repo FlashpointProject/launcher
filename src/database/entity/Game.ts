@@ -19,7 +19,7 @@ export class Game {
   @ManyToOne((type) => Game, (game) => game.children)
   parentGame?: Game;
 
-  @Column({ type: "varchar", nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   parentGameId: string | null;
 
   // Careful: potential infinite loop here. DO NOT eager-load this.
@@ -127,7 +127,7 @@ export class Game {
   placeholder: boolean;
 
   /** ID of the active data */
-  @Column({ type: "integer", nullable: true })
+  @Column({ type: 'integer', nullable: true })
   activeDataId: number | null;
 
   /** Whether the data is present on disk */
@@ -137,13 +137,13 @@ export class Game {
   @OneToMany(type => GameData, datas => datas.game)
   data?: GameData[];
 
-  @Column({ type: "varchar", nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   extras: string | null;
 
-  @Column({ type: "varchar", nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   extrasName: string | null;
 
-  @Column({ type: "varchar", nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   message: string | null;
 
   // This doesn't run... sometimes.
