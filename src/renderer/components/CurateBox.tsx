@@ -480,6 +480,8 @@ export function CurateBox(props: CurateBoxProps) {
   const disabled = props.curation ? props.curation.locked : false;
 
   // Whether the platform used by the curation is native locked
+  // Ardil TODO what is this used for?
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const native = useMemo(() => {
     if (props.curation && props.curation.meta.platform) {
       isPlatformNativeLocked(props.curation.meta.platform);
@@ -620,6 +622,14 @@ export function CurateBox(props: CurateBoxProps) {
               text={props.curation && props.curation.meta.title || ''}
               placeholder={strings.browse.noTitle}
               onChange={onTitleChange}
+              { ...sharedInputProps } />
+          </CurateBoxRow>
+          <CurateBoxRow title={strings.curate.parentGameId + ':'}>
+            <InputField
+              text={props.curation && props.curation.meta.parentGameId || ''}
+              placeholder={strings.curate.noParentGameId}
+              onChange={onParentGameIdChange}
+              className={warnings.invalidParentGameId ? 'input-field--warn' : ''}
               { ...sharedInputProps } />
           </CurateBoxRow>
           <CurateBoxRow title={strings.browse.alternateTitles + ':'}>
@@ -934,14 +944,26 @@ function transformOnItemSelect(callback: (event: InputElementOnChangeEvent) => v
 function useOnInputChange(property: keyof EditCurationMeta, key: string | undefined, dispatch: React.Dispatch<CurationAction>) {
   return useCallback((event: InputElementOnChangeEvent) => {
     if (key !== undefined) {
-      dispatch({
-        type: 'edit-curation-meta',
-        payload: {
-          key: key,
-          property: property,
-          value: event.currentTarget.value
-        }
-      });
+      // If it's one of the nullable types, treat '' as undefined.
+      if (property == 'parentGameId' || property == 'extras' || property == 'extrasName' || property == 'message') {
+        dispatch({
+          type: 'edit-curation-meta',
+          payload: {
+            key: key,
+            property: property,
+            value: event.currentTarget.value == '' ? undefined : event.currentTarget.value
+          }
+        });
+      } else {
+        dispatch({
+          type: 'edit-curation-meta',
+          payload: {
+            key: key,
+            property: property,
+            value: event.currentTarget.value
+          }
+        });
+      }
     }
   }, [dispatch, key]);
 }
@@ -1135,6 +1157,18 @@ export function getCurationWarnings(curation: EditCuration, suggestions: Partial
   if (!warns.noLaunchCommand) {
     warns.invalidLaunchCommand = invalidLaunchCommandWarnings(getContentFolderByKey2(curation.key), launchCommand, strings);
   }
+  // @TODO check that the parentGameId is valid in some synchronous manner.
+  /* const parentId = curation.meta.parentGameId || '';
+  log.debug("getCurationWarnings", "parentId: "+parentId);
+  if (parentId !== '') {
+    warns.invalidParentGameId = true;
+    window.Shared.back.request(BackIn.GET_GAME, parentId).then((result) => {
+      warns.invalidParentGameId = result == undefined;
+    });
+  } else {
+    // If the parentGameId is undefined/empty, it's just a non-child game. That's fine.
+    warns.invalidParentGameId = false;
+  }*/
   warns.noLogo = !curation.thumbnail.exists;
   warns.noScreenshot = !curation.screenshot.exists;
   warns.noTags = (!curation.meta.tags || curation.meta.tags.length === 0);

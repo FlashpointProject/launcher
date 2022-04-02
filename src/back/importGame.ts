@@ -86,6 +86,26 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
       }
     }
   }
+  // @TODO ditto as above.
+  if (curation.meta.parentGameId && curation.meta.parentGameId != '') {
+    const existingGame = await GameManager.findGame(curation.meta.parentGameId, undefined, true);
+    if (existingGame == undefined) {
+      // Warn user of invalid parent
+      const response = await opts.openDialog({
+        title: 'Invalid Parent',
+        message: 'This curation has an invalid parent game id.\nContinue importing this curation? Warning: this will make the game be parentless!\n\n'
+                + `Curation:\n\tTitle: ${curation.meta.title}\n\tLaunch Command: ${curation.meta.launchCommand}\n\tPlatform: ${curation.meta.platform}\n\n`,
+        buttons: ['Yes', 'No']
+      });
+      if (response === 1) {
+        throw new Error('User Cancelled Import');
+      } else {
+        curation.meta.parentGameId = undefined;
+      }
+    }
+  } else if (curation.meta.parentGameId == '') {
+    curation.meta.parentGameId = undefined;
+  }
   // Build content list
   const contentToMove = [];
   if (curation.meta.extras && curation.meta.extras.length > 0) {
@@ -259,17 +279,17 @@ export async function launchCuration(key: string, meta: EditCurationMeta, symlin
   onDidEvent.fire(game);
 }
 
-// Ardil TODO this won't work, fix it.
+// Ardil TODO this won't work, fix it. Actually, it's okay for now: the related back event *should* never be called.
 export async function launchCurationExtras(key: string, meta: EditCurationMeta, symlinkCurationContent: boolean,
   skipLink: boolean, opts: Omit<LaunchExtrasOpts, 'extrasPath'>) {
-    if (meta.extras) {
-      if (!skipLink || !symlinkCurationContent) { await linkContentFolder(key, opts.fpPath, opts.isDev, opts.exePath, opts.htdocsPath, symlinkCurationContent); }
+  if (meta.extras) {
+    if (!skipLink || !symlinkCurationContent) { await linkContentFolder(key, opts.fpPath, opts.isDev, opts.exePath, opts.htdocsPath, symlinkCurationContent); }
     await GameLauncher.launchExtras({
       ...opts,
       extrasPath: meta.extras
     });
-    }
   }
+}
 
 function logMessage(text: string, curation: EditCuration): void {
   console.log(`- ${text}\n  (id: ${curation.key})`);
@@ -285,7 +305,7 @@ async function createGameFromCurationMeta(gameId: string, gameMeta: EditCuration
   const game: Game = new Game();
   Object.assign(game, {
     id:                  gameId, // (Re-use the id of the curation)
-    parentGameId:        gameMeta.parentGameId,
+    parentGameId:        gameMeta.parentGameId === '' ? undefined : gameMeta.parentGameId,
     title:               gameMeta.title               || '',
     alternateTitles:     gameMeta.alternateTitles     || '',
     series:              gameMeta.series              || '',
@@ -475,7 +495,7 @@ function curationLog(content: string): void {
 //   return buffer.equals(secondBuffer);
 // }
 
-function createPlaceholderGame(): Game {
+/* function createPlaceholderGame(): Game {
   const id = uuid();
   const game = new Game();
   Object.assign(game, {
@@ -509,7 +529,7 @@ function createPlaceholderGame(): Game {
     activeDataOnDisk: false
   });
   return game;
-}
+}*/
 
 export async function createTagsFromLegacy(tags: string, tagCache: Record<string, Tag>): Promise<Tag[]> {
   const allTags: Tag[] = [];

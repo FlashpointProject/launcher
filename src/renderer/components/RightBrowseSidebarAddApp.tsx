@@ -2,7 +2,6 @@ import { Game } from '@database/entity/Game';
 import { LangContainer } from '@shared/lang';
 import * as React from 'react';
 import { LangContext } from '../util/lang';
-import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
@@ -69,7 +68,6 @@ export class RightBrowseSidebarChild extends React.Component<RightBrowseSidebarC
                 onChange={this.onLaunchCommandEditDone}
                 editable={!editDisabled} />
             </div>
-            
             {/* Wait for Exit */}
             <div className='browse-right-sidebar__row'>
               {/* Delete Button */}

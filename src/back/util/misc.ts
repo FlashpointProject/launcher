@@ -14,7 +14,6 @@ import { Legacy_IAdditionalApplicationInfo, Legacy_IGameInfo } from '@shared/leg
 import { deepCopy, recursiveReplace, stringifyArray } from '@shared/Util';
 import * as child_process from 'child_process';
 import * as fs from 'fs';
-import { add } from 'node-7z';
 import * as path from 'path';
 import { promisify } from 'util';
 import { uuid } from './uuid';
@@ -166,7 +165,7 @@ export async function execProcess(state: BackState, proc: IBackProcessInfo, sync
 }
 
 export function createChildFromFromLegacyAddApp(addApps: Legacy_IAdditionalApplicationInfo[], game: Game): Game[] {
-  let retVal: Game[] = [];
+  const retVal: Game[] = [];
   for (const addApp of addApps) {
     if (addApp.applicationPath === ':message:') {
       game.message = addApp.launchCommand;
@@ -174,7 +173,7 @@ export function createChildFromFromLegacyAddApp(addApps: Legacy_IAdditionalAppli
       game.extras = addApp.launchCommand;
       game.extrasName = addApp.name;
     } else {
-      let newGame = new Game();
+      const newGame = new Game();
       Object.assign(newGame, {
         id: addApp.id,
         title: addApp.name,
@@ -183,23 +182,23 @@ export function createChildFromFromLegacyAddApp(addApps: Legacy_IAdditionalAppli
         parentGame: game,
         parentGameId: game.id,
         library: game.library,
-        alternateTitles: "",
-        series: "",
-        developer: "",
-        publisher: "",
-        dateAdded: "0000-00-00 00:00:00.000",
-        dateModified: "0000-00-00 00:00:00.000",
-        platform: "",
+        alternateTitles: '',
+        series: '',
+        developer: '',
+        publisher: '',
+        dateAdded: '0000-00-00 00:00:00.000',
+        dateModified: '0000-00-00 00:00:00.000',
+        platform: '',
         broken: false,
         extreme: game.extreme,
-        playMode: "",
-        status: "",
-        notes: "",
-        source: "",
-        releaseDate: "",
-        version: "",
-        originalDescription: "",
-        language: "",
+        playMode: '',
+        status: '',
+        notes: '',
+        source: '',
+        releaseDate: '',
+        version: '',
+        originalDescription: '',
+        language: '',
         orderTitle: addApp.name.toLowerCase(),
         activeDataId: undefined,
         activeDataOnDisk: false,
@@ -207,11 +206,11 @@ export function createChildFromFromLegacyAddApp(addApps: Legacy_IAdditionalAppli
         extras: undefined,
         extrasName: undefined,
         message: undefined
-      })
+      });
       retVal.push(newGame);
     }
   }
-  /*return addApps.map(a => {
+  /* return addApps.map(a => {
     return {
       id: a.id,
       name: a.name,

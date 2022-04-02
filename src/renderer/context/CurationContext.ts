@@ -4,7 +4,6 @@ import { CurationIndexImage, EditCuration, EditCurationMeta, IndexedContent } fr
 import { createContextReducer } from '../context-reducer/contextReducer';
 import { ReducerAction } from '../context-reducer/interfaces';
 import { createCurationIndexImage } from '../curate/importCuration';
-import { uuid } from '../util/uuid';
 
 const curationDefaultState: CurationsState = {
   defaultMetaData: undefined,

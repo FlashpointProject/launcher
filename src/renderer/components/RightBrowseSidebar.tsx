@@ -7,7 +7,6 @@ import { WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
 import { BackIn, BackOut, BackOutTemplate, TagSuggestion } from '@shared/back/types';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { wrapSearchTerm } from '@shared/game/GameFilter';
-import { ModelUtils } from '@shared/game/util';
 import { GamePropSuggestions, PickType, ProcessAction } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { deepCopy, generateTagFilterGroup, sizeToString } from '@shared/Util';
@@ -19,7 +18,6 @@ import { WithPreferencesProps } from '../containers/withPreferences';
 import { WithSearchProps } from '../containers/withSearch';
 import { getGameImagePath, getGameImageURL } from '../Util';
 import { LangContext } from '../util/lang';
-import { uuid } from '../util/uuid';
 import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { DropdownInputField } from './DropdownInputField';
@@ -510,20 +508,20 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   </div>
                   {game.message ?
                     <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                    <p>{strings.message}: </p>
-                    <InputField
-                      text={game.message}
-                      placeholder={strings.noMessage}
-                      onChange={this.onMessageChange}
-                      className='browse-right-sidebar__searchable'
-                      editable={editable}
-                      onKeyDown={this.onInputKeyDown} />
-                  </div>
-                  : undefined}
+                      <p>{strings.message}: </p>
+                      <InputField
+                        text={game.message}
+                        placeholder={strings.noMessage}
+                        onChange={this.onMessageChange}
+                        className='browse-right-sidebar__searchable'
+                        editable={editable}
+                        onKeyDown={this.onInputKeyDown} />
+                    </div>
+                    : undefined}
                   <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                     <p>{strings.extrasName}: </p>
                     <InputField
-                      text={game.extrasName ? game.extrasName : ""}
+                      text={game.extrasName ? game.extrasName : ''}
                       placeholder={strings.noExtrasName}
                       onChange={this.onExtrasNameChange}
                       className='browse-right-sidebar__searchable'
@@ -533,7 +531,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                     <p>{strings.extras}: </p>
                     <InputField
-                      text={game.extras ? game.extras : ""}
+                      text={game.extras ? game.extras : ''}
                       placeholder={strings.noExtras}
                       onChange={this.onExtrasChange}
                       className='browse-right-sidebar__searchable'
@@ -556,7 +554,6 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       {(new Date(dateModified)).toUTCString()}
                     </p>
                   </div>
-                  
                   { game.broken || editable ? (
                     <div className='browse-right-sidebar__row'>
                       <div
@@ -632,14 +629,12 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     onLaunch={this.onChildLaunch}
                     onDelete={this.onChildDelete} />
                 )) }
-                {game.extras && game.extrasName ? 
-                <RightBrowseSidebarExtra
+                {game.extras && game.extrasName ?
+                  <RightBrowseSidebarExtra
                     extrasName={game.extrasName}
                     extrasPath={game.extras}
-                    game={game}
-                    editDisabled={!editable}
-                    onLaunch={this.onExtrasLaunch} /> : undefined
-                }
+                    onLaunch={this.onExtrasLaunch} />
+                  : undefined}
               </div>
             ) : undefined }
             {/* -- Application Path & Launch Command -- */}
@@ -963,9 +958,9 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   onChildLaunch(childId: string): void {
     window.Shared.back.send(BackIn.LAUNCH_GAME, childId);
   }
-  
-  onExtrasLaunch(gameId: string) : void {
-    window.Shared.back.send(BackIn.LAUNCH_EXTRAS, gameId);
+
+  onExtrasLaunch(extrasPath: string) : void {
+    window.Shared.back.send(BackIn.LAUNCH_EXTRAS, extrasPath);
   }
 
   onChildDelete = (childId: string): void => {

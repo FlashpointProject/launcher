@@ -1,11 +1,9 @@
 import { Game } from '@database/entity/Game';
 import { AppProvider } from '@shared/extensions/interfaces';
-import { ExecMapping, Omit } from '@shared/interfaces';
+import { ExecMapping } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
-import { fixSlashes, padStart, stringifyArray } from '@shared/Util';
+import { fixSlashes } from '@shared/Util';
 import { Coerce } from '@shared/utils/Coerce';
-import { ChildProcess, exec } from 'child_process';
-import { EventEmitter } from 'events';
 import { AppPathOverride, GameData, ManagedChildProcess } from 'flashpoint-launcher';
 import * as path from 'path';
 import { ApiEmitter } from './extensions/ApiEmitter';
@@ -81,9 +79,9 @@ export namespace GameLauncher {
     // Abort if placeholder (placeholders are not "actual" games)
     if (opts.game.placeholder) { return; }
     if (opts.game.message) {
-      await opts.openDialog({type: 'info', 
-        title: 'About This Game', 
-        message: opts.game.message, 
+      await opts.openDialog({type: 'info',
+        title: 'About This Game',
+        message: opts.game.message,
         buttons: ['Ok'],
       });
     }
@@ -302,34 +300,6 @@ export namespace GameLauncher {
       default:
         throw Error('Unsupported platform');
     }
-  }
-
-  function logProcessOutput(proc: ChildProcess): void {
-    // Log for debugging purposes
-    // (might be a bad idea to fill the console with junk?)
-    const logInfo = (event: string, args: any[]): void => {
-      log.info(logSource, `${event} (PID: ${padStart(proc.pid, 5)}) ${stringifyArray(args, stringifyArrayOpts)}`);
-    };
-    const logErr = (event: string, args: any[]): void => {
-      log.error(logSource, `${event} (PID: ${padStart(proc.pid, 5)}) ${stringifyArray(args, stringifyArrayOpts)}`);
-    };
-    registerEventListeners(proc, [/* 'close', */ 'disconnect', 'exit', 'message'], logInfo);
-    registerEventListeners(proc, ['error'], logErr);
-    if (proc.stdout) { proc.stdout.on('data', (data) => { logInfo('stdout', [data.toString('utf8')]); }); }
-    if (proc.stderr) { proc.stderr.on('data', (data) => { logErr('stderr', [data.toString('utf8')]); });  }
-  }
-}
-
-const stringifyArrayOpts = {
-  trimStrings: true,
-};
-
-function registerEventListeners(emitter: EventEmitter, events: string[], callback: (event: string, args: any[]) => void): void {
-  for (let i = 0; i < events.length; i++) {
-    const e: string = events[i];
-    emitter.on(e, (...args: any[]) => {
-      callback(e, args);
-    });
   }
 }
 
