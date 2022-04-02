@@ -292,16 +292,16 @@ export async function updateGames(games: Game[]): Promise<void> {
       for (const game of chunk) {
         // Set nullable properties to null if they're empty.
         if (game.parentGameId === '') {
-          game.parentGameId = undefined;
+          game.parentGameId = null;
         }
         if (game.extras === '') {
-          game.extras = undefined;
+          game.extras = null;
         }
         if (game.extrasName === '') {
-          game.extrasName = undefined;
+          game.extrasName = null;
         }
         if (game.message === '') {
-          game.message = undefined;
+          game.message = null;
         }
         await transEntityManager.save(Game, game);
       }
@@ -313,16 +313,16 @@ export async function save(game: Game): Promise<Game> {
   const gameRepository = getManager().getRepository(Game);
   // Set nullable properties to null if they're empty.
   if (game.parentGameId === '') {
-    game.parentGameId = undefined;
+    game.parentGameId = null;
   }
   if (game.extras === '') {
-    game.extras = undefined;
+    game.extras = null;
   }
   if (game.extrasName === '') {
-    game.extrasName = undefined;
+    game.extrasName = null;
   }
   if (game.message === '') {
-    game.message = undefined;
+    game.message = null;
   }
   log.debug('Launcher', 'Saving game...');
   const savedGame = await gameRepository.save(game);

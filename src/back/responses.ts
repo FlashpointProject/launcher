@@ -578,7 +578,7 @@ export function registerRequestCallbacks(state: BackState): void {
       }
       const game = await GameManager.findGame(gameData.gameId);
       if (game) {
-        game.activeDataId = undefined;
+        game.activeDataId = null;
         game.activeDataOnDisk = false;
         await GameManager.save(game);
       }

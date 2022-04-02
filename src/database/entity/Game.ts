@@ -19,8 +19,8 @@ export class Game {
   @ManyToOne((type) => Game, (game) => game.children)
   parentGame?: Game;
 
-  @Column({ nullable: true })
-  parentGameId?: string;
+  @Column({ type: "varchar", nullable: true })
+  parentGameId: string | null;
 
   // Careful: potential infinite loop here. DO NOT eager-load this.
   @OneToMany((type) => Game, (game) => game.parentGame)
@@ -127,8 +127,8 @@ export class Game {
   placeholder: boolean;
 
   /** ID of the active data */
-  @Column({ nullable: true })
-  activeDataId?: number;
+  @Column({ type: "integer", nullable: true })
+  activeDataId: number | null;
 
   /** Whether the data is present on disk */
   @Column({ default: false })
@@ -137,14 +137,14 @@ export class Game {
   @OneToMany(type => GameData, datas => datas.game)
   data?: GameData[];
 
-  @Column({ nullable: true })
-  extras?: string;
+  @Column({ type: "varchar", nullable: true })
+  extras: string | null;
 
-  @Column({ nullable: true })
-  extrasName?: string;
+  @Column({ type: "varchar", nullable: true })
+  extrasName: string | null;
 
-  @Column({ nullable: true })
-  message?: string;
+  @Column({ type: "varchar", nullable: true })
+  message: string | null;
 
   // This doesn't run... sometimes.
   @BeforeUpdate()
