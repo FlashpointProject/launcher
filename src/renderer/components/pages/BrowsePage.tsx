@@ -697,7 +697,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     this.focusGameGridOrList();
   }
 
-  onUpdateActiveGameData = (activeDataOnDisk: boolean, activeDataId?: number): void => {
+  onUpdateActiveGameData = (activeDataOnDisk: boolean, activeDataId: number | null): void => {
     if (this.state.currentGame) {
       const newGame = new Game();
       Object.assign(newGame, {...this.state.currentGame, activeDataOnDisk, activeDataId });
