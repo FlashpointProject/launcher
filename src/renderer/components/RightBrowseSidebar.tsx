@@ -613,8 +613,19 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                 </div>
               </div>
             ) : undefined }
+            {(game.extras && game.extrasName) ? (
+              <div className='browse-right-sidebar__section'>
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--additional-applications-header'>
+                  <p>{strings.extras}:</p>
+                </div>
+                <RightBrowseSidebarExtra
+                  extrasName={game.extrasName}
+                  extrasPath={game.extras}
+                  onLaunch={this.onExtrasLaunch} />
+              </div>
+            ) : undefined }
             {/* -- Additional Applications -- */}
-            { editable || (currentChildren && currentChildren.length > 0) || (game.extras && game.extrasName) ? (
+            { editable || (currentChildren && currentChildren.length > 0) ? (
               <div className='browse-right-sidebar__section'>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--additional-applications-header'>
                   <p>{strings.additionalApplications}:</p>
@@ -630,12 +641,6 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     }}
                     onDelete={this.onChildDelete} />
                 )) }
-                {game.extras && game.extrasName ?
-                  <RightBrowseSidebarExtra
-                    extrasName={game.extrasName}
-                    extrasPath={game.extras}
-                    onLaunch={this.onExtrasLaunch} />
-                  : undefined}
               </div>
             ) : undefined }
             {/* -- Application Path & Launch Command -- */}
