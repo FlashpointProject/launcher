@@ -188,7 +188,6 @@ export function registerRequestCallbacks(state: BackState): void {
     };
   });
 
-  // Ardil TODO
   state.socketServer.register(BackIn.GET_GAMES_TOTAL, async (event) => {
     return await GameManager.countGames();
   });
@@ -201,7 +200,6 @@ export function registerRequestCallbacks(state: BackState): void {
     return data;
   });
 
-  // Ardil TODO
   state.socketServer.register(BackIn.GET_EXEC, (event) => {
     return state.execMappings;
   });
@@ -225,7 +223,7 @@ export function registerRequestCallbacks(state: BackState): void {
       });
     }
   });
-  // Ardil TODO
+
   state.socketServer.register(BackIn.LAUNCH_GAME, async (event, id) => {
     const game = await GameManager.findGame(id, undefined, true);
 
@@ -331,12 +329,10 @@ export function registerRequestCallbacks(state: BackState): void {
     }
   });
 
-  // Ardil TODO
   state.socketServer.register(BackIn.SAVE_GAMES, async (event, data) => {
     await GameManager.updateGames(data);
   });
 
-  // Ardil TODO
   state.socketServer.register(BackIn.SAVE_GAME, async (event, data) => {
     try {
       const game = await GameManager.save(data);
@@ -352,7 +348,6 @@ export function registerRequestCallbacks(state: BackState): void {
     }
   });
 
-  // Ardil TODO
   state.socketServer.register(BackIn.DELETE_GAME, async (event, id) => {
     // Ardil TODO figure out this thing.
     const game = await GameManager.removeGameAndChildren(id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath));
@@ -421,7 +416,6 @@ export function registerRequestCallbacks(state: BackState): void {
     };
   });*/
 
-  // Ardil TODO
   state.socketServer.register(BackIn.DUPLICATE_PLAYLIST, async (event, data) => {
     const playlist = await GameManager.findPlaylist(data, true);
     if (playlist) {
@@ -438,7 +432,6 @@ export function registerRequestCallbacks(state: BackState): void {
     }
   });
 
-  // Ardil TODO
   state.socketServer.register(BackIn.IMPORT_PLAYLIST, async (event, filePath, library) => {
     try {
       const rawData = await fs.promises.readFile(filePath, 'utf-8');
@@ -474,7 +467,6 @@ export function registerRequestCallbacks(state: BackState): void {
     }
   });
 
-  // Ardil TODO
   state.socketServer.register(BackIn.DELETE_ALL_PLAYLISTS, async (event) => {
     const playlists = await GameManager.findPlaylists(true);
     for (const playlist of playlists) {
@@ -483,7 +475,6 @@ export function registerRequestCallbacks(state: BackState): void {
     state.socketServer.send(event.client, BackOut.PLAYLISTS_CHANGE, await GameManager.findPlaylists(state.preferences.browsePageShowExtreme));
   });
 
-  // Ardil TODO
   state.socketServer.register(BackIn.EXPORT_PLAYLIST, async (event, id, location) => {
     const playlist = await GameManager.findPlaylist(id, true);
     if (playlist) {
@@ -493,7 +484,6 @@ export function registerRequestCallbacks(state: BackState): void {
     }
   });
 
-  // Ardil TODO ensure that we really don't need children for this.
   state.socketServer.register(BackIn.EXPORT_GAME, async (event, id, location, metaOnly) => {
     if (await pathExists(metaOnly ? path.dirname(location) : location)) {
       const game = await GameManager.findGame(id, undefined, true);
@@ -530,7 +520,6 @@ export function registerRequestCallbacks(state: BackState): void {
     return await GameManager.findGame(id);
   });
 
-  // Ardil TODO
   state.socketServer.register(BackIn.GET_GAME_DATA, async (event, id) => {
     const gameData = await GameDataManager.findOne(id);
     // Verify it's still on disk
@@ -546,12 +535,10 @@ export function registerRequestCallbacks(state: BackState): void {
     return gameData;
   });
 
-  // Ardil TODO
   state.socketServer.register(BackIn.GET_GAMES_GAME_DATA, async (event, id) => {
     return GameDataManager.findGameData(id);
   });
 
-  // Ardil TODO
   state.socketServer.register(BackIn.SAVE_GAME_DATAS, async (event, data) => {
     // Ignore presentOnDisk, client isn't the most aware
     await Promise.all(data.map(async (d) => {
@@ -564,7 +551,6 @@ export function registerRequestCallbacks(state: BackState): void {
     }));
   });
 
-  // Ardil TODO
   state.socketServer.register(BackIn.DELETE_GAME_DATA, async (event, gameDataId) => {
     const gameData = await GameDataManager.findOne(gameDataId);
     if (gameData) {
