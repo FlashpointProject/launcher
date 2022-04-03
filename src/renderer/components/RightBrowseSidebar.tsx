@@ -69,7 +69,7 @@ type OwnProps = {
   onOpenExportMetaEdit: (gameId: string) => void;
 
   onEditGame: (game: Partial<Game>) => void;
-  onUpdateActiveGameData: (activeDataOnDisk: boolean, activeDataId?: number) => void;
+  onUpdateActiveGameData: (activeDataOnDisk: boolean, activeDataId: number | null) => void;
 };
 
 export type RightBrowseSidebarProps = OwnProps & WithPreferencesProps & WithSearchProps & WithConfirmDialogProps;
