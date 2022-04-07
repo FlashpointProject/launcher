@@ -35,7 +35,7 @@ import * as mime from 'mime';
 import * as path from 'path';
 import 'reflect-metadata';
 // Required for the DB Models to function
-import 'better-sqlite3';
+import 'sqlite3';
 import { Tail } from 'tail';
 import { ConnectionOptions, createConnection } from 'typeorm';
 import { ConfigFile } from './ConfigFile';
@@ -309,7 +309,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   // Setup DB
   if (!state.connection) {
     const options: ConnectionOptions = {
-      type: 'better-sqlite3',
+      type: 'sqlite',
       database: path.join(state.config.flashpointPath, 'Data', 'flashpoint.sqlite'),
       entities: [Game, Playlist, PlaylistGame, Tag, TagAlias, TagCategory, GameData, Source, SourceData],
       migrations: [Initial1593172736527, AddExtremeToPlaylist1599706152407, GameData1611753257950, SourceDataUrlPath1612434225789, SourceFileURL1612435692266,
