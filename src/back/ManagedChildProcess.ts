@@ -1,14 +1,14 @@
 import { IBackProcessInfo, INamedBackProcessInfo, ProcessState } from '@shared/interfaces';
 import { ILogPreEntry } from '@shared/Log/interface';
 import { Coerce } from '@shared/utils/Coerce';
-import { ChildProcess, execFile, spawn, exec } from 'child_process';
+import { ChildProcess, exec, execFile, spawn } from 'child_process';
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint-launcher';
+import { readFileSync } from 'fs';
 import * as readline from 'readline';
 import * as treeKill from 'tree-kill';
 import { ApiEmitter } from './extensions/ApiEmitter';
 import { Disposable } from './util/lifecycle';
-import { readFileSync } from 'fs';
 
 const { str } = Coerce;
 
