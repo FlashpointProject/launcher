@@ -100,7 +100,7 @@ export function createContainer(languages: LangFile[], currentCode: string, auto
 }
 
 /** Exit the back process cleanly. */
-export function exit(state: BackState): void {
+export async function exit(state: BackState): Promise<void> {
   if (!state.isExit) {
     state.isExit = true;
 
@@ -108,7 +108,7 @@ export function exit(state: BackState): void {
       // Kill services
       for (const service of state.services.values()) {
         if (service.info.kill) {
-          service.kill();
+          await service.kill();
         }
       }
       // Run stop commands
@@ -287,9 +287,9 @@ export async function removeService(state: BackState, processId: string): Promis
 
 export async function waitForServiceDeath(service: ManagedChildProcess) : Promise<void> {
   if (service.getState() !== ProcessState.STOPPED) {
-    return new Promise(resolve => {
+    return new Promise(async (resolve) => {
       service.on('change', onChange);
-      service.kill();
+      await service.kill();
 
       function onChange() {
         if (service.getState() === ProcessState.STOPPED) {
