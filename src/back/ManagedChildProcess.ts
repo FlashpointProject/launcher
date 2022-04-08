@@ -116,12 +116,12 @@ export class ManagedChildProcess extends EventEmitter {
       } else {
         if (process.platform == 'darwin') {
           if (this.env === undefined) {
-            this.env = {PATH: ""};
-          } else if (this.env.PATH === undefined) {
-            this.env.PATH = "";
+            this.env = {};
           }
-          // @ts-ignore This won't be undefined, despite what tsc says.
-          let pathArr: string[] = this.env.PATH.split(':');
+          if (this.env.PATH === undefined) {
+            this.env.PATH = '';
+          }
+          const pathArr: string[] = this.env.PATH.split(':');
           // HACK: manually read in /etc/paths to PATH. Needs to be done on Mac, because otherwise
           // the brew path won't be found.
           for (const entry of readFileSync('/etc/paths').toString().split('\n')) {
@@ -129,7 +129,6 @@ export class ManagedChildProcess extends EventEmitter {
               pathArr.push(entry);
             }
           }
-          // @ts-ignore This won't be undefined, despite what tsc says.
           this.env.PATH = pathArr.join(':');
           this.process = exec(this.info.filename + ' "' + this.info.arguments.join('" "') + '"', { cwd: this.cwd, env: this.env});
         } else {
