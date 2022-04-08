@@ -287,9 +287,9 @@ export async function removeService(state: BackState, processId: string): Promis
 
 export async function waitForServiceDeath(service: ManagedChildProcess) : Promise<void> {
   if (service.getState() !== ProcessState.STOPPED) {
-    return new Promise(async (resolve) => {
+    return new Promise((resolve) => {
       service.on('change', onChange);
-      await service.kill();
+      service.kill();
 
       function onChange() {
         if (service.getState() === ProcessState.STOPPED) {

@@ -159,14 +159,16 @@ export class ManagedChildProcess extends EventEmitter {
   /** Politely ask the child process to exit (if it is running). */
   public async kill(): Promise<void> {
     if (this.process) {
-      let localPID = this.process.pid;
+      const localPID = this.process.pid;
       this.setState(ProcessState.KILLING);
       // This is a re-implementation of *just* the parts of tmbr that we need.
       // Did this because tmbr wasn't working, not sure why.
       // psTree takes a callback, so we wrap it in a promise.
       await new Promise<void>((resolve, reject) => {
         psTree(localPID, async (error, children) => {
-          if (error) reject(error);
+          if (error) {
+            reject(error);
+          }
           // Kill each child process.
           await Promise.all(children.map(async (child) => {
             processKill(Number(child.PID));
@@ -193,13 +195,15 @@ export class ManagedChildProcess extends EventEmitter {
         this.spawn();
       });
       // Kill process
-      let localPID = this.process.pid;
+      const localPID = this.process.pid;
       // This is a re-implementation of *just* the parts of tmbr that we need.
       // Did this because tmbr wasn't working, not sure why.
       // psTree takes a callback, so we wrap it in a promise.
       await new Promise<void>((resolve, reject) => {
         psTree(localPID, async (error, children) => {
-          if (error) reject(error);
+          if (error)  {
+            reject(error);
+          }
           // Kill each child process.
           await Promise.all(children.map(async (child) => {
             processKill(Number(child.PID));
