@@ -4,11 +4,11 @@ import { Coerce } from '@shared/utils/Coerce';
 import { ChildProcess, execFile, spawn } from 'child_process';
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint-launcher';
-import * as readline from 'readline';
+import { kill as processKill } from 'process';
 import * as psTree from 'ps-tree';
+import * as readline from 'readline';
 import { ApiEmitter } from './extensions/ApiEmitter';
 import { Disposable } from './util/lifecycle';
-import { kill as processKill } from 'process';
 
 const { str } = Coerce;
 
@@ -159,25 +159,8 @@ export class ManagedChildProcess extends EventEmitter {
   /** Politely ask the child process to exit (if it is running). */
   public async kill(): Promise<void> {
     if (this.process) {
-      const localPID = this.process.pid;
       this.setState(ProcessState.KILLING);
-      // This is a re-implementation of *just* the parts of tmbr that we need.
-      // Did this because tmbr wasn't working, not sure why.
-      // psTree takes a callback, so we wrap it in a promise.
-      await new Promise<void>((resolve, reject) => {
-        psTree(localPID, async (error, children) => {
-          if (error) {
-            reject(error);
-          }
-          // Kill each child process.
-          await Promise.all(children.map(async (child) => {
-            processKill(Number(child.PID));
-          }));
-          resolve();
-        });
-      });
-      // Kill the parent process.
-      processKill(localPID);
+      await this.treeKill(this.process.pid);
     }
   }
 
@@ -195,30 +178,32 @@ export class ManagedChildProcess extends EventEmitter {
         this.spawn();
       });
       // Kill process
-      const localPID = this.process.pid;
-      // This is a re-implementation of *just* the parts of tmbr that we need.
-      // Did this because tmbr wasn't working, not sure why.
-      // psTree takes a callback, so we wrap it in a promise.
-      await new Promise<void>((resolve, reject) => {
-        psTree(localPID, async (error, children) => {
-          if (error)  {
-            reject(error);
-          }
-          // Kill each child process.
-          await Promise.all(children.map(async (child) => {
-            processKill(Number(child.PID));
-          }));
-          resolve();
-        });
-      });
-      // Kill the parent process.
-      processKill(localPID);
+      await this.treeKill(this.process.pid);
       this.process = undefined;
     } else {
       this.spawn();
     }
   }
 
+  private treeKill = async (PID: number): Promise<void> => {
+    // This is a re-implementation of *just* the parts of tmbr that we need.
+    // Did this because tmbr wasn't working, not sure why.
+    // psTree takes a callback, so we wrap it in a promise.
+    await new Promise<void>((resolve, reject) => {
+      psTree(PID, async (error, children) => {
+        if (error) {
+          reject(error);
+        }
+        // Kill each child process.
+        await Promise.all(children.map(async (child) => {
+          processKill(Number(child.PID));
+        }));
+        resolve();
+      });
+    });
+    // Kill the parent process.
+    processKill(PID);
+  }
   /**
     * Set the state of the process.
    * @param state State to set.
