@@ -352,7 +352,7 @@ export namespace GameLauncher {
       case 'darwin':
       case 'linux':
         if (useWine) {
-          return `wine start /unix "${gamePath}" ${args.join(' ')}`;
+          return `wine start /wait /unix "${gamePath}" ${args.join(' ')}`;
         }
         return `"${gamePath}" ${args.join(' ')}`;
       default:
