@@ -1376,7 +1376,7 @@ function createCommand(filename: string, useWine: boolean, execFile: boolean): s
     case 'darwin':
     case 'linux':
       if (useWine) {
-        return `wine start /unix "${filename}"`;
+        return `wine start /wait /unix "${filename}"`;
       }
       return `"${filename}"`;
     default:
