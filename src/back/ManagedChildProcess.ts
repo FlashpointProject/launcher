@@ -167,6 +167,7 @@ export class ManagedChildProcess extends EventEmitter {
   /** Restart the managed child process (by killing the current, and spawning a new). */
   public async restart(): Promise<void> {
     if (this.process && !this._isRestarting) {
+      this.setState(ProcessState.KILLING);
       this._isRestarting = true;
       this.logContent(`Restarting ${this.name} process`);
       // Replace all listeners with a single listener waiting for the process to exit
