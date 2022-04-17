@@ -1,11 +1,12 @@
 import { IBackProcessInfo, INamedBackProcessInfo, ProcessState } from '@shared/interfaces';
 import { ILogPreEntry } from '@shared/Log/interface';
 import { Coerce } from '@shared/utils/Coerce';
-import { ChildProcess, execFile, spawn } from 'child_process';
+import { ChildProcess, exec, execFile, spawn } from 'child_process';
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint-launcher';
 import { kill as processKill } from 'process';
 import * as psTree from 'ps-tree';
+import { readFileSync } from 'fs';
 import * as readline from 'readline';
 import { ApiEmitter } from './extensions/ApiEmitter';
 import { Disposable } from './util/lifecycle';
@@ -114,7 +115,27 @@ export class ManagedChildProcess extends EventEmitter {
       if (this.execFile) {
         this.process = execFile(this.info.filename, this.info.arguments, { cwd: this.cwd, env: this.env });
       } else {
-        this.process = spawn(this.info.filename, this.info.arguments, { cwd: this.cwd, detached: this.detached, shell: this.shell });
+        if (process.platform == 'darwin') {
+          if (this.env === undefined) {
+            this.env = {};
+          }
+          if (this.env.PATH === undefined) {
+            this.env.PATH = '';
+          }
+          const pathArr: string[] = this.env.PATH.split(':');
+          // HACK: manually read in /etc/paths to PATH. Needs to be done on Mac, because otherwise
+          // the brew path won't be found.
+          for (const entry of 
+               Sync('/etc/paths').toString().split('\n')) {
+            if (entry != '' && !pathArr.includes(entry)) {
+              pathArr.push(entry);
+            }
+          }
+          this.env.PATH = pathArr.join(':');
+          this.process = exec(this.info.filename + ' "' + this.info.arguments.join('" "') + '"', { cwd: this.cwd, env: this.env});
+        } else {
+          this.process = spawn(this.info.filename, this.info.arguments, { cwd: this.cwd, detached: this.detached, shell: this.shell , env: this.env});
+        }
       }
       // Set start timestamp
       this.startTime = Date.now();
