@@ -4,9 +4,9 @@ import { Coerce } from '@shared/utils/Coerce';
 import { ChildProcess, exec, execFile, spawn } from 'child_process';
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint-launcher';
+import { readFileSync } from 'fs';
 import { kill as processKill } from 'process';
 import * as psTree from 'ps-tree';
-import { readFileSync } from 'fs';
 import * as readline from 'readline';
 import { ApiEmitter } from './extensions/ApiEmitter';
 import { Disposable } from './util/lifecycle';
@@ -125,8 +125,7 @@ export class ManagedChildProcess extends EventEmitter {
           const pathArr: string[] = this.env.PATH.split(':');
           // HACK: manually read in /etc/paths to PATH. Needs to be done on Mac, because otherwise
           // the brew path won't be found.
-          for (const entry of 
-               Sync('/etc/paths').toString().split('\n')) {
+          for (const entry of readFileSync('/etc/paths').toString().split('\n')) {
             if (entry != '' && !pathArr.includes(entry)) {
               pathArr.push(entry);
             }
