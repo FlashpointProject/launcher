@@ -38,7 +38,7 @@ export async function countGames(): Promise<number> {
   return gameRepository.count({ parentGameId: IsNull() });
 }
 
-/** Find the game with the specified ID. Ardil TODO find refs*/
+/** Find the game with the specified ID. */
 export async function findGame(id?: string, filter?: FindOneOptions<Game>, noChildren?: boolean): Promise<Game | undefined> {
   if (id || filter) {
     const gameRepository = getManager().getRepository(Game);
@@ -50,6 +50,13 @@ export async function findGame(id?: string, filter?: FindOneOptions<Game>, noChi
       .relation('children')
       .of(game)
       .loadMany();
+      // Load tags for the children too.
+      for (const child of game.children) {
+        child.tags = await gameRepository.createQueryBuilder()
+        .relation('tags')
+        .of(child)
+        .loadMany();
+      }
     }
     if (game) {
       if (game.tags) {
@@ -72,7 +79,7 @@ export async function findGameRow(gameId: string, filterOpts?: FilterGameOpts, o
   const gameRepository = getManager().getRepository(Game);
 
   const subQ = gameRepository.createQueryBuilder('game')
-  .select(`game.id, row_number() over (order by game.${orderBy}) row_num, game.parentGameId`)
+  .select(`game.id, row_number() over (order by game.${orderBy}) row_num`)
   .where('game.parentGameId IS NULL');
   if (index) {
     if (!orderBy) { throw new Error('Failed to get game row. "index" is set but "orderBy" is missing.'); }
@@ -88,9 +95,7 @@ export async function findGameRow(gameId: string, filterOpts?: FilterGameOpts, o
   .setParameters(subQ.getParameters())
   .select('row_num')
   .from('(' + subQ.getQuery() + ')', 'g')
-  .where('g.id = :gameId', { gameId: gameId })
-  // Shouldn't be needed, but doing it anyway.
-  .andWhere('g.parentGameId IS NULL');
+  .where('g.id = :gameId', { gameId: gameId });
 
   const raw = await query.getRawOne();
   // console.log(`${Date.now() - startTime}ms for row`);
