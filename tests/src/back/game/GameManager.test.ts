@@ -1,334 +1,167 @@
 import * as GameManager from '@back/game/GameManager';
-import { GameManagerState } from '@back/game/types';
-import { EventQueue } from '@back/util/EventQueue';
 import { uuid } from '@back/util/uuid';
-import { deepCopy } from '@shared/Util';
-import { RESULT_PATH, STATIC_PATH } from '@tests/setup';
-import * as path from 'path';
+import { Game } from '@database/entity/Game';
+import { GameData } from '@database/entity/GameData';
+import { Playlist } from '@database/entity/Playlist';
+import { PlaylistGame } from '@database/entity/PlaylistGame';
+import { Source } from '@database/entity/Source';
+import { SourceData } from '@database/entity/SourceData';
+import { Tag } from '@database/entity/Tag';
+import { TagAlias } from '@database/entity/TagAlias';
+import { TagCategory } from '@database/entity/TagCategory';
+import { Initial1593172736527 } from '@database/migration/1593172736527-Initial';
+import { AddExtremeToPlaylist1599706152407 } from '@database/migration/1599706152407-AddExtremeToPlaylist';
+import { GameData1611753257950 } from '@database/migration/1611753257950-GameData';
+import { SourceDataUrlPath1612434225789 } from '@database/migration/1612434225789-SourceData_UrlPath';
+import { SourceFileURL1612435692266 } from '@database/migration/1612435692266-Source_FileURL';
+import { SourceFileCount1612436426353 } from '@database/migration/1612436426353-SourceFileCount';
+import { GameTagsStr1613571078561 } from '@database/migration/1613571078561-GameTagsStr';
+import { GameDataParams1619885915109 } from '@database/migration/1619885915109-GameDataParams';
+import { ChildCurations1648251821422 } from '@database/migration/1648251821422-ChildCurations';
+import {
+  ConnectionOptions,
+  createConnection,
+  getConnection,
+  getManager
+} from 'typeorm';
+import { gameArray } from './exampleDB';
 
-const STATIC_PLATFORMS_PATH = path.join(STATIC_PATH, 'GameManager/platforms');
-const RESULT_PLATFORMS_PATH = path.join(RESULT_PATH, 'GameManager/platforms');
-
-describe('GameManager', () => {
-  test('Load Platforms', async () => {
-    const state = createState();
-    state.platformsPath = STATIC_PLATFORMS_PATH;
-    const errors = await loadPlatforms(state);
-    expect(state.platforms.length).toBe(3); // Total number of platforms loaded
-    expect(errors.length).toBe(0); // No platforms should fail to load
-    // @TODO Compare that parsed content to a "snapshot" to verify that it was parsed correctly
-  });
-
-  test('Add Games & AddApps (to the same and already existing platform)', () => {
-    // Setup
-    const state = createState();
-    const platform = createPlatform('test_platform', 'test_library', state.platformsPath);
-    state.platforms.push(platform);
-    for (let i = 0; i < 10; i++) {
-      const before = deepCopy(platform);
-      // Add Game & AddApps
-      const game = createGame(before.name, before.library);
-      const addApps = createAddApps(game.id, i % 3); // Try different numbers of add-apps
-      GameManager.updateMeta(state, {
-        game: game,
-        addApps: addApps,
-      });
-      // Compare
-      expect(platform).toEqual({ // Game & AddApps have been added to the end of the collections in the correct order
-        ...before,
-        data: {
-          LaunchBox: {
-            Game: [
-              ...before.data.LaunchBox.Game,
-              GameParser.reverseParseGame(game),
-            ],
-            AdditionalApplication: [
-              ...before.data.LaunchBox.AdditionalApplication,
-              ...addApps.map(GameParser.reverseParseAdditionalApplication),
-            ],
-          },
-        },
-        collection: {
-          games: [ ...before.collection.games, game, ],
-          additionalApplications: [ ...before.collection.additionalApplications, ...addApps ],
-        },
-      });
-    }
-  });
-
-  test('Add Games & AddApps (to different and non-existing platforms)', () => {
-    // Setup
-    const state = createState();
-    for (let i = 0; i < 10; i++) {
-      // Add Game
-      const game = createGame(`platform_${i}`, 'some_library');
-      const addApps = createAddApps(game.id, i % 3); // Try different numbers of add-apps
-      GameManager.updateMeta(state, {
-        game: game,
-        addApps: addApps,
-      });
-      // Compare
-      const platform = state.platforms.find(p => (p.name === game.platform) && (p.library === game.library));
-      expect(platform).toEqual({ // Platform has been created and contains the game and add-apps
-        filePath: path.join(state.platformsPath, game.library, game.platform + '.xml'),
-        name: game.platform,
-        library: game.library,
-        data: {
-          LaunchBox: {
-            Game: [ GameParser.reverseParseGame(game) ],
-            AdditionalApplication: addApps.map(GameParser.reverseParseAdditionalApplication),
-          },
-        },
-        collection: {
-          games: [ game ],
-          additionalApplications: addApps,
-        },
-      });
-    }
-  });
-
-  test('Move Game & AddApps (between existing platforms)', () => {
-    // Setup
-    const state = createState();
-    const fromPlatform = createPlatform('from_platform', 'some_library', state.platformsPath);
-    const toPlatform = createPlatform('to_platform', 'another_library', state.platformsPath);
-    state.platforms.push(fromPlatform, toPlatform);
-    // Add Game
-    const game = createGame(fromPlatform.name, fromPlatform.library);
-    const addApps = createAddApps(game.id, 5);
-    GameManager.updateMeta(state, {
-      game: game,
-      addApps: addApps,
+const formatLocal = (input: Game): Partial<Game> => {
+  const partial: Partial<Game> = input;
+  delete partial.placeholder;
+  delete partial.updateTagsStr;
+  return partial;
+};
+const formatDB = (input?: Game): Game | undefined => {
+  if (input) {
+    input.dateAdded = new Date(input.dateAdded).toISOString();
+  }
+  return input;
+};
+const formatDBMany = (input?: Game[]): Partial<Game>[] | undefined => {
+  if (input) {
+    input.forEach((game) => {
+      // TODO It seems the types aren't quite right? This conversion *should* be unnecessary, but here we are?
+      game.dateAdded = new Date(game.dateAdded).toISOString();
     });
-    // Move Game
-    const sameGame: IGameInfo = {
-      ...game,
-      platform: toPlatform.name,
-      library: toPlatform.library,
-    };
-    GameManager.updateMeta(state, {
-      game: sameGame,
-      addApps: addApps,
-    });
-    // Compare
-    expect(fromPlatform).toEqual({ // First platform is empty
-      ...fromPlatform,
-      data: {
-        LaunchBox: {
-          Game: [],
-          AdditionalApplication: [],
-        },
-      },
-      collection: {
-        games: [],
-        additionalApplications: [],
-      },
-    });
-    expect(toPlatform).toEqual({ // Second platform has the game and add-apps
-      ...toPlatform,
-      data: {
-        LaunchBox: {
-          Game: [ GameParser.reverseParseGame(sameGame) ],
-          AdditionalApplication: addApps.map(GameParser.reverseParseAdditionalApplication),
-        },
-      },
-      collection: {
-        games: [ sameGame ],
-        additionalApplications: addApps,
-      },
-    });
-  });
+  }
+  return input;
+};
 
-  test('Update Game (update the value of a field)', () => {
-    // Setup
-    const state = createState();
-    const platform = createPlatform('test_platform', 'test_library', state.platformsPath);
-    state.platforms.push(platform);
-    // Add Game
-    const game = createGame(platform.name, platform.library);
-    GameManager.updateMeta(state, {
-      game: game,
-      addApps: [],
-    });
-    // Update Game
-    const before = deepCopy(platform);
-    const updatedGame: IGameInfo = {
-      ...game,
-      title: 'New Title',
-    };
-    GameManager.updateMeta(state, {
-      game: updatedGame,
-      addApps: [],
-    });
-    // Compare
-    expect(platform).not.toEqual(before); // Platform has been changed
-    expect(platform).toEqual({ // Game has been added to the platform
-      ...before,
-      data: {
-        LaunchBox: {
-          Game: [ GameParser.reverseParseGame(updatedGame) ],
-          AdditionalApplication: [],
-        },
-      },
-      collection: {
-        games: [ updatedGame ],
-        additionalApplications: [],
-      },
-    });
-  });
-
-  test('Remove Games & AddApps (from one platform)', () => {
-    // Setup
-    const state = createState();
-    const platform = createPlatform('test_platform', 'test_library', state.platformsPath);
-    state.platforms.push(platform);
-    // Add Games & AddApps
-    for (let i = 0; i < 10; i++) {
-      const game = createGame(platform.name, platform.library);
-      const addApp = createAddApp(game.id);
-      GameManager.updateMeta(state, {
-        game: game,
-        addApps: [ addApp ],
-      });
-    }
-    // Remove Games & AddApps
-    for (let i = platform.collection.games.length - 1; i >= 0; i--) {
-      const before = deepCopy(platform);
-      const index = ((i + 7) ** 3) % platform.collection.games.length; // Pick a "random" index
-      const gameId = platform.collection.games[index].id;
-      // Remove Game & AddApps
-      GameManager.removeGameAndAddApps(state, gameId);
-      // Compare
-      expect(platform).toEqual({ // Game & AddApps have been removed
-        ...before,
-        data: {
-          LaunchBox: {
-            Game: before.data.LaunchBox.Game.filter(g => g.ID !== gameId),
-            AdditionalApplication: before.data.LaunchBox.AdditionalApplication.filter(a => a.GameID !== gameId),
-          }
-        },
-        collection: {
-          games: before.collection.games.filter(g => g.id !== gameId),
-          additionalApplications: before.collection.additionalApplications.filter(a => a.gameId !== gameId),
-        },
-      });
-    }
-  });
-
-  test('Save Games & AddApps to file (multiple times)', () => {
-    // Setup
-    const state = createState();
-    const platform = createPlatform('test_platform', 'test_library', state.platformsPath);
-    state.platforms.push(platform);
-    // Add content to platform
-    for (let i = 0; i < 10; i++) {
-      const game = createGame(platform.name, platform.library);
-      GameManager.updateMeta(state, {
-        game: game,
-        addApps: createAddApps(game.id, i % 3), // Try different numbers of add-apps
-      });
-    }
-    // Save file multiple times
-    const saves: Promise<any>[] = [];
-    for (let i = 0; i < 5; i++) {
-      saves.push(expect(GameManager.savePlatforms(state, [ platform ])).resolves.toBe(undefined));
-    }
-    return Promise.all(saves);
-  });
-
-  test('Find Game', () => {
-    // Setup
-    const state = createState();
-    const platform = createPlatform('test_platform', 'test_library', state.platformsPath);
-    const game = createGame('', '');
-    game.title = 'Sonic';
-    platform.collection.games.push(game);
-    // Find Sonic (not Tails)
-    expect(GameManager.findGame([platform], g => g.title === 'Tails')).toBe(undefined);
-    expect(GameManager.findGame([platform], g => g.title === 'Sonic')).toHaveProperty('title', 'Sonic');
-  });
-
-  // @TODO Add tests for adding, moving and removing add-apps
-  // @TODO Test that edited games and add-apps retain their position in the arrays
-  // @TODO Test that added games and add-apps get pushed to the end of the arrays
-
-  // @TODO Test "GameManager.findGame"
-  // @TODO Test functions in the "LaunchBox" namespace?
+beforeAll(async () => {
+  const options: ConnectionOptions = {
+    type: 'sqlite',
+    database: ':memory:',
+    entities: [
+      Game,
+      Playlist,
+      PlaylistGame,
+      Tag,
+      TagAlias,
+      TagCategory,
+      GameData,
+      Source,
+      SourceData,
+    ],
+    migrations: [
+      Initial1593172736527,
+      AddExtremeToPlaylist1599706152407,
+      GameData1611753257950,
+      SourceDataUrlPath1612434225789,
+      SourceFileURL1612435692266,
+      SourceFileCount1612436426353,
+      GameTagsStr1613571078561,
+      GameDataParams1619885915109,
+      ChildCurations1648251821422,
+    ],
+  };
+  const connection = await createConnection(options);
+  // TypeORM forces on but breaks Playlist Game links to unimported games
+  await connection.query('PRAGMA foreign_keys=off;');
+  await connection.runMigrations();
 });
 
-function createState(): GameManagerState {
-  return {
-    platforms: [],
-    platformsPath: RESULT_PLATFORMS_PATH,
-    saveQueue: new EventQueue(),
-    log: () => {}, // Don't log
-  };
-}
+afterAll(async () => {
+  await getConnection().close();
+});
 
-function createPlatform(name: string, library: string, folderPath: string): GamePlatform {
-  return {
-    filePath: path.join(folderPath, library, name + '.xml'),
-    name: name,
-    library: library,
-    data: {
-      LaunchBox: {
-        Game: [],
-        AdditionalApplication: [],
-      },
-    },
-    collection: {
-      games: [],
-      additionalApplications: [],
-    },
-  };
-}
+/* ASSUMPTIONS MADE:
+ * Each testing block will receive a clean database. Ensure that each testing block leaves a clean DB.
+ */
 
-function createGame(platform: string, library: string): IGameInfo {
-  const id = uuid();
-  return {
-    library: library,
-    orderTitle: '',
-    placeholder: false,
-    title: '',
-    alternateTitles: '',
-    id: id,
-    parentGameId: id,
-    series: '',
-    developer: '',
-    publisher: '',
-    dateAdded: '',
-    platform: platform,
-    broken: false,
-    extreme: false,
-    playMode: '',
-    status: '',
-    notes: '',
-    tags: '',
-    source: '',
-    originalDescription: '',
-    applicationPath: '',
-    language: '',
-    launchCommand: '',
-    releaseDate: '',
-    version: '',
-  };
-}
+describe('GameManager.findGame()', () => {
+  beforeAll(async () => {
+    await getManager().getRepository(Game).save(gameArray);
+  });
+  afterAll(async () => {
+    await getManager().getRepository(Game).clear();
+  });
+  test('Find game by UUID', async () => {
+    expect(
+      formatDB(await GameManager.findGame(gameArray[0].id, undefined, true))
+    ).toEqual(formatLocal(gameArray[0]));
+  });
+  test('Dont find game by UUID', async () => {
+    // Generate a new UUID and try to fetch it. Should fail.
+    expect(formatDB(await GameManager.findGame(uuid()))).toBeUndefined();
+  });
+  test('Find game by property', async () => {
+    expect(
+      formatDB(
+        await GameManager.findGame(
+          undefined,
+          { where: { title: gameArray[0].title } },
+          true
+        )
+      )
+    ).toEqual(formatLocal(gameArray[0]));
+  });
+  test('Dont find game by property', async () => {
+    // At this point, I'm just using uuid() as a random string generator.
+    expect(
+      formatDB(
+        await GameManager.findGame(undefined, { where: { title: uuid() } })
+      )
+    ).toBeUndefined();
+  });
+  test('Find game including children', async () => {
+    expect(
+      formatDBMany((await GameManager.findGame(gameArray[0].id))?.children)
+    ).toEqual([formatLocal(gameArray[1])]);
+  });
+  test('Find game excluding children', async () => {
+    expect(
+      formatDBMany(
+        (await GameManager.findGame(gameArray[0].id, undefined, true))?.children
+      )
+    ).toBeUndefined();
+  });
+  test('Find game lacking children', async () => {
+    expect(
+      formatDBMany((await GameManager.findGame(gameArray[1].id))?.children)
+    ).toBeUndefined();
+  });
+});
 
-function createAddApp(gameId: string): IAdditionalApplicationInfo {
-  return {
-    id: uuid(),
-    name: '',
-    gameId: gameId,
-    applicationPath: '',
-    launchCommand: '',
-    autoRunBefore: false,
-    waitForExit: false,
-  };
-}
-function createAddApps(gameId: string, length: number): IAdditionalApplicationInfo[] {
-  const result: IAdditionalApplicationInfo[] = [];
-  for (let i = 0; i < length; i++) {
-    result.push(createAddApp(gameId));
-  }
-  return result;
-}
+describe('GameManager.countGames()', () => {
+  beforeEach(async () => {
+    await getManager().getRepository(Game).save(gameArray);
+  });
+  afterEach(async () => {
+    await getManager().getRepository(Game).clear();
+  });
+  test('Count games', async () => {
+    // Count the number of games that have a null parentGameId.
+    let count = 0;
+    gameArray.forEach((game) => {
+      if (!game.parentGameId) {
+        count++;
+      }
+    });
+    expect(await GameManager.countGames()).toBe(count);
+  });
+  test('Count zero games', async () => {
+    getManager().getRepository(Game).clear();
+    expect(await GameManager.countGames()).toBe(0);
+  });
+});
