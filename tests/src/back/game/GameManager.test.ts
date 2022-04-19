@@ -22,14 +22,35 @@ import {
   ConnectionOptions,
   createConnection,
   getConnection,
-  getManager
+  getManager,
 } from 'typeorm';
 import { gameArray } from './exampleDB';
+import * as v8 from 'v8';
+
+// Only the keys of T that can't be null or undefined.
+type DefinedKeysOf<T> = {
+  [k in keyof T]-?: null extends T[k]
+    ? never
+    : undefined extends T[k]
+    ? never
+    : k;
+}[keyof T];
+
+// This will be a copy of the array that I can feel comfortable mutating. I want to leave gameArray clean.
+let arrayCopy: Game[];
 
 const formatLocal = (input: Game): Partial<Game> => {
-  const partial: Partial<Game> = input;
+  const partial = input as Partial<Game>;
   delete partial.placeholder;
   delete partial.updateTagsStr;
+  return partial;
+};
+const formatLocalMany = (input: Game[]): Partial<Game>[] => {
+  const partial = input as Partial<Game>[];
+  partial.forEach((game) => {
+    delete game.placeholder;
+    delete game.updateTagsStr;
+  });
   return partial;
 };
 const formatDB = (input?: Game): Game | undefined => {
@@ -46,6 +67,33 @@ const formatDBMany = (input?: Game[]): Partial<Game>[] | undefined => {
     });
   }
   return input;
+};
+/**
+ * Filters and then sorts an array of Game objects.
+ * @param array The array to filter and sort.
+ * @param filterFunc The function that determines if an element should be left in by the filter.
+ * @param sortColumn The column to sort the array on.
+ * @param reverse Whether or not to sort the array backwards.
+ * @returns The filtered and sorted array.
+ */
+const filterAndSort = (
+  array: Game[],
+  filterFunc: (game: Game) => boolean,
+  sortColumn: DefinedKeysOf<Game>,
+  reverse?: boolean
+): Game[] => {
+  const filtered = array.filter(filterFunc);
+  const flip = reverse ? -1 : 1;
+  filtered.sort((a: Game, b: Game) => {
+    if (a[sortColumn] > b[sortColumn]) {
+      return flip * 1;
+    }
+    if (a[sortColumn] < b[sortColumn]) {
+      return flip * -1;
+    }
+    return 0;
+  });
+  return filtered;
 };
 
 beforeAll(async () => {
@@ -161,7 +209,265 @@ describe('GameManager.countGames()', () => {
     expect(await GameManager.countGames()).toBe(count);
   });
   test('Count zero games', async () => {
-    getManager().getRepository(Game).clear();
+    await getManager().getRepository(Game).clear();
     expect(await GameManager.countGames()).toBe(0);
+  });
+});
+
+describe('GameManager.findGameRow()', () => {
+  beforeAll(async () => {
+    await getManager().getRepository(Game).save(gameArray);
+  });
+  afterAll(async () => {
+    await getManager().getRepository(Game).clear();
+  });
+  test('Valid game ID, orderBy title', async () => {
+    // People on the internet say that this will be suboptimal. I don't care too much.
+    arrayCopy = v8.deserialize(
+      v8.serialize(formatLocalMany(gameArray))
+    ) as Game[];
+    const filtered = filterAndSort(
+      arrayCopy,
+      (game: Game) => game.parentGameId == null,
+      'title'
+    );
+    expect(await GameManager.findGameRow(gameArray[3].id, 'title', 'ASC')).toBe(
+      1 + filtered.findIndex((game: Game) => game.id == gameArray[3].id)
+    );
+  });
+  test('Invalid game ID, orderBy title', async () => {
+    expect(await GameManager.findGameRow(uuid(), 'title', 'ASC')).toBe(-1);
+  });
+  test('Reasonable game filter, orderBy title', async () => {
+    arrayCopy = v8.deserialize(
+      v8.serialize(formatLocalMany(gameArray))
+    ) as Game[];
+    const filtered = filterAndSort(
+      arrayCopy,
+      (game: Game) =>
+        game.originalDescription.includes('t') && game.parentGameId == null,
+      'title'
+    );
+    expect(
+      await GameManager.findGameRow(gameArray[0].id, 'title', 'ASC', {
+        searchQuery: {
+          genericBlacklist: [],
+          genericWhitelist: [],
+          blacklist: [],
+          whitelist: [
+            {
+              field: 'originalDescription',
+              value: 't',
+            },
+          ],
+        },
+      })
+    )
+      // Add one because row_number() is one-based, and JS arrays are zero-based.
+      .toBe(1 + filtered.findIndex((game: Game) => game.id == gameArray[0].id));
+  });
+  test('Exclusive game filter, orderBy title', async () => {
+    expect(
+      await GameManager.findGameRow(gameArray[0].id, 'title', 'ASC', {
+        searchQuery: {
+          genericBlacklist: [],
+          genericWhitelist: [],
+          blacklist: [],
+          whitelist: [
+            {
+              field: 'originalDescription',
+              // Again, just a random string generator, essentially.
+              value: uuid(),
+            },
+          ],
+        },
+      })
+    ).toBe(-1);
+  });
+  test('Valid game ID, orderBy developer', async () => {
+    arrayCopy = v8.deserialize(
+      v8.serialize(formatLocalMany(gameArray))
+    ) as Game[];
+    const filtered = filterAndSort(
+      arrayCopy,
+      (game: Game) => game.parentGameId == null,
+      'developer'
+    );
+    //console.log(JSON.stringify(arrayCopy));
+    expect(await GameManager.findGameRow(gameArray[0].id, 'developer', 'ASC'))
+      // Add one because row_number() is one-based, and JS arrays are zero-based.
+      .toBe(1 + filtered.findIndex((game: Game) => game.id == gameArray[0].id));
+  });
+  test('Invalid game filter', async () => {
+    // Invalid game filters should be ignored.
+    arrayCopy = v8.deserialize(
+      v8.serialize(formatLocalMany(gameArray))
+    ) as Game[];
+    const filtered = filterAndSort(
+      arrayCopy,
+      (game: Game) =>
+        game.originalDescription.includes('t') && game.parentGameId == null,
+      'title'
+    );
+    expect(
+      await GameManager.findGameRow(gameArray[0].id, 'title', 'ASC', {
+        searchQuery: {
+          genericBlacklist: [],
+          genericWhitelist: [],
+          blacklist: [],
+          whitelist: [
+            {
+              field: uuid(),
+              value: 't',
+            },
+            {
+              field: 'originalDescription',
+              value: 't',
+            },
+          ],
+        },
+      })
+    ).toBe(1 + filtered.findIndex((game: Game) => game.id == gameArray[0].id));
+  });
+  test('Valid game ID, orderBy title reverse', async () => {
+    arrayCopy = v8.deserialize(
+      v8.serialize(formatLocalMany(gameArray))
+    ) as Game[];
+    const filtered = filterAndSort(
+      arrayCopy,
+      (game: Game) => game.parentGameId == null,
+      'title',
+      true
+    );
+    expect(
+      await GameManager.findGameRow(gameArray[3].id, 'title', 'DESC')
+    ).toBe(1 + filtered.findIndex((game: Game) => game.id == gameArray[3].id));
+  });
+  test('Child game ID, orderBy title', async () => {
+    expect(await GameManager.findGameRow(gameArray[1].id, 'title', 'ASC')).toBe(
+      -1
+    );
+  });
+  test('Valid game ID, orderBy title, with index before', async () => {
+    arrayCopy = v8.deserialize(
+      v8.serialize(formatLocalMany(gameArray))
+    ) as Game[];
+    const filtered = filterAndSort(
+      arrayCopy,
+      (game: Game) => game.parentGameId == null,
+      'title'
+    );
+    const indexPos = filtered.findIndex(
+      (game: Game) => game.id == gameArray[5].id
+    );
+    const resultPos = filtered.findIndex(
+      (game: Game) => game.id == gameArray[0].id
+    );
+    const diff = resultPos - indexPos;
+    expect(
+      await GameManager.findGameRow(
+        gameArray[0].id,
+        'title',
+        'ASC',
+        undefined,
+        {
+          orderVal: gameArray[5].title,
+          title: gameArray[5].title,
+          id: gameArray[5].id,
+        }
+      )
+    ).toBe(diff > 0 ? diff : -1);
+  });
+  test('Valid game ID, orderBy title, with index after', async () => {
+    arrayCopy = v8.deserialize(
+      v8.serialize(formatLocalMany(gameArray))
+    ) as Game[];
+    const filtered = filterAndSort(
+      arrayCopy,
+      (game: Game) => game.parentGameId == null,
+      'title'
+    );
+    const indexPos = filtered.findIndex(
+      (game: Game) => game.id == gameArray[4].id
+    );
+    const resultPos = filtered.findIndex(
+      (game: Game) => game.id == gameArray[0].id
+    );
+    const diff = resultPos - indexPos;
+    expect(
+      await GameManager.findGameRow(
+        gameArray[0].id,
+        'title',
+        'ASC',
+        undefined,
+        {
+          orderVal: gameArray[4].title,
+          title: gameArray[4].title,
+          id: gameArray[4].id,
+        }
+      )
+    ).toBe(diff > 0 ? diff : -1);
+  });
+  test('Valid game ID, orderBy title reverse, with index before', async () => {
+    arrayCopy = v8.deserialize(
+      v8.serialize(formatLocalMany(gameArray))
+    ) as Game[];
+    const filtered = filterAndSort(
+      arrayCopy,
+      (game: Game) => game.parentGameId == null,
+      'title',
+      true
+    );
+    const indexPos = filtered.findIndex(
+      (game: Game) => game.id == gameArray[4].id
+    );
+    const resultPos = filtered.findIndex(
+      (game: Game) => game.id == gameArray[0].id
+    );
+    const diff = resultPos - indexPos;
+    expect(
+      await GameManager.findGameRow(
+        gameArray[0].id,
+        'title',
+        'DESC',
+        undefined,
+        {
+          orderVal: gameArray[4].title,
+          title: gameArray[4].title,
+          id: gameArray[4].id,
+        }
+      )
+    ).toBe(diff > 0 ? diff : -1);
+  });
+  test('Valid game ID, orderBy title reverse, with index after', async () => {
+    arrayCopy = v8.deserialize(
+      v8.serialize(formatLocalMany(gameArray))
+    ) as Game[];
+    const filtered = filterAndSort(
+      arrayCopy,
+      (game: Game) => game.parentGameId == null,
+      'title',
+      true
+    );
+    const indexPos = filtered.findIndex(
+      (game: Game) => game.id == gameArray[5].id
+    );
+    const resultPos = filtered.findIndex(
+      (game: Game) => game.id == gameArray[0].id
+    );
+    const diff = resultPos - indexPos;
+    expect(
+      await GameManager.findGameRow(
+        gameArray[0].id,
+        'title',
+        'DESC',
+        undefined,
+        {
+          orderVal: gameArray[5].title,
+          title: gameArray[5].title,
+          id: gameArray[5].id,
+        }
+      )
+    ).toBe(diff > 0 ? diff : -1);
   });
 });
