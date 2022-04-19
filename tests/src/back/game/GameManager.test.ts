@@ -32,8 +32,8 @@ type DefinedKeysOf<T> = {
   [k in keyof T]-?: null extends T[k]
     ? never
     : undefined extends T[k]
-    ? never
-    : k;
+      ? never
+      : k;
 }[keyof T];
 
 // This will be a copy of the array that I can feel comfortable mutating. I want to leave gameArray clean.
@@ -263,8 +263,8 @@ describe('GameManager.findGameRow()', () => {
         },
       })
     )
-      // Add one because row_number() is one-based, and JS arrays are zero-based.
-      .toBe(1 + filtered.findIndex((game: Game) => game.id == gameArray[0].id));
+    // Add one because row_number() is one-based, and JS arrays are zero-based.
+    .toBe(1 + filtered.findIndex((game: Game) => game.id == gameArray[0].id));
   });
   test('Exclusive game filter, orderBy title', async () => {
     expect(
@@ -293,10 +293,9 @@ describe('GameManager.findGameRow()', () => {
       (game: Game) => game.parentGameId == null,
       'developer'
     );
-    //console.log(JSON.stringify(arrayCopy));
     expect(await GameManager.findGameRow(gameArray[0].id, 'developer', 'ASC'))
-      // Add one because row_number() is one-based, and JS arrays are zero-based.
-      .toBe(1 + filtered.findIndex((game: Game) => game.id == gameArray[0].id));
+    // Add one because row_number() is one-based, and JS arrays are zero-based.
+    .toBe(1 + filtered.findIndex((game: Game) => game.id == gameArray[0].id));
   });
   test('Invalid game filter', async () => {
     // Invalid game filters should be ignored.
