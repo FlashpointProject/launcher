@@ -21,7 +21,7 @@ import { ChildCurations1648251821422 } from '@database/migration/1648251821422-C
 import {
   ConnectionOptions,
   createConnection,
-  getConnection,
+  getConnectionManager,
   getManager,
 } from 'typeorm';
 import { gameArray } from './exampleDB';
@@ -97,40 +97,38 @@ const filterAndSort = (
 };
 
 beforeAll(async () => {
-  const options: ConnectionOptions = {
-    type: 'sqlite',
-    database: ':memory:',
-    entities: [
-      Game,
-      Playlist,
-      PlaylistGame,
-      Tag,
-      TagAlias,
-      TagCategory,
-      GameData,
-      Source,
-      SourceData,
-    ],
-    migrations: [
-      Initial1593172736527,
-      AddExtremeToPlaylist1599706152407,
-      GameData1611753257950,
-      SourceDataUrlPath1612434225789,
-      SourceFileURL1612435692266,
-      SourceFileCount1612436426353,
-      GameTagsStr1613571078561,
-      GameDataParams1619885915109,
-      ChildCurations1648251821422,
-    ],
-  };
-  const connection = await createConnection(options);
-  // TypeORM forces on but breaks Playlist Game links to unimported games
-  await connection.query('PRAGMA foreign_keys=off;');
-  await connection.runMigrations();
-});
-
-afterAll(async () => {
-  await getConnection().close();
+  if (!getConnectionManager().has('default')) {
+    const options: ConnectionOptions = {
+      type: 'sqlite',
+      database: ':memory:',
+      entities: [
+        Game,
+        Playlist,
+        PlaylistGame,
+        Tag,
+        TagAlias,
+        TagCategory,
+        GameData,
+        Source,
+        SourceData,
+      ],
+      migrations: [
+        Initial1593172736527,
+        AddExtremeToPlaylist1599706152407,
+        GameData1611753257950,
+        SourceDataUrlPath1612434225789,
+        SourceFileURL1612435692266,
+        SourceFileCount1612436426353,
+        GameTagsStr1613571078561,
+        GameDataParams1619885915109,
+        ChildCurations1648251821422,
+      ],
+    };
+    const connection = await createConnection(options);
+    // TypeORM forces on but breaks Playlist Game links to unimported games
+    await connection.query('PRAGMA foreign_keys=off;');
+    await connection.runMigrations();
+  }
 });
 
 /* ASSUMPTIONS MADE:
@@ -470,3 +468,4 @@ describe('GameManager.findGameRow()', () => {
     ).toBe(diff > 0 ? diff : -1);
   });
 });
+
