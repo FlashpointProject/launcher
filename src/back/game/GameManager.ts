@@ -79,11 +79,11 @@ export async function findGameRow(gameId: string, orderBy: GameOrderBy, directio
   const gameRepository = getManager().getRepository(Game);
 
   const subQ = gameRepository.createQueryBuilder('game')
-  .select(`game.id, row_number() over (order by game.${orderBy}) row_num`)
+  .select(`game.id, row_number() over (order by game.${orderBy} ${direction ? direction : ''}) row_num`)
   .where('game.parentGameId IS NULL');
   if (index) {
     if (!orderBy) { throw new Error('Failed to get game row. "index" is set but "orderBy" is missing.'); }
-    subQ.andWhere(`(game.${orderBy}, game.id) > (:orderVal, :id)`, { orderVal: index.orderVal, id: index.id });
+    subQ.andWhere(`(game.${orderBy}, game.id) ${direction === 'DESC' ? '<' : '>'} (:orderVal, :id)`, { orderVal: index.orderVal, id: index.id });
   }
   if (filterOpts) {
     // The "whereCount" param doesn't make much sense now, TODO change it.
