@@ -72,7 +72,7 @@ export async function findGame(id?: string, filter?: FindOneOptions<Game>, noChi
   }
 }
 /** Get the row number of an entry, specified by its gameId. */
-export async function findGameRow(gameId: string, filterOpts?: FilterGameOpts, orderBy?: GameOrderBy, direction?: GameOrderReverse, index?: PageTuple): Promise<number> {
+export async function findGameRow(gameId: string, orderBy: GameOrderBy, direction?: GameOrderReverse, filterOpts?: FilterGameOpts, index?: PageTuple): Promise<number> {
   if (orderBy) { validateSqlName(orderBy); }
 
   // const startTime = Date.now();

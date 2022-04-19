@@ -802,9 +802,9 @@ export function registerRequestCallbacks(state: BackState): void {
   state.socketServer.register(BackIn.BROWSE_VIEW_INDEX, async (event, gameId, query) => {
     const position = await GameManager.findGameRow(
       gameId,
-      query.filter,
       query.orderBy,
       query.orderReverse,
+      query.filter,
       undefined);
 
     return position - 1; // ("position" starts at 1, while "index" starts at 0)
