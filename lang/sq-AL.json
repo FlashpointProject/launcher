@@ -116,12 +116,12 @@
     "copiedToClipboard": "Copied to Clipboard"
   },
   "app": {
-    "home": "Home",
+    "home": "Shtëpia",
     "browse": "Browse",
     "tags": "Tags",
     "categories": "Categories",
     "logs": "Logs",
-    "config": "Config",
+    "config": "Konfig",
     "about": "About",
     "curate": "Curate",
     "developer": "Developer",
@@ -219,7 +219,7 @@
   },
   "browse": {
     "noTitle": "No Title",
-    "by": "by",
+    "by": "nga",
     "play": "Play",
     "stop": "Stop",
     "noDeveloper": "No Developer",
