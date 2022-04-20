@@ -153,7 +153,7 @@
     "checkMissingImages": "Check Missing Images",
     "checkMissingImagesDesc": "List all games without a thumbnail or screenshot",
     "checkGameIds": "Check Game IDs",
-    "checkGameIdsDesc": "List all games with duplicate or invalid IDs",
+    "checkGameIdsDesc": "List all games wit' duplicate o' invalid IDs",
     "checkGameTitles": "Check Game Titles",
     "checkGameTitlesDesc": "List all games with duplicate titles on the same platform",
     "checkGameFields": "Check Game Fields",
