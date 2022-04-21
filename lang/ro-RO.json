@@ -183,7 +183,7 @@
     "fixCommaTags": "Repară etichetele în care apar virgule",
     "fixCommaTagsDesc": "Împarte etichetele cu virgulă în mai multe etichete și le aplică tuturor jocurilor corespunzătoare",
     "exportTags": "Exportați etichete",
-    "exportTagsDesc": "Creează un fișier cu etichete și categorii de etichete care pot fi folosite de către operațiunea \"Importați etichete\"",
+    "exportTagsDesc": "Creează un fișier cu etichete și categorii de etichete care pot fi folosite prin operațiunea 'Importați etichete'",
     "importTags": "Importați etichete",
     "importTagsDesc": "Importați etichete dintr-un fișier creat cu operațiunea 'Exportă etichete'",
     "migrateExtremeGames": "Migrați jocurile extreme",
@@ -219,7 +219,7 @@
   },
   "browse": {
     "noTitle": "Indisponibil",
-    "by": "de către",
+    "by": "de",
     "play": "Jucați",
     "stop": "Oprire",
     "noDeveloper": "Indisponibil",
