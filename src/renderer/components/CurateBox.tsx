@@ -480,7 +480,6 @@ export function CurateBox(props: CurateBoxProps) {
   const disabled = props.curation ? props.curation.locked : false;
 
   // Whether the platform used by the curation is native locked
-  // Ardil TODO what is this used for?
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const native = useMemo(() => {
     if (props.curation && props.curation.meta.platform) {

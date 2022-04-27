@@ -345,7 +345,7 @@ export async function save(game: Game): Promise<Game> {
   return savedGame;
 }
 
-// Ardil TODO fix this.
+// TODO this needs to re-parent somehow? Idk, wherever you want to put it.
 export async function removeGameAndChildren(gameId: string, dataPacksFolderPath: string): Promise<Game | undefined> {
   const gameRepository = getManager().getRepository(Game);
   const game = await findGame(gameId);
@@ -358,7 +358,6 @@ export async function removeGameAndChildren(gameId: string, dataPacksFolderPath:
       await GameDataManager.remove(gameData.id);
     }
     // Delete children
-    // Ardil TODO do Seirade's suggestion.
     if (game.children) {
       for (const child of game.children) {
         await gameRepository.remove(child);

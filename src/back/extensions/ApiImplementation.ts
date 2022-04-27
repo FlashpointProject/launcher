@@ -142,7 +142,6 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     findGamesWithTag: GameManager.findGamesWithTag,
     updateGame: GameManager.save,
     updateGames: GameManager.updateGames,
-    // Ardil TODO
     removeGameAndChildren: (gameId: string) => GameManager.removeGameAndChildren(gameId, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath)),
     isGameExtreme: (game: Game) => {
       const extremeTags = state.preferences.tagFilters.filter(t => t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);

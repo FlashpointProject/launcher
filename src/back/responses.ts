@@ -166,7 +166,6 @@ export function registerRequestCallbacks(state: BackState): void {
     return { done };
   });
 
-  // Ardil TODO
   state.socketServer.register(BackIn.GET_SUGGESTIONS, async (event) => {
     const startTime = Date.now();
     const suggestions: GamePropSuggestions = {
@@ -238,7 +237,7 @@ export function registerRequestCallbacks(state: BackState): void {
         if (game.platform === '') {
           game.platform = game.parentGame.platform;
         }
-        // Ardil TODO any more I should add?
+        // TODO any more I should add?
       }
       // Make sure Server is set to configured server - Curations may have changed it
       const configServer = state.serviceInfo ? state.serviceInfo.server.find(s => s.name === state.config.server) : undefined;
@@ -349,7 +348,8 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.DELETE_GAME, async (event, id) => {
-    // Ardil TODO figure out this thing.
+    // TODO This needs to somehow re-parent instead of just deleting all the children. It will have to wait
+    // until the frontend changes are made, I guess.
     const game = await GameManager.removeGameAndChildren(id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath));
 
     state.queries = {}; // Clear entire cache
@@ -640,13 +640,11 @@ export function registerRequestCallbacks(state: BackState): void {
     return GameDataManager.findSourceDataForHashes(hashes);
   });
 
-  // Ardil TODO
   state.socketServer.register(BackIn.GET_ALL_GAMES, async (event) => {
     const games: Game[] = await GameManager.findAllGames();
     return games;
   });
 
-  // Ardil TODO
   state.socketServer.register(BackIn.RANDOM_GAMES, async (event, data) => {
     const flatFilters = data.tagFilters ? data.tagFilters.reduce<string[]>((prev, cur) => prev.concat(cur.tags),  []) : [];
     return await GameManager.findRandomGames(data.count, data.broken, data.excludedLibraries, flatFilters);
@@ -661,7 +659,6 @@ export function registerRequestCallbacks(state: BackState): void {
     };
   });
 
-  // Ardil TODO
   state.socketServer.register(BackIn.BROWSE_VIEW_PAGE, async (event, data) => {
     data.query.filter = adjustGameFilter(data.query.filter);
     const startTime = new Date();
@@ -790,7 +787,6 @@ export function registerRequestCallbacks(state: BackState): void {
     return result;
   });
 
-  // Ardil TODO
   state.socketServer.register(BackIn.BROWSE_VIEW_INDEX, async (event, gameId, query) => {
     const position = await GameManager.findGameRow(
       gameId,
@@ -848,7 +844,6 @@ export function registerRequestCallbacks(state: BackState): void {
     catch (error: any) { log.error('Launcher', error); }
   });
 
-  // Ardil TODO add pref to make add-apps searchable? Later?
   state.socketServer.register(BackIn.UPDATE_PREFERENCES, async (event, data, refresh) => {
     const dif = difObjects(defaultPreferencesData, state.preferences, data);
     if (dif) {
@@ -1350,7 +1345,6 @@ function adjustGameFilter(filterOpts: FilterGameOpts): FilterGameOpts {
   return filterOpts;
 }
 
-// Ardil TODO
 /**
  * Creates a function that will run any game launch info given to it and register it as a service
  */
@@ -1388,7 +1382,6 @@ function runGameFactory(state: BackState) {
   };
 }
 
-// Ardil TODO
 function createCommand(filename: string, useWine: boolean, execFile: boolean): string {
   // This whole escaping thing is horribly broken. We probably want to switch
   // to an array representing the argv instead and not have a shell
@@ -1412,7 +1405,6 @@ function createCommand(filename: string, useWine: boolean, execFile: boolean): s
  * @param command Command to run
  * @param args Arguments for the command
  */
-// Ardil TODO what is this?
 async function runCommand(state: BackState, command: string, args: any[] = []): Promise<any> {
   const callback = state.registry.commands.get(command);
   let res = undefined;
@@ -1432,7 +1424,6 @@ async function runCommand(state: BackState, command: string, args: any[] = []): 
 /**
  * Returns a set of AppProviders from all extension registered Applications, complete with callbacks to run them.
  */
-// Ardil TODO
 async function getProviders(state: BackState): Promise<AppProvider[]> {
   return state.extensionsService.getContributions('applications')
   .then(contributions => {
