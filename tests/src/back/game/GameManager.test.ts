@@ -485,7 +485,7 @@ describe('GameManager.findGamePageKeyset()', () => {
       (game: Game) => game.parentGameId === null,
       'title'
     );
-    let result = await GameManager.findGamePageKeyset(
+    const result = await GameManager.findGamePageKeyset(
       {},
       'title',
       'ASC',
@@ -510,7 +510,7 @@ describe('GameManager.findGamePageKeyset()', () => {
       'title',
       true
     );
-    let result = await GameManager.findGamePageKeyset(
+    const result = await GameManager.findGamePageKeyset(
       {},
       'title',
       'DESC',
@@ -534,7 +534,7 @@ describe('GameManager.findGamePageKeyset()', () => {
       (game: Game) => game.parentGameId === null,
       'developer'
     );
-    let result = await GameManager.findGamePageKeyset(
+    const result = await GameManager.findGamePageKeyset(
       {},
       'developer',
       'ASC',
@@ -558,7 +558,7 @@ describe('GameManager.findGamePageKeyset()', () => {
       (game: Game) => game.parentGameId === null && game.id !== gameArray[0].id,
       'title'
     );
-    let result = await GameManager.findGamePageKeyset(
+    const result = await GameManager.findGamePageKeyset(
       {
         searchQuery: {
           genericBlacklist: [],
@@ -594,7 +594,7 @@ describe('GameManager.findGamePageKeyset()', () => {
       (game: Game) => game.parentGameId === null,
       'title'
     );
-    let result = await GameManager.findGamePageKeyset({}, 'title', 'ASC', 3, 1);
+    const result = await GameManager.findGamePageKeyset({}, 'title', 'ASC', 3, 1);
     for (const key in result.keyset) {
       expect([result.keyset[key]?.id, result.keyset[key]?.title]).toEqual([
         filtered[Number(key) - 2].id,
@@ -612,7 +612,7 @@ describe('GameManager.findGamePageKeyset()', () => {
       (game: Game) => game.parentGameId === null,
       'title'
     );
-    let result = await GameManager.findGamePageKeyset(
+    const result = await GameManager.findGamePageKeyset(
       {},
       'title',
       'ASC',
