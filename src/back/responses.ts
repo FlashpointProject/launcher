@@ -361,8 +361,7 @@ export function registerRequestCallbacks(state: BackState): void {
     };
   });
 
-  // Ardil TODO check that this was the right move.
-  /* state.socketServer.register(BackIn.DUPLICATE_GAME, async (event, id, dupeImages) => {
+  state.socketServer.register(BackIn.DUPLICATE_GAME, async (event, id, dupeImages) => {
     const game = await GameManager.findGame(id);
     let result: Game | undefined;
     if (game) {
@@ -370,14 +369,15 @@ export function registerRequestCallbacks(state: BackState): void {
       // Copy and apply new IDs
 
       const newGame = deepCopy(game);
-      /* Ardil TODO figure this out.
-      const newAddApps = game.addApps.map(addApp => deepCopy(addApp));
+      const newChildren = game.children?.map(addApp => deepCopy(addApp));
       newGame.id = uuid();
-      for (let j = 0; j < newAddApps.length; j++) {
-        newAddApps[j].id = uuid();
-        newAddApps[j].parentGame = newGame;
+      if (newChildren) {
+        for (let j = 0; j < newChildren.length; j++) {
+          newChildren[j].id = uuid();
+          newChildren[j].parentGameId = newGame.id;
+        }
       }
-      newGame.addApps = newAddApps;
+      newGame.children = newChildren;
 
       // Add copies
       result = await GameManager.save(newGame);
@@ -414,7 +414,7 @@ export function registerRequestCallbacks(state: BackState): void {
       library: result && result.library,
       gamesTotal: await GameManager.countGames(),
     };
-  });*/
+  });
 
   state.socketServer.register(BackIn.DUPLICATE_PLAYLIST, async (event, data) => {
     const playlist = await GameManager.findPlaylist(data, true);
@@ -572,12 +572,10 @@ export function registerRequestCallbacks(state: BackState): void {
     }
   });
 
-  // Ardil TODO
   state.socketServer.register(BackIn.IMPORT_GAME_DATA, async (event, gameId, filePath) => {
     return GameDataManager.importGameData(gameId, filePath, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath));
   });
 
-  // Ardil TODO
   state.socketServer.register(BackIn.DOWNLOAD_GAME_DATA, async (event, gameDataId) => {
     const onProgress = (percent: number) => {
       // Sent to PLACEHOLDER download dialog on client
@@ -596,7 +594,6 @@ export function registerRequestCallbacks(state: BackState): void {
     });
   });
 
-  // Ardil TODO This actually is important, don't ignore!
   state.socketServer.register(BackIn.UNINSTALL_GAME_DATA, async (event, id) => {
     const gameData = await GameDataManager.findOne(id);
     if (gameData && gameData.path && gameData.presentOnDisk) {
@@ -623,7 +620,6 @@ export function registerRequestCallbacks(state: BackState): void {
     }
   });
 
-  // Ardil TODO should be quick.
   state.socketServer.register(BackIn.ADD_SOURCE_BY_URL, async (event, url) => {
     const sourceDir = path.join(state.config.flashpointPath, 'Data/Sources');
     await fs.promises.mkdir(sourceDir, { recursive: true });
@@ -632,17 +628,14 @@ export function registerRequestCallbacks(state: BackState): void {
     });
   });
 
-  // Ardil TODO
   state.socketServer.register(BackIn.DELETE_SOURCE, async (event, id) => {
     return SourceManager.remove(id);
   });
 
-  // Ardil TODO
   state.socketServer.register(BackIn.GET_SOURCES, async (event) => {
     return SourceManager.find();
   });
 
-  // Ardil TODO
   state.socketServer.register(BackIn.GET_SOURCE_DATA, async (event, hashes) => {
     return GameDataManager.findSourceDataForHashes(hashes);
   });
@@ -659,7 +652,6 @@ export function registerRequestCallbacks(state: BackState): void {
     return await GameManager.findRandomGames(data.count, data.broken, data.excludedLibraries, flatFilters);
   });
 
-  // Ardil TODO
   state.socketServer.register(BackIn.BROWSE_VIEW_KEYSET, async (event, library, query) => {
     query.filter = adjustGameFilter(query.filter);
     const result = await GameManager.findGamePageKeyset(query.filter, query.orderBy, query.orderReverse, query.searchLimit);
@@ -965,7 +957,6 @@ export function registerRequestCallbacks(state: BackState): void {
     return playlistGame;
   });
 
-  // Ardil done
   state.socketServer.register(BackIn.SAVE_LEGACY_PLATFORM, async (event, platform) => {
     const translatedGames = [];
     const tagCache: Record<string, Tag> = {};
@@ -1041,7 +1032,6 @@ export function registerRequestCallbacks(state: BackState): void {
     return res;
   });
 
-  // Ardil TODO
   state.socketServer.register(BackIn.IMPORT_CURATION, async (event, data) => {
     let error: any | undefined;
     try {
@@ -1115,7 +1105,7 @@ export function registerRequestCallbacks(state: BackState): void {
       log.error('Launcher', e + '');
     }
   });
-  // Ardil TODO
+
   state.socketServer.register(BackIn.LAUNCH_CURATION, async (event, data) => {
     const skipLink = (data.key === state.lastLinkedCurationKey);
     state.lastLinkedCurationKey = data.symlinkCurationContent ? data.key : '';
@@ -1188,7 +1178,6 @@ export function registerRequestCallbacks(state: BackState): void {
     exit(state);
   });
 
-  // Ardil TODO
   state.socketServer.register(BackIn.EXPORT_META_EDIT, async (event, id, properties) => {
     const game = await GameManager.findGame(id, undefined, true);
     if (game) {
@@ -1251,7 +1240,6 @@ export function registerRequestCallbacks(state: BackState): void {
     return result;
   });
 
-  // Ardil TODO what is this?
   state.socketServer.register(BackIn.RUN_COMMAND, async (event, command, args = []) => {
     // Find command
     const c = state.registry.commands.get(command);
