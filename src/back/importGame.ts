@@ -284,7 +284,6 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
  * Create and launch a game from curation metadata.
  * @param curation Curation to launch
  */
-// Ardil TODO
 export async function launchCuration(key: string, meta: EditCurationMeta, symlinkCurationContent: boolean,
   skipLink: boolean, opts: Omit<LaunchGameOpts, 'game'|'addApps'>, onWillEvent:ApiEmitter<GameLaunchInfo>, onDidEvent: ApiEmitter<Game>) {
   if (!skipLink || !symlinkCurationContent) { await linkContentFolder(key, opts.fpPath, opts.isDev, opts.exePath, opts.htdocsPath, symlinkCurationContent); }
@@ -298,7 +297,7 @@ export async function launchCuration(key: string, meta: EditCurationMeta, symlin
   onDidEvent.fire(game);
 }
 
-// Ardil TODO this won't work, fix it. Actually, it's okay for now: the related back event *should* never be called.
+// TODO this won't work, fix it. Actually, it's okay for now: the related back event *should* never be called.
 export async function launchCurationExtras(key: string, meta: EditCurationMeta, symlinkCurationContent: boolean,
   skipLink: boolean, opts: Omit<LaunchExtrasOpts, 'extrasPath'>) {
   if (meta.extras) {
