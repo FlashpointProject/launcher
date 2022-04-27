@@ -23,7 +23,7 @@ export class Game {
   parentGameId: string | null;
 
   // Careful: potential infinite loop here. DO NOT eager-load this.
-  @OneToMany((type) => Game, (game) => game.parentGame)
+  @OneToMany((type) => Game, (game) => game.parentGame, { cascade: true })
   children?: Game[];
 
   @Column({collation: 'NOCASE'})

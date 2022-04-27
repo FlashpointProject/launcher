@@ -10,7 +10,7 @@ export type RightBrowseSidebarChildProps = {
   /** Additional Application to show and edit */
   child: Game;
   /** Called when a field is edited */
-  onEdit?: () => void;
+  onEdit?: (childId: string, diff: Partial<Game>) => void;
   /** Called when a field is edited */
   onDelete?: (childId: string) => void;
   /** Called when the launch button is clicked */
@@ -25,9 +25,9 @@ export interface RightBrowseSidebarChild {
 
 /** Displays an additional application for a game in the right sidebar of BrowsePage. */
 export class RightBrowseSidebarChild extends React.Component<RightBrowseSidebarChildProps> {
-  onNameEditDone            = this.wrapOnTextChange((addApp, text) => { addApp.title = text; });
-  onApplicationPathEditDone = this.wrapOnTextChange((addApp, text) => { addApp.applicationPath = text; });
-  onLaunchCommandEditDone   = this.wrapOnTextChange((addApp, text) => { addApp.launchCommand = text; });
+  onNameEditDone            = this.wrapOnTextChange((addApp, text) => { this.onEdit({title: text}); });
+  onApplicationPathEditDone = this.wrapOnTextChange((addApp, text) => { this.onEdit({applicationPath: text}); });
+  onLaunchCommandEditDone   = this.wrapOnTextChange((addApp, text) => { this.onEdit({launchCommand: text}); });
 
   render() {
     const allStrings = this.context;
@@ -109,9 +109,9 @@ export class RightBrowseSidebarChild extends React.Component<RightBrowseSidebarC
     }
   }
 
-  onEdit(): void {
+  onEdit(diff: Partial<Game>): void {
     if (this.props.onEdit) {
-      this.props.onEdit();
+      this.props.onEdit(this.props.child.id, diff);
     }
   }
 
@@ -121,17 +121,6 @@ export class RightBrowseSidebarChild extends React.Component<RightBrowseSidebarC
       const addApp = this.props.child;
       if (addApp) {
         func(addApp, event.currentTarget.value);
-        this.forceUpdate();
-      }
-    };
-  }
-
-  /** Create a wrapper for a CheckBox's onChange callback (this is to reduce redundancy). */
-  wrapOnCheckBoxChange(func: (addApp: Game) => void) {
-    return () => {
-      if (!this.props.editDisabled) {
-        func(this.props.child);
-        this.onEdit();
         this.forceUpdate();
       }
     };
