@@ -130,7 +130,6 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
       curation.meta.extras = undefined;
       curation.meta.extrasName = undefined;
     }
-    
   }
   // Create and add game and additional applications
   const gameId = validateSemiUUID(curation.key) ? curation.key : uuid();
