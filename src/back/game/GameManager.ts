@@ -136,7 +136,16 @@ export type GetPageKeysetResult = {
   total: number;
 }
 
-export async function findGamePageKeyset(filterOpts: FilterGameOpts, orderBy: GameOrderBy, direction: GameOrderReverse, searchLimit?: number): Promise<GetPageKeysetResult> {
+/**
+ * Gets the elements that occur before each page, and the total number of games that satisfy the filter.
+ * @param filterOpts The options that should be used to filter the results.
+ * @param orderBy The column to sort results by.
+ * @param direction The direction to sort results.
+ * @param searchLimit A limit on the number of returned results
+ * @param viewPageSize The size of a page. Mostly used for testing.
+ * @returns The elements that occur before each page, and the total number of games that satisfy the filter.
+ */
+export async function findGamePageKeyset(filterOpts: FilterGameOpts, orderBy: GameOrderBy, direction: GameOrderReverse, searchLimit?: number, viewPageSize = VIEW_PAGE_SIZE): Promise<GetPageKeysetResult> {
   // let startTime = Date.now();
 
   validateSqlName(orderBy);
@@ -145,11 +154,11 @@ export async function findGamePageKeyset(filterOpts: FilterGameOpts, orderBy: Ga
   // console.log('FindGamePageKeyset:');
 
   const subQ = await getGameQuery('sub', filterOpts, orderBy, direction);
-  subQ.select(`sub.${orderBy}, sub.title, sub.id, sub.parentGameId, case row_number() over(order by sub.${orderBy} ${direction}, sub.title ${direction}, sub.id) % ${VIEW_PAGE_SIZE} when 0 then 1 else 0 end page_boundary`);
-  subQ.orderBy(`sub.${orderBy} ${direction}, sub.title`, direction);
+  subQ.select(`sub.${orderBy}, sub.title, sub.id, case row_number() over(order by sub.${orderBy} ${direction}, sub.title ${direction}, sub.id ${direction}) % ${viewPageSize} when 0 then 1 else 0 end page_boundary`);
+  subQ.orderBy(`sub.${orderBy} ${direction}, sub.title ${direction}, sub.id`, direction);
 
   let query = getManager().createQueryBuilder()
-  .select(`g.${orderBy}, g.title, g.id, row_number() over(order by g.${orderBy} ${direction}, g.title ${direction}) + 1 page_number`)
+  .select(`g.${orderBy}, g.title, g.id, row_number() over(order by g.${orderBy} ${direction}, g.title ${direction}, g.id ${direction}) + 1 page_number`)
   .from('(' + subQ.getQuery() + ')', 'g')
   .where('g.page_boundary = 1')
   .setParameters(subQ.getParameters());
@@ -169,6 +178,7 @@ export async function findGamePageKeyset(filterOpts: FilterGameOpts, orderBy: Ga
   // Count games
   let total = -1;
   // startTime = Date.now();
+  // TODO reuse subQ?
   const subGameQuery = await getGameQuery('sub', filterOpts, orderBy, direction, 0, searchLimit ? searchLimit : undefined, undefined);
   query = getManager().createQueryBuilder()
   .select('COUNT(*)')
