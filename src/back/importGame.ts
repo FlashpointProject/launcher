@@ -51,7 +51,6 @@ export const onWillImportCuration: ApiEmitter<CurationImportState> = new ApiEmit
  * Import a curation.
  * @returns A promise that resolves when the import is complete.
  */
-// Ardil TODO
 export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   if (opts.date === undefined) { opts.date = new Date(); }
   const {
@@ -109,8 +108,29 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   // Build content list
   const contentToMove = [];
   if (curation.meta.extras && curation.meta.extras.length > 0) {
-    // Add extras folder if meta has an entry
-    contentToMove.push([path.join(getCurationFolder(curation, fpPath), 'Extras'), path.join(fpPath, 'Extras', curation.meta.extras)]);
+    const extrasPath = path.join(getCurationFolder(curation, fpPath), 'Extras');
+    // Check that extras exist.
+    try {
+      // If this doesn't error out, the extras exist.
+      await fs.promises.stat(extrasPath);
+      // Add extras folder if meta has an entry
+      contentToMove.push([extrasPath, path.join(fpPath, 'Extras', curation.meta.extras)]);
+    } catch {
+      // It did error out, we need to tell the user.
+      const response = await opts.openDialog({
+        title: 'Overwriting Game',
+        message: 'The curation claims to have extras but lacks an Extras folder!\nContinue importing this curation? Warning: this will remove the extras.\n\n'
+                + `Curation:\n\tTitle: ${curation.meta.title}\n\tLaunch Command: ${curation.meta.launchCommand}\n\tPlatform: ${curation.meta.platform}\n\t`
+                + `Expected extras path: ${extrasPath}`,
+        buttons: ['Yes', 'No']
+      });
+      if (response === 1) {
+        throw new Error('User Cancelled Import');
+      }
+      curation.meta.extras = undefined;
+      curation.meta.extrasName = undefined;
+    }
+    
   }
   // Create and add game and additional applications
   const gameId = validateSemiUUID(curation.key) ? curation.key : uuid();
@@ -300,7 +320,6 @@ function logMessage(text: string, curation: EditCuration): void {
  * @param curation Curation to get data from.
  * @param gameId ID to use for Game
  */
-// Ardil TODO
 async function createGameFromCurationMeta(gameId: string, gameMeta: EditCurationMeta, date: Date): Promise<Game> {
   const game: Game = new Game();
   Object.assign(game, {
