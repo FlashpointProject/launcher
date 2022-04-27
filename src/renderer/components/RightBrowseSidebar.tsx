@@ -635,6 +635,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     key={addApp.id}
                     child={addApp}
                     editDisabled={!editable}
+                    onEdit={this.onChildEdit}
                     onLaunch={() => {
                       addApp && this.props.onGameLaunch(addApp.id)
                       .then(this.onForceUpdateGameData);
@@ -974,9 +975,22 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       newChildren.splice(index, 1);
       this.props.onDeleteGame(childId);
       // @TODO make this better.
-      this.props.onEditGame({children:newChildren});
+      this.props.onEditGame({children: newChildren});
     }
   }
+
+  onChildEdit = (childId: string, diff: Partial<Game>) => {
+    if (this.props.currentGame && this.props.currentGame.children) {
+      const newChildren = [...this.props.currentGame.children];
+      const childIndex = this.props.currentGame.children.findIndex(child => child.id === childId);
+      if (childIndex !== -1) {
+        newChildren[childIndex] = {...newChildren[childIndex], ...diff} as Game;
+        this.props.onEditGame({children: newChildren});
+      } else {
+        throw new Error('Can\'t edit additional application because it was not found.');
+      }
+    }
+  };
 
   onScreenshotClick = (): void => {
     this.setState({ showPreview: true });
