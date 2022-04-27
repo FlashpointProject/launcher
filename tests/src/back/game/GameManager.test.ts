@@ -226,11 +226,11 @@ describe('GameManager.findGameRow()', () => {
     ) as Game[];
     const filtered = filterAndSort(
       arrayCopy,
-      (game: Game) => game.parentGameId == null,
+      (game: Game) => game.parentGameId === null,
       'title'
     );
     expect(await GameManager.findGameRow(gameArray[3].id, 'title', 'ASC')).toBe(
-      1 + filtered.findIndex((game: Game) => game.id == gameArray[3].id)
+      1 + filtered.findIndex((game: Game) => game.id === gameArray[3].id)
     );
   });
   test('Invalid game ID, orderBy title', async () => {
@@ -243,7 +243,7 @@ describe('GameManager.findGameRow()', () => {
     const filtered = filterAndSort(
       arrayCopy,
       (game: Game) =>
-        game.originalDescription.includes('t') && game.parentGameId == null,
+        game.originalDescription.includes('t') && game.parentGameId === null,
       'title'
     );
     expect(
@@ -262,7 +262,7 @@ describe('GameManager.findGameRow()', () => {
       })
     )
     // Add one because row_number() is one-based, and JS arrays are zero-based.
-    .toBe(1 + filtered.findIndex((game: Game) => game.id == gameArray[0].id));
+    .toBe(1 + filtered.findIndex((game: Game) => game.id === gameArray[0].id));
   });
   test('Exclusive game filter, orderBy title', async () => {
     expect(
@@ -288,12 +288,12 @@ describe('GameManager.findGameRow()', () => {
     ) as Game[];
     const filtered = filterAndSort(
       arrayCopy,
-      (game: Game) => game.parentGameId == null,
+      (game: Game) => game.parentGameId === null,
       'developer'
     );
     expect(await GameManager.findGameRow(gameArray[0].id, 'developer', 'ASC'))
     // Add one because row_number() is one-based, and JS arrays are zero-based.
-    .toBe(1 + filtered.findIndex((game: Game) => game.id == gameArray[0].id));
+    .toBe(1 + filtered.findIndex((game: Game) => game.id === gameArray[0].id));
   });
   test('Invalid game filter', async () => {
     // Invalid game filters should be ignored.
@@ -303,7 +303,7 @@ describe('GameManager.findGameRow()', () => {
     const filtered = filterAndSort(
       arrayCopy,
       (game: Game) =>
-        game.originalDescription.includes('t') && game.parentGameId == null,
+        game.originalDescription.includes('t') && game.parentGameId === null,
       'title'
     );
     expect(
@@ -324,7 +324,7 @@ describe('GameManager.findGameRow()', () => {
           ],
         },
       })
-    ).toBe(1 + filtered.findIndex((game: Game) => game.id == gameArray[0].id));
+    ).toBe(1 + filtered.findIndex((game: Game) => game.id === gameArray[0].id));
   });
   test('Valid game ID, orderBy title reverse', async () => {
     arrayCopy = v8.deserialize(
@@ -332,13 +332,13 @@ describe('GameManager.findGameRow()', () => {
     ) as Game[];
     const filtered = filterAndSort(
       arrayCopy,
-      (game: Game) => game.parentGameId == null,
+      (game: Game) => game.parentGameId === null,
       'title',
       true
     );
     expect(
       await GameManager.findGameRow(gameArray[3].id, 'title', 'DESC')
-    ).toBe(1 + filtered.findIndex((game: Game) => game.id == gameArray[3].id));
+    ).toBe(1 + filtered.findIndex((game: Game) => game.id === gameArray[3].id));
   });
   test('Child game ID, orderBy title', async () => {
     expect(await GameManager.findGameRow(gameArray[1].id, 'title', 'ASC')).toBe(
@@ -351,14 +351,14 @@ describe('GameManager.findGameRow()', () => {
     ) as Game[];
     const filtered = filterAndSort(
       arrayCopy,
-      (game: Game) => game.parentGameId == null,
+      (game: Game) => game.parentGameId === null,
       'title'
     );
     const indexPos = filtered.findIndex(
-      (game: Game) => game.id == gameArray[5].id
+      (game: Game) => game.id === gameArray[5].id
     );
     const resultPos = filtered.findIndex(
-      (game: Game) => game.id == gameArray[0].id
+      (game: Game) => game.id === gameArray[0].id
     );
     const diff = resultPos - indexPos;
     expect(
@@ -381,14 +381,14 @@ describe('GameManager.findGameRow()', () => {
     ) as Game[];
     const filtered = filterAndSort(
       arrayCopy,
-      (game: Game) => game.parentGameId == null,
+      (game: Game) => game.parentGameId === null,
       'title'
     );
     const indexPos = filtered.findIndex(
-      (game: Game) => game.id == gameArray[4].id
+      (game: Game) => game.id === gameArray[4].id
     );
     const resultPos = filtered.findIndex(
-      (game: Game) => game.id == gameArray[0].id
+      (game: Game) => game.id === gameArray[0].id
     );
     const diff = resultPos - indexPos;
     expect(
@@ -411,15 +411,15 @@ describe('GameManager.findGameRow()', () => {
     ) as Game[];
     const filtered = filterAndSort(
       arrayCopy,
-      (game: Game) => game.parentGameId == null,
+      (game: Game) => game.parentGameId === null,
       'title',
       true
     );
     const indexPos = filtered.findIndex(
-      (game: Game) => game.id == gameArray[4].id
+      (game: Game) => game.id === gameArray[4].id
     );
     const resultPos = filtered.findIndex(
-      (game: Game) => game.id == gameArray[0].id
+      (game: Game) => game.id === gameArray[0].id
     );
     const diff = resultPos - indexPos;
     expect(
@@ -442,15 +442,15 @@ describe('GameManager.findGameRow()', () => {
     ) as Game[];
     const filtered = filterAndSort(
       arrayCopy,
-      (game: Game) => game.parentGameId == null,
+      (game: Game) => game.parentGameId === null,
       'title',
       true
     );
     const indexPos = filtered.findIndex(
-      (game: Game) => game.id == gameArray[5].id
+      (game: Game) => game.id === gameArray[5].id
     );
     const resultPos = filtered.findIndex(
-      (game: Game) => game.id == gameArray[0].id
+      (game: Game) => game.id === gameArray[0].id
     );
     const diff = resultPos - indexPos;
     expect(
@@ -469,3 +469,162 @@ describe('GameManager.findGameRow()', () => {
   });
 });
 
+describe('GameManager.findGamePageKeyset()', () => {
+  beforeAll(async () => {
+    await getManager().getRepository(Game).save(gameArray);
+  });
+  afterAll(async () => {
+    await getManager().getRepository(Game).clear();
+  });
+  test('No filters, orderby title, pagesize 1', async () => {
+    arrayCopy = v8.deserialize(
+      v8.serialize(formatLocalMany(gameArray))
+    ) as Game[];
+    const filtered = filterAndSort(
+      arrayCopy,
+      (game: Game) => game.parentGameId === null,
+      'title'
+    );
+    let result = await GameManager.findGamePageKeyset(
+      {},
+      'title',
+      'ASC',
+      undefined,
+      1
+    );
+    for (const key in result.keyset) {
+      expect([result.keyset[key]?.id, result.keyset[key]?.title]).toEqual([
+        filtered[Number(key) - 2].id,
+        filtered[Number(key) - 2].title,
+      ]);
+    }
+    expect(result.total).toBe(filtered.length);
+  });
+  test('No filters, orderby title reverse, pagesize 1', async () => {
+    arrayCopy = v8.deserialize(
+      v8.serialize(formatLocalMany(gameArray))
+    ) as Game[];
+    const filtered = filterAndSort(
+      arrayCopy,
+      (game: Game) => game.parentGameId === null,
+      'title',
+      true
+    );
+    let result = await GameManager.findGamePageKeyset(
+      {},
+      'title',
+      'DESC',
+      undefined,
+      1
+    );
+    for (const key in result.keyset) {
+      expect([result.keyset[key]?.id, result.keyset[key]?.title]).toEqual([
+        filtered[Number(key) - 2].id,
+        filtered[Number(key) - 2].title,
+      ]);
+    }
+    expect(result.total).toBe(filtered.length);
+  });
+  test('No filters, orderby developer, pagesize 1', async () => {
+    arrayCopy = v8.deserialize(
+      v8.serialize(formatLocalMany(gameArray))
+    ) as Game[];
+    const filtered = filterAndSort(
+      arrayCopy,
+      (game: Game) => game.parentGameId === null,
+      'developer'
+    );
+    let result = await GameManager.findGamePageKeyset(
+      {},
+      'developer',
+      'ASC',
+      undefined,
+      1
+    );
+    for (const key in result.keyset) {
+      expect([result.keyset[key]?.id, result.keyset[key]?.title]).toEqual([
+        filtered[Number(key) - 2].id,
+        filtered[Number(key) - 2].title,
+      ]);
+    }
+    expect(result.total).toBe(filtered.length);
+  });
+  test('Filter out UUID, orderby title, pagesize 1', async () => {
+    arrayCopy = v8.deserialize(
+      v8.serialize(formatLocalMany(gameArray))
+    ) as Game[];
+    const filtered = filterAndSort(
+      arrayCopy,
+      (game: Game) => game.parentGameId === null && game.id !== gameArray[0].id,
+      'title'
+    );
+    let result = await GameManager.findGamePageKeyset(
+      {
+        searchQuery: {
+          genericBlacklist: [],
+          genericWhitelist: [],
+          blacklist: [
+            {
+              field: 'id',
+              value: gameArray[0].id,
+            },
+          ],
+          whitelist: [],
+        },
+      },
+      'title',
+      'ASC',
+      undefined,
+      1
+    );
+    for (const key in result.keyset) {
+      expect([result.keyset[key]?.id, result.keyset[key]?.title]).toEqual([
+        filtered[Number(key) - 2].id,
+        filtered[Number(key) - 2].title,
+      ]);
+    }
+    expect(result.total).toBe(filtered.length);
+  });
+  test('No filters, orderby title, pagesize 1, limit 3', async () => {
+    arrayCopy = v8.deserialize(
+      v8.serialize(formatLocalMany(gameArray))
+    ) as Game[];
+    const filtered = filterAndSort(
+      arrayCopy,
+      (game: Game) => game.parentGameId === null,
+      'title'
+    );
+    let result = await GameManager.findGamePageKeyset({}, 'title', 'ASC', 3, 1);
+    for (const key in result.keyset) {
+      expect([result.keyset[key]?.id, result.keyset[key]?.title]).toEqual([
+        filtered[Number(key) - 2].id,
+        filtered[Number(key) - 2].title,
+      ]);
+    }
+    expect(result.total).toBe(3);
+  });
+  test('No filters, orderby title, pagesize 2', async () => {
+    arrayCopy = v8.deserialize(
+      v8.serialize(formatLocalMany(gameArray))
+    ) as Game[];
+    const filtered = filterAndSort(
+      arrayCopy,
+      (game: Game) => game.parentGameId === null,
+      'title'
+    );
+    let result = await GameManager.findGamePageKeyset(
+      {},
+      'title',
+      'ASC',
+      undefined,
+      2
+    );
+    for (const key in result.keyset) {
+      expect([result.keyset[key]?.id, result.keyset[key]?.title]).toEqual([
+        filtered[2 * (Number(key) - 2) + 1].id,
+        filtered[2 * (Number(key) - 2) + 1].title,
+      ]);
+    }
+    expect(result.total).toBe(filtered.length);
+  });
+});
