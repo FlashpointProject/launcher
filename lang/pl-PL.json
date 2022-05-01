@@ -2,7 +2,7 @@
   "name": "Polski",
   "config": {
     "configHeader": "Konfiguracja",
-    "configDesc": "(By niektóre ze zmian zadziałały musisz kliknąć 'Zapisz i uruchom ponownie')",
+    "configDesc": "(By niektóre ze zmian zadziałały, musisz kliknąć 'Zapisz i uruchom ponownie')",
     "preferencesHeader": "Ustawienia",
     "extremeGames": "Pokaż ekstremalne filtry",
     "extremeGamesDesc": "Pozwala na przełączanie, tworzenie i modyfikowanie filtrów tagów ekstremalnych, aby kontrolować zawartość nieodpowiednią dla dzieci.",
