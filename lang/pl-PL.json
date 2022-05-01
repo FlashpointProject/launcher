@@ -165,7 +165,7 @@
     "checkMissingExecMappings": "Sprawdź brakujące mapowania plików wykonywalnych",
     "checkMissingExecMappingsDesc": "Pokaż wszystkie pliki wykonywalne dla win32, linux i darwin, które nie są zmapowane",
     "renameImagesTitleToId": "Zmień nazwy zdjęć (Tytuł => ID)",
-    "renameImagesTitleToIdDesc": "Znajdź wszystkie zdjęcia gier z ich tytułami w nazwie i zmień ich nazwy by było w nich ID",
+    "renameImagesTitleToIdDesc": "Znajdź wszystkie obrazy gry z jej tytułem w nazwie i zmień ich nazwy na jej ID",
     "renameImagesIdToTitle": "Zmień nazwy zdjęć (ID => Tytuł)",
     "renameImagesIdToTitleDesc": "Znajdź wszystkie zdjęcia gier z ich ID w nazwie i zmień ich nazwy by była w nich nazwa gry",
     "createMissingFolders": "Utwórz brakujące foldery",
