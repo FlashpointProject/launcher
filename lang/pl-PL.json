@@ -56,7 +56,7 @@
     "showDeveloperTab": "Pokaż zakładkę dla deweloperów",
     "showDeveloperTabDesc": "Pokaż zakładkę 'Dla deweloperów'. Najpewniej przyda się tylko deweloperom i kuratorom.",
     "server": "Serwer",
-    "serverDesc": "Który Proces Serwera uruchomić podczas uruchamiania launchera.",
+    "serverDesc": "Który proces serwera używać przy uruchamianiu launchera.",
     "metadataServerHost": "Host serwera metadanych",
     "metadataServerHostDesc": "Host serwera metadanych. Używany do synchronizacji nowych i zaktualizowanych informacji o grze w launcherze.",
     "extensionsHeader": "Rozszerzenia",
@@ -110,7 +110,7 @@
     "filters": "Filtry",
     "logLevels": "Poziomy logów",
     "copyText": "Kopiuj tekst",
-    "clearLog": "Wyczyść logi",
+    "clearLog": "Wyczyść log",
     "copy404Urls": "Kopiuj adresy 404",
     "uploadLog": "Wyślij Log",
     "copiedToClipboard": "Skopiowano do schowka"
