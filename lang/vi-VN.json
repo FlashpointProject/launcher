@@ -1,5 +1,5 @@
 {
-  "name": "tiếng Việt",
+  "name": "Tiếng Việt",
   "config": {
     "configHeader": "Cài đặt",
     "configDesc": "(Bạn phải nhấn 'Lưu & Khởi động lại' thì vài thay đổi mới có hiệu lực)",
@@ -292,7 +292,7 @@
     "dropGameOnLeft": "Kéo thả trò chơi vào một danh sách ở {0} để thêm vào danh sách đó.",
     "leftSidebar": "thanh bên trái",
     "setFlashpointPathQuestion": "Bạn đã chỉnh đường dẫn sang {0} ở mục {1} chưa?",
-    "flashpointPath": "đường dẫn Flashpoint",
+    "flashpointPath": "Đường dẫn Flashpoint",
     "config": "Cài đặt",
     "noteSaveAndRestart": "Lưu ý: Bạn phải nhấn {0} để thay đổi có hiệu lực.",
     "saveAndRestart": "Lưu & Khởi động lại",
