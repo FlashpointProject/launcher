@@ -50,6 +50,7 @@ import { UpgradeFile } from './upgrade/UpgradeFile';
 import { getBrowseSubPath, isFlashpointValidCheck, joinLibraryRoute, openConfirmDialog } from './Util';
 import { LangContext } from './util/lang';
 import { checkUpgradeStateInstalled, checkUpgradeStateUpdated, downloadAndInstallUpgrade } from './util/upgrade';
+import { WithCurateStateProps } from './containers/withCurateState';
 
 const autoUpdater: AppUpdater = remote.require('electron-updater').autoUpdater;
 
@@ -58,7 +59,7 @@ type AppOwnProps = {
   search: SearchQuery;
 };
 
-export type AppProps = AppOwnProps & RouteComponentProps & WithPreferencesProps & WithTagCategoriesProps & WithMainStateProps & WithTasksProps;
+export type AppProps = AppOwnProps & RouteComponentProps & WithPreferencesProps & WithTagCategoriesProps & WithMainStateProps & WithTasksProps & WithCurateStateProps;
 
 export class App extends React.Component<AppProps> {
   constructor(props: AppProps) {
@@ -322,11 +323,19 @@ export class App extends React.Component<AppProps> {
       });
     });
 
-    window.Shared.back.register(BackOut.SET_CURATION_LOCK, (event, folder, locked) => {
+    window.Shared.back.register(BackOut.CURATE_SELECT_LOCK, (event, folder, locked) => {
       (this.props.dispatchMain as any as Dispatch<CurateAction>)({
         type: CurateActionType.SET_LOCK,
         folders: [folder],
         locked,
+      });
+    });
+
+    window.Shared.back.register(BackOut.CURATE_SELECT_CURATIONS, (event, folders) => {
+      const selectable = folders.filter(f => this.props.curate.curations.findIndex(c => c.folder === f) !== -1);
+      (this.props.dispatchMain as any as Dispatch<CurateAction>)({
+        type: CurateActionType.SET_SELECTED_CURATIONS,
+        folders: selectable
       });
     });
 
@@ -336,6 +345,10 @@ export class App extends React.Component<AppProps> {
 
     window.Shared.back.register(BackOut.CREATE_TASK, (event, task) => {
       this.props.addTask(task);
+    });
+
+    window.Shared.back.register(BackOut.FOCUS_WINDOW, (event) => {
+      window.focus();
     });
 
     // Cache playlist icons (if they are loaded)

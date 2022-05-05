@@ -87,14 +87,21 @@ export function CuratePageLeftSidebar(props: CuratePageLeftSidebarProps) {
         onDragStart={() => setDraggedCuration(curation.folder)}
         onDragEnd={onCurationDragDrop}
         { ...{ [index_attr]: curation.folder } }>
+        { props.curate.current === curation.folder && (
+          <div className='curate-list-item__icon'>
+            <OpenIcon icon='chevron-right' />
+          </div>
+        )}
         <div
           className='curate-list-item__icon'
-          style={{ backgroundImage: `url('${getPlatformIconURL('Flash'/* curation.meta.platform*/, props.logoVersion)}')` }} />
+          style={{ backgroundImage: `url('${getPlatformIconURL(curation.game.platform || '', props.logoVersion)}')` }} />
         <p className='curate-list-item__title'>
           {curation.game.title || curation.folder}
         </p>
         { curation.alreadyImported && (
-          <OpenIcon icon='file'/>
+          <div className='curate-list-item__icon'>
+            <OpenIcon icon='file' />
+          </div>
         )}
         { getWarningCount(curation.warnings) > 0 && (
           <div className='curate-list-item__icon'>

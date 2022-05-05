@@ -2770,6 +2770,12 @@ body {
   overflow-y: auto;
 }
 
+.task-bar-empty {
+  height: 100%;
+  width: 100%;
+  text-align: center;
+}
+
 .task {
   width: 100%;
   margin-bottom: 0.25rem;

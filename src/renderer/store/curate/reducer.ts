@@ -17,6 +17,18 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
       };
     }
 
+    case CurateActionType.SET_SELECTED_CURATIONS:
+    {
+      const newSelected = action.folders;
+      const newCurrent = action.folders.length < 0 ? action.folders[0] : '';
+      return {
+        ...state,
+        selected: newSelected,
+        current: newCurrent,
+        lastSelected: newCurrent,
+      };
+    }
+
     case CurateActionType.SET_CURRENT_CURATION_GROUP: {
       const { group } = action;
       const groupContents = state.curations.filter(c => c.group === group);

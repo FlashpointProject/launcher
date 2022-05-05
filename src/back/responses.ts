@@ -1048,7 +1048,7 @@ export function registerRequestCallbacks(state: BackState): void {
             }
           );
         }
-        state.socketServer.broadcast(BackOut.SET_CURATION_LOCK, curation.folder, true);
+        state.socketServer.broadcast(BackOut.CURATE_SELECT_LOCK, curation.folder, true);
         await importCuration({
           curation: curation,
           gameManager: state.gameManager,
@@ -1071,7 +1071,7 @@ export function registerRequestCallbacks(state: BackState): void {
           processed += 1;
         })
         .catch(() => {
-          state.socketServer.broadcast(BackOut.SET_CURATION_LOCK, curation.folder, false);
+          state.socketServer.broadcast(BackOut.CURATE_SELECT_LOCK, curation.folder, false);
           const alertString = formatString(state.languageContainer.dialog.errorImportingCuration, curation.folder);
           state.socketServer.broadcast(BackOut.OPEN_ALERT, alertString);
         });
@@ -1464,7 +1464,7 @@ export function registerRequestCallbacks(state: BackState): void {
         });
       })
       .finally(() => {
-        state.socketServer.broadcast(BackOut.SET_CURATION_LOCK, curation.folder, false);
+        state.socketServer.broadcast(BackOut.CURATE_SELECT_LOCK, curation.folder, false);
       });
     }
     if (taskId) {

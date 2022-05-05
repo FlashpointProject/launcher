@@ -1,4 +1,4 @@
-// Type definitions for non-npm package flashpoint-launcher 10.1
+// Type definitions for non-npm package flashpoint-launcher 11
 // Project: Flashpoint Launcher https://github.com/FlashpointProject/launcher
 // Definitions by: Colin Berry <https://github.com/colin969>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
@@ -72,6 +72,10 @@ declare module 'flashpoint-launcher' {
      * Fires when an extension configuration value changes
      */
     const onExtConfigChange: Event<{key: string, value: any}>;
+    /**
+     * Focusses the Flashpoint Window
+     */
+    function focusWindow(): void;
 
     /**
      * Log functions to properly pass messages to the Logs Page.
@@ -97,6 +101,11 @@ declare module 'flashpoint-launcher' {
     }
 
     namespace curations {
+        /** Loads the Curation Archive at the path
+         * @param filePath Path to the archive
+         * @param taskId ID of Task to update progress on (See Status Namespace)
+         */
+        function loadCurationArchive(filePath: string, taskId?: string): Promise<LoadedCuration>;
         /** Get all loaded curations */
         function getCurations(): CurationState[];
         /** Get all curation templates */
@@ -119,6 +128,10 @@ declare module 'flashpoint-launcher' {
          * @param meta AddApp Metadata to write
          */
         function setCurationAddAppMeta(folder: string, key: string, meta: AddAppCurationMeta): boolean;
+        /** Selects all given curations (if exist) 
+         * @param folders Folders of curations to select
+        */
+        function selectCurations(folders: string[]): void;
         /**
          * Updates a curations content tree
          * @param folder Folder of the curation

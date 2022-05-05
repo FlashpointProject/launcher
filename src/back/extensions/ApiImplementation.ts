@@ -39,6 +39,8 @@ import * as path from 'path';
 import { newExtLog } from './ExtensionUtils';
 import { Command } from './types';
 import uuid = require('uuid');
+import { loadCurationArchive } from '..';
+import { formatString } from '@shared/utils/StringFormatter';
 
 /**
  * Create a Flashpoint API implementation specific to an extension, used during module load interception
@@ -93,6 +95,10 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     state.extConfig[key] = value;
     await ExtConfigFile.saveFile(path.join(state.config.flashpointPath, EXT_CONFIG_FILENAME), state.extConfig);
     state.socketServer.broadcast(BackOut.UPDATE_EXT_CONFIG_DATA, state.extConfig);
+  };
+
+  const focusWindow = () => {
+    state.socketServer.broadcast(BackOut.FOCUS_WINDOW);
   };
 
   // Log Namespace
@@ -359,6 +365,29 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
   };
 
   const extCurations: typeof flashpoint.curations = {
+    loadCurationArchive: async (filePath: string, taskId?: string) => {
+      if (taskId) {
+        state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
+          status: `Loading ${filePath}`
+        });
+      }
+      const curState = await loadCurationArchive(filePath)
+      .catch((error) => {
+        log.error('Curate', `Failed to load curation archive! ${error.toString()}`);
+        state.socketServer.broadcast(BackOut.OPEN_ALERT, formatString(state.languageContainer['dialog'].failedToLoadCuration, error.toString()));
+      });
+      if (taskId) {
+        state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
+          status: '',
+          finished: true
+        });
+      }
+      if (curState) {
+        return curState;
+      } else {
+        throw new Error('Failed to import');
+      }
+    },
     getCurations: () => {
       return [...state.loadedCurations];
     },
@@ -407,6 +436,9 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
       } else {
         throw 'Not a valid curation folder';
       }
+    },
+    selectCurations: (folders: string[]) => {
+      state.socketServer.broadcast(BackOut.CURATE_SELECT_CURATIONS, folders);
     },
     updateCurationContentTree: async (folder: string) => {
       const curationIdx = state.loadedCurations.findIndex(c => c.folder === folder);
@@ -468,6 +500,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     getExtConfigValue: getExtConfigValue,
     setExtConfigValue: setExtConfigValue,
     onExtConfigChange: state.apiEmitters.ext.onExtConfigChange.event,
+    focusWindow: focusWindow,
 
     // Namespaces
     log: extLog,

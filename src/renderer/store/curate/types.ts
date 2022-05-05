@@ -41,6 +41,9 @@ export type CurateAction = {
   type: CurateActionType.SET_CURRENT_CURATION_GROUP;
   group: string;
 } | {
+  type: CurateActionType.SET_SELECTED_CURATIONS;
+  folders: string[];
+} | {
   type: CurateActionType.NEW_ADDAPP;
   folder: string;
   addAppType: AddAppType;
