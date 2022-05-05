@@ -1,9 +1,11 @@
 import { withTasks, WithTasksProps } from '@renderer/containers/withTasks';
 import * as React from 'react';
 import { FancyAnimation } from './FancyAnimation';
+import { OpenIcon } from './OpenIcon';
 
 type OwnProps = {
-
+  open: boolean;
+  onToggleOpen: () => void;
 };
 
 export type TaskBarProps = OwnProps & WithTasksProps;
@@ -51,9 +53,20 @@ function taskBar(props: TaskBarProps) {
   }, [props.tasks]);
 
   return (
-    <div className='task-bar simple-scroll'>
-      {tasksRender}
-    </div>
+    <>
+      <div
+        onClick={props.onToggleOpen}
+        className='task-bar--header'>
+        <div className='task-bar--header-chevron'>
+          <OpenIcon icon={ props.open ? 'chevron-bottom' : 'chevron-top' } />
+        </div>
+      </div>
+      { props.open && (
+        <div className='task-bar simple-scroll'>
+          { tasksRender }
+        </div>
+      ) }
+    </>
   );
 }
 

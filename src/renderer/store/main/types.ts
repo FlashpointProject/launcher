@@ -123,6 +123,7 @@ export type MainState = {
   downloadOpen: boolean;
   cancelToken?: axiosImport.CancelToken;
   downloadVerifying: boolean;
+  taskBarOpen: boolean;
 }
 
 export type MainAction = {

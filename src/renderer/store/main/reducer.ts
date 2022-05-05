@@ -447,6 +447,7 @@ function createInitialState(): MainState {
     downloadOpen: false,
     downloadPercent: 0,
     downloadSize: 0,
-    downloadVerifying: false
+    downloadVerifying: false,
+    taskBarOpen: false,
   };
 }

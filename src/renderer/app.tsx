@@ -340,10 +340,20 @@ export class App extends React.Component<AppProps> {
     });
 
     window.Shared.back.register(BackOut.UPDATE_TASK, (event, taskId, taskData) => {
+      // I don't know why length works with 1, don't change it
+      if (!this.props.main.taskBarOpen && this.props.tasks.length === 1) {
+        // Show task bar for first task added
+        this.props.setMainState({ taskBarOpen: true });
+      }
       this.props.setTask(taskId, taskData);
     });
 
     window.Shared.back.register(BackOut.CREATE_TASK, (event, task) => {
+      // I don't know why length works with 1, don't change it
+      if (!this.props.main.taskBarOpen && this.props.tasks.length === 1) {
+        // Show task bar for first task added
+        this.props.setMainState({ taskBarOpen: true });
+      }
       this.props.addTask(task);
     });
 
@@ -752,8 +762,12 @@ export class App extends React.Component<AppProps> {
                     </div>
                   </noscript>
                 </div>
-                {/* Tasks */}
-                <TaskBar />
+                {/* Tasks - @TODO Find a better way to hide it than behind enableEditing */}
+                { this.props.preferencesData.enableEditing && (
+                  <TaskBar
+                    open={this.props.main.taskBarOpen}
+                    onToggleOpen={this.onToggleTaskBarOpen} />
+                )}
                 {/* Footer */}
                 <ConnectedFooter />
                 {/* Meta Edit Popup */}
@@ -1032,6 +1046,10 @@ export class App extends React.Component<AppProps> {
   onConfirmExportMetaEdit = (data: MetaEditExporterConfirmData): void => {
     this.props.dispatchMain({ type: MainActionType.CLOSE_META_EXPORTER });
     window.Shared.back.send(BackIn.EXPORT_META_EDIT, data.id, data.properties);
+  }
+
+  onToggleTaskBarOpen = (): void => {
+    this.props.setMainState({ taskBarOpen: !this.props.main.taskBarOpen });
   }
 
   rollRandomGames = (first?: boolean) => {

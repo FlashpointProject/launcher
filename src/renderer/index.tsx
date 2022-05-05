@@ -158,6 +158,7 @@ function createInitialMainState(): MainState {
     downloadPercent: 0,
     downloadSize: 0,
     downloadOpen: false,
-    downloadVerifying: false
+    downloadVerifying: false,
+    taskBarOpen: false,
   };
 }

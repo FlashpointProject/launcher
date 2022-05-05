@@ -1179,6 +1179,10 @@ body {
 }
 
 /** Tasks */
+.task-bar--header {
+  background-color: var(--layout__secondary-background)
+}
+
 .task-bar-empty {
   font-size: 2em;
   font-weight: bold;
