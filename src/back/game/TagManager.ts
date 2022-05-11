@@ -260,12 +260,13 @@ export async function createTag(name: string, categoryName?: string, aliases?: s
   }
 }
 
-export async function createTagCategory(name: string, color: string): Promise<TagCategory | undefined> {
+export async function createTagCategory(name: string, color: string, description?: string): Promise<TagCategory | undefined> {
   const tagCategoryRepository = getManager().getRepository(TagCategory);
 
   const category = tagCategoryRepository.create({
-    name: name,
-    color: color
+    name,
+    color,
+    description
   });
 
   const tagCategory = await tagCategoryRepository.save(category);

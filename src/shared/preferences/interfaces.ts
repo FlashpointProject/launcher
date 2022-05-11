@@ -112,7 +112,16 @@ export type AppPreferencesData = {
   fancyAnimations: boolean;
   /** Result limit for searches (0 if disabled) */
   searchLimit: number;
+  /** Metadata Provider Instances (configString mapped to provider ID) */
+  metadataProviderInstances: MetadataProviderInstance[];
 };
+
+export type MetadataProviderInstance = {
+  /** ID of the Metadata Provider that will create the instance on boot */
+  providerId: string;
+  /** String configuration of the instance */
+  configString: string;
+}
 
 export type AppPathOverride = {
   path: string;

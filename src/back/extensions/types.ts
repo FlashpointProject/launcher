@@ -25,6 +25,7 @@ export type Registry = {
   commands: Map<string, Command>;
   logoSets: Map<string, LogoSet>;
   themes: Map<string, Theme>;
+  metadataProviderInstances: Map<string, IMetadataProviderInstance>;
 }
 
 export interface ICommand {
@@ -33,3 +34,20 @@ export interface ICommand {
 }
 
 export type Command = ICommand & Disposable;
+
+type MetadataUpdatePreview = {
+  updateAvailable: boolean;
+  previewText?: string;
+}
+export interface IMetadataProviderInstance {
+  getLastUpdate(): number;
+  fetchUpdate(): PromiseLike<MetadataUpdatePreview>;
+  executeUpdate(opts: MetadataProviderUpdateOptions): PromiseLike<void>;
+}
+
+export type MetadataProviderUpdateOptions = {
+  keepLocalGameChanges: boolean;
+  keepLocalTagChanges: boolean;
+  syncGames: boolean;
+  syncTags: boolean;
+}

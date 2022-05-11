@@ -2,7 +2,9 @@
 const fs = require('fs-extra');
 const gulp = require('gulp');
 const builder = require('electron-builder');
-const { exec } = require('child_process');
+const { execute } = require('./gulpfile.util');
+const { buildExtensions, watchExtensions } = require('./gulpfile.extensions');
+const { parallel, series } = require('gulp');
 
 const packageJson = JSON.parse(fs.readFileSync('./package.json'));
 const config = {
@@ -21,6 +23,14 @@ const config = {
     src: './src/back',
   }
 };
+// Copy extensions after packing
+const extraResources = [
+  {
+    from: './extensions',
+    to: './extensions',
+    filter: ['!**/node_modules/**']
+  }
+];
 // Files to copy after packing
 const copyFiles = [
   {
@@ -90,55 +100,63 @@ const publishInfo = [
 
 /* ------ Watch ------ */
 
-gulp.task('watch-back', (done) => {
+function watchBack(done) {
   execute('npx ttsc --project tsconfig.backend.json --pretty --watch', done);
-});
+}
 
-gulp.task('watch-renderer', (done) => {
+function watchRenderer(done) {
   const mode = config.isRelease ? 'production' : 'development';
   execute(`npx webpack --color true --mode "${mode}" --watch`, done);
-});
+}
 
-gulp.task('watch-static', () => {
-  gulp.watch(config.static.src+'/**/*', gulp.task('copy-static'));
-});
+function watchStatic() {
+  gulp.watch([config.static.src+'/**/*'], (cb) => {
+    buildStatic();
+    cb();
+  });
+}
 
 
 /* ------ Build ------ */
 
-gulp.task('build-back', (done) => {
+function buildBack(done) {
   execute('npx ttsc --project tsconfig.backend.json --pretty', done);
-});
+}
 
-gulp.task('build-renderer', (done) => {
+function buildRenderer(done) {
   const mode = config.isRelease ? 'production' : 'development';
   execute(`npx webpack --color true --mode "${mode}"`, done);
-});
+}
 
-gulp.task('copy-static', () => {
+function buildStatic() {
   return gulp.src(config.static.src+'/**/*').pipe(gulp.dest(config.static.dest));
-});
+}
 
-gulp.task('config-install', (done) => {
+function configInstall(done) {
   if (config.isStaticInstall) {
     fs.createFile('.installed', done);
   } else {
     fs.remove('.installed', done);
   }
-});
+}
 
-gulp.task('config-version', (done) => {
+function configVersion(done) {
   fs.writeFile('.version', config.buildVersion, done);
-});
+}
 
 /* ------ Pack ------ */
 
-gulp.task('pack', (done) => {
+function pack(done) {
   const publish = config.isRelease ? publishInfo : []; // Uses Git repo for unpublished builds
   const extraOpts = config.isRelease ? extraOptions : {};
-  console.log(config.isRelease);
-  console.log(extraOpts);
+  const archOpts = !config.isRelease ? {
+    ia32: process.env.PACK_ARCH === 'ia32' || undefined,
+    x64: process.env.PACK_ARCH === 'x64' || undefined,
+    armv7l: process.env.PACK_ARCH === 'armv7l' || undefined,
+    arm64: process.env.PACK_ARCH === 'arm64' || undefined
+  } : {};
   builder.build({
+    ...archOpts,
     config: Object.assign({
       appId: 'com.bluemaxima.flashpoint-launcher',
       productName: 'Flashpoint',
@@ -150,9 +168,11 @@ gulp.task('pack', (done) => {
         './build',
       ],
       extraFiles: copyFiles, // Files to copy to the build folder
+      extraResources: extraResources, // Copy extensions
       compression: 'maximum', // Only used if a compressed target (like 7z, nsis, dmg etc.)
       target: 'dir',
       asar: true,
+      asarUnpack: ['./extensions'],
       publish: publish,
       artifactName: '${productName}-${version}_${os}-${arch}.${ext}',
       win: {
@@ -171,21 +191,42 @@ gulp.task('pack', (done) => {
   .then(()         => { console.log('Pack - Done!');         })
   .catch((error)   => { console.log('Pack - Error!', error); })
   .then(done);
-});
+}
 
 /* ------ Meta Tasks ------*/
 
-gulp.task('watch', gulp.parallel('watch-back', 'watch-renderer', 'watch-static', 'copy-static'));
+exports.build = series(
+  parallel(
+    buildBack,
+    buildRenderer,
+    buildExtensions,
+    buildStatic,
+    configInstall,
+    configVersion
+  )
+);
 
-gulp.task('build', gulp.parallel('build-back', 'build-renderer', 'copy-static', 'config-install', 'config-version'));
+exports.watch = series(
+  parallel(
+    watchBack,
+    watchRenderer,
+    watchExtensions,
+    buildStatic,
+    watchStatic
+  ),
+);
+
+exports.pack = series(
+  pack
+);
 
 /* ------ Misc ------*/
 
-function execute(command, callback) {
-  const child = exec(command);
-  child.stderr.on('data', data => { console.log(data); });
-  child.stdout.on('data', data => { console.log(data); });
-  if (callback) {
-    child.once('exit', () => { callback(); });
-  }
-}
+// function execute(command, callback) {
+//   const child = exec(command);
+//   child.stderr.on('data', data => { console.log(data); });
+//   child.stdout.on('data', data => { console.log(data); });
+//   if (callback) {
+//     child.once('exit', () => { callback(); });
+//   }
+// }

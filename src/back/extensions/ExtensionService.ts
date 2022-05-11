@@ -5,7 +5,7 @@ import { TernarySearchTree } from '@back/util/map';
 import { AppConfigData } from '@shared/config/interfaces';
 import { ILogEntry } from '@shared/Log/interface';
 import { Contributions, ExtensionContribution, IExtension } from '../../shared/extensions/interfaces';
-import { scanExtensions } from './ExtensionsScanner';
+import { scanExtensions, scanSystemExtensions } from './ExtensionsScanner';
 import { getExtensionEntry, newExtLog } from './ExtensionUtils';
 import { ExtensionContext, ExtensionData, ExtensionModule } from './types';
 
@@ -35,8 +35,10 @@ export class ExtensionService {
   }
 
   private async _scanExtensions(): Promise<void> {
-    const exts = await scanExtensions(this._configData, this._extensionPath);
-    exts.forEach(e => this._extensions.push(e));
+    const sysExts = await scanSystemExtensions();
+    sysExts.forEach(e => this._extensions.push(e));
+    const userExts = await scanExtensions(this._configData, this._extensionPath);
+    userExts.forEach(e => this._extensions.push(e));
     this._installedExtensionsReady.open();
   }
 
@@ -66,6 +68,16 @@ export class ExtensionService {
         });
         return list;
       }, []);
+    });
+  }
+
+  getFlatContributions<T extends keyof Contributions>(key: T): Promise<Contributions[T]> {
+    return this._installedExtensionsReady.wait().then(() => {
+      return this.getContributions<T>(key)
+      .then(contribs => {
+        // TODO: Typesafe this
+        return contribs.reduce<Contributions[T]>((prev: Array<any>, cur) => prev.concat(cur.value), []);
+      });
     });
   }
 
@@ -107,13 +119,13 @@ export class ExtensionService {
       return;
     }
 
+    // Import extension as module
+    const entryPath = getExtensionEntry(ext);
+    // Build context
+    const context: ExtensionContext = {
+      subscriptions: extData.subscriptions
+    };
     try {
-      // Import extension as module
-      const entryPath = getExtensionEntry(ext);
-      // Build context
-      const context: ExtensionContext = {
-        subscriptions: extData.subscriptions
-      };
       if (entryPath) {
         const extModule: ExtensionModule = await import(entryPath);
         if (!extModule.activate) {
@@ -126,7 +138,12 @@ export class ExtensionService {
       this._enableExtension(ext.id);
       log.info('Extensions', `[${ext.manifest.displayName || ext.manifest.name}] Extension Loaded (${ext.id})`);
     } catch (err) {
-      this.logExtension(ext.id, newExtLog(ext.manifest, err, log.error));
+      try {
+        dispose(context.subscriptions);
+      } catch (err) {
+        this.logExtension(ext.id, newExtLog(ext.manifest, 'Failed to cleanup Extension!', log.error));
+      }
+      this.logExtension(ext.id, newExtLog(ext.manifest, `Failed to load Extension:\n${truncateString(err, 500)}`, log.error));
     }
   }
 
@@ -161,7 +178,11 @@ export class ExtensionService {
       }
     }
     // Dispose of all subscriptions the extension made
-    dispose(extData.subscriptions);
+    try {
+      dispose(extData.subscriptions);
+    } catch (err) {
+      this.logExtension(ext.id, newExtLog(ext.manifest, 'Failed to cleanup Extension!', log.error));
+    }
     // Clear data
     delete this._extensionData[ext.id];
   }
@@ -196,5 +217,13 @@ export class ExtensionService {
     const data = this._getExtensionData(extId);
     data.enabled = true;
     this._extensionData[extId] = data;
+  }
+}
+
+function truncateString(str: string, length: number) {
+  if (str.length > length) {
+    return str.slice(0, length) + `...(${str.length - length} hidden characters)`;
+  } else {
+    return str;
   }
 }

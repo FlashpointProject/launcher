@@ -51,6 +51,42 @@ export async function findGame(id?: string, filter?: FindOneOptions<Game>): Prom
   }
 }
 
+export async function findOrCreateGame(id: string): Promise<Game> {
+  const gameRepository = getManager().getRepository(Game);
+  const game = await gameRepository.findOne(id);
+  if (game) {
+    game.tags.sort(tagSort);
+    return game;
+  } else {
+    const newGame = gameRepository.create({
+      id: id,
+      title: '',
+      alternateTitles: '',
+      series: '',
+      developer: '',
+      publisher: '',
+      dateAdded: new Date().toISOString(),
+      dateModified: new Date().toISOString(),
+      platform: '',
+      broken: false,
+      extreme: false,
+      playMode: '',
+      version: '',
+      originalDescription: '',
+      notes: '',
+      applicationPath: '',
+      launchCommand: '',
+      language: '',
+      status: '',
+      source: '',
+      library: 'arcade',
+      orderTitle: '',
+      releaseDate: '',
+    });
+    return gameRepository.save(newGame);
+  }
+}
+
 export async function findGameRow(gameId: string, filterOpts?: FilterGameOpts, orderBy?: GameOrderBy, direction?: GameOrderReverse, index?: PageTuple): Promise<number> {
   if (orderBy) { validateSqlName(orderBy); }
 

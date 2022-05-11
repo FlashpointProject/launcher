@@ -26,6 +26,14 @@ export type Application = {
   url?: string;
 }
 
+export type ExtMetadataProvider = {
+  id: string;
+  name: string;
+  validateCommand: string;
+  createCommand: string;
+  destroyCommand?: string;
+}
+
 export type AppProvider = Application & {
   callback: (game: Game) => Promise<string | BrowserApplicationOpts>;
 }
@@ -75,6 +83,7 @@ export type Contributions = {
   contextButtons: ContextButton[];
   applications: Application[];
   configuration: ExtConfiguration[];
+  metadataProviders: ExtMetadataProvider[];
 }
 
 export interface IExtensionDescription extends IExtensionManifest {

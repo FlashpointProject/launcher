@@ -1,7 +1,7 @@
 import { Playlist } from '@database/entity/Playlist';
 import * as remote from '@electron/remote';
 import { FancyAnimation } from '@renderer/components/FancyAnimation';
-import { ViewGame } from '@shared/back/types';
+import { ViewGame, BackIn } from '@shared/back/types';
 import { ARCADE, THEATRE } from '@shared/constants';
 import { wrapSearchTerm } from '@shared/game/GameFilter';
 import { LangContainer } from '@shared/lang';
@@ -27,6 +27,7 @@ import { AutoProgressComponent } from '../ProgressComponents';
 import { RandomGames } from '../RandomGames';
 import { SimpleButton } from '../SimpleButton';
 import { SizeProvider } from '../SizeProvider';
+import { LoadedMetadataProviderInstance } from '@shared/interfaces';
 
 type OwnProps = {
   platforms: Record<string, string[]>;
@@ -51,6 +52,8 @@ type OwnProps = {
   logoVersion: number;
   /** Raw HTML of the Update page grabbed */
   updateFeedMarkdown: string;
+  /** All active Metadata Provider Instance info */
+  metadataProviderInstances: LoadedMetadataProviderInstance[];
 };
 
 export type HomePageProps = OwnProps & WithPreferencesProps & WithSearchProps;
@@ -371,6 +374,39 @@ export function HomePage(props: HomePageProps) {
     }
   }, [strings, props.updateFeedMarkdown, props.preferencesData.minimizedHomePageBoxes, toggleMinimizeBox]);
 
+  const renderedMetadataUpdates = React.useMemo(() => {
+    if (props.metadataProviderInstances.length > 0) {
+      log.debug('Launcher', `Rendering Provider Instances: ${JSON.stringify(props.metadataProviderInstances, undefined, 2)}`);
+      const updateRenders = props.metadataProviderInstances.map((m, index) => {
+        return (
+          <div key={index}>
+            <div>{`Provider: ${m.configString}`}</div>
+            <ReactMarkdown remarkPlugins={[remarkGfm]} linkTarget={'_blank'}>
+              {m.checkedForUpdate ?
+                (m.update ? m.update.previewText || 'No Preview' : strings.upToDate)
+                : strings.checkingForUpdate}
+            </ReactMarkdown>
+            <SimpleButton
+              disabled={!m.checkedForUpdate || m.update === undefined}
+              onClick={() => {
+                window.Shared.back.request(BackIn.EXECUTE_METADATA_UPDATE, m.registryKey);
+              }}
+              value={strings.update}/>
+          </div>
+        );
+      });
+      return (
+        <HomePageBox
+          minimized={props.preferencesData.minimizedHomePageBoxes.includes('metadataUpdates')}
+          title={strings.metadataUpdatesHeader}
+          cssKey='metadataUpdates'
+          onToggleMinimize={() => toggleMinimizeBox('metadataUpdates')}>
+          {updateRenders}
+        </HomePageBox>
+      );
+    }
+  }, [props.metadataProviderInstances]);
+
   // Render
   return React.useMemo(() => (
     <div className='home-page simple-scroll'>
@@ -389,6 +425,8 @@ export function HomePage(props: HomePageProps) {
         </div>
         {/* Update Feed */}
         { renderedUpdateFeed }
+        {/* Metadata Updates */}
+        { renderedMetadataUpdates }
         {/* Updates */}
         { renderedUpdates }
         {/* Quick Start */}
@@ -403,7 +441,7 @@ export function HomePage(props: HomePageProps) {
         { renderedExtras }
       </div>
     </div>
-  ), [renderedUpdates, renderedQuickStart, renderedUpgrades, renderedExtras, renderedNotes, renderedRandomGames, renderedUpdateFeed]);
+  ), [renderedUpdates, renderedQuickStart, renderedUpgrades, renderedExtras, renderedNotes, renderedRandomGames, renderedUpdateFeed, renderedMetadataUpdates]);
 }
 
 function QuickStartItem(props: { icon?: OpenIconType, className?: string, children?: React.ReactNode }): JSX.Element {

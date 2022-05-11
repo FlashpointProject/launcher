@@ -140,11 +140,13 @@ function createInitialMainState(): MainState {
     logoSets: window.Shared.initialLogoSets,
     extConfigs: window.Shared.initialExtConfigs,
     extConfig: window.Shared.initialExtConfig,
+    extMetadataProviders: window.Shared.initialExtMetadataProviders,
+    metadataProviderInstances: window.Shared.initialMetadataUpdateInstances,
     services: window.Shared.initialServices,
     logoVersion: 0,
     downloadPercent: 0,
     downloadSize: 0,
     downloadOpen: false,
-    downloadVerifying: false
+    downloadVerifying: false,
   };
 }

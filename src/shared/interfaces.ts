@@ -8,6 +8,7 @@ import { LangContainer, LangFile } from './lang';
 import { ILogEntry } from './Log/interface';
 import { AppPreferencesData } from './preferences/interfaces';
 import { ITheme } from './ThemeFile';
+import { MetadataUpdatePreview } from 'flashpoint-launcher';
 
 /** Replacement of "object" type. Note: I'm not sure how effective it is though //obelisk */
 type ObjectLike = Record<string, unknown> | Record<number, unknown>
@@ -110,6 +111,8 @@ export interface IMainWindowExternal {
   initialLogoSets: LogoSet[];
   initialExtConfigs: ExtensionContribution<'configuration'>[];
   initialExtConfig: AppExtConfigData;
+  initialExtMetadataProviders: ExtensionContribution<'metadataProviders'>[];
+  initialMetadataUpdateInstances: LoadedMetadataProviderInstance[];
   initialUpdateFeedMarkdown: string;
   /**
    * Wait for the preload to initialize.
@@ -238,4 +241,12 @@ export type SuggestionProps = (
 /** Suggestions for game properties organized by property. */
 export type GamePropSuggestions = {
   [P in SuggestionProps]: string[];
+}
+
+export type LoadedMetadataProviderInstance = {
+  checkedForUpdate: boolean;
+  registryKey: string;
+  configString: string;
+  providerId: string;
+  update?: MetadataUpdatePreview;
 }

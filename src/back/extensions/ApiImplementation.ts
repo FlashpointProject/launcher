@@ -22,6 +22,7 @@ import { extractFull } from 'node-7z';
 import * as path from 'path';
 import { newExtLog } from './ExtensionUtils';
 import { Command } from './types';
+import { TagAlias } from '@database/entity/TagAlias';
 
 /**
  * Create a Flashpoint API implementation specific to an extension, used during module load interception
@@ -138,6 +139,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     // Games
     countGames: GameManager.countGames,
     findGame: GameManager.findGame,
+    findOrCreateGame: GameManager.findOrCreateGame,
     findGames: GameManager.findGames,
     findGamesWithTag: GameManager.findGamesWithTag,
     updateGame: GameManager.save,
@@ -244,6 +246,16 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     findTag: TagManager.findTag,
     findTags: TagManager.findTags,
     createTag: TagManager.createTag,
+    createTagAlias: async (tagId: number, name: string) => {
+      // Make sure it doesn't already exist
+      if ((await TagManager.findTag(name)) === undefined) {
+        // Doesn't already exist, good
+        const newAlias = new TagAlias();
+        newAlias.tagId = tagId;
+        newAlias.name = name;
+        return await TagManager.saveTagAlias(newAlias);
+      }
+    },
     saveTag: TagManager.saveTag,
     deleteTag: (tagId: number, skipWarn?: boolean) => {
       const openDialogFunc = getOpenMessageBoxFunc(state.socketServer);

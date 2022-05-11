@@ -180,6 +180,11 @@ declare module 'flashpoint-launcher' {
          */
         function updateGame(game: Game): Promise<Game>;
         /**
+         * Create game with ID, returns existing game if exists
+         * @param id
+         */
+        function findOrCreateGame(id: string): Promise<Game>;
+        /**
          * Updates / Creates many Games in a transaction
          * @param games Game data to save
          */
@@ -277,6 +282,12 @@ declare module 'flashpoint-launcher' {
          */
         function saveTag(tag: Tag): Promise<Tag>;
         /**
+         * Create a new Tag Alias (If does not exist on another tag)
+         * @param tagId Tag Id
+         * @param name Alias Name
+         */
+        function createTagAlias(tagId: number, name: string): Promise<TagAlias | undefined>;
+        /**
          * Removes a Tag (from all Games)
          * @param tagId ID of Tag to remove
          * @param skipWarn If true, warn user before deleting tag from games.
@@ -303,7 +314,7 @@ declare module 'flashpoint-launcher' {
          * @param name Name of the Tag Category
          * @param color Color to give the Tag Category
          */
-        function createTagCategory(name: string, color: string): Promise<TagCategory | undefined>;
+        function createTagCategory(name: string, color: string, description?: string): Promise<TagCategory | undefined>;
         /**
          * Update a Tag Category
          * @param tagCategory Tag Category data to save
@@ -1074,6 +1085,29 @@ declare module 'flashpoint-launcher' {
         list = 0,
         /** Games are in a table-like grid, each cell is a game */
         grid = 1,
+    }
+
+    type MetadataProviderOptions = {
+        configString: string;
+    }
+
+    type MetadataUpdatePreview = {
+        updateAvailable: boolean;
+        previewText?: string;
+    }
+    interface IMetadataProviderInstance {
+        getLastUpdate(): number;
+        fetchUpdate(): PromiseLike<MetadataUpdatePreview>;
+        executeUpdate(opts: MetadataProviderUpdateOptions): PromiseLike<void>;
+    }
+
+    interface IDisposableMetadataProvider extends IMetadataProviderInstance, Disposable {}
+    
+    type MetadataProviderUpdateOptions = {
+        keepLocalGameChanges: boolean;
+        keepLocalTagChanges: boolean;
+        syncGames: boolean;
+        syncTags: boolean;
     }
 
     /** Severity level of a Log */

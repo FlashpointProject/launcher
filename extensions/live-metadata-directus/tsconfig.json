@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "lib": ["ES2015"],
+    "module": "commonjs",
+    "outDir": "./dist",
+  },
+  "exclude": [
+    "./dist",
+    "./node_modules"
+  ],
+  "include": [
+    "../../typings/flashpoint-launcher.d.ts",
+    "./src"
+  ]
+}

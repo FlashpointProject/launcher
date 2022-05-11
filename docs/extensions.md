@@ -222,6 +222,31 @@ However, Applications can also provide `url` or `command` instead. The full deta
 - **\<cwd\>** - Current working directory. This is not guaranteed to be anywhere relative to Flashpoint.exe nor the Flashpoint folder, do not use unless certain.
 - **\<extConf:com.example.value\>** - Extension config value. Place the config id after the semi-colon.
 
+### Metadata Providers
+Extensions can supply Metadata Providers to allow the updating of local metadata from other sources, for example updating tag information or game information.
+
+It is responsible for returning 
+
+```json
+{
+  "metadataProviders": [
+    {
+      "id": "example-provider",
+      "name": "Example Provider",
+      "validateCommand": "example.validate-provider-instance",
+      "createCommand": "example.create-provider-instance",
+      "destroyCommand": "example.destroy-provider-instance"
+    }
+  ]
+}
+```
+
+- **id** - ID of this provider, must be unique
+- **name** - Name of this provider, human readable
+- **validateCommand** - This command will be called with the configString before creating an instance for the first time. If returns a false value the instance will be blocked from being created.
+- **createCommand** - This command will be called with instance parameters whenever a new instance using it is added to the config page (see IMetadataProvider or IDisposableMetadataProvider for return type and MetadataProviderOptions for parameter called with) 
+- **destroyCommand** - *(Optional)* - This command will be called with the config string of the instance being destroyed, useful for cleaning up extension config settings specific to an instance.
+
 ### Configuration
 
 ```json

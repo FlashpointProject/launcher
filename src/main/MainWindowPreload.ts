@@ -98,7 +98,9 @@ window.Shared = {
   initialLogoSets: createErrorProxy('initialLogoSets'),
   initialExtConfigs: createErrorProxy('initialExtConfigs'),
   initialExtConfig: createErrorProxy('initialExtConfig'),
+  initialExtMetadataProviders: createErrorProxy('initialExtMetadataProviders'),
   initialUpdateFeedMarkdown: createErrorProxy('initialUpdateFeedMarkdown'),
+  initialMetadataUpdateInstances: createErrorProxy('initialMetadataUpdateInstances'),
 
   waitUntilInitialized() {
     if (!isInitDone) { return onInit; }
@@ -154,7 +156,9 @@ const onInit = (async () => {
       window.Shared.initialLogoSets = data.logoSets;
       window.Shared.initialExtConfigs = data.extConfigs;
       window.Shared.initialExtConfig = data.extConfig;
+      window.Shared.initialExtMetadataProviders = data.extMetadataProviders;
       window.Shared.initialUpdateFeedMarkdown = data.updateFeedMarkdown;
+      window.Shared.initialMetadataUpdateInstances = data.metadataProviderInstances;
       if (window.Shared.preferences.data.currentTheme) {
         const theme = window.Shared.initialThemes.find(t => t.id === window.Shared.preferences.data.currentTheme);
         if (theme) { setTheme(theme); }

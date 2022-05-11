@@ -34,3 +34,7 @@ Data/flashpoint.sqlite
 /.coveralls.yml
 /coverage
 /tests/result
+
+# Extensions
+/extensions/**/dist/
+/extensions/**/out/

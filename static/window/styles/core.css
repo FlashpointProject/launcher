@@ -2247,6 +2247,20 @@ body {
 .setting__row__content--input-field .input-dropdown__content {
   border: 0px;
 }
+.setting__row__content--metadata-provider-instance__name {
+  flex-grow: 1;
+  text-align: left;
+}
+.setting__row__content--metadata-provider-instance__new {
+  display: flex;
+  margin-bottom: 0.35rem;
+  flex: auto;
+  align-items: center;
+}
+.setting__row__content--metadata-provider-instance__provider {
+  margin-left: 0.3rem;
+  margin-right: 0.3rem;
+}
 .setting__row__content--override-row {
   display: flex;
   margin-bottom: 0.35rem;

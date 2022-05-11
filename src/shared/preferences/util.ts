@@ -9,7 +9,7 @@ import { gameOrderByOptions, gameOrderReverseOptions } from '../order/util';
 import { deepCopy, parseVarStr } from '../Util';
 import { Coerce } from '../utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
-import { AppPathOverride, AppPreferencesData, AppPreferencesDataMainWindow } from './interfaces';
+import { AppPathOverride, AppPreferencesData, AppPreferencesDataMainWindow, MetadataProviderInstance } from './interfaces';
 import {delayedThrottle} from '@shared/utils/throttle';
 
 export function updatePreferencesData(data: DeepPartial<AppPreferencesData>, send = true) {
@@ -100,6 +100,7 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   updateFeedUrl: 'https://bluemaxima.org/flashpoint/updateFeed/stable.txt',
   fancyAnimations: true,
   searchLimit: 0,
+  metadataProviderInstances: [],
 });
 
 /**
@@ -161,10 +162,15 @@ export function overwritePreferenceData(
   parser.prop('showBrokenGames',             v => source.showBrokenGames             = !!v);
   parser.prop('updateFeedUrl',               v => source.updateFeedUrl               = str(v));
   parser.prop('fancyAnimations',             v => source.fancyAnimations             = !!v);
-  parser.prop('searchLimit', v => source.searchLimit                 = num(v));
+  parser.prop('searchLimit',                 v => source.searchLimit                 = num(v));
+  if (data.metadataProviderInstances) {
+    const newInstances: MetadataProviderInstance[] = [];
+    parser.prop('metadataProviderInstances').array((item, index) => newInstances[index] = parseMetadataProviderInstance(item as IObjectParserProp<MetadataProviderInstance>));
+    source.metadataProviderInstances = newInstances;
+  }
   if (data.appPathOverrides) {
     const newAppPathOverrides: AppPathOverride[] = [];
-    parser.prop('appPathOverrides').array((item, index) => newAppPathOverrides[index] = parseAppPathOverride(item));
+    parser.prop('appPathOverrides').array((item, index) => newAppPathOverrides[index] = parseAppPathOverride(item as IObjectParserProp<AppPathOverride>));
     source.appPathOverrides = newAppPathOverrides;
   }
   // Parse window object
@@ -190,7 +196,7 @@ function parseMainWindow(parser: IObjectParserProp<any>, output: AppPreferencesD
   parser.prop('maximized', v => output.maximized = !!v);
 }
 
-function parseAppPathOverride(parser: IObjectParserProp<any>): AppPathOverride {
+function parseAppPathOverride(parser: IObjectParserProp<AppPathOverride>): AppPathOverride {
   const override: AppPathOverride = {
     path: '',
     override: '',
@@ -200,6 +206,16 @@ function parseAppPathOverride(parser: IObjectParserProp<any>): AppPathOverride {
   parser.prop('override', v => override.override = str(v));
   parser.prop('enabled',  v => override.enabled  = !!v);
   return override;
+}
+
+function parseMetadataProviderInstance(parser: IObjectParserProp<MetadataProviderInstance>): MetadataProviderInstance {
+  const prop: MetadataProviderInstance = {
+    providerId: '',
+    configString: ''
+  };
+  parser.prop('providerId',   v => prop.providerId   = str(v));
+  parser.prop('configString', v => prop.configString = str(v));
+  return prop;
 }
 
 function parseTagFilterGroup(parser: IObjectParserProp<TagFilterGroup>): TagFilterGroup {

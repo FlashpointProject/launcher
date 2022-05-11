@@ -5,7 +5,7 @@ import { UpgradeStage } from '@renderer/upgrade/types';
 import { BackInit, PageKeyset, ResponseGameRange, SearchGamesOpts, ViewGame } from '@shared/back/types';
 import { AppExtConfigData } from '@shared/config/interfaces';
 import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
-import { GamePropSuggestions, IService } from '@shared/interfaces';
+import { GamePropSuggestions, IService, LoadedMetadataProviderInstance } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { ITheme, Theme } from '@shared/ThemeFile';
@@ -111,6 +111,10 @@ export type MainState = {
   contextButtons: ExtensionContribution<'contextButtons'>[];
   /** Extension config options */
   extConfigs: ExtensionContribution<'configuration'>[];
+  /** Extension metadata providers */
+  extMetadataProviders: ExtensionContribution<'metadataProviders'>[];
+  /** Loaded Metadata Provider Instance */
+  metadataProviderInstances: LoadedMetadataProviderInstance[];
   /** Current extension config data */
   extConfig: AppExtConfigData;
   /** Services */
@@ -222,4 +226,7 @@ export type MainAction = {
   type: MainActionType.CLEAR_RANDOM_GAMES;
 } | {
   type: MainActionType.INCREMENT_LOGO_VERSION;
+} | {
+  type: MainActionType.SET_METADATA_PROVIDER_INSTANCE;
+  instance: LoadedMetadataProviderInstance;
 }

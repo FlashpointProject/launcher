@@ -15,7 +15,7 @@ import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOp
 import { GameData, TagAlias, TagFilterGroup } from 'flashpoint-launcher';
 import { AppConfigData, AppExtConfigData } from '../config/interfaces';
 import { EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '../curate/types';
-import { ExecMapping, GamePropSuggestions, IService, ProcessAction } from '../interfaces';
+import { ExecMapping, GamePropSuggestions, IService, ProcessAction, LoadedMetadataProviderInstance } from '../interfaces';
 import { LangContainer, LangFile } from '../lang';
 import { ILogEntry, ILogPreEntry, LogLevel } from '../Log/interface';
 import { AppPreferencesData } from '../preferences/interfaces';
@@ -120,6 +120,10 @@ export enum BackIn {
   // Extensions
   RUN_COMMAND,
 
+  // Metadata Providers
+  ADD_METADATA_PROVIDER_INSTANCE,
+  EXECUTE_METADATA_UPDATE,
+
   // Misc
   UPLOAD_LOG,
   SET_EXT_CONFIG_VALUE,
@@ -171,6 +175,7 @@ export enum BackOut {
   SET_PLACEHOLDER_DOWNLOAD_PERCENT,
   OPEN_PLACEHOLDER_DOWNLOAD_DIALOG,
   CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG,
+  UPDATE_METADATA_PROVIDER_INSTANCE,
 }
 
 export type BackInTemplate = SocketTemplate<BackIn, {
@@ -266,6 +271,10 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   // Extensions
   [BackIn.RUN_COMMAND]: (command: string, args?: any[]) => RunCommandResponse;
 
+  // Metadata Updates
+  [BackIn.ADD_METADATA_PROVIDER_INSTANCE]: (configString: string, providerId: string) => void;
+  [BackIn.EXECUTE_METADATA_UPDATE]: (registryKey: string) => void;
+
   // Misc
   [BackIn.UPLOAD_LOG]: () => string | undefined;
   [BackIn.SET_EXT_CONFIG_VALUE]: (key: string, value: any) => void;
@@ -317,6 +326,7 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT]: (percent: number) => void;
   [BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG]: () => void;
   [BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG]: () => void;
+  [BackOut.UPDATE_METADATA_PROVIDER_INSTANCE]: (instance: LoadedMetadataProviderInstance) => void;
 }>
 
 export type BackInitArgs = {
@@ -372,6 +382,8 @@ export type GetRendererInitDataResponse = {
   logoSets: LogoSet[];
   extConfigs: ExtensionContribution<'configuration'>[];
   extConfig: AppExtConfigData;
+  extMetadataProviders: ExtensionContribution<'metadataProviders'>[];
+  metadataProviderInstances: LoadedMetadataProviderInstance[];
   updateFeedMarkdown: string;
 }
 

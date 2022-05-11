@@ -298,6 +298,13 @@ export class App extends React.Component<AppProps> {
       alert(text);
     });
 
+    window.Shared.back.register(BackOut.UPDATE_METADATA_PROVIDER_INSTANCE, (event, instance) => {
+      this.props.dispatchMain({
+        type: MainActionType.SET_METADATA_PROVIDER_INSTANCE,
+        instance,
+      });
+    });
+
     window.Shared.back.register(BackOut.SET_PLACEHOLDER_DOWNLOAD_DETAILS, (event, details) => {
       const { downloadSize } = details;
       this.props.setMainState({ downloadSize });
@@ -675,9 +682,11 @@ export class App extends React.Component<AppProps> {
       logoSets: this.props.main.logoSets,
       extConfigs: this.props.main.extConfigs,
       extConfig: this.props.main.extConfig,
+      extMetadataProviders: this.props.main.extMetadataProviders,
       logoVersion: this.props.main.logoVersion,
       services: this.props.main.services,
       updateFeedMarkdown: window.Shared.initialUpdateFeedMarkdown,
+      metadataProviderInstances: this.props.main.metadataProviderInstances,
     };
 
     // Render

@@ -54,11 +54,13 @@ import { ServicesFile } from './ServicesFile';
 import { SocketServer } from './SocketServer';
 import { newThemeWatcher } from './Themes';
 import { BackState, ImageDownloadItem } from './types';
+import { IMetadataProviderInstance } from './extensions/types';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
 import { LogFile } from './util/LogFile';
 import { logFactory } from './util/logging';
 import { createContainer, exit, runService } from './util/misc';
+// Required for the DB Models to function
 
 const DEFAULT_LOGO_PATH = 'window/images/Logos/404.png';
 
@@ -164,8 +166,10 @@ const state: BackState = {
     commands: new Map<string, Command>(),
     logoSets: new Map<string, LogoSet>(),
     themes: new Map<string, Theme>(),
+    metadataProviderInstances: new Map<string, IMetadataProviderInstance>(),
   },
   extensionsService: createErrorProxy('extensionsService'),
+  metadataProviderInstances: [],
   connection: undefined,
   writeLocks: 0,
 };

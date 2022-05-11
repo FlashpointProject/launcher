@@ -4,7 +4,7 @@ import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { ViewGame } from '@shared/back/types';
 import { AppExtConfigData } from '@shared/config/interfaces';
 import { ExtensionContribution, ILogoSet, IExtensionDescription } from '@shared/extensions/interfaces';
-import { GamePropSuggestions, IService } from '@shared/interfaces';
+import { GamePropSuggestions, IService, LoadedMetadataProviderInstance } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { ITheme } from '@shared/ThemeFile';
 import { AppUpdater, UpdateInfo } from 'electron-updater';
@@ -70,10 +70,12 @@ export type AppRouterProps = {
   contextButtons: ExtensionContribution<'contextButtons'>[],
   logoSets: ILogoSet[],
   extConfigs: ExtensionContribution<'configuration'>[],
+  extMetadataProviders: ExtensionContribution<'metadataProviders'>[],
   extConfig: AppExtConfigData,
   services: IService[],
   logoVersion: number,
   updateFeedMarkdown: string,
+  metadataProviderInstances: LoadedMetadataProviderInstance[],
 };
 
 export class AppRouter extends React.Component<AppRouterProps> {
@@ -91,6 +93,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       rollRandomGames: this.props.rollRandomGames,
       logoVersion: this.props.logoVersion,
       updateFeedMarkdown: this.props.updateFeedMarkdown,
+      metadataProviderInstances: this.props.metadataProviderInstances,
     };
     const browseProps: ConnectedBrowsePageProps = {
       games: this.props.games,
@@ -127,6 +130,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       extensions: this.props.extensions,
       extConfigs: this.props.extConfigs,
       extConfig: this.props.extConfig,
+      extMetadataProviders: this.props.extMetadataProviders,
     };
     const aboutProps: AboutPageProps = {
       creditsData: this.props.creditsData,

@@ -1,18 +1,23 @@
 import { Source } from '@database/entity/Source';
+import * as remote from '@electron/remote';
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
 import { BackIn } from '@shared/back/types';
 import { AppExtConfigData } from '@shared/config/interfaces';
-import { ExtConfigurationProp, ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
+import { ExtConfigurationProp, ExtensionContribution, ExtMetadataProvider, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { autoCode, LangContainer, LangFile } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
+import { MetadataProviderInstance } from '@shared/preferences/interfaces';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { ITheme } from '@shared/ThemeFile';
 import { deepCopy } from '@shared/Util';
+import { Coerce } from '@shared/utils/Coerce';
 import { formatString } from '@shared/utils/StringFormatter';
 import { AppPathOverride, TagFilterGroup } from 'flashpoint-launcher';
 import * as React from 'react';
-import {getExtIconURL, getExtremeIconURL, getPlatformIconURL, isFlashpointValidCheck} from '../../Util';
+import { getExtIconURL, getExtremeIconURL, getPlatformIconURL, isFlashpointValidCheck } from '../../Util';
 import { LangContext } from '../../util/lang';
 import { CheckBox } from '../CheckBox';
 import { ConfigBox } from '../ConfigBox';
@@ -28,9 +33,6 @@ import { FloatingContainer } from '../FloatingContainer';
 import { InputElement, InputField } from '../InputField';
 import { OpenIcon } from '../OpenIcon';
 import { TagFilterGroupEditor } from '../TagFilterGroupEditor';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
-import { Coerce } from '@shared/utils/Coerce';
 
 const { num } = Coerce;
 
@@ -53,6 +55,8 @@ type OwnProps = {
   extensions: IExtensionDescription[];
   /** All available extension configurations */
   extConfigs: ExtensionContribution<'configuration'>[];
+  /** All available metadata providers */
+  extMetadataProviders: ExtensionContribution<'metadataProviders'>[];
   /** Current extension config data */
   extConfig: AppExtConfigData;
   localeCode: string;
@@ -71,6 +75,12 @@ type ConfigPageState = {
   server: string;
   /** Currently entered new Source URL */
   newSourceUrl: string;
+  /** Currently entered Metadata Provider Instance Config String */
+  newMetadataProviderInstanceConfigString: string;
+  /** Currently entered Metadata Provider Instance Provider ID */
+  newMetadataProviderInstanceProviderId: string;
+  /** Lock metadata provider when validation and adding still running */
+  lockNewMetadataProviderInstances: boolean;
   /** List of Sources given from the backend */
   sources?: Source[];
   /** Currently editable Tag Filter Group */
@@ -101,6 +111,9 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       server: configData.server,
       newSourceUrl: '',
       editorOpen: false,
+      newMetadataProviderInstanceConfigString: '',
+      newMetadataProviderInstanceProviderId: '',
+      lockNewMetadataProviderInstances: false,
     };
   }
 
@@ -111,6 +124,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   render() {
     const strings = this.context.config;
+    const metadataProviders = this.props.extMetadataProviders.reduce<ExtMetadataProvider[]>((prev, cur) => prev.concat(cur.value), []);
     const autoString = formatString(strings.auto, this.props.localeCode);
     const searchLimitOptions = this.itemizeSearchLimitOptionsMemo(this.context.config);
     const langOptions = this.itemizeLangOptionsMemo(this.props.availableLangs, autoString);
@@ -123,6 +137,8 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     const logoSetPreviewRows = this.renderLogoSetMemo(this.props.platforms, this.props.logoVersion);
     const extensions = this.renderExtensionsMemo(this.props.extensions, strings);
     const extConfigSections = this.renderExtensionConfigs(this.props.extConfigs, this.props.extConfig);
+    const metadataProviderItems = this.renderMetadataProviders(metadataProviders);
+    const metadataProviderInstances = this.renderMetadataProviderInstances(this.props.preferencesData.metadataProviderInstances, metadataProviders);
     return (
       <div className='config-page simple-scroll'>
         <div className='config-page__inner'>
@@ -316,6 +332,33 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 value={this.props.preferencesData.fallbackLanguage || ''}
                 onChange={this.onFallbackLanguageSelect}
                 items={langOptions} />
+              {/* Metadata Provider Instances */}
+              <ConfigBox
+                title={strings.metadataProviderInstances}
+                description={strings.metadataProviderInstancesDesc}
+                swapChildren={true} >
+                {metadataProviderInstances}
+                <div
+                  className='setting__row__content--metadata-provider-instance__new'>
+                  <InputField
+                    className='setting__row__content--metadata-provider-instance__name'
+                    editable={!this.state.lockNewMetadataProviderInstances}
+                    onChange={this.onChangeMetadataProviderInstanceConfigString}
+                    text={this.state.newMetadataProviderInstanceConfigString}/>
+                  <select
+                    className='simple-selector setting__row__content--metadata-provider-instance__provider'
+                    value={this.state.newMetadataProviderInstanceProviderId}
+                    onChange={this.onMetadataProviderSelect}>
+                    {metadataProviderItems}
+                  </select>
+                  <div
+                    className='setting__row__content--override-row__new'
+                    onClick={() => this.onCreateMetadataProviderInstance(metadataProviders)}>
+                    <OpenIcon
+                      icon='plus' />
+                  </div>
+                </div>
+              </ConfigBox>
             </div>
           </div>
 
@@ -511,6 +554,41 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
             <OpenIcon
               className='setting__row__content--override-row__delete'
               icon='delete' />
+          </div>
+        </div>
+      );
+    });
+  });
+
+  renderMetadataProviders = memoizeOne((metadataProviders: ExtMetadataProvider[]) => {
+    const emptyOption: JSX.Element = (
+      <option
+        key={'none'}
+        value={''}>
+        {'<Select A Provider>'}
+      </option>
+    );
+    return [emptyOption, ...metadataProviders.map((item, idx) => (
+      <option
+        key={idx}
+        value={item.id}>
+        {item.name || item.id}
+      </option>
+    ))];
+  });
+
+  renderMetadataProviderInstances = memoizeOne((metadataProviderInstances: MetadataProviderInstance[], metadataProviders: ExtMetadataProvider[]) => {
+    return metadataProviderInstances.map((m, index) => {
+      const provider = metadataProviders.find(p => p.id === m.providerId);
+      return (
+        <div
+          className='setting__row__content--metadata-provider-instance'
+          key={index}>
+          <div className='setting__row__content--metadata-provider-instance__config-string'>
+            {m.configString}
+          </div>
+          <div className='setting__row__content--metadata-provider-instance__provider'>
+            { provider ? provider.name : 'PROVIDER MISSING' }
           </div>
         </div>
       );
@@ -742,6 +820,14 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   onFallbackLanguageSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     updatePreferencesData({ fallbackLanguage: event.target.value });
+  }
+
+  onMetadataProviderSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
+    this.setState({ newMetadataProviderInstanceProviderId: event.target.value });
+  }
+
+  onChangeMetadataProviderInstanceConfigString = (event: React.ChangeEvent<InputElement>) => {
+    this.setState({ newMetadataProviderInstanceConfigString: event.target.value });
   }
 
   onExcludedLibraryCheckboxChange = (library: string): void => {
@@ -1014,6 +1100,38 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       useCustomTitlebar: this.state.useCustomTitlebar,
       server: this.state.server,
     }).then(() => { window.Shared.restart(); });
+  }
+
+  onCreateMetadataProviderInstance = (metadataProviders: ExtMetadataProvider[]) => {
+    if (!this.state.lockNewMetadataProviderInstances) {
+      const provider = metadataProviders.find(m => m.id === this.state.newMetadataProviderInstanceProviderId);
+      if (provider) {
+        // Validate provider instance
+        this.setState({ lockNewMetadataProviderInstances: true }, async () => {
+          const res = await window.Shared.back.request(BackIn.RUN_COMMAND, provider.validateCommand, [this.state.newMetadataProviderInstanceConfigString]);
+          if (res.success) {
+            // Passed validation, add instance
+            window.Shared.back.request(BackIn.ADD_METADATA_PROVIDER_INSTANCE, this.state.newMetadataProviderInstanceConfigString, this.state.newMetadataProviderInstanceProviderId)
+            .catch(async (err) => {
+              return remote.dialog.showMessageBox({
+                title: 'Error adding Metadata Provider Instance',
+                message: `Failed to add provider instance:\n${err || 'No Reason Given'}`
+              });
+            })
+            .finally(() => {
+              this.setState({ lockNewMetadataProviderInstances: false });
+            });
+          } else {
+            // Validation failure, warn
+            await remote.dialog.showMessageBox({
+              title: 'Validation Results',
+              message: `Failed to validate provider instance:\n${res.res || 'No Reason Given'}`
+            });
+          }
+          this.setState({ lockNewMetadataProviderInstances: false });
+        });
+      }
+    }
   }
 
   static contextType = LangContext;

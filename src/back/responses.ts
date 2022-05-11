@@ -10,9 +10,9 @@ import { overwriteConfigData } from '@shared/config/util';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { getContentFolderByKey } from '@shared/curate/util';
-import { AppProvider, BrowserApplicationOpts } from '@shared/extensions/interfaces';
+import { AppProvider, BrowserApplicationOpts, ExtMetadataProvider } from '@shared/extensions/interfaces';
 import { FilterGameOpts } from '@shared/game/GameFilter';
-import { DeepPartial, GamePropSuggestions, ProcessAction, ProcessState } from '@shared/interfaces';
+import { DeepPartial, GamePropSuggestions, ProcessAction, ProcessState, LoadedMetadataProviderInstance } from '@shared/interfaces';
 import { LogLevel } from '@shared/Log/interface';
 import { MetaEditFile, MetaEditMeta } from '@shared/MetaEdit';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
@@ -42,6 +42,8 @@ import { pathToBluezip } from './util/Bluezip';
 import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylistFromJson, exit, pathExists, procToService, removeService, runService } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
 import { uuid } from './util/uuid';
+import { IMetadataProviderInstance } from './extensions/types';
+import { MetadataProviderOptions } from 'flashpoint-launcher';
 
 const axios = axiosImport.default;
 const copyFile  = util.promisify(fs.copyFile);
@@ -116,6 +118,52 @@ export function registerRequestCallbacks(state: BackState): void {
       log.debug('Launcher', 'No Update Feed URL specified');
     }
 
+    // Build metadata provider instances
+    const providers = await state.extensionsService.getContributions('metadataProviders');
+    const flatProviders = providers.reduce<ExtMetadataProvider[]>((prev, cur) => prev.concat(cur.value), []);
+    state.metadataProviderInstances = (await Promise.all(state.preferences.metadataProviderInstances.map<Promise<LoadedMetadataProviderInstance | undefined>>(async (m) => {
+      const instanceInfo: LoadedMetadataProviderInstance = {
+        checkedForUpdate: false,
+        registryKey: m.providerId + ':' + m.configString,
+        configString: m.configString,
+        providerId: m.providerId
+      };
+      // Add to registry
+      const provider = flatProviders.find(f => f.id === m.providerId);
+      if (provider) {
+        try {
+          const opts: MetadataProviderOptions = {
+            configString: m.configString
+          };
+          const instanceRes = await runCommand<IMetadataProviderInstance>(state, provider.createCommand, [opts]);
+          state.registry.metadataProviderInstances.set(instanceInfo.registryKey, instanceRes);
+          return instanceInfo;
+        } catch (err) {
+          log.error('Launcher', `Failed to create Metadata Provider Instance, creation command failed!\n${err}`);
+        }
+      } else {
+        log.error('Launcher', 'Failed to load Metadata Provider Instance, provider not loaded');
+      }
+    }))).filter(i => i !== undefined) as LoadedMetadataProviderInstance[];
+
+    // Start Metadata Update checks to run whilst the init data is sent back
+    // TODO: Remove the dumb timer and actually send the updates AFTER init
+    setTimeout(() => {
+      state.metadataProviderInstances.filter(i => !i.checkedForUpdate).map(async (i) => {
+        const instance = state.registry.metadataProviderInstances.get(i.registryKey);
+        if (instance) {
+          i.update = await Promise.resolve(instance.fetchUpdate());
+          log.debug('Launcher', `Fetched Update: ${JSON.stringify(i.update)}`);
+          i.checkedForUpdate = true;
+          const idx = state.metadataProviderInstances.findIndex(i2 => i2.registryKey === i.registryKey);
+          if (idx > -1) {
+            state.metadataProviderInstances[idx] = i;
+            state.socketServer.broadcast(BackOut.UPDATE_METADATA_PROVIDER_INSTANCE, i);
+          }
+        }
+      });
+    }, 5000);
+
     return {
       preferences: state.preferences,
       config: state.config,
@@ -144,9 +192,10 @@ export function registerRequestCallbacks(state: BackState): void {
       logoSets: Array.from(state.registry.logoSets.values()),
       extConfigs: await state.extensionsService.getContributions('configuration'),
       extConfig: state.extConfig,
+      extMetadataProviders: providers,
+      metadataProviderInstances: state.metadataProviderInstances,
       updateFeedMarkdown: updateFeedMarkdown,
     };
-
   });
 
   state.socketServer.register(BackIn.INIT_LISTEN, (event) => {
@@ -1219,6 +1268,60 @@ export function registerRequestCallbacks(state: BackState): void {
     return result;
   });
 
+  state.socketServer.register(BackIn.EXECUTE_METADATA_UPDATE, async (event, registryKey) => {
+    const instance = state.registry.metadataProviderInstances.get(registryKey);
+    if (instance) {
+      return Promise.resolve(instance.executeUpdate({
+        keepLocalGameChanges: false,
+        keepLocalTagChanges: false,
+        syncGames: true,
+        syncTags: true
+      }));
+    }
+  });
+
+  state.socketServer.register(BackIn.ADD_METADATA_PROVIDER_INSTANCE, async (event, configString, providerId) => {
+    // Check it's a unique instance
+    if (state.metadataProviderInstances.findIndex(s => (s.configString === configString) && (s.providerId === providerId)) === -1) {
+      // Unique, add instance
+      log.debug('Launcher', `Adding Metadata Provider Instance: ${providerId} - ${configString}`);
+      const provider = (await state.extensionsService.getFlatContributions('metadataProviders')).find(p => p.id === providerId);
+      if (provider) {
+        const registryKey = providerId + ':' + configString;
+        const instance: LoadedMetadataProviderInstance = {
+          checkedForUpdate: false,
+          registryKey,
+          configString,
+          providerId,
+        };
+        const opts: MetadataProviderOptions = {
+          configString
+        };
+        const instanceRes: IMetadataProviderInstance = await runCommand(state, provider.createCommand, [opts]);
+        state.metadataProviderInstances.push(instance);
+        state.registry.metadataProviderInstances.set(registryKey, instanceRes);
+        log.debug('Launcher', 'Built Instance and saved to Registry');
+        state.preferences = overwritePreferenceData(state.preferences, { metadataProviderInstances: [...state.preferences.metadataProviderInstances, {
+          providerId: instance.providerId,
+          configString: instance.configString
+        }]});
+        await PreferencesFile.saveFile(path.join(state.configFolder, PREFERENCES_FILENAME), state.preferences);
+        state.socketServer.broadcast(BackOut.UPDATE_PREFERENCES_RESPONSE, state.preferences);
+        state.socketServer.broadcast(BackOut.UPDATE_METADATA_PROVIDER_INSTANCE, instance);
+        log.debug('Launcher', 'Saved Instance to Preferences');
+        setTimeout(async () => {
+          instance.update = await Promise.resolve(instanceRes.fetchUpdate());
+          instance.checkedForUpdate = true;
+          const idx = state.metadataProviderInstances.findIndex(i => i.registryKey === instance.registryKey);
+          if (idx > -1) {
+            state.metadataProviderInstances[idx] = instance;
+            state.socketServer.broadcast(BackOut.UPDATE_METADATA_PROVIDER_INSTANCE, instance);
+          }
+        }, 1000);
+      }
+    }
+  });
+
   state.socketServer.register(BackIn.RUN_COMMAND, async (event, command, args = []) => {
     // Find command
     const c = state.registry.commands.get(command);
@@ -1230,9 +1333,12 @@ export function registerRequestCallbacks(state: BackState): void {
         res = await Promise.resolve(c.callback(...args));
         success = true;
       } catch (error) {
+        res = error;
+        success = false;
         log.error('Launcher', `Error running Command (${command})\n${error}`);
       }
     } else {
+      res = `Command requested but "${command}" not registered!`;
       log.error('Launcher', `Command requested but "${command}" not registered!`);
     }
     // Return response
@@ -1389,7 +1495,7 @@ function createCommand(filename: string, useWine: boolean, execFile: boolean): s
  * @param command Command to run
  * @param args Arguments for the command
  */
-async function runCommand(state: BackState, command: string, args: any[] = []): Promise<any> {
+async function runCommand<T>(state: BackState, command: string, args: any[] = []): Promise<T> {
   const callback = state.registry.commands.get(command);
   let res = undefined;
   if (callback) {
@@ -1418,7 +1524,7 @@ async function getProviders(state: BackState): Promise<AppProvider[]> {
           ...app,
           callback: async (game: Game) => {
             if (app.command) {
-              return runCommand(state, app.command, [game]);
+              return runCommand<any>(state, app.command, [game]);
             } else if (app.path) {
               const parsedArgs = await Promise.all(app.arguments.map(a => parseAppVar(c.extId, a, game.launchCommand, state)));
               const parsedPath = await parseAppVar(c.extId, app.path, game.launchCommand, state);

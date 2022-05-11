@@ -306,6 +306,19 @@ export function mainStateReducer(state: MainState = createInitialState(), action
       };
     }
 
+    case MainActionType.SET_METADATA_PROVIDER_INSTANCE: {
+      log.debug('Launcher', `Setting instance on frontend: ${JSON.stringify(action.instance, undefined, 2)}`);
+      const newInstances = [...state.metadataProviderInstances];
+      const idx = newInstances.findIndex(i => i.registryKey === action.instance.registryKey);
+      if (idx > -1) {
+        newInstances[idx] = action.instance;
+      }
+      return {
+        ...state,
+        metadataProviderInstances: newInstances,
+      };
+    }
+
     case MainActionType.SET_UPGRADES: {
       return {
         ...state,
@@ -429,12 +442,14 @@ function createInitialState(): MainState {
     extensions: [],
     extConfig: {},
     extConfigs: [],
+    extMetadataProviders: [],
     devScripts: [],
     contextButtons: [],
     services: [],
     downloadOpen: false,
     downloadPercent: 0,
     downloadSize: 0,
-    downloadVerifying: false
+    downloadVerifying: false,
+    metadataProviderInstances: [],
   };
 }

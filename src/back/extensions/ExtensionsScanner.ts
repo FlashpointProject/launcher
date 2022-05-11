@@ -4,16 +4,55 @@ import { Coerce } from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Application, ButtonContext, ContextButton, Contributions, DevScript, ExtConfiguration, ExtConfigurationProp, ExtensionType, ExtTheme, IExtension, IExtensionManifest, ILogoSet } from '../../shared/extensions/interfaces';
+import { Application, ButtonContext, ContextButton, Contributions, DevScript, ExtConfiguration, ExtConfigurationProp, ExtensionType, ExtMetadataProvider, ExtTheme, IExtension, IExtensionManifest, ILogoSet } from '../../shared/extensions/interfaces';
 
 const { str, num } = Coerce;
 const fsPromises = fs.promises;
+
+export async function scanSystemExtensions(): Promise<IExtension[]> {
+  const extensionPath = './extensions';
+
+  const result = new Map<string, IExtension>();
+
+  await fsPromises.readdir(extensionPath)
+  .then(filenames => {
+    // Each folder inside is an Extension
+    return Promise.all(filenames.map(async filename => {
+      // Make sure it is a folder or symlink folder
+      const stats = await fs.promises.stat(path.join(extensionPath, filename));
+      if (!stats.isDirectory()) { return; }
+      // Read Manifest
+      const manifestPath = path.join(extensionPath, filename, 'package.json');
+      return fsPromises.stat(manifestPath)
+      .then(async (stats) => {
+        // Manifest file (package.json) exists, continue loading extension
+        if (stats.isFile()) {
+          await fsPromises.access(manifestPath);
+          const ext = await parseExtension(manifestPath, ExtensionType.User);
+          if (result.get(ext.id) !== undefined) {
+            // An Extension with the same id has been registered earlier, latest read survives
+            log.warn('Extensions', `Overriding Extension ${ext.id} with extension at "${path.join(extensionPath, filename)}"`);
+          }
+          result.set(ext.id, ext);
+        }
+      })
+      .catch(err => log.error('Extensions', `Error loading User extension at "${filename}"\n${err}`));
+    }));
+  });
+
+  // Convert the map to an array and return
+  const r: IExtension[] = [];
+  result.forEach((ext) => {
+    log.debug('Extensions', `System Extension Scanned "${ext.manifest.displayName || ext.manifest.name}" (${ext.id})`);
+    r.push(ext);
+  });
+  return r;
+}
 
 /** Scans all extensions in System and User paths and returns them. */
 export async function scanExtensions(configData: AppConfigData, extensionPath: string): Promise<IExtension[]> {
   const result = new Map<string, IExtension>();
 
-  // TODO: System extensions (?)
 
   // User extensions
   const userExtPath = path.resolve(extensionPath);
@@ -116,13 +155,15 @@ function parseContributions(parser: IObjectParserProp<Contributions>): Contribut
     contextButtons: [],
     applications: [],
     configuration: [],
+    metadataProviders: [],
   };
-  parser.prop('logoSets',       true).array(item => contributes.logoSets.push(parseLogoSet(item)));
-  parser.prop('themes',         true).array(item => contributes.themes.push(parseTheme(item)));
-  parser.prop('devScripts',     true).array(item => contributes.devScripts.push(parseDevScript(item)));
-  parser.prop('contextButtons', true).array(item => contributes.contextButtons.push(parseContextButton(item)));
-  parser.prop('applications',   true).array(item => contributes.applications.push(parseApplication(item)));
-  parser.prop('configuration', true).array(item => contributes.configuration.push(parseConfiguration(item)));
+  parser.prop('logoSets',          true).array(item => contributes.logoSets.push(parseLogoSet(item)));
+  parser.prop('themes',            true).array(item => contributes.themes.push(parseTheme(item)));
+  parser.prop('devScripts',        true).array(item => contributes.devScripts.push(parseDevScript(item)));
+  parser.prop('contextButtons',    true).array(item => contributes.contextButtons.push(parseContextButton(item)));
+  parser.prop('applications',      true).array(item => contributes.applications.push(parseApplication(item)));
+  parser.prop('configuration',     true).array(item => contributes.configuration.push(parseConfiguration(item)));
+  parser.prop('metadataProviders', true).array(item => contributes.metadataProviders.push(parseMetadataProvider(item)));
   return contributes;
 }
 
@@ -223,6 +264,24 @@ function parseConfigurationProperty(parser: IObjectParserProp<ExtConfigurationPr
   parser.prop('default',     v => prop.default     = v, true);
   parser.prop('command',     v => prop.command     = str(v), true);
   parser.prop('enum', true).arrayRaw(item => prop.enum.push(item));
+
+  return prop;
+}
+
+function parseMetadataProvider(parser: IObjectParserProp<ExtMetadataProvider>): ExtMetadataProvider {
+  const prop: ExtMetadataProvider = {
+    id: '',
+    name: '',
+    validateCommand: '',
+    createCommand: '',
+    destroyCommand: undefined
+  };
+
+  parser.prop('id',               v => prop.id               = str(v));
+  parser.prop('name',             v => prop.name             = str(v));
+  parser.prop('validateCommand',  v => prop.validateCommand  = str(v));
+  parser.prop('createCommand',    v => prop.createCommand    = str(v));
+  parser.prop('destroyCommand',   v => prop.destroyCommand   = str(v), true);
 
   return prop;
 }
