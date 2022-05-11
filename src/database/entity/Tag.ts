@@ -15,12 +15,12 @@ export class Tag {
 
   /** ID of Primary Alias */
   @Column({ nullable: true })
-  primaryAliasId: number;
+  primaryAliasId?: number;
 
   /** Primary Alias */
   @OneToOne(type => TagAlias, { cascade: true, eager: true, nullable: true, onDelete: 'CASCADE' })
   @JoinColumn()
-  primaryAlias: TagAlias;
+  primaryAlias?: TagAlias;
 
   /** Aliases / Names of the tag */
   @OneToMany(type => TagAlias, t => t.tag,  { cascade: true, eager: true, onDelete: 'CASCADE' })

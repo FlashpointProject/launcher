@@ -41,8 +41,8 @@ export function TagListItem(props: TagListItemProps) {
         <div className='tag-list-item__right'>
           <div
             className='tag-list-item__field tag-list-item__field--name'
-            title={tag.primaryAlias.name}>
-            {tag.primaryAlias.name}
+            title={tag.primaryAlias ? tag.primaryAlias.name : 'NONE'}>
+            {tag.primaryAlias ? tag.primaryAlias.name : 'NONE'}
           </div>
           <div
             className='tag-list-item__field tag-list-item__field--aliases'

@@ -270,7 +270,7 @@ export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDi
         ...values[0],
         property,
         prevValue: (property === 'tags')
-          ? game.tags.map(tag => tag.primaryAlias.name)
+          ? game.tags.map(tag => tag.primaryAlias ? tag.primaryAlias.name : 'NONE')
           : game[property],
       };
 
@@ -278,7 +278,7 @@ export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDi
         const tags = values[0].value;
         if (!Array.isArray(tags)) { throw new Error(`Failed to GIDDY UP PARTNER. "tags" is not an array (id: "${id}", value: "${tags}") (bug)`); }
 
-        if ((game.tags.length === tags.length) && game.tags.every((tag, i) => tag.primaryAlias.name === tags[i])) {
+        if ((game.tags.length === tags.length) && game.tags.every((tag, i) => tag.primaryAlias ? tag.primaryAlias.name === tags[i] : false)) {
           changedMeta.discard.push(change);
         } else {
           changedMeta.apply.push(change);
@@ -301,7 +301,7 @@ export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDi
           ...values[i],
           property,
           prevValue: (property === 'tags')
-            ? game.tags.map(tag => tag.primaryAlias.name)
+            ? game.tags.map(tag => tag.primaryAlias ? tag.primaryAlias.name : 'NONE')
             : game[property],
         });
       }

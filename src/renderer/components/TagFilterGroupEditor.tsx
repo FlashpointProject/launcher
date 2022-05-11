@@ -39,7 +39,10 @@ export function TagFilterGroupEditor(props: TagFilterGroupEditorProps) {
   React.useEffect(() => {
     /** Parse the tags into 'real tags' on first load */
     Promise.all(parsedTagsList.map(async (t) => {
-      return (await window.Shared.back.request(BackIn.GET_TAG, t.primaryAlias.name)) || t;
+      if (t.primaryAlias) {
+        return (await window.Shared.back.request(BackIn.GET_TAG, t.primaryAlias.name)) || t;
+      }
+      return t;
     }))
     .then((parsedTags) => {
       setParsedTagsList(parsedTags);
@@ -48,25 +51,30 @@ export function TagFilterGroupEditor(props: TagFilterGroupEditorProps) {
 
   const onAddTag = React.useCallback(async (name: string) => {
     const tag = await window.Shared.back.request(BackIn.GET_TAG, name) || buildPlaceholderTags([name])[0];
-    const idx = parsedTagsList.findIndex(t => t.primaryAlias.name.toLowerCase() === tag.primaryAlias.name.toLowerCase());
+    const idx = parsedTagsList.findIndex(t => t.primaryAlias ? t.primaryAlias.name.toLowerCase() === (tag.primaryAlias ? tag.primaryAlias.name.toLowerCase() : '') : false);
     if (idx > -1) {
       /** Tag already exists, exit */
       return;
     }
     const newTagsList = [...parsedTagsList];
     newTagsList.push(tag);
-    props.onAddTag(tag.primaryAlias.name);
+    if (tag.primaryAlias) {
+      props.onAddTag(tag.primaryAlias.name);
+    }
     setParsedTagsList(newTagsList);
   }, [parsedTagsList, props.onAddTag]);
 
   const onRemoveTag = React.useCallback((tag: Tag) => {
     const newTagsList = [...parsedTagsList];
-    const idx = newTagsList.findIndex(t => t.primaryAlias.name === tag.primaryAlias.name);
-    if (idx > -1) {
-      newTagsList.splice(idx, 1);
-      setParsedTagsList(newTagsList);
+    if (tag.primaryAlias) {
+      const idx = newTagsList.findIndex(t => (t.primaryAlias && tag.primaryAlias) ? t.primaryAlias.name === tag.primaryAlias.name : false);
+      if (idx > -1) {
+        newTagsList.splice(idx, 1);
+        setParsedTagsList(newTagsList);
+      }
+      props.onRemoveTag(tag.primaryAlias.name);
     }
-    props.onRemoveTag(tag.primaryAlias.name);
+
   }, [parsedTagsList, props.onRemoveTag]);
 
   const onTagSubmit = React.useCallback((tag: string) => {
@@ -80,7 +88,7 @@ export function TagFilterGroupEditor(props: TagFilterGroupEditorProps) {
     if (tag === '') {
       setTagSuggestions([]);
     } else {
-      const existingTagsList = parsedTagsList.filter(t => t.id ? t.id >= 0 : false).map(t => t.primaryAlias.name);
+      const existingTagsList = parsedTagsList.filter(t => t.id ? t.id >= 0 : false).map(t => t.primaryAlias ? t.primaryAlias.name : 'NONE');
       const suggs = await window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, tag, props.activeTagFilterGroups.concat([generateTagFilterGroup(existingTagsList)]));
       setTagSuggestions(suggs);
     }

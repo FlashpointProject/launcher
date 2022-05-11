@@ -274,7 +274,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           onResize={this.onRightSidebarResize}>
           <ConnectedRightBrowseSidebar
             currentGame={this.state.currentGame}
-            isExtreme={this.state.currentGame ? this.state.currentGame.tags.reduce<boolean>((prev, next) => extremeTags.includes(next.primaryAlias.name), false) : false}
+            isExtreme={this.state.currentGame ? this.state.currentGame.tags.reduce<boolean>((prev, next) => extremeTags.includes(next.primaryAlias ? next.primaryAlias.name : 'NONE'), false) : false}
             gameRunning={this.props.gameRunning}
             currentPlaylistEntry={this.state.currentPlaylistEntry}
             currentLibrary={this.props.gameLibrary}

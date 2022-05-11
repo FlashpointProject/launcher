@@ -751,9 +751,9 @@ export function registerRequestCallbacks(state: BackState): void {
 
   state.socketServer.register(BackIn.CLEANUP_TAGS, async (event) => {
     const allTags = await TagManager.findTags();
-    const commaTags = allTags.filter(t => t.primaryAlias.name.includes(','));
+    const commaTags = allTags.filter(t => t.primaryAlias ? t.primaryAlias.name.includes(',') : false);
     for (const oldTag of commaTags) {
-      const allAliases = oldTag.primaryAlias.name.split(',').map(a => a.trim());
+      const allAliases = oldTag.primaryAlias ? oldTag.primaryAlias.name.split(',').map(a => a.trim()) : [];
       const tagsToAdd: Tag[] = [];
       for (const alias of allAliases) {
         let tag = await TagManager.findTag(alias);
@@ -1218,7 +1218,7 @@ export function registerRequestCallbacks(state: BackState): void {
         const key = keys[i];
         if (properties[key]) {
           if (key === 'tags') {
-            meta.tags = game.tags.map(tag => tag.primaryAlias.name);
+            meta.tags = game.tags.map(tag => tag.primaryAlias ? tag.primaryAlias.name : 'NONE');
           } else {
             (meta as any)[key] = game[key]; // (I wish typescript could understand this...)
           }

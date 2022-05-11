@@ -75,7 +75,7 @@ export async function findTags(name?: string, flatFilters?: string[]): Promise<T
 export async function mergeTags(mergeData: MergeTagData, openDialog: ShowMessageBoxFunc): Promise<Tag | undefined> {
   const mergeSorc = await findTag(mergeData.toMerge);
   const mergeDest = await findTag(mergeData.mergeInto);
-  if (mergeDest && mergeSorc) {
+  if (mergeDest && mergeSorc && mergeSorc.primaryAlias) {
     if (mergeDest.id !== mergeSorc.id) {
       // Confirm merge
       const res = await openDialog({
@@ -115,7 +115,7 @@ export async function mergeTags(mergeData: MergeTagData, openDialog: ShowMessage
   } else {
     openDialog({
       title: 'No Tag Found!',
-      message: 'No tag found for "' + mergeData.mergeInto + '"',
+      message: 'No or invalid tag found for "' + mergeData.mergeInto + '"',
       buttons: [ 'Ok ' ]
     });
   }

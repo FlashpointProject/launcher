@@ -436,8 +436,8 @@ export function tagSort(tagA: Tag, tagB: Tag): number {
     if (catIdA > catIdB) { return 1;  }
     if (catIdB > catIdA) { return -1; }
   }
-  if (tagA.primaryAlias.name > tagB.primaryAlias.name) { return 1;  }
-  if (tagB.primaryAlias.name > tagA.primaryAlias.name) { return -1; }
+  if ((tagA.primaryAlias ? tagA.primaryAlias.name : '_') > (tagB.primaryAlias ? tagB.primaryAlias.name : '_')) { return 1;  }
+  if ((tagB.primaryAlias ? tagB.primaryAlias.name : '_') > (tagA.primaryAlias ? tagA.primaryAlias.name : '_')) { return -1; }
   return 0;
 }
 

@@ -25,7 +25,7 @@ export function convertGameToCurationMetaFile(game: Game, categories: TagCategor
   parsed['Version']              = game.version;
   parsed['Languages']            = game.language;
   parsed['Extreme']              = game.extreme ? 'Yes' : 'No';
-  parsed['Tags']                 = game.tags.map(t => t.primaryAlias.name).join('; ');
+  parsed['Tags']                 = game.tags.map(t => t.primaryAlias ? t.primaryAlias.name : 'NONE').join('; ');
   parsed['Tag Categories']       = tagCategories.join('; ');
   parsed['Source']               = game.source;
   parsed['Platform']             = game.platform;
@@ -93,7 +93,7 @@ export function convertEditToCurationMetaFile(curation: EditCurationMeta, catego
   parsed['Version']              = curation.version;
   parsed['Languages']            = curation.language;
   parsed['Extreme']              = curation.extreme ? 'Yes' : 'No';
-  parsed['Tags']                 = curation.tags ? curation.tags.map(t => t.primaryAlias.name).join('; ') : '';
+  parsed['Tags']                 = curation.tags ? curation.tags.map(t => (t.primaryAlias ? t.primaryAlias.name : 'NONE')).join('; ') : '';
   parsed['Tag Categories']       = tagCategories.join('; ');
   parsed['Source']               = curation.source;
   parsed['Platform']             = curation.platform;
@@ -167,7 +167,7 @@ export function convertParsedToCurationMeta(curation: ParsedCurationMeta, catego
   parsed['Version']              = curation.game.version;
   parsed['Languages']            = curation.game.language;
   parsed['Extreme']              = curation.game.extreme ? 'Yes' : 'No';
-  parsed['Tags']                 = curation.game.tags ? curation.game.tags.map(t => t.primaryAlias.name).join('; ') : '';
+  parsed['Tags']                 = curation.game.tags ? curation.game.tags.map(t => (t.primaryAlias ? t.primaryAlias.name : 'NONE')).join('; ') : '';
   parsed['Tag Categories']       = tagCategories.join('; ');
   parsed['Source']               = curation.game.source;
   parsed['Platform']             = curation.game.platform;

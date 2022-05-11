@@ -93,7 +93,7 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
               <div className='browse-right-sidebar__title-row'>
                 <div className='browse-right-sidebar__title-row__title'>
                   <InputField
-                    text={tag.primaryAlias.name}
+                    text={tag.primaryAlias ? tag.primaryAlias.name : 'NONE'}
                     placeholder={strings.noName} />
                 </div>
                 <div className='browse-right-sidebar__title-row__buttons'>
@@ -258,7 +258,7 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
 
     if (newTag !== '' && this.props.currentTag) {
       // Delayed set
-      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag, this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme)).concat([generateTagFilterGroup([this.props.currentTag.primaryAlias.name])]))
+      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag, this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme)).concat([generateTagFilterGroup([this.props.currentTag.primaryAlias ? this.props.currentTag.primaryAlias.name : 'NONE'])]))
       .then((data) => {
         if (data) {
           this.setState({
@@ -277,7 +277,7 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
   }
 
   onMergeTag = (event: React.MouseEvent) => {
-    if (this.props.currentTag) {
+    if (this.props.currentTag && this.props.currentTag.primaryAlias) {
       this.props.onLockEdit(true);
       window.Shared.back.request(BackIn.MERGE_TAGS, {
         toMerge: this.props.currentTag.primaryAlias.name,
@@ -334,7 +334,7 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
       .then(async (data) => {
         if (data) {
           // Tag alias exists
-          remote.dialog.showErrorBox('Alias Error!',`Alias already exists on tag '${data.primaryAlias.name}'!`);
+          remote.dialog.showErrorBox('Alias Error!',`Alias already exists on tag '${data.primaryAlias ? data.primaryAlias : 'ID: ' + data.id}'!`);
         } else if (this.props.currentTag && this.props.currentTag.id) {
           // Tag alias doesn't exist
           let newTagAlias = new TagAlias();

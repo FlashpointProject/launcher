@@ -234,9 +234,6 @@ class DirectusMetadataProviderInstance implements flashpoint.IMetadataProviderIn
                   // Tag doesn't exist, make a new one
                   tag = await flashpoint.tags.createTag(name);
                 }
-                if (!tag) {
-                  return undefined;
-                }
                 return tag;
               }))).filter(t => !!t)
             };

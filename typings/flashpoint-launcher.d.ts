@@ -606,9 +606,9 @@ declare module 'flashpoint-launcher' {
         /** Date when this tag was last modified */
         dateModified: string;
         /** ID of Primary Alias */
-        primaryAliasId: number;
+        primaryAliasId?: number;
         /** Primary Alias */
-        primaryAlias: TagAlias;
+        primaryAlias?: TagAlias;
         /** Aliases / Names of the tag */
         aliases: TagAlias[];
         /** Category this tag is a part of (either ID or TagCategory will exist) */

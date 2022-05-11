@@ -76,7 +76,7 @@ export function stringifyMetaValue(value: string | string[] | Tag[] | boolean | 
     if (value.length > 0) {
       const stringArray = (typeof value[0] === 'string')
         ? (value as string[])
-        : (value as Tag[]).map(v => v.primaryAlias.name);
+        : (value as Tag[]).map(v => v.primaryAlias ? v.primaryAlias.name : 'NONE');
 
       return `[ ${stringArray.map(v => `"${v}"`).join(', ')} ]`;
     } else {
