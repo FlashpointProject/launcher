@@ -202,7 +202,7 @@
     "restart": "Uruchom ponownie",
     "restartDesc": "Uruchom usługę ponownie",
     "details": "Szczegóły",
-    "detailsDesc": "Otwórz okno ze szczegółami"
+    "detailsDesc": "Otwórz okno ze szczegółami usługi"
   },
   "about": {
     "aboutHeader": "O programie",
@@ -210,12 +210,12 @@
     "flashpointDesc": "Projekt archiwizacyjny, dla którego został stworzony ten launcher. Jest to jednocześnie archiwum, muzeum i kolekcja grywalnych gier przeglądarkowych.",
     "website": "Strona internetowa",
     "flashpointLauncher": "Launcher Flashpoint",
-    "flashpointLauncherDesc": "Aplikacja o otwartym źródle służąca do przeglądania, zarządzania i grania w gry w projekcie Flashpoint.",
+    "flashpointLauncherDesc": "Aplikacja o otwartym kodzie źródłowym służąca do przeglądania, zarządzania i grania w gry w projekcie Flashpoint.",
     "version": "Wersja",
     "license": "Licencja",
     "licenseInfo": "MIT (Przeczytaj plik 'LICENSE' by dowiedzieć się więcej)",
     "creditsHeader": "Twórcy",
-    "specialThanks": "Specjalne Podziękowania"
+    "specialThanks": "Specjalne podziękowania"
   },
   "browse": {
     "noTitle": "Brak tytułu",
@@ -398,7 +398,7 @@
     "save": "Zapisz",
     "saveDesc": "Zapisz zmiany i skończ edycję",
     "discard": "Anuluj",
-    "discardDesc": "Anuluj zmiany i skończ edycję",
+    "discardDesc": "Anuluj zmiany i zakończ edycję",
     "edit": "Edytuj",
     "editDesc": "Edytuj tę listę odtwarzania",
     "delete": "Usuń",
