@@ -41,7 +41,7 @@
     "editTagFilter": "Edytuj grupę filtrów tagów",
     "duplicateTagFilter": "Duplikuj grupę filtrów tagów",
     "deleteTagFilter": "Usuń grupę filtrów tagów",
-    "appPathOverrides": "Zastąpienie Ścieżki Aplikacji",
+    "appPathOverrides": "Zastąpienie ścieżki aplikacji",
     "appPathOverridesDesc": "Nadpisuje ścieżkę aplikacji po lewej stronie na ścieżkę znajdującą się po prawej stronie przy uruchamianiu gier.",
     "visualsHeader": "Wygląd",
     "useCustomTitleBar": "Użyj własnego paska tytułowego",
