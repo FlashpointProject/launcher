@@ -316,7 +316,7 @@ export namespace GameLauncher {
                 return mapping.darwin || mapping.win32;
               } else {
                 // Otherwise, use the wine binary (if configured.)
-		return mapping.darwine || mapping.win32;
+                return mapping.darwine || mapping.win32;
               }
             default:
               return filePath;
