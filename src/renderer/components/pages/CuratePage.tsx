@@ -142,7 +142,7 @@ export function CuratePage(props: CuratePageProps) {
         const meta = YAML.stringify(convertEditToCurationMetaFile(curation.meta, props.tagCategories, curation.addApps));
         try {
           fs.writeFileSync(metaPath, meta);
-        } catch (error) {
+        } catch (error: any) {
           curationLog(`Error saving meta for curation ${curation.key} - ` + error.message);
           console.error(error);
         }
@@ -253,7 +253,7 @@ export function CuratePage(props: CuratePageProps) {
                 },
               });
             });
-          } catch (error) {
+          } catch (error: any) {
             // Log error
             curationLog(`Curation failed to import! (title: ${curation.meta.title} id: ${curation.key}) - ` + error.message);
             console.error(error);
@@ -311,7 +311,7 @@ export function CuratePage(props: CuratePageProps) {
       await fs.ensureDir(path.join(newCurationFolder, 'content'));
       await fs.createFile(path.join(newCurationFolder, 'meta.yaml'));
       await loadCurationFolder(key, newCurationFolder, defaultGameMetaValues, dispatch, props);
-    } catch (error) {
+    } catch (error: any) {
       curationLog('Error creating new curation - ' + error.message);
       console.error(error);
     }

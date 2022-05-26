@@ -22,7 +22,7 @@ export namespace ExtConfigFile {
 
     try {
       data = await readFile(filePath, onError);
-    } catch (e) {
+    } catch (e: any) {
       error = e;
     }
 
@@ -40,7 +40,7 @@ export namespace ExtConfigFile {
 
     try {
       data = readFileSync(filePath, onError);
-    } catch (e) {
+    } catch (e: any) {
       error = e;
     }
 

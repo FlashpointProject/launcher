@@ -12,6 +12,7 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "strictPropertyInitialization": false,
+    "strictNullChecks": false,
     "paths": {
       "@shared/*": [ "./src/shared/*" ],
       "@main/*": [ "./src/main/*" ],
@@ -37,5 +38,5 @@
     "./typings/**/*",
     "./src",
     "./tests"
-  ],
+, "test/unit/back/configuration.test.ts"  ],
 }
