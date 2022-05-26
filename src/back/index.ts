@@ -167,7 +167,7 @@ const state: BackState = {
   },
   extensionsService: createErrorProxy('extensionsService'),
   connection: undefined,
-  writeLocks: 0,
+  prefsQueue: new EventQueue(),
 };
 
 main();
@@ -491,7 +491,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
         }
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     log.error('Launcher', `Error loading default Themes folder\n${error.message}`);
   }
   const themeContributions = await state.extensionsService.getContributions('themes');
@@ -542,7 +542,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
         }
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     log.error('Launcher', `Error loading default Themes folder\n${error.message}`);
   }
   const logoSetContributions = await state.extensionsService.getContributions('logoSets');

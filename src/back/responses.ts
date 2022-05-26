@@ -224,7 +224,7 @@ export function registerRequestCallbacks(state: BackState): void {
                 state.socketServer.broadcast(BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG);
               }, 250);
             });
-          } catch (error) {
+          } catch (error: any) {
             state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
             log.info('Game Launcher', `Game Launch Aborted: ${error}`);
             return;
@@ -289,7 +289,7 @@ export function registerRequestCallbacks(state: BackState): void {
                 state.socketServer.broadcast(BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG);
               }, 250);
             });
-          } catch (error) {
+          } catch (error: any) {
             state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
             log.info('Game Launcher', `Game Launch Aborted: ${error}`);
             return;
@@ -812,7 +812,7 @@ export function registerRequestCallbacks(state: BackState): void {
           await unlink(fullPath);
           // @TODO Remove the two top folders if they are empty (so no empty folders are left hanging)
         }
-      } catch (error) {
+      } catch (error: any) {
         if (error.code !== 'ENOENT') { console.error(error); }
       }
     }
@@ -825,7 +825,7 @@ export function registerRequestCallbacks(state: BackState): void {
     overwriteConfigData(newConfig, data);
 
     try { await ConfigFile.saveFile(path.join(state.configFolder, CONFIG_FILENAME), newConfig); }
-    catch (error) { log.error('Launcher', error); }
+    catch (error: any) { log.error('Launcher', error); }
   });
 
   state.socketServer.register(BackIn.UPDATE_PREFERENCES, async (event, data, refresh) => {
@@ -843,9 +843,7 @@ export function registerRequestCallbacks(state: BackState): void {
       }
 
       overwritePreferenceData(state.preferences, dif);
-      state.writeLocks += 1;
-      await PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences);
-      state.writeLocks -= 1;
+      state.prefsQueue.push(() => PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences));
     }
     if (refresh) {
       state.socketServer.send(event.client, BackOut.UPDATE_PREFERENCES_RESPONSE, state.preferences);
@@ -1135,23 +1133,6 @@ export function registerRequestCallbacks(state: BackState): void {
 
   state.socketServer.register(BackIn.QUIT, async (event) => {
     // Unload all extensions before quitting
-    const timeoutPromise = new Promise((resolve, reject) => {
-      setTimeout(resolve, 20000);
-    });
-    const writePromise = new Promise<void>((resolve, reject) => {
-      const loopFunc = () => {
-        if (state.writeLocks > 0) {
-          setTimeout(loopFunc, 100);
-        } else {
-          resolve();
-        }
-      };
-      loopFunc();
-    });
-    await Promise.race([timeoutPromise, writePromise])
-    .catch((err) => {
-      /** Bit late to really do anything here */
-    });
     await state.extensionsService.unloadAll();
     state.socketServer.send(event.client, BackOut.QUIT);
     exit(state);
@@ -1204,7 +1185,7 @@ export function registerRequestCallbacks(state: BackState): void {
           await ensureDir(folderPath);
           await writeFile(filePath, JSON.stringify(output, null, '\t'));
         }
-      } catch (error) {
+      } catch (error: any) {
         log.error('Launcher', `Failed to export meta edit.\nError: ${error.message || error}`);
       }
     }

@@ -96,7 +96,7 @@ gulp.task('watch-back', (done) => {
 
 gulp.task('watch-renderer', (done) => {
   const mode = config.isRelease ? 'production' : 'development';
-  execute(`npx webpack --color true --mode "${mode}" --watch`, done);
+  execute(`npx webpack --mode "${mode}" --watch`, done);
 });
 
 gulp.task('watch-static', () => {
@@ -112,7 +112,7 @@ gulp.task('build-back', (done) => {
 
 gulp.task('build-renderer', (done) => {
   const mode = config.isRelease ? 'production' : 'development';
-  execute(`npx webpack --color true --mode "${mode}"`, done);
+  execute(`npx webpack --mode "${mode}"`, done);
 });
 
 gulp.task('copy-static', () => {

@@ -19,10 +19,8 @@ const configDataDefaultBase: Readonly<AppConfigData> = Object.freeze({
   backPortMax: 12100,
   imagesPortMin: 12101,
   imagesPortMax: 12200,
-  excludedRandomLibraries: [],
   logsBaseUrl: 'https://logs.unstable.life/',
-  updatesEnabled: true,
-  tagFilters: []
+  updatesEnabled: true
 });
 
 /**

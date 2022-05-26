@@ -131,6 +131,8 @@ export async function exit(state: BackState): Promise<void> {
         if (error) { console.warn('An error occurred while closing the file server.', error); }
         resolve();
       })),
+      // Wait for preferences writes to complete
+      state.prefsQueue.push(() => {}, true),
       // Wait for game manager to complete all saves
       state.gameManager.saveQueue.push(() => {}, true),
       // Abort saving on demand images
@@ -143,7 +145,7 @@ export async function exit(state: BackState): Promise<void> {
 
           try {
             await unlink(filePath);
-          } catch (error) {
+          } catch (error: any) {
             if (error.code !== 'ENOENT') { console.error(`Failed to delete partially downloaded image file (path: "${current[i].subPath}").`, error); }
           }
         }
