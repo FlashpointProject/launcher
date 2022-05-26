@@ -314,8 +314,10 @@ export namespace GameLauncher {
               if (native) {
                 // Use the native binary (if configured.)
                 return mapping.darwin || mapping.win32;
+              } else {
+                // Otherwise, use the wine binary (if configured.)
+                return mapping.darwine || mapping.win32;
               }
-              break;
             default:
               return filePath;
           }
