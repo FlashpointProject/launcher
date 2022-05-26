@@ -300,7 +300,7 @@ export function registerRequestCallbacks(state: BackState): void {
               }, 250);
             });
           } catch (error) {
-            state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
+            state.socketServer.broadcast(BackOut.OPEN_ALERT, error as string);
             log.info('Game Launcher', `Game Launch Aborted: ${error}`);
             return;
           }
