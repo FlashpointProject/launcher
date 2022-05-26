@@ -38,5 +38,5 @@
     "./typings/**/*",
     "./src",
     "./tests"
-, "test/unit/back/configuration.test.ts"  ],
+  ],
 }
