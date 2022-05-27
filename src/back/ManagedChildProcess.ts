@@ -1,7 +1,7 @@
 import { IBackProcessInfo, INamedBackProcessInfo, ProcessState } from '@shared/interfaces';
 import { ILogPreEntry } from '@shared/Log/interface';
 import { Coerce } from '@shared/utils/Coerce';
-import { ChildProcess, exec, execFile, spawn } from 'child_process';
+import { ChildProcess, execFile, spawn } from 'child_process';
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint-launcher';
 import { readFileSync } from 'fs';
@@ -131,10 +131,8 @@ export class ManagedChildProcess extends EventEmitter {
             }
           }
           this.env.PATH = pathArr.join(':');
-          this.process = exec(this.info.filename + ' "' + this.info.arguments.join('" "') + '"', { cwd: this.cwd, env: this.env});
-        } else {
-          this.process = spawn(this.info.filename, this.info.arguments, { cwd: this.cwd, detached: this.detached, shell: this.shell , env: this.env});
         }
+        this.process = spawn(this.info.filename, this.info.arguments, { cwd: this.cwd, detached: this.detached, shell: this.shell , env: this.env});
       }
       // Set start timestamp
       this.startTime = Date.now();
