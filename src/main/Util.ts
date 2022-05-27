@@ -38,5 +38,7 @@ export function getMainFolderPath(installed: boolean | undefined): string {
     ? path.join(app.getPath('appData'), 'flashpoint-launcher') // Installed
     : isDev
       ? process.cwd() // Dev
-      : path.dirname(app.getPath('exe')); // Portable
+      : process.platform == 'darwin'
+        ? path.resolve(path.dirname(app.getPath('exe')), '../../..')
+        : path.dirname(app.getPath('exe')); // Portable
 }

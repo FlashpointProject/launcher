@@ -2,6 +2,7 @@
 import { chunkArray } from '@back/util/misc';
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
+import * as remote from '@electron/remote';
 import { getGamePath } from '@renderer/Util';
 import { BackIn, BackOut } from '@shared/back/types';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
@@ -10,7 +11,6 @@ import { ExecMapping, IService } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { Legacy_PlatformFileIterator } from '@shared/legacy/GameManager';
 import { stringifyMetaValue } from '@shared/MetaEdit';
-import { remote } from 'electron';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as React from 'react';
@@ -343,10 +343,17 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     });
 
     if (files && files.length > 0) {
-      const addLine = (line: string) => this.setState({ text: this.state.text + '\n' + line });
+      const createTextBarProgress = (current: number, total: number) => {
+        const filledSegments = (current / total) * 30;
+        return `Progress: [${'#'.repeat(filledSegments)}${'-'.repeat(30 - filledSegments)}] (${current}/${total})\n`;
+      };
+      let text = this.state.text + '\n';
       setTimeout(async () => {
         this.setState({ text: `Selected ${files.length} Files...` });
-        await Promise.all(files.map(async (filePath) => {
+        let current = 0;
+        let failures = 0;
+        for (const filePath of files) {
+          current += 1;
           // Extract UUID from filename
           const fileName = path.basename(filePath);
           if (fileName.length >= 39) {
@@ -355,16 +362,20 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               const game = await window.Shared.back.request(BackIn.GET_GAME, uuid);
               if (game) {
                 // Game exists, import the data
-                return window.Shared.back.request(BackIn.IMPORT_GAME_DATA, game.id, filePath)
-                .then((gameData) => addLine(`Success - ${fileName} - ${game.title} - SHA256: ${gameData.sha256}`))
+                await window.Shared.back.request(BackIn.IMPORT_GAME_DATA, game.id, filePath)
+                .then((gameData) => {
+                  this.setState({ text: text + filePath + '\n' +  createTextBarProgress(current, files.length) });
+                })
                 .catch((error) => {
-                  addLine(`Failure - ${fileName} - ERROR: ${error}`);
+                  text = text + `Failure - ${fileName} - ERROR: ${error}\n`;
+                  failures += 1;
+                  this.setState({ text: text });
                 });
               }
             }
           }
-        }));
-        addLine('FINISHED!');
+        }
+        this.setState({ text: text + `FINISHED - ${failures} Failures, ${files.length - failures} Successes\n` });
       });
     }
   }
@@ -768,7 +779,7 @@ async function checkFileLocation(games: Game[]): Promise<string> {
       try {
         const gamePath = await getGamePath(game, window.Shared.config.fullFlashpointPath, window.Shared.preferences.data.htdocsFolderPath, window.Shared.preferences.data.dataPacksFolderPath);
         if (gamePath === undefined) { pathFailed.push(game); }
-      } catch (error) {
+      } catch (error: any) {
         pathError.push([ game, error ]);
       }
     }

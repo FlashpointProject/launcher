@@ -21,7 +21,7 @@ export async function importCurationMeta(filePath: string, key: string = uuid())
     await fs.ensureDir(curationPath);
     await fs.copyFile(filePath, metaPath);
     await fs.mkdir(path.join(curationPath, 'content'));
-  } catch (error) {
+  } catch (error: any) {
     curationLog('Error importing curation meta - ' + error.message);
     console.error(error);
   }
@@ -49,7 +49,7 @@ export async function importCurationFolder(filePath: string, key: string = uuid(
       await fs.copyFile(sourcePath, destPath);
       ProgressDispatch.countItem(progress);
     }
-  } catch (error) {
+  } catch (error: any) {
     curationLog('Error importing curation folder - ' + error.message);
     console.error(error);
   } finally {
@@ -93,7 +93,7 @@ export async function importCurationArchive(filePath: string, preserveKey: boole
       throw new Error('Meta.yaml/yml/txt not found in extracted archive');
     }
     log.debug('Curate', `Import Success for ${filePath}`);
-  } catch (error) {
+  } catch (error: any) {
     curationLog(`Error extracting archive ${filePath} - ${error.message}`);
     console.error(error.message);
     log.error('Curate', `Import Failure for ${filePath}`);
@@ -151,18 +151,30 @@ const validMetaNames = ['meta.txt', 'meta.yaml', 'meta.yml'];
  * @param dir Path to search
  */
 async function getRootPath(dir: string): Promise<string | undefined> {
-  const files = await fs.readdir(dir);
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    const fullPath = path.join(dir, file);
-    const stats = await fs.lstat(fullPath);
-    // Found root, pass back
-    if (stats.isFile() && endsWithList(file.toLowerCase(), validMetaNames)) {
-      return dir;
+  // Start off by initializing the queue to the contents of the root directory.
+  const queue = await fs.readdir(dir);
+  // As long as there are still queue items to read, we keep going.
+  // Note: if we find the item, we will return before this completes.
+  while (queue.length != 0) {
+    // Pop the first element. We'll need to combine it with the root path to get
+    // the full path.
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const entry = queue.shift()!;
+    const fullpath = path.join(dir, entry);
+    // Call lstat() to check if it's a file or directory (or something else, I guess?)
+    const stats = await fs.lstat(fullpath);
+    // If it's a file, check whether it's what we're looking for.
+    if (stats.isFile()) {
+      // Convert it to lower-case, because the extensions we're matching against
+      // are lower-case.
+      if (endsWithList(fullpath.toLowerCase(), validMetaNames)) {
+        return path.dirname(fullpath);
+      }
     } else if (stats.isDirectory()) {
-      const foundRoot = await getRootPath(fullPath);
-      if (foundRoot) {
-        return foundRoot;
+      const contents: string[] = await fs.readdir(fullpath);
+      // We have a directory. Push all of the directory's contents onto the end of the queue.
+      for (const k of contents) {
+        queue.push(path.join(entry, k));
       }
     }
   }

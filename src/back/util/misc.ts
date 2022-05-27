@@ -100,7 +100,7 @@ export function createContainer(languages: LangFile[], currentCode: string, auto
 }
 
 /** Exit the back process cleanly. */
-export function exit(state: BackState): void {
+export async function exit(state: BackState): Promise<void> {
   if (!state.isExit) {
     state.isExit = true;
 
@@ -108,7 +108,7 @@ export function exit(state: BackState): void {
       // Kill services
       for (const service of state.services.values()) {
         if (service.info.kill) {
-          service.kill();
+          await service.kill();
         }
       }
       // Run stop commands
@@ -131,6 +131,8 @@ export function exit(state: BackState): void {
         if (error) { console.warn('An error occurred while closing the file server.', error); }
         resolve();
       })),
+      // Wait for preferences writes to complete
+      state.prefsQueue.push(() => {}, true),
       // Wait for game manager to complete all saves
       state.gameManager.saveQueue.push(() => {}, true),
       // Abort saving on demand images
@@ -143,7 +145,7 @@ export function exit(state: BackState): void {
 
           try {
             await unlink(filePath);
-          } catch (error) {
+          } catch (error: any) {
             if (error.code !== 'ENOENT') { console.error(`Failed to delete partially downloaded image file (path: "${current[i].subPath}").`, error); }
           }
         }
@@ -287,7 +289,7 @@ export async function removeService(state: BackState, processId: string): Promis
 
 export async function waitForServiceDeath(service: ManagedChildProcess) : Promise<void> {
   if (service.getState() !== ProcessState.STOPPED) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       service.on('change', onChange);
       service.kill();
 

@@ -1,6 +1,7 @@
 import { sanitizeFilename } from '@back/util/sanitizeFilename';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
+import * as remote from '@electron/remote';
 import { createCurationIndexImage } from '@renderer/curate/importCuration';
 import { useDelayedThrottle } from '@renderer/hooks/useThrottle';
 import { BackIn, TagSuggestion } from '@shared/back/types';
@@ -10,7 +11,6 @@ import { getContentFolderByKey, getCurationFolder, indexContentFolder } from '@s
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { deepCopy, fixSlashes, generateTagFilterGroup, sizeToString } from '@shared/Util';
-import { remote } from 'electron';
 import { TagFilterGroup } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import { add } from 'node-7z';
@@ -1063,7 +1063,7 @@ function useRemoveImageCallback(filename: 'logo.png' | 'ss.png', curation: EditC
             image: createCurationIndexImage()
           }
         });
-      } catch (error) {
+      } catch (error: any) {
         curationLog('Error replacing image - ' + error.message);
         console.log(error);
       }
@@ -1145,7 +1145,7 @@ async function safeAwait<T, E = Error>(promise: Promise<T>): Promise<[T | undefi
   let value: T | undefined = undefined;
   let error: E | undefined = undefined;
   try      { value = await promise; }
-  catch (e) { error = e;             }
+  catch (e: any) { error = e; }
   return [value, error];
 }
 

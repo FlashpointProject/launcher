@@ -1,3 +1,4 @@
+import * as remoteMain from '@electron/remote/main';
 import { SocketClient } from '@shared/back/SocketClient';
 import { BackIn, BackInitArgs, BackOut } from '@shared/back/types';
 import { AppConfigData } from '@shared/config/interfaces';
@@ -71,7 +72,7 @@ export function main(init: Init): void {
   // -- Functions --
 
   function startup() {
-    app.allowRendererProcessReuse = true; // Hides the "new default value" warning message (remove this line after upgrading to electron 9)
+    app.disableHardwareAcceleration();
 
     // Single process
     // No more than one "main" instance should exist at any time. Multiple "flash" instances are fine.
@@ -368,10 +369,10 @@ export function main(init: Init): void {
       webPreferences: {
         preload: path.resolve(__dirname, './MainWindowPreload.js'),
         nodeIntegration: true,
-        contextIsolation: false,
-        enableRemoteModule: true,
+        contextIsolation: false
       },
     });
+    remoteMain.enable(window.webContents);
     // Remove the menu bar
     window.setMenu(null);
     // and load the index.html of the app.

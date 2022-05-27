@@ -1,5 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`Log Functions Stringify Log Entries 1`] = `"\\"<span class=\\\\\\"log__time-stamp\\\\\\">[12:34:56]</span> <span class=\\\\\\"log__source log__source--game-launcher\\\\\\">      Game Launcher:</span> TestSuccess\\\\n\\""`;
-
-exports[`Log Functions Stringify Log Entries Raw 1`] = `"\\"[1/1/2000, 12:34:56 PM]       Game Launcher | TestSuccess\\\\n\\""`;

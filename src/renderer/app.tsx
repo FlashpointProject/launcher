@@ -1,6 +1,7 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
+import * as remote from '@electron/remote';
 import { BackIn, BackInit, BackOut } from '@shared/back/types';
 import { APP_TITLE, VIEW_PAGE_SIZE } from '@shared/constants';
 import { IService, ProcessState, WindowIPC } from '@shared/interfaces';
@@ -13,7 +14,7 @@ import { canReadWrite, deepCopy, getFileServerURL, recursiveReplace, sizeToStrin
 import { arrayShallowStrictEquals } from '@shared/utils/compare';
 import { debounce } from '@shared/utils/debounce';
 import { formatString } from '@shared/utils/StringFormatter';
-import { ipcRenderer, remote } from 'electron';
+import { ipcRenderer } from 'electron';
 import { AppUpdater } from 'electron-updater';
 import * as fs from 'fs-extra';
 import * as path from 'path';
@@ -108,6 +109,13 @@ export class App extends React.Component<AppProps> {
     }, 100));
     ipcRenderer.on(WindowIPC.WINDOW_RESIZE, debounce((sender, width: number, height: number, isMaximized: boolean) => {
       if (!isMaximized) {
+        // Cap minimum size
+        if (width < 300) {
+          width = 300;
+        }
+        if (height < 300) {
+          height = 300;
+        }
         updatePreferencesData({ mainWindow: { width: width|0, height: height|0 } });
       }
     }, 100));

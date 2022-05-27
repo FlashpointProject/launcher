@@ -1,10 +1,11 @@
+import * as remote from '@electron/remote';
 import { SocketClient } from '@shared/back/SocketClient';
 import { BackIn, BackOut } from '@shared/back/types';
 import { InitRendererChannel, InitRendererData } from '@shared/IPC';
 import { setTheme } from '@shared/Theme';
 import { createErrorProxy } from '@shared/Util';
 import * as electron from 'electron';
-import { OpenDialogOptions, remote } from 'electron';
+import { OpenDialogOptions } from 'electron';
 import * as path from 'path';
 import { isDev } from './Util';
 

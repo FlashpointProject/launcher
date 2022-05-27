@@ -1,3 +1,4 @@
+import * as GameDataManager from '@back/game/GameDataManager';
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
 import { GameData } from '@database/entity/GameData';
@@ -58,7 +59,6 @@ import { FolderWatcher } from './util/FolderWatcher';
 import { LogFile } from './util/LogFile';
 import { logFactory } from './util/logging';
 import { createContainer, exit, runService } from './util/misc';
-import * as GameDataManager from '@back/game/GameDataManager';
 
 const DEFAULT_LOGO_PATH = 'window/images/Logos/404.png';
 
@@ -167,7 +167,7 @@ const state: BackState = {
   },
   extensionsService: createErrorProxy('extensionsService'),
   connection: undefined,
-  writeLocks: 0,
+  prefsQueue: new EventQueue(),
 };
 
 main();
@@ -244,7 +244,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   state.logFile = new LogFile(
     state.isDev ?
       path.join(process.cwd(), 'launcher.log')
-      : path.join(path.dirname(content.exePath), 'launcher.log'));
+      : path.join(process.platform == 'darwin' ? state.configFolder : path.dirname(content.exePath), 'launcher.log'));
 
   const addLog = (entry: ILogEntry): number => { return state.log.push(entry) - 1; };
   global.log = {
@@ -262,6 +262,12 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   // Read configs & preferences
   state.config = await ConfigFile.readOrCreateFile(path.join(state.configFolder, CONFIG_FILENAME));
+
+  // If we're on mac and the flashpoint path is relative, resolve it relative to the configFolder path.
+  state.config.flashpointPath = process.platform == 'darwin' && state.config.flashpointPath[0] != '/'
+    ? path.resolve(state.configFolder, state.config.flashpointPath)
+    : state.config.flashpointPath;
+
   // @TODO Figure out why async loading isn't always working?
   try {
     state.preferences = await PreferencesFile.readOrCreateFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME));
@@ -277,15 +283,20 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   // Create Game Data Directory and clean up temp files
   const fullDataPacksFolderPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath);
-  await fs.promises.mkdir(fullDataPacksFolderPath, { recursive: true });
-  fs.promises.readdir(fullDataPacksFolderPath)
-  .then((files) => {
-    for (const f of files) {
-      if (f.endsWith('.temp')) {
-        fs.promises.unlink(path.join(fullDataPacksFolderPath, f));
+  try {
+    await fs.promises.mkdir(fullDataPacksFolderPath, { recursive: true });
+    fs.promises.readdir(fullDataPacksFolderPath)
+    .then((files) => {
+      for (const f of files) {
+        if (f.endsWith('.temp')) {
+          fs.promises.unlink(path.join(fullDataPacksFolderPath, f));
+        }
       }
-    }
-  });
+    });
+  } catch (error) {
+    console.log('Failed to create default Data Packs folder!');
+  }
+
 
   // Check for custom version to report
   const versionFilePath = content.isDev ? path.join(process.cwd(), 'version.txt') : path.join(state.config.flashpointPath, 'version.txt');
@@ -454,7 +465,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     }
   });
   state.languageWatcher.on('error', console.error);
-  const langFolder = path.join(content.isDev ? process.cwd() : path.dirname(content.exePath), 'lang');
+  // On mac, exePath is Flashpoint.app/Contents/MacOS/flashpoint, and lang is at Flashpoint.app/Contents/lang.
+  const langFolder = path.join(content.isDev ? process.cwd() : process.platform == 'darwin' ? path.resolve(path.dirname(content.exePath), '..') : path.dirname(content.exePath), 'lang');
   fs.stat(langFolder, (error) => {
     if (!error) { state.languageWatcher.watch(langFolder); }
     else {
@@ -469,8 +481,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   // Init themes
   const dataThemeFolder = path.join(state.config.flashpointPath, state.preferences.themeFolderPath);
-  await fs.ensureDir(dataThemeFolder);
   try {
+    await fs.ensureDir(dataThemeFolder);
     await fs.promises.readdir(dataThemeFolder, { withFileTypes: true })
     .then(async (files) => {
       for (const file of files) {
@@ -479,7 +491,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
         }
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     log.error('Launcher', `Error loading default Themes folder\n${error.message}`);
   }
   const themeContributions = await state.extensionsService.getContributions('themes');
@@ -499,8 +511,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   // Init Logo Sets
   const dataLogoSetsFolder = path.join(state.config.flashpointPath, state.preferences.logoSetsFolderPath);
-  await fs.ensureDir(dataLogoSetsFolder);
   try {
+    await fs.ensureDir(dataLogoSetsFolder);
     await fs.promises.readdir(dataLogoSetsFolder, { withFileTypes: true })
     .then(async (files) => {
       for (const file of files) {
@@ -530,7 +542,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
         }
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     log.error('Launcher', `Error loading default Themes folder\n${error.message}`);
   }
   const logoSetContributions = await state.extensionsService.getContributions('logoSets');

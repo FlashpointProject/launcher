@@ -1,10 +1,10 @@
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
+import * as remote from '@electron/remote';
 import { BackIn, TagSuggestion } from '@shared/back/types';
 import { LangContainer } from '@shared/lang';
 import { deepCopy, generateTagFilterGroup } from '@shared/Util';
-import { remote } from 'electron';
 import * as React from 'react';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { LangContext } from '../util/lang';

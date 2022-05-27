@@ -1008,10 +1008,10 @@ declare module 'flashpoint-launcher' {
         spawn(auto?: boolean): void;
 
         /** Politely ask the child process to exit (if it is running). */
-        kill(): void;
+        kill(): Promise<void>;
 
         /** Restart the managed child process (by killing the current, and spawning a new). */
-        restart(): void;
+        restart(): Promise<void>;
     }
 
     /** State of a managed process. */

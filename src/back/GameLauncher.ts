@@ -294,16 +294,30 @@ export namespace GameLauncher {
       return filePath.substr(0, filePath.length - 4) + '.sh';
     }
 
-    // Skip mapping if on Windows or Native application was not requested
-    if (platform !== 'win32' && native) {
+    // Skip mapping if on Windows
+    if (platform !== 'win32') {
       for (let i = 0; i < execMappings.length; i++) {
         const mapping = execMappings[i];
         if (mapping.win32 === filePath) {
           switch (platform) {
             case 'linux':
-              return mapping.linux || mapping.win32;
+              // If we are trying to run this game natively:
+              if (native) {
+                // Use the native binary (if configured.)
+                return mapping.linux || mapping.win32;
+              } else {
+                // Otherwise, use the wine binary (if configured.)
+                return mapping.wine || mapping.win32;
+              }
             case 'darwin':
-              return mapping.darwin || mapping.win32;
+              // If we are trying to run this game natively:
+              if (native) {
+                // Use the native binary (if configured.)
+                return mapping.darwin || mapping.win32;
+              } else {
+                // Otherwise, use the wine binary (if configured.)
+                return mapping.darwine || mapping.win32;
+              }
             default:
               return filePath;
           }
@@ -320,9 +334,10 @@ export namespace GameLauncher {
     // When using Linux, use the proxy created in BackgroundServices.ts
     // This is only needed on Linux because the proxy is installed on system
     // level entire system when using Windows.
+    // When using WINE on mac, the proxy variable is needed as well.
     return {
       // Add proxy env vars if it's running on linux
-      ...((process.platform === 'linux' && proxy !== '') ? { http_proxy: `http://${proxy}/` } : null),
+      ...(((process.platform === 'linux' || process.platform === 'darwin') && proxy !== '') ? { http_proxy: `http://${proxy}/`, HTTP_PROXY: `http://${proxy}/` } : null),
       // Copy this processes environment variables
       ...process.env,
     };
@@ -340,7 +355,7 @@ export namespace GameLauncher {
       case 'darwin':
       case 'linux':
         if (useWine) {
-          return `wine start /unix "${gamePath}" ${args.join(' ')}`;
+          return `wine start /wait /unix "${gamePath}" ${args.join(' ')}`;
         }
         return `"${gamePath}" ${args.join(' ')}`;
       default:
