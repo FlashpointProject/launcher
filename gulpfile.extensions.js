@@ -5,6 +5,7 @@ const path = require('path');
 const { execute } = require('./gulpfile.util');
 const { parallel } = require('gulp');
 const extensionsPath = path.resolve('extensions');
+const fs = require('fs');
 
 const tsConfigPaths = glob.sync('**/tsconfig.json', {
   cwd: extensionsPath,
@@ -14,13 +15,11 @@ const tsConfigPaths = glob.sync('**/tsconfig.json', {
 const targets = tsConfigPaths.map(target => {
   const name = path.dirname(target).replace(/\//g, '-');
   const folder = path.join('./extensions', path.dirname(target));
-  const webpackConfigFiles = glob.sync('webpack*',  {
-    cwd: folder
-  });
-  const realPath = path.join('./extensions', target);
+  const packageJsonPath = path.join(folder, 'package.json');
+  const json = JSON.parse(fs.readFileSync(packageJsonPath).toString());
 
-  const buildTaskExec = webpackConfigFiles.length > 0 ? `cd ${folder} && npx webpack --mode production` : `npx ttsc --project ${realPath} --pretty`;
-  const watchTaskExec = webpackConfigFiles.length > 0 ? `cd ${folder} && npx webpack --mode development --watch` : `npx ttsc --project ${realPath} --pretty --watch`;
+  const buildTaskExec = `cd ${folder} && ${json['scripts']['build']}`;
+  const watchTaskExec = `cd ${folder} && ${json['scripts']['watch']}`;
 
   const buildTask = (cb) => execute(buildTaskExec, cb);
   const watchTask = (cb) => execute(watchTaskExec, cb);
