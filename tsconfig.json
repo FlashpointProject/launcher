@@ -12,7 +12,7 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "strictPropertyInitialization": false,
-    "strictNullChecks": false,
+    "strictNullChecks": true,
     "paths": {
       "@shared/*": [ "./src/shared/*" ],
       "@main/*": [ "./src/main/*" ],

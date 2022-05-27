@@ -2,6 +2,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "jsx": "react",
+    "strictNullChecks": false,
   },
   "exclude": [
     "./src/main",

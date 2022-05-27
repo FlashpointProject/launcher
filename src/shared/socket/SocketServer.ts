@@ -88,7 +88,8 @@ export function server_request<
           if (sent.error !== undefined) {
             reject(sent.error);
           } else {
-            resolve(sent.result);
+            // Hacky and bad, but makes it compile.
+            resolve(sent.result as U[T]);
           }
         },
       });
