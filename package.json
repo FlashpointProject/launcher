@@ -100,6 +100,7 @@
     "jest": "28.1.0",
     "ts-jest": "28.0.3",
     "ts-loader": "9.3.0",
+    "ts-node": "^10.8.0",
     "ts-transform-paths": "2.0.1",
     "tsconfig-paths-webpack-plugin": "3.2.0",
     "tslint": "5.18.0",
