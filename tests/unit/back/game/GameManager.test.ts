@@ -1,9 +1,9 @@
 import * as GameManager from '@back/game/GameManager';
 import { uuid } from '@back/util/uuid';
 import { Game } from '@database/entity/Game';
-import { gameArray } from '../smallDB';
-import { setSmall_gameOnly, clearDB, createDefaultDB } from '../TestDB';
 import * as v8 from 'v8';
+import { gameArray } from '../smallDB';
+import { clearDB, createDefaultDB, setSmall_gameOnly } from '../TestDB';
 
 // Only the keys of T that can't be null or undefined.
 type DefinedKeysOf<T> = {
