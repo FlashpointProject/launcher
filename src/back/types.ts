@@ -163,14 +163,10 @@ export type ApiEmittersState = Readonly<{
   onLog: ApiEmitter<flashpoint.ILogEntry>;
   games: Readonly<{
     onWillLaunchGame: ApiEmitter<flashpoint.GameLaunchInfo>;
-    onWillLaunchAddApp: ApiEmitter<flashpoint.AdditionalApp>;
     onWillLaunchCurationGame: ApiEmitter<flashpoint.GameLaunchInfo>;
-    onWillLaunchCurationAddApp: ApiEmitter<flashpoint.AdditionalApp>;
     onWillUninstallGameData: ApiEmitter<flashpoint.GameData>;
     onDidLaunchGame: ApiEmitter<flashpoint.Game>;
-    onDidLaunchAddApp: ApiEmitter<flashpoint.AdditionalApp>;
     onDidLaunchCurationGame: ApiEmitter<flashpoint.Game>;
-    onDidLaunchCurationAddApp: ApiEmitter<flashpoint.AdditionalApp>;
     onDidUpdateGame: ApiEmitter<{oldGame: flashpoint.Game, newGame: flashpoint.Game}>;
     onDidRemoveGame: ApiEmitter<flashpoint.Game>;
     onDidUpdatePlaylist: ApiEmitter<{oldPlaylist: flashpoint.Playlist, newPlaylist: flashpoint.Playlist}>;

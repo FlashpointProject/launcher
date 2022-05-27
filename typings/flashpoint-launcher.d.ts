@@ -185,17 +185,18 @@ declare module 'flashpoint-launcher' {
          */
         function updateGames(games: Game[]): Promise<void>;
         /**
-         * Removes a Game and all its AddApps
+         * Removes a Game and all its children
          * @param gameId ID of Game to remove
          */
-        function removeGameAndAddApps(gameId: string): Promise<Game | undefined>;
+        function removeGameAndChildren(gameId: string): Promise<Game | undefined>;
 
         // Misc
         /**
          * Returns all unique Platform strings in a library
          * @param library Library to search
+         * @param includeChildren Whether to include child curations in the platform search. Default: false.
          */
-        function findPlatforms(library: string): Promise<string[]>;
+        function findPlatforms(library: string, includeChildren?: boolean): Promise<string[]>;
         /**
          * Parses a Playlist JSON file and returns an object you can save later.
          * @param jsonData Raw JSON data of the Playlist file
@@ -210,14 +211,10 @@ declare module 'flashpoint-launcher' {
 
         // Events
         const onWillLaunchGame: Event<GameLaunchInfo>;
-        const onWillLaunchAddApp: Event<AdditionalApp>;
         const onWillLaunchCurationGame: Event<GameLaunchInfo>;
-        const onWillLaunchCurationAddApp: Event<AdditionalApp>;
         const onWillUninstallGameData: Event<GameData>;
         const onDidLaunchGame: Event<Game>;
-        const onDidLaunchAddApp: Event<AdditionalApp>;
         const onDidLaunchCurationGame: Event<Game>;
-        const onDidLaunchCurationAddApp: Event<AdditionalApp>;
         const onDidInstallGameData: Event<GameData>;
         const onDidUninstallGameData: Event<GameData>;
 
@@ -455,8 +452,12 @@ declare module 'flashpoint-launcher' {
     type Game = {
         /** ID of the game (unique identifier) */
         id: string;
+        /** This game's parent game. */
+        parentGame?: Game;
         /** ID of the game which owns this game */
-        parentGameId?: string;
+        parentGameId: string | null;
+        /** A list of child games. */
+        children?: Game[];
         /** Full title of the game */
         title: string;
         /** Any alternate titles to match against search */
@@ -503,16 +504,21 @@ declare module 'flashpoint-launcher' {
         language: string;
         /** Library this game belongs to */
         library: string;
-        /** All attached Additional Apps of a game */
-        addApps: AdditionalApp[];
         /** Unused */
         orderTitle: string;
         /** If the game is a placeholder (and can therefore not be saved) */
         placeholder: boolean;
         /** ID of the active data */
-        activeDataId?: number;
+        activeDataId: number | null;
         /** Whether the data is present on disk */
         activeDataOnDisk: boolean;
+        /** The path to any extras. */
+        extras: string | null;
+        /** The name to be displayed for those extras. */
+        extrasName: string | null;
+        /** The message to display when the game starts. */
+        message: string | null;
+
         data?: GameData[];
         updateTagsStr: () => void;
     };
@@ -566,28 +572,7 @@ declare module 'flashpoint-launcher' {
         lastUpdated: Date;
         /** Any data provided by this Source */
         data?: SourceData[];
-    }  
-
-    type AdditionalApp = {
-        /** ID of the additional application (unique identifier) */
-        id: string;
-        /** Path to the application that runs the additional application */
-        applicationPath: string;
-        /**
-         * If the additional application should run before the game.
-         * (If true, this will always run when the game is launched)
-         * (If false, this will only run when specifically launched)
-         */
-        autoRunBefore: boolean;
-        /** Command line argument(s) passed to the application to launch the game */
-        launchCommand: string;
-        /** Name of the additional application */
-        name: string;
-        /** Wait for this to exit before the Game will launch (if starting before launch) */
-        waitForExit: boolean;
-        /** Parent of this add app */
-        parentGame: Game;
-    };
+    }
 
     type Tag = {
         /** ID of the tag (unique identifier) */

@@ -301,7 +301,13 @@
     "noGameMatchedSearch": "Try searching for something less restrictive.",
     "mountParameters": "Mount Parameters",
     "noMountParameters": "No Mount Parameters",
-    "showExtremeScreenshot": "Show Extreme Screenshot"
+    "showExtremeScreenshot": "Show Extreme Screenshot",
+    "extras": "Extras",
+    "noExtras": "No Extras",
+    "message": "Launch Message",
+    "noMessage": "No Message",
+    "extrasName": "Extras Name",
+    "noExtrasName": "No Extras Name"
   },
   "tags": {
     "name": "Name",
@@ -390,7 +396,10 @@
     "noScreenshot": "There is no screenshot on this curation.",
     "ilc_notHttp": "Use HTTP.",
     "ilc_nonExistant": "Point to an existing file in your curation's 'content' folder.",
-    "sort": "Sort Curations (A-Z)"
+    "sort": "Sort Curations (A-Z)",
+    "parentGameId": "Parent Game ID",
+    "noParentGameId": "No Parent Game ID",
+    "invalidParentGameId": "Invalid Parent Game ID!"
   },
   "playlist": {
     "enterDescriptionHere": "Enter a description here...",

@@ -7,7 +7,6 @@ import { WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
 import { BackIn, BackOut, BackOutTemplate, TagSuggestion } from '@shared/back/types';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { wrapSearchTerm } from '@shared/game/GameFilter';
-import { ModelUtils } from '@shared/game/util';
 import { GamePropSuggestions, PickType, ProcessAction } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { deepCopy, generateTagFilterGroup, sizeToString } from '@shared/Util';
@@ -19,7 +18,6 @@ import { WithPreferencesProps } from '../containers/withPreferences';
 import { WithSearchProps } from '../containers/withSearch';
 import { getGameImagePath, getGameImageURL } from '../Util';
 import { LangContext } from '../util/lang';
-import { uuid } from '../util/uuid';
 import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { DropdownInputField } from './DropdownInputField';
@@ -28,7 +26,8 @@ import { GameImageSplit } from './GameImageSplit';
 import { ImagePreview } from './ImagePreview';
 import { InputElement, InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
-import { RightBrowseSidebarAddApp } from './RightBrowseSidebarAddApp';
+import { RightBrowseSidebarChild } from './RightBrowseSidebarAddApp';
+import { RightBrowseSidebarExtra } from './RightBrowseSidebarExtra';
 import { SimpleButton } from './SimpleButton';
 import { TagInputField } from './TagInputField';
 
@@ -53,6 +52,8 @@ type OwnProps = {
   onDeselectPlaylist: () => void;
   /** Called when the playlist notes for the selected game has been changed */
   onEditPlaylistNotes: (text: string) => void;
+  /** Called when a child game needs to be deleted. */
+  onDeleteGame: (gameId: string) => void;
   /** If the "edit mode" is currently enabled */
   isEditing: boolean;
   /** If the selected game is a new game being created */
@@ -68,7 +69,7 @@ type OwnProps = {
   onOpenExportMetaEdit: (gameId: string) => void;
 
   onEditGame: (game: Partial<Game>) => void;
-  onUpdateActiveGameData: (activeDataOnDisk: boolean, activeDataId?: number) => void;
+  onUpdateActiveGameData: (activeDataOnDisk: boolean, activeDataId: number | null) => void;
 };
 
 export type RightBrowseSidebarProps = OwnProps & WithPreferencesProps & WithSearchProps & WithConfirmDialogProps;
@@ -109,6 +110,9 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   onApplicationPathChange     = this.wrapOnTextChange((game, text) => this.props.onEditGame({ applicationPath: text }));
   onNotesChange               = this.wrapOnTextChange((game, text) => this.props.onEditGame({ notes: text }));
   onOriginalDescriptionChange = this.wrapOnTextChange((game, text) => this.props.onEditGame({ originalDescription: text }));
+  onMessageChange             = this.wrapOnTextChange((game, text) => this.props.onEditGame({ message: text }));
+  onExtrasChange              = this.wrapOnTextChange((game, text) => this.props.onEditGame({ extras: text}));
+  onExtrasNameChange          = this.wrapOnTextChange((game, text) => this.props.onEditGame({ extrasName: text}));
   onBrokenChange              = this.wrapOnCheckBoxChange(game => {
     if (this.props.currentGame) {
       this.props.onEditGame({ broken: !this.props.currentGame.broken });
@@ -194,7 +198,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     const game: Game | undefined = this.props.currentGame;
     if (game) {
       const { isEditing, isNewGame, currentPlaylistEntry, preferencesData, suggestions, tagCategories } = this.props;
-      const currentAddApps = game.addApps;
+      const currentChildren = game.children;
       const isPlaceholder = game.placeholder;
       const editDisabled = !preferencesData.enableEditing;
       const editable = !editDisabled && isEditing;
@@ -503,6 +507,36 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       onKeyDown={this.onInputKeyDown} />
                   </div>
                   <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                    <p>{strings.message}: </p>
+                    <InputField
+                      text={game.message || ''}
+                      placeholder={strings.noMessage}
+                      onChange={this.onMessageChange}
+                      className='browse-right-sidebar__searchable'
+                      editable={editable}
+                      onKeyDown={this.onInputKeyDown} />
+                  </div>
+                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                    <p>{strings.extrasName}: </p>
+                    <InputField
+                      text={game.extrasName ? game.extrasName : ''}
+                      placeholder={strings.noExtrasName}
+                      onChange={this.onExtrasNameChange}
+                      className='browse-right-sidebar__searchable'
+                      editable={editable}
+                      onKeyDown={this.onInputKeyDown} />
+                  </div>
+                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                    <p>{strings.extras}: </p>
+                    <InputField
+                      text={game.extras ? game.extras : ''}
+                      placeholder={strings.noExtras}
+                      onChange={this.onExtrasChange}
+                      className='browse-right-sidebar__searchable'
+                      editable={editable}
+                      onKeyDown={this.onInputKeyDown} />
+                  </div>
+                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                     <p>{strings.dateAdded}: </p>
                     <p
                       className='browse-right-sidebar__row__date-added'
@@ -579,26 +613,34 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                 </div>
               </div>
             ) : undefined }
+            {(game.extras && game.extrasName) ? (
+              <div className='browse-right-sidebar__section'>
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--additional-applications-header'>
+                  <p>{strings.extras}:</p>
+                </div>
+                <RightBrowseSidebarExtra
+                  extrasName={game.extrasName}
+                  extrasPath={game.extras}
+                  onLaunch={this.onExtrasLaunch} />
+              </div>
+            ) : undefined }
             {/* -- Additional Applications -- */}
-            { editable || (currentAddApps && currentAddApps.length > 0) ? (
+            { editable || (currentChildren && currentChildren.length > 0) ? (
               <div className='browse-right-sidebar__section'>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--additional-applications-header'>
                   <p>{strings.additionalApplications}:</p>
-                  { editable ? (
-                    <input
-                      type='button'
-                      value={strings.new}
-                      className='simple-button'
-                      onClick={this.onNewAddAppClick} />
-                  ) : undefined }
                 </div>
-                { currentAddApps && currentAddApps.map((addApp) => (
-                  <RightBrowseSidebarAddApp
+                { currentChildren && currentChildren.map((addApp) => (
+                  <RightBrowseSidebarChild
                     key={addApp.id}
-                    addApp={addApp}
+                    child={addApp}
                     editDisabled={!editable}
-                    onLaunch={this.onAddAppLaunch}
-                    onDelete={this.onAddAppDelete} />
+                    onEdit={this.onChildEdit}
+                    onLaunch={() => {
+                      addApp && this.props.onGameLaunch(addApp.id)
+                      .then(this.onForceUpdateGameData);
+                    }}
+                    onDelete={this.onChildDelete} />
                 )) }
               </div>
             ) : undefined }
@@ -920,27 +962,35 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     this.props.onDeleteSelectedGame();
   }
 
-  onAddAppLaunch(addAppId: string): void {
-    window.Shared.back.send(BackIn.LAUNCH_ADDAPP, addAppId);
+  onExtrasLaunch(extrasPath: string) : void {
+    window.Shared.back.send(BackIn.LAUNCH_EXTRAS, extrasPath);
   }
 
-  onAddAppDelete = (addAppId: string): void => {
+  onChildDelete = (childId: string): void => {
     if (this.props.currentGame) {
-      const newAddApps = deepCopy(this.props.currentGame.addApps);
-      if (!newAddApps) { throw new Error('editAddApps is missing.'); }
-      const index = newAddApps.findIndex(addApp => addApp.id === addAppId);
+      const newChildren = deepCopy(this.props.currentGame.children);
+      if (!newChildren) { throw new Error('editAddApps is missing.'); }
+      const index = newChildren.findIndex(addApp => addApp.id === childId);
       if (index === -1) { throw new Error('Cant remove additional application because it was not found.'); }
-      newAddApps.splice(index, 1);
-      this.props.onEditGame({ addApps: newAddApps });
+      newChildren.splice(index, 1);
+      this.props.onDeleteGame(childId);
+      // @TODO make this better.
+      this.props.onEditGame({children: newChildren});
     }
   }
 
-  onNewAddAppClick = (): void => {
-    if (!this.props.currentGame)    { throw new Error('Unable to add a new AddApp. "currentGame" is missing.'); }
-    const newAddApp = ModelUtils.createAddApp(this.props.currentGame);
-    newAddApp.id = uuid();
-    this.props.onEditGame({ addApps: [...this.props.currentGame.addApps, ...[newAddApp]] });
-  }
+  onChildEdit = (childId: string, diff: Partial<Game>) => {
+    if (this.props.currentGame && this.props.currentGame.children) {
+      const newChildren = [...this.props.currentGame.children];
+      const childIndex = this.props.currentGame.children.findIndex(child => child.id === childId);
+      if (childIndex !== -1) {
+        newChildren[childIndex] = {...newChildren[childIndex], ...diff} as Game;
+        this.props.onEditGame({children: newChildren});
+      } else {
+        throw new Error('Can\'t edit additional application because it was not found.');
+      }
+    }
+  };
 
   onScreenshotClick = (): void => {
     this.setState({ showPreview: true });

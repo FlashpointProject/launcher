@@ -888,8 +888,13 @@ export class App extends React.Component<AppProps> {
     const strings = this.props.main.lang;
     const library = getBrowseSubPath(this.props.location.pathname);
     window.Shared.back.request(BackIn.DELETE_GAME, gameId)
-    .then(() => { this.setViewQuery(library); })
-    .catch((error) => {
+    .then((deleteResults) => {
+      this.props.dispatchMain({
+        type: MainActionType.SET_GAMES_TOTAL,
+        total: deleteResults.gamesTotal,
+      });
+      this.setViewQuery(library);
+    }).catch((error) => {
       log.error('Launcher', `Error deleting game: ${error}`);
       alert(strings.dialog.unableToDeleteGame + '\n\n' + error);
     });

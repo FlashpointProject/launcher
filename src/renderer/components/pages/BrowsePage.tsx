@@ -286,6 +286,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             isEditing={this.state.isEditingGame}
             isNewGame={this.state.isNewGame}
             onEditGame={this.onEditGame}
+            onDeleteGame={this.props.onDeleteGame}
             onUpdateActiveGameData={this.onUpdateActiveGameData}
             onEditClick={this.onStartEditClick}
             onDiscardClick={this.onDiscardEditClick}
@@ -696,7 +697,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     this.focusGameGridOrList();
   }
 
-  onUpdateActiveGameData = (activeDataOnDisk: boolean, activeDataId?: number): void => {
+  onUpdateActiveGameData = (activeDataOnDisk: boolean, activeDataId: number | null): void => {
     if (this.state.currentGame) {
       const newGame = new Game();
       Object.assign(newGame, {...this.state.currentGame, activeDataOnDisk, activeDataId });
@@ -720,7 +721,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       const newGame = new Game();
       Object.assign(newGame, {
         id: id,
-        parentGameId: id,
+        parentGameId: undefined,
         title: '',
         alternateTitles: '',
         series: '',
@@ -744,7 +745,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         language: '',
         library: this.props.gameLibrary,
         orderTitle: '',
-        addApps: [],
+        children: [],
         placeholder: false,
         activeDataOnDisk: false
       });

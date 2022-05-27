@@ -3,7 +3,6 @@ import { createTagsFromLegacy } from '@back/importGame';
 import { ManagedChildProcess, ProcessOpts } from '@back/ManagedChildProcess';
 import { SocketServer } from '@back/SocketServer';
 import { BackState, ShowMessageBoxFunc, ShowOpenDialogFunc, ShowSaveDialogFunc, StatusState } from '@back/types';
-import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { Tag } from '@database/entity/Tag';
@@ -165,8 +164,53 @@ export async function execProcess(state: BackState, proc: IBackProcessInfo, sync
   }
 }
 
-export function createAddAppFromLegacy(addApps: Legacy_IAdditionalApplicationInfo[], game: Game): AdditionalApp[] {
-  return addApps.map(a => {
+export function createChildFromFromLegacyAddApp(addApps: Legacy_IAdditionalApplicationInfo[], game: Game): Game[] {
+  const retVal: Game[] = [];
+  for (const addApp of addApps) {
+    if (addApp.applicationPath === ':message:') {
+      game.message = addApp.launchCommand;
+    } else if (addApp.applicationPath === ':extras:') {
+      game.extras = addApp.launchCommand;
+      game.extrasName = addApp.name;
+    } else {
+      const newGame = new Game();
+      Object.assign(newGame, {
+        id: addApp.id,
+        title: addApp.name,
+        applicationPath: addApp.applicationPath,
+        launchCommand: addApp.launchCommand,
+        parentGame: game,
+        parentGameId: game.id,
+        library: game.library,
+        alternateTitles: '',
+        series: '',
+        developer: '',
+        publisher: '',
+        dateAdded: '0000-00-00 00:00:00.000',
+        dateModified: '0000-00-00 00:00:00.000',
+        platform: '',
+        broken: false,
+        extreme: game.extreme,
+        playMode: '',
+        status: '',
+        notes: '',
+        source: '',
+        releaseDate: '',
+        version: '',
+        originalDescription: '',
+        language: '',
+        orderTitle: addApp.name.toLowerCase(),
+        activeDataId: undefined,
+        activeDataOnDisk: false,
+        tags: [],
+        extras: undefined,
+        extrasName: undefined,
+        message: undefined
+      });
+      retVal.push(newGame);
+    }
+  }
+  /* return addApps.map(a => {
     return {
       id: a.id,
       name: a.name,
@@ -176,14 +220,15 @@ export function createAddAppFromLegacy(addApps: Legacy_IAdditionalApplicationInf
       waitForExit: a.waitForExit,
       parentGame: game
     };
-  });
+  });*/
+  return retVal;
 }
 
 export async function createGameFromLegacy(game: Legacy_IGameInfo, tagCache: Record<string, Tag>): Promise<Game> {
   const newGame = new Game();
   Object.assign(newGame, {
     id: game.id,
-    parentGameId: game.id,
+    parentGameId: null,
     title: game.title,
     alternateTitles: game.alternateTitles,
     series: game.series,
@@ -208,7 +253,7 @@ export async function createGameFromLegacy(game: Legacy_IGameInfo, tagCache: Rec
     library: game.library,
     orderTitle: game.orderTitle,
     placeholder: false,
-    addApps: [],
+    children: [],
     activeDataOnDisk: false
   });
   return newGame;
@@ -271,7 +316,7 @@ export function runService(state: BackState, id: string, name: string, basePath:
     proc.spawn();
   } catch (error) {
     log.error(SERVICES_SOURCE, `An unexpected error occurred while trying to run the background process "${proc.name}".` +
-              `  ${error.toString()}`);
+              `  ${(error as Error).toString()}`);
   }
   state.apiEmitters.services.onServiceNew.fire(proc);
   return proc;

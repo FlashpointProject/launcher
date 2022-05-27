@@ -1,5 +1,4 @@
 import { BeforeUpdate, Column, Entity, Index, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-import { AdditionalApp } from './AdditionalApp';
 import { GameData } from './GameData';
 import { Tag } from './Tag';
 
@@ -17,11 +16,15 @@ export class Game {
   /** ID of the game (unique identifier) */
   id: string;
 
-  @ManyToOne(type => Game)
+  @ManyToOne((type) => Game, (game) => game.children)
   parentGame?: Game;
 
-  @Column({ nullable: true })
-  parentGameId?: string;
+  @Column({ type: 'varchar', nullable: true })
+  parentGameId: string | null;
+
+  // Careful: potential infinite loop here. DO NOT eager-load this.
+  @OneToMany((type) => Game, (game) => game.parentGame, { cascade: true })
+  children?: Game[];
 
   @Column({collation: 'NOCASE'})
   @Index('IDX_gameTitle')
@@ -120,19 +123,12 @@ export class Game {
   /** The title but reconstructed to be suitable for sorting and ordering (and not be shown visually) */
   orderTitle: string;
 
-  @OneToMany(type => AdditionalApp, addApp => addApp.parentGame, {
-    cascade: true,
-    eager: true
-  })
-  /** All attached Additional Apps of a game */
-  addApps: AdditionalApp[];
-
   /** If the game is a placeholder (and can therefore not be saved) */
   placeholder: boolean;
 
   /** ID of the active data */
-  @Column({ nullable: true })
-  activeDataId?: number;
+  @Column({ type: 'integer', nullable: true })
+  activeDataId: number | null;
 
   /** Whether the data is present on disk */
   @Column({ default: false })
@@ -140,6 +136,15 @@ export class Game {
 
   @OneToMany(type => GameData, datas => datas.game)
   data?: GameData[];
+
+  @Column({ type: 'varchar', nullable: true })
+  extras: string | null;
+
+  @Column({ type: 'varchar', nullable: true })
+  extrasName: string | null;
+
+  @Column({ type: 'varchar', nullable: true })
+  message: string | null;
 
   // This doesn't run... sometimes.
   @BeforeUpdate()

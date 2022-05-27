@@ -13,6 +13,8 @@ export type CurationWarnings = {
   noLaunchCommand?: boolean;
   /** If the launch command is not a url with the "http" protocol and doesn't point to a file in 'content' */
   invalidLaunchCommand?: string[];
+  /** If the parentGameId is not valid. */
+  invalidParentGameId?: boolean;
   /** If the release date is invalid (incorrectly formatted). */
   releaseDateInvalid?: boolean;
   /** If the application path value isn't used by any other game. */

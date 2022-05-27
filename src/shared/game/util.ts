@@ -1,4 +1,3 @@
-import { AdditionalApp } from '../../database/entity/AdditionalApp';
 import { Game } from '../../database/entity/Game';
 
 export namespace ModelUtils {
@@ -30,22 +29,10 @@ export namespace ModelUtils {
       language: '',
       library: '',
       orderTitle: '',
-      addApps: [],
+      children: [],
       placeholder: false,
       activeDataOnDisk: false
     });
     return game;
-  }
-
-  export function createAddApp(game: Game): AdditionalApp {
-    return {
-      id: '',
-      parentGame: game,
-      applicationPath: '',
-      autoRunBefore: false,
-      launchCommand: '',
-      name: '',
-      waitForExit: false,
-    };
   }
 }

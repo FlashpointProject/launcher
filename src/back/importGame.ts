@@ -1,12 +1,11 @@
 import * as GameDataManager from '@back/game/GameDataManager';
-import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
 import { validateSemiUUID } from '@renderer/util/uuid';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertEditToCurationMetaFile } from '@shared/curate/metaToMeta';
-import { CurationIndexImage, EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '@shared/curate/types';
+import { CurationIndexImage, EditCuration, EditCurationMeta } from '@shared/curate/types';
 import { getCurationFolder } from '@shared/curate/util';
 import * as child_process from 'child_process';
 import { execFile } from 'child_process';
@@ -17,7 +16,7 @@ import { ApiEmitter } from './extensions/ApiEmitter';
 import * as GameManager from './game/GameManager';
 import * as TagManager from './game/TagManager';
 import { GameManagerState } from './game/types';
-import { GameLauncher, GameLaunchInfo, LaunchAddAppOpts, LaunchGameOpts } from './GameLauncher';
+import { GameLauncher, GameLaunchInfo, LaunchExtrasOpts, LaunchGameOpts } from './GameLauncher';
 import { OpenExternalFunc, ShowMessageBoxFunc } from './types';
 import { getMklinkBatPath } from './util/elevate';
 import { uuid } from './util/uuid';
@@ -71,7 +70,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
       where: {
         launchCommand: curation.meta.launchCommand
       }
-    });
+    }, true);
     if (existingGame) {
       // Warn user of possible duplicate
       const response = await opts.openDialog({
@@ -86,16 +85,55 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
       }
     }
   }
+  // @TODO ditto as above.
+  if (curation.meta.parentGameId && curation.meta.parentGameId != '') {
+    const existingGame = await GameManager.findGame(curation.meta.parentGameId, undefined, true);
+    if (existingGame == undefined) {
+      // Warn user of invalid parent
+      const response = await opts.openDialog({
+        title: 'Invalid Parent',
+        message: 'This curation has an invalid parent game id.\nContinue importing this curation? Warning: this will make the game be parentless!\n\n'
+                + `Curation:\n\tTitle: ${curation.meta.title}\n\tLaunch Command: ${curation.meta.launchCommand}\n\tPlatform: ${curation.meta.platform}\n\n`,
+        buttons: ['Yes', 'No']
+      });
+      if (response === 1) {
+        throw new Error('User Cancelled Import');
+      } else {
+        curation.meta.parentGameId = undefined;
+      }
+    }
+  } else if (curation.meta.parentGameId == '') {
+    curation.meta.parentGameId = undefined;
+  }
   // Build content list
   const contentToMove = [];
-  const extrasAddApp = curation.addApps.find(a => a.meta.applicationPath === ':extras:');
-  if (extrasAddApp && extrasAddApp.meta.launchCommand && extrasAddApp.meta.launchCommand.length > 0) {
-    // Add extras folder if meta has an entry
-    contentToMove.push([path.join(getCurationFolder(curation, fpPath), 'Extras'), path.join(fpPath, 'Extras', extrasAddApp.meta.launchCommand)]);
+  if (curation.meta.extras && curation.meta.extras.length > 0) {
+    const extrasPath = path.join(getCurationFolder(curation, fpPath), 'Extras');
+    // Check that extras exist.
+    try {
+      // If this doesn't error out, the extras exist.
+      await fs.promises.stat(extrasPath);
+      // Add extras folder if meta has an entry
+      contentToMove.push([extrasPath, path.join(fpPath, 'Extras', curation.meta.extras)]);
+    } catch {
+      // It did error out, we need to tell the user.
+      const response = await opts.openDialog({
+        title: 'Overwriting Game',
+        message: 'The curation claims to have extras but lacks an Extras folder!\nContinue importing this curation? Warning: this will remove the extras.\n\n'
+                + `Curation:\n\tTitle: ${curation.meta.title}\n\tLaunch Command: ${curation.meta.launchCommand}\n\tPlatform: ${curation.meta.platform}\n\t`
+                + `Expected extras path: ${extrasPath}`,
+        buttons: ['Yes', 'No']
+      });
+      if (response === 1) {
+        throw new Error('User Cancelled Import');
+      }
+      curation.meta.extras = undefined;
+      curation.meta.extrasName = undefined;
+    }
   }
   // Create and add game and additional applications
   const gameId = validateSemiUUID(curation.key) ? curation.key : uuid();
-  const oldGame = await GameManager.findGame(gameId);
+  const oldGame = await GameManager.findGame(gameId, undefined, true);
   if (oldGame) {
     const response = await opts.openDialog({
       title: 'Overwriting Game',
@@ -110,7 +148,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   }
 
   // Add game to database
-  let game = await createGameFromCurationMeta(gameId, curation.meta, curation.addApps, date);
+  let game = await createGameFromCurationMeta(gameId, curation.meta, date);
   game = await GameManager.save(game);
 
   // Store curation state for extension use later
@@ -156,7 +194,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
       if (saveCuration) {
         // Save working meta
         const metaPath = path.join(getCurationFolder(curation, fpPath), 'meta.yaml');
-        const meta = YAML.stringify(convertEditToCurationMetaFile(curation.meta, opts.tagCategories, curation.addApps));
+        const meta = YAML.stringify(convertEditToCurationMetaFile(curation.meta, opts.tagCategories));
         await fs.writeFile(metaPath, meta);
         // Date in form 'YYYY-MM-DD' for folder sorting
         const date = new Date();
@@ -237,7 +275,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
     console.warn(error.message);
     if (game.id) {
       // Clean up half imported entries
-      GameManager.removeGameAndAddApps(game.id, dataPacksFolderPath);
+      GameManager.removeGameAndChildren(game.id, dataPacksFolderPath);
     }
   });
 }
@@ -246,11 +284,11 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
  * Create and launch a game from curation metadata.
  * @param curation Curation to launch
  */
-export async function launchCuration(key: string, meta: EditCurationMeta, addAppMetas: EditAddAppCurationMeta[], symlinkCurationContent: boolean,
+export async function launchCuration(key: string, meta: EditCurationMeta, symlinkCurationContent: boolean,
   skipLink: boolean, opts: Omit<LaunchGameOpts, 'game'|'addApps'>, onWillEvent:ApiEmitter<GameLaunchInfo>, onDidEvent: ApiEmitter<Game>) {
   if (!skipLink || !symlinkCurationContent) { await linkContentFolder(key, opts.fpPath, opts.isDev, opts.exePath, opts.htdocsPath, symlinkCurationContent); }
   curationLog(`Launching Curation ${meta.title}`);
-  const game = await createGameFromCurationMeta(key, meta, [], new Date());
+  const game = await createGameFromCurationMeta(key, meta, new Date());
   GameLauncher.launchGame({
     ...opts,
     game: game,
@@ -259,21 +297,16 @@ export async function launchCuration(key: string, meta: EditCurationMeta, addApp
   onDidEvent.fire(game);
 }
 
-/**
- * Create and launch an additional application from curation metadata.
- * @param curationKey Key of the parent curation index
- * @param appCuration Add App Curation to launch
- */
-export async function launchAddAppCuration(curationKey: string, appCuration: EditAddAppCuration, symlinkCurationContent: boolean,
-  skipLink: boolean, opts: Omit<LaunchAddAppOpts, 'addApp'>, onWillEvent: ApiEmitter<AdditionalApp>, onDidEvent: ApiEmitter<AdditionalApp>) {
-  if (!skipLink || !symlinkCurationContent) { await linkContentFolder(curationKey, opts.fpPath, opts.isDev, opts.exePath, opts.htdocsPath, symlinkCurationContent); }
-  const addApp = createAddAppFromCurationMeta(appCuration, createPlaceholderGame());
-  await onWillEvent.fire(addApp);
-  GameLauncher.launchAdditionalApplication({
-    ...opts,
-    addApp: addApp,
-  });
-  onDidEvent.fire(addApp);
+// TODO this won't work, fix it. Actually, it's okay for now: the related back event *should* never be called.
+export async function launchCurationExtras(key: string, meta: EditCurationMeta, symlinkCurationContent: boolean,
+  skipLink: boolean, opts: Omit<LaunchExtrasOpts, 'extrasPath'>) {
+  if (meta.extras) {
+    if (!skipLink || !symlinkCurationContent) { await linkContentFolder(key, opts.fpPath, opts.isDev, opts.exePath, opts.htdocsPath, symlinkCurationContent); }
+    await GameLauncher.launchExtras({
+      ...opts,
+      extrasPath: meta.extras
+    });
+  }
 }
 
 function logMessage(text: string, curation: EditCuration): void {
@@ -285,10 +318,11 @@ function logMessage(text: string, curation: EditCuration): void {
  * @param curation Curation to get data from.
  * @param gameId ID to use for Game
  */
-async function createGameFromCurationMeta(gameId: string, gameMeta: EditCurationMeta, addApps : EditAddAppCuration[], date: Date): Promise<Game> {
+async function createGameFromCurationMeta(gameId: string, gameMeta: EditCurationMeta, date: Date): Promise<Game> {
   const game: Game = new Game();
   Object.assign(game, {
     id:                  gameId, // (Re-use the id of the curation)
+    parentGameId:        gameMeta.parentGameId === '' ? null : gameMeta.parentGameId ? gameMeta.parentGameId : null,
     title:               gameMeta.title               || '',
     alternateTitles:     gameMeta.alternateTitles     || '',
     series:              gameMeta.series              || '',
@@ -306,30 +340,20 @@ async function createGameFromCurationMeta(gameId: string, gameMeta: EditCuration
     version:             gameMeta.version             || '',
     originalDescription: gameMeta.originalDescription || '',
     language:            gameMeta.language            || '',
+    message:             gameMeta.message             || null,
+    extrasName:          gameMeta.extrasName          || null,
+    extras:              gameMeta.extras              || null,
     dateAdded:           date.toISOString(),
     dateModified:        date.toISOString(),
     broken:              false,
     extreme:             gameMeta.extreme || false,
     library:             gameMeta.library || '',
     orderTitle: '', // This will be set when saved
-    addApps: [],
+    children: [],
     placeholder: false,
     activeDataOnDisk: false
   });
-  game.addApps = addApps.map(addApp => createAddAppFromCurationMeta(addApp, game));
   return game;
-}
-
-function createAddAppFromCurationMeta(addAppMeta: EditAddAppCuration, game: Game): AdditionalApp {
-  return {
-    id: addAppMeta.key,
-    name: addAppMeta.meta.heading || '',
-    applicationPath: addAppMeta.meta.applicationPath || '',
-    launchCommand: addAppMeta.meta.launchCommand || '',
-    autoRunBefore: false,
-    waitForExit: false,
-    parentGame: game
-  };
 }
 
 async function importGameImage(image: CurationIndexImage, gameId: string, folder: typeof LOGOS | typeof SCREENSHOTS, fullImagePath: string): Promise<void> {
@@ -491,7 +515,7 @@ function curationLog(content: string): void {
 //   return buffer.equals(secondBuffer);
 // }
 
-function createPlaceholderGame(): Game {
+/* function createPlaceholderGame(): Game {
   const id = uuid();
   const game = new Game();
   Object.assign(game, {
@@ -520,12 +544,12 @@ function createPlaceholderGame(): Game {
     language: '',
     library: '',
     orderTitle: '',
-    addApps: [],
+    children: [],
     placeholder: true,
     activeDataOnDisk: false
   });
   return game;
-}
+}*/
 
 export async function createTagsFromLegacy(tags: string, tagCache: Record<string, Tag>): Promise<Tag[]> {
   const allTags: Tag[] = [];

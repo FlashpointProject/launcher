@@ -126,7 +126,7 @@ export async function api_handle_message<
         result = await callback(event, ...data.args as any);
       } catch (e) {
         // console.error(`An error was thrown from inside a callback (type: ${data.type}).`, e);
-        error = e.toString();
+        error = (e as Error).toString();
       }
     }
 

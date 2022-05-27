@@ -34,3 +34,6 @@ Data/flashpoint.sqlite
 /.coveralls.yml
 /coverage
 /tests/result
+
+# nano's swap/lock files.
+*.swp

@@ -34,12 +34,12 @@ import * as GameDataManager from './game/GameDataManager';
 import * as GameManager from './game/GameManager';
 import * as TagManager from './game/TagManager';
 import { escapeArgsForShell, GameLauncher, GameLaunchInfo } from './GameLauncher';
-import { importCuration, launchAddAppCuration, launchCuration } from './importGame';
+import { importCuration, launchCuration, launchCurationExtras } from './importGame';
 import { ManagedChildProcess } from './ManagedChildProcess';
 import { importAllMetaEdits } from './MetaEdit';
 import { BackState, BareTag, TagsFile } from './types';
 import { pathToBluezip } from './util/Bluezip';
-import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylistFromJson, exit, pathExists, procToService, removeService, runService } from './util/misc';
+import { copyError, createChildFromFromLegacyAddApp, createContainer, createGameFromLegacy, createPlaylistFromJson, exit, pathExists, procToService, removeService, runService } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
 import { uuid } from './util/uuid';
 
@@ -95,7 +95,8 @@ export function registerRequestCallbacks(state: BackState): void {
     const mad4fpEnabled = state.serviceInfo ? (state.serviceInfo.server.findIndex(s => s.mad4fp === true) !== -1) : false;
     const platforms: Record<string, string[]> = {};
     for (const library of libraries) {
-      platforms[library] = (await GameManager.findPlatforms(library)).sort();
+      // Explicitly exclude the platforms of child curations - they're mostly blank.
+      platforms[library] = (await GameManager.findPlatforms(library, false)).sort();
     }
 
     // Fire after return has sent
@@ -202,42 +203,12 @@ export function registerRequestCallbacks(state: BackState): void {
     return state.execMappings;
   });
 
-  state.socketServer.register(BackIn.LAUNCH_ADDAPP, async (event, id) => {
-    const addApp = await GameManager.findAddApp(id);
-    if (addApp) {
-      // If it has GameData, make sure it's present
-      let gameData: GameData | undefined;
-      if (addApp.parentGame.activeDataId) {
-        gameData = await GameDataManager.findOne(addApp.parentGame.activeDataId);
-        if (gameData && !gameData.presentOnDisk) {
-          // Download GameData
-          const onProgress = (percent: number) => {
-            // Sent to PLACEHOLDER download dialog on client
-            state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT, percent);
-          };
-          state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
-          try {
-            await GameDataManager.downloadGameData(gameData.id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), onProgress)
-            .finally(() => {
-              // Close PLACEHOLDER download dialog on client, cosmetic delay to look nice
-              setTimeout(() => {
-                state.socketServer.broadcast(BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG);
-              }, 250);
-            });
-          } catch (error: any) {
-            state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
-            log.info('Game Launcher', `Game Launch Aborted: ${error}`);
-            return;
-          }
-        }
-      }
-      await state.apiEmitters.games.onWillLaunchAddApp.fire(addApp);
-      const platform = addApp.parentGame ? addApp.parentGame : '';
-      GameLauncher.launchAdditionalApplication({
-        addApp,
+  state.socketServer.register(BackIn.LAUNCH_EXTRAS, async (event, extrasPath) => {
+    if (extrasPath) {
+      await GameLauncher.launchExtras({
+        extrasPath: extrasPath,
         fpPath: path.resolve(state.config.flashpointPath),
         htdocsPath: state.preferences.htdocsFolderPath,
-        native: addApp.parentGame && state.preferences.nativePlatforms.some(p => p === platform) || false,
         execMappings: state.execMappings,
         lang: state.languageContainer,
         isDev: state.isDev,
@@ -247,16 +218,27 @@ export function registerRequestCallbacks(state: BackState): void {
         proxy: state.preferences.browserModeProxy,
         openDialog: state.socketServer.showMessageBoxBack(event.client),
         openExternal: state.socketServer.openExternal(event.client),
-        runGame: runGameFactory(state)
+        runGame: runGameFactory(state),
       });
-      state.apiEmitters.games.onDidLaunchAddApp.fire(addApp);
     }
   });
 
   state.socketServer.register(BackIn.LAUNCH_GAME, async (event, id) => {
-    const game = await GameManager.findGame(id);
+    const game = await GameManager.findGame(id, undefined, true);
 
     if (game) {
+      if (game.parentGameId && !game.parentGame) {
+        log.debug('Game Launcher', 'Fetching parent game.');
+        // Note: we explicitly don't fetch the parent's children. We already have the only child we're interested in.
+        game.parentGame = await GameManager.findGame(game.parentGameId, undefined, true);
+      }
+      // Inherit empty fields.
+      if (game.parentGame) {
+        if (game.platform === '') {
+          game.platform = game.parentGame.platform;
+        }
+        // TODO any more I should add?
+      }
       // Make sure Server is set to configured server - Curations may have changed it
       const configServer = state.serviceInfo ? state.serviceInfo.server.find(s => s.name === state.config.server) : undefined;
       if (configServer) {
@@ -291,6 +273,34 @@ export function registerRequestCallbacks(state: BackState): void {
             });
           } catch (error: any) {
             state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
+            log.info('Game Launcher', `Game Launch Aborted: ${error}`);
+            return;
+          }
+        }
+      }
+      // Make sure the parent's GameData is present too.
+      if (game.parentGame && game.parentGame.activeDataId) {
+        gameData = await GameDataManager.findOne(game.parentGame.activeDataId);
+        if (gameData && !gameData.presentOnDisk) {
+          // Download GameData
+          const onDetails = (details: DownloadDetails) => {
+            state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_DETAILS, details);
+          };
+          const onProgress = (percent: number) => {
+            // Sent to PLACEHOLDER download dialog on client
+            state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT, percent);
+          };
+          state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
+          try {
+            await GameDataManager.downloadGameData(gameData.id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), onProgress, onDetails)
+            .finally(() => {
+              // Close PLACEHOLDER download dialog on client, cosmetic delay to look nice
+              setTimeout(() => {
+                state.socketServer.broadcast(BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG);
+              }, 250);
+            });
+          } catch (error) {
+            state.socketServer.broadcast(BackOut.OPEN_ALERT, error as string);
             log.info('Game Launcher', `Game Launch Aborted: ${error}`);
             return;
           }
@@ -338,7 +348,9 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.DELETE_GAME, async (event, id) => {
-    const game = await GameManager.removeGameAndAddApps(id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath));
+    // TODO This needs to somehow re-parent instead of just deleting all the children. It will have to wait
+    // until the frontend changes are made, I guess.
+    const game = await GameManager.removeGameAndChildren(id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath));
 
     state.queries = {}; // Clear entire cache
 
@@ -355,14 +367,17 @@ export function registerRequestCallbacks(state: BackState): void {
     if (game) {
 
       // Copy and apply new IDs
+
       const newGame = deepCopy(game);
-      const newAddApps = game.addApps.map(addApp => deepCopy(addApp));
+      const newChildren = game.children?.map(addApp => deepCopy(addApp));
       newGame.id = uuid();
-      for (let j = 0; j < newAddApps.length; j++) {
-        newAddApps[j].id = uuid();
-        newAddApps[j].parentGame = newGame;
+      if (newChildren) {
+        for (let j = 0; j < newChildren.length; j++) {
+          newChildren[j].id = uuid();
+          newChildren[j].parentGameId = newGame.id;
+        }
       }
-      newGame.addApps = newAddApps;
+      newGame.children = newChildren;
 
       // Add copies
       result = await GameManager.save(newGame);
@@ -471,7 +486,7 @@ export function registerRequestCallbacks(state: BackState): void {
 
   state.socketServer.register(BackIn.EXPORT_GAME, async (event, id, location, metaOnly) => {
     if (await pathExists(metaOnly ? path.dirname(location) : location)) {
-      const game = await GameManager.findGame(id);
+      const game = await GameManager.findGame(id, undefined, true);
       if (game) {
         // Save to file
         try {
@@ -502,7 +517,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.GET_GAME, async (event, id) => {
-    return GameManager.findGame(id);
+    return await GameManager.findGame(id);
   });
 
   state.socketServer.register(BackIn.GET_GAME_DATA, async (event, id) => {
@@ -549,7 +564,7 @@ export function registerRequestCallbacks(state: BackState): void {
       }
       const game = await GameManager.findGame(gameData.gameId);
       if (game) {
-        game.activeDataId = undefined;
+        game.activeDataId = null;
         game.activeDataOnDisk = false;
         await GameManager.save(game);
       }
@@ -626,7 +641,8 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.GET_ALL_GAMES, async (event) => {
-    return GameManager.findAllGames();
+    const games: Game[] = await GameManager.findAllGames();
+    return games;
   });
 
   state.socketServer.register(BackIn.RANDOM_GAMES, async (event, data) => {
@@ -774,9 +790,9 @@ export function registerRequestCallbacks(state: BackState): void {
   state.socketServer.register(BackIn.BROWSE_VIEW_INDEX, async (event, gameId, query) => {
     const position = await GameManager.findGameRow(
       gameId,
-      query.filter,
       query.orderBy,
       query.orderReverse,
+      query.filter,
       undefined);
 
     return position - 1; // ("position" starts at 1, while "index" starts at 0)
@@ -917,8 +933,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.GET_PLAYLIST_GAME, async (event, playlistId, gameId) => {
-    const playlistGame = await GameManager.findPlaylistGame(playlistId, gameId);
-    return playlistGame;
+    return await GameManager.findPlaylistGame(playlistId, gameId);
   });
 
   state.socketServer.register(BackIn.ADD_PLAYLIST_GAME, async (event, playlistId, gameId) => {
@@ -943,7 +958,7 @@ export function registerRequestCallbacks(state: BackState): void {
     for (const game of platform.collection.games) {
       const addApps = platform.collection.additionalApplications.filter(a => a.gameId === game.id);
       const translatedGame = await createGameFromLegacy(game, tagCache);
-      translatedGame.addApps = createAddAppFromLegacy(addApps, translatedGame);
+      translatedGames.push(...createChildFromFromLegacyAddApp(addApps, translatedGame));
       translatedGames.push(translatedGame);
     }
     await GameManager.updateGames(translatedGames);
@@ -1040,6 +1055,52 @@ export function registerRequestCallbacks(state: BackState): void {
     return { error: error || undefined };
   });
 
+  state.socketServer.register(BackIn.LAUNCH_CURATION_EXTRAS, async (event, data) => {
+    const skipLink = (data.key === state.lastLinkedCurationKey);
+    state.lastLinkedCurationKey = data.symlinkCurationContent ? data.key : '';
+    try {
+      if (state.serviceInfo) {
+        // Make sure all 3 relevant server infos are present before considering MAD4FP opt
+        const configServer = state.serviceInfo.server.find(s => s.name === state.config.server);
+        const mad4fpServer = state.serviceInfo.server.find(s => s.mad4fp);
+        const activeServer = state.services.get('server');
+        const activeServerInfo = state.serviceInfo.server.find(s => (activeServer && 'name' in activeServer.info && s.name === activeServer.info?.name));
+        if (activeServer && configServer && mad4fpServer) {
+          if (data.mad4fp && activeServerInfo && !activeServerInfo.mad4fp) {
+            // Swap to mad4fp server
+            const mad4fpServerCopy = deepCopy(mad4fpServer);
+            // Set the content folder path as the final parameter
+            mad4fpServerCopy.arguments.push(getContentFolderByKey(data.key, state.config.flashpointPath));
+            await removeService(state, 'server');
+            runService(state, 'server', 'Server', state.config.flashpointPath, {}, mad4fpServerCopy);
+          } else if (!data.mad4fp && activeServerInfo && activeServerInfo.mad4fp && !configServer.mad4fp) {
+            // Swap to mad4fp server
+            await removeService(state, 'server');
+            runService(state, 'server', 'Server', state.config.flashpointPath, {}, configServer);
+          }
+        }
+      }
+      if (data.meta.extras) {
+        await launchCurationExtras(data.key, data.meta, data.symlinkCurationContent, skipLink, {
+          fpPath: path.resolve(state.config.flashpointPath),
+          htdocsPath: state.preferences.htdocsFolderPath,
+          execMappings: state.execMappings,
+          lang: state.languageContainer,
+          isDev: state.isDev,
+          exePath: state.exePath,
+          appPathOverrides: state.preferences.appPathOverrides,
+          providers: await getProviders(state),
+          proxy: state.preferences.browserModeProxy,
+          openDialog: state.socketServer.showMessageBoxBack(event.client),
+          openExternal: state.socketServer.openExternal(event.client),
+          runGame: runGameFactory(state)
+        });
+      }
+    } catch (e) {
+      log.error('Launcher', e + '');
+    }
+  });
+
   state.socketServer.register(BackIn.LAUNCH_CURATION, async (event, data) => {
     const skipLink = (data.key === state.lastLinkedCurationKey);
     state.lastLinkedCurationKey = data.symlinkCurationContent ? data.key : '';
@@ -1066,7 +1127,7 @@ export function registerRequestCallbacks(state: BackState): void {
         }
       }
 
-      await launchCuration(data.key, data.meta, data.addApps, data.symlinkCurationContent, skipLink, {
+      await launchCuration(data.key, data.meta, data.symlinkCurationContent, skipLink, {
         fpPath: path.resolve(state.config.flashpointPath),
         htdocsPath: state.preferences.htdocsFolderPath,
         native: state.preferences.nativePlatforms.some(p => p === data.meta.platform),
@@ -1083,32 +1144,6 @@ export function registerRequestCallbacks(state: BackState): void {
       },
       state.apiEmitters.games.onWillLaunchCurationGame,
       state.apiEmitters.games.onDidLaunchCurationGame);
-    } catch (e) {
-      log.error('Launcher', e + '');
-    }
-  });
-
-  state.socketServer.register(BackIn.LAUNCH_CURATION_ADDAPP, async (event, data) => {
-    const skipLink = (data.curationKey === state.lastLinkedCurationKey);
-    state.lastLinkedCurationKey = data.curationKey;
-    try {
-      await launchAddAppCuration(data.curationKey, data.curation, data.symlinkCurationContent, skipLink, {
-        fpPath: path.resolve(state.config.flashpointPath),
-        htdocsPath: state.preferences.htdocsFolderPath,
-        native: state.preferences.nativePlatforms.some(p => p === data.platform) || false,
-        execMappings: state.execMappings,
-        lang: state.languageContainer,
-        isDev: state.isDev,
-        exePath: state.exePath,
-        appPathOverrides: state.preferences.appPathOverrides,
-        providers: await getProviders(state),
-        proxy: state.preferences.browserModeProxy,
-        openDialog: state.socketServer.showMessageBoxBack(event.client),
-        openExternal: state.socketServer.openExternal(event.client),
-        runGame: runGameFactory(state),
-      },
-      state.apiEmitters.games.onWillLaunchCurationAddApp,
-      state.apiEmitters.games.onDidLaunchCurationAddApp);
     } catch (e) {
       log.error('Launcher', e + '');
     }
@@ -1139,7 +1174,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.EXPORT_META_EDIT, async (event, id, properties) => {
-    const game = await GameManager.findGame(id);
+    const game = await GameManager.findGame(id, undefined, true);
     if (game) {
       const meta: MetaEditMeta = {
         id: game.id,

@@ -1,47 +1,44 @@
-import { AdditionalApp } from '@database/entity/AdditionalApp';
+import { Game } from '@database/entity/Game';
 import { LangContainer } from '@shared/lang';
 import * as React from 'react';
 import { LangContext } from '../util/lang';
-import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 
-export type RightBrowseSidebarAddAppProps = {
+export type RightBrowseSidebarChildProps = {
   /** Additional Application to show and edit */
-  addApp: AdditionalApp;
+  child: Game;
   /** Called when a field is edited */
-  onEdit?: () => void;
+  onEdit?: (childId: string, diff: Partial<Game>) => void;
   /** Called when a field is edited */
-  onDelete?: (addAppId: string) => void;
+  onDelete?: (childId: string) => void;
   /** Called when the launch button is clicked */
-  onLaunch?: (addAppId: string) => void;
+  onLaunch?: (childId: string) => void;
   /** If the editing is disabled (it cant go into "edit mode") */
   editDisabled?: boolean;
 };
 
-export interface RightBrowseSidebarAddApp {
+export interface RightBrowseSidebarChild {
   context: LangContainer;
 }
 
 /** Displays an additional application for a game in the right sidebar of BrowsePage. */
-export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebarAddAppProps> {
-  onNameEditDone            = this.wrapOnTextChange((addApp, text) => { addApp.name = text; });
-  onApplicationPathEditDone = this.wrapOnTextChange((addApp, text) => { addApp.applicationPath = text; });
-  onLaunchCommandEditDone   = this.wrapOnTextChange((addApp, text) => { addApp.launchCommand = text; });
-  onAutoRunBeforeChange     = this.wrapOnCheckBoxChange((addApp) => { addApp.autoRunBefore = !addApp.autoRunBefore; });
-  onWaitForExitChange       = this.wrapOnCheckBoxChange((addApp) => { addApp.waitForExit = !addApp.waitForExit; });
+export class RightBrowseSidebarChild extends React.Component<RightBrowseSidebarChildProps> {
+  onNameEditDone            = this.wrapOnTextChange((addApp, text) => { this.onEdit({title: text}); });
+  onApplicationPathEditDone = this.wrapOnTextChange((addApp, text) => { this.onEdit({applicationPath: text}); });
+  onLaunchCommandEditDone   = this.wrapOnTextChange((addApp, text) => { this.onEdit({launchCommand: text}); });
 
   render() {
     const allStrings = this.context;
     const strings = allStrings.browse;
-    const { addApp, editDisabled } = this.props;
+    const { child: addApp, editDisabled } = this.props;
     return (
       <div className='browse-right-sidebar__additional-application'>
         {/* Title & Launch Button */}
         <div className='browse-right-sidebar__row browse-right-sidebar__row--additional-applications-name'>
           <InputField
-            text={addApp.name}
+            text={addApp.title}
             placeholder={strings.noName}
             onChange={this.onNameEditDone}
             editable={!editDisabled} />
@@ -71,27 +68,8 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
                 onChange={this.onLaunchCommandEditDone}
                 editable={!editDisabled} />
             </div>
-            {/* Auto Run Before */}
-            <div className='browse-right-sidebar__row'>
-              <div
-                className='browse-right-sidebar__row__check-box-wrapper'
-                onClick={this.onAutoRunBeforeChange}>
-                <CheckBox
-                  className='browse-right-sidebar__row__check-box'
-                  checked={addApp.autoRunBefore} />
-                <p> {strings.autoRunBefore}</p>
-              </div>
-            </div>
             {/* Wait for Exit */}
             <div className='browse-right-sidebar__row'>
-              <div
-                className='browse-right-sidebar__row__check-box-wrapper'
-                onClick={this.onWaitForExitChange}>
-                <CheckBox
-                  className='browse-right-sidebar__row__check-box'
-                  checked={addApp.waitForExit} />
-                <p> {strings.waitForExit}</p>
-              </div>
               {/* Delete Button */}
               { !editDisabled ? (
                 <ConfirmElement
@@ -121,39 +99,28 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
 
   onLaunchClick = (): void => {
     if (this.props.onLaunch) {
-      this.props.onLaunch(this.props.addApp.id);
+      this.props.onLaunch(this.props.child.id);
     }
   }
 
   onDeleteClick = (): void => {
     if (this.props.onDelete) {
-      this.props.onDelete(this.props.addApp.id);
+      this.props.onDelete(this.props.child.id);
     }
   }
 
-  onEdit(): void {
+  onEdit(diff: Partial<Game>): void {
     if (this.props.onEdit) {
-      this.props.onEdit();
+      this.props.onEdit(this.props.child.id, diff);
     }
   }
 
   /** Create a wrapper for a EditableTextWrap's onEditDone callback (this is to reduce redundancy). */
-  wrapOnTextChange(func: (addApp: AdditionalApp, text: string) => void): (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>) => void {
+  wrapOnTextChange(func: (addApp: Game, text: string) => void): (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>) => void {
     return (event) => {
-      const addApp = this.props.addApp;
+      const addApp = this.props.child;
       if (addApp) {
         func(addApp, event.currentTarget.value);
-        this.forceUpdate();
-      }
-    };
-  }
-
-  /** Create a wrapper for a CheckBox's onChange callback (this is to reduce redundancy). */
-  wrapOnCheckBoxChange(func: (addApp: AdditionalApp) => void) {
-    return () => {
-      if (!this.props.editDisabled) {
-        func(this.props.addApp);
-        this.onEdit();
         this.forceUpdate();
       }
     };
