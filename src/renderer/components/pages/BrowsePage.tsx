@@ -393,7 +393,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   remote.dialog.showMessageBox(opts);
                   return;
                 }
-              } catch (error) {
+              } catch (error: any) {
                 const opts: Electron.MessageBoxOptions = {
                   type: 'warning',
                   message: '',

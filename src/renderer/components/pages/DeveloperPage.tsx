@@ -779,7 +779,7 @@ async function checkFileLocation(games: Game[]): Promise<string> {
       try {
         const gamePath = await getGamePath(game, window.Shared.config.fullFlashpointPath, window.Shared.preferences.data.htdocsFolderPath, window.Shared.preferences.data.dataPacksFolderPath);
         if (gamePath === undefined) { pathFailed.push(game); }
-      } catch (error) {
+      } catch (error: any) {
         pathError.push([ game, error ]);
       }
     }

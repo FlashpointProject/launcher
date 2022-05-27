@@ -71,7 +71,7 @@ export type BackState = {
   readonly registry: Registry;
   extensionsService: ExtensionService;
   connection: Connection | undefined;
-  writeLocks: number;
+  prefsQueue: EventQueue;
 }
 
 export type BackQueryChache = {

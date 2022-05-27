@@ -222,6 +222,8 @@ export type ExecMapping = {
   wine?: string;
   /** Mac path (if exists) */
   darwin?: string;
+  /** Mac wine path (if exists) */
+  darwine?: string;
 }
 
 

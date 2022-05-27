@@ -125,7 +125,7 @@ export class ExtensionService {
       this._setSubscriptions(ext.id, context.subscriptions);
       this._enableExtension(ext.id);
       log.info('Extensions', `[${ext.manifest.displayName || ext.manifest.name}] Extension Loaded (${ext.id})`);
-    } catch (err) {
+    } catch (err: any) {
       this.logExtension(ext.id, newExtLog(ext.manifest, err, log.error));
     }
   }
@@ -133,7 +133,7 @@ export class ExtensionService {
   public async unloadAll(): Promise<void> {
     if (this._installedExtensionsReady.isOpen()) {
       for (const ext of this._extensions) {
-        this._unloadExtension(ext);
+        await this._unloadExtension(ext);
       }
     }
   }

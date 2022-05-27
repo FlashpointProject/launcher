@@ -1017,7 +1017,7 @@ function useRemoveImageCallback(filename: 'logo.png' | 'ss.png', curation: EditC
             image: createCurationIndexImage()
           }
         });
-      } catch (error) {
+      } catch (error: any) {
         curationLog('Error replacing image - ' + error.message);
         console.log(error);
       }
@@ -1099,7 +1099,7 @@ async function safeAwait<T, E = Error>(promise: Promise<T>): Promise<[T | undefi
   let value: T | undefined = undefined;
   let error: E | undefined = undefined;
   try      { value = await promise; }
-  catch (e) { error = e; }
+  catch (e: any) { error = e; }
   return [value, error];
 }
 

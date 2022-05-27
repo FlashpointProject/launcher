@@ -6,6 +6,7 @@ import { CreditsBlock, CreditsData, CreditsDataProfile, CreditsDataRole } from '
 import { LangContext } from '../../util/lang';
 import { CreditsIcon } from '../CreditsProfile';
 import { CreditsTooltip } from '../CreditsTooltip';
+import * as remote from '@electron/remote';
 
 export type AboutPageProps = {
   /** Credits data (if any). */
@@ -220,7 +221,8 @@ export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
 function link(title: string, url: string): JSX.Element {
   return (
     <a
-      href={url}
+      style={{ cursor: 'pointer', textDecorationLine: 'underline' }}
+      onClick={() => remote.shell.openExternal(url)}
       title={url}>
       {title}
     </a>
