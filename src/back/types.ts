@@ -72,7 +72,7 @@ export type BackState = {
   extensionsService: ExtensionService;
   metadataProviderInstances: LoadedMetadataProviderInstance[];
   connection: Connection | undefined;
-  writeLocks: number;
+  prefsQueue: EventQueue;
 }
 
 export type BackQueryChache = {

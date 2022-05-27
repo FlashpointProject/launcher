@@ -106,7 +106,7 @@ function watchBack(done) {
 
 function watchRenderer(done) {
   const mode = config.isRelease ? 'production' : 'development';
-  execute(`npx webpack --color true --mode "${mode}" --watch`, done);
+  execute(`npx webpack --mode "${mode}" --watch`, done);
 }
 
 function watchStatic() {
@@ -125,7 +125,7 @@ function buildBack(done) {
 
 function buildRenderer(done) {
   const mode = config.isRelease ? 'production' : 'development';
-  execute(`npx webpack --color true --mode "${mode}"`, done);
+  execute(`npx webpack --mode "${mode}"`, done);
 }
 
 function buildStatic() {

@@ -44,10 +44,12 @@ function parseExecMapping(parser: IObjectParserProp<any>) : ExecMapping {
     linux: undefined,
     wine: undefined,
     darwin: undefined,
+    darwine: undefined,
   };
   parser.prop('win32',  v => parsed.win32  = parseVarStr(str(v)));
   parser.prop('linux',  v => parsed.linux  = parseVarStr(str(v)), true);
   parser.prop('wine',   v => parsed.wine   = parseVarStr(str(v)), true);
   parser.prop('darwin', v => parsed.darwin = parseVarStr(str(v)), true);
+  parser.prop('darwine', v => parsed.darwine = parseVarStr(str(v)), true);
   return parsed;
 }

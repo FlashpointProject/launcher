@@ -364,7 +364,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
                 // Game exists, import the data
                 await window.Shared.back.request(BackIn.IMPORT_GAME_DATA, game.id, filePath)
                 .then((gameData) => {
-                  this.setState({ text: text + filePath + '\n' +  createTextBarProgress(current, files.length) })
+                  this.setState({ text: text + filePath + '\n' +  createTextBarProgress(current, files.length) });
                 })
                 .catch((error) => {
                   text = text + `Failure - ${fileName} - ERROR: ${error}\n`;
@@ -779,7 +779,7 @@ async function checkFileLocation(games: Game[]): Promise<string> {
       try {
         const gamePath = await getGamePath(game, window.Shared.config.fullFlashpointPath, window.Shared.preferences.data.htdocsFolderPath, window.Shared.preferences.data.dataPacksFolderPath);
         if (gamePath === undefined) { pathFailed.push(game); }
-      } catch (error) {
+      } catch (error: any) {
         pathError.push([ game, error ]);
       }
     }

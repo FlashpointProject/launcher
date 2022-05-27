@@ -29,7 +29,7 @@ const sendPrefs = delayedThrottle(() => {
     preferences.data,
     false
   );
-}, 500);
+}, 200);
 
 const { num, str } = Coerce;
 

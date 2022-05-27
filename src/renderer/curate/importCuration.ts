@@ -21,7 +21,7 @@ export async function importCurationMeta(filePath: string, key: string = uuid())
     await fs.ensureDir(curationPath);
     await fs.copyFile(filePath, metaPath);
     await fs.mkdir(path.join(curationPath, 'content'));
-  } catch (error) {
+  } catch (error: any) {
     curationLog('Error importing curation meta - ' + error.message);
     console.error(error);
   }
@@ -49,7 +49,7 @@ export async function importCurationFolder(filePath: string, key: string = uuid(
       await fs.copyFile(sourcePath, destPath);
       ProgressDispatch.countItem(progress);
     }
-  } catch (error) {
+  } catch (error: any) {
     curationLog('Error importing curation folder - ' + error.message);
     console.error(error);
   } finally {
@@ -93,7 +93,7 @@ export async function importCurationArchive(filePath: string, preserveKey: boole
       throw new Error('Meta.yaml/yml/txt not found in extracted archive');
     }
     log.debug('Curate', `Import Success for ${filePath}`);
-  } catch (error) {
+  } catch (error: any) {
     curationLog(`Error extracting archive ${filePath} - ${error.message}`);
     console.error(error.message);
     log.error('Curate', `Import Failure for ${filePath}`);
@@ -168,11 +168,14 @@ async function getRootPath(dir: string): Promise<string | undefined> {
       // Convert it to lower-case, because the extensions we're matching against
       // are lower-case.
       if (endsWithList(fullpath.toLowerCase(), validMetaNames)) {
-        return fullpath;
+        return path.dirname(fullpath);
       }
     } else if (stats.isDirectory()) {
+      const contents: string[] = await fs.readdir(fullpath);
       // We have a directory. Push all of the directory's contents onto the end of the queue.
-      queue.push(...(await fs.readdir(fullpath)));
+      for (const k of contents) {
+        queue.push(path.join(entry, k));
+      }
     }
   }
 }
