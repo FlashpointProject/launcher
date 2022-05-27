@@ -1,6 +1,6 @@
 {
   "name": "flashpoint-launcher",
-  "version": "10.1.1",
+  "version": "10.1.2",
   "description": "A desktop application used to browse, manage and play games from BlueMaxima's Flashpoint",
   "main": "build/main/index.js",
   "config": {
@@ -57,7 +57,7 @@
     "redux-devtools-extension": "2.13.8",
     "reflect-metadata": "0.1.10",
     "remark-gfm": "^2.0.0",
-    "sqlite3": "4.2.0",
+    "sqlite3": "5.0.8",
     "tail": "2.0.3",
     "typeorm": "0.2.37",
     "typesafe-actions": "4.4.2",
@@ -100,6 +100,7 @@
     "jest": "28.1.0",
     "ts-jest": "28.0.3",
     "ts-loader": "9.3.0",
+    "ts-node": "^10.8.0",
     "ts-transform-paths": "2.0.1",
     "tsconfig-paths-webpack-plugin": "3.2.0",
     "tslint": "5.18.0",
