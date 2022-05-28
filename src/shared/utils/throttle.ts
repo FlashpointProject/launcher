@@ -63,7 +63,10 @@ export function delayedThrottleAsync<T extends AnyFunction>(callback: T, time:nu
   const throttler: CallableCopyAsync<T> = async function(...args) {
     return new Promise(resolve => {
       // Check if currently throttling
-      if (timeout != undefined) { resolve(); }
+      if (timeout != undefined) {
+        resolve();
+        return;
+      }
       // Release event after some time
       timeout = setTimeout(async function() {
         timeout = undefined;
