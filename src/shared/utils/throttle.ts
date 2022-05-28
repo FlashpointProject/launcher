@@ -56,7 +56,7 @@ export function delayedThrottle<T extends AnyFunction>(callback: T, time:number)
  * @param callback Called when the timer ends
  * @param time Time in milliseconds before calling
  */
- export function delayedThrottleAsync<T extends AnyFunction>(callback: T, time:number): CallableCopyAsync<T> {
+export function delayedThrottleAsync<T extends AnyFunction>(callback: T, time:number): CallableCopyAsync<T> {
   // Store timeout
   let timeout: ReturnType<typeof setTimeout> | undefined;
   // Function that receives and records the events
