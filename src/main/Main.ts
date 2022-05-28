@@ -143,7 +143,10 @@ export function main(init: Init): void {
           if (message.port) {
             state.backHost.port = message.port as string;
             resolve();
-          } else if (message.quit){
+          } else if (message.quit) {
+            if (message.errorMessage) {
+              dialog.showErrorBox("Flashpoint Startup Error", message.errorMessage);
+            }
             app.quit();
           } else {
             reject(new Error('Failed to start server in back process. Perhaps because it could not find an available port.'));
