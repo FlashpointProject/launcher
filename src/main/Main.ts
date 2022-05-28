@@ -145,7 +145,7 @@ export function main(init: Init): void {
             resolve();
           } else if (message.quit) {
             if (message.errorMessage) {
-              dialog.showErrorBox("Flashpoint Startup Error", message.errorMessage);
+              dialog.showErrorBox('Flashpoint Startup Error', message.errorMessage);
             }
             app.quit();
           } else {

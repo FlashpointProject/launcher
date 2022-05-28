@@ -267,7 +267,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   } catch (e) {
     console.log(e);
     // Fatal, quit.
-    send({quit: true, errorMessage: "Invalid config.json!"});
+    send({quit: true, errorMessage: 'Invalid config.json!'});
     return;
   }
 
@@ -282,7 +282,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   } catch (e) {
     console.log(e);
     // Fatal, quit.
-    send({quit: true, errorMessage: "Invalid preferences.json! Is it 0 KB?"});
+    send({quit: true, errorMessage: 'Invalid preferences.json! Is it 0 KB?'});
     return;
   }
   try {
