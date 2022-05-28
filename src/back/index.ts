@@ -273,7 +273,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     state.preferences = await PreferencesFile.readOrCreateFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME));
   } catch (e) {
     console.log(e);
-    exit(state);
+    send({quit: true});
     return;
   }
   const [extConf] = await (Promise.all([
@@ -632,7 +632,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   }
 
   // Respond
-  send(state.socketServer.port, () => {
+  send({port: state.socketServer.port}, () => {
     state.apiEmitters.onDidInit.fire();
   });
 
