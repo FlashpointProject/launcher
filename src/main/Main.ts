@@ -139,10 +139,15 @@ export function main(init: Init): void {
       p = p.then(() => new Promise((resolve, reject) => {
         state.backProc = fork(path.join(__dirname, '../back/index.js'), undefined, { detached: true });
         // Wait for process to initialize
-        state.backProc.once('message', (port) => {
-          if (port >= 0) {
-            state.backHost.port = port as string;
+        state.backProc.once('message', (message: any) => {
+          if (message.port) {
+            state.backHost.port = message.port as string;
             resolve();
+          } else if (message.quit) {
+            if (message.errorMessage) {
+              dialog.showErrorBox('Flashpoint Startup Error', message.errorMessage);
+            }
+            app.quit();
           } else {
             reject(new Error('Failed to start server in back process. Perhaps because it could not find an available port.'));
           }
