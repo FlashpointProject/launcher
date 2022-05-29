@@ -2,9 +2,12 @@ const path = require('path');
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 
 module.exports = {
-  entry: './src/renderer/index.tsx',
+  entry: {
+    main: './src/renderer/index.tsx',
+    logger: './src/renderer/logger.tsx'
+  },
   output: {
-    filename: 'main.bundle.js',
+    filename: '[name].bundle.js',
     path: path.resolve(__dirname, './build/window')
   },
   // Allows importing build-in node modules in electron render.

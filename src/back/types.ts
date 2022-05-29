@@ -72,6 +72,7 @@ export type BackState = {
   extensionsService: ExtensionService;
   connection: Connection | undefined;
   prefsQueue: EventQueue;
+  logsWindowProc?: ManagedChildProcess;
 }
 
 export type BackQueryChache = {

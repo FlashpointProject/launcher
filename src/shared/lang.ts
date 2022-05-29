@@ -121,6 +121,7 @@ const langTemplate = {
     'copy404Urls',
     'uploadLog',
     'copiedToClipboard',
+    'openLogsWindow',
   ] as const,
   app: [
     'home',

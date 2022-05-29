@@ -103,8 +103,10 @@ export enum BackIn {
   BROWSE_VIEW_KEYSET,
   /** Get all data needed on init (by the renderer). */
   GET_RENDERER_INIT_DATA,
-  /** Get all data needed on init (by the renderer). */
+  /** Get all data needed on init (by the main process). */
   GET_MAIN_INIT_DATA,
+  /** Get all data needed on init (by the independent logger window) */
+  GET_LOGGER_INIT_DATA,
   /** Update any number of configs. */
   UPDATE_CONFIG,
   /** Update any number of preferences. */
@@ -121,6 +123,7 @@ export enum BackIn {
   RUN_COMMAND,
 
   // Misc
+  OPEN_LOGS_WINDOW,
   UPLOAD_LOG,
   SET_EXT_CONFIG_VALUE,
 }
@@ -251,6 +254,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   /** @returns Index of the game (equal to or greater than 0 if found, otherwise -1). */
   [BackIn.BROWSE_VIEW_INDEX]: (gameId: string, query: SearchGamesOpts) => number;
   [BackIn.BROWSE_VIEW_KEYSET]: (library: string, query: SearchGamesOpts) => BrowseViewKeysetResponse;
+  [BackIn.GET_LOGGER_INIT_DATA]: () => GetLoggerInitDataResponse;
   [BackIn.GET_RENDERER_INIT_DATA]: () => GetRendererInitDataResponse;
   [BackIn.GET_MAIN_INIT_DATA]: () => GetMainInitDataResponse;
   [BackIn.UPDATE_CONFIG]: (data: Partial<AppConfigData>) => void;
@@ -267,6 +271,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.RUN_COMMAND]: (command: string, args?: any[]) => RunCommandResponse;
 
   // Misc
+  [BackIn.OPEN_LOGS_WINDOW]: () => void;
   [BackIn.UPLOAD_LOG]: () => string | undefined;
   [BackIn.SET_EXT_CONFIG_VALUE]: (key: string, value: any) => void;
 }>
@@ -347,6 +352,12 @@ export type InitEventData = {
 export type GetMainInitDataResponse = {
   config: AppConfigData;
   preferences: AppPreferencesData;
+}
+
+export type GetLoggerInitDataResponse = {
+  config: AppConfigData;
+  preferences: AppPreferencesData;
+  log: ILogEntry[];
 }
 
 export type GetRendererInitDataResponse = {

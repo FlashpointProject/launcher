@@ -81,6 +81,14 @@ export function registerRequestCallbacks(state: BackState): void {
     };
   });
 
+  state.socketServer.register(BackIn.GET_LOGGER_INIT_DATA, (event) => {
+    return {
+      preferences: state.preferences,
+      config: state.config,
+      log: state.log
+    };
+  });
+
   state.socketServer.register(BackIn.GET_RENDERER_INIT_DATA, async (event) => {
     state.languageContainer = createContainer(
       state.languages,
@@ -1114,6 +1122,41 @@ export function registerRequestCallbacks(state: BackState): void {
     }
   });
 
+  state.socketServer.register(BackIn.OPEN_LOGS_WINDOW, async (event) => {
+    if (!state.services.has('logger_window')) {
+      const env = process.env;
+      if ('ELECTRON_RUN_AS_NODE' in env) {
+        delete env['ELECTRON_RUN_AS_NODE']; // If this flag is present, it will disable electron features from the process
+      }
+      const loggerArgs = [path.join(__dirname, '../main/index.js'), 'logger=true'];
+      const dirname = path.dirname(process.execPath);
+      runService(
+        state,
+        'logger_window',
+        'Logger Window',
+        '',
+        {
+          detached: false,
+          shell: true,
+          cwd: process.cwd(),
+          execFile: true,
+          env: env
+        },
+        {
+          path: dirname,
+          filename: process.execPath,
+          arguments: escapeArgsForShell(loggerArgs),
+          kill: true
+        }
+      );
+    } else {
+      const loggerService = state.services.get('logger_window');
+      if (loggerService.getState() !== ProcessState.RUNNING) {
+        loggerService.restart();
+      }
+    }
+  });
+
   state.socketServer.register(BackIn.UPLOAD_LOG, async (event) => {
     // Upload to log server
     const entries = state.log.filter(e => e !== undefined);
@@ -1134,7 +1177,7 @@ export function registerRequestCallbacks(state: BackState): void {
   state.socketServer.register(BackIn.QUIT, async (event) => {
     // Unload all extensions before quitting
     await state.extensionsService.unloadAll();
-    state.socketServer.send(event.client, BackOut.QUIT);
+    state.socketServer.broadcast(BackOut.QUIT);
     exit(state);
   });
 

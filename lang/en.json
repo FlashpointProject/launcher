@@ -113,7 +113,8 @@
     "clearLog": "Clear Log",
     "copy404Urls": "Copy 404 URLs",
     "uploadLog": "Upload Log",
-    "copiedToClipboard": "Copied to Clipboard"
+    "copiedToClipboard": "Copied to Clipboard",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "Home",

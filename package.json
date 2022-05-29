@@ -8,6 +8,7 @@
   },
   "scripts": {
     "start": "electron ./build/main/index.js",
+    "start-logger": "electron ./build/main/index.js logger=true",
     "build": "gulp build",
     "build-api-docs": "typedoc --out docs/api typings/flashpoint-launcher.d.ts --includeDeclarations --excludeExternals --disableOutputCheck",
     "watch": "gulp watch",

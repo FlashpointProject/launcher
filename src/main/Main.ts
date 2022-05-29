@@ -10,15 +10,11 @@ import { createErrorProxy } from '@shared/Util';
 import { ChildProcess, fork } from 'child_process';
 import { randomBytes } from 'crypto';
 import { app, BrowserWindow, dialog, ipcMain, IpcMainEvent, session, shell, WebContents } from 'electron';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as path from 'path';
-import { promisify } from 'util';
 import * as WebSocket from 'ws';
 import { Init } from './types';
 import * as Util from './Util';
-
-const readFile = promisify(fs.readFile);
-const writeFile = promisify(fs.writeFile);
 
 const TIMEOUT_DELAY = 60_000;
 
@@ -100,6 +96,9 @@ export function main(init: Init): void {
 
     app.commandLine.appendSwitch('ignore-connections-limit', 'localhost');
 
+    state.mainFolderPath = Util.getMainFolderPath(state._installed);
+    console.log(path.join(state.mainFolderPath, 'secret.txt'));
+
     // ---- Initialize ----
     // Check if installed
     let p = exists('./.installed')
@@ -121,17 +120,23 @@ export function main(init: Init): void {
       if (init.args['connect-remote'] || init.args['host-remote'] || init.args['back-only']) {
         const secretFilePath = path.join(state.mainFolderPath, 'secret.txt');
         try {
-          state._secret = await readFile(secretFilePath, { encoding: 'utf8' });
+          state._secret = await fs.readFile(secretFilePath, { encoding: 'utf8' });
         } catch (e) {
           state._secret = randomBytes(2048).toString('hex');
           try {
-            await writeFile(secretFilePath, state._secret, { encoding: 'utf8' });
+            await fs.writeFile(secretFilePath, state._secret, { encoding: 'utf8' });
           } catch (e) {
             console.warn(`Failed to save new secret to disk.\n${e}`);
           }
         }
       } else {
+        const secretFilePath = path.join(state.mainFolderPath, 'secret.txt');
         state._secret = randomBytes(2048).toString('hex');
+        try {
+          await fs.writeFile(secretFilePath, state._secret, { encoding: 'utf8' });
+        } catch (e) {
+          console.warn(`Failed to save new secret to disk.\n${e}`);
+        }
       }
     });
     // Start back process
