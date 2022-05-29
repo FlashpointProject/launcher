@@ -11,6 +11,7 @@ import { ModelUtils } from '@shared/game/util';
 import { GamePropSuggestions, PickType, ProcessAction } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { deepCopy, generateTagFilterGroup, sizeToString } from '@shared/Util';
+import { formatString } from '@shared/utils/StringFormatter';
 import { clipboard, Menu, MenuItemConstructorOptions } from 'electron';
 import { GameData } from 'flashpoint-launcher';
 import * as fs from 'fs';
@@ -725,7 +726,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     } else {
       return (
         <div className='browse-right-sidebar-empty'>
-          <h1>{strings.noGameSelected}</h1>
+          <h1>{formatString(strings.noGameSelected, allStrings.libraries[this.props.currentLibrary + 'Singular'])}</h1>
           <p>{strings.clickToSelectGame}</p>
         </div>
       );
