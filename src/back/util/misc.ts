@@ -333,3 +333,7 @@ export function isBrowserOpts(val: any): val is BrowserApplicationOpts {
   return typeof val.url === 'string' &&
    (val.proxy === undefined || typeof val.proxy === 'string');
 }
+
+export function getCwd(isDev: boolean, exePath: string) {
+  return isDev ? process.cwd() : process.platform == 'darwin' ? path.resolve(path.dirname(exePath), '..') : path.dirname(exePath);
+}

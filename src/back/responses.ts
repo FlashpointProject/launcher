@@ -39,7 +39,7 @@ import { ManagedChildProcess } from './ManagedChildProcess';
 import { importAllMetaEdits } from './MetaEdit';
 import { BackState, BareTag, TagsFile } from './types';
 import { pathToBluezip } from './util/Bluezip';
-import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylistFromJson, exit, pathExists, procToService, removeService, runService } from './util/misc';
+import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylistFromJson, exit, getCwd, pathExists, procToService, removeService, runService } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
 import { uuid } from './util/uuid';
 
@@ -1138,7 +1138,7 @@ export function registerRequestCallbacks(state: BackState): void {
         {
           detached: false,
           shell: true,
-          cwd: process.cwd(),
+          cwd: getCwd(state.isDev, state.exePath),
           execFile: true,
           env: env
         },

@@ -11,7 +11,7 @@ import { AppPathOverride, GameData, ManagedChildProcess } from 'flashpoint-launc
 import * as path from 'path';
 import { ApiEmitter } from './extensions/ApiEmitter';
 import { OpenExternalFunc, ShowMessageBoxFunc } from './types';
-import { isBrowserOpts } from './util/misc';
+import { getCwd, isBrowserOpts } from './util/misc';
 import * as GameDataManager from '@back/game/GameDataManager';
 
 const { str } = Coerce;
@@ -187,7 +187,7 @@ export namespace GameLauncher {
               gameArgs: browserLaunchArgs,
               useWine: false,
               env,
-              cwd: process.cwd(),
+              cwd: getCwd(opts.isDev, opts.exePath),
               execFile: true
             }
           };
@@ -230,7 +230,7 @@ export namespace GameLauncher {
             gameArgs: [path.join(__dirname, '../main/index.js'), 'browser_mode=true', `browser_url=${path.join(__dirname, '../window/flash_index.html')}?data=${encodeURI(opts.game.launchCommand)}`],
             useWine: false,
             env,
-            cwd: process.cwd(),
+            cwd: getCwd(opts.isDev, opts.exePath),
             execFile: true
           }
         };

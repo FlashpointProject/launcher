@@ -13,7 +13,7 @@
     "build-api-docs": "typedoc --out docs/api typings/flashpoint-launcher.d.ts --includeDeclarations --excludeExternals --disableOutputCheck",
     "watch": "gulp watch",
     "pack": "gulp pack",
-    "snapshot": "cross-env-shell NODE_ENV=production \"npm run build && npm run pack\"",
+    "snapshot": "cross-env-shell PACK_PLATFORM=win32 NODE_ENV=production \"npm run build && npm run pack\"",
     "test": "jest",
     "lint": "eslint ./src/**/*.{ts,tsx} ./gulpfile.js",
     "pack:linux": "cross-env PACK_PLATFORM=linux PACK_ARCH=x64 gulp pack",
