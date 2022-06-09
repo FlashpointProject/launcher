@@ -1332,7 +1332,12 @@ function runGameFactory(state: BackState) {
       {
         path: dirname,
         filename: createCommand(gameLaunchInfo.launchInfo.gamePath, gameLaunchInfo.launchInfo.useWine, !!gameLaunchInfo.launchInfo.noshell),
-        arguments: escapeArgsForShell(gameLaunchInfo.launchInfo.gameArgs),
+        // Don't escape args if we're not using a shell.
+        arguments: gameLaunchInfo.launchInfo.noshell 
+          ? typeof gameLaunchInfo.launchInfo.gameArgs == "string" 
+            ? [gameLaunchInfo.launchInfo.gameArgs] 
+            : gameLaunchInfo.launchInfo.gameArgs 
+          : escapeArgsForShell(gameLaunchInfo.launchInfo.gameArgs),
         kill: true
       }
     );
@@ -1358,7 +1363,7 @@ function createCommand(filename: string, useWine: boolean, noshell: boolean): st
       if (useWine) {
         return `wine start /wait /unix "${filename}"`;
       }
-      return `"${filename}"`;
+      return noshell ? filename : `"${filename}"`;
     default:
       throw Error('Unsupported platform');
   }
