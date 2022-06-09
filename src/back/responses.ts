@@ -1325,14 +1325,13 @@ function runGameFactory(state: BackState) {
       '',
       {
         detached: false,
-        shell: true,
         cwd: gameLaunchInfo.launchInfo.cwd,
-        execFile: !!gameLaunchInfo.launchInfo.execFile,
+        noshell: !!gameLaunchInfo.launchInfo.noshell,
         env: gameLaunchInfo.launchInfo.env
       },
       {
         path: dirname,
-        filename: createCommand(gameLaunchInfo.launchInfo.gamePath, gameLaunchInfo.launchInfo.useWine, !!gameLaunchInfo.launchInfo.execFile),
+        filename: createCommand(gameLaunchInfo.launchInfo.gamePath, gameLaunchInfo.launchInfo.useWine, !!gameLaunchInfo.launchInfo.noshell),
         arguments: escapeArgsForShell(gameLaunchInfo.launchInfo.gameArgs),
         kill: true
       }
@@ -1347,13 +1346,13 @@ function runGameFactory(state: BackState) {
   };
 }
 
-function createCommand(filename: string, useWine: boolean, execFile: boolean): string {
+function createCommand(filename: string, useWine: boolean, noshell: boolean): string {
   // This whole escaping thing is horribly broken. We probably want to switch
   // to an array representing the argv instead and not have a shell
   // in between.
   switch (process.platform) {
     case 'win32':
-      return execFile ? filename : `"${filename}"`; // Quotes cause issues with execFile
+      return noshell ? filename : `"${filename}"`; // Quotes cause issues without a shell.
     case 'darwin':
     case 'linux':
       if (useWine) {

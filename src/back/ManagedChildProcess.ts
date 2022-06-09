@@ -1,7 +1,7 @@
 import { IBackProcessInfo, INamedBackProcessInfo, ProcessState } from '@shared/interfaces';
 import { ILogPreEntry } from '@shared/Log/interface';
 import { Coerce } from '@shared/utils/Coerce';
-import { ChildProcess, execFile, spawn } from 'child_process';
+import { ChildProcess, spawn } from 'child_process';
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint-launcher';
 import { readFileSync } from 'fs';
@@ -32,9 +32,8 @@ export interface ManagedChildProcess {
 export type ProcessOpts = {
   detached?: boolean;
   autoRestart?: boolean;
-  shell?: boolean;
+  noshell?: boolean;
   cwd?: string;
-  execFile?: boolean;
   env?: NodeJS.ProcessEnv;
 }
 
@@ -65,8 +64,6 @@ export class ManagedChildProcess extends EventEmitter {
   private autoRestartCount: number;
   /** Whether to run in a shell */
   private shell: boolean;
-  /** Whether to use execFile instead of spawn */
-  private execFile: boolean;
   /** Launch with these Environmental Variables */
   private env?: NodeJS.ProcessEnv;
   /** A timestamp of when the process was started. */
@@ -76,7 +73,7 @@ export class ManagedChildProcess extends EventEmitter {
 
   constructor(id: string, name: string, cwd: string, opts: ProcessOpts, info: INamedBackProcessInfo | IBackProcessInfo) {
     super();
-    const { detached, autoRestart, shell, execFile, env } = opts;
+    const { detached, autoRestart, noshell, env } = opts;
     this.id = id;
     this.name = name;
     this.cwd = cwd;
@@ -84,8 +81,7 @@ export class ManagedChildProcess extends EventEmitter {
     this.autoRestart = !!autoRestart;
     this.autoRestartCount = 0;
     this.info = info;
-    this.shell = !!shell;
-    this.execFile = !!execFile;
+    this.shell = !noshell;
     this.env = env;
   }
 
@@ -112,28 +108,24 @@ export class ManagedChildProcess extends EventEmitter {
         this.autoRestartCount = 0;
       }
       // Spawn process
-      if (this.execFile) {
-        this.process = execFile(this.info.filename, this.info.arguments, { cwd: this.cwd, env: this.env });
-      } else {
-        if (process.platform == 'darwin') {
-          if (this.env === undefined) {
-            this.env = {};
-          }
-          if (this.env.PATH === undefined) {
-            this.env.PATH = '';
-          }
-          const pathArr: string[] = this.env.PATH.split(':');
-          // HACK: manually read in /etc/paths to PATH. Needs to be done on Mac, because otherwise
-          // the brew path won't be found.
-          for (const entry of readFileSync('/etc/paths').toString().split('\n')) {
-            if (entry != '' && !pathArr.includes(entry)) {
-              pathArr.push(entry);
-            }
-          }
-          this.env.PATH = pathArr.join(':');
+      if (process.platform == 'darwin') {
+        if (this.env === undefined) {
+          this.env = {};
         }
-        this.process = spawn(this.info.filename, this.info.arguments, { cwd: this.cwd, detached: this.detached, shell: this.shell , env: this.env});
+        if (this.env.PATH === undefined) {
+          this.env.PATH = '';
+        }
+        const pathArr: string[] = this.env.PATH.split(':');
+        // HACK: manually read in /etc/paths to PATH. Needs to be done on Mac, because otherwise
+        // the brew path won't be found.
+        for (const entry of readFileSync('/etc/paths').toString().split('\n')) {
+          if (entry != '' && !pathArr.includes(entry)) {
+            pathArr.push(entry);
+          }
+        }
+        this.env.PATH = pathArr.join(':');
       }
+      this.process = spawn(this.info.filename, this.info.arguments, { cwd: this.cwd, detached: this.detached, shell: this.shell , env: this.env});
       // Set start timestamp
       this.startTime = Date.now();
       // Log

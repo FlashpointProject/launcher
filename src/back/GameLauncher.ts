@@ -38,7 +38,7 @@ export type LaunchInfo = {
   useWine: boolean;
   env: NodeJS.ProcessEnv;
   cwd?: string;
-  execFile?: boolean;
+  noshell?: boolean;
 }
 
 type LaunchBaseOpts = {
@@ -188,7 +188,7 @@ export namespace GameLauncher {
               useWine: false,
               env,
               cwd: process.cwd(),
-              execFile: true
+              noshell: true
             }
           };
           onWillEvent.fire(gameLaunchInfo)
@@ -231,7 +231,7 @@ export namespace GameLauncher {
             useWine: false,
             env,
             cwd: process.cwd(),
-            execFile: true
+            noshell: true
           }
         };
         onWillEvent.fire(gameLaunchInfo)
