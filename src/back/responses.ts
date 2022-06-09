@@ -1333,10 +1333,10 @@ function runGameFactory(state: BackState) {
         path: dirname,
         filename: createCommand(gameLaunchInfo.launchInfo.gamePath, gameLaunchInfo.launchInfo.useWine, !!gameLaunchInfo.launchInfo.noshell),
         // Don't escape args if we're not using a shell.
-        arguments: gameLaunchInfo.launchInfo.noshell 
-          ? typeof gameLaunchInfo.launchInfo.gameArgs == "string" 
-            ? [gameLaunchInfo.launchInfo.gameArgs] 
-            : gameLaunchInfo.launchInfo.gameArgs 
+        arguments: gameLaunchInfo.launchInfo.noshell
+          ? typeof gameLaunchInfo.launchInfo.gameArgs == 'string'
+            ? [gameLaunchInfo.launchInfo.gameArgs]
+            : gameLaunchInfo.launchInfo.gameArgs
           : escapeArgsForShell(gameLaunchInfo.launchInfo.gameArgs),
         kill: true
       }
