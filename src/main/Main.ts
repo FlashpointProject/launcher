@@ -68,6 +68,15 @@ export function main(init: Init): void {
   // -- Functions --
 
   function startup() {
+    // Register flashpoint:// protocol
+    if (process.defaultApp) {
+      if (process.argv.length >= 2) {
+        app.setAsDefaultProtocolClient('flashpoint', process.execPath, [path.resolve(process.argv[1])]);
+      }
+    } else {
+      app.setAsDefaultProtocolClient('flashpoint');
+    }
+
     app.disableHardwareAcceleration();
 
     // Single process
@@ -84,6 +93,7 @@ export function main(init: Init): void {
     app.once('web-contents-created', onAppWebContentsCreated);
     app.on('activate', onAppActivate);
     app.on('second-instance', onAppSecondInstance);
+    app.on('open-url', onAppOpenUrl);
 
     // Add IPC event listener(s)
     ipcMain.on(InitRendererChannel, onInit);
@@ -142,7 +152,8 @@ export function main(init: Init): void {
     // Start back process
     if (!init.args['connect-remote']) {
       p = p.then(() => new Promise((resolve, reject) => {
-        state.backProc = fork(path.join(__dirname, '../back/index.js'), undefined, { detached: true });
+        // Fork backend, init.rest will contain possible flashpoint:// message
+        state.backProc = fork(path.join(__dirname, '../back/index.js'), [init.rest], { detached: true });
         // Wait for process to initialize
         state.backProc.once('message', (message: any) => {
           if (message.port) {
@@ -328,6 +339,13 @@ export function main(init: Init): void {
 
   function onAppSecondInstance(event: Electron.Event, argv: string[], workingDirectory: string): void {
     if (state.window) {
+      if (process.platform !== 'darwin') {
+        // Find the arg that is our custom protocol url and store it
+        const url = argv.find((arg) => arg.startsWith('flashpoint://'));
+        if (state.window.webContents) {
+          state.window.webContents.send(WindowIPC.PROTOCOL, url);
+        }
+      }
       // Focus the window
       // (this is a hacky work around because focusing is kinda broken in win10, see https://github.com/electron/electron/issues/2867 )
       state.window.setAlwaysOnTop(true);
@@ -335,6 +353,11 @@ export function main(init: Init): void {
       state.window.setAlwaysOnTop(false);
       app.focus();
     }
+  }
+
+  function onAppOpenUrl(event: Electron.Event, url: string) {
+    event.preventDefault();
+    dialog.showErrorBox('Welcome Back', `Mac - You arrived from: ${url}`);
   }
 
   function onInit(event: IpcMainEvent) {

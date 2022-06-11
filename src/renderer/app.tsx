@@ -32,6 +32,7 @@ import HeaderContainer from './containers/HeaderContainer';
 import { WithMainStateProps } from './containers/withMainState';
 import { WithPreferencesProps } from './containers/withPreferences';
 import { WithTagCategoriesProps } from './containers/withTagCategories';
+import { newProgress } from './context/ProgressContext';
 import { CreditsFile } from './credits/CreditsFile';
 import { UpdateView, UpgradeStageState } from './interfaces';
 import { Paths } from './Paths';
@@ -121,6 +122,24 @@ export class App extends React.Component<AppProps> {
     }, 100));
     ipcRenderer.on(WindowIPC.WINDOW_MAXIMIZE, (sender, isMaximized: boolean) => {
       updatePreferencesData({ mainWindow: { maximized: isMaximized } });
+    });
+    ipcRenderer.on(WindowIPC.PROTOCOL, (sender, url: string) => {
+      const parts = url.split('/');
+      if (parts.length > 2) {
+        // remove "flashpoint:" and "" elements
+        parts.splice(0, 2);
+        switch (parts[0]) {
+          case 'run': {
+            if (parts.length >= 2) {
+              window.Shared.back.send(BackIn.LAUNCH_GAME, parts[1]);
+            }
+            break;
+          }
+          default:
+            remote.dialog.showMessageBox({ title: 'Protocol Error', message: `Unsupported action "${parts[0]}"` });
+            break;
+        }
+      }
     });
 
     window.Shared.back.request(BackIn.INIT_LISTEN)

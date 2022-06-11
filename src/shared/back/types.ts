@@ -121,6 +121,7 @@ export enum BackIn {
 
   // Extensions
   RUN_COMMAND,
+  DOWNLOAD_EXTENSION,
 
   // Misc
   OPEN_LOGS_WINDOW,
@@ -269,6 +270,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
 
   // Extensions
   [BackIn.RUN_COMMAND]: (command: string, args?: any[]) => RunCommandResponse;
+  [BackIn.DOWNLOAD_EXTENSION]: (downloadPath: string) => void;
 
   // Misc
   [BackIn.OPEN_LOGS_WINDOW]: () => void;
