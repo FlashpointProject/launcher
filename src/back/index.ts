@@ -7,6 +7,7 @@ import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { Source } from '@database/entity/Source';
 import { SourceData } from '@database/entity/SourceData';
 import { Tag } from '@database/entity/Tag';
+import { FplMessageBoxPromptStates } from '@shared/FplMessageBoxProps';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
 import { Initial1593172736527 } from '@database/migration/1593172736527-Initial';
@@ -168,6 +169,7 @@ const state: BackState = {
   extensionsService: createErrorProxy('extensionsService'),
   connection: undefined,
   prefsQueue: new EventQueue(),
+  messageBoxResponders: new Map<string,(value: number, states: FplMessageBoxPromptStates) => void>(),
 };
 
 main();

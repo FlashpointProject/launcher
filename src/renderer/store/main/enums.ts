@@ -58,7 +58,13 @@ export enum MainActionType {
   /** Remove all queued random games (the currently displayed games are NOT removed). */
   CLEAR_RANDOM_GAMES = '@@main/CLEAR_RANDOM_GAMES',
   /** Increments the Logo Version to force a cache clear */
-  INCREMENT_LOGO_VERSION = '@@main/INCREMENT_LOGO_VERSION'
+  INCREMENT_LOGO_VERSION = '@@main/INCREMENT_LOGO_VERSION',
+  /** Opens a message box from renderer */
+  CREATE_MESSAGE_BOX = '@@main/CREATE_MESSAGE_BOX',
+  /** Opens a message box from back */
+  CREATE_MESSAGE_BOX_EXTERNAL = '@@main/CREATE_MESSAGE_BOX_EXTERNAL',
+  /** Closes the oldest message box */
+  COMPLETED_MESSAGE_BOX = '@@main/COMPLETED_MESSAGE_BOX',
 }
 
 export enum RequestState {

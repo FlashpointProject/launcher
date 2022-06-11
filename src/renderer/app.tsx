@@ -22,6 +22,7 @@ import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import * as which from 'which';
 import { FloatingContainer } from './components/FloatingContainer';
+import { FplMessageBox } from './components/FplMessageBox';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { MetaEditExporter, MetaEditExporterConfirmData } from './components/MetaEditExporter';
 import { placeholderProgressData, ProgressBar } from './components/ProgressComponents';
@@ -317,6 +318,13 @@ export class App extends React.Component<AppProps> {
 
     window.Shared.back.register(BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG, (event) => {
       this.props.setMainState({ downloadOpen: false, downloadPercent: 0 });
+    });
+
+    window.Shared.back.register(BackOut.CREATE_MESSAGE_BOX_EXTERNAL, (event, props) => {
+      this.props.dispatchMain({
+        type: MainActionType.CREATE_MESSAGE_BOX_EXTERNAL,
+        props
+      });
     });
 
     // Cache playlist icons (if they are loaded)
@@ -726,6 +734,20 @@ export class App extends React.Component<AppProps> {
                     gameId={this.props.main.metaEditExporterGameId}
                     onCancel={this.onCancelExportMetaEdit}
                     onConfirm={this.onConfirmExportMetaEdit} />
+                ) : undefined }
+                {/* Floating Message Boxes */}
+                { this.props.main.messageBoxes.length !== 0 ? (
+                  <FloatingContainer>
+                    <FplMessageBox
+                      message={this.props.main.messageBoxes[0].message}
+                      buttons={this.props.main.messageBoxes[0].buttons}
+                      prompts={this.props.main.messageBoxes[0].prompts}
+                      onConfirm={(value, states) => {
+                        this.props.main.messageBoxes[0].onConfirm(value, states);
+                        this.props.dispatchMain({ type: MainActionType.COMPLETED_MESSAGE_BOX });
+                      }}
+                    />
+                  </FloatingContainer>
                 ) : undefined }
               </>
             ) : undefined }

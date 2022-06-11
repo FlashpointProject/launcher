@@ -9,10 +9,12 @@ import { BackState, StatusState } from '@back/types';
 import { clearDisposable, dispose, newDisposable, registerDisposable } from '@back/util/lifecycle';
 import { createPlaylistFromJson, getOpenMessageBoxFunc, getOpenOpenDialogFunc, getOpenSaveDialogFunc, removeService, runService, setStatus } from '@back/util/misc';
 import { pathTo7zBack } from '@back/util/SevenZip';
+import { uuid } from '@back/util/uuid';
 import { Game } from '@database/entity/Game';
 import { BackOut } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { IExtensionManifest } from '@shared/extensions/interfaces';
+import { FplMessageBoxPropsExternal } from '@shared/FplMessageBoxProps';
 import { ProcessState } from '@shared/interfaces';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
@@ -310,10 +312,32 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
   };
 
   const extDialogs: typeof flashpoint.dialogs = {
-    showMessageBox: (options: flashpoint.ShowMessageBoxOptions): Promise<number> => {
-      const openDialogFunc = getOpenMessageBoxFunc(state.socketServer);
-      if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
-      return openDialogFunc(options);
+    showMessageBox: (options: flashpoint.ShowMessageBoxOptions) => {
+      const valueOnly = options.prompts ? options.prompts.length === 0 : true;
+      const notificationId = uuid();
+      const props: FplMessageBoxPropsExternal = {
+        ...options,
+        notificationId
+      };
+      return new Promise((resolve) => {
+        if (state.socketServer.lastClient) {
+          state.messageBoxResponders.set(notificationId, (value, states) => {
+            if (valueOnly) {
+              resolve(value);
+            } else {
+              resolve({
+                value,
+                states
+              });
+            }
+            state.messageBoxResponders.delete(notificationId);
+          });
+          state.socketServer.request(state.socketServer.lastClient, BackOut.CREATE_MESSAGE_BOX_EXTERNAL, props);
+
+        } else {
+          resolve(-1);
+        }
+      });
     },
     showSaveDialog: (options: flashpoint.ShowSaveDialogOptions) => {
       const openDialogFunc = getOpenSaveDialogFunc(state.socketServer);

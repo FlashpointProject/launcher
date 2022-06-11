@@ -13,6 +13,7 @@ import { UpdateInfo } from 'electron-updater';
 import { TagFilterGroup } from 'flashpoint-launcher';
 import { MainActionType, RequestState } from './enums';
 import * as axiosImport from 'axios';
+import { FplMessageBoxProps, FplMessageBoxPropsExternal } from '@shared/FplMessageBoxProps';
 
 export type View = {
   /** The most recent query used for this view. */
@@ -121,6 +122,9 @@ export type MainState = {
   downloadOpen: boolean;
   cancelToken?: axiosImport.CancelToken;
   downloadVerifying: boolean;
+
+  /** Open Message Boxes */
+  messageBoxes: FplMessageBoxProps[];
 }
 
 export type MainAction = {
@@ -222,4 +226,12 @@ export type MainAction = {
   type: MainActionType.CLEAR_RANDOM_GAMES;
 } | {
   type: MainActionType.INCREMENT_LOGO_VERSION;
+} | {
+  type: MainActionType.CREATE_MESSAGE_BOX;
+  props: FplMessageBoxProps;
+} | {
+  type: MainActionType.CREATE_MESSAGE_BOX_EXTERNAL;
+  props: FplMessageBoxPropsExternal;
+} | {
+  type: MainActionType.COMPLETED_MESSAGE_BOX;
 }

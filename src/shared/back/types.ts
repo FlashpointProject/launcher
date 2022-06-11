@@ -20,6 +20,7 @@ import { LangContainer, LangFile } from '../lang';
 import { ILogEntry, ILogPreEntry, LogLevel } from '../Log/interface';
 import { AppPreferencesData } from '../preferences/interfaces';
 import { Theme } from '../ThemeFile';
+import { FplMessageBoxPropsExternal } from '@shared/FplMessageBoxProps';
 
 export enum BackIn {
   UNKNOWN,
@@ -126,6 +127,7 @@ export enum BackIn {
   OPEN_LOGS_WINDOW,
   UPLOAD_LOG,
   SET_EXT_CONFIG_VALUE,
+  MESSAGE_BOX_RESPONSE,
 }
 
 export enum BackOut {
@@ -174,6 +176,7 @@ export enum BackOut {
   SET_PLACEHOLDER_DOWNLOAD_PERCENT,
   OPEN_PLACEHOLDER_DOWNLOAD_DIALOG,
   CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG,
+  CREATE_MESSAGE_BOX_EXTERNAL,
 }
 
 export type BackInTemplate = SocketTemplate<BackIn, {
@@ -274,6 +277,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.OPEN_LOGS_WINDOW]: () => void;
   [BackIn.UPLOAD_LOG]: () => string | undefined;
   [BackIn.SET_EXT_CONFIG_VALUE]: (key: string, value: any) => void;
+  [BackIn.MESSAGE_BOX_RESPONSE]: (notificationId: string, button: number, jsonStates?: string) => void;
 }>
 
 export type BackOutTemplate = SocketTemplate<BackOut, {
@@ -322,6 +326,7 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT]: (percent: number) => void;
   [BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG]: () => void;
   [BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG]: () => void;
+  [BackOut.CREATE_MESSAGE_BOX_EXTERNAL]: (props: FplMessageBoxPropsExternal) => void;
 }>
 
 export type BackInitArgs = {

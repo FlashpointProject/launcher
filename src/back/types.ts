@@ -3,6 +3,7 @@ import { Playlist } from '@database/entity/Playlist';
 import { TagCategory } from '@database/entity/TagCategory';
 import { BackInit, ViewGame } from '@shared/back/types';
 import { AppConfigData, AppExtConfigData } from '@shared/config/interfaces';
+import { FplMessageBoxPromptStates } from '@shared/FplMessageBoxProps';
 import { ExecMapping, IBackProcessInfo, INamedBackProcessInfo } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { ILogEntry } from '@shared/Log/interface';
@@ -73,6 +74,7 @@ export type BackState = {
   connection: Connection | undefined;
   prefsQueue: EventQueue;
   logsWindowProc?: ManagedChildProcess;
+  messageBoxResponders: Map<string, (value: number, states: FplMessageBoxPromptStates) => void>;
 }
 
 export type BackQueryChache = {

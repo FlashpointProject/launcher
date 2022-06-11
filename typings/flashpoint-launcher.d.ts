@@ -386,7 +386,7 @@ declare module 'flashpoint-launcher' {
          * @param options Message box options
          * @returns Button index pressed (0 or cancelId if exited)
          */
-        function showMessageBox(options: ShowMessageBoxOptions): Promise<number>;
+        function showMessageBox(options: ShowMessageBoxOptions): Promise<number | FplMessageBoxResponse>;
         /**
          * Opens a save dialog on the client. They can select a file to save to.
          * @param options Save dialog options
@@ -410,11 +410,26 @@ declare module 'flashpoint-launcher' {
 
     /** See Electron docs for explanations. https://www.electronjs.org/docs/api/dialog */
     type ShowMessageBoxOptions = {
-        title?: string;
         message: string;
         buttons?: string[];
         cancelId?: number;
+        prompts?: FplMessageBoxPrompt[];
     };
+
+    type FplMessageBoxPromptStates = Map<string, string>;
+
+    type FplMessageBoxResponse = {
+        value: number;
+        states: FplMessageBoxPromptStates;
+    }
+
+    type FplMessageBoxPrompt = {
+        key: string;
+        query: string;
+        type: 'number' | 'string';
+        default?: any;
+        locked?: boolean;
+      }
 
     /** See Electron docs for explanations. http://electronjs.org/docs/api/structures/file-filter */
     interface FileFilter {

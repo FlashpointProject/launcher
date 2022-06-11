@@ -1268,6 +1268,19 @@ export function registerRequestCallbacks(state: BackState): void {
     return result;
   });
 
+  state.socketServer.register(BackIn.MESSAGE_BOX_RESPONSE, async (event, notificationId, value, jsonStates) => {
+    const handler = state.messageBoxResponders.get(notificationId);
+    if (handler) {
+      const states = new Map<string, string>();
+      for (const s of JSON.parse(jsonStates)) {
+        states.set(s[0], s[1]);
+      }
+      handler(value, states);
+    } else {
+      log.warn('Launcher', 'Message box response received, but no listener? Notif: ' + notificationId + ' - Value:' + value);
+    }
+  });
+
   state.socketServer.register(BackIn.SET_EXT_CONFIG_VALUE, async (event, key, value) => {
     state.extConfig[key] = value;
     await ExtConfigFile.saveFile(path.join(state.config.flashpointPath, EXT_CONFIG_FILENAME), state.extConfig);

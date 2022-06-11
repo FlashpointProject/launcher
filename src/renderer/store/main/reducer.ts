@@ -1,4 +1,6 @@
+import { FplMessageBoxProps } from '@shared/FplMessageBoxProps';
 import { rebuildQuery } from '@renderer/Util';
+import { BackIn } from '@shared/back/types';
 import { createLangContainer } from '@shared/lang';
 import { MainActionType, RequestState } from './enums';
 import { MainAction, MainState, View, ViewPageStates } from './types';
@@ -386,6 +388,38 @@ export function mainStateReducer(state: MainState = createInitialState(), action
         logoVersion: state.logoVersion + 1
       };
     }
+
+    case MainActionType.CREATE_MESSAGE_BOX: {
+      const newBoxes = [...state.messageBoxes];
+      newBoxes.push(action.props);
+      return {
+        ...state,
+        messageBoxes: newBoxes
+      };
+    }
+
+    case MainActionType.CREATE_MESSAGE_BOX_EXTERNAL: {
+      const newBoxes = [...state.messageBoxes];
+      const newProps: FplMessageBoxProps = {
+        ...action.props,
+        onConfirm: (button, prompts) => {
+          const jsonStates = JSON.stringify(Array.from(prompts.entries()));
+          window.Shared.back.send(BackIn.MESSAGE_BOX_RESPONSE, action.props.notificationId, button, jsonStates);
+        }
+      };
+      newBoxes.push(newProps);
+      return {
+        ...state,
+        messageBoxes: newBoxes
+      };
+    }
+
+    case MainActionType.COMPLETED_MESSAGE_BOX: {
+      return {
+        ...state,
+        messageBoxes: state.messageBoxes.length > 1 ? state.messageBoxes.slice(1) : []
+      };
+    }
   }
 }
 
@@ -435,6 +469,7 @@ function createInitialState(): MainState {
     downloadOpen: false,
     downloadPercent: 0,
     downloadSize: 0,
-    downloadVerifying: false
+    downloadVerifying: false,
+    messageBoxes: []
   };
 }

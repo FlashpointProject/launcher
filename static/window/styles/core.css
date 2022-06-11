@@ -2475,6 +2475,30 @@ body {
   right: 0.5rem;
 }
 
+/** Fpl Message Box */
+.message-box {
+  width: 100%;
+  font-size: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.message-box-message {
+  text-align: center;
+  font-size: 1.25em;
+}
+
+.message-box-prompt {
+  text-align: left;
+}
+
+.message-box-buttons {
+  margin-top: 0.4rem;
+  display: flex;
+  width: 100%;
+  justify-content: space-evenly;
+}
+
 /** Confirm Dialog */
 .confirm-dialog {
   font-size: 2rem;
