@@ -33,6 +33,7 @@ export namespace PreferencesFile {
     data = await readFile(filePath, onError)
     .catch((e) => {
       if (e.code !== 'ENOENT') {
+        if (onError) { onError(e); }
         throw e;
       }
       return undefined;
@@ -47,23 +48,13 @@ export namespace PreferencesFile {
     return data;
   }
 
-  export function readFile(filePath: string, onError?: (error: string) => void): Promise<AppPreferencesData> {
-    return new Promise((resolve, reject) => {
-      readJsonFile(filePath, fileEncoding)
-      .then(json => resolve(overwritePreferenceData(deepCopy(defaultPreferencesData), json, onError)))
-      .catch(reject);
-    });
+  export async function readFile(filePath: string, onError?: (error: string) => void): Promise<AppPreferencesData> {
+    const json = await readJsonFile(filePath, fileEncoding);
+    return overwritePreferenceData(deepCopy(defaultPreferencesData), json, onError);
   }
 
-  export function saveFile(filePath: string, data: AppPreferencesData): Promise<void> {
-    return new Promise((resolve, reject) => {
-      // Convert preferences to json string
-      const json: string = stringifyJsonDataFile(data);
-      // Save the preferences file
-      fs.writeFile(filePath, json, function(error) {
-        if (error) { return reject(error); }
-        else       { return resolve();     }
-      });
-    });
+  export async function saveFile(filePath: string, data: AppPreferencesData): Promise<void> {
+    const json = stringifyJsonDataFile(data);
+    await fs.promises.writeFile(filePath, json);
   }
 }

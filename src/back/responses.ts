@@ -1368,15 +1368,19 @@ function runGameFactory(state: BackState) {
       '',
       {
         detached: false,
-        shell: true,
         cwd: gameLaunchInfo.launchInfo.cwd,
-        execFile: !!gameLaunchInfo.launchInfo.execFile,
+        noshell: !!gameLaunchInfo.launchInfo.noshell,
         env: gameLaunchInfo.launchInfo.env
       },
       {
         path: dirname,
-        filename: createCommand(gameLaunchInfo.launchInfo.gamePath, gameLaunchInfo.launchInfo.useWine, !!gameLaunchInfo.launchInfo.execFile),
-        arguments: escapeArgsForShell(gameLaunchInfo.launchInfo.gameArgs),
+        filename: createCommand(gameLaunchInfo.launchInfo.gamePath, gameLaunchInfo.launchInfo.useWine, !!gameLaunchInfo.launchInfo.noshell),
+        // Don't escape args if we're not using a shell.
+        arguments: gameLaunchInfo.launchInfo.noshell
+          ? typeof gameLaunchInfo.launchInfo.gameArgs == 'string'
+            ? [gameLaunchInfo.launchInfo.gameArgs]
+            : gameLaunchInfo.launchInfo.gameArgs
+          : escapeArgsForShell(gameLaunchInfo.launchInfo.gameArgs),
         kill: true
       }
     );
@@ -1390,19 +1394,19 @@ function runGameFactory(state: BackState) {
   };
 }
 
-function createCommand(filename: string, useWine: boolean, execFile: boolean): string {
+function createCommand(filename: string, useWine: boolean, noshell: boolean): string {
   // This whole escaping thing is horribly broken. We probably want to switch
   // to an array representing the argv instead and not have a shell
   // in between.
   switch (process.platform) {
     case 'win32':
-      return execFile ? filename : `"${filename}"`; // Quotes cause issues with execFile
+      return noshell ? filename : `"${filename}"`; // Quotes cause issues without a shell.
     case 'darwin':
     case 'linux':
       if (useWine) {
         return `wine start /wait /unix "${filename}"`;
       }
-      return `"${filename}"`;
+      return noshell ? filename : `"${filename}"`;
     default:
       throw Error('Unsupported platform');
   }

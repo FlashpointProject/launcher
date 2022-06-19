@@ -967,7 +967,7 @@ declare module 'flashpoint-launcher' {
     type ProcessOpts = {
         detached?: boolean;
         autoRestart?: boolean;
-        shell?: boolean;
+        noshell?: boolean;
     };
 
     type ServiceChange = {
