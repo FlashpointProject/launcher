@@ -1,6 +1,7 @@
 import * as remoteMain from '@electron/remote/main';
 import { Coerce } from '@shared/utils/Coerce';
 import { startBrowserMode } from './BrowserMode';
+import { startLogger } from './LogsWindow';
 import { main } from './Main';
 import { Init } from './types';
 
@@ -8,7 +9,9 @@ remoteMain.initialize();
 
 const init = getArgs();
 
-if (init.args['browser_mode']) {
+if (init.args['logger']) {
+  startLogger(init);
+} else if (init.args['browser_mode']) {
   startBrowserMode(init);
 } else {
   main(init);
@@ -36,6 +39,7 @@ function getArgs(): Init {
           lastArgIndex = i;
           break;
         // Boolean value
+        case 'logger':
         case 'host-remote':
         case 'back-only':
         case 'browser_mode':

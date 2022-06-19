@@ -261,7 +261,15 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   log.info('Launcher', `Starting Flashpoint Launcher ${versionStr}`);
 
   // Read configs & preferences
-  state.config = await ConfigFile.readOrCreateFile(path.join(state.configFolder, CONFIG_FILENAME));
+  // readOrCreateFile can throw errors, let's wrap it in try-catch each time.
+  try {
+    state.config = await ConfigFile.readOrCreateFile(path.join(state.configFolder, CONFIG_FILENAME));
+  } catch (e) {
+    console.log(e);
+    // Fatal, quit.
+    send({quit: true, errorMessage: 'Invalid config.json!'});
+    return;
+  }
 
   // If we're on mac and the flashpoint path is relative, resolve it relative to the configFolder path.
   state.config.flashpointPath = process.platform == 'darwin' && state.config.flashpointPath[0] != '/'
@@ -273,13 +281,19 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     state.preferences = await PreferencesFile.readOrCreateFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME));
   } catch (e) {
     console.log(e);
-    exit(state);
+    // Fatal, quit.
+    send({quit: true, errorMessage: 'Invalid preferences.json! Is it 0 KB?'});
     return;
   }
-  const [extConf] = await (Promise.all([
-    ExtConfigFile.readOrCreateFile(path.join(state.config.flashpointPath, EXT_CONFIG_FILENAME))
-  ]));
-  state.extConfig = extConf;
+  try {
+    const [extConf] = await (Promise.all([
+      ExtConfigFile.readOrCreateFile(path.join(state.config.flashpointPath, EXT_CONFIG_FILENAME))
+    ]));
+    state.extConfig = extConf;
+  } catch (e) {
+    console.log(e);
+    // Non-fatal, don't quit.
+  }
 
   // Create Game Data Directory and clean up temp files
   const fullDataPacksFolderPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath);
@@ -295,6 +309,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     });
   } catch (error) {
     console.log('Failed to create default Data Packs folder!');
+    // Non-fatal, don't quit.
   }
 
 
@@ -632,7 +647,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   }
 
   // Respond
-  send(state.socketServer.port, () => {
+  send({port: state.socketServer.port}, () => {
     state.apiEmitters.onDidInit.fire();
   });
 

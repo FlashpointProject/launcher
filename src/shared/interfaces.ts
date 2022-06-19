@@ -158,6 +158,8 @@ export enum WindowIPC {
   WINDOW_MOVE     = 'window-move',
   /** Sent whenever the windows size changes. (main -> renderer). */
   WINDOW_RESIZE   = 'window-resize',
+  /** Sent whenever a flashpoint:// protocol is run */
+  PROTOCOL        = 'protocol'
 }
 
 /** IPC channels used to relay game manager events from  */

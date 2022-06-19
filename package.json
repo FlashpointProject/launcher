@@ -1,6 +1,6 @@
 {
   "name": "flashpoint-launcher",
-  "version": "10.1.2",
+  "version": "10.1.3",
   "description": "A desktop application used to browse, manage and play games from BlueMaxima's Flashpoint",
   "main": "build/main/index.js",
   "config": {
@@ -8,11 +8,12 @@
   },
   "scripts": {
     "start": "electron ./build/main/index.js",
+    "start-logger": "electron ./build/main/index.js logger=true",
     "build": "gulp build",
     "build-api-docs": "typedoc --out docs/api typings/flashpoint-launcher.d.ts --includeDeclarations --excludeExternals --disableOutputCheck",
     "watch": "gulp watch",
     "pack": "gulp pack",
-    "snapshot": "cross-env-shell NODE_ENV=production \"npm run build && npm run pack\"",
+    "snapshot": "cross-env-shell PACK_PLATFORM=win32 NODE_ENV=production \"npm run build && npm run pack\"",
     "test": "jest",
     "lint": "eslint ./src/**/*.{ts,tsx} ./gulpfile.js",
     "pack:linux": "cross-env PACK_PLATFORM=linux PACK_ARCH=x64 gulp pack",
