@@ -49,7 +49,12 @@ export class TagItemContainer extends React.Component<TagItemContainerProps> {
  * @param props Properties to copy.
  */
 function filterDivProps(props: TagItemContainerProps): JSX.IntrinsicElements['div'] {
-  const rest = Object.assign({}, props);
+  const rest: HTMLDivProps & {
+    // These need to be explicitly specified: the compiler doesn't infer them correctly.
+    realRef?: any;
+    onTagSelect?: any;
+    findTagId?: any;
+  } = Object.assign({}, props);
   delete rest.realRef;
   delete rest.onTagSelect;
   delete rest.findTagId;

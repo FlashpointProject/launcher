@@ -271,7 +271,7 @@ export function runService(state: BackState, id: string, name: string, basePath:
     proc.spawn();
   } catch (error) {
     log.error(SERVICES_SOURCE, `An unexpected error occurred while trying to run the background process "${proc.name}".` +
-              `  ${error.toString()}`);
+              `  ${(error as Error).toString()}`);
   }
   state.apiEmitters.services.onServiceNew.fire(proc);
   return proc;
