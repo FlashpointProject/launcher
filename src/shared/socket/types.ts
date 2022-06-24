@@ -30,8 +30,8 @@ export type SocketResponseData_Result<T> = {
 }
 
 export function isErrorResponse<T>(variable: SocketResponseData<T>): variable is SocketResponseData_Error<T> {
-  return variable.hasOwnProperty('error');
-} 
+  return Object.prototype.hasOwnProperty.call(variable, 'error');
+}
 
 /** Minimal WebSocket interface. */
 export interface BaseSocket {
