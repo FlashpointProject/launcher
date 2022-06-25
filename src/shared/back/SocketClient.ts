@@ -1,7 +1,7 @@
 import { parse_message_data, validate_socket_message } from '@shared/socket/shared';
 import { api_handle_message, api_register, api_register_any, api_unregister, api_unregister_any, create_api, SocketAPIData } from '@shared/socket/SocketAPI';
 import { server_request, server_send, SocketServerClient } from '@shared/socket/SocketServer';
-import { BaseSocket, SocketResponseData } from '@shared/socket/types';
+import { BaseSocket, SocketResponseData, isErrorResponse } from '@shared/socket/types';
 import { BackIn, BackInTemplate, BackOut, BackOutTemplate } from './types';
 
 interface SocketConstructor<T> {
@@ -191,8 +191,8 @@ export class SocketClient<SOCKET extends BaseSocket> {
         log(
           '  Response',
           '\n    ID:    ', inc.id,
-          '\n    Result:', inc.result,
-          '\n    Error: ', inc.error,
+          '\n    Result:', isErrorResponse(inc) ? undefined : inc.result,
+          '\n    Error: ', isErrorResponse(inc) ? inc.error : undefined,
         );
 
         this.client.sent.splice(index, 1);
