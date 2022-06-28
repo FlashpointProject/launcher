@@ -1137,9 +1137,8 @@ export function registerRequestCallbacks(state: BackState): void {
         '',
         {
           detached: false,
-          shell: true,
+          noshell: false,
           cwd: getCwd(state.isDev, state.exePath),
-          execFile: true,
           env: env
         },
         {
@@ -1151,7 +1150,7 @@ export function registerRequestCallbacks(state: BackState): void {
       );
     } else {
       const loggerService = state.services.get('logger_window');
-      if (loggerService.getState() !== ProcessState.RUNNING) {
+      if (loggerService && loggerService.getState() !== ProcessState.RUNNING) {
         loggerService.restart();
       }
     }

@@ -11,7 +11,7 @@ on:
 jobs:
   build:
     name: Build
-    runs-on: windows-2019
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
@@ -37,6 +37,6 @@ jobs:
       env:
         CI: true
     - name: npm build
-      run: npm run build:win32 --if-present
+      run: npm run build
       env:
         CI: true
