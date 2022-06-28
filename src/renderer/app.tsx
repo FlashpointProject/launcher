@@ -32,7 +32,6 @@ import HeaderContainer from './containers/HeaderContainer';
 import { WithMainStateProps } from './containers/withMainState';
 import { WithPreferencesProps } from './containers/withPreferences';
 import { WithTagCategoriesProps } from './containers/withTagCategories';
-import { newProgress } from './context/ProgressContext';
 import { CreditsFile } from './credits/CreditsFile';
 import { UpdateView, UpgradeStageState } from './interfaces';
 import { Paths } from './Paths';
