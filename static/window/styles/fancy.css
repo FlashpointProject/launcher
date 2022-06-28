@@ -392,6 +392,10 @@ body {
   background-color: var(--layout__header-menu-item-hover-background);
   border-color: var(--layout__header-menu-item-hover-border);
 }
+.header__menu__item__link-selected {
+  font-weight: bold;
+  text-decoration: underline;
+}
 .header__search {
   border: 1px solid var(--layout__primary-outline-color);
   background-color: var(--layout__primary-background); 
