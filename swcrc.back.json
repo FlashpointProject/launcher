@@ -9,11 +9,11 @@
     "target": "es2018",
     "baseUrl": ".",
     "paths": {
-      "@shared/*": [ "./src/shared/*" ],
-      "@main/*": [ "./src/main/*" ],
-      "@back/*": [ "./src/back/*" ],
-      "@renderer/*": [ "./src/renderer/*" ],
-      "@database/*": [ "./src/database/*" ],
+      "@shared/*": [ "./build/shared/*" ],
+      "@main/*": [ "./build/main/*" ],
+      "@back/*": [ "./build/back/*" ],
+      "@renderer/*": [ "./build/renderer/*" ],
+      "@database/*": [ "./build/database/*" ],
       "@tests/*": [ "./tests/*" ]
     },
     "parser": {
