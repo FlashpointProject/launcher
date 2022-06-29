@@ -2,9 +2,11 @@
   "exclude": ["node_modules/**"],
   "module": {
     "type": "commonjs",
-    "strict": true
+    "strict": true,
+    "noInterop": true
   },
   "jsc": {
+    "target": "es2018",
     "baseUrl": ".",
     "paths": {
       "@shared/*": [ "./src/shared/*" ],
@@ -16,8 +18,10 @@
     },
     "parser": {
       "syntax": "typescript",
-      "decorators": true,
-      "target": "es6"
+      "decorators": true
+    },
+    "transform": {
+      "decoratorMetadata": true
     }
   }
 }
