@@ -726,7 +726,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     } else {
       return (
         <div className='browse-right-sidebar-empty'>
-          <h1>{formatString(strings.noGameSelected, allStrings.libraries[this.props.currentLibrary + 'Singular'] || 'UNKNOWN')}</h1>
+          <h1>{formatString(strings.noGameSelected, allStrings.libraries[this.props.currentLibrary + 'Singular'] || allStrings.libraries['arcadeSingular'] || 'Game')}</h1>
           <p>{strings.clickToSelectGame}</p>
         </div>
       );

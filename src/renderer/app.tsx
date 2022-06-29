@@ -818,7 +818,16 @@ export class App extends React.Component<AppProps> {
 
   private onGameContextMenuMemo = memoizeOne((playlists: Playlist[], strings: LangContainer, selectedPlaylistId?: string) => {
     return (gameId: string) => {
-      let contextButtons: MenuItemConstructorOptions[] = [{
+      let contextButtons: MenuItemConstructorOptions[] = [
+      {
+        type: 'submenu',
+        label: strings.menu.addToPlaylist,
+        enabled: playlists.length > 0,
+        submenu: UniquePlaylistMenuFactory(playlists,
+          strings,
+          (playlistId) => window.Shared.back.send(BackIn.ADD_PLAYLIST_GAME, playlistId, gameId),
+          selectedPlaylistId)
+      }, {
         /* File Location */
         label: strings.menu.openFileLocation,
         enabled: !window.Shared.isBackRemote, // (Local "back" only)
@@ -867,14 +876,6 @@ export class App extends React.Component<AppProps> {
           });
         },
       }, {
-        type: 'submenu',
-        label: strings.menu.addToPlaylist,
-        enabled: playlists.length > 0,
-        submenu: UniquePlaylistMenuFactory(playlists,
-          strings,
-          (playlistId) => window.Shared.back.send(BackIn.ADD_PLAYLIST_GAME, playlistId, gameId),
-          selectedPlaylistId)
-      }, {  type: 'separator' }, {
         /* Copy Game UUID */
         label: strings.menu.copyGameUUID,
         enabled: true,
