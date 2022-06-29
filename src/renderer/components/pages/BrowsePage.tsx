@@ -859,14 +859,3 @@ function toDataURL(url: string): Promise<FileReaderResult> {
     reader.readAsDataURL(blob);
   }));
 }
-
-function UniquePlaylistMenuFactory(playlists: Playlist[], onClick: (playlistId: string) => any, selectedPlaylistId?: string): MenuItemConstructorOptions[] {
-  return playlists.filter(p => p.id != selectedPlaylistId)
-  .map(p => {
-    return {
-      label: p.title || 'No Title',
-      enabled: true,
-      click: () => onClick(p.id)
-    };
-  });
-}

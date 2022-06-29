@@ -62,7 +62,7 @@ export function RandomGames(props: RandomGamesProps) {
 
   const onGameContextMenu = (event: React.MouseEvent<HTMLDivElement, MouseEvent>, gameId: string) => {
     return props.onGameContextMenu(gameId);
-  }
+  };
 
   const render = (
     <>

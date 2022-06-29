@@ -629,7 +629,7 @@ export class App extends React.Component<AppProps> {
     // Update current game and add-apps if the selected game changes
     if (this.props.main.selectedGameId && this.props.main.selectedGameId !== prevProps.main.selectedGameId) {
       this.updateCurrentGame(this.props.main.selectedGameId, this.props.main.selectedPlaylistId);
-      this.setState({ isEditingGame: false });
+      this.props.setMainState({ isEditingGame: false });
     }
 
     // Update preference "lastSelectedLibrary"
@@ -686,10 +686,9 @@ export class App extends React.Component<AppProps> {
     // Deselect the game
     this.onSelectGame(undefined);
     // Reset the state related to the selected game
-    this.setState({
+    this.props.setMainState({
       currentGame: undefined,
       currentPlaylistEntry: undefined,
-      isNewGame: false,
       isEditingGame: false
     });
     // Focus the game grid/list
@@ -737,7 +736,7 @@ export class App extends React.Component<AppProps> {
 
   onEditPlaylistNotes = (text: string): void => {
     if (this.props.main.currentPlaylistEntry) {
-      this.setState({
+      this.props.setMainState({
         currentPlaylistEntry: {
           ...this.props.main.currentPlaylistEntry,
           notes: text
@@ -819,70 +818,70 @@ export class App extends React.Component<AppProps> {
   private onGameContextMenuMemo = memoizeOne((playlists: Playlist[], strings: LangContainer, selectedPlaylistId?: string) => {
     return (gameId: string) => {
       let contextButtons: MenuItemConstructorOptions[] = [
-      {
-        type: 'submenu',
-        label: strings.menu.addToPlaylist,
-        enabled: playlists.length > 0,
-        submenu: UniquePlaylistMenuFactory(playlists,
-          strings,
-          (playlistId) => window.Shared.back.send(BackIn.ADD_PLAYLIST_GAME, playlistId, gameId),
-          selectedPlaylistId)
-      }, {
+        {
+          type: 'submenu',
+          label: strings.menu.addToPlaylist,
+          enabled: playlists.length > 0,
+          submenu: UniquePlaylistMenuFactory(playlists,
+            strings,
+            (playlistId) => window.Shared.back.send(BackIn.ADD_PLAYLIST_GAME, playlistId, gameId),
+            selectedPlaylistId)
+        }, {
         /* File Location */
-        label: strings.menu.openFileLocation,
-        enabled: !window.Shared.isBackRemote, // (Local "back" only)
-        click: () => {
-          window.Shared.back.request(BackIn.GET_GAME, gameId)
-          .then(async (game) => {
-            if (game) {
-              const gamePath = await getGamePath(game, window.Shared.config.fullFlashpointPath, window.Shared.preferences.data.htdocsFolderPath, window.Shared.preferences.data.dataPacksFolderPath);
-              try {
-                if (gamePath) {
-                  await fs.promises.stat(gamePath);
-                  remote.shell.showItemInFolder(gamePath);
-                } else {
+          label: strings.menu.openFileLocation,
+          enabled: !window.Shared.isBackRemote, // (Local "back" only)
+          click: () => {
+            window.Shared.back.request(BackIn.GET_GAME, gameId)
+            .then(async (game) => {
+              if (game) {
+                const gamePath = await getGamePath(game, window.Shared.config.fullFlashpointPath, window.Shared.preferences.data.htdocsFolderPath, window.Shared.preferences.data.dataPacksFolderPath);
+                try {
+                  if (gamePath) {
+                    await fs.promises.stat(gamePath);
+                    remote.shell.showItemInFolder(gamePath);
+                  } else {
+                    const opts: Electron.MessageBoxOptions = {
+                      type: 'warning',
+                      message: 'GameData has not been downloaded yet, cannot open the file location!',
+                      buttons: ['Ok'],
+                    };
+                    remote.dialog.showMessageBox(opts);
+                    return;
+                  }
+                } catch (error: any) {
                   const opts: Electron.MessageBoxOptions = {
                     type: 'warning',
-                    message: 'GameData has not been downloaded yet, cannot open the file location!',
+                    message: '',
                     buttons: ['Ok'],
                   };
-                  remote.dialog.showMessageBox(opts);
-                  return;
-                }
-              } catch (error: any) {
-                const opts: Electron.MessageBoxOptions = {
-                  type: 'warning',
-                  message: '',
-                  buttons: ['Ok'],
-                };
-                if (error.code === 'ENOENT') {
-                  opts.title = this.context.dialog.fileNotFound;
-                  opts.message = (
-                    'Failed to find the game file.\n'+
+                  if (error.code === 'ENOENT') {
+                    opts.title = this.context.dialog.fileNotFound;
+                    opts.message = (
+                      'Failed to find the game file.\n'+
                     'If you are using Flashpoint Infinity, make sure you download the game first.\n'
-                  );
-                } else {
-                  opts.title = 'Unexpected error';
-                  opts.message = (
-                    'Failed to check the game file.\n'+
+                    );
+                  } else {
+                    opts.title = 'Unexpected error';
+                    opts.message = (
+                      'Failed to check the game file.\n'+
                     'If you see this, please report it back to us (a screenshot would be great)!\n\n'+
                     `Error: ${error}\n`
-                  );
+                    );
+                  }
+                  opts.message += `Path: "${gamePath}"\n\nNote: If the path is too long, some portion will be replaced with three dots ("...").`;
+                  remote.dialog.showMessageBox(opts);
                 }
-                opts.message += `Path: "${gamePath}"\n\nNote: If the path is too long, some portion will be replaced with three dots ("...").`;
-                remote.dialog.showMessageBox(opts);
               }
-            }
-          });
-        },
-      }, {
+            });
+          },
+        }, {
         /* Copy Game UUID */
-        label: strings.menu.copyGameUUID,
-        enabled: true,
-        click : () => {
-          clipboard.writeText(gameId);
-        }
-      }, { type: 'separator' }];
+          label: strings.menu.copyGameUUID,
+          enabled: true,
+          click : () => {
+            clipboard.writeText(gameId);
+          }
+        }, { type: 'separator' }];
 
       // Add editing mode fields
       if (this.props.preferencesData.enableEditing) {
