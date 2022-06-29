@@ -70,7 +70,7 @@
   },
   "devDependencies": {
     "@swc/cli": "0.1.57",
-    "@swc/core": "1.2.207",
+    "@swc/core": "1.2.205",
     "@types/electron-devtools-installer": "2.2.0",
     "@types/follow-redirects": "1.8.0",
     "@types/fs-extra": "8.1.0",
