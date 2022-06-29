@@ -21,10 +21,11 @@ module.exports = {
     rules: [
       {
         test: /\.(ts|tsx)$/,
+        exclude: /(node_modules)/,
         use: {
-          loader: 'ts-loader',
+          loader: 'swc-loader',
           options: {
-            configFile: 'tsconfig.renderer.json'
+            parseMap: true
           }
         }
       }

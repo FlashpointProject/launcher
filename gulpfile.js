@@ -97,7 +97,7 @@ const publishInfo = [
 /* ------ Watch ------ */
 
 gulp.task('watch-back', (done) => {
-  execute('npx ttsc --project tsconfig.backend.json --pretty --watch', done);
+  execute('npx swc -w --config-file swcrc.back.json -d build src', done);
 });
 
 gulp.task('watch-renderer', (done) => {
@@ -113,7 +113,7 @@ gulp.task('watch-static', () => {
 /* ------ Build ------ */
 
 gulp.task('build-back', (done) => {
-  execute('npx ttsc --project tsconfig.backend.json --pretty', done);
+  execute('npx swc --config-file swcrc.back.json -d build src', done);
 });
 
 gulp.task('build-renderer', (done) => {
