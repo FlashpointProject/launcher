@@ -1,4 +1,6 @@
+import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
+import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { CreditsData } from '@renderer/credits/types';
 import { ViewGameSet } from '@renderer/interfaces';
 import { UpgradeStage } from '@renderer/upgrade/types';
@@ -9,10 +11,10 @@ import { GamePropSuggestions, IService } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { ITheme, Theme } from '@shared/ThemeFile';
+import * as axiosImport from 'axios';
 import { UpdateInfo } from 'electron-updater';
 import { TagFilterGroup } from 'flashpoint-launcher';
 import { MainActionType, RequestState } from './enums';
-import * as axiosImport from 'axios';
 
 export type View = {
   /** The most recent query used for this view. */
@@ -121,6 +123,12 @@ export type MainState = {
   downloadOpen: boolean;
   cancelToken?: axiosImport.CancelToken;
   downloadVerifying: boolean;
+  selectedGameId?: string;
+  selectedPlaylistId?: string;
+  currentGame?: Game;
+  currentPlaylist?: Playlist;
+  currentPlaylistEntry?: PlaylistGame;
+  isEditingGame: boolean;
 }
 
 export type MainAction = {
@@ -163,8 +171,7 @@ export type MainAction = {
   queryId: number;
   pages: number[];
 } | {
-  type: MainActionType.SET_VIEW_SELECTED_GAME;
-  library: string;
+  type: MainActionType.SET_SELECTED_GAME;
   gameId?: string;
 } | {
   type: MainActionType.SET_CREDITS;

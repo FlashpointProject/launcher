@@ -16,7 +16,7 @@ export enum MainActionType {
   /** Add pages to a view. */
   ADD_VIEW_PAGES = '@@main/ADD_VIEW_PAGES',
   /** Set the selected game of a view. */
-  SET_VIEW_SELECTED_GAME = '@@main/SET_VIEW_SELECTED_GAME',
+  SET_SELECTED_GAME = '@@main/SET_VIEW_SELECTED_GAME',
   /** Set the credits data (or at least flag it as done loading it). */
   SET_CREDITS = '@@main/SET_CREDITS',
   /** Stop rendering. */
