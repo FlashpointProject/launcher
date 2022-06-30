@@ -20,7 +20,7 @@ import { WithPreferencesProps } from '../containers/withPreferences';
 import { WithSearchProps } from '../containers/withSearch';
 import { getGameImagePath, getGameImageURL } from '../Util';
 import { LangContext } from '../util/lang';
-import { uuid } from '../util/uuid';
+import { uuid } from '@shared/utils/uuid';
 import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { DropdownInputField } from './DropdownInputField';

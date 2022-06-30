@@ -40,7 +40,7 @@ import { importAllMetaEdits } from './MetaEdit';
 import { BackState, BareTag, TagsFile } from './types';
 import { pathToBluezip } from './util/Bluezip';
 import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylistFromJson, exit, getCwd, pathExists, procToService, removeService, runService } from './util/misc';
-import { sanitizeFilename } from './util/sanitizeFilename';
+import { sanitizeFilename } from '@shared/utils/sanitizeFilename';
 import { uuid } from './util/uuid';
 
 const axios = axiosImport.default;

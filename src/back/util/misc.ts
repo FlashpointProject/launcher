@@ -239,17 +239,6 @@ export function createPlaylistFromJson(jsonData: any, library?: string): Playlis
   return playlist;
 }
 
-
-export function chunkArray<T>(array: T[], chunkSize: number): T[][] {
-  const chunks: T[][] = [];
-
-  for (let i = 0; i < array.length; i += chunkSize) {
-    chunks.push(array.slice(i, i + chunkSize));
-  }
-
-  return chunks;
-}
-
 export function runService(state: BackState, id: string, name: string, basePath: string, opts: ProcessOpts, info: INamedBackProcessInfo | IBackProcessInfo): ManagedChildProcess {
   // Already exists, bad!
   if (state.services.has(id)) {

@@ -1,4 +1,4 @@
-import { chunkArray } from '@back/util/misc';
+import { chunkArray } from '@shared/utils/misc';
 import { SourceData } from '@database/entity/SourceData';
 import { getManager } from 'typeorm';
 

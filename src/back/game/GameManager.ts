@@ -1,5 +1,5 @@
 import { ApiEmitter } from '@back/extensions/ApiEmitter';
-import { chunkArray } from '@back/util/misc';
+import { chunkArray } from '@shared/utils/misc';
 import { validateSqlName, validateSqlOrder } from '@back/util/sql';
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
