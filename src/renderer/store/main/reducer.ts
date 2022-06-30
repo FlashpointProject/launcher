@@ -45,6 +45,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
             }),
             queryId: (view.queryId + 1) % 0x80000000, // 32 bit signed integer
             metaState: RequestState.WAITING,
+            total: undefined,
             tagFilters: action.tagFilters
           },
         },

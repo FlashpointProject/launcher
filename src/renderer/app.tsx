@@ -653,7 +653,7 @@ export class App extends React.Component<AppProps> {
       randomGames: this.props.main.randomGames,
       rollRandomGames: this.rollRandomGames,
       updateView: this.updateView,
-      gamesTotal: view && view.total || 0,
+      gamesTotal: view && view.total,
       playlists: playlists,
       suggestions: this.props.main.suggestions,
       appPaths: this.props.main.appPaths,

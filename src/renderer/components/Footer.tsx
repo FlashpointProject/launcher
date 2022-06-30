@@ -47,7 +47,7 @@ export class Footer extends React.Component<FooterProps> {
             { currentLabel && strings.searchResults ? (
               <>
                 <p>|</p>
-                <p>{`${strings.searchResults}: ${view && view.total || 0}`}</p>
+                <p>{`${strings.searchResults}: ${(view && view.total) ? view.total : this.context.misc.searching}`}</p>
               </>
             ) : undefined }
           </div>
