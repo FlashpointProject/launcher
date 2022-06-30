@@ -52,16 +52,21 @@ export async function findTags(name?: string, flatFilters?: string[]): Promise<T
   const tagAliasRepostiory = getManager().getRepository(TagAlias);
   const filterQuery = flatFilters ? getFilterIDsQuery(flatFilters) : undefined;
 
-  // Get exclusion
-  const subQ = tagAliasRepostiory.createQueryBuilder('tag_alias')
-  .select('tag_alias.tagId')
-  .where('tag_alias.name NOT LIKE :name', { name: name + '%' });
 
   let query = tagRepository.createQueryBuilder('tag')
   .leftJoinAndSelect('tag.aliases', 'alias')
-  .leftJoinAndSelect('tag.primaryAlias', 'primaryAlias')
-  .where(`tag.id NOT IN (${subQ.getQuery()})`)
-  .setParameters(subQ.getParameters());
+  .leftJoinAndSelect('tag.primaryAlias', 'primaryAlias');
+
+  if (name) {
+    // Get exclusion
+    const subQ = tagAliasRepostiory.createQueryBuilder('tag_alias')
+    .select('tag_alias.tagId')
+    .where('tag_alias.name NOT LIKE :name', { name: name + '%' });
+
+    query = query.where(`tag.id NOT IN (${subQ.getQuery()})`)
+    .setParameters(subQ.getParameters());
+  }
+
   if (filterQuery) {
     query = query.andWhere(`tag.id NOT IN (${filterQuery.getQuery()})`)
     .setParameters(filterQuery.getParameters());

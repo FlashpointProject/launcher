@@ -321,7 +321,11 @@ export async function findPlaylistByName(playlistName: string, join?: boolean): 
     where: {
       title: playlistName
     }
-  } : {};
+  } : {
+    where: {
+      title: playlistName
+    }
+  };
   const playlistRepository = getManager().getRepository(Playlist);
   return playlistRepository.findOne(opts);
 }
@@ -346,6 +350,7 @@ export async function removePlaylist(playlistId: string): Promise<Playlist | und
     return playlistRepository.remove(playlist);
   }
 }
+
 /** Updates a playlist */
 export async function updatePlaylist(playlist: Playlist): Promise<Playlist> {
   const playlistRepository = getManager().getRepository(Playlist);
