@@ -22,7 +22,7 @@ import { SearchQuery } from '../../store/search';
 import { gameIdDataType, gameScaleSpan, getGamePath } from '../../Util';
 import { LangContext } from '../../util/lang';
 import { queueOne } from '../../util/queue';
-import { uuid } from '../../util/uuid';
+import { uuid } from '@shared/utils/uuid';
 import { GameGrid } from '../GameGrid';
 import { GameList } from '../GameList';
 import { InputElement } from '../InputField';

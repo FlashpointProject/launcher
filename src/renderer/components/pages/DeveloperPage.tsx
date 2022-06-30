@@ -16,7 +16,7 @@ import * as path from 'path';
 import * as React from 'react';
 import { promisify } from 'util';
 import { LangContext } from '../../util/lang';
-import { validateSemiUUID } from '../../util/uuid';
+import { validateSemiUUID } from '@shared/utils/uuid';
 import { LogData } from '../LogData';
 import { ServiceBox } from '../ServiceBox';
 import { SimpleButton } from '../SimpleButton';
