@@ -1,6 +1,6 @@
 import { SocketServer } from '@back/SocketServer';
 import { ShowMessageBoxFunc } from '@back/types';
-import { chunkArray } from '@back/util/misc';
+import { chunkArray } from '@shared/utils/misc';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';

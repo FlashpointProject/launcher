@@ -1,5 +1,5 @@
 /* eslint-disable react/no-unused-state */
-import { chunkArray } from '@back/util/misc';
+import { chunkArray } from '@shared/utils/misc';
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import * as remote from '@electron/remote';
