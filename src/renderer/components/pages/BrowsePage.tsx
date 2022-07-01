@@ -21,10 +21,12 @@ import { SearchQuery } from '../../store/search';
 import { gameIdDataType, gameScaleSpan } from '../../Util';
 import { LangContext } from '../../util/lang';
 import { queueOne } from '../../util/queue';
+import { FancyAnimation } from '../FancyAnimation';
 import { GameGrid } from '../GameGrid';
 import { GameList } from '../GameList';
 import { InputElement } from '../InputField';
 import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
+import { Spinner } from '../Spinner';
 
 type Pick<T, K extends keyof T> = { [P in K]: T[P]; };
 type StateCallback1 = Pick<BrowsePageState, 'currentGame'|'isEditingGame'|'isNewGame'|'currentPlaylistEntry'>;
@@ -216,57 +218,76 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             onExportPlaylist={(playlistId) => this.onExportPlaylist(strings, playlistId)}
             onContextMenu={this.onPlaylistContextMenuMemo(strings, this.state.isEditingPlaylist, this.props.selectedPlaylistId)} />
         </ResizableSidebar>
-        <div
-          className='game-browser__center'
-          onKeyDown={this.onCenterKeyDown}>
-          {(() => {
-            if (this.props.preferencesData.browsePageLayout === BrowsePageLayout.grid) {
+        { this.props.gamesTotal ? (
+          <div
+            className='game-browser__center'
+            onKeyDown={this.onCenterKeyDown}>
+            {(() => {
+              if (this.props.preferencesData.browsePageLayout === BrowsePageLayout.grid) {
               // (These are kind of "magic numbers" and the CSS styles are designed to fit with them)
-              const height: number = calcScale(350, this.props.preferencesData.browsePageGameScale);
-              const width: number = (height * 0.666) | 0;
-              return (
-                <GameGrid
-                  games={games}
-                  updateView={this.props.updateView}
-                  gamesTotal={this.props.gamesTotal}
-                  selectedGameId={selectedGameId}
-                  draggedGameId={draggedGameId}
-                  extremeTags={extremeTags}
-                  noRowsRenderer={this.noRowsRendererMemo(strings.browse)}
-                  onGameSelect={this.onGameSelect}
-                  onGameLaunch={this.onGameLaunch}
-                  onContextMenu={this.props.onGameContextMenu}
-                  onGameDragStart={this.onGameDragStart}
-                  onGameDragEnd={this.onGameDragEnd}
-                  cellWidth={width}
-                  cellHeight={height}
-                  logoVersion={this.props.logoVersion}
-                  gridRef={this.gameGridOrListRefFunc} />
-              );
-            } else {
-              const height: number = calcScale(30, this.props.preferencesData.browsePageGameScale);
-              return (
-                <GameList
-                  games={games}
-                  gamesTotal={this.props.gamesTotal}
-                  selectedGameId={selectedGameId}
-                  draggedGameId={draggedGameId}
-                  showExtremeIcon={this.props.preferencesData.browsePageShowExtreme}
-                  extremeTags={extremeTags}
-                  noRowsRenderer={this.noRowsRendererMemo(strings.browse)}
-                  onGameSelect={this.onGameSelect}
-                  onGameLaunch={this.onGameLaunch}
-                  onContextMenu={this.props.onGameContextMenu}
-                  onGameDragStart={this.onGameDragStart}
-                  onGameDragEnd={this.onGameDragEnd}
-                  updateView={this.props.updateView}
-                  rowHeight={height}
-                  logoVersion={this.props.logoVersion}
-                  listRef={this.gameGridOrListRefFunc} />
-              );
-            }
-          })()}
-        </div>
+                const height: number = calcScale(350, this.props.preferencesData.browsePageGameScale);
+                const width: number = (height * 0.666) | 0;
+                return (
+                  <GameGrid
+                    games={games}
+                    updateView={this.props.updateView}
+                    gamesTotal={this.props.gamesTotal}
+                    selectedGameId={selectedGameId}
+                    draggedGameId={draggedGameId}
+                    extremeTags={extremeTags}
+                    noRowsRenderer={this.noRowsRendererMemo(strings.browse)}
+                    onGameSelect={this.onGameSelect}
+                    onGameLaunch={this.onGameLaunch}
+                    onContextMenu={this.props.onGameContextMenu}
+                    onGameDragStart={this.onGameDragStart}
+                    onGameDragEnd={this.onGameDragEnd}
+                    cellWidth={width}
+                    cellHeight={height}
+                    logoVersion={this.props.logoVersion}
+                    gridRef={this.gameGridOrListRefFunc} />
+                );
+              } else {
+                const height: number = calcScale(30, this.props.preferencesData.browsePageGameScale);
+                return (
+                  <GameList
+                    games={games}
+                    gamesTotal={this.props.gamesTotal}
+                    selectedGameId={selectedGameId}
+                    draggedGameId={draggedGameId}
+                    showExtremeIcon={this.props.preferencesData.browsePageShowExtreme}
+                    extremeTags={extremeTags}
+                    noRowsRenderer={this.noRowsRendererMemo(strings.browse)}
+                    onGameSelect={this.onGameSelect}
+                    onGameLaunch={this.onGameLaunch}
+                    onContextMenu={this.props.onGameContextMenu}
+                    onGameDragStart={this.onGameDragStart}
+                    onGameDragEnd={this.onGameDragEnd}
+                    updateView={this.props.updateView}
+                    rowHeight={height}
+                    logoVersion={this.props.logoVersion}
+                    listRef={this.gameGridOrListRefFunc} />
+                );
+              }
+            })()}
+          </div>
+        ) : (
+          <div className='game-browser__center'>
+            <div className='game-browser__center-inner'>
+              <div className='game-browser__loading'>
+                <FancyAnimation
+                  normalRender={(
+                    <div>{strings.misc.searching}</div>
+                  )}
+                  fancyRender={(
+                    <>
+                      <div>{strings.misc.searching}</div>
+                      <Spinner/>
+                    </>
+                  )}/>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
