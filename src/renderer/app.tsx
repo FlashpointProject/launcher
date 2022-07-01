@@ -14,7 +14,7 @@ import { canReadWrite, deepCopy, getFileServerURL, recursiveReplace, sizeToStrin
 import { arrayShallowStrictEquals } from '@shared/utils/compare';
 import { debounce } from '@shared/utils/debounce';
 import { formatString } from '@shared/utils/StringFormatter';
-import { ipcRenderer } from 'electron';
+import { clipboard, ipcRenderer, Menu, MenuItemConstructorOptions } from 'electron';
 import { AppUpdater } from 'electron-updater';
 import * as fs from 'fs-extra';
 import * as path from 'path';
@@ -25,9 +25,11 @@ import { FloatingContainer } from './components/FloatingContainer';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { MetaEditExporter, MetaEditExporterConfirmData } from './components/MetaEditExporter';
 import { placeholderProgressData, ProgressBar } from './components/ProgressComponents';
+import { ResizableSidebar, SidebarResizeEvent } from './components/ResizableSidebar';
 import { SplashScreen } from './components/SplashScreen';
 import { TitleBar } from './components/TitleBar';
 import { ConnectedFooter } from './containers/ConnectedFooter';
+import { ConnectedRightBrowseSidebar } from './containers/ConnectedRightBrowseSidebar';
 import HeaderContainer from './containers/HeaderContainer';
 import { WithMainStateProps } from './containers/withMainState';
 import { WithPreferencesProps } from './containers/withPreferences';
@@ -42,8 +44,9 @@ import { MainState } from './store/main/types';
 import { SearchQuery } from './store/search';
 import { UpgradeStage } from './upgrade/types';
 import { UpgradeFile } from './upgrade/UpgradeFile';
-import { getBrowseSubPath, isFlashpointValidCheck, joinLibraryRoute, openConfirmDialog } from './Util';
+import { getBrowseSubPath, getGamePath, isFlashpointValidCheck, joinLibraryRoute, openConfirmDialog } from './Util';
 import { LangContext } from './util/lang';
+import { queueOne } from './util/queue';
 import { checkUpgradeStateInstalled, checkUpgradeStateUpdated, downloadAndInstallUpgrade } from './util/upgrade';
 
 const autoUpdater: AppUpdater = remote.require('electron-updater').autoUpdater;
@@ -56,8 +59,12 @@ type AppOwnProps = {
 export type AppProps = AppOwnProps & RouteComponentProps & WithPreferencesProps & WithTagCategoriesProps & WithMainStateProps;
 
 export class App extends React.Component<AppProps> {
+  appRef: React.RefObject<HTMLDivElement>;
+
   constructor(props: AppProps) {
     super(props);
+
+    this.appRef = React.createRef();
 
     // Initialize app
     this.init();
@@ -613,6 +620,18 @@ export class App extends React.Component<AppProps> {
       }
     }
 
+    // Check for selected game changes
+
+    // Check if it started or ended editing
+    if (this.props.main.isEditingGame != prevProps.main.isEditingGame) {
+      this.updateCurrentGame(this.props.main.selectedGameId, this.props.main.selectedPlaylistId);
+    }
+    // Update current game and add-apps if the selected game changes
+    if (this.props.main.selectedGameId && this.props.main.selectedGameId !== prevProps.main.selectedGameId) {
+      this.updateCurrentGame(this.props.main.selectedGameId, this.props.main.selectedPlaylistId);
+      this.props.setMainState({ isEditingGame: false });
+    }
+
     // Update preference "lastSelectedLibrary"
     const gameLibrary = getBrowseSubPath(location.pathname);
     if (location.pathname.startsWith(Paths.BROWSE) &&
@@ -630,7 +649,7 @@ export class App extends React.Component<AppProps> {
         const view = this.props.main.views[route];
         if (view && view.selectedGameId !== undefined) {
           this.props.dispatchMain({
-            type: MainActionType.SET_VIEW_SELECTED_GAME,
+            type: MainActionType.SET_SELECTED_GAME,
             library: route,
             gameId: undefined,
           });
@@ -641,11 +660,311 @@ export class App extends React.Component<AppProps> {
     }
   }
 
+  getGameBrowserDivWidth(): number {
+    if (!document.defaultView) { throw new Error('"document.defaultView" missing.'); }
+    if (!this.appRef.current) { throw new Error('"game-browser" div is missing.'); }
+    return parseInt(document.defaultView.getComputedStyle(this.appRef.current).width || '', 10);
+  }
+
+  onRightSidebarResize = (event: SidebarResizeEvent): void => {
+    const maxWidth = (this.getGameBrowserDivWidth() - this.props.preferencesData.browsePageLeftSidebarWidth) - 5;
+    const targetWidth = event.startWidth + event.startX - event.event.clientX;
+    updatePreferencesData({
+      browsePageRightSidebarWidth: Math.min(targetWidth, maxWidth)
+    });
+  }
+
+  onGameLaunch = async (gameId: string): Promise<void> => {
+    await window.Shared.back.request(BackIn.LAUNCH_GAME, gameId);
+  }
+
+  onDeleteSelectedGame = async (): Promise<void> => {
+    // Delete the game
+    if (this.props.main.selectedGameId) {
+      this.onDeleteGame(this.props.main.selectedGameId);
+    }
+    // Deselect the game
+    this.onSelectGame(undefined);
+    // Reset the state related to the selected game
+    this.props.setMainState({
+      currentGame: undefined,
+      currentPlaylistEntry: undefined,
+      isEditingGame: false
+    });
+    // Focus the game grid/list
+    // this.focusGameGridOrList();
+  }
+
+  onEditGame = (game: Partial<Game>) => {
+    log.debug('Launcher', `Editing: ${JSON.stringify(game)}`);
+    if (this.props.main.currentGame) {
+      const newGame = new Game();
+      Object.assign(newGame, {...this.props.main.currentGame, ...game});
+      newGame.updateTagsStr();
+      this.props.setMainState({
+        currentGame: newGame
+      });
+    }
+  }
+
+  onSaveEditClick = async (): Promise<void> => {
+    if (!this.props.main.currentGame) {
+      console.error('Can\'t save game. "currentGame" is missing.');
+      return;
+    }
+    const game = await this.onSaveGame(this.props.main.currentGame, this.props.main.currentPlaylistEntry);
+    this.props.setMainState({
+      currentGame: game,
+      isEditingGame: false
+    });
+    // this.focusGameGridOrList();
+  }
+
+  onDiscardEditClick = (): void => {
+    this.props.setMainState({
+      isEditingGame: false,
+      currentGame: this.props.main.currentGame,
+    });
+    // this.focusGameGridOrList();
+  }
+
+  onStartEditClick = (): void => {
+    if (this.props.preferencesData.enableEditing) {
+      this.props.setMainState({ isEditingGame: true });
+    }
+  }
+
+  onEditPlaylistNotes = (text: string): void => {
+    if (this.props.main.currentPlaylistEntry) {
+      this.props.setMainState({
+        currentPlaylistEntry: {
+          ...this.props.main.currentPlaylistEntry,
+          notes: text
+        }
+      });
+    }
+  }
+
+  onUpdateActiveGameData = (activeDataOnDisk: boolean, activeDataId?: number): void => {
+    if (this.props.main.currentGame) {
+      const newGame = new Game();
+      Object.assign(newGame, {...this.props.main.currentGame, activeDataOnDisk, activeDataId });
+      window.Shared.back.request(BackIn.SAVE_GAME, newGame)
+      .then(() => {
+        if (this.props.main.currentGame) {
+          const newGame = new Game();
+          Object.assign(newGame, {...this.props.main.currentGame, activeDataOnDisk, activeDataId });
+          this.props.setMainState({ currentGame: newGame });
+        }
+      });
+    }
+  }
+
+  onRemoveSelectedGameFromPlaylist = async (): Promise<void> => {
+    // Remove game from playlist
+    if (this.props.main.currentGame) {
+      if (this.props.main.currentPlaylist) {
+        await window.Shared.back.request(BackIn.DELETE_PLAYLIST_GAME, this.props.main.currentPlaylist.id, this.props.main.currentGame.id);
+      } else { logError('No playlist is selected'); }
+    } else { logError('No game is selected'); }
+
+    // Deselect the game
+    this.onSelectGame(undefined);
+
+    // Reset the state related to the selected game
+    this.props.setMainState({
+      currentGame: undefined,
+      currentPlaylistEntry: undefined,
+      isEditingGame: false
+    });
+
+    if (this.props.main.currentPlaylist) {
+      this.onUpdatePlaylist(this.props.main.currentPlaylist);
+    }
+
+    function logError(text: string) {
+      console.error('Unable to remove game from selected playlist - ' + text);
+    }
+  }
+
+  /** Deselect without clearing search (Right sidebar will search itself) */
+  onRightSidebarDeselectPlaylist = (): void => {
+    this.onSelectPlaylist(getBrowseSubPath(this.props.location.pathname), undefined);
+  }
+
+  /** Replace the "current game" with the selected game (in the appropriate circumstances). */
+  updateCurrentGame = queueOne(async (gameId?: string, playlistId?: string): Promise<void> => {
+    // Find the selected game in the selected playlist
+    if (gameId) {
+      let gamePlaylistEntry: PlaylistGame | undefined;
+
+      if (playlistId) {
+        gamePlaylistEntry = await window.Shared.back.request(BackIn.GET_PLAYLIST_GAME, playlistId, gameId);
+      }
+
+      // Update game
+      window.Shared.back.request(BackIn.GET_GAME, gameId)
+      .then(game => {
+        if (game) {
+          this.props.setMainState({
+            currentGame: game,
+            currentPlaylistEntry: gamePlaylistEntry
+          });
+        } else { console.log(`Failed to get game. Game is undefined (GameID: "${gameId}").`); }
+      });
+    }
+  });
+
+  private onGameContextMenuMemo = memoizeOne((playlists: Playlist[], strings: LangContainer, selectedPlaylistId?: string) => {
+    return (gameId: string) => {
+      let contextButtons: MenuItemConstructorOptions[] = [
+        {
+          type: 'submenu',
+          label: strings.menu.addToPlaylist,
+          enabled: playlists.length > 0,
+          submenu: UniquePlaylistMenuFactory(playlists,
+            strings,
+            (playlistId) => window.Shared.back.send(BackIn.ADD_PLAYLIST_GAME, playlistId, gameId),
+            selectedPlaylistId)
+        }, {
+        /* File Location */
+          label: strings.menu.openFileLocation,
+          enabled: !window.Shared.isBackRemote, // (Local "back" only)
+          click: () => {
+            window.Shared.back.request(BackIn.GET_GAME, gameId)
+            .then(async (game) => {
+              if (game) {
+                const gamePath = await getGamePath(game, window.Shared.config.fullFlashpointPath, window.Shared.preferences.data.htdocsFolderPath, window.Shared.preferences.data.dataPacksFolderPath);
+                try {
+                  if (gamePath) {
+                    await fs.promises.stat(gamePath);
+                    remote.shell.showItemInFolder(gamePath);
+                  } else {
+                    const opts: Electron.MessageBoxOptions = {
+                      type: 'warning',
+                      message: 'GameData has not been downloaded yet, cannot open the file location!',
+                      buttons: ['Ok'],
+                    };
+                    remote.dialog.showMessageBox(opts);
+                    return;
+                  }
+                } catch (error: any) {
+                  const opts: Electron.MessageBoxOptions = {
+                    type: 'warning',
+                    message: '',
+                    buttons: ['Ok'],
+                  };
+                  if (error.code === 'ENOENT') {
+                    opts.title = this.context.dialog.fileNotFound;
+                    opts.message = (
+                      'Failed to find the game file.\n'+
+                    'If you are using Flashpoint Infinity, make sure you download the game first.\n'
+                    );
+                  } else {
+                    opts.title = 'Unexpected error';
+                    opts.message = (
+                      'Failed to check the game file.\n'+
+                    'If you see this, please report it back to us (a screenshot would be great)!\n\n'+
+                    `Error: ${error}\n`
+                    );
+                  }
+                  opts.message += `Path: "${gamePath}"\n\nNote: If the path is too long, some portion will be replaced with three dots ("...").`;
+                  remote.dialog.showMessageBox(opts);
+                }
+              }
+            });
+          },
+        }, {
+        /* Copy Game UUID */
+          label: strings.menu.copyGameUUID,
+          enabled: true,
+          click : () => {
+            clipboard.writeText(gameId);
+          }
+        }, { type: 'separator' }];
+
+      // Add editing mode fields
+      if (this.props.preferencesData.enableEditing) {
+        const editingButtons: MenuItemConstructorOptions[] = [
+          {
+            /* Duplicate Meta */
+            label: strings.menu.duplicateMetaOnly,
+            enabled: this.props.preferencesData.enableEditing,
+            click: () => { window.Shared.back.request(BackIn.DUPLICATE_GAME, gameId, false); },
+          }, {
+            /* Duplicate Meta & Images */
+            label: strings.menu.duplicateMetaAndImages, // ("&&" will be shown as "&")
+            enabled: this.props.preferencesData.enableEditing,
+            click: () => { window.Shared.back.request(BackIn.DUPLICATE_GAME, gameId, true); },
+          }, { type: 'separator' }, {
+            /* Export Meta */
+            label: strings.menu.exportMetaOnly,
+            enabled: !window.Shared.isBackRemote, // (Local "back" only)
+            click: () => {
+              const filePath = remote.dialog.showSaveDialogSync({
+                title: strings.dialog.selectFileToExportMeta,
+                defaultPath: 'meta.yaml',
+                filters: [{
+                  name: 'Meta file',
+                  extensions: ['yaml'],
+                }]
+              });
+              if (filePath) { window.Shared.back.request(BackIn.EXPORT_GAME, gameId, filePath, true); }
+            },
+          }, {
+            /* Export Meta & Images */
+            label: strings.menu.exportMetaAndImages, // ("&&" will be shown as "&")
+            enabled: !window.Shared.isBackRemote, // (Local "back" only)
+            click: () => {
+              const filePaths = window.Shared.showOpenDialogSync({
+                title: strings.dialog.selectFolderToExportMetaAndImages,
+                properties: ['promptToCreate', 'openDirectory']
+              });
+              if (filePaths && filePaths.length > 0) {
+                window.Shared.back.request(BackIn.EXPORT_GAME, gameId, filePaths[0], false);
+              }
+            },
+          }, {
+            /* Export Partial Meta */
+            label: strings.menu.exportMetaEdit, // ("&&" will be shown as "&")
+            enabled: !window.Shared.isBackRemote, // (Local "back" only)
+            click: () => {
+              this.onOpenExportMetaEdit(gameId);
+            },
+          }, {  type: 'separator' }
+        ];
+        contextButtons = contextButtons.concat(editingButtons);
+      }
+
+      // Add extension contexts
+      for (const contribution of this.props.main.contextButtons) {
+        for (const contextButton of contribution.value) {
+          if (contextButton.context === 'game') {
+            contextButtons.push({
+              label: contextButton.name,
+              click: () => {
+                window.Shared.back.request(BackIn.GET_GAME, gameId)
+                .then((game) => {
+                  window.Shared.back.request(BackIn.RUN_COMMAND, contextButton.command, [game]);
+                });
+              }
+            });
+          }
+        }
+      }
+
+      return (
+        openContextMenu(contextButtons)
+      );
+    };
+  });
+
   render() {
     const loaded = isInitDone(this.props.main);
     const libraryPath = getBrowseSubPath(this.props.location.pathname);
     const view = this.props.main.views[libraryPath];
     const playlists = this.filterAndOrderPlaylistsMemo(this.props.main.playlists, libraryPath);
+    const extremeTags = this.props.preferencesData.tagFilters.filter(t => !t.enabled && t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
 
     // Props to set to the router
     const routerProps: AppRouterProps = {
@@ -660,6 +979,7 @@ export class App extends React.Component<AppProps> {
       platforms: this.props.main.platforms,
       platformsFlat: this.flattenPlatformsMemo(this.props.main.platforms),
       playlistIconCache: this.props.main.playlistIconCache,
+      onGameContextMenu: this.onGameContextMenuMemo(this.props.main.playlists, this.props.main.lang, this.props.main.selectedPlaylistId),
       onSaveGame: this.onSaveGame,
       onDeleteGame: this.onDeleteGame,
       onLaunchGame: this.onLaunchGame,
@@ -673,8 +993,8 @@ export class App extends React.Component<AppProps> {
       upgrades: this.props.main.upgrades,
       creditsData: this.props.main.creditsData,
       creditsDoneLoading: this.props.main.creditsDoneLoading,
-      selectedGameId: view && view.selectedGameId,
-      gameRunning: view ? this.checkGameRunningMemo(view.selectedGameId, this.props.main.services) : false,
+      selectedGameId: this.props.main.selectedGameId,
+      gameRunning: this.checkGameRunningMemo(this.props.main.selectedGameId, this.props.main.services),
       selectedPlaylistId: view && view.query.filter.playlistId,
       onSelectGame: this.onSelectGame,
       onDeletePlaylist: this.onPlaylistDelete,
@@ -728,13 +1048,41 @@ export class App extends React.Component<AppProps> {
                   orderBy={this.props.preferencesData.gamesOrderBy}
                   orderReverse={this.props.preferencesData.gamesOrder} />
                 {/* Main */}
-                <div className='main'>
+                <div className='main'
+                  ref={this.appRef} >
                   <AppRouter { ...routerProps } />
                   <noscript className='nojs'>
                     <div style={{textAlign:'center'}}>
                       This website requires JavaScript to be enabled.
                     </div>
                   </noscript>
+                  <ResizableSidebar
+                    hide={this.props.preferencesData.browsePageShowRightSidebar}
+                    divider='before'
+                    width={this.props.preferencesData.browsePageRightSidebarWidth}
+                    onResize={this.onRightSidebarResize}>
+                    <ConnectedRightBrowseSidebar
+                      currentGame={this.props.main.currentGame}
+                      isExtreme={this.props.main.currentGame ? this.props.main.currentGame.tags.reduce<boolean>((prev, next) => extremeTags.includes(next.primaryAlias.name), false) : false}
+                      gameRunning={routerProps.gameRunning}
+                      currentPlaylistEntry={this.props.main.currentPlaylistEntry}
+                      currentLibrary={routerProps.gameLibrary}
+                      onGameLaunch={this.onGameLaunch}
+                      onDeleteSelectedGame={this.onDeleteSelectedGame}
+                      onRemoveSelectedGameFromPlaylist={this.onRemoveSelectedGameFromPlaylist}
+                      onDeselectPlaylist={this.onRightSidebarDeselectPlaylist}
+                      onEditPlaylistNotes={this.onEditPlaylistNotes}
+                      isEditing={this.props.main.isEditingGame}
+                      isNewGame={false} /* Deprecated */
+                      onEditGame={this.onEditGame}
+                      onUpdateActiveGameData={this.onUpdateActiveGameData}
+                      onEditClick={this.onStartEditClick}
+                      onDiscardClick={this.onDiscardEditClick}
+                      onSaveGame={this.onSaveEditClick}
+                      tagCategories={this.props.tagCategories}
+                      suggestions={this.props.main.suggestions}
+                      onOpenExportMetaEdit={this.onOpenExportMetaEdit} />
+                  </ResizableSidebar>
                 </div>
                 {/* Footer */}
                 <ConnectedFooter />
@@ -798,15 +1146,10 @@ export class App extends React.Component<AppProps> {
   }
 
   private onSelectGame = (gameId?: string): void => {
-    const library = getBrowseSubPath(this.props.location.pathname);
-    const view = this.props.main.views[library];
-    if (view) {
-      this.props.dispatchMain({
-        type: MainActionType.SET_VIEW_SELECTED_GAME,
-        library: library,
-        gameId: gameId,
-      });
-    }
+    this.props.dispatchMain({
+      type: MainActionType.SET_SELECTED_GAME,
+      gameId: gameId,
+    });
   }
 
   /** Set the selected playlist for a single "browse route" */
@@ -1171,4 +1514,40 @@ function isInitDone(state: MainState): boolean {
     state.creditsDoneLoading &&
     state.loaded[BackInit.EXEC]
   );
+}
+
+function openContextMenu(template: MenuItemConstructorOptions[]): Menu {
+  const menu = remote.Menu.buildFromTemplate(template);
+  menu.popup({ window: remote.getCurrentWindow() });
+  return menu;
+}
+
+type MenuItemLibrary = MenuItemConstructorOptions & {
+  library: string;
+}
+
+function UniquePlaylistMenuFactory(playlists: Playlist[], strings: LangContainer, onClick: (playlistId: string) => any, selectedPlaylistId?: string): MenuItemConstructorOptions[] {
+  const grouped: Array<MenuItemLibrary> = [];
+  for (const p of playlists.filter(p => p.id != selectedPlaylistId)) {
+    let group = grouped.find(g => g.library === p.library);
+    if (!group) {
+      const newGroup: MenuItemLibrary = {
+        type: 'submenu',
+        library: p.library,
+        enabled: true,
+        label: strings.libraries[p.library] || p.library,
+        submenu: []
+      };
+      group = newGroup;
+      grouped.push(group);
+    }
+    if (group.submenu && Array.isArray(group.submenu)) {
+      group.submenu.push({
+        label: p.title || 'No Title',
+        enabled: true,
+        click: () => onClick(p.id)
+      });
+    }
+  }
+  return grouped;
 }

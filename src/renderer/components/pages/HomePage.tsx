@@ -33,8 +33,11 @@ type OwnProps = {
   playlists: Playlist[];
   /** Data and state used for the upgrade system (optional install-able downloads from the HomePage). */
   upgrades: UpgradeStage[];
+  /** Generator for game context menu */
+  onGameContextMenu: (gameId: string) => void;
   onSelectPlaylist: (library: string, playlistId: string | undefined) => void;
   onLaunchGame: (gameId: string) => void;
+  onGameSelect: (gameId: string | undefined) => void;
   /** Clear the current search query (resets the current search filters). */
   clearSearch: () => void;
   /** Called when the "download tech" button is clicked. */
@@ -51,6 +54,7 @@ type OwnProps = {
   logoVersion: number;
   /** Raw HTML of the Update page grabbed */
   updateFeedMarkdown: string;
+  selectedGameId?: string;
 };
 
 export type HomePageProps = OwnProps & WithPreferencesProps & WithSearchProps;
@@ -84,6 +88,10 @@ export function HomePage(props: HomePageProps) {
       minimizedHomePageBoxes: newBoxes
     });
   }, [props.preferencesData.minimizedHomePageBoxes]);
+
+  const onGameSelect = React.useCallback((gameId: string | undefined) => {
+    props.onGameSelect(gameId);
+  }, [props.onGameSelect]);
 
   const onLaunchGame = React.useCallback((gameId: string) => {
     props.onLaunchGame(gameId);
@@ -340,18 +348,23 @@ export function HomePage(props: HomePageProps) {
     );
   }, [strings, props.preferencesData.minimizedHomePageBoxes, toggleMinimizeBox]);
 
+  log.debug('Launcher', 'Selected - ' + (props.selectedGameId || 'None'));
+
   const renderedRandomGames = React.useMemo(() => (
     <SizeProvider width={width} height={height}>
       <RandomGames
         games={props.randomGames}
         rollRandomGames={props.rollRandomGames}
+        onGameContextMenu={props.onGameContextMenu}
         onLaunchGame={onLaunchGame}
+        onGameSelect={onGameSelect}
         extremeTags={props.preferencesData.tagFilters.filter(tfg => !tfg.enabled && tfg.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), [])}
         logoVersion={props.logoVersion}
+        selectedGameId={props.selectedGameId}
         minimized={props.preferencesData.minimizedHomePageBoxes.includes('random-games')}
         onToggleMinimize={() => toggleMinimizeBox('random-games')} />
     </SizeProvider>
-  ), [strings, props.randomGames, onLaunchGame, props.rollRandomGames, props.preferencesData.minimizedHomePageBoxes, toggleMinimizeBox]);
+  ), [strings, props.onGameContextMenu, props.selectedGameId, props.logoVersion, props.preferencesData.tagFilters, props.randomGames, onLaunchGame, props.rollRandomGames, props.preferencesData.minimizedHomePageBoxes, toggleMinimizeBox]);
 
   const renderedUpdateFeed = React.useMemo(() => {
     if (props.updateFeedMarkdown) {

@@ -197,20 +197,10 @@ export function mainStateReducer(state: MainState = createInitialState(), action
       };
     }
 
-    case MainActionType.SET_VIEW_SELECTED_GAME: {
-      const view = state.views[action.library];
-
-      if (!view) { return state; }
-
+    case MainActionType.SET_SELECTED_GAME: {
       return {
         ...state,
-        views: {
-          ...state.views,
-          [action.library]: {
-            ...view,
-            selectedGameId: action.gameId,
-          },
-        },
+        selectedGameId: action.gameId
       };
     }
 
@@ -436,6 +426,7 @@ function createInitialState(): MainState {
     downloadOpen: false,
     downloadPercent: 0,
     downloadSize: 0,
-    downloadVerifying: false
+    downloadVerifying: false,
+    isEditingGame: false
   };
 }
