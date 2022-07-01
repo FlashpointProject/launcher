@@ -348,8 +348,6 @@ export function HomePage(props: HomePageProps) {
     );
   }, [strings, props.preferencesData.minimizedHomePageBoxes, toggleMinimizeBox]);
 
-  log.debug('Launcher', 'Selected - ' + (props.selectedGameId || 'None'));
-
   const renderedRandomGames = React.useMemo(() => (
     <SizeProvider width={width} height={height}>
       <RandomGames

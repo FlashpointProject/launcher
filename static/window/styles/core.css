@@ -1236,7 +1236,7 @@ body {
 }
 /* Sidebar */
 .game-browser__sidebar {
-  --divider-width: 4px;
+  --divider-width: 6px;
   display: flex;
   flex: 0 0 auto;
   min-width: var(--divider-width);
@@ -1264,6 +1264,13 @@ body {
   flex: 0 0 auto;
   user-select: none;
   cursor: ew-resize;
+  transition: 0s background-color;
+}
+.game-browser__sidebar__divider--animated {
+  transition: 0.3s background-color;
+}
+.game-browser__sidebar__divider:hover {
+  transition-delay: 0.3s;
 }
 /* Right Sidebar */
 .game-browser__right p {

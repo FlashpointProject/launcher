@@ -539,7 +539,7 @@ export class App extends React.Component<AppProps> {
           view.query.orderBy                !== this.props.preferencesData.gamesOrderBy ||
           view.query.orderReverse           !== this.props.preferencesData.gamesOrder ||
           prevProps.main.playlists          !== this.props.main.playlists ||
-          view.tagFilters                   !== this.props.preferencesData.tagFilters ||
+          JSON.stringify(view.tagFilters)   !== JSON.stringify(this.props.preferencesData.tagFilters) ||
           view.query.searchLimit            !== this.props.preferencesData.searchLimit) {
         this.setViewQuery(library);
       }

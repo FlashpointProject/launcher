@@ -57,8 +57,9 @@
   --layout__game-item-background-selected-hover: #a72aa2;
   --layout__game-item-thumb-image-rendering:       normal; /* Used to set the "image-rendering" of the thumbnail. */
   /* Browse Sidebar(s) */
-  --layout__browse-sidebar-background:         #181819;
-  --layout__browse-sidebar-divider-background: #131313;
+  --layout__browse-sidebar-background:               #181819;
+  --layout__browse-sidebar-divider-background:       #131313;
+  --layout__browse-sidebar-divider-background-hover: var(--layout__flashpoint-red);
   /* Right Browse Sidebar */
   --layout__browse-right-sidebar-screenshot-placeholder-background: #1b1b1b;
   --layout__browse-right-sidebar-screenshot-placeholder-border:     #818181;
@@ -144,6 +145,8 @@
   --layout__icon-button-hover-fill:                #b1b1b1; /* Color of "icon buttons" while the cursor is hovering over them. */
   --layout__toggle-sidebar-fill:                   #cccccc;
   --layout__drop-down-content-background-selected: #1e90ff;
+  /* Flashpoint */
+  --layout__flashpoint-red: #DD0428;
 }
 
 body {
@@ -590,6 +593,9 @@ body {
 }
 .game-browser__sidebar__divider {
   background-color: var(--layout__browse-sidebar-divider-background);
+}
+.game-browser__sidebar__divider:hover {
+  background-color: var(--layout__browse-sidebar-divider-background-hover);
 }
 .browse-right-sidebar--edit-disabled .browse-right-sidebar__searchable:hover {
   color: var(--layout__browse-right-sidebar-searchable-hover);
