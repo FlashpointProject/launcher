@@ -111,16 +111,19 @@ export async function exit(state: BackState): Promise<void> {
           await service.kill();
         }
       }
+      console.log(' - Managed Services Killed');
       // Run stop commands
       for (let i = 0; i < state.serviceInfo.stop.length; i++) {
         execProcess(state, state.serviceInfo.stop[i], true);
       }
+      console.log(' - Service Info Stop Commands Run');
     }
 
     state.languageWatcher.abort();
     for (const watcher of state.themeState.watchers) {
       watcher.abort();
     }
+    console.log(' - Watchers Aborted');
 
     Promise.all([
       // Close WebSocket server
@@ -150,7 +153,10 @@ export async function exit(state: BackState): Promise<void> {
           }
         }
       })(),
-    ]).then(() => { process.exit(); });
+    ]).then(() => {
+      console.log(' - Cleanup Complete, Exiting Process...');
+      process.exit();
+    });
   }
 }
 

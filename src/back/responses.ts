@@ -1174,9 +1174,12 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.QUIT, async (event) => {
+    console.log('Exiting...');
     // Unload all extensions before quitting
     await state.extensionsService.unloadAll();
+    console.log(' - Extensions Unloaded');
     state.socketServer.broadcast(BackOut.QUIT);
+    console.log(' - Quit Broadcast Sent');
     exit(state);
   });
 
