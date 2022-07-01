@@ -1,7 +1,7 @@
 
 import { createContextReducer } from '../context-reducer/contextReducer';
 import { ReducerAction } from '../context-reducer/interfaces';
-import { uuid } from '../util/uuid';
+import { uuid } from '@shared/utils/uuid';
 
 export type ProgressData = {
   /* Key identifier */
