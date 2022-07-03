@@ -454,6 +454,6 @@ export function generateTagFilterGroup(tags?: string[]): TagFilterGroup {
   };
 }
 
-export async function getTempFilename(ext: string = 'tmp') {
+export async function getTempFilename(ext = 'tmp') {
   return path.join(await fs.promises.realpath(os.tmpdir()), uuid() + '.' + ext);
 }
