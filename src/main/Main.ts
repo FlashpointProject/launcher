@@ -154,8 +154,11 @@ export function main(init: Init): void {
       p = p.then(() => new Promise((resolve, reject) => {
         // Fork backend, init.rest will contain possible flashpoint:// message
         state.backProc = fork(path.join(__dirname, '../back/index.js'), [init.rest], { detached: true });
-        // Wait for process to initialize
-        state.backProc.once('message', (message: any) => {
+        const initHandler = (message: any) => {
+          // Stop listening after a port, quit or other message arrives, keep going for preferences checks
+          if (state.backProc && !message.preferencesRefresh) {
+            state.backProc.removeListener('message', initHandler);
+          }
           if (message.port) {
             state.backHost.port = message.port as string;
             resolve();
@@ -164,10 +167,23 @@ export function main(init: Init): void {
               dialog.showErrorBox('Flashpoint Startup Error', message.errorMessage);
             }
             app.quit();
+          } else if (message.preferencesRefresh) {
+            dialog.showMessageBox({
+              title: 'Preferences File Invalid',
+              message: 'Preferences file failed to load. Use defaults?',
+              buttons: ['Use Default Preferences', 'Cancel'],
+              cancelId: 1
+            }).then((res) => {
+              if (state.backProc) {
+                state.backProc.send(res.response);
+              }
+            });
           } else {
             reject(new Error('Failed to start server in back process. Perhaps because it could not find an available port.'));
           }
-        });
+        };
+        // Wait for process to initialize
+        state.backProc.on('message', initHandler);
         // On windows you have to wait for app to be ready before you call app.getLocale() (so it will be sent later)
         let localeCode = 'en';
         if (process.platform === 'win32' && !app.isReady()) {

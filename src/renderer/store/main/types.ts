@@ -1,4 +1,5 @@
 import { Game } from '@database/entity/Game';
+import { GameData } from '@database/entity/GameData';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { CreditsData } from '@renderer/credits/types';
@@ -126,6 +127,7 @@ export type MainState = {
   selectedGameId?: string;
   selectedPlaylistId?: string;
   currentGame?: Game;
+  currentGameData?: GameData;
   currentPlaylist?: Playlist;
   currentPlaylistEntry?: PlaylistGame;
   isEditingGame: boolean;
@@ -229,4 +231,7 @@ export type MainAction = {
   type: MainActionType.CLEAR_RANDOM_GAMES;
 } | {
   type: MainActionType.INCREMENT_LOGO_VERSION;
+} | {
+  type: MainActionType.FORCE_UPDATE_GAME_DATA;
+  gameData: GameData;
 }

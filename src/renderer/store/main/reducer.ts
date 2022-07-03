@@ -1,3 +1,4 @@
+import { Game } from '@database/entity/Game';
 import { rebuildQuery } from '@renderer/Util';
 import { createLangContainer } from '@shared/lang';
 import { MainActionType, RequestState } from './enums';
@@ -375,6 +376,25 @@ export function mainStateReducer(state: MainState = createInitialState(), action
       return {
         ...state,
         logoVersion: state.logoVersion + 1
+      };
+    }
+
+    case MainActionType.FORCE_UPDATE_GAME_DATA: {
+      const { gameData } = action;
+      if (state.currentGame) {
+        if (gameData.gameId === state.currentGame.id) {
+          const newGame: Game = new Game();
+          Object.assign(newGame, state.currentGame);
+          newGame.activeDataOnDisk = gameData.presentOnDisk;
+          return {
+            ...state,
+            currentGameData: gameData,
+            currentGame: newGame
+          };
+        }
+      }
+      return {
+        ...state
       };
     }
   }

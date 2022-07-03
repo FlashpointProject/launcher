@@ -23,8 +23,9 @@ import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
 import { getDefaultLocalization, LangFileContent } from '@shared/lang';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
+import { defaultPreferencesData } from '@shared/preferences/util';
 import { Theme } from '@shared/ThemeFile';
-import { createErrorProxy, removeFileExtension, stringifyArray } from '@shared/Util';
+import { createErrorProxy, deepCopy, removeFileExtension, stringifyArray } from '@shared/Util';
 import * as child_process from 'child_process';
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint-launcher';
@@ -276,15 +277,56 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     ? path.resolve(state.configFolder, state.config.flashpointPath)
     : state.config.flashpointPath;
 
-  // @TODO Figure out why async loading isn't always working?
+  const loadPrefs = async (): Promise<void> => {
+    // @TODO Figure out why async loading isn't always working?
+    const prefsFilePath = path.join(state.config.flashpointPath, PREFERENCES_FILENAME);
+    try {
+      state.preferences = await PreferencesFile.readOrCreateFile(prefsFilePath);
+    } catch (e) {
+      console.log('Failed to load preferences, prompting for defaults');
+      const res = await new Promise<number>((resolve) => {
+        process.once('message', (msg) => {
+          resolve(Number(msg));
+        });
+        send({preferencesRefresh: true});
+      });
+      console.log('Response - ' + res);
+
+      if (res === 1) {
+        throw 'User cancelled.';
+      }
+
+      // Check for custom default file
+      const overridePath = path.join(state.config.flashpointPath, '.preferences.defaults.json');
+      console.log('Checking for prefs override at ' + overridePath);
+      try {
+        await fs.promises.copyFile(overridePath, prefsFilePath);
+        console.log('Copied default preferences (override)');
+        // File copied, try loading again
+        return loadPrefs();
+      } catch (err) {
+        console.log(err);
+        // Failed to copy overrides, use defaults
+        const defaultPrefs = deepCopy(defaultPreferencesData);
+        state.preferences = defaultPrefs;
+        try {
+          await PreferencesFile.saveFile(prefsFilePath, state.preferences);
+          console.log('Copied default preferences');
+        } catch (err) {
+          send({quit: true, errorMessage: 'Failed to save default preferences file? Quitting...'});
+          return;
+        }
+      }
+    }
+  };
+
   try {
-    state.preferences = await PreferencesFile.readOrCreateFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME));
-  } catch (e) {
-    console.log(e);
-    // Fatal, quit.
-    send({quit: true, errorMessage: 'Invalid preferences.json! Is it 0 KB?'});
+    await loadPrefs();
+  } catch (err: any) {
+    send({quit: true, errorMessage: err.toString()});
     return;
   }
+
   try {
     const [extConf] = await (Promise.all([
       ExtConfigFile.readOrCreateFile(path.join(state.config.flashpointPath, EXT_CONFIG_FILENAME))

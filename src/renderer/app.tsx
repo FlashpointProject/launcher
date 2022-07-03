@@ -135,9 +135,54 @@ export class App extends React.Component<AppProps> {
         // remove "flashpoint:" and "" elements
         parts.splice(0, 2);
         switch (parts[0]) {
+          case 'open': {
+            if (parts.length >= 2) {
+              // Open game in sidebar
+              window.Shared.back.request(BackIn.GET_GAME, parts[1])
+              .then(game => {
+                if (game) {
+                  this.props.setMainState({
+                    currentGame: game,
+                    selectedGameId: game.id,
+                    selectedPlaylistId: undefined,
+                    currentPlaylist: undefined,
+                    currentPlaylistEntry: undefined
+                  });
+                } else { console.log(`Failed to get game. Game is undefined (GameID: "${parts[1]}").`); }
+              });
+            }
+            break;
+          }
           case 'run': {
             if (parts.length >= 2) {
-              window.Shared.back.send(BackIn.LAUNCH_GAME, parts[1]);
+              window.Shared.back.request(BackIn.GET_GAME, parts[1])
+              .then(async (game) => {
+                if (game) {
+                  // Open game in sidebar
+                  this.props.setMainState({
+                    currentGame: game,
+                    selectedGameId: game.id,
+                    selectedPlaylistId: undefined,
+                    currentPlaylist: undefined,
+                    currentPlaylistEntry: undefined
+                  });
+                  // Launch game
+                  await this.onGameLaunch(game.id);
+                  // Update game data (install state)
+                  if (game && game.activeDataId) {
+                    window.Shared.back.request(BackIn.GET_GAME_DATA, game.activeDataId)
+                    .then((gameData) => {
+                      if (gameData) {
+                        log.debug('TEST', JSON.stringify(gameData, undefined, 2));
+                        this.props.dispatchMain({
+                          type: MainActionType.FORCE_UPDATE_GAME_DATA,
+                          gameData
+                        });
+                      }
+                    });
+                  }
+                } else { console.log(`Failed to get game. Game is undefined (GameID: "${parts[1]}").`); }
+              });
             }
             break;
           }
@@ -688,6 +733,7 @@ export class App extends React.Component<AppProps> {
     // Reset the state related to the selected game
     this.props.setMainState({
       currentGame: undefined,
+      selectedGameId: undefined,
       currentPlaylistEntry: undefined,
       isEditingGame: false
     });
@@ -982,7 +1028,7 @@ export class App extends React.Component<AppProps> {
       onGameContextMenu: this.onGameContextMenuMemo(this.props.main.playlists, this.props.main.lang, this.props.main.selectedPlaylistId),
       onSaveGame: this.onSaveGame,
       onDeleteGame: this.onDeleteGame,
-      onLaunchGame: this.onLaunchGame,
+      onLaunchGame: this.onGameLaunch,
       onQuickSearch: this.onQuickSearch,
       onOpenExportMetaEdit: this.onOpenExportMetaEdit,
       libraries: this.props.main.libraries,
@@ -1056,33 +1102,35 @@ export class App extends React.Component<AppProps> {
                       This website requires JavaScript to be enabled.
                     </div>
                   </noscript>
-                  <ResizableSidebar
-                    hide={this.props.preferencesData.browsePageShowRightSidebar}
-                    divider='before'
-                    width={this.props.preferencesData.browsePageRightSidebarWidth}
-                    onResize={this.onRightSidebarResize}>
-                    <ConnectedRightBrowseSidebar
-                      currentGame={this.props.main.currentGame}
-                      isExtreme={this.props.main.currentGame ? this.props.main.currentGame.tags.reduce<boolean>((prev, next) => extremeTags.includes(next.primaryAlias.name), false) : false}
-                      gameRunning={routerProps.gameRunning}
-                      currentPlaylistEntry={this.props.main.currentPlaylistEntry}
-                      currentLibrary={routerProps.gameLibrary}
-                      onGameLaunch={this.onGameLaunch}
-                      onDeleteSelectedGame={this.onDeleteSelectedGame}
-                      onRemoveSelectedGameFromPlaylist={this.onRemoveSelectedGameFromPlaylist}
-                      onDeselectPlaylist={this.onRightSidebarDeselectPlaylist}
-                      onEditPlaylistNotes={this.onEditPlaylistNotes}
-                      isEditing={this.props.main.isEditingGame}
-                      isNewGame={false} /* Deprecated */
-                      onEditGame={this.onEditGame}
-                      onUpdateActiveGameData={this.onUpdateActiveGameData}
-                      onEditClick={this.onStartEditClick}
-                      onDiscardClick={this.onDiscardEditClick}
-                      onSaveGame={this.onSaveEditClick}
-                      tagCategories={this.props.tagCategories}
-                      suggestions={this.props.main.suggestions}
-                      onOpenExportMetaEdit={this.onOpenExportMetaEdit} />
-                  </ResizableSidebar>
+                  { this.props.main.currentGame && (
+                    <ResizableSidebar
+                      hide={this.props.preferencesData.browsePageShowRightSidebar}
+                      divider='before'
+                      width={this.props.preferencesData.browsePageRightSidebarWidth}
+                      onResize={this.onRightSidebarResize}>
+                      <ConnectedRightBrowseSidebar
+                        currentGame={this.props.main.currentGame}
+                        isExtreme={this.props.main.currentGame ? this.props.main.currentGame.tags.reduce<boolean>((prev, next) => extremeTags.includes(next.primaryAlias.name), false) : false}
+                        gameRunning={routerProps.gameRunning}
+                        currentPlaylistEntry={this.props.main.currentPlaylistEntry}
+                        currentLibrary={routerProps.gameLibrary}
+                        onGameLaunch={this.onGameLaunch}
+                        onDeleteSelectedGame={this.onDeleteSelectedGame}
+                        onRemoveSelectedGameFromPlaylist={this.onRemoveSelectedGameFromPlaylist}
+                        onDeselectPlaylist={this.onRightSidebarDeselectPlaylist}
+                        onEditPlaylistNotes={this.onEditPlaylistNotes}
+                        isEditing={this.props.main.isEditingGame}
+                        isNewGame={false} /* Deprecated */
+                        onEditGame={this.onEditGame}
+                        onUpdateActiveGameData={this.onUpdateActiveGameData}
+                        onEditClick={this.onStartEditClick}
+                        onDiscardClick={this.onDiscardEditClick}
+                        onSaveGame={this.onSaveEditClick}
+                        tagCategories={this.props.tagCategories}
+                        suggestions={this.props.main.suggestions}
+                        onOpenExportMetaEdit={this.onOpenExportMetaEdit} />
+                    </ResizableSidebar>
+                  )}
                 </div>
                 {/* Footer */}
                 <ConnectedFooter />
@@ -1254,10 +1302,6 @@ export class App extends React.Component<AppProps> {
       log.error('Launcher', `Error deleting game: ${error}`);
       alert(strings.dialog.unableToDeleteGame + '\n\n' + error);
     });
-  }
-
-  onLaunchGame(gameId: string): void {
-    window.Shared.back.send(BackIn.LAUNCH_GAME, gameId);
   }
 
   onQuickSearch = (search: string): void => {

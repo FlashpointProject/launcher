@@ -1,7 +1,8 @@
 import * as fs from 'fs';
+import * as path from 'path';
+import { deepCopy, readJsonFile, readJsonFileSync, stringifyJsonDataFile } from '../Util';
 import { AppPreferencesData } from './interfaces';
 import { defaultPreferencesData, overwritePreferenceData } from './util';
-import { deepCopy, readJsonFile, readJsonFileSync, stringifyJsonDataFile } from '../Util';
 
 /** Static class with methods for saving, loading and parsing the Preferences file */
 export namespace PreferencesFile {
@@ -27,10 +28,9 @@ export namespace PreferencesFile {
    * If the file does not exist, create a new one with the default values and return that instead.
    * @param onError Called for each error that occurs while parsing.
    */
-  export async function readOrCreateFile(filePath: string, onError?: (error: string) => void): Promise<AppPreferencesData> {
-    let data: AppPreferencesData | undefined;
+  export async function readOrCreateFile(filePath: string, flashpointPath: string, onError?: (error: string) => void): Promise<AppPreferencesData> {
     // Try to get the data from the file
-    data = await readFile(filePath, onError)
+    const data = await readFile(filePath, onError)
     .catch((e) => {
       if (e.code !== 'ENOENT') {
         if (onError) { onError(e); }
@@ -38,11 +38,24 @@ export namespace PreferencesFile {
       }
       return undefined;
     });
-    // If that failed, set data to default and save it to a new file
+    // If doesn't exist, set data to default and save it to a new file
     if (!data) {
-      data = deepCopy(defaultPreferencesData);
-      await saveFile(filePath, data)
-      .catch(() => console.error('Failed to save default preferences file!'));
+      const overridePath = path.join(flashpointPath, '.preferences.defaults.json');
+      console.log('Checking for prefs override at ' + overridePath);
+      try {
+        await fs.promises.copyFile(overridePath, filePath);
+        console.log('Copied default preferences (override)');
+        // File copied, try loading again
+        return readOrCreateFile(filePath, flashpointPath, onError);
+      } catch (err) {
+        console.log(err);
+        // Failed to copy overrides, use defaults
+        const defaultPrefs = deepCopy(defaultPreferencesData);
+        await saveFile(filePath, defaultPrefs)
+        .catch(() => console.error('Failed to save default preferences file!'));
+        console.log('Copied default preferences');
+        return defaultPrefs;
+      }
     }
     // Return
     return data;
