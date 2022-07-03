@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { deepCopy, readJsonFile, readJsonFileSync, stringifyJsonDataFile } from '../Util';
+import { deepCopy, getTempFilename, readJsonFile, readJsonFileSync, stringifyJsonDataFile } from '../Util';
 import { AppPreferencesData } from './interfaces';
 import { defaultPreferencesData, overwritePreferenceData } from './util';
 
@@ -68,6 +68,24 @@ export namespace PreferencesFile {
 
   export async function saveFile(filePath: string, data: AppPreferencesData): Promise<void> {
     const json = stringifyJsonDataFile(data);
-    await fs.promises.writeFile(filePath, json);
+    if (json.length === 0) {
+      log.error('PreferencesFile', 'Serialized preferences string is empty, skipping write.');
+      return;
+    }
+    const temp = await getTempFilename();
+    await fs.promises.writeFile(temp, json);
+    // Check: was it written correctly?
+    let stat = await fs.promises.stat(temp);
+    let count = 0;
+    while (stat.size !== json.length) {
+      if (count > 3) {
+        log.error('PreferencesFile', 'Repeated failure to write preferences.');
+        return fs.promises.unlink(temp);
+      }
+      await fs.promises.writeFile(temp, json);
+      stat = await fs.promises.stat(temp);
+      count++;
+    }
+    await fs.promises.rename(temp, filePath);
   }
 }

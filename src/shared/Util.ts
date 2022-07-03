@@ -1,11 +1,13 @@
 import * as axiosImport from 'axios';
 import { Tag, TagFilterGroup } from 'flashpoint-launcher';
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import { DownloadDetails } from './back/types';
 import { AppConfigData } from './config/interfaces';
-import { parseVariableString } from './utils/VariableString';
 import { throttle } from './utils/throttle';
+import { uuid } from './utils/uuid';
+import { parseVariableString } from './utils/VariableString';
 
 const axios = axiosImport.default;
 
@@ -450,4 +452,8 @@ export function generateTagFilterGroup(tags?: string[]): TagFilterGroup {
     categories: [],
     childFilters: []
   };
+}
+
+export async function getTempFilename(ext: string = 'tmp') {
+  return path.join(await fs.promises.realpath(os.tmpdir()), uuid() + '.' + ext);
 }
