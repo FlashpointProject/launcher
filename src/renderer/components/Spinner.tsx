@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 /**
- * Source: https://loading.io/css/ 
+ * Source: https://loading.io/css/
  * License: CC0
 */
 export function Spinner() {
