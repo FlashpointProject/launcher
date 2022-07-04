@@ -213,73 +213,33 @@ export namespace GameLauncher {
       }
     }
     // Continue with launching normally
-    switch (appPath) {
-      // Special case flash browser run.
-      // @TODO Move to extension
-      case ':flash:': {
-        const env = getEnvironment(opts.fpPath, opts.proxy);
-        if ('ELECTRON_RUN_AS_NODE' in env) {
-          delete env['ELECTRON_RUN_AS_NODE']; // If this flag is present, it will disable electron features from the process
-        }
-        const gameData = opts.game.activeDataId ? await GameDataManager.findOne(opts.game.activeDataId) : undefined;
-        const gameLaunchInfo: GameLaunchInfo = {
-          game: opts.game,
-          activeData: gameData,
-          launchInfo: {
-            gamePath: process.execPath,
-            gameArgs: [path.join(__dirname, '../main/index.js'), 'browser_mode=true', `browser_url=${path.join(__dirname, '../window/flash_index.html')}?data=${encodeURI(opts.game.launchCommand)}`],
-            useWine: false,
-            env,
-            cwd: getCwd(opts.isDev, opts.exePath),
-            noshell: true
-          }
-        };
-        onWillEvent.fire(gameLaunchInfo)
-        .then(() => {
-          const managedProc = opts.runGame(gameLaunchInfo);
-          log.info(logSource, `Launch Game "${opts.game.title}" (PID: ${managedProc.getPid()}) [\n`+
-                    `    applicationPath: "${appPath}",\n`+
-                    `    launchCommand:   "${opts.game.launchCommand}" ]`);
-        })
-        .catch((error) => {
-          log.info('Game Launcher', `Game Launch Aborted: ${error}`);
-          alert(`Game Launch Aborted: ${error}`);
-        });
-        const managedProc = opts.runGame(gameLaunchInfo);
-        log.info(logSource, `Launch Game "${opts.game.title}" (PID: ${managedProc.getPid()}) [\n`+
-                  `    applicationPath: "${appPath}",\n`+
-                  `    launchCommand:   "${opts.game.launchCommand}" ]`);
-      } break;
-      default: {
-        const gamePath: string = path.isAbsolute(appPath) ? fixSlashes(appPath) : fixSlashes(path.join(opts.fpPath, appPath));
-        const gameArgs: string[] = [...appArgs, opts.game.launchCommand];
-        const useWine: boolean = process.platform != 'win32' && gamePath.endsWith('.exe');
-        const env = getEnvironment(opts.fpPath, opts.proxy);
-        const gameData = opts.game.activeDataId ? await GameDataManager.findOne(opts.game.activeDataId) : undefined;
-        const gameLaunchInfo: GameLaunchInfo = {
-          game: opts.game,
-          activeData: gameData,
-          launchInfo: {
-            gamePath,
-            gameArgs,
-            useWine,
-            env,
-          }
-        };
-        onWillEvent.fire(gameLaunchInfo)
-        .then(() => {
-          const command: string = createCommand(gameLaunchInfo.launchInfo);
-          const managedProc = opts.runGame(gameLaunchInfo);
-          log.info(logSource,`Launch Game "${opts.game.title}" (PID: ${managedProc.getPid()}) [\n`+
-                     `    applicationPath: "${opts.game.applicationPath}",\n`+
-                     `    launchCommand:   "${opts.game.launchCommand}",\n`+
-                     `    command:         "${command}" ]`);
-        })
-        .catch((error) => {
-          log.info('Game Launcher', `Game Launch Aborted: ${error}`);
-        });
-      } break;
-    }
+    const gamePath: string = path.isAbsolute(appPath) ? fixSlashes(appPath) : fixSlashes(path.join(opts.fpPath, appPath));
+    const gameArgs: string[] = [...appArgs, opts.game.launchCommand];
+    const useWine: boolean = process.platform != 'win32' && gamePath.endsWith('.exe');
+    const env = getEnvironment(opts.fpPath, opts.proxy);
+    const gameData = opts.game.activeDataId ? await GameDataManager.findOne(opts.game.activeDataId) : undefined;
+    const gameLaunchInfo: GameLaunchInfo = {
+      game: opts.game,
+      activeData: gameData,
+      launchInfo: {
+        gamePath,
+        gameArgs,
+        useWine,
+        env,
+      }
+    };
+    onWillEvent.fire(gameLaunchInfo)
+    .then(() => {
+      const command: string = createCommand(gameLaunchInfo.launchInfo);
+      const managedProc = opts.runGame(gameLaunchInfo);
+      log.info(logSource,`Launch Game "${opts.game.title}" (PID: ${managedProc.getPid()}) [\n`+
+                  `    applicationPath: "${opts.game.applicationPath}",\n`+
+                  `    launchCommand:   "${opts.game.launchCommand}",\n`+
+                  `    command:         "${command}" ]`);
+    })
+    .catch((error) => {
+      log.info('Game Launcher', `Game Launch Aborted: ${error}`);
+    });
   }
 
   /**
