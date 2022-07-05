@@ -281,7 +281,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     // @TODO Figure out why async loading isn't always working?
     const prefsFilePath = path.join(state.config.flashpointPath, PREFERENCES_FILENAME);
     try {
-      state.preferences = await PreferencesFile.readOrCreateFile(prefsFilePath);
+      state.preferences = await PreferencesFile.readOrCreateFile(prefsFilePath, state.config.flashpointPath);
     } catch (e) {
       console.log('Failed to load preferences, prompting for defaults');
       const res = await new Promise<number>((resolve) => {

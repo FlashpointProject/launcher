@@ -12,6 +12,7 @@ import { randomBytes } from 'crypto';
 import { app, BrowserWindow, dialog, ipcMain, IpcMainEvent, session, shell, WebContents } from 'electron';
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import { argv } from 'process';
 import * as WebSocket from 'ws';
 import { Init } from './types';
 import * as Util from './Util';
@@ -377,12 +378,15 @@ export function main(init: Init): void {
   }
 
   function onInit(event: IpcMainEvent) {
+    // Find the arg that is our custom protocol url and store it
+    const url = argv.find((arg) => arg.startsWith('flashpoint://'));
     const data: InitRendererData = {
       isBackRemote: !!init.args['connect-remote'],
       installed: !!state._installed,
       version: state._version,
       host: state.backHost.href,
       secret: state._secret,
+      url
     };
     event.returnValue = data;
   }

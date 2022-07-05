@@ -114,6 +114,7 @@ const onInit = (async () => {
   window.Shared.version = data.version;
   window.Shared.isBackRemote = data.isBackRemote;
   window.Shared.backUrl = new URL(data.host);
+  window.Shared.url = data.url;
   // Connect to the back
   const socket = await SocketClient.connect(WebSocket, data.host, data.secret);
   window.Shared.back.url = data.host;

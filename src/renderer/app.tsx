@@ -108,36 +108,16 @@ export class App extends React.Component<AppProps> {
         }
       };
     })();
-    // Listen for the window to move or resize (and update the preferences when it does)
-    ipcRenderer.on(WindowIPC.WINDOW_MOVE, debounce((sender, x: number, y: number, isMaximized: boolean) => {
-      if (!isMaximized) {
-        updatePreferencesData({ mainWindow: { x: x|0, y: y|0 } });
-      }
-    }, 100));
-    ipcRenderer.on(WindowIPC.WINDOW_RESIZE, debounce((sender, width: number, height: number, isMaximized: boolean) => {
-      if (!isMaximized) {
-        // Cap minimum size
-        if (width < 300) {
-          width = 300;
-        }
-        if (height < 300) {
-          height = 300;
-        }
-        updatePreferencesData({ mainWindow: { width: width|0, height: height|0 } });
-      }
-    }, 100));
-    ipcRenderer.on(WindowIPC.WINDOW_MAXIMIZE, (sender, isMaximized: boolean) => {
-      updatePreferencesData({ mainWindow: { maximized: isMaximized } });
-    });
-    ipcRenderer.on(WindowIPC.PROTOCOL, (sender, url: string) => {
+    const handleProtocol = (url: string) => {
       const parts = url.split('/');
+      log.debug('Launcher', 'Handling Protocol - ' + url);
       if (parts.length > 2) {
-        // remove "flashpoint:" and "" elements
+      // remove "flashpoint:" and "" elements
         parts.splice(0, 2);
         switch (parts[0]) {
           case 'open': {
             if (parts.length >= 2) {
-              // Open game in sidebar
+            // Open game in sidebar
               window.Shared.back.request(BackIn.GET_GAME, parts[1])
               .then(game => {
                 if (game) {
@@ -148,7 +128,7 @@ export class App extends React.Component<AppProps> {
                     currentPlaylist: undefined,
                     currentPlaylistEntry: undefined
                   });
-                } else { console.log(`Failed to get game. Game is undefined (GameID: "${parts[1]}").`); }
+                } else { log.error('Launcher', `Failed to get game. Game is undefined (GameID: "${parts[1]}").`); }
               });
             }
             break;
@@ -158,7 +138,7 @@ export class App extends React.Component<AppProps> {
               window.Shared.back.request(BackIn.GET_GAME, parts[1])
               .then(async (game) => {
                 if (game) {
-                  // Open game in sidebar
+                // Open game in sidebar
                   this.props.setMainState({
                     currentGame: game,
                     selectedGameId: game.id,
@@ -181,7 +161,7 @@ export class App extends React.Component<AppProps> {
                       }
                     });
                   }
-                } else { console.log(`Failed to get game. Game is undefined (GameID: "${parts[1]}").`); }
+                } else { log.error('Launcher', `Failed to get game. Game is undefined (GameID: "${parts[1]}").`); }
               });
             }
             break;
@@ -191,6 +171,30 @@ export class App extends React.Component<AppProps> {
             break;
         }
       }
+    };
+    // Listen for the window to move or resize (and update the preferences when it does)
+    ipcRenderer.on(WindowIPC.WINDOW_MOVE, debounce((sender, x: number, y: number, isMaximized: boolean) => {
+      if (!isMaximized) {
+        updatePreferencesData({ mainWindow: { x: x|0, y: y|0 } });
+      }
+    }, 100));
+    ipcRenderer.on(WindowIPC.WINDOW_RESIZE, debounce((sender, width: number, height: number, isMaximized: boolean) => {
+      if (!isMaximized) {
+        // Cap minimum size
+        if (width < 300) {
+          width = 300;
+        }
+        if (height < 300) {
+          height = 300;
+        }
+        updatePreferencesData({ mainWindow: { width: width|0, height: height|0 } });
+      }
+    }, 100));
+    ipcRenderer.on(WindowIPC.WINDOW_MAXIMIZE, (sender, isMaximized: boolean) => {
+      updatePreferencesData({ mainWindow: { maximized: isMaximized } });
+    });
+    ipcRenderer.on(WindowIPC.PROTOCOL, (sender, url: string) => {
+      handleProtocol(url);
     });
 
     window.Shared.back.request(BackIn.INIT_LISTEN)
@@ -447,6 +451,10 @@ export class App extends React.Component<AppProps> {
           });
         }
       }));
+
+      if (window.Shared.url) {
+        handleProtocol(window.Shared.url);
+      }
     });
 
     // Load Credits
@@ -720,6 +728,7 @@ export class App extends React.Component<AppProps> {
   }
 
   onGameLaunch = async (gameId: string): Promise<void> => {
+    log.debug('Launcher', 'Launching Game - ' + gameId);
     await window.Shared.back.request(BackIn.LAUNCH_GAME, gameId);
   }
 

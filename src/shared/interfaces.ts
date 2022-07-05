@@ -33,6 +33,9 @@ export interface IMainWindowExternal {
   /** The type of OS this is running on. */
   platform: NodeJS.Platform;
 
+  /** URL the program was run with */
+  url?: string;
+
   /** Minimize the window */
   minimize(): void;
 

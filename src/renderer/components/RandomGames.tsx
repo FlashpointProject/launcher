@@ -42,7 +42,6 @@ export function RandomGames(props: RandomGamesProps) {
 
   const gameItems = React.useMemo(() => {
     /* Games is a long queue, only render front */
-    log.debug('TEST', `Rendering Random Games - ${props.selectedGameId || 'None Selected'}`);
     return (
       props.games.slice(0, 6).map(game => (
         <GameGridItem
