@@ -7,6 +7,7 @@ import { fixSlashes, padStart, stringifyArray } from '@shared/Util';
 import { Coerce } from '@shared/utils/Coerce';
 import { ChildProcess, exec } from 'child_process';
 import { EventEmitter } from 'events';
+import * as GameManager from '@back/game/GameManager';
 import { AppPathOverride, GameData, ManagedChildProcess } from 'flashpoint-launcher';
 import * as path from 'path';
 import { ApiEmitter } from './extensions/ApiEmitter';
@@ -28,7 +29,7 @@ export type LaunchGameOpts = LaunchBaseOpts & {
 
 export type GameLaunchInfo = {
   game: Game;
-  activeData?: GameData;
+  activeData: GameData | null;
   launchInfo: LaunchInfo;
 }
 
@@ -117,7 +118,6 @@ export namespace GameLauncher {
 
   /**
    * Launch a game
-   * @param game Game to launch
    */
   export async function launchGame(opts: LaunchGameOpts, onWillEvent: ApiEmitter<GameLaunchInfo>): Promise<void> {
     // Abort if placeholder (placeholders are not "actual" games)
@@ -146,12 +146,14 @@ export namespace GameLauncher {
         }
       }
     }
+    log.debug('TEST', 'Run required add apps');
     // Launch game
     let appPath: string = getApplicationPath(opts.game.applicationPath, opts.execMappings, opts.native);
     let appArgs: string[] = [];
     const appPathOverride = opts.appPathOverrides.filter(a => a.enabled).find(a => a.path === appPath);
     if (appPathOverride) { appPath = appPathOverride.override; }
     const availableApps = opts.providers.filter(p => p.provides.includes(appPath) || p.provides.includes(opts.game.applicationPath));
+    log.debug('TEST', 'Checked for available apps');
     // If any available provided applications, check if any work.
     for (const app of availableApps) {
       try {
@@ -178,7 +180,7 @@ export namespace GameLauncher {
           const browserLaunchArgs = [path.join(__dirname, '../main/index.js'), 'browser_mode=true'];
           if (res.proxy) { browserLaunchArgs.push(`proxy=${res.proxy}`); }
           browserLaunchArgs.push(`browser_url=${(res.url)}`);
-          const gameData = opts.game.activeDataId ? await GameDataManager.findOne(opts.game.activeDataId) : undefined;
+          const gameData = opts.game.activeDataId ? await GameDataManager.findOne(opts.game.activeDataId) : null;
           const gameLaunchInfo: GameLaunchInfo = {
             game: opts.game,
             activeData: gameData,
@@ -212,12 +214,21 @@ export namespace GameLauncher {
         log.error('Launcher', `Error running provider for game.\n${error}`);
       }
     }
+    log.debug('TEST', 'Trying launch');
     // Continue with launching normally
     const gamePath: string = path.isAbsolute(appPath) ? fixSlashes(appPath) : fixSlashes(path.join(opts.fpPath, appPath));
     const gameArgs: string[] = [...appArgs, opts.game.launchCommand];
+    log.debug('TEST', 'Gotten game path and args');
     const useWine: boolean = process.platform != 'win32' && gamePath.endsWith('.exe');
     const env = getEnvironment(opts.fpPath, opts.proxy);
-    const gameData = opts.game.activeDataId ? await GameDataManager.findOne(opts.game.activeDataId) : undefined;
+    log.debug('TEST', 'Gotten environment');
+    try {
+      await GameManager.findGame(opts.game.id);
+    } catch (err: any) {
+      log.error('TEST', 'Error Game - ' + err.toString());
+    }
+    const gameData = opts.game.activeDataId ? await GameDataManager.findOne(opts.game.activeDataId) : null;
+    log.debug('TEST', 'Found game data');
     const gameLaunchInfo: GameLaunchInfo = {
       game: opts.game,
       activeData: gameData,
@@ -228,9 +239,11 @@ export namespace GameLauncher {
         env,
       }
     };
+    log.debug('TEST', 'Gathered info');
     onWillEvent.fire(gameLaunchInfo)
     .then(() => {
       const command: string = createCommand(gameLaunchInfo.launchInfo);
+      log.debug('TEST', 'All info gathered, running');
       const managedProc = opts.runGame(gameLaunchInfo);
       log.info(logSource,`Launch Game "${opts.game.title}" (PID: ${managedProc.getPid()}) [\n`+
                   `    applicationPath: "${opts.game.applicationPath}",\n`+

@@ -36,7 +36,7 @@ export type AppRouterProps = {
   appPaths: Record<string, string>;
   platforms: Record<string, string[]>;
   platformsFlat: string[];
-  onSaveGame: (game: Game, playlistEntry?: PlaylistGame) => Promise<Game | undefined>;
+  onSaveGame: (game: Game, playlistEntry?: PlaylistGame) => Promise<Game | null>;
   onDeleteGame: (gameId: string) => void;
   onLaunchGame: (gameId: string) => void;
   onQuickSearch: (search: string) => void;

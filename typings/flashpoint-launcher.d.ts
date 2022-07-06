@@ -1,4 +1,4 @@
-// Type definitions for non-npm package flashpoint-launcher 10.1
+// Type definitions for non-npm package flashpoint-launcher 10.2
 // Project: Flashpoint Launcher https://github.com/FlashpointProject/launcher
 // Definitions by: Colin Berry <https://github.com/colin969>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
@@ -1027,7 +1027,7 @@ declare module 'flashpoint-launcher' {
     /** Info type passed to onWillLaunch events */
     type GameLaunchInfo = {
         game: Game;
-        activeData?: GameData;
+        activeData: GameData | null;
         launchInfo: LaunchInfo;
     };
 

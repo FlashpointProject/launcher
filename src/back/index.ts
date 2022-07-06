@@ -36,9 +36,8 @@ import * as mime from 'mime';
 import * as path from 'path';
 import 'reflect-metadata';
 // Required for the DB Models to function
-import 'sqlite3';
 import { Tail } from 'tail';
-import { ConnectionOptions, createConnection } from 'typeorm';
+import { DataSource, DataSourceOptions } from 'typeorm';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE } from './constants';
 import { loadExecMappingsFile } from './Execs';
@@ -60,6 +59,15 @@ import { FolderWatcher } from './util/FolderWatcher';
 import { LogFile } from './util/LogFile';
 import { logFactory } from './util/logging';
 import { createContainer, exit, runService } from './util/misc';
+
+const dataSourceOptions: DataSourceOptions = {
+  type: 'better-sqlite3',
+  database: ':memory:',
+  entities: [Game, AdditionalApp, Playlist, PlaylistGame, Tag, TagAlias, TagCategory, GameData, Source, SourceData],
+  migrations: [Initial1593172736527, AddExtremeToPlaylist1599706152407, GameData1611753257950, SourceDataUrlPath1612434225789, SourceFileURL1612435692266,
+    SourceFileCount1612436426353, GameTagsStr1613571078561, GameDataParams1619885915109]
+};
+export const AppDataSource: DataSource = new DataSource(dataSourceOptions);
 
 const DEFAULT_LOGO_PATH = 'window/images/Logos/404.png';
 
@@ -167,7 +175,6 @@ const state: BackState = {
     themes: new Map<string, Theme>(),
   },
   extensionsService: createErrorProxy('extensionsService'),
-  connection: undefined,
   prefsQueue: new EventQueue(),
 };
 
@@ -235,6 +242,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   if (state.isInit) { return; }
   state.isInit = true;
 
+  console.log('Back - Initializing...');
+
   const content: BackInitArgs = JSON.parse(message);
   state.isDev = content.isDev;
   state.verbose = content.verbose;
@@ -271,6 +280,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     send({quit: true, errorMessage: 'Invalid config.json!'});
     return;
   }
+
+  console.log('Back - Loaded Config');
 
   // If we're on mac and the flashpoint path is relative, resolve it relative to the configFolder path.
   state.config.flashpointPath = process.platform == 'darwin' && state.config.flashpointPath[0] != '/'
@@ -327,6 +338,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     return;
   }
 
+  console.log('Back - Loaded Preferences');
+
   try {
     const [extConf] = await (Promise.all([
       ExtConfigFile.readOrCreateFile(path.join(state.config.flashpointPath, EXT_CONFIG_FILENAME))
@@ -336,6 +349,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     console.log(e);
     // Non-fatal, don't quit.
   }
+
+  console.log('Back - Loaded Extension Config');
 
   // Create Game Data Directory and clean up temp files
   const fullDataPacksFolderPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath);
@@ -368,20 +383,29 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   }
 
   // Setup DB
-  if (!state.connection) {
-    const options: ConnectionOptions = {
-      type: 'sqlite',
-      database: path.join(state.config.flashpointPath, 'Data', 'flashpoint.sqlite'),
-      entities: [Game, AdditionalApp, Playlist, PlaylistGame, Tag, TagAlias, TagCategory, GameData, Source, SourceData],
-      migrations: [Initial1593172736527, AddExtremeToPlaylist1599706152407, GameData1611753257950, SourceDataUrlPath1612434225789, SourceFileURL1612435692266,
-        SourceFileCount1612436426353, GameTagsStr1613571078561, GameDataParams1619885915109]
-    };
-    state.connection = await createConnection(options);
+  if (!AppDataSource.isInitialized) {
+    const databasePath = path.resolve(state.config.flashpointPath, 'Data', 'flashpoint.sqlite');
+    console.log('Back - Using Database at ' + databasePath);
+    // Spin up another source just to run migrations
+    const migrationSource = new DataSource({
+      ...dataSourceOptions,
+      type: 'better-sqlite3',
+      database: databasePath
+    });
+    await migrationSource.initialize();
+    await migrationSource.query('PRAGMA foreign_keys=off;');
+    await migrationSource.runMigrations();
+    await migrationSource.showMigrations();
+    await migrationSource.destroy();
+    // Initialize real database
+    AppDataSource.setOptions({ database: databasePath });
+    await AppDataSource.initialize();
     // TypeORM forces on but breaks Playlist Game links to unimported games
-    await state.connection.query('PRAGMA foreign_keys=off;');
-    await state.connection.runMigrations();
+    await AppDataSource.query('PRAGMA foreign_keys=off;');
     log.info('Launcher', 'Database connection established');
   }
+
+  console.log('Back - Initialized Database');
 
   // Init extensions
   const addExtLogFactory = (extId: string) => (entry: ILogEntry) => {
@@ -428,6 +452,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     });
   });
 
+  console.log('Back - Initialized Extensions');
 
   // Init services
   try {
@@ -471,6 +496,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
       }
     }
   }
+
+  console.log('Back - Initialized Services');
 
   // Init language
   state.languageWatcher.on('ready', () => {
@@ -536,6 +563,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     }
   });
 
+  console.log('Back - Initialized Languages');
+
   // Init themes
   const dataThemeFolder = path.join(state.config.flashpointPath, state.preferences.themeFolderPath);
   try {
@@ -565,6 +594,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
       }
     }
   }
+
+  console.log('Back - Initialized Themes');
 
   // Init Logo Sets
   const dataLogoSetsFolder = path.join(state.config.flashpointPath, state.preferences.logoSetsFolderPath);
@@ -628,6 +659,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     }
   }
 
+  console.log('Back - Initialized Logo Sets');
+
   // Load Exec Mappings
   loadExecMappingsFile(path.join(state.config.flashpointPath, state.preferences.jsonFolderPath), content => log.info('Launcher', content))
   .then(data => {
@@ -640,6 +673,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     state.init[BackInit.EXEC] = true;
     state.initEmitter.emit(BackInit.EXEC);
   });
+
+  console.log('Back - Loaded Exec Mappings');
 
   const hostname = content.acceptRemote ? undefined : 'localhost';
 
@@ -685,11 +720,16 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   // Exit if it failed to open the server
   if (state.socketServer.port < 0) {
+    console.log('Back - Failed to open File Server, Exiting...');
     setImmediate(exit);
+    return;
   }
+
+  console.log('Back - Opened File Server');
 
   // Respond
   send({port: state.socketServer.port}, () => {
+    console.log('Back - Ready');
     state.apiEmitters.onDidInit.fire();
   });
 

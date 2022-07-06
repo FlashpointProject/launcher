@@ -130,7 +130,9 @@ export function mainStateReducer(state: MainState = createInitialState(), action
             //
             metaState: RequestState.RECEIVED,
             // Dirty games
-            isDirty: true,
+            isDirty: action.total === 0 ? false : true,
+            games: action.total === 0 ? [] : view.games,
+            lastCount: action.total === 0 ? 0 : view.lastCount,
             pageState: {},
             // Update total (for the first response only)
             total: (view.total === undefined)

@@ -37,7 +37,7 @@ type OwnProps = {
   playlists: Playlist[];
   suggestions: Partial<GamePropSuggestions>;
   playlistIconCache: Record<string, string>;
-  onSaveGame: (game: Game, playlistEntry?: PlaylistGame) => Promise<Game | undefined>;
+  onSaveGame: (game: Game, playlistEntry?: PlaylistGame) => Promise<Game | null>;
   onDeleteGame: (gameId: string) => void;
   onQuickSearch: (search: string) => void;
   onOpenExportMetaEdit: (gameId: string) => void;
@@ -180,6 +180,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     const strings = this.context;
     const { games, selectedGameId, selectedPlaylistId } = this.props;
     const { draggedGameId } = this.state;
+    const gamesTotalNum = this.props.gamesTotal != undefined ? this.props.gamesTotal : -1;
     const extremeTags = this.props.preferencesData.tagFilters.filter(t => !t.enabled && t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
     // Render
     return (
@@ -218,7 +219,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             onExportPlaylist={(playlistId) => this.onExportPlaylist(strings, playlistId)}
             onContextMenu={this.onPlaylistContextMenuMemo(strings, this.state.isEditingPlaylist, this.props.selectedPlaylistId)} />
         </ResizableSidebar>
-        { this.props.gamesTotal ? (
+        { (gamesTotalNum > -1) ? (
           <div
             className='game-browser__center'
             onKeyDown={this.onCenterKeyDown}>
@@ -507,7 +508,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   updateCurrentGame = queueOne(async (gameId?: string, playlistId?: string): Promise<void> => {
     // Find the selected game in the selected playlist
     if (gameId) {
-      let gamePlaylistEntry: PlaylistGame | undefined;
+      let gamePlaylistEntry: PlaylistGame | null;
 
       if (playlistId) {
         gamePlaylistEntry = await window.Shared.back.request(BackIn.GET_PLAYLIST_GAME, playlistId, gameId);
@@ -519,7 +520,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         if (game) {
           this.setState({
             currentGame: game,
-            currentPlaylistEntry: gamePlaylistEntry,
+            currentPlaylistEntry: gamePlaylistEntry == null ? undefined : gamePlaylistEntry,
             isNewGame: false,
           });
         } else { console.log(`Failed to get game. Game is undefined (GameID: "${gameId}").`); }
@@ -549,7 +550,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     }
     const game = await this.props.onSaveGame(this.state.currentGame, this.state.currentPlaylistEntry);
     this.setState({
-      currentGame: game,
+      currentGame: game == null ? undefined : game,
       isEditingGame: false,
       isNewGame: false
     });

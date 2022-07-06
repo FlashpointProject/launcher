@@ -1,23 +1,24 @@
 import { SocketServer } from '@back/SocketServer';
 import { ShowMessageBoxFunc } from '@back/types';
-import { chunkArray } from '@shared/utils/misc';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
 import { BackOut, MergeTagData, TagSuggestion } from '@shared/back/types';
-import { getManager, Not, SelectQueryBuilder } from 'typeorm';
+import { chunkArray } from '@shared/utils/misc';
+import { IsNull, Not, SelectQueryBuilder } from 'typeorm';
+import { AppDataSource } from '..';
 import * as GameManager from './GameManager';
 
 export async function findTagCategories(): Promise<TagCategory[]> {
-  return getManager().getRepository(TagCategory).find();
+  return AppDataSource.getRepository(TagCategory).find();
 }
 
 export async function deleteTag(tagId: number, openDialog: ShowMessageBoxFunc, skipWarn?: boolean): Promise<boolean> {
-  const tagRepository = getManager().getRepository(Tag);
-  const tagAliasRepository = getManager().getRepository(TagAlias);
+  const tagRepository = AppDataSource.getRepository(Tag);
+  const tagAliasRepository = AppDataSource.getRepository(TagAlias);
 
   if (!skipWarn) {
-    const gameCount = (await getManager().createQueryBuilder()
+    const gameCount = (await AppDataSource.createQueryBuilder()
     .select('COUNT(*)')
     .from('game_tags_tag', 'game_tag')
     .where('game_tag.tagId = :id', { id: tagId })
@@ -38,18 +39,18 @@ export async function deleteTag(tagId: number, openDialog: ShowMessageBoxFunc, s
 }
 
 export async function saveTag(tag: Tag): Promise<Tag> {
-  const tagRepository = getManager().getRepository(Tag);
+  const tagRepository = AppDataSource.getRepository(Tag);
   return tagRepository.save(tag);
 }
 
 export async function saveTagAlias(tagAlias: TagAlias): Promise<TagAlias> {
-  const tagAliasRepository = getManager().getRepository(TagAlias);
+  const tagAliasRepository = AppDataSource.getRepository(TagAlias);
   return tagAliasRepository.save(tagAlias);
 }
 
 export async function findTags(name?: string, flatFilters?: string[]): Promise<Tag[]> {
-  const tagRepository = getManager().getRepository(Tag);
-  const tagAliasRepostiory = getManager().getRepository(TagAlias);
+  const tagRepository = AppDataSource.getRepository(Tag);
+  const tagAliasRepostiory = AppDataSource.getRepository(TagAlias);
   const filterQuery = flatFilters ? getFilterIDsQuery(flatFilters) : undefined;
 
 
@@ -77,7 +78,7 @@ export async function findTags(name?: string, flatFilters?: string[]): Promise<T
 }
 
 // @TODO : Localize
-export async function mergeTags(mergeData: MergeTagData, openDialog: ShowMessageBoxFunc): Promise<Tag | undefined> {
+export async function mergeTags(mergeData: MergeTagData, openDialog: ShowMessageBoxFunc): Promise<Tag | null> {
   const mergeSorc = await findTag(mergeData.toMerge);
   const mergeDest = await findTag(mergeData.mergeInto);
   if (mergeDest && mergeSorc) {
@@ -89,7 +90,7 @@ export async function mergeTags(mergeData: MergeTagData, openDialog: ShowMessage
         buttons: [ 'Yes', 'No', 'Cancel' ]
       });
       if (res !== 0) {
-        return undefined;
+        return null;
       }
       // Move names first
       if (mergeData.makeAlias) {
@@ -128,16 +129,16 @@ export async function mergeTags(mergeData: MergeTagData, openDialog: ShowMessage
 }
 
 export async function cleanupTagAliases() {
-  const tagAliasRepostiory = getManager().getRepository(TagAlias);
+  const tagAliasRepostiory = AppDataSource.getRepository(TagAlias);
   const q = tagAliasRepostiory.createQueryBuilder('tag_alias')
   .delete()
   .where('tag_alias.tagId IS NULL');
   return q.execute();
 }
 
-export async function findTag(name: string): Promise<Tag | undefined> {
-  const tagRepository = getManager().getRepository(Tag);
-  const tagAliasRepostiory = getManager().getRepository(TagAlias);
+export async function findTag(name: string): Promise<Tag | null> {
+  const tagRepository = AppDataSource.getRepository(Tag);
+  const tagAliasRepostiory = AppDataSource.getRepository(TagAlias);
 
   const alias = await tagAliasRepostiory.findOne({
     where: [
@@ -152,11 +153,13 @@ export async function findTag(name: string): Promise<Tag | undefined> {
       ]
     });
   }
+
+  return null;
 }
 
 export async function findTagSuggestions(name: string, flatTagFilter: string[] = [], flatCatFilter: string[] = []): Promise<TagSuggestion[]> {
-  const tagAliasRepostiory = getManager().getRepository(TagAlias);
-  const tagCategoryRepository = getManager().getRepository(TagCategory);
+  const tagAliasRepostiory = AppDataSource.getRepository(TagAlias);
+  const tagCategoryRepository = AppDataSource.getRepository(TagCategory);
   const tagCategories = (await Promise.all(flatCatFilter.map(async (cat) => tagCategoryRepository.findOne({ where: { name: cat }})))).filter(t => t !== undefined) as TagCategory[];
   const flatCatIds = tagCategories.map(tg => tg.id);
   const filterQuery = flatTagFilter.length > 0 ? getFilterIDsQuery(flatTagFilter) : undefined;
@@ -172,7 +175,7 @@ export async function findTagSuggestions(name: string, flatTagFilter: string[] =
   }
   subQuery = subQuery.limit(25);
 
-  const tagAliases = await getManager().createQueryBuilder()
+  const tagAliases = await AppDataSource.createQueryBuilder()
   .select('sugg.id, sugg.categoryId, sugg.name, COUNT(game_tag.gameId) as gameCount, primary_alias.name as primaryName')
   .from(`(${ subQuery.getQuery() })`, 'sugg')
   .leftJoin(TagAlias, 'primary_alias', 'sugg.primaryAliasId = primary_alias.id')
@@ -197,9 +200,9 @@ export async function findTagSuggestions(name: string, flatTagFilter: string[] =
 }
 
 export async function findGameTags(gameId: string): Promise<Tag[] | undefined> {
-  const tagRepository = getManager().getRepository(Tag);
+  const tagRepository = AppDataSource.getRepository(Tag);
 
-  const subQuery = getManager().createQueryBuilder()
+  const subQuery = AppDataSource.createQueryBuilder()
   .select('game_tag.tagId')
   .from('game_tags_tag', 'game_tag')
   .where('game_tag.gameId = :gameId', { gameId: gameId });
@@ -214,11 +217,11 @@ export async function findGameTags(gameId: string): Promise<Tag[] | undefined> {
   return tags;
 }
 
-export async function createTag(name: string, categoryName?: string, aliases?: string[]): Promise<Tag | undefined> {
-  const tagRepository = getManager().getRepository(Tag);
-  const tagAliasRepostiory = getManager().getRepository(TagAlias);
-  const tagCategoryRepository = getManager().getRepository(TagCategory);
-  let category: TagCategory | undefined = undefined;
+export async function createTag(name: string, categoryName?: string, aliases?: string[]): Promise<Tag | null> {
+  const tagRepository = AppDataSource.getRepository(Tag);
+  const tagAliasRepostiory = AppDataSource.getRepository(TagAlias);
+  const tagCategoryRepository = AppDataSource.getRepository(TagCategory);
+  let category: TagCategory | null = null;
 
   // If category is defined, find/make it
   if (categoryName) {
@@ -263,10 +266,12 @@ export async function createTag(name: string, categoryName?: string, aliases?: s
     savedTag.aliases = [await tagAliasRepostiory.save(tagAlias), ...tagAliases];
     return savedTag;
   }
+
+  return null;
 }
 
-export async function createTagCategory(name: string, color: string): Promise<TagCategory | undefined> {
-  const tagCategoryRepository = getManager().getRepository(TagCategory);
+export async function createTagCategory(name: string, color: string): Promise<TagCategory | null> {
+  const tagCategoryRepository = AppDataSource.getRepository(TagCategory);
 
   const category = tagCategoryRepository.create({
     name: name,
@@ -279,30 +284,30 @@ export async function createTagCategory(name: string, color: string): Promise<Ta
 }
 
 export async function saveTagCategory(tagCategory: TagCategory): Promise<TagCategory> {
-  const tagCategoryRepository = getManager().getRepository(TagCategory);
+  const tagCategoryRepository = AppDataSource.getRepository(TagCategory);
   const newCat = await tagCategoryRepository.save(tagCategory);
   return newCat;
 }
 
-export async function getTagCategoryById(categoryId: number): Promise<TagCategory | undefined> {
-  const tagCategoryRepository = getManager().getRepository(TagCategory);
-  return tagCategoryRepository.findOne(categoryId);
+export async function getTagCategoryById(categoryId: number): Promise<TagCategory | null> {
+  const tagCategoryRepository = AppDataSource.getRepository(TagCategory);
+  return tagCategoryRepository.findOneBy({ id: categoryId });
 }
 
-export async function getTagById(tagId: number): Promise<Tag | undefined> {
-  const tagRepository = getManager().getRepository(Tag);
-  return tagRepository.findOne(tagId);
+export async function getTagById(tagId: number): Promise<Tag | null> {
+  const tagRepository = AppDataSource.getRepository(Tag);
+  return tagRepository.findOneBy({ id: tagId});
 }
 
 export async function fixPrimaryAliases(): Promise<number> {
-  const tagRepository = getManager().getRepository(Tag);
+  const tagRepository = AppDataSource.getRepository(Tag);
   let fixed = 0;
 
-  const tags = await tagRepository.find({ where: [{ primaryAliasId: null }] });
+  const tags = await tagRepository.find({ where: [{ primaryAliasId: IsNull() }] });
   const tagChunks = chunkArray(tags, 2000);
 
   for (const chunk of tagChunks) {
-    await getManager().transaction(async transEntityManager => {
+    await AppDataSource.transaction(async transEntityManager => {
       for (const tag of chunk) {
         if (tag.aliases.length > 0) {
           tag.primaryAliasId = tag.aliases[0].id;
@@ -317,8 +322,8 @@ export async function fixPrimaryAliases(): Promise<number> {
 }
 
 export async function deleteTagCategory(tagCategoryId: number, openDialog: ShowMessageBoxFunc): Promise<boolean> {
-  const tagCategoryRepository = getManager().getRepository(TagCategory);
-  const tagRepository = getManager().getRepository(Tag);
+  const tagCategoryRepository = AppDataSource.getRepository(TagCategory);
+  const tagRepository = AppDataSource.getRepository(Tag);
 
   const attachedTags = await tagRepository.find({
     where: [
@@ -365,13 +370,13 @@ export async function deleteTagCategory(tagCategoryId: number, openDialog: ShowM
 }
 
 export async function sendTagCategories(socketServer: SocketServer) {
-  const tagCategoryRepository = getManager().getRepository(TagCategory);
+  const tagCategoryRepository = AppDataSource.getRepository(TagCategory);
   const cats = await tagCategoryRepository.find();
   socketServer.broadcast(BackOut.TAG_CATEGORIES_CHANGE, cats);
 }
 
 export function getFilterIDsQuery(flatFilters: string[]): SelectQueryBuilder<TagAlias> {
-  const tagAliasRepostiory = getManager().getRepository(TagAlias);
+  const tagAliasRepostiory = AppDataSource.getRepository(TagAlias);
   return tagAliasRepostiory.createQueryBuilder('tag_alias')
   .select('tag_alias.tagId')
   .where('tag_alias.name IN (:...flatFilters)', { flatFilters });

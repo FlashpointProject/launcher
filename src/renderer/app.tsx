@@ -769,7 +769,7 @@ export class App extends React.Component<AppProps> {
     }
     const game = await this.onSaveGame(this.props.main.currentGame, this.props.main.currentPlaylistEntry);
     this.props.setMainState({
-      currentGame: game,
+      currentGame: game == null ? undefined : game,
       isEditingGame: false
     });
     // this.focusGameGridOrList();
@@ -851,7 +851,7 @@ export class App extends React.Component<AppProps> {
   updateCurrentGame = queueOne(async (gameId?: string, playlistId?: string): Promise<void> => {
     // Find the selected game in the selected playlist
     if (gameId) {
-      let gamePlaylistEntry: PlaylistGame | undefined;
+      let gamePlaylistEntry: PlaylistGame | null;
 
       if (playlistId) {
         gamePlaylistEntry = await window.Shared.back.request(BackIn.GET_PLAYLIST_GAME, playlistId, gameId);
@@ -863,7 +863,7 @@ export class App extends React.Component<AppProps> {
         if (game) {
           this.props.setMainState({
             currentGame: game,
-            currentPlaylistEntry: gamePlaylistEntry
+            currentPlaylistEntry: gamePlaylistEntry == null ? undefined : gamePlaylistEntry
           });
         } else { console.log(`Failed to get game. Game is undefined (GameID: "${gameId}").`); }
       });
@@ -1293,7 +1293,7 @@ export class App extends React.Component<AppProps> {
     this.props.setMainState(state as any); // (This is very annoying to make typesafe)
   }
 
-  onSaveGame = async (game: Game, playlistEntry?: PlaylistGame): Promise<Game | undefined> => {
+  onSaveGame = async (game: Game, playlistEntry?: PlaylistGame): Promise<Game | null> => {
     const data = await window.Shared.back.request(BackIn.SAVE_GAME, game);
     if (playlistEntry) {
       window.Shared.back.send(BackIn.SAVE_PLAYLIST_GAME, playlistEntry);

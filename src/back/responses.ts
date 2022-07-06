@@ -214,7 +214,7 @@ export function registerRequestCallbacks(state: BackState): void {
     const addApp = await GameManager.findAddApp(id);
     if (addApp) {
       // If it has GameData, make sure it's present
-      let gameData: GameData | undefined;
+      let gameData: GameData | null;
       if (addApp.parentGame.activeDataId) {
         gameData = await GameDataManager.findOne(addApp.parentGame.activeDataId);
         if (gameData && !gameData.presentOnDisk) {
@@ -275,9 +275,11 @@ export function registerRequestCallbacks(state: BackState): void {
           runService(state, 'server', 'Server', state.config.flashpointPath, {}, configServer);
         }
       }
+      log.debug('TEST', 'Server change done');
       // If it has GameData, make sure it's present
-      let gameData: GameData | undefined;
+      let gameData: GameData | null;
       if (game.activeDataId) {
+        log.debug('TEST', 'Found active game data');
         gameData = await GameDataManager.findOne(game.activeDataId);
         if (gameData && !gameData.presentOnDisk) {
           // Download GameData
@@ -304,6 +306,7 @@ export function registerRequestCallbacks(state: BackState): void {
           }
         }
       }
+      log.debug('TEST', 'Running game');
       // Launch game
       await GameLauncher.launchGame({
         game,
@@ -352,7 +355,7 @@ export function registerRequestCallbacks(state: BackState): void {
 
     return {
       game,
-      library: game && game.library,
+      library: game ? game.library : undefined,
       gamesTotal: await GameManager.countGames(),
     };
   });
@@ -404,7 +407,8 @@ export function registerRequestCallbacks(state: BackState): void {
     }
 
     return {
-      library: result && result.library,
+      game: null,
+      library: result ? result.library : undefined,
       gamesTotal: await GameManager.countGames(),
     };
   });
@@ -588,7 +592,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.UNINSTALL_GAME_DATA, async (event, id) => {
-    const gameData = await GameDataManager.findOne(id);
+    const gameData: GameData | null = await GameDataManager.findOne(id);
     if (gameData && gameData.path && gameData.presentOnDisk) {
       await GameDataManager.onWillUninstallGameData.fire(gameData);
       // Delete Game Data
@@ -611,6 +615,7 @@ export function registerRequestCallbacks(state: BackState): void {
         return GameManager.save(game);
       }
     }
+    return null;
   });
 
   state.socketServer.register(BackIn.ADD_SOURCE_BY_URL, async (event, url) => {
@@ -644,7 +649,9 @@ export function registerRequestCallbacks(state: BackState): void {
 
   state.socketServer.register(BackIn.BROWSE_VIEW_KEYSET, async (event, library, query) => {
     query.filter = adjustGameFilter(query.filter);
+    const startTime = Date.now();
     const result = await GameManager.findGamePageKeyset(query.filter, query.orderBy, query.orderReverse, query.searchLimit);
+    log.debug('Launcher', 'Search Time: ' + (Date.now() - startTime) + 'ms');
     return {
       keyset: result.keyset,
       total: result.total,
@@ -653,15 +660,12 @@ export function registerRequestCallbacks(state: BackState): void {
 
   state.socketServer.register(BackIn.BROWSE_VIEW_PAGE, async (event, data) => {
     data.query.filter = adjustGameFilter(data.query.filter);
-    const startTime = new Date();
     const results = await GameManager.findGames({
       ranges: data.ranges,
       filter: data.query.filter,
       orderBy: data.query.orderBy,
       direction: data.query.orderReverse,
     }, !!data.shallow);
-    const timeTaken = (new Date()).getTime() - startTime.getTime();
-    log.debug('Launcher', `FindGames Time: ${timeTaken}ms`);
 
     return {
       ranges: results,
