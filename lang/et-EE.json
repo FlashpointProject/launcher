@@ -113,7 +113,8 @@
     "clearLog": "Tühjenda Logid",
     "copy404Urls": "Kopeeri 404 URL'id",
     "uploadLog": "Laadi Uus Logi Üles",
-    "copiedToClipboard": "Kopeeritud Lõikelauale"
+    "copiedToClipboard": "Kopeeritud Lõikelauale",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "Pealeht",
@@ -276,7 +277,7 @@
     "thumbnail": "Logo",
     "screenshot": "Ekraanipilt",
     "dropImageHere": "Kukuta pilt siia, et seda lisada",
-    "noGameSelected": "Ühtegi Mängu Pole Valitud",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "Vajuta mängule, et seda valida.",
     "deleteAdditionalApplication": "Kustuta Lisarakendus",
     "deleteGameAndAdditionalApps": "Kustuta Mäng (ja Selle Lisarakendused)",
@@ -427,7 +428,8 @@
     "complete": "Valmis",
     "exportMetaEditTitle": "Ekspordi Meta Muudatus",
     "exportMetaEditDesc": "Vali kõik väljad, mida eksportida:",
-    "showImage": "Näita pilti"
+    "showImage": "Näita pilti",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "Vaata Logo Kaustas",
@@ -506,10 +508,13 @@
   },
   "libraries": {
     "arcade": "Mängud",
+    "arcadeSingular": "Game",
     "arcadePlural": "Kõik Mängud",
     "theatre": "Animatsioonid",
+    "theatreSingular": "Animation",
     "theatrePlural": "Kõik Animatsioonid",
     "auditorium": "NG Auditoorium",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "Kõik NG'i Animatsioonid"
   },
   "upgrades": {
