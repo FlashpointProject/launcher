@@ -113,7 +113,8 @@
     "clearLog": "ログを消去",
     "copy404Urls": "404 URLをコピー",
     "uploadLog": "ログをアップロード",
-    "copiedToClipboard": "クリップボードにコピーしました"
+    "copiedToClipboard": "クリップボードにコピーしました",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "ホーム",
@@ -276,7 +277,7 @@
     "thumbnail": "サムネイル",
     "screenshot": "スクリーンショット",
     "dropImageHere": "追加する画像をここにドロップしてください。",
-    "noGameSelected": "ゲームが選択されていません",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "それを選択するゲームをクリックします。",
     "deleteAdditionalApplication": "追加したアプリケーションを削除します。",
     "deleteGameAndAdditionalApps": "ゲーム (と追加したアプリケーション) を削除します。",
@@ -427,7 +428,8 @@
     "complete": "完了",
     "exportMetaEditTitle": "メタ編集をエクスポート",
     "exportMetaEditDesc": "エクスポートするすべてのプロパティを選択:",
-    "showImage": "Show Image"
+    "showImage": "Show Image",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "サムネイルフォルダーを表示します",
@@ -506,10 +508,13 @@
   },
   "libraries": {
     "arcade": "ゲーム",
+    "arcadeSingular": "Game",
     "arcadePlural": "すべてのゲーム",
     "theatre": "アニメーション",
+    "theatreSingular": "Animation",
     "theatrePlural": "すべてのアニメーション",
     "auditorium": "NG講堂（講堂）",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "すべてのNGアニメーション"
   },
   "upgrades": {
