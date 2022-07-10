@@ -113,7 +113,8 @@
     "clearLog": "Clear Log",
     "copy404Urls": "Copy 404 URLs",
     "uploadLog": "Upload Log",
-    "copiedToClipboard": "Copied to Clipboard"
+    "copiedToClipboard": "Copied to Clipboard",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "Shtëpia",
@@ -276,7 +277,7 @@
     "thumbnail": "Thumbnail",
     "screenshot": "Screenshot",
     "dropImageHere": "Drop an image here to add it",
-    "noGameSelected": "No Game Selected",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "Click on a game to select it.",
     "deleteAdditionalApplication": "Delete Additional Application",
     "deleteGameAndAdditionalApps": "Delete Game (and Additional Applications)",
@@ -427,7 +428,8 @@
     "complete": "Complete",
     "exportMetaEditTitle": "Export Meta Edit",
     "exportMetaEditDesc": "Select all properties to export:",
-    "showImage": "Show Image"
+    "showImage": "Show Image",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "View Thumbnail in Folder",
@@ -506,10 +508,13 @@
   },
   "libraries": {
     "arcade": "Games",
+    "arcadeSingular": "Game",
     "arcadePlural": "All Games",
     "theatre": "Animations",
+    "theatreSingular": "Animation",
     "theatrePlural": "All Animations",
     "auditorium": "NG Auditorium",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "All NG Animations"
   },
   "upgrades": {
