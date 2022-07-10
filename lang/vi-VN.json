@@ -113,7 +113,8 @@
     "clearLog": "Xoá bản ghi",
     "copy404Urls": "Chép URL 404",
     "uploadLog": "Tải lên bản ghi",
-    "copiedToClipboard": "Đã chép vào bộ nhớ tạm"
+    "copiedToClipboard": "Đã chép vào bộ nhớ tạm",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "Trang chủ",
@@ -276,7 +277,7 @@
     "thumbnail": "Ảnh thu nhỏ",
     "screenshot": "Ảnh chụp màn hình",
     "dropImageHere": "Thả ảnh vào đây để thêm",
-    "noGameSelected": "Chưa chọn trò chơi",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "Nhấn một trò chơi để chọn.",
     "deleteAdditionalApplication": "Xoá phần mềm đi kèm",
     "deleteGameAndAdditionalApps": "Xoá trò chơi (và phần mềm đi kèm)",
@@ -427,7 +428,8 @@
     "complete": "Hoàn thành",
     "exportMetaEditTitle": "Xuất sửa đổi meta",
     "exportMetaEditDesc": "Chọn tất cả thuộc tính cần xuất:",
-    "showImage": "Hiện ảnh"
+    "showImage": "Hiện ảnh",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "Xem ảnh thu nhỏ trong thư mục",
@@ -506,10 +508,13 @@
   },
   "libraries": {
     "arcade": "Trò chơi",
+    "arcadeSingular": "Game",
     "arcadePlural": "Tất cả trò chơi",
     "theatre": "Hoạt hình",
+    "theatreSingular": "Animation",
     "theatrePlural": "Tất cả Hoạt hình",
     "auditorium": "Khán phòng NG",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "Tất cả Hoạt hình Newgrounds"
   },
   "upgrades": {
