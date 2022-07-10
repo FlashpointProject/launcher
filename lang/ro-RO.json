@@ -113,7 +113,8 @@
     "clearLog": "Goliți jurnalul",
     "copy404Urls": "Copiază URL-urile 404",
     "uploadLog": "Încarcă jurnalul",
-    "copiedToClipboard": "Copiat"
+    "copiedToClipboard": "Copiat",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "Pag. principală",
@@ -276,7 +277,7 @@
     "thumbnail": "logo-ul jocului",
     "screenshot": "captură de ecran",
     "dropImageHere": "Glisați aici o imagine pentru a o adăuga",
-    "noGameSelected": "Niciun joc selectat",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "Apăsați pe un joc pentru a-l selecta.",
     "deleteAdditionalApplication": "Înlăturați aplicația suplimentară",
     "deleteGameAndAdditionalApps": "Înlăturați jocul (împreună cu aplicațiile sale suplimentare)",
@@ -427,7 +428,8 @@
     "complete": "Finalizat",
     "exportMetaEditTitle": "Exportați modificări ale informațiilor jocurilor",
     "exportMetaEditDesc": "Selectați proprietățile de exportat:",
-    "showImage": "Arată imaginea"
+    "showImage": "Arată imaginea",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "Vizualizați imaginea în dosar",
@@ -506,10 +508,13 @@
   },
   "libraries": {
     "arcade": "Jocuri",
+    "arcadeSingular": "Game",
     "arcadePlural": "Toate jocurile",
     "theatre": "Animații",
+    "theatreSingular": "Animation",
     "theatrePlural": "Toate animațiile",
     "auditorium": "NG Auditorium",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "Toate animațiile NG"
   },
   "upgrades": {
