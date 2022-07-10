@@ -113,7 +113,8 @@
     "clearLog": "Forigu Protokolon",
     "copy404Urls": "Kopiu 404-URLojn",
     "uploadLog": "Alŝutu protokolon",
-    "copiedToClipboard": "Kopiita al Tondobufro"
+    "copiedToClipboard": "Kopiita al Tondobufro",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "Hejmo",
@@ -276,7 +277,7 @@
     "thumbnail": "Miniaturo",
     "screenshot": "Ekrankopio",
     "dropImageHere": "Faligu bildon ĉi tie por aldoni ĝin",
-    "noGameSelected": "Neniu Ludo Elektita",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "Alklaku ludon por elekti ĝin.",
     "deleteAdditionalApplication": "Forigi Plian Aplikon",
     "deleteGameAndAdditionalApps": "Forigi Ludon (kaj Pliajn Aplikojn)",
@@ -427,7 +428,8 @@
     "complete": "Kompleta",
     "exportMetaEditTitle": "Eksportu Meta-redakton",
     "exportMetaEditDesc": "Elektu ĉiujn eksportotajn ecojn:",
-    "showImage": "Show Image"
+    "showImage": "Show Image",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "Vidu Bildeton en Dosierujo",
@@ -506,10 +508,13 @@
   },
   "libraries": {
     "arcade": "Ludoj",
+    "arcadeSingular": "Game",
     "arcadePlural": "Ĉiuj Ludoj",
     "theatre": "Animacioj",
+    "theatreSingular": "Animation",
     "theatrePlural": "Ĉiuj Animacioj",
     "auditorium": "NG Aŭditorio",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "Ĉiuj NGaj Animacioj"
   },
   "upgrades": {
