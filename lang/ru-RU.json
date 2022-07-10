@@ -113,7 +113,8 @@
     "clearLog": "Очистить лог",
     "copy404Urls": "Скопировать 404 ссылки",
     "uploadLog": "Журнал загрузки",
-    "copiedToClipboard": "Скопировано в буфер обмена"
+    "copiedToClipboard": "Скопировано в буфер обмена",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "Главная",
@@ -276,7 +277,7 @@
     "thumbnail": "Превью",
     "screenshot": "Скриншот",
     "dropImageHere": "Поместите изображение сюда, чтобы добавить его",
-    "noGameSelected": "Нет выбранной игры",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "Нажмите на игру, чтобы выбрать её.",
     "deleteAdditionalApplication": "Удалить дополнительные приложения",
     "deleteGameAndAdditionalApps": "Удалить игру (и дополнительные приложения)",
@@ -427,7 +428,8 @@
     "complete": "Завершено",
     "exportMetaEditTitle": "Экспорт мета-правок",
     "exportMetaEditDesc": "Выберите все свойства для экспорта:",
-    "showImage": "Показать Изображение"
+    "showImage": "Показать Изображение",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "Отображать превью в папке",
@@ -506,10 +508,13 @@
   },
   "libraries": {
     "arcade": "Игры",
+    "arcadeSingular": "Game",
     "arcadePlural": "Все игры",
     "theatre": "Анимации",
+    "theatreSingular": "Animation",
     "theatrePlural": "Все анимации",
     "auditorium": "NG Auditorium",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "Все NG анимации"
   },
   "upgrades": {
