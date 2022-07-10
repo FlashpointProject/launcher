@@ -113,7 +113,8 @@
     "clearLog": "ล้างล็อก",
     "copy404Urls": "คัดลอก URL ชำรุด",
     "uploadLog": "อัพโหลดล็อก",
-    "copiedToClipboard": "คัดลอกไปยังคลิปบอร์ดแล้ว"
+    "copiedToClipboard": "คัดลอกไปยังคลิปบอร์ดแล้ว",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "หน้าหลัก",
@@ -276,7 +277,7 @@
     "thumbnail": "ภาพขนาดย่อ",
     "screenshot": "ภาพตัวอย่าง",
     "dropImageHere": "ใส่รูปภาพไว้ตรงนี้ถ้าอยากเพิ่ม",
-    "noGameSelected": "ไม่มีเกมที่เลือก",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "คลิกลงบนเกมที่จะเลือก",
     "deleteAdditionalApplication": "ลบแอปพลิเคชั่นเพิ่มเติม",
     "deleteGameAndAdditionalApps": "ลบเกม (และแอปพลิเคชั่นเพิ่มเติม)",
@@ -427,7 +428,8 @@
     "complete": "Complete",
     "exportMetaEditTitle": "Export Meta Edit",
     "exportMetaEditDesc": "Select all properties to export:",
-    "showImage": "Show Image"
+    "showImage": "Show Image",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "View Thumbnail in Folder",
@@ -506,10 +508,13 @@
   },
   "libraries": {
     "arcade": "Games",
+    "arcadeSingular": "Game",
     "arcadePlural": "All Games",
     "theatre": "Animations",
+    "theatreSingular": "Animation",
     "theatrePlural": "All Animations",
     "auditorium": "NG Auditorium",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "แอนิเมชั่น Newgrounds ทั้งหมด"
   },
   "upgrades": {
