@@ -113,7 +113,8 @@
     "clearLog": "Очистити журнал",
     "copy404Urls": "Копіювати 404 адреси",
     "uploadLog": "Завантажити журнал",
-    "copiedToClipboard": "Скопійовано до буфера обміну"
+    "copiedToClipboard": "Скопійовано до буфера обміну",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "Домашній екран",
@@ -276,7 +277,7 @@
     "thumbnail": "Ескіз",
     "screenshot": "Знімок екрана",
     "dropImageHere": "Перетягніть зображення тут, щоб додати його",
-    "noGameSelected": "Жодна гра не вибрана",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "Клацни на гру, щоб вибрати її.",
     "deleteAdditionalApplication": "Видалити додаткову програму",
     "deleteGameAndAdditionalApps": "Видалити гру (та додаткові програми)",
@@ -427,7 +428,8 @@
     "complete": "Complete",
     "exportMetaEditTitle": "Експорт мета-редагування",
     "exportMetaEditDesc": "Виберіть усі властивості для експорту:",
-    "showImage": "Show Image"
+    "showImage": "Show Image",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "Переглянути мініатюру в папці",
@@ -506,10 +508,13 @@
   },
   "libraries": {
     "arcade": "Ігри",
+    "arcadeSingular": "Game",
     "arcadePlural": "Всі ігри",
     "theatre": "Анімація",
+    "theatreSingular": "Animation",
     "theatrePlural": "Всі анімації",
     "auditorium": "Аудиторія",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "Анімація всіх NG"
   },
   "upgrades": {
