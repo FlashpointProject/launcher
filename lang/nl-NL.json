@@ -113,7 +113,8 @@
     "clearLog": "Wis de logs",
     "copy404Urls": "Kopieer 404 URL's",
     "uploadLog": "Uploaden van logs",
-    "copiedToClipboard": "Gekopieerd naar klembord"
+    "copiedToClipboard": "Gekopieerd naar klembord",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "Thuis",
@@ -276,7 +277,7 @@
     "thumbnail": "Miniatuur",
     "screenshot": "Schermafbeelding",
     "dropImageHere": "Plaats hier een afbeelding om hem toe te voegen",
-    "noGameSelected": "Geen spel geselecteerd",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "Klik op een spel om het te selecteren.",
     "deleteAdditionalApplication": "Extra toepassingen verwijderen",
     "deleteGameAndAdditionalApps": "Spel verwijderen (en zijn extra toepassingen)",
@@ -427,7 +428,8 @@
     "complete": "Voltooid",
     "exportMetaEditTitle": "Exporteren van Metadata wijziging",
     "exportMetaEditDesc": "Selecteer alle eigenschappen om te exporteren:",
-    "showImage": "Afbeelding Weergeven"
+    "showImage": "Afbeelding Weergeven",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "Miniatuur in map bekijken",
@@ -506,10 +508,13 @@
   },
   "libraries": {
     "arcade": "Spellen",
+    "arcadeSingular": "Game",
     "arcadePlural": "Alle spellen",
     "theatre": "Animaties",
+    "theatreSingular": "Animation",
     "theatrePlural": "Alle animaties",
     "auditorium": "NG Auditorium",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "Alle NG animaties"
   },
   "upgrades": {
