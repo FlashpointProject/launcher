@@ -113,7 +113,8 @@
     "clearLog": "Vymazat logy",
     "copy404Urls": "Zkopírovat 404 URL adresy",
     "uploadLog": "Nahrát Log",
-    "copiedToClipboard": "Zkopírováno do Schránky"
+    "copiedToClipboard": "Zkopírováno do Schránky",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "Domů",
@@ -276,7 +277,7 @@
     "thumbnail": "Miniatura",
     "screenshot": "Náhled",
     "dropImageHere": "Obrázek vložíte přetažením",
-    "noGameSelected": "Nebyla vybrána žádná hra",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "Kliknutím na hru provedete její výběr.",
     "deleteAdditionalApplication": "Smazat podružnou aplikaci",
     "deleteGameAndAdditionalApps": "Smazat hru (a všechny podružné aplikace)",
@@ -427,7 +428,8 @@
     "complete": "Dokončeno",
     "exportMetaEditTitle": "Exportovat úpravy metadat",
     "exportMetaEditDesc": "Vyberte všechny vlastnosti k exportu:",
-    "showImage": "Zaostřit obrázek"
+    "showImage": "Zaostřit obrázek",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "Otevřít složku s umístěním miniatury",
@@ -506,10 +508,13 @@
   },
   "libraries": {
     "arcade": "Hry",
+    "arcadeSingular": "Game",
     "arcadePlural": "Všechny Hry",
     "theatre": "Animace",
+    "theatreSingular": "Animation",
     "theatrePlural": "Všechny Animace",
     "auditorium": "Newgrounds Auditorium",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "Všechny Newgrounds Animace"
   },
   "upgrades": {
