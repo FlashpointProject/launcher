@@ -113,7 +113,8 @@
     "clearLog": "清除紀錄",
     "copy404Urls": "複製 404 路徑",
     "uploadLog": "上傳紀錄",
-    "copiedToClipboard": "已複製到剪貼簿"
+    "copiedToClipboard": "已複製到剪貼簿",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "首頁",
@@ -276,7 +277,7 @@
     "thumbnail": "縮圖",
     "screenshot": "截圖",
     "dropImageHere": "將圖片拖曳至此處",
-    "noGameSelected": "未選取任何遊戲",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "點擊以選取遊戲",
     "deleteAdditionalApplication": "刪除額外應用程式",
     "deleteGameAndAdditionalApps": "刪除遊戲(與額外應用程式)",
@@ -427,7 +428,8 @@
     "complete": "已完成",
     "exportMetaEditTitle": "匯出元資料檔修改",
     "exportMetaEditDesc": "選擇所有要匯出的屬性：",
-    "showImage": "顯示圖片"
+    "showImage": "顯示圖片",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "於資料夾中查看縮圖",
@@ -506,10 +508,13 @@
   },
   "libraries": {
     "arcade": "遊戲",
+    "arcadeSingular": "Game",
     "arcadePlural": "所有遊戲",
     "theatre": "動畫",
+    "theatreSingular": "Animation",
     "theatrePlural": "所有動畫",
     "auditorium": "Newgrounds 劇院",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "所有Newgrounds 動畫"
   },
   "upgrades": {
