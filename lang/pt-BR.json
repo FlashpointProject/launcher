@@ -113,7 +113,8 @@
     "clearLog": "Limpar Log",
     "copy404Urls": "Copiar URLs 404",
     "uploadLog": "Enviar Log",
-    "copiedToClipboard": "Copiado para a área de transferência"
+    "copiedToClipboard": "Copiado para a área de transferência",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "Início",
@@ -276,7 +277,7 @@
     "thumbnail": "Miniatura",
     "screenshot": "Captura de tela",
     "dropImageHere": "Largue uma imagem aqui para adicioná-la",
-    "noGameSelected": "Nenhum Jogo Selecionado",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "Clique em um jogo para selecioná-lo.",
     "deleteAdditionalApplication": "Deletar Aplicativo Adicional",
     "deleteGameAndAdditionalApps": "Deletar Jogo (e Aplicativos Adicionais)",
@@ -367,7 +368,7 @@
     "removeAddApp": "Remover App",
     "indexContent": "Atualizar Conteúdo",
     "delete": "Deletar",
-    "deleteCurationDesc": "Deleta esta curação (Os arquivos não podem ser recuperados)",
+    "deleteCurationDesc": "Deletar esta curação (Os arquivos não podem ser recuperados)",
     "openFolder": "Abrir Pasta",
     "run": "Iniciar",
     "runWithMAD4FP": "Iniciar com MAD4FP",
@@ -427,7 +428,8 @@
     "complete": "Concluído",
     "exportMetaEditTitle": "Exportar Edição de Metadados",
     "exportMetaEditDesc": "Selecione todas as propriedades para exportar:",
-    "showImage": "Mostrar Imagem"
+    "showImage": "Mostrar Imagem",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "Ver Miniatura na Pasta",
@@ -506,10 +508,13 @@
   },
   "libraries": {
     "arcade": "Jogos",
+    "arcadeSingular": "Game",
     "arcadePlural": "Todos os Jogos",
     "theatre": "Animações",
+    "theatreSingular": "Animation",
     "theatrePlural": "Todas as Animações",
     "auditorium": "Auditório NG",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "Todas as Animações NG"
   },
   "upgrades": {
