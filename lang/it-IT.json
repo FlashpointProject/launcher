@@ -114,7 +114,7 @@
     "copy404Urls": "Copia URL 404",
     "uploadLog": "Carica Registro",
     "copiedToClipboard": "Copiato negli appunti",
-    "openLogsWindow": "Open Logs Window"
+    "openLogsWindow": "Apri Finestra Di Log"
   },
   "app": {
     "home": "Per Iniziare",
@@ -277,7 +277,7 @@
     "thumbnail": "Anteprima",
     "screenshot": "Schermata",
     "dropImageHere": "Trascina un'immagine qui per aggiungerla",
-    "noGameSelected": "No {0} Selected",
+    "noGameSelected": "Nessun {0} selezionato",
     "clickToSelectGame": "Clicca su un gioco per selezionarlo.",
     "deleteAdditionalApplication": "Elimina Applicazione Aggiuntiva",
     "deleteGameAndAdditionalApps": "Elimina Gioco (e Applicazioni Aggiuntive)",
@@ -429,7 +429,7 @@
     "exportMetaEditTitle": "Esporta Modifiche dei Meta",
     "exportMetaEditDesc": "Seleziona tutte le proprietà da esportare:",
     "showImage": "Mostra Immagine",
-    "searching": "Searching..."
+    "searching": "Ricerca..."
   },
   "menu": {
     "viewThumbnailInFolder": "Visualizza Anteprima nella Cartella",
@@ -508,13 +508,13 @@
   },
   "libraries": {
     "arcade": "Giochi",
-    "arcadeSingular": "Game",
+    "arcadeSingular": "Partita",
     "arcadePlural": "Tutti i Giochi",
     "theatre": "Animazioni",
-    "theatreSingular": "Animation",
+    "theatreSingular": "Animazione",
     "theatrePlural": "Tutte le Animazioni",
     "auditorium": "NG Auditorium",
-    "auditoriumSingular": "Animation",
+    "auditoriumSingular": "Animazione",
     "auditoriumPlural": "Tutte le Animazioni NG"
   },
   "upgrades": {
