@@ -113,7 +113,8 @@
     "clearLog": "Ryd log-filen",
     "copy404Urls": "Kopiér 404 URL'er",
     "uploadLog": "Upload Log",
-    "copiedToClipboard": "Kopieret til udklipsholder"
+    "copiedToClipboard": "Kopieret til udklipsholder",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "Hjem",
@@ -276,7 +277,7 @@
     "thumbnail": "Thumbnail",
     "screenshot": "Skærmbillede",
     "dropImageHere": "Sæt et billede her for at tilføje det",
-    "noGameSelected": "Ingen Spil Valgt",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "Klik på et spil for at vælge it.",
     "deleteAdditionalApplication": "Slet Additionel Applikation",
     "deleteGameAndAdditionalApps": "Slet Spil (og Additionelle Applikationer)",
@@ -427,7 +428,8 @@
     "complete": "Færdig",
     "exportMetaEditTitle": "Eksporter Meta Rediger",
     "exportMetaEditDesc": "Vælg alle egenskaber at eksportere:",
-    "showImage": "Show Image"
+    "showImage": "Show Image",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "Vis Thumbnail i Folderen",
@@ -506,10 +508,13 @@
   },
   "libraries": {
     "arcade": "Spil",
+    "arcadeSingular": "Game",
     "arcadePlural": "Alle Spil",
     "theatre": "Animationer",
+    "theatreSingular": "Animation",
     "theatrePlural": "Alle Animationer",
     "auditorium": "NG Auditorium",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "Alle NG Animationer"
   },
   "upgrades": {
