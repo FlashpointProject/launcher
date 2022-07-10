@@ -113,7 +113,8 @@
     "clearLog": "Rensa logg",
     "copy404Urls": "Kopiera 404 URLs",
     "uploadLog": "Ladda up loggar",
-    "copiedToClipboard": "Kopierad till Urklipp"
+    "copiedToClipboard": "Kopierad till Urklipp",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "Start",
@@ -276,7 +277,7 @@
     "thumbnail": "Miniatyr",
     "screenshot": "Skärmdump",
     "dropImageHere": "Släpp en bild här för att lägga in den",
-    "noGameSelected": "Inget spel valt",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "Klicka på ett spel för att välja det.",
     "deleteAdditionalApplication": "Ta bort extra program",
     "deleteGameAndAdditionalApps": "Radera spel (inklusive extra program)",
@@ -427,7 +428,8 @@
     "complete": "Klar",
     "exportMetaEditTitle": "Exportera Meta redigering",
     "exportMetaEditDesc": "Välj alla egenskaper att exportera:",
-    "showImage": "Show Image"
+    "showImage": "Show Image",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "Visa miniatyr i mapp",
@@ -506,10 +508,13 @@
   },
   "libraries": {
     "arcade": "Spel",
+    "arcadeSingular": "Game",
     "arcadePlural": "Alla Spel",
     "theatre": "Animationer",
+    "theatreSingular": "Animation",
     "theatrePlural": "Alla Animationer",
     "auditorium": "NG Auditorium",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "Alla NG animationer"
   },
   "upgrades": {
