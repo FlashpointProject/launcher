@@ -113,7 +113,8 @@
     "clearLog": "Tyhjennä lokitiedosto",
     "copy404Urls": "Kopioi 404 URL-osoitteet",
     "uploadLog": "Lataa Loki",
-    "copiedToClipboard": "Kopioitu leikepöydälle"
+    "copiedToClipboard": "Kopioitu leikepöydälle",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "Koti",
@@ -276,7 +277,7 @@
     "thumbnail": "Kuvake",
     "screenshot": "Ruutukaappaus",
     "dropImageHere": "Raahaa tänne kuvatiedosto lisätäksesi sen",
-    "noGameSelected": "Ei peliä valittuna",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "Klikkaa peliä valitaksesi sen.",
     "deleteAdditionalApplication": "Poista lisäohjelma",
     "deleteGameAndAdditionalApps": "Poista peli (ja lisäohjelmat)",
@@ -427,7 +428,8 @@
     "complete": "Valmis",
     "exportMetaEditTitle": "Vie Meta Muokkaus",
     "exportMetaEditDesc": "Valitse kaikki vietävät ominaisuudet:",
-    "showImage": "Näytä kuva"
+    "showImage": "Näytä kuva",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "Katso kuvaketta kansiossa",
@@ -506,10 +508,13 @@
   },
   "libraries": {
     "arcade": "Pelit",
+    "arcadeSingular": "Game",
     "arcadePlural": "Kaikki Pelit",
     "theatre": "Animaatiot",
+    "theatreSingular": "Animation",
     "theatrePlural": "Kaikki animaatiot",
     "auditorium": "NG Auditorium",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "Kaikki NG-animaatiot"
   },
   "upgrades": {
