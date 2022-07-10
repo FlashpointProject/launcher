@@ -113,7 +113,8 @@
     "clearLog": "Исчисти Лог",
     "copy404Urls": "Копирај 404 URLs",
     "uploadLog": "Прикачи Лог",
-    "copiedToClipboard": "Копирано во Kлипборд"
+    "copiedToClipboard": "Копирано во Kлипборд",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "Почеток",
@@ -276,7 +277,7 @@
     "thumbnail": "Лого",
     "screenshot": "Слика од екранот",
     "dropImageHere": "Постави слика за да ја додадеш",
-    "noGameSelected": "Нема селектирана игра",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "Кликни на игра за да ја селектираш.",
     "deleteAdditionalApplication": "Избриши Додатната Апликација",
     "deleteGameAndAdditionalApps": "Избриши игра(и додатните апликации)",
@@ -427,7 +428,8 @@
     "complete": "Завршено",
     "exportMetaEditTitle": "Изведувај Meta Edit",
     "exportMetaEditDesc": "Изберете ги сите својства за извоз:",
-    "showImage": "Покажи Слика"
+    "showImage": "Покажи Слика",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "Прегледај лого во папката",
@@ -506,10 +508,13 @@
   },
   "libraries": {
     "arcade": "Игри",
+    "arcadeSingular": "Game",
     "arcadePlural": "Сите Игри",
     "theatre": "Анимации",
+    "theatreSingular": "Animation",
     "theatrePlural": "Сите Анимации",
     "auditorium": "НГ Аудиториум",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "Сите НГ Анимации"
   },
   "upgrades": {
