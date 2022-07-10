@@ -113,7 +113,8 @@
     "clearLog": "تنظيف الـLog",
     "copy404Urls": "نسخ عناوين URL 404",
     "uploadLog": "رفع الـLog",
-    "copiedToClipboard": "تم النسخ إلى الحافظة"
+    "copiedToClipboard": "تم النسخ إلى الحافظة",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "الرئيسية",
@@ -276,7 +277,7 @@
     "thumbnail": "الصورة المصغرة",
     "screenshot": "لقطة الشاشة",
     "dropImageHere": "إسحب وافلت صورة هنا لإضافتها",
-    "noGameSelected": "لم يتم إختيار لعبة",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "إضغط على لعبة معينة لإختيارها.",
     "deleteAdditionalApplication": "حذف التطبيق الإضافي",
     "deleteGameAndAdditionalApps": "حذف اللعبة (وتطبيقاته الإضافية)",
@@ -427,7 +428,8 @@
     "complete": "اكتمل",
     "exportMetaEditTitle": "Export Meta Edit",
     "exportMetaEditDesc": "Select all properties to export:",
-    "showImage": "Show Image"
+    "showImage": "Show Image",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "عرض الصورة المصغرة في المجلد",
@@ -506,10 +508,13 @@
   },
   "libraries": {
     "arcade": "الألعاب",
+    "arcadeSingular": "Game",
     "arcadePlural": "كُل الألعاب",
     "theatre": "الأنميشن",
+    "theatreSingular": "Animation",
     "theatrePlural": "كُل الأنميشنز",
     "auditorium": "NG Auditorium",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "All NG Animations"
   },
   "upgrades": {
