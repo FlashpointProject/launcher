@@ -113,7 +113,8 @@
     "clearLog": "Napló törlése",
     "copy404Urls": "404-es URL-ek másolása",
     "uploadLog": "Log feltöltése",
-    "copiedToClipboard": "Vágólapra másolva"
+    "copiedToClipboard": "Vágólapra másolva",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "Kezdőlap",
@@ -276,7 +277,7 @@
     "thumbnail": "Előnézet",
     "screenshot": "Képernyőmentés",
     "dropImageHere": "Húzzon be egy képet ide, hogy hozzáadja",
-    "noGameSelected": "Nincs kiválasztott játék",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "Kattintson egy játékra a kiválasztáshoz.",
     "deleteAdditionalApplication": "További alkalmazások törlése",
     "deleteGameAndAdditionalApps": "Játék törlése (és a hozzá kapcsolódó alkalmazásoké)",
@@ -427,7 +428,8 @@
     "complete": "Kész",
     "exportMetaEditTitle": "Meta módosítás exportálása",
     "exportMetaEditDesc": "Válassza ki az összes exportálni kívánt tulajdonságot",
-    "showImage": "Kép mutatása"
+    "showImage": "Kép mutatása",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "Előnézeti kép megtekintése mappában",
@@ -506,10 +508,13 @@
   },
   "libraries": {
     "arcade": "Játékok",
+    "arcadeSingular": "Game",
     "arcadePlural": "Összes Játék",
     "theatre": "Animációk",
+    "theatreSingular": "Animation",
     "theatrePlural": "Összes Animáció",
     "auditorium": "NG Auditórium",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "Összes NG Animáció"
   },
   "upgrades": {
