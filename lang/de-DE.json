@@ -113,7 +113,8 @@
     "clearLog": "Protokoll löschen",
     "copy404Urls": "404-URLs kopieren",
     "uploadLog": "Log hochladen",
-    "copiedToClipboard": "In Zwischenablage kopiert"
+    "copiedToClipboard": "In Zwischenablage kopiert",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "Start",
@@ -276,7 +277,7 @@
     "thumbnail": "Thumbnail",
     "screenshot": "Screenshot",
     "dropImageHere": "Bild zum Einfügen hierher ziehen",
-    "noGameSelected": "Kein Spiel ausgewählt",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "Klicke auf ein Spiel, um es auszuwählen.",
     "deleteAdditionalApplication": "Zusätzliche Anwendung löschen",
     "deleteGameAndAdditionalApps": "Spiel löschen (und zusätzliche Anwendungen)",
@@ -427,7 +428,8 @@
     "complete": "Abgeschlossen",
     "exportMetaEditTitle": "Meta-Edit exportieren",
     "exportMetaEditDesc": "Alle zu exportierenden Eigenschaften auswählen:",
-    "showImage": "Bild anzeigen"
+    "showImage": "Bild anzeigen",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "Miniaturansicht im Ordner anzeigen",
@@ -506,10 +508,13 @@
   },
   "libraries": {
     "arcade": "Spiele",
+    "arcadeSingular": "Game",
     "arcadePlural": "Alle Spiele",
     "theatre": "Animationen",
+    "theatreSingular": "Animation",
     "theatrePlural": "Alle Animationen",
     "auditorium": "NG-Auditorium",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "Alle NG-Animationen"
   },
   "upgrades": {
