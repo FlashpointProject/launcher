@@ -114,7 +114,7 @@
     "copy404Urls": "Kopioi 404 URL-osoitteet",
     "uploadLog": "Lataa Loki",
     "copiedToClipboard": "Kopioitu leikepöydälle",
-    "openLogsWindow": "Open Logs Window"
+    "openLogsWindow": "Avaa Loki-Ikkuna"
   },
   "app": {
     "home": "Koti",
@@ -277,7 +277,7 @@
     "thumbnail": "Kuvake",
     "screenshot": "Ruutukaappaus",
     "dropImageHere": "Raahaa tänne kuvatiedosto lisätäksesi sen",
-    "noGameSelected": "No {0} Selected",
+    "noGameSelected": "Ei {0} Valittu",
     "clickToSelectGame": "Klikkaa peliä valitaksesi sen.",
     "deleteAdditionalApplication": "Poista lisäohjelma",
     "deleteGameAndAdditionalApps": "Poista peli (ja lisäohjelmat)",
@@ -429,7 +429,7 @@
     "exportMetaEditTitle": "Vie Meta Muokkaus",
     "exportMetaEditDesc": "Valitse kaikki vietävät ominaisuudet:",
     "showImage": "Näytä kuva",
-    "searching": "Searching..."
+    "searching": "Haetaan..."
   },
   "menu": {
     "viewThumbnailInFolder": "Katso kuvaketta kansiossa",
@@ -508,13 +508,13 @@
   },
   "libraries": {
     "arcade": "Pelit",
-    "arcadeSingular": "Game",
+    "arcadeSingular": "Peli",
     "arcadePlural": "Kaikki Pelit",
     "theatre": "Animaatiot",
-    "theatreSingular": "Animation",
+    "theatreSingular": "Animaatio",
     "theatrePlural": "Kaikki animaatiot",
     "auditorium": "NG Auditorium",
-    "auditoriumSingular": "Animation",
+    "auditoriumSingular": "Animaatio",
     "auditoriumPlural": "Kaikki NG-animaatiot"
   },
   "upgrades": {
