@@ -113,7 +113,8 @@
     "clearLog": "Očisti zapis",
     "copy404Urls": "Kopiraj 404 URL-ove",
     "uploadLog": "Pošalji zapis",
-    "copiedToClipboard": "Kopirano u privremenu memoriju"
+    "copiedToClipboard": "Kopirano u privremenu memoriju",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "Početak",
@@ -276,7 +277,7 @@
     "thumbnail": "Simbolična slika",
     "screenshot": "Slika ekrana",
     "dropImageHere": "Dovuci sliku ovde da bi je dodao",
-    "noGameSelected": "Nijedna igra nije izabrana",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "Klikni na igru da bi ga izabrao.",
     "deleteAdditionalApplication": "Izbriši dodatnu aplikaciju",
     "deleteGameAndAdditionalApps": "Izbriši igru (i dodatne aplikacije)",
@@ -427,7 +428,8 @@
     "complete": "Gotovo",
     "exportMetaEditTitle": "Izvoz izmena metapodatka",
     "exportMetaEditDesc": "Izaberite sve postavke za iznošenje:",
-    "showImage": "Show Image"
+    "showImage": "Show Image",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "Pregledaj simboličnu sliku u fascikli",
@@ -506,10 +508,13 @@
   },
   "libraries": {
     "arcade": "Igre",
+    "arcadeSingular": "Game",
     "arcadePlural": "Sve igre",
     "theatre": "Animacije",
+    "theatreSingular": "Animation",
     "theatrePlural": "Sve animacije",
     "auditorium": "NG Auditorium",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "Sve NG animacije"
   },
   "upgrades": {
