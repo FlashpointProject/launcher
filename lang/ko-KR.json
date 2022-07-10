@@ -113,7 +113,8 @@
     "clearLog": "기록 삭제",
     "copy404Urls": "Copy 404 URLs",
     "uploadLog": "Upload Log",
-    "copiedToClipboard": "Copied to Clipboard"
+    "copiedToClipboard": "Copied to Clipboard",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "홈",
@@ -276,7 +277,7 @@
     "thumbnail": "썸네일",
     "screenshot": "스크린샷",
     "dropImageHere": "이미지를 이 곳에 끌어넣어 추가하세요",
-    "noGameSelected": "선택한 게임 없음",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "선택하려면 게임을 클릭하세요.",
     "deleteAdditionalApplication": "추가 애플리케이션 삭제",
     "deleteGameAndAdditionalApps": "게임 (및 추가 애플리케이션) 삭제",
@@ -427,7 +428,8 @@
     "complete": "완료",
     "exportMetaEditTitle": "Export Meta Edit",
     "exportMetaEditDesc": "Select all properties to export:",
-    "showImage": "Show Image"
+    "showImage": "Show Image",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "폴더에 있는 썸네일 보기",
@@ -506,10 +508,13 @@
   },
   "libraries": {
     "arcade": "게임",
+    "arcadeSingular": "Game",
     "arcadePlural": "모든 게임",
     "theatre": "애니메이션",
+    "theatreSingular": "Animation",
     "theatrePlural": "모든 애니메이션",
     "auditorium": "NG Auditorium",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "모든 NG 애니메이션"
   },
   "upgrades": {
