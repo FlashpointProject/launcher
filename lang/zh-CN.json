@@ -114,7 +114,7 @@
     "copy404Urls": "复制 404 URL",
     "uploadLog": "上传日志",
     "copiedToClipboard": "复制到剪贴板",
-    "openLogsWindow": "Open Logs Window"
+    "openLogsWindow": "打开日志窗口"
   },
   "app": {
     "home": "主页",
@@ -277,7 +277,7 @@
     "thumbnail": "缩略图",
     "screenshot": "屏幕截图",
     "dropImageHere": "拖动图片到此处以添加",
-    "noGameSelected": "No {0} Selected",
+    "noGameSelected": "未选择{0}",
     "clickToSelectGame": "点击游戏以选择",
     "deleteAdditionalApplication": "删除附加应用程序",
     "deleteGameAndAdditionalApps": "删除游戏（及附加应用程序）",
@@ -429,7 +429,7 @@
     "exportMetaEditTitle": "导出元数据变更",
     "exportMetaEditDesc": "选择所有要导出的属性：",
     "showImage": "显示图像",
-    "searching": "Searching..."
+    "searching": "正在搜索…"
   },
   "menu": {
     "viewThumbnailInFolder": "在文件夹中查看缩略图",
@@ -508,13 +508,13 @@
   },
   "libraries": {
     "arcade": "游戏",
-    "arcadeSingular": "Game",
+    "arcadeSingular": "游戏",
     "arcadePlural": "所有游戏",
     "theatre": "动画",
-    "theatreSingular": "Animation",
+    "theatreSingular": "动画",
     "theatrePlural": "所有动画",
     "auditorium": "NG Auditorium",
-    "auditoriumSingular": "Animation",
+    "auditoriumSingular": "动画",
     "auditoriumPlural": "所有 NG 动画"
   },
   "upgrades": {
