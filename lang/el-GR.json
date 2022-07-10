@@ -113,7 +113,8 @@
     "clearLog": "Εκκαθάριση Αρχείου Καταγραφών",
     "copy404Urls": "Αντιγραφή Ενιαίων Εντοπιστών Πόρων 404",
     "uploadLog": "Μεταφόρτωση Αρχείου Καταγραφής",
-    "copiedToClipboard": "Αντιγράφτηκε στο Πρόχειρο"
+    "copiedToClipboard": "Αντιγράφτηκε στο Πρόχειρο",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "Αρχική",
@@ -276,7 +277,7 @@
     "thumbnail": "Μικρογραφία",
     "screenshot": "Στιγμιότυπο οθόνης",
     "dropImageHere": "Αφήστε μια εικόνα εδώ για να την εισάγετε",
-    "noGameSelected": "Δεν έχει επιλεχθεί παιχνιδι",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "Κάντε κλικ σε ένα παιχνίδι για να το επιλέξετε.",
     "deleteAdditionalApplication": "Διαγραφή Πρόσθετων Εφαρμογών",
     "deleteGameAndAdditionalApps": "Διαγραφή Παιχνιδιού (και Πρόσθετων Εφαρμογών)",
@@ -427,7 +428,8 @@
     "complete": "Ολοκληρώθηκε",
     "exportMetaEditTitle": "Εξαγωγή Μετεπεξεργασίας",
     "exportMetaEditDesc": "Επιλογή όλων των ιδιοτήτων για εξαγωγή:",
-    "showImage": "Εμφάνιση Εικόνας"
+    "showImage": "Εμφάνιση Εικόνας",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "Προβολή Μικρογραφίας στον Φάκελο",
@@ -506,10 +508,13 @@
   },
   "libraries": {
     "arcade": "Παιχνίδια",
+    "arcadeSingular": "Game",
     "arcadePlural": "Όλα Τα Παιχνίδια",
     "theatre": "Κινούμενα Σχέδια",
+    "theatreSingular": "Animation",
     "theatrePlural": "Όλα Τα Κινούμενα Σχέδια",
     "auditorium": "Αμφιθέατρο ΝΓ",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "Όλα Τα Κινούμενα Σχέδια Νιούγκραουντζ"
   },
   "upgrades": {
