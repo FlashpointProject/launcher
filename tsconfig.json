@@ -20,7 +20,13 @@
       "@renderer/*": [ "./src/renderer/*" ],
       "@database/*": [ "./src/database/*" ],
       "@tests/*": [ "./tests/*" ],
-    }
+    },
+    "plugins": [
+      {
+        "name": "empty",
+        "transform": "ts-transform-paths",
+      }
+    ]
   },
   "exclude": [
     "node_modules",
