@@ -113,7 +113,8 @@
     "clearLog": "Burahin ang Log",
     "copy404Urls": "I-kopya ang 404 URLs",
     "uploadLog": "Log ng pag-upload",
-    "copiedToClipboard": "Nakopya sa Clipboard"
+    "copiedToClipboard": "Nakopya sa Clipboard",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "Home",
@@ -276,7 +277,7 @@
     "thumbnail": "Thumbnail",
     "screenshot": "Screenshot",
     "dropImageHere": "Ilagay ang imahe dito para madagdag",
-    "noGameSelected": "Walang larong nakapili",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "I-click ang laro para mapili.",
     "deleteAdditionalApplication": "I-tangal ang Karagdagang Aplikasyon",
     "deleteGameAndAdditionalApps": "I-tangal ang laro (at ang Karagdagang Aplikasyon)",
@@ -427,7 +428,8 @@
     "complete": "Kumpleto na ang upgrade",
     "exportMetaEditTitle": "I-Export ang mga Meta Edits",
     "exportMetaEditDesc": "I-select ang lahat ng mga property para I-export:",
-    "showImage": "Show Image"
+    "showImage": "Show Image",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "Ipakita ang Thumbnail sa folder",
@@ -506,10 +508,13 @@
   },
   "libraries": {
     "arcade": "Laro",
+    "arcadeSingular": "Game",
     "arcadePlural": "Lahat ng Laro",
     "theatre": "Animasyon",
+    "theatreSingular": "Animation",
     "theatrePlural": "Lahat ng Animasyon",
     "auditorium": "NG Auditorium",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "Lahat ng NG Animasyon"
   },
   "upgrades": {
