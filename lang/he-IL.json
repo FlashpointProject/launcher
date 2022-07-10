@@ -113,7 +113,8 @@
     "clearLog": "נקה יומן",
     "copy404Urls": "Copy 404 URLs",
     "uploadLog": "Upload Log",
-    "copiedToClipboard": "Copied to Clipboard"
+    "copiedToClipboard": "Copied to Clipboard",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "בית",
@@ -276,7 +277,7 @@
     "thumbnail": "Thumbnail",
     "screenshot": "Screenshot",
     "dropImageHere": "Drop an image here to add it",
-    "noGameSelected": "No Game Selected",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "Click on a game to select it.",
     "deleteAdditionalApplication": "Delete Additional Application",
     "deleteGameAndAdditionalApps": "Delete Game (and Additional Applications)",
@@ -427,7 +428,8 @@
     "complete": "הושלם",
     "exportMetaEditTitle": "ייצא עריכת מטא",
     "exportMetaEditDesc": "בחר את כל המאפיינים לייצוא:",
-    "showImage": "Show Image"
+    "showImage": "Show Image",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "הראה תמונה ממוזערת בתיקיה",
@@ -506,10 +508,13 @@
   },
   "libraries": {
     "arcade": "משחקים",
+    "arcadeSingular": "Game",
     "arcadePlural": "כל המשחקים",
     "theatre": "הנפשות",
+    "theatreSingular": "Animation",
     "theatrePlural": "כל ההנפשות",
     "auditorium": "אולם נ\"ג",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "כל ההנפשות ב- נ\"ג"
   },
   "upgrades": {
