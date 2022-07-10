@@ -1,5 +1,5 @@
 /* eslint-disable react/no-unused-state */
-import { chunkArray } from '@back/util/misc';
+import { chunkArray } from '@shared/utils/misc';
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import * as remote from '@electron/remote';
@@ -16,7 +16,7 @@ import * as path from 'path';
 import * as React from 'react';
 import { promisify } from 'util';
 import { LangContext } from '../../util/lang';
-import { validateSemiUUID } from '../../util/uuid';
+import { validateSemiUUID } from '@shared/utils/uuid';
 import { LogData } from '../LogData';
 import { ServiceBox } from '../ServiceBox';
 import { SimpleButton } from '../SimpleButton';
@@ -364,7 +364,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
                 // Game exists, import the data
                 await window.Shared.back.request(BackIn.IMPORT_GAME_DATA, game.id, filePath)
                 .then((gameData) => {
-                  this.setState({ text: text + filePath + '\n' +  createTextBarProgress(current, files.length) })
+                  this.setState({ text: text + filePath + '\n' +  createTextBarProgress(current, files.length) });
                 })
                 .catch((error) => {
                   text = text + `Failure - ${fileName} - ERROR: ${error}\n`;
@@ -779,7 +779,7 @@ async function checkFileLocation(games: Game[]): Promise<string> {
       try {
         const gamePath = await getGamePath(game, window.Shared.config.fullFlashpointPath, window.Shared.preferences.data.htdocsFolderPath, window.Shared.preferences.data.dataPacksFolderPath);
         if (gamePath === undefined) { pathFailed.push(game); }
-      } catch (error) {
+      } catch (error: any) {
         pathError.push([ game, error ]);
       }
     }

@@ -17,7 +17,6 @@ import { SourceFileURL1612435692266 } from '@database/migration/1612435692266-So
 import { SourceFileCount1612436426353 } from '@database/migration/1612436426353-SourceFileCount';
 import { GameTagsStr1613571078561 } from '@database/migration/1613571078561-GameTagsStr';
 import { GameDataParams1619885915109 } from '@database/migration/1619885915109-GameDataParams';
-import { validateSemiUUID } from '@renderer/util/uuid';
 import { BackIn, BackInit, BackInitArgs, BackOut } from '@shared/back/types';
 import { CurationState, LoadedCuration } from '@shared/curate/types';
 import { getContentFolderByKey } from '@shared/curate/util';
@@ -26,14 +25,15 @@ import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
 import { getDefaultLocalization, LangFileContent } from '@shared/lang';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
+import { defaultPreferencesData } from '@shared/preferences/util';
 import { Theme } from '@shared/ThemeFile';
 import {
-  createErrorProxy,
-  genContentTree,
+  createErrorProxy, deepCopy, genContentTree,
   genCurationWarnings,
   removeFileExtension,
   stringifyArray
 } from '@shared/Util';
+import { validateSemiUUID } from '@shared/utils/uuid';
 import * as child_process from 'child_process';
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint-launcher';
@@ -45,16 +45,15 @@ import { extractFull } from 'node-7z';
 import * as path from 'path';
 import 'reflect-metadata';
 // Required for the DB Models to function
-import 'sqlite3';
 import { Tail } from 'tail';
-import { ConnectionOptions, createConnection } from 'typeorm';
+import { DataSource, DataSourceOptions } from 'typeorm';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE } from './constants';
 import {
   CURATIONS_FOLDER_EXTRACTING,
   CURATIONS_FOLDER_TEMP,
   CURATIONS_FOLDER_WORKING, CURATION_META_FILENAMES
-} from './consts';
+} from '@shared/constants';
 import { loadCurationIndexImage } from './curate/parse';
 import { readCurationMeta } from './curate/read';
 import { onFileServerRequestCurationFileFactory, onFileServerRequestPostCuration } from './curate/util';
@@ -86,6 +85,15 @@ import { logFactory } from './util/logging';
 import { createContainer, exit, runService } from './util/misc';
 import { uuid } from './util/uuid';
 // Required for the DB Models to function
+
+const dataSourceOptions: DataSourceOptions = {
+  type: 'better-sqlite3',
+  database: ':memory:',
+  entities: [Game, AdditionalApp, Playlist, PlaylistGame, Tag, TagAlias, TagCategory, GameData, Source, SourceData],
+  migrations: [Initial1593172736527, AddExtremeToPlaylist1599706152407, GameData1611753257950, SourceDataUrlPath1612434225789, SourceFileURL1612435692266,
+    SourceFileCount1612436426353, GameTagsStr1613571078561, GameDataParams1619885915109]
+};
+export const AppDataSource: DataSource = new DataSource(dataSourceOptions);
 
 const DEFAULT_LOGO_PATH = 'window/images/Logos/404.png';
 
@@ -198,11 +206,11 @@ const state: BackState = {
     themes: new Map<string, Theme>(),
   },
   extensionsService: createErrorProxy('extensionsService'),
-  connection: undefined,
   sevenZipPath: '',
   loadedCurations: [],
   recentAppPaths: {},
   writeLocks: 0,
+  prefsQueue: new EventQueue(),
 };
 
 main();
@@ -279,6 +287,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   if (state.isInit) { return; }
   state.isInit = true;
 
+  console.log('Back - Initializing...');
+
   const content: BackInitArgs = JSON.parse(message);
   state.isDev = content.isDev;
   state.verbose = content.verbose;
@@ -317,25 +327,86 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   }
 
   // Read configs & preferences
-  state.config = await ConfigFile.readOrCreateFile(path.join(state.configFolder, CONFIG_FILENAME));
+  // readOrCreateFile can throw errors, let's wrap it in try-catch each time.
+  try {
+    state.config = await ConfigFile.readOrCreateFile(path.join(state.configFolder, CONFIG_FILENAME));
+  } catch (e) {
+    console.log(e);
+    // Fatal, quit.
+    send({quit: true, errorMessage: 'Invalid config.json!'});
+    return;
+  }
+
+  console.log('Back - Loaded Config');
 
   // If we're on mac and the flashpoint path is relative, resolve it relative to the configFolder path.
   state.config.flashpointPath = process.platform == 'darwin' && state.config.flashpointPath[0] != '/'
     ? path.resolve(state.configFolder, state.config.flashpointPath)
     : state.config.flashpointPath;
 
-  // @TODO Figure out why async loading isn't always working?
+  const loadPrefs = async (): Promise<void> => {
+    // @TODO Figure out why async loading isn't always working?
+    const prefsFilePath = path.join(state.config.flashpointPath, PREFERENCES_FILENAME);
+    try {
+      state.preferences = await PreferencesFile.readOrCreateFile(prefsFilePath, state.config.flashpointPath);
+    } catch (e) {
+      console.log('Failed to load preferences, prompting for defaults');
+      const res = await new Promise<number>((resolve) => {
+        process.once('message', (msg) => {
+          resolve(Number(msg));
+        });
+        send({preferencesRefresh: true});
+      });
+      console.log('Response - ' + res);
+
+      if (res === 1) {
+        throw 'User cancelled.';
+      }
+
+      // Check for custom default file
+      const overridePath = path.join(state.config.flashpointPath, '.preferences.defaults.json');
+      console.log('Checking for prefs override at ' + overridePath);
+      try {
+        await fs.promises.copyFile(overridePath, prefsFilePath);
+        console.log('Copied default preferences (override)');
+        // File copied, try loading again
+        return loadPrefs();
+      } catch (err) {
+        console.log(err);
+        // Failed to copy overrides, use defaults
+        const defaultPrefs = deepCopy(defaultPreferencesData);
+        state.preferences = defaultPrefs;
+        try {
+          await PreferencesFile.saveFile(prefsFilePath, state.preferences);
+          console.log('Copied default preferences');
+        } catch (err) {
+          send({quit: true, errorMessage: 'Failed to save default preferences file? Quitting...'});
+          return;
+        }
+      }
+    }
+  };
+
   try {
-    state.preferences = await PreferencesFile.readOrCreateFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME));
-  } catch (e) {
-    console.log(e);
-    exit(state);
+    await loadPrefs();
+  } catch (err: any) {
+    send({quit: true, errorMessage: err.toString()});
     return;
   }
-  const [extConf] = await (Promise.all([
-    ExtConfigFile.readOrCreateFile(path.join(state.config.flashpointPath, EXT_CONFIG_FILENAME))
-  ]));
-  state.extConfig = extConf;
+
+  console.log('Back - Loaded Preferences');
+
+  try {
+    const [extConf] = await (Promise.all([
+      ExtConfigFile.readOrCreateFile(path.join(state.config.flashpointPath, EXT_CONFIG_FILENAME))
+    ]));
+    state.extConfig = extConf;
+  } catch (e) {
+    console.log(e);
+    // Non-fatal, don't quit.
+  }
+
+  console.log('Back - Loaded Extension Config');
 
   // Create Game Data Directory and clean up temp files
   const fullDataPacksFolderPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath);
@@ -351,6 +422,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     });
   } catch (error) {
     console.log('Failed to create default Data Packs folder!');
+    // Non-fatal, don't quit.
   }
 
 
@@ -367,20 +439,29 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   }
 
   // Setup DB
-  if (!state.connection) {
-    const options: ConnectionOptions = {
-      type: 'sqlite',
-      database: path.join(state.config.flashpointPath, 'Data', 'flashpoint.sqlite'),
-      entities: [Game, AdditionalApp, Playlist, PlaylistGame, Tag, TagAlias, TagCategory, GameData, Source, SourceData],
-      migrations: [Initial1593172736527, AddExtremeToPlaylist1599706152407, GameData1611753257950, SourceDataUrlPath1612434225789, SourceFileURL1612435692266,
-        SourceFileCount1612436426353, GameTagsStr1613571078561, GameDataParams1619885915109]
-    };
-    state.connection = await createConnection(options);
+  if (!AppDataSource.isInitialized) {
+    const databasePath = path.resolve(state.config.flashpointPath, 'Data', 'flashpoint.sqlite');
+    console.log('Back - Using Database at ' + databasePath);
+    // Spin up another source just to run migrations
+    const migrationSource = new DataSource({
+      ...dataSourceOptions,
+      type: 'better-sqlite3',
+      database: databasePath
+    });
+    await migrationSource.initialize();
+    await migrationSource.query('PRAGMA foreign_keys=off;');
+    await migrationSource.runMigrations();
+    await migrationSource.showMigrations();
+    await migrationSource.destroy();
+    // Initialize real database
+    AppDataSource.setOptions({ database: databasePath });
+    await AppDataSource.initialize();
     // TypeORM forces on but breaks Playlist Game links to unimported games
-    await state.connection.query('PRAGMA foreign_keys=off;');
-    await state.connection.runMigrations();
+    await AppDataSource.query('PRAGMA foreign_keys=off;');
     log.info('Launcher', 'Database connection established');
   }
+
+  console.log('Back - Initialized Database');
 
   // Populate unique values
   state.suggestions = {
@@ -419,13 +500,15 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
           state.loadedCurations.push(curation);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       log.error('Launcher', `Failed to load curations\n${error.toString()}`);
     }
 
     state.init[BackInit.CURATE] = true;
     state.initEmitter.emit(BackInit.CURATE);
   }
+
+  console.log('Back - Initialized Curations');
 
   // Init extensions
   const addExtLogFactory = (extId: string) => (entry: ILogEntry) => {
@@ -473,6 +556,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     });
   });
 
+  console.log('Back - Initialized Extensions');
 
   // Init services
   try {
@@ -516,6 +600,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
       }
     }
   }
+
+  console.log('Back - Initialized Services');
 
   // Init language
   state.languageWatcher.on('ready', () => {
@@ -581,6 +667,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     }
   });
 
+  console.log('Back - Initialized Languages');
+
   // Init themes
   const dataThemeFolder = path.join(state.config.flashpointPath, state.preferences.themeFolderPath);
   try {
@@ -593,7 +681,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
         }
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     log.error('Launcher', `Error loading default Themes folder\n${error.message}`);
   }
   const themeContributions = await state.extensionsService.getContributions('themes');
@@ -610,6 +698,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
       }
     }
   }
+
+  console.log('Back - Initialized Themes');
 
   // Init Logo Sets
   const dataLogoSetsFolder = path.join(state.config.flashpointPath, state.preferences.logoSetsFolderPath);
@@ -644,7 +734,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
         }
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     log.error('Launcher', `Error loading default Themes folder\n${error.message}`);
   }
   const logoSetContributions = await state.extensionsService.getContributions('logoSets');
@@ -673,6 +763,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     }
   }
 
+  console.log('Back - Initialized Logo Sets');
+
   // Load Exec Mappings
   loadExecMappingsFile(path.join(state.config.flashpointPath, state.preferences.jsonFolderPath), content => log.info('Launcher', content))
   .then(data => {
@@ -685,6 +777,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     state.init[BackInit.EXEC] = true;
     state.initEmitter.emit(BackInit.EXEC);
   });
+
+  console.log('Back - Loaded Exec Mappings');
 
   const hostname = content.acceptRemote ? undefined : 'localhost';
 
@@ -730,11 +824,16 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   // Exit if it failed to open the server
   if (state.socketServer.port < 0) {
+    console.log('Back - Failed to open File Server, Exiting...');
     setImmediate(exit);
+    return;
   }
 
+  console.log('Back - Opened File Server');
+
   // Respond
-  send(state.socketServer.port, () => {
+  send({port: state.socketServer.port}, () => {
+    console.log('Back - Ready');
     state.apiEmitters.onDidInit.fire();
   });
 

@@ -1,5 +1,5 @@
 import { EXT_CONFIG_FILENAME, PREFERENCES_FILENAME } from '@back/constants';
-import { CURATIONS_FOLDER_WORKING } from '@back/consts';
+import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
 import { loadCurationIndexImage } from '@back/curate/parse';
 import { saveCuration } from '@back/curate/write';
 import { ExtConfigFile } from '@back/ExtConfigFile';
@@ -136,7 +136,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
   function broadcastPlaylistWrapper<T, R>(cb: (arg: T) => Promise<R>): (args: T) => Promise<R>;
   function broadcastPlaylistWrapper<T, T2, R>(cb: (arg: T, arg2: T2) => Promise<R>): (arg: T, arg2: T2) => Promise<R>;
   function broadcastPlaylistWrapper<R>(cb: (...args: any[]) => Promise<R>): (args: any[]) => Promise<R> {
-    return async (args: any[]) => {
+    return async (...args: any[]) => {
       return cb(...args)
       .then(async (r) => {
         state.socketServer.broadcast(BackOut.PLAYLISTS_CHANGE, await GameManager.findPlaylists(state.preferences.browsePageShowExtreme));

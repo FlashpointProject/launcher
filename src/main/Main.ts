@@ -10,15 +10,12 @@ import { createErrorProxy } from '@shared/Util';
 import { ChildProcess, fork } from 'child_process';
 import { randomBytes } from 'crypto';
 import { app, BrowserWindow, dialog, ipcMain, IpcMainEvent, session, shell, WebContents } from 'electron';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as path from 'path';
-import { promisify } from 'util';
+import { argv } from 'process';
 import * as WebSocket from 'ws';
 import { Init } from './types';
 import * as Util from './Util';
-
-const readFile = promisify(fs.readFile);
-const writeFile = promisify(fs.writeFile);
 
 const TIMEOUT_DELAY = 60_000;
 
@@ -72,6 +69,15 @@ export function main(init: Init): void {
   // -- Functions --
 
   function startup() {
+    // Register flashpoint:// protocol
+    if (process.defaultApp) {
+      if (process.argv.length >= 2) {
+        app.setAsDefaultProtocolClient('flashpoint', process.execPath, [path.resolve(process.argv[1])]);
+      }
+    } else {
+      app.setAsDefaultProtocolClient('flashpoint');
+    }
+
     app.disableHardwareAcceleration();
 
     // Single process
@@ -88,6 +94,7 @@ export function main(init: Init): void {
     app.once('web-contents-created', onAppWebContentsCreated);
     app.on('activate', onAppActivate);
     app.on('second-instance', onAppSecondInstance);
+    app.on('open-url', onAppOpenUrl);
 
     // Add IPC event listener(s)
     ipcMain.on(InitRendererChannel, onInit);
@@ -99,6 +106,9 @@ export function main(init: Init): void {
     });
 
     app.commandLine.appendSwitch('ignore-connections-limit', 'localhost');
+
+    state.mainFolderPath = Util.getMainFolderPath(state._installed);
+    console.log(path.join(state.mainFolderPath, 'secret.txt'));
 
     // ---- Initialize ----
     // Check if installed
@@ -121,32 +131,60 @@ export function main(init: Init): void {
       if (init.args['connect-remote'] || init.args['host-remote'] || init.args['back-only']) {
         const secretFilePath = path.join(state.mainFolderPath, 'secret.txt');
         try {
-          state._secret = await readFile(secretFilePath, { encoding: 'utf8' });
+          state._secret = await fs.readFile(secretFilePath, { encoding: 'utf8' });
         } catch (e) {
           state._secret = randomBytes(2048).toString('hex');
           try {
-            await writeFile(secretFilePath, state._secret, { encoding: 'utf8' });
+            await fs.writeFile(secretFilePath, state._secret, { encoding: 'utf8' });
           } catch (e) {
             console.warn(`Failed to save new secret to disk.\n${e}`);
           }
         }
       } else {
+        const secretFilePath = path.join(state.mainFolderPath, 'secret.txt');
         state._secret = randomBytes(2048).toString('hex');
+        try {
+          await fs.writeFile(secretFilePath, state._secret, { encoding: 'utf8' });
+        } catch (e) {
+          console.warn(`Failed to save new secret to disk.\n${e}`);
+        }
       }
     });
     // Start back process
     if (!init.args['connect-remote']) {
       p = p.then(() => new Promise((resolve, reject) => {
-        state.backProc = fork(path.join(__dirname, '../back/index.js'), undefined, { detached: true });
-        // Wait for process to initialize
-        state.backProc.once('message', (port) => {
-          if (port >= 0) {
-            state.backHost.port = port as string;
+        // Fork backend, init.rest will contain possible flashpoint:// message
+        state.backProc = fork(path.join(__dirname, '../back/index.js'), [init.rest], { detached: true });
+        const initHandler = (message: any) => {
+          // Stop listening after a port, quit or other message arrives, keep going for preferences checks
+          if (state.backProc && !message.preferencesRefresh) {
+            state.backProc.removeListener('message', initHandler);
+          }
+          if (message.port) {
+            state.backHost.port = message.port as string;
             resolve();
+          } else if (message.quit) {
+            if (message.errorMessage) {
+              dialog.showErrorBox('Flashpoint Startup Error', message.errorMessage);
+            }
+            app.quit();
+          } else if (message.preferencesRefresh) {
+            dialog.showMessageBox({
+              title: 'Preferences File Invalid',
+              message: 'Preferences file failed to load. Use defaults?',
+              buttons: ['Use Default Preferences', 'Cancel'],
+              cancelId: 1
+            }).then((res) => {
+              if (state.backProc) {
+                state.backProc.send(res.response);
+              }
+            });
           } else {
             reject(new Error('Failed to start server in back process. Perhaps because it could not find an available port.'));
           }
-        });
+        };
+        // Wait for process to initialize
+        state.backProc.on('message', initHandler);
         // On windows you have to wait for app to be ready before you call app.getLocale() (so it will be sent later)
         let localeCode = 'en';
         if (process.platform === 'win32' && !app.isReady()) {
@@ -318,6 +356,13 @@ export function main(init: Init): void {
 
   function onAppSecondInstance(event: Electron.Event, argv: string[], workingDirectory: string): void {
     if (state.window) {
+      if (process.platform !== 'darwin') {
+        // Find the arg that is our custom protocol url and store it
+        const url = argv.find((arg) => arg.startsWith('flashpoint://'));
+        if (state.window.webContents) {
+          state.window.webContents.send(WindowIPC.PROTOCOL, url);
+        }
+      }
       // Focus the window
       // (this is a hacky work around because focusing is kinda broken in win10, see https://github.com/electron/electron/issues/2867 )
       state.window.setAlwaysOnTop(true);
@@ -327,13 +372,21 @@ export function main(init: Init): void {
     }
   }
 
+  function onAppOpenUrl(event: Electron.Event, url: string) {
+    event.preventDefault();
+    dialog.showErrorBox('Welcome Back', `Mac - You arrived from: ${url}`);
+  }
+
   function onInit(event: IpcMainEvent) {
+    // Find the arg that is our custom protocol url and store it
+    const url = argv.find((arg) => arg.startsWith('flashpoint://'));
     const data: InitRendererData = {
       isBackRemote: !!init.args['connect-remote'],
       installed: !!state._installed,
       version: state._version,
       host: state.backHost.href,
       secret: state._secret,
+      url
     };
     event.returnValue = data;
   }

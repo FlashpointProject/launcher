@@ -1,16 +1,17 @@
+import { ContentTree, ContentTreeNode, CurationWarnings, LoadedCuration } from '@shared/curate/types';
+import { getContentFolderByKey } from '@shared/curate/util';
+import { GamePropSuggestions } from '@shared/interfaces';
+import { LangContainer } from '@shared/lang';
 import * as axiosImport from 'axios';
 import { Tag, TagFilterGroup } from 'flashpoint-launcher';
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import { DownloadDetails } from './back/types';
 import { AppConfigData } from './config/interfaces';
-import { parseVariableString } from './utils/VariableString';
 import { throttle } from './utils/throttle';
-import { ContentTree, ContentTreeNode, CurationWarnings, LoadedCuration } from '@shared/curate/types';
-import { GamePropSuggestions } from '@shared/interfaces';
-import { getContentFolderByKey } from '@shared/curate/util';
-import { LangContainer } from '@shared/lang';
-import ErrnoException = NodeJS.ErrnoException;
+import { uuid } from './utils/uuid';
+import { parseVariableString } from './utils/VariableString';
 
 const axios = axiosImport.default;
 
@@ -26,20 +27,8 @@ type ReadFileOptions = { encoding?: BufferEncoding; flag?: string; } | BufferEnc
  * @param path Path of the JSON file.
  * @param options Options for reading the file.
  */
-export function readJsonFile(path: string, options?: ReadFileOptions): Promise<any> {
-  return new Promise<any>((resolve, reject) => {
-    fs.readFile(path, options, (error: ErrnoException | null, data: string | Buffer) => {
-      // Check if reading file failed
-      if (error) { return reject(error); }
-      // Try to parse json (and callback error if it fails)
-      try {
-        const jsonData = JSON.parse(data as string);
-        return resolve(jsonData);
-      } catch (error) {
-        return reject(error);
-      }
-    });
-  });
+export async function readJsonFile(path: string, options?: ReadFileOptions): Promise<any> {
+  return JSON.parse(await fs.promises.readFile(path, options) as string);
 }
 
 /**
@@ -245,45 +234,27 @@ export async function recursiveDirectory(options: IRecursiveDirectoryOptions): P
 }
 
 async function innerRecursiveDirectory(shared: IRecursiveDirectorySharedObject, dirPath: string): Promise<void> {
-  return new Promise<void>(function(resolve, reject) {
-    // Full path to the current folder
-    const fullDirPath: string = path.join(shared.options.directoryPath, dirPath);
-    // Get the names of all files and sub-folders
-    fs.readdir(fullDirPath, function (err, files): void {
-      if (shared.abort) { return resolve(); } // (Abort exit point)
-      if (err) { reject(err); }
-      else {
-        // Resolve if folder is empty
-        if (files.length === 0) { return resolve(); }
-        // Get the stats of each folder/file to verify if they are a folder or file
-        // (And wait for every single one to complete before resolving the promise)
-        let filesOrFoldersLeft: number = files.length;
-        for (let i = files.length - 1; i >= 0; i--) {
-          const filename = files[i];
-          fs.stat(path.join(fullDirPath, filename), async function(err, stats) {
-            if (shared.abort) { return resolve(); } // (Abort exit point)
-            if (err) { reject(err); }
-            else {
-              if (stats.isFile()) {
-                const p = shared.options.fileCallback({
-                  shared: shared,
-                  filename: filename,
-                  relativePath: dirPath,
-                });
-                if (p) { await p; }
-              } else {
-                await innerRecursiveDirectory(shared, path.join(dirPath, filename)).catch(reject);
-              }
-            }
-            filesOrFoldersLeft -= 1;
-            if (filesOrFoldersLeft === 0) {
-              resolve();
-            }
-          });
-        }
-      }
-    });
-  });
+  // Full path to the current folder
+  const fullDirPath = path.join(shared.options.directoryPath, dirPath);
+  // Get the names of all files and sub-folders
+  const files = await fs.promises.readdir(fullDirPath);
+  if (shared.abort) { return; }
+  if (files.length === 0) { return; }
+  for (let i = files.length - 1; i >= 0; i--) {
+    // Get the stats of each folder/file to verify if they are a folder or file
+    const stats = await fs.promises.stat(path.join(fullDirPath, files[i]));
+    if (shared.abort) { return; }
+    if (stats.isFile()) {
+      const p = shared.options.fileCallback({
+        shared: shared,
+        filename: files[i],
+        relativePath: dirPath,
+      });
+      if (p) { await p; }
+    } else {
+      await innerRecursiveDirectory(shared, path.join(dirPath, files[i]));
+    }
+  }
 }
 
 export interface IRecursiveDirectoryOptions {
@@ -412,21 +383,17 @@ export function fixSlashes(str: string): string {
  * Checks whether we can write and read to a folder
  * @param folder folder to check
  */
-export function canReadWrite(folder: string): Promise<boolean> {
-  return new Promise<boolean>((resolve) => {
-    const testPath = path.join(folder, 'test');
-    fs.open(testPath, 'w', (err, fd) => {
-      if (err) {
-        resolve(false);
-        return;
-      }
-      // Cleanup file after testing
-      fs.close(fd, () => {
-        fs.promises.unlink(testPath);
-      });
-      resolve(true);
-    });
-  });
+export async function canReadWrite(folder: string): Promise<boolean> {
+  const testPath = path.join(folder, 'test');
+  try {
+    const fd = await fs.promises.open(testPath, 'w');
+    // Cleanup file after testing
+    await fd.close();
+    await fs.promises.unlink(testPath);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 // Courtesy of https://www.paulirish.com/2009/random-hex-color-code-snippets/
@@ -631,4 +598,18 @@ function isValueSuggested<T extends keyof GamePropSuggestions>(curation: LoadedC
   const valueSuggestions = suggestions[key];
   // Check if the value is suggested
   return valueSuggestions.indexOf(value) >= 0;
+}
+
+export async function getTempFilename(ext = 'tmp') {
+  return path.join(await fs.promises.realpath(os.tmpdir()), uuid() + '.' + ext);
+}
+
+export function compare(a: string, b: string): number {
+  if (a < b) {
+    return -1;
+  } else if (a > b) {
+    return 1;
+  } else {
+    return 0;
+  }
 }

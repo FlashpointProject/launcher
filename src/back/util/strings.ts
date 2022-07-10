@@ -8,16 +8,6 @@ export function isUpperAsciiLetter(code: number): boolean {
   return code >= CharCode.A && code <= CharCode.Z;
 }
 
-export function compare(a: string, b: string): number {
-  if (a < b) {
-    return -1;
-  } else if (a > b) {
-    return 1;
-  } else {
-    return 0;
-  }
-}
-
 export function compareSubstring(a: string, b: string, aStart = 0, aEnd: number = a.length, bStart = 0, bEnd: number = b.length): number {
   for (; aStart < aEnd && bStart < bEnd; aStart++, bStart++) {
     const codeA = a.charCodeAt(aStart);

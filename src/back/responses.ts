@@ -7,7 +7,7 @@ import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
 import { BackIn, BackInit, BackOut, CurationImageEnum, DownloadDetails } from '@shared/back/types';
 import { overwriteConfigData } from '@shared/config/util';
-import { LOGOS, SCREENSHOTS } from '@shared/constants';
+import { CURATIONS_FOLDER_EXPORTED, CURATIONS_FOLDER_TEMP, CURATIONS_FOLDER_WORKING, LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { CurationState, LoadedCuration } from '@shared/curate/types';
 import { getContentFolderByKey, getCurationFolder } from '@shared/curate/util';
@@ -19,6 +19,7 @@ import { MetaEditFile, MetaEditMeta } from '@shared/MetaEdit';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { defaultPreferencesData, overwritePreferenceData } from '@shared/preferences/util';
 import { deepCopy, genContentTree, genCurationWarnings } from '@shared/Util';
+import { sanitizeFilename } from '@shared/utils/sanitizeFilename';
 import { formatString } from '@shared/utils/StringFormatter';
 import * as axiosImport from 'axios';
 import * as child_process from 'child_process';
@@ -31,7 +32,6 @@ import * as util from 'util';
 import * as YAML from 'yaml';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME } from './constants';
-import { CURATIONS_FOLDER_EXPORTED, CURATIONS_FOLDER_TEMP, CURATIONS_FOLDER_WORKING } from './consts';
 import { loadCurationIndexImage } from './curate/parse';
 import { saveCuration } from './curate/write';
 import { ExtConfigFile } from './ExtConfigFile';
@@ -54,13 +54,11 @@ import {
   createPlaylistFromJson,
   dateToFilenameString,
   deleteCuration,
-  exit,
-  pathExists,
+  exit, getCwd, pathExists,
   procToService,
   removeService,
   runService
 } from './util/misc';
-import { sanitizeFilename } from './util/sanitizeFilename';
 import { pathTo7zBack } from './util/SevenZip';
 import { uuid } from './util/uuid';
 
@@ -95,6 +93,14 @@ export function registerRequestCallbacks(state: BackState): void {
     return {
       preferences: state.preferences,
       config: state.config,
+    };
+  });
+
+  state.socketServer.register(BackIn.GET_LOGGER_INIT_DATA, (event) => {
+    return {
+      preferences: state.preferences,
+      config: state.config,
+      log: state.log
     };
   });
 
@@ -227,7 +233,7 @@ export function registerRequestCallbacks(state: BackState): void {
     const addApp = await GameManager.findAddApp(id);
     if (addApp) {
       // If it has GameData, make sure it's present
-      let gameData: GameData | undefined;
+      let gameData: GameData | null;
       if (addApp.parentGame.activeDataId) {
         gameData = await GameDataManager.findOne(addApp.parentGame.activeDataId);
         if (gameData && !gameData.presentOnDisk) {
@@ -245,7 +251,7 @@ export function registerRequestCallbacks(state: BackState): void {
                 state.socketServer.broadcast(BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG);
               }, 250);
             });
-          } catch (error) {
+          } catch (error: any) {
             state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
             log.info('Game Launcher', `Game Launch Aborted: ${error}`);
             return;
@@ -288,9 +294,11 @@ export function registerRequestCallbacks(state: BackState): void {
           runService(state, 'server', 'Server', state.config.flashpointPath, {}, configServer);
         }
       }
+      log.debug('TEST', 'Server change done');
       // If it has GameData, make sure it's present
-      let gameData: GameData | undefined;
+      let gameData: GameData | null;
       if (game.activeDataId) {
+        log.debug('TEST', 'Found active game data');
         gameData = await GameDataManager.findOne(game.activeDataId);
         if (gameData && !gameData.presentOnDisk) {
           // Download GameData
@@ -310,13 +318,14 @@ export function registerRequestCallbacks(state: BackState): void {
                 state.socketServer.broadcast(BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG);
               }, 250);
             });
-          } catch (error) {
+          } catch (error: any) {
             state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
             log.info('Game Launcher', `Game Launch Aborted: ${error}`);
             return;
           }
         }
       }
+      log.debug('TEST', 'Running game');
       // Launch game
       await GameLauncher.launchGame({
         game,
@@ -365,7 +374,7 @@ export function registerRequestCallbacks(state: BackState): void {
 
     return {
       game,
-      library: game && game.library,
+      library: game ? game.library : undefined,
       gamesTotal: await GameManager.countGames(),
     };
   });
@@ -417,7 +426,8 @@ export function registerRequestCallbacks(state: BackState): void {
     }
 
     return {
-      library: result && result.library,
+      game: null,
+      library: result ? result.library : undefined,
       gamesTotal: await GameManager.countGames(),
     };
   });
@@ -601,7 +611,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.UNINSTALL_GAME_DATA, async (event, id) => {
-    const gameData = await GameDataManager.findOne(id);
+    const gameData: GameData | null = await GameDataManager.findOne(id);
     if (gameData && gameData.path && gameData.presentOnDisk) {
       await GameDataManager.onWillUninstallGameData.fire(gameData);
       // Delete Game Data
@@ -624,6 +634,7 @@ export function registerRequestCallbacks(state: BackState): void {
         return GameManager.save(game);
       }
     }
+    return null;
   });
 
   state.socketServer.register(BackIn.ADD_SOURCE_BY_URL, async (event, url) => {
@@ -657,7 +668,9 @@ export function registerRequestCallbacks(state: BackState): void {
 
   state.socketServer.register(BackIn.BROWSE_VIEW_KEYSET, async (event, library, query) => {
     query.filter = adjustGameFilter(query.filter);
+    const startTime = Date.now();
     const result = await GameManager.findGamePageKeyset(query.filter, query.orderBy, query.orderReverse, query.searchLimit);
+    log.debug('Launcher', 'Search Time: ' + (Date.now() - startTime) + 'ms');
     return {
       keyset: result.keyset,
       total: result.total,
@@ -666,15 +679,12 @@ export function registerRequestCallbacks(state: BackState): void {
 
   state.socketServer.register(BackIn.BROWSE_VIEW_PAGE, async (event, data) => {
     data.query.filter = adjustGameFilter(data.query.filter);
-    const startTime = new Date();
     const results = await GameManager.findGames({
       ranges: data.ranges,
       filter: data.query.filter,
       orderBy: data.query.orderBy,
       direction: data.query.orderReverse,
     }, !!data.shallow);
-    const timeTaken = (new Date()).getTime() - startTime.getTime();
-    log.debug('Launcher', `FindGames Time: ${timeTaken}ms`);
 
     return {
       ranges: results,
@@ -833,7 +843,7 @@ export function registerRequestCallbacks(state: BackState): void {
           await fs.promises.unlink(fullPath);
           // @TODO Remove the two top folders if they are empty (so no empty folders are left hanging)
         }
-      } catch (error) {
+      } catch (error: any) {
         if (error.code !== 'ENOENT') { console.error(error); }
       }
     }
@@ -846,7 +856,7 @@ export function registerRequestCallbacks(state: BackState): void {
     overwriteConfigData(newConfig, data);
 
     try { await ConfigFile.saveFile(path.join(state.configFolder, CONFIG_FILENAME), newConfig); }
-    catch (error) { log.error('Launcher', error); }
+    catch (error: any) { log.error('Launcher', error); }
   });
 
   state.socketServer.register(BackIn.UPDATE_PREFERENCES, async (event, data, refresh) => {
@@ -864,16 +874,14 @@ export function registerRequestCallbacks(state: BackState): void {
       }
 
       overwritePreferenceData(state.preferences, dif);
-      state.writeLocks += 1;
-      await PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences);
-      state.writeLocks -= 1;
+      state.prefsQueue.push(() => PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences));
     }
     if (refresh) {
       state.socketServer.send(event.client, BackOut.UPDATE_PREFERENCES_RESPONSE, state.preferences);
     }
   });
 
-  state.socketServer.register(BackIn.SERVICE_ACTION, (event, action, id) => {
+  state.socketServer.register(BackIn.SERVICE_ACTION, async (event, action, id) => {
     const proc = state.services.get(id);
     if (proc) {
       switch (action) {
@@ -881,10 +889,10 @@ export function registerRequestCallbacks(state: BackState): void {
           proc.spawn();
           break;
         case ProcessAction.STOP:
-          proc.kill();
+          await proc.kill();
           break;
         case ProcessAction.RESTART:
-          proc.restart();
+          await proc.restart();
           break;
         default:
           console.warn('Unhandled Process Action');
@@ -1173,6 +1181,40 @@ export function registerRequestCallbacks(state: BackState): void {
     }
   });
 
+  state.socketServer.register(BackIn.OPEN_LOGS_WINDOW, async (event) => {
+    if (!state.services.has('logger_window')) {
+      const env = process.env;
+      if ('ELECTRON_RUN_AS_NODE' in env) {
+        delete env['ELECTRON_RUN_AS_NODE']; // If this flag is present, it will disable electron features from the process
+      }
+      const loggerArgs = [path.join(__dirname, '../main/index.js'), 'logger=true'];
+      const dirname = path.dirname(process.execPath);
+      runService(
+        state,
+        'logger_window',
+        'Logger Window',
+        '',
+        {
+          detached: false,
+          noshell: false,
+          cwd: getCwd(state.isDev, state.exePath),
+          env: env
+        },
+        {
+          path: dirname,
+          filename: process.execPath,
+          arguments: escapeArgsForShell(loggerArgs),
+          kill: true
+        }
+      );
+    } else {
+      const loggerService = state.services.get('logger_window');
+      if (loggerService && loggerService.getState() !== ProcessState.RUNNING) {
+        loggerService.restart();
+      }
+    }
+  });
+
   state.socketServer.register(BackIn.UPLOAD_LOG, async (event) => {
     // Upload to log server
     const entries = state.log.filter(e => e !== undefined);
@@ -1191,26 +1233,12 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.QUIT, async (event) => {
+    console.log('Exiting...');
     // Unload all extensions before quitting
-    const timeoutPromise = new Promise((resolve, reject) => {
-      setTimeout(resolve, 20000);
-    });
-    const writePromise = new Promise<void>((resolve, reject) => {
-      const loopFunc = () => {
-        if (state.writeLocks > 0) {
-          setTimeout(loopFunc, 100);
-        } else {
-          resolve();
-        }
-      };
-      loopFunc();
-    });
-    await Promise.race([timeoutPromise, writePromise])
-    .catch((err) => {
-      /** Bit late to really do anything here */
-    });
     await state.extensionsService.unloadAll();
-    state.socketServer.send(event.client, BackOut.QUIT);
+    console.log(' - Extensions Unloaded');
+    state.socketServer.broadcast(BackOut.QUIT);
+    console.log(' - Quit Broadcast Sent');
     exit(state);
   });
 
@@ -1261,7 +1289,7 @@ export function registerRequestCallbacks(state: BackState): void {
           await fs_extra.ensureDir(folderPath);
           await fs.promises.writeFile(filePath, JSON.stringify(output, null, '\t'));
         }
-      } catch (error) {
+      } catch (error: any) {
         log.error('Launcher', `Failed to export meta edit.\nError: ${error.message || error}`);
       }
     }
@@ -1362,7 +1390,7 @@ export function registerRequestCallbacks(state: BackState): void {
           finished: true
         });
       }
-    } catch (e) {
+    } catch (e: any) {
       log.error('Curate', `Failed to delete curation: ${e}`);
       if (taskId) {
         state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
@@ -1423,7 +1451,7 @@ export function registerRequestCallbacks(state: BackState): void {
           finished: true
         });
       }
-    } catch (e) {
+    } catch (e: any) {
       if (taskId) {
         state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
           finished: true,
@@ -1680,15 +1708,19 @@ function runGameFactory(state: BackState) {
       '',
       {
         detached: false,
-        shell: true,
         cwd: gameLaunchInfo.launchInfo.cwd,
-        execFile: !!gameLaunchInfo.launchInfo.execFile,
+        noshell: !!gameLaunchInfo.launchInfo.noshell,
         env: gameLaunchInfo.launchInfo.env
       },
       {
         path: dirname,
-        filename: createCommand(gameLaunchInfo.launchInfo.gamePath, gameLaunchInfo.launchInfo.useWine, !!gameLaunchInfo.launchInfo.execFile),
-        arguments: escapeArgsForShell(gameLaunchInfo.launchInfo.gameArgs),
+        filename: createCommand(gameLaunchInfo.launchInfo.gamePath, gameLaunchInfo.launchInfo.useWine, !!gameLaunchInfo.launchInfo.noshell),
+        // Don't escape args if we're not using a shell.
+        arguments: gameLaunchInfo.launchInfo.noshell
+          ? typeof gameLaunchInfo.launchInfo.gameArgs == 'string'
+            ? [gameLaunchInfo.launchInfo.gameArgs]
+            : gameLaunchInfo.launchInfo.gameArgs
+          : escapeArgsForShell(gameLaunchInfo.launchInfo.gameArgs),
         kill: true
       }
     );
@@ -1702,19 +1734,19 @@ function runGameFactory(state: BackState) {
   };
 }
 
-function createCommand(filename: string, useWine: boolean, execFile: boolean): string {
+function createCommand(filename: string, useWine: boolean, noshell: boolean): string {
   // This whole escaping thing is horribly broken. We probably want to switch
   // to an array representing the argv instead and not have a shell
   // in between.
   switch (process.platform) {
     case 'win32':
-      return execFile ? filename : `"${filename}"`; // Quotes cause issues with execFile
+      return noshell ? filename : `"${filename}"`; // Quotes cause issues without a shell.
     case 'darwin':
     case 'linux':
       if (useWine) {
-        return `wine start /unix "${filename}"`;
+        return `wine start /wait /unix "${filename}"`;
       }
-      return `"${filename}"`;
+      return noshell ? filename : `"${filename}"`;
     default:
       throw Error('Unsupported platform');
   }

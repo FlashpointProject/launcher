@@ -99,7 +99,7 @@ export const onFileServerRequestCurationFileFactory = (getCurationFilePath: GetC
             } else if (stat.isFile()) {
               serveFile(req, res, filePath);
             }
-          } catch (err) {
+          } catch (err: any) {
             if (err.code === 'ENOENT') {
               res.writeHead(404);
             } else {

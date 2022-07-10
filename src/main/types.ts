@@ -5,6 +5,8 @@ export type InitArgs = Partial<{
   'back-only': boolean;
 
   // Browser mode
+  /** If the application should start in "logger mode" */
+  'logger': boolean;
   /** If the application should start in "browser mode". */
   'browser_mode': boolean;
   /** URL that browser mode should open */

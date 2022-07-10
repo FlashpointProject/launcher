@@ -101,7 +101,7 @@ export function createContainer(languages: LangFile[], currentCode: string, auto
 }
 
 /** Exit the back process cleanly. */
-export function exit(state: BackState): void {
+export async function exit(state: BackState): Promise<void> {
   if (!state.isExit) {
     state.isExit = true;
 
@@ -109,19 +109,22 @@ export function exit(state: BackState): void {
       // Kill services
       for (const service of state.services.values()) {
         if (service.info.kill) {
-          service.kill();
+          await service.kill();
         }
       }
+      console.log(' - Managed Services Killed');
       // Run stop commands
       for (let i = 0; i < state.serviceInfo.stop.length; i++) {
         execProcess(state, state.serviceInfo.stop[i], true);
       }
+      console.log(' - Service Info Stop Commands Run');
     }
 
     state.languageWatcher.abort();
     for (const watcher of state.themeState.watchers) {
       watcher.abort();
     }
+    console.log(' - Watchers Aborted');
 
     Promise.all([
       // Close WebSocket server
@@ -132,6 +135,8 @@ export function exit(state: BackState): void {
         if (error) { console.warn('An error occurred while closing the file server.', error); }
         resolve();
       })),
+      // Wait for preferences writes to complete
+      state.prefsQueue.push(() => {}, true),
       // Wait for game manager to complete all saves
       state.gameManager.saveQueue.push(() => {}, true),
       // Abort saving on demand images
@@ -144,12 +149,15 @@ export function exit(state: BackState): void {
 
           try {
             await unlink(filePath);
-          } catch (error) {
+          } catch (error: any) {
             if (error.code !== 'ENOENT') { console.error(`Failed to delete partially downloaded image file (path: "${current[i].subPath}").`, error); }
           }
         }
       })(),
-    ]).then(() => { process.exit(); });
+    ]).then(() => {
+      console.log(' - Cleanup Complete, Exiting Process...');
+      process.exit();
+    });
   }
 }
 
@@ -238,17 +246,6 @@ export function createPlaylistFromJson(jsonData: any, library?: string): Playlis
   return playlist;
 }
 
-
-export function chunkArray<T>(array: T[], chunkSize: number): T[][] {
-  const chunks: T[][] = [];
-
-  for (let i = 0; i < array.length; i += chunkSize) {
-    chunks.push(array.slice(i, i + chunkSize));
-  }
-
-  return chunks;
-}
-
 export function runService(state: BackState, id: string, name: string, basePath: string, opts: ProcessOpts, info: INamedBackProcessInfo | IBackProcessInfo): ManagedChildProcess {
   // Already exists, bad!
   if (state.services.has(id)) {
@@ -270,7 +267,7 @@ export function runService(state: BackState, id: string, name: string, basePath:
     proc.spawn();
   } catch (error) {
     log.error(SERVICES_SOURCE, `An unexpected error occurred while trying to run the background process "${proc.name}".` +
-              `  ${error.toString()}`);
+              `  ${(error as Error).toString()}`);
   }
   state.apiEmitters.services.onServiceNew.fire(proc);
   return proc;
@@ -288,7 +285,7 @@ export async function removeService(state: BackState, processId: string): Promis
 
 export async function waitForServiceDeath(service: ManagedChildProcess) : Promise<void> {
   if (service.getState() !== ProcessState.STOPPED) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       service.on('change', onChange);
       service.kill();
 
@@ -351,4 +348,8 @@ export async function deleteCuration(state: BackState, folder: string) {
     state.loadedCurations.splice(curationIdx, 1);
     state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, undefined, [folder]);
   }
+}
+
+export function getCwd(isDev: boolean, exePath: string) {
+  return isDev ? process.cwd() : process.platform == 'darwin' ? path.resolve(path.dirname(exePath), '..') : path.dirname(exePath);
 }

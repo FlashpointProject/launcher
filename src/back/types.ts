@@ -13,7 +13,6 @@ import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOp
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint-launcher';
 import { IncomingMessage, ServerResponse } from 'http';
-import { Connection } from 'typeorm';
 import * as WebSocket from 'ws';
 import { ApiEmitter } from './extensions/ApiEmitter';
 import { ExtensionService } from './extensions/ExtensionService';
@@ -73,7 +72,6 @@ export type BackState = {
   readonly apiEmitters: ApiEmittersState,
   readonly registry: Registry;
   extensionsService: ExtensionService;
-  connection: Connection | undefined;
   /** Path of the SevenZip binary. */
   sevenZipPath: string;
   /** All currently loaded curations. */
@@ -81,6 +79,8 @@ export type BackState = {
   /** Most recent app paths that were fetched from the database (cached in the back so it's available for the curation stuff /obelisk). */
   recentAppPaths: { [platform: string]: string; };
   writeLocks: number;
+  prefsQueue: EventQueue;
+  logsWindowProc?: ManagedChildProcess;
 }
 
 export type BackQueryChache = {

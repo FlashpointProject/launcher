@@ -123,6 +123,7 @@ const langTemplate = {
     'copy404Urls',
     'uploadLog',
     'copiedToClipboard',
+    'openLogsWindow',
   ] as const,
   app: [
     'home',
@@ -455,6 +456,7 @@ const langTemplate = {
     'exportMetaEditTitle',
     'exportMetaEditDesc',
     'showImage',
+    'searching'
   ] as const,
   menu: [
     'viewThumbnailInFolder',

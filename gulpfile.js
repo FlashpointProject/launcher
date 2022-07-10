@@ -73,7 +73,13 @@ const extraOptions = {
   },
   mac: {
     target: ['dmg', '7z'],
-    icon: './icons/icon.icns'
+    icon: './icons/icon.icns',
+    protocols: {
+      name: 'flashpoint-protocol',
+      schemes: [
+        'flashpoint'
+      ]
+    }
   },
   linux: {
     target: ['deb', '7z'],
@@ -96,7 +102,7 @@ gulp.task('watch-back', (done) => {
 
 gulp.task('watch-renderer', (done) => {
   const mode = config.isRelease ? 'production' : 'development';
-  execute(`npx webpack --color true --mode "${mode}" --watch`, done);
+  execute(`npx webpack --mode "${mode}" --watch`, done);
 });
 
 gulp.task('watch-static', () => {
@@ -112,7 +118,7 @@ gulp.task('build-back', (done) => {
 
 gulp.task('build-renderer', (done) => {
   const mode = config.isRelease ? 'production' : 'development';
-  execute(`npx webpack --color true --mode "${mode}"`, done);
+  execute(`npx webpack --mode "${mode}"`, done);
 });
 
 gulp.task('copy-static', () => {

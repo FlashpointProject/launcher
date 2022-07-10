@@ -3,7 +3,7 @@ import { readJsonFile } from '@shared/Util';
 import { Coerce } from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import { UpgradeStageState } from '../interfaces';
-import { uuid } from '../util/uuid';
+import { uuid } from '@shared/utils/uuid';
 import { UpgradeStage } from './types';
 
 const { str } = Coerce;

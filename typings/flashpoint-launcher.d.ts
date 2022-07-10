@@ -157,13 +157,13 @@ declare module 'flashpoint-launcher' {
          * @param playlistId ID of the Playlist
          * @param join Whether to include Playlist Games in the result
          */
-        function findPlaylist(playlistId: string, join?: boolean): Promise<Playlist | undefined>;
+        function findPlaylist(playlistId: string, join?: boolean): Promise<Playlist | null>;
         /**
          * Finds a playlist given its name
          * @param playlistName Name of the Playlist
          * @param join Whether to include Playlist Games in the result
          */
-        function findPlaylistByName(playlistName: string, join?: boolean): Promise<Playlist | undefined>;
+        function findPlaylistByName(playlistName: string, join?: boolean): Promise<Playlist | null>;
         /** Find all Playlists in the database (Playlist Games not returned) */
         function findPlaylists(showExtreme: boolean): Promise<Playlist[]>;
         /**
@@ -184,13 +184,13 @@ declare module 'flashpoint-launcher' {
          * @param playlistId Playlist to search
          * @param gameId Game to find
          */
-        function findPlaylistGame(playlistId: string, gameId: string): Promise<PlaylistGame | undefined>;
+        function findPlaylistGame(playlistId: string, gameId: string): Promise<PlaylistGame | null>;
         /**
          * Removes a Playlist Game entry from a Playlist
          * @param playlistId Playlist to search
          * @param gameId Game to remove
          */
-        function removePlaylistGame(playlistId: string, gameId: string): Promise<PlaylistGame | undefined>;
+        function removePlaylistGame(playlistId: string, gameId: string): Promise<PlaylistGame | null>;
         /**
          * Update / Create a Playlist Game entry
          * @param playlistGame Playlist Game entry to save
@@ -215,7 +215,7 @@ declare module 'flashpoint-launcher' {
          * Finds a Game given its ID
          * @param id ID of the Game
          */
-        function findGame(id: string): Promise<Game | undefined>;
+        function findGame(id: string): Promise<Game | null>;
         /**
          * Finds a selection of Games given filter options
          * @param opts Filter options
@@ -241,7 +241,7 @@ declare module 'flashpoint-launcher' {
          * Removes a Game and all its AddApps
          * @param gameId ID of Game to remove
          */
-        function removeGameAndAddApps(gameId: string): Promise<Game | undefined>;
+        function removeGameAndAddApps(gameId: string): Promise<Game | null>;
 
         // Misc
         /**
@@ -286,7 +286,7 @@ declare module 'flashpoint-launcher' {
 
     /** Collection of Game Data related API functions */
     namespace gameData {
-        function findOne(id: number): Promise<GameData | undefined>;
+        function findOne(id: number): Promise<GameData | null>;
         function findGameData(gameId: string): Promise<GameData[]>;
         function findSourceDataForHashes(hashes: string[]): Promise<SourceData[]>;
         function save(gameData: GameData): Promise<GameData>;
@@ -296,7 +296,7 @@ declare module 'flashpoint-launcher' {
     }
 
     namespace sources {
-        function findOne(sourceId: number): Promise<Source | undefined>;
+        function findOne(sourceId: number): Promise<Source | null>;
     }
 
     /** Collection of Tag related API functions */
@@ -306,12 +306,12 @@ declare module 'flashpoint-launcher' {
          * Finds a tag given it's ID
          * @param tagId ID of the Tag
          */
-        function getTagById(tagId: number): Promise<Tag | undefined>;
+        function getTagById(tagId: number): Promise<Tag | null>;
         /**
          * Finds a tag given an alias name
          * @param name Name of the Tag (any matching alias)
          */
-        function findTag(name: string): Promise<Tag | undefined>;
+        function findTag(name: string): Promise<Tag | null>;
         /**
          * Finds a list of tags that begins with a name (if given)
          * @param name Partial name that a tag starts with
@@ -323,7 +323,7 @@ declare module 'flashpoint-launcher' {
          * @param categoryName Name of the category to use, Default if none given
          * @param aliases List of extra aliases to register
          */
-        function createTag(name: string, categoryName?: string, aliases?: string[]): Promise<Tag | undefined>;
+        function createTag(name: string, categoryName?: string, aliases?: string[]): Promise<Tag | null>;
         /**
          * Updates a Tag
          * @param tag Tag data to save
@@ -352,7 +352,7 @@ declare module 'flashpoint-launcher' {
          * Find a Tag Category by it's ID. (Useful when a Tag doesn't populate it)
          * @param categoryId ID of the Tag Category
          */
-        function getTagCategoryById(categoryId: number): Promise<TagCategory | undefined>;
+        function getTagCategoryById(categoryId: number): Promise<TagCategory | null>;
         /**
          * Find all Tag Categories
          */
@@ -362,7 +362,7 @@ declare module 'flashpoint-launcher' {
          * @param name Name of the Tag Category
          * @param color Color to give the Tag Category
          */
-        function createTagCategory(name: string, color: string): Promise<TagCategory | undefined>;
+        function createTagCategory(name: string, color: string): Promise<TagCategory | null>;
         /**
          * Update a Tag Category
          * @param tagCategory Tag Category data to save
@@ -386,7 +386,7 @@ declare module 'flashpoint-launcher' {
          * Merges 2 tags into a single tag.
          * @param mergeData Required data to merge.
          */
-        function mergeTags(mergeData: MergeTagData): Promise<Tag | undefined>;
+        function mergeTags(mergeData: MergeTagData): Promise<Tag | null>;
     }
 
     /** Collection of Status related API functions */
@@ -1030,7 +1030,7 @@ declare module 'flashpoint-launcher' {
     type ProcessOpts = {
         detached?: boolean;
         autoRestart?: boolean;
-        shell?: boolean;
+        noshell?: boolean;
     };
 
     type ServiceChange = {
@@ -1071,10 +1071,10 @@ declare module 'flashpoint-launcher' {
         spawn(auto?: boolean): void;
 
         /** Politely ask the child process to exit (if it is running). */
-        kill(): void;
+        kill(): Promise<void>;
 
         /** Restart the managed child process (by killing the current, and spawning a new). */
-        restart(): void;
+        restart(): Promise<void>;
     }
 
     /** State of a managed process. */
@@ -1090,7 +1090,7 @@ declare module 'flashpoint-launcher' {
     /** Info type passed to onWillLaunch events */
     type GameLaunchInfo = {
         game: Game;
-        activeData?: GameData;
+        activeData: GameData | null;
         launchInfo: LaunchInfo;
     };
 

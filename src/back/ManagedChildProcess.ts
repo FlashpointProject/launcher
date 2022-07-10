@@ -1,11 +1,13 @@
 import { IBackProcessInfo, INamedBackProcessInfo, ProcessState } from '@shared/interfaces';
 import { ILogPreEntry } from '@shared/Log/interface';
 import { Coerce } from '@shared/utils/Coerce';
-import { ChildProcess, execFile, spawn } from 'child_process';
+import { ChildProcess, spawn } from 'child_process';
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint-launcher';
+import { readFileSync } from 'fs';
+import { kill as processKill } from 'process';
+import * as psTree from 'ps-tree';
 import * as readline from 'readline';
-import * as treeKill from 'tree-kill';
 import { ApiEmitter } from './extensions/ApiEmitter';
 import { Disposable } from './util/lifecycle';
 
@@ -30,9 +32,8 @@ export interface ManagedChildProcess {
 export type ProcessOpts = {
   detached?: boolean;
   autoRestart?: boolean;
-  shell?: boolean;
+  noshell?: boolean;
   cwd?: string;
-  execFile?: boolean;
   env?: NodeJS.ProcessEnv;
 }
 
@@ -63,8 +64,6 @@ export class ManagedChildProcess extends EventEmitter {
   private autoRestartCount: number;
   /** Whether to run in a shell */
   private shell: boolean;
-  /** Whether to use execFile instead of spawn */
-  private execFile: boolean;
   /** Launch with these Environmental Variables */
   private env?: NodeJS.ProcessEnv;
   /** A timestamp of when the process was started. */
@@ -74,7 +73,7 @@ export class ManagedChildProcess extends EventEmitter {
 
   constructor(id: string, name: string, cwd: string, opts: ProcessOpts, info: INamedBackProcessInfo | IBackProcessInfo) {
     super();
-    const { detached, autoRestart, shell, execFile, env } = opts;
+    const { detached, autoRestart, noshell, env } = opts;
     this.id = id;
     this.name = name;
     this.cwd = cwd;
@@ -82,8 +81,7 @@ export class ManagedChildProcess extends EventEmitter {
     this.autoRestart = !!autoRestart;
     this.autoRestartCount = 0;
     this.info = info;
-    this.shell = !!shell;
-    this.execFile = !!execFile;
+    this.shell = !noshell;
     this.env = env;
   }
 
@@ -110,11 +108,24 @@ export class ManagedChildProcess extends EventEmitter {
         this.autoRestartCount = 0;
       }
       // Spawn process
-      if (this.execFile) {
-        this.process = execFile(this.info.filename, this.info.arguments, { cwd: this.cwd, env: this.env });
-      } else {
-        this.process = spawn(this.info.filename, this.info.arguments, { cwd: this.cwd, detached: this.detached, shell: this.shell });
+      if (process.platform == 'darwin') {
+        if (this.env === undefined) {
+          this.env = {};
+        }
+        if (this.env.PATH === undefined) {
+          this.env.PATH = '';
+        }
+        const pathArr: string[] = this.env.PATH.split(':');
+        // HACK: manually read in /etc/paths to PATH. Needs to be done on Mac, because otherwise
+        // the brew path won't be found.
+        for (const entry of readFileSync('/etc/paths').toString().split('\n')) {
+          if (entry != '' && !pathArr.includes(entry)) {
+            pathArr.push(entry);
+          }
+        }
+        this.env.PATH = pathArr.join(':');
       }
+      this.process = spawn(this.info.filename, this.info.arguments, { cwd: this.cwd, detached: this.detached, shell: this.shell , env: this.env});
       // Set start timestamp
       this.startTime = Date.now();
       // Log
@@ -156,16 +167,17 @@ export class ManagedChildProcess extends EventEmitter {
   }
 
   /** Politely ask the child process to exit (if it is running). */
-  public kill(): void {
+  public async kill(): Promise<void> {
     if (this.process) {
       this.setState(ProcessState.KILLING);
-      treeKill(this.process.pid);
+      await this.treeKill(this.process.pid);
     }
   }
 
   /** Restart the managed child process (by killing the current, and spawning a new). */
-  public restart(): void {
+  public async restart(): Promise<void> {
     if (this.process && !this._isRestarting) {
+      this.setState(ProcessState.KILLING);
       this._isRestarting = true;
       this.logContent(`Restarting ${this.name} process`);
       // Replace all listeners with a single listener waiting for the process to exit
@@ -177,13 +189,32 @@ export class ManagedChildProcess extends EventEmitter {
         this.spawn();
       });
       // Kill process
-      treeKill(this.process.pid);
+      await this.treeKill(this.process.pid);
       this.process = undefined;
     } else {
       this.spawn();
     }
   }
 
+  private treeKill = async (PID: number): Promise<void> => {
+    // This is a re-implementation of *just* the parts of tmbr that we need.
+    // Did this because tmbr wasn't working, not sure why.
+    // psTree takes a callback, so we wrap it in a promise.
+    await new Promise<void>((resolve, reject) => {
+      psTree(PID, async (error, children) => {
+        if (error) {
+          reject(error);
+        }
+        // Kill each child process.
+        await Promise.all(children.map(async (child) => {
+          processKill(Number(child.PID));
+        }));
+        resolve();
+      });
+    });
+    // Kill the parent process.
+    processKill(PID);
+  }
   /**
     * Set the state of the process.
    * @param state State to set.

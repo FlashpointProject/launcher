@@ -4,7 +4,7 @@ import { LangContainer } from '@shared/lang';
 import { getLibraryItemTitle } from '@shared/library/util';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import * as React from 'react';
-import { Link, RouteComponentProps } from 'react-router-dom';
+import { Link, RouteComponentProps, useLocation } from 'react-router-dom';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { Paths } from '../Paths';
 import { SearchQuery } from '../store/search';
@@ -253,12 +253,18 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
   static contextType = LangContext;
 }
 
+type MenuItemProps = {
+  title: string;
+  link: string;
+};
 
 /** An item in the header menu. Used as buttons to switch between tabs/pages. */
-function MenuItem({ title, link }: { title: string, link: string }) {
+function MenuItem({ title, link }: MenuItemProps) {
+  const location = useLocation();
+  const selected = link === '/' ? location.pathname === link : location.pathname.startsWith(link);
   return (
     <li className='header__menu__item'>
-      <Link to={link} className='header__menu__item__link'>{title}</Link>
+      <Link to={link} className={`header__menu__item__link ${selected ? 'header__menu__item__link-selected' : ''}`}>{title}</Link>
     </li>
   );
 }

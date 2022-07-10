@@ -174,8 +174,8 @@ export class SocketServer {
     server_send(client, type, ...args);
   }
 
-  public broadcast<TYPE extends BackOut>(type: TYPE, ...args: Parameters<BackOutTemplate[TYPE]>): void {
-    server_broadcast(this.clients, type, ...args);
+  public broadcast<TYPE extends BackOut>(type: TYPE, ...args: Parameters<BackOutTemplate[TYPE]>) {
+    return server_broadcast(this.clients, type, ...args);
   }
 
   // Event Handlers

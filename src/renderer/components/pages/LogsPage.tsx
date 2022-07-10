@@ -14,7 +14,9 @@ import { LangContext } from '../../util/lang';
 import { Dropdown } from '../Dropdown';
 import { LogData } from '../LogData';
 
-type OwnProps = {};
+type OwnProps = {
+  isLogsWindow?: boolean;
+};
 
 export type LogsPageProps = OwnProps & WithPreferencesProps;
 
@@ -132,6 +134,19 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
           <div className='log-page__bar__wrap log-page__bar__right'>
             <div>
               <div className='log-page__bar__right__inner'>
+                {/* Create Logs Window Button */}
+                { !this.props.isLogsWindow && (
+                  <div className='log-page__bar__wrap'>
+                    <div className='simple-center'>
+                      <input
+                        type='button'
+                        value={strings.openLogsWindow}
+                        onClick={this.onOpenLogsWindowClick}
+                        className='simple-button simple-center__vertical-inner log-page__upload-log' />
+                    </div>
+                  </div>
+                )}
+
                 {/* Upload Logs Button */}
                 <div className='log-page__bar__wrap'>
                   <div className='simple-center'>
@@ -214,6 +229,10 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
     }
     // Copy with each URL on a new line
     clipboard.writeText(urls.join('\n'));
+  }
+
+  onOpenLogsWindowClick = async (): Promise<void> => {
+    window.Shared.back.send(BackIn.OPEN_LOGS_WINDOW);
   }
 
   onUploadClick = async (): Promise<void> => {

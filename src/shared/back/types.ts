@@ -104,8 +104,10 @@ export enum BackIn {
   BROWSE_VIEW_KEYSET,
   /** Get all data needed on init (by the renderer). */
   GET_RENDERER_INIT_DATA,
-  /** Get all data needed on init (by the renderer). */
+  /** Get all data needed on init (by the main process). */
   GET_MAIN_INIT_DATA,
+  /** Get all data needed on init (by the independent logger window) */
+  GET_LOGGER_INIT_DATA,
   /** Update any number of configs. */
   UPDATE_CONFIG,
   /** Update any number of preferences. */
@@ -120,6 +122,7 @@ export enum BackIn {
 
   // Extensions
   RUN_COMMAND,
+  DOWNLOAD_EXTENSION,
 
   // Curate
   CURATE_LOAD_ARCHIVES,
@@ -134,6 +137,7 @@ export enum BackIn {
   CURATE_REFRESH_CONTENT,
 
   // Misc
+  OPEN_LOGS_WINDOW,
   UPLOAD_LOG,
   SET_EXT_CONFIG_VALUE,
 }
@@ -202,12 +206,12 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.INIT_LISTEN]: () => InitEventData;
   [BackIn.GET_SUGGESTIONS]: () => GetSuggestionsResponseData;
   [BackIn.GET_GAMES_GAME_DATA]: (gameId: string) => GameData[];
-  [BackIn.GET_GAME_DATA]: (gameDataId: number) => GameData | undefined;
+  [BackIn.GET_GAME_DATA]: (gameDataId: number) => GameData | null;
   [BackIn.DELETE_GAME_DATA]: (gameDataId: number) => void;
   [BackIn.GET_SOURCES]: () => Source[];
   [BackIn.GET_SOURCE_DATA]: (hashes: string[]) => SourceData[];
   [BackIn.DOWNLOAD_GAME_DATA]: (gameDataId: number) => void;
-  [BackIn.UNINSTALL_GAME_DATA]: (id: number) => Game | undefined;
+  [BackIn.UNINSTALL_GAME_DATA]: (id: number) => Game | null;
   [BackIn.IMPORT_GAME_DATA]: (gameId: string, path: string) => GameData;
   [BackIn.SAVE_GAME_DATAS]: (gameData: GameData[]) => void;
   [BackIn.GET_GAMES_TOTAL]: () => number;
@@ -215,7 +219,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.GET_EXEC]: () => ExecMapping[];
   [BackIn.SAVE_GAME]: (data: Game) => BrowseChangeData;
   [BackIn.SAVE_GAMES]: (data: Game[]) => void;
-  [BackIn.GET_GAME]: (id: string) => Game | undefined;
+  [BackIn.GET_GAME]: (id: string) => Game | null;
   [BackIn.GET_ALL_GAMES]: () => Game[];
   [BackIn.RANDOM_GAMES]: (data: RandomGamesData) => ViewGame[];
   [BackIn.LAUNCH_GAME]: (id: string) => void;
@@ -235,10 +239,10 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.SAVE_PLAYLIST]: (playlist: Playlist) => Playlist;
   [BackIn.DELETE_PLAYLIST]: (playlistId: string) => Playlist;
   [BackIn.DELETE_ALL_PLAYLISTS]: () => void;
-  [BackIn.GET_PLAYLIST_GAME]: (playlistId: string, gameId: string) => PlaylistGame | undefined;
+  [BackIn.GET_PLAYLIST_GAME]: (playlistId: string, gameId: string) => PlaylistGame | null;
   [BackIn.ADD_PLAYLIST_GAME]: (playlistId: string, gameId: string) => void;
   [BackIn.SAVE_PLAYLIST_GAME]: (data: PlaylistGame) => PlaylistGame;
-  [BackIn.DELETE_PLAYLIST_GAME]: (playlistId: string, gameId: string) => PlaylistGame | undefined;
+  [BackIn.DELETE_PLAYLIST_GAME]: (playlistId: string, gameId: string) => PlaylistGame | null;
   [BackIn.SAVE_LEGACY_PLATFORM]: (platform: Legacy_GamePlatform) => void;
   [BackIn.IMPORT_CURATION]: (data: ImportCurationData) => ImportCurationResponseData;
   [BackIn.LAUNCH_CURATION]: (data: LaunchCurationData) => void;
@@ -246,11 +250,11 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.QUIT]: () => void;
 
   // Tag funcs
-  [BackIn.GET_OR_CREATE_TAG]: (tagName: string, tagCategory?: string) => Tag;
+  [BackIn.GET_OR_CREATE_TAG]: (tagName: string, tagCategory?: string) => Tag | null;
   [BackIn.GET_TAG_SUGGESTIONS]: (data: string, tagFilters: TagFilterGroup[]) => TagSuggestion[];
-  [BackIn.GET_TAG_BY_ID]: (data: number) => Tag | undefined;
+  [BackIn.GET_TAG_BY_ID]: (data: number) => Tag | null;
   [BackIn.GET_TAGS]: (data: string, tagFilters?: TagFilterGroup[]) => Tag[];
-  [BackIn.GET_TAG]: (data: string) => Tag | undefined;
+  [BackIn.GET_TAG]: (data: string) => Tag | null;
   [BackIn.SAVE_TAG]: (data: Tag) => Tag;
   [BackIn.SAVE_TAG_ALIAS]: (data: TagAlias) => TagAlias;
   [BackIn.DELETE_TAG]: (data: number) => TagDeleteResponse;
@@ -263,7 +267,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
 
   // Tag Category funcs
   [BackIn.SAVE_TAG_CATEGORY]: (data: TagCategory) => TagCategory;
-  [BackIn.GET_TAG_CATEGORY_BY_ID]: (data: number) => TagCategory | undefined;
+  [BackIn.GET_TAG_CATEGORY_BY_ID]: (data: number) => TagCategory | null;
   [BackIn.DELETE_TAG_CATEGORY]: (data: number) => boolean;
 
   // Sources
@@ -274,6 +278,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   /** @returns Index of the game (equal to or greater than 0 if found, otherwise -1). */
   [BackIn.BROWSE_VIEW_INDEX]: (gameId: string, query: SearchGamesOpts) => number;
   [BackIn.BROWSE_VIEW_KEYSET]: (library: string, query: SearchGamesOpts) => BrowseViewKeysetResponse;
+  [BackIn.GET_LOGGER_INIT_DATA]: () => GetLoggerInitDataResponse;
   [BackIn.GET_RENDERER_INIT_DATA]: () => GetRendererInitDataResponse;
   [BackIn.GET_MAIN_INIT_DATA]: () => GetMainInitDataResponse;
   [BackIn.UPDATE_CONFIG]: (data: Partial<AppConfigData>) => void;
@@ -288,6 +293,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
 
   // Extensions
   [BackIn.RUN_COMMAND]: (command: string, args?: any[]) => RunCommandResponse;
+  [BackIn.DOWNLOAD_EXTENSION]: (downloadPath: string) => void;
 
   // Curate
   [BackIn.CURATE_LOAD_ARCHIVES]: (filePaths: string[], taskId?: string) => void;
@@ -302,6 +308,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.CURATE_REFRESH_CONTENT]: (folder: string) => void;
 
   // Misc
+  [BackIn.OPEN_LOGS_WINDOW]: () => void;
   [BackIn.UPLOAD_LOG]: () => string | undefined;
   [BackIn.SET_EXT_CONFIG_VALUE]: (key: string, value: any) => void;
 }>
@@ -330,14 +337,14 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.THEME_LIST_CHANGE]: (themes: Theme[]) => void;
   [BackOut.IMPORT_CURATION_RESPONSE]: () => void;
   [BackOut.GET_TAG_SUGGESTIONS]: (data: TagSuggestion[]) => void;
-  [BackOut.GET_TAG_BY_ID]: (SAVE_TAGdata: Tag | undefined) => Tag | undefined;
+  [BackOut.GET_TAG_BY_ID]: (SAVE_TAGdata: Tag | null) => Tag | undefined;
   [BackOut.GET_TAGS]: (data: Tag[]) => void;
-  [BackOut.GET_TAG]: (data: Tag | undefined) => void;
+  [BackOut.GET_TAG]: (data: Tag | null) => void;
   [BackOut.SAVE_TAG]: (data: Tag) => void;
   [BackOut.MERGE_TAGS]: (newTag: Tag) => void;
   [BackOut.EXPORT_TAGS]: (data: number) => void;
   [BackOut.IMPORT_TAGS]: (data: number) => void;
-  [BackOut.GET_TAG_CATEGORY_BY_ID]: (data: TagCategory | undefined) => void;
+  [BackOut.GET_TAG_CATEGORY_BY_ID]: (data: TagCategory | null) => void;
   [BackOut.SAVE_TAG_CATEGORY]: (data: TagCategory) => void;
   [BackOut.DELETE_TAG_CATEGORY]: (data: boolean) => void;
   [BackOut.TAG_CATEGORIES_CHANGE]: (cats: TagCategory[]) => void;
@@ -394,6 +401,12 @@ export type InitEventData = {
 export type GetMainInitDataResponse = {
   config: AppConfigData;
   preferences: AppPreferencesData;
+}
+
+export type GetLoggerInitDataResponse = {
+  config: AppConfigData;
+  preferences: AppPreferencesData;
+  log: ILogEntry[];
 }
 
 export type GetRendererInitDataResponse = {
@@ -520,7 +533,7 @@ export type ViewGame = {
 }
 
 export type BrowseChangeData = {
-  game?: Game;
+  game: Game | null;
   library?: string;
   gamesTotal: number;
 }

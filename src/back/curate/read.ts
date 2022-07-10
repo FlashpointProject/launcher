@@ -1,4 +1,4 @@
-import { CURATION_META_FILENAMES } from '@back/consts';
+import { CURATION_META_FILENAMES } from '@shared/constants';
 import { CurationMeta } from '@shared/curate/types';
 import { stripBOM } from '@shared/Util';
 import * as fs from 'fs';
@@ -69,7 +69,7 @@ export async function readCurationMeta(folderPath: string, appPaths: { [platform
     if (parsedMeta === undefined) { log.warn('Launcher', `No meta file was succesfully parsed from curation "${folderName}"`); return; }
 
     return parsedMeta;
-  } catch (error) {
+  } catch (error: any) {
     log.error('Launcher', `Failed to load curation "${folderName}"\n${error.toString()}`);
   }
 }

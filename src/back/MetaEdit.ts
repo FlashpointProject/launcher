@@ -114,9 +114,9 @@ export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDi
           mtime: stats.mtimeMs,
           content: parsed,
         });
-      } catch (error) { errors.push(error); }
+      } catch (error: any) { errors.push(error); }
     }
-  } catch (error) { errors.push(error); }
+  } catch (error: any) { errors.push(error); }
 
   // Abort if any file failed to load
   if (errors.length > 0) {
@@ -141,7 +141,8 @@ export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDi
       const keys = Object.keys(meta) as (keyof typeof meta)[];
       for (const key of keys) {
         if (key !== 'id') { // (ID is for identification, not to be modified)
-          let values = combined[key];
+          // TODO: Fix values typing later
+          let values: any = combined[key];
           if (!values) {
             values = combined[key] = [];
           }
@@ -171,7 +172,7 @@ export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDi
     const game = await GameManager.findGame(id);
 
     if (game) {
-      games[id] = await GameManager.findGame(id);
+      games[id] = (await GameManager.findGame(id)) || undefined;
     } else { // Game not found
       const combined = combinedMetas[id];
       if (!combined) { throw new Error(`Failed to check for collisions. "combined meta" is missing (id: "${id}") (bug)`); }

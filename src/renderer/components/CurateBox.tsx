@@ -1,4 +1,4 @@
-import { CURATIONS_FOLDER_WORKING } from '@back/consts';
+import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
 import * as remote from '@electron/remote';

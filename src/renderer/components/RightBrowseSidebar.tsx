@@ -12,6 +12,7 @@ import { GamePropSuggestions, PickType, ProcessAction } from '@shared/interfaces
 import { LangContainer } from '@shared/lang';
 import { deepCopy, generateTagFilterGroup, sizeToString } from '@shared/Util';
 import axios from 'axios';
+import { formatString } from '@shared/utils/StringFormatter';
 import { clipboard, Menu, MenuItemConstructorOptions } from 'electron';
 import { GameData } from 'flashpoint-launcher';
 import * as fs from 'fs';
@@ -20,7 +21,7 @@ import { WithPreferencesProps } from '../containers/withPreferences';
 import { WithSearchProps } from '../containers/withSearch';
 import { getGameImagePath, getGameImageURL } from '../Util';
 import { LangContext } from '../util/lang';
-import { uuid } from '../util/uuid';
+import { uuid } from '@shared/utils/uuid';
 import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { DropdownInputField } from './DropdownInputField';
@@ -82,7 +83,7 @@ type RightBrowseSidebarState = {
   currentTagInput: string;
   tagSuggestions: TagSuggestion[];
   gameDataBrowserOpen: boolean;
-  activeData?: GameData;
+  activeData: GameData | null;
   showExtremeScreenshots: boolean;
   middleScrollRef: React.RefObject<HTMLDivElement>;
 };
@@ -138,6 +139,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       tagSuggestions: [],
       gameDataBrowserOpen: false,
       showExtremeScreenshots: false,
+      activeData: null,
       middleScrollRef: React.createRef(),
     };
   }
@@ -174,7 +176,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     }
     if (prevProps.currentGame && prevProps.currentGame.activeDataId && (!this.props.currentGame || !this.props.currentGame.activeDataId)) {
       /** No game data, clear */
-      this.setState({ activeData: undefined });
+      this.setState({ activeData: null });
     }
     if ((prevProps.currentGame && prevProps.currentGame.activeDataId) !== (this.props.currentGame && this.props.currentGame.activeDataId)) {
       /** Game Data changed */
@@ -722,7 +724,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     } else {
       return (
         <div className='browse-right-sidebar-empty'>
-          <h1>{strings.noGameSelected}</h1>
+          <h1>{formatString(strings.noGameSelected, allStrings.libraries[this.props.currentLibrary + 'Singular'] || allStrings.libraries['arcadeSingular'] || 'Game')}</h1>
           <p>{strings.clickToSelectGame}</p>
         </div>
       );

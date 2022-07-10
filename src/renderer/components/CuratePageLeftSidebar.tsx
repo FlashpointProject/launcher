@@ -1,13 +1,13 @@
-import {compare} from '@back/util/strings';
-import {useMouse} from '@renderer/hooks/useMouse';
-import {CurateGroup, CurateState} from '@renderer/store/curate/types';
-import {findElementAncestor, getPlatformIconURL} from '@renderer/Util';
-import {CurationState} from '@shared/curate/types';
+import { FloatingContainer } from '@renderer/components/FloatingContainer';
+import { InputField } from '@renderer/components/InputField';
+import { OpenIcon } from '@renderer/components/OpenIcon';
+import { SimpleButton } from '@renderer/components/SimpleButton';
+import { useMouse } from '@renderer/hooks/useMouse';
+import { CurateGroup, CurateState } from '@renderer/store/curate/types';
+import { findElementAncestor, getPlatformIconURL } from '@renderer/Util';
+import { CurationState } from '@shared/curate/types';
+import { compare } from '@shared/Util';
 import * as React from 'react';
-import {OpenIcon} from '@renderer/components/OpenIcon';
-import {FloatingContainer} from '@renderer/components/FloatingContainer';
-import {InputField} from '@renderer/components/InputField';
-import {SimpleButton} from '@renderer/components/SimpleButton';
 import { getWarningCount } from './CurateBoxWarnings';
 
 const index_attr = 'data-index';
