@@ -113,7 +113,8 @@
     "clearLog": "Kayıtları Temizle",
     "copy404Urls": "404 URL'lerini kopyala",
     "uploadLog": "Kayıtları Yükle",
-    "copiedToClipboard": "Panoya Kopyalandı"
+    "copiedToClipboard": "Panoya Kopyalandı",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "Ana Sayfa",
@@ -276,7 +277,7 @@
     "thumbnail": "Küçükresim",
     "screenshot": "Ekran görüntüsü",
     "dropImageHere": "Eklemek için bir resmi buraya bırakın",
-    "noGameSelected": "Seçili Oyun Yok",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "Seçmek için bir oyuna tıklayın.",
     "deleteAdditionalApplication": "Ek Uygulamaları Sil",
     "deleteGameAndAdditionalApps": "Oyunu Sil (ve Ek Uygulamaları)",
@@ -427,7 +428,8 @@
     "complete": "Tamamlandı",
     "exportMetaEditTitle": "Meta Düzenlemesini Dışa Aktar",
     "exportMetaEditDesc": "Dışa aktarılacak tüm özellikleri seç:",
-    "showImage": "Resmi Göster"
+    "showImage": "Resmi Göster",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "Klasördeki küçükresmi İncele",
@@ -506,10 +508,13 @@
   },
   "libraries": {
     "arcade": "Oyunlar",
+    "arcadeSingular": "Game",
     "arcadePlural": "Tüm Oyunlar",
     "theatre": "Animasyonlar",
+    "theatreSingular": "Animation",
     "theatrePlural": "Tüm Animasyonlar",
     "auditorium": "NG Auditorium",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "Tüm NG Animasyonları"
   },
   "upgrades": {
