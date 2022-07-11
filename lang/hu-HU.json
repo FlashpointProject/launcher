@@ -114,7 +114,7 @@
     "copy404Urls": "404-es URL-ek másolása",
     "uploadLog": "Log feltöltése",
     "copiedToClipboard": "Vágólapra másolva",
-    "openLogsWindow": "Open Logs Window"
+    "openLogsWindow": "A Logok ablakot megnyitja"
   },
   "app": {
     "home": "Kezdőlap",
@@ -277,7 +277,7 @@
     "thumbnail": "Előnézet",
     "screenshot": "Képernyőmentés",
     "dropImageHere": "Húzzon be egy képet ide, hogy hozzáadja",
-    "noGameSelected": "No {0} Selected",
+    "noGameSelected": "Nincs kiválasztva",
     "clickToSelectGame": "Kattintson egy játékra a kiválasztáshoz.",
     "deleteAdditionalApplication": "További alkalmazások törlése",
     "deleteGameAndAdditionalApps": "Játék törlése (és a hozzá kapcsolódó alkalmazásoké)",
