@@ -429,7 +429,7 @@
     "exportMetaEditTitle": "Meta módosítás exportálása",
     "exportMetaEditDesc": "Válassza ki az összes exportálni kívánt tulajdonságot",
     "showImage": "Kép mutatása",
-    "searching": "Searching..."
+    "searching": "Keresés..."
   },
   "menu": {
     "viewThumbnailInFolder": "Előnézeti kép megtekintése mappában",
@@ -508,13 +508,13 @@
   },
   "libraries": {
     "arcade": "Játékok",
-    "arcadeSingular": "Game",
+    "arcadeSingular": "Játék",
     "arcadePlural": "Összes Játék",
     "theatre": "Animációk",
-    "theatreSingular": "Animation",
+    "theatreSingular": "Animáció",
     "theatrePlural": "Összes Animáció",
     "auditorium": "NG Auditórium",
-    "auditoriumSingular": "Animation",
+    "auditoriumSingular": "Animáció",
     "auditoriumPlural": "Összes NG Animáció"
   },
   "upgrades": {
