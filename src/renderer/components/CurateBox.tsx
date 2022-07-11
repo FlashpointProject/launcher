@@ -217,9 +217,13 @@ export function CurateBox(props: CurateBoxProps) {
     log.debug('Launcher', 'Matching for ' + launchPath);
     return (
       <div className='curate-box-content simple-scroll'>
-        {props.curation.contents.root.children.map((node, index) => {
-          return renderContentNode(0, node, index, [node.name], launchPath);
-        })}
+        {props.curation.contents.root.count <= 10000 ? (
+          props.curation.contents.root.children.map((node, index) => {
+            return renderContentNode(0, node, index, [node.name], launchPath);
+          })
+        ) : (
+          <p>Too Many Files</p>
+        )}
       </div>
     );
   }, [props.curation.contents, props.curation.game.launchCommand]);

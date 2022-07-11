@@ -489,12 +489,14 @@ export async function genContentTree(folder: string): Promise<ContentTree> {
   return fs.promises.lstat(folder)
   .then(async (stats) => {
     if (stats.isDirectory()) {
+      const children = await loadBranch(folder, '');
       // Get root node
       const root: ContentTreeNode = {
         name: '',
         expanded: true,
         type: 'directory',
-        children: await loadBranch(folder, '')
+        children,
+        count: children.reduce<number>((prev, cur) => prev + cur.count, 0) + children.length
       };
       return {
         root
@@ -510,7 +512,8 @@ export async function genContentTree(folder: string): Promise<ContentTree> {
         name: '',
         expanded: true,
         type: 'directory',
-        children: []
+        children: [],
+        count: 0
       }
     };
   });
@@ -522,11 +525,13 @@ async function loadBranch(root: string, relativePath: string): Promise<ContentTr
   for (const f of files) {
     const childRelPath = path.join(relativePath, f.name);
     if (f.isDirectory()) {
+      const children = await loadBranch(root, childRelPath);
       nodes.push({
         name: f.name,
         expanded: true,
         type: 'directory',
-        children: await loadBranch(root, childRelPath)
+        children,
+        count: children.reduce<number>((prev, cur) => prev + cur.count, 0) + children.length
       });
     } else {
       nodes.push({
@@ -534,7 +539,8 @@ async function loadBranch(root: string, relativePath: string): Promise<ContentTr
         expanded: true,
         type: 'file',
         size: (await fs.promises.lstat(path.join(root, childRelPath))).size,
-        children: []
+        children: [],
+        count: 0
       });
     }
   }

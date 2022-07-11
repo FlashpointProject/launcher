@@ -21,6 +21,7 @@ export type ContentTreeNode = {
   size?: number;
   type: 'file' | 'directory';
   children: ContentTreeNode[];
+  count: number;
 }
 
 export type CurationState = LoadedCuration & {
