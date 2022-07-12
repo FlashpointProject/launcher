@@ -29,6 +29,11 @@ const ALLOWED_HOSTS = [
   'react-developer-tools',
 ];
 
+type LaunchOptions = {
+  backend: boolean;
+  frontend: boolean;
+}
+
 type MainState = {
   window?: BrowserWindow;
   _installed?: boolean;
@@ -64,11 +69,26 @@ export function main(init: Init): void {
     mainFolderPath: createErrorProxy('mainFolderPath'),
   };
 
-  startup();
+  startup({
+    backend: !init.args['host-remote'],
+    frontend: !init.args['back-only'],
+  })
+  .catch((error) => {
+    console.error(error);
+    if (!Util.isDev) {
+      dialog.showMessageBoxSync({
+        title: 'Failed to start launcher!',
+        type: 'error',
+        message: 'Something went wrong while starting the launcher.\n\n' + error,
+      });
+    }
+    state.socket.disconnect();
+    app.quit();
+  });
 
   // -- Functions --
 
-  function startup() {
+  async function startup(opts: LaunchOptions) {
     // Register flashpoint:// protocol
     if (process.defaultApp) {
       if (process.argv.length >= 2) {
@@ -107,52 +127,34 @@ export function main(init: Init): void {
 
     app.commandLine.appendSwitch('ignore-connections-limit', 'localhost');
 
-    state.mainFolderPath = Util.getMainFolderPath(state._installed);
-    console.log(path.join(state.mainFolderPath, 'secret.txt'));
+    state.mainFolderPath = Util.getMainFolderPath();
 
     // ---- Initialize ----
-    // Check if installed
-    let p = exists('./.installed')
-    .then(exists => {
-      state._installed = exists;
-      state.mainFolderPath = Util.getMainFolderPath(state._installed);
+    // Load custom version text file
+    await fs.promises.readFile(path.join(state.mainFolderPath, '.version'))
+    .then((data) => {
+      state._version = (data)
+        ? parseInt(data.toString().replace(/[^\d]/g, ''), 10) // (Remove all non-numerical characters, then parse it as a string)
+        : -1; // (Version not found error code)
     })
-    // Load version number
-    .then(() => new Promise<void>(resolve => {
-      fs.readFile(path.join(state.mainFolderPath, '.version'), (error, data) => {
-        state._version = (data)
-          ? parseInt(data.toString().replace(/[^\d]/g, ''), 10) // (Remove all non-numerical characters, then parse it as a string)
-          : -1; // (Version not found error code)
-        resolve();
-      });
-    }))
+    .catch(() => { /** No file, ignore */ });
+
     // Load or generate secret
-    .then(async () => {
-      if (init.args['connect-remote'] || init.args['host-remote'] || init.args['back-only']) {
-        const secretFilePath = path.join(state.mainFolderPath, 'secret.txt');
-        try {
-          state._secret = await fs.readFile(secretFilePath, { encoding: 'utf8' });
-        } catch (e) {
-          state._secret = randomBytes(2048).toString('hex');
-          try {
-            await fs.writeFile(secretFilePath, state._secret, { encoding: 'utf8' });
-          } catch (e) {
-            console.warn(`Failed to save new secret to disk.\n${e}`);
-          }
-        }
-      } else {
-        const secretFilePath = path.join(state.mainFolderPath, 'secret.txt');
-        state._secret = randomBytes(2048).toString('hex');
-        try {
-          await fs.writeFile(secretFilePath, state._secret, { encoding: 'utf8' });
-        } catch (e) {
-          console.warn(`Failed to save new secret to disk.\n${e}`);
-        }
+    const secretFilePath = path.join(state.mainFolderPath, 'secret.txt');
+    try {
+      state._secret = await fs.readFile(secretFilePath, { encoding: 'utf8' });
+    } catch (e) {
+      state._secret = randomBytes(2048).toString('hex');
+      try {
+        await fs.writeFile(secretFilePath, state._secret, { encoding: 'utf8' });
+      } catch (e) {
+        console.warn(`Failed to save new secret to disk.\n${e}`);
       }
-    });
+    }
+
     // Start back process
-    if (!init.args['connect-remote']) {
-      p = p.then(() => new Promise((resolve, reject) => {
+    if (opts.backend) {
+      await new Promise<void>((resolve, reject) => {
         // Fork backend, init.rest will contain possible flashpoint:// message
         state.backProc = fork(path.join(__dirname, '../back/index.js'), [init.rest], { detached: true });
         const initHandler = (message: any) => {
@@ -206,12 +208,12 @@ export function main(init: Init): void {
           version: app.getVersion(), // @TODO Manually load this from the package.json file while in a dev environment (so it doesn't use Electron's version)
         };
         state.backProc.send(JSON.stringify(msg));
-      }));
+      });
     }
     // Connect to back and start renderer
-    if (!init.args['back-only']) {
+    if (opts.frontend) {
       // Connect to back process
-      p = p.then<WebSocket>(() => timeout(new Promise((resolve, reject) => {
+      const ws = await timeout<WebSocket>(new Promise((resolve, reject) => {
         const sock = new WebSocket(state.backHost.href);
         sock.onclose = () => { reject(new Error('Failed to authenticate connection to back.')); };
         sock.onerror = (event) => { reject(event.error); };
@@ -223,9 +225,9 @@ export function main(init: Init): void {
           };
           sock.send(state._secret);
         };
-      }), TIMEOUT_DELAY))
+      }), TIMEOUT_DELAY);
       // Send init message
-      .then(ws => timeout(new Promise<void>((resolve, reject) => {
+      await timeout(new Promise<void>((resolve, reject) => {
         state.socket.setSocket(ws);
 
         state.socket.request(BackIn.GET_MAIN_INIT_DATA)
@@ -235,39 +237,22 @@ export function main(init: Init): void {
           state.socket.setSocket(ws);
           resolve();
         });
-      }), TIMEOUT_DELAY))
+      }), TIMEOUT_DELAY);
       // Create main window
-      .then(() => app.whenReady())
+      await app.whenReady();
       // Install React Devtools Extension
-      .then(() => {
-        if (Util.isDev) {
-          // Requiring here is intentional, seems to fix crashes in release builds
-          // eslint-disable-next-line @typescript-eslint/no-var-requires
-          const { default: installExtension } = require('electron-devtools-installer');
-          installExtension(['REACT_DEVELOPER_TOOLS'])
-          .then((name: string) => console.log(`Added Extension:  ${name}`))
-          .catch((err: any) => console.log('An error occurred: ', err));
-        }
-      })
-      .then(() => {
-        if (!state.window) {
-          state.window = createMainWindow();
-        }
-      });
-    }
-    // Catch errors
-    p.catch((error) => {
-      console.error(error);
-      if (!Util.isDev) {
-        dialog.showMessageBoxSync({
-          title: 'Failed to start launcher!',
-          type: 'error',
-          message: 'Something went wrong while starting the launcher.\n\n' + error,
-        });
+      if (Util.isDev) {
+        // Requiring here is intentional, seems to fix crashes in release builds
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const { default: installExtension } = require('electron-devtools-installer');
+        installExtension(['REACT_DEVELOPER_TOOLS'])
+        .then((name: string) => console.log(`Added Extension:  ${name}`))
+        .catch((err: any) => console.log('An error occurred: ', err));
       }
-      state.socket.disconnect();
-      app.quit();
-    });
+      if (!state.window) {
+        state.window = createMainWindow();
+      }
+    }
   }
 
   function onAppReady(): void {
@@ -389,15 +374,6 @@ export function main(init: Init): void {
       url
     };
     event.returnValue = data;
-  }
-
-  function exists(filePath: string): Promise<boolean> {
-    return new Promise(resolve => {
-      fs.stat(filePath, (error, stats) => {
-        if (error) { resolve(false); }
-        else { resolve(stats.isFile()); }
-      });
-    });
   }
 
   function createMainWindow(): BrowserWindow {

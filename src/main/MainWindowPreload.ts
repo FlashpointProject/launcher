@@ -16,8 +16,6 @@ import { isDev } from './Util';
  */
 
 window.Shared = {
-  installed: createErrorProxy('installed'),
-
   version: createErrorProxy('version'),
 
   platform: remote.process.platform+ '' as NodeJS.Platform, // (Coerce to string to make sure its not a remote object)
@@ -113,7 +111,6 @@ const onInit = (async () => {
   // Fetch data from main process
   const data: InitRendererData = electron.ipcRenderer.sendSync(InitRendererChannel);
   // Store value(s)
-  window.Shared.installed = data.installed;
   window.Shared.version = data.version;
   window.Shared.isBackRemote = data.isBackRemote;
   window.Shared.backUrl = new URL(data.host);

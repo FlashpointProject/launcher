@@ -68,8 +68,7 @@ export async function startLogger(init: Init): Promise<void> {
 
     state.backHost.port = '12001';
 
-    const installed = fs.existsSync('./.installed');
-    state.mainFolderPath = getMainFolderPath(installed);
+    state.mainFolderPath = getMainFolderPath();
     state.config = ConfigFile.readOrCreateFileSync(path.join(state.mainFolderPath, CONFIG_FILENAME));
     state.prefs = PreferencesFile.readOrCreateFileSync(path.join(state.config.flashpointPath, PREFERENCES_FILENAME));
 

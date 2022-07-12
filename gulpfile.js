@@ -45,7 +45,6 @@ const copyFiles = [
   },
   './lang',
   './licenses',
-  './.installed',
   'ormconfig.json',
   {
     from: './LICENSE',
@@ -125,14 +124,6 @@ gulp.task('copy-static', () => {
   return gulp.src(config.static.src+'/**/*').pipe(gulp.dest(config.static.dest));
 });
 
-gulp.task('config-install', (done) => {
-  if (config.isStaticInstall) {
-    fs.createFile('.installed', done);
-  } else {
-    fs.remove('.installed', done);
-  }
-});
-
 gulp.task('config-version', (done) => {
   fs.writeFile('.version', config.buildVersion, done);
 });
@@ -183,7 +174,7 @@ gulp.task('pack', (done) => {
 
 gulp.task('watch', gulp.parallel('watch-back', 'watch-renderer', 'watch-static', 'copy-static'));
 
-gulp.task('build', gulp.parallel('build-back', 'build-renderer', 'copy-static', 'config-install', 'config-version'));
+gulp.task('build', gulp.parallel('build-back', 'build-renderer', 'copy-static', 'config-version'));
 
 /* ------ Misc ------*/
 

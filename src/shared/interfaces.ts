@@ -25,9 +25,6 @@ export type DeepPartial<T> = {
 export type Subtract<T, U extends ObjectLike> = Pick<T, Exclude<keyof T, keyof U>>;
 
 export interface IMainWindowExternal {
-  /** If the launcher is installed (instead of being portable). */
-  installed: boolean;
-
   /** Version of the current launcher build. */
   version: number;
 

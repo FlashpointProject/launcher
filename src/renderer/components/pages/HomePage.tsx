@@ -16,7 +16,7 @@ import { Link } from 'react-router-dom';
 import remarkGfm from 'remark-gfm';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { WithSearchProps } from '../../containers/withSearch';
-import { newProgress, ProgressContext, ProgressDispatch } from '../../context/ProgressContext';
+import { ProgressContext } from '../../context/ProgressContext';
 import { Paths } from '../../Paths';
 import { UpgradeStage } from '../../upgrade/types';
 import { getPlatformIconURL, joinLibraryRoute } from '../../Util';
@@ -25,7 +25,6 @@ import { HomePageBox } from '../HomePageBox';
 import { OpenIcon, OpenIconType } from '../OpenIcon';
 import { AutoProgressComponent } from '../ProgressComponents';
 import { RandomGames } from '../RandomGames';
-import { SimpleButton } from '../SimpleButton';
 import { SizeProvider } from '../SizeProvider';
 
 type OwnProps = {
@@ -74,7 +73,7 @@ export function HomePage(props: HomePageProps) {
 
   /** Whether the Update Available button has been pressed */
   const [updateStarted, setUpdateStarted] = React.useState(false);
-  const [progressState, progressDispatch] = React.useContext(ProgressContext.context);
+  const [progressState] = React.useContext(ProgressContext.context);
 
   const toggleMinimizeBox = React.useCallback((cssKey: string) => {
     const newBoxes = [...props.preferencesData.minimizedHomePageBoxes];
@@ -190,44 +189,46 @@ export function HomePage(props: HomePageProps) {
   // -- Render the boxes --
 
   const renderedUpdates = React.useMemo(() => {
-    if (window.Shared.installed) {
-      return (
-        <div className='home-page__box'>
-          <div className='home-page__box-head'>{strings.updateHeader}</div>
-          <ul className='home-page__box-body home-page__update-box'>
-            {strings.currentVersion} - {remote.app.getVersion()}
-            <br/>
-            { props.updateInfo !== undefined ? (
-              <>
-                <p>{strings.nextVersion} - {props.updateInfo.version}</p>
-                { updateStarted ? undefined : (
-                  <SimpleButton
-                    value={strings.updateAvailable}
-                    onClick={() => {
-                      if (props.updateInfo) {
-                        const updateNow = onUpdateDownload(props.updateInfo, props.autoUpdater.downloadUpdate);
-                        if (updateNow) {
-                          const updateProgressState = newProgress(updateProgressKey, progressDispatch);
-                          ProgressDispatch.setText(updateProgressState, strings.downloadingUpdate);
-                          props.autoUpdater.on('download-progress', (progress) => {
-                            ProgressDispatch.setPercentDone(updateProgressState, Math.floor(progress.percent));
-                          });
-                          props.autoUpdater.once('update-downloaded', (info) => {
-                            ProgressDispatch.finished(updateProgressState);
-                          });
-                          props.autoUpdater.downloadUpdate();
-                          setUpdateStarted(true);
-                        }
-                      }
-                    }}>
-                  </SimpleButton>
-                ) }
-                { updateProgressComponent }
-              </>
-            ) : strings.upToDate }
-          </ul>
-        </div>
-      );
+    /** TODO: Retire or rework this feature later */
+    // eslint-disable-next-line no-constant-condition
+    if (false) {
+      // return (
+      //   <div className='home-page__box'>
+      //     <div className='home-page__box-head'>{strings.updateHeader}</div>
+      //     <ul className='home-page__box-body home-page__update-box'>
+      //       {strings.currentVersion} - {remote.app.getVersion()}
+      //       <br/>
+      //       { props.updateInfo !== undefined ? (
+      //         <>
+      //           <p>{strings.nextVersion} - {props.updateInfo.version}</p>
+      //           { updateStarted ? undefined : (
+      //             <SimpleButton
+      //               value={strings.updateAvailable}
+      //               onClick={() => {
+      //                 if (props.updateInfo) {
+      //                   const updateNow = onUpdateDownload(props.updateInfo, props.autoUpdater.downloadUpdate);
+      //                   if (updateNow) {
+      //                     const updateProgressState = newProgress(updateProgressKey, progressDispatch);
+      //                     ProgressDispatch.setText(updateProgressState, strings.downloadingUpdate);
+      //                     props.autoUpdater.on('download-progress', (progress) => {
+      //                       ProgressDispatch.setPercentDone(updateProgressState, Math.floor(progress.percent));
+      //                     });
+      //                     props.autoUpdater.once('update-downloaded', (info) => {
+      //                       ProgressDispatch.finished(updateProgressState);
+      //                     });
+      //                     props.autoUpdater.downloadUpdate();
+      //                     setUpdateStarted(true);
+      //                   }
+      //                 }
+      //               }}>
+      //             </SimpleButton>
+      //           ) }
+      //           { updateProgressComponent }
+      //         </>
+      //       ) : strings.upToDate }
+      //     </ul>
+      //   </div>
+      // );
     } else {
       return (
         <></>
@@ -467,17 +468,17 @@ function renderStageButton(strings: LangContainer['home'], stage: UpgradeStage, 
   );
 }
 
-function onUpdateDownload(updateInfo: UpdateInfo, downloadFunc: () => void): boolean {
-  const message = (updateInfo.releaseName ? `${updateInfo.releaseName}\n\n` : '')
-              + (updateInfo.releaseNotes ? `Release Notes:\n${updateInfo.releaseNotes}\n\n` : 'No Release Notes Available.\n\n')
-              + 'Download and Install now?';
-  const res = remote.dialog.showMessageBoxSync({
-    title: 'Update Available',
-    message: message,
-    buttons: ['Yes', 'No']
-  });
-  if (res === 0) {
-    return true;
-  }
-  return false;
-}
+// function onUpdateDownload(updateInfo: UpdateInfo, downloadFunc: () => void): boolean {
+//   const message = (updateInfo.releaseName ? `${updateInfo.releaseName}\n\n` : '')
+//               + (updateInfo.releaseNotes ? `Release Notes:\n${updateInfo.releaseNotes}\n\n` : 'No Release Notes Available.\n\n')
+//               + 'Download and Install now?';
+//   const res = remote.dialog.showMessageBoxSync({
+//     title: 'Update Available',
+//     message: message,
+//     buttons: ['Yes', 'No']
+//   });
+//   if (res === 0) {
+//     return true;
+//   }
+//   return false;
+// }
