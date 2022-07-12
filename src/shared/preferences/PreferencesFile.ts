@@ -1,6 +1,7 @@
+import { getTempFilename } from '@back/util/misc';
 import * as fs from 'fs';
 import * as path from 'path';
-import { deepCopy, getTempFilename, readJsonFile, readJsonFileSync, stringifyJsonDataFile } from '../Util';
+import { deepCopy, readJsonFile, readJsonFileSync, stringifyJsonDataFile } from '../Util';
 import { AppPreferencesData } from './interfaces';
 import { defaultPreferencesData, overwritePreferenceData } from './util';
 

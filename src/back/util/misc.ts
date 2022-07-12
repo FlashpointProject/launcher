@@ -15,6 +15,7 @@ import { Legacy_IAdditionalApplicationInfo, Legacy_IGameInfo } from '@shared/leg
 import { deepCopy, recursiveReplace, stringifyArray } from '@shared/Util';
 import * as child_process from 'child_process';
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import { promisify } from 'util';
 import { uuid } from './uuid';
@@ -331,4 +332,8 @@ export function isBrowserOpts(val: any): val is BrowserApplicationOpts {
 
 export function getCwd(isDev: boolean, exePath: string) {
   return isDev ? process.cwd() : process.platform == 'darwin' ? path.resolve(path.dirname(exePath), '..') : path.dirname(exePath);
+}
+
+export async function getTempFilename(ext = 'tmp') {
+  return path.join(await fs.promises.realpath(os.tmpdir()), uuid() + '.' + ext);
 }
