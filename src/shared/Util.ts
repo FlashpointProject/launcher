@@ -5,12 +5,10 @@ import { LangContainer } from '@shared/lang';
 import * as axiosImport from 'axios';
 import { Tag, TagFilterGroup } from 'flashpoint-launcher';
 import * as fs from 'fs';
-import * as os from 'os';
 import * as path from 'path';
 import { DownloadDetails } from './back/types';
 import { AppConfigData } from './config/interfaces';
 import { throttle } from './utils/throttle';
-import { uuid } from './utils/uuid';
 import { parseVariableString } from './utils/VariableString';
 
 const axios = axiosImport.default;
@@ -604,10 +602,6 @@ function isValueSuggested<T extends keyof GamePropSuggestions>(curation: LoadedC
   const valueSuggestions = suggestions[key];
   // Check if the value is suggested
   return valueSuggestions.indexOf(value) >= 0;
-}
-
-export async function getTempFilename(ext = 'tmp') {
-  return path.join(await fs.promises.realpath(os.tmpdir()), uuid() + '.' + ext);
 }
 
 export function compare(a: string, b: string): number {

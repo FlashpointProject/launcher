@@ -8,6 +8,7 @@ import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { Tag } from '@database/entity/Tag';
 import { BackOut } from '@shared/back/types';
+import { getCurationFolder } from '@shared/curate/util';
 import { BrowserApplicationOpts } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, INamedBackProcessInfo, IService, ProcessState } from '@shared/interfaces';
 import { autoCode, getDefaultLocalization, LangContainer, LangFile } from '@shared/lang';
@@ -15,10 +16,10 @@ import { Legacy_IAdditionalApplicationInfo, Legacy_IGameInfo } from '@shared/leg
 import { deepCopy, recursiveReplace, stringifyArray } from '@shared/Util';
 import * as child_process from 'child_process';
 import * as fs from 'fs-extra';
+import * as os from 'os';
 import * as path from 'path';
 import { promisify } from 'util';
 import { uuid } from './uuid';
-import { getCurationFolder } from '@shared/curate/util';
 
 const unlink = promisify(fs.unlink);
 
@@ -352,4 +353,8 @@ export async function deleteCuration(state: BackState, folder: string) {
 
 export function getCwd(isDev: boolean, exePath: string) {
   return isDev ? process.cwd() : process.platform == 'darwin' ? path.resolve(path.dirname(exePath), '..') : path.dirname(exePath);
+}
+
+export async function getTempFilename(ext = 'tmp') {
+  return path.join(await fs.promises.realpath(os.tmpdir()), uuid() + '.' + ext);
 }
