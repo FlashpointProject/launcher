@@ -16,6 +16,8 @@ import * as axiosImport from 'axios';
 import { UpdateInfo } from 'electron-updater';
 import { TagFilterGroup } from 'flashpoint-launcher';
 import { MainActionType, RequestState } from './enums';
+import { Gate } from '@shared/utils/Gate';
+import { AppPreferencesData } from '@shared/preferences/interfaces';
 
 export type View = {
   /** The most recent query used for this view. */
@@ -68,6 +70,7 @@ export type MainState = {
   suggestions: GamePropSuggestions;
   appPaths: Record<string, string>;
   platforms: Record<string, string[]>;
+  loadedAll: Gate;
   loaded: { [key in BackInit]: boolean; };
   extensions: IExtensionDescription[];
   themeList: ITheme[];
@@ -134,6 +137,7 @@ export type MainState = {
   currentPlaylist?: Playlist;
   currentPlaylistEntry?: PlaylistGame;
   isEditingGame: boolean;
+  updateFeedMarkdown: string;
 }
 
 export type MainAction = {
@@ -237,4 +241,7 @@ export type MainAction = {
 } | {
   type: MainActionType.FORCE_UPDATE_GAME_DATA;
   gameData: GameData;
+} | {
+  type: MainActionType.SETUP_VIEWS;
+  preferencesData: AppPreferencesData;
 }

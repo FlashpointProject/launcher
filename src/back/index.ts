@@ -106,7 +106,8 @@ const send: Required<typeof process.send> = process.send
 const CONCURRENT_IMAGE_DOWNLOADS = 6;
 
 const state: BackState = {
-  isInit: false,
+  readyForInit: false,
+  runInit: false,
   isExit: false,
   isDev: false,
   verbose: false,
@@ -125,7 +126,9 @@ const state: BackState = {
   exePath: createErrorProxy('exePath'),
   localeCode: createErrorProxy('countryCode'),
   version: createErrorProxy('version'),
+  versionStr: createErrorProxy('versionStr'),
   suggestions: createErrorProxy('suggestions'),
+  acceptRemote: createErrorProxy('acceptRemote'),
   customVersion: undefined,
   gameManager: {
     platformsPath: '',
@@ -134,10 +137,12 @@ const state: BackState = {
   messageQueue: [],
   isHandling: false,
   init: {
-    0: false,
-    1: false,
-    2: false,
-    3: false,
+    [BackInit.SERVICES]: false,
+    [BackInit.DATABASE]: false,
+    [BackInit.PLAYLISTS]: false,
+    [BackInit.CURATE]: false,
+    [BackInit.EXEC_MAPPINGS]: false,
+    [BackInit.EXTENSIONS]: false
   },
   initEmitter: new EventEmitter() as any,
   queries: {},
@@ -216,7 +221,7 @@ const state: BackState = {
 main();
 
 async function main() {
-  registerRequestCallbacks(state);
+  registerRequestCallbacks(state, initialize);
   state.fileServer.registerRequestHandler('themes', onFileServerRequestThemes);
   state.fileServer.registerRequestHandler('images', onFileServerRequestImages);
   state.fileServer.registerRequestHandler('logos', onFileServerRequestLogos);
@@ -225,7 +230,6 @@ async function main() {
   state.fileServer.registerRequestHandler('credits.json', (p, u, req, res) => serveFile(req, res, path.join(state.config.flashpointPath, state.preferences.jsonFolderPath, 'credits.json')));
   state.fileServer.registerRequestHandler('curations', onFileServerRequestCurationFileFactory(getCurationFilePath, onUpdateCurationFile, onRemoveCurationFile));
   state.fileServer.registerRequestHandler('curation', (p, u, req, res) => onFileServerRequestPostCuration(p, u, req, res, path.join(state.config.flashpointPath, CURATIONS_FOLDER_TEMP), loadCurationArchive));
-
 
   // Database manipulation
   // Anything that reads from the database and then writes to it (or a file) should go in this queue!
@@ -279,14 +283,11 @@ async function main() {
     BackIn.IMPORT_META_EDITS,
   ]);
 
-  process.on('message', onProcessMessage);
+  process.once('message', prepForInit);
   process.on('disconnect', () => { exit(state); }); // (Exit when the main process does)
 }
 
-async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
-  if (state.isInit) { return; }
-  state.isInit = true;
-
+async function prepForInit(message: any, sendHandle: any): Promise<void> {
   console.log('Back - Initializing...');
 
   const content: BackInitArgs = JSON.parse(message);
@@ -296,6 +297,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   state.localeCode = content.localeCode;
   state.exePath = content.exePath;
   state.version = content.version;
+  state.versionStr = `${content.version} ${content.isDev ? 'DEV' : ''}`;
+  state.acceptRemote = content.acceptRemote;
   state.logFile = new LogFile(
     state.isDev ?
       path.join(process.cwd(), 'launcher.log')
@@ -312,8 +315,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   state.socketServer.secret = content.secret;
 
-  const versionStr = `${content.version} ${content.isDev ? 'DEV' : ''}`;
-  log.info('Launcher', `Starting Flashpoint Launcher ${versionStr}`);
+  log.info('Launcher', `Starting Flashpoint Launcher ${state.versionStr}`);
 
   // Set SevenZip binary path
   {
@@ -396,38 +398,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   console.log('Back - Loaded Preferences');
 
-  try {
-    const [extConf] = await (Promise.all([
-      ExtConfigFile.readOrCreateFile(path.join(state.config.flashpointPath, EXT_CONFIG_FILENAME))
-    ]));
-    state.extConfig = extConf;
-  } catch (e) {
-    console.log(e);
-    // Non-fatal, don't quit.
-  }
-
-  console.log('Back - Loaded Extension Config');
-
-  // Create Game Data Directory and clean up temp files
-  const fullDataPacksFolderPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath);
-  try {
-    await fs.promises.mkdir(fullDataPacksFolderPath, { recursive: true });
-    fs.promises.readdir(fullDataPacksFolderPath)
-    .then((files) => {
-      for (const f of files) {
-        if (f.endsWith('.temp')) {
-          fs.promises.unlink(path.join(fullDataPacksFolderPath, f));
-        }
-      }
-    });
-  } catch (error) {
-    console.log('Failed to create default Data Packs folder!');
-    // Non-fatal, don't quit.
-  }
-
-
   // Check for custom version to report
-  const versionFilePath = content.isDev ? path.join(process.cwd(), 'version.txt') : path.join(state.config.flashpointPath, 'version.txt');
+  const versionFilePath = state.isDev ? path.join(process.cwd(), 'version.txt') : path.join(state.config.flashpointPath, 'version.txt');
   const customVersion = await fs.access(versionFilePath, fs.constants.F_OK)
   .then(async () => {
     return fs.readFile(versionFilePath, 'utf8');
@@ -437,171 +409,6 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     state.customVersion = customVersion;
     log.info('Launcher', `Data Version Detected: ${state.customVersion}`);
   }
-
-  // Setup DB
-  if (!AppDataSource.isInitialized) {
-    const databasePath = path.resolve(state.config.flashpointPath, 'Data', 'flashpoint.sqlite');
-    console.log('Back - Using Database at ' + databasePath);
-    // Spin up another source just to run migrations
-    const migrationSource = new DataSource({
-      ...dataSourceOptions,
-      type: 'better-sqlite3',
-      database: databasePath
-    });
-    await migrationSource.initialize();
-    await migrationSource.query('PRAGMA foreign_keys=off;');
-    await migrationSource.runMigrations();
-    await migrationSource.showMigrations();
-    await migrationSource.destroy();
-    // Initialize real database
-    AppDataSource.setOptions({ database: databasePath });
-    await AppDataSource.initialize();
-    // TypeORM forces on but breaks Playlist Game links to unimported games
-    await AppDataSource.query('PRAGMA foreign_keys=off;');
-    log.info('Launcher', 'Database connection established');
-  }
-
-  console.log('Back - Initialized Database');
-
-  // Populate unique values
-  state.suggestions = {
-    tags: await GameManager.findUniqueValues(TagAlias, 'name'),
-    platform: (await GameManager.findUniqueValues(Game, 'platform')).sort(),
-    playMode: await GameManager.findUniqueValues(Game, 'playMode'),
-    status: await GameManager.findUniqueValues(Game, 'status'),
-    applicationPath: await GameManager.findUniqueValues(Game, 'applicationPath'),
-    library: await GameManager.findUniqueValues(Game, 'library'),
-  };
-
-  // Load curations
-  {
-    try {
-      // Go through all curation folders
-      const rootPath = path.resolve(state.config.flashpointPath, CURATIONS_FOLDER_WORKING);
-      for (const folderName of await fs.promises.readdir(rootPath)) {
-        const parsedMeta = await readCurationMeta(path.join(rootPath, folderName), state.recentAppPaths);
-        if (parsedMeta) {
-          const loadedCuration: LoadedCuration = {
-            folder: folderName,
-            uuid: parsedMeta.uuid || uuid(),
-            group: parsedMeta.group,
-            game: parsedMeta.game,
-            addApps: parsedMeta.addApps,
-            thumbnail: await loadCurationIndexImage(path.join(rootPath, folderName, 'logo.png')),
-            screenshot: await loadCurationIndexImage(path.join(rootPath, folderName, 'ss.png'))
-          };
-          const alreadyImported = (await GameManager.findGame(loadedCuration.uuid)) !== undefined;
-          const curation: CurationState = {
-            ...loadedCuration,
-            alreadyImported,
-            warnings: genCurationWarnings(loadedCuration, state.config.flashpointPath, state.suggestions, state.languageContainer.curate),
-            contents: await genContentTree(getContentFolderByKey(folderName, state.config.flashpointPath))
-          };
-          state.loadedCurations.push(curation);
-        }
-      }
-    } catch (error: any) {
-      log.error('Launcher', `Failed to load curations\n${error.toString()}`);
-    }
-
-    state.init[BackInit.CURATE] = true;
-    state.initEmitter.emit(BackInit.CURATE);
-  }
-
-  console.log('Back - Initialized Curations');
-
-  // Init extensions
-  const addExtLogFactory = (extId: string) => (entry: ILogEntry) => {
-    state.extensionsService.logExtension(extId, entry);
-  };
-  state.extensionsService = new ExtensionService(state.config, path.join(state.config.flashpointPath, state.preferences.extensionsPath));
-  // Create module interceptor
-  registerInterceptor(new FPLNodeModuleFactory(
-    await state.extensionsService.getExtensionPathIndex(),
-    addExtLogFactory,
-    versionStr,
-    state,
-  ),
-  state.moduleInterceptor);
-  registerInterceptor(new SqliteInterceptorFactory(), state.moduleInterceptor);
-  await installNodeInterceptor(state.moduleInterceptor);
-  // Load each extension
-  await state.extensionsService.getExtensions()
-  .then(async (exts) => {
-    // Set any ext config defaults
-    for (const contrib of (await state.extensionsService.getContributions('configuration'))) {
-      for (const extConfig of contrib.value) {
-        for (const key in extConfig.properties) {
-          // Value not set, use default
-          if (!(key in state.extConfig)) {
-            state.extConfig[key] = extConfig.properties[key].default;
-          } else {
-            const prop = extConfig.properties[key];
-            // If type is different, reset it
-            if (typeof state.extConfig[key] !== prop.type) {
-              log.debug('Extensions', `Invalid value type for "${key}", resetting to default`);
-              state.extConfig[key] = prop.default;
-            }
-            if (prop.enum.length > 0 && !(prop.enum.includes(state.extConfig[key]))) {
-              log.debug('Extensions', `Invalid value for "${key}", not in enum, resetting to default`);
-              state.extConfig[key] = prop.default;
-            }
-          }
-        }
-      }
-    }
-    ExtConfigFile.saveFile(path.join(state.config.flashpointPath, EXT_CONFIG_FILENAME), state.extConfig);
-    exts.forEach(ext => {
-      state.extensionsService.loadExtension(ext.id);
-    });
-  });
-
-  console.log('Back - Initialized Extensions');
-
-  // Init services
-  try {
-    state.serviceInfo = await ServicesFile.readFile(
-      path.join(state.config.flashpointPath, state.preferences.jsonFolderPath),
-      state.config,
-      error => { log.info(SERVICES_SOURCE, error.toString()); }
-    );
-  } catch (error) { /* @TODO Do something about this error */ }
-  if (state.serviceInfo) {
-    // Run start commands
-    for (let i = 0; i < state.serviceInfo.start.length; i++) {
-      await execProcess(state.serviceInfo.start[i]);
-    }
-    // Run processes
-    if (state.serviceInfo.server.length > 0) {
-      const chosenServer = state.serviceInfo.server.find(i => i.name === state.config.server);
-      runService(state, 'server', 'Server', state.config.flashpointPath, {}, chosenServer || state.serviceInfo.server[0]);
-    }
-    // Start daemons
-    for (let i = 0; i < state.serviceInfo.daemon.length; i++) {
-      const service = state.serviceInfo.daemon[i];
-      const id = 'daemon_' + i;
-      runService(state, id, service.name || id, state.config.flashpointPath, {}, service);
-    }
-    // Start file watchers
-    for (let i = 0; i < state.serviceInfo.watch.length; i++) {
-      const filePath = state.serviceInfo.watch[i];
-      try {
-        // Windows requires fs.watchFile to properly update
-        const tail = new Tail(filePath, { follow: true, useWatchFile: true });
-        tail.on('line', (data) => {
-          log.info('Log Watcher', data);
-        });
-        tail.on('error', (error) => {
-          log.info('Log Watcher', `Error while watching file "${filePath}" - ${error}`);
-        });
-        log.info('Log Watcher', `Watching file "${filePath}"`);
-      } catch (error) {
-        log.info('Log Watcher', `Failed to watch file "${filePath}" - ${error}`);
-      }
-    }
-  }
-
-  console.log('Back - Initialized Services');
 
   // Init language
   state.languageWatcher.on('ready', () => {
@@ -654,7 +461,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   });
   state.languageWatcher.on('error', console.error);
   // On mac, exePath is Flashpoint.app/Contents/MacOS/flashpoint, and lang is at Flashpoint.app/Contents/lang.
-  const langFolder = path.join(content.isDev ? process.cwd() : process.platform == 'darwin' ? path.resolve(path.dirname(content.exePath), '..') : path.dirname(content.exePath), 'lang');
+  const langFolder = path.join(state.isDev ? process.cwd() : process.platform == 'darwin' ? path.resolve(path.dirname(state.exePath), '..') : path.dirname(state.exePath), 'lang');
   fs.stat(langFolder, (error) => {
     if (!error) { state.languageWatcher.watch(langFolder); }
     else {
@@ -668,6 +475,11 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   });
 
   console.log('Back - Initialized Languages');
+
+  state.extensionsService = new ExtensionService(state.config, path.join(state.config.flashpointPath, state.preferences.extensionsPath));
+  await state.extensionsService.installedExtensionsReady.wait();
+
+  console.log('Back - Parsed Extensions');
 
   // Init themes
   const dataThemeFolder = path.join(state.config.flashpointPath, state.preferences.themeFolderPath);
@@ -701,90 +513,6 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   console.log('Back - Initialized Themes');
 
-  // Init Logo Sets
-  const dataLogoSetsFolder = path.join(state.config.flashpointPath, state.preferences.logoSetsFolderPath);
-  try {
-    await fs.ensureDir(dataLogoSetsFolder);
-    await fs.promises.readdir(dataLogoSetsFolder, { withFileTypes: true })
-    .then(async (files) => {
-      for (const file of files) {
-        if (file.isDirectory()) {
-          const logoSet: ILogoSet = {
-            id: `${file.name.replace(' ', '-')}`,
-            name: `${file.name}`,
-            path: file.name
-          };
-          const realPath = path.join(dataLogoSetsFolder, logoSet.path);
-          try {
-            if (state.registry.logoSets.has(logoSet.id)) {
-              throw new Error(`Logo set "${logoSet.id}" already registered!`);
-            }
-            const files = (await fs.promises.readdir(realPath, { withFileTypes: true }))
-            .filter(f => f.isFile())
-            .map(f => f.name);
-            state.registry.logoSets.set(logoSet.id, {
-              ...logoSet,
-              fullPath: realPath,
-              files: files
-            });
-            log.debug('Extensions', `[SYSTEM] Registered Logo Set "${logoSet.id}"`);
-          } catch (error) {
-            log.error('Extensions', `[SYSTEM] Error loading logo set "${logoSet.id}"\n${error}`);
-          }
-        }
-      }
-    });
-  } catch (error: any) {
-    log.error('Launcher', `Error loading default Themes folder\n${error.message}`);
-  }
-  const logoSetContributions = await state.extensionsService.getContributions('logoSets');
-  for (const c of logoSetContributions) {
-    for (const logoSet of c.value) {
-      const ext = await state.extensionsService.getExtension(c.extId);
-      if (ext) {
-        const realPath = path.join(ext.extensionPath, logoSet.path);
-        try {
-          if (state.registry.logoSets.has(logoSet.id)) {
-            throw new Error(`Logo set "${logoSet.id}" already registered!`);
-          }
-          const files = (await fs.promises.readdir(realPath, { withFileTypes: true }))
-          .filter(f => f.isFile())
-          .map(f => f.name);
-          state.registry.logoSets.set(logoSet.id, {
-            ...logoSet,
-            fullPath: realPath,
-            files: files
-          });
-          log.debug('Extensions', `[${ext.manifest.displayName || ext.manifest.name}] Registered Logo Set "${logoSet.id}"`);
-        } catch (error) {
-          log.error('Extensions', `[${ext.manifest.displayName || ext.manifest.name}] Error loading logo set "${logoSet.id}"\n${error}`);
-        }
-      }
-    }
-  }
-
-  console.log('Back - Initialized Logo Sets');
-
-  // Load Exec Mappings
-  loadExecMappingsFile(path.join(state.config.flashpointPath, state.preferences.jsonFolderPath), content => log.info('Launcher', content))
-  .then(data => {
-    state.execMappings = data;
-  })
-  .catch(error => {
-    log.info('Launcher', `Failed to load exec mappings file. Ignore if on Windows. - ${error}`);
-  })
-  .finally(() => {
-    state.init[BackInit.EXEC] = true;
-    state.initEmitter.emit(BackInit.EXEC);
-  });
-
-  console.log('Back - Loaded Exec Mappings');
-
-  const hostname = content.acceptRemote ? undefined : 'localhost';
-
-  // Find the first available port in the range
-  await state.socketServer.listen(state.config.backPortMin, state.config.backPortMax, hostname);
-
   // Find the first available port in the range
   state.fileServerPort = await new Promise(resolve => {
     const minPort = state.config.imagesPortMin;
@@ -795,7 +523,10 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     state.fileServer.server.on('error', onError);
     tryListen();
 
-    function onceListening() { done(undefined); }
+    function onceListening() {
+      console.log('Back - Opened File Server');
+      done(undefined);
+    }
     function onError(error: Error) {
       if ((error as any).code === 'EADDRINUSE') {
         tryListen();
@@ -805,6 +536,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     }
     function tryListen() {
       if (port++ < maxPort) {
+        const hostname = state.acceptRemote ? undefined : 'localhost';
         state.fileServer.server.listen(port, hostname);
       } else {
         done(new Error(`All attempted ports are already in use (Ports: ${minPort} - ${maxPort}).`));
@@ -822,21 +554,342 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     }
   });
 
+  const hostname = state.acceptRemote ? undefined : 'localhost';
+
+  // Find the first available port in the range
+  await state.socketServer.listen(state.config.backPortMin, state.config.backPortMax, hostname);
+
   // Exit if it failed to open the server
   if (state.socketServer.port < 0) {
-    console.log('Back - Failed to open File Server, Exiting...');
+    console.log('Back - Failed to open Socket Server, Exiting...');
     setImmediate(exit);
     return;
   }
 
-  console.log('Back - Opened File Server');
+  console.log('Back - Opened Websocket');
+
+  // Set up general message handler now
+  process.on('message', onProcessMessage);
+  state.readyForInit = true;
 
   // Respond
-  send({port: state.socketServer.port}, () => {
-    console.log('Back - Ready');
+  send({port: state.socketServer.port, config: state.config, prefs: state.preferences}, () => {
+    console.log('Back - Ready for Init');
     state.apiEmitters.onDidInit.fire();
   });
+}
 
+async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
+  console.warn('Back - Received Message from Main, not handled - ' + message);
+}
+
+async function whenReady(): Promise<void> {
+  return new Promise<void>((resolve) => {
+    const wait = () => {
+      if (state.readyForInit) {
+        resolve();
+      } else {
+        setTimeout(wait, 1000);
+      }
+    };
+    wait();
+  });
+}
+
+async function initialize() {
+  await whenReady();
+
+  try {
+    const [extConf] = await (Promise.all([
+      ExtConfigFile.readOrCreateFile(path.join(state.config.flashpointPath, EXT_CONFIG_FILENAME))
+    ]));
+    state.extConfig = extConf;
+  } catch (e) {
+    console.log(e);
+    // Non-fatal, don't quit.
+  }
+
+  console.log('Back - Loaded Extension Config');
+
+  // Create Game Data Directory and clean up temp files
+  const fullDataPacksFolderPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath);
+  try {
+    await fs.promises.mkdir(fullDataPacksFolderPath, { recursive: true });
+    fs.promises.readdir(fullDataPacksFolderPath)
+    .then((files) => {
+      for (const f of files) {
+        if (f.endsWith('.temp')) {
+          fs.promises.unlink(path.join(fullDataPacksFolderPath, f));
+        }
+      }
+    });
+  } catch (error) {
+    console.log('Failed to create default Data Packs folder!');
+    // Non-fatal, don't quit.
+  }
+
+  // Setup DB
+  if (!AppDataSource.isInitialized) {
+    const databasePath = path.resolve(state.config.flashpointPath, 'Data', 'flashpoint.sqlite');
+    console.log('Back - Using Database at ' + databasePath);
+    // Spin up another source just to run migrations
+    const migrationSource = new DataSource({
+      ...dataSourceOptions,
+      type: 'better-sqlite3',
+      database: databasePath
+    });
+    await migrationSource.initialize();
+    await migrationSource.query('PRAGMA foreign_keys=off;');
+    await migrationSource.runMigrations();
+    await migrationSource.showMigrations();
+    await migrationSource.destroy();
+    // Initialize real database
+    AppDataSource.setOptions({ database: databasePath });
+    await AppDataSource.initialize();
+    // TypeORM forces on but breaks Playlist Game links to unimported games
+    await AppDataSource.query('PRAGMA foreign_keys=off;');
+    log.info('Launcher', 'Database connection established');
+  }
+
+  // Populate unique values
+  state.suggestions = {
+    tags: await GameManager.findUniqueValues(TagAlias, 'name'),
+    platform: (await GameManager.findUniqueValues(Game, 'platform')).sort(),
+    playMode: await GameManager.findUniqueValues(Game, 'playMode'),
+    status: await GameManager.findUniqueValues(Game, 'status'),
+    applicationPath: await GameManager.findUniqueValues(Game, 'applicationPath'),
+    library: await GameManager.findUniqueValues(Game, 'library'),
+  };
+
+  state.init[BackInit.DATABASE] = true;
+  state.initEmitter.emit(BackInit.DATABASE);
+
+  console.log('Back - Initialized Database');
+
+  // Load curations
+
+  // Go through all curation folders
+  const rootPath = path.resolve(state.config.flashpointPath, CURATIONS_FOLDER_WORKING);
+  fs.promises.readdir(rootPath)
+  .then(async (folders) => {
+    for (const folderName of folders) {
+      const parsedMeta = await readCurationMeta(path.join(rootPath, folderName), state.recentAppPaths);
+      if (parsedMeta) {
+        const loadedCuration: LoadedCuration = {
+          folder: folderName,
+          uuid: parsedMeta.uuid || uuid(),
+          group: parsedMeta.group,
+          game: parsedMeta.game,
+          addApps: parsedMeta.addApps,
+          thumbnail: await loadCurationIndexImage(path.join(rootPath, folderName, 'logo.png')),
+          screenshot: await loadCurationIndexImage(path.join(rootPath, folderName, 'ss.png'))
+        };
+        const alreadyImported = (await GameManager.findGame(loadedCuration.uuid)) !== undefined;
+        const curation: CurationState = {
+          ...loadedCuration,
+          alreadyImported,
+          warnings: genCurationWarnings(loadedCuration, state.config.flashpointPath, state.suggestions, state.languageContainer.curate),
+          contents: await genContentTree(getContentFolderByKey(folderName, state.config.flashpointPath))
+        };
+        state.loadedCurations.push(curation);
+      }
+    }
+  })
+  .then(() => {
+    console.log('Back - Initialized Curations');
+    state.init[BackInit.CURATE] = true;
+    state.initEmitter.emit(BackInit.CURATE);
+  })
+  .catch((error: any) => {
+    log.error('Launcher', `Failed to load curations\n${error.toString()}`);
+    exit(state);
+  });
+
+  // Init extensions
+  const addExtLogFactory = (extId: string) => (entry: ILogEntry) => {
+    state.extensionsService.logExtension(extId, entry);
+  };
+  // Create module interceptor
+  registerInterceptor(new FPLNodeModuleFactory(
+    await state.extensionsService.getExtensionPathIndex(),
+    addExtLogFactory,
+    state.versionStr,
+    state,
+  ),
+  state.moduleInterceptor);
+  registerInterceptor(new SqliteInterceptorFactory(), state.moduleInterceptor);
+  installNodeInterceptor(state.moduleInterceptor)
+  .then(async () => {
+    // Load each extension
+    await state.extensionsService.getExtensions()
+    .then(async (exts) => {
+      // Set any ext config defaults
+      for (const contrib of (await state.extensionsService.getContributions('configuration'))) {
+        for (const extConfig of contrib.value) {
+          for (const key in extConfig.properties) {
+            // Value not set, use default
+            if (!(key in state.extConfig)) {
+              state.extConfig[key] = extConfig.properties[key].default;
+            } else {
+              const prop = extConfig.properties[key];
+              // If type is different, reset it
+              if (typeof state.extConfig[key] !== prop.type) {
+                log.debug('Extensions', `Invalid value type for "${key}", resetting to default`);
+                state.extConfig[key] = prop.default;
+              }
+              if (prop.enum.length > 0 && !(prop.enum.includes(state.extConfig[key]))) {
+                log.debug('Extensions', `Invalid value for "${key}", not in enum, resetting to default`);
+                state.extConfig[key] = prop.default;
+              }
+            }
+          }
+        }
+      }
+
+      // Init System Logo Sets
+      const dataLogoSetsFolder = path.join(state.config.flashpointPath, state.preferences.logoSetsFolderPath);
+      try {
+        await fs.ensureDir(dataLogoSetsFolder);
+        await fs.promises.readdir(dataLogoSetsFolder, { withFileTypes: true })
+        .then(async (files) => {
+          for (const file of files) {
+            if (file.isDirectory()) {
+              const logoSet: ILogoSet = {
+                id: `${file.name.replace(' ', '-')}`,
+                name: `${file.name}`,
+                path: file.name
+              };
+              const realPath = path.join(dataLogoSetsFolder, logoSet.path);
+              try {
+                if (state.registry.logoSets.has(logoSet.id)) {
+                  throw new Error(`Logo set "${logoSet.id}" already registered!`);
+                }
+                const files = (await fs.promises.readdir(realPath, { withFileTypes: true }))
+                .filter(f => f.isFile())
+                .map(f => f.name);
+                state.registry.logoSets.set(logoSet.id, {
+                  ...logoSet,
+                  fullPath: realPath,
+                  files: files
+                });
+                log.debug('Extensions', `[SYSTEM] Registered Logo Set "${logoSet.id}"`);
+              } catch (error) {
+                log.error('Extensions', `[SYSTEM] Error loading logo set "${logoSet.id}"\n${error}`);
+              }
+            }
+          }
+        });
+      } catch (error: any) {
+        log.error('Launcher', `Error loading default Logo Sets folder\n${error.message}`);
+      }
+
+      // Init Ext Logo Sets
+      await state.extensionsService.getContributions('logoSets')
+      .then(async (logoSetContributions) => {
+        for (const c of logoSetContributions) {
+          for (const logoSet of c.value) {
+            const ext = await state.extensionsService.getExtension(c.extId);
+            if (ext) {
+              const realPath = path.join(ext.extensionPath, logoSet.path);
+              try {
+                if (state.registry.logoSets.has(logoSet.id)) {
+                  throw new Error(`Logo set "${logoSet.id}" already registered!`);
+                }
+                const files = (await fs.promises.readdir(realPath, { withFileTypes: true }))
+                .filter(f => f.isFile())
+                .map(f => f.name);
+                state.registry.logoSets.set(logoSet.id, {
+                  ...logoSet,
+                  fullPath: realPath,
+                  files: files
+                });
+                log.debug('Extensions', `[${ext.manifest.displayName || ext.manifest.name}] Registered Logo Set "${logoSet.id}"`);
+              } catch (error) {
+                log.error('Extensions', `[${ext.manifest.displayName || ext.manifest.name}] Error loading logo set "${logoSet.id}"\n${error}`);
+              }
+            }
+          }
+        }
+        console.log('Back - Initialized Logo Sets');
+      });
+
+      await ExtConfigFile.saveFile(path.join(state.config.flashpointPath, EXT_CONFIG_FILENAME), state.extConfig);
+      exts.forEach(ext => {
+        state.extensionsService.loadExtension(ext.id);
+      });
+    });
+  })
+  .then(() => {
+    console.log('Back - Initialized Extensions');
+    state.init[BackInit.EXTENSIONS] = true;
+    state.initEmitter.emit(BackInit.EXTENSIONS);
+  })
+  .catch((error: any) => {
+    log.error('Launcher', `Failed to load extensions\n${error.toString()}`);
+    exit(state);
+  });
+
+  // Init services
+  try {
+    state.serviceInfo = await ServicesFile.readFile(
+      path.join(state.config.flashpointPath, state.preferences.jsonFolderPath),
+      state.config,
+      error => { log.info(SERVICES_SOURCE, error.toString()); }
+    );
+  } catch (error) { /* @TODO Do something about this error */ }
+  if (state.serviceInfo) {
+    // Run start commands
+    for (let i = 0; i < state.serviceInfo.start.length; i++) {
+      await execProcess(state.serviceInfo.start[i]);
+    }
+    // Run processes
+    if (state.serviceInfo.server.length > 0) {
+      const chosenServer = state.serviceInfo.server.find(i => i.name === state.config.server);
+      runService(state, 'server', 'Server', state.config.flashpointPath, {}, chosenServer || state.serviceInfo.server[0]);
+    }
+    // Start daemons
+    for (let i = 0; i < state.serviceInfo.daemon.length; i++) {
+      const service = state.serviceInfo.daemon[i];
+      const id = 'daemon_' + i;
+      runService(state, id, service.name || id, state.config.flashpointPath, {}, service);
+    }
+    // Start file watchers
+    for (let i = 0; i < state.serviceInfo.watch.length; i++) {
+      const filePath = state.serviceInfo.watch[i];
+      try {
+        // Windows requires fs.watchFile to properly update
+        const tail = new Tail(filePath, { follow: true, useWatchFile: true });
+        tail.on('line', (data) => {
+          log.info('Log Watcher', data);
+        });
+        tail.on('error', (error) => {
+          log.info('Log Watcher', `Error while watching file "${filePath}" - ${error}`);
+        });
+        log.info('Log Watcher', `Watching file "${filePath}"`);
+      } catch (error) {
+        log.info('Log Watcher', `Failed to watch file "${filePath}" - ${error}`);
+      }
+    }
+    state.init[BackInit.SERVICES] = true;
+    state.initEmitter.emit(BackInit.SERVICES);
+  }
+
+  console.log('Back - Initialized Services');
+
+  // Load Exec Mappings
+  loadExecMappingsFile(path.join(state.config.flashpointPath, state.preferences.jsonFolderPath), content => log.info('Launcher', content))
+  .then(data => {
+    state.execMappings = data;
+  })
+  .catch(error => {
+    log.info('Launcher', `Failed to load exec mappings file. Ignore if on Windows. - ${error}`);
+  })
+  .finally(() => {
+    state.init[BackInit.EXEC_MAPPINGS] = true;
+    state.initEmitter.emit(BackInit.EXEC_MAPPINGS);
+  });
+
+  console.log('Back - Loaded Exec Mappings');
 }
 
 function getCurationFilePath(folder: string, relativePath: string) {

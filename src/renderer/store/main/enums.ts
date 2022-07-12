@@ -3,6 +3,8 @@ export enum MainActionType {
   /** Drop in replacement for "this.setState". */
   SET_STATE = '@@main/SET_STATE',
   // Normal actions
+  /** Sets up initial views */
+  SETUP_VIEWS = '@@main/SETUP_VIEWS',
   /** Set the query of a view. */
   SET_VIEW_QUERY = '@@main/SET_VIEW_QUERY',
   /** Set the current "boundries" of a view. These describe the range of currently visible pages. */

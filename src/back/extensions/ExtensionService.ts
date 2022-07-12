@@ -18,7 +18,7 @@ export class ExtensionService {
   private _extensionPathIndex: Promise<TernarySearchTree<string, IExtension>> | null;
 
   /** Opens when _extensions is ready to be read from */
-  private readonly _installedExtensionsReady: Barrier;
+  public readonly installedExtensionsReady: Barrier;
 
   constructor(
     protected readonly _configData: AppConfigData,
@@ -26,7 +26,7 @@ export class ExtensionService {
   ) {
     this._extensions = [];
     this._extensionData = {};
-    this._installedExtensionsReady = new Barrier();
+    this.installedExtensionsReady = new Barrier();
     this._init();
   }
 
@@ -37,17 +37,17 @@ export class ExtensionService {
   private async _scanExtensions(): Promise<void> {
     const exts = await scanExtensions(this._configData, this._extensionPath);
     exts.forEach(e => this._extensions.push(e));
-    this._installedExtensionsReady.open();
+    this.installedExtensionsReady.open();
   }
 
   getExtensions(): Promise<IExtension[]> {
-    return this._installedExtensionsReady.wait().then(() => {
+    return this.installedExtensionsReady.wait().then(() => {
       return this._extensions;
     });
   }
 
   getExtension(id: string): Promise<IExtension | undefined> {
-    return this._installedExtensionsReady.wait().then(() => {
+    return this.installedExtensionsReady.wait().then(() => {
       return this._extensions.find(e => e.id === id);
     });
   }
@@ -57,7 +57,7 @@ export class ExtensionService {
    * @returns All of this contribution type from all loaded extensions
    */
   getContributions<T extends keyof Contributions>(key: T): Promise<ExtensionContribution<T>[]> {
-    return this._installedExtensionsReady.wait().then(() => {
+    return this.installedExtensionsReady.wait().then(() => {
       return this._extensions.reduce<ExtensionContribution<T>[]>((list, ext) => {
         list.push({
           key: key,
@@ -71,7 +71,7 @@ export class ExtensionService {
 
   /** Build a search tree mapping extensions and their paths */
   public async getExtensionPathIndex(): Promise<TernarySearchTree<string, IExtension>> {
-    return this._installedExtensionsReady.wait().then(() => {
+    return this.installedExtensionsReady.wait().then(() => {
       if (!this._extensionPathIndex) {
         const index = TernarySearchTree.forPaths<IExtension>();
         const extensions = this._extensions.map(ext => {
@@ -89,7 +89,7 @@ export class ExtensionService {
 
   /** Loads an extension (returns immediately if already loaded) */
   public async loadExtension(extId: string): Promise<void> {
-    return this._installedExtensionsReady.wait().then(() => {
+    return this.installedExtensionsReady.wait().then(() => {
       const ext = this._extensions.find(e => e.id === extId);
       if (ext) {
         return this._loadExtension(ext);
@@ -131,7 +131,7 @@ export class ExtensionService {
   }
 
   public async unloadAll(): Promise<void> {
-    if (this._installedExtensionsReady.isOpen()) {
+    if (this.installedExtensionsReady.isOpen()) {
       for (const ext of this._extensions) {
         await this._unloadExtension(ext);
       }
@@ -139,7 +139,7 @@ export class ExtensionService {
   }
 
   public async unloadExtension(id: string): Promise<void> {
-    if (this._installedExtensionsReady.isOpen()) {
+    if (this.installedExtensionsReady.isOpen()) {
       const ext = this._extensions.find(e => e.id == id);
       if (ext) {
         this._unloadExtension(ext);

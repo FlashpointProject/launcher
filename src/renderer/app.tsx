@@ -33,6 +33,7 @@ import { TitleBar } from './components/TitleBar';
 import { ConnectedFooter } from './containers/ConnectedFooter';
 import { ConnectedRightBrowseSidebar } from './containers/ConnectedRightBrowseSidebar';
 import HeaderContainer from './containers/HeaderContainer';
+import { WithCurateStateProps } from './containers/withCurateState';
 import { WithMainStateProps } from './containers/withMainState';
 import { WithPreferencesProps } from './containers/withPreferences';
 import { WithTagCategoriesProps } from './containers/withTagCategories';
@@ -48,12 +49,10 @@ import { RANDOM_GAME_ROW_COUNT } from './store/main/reducer';
 import { MainState } from './store/main/types';
 import { SearchQuery } from './store/search';
 import { UpgradeStage } from './upgrade/types';
-import { UpgradeFile } from './upgrade/UpgradeFile';
 import { getBrowseSubPath, getGamePath, isFlashpointValidCheck, joinLibraryRoute, openConfirmDialog } from './Util';
 import { LangContext } from './util/lang';
 import { queueOne } from './util/queue';
-import { checkUpgradeStateInstalled, checkUpgradeStateUpdated, downloadAndInstallUpgrade } from './util/upgrade';
-import { WithCurateStateProps } from './containers/withCurateState';
+import { downloadAndInstallUpgrade } from './util/upgrade';
 
 const autoUpdater: AppUpdater = remote.require('electron-updater').autoUpdater;
 
@@ -76,44 +75,7 @@ export class App extends React.Component<AppProps> {
     this.init();
   }
 
-  init() {
-    const strings = this.props.main.lang;
-    const fullFlashpointPath = window.Shared.config.fullFlashpointPath;
-    const fullJsonFolderPath = window.Shared.config.fullJsonFolderPath;
-    // Warn the user when closing the launcher WHILE downloading or installing an upgrade
-    (() => {
-      let askBeforeClosing = true;
-      window.onbeforeunload = (event: BeforeUnloadEvent) => {
-        const { upgrades } = this.props.main;
-        let stillDownloading = false;
-        for (const stage of upgrades) {
-          if (stage.state.isInstalling) {
-            stillDownloading = true;
-            break;
-          }
-        }
-        if (askBeforeClosing && stillDownloading) {
-          event.returnValue = 1; // (Prevent closing the window)
-          remote.dialog.showMessageBox({
-            type: 'warning',
-            title: 'Exit Launcher?',
-            message: 'All progress on downloading or installing the upgrade will be lost.\n'+
-                     'Are you sure you want to exit?',
-            buttons: ['Yes', 'No'],
-            defaultId: 1,
-            cancelId: 1,
-          })
-          .then(({ response }) => {
-            if (response === 0) {
-              askBeforeClosing = false;
-              this.unmountBeforeClose();
-            }
-          });
-        } else {
-          this.unmountBeforeClose();
-        }
-      };
-    })();
+  registerIpcListeners() {
     const handleProtocol = (url: string) => {
       const parts = url.split('/');
       log.debug('Launcher', 'Handling Protocol - ' + url);
@@ -203,68 +165,98 @@ export class App extends React.Component<AppProps> {
       handleProtocol(url);
     });
 
-    window.Shared.back.request(BackIn.INIT_LISTEN)
-    .then(data => {
-      if (!data) { throw new Error('INIT_LISTEN response is missing data.'); }
-      this.props.dispatchMain({
-        type: MainActionType.ADD_LOADED,
-        loaded: data.done,
-      });
-    });
+    // if (window.Shared.url) {
+    //   handleProtocol(window.Shared.url);
+    // }
+  }
 
-    window.Shared.back.request(BackIn.GET_GAMES_TOTAL)
-    .then(data => {
-      if (data) {
-        this.props.dispatchMain({
-          type: MainActionType.SET_GAMES_TOTAL,
-          total: data,
-        });
-      }
-    });
-
-    window.Shared.back.request(BackIn.GET_SUGGESTIONS)
-    .then(data => {
-      if (data) {
-        this.props.dispatchMain({
-          type: MainActionType.SET_SUGGESTIONS,
-          suggestions: data.suggestions,
-          appPaths: data.appPaths,
-        });
-      }
-    });
-
-    // Register API handlers
-
-    // console.log('IN', res);
+  registerWebsocketListeners() {
     window.Shared.back.register(BackOut.INIT_EVENT, (event, data) => {
       for (const index of data.done) {
-        switch (parseInt(index+'', 10)) { // (It is a string, even though TS thinks it is a number)
-          case BackInit.PLAYLISTS:
+        switch (+index) { // Conversion to number, type safe bug
+          case BackInit.DATABASE: {
             window.Shared.back.request(BackIn.GET_PLAYLISTS)
             .then(data => {
               if (data) {
                 this.props.setMainState({ playlists: data });
                 this.cachePlaylistIcons(data);
               }
+              this.props.dispatchMain({
+                type: MainActionType.ADD_LOADED,
+                loaded: [BackInit.PLAYLISTS],
+              });
+            });
+            window.Shared.back.request(BackIn.GET_RENDERER_LOADED_DATA)
+            .then(data => {
+              this.props.dispatchMain({
+                type: MainActionType.SET_STATE,
+                payload: {
+                  ...data
+                }
+              });
+              this.props.dispatchMain({
+                type: MainActionType.SETUP_VIEWS,
+                preferencesData: { ...this.props.preferencesData }
+              });
+            })
+            .then(async () => {
+              const data = await window.Shared.back.request(BackIn.GET_GAMES_TOTAL);
+              if (data) {
+                this.props.dispatchMain({
+                  type: MainActionType.SET_GAMES_TOTAL,
+                  total: data,
+                });
+              }
+            })
+            .then(() => {
+              if (this.props.main.randomGames.length < RANDOM_GAME_ROW_COUNT) { this.rollRandomGames(true); }
+            })
+            .then(() => {
+              this.props.dispatchMain({
+                type: MainActionType.ADD_LOADED,
+                loaded: [index],
+              });
             });
             break;
-
-          case BackInit.CURATE:
+          }
+          case BackInit.CURATE: {
             window.Shared.back.request(BackIn.CURATE_GET_LIST)
             .then(curations => {
               (this.props.dispatchMain as any as Dispatch<CurateAction>)({
                 type: CurateActionType.SET_ALL_CURATIONS,
                 curations: curations,
               });
+              this.props.dispatchMain({
+                type: MainActionType.ADD_LOADED,
+                loaded: [index],
+              });
             });
             break;
+          }
+          case BackInit.EXTENSIONS: {
+            window.Shared.back.request(BackIn.GET_RENDERER_EXTENSION_INFO)
+            .then(data => {
+              this.props.dispatchMain({
+                type: MainActionType.SET_STATE,
+                payload: {
+                  ...data
+                }
+              });
+              this.props.dispatchMain({
+                type: MainActionType.ADD_LOADED,
+                loaded: [index],
+              });
+            });
+            break;
+          }
+          default: {
+            this.props.dispatchMain({
+              type: MainActionType.ADD_LOADED,
+              loaded: [index],
+            });
+          }
         }
       }
-
-      this.props.dispatchMain({
-        type: MainActionType.ADD_LOADED,
-        loaded: data.done,
-      });
     });
 
     window.Shared.back.register(BackOut.LOG_ENTRY_ADDED, (event, entry, index) => {
@@ -434,70 +426,116 @@ export class App extends React.Component<AppProps> {
     window.Shared.back.register(BackOut.FOCUS_WINDOW, (event) => {
       window.focus();
     });
+  }
+
+  init() {
+    const strings = this.props.main.lang;
+    // Warn the user when closing the launcher WHILE downloading or installing an upgrade
+    (() => {
+      let askBeforeClosing = true;
+      window.onbeforeunload = (event: BeforeUnloadEvent) => {
+        const { upgrades } = this.props.main;
+        let stillDownloading = false;
+        for (const stage of upgrades) {
+          if (stage.state.isInstalling) {
+            stillDownloading = true;
+            break;
+          }
+        }
+        if (askBeforeClosing && stillDownloading) {
+          event.returnValue = 1; // (Prevent closing the window)
+          remote.dialog.showMessageBox({
+            type: 'warning',
+            title: 'Exit Launcher?',
+            message: 'All progress on downloading or installing the upgrade will be lost.\n'+
+                     'Are you sure you want to exit?',
+            buttons: ['Yes', 'No'],
+            defaultId: 1,
+            cancelId: 1,
+          })
+          .then(({ response }) => {
+            if (response === 0) {
+              askBeforeClosing = false;
+              this.unmountBeforeClose();
+            }
+          });
+        } else {
+          this.unmountBeforeClose();
+        }
+      };
+    })();
+
+    this.registerIpcListeners();
+    this.registerWebsocketListeners();
+
+    window.Shared.back.request(BackIn.INIT_LISTEN)
+    .then(data => {
+      if (!data) { throw new Error('INIT_LISTEN response is missing data.'); }
+      this.props.dispatchMain({
+        type: MainActionType.ADD_LOADED,
+        loaded: data.done,
+      });
+    });
 
     // Cache playlist icons (if they are loaded)
-    if (this.props.main.playlists.length > 0) { this.cachePlaylistIcons(this.props.main.playlists); }
+    // if (this.props.main.playlists.length > 0) { this.cachePlaylistIcons(this.props.main.playlists); }
 
     // -- Stuff that should probably be moved to the back --
 
     // Load Upgrades
-    const folderPath = window.Shared.isDev
-      ? process.cwd()
-      : path.dirname(remote.app.getPath('exe'));
-    const upgradeCatch = (error: Error) => { console.warn(error); };
-    const launcherLogFunc = (message: string) => {
-      log.warn('Launcher', message);
-    };
-    Promise.all([UpgradeFile.readFile(folderPath, launcherLogFunc), UpgradeFile.readFile(fullJsonFolderPath, launcherLogFunc)].map(p => p.catch(upgradeCatch)))
-    .then(async (fileData) => {
-      // Combine all file data
-      let allData: UpgradeStage[] = [];
-      for (const data of fileData) {
-        if (data) {
-          allData = allData.concat(data);
-        }
-      }
-      this.props.dispatchMain({
-        type: MainActionType.SET_UPGRADES,
-        upgrades: allData,
-      });
-      const isValid = await isFlashpointValidCheck(window.Shared.config.data.flashpointPath);
-      // Notify of downloading initial data (if available)
-      if (!isValid && allData.length > 0) {
-        remote.dialog.showMessageBox({
-          type: 'info',
-          title: strings.dialog.dataRequired,
-          message: strings.dialog.dataRequiredDesc,
-          buttons: [strings.misc.yes, strings.misc.no]
-        })
-        .then((res) => {
-          if (res.response === 0) {
-            this.onDownloadUpgradeClick(allData[0], strings);
-          }
-        });
-      }
-      // Do existance checks on all upgrades
-      await Promise.all(allData.map(async upgrade => {
-        const baseFolder = fullFlashpointPath;
-        // Perform install checks
-        const installed = await checkUpgradeStateInstalled(upgrade, baseFolder);
-        this.setUpgradeStageState(upgrade.id, {
-          alreadyInstalled: installed,
-          checksDone: true
-        });
-        // If installed, check for updates
-        if (installed) {
-          const upToDate = await checkUpgradeStateUpdated(upgrade, baseFolder);
-          this.setUpgradeStageState(upgrade.id, {
-            upToDate: upToDate
-          });
-        }
-      }));
-
-      if (window.Shared.url) {
-        handleProtocol(window.Shared.url);
-      }
-    });
+    // const folderPath = window.Shared.isDev
+    //   ? process.cwd()
+    //   : path.dirname(remote.app.getPath('exe'));
+    // const upgradeCatch = (error: Error) => { console.warn(error); };
+    // const launcherLogFunc = (message: string) => {
+    //   log.warn('Launcher', message);
+    // };
+    // Promise.all([UpgradeFile.readFile(folderPath, launcherLogFunc), UpgradeFile.readFile(fullJsonFolderPath, launcherLogFunc)].map(p => p.catch(upgradeCatch)))
+    // .then(async (fileData) => {
+    //   // Combine all file data
+    //   let allData: UpgradeStage[] = [];
+    //   for (const data of fileData) {
+    //     if (data) {
+    //       allData = allData.concat(data);
+    //     }
+    //   }
+    //   this.props.dispatchMain({
+    //     type: MainActionType.SET_UPGRADES,
+    //     upgrades: allData,
+    //   });
+    //   const isValid = await isFlashpointValidCheck(window.Shared.config.data.flashpointPath);
+    //   // Notify of downloading initial data (if available)
+    //   if (!isValid && allData.length > 0) {
+    //     remote.dialog.showMessageBox({
+    //       type: 'info',
+    //       title: strings.dialog.dataRequired,
+    //       message: strings.dialog.dataRequiredDesc,
+    //       buttons: [strings.misc.yes, strings.misc.no]
+    //     })
+    //     .then((res) => {
+    //       if (res.response === 0) {
+    //         this.onDownloadUpgradeClick(allData[0], strings);
+    //       }
+    //     });
+    //   }
+    //   // Do existance checks on all upgrades
+    //   await Promise.all(allData.map(async upgrade => {
+    //     const baseFolder = fullFlashpointPath;
+    //     // Perform install checks
+    //     const installed = await checkUpgradeStateInstalled(upgrade, baseFolder);
+    //     this.setUpgradeStageState(upgrade.id, {
+    //       alreadyInstalled: installed,
+    //       checksDone: true
+    //     });
+    //     // If installed, check for updates
+    //     if (installed) {
+    //       const upToDate = await checkUpgradeStateUpdated(upgrade, baseFolder);
+    //       this.setUpgradeStageState(upgrade.id, {
+    //         upToDate: upToDate
+    //       });
+    //     }
+    //   }));
+    // });
 
     // Load Credits
     fetch(`${getFileServerURL()}/credits.json`)
@@ -553,204 +591,198 @@ export class App extends React.Component<AppProps> {
       });
     }
 
-    this.props.setTagCategories(window.Shared.initialTagCategories);
+    // this.props.setTagCategories(window.Shared.initialTagCategories);
   }
 
   componentDidMount() {
     // Call first batch of random games
-    if (this.props.main.randomGames.length < RANDOM_GAME_ROW_COUNT) { this.rollRandomGames(true); }
+    // if (this.props.main.randomGames.length < RANDOM_GAME_ROW_COUNT) { this.rollRandomGames(true); }
   }
 
   componentDidUpdate(prevProps: AppProps) {
-    const { history, location, preferencesData } = this.props;
-    const library = getBrowseSubPath(this.props.location.pathname);
-    const view = this.props.main.views[library];
+    if (this.props.main.loadedAll.isOpen) {
+      const { history, location, preferencesData } = this.props;
+      const library = getBrowseSubPath(this.props.location.pathname);
+      const view = this.props.main.views[library];
 
-    // Check if theme changed
-    if (preferencesData.currentTheme !== prevProps.preferencesData.currentTheme) {
-      const theme = this.props.main.themeList.find(t => t.id === preferencesData.currentTheme);
-      setTheme(theme);
-    }
-
-    // Check if logo set changed
-    if (preferencesData.currentLogoSet !== prevProps.preferencesData.currentLogoSet) {
-      this.props.dispatchMain({
-        type: MainActionType.INCREMENT_LOGO_VERSION
-      });
-    }
-
-    // Check if playlists need to be updated based on extreme filtering
-    if (preferencesData.browsePageShowExtreme !== prevProps.preferencesData.browsePageShowExtreme) {
-      window.Shared.back.request(BackIn.GET_PLAYLISTS)
-      .then(data => {
-        if (data) {
-          this.props.setMainState({ playlists: data });
-          this.cachePlaylistIcons(data);
-        }
-      });
-    }
-
-    // Check if renderer finished initializing
-    if (isInitDone(this.props.main) && !isInitDone(prevProps.main)) {
-      // Pre-request all libraries
-      for (const library of this.props.main.libraries) {
-        this.setViewQuery(library);
+      // Check if theme changed
+      if (preferencesData.currentTheme !== prevProps.preferencesData.currentTheme) {
+        const theme = this.props.main.themeList.find(t => t.id === preferencesData.currentTheme);
+        setTheme(theme);
       }
-    }
 
-    // Reset random games if the filters change
-    // @TODO: Is this really the best way to compare array contents? I guess it works
-    if (
-      this.props.preferencesData.browsePageShowExtreme !== prevProps.preferencesData.browsePageShowExtreme ||
+      // Check if logo set changed
+      if (preferencesData.currentLogoSet !== prevProps.preferencesData.currentLogoSet) {
+        this.props.dispatchMain({
+          type: MainActionType.INCREMENT_LOGO_VERSION
+        });
+      }
+
+      // Check if playlists need to be updated based on extreme filtering
+      if (preferencesData.browsePageShowExtreme !== prevProps.preferencesData.browsePageShowExtreme) {
+        window.Shared.back.request(BackIn.GET_PLAYLISTS)
+        .then(data => {
+          if (data) {
+            this.props.setMainState({ playlists: data });
+            this.cachePlaylistIcons(data);
+          }
+        });
+      }
+
+      // Reset random games if the filters change
+      // @TODO: Is this really the best way to compare array contents? I guess it works
+      if (
+        this.props.preferencesData.browsePageShowExtreme !== prevProps.preferencesData.browsePageShowExtreme ||
       !arrayShallowStrictEquals(this.props.preferencesData.excludedRandomLibraries, prevProps.preferencesData.excludedRandomLibraries) ||
       JSON.stringify(prevProps.preferencesData.tagFilters) !== JSON.stringify(this.props.preferencesData.tagFilters)) {
-      this.props.dispatchMain({
-        type: MainActionType.CLEAR_RANDOM_GAMES
-      });
-      this.props.dispatchMain({
-        type: MainActionType.REQUEST_RANDOM_GAMES
-      });
-      window.Shared.back.request(BackIn.RANDOM_GAMES, {
-        count: RANDOM_GAME_ROW_COUNT * 10,
-        broken: this.props.preferencesData.showBrokenGames,
-        excludedLibraries: this.props.preferencesData.excludedRandomLibraries,
-        tagFilters: this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme))
-      })
-      .then((data) => {
         this.props.dispatchMain({
-          type: MainActionType.RESPONSE_RANDOM_GAMES,
-          games: data || [],
+          type: MainActionType.CLEAR_RANDOM_GAMES
         });
-      })
-      .catch((error) => {
-        log.error('Launcher', `Error fetching random games - ${error}`);
-      });
-    }
+        this.props.dispatchMain({
+          type: MainActionType.REQUEST_RANDOM_GAMES
+        });
+        window.Shared.back.request(BackIn.RANDOM_GAMES, {
+          count: RANDOM_GAME_ROW_COUNT * 10,
+          broken: this.props.preferencesData.showBrokenGames,
+          excludedLibraries: this.props.preferencesData.excludedRandomLibraries,
+          tagFilters: this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme))
+        })
+        .then((data) => {
+          this.props.dispatchMain({
+            type: MainActionType.RESPONSE_RANDOM_GAMES,
+            games: data || [],
+          });
+        })
+        .catch((error) => {
+          log.error('Launcher', `Error fetching random games - ${error}`);
+        });
+      }
 
-    if (view) {
+      if (view) {
       // Check if any parameters for the search query has changed (they don't match the current view's)
-      if (view.query.text                   !== this.props.search.text ||
+        if (view.query.text                   !== this.props.search.text ||
           view.query.extreme                !== this.props.preferencesData.browsePageShowExtreme ||
           view.query.orderBy                !== this.props.preferencesData.gamesOrderBy ||
           view.query.orderReverse           !== this.props.preferencesData.gamesOrder ||
           prevProps.main.playlists          !== this.props.main.playlists ||
           JSON.stringify(view.tagFilters)   !== JSON.stringify(this.props.preferencesData.tagFilters) ||
           view.query.searchLimit            !== this.props.preferencesData.searchLimit) {
-        this.setViewQuery(library);
-      }
-      // Fetch pages
-      else if (view.metaState === RequestState.RECEIVED) {
-        let pages: number[] | undefined;
+          this.setViewQuery(library);
+        }
+        // Fetch pages
+        else if (view.metaState === RequestState.RECEIVED) {
+          let pages: number[] | undefined;
 
-        for (const index in view.pageState) {
-          if (view.pageState[index] === RequestState.WAITING) {
-            if (!pages) { pages = []; }
-            pages.push(+index);
+          for (const index in view.pageState) {
+            if (view.pageState[index] === RequestState.WAITING) {
+              if (!pages) { pages = []; }
+              pages.push(+index);
+            }
+          }
+
+          if (pages && pages.length > 0) {
+          // Request pages
+            window.Shared.back.request(BackIn.BROWSE_VIEW_PAGE, {
+              ranges: pages.map(index => ({
+                start: index * VIEW_PAGE_SIZE,
+                length: VIEW_PAGE_SIZE,
+                index: view.meta && view.meta.pageKeyset[index + 1], // Page keyset indices are one-indexed (start at 1 instead of 0)
+              })),
+              library: library,
+              query: view.query,
+              shallow: true,
+            })
+            .then((data) => {
+              if (data) {
+                this.props.dispatchMain({
+                  type: MainActionType.ADD_VIEW_PAGES,
+                  library: library,
+                  queryId: view.queryId,
+                  ranges: data.ranges,
+                });
+              } else {
+                console.error('BROWSE_VIEW_PAGE response contains no data.');
+              }
+            });
+
+            // Flag pages as requested
+            this.props.dispatchMain({
+              type: MainActionType.REQUEST_VIEW_PAGES,
+              library: library,
+              queryId: view.queryId,
+              pages: pages,
+            });
           }
         }
+      }
 
-        if (pages && pages.length > 0) {
-          // Request pages
-          window.Shared.back.request(BackIn.BROWSE_VIEW_PAGE, {
-            ranges: pages.map(index => ({
-              start: index * VIEW_PAGE_SIZE,
-              length: VIEW_PAGE_SIZE,
-              index: view.meta && view.meta.pageKeyset[index + 1], // Page keyset indices are one-indexed (start at 1 instead of 0)
-            })),
-            library: library,
-            query: view.query,
-            shallow: true,
-          })
+      for (const l in this.props.main.views) {
+        const v = this.props.main.views[l];
+        // Check if the meta has not yet been requested
+        if (v && v.metaState === RequestState.WAITING) {
+        // Request meta
+          window.Shared.back.request(BackIn.BROWSE_VIEW_KEYSET, l, v.query)
           .then((data) => {
             if (data) {
               this.props.dispatchMain({
-                type: MainActionType.ADD_VIEW_PAGES,
-                library: library,
-                queryId: view.queryId,
-                ranges: data.ranges,
+                type: MainActionType.SET_VIEW_META,
+                library: l,
+                queryId: v.queryId,
+                keyset: data.keyset,
+                total: data.total,
               });
-            } else {
-              console.error('BROWSE_VIEW_PAGE response contains no data.');
             }
+          })
+          .catch((error) => {
+            log.error('Launcher', `Error getting browse view keyset - ${error}`);
           });
 
-          // Flag pages as requested
+          // Flag meta as requested
           this.props.dispatchMain({
-            type: MainActionType.REQUEST_VIEW_PAGES,
-            library: library,
-            queryId: view.queryId,
-            pages: pages,
+            type: MainActionType.REQUEST_VIEW_META,
+            library: l,
+            queryId: v.queryId,
           });
         }
       }
-    }
 
-    for (const l in this.props.main.views) {
-      const v = this.props.main.views[l];
-      // Check if the meta has not yet been requested
-      if (v && v.metaState === RequestState.WAITING) {
-        // Request meta
-        window.Shared.back.request(BackIn.BROWSE_VIEW_KEYSET, l, v.query)
-        .then((data) => {
-          if (data) {
+      // Check for selected game changes
+
+      // Check if it started or ended editing
+      if (this.props.main.isEditingGame != prevProps.main.isEditingGame) {
+        this.updateCurrentGame(this.props.main.selectedGameId, this.props.main.selectedPlaylistId);
+      }
+      // Update current game and add-apps if the selected game changes
+      if (this.props.main.selectedGameId && this.props.main.selectedGameId !== prevProps.main.selectedGameId) {
+        this.updateCurrentGame(this.props.main.selectedGameId, this.props.main.selectedPlaylistId);
+        this.props.setMainState({ isEditingGame: false });
+      }
+
+      // Update preference "lastSelectedLibrary"
+      const gameLibrary = getBrowseSubPath(location.pathname);
+      if (location.pathname.startsWith(Paths.BROWSE) &&
+        preferencesData.lastSelectedLibrary !== gameLibrary) {
+        updatePreferencesData({ lastSelectedLibrary: gameLibrary });
+      }
+
+      // Create a new game
+      if (this.props.main.wasNewGameClicked) {
+        const route = preferencesData.lastSelectedLibrary || preferencesData.defaultLibrary || '';
+
+        if (location.pathname.startsWith(Paths.BROWSE)) {
+          this.props.dispatchMain({ type: MainActionType.CLICK_NEW_GAME_END });
+          // Deselect the current game
+          const view = this.props.main.views[route];
+          if (view && view.selectedGameId !== undefined) {
             this.props.dispatchMain({
-              type: MainActionType.SET_VIEW_META,
-              library: l,
-              queryId: v.queryId,
-              keyset: data.keyset,
-              total: data.total,
+              type: MainActionType.SET_SELECTED_GAME,
+              library: route,
+              gameId: undefined,
             });
           }
-        })
-        .catch((error) => {
-          log.error('Launcher', `Error getting browse view keyset - ${error}`);
-        });
-
-        // Flag meta as requested
-        this.props.dispatchMain({
-          type: MainActionType.REQUEST_VIEW_META,
-          library: l,
-          queryId: v.queryId,
-        });
-      }
-    }
-
-    // Check for selected game changes
-
-    // Check if it started or ended editing
-    if (this.props.main.isEditingGame != prevProps.main.isEditingGame) {
-      this.updateCurrentGame(this.props.main.selectedGameId, this.props.main.selectedPlaylistId);
-    }
-    // Update current game and add-apps if the selected game changes
-    if (this.props.main.selectedGameId && this.props.main.selectedGameId !== prevProps.main.selectedGameId) {
-      this.updateCurrentGame(this.props.main.selectedGameId, this.props.main.selectedPlaylistId);
-      this.props.setMainState({ isEditingGame: false });
-    }
-
-    // Update preference "lastSelectedLibrary"
-    const gameLibrary = getBrowseSubPath(location.pathname);
-    if (location.pathname.startsWith(Paths.BROWSE) &&
-        preferencesData.lastSelectedLibrary !== gameLibrary) {
-      updatePreferencesData({ lastSelectedLibrary: gameLibrary });
-    }
-
-    // Create a new game
-    if (this.props.main.wasNewGameClicked) {
-      const route = preferencesData.lastSelectedLibrary || preferencesData.defaultLibrary || '';
-
-      if (location.pathname.startsWith(Paths.BROWSE)) {
-        this.props.dispatchMain({ type: MainActionType.CLICK_NEW_GAME_END });
-        // Deselect the current game
-        const view = this.props.main.views[route];
-        if (view && view.selectedGameId !== undefined) {
-          this.props.dispatchMain({
-            type: MainActionType.SET_SELECTED_GAME,
-            library: route,
-            gameId: undefined,
-          });
+        } else {
+          history.push(joinLibraryRoute(route));
         }
-      } else {
-        history.push(joinLibraryRoute(route));
       }
     }
   }
@@ -1057,7 +1089,6 @@ export class App extends React.Component<AppProps> {
   });
 
   render() {
-    const loaded = isInitDone(this.props.main);
     const libraryPath = getBrowseSubPath(this.props.location.pathname);
     const view = this.props.main.views[libraryPath];
     const playlists = this.filterAndOrderPlaylistsMemo(this.props.main.playlists, libraryPath);
@@ -1113,7 +1144,7 @@ export class App extends React.Component<AppProps> {
       extConfig: this.props.main.extConfig,
       logoVersion: this.props.main.logoVersion,
       services: this.props.main.services,
-      updateFeedMarkdown: window.Shared.initialUpdateFeedMarkdown,
+      updateFeedMarkdown: this.props.main.updateFeedMarkdown,
     };
 
     // Render
@@ -1123,11 +1154,8 @@ export class App extends React.Component<AppProps> {
           <>
             {/* Splash screen */}
             <SplashScreen
-              gamesLoaded={this.props.main.gamesDoneLoading}
-              upgradesLoaded={this.props.main.upgradesDoneLoading}
-              creditsLoaded={this.props.main.creditsDoneLoading}
-              curationsLoaded={this.props.main.loaded[BackInit.CURATE]}
-              miscLoaded={this.props.main.loaded[BackInit.EXEC]} />
+              loadedAll={this.props.main.loadedAll.isOpen}
+              loaded={this.props.main.loaded} />
             {/* Title-bar (if enabled) */}
             { window.Shared.config.data.useCustomTitlebar ?
               window.Shared.customVersion ? (
@@ -1136,7 +1164,7 @@ export class App extends React.Component<AppProps> {
                 <TitleBar title={`${APP_TITLE} (${remote.app.getVersion()})`} />
               ) : undefined }
             {/* "Content" */}
-            { loaded ? (
+            { this.props.main.loadedAll.isOpen ? (
               <>
                 {/* Header */}
                 <HeaderContainer
@@ -1612,15 +1640,6 @@ function onUpdateDownloaded() {
   .then(() => {
     setImmediate(() => autoUpdater.quitAndInstall());
   });
-}
-
-function isInitDone(state: MainState): boolean {
-  return (
-    state.gamesDoneLoading &&
-    state.upgradesDoneLoading &&
-    state.creditsDoneLoading &&
-    state.loaded[BackInit.EXEC]
-  );
 }
 
 function openContextMenu(template: MenuItemConstructorOptions[]): Menu {

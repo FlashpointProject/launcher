@@ -69,11 +69,13 @@ export const curationSyncMiddleware: Middleware<{}, ApplicationState> = (store) 
       break;
     }
     case CurateActionType.CREATE_CURATION: {
+      next(action);
       // Set new curation as current
       store.dispatch({
         type: CurateActionType.SET_CURRENT_CURATION,
         folder: action.folder
       });
+      break;
     }
     // eslint-disable-next-line no-fallthrough
     case CurateActionType.EDIT_ADDAPP:

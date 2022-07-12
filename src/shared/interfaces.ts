@@ -1,10 +1,6 @@
-import { Playlist } from '@database/entity/Playlist';
-import { TagCategory } from '@database/entity/TagCategory';
 import { SocketClient } from '@shared/back/SocketClient';
-import { CurationState } from '@shared/curate/types';
-import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/extensions/interfaces';
 import { OpenDialogOptions } from 'electron';
-import { AppConfigData, AppExtConfigData } from './config/interfaces';
+import { AppConfigData } from './config/interfaces';
 import { LangContainer, LangFile } from './lang';
 import { ILogEntry } from './Log/interface';
 import { AppPreferencesData } from './preferences/interfaces';
@@ -74,9 +70,6 @@ export interface IMainWindowExternal {
     offset: number;
   }
 
-  /** Current status of the services. */
-  initialServices: IService[];
-
   /** If the launcher is running in development mode (using something like "npm run start"). */
   isDev: boolean;
 
@@ -99,23 +92,7 @@ export interface IMainWindowExternal {
   initialLang: LangContainer;
   initialLangList: LangFile[];
   initialThemes: ITheme[];
-  initialPlaylists?: Playlist[];
-  initialLibraries: string[];
-  initialServerNames: string[];
-  initialMad4fpEnabled: boolean;
-  initialPlatforms: Record<string, string[]>;
   initialLocaleCode: string;
-  initialTagCategories: TagCategory[];
-  initialExtensions: IExtensionDescription[];
-  initialDevScripts: ExtensionContribution<'devScripts'>[];
-  initialContextButtons: ExtensionContribution<'contextButtons'>[];
-  initialCurationTemplates: ExtensionContribution<'curationTemplates'>[];
-  initialLogoSets: LogoSet[];
-  initialExtConfigs: ExtensionContribution<'configuration'>[];
-  initialExtConfig: AppExtConfigData;
-  initialCurations: CurationState[];
-  initialSuggestions: GamePropSuggestions;
-  initialUpdateFeedMarkdown: string;
 
   /**
    * Wait for the preload to initialize.

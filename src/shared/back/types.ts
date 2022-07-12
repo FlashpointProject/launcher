@@ -104,6 +104,10 @@ export enum BackIn {
   BROWSE_VIEW_KEYSET,
   /** Get all data needed on init (by the renderer). */
   GET_RENDERER_INIT_DATA,
+  /** Get all misc data needed when finished loading database (by the renderer) */
+  GET_RENDERER_LOADED_DATA,
+  /** Get all extension data needed by the renderer */
+  GET_RENDERER_EXTENSION_INFO,
   /** Get all data needed on init (by the main process). */
   GET_MAIN_INIT_DATA,
   /** Get all data needed on init (by the independent logger window) */
@@ -280,6 +284,8 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.BROWSE_VIEW_KEYSET]: (library: string, query: SearchGamesOpts) => BrowseViewKeysetResponse;
   [BackIn.GET_LOGGER_INIT_DATA]: () => GetLoggerInitDataResponse;
   [BackIn.GET_RENDERER_INIT_DATA]: () => GetRendererInitDataResponse;
+  [BackIn.GET_RENDERER_LOADED_DATA]: () => GetRendererLoadedDataResponse;
+  [BackIn.GET_RENDERER_EXTENSION_INFO]: () => GetRendererExtDataResponse;
   [BackIn.GET_MAIN_INIT_DATA]: () => GetMainInitDataResponse;
   [BackIn.UPDATE_CONFIG]: (data: Partial<AppConfigData>) => void;
   [BackIn.UPDATE_PREFERENCES]: (data: AppPreferencesData, refresh: boolean) => void;
@@ -388,9 +394,11 @@ export type BackInitArgs = {
 }
 
 export enum BackInit {
-  GAMES,
+  SERVICES,
+  DATABASE,
   PLAYLISTS,
-  EXEC,
+  EXTENSIONS,
+  EXEC_MAPPINGS,
   CURATE,
 }
 
@@ -409,33 +417,54 @@ export type GetLoggerInitDataResponse = {
   log: ILogEntry[];
 }
 
-export type GetRendererInitDataResponse = {
-  config: AppConfigData;
-  preferences: AppPreferencesData;
-  fileServerPort: number;
-  log: ILogEntry[];
+export type GetRendererExtDataResponse = {
+  extensions: IExtensionDescription[];
+  devScripts: ExtensionContribution<'devScripts'>[];
+  contextButtons: ExtensionContribution<'contextButtons'>[];
+  curationTemplates: ExtensionContribution<'curationTemplates'>[];
+  extConfigs: ExtensionContribution<'configuration'>[];
+  extConfig: AppExtConfigData;
+}
+
+export type GetRendererLoadedDataResponse = {
   services: IService[];
-  customVersion?: string;
-  languages: LangFile[];
-  language: LangContainer;
-  themes: Theme[];
   libraries: string[];
   suggestions: GamePropSuggestions;
   serverNames: string[];
   mad4fpEnabled: boolean;
   platforms: Record<string, string[]>;
-  playlists: Playlist[];
-  localeCode: string;
   tagCategories: TagCategory[];
-  extensions: IExtensionDescription[];
-  devScripts: ExtensionContribution<'devScripts'>[];
-  contextButtons: ExtensionContribution<'contextButtons'>[];
-  curationTemplates: ExtensionContribution<'curationTemplates'>[];
   logoSets: LogoSet[];
-  extConfigs: ExtensionContribution<'configuration'>[];
-  extConfig: AppExtConfigData;
   updateFeedMarkdown: string;
-  curations: CurationState[];
+}
+
+export type GetRendererInitDataResponse = {
+  config: AppConfigData;
+  preferences: AppPreferencesData;
+  fileServerPort: number;
+  log: ILogEntry[];
+  // services: IService[];
+  customVersion?: string;
+  languages: LangFile[];
+  language: LangContainer;
+  themes: Theme[];
+  // libraries: string[];
+  // suggestions: GamePropSuggestions;
+  // serverNames: string[];
+  // mad4fpEnabled: boolean;
+  // platforms: Record<string, string[]>;
+  // playlists: Playlist[];
+  localeCode: string;
+  // tagCategories: TagCategory[];
+  // extensions: IExtensionDescription[];
+  // devScripts: ExtensionContribution<'devScripts'>[];
+  // contextButtons: ExtensionContribution<'contextButtons'>[];
+  // curationTemplates: ExtensionContribution<'curationTemplates'>[];
+  // logoSets: LogoSet[];
+  // extConfigs: ExtensionContribution<'configuration'>[];
+  // extConfig: AppExtConfigData;
+  // updateFeedMarkdown: string;
+  // curations: CurationState[];
 }
 
 export type GetSuggestionsResponseData = {

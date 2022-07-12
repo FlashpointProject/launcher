@@ -29,7 +29,8 @@ import { LogFile } from './util/LogFile';
 /** Contains most state for the back process. */
 export type BackState = {
   // @TODO Write comments for these properties
-  isInit: boolean;
+  readyForInit: boolean;
+  runInit: boolean;
   isExit: boolean;
   isDev: boolean;
   verbose: boolean;
@@ -47,9 +48,11 @@ export type BackState = {
   exePath: string;
   localeCode: string;
   version: string;
+  versionStr: string;
   suggestions: GamePropSuggestions;
   logFile: LogFile;
   customVersion?: string,
+  acceptRemote: boolean;
   gameManager: GameManagerState;
   messageQueue: WebSocket.MessageEvent[];
   isHandling: boolean;

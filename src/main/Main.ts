@@ -152,7 +152,7 @@ export function main(init: Init): void {
       }
     }
 
-    // Start back process
+    // Start backend
     if (opts.backend) {
       await new Promise<void>((resolve, reject) => {
         // Fork backend, init.rest will contain possible flashpoint:// message
@@ -164,6 +164,9 @@ export function main(init: Init): void {
           }
           if (message.port) {
             state.backHost.port = message.port as string;
+            console.log('setting config and prefs in state');
+            state.config = message.config as AppConfigData;
+            state.preferences = message.prefs as AppPreferencesData;
             resolve();
           } else if (message.quit) {
             if (message.errorMessage) {
@@ -185,7 +188,7 @@ export function main(init: Init): void {
             reject(new Error('Failed to start server in back process. Perhaps because it could not find an available port.'));
           }
         };
-        // Wait for process to initialize
+        // Wait for process to prep, handle any queries, store config and prefs after finishing
         state.backProc.on('message', initHandler);
         // On windows you have to wait for app to be ready before you call app.getLocale() (so it will be sent later)
         let localeCode = 'en';
@@ -195,7 +198,7 @@ export function main(init: Init): void {
           localeCode = app.getLocale().toLowerCase();
           state._sentLocaleCode = true;
         }
-        // Send initialize message
+        // Send prep message
         const msg: BackInitArgs = {
           configFolder: state.mainFolderPath,
           secret: state._secret,
@@ -210,35 +213,25 @@ export function main(init: Init): void {
         state.backProc.send(JSON.stringify(msg));
       });
     }
-    // Connect to back and start renderer
-    if (opts.frontend) {
-      // Connect to back process
-      const ws = await timeout<WebSocket>(new Promise((resolve, reject) => {
-        const sock = new WebSocket(state.backHost.href);
-        sock.onclose = () => { reject(new Error('Failed to authenticate connection to back.')); };
-        sock.onerror = (event) => { reject(event.error); };
-        sock.onopen  = () => {
-          sock.onmessage = () => {
-            sock.onclose = noop;
-            sock.onerror = noop;
-            resolve(sock);
-          };
-          sock.send(state._secret);
-        };
-      }), TIMEOUT_DELAY);
-      // Send init message
-      await timeout(new Promise<void>((resolve, reject) => {
-        state.socket.setSocket(ws);
 
-        state.socket.request(BackIn.GET_MAIN_INIT_DATA)
-        .then((data) => {
-          state.preferences = data.preferences;
-          state.config = data.config;
-          state.socket.setSocket(ws);
-          resolve();
-        });
-      }), TIMEOUT_DELAY);
-      // Create main window
+    // Open websocket to backend, for communication between front and back
+    const ws = await timeout<WebSocket>(new Promise((resolve, reject) => {
+      const sock = new WebSocket(state.backHost.href);
+      sock.onclose = () => { reject(new Error('Failed to authenticate connection to back.')); };
+      sock.onerror = (event) => { reject(event.error); };
+      sock.onopen  = () => {
+        sock.onmessage = () => {
+          sock.onclose = noop;
+          sock.onerror = noop;
+          resolve(sock);
+        };
+        sock.send(state._secret);
+      };
+    }), TIMEOUT_DELAY);
+    state.socket.setSocket(ws);
+
+    // Start frontend
+    if (opts.frontend) {
       await app.whenReady();
       // Install React Devtools Extension
       if (Util.isDev) {
@@ -249,9 +242,13 @@ export function main(init: Init): void {
         .then((name: string) => console.log(`Added Extension:  ${name}`))
         .catch((err: any) => console.log('An error occurred: ', err));
       }
+      // Create main window
       if (!state.window) {
         state.window = createMainWindow();
       }
+    } else {
+      // Frontend not running, give Backend init message from Main
+      state.socket.send(BackIn.INIT_LISTEN);
     }
   }
 

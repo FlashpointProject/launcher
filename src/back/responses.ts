@@ -5,7 +5,7 @@ import { Playlist } from '@database/entity/Playlist';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
-import { BackIn, BackInit, BackOut, CurationImageEnum, DownloadDetails } from '@shared/back/types';
+import { BackIn, BackInit, BackOut, CurationImageEnum, DownloadDetails, GetRendererLoadedDataResponse } from '@shared/back/types';
 import { overwriteConfigData } from '@shared/config/util';
 import { CURATIONS_FOLDER_EXPORTED, CURATIONS_FOLDER_TEMP, CURATIONS_FOLDER_WORKING, LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
@@ -54,9 +54,7 @@ import {
   createPlaylistFromJson,
   dateToFilenameString,
   deleteCuration,
-  exit, getCwd, pathExists,
-  procToService,
-  removeService,
+  exit, getCwd, pathExists, procToService, removeService,
   runService
 } from './util/misc';
 import { pathTo7zBack } from './util/SevenZip';
@@ -68,7 +66,7 @@ const axios = axiosImport.default;
  * Register all request callbacks to the socket server.
  * @param state State of the back.
  */
-export function registerRequestCallbacks(state: BackState): void {
+export function registerRequestCallbacks(state: BackState, init: () => Promise<void>): void {
   state.socketServer.register(BackIn.ADD_LOG, (event, data) => {
     switch (data.logLevel) {
       case LogLevel.TRACE:
@@ -104,25 +102,28 @@ export function registerRequestCallbacks(state: BackState): void {
     };
   });
 
-  state.socketServer.register(BackIn.GET_RENDERER_INIT_DATA, async (event) => {
-    state.languageContainer = createContainer(
-      state.languages,
-      state.preferences.currentLanguage,
-      state.localeCode,
-      state.preferences.fallbackLanguage
-    );
+  state.socketServer.register(BackIn.GET_RENDERER_EXTENSION_INFO, async (event) => {
+    return {
+      devScripts: await state.extensionsService.getContributions('devScripts'),
+      contextButtons: await state.extensionsService.getContributions('contextButtons'),
+      curationTemplates: await state.extensionsService.getContributions('curationTemplates'),
+      extConfigs: await state.extensionsService.getContributions('configuration'),
+      extConfig: state.extConfig,
+      extensions: (await state.extensionsService.getExtensions()).map(e => {
+        return {
+          id: e.id,
+          ...e.manifest
+        };
+      }),
+    };
+  });
 
-    const playlists = await GameManager.findPlaylists(state.preferences.browsePageShowExtreme);
+  state.socketServer.register(BackIn.GET_RENDERER_LOADED_DATA, async (event) => {
     const libraries = await GameManager.findUniqueValues(Game, 'library');
-    const serverNames = state.serviceInfo ? state.serviceInfo.server.map(i => i.name || '') : [];
-    const mad4fpEnabled = state.serviceInfo ? (state.serviceInfo.server.findIndex(s => s.mad4fp === true) !== -1) : false;
     const platforms: Record<string, string[]> = {};
     for (const library of libraries) {
       platforms[library] = (await GameManager.findPlatforms(library)).sort();
     }
-
-    // Fire after return has sent
-    setTimeout(() => state.apiEmitters.onDidConnect.fire(), 100);
 
     // Fetch update feed
     let updateFeedMarkdown = '';
@@ -139,38 +140,87 @@ export function registerRequestCallbacks(state: BackState): void {
       log.debug('Launcher', 'No Update Feed URL specified');
     }
 
+    const res: GetRendererLoadedDataResponse = {
+      libraries: libraries,
+      platforms: platforms,
+      services: Array.from(state.services.values()).map(s => procToService(s)),
+      serverNames: state.serviceInfo ? state.serviceInfo.server.map(i => i.name || '') : [],
+      tagCategories: await TagManager.findTagCategories(),
+      suggestions: state.suggestions,
+      logoSets: Array.from(state.registry.logoSets.values()),
+      updateFeedMarkdown,
+      mad4fpEnabled: state.serviceInfo ? (state.serviceInfo.server.findIndex(s => s.mad4fp === true) !== -1) : false
+    };
+    return res;
+  });
+
+  state.socketServer.register(BackIn.GET_RENDERER_INIT_DATA, async (event) => {
+    state.languageContainer = createContainer(
+      state.languages,
+      state.preferences.currentLanguage,
+      state.localeCode,
+      state.preferences.fallbackLanguage
+    );
+
+    // const playlists = await GameManager.findPlaylists(state.preferences.browsePageShowExtreme);
+    // const libraries = await GameManager.findUniqueValues(Game, 'library');
+    // const serverNames = state.serviceInfo ? state.serviceInfo.server.map(i => i.name || '') : [];
+    // const mad4fpEnabled = state.serviceInfo ? (state.serviceInfo.server.findIndex(s => s.mad4fp === true) !== -1) : false;
+    // const platforms: Record<string, string[]> = {};
+    // for (const library of libraries) {
+    //   platforms[library] = (await GameManager.findPlatforms(library)).sort();
+    // }
+
+    // Fire after return has sent
+    // setTimeout(() => state.apiEmitters.onDidConnect.fire(), 100);
+
+    // Fetch update feed
+    // let updateFeedMarkdown = '';
+    // if (state.preferences.updateFeedUrl) {
+    //   updateFeedMarkdown = await axios.get(state.preferences.updateFeedUrl, { timeout: 3000 })
+    //   .then((res) => {
+    //     return res.data;
+    //   })
+    //   .catch((err) => {
+    //     log.debug('Launcher', 'Failed to fetch update feed, ERROR: ' + err);
+    //     return '';
+    //   });
+    // } else {
+    //   log.debug('Launcher', 'No Update Feed URL specified');
+    // }
+
     return {
       preferences: state.preferences,
       config: state.config,
       fileServerPort: state.fileServerPort,
       log: state.log,
-      services: Array.from(state.services.values()).map(s => procToService(s)),
+      // services: Array.from(state.services.values()).map(s => procToService(s)),
       customVersion: state.customVersion,
       languages: state.languages,
       language: state.languageContainer,
       themes: Array.from(state.registry.themes.values()),
-      playlists: playlists,
-      libraries: libraries,
-      suggestions: state.suggestions,
-      serverNames: serverNames,
-      mad4fpEnabled: mad4fpEnabled,
-      platforms: platforms,
+      // playlists: playlists,
+      // libraries: libraries,
+      // suggestions: state.suggestions,
+      // serverNames: serverNames,
+      // mad4fpEnabled: mad4fpEnabled,
+      // platforms: platforms,
       localeCode: state.localeCode,
-      tagCategories: await TagManager.findTagCategories(),
-      extensions: (await state.extensionsService.getExtensions()).map(e => {
-        return {
-          id: e.id,
-          ...e.manifest
-        };
-      }),
-      devScripts: await state.extensionsService.getContributions('devScripts'),
-      contextButtons: await state.extensionsService.getContributions('contextButtons'),
-      curationTemplates: await state.extensionsService.getContributions('curationTemplates'),
-      logoSets: Array.from(state.registry.logoSets.values()),
-      extConfigs: await state.extensionsService.getContributions('configuration'),
-      extConfig: state.extConfig,
-      updateFeedMarkdown: updateFeedMarkdown,
-      curations: state.loadedCurations,
+      // tagCategories: await TagManager.findTagCategories(),
+      // extensions: (await state.extensionsService.getExtensions()).map(e => {
+      //   return {
+      //     id: e.id,
+      //     ...e.manifest
+      //   };
+      // }),
+      // devScripts: await state.extensionsService.getContributions('devScripts'),
+      // contextButtons: await state.extensionsService.getContributions('contextButtons'),
+      // curationTemplates: await state.extensionsService.getContributions('curationTemplates'),
+      // logoSets: Array.from(state.registry.logoSets.values()),
+      // extConfigs: await state.extensionsService.getContributions('configuration'),
+      // extConfig: state.extConfig,
+      // updateFeedMarkdown: updateFeedMarkdown,
+      // curations: state.loadedCurations,
     };
 
   });
@@ -186,6 +236,11 @@ export function registerRequestCallbacks(state: BackState): void {
           state.socketServer.send(event.client, BackOut.INIT_EVENT, { done: [ init ] });
         });
       }
+    }
+
+    if (!state.runInit) {
+      state.runInit = true;
+      init();
     }
 
     return { done };
@@ -860,6 +915,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.UPDATE_PREFERENCES, async (event, data, refresh) => {
+    console.log('Updating prefs');
     const dif = difObjects(defaultPreferencesData, state.preferences, data);
     if (dif) {
       if ((typeof dif.currentLanguage  !== 'undefined' && dif.currentLanguage  !== state.preferences.currentLanguage) ||
@@ -874,7 +930,10 @@ export function registerRequestCallbacks(state: BackState): void {
       }
 
       overwritePreferenceData(state.preferences, dif);
-      state.prefsQueue.push(() => PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences));
+      state.prefsQueue.push(() => {
+        console.log('saving prefs');
+        PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences);
+      });
     }
     if (refresh) {
       state.socketServer.send(event.client, BackOut.UPDATE_PREFERENCES_RESPONSE, state.preferences);
