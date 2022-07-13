@@ -1406,7 +1406,10 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     for (const curation of curations) {
       const idx = state.loadedCurations.findIndex(c => c.folder === curation.folder);
       if (idx > -1) {
-        state.loadedCurations[idx] = curation;
+        state.loadedCurations[idx] = {
+          ...curation,
+          contents: curation.contents.noSync ? state.loadedCurations[idx].contents : curation.contents,
+        };
         // Save curation
         saveCuration(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, curation.folder), curation)
         .then(() => state.apiEmitters.curations.onDidCurationChange.fire(state.loadedCurations[idx]));

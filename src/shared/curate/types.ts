@@ -12,15 +12,22 @@ export type LoadedCuration = {
 }
 
 export type ContentTree = {
+  // Root node - 'content' folder
   root: ContentTreeNode;
+  /** If set, backend will ignore content tree when syncing the given CurationState */
+  noSync?: boolean;
 }
 
 export type ContentTreeNode = {
   name: string;
+  /** Frontend - Whether this is expanded in the content tree view */
   expanded: boolean;
+  /** File size (if type is file) */
   size?: number;
   type: 'file' | 'directory';
+  /** Immediate items below this node */
   children: ContentTreeNode[];
+  /** Number of items below this node */
   count: number;
 }
 
