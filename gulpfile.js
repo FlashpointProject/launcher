@@ -111,6 +111,10 @@ gulp.task('watch-static', () => {
 
 /* ------ Build ------ */
 
+gulp.task('build-rust', (done) => {
+  execute('npx cargo-cp-artifact -a cdylib fp-rust ./build/back/fp-rust.node -- cargo build --message-format=json-render-diagnostics', done);
+});
+
 gulp.task('build-back', (done) => {
   execute('npx ttsc --project tsconfig.backend.json --pretty', done);
 });
@@ -172,9 +176,9 @@ gulp.task('pack', (done) => {
 
 /* ------ Meta Tasks ------*/
 
-gulp.task('watch', gulp.parallel('watch-back', 'watch-renderer', 'watch-static', 'copy-static'));
+gulp.task('watch', gulp.parallel('build-rust', 'watch-back', 'watch-renderer', 'watch-static', 'copy-static'));
 
-gulp.task('build', gulp.parallel('build-back', 'build-renderer', 'copy-static', 'config-version'));
+gulp.task('build', gulp.parallel('build-rust', 'build-back', 'build-renderer', 'copy-static', 'config-version'));
 
 /* ------ Misc ------*/
 

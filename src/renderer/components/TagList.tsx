@@ -2,7 +2,7 @@ import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
 import { GameOrderReverse } from '@shared/order/interfaces';
 import * as React from 'react';
-import { ArrowKeyStepper, AutoSizer, List, ListRowProps } from 'react-virtualized';
+import { ArrowKeyStepper, AutoSizer, List, ListRowProps } from 'react-virtualized-reactv17';
 import { findElementAncestor } from '../Util';
 import { TagItemContainer } from './TagItemContainer';
 import { TagListHeader } from './TagListHeader';

@@ -29,6 +29,7 @@ Extension API Documentation: https://flashpointproject.github.io/launcher_ApiDoc
 #### Dependencies
 * [Git](https://git-scm.com/downloads) (for downloading and updating the source code and sub-modules)
 * [Node & NPM](https://nodejs.org/en/download/) (for building and running the source code)
+* [Rust](https://www.rust-lang.org/tools/install) (for building native Node modules from Rust code)
 
 #### Linux Dependencies
 * `libgtk-3-0`

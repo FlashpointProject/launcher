@@ -8,6 +8,7 @@ import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { Tag } from '@database/entity/Tag';
 import { BackOut } from '@shared/back/types';
+import { ContentTree } from '@shared/curate/types';
 import { getCurationFolder } from '@shared/curate/util';
 import { BrowserApplicationOpts } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, INamedBackProcessInfo, IService, ProcessState } from '@shared/interfaces';
@@ -20,6 +21,8 @@ import * as os from 'os';
 import * as path from 'path';
 import { promisify } from 'util';
 import { uuid } from './uuid';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const rust = require('../fp-rust.node');
 
 const unlink = promisify(fs.unlink);
 
@@ -357,4 +360,24 @@ export function getCwd(isDev: boolean, exePath: string) {
 
 export async function getTempFilename(ext = 'tmp') {
   return path.join(await fs.promises.realpath(os.tmpdir()), uuid() + '.' + ext);
+}
+
+export async function genContentTree(folder: string): Promise<ContentTree> {
+  try {
+    const tree = JSON.parse(await rust.genContentTree(folder));
+    return {
+      root: tree,
+    };
+  } catch (error) {
+    log.error('Curate', `Error generating content tree: ${error}`);
+    return {
+      root: {
+        name: '',
+        expanded: true,
+        type: 'directory',
+        children: [],
+        count: 0
+      }
+    };
+  }
 }

@@ -18,14 +18,16 @@ import { LogLevel } from '@shared/Log/interface';
 import { MetaEditFile, MetaEditMeta } from '@shared/MetaEdit';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { defaultPreferencesData, overwritePreferenceData } from '@shared/preferences/util';
-import { deepCopy, genContentTree, genCurationWarnings } from '@shared/Util';
+import { deepCopy, genCurationWarnings } from '@shared/Util';
 import { sanitizeFilename } from '@shared/utils/sanitizeFilename';
 import { formatString } from '@shared/utils/StringFormatter';
+import { TaskProgress } from '@shared/utils/TaskProgress';
+import { throttle } from '@shared/utils/throttle';
 import * as axiosImport from 'axios';
 import * as child_process from 'child_process';
 import * as fs from 'fs-extra';
 import * as fs_extra from 'fs-extra';
-import { add } from 'node-7z';
+import { add, Progress } from 'node-7z';
 import * as path from 'path';
 import * as url from 'url';
 import * as util from 'util';
@@ -54,7 +56,7 @@ import {
   createPlaylistFromJson,
   dateToFilenameString,
   deleteCuration,
-  exit, getCwd, pathExists, procToService, removeService,
+  exit, genContentTree, getCwd, pathExists, procToService, removeService,
   runService
 } from './util/misc';
 import { pathTo7zBack } from './util/SevenZip';
@@ -1365,26 +1367,35 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
   state.socketServer.register(BackIn.CURATE_LOAD_ARCHIVES, async (event, filePaths, taskId) => {
     let processed = 0;
-    for (const filePath of filePaths) {
-      if (taskId) {
+    const taskProgress = new TaskProgress(filePaths.length);
+    if (taskId) {
+      taskProgress.on('progress', (text, done) => {
         state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
-          status: `Loading ${filePath}`,
-          progress: processed / filePaths.length,
+          status: text,
+          progress: done,
         });
-      }
+      });
+      taskProgress.on('done', (text) => {
+        state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
+          status: text,
+          progress: 1,
+          finished: true
+        });
+      });
+    }
+    for (const filePath of filePaths) {
       processed = processed + 1;
-      await loadCurationArchive(filePath)
+      taskProgress.setStage(processed, `Loading ${filePath}`);
+      await loadCurationArchive(filePath, throttle((progress: Progress) => {
+        taskProgress.setStageProgress((progress.percent / 100), `Extracting Files - ${progress.fileCount}`);
+      }, 200))
       .catch((error) => {
         log.error('Curate', `Failed to load curation archive! ${error.toString()}`);
         state.socketServer.broadcast(BackOut.OPEN_ALERT, formatString(state.languageContainer['dialog'].failedToLoadCuration, error.toString()));
       });
+      taskProgress.setStageProgress(1, 'Extracted');
     }
-    if (taskId) {
-      state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
-        status: '',
-        finished: true
-      });
-    }
+    taskProgress.done('Loaded Curation Archives');
   });
 
   state.socketServer.register(BackIn.CURATE_GET_LIST, async (event) => {

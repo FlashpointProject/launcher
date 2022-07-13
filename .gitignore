@@ -38,3 +38,6 @@ Data/flashpoint.sqlite
 
 # Mac
 .DS_Store
+
+# Rust
+target

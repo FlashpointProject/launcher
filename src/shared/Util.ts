@@ -1,4 +1,4 @@
-import { ContentTree, ContentTreeNode, CurationWarnings, LoadedCuration } from '@shared/curate/types';
+import { CurationWarnings, LoadedCuration } from '@shared/curate/types';
 import { getContentFolderByKey } from '@shared/curate/util';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
@@ -481,68 +481,6 @@ export function genCurationWarnings(curation: LoadedCuration, fpPath: string, su
   const curLibrary = curation.game.library;
   warns.nonExistingLibrary = suggestions.library.findIndex(l => l === curLibrary) === -1;
   return warns;
-}
-
-export async function genContentTree(folder: string): Promise<ContentTree> {
-  return fs.promises.lstat(folder)
-  .then(async (stats) => {
-    if (stats.isDirectory()) {
-      const children = await loadBranch(folder, '');
-      // Get root node
-      const root: ContentTreeNode = {
-        name: '',
-        expanded: true,
-        type: 'directory',
-        children,
-        count: children.reduce<number>((prev, cur) => prev + cur.count, 0) + children.length
-      };
-      return {
-        root
-      };
-    } else {
-      throw 'Not a directory';
-    }
-  })
-  .catch(() => {
-    // Folder doesn't exist
-    return {
-      root: {
-        name: '',
-        expanded: true,
-        type: 'directory',
-        children: [],
-        count: 0
-      }
-    };
-  });
-}
-
-async function loadBranch(root: string, relativePath: string): Promise<ContentTreeNode[]> {
-  const nodes: ContentTreeNode[] = [];
-  const files = await fs.promises.readdir(path.join(root, relativePath), { withFileTypes: true });
-  for (const f of files) {
-    const childRelPath = path.join(relativePath, f.name);
-    if (f.isDirectory()) {
-      const children = await loadBranch(root, childRelPath);
-      nodes.push({
-        name: f.name,
-        expanded: true,
-        type: 'directory',
-        children,
-        count: children.reduce<number>((prev, cur) => prev + cur.count, 0) + children.length
-      });
-    } else {
-      nodes.push({
-        name: f.name,
-        expanded: true,
-        type: 'file',
-        size: (await fs.promises.lstat(path.join(root, childRelPath))).size,
-        children: [],
-        count: 0
-      });
-    }
-  }
-  return nodes;
 }
 
 /**

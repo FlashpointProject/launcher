@@ -13,6 +13,7 @@ import { clearDisposable, dispose, newDisposable, registerDisposable } from '@ba
 import {
   createPlaylistFromJson,
   deleteCuration,
+  genContentTree,
   getOpenMessageBoxFunc,
   getOpenOpenDialogFunc,
   getOpenSaveDialogFunc,
@@ -31,7 +32,7 @@ import { ProcessState, Task } from '@shared/interfaces';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { overwritePreferenceData } from '@shared/preferences/util';
-import { genContentTree, genCurationWarnings } from '@shared/Util';
+import { genCurationWarnings } from '@shared/Util';
 import * as flashpoint from 'flashpoint-launcher';
 import * as fs from 'fs';
 import { extractFull } from 'node-7z';

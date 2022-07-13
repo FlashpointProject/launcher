@@ -28,7 +28,7 @@ import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { defaultPreferencesData } from '@shared/preferences/util';
 import { Theme } from '@shared/ThemeFile';
 import {
-  createErrorProxy, deepCopy, genContentTree,
+  createErrorProxy, deepCopy,
   genCurationWarnings,
   removeFileExtension,
   stringifyArray
@@ -41,7 +41,7 @@ import { http as httpFollow, https as httpsFollow } from 'follow-redirects';
 import * as fs from 'fs-extra';
 import * as http from 'http';
 import * as mime from 'mime';
-import { extractFull } from 'node-7z';
+import { extractFull, Progress } from 'node-7z';
 import * as path from 'path';
 import 'reflect-metadata';
 // Required for the DB Models to function
@@ -82,7 +82,7 @@ import { FileServer, serveFile } from './util/FileServer';
 import { FolderWatcher } from './util/FolderWatcher';
 import { LogFile } from './util/LogFile';
 import { logFactory } from './util/logging';
-import { createContainer, exit, runService } from './util/misc';
+import { createContainer, exit, genContentTree, runService } from './util/misc';
 import { uuid } from './util/uuid';
 // Required for the DB Models to function
 
@@ -1246,15 +1246,18 @@ function removeFileServerDownloadItem(item: ImageDownloadItem): void {
   updateFileServerDownloadQueue();
 }
 
-export async function loadCurationArchive(filePath: string): Promise<CurationState> {
+export async function loadCurationArchive(filePath: string, onProgress?: (progress: Progress) => void): Promise<CurationState> {
   const key = uuid();
   const extractPath = path.resolve(state.config.flashpointPath, CURATIONS_FOLDER_EXTRACTING, key);
   // Extract to temp folder
   await fs.ensureDir(extractPath);
   await new Promise<void>((resolve, reject) => {
-    extractFull(filePath, extractPath, { $bin: state.sevenZipPath, $progress: true })
+    const e = extractFull(filePath, extractPath, { $bin: state.sevenZipPath, $progress: true })
     .once('end', () => resolve())
     .once('error', err => reject(err));
+    if (onProgress) {
+      e.on('progress', onProgress);
+    }
   });
 
   // Find the "root" path of the curation

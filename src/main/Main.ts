@@ -164,7 +164,6 @@ export function main(init: Init): void {
           }
           if (message.port) {
             state.backHost.port = message.port as string;
-            console.log('setting config and prefs in state');
             state.config = message.config as AppConfigData;
             state.preferences = message.prefs as AppPreferencesData;
             resolve();
@@ -233,15 +232,6 @@ export function main(init: Init): void {
     // Start frontend
     if (opts.frontend) {
       await app.whenReady();
-      // Install React Devtools Extension
-      if (Util.isDev) {
-        // Requiring here is intentional, seems to fix crashes in release builds
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const { default: installExtension } = require('electron-devtools-installer');
-        installExtension(['REACT_DEVELOPER_TOOLS'])
-        .then((name: string) => console.log(`Added Extension:  ${name}`))
-        .catch((err: any) => console.log('An error occurred: ', err));
-      }
       // Create main window
       if (!state.window) {
         state.window = createMainWindow();
