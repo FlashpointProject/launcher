@@ -684,7 +684,7 @@ async function initialize() {
           thumbnail: await loadCurationIndexImage(path.join(rootPath, folderName, 'logo.png')),
           screenshot: await loadCurationIndexImage(path.join(rootPath, folderName, 'ss.png'))
         };
-        const alreadyImported = (await GameManager.findGame(loadedCuration.uuid)) !== undefined;
+        const alreadyImported = (await GameManager.findGame(loadedCuration.uuid)) !== null;
         const curation: CurationState = {
           ...loadedCuration,
           alreadyImported,
@@ -1288,7 +1288,7 @@ export async function loadCurationArchive(filePath: string, onProgress?: (progre
     thumbnail: await loadCurationIndexImage(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, key, 'logo.png')),
     screenshot: await loadCurationIndexImage(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, key, 'ss.png')),
   };
-  const alreadyImported = (await GameManager.findGame(loadedCuration.uuid)) !== undefined;
+  const alreadyImported = (await GameManager.findGame(loadedCuration.uuid)) !== null;
   const curation: CurationState = {
     ...loadedCuration,
     alreadyImported,
