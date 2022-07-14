@@ -1,6 +1,11 @@
+use std::fs;
+use std::path::Path;
+
 use once_cell::sync::OnceCell;
 use tokio::runtime::Runtime;
 use serde::{Serialize};
+use fs_extra::copy_items;
+use fs_extra::dir::CopyOptions;
 
 use neon::prelude::*;
 
@@ -97,11 +102,37 @@ fn load_branch(root: &std::path::Path) -> Result<Vec<ContentTreeNode>, Box<dyn s
     return Ok(nodes);
 }
 
+fn copy_folder(mut cx: FunctionContext) -> JsResult<JsBoolean> {
+    let root_handle = cx.argument::<JsString>(0)?;
+    let root = root_handle.value(&mut cx);
+    let dest_handle = cx.argument::<JsString>(1)?;
+    let dest = dest_handle.value(&mut cx);
+
+    let root_path = Path::new(root.as_str());
+    let dest_path = Path::new(dest.as_str());
+    fs::create_dir_all(dest_path).unwrap();
+
+    let options = CopyOptions::new(); //Initialize default values for CopyOptions
+
+    // copy dir1 and file1.txt to target/dir1 and target/file1.txt
+    let mut from_paths = Vec::new();
+    from_paths.push(root_path);
+    match copy_items(&from_paths, dest_path, &options) {
+        Ok(_) => {
+            Ok(cx.boolean(true))
+        },
+        Err(err) => {
+            cx.throw_error(err.to_string())
+        }
+    }
+}
+
 #[neon::main]
 fn main(mut cx: ModuleContext) -> NeonResult<()> {
     cx.export_function("hello", hello)?;
     cx.export_function("echo", echo)?;
     cx.export_function("genContentTree", gen_content_tree)?;
+    cx.export_function("copyFolder", copy_folder)?;
     Ok(())
 }
 

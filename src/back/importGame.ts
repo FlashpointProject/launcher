@@ -18,6 +18,7 @@ import * as GameManager from './game/GameManager';
 import * as TagManager from './game/TagManager';
 import { GameManagerState } from './game/types';
 import { GameLauncher, GameLaunchInfo, LaunchAddAppOpts, LaunchGameOpts } from './GameLauncher';
+import { copyFolder } from './rust';
 import { OpenExternalFunc, ShowMessageBoxFunc } from './types';
 import { getMklinkBatPath } from './util/elevate';
 import { uuid } from './util/uuid';
@@ -164,7 +165,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
                         (date.getUTCMonth() + 1).toString().padStart(2, '0') + '-' +
                         date.getUTCDate().toString().padStart(2, '0');
         const backupPath = path.join(fpPath, 'Curations', 'Imported', `${dateStr}__${curation.folder}`);
-        await fs.copy(getCurationFolder(curation, fpPath), backupPath);
+        await copyFolder(getCurationFolder(curation, fpPath), backupPath);
         // Why does this return before finishing copying? Replaced with line above for now.
         // await copyFolder(getCurationFolder(curation, fpPath), backupPath, true, opts.openDialog);
       }

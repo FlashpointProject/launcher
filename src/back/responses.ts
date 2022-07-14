@@ -46,6 +46,7 @@ import { importCuration, launchAddAppCuration, launchCuration } from './importGa
 import { loadCurationArchive } from './index';
 import { ManagedChildProcess } from './ManagedChildProcess';
 import { importAllMetaEdits } from './MetaEdit';
+import { copyFolder, genContentTree } from './rust';
 import { BackState, BareTag, TagsFile } from './types';
 import { pathToBluezip } from './util/Bluezip';
 import {
@@ -56,7 +57,7 @@ import {
   createPlaylistFromJson,
   dateToFilenameString,
   deleteCuration,
-  exit, genContentTree, getCwd, pathExists, procToService, removeService,
+  exit, getCwd, pathExists, procToService, removeService,
   runService
 } from './util/misc';
 import { pathTo7zBack } from './util/SevenZip';
@@ -1494,7 +1495,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         // Make a temp copy
         const tempFolder = uuid();
         const copyPath = path.resolve(fpPath, CURATIONS_FOLDER_TEMP, tempFolder);
-        await fs.copy(curationPath, copyPath, { recursive: true });
+        await copyFolder(curationPath, copyPath);
         const bluezipProc = child_process.spawn('bluezip', [copyPath, '-no', copyPath], {cwd: path.dirname(bluezipPath)});
         await new Promise<void>((resolve, reject) => {
           bluezipProc.stdout.on('data', (data: any) => {
