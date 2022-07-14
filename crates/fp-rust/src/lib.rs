@@ -53,7 +53,7 @@ async fn gen_content_tree_internal(root: &str) -> Result<ContentTreeNode, Box<dy
     let children_total: usize = children.iter().map(|n| n.count).sum();
     let count = children.len() + children_total;
     let node = ContentTreeNode {
-        name: String::from(root),
+        name: String::from("content"),
         expanded: true,
         node_type: String::from("directory"),
         size: 0,
@@ -74,7 +74,7 @@ fn load_branch(root: &std::path::Path) -> Result<Vec<ContentTreeNode>, Box<dyn s
             let children_total: usize = children.iter().map(|n| n.count).sum();
             let count = children.len() + children_total;
             let node = ContentTreeNode {
-                name: String::from(path.to_str().unwrap()),
+                name: String::from(path.file_name().unwrap().to_str().unwrap()),
                 expanded: true,
                 node_type: String::from("directory"),
                 children,
@@ -84,7 +84,7 @@ fn load_branch(root: &std::path::Path) -> Result<Vec<ContentTreeNode>, Box<dyn s
             nodes.push(node);
         } else {
             let node = ContentTreeNode {
-                name: String::from(path.to_str().unwrap()),
+                name: String::from(path.file_name().unwrap().to_str().unwrap()),
                 expanded: true,
                 node_type: String::from("file"),
                 children: Vec::new(),
@@ -110,6 +110,7 @@ struct ContentTreeNode {
     name: String,
     expanded: bool,
     size: u64,
+    #[serde(rename = "type")] 
     node_type: String,
     children: Vec<ContentTreeNode>,
     count: usize

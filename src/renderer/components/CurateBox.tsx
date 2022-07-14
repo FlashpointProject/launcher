@@ -214,16 +214,16 @@ export function CurateBox(props: CurateBoxProps) {
         launchPath = lc;
       }
     }
-    log.debug('Launcher', 'Matching for ' + launchPath);
+    const render = props.curation.contents.root.count <= 4000 ? (
+      props.curation.contents.root.children.map((node, index) => {
+        return renderContentNode(0, node, index, [node.name], launchPath);
+      })
+    ) : (
+      <p>{`Too large to render (4000 files max) - ${props.curation.contents.root.count} files in content folder.`}</p>
+    );
     return (
       <div className='curate-box-content simple-scroll'>
-        {props.curation.contents.root.count <= 10000 ? (
-          props.curation.contents.root.children.map((node, index) => {
-            return renderContentNode(0, node, index, [node.name], launchPath);
-          })
-        ) : (
-          <p>Too Many Files</p>
-        )}
+        {render}
       </div>
     );
   }, [props.curation.contents, props.curation.game.launchCommand]);
