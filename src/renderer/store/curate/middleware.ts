@@ -120,12 +120,9 @@ export const curationSyncMiddleware: Middleware<{}, ApplicationState> = (store) 
         // Send update to backend
         // Don't send back the content tree
         const strippedCuration: CurationState = {
-          ...modifiedCuration,
-          contents: {
-            root: { name: '', expanded: true, type: 'directory', children: [], size: 0, count: 0 },
-            noSync: true
-          }
+          ...modifiedCuration
         };
+        delete strippedCuration.contents;
         window.Shared.back.request(BackIn.CURATE_SYNC_CURATIONS, [strippedCuration]);
       } else {
         log.error('Curate', `Action performed but no curation found to save warnings for? ${JSON.stringify(action)}`);

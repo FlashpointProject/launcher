@@ -4,7 +4,8 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { fixSlashes } from '@shared/Util';
 import { uuid } from '@back/util/uuid';
-import { CurationState } from 'flashpoint-launcher';
+import { CurationState } from '@shared/curate/types';
+import { Progress } from 'node-7z';
 
 const whitelistedBaseFiles = ['logo.png', 'ss.png'];
 
@@ -15,7 +16,7 @@ export type UpdateCurationFileFunc = (folder: string, relativePath: string, data
 export type RemoveCurationFileFunc = (folder: string, relativePath: string) => Promise<void>;
 
 export const onFileServerRequestPostCuration =
-  async (pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse, tempCurationsPath: string, onNewCuration: (filePath: string) => Promise<CurationState>) => {
+  async (pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse, tempCurationsPath: string, onNewCuration: (filePath: string, onProgress?: (progress: Progress) => void) => Promise<CurationState>) => {
     if (req.method === 'POST') {
       const chunks: any[] = [];
       req.on('data', (chunk) => {

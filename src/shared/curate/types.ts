@@ -14,8 +14,6 @@ export type LoadedCuration = {
 export type ContentTree = {
   // Root node - 'content' folder
   root: ContentTreeNode;
-  /** If set, backend will ignore content tree when syncing the given CurationState */
-  noSync?: boolean;
 }
 
 export type ContentTreeNode = {
@@ -35,7 +33,7 @@ export type CurationState = LoadedCuration & {
   alreadyImported: boolean;
   warnings: CurationWarnings;
   locked?: boolean;
-  contents: ContentTree;
+  contents?: ContentTree;
 }
 
 /** A set of warnings for things that should be fixed in a curation. */

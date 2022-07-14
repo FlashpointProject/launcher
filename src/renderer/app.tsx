@@ -381,6 +381,14 @@ export class App extends React.Component<AppProps> {
       this.props.setMainState({ downloadOpen: false, downloadPercent: 0 });
     });
 
+    window.Shared.back.register(BackOut.CURATE_CONTENTS_CHANGE, (event, folder, contents) => {
+      (this.props.dispatchMain as any as Dispatch<CurateAction>)({
+        type: CurateActionType.SET_CONTENTS,
+        folder,
+        contents
+      });
+    });
+
     window.Shared.back.register(BackOut.CURATE_LIST_CHANGE, (event, added, removed) => {
       (this.props.dispatchMain as any as Dispatch<CurateAction>)({
         type: CurateActionType.APPLY_DELTA,

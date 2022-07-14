@@ -1408,7 +1408,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       if (idx > -1) {
         state.loadedCurations[idx] = {
           ...curation,
-          contents: curation.contents.noSync ? state.loadedCurations[idx].contents : curation.contents,
+          contents: curation.contents ? curation.contents : state.loadedCurations[idx].contents
         };
         // Save curation
         saveCuration(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, curation.folder), curation)

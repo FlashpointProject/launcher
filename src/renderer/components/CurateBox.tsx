@@ -214,13 +214,17 @@ export function CurateBox(props: CurateBoxProps) {
         launchPath = lc;
       }
     }
-    const render = props.curation.contents.root.count <= 4000 ? (
-      props.curation.contents.root.children.map((node, index) => {
-        return renderContentNode(0, node, index, [node.name], launchPath);
-      })
-    ) : (
-      <p>{`Too large to render (4000 files max) - ${props.curation.contents.root.count} files in content folder.`}</p>
-    );
+    const render = props.curation.contents ?
+      props.curation.contents.root.count <= 4000 ? (
+        props.curation.contents.root.children.map((node, index) => {
+          return renderContentNode(0, node, index, [node.name], launchPath);
+        })
+      ) : (
+        <p>{`Too large to render (4000 files max) - ${props.curation.contents.root.count} files in content folder.`}</p>
+      )
+      : (
+        <p>{strings.misc.loading}</p>
+      );
     return (
       <div className='curate-box-content simple-scroll'>
         {render}

@@ -265,24 +265,41 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
       if (index === -1) { return { ...state }; }
 
       const tree = action.tree;
-      const newContents = {...newCurations[index].contents};
+      const contents = newCurations[index].contents;
+      if (contents) {
+        const newContents = { ...contents };
 
-      if (tree.length >= 1) {
-        // Recursively follow tree and toggle expanded value
-        let curNode = newContents.root.children.find(n => n.name === tree[0]);
-        if (curNode) {
-          for (let pos = 1; pos < tree.length; pos++) {
+        if (tree.length >= 1) {
+          // Recursively follow tree and toggle expanded value
+          let curNode = newContents.root.children.find(n => n.name === tree[0]);
+          if (curNode) {
+            for (let pos = 1; pos < tree.length; pos++) {
+              if (curNode) {
+                curNode = curNode.children.find(n => n.name === tree[pos]);
+              }
+            }
             if (curNode) {
-              curNode = curNode.children.find(n => n.name === tree[pos]);
+              curNode.expanded = !curNode.expanded;
             }
           }
-          if (curNode) {
-            curNode.expanded = !curNode.expanded;
-          }
         }
+
+        newCurations[index].contents = newContents;
       }
 
-      newCurations[index].contents = newContents;
+
+      return {
+        ...state,
+        curations: newCurations
+      };
+    }
+
+    case CurateActionType.SET_CONTENTS: {
+      const { index, newCurations } = genCurationState(action.folder, state);
+
+      if (index === -1) { return { ...state }; }
+
+      newCurations[index].contents = action.contents;
 
       return {
         ...state,

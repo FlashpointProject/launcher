@@ -688,10 +688,16 @@ async function initialize() {
         const curation: CurationState = {
           ...loadedCuration,
           alreadyImported,
-          warnings: genCurationWarnings(loadedCuration, state.config.flashpointPath, state.suggestions, state.languageContainer.curate),
-          contents: await genContentTree(getContentFolderByKey(folderName, state.config.flashpointPath))
+          warnings: genCurationWarnings(loadedCuration, state.config.flashpointPath, state.suggestions, state.languageContainer.curate)
         };
         state.loadedCurations.push(curation);
+        genContentTree(getContentFolderByKey(folderName, state.config.flashpointPath)).then((contentTree) => {
+          const curationIdx = state.loadedCurations.findIndex((c) => c.folder === folderName);
+          if (curationIdx >= 0) {
+            state.loadedCurations[curationIdx].contents = contentTree;
+            state.socketServer.broadcast(BackOut.CURATE_CONTENTS_CHANGE, folderName, contentTree);
+          }
+        });
       }
     }
   })
@@ -1292,9 +1298,16 @@ export async function loadCurationArchive(filePath: string, onProgress?: (progre
   const curation: CurationState = {
     ...loadedCuration,
     alreadyImported,
-    warnings: genCurationWarnings(loadedCuration, state.config.flashpointPath, state.suggestions, state.languageContainer.curate),
-    contents: await genContentTree(getContentFolderByKey(key, state.config.flashpointPath))
+    warnings: genCurationWarnings(loadedCuration, state.config.flashpointPath, state.suggestions, state.languageContainer.curate)
   };
+  genContentTree(getContentFolderByKey(key, state.config.flashpointPath))
+  .then((contentTree) => {
+    const curationIdx = state.loadedCurations.findIndex((c) => c.folder === key);
+    if (curationIdx >= 0) {
+      state.loadedCurations[curationIdx].contents = contentTree;
+      state.socketServer.broadcast(BackOut.CURATE_CONTENTS_CHANGE, key, contentTree);
+    }
+  });
 
   state.loadedCurations.push({
     ...curation,

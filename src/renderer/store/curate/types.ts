@@ -1,6 +1,6 @@
 import { Tag } from '@database/entity/Tag';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
-import { AddAppCurationMeta, CurationMeta, CurationState, CurationWarnings } from '@shared/curate/types';
+import { AddAppCurationMeta, ContentTree, CurationMeta, CurationState, CurationWarnings } from '@shared/curate/types';
 import { CurateActionType } from './enums';
 
 export type CurateGroup = {
@@ -120,4 +120,8 @@ export type CurateAction = {
 } | {
   type: CurateActionType.TOGGLE_GROUP_PIN;
   group: CurateGroup;
+} | {
+  type: CurateActionType.SET_CONTENTS;
+  folder: string;
+  contents: ContentTree;
 }

@@ -456,7 +456,8 @@ const langTemplate = {
     'exportMetaEditTitle',
     'exportMetaEditDesc',
     'showImage',
-    'searching'
+    'searching',
+    'loading',
   ] as const,
   menu: [
     'viewThumbnailInFolder',

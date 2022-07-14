@@ -6,7 +6,7 @@ import { SourceData } from '@database/entity/SourceData';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
-import { AddAppCuration, CurationState, LoadedCuration } from '@shared/curate/types';
+import { AddAppCuration, ContentTree, CurationState, LoadedCuration } from '@shared/curate/types';
 import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/extensions/interfaces';
 import { FilterGameOpts } from '@shared/game/GameFilter';
 import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
@@ -194,6 +194,7 @@ export enum BackOut {
   CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG,
 
   // Curate
+  CURATE_CONTENTS_CHANGE,
   CURATE_LIST_CHANGE,
   CURATE_SELECT_LOCK,
   CURATE_SELECT_CURATIONS,
@@ -367,6 +368,7 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG]: () => void;
 
   // Curate
+  [BackOut.CURATE_CONTENTS_CHANGE]: (folder: string, contents: ContentTree) => void;
   [BackOut.CURATE_LIST_CHANGE]: (added?: CurationState[], removed?: string[]) => void; // "removed" is the folder names of the removed curations
   [BackOut.CURATE_SELECT_LOCK]: (folder: string, locked: boolean) => void;
   [BackOut.CURATE_SELECT_CURATIONS]: (folders: string[]) => void;

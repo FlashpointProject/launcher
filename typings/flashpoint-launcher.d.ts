@@ -1231,7 +1231,7 @@ declare module 'flashpoint-launcher' {
         alreadyImported: boolean;
         warnings: CurationWarnings;
         locked?: boolean;
-        contents: ContentTree;
+        contents?: ContentTree;
     }
 
     export type ContentTree = {
