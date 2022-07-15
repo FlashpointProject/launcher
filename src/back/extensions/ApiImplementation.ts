@@ -13,7 +13,6 @@ import { clearDisposable, dispose, newDisposable, registerDisposable } from '@ba
 import {
   createPlaylistFromJson,
   deleteCuration,
-  genContentTree,
   getOpenMessageBoxFunc,
   getOpenOpenDialogFunc,
   getOpenSaveDialogFunc,
@@ -42,6 +41,7 @@ import { Command } from './types';
 import uuid = require('uuid');
 import { loadCurationArchive } from '..';
 import { formatString } from '@shared/utils/StringFormatter';
+import { genContentTree } from '@back/rust';
 
 /**
  * Create a Flashpoint API implementation specific to an extension, used during module load interception
@@ -445,11 +445,15 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
       const curationIdx = state.loadedCurations.findIndex(c => c.folder === folder);
       if (curationIdx !== -1) {
         const curation = state.loadedCurations[curationIdx];
-        curation.contents = await genContentTree(getContentFolderByKey(curation.folder, state.config.flashpointPath));
-        curation.warnings = genCurationWarnings(curation, state.config.flashpointPath, state.suggestions, state.languageContainer['curate']);
-        state.loadedCurations[curationIdx] = curation;
-        state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [state.loadedCurations[curationIdx]], undefined);
-        return curation.contents;
+        return genContentTree(getContentFolderByKey(curation.folder, state.config.flashpointPath))
+        .then((contentTree) => {
+          const idx = state.loadedCurations.findIndex(c => c.folder === folder);
+          if (idx > -1) {
+            state.loadedCurations[idx].contents = contentTree;
+            state.socketServer.broadcast(BackOut.CURATE_CONTENTS_CHANGE, folder, contentTree);
+            return contentTree;
+          }
+        });
       } else {
         throw 'No curation with that folder.';
       }

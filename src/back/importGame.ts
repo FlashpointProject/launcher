@@ -8,6 +8,7 @@ import { convertEditToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { CurationIndexImage } from '@shared/curate/OLD_types';
 import { AddAppCuration, CurationMeta, LoadedCuration } from '@shared/curate/types';
 import { getCurationFolder } from '@shared/curate/util';
+import { TaskProgress } from '@shared/utils/TaskProgress';
 import * as child_process from 'child_process';
 import { execFile } from 'child_process';
 import * as fs from 'fs-extra';
@@ -36,6 +37,7 @@ type ImportCurationOpts = {
   openDialog: ShowMessageBoxFunc;
   openExternal: OpenExternalFunc;
   tagCategories: TagCategory[];
+  taskProgress: TaskProgress;
 }
 
 export type CurationImportState = {
@@ -63,7 +65,10 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
     saveCuration,
     fpPath,
     imageFolderPath: imagePath,
+    taskProgress
   } = opts;
+
+  taskProgress.setStageProgress(0, 'Importing...');
 
   // TODO: Consider moving this check outside importCuration
   // Warn if launch command is already present on another game
@@ -121,6 +126,8 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
     curationPath: getCurationFolder(curation, fpPath)
   };
 
+  taskProgress.setStageProgress(0.1, 'Fixing File Permissions...');
+
   // Copy content and Extra files
   // curationLog('Importing Curation Content');
   await (async () => {
@@ -151,6 +158,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
     }
   })()
   .then(async () => {
+    taskProgress.setStageProgress(0.35, 'Saving Copy of Curation to Imported...');
     // If configured, save a copy of the curation before importing
     curationLog('Saving Imported Content');
     try {
@@ -197,6 +205,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
     .then(() => { if (log) { logMessage('Screenshot Copied', curation.folder); } });
   })
   .then(async () => {
+    taskProgress.setStageProgress(0.5, 'Extensions Working...');
     // Notify extensions and let them make changes
     await onWillImportCuration.fire(curationState);
   })
@@ -209,6 +218,8 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
     logMessage('Content Copied', curation.folder);
   })
   .then(async () => {
+    taskProgress.setStageProgress(0.75, 'Running Bluezip...');
+
     // Build bluezip
     const curationPath = path.resolve(getCurationFolder(curation, fpPath));
     const bluezipProc = child_process.spawn('bluezip', [curationPath, '-no', curationPath], {cwd: path.dirname(bluezipPath)});
@@ -232,12 +243,15 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
     });
     // Import bluezip
     const filePath = path.join(curationPath, `${curation.folder}.zip`);
+    taskProgress.setStageProgress(0.9, 'Importing Zipped File...');
     await GameDataManager.importGameData(game.id, filePath, dataPacksFolderPath, curation.game.mountParameters);
     await fs.promises.unlink(filePath);
   })
   .catch((error) => {
     curationLog(error ? error.message : 'Unknown');
     console.warn(error ? error.message : 'Unknown');
+    taskProgress.setStageProgress(1, error ? error.message : 'Unknown');
+
     if (game.id) {
       // Clean up half imported entries
       GameManager.removeGameAndAddApps(game.id, dataPacksFolderPath);

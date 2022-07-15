@@ -82,8 +82,9 @@ import { FileServer, serveFile } from './util/FileServer';
 import { FolderWatcher } from './util/FolderWatcher';
 import { LogFile } from './util/LogFile';
 import { logFactory } from './util/logging';
-import { createContainer, exit, genContentTree, runService } from './util/misc';
+import { createContainer, exit, runService } from './util/misc';
 import { uuid } from './util/uuid';
+import { genContentTree } from './rust';
 // Required for the DB Models to function
 
 const dataSourceOptions: DataSourceOptions = {

@@ -918,7 +918,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.UPDATE_PREFERENCES, async (event, data, refresh) => {
-    console.log('Updating prefs');
     const dif = difObjects(defaultPreferencesData, state.preferences, data);
     if (dif) {
       if ((typeof dif.currentLanguage  !== 'undefined' && dif.currentLanguage  !== state.preferences.currentLanguage) ||
@@ -934,7 +933,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
       overwritePreferenceData(state.preferences, dif);
       state.prefsQueue.push(() => {
-        console.log('saving prefs');
         PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences);
       });
     }
@@ -1106,18 +1104,30 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.IMPORT_CURATION, async (event, data) => {
+    const { taskId } = data;
     let error: any | undefined;
     let processed = 0;
+    const taskProgress = new TaskProgress(data.curations.length);
+    if (taskId) {
+      taskProgress.on('progress', (text, done) => {
+        state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
+          status: text,
+          progress: done,
+        });
+      });
+      taskProgress.on('done', (text) => {
+        state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
+          status: text,
+          progress: 1,
+          finished: true
+        });
+      });
+    }
     for (const curation of data.curations) {
       try {
-        if (data.taskId) {
-          state.socketServer.broadcast(BackOut.UPDATE_TASK, data.taskId,
-            {
-              status: `Importing ${curation.game.title || curation.folder}...`,
-              progress: (processed / data.curations.length)
-            }
-          );
-        }
+        processed += 1;
+        taskProgress.setStage(processed, `Importing ${curation.game.title || curation.folder}...`);
+
         state.socketServer.broadcast(BackOut.CURATE_SELECT_LOCK, curation.folder, true);
         await importCuration({
           curation: curation,
@@ -1130,15 +1140,13 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
           imageFolderPath: state.preferences.imageFolderPath,
           openDialog: state.socketServer.showMessageBoxBack(event.client),
           openExternal: state.socketServer.openExternal(event.client),
-          tagCategories: await TagManager.findTagCategories()
+          tagCategories: await TagManager.findTagCategories(),
+          taskProgress
         })
         .then(() => {
           // Delete curation afterwards
           deleteCuration(state, curation.folder);
           state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, undefined, [curation.folder]);
-        })
-        .finally(() => {
-          processed += 1;
         })
         .catch(() => {
           state.socketServer.broadcast(BackOut.CURATE_SELECT_LOCK, curation.folder, false);
@@ -1537,14 +1545,25 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
   state.socketServer.register(BackIn.CURATE_EXPORT, async (event, curations, taskId) => {
     let processed = 0;
-    for (const curation of curations) {
-      if (taskId) {
+    const taskProgress = new TaskProgress(curations.length);
+    if (taskId) {
+      taskProgress.on('progress', (text, done) => {
         state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
-          status: `Exporting ${curation.game.title || curation.folder}`,
-          progress: processed / curations.length,
+          status: text,
+          progress: done,
         });
-      }
+      });
+      taskProgress.on('done', (text) => {
+        state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
+          status: text,
+          progress: 1,
+          finished: true
+        });
+      });
+    }
+    for (const curation of curations) {
       processed += 1;
+      taskProgress.setStage(processed, `Exporting ${curation.game.title || curation.folder}`);
       // Find most appropriate filepath based on what already exists
       const name = (curation.game.title ? sanitizeFilename(curation.game.title) : curation.folder);
       const filePathCheck = path.join(state.config.flashpointPath, CURATIONS_FOLDER_EXPORTED, `${name}.7z`);
@@ -1568,13 +1587,9 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       .finally(() => {
         state.socketServer.broadcast(BackOut.CURATE_SELECT_LOCK, curation.folder, false);
       });
+      taskProgress.setStageProgress(1, 'Packed');
     }
-    if (taskId) {
-      state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
-        status: '',
-        finished: true
-      });
-    }
+    taskProgress.done('Exported Curations');
   });
 
   state.socketServer.register(BackIn.CURATE_REFRESH_CONTENT, async (event, folder) => {

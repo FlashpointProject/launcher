@@ -136,7 +136,7 @@ declare module 'flashpoint-launcher' {
          * Updates a curations content tree
          * @param folder Folder of the curation
          */
-        function updateCurationContentTree(folder: string): Promise<ContentTree>;
+        function updateCurationContentTree(folder: string): Promise<ContentTree | undefined>;
         /** Creates a new curation
          * @param meta Template Curation Metadata
          */
