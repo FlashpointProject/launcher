@@ -114,7 +114,7 @@
     "copy404Urls": "Copier les URL 404",
     "uploadLog": "Télécharger l'historique",
     "copiedToClipboard": "Copié dans le presse-papier",
-    "openLogsWindow": "Open Logs Window"
+    "openLogsWindow": "Ouvrir la fenêtre de l'historique"
   },
   "app": {
     "home": "Accueil",
