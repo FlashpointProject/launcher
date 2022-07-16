@@ -277,7 +277,7 @@
     "thumbnail": "Miniature",
     "screenshot": "Capture d'écran",
     "dropImageHere": "Déposer une image ici pour l'ajouter",
-    "noGameSelected": "No {0} Selected",
+    "noGameSelected": "Aucun {0} sélectionné",
     "clickToSelectGame": "Cliquer sur un jeu pour le sélectionner.",
     "deleteAdditionalApplication": "Supprimer l'application additionnelle",
     "deleteGameAndAdditionalApps": "Supprimer le jeu (et les applications additionnelles)",
@@ -429,7 +429,7 @@
     "exportMetaEditTitle": "Exporter les modifications de meta",
     "exportMetaEditDesc": "Sélectionner toutes les propriétés à exporter :",
     "showImage": "Afficher l'image",
-    "searching": "Searching..."
+    "searching": "Recherche en cours..."
   },
   "menu": {
     "viewThumbnailInFolder": "Voir la miniature dans le dossier",
@@ -508,7 +508,7 @@
   },
   "libraries": {
     "arcade": "Jeux",
-    "arcadeSingular": "Game",
+    "arcadeSingular": "Jeu",
     "arcadePlural": "Tous les jeux",
     "theatre": "Animations",
     "theatreSingular": "Animation",
