@@ -114,7 +114,7 @@
     "copy404Urls": "404-URLs kopieren",
     "uploadLog": "Log hochladen",
     "copiedToClipboard": "In Zwischenablage kopiert",
-    "openLogsWindow": "Open Logs Window"
+    "openLogsWindow": "Öffne Logs Fenster"
   },
   "app": {
     "home": "Start",
@@ -277,7 +277,7 @@
     "thumbnail": "Thumbnail",
     "screenshot": "Screenshot",
     "dropImageHere": "Bild zum Einfügen hierher ziehen",
-    "noGameSelected": "No {0} Selected",
+    "noGameSelected": "Kein {0} ausgewählt",
     "clickToSelectGame": "Klicke auf ein Spiel, um es auszuwählen.",
     "deleteAdditionalApplication": "Zusätzliche Anwendung löschen",
     "deleteGameAndAdditionalApps": "Spiel löschen (und zusätzliche Anwendungen)",
@@ -429,7 +429,7 @@
     "exportMetaEditTitle": "Meta-Edit exportieren",
     "exportMetaEditDesc": "Alle zu exportierenden Eigenschaften auswählen:",
     "showImage": "Bild anzeigen",
-    "searching": "Searching..."
+    "searching": "Suche..."
   },
   "menu": {
     "viewThumbnailInFolder": "Miniaturansicht im Ordner anzeigen",
@@ -508,7 +508,7 @@
   },
   "libraries": {
     "arcade": "Spiele",
-    "arcadeSingular": "Game",
+    "arcadeSingular": "Spiel",
     "arcadePlural": "Alle Spiele",
     "theatre": "Animationen",
     "theatreSingular": "Animation",
