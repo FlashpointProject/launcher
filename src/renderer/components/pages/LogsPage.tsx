@@ -137,6 +137,17 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
           <div className='log-page__bar__wrap log-page__bar__right'>
             <div>
               <div className='log-page__bar__right__inner'>
+                {/* Copy Diagnostics Button */}
+                <div className='log-page__bar__wrap'>
+                  <div className='simple-center'>
+                    <input
+                      type='button'
+                      disabled={this.state.fetchedDiagnostics}
+                      value={this.state.fetchedDiagnostics ? strings.copiedToClipboard : strings.copyDiagnostics}
+                      onClick={this.onCopyDiagnosticsClick}
+                      className='simple-button simple-center__vertical-inner log-page__upload-log' />
+                  </div>
+                </div>
                 {/* Create Logs Window Button */}
                 { !this.props.isLogsWindow && (
                   <div className='log-page__bar__wrap'>
@@ -149,17 +160,6 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
                     </div>
                   </div>
                 )}
-                {/* Copy Diagnostics Button */}
-                <div className='log-page__bar__wrap'>
-                  <div className='simple-center'>
-                    <input
-                      type='button'
-                      disabled={this.state.fetchedDiagnostics}
-                      value={this.state.fetchedDiagnostics ? strings.copiedToClipboard : strings.copyDiagnostics}
-                      onClick={this.onCopyDiagnosticsClick}
-                      className='simple-button simple-center__vertical-inner log-page__upload-log' />
-                  </div>
-                </div>
                 {/* Upload Logs Button */}
                 <div className='log-page__bar__wrap'>
                   <div className='simple-center'>
