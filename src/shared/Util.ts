@@ -459,7 +459,9 @@ export function generateTagFilterGroup(tags?: string[]): TagFilterGroup {
 }
 
 export function genCurationWarnings(curation: LoadedCuration, fpPath: string, suggestions: GamePropSuggestions, strings: LangContainer['curate']): CurationWarnings {
-  const warns: CurationWarnings = {};
+  const warns: CurationWarnings = {
+    fieldWarnings: []
+  };
   // Check launch command exists
   const launchCommand = curation.game.launchCommand || '';
   warns.noLaunchCommand = launchCommand === '';
@@ -476,10 +478,27 @@ export function genCurationWarnings(curation: LoadedCuration, fpPath: string, su
   if (releaseDate) { warns.releaseDateInvalid = !isValidDate(releaseDate); }
   // Check for unused values (with suggestions)
   warns.unusedPlatform = !isValueSuggested(curation, suggestions, 'platform');
-  warns.unusedApplicationPath = !isValueSuggested(curation, suggestions, 'applicationPath');
+  if (curation.game.applicationPath) {
+    warns.unusedApplicationPath = !fs.existsSync(path.join(fpPath, curation.game.applicationPath));
+  }
   // Check if library is set
   const curLibrary = curation.game.library;
   warns.nonExistingLibrary = suggestions.library.findIndex(l => l === curLibrary) === -1;
+
+  // Fill field warnings
+  if (!curation.game.applicationPath || warns.unusedApplicationPath) {
+    warns.fieldWarnings.push('applicationPath');
+  }
+  if (warns.noSource) {
+    warns.fieldWarnings.push('source');
+  }
+  if (warns.releaseDateInvalid) {
+    warns.fieldWarnings.push('releaseDate');
+  }
+  if (warns.nonExistingLibrary) {
+    warns.fieldWarnings.push('library');
+  }
+
   return warns;
 }
 

@@ -64,6 +64,8 @@ export type CurationWarnings = {
   nonExistingLibrary?: boolean;
   /** If there are non-content folders present in the curation folder (Crendor would be proud) */
   nonContentFolders?: string[];
+  /** Keys of any field that should be in yellow as a warning */
+  fieldWarnings: string[];
 };
 
 export type CurationMeta = Partial<{

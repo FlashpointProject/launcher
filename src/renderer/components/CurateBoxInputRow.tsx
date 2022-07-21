@@ -81,13 +81,21 @@ export function CurateBoxTagDropdownInputRow(props: CurateBoxTagDropdownInputRow
     const tags = text.split(';');
     tags.map(t => {
       window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, t.trim())
-      .then(props.onAddTag);
+      .then((tag) => {
+        if (tag) {
+          props.onAddTag(tag);
+        }
+      });
     });
   }, [props.onAddTag]);
 
   const onTagSuggestionSelect = React.useCallback((sug: TagSuggestion) => {
     window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, sug.primaryAlias)
-    .then(props.onAddTag);
+    .then((tag) => {
+      if (tag) {
+        props.onAddTag(tag);
+      }
+    });
   }, [props.onAddTag]);
 
   return (
