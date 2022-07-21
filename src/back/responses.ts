@@ -18,10 +18,12 @@ import { MetaEditFile, MetaEditMeta } from '@shared/MetaEdit';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { defaultPreferencesData, overwritePreferenceData } from '@shared/preferences/util';
 import { deepCopy } from '@shared/Util';
+import { sanitizeFilename } from '@shared/utils/sanitizeFilename';
 import { formatString } from '@shared/utils/StringFormatter';
 import * as axiosImport from 'axios';
 import * as fs from 'fs';
 import { ensureDir } from 'fs-extra';
+import * as os from 'os';
 import * as path from 'path';
 import * as url from 'url';
 import * as util from 'util';
@@ -40,7 +42,6 @@ import { importAllMetaEdits } from './MetaEdit';
 import { BackState, BareTag, TagsFile } from './types';
 import { pathToBluezip } from './util/Bluezip';
 import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylistFromJson, exit, getCwd, pathExists, procToService, removeService, runService } from './util/misc';
-import { sanitizeFilename } from '@shared/utils/sanitizeFilename';
 import { uuid } from './util/uuid';
 
 const axios = axiosImport.default;
@@ -1175,6 +1176,64 @@ export function registerRequestCallbacks(state: BackState): void {
     // Send back to client
     state.socketServer.send(event.client, BackOut.UPLOAD_LOG, getUrl);
     return getUrl;
+  });
+
+  state.socketServer.register(BackIn.FETCH_DIAGNOSTICS, async (event) => {
+    type Diagnostics = {
+      services: Array<{
+        id: string;
+        name: string;
+        state: ProcessState;
+      }>;
+      generics: string[];
+    }
+    // services
+    const diagnostics: Diagnostics = {
+      services: Array.from(state.services.values()).map(s => {
+        return {
+          id: s.id,
+          name: s.name,
+          state: s.getState()
+        };
+      }),
+      generics: []
+    };
+
+    // generics
+
+    if (!fs.existsSync(path.join(state.config.flashpointPath, 'Legacy', 'router.php'))) {
+      diagnostics.generics.push('router.php is missing. Possible cause: Anti-Virus software has deleted it.');
+    }
+    if (state.log.findIndex(e => e.content.includes('Server exited with code 3221225781')) !== -1) {
+      diagnostics.generics.push('Server exited with code 3221225781. Possible cause: .NET Framework or Visual C++ 2015 x86 Redists are not installed.');
+    }
+
+    // print
+
+    let message = '';
+    message = message + 'Operating System: ' + os.version() + '\n\n';
+    for (const service of diagnostics.services) {
+      message = message + `${ProcessState[service.state]}:\t${service.name}\n`;
+    }
+    message = message + '\n';
+    for (const service of diagnostics.services.filter(s => s.state === ProcessState.STOPPED)) {
+      const serviceLogs = state.log.filter(e => e.source === service.name);
+      if (serviceLogs.length > 0) {
+        message = message + `${service.name} recent logs:\n`;
+        for (const log of serviceLogs.slice(0, serviceLogs.length > 10 ? 10 : undefined)) {
+          message = message + `\t${log.content}\n`;
+        }
+      }
+    }
+    message = message + '\n';
+    if (diagnostics.generics.length > 0) {
+      message = message + 'Warnings:\n';
+    }
+    for (const generic of diagnostics.generics) {
+      message = message + `\t${generic}\n`;
+    }
+
+    return '```' + message + '```';
   });
 
   state.socketServer.register(BackIn.QUIT, async (event) => {

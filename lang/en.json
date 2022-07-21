@@ -114,7 +114,8 @@
     "copy404Urls": "Copy 404 URLs",
     "uploadLog": "Upload Log",
     "copiedToClipboard": "Copied to Clipboard",
-    "openLogsWindow": "Open Logs Window"
+    "openLogsWindow": "Open Logs Window",
+    "copyDiagnostics": "Copy Diagnostics"
   },
   "app": {
     "home": "Home",

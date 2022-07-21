@@ -122,6 +122,7 @@ const langTemplate = {
     'uploadLog',
     'copiedToClipboard',
     'openLogsWindow',
+    'copyDiagnostics',
   ] as const,
   app: [
     'home',

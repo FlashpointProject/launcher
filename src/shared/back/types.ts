@@ -127,6 +127,7 @@ export enum BackIn {
   OPEN_LOGS_WINDOW,
   UPLOAD_LOG,
   SET_EXT_CONFIG_VALUE,
+  FETCH_DIAGNOSTICS,
 }
 
 export enum BackOut {
@@ -276,6 +277,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.OPEN_LOGS_WINDOW]: () => void;
   [BackIn.UPLOAD_LOG]: () => string | undefined;
   [BackIn.SET_EXT_CONFIG_VALUE]: (key: string, value: any) => void;
+  [BackIn.FETCH_DIAGNOSTICS]: () => string;
 }>
 
 export type BackOutTemplate = SocketTemplate<BackOut, {
