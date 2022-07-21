@@ -17,10 +17,11 @@ import { LogLevel } from '@shared/Log/interface';
 import { MetaEditFile, MetaEditMeta } from '@shared/MetaEdit';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { defaultPreferencesData, overwritePreferenceData } from '@shared/preferences/util';
-import { deepCopy } from '@shared/Util';
+import { deepCopy, padEnd } from '@shared/Util';
 import { sanitizeFilename } from '@shared/utils/sanitizeFilename';
 import { formatString } from '@shared/utils/StringFormatter';
 import * as axiosImport from 'axios';
+import { execSync } from 'child_process';
 import * as fs from 'fs';
 import { ensureDir } from 'fs-extra';
 import * as os from 'os';
@@ -1211,12 +1212,31 @@ export function registerRequestCallbacks(state: BackState): void {
     // print
 
     let message = '';
-    message = message + 'Operating System: ' + os.version() + '\n\n';
+    const maxLen = 'Operating System: '.length;
+    message = message + 'Operating System: ' + os.version() + '\n';
+    message = message + padEnd('Architecture:', maxLen) + os.arch() + '\n';
+    try {
+      const output = execSync('powershell.exe -Command "Get-CimInstance -Namespace root/SecurityCenter2 -ClassName AntivirusProduct | Format-Wide -Property displayName"').toString().trim();
+      if (output.toLowerCase().includes('avast') || output.toLowerCase().includes('avg')) {
+        diagnostics.generics.push('AVG or Avast Anti-Virus is installed. This may cause problems with Flashpoint.');
+      }
+      message = message + padEnd('Anti-Virus:', maxLen) + output + '\n';
+    } catch (err) {
+      message = message + 'Anti-Virus:\tUnknown\n';
+    }
+    message = message + '\n';
     for (const service of diagnostics.services) {
       message = message + `${ProcessState[service.state]}:\t${service.name}\n`;
     }
+    if (diagnostics.generics.length > 0) {
+      message = message + '\n';
+      message = message + 'Warnings:\n';
+    }
+    for (const generic of diagnostics.generics) {
+      message = message + `\t${generic}\n`;
+    }
     message = message + '\n';
-    for (const service of diagnostics.services.filter(s => s.state === ProcessState.STOPPED)) {
+    for (const service of diagnostics.services) {
       const serviceLogs = state.log.filter(e => e.source === service.name);
       if (serviceLogs.length > 0) {
         message = message + `${service.name} recent logs:\n`;
@@ -1224,13 +1244,6 @@ export function registerRequestCallbacks(state: BackState): void {
           message = message + `\t${log.content}\n`;
         }
       }
-    }
-    message = message + '\n';
-    if (diagnostics.generics.length > 0) {
-      message = message + 'Warnings:\n';
-    }
-    for (const generic of diagnostics.generics) {
-      message = message + `\t${generic}\n`;
     }
 
     return '```' + message + '```';
