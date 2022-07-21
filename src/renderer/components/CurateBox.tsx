@@ -152,6 +152,10 @@ export function CurateBox(props: CurateBoxProps) {
   function renderContentNode(depth: number, node: ContentTreeNode, key: number, tree: string[] = [], launchPath?: string): JSX.Element | JSX.Element[] {
     const filePath = tree.join('/');
     const isLaunchPath = filePath === launchPath;
+    const depthDivs = [];
+    for (let i = 0; i < depth; i++) {
+      depthDivs.push(<div className='curate-box-content__depth' key={`${i}`} style={{ width: '1rem' }}/>);
+    }
     switch (node.type) {
       case 'directory': {
         const children = node.expanded ? node.children.map((node, index) => renderContentNode(depth + 1, node, index, tree.concat([node.name]), launchPath))
@@ -163,7 +167,7 @@ export function CurateBox(props: CurateBoxProps) {
               onContextMenu={onContentTreeNodeMenuFactory(node, tree)}
               className='curate-box-content__entry'>
               { depth > 0 && (
-                <div style={{ width: `${depth}rem` }}/>
+                depthDivs
               )}
               <div className='curate-box-content__entry-icon curate-box-content__entry-icon--collapse'
                 onClick={() => toggleContentNodeView(tree)} >
@@ -182,7 +186,7 @@ export function CurateBox(props: CurateBoxProps) {
             onContextMenu={onContentTreeNodeMenuFactory(node, tree)}
             className='curate-box-content__entry'>
             { depth > 0 && (
-              <div style={{ width: `${depth}rem` }}/>
+              depthDivs
             )}
             <OpenIcon className={`curate-box-content__entry-icon ${isLaunchPath ? 'curate-box-content__entry-icon--launch-path' : ''}`} icon='file'/>
             <div>{node.name} ({sizeToString(node.size || 0)})</div>

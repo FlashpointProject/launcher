@@ -1056,6 +1056,9 @@ body {
   background-repeat: no-repeat;
   background-position: center;
 }
+.curate-box-content__depth {
+  border-left: 1px dotted;
+}
 .curate-box-content__entry {
   display: flex;
 }
