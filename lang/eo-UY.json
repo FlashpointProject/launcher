@@ -1,11 +1,19 @@
 {
-  "name": "Angla",
+  "name": "Esperanto",
   "config": {
     "configHeader": "Agordoj",
     "configDesc": "(Vi devas klaki 'Konservu kaj Rekomencu' por ekvalidi la ŝanĝojn)",
     "preferencesHeader": "Agordoj",
-    "extremeGames": "Extreme Content",
-    "extremeGamesDesc": "Allow tags inside 'Extreme' tag filter groups and corresponding games to be shown.",
+    "extremeGames": "Show Extreme Filters",
+    "extremeGamesDesc": "Allows Extreme tag filters to be toggled, created and modified to control content unsuitable for children.",
+    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
+    "fancyAnimations": "Fancy Animations",
+    "fancyAnimationsDesc": "Enable fancy animations in the launcher.",
+    "searchLimit": "Search Limit",
+    "searchLimitDesc": "Limit the number of results returned in any search",
+    "searchLimitUnlimited": "Unlimited",
+    "searchLimitValue": "{0} Results",
     "enableEditing": "Ebligu Redaktadon",
     "enableEditingDesc": "Ebligu redaktadon de ludoj kaj aldonaj programoj. Ankaŭ montras langetojn rilataj al redaktado.",
     "onDemandImages": "Laŭpetaj Bildoj",
@@ -16,6 +24,7 @@
     "fallbackLanguageDesc": "La lingvo uzota kiam la nuna lingvo nekompletas.",
     "auto": "Aŭtomata ({0})",
     "none": "Neniu",
+    "contentFiltersHeader": "Content Filters",
     "flashpointHeader": "Flashpoint",
     "flashpointPath": "Flashpointa Vojo",
     "flashpointPathDesc": "Vojo al la dosierujo de Flashpoint (povas esti relativa)",
@@ -79,6 +88,7 @@
     "helpInfo": "Ĉu vi bezonas helpon? {0}.",
     "help": "Legu la instrukcion",
     "upgradesHeader": "Ĝisdatigoj",
+    "updateFeedHeader": "News Feed",
     "installComplete": "Instalado Finiĝis",
     "alreadyInstalled": "Jam Instalite",
     "download": "Elŝuti",
@@ -103,7 +113,8 @@
     "clearLog": "Forigu Protokolon",
     "copy404Urls": "Kopiu 404-URLojn",
     "uploadLog": "Alŝutu protokolon",
-    "copiedToClipboard": "Kopiita al Tondobufro"
+    "copiedToClipboard": "Kopiita al Tondobufro",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "Hejmo",
@@ -266,7 +277,7 @@
     "thumbnail": "Miniaturo",
     "screenshot": "Ekrankopio",
     "dropImageHere": "Faligu bildon ĉi tie por aldoni ĝin",
-    "noGameSelected": "Neniu Ludo Elektita",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "Alklaku ludon por elekti ĝin.",
     "deleteAdditionalApplication": "Forigi Plian Aplikon",
     "deleteGameAndAdditionalApps": "Forigi Ludon (kaj Pliajn Aplikojn)",
@@ -288,7 +299,10 @@
     "saveAndRestart": "Konservu kaj Rekomencu",
     "thereAreNoGames": "Neniuj ludoj.",
     "noGameMatchedDesc": "Neniu ludotitolo konvenas vian serĉon.",
-    "noGameMatchedSearch": "Provu serĉi ion malpli restriktan."
+    "noGameMatchedSearch": "Provu serĉi ion malpli restriktan.",
+    "mountParameters": "Mount Parameters",
+    "noMountParameters": "No Mount Parameters",
+    "showExtremeScreenshot": "Show Extreme Screenshot"
   },
   "tags": {
     "name": "Nomo",
@@ -413,7 +427,9 @@
     "installingFiles": "Instalanta Dosieroj...",
     "complete": "Kompleta",
     "exportMetaEditTitle": "Eksportu Meta-redakton",
-    "exportMetaEditDesc": "Elektu ĉiujn eksportotajn ecojn:"
+    "exportMetaEditDesc": "Elektu ĉiujn eksportotajn ecojn:",
+    "showImage": "Show Image",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "Vidu Bildeton en Dosierujo",
@@ -492,10 +508,13 @@
   },
   "libraries": {
     "arcade": "Ludoj",
+    "arcadeSingular": "Game",
     "arcadePlural": "Ĉiuj Ludoj",
     "theatre": "Animacioj",
+    "theatreSingular": "Animation",
     "theatrePlural": "Ĉiuj Animacioj",
     "auditorium": "NG Aŭditorio",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "Ĉiuj NGaj Animacioj"
   },
   "upgrades": {

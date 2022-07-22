@@ -4,8 +4,16 @@
     "configHeader": "Sätted",
     "configDesc": "(Sa pead vajutama 'Salvesta & Ava Uuesti' , et muudatused tuleksid nähtavale)",
     "preferencesHeader": "Eelistused",
-    "extremeGames": "Ekstreemsed Mängud",
-    "extremeGamesDesc": "Näita mänge seksuaalse, vägivaldse või muu sisuga, mis on sobimatu lastele",
+    "extremeGames": "Näita ekstreemseid filtreid",
+    "extremeGamesDesc": "Lubab kasutada, luua ning muuta ekstreemseid filtreid mis võimaldavad kontrollida sisu mis ei pruugi sobida alaealistele.",
+    "hideExtremeScreenshots": "Peida Ekstreemseid Ekraanipilte",
+    "hideExtremeScreenshotsDesc": "Peidab ekstreemsete mängude ekraanipilte, neid saab avada klikkides pildi kastile.",
+    "fancyAnimations": "Uhked animatsioonid",
+    "fancyAnimationsDesc": "Luba uhked animatsioonid käivitajas.",
+    "searchLimit": "Otsingu limiit",
+    "searchLimitDesc": "Piira tulemuste arvu mistahes otsingus",
+    "searchLimitUnlimited": "Piiramatu",
+    "searchLimitValue": "{0} Tulemust",
     "enableEditing": "Luba Kohaldada",
     "enableEditingDesc": "Luba kohaldamist mängudele ja lisarakendustele. Avab ka selle jaoks akna.",
     "onDemandImages": "Pildid Nõudlusel",
@@ -16,6 +24,7 @@
     "fallbackLanguageDesc": "Seda keelt hakkab rakendus kasutama pooliku esmase keele asemel.",
     "auto": "Automaatne ({0})",
     "none": "Mitte Ühtegi",
+    "contentFiltersHeader": "Sisu filtrid",
     "flashpointHeader": "Flashpoint",
     "flashpointPath": "Flashpointi Tee",
     "flashpointPathDesc": "Tee Flashpointi kaustani (võib olla suhteline)",
@@ -79,6 +88,7 @@
     "helpInfo": "Vajad abi? {0}.",
     "help": "Loe Käsiraamatut",
     "upgradesHeader": "Täiendused",
+    "updateFeedHeader": "Uudisvoog",
     "installComplete": "Installimine Valmis",
     "alreadyInstalled": "Juba Installitud",
     "download": "Lae Alla",
@@ -103,7 +113,8 @@
     "clearLog": "Tühjenda Logid",
     "copy404Urls": "Kopeeri 404 URL'id",
     "uploadLog": "Laadi Uus Logi Üles",
-    "copiedToClipboard": "Kopeeritud Lõikelauale"
+    "copiedToClipboard": "Kopeeritud Lõikelauale",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "Pealeht",
@@ -124,7 +135,7 @@
     "newGame": "Uus mäng",
     "list": "Nimekiri",
     "grid": "Ruudustik",
-    "searchResults": "Otsi Tulemusi"
+    "searchResults": "Tulemusi leitud"
   },
   "filter": {
     "dateAdded": "Kuupäev Lisatud",
@@ -185,7 +196,7 @@
     "running": "Mängib",
     "stopped": "Peatatud",
     "killing": "Tapab",
-    "start": "Start",
+    "start": "Käivita",
     "startDesc": "Alusta teenus",
     "stop": "Stopp",
     "stopDesc": "Peata mängiv teenus",
@@ -266,7 +277,7 @@
     "thumbnail": "Logo",
     "screenshot": "Ekraanipilt",
     "dropImageHere": "Kukuta pilt siia, et seda lisada",
-    "noGameSelected": "Ühtegi Mängu Pole Valitud",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "Vajuta mängule, et seda valida.",
     "deleteAdditionalApplication": "Kustuta Lisarakendus",
     "deleteGameAndAdditionalApps": "Kustuta Mäng (ja Selle Lisarakendused)",
@@ -288,7 +299,10 @@
     "saveAndRestart": "Salvesta & Ava Uuesti",
     "thereAreNoGames": "Siin pole ühtegi mängu.",
     "noGameMatchedDesc": "Ükski mängu pealkiri ei sarnanenud sinu otsinguga.",
-    "noGameMatchedSearch": "Proovi otsida midagi vähem piiravamat."
+    "noGameMatchedSearch": "Proovi otsida midagi vähem piiravamat.",
+    "mountParameters": "Rakendusparameetrid",
+    "noMountParameters": "Pole Rakendusparameetreid",
+    "showExtremeScreenshot": "Näita Ekstreemset Ekraanipilti"
   },
   "tags": {
     "name": "Nimi",
@@ -413,7 +427,9 @@
     "installingFiles": "Installib Faile...",
     "complete": "Valmis",
     "exportMetaEditTitle": "Ekspordi Meta Muudatus",
-    "exportMetaEditDesc": "Vali kõik väljad, mida eksportida:"
+    "exportMetaEditDesc": "Vali kõik väljad, mida eksportida:",
+    "showImage": "Näita pilti",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "Vaata Logo Kaustas",
@@ -492,14 +508,17 @@
   },
   "libraries": {
     "arcade": "Mängud",
+    "arcadeSingular": "Game",
     "arcadePlural": "Kõik Mängud",
     "theatre": "Animatsioonid",
+    "theatreSingular": "Animation",
     "theatrePlural": "Kõik Animatsioonid",
     "auditorium": "NG Auditoorium",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "Kõik NG'i Animatsioonid"
   },
   "upgrades": {
-    "infinity": "Flashpoint Infinity",
+    "infinity": "Flashpoint Lõpmatus",
     "infinityDesc": "Kohustuslikud failid. Annab toetust Flashi mängudele.",
     "tech": "Teised Tehnoloogiad",
     "techDesc": "Annab toetust teistele tehnoloogiatele: Shockwave, Unity, Java, HTML5 jne",

@@ -4,8 +4,16 @@
     "configHeader": "Конфиг",
     "configDesc": "(Мора да притиснеш 'Зачувај и Рестарт' за да стапат некои промени)",
     "preferencesHeader": "Нагодувања",
-    "extremeGames": "Екстремни игри",
-    "extremeGamesDesc": "Покажете игри со сексуална, насилна или друга содржина несоодветна за деца.",
+    "extremeGames": "Покажи Екстремни Филтри",
+    "extremeGamesDesc": "Дозволува екстремните филтри за ознаки да се менуваат, креираат и менуваат за да ја контролираат содржината што е несоодветна за деца.",
+    "hideExtremeScreenshots": "Криј Екстремни Слики од екранот",
+    "hideExtremeScreenshotsDesc": "Сокрива слики од екранот на екстремно обележана содржина, може да се покажува со клик на полето за слики.",
+    "fancyAnimations": "Фенси Анимации",
+    "fancyAnimationsDesc": "Овозможи фенси анимации во лаунчерот.",
+    "searchLimit": "Ограничи Пребарување",
+    "searchLimitDesc": "Ограничете го бројот на вратени резултати при секое пребарување",
+    "searchLimitUnlimited": "Неограничено",
+    "searchLimitValue": "{0} Резултати",
     "enableEditing": "Овозможи Уредувања",
     "enableEditingDesc": "Овозможи уредување на игри и дополнителни апликации. Исто така, покажува јазичиња поврзани со уредување.",
     "onDemandImages": "Слики на барање",
@@ -16,6 +24,7 @@
     "fallbackLanguageDesc": "Кој јазик да се користи наместо нецелосен тековен јазик.",
     "auto": "Аутоматско ({0})",
     "none": "Ништо",
+    "contentFiltersHeader": "Содржински Филтри",
     "flashpointHeader": "Flashpoint",
     "flashpointPath": "Патека на Flashpoint",
     "flashpointPathDesc": "Патека до папката на Flashpoint (може да биде релативна)",
@@ -79,6 +88,7 @@
     "helpInfo": "Треба помош? {0}.",
     "help": "Читај го упаството",
     "upgradesHeader": "Ажурирања",
+    "updateFeedHeader": "Новости",
     "installComplete": "Инсталацијата е завршена",
     "alreadyInstalled": "Веќе инсталирано",
     "download": "Превземање",
@@ -94,7 +104,7 @@
     "linuxSupport": "Проблеми во Linux? {0}",
     "linuxSupportLinkText": "Отворен FAQ",
     "randomPicks": "Случајни Избори",
-    "rerollPicks": "Re-Roll Picks"
+    "rerollPicks": "Пре-Врти Избори"
   },
   "logs": {
     "filters": "Филтри",
@@ -103,7 +113,8 @@
     "clearLog": "Исчисти Лог",
     "copy404Urls": "Копирај 404 URLs",
     "uploadLog": "Прикачи Лог",
-    "copiedToClipboard": "Копирано во Kлипборд"
+    "copiedToClipboard": "Копирано во Kлипборд",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "Почеток",
@@ -266,7 +277,7 @@
     "thumbnail": "Лого",
     "screenshot": "Слика од екранот",
     "dropImageHere": "Постави слика за да ја додадеш",
-    "noGameSelected": "Нема селектирана игра",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "Кликни на игра за да ја селектираш.",
     "deleteAdditionalApplication": "Избриши Додатната Апликација",
     "deleteGameAndAdditionalApps": "Избриши игра(и додатните апликации)",
@@ -288,7 +299,10 @@
     "saveAndRestart": "Зачувај и Рестарт",
     "thereAreNoGames": "Тука нема игри.",
     "noGameMatchedDesc": "Ниту еден наслов на играта не одговара на вашето пребарување.",
-    "noGameMatchedSearch": "Обидете се да побарате нешто помалку ограничувачко."
+    "noGameMatchedSearch": "Обидете се да побарате нешто помалку ограничувачко.",
+    "mountParameters": "Моунт Параметри",
+    "noMountParameters": "Нема Моунт Параметри",
+    "showExtremeScreenshot": "Покажувај Eкстремни Cлики од Eкраноt"
   },
   "tags": {
     "name": "Име",
@@ -413,7 +427,9 @@
     "installingFiles": "Инсталирање Фајлови...",
     "complete": "Завршено",
     "exportMetaEditTitle": "Изведувај Meta Edit",
-    "exportMetaEditDesc": "Изберете ги сите својства за извоз:"
+    "exportMetaEditDesc": "Изберете ги сите својства за извоз:",
+    "showImage": "Покажи Слика",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "Прегледај лого во папката",
@@ -492,10 +508,13 @@
   },
   "libraries": {
     "arcade": "Игри",
+    "arcadeSingular": "Game",
     "arcadePlural": "Сите Игри",
     "theatre": "Анимации",
+    "theatreSingular": "Animation",
     "theatrePlural": "Сите Анимации",
     "auditorium": "НГ Аудиториум",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "Сите НГ Анимации"
   },
   "upgrades": {
