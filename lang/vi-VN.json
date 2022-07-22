@@ -508,13 +508,13 @@
   },
   "libraries": {
     "arcade": "Trò chơi",
-    "arcadeSingular": "Game",
+    "arcadeSingular": "Trò chơi",
     "arcadePlural": "Tất cả trò chơi",
     "theatre": "Hoạt hình",
-    "theatreSingular": "Animation",
+    "theatreSingular": "Hoạt hình",
     "theatrePlural": "Tất cả Hoạt hình",
     "auditorium": "Khán phòng NG",
-    "auditoriumSingular": "Animation",
+    "auditoriumSingular": "Hoạt hình",
     "auditoriumPlural": "Tất cả Hoạt hình Newgrounds"
   },
   "upgrades": {
