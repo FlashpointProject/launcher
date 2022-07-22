@@ -114,7 +114,7 @@
     "copy404Urls": "Chép URL 404",
     "uploadLog": "Tải lên bản ghi",
     "copiedToClipboard": "Đã chép vào bộ nhớ tạm",
-    "openLogsWindow": "Open Logs Window"
+    "openLogsWindow": "Mở cửa sổ nhật kí"
   },
   "app": {
     "home": "Trang chủ",
@@ -277,7 +277,7 @@
     "thumbnail": "Ảnh thu nhỏ",
     "screenshot": "Ảnh chụp màn hình",
     "dropImageHere": "Thả ảnh vào đây để thêm",
-    "noGameSelected": "No {0} Selected",
+    "noGameSelected": "Không có {0} nào được chọn",
     "clickToSelectGame": "Nhấn một trò chơi để chọn.",
     "deleteAdditionalApplication": "Xoá phần mềm đi kèm",
     "deleteGameAndAdditionalApps": "Xoá trò chơi (và phần mềm đi kèm)",
@@ -429,7 +429,7 @@
     "exportMetaEditTitle": "Xuất sửa đổi meta",
     "exportMetaEditDesc": "Chọn tất cả thuộc tính cần xuất:",
     "showImage": "Hiện ảnh",
-    "searching": "Searching..."
+    "searching": "Đang tìm kiếm..."
   },
   "menu": {
     "viewThumbnailInFolder": "Xem ảnh thu nhỏ trong thư mục",
