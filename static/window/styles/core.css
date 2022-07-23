@@ -1327,6 +1327,7 @@ body {
 
 /* Browse-Right-Sidebar Play Button */
 .browse-right-sidebar__play-button,
+.browse-right-sidebar__play-button--busy,
 .browse-right-sidebar__play-button--running,
 .browse-right-sidebar__play-button--download {
   width: 100%;

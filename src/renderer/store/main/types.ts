@@ -131,6 +131,8 @@ export type MainState = {
   currentPlaylist?: Playlist;
   currentPlaylistEntry?: PlaylistGame;
   isEditingGame: boolean;
+  /** Games which are in the middle of a busy operation */
+  busyGames: string[];
 }
 
 export type MainAction = {
@@ -234,4 +236,10 @@ export type MainAction = {
 } | {
   type: MainActionType.FORCE_UPDATE_GAME_DATA;
   gameData: GameData;
+} | {
+  type: MainActionType.BUSY_GAME;
+  gameId: string;
+} | {
+  type: MainActionType.UNBUSY_GAME;
+  gameId: string;
 }

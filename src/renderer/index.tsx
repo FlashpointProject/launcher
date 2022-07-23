@@ -147,5 +147,6 @@ export function createInitialMainState(): MainState {
     downloadOpen: false,
     downloadVerifying: false,
     isEditingGame: false,
+    busyGames: [],
   };
 }

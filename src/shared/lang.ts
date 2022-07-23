@@ -316,6 +316,7 @@ const langTemplate = {
     'mountParameters',
     'noMountParameters',
     'showExtremeScreenshot',
+    'busy',
   ] as const,
   tags: [
     'name',

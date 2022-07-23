@@ -303,7 +303,8 @@
     "noGameMatchedSearch": "Try searching for something less restrictive.",
     "mountParameters": "Mount Parameters",
     "noMountParameters": "No Mount Parameters",
-    "showExtremeScreenshot": "Show Extreme Screenshot"
+    "showExtremeScreenshot": "Show Extreme Screenshot",
+    "busy": "Busy"
   },
   "tags": {
     "name": "Name",

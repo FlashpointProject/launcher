@@ -146,7 +146,21 @@ export namespace GameLauncher {
         }
       }
     }
-    log.debug('TEST', 'Run required add apps');
+    // Launch game callback
+    const launchCb = async (launchInfo: GameLaunchInfo): Promise<void> =>  {
+      await onWillEvent.fire(launchInfo)
+      .then(() => {
+        const command: string = createCommand(launchInfo.launchInfo);
+        const managedProc = opts.runGame(launchInfo);
+        log.info(logSource,`Launch Game "${opts.game.title}" (PID: ${managedProc.getPid()}) [\n`+
+                    `    applicationPath: "${opts.game.applicationPath}",\n`+
+                    `    launchCommand:   "${opts.game.launchCommand}",\n`+
+                    `    command:         "${command}" ]`);
+      })
+      .catch((error) => {
+        log.info('Game Launcher', `Game Launch Aborted: ${error}`);
+      });
+    };
     // Launch game
     let appPath: string = getApplicationPath(opts.game.applicationPath, opts.execMappings, opts.native);
     let appArgs: string[] = [];
@@ -193,7 +207,7 @@ export namespace GameLauncher {
               noshell: true
             }
           };
-          onWillEvent.fire(gameLaunchInfo)
+          await onWillEvent.fire(gameLaunchInfo)
           .then(() => {
             const managedProc = opts.runGame(gameLaunchInfo);
             log.info(logSource, `Launch Game "${opts.game.title}" (PID: ${managedProc.getPid()}) [\n`+
@@ -214,21 +228,17 @@ export namespace GameLauncher {
         log.error('Launcher', `Error running provider for game.\n${error}`);
       }
     }
-    log.debug('TEST', 'Trying launch');
     // Continue with launching normally
     const gamePath: string = path.isAbsolute(appPath) ? fixSlashes(appPath) : fixSlashes(path.join(opts.fpPath, appPath));
     const gameArgs: string[] = [...appArgs, opts.game.launchCommand];
-    log.debug('TEST', 'Gotten game path and args');
     const useWine: boolean = process.platform != 'win32' && gamePath.endsWith('.exe');
     const env = getEnvironment(opts.fpPath, opts.proxy);
-    log.debug('TEST', 'Gotten environment');
     try {
       await GameManager.findGame(opts.game.id);
     } catch (err: any) {
-      log.error('TEST', 'Error Game - ' + err.toString());
+      log.error('Launcher', 'Error Finding Game - ' + err.toString());
     }
     const gameData = opts.game.activeDataId ? await GameDataManager.findOne(opts.game.activeDataId) : null;
-    log.debug('TEST', 'Found game data');
     const gameLaunchInfo: GameLaunchInfo = {
       game: opts.game,
       activeData: gameData,
@@ -239,20 +249,7 @@ export namespace GameLauncher {
         env,
       }
     };
-    log.debug('TEST', 'Gathered info');
-    onWillEvent.fire(gameLaunchInfo)
-    .then(() => {
-      const command: string = createCommand(gameLaunchInfo.launchInfo);
-      log.debug('TEST', 'All info gathered, running');
-      const managedProc = opts.runGame(gameLaunchInfo);
-      log.info(logSource,`Launch Game "${opts.game.title}" (PID: ${managedProc.getPid()}) [\n`+
-                  `    applicationPath: "${opts.game.applicationPath}",\n`+
-                  `    launchCommand:   "${opts.game.launchCommand}",\n`+
-                  `    command:         "${command}" ]`);
-    })
-    .catch((error) => {
-      log.info('Game Launcher', `Game Launch Aborted: ${error}`);
-    });
+    await launchCb(gameLaunchInfo);
   }
 
   /**
