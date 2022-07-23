@@ -114,7 +114,7 @@
     "copy404Urls": "Copia URL 404",
     "uploadLog": "Carica Registro",
     "copiedToClipboard": "Copiato negli appunti",
-    "openLogsWindow": "Apri Finestra Di Log"
+    "openLogsWindow": "Apri Finestra dei Registri"
   },
   "app": {
     "home": "Per Iniziare",
@@ -508,7 +508,7 @@
   },
   "libraries": {
     "arcade": "Giochi",
-    "arcadeSingular": "Partita",
+    "arcadeSingular": "Gioco",
     "arcadePlural": "Tutti i Giochi",
     "theatre": "Animazioni",
     "theatreSingular": "Animazione",
