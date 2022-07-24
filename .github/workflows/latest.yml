@@ -41,7 +41,7 @@ jobs:
         CI: true
     - name: Install dmg-license
       if: matrix.os == 'macOS-latest'
-      run: npm i dmg-license
+      run: npm install dmg-license --force
     - name: Build and Release 
       run: npm run release
       env:
