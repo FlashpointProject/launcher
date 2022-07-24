@@ -283,10 +283,9 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   console.log('Back - Loaded Config');
 
-  // If we're on mac and the flashpoint path is relative, resolve it relative to the configFolder path.
-  state.config.flashpointPath = process.platform == 'darwin' && state.config.flashpointPath[0] != '/'
-    ? path.resolve(state.configFolder, state.config.flashpointPath)
-    : state.config.flashpointPath;
+  if (process.platform === 'darwin') {
+    process.chdir(state.configFolder);
+  }
 
   const loadPrefs = async (): Promise<void> => {
     // @TODO Figure out why async loading isn't always working?
