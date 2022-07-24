@@ -4,7 +4,7 @@ import * as remoteMain from '@electron/remote/main';
 import { SocketClient } from '@shared/back/SocketClient';
 import { BackOut } from '@shared/back/types';
 import { AppConfigData } from '@shared/config/interfaces';
-import { InitRendererChannel, InitRendererData } from '@shared/IPC';
+import { InitRendererChannel, InitRendererData } from '@main/IPC';
 import { AppPreferencesData } from '@shared/preferences/interfaces';
 import { PreferencesFile } from '@back/preferences/PreferencesFile';
 import { createErrorProxy } from '@shared/Util';

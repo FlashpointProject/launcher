@@ -1,7 +1,7 @@
 import * as remote from '@electron/remote';
 import { SocketClient } from '@shared/back/SocketClient';
 import { BackIn, BackOut } from '@shared/back/types';
-import { InitRendererChannel, InitRendererData } from '@shared/IPC';
+import { InitRendererChannel, InitRendererData } from '@main/IPC';
 import { setTheme } from '@shared/Theme';
 import { createErrorProxy } from '@shared/Util';
 import * as electron from 'electron';
