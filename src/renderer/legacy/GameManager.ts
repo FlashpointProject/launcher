@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
 import { Legacy_GameParser } from './GameParser';
-import { Legacy_GamePlatform, Legacy_IRawPlatformFile } from './interfaces';
+import { Legacy_GamePlatform, Legacy_IRawPlatformFile } from '@shared/legacy/interfaces';
 import { Legacy_errorCopy } from './misc';
 import { Legacy_LoadPlatformError } from './types';
 

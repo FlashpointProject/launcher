@@ -1,4 +1,4 @@
-import { Legacy_IAdditionalApplicationInfo, Legacy_IGameCollection, Legacy_IGameInfo, Legacy_IRawPlatformFile, Legacy_IRawGameInfo, Legacy_IRawAdditionalApplicationInfo } from './interfaces';
+import { Legacy_IAdditionalApplicationInfo, Legacy_IGameCollection, Legacy_IGameInfo, Legacy_IRawPlatformFile, Legacy_IRawGameInfo, Legacy_IRawAdditionalApplicationInfo } from '@shared/legacy/interfaces';
 
 export class Legacy_GameParser {
   public static parse(data: Legacy_IRawPlatformFile, filename: string): Legacy_IGameCollection {
