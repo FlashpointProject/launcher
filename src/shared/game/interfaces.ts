@@ -1,6 +1,6 @@
-import { AdditionalApp } from '../../database/entity/AdditionalApp';
-import { Game } from '../../database/entity/Game';
-import { Playlist } from '../../database/entity/Playlist';
+import { AdditionalApp } from '@database/entity/AdditionalApp';
+import { Game } from '@database/entity/Game';
+import { Playlist } from '@database/entity/Playlist';
 import { OrderGamesOpts } from './GameFilter';
 
 export const UNKNOWN_LIBRARY = 'unknown';
