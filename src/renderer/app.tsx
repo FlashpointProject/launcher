@@ -12,7 +12,7 @@ import { setTheme } from '@shared/Theme';
 import { getUpgradeString } from '@renderer/util/upgrade';
 import { canReadWrite, deepCopy, getFileServerURL, recursiveReplace, sizeToString } from '@shared/Util';
 import { arrayShallowStrictEquals } from '@renderer/util/compare';
-import { debounce } from '@shared/utils/debounce';
+import { debounce } from '@renderer/util/debounce';
 import { formatString } from '@shared/utils/StringFormatter';
 import { clipboard, ipcRenderer, Menu, MenuItemConstructorOptions } from 'electron';
 import { AppUpdater } from 'electron-updater';
