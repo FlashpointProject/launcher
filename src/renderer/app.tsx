@@ -9,7 +9,7 @@ import { LangContainer } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { setTheme } from '@shared/Theme';
-import { getUpgradeString } from '@shared/upgrade/util';
+import { getUpgradeString } from '@renderer/util/upgrade';
 import { canReadWrite, deepCopy, getFileServerURL, recursiveReplace, sizeToString } from '@shared/Util';
 import { arrayShallowStrictEquals } from '@shared/utils/compare';
 import { debounce } from '@shared/utils/debounce';

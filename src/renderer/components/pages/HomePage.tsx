@@ -6,7 +6,7 @@ import { ARCADE, THEATRE } from '@shared/constants';
 import { wrapSearchTerm } from '@shared/game/GameFilter';
 import { LangContainer } from '@shared/lang';
 import { updatePreferencesData } from '@shared/preferences/util';
-import { getUpgradeString } from '@shared/upgrade/util';
+import { getUpgradeString } from '@renderer/util/upgrade';
 import { formatString } from '@shared/utils/StringFormatter';
 import { AppUpdater, UpdateInfo } from 'electron-updater';
 import * as path from 'path';
