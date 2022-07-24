@@ -4,7 +4,7 @@ import { SourceData } from '@database/entity/SourceData';
 import { LangContext } from '@renderer/util/lang';
 import { BackIn } from '@shared/back/types';
 import { LangContainer } from '@shared/lang';
-import { memoizeOne } from '@shared/memoize';
+import { memoizeOne } from '@renderer/util/memoize';
 import * as React from 'react';
 import { FloatingContainer } from './FloatingContainer';
 import { GameDataInfo } from './GameDataInfo';

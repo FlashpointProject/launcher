@@ -4,7 +4,7 @@ import { ArgumentTypesOf } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { LogLevel } from '@shared/Log/interface';
 import { stringifyLogEntries } from '@renderer/Log/LogCommon';
-import { memoizeOne } from '@shared/memoize';
+import { memoizeOne } from '@renderer/util/memoize';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { shallowStrictEquals } from '@shared/Util';
 import { clipboard } from 'electron';

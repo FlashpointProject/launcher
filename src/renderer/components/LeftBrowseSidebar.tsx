@@ -1,6 +1,6 @@
 import { Playlist } from '@database/entity/Playlist';
 import { LangContainer } from '@shared/lang';
-import { memoizeOne } from '@shared/memoize';
+import { memoizeOne } from '@renderer/util/memoize';
 import * as React from 'react';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { gameIdDataType } from '../Util';

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { memoizeOne } from '@shared/memoize';
+import { memoizeOne } from '@renderer/util/memoize';
 import { checkIfAncestor } from '../Util';
 import { InputField, InputFieldProps } from './InputField';
 

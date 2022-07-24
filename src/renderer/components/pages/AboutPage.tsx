@@ -1,5 +1,5 @@
 import { LangContainer } from '@shared/lang';
-import { memoizeOne } from '@shared/memoize';
+import { memoizeOne } from '@renderer/util/memoize';
 import { versionNumberToText } from '@shared/Util';
 import * as React from 'react';
 import { CreditsBlock, CreditsData, CreditsDataProfile, CreditsDataRole } from '../../credits/types';

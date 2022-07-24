@@ -1,4 +1,4 @@
-import { memoizeOne } from '@shared/memoize';
+import { memoizeOne } from '@renderer/util/memoize';
 import * as React from 'react';
 import { ConfigBox, ConfigBoxProps } from './ConfigBox';
 
