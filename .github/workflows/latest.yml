@@ -39,6 +39,9 @@ jobs:
       if: steps.cache.outputs.cache-hit != 'true'
       env:
         CI: true
+    - name: Install dmg-license
+      if: matrix.os == 'macOS-latest'
+      run: npm i dmg-license
     - name: Build and Release 
       run: npm run release
       env:
