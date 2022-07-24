@@ -3,7 +3,7 @@ import { BackIn, BackOut } from '@shared/back/types';
 import { ArgumentTypesOf } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { LogLevel } from '@shared/Log/interface';
-import { stringifyLogEntries } from '@shared/Log/LogCommon';
+import { stringifyLogEntries } from '@renderer/Log/LogCommon';
 import { memoizeOne } from '@shared/memoize';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { shallowStrictEquals } from '@shared/Util';

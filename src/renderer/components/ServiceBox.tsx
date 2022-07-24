@@ -3,7 +3,7 @@ import { BackIn } from '@shared/back/types';
 import { IBackProcessInfo, IService, ProcessAction, ProcessState } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { ILogEntry } from '@shared/Log/interface';
-import { escapeHTML, formatTime, padLines, timeChars } from '@shared/Log/LogCommon';
+import { escapeHTML, formatTime, padLines, timeChars } from '@renderer/Log/LogCommon';
 import * as React from 'react';
 import { setInterval } from 'timers';
 import { LangContext } from '../util/lang';
