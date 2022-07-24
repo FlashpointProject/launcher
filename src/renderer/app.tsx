@@ -11,7 +11,7 @@ import { updatePreferencesData } from '@shared/preferences/util';
 import { setTheme } from '@shared/Theme';
 import { getUpgradeString } from '@renderer/util/upgrade';
 import { canReadWrite, deepCopy, getFileServerURL, recursiveReplace, sizeToString } from '@shared/Util';
-import { arrayShallowStrictEquals } from '@shared/utils/compare';
+import { arrayShallowStrictEquals } from '@renderer/util/compare';
 import { debounce } from '@shared/utils/debounce';
 import { formatString } from '@shared/utils/StringFormatter';
 import { clipboard, ipcRenderer, Menu, MenuItemConstructorOptions } from 'electron';
