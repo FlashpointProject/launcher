@@ -22,7 +22,7 @@ import { ILogoSet, LogoSet } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
 import { getDefaultLocalization, LangFileContent } from '@shared/lang';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
-import { PreferencesFile } from '@shared/preferences/PreferencesFile';
+import { PreferencesFile } from '@back/preferences/PreferencesFile';
 import { defaultPreferencesData } from '@shared/preferences/util';
 import { Theme } from '@shared/ThemeFile';
 import { createErrorProxy, deepCopy, removeFileExtension, stringifyArray } from '@shared/Util';

@@ -3,7 +3,7 @@ import { CONFIG_FILENAME, PREFERENCES_FILENAME } from '@back/constants';
 import * as remoteMain from '@electron/remote/main';
 import { AppConfigData } from '@shared/config/interfaces';
 import { AppPreferencesData } from '@shared/preferences/interfaces';
-import { PreferencesFile } from '@shared/preferences/PreferencesFile';
+import { PreferencesFile } from '@back/preferences/PreferencesFile';
 import { createErrorProxy } from '@shared/Util';
 import { app, BrowserWindow, session, shell } from 'electron';
 import * as fs from 'fs';

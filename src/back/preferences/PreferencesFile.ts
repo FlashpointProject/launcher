@@ -1,9 +1,9 @@
 import { getTempFilename } from '@back/util/misc';
 import * as fs from 'fs';
 import * as path from 'path';
-import { deepCopy, readJsonFile, readJsonFileSync, stringifyJsonDataFile } from '../Util';
-import { AppPreferencesData } from './interfaces';
-import { defaultPreferencesData, overwritePreferenceData } from './util';
+import { deepCopy, readJsonFile, readJsonFileSync, stringifyJsonDataFile } from '@shared/Util';
+import { AppPreferencesData } from '@shared/preferences/interfaces';
+import { defaultPreferencesData, overwritePreferenceData } from '@shared/preferences/util';
 
 /** Static class with methods for saving, loading and parsing the Preferences file */
 export namespace PreferencesFile {

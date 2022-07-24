@@ -15,7 +15,7 @@ import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { IExtensionManifest } from '@shared/extensions/interfaces';
 import { ProcessState } from '@shared/interfaces';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
-import { PreferencesFile } from '@shared/preferences/PreferencesFile';
+import { PreferencesFile } from '@back/preferences/PreferencesFile';
 import { overwritePreferenceData } from '@shared/preferences/util';
 import * as flashpoint from 'flashpoint-launcher';
 import { extractFull } from 'node-7z';

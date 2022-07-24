@@ -15,7 +15,7 @@ import { FilterGameOpts } from '@shared/game/GameFilter';
 import { DeepPartial, GamePropSuggestions, ProcessAction, ProcessState } from '@shared/interfaces';
 import { LogLevel } from '@shared/Log/interface';
 import { MetaEditFile, MetaEditMeta } from '@shared/MetaEdit';
-import { PreferencesFile } from '@shared/preferences/PreferencesFile';
+import { PreferencesFile } from '@back/preferences/PreferencesFile';
 import { defaultPreferencesData, overwritePreferenceData } from '@shared/preferences/util';
 import { deepCopy, padEnd } from '@shared/Util';
 import { sanitizeFilename } from '@shared/utils/sanitizeFilename';
