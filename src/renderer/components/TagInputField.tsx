@@ -1,7 +1,7 @@
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
 import { TagSuggestion } from '@shared/back/types';
-import { memoizeOne } from '@shared/memoize';
+import { memoizeOne } from '@renderer/util/memoize';
 import * as React from 'react';
 import { checkIfAncestor } from '../Util';
 import { InputField, InputFieldProps } from './InputField';

@@ -1,5 +1,5 @@
-import { AdditionalApp } from '../../database/entity/AdditionalApp';
-import { Game } from '../../database/entity/Game';
+import { AdditionalApp } from '@database/entity/AdditionalApp';
+import { Game } from '@database/entity/Game';
 
 export namespace ModelUtils {
   export function createGame(): Game {

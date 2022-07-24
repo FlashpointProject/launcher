@@ -8,8 +8,8 @@ import { CurationIndex, EditCuration, EditCurationMeta } from '@shared/curate/ty
 import { getContentFolderByKey, getCurationFolder, indexContentFolder } from '@shared/curate/util';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
-import { getLibraryItemTitle } from '@shared/library/util';
-import { memoizeOne } from '@shared/memoize';
+import { getLibraryItemTitle } from '@renderer/util/library';
+import { memoizeOne } from '@renderer/util/memoize';
 import { updatePreferencesData } from '@shared/preferences/util';
 import * as fs from 'fs-extra';
 import * as path from 'path';

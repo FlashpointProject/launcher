@@ -4,7 +4,7 @@ import { BackIn, BackInitArgs, BackOut } from '@shared/back/types';
 import { AppConfigData } from '@shared/config/interfaces';
 import { APP_TITLE } from '@shared/constants';
 import { WindowIPC } from '@shared/interfaces';
-import { InitRendererChannel, InitRendererData } from '@shared/IPC';
+import { InitRendererChannel, InitRendererData } from '@main/IPC';
 import { AppPreferencesData } from '@shared/preferences/interfaces';
 import { createErrorProxy } from '@shared/Util';
 import { ChildProcess, fork } from 'child_process';

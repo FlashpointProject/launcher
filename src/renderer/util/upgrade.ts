@@ -1,4 +1,5 @@
 import { indexContentFolder } from '@shared/curate/util';
+import { LangContainer } from '@shared/lang';
 import * as crypto from 'crypto';
 import { EventEmitter } from 'events';
 import { http, https } from 'follow-redirects';
@@ -263,4 +264,9 @@ function createMiddleStream(onData: (length: number) => void): stream.Transform 
       callback();
     }
   });
+}
+
+/** Returns the localized string for an upgrade (Or the same string, if none is found) */
+export function getUpgradeString(str: string, lang?: LangContainer['upgrades']) {
+  return lang && lang[str] || str;
 }

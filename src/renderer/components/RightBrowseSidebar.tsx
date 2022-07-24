@@ -7,7 +7,7 @@ import { WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
 import { BackIn, BackOut, BackOutTemplate, TagSuggestion } from '@shared/back/types';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { wrapSearchTerm } from '@shared/game/GameFilter';
-import { ModelUtils } from '@shared/game/util';
+import { ModelUtils } from '@renderer/util/game';
 import { GamePropSuggestions, PickType, ProcessAction } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { deepCopy, generateTagFilterGroup, sizeToString } from '@shared/Util';

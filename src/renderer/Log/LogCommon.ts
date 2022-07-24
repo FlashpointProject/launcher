@@ -1,5 +1,5 @@
-import { padStart } from '../Util';
-import { ILogEntry, LogLevel } from './interface';
+import { padStart } from '@shared/Util';
+import { ILogEntry, LogLevel } from '@shared/Log/interface';
 
 export const timeChars = 11; // "[HH:MM:SS] "
 const sourceChars = 19; // "Background Services" (sometimes used with +2 to add the length of ": ")

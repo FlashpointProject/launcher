@@ -1,5 +1,5 @@
-import { AnyFunction, ArgumentTypesOf, ReturnTypeOf } from './interfaces';
-import { shallowStrictEquals } from './Util';
+import { AnyFunction, ArgumentTypesOf, ReturnTypeOf } from '@shared/interfaces';
+import { shallowStrictEquals } from '@shared/Util';
 
 /** Callable object, A is the arguments, R is the return value */
 interface Callable<A extends any[], R> extends Function {

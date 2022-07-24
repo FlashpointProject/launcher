@@ -1,5 +1,5 @@
 import { AppExtConfigData } from '@shared/config/interfaces';
-import { overwriteExtConfigData } from '@shared/config/util';
+import { overwriteExtConfigData } from '@back/config/util';
 import { readJsonFile, readJsonFileSync, stringifyJsonDataFile } from '@shared/Util';
 import * as fs from 'fs';
 

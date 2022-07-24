@@ -2,7 +2,7 @@ import { WithMainStateProps } from '@renderer/containers/withMainState';
 import { MainActionType } from '@renderer/store/main/enums';
 import { parseBrowsePageLayout, stringifyBrowsePageLayout } from '@shared/BrowsePageLayout';
 import { LangContainer } from '@shared/lang';
-import { getLibraryItemTitle } from '@shared/library/util';
+import { getLibraryItemTitle } from '@renderer/util/library';
 import { updatePreferencesData } from '@shared/preferences/util';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';

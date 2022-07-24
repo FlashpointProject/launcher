@@ -1,6 +1,6 @@
 import { BackOut, BackOutTemplate } from '@shared/back/types';
 import { LOGOS, VIEW_PAGE_SIZE } from '@shared/constants';
-import { memoizeOne } from '@shared/memoize';
+import { memoizeOne } from '@renderer/util/memoize';
 import * as React from 'react';
 import { ArrowKeyStepper, AutoSizer, ScrollIndices } from 'react-virtualized';
 import { Grid, GridCellProps, RenderedSection } from 'react-virtualized/dist/es/Grid';

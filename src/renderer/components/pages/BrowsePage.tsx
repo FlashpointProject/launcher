@@ -8,7 +8,7 @@ import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { ExtensionContribution } from '@shared/extensions/interfaces';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
-import { memoizeOne } from '@shared/memoize';
+import { memoizeOne } from '@renderer/util/memoize';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';

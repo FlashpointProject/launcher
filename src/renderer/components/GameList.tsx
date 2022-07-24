@@ -1,6 +1,6 @@
 import { withPreferences, WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { VIEW_PAGE_SIZE } from '@shared/constants';
-import { memoizeOne } from '@shared/memoize';
+import { memoizeOne } from '@renderer/util/memoize';
 import * as React from 'react';
 import { ArrowKeyStepper, AutoSizer, List, ListRowProps, ScrollIndices } from 'react-virtualized';
 import { UpdateView, ViewGameSet } from '../interfaces';

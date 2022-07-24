@@ -9,7 +9,7 @@ import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { DevScript, ExtensionContribution } from '@shared/extensions/interfaces';
 import { ExecMapping, IService } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
-import { Legacy_PlatformFileIterator } from '@shared/legacy/GameManager';
+import { Legacy_PlatformFileIterator } from '@renderer/legacy/GameManager';
 import { stringifyMetaValue } from '@shared/MetaEdit';
 import * as fs from 'fs-extra';
 import * as path from 'path';

@@ -5,7 +5,7 @@ import { BackIn } from '@shared/back/types';
 import { AppExtConfigData } from '@shared/config/interfaces';
 import { ExtConfigurationProp, ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { autoCode, LangContainer, LangFile } from '@shared/lang';
-import { memoizeOne } from '@shared/memoize';
+import { memoizeOne } from '@renderer/util/memoize';
 import { updatePreferencesData, updatePreferencesDataAsync } from '@shared/preferences/util';
 import { ITheme } from '@shared/ThemeFile';
 import { deepCopy } from '@shared/Util';
