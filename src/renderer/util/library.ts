@@ -1,4 +1,4 @@
-import { LangContainer } from '../lang';
+import { LangContainer } from '@shared/lang';
 
 /**
  * Get the title of a library item from a language sub-container (or return the item's route if none was found).

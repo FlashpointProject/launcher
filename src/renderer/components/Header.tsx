@@ -1,7 +1,7 @@
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
 import { BackIn, TagSuggestion } from '@shared/back/types';
 import { LangContainer } from '@shared/lang';
-import { getLibraryItemTitle } from '@shared/library/util';
+import { getLibraryItemTitle } from '@renderer/util/library';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import * as React from 'react';
 import { Link, RouteComponentProps, useLocation } from 'react-router-dom';
