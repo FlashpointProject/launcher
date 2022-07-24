@@ -6,7 +6,7 @@ import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
 import { BackIn, BackInit, BackOut, DownloadDetails } from '@shared/back/types';
-import { overwriteConfigData } from '@shared/config/util';
+import { overwriteConfigData } from '@back/config/util';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { getContentFolderByKey } from '@shared/curate/util';

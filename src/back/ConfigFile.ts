@@ -1,5 +1,5 @@
 import { AppConfigData } from '@shared/config/interfaces';
-import { getDefaultConfigData, overwriteConfigData } from '@shared/config/util';
+import { getDefaultConfigData, overwriteConfigData } from '@back/config/util';
 import { deepCopy, readJsonFile, readJsonFileSync, stringifyJsonDataFile } from '@shared/Util';
 import * as fs from 'fs';
 
