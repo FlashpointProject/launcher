@@ -304,7 +304,7 @@
     "mountParameters": "Mount Parameters",
     "noMountParameters": "No Mount Parameters",
     "showExtremeScreenshot": "Show Extreme Screenshot",
-    "busy": "Busy"
+    "busy": "Please Wait..."
   },
   "tags": {
     "name": "Name",

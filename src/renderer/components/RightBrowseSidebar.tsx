@@ -152,6 +152,17 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   componentDidMount() {
     window.Shared.back.registerAny(this.onResponse);
     window.addEventListener('keydown', this.onGlobalKeyDown);
+
+    if (this.props.currentGame && this.props.currentGame.activeDataId) {
+      window.Shared.back.request(BackIn.GET_GAME_DATA, this.props.currentGame.activeDataId)
+      .then((data) => {
+        if (data) {
+          this.setState({
+            activeData: data
+          });
+        }
+      });
+    }
   }
 
   componentWillUnmount() {
