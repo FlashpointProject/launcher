@@ -114,7 +114,8 @@
     "copy404Urls": "404-URLs kopieren",
     "uploadLog": "Log hochladen",
     "copiedToClipboard": "In Zwischenablage kopiert",
-    "openLogsWindow": "Öffne Logs Fenster"
+    "openLogsWindow": "Öffne Logs Fenster",
+    "copyDiagnostics": "Copy Diagnostics"
   },
   "app": {
     "home": "Start",
@@ -302,7 +303,8 @@
     "noGameMatchedSearch": "Versuche, nach etwas weniger Restriktivem zu suchen.",
     "mountParameters": "Mount-Parameter",
     "noMountParameters": "Keine Mount-Parameter",
-    "showExtremeScreenshot": "Extremen Screenshot anzeigen"
+    "showExtremeScreenshot": "Extremen Screenshot anzeigen",
+    "busy": "Please Wait..."
   },
   "tags": {
     "name": "Name",
