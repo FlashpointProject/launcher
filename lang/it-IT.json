@@ -115,7 +115,7 @@
     "uploadLog": "Carica Registro",
     "copiedToClipboard": "Copiato negli appunti",
     "openLogsWindow": "Apri Finestra dei Registri",
-    "copyDiagnostics": "Copy Diagnostics"
+    "copyDiagnostics": "Copia Diagnostica"
   },
   "app": {
     "home": "Per Iniziare",
@@ -304,7 +304,7 @@
     "mountParameters": "Parametri di Montaggio",
     "noMountParameters": "Nessun Parametro di Montaggio",
     "showExtremeScreenshot": "Mostra Schermata Estrema",
-    "busy": "Please Wait..."
+    "busy": "Attendere Prego..."
   },
   "tags": {
     "name": "Nome",
