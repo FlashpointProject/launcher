@@ -115,7 +115,7 @@
     "uploadLog": "Log feltöltése",
     "copiedToClipboard": "Vágólapra másolva",
     "openLogsWindow": "A Logok ablakot megnyitja",
-    "copyDiagnostics": "Copy Diagnostics"
+    "copyDiagnostics": "Diagnosztika Másolása"
   },
   "app": {
     "home": "Kezdőlap",
@@ -304,7 +304,7 @@
     "mountParameters": "Mount paraméterek",
     "noMountParameters": "Nincsen mount paraméter(ek)",
     "showExtremeScreenshot": "Extrém képernyőmentések mutatása",
-    "busy": "Please Wait..."
+    "busy": "Kérem várjon..."
   },
   "tags": {
     "name": "Név",
