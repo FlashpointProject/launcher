@@ -114,7 +114,8 @@
     "copy404Urls": "Zkopírovat 404 URL adresy",
     "uploadLog": "Nahrát Log",
     "copiedToClipboard": "Zkopírováno do Schránky",
-    "openLogsWindow": "Otevřít okno s logy"
+    "openLogsWindow": "Otevřít okno s logy",
+    "copyDiagnostics": "Copy Diagnostics"
   },
   "app": {
     "home": "Domů",
@@ -302,7 +303,8 @@
     "noGameMatchedSearch": "Zkuste méně omezit výběr hledání.",
     "mountParameters": "Zavádějící parametry",
     "noMountParameters": "Žádné zavádějící parametry",
-    "showExtremeScreenshot": "Zobrazovat snímky obrazovky pro dospělé"
+    "showExtremeScreenshot": "Zobrazovat snímky obrazovky pro dospělé",
+    "busy": "Please Wait..."
   },
   "tags": {
     "name": "Název",
