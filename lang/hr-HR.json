@@ -114,7 +114,8 @@
     "copy404Urls": "Copy 404 URLs",
     "uploadLog": "Upload Log",
     "copiedToClipboard": "Copied to Clipboard",
-    "openLogsWindow": "Open Logs Window"
+    "openLogsWindow": "Open Logs Window",
+    "copyDiagnostics": "Copy Diagnostics"
   },
   "app": {
     "home": "Home",
@@ -302,7 +303,8 @@
     "noGameMatchedSearch": "Try searching for something less restrictive.",
     "mountParameters": "Mount Parameters",
     "noMountParameters": "No Mount Parameters",
-    "showExtremeScreenshot": "Prikaži ekstremne snimke zaslona"
+    "showExtremeScreenshot": "Prikaži ekstremne snimke zaslona",
+    "busy": "Please Wait..."
   },
   "tags": {
     "name": "Naziv",
