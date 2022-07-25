@@ -114,7 +114,8 @@
     "copy404Urls": "Скопировать 404 ссылки",
     "uploadLog": "Журнал загрузки",
     "copiedToClipboard": "Скопировано в буфер обмена",
-    "openLogsWindow": "Open Logs Window"
+    "openLogsWindow": "Open Logs Window",
+    "copyDiagnostics": "Copy Diagnostics"
   },
   "app": {
     "home": "Главная",
@@ -302,7 +303,8 @@
     "noGameMatchedSearch": "Попробуйте изменить запрос на менее конкретный.",
     "mountParameters": "Параметры монтирования",
     "noMountParameters": "Нет параметров шейдера",
-    "showExtremeScreenshot": "Показать Экстремальный Скриншот"
+    "showExtremeScreenshot": "Показать Экстремальный Скриншот",
+    "busy": "Please Wait..."
   },
   "tags": {
     "name": "Наименование",
