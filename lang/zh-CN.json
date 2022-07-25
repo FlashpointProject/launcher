@@ -114,7 +114,8 @@
     "copy404Urls": "复制 404 URL",
     "uploadLog": "上传日志",
     "copiedToClipboard": "复制到剪贴板",
-    "openLogsWindow": "打开日志窗口"
+    "openLogsWindow": "打开日志窗口",
+    "copyDiagnostics": "Copy Diagnostics"
   },
   "app": {
     "home": "主页",
@@ -302,7 +303,8 @@
     "noGameMatchedSearch": "请尝试用更宽泛的关键词搜索。",
     "mountParameters": "挂载参数",
     "noMountParameters": "无挂载参数",
-    "showExtremeScreenshot": "显示成人截图"
+    "showExtremeScreenshot": "显示成人截图",
+    "busy": "Please Wait..."
   },
   "tags": {
     "name": "名称",
