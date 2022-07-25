@@ -114,7 +114,8 @@
     "copy404Urls": "Copiază URL-urile 404",
     "uploadLog": "Încarcă jurnalul",
     "copiedToClipboard": "Copiat",
-    "openLogsWindow": "Open Logs Window"
+    "openLogsWindow": "Open Logs Window",
+    "copyDiagnostics": "Copy Diagnostics"
   },
   "app": {
     "home": "Pag. principală",
@@ -302,7 +303,8 @@
     "noGameMatchedSearch": "Încercați alte cuvinte cheie.",
     "mountParameters": "Parametri de montare",
     "noMountParameters": "Fără parametri de montare",
-    "showExtremeScreenshot": "Arată capturile de ecran extreme"
+    "showExtremeScreenshot": "Arată capturile de ecran extreme",
+    "busy": "Please Wait..."
   },
   "tags": {
     "name": "Nume",
