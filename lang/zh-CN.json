@@ -115,7 +115,7 @@
     "uploadLog": "上传日志",
     "copiedToClipboard": "复制到剪贴板",
     "openLogsWindow": "打开日志窗口",
-    "copyDiagnostics": "Copy Diagnostics"
+    "copyDiagnostics": "复制诊断信息"
   },
   "app": {
     "home": "主页",
@@ -304,7 +304,7 @@
     "mountParameters": "挂载参数",
     "noMountParameters": "无挂载参数",
     "showExtremeScreenshot": "显示成人截图",
-    "busy": "Please Wait..."
+    "busy": "请稍候…"
   },
   "tags": {
     "name": "名称",
