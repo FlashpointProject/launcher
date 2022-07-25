@@ -114,7 +114,8 @@
     "copy404Urls": "Chép URL 404",
     "uploadLog": "Tải lên bản ghi",
     "copiedToClipboard": "Đã chép vào bộ nhớ tạm",
-    "openLogsWindow": "Mở cửa sổ nhật kí"
+    "openLogsWindow": "Mở cửa sổ nhật kí",
+    "copyDiagnostics": "Copy Diagnostics"
   },
   "app": {
     "home": "Trang chủ",
@@ -302,7 +303,8 @@
     "noGameMatchedSearch": "Hãy tìm từ khoá chung chung hơn.",
     "mountParameters": "Tham Số Khởi Động Trò Chơi",
     "noMountParameters": "Không có Tham Số Khởi Động Trò Chơi",
-    "showExtremeScreenshot": "Hiện ảnh chụp màn hình phản cảm"
+    "showExtremeScreenshot": "Hiện ảnh chụp màn hình phản cảm",
+    "busy": "Please Wait..."
   },
   "tags": {
     "name": "Tên",
