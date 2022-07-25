@@ -4,8 +4,16 @@
     "configHeader": "Configuração",
     "configDesc": "(Deves carregar em \"Guardar & Reiniciar\" para que algumas alterações sejam feitas)",
     "preferencesHeader": "Preferências",
-    "extremeGames": "Extreme Content",
-    "extremeGamesDesc": "Allow tags inside 'Extreme' tag filter groups and corresponding games to be shown.",
+    "extremeGames": "Show Extreme Filters",
+    "extremeGamesDesc": "Allows Extreme tag filters to be toggled, created and modified to control content unsuitable for children.",
+    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
+    "fancyAnimations": "Fancy Animations",
+    "fancyAnimationsDesc": "Enable fancy animations in the launcher.",
+    "searchLimit": "Search Limit",
+    "searchLimitDesc": "Limit the number of results returned in any search",
+    "searchLimitUnlimited": "Unlimited",
+    "searchLimitValue": "{0} Results",
     "enableEditing": "Habilitar Edição",
     "enableEditingDesc": "Habilita a edição de jogos e aplicativos adicionais. Também revela abas relacionadas a edição.",
     "onDemandImages": "Imagens sob demanda",
@@ -16,6 +24,7 @@
     "fallbackLanguageDesc": "Qual é a língua a ser usada caso a língua atual esteja incompleta.",
     "auto": "Auto ({0})",
     "none": "Nenhuma",
+    "contentFiltersHeader": "Content Filters",
     "flashpointHeader": "Flashpoint",
     "flashpointPath": "Caminho do Flashpoint",
     "flashpointPathDesc": "Caminho para a pasta do Flashpoint (pode ser relativo)",
@@ -79,6 +88,7 @@
     "helpInfo": "Precisas de ajuda? {0}.",
     "help": "Leia o manual",
     "upgradesHeader": "Atualizações",
+    "updateFeedHeader": "News Feed",
     "installComplete": "Instalação Completada",
     "alreadyInstalled": "Já Está Instalado",
     "download": "Descarregar",
@@ -103,7 +113,8 @@
     "clearLog": "Limpar o Registo",
     "copy404Urls": "Copiar URLs 404",
     "uploadLog": "Enviar Log",
-    "copiedToClipboard": "Copiado para a área de transferência"
+    "copiedToClipboard": "Copiado para a área de transferência",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "Página Inicial",
@@ -266,7 +277,7 @@
     "thumbnail": "Logotipo",
     "screenshot": "Captura de ecrã",
     "dropImageHere": "Largue uma imagem aqui para a inserir",
-    "noGameSelected": "Nenhum jogo seleccionado",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "Clique em um jogo para selecioná-lo.",
     "deleteAdditionalApplication": "Excluir Aplicação Adicional",
     "deleteGameAndAdditionalApps": "Excluir Jogo (e Aplicações Adicionais)",
@@ -288,7 +299,10 @@
     "saveAndRestart": "Guardar e Reiniciar",
     "thereAreNoGames": "Não há jogos.",
     "noGameMatchedDesc": "Nenhum título do jogo corresponde à sua pesquisa.",
-    "noGameMatchedSearch": "Tente procurar algo menos restritivo."
+    "noGameMatchedSearch": "Tente procurar algo menos restritivo.",
+    "mountParameters": "Mount Parameters",
+    "noMountParameters": "No Mount Parameters",
+    "showExtremeScreenshot": "Show Extreme Screenshot"
   },
   "tags": {
     "name": "Nome",
@@ -413,7 +427,9 @@
     "installingFiles": "Instalando Arquivos...",
     "complete": "Completo",
     "exportMetaEditTitle": "Exportar Edições de Meta",
-    "exportMetaEditDesc": "Selecionar todas as propriedades para exportar:"
+    "exportMetaEditDesc": "Selecionar todas as propriedades para exportar:",
+    "showImage": "Show Image",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "Visualizar miniatura na pasta",
@@ -492,10 +508,13 @@
   },
   "libraries": {
     "arcade": "Jogos",
+    "arcadeSingular": "Game",
     "arcadePlural": "Todos os Jogos",
     "theatre": "Animações",
+    "theatreSingular": "Animation",
     "theatrePlural": "Todas as Animações",
     "auditorium": "Auditório de NG",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "Todas as animações de NG"
   },
   "upgrades": {

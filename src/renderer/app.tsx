@@ -811,7 +811,17 @@ export class App extends React.Component<AppProps> {
 
   onGameLaunch = async (gameId: string): Promise<void> => {
     log.debug('Launcher', 'Launching Game - ' + gameId);
-    await window.Shared.back.request(BackIn.LAUNCH_GAME, gameId);
+    this.props.dispatchMain({
+      type: MainActionType.BUSY_GAME,
+      gameId
+    });
+    await window.Shared.back.request(BackIn.LAUNCH_GAME, gameId)
+    .finally(() => {
+      this.props.dispatchMain({
+        type: MainActionType.UNBUSY_GAME,
+        gameId
+      });
+    });
   }
 
   onDeleteSelectedGame = async (): Promise<void> => {
@@ -1217,6 +1227,7 @@ export class App extends React.Component<AppProps> {
                         onSaveGame={this.onSaveEditClick}
                         tagCategories={this.props.tagCategories}
                         suggestions={this.props.main.suggestions}
+                        busyGames={this.props.main.busyGames}
                         onOpenExportMetaEdit={this.onOpenExportMetaEdit} />
                     </ResizableSidebar>
                   )}

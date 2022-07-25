@@ -124,6 +124,7 @@ const langTemplate = {
     'uploadLog',
     'copiedToClipboard',
     'openLogsWindow',
+    'copyDiagnostics',
   ] as const,
   app: [
     'home',
@@ -317,6 +318,7 @@ const langTemplate = {
     'mountParameters',
     'noMountParameters',
     'showExtremeScreenshot',
+    'busy',
   ] as const,
   tags: [
     'name',

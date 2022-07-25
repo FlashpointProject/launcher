@@ -50,6 +50,7 @@ import { DataSource, DataSourceOptions } from 'typeorm';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE } from './constants';
 import {
+  CURATIONS_FOLDER_EXPORTED,
   CURATIONS_FOLDER_EXTRACTING,
   CURATIONS_FOLDER_TEMP,
   CURATIONS_FOLDER_WORKING, CURATION_META_FILENAMES
@@ -342,10 +343,9 @@ async function prepForInit(message: any, sendHandle: any): Promise<void> {
 
   console.log('Back - Loaded Config');
 
-  // If we're on mac and the flashpoint path is relative, resolve it relative to the configFolder path.
-  state.config.flashpointPath = process.platform == 'darwin' && state.config.flashpointPath[0] != '/'
-    ? path.resolve(state.configFolder, state.config.flashpointPath)
-    : state.config.flashpointPath;
+  if (process.platform === 'darwin') {
+    process.chdir(state.configFolder);
+  }
 
   const loadPrefs = async (): Promise<void> => {
     // @TODO Figure out why async loading isn't always working?
@@ -600,6 +600,24 @@ async function whenReady(): Promise<void> {
 async function initialize() {
   await whenReady();
 
+  // Ensure all directory structures exist
+  try {
+    await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath));
+    await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.extensionsPath));
+    await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.jsonFolderPath));
+    await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.logoFolderPath));
+    await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.imageFolderPath));
+    await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.themeFolderPath));
+    await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.logoSetsFolderPath));
+    await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.metaEditsFolderPath));
+    await fs.ensureDir(path.join(state.config.flashpointPath, CURATIONS_FOLDER_EXTRACTING));
+    await fs.ensureDir(path.join(state.config.flashpointPath, CURATIONS_FOLDER_TEMP));
+    await fs.ensureDir(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING));
+    await fs.ensureDir(path.join(state.config.flashpointPath, CURATIONS_FOLDER_EXPORTED));
+  } catch (err: any) {
+    console.error('Failed to create a required directory - ' + err.toString());
+  }
+
   try {
     const [extConf] = await (Promise.all([
       ExtConfigFile.readOrCreateFile(path.join(state.config.flashpointPath, EXT_CONFIG_FILENAME))
@@ -615,7 +633,6 @@ async function initialize() {
   // Create Game Data Directory and clean up temp files
   const fullDataPacksFolderPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath);
   try {
-    await fs.promises.mkdir(fullDataPacksFolderPath, { recursive: true });
     fs.promises.readdir(fullDataPacksFolderPath)
     .then((files) => {
       for (const f of files) {

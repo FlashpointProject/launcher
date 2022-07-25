@@ -391,6 +391,29 @@ export function mainStateReducer(state: MainState = createInitialState(), action
       };
     }
 
+    case MainActionType.BUSY_GAME: {
+      const nextBusy = [...state.busyGames];
+      if (!nextBusy.includes(action.gameId)) {
+        nextBusy.push(action.gameId);
+      }
+      return {
+        ...state,
+        busyGames: nextBusy
+      };
+    }
+
+    case MainActionType.UNBUSY_GAME: {
+      const nextBusy = [...state.busyGames];
+      const idx = nextBusy.findIndex(i => i === action.gameId);
+      if (idx > -1) {
+        nextBusy.splice(idx, 1);
+      }
+      return {
+        ...state,
+        busyGames: nextBusy
+      };
+    }
+
     case MainActionType.FORCE_UPDATE_GAME_DATA: {
       const { gameData } = action;
       if (state.currentGame) {
@@ -512,5 +535,6 @@ function createInitialState(): MainState {
     isEditingGame: false,
     loadedAll: new Gate(),
     updateFeedMarkdown: '',
+    busyGames: [],
   };
 }

@@ -62,7 +62,11 @@ export enum MainActionType {
   /** Increments the Logo Version to force a cache clear */
   INCREMENT_LOGO_VERSION = '@@main/INCREMENT_LOGO_VERSION',
   /** Forces the game data to update from the backend, if game still matches */
-  FORCE_UPDATE_GAME_DATA = '@@main/FORCE_UPDATE_GAME_DATA'
+  FORCE_UPDATE_GAME_DATA = '@@main/FORCE_UPDATE_GAME_DATA',
+  /** Add game to busy list */
+  BUSY_GAME = '@@main/BUSY_GAME',
+  /** Remove game from busy list */
+  UNBUSY_GAME = '@@main/UNBUSY_GAME',
 }
 
 export enum RequestState {

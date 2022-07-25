@@ -18,16 +18,18 @@ import { LogLevel } from '@shared/Log/interface';
 import { MetaEditFile, MetaEditMeta } from '@shared/MetaEdit';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { defaultPreferencesData, overwritePreferenceData } from '@shared/preferences/util';
-import { deepCopy, genCurationWarnings } from '@shared/Util';
+import { deepCopy, genCurationWarnings, padEnd } from '@shared/Util';
 import { sanitizeFilename } from '@shared/utils/sanitizeFilename';
 import { formatString } from '@shared/utils/StringFormatter';
 import { TaskProgress } from '@shared/utils/TaskProgress';
 import { throttle } from '@shared/utils/throttle';
 import * as axiosImport from 'axios';
 import * as child_process from 'child_process';
+import { execSync } from 'child_process';
 import * as fs from 'fs-extra';
 import * as fs_extra from 'fs-extra';
 import { add, Progress } from 'node-7z';
+import * as os from 'os';
 import * as path from 'path';
 import * as url from 'url';
 import * as util from 'util';
@@ -340,6 +342,10 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
   state.socketServer.register(BackIn.LAUNCH_GAME, async (event, id) => {
     const game = await GameManager.findGame(id);
+
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, 5000);
+    });
 
     if (game) {
       // Make sure Server is set to configured server - Curations may have changed it
@@ -1300,6 +1306,76 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     // Send back to client
     state.socketServer.send(event.client, BackOut.UPLOAD_LOG, getUrl);
     return getUrl;
+  });
+
+  state.socketServer.register(BackIn.FETCH_DIAGNOSTICS, async (event) => {
+    type Diagnostics = {
+      services: Array<{
+        id: string;
+        name: string;
+        state: ProcessState;
+      }>;
+      generics: string[];
+    }
+    // services
+    const diagnostics: Diagnostics = {
+      services: Array.from(state.services.values()).map(s => {
+        return {
+          id: s.id,
+          name: s.name,
+          state: s.getState()
+        };
+      }),
+      generics: []
+    };
+
+    // generics
+
+    if (!fs.existsSync(path.join(state.config.flashpointPath, 'Legacy', 'router.php'))) {
+      diagnostics.generics.push('router.php is missing. Possible cause: Anti-Virus software has deleted it.');
+    }
+    if (state.log.findIndex(e => e.content.includes('Server exited with code 3221225781')) !== -1) {
+      diagnostics.generics.push('Server exited with code 3221225781. Possible cause: .NET Framework or Visual C++ 2015 x86 Redists are not installed.');
+    }
+
+    // print
+
+    let message = '';
+    const maxLen = 'Operating System: '.length;
+    message = message + 'Operating System: ' + os.version() + '\n';
+    message = message + padEnd('Architecture:', maxLen) + os.arch() + '\n';
+    try {
+      const output = execSync('powershell.exe -Command "Get-CimInstance -Namespace root/SecurityCenter2 -ClassName AntivirusProduct | Format-Wide -Property displayName"').toString().trim();
+      if (output.toLowerCase().includes('avast') || output.toLowerCase().includes('avg')) {
+        diagnostics.generics.push('AVG or Avast Anti-Virus is installed. This may cause problems with Flashpoint.');
+      }
+      message = message + padEnd('Anti-Virus:', maxLen) + output + '\n';
+    } catch (err) {
+      message = message + 'Anti-Virus:\tUnknown\n';
+    }
+    message = message + '\n';
+    for (const service of diagnostics.services) {
+      message = message + `${ProcessState[service.state]}:\t${service.name}\n`;
+    }
+    if (diagnostics.generics.length > 0) {
+      message = message + '\n';
+      message = message + 'Warnings:\n';
+    }
+    for (const generic of diagnostics.generics) {
+      message = message + `\t${generic}\n`;
+    }
+    message = message + '\n';
+    for (const service of diagnostics.services) {
+      const serviceLogs = state.log.filter(e => e.source === service.name);
+      if (serviceLogs.length > 0) {
+        message = message + `${service.name} recent logs:\n`;
+        for (const log of serviceLogs.slice(0, serviceLogs.length > 10 ? 10 : undefined)) {
+          message = message + `\t${log.content}\n`;
+        }
+      }
+    }
+
+    return '```' + message + '```';
   });
 
   state.socketServer.register(BackIn.QUIT, async (event) => {

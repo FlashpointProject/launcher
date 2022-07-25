@@ -44,6 +44,8 @@ export type LogsPageState = {
   uploaded: boolean;
   /** Whether an upload is in progress */
   uploading: boolean;
+  /** Whether diagnostics has been fetched */
+  fetchedDiagnostics: boolean;
 }
 
 export interface LogsPage {
@@ -58,7 +60,8 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
     super(props);
     this.state = {
       uploaded: false,
-      uploading: false
+      uploading: false,
+      fetchedDiagnostics: false
     };
   }
 
@@ -134,6 +137,17 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
           <div className='log-page__bar__wrap log-page__bar__right'>
             <div>
               <div className='log-page__bar__right__inner'>
+                {/* Copy Diagnostics Button */}
+                <div className='log-page__bar__wrap'>
+                  <div className='simple-center'>
+                    <input
+                      type='button'
+                      disabled={this.state.fetchedDiagnostics}
+                      value={this.state.fetchedDiagnostics ? strings.copiedToClipboard : strings.copyDiagnostics}
+                      onClick={this.onCopyDiagnosticsClick}
+                      className='simple-button simple-center__vertical-inner log-page__upload-log' />
+                  </div>
+                </div>
                 {/* Create Logs Window Button */}
                 { !this.props.isLogsWindow && (
                   <div className='log-page__bar__wrap'>
@@ -146,7 +160,6 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
                     </div>
                   </div>
                 )}
-
                 {/* Upload Logs Button */}
                 <div className='log-page__bar__wrap'>
                   <div className='simple-center'>
@@ -233,6 +246,14 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
 
   onOpenLogsWindowClick = async (): Promise<void> => {
     window.Shared.back.send(BackIn.OPEN_LOGS_WINDOW);
+  }
+
+  onCopyDiagnosticsClick = async (): Promise<void> => {
+    window.Shared.back.request(BackIn.FETCH_DIAGNOSTICS)
+    .then((diagnostics) => {
+      this.setState({ fetchedDiagnostics: true });
+      clipboard.writeText(diagnostics);
+    });
   }
 
   onUploadClick = async (): Promise<void> => {

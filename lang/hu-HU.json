@@ -4,8 +4,16 @@
     "configHeader": "Beállítások",
     "configDesc": "(Bizonyos változások csak mentés és újraindítás után lépnek érvénybe)",
     "preferencesHeader": "Preferenciák",
-    "extremeGames": "Extrém tartalom",
-    "extremeGamesDesc": "Tagek láthatóságának engedélyezése az 'Extrém' tag-el szűrt csoportokban és a megegyező játékok mutatása.",
+    "extremeGames": "Extrém tartalomszűrők mutatása",
+    "extremeGamesDesc": "Engedélyezi az \"extrém tartalmak\" szűrő bekapcsolását, készítését és módosítását a gyereknek nem ajánlott tartalom irányítására.",
+    "hideExtremeScreenshots": "Extrém játékok képernyőmentéseinek elrejtése",
+    "hideExtremeScreenshotsDesc": "Elrejti az extrém-ként taggelt játékok képernyőmentéseit, előhozható a képdobozra kattintással.",
+    "fancyAnimations": "Szép animációk",
+    "fancyAnimationsDesc": "Látványos animációk engedélyezése a launcherben.",
+    "searchLimit": "Keresés korlátozása",
+    "searchLimitDesc": "A visszaadott keresési találatok korlátozása bármelyik keresésnél",
+    "searchLimitUnlimited": "Korlátlan",
+    "searchLimitValue": "{0} eredmény",
     "enableEditing": "Szerkesztés engedélyezése",
     "enableEditingDesc": "Játékok és további alkalmazások módosítását engedélyezi, valamint a szerkesztéshez kapcsolódó lapokat is mutatja.",
     "onDemandImages": "Igény szerinti Képek",
@@ -16,6 +24,7 @@
     "fallbackLanguageDesc": "Ezt a nyelvet fogja használni a felület ha valami nincs lefordítva az elsődleges nyelvben.",
     "auto": "Automatikus",
     "none": "Semelyik",
+    "contentFiltersHeader": "Tartalom szűrők",
     "flashpointHeader": "Flashpoint",
     "flashpointPath": "Flashpoint útvonal",
     "flashpointPathDesc": "Útvonal a Flashpoint mappához. (Lehet relatív)",
@@ -79,6 +88,7 @@
     "helpInfo": "Segítség kell?",
     "help": "Olvassa el a kézikönyvet",
     "upgradesHeader": "Frissítések",
+    "updateFeedHeader": "Hírfolyam",
     "installComplete": "Telepítés befejezve",
     "alreadyInstalled": "Már telepítve",
     "download": "Letöltés",
@@ -103,7 +113,8 @@
     "clearLog": "Napló törlése",
     "copy404Urls": "404-es URL-ek másolása",
     "uploadLog": "Log feltöltése",
-    "copiedToClipboard": "Vágólapra másolva"
+    "copiedToClipboard": "Vágólapra másolva",
+    "openLogsWindow": "A Logok ablakot megnyitja"
   },
   "app": {
     "home": "Kezdőlap",
@@ -266,7 +277,7 @@
     "thumbnail": "Előnézet",
     "screenshot": "Képernyőmentés",
     "dropImageHere": "Húzzon be egy képet ide, hogy hozzáadja",
-    "noGameSelected": "Nincs kiválasztott játék",
+    "noGameSelected": "Nincs kiválasztva",
     "clickToSelectGame": "Kattintson egy játékra a kiválasztáshoz.",
     "deleteAdditionalApplication": "További alkalmazások törlése",
     "deleteGameAndAdditionalApps": "Játék törlése (és a hozzá kapcsolódó alkalmazásoké)",
@@ -288,7 +299,10 @@
     "saveAndRestart": "Mentés és újraindítás",
     "thereAreNoGames": "Nincsenek játékok.",
     "noGameMatchedDesc": "Nincs megfelelő találat a keresésre.",
-    "noGameMatchedSearch": "Próbáljon meg szélesebb körben keresni."
+    "noGameMatchedSearch": "Próbáljon meg szélesebb körben keresni.",
+    "mountParameters": "Mount paraméterek",
+    "noMountParameters": "Nincsen mount paraméter(ek)",
+    "showExtremeScreenshot": "Extrém képernyőmentések mutatása"
   },
   "tags": {
     "name": "Név",
@@ -413,7 +427,9 @@
     "installingFiles": "Fájlok telepítése...",
     "complete": "Kész",
     "exportMetaEditTitle": "Meta módosítás exportálása",
-    "exportMetaEditDesc": "Válassza ki az összes exportálni kívánt tulajdonságot"
+    "exportMetaEditDesc": "Válassza ki az összes exportálni kívánt tulajdonságot",
+    "showImage": "Kép mutatása",
+    "searching": "Keresés..."
   },
   "menu": {
     "viewThumbnailInFolder": "Előnézeti kép megtekintése mappában",
@@ -492,10 +508,13 @@
   },
   "libraries": {
     "arcade": "Játékok",
+    "arcadeSingular": "Játék",
     "arcadePlural": "Összes Játék",
     "theatre": "Animációk",
+    "theatreSingular": "Animáció",
     "theatrePlural": "Összes Animáció",
     "auditorium": "NG Auditórium",
+    "auditoriumSingular": "Animáció",
     "auditoriumPlural": "Összes NG Animáció"
   },
   "upgrades": {

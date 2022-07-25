@@ -87,6 +87,11 @@ export namespace PreferencesFile {
       stat = await fs.promises.stat(temp);
       count++;
     }
-    await fs.promises.rename(temp, filePath);
+    try {
+      await fs.promises.rename(temp, filePath);
+    } catch {
+      await fs.promises.copyFile(temp, filePath);
+      await fs.promises.unlink(temp);
+    }
   }
 }

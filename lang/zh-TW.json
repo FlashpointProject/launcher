@@ -4,8 +4,16 @@
     "configHeader": "設定",
     "configDesc": "（必須點擊最下方的「儲存並重新啟動」始得生效）",
     "preferencesHeader": "偏好設定",
-    "extremeGames": "成人内容",
-    "extremeGamesDesc": "允許顯示包含於 'Extreme' 標籤篩選器組內的標籤和遊戲。",
+    "extremeGames": "顯示成人篩選器",
+    "extremeGamesDesc": "允許切換、創建和修改成人標籤過濾器，以控制不適合未成年人的內容。",
+    "hideExtremeScreenshots": "隱藏成人截圖",
+    "hideExtremeScreenshotsDesc": "隱藏成人內容的截圖，點擊圖像框即可取消隱藏。",
+    "fancyAnimations": "動畫效果",
+    "fancyAnimationsDesc": "在啟動器中啟用動畫效果。",
+    "searchLimit": "搜尋限制",
+    "searchLimitDesc": "限制搜索返回的結果數量",
+    "searchLimitUnlimited": "無限制",
+    "searchLimitValue": "{0} 個結果",
     "enableEditing": "允許修改",
     "enableEditingDesc": "開啟修改遊戲與額外應用程式的功能，同時顯示其他修改相關之頁籤",
     "onDemandImages": "依需求下載圖片",
@@ -16,6 +24,7 @@
     "fallbackLanguageDesc": "若主要語言內容有缺失時所使用之語言",
     "auto": "自動 ({0})",
     "none": "無",
+    "contentFiltersHeader": "內容篩選器",
     "flashpointHeader": "Flashpoint",
     "flashpointPath": "Flashpoint 路徑",
     "flashpointPathDesc": "指向含有Flashpoint程式之路徑（可為相對路徑）",
@@ -79,6 +88,7 @@
     "helpInfo": "需要協助嗎？ 請{0}。",
     "help": "查閱說明手冊",
     "upgradesHeader": "升級項目",
+    "updateFeedHeader": "新聞流",
     "installComplete": "安裝完成",
     "alreadyInstalled": "已安裝",
     "download": "下載",
@@ -103,7 +113,8 @@
     "clearLog": "清除紀錄",
     "copy404Urls": "複製 404 路徑",
     "uploadLog": "上傳紀錄",
-    "copiedToClipboard": "已複製到剪貼簿"
+    "copiedToClipboard": "已複製到剪貼簿",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "首頁",
@@ -266,7 +277,7 @@
     "thumbnail": "縮圖",
     "screenshot": "截圖",
     "dropImageHere": "將圖片拖曳至此處",
-    "noGameSelected": "未選取任何遊戲",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "點擊以選取遊戲",
     "deleteAdditionalApplication": "刪除額外應用程式",
     "deleteGameAndAdditionalApps": "刪除遊戲(與額外應用程式)",
@@ -288,7 +299,10 @@
     "saveAndRestart": "儲存並重新啟動",
     "thereAreNoGames": "查無結果",
     "noGameMatchedDesc": "無符合搜尋條件之遊戲",
-    "noGameMatchedSearch": "嘗試以較為寬鬆的關鍵字進行搜尋"
+    "noGameMatchedSearch": "嘗試以較為寬鬆的關鍵字進行搜尋",
+    "mountParameters": "掛載參數",
+    "noMountParameters": "無掛載參數",
+    "showExtremeScreenshot": "顯示成人截圖"
   },
   "tags": {
     "name": "名稱",
@@ -413,7 +427,9 @@
     "installingFiles": "正在安裝檔案...",
     "complete": "已完成",
     "exportMetaEditTitle": "匯出元資料檔修改",
-    "exportMetaEditDesc": "選擇所有要匯出的屬性："
+    "exportMetaEditDesc": "選擇所有要匯出的屬性：",
+    "showImage": "顯示圖片",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "於資料夾中查看縮圖",
@@ -492,10 +508,13 @@
   },
   "libraries": {
     "arcade": "遊戲",
+    "arcadeSingular": "Game",
     "arcadePlural": "所有遊戲",
     "theatre": "動畫",
+    "theatreSingular": "Animation",
     "theatrePlural": "所有動畫",
     "auditorium": "Newgrounds 劇院",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "所有Newgrounds 動畫"
   },
   "upgrades": {

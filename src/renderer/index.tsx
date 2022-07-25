@@ -169,5 +169,6 @@ export function createInitialMainState(): MainState {
     taskBarOpen: false,
     isEditingGame: false,
     updateFeedMarkdown: '',
+    busyGames: [],
   };
 }
