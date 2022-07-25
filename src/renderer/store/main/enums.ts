@@ -16,7 +16,7 @@ export enum MainActionType {
   /** Add pages to a view. */
   ADD_VIEW_PAGES = '@@main/ADD_VIEW_PAGES',
   /** Set the selected game of a view. */
-  SET_VIEW_SELECTED_GAME = '@@main/SET_VIEW_SELECTED_GAME',
+  SET_SELECTED_GAME = '@@main/SET_VIEW_SELECTED_GAME',
   /** Set the credits data (or at least flag it as done loading it). */
   SET_CREDITS = '@@main/SET_CREDITS',
   /** Stop rendering. */
@@ -58,7 +58,13 @@ export enum MainActionType {
   /** Remove all queued random games (the currently displayed games are NOT removed). */
   CLEAR_RANDOM_GAMES = '@@main/CLEAR_RANDOM_GAMES',
   /** Increments the Logo Version to force a cache clear */
-  INCREMENT_LOGO_VERSION = '@@main/INCREMENT_LOGO_VERSION'
+  INCREMENT_LOGO_VERSION = '@@main/INCREMENT_LOGO_VERSION',
+  /** Forces the game data to update from the backend, if game still matches */
+  FORCE_UPDATE_GAME_DATA = '@@main/FORCE_UPDATE_GAME_DATA',
+  /** Add game to busy list */
+  BUSY_GAME = '@@main/BUSY_GAME',
+  /** Remove game from busy list */
+  UNBUSY_GAME = '@@main/UNBUSY_GAME',
 }
 
 export enum RequestState {

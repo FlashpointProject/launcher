@@ -15,6 +15,7 @@ import { Legacy_IAdditionalApplicationInfo, Legacy_IGameInfo } from '@shared/leg
 import { deepCopy, recursiveReplace, stringifyArray } from '@shared/Util';
 import * as child_process from 'child_process';
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import { promisify } from 'util';
 import { uuid } from './uuid';
@@ -111,16 +112,19 @@ export async function exit(state: BackState): Promise<void> {
           await service.kill();
         }
       }
+      console.log(' - Managed Services Killed');
       // Run stop commands
       for (let i = 0; i < state.serviceInfo.stop.length; i++) {
         execProcess(state, state.serviceInfo.stop[i], true);
       }
+      console.log(' - Service Info Stop Commands Run');
     }
 
     state.languageWatcher.abort();
     for (const watcher of state.themeState.watchers) {
       watcher.abort();
     }
+    console.log(' - Watchers Aborted');
 
     Promise.all([
       // Close WebSocket server
@@ -150,7 +154,10 @@ export async function exit(state: BackState): Promise<void> {
           }
         }
       })(),
-    ]).then(() => { process.exit(); });
+    ]).then(() => {
+      console.log(' - Cleanup Complete, Exiting Process...');
+      process.exit();
+    });
   }
 }
 
@@ -239,17 +246,6 @@ export function createPlaylistFromJson(jsonData: any, library?: string): Playlis
   return playlist;
 }
 
-
-export function chunkArray<T>(array: T[], chunkSize: number): T[][] {
-  const chunks: T[][] = [];
-
-  for (let i = 0; i < array.length; i += chunkSize) {
-    chunks.push(array.slice(i, i + chunkSize));
-  }
-
-  return chunks;
-}
-
 export function runService(state: BackState, id: string, name: string, basePath: string, opts: ProcessOpts, info: INamedBackProcessInfo | IBackProcessInfo): ManagedChildProcess {
   // Already exists, bad!
   if (state.services.has(id)) {
@@ -271,7 +267,7 @@ export function runService(state: BackState, id: string, name: string, basePath:
     proc.spawn();
   } catch (error) {
     log.error(SERVICES_SOURCE, `An unexpected error occurred while trying to run the background process "${proc.name}".` +
-              `  ${error.toString()}`);
+              `  ${(error as Error).toString()}`);
   }
   state.apiEmitters.services.onServiceNew.fire(proc);
   return proc;
@@ -332,4 +328,12 @@ export function getOpenOpenDialogFunc(socketServer: SocketServer): ShowOpenDialo
 export function isBrowserOpts(val: any): val is BrowserApplicationOpts {
   return typeof val.url === 'string' &&
    (val.proxy === undefined || typeof val.proxy === 'string');
+}
+
+export function getCwd(isDev: boolean, exePath: string) {
+  return isDev ? process.cwd() : process.platform == 'darwin' ? path.resolve(path.dirname(exePath), '..') : path.dirname(exePath);
+}
+
+export async function getTempFilename(ext = 'tmp') {
+  return path.join(await fs.promises.realpath(os.tmpdir()), uuid() + '.' + ext);
 }

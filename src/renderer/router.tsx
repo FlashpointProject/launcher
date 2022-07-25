@@ -3,10 +3,11 @@ import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { ViewGame } from '@shared/back/types';
 import { AppExtConfigData } from '@shared/config/interfaces';
-import { ExtensionContribution, ILogoSet, IExtensionDescription } from '@shared/extensions/interfaces';
+import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { GamePropSuggestions, IService } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { ITheme } from '@shared/ThemeFile';
+import { Menu } from 'electron';
 import { AppUpdater, UpdateInfo } from 'electron-updater';
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
@@ -35,7 +36,7 @@ export type AppRouterProps = {
   appPaths: Record<string, string>;
   platforms: Record<string, string[]>;
   platformsFlat: string[];
-  onSaveGame: (game: Game, playlistEntry?: PlaylistGame) => Promise<Game | undefined>;
+  onSaveGame: (game: Game, playlistEntry?: PlaylistGame) => Promise<Game | null>;
   onDeleteGame: (gameId: string) => void;
   onLaunchGame: (gameId: string) => void;
   onQuickSearch: (search: string) => void;
@@ -54,6 +55,7 @@ export type AppRouterProps = {
   selectedGameId?: string;
   gameRunning: boolean;
   selectedPlaylistId?: string;
+  onGameContextMenu: (gameId: string) => Menu;
   onSelectGame: (gameId?: string) => void;
   onUpdatePlaylist: (playlist: Playlist) => void;
   onDeletePlaylist: (playlist: Playlist) => void;
@@ -82,8 +84,10 @@ export class AppRouter extends React.Component<AppRouterProps> {
       platforms: this.props.platforms,
       playlists: this.props.playlists,
       upgrades: this.props.upgrades,
+      onGameContextMenu: this.props.onGameContextMenu,
       onSelectPlaylist: this.props.onSelectPlaylist,
       onLaunchGame: this.props.onLaunchGame,
+      onGameSelect: this.props.onSelectGame,
       onDownloadUpgradeClick: this.props.onDownloadUpgradeClick,
       updateInfo: this.props.updateInfo,
       autoUpdater: this.props.autoUpdater,
@@ -91,6 +95,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       rollRandomGames: this.props.rollRandomGames,
       logoVersion: this.props.logoVersion,
       updateFeedMarkdown: this.props.updateFeedMarkdown,
+      selectedGameId: this.props.selectedGameId
     };
     const browseProps: ConnectedBrowsePageProps = {
       games: this.props.games,
@@ -99,6 +104,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       playlists: this.props.playlists,
       suggestions: this.props.suggestions,
       playlistIconCache: this.props.playlistIconCache,
+      onGameContextMenu: this.props.onGameContextMenu,
       onSaveGame: this.props.onSaveGame,
       onDeleteGame: this.props.onDeleteGame,
       onQuickSearch: this.props.onQuickSearch,

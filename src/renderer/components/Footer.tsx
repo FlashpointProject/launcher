@@ -36,6 +36,7 @@ export class Footer extends React.Component<FooterProps> {
     const libraryPath = getBrowseSubPath(this.props.location.pathname);
     const currentLabel = libraryPath && getLibraryItemTitle(libraryPath, this.props.main.lang.libraries);
     const view = this.props.main.views[libraryPath];
+    const gamesTotal = (view && view.total != undefined) ? view.total : -1;
 
     return (
       <div className='footer'>
@@ -47,7 +48,7 @@ export class Footer extends React.Component<FooterProps> {
             { currentLabel && strings.searchResults ? (
               <>
                 <p>|</p>
-                <p>{`${strings.searchResults}: ${view && view.total || 0}`}</p>
+                <p>{`${strings.searchResults}: ${gamesTotal > -1 ? gamesTotal : this.context.misc.searching}`}</p>
               </>
             ) : undefined }
           </div>

@@ -421,6 +421,9 @@ body {
   height: 100%;
 }
 .main {
+  display: flex;
+  width: 100%;
+  height: 100%;
   flex: 1;
   overflow: hidden;
 }
@@ -1219,9 +1222,21 @@ body {
   width: 100%;
   height: 100%;
 }
+/* Loading */
+.game-browser__loading {
+  display: flex;
+  flex-direction: column;
+  font-size: 3em;
+  font-weight: bold;
+  text-align: center;
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+  align-items: center;
+}
 /* Sidebar */
 .game-browser__sidebar {
-  --divider-width: 4px;
+  --divider-width: 6px;
   display: flex;
   flex: 0 0 auto;
   min-width: var(--divider-width);
@@ -1249,6 +1264,13 @@ body {
   flex: 0 0 auto;
   user-select: none;
   cursor: ew-resize;
+  transition: 0s background-color;
+}
+.game-browser__sidebar__divider--animated {
+  transition: 0.3s background-color;
+}
+.game-browser__sidebar__divider:hover {
+  transition-delay: 0.3s;
 }
 /* Right Sidebar */
 .game-browser__right p {
@@ -1305,6 +1327,7 @@ body {
 
 /* Browse-Right-Sidebar Play Button */
 .browse-right-sidebar__play-button,
+.browse-right-sidebar__play-button--busy,
 .browse-right-sidebar__play-button--running,
 .browse-right-sidebar__play-button--download {
   width: 100%;

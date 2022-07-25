@@ -8,35 +8,31 @@ import axios from 'axios';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as readline from 'readline';
-import { getManager } from 'typeorm';
+import { AppDataSource } from '..';
 
 export function find(): Promise<Source[]> {
-  const sourceRepository = getManager().getRepository(Source);
+  const sourceRepository = AppDataSource.getRepository(Source);
   return sourceRepository.find();
 }
 
-export function findOne(sourceId: number): Promise<Source | undefined> {
-  const sourceRepository = getManager().getRepository(Source);
-  return sourceRepository.findOne(sourceId);
+export function findOne(sourceId: number): Promise<Source | null> {
+  const sourceRepository = AppDataSource.getRepository(Source);
+  return sourceRepository.findOneBy({ id: sourceId });
 }
 
-export function findBySourceFileUrl(sourceFileUrl: string): Promise<Source | undefined> {
-  const sourceRepository = getManager().getRepository(Source);
-  return sourceRepository.findOne({
-    where: {
-      sourceFileUrl
-    }
-  });
+export function findBySourceFileUrl(sourceFileUrl: string): Promise<Source | null> {
+  const sourceRepository = AppDataSource.getRepository(Source);
+  return sourceRepository.findOneBy({ sourceFileUrl });
 }
 
 export function save(source: Source): Promise<Source> {
-  const sourceRepository = getManager().getRepository(Source);
+  const sourceRepository = AppDataSource.getRepository(Source);
   return sourceRepository.save(source);
 }
 
 export async function remove(sourceId: number): Promise<void> {
-  const sourceDataRepository = getManager().getRepository(SourceData);
-  const sourceRepository = getManager().getRepository(Source);
+  const sourceDataRepository = AppDataSource.getRepository(SourceData);
+  const sourceRepository = AppDataSource.getRepository(Source);
   await sourceDataRepository.delete({ sourceId });
   await sourceRepository.delete({ id: sourceId });
 }

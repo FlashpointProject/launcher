@@ -6,7 +6,7 @@ import { AppExtConfigData } from '@shared/config/interfaces';
 import { ExtConfigurationProp, ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { autoCode, LangContainer, LangFile } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
-import { updatePreferencesData } from '@shared/preferences/util';
+import { updatePreferencesData, updatePreferencesDataAsync } from '@shared/preferences/util';
 import { ITheme } from '@shared/ThemeFile';
 import { deepCopy } from '@shared/Util';
 import { formatString } from '@shared/utils/StringFormatter';
@@ -956,7 +956,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   }
 
   onCurrentLogoSetChange = (value: string): void => {
-    updatePreferencesData({ currentLogoSet: value });
+    updatePreferencesDataAsync({ currentLogoSet: value });
   }
 
   onCurrentThemeItemSelect = (value: string, index: number): void => {
@@ -978,7 +978,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     if (index < this.props.logoSets.length) { // (Select a Logo Set)
       logoSet = this.props.logoSets[index];
     } else { logoSet = undefined; } // (Deselect the current logo set)
-    updatePreferencesData({ currentLogoSet: logoSet ? logoSet.id : '' });
+    updatePreferencesDataAsync({ currentLogoSet: logoSet ? logoSet.id : undefined });
   }
 
   getThemeName(id: string) {
@@ -1062,6 +1062,7 @@ function renderExtConfigProp(key: string, prop: ExtConfigurationProp, value: any
             title={prop.title}
             description={prop.description}
             text={value}
+            editable={true}
             onChange={event => setExtConfigValue(key, event.target.value)} />
         );
       }

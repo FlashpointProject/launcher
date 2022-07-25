@@ -4,8 +4,16 @@
     "configHeader": "设置",
     "configDesc": "（您必须点击 '保存并重启' 才能使部分设置生效）",
     "preferencesHeader": "首选项",
-    "extremeGames": "成人内容",
-    "extremeGamesDesc": "允许显示包含于 'Extreme' 标签筛选器组内的标签和游戏。",
+    "extremeGames": "显示成人过滤器",
+    "extremeGamesDesc": "允许切换、创建和修改成人标签过滤器，以控制不适合未成年人的内容。",
+    "hideExtremeScreenshots": "隐藏成人截图",
+    "hideExtremeScreenshotsDesc": "隐藏成人内容的截图，点击图像框即可取消隐藏。",
+    "fancyAnimations": "动画效果",
+    "fancyAnimationsDesc": "在启动器中启用动画效果。",
+    "searchLimit": "搜索限制",
+    "searchLimitDesc": "限制搜索返回的结果数量",
+    "searchLimitUnlimited": "无限制",
+    "searchLimitValue": "{0} 个结果",
     "enableEditing": "启用编辑",
     "enableEditingDesc": "启用对游戏与附加应用的编辑。也显示与编辑有关的标签页。",
     "onDemandImages": "按需显示图像",
@@ -16,6 +24,7 @@
     "fallbackLanguageDesc": "若首选语言不完整，则以第二语言显示。",
     "auto": "自动 ({0})",
     "none": "无",
+    "contentFiltersHeader": "内容过滤器",
     "flashpointHeader": "Flashpoint",
     "flashpointPath": "Flashpoint 路径",
     "flashpointPathDesc": "Flashpoint 文件夹路径（可以是相对路径）",
@@ -79,6 +88,7 @@
     "helpInfo": "需要帮助？请{0}。",
     "help": "阅读手册",
     "upgradesHeader": "升级",
+    "updateFeedHeader": "新闻流",
     "installComplete": "安装完成",
     "alreadyInstalled": "已安装",
     "download": "下载",
@@ -103,7 +113,8 @@
     "clearLog": "清除日志",
     "copy404Urls": "复制 404 URL",
     "uploadLog": "上传日志",
-    "copiedToClipboard": "复制到剪贴板"
+    "copiedToClipboard": "复制到剪贴板",
+    "openLogsWindow": "打开日志窗口"
   },
   "app": {
     "home": "主页",
@@ -177,7 +188,7 @@
     "importTags": "导入标签",
     "importTagsDesc": "从“导出标签”创建的文件中导入标签",
     "migrateExtremeGames": "迁移成人游戏",
-    "migrateExtremeGamesDesc": "删除所有游戏的“成人”标记，并为它们打上“LEGACY-Extreme”标签",
+    "migrateExtremeGamesDesc": "删除所有游戏的“Extreme”（成人）标记，并为它们打上“LEGACY-Extreme”标签",
     "massImportGameData": "批量导入游戏数据",
     "massImportGameDataDesc": "批量导入游戏数据包，尝试将其文件名匹配到游戏 UUID。",
     "servicesHeader": "后台服务",
@@ -266,7 +277,7 @@
     "thumbnail": "缩略图",
     "screenshot": "屏幕截图",
     "dropImageHere": "拖动图片到此处以添加",
-    "noGameSelected": "未选择游戏",
+    "noGameSelected": "未选择{0}",
     "clickToSelectGame": "点击游戏以选择",
     "deleteAdditionalApplication": "删除附加应用程序",
     "deleteGameAndAdditionalApps": "删除游戏（及附加应用程序）",
@@ -288,7 +299,10 @@
     "saveAndRestart": "保存并重启",
     "thereAreNoGames": "无游戏。",
     "noGameMatchedDesc": "未找到匹配您搜索词的游戏名。",
-    "noGameMatchedSearch": "请尝试用更宽泛的关键词搜索。"
+    "noGameMatchedSearch": "请尝试用更宽泛的关键词搜索。",
+    "mountParameters": "挂载参数",
+    "noMountParameters": "无挂载参数",
+    "showExtremeScreenshot": "显示成人截图"
   },
   "tags": {
     "name": "名称",
@@ -413,7 +427,9 @@
     "installingFiles": "正在安装文件...",
     "complete": "已完成",
     "exportMetaEditTitle": "导出元数据变更",
-    "exportMetaEditDesc": "选择所有要导出的属性："
+    "exportMetaEditDesc": "选择所有要导出的属性：",
+    "showImage": "显示图像",
+    "searching": "正在搜索…"
   },
   "menu": {
     "viewThumbnailInFolder": "在文件夹中查看缩略图",
@@ -492,10 +508,13 @@
   },
   "libraries": {
     "arcade": "游戏",
+    "arcadeSingular": "游戏",
     "arcadePlural": "所有游戏",
     "theatre": "动画",
+    "theatreSingular": "动画",
     "theatrePlural": "所有动画",
     "auditorium": "NG Auditorium",
+    "auditoriumSingular": "动画",
     "auditoriumPlural": "所有 NG 动画"
   },
   "upgrades": {

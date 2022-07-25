@@ -23,7 +23,7 @@ import { createCurationIndexImage, importCurationArchive, importCurationFolder, 
 import { curationLog, readCurationMeta, showWarningBox } from '../../curate/util';
 import { getPlatformIconURL } from '../../Util';
 import { LangContext } from '../../util/lang';
-import { uuid } from '../../util/uuid';
+import { uuid } from '@shared/utils/uuid';
 import { CheckBox } from '../CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
 import { CurateBox, getCurationWarnings } from '../CurateBox';

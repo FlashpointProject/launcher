@@ -33,6 +33,9 @@ export interface IMainWindowExternal {
   /** The type of OS this is running on. */
   platform: NodeJS.Platform;
 
+  /** URL the program was run with */
+  url?: string;
+
   /** Minimize the window */
   minimize(): void;
 
@@ -158,6 +161,8 @@ export enum WindowIPC {
   WINDOW_MOVE     = 'window-move',
   /** Sent whenever the windows size changes. (main -> renderer). */
   WINDOW_RESIZE   = 'window-resize',
+  /** Sent whenever a flashpoint:// protocol is run */
+  PROTOCOL        = 'protocol'
 }
 
 /** IPC channels used to relay game manager events from  */

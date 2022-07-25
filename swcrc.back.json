@@ -1,0 +1,31 @@
+{
+  "exclude": [
+    "node_modules/**",
+    "src/renderer/**",
+    "tests/**"
+  ],
+  "module": {
+    "type": "commonjs",
+    "strict": true,
+    "noInterop": true
+  },
+  "jsc": {
+    "target": "es2018",
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": [ "./build/shared/*" ],
+      "@main/*": [ "./build/main/*" ],
+      "@back/*": [ "./build/back/*" ],
+      "@renderer/*": [ "./build/renderer/*" ],
+      "@database/*": [ "./build/database/*" ],
+      "@tests/*": [ "./tests/*" ]
+    },
+    "parser": {
+      "syntax": "typescript",
+      "decorators": true
+    },
+    "transform": {
+      "decoratorMetadata": true
+    }
+  }
+}

@@ -1,11 +1,19 @@
 {
-  "name": "英語",
+  "name": "日本語",
   "config": {
     "configHeader": "設定",
     "configDesc": "(一部の変更を有効にするには、”変更を保存して再起動”を押す必要があります)",
     "preferencesHeader": "基本設定",
-    "extremeGames": "Extreme Content",
-    "extremeGamesDesc": "Allow tags inside 'Extreme' tag filter groups and corresponding games to be shown.",
+    "extremeGames": "Show Extreme Filters",
+    "extremeGamesDesc": "Allows Extreme tag filters to be toggled, created and modified to control content unsuitable for children.",
+    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
+    "fancyAnimations": "Fancy Animations",
+    "fancyAnimationsDesc": "Enable fancy animations in the launcher.",
+    "searchLimit": "Search Limit",
+    "searchLimitDesc": "Limit the number of results returned in any search",
+    "searchLimitUnlimited": "Unlimited",
+    "searchLimitValue": "{0} Results",
     "enableEditing": "カスタムを有効にする",
     "enableEditingDesc": "ゲームや追加のアプリケーションの編集を有効にします。編集に関連するタブも表示されます。",
     "onDemandImages": "オンデマンド画像",
@@ -16,6 +24,7 @@
     "fallbackLanguageDesc": "設定言語の翻訳が未完成であった場合に使用する言語",
     "auto": "自動 ({0})",
     "none": "なし",
+    "contentFiltersHeader": "Content Filters",
     "flashpointHeader": "フラッシュポイント",
     "flashpointPath": "Flashpointのパス",
     "flashpointPathDesc": "Flashpointフォルダのパス (相対パスでよい)",
@@ -79,6 +88,7 @@
     "helpInfo": "ヘルプが必要ですか？: {0}",
     "help": "マニュアルを読む",
     "upgradesHeader": "アップグレード",
+    "updateFeedHeader": "News Feed",
     "installComplete": "インストール完了",
     "alreadyInstalled": "既にインストールされています",
     "download": "ダウンロード",
@@ -103,7 +113,8 @@
     "clearLog": "ログを消去",
     "copy404Urls": "404 URLをコピー",
     "uploadLog": "ログをアップロード",
-    "copiedToClipboard": "クリップボードにコピーしました"
+    "copiedToClipboard": "クリップボードにコピーしました",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "ホーム",
@@ -262,11 +273,11 @@
     "installed": "Installed",
     "notInstalled": "Not Installed",
     "legacyGame": "Legacy Game",
-    "download": "Download",
+    "download": "ダウンロード",
     "thumbnail": "サムネイル",
     "screenshot": "スクリーンショット",
     "dropImageHere": "追加する画像をここにドロップしてください。",
-    "noGameSelected": "ゲームが選択されていません",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "それを選択するゲームをクリックします。",
     "deleteAdditionalApplication": "追加したアプリケーションを削除します。",
     "deleteGameAndAdditionalApps": "ゲーム (と追加したアプリケーション) を削除します。",
@@ -288,7 +299,10 @@
     "saveAndRestart": "変更を保存して再起動",
     "thereAreNoGames": "ゲームはありません。",
     "noGameMatchedDesc": "検索条件に一致するゲームはありません。",
-    "noGameMatchedSearch": "制限の少ないものを探してみてください。"
+    "noGameMatchedSearch": "制限の少ないものを探してみてください。",
+    "mountParameters": "Mount Parameters",
+    "noMountParameters": "No Mount Parameters",
+    "showExtremeScreenshot": "Show Extreme Screenshot"
   },
   "tags": {
     "name": "名前",
@@ -413,7 +427,9 @@
     "installingFiles": "ファイルをインストール中...",
     "complete": "完了",
     "exportMetaEditTitle": "メタ編集をエクスポート",
-    "exportMetaEditDesc": "エクスポートするすべてのプロパティを選択:"
+    "exportMetaEditDesc": "エクスポートするすべてのプロパティを選択:",
+    "showImage": "Show Image",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "サムネイルフォルダーを表示します",
@@ -486,16 +502,19 @@
     "uninstallGame": "Uninstall this Game?",
     "unableToUninstallGameData": "Unable to delete data pack. Is it in use? Try restarting the launcher.",
     "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher.",
-    "downloadingGame": "Downloading Game...",
+    "downloadingGame": "ゲームをダウンロード中...",
     "verifyingGame": "Verifying Game...",
     "aFewMinutes": "This may take a few minutes."
   },
   "libraries": {
     "arcade": "ゲーム",
+    "arcadeSingular": "Game",
     "arcadePlural": "すべてのゲーム",
     "theatre": "アニメーション",
+    "theatreSingular": "Animation",
     "theatrePlural": "すべてのアニメーション",
     "auditorium": "NG講堂（講堂）",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "すべてのNGアニメーション"
   },
   "upgrades": {

@@ -1,4 +1,4 @@
-import { sanitizeFilename } from '@back/util/sanitizeFilename';
+import { sanitizeFilename } from '@shared/utils/sanitizeFilename';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
 import * as remote from '@electron/remote';

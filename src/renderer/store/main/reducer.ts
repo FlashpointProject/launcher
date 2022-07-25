@@ -1,3 +1,4 @@
+import { Game } from '@database/entity/Game';
 import { rebuildQuery } from '@renderer/Util';
 import { createLangContainer } from '@shared/lang';
 import { MainActionType, RequestState } from './enums';
@@ -45,6 +46,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
             }),
             queryId: (view.queryId + 1) % 0x80000000, // 32 bit signed integer
             metaState: RequestState.WAITING,
+            total: undefined,
             tagFilters: action.tagFilters
           },
         },
@@ -128,7 +130,9 @@ export function mainStateReducer(state: MainState = createInitialState(), action
             //
             metaState: RequestState.RECEIVED,
             // Dirty games
-            isDirty: true,
+            isDirty: action.total === 0 ? false : true,
+            games: action.total === 0 ? [] : view.games,
+            lastCount: action.total === 0 ? 0 : view.lastCount,
             pageState: {},
             // Update total (for the first response only)
             total: (view.total === undefined)
@@ -196,20 +200,10 @@ export function mainStateReducer(state: MainState = createInitialState(), action
       };
     }
 
-    case MainActionType.SET_VIEW_SELECTED_GAME: {
-      const view = state.views[action.library];
-
-      if (!view) { return state; }
-
+    case MainActionType.SET_SELECTED_GAME: {
       return {
         ...state,
-        views: {
-          ...state.views,
-          [action.library]: {
-            ...view,
-            selectedGameId: action.gameId,
-          },
-        },
+        selectedGameId: action.gameId
       };
     }
 
@@ -386,6 +380,48 @@ export function mainStateReducer(state: MainState = createInitialState(), action
         logoVersion: state.logoVersion + 1
       };
     }
+
+    case MainActionType.BUSY_GAME: {
+      const nextBusy = [...state.busyGames];
+      if (!nextBusy.includes(action.gameId)) {
+        nextBusy.push(action.gameId);
+      }
+      return {
+        ...state,
+        busyGames: nextBusy
+      };
+    }
+
+    case MainActionType.UNBUSY_GAME: {
+      const nextBusy = [...state.busyGames];
+      const idx = nextBusy.findIndex(i => i === action.gameId);
+      if (idx > -1) {
+        nextBusy.splice(idx, 1);
+      }
+      return {
+        ...state,
+        busyGames: nextBusy
+      };
+    }
+
+    case MainActionType.FORCE_UPDATE_GAME_DATA: {
+      const { gameData } = action;
+      if (state.currentGame) {
+        if (gameData.gameId === state.currentGame.id) {
+          const newGame: Game = new Game();
+          Object.assign(newGame, state.currentGame);
+          newGame.activeDataOnDisk = gameData.presentOnDisk;
+          return {
+            ...state,
+            currentGameData: gameData,
+            currentGame: newGame
+          };
+        }
+      }
+      return {
+        ...state
+      };
+    }
   }
 }
 
@@ -435,6 +471,8 @@ function createInitialState(): MainState {
     downloadOpen: false,
     downloadPercent: 0,
     downloadSize: 0,
-    downloadVerifying: false
+    downloadVerifying: false,
+    isEditingGame: false,
+    busyGames: [],
   };
 }

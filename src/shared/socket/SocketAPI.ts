@@ -1,4 +1,4 @@
-import { SocketRequestData, SocketResponseData, SocketTemplate } from './types';
+import { SocketRequestData, SocketResponseData, SocketTemplate, isErrorResponse } from './types';
 
 /** Callback that is registered to a specific type. */
 type Callback<T, U extends (...args: any[]) => any> = (event: T, ...args: Parameters<U>) => (ReturnType<U> | Promise<ReturnType<U>>)
@@ -126,23 +126,30 @@ export async function api_handle_message<
         result = await callback(event, ...data.args as any);
       } catch (e) {
         // console.error(`An error was thrown from inside a callback (type: ${data.type}).`, e);
-        error = e.toString();
+        error = (e as Error).toString();
       }
     }
 
     // Respond
     if (data.id !== undefined) {
       if (typeof data.id === 'number') {
-        const response: SocketResponseData<T> = {
-          id: data.id,
-        };
-        if (result !== undefined) { response.result = result; }
-        if (error !== undefined) { response.error = error; }
+        let response: SocketResponseData<T>;
+        if (result !== undefined) {
+          response  = {
+            id: data.id,
+            result: result
+          };
+        } else {
+          response  = {
+            id: data.id,
+            error: error
+          };
+        }
 
         log(
           '  Response',
-          '\n    Result:', response.result,
-          '\n    Error: ', response.error,
+          '\n    Result:', isErrorResponse(response) ? undefined : response.result,
+          '\n    Error: ', isErrorResponse(response)? response.error : undefined,
         );
 
         return [undefined, response];

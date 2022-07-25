@@ -4,8 +4,16 @@
     "configHeader": "Konfiguration",
     "configDesc": "(Einige Änderungen erfordern einen Neustart)",
     "preferencesHeader": "Einstellungen",
-    "extremeGames": "Extreme Inhalte",
-    "extremeGamesDesc": "Erlaube Tags der \"Extrem\" Tag-Filtergruppen und entsprechende Spiele anzuzeigen.",
+    "extremeGames": "\"Extrem\"-Filter anzeigen",
+    "extremeGamesDesc": "Ermöglicht das Einschalten, Erstellen und Verändern von Extrem-Tag-Filtern, um Inhalte zu steuern, die für Kinder ungeeignet sind.",
+    "hideExtremeScreenshots": "Extreme Screenshots verstecken",
+    "hideExtremeScreenshotsDesc": "Versteckt Screenshots von als Extrem markierten Inhalten. Mit einem Klick auf das Bildfeld können sie wieder angezeigt werden.",
+    "fancyAnimations": "Schicke Animationen",
+    "fancyAnimationsDesc": "Aktiviere schicke Animationen im Launcher.",
+    "searchLimit": "Suchbegrenzung",
+    "searchLimitDesc": "Begrenze die Anzahl an angezeigten Suchergebnissen",
+    "searchLimitUnlimited": "Unbegrenzt",
+    "searchLimitValue": "{0} Ergebnis(se)",
     "enableEditing": "Bearbeiten Erlauben",
     "enableEditingDesc": "Aktiviere Bearbeitung von Spielen und zusätzlichen Anwendungen. Zeigt auch Tabs im Zusammenhang mit der Bearbeitung.",
     "onDemandImages": "Bilder auf Nachfrage",
@@ -16,6 +24,7 @@
     "fallbackLanguageDesc": "Welche Sprache benutzt wird, wenn in der ersten Sprache ein Wort nicht übersetzt ist.",
     "auto": "Automatisch ({0})",
     "none": "Keine",
+    "contentFiltersHeader": "Inhaltsfilter",
     "flashpointHeader": "Flashpoint",
     "flashpointPath": "Dateipfad Flashpoint",
     "flashpointPathDesc": "Der Dateipfad zum Flashpoint-Ordner (kann relativ angegeben werden)",
@@ -79,6 +88,7 @@
     "helpInfo": "Brauchst du Hilfe? {0}.",
     "help": "Benutzerhandbuch lesen",
     "upgradesHeader": "Upgrades",
+    "updateFeedHeader": "Nachrichtenfeed",
     "installComplete": "Installation abgeschlossen",
     "alreadyInstalled": "Bereits installiert",
     "download": "Herunterladen",
@@ -103,7 +113,8 @@
     "clearLog": "Protokoll löschen",
     "copy404Urls": "404-URLs kopieren",
     "uploadLog": "Log hochladen",
-    "copiedToClipboard": "In Zwischenablage kopiert"
+    "copiedToClipboard": "In Zwischenablage kopiert",
+    "openLogsWindow": "Öffne Logs Fenster"
   },
   "app": {
     "home": "Start",
@@ -266,7 +277,7 @@
     "thumbnail": "Thumbnail",
     "screenshot": "Screenshot",
     "dropImageHere": "Bild zum Einfügen hierher ziehen",
-    "noGameSelected": "Kein Spiel ausgewählt",
+    "noGameSelected": "Kein {0} ausgewählt",
     "clickToSelectGame": "Klicke auf ein Spiel, um es auszuwählen.",
     "deleteAdditionalApplication": "Zusätzliche Anwendung löschen",
     "deleteGameAndAdditionalApps": "Spiel löschen (und zusätzliche Anwendungen)",
@@ -288,7 +299,10 @@
     "saveAndRestart": "Speichern & neu starten",
     "thereAreNoGames": "Es gibt keine Spiele.",
     "noGameMatchedDesc": "Kein Spieltitel entspricht deiner Suche.",
-    "noGameMatchedSearch": "Versuche, nach etwas weniger Restriktivem zu suchen."
+    "noGameMatchedSearch": "Versuche, nach etwas weniger Restriktivem zu suchen.",
+    "mountParameters": "Mount-Parameter",
+    "noMountParameters": "Keine Mount-Parameter",
+    "showExtremeScreenshot": "Extremen Screenshot anzeigen"
   },
   "tags": {
     "name": "Name",
@@ -413,7 +427,9 @@
     "installingFiles": "Dateien werden installiert...",
     "complete": "Abgeschlossen",
     "exportMetaEditTitle": "Meta-Edit exportieren",
-    "exportMetaEditDesc": "Alle zu exportierenden Eigenschaften auswählen:"
+    "exportMetaEditDesc": "Alle zu exportierenden Eigenschaften auswählen:",
+    "showImage": "Bild anzeigen",
+    "searching": "Suche..."
   },
   "menu": {
     "viewThumbnailInFolder": "Miniaturansicht im Ordner anzeigen",
@@ -492,10 +508,13 @@
   },
   "libraries": {
     "arcade": "Spiele",
+    "arcadeSingular": "Spiel",
     "arcadePlural": "Alle Spiele",
     "theatre": "Animationen",
+    "theatreSingular": "Animation",
     "theatrePlural": "Alle Animationen",
     "auditorium": "NG-Auditorium",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "Alle NG-Animationen"
   },
   "upgrades": {

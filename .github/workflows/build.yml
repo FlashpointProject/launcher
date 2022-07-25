@@ -11,7 +11,7 @@ on:
 jobs:
   build:
     name: Build
-    runs-on: windows-2019
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
@@ -32,11 +32,11 @@ jobs:
           **/node_modules
         key: ${{ runner.os }}-${{ hashFiles('package.json') }}
     - name: Install Dependencies
-      run: npm install
+      run: npm install --force
       if: steps.cache.outputs.cache-hit != 'true'
       env:
         CI: true
     - name: npm build
-      run: npm run build:win32 --if-present
+      run: npm run build
       env:
         CI: true

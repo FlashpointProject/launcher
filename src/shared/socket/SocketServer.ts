@@ -1,4 +1,4 @@
-import { BaseSocket, SocketRequestData, SocketResponseData, SocketTemplate } from './types';
+import { BaseSocket, SocketRequestData, SocketResponseData, isErrorResponse, SocketTemplate } from './types';
 
 // Base types of generics
 type T_BASE = number
@@ -85,7 +85,7 @@ export function server_request<
       client.sent.push({
         id: id,
         resolve: (sent) => {
-          if (sent.error !== undefined) {
+          if (isErrorResponse(sent)) {
             reject(sent.error);
           } else {
             resolve(sent.result);

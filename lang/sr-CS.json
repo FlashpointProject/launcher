@@ -4,8 +4,16 @@
     "configHeader": "Podešavanja",
     "configDesc": "(Moraš da pritisneš 'Sačuvaj i pokreni ponovo' da bi neke promene stupile na snagu)",
     "preferencesHeader": "Postavke",
-    "extremeGames": "Ekstremni sadržaj",
-    "extremeGamesDesc": "Dozvolite prikazivanje oznaka unutar grupa filtera za oznake „Ekstreme“ i odgovarajućih igara.",
+    "extremeGames": "Show Extreme Filters",
+    "extremeGamesDesc": "Allows Extreme tag filters to be toggled, created and modified to control content unsuitable for children.",
+    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
+    "fancyAnimations": "Fancy Animations",
+    "fancyAnimationsDesc": "Enable fancy animations in the launcher.",
+    "searchLimit": "Search Limit",
+    "searchLimitDesc": "Limit the number of results returned in any search",
+    "searchLimitUnlimited": "Unlimited",
+    "searchLimitValue": "{0} Results",
     "enableEditing": "Uključi uređivanje",
     "enableEditingDesc": "Omogućava uređivanje igara i dodatnih aplikacija. Takođe prikazuje kartice vezane za uređivanje.",
     "onDemandImages": "Slike na zahtev",
@@ -16,6 +24,7 @@
     "fallbackLanguageDesc": "Koji jezik da se koristi umesto nepotpunog trenutnog jezika.",
     "auto": "Automatski ({0})",
     "none": "Nijedan",
+    "contentFiltersHeader": "Content Filters",
     "flashpointHeader": "Flashpoint",
     "flashpointPath": "Putanja Flashpoint-a",
     "flashpointPathDesc": "Putanja do Flashpoint fascikle (može da bude relativna)",
@@ -79,6 +88,7 @@
     "helpInfo": "Treba ti pomoć? {0}.",
     "help": "Pročitaj priručnik",
     "upgradesHeader": "Nadogradnje",
+    "updateFeedHeader": "News Feed",
     "installComplete": "Instalacija je gotova",
     "alreadyInstalled": "Već instalirano",
     "download": "Preuzmi",
@@ -103,7 +113,8 @@
     "clearLog": "Očisti zapis",
     "copy404Urls": "Kopiraj 404 URL-ove",
     "uploadLog": "Pošalji zapis",
-    "copiedToClipboard": "Kopirano u privremenu memoriju"
+    "copiedToClipboard": "Kopirano u privremenu memoriju",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "Početak",
@@ -266,7 +277,7 @@
     "thumbnail": "Simbolična slika",
     "screenshot": "Slika ekrana",
     "dropImageHere": "Dovuci sliku ovde da bi je dodao",
-    "noGameSelected": "Nijedna igra nije izabrana",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "Klikni na igru da bi ga izabrao.",
     "deleteAdditionalApplication": "Izbriši dodatnu aplikaciju",
     "deleteGameAndAdditionalApps": "Izbriši igru (i dodatne aplikacije)",
@@ -288,7 +299,10 @@
     "saveAndRestart": "Sačuvaj i ponovo pokreni",
     "thereAreNoGames": "Nema igara.",
     "noGameMatchedDesc": "Nijedan naslov igre nije odgovarao sa tvojom pretragom.",
-    "noGameMatchedSearch": "Pokušaj da tražiš nešto manje restriktivno."
+    "noGameMatchedSearch": "Pokušaj da tražiš nešto manje restriktivno.",
+    "mountParameters": "Mount Parameters",
+    "noMountParameters": "No Mount Parameters",
+    "showExtremeScreenshot": "Show Extreme Screenshot"
   },
   "tags": {
     "name": "Ime",
@@ -413,7 +427,9 @@
     "installingFiles": "Instaliram fajlove...",
     "complete": "Gotovo",
     "exportMetaEditTitle": "Izvoz izmena metapodatka",
-    "exportMetaEditDesc": "Izaberite sve postavke za iznošenje:"
+    "exportMetaEditDesc": "Izaberite sve postavke za iznošenje:",
+    "showImage": "Show Image",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "Pregledaj simboličnu sliku u fascikli",
@@ -492,10 +508,13 @@
   },
   "libraries": {
     "arcade": "Igre",
+    "arcadeSingular": "Game",
     "arcadePlural": "Sve igre",
     "theatre": "Animacije",
+    "theatreSingular": "Animation",
     "theatrePlural": "Sve animacije",
     "auditorium": "NG Auditorium",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "Sve NG animacije"
   },
   "upgrades": {

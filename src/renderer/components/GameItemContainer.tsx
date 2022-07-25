@@ -89,7 +89,16 @@ export class GameItemContainer extends React.Component<GameItemContainerProps> {
  * @param props Properties to copy.
  */
 function filterDivProps(props: GameItemContainerProps): JSX.IntrinsicElements['div'] {
-  const rest = Object.assign({}, props);
+  const rest: HTMLDivProps & {
+    // These need to be explicitly specified: the compiler doesn't infer them correctly.
+    realRef?: any;
+    onGameSelect?: any;
+    onGameLaunch?: any;
+    onGameContextMenu?: any;
+    onGameDragStart?: any;
+    onGameDragEnd?: any;
+    findGameId?: any;
+  } = Object.assign({}, props);
   delete rest.realRef;
   delete rest.onGameSelect;
   delete rest.onGameLaunch;

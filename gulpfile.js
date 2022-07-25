@@ -73,7 +73,13 @@ const extraOptions = {
   },
   mac: {
     target: ['dmg', '7z'],
-    icon: './icons/icon.icns'
+    icon: './icons/icon.icns',
+    protocols: {
+      name: 'flashpoint-protocol',
+      schemes: [
+        'flashpoint'
+      ]
+    }
   },
   linux: {
     target: ['deb', '7z'],

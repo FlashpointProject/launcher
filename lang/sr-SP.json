@@ -4,18 +4,27 @@
     "configHeader": "Подешавања",
     "configDesc": "(Мораш да притиснеш 'Сачувај и покрени поново' да би неке промене ступиле на снагу)",
     "preferencesHeader": "Поставке",
-    "extremeGames": "Екстремни садржај",
-    "extremeGamesDesc": "Дозволите приказивање ознака унутар група филтера за ознаке „Екстреме“ и одговарајућих игара.",
+    "extremeGames": "Show Extreme Filters",
+    "extremeGamesDesc": "Allows Extreme tag filters to be toggled, created and modified to control content unsuitable for children.",
+    "hideExtremeScreenshots": "Hide Extreme Screenshots",
+    "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
+    "fancyAnimations": "Fancy Animations",
+    "fancyAnimationsDesc": "Enable fancy animations in the launcher.",
+    "searchLimit": "Search Limit",
+    "searchLimitDesc": "Limit the number of results returned in any search",
+    "searchLimitUnlimited": "Unlimited",
+    "searchLimitValue": "{0} Results",
     "enableEditing": "Укључи уређивање",
     "enableEditingDesc": "Омогућава уређивање игара и додатних апликација. Такође приказује картице везане за уређивање.",
     "onDemandImages": "Слике на захтев",
     "onDemandImagesDesc": "Преузми и сачувај недостајуће логотипе и слике екрана чим су потребни.",
     "currentLanguage": "Језик",
-    "currentLanguageDesc": "Који језик ће апликација да користи пробитно.",
+    "currentLanguageDesc": "Који језик ће апликација да користи првобитно.",
     "fallbackLanguage": "Споредни језик",
     "fallbackLanguageDesc": "Који језик да се користи уместо непотпуног тренутног језика.",
     "auto": "Аутоматски ({0})",
     "none": "Ниједан",
+    "contentFiltersHeader": "Content Filters",
     "flashpointHeader": "Flashpoint",
     "flashpointPath": "Путања Flashpoint-а",
     "flashpointPathDesc": "Путања до Flashpoint фасцикле (може да буде релативна)",
@@ -52,7 +61,7 @@
     "metadataServerHostDesc": "Хост сервера за метаподатак. Користи се за синхронизацију нове и исправљене информације о игри са покретачем.",
     "extensionsHeader": "Додаци",
     "noExtensionsLoaded": "Додаци нису учитани, инсталирај их у '{0}'",
-    "extDevScripts": "Програмерска скрипта/е",
+    "extDevScripts": "Програмерска скрипта(е)",
     "extThemes": "Тема(е)",
     "extLogoSets": "Скуп(ови) логотипа",
     "extApplications": "Апликација(е)",
@@ -79,6 +88,7 @@
     "helpInfo": "Треба ти помоћ? {0}.",
     "help": "Прочитај приручник",
     "upgradesHeader": "Надоградњe",
+    "updateFeedHeader": "News Feed",
     "installComplete": "Инсталација је готова",
     "alreadyInstalled": "Већ инсталирано",
     "download": "Преузми",
@@ -103,7 +113,8 @@
     "clearLog": "Очисти запис",
     "copy404Urls": "Копирај 404 URL-ове",
     "uploadLog": "Пошаљи запис",
-    "copiedToClipboard": "Копирано у привремену меморију"
+    "copiedToClipboard": "Копирано у привремену меморију",
+    "openLogsWindow": "Open Logs Window"
   },
   "app": {
     "home": "Почетак",
@@ -266,7 +277,7 @@
     "thumbnail": "Симболична слика",
     "screenshot": "Слика екрана",
     "dropImageHere": "Довуци слику овде да би је додао",
-    "noGameSelected": "Ниједна игра није изабрана",
+    "noGameSelected": "No {0} Selected",
     "clickToSelectGame": "Кликни на игру да би га изабрао.",
     "deleteAdditionalApplication": "Избриши додатну апликацију",
     "deleteGameAndAdditionalApps": "Избриши игру (и додатне апликације)",
@@ -288,7 +299,10 @@
     "saveAndRestart": "Сачувај и поново покрени",
     "thereAreNoGames": "Нема игара.",
     "noGameMatchedDesc": "Ниједан наслов игре није одговарао са твојом претрагом.",
-    "noGameMatchedSearch": "Покушај да тражиш нешто мање рестриктивно."
+    "noGameMatchedSearch": "Покушај да тражиш нешто мање рестриктивно.",
+    "mountParameters": "Mount Parameters",
+    "noMountParameters": "No Mount Parameters",
+    "showExtremeScreenshot": "Show Extreme Screenshot"
   },
   "tags": {
     "name": "Име",
@@ -413,7 +427,9 @@
     "installingFiles": "Инсталирам фајлове...",
     "complete": "Готово",
     "exportMetaEditTitle": "Извоз измена метаподатка",
-    "exportMetaEditDesc": "Изаберите све поставке за изношење:"
+    "exportMetaEditDesc": "Изаберите све поставке за изношење:",
+    "showImage": "Show Image",
+    "searching": "Searching..."
   },
   "menu": {
     "viewThumbnailInFolder": "Прегледај симболичну слику у фасцикли",
@@ -492,10 +508,13 @@
   },
   "libraries": {
     "arcade": "Игре",
+    "arcadeSingular": "Game",
     "arcadePlural": "Све игре",
     "theatre": "Анимације",
+    "theatreSingular": "Animation",
     "theatrePlural": "Све анимације",
     "auditorium": "NG Auditorium",
+    "auditoriumSingular": "Animation",
     "auditoriumPlural": "Све NG анимације"
   },
   "upgrades": {
