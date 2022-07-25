@@ -114,7 +114,8 @@
     "copy404Urls": "I-kopya ang 404 URLs",
     "uploadLog": "Log ng pag-upload",
     "copiedToClipboard": "Nakopya sa Clipboard",
-    "openLogsWindow": "Open Logs Window"
+    "openLogsWindow": "Open Logs Window",
+    "copyDiagnostics": "Copy Diagnostics"
   },
   "app": {
     "home": "Home",
@@ -302,7 +303,8 @@
     "noGameMatchedSearch": "Subukan mo i-search na di-gaanong strikto.",
     "mountParameters": "Mount Parameters",
     "noMountParameters": "No Mount Parameters",
-    "showExtremeScreenshot": "Show Extreme Screenshot"
+    "showExtremeScreenshot": "Show Extreme Screenshot",
+    "busy": "Please Wait..."
   },
   "tags": {
     "name": "Pangalan",
