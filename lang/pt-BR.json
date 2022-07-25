@@ -114,7 +114,8 @@
     "copy404Urls": "Copiar URLs 404",
     "uploadLog": "Enviar Log",
     "copiedToClipboard": "Copiado para a área de transferência",
-    "openLogsWindow": "Abrir Janela de Logs"
+    "openLogsWindow": "Abrir Janela de Logs",
+    "copyDiagnostics": "Copy Diagnostics"
   },
   "app": {
     "home": "Início",
@@ -302,7 +303,8 @@
     "noGameMatchedSearch": "Tente pesquisar por algo menos restritivo.",
     "mountParameters": "Parâmetros de Mount",
     "noMountParameters": "Sem Parâmetros de Mount",
-    "showExtremeScreenshot": "Mostrar Captura de Tela Extrema"
+    "showExtremeScreenshot": "Mostrar Captura de Tela Extrema",
+    "busy": "Please Wait..."
   },
   "tags": {
     "name": "Nome",
