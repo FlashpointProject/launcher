@@ -114,7 +114,8 @@
     "copy404Urls": "نسخ عناوين URL 404",
     "uploadLog": "رفع الـLog",
     "copiedToClipboard": "تم النسخ إلى الحافظة",
-    "openLogsWindow": "Open Logs Window"
+    "openLogsWindow": "Open Logs Window",
+    "copyDiagnostics": "Copy Diagnostics"
   },
   "app": {
     "home": "الرئيسية",
@@ -302,7 +303,8 @@
     "noGameMatchedSearch": "حاول أن تبحث عن شيء أقلّ تفصيلًا.",
     "mountParameters": "Mount Parameters",
     "noMountParameters": "No Mount Parameters",
-    "showExtremeScreenshot": "Show Extreme Screenshot"
+    "showExtremeScreenshot": "Show Extreme Screenshot",
+    "busy": "Please Wait..."
   },
   "tags": {
     "name": "الاسم",
