@@ -114,7 +114,8 @@
     "copy404Urls": "Αντιγραφή Ενιαίων Εντοπιστών Πόρων 404",
     "uploadLog": "Μεταφόρτωση Αρχείου Καταγραφής",
     "copiedToClipboard": "Αντιγράφτηκε στο Πρόχειρο",
-    "openLogsWindow": "Open Logs Window"
+    "openLogsWindow": "Open Logs Window",
+    "copyDiagnostics": "Copy Diagnostics"
   },
   "app": {
     "home": "Αρχική",
@@ -302,7 +303,8 @@
     "noGameMatchedSearch": "Προσπαθήστε να αναζητήσετε κάτι λιγότερο περιοριστικό.",
     "mountParameters": "Παράμετροι Προσάρτησης",
     "noMountParameters": "Χωρίς Παραμέτρους Προσάρτησης",
-    "showExtremeScreenshot": "Απόκρυψη Ακραίων Στιγμιοτύπων"
+    "showExtremeScreenshot": "Απόκρυψη Ακραίων Στιγμιοτύπων",
+    "busy": "Please Wait..."
   },
   "tags": {
     "name": "Όνομα",
