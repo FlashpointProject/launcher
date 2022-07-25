@@ -114,7 +114,8 @@
     "copy404Urls": "คัดลอก URL ชำรุด",
     "uploadLog": "อัพโหลดล็อก",
     "copiedToClipboard": "คัดลอกไปยังคลิปบอร์ดแล้ว",
-    "openLogsWindow": "Open Logs Window"
+    "openLogsWindow": "Open Logs Window",
+    "copyDiagnostics": "Copy Diagnostics"
   },
   "app": {
     "home": "หน้าหลัก",
@@ -302,7 +303,8 @@
     "noGameMatchedSearch": "ลองพยายามใช้คำความหมายกว้างกว่านี้",
     "mountParameters": "พารามิเตอร์เสริม",
     "noMountParameters": "ไม่มีพารามิเตอร์เสริม",
-    "showExtremeScreenshot": "แสดงภาพตัวอย่างไม่เหมาะสม"
+    "showExtremeScreenshot": "แสดงภาพตัวอย่างไม่เหมาะสม",
+    "busy": "Please Wait..."
   },
   "tags": {
     "name": "ชื่อ",
