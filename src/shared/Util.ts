@@ -4,8 +4,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { DownloadDetails } from './back/types';
 import { AppConfigData } from './config/interfaces';
-import { parseVariableString } from './utils/VariableString';
 import { throttle } from './utils/throttle';
+import { parseVariableString } from './utils/VariableString';
 
 const axios = axiosImport.default;
 

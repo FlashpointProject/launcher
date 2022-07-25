@@ -57,8 +57,9 @@
   --layout__game-item-background-selected-hover: #a72aa2;
   --layout__game-item-thumb-image-rendering:       normal; /* Used to set the "image-rendering" of the thumbnail. */
   /* Browse Sidebar(s) */
-  --layout__browse-sidebar-background:         #181819;
-  --layout__browse-sidebar-divider-background: #131313;
+  --layout__browse-sidebar-background:               #181819;
+  --layout__browse-sidebar-divider-background:       #131313;
+  --layout__browse-sidebar-divider-background-hover: var(--layout__flashpoint-red);
   /* Right Browse Sidebar */
   --layout__browse-right-sidebar-screenshot-placeholder-background: #1b1b1b;
   --layout__browse-right-sidebar-screenshot-placeholder-border:     #818181;
@@ -144,6 +145,8 @@
   --layout__icon-button-hover-fill:                #b1b1b1; /* Color of "icon buttons" while the cursor is hovering over them. */
   --layout__toggle-sidebar-fill:                   #cccccc;
   --layout__drop-down-content-background-selected: #1e90ff;
+  /* Flashpoint */
+  --layout__flashpoint-red: #DD0428;
 }
 
 body {
@@ -392,6 +395,10 @@ body {
   background-color: var(--layout__header-menu-item-hover-background);
   border-color: var(--layout__header-menu-item-hover-border);
 }
+.header__menu__item__link-selected {
+  font-weight: bold;
+  text-decoration: underline;
+}
 .header__search {
   border: 1px solid var(--layout__primary-outline-color);
   background-color: var(--layout__primary-background); 
@@ -587,11 +594,15 @@ body {
 .game-browser__sidebar__divider {
   background-color: var(--layout__browse-sidebar-divider-background);
 }
+.game-browser__sidebar__divider:hover {
+  background-color: var(--layout__browse-sidebar-divider-background-hover);
+}
 .browse-right-sidebar--edit-disabled .browse-right-sidebar__searchable:hover {
   color: var(--layout__browse-right-sidebar-searchable-hover);
 }
 /* Browse-Right-Sidebar Play Button */
 .browse-right-sidebar__play-button,
+.browse-right-sidebar__play-button--busy,
 .browse-right-sidebar__play-button--running,
 .browse-right-sidebar__play-button--download {
   border-width: 2px;
@@ -633,6 +644,9 @@ body {
 }
 .browse-right-sidebar__play-button--download:active {
   background-color: var(--layout__play-button--download--active);
+}
+.browse-right-sidebar__play-button--busy {
+  background-color: var(--layout__secondary-background);
 }
 .browse
 /* BrowseSidebar Title-Row Buttons */
@@ -1101,4 +1115,84 @@ body {
 .clickable-url {
   text-decoration: underline;
   cursor: pointer;
+}
+
+/* Spinner */
+.lds-spinner {
+  color: official;
+  display: inline-block;
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+.lds-spinner div {
+  transform-origin: 40px 40px;
+  animation: lds-spinner 1.2s linear infinite;
+}
+.lds-spinner div:after {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 3px;
+  left: 37px;
+  width: 6px;
+  height: 18px;
+  border-radius: 20%;
+  background: #fff;
+}
+.lds-spinner div:nth-child(1) {
+  transform: rotate(0deg);
+  animation-delay: -1.1s;
+}
+.lds-spinner div:nth-child(2) {
+  transform: rotate(30deg);
+  animation-delay: -1s;
+}
+.lds-spinner div:nth-child(3) {
+  transform: rotate(60deg);
+  animation-delay: -0.9s;
+}
+.lds-spinner div:nth-child(4) {
+  transform: rotate(90deg);
+  animation-delay: -0.8s;
+}
+.lds-spinner div:nth-child(5) {
+  transform: rotate(120deg);
+  animation-delay: -0.7s;
+}
+.lds-spinner div:nth-child(6) {
+  transform: rotate(150deg);
+  animation-delay: -0.6s;
+}
+.lds-spinner div:nth-child(7) {
+  transform: rotate(180deg);
+  animation-delay: -0.5s;
+}
+.lds-spinner div:nth-child(8) {
+  transform: rotate(210deg);
+  animation-delay: -0.4s;
+}
+.lds-spinner div:nth-child(9) {
+  transform: rotate(240deg);
+  animation-delay: -0.3s;
+}
+.lds-spinner div:nth-child(10) {
+  transform: rotate(270deg);
+  animation-delay: -0.2s;
+}
+.lds-spinner div:nth-child(11) {
+  transform: rotate(300deg);
+  animation-delay: -0.1s;
+}
+.lds-spinner div:nth-child(12) {
+  transform: rotate(330deg);
+  animation-delay: 0s;
+}
+@keyframes lds-spinner {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }

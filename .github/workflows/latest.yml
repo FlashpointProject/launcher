@@ -35,10 +35,13 @@ jobs:
           **/node_modules
         key: ${{ runner.os }}-${{ hashFiles('package.json') }}
     - name: Install Dependencies
-      run: npm install
+      run: npm install --force
       if: steps.cache.outputs.cache-hit != 'true'
       env:
         CI: true
+    - name: Install dmg-license
+      if: matrix.os == 'macOS-latest'
+      run: npm install dmg-license --force
     - name: Build and Release 
       run: npm run release
       env:

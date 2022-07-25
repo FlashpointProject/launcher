@@ -1,9 +1,9 @@
-import { chunkArray } from '@back/util/misc';
 import { SourceData } from '@database/entity/SourceData';
-import { getManager } from 'typeorm';
+import { chunkArray } from '@shared/utils/misc';
+import { AppDataSource } from '..';
 
 export function findBySource(sourceId: number): Promise<SourceData[]> {
-  const sourceDataRepository = getManager().getRepository(SourceData);
+  const sourceDataRepository = AppDataSource.getRepository(SourceData);
   return sourceDataRepository.find({
     where: {
       sourceId
@@ -11,28 +11,23 @@ export function findBySource(sourceId: number): Promise<SourceData[]> {
   });
 }
 
-export function findSourceHash(sourceId: number, hash: string): Promise<SourceData | undefined> {
-  const sourceDataRepository = getManager().getRepository(SourceData);
-  return sourceDataRepository.findOne({
-    where: {
-      sourceId,
-      sha256: hash
-    }
-  });
+export function findSourceHash(sourceId: number, hash: string): Promise<SourceData | null> {
+  const sourceDataRepository = AppDataSource.getRepository(SourceData);
+  return sourceDataRepository.findOneBy({ sourceId, sha256: hash });
 }
 
-export function findOne(sourceDataId: number): Promise<SourceData | undefined> {
-  const sourceDataRepository = getManager().getRepository(SourceData);
-  return sourceDataRepository.findOne(sourceDataId);
+export function findOne(sourceDataId: number): Promise<SourceData | null> {
+  const sourceDataRepository = AppDataSource.getRepository(SourceData);
+  return sourceDataRepository.findOneBy({ id: sourceDataId });
 }
 
 export function save(sourceData: SourceData): Promise<SourceData> {
-  const sourceDataRepository = getManager().getRepository(SourceData);
+  const sourceDataRepository = AppDataSource.getRepository(SourceData);
   return sourceDataRepository.save(sourceData);
 }
 
 export function countBySource(sourceId: number): Promise<number> {
-  const sourceDataRepository = getManager().getRepository(SourceData);
+  const sourceDataRepository = AppDataSource.getRepository(SourceData);
   return sourceDataRepository.count({
     where: {
       sourceId
@@ -41,14 +36,14 @@ export function countBySource(sourceId: number): Promise<number> {
 }
 
 export async function clearSource(sourceId: number): Promise<void> {
-  const sourceDataRepository = getManager().getRepository(SourceData);
+  const sourceDataRepository = AppDataSource.getRepository(SourceData);
   await sourceDataRepository.delete({ sourceId });
 }
 
 export async function updateData(sourceData: SourceData[]): Promise<void> {
   const chunks = chunkArray(sourceData, 2000);
   for (const chunk of chunks) {
-    await getManager().transaction(async transEntityManager => {
+    await AppDataSource.transaction(async transEntityManager => {
       for (const sd of chunk) {
         await transEntityManager.save(SourceData, sd);
       }

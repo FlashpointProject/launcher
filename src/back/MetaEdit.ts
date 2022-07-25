@@ -172,7 +172,7 @@ export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDi
     const game = await GameManager.findGame(id);
 
     if (game) {
-      games[id] = await GameManager.findGame(id);
+      games[id] = (await GameManager.findGame(id)) || undefined;
     } else { // Game not found
       const combined = combinedMetas[id];
       if (!combined) { throw new Error(`Failed to check for collisions. "combined meta" is missing (id: "${id}") (bug)`); }

@@ -1,5 +1,5 @@
 import { ApiEmitter } from '@back/extensions/ApiEmitter';
-import { chunkArray } from '@back/util/misc';
+import { chunkArray } from '@shared/utils/misc';
 import { validateSqlName, validateSqlOrder } from '@back/util/sql';
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
@@ -16,8 +16,9 @@ import { Coerce } from '@shared/utils/Coerce';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as TagManager from './TagManager';
-import { Brackets, FindOneOptions, getManager, SelectQueryBuilder } from 'typeorm';
+import { Brackets, FindOneOptions, SelectQueryBuilder } from 'typeorm';
 import * as GameDataManager from './GameDataManager';
+import { AppDataSource } from '..';
 
 const exactFields = [ 'broken', 'library', 'activeDataOnDisk' ];
 enum flatGameFields {
@@ -35,27 +36,33 @@ export const onDidUpdatePlaylistGame = new ApiEmitter<{oldGame: PlaylistGame, ne
 export const onDidRemovePlaylistGame = new ApiEmitter<PlaylistGame>();
 
 export async function countGames(): Promise<number> {
-  const gameRepository = getManager().getRepository(Game);
+  const gameRepository = AppDataSource.getRepository(Game);
   return gameRepository.count();
 }
 
 /** Find the game with the specified ID. */
-export async function findGame(id?: string, filter?: FindOneOptions<Game>): Promise<Game | undefined> {
-  if (id || filter) {
-    const gameRepository = getManager().getRepository(Game);
-    const game = await gameRepository.findOne(id, filter);
-    if (game) {
-      game.tags.sort(tagSort);
-    }
-    return game;
+export async function findGame(id?: string, filter?: FindOneOptions<Game>): Promise<Game | null> {
+  if (!filter) {
+    filter = {};
   }
+  if (id) {
+    filter.where = {
+      id
+    };
+  }
+  const gameRepository = AppDataSource.getRepository(Game);
+  const game = await gameRepository.findOne(filter);
+  if (game) {
+    game.tags.sort(tagSort);
+  }
+  return game;
 }
 
 export async function findGameRow(gameId: string, filterOpts?: FilterGameOpts, orderBy?: GameOrderBy, direction?: GameOrderReverse, index?: PageTuple): Promise<number> {
   if (orderBy) { validateSqlName(orderBy); }
 
   // const startTime = Date.now();
-  const gameRepository = getManager().getRepository(Game);
+  const gameRepository = AppDataSource.getRepository(Game);
 
   const subQ = gameRepository.createQueryBuilder('game')
   .select(`game.id, row_number() over (order by game.${orderBy}) row_num`);
@@ -68,7 +75,7 @@ export async function findGameRow(gameId: string, filterOpts?: FilterGameOpts, o
   }
   if (orderBy) { subQ.orderBy(`game.${orderBy}`, direction); }
 
-  const query = getManager().createQueryBuilder()
+  const query = AppDataSource.createQueryBuilder()
   .setParameters(subQ.getParameters())
   .select('row_num')
   .from('(' + subQ.getQuery() + ')', 'g')
@@ -80,7 +87,7 @@ export async function findGameRow(gameId: string, filterOpts?: FilterGameOpts, o
 }
 
 export async function findRandomGames(count: number, broken: boolean, excludedLibraries: string[], flatFilters: string[]): Promise<ViewGame[]> {
-  const gameRepository = getManager().getRepository(Game);
+  const gameRepository = AppDataSource.getRepository(Game);
   const query = gameRepository.createQueryBuilder('game');
   query.select('game.id, game.title, game.platform, game.developer, game.publisher, game.tagsStr');
   if (!broken)  { query.andWhere('broken = false');  }
@@ -89,7 +96,7 @@ export async function findRandomGames(count: number, broken: boolean, excludedLi
   }
   if (flatFilters.length > 0) {
     const tagIdQuery = TagManager.getFilterIDsQuery(flatFilters);
-    const excludedGameIdQuery = getManager().createQueryBuilder()
+    const excludedGameIdQuery = AppDataSource.createQueryBuilder()
     .select('game_tag.gameId')
     .from('game_tags_tag', 'game_tag')
     .where(`game_tag.tagId IN (${tagIdQuery.getQuery()})`);
@@ -117,7 +124,7 @@ export async function findGamePageKeyset(filterOpts: FilterGameOpts, orderBy: Ga
   subQ.select(`sub.${orderBy}, sub.title, sub.id, case row_number() over(order by sub.${orderBy} ${direction}, sub.title ${direction}, sub.id) % ${VIEW_PAGE_SIZE} when 0 then 1 else 0 end page_boundary`);
   subQ.orderBy(`sub.${orderBy} ${direction}, sub.title`, direction);
 
-  let query = getManager().createQueryBuilder()
+  let query = AppDataSource.createQueryBuilder()
   .select(`g.${orderBy}, g.title, g.id, row_number() over(order by g.${orderBy} ${direction}, g.title ${direction}) + 1 page_number`)
   .from('(' + subQ.getQuery() + ')', 'g')
   .where('g.page_boundary = 1')
@@ -139,7 +146,7 @@ export async function findGamePageKeyset(filterOpts: FilterGameOpts, orderBy: Ga
   let total = -1;
   // startTime = Date.now();
   const subGameQuery = await getGameQuery('sub', filterOpts, orderBy, direction, 0, searchLimit ? searchLimit : undefined, undefined);
-  query = getManager().createQueryBuilder()
+  query = AppDataSource.createQueryBuilder()
   .select('COUNT(*)')
   .from('(' + subGameQuery.getQuery() + ')', 'g')
   .setParameters(subGameQuery.getParameters())
@@ -171,7 +178,7 @@ export type FindGamesOpts = {
 }
 
 export async function findAllGames(): Promise<Game[]> {
-  const gameRepository = getManager().getRepository(Game);
+  const gameRepository = AppDataSource.getRepository(Game);
   return gameRepository.find();
 }
 
@@ -211,20 +218,23 @@ export async function findGames<T extends boolean>(opts: FindGamesOpts, shallow:
 }
 
 /** Find an add apps with the specified ID. */
-export async function findAddApp(id?: string, filter?: FindOneOptions<AdditionalApp>): Promise<AdditionalApp | undefined> {
-  if (id || filter) {
-    if (!filter) {
-      filter = {
-        relations: ['parentGame']
-      };
-    }
-    const addAppRepository = getManager().getRepository(AdditionalApp);
-    return addAppRepository.findOne(id, filter);
+export async function findAddApp(id?: string, filter?: FindOneOptions<AdditionalApp>): Promise<AdditionalApp | null> {
+  if (!filter) {
+    filter = {
+      relations: ['parentGame']
+    };
   }
+  if (id) {
+    filter.where = {
+      id
+    };
+  }
+  const addAppRepository = AppDataSource.getRepository(AdditionalApp);
+  return addAppRepository.findOne(filter);
 }
 
 export async function findPlatformAppPaths(platform: string): Promise<string[]> {
-  const gameRepository = getManager().getRepository(Game);
+  const gameRepository = AppDataSource.getRepository(Game);
   const values = await gameRepository.createQueryBuilder('game')
   .select('game.applicationPath')
   .distinct()
@@ -238,7 +248,7 @@ export async function findPlatformAppPaths(platform: string): Promise<string[]> 
 export async function findUniqueValues(entity: any, column: string): Promise<string[]> {
   validateSqlName(column);
 
-  const repository = getManager().getRepository(entity);
+  const repository = AppDataSource.getRepository(entity);
   const values = await repository.createQueryBuilder('entity')
   .select(`entity.${column}`)
   .distinct()
@@ -249,7 +259,7 @@ export async function findUniqueValues(entity: any, column: string): Promise<str
 export async function findUniqueValuesInOrder(entity: any, column: string): Promise<string[]> {
   validateSqlName(column);
 
-  const repository = getManager().getRepository(entity);
+  const repository = AppDataSource.getRepository(entity);
   const values = await repository.createQueryBuilder('entity')
   .select(`entity.${column}`)
   .distinct()
@@ -258,7 +268,7 @@ export async function findUniqueValuesInOrder(entity: any, column: string): Prom
 }
 
 export async function findPlatforms(library: string): Promise<string[]> {
-  const gameRepository = getManager().getRepository(Game);
+  const gameRepository = AppDataSource.getRepository(Game);
   const libraries = await gameRepository.createQueryBuilder('game')
   .where('game.library = :library', {library: library})
   .select('game.platform')
@@ -270,7 +280,7 @@ export async function findPlatforms(library: string): Promise<string[]> {
 export async function updateGames(games: Game[]): Promise<void> {
   const chunks = chunkArray(games, 2000);
   for (const chunk of chunks) {
-    await getManager().transaction(async transEntityManager => {
+    await AppDataSource.transaction(async transEntityManager => {
       for (const game of chunk) {
         await transEntityManager.save(Game, game);
       }
@@ -279,16 +289,16 @@ export async function updateGames(games: Game[]): Promise<void> {
 }
 
 export async function save(game: Game): Promise<Game> {
-  const gameRepository = getManager().getRepository(Game);
+  const gameRepository = AppDataSource.getRepository(Game);
   log.debug('Launcher', 'Saving game...');
   const savedGame = await gameRepository.save(game);
   if (savedGame) { onDidUpdateGame.fire({oldGame: game, newGame: savedGame}); }
   return savedGame;
 }
 
-export async function removeGameAndAddApps(gameId: string, dataPacksFolderPath: string): Promise<Game | undefined> {
-  const gameRepository = getManager().getRepository(Game);
-  const addAppRepository = getManager().getRepository(AdditionalApp);
+export async function removeGameAndAddApps(gameId: string, dataPacksFolderPath: string): Promise<Game | null> {
+  const gameRepository = AppDataSource.getRepository(Game);
+  const addAppRepository = AppDataSource.getRepository(AdditionalApp);
   const game = await findGame(gameId);
   if (game) {
     // Delete GameData
@@ -309,26 +319,35 @@ export async function removeGameAndAddApps(gameId: string, dataPacksFolderPath: 
   return game;
 }
 
-export async function findPlaylist(playlistId: string, join?: boolean): Promise<Playlist | undefined> {
+export async function findPlaylist(playlistId: string, join?: boolean): Promise<Playlist | null> {
   const opts: FindOneOptions<Playlist> = join ? { relations: ['games'] } : {};
-  const playlistRepository = getManager().getRepository(Playlist);
-  return playlistRepository.findOne(playlistId, opts);
+  const playlistRepository = AppDataSource.getRepository(Playlist);
+  return playlistRepository.findOne({
+    ...opts,
+    where: {
+      id: playlistId
+    }
+  });
 }
 
-export async function findPlaylistByName(playlistName: string, join?: boolean): Promise<Playlist | undefined> {
+export async function findPlaylistByName(playlistName: string, join?: boolean): Promise<Playlist | null> {
   const opts: FindOneOptions<Playlist> = join ? {
     relations: ['games'],
     where: {
       title: playlistName
     }
-  } : {};
-  const playlistRepository = getManager().getRepository(Playlist);
+  } : {
+    where: {
+      title: playlistName
+    }
+  };
+  const playlistRepository = AppDataSource.getRepository(Playlist);
   return playlistRepository.findOne(opts);
 }
 
 /** Find playlists given a filter. @TODO filter */
 export async function findPlaylists(showExtreme: boolean): Promise<Playlist[]> {
-  const playlistRepository = getManager().getRepository(Playlist);
+  const playlistRepository = AppDataSource.getRepository(Playlist);
   if (showExtreme) {
     return await playlistRepository.find();
   } else {
@@ -338,46 +357,43 @@ export async function findPlaylists(showExtreme: boolean): Promise<Playlist[]> {
 
 /** Removes a playlist */
 export async function removePlaylist(playlistId: string): Promise<Playlist | undefined> {
-  const playlistRepository = getManager().getRepository(Playlist);
-  const playlistGameRepository = getManager().getRepository(PlaylistGame);
+  const playlistRepository = AppDataSource.getRepository(Playlist);
+  const playlistGameRepository = AppDataSource.getRepository(PlaylistGame);
   const playlist = await findPlaylist(playlistId);
   if (playlist) {
     await playlistGameRepository.delete({ playlistId: playlist.id });
     return playlistRepository.remove(playlist);
   }
 }
+
 /** Updates a playlist */
 export async function updatePlaylist(playlist: Playlist): Promise<Playlist> {
-  const playlistRepository = getManager().getRepository(Playlist);
+  const playlistRepository = AppDataSource.getRepository(Playlist);
   const savedPlaylist = await playlistRepository.save(playlist);
   if (savedPlaylist) { onDidUpdatePlaylist.fire({oldPlaylist: playlist, newPlaylist: savedPlaylist}); }
   return savedPlaylist;
 }
 
 /** Finds a Playlist Game */
-export async function findPlaylistGame(playlistId: string, gameId: string): Promise<PlaylistGame | undefined> {
-  const playlistGameRepository = getManager().getRepository(PlaylistGame);
-  return await playlistGameRepository.findOne({
-    where: {
-      gameId: gameId,
-      playlistId: playlistId
-    }
-  });
+export async function findPlaylistGame(playlistId: string, gameId: string): Promise<PlaylistGame | null> {
+  const playlistGameRepository = AppDataSource.getRepository(PlaylistGame);
+  return await playlistGameRepository.findOneBy({ gameId, playlistId });
 }
 
 /** Removes a Playlist Game */
-export async function removePlaylistGame(playlistId: string, gameId: string): Promise<PlaylistGame | undefined> {
-  const playlistGameRepository = getManager().getRepository(PlaylistGame);
+export async function removePlaylistGame(playlistId: string, gameId: string): Promise<PlaylistGame | null> {
+  const playlistGameRepository = AppDataSource.getRepository(PlaylistGame);
   const playlistGame = await findPlaylistGame(playlistId, gameId);
   if (playlistGame) {
     onDidRemovePlaylistGame.fire(playlistGame);
     return playlistGameRepository.remove(playlistGame);
   }
+  return null;
 }
 
 /** Adds a new Playlist Game (to the end of the playlist). */
 export async function addPlaylistGame(playlistId: string, gameId: string): Promise<void> {
-  const repository = getManager().getRepository(PlaylistGame);
+  const repository = AppDataSource.getRepository(PlaylistGame);
 
   const duplicate = await repository.createQueryBuilder()
   .where('playlistId = :playlistId', { playlistId })
@@ -402,7 +418,7 @@ export async function addPlaylistGame(playlistId: string, gameId: string): Promi
 
 /** Updates a Playlist Game */
 export async function updatePlaylistGame(playlistGame: PlaylistGame): Promise<PlaylistGame> {
-  const playlistGameRepository = getManager().getRepository(PlaylistGame);
+  const playlistGameRepository = AppDataSource.getRepository(PlaylistGame);
   const savedPlaylistGame = await playlistGameRepository.save(playlistGame);
   if (savedPlaylistGame) { onDidUpdatePlaylistGame.fire({oldGame: playlistGame, newGame: savedPlaylistGame }); }
   return savedPlaylistGame;
@@ -410,7 +426,7 @@ export async function updatePlaylistGame(playlistGame: PlaylistGame): Promise<Pl
 
 /** Updates a collection of Playlist Games */
 export async function updatePlaylistGames(playlistGames: PlaylistGame[]): Promise<void> {
-  return getManager().transaction(async transEntityManager => {
+  return AppDataSource.transaction(async transEntityManager => {
     for (const game of playlistGames) {
       await transEntityManager.save(PlaylistGame, game);
     }
@@ -418,7 +434,7 @@ export async function updatePlaylistGames(playlistGames: PlaylistGame[]): Promis
 }
 
 export async function findGamesWithTag(tag: Tag): Promise<Game[]> {
-  const gameIds = (await getManager().createQueryBuilder()
+  const gameIds = (await AppDataSource.createQueryBuilder()
   .select('game_tag.gameId as gameId')
   .distinct()
   .from('game_tags_tag', 'game_tag')
@@ -429,7 +445,7 @@ export async function findGamesWithTag(tag: Tag): Promise<Game[]> {
 }
 
 async function chunkedFindByIds(gameIds: string[]): Promise<Game[]> {
-  const gameRepository = getManager().getRepository(Game);
+  const gameRepository = AppDataSource.getRepository(Game);
 
   const chunks = chunkArray(gameIds, 100);
   let gamesFound: Game[] = [];
@@ -532,7 +548,7 @@ function doWhereField(alias: string, query: SelectQueryBuilder<Game>, field: str
 async function applyTagFilters(aliases: string[], alias: string, query: SelectQueryBuilder<Game>, whereCount: number, whitelist: boolean) {
   validateSqlName(alias);
 
-  const tagAliasRepository = getManager().getRepository(TagAlias);
+  const tagAliasRepository = AppDataSource.getRepository(TagAlias);
   const comparator = whitelist ? 'IN' : 'NOT IN';
   const aliasKey = `${whitelist ? 'whitelist_' : 'blacklist_'}${whereCount}`;
 
@@ -541,7 +557,7 @@ async function applyTagFilters(aliases: string[], alias: string, query: SelectQu
   .select('tag_alias.tagId')
   .distinct();
 
-  const subQuery = getManager().createQueryBuilder()
+  const subQuery = AppDataSource.createQueryBuilder()
   .select('game_tag.gameId')
   .distinct()
   .from('game_tags_tag', 'game_tag')
@@ -561,7 +577,7 @@ async function getGameQuery(
 
   let whereCount = 0;
 
-  const query = getManager().getRepository(Game).createQueryBuilder(alias);
+  const query = AppDataSource.getRepository(Game).createQueryBuilder(alias);
 
   // Use Page Index if available (ignored for Playlists)
   if ((!filterOpts || !filterOpts.playlistId) && index) {

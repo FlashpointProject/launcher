@@ -12,7 +12,6 @@ import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOp
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint-launcher';
 import { IncomingMessage, Server, ServerResponse } from 'http';
-import { Connection } from 'typeorm';
 import * as WebSocket from 'ws';
 import { ApiEmitter } from './extensions/ApiEmitter';
 import { ExtensionService } from './extensions/ExtensionService';
@@ -70,8 +69,8 @@ export type BackState = {
   readonly apiEmitters: ApiEmittersState,
   readonly registry: Registry;
   extensionsService: ExtensionService;
-  connection: Connection | undefined;
   prefsQueue: EventQueue;
+  logsWindowProc?: ManagedChildProcess;
 }
 
 export type BackQueryChache = {

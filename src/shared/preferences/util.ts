@@ -1,5 +1,6 @@
 import { autoCode } from '@shared/lang';
 import { LogLevel } from '@shared/Log/interface';
+import { delayedThrottle, delayedThrottleAsync } from '@shared/utils/throttle';
 import { TagFilterGroup } from 'flashpoint-launcher';
 import { BackIn } from '../back/types';
 import { BrowsePageLayout } from '../BrowsePageLayout';
@@ -10,21 +11,39 @@ import { deepCopy, parseVarStr } from '../Util';
 import { Coerce } from '../utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
 import { AppPathOverride, AppPreferencesData, AppPreferencesDataMainWindow } from './interfaces';
-import {delayedThrottle} from '@shared/utils/throttle';
 
 export function updatePreferencesData(data: DeepPartial<AppPreferencesData>, send = true) {
   const preferences = window.Shared.preferences;
   // @TODO Figure out the delta change of the object tree, and only send the changes
   preferences.data = overwritePreferenceData(deepCopy(preferences.data), data);
-  if (preferences.onUpdate) { preferences.onUpdate(); }
   if (send) {
     sendPrefs();
   }
+  if (preferences.onUpdate) { preferences.onUpdate(); }
+}
+
+export async function updatePreferencesDataAsync(data: DeepPartial<AppPreferencesData>, send = true) {
+  const preferences = window.Shared.preferences;
+  // @TODO Figure out the delta change of the object tree, and only send the changes
+  preferences.data = overwritePreferenceData(deepCopy(preferences.data), data);
+  if (send) {
+    await sendPrefsAsync();
+  }
+  if (preferences.onUpdate) { preferences.onUpdate(); }
 }
 
 const sendPrefs = delayedThrottle(() => {
   const preferences = window.Shared.preferences;
   window.Shared.back.send(
+    BackIn.UPDATE_PREFERENCES,
+    preferences.data,
+    false
+  );
+}, 200);
+
+const sendPrefsAsync = delayedThrottleAsync(async () => {
+  const preferences = window.Shared.preferences;
+  await window.Shared.back.request(
     BackIn.UPDATE_PREFERENCES,
     preferences.data,
     false

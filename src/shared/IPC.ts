@@ -8,6 +8,7 @@ export type InitRendererData = {
   version: number;
   host: string;
   secret: string;
+  url?: string;
 }
 
 export const FlashInitChannel = 'renderer-flash-init';

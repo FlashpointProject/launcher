@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { FancyAnimation } from './FancyAnimation';
 
 type ResizableSidebarProps = {
   className?: string;
@@ -80,9 +81,17 @@ export class ResizableSidebar extends React.Component<ResizableSidebarProps, Res
 
   renderDivider() {
     return (
-      <div
-        className='game-browser__sidebar__divider'
-        onMouseDown={this.onDividerMouseDown} />
+      <FancyAnimation
+        normalRender={(
+          <div
+            className='game-browser__sidebar__divider'
+            onMouseDown={this.onDividerMouseDown} />
+        )}
+        fancyRender={(
+          <div
+            className='game-browser__sidebar__divider game-browser__sidebar__divider--animated'
+            onMouseDown={this.onDividerMouseDown} />
+        )}/>
     );
   }
 

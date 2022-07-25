@@ -1,15 +1,16 @@
+import { ApiEmitter } from '@back/extensions/ApiEmitter';
 import { GameData } from '@database/entity/GameData';
 import { SourceData } from '@database/entity/SourceData';
-import { downloadFile } from '@shared/Util';
 import { DownloadDetails } from '@shared/back/types';
+import { downloadFile } from '@shared/Util';
 import * as crypto from 'crypto';
+import * as flashpoint from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as path from 'path';
-import { getManager, In } from 'typeorm';
+import { In } from 'typeorm';
+import { AppDataSource } from '..';
 import * as GameManager from './GameManager';
 import * as SourceManager from './SourceManager';
-import { ApiEmitter } from '@back/extensions/ApiEmitter';
-import * as flashpoint from 'flashpoint-launcher';
 
 export const onDidInstallGameData = new ApiEmitter<flashpoint.GameData>();
 export const onWillUninstallGameData = new ApiEmitter<flashpoint.GameData>();
@@ -63,13 +64,13 @@ export async function downloadGameData(gameDataId: number, dataPacksFolderPath: 
   }
 }
 
-export function findOne(id: number): Promise<GameData | undefined> {
-  const gameDataRepository = getManager().getRepository(GameData);
-  return gameDataRepository.findOne(id);
+export function findOne(id: number): Promise<GameData | null> {
+  const gameDataRepository = AppDataSource.getRepository(GameData);
+  return gameDataRepository.findOneBy({ id });
 }
 
 export function findGameData(gameId: string): Promise<GameData[]> {
-  const gameDataRepository = getManager().getRepository(GameData);
+  const gameDataRepository = AppDataSource.getRepository(GameData);
   return gameDataRepository.find({
     where: {
       gameId
@@ -78,19 +79,19 @@ export function findGameData(gameId: string): Promise<GameData[]> {
 }
 
 export function findSourceDataForHashes(hashes: string[]): Promise<SourceData[]> {
-  const sourceDataRepository = getManager().getRepository(SourceData);
-  return sourceDataRepository.find({
+  const sourceDataRepository = AppDataSource.getRepository(SourceData);
+  return sourceDataRepository.findBy({
     sha256: In(hashes)
   });
 }
 
 export function save(gameData: GameData): Promise<GameData> {
-  const gameDataRepository = getManager().getRepository(GameData);
+  const gameDataRepository = AppDataSource.getRepository(GameData);
   return gameDataRepository.save(gameData);
 }
 
 export async function remove(gameDataId: number): Promise<void> {
-  const gameDataRepository = getManager().getRepository(GameData);
+  const gameDataRepository = AppDataSource.getRepository(GameData);
   await gameDataRepository.delete({ id: gameDataId });
 }
 

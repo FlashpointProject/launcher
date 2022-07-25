@@ -5,7 +5,7 @@ import { extractFull } from 'node-7z';
 import * as path from 'path';
 import { ProgressDispatch, ProgressHandle } from '../context/ProgressContext';
 import { pathTo7z } from '../util/SevenZip';
-import { uuid, validateSemiUUID } from '../util/uuid';
+import { uuid, validateSemiUUID } from '@shared/utils/uuid';
 import { curationLog } from './util';
 
 /**

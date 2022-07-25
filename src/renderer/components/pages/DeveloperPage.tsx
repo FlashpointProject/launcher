@@ -1,5 +1,5 @@
 /* eslint-disable react/no-unused-state */
-import { chunkArray } from '@back/util/misc';
+import { chunkArray } from '@shared/utils/misc';
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import * as remote from '@electron/remote';
@@ -16,7 +16,7 @@ import * as path from 'path';
 import * as React from 'react';
 import { promisify } from 'util';
 import { LangContext } from '../../util/lang';
-import { validateSemiUUID } from '../../util/uuid';
+import { validateSemiUUID } from '@shared/utils/uuid';
 import { LogData } from '../LogData';
 import { ServiceBox } from '../ServiceBox';
 import { SimpleButton } from '../SimpleButton';

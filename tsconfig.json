@@ -8,11 +8,11 @@
     "target": "esnext",
     "lib": ["es6", "es2015", "dom"],
     "strict": true,
-    "jsx": "react",
+    "jsx": "react-jsx",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "strictPropertyInitialization": false,
-    "strictNullChecks": false,
+    "strictNullChecks": true,
     "paths": {
       "@shared/*": [ "./src/shared/*" ],
       "@main/*": [ "./src/main/*" ],

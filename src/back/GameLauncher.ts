@@ -7,11 +7,12 @@ import { fixSlashes, padStart, stringifyArray } from '@shared/Util';
 import { Coerce } from '@shared/utils/Coerce';
 import { ChildProcess, exec } from 'child_process';
 import { EventEmitter } from 'events';
+import * as GameManager from '@back/game/GameManager';
 import { AppPathOverride, GameData, ManagedChildProcess } from 'flashpoint-launcher';
 import * as path from 'path';
 import { ApiEmitter } from './extensions/ApiEmitter';
 import { OpenExternalFunc, ShowMessageBoxFunc } from './types';
-import { isBrowserOpts } from './util/misc';
+import { getCwd, isBrowserOpts } from './util/misc';
 import * as GameDataManager from '@back/game/GameDataManager';
 
 const { str } = Coerce;
@@ -28,7 +29,7 @@ export type LaunchGameOpts = LaunchBaseOpts & {
 
 export type GameLaunchInfo = {
   game: Game;
-  activeData?: GameData;
+  activeData: GameData | null;
   launchInfo: LaunchInfo;
 }
 
@@ -38,7 +39,7 @@ export type LaunchInfo = {
   useWine: boolean;
   env: NodeJS.ProcessEnv;
   cwd?: string;
-  execFile?: boolean;
+  noshell?: boolean;
 }
 
 type LaunchBaseOpts = {
@@ -117,7 +118,6 @@ export namespace GameLauncher {
 
   /**
    * Launch a game
-   * @param game Game to launch
    */
   export async function launchGame(opts: LaunchGameOpts, onWillEvent: ApiEmitter<GameLaunchInfo>): Promise<void> {
     // Abort if placeholder (placeholders are not "actual" games)
@@ -146,12 +146,28 @@ export namespace GameLauncher {
         }
       }
     }
+    // Launch game callback
+    const launchCb = async (launchInfo: GameLaunchInfo): Promise<void> =>  {
+      await onWillEvent.fire(launchInfo)
+      .then(() => {
+        const command: string = createCommand(launchInfo.launchInfo);
+        const managedProc = opts.runGame(launchInfo);
+        log.info(logSource,`Launch Game "${opts.game.title}" (PID: ${managedProc.getPid()}) [\n`+
+                    `    applicationPath: "${opts.game.applicationPath}",\n`+
+                    `    launchCommand:   "${opts.game.launchCommand}",\n`+
+                    `    command:         "${command}" ]`);
+      })
+      .catch((error) => {
+        log.info('Game Launcher', `Game Launch Aborted: ${error}`);
+      });
+    };
     // Launch game
     let appPath: string = getApplicationPath(opts.game.applicationPath, opts.execMappings, opts.native);
     let appArgs: string[] = [];
     const appPathOverride = opts.appPathOverrides.filter(a => a.enabled).find(a => a.path === appPath);
     if (appPathOverride) { appPath = appPathOverride.override; }
     const availableApps = opts.providers.filter(p => p.provides.includes(appPath) || p.provides.includes(opts.game.applicationPath));
+    log.debug('TEST', 'Checked for available apps');
     // If any available provided applications, check if any work.
     for (const app of availableApps) {
       try {
@@ -178,7 +194,7 @@ export namespace GameLauncher {
           const browserLaunchArgs = [path.join(__dirname, '../main/index.js'), 'browser_mode=true'];
           if (res.proxy) { browserLaunchArgs.push(`proxy=${res.proxy}`); }
           browserLaunchArgs.push(`browser_url=${(res.url)}`);
-          const gameData = opts.game.activeDataId ? await GameDataManager.findOne(opts.game.activeDataId) : undefined;
+          const gameData = opts.game.activeDataId ? await GameDataManager.findOne(opts.game.activeDataId) : null;
           const gameLaunchInfo: GameLaunchInfo = {
             game: opts.game,
             activeData: gameData,
@@ -187,11 +203,11 @@ export namespace GameLauncher {
               gameArgs: browserLaunchArgs,
               useWine: false,
               env,
-              cwd: process.cwd(),
-              execFile: true
+              cwd: getCwd(opts.isDev, opts.exePath),
+              noshell: true
             }
           };
-          onWillEvent.fire(gameLaunchInfo)
+          await onWillEvent.fire(gameLaunchInfo)
           .then(() => {
             const managedProc = opts.runGame(gameLaunchInfo);
             log.info(logSource, `Launch Game "${opts.game.title}" (PID: ${managedProc.getPid()}) [\n`+
@@ -213,73 +229,27 @@ export namespace GameLauncher {
       }
     }
     // Continue with launching normally
-    switch (appPath) {
-      // Special case flash browser run.
-      // @TODO Move to extension
-      case ':flash:': {
-        const env = getEnvironment(opts.fpPath, opts.proxy);
-        if ('ELECTRON_RUN_AS_NODE' in env) {
-          delete env['ELECTRON_RUN_AS_NODE']; // If this flag is present, it will disable electron features from the process
-        }
-        const gameData = opts.game.activeDataId ? await GameDataManager.findOne(opts.game.activeDataId) : undefined;
-        const gameLaunchInfo: GameLaunchInfo = {
-          game: opts.game,
-          activeData: gameData,
-          launchInfo: {
-            gamePath: process.execPath,
-            gameArgs: [path.join(__dirname, '../main/index.js'), 'browser_mode=true', `browser_url=${path.join(__dirname, '../window/flash_index.html')}?data=${encodeURI(opts.game.launchCommand)}`],
-            useWine: false,
-            env,
-            cwd: process.cwd(),
-            execFile: true
-          }
-        };
-        onWillEvent.fire(gameLaunchInfo)
-        .then(() => {
-          const managedProc = opts.runGame(gameLaunchInfo);
-          log.info(logSource, `Launch Game "${opts.game.title}" (PID: ${managedProc.getPid()}) [\n`+
-                    `    applicationPath: "${appPath}",\n`+
-                    `    launchCommand:   "${opts.game.launchCommand}" ]`);
-        })
-        .catch((error) => {
-          log.info('Game Launcher', `Game Launch Aborted: ${error}`);
-          alert(`Game Launch Aborted: ${error}`);
-        });
-        const managedProc = opts.runGame(gameLaunchInfo);
-        log.info(logSource, `Launch Game "${opts.game.title}" (PID: ${managedProc.getPid()}) [\n`+
-                  `    applicationPath: "${appPath}",\n`+
-                  `    launchCommand:   "${opts.game.launchCommand}" ]`);
-      } break;
-      default: {
-        const gamePath: string = path.isAbsolute(appPath) ? fixSlashes(appPath) : fixSlashes(path.join(opts.fpPath, appPath));
-        const gameArgs: string[] = [...appArgs, opts.game.launchCommand];
-        const useWine: boolean = process.platform != 'win32' && gamePath.endsWith('.exe');
-        const env = getEnvironment(opts.fpPath, opts.proxy);
-        const gameData = opts.game.activeDataId ? await GameDataManager.findOne(opts.game.activeDataId) : undefined;
-        const gameLaunchInfo: GameLaunchInfo = {
-          game: opts.game,
-          activeData: gameData,
-          launchInfo: {
-            gamePath,
-            gameArgs,
-            useWine,
-            env,
-          }
-        };
-        onWillEvent.fire(gameLaunchInfo)
-        .then(() => {
-          const command: string = createCommand(gameLaunchInfo.launchInfo);
-          const managedProc = opts.runGame(gameLaunchInfo);
-          log.info(logSource,`Launch Game "${opts.game.title}" (PID: ${managedProc.getPid()}) [\n`+
-                     `    applicationPath: "${opts.game.applicationPath}",\n`+
-                     `    launchCommand:   "${opts.game.launchCommand}",\n`+
-                     `    command:         "${command}" ]`);
-        })
-        .catch((error) => {
-          log.info('Game Launcher', `Game Launch Aborted: ${error}`);
-        });
-      } break;
+    const gamePath: string = path.isAbsolute(appPath) ? fixSlashes(appPath) : fixSlashes(path.join(opts.fpPath, appPath));
+    const gameArgs: string[] = [...appArgs, opts.game.launchCommand];
+    const useWine: boolean = process.platform != 'win32' && gamePath.endsWith('.exe');
+    const env = getEnvironment(opts.fpPath, opts.proxy);
+    try {
+      await GameManager.findGame(opts.game.id);
+    } catch (err: any) {
+      log.error('Launcher', 'Error Finding Game - ' + err.toString());
     }
+    const gameData = opts.game.activeDataId ? await GameDataManager.findOne(opts.game.activeDataId) : null;
+    const gameLaunchInfo: GameLaunchInfo = {
+      game: opts.game,
+      activeData: gameData,
+      launchInfo: {
+        gamePath,
+        gameArgs,
+        useWine,
+        env,
+      }
+    };
+    await launchCb(gameLaunchInfo);
   }
 
   /**
@@ -336,6 +306,7 @@ export namespace GameLauncher {
     // level entire system when using Windows.
     // When using WINE on mac, the proxy variable is needed as well.
     return {
+      'FP_PATH': fpPath,
       // Add proxy env vars if it's running on linux
       ...(((process.platform === 'linux' || process.platform === 'darwin') && proxy !== '') ? { http_proxy: `http://${proxy}/`, HTTP_PROXY: `http://${proxy}/` } : null),
       // Copy this processes environment variables

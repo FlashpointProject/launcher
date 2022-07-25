@@ -4,8 +4,16 @@
     "configHeader": "Configurações",
     "configDesc": "(Você deve pressionar 'Salvar e Reiniciar' para que algumas alterações tenham efeito)",
     "preferencesHeader": "Preferências",
-    "extremeGames": "Conteúdo Extremo",
-    "extremeGamesDesc": "Permitir tags dentro de grupos de filtragem de tags 'Extremos' e jogos correspondentes a serem mostrados.",
+    "extremeGames": "Mostrar Filtros Extremos",
+    "extremeGamesDesc": "Permite que filtros de tag Extremos sejam ativados, criados e modificados para controlar conteúdo inadequado para crianças.",
+    "hideExtremeScreenshots": "Ocultar Capturas de Tela Extremas",
+    "hideExtremeScreenshotsDesc": "Oculta capturas de tela de conteúdo com tags Extremas, podem ser reveladas com um clique na caixa de imagem.",
+    "fancyAnimations": "Animações Bonitas",
+    "fancyAnimationsDesc": "Habilitar animações bonitas no launcher.",
+    "searchLimit": "Limite de busca",
+    "searchLimitDesc": "Limitar o número de resultados retornados em qualquer busca",
+    "searchLimitUnlimited": "Ilimitado",
+    "searchLimitValue": "{0} Resultados",
     "enableEditing": "Habilitar Edição",
     "enableEditingDesc": "Habilita a edição de jogos e aplicativos adicionais. Também revela abas relacionadas a edição.",
     "onDemandImages": "Imagens Sob Demanda",
@@ -16,6 +24,7 @@
     "fallbackLanguageDesc": "Qual idioma utilizar caso o idioma atual esteja incompleto.",
     "auto": "Automático ({0})",
     "none": "Nenhum",
+    "contentFiltersHeader": "Filtros de Conteúdo",
     "flashpointHeader": "Flashpoint",
     "flashpointPath": "Caminho do Flashpoint",
     "flashpointPathDesc": "Caminho para a pasta do Flashpoint (pode ser relativo)",
@@ -79,6 +88,7 @@
     "helpInfo": "Precisa de ajuda? {0}.",
     "help": "Leia o manual",
     "upgradesHeader": "Melhorias",
+    "updateFeedHeader": "Feed de Notícias",
     "installComplete": "Instalação Completa",
     "alreadyInstalled": "Já Instalado",
     "download": "Baixar",
@@ -103,7 +113,8 @@
     "clearLog": "Limpar Log",
     "copy404Urls": "Copiar URLs 404",
     "uploadLog": "Enviar Log",
-    "copiedToClipboard": "Copiado para a área de transferência"
+    "copiedToClipboard": "Copiado para a área de transferência",
+    "openLogsWindow": "Abrir Janela de Logs"
   },
   "app": {
     "home": "Início",
@@ -266,7 +277,7 @@
     "thumbnail": "Miniatura",
     "screenshot": "Captura de tela",
     "dropImageHere": "Largue uma imagem aqui para adicioná-la",
-    "noGameSelected": "Nenhum Jogo Selecionado",
+    "noGameSelected": "Nenhum {0} Selecionado",
     "clickToSelectGame": "Clique em um jogo para selecioná-lo.",
     "deleteAdditionalApplication": "Deletar Aplicativo Adicional",
     "deleteGameAndAdditionalApps": "Deletar Jogo (e Aplicativos Adicionais)",
@@ -288,7 +299,10 @@
     "saveAndRestart": "Salvar e Reiniciar",
     "thereAreNoGames": "Não há jogos.",
     "noGameMatchedDesc": "Nenhum título de jogo corresponde à sua pesquisa.",
-    "noGameMatchedSearch": "Tente pesquisar por algo menos restritivo."
+    "noGameMatchedSearch": "Tente pesquisar por algo menos restritivo.",
+    "mountParameters": "Parâmetros de Mount",
+    "noMountParameters": "Sem Parâmetros de Mount",
+    "showExtremeScreenshot": "Mostrar Captura de Tela Extrema"
   },
   "tags": {
     "name": "Nome",
@@ -354,7 +368,7 @@
     "removeAddApp": "Remover App",
     "indexContent": "Atualizar Conteúdo",
     "delete": "Deletar",
-    "deleteCurationDesc": "Deleta esta curação (Os arquivos não podem ser recuperados)",
+    "deleteCurationDesc": "Deletar esta curação (Os arquivos não podem ser recuperados)",
     "openFolder": "Abrir Pasta",
     "run": "Iniciar",
     "runWithMAD4FP": "Iniciar com MAD4FP",
@@ -413,7 +427,9 @@
     "installingFiles": "Instalando Arquivos...",
     "complete": "Concluído",
     "exportMetaEditTitle": "Exportar Edição de Metadados",
-    "exportMetaEditDesc": "Selecione todas as propriedades para exportar:"
+    "exportMetaEditDesc": "Selecione todas as propriedades para exportar:",
+    "showImage": "Mostrar Imagem",
+    "searching": "Pesquisando..."
   },
   "menu": {
     "viewThumbnailInFolder": "Ver Miniatura na Pasta",
@@ -492,10 +508,13 @@
   },
   "libraries": {
     "arcade": "Jogos",
+    "arcadeSingular": "Jogo",
     "arcadePlural": "Todos os Jogos",
     "theatre": "Animações",
+    "theatreSingular": "Animação",
     "theatrePlural": "Todas as Animações",
     "auditorium": "Auditório NG",
+    "auditoriumSingular": "Animação",
     "auditoriumPlural": "Todas as Animações NG"
   },
   "upgrades": {

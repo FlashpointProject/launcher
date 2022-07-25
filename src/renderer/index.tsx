@@ -58,7 +58,7 @@ import { logFactory } from './util/logging';
   ), document.getElementById('root'));
 })();
 
-function createInitialMainState(): MainState {
+export function createInitialMainState(): MainState {
   const preferencesData = window.Shared.preferences.data;
 
   // Prepare libraries
@@ -145,6 +145,8 @@ function createInitialMainState(): MainState {
     downloadPercent: 0,
     downloadSize: 0,
     downloadOpen: false,
-    downloadVerifying: false
+    downloadVerifying: false,
+    isEditingGame: false,
+    busyGames: [],
   };
 }
