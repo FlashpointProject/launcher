@@ -1,5 +1,5 @@
 import { Game } from '@database/entity/Game';
-import { GameOrderBy, GameOrderReverse } from '../order/interfaces';
+import { GameOrderBy, GameOrderReverse } from 'flashpoint-launcher';
 
 const blacklistFields = ['not', 'no', 'missing'];
 const whitelistFields = ['is', 'has'];

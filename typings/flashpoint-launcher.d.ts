@@ -778,6 +778,8 @@ declare module 'flashpoint-launcher' {
 
     /** Game field to order the results by */
     type GameOrderBy = keyof Game;
+    /** Ways to order games */
+    type GameOrderReverse = 'ASC'|'DESC';
     /** Direction to return the results in (ascending or descending) */
     type GameOrderDirection = 'ASC' | 'DESC';
 

@@ -1,8 +1,8 @@
 import { AppConfigData } from '@shared/config/interfaces';
 import { getDefaultConfigData, overwriteConfigData } from '@shared/config/util';
-import { AppPreferencesData } from '@shared/preferences/interfaces';
 import { defaultPreferencesData, overwritePreferenceData } from '@shared/preferences/util';
 import { deepCopy } from '@shared/Util';
+import { AppPreferencesData } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as os from 'os';
 import * as path from 'path';

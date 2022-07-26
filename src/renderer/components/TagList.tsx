@@ -1,6 +1,6 @@
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
-import { GameOrderReverse } from '@shared/order/interfaces';
+import { GameOrderReverse } from 'flashpoint-launcher';
 import * as React from 'react';
 import { ArrowKeyStepper, AutoSizer, List, ListRowProps } from 'react-virtualized-reactv17';
 import { findElementAncestor } from '../Util';

@@ -1,9 +1,9 @@
 import { SocketClient } from '@shared/back/SocketClient';
 import { OpenDialogOptions } from 'electron';
+import { AppPreferencesData } from 'flashpoint-launcher';
 import { AppConfigData } from './config/interfaces';
 import { LangContainer, LangFile } from './lang';
 import { ILogEntry } from './Log/interface';
-import { AppPreferencesData } from './preferences/interfaces';
 import { ITheme } from './ThemeFile';
 
 /** Replacement of "object" type. Note: I'm not sure how effective it is though //obelisk */

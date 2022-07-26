@@ -10,14 +10,12 @@ import { AppExtConfigData } from '@shared/config/interfaces';
 import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { GamePropSuggestions, IService } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
-import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { ITheme, Theme } from '@shared/ThemeFile';
+import { Gate } from '@shared/utils/Gate';
 import * as axiosImport from 'axios';
 import { UpdateInfo } from 'electron-updater';
-import { TagFilterGroup } from 'flashpoint-launcher';
+import { AppPreferencesData, GameOrderBy, GameOrderReverse, TagFilterGroup } from 'flashpoint-launcher';
 import { MainActionType, RequestState } from './enums';
-import { Gate } from '@shared/utils/Gate';
-import { AppPreferencesData } from '@shared/preferences/interfaces';
 
 export type View = {
   /** The most recent query used for this view. */

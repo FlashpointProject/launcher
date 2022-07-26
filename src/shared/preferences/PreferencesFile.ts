@@ -1,8 +1,8 @@
 import { getTempFilename } from '@back/util/misc';
+import { AppPreferencesData } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as path from 'path';
 import { deepCopy, readJsonFile, readJsonFileSync, stringifyJsonDataFile } from '../Util';
-import { AppPreferencesData } from './interfaces';
 import { defaultPreferencesData, overwritePreferenceData } from './util';
 
 /** Static class with methods for saving, loading and parsing the Preferences file */

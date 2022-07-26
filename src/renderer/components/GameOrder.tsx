@@ -1,7 +1,6 @@
-import { Game } from '@database/entity/Game';
 import { LangContainer } from '@shared/lang';
-import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { gameOrderByOptions } from '@shared/order/util';
+import { GameOrderBy, GameOrderReverse, Game } from 'flashpoint-launcher';
 import * as React from 'react';
 import { LangContext } from '../util/lang';
 

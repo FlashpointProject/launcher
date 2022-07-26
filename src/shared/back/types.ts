@@ -11,15 +11,13 @@ import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/e
 import { FilterGameOpts } from '@shared/game/GameFilter';
 import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
 import { ChangedMeta, MetaEditFlags } from '@shared/MetaEdit';
-import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { SocketTemplate } from '@shared/socket/types';
 import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
-import { GameData, TagAlias, TagFilterGroup, CurationState, CurationWarnings } from 'flashpoint-launcher';
+import { AppPreferencesData, CurationState, CurationWarnings, GameData, GameOrderBy, GameOrderReverse, TagAlias, TagFilterGroup } from 'flashpoint-launcher';
 import { AppConfigData, AppExtConfigData } from '../config/interfaces';
 import { ExecMapping, GamePropSuggestions, IService, ProcessAction, Task } from '../interfaces';
 import { LangContainer, LangFile } from '../lang';
 import { ILogEntry, ILogPreEntry, LogLevel } from '../Log/interface';
-import { AppPreferencesData } from '../preferences/interfaces';
 import { Theme } from '../ThemeFile';
 
 export enum BackIn {
