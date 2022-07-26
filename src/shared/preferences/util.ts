@@ -120,6 +120,21 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   fancyAnimations: true,
   searchLimit: 0,
   groups: [],
+  shortcuts: {
+    curate: {
+      prev: ['ctrl+arrowup', 'cmd+arrowup'],
+      next: ['ctrl+arrowdown', 'cmd+arrowdown'],
+      load: ['ctrl+o', 'cmd+o'],
+      newCur: ['ctrl+n', 'cmd+n'],
+      deleteCurs: ['ctrl+delete', 'cmd+delete'],
+      exportCurs: ['ctrl+s', 'cmd+s'],
+      exportDataPacks: ['ctrl+shift+s', 'cmd+shift+s'],
+      importCurs: ['ctrl+i', 'cmd+i'],
+      refresh: ['ctrl+r', 'cmd+r'],
+      run: ['ctrl+t', 'cmd+t'],
+      runMad4fp: ['ctrl+shift+t', 'cmd+shift+t']
+    }
+  }
 });
 
 /**
@@ -181,7 +196,11 @@ export function overwritePreferenceData(
   parser.prop('showBrokenGames',             v => source.showBrokenGames             = !!v);
   parser.prop('updateFeedUrl',               v => source.updateFeedUrl               = str(v));
   parser.prop('fancyAnimations',             v => source.fancyAnimations             = !!v);
-  parser.prop('searchLimit', v => source.searchLimit                 = num(v));
+  parser.prop('searchLimit',                 v => source.searchLimit                 = num(v));
+  if (data.shortcuts) {
+    // @TODO Validate
+    source.shortcuts = Object.assign(source.shortcuts, data.shortcuts);
+  }
   if (data.groups) {
     const newGroups: CurateGroup[] = [];
     parser.prop('groups').array((item, index) => newGroups[index] = parseCurateGroup(item));

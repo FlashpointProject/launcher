@@ -96,14 +96,14 @@ export function CuratePage(props: CuratePageProps) {
             });
           }
         }
-      }, ['ctrl+arrowup', 'cmd+arrowup'], 'Prev', 'Previous Curation');
+      }, props.preferencesData.shortcuts.curate.prev, 'Prev', 'Previous Curation');
     }
     return () => {
       if (props.shortcut && props.shortcut.unregisterShortcut) {
-        props.shortcut.unregisterShortcut(['ctrl+arrowup', 'cmd+arrowup']);
+        props.shortcut.unregisterShortcut(props.preferencesData.shortcuts.curate.prev);
       }
     };
-  }, [props.curate.current, props.curate.curations]);
+  }, [props.curate.current, props.curate.curations, props.preferencesData.shortcuts.curate.prev]);
 
   // Next Curation
   React.useEffect(() => {
@@ -134,42 +134,42 @@ export function CuratePage(props: CuratePageProps) {
             });
           }
         }
-      }, ['ctrl+arrowdown', 'cmd+arrowdown'], 'Next', 'Next Curation');
+      }, props.preferencesData.shortcuts.curate.next, 'Next', 'Next Curation');
     }
     return () => {
       if (props.shortcut && props.shortcut.unregisterShortcut) {
-        props.shortcut.unregisterShortcut(['ctrl+arrowdown', 'cmd+arrowdown']);
+        props.shortcut.unregisterShortcut(props.preferencesData.shortcuts.curate.next);
       }
     };
-  }, [props.curate.current, props.curate.curations]);
+  }, [props.curate.current, props.curate.curations, props.preferencesData.shortcuts.curate.next]);
 
   // New Curation
   React.useEffect(() => {
     if (props.shortcut && props.shortcut.registerShortcut) {
       props.shortcut.registerShortcut(() => {
         onNewCuration();
-      }, ['ctrl+n', 'cmd+n'], 'New', 'New Curation');
+      }, props.preferencesData.shortcuts.curate.newCur, 'New', 'New Curation');
     }
     return () => {
       if (props.shortcut && props.shortcut.unregisterShortcut) {
-        props.shortcut.unregisterShortcut(['ctrl+n', 'cmd+n']);
+        props.shortcut.unregisterShortcut(props.preferencesData.shortcuts.curate.newCur);
       }
     };
-  }, []);
+  }, [props.preferencesData.shortcuts.curate.newCur]);
 
   // Load Archives
   React.useEffect(() => {
     if (props.shortcut && props.shortcut.registerShortcut) {
       props.shortcut.registerShortcut(() => {
         onLoadCuration();
-      }, ['ctrl+o', 'cmd+o'], 'Load Archives', 'Load Curation Archives');
+      }, props.preferencesData.shortcuts.curate.load, 'Load Archives', 'Load Curation Archives');
     }
     return () => {
       if (props.shortcut && props.shortcut.unregisterShortcut) {
-        props.shortcut.unregisterShortcut(['ctrl+o', 'cmd+o']);
+        props.shortcut.unregisterShortcut(props.preferencesData.shortcuts.curate.load);
       }
     };
-  }, []);
+  }, [props.preferencesData.shortcuts.curate.load]);
 
   // Refresh content tree
   React.useEffect(() => {
@@ -178,14 +178,14 @@ export function CuratePage(props: CuratePageProps) {
         if (props.curate.current) {
           window.Shared.back.request(BackIn.CURATE_REFRESH_CONTENT, props.curate.current);
         }
-      }, ['ctrl+r', 'cmd+r'], 'Refresh', 'Refresh Active Curation + Content Tree');
+      }, props.preferencesData.shortcuts.curate.refresh, 'Refresh', 'Refresh Active Curation + Content Tree');
     }
     return () => {
       if (props.shortcut && props.shortcut.unregisterShortcut) {
-        props.shortcut.unregisterShortcut(['ctrl+r', 'cmd+r']);
+        props.shortcut.unregisterShortcut(props.preferencesData.shortcuts.curate.refresh);
       }
     };
-  }, [props.curate.current]);
+  }, [props.curate.current, props.preferencesData.shortcuts.curate.refresh]);
 
   // Export selected
   React.useEffect(() => {
@@ -199,7 +199,7 @@ export function CuratePage(props: CuratePageProps) {
             taskId: newTask.id
           });
         }
-      }, ['ctrl+s', 'cmd+s'], 'Export', 'Export Selected Curations');
+      }, props.preferencesData.shortcuts.curate.exportCurs, 'Export', 'Export Selected Curations');
       props.shortcut.registerShortcut(() => {
         if (props.curate.selected.length > 0) {
           const newTask = newCurateTask(`Exporting Data Packs for ${props.curate.selected.length} Curations`, 'Exporting...', props.addTask);
@@ -209,15 +209,15 @@ export function CuratePage(props: CuratePageProps) {
             taskId: newTask.id
           });
         }
-      }, ['ctrl+shift+s', 'cmd+shift+s'], 'Export Data Packs', 'Export Data Packs for Selected Curations');
+      }, props.preferencesData.shortcuts.curate.exportDataPacks, 'Export Data Packs', 'Export Data Packs for Selected Curations');
     }
     return () => {
       if (props.shortcut && props.shortcut.unregisterShortcut) {
-        props.shortcut.unregisterShortcut(['ctrl+s', 'cmd+s']);
-        props.shortcut.unregisterShortcut(['ctrl+shift+s', 'cmd+shift+s']);
+        props.shortcut.unregisterShortcut(props.preferencesData.shortcuts.curate.exportCurs);
+        props.shortcut.unregisterShortcut(props.preferencesData.shortcuts.curate.exportDataPacks);
       }
     };
-  }, [props.curate.selected]);
+  }, [props.curate.selected, props.preferencesData.shortcuts.curate.exportCurs, props.preferencesData.shortcuts.curate.exportDataPacks]);
 
   // Test Run
   React.useEffect(() => {
@@ -230,7 +230,7 @@ export function CuratePage(props: CuratePageProps) {
             symlinkCurationContent: props.preferencesData.symlinkCurationContent
           });
         }
-      }, ['ctrl+t', 'cmd+t'], 'Test', 'Run Active Curation');
+      }, props.preferencesData.shortcuts.curate.run, 'Test', 'Run Active Curation');
       props.shortcut.registerShortcut(() => {
         if (curation && props.preferencesData.symlinkCurationContent) {
           window.Shared.back.request(BackIn.LAUNCH_CURATION, {
@@ -239,15 +239,15 @@ export function CuratePage(props: CuratePageProps) {
             symlinkCurationContent: props.preferencesData.symlinkCurationContent
           });
         }
-      }, ['ctrl+shift+t', 'cmd+shift+t'], 'Test MAD4FP', 'Run Active Curation with MAD4FP');
+      }, props.preferencesData.shortcuts.curate.runMad4fp, 'Test MAD4FP', 'Run Active Curation with MAD4FP');
     }
     return () => {
       if (props.shortcut && props.shortcut.unregisterShortcut) {
-        props.shortcut.unregisterShortcut(['ctrl+t', 'cmd+t']);
-        props.shortcut.unregisterShortcut(['ctrl+shift+t', 'cmd+shift+t']);
+        props.shortcut.unregisterShortcut(props.preferencesData.shortcuts.curate.run);
+        props.shortcut.unregisterShortcut(props.preferencesData.shortcuts.curate.runMad4fp);
       }
     };
-  }, [curation, props.preferencesData.symlinkCurationContent]);
+  }, [curation, props.preferencesData.symlinkCurationContent, props.preferencesData.shortcuts.curate.run, props.preferencesData.shortcuts.curate.runMad4fp]);
 
   const onTagTextChange = React.useCallback((tagText: string) => {
     const splitTags = tagText.split(';');

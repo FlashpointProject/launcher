@@ -997,7 +997,25 @@ declare module 'flashpoint-launcher' {
         disableExtremeGames: boolean;
         /** If games flagged as "broken" should be hidden */
         showBrokenGames: boolean;
+        /** Pair of key combos to shortcuts */
+        shortcuts: Shortcuts;
     };
+
+    type Shortcuts = {
+        curate: {
+            prev: string[];
+            next: string[];
+            load: string[];
+            newCur: string[];
+            deleteCurs: string[];
+            exportCurs: string[];
+            exportDataPacks: string[];
+            importCurs: string[];
+            refresh: string[];
+            run: string[];
+            runMad4fp: string[];
+        }
+    }
 
     type AppPathOverride = {
         path: string;

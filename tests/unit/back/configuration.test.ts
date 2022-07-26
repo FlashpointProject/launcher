@@ -123,7 +123,26 @@ describe('Configuration Files', () => {
       'hideExtremeScreenshots': true,
       'updateFeedUrl': 'https://example/',
       'fancyAnimations': false,
-      'searchLimit': 100
+      'searchLimit': 100,
+      'groups': [{
+        name: 'test',
+        icon: 'test'
+      }],
+      'shortcuts': {
+        'curate': {
+          prev: ['ctrl+p', 'cmd+arrowup'],
+          next: ['ctrl+p', 'cmd+arrowdown'],
+          load: ['ctrl+p', 'cmd+o'],
+          newCur: ['ctrl+p', 'cmd+n'],
+          deleteCurs: ['ctrl+p', 'cmd+delete'],
+          exportCurs: ['ctrl+p', 'cmd+s'],
+          exportDataPacks: ['ctrl+shift+p', 'cmd+shift+s'],
+          importCurs: ['ctrl+p', 'cmd+i'],
+          refresh: ['ctrl+p', 'cmd+p'],
+          run: ['ctrl+p', 'cmd+t'],
+          runMad4fp: ['ctrl+shift+p', 'cmd+shift+t']
+        }
+      }
     };
     const newData = deepCopy(defaultPreferencesData);
     overwritePreferenceData(newData, data);
