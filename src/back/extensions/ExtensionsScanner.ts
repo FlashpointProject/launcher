@@ -10,6 +10,46 @@ import { Application, ButtonContext, ContextButton, Contributions, CurationTempl
 const { str, num } = Coerce;
 const fsPromises = fs.promises;
 
+export async function scanSystemExtensions(): Promise<IExtension[]> {
+  const extensionPath = './extensions';
+
+  const result = new Map<string, IExtension>();
+
+  await fsPromises.readdir(extensionPath)
+  .then(filenames => {
+    // Each folder inside is an Extension
+    return Promise.all(filenames.map(async filename => {
+      // Make sure it is a folder or symlink folder
+      const stats = await fs.promises.stat(path.join(extensionPath, filename));
+      if (!stats.isDirectory()) { return; }
+      // Read Manifest
+      const manifestPath = path.join(extensionPath, filename, 'package.json');
+      return fsPromises.stat(manifestPath)
+      .then(async (stats) => {
+        // Manifest file (package.json) exists, continue loading extension
+        if (stats.isFile()) {
+          await fsPromises.access(manifestPath);
+          const ext = await parseExtension(manifestPath, ExtensionType.User);
+          if (result.get(ext.id) !== undefined) {
+            // An Extension with the same id has been registered earlier, latest read survives
+            log.warn('Extensions', `Overriding Extension ${ext.id} with extension at "${path.join(extensionPath, filename)}"`);
+          }
+          result.set(ext.id, ext);
+        }
+      })
+      .catch(err => log.error('Extensions', `Error loading User extension at "${filename}"\n${err}`));
+    }));
+  });
+
+  // Convert the map to an array and return
+  const r: IExtension[] = [];
+  result.forEach((ext) => {
+    log.debug('Extensions', `System Extension Scanned "${ext.manifest.displayName || ext.manifest.name}" (${ext.id})`);
+    r.push(ext);
+  });
+  return r;
+}
+
 /** Scans all extensions in System and User paths and returns them. */
 export async function scanExtensions(configData: AppConfigData, extensionPath: string): Promise<IExtension[]> {
   const result = new Map<string, IExtension>();

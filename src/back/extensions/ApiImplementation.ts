@@ -490,6 +490,9 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     },
     deleteCuration: (folder: string) => {
       return deleteCuration(state, folder);
+    },
+    getCurationPath: (folder: string) => {
+      return path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, folder);
     }
   };
 

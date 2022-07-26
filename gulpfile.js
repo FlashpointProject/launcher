@@ -2,7 +2,9 @@
 const fs = require('fs-extra');
 const gulp = require('gulp');
 const builder = require('electron-builder');
-const { exec } = require('child_process');
+const { parallel, series } = require('gulp');
+const { buildExtensions, watchExtensions } = require('./gulpfile.extensions');
+const { execute } = require('./gulpfile.util');
 
 const packageJson = JSON.parse(fs.readFileSync('./package.json'));
 const config = {
@@ -95,46 +97,46 @@ const publishInfo = [
 
 /* ------ Watch ------ */
 
-gulp.task('watch-back', (done) => {
+function watchBack(done) {
   execute('npx ttsc --project tsconfig.backend.json --pretty --watch', done);
-});
+}
 
-gulp.task('watch-renderer', (done) => {
+function watchRenderer(done) {
   const mode = config.isRelease ? 'production' : 'development';
   execute(`npx webpack --mode "${mode}" --watch`, done);
-});
+}
 
-gulp.task('watch-static', () => {
+function watchStatic() {
   gulp.watch(config.static.src+'/**/*', gulp.task('copy-static'));
-});
+}
 
 
 /* ------ Build ------ */
 
-gulp.task('build-rust', (done) => {
+function buildRust(done) {
   execute('npx cargo-cp-artifact -a cdylib fp-rust ./build/back/fp-rust.node -- cargo build --message-format=json-render-diagnostics', done);
-});
+}
 
-gulp.task('build-back', (done) => {
+function buildBack(done) {
   execute('npx ttsc --project tsconfig.backend.json --pretty', done);
-});
+}
 
-gulp.task('build-renderer', (done) => {
+function buildRenderer(done) {
   const mode = config.isRelease ? 'production' : 'development';
   execute(`npx webpack --mode "${mode}"`, done);
-});
+}
 
-gulp.task('copy-static', () => {
+function buildStatic() {
   return gulp.src(config.static.src+'/**/*').pipe(gulp.dest(config.static.dest));
-});
+}
 
-gulp.task('config-version', (done) => {
+function configVersion(done) {
   fs.writeFile('.version', config.buildVersion, done);
-});
+}
 
 /* ------ Pack ------ */
 
-gulp.task('pack', (done) => {
+function pack(done) {
   const publish = config.isRelease ? publishInfo : []; // Uses Git repo for unpublished builds
   const extraOpts = config.isRelease ? extraOptions : {};
   console.log(config.isRelease);
@@ -171,22 +173,33 @@ gulp.task('pack', (done) => {
   })
   .then(()         => { console.log('Pack - Done!');         })
   .catch((error)   => { console.log('Pack - Error!', error); })
-  .then(done);
-});
+  .finally(done);
+}
 
 /* ------ Meta Tasks ------*/
 
-gulp.task('watch', gulp.parallel('build-rust', 'watch-back', 'watch-renderer', 'watch-static', 'copy-static'));
+exports.build = series(
+  parallel(
+    buildRust,
+    buildBack,
+    buildRenderer,
+    buildExtensions,
+    buildStatic,
+    configVersion
+  )
+);
 
-gulp.task('build', gulp.parallel('build-rust', 'build-back', 'build-renderer', 'copy-static', 'config-version'));
+exports.watch = series(
+  parallel(
+    buildRust,
+    watchBack,
+    watchRenderer,
+    watchExtensions,
+    buildStatic,
+    watchStatic
+  ),
+);
 
-/* ------ Misc ------*/
-
-function execute(command, callback) {
-  const child = exec(command);
-  child.stderr.on('data', data => { console.log(data); });
-  child.stdout.on('data', data => { console.log(data); });
-  if (callback) {
-    child.once('exit', () => { callback(); });
-  }
-}
+exports.pack = series(
+  pack
+);

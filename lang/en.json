@@ -401,6 +401,7 @@
     "noScreenshot": "There is no screenshot on this curation.",
     "ilc_notHttp": "Use HTTP.",
     "ilc_nonExistant": "Point to an existing file in your curation's 'content' folder.",
+    "documentStatus": "Notes must document changes and missing content for Hacked / Partial games",
     "sort": "Sort Curations (A-Z)",
     "contextCopyName": "Copy File Name",
     "contextCopyPath": "Copy File Path",

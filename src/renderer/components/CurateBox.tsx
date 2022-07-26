@@ -459,7 +459,7 @@ export function CurateBox(props: CurateBoxProps) {
                 title={strings.curate.curationNotes}
                 text={props.curation.game.curationNotes}
                 placeholder={strings.curate.noCurationNotes}
-                warned={props.curation.warnings.fieldWarnings.includes('curationNotes') || props.curation.warnings.fieldWarnings.includes('notes')}
+                warned={props.curation.warnings.fieldWarnings.includes('curationNotes')}
                 property='curationNotes'
                 multiline={true}
                 { ...shared } />

@@ -67,6 +67,82 @@ export function CuratePage(props: CuratePageProps) {
 
   // Keybinds
 
+  // Prev Curation
+  React.useEffect(() => {
+    if (props.shortcut && props.shortcut.registerShortcut) {
+      props.shortcut.registerShortcut(() => {
+        if (props.curate.current) {
+          // Find current curation, shift 1 up or wrap
+          const curationIdx = props.curate.curations.findIndex(c => c.folder === props.curate.current);
+          if (curationIdx !== -1) {
+            if (curationIdx > 0) {
+              props.dispatchCurate({
+                type: CurateActionType.SET_CURRENT_CURATION,
+                folder: props.curate.curations[curationIdx-1].folder
+              });
+            }
+          } else {
+            props.dispatchCurate({
+              type: CurateActionType.SET_CURRENT_CURATION,
+              folder: props.curate.curations[props.curate.curations.length-1].folder
+            });
+          }
+        } else {
+          // Nothing selected, select last curation
+          if (props.curate.curations.length > 0) {
+            props.dispatchCurate({
+              type: CurateActionType.SET_CURRENT_CURATION,
+              folder: props.curate.curations[props.curate.curations.length - 1].folder
+            });
+          }
+        }
+      }, ['ctrl+arrowup', 'cmd+arrowup'], 'Prev', 'Previous Curation');
+    }
+    return () => {
+      if (props.shortcut && props.shortcut.unregisterShortcut) {
+        props.shortcut.unregisterShortcut(['ctrl+arrowup', 'cmd+arrowup']);
+      }
+    };
+  }, [props.curate.current, props.curate.curations]);
+
+  // Next Curation
+  React.useEffect(() => {
+    if (props.shortcut && props.shortcut.registerShortcut) {
+      props.shortcut.registerShortcut(() => {
+        if (props.curate.current) {
+          // Find current curation, shift 1 down or wrap
+          const curationIdx = props.curate.curations.findIndex(c => c.folder === props.curate.current);
+          if (curationIdx !== -1) {
+            if (curationIdx < (props.curate.curations.length + 1)) {
+              props.dispatchCurate({
+                type: CurateActionType.SET_CURRENT_CURATION,
+                folder: props.curate.curations[curationIdx+1].folder
+              });
+            } else {
+              props.dispatchCurate({
+                type: CurateActionType.SET_CURRENT_CURATION,
+                folder: props.curate.curations[0].folder
+              });
+            }
+          }
+        } else {
+          // Nothing selected, select first curation
+          if (props.curate.curations.length > 0) {
+            props.dispatchCurate({
+              type: CurateActionType.SET_CURRENT_CURATION,
+              folder: props.curate.curations[0].folder
+            });
+          }
+        }
+      }, ['ctrl+arrowdown', 'cmd+arrowdown'], 'Next', 'Next Curation');
+    }
+    return () => {
+      if (props.shortcut && props.shortcut.unregisterShortcut) {
+        props.shortcut.unregisterShortcut(['ctrl+arrowdown', 'cmd+arrowdown']);
+      }
+    };
+  }, [props.curate.current, props.curate.curations]);
+
   // New Curation
   React.useEffect(() => {
     if (props.shortcut && props.shortcut.registerShortcut) {

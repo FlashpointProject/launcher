@@ -112,29 +112,29 @@ declare module 'flashpoint-launcher' {
         function getCurationTemplates(): Promise<CurationTemplate[]>;
         /**
          * Gets a curation given its folder
-         * @param folder Folder of the curation
+         * @param folder Folder name of the curation
          */
         function getCuration(folder: string): CurationState | undefined;
         /**
          * Writes metadata to a loaded curation
-         * @param folder Folder of the curation
+         * @param folder Folder name of the curation
          * @param meta Metadata to write
          */
         function setCurationGameMeta(folder: string, meta: CurationMeta): boolean;
         /**
          * Writes metadata to a loaded curation's AddApp
-         * @param folder Folder of the curation
+         * @param folder Folder name of the curation
          * @param key Key of the AddApp
          * @param meta AddApp Metadata to write
          */
         function setCurationAddAppMeta(folder: string, key: string, meta: AddAppCurationMeta): boolean;
         /** Selects all given curations (if exist) 
-         * @param folders Folders of curations to select
+         * @param folders Folder names of curations to select
         */
         function selectCurations(folders: string[]): void;
         /**
          * Updates a curations content tree
-         * @param folder Folder of the curation
+         * @param folder Folder name of the curation
          */
         function updateCurationContentTree(folder: string): Promise<ContentTree | undefined>;
         /** Creates a new curation
@@ -143,9 +143,16 @@ declare module 'flashpoint-launcher' {
         function newCuration(meta?: CurationMeta): Promise<CurationState>;
         /**
          * Deletes a curation
-         * @param folder Folder of the curation
+         * @param folder Folder name of the curation
          */
         function deleteCuration(folder: string): Promise<void>;
+        /**
+         * Returns the absolute path to a curations folder
+         * @param folder Folder name of the curation
+         */
+        function getCurationPath(folder: string): string;
+
+        // Events
         const onDidCurationChange: Event<CurationState>;
         const onGenCurationWarnings: Event<{
             curation: LoadedCuration,

@@ -5,7 +5,7 @@ import { TernarySearchTree } from '@back/util/map';
 import { AppConfigData } from '@shared/config/interfaces';
 import { ILogEntry } from '@shared/Log/interface';
 import { Contributions, ExtensionContribution, IExtension } from '../../shared/extensions/interfaces';
-import { scanExtensions } from './ExtensionsScanner';
+import { scanExtensions, scanSystemExtensions } from './ExtensionsScanner';
 import { getExtensionEntry, newExtLog } from './ExtensionUtils';
 import { ExtensionContext, ExtensionData, ExtensionModule } from './types';
 
@@ -35,6 +35,8 @@ export class ExtensionService {
   }
 
   private async _scanExtensions(): Promise<void> {
+    const sysExts = await scanSystemExtensions();
+    sysExts.forEach(e => this._extensions.push(e));
     const exts = await scanExtensions(this._configData, this._extensionPath);
     exts.forEach(e => this._extensions.push(e));
     this.installedExtensionsReady.open();

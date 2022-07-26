@@ -413,6 +413,7 @@ const langTemplate = {
     'noScreenshot',
     'ilc_notHttp',
     'ilc_nonExistant',
+    'documentStatus',
     'sort',
     'contextCopyName',
     'contextCopyPath',

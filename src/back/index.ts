@@ -331,15 +331,6 @@ async function prepForInit(message: any, sendHandle: any): Promise<void> {
     }
   }
 
-  // @TEST
-  state.apiEmitters.curations.onGenCurationWarnings.event((e => {
-    e.warnings.fieldWarnings.push('platform');
-    e.warnings.fieldWarnings.push('notes');
-    e.warnings.fieldWarnings.push('library');
-    e.warnings.fieldWarnings.push('tags');
-    e.warnings.writtenWarnings.push('I PUSHED A THING');
-  }));
-
   // Read configs & preferences
   // readOrCreateFile can throw errors, let's wrap it in try-catch each time.
   try {

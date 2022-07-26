@@ -89,7 +89,13 @@ export const curationSyncMiddleware: Middleware<{}, ApplicationState> = (store) 
       const curationsState = state.curate;
       const modifiedCuration = curationsState.curations.find(c => c.folder === action.folder);
       if (modifiedCuration) {
-        window.Shared.back.request(BackIn.CURATE_GEN_WARNINGS, modifiedCuration)
+        const shortend = {
+          ...modifiedCuration
+        };
+        if (shortend.contents) {
+          shortend.contents = undefined;
+        }
+        window.Shared.back.request(BackIn.CURATE_GEN_WARNINGS, shortend)
         .then((warnings) => {
           // Set new warnings
           store.dispatch({
