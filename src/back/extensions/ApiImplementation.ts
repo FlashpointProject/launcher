@@ -1,6 +1,6 @@
 import { EXT_CONFIG_FILENAME, PREFERENCES_FILENAME } from '@back/constants';
-import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
 import { loadCurationIndexImage } from '@back/curate/parse';
+import { genCurationWarnings } from '@back/curate/util';
 import { saveCuration } from '@back/curate/write';
 import { ExtConfigFile } from '@back/ExtConfigFile';
 import * as GameDataManager from '@back/game/GameDataManager';
@@ -8,6 +8,7 @@ import * as GameManager from '@back/game/GameManager';
 import * as SourceManager from '@back/game/SourceManager';
 import * as TagManager from '@back/game/TagManager';
 import { DisposableChildProcess, ManagedChildProcess } from '@back/ManagedChildProcess';
+import { genContentTree } from '@back/rust';
 import { BackState, StatusState } from '@back/types';
 import { clearDisposable, dispose, newDisposable, registerDisposable } from '@back/util/lifecycle';
 import {
@@ -24,24 +25,23 @@ import { pathTo7zBack } from '@back/util/SevenZip';
 import { Game } from '@database/entity/Game';
 import { BackOut } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
-import { CurationMeta, CurationState, LoadedCuration } from '@shared/curate/types';
+import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
+import { CurationMeta, LoadedCuration } from '@shared/curate/types';
 import { getContentFolderByKey } from '@shared/curate/util';
 import { CurationTemplate, IExtensionManifest } from '@shared/extensions/interfaces';
 import { ProcessState, Task } from '@shared/interfaces';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { overwritePreferenceData } from '@shared/preferences/util';
-import { genCurationWarnings } from '@shared/Util';
+import { formatString } from '@shared/utils/StringFormatter';
 import * as flashpoint from 'flashpoint-launcher';
 import * as fs from 'fs';
 import { extractFull } from 'node-7z';
 import * as path from 'path';
+import { loadCurationArchive } from '..';
 import { newExtLog } from './ExtensionUtils';
 import { Command } from './types';
 import uuid = require('uuid');
-import { loadCurationArchive } from '..';
-import { formatString } from '@shared/utils/StringFormatter';
-import { genContentTree } from '@back/rust';
 
 /**
  * Create a Flashpoint API implementation specific to an extension, used during module load interception
@@ -403,6 +403,9 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     get onDidCurationChange() {
       return apiEmitters.curations.onDidCurationChange.event;
     },
+    get onGenCurationWarnings() {
+      return apiEmitters.curations.onGenCurationWarnings.event;
+    },
     setCurationGameMeta: (folder: string, meta: flashpoint.CurationMeta) => {
       const curation = state.loadedCurations.find(c => c.folder === folder);
       if (curation) {
@@ -474,10 +477,10 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
         thumbnail: await loadCurationIndexImage(path.join(curPath, 'logo.png')),
         screenshot: await loadCurationIndexImage(path.join(curPath, 'ss.png'))
       };
-      const curation: CurationState = {
+      const curation: flashpoint.CurationState = {
         ...data,
         alreadyImported: false,
-        warnings: genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate),
+        warnings: await genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onGenCurationWarnings),
         contents: await genContentTree(getContentFolderByKey(folder, state.config.flashpointPath))
       };
       await saveCuration(curPath, curation);

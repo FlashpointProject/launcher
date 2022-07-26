@@ -12,18 +12,17 @@ import { getCurationPostURL, getPlatformIconURL } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
 import { BackIn, TagSuggestion } from '@shared/back/types';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
-import { CurationState } from '@shared/curate/types';
 import { ExtensionContribution } from '@shared/extensions/interfaces';
 import { Task } from '@shared/interfaces';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
 import axios from 'axios';
+import { CurationState } from 'flashpoint-launcher';
 import * as path from 'path';
 import * as React from 'react';
 import { IWithShortcut } from 'react-keybind';
 import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
-import { getWarningCount } from '../CurateBoxWarnings';
 import { CuratePageLeftSidebar } from '../CuratePageLeftSidebar';
 import { Dropdown } from '../Dropdown';
 import { OpenIcon } from '../OpenIcon';
@@ -282,7 +281,7 @@ export function CuratePage(props: CuratePageProps) {
     }
   }, [curation]);
 
-  const warningCount = React.useMemo(() => curation ? getWarningCount(curation.warnings) : 0, [curation]);
+  const warningCount = React.useMemo(() => curation ? curation.warnings.writtenWarnings.length : 0, [curation]);
   const disabled = !curation;
 
   const runExtCommand = (command: string) => {

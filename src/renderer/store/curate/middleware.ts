@@ -1,7 +1,6 @@
 import { BackIn } from '@shared/back/types';
-import { CurationState } from '@shared/curate/types';
 import { updatePreferencesData } from '@shared/preferences/util';
-import { genCurationWarnings } from '@shared/Util';
+import { CurationState } from 'flashpoint-launcher';
 import { Middleware } from 'redux';
 import { ApplicationState } from '..';
 import { CurateActionType } from './enums';
@@ -90,12 +89,16 @@ export const curationSyncMiddleware: Middleware<{}, ApplicationState> = (store) 
       const curationsState = state.curate;
       const modifiedCuration = curationsState.curations.find(c => c.folder === action.folder);
       if (modifiedCuration) {
-        // Generate new warnings
-        store.dispatch({
-          type: CurateActionType.SET_WARNINGS,
-          folder: modifiedCuration.folder,
-          warnings: genCurationWarnings(modifiedCuration, window.Shared.config.fullFlashpointPath, state.main.suggestions, state.main.lang.curate)
+        window.Shared.back.request(BackIn.CURATE_GEN_WARNINGS, modifiedCuration)
+        .then((warnings) => {
+          // Set new warnings
+          store.dispatch({
+            type: CurateActionType.SET_WARNINGS,
+            folder: modifiedCuration.folder,
+            warnings: warnings
+          });
         });
+
       } else {
         log.error('Curate', `Action performed but no curation found to generate warnings for? ${JSON.stringify(action)}`);
       }

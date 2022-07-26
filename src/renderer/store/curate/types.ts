@@ -1,6 +1,7 @@
 import { Tag } from '@database/entity/Tag';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
-import { AddAppCurationMeta, ContentTree, CurationMeta, CurationState, CurationWarnings } from '@shared/curate/types';
+import { AddAppCurationMeta, ContentTree, CurationMeta } from '@shared/curate/types';
+import { CurationState, CurationWarnings } from 'flashpoint-launcher';
 import { CurateActionType } from './enums';
 
 export type CurateGroup = {

@@ -18,7 +18,7 @@ import { SourceFileCount1612436426353 } from '@database/migration/1612436426353-
 import { GameTagsStr1613571078561 } from '@database/migration/1613571078561-GameTagsStr';
 import { GameDataParams1619885915109 } from '@database/migration/1619885915109-GameDataParams';
 import { BackIn, BackInit, BackInitArgs, BackOut } from '@shared/back/types';
-import { CurationState, LoadedCuration } from '@shared/curate/types';
+import { LoadedCuration } from '@shared/curate/types';
 import { getContentFolderByKey } from '@shared/curate/util';
 import { ILogoSet, LogoSet } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
@@ -29,7 +29,6 @@ import { defaultPreferencesData } from '@shared/preferences/util';
 import { Theme } from '@shared/ThemeFile';
 import {
   createErrorProxy, deepCopy,
-  genCurationWarnings,
   removeFileExtension,
   stringifyArray
 } from '@shared/Util';
@@ -44,17 +43,18 @@ import * as mime from 'mime';
 import { extractFull, Progress } from 'node-7z';
 import * as path from 'path';
 import 'reflect-metadata';
+import { genCurationWarnings } from './curate/util';
 // Required for the DB Models to function
-import { Tail } from 'tail';
-import { DataSource, DataSourceOptions } from 'typeorm';
-import { ConfigFile } from './ConfigFile';
-import { CONFIG_FILENAME, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE } from './constants';
 import {
   CURATIONS_FOLDER_EXPORTED,
   CURATIONS_FOLDER_EXTRACTING,
   CURATIONS_FOLDER_TEMP,
   CURATIONS_FOLDER_WORKING, CURATION_META_FILENAMES
 } from '@shared/constants';
+import { Tail } from 'tail';
+import { DataSource, DataSourceOptions } from 'typeorm';
+import { ConfigFile } from './ConfigFile';
+import { CONFIG_FILENAME, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE } from './constants';
 import { loadCurationIndexImage } from './curate/parse';
 import { readCurationMeta } from './curate/read';
 import { onFileServerRequestCurationFileFactory, onFileServerRequestPostCuration } from './curate/util';
@@ -74,6 +74,7 @@ import * as GameManager from './game/GameManager';
 import { onWillImportCuration } from './importGame';
 import { ManagedChildProcess, onServiceChange } from './ManagedChildProcess';
 import { registerRequestCallbacks } from './responses';
+import { genContentTree } from './rust';
 import { ServicesFile } from './ServicesFile';
 import { SocketServer } from './SocketServer';
 import { newThemeWatcher } from './Themes';
@@ -85,7 +86,6 @@ import { LogFile } from './util/LogFile';
 import { logFactory } from './util/logging';
 import { createContainer, exit, runService } from './util/misc';
 import { uuid } from './util/uuid';
-import { genContentTree } from './rust';
 // Required for the DB Models to function
 
 const dataSourceOptions: DataSourceOptions = {
@@ -190,7 +190,8 @@ const state: BackState = {
       onWillImportCuration: onWillImportCuration,
     },
     curations: {
-      onDidCurationChange: new ApiEmitter()
+      onDidCurationChange: new ApiEmitter(),
+      onGenCurationWarnings: new ApiEmitter()
     },
     gameData: {
       onDidImportGameData: new ApiEmitter<flashpoint.GameData>(),
@@ -329,6 +330,15 @@ async function prepForInit(message: any, sendHandle: any): Promise<void> {
       case 'linux':  state.sevenZipPath = path.join(basePath, 'extern/7zip-bin/linux', process.arch, '7za'); break;
     }
   }
+
+  // @TEST
+  state.apiEmitters.curations.onGenCurationWarnings.event((e => {
+    e.warnings.fieldWarnings.push('platform');
+    e.warnings.fieldWarnings.push('notes');
+    e.warnings.fieldWarnings.push('library');
+    e.warnings.fieldWarnings.push('tags');
+    e.warnings.writtenWarnings.push('I PUSHED A THING');
+  }));
 
   // Read configs & preferences
   // readOrCreateFile can throw errors, let's wrap it in try-catch each time.
@@ -703,10 +713,10 @@ async function initialize() {
           screenshot: await loadCurationIndexImage(path.join(rootPath, folderName, 'ss.png'))
         };
         const alreadyImported = (await GameManager.findGame(loadedCuration.uuid)) !== null;
-        const curation: CurationState = {
+        const curation: flashpoint.CurationState = {
           ...loadedCuration,
           alreadyImported,
-          warnings: genCurationWarnings(loadedCuration, state.config.flashpointPath, state.suggestions, state.languageContainer.curate)
+          warnings: await genCurationWarnings(loadedCuration, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onGenCurationWarnings)
         };
         state.loadedCurations.push(curation);
         genContentTree(getContentFolderByKey(folderName, state.config.flashpointPath)).then((contentTree) => {
@@ -1270,7 +1280,7 @@ function removeFileServerDownloadItem(item: ImageDownloadItem): void {
   updateFileServerDownloadQueue();
 }
 
-export async function loadCurationArchive(filePath: string, onProgress?: (progress: Progress) => void): Promise<CurationState> {
+export async function loadCurationArchive(filePath: string, onProgress?: (progress: Progress) => void): Promise<flashpoint.CurationState> {
   const key = uuid();
   const extractPath = path.resolve(state.config.flashpointPath, CURATIONS_FOLDER_EXTRACTING, key);
   // Extract to temp folder
@@ -1313,10 +1323,10 @@ export async function loadCurationArchive(filePath: string, onProgress?: (progre
     screenshot: await loadCurationIndexImage(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, key, 'ss.png')),
   };
   const alreadyImported = (await GameManager.findGame(loadedCuration.uuid)) !== null;
-  const curation: CurationState = {
+  const curation: flashpoint.CurationState = {
     ...loadedCuration,
     alreadyImported,
-    warnings: genCurationWarnings(loadedCuration, state.config.flashpointPath, state.suggestions, state.languageContainer.curate)
+    warnings: await genCurationWarnings(loadedCuration, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onGenCurationWarnings)
   };
   genContentTree(getContentFolderByKey(key, state.config.flashpointPath))
   .then((contentTree) => {

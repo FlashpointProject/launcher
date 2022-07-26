@@ -21,6 +21,7 @@ export type CurateBoxInputRowProps = {
   multiline?: boolean;
   curationFolder: string;
   disabled: boolean;
+  warned: boolean;
   dispatch: Dispatch<CurateAction>;
 }
 
@@ -30,6 +31,7 @@ export function CurateBoxInputRow(props: CurateBoxInputRowProps) {
   return (
     <CurateBoxRow title={props.title}>
       <InputField
+        className={props.warned ? 'input-field--warn' : ''}
         text={props.text || ''}
         placeholder={props.placeholder}
         onChange={onChange}
@@ -52,7 +54,7 @@ export function CurateBoxDropdownInputRow(props: CurateBoxDropdownInputRowProps)
   return (
     <CurateBoxRow title={props.title}>
       <DropdownInputField
-        className={props.className}
+        className={(props.className ? props.className + ' ' : '') + (props.warned ? 'input-field--warn' : '')}
         items={props.items || []}
         onItemSelect={onItemSelect}
         text={props.text || ''}
@@ -101,6 +103,7 @@ export function CurateBoxTagDropdownInputRow(props: CurateBoxTagDropdownInputRow
   return (
     <CurateBoxRow title={props.title}>
       <TagInputField
+        className={(props.className ? props.className + ' ' : '') + (props.warned ? 'input-field--warn' : '')}
         text={props.text || ''}
         tags={[]}
         suggestions={props.tagSuggestions}

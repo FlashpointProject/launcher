@@ -5,10 +5,9 @@ import { SimpleButton } from '@renderer/components/SimpleButton';
 import { useMouse } from '@renderer/hooks/useMouse';
 import { CurateGroup, CurateState } from '@renderer/store/curate/types';
 import { findElementAncestor, getPlatformIconURL } from '@renderer/Util';
-import { CurationState } from '@shared/curate/types';
 import { compare } from '@shared/Util';
+import { CurationState } from 'flashpoint-launcher';
 import * as React from 'react';
-import { getWarningCount } from './CurateBoxWarnings';
 
 const index_attr = 'data-index';
 
@@ -103,7 +102,7 @@ export function CuratePageLeftSidebar(props: CuratePageLeftSidebarProps) {
             <OpenIcon icon='file' />
           </div>
         )}
-        { getWarningCount(curation.warnings) > 0 && (
+        { curation.warnings.writtenWarnings.length > 0 && (
           <div className='curate-list-item__icon'>
             <OpenIcon icon='warning' className='curate-list-item__warning' />
           </div>

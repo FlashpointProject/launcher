@@ -14,13 +14,13 @@ import { AddAppType, CurateAction } from '@renderer/store/curate/types';
 import { findElementAncestor, getCurationURL } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
 import { BackIn, CurationImageEnum } from '@shared/back/types';
-import { ContentTreeNode, CurationState, LoadedCuration } from '@shared/curate/types';
+import { ContentTreeNode } from '@shared/curate/types';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { fixSlashes, sizeToString } from '@shared/Util';
 import axios from 'axios';
 import { clipboard, MenuItemConstructorOptions } from 'electron';
-import { TagSuggestion } from 'flashpoint-launcher';
+import { CurationState, LoadedCuration, TagSuggestion } from 'flashpoint-launcher';
 import * as path from 'path';
 import * as React from 'react';
 import { Dispatch } from 'redux';
@@ -289,12 +289,14 @@ export function CurateBox(props: CurateBoxProps) {
                 title={strings.filter.title}
                 text={props.curation.game.title}
                 placeholder={strings.browse.noTitle}
+                warned={props.curation.warnings.fieldWarnings.includes('title')}
                 property='title'
                 { ...shared } />
               <CurateBoxInputRow
                 title={strings.browse.alternateTitles}
                 text={props.curation.game.alternateTitles}
                 placeholder={strings.browse.noAlternateTitles}
+                warned={props.curation.warnings.fieldWarnings.includes('alternateTitles')}
                 property='alternateTitles'
                 { ...shared } />
               {/* @TODO Replace this with a Dropdown menu that does NOT allow selection of the text or typing into it. */}
@@ -302,24 +304,28 @@ export function CurateBox(props: CurateBoxProps) {
                 title={strings.browse.library}
                 text={props.curation.game.library}
                 items={props.suggestions.library}
+                warned={props.curation.warnings.fieldWarnings.includes('library')}
                 property='library'
                 { ...shared } />
               <CurateBoxInputRow
                 title={strings.filter.series}
                 text={props.curation.game.series}
                 placeholder={strings.browse.noSeries}
+                warned={props.curation.warnings.fieldWarnings.includes('series')}
                 property='series'
                 { ...shared } />
               <CurateBoxInputRow
                 title={strings.filter.developer}
                 text={props.curation.game.developer}
                 placeholder={strings.browse.noDeveloper}
+                warned={props.curation.warnings.fieldWarnings.includes('developer')}
                 property='developer'
                 { ...shared } />
               <CurateBoxInputRow
                 title={strings.filter.publisher}
                 text={props.curation.game.publisher}
                 placeholder={strings.browse.noPublisher}
+                warned={props.curation.warnings.fieldWarnings.includes('publisher')}
                 property='publisher'
                 { ...shared } />
               <CurateBoxTagDropdownInputRow
@@ -330,6 +336,7 @@ export function CurateBox(props: CurateBoxProps) {
                 onAddTag={onAddTag}
                 onChange={onTagChange}
                 onKeyDown={onTagKeyDown}
+                warned={props.curation.warnings.fieldWarnings.includes('tags')}
                 property='tags'
                 { ...shared } />
               {/* Tag List */}
@@ -364,36 +371,42 @@ export function CurateBox(props: CurateBoxProps) {
                 title={strings.browse.playMode}
                 text={props.curation.game.playMode}
                 placeholder={strings.browse.noPlayMode}
+                warned={props.curation.warnings.fieldWarnings.includes('playMode')}
                 property='playMode'
                 { ...shared } />
               <CurateBoxInputRow
                 title={strings.browse.status}
                 text={props.curation.game.status}
                 placeholder={strings.browse.noStatus}
+                warned={props.curation.warnings.fieldWarnings.includes('status')}
                 property='status'
                 { ...shared } />
               <CurateBoxInputRow
                 title={strings.browse.version}
                 text={props.curation.game.version}
                 placeholder={strings.browse.noVersion}
+                warned={props.curation.warnings.fieldWarnings.includes('version')}
                 property='version'
                 { ...shared } />
               <CurateBoxInputRow
                 title={strings.browse.releaseDate}
                 text={props.curation.game.releaseDate}
                 placeholder={strings.browse.noReleaseDate}
+                warned={props.curation.warnings.fieldWarnings.includes('releaseDate')}
                 property='releaseDate'
                 { ...shared } />
               <CurateBoxInputRow
                 title={strings.browse.language}
                 text={props.curation.game.language}
                 placeholder={strings.browse.noLanguage}
+                warned={props.curation.warnings.fieldWarnings.includes('language')}
                 property='language'
                 { ...shared } />
               <CurateBoxInputRow
                 title={strings.browse.source}
                 text={props.curation.game.source}
                 placeholder={strings.browse.noSource}
+                warned={props.curation.warnings.fieldWarnings.includes('source')}
                 property='source'
                 { ...shared } />
               <CurateBoxDropdownInputRow
@@ -401,6 +414,7 @@ export function CurateBox(props: CurateBoxProps) {
                 text={props.curation.game.platform}
                 placeholder={strings.browse.noPlatform}
                 items={props.suggestions.platform}
+                warned={props.curation.warnings.fieldWarnings.includes('platform')}
                 property='platform'
                 { ...shared } />
               <CurateBoxDropdownInputRow
@@ -408,24 +422,28 @@ export function CurateBox(props: CurateBoxProps) {
                 text={props.curation.game.applicationPath}
                 placeholder={strings.browse.noApplicationPath}
                 items={props.suggestions.applicationPath}
+                warned={props.curation.warnings.fieldWarnings.includes('applicationPath')}
                 property='applicationPath'
                 { ...shared } />
               <CurateBoxInputRow
                 title={strings.browse.launchCommand}
                 text={props.curation.game.launchCommand}
                 placeholder={strings.browse.noLaunchCommand}
+                warned={props.curation.warnings.fieldWarnings.includes('launchCommand')}
                 property='launchCommand'
                 { ...shared } />
               <CurateBoxInputRow
                 title={strings.browse.mountParameters}
                 text={props.curation.game.mountParameters}
                 placeholder={strings.browse.noMountParameters}
+                warned={props.curation.warnings.fieldWarnings.includes('mountParameters')}
                 property='mountParameters'
                 { ...shared } />
               <CurateBoxInputRow
                 title={strings.browse.notes}
                 text={props.curation.game.notes}
                 placeholder={strings.browse.noNotes}
+                warned={props.curation.warnings.fieldWarnings.includes('notes')}
                 property='notes'
                 multiline={true}
                 { ...shared } />
@@ -433,6 +451,7 @@ export function CurateBox(props: CurateBoxProps) {
                 title={strings.browse.originalDescription}
                 text={props.curation.game.originalDescription}
                 placeholder={strings.browse.noOriginalDescription}
+                warned={props.curation.warnings.fieldWarnings.includes('originalDescription')}
                 property='originalDescription'
                 multiline={true}
                 { ...shared } />
@@ -440,6 +459,7 @@ export function CurateBox(props: CurateBoxProps) {
                 title={strings.curate.curationNotes}
                 text={props.curation.game.curationNotes}
                 placeholder={strings.curate.noCurationNotes}
+                warned={props.curation.warnings.fieldWarnings.includes('curationNotes') || props.curation.warnings.fieldWarnings.includes('notes')}
                 property='curationNotes'
                 multiline={true}
                 { ...shared } />

@@ -9,7 +9,7 @@ import { BackIn, BackInit, BackOut, CurationImageEnum, DownloadDetails, GetRende
 import { overwriteConfigData } from '@shared/config/util';
 import { CURATIONS_FOLDER_EXPORTED, CURATIONS_FOLDER_TEMP, CURATIONS_FOLDER_WORKING, LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
-import { CurationState, LoadedCuration } from '@shared/curate/types';
+import { LoadedCuration } from '@shared/curate/types';
 import { getContentFolderByKey, getCurationFolder } from '@shared/curate/util';
 import { AppProvider, BrowserApplicationOpts } from '@shared/extensions/interfaces';
 import { FilterGameOpts } from '@shared/game/GameFilter';
@@ -18,7 +18,7 @@ import { LogLevel } from '@shared/Log/interface';
 import { MetaEditFile, MetaEditMeta } from '@shared/MetaEdit';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { defaultPreferencesData, overwritePreferenceData } from '@shared/preferences/util';
-import { deepCopy, genCurationWarnings, padEnd } from '@shared/Util';
+import { deepCopy, padEnd } from '@shared/Util';
 import { sanitizeFilename } from '@shared/utils/sanitizeFilename';
 import { formatString } from '@shared/utils/StringFormatter';
 import { TaskProgress } from '@shared/utils/TaskProgress';
@@ -26,6 +26,7 @@ import { throttle } from '@shared/utils/throttle';
 import * as axiosImport from 'axios';
 import * as child_process from 'child_process';
 import { execSync } from 'child_process';
+import { CurationState } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as fs_extra from 'fs-extra';
 import { add, Progress } from 'node-7z';
@@ -37,6 +38,7 @@ import * as YAML from 'yaml';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME } from './constants';
 import { loadCurationIndexImage } from './curate/parse';
+import { genCurationWarnings } from './curate/util';
 import { saveCuration } from './curate/write';
 import { ExtConfigFile } from './ExtConfigFile';
 import { parseAppVar } from './extensions/util';
@@ -1483,6 +1485,10 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     taskProgress.done('Loaded Curation Archives');
   });
 
+  state.socketServer.register(BackIn.CURATE_GEN_WARNINGS, async (event, curation) => {
+    return genCurationWarnings(curation, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onGenCurationWarnings);
+  });
+
   state.socketServer.register(BackIn.CURATE_GET_LIST, async (event) => {
     return state.loadedCurations;
   });
@@ -1674,7 +1680,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       const curation = state.loadedCurations[curationIdx];
       const contentPath = getContentFolderByKey(curation.folder, state.config.flashpointPath);
       curation.contents = await genContentTree(contentPath);
-      curation.warnings = genCurationWarnings(curation, state.config.flashpointPath, state.suggestions, state.languageContainer['curate']);
+      curation.warnings = await genCurationWarnings(curation, state.config.flashpointPath, state.suggestions, state.languageContainer['curate'], state.apiEmitters.curations.onGenCurationWarnings);
       state.loadedCurations[curationIdx] = curation;
       state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
     }
@@ -1710,7 +1716,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       const curation: CurationState = {
         ...data,
         alreadyImported: true,
-        warnings: genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate),
+        warnings: await genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onGenCurationWarnings),
         contents: await genContentTree(getContentFolderByKey(folder, state.config.flashpointPath))
       };
       await saveCuration(curPath, curation);
@@ -1739,7 +1745,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       const curation: CurationState = {
         ...data,
         alreadyImported: false,
-        warnings: genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate),
+        warnings: await genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onGenCurationWarnings),
         contents: await genContentTree(getContentFolderByKey(folder, state.config.flashpointPath))
       };
       await saveCuration(curPath, curation);

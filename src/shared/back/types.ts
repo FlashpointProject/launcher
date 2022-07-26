@@ -6,7 +6,7 @@ import { SourceData } from '@database/entity/SourceData';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
-import { AddAppCuration, ContentTree, CurationState, LoadedCuration } from '@shared/curate/types';
+import { AddAppCuration, ContentTree, LoadedCuration } from '@shared/curate/types';
 import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/extensions/interfaces';
 import { FilterGameOpts } from '@shared/game/GameFilter';
 import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
@@ -14,7 +14,7 @@ import { ChangedMeta, MetaEditFlags } from '@shared/MetaEdit';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { SocketTemplate } from '@shared/socket/types';
 import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
-import { GameData, TagAlias, TagFilterGroup } from 'flashpoint-launcher';
+import { GameData, TagAlias, TagFilterGroup, CurationState, CurationWarnings } from 'flashpoint-launcher';
 import { AppConfigData, AppExtConfigData } from '../config/interfaces';
 import { ExecMapping, GamePropSuggestions, IService, ProcessAction, Task } from '../interfaces';
 import { LangContainer, LangFile } from '../lang';
@@ -139,6 +139,7 @@ export enum BackIn {
   CURATE_EXPORT_DATA_PACK,
   CURATE_FROM_GAME,
   CURATE_REFRESH_CONTENT,
+  CURATE_GEN_WARNINGS,
 
   // Misc
   OPEN_LOGS_WINDOW,
@@ -314,6 +315,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.CURATE_EXPORT_DATA_PACK]: (curations: LoadedCuration[], taskId?: string) => void;
   [BackIn.CURATE_FROM_GAME]: (gameId: string) => void;
   [BackIn.CURATE_REFRESH_CONTENT]: (folder: string) => void;
+  [BackIn.CURATE_GEN_WARNINGS]: (curation: CurationState) => CurationWarnings;
 
   // Misc
   [BackIn.OPEN_LOGS_WINDOW]: () => void;
