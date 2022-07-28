@@ -115,7 +115,7 @@
     "uploadLog": "Log hochladen",
     "copiedToClipboard": "In Zwischenablage kopiert",
     "openLogsWindow": "Öffne Logs Fenster",
-    "copyDiagnostics": "Copy Diagnostics"
+    "copyDiagnostics": "Diagnosedaten kopieren"
   },
   "app": {
     "home": "Start",
@@ -304,7 +304,7 @@
     "mountParameters": "Mount-Parameter",
     "noMountParameters": "Keine Mount-Parameter",
     "showExtremeScreenshot": "Extremen Screenshot anzeigen",
-    "busy": "Please Wait..."
+    "busy": "Bitte warten..."
   },
   "tags": {
     "name": "Name",
