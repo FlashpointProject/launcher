@@ -115,7 +115,7 @@
     "uploadLog": "Tải lên bản ghi",
     "copiedToClipboard": "Đã chép vào bộ nhớ tạm",
     "openLogsWindow": "Mở cửa sổ nhật kí",
-    "copyDiagnostics": "Copy Diagnostics"
+    "copyDiagnostics": "Sao Chép Chẩn Đoán"
   },
   "app": {
     "home": "Trang chủ",
@@ -304,7 +304,7 @@
     "mountParameters": "Tham Số Khởi Động Trò Chơi",
     "noMountParameters": "Không có Tham Số Khởi Động Trò Chơi",
     "showExtremeScreenshot": "Hiện ảnh chụp màn hình phản cảm",
-    "busy": "Please Wait..."
+    "busy": "Xin Hãy Đợi..."
   },
   "tags": {
     "name": "Tên",
