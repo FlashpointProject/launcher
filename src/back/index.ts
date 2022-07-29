@@ -17,7 +17,7 @@ import { SourceFileURL1612435692266 } from '@database/migration/1612435692266-So
 import { SourceFileCount1612436426353 } from '@database/migration/1612436426353-SourceFileCount';
 import { GameTagsStr1613571078561 } from '@database/migration/1613571078561-GameTagsStr';
 import { GameDataParams1619885915109 } from '@database/migration/1619885915109-GameDataParams';
-import { BackIn, BackInit, BackInitArgs, BackOut } from '@shared/back/types';
+import { BackIn, BackInit, BackInitArgs, BackOut, BackRes, BackResParams } from '@shared/back/types';
 import { LoadedCuration } from '@shared/curate/types';
 import { getContentFolderByKey } from '@shared/curate/util';
 import { ILogoSet, LogoSet } from '@shared/extensions/interfaces';
@@ -43,7 +43,7 @@ import * as mime from 'mime';
 import { extractFull, Progress } from 'node-7z';
 import * as path from 'path';
 import 'reflect-metadata';
-import { genCurationWarnings } from './curate/util';
+import { genCurationWarnings, loadCurationFolder } from './curate/util';
 // Required for the DB Models to function
 import {
   CURATIONS_FOLDER_EXPORTED,
@@ -77,6 +77,7 @@ import { registerRequestCallbacks } from './responses';
 import { genContentTree } from './rust';
 import { ServicesFile } from './ServicesFile';
 import { SocketServer } from './SocketServer';
+import { ContextMiddlewareRes, Next } from './SocketServerMiddleware';
 import { newThemeWatcher } from './Themes';
 import { BackState, ImageDownloadItem } from './types';
 import { EventQueue } from './util/EventQueue';
@@ -631,6 +632,37 @@ async function initialize() {
 
   console.log('Back - Loaded Extension Config');
 
+  // Register middleware
+
+  // @TEST Example Middleware
+  // const mTest = (ctx: ContextMiddlewareRes, next: Next) => {
+  //   const stringify = (type: BackRes) => {
+  //     if (BackOut[type]) {
+  //       return `BackOut.${BackOut[type]}`;
+  //     } else {
+  //       return `BackIn.${BackIn[type]}`;
+  //     }
+  //   };
+  //   if (ctx.type !== BackOut.LOG_ENTRY_ADDED) {
+  //     if (ctx.type === BackOut.CURATE_LIST_CHANGE) {
+  //       log.debug('TEST', `Middleware FOUND ${stringify(ctx.type)}`);
+  //       if (ctx.args) {
+  //         const [ added, removed ] = ctx.args as BackResParams<typeof ctx.type>;
+  //         if (added) {
+  //           log.debug('TEST', `New Curations: ${added.map(a => JSON.stringify(a, undefined, 2))}`);
+  //         }
+  //         if (removed) {
+  //           log.debug('TEST', `New Curations: ${removed.map(a => JSON.stringify(a, undefined, 2))}`);
+  //         }
+  //       }
+  //     } else {
+  //       log.debug('TEST', `Middleware ignored: ${stringify(ctx.type)}`);
+  //     }
+  //   }
+  //   return next();
+  // };
+  // state.socketServer.registerMiddlewareBackOut(mTest);
+
   // Create Game Data Directory and clean up temp files
   const fullDataPacksFolderPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath);
   try {
@@ -692,32 +724,7 @@ async function initialize() {
   fs.promises.readdir(rootPath)
   .then(async (folders) => {
     for (const folderName of folders) {
-      const parsedMeta = await readCurationMeta(path.join(rootPath, folderName), state.recentAppPaths);
-      if (parsedMeta) {
-        const loadedCuration: LoadedCuration = {
-          folder: folderName,
-          uuid: parsedMeta.uuid || uuid(),
-          group: parsedMeta.group,
-          game: parsedMeta.game,
-          addApps: parsedMeta.addApps,
-          thumbnail: await loadCurationIndexImage(path.join(rootPath, folderName, 'logo.png')),
-          screenshot: await loadCurationIndexImage(path.join(rootPath, folderName, 'ss.png'))
-        };
-        const alreadyImported = (await GameManager.findGame(loadedCuration.uuid)) !== null;
-        const curation: flashpoint.CurationState = {
-          ...loadedCuration,
-          alreadyImported,
-          warnings: await genCurationWarnings(loadedCuration, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onGenCurationWarnings)
-        };
-        state.loadedCurations.push(curation);
-        genContentTree(getContentFolderByKey(folderName, state.config.flashpointPath)).then((contentTree) => {
-          const curationIdx = state.loadedCurations.findIndex((c) => c.folder === folderName);
-          if (curationIdx >= 0) {
-            state.loadedCurations[curationIdx].contents = contentTree;
-            state.socketServer.broadcast(BackOut.CURATE_CONTENTS_CHANGE, folderName, contentTree);
-          }
-        });
-      }
+      await loadCurationFolder(rootPath, folderName, state);
     }
   })
   .then(() => {

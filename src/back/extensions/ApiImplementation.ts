@@ -1,6 +1,6 @@
 import { EXT_CONFIG_FILENAME, PREFERENCES_FILENAME } from '@back/constants';
 import { loadCurationIndexImage } from '@back/curate/parse';
-import { genCurationWarnings } from '@back/curate/util';
+import { duplicateCuration, genCurationWarnings } from '@back/curate/util';
 import { saveCuration } from '@back/curate/write';
 import { ExtConfigFile } from '@back/ExtConfigFile';
 import * as GameDataManager from '@back/game/GameDataManager';
@@ -388,6 +388,9 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
       } else {
         throw new Error('Failed to import');
       }
+    },
+    duplicateCuration: (folder: string) => {
+      return duplicateCuration(folder, state);
     },
     getCurations: () => {
       return [...state.loadedCurations];

@@ -1,11 +1,12 @@
 import { OpenExternalFunc, ShowMessageBoxFunc, ShowOpenDialogFunc, ShowSaveDialogFunc } from '@back/types';
-import { BackIn, BackInTemplate, BackOut, BackOutTemplate } from '@shared/back/types';
+import { BackIn, BackInTemplate, BackOut, BackOutTemplate, BackRes, BackResTemplate } from '@shared/back/types';
 import { parse_message_data, validate_socket_message } from '@shared/socket/shared';
 import { api_handle_message, api_register, api_register_any, api_unregister, api_unregister_any, create_api, SocketAPIData } from '@shared/socket/SocketAPI';
 import { create_server, server_add_client, server_broadcast, server_request, server_send, SocketServerData } from '@shared/socket/SocketServer';
 import { SocketRequestData, SocketResponseData } from '@shared/socket/types';
 import * as http from 'http';
 import * as ws from 'ws';
+import { genPipelineBackOut, MiddlewareRes, PipelineRes } from './SocketServerMiddleware';
 
 type BackAPI = SocketAPIData<BackIn, BackInTemplate, MsgEvent>
 type BackClients = SocketServerData<BackOut, BackOutTemplate, ws>
@@ -45,6 +46,9 @@ export class SocketServer {
   port = -1;
   /** Secret value used for authentication. */
   secret: any;
+
+  /** Middleware for BackOut responses */
+  middlewareRes: PipelineRes = genPipelineBackOut();
 
   /** Queues for incoming requests. */
   queues: RequestQueue[] = [];
@@ -148,6 +152,10 @@ export class SocketServer {
 
   // API
 
+  public registerMiddlewareBackOut(middleware: MiddlewareRes): void {
+    this.middlewareRes.push(middleware);
+  }
+
   public register<TYPE extends BackIn>(type: TYPE, callback: Callback<MsgEvent, BackInTemplate[TYPE]>): void {
     api_register(this.api, type, callback);
   }
@@ -166,16 +174,55 @@ export class SocketServer {
 
   // Send
 
-  public request<TYPE extends BackOut>(client: BackClients['clients'][number], type: TYPE, ...args: Parameters<BackOutTemplate[TYPE]>) {
+  public async request<TYPE extends BackOut>(client: BackClients['clients'][number], type: TYPE, ...args: Parameters<BackOutTemplate[TYPE]>) {
+    // Wrap in context object so it can be mutated by middleware
+    const res = {
+      type,
+      args
+    };
+    try {
+      // Call middleware
+      await this.middlewareRes.execute(res);
+    } catch (err) {
+      if (res.type !== BackOut.LOG_ENTRY_ADDED) {
+        log.info('Launcher', 'Error in middleware - Type: ' + BackOut[type]);
+      }
+    }
     return server_request(client, type, ...args);
   }
 
-  public send<TYPE extends BackOut>(client: BackClients['clients'][number], type: TYPE, ...args: Parameters<BackOutTemplate[TYPE]>): void {
-    server_send(client, type, ...args);
+  public async send<TYPE extends BackOut>(client: BackClients['clients'][number], type: TYPE, ...args: Parameters<BackOutTemplate[TYPE]>): Promise<void> {
+    // Wrap in context object so it can be mutated by middleware
+    const res = {
+      type,
+      args
+    };
+    try {
+      // Call middleware
+      await this.middlewareRes.execute(res);
+    } catch (err) {
+      if (res.type !== BackOut.LOG_ENTRY_ADDED) {
+        log.info('Launcher', 'Error in middleware - Type: ' + BackOut[type]);
+      }
+    }
+    return server_send(client, type, ...args);
   }
 
-  public broadcast<TYPE extends BackOut>(type: TYPE, ...args: Parameters<BackOutTemplate[TYPE]>) {
-    return server_broadcast(this.clients, type, ...args);
+  public async broadcast<TYPE extends BackOut>(type: TYPE, ...args: Parameters<BackOutTemplate[TYPE]>) {
+    // Wrap in context object so it can be mutated by middleware
+    const res = {
+      type,
+      args
+    };
+    try {
+      // Call middleware
+      await this.middlewareRes.execute(res);
+    } catch (err) {
+      if (res.type !== BackOut.LOG_ENTRY_ADDED) {
+        log.info('Launcher', 'Error in middleware - Type: ' + BackOut[type]);
+      }
+    }
+    return server_broadcast(this.clients, res.type, ...res.args);
   }
 
   // Event Handlers
@@ -236,9 +283,7 @@ export class SocketServer {
   }
 
   protected async handleMessage(event: ws.MessageEvent, data: SocketRequestData | SocketResponseData<any>): Promise<void> {
-    log('Socket Server - Message received');
-
-    // Prepare event
+  // Prepare event
 
     const client = this.clients.clients.find(client => client.socket === event.target);
 
@@ -268,6 +313,22 @@ export class SocketServer {
     }
 
     if (out) {
+      if ('type' in data && 'result' in out) {
+        const res = {
+          type: data.type as BackRes,
+          res: out.result as ReturnType<BackResTemplate[BackRes]>
+        };
+        try {
+          // Call middleware
+          await this.middlewareRes.execute(res);
+          // Modify output
+          out.result = res.res;
+        } catch (err) {
+          if (res.type !== BackOut.LOG_ENTRY_ADDED) {
+            log.info('Launcher', 'Error in middleware - Type: ' + BackRes[res.type]);
+          }
+        }
+      }
       event.target.send(JSON.stringify(out));
     }
   }
@@ -325,8 +386,4 @@ function startServer(minPort: number, maxPort: number, host: string | undefined)
       }
     }
   });
-}
-
-function log(...args: any[]): void {
-  // console.log(...args);
 }

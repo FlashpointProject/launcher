@@ -1,7 +1,8 @@
 import { serveFile } from '@back/util/FileServer';
 import * as http from 'http';
 import * as path from 'path';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
+import * as GameManager from '@back/game/GameManager';
 import { fixSlashes } from '@shared/Util';
 import { uuid } from '@back/util/uuid';
 import { LoadedCuration } from '@shared/curate/types';
@@ -10,6 +11,13 @@ import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { ApiEmitter } from '@back/extensions/ApiEmitter';
 import { CurationState, CurationWarnings } from 'flashpoint-launcher';
+import { readCurationMeta } from './read';
+import { BackState } from '@back/types';
+import { loadCurationIndexImage } from './parse';
+import { getContentFolderByKey } from '@shared/curate/util';
+import { genContentTree } from '@back/rust';
+import { BackOut } from '@shared/back/types';
+import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
 
 const whitelistedBaseFiles = ['logo.png', 'ss.png'];
 
@@ -155,6 +163,58 @@ export async function genCurationWarnings(curation: LoadedCuration, fpPath: stri
   };
 
   return setWarnings;
+}
+
+export async function loadCurationFolder(rootPath: string, folderName: string, state: BackState) {
+  const parsedMeta = await readCurationMeta(path.join(rootPath, folderName), state.recentAppPaths);
+  if (parsedMeta) {
+    const loadedCuration: LoadedCuration = {
+      folder: folderName,
+      uuid: parsedMeta.uuid || uuid(),
+      group: parsedMeta.group,
+      game: parsedMeta.game,
+      addApps: parsedMeta.addApps,
+      thumbnail: await loadCurationIndexImage(path.join(rootPath, folderName, 'logo.png')),
+      screenshot: await loadCurationIndexImage(path.join(rootPath, folderName, 'ss.png'))
+    };
+    const alreadyImported = (await GameManager.findGame(loadedCuration.uuid)) !== null;
+    const curation: CurationState = {
+      ...loadedCuration,
+      alreadyImported,
+      warnings: await genCurationWarnings(loadedCuration, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onGenCurationWarnings)
+    };
+    state.loadedCurations.push(curation);
+    genContentTree(getContentFolderByKey(folderName, state.config.flashpointPath)).then((contentTree) => {
+      const curationIdx = state.loadedCurations.findIndex((c) => c.folder === folderName);
+      if (curationIdx >= 0) {
+        state.loadedCurations[curationIdx].contents = contentTree;
+        state.socketServer.broadcast(BackOut.CURATE_CONTENTS_CHANGE, folderName, contentTree);
+      }
+    });
+  }
+}
+
+// Duplicates and then loads a curation
+export async function duplicateCuration(srcFolder: string, state: BackState): Promise<string> {
+  // Copy curation to a new folder
+  const rootPath = path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING);
+  const srcPath = path.join(rootPath, srcFolder);
+  await fs.promises.access(srcPath, fs.constants.R_OK);
+  const destFolder = uuid();
+  const destPath = path.join(rootPath, destFolder);
+  await fs.copy(srcPath, destPath);
+
+  // Load new folder and add Copy to its title
+  await loadCurationFolder(rootPath, destFolder, state);
+  const curationIdx = state.loadedCurations.findIndex(c => c.folder === destFolder);
+  if (curationIdx > -1) {
+    state.loadedCurations[curationIdx].game.title = state.loadedCurations[curationIdx].game.title ? state.loadedCurations[curationIdx].game.title + ' - Copy' : '? - Copy';
+  }
+
+  // Notify frontend of new curation
+  state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [state.loadedCurations[curationIdx]]);
+
+  return destFolder;
 }
 
 /**

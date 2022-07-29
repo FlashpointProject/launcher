@@ -147,6 +147,12 @@ declare module 'flashpoint-launcher' {
          */
         function deleteCuration(folder: string): Promise<void>;
         /**
+         * Duplicates a curation
+         * @param folder Folder name of curation
+         * @returns Folder name of duplicate curation
+         */
+        function duplicateCuration(folder: string): Promise<string>;
+        /**
          * Returns the absolute path to a curations folder
          * @param folder Folder name of the curation
          */

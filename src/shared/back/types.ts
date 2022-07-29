@@ -21,7 +21,7 @@ import { ILogEntry, ILogPreEntry, LogLevel } from '../Log/interface';
 import { Theme } from '../ThemeFile';
 
 export enum BackIn {
-  UNKNOWN,
+  UNKNOWN = 1000,
 
   INIT_LISTEN,
   GET_SUGGESTIONS,
@@ -147,7 +147,7 @@ export enum BackIn {
 }
 
 export enum BackOut {
-  UNKNOWN,
+  UNKNOWN = 0,
 
   INIT_EVENT,
   OPEN_MESSAGE_BOX,
@@ -204,6 +204,12 @@ export enum BackOut {
 
   FOCUS_WINDOW,
 }
+
+export const BackRes = {
+  ...BackOut,
+  ...BackIn
+};
+export type BackRes = BackOut | BackIn;
 
 export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.UNKNOWN]: () => void;
@@ -381,6 +387,10 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
 
   [BackOut.FOCUS_WINDOW]: () => void;
 }>
+
+export type BackResTemplate = BackOutTemplate & BackInTemplate;
+export type BackResParams<T extends BackRes> = Parameters<BackResTemplate[T]>;
+export type BackResReturnTypes<T extends BackRes> = ReturnType<BackResTemplate[T]>;
 
 export type BackInitArgs = {
   /** Path to the folder containing the preferences and config files. */
