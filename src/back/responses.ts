@@ -38,7 +38,7 @@ import * as YAML from 'yaml';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME } from './constants';
 import { loadCurationIndexImage } from './curate/parse';
-import { genCurationWarnings } from './curate/util';
+import { duplicateCuration, genCurationWarnings } from './curate/util';
 import { saveCuration } from './curate/write';
 import { ExtConfigFile } from './ExtConfigFile';
 import { parseAppVar } from './extensions/util';
@@ -1491,6 +1491,12 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
   state.socketServer.register(BackIn.CURATE_GET_LIST, async (event) => {
     return state.loadedCurations;
+  });
+
+  state.socketServer.register(BackIn.CURATE_DUPLICATE, async (event, folders) => {
+    for (const folder of folders) {
+      await duplicateCuration(folder, state);
+    }
   });
 
   state.socketServer.register(BackIn.CURATE_SYNC_CURATIONS, async (event, curations) => {

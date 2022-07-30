@@ -352,6 +352,7 @@
     "openImportedFolderDesc": "Open the default Imported curations folder containing your imported curations.",
     "newCuration": "New Curation",
     "newCurationDesc": "Creates a new curation with a unique folder",
+    "duplicateCuration": "Duplicate",
     "newCurationFromTemplate": "New Curation (Template)",
     "loadMeta": "Load Meta",
     "loadMetaDesc": "Load one or more Curation meta files",

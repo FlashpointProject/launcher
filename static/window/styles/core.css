@@ -1187,7 +1187,14 @@ body {
   display: flex;
 }
 .curate-list-group__header-text {
+  display: flex;
   flex-grow: 1;
+}
+.curate-list-group__header-text--name {
+  flex-grow: 1;
+}
+.curate-list-group__header-text--counter {
+  flex-grow: 0;
 }
 .curate-list-group__header-caret {
   padding: 0 0.2rem;

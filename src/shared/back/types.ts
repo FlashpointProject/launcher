@@ -138,6 +138,7 @@ export enum BackIn {
   CURATE_FROM_GAME,
   CURATE_REFRESH_CONTENT,
   CURATE_GEN_WARNINGS,
+  CURATE_DUPLICATE,
 
   // Misc
   OPEN_LOGS_WINDOW,
@@ -320,6 +321,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.CURATE_FROM_GAME]: (gameId: string) => string | undefined;
   [BackIn.CURATE_REFRESH_CONTENT]: (folder: string) => void;
   [BackIn.CURATE_GEN_WARNINGS]: (curation: CurationState) => CurationWarnings;
+  [BackIn.CURATE_DUPLICATE]: (folders: string[]) => void;
 
   // Misc
   [BackIn.OPEN_LOGS_WINDOW]: () => void;

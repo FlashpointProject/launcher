@@ -621,6 +621,10 @@ body {
 .curate-list-group__header-unpinned .icon__use {
   fill: var(--layout__primary-background);
 }
+.curate-list-group__header-text--counter {
+  font-style: italic;
+  color: var(--layout__disabled-text-color);
+}
 /* Curate Tag (Game tag for the curate page) */
 .curate-tag {
   border: 1px solid;

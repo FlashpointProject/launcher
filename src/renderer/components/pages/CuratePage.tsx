@@ -43,6 +43,26 @@ export function CuratePage(props: CuratePageProps) {
   const [tagText, setTagText] = React.useState<string>('');
   const [tagSuggestions, setTagSuggestions] = React.useState<TagSuggestion[]>([]);
 
+  const onDupeCurations = React.useCallback(() => {
+    const selected = props.curate.selected;
+    props.dispatchCurate({
+      type: CurateActionType.SET_LOCK,
+      folders: selected,
+      locked: true
+    });
+    window.Shared.back.request(BackIn.CURATE_DUPLICATE, selected)
+    .catch((err: any) => {
+      log.error('Curate', 'Error duping curations: ' + err.toString());
+    })
+    .finally(() => {
+      props.dispatchCurate({
+        type: CurateActionType.SET_LOCK,
+        folders: selected,
+        locked: false
+      });
+    });
+  }, [props.curate.selected]);
+
   const onLoadCuration = React.useCallback(() => {
     // Generate task
     remote.dialog.showOpenDialog({
@@ -557,8 +577,13 @@ export function CuratePage(props: CuratePageProps) {
           )}
           <SimpleButton
             className='curate-page__right--button'
-            onClick={() => onNewCuration()}
+            onClick={() => onNewCuration}
             value={strings.curate.newCuration}/>
+          <SimpleButton
+            className='curate-page__right--button'
+            onClick={onDupeCurations}
+            disabled={disabled}
+            value={strings.curate.duplicateCuration}/>
           <SimpleButton
             className='curate-page__right--button'
             onClick={onLoadCuration}

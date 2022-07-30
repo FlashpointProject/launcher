@@ -130,7 +130,10 @@ export function CuratePageLeftSidebar(props: CuratePageLeftSidebarProps) {
         <div
           className={'curate-list-group__header'}
           onDoubleClick={() => props.onSelectGroup(group.name)} >
-          <div className={'curate-list-group__header-text'}>{group.name || 'No Group'}</div>
+          <div className={'curate-list-group__header-text'}>
+            <div className={'curate-list-group__header-text--name'}>{group.name || 'No Group'}</div>
+            <div className={'curate-list-group__header-text--counter'}>{`(${elems.length})`}</div>
+          </div>
           { group.name !== '' && (
             <div
               onClick={() => props.onToggleGroupPin(group)}

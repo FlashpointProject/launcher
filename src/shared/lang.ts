@@ -360,6 +360,7 @@ const langTemplate = {
     'openImportedFolderDesc',
     'newCuration',
     'newCurationDesc',
+    'duplicateCuration',
     'newCurationFromTemplate',
     'loadMeta',
     'loadMetaDesc',
