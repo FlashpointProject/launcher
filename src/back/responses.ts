@@ -47,7 +47,7 @@ import * as GameManager from './game/GameManager';
 import * as TagManager from './game/TagManager';
 import { escapeArgsForShell, GameLauncher, GameLaunchInfo } from './GameLauncher';
 import { importCuration, launchAddAppCuration, launchCuration } from './importGame';
-import { loadCurationArchive } from './index';
+import { checkAndDownloadGameData, extractFullPromise, loadCurationArchive } from './index';
 import { ManagedChildProcess } from './ManagedChildProcess';
 import { importAllMetaEdits } from './MetaEdit';
 import { copyFolder, genContentTree } from './rust';
@@ -1696,12 +1696,65 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       const contentFolder = path.join(curPath, 'content');
       await fs.promises.mkdir(contentFolder, { recursive: true });
 
-      // Copy images
-      const thumbnailPath = path.join(state.config.flashpointPath, state.preferences.imageFolderPath, 'Logos', game.id.substring(0, 2), game.id.substring(2, 4), `${game.id}.png`);
-      const ssPath = path.join(state.config.flashpointPath, state.preferences.imageFolderPath, 'Screenshots', game.id.substring(0, 2), game.id.substring(2, 4), `${game.id}.png`);
+      // Copy images if exists
+      const thumbnailUrl = `http://localhost:${state.fileServerPort}/images/Logos/${gameId.substring(0, 2)}/${gameId.substring(2, 4)}/${game.id}.png`;
+      const thumbnailWriter = fs.createWriteStream(path.join(curPath, 'logo.png'));
+      await new Promise<void>((resolve, reject) => {
+        axios.get(thumbnailUrl, { responseType: 'stream' })
+        .then((res) => {
+          res.data.pipe(thumbnailWriter);
+          thumbnailWriter.on('close', resolve);
+          thumbnailWriter.on('error', (err) => {
+            thumbnailWriter.close();
+            reject(err);
+          });
+        })
+        .catch((err) => {
+          thumbnailWriter.close();
+          reject(err);
+        });
+      })
+      .catch((err) => {
+        log.error('Launcher', 'Make Curation From Game - Failed to save Logo file.\nError: ' + err.toString());
+      });
 
-      await fs.promises.copyFile(thumbnailPath, path.join(curPath, 'logo.png')).catch(console.log);
-      await fs.promises.copyFile(ssPath, path.join(curPath, 'ss.png')).catch(console.log);
+      const ssUrl = `http://localhost:${state.fileServerPort}/images/Screenshots/${gameId.substring(0, 2)}/${gameId.substring(2, 4)}/${game.id}.png`;
+      const ssWriter = fs.createWriteStream(path.join(curPath, 'ss.png'));
+      await new Promise<void>((resolve, reject) => {
+        axios.get(ssUrl, { responseType: 'stream' })
+        .then((res) => {
+          res.data.pipe(ssWriter);
+          ssWriter.on('close', resolve);
+          ssWriter.on('error', (err) => {
+            ssWriter.close();
+            reject(err);
+          });
+        })
+        .catch((err) => {
+          ssWriter.close();
+          reject(err);
+        });
+      })
+      .catch((err) => {
+        log.error('Launcher', 'Make Curation From Game - Failed to save Screenshot file.\nError: ' + err.toString());
+      });
+
+      // Extract active data pack if exists
+      if (game.activeDataId) {
+        await checkAndDownloadGameData(gameId, game.activeDataId);
+        const activeData = await GameDataManager.findOne(game.activeDataId);
+        if (activeData && activeData.path) {
+          // Extract data pack into curation folder
+          const dataPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, activeData.path);
+          await extractFullPromise([dataPath, curPath, { $bin: state.sevenZipPath }]);
+          // Clean up content.json file from extracted data pack
+          await fs.unlink(path.join(curPath, 'content.json'))
+          .catch((err) => { /** Probably doesn't exist */ });
+          log.debug('Launcher', 'Make Curation From Game - Found and extracted data pack into curation folder');
+        }
+      } else {
+        log.debug('Launcher', 'Make Curation From Game - Game has no active data');
+      }
 
       const data: LoadedCuration = {
         folder,
@@ -1718,11 +1771,23 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         ...data,
         alreadyImported: true,
         warnings: await genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onWillGenCurationWarnings),
-        contents: await genContentTree(getContentFolderByKey(folder, state.config.flashpointPath))
       };
       await saveCuration(curPath, curation);
       state.loadedCurations.push(curation);
+
+      // Let contents update without blocking
+      genContentTree(getContentFolderByKey(folder, state.config.flashpointPath))
+      .then((contentTree) => {
+        const idx = state.loadedCurations.findIndex(c => c.folder === folder);
+        if (idx > -1) {
+          state.loadedCurations[idx].contents = contentTree;
+          state.socketServer.broadcast(BackOut.CURATE_CONTENTS_CHANGE, folder, contentTree);
+        }
+      });
+
+      // Send back responses
       state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
+      return curation.folder;
     }
   });
 

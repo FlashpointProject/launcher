@@ -101,7 +101,7 @@ export function HomePage(props: HomePageProps) {
   }, [window.Shared.config.fullFlashpointPath]);
 
   const onHallOfFameClick = React.useCallback(() => {
-    const playlist = props.playlists.find(p => p.title === 'Flashpoint Hall of Fame');
+    const playlist = props.playlists.find(p => p.title.toLowerCase().includes('hall of fame'));
     if (playlist) {
       props.onSelectPlaylist(ARCADE, playlist.id);
       props.clearSearch();

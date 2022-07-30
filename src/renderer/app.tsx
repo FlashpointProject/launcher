@@ -1043,6 +1043,35 @@ export class App extends React.Component<AppProps> {
             label: strings.menu.duplicateMetaAndImages, // ("&&" will be shown as "&")
             enabled: this.props.preferencesData.enableEditing,
             click: () => { window.Shared.back.request(BackIn.DUPLICATE_GAME, gameId, true); },
+          }, {
+            /* Load as a curation */
+            label: strings.menu.makeCurationFromGame,
+            enabled: this.props.preferencesData.enableEditing,
+            click: () => {
+              window.Shared.back.request(BackIn.CURATE_FROM_GAME, gameId)
+              .then((folder) => {
+                if (folder) {
+                  // Select the new curation
+                  this.props.dispatchCurate({
+                    type: CurateActionType.SET_CURRENT_CURATION,
+                    folder
+                  });
+                  // Redirect to Curate once it's been made
+                  this.props.history.push(Paths.CURATE);
+                } else {
+                  remote.dialog.showMessageBox({
+                    title: 'Failed to create curation',
+                    message: 'Failed to create curation from this game. No error provided.'
+                  });
+                }
+              })
+              .catch((err: any) => {
+                remote.dialog.showMessageBox({
+                  title: 'Failed to create curation',
+                  message: `Failed to create curation from this game.\nError: ${err.toString()}`
+                });
+              });
+            }
           }, { type: 'separator' }, {
             /* Export Meta */
             label: strings.menu.exportMetaOnly,

@@ -17,7 +17,7 @@ import { SourceFileURL1612435692266 } from '@database/migration/1612435692266-So
 import { SourceFileCount1612436426353 } from '@database/migration/1612436426353-SourceFileCount';
 import { GameTagsStr1613571078561 } from '@database/migration/1613571078561-GameTagsStr';
 import { GameDataParams1619885915109 } from '@database/migration/1619885915109-GameDataParams';
-import { BackIn, BackInit, BackInitArgs, BackOut, BackResParams } from '@shared/back/types';
+import { BackIn, BackInit, BackInitArgs, BackOut, BackResParams, DownloadDetails } from '@shared/back/types';
 import { LoadedCuration } from '@shared/curate/types';
 import { getContentFolderByKey } from '@shared/curate/util';
 import { ILogoSet, LogoSet } from '@shared/extensions/interfaces';
@@ -1338,6 +1338,7 @@ export async function loadCurationArchive(filePath: string, onProgress?: (progre
     alreadyImported,
     warnings: await genCurationWarnings(loadedCuration, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onWillGenCurationWarnings)
   };
+
   genContentTree(getContentFolderByKey(key, state.config.flashpointPath))
   .then((contentTree) => {
     const curationIdx = state.loadedCurations.findIndex((c) => c.folder === key);
@@ -1383,4 +1384,44 @@ function endsWithList(str: string, list: string[]): boolean {
     }
   }
   return false;
+}
+
+export function extractFullPromise(args: Parameters<typeof extractFull>) : Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    extractFull(...args)
+    .once(('end'), () => {
+      resolve();
+    })
+    .once(('error'), (error) => {
+      reject(error);
+    });
+  });
+}
+
+export async function checkAndDownloadGameData(gameId: string, activeDataId: number) {
+  const gameData = await GameDataManager.findOne(activeDataId);
+  if (gameData && !gameData.presentOnDisk) {
+    // Download GameData
+    const onDetails = (details: DownloadDetails) => {
+      state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_DETAILS, details);
+    };
+    const onProgress = (percent: number) => {
+      // Sent to PLACEHOLDER download dialog on client
+      state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT, percent);
+    };
+    state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
+    try {
+      await GameDataManager.downloadGameData(gameData.id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), onProgress, onDetails)
+      .finally(() => {
+        // Close PLACEHOLDER download dialog on client, cosmetic delay to look nice
+        setTimeout(() => {
+          state.socketServer.broadcast(BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG);
+        }, 250);
+      });
+    } catch (error: any) {
+      state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
+      log.info('Game Launcher', `Game Launch Aborted: ${error}`);
+      return;
+    }
+  }
 }
