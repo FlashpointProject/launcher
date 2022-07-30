@@ -115,7 +115,7 @@
     "uploadLog": "Télécharger l'historique",
     "copiedToClipboard": "Copié dans le presse-papier",
     "openLogsWindow": "Ouvrir la fenêtre de l'historique",
-    "copyDiagnostics": "Copy Diagnostics"
+    "copyDiagnostics": "Copier les diagnostics"
   },
   "app": {
     "home": "Accueil",
@@ -304,7 +304,7 @@
     "mountParameters": "Paramètres de montage",
     "noMountParameters": "Aucun paramètre de montage",
     "showExtremeScreenshot": "Afficher la capture d'écran extrême",
-    "busy": "Please Wait..."
+    "busy": "Veuillez patienter..."
   },
   "tags": {
     "name": "Nom",
