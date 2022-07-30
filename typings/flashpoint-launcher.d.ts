@@ -159,6 +159,7 @@ declare module 'flashpoint-launcher' {
         function getCurationPath(folder: string): string;
 
         // Events
+        const onDidCurationListChange: Event<{ added?: CurationState[], removed?: string[] }>;
         const onDidCurationChange: Event<CurationState>;
         const onGenCurationWarnings: Event<{
             curation: LoadedCuration,

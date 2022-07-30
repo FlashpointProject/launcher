@@ -152,7 +152,7 @@ export class SocketServer {
 
   // API
 
-  public registerMiddlewareBackOut(middleware: MiddlewareRes): void {
+  public registerMiddlewareBackRes(middleware: MiddlewareRes): void {
     this.middlewareRes.push(middleware);
   }
 

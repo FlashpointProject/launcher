@@ -1501,6 +1501,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
           ...curation,
           contents: curation.contents ? curation.contents : state.loadedCurations[idx].contents
         };
+        state.apiEmitters.curations.onDidCurationChange.fire(state.loadedCurations[idx]);
         // Save curation
         saveCuration(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, curation.folder), curation)
         .then(() => state.apiEmitters.curations.onDidCurationChange.fire(state.loadedCurations[idx]));

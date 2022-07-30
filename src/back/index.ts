@@ -17,7 +17,7 @@ import { SourceFileURL1612435692266 } from '@database/migration/1612435692266-So
 import { SourceFileCount1612436426353 } from '@database/migration/1612436426353-SourceFileCount';
 import { GameTagsStr1613571078561 } from '@database/migration/1613571078561-GameTagsStr';
 import { GameDataParams1619885915109 } from '@database/migration/1619885915109-GameDataParams';
-import { BackIn, BackInit, BackInitArgs, BackOut, BackRes, BackResParams } from '@shared/back/types';
+import { BackIn, BackInit, BackInitArgs, BackOut, BackResParams } from '@shared/back/types';
 import { LoadedCuration } from '@shared/curate/types';
 import { getContentFolderByKey } from '@shared/curate/util';
 import { ILogoSet, LogoSet } from '@shared/extensions/interfaces';
@@ -77,7 +77,6 @@ import { registerRequestCallbacks } from './responses';
 import { genContentTree } from './rust';
 import { ServicesFile } from './ServicesFile';
 import { SocketServer } from './SocketServer';
-import { ContextMiddlewareRes, Next } from './SocketServerMiddleware';
 import { newThemeWatcher } from './Themes';
 import { BackState, ImageDownloadItem } from './types';
 import { EventQueue } from './util/EventQueue';
@@ -191,6 +190,7 @@ const state: BackState = {
       onWillImportCuration: onWillImportCuration,
     },
     curations: {
+      onDidCurationListChange: new ApiEmitter(),
       onDidCurationChange: new ApiEmitter(),
       onGenCurationWarnings: new ApiEmitter()
     },
@@ -633,6 +633,18 @@ async function initialize() {
   console.log('Back - Loaded Extension Config');
 
   // Register middleware
+
+  state.socketServer.registerMiddlewareBackRes((ctx, next) => {
+    // Fire events for adding / removal of curations
+    if (ctx.type === BackOut.CURATE_LIST_CHANGE) {
+      const args = ctx.args as BackResParams<typeof ctx.type>;
+      state.apiEmitters.curations.onDidCurationListChange.fire( {
+        added: args[0],
+        removed: args[1]
+      });
+    }
+    return next();
+  });
 
   // @TEST Example Middleware
   // const mTest = (ctx: ContextMiddlewareRes, next: Next) => {
