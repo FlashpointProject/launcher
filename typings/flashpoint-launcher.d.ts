@@ -161,7 +161,7 @@ declare module 'flashpoint-launcher' {
         // Events
         const onDidCurationListChange: Event<{ added?: CurationState[], removed?: string[] }>;
         const onDidCurationChange: Event<CurationState>;
-        const onGenCurationWarnings: Event<{
+        const onWillGenCurationWarnings: Event<{
             curation: LoadedCuration,
             warnings: CurationWarnings
         }>;

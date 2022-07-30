@@ -403,11 +403,14 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
       const curation = state.loadedCurations.find(c => c.folder === folder);
       return curation ? {...curation} : undefined;
     },
+    get onDidCurationListChange() {
+      return apiEmitters.curations.onDidCurationListChange.event;
+    },
     get onDidCurationChange() {
       return apiEmitters.curations.onDidCurationChange.event;
     },
-    get onGenCurationWarnings() {
-      return apiEmitters.curations.onGenCurationWarnings.event;
+    get onWillGenCurationWarnings() {
+      return apiEmitters.curations.onWillGenCurationWarnings.event;
     },
     setCurationGameMeta: (folder: string, meta: flashpoint.CurationMeta) => {
       const curation = state.loadedCurations.find(c => c.folder === folder);
@@ -483,7 +486,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
       const curation: flashpoint.CurationState = {
         ...data,
         alreadyImported: false,
-        warnings: await genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onGenCurationWarnings),
+        warnings: await genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onWillGenCurationWarnings),
         contents: await genContentTree(getContentFolderByKey(folder, state.config.flashpointPath))
       };
       await saveCuration(curPath, curation);

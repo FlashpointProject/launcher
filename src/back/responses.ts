@@ -1486,7 +1486,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.CURATE_GEN_WARNINGS, async (event, curation) => {
-    return genCurationWarnings(curation, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onGenCurationWarnings);
+    return genCurationWarnings(curation, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onWillGenCurationWarnings);
   });
 
   state.socketServer.register(BackIn.CURATE_GET_LIST, async (event) => {
@@ -1681,7 +1681,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       const curation = state.loadedCurations[curationIdx];
       const contentPath = getContentFolderByKey(curation.folder, state.config.flashpointPath);
       curation.contents = await genContentTree(contentPath);
-      curation.warnings = await genCurationWarnings(curation, state.config.flashpointPath, state.suggestions, state.languageContainer['curate'], state.apiEmitters.curations.onGenCurationWarnings);
+      curation.warnings = await genCurationWarnings(curation, state.config.flashpointPath, state.suggestions, state.languageContainer['curate'], state.apiEmitters.curations.onWillGenCurationWarnings);
       state.loadedCurations[curationIdx] = curation;
       state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
     }
@@ -1717,7 +1717,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       const curation: CurationState = {
         ...data,
         alreadyImported: true,
-        warnings: await genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onGenCurationWarnings),
+        warnings: await genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onWillGenCurationWarnings),
         contents: await genContentTree(getContentFolderByKey(folder, state.config.flashpointPath))
       };
       await saveCuration(curPath, curation);
@@ -1746,7 +1746,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       const curation: CurationState = {
         ...data,
         alreadyImported: false,
-        warnings: await genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onGenCurationWarnings),
+        warnings: await genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onWillGenCurationWarnings),
         contents: await genContentTree(getContentFolderByKey(folder, state.config.flashpointPath))
       };
       await saveCuration(curPath, curation);

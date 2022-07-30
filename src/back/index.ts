@@ -192,7 +192,7 @@ const state: BackState = {
     curations: {
       onDidCurationListChange: new ApiEmitter(),
       onDidCurationChange: new ApiEmitter(),
-      onGenCurationWarnings: new ApiEmitter()
+      onWillGenCurationWarnings: new ApiEmitter()
     },
     gameData: {
       onDidImportGameData: new ApiEmitter<flashpoint.GameData>(),
@@ -1336,7 +1336,7 @@ export async function loadCurationArchive(filePath: string, onProgress?: (progre
   const curation: flashpoint.CurationState = {
     ...loadedCuration,
     alreadyImported,
-    warnings: await genCurationWarnings(loadedCuration, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onGenCurationWarnings)
+    warnings: await genCurationWarnings(loadedCuration, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onWillGenCurationWarnings)
   };
   genContentTree(getContentFolderByKey(key, state.config.flashpointPath))
   .then((contentTree) => {

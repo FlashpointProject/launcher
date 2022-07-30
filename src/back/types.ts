@@ -193,7 +193,7 @@ export type ApiEmittersState = Readonly<{
   curations: Readonly <{
     onDidCurationListChange: ApiEmitter<{ added?: flashpoint.CurationState[], removed?: string[] }>;
     onDidCurationChange: ApiEmitter<flashpoint.CurationState>;
-    onGenCurationWarnings: ApiEmitter<{
+    onWillGenCurationWarnings: ApiEmitter<{
       curation: flashpoint.LoadedCuration,
       warnings: flashpoint.CurationWarnings
     }>;

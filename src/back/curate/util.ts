@@ -130,7 +130,7 @@ export const onFileServerRequestCurationFileFactory = (getCurationFilePath: GetC
     }
   };
 
-export async function genCurationWarnings(curation: LoadedCuration, fpPath: string, suggestions: GamePropSuggestions, strings: LangContainer['curate'], onGenCurationWarnings: ApiEmitter<{ curation: LoadedCuration, warnings: CurationWarnings }>): Promise<CurationWarnings> {
+export async function genCurationWarnings(curation: LoadedCuration, fpPath: string, suggestions: GamePropSuggestions, strings: LangContainer['curate'], onWillGenCurationWarnings: ApiEmitter<{ curation: LoadedCuration, warnings: CurationWarnings }>): Promise<CurationWarnings> {
   const warns: CurationWarnings = {
     fieldWarnings: [],
     writtenWarnings: [],
@@ -154,7 +154,7 @@ export async function genCurationWarnings(curation: LoadedCuration, fpPath: stri
     curation: { ...curation },
     warnings: warns
   };
-  await onGenCurationWarnings.fire(mutable);
+  await onWillGenCurationWarnings.fire(mutable);
 
   // Clean up fieldWarnings
   const setWarnings: CurationWarnings = {
@@ -181,7 +181,7 @@ export async function loadCurationFolder(rootPath: string, folderName: string, s
     const curation: CurationState = {
       ...loadedCuration,
       alreadyImported,
-      warnings: await genCurationWarnings(loadedCuration, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onGenCurationWarnings)
+      warnings: await genCurationWarnings(loadedCuration, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onWillGenCurationWarnings)
     };
     state.loadedCurations.push(curation);
     genContentTree(getContentFolderByKey(folderName, state.config.flashpointPath)).then((contentTree) => {
