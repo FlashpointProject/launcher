@@ -42,20 +42,36 @@ export function CurateBoxInputRow(props: CurateBoxInputRowProps) {
   );
 }
 
+export type DropdownItem = {
+  key: string;
+  value: string;
+}
+
 export type CurateBoxDropdownInputRowProps = CurateBoxInputRowProps & {
   className?: string;
-  items?: string[];
+  items: DropdownItem[];
 }
 
 export function CurateBoxDropdownInputRow(props: CurateBoxDropdownInputRowProps) {
-  const onChange = useOnInputChange(props.property, props.curationFolder, props.dispatch);
+  const { curationFolder, property, dispatch } = props;
+  const onChange = React.useCallback((event: InputElementOnChangeEvent) => {
+    const item = props.items.find(i => i.value === event.currentTarget.value);
+    if (curationFolder !== undefined && item) {
+      dispatch({
+        type: CurateActionType.EDIT_CURATION_META,
+        folder: curationFolder,
+        property: property,
+        value: item.key,
+      });
+    }
+  }, [dispatch, curationFolder]);
   const onItemSelect = useTransformOnItemSelect(onChange);
 
   return (
     <CurateBoxRow title={props.title}>
       <DropdownInputField
         className={(props.className ? props.className + ' ' : '') + (props.warned ? 'input-field--warn' : '')}
-        items={props.items || []}
+        items={props.items.map(i => i.value) || []}
         onItemSelect={onItemSelect}
         text={props.text || ''}
         placeholder={props.placeholder}

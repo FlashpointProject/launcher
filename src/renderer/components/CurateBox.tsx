@@ -5,7 +5,8 @@ import * as remote from '@electron/remote';
 import {
   CurateBoxDropdownInputRow,
   CurateBoxInputRow,
-  CurateBoxTagDropdownInputRow
+  CurateBoxTagDropdownInputRow,
+  DropdownItem
 } from '@renderer/components/CurateBoxInputRow';
 import { GameImageSplit } from '@renderer/components/GameImageSplit';
 import { useMouse } from '@renderer/hooks/useMouse';
@@ -302,8 +303,8 @@ export function CurateBox(props: CurateBoxProps) {
               {/* @TODO Replace this with a Dropdown menu that does NOT allow selection of the text or typing into it. */}
               <CurateBoxDropdownInputRow
                 title={strings.browse.library}
-                text={props.curation.game.library}
-                items={props.suggestions.library}
+                text={props.curation.game.library ? strings.libraries[props.curation.game.library] || props.curation.game.library : ''}
+                items={createDropdownItems(props.suggestions.library || [], strings.libraries)}
                 warned={props.curation.warnings.fieldWarnings.includes('library')}
                 property='library'
                 { ...shared } />
@@ -413,7 +414,7 @@ export function CurateBox(props: CurateBoxProps) {
                 title={strings.browse.platform}
                 text={props.curation.game.platform}
                 placeholder={strings.browse.noPlatform}
-                items={props.suggestions.platform}
+                items={createDropdownItems(props.suggestions.platform || [])}
                 warned={props.curation.warnings.fieldWarnings.includes('platform')}
                 property='platform'
                 { ...shared } />
@@ -421,7 +422,7 @@ export function CurateBox(props: CurateBoxProps) {
                 title={strings.browse.applicationPath}
                 text={props.curation.game.applicationPath}
                 placeholder={strings.browse.noApplicationPath}
-                items={props.suggestions.applicationPath}
+                items={createDropdownItems(props.suggestions.applicationPath || [])}
                 warned={props.curation.warnings.fieldWarnings.includes('applicationPath')}
                 property='applicationPath'
                 { ...shared } />
@@ -585,4 +586,13 @@ function findAncestorRowTagID(element: Element): number | undefined {
   if (typeof index !== 'string') { throw new Error('Failed to get attribute from ancestor!'); }
 
   return (index as any) * 1; // Coerce to number
+}
+
+function createDropdownItems(values: string[], strings?: LangContainer['libraries']): DropdownItem[] {
+  return values.map(v => {
+    return {
+      key: v,
+      value: strings ? strings[v] || v : v
+    };
+  });
 }
