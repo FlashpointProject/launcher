@@ -1,4 +1,3 @@
-import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
 import * as remote from '@electron/remote';
@@ -9,12 +8,12 @@ import {
   DropdownItem
 } from '@renderer/components/CurateBoxInputRow';
 import { GameImageSplit } from '@renderer/components/GameImageSplit';
-import { useMouse } from '@renderer/hooks/useMouse';
 import { CurateActionType } from '@renderer/store/curate/enums';
 import { AddAppType, CurateAction } from '@renderer/store/curate/types';
-import { findElementAncestor, getCurationURL } from '@renderer/Util';
+import { getCurationURL } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
 import { BackIn, CurationImageEnum } from '@shared/back/types';
+import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
 import { ContentTreeNode } from '@shared/curate/types';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
@@ -25,14 +24,13 @@ import { CurationState, LoadedCuration, TagSuggestion } from 'flashpoint-launche
 import * as path from 'path';
 import * as React from 'react';
 import { Dispatch } from 'redux';
+import { BoxList } from './BoxList';
 import { CurateBoxAddApp } from './CurateBoxAddApp';
 import { CurateBoxRow } from './CurateBoxRow';
 import { CurateBoxWarnings } from './CurateBoxWarnings';
 import { InputElement, InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
-
-const tagIndexAttr = 'data-tag-index';
 
 export type CurateBoxProps = {
   curation: CurationState;
@@ -49,6 +47,8 @@ export function CurateBox(props: CurateBoxProps) {
   const strings = React.useContext(LangContext);
   const disabled = !!props.curation.locked;
 
+  const splitStatus = React.useMemo(() => props.curation.game.status ? props.curation.game.status.split(';').map(s => s.trim()).sort() : [], [props.curation.game.status]);
+
   const onSetThumbnail  = useAddImageCallback(CurationImageEnum.THUMBNAIL, props.curation);
   const onSetScreenshot = useAddImageCallback(CurationImageEnum.SCREENSHOT,   props.curation);
   const onRemoveThumbnailClick  = useRemoveImageCallback(CurationImageEnum.THUMBNAIL, props.curation, props.dispatch);
@@ -63,6 +63,19 @@ export function CurateBox(props: CurateBoxProps) {
   const onAddExtras  = useCreateAddAppCallback('extras',  props.curation.folder, props.dispatch);
   const onAddMessage = useCreateAddAppCallback('message', props.curation.folder, props.dispatch);
 
+  const onRemoveStatus = React.useCallback((index: number) => {
+    console.log('split ' + JSON.stringify(splitStatus));
+    console.log('saved ' + JSON.stringify(props.curation.game.status ? props.curation.game.status.split(';').map(s => s.trim()).sort() : []));
+    const newSplits = [ ...splitStatus ];
+    newSplits.splice(index, 1);
+    const newStatus = newSplits.join('; ');
+    props.dispatch({
+      type: CurateActionType.EDIT_CURATION_META,
+      folder: props.curation.folder,
+      property: 'status',
+      value: newStatus
+    });
+  }, [props.curation.folder, props.curation.game.status, splitStatus, props.dispatch]);
 
   const onTagChange = React.useCallback((event: React.ChangeEvent<InputElement>): void => {
     props.onTagTextChange(event.currentTarget.value);
@@ -94,24 +107,13 @@ export function CurateBox(props: CurateBoxProps) {
     props.onTagTextChange('');
   }, [props.curation.folder]);
 
-  const [onTagMouseDown, onTagMouseUp] = useMouse<number>(() => ({
-    chain_delay: 500,
-    find_id: (event) => {
-      let tagId: number | undefined;
-      try { tagId = findAncestorRowTagID(event.target as Element); }
-      catch (error) { console.error(error); }
-      return tagId;
-    },
-    on_click: (event, tagId, clicks) => {
-      if (event.button === 0 && clicks === 1) { // Single left click
-        props.dispatch({
-          type: CurateActionType.REMOVE_TAG,
-          folder: props.curation.folder,
-          tagId,
-        });
-      }
-    },
-  }));
+  const onRemoveTag = React.useCallback((tagId: number) => {
+    props.dispatch({
+      type: CurateActionType.REMOVE_TAG,
+      folder: props.curation.folder,
+      tagId,
+    });
+  }, [props.curation.folder]);
 
   const toggleContentNodeView = React.useCallback((tree: string[]) => {
     props.dispatch({
@@ -341,7 +343,23 @@ export function CurateBox(props: CurateBoxProps) {
                 property='tags'
                 { ...shared } />
               {/* Tag List */}
-              <tr>
+              <BoxList
+                items={props.curation.game.tags || []}
+                getIndexAttr={(tag) => {
+                  return tag.id || 0;
+                }}
+                getItemValue={(tag) => {
+                  return tag.primaryAlias.name;
+                }}
+                getColor={(tag) => {
+                  const cat = props.tagCategories.find(tc => tc.id === tag.categoryId);
+                  if (cat) {
+                    return cat.color;
+                  }
+                }}
+                onRemove={onRemoveTag}
+              />
+              {/* <tr>
                 <td/>
                 <td
                   onMouseDown={onTagMouseDown}
@@ -366,7 +384,7 @@ export function CurateBox(props: CurateBoxProps) {
                     })
                   ) : undefined }
                 </td>
-              </tr>
+              </tr> */}
               {/* End of Tag List */}
               <CurateBoxInputRow
                 title={strings.browse.playMode}
@@ -382,6 +400,11 @@ export function CurateBox(props: CurateBoxProps) {
                 warned={props.curation.warnings.fieldWarnings.includes('status')}
                 property='status'
                 { ...shared } />
+              <BoxList
+                items={splitStatus}
+                getItemValue={(item) => item}
+                getIndexAttr={(item) => splitStatus.findIndex(i => i === item)}
+                onRemove={onRemoveStatus} />
               <CurateBoxInputRow
                 title={strings.browse.version}
                 text={props.curation.game.version}
@@ -576,16 +599,6 @@ function useCreateAddAppCallback(type: AddAppType, folder: string, dispatch: Dis
       addAppType: type,
     });
   }, [dispatch, folder]);
-}
-
-function findAncestorRowTagID(element: Element): number | undefined {
-  const ancestor = findElementAncestor(element, target => target.getAttribute(tagIndexAttr) !== null, true);
-  if (!ancestor) { return undefined; }
-
-  const index = ancestor.getAttribute(tagIndexAttr);
-  if (typeof index !== 'string') { throw new Error('Failed to get attribute from ancestor!'); }
-
-  return (index as any) * 1; // Coerce to number
 }
 
 function createDropdownItems(values: string[], strings?: LangContainer['libraries']): DropdownItem[] {

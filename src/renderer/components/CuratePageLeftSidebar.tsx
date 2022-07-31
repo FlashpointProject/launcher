@@ -43,7 +43,7 @@ export function CuratePageLeftSidebar(props: CuratePageLeftSidebarProps) {
         props.onCurationSelect(folder, event.ctrlKey, event.shiftKey);
       }
     },
-  }));
+  }), [props.onCurationSelect]);
 
   const onDragOver = (event: React.DragEvent): void => {
     const types = event.dataTransfer.types;

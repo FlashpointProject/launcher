@@ -97,7 +97,7 @@ type MouseRef<T> = {
  * Flexible hook for detecting clicks (single, double, triple etc.) of any mouse button.
  * @param initializer Returns the options object to use for this hook. Only called the first time.
  */
-export function useMouse<T>(initializer: () => UseMouseOpts<T>) {
+export function useMouse<T>(initializer: () => UseMouseOpts<T>, deps: React.DependencyList | undefined) {
   const ref = React.useRef<MouseRef<T>>(undefined as any);
   if (!ref.current) {
     ref.current = {
@@ -108,6 +108,12 @@ export function useMouse<T>(initializer: () => UseMouseOpts<T>) {
       clicks: 0,
     };
   }
+
+  React.useEffect(() => {
+    if (ref.current) {
+      ref.current.opts = initializer();
+    }
+  }, deps || []);
 
   const on_mouse_down = React.useCallback((event: React.MouseEvent<HTMLElement, MouseEvent>) => {
     const id = ref.current.opts.find_id(event);
@@ -134,7 +140,7 @@ export function useMouse<T>(initializer: () => UseMouseOpts<T>) {
     } else {
       reset(ref.current);
     }
-  }, []);
+  }, deps || []);
 
   const on_mouse_up = React.useCallback((event: React.MouseEvent<HTMLElement, MouseEvent>) => {
     const id = ref.current.opts.find_id(event);
@@ -153,7 +159,7 @@ export function useMouse<T>(initializer: () => UseMouseOpts<T>) {
     } else {
       reset(ref.current);
     }
-  }, []);
+  }, deps || []);
 
   return [on_mouse_down, on_mouse_up];
 }
