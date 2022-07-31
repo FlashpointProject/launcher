@@ -143,7 +143,6 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       showExtremeScreenshots: false,
       activeData: null,
       middleScrollRef: React.createRef(),
-      activeData: null,
     };
   }
 
