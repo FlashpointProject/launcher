@@ -209,6 +209,8 @@ export async function duplicateCuration(srcFolder: string, state: BackState): Pr
   const curationIdx = state.loadedCurations.findIndex(c => c.folder === destFolder);
   if (curationIdx > -1) {
     state.loadedCurations[curationIdx].game.title = state.loadedCurations[curationIdx].game.title ? state.loadedCurations[curationIdx].game.title + ' - Copy' : '? - Copy';
+    // Give it a unique UUID
+    state.loadedCurations[curationIdx].uuid = uuid();
   }
 
   // Notify frontend of new curation
