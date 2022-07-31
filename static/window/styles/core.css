@@ -980,6 +980,13 @@ body {
   width: 100%;
   margin-bottom: 0.2rem;
 }
+.curate-page__right--checkbox {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+}
 .curate-page__right-dropdown-content {
   display: flex;
 }

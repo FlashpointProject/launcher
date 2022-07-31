@@ -1149,7 +1149,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
           openDialog: state.socketServer.showMessageBoxBack(event.client),
           openExternal: state.socketServer.openExternal(event.client),
           tagCategories: await TagManager.findTagCategories(),
-          taskProgress
+          taskProgress,
+          sevenZipPath: state.sevenZipPath,
         })
         .then(() => {
           // Delete curation afterwards

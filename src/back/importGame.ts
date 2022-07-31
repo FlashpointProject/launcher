@@ -38,6 +38,7 @@ type ImportCurationOpts = {
   openExternal: OpenExternalFunc;
   tagCategories: TagCategory[];
   taskProgress: TaskProgress;
+  sevenZipPath: string;
 }
 
 export type CurationImportState = {
@@ -218,10 +219,17 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
     logMessage('Content Copied', curation.folder);
   })
   .then(async () => {
-    taskProgress.setStageProgress(0.75, 'Running Bluezip...');
+    taskProgress.setStageProgress(0.75, 'Packing Game Zip...');
+
+    const curationPath = path.resolve(getCurationFolder(curation, fpPath));
+    // const zipPath = path.join(fpPath, CURATIONS_FOLDER_TEMP, `${uuid()}.zip`);
+    // const zip = add(zipPath, curationPath + '/*ontent/*', { $bin: sevenZipPath, recursive: true });
+    // await new Promise<void>((resolve, reject) => {
+    //   zip.on('end', () => resolve());
+    //   zip.on('error', reject);
+    // });
 
     // Build bluezip
-    const curationPath = path.resolve(getCurationFolder(curation, fpPath));
     const bluezipProc = child_process.spawn('bluezip', [curationPath, '-no', curationPath], {cwd: path.dirname(bluezipPath)});
     await new Promise<void>((resolve, reject) => {
       bluezipProc.stdout.on('data', (data: any) => {

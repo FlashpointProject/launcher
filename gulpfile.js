@@ -107,8 +107,9 @@ function watchRenderer(done) {
 }
 
 function watchStatic() {
-  gulp.watch(config.static.src+'/**/*', gulp.task('copy-static'));
+  gulp.watch(config.static.src+'/**/*', buildStatic);
 }
+
 
 
 /* ------ Build ------ */

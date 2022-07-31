@@ -18,10 +18,11 @@ import { updatePreferencesData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
 import axios from 'axios';
-import { CurationState } from 'flashpoint-launcher';
+import { AppPreferencesData, CurationState } from 'flashpoint-launcher';
 import * as path from 'path';
 import * as React from 'react';
 import { IWithShortcut } from 'react-keybind';
+import { CheckBox } from '../CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
 import { CuratePageLeftSidebar } from '../CuratePageLeftSidebar';
 import { Dropdown } from '../Dropdown';
@@ -42,6 +43,13 @@ export function CuratePage(props: CuratePageProps) {
 
   const [tagText, setTagText] = React.useState<string>('');
   const [tagSuggestions, setTagSuggestions] = React.useState<TagSuggestion[]>([]);
+
+  const onCheckboxChange = (key: keyof AppPreferencesData) => React.useCallback((checked: boolean) => {
+    updatePreferencesData({ [key]: checked });
+  }, []);
+
+  const onSymlinkCurationContentChange = onCheckboxChange('symlinkCurationContent');
+  const onSaveImportedCurationChange = onCheckboxChange('saveImportedCurations');
 
   const onDupeCurations = React.useCallback(() => {
     const selected = props.curate.selected;
@@ -662,6 +670,13 @@ export function CuratePage(props: CuratePageProps) {
               disabled={disabled}
               value={strings.curate.exportDataPacks}/>
           )}
+          <div className='curate-page__right--checkbox'>
+            <div>{strings.curate.saveImportedCurations}</div>
+            <CheckBox
+              className='browse-right-sidebar__row__check-box'
+              onToggle={onSaveImportedCurationChange}
+              checked={props.preferencesData.saveImportedCurations} />
+          </div>
         </div>
         <div className='curate-page__right--section'>
           <div className='curate-page__right--header'>{strings.curate.headerTest}</div>
@@ -677,6 +692,13 @@ export function CuratePage(props: CuratePageProps) {
               value={strings.curate.runWithMAD4FP}
               onClick={onRunMAD4FPCuration}/>
           )}
+          <div className='curate-page__right--checkbox'>
+            <div>{strings.curate.symlinkCurationContent}</div>
+            <CheckBox
+              className='browse-right-sidebar__row__check-box'
+              onToggle={onSymlinkCurationContentChange}
+              checked={props.preferencesData.symlinkCurationContent} />
+          </div>
         </div>
         {extButtons}
       </div>
