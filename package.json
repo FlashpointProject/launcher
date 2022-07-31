@@ -92,6 +92,7 @@
     "@types/ws": "6.0.3",
     "@typescript-eslint/eslint-plugin": "3.3.0",
     "@typescript-eslint/parser": "3.3.0",
+    "cargo-cp-artifact": "^0.1",
     "chokidar": "^3.5.3",
     "coveralls": "3.1.0",
     "cross-env": "7.0.2",
@@ -114,8 +115,7 @@
     "typedoc": "0.22.15",
     "typescript": "4.6.2",
     "webpack": "5.72.1",
-    "webpack-cli": "4.9.2",
-    "cargo-cp-artifact": "^0.1"
+    "webpack-cli": "4.9.2"
   },
   "optionalDependencies": {
     "fsevents": "2.1.3"

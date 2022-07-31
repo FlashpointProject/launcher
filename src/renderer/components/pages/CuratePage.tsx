@@ -577,7 +577,7 @@ export function CuratePage(props: CuratePageProps) {
           )}
           <SimpleButton
             className='curate-page__right--button'
-            onClick={() => onNewCuration}
+            onClick={() => onNewCuration()}
             value={strings.curate.newCuration}/>
           <SimpleButton
             className='curate-page__right--button'

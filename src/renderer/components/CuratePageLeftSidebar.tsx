@@ -232,7 +232,11 @@ export function CuratePageLeftSidebar(props: CuratePageLeftSidebarProps) {
       </div>
       {curationsRender}
       { newGroupOpen && (
-        <FloatingContainer>
+        <FloatingContainer
+          onClick={() => {
+            setNewGroupOpen(false);
+            setGroupName('');
+          }}>
           <InputField
             editable={true}
             text={groupName}

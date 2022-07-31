@@ -4,6 +4,7 @@ import { Gate } from '@shared/utils/Gate';
 import { ConnectedRouter } from 'connected-react-router';
 import { createMemoryHistory } from 'history';
 import * as ReactDOM from 'react-dom';
+import * as remote from '@electron/remote';
 import { ShortcutProvider } from 'react-keybind';
 import { Provider } from 'react-redux';
 import configureStore from './configureStore';
@@ -14,8 +15,20 @@ import { PreferencesContextProvider } from './context/PreferencesContext';
 import { ProgressContext } from './context/ProgressContext';
 import { MainState, View } from './store/main/types';
 import { logFactory } from './util/logging';
+import { MessageBoxSyncOptions } from 'electron';
 
 (async () => {
+  globalThis.alert = function(str) {
+    const options: MessageBoxSyncOptions = {
+      type: 'warning',
+      buttons: ['Ok'],
+      defaultId: 0,
+      cancelId:0,
+      detail:str,
+      message: ''
+    };
+    remote.dialog.showMessageBoxSync(options);
+  };
   window.log = {
     trace: logFactory(LogLevel.TRACE, window.Shared.back),
     debug: logFactory(LogLevel.DEBUG, window.Shared.back),
