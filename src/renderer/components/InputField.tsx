@@ -1,3 +1,4 @@
+import { Subtract } from '@shared/interfaces';
 import * as React from 'react';
 
 /** Input element types used by this component. */
@@ -76,4 +77,32 @@ export function InputField(props: InputFieldProps) {
       </p>
     );
   }
+}
+
+export type InputFieldEntryProps = Subtract<InputFieldProps, {
+  text: string;
+}> & {
+  onEnter: (value: string) => void;
+  suggestions?: string[];
+}
+
+export function InputFieldEntry(props: InputFieldEntryProps) {
+  const [value, setValue] = React.useState('');
+
+  return (
+    <InputField
+      { ...props }
+      text={value}
+      onChange={(e) => {
+        setValue(e.currentTarget.value);
+        props.onChange && props.onChange(e);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          props.onEnter(value);
+          setValue('');
+        }
+        props.onKeyDown && props.onKeyDown(e);
+      }}/>
+  );
 }

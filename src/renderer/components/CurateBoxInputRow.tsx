@@ -1,7 +1,7 @@
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
 import { CurateBoxRow } from '@renderer/components/CurateBoxRow';
-import { InputElement, InputField } from '@renderer/components/InputField';
+import { InputElement, InputField, InputFieldEntry } from '@renderer/components/InputField';
 import { CurateActionType } from '@renderer/store/curate/enums';
 import { CurateAction } from '@renderer/store/curate/types';
 import { LangContext } from '@renderer/util/lang';
@@ -23,6 +23,30 @@ export type CurateBoxInputRowProps = {
   disabled: boolean;
   warned: boolean;
   dispatch: Dispatch<CurateAction>;
+}
+
+export type CurateBoxInputEntryRowProps = {
+  title: string;
+  placeholder?: string;
+  property: keyof CurationMeta;
+  multiline?: boolean;
+  disabled: boolean;
+  warned: boolean;
+  onEnter: (value: string) => void;
+}
+
+export function CurateBoxInputEntryRow(props: CurateBoxInputEntryRowProps) {
+  return (
+    <CurateBoxRow title={props.title}>
+      <InputFieldEntry
+        className={props.warned ? 'input-field--warn' : ''}
+        placeholder={props.placeholder}
+        disabled={props.disabled}
+        multiline={props.multiline}
+        onEnter={props.onEnter}
+        editable={true} />
+    </CurateBoxRow>
+  );
 }
 
 export function CurateBoxInputRow(props: CurateBoxInputRowProps) {

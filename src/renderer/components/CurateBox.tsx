@@ -3,6 +3,7 @@ import { TagCategory } from '@database/entity/TagCategory';
 import * as remote from '@electron/remote';
 import {
   CurateBoxDropdownInputRow,
+  CurateBoxInputEntryRow,
   CurateBoxInputRow,
   CurateBoxTagDropdownInputRow,
   DropdownItem
@@ -63,9 +64,18 @@ export function CurateBox(props: CurateBoxProps) {
   const onAddExtras  = useCreateAddAppCallback('extras',  props.curation.folder, props.dispatch);
   const onAddMessage = useCreateAddAppCallback('message', props.curation.folder, props.dispatch);
 
+  const onAddStatus = React.useCallback((value: string) => {
+    const newSplits = [ ...splitStatus ];
+    newSplits.push(value);
+    props.dispatch({
+      type: CurateActionType.EDIT_CURATION_META,
+      folder: props.curation.folder,
+      property: 'status',
+      value: Array.from(new Set(newSplits.sort())).join('; ')
+    });
+  }, [props.curation.folder, splitStatus, props.dispatch]);
+
   const onRemoveStatus = React.useCallback((index: number) => {
-    console.log('split ' + JSON.stringify(splitStatus));
-    console.log('saved ' + JSON.stringify(props.curation.game.status ? props.curation.game.status.split(';').map(s => s.trim()).sort() : []));
     const newSplits = [ ...splitStatus ];
     newSplits.splice(index, 1);
     const newStatus = newSplits.join('; ');
@@ -393,13 +403,14 @@ export function CurateBox(props: CurateBoxProps) {
                 warned={props.curation.warnings.fieldWarnings.includes('playMode')}
                 property='playMode'
                 { ...shared } />
-              <CurateBoxInputRow
+              <CurateBoxInputEntryRow
                 title={strings.browse.status}
-                text={props.curation.game.status}
                 placeholder={strings.browse.noStatus}
+                onEnter={onAddStatus}
                 warned={props.curation.warnings.fieldWarnings.includes('status')}
                 property='status'
                 { ...shared } />
+              {/** Status List */}
               <BoxList
                 items={splitStatus}
                 getItemValue={(item) => item}
