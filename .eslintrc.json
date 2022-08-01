@@ -19,6 +19,7 @@
   "extends": [
     "eslint:recommended",
     "plugin:react/recommended",
+    "plugin:react/jsx-runtime",
     "plugin:@typescript-eslint/recommended"
   ],
   "plugins": [
@@ -67,7 +68,6 @@
       "char": "}",
       "alternatives": ["&#125;"]
     }]}],
-    "react/jsx-runtime": "extends",
     "react/no-unused-prop-types": "warn",
     "react/no-unused-state": "warn",
     "curly": ["warn", "all"],
