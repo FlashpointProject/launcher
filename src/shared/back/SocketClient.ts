@@ -91,26 +91,34 @@ export class SocketClient<SOCKET extends BaseSocket> {
   }
 
   /** Open a new socket and try to connect again. */
-  reconnect(count?: number): void {
+  async reconnect(count = 1): Promise<void> {
     if (this.keepOpen) {
       // Disconnect
-      console.log('Reconnecting...');
       if (this.client.socket) {
+        console.log('Closing existing connection...');
         this.client.socket.close();
         this.client.socket = undefined;
       }
 
-      // Connect
-      console.log('Reconnecting to ' + this.url);
-      SocketClient.connect(this.socketCon, this.url, this.secret)
-      .then(socket => { this.setSocket(socket); })
-      .catch(error => {
-        const c = count || 0;
-        if (c === 5) {
-          console.error(error);
-          setTimeout(() => this.reconnect(c + 1), 50);
-        }
-      });
+      if (this.url) {
+        // Connect
+        console.log(`Reconnecting to ${this.url} - Attempt ${count}`);
+        return SocketClient.connect(this.socketCon, this.url, this.secret)
+        .then(socket => { this.setSocket(socket); })
+        .catch(async (error) => {
+          if (count < 5) {
+            console.error(`Failed Connection Attempt: ${error}`);
+            await new Promise<void>(resolve => {
+              setTimeout(resolve, 1000);
+            });
+            return this.reconnect(count + 1);
+          } else {
+            console.error(`Reconnecting failed ${count} times, please restart the application.`);
+          }
+        });
+      } else {
+        console.error('No client url stored, cannot reconnect (Is this a host?)');
+      }
     }
   }
 
@@ -120,7 +128,6 @@ export class SocketClient<SOCKET extends BaseSocket> {
         console.log('Closed, try again');
         this.reconnect();
       }
-      setTimeout(this.ensureConnection.bind(this), 500);
     }
   }
 
@@ -225,11 +232,13 @@ export class SocketClient<SOCKET extends BaseSocket> {
 
   static connect<SOCKET extends BaseSocket>(constructor: SocketConstructor<SOCKET>, url: string, secret: string): Promise<SOCKET> {
     return new Promise<SOCKET>((resolve, reject) => {
-      let socket: SOCKET;
-      try { socket = new constructor(url); }
-      catch (error) { reject(error); return; }
+      const socket = new constructor(url);
 
+      socket.onerror = (err) => {
+        reject(err);
+      };
       socket.onopen = () => {
+        resolve(socket);
         socket.onmessage = () => { console.log('Client - Got Auth Back!'); resolve(socket); };
         socket.onclose   = () => { reject(new Error('Failed to authenticate to the back.')); };
         socket.send(secret);
