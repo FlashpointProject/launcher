@@ -863,7 +863,6 @@ export class App extends React.Component<AppProps> {
     if (gameId) {
       let gamePlaylistEntry: PlaylistGame | null;
 
-      log.debug('Launcher', 'Updating game ' + gameId + ' playlist ' + playlistId);
       if (playlistId) {
         gamePlaylistEntry = await window.Shared.back.request(BackIn.GET_PLAYLIST_GAME, playlistId, gameId);
       }
@@ -1122,7 +1121,7 @@ export class App extends React.Component<AppProps> {
                       This website requires JavaScript to be enabled.
                     </div>
                   </noscript>
-                  { this.props.main.currentGame && (
+                  { this.props.main.currentGame && this.props.history.location.pathname !== '/logs' && this.props.history.location.pathname !== '/about' && (
                     <ResizableSidebar
                       hide={this.props.preferencesData.browsePageShowRightSidebar}
                       divider='before'
