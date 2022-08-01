@@ -1147,7 +1147,7 @@ export function registerRequestCallbacks(state: BackState): void {
         '',
         {
           detached: false,
-          noshell: false,
+          noshell: true,
           cwd: getCwd(state.isDev, state.exePath),
           env: env
         },

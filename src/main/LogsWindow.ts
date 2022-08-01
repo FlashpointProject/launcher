@@ -174,7 +174,7 @@ export async function startLogger(init: Init): Promise<void> {
     window.setMenu(null); // Remove the menu bar
     window.loadFile(path.join(__dirname, '../window/logger.html'));
 
-    window.webContents.openDevTools();
+    // window.webContents.openDevTools();
 
     window.on('closed', () => {
       if (state.window === window) {
