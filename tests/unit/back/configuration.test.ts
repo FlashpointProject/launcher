@@ -123,7 +123,9 @@ describe('Configuration Files', () => {
       'hideExtremeScreenshots': true,
       'updateFeedUrl': 'https://example/',
       'fancyAnimations': false,
-      'searchLimit': 100
+      'searchLimit': 100,
+      'onlineManual': 'test',
+      'offlineManual': 'test',
     };
     const newData = deepCopy(defaultPreferencesData);
     overwritePreferenceData(newData, data);

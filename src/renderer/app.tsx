@@ -1081,6 +1081,7 @@ export class App extends React.Component<AppProps> {
       logoVersion: this.props.main.logoVersion,
       services: this.props.main.services,
       updateFeedMarkdown: window.Shared.initialUpdateFeedMarkdown,
+      manualUrl: this.props.preferencesData.onlineManual || pathToFileUrl(path.join(window.Shared.config.fullFlashpointPath, this.props.preferencesData.offlineManual)),
     };
 
     // Render
@@ -1592,6 +1593,14 @@ function openContextMenu(template: MenuItemConstructorOptions[]): Menu {
 
 type MenuItemLibrary = MenuItemConstructorOptions & {
   library: string;
+}
+
+function pathToFileUrl(p: string) {
+  try {
+    return `file:///${path.resolve(p)}`;
+  } catch {
+    return '';
+  }
 }
 
 function UniquePlaylistMenuFactory(playlists: Playlist[], strings: LangContainer, onClick: (playlistId: string) => any, selectedPlaylistId?: string): MenuItemConstructorOptions[] {

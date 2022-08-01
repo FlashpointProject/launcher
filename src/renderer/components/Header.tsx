@@ -79,7 +79,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
   render() {
     const strings = this.context.app;
     const {
-      preferencesData: { browsePageShowLeftSidebar, browsePageShowRightSidebar, enableEditing, showDeveloperTab },
+      preferencesData: { browsePageShowLeftSidebar, browsePageShowRightSidebar, enableEditing, showDeveloperTab, onlineManual, offlineManual },
       onOrderChange, onToggleLeftSidebarClick, onToggleRightSidebarClick, libraries
     } = this.props;
     const { searchText } = this.state;
@@ -117,6 +117,11 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
             <MenuItem
               title={strings.config}
               link={Paths.CONFIG} />
+            { (onlineManual || offlineManual) && (
+              <MenuItem
+                title={strings.manual}
+                link={Paths.MANUAL} />
+            )}
             <MenuItem
               title={strings.about}
               link={Paths.ABOUT} />

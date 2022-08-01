@@ -112,6 +112,10 @@ export type AppPreferencesData = {
   fancyAnimations: boolean;
   /** Result limit for searches (0 if disabled) */
   searchLimit: number;
+  /** Online manual website */
+  onlineManual: string;
+  /** Offline manual path */
+  offlineManual: string;
 };
 
 export type AppPathOverride = {

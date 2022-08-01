@@ -13,6 +13,7 @@ import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
 import { AboutPage, AboutPageProps } from './components/pages/AboutPage';
 import { DeveloperPage, DeveloperPageProps } from './components/pages/DeveloperPage';
+import { IFramePage, IFramePageProps } from './components/pages/IFramePage';
 import { NotFoundPage } from './components/pages/NotFoundPage';
 import ConnectedBrowsePage, { ConnectedBrowsePageProps } from './containers/ConnectedBrowsePage';
 import { ConnectedConfigPage, ConnectedConfigPageProps } from './containers/ConnectedConfigPage';
@@ -76,6 +77,7 @@ export type AppRouterProps = {
   services: IService[],
   logoVersion: number,
   updateFeedMarkdown: string,
+  manualUrl: string,
 };
 
 export class AppRouter extends React.Component<AppRouterProps> {
@@ -152,6 +154,9 @@ export class AppRouter extends React.Component<AppRouterProps> {
       devScripts: this.props.devScripts,
       services: this.props.services
     };
+    const iframePageProps: IFramePageProps = {
+      url: this.props.manualUrl
+    };
     return (
       <Switch>
         <PropsRoute
@@ -176,6 +181,10 @@ export class AppRouter extends React.Component<AppRouterProps> {
           path={Paths.CONFIG}
           component={ConnectedConfigPage}
           { ...configProps } />
+        <PropsRoute
+          path={Paths.MANUAL}
+          component={IFramePage}
+          { ...iframePageProps } />
         <PropsRoute
           path={Paths.ABOUT}
           component={AboutPage}

@@ -136,7 +136,8 @@
     "newGame": "New Game",
     "list": "List",
     "grid": "Grid",
-    "searchResults": "Search Results"
+    "searchResults": "Search Results",
+    "manual": "Help"
   },
   "filter": {
     "dateAdded": "Date Added",

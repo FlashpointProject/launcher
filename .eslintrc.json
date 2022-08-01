@@ -67,6 +67,7 @@
       "char": "}",
       "alternatives": ["&#125;"]
     }]}],
+    "react/jsx-runtime": "extends",
     "react/no-unused-prop-types": "warn",
     "react/no-unused-state": "warn",
     "curly": ["warn", "all"],
