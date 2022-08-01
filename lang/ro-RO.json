@@ -115,7 +115,7 @@
     "uploadLog": "Încarcă jurnalul",
     "copiedToClipboard": "Copiat",
     "openLogsWindow": "Open Logs Window",
-    "copyDiagnostics": "Copy Diagnostics"
+    "copyDiagnostics": "Copiere informații pentru diagnoză"
   },
   "app": {
     "home": "Pag. principală",
@@ -304,7 +304,7 @@
     "mountParameters": "Parametri de montare",
     "noMountParameters": "Fără parametri de montare",
     "showExtremeScreenshot": "Arată capturile de ecran extreme",
-    "busy": "Please Wait..."
+    "busy": "Așteptați…"
   },
   "tags": {
     "name": "Nume",
