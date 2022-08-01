@@ -1122,7 +1122,7 @@ export class App extends React.Component<AppProps> {
                       This website requires JavaScript to be enabled.
                     </div>
                   </noscript>
-                  { this.props.main.currentGame && this.props.history.location.pathname !== '/logs' && this.props.history.location.pathname !== '/about' && (
+                  { this.props.main.currentGame && this.props.history.location.pathname !== '/logs' && this.props.history.location.pathname !== '/about' && this.props.history.location.pathname !== '/manual' && (
                     <ResizableSidebar
                       hide={this.props.preferencesData.browsePageShowRightSidebar}
                       divider='before'
