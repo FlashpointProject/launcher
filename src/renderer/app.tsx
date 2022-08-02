@@ -1038,6 +1038,7 @@ export class App extends React.Component<AppProps> {
       rollRandomGames: this.rollRandomGames,
       updateView: this.updateView,
       gamesTotal: view && view.total,
+      allPlaylists: this.props.main.playlists,
       playlists: playlists,
       suggestions: this.props.main.suggestions,
       appPaths: this.props.main.appPaths,

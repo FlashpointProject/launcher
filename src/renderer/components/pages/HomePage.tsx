@@ -9,7 +9,6 @@ import { updatePreferencesData } from '@shared/preferences/util';
 import { getUpgradeString } from '@shared/upgrade/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { AppUpdater, UpdateInfo } from 'electron-updater';
-import * as path from 'path';
 import * as React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Link } from 'react-router-dom';
@@ -97,12 +96,8 @@ export function HomePage(props: HomePageProps) {
     props.onLaunchGame(gameId);
   }, [props.onLaunchGame]);
 
-  const onHelpClick = React.useCallback(() => {
-    remote.shell.openPath(path.join(window.Shared.config.fullFlashpointPath, 'Manual.pdf'));
-  }, [window.Shared.config.fullFlashpointPath]);
-
   const onHallOfFameClick = React.useCallback(() => {
-    const playlist = props.playlists.find(p => p.title === 'Flashpoint Hall of Fame');
+    const playlist = props.playlists.find(p => p.title.toLowerCase().includes('hall of fame'));
     if (playlist) {
       props.onSelectPlaylist(ARCADE, playlist.id);
       props.clearSearch();
@@ -248,7 +243,7 @@ export function HomePage(props: HomePageProps) {
           {formatString(strings.configInfo, <Link to={Paths.CONFIG}>{strings.config}</Link>)}
         </QuickStartItem>
         <QuickStartItem icon='info'>
-          {formatString(strings.helpInfo, <Link to='#' onClick={onHelpClick}>{strings.help}</Link>)}
+          {formatString(strings.helpInfo, <Link to={Paths.MANUAL}>{strings.help}</Link>)}
         </QuickStartItem>
       </>
     );
@@ -261,7 +256,7 @@ export function HomePage(props: HomePageProps) {
         {render}
       </HomePageBox>
     );
-  }, [strings, onHallOfFameClick, onAllGamesClick, onAllAnimationsClick, onHelpClick, props.preferencesData.minimizedHomePageBoxes, toggleMinimizeBox]);
+  }, [strings, onHallOfFameClick, onAllGamesClick, onAllAnimationsClick, props.preferencesData.minimizedHomePageBoxes, toggleMinimizeBox]);
 
   const renderedExtras = React.useMemo(() => {
     const render = (
