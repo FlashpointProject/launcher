@@ -114,7 +114,8 @@
     "copy404Urls": "Копирај 404 URL-ове",
     "uploadLog": "Пошаљи запис",
     "copiedToClipboard": "Копирано у привремену меморију",
-    "openLogsWindow": "Open Logs Window"
+    "openLogsWindow": "Open Logs Window",
+    "copyDiagnostics": "Copy Diagnostics"
   },
   "app": {
     "home": "Почетак",
@@ -302,7 +303,8 @@
     "noGameMatchedSearch": "Покушај да тражиш нешто мање рестриктивно.",
     "mountParameters": "Mount Parameters",
     "noMountParameters": "No Mount Parameters",
-    "showExtremeScreenshot": "Show Extreme Screenshot"
+    "showExtremeScreenshot": "Show Extreme Screenshot",
+    "busy": "Please Wait..."
   },
   "tags": {
     "name": "Име",

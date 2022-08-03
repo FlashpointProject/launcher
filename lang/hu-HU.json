@@ -114,7 +114,8 @@
     "copy404Urls": "404-es URL-ek másolása",
     "uploadLog": "Log feltöltése",
     "copiedToClipboard": "Vágólapra másolva",
-    "openLogsWindow": "A Logok ablakot megnyitja"
+    "openLogsWindow": "A Logok ablakot megnyitja",
+    "copyDiagnostics": "Diagnosztika Másolása"
   },
   "app": {
     "home": "Kezdőlap",
@@ -302,7 +303,8 @@
     "noGameMatchedSearch": "Próbáljon meg szélesebb körben keresni.",
     "mountParameters": "Mount paraméterek",
     "noMountParameters": "Nincsen mount paraméter(ek)",
-    "showExtremeScreenshot": "Extrém képernyőmentések mutatása"
+    "showExtremeScreenshot": "Extrém képernyőmentések mutatása",
+    "busy": "Kérem várjon..."
   },
   "tags": {
     "name": "Név",

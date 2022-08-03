@@ -114,7 +114,8 @@
     "copy404Urls": "404 URL'lerini kopyala",
     "uploadLog": "Kayıtları Yükle",
     "copiedToClipboard": "Panoya Kopyalandı",
-    "openLogsWindow": "Open Logs Window"
+    "openLogsWindow": "Open Logs Window",
+    "copyDiagnostics": "Copy Diagnostics"
   },
   "app": {
     "home": "Ana Sayfa",
@@ -302,7 +303,8 @@
     "noGameMatchedSearch": "Daha az kısıtlayıcı bir şey aramayı deneyin.",
     "mountParameters": "Bağlama Parametresi",
     "noMountParameters": "Bağlama Parametresi yok",
-    "showExtremeScreenshot": "Ekstrem Ekran Görüntüsünü Göster"
+    "showExtremeScreenshot": "Ekstrem Ekran Görüntüsünü Göster",
+    "busy": "Please Wait..."
   },
   "tags": {
     "name": "Adı",

@@ -114,7 +114,8 @@
     "copy404Urls": "Kopiér 404 URL'er",
     "uploadLog": "Upload Log",
     "copiedToClipboard": "Kopieret til udklipsholder",
-    "openLogsWindow": "Open Logs Window"
+    "openLogsWindow": "Open Logs Window",
+    "copyDiagnostics": "Copy Diagnostics"
   },
   "app": {
     "home": "Hjem",
@@ -302,7 +303,8 @@
     "noGameMatchedSearch": "Prøv at søge på noget mindre restriktivt.",
     "mountParameters": "Mount Parameters",
     "noMountParameters": "No Mount Parameters",
-    "showExtremeScreenshot": "Show Extreme Screenshot"
+    "showExtremeScreenshot": "Show Extreme Screenshot",
+    "busy": "Please Wait..."
   },
   "tags": {
     "name": "Navn",

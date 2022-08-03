@@ -114,7 +114,8 @@
     "copy404Urls": "Kopeeri 404 URL'id",
     "uploadLog": "Laadi Uus Logi Üles",
     "copiedToClipboard": "Kopeeritud Lõikelauale",
-    "openLogsWindow": "Open Logs Window"
+    "openLogsWindow": "Open Logs Window",
+    "copyDiagnostics": "Copy Diagnostics"
   },
   "app": {
     "home": "Pealeht",
@@ -302,7 +303,8 @@
     "noGameMatchedSearch": "Proovi otsida midagi vähem piiravamat.",
     "mountParameters": "Rakendusparameetrid",
     "noMountParameters": "Pole Rakendusparameetreid",
-    "showExtremeScreenshot": "Näita Ekstreemset Ekraanipilti"
+    "showExtremeScreenshot": "Näita Ekstreemset Ekraanipilti",
+    "busy": "Please Wait..."
   },
   "tags": {
     "name": "Nimi",
