@@ -718,8 +718,8 @@ async function initialize() {
   state.suggestions = {
     tags: await GameManager.findUniqueValues(TagAlias, 'name'),
     platform: (await GameManager.findUniqueValues(Game, 'platform')).sort(),
-    playMode: await GameManager.findUniqueValues(Game, 'playMode'),
-    status: await GameManager.findUniqueValues(Game, 'status'),
+    playMode: await GameManager.findUniqueValues(Game, 'playMode', true),
+    status: await GameManager.findUniqueValues(Game, 'status', true),
     applicationPath: await GameManager.findUniqueValues(Game, 'applicationPath'),
     library: await GameManager.findUniqueValues(Game, 'library'),
   };

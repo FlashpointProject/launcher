@@ -49,6 +49,7 @@ export function CurateBox(props: CurateBoxProps) {
   const disabled = !!props.curation.locked;
 
   const splitStatus = React.useMemo(() => props.curation.game.status ? props.curation.game.status.split(';').map(s => s.trim()).sort() : [], [props.curation.game.status]);
+  const splitPlayMode = React.useMemo(() => props.curation.game.playMode ? props.curation.game.playMode.split(';').map(s => s.trim()).sort() : [], [props.curation.game.playMode]);
 
   const onSetThumbnail  = useAddImageCallback(CurationImageEnum.THUMBNAIL, props.curation);
   const onSetScreenshot = useAddImageCallback(CurationImageEnum.SCREENSHOT,   props.curation);
@@ -86,6 +87,29 @@ export function CurateBox(props: CurateBoxProps) {
       value: newStatus
     });
   }, [props.curation.folder, props.curation.game.status, splitStatus, props.dispatch]);
+
+  const onAddPlayMode = React.useCallback((value: string) => {
+    const newSplits = [ ...splitPlayMode ];
+    newSplits.push(value);
+    props.dispatch({
+      type: CurateActionType.EDIT_CURATION_META,
+      folder: props.curation.folder,
+      property: 'playMode',
+      value: Array.from(new Set(newSplits.sort())).join('; ')
+    });
+  }, [props.curation.folder, props.curation.game.playMode, splitPlayMode, props.dispatch]);
+
+  const onRemovePlayMode = React.useCallback((index: number) => {
+    const newSplits = [ ...splitPlayMode ];
+    newSplits.splice(index, 1);
+    const newPlayMode = newSplits.join('; ');
+    props.dispatch({
+      type: CurateActionType.EDIT_CURATION_META,
+      folder: props.curation.folder,
+      property: 'playMode',
+      value: newPlayMode
+    });
+  }, [props.curation.folder, props.curation.game.playMode, splitPlayMode, props.dispatch]);
 
   const onTagChange = React.useCallback((event: React.ChangeEvent<InputElement>): void => {
     props.onTagTextChange(event.currentTarget.value);
@@ -396,26 +420,36 @@ export function CurateBox(props: CurateBoxProps) {
                 </td>
               </tr> */}
               {/* End of Tag List */}
-              <CurateBoxInputRow
+              <CurateBoxInputEntryRow
                 title={strings.browse.playMode}
-                text={props.curation.game.playMode}
                 placeholder={strings.browse.noPlayMode}
+                onEnter={onAddPlayMode}
                 warned={props.curation.warnings.fieldWarnings.includes('playMode')}
-                property='playMode'
+                suggestions={props.suggestions.playMode}
                 { ...shared } />
+              {/** Play Mode List */}
+              {splitPlayMode.length > 0 && (
+                <BoxList
+                  items={splitPlayMode}
+                  getItemValue={(item) => item}
+                  getIndexAttr={(item) => splitPlayMode.findIndex(i => i === item)}
+                  onRemove={onRemovePlayMode} />
+              )}
               <CurateBoxInputEntryRow
                 title={strings.browse.status}
                 placeholder={strings.browse.noStatus}
                 onEnter={onAddStatus}
                 warned={props.curation.warnings.fieldWarnings.includes('status')}
-                property='status'
+                suggestions={props.suggestions.status}
                 { ...shared } />
               {/** Status List */}
-              <BoxList
-                items={splitStatus}
-                getItemValue={(item) => item}
-                getIndexAttr={(item) => splitStatus.findIndex(i => i === item)}
-                onRemove={onRemoveStatus} />
+              {splitStatus.length > 0 && (
+                <BoxList
+                  items={splitStatus}
+                  getItemValue={(item) => item}
+                  getIndexAttr={(item) => splitStatus.findIndex(i => i === item)}
+                  onRemove={onRemoveStatus} />
+              )}
               <CurateBoxInputRow
                 title={strings.browse.version}
                 text={props.curation.game.version}

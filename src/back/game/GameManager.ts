@@ -245,15 +245,23 @@ export async function findPlatformAppPaths(platform: string): Promise<string[]> 
   return Coerce.strArray(values.map(v => v['game_applicationPath']));
 }
 
-export async function findUniqueValues(entity: any, column: string): Promise<string[]> {
+export async function findUniqueValues(entity: any, column: string, commaSeperated?: boolean): Promise<string[]> {
   validateSqlName(column);
 
   const repository = AppDataSource.getRepository(entity);
-  const values = await repository.createQueryBuilder('entity')
+  const rawValues = await repository.createQueryBuilder('entity')
   .select(`entity.${column}`)
   .distinct()
   .getRawMany();
-  return Coerce.strArray(values.map(v => v[`entity_${column}`]));
+  const values = Coerce.strArray(rawValues.map(v => v[`entity_${column}`]));
+  if (commaSeperated) {
+    const set = new Set(values.reduce<string[]>((prev, cur) => {
+      return prev.concat(cur.split(';').map(c => c.trim()));
+    }, []));
+    return Array.from(set);
+  } else {
+    return values;
+  }
 }
 
 export async function findUniqueValuesInOrder(entity: any, column: string): Promise<string[]> {

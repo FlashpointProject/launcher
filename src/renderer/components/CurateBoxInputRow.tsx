@@ -28,7 +28,7 @@ export type CurateBoxInputRowProps = {
 export type CurateBoxInputEntryRowProps = {
   title: string;
   placeholder?: string;
-  property: keyof CurationMeta;
+  suggestions?: string[];
   multiline?: boolean;
   disabled: boolean;
   warned: boolean;
@@ -44,6 +44,7 @@ export function CurateBoxInputEntryRow(props: CurateBoxInputEntryRowProps) {
         disabled={props.disabled}
         multiline={props.multiline}
         onEnter={props.onEnter}
+        suggestions={props.suggestions}
         editable={true} />
     </CurateBoxRow>
   );
