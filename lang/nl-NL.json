@@ -136,7 +136,8 @@
     "newGame": "Nieuw spel",
     "list": "Lijst",
     "grid": "Rooster",
-    "searchResults": "Zoekresultaten"
+    "searchResults": "Zoekresultaten",
+    "manual": "Help"
   },
   "filter": {
     "dateAdded": "Datum toegevoegd",
