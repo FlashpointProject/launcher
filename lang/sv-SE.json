@@ -136,7 +136,8 @@
     "newGame": "Nytt spel",
     "list": "Lista",
     "grid": "Rutnät",
-    "searchResults": "Sökresultat"
+    "searchResults": "Sökresultat",
+    "manual": "Help"
   },
   "filter": {
     "dateAdded": "Tilläggningsdatum",
