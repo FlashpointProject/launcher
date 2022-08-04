@@ -405,12 +405,12 @@
     "ilc_nonExistant": "Punta ad un file esistente nella cartella 'content' del tuo gioco curato.",
     "documentStatus": "Le note devono modificare il documento e il contenuto mancante per i giochi Hacked / Partial",
     "sort": "Ordina Giochi Curati (A-Z)",
-    "contextCopyName": "Copy File Name",
-    "contextCopyPath": "Copy File Path",
-    "contextCopyAsURL": "Copy File Path as URL",
-    "contextShowInExplorer": "Show File in Explorer",
-    "contextOpenFolderInExplorer": "Open Folder in Explorer",
-    "shortcuts": "Shortcuts"
+    "contextCopyName": "Copia Nome File",
+    "contextCopyPath": "Copia Percorso File",
+    "contextCopyAsURL": "Copia percorso file come URL",
+    "contextShowInExplorer": "Mostra file in Explorer",
+    "contextOpenFolderInExplorer": "Apri cartella in Explorer",
+    "shortcuts": "Scorciatoie"
   },
   "playlist": {
     "enterDescriptionHere": "Inserisci qui una descrizione...",
@@ -449,7 +449,7 @@
     "exportMetaEditDesc": "Seleziona tutte le proprietà da esportare:",
     "showImage": "Mostra Immagine",
     "searching": "Ricerca...",
-    "loading": "Loading..."
+    "loading": "Caricamento..."
   },
   "menu": {
     "viewThumbnailInFolder": "Visualizza Anteprima nella Cartella",
@@ -464,7 +464,7 @@
     "exportMetaEdit": "Esporta Modifiche dei Meta",
     "duplicatePlaylist": "Duplica questa Scaletta",
     "exportPlaylist": "Esporta questa Scaletta",
-    "makeCurationFromGame": "Make Curation from Game"
+    "makeCurationFromGame": "Rendi la Curazione dal Gioco"
   },
   "dialog": {
     "programNotFound": "Programma non trovato!",
@@ -526,12 +526,12 @@
     "downloadingGame": "Scaricamento Gioco...",
     "verifyingGame": "Verifica Gioco...",
     "aFewMinutes": "Può richiedere alcuni minuti.",
-    "importCurationWithWarnings": "Import this curation? There are still warnings present.",
-    "errorImportingCuration": "Error import curation '{0}', check logs page for details.",
-    "mustBePngImage": "Must be a .PNG Image.",
-    "mustBe7zArchiveSkipping": "Must be a .7z archive, skipping {0}",
-    "failedToLoadCuration": "Failed to load curation! {0}",
-    "exportCurationWithWarnings": "Export Curation even though it has Warnings?"
+    "importCurationWithWarnings": "Importare questa curazione? Ci sono ancora avvisi presenti.",
+    "errorImportingCuration": "Errore importazione curation '{0}', controllare la pagina dei registri per i dettagli.",
+    "mustBePngImage": "Deve essere un'immagine .PNG.",
+    "mustBe7zArchiveSkipping": "Deve essere un archivio .7z, saltando {0}",
+    "failedToLoadCuration": "Impossibile caricare la curazione! {0}",
+    "exportCurationWithWarnings": "Esporta curazione anche se ha avvertimenti?"
   },
   "libraries": {
     "arcade": "Giochi",
