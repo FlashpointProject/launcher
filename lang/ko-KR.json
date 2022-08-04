@@ -136,7 +136,8 @@
     "newGame": "새 게임",
     "list": "목록",
     "grid": "그리드뷰",
-    "searchResults": "검색 결과"
+    "searchResults": "검색 결과",
+    "manual": "Help"
   },
   "filter": {
     "dateAdded": "추가된 날짜",
