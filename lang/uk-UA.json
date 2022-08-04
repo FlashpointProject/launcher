@@ -136,7 +136,8 @@
     "newGame": "Нова гра",
     "list": "Список",
     "grid": "Сітка",
-    "searchResults": "Результати пошуку"
+    "searchResults": "Результати пошуку",
+    "manual": "Help"
   },
   "filter": {
     "dateAdded": "Дата створення",
