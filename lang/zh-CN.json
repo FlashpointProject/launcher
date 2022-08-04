@@ -136,7 +136,8 @@
     "newGame": "新游戏",
     "list": "列表",
     "grid": "网格",
-    "searchResults": "搜索结果"
+    "searchResults": "搜索结果",
+    "manual": "Help"
   },
   "filter": {
     "dateAdded": "添加日期",
