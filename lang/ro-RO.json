@@ -116,7 +116,7 @@
     "copy404Urls": "Copiază URL-urile 404",
     "uploadLog": "Încarcă jurnalul",
     "copiedToClipboard": "Copiat",
-    "openLogsWindow": "Open Logs Window",
+    "openLogsWindow": "Deschideți fereastra jurnalelor",
     "copyDiagnostics": "Copiere informații pentru diagnoză"
   },
   "app": {
@@ -448,7 +448,7 @@
     "exportMetaEditTitle": "Exportați modificări ale informațiilor jocurilor",
     "exportMetaEditDesc": "Selectați proprietățile de exportat:",
     "showImage": "Arată imaginea",
-    "searching": "Searching...",
+    "searching": "Căutare...",
     "loading": "Loading..."
   },
   "menu": {
@@ -535,13 +535,13 @@
   },
   "libraries": {
     "arcade": "Jocuri",
-    "arcadeSingular": "Game",
+    "arcadeSingular": "Joc",
     "arcadePlural": "Toate jocurile",
     "theatre": "Animații",
-    "theatreSingular": "Animation",
+    "theatreSingular": "Animație",
     "theatrePlural": "Toate animațiile",
     "auditorium": "NG Auditorium",
-    "auditoriumSingular": "Animation",
+    "auditoriumSingular": "Animație",
     "auditoriumPlural": "Toate animațiile NG"
   },
   "upgrades": {
