@@ -13,7 +13,7 @@
     "searchLimit": "Search Limit",
     "searchLimitDesc": "Limit the number of results returned in any search",
     "searchLimitUnlimited": "Unlimited",
-    "searchLimitValue": "{0} Results",
+    "searchLimitValue": "{0} Resultat",
     "enableEditing": "Enable Editing",
     "enableEditingDesc": "Enable editing of games and additional applications. Also shows tabs related to editing.",
     "onDemandImages": "On Demand Images",
@@ -33,7 +33,7 @@
     "randomLibraries": "Random Libraries",
     "randomLibrariesDesc": "Libraries to use for Random Picks on the home page.",
     "updateSource": "Update Source",
-    "platforms": "Platforms",
+    "platforms": "Platformat",
     "nativePlatforms": "Native Platforms",
     "nativePlatformsDesc": "Use Native versions of these platforms. (If not available it will use Wine)",
     "tagFilterGroups": "Tag Filter Groups",
@@ -118,7 +118,7 @@
     "copyDiagnostics": "Copy Diagnostics"
   },
   "app": {
-    "home": "Shtëpia",
+    "home": "Kryesore",
     "browse": "Browse",
     "tags": "Tags",
     "categories": "Categories",
@@ -136,7 +136,8 @@
     "newGame": "New Game",
     "list": "List",
     "grid": "Grid",
-    "searchResults": "Search Results"
+    "searchResults": "Search Results",
+    "manual": "Help"
   },
   "filter": {
     "dateAdded": "Date Added",
