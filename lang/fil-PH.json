@@ -16,6 +16,8 @@
     "searchLimitValue": "{0} Results",
     "enableEditing": "Pahintulutan ang Pagbabago",
     "enableEditingDesc": "I-enable ang pag-edit ng mga laro at mga aplikasyon. Pati na rin ang pag-kita ng mga tab na may kaugnay sa pag-edit.",
+    "symlinkCuration": "Symlink Curation Content",
+    "symlinkCurationDesc": "Uses symbolic links to test curations rather than copying files. Faster and supports MAD4FP. Admin rights required.",
     "onDemandImages": "On Demand na Imahe",
     "onDemandImagesDesc": "I-download at I-save ang mga nawawalang logo at screenshot kung kailangan.",
     "currentLanguage": "Wika",
@@ -331,13 +333,17 @@
     "locked": "Sarado habang nagpo-process..."
   },
   "curate": {
+    "noCurationSelected": "No Curation Selected",
+    "headerFileOperations": "File",
+    "headerEditCuration": "I-edit",
+    "headerTest": "Test",
     "importAll": "I-angkat ang lahat",
     "importAllDesc": "I-angkat ang lahat na curation na naka-load ngayon",
     "deleteAll": "I-tangal ang lahat",
     "deleteAllDesc": "I-tangal ang lahat na curation na naka-load ngayon",
     "saveImportedCurations": "I-save ang mga na-import na curation",
     "keepArchiveKey": "Panatilihin ang Curation Archive UUID",
-    "symlinkCurationContent": "Folder ng Symlink Curation Content (May admin prompt sa Windows, kailangan para sa MAD4FP)",
+    "symlinkCurationContent": "Symlink Curation Content",
     "useTagFilters": "Gamitin ang Tag Filter sa mga payo",
     "openCurationsFolder": "Curations Folder",
     "openCurationsFolderDesc": "I-buksan ang \"Curations Folder\" sa explorer",
@@ -347,6 +353,8 @@
     "openImportedFolderDesc": "I-buksan ang \"default Exports folder\" na may laman ng mga na-import mong curation.",
     "newCuration": "Bagong Curation",
     "newCurationDesc": "Gumawa ng bagong curation sa isang folder",
+    "duplicateCuration": "Duplicate",
+    "newCurationFromTemplate": "New Curation (Template)",
     "loadMeta": "Iload ang Meta",
     "loadMetaDesc": "Iload ang isa o higit pang Curation meta files",
     "loadArchive": "Iload ang Archive",
@@ -376,6 +384,7 @@
     "run": "I-run",
     "runWithMAD4FP": "I-takbo gamitin ang MAD4FP",
     "export": "I-export",
+    "exportDataPacks": "Export Data Pack",
     "import": "I-import",
     "contentFiles": "Content Files",
     "warnings": "Paalala",
@@ -394,7 +403,14 @@
     "noScreenshot": "Walang screenshot sa curation na ito.",
     "ilc_notHttp": "Gamitin ang HTTP.",
     "ilc_nonExistant": "Piliin ang file sa inyong curation's 'content' folder.",
-    "sort": "I-sort ang mga Curation (A-Z)"
+    "documentStatus": "Notes must document changes and missing content for Hacked / Partial games",
+    "sort": "I-sort ang mga Curation (A-Z)",
+    "contextCopyName": "Copy File Name",
+    "contextCopyPath": "Copy File Path",
+    "contextCopyAsURL": "Copy File Path as URL",
+    "contextShowInExplorer": "Show File in Explorer",
+    "contextOpenFolderInExplorer": "Open Folder in Explorer",
+    "shortcuts": "Shortcuts"
   },
   "playlist": {
     "enterDescriptionHere": "Maglagay ng deskripsyon dito...",
@@ -432,7 +448,8 @@
     "exportMetaEditTitle": "I-Export ang mga Meta Edits",
     "exportMetaEditDesc": "I-select ang lahat ng mga property para I-export:",
     "showImage": "Show Image",
-    "searching": "Searching..."
+    "searching": "Searching...",
+    "loading": "Loading..."
   },
   "menu": {
     "viewThumbnailInFolder": "Ipakita ang Thumbnail sa folder",
@@ -446,7 +463,8 @@
     "exportMetaAndImages": "Iexport (Meta at mga Larawan)",
     "exportMetaEdit": "I-Export ang mga Meta Edit",
     "duplicatePlaylist": "Kopya ng Playlist",
-    "exportPlaylist": "I-export ang Playlist"
+    "exportPlaylist": "I-export ang Playlist",
+    "makeCurationFromGame": "Make Curation from Game"
   },
   "dialog": {
     "programNotFound": "Hindi nahanap ang program!",
@@ -507,7 +525,13 @@
     "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher.",
     "downloadingGame": "Downloading Game...",
     "verifyingGame": "Verifying Game...",
-    "aFewMinutes": "This may take a few minutes."
+    "aFewMinutes": "This may take a few minutes.",
+    "importCurationWithWarnings": "Import this curation? There are still warnings present.",
+    "errorImportingCuration": "Error import curation '{0}', check logs page for details.",
+    "mustBePngImage": "Must be a .PNG Image.",
+    "mustBe7zArchiveSkipping": "Must be a .7z archive, skipping {0}",
+    "failedToLoadCuration": "Failed to load curation! {0}",
+    "exportCurationWithWarnings": "Export Curation even though it has Warnings?"
   },
   "libraries": {
     "arcade": "Laro",
