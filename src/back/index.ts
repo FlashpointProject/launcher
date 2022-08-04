@@ -479,6 +479,7 @@ async function prepForInit(message: any, sendHandle: any): Promise<void> {
 
   console.log('Back - Initialized Languages');
 
+  await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.extensionsPath));
   state.extensionsService = new ExtensionService(state.config, path.join(state.config.flashpointPath, state.preferences.extensionsPath));
   await state.extensionsService.installedExtensionsReady.wait();
 

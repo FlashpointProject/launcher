@@ -23,6 +23,14 @@ const config = {
     src: './src/back',
   }
 };
+// Copy extensions after packing
+const extraResources = [
+  {
+    from: './extensions',
+    to: './extensions',
+    filter: ['!**/node_modules/**']
+  }
+];
 // Files to copy after packing
 const copyFiles = [
   {
@@ -110,8 +118,6 @@ function watchStatic() {
   gulp.watch(config.static.src+'/**/*', buildStatic);
 }
 
-
-
 /* ------ Build ------ */
 
 function buildRust(done) {
@@ -154,6 +160,7 @@ function pack(done) {
         './build',
       ],
       extraFiles: copyFiles, // Files to copy to the build folder
+      extraResources: extraResources, // Copy System Extensions
       compression: 'maximum', // Only used if a compressed target (like 7z, nsis, dmg etc.)
       target: 'dir',
       asar: true,

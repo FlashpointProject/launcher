@@ -39,6 +39,9 @@ export async function scanSystemExtensions(): Promise<IExtension[]> {
       })
       .catch(err => log.error('Extensions', `Error loading User extension at "${filename}"\n${err}`));
     }));
+  })
+  .catch((err) => {
+    log.warn('Launcher', 'Failed to read System Extensions folder. This may be expected behaviour.');
   });
 
   // Convert the map to an array and return
