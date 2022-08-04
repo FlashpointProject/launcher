@@ -3,15 +3,14 @@ import { Playlist } from '@database/entity/Playlist';
 import { TagCategory } from '@database/entity/TagCategory';
 import { BackInit, ViewGame } from '@shared/back/types';
 import { AppConfigData, AppExtConfigData } from '@shared/config/interfaces';
-import { ExecMapping, IBackProcessInfo, INamedBackProcessInfo } from '@shared/interfaces';
+import { ExecMapping, GamePropSuggestions, IBackProcessInfo, INamedBackProcessInfo } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { ILogEntry } from '@shared/Log/interface';
-import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
-import { AppPreferencesData } from '@shared/preferences/interfaces';
 import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint-launcher';
-import { IncomingMessage, Server, ServerResponse } from 'http';
+import { GameOrderBy, GameOrderReverse } from 'flashpoint-launcher';
+import { IncomingMessage, ServerResponse } from 'http';
 import * as WebSocket from 'ws';
 import { ApiEmitter } from './extensions/ApiEmitter';
 import { ExtensionService } from './extensions/ExtensionService';
@@ -21,32 +20,37 @@ import { GameManagerState } from './game/types';
 import { ManagedChildProcess } from './ManagedChildProcess';
 import { SocketServer } from './SocketServer';
 import { EventQueue } from './util/EventQueue';
+import { FileServer } from './util/FileServer';
 import { FolderWatcher } from './util/FolderWatcher';
 import { LogFile } from './util/LogFile';
 
 /** Contains most state for the back process. */
 export type BackState = {
   // @TODO Write comments for these properties
-  isInit: boolean;
+  readyForInit: boolean;
+  runInit: boolean;
   isExit: boolean;
   isDev: boolean;
   verbose: boolean;
   socketServer: SocketServer;
-  fileServer: Server;
+  fileServer: FileServer;
   fileServerPort: number;
   fileServerDownloads: {
     queue: ImageDownloadItem[];
     current: ImageDownloadItem[];
   };
-  preferences: AppPreferencesData;
+  preferences: flashpoint.AppPreferencesData;
   config: AppConfigData;
   extConfig: AppExtConfigData;
   configFolder: string;
   exePath: string;
   localeCode: string;
   version: string;
+  versionStr: string;
+  suggestions: GamePropSuggestions;
   logFile: LogFile;
   customVersion?: string,
+  acceptRemote: boolean;
   gameManager: GameManagerState;
   messageQueue: WebSocket.MessageEvent[];
   isHandling: boolean;
@@ -69,6 +73,13 @@ export type BackState = {
   readonly apiEmitters: ApiEmittersState,
   readonly registry: Registry;
   extensionsService: ExtensionService;
+  /** Path of the SevenZip binary. */
+  sevenZipPath: string;
+  /** All currently loaded curations. */
+  loadedCurations: flashpoint.CurationState[];
+  /** Most recent app paths that were fetched from the database (cached in the back so it's available for the curation stuff /obelisk). */
+  recentAppPaths: { [platform: string]: string; };
+  writeLocks: number;
   prefsQueue: EventQueue;
   logsWindowProc?: ManagedChildProcess;
 }
@@ -178,6 +189,14 @@ export type ApiEmittersState = Readonly<{
     onDidInstallGameData: ApiEmitter<flashpoint.GameData>;
     onDidUninstallGameData: ApiEmitter<flashpoint.GameData>;
     onWillImportCuration: ApiEmitter<flashpoint.CurationImportState>;
+  }>,
+  curations: Readonly <{
+    onDidCurationListChange: ApiEmitter<{ added?: flashpoint.CurationState[], removed?: string[] }>;
+    onDidCurationChange: ApiEmitter<flashpoint.CurationState>;
+    onWillGenCurationWarnings: ApiEmitter<{
+      curation: flashpoint.LoadedCuration,
+      warnings: flashpoint.CurationWarnings
+    }>;
   }>,
   gameData: Readonly<{
     onDidImportGameData: ApiEmitter<flashpoint.GameData>;

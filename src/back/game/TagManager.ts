@@ -299,6 +299,27 @@ export async function getTagById(tagId: number): Promise<Tag | null> {
   return tagRepository.findOneBy({ id: tagId});
 }
 
+export async function addAliasToTag(tagId: number, alias: string): Promise<Tag> {
+  const tag = await getTagById(tagId);
+  if (!tag) {
+    throw 'Tag not found';
+  }
+  const existAliasTag = await findTag(alias);
+  if (existAliasTag) {
+    throw 'Alias already on another tag';
+  }
+  const tagAliasRepostiory = AppDataSource.getRepository(TagAlias);
+  const newAlias = tagAliasRepostiory.create();
+  newAlias.name = alias;
+  newAlias.tagId = tagId;
+  await tagAliasRepostiory.save(newAlias);
+  const updatedTag = await getTagById(tagId);
+  if (!updatedTag) {
+    throw 'How did this throw?';
+  }
+  return updatedTag;
+}
+
 export async function fixPrimaryAliases(): Promise<number> {
   const tagRepository = AppDataSource.getRepository(Tag);
   let fixed = 0;

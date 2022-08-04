@@ -1,5 +1,5 @@
-import { AppPreferencesData } from '@shared/preferences/interfaces';
 import { deepCopy } from '@shared/Util';
+import { AppPreferencesData } from 'flashpoint-launcher';
 import * as React from 'react';
 
 export const PreferencesContext = React.createContext<AppPreferencesData>({} as any);

@@ -8,13 +8,14 @@ import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { Tag } from '@database/entity/Tag';
 import { BackOut } from '@shared/back/types';
+import { getCurationFolder } from '@shared/curate/util';
 import { BrowserApplicationOpts } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, INamedBackProcessInfo, IService, ProcessState } from '@shared/interfaces';
 import { autoCode, getDefaultLocalization, LangContainer, LangFile } from '@shared/lang';
 import { Legacy_IAdditionalApplicationInfo, Legacy_IGameInfo } from '@shared/legacy/interfaces';
 import { deepCopy, recursiveReplace, stringifyArray } from '@shared/Util';
 import * as child_process from 'child_process';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as os from 'os';
 import * as path from 'path';
 import { promisify } from 'util';
@@ -131,7 +132,7 @@ export async function exit(state: BackState): Promise<void> {
       state.socketServer.close()
       .catch(e => { console.error(e); }),
       // Close file server
-      new Promise<void>(resolve => state.fileServer.close(error => {
+      new Promise<void>(resolve => state.fileServer.server.close(error => {
         if (error) { console.warn('An error occurred while closing the file server.', error); }
         resolve();
       })),
@@ -328,6 +329,26 @@ export function getOpenOpenDialogFunc(socketServer: SocketServer): ShowOpenDialo
 export function isBrowserOpts(val: any): val is BrowserApplicationOpts {
   return typeof val.url === 'string' &&
    (val.proxy === undefined || typeof val.proxy === 'string');
+}
+
+/**
+ * Converts a date to a filename safe string in the form YYYY-MM-DD_HH-MM-SS
+ * @param date Date to convert
+ */
+export function dateToFilenameString(date: Date): string {
+  const padFour = (num: number) => { return `${num}`.padStart(4,'0'); };
+  const padTwo = (num: number) => { return `${num}`.padStart(2,'0'); };
+  return `${padFour(date.getFullYear())}-${padTwo(date.getMonth())}-${padTwo(date.getDay())}_${padTwo(date.getHours())}-${padTwo(date.getMinutes())}-${padTwo(date.getSeconds())}`;
+}
+
+export async function deleteCuration(state: BackState, folder: string) {
+  const curationIdx = state.loadedCurations.findIndex(c => c.folder === folder);
+  if (curationIdx !== -1) {
+    const curationPath = getCurationFolder(state.loadedCurations[curationIdx], state.config.flashpointPath);
+    await fs.remove(curationPath);
+    state.loadedCurations.splice(curationIdx, 1);
+    state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, undefined, [folder]);
+  }
 }
 
 export function getCwd(isDev: boolean, exePath: string) {

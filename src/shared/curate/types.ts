@@ -1,38 +1,35 @@
-import { Tag } from '@database/entity/Tag';
-import { ParsedCurationMeta } from './parse';
+import { Tag } from 'flashpoint-launcher';
+import { CurationIndexImage } from './OLD_types';
 
-/** Data of a curation in the curation importer. */
-export type EditCuration = {
-  /** Unique key of the curation (UUIDv4). Generated when loaded. */
-  key: string;
-  /** Meta data of the curation. */
-  meta: EditCurationMeta;
-  /** Keys of additional applications that belong to this game. */
-  addApps: EditAddAppCuration[];
-  /** Data of each file in the content folder (and sub-folders). */
-  content: IndexedContent[];
-  /** Screenshot. */
-  screenshot: CurationIndexImage;
-  /** Thumbnail. */
+export type LoadedCuration = {
+  folder: string;
+  uuid: string;
+  group: string;
+  game: CurationMeta;
+  addApps: AddAppCuration[];
   thumbnail: CurationIndexImage;
-  /** If the curation and its additional applications are locked (and can not be edited). */
-  locked: boolean;
-  /** Whether a curation is marked for deletion */
-  delete: boolean;
-  /** Whether a curation has been successfully deleted */
-  deleted: boolean;
+  screenshot: CurationIndexImage;
 }
 
-/** Data of an additional application curation in the curation importer. */
-export type EditAddAppCuration = {
-  /** Unique key of the curation (UUIDv4). Generated when loaded. */
-  key: string;
-  /** Meta data of the curation. */
-  meta: EditAddAppCurationMeta;
+export type ContentTree = {
+  // Root node - 'content' folder
+  root: ContentTreeNode;
 }
 
-/** Meta data of a curation. */
-export type EditCurationMeta = Partial<{
+export type ContentTreeNode = {
+  name: string;
+  /** Frontend - Whether this is expanded in the content tree view */
+  expanded: boolean;
+  /** File size (if type is file) */
+  size?: number;
+  type: 'file' | 'directory';
+  /** Immediate items below this node */
+  children: ContentTreeNode[];
+  /** Number of items below this node */
+  count: number;
+}
+
+export type CurationMeta = Partial<{
   // Game fields
   title: string;
   alternateTitles: string;
@@ -57,58 +54,12 @@ export type EditCurationMeta = Partial<{
   mountParameters: string;
 }>
 
-/** Meta data of an additional application curation. */
-export type EditAddAppCurationMeta = Partial<{
+
+
+export type AddAppCurationMeta = Partial<{
   heading: string;
   applicationPath: string;
   launchCommand: string;
 }>
 
-export type CurationIndex = {
-  /** UUID of the curation, used for storage */
-  key: string;
-  /** Data of each file in the content folder (and sub-folders). */
-  content: IndexedContent[];
-  /** Errors that occurred while indexing. */
-  errors: CurationIndexError[];
-  /** Meta data of the curation. */
-  meta: ParsedCurationMeta;
-  /** Screenshot. */
-  screenshot: CurationIndexImage;
-  /** Thumbnail. */
-  thumbnail: CurationIndexImage;
-}
-
-export type IndexedContent = {
-  /** Name and path of the file (relative to the content folder). */
-  filePath: string;
-  /** Size of the file (in bytes, uncompressed) */
-  fileSize: number;
-}
-
-export type CurationIndexContent = {
-  /** Name and path of the file (relative to the content folder). */
-  fileName: string;
-  /** Size of the file (in bytes, uncompressed) */
-  fileSize: number;
-}
-
-export type CurationIndexError = {
-  /** Human readable error message. */
-  message: string;
-}
-
-export type CurationIndexImage = {
-  /** Base64 encoded data of the image file (in case it was extracted from an archive). */
-  data?: string;
-  /** Raw data of the image file (in case it was extracted from an archive). */
-  rawData?: Buffer;
-  /** If the images was found. */
-  exists: boolean;
-  /** Name and path of the file (relative to the curation folder). */
-  fileName?: string;
-  /** Full path of the image (in case it was loaded from a folder). */
-  filePath?: string;
-  /** Version to force CSS refresh later */
-  version: number;
-}
+export type AddAppCuration = {key: string} & AddAppCurationMeta;

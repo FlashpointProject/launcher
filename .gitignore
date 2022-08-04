@@ -4,6 +4,7 @@ npm-debug.log.*
 
 # Visual Studio Code
 /.vscode
+/.idea
 
 # JetBrains
 /.idea
@@ -39,3 +40,6 @@ Data/flashpoint.sqlite
 .DS_Store
 
 secrets.json
+
+# Rust
+target

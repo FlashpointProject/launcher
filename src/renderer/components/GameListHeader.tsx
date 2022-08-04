@@ -1,9 +1,8 @@
-import * as React from 'react';
-import { useMemo } from 'react';
-import { updatePreferencesData } from '@shared/preferences/util';
-import { GameOrderBy } from '@shared/order/interfaces';
-import { OpenIcon } from './OpenIcon';
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
+import { updatePreferencesData } from '@shared/preferences/util';
+import { GameOrderBy } from 'flashpoint-launcher';
+import { useMemo } from 'react';
+import { OpenIcon } from './OpenIcon';
 
 export type GameListHeaderProps = WithPreferencesProps & {
   showExtremeIcon: boolean;

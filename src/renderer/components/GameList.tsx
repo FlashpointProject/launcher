@@ -2,7 +2,7 @@ import { withPreferences, WithPreferencesProps } from '@renderer/containers/with
 import { VIEW_PAGE_SIZE } from '@shared/constants';
 import { memoizeOne } from '@shared/memoize';
 import * as React from 'react';
-import { ArrowKeyStepper, AutoSizer, List, ListRowProps, ScrollIndices } from 'react-virtualized';
+import { ArrowKeyStepper, AutoSizer, List, ListRowProps, ScrollIndices } from 'react-virtualized-reactv17';
 import { UpdateView, ViewGameSet } from '../interfaces';
 import { findElementAncestor, getExtremeIconURL } from '../Util';
 import { GameItemContainer } from './GameItemContainer';

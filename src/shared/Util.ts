@@ -88,6 +88,7 @@ export type StringifyArrayOpts = {
  * Write an array to a string in a pretty and readable way
  * Ex. [0,'test',null] => '[ 0, "test", null ]'
  * @param array Array to "stringify"
+ * @param opts Options to apply to resulting string
  * @returns Readable text representation of the array
  */
 export function stringifyArray(array: Array<any>, opts?: StringifyArrayOpts): string {
@@ -357,6 +358,7 @@ export function isErrorProxy(object: any) {
 /**
  * Convert a size (in bytes) to a more human readable format.
  * @param size Size in bytes.
+ * @param precision Precision of the returned number
  * @returns Size, but in a more human readable format.
  */
 export function sizeToString(size: number, precision = 3): string {
@@ -450,4 +452,14 @@ export function generateTagFilterGroup(tags?: string[]): TagFilterGroup {
     categories: [],
     childFilters: []
   };
+}
+
+export function compare(a: string, b: string): number {
+  if (a < b) {
+    return -1;
+  } else if (a > b) {
+    return 1;
+  } else {
+    return 0;
+  }
 }

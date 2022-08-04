@@ -5,11 +5,11 @@ import { SocketClient } from '@shared/back/SocketClient';
 import { BackOut } from '@shared/back/types';
 import { AppConfigData } from '@shared/config/interfaces';
 import { InitRendererChannel, InitRendererData } from '@shared/IPC';
-import { AppPreferencesData } from '@shared/preferences/interfaces';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { createErrorProxy } from '@shared/Util';
 import { randomBytes } from 'crypto';
 import { app, BrowserWindow, ipcMain, IpcMainEvent, session, shell } from 'electron';
+import { AppPreferencesData } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as WebSocket from 'ws';
@@ -68,8 +68,7 @@ export async function startLogger(init: Init): Promise<void> {
 
     state.backHost.port = '12001';
 
-    const installed = fs.existsSync('./.installed');
-    state.mainFolderPath = getMainFolderPath(installed);
+    state.mainFolderPath = getMainFolderPath();
     state.config = ConfigFile.readOrCreateFileSync(path.join(state.mainFolderPath, CONFIG_FILENAME));
     state.prefs = PreferencesFile.readOrCreateFileSync(path.join(state.config.flashpointPath, PREFERENCES_FILENAME));
 

@@ -2,7 +2,7 @@ import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
 import { BackIn, TagSuggestion } from '@shared/back/types';
 import { LangContainer } from '@shared/lang';
 import { getLibraryItemTitle } from '@shared/library/util';
-import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
+import { GameOrderBy, GameOrderReverse } from 'flashpoint-launcher';
 import * as React from 'react';
 import { Link, RouteComponentProps, useLocation } from 'react-router-dom';
 import { WithPreferencesProps } from '../containers/withPreferences';

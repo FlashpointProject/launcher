@@ -11,6 +11,7 @@ import { ModelUtils } from '@shared/game/util';
 import { GamePropSuggestions, PickType, ProcessAction } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { deepCopy, generateTagFilterGroup, sizeToString } from '@shared/Util';
+import axios from 'axios';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
 import { clipboard, Menu, MenuItemConstructorOptions } from 'electron';
@@ -89,10 +90,6 @@ type RightBrowseSidebarState = {
   middleScrollRef: React.RefObject<HTMLDivElement>;
 };
 
-export interface RightBrowseSidebar {
-  context: LangContainer;
-}
-
 /** Sidebar on the right side of BrowsePage. */
 export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps, RightBrowseSidebarState> {
   // Bound "on change" callbacks for game fields
@@ -144,8 +141,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       tagSuggestions: [],
       gameDataBrowserOpen: false,
       showExtremeScreenshots: false,
-      middleScrollRef: React.createRef(),
       activeData: null,
+      middleScrollRef: React.createRef(),
     };
   }
 
@@ -673,14 +670,14 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                           text={strings.thumbnail}
                           imgSrc={this.state.thumbnailExists ? getGameImageURL(LOGOS, game.id) : undefined}
                           showHeaders={true}
-                          onAddClick={this.onAddThumbnailDialog}
+                          onSetImage={this.onSetThumbnail}
                           onRemoveClick={this.onRemoveThumbnailClick}
                           onDrop={this.onThumbnailDrop} />
                         <GameImageSplit
                           text={strings.screenshot}
                           imgSrc={this.state.screenshotExists ? screenshotSrc : undefined}
                           showHeaders={true}
-                          onAddClick={this.onAddScreenshotDialog}
+                          onSetImage={this.onSetScreenshot}
                           onRemoveClick={this.onRemoveScreenshotClick}
                           onDrop={this.onScreenshotDrop} />
                       </div>
@@ -865,8 +862,17 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     }
   }
 
-  onAddScreenshotDialog = this.addImageDialog(SCREENSHOTS);
-  onAddThumbnailDialog = this.addImageDialog(LOGOS);
+  setImageFactory = (folder: typeof LOGOS | typeof SCREENSHOTS) => async (data: ArrayBuffer) => {
+    if (this.props.currentGame) {
+      const res = await axios.post(`${getGameImageURL(folder, this.props.currentGame.id)}`, data);
+      if (res.status !== 200) {
+        alert(`ERROR: Server Returned ${res.status} - ${res.statusText}`);
+      }
+    }
+  };
+
+  onSetThumbnail = this.setImageFactory(LOGOS);
+  onSetScreenshot = this.setImageFactory(SCREENSHOTS);
 
   addImageDialog(folder: typeof LOGOS | typeof SCREENSHOTS) {
     return () => {

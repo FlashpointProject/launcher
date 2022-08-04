@@ -5,24 +5,23 @@ import { Source } from '@database/entity/Source';
 import { SourceData } from '@database/entity/SourceData';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
+import { EditCurationMeta } from '@shared/curate/OLD_types';
+import { AddAppCuration, ContentTree, LoadedCuration } from '@shared/curate/types';
 import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/extensions/interfaces';
 import { FilterGameOpts } from '@shared/game/GameFilter';
 import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
 import { ChangedMeta, MetaEditFlags } from '@shared/MetaEdit';
-import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { SocketTemplate } from '@shared/socket/types';
 import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
-import { GameData, TagAlias, TagFilterGroup } from 'flashpoint-launcher';
+import { AppPreferencesData, CurationState, CurationWarnings, GameData, GameOrderBy, GameOrderReverse, TagAlias, TagFilterGroup } from 'flashpoint-launcher';
 import { AppConfigData, AppExtConfigData } from '../config/interfaces';
-import { EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '../curate/types';
-import { ExecMapping, GamePropSuggestions, IService, ProcessAction } from '../interfaces';
+import { ExecMapping, GamePropSuggestions, IService, ProcessAction, Task } from '../interfaces';
 import { LangContainer, LangFile } from '../lang';
 import { ILogEntry, ILogPreEntry, LogLevel } from '../Log/interface';
-import { AppPreferencesData } from '../preferences/interfaces';
 import { Theme } from '../ThemeFile';
 
 export enum BackIn {
-  UNKNOWN,
+  UNKNOWN = 1000,
 
   INIT_LISTEN,
   GET_SUGGESTIONS,
@@ -103,6 +102,10 @@ export enum BackIn {
   BROWSE_VIEW_KEYSET,
   /** Get all data needed on init (by the renderer). */
   GET_RENDERER_INIT_DATA,
+  /** Get all misc data needed when finished loading database (by the renderer) */
+  GET_RENDERER_LOADED_DATA,
+  /** Get all extension data needed by the renderer */
+  GET_RENDERER_EXTENSION_INFO,
   /** Get all data needed on init (by the main process). */
   GET_MAIN_INIT_DATA,
   /** Get all data needed on init (by the independent logger window) */
@@ -123,6 +126,20 @@ export enum BackIn {
   RUN_COMMAND,
   DOWNLOAD_EXTENSION,
 
+  // Curate
+  CURATE_LOAD_ARCHIVES,
+  CURATE_GET_LIST,
+  CURATE_SYNC_CURATIONS,
+  CURATE_EDIT_REMOVE_IMAGE,
+  CURATE_DELETE,
+  CURATE_CREATE_CURATION,
+  CURATE_EXPORT,
+  CURATE_EXPORT_DATA_PACK,
+  CURATE_FROM_GAME,
+  CURATE_REFRESH_CONTENT,
+  CURATE_GEN_WARNINGS,
+  CURATE_DUPLICATE,
+
   // Misc
   OPEN_LOGS_WINDOW,
   UPLOAD_LOG,
@@ -131,7 +148,7 @@ export enum BackIn {
 }
 
 export enum BackOut {
-  UNKNOWN,
+  UNKNOWN = 0,
 
   INIT_EVENT,
   OPEN_MESSAGE_BOX,
@@ -176,7 +193,24 @@ export enum BackOut {
   SET_PLACEHOLDER_DOWNLOAD_PERCENT,
   OPEN_PLACEHOLDER_DOWNLOAD_DIALOG,
   CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG,
+
+  // Curate
+  CURATE_CONTENTS_CHANGE,
+  CURATE_LIST_CHANGE,
+  CURATE_SELECT_LOCK,
+  CURATE_SELECT_CURATIONS,
+
+  UPDATE_TASK,
+  CREATE_TASK,
+
+  FOCUS_WINDOW,
 }
+
+export const BackRes = {
+  ...BackOut,
+  ...BackIn
+};
+export type BackRes = BackOut | BackIn;
 
 export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.UNKNOWN]: () => void;
@@ -228,7 +262,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.QUIT]: () => void;
 
   // Tag funcs
-  [BackIn.GET_OR_CREATE_TAG]: (tagName: string, tagCategory?: string) => Tag;
+  [BackIn.GET_OR_CREATE_TAG]: (tagName: string, tagCategory?: string) => Tag | null;
   [BackIn.GET_TAG_SUGGESTIONS]: (data: string, tagFilters: TagFilterGroup[]) => TagSuggestion[];
   [BackIn.GET_TAG_BY_ID]: (data: number) => Tag | null;
   [BackIn.GET_TAGS]: (data: string, tagFilters?: TagFilterGroup[]) => Tag[];
@@ -258,6 +292,8 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.BROWSE_VIEW_KEYSET]: (library: string, query: SearchGamesOpts) => BrowseViewKeysetResponse;
   [BackIn.GET_LOGGER_INIT_DATA]: () => GetLoggerInitDataResponse;
   [BackIn.GET_RENDERER_INIT_DATA]: () => GetRendererInitDataResponse;
+  [BackIn.GET_RENDERER_LOADED_DATA]: () => GetRendererLoadedDataResponse;
+  [BackIn.GET_RENDERER_EXTENSION_INFO]: () => GetRendererExtDataResponse;
   [BackIn.GET_MAIN_INIT_DATA]: () => GetMainInitDataResponse;
   [BackIn.UPDATE_CONFIG]: (data: Partial<AppConfigData>) => void;
   [BackIn.UPDATE_PREFERENCES]: (data: AppPreferencesData, refresh: boolean) => void;
@@ -272,6 +308,20 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   // Extensions
   [BackIn.RUN_COMMAND]: (command: string, args?: any[]) => RunCommandResponse;
   [BackIn.DOWNLOAD_EXTENSION]: (downloadPath: string) => void;
+
+  // Curate
+  [BackIn.CURATE_LOAD_ARCHIVES]: (filePaths: string[], taskId?: string) => void;
+  [BackIn.CURATE_GET_LIST]: () => CurationState[];
+  [BackIn.CURATE_SYNC_CURATIONS]: (curations: CurationState[]) => void;
+  [BackIn.CURATE_EDIT_REMOVE_IMAGE]: (folder: string, type: CurationImageEnum) => void;
+  [BackIn.CURATE_DELETE]: (folders: string[], taskId?: string) => void;
+  [BackIn.CURATE_CREATE_CURATION]: (folder: string, meta?: EditCurationMeta) => void;
+  [BackIn.CURATE_EXPORT]: (curations: LoadedCuration[], taskId?: string) => void;
+  [BackIn.CURATE_EXPORT_DATA_PACK]: (curations: LoadedCuration[], taskId?: string) => void;
+  [BackIn.CURATE_FROM_GAME]: (gameId: string) => string | undefined;
+  [BackIn.CURATE_REFRESH_CONTENT]: (folder: string) => void;
+  [BackIn.CURATE_GEN_WARNINGS]: (curation: CurationState) => CurationWarnings;
+  [BackIn.CURATE_DUPLICATE]: (folders: string[]) => void;
 
   // Misc
   [BackIn.OPEN_LOGS_WINDOW]: () => void;
@@ -326,7 +376,23 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT]: (percent: number) => void;
   [BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG]: () => void;
   [BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG]: () => void;
+
+  // Curate
+  [BackOut.CURATE_CONTENTS_CHANGE]: (folder: string, contents: ContentTree) => void;
+  [BackOut.CURATE_LIST_CHANGE]: (added?: CurationState[], removed?: string[]) => void; // "removed" is the folder names of the removed curations
+  [BackOut.CURATE_SELECT_LOCK]: (folder: string, locked: boolean) => void;
+  [BackOut.CURATE_SELECT_CURATIONS]: (folders: string[]) => void;
+
+  // Tasks
+  [BackOut.UPDATE_TASK]: (taskId: string, taskData: Partial<Task>) => void;
+  [BackOut.CREATE_TASK]: (task: Task) => void;
+
+  [BackOut.FOCUS_WINDOW]: () => void;
 }>
+
+export type BackResTemplate = BackOutTemplate & BackInTemplate;
+export type BackResParams<T extends BackRes> = Parameters<BackResTemplate[T]>;
+export type BackResReturnTypes<T extends BackRes> = ReturnType<BackResTemplate[T]>;
 
 export type BackInitArgs = {
   /** Path to the folder containing the preferences and config files. */
@@ -344,9 +410,12 @@ export type BackInitArgs = {
 }
 
 export enum BackInit {
-  GAMES,
+  SERVICES,
+  DATABASE,
   PLAYLISTS,
-  EXEC,
+  EXTENSIONS,
+  EXEC_MAPPINGS,
+  CURATE,
 }
 
 export type InitEventData = {
@@ -364,34 +433,58 @@ export type GetLoggerInitDataResponse = {
   log: ILogEntry[];
 }
 
+export type GetRendererExtDataResponse = {
+  extensions: IExtensionDescription[];
+  devScripts: ExtensionContribution<'devScripts'>[];
+  contextButtons: ExtensionContribution<'contextButtons'>[];
+  curationTemplates: ExtensionContribution<'curationTemplates'>[];
+  extConfigs: ExtensionContribution<'configuration'>[];
+  extConfig: AppExtConfigData;
+}
+
+export type GetRendererLoadedDataResponse = {
+  services: IService[];
+  libraries: string[];
+  suggestions: GamePropSuggestions;
+  serverNames: string[];
+  mad4fpEnabled: boolean;
+  platforms: Record<string, string[]>;
+  tagCategories: TagCategory[];
+  logoSets: LogoSet[];
+  updateFeedMarkdown: string;
+}
+
 export type GetRendererInitDataResponse = {
   config: AppConfigData;
   preferences: AppPreferencesData;
   fileServerPort: number;
   log: ILogEntry[];
-  services: IService[];
+  // services: IService[];
   customVersion?: string;
   languages: LangFile[];
   language: LangContainer;
   themes: Theme[];
-  libraries: string[];
-  serverNames: string[];
-  mad4fpEnabled: boolean;
-  platforms: Record<string, string[]>;
-  playlists: Playlist[];
+  // libraries: string[];
+  // suggestions: GamePropSuggestions;
+  // serverNames: string[];
+  // mad4fpEnabled: boolean;
+  // platforms: Record<string, string[]>;
+  // playlists: Playlist[];
   localeCode: string;
-  tagCategories: TagCategory[];
-  extensions: IExtensionDescription[];
-  devScripts: ExtensionContribution<'devScripts'>[];
-  contextButtons: ExtensionContribution<'contextButtons'>[];
-  logoSets: LogoSet[];
-  extConfigs: ExtensionContribution<'configuration'>[];
-  extConfig: AppExtConfigData;
-  updateFeedMarkdown: string;
+  // tagCategories: TagCategory[];
+  // extensions: IExtensionDescription[];
+  // devScripts: ExtensionContribution<'devScripts'>[];
+  // contextButtons: ExtensionContribution<'contextButtons'>[];
+  // curationTemplates: ExtensionContribution<'curationTemplates'>[];
+  // logoSets: LogoSet[];
+  // extConfigs: ExtensionContribution<'configuration'>[];
+  // extConfig: AppExtConfigData;
+  // updateFeedMarkdown: string;
+  // curations: CurationState[];
 }
 
 export type GetSuggestionsResponseData = {
-  suggestions: Partial<GamePropSuggestions>;
+  suggestions: GamePropSuggestions;
   appPaths: { [platform: string]: string; };
 }
 
@@ -491,7 +584,7 @@ export type BrowseChangeData = {
 }
 
 export type ImportCurationData = {
-  curation: EditCuration;
+  curations: LoadedCuration[];
   log?: boolean;
   /**
    * Note: This will have the incorrect prototype after being sent.
@@ -499,6 +592,7 @@ export type ImportCurationData = {
    */
   date?: Date;
   saveCuration: boolean;
+  taskId?: string;
 }
 
 export type ImportCurationResponseData = {
@@ -506,16 +600,14 @@ export type ImportCurationResponseData = {
 }
 
 export type LaunchCurationData = {
-  key: string;
-  meta: EditCurationMeta;
-  addApps: EditAddAppCurationMeta[];
+  curation: LoadedCuration;
   mad4fp: boolean;
   symlinkCurationContent: boolean;
 }
 
 export type LaunchCurationAddAppData = {
-  curationKey: string;
-  curation: EditAddAppCuration;
+  folder: string;
+  addApp: AddAppCuration;
   platform?: string;
   symlinkCurationContent: boolean;
 }
@@ -569,4 +661,9 @@ export type RunCommandResponse = {
 
 export type DownloadDetails = {
   downloadSize: number;
+}
+
+export enum CurationImageEnum {
+  THUMBNAIL,
+  SCREENSHOT
 }

@@ -72,6 +72,7 @@ export type AppRouterProps = {
   extensions: IExtensionDescription[],
   devScripts: ExtensionContribution<'devScripts'>[],
   contextButtons: ExtensionContribution<'contextButtons'>[],
+  curationTemplates: ExtensionContribution<'curationTemplates'>[],
   logoSets: ILogoSet[],
   extConfigs: ExtensionContribution<'configuration'>[],
   extConfig: AppExtConfigData,
@@ -142,11 +143,9 @@ export class AppRouter extends React.Component<AppRouterProps> {
       creditsDoneLoading: this.props.creditsDoneLoading
     };
     const curateProps: ConnectedCuratePageProps = {
-      suggestions: this.props.suggestions,
-      appPaths: this.props.appPaths,
-      libraries: this.props.libraries,
-      mad4fpEnabled: this.props.mad4fpEnabled,
-      logoVersion: this.props.logoVersion,
+      extCurationTemplates: this.props.curationTemplates,
+      extContextButtons: this.props.contextButtons,
+      mad4fpEnabled: this.props.mad4fpEnabled
     };
     const developerProps: DeveloperPageProps = {
       devConsole: this.props.devConsole,

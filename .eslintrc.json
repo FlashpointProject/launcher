@@ -70,6 +70,7 @@
     }]}],
     "react/no-unused-prop-types": "warn",
     "react/no-unused-state": "warn",
+    "react/react-in-jsx-scope": "off",
     "curly": ["warn", "all"],
     "eol-last": "warn",
     "for-direction": "warn",

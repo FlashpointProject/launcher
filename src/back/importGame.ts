@@ -3,11 +3,12 @@ import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
-import { validateSemiUUID } from '@shared/utils/uuid';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertEditToCurationMetaFile } from '@shared/curate/metaToMeta';
-import { CurationIndexImage, EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '@shared/curate/types';
+import { CurationIndexImage } from '@shared/curate/OLD_types';
+import { AddAppCuration, CurationMeta, LoadedCuration } from '@shared/curate/types';
 import { getCurationFolder } from '@shared/curate/util';
+import { TaskProgress } from '@shared/utils/TaskProgress';
 import * as child_process from 'child_process';
 import { execFile } from 'child_process';
 import * as fs from 'fs-extra';
@@ -18,13 +19,14 @@ import * as GameManager from './game/GameManager';
 import * as TagManager from './game/TagManager';
 import { GameManagerState } from './game/types';
 import { GameLauncher, GameLaunchInfo, LaunchAddAppOpts, LaunchGameOpts } from './GameLauncher';
+import { copyFolder } from './rust';
 import { OpenExternalFunc, ShowMessageBoxFunc } from './types';
 import { getMklinkBatPath } from './util/elevate';
 import { uuid } from './util/uuid';
 
 
 type ImportCurationOpts = {
-  curation: EditCuration;
+  curation: LoadedCuration;
   gameManager: GameManagerState;
   date?: Date;
   saveCuration: boolean;
@@ -35,6 +37,8 @@ type ImportCurationOpts = {
   openDialog: ShowMessageBoxFunc;
   openExternal: OpenExternalFunc;
   tagCategories: TagCategory[];
+  taskProgress: TaskProgress;
+  sevenZipPath: string;
 }
 
 export type CurationImportState = {
@@ -62,14 +66,17 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
     saveCuration,
     fpPath,
     imageFolderPath: imagePath,
+    taskProgress
   } = opts;
+
+  taskProgress.setStageProgress(0, 'Importing...');
 
   // TODO: Consider moving this check outside importCuration
   // Warn if launch command is already present on another game
-  if (curation.meta.launchCommand) {
+  if (curation.game.launchCommand) {
     const existingGame = await GameManager.findGame(undefined, {
       where: {
-        launchCommand: curation.meta.launchCommand
+        launchCommand: curation.game.launchCommand
       }
     });
     if (existingGame) {
@@ -77,7 +84,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
       const response = await opts.openDialog({
         title: 'Possible Duplicate',
         message: 'There is already a game using this launch command. It may be a duplicate.\nContinue importing this curation?\n\n'
-                + `Curation:\n\tTitle: ${curation.meta.title}\n\tLaunch Command: ${curation.meta.launchCommand}\n\tPlatform: ${curation.meta.platform}\n\n`
+                + `Curation:\n\tTitle: ${curation.game.title}\n\tLaunch Command: ${curation.game.launchCommand}\n\tPlatform: ${curation.game.platform}\n\n`
                 + `Existing Game:\n\tID: ${existingGame.id}\n\tTitle: ${existingGame.title}\n\tPlatform: ${existingGame.platform}`,
         buttons: ['Yes', 'No']
       });
@@ -88,19 +95,19 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   }
   // Build content list
   const contentToMove = [];
-  const extrasAddApp = curation.addApps.find(a => a.meta.applicationPath === ':extras:');
-  if (extrasAddApp && extrasAddApp.meta.launchCommand && extrasAddApp.meta.launchCommand.length > 0) {
+  const extrasAddApp = curation.addApps.find(a => a.applicationPath === ':extras:');
+  if (extrasAddApp && extrasAddApp.launchCommand && extrasAddApp.launchCommand.length > 0) {
     // Add extras folder if meta has an entry
-    contentToMove.push([path.join(getCurationFolder(curation, fpPath), 'Extras'), path.join(fpPath, 'Extras', extrasAddApp.meta.launchCommand)]);
+    contentToMove.push([path.join(getCurationFolder(curation, fpPath), 'Extras'), path.join(fpPath, 'Extras', extrasAddApp.launchCommand)]);
   }
   // Create and add game and additional applications
-  const gameId = validateSemiUUID(curation.key) ? curation.key : uuid();
+  const gameId = curation.uuid;
   const oldGame = await GameManager.findGame(gameId);
   if (oldGame) {
     const response = await opts.openDialog({
       title: 'Overwriting Game',
       message: 'There is already a game using this id. Importing will override it.\nContinue importing this curation?\n\n'
-              + `Curation:\n\tTitle: ${curation.meta.title}\n\tLaunch Command: ${curation.meta.launchCommand}\n\tPlatform: ${curation.meta.platform}\n\n`
+              + `Curation:\n\tTitle: ${curation.game.title}\n\tLaunch Command: ${curation.game.launchCommand}\n\tPlatform: ${curation.game.platform}\n\n`
               + `Existing Game:\n\tTitle: ${oldGame.title}\n\tLaunch Command: ${oldGame.launchCommand}\n\tPlatform: ${oldGame.platform}`,
       buttons: ['Yes', 'No']
     });
@@ -110,7 +117,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   }
 
   // Add game to database
-  let game = await createGameFromCurationMeta(gameId, curation.meta, curation.addApps, date);
+  let game = await createGameFromCurationMeta(gameId, curation.game, curation.addApps, date);
   game = await GameManager.save(game);
 
   // Store curation state for extension use later
@@ -119,6 +126,8 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
     contentToMove,
     curationPath: getCurationFolder(curation, fpPath)
   };
+
+  taskProgress.setStageProgress(0.1, 'Fixing File Permissions...');
 
   // Copy content and Extra files
   // curationLog('Importing Curation Content');
@@ -150,29 +159,30 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
     }
   })()
   .then(async () => {
+    taskProgress.setStageProgress(0.35, 'Saving Copy of Curation to Imported...');
     // If configured, save a copy of the curation before importing
     curationLog('Saving Imported Content');
     try {
       if (saveCuration) {
         // Save working meta
         const metaPath = path.join(getCurationFolder(curation, fpPath), 'meta.yaml');
-        const meta = YAML.stringify(convertEditToCurationMetaFile(curation.meta, opts.tagCategories, curation.addApps));
+        const meta = YAML.stringify(convertEditToCurationMetaFile(curation.game, opts.tagCategories, curation.addApps));
         await fs.writeFile(metaPath, meta);
         // Date in form 'YYYY-MM-DD' for folder sorting
         const date = new Date();
         const dateStr = date.getFullYear().toString() + '-' +
                         (date.getUTCMonth() + 1).toString().padStart(2, '0') + '-' +
                         date.getUTCDate().toString().padStart(2, '0');
-        const backupPath = path.join(fpPath, 'Curations', 'Imported', `${dateStr}__${curation.key}`);
-        await fs.copy(getCurationFolder(curation, fpPath), backupPath);
+        const backupPath = path.join(fpPath, 'Curations', 'Imported', `${dateStr}__${curation.folder}`);
+        await copyFolder(getCurationFolder(curation, fpPath), backupPath);
         // Why does this return before finishing copying? Replaced with line above for now.
         // await copyFolder(getCurationFolder(curation, fpPath), backupPath, true, opts.openDialog);
       }
       if (log) {
-        logMessage('Content Copied', curation);
+        logMessage('Content Copied', curation.folder);
       }
     } catch (error) {
-      curationLog(`Error importing ${curation.meta.title} - Informing user...`);
+      curationLog(`Error importing ${curation.game.title} - Informing user...`);
       const res = await opts.openDialog({
         title: 'Error saving curation',
         message: 'Saving curation import failed. Some/all files failed to move. Please check the content folder yourself before removing manually.\n\nOpen folder now?',
@@ -180,7 +190,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
       });
       if (res === 0) {
         console.log('Opening curation folder after error');
-        opts.openExternal(getCurationFolder(curation, fpPath));
+        await opts.openExternal(getCurationFolder(curation, fpPath));
       }
     }
   })
@@ -188,14 +198,15 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
     // Copy Thumbnail
     // curationLog('Importing Curation Thumbnail');
     await importGameImage(curation.thumbnail, game.id, LOGOS, path.join(fpPath, imagePath))
-    .then(() => { if (log) { logMessage('Thumbnail Copied', curation); } });
+    .then(() => { if (log) { logMessage('Thumbnail Copied', curation.folder); } });
 
     // Copy Screenshot
     // curationLog('Importing Curation Screenshot');
     await importGameImage(curation.screenshot, game.id, SCREENSHOTS, path.join(fpPath, imagePath))
-    .then(() => { if (log) { logMessage('Screenshot Copied', curation); } });
+    .then(() => { if (log) { logMessage('Screenshot Copied', curation.folder); } });
   })
   .then(async () => {
+    taskProgress.setStageProgress(0.5, 'Extensions Working...');
     // Notify extensions and let them make changes
     await onWillImportCuration.fire(curationState);
   })
@@ -205,10 +216,20 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
       await fs.copy(pair[0], pair[1], { recursive: true, preserveTimestamps: true });
       // await copyFolder(pair[0], pair[1], moveFiles, opts.openDialog, log);
     }
+    logMessage('Content Copied', curation.folder);
   })
   .then(async () => {
-    // Build bluezip
+    taskProgress.setStageProgress(0.75, 'Packing Game Zip...');
+
     const curationPath = path.resolve(getCurationFolder(curation, fpPath));
+    // const zipPath = path.join(fpPath, CURATIONS_FOLDER_TEMP, `${uuid()}.zip`);
+    // const zip = add(zipPath, curationPath + '/*ontent/*', { $bin: sevenZipPath, recursive: true });
+    // await new Promise<void>((resolve, reject) => {
+    //   zip.on('end', () => resolve());
+    //   zip.on('error', reject);
+    // });
+
+    // Build bluezip
     const bluezipProc = child_process.spawn('bluezip', [curationPath, '-no', curationPath], {cwd: path.dirname(bluezipPath)});
     await new Promise<void>((resolve, reject) => {
       bluezipProc.stdout.on('data', (data: any) => {
@@ -218,6 +239,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
         log.debug('Curate', `Bluezip error: ${data}`);
       });
       bluezipProc.on('close', (code: any) => {
+
         if (code) {
           log.error('Curate', `Bluezip exited with code: ${code}`);
           reject();
@@ -228,17 +250,22 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
       });
     });
     // Import bluezip
-    const filePath = path.join(curationPath, `${game.id}.zip`);
-    await GameDataManager.importGameData(game.id, filePath, dataPacksFolderPath, curation.meta.mountParameters);
+    const filePath = path.join(curationPath, `${curation.folder}.zip`);
+    taskProgress.setStageProgress(0.9, 'Importing Zipped File...');
+    await GameDataManager.importGameData(game.id, filePath, dataPacksFolderPath, curation.game.mountParameters);
     await fs.promises.unlink(filePath);
   })
   .catch((error) => {
-    curationLog(error.message);
-    console.warn(error.message);
+    curationLog(error ? error.message : 'Unknown');
+    console.warn(error ? error.message : 'Unknown');
+    taskProgress.setStageProgress(1, error ? error.message : 'Unknown');
+
     if (game.id) {
       // Clean up half imported entries
       GameManager.removeGameAndAddApps(game.id, dataPacksFolderPath);
     }
+    // Let it bubble up
+    throw error;
   });
 }
 
@@ -246,38 +273,38 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
  * Create and launch a game from curation metadata.
  * @param curation Curation to launch
  */
-export async function launchCuration(key: string, meta: EditCurationMeta, addAppMetas: EditAddAppCurationMeta[], symlinkCurationContent: boolean,
+export async function launchCuration(curation: LoadedCuration, symlinkCurationContent: boolean,
   skipLink: boolean, opts: Omit<LaunchGameOpts, 'game'|'addApps'>, onWillEvent:ApiEmitter<GameLaunchInfo>, onDidEvent: ApiEmitter<Game>) {
-  if (!skipLink || !symlinkCurationContent) { await linkContentFolder(key, opts.fpPath, opts.isDev, opts.exePath, opts.htdocsPath, symlinkCurationContent); }
-  curationLog(`Launching Curation ${meta.title}`);
-  const game = await createGameFromCurationMeta(key, meta, [], new Date());
-  GameLauncher.launchGame({
+  if (!skipLink || !symlinkCurationContent) { await linkContentFolder(curation.folder, opts.fpPath, opts.isDev, opts.exePath, opts.htdocsPath, symlinkCurationContent); }
+  curationLog(`Launching Curation ${curation.game.title}`);
+  const game = await createGameFromCurationMeta(curation.folder, curation.game, [], new Date());
+  await GameLauncher.launchGame({
     ...opts,
     game: game,
   },
   onWillEvent);
-  onDidEvent.fire(game);
+  await onDidEvent.fire(game);
 }
 
 /**
  * Create and launch an additional application from curation metadata.
- * @param curationKey Key of the parent curation index
+ * @param folder Key of the parent curation index
  * @param appCuration Add App Curation to launch
  */
-export async function launchAddAppCuration(curationKey: string, appCuration: EditAddAppCuration, symlinkCurationContent: boolean,
+export async function launchAddAppCuration(folder: string, appCuration: AddAppCuration, symlinkCurationContent: boolean,
   skipLink: boolean, opts: Omit<LaunchAddAppOpts, 'addApp'>, onWillEvent: ApiEmitter<AdditionalApp>, onDidEvent: ApiEmitter<AdditionalApp>) {
-  if (!skipLink || !symlinkCurationContent) { await linkContentFolder(curationKey, opts.fpPath, opts.isDev, opts.exePath, opts.htdocsPath, symlinkCurationContent); }
+  if (!skipLink || !symlinkCurationContent) { await linkContentFolder(folder, opts.fpPath, opts.isDev, opts.exePath, opts.htdocsPath, symlinkCurationContent); }
   const addApp = createAddAppFromCurationMeta(appCuration, createPlaceholderGame());
   await onWillEvent.fire(addApp);
-  GameLauncher.launchAdditionalApplication({
+  await GameLauncher.launchAdditionalApplication({
     ...opts,
     addApp: addApp,
   });
-  onDidEvent.fire(addApp);
+  await onDidEvent.fire(addApp);
 }
 
-function logMessage(text: string, curation: EditCuration): void {
-  console.log(`- ${text}\n  (id: ${curation.key})`);
+function logMessage(text: string, folder: string): void {
+  console.log(`- ${text}\n  (id: ${folder})`);
 }
 
 /**
@@ -285,7 +312,7 @@ function logMessage(text: string, curation: EditCuration): void {
  * @param curation Curation to get data from.
  * @param gameId ID to use for Game
  */
-async function createGameFromCurationMeta(gameId: string, gameMeta: EditCurationMeta, addApps : EditAddAppCuration[], date: Date): Promise<Game> {
+async function createGameFromCurationMeta(gameId: string, gameMeta: CurationMeta, addApps : AddAppCuration[], date: Date): Promise<Game> {
   const game: Game = new Game();
   Object.assign(game, {
     id:                  gameId, // (Re-use the id of the curation)
@@ -320,12 +347,12 @@ async function createGameFromCurationMeta(gameId: string, gameMeta: EditCuration
   return game;
 }
 
-function createAddAppFromCurationMeta(addAppMeta: EditAddAppCuration, game: Game): AdditionalApp {
+function createAddAppFromCurationMeta(addAppMeta: AddAppCuration, game: Game): AdditionalApp {
   return {
     id: addAppMeta.key,
-    name: addAppMeta.meta.heading || '',
-    applicationPath: addAppMeta.meta.applicationPath || '',
-    launchCommand: addAppMeta.meta.launchCommand || '',
+    name: addAppMeta.heading || '',
+    applicationPath: addAppMeta.applicationPath || '',
+    launchCommand: addAppMeta.launchCommand || '',
     autoRunBefore: false,
     waitForExit: false,
     parentGame: game
@@ -371,7 +398,7 @@ async function linkContentFolder(curationKey: string, fpPath: string, isDev: boo
         const mklinkBatPath = getMklinkBatPath(isDev, exePath);
         const mklinkDir = path.dirname(mklinkBatPath);
         await new Promise<void>((resolve, reject) => {
-          execFile('mklink.bat', [`"${htdocsContentPath}"`, `"${contentPath}"`], { cwd: mklinkDir, shell: true }, (err, stdout, stderr) => {
+          execFile('mklink.bat', [`"${htdocsContentPath}"`, `"${contentPath}"`], { cwd: mklinkDir, shell: true }, (err) => {
             if (err) { reject();  }
             else     { resolve(); }
           });
@@ -530,13 +557,12 @@ function createPlaceholderGame(): Game {
 export async function createTagsFromLegacy(tags: string, tagCache: Record<string, Tag>): Promise<Tag[]> {
   const allTags: Tag[] = [];
 
-  addTagLoop:
   for (const t of tags.split(';')) {
     const trimTag = t.trim();
     const cachedTag = tagCache[trimTag];
     if (cachedTag) {
       allTags.push(cachedTag);
-      continue addTagLoop;
+      continue;
     }
     let tag = await TagManager.findTag(trimTag);
     if (!tag && trimTag !== '') {

@@ -1,4 +1,5 @@
 import { Game } from '@database/entity/Game';
+import { EditCurationMeta } from '@shared/curate/OLD_types';
 
 export const enum ExtensionType {
   System,
@@ -15,6 +16,7 @@ export type ContextButton = {
   context: ButtonContext;
   name: string;
   command: string;
+  runWithNoCuration?: boolean;
 }
 
 export type Application = {
@@ -37,7 +39,7 @@ export type BrowserApplicationOpts = {
   proxy?: string;
 }
 
-export type ButtonContext = 'game' | 'playlist';
+export type ButtonContext = 'game' | 'playlist' | 'curation';
 
 export type ExtTheme = {
   id: string;
@@ -75,6 +77,13 @@ export type Contributions = {
   contextButtons: ContextButton[];
   applications: Application[];
   configuration: ExtConfiguration[];
+  curationTemplates: CurationTemplate[];
+}
+
+export interface CurationTemplate {
+  name: string;
+  logo: string;
+  meta: EditCurationMeta;
 }
 
 export interface IExtensionDescription extends IExtensionManifest {

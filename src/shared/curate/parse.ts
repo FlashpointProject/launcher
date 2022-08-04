@@ -3,7 +3,7 @@ import { Coerce } from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
 import { CurationFormatObject, parseCurationFormat } from './format/parser';
 import { CFTokenizer, tokenizeCurationFormat } from './format/tokenizer';
-import { EditAddAppCurationMeta, EditCurationMeta } from './types';
+import { EditAddAppCurationMeta, EditCurationMeta } from './OLD_types';
 import { getTagsFromStr } from './util';
 
 const { str } = Coerce;
@@ -100,8 +100,10 @@ export async function parseCurationMetaFile(data: any, onError?: (error: string)
   if (parsed.game.extreme) {
     parsed.game.extreme = false;
     const extremeTag = await window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, 'LEGACY-Extreme');
-    if (parsed.game.tags && parsed.game.tags.findIndex(t => t.id === extremeTag.id) === -1) {
-      parsed.game.tags.push(extremeTag);
+    if (extremeTag) {
+      if (parsed.game.tags && parsed.game.tags.findIndex(t => t.id === extremeTag.id) === -1) {
+        parsed.game.tags.push(extremeTag);
+      }
     }
   }
   // property aliases

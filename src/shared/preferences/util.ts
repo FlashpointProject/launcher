@@ -1,7 +1,8 @@
+import { CurateGroup } from '@renderer/store/curate/types';
 import { autoCode } from '@shared/lang';
 import { LogLevel } from '@shared/Log/interface';
 import { delayedThrottle, delayedThrottleAsync } from '@shared/utils/throttle';
-import { TagFilterGroup } from 'flashpoint-launcher';
+import { AppPathOverride, AppPreferencesData, AppPreferencesDataMainWindow, TagFilterGroup } from 'flashpoint-launcher';
 import { BackIn } from '../back/types';
 import { BrowsePageLayout } from '../BrowsePageLayout';
 import { ARCADE } from '../constants';
@@ -10,7 +11,6 @@ import { gameOrderByOptions, gameOrderReverseOptions } from '../order/util';
 import { deepCopy, parseVarStr } from '../Util';
 import { Coerce } from '../utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
-import { AppPathOverride, AppPreferencesData, AppPreferencesDataMainWindow } from './interfaces';
 
 export function updatePreferencesData(data: DeepPartial<AppPreferencesData>, send = true) {
   const preferences = window.Shared.preferences;
@@ -121,6 +121,22 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   searchLimit: 0,
   onlineManual: 'https://flashpointproject.github.io/manual/',
   offlineManual: '',
+  groups: [],
+  shortcuts: {
+    curate: {
+      prev: ['ctrl+arrowup', 'cmd+arrowup'],
+      next: ['ctrl+arrowdown', 'cmd+arrowdown'],
+      load: ['ctrl+o', 'cmd+o'],
+      newCur: ['ctrl+n', 'cmd+n'],
+      deleteCurs: ['ctrl+delete', 'cmd+delete'],
+      exportCurs: ['ctrl+s', 'cmd+s'],
+      exportDataPacks: ['ctrl+shift+s', 'cmd+shift+s'],
+      importCurs: ['ctrl+i', 'cmd+i'],
+      refresh: ['ctrl+r', 'cmd+r'],
+      run: ['ctrl+t', 'cmd+t'],
+      runMad4fp: ['ctrl+shift+t', 'cmd+shift+t']
+    }
+  }
 });
 
 /**
@@ -184,7 +200,16 @@ export function overwritePreferenceData(
   parser.prop('onlineManual',                v => source.onlineManual                = str(v));
   parser.prop('offlineManual',               v => source.offlineManual               = str(v));
   parser.prop('fancyAnimations',             v => source.fancyAnimations             = !!v);
-  parser.prop('searchLimit', v => source.searchLimit                 = num(v));
+  parser.prop('searchLimit',                 v => source.searchLimit                 = num(v));
+  if (data.shortcuts) {
+    // @TODO Validate
+    source.shortcuts = Object.assign(source.shortcuts, data.shortcuts);
+  }
+  if (data.groups) {
+    const newGroups: CurateGroup[] = [];
+    parser.prop('groups').array((item, index) => newGroups[index] = parseCurateGroup(item));
+    source.groups = newGroups;
+  }
   if (data.appPathOverrides) {
     const newAppPathOverrides: AppPathOverride[] = [];
     parser.prop('appPathOverrides').array((item, index) => newAppPathOverrides[index] = parseAppPathOverride(item));
@@ -243,6 +268,16 @@ function parseTagFilterGroup(parser: IObjectParserProp<TagFilterGroup>): TagFilt
   parser.prop('childFilters').arrayRaw((item) => tfg.childFilters.push(str(item)));
   parser.prop('extreme', v => tfg.extreme = !!v);
   return tfg;
+}
+
+function parseCurateGroup(parser: IObjectParserProp<any>): CurateGroup {
+  const g: CurateGroup = {
+    name: '',
+    icon: ''
+  };
+  parser.prop('name', v => g.name = str(v));
+  parser.prop('icon', v => g.icon = str(v));
+  return g;
 }
 
 /**

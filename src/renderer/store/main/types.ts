@@ -10,11 +10,11 @@ import { AppExtConfigData } from '@shared/config/interfaces';
 import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { GamePropSuggestions, IService } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
-import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { ITheme, Theme } from '@shared/ThemeFile';
+import { Gate } from '@shared/utils/Gate';
 import * as axiosImport from 'axios';
 import { UpdateInfo } from 'electron-updater';
-import { TagFilterGroup } from 'flashpoint-launcher';
+import { AppPreferencesData, GameOrderBy, GameOrderReverse, TagFilterGroup } from 'flashpoint-launcher';
 import { MainActionType, RequestState } from './enums';
 
 export type View = {
@@ -65,9 +65,10 @@ export type MainState = {
   mad4fpEnabled: boolean;
   playlists: Playlist[];
   playlistIconCache: Record<string, string>; // [PLAYLIST_ID] = ICON_BLOB_URL
-  suggestions: Partial<GamePropSuggestions>;
+  suggestions: GamePropSuggestions;
   appPaths: Record<string, string>;
   platforms: Record<string, string[]>;
+  loadedAll: Gate;
   loaded: { [key in BackInit]: boolean; };
   extensions: IExtensionDescription[];
   themeList: ITheme[];
@@ -112,6 +113,8 @@ export type MainState = {
   devScripts: ExtensionContribution<'devScripts'>[];
   /** Context buttons added by extensions */
   contextButtons: ExtensionContribution<'contextButtons'>[];
+  /** Curation Templates added by extensions */
+  curationTemplates: ExtensionContribution<'curationTemplates'>[];
   /** Extension config options */
   extConfigs: ExtensionContribution<'configuration'>[];
   /** Current extension config data */
@@ -124,6 +127,7 @@ export type MainState = {
   downloadOpen: boolean;
   cancelToken?: axiosImport.CancelToken;
   downloadVerifying: boolean;
+  taskBarOpen: boolean;
   selectedGameId?: string;
   selectedPlaylistId?: string;
   currentGame?: Game;
@@ -131,6 +135,7 @@ export type MainState = {
   currentPlaylist?: Playlist;
   currentPlaylistEntry?: PlaylistGame;
   isEditingGame: boolean;
+  updateFeedMarkdown: string;
   /** Games which are in the middle of a busy operation */
   busyGames: string[];
 }
@@ -195,7 +200,7 @@ export type MainAction = {
   total: number;
 } | {
   type: MainActionType.SET_SUGGESTIONS;
-  suggestions: Partial<GamePropSuggestions>;
+  suggestions: GamePropSuggestions;
   appPaths: Record<string, string>;
 } | {
   type: MainActionType.SET_LOCALE;
@@ -236,6 +241,9 @@ export type MainAction = {
 } | {
   type: MainActionType.FORCE_UPDATE_GAME_DATA;
   gameData: GameData;
+} | {
+  type: MainActionType.SETUP_VIEWS;
+  preferencesData: AppPreferencesData;
 } | {
   type: MainActionType.BUSY_GAME;
   gameId: string;

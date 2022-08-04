@@ -1,6 +1,9 @@
 import { Game } from '@database/entity/Game';
 import { rebuildQuery } from '@renderer/Util';
+import { BackInit } from '@shared/back/types';
+import { GamePropSuggestions } from '@shared/interfaces';
 import { createLangContainer } from '@shared/lang';
+import { Gate } from '@shared/utils/Gate';
 import { MainActionType, RequestState } from './enums';
 import { MainAction, MainState, View, ViewPageStates } from './types';
 
@@ -242,7 +245,14 @@ export function mainStateReducer(state: MainState = createInitialState(), action
       const nextLoaded = { ...state.loaded };
 
       for (const key of action.loaded) {
+        console.log('Loaded ' + BackInit[key]);
         nextLoaded[key] = true;
+      }
+
+      // Open the gate if everything has been loaded
+      const values = Object.values(nextLoaded);
+      if (values.length === values.reduce((prev, cur) => prev + (cur === true ? 1 : 0), 0)) {
+        state.loadedAll.open();
       }
 
       return {
@@ -423,8 +433,53 @@ export function mainStateReducer(state: MainState = createInitialState(), action
         ...state
       };
     }
+
+    case MainActionType.SETUP_VIEWS: {
+      const views: Record<string, View> = {};
+      for (const library of state.libraries) {
+        views[library] = {
+          query: rebuildQuery({
+            text: '',
+            extreme: action.preferencesData.browsePageShowExtreme,
+            library: library,
+            playlistId: undefined,
+            searchLimit: action.preferencesData.searchLimit,
+            order: {
+              orderBy: action.preferencesData.gamesOrderBy,
+              orderReverse: action.preferencesData.gamesOrder
+            },
+            tagFilters: action.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !action.preferencesData.browsePageShowExtreme))
+          }),
+          pageState: {},
+          meta: undefined,
+          metaState: RequestState.WAITING,
+          games: {},
+          queryId: 0,
+          isDirty: false,
+          total: undefined,
+          selectedGameId: undefined,
+          lastStart: 0,
+          lastCount: 0,
+          tagFilters: [],
+        };
+      }
+
+      return {
+        ...state,
+        views
+      };
+    }
   }
 }
+
+const defaultSuggestionsState: GamePropSuggestions = {
+  platform: [],
+  playMode: [],
+  status: [],
+  applicationPath: [],
+  tags: [],
+  library: []
+};
 
 function createInitialState(): MainState {
   return {
@@ -434,13 +489,16 @@ function createInitialState(): MainState {
     mad4fpEnabled: false,
     playlists: [],
     playlistIconCache: {},
-    suggestions: {},
+    suggestions: { ...defaultSuggestionsState },
     appPaths: {},
     platforms: {},
     loaded: {
-      0: false,
-      1: false,
-      2: false,
+      [BackInit.SERVICES]: false,
+      [BackInit.DATABASE]: false,
+      [BackInit.PLAYLISTS]: false,
+      [BackInit.CURATE]: false,
+      [BackInit.EXEC_MAPPINGS]: false,
+      [BackInit.EXTENSIONS]: false
     },
     themeList: [],
     logoSets: [],
@@ -468,12 +526,16 @@ function createInitialState(): MainState {
     extConfigs: [],
     devScripts: [],
     contextButtons: [],
+    curationTemplates: [],
     services: [],
     downloadOpen: false,
     downloadPercent: 0,
     downloadSize: 0,
     downloadVerifying: false,
+    taskBarOpen: false,
     isEditingGame: false,
+    loadedAll: new Gate(),
+    updateFeedMarkdown: '',
     busyGames: [],
   };
 }

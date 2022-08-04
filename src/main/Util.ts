@@ -33,12 +33,10 @@ export const isDev: boolean = (function() {
  * Get the path of the folder containing the config and preferences files.
  * @param installed If the application is installed (instead of portable).
  */
-export function getMainFolderPath(installed: boolean | undefined): string {
-  return installed
-    ? path.join(app.getPath('appData'), 'flashpoint-launcher') // Installed
-    : isDev
-      ? process.cwd() // Dev
-      : process.platform == 'darwin'
-        ? path.resolve(path.dirname(app.getPath('exe')), '../../..')
-        : path.dirname(app.getPath('exe')); // Portable
+export function getMainFolderPath(): string {
+  return isDev
+    ? process.cwd() // Dev
+    : process.platform == 'darwin'
+      ? path.resolve(path.dirname(app.getPath('exe')), '../../..')
+      : path.dirname(app.getPath('exe')); // Portable
 }

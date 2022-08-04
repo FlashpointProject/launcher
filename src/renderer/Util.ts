@@ -2,8 +2,8 @@ import { Game } from '@database/entity/Game';
 import * as remote from '@electron/remote';
 import { BackIn } from '@shared/back/types';
 import { parseSearchText } from '@shared/game/GameFilter';
-import { TagFilterGroup } from '@shared/preferences/interfaces';
 import { getFileServerURL } from '@shared/Util';
+import { TagFilterGroup } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as path from 'path';
 import { GameOrderChangeEvent } from './components/GameOrder';
@@ -111,6 +111,14 @@ export function getExtremeIconURL(version: number): string {
 
 export function getExtIconURL(id: string): string {
   return `${getFileServerURL()}/exticons/${id}`;
+}
+
+export function getCurationURL(folder: string): string {
+  return `${getFileServerURL()}/curations/${folder}`;
+}
+
+export function getCurationPostURL(): string {
+  return `${getFileServerURL()}/curation`;
 }
 
 export function getGameImagePath(folderName: string, gameId: string): string {

@@ -1,5 +1,4 @@
 import { ApiEmitter } from '@back/extensions/ApiEmitter';
-import { chunkArray } from '@shared/utils/misc';
 import { validateSqlName, validateSqlOrder } from '@back/util/sql';
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
@@ -10,15 +9,16 @@ import { TagAlias } from '@database/entity/TagAlias';
 import { PageKeyset, PageTuple, RequestGameRange, ResponseGameRange, ViewGame } from '@shared/back/types';
 import { VIEW_PAGE_SIZE } from '@shared/constants';
 import { FilterGameOpts } from '@shared/game/GameFilter';
-import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { tagSort } from '@shared/Util';
 import { Coerce } from '@shared/utils/Coerce';
+import { chunkArray } from '@shared/utils/misc';
+import { GameOrderBy, GameOrderReverse } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as TagManager from './TagManager';
 import { Brackets, FindOneOptions, SelectQueryBuilder } from 'typeorm';
-import * as GameDataManager from './GameDataManager';
 import { AppDataSource } from '..';
+import * as GameDataManager from './GameDataManager';
+import * as TagManager from './TagManager';
 
 const exactFields = [ 'broken', 'library', 'activeDataOnDisk' ];
 enum flatGameFields {
@@ -245,15 +245,23 @@ export async function findPlatformAppPaths(platform: string): Promise<string[]> 
   return Coerce.strArray(values.map(v => v['game_applicationPath']));
 }
 
-export async function findUniqueValues(entity: any, column: string): Promise<string[]> {
+export async function findUniqueValues(entity: any, column: string, commaSeperated?: boolean): Promise<string[]> {
   validateSqlName(column);
 
   const repository = AppDataSource.getRepository(entity);
-  const values = await repository.createQueryBuilder('entity')
+  const rawValues = await repository.createQueryBuilder('entity')
   .select(`entity.${column}`)
   .distinct()
   .getRawMany();
-  return Coerce.strArray(values.map(v => v[`entity_${column}`]));
+  const values = Coerce.strArray(rawValues.map(v => v[`entity_${column}`]));
+  if (commaSeperated) {
+    const set = new Set(values.reduce<string[]>((prev, cur) => {
+      return prev.concat(cur.split(';').map(c => c.trim()));
+    }, []));
+    return Array.from(set);
+  } else {
+    return values;
+  }
 }
 
 export async function findUniqueValuesInOrder(entity: any, column: string): Promise<string[]> {

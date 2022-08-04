@@ -196,7 +196,7 @@ body {
 }
 .simple-dropdown__content {
   z-index: 10;
-  width: var(--width);
+  width: inherit;
   display: block;
   position: absolute;
   /* Pimp */
@@ -956,91 +956,112 @@ body {
   height: 100%;
   display: flex;
 }
-.curate-page__inner {
-  width: 100%;
-  display: flex;
-  margin: 0 auto;
+.curate-page__left {
+  --image-size: 1.45rem;
+  --image-padding: 0.15rem;
+  width: 16rem;
+  flex: 0 0 auto;
   overflow: auto;
 }
 .curate-page__center {
-  width: 40em;
+  flex: 1 1 auto;
+  overflow: auto;
 }
-.curate-page input[type="checkbox"] {
-  width: 1rem;
-  height: 1rem;
-  margin-left: 0.4rem;
+.curate-page__header-text {
+  margin-top: 1rem;
+  width: 100%;
+  text-align: center;
+  font-size: 2em;
 }
-/* (Edit how other classes appear in this page) */
-.curate-page .input-dropdown__content {
-  max-height: 25rem;
+.curate-page__right {
+  width: 16rem;
+  flex: 0 0 auto;
+  flex-direction: column;
+  overflow: auto;
+}
+.curate-page__right--header {
+  text-align: center;
+  font-size: 1.25em;
+}
+.curate-page__right--section {
+  margin: 1% 5%;
+}
+.curate-page__right--button {
+  width: 100%;
+  margin-bottom: 0.2rem;
+}
+.curate-page__right--checkbox {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  margin-top: 0.5rem;
+}
+.curate-page__right-dropdown-content {
+  display: flex;
+}
+.curate-page__right-dropdown-content-icon {
+  width: 1.5rem;
+  background-repeat: no-repeat;
+  background-size: contain;
 }
 .curate-page .input-field--multiline.input-field--edit {
   height: 5em;
 }
-/* Curate Page Floating Box */
-.curate-page__floating-box {
-  position: fixed;
-  display: flex;
-  flex-direction: column;
-  margin: 1.5rem;
+
+.curate-page-keybinds {
+  position: absolute;
+  width: 2rem;
+  height: 2rem;
   padding: 0.5rem;
-  /* Border */
-  border-radius: 0.2em;
-  border: 1px solid;
-  max-width: 13rem;
 }
-.curate-page__floating-box > * {
-  margin: 0.125rem 0;
+.curate-page-keybinds:hover .curate-page-keybinds-box {
+  display: initial;
 }
-.curate-page__floating-box__divider {
-  height: 1rem;
+.curate-page-keybinds-box {
+  z-index: 10;
+  display: none;
+  position: absolute;
+  white-space: nowrap;
+  margin-left: 1.5rem;
+  padding: 0.5rem;
 }
-/* Curate Page right panel checkbox item */
-.curate-page__checkbox {
+.curate-page-keybinds-box-combo {
+  display: inline-table;
+  margin-right: 0.2rem;
+}
+
+/* Curate Box */
+.curate-box {
+  min-height: 100%;
+  padding: 0.5rem 0;
+  --columns: 2;
+  --column-width: 40em;
+  --column-gutter: 2em;
+}
+.curate-box .input-dropdown__content {
+  max-height: 20rem;
+}
+.curate-box__columns {
+  margin: auto;
+  --column-gutter: 0.1rem;
+}
+.curate-box__images {
+  position: relative;
+  height: 10rem;
   display: flex;
-  align-items: center;
-}
-.curate-page__checkbox-text {
-  text-align: center;
-  margin: 0 0.2rem;
-  flex-grow: 1;
-  font-size: 0.75em;
-  user-select: none;
-}
-/* Curate Page Left Sidebar */
-.curate-page__left-sidebar__sort-button {
-  width: 100%;
 }
 .curate-page__left-sidebar-item {
   display: flex;
-  align-items: center;
+  height: 10rem;
+  margin: 0.35rem 0;
+}
+.curate-page__left-sidebar__sort-button {
   width: 100%;
-  padding: 0.2rem 0.2rem;
-  font-weight: bold;
-  --image-size: 1.45rem;
 }
-.curate-page__left-sidebar-item__icon {
-  width: var(--image-size);
-  height: var(--image-size);
-  margin: 0.1rem 0.5rem 0.1rem 0.15rem;
-  flex: none;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-}
-.curate-page__left {
-  flex-grow: 0.5;
-}
-.curate-page__right {
-  flex: auto;
-}
-/* Curate Box */
-.curate-box {
-  margin: 1.5rem 0;
-  padding: 0.5rem;
-  border: 1px solid;
-  border-radius: 0.4rem;
-}
+
+
 .curate-box__placeholder {
   text-align: center;
   font-weight: bold;
@@ -1052,6 +1073,18 @@ body {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
+}
+.curate-box-content__depth {
+  border-left: 1px dotted;
+}
+.curate-box-content__entry {
+  display: flex;
+}
+.curate-box-content__entry-icon {
+  height: 1em;
+}
+.curate-box-content__entry-icon--collapse {
+  cursor: pointer;
 }
 /* Curate Box Image Titles */
 .curate-box-image-titles {
@@ -1100,9 +1133,6 @@ body {
   border-spacing: 0.2rem;
 }
 /* Curate Box Row */
-.curate-box-row {
-
-}
 .curate-box-row__title {
   padding-right: 0.4em;
   user-select: none;
@@ -1125,7 +1155,8 @@ body {
   user-select: none;
 }
 .curate-box-files__body {
-  max-height: 25rem;
+  min-height: 10rem;
+  max-height: 40rem;
   overflow: auto;
 }
 /* Curate Box Warnings */
@@ -1155,6 +1186,71 @@ body {
 }
 .curate-box-buttons__button:last-child {
   margin-right: 0;
+}
+/* Curate List Item */
+.curate-list-item {
+  display: flex;
+  width: 100%;
+  height: 1.3rem;
+  padding: 0.1rem;
+  user-select: none;
+}
+.curate-list-item:nth-child(n+2) { /* All but first */
+  border-top: solid 1px;
+}
+.curate-list-group__header {
+  margin: 0.2rem 0.2rem 0 0.2rem;
+  padding: 0.2rem;
+  font-weight: bold;
+  display: flex;
+}
+.curate-list-group__header-text {
+  display: flex;
+  flex-grow: 1;
+}
+.curate-list-group__header-text--name {
+  flex-grow: 1;
+}
+.curate-list-group__header-text--counter {
+  flex-grow: 0;
+}
+.curate-list-group__header-caret {
+  padding: 0 0.2rem;
+}
+.curate-list-group__header-pin {
+  padding: 0 0.2rem;
+}
+.curate-list-item__icon {
+  flex: 0 0 auto;
+  width: 1rem;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.curate-list-item__title {
+  flex: 1 1 auto;
+  padding-left: 0.2rem;
+  /* Truncates the overflowing text */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Curate Tag (Game tag for the curate page) */
+.curate-tag {
+  display: inline-block;
+  margin-right: 0.5rem;
+  padding: 0 0.25rem;
+  user-select: none;
+}
+.curate-tag__icon {
+  width: 0.6rem;
+  height: 0.6rem;
+  margin-right: 0.2rem;
+}
+
+/* Tag Dropdown Item */
+.tag-dropdown-item {
+
 }
 
 
@@ -2715,4 +2811,64 @@ body {
 .checkbox__text {
   font-size: 0.6rem;
   text-align: center;
+}
+
+/** Tasks */
+
+.task-bar--header {
+  width: 100%;
+  height: 1rem;
+}
+
+.task-bar--header-chevron {
+  height: 1rem;
+  width: 100%;
+  text-align: center;
+}
+
+.task-bar {
+  width: 100%;
+  height: 10%;
+  overflow-y: auto;
+}
+
+.task-bar-empty {
+  height: 100%;
+  width: 100%;
+  text-align: center;
+}
+
+.task {
+  width: 100%;
+  margin-bottom: 0.25rem;
+  padding: 0 0.5rem;
+}
+
+.task--upper {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
+.task--lower {
+  width: 100%;
+}
+
+.task-name {
+  flex: 0 0 35%;
+}
+
+.task-progress-bar {
+  margin-right: 0.5rem;
+  margin-left: 0.5rem;
+  width: 100%;
+  display: flex;
+}
+
+.task-progress-bar--fill-animated {
+  transition: .2s;
+}
+
+.task-status {
+  font-size: 0.8em;
 }

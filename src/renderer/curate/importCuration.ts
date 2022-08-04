@@ -1,63 +1,11 @@
-import { CurationIndexImage, IndexedContent } from '@shared/curate/types';
-import { recursiveFolderIndex } from '@shared/curate/util';
+import { CurationIndexImage } from '@shared/curate/OLD_types';
+import { uuid, validateSemiUUID } from '@shared/utils/uuid';
 import * as fs from 'fs-extra';
 import { extractFull } from 'node-7z';
 import * as path from 'path';
 import { ProgressDispatch, ProgressHandle } from '../context/ProgressContext';
 import { pathTo7z } from '../util/SevenZip';
-import { uuid, validateSemiUUID } from '@shared/utils/uuid';
 import { curationLog } from './util';
-
-/**
- * Import a curation meta file (Copy meta to unique folder)
- * @param filePath Path of the meta file to import
- * @return Curation key
- */
-export async function importCurationMeta(filePath: string, key: string = uuid()): Promise<string> {
-  const curationPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations', 'Working', key);
-  const metaPath = path.join(curationPath, 'meta' + path.extname(filePath));
-  try {
-    // Set up Curation folder
-    await fs.ensureDir(curationPath);
-    await fs.copyFile(filePath, metaPath);
-    await fs.mkdir(path.join(curationPath, 'content'));
-  } catch (error: any) {
-    curationLog('Error importing curation meta - ' + error.message);
-    console.error(error);
-  }
-  return key;
-}
-
-/**
- * Import a curation folder (Copy all files to unique folder)
- * @param filePath Path of the folder to import
- * @return Curation key
- */
-export async function importCurationFolder(filePath: string, key: string = uuid(), progress: ProgressHandle): Promise<string> {
-  ProgressDispatch.setText(progress, 'Importing Curation Folder');
-  const curationPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations', 'Working', key);
-  try {
-    // Index the folder we're going to import
-    const index: IndexedContent[] = [];
-    await recursiveFolderIndex(filePath, filePath, index);
-    ProgressDispatch.setTotalItems(progress, index.length);
-    for (const file of index) {
-      // Copy file from import folder to curation folder, increment progress (if available)
-      const sourcePath = path.join(filePath, file.filePath);
-      const destPath = path.join(curationPath, file.filePath);
-      await fs.ensureDir(path.dirname(destPath));
-      await fs.copyFile(sourcePath, destPath);
-      ProgressDispatch.countItem(progress);
-    }
-  } catch (error: any) {
-    curationLog('Error importing curation folder - ' + error.message);
-    console.error(error);
-  } finally {
-    // Mark progress as finished
-    ProgressDispatch.finished(progress);
-  }
-  return key;
-}
 
 /**
  * Import a curation archive (Extract all files to unique folder)

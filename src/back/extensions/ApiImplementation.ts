@@ -1,34 +1,56 @@
 import { EXT_CONFIG_FILENAME, PREFERENCES_FILENAME } from '@back/constants';
+import { loadCurationIndexImage } from '@back/curate/parse';
+import { duplicateCuration, genCurationWarnings } from '@back/curate/util';
+import { saveCuration } from '@back/curate/write';
 import { ExtConfigFile } from '@back/ExtConfigFile';
 import * as GameDataManager from '@back/game/GameDataManager';
 import * as GameManager from '@back/game/GameManager';
 import * as SourceManager from '@back/game/SourceManager';
 import * as TagManager from '@back/game/TagManager';
 import { DisposableChildProcess, ManagedChildProcess } from '@back/ManagedChildProcess';
+import { genContentTree } from '@back/rust';
 import { BackState, StatusState } from '@back/types';
 import { clearDisposable, dispose, newDisposable, registerDisposable } from '@back/util/lifecycle';
-import { createPlaylistFromJson, getOpenMessageBoxFunc, getOpenOpenDialogFunc, getOpenSaveDialogFunc, removeService, runService, setStatus } from '@back/util/misc';
+import {
+  createPlaylistFromJson,
+  deleteCuration,
+  getOpenMessageBoxFunc,
+  getOpenOpenDialogFunc,
+  getOpenSaveDialogFunc,
+  removeService,
+  runService,
+  setStatus
+} from '@back/util/misc';
 import { pathTo7zBack } from '@back/util/SevenZip';
 import { Game } from '@database/entity/Game';
 import { BackOut } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
-import { IExtensionManifest } from '@shared/extensions/interfaces';
-import { ProcessState } from '@shared/interfaces';
+import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
+import { CurationMeta, LoadedCuration } from '@shared/curate/types';
+import { getContentFolderByKey } from '@shared/curate/util';
+import { CurationTemplate, IExtensionManifest } from '@shared/extensions/interfaces';
+import { ProcessState, Task } from '@shared/interfaces';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { overwritePreferenceData } from '@shared/preferences/util';
+import { formatString } from '@shared/utils/StringFormatter';
 import * as flashpoint from 'flashpoint-launcher';
+import * as fs from 'fs';
 import { extractFull } from 'node-7z';
 import * as path from 'path';
+import { loadCurationArchive } from '..';
 import { newExtLog } from './ExtensionUtils';
 import { Command } from './types';
+import uuid = require('uuid');
 
 /**
  * Create a Flashpoint API implementation specific to an extension, used during module load interception
+ * @param extId Extension ID
  * @param extManifest Manifest of the caller
- * @param registry Registry to register commands etc. to
  * @param addExtLog Function to add an Extensions log to the Logs page
  * @param version Version of the Flashpoint Launcher
+ * @param state Back State
+ * @param extPath Folder Path to the Extension
  * @returns API Implementation specific to the caller
  */
 export function createApiFactory(extId: string, extManifest: IExtensionManifest, addExtLog: (log: ILogEntry) => void, version: string, state: BackState, extPath?: string): typeof flashpoint {
@@ -74,6 +96,10 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     state.extConfig[key] = value;
     await ExtConfigFile.saveFile(path.join(state.config.flashpointPath, EXT_CONFIG_FILENAME), state.extConfig);
     state.socketServer.broadcast(BackOut.UPDATE_EXT_CONFIG_DATA, state.extConfig);
+  };
+
+  const focusWindow = () => {
+    state.socketServer.broadcast(BackOut.FOCUS_WINDOW);
   };
 
   // Log Namespace
@@ -211,8 +237,8 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     findGameData: GameDataManager.findGameData,
     findSourceDataForHashes: GameDataManager.findSourceDataForHashes,
     save: GameDataManager.save,
-    importGameData: (gameId, filePath) => GameDataManager.importGameData(gameId, filePath, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath)),
-    downloadGameData: async (gameDataId) => {
+    importGameData: (gameId: string, filePath: string) => GameDataManager.importGameData(gameId, filePath, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath)),
+    downloadGameData: async (gameDataId: number) => {
       const onProgress = (percent: number) => {
         // Sent to PLACEHOLDER download dialog on client
         state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT, percent);
@@ -245,6 +271,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     findTags: TagManager.findTags,
     createTag: TagManager.createTag,
     saveTag: TagManager.saveTag,
+    addAliasToTag: TagManager.addAliasToTag,
     deleteTag: (tagId: number, skipWarn?: boolean) => {
       const openDialogFunc = getOpenMessageBoxFunc(state.socketServer);
       if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
@@ -277,7 +304,18 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
 
   const extStatus: typeof flashpoint.status = {
     setStatus: <T extends keyof StatusState>(key: T, val: StatusState[T]) => setStatus(state, key, val),
-    getStatus: <T extends keyof StatusState>(key: T): StatusState[T] => state.status[key]
+    getStatus: <T extends keyof StatusState>(key: T): StatusState[T] => state.status[key],
+    newTask: (task: flashpoint.PreTask) => {
+      const newTask: Task = {
+        ...task,
+        id: uuid()
+      };
+      state.socketServer.broadcast(BackOut.CREATE_TASK, newTask);
+      return newTask;
+    },
+    setTask: (taskId: string, taskData: Partial<Task>) => {
+      state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, taskData);
+    },
   };
 
   const extServices: typeof flashpoint.services = {
@@ -327,6 +365,143 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     }
   };
 
+  const extCurations: typeof flashpoint.curations = {
+    loadCurationArchive: async (filePath: string, taskId?: string) => {
+      if (taskId) {
+        state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
+          status: `Loading ${filePath}`
+        });
+      }
+      const curState = await loadCurationArchive(filePath)
+      .catch((error) => {
+        log.error('Curate', `Failed to load curation archive! ${error.toString()}`);
+        state.socketServer.broadcast(BackOut.OPEN_ALERT, formatString(state.languageContainer['dialog'].failedToLoadCuration, error.toString()));
+      });
+      if (taskId) {
+        state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
+          status: '',
+          finished: true
+        });
+      }
+      if (curState) {
+        return curState;
+      } else {
+        throw new Error('Failed to import');
+      }
+    },
+    duplicateCuration: (folder: string) => {
+      return duplicateCuration(folder, state);
+    },
+    getCurations: () => {
+      return [...state.loadedCurations];
+    },
+    async getCurationTemplates(): Promise<CurationTemplate[]> {
+      const contribs = await state.extensionsService.getContributions('curationTemplates');
+      return contribs.reduce<CurationTemplate[]>((prev, cur) => prev.concat(cur.value), []);
+    },
+    getCuration: (folder: string) => {
+      const curation = state.loadedCurations.find(c => c.folder === folder);
+      return curation ? {...curation} : undefined;
+    },
+    get onDidCurationListChange() {
+      return apiEmitters.curations.onDidCurationListChange.event;
+    },
+    get onDidCurationChange() {
+      return apiEmitters.curations.onDidCurationChange.event;
+    },
+    get onWillGenCurationWarnings() {
+      return apiEmitters.curations.onWillGenCurationWarnings.event;
+    },
+    setCurationGameMeta: (folder: string, meta: flashpoint.CurationMeta) => {
+      const curation = state.loadedCurations.find(c => c.folder === folder);
+      if (curation) {
+        if (curation.locked) {
+          return false;
+        }
+        curation.game = meta;
+        state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
+        return true;
+      } else {
+        throw 'Not a valid curation folder';
+      }
+    },
+    setCurationAddAppMeta: (folder: string, key: string, meta: flashpoint.AddAppCurationMeta) => {
+      const curation = state.loadedCurations.find(c => c.folder === folder);
+      if (curation) {
+        if (curation.locked) {
+          return false;
+        }
+        const addAppIdx = curation.addApps.findIndex(a => a.key === key);
+        if (addAppIdx !== -1) {
+          const existingAddApp = curation.addApps[addAppIdx];
+          curation.addApps[addAppIdx] = {
+            key: existingAddApp.key,
+            ...meta
+          };
+          state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
+          return true;
+        } else {
+          throw 'Not a valid add app.';
+        }
+      } else {
+        throw 'Not a valid curation folder';
+      }
+    },
+    selectCurations: (folders: string[]) => {
+      state.socketServer.broadcast(BackOut.CURATE_SELECT_CURATIONS, folders);
+    },
+    updateCurationContentTree: async (folder: string) => {
+      const curationIdx = state.loadedCurations.findIndex(c => c.folder === folder);
+      if (curationIdx !== -1) {
+        const curation = state.loadedCurations[curationIdx];
+        return genContentTree(getContentFolderByKey(curation.folder, state.config.flashpointPath))
+        .then((contentTree) => {
+          const idx = state.loadedCurations.findIndex(c => c.folder === folder);
+          if (idx > -1) {
+            state.loadedCurations[idx].contents = contentTree;
+            state.socketServer.broadcast(BackOut.CURATE_CONTENTS_CHANGE, folder, contentTree);
+            return contentTree;
+          }
+        });
+      } else {
+        throw 'No curation with that folder.';
+      }
+    },
+    newCuration: async (meta?: CurationMeta) => {
+      const folder = uuid();
+      const curPath = path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, folder);
+      await fs.promises.mkdir(curPath, { recursive: true });
+      const contentFolder = path.join(curPath, 'content');
+      await fs.promises.mkdir(contentFolder, { recursive: true });
+
+      const data: LoadedCuration = {
+        folder,
+        uuid: uuid(),
+        group: '',
+        game: meta || {},
+        addApps: [],
+        thumbnail: await loadCurationIndexImage(path.join(curPath, 'logo.png')),
+        screenshot: await loadCurationIndexImage(path.join(curPath, 'ss.png'))
+      };
+      const curation: flashpoint.CurationState = {
+        ...data,
+        alreadyImported: false,
+        warnings: await genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onWillGenCurationWarnings),
+        contents: await genContentTree(getContentFolderByKey(folder, state.config.flashpointPath))
+      };
+      await saveCuration(curPath, curation);
+      state.loadedCurations.push(curation);
+      state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
+      return curation;
+    },
+    deleteCuration: (folder: string) => {
+      return deleteCuration(state, folder);
+    },
+    getCurationPath: (folder: string) => {
+      return path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, folder);
+    }
+  };
+
   // Create API Module to give to caller
   return <typeof flashpoint>{
     // General information
@@ -342,10 +517,12 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     getExtConfigValue: getExtConfigValue,
     setExtConfigValue: setExtConfigValue,
     onExtConfigChange: state.apiEmitters.ext.onExtConfigChange.event,
+    focusWindow: focusWindow,
 
     // Namespaces
     log: extLog,
     commands: extCommands,
+    curations: extCurations,
     games: extGames,
     gameData: extGameData,
     sources: extSources,

@@ -2,7 +2,9 @@
 const fs = require('fs-extra');
 const gulp = require('gulp');
 const builder = require('electron-builder');
-const { exec } = require('child_process');
+const { parallel, series } = require('gulp');
+const { buildExtensions, watchExtensions } = require('./gulpfile.extensions');
+const { execute } = require('./gulpfile.util');
 
 const packageJson = JSON.parse(fs.readFileSync('./package.json'));
 const config = {
@@ -21,6 +23,14 @@ const config = {
     src: './src/back',
   }
 };
+// Copy extensions after packing
+const extraResources = [
+  {
+    from: './extensions',
+    to: './extensions',
+    filter: ['!**/node_modules/**']
+  }
+];
 // Files to copy after packing
 const copyFiles = [
   {
@@ -45,7 +55,6 @@ const copyFiles = [
   },
   './lang',
   './licenses',
-  './.installed',
   'ormconfig.json',
   {
     from: './LICENSE',
@@ -96,50 +105,45 @@ const publishInfo = [
 
 /* ------ Watch ------ */
 
-gulp.task('watch-back', (done) => {
+function watchBack(done) {
   execute('npx ttsc --project tsconfig.backend.json --pretty --watch', done);
-});
+}
 
-gulp.task('watch-renderer', (done) => {
+function watchRenderer(done) {
   const mode = config.isRelease ? 'production' : 'development';
   execute(`npx webpack --mode "${mode}" --watch`, done);
-});
+}
 
-gulp.task('watch-static', () => {
-  gulp.watch(config.static.src+'/**/*', gulp.task('copy-static'));
-});
-
+function watchStatic() {
+  gulp.watch(config.static.src+'/**/*', buildStatic);
+}
 
 /* ------ Build ------ */
 
-gulp.task('build-back', (done) => {
-  execute('npx ttsc --project tsconfig.backend.json --pretty', done);
-});
+function buildRust(done) {
+  execute('npx cargo-cp-artifact -a cdylib fp-rust ./build/back/fp-rust.node -- cargo build --message-format=json-render-diagnostics', done);
+}
 
-gulp.task('build-renderer', (done) => {
+function buildBack(done) {
+  execute('npx ttsc --project tsconfig.backend.json --pretty', done);
+}
+
+function buildRenderer(done) {
   const mode = config.isRelease ? 'production' : 'development';
   execute(`npx webpack --mode "${mode}"`, done);
-});
+}
 
-gulp.task('copy-static', () => {
+function buildStatic() {
   return gulp.src(config.static.src+'/**/*').pipe(gulp.dest(config.static.dest));
-});
+}
 
-gulp.task('config-install', (done) => {
-  if (config.isStaticInstall) {
-    fs.createFile('.installed', done);
-  } else {
-    fs.remove('.installed', done);
-  }
-});
-
-gulp.task('config-version', (done) => {
+function configVersion(done) {
   fs.writeFile('.version', config.buildVersion, done);
-});
+}
 
 /* ------ Pack ------ */
 
-gulp.task('pack', (done) => {
+function pack(done) {
   const publish = config.isRelease ? publishInfo : []; // Uses Git repo for unpublished builds
   const extraOpts = config.isRelease ? extraOptions : {};
   console.log(config.isRelease);
@@ -156,6 +160,7 @@ gulp.task('pack', (done) => {
         './build',
       ],
       extraFiles: copyFiles, // Files to copy to the build folder
+      extraResources: extraResources, // Copy System Extensions
       compression: 'maximum', // Only used if a compressed target (like 7z, nsis, dmg etc.)
       target: 'dir',
       asar: true,
@@ -176,22 +181,33 @@ gulp.task('pack', (done) => {
   })
   .then(()         => { console.log('Pack - Done!');         })
   .catch((error)   => { console.log('Pack - Error!', error); })
-  .then(done);
-});
+  .finally(done);
+}
 
 /* ------ Meta Tasks ------*/
 
-gulp.task('watch', gulp.parallel('watch-back', 'watch-renderer', 'watch-static', 'copy-static'));
+exports.build = series(
+  parallel(
+    buildRust,
+    buildBack,
+    buildRenderer,
+    buildExtensions,
+    buildStatic,
+    configVersion
+  )
+);
 
-gulp.task('build', gulp.parallel('build-back', 'build-renderer', 'copy-static', 'config-install', 'config-version'));
+exports.watch = series(
+  parallel(
+    buildRust,
+    watchBack,
+    watchRenderer,
+    watchExtensions,
+    buildStatic,
+    watchStatic
+  ),
+);
 
-/* ------ Misc ------*/
-
-function execute(command, callback) {
-  const child = exec(command);
-  child.stderr.on('data', data => { console.log(data); });
-  child.stdout.on('data', data => { console.log(data); });
-  if (callback) {
-    child.once('exit', () => { callback(); });
-  }
-}
+exports.pack = series(
+  pack
+);

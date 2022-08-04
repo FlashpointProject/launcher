@@ -1,8 +1,8 @@
 import { AppConfigData } from '@shared/config/interfaces';
 import { getDefaultConfigData, overwriteConfigData } from '@shared/config/util';
-import { AppPreferencesData } from '@shared/preferences/interfaces';
 import { defaultPreferencesData, overwritePreferenceData } from '@shared/preferences/util';
 import { deepCopy } from '@shared/Util';
+import { AppPreferencesData } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as os from 'os';
 import * as path from 'path';
@@ -126,6 +126,25 @@ describe('Configuration Files', () => {
       'searchLimit': 100,
       'onlineManual': 'test',
       'offlineManual': 'test',
+      'groups': [{
+        name: 'test',
+        icon: 'test'
+      }],
+      'shortcuts': {
+        'curate': {
+          prev: ['ctrl+p', 'cmd+arrowup'],
+          next: ['ctrl+p', 'cmd+arrowdown'],
+          load: ['ctrl+p', 'cmd+o'],
+          newCur: ['ctrl+p', 'cmd+n'],
+          deleteCurs: ['ctrl+p', 'cmd+delete'],
+          exportCurs: ['ctrl+p', 'cmd+s'],
+          exportDataPacks: ['ctrl+shift+p', 'cmd+shift+s'],
+          importCurs: ['ctrl+p', 'cmd+i'],
+          refresh: ['ctrl+p', 'cmd+p'],
+          run: ['ctrl+p', 'cmd+t'],
+          runMad4fp: ['ctrl+shift+p', 'cmd+shift+t']
+        }
+      }
     };
     const newData = deepCopy(defaultPreferencesData);
     overwritePreferenceData(newData, data);

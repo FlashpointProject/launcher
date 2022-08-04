@@ -7,6 +7,8 @@ import { IExtension, IExtensionManifest } from '@shared/extensions/interfaces';
 import { ILogEntry } from '@shared/Log/interface';
 import * as flashpoint from 'flashpoint-launcher';
 import { createApiFactory } from './ApiImplementation';
+import * as Database from 'better-sqlite3';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 
 type LoadFunction = {
   (request: string): any;
@@ -121,5 +123,13 @@ export class FPLNodeModuleFactory implements INodeModuleFactory {
         this._state);
     }
     return this._defaultApiImpl;
+  }
+}
+
+export class SqliteInterceptorFactory implements INodeModuleFactory {
+  public readonly nodeModuleName = 'better-sqlite3';
+
+  public load(_request: string, parent: string): any {
+    return Database;
   }
 }

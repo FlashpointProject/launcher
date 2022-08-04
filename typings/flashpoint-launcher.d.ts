@@ -1,4 +1,4 @@
-// Type definitions for non-npm package flashpoint-launcher 10.2
+// Type definitions for non-npm package flashpoint-launcher 11
 // Project: Flashpoint Launcher https://github.com/FlashpointProject/launcher
 // Definitions by: Colin Berry <https://github.com/colin969>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
@@ -20,7 +20,7 @@
 declare module 'flashpoint-launcher' {
     /** Version of the Flashpoint Launcher */
     const version: string;
-    
+
     /** Data Version of the Flashpoint Launcher */
     const dataVersion: string | undefined;
 
@@ -56,7 +56,7 @@ declare module 'flashpoint-launcher' {
      * Unzips a file into a given directory (7zip)
      * @param filePath Path to archive
      * @param outDir Directory to output into
-     * @param onProgress Function called whenever a new file is extracted
+     * @param opts SevenZip Extraction Options
      */
     function unzipFile(filePath: string, outDir: string, opts: ZipExtractOptions): Promise<void>;
 
@@ -72,6 +72,10 @@ declare module 'flashpoint-launcher' {
      * Fires when an extension configuration value changes
      */
     const onExtConfigChange: Event<{key: string, value: any}>;
+    /**
+     * Focusses the Flashpoint Window
+     */
+    function focusWindow(): void;
 
     /**
      * Log functions to properly pass messages to the Logs Page.
@@ -94,6 +98,73 @@ declare module 'flashpoint-launcher' {
          * @returns Disposable to register to context.subscriptions
          */
         function registerCommand(command: string, callback: (...args: any[]) => any): Disposable;
+    }
+
+    namespace curations {
+        /** Loads the Curation Archive at the path
+         * @param filePath Path to the archive
+         * @param taskId ID of Task to update progress on (See Status Namespace)
+         */
+        function loadCurationArchive(filePath: string, taskId?: string): Promise<LoadedCuration>;
+        /** Get all loaded curations */
+        function getCurations(): CurationState[];
+        /** Get all curation templates */
+        function getCurationTemplates(): Promise<CurationTemplate[]>;
+        /**
+         * Gets a curation given its folder
+         * @param folder Folder name of the curation
+         */
+        function getCuration(folder: string): CurationState | undefined;
+        /**
+         * Writes metadata to a loaded curation
+         * @param folder Folder name of the curation
+         * @param meta Metadata to write
+         */
+        function setCurationGameMeta(folder: string, meta: CurationMeta): boolean;
+        /**
+         * Writes metadata to a loaded curation's AddApp
+         * @param folder Folder name of the curation
+         * @param key Key of the AddApp
+         * @param meta AddApp Metadata to write
+         */
+        function setCurationAddAppMeta(folder: string, key: string, meta: AddAppCurationMeta): boolean;
+        /** Selects all given curations (if exist) 
+         * @param folders Folder names of curations to select
+        */
+        function selectCurations(folders: string[]): void;
+        /**
+         * Updates a curations content tree
+         * @param folder Folder name of the curation
+         */
+        function updateCurationContentTree(folder: string): Promise<ContentTree | undefined>;
+        /** Creates a new curation
+         * @param meta Template Curation Metadata
+         */
+        function newCuration(meta?: CurationMeta): Promise<CurationState>;
+        /**
+         * Deletes a curation
+         * @param folder Folder name of the curation
+         */
+        function deleteCuration(folder: string): Promise<void>;
+        /**
+         * Duplicates a curation
+         * @param folder Folder name of curation
+         * @returns Folder name of duplicate curation
+         */
+        function duplicateCuration(folder: string): Promise<string>;
+        /**
+         * Returns the absolute path to a curations folder
+         * @param folder Folder name of the curation
+         */
+        function getCurationPath(folder: string): string;
+
+        // Events
+        const onDidCurationListChange: Event<{ added?: CurationState[], removed?: string[] }>;
+        const onDidCurationChange: Event<CurationState>;
+        const onWillGenCurationWarnings: Event<{
+            curation: LoadedCuration,
+            warnings: CurationWarnings
+        }>;
     }
 
     /** Collection of Game related API functions */
@@ -120,7 +191,7 @@ declare module 'flashpoint-launcher' {
         function updatePlaylist(playlist: Playlist): Promise<Playlist>;
         /**
          * Removes a playlist
-         * @param playlist Playlist ID to remove
+         * @param playlistId Playlist ID to remove
          * @returns Playlist that was removed
          */
         function removePlaylist(playlistId: string): Promise<Playlist | undefined>;
@@ -277,6 +348,12 @@ declare module 'flashpoint-launcher' {
          */
         function saveTag(tag: Tag): Promise<Tag>;
         /**
+         * Updates a Tag with a new alias
+         * @param tagId Tag to add alias to
+         * @param alias Alias to add to tag
+         */
+        function addAliasToTag(tagId: number, alias: string): Promise<Tag>;
+        /**
          * Removes a Tag (from all Games)
          * @param tagId ID of Tag to remove
          * @param skipWarn If true, warn user before deleting tag from games.
@@ -343,6 +420,8 @@ declare module 'flashpoint-launcher' {
          * @param key Element to view
          */
         function getStatus<T extends keyof StatusState>(key: T): StatusState[T];
+        function newTask(task: PreTask): Task;
+        function setTask(taskId: string, taskData: Partial<Task>): void;
     }
 
     /** Collection of Service related API function */
@@ -351,6 +430,7 @@ declare module 'flashpoint-launcher' {
          * Runs a managed service given info, will die when the launcher exits.
          * @param name Name of the service
          * @param info Service info to run.
+         * @param opts Process Options
          * @param basePath Override for directory to start in (info is relative to this), Extension path if none given
          * @returns A managed process. Can be passed to removeService.
          */
@@ -359,6 +439,7 @@ declare module 'flashpoint-launcher' {
          * Creates a managed process given info, will die when disposed. (Does not start it)
          * @param name Name of the process
          * @param info Process info to run.
+         * @param opts Process Options
          * @param basePath Override for directory to start in (info is relative to this), Extension path if none given
          * @returns A managed process.
          */
@@ -566,7 +647,7 @@ declare module 'flashpoint-launcher' {
         lastUpdated: Date;
         /** Any data provided by this Source */
         data?: SourceData[];
-    }  
+    }
 
     type AdditionalApp = {
         /** ID of the additional application (unique identifier) */
@@ -704,6 +785,8 @@ declare module 'flashpoint-launcher' {
 
     /** Game field to order the results by */
     type GameOrderBy = keyof Game;
+    /** Ways to order games */
+    type GameOrderReverse = 'ASC'|'DESC';
     /** Direction to return the results in (ascending or descending) */
     type GameOrderDirection = 'ASC' | 'DESC';
 
@@ -818,7 +901,7 @@ declare module 'flashpoint-launcher' {
         /** Are these tags considered Extreme? */
         extreme: boolean;
     }
-    
+
     export type TagFilter = string[];
 
     /**
@@ -921,7 +1004,29 @@ declare module 'flashpoint-launcher' {
         disableExtremeGames: boolean;
         /** If games flagged as "broken" should be hidden */
         showBrokenGames: boolean;
+        /** Pair of key combos to shortcuts */
+        shortcuts: Shortcuts;
+        /** Online manual website */
+        onlineManual: string;
+        /** Offline manual path */
+        offlineManual: string;
     };
+
+    type Shortcuts = {
+        curate: {
+            prev: string[];
+            next: string[];
+            load: string[];
+            newCur: string[];
+            deleteCurs: string[];
+            exportCurs: string[];
+            exportDataPacks: string[];
+            importCurs: string[];
+            refresh: string[];
+            run: string[];
+            runMad4fp: string[];
+        }
+    }
 
     type AppPathOverride = {
         path: string;
@@ -1153,4 +1258,137 @@ declare module 'flashpoint-launcher' {
         /** Level of the log, 0-5, Trace, Info, Warn, Error, Fatal, Silent */
         logLevel: number;
     }
+
+    export type LoadedCuration = {
+        folder: string;
+        uuid: string;
+        group: string;
+        game: CurationMeta;
+        addApps: AddAppCuration[];
+        thumbnail: CurationIndexImage;
+        screenshot: CurationIndexImage;
+    }
+
+    export type CurationState = LoadedCuration & {
+        alreadyImported: boolean;
+        warnings: CurationWarnings;
+        locked?: boolean;
+        contents?: ContentTree;
+    }
+
+    export type ContentTree = {
+        root: ContentTreeNode;
+    }
+
+    export type ContentTreeNode = {
+        name: string;
+        /** Frontend - Whether this is expanded in the content tree view */
+        expanded: boolean;
+        /** File size (if type is file) */
+        size?: number;
+        type: 'file' | 'directory';
+        /** Immediate items below this node */
+        children: ContentTreeNode[];
+        /** Number of items below this node */
+        count: number;
+      }
+
+    /** A set of warnings for things that should be fixed in a curation. */
+    export type CurationWarnings = {
+        /** Keys of any field that should be in yellow as a warning */
+        fieldWarnings: string[];
+        /** Text warnings to display at the bottom */
+        writtenWarnings: string[];
+    };
+
+    export type CurationMeta = Partial<{
+        // Game fields
+        title: string;
+        alternateTitles: string;
+        series: string;
+        developer: string;
+        publisher: string;
+        status: string;
+        extreme: boolean;
+        tags: Tag[];
+        source: string;
+        launchCommand: string;
+        library: string;
+        notes: string;
+        curationNotes: string;
+        platform: string;
+        applicationPath: string;
+        playMode: string;
+        releaseDate: string;
+        version: string;
+        originalDescription: string;
+        mountParameters: string;
+        language: string;
+    }>
+
+    export type Task = {
+        id: string;
+        name: string;
+        status: string;
+        finished: boolean;
+        error?: string;
+        progress?: number;
+    }
+
+    export type PreTask = Omit<Task, 'id'>;
+
+    export type AddAppCurationMeta = Partial<{
+        heading: string;
+        applicationPath: string;
+        launchCommand: string;
+    }>
+
+    export type AddAppCuration = {key: string} & AddAppCurationMeta;
+
+    export type CurationIndexImage = {
+        /** Base64 encoded data of the image file (in case it was extracted from an archive). */
+        data?: string;
+        /** Raw data of the image file (in case it was extracted from an archive). */
+        rawData?: Buffer;
+        /** If the images was found. */
+        exists: boolean;
+        /** Name and path of the file (relative to the curation folder). */
+        fileName?: string;
+        /** Full path of the image (in case it was loaded from a folder). */
+        filePath?: string;
+        /** Version to force CSS refresh later */
+        version: number;
+    }
+
+    export interface CurationTemplate {
+        name: string;
+        logo: string;
+        meta: EditCurationMeta;
+    }
+
+    /** Meta data of a curation. */
+    export type EditCurationMeta = Partial<{
+        // Game fields
+        title: string;
+        alternateTitles: string;
+        series: string;
+        developer: string;
+        publisher: string;
+        status: string;
+        extreme: boolean;
+        tags: Tag[];
+        source: string;
+        launchCommand: string;
+        library: string;
+        notes: string;
+        curationNotes: string;
+        platform: string;
+        applicationPath: string;
+        playMode: string;
+        releaseDate: string;
+        version: string;
+        originalDescription: string;
+        language: string;
+        mountParameters: string;
+    }>
 }

@@ -2,8 +2,7 @@ import { BackOut, BackOutTemplate } from '@shared/back/types';
 import { LOGOS, VIEW_PAGE_SIZE } from '@shared/constants';
 import { memoizeOne } from '@shared/memoize';
 import * as React from 'react';
-import { ArrowKeyStepper, AutoSizer, ScrollIndices } from 'react-virtualized';
-import { Grid, GridCellProps, RenderedSection } from 'react-virtualized/dist/es/Grid';
+import { ArrowKeyStepper, AutoSizer, Grid, GridCellProps, ScrollIndices } from 'react-virtualized-reactv17';
 import { UpdateView, ViewGameSet } from '../interfaces';
 import { findElementAncestor, getExtremeIconURL, getGameImageURL } from '../Util';
 import { GameGridItem } from './GameGridItem';
@@ -163,7 +162,7 @@ export class GameGrid extends React.Component<GameGridProps> {
                       // ArrowKeyStepper props
                       scrollToColumn={scrollToColumn}
                       scrollToRow={scrollToRow}
-                      onSectionRendered={(params: RenderedSection) => this.onSectionRendered(params, columns, onSectionRendered)}
+                      onSectionRendered={(params) => this.onSectionRendered(params, columns, onSectionRendered)}
                       // Pass-through props (they have no direct effect on the grid)
                       // (If any property is changed the grid is re-rendered, even these)
                       pass_currentGamesCount={this.currentGamesCount} />
@@ -230,7 +229,7 @@ export class GameGrid extends React.Component<GameGridProps> {
     }
   }
 
-  onSectionRendered = (params: RenderedSection, columns: number, callback?: (params: RenderedSection) => void) => {
+  onSectionRendered = (params: any, columns: number, callback?: (params: any) => void) => {
     if (callback) { callback(params); }
     this.updateView(params.rowOverscanStartIndex, params.rowOverscanStopIndex, columns);
   }

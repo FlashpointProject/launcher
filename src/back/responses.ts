@@ -5,11 +5,12 @@ import { Playlist } from '@database/entity/Playlist';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
-import { BackIn, BackInit, BackOut, DownloadDetails } from '@shared/back/types';
+import { BackIn, BackInit, BackOut, CurationImageEnum, DownloadDetails, GetRendererLoadedDataResponse } from '@shared/back/types';
 import { overwriteConfigData } from '@shared/config/util';
-import { LOGOS, SCREENSHOTS } from '@shared/constants';
+import { CURATIONS_FOLDER_EXPORTED, CURATIONS_FOLDER_TEMP, CURATIONS_FOLDER_WORKING, LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
-import { getContentFolderByKey } from '@shared/curate/util';
+import { LoadedCuration } from '@shared/curate/types';
+import { getContentFolderByKey, getCurationFolder } from '@shared/curate/util';
 import { AppProvider, BrowserApplicationOpts } from '@shared/extensions/interfaces';
 import { FilterGameOpts } from '@shared/game/GameFilter';
 import { DeepPartial, GamePropSuggestions, ProcessAction, ProcessState } from '@shared/interfaces';
@@ -20,10 +21,15 @@ import { defaultPreferencesData, overwritePreferenceData } from '@shared/prefere
 import { deepCopy, padEnd } from '@shared/Util';
 import { sanitizeFilename } from '@shared/utils/sanitizeFilename';
 import { formatString } from '@shared/utils/StringFormatter';
+import { TaskProgress } from '@shared/utils/TaskProgress';
+import { throttle } from '@shared/utils/throttle';
 import * as axiosImport from 'axios';
+import * as child_process from 'child_process';
 import { execSync } from 'child_process';
-import * as fs from 'fs';
-import { ensureDir } from 'fs-extra';
+import { CurationState } from 'flashpoint-launcher';
+import * as fs from 'fs-extra';
+import * as fs_extra from 'fs-extra';
+import { add, Progress } from 'node-7z';
 import * as os from 'os';
 import * as path from 'path';
 import * as url from 'url';
@@ -31,6 +37,9 @@ import * as util from 'util';
 import * as YAML from 'yaml';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME } from './constants';
+import { loadCurationIndexImage } from './curate/parse';
+import { duplicateCuration, genCurationWarnings } from './curate/util';
+import { saveCuration } from './curate/write';
 import { ExtConfigFile } from './ExtConfigFile';
 import { parseAppVar } from './extensions/util';
 import * as GameDataManager from './game/GameDataManager';
@@ -38,24 +47,33 @@ import * as GameManager from './game/GameManager';
 import * as TagManager from './game/TagManager';
 import { escapeArgsForShell, GameLauncher, GameLaunchInfo } from './GameLauncher';
 import { importCuration, launchAddAppCuration, launchCuration } from './importGame';
+import { checkAndDownloadGameData, extractFullPromise, loadCurationArchive } from './index';
 import { ManagedChildProcess } from './ManagedChildProcess';
 import { importAllMetaEdits } from './MetaEdit';
+import { copyFolder, genContentTree } from './rust';
 import { BackState, BareTag, TagsFile } from './types';
 import { pathToBluezip } from './util/Bluezip';
-import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylistFromJson, exit, getCwd, pathExists, procToService, removeService, runService } from './util/misc';
+import {
+  copyError,
+  createAddAppFromLegacy,
+  createContainer,
+  createGameFromLegacy,
+  createPlaylistFromJson,
+  dateToFilenameString,
+  deleteCuration,
+  exit, getCwd, pathExists, procToService, removeService,
+  runService
+} from './util/misc';
+import { pathTo7zBack } from './util/SevenZip';
 import { uuid } from './util/uuid';
 
 const axios = axiosImport.default;
-const copyFile  = util.promisify(fs.copyFile);
-const stat      = util.promisify(fs.stat);
-const unlink    = util.promisify(fs.unlink);
-const writeFile = util.promisify(fs.writeFile);
 
 /**
  * Register all request callbacks to the socket server.
  * @param state State of the back.
  */
-export function registerRequestCallbacks(state: BackState): void {
+export function registerRequestCallbacks(state: BackState, init: () => Promise<void>): void {
   state.socketServer.register(BackIn.ADD_LOG, (event, data) => {
     switch (data.logLevel) {
       case LogLevel.TRACE:
@@ -91,25 +109,28 @@ export function registerRequestCallbacks(state: BackState): void {
     };
   });
 
-  state.socketServer.register(BackIn.GET_RENDERER_INIT_DATA, async (event) => {
-    state.languageContainer = createContainer(
-      state.languages,
-      state.preferences.currentLanguage,
-      state.localeCode,
-      state.preferences.fallbackLanguage
-    );
+  state.socketServer.register(BackIn.GET_RENDERER_EXTENSION_INFO, async (event) => {
+    return {
+      devScripts: await state.extensionsService.getContributions('devScripts'),
+      contextButtons: await state.extensionsService.getContributions('contextButtons'),
+      curationTemplates: await state.extensionsService.getContributions('curationTemplates'),
+      extConfigs: await state.extensionsService.getContributions('configuration'),
+      extConfig: state.extConfig,
+      extensions: (await state.extensionsService.getExtensions()).map(e => {
+        return {
+          id: e.id,
+          ...e.manifest
+        };
+      }),
+    };
+  });
 
-    const playlists = await GameManager.findPlaylists(state.preferences.browsePageShowExtreme);
+  state.socketServer.register(BackIn.GET_RENDERER_LOADED_DATA, async (event) => {
     const libraries = await GameManager.findUniqueValues(Game, 'library');
-    const serverNames = state.serviceInfo ? state.serviceInfo.server.map(i => i.name || '') : [];
-    const mad4fpEnabled = state.serviceInfo ? (state.serviceInfo.server.findIndex(s => s.mad4fp === true) !== -1) : false;
     const platforms: Record<string, string[]> = {};
     for (const library of libraries) {
       platforms[library] = (await GameManager.findPlatforms(library)).sort();
     }
-
-    // Fire after return has sent
-    setTimeout(() => state.apiEmitters.onDidConnect.fire(), 100);
 
     // Fetch update feed
     let updateFeedMarkdown = '';
@@ -126,35 +147,87 @@ export function registerRequestCallbacks(state: BackState): void {
       log.debug('Launcher', 'No Update Feed URL specified');
     }
 
+    const res: GetRendererLoadedDataResponse = {
+      libraries: libraries,
+      platforms: platforms,
+      services: Array.from(state.services.values()).map(s => procToService(s)),
+      serverNames: state.serviceInfo ? state.serviceInfo.server.map(i => i.name || '') : [],
+      tagCategories: await TagManager.findTagCategories(),
+      suggestions: state.suggestions,
+      logoSets: Array.from(state.registry.logoSets.values()),
+      updateFeedMarkdown,
+      mad4fpEnabled: state.serviceInfo ? (state.serviceInfo.server.findIndex(s => s.mad4fp === true) !== -1) : false
+    };
+    return res;
+  });
+
+  state.socketServer.register(BackIn.GET_RENDERER_INIT_DATA, async (event) => {
+    state.languageContainer = createContainer(
+      state.languages,
+      state.preferences.currentLanguage,
+      state.localeCode,
+      state.preferences.fallbackLanguage
+    );
+
+    // const playlists = await GameManager.findPlaylists(state.preferences.browsePageShowExtreme);
+    // const libraries = await GameManager.findUniqueValues(Game, 'library');
+    // const serverNames = state.serviceInfo ? state.serviceInfo.server.map(i => i.name || '') : [];
+    // const mad4fpEnabled = state.serviceInfo ? (state.serviceInfo.server.findIndex(s => s.mad4fp === true) !== -1) : false;
+    // const platforms: Record<string, string[]> = {};
+    // for (const library of libraries) {
+    //   platforms[library] = (await GameManager.findPlatforms(library)).sort();
+    // }
+
+    // Fire after return has sent
+    // setTimeout(() => state.apiEmitters.onDidConnect.fire(), 100);
+
+    // Fetch update feed
+    // let updateFeedMarkdown = '';
+    // if (state.preferences.updateFeedUrl) {
+    //   updateFeedMarkdown = await axios.get(state.preferences.updateFeedUrl, { timeout: 3000 })
+    //   .then((res) => {
+    //     return res.data;
+    //   })
+    //   .catch((err) => {
+    //     log.debug('Launcher', 'Failed to fetch update feed, ERROR: ' + err);
+    //     return '';
+    //   });
+    // } else {
+    //   log.debug('Launcher', 'No Update Feed URL specified');
+    // }
+
     return {
       preferences: state.preferences,
       config: state.config,
       fileServerPort: state.fileServerPort,
       log: state.log,
-      services: Array.from(state.services.values()).map(s => procToService(s)),
+      // services: Array.from(state.services.values()).map(s => procToService(s)),
       customVersion: state.customVersion,
       languages: state.languages,
       language: state.languageContainer,
       themes: Array.from(state.registry.themes.values()),
-      playlists: playlists,
-      libraries: libraries,
-      serverNames: serverNames,
-      mad4fpEnabled: mad4fpEnabled,
-      platforms: platforms,
+      // playlists: playlists,
+      // libraries: libraries,
+      // suggestions: state.suggestions,
+      // serverNames: serverNames,
+      // mad4fpEnabled: mad4fpEnabled,
+      // platforms: platforms,
       localeCode: state.localeCode,
-      tagCategories: await TagManager.findTagCategories(),
-      extensions: (await state.extensionsService.getExtensions()).map(e => {
-        return {
-          id: e.id,
-          ...e.manifest
-        };
-      }),
-      devScripts: await state.extensionsService.getContributions('devScripts'),
-      contextButtons: await state.extensionsService.getContributions('contextButtons'),
-      logoSets: Array.from(state.registry.logoSets.values()),
-      extConfigs: await state.extensionsService.getContributions('configuration'),
-      extConfig: state.extConfig,
-      updateFeedMarkdown: updateFeedMarkdown,
+      // tagCategories: await TagManager.findTagCategories(),
+      // extensions: (await state.extensionsService.getExtensions()).map(e => {
+      //   return {
+      //     id: e.id,
+      //     ...e.manifest
+      //   };
+      // }),
+      // devScripts: await state.extensionsService.getContributions('devScripts'),
+      // contextButtons: await state.extensionsService.getContributions('contextButtons'),
+      // curationTemplates: await state.extensionsService.getContributions('curationTemplates'),
+      // logoSets: Array.from(state.registry.logoSets.values()),
+      // extConfigs: await state.extensionsService.getContributions('configuration'),
+      // extConfig: state.extConfig,
+      // updateFeedMarkdown: updateFeedMarkdown,
+      // curations: state.loadedCurations,
     };
 
   });
@@ -172,6 +245,11 @@ export function registerRequestCallbacks(state: BackState): void {
       }
     }
 
+    if (!state.runInit) {
+      state.runInit = true;
+      init();
+    }
+
     return { done };
   });
 
@@ -180,8 +258,8 @@ export function registerRequestCallbacks(state: BackState): void {
     const suggestions: GamePropSuggestions = {
       tags: await GameManager.findUniqueValues(TagAlias, 'name'),
       platform: (await GameManager.findUniqueValues(Game, 'platform')).sort(),
-      playMode: await GameManager.findUniqueValues(Game, 'playMode'),
-      status: await GameManager.findUniqueValues(Game, 'status'),
+      playMode: await GameManager.findUniqueValues(Game, 'playMode', true),
+      status: await GameManager.findUniqueValues(Game, 'status', true),
       applicationPath: await GameManager.findUniqueValues(Game, 'applicationPath'),
       library: await GameManager.findUniqueValues(Game, 'library'),
     };
@@ -190,6 +268,7 @@ export function registerRequestCallbacks(state: BackState): void {
       appPaths[platform] = (await GameManager.findPlatformAppPaths(platform))[0] || '';
     }
     console.log(Date.now() - startTime);
+    state.recentAppPaths = appPaths; // Update cache
     return {
       suggestions: suggestions,
       appPaths: appPaths,
@@ -395,7 +474,7 @@ export function registerRequestCallbacks(state: BackState): void {
         try {
           if (await pathExists(oldLogoPath)) {
             await fs.promises.mkdir(path.dirname(newLogoPath), { recursive: true });
-            await copyFile(oldLogoPath, newLogoPath);
+            await fs.promises.copyFile(oldLogoPath, newLogoPath);
           }
         } catch (e) { console.error(e); }
 
@@ -404,7 +483,7 @@ export function registerRequestCallbacks(state: BackState): void {
         try {
           if (await pathExists(oldScreenshotPath)) {
             await fs.promises.mkdir(path.dirname(newScreenshotPath), { recursive: true });
-            await copyFile(oldScreenshotPath, newScreenshotPath);
+            await fs.promises.copyFile(oldScreenshotPath, newScreenshotPath);
           }
         } catch (e) { console.error(e); }
       }
@@ -482,7 +561,7 @@ export function registerRequestCallbacks(state: BackState): void {
     const playlist = await GameManager.findPlaylist(id, true);
     if (playlist) {
       try {
-        await writeFile(location, JSON.stringify(playlist, null, '\t'));
+        await fs.promises.writeFile(location, JSON.stringify(playlist, null, '\t'));
       } catch (e) { console.error(e); }
     }
   });
@@ -493,7 +572,7 @@ export function registerRequestCallbacks(state: BackState): void {
       if (game) {
         // Save to file
         try {
-          await writeFile(
+          await fs.promises.writeFile(
             metaOnly ? location : path.join(location, 'meta.yaml'),
             YAML.stringify(convertGameToCurationMetaFile(game, await TagManager.findTagCategories())));
         } catch (e) { console.error(e); }
@@ -506,13 +585,13 @@ export function registerRequestCallbacks(state: BackState): void {
           const oldLogoPath = path.join(imageFolder, LOGOS, last);
           const newLogoPath = path.join(location, 'logo.png');
           try {
-            if (await pathExists(oldLogoPath)) { await copyFile(oldLogoPath, newLogoPath); }
+            if (await pathExists(oldLogoPath)) { await fs.promises.copyFile(oldLogoPath, newLogoPath); }
           } catch (e) { console.error(e); }
 
           const oldScreenshotPath = path.join(imageFolder, SCREENSHOTS, last);
           const newScreenshotPath = path.join(location, 'ss.png');
           try {
-            if (await pathExists(oldScreenshotPath)) { await copyFile(oldScreenshotPath, newScreenshotPath); }
+            if (await pathExists(oldScreenshotPath)) { await fs.promises.copyFile(oldScreenshotPath, newScreenshotPath); }
           } catch (e) { console.error(e); }
         }
       }
@@ -809,7 +888,7 @@ export function registerRequestCallbacks(state: BackState): void {
     if (fullPath.startsWith(imageFolder)) { // (Ensure that it does not climb out of the image folder)
       try {
         await fs.promises.mkdir(path.dirname(fullPath), { recursive: true });
-        await writeFile(fullPath, Buffer.from(content, 'base64'));
+        await fs.promises.writeFile(fullPath, Buffer.from(content, 'base64'));
       } catch (e) {
         log.error('Launcher', e + '');
       }
@@ -826,8 +905,8 @@ export function registerRequestCallbacks(state: BackState): void {
 
     if (fullPath.startsWith(imageFolder)) { // (Ensure that it does not climb out of the image folder)
       try {
-        if ((await stat(fullPath)).isFile()) {
-          await unlink(fullPath);
+        if ((await fs.promises.stat(fullPath)).isFile()) {
+          await fs.promises.unlink(fullPath);
           // @TODO Remove the two top folders if they are empty (so no empty folders are left hanging)
         }
       } catch (error: any) {
@@ -861,7 +940,9 @@ export function registerRequestCallbacks(state: BackState): void {
       }
 
       overwritePreferenceData(state.preferences, dif);
-      state.prefsQueue.push(() => PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences));
+      state.prefsQueue.push(() => {
+        PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences);
+      });
     }
     if (refresh) {
       state.socketServer.send(event.client, BackOut.UPDATE_PREFERENCES_RESPONSE, state.preferences);
@@ -915,11 +996,11 @@ export function registerRequestCallbacks(state: BackState): void {
       // Tag doesn't exist, make a new one
       tag = await TagManager.createTag(name, category);
     }
-    return tag as Tag; // @TYPESAFE fix this?
+    return tag;
   });
 
   state.socketServer.register(BackIn.GET_PLAYLISTS, async (event) => {
-    return await GameManager.findPlaylists(state.preferences.browsePageShowExtreme); // @TYPESAFE fix this?
+    return await GameManager.findPlaylists(state.preferences.browsePageShowExtreme);
   });
 
   state.socketServer.register(BackIn.SAVE_PLAYLIST, async (event, playlist) => {
@@ -1031,36 +1112,83 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.IMPORT_CURATION, async (event, data) => {
+    const { taskId } = data;
     let error: any | undefined;
-    try {
-      await importCuration({
-        curation: data.curation,
-        gameManager: state.gameManager,
-        date: (data.date !== undefined) ? new Date(data.date) : undefined,
-        saveCuration: data.saveCuration,
-        fpPath: state.config.flashpointPath,
-        dataPacksFolderPath: path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath),
-        bluezipPath: pathToBluezip(state.isDev, state.exePath),
-        imageFolderPath: state.preferences.imageFolderPath,
-        openDialog: state.socketServer.showMessageBoxBack(event.client),
-        openExternal: state.socketServer.openExternal(event.client),
-        tagCategories: await TagManager.findTagCategories()
+    let processed = 0;
+    const taskProgress = new TaskProgress(data.curations.length);
+    if (taskId) {
+      taskProgress.on('progress', (text, done) => {
+        state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
+          status: text,
+          progress: done,
+        });
       });
-      state.queries = {};
-    } catch (e) {
-      if (util.types.isNativeError(e)) {
-        error = copyError(e);
-      } else {
-        error = e;
+      taskProgress.on('done', (text) => {
+        state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
+          status: text,
+          progress: 1,
+          finished: true
+        });
+      });
+    }
+    for (const curation of data.curations) {
+      try {
+        processed += 1;
+        taskProgress.setStage(processed, `Importing ${curation.game.title || curation.folder}...`);
+
+        state.socketServer.broadcast(BackOut.CURATE_SELECT_LOCK, curation.folder, true);
+        await importCuration({
+          curation: curation,
+          gameManager: state.gameManager,
+          date: (data.date !== undefined) ? new Date(data.date) : undefined,
+          saveCuration: data.saveCuration,
+          fpPath: state.config.flashpointPath,
+          dataPacksFolderPath: path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath),
+          bluezipPath: pathToBluezip(state.isDev, state.exePath),
+          imageFolderPath: state.preferences.imageFolderPath,
+          openDialog: state.socketServer.showMessageBoxBack(event.client),
+          openExternal: state.socketServer.openExternal(event.client),
+          tagCategories: await TagManager.findTagCategories(),
+          taskProgress,
+          sevenZipPath: state.sevenZipPath,
+        })
+        .then(() => {
+          // Delete curation afterwards
+          deleteCuration(state, curation.folder);
+          state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, undefined, [curation.folder]);
+        })
+        .catch(() => {
+          state.socketServer.broadcast(BackOut.CURATE_SELECT_LOCK, curation.folder, false);
+          const alertString = formatString(state.languageContainer.dialog.errorImportingCuration, curation.folder);
+          state.socketServer.broadcast(BackOut.OPEN_ALERT, alertString);
+        });
+        state.queries = {};
+      } catch (e) {
+        if (util.types.isNativeError(e)) {
+          error = copyError(e);
+        } else {
+          error = e;
+        }
       }
+    }
+
+    if (data.taskId) {
+      state.socketServer.broadcast(BackOut.UPDATE_TASK, data.taskId,
+        {
+          status: '',
+          finished: true,
+          error
+        }
+      );
     }
 
     return { error: error || undefined };
   });
 
   state.socketServer.register(BackIn.LAUNCH_CURATION, async (event, data) => {
-    const skipLink = (data.key === state.lastLinkedCurationKey);
-    state.lastLinkedCurationKey = data.symlinkCurationContent ? data.key : '';
+    const { curation } = data;
+    const skipLink = (curation.folder === state.lastLinkedCurationKey);
+    state.lastLinkedCurationKey = data.symlinkCurationContent ? curation.folder : '';
     try {
       if (state.serviceInfo) {
         // Make sure all 3 relevant server infos are present before considering MAD4FP opt
@@ -1073,7 +1201,7 @@ export function registerRequestCallbacks(state: BackState): void {
             // Swap to mad4fp server
             const mad4fpServerCopy = deepCopy(mad4fpServer);
             // Set the content folder path as the final parameter
-            mad4fpServerCopy.arguments.push(getContentFolderByKey(data.key, state.config.flashpointPath));
+            mad4fpServerCopy.arguments.push(getContentFolderByKey(curation.folder, state.config.flashpointPath));
             await removeService(state, 'server');
             runService(state, 'server', 'Server', state.config.flashpointPath, {}, mad4fpServerCopy);
           } else if (!data.mad4fp && activeServerInfo && activeServerInfo.mad4fp && !configServer.mad4fp) {
@@ -1084,10 +1212,10 @@ export function registerRequestCallbacks(state: BackState): void {
         }
       }
 
-      await launchCuration(data.key, data.meta, data.addApps, data.symlinkCurationContent, skipLink, {
+      await launchCuration(data.curation, data.symlinkCurationContent, skipLink, {
         fpPath: path.resolve(state.config.flashpointPath),
         htdocsPath: state.preferences.htdocsFolderPath,
-        native: state.preferences.nativePlatforms.some(p => p === data.meta.platform),
+        native: state.preferences.nativePlatforms.some(p => p === data.curation.game.platform),
         execMappings: state.execMappings,
         lang: state.languageContainer,
         isDev: state.isDev,
@@ -1107,10 +1235,10 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.LAUNCH_CURATION_ADDAPP, async (event, data) => {
-    const skipLink = (data.curationKey === state.lastLinkedCurationKey);
-    state.lastLinkedCurationKey = data.curationKey;
+    const skipLink = (data.folder === state.lastLinkedCurationKey);
+    state.lastLinkedCurationKey = data.folder;
     try {
-      await launchAddAppCuration(data.curationKey, data.curation, data.symlinkCurationContent, skipLink, {
+      await launchAddAppCuration(data.folder, data.addApp, data.symlinkCurationContent, skipLink, {
         fpPath: path.resolve(state.config.flashpointPath),
         htdocsPath: state.preferences.htdocsFolderPath,
         native: state.preferences.nativePlatforms.some(p => p === data.platform) || false,
@@ -1307,8 +1435,8 @@ export function registerRequestCallbacks(state: BackState): void {
         }
 
         if (save) {
-          await ensureDir(folderPath);
-          await writeFile(filePath, JSON.stringify(output, null, '\t'));
+          await fs_extra.ensureDir(folderPath);
+          await fs.promises.writeFile(filePath, JSON.stringify(output, null, '\t'));
         }
       } catch (error: any) {
         log.error('Launcher', `Failed to export meta edit.\nError: ${error.message || error}`);
@@ -1323,6 +1451,380 @@ export function registerRequestCallbacks(state: BackState): void {
     );
 
     return result;
+  });
+
+  state.socketServer.register(BackIn.CURATE_LOAD_ARCHIVES, async (event, filePaths, taskId) => {
+    let processed = 0;
+    const taskProgress = new TaskProgress(filePaths.length);
+    if (taskId) {
+      taskProgress.on('progress', (text, done) => {
+        state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
+          status: text,
+          progress: done,
+        });
+      });
+      taskProgress.on('done', (text) => {
+        state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
+          status: text,
+          progress: 1,
+          finished: true
+        });
+      });
+    }
+    for (const filePath of filePaths) {
+      processed = processed + 1;
+      taskProgress.setStage(processed, `Loading ${filePath}`);
+      await loadCurationArchive(filePath, throttle((progress: Progress) => {
+        taskProgress.setStageProgress((progress.percent / 100), `Extracting Files - ${progress.fileCount}`);
+      }, 200))
+      .catch((error) => {
+        log.error('Curate', `Failed to load curation archive! ${error.toString()}`);
+        state.socketServer.broadcast(BackOut.OPEN_ALERT, formatString(state.languageContainer['dialog'].failedToLoadCuration, error.toString()));
+      });
+      taskProgress.setStageProgress(1, 'Extracted');
+    }
+    taskProgress.done('Loaded Curation Archives');
+  });
+
+  state.socketServer.register(BackIn.CURATE_GEN_WARNINGS, async (event, curation) => {
+    return genCurationWarnings(curation, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onWillGenCurationWarnings);
+  });
+
+  state.socketServer.register(BackIn.CURATE_GET_LIST, async (event) => {
+    return state.loadedCurations;
+  });
+
+  state.socketServer.register(BackIn.CURATE_DUPLICATE, async (event, folders) => {
+    for (const folder of folders) {
+      await duplicateCuration(folder, state);
+    }
+  });
+
+  state.socketServer.register(BackIn.CURATE_SYNC_CURATIONS, async (event, curations) => {
+    for (const curation of curations) {
+      const idx = state.loadedCurations.findIndex(c => c.folder === curation.folder);
+      if (idx > -1) {
+        state.loadedCurations[idx] = {
+          ...curation,
+          contents: curation.contents ? curation.contents : state.loadedCurations[idx].contents
+        };
+        state.apiEmitters.curations.onDidCurationChange.fire(state.loadedCurations[idx]);
+        // Save curation
+        saveCuration(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, curation.folder), curation)
+        .then(() => state.apiEmitters.curations.onDidCurationChange.fire(state.loadedCurations[idx]));
+      }
+    }
+  });
+
+  state.socketServer.register(BackIn.CURATE_EDIT_REMOVE_IMAGE, async (event, folder, type) => {
+    const curationIdx = state.loadedCurations.findIndex(c => c.folder === folder);
+    if (curationIdx > -1) {
+      const curation = state.loadedCurations[curationIdx];
+      switch (type) {
+        case CurationImageEnum.THUMBNAIL: {
+          const imagePath = curation.thumbnail.exists ? curation.thumbnail.filePath : undefined;
+          if (imagePath) {
+            await fs.promises.unlink(imagePath);
+            curation.thumbnail.exists = false;
+            state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
+            // TODO: Send update
+          }
+          break;
+        }
+        case CurationImageEnum.SCREENSHOT: {
+          const imagePath = curation.screenshot.exists ? curation.screenshot.filePath : undefined;
+          if (imagePath) {
+            await fs.promises.unlink(imagePath);
+            curation.screenshot.exists = false;
+            state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
+            // TODO: Send update
+          }
+          break;
+        }
+      }
+    }
+  });
+
+  state.socketServer.register(BackIn.CURATE_DELETE, async (event, folders, taskId) => {
+    try {
+      for (let idx = 0; idx < folders.length; idx++) {
+        if (taskId) {
+          state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
+            status: `Deleting ${folders[idx]}...`,
+            progress: idx / folders.length
+          });
+        }
+        await deleteCuration(state, folders[idx]);
+      }
+      if (taskId) {
+        state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
+          status: '',
+          finished: true
+        });
+      }
+    } catch (e: any) {
+      log.error('Curate', `Failed to delete curation: ${e}`);
+      if (taskId) {
+        state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
+          error: e.toString(),
+          finished: true
+        });
+      }
+    }
+  });
+
+  state.socketServer.register(BackIn.CURATE_EXPORT_DATA_PACK, async (event, curations, taskId) => {
+    const bluezipPath = pathToBluezip(state.isDev, state.exePath);
+    const dataPackFolder = path.join(state.config.flashpointPath, CURATIONS_FOLDER_EXPORTED, 'Data Packs');
+    await fs.ensureDir(dataPackFolder);
+    let processed = 0;
+
+    try {
+      for (const curation of curations) {
+        if (taskId) {
+          state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
+            status: `Exporting Data Pack for ${curation.game.title || curation.folder}`,
+            progress: processed / curations.length,
+          });
+        }
+        processed += 1;
+        const fpPath = state.config.flashpointPath;
+        const curationPath = path.resolve(getCurationFolder(curation, fpPath));
+        // Make a temp copy
+        const tempFolder = uuid();
+        const copyPath = path.resolve(fpPath, CURATIONS_FOLDER_TEMP, tempFolder);
+        await copyFolder(curationPath, copyPath);
+        const bluezipProc = child_process.spawn('bluezip', [copyPath, '-no', copyPath], {cwd: path.dirname(bluezipPath)});
+        await new Promise<void>((resolve, reject) => {
+          bluezipProc.stdout.on('data', (data: any) => {
+            log.debug('Curate', `Bluezip output: ${data}`);
+          });
+          bluezipProc.stderr.on('data', (data: any) => {
+            log.debug('Curate', `Bluezip error: ${data}`);
+          });
+          bluezipProc.on('close', (code: any) => {
+
+            if (code) {
+              log.error('Curate', `Bluezip exited with code: ${code}`);
+              reject();
+            } else {
+              log.debug('Curate', 'Bluezip exited successfully.');
+              resolve();
+            }
+          });
+        });
+        // Import bluezip
+        const filePath = path.join(copyPath, `${tempFolder}.zip`);
+        await fs.move(filePath, path.join(dataPackFolder, `${curation.uuid} - ${sanitizeFilename(curation.game.title || curation.folder)}.zip`), { overwrite: true });
+      }
+      if (taskId) {
+        state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
+          status: '',
+          finished: true
+        });
+      }
+    } catch (e: any) {
+      if (taskId) {
+        state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
+          finished: true,
+          error: e ? e.toString() : 'Undefined error',
+        });
+      }
+    }
+  });
+
+  state.socketServer.register(BackIn.CURATE_EXPORT, async (event, curations, taskId) => {
+    let processed = 0;
+    const taskProgress = new TaskProgress(curations.length);
+    if (taskId) {
+      taskProgress.on('progress', (text, done) => {
+        state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
+          status: text,
+          progress: done,
+        });
+      });
+      taskProgress.on('done', (text) => {
+        state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
+          status: text,
+          progress: 1,
+          finished: true
+        });
+      });
+    }
+    for (const curation of curations) {
+      processed += 1;
+      taskProgress.setStage(processed, `Exporting ${curation.game.title || curation.folder}`);
+      // Find most appropriate filepath based on what already exists
+      const name = (curation.game.title ? sanitizeFilename(curation.game.title) : curation.folder);
+      const filePathCheck = path.join(state.config.flashpointPath, CURATIONS_FOLDER_EXPORTED, `${name}.7z`);
+      const filePath = await fs.promises.access(filePathCheck, fs.constants.F_OK)
+      .then(() => {
+        // Exists, use date instead
+        return path.join(state.config.flashpointPath, CURATIONS_FOLDER_EXPORTED, `${name}_${dateToFilenameString(new Date())}.7z`);
+      })
+      .catch(() => { return filePathCheck; /** Doesn't exist, carry on */ });
+      await fs.ensureDir(path.dirname(filePath));
+      const curPath = path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, curation.folder);
+      await saveCuration(curPath, curation);
+      await new Promise<void>((resolve) => {
+        return add(filePath, curPath, { recursive: true, $bin: pathTo7zBack(state.isDev, state.exePath) })
+        .on('end', () => { resolve(); })
+        .on('error', (error) => {
+          log.error('Curate', error.message);
+          resolve();
+        });
+      })
+      .finally(() => {
+        state.socketServer.broadcast(BackOut.CURATE_SELECT_LOCK, curation.folder, false);
+      });
+      taskProgress.setStageProgress(1, 'Packed');
+    }
+    taskProgress.done('Exported Curations');
+  });
+
+  state.socketServer.register(BackIn.CURATE_REFRESH_CONTENT, async (event, folder) => {
+    const curationIdx = state.loadedCurations.findIndex(c => c.folder === folder);
+    if (curationIdx !== -1) {
+      const curation = state.loadedCurations[curationIdx];
+      const contentPath = getContentFolderByKey(curation.folder, state.config.flashpointPath);
+      curation.contents = await genContentTree(contentPath);
+      curation.warnings = await genCurationWarnings(curation, state.config.flashpointPath, state.suggestions, state.languageContainer['curate'], state.apiEmitters.curations.onWillGenCurationWarnings);
+      state.loadedCurations[curationIdx] = curation;
+      state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
+    }
+  });
+
+  state.socketServer.register(BackIn.CURATE_FROM_GAME, async (event, gameId) => {
+    const game = await GameManager.findGame(gameId);
+    const folder = uuid();
+    if (game) {
+      const curPath = path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, folder);
+      await fs.promises.mkdir(curPath, { recursive: true });
+      const contentFolder = path.join(curPath, 'content');
+      await fs.promises.mkdir(contentFolder, { recursive: true });
+
+      // Copy images if exists
+      const thumbnailUrl = `http://localhost:${state.fileServerPort}/images/Logos/${gameId.substring(0, 2)}/${gameId.substring(2, 4)}/${game.id}.png`;
+      const thumbnailWriter = fs.createWriteStream(path.join(curPath, 'logo.png'));
+      await new Promise<void>((resolve, reject) => {
+        axios.get(thumbnailUrl, { responseType: 'stream' })
+        .then((res) => {
+          res.data.pipe(thumbnailWriter);
+          thumbnailWriter.on('close', resolve);
+          thumbnailWriter.on('error', (err) => {
+            thumbnailWriter.close();
+            reject(err);
+          });
+        })
+        .catch((err) => {
+          thumbnailWriter.close();
+          reject(err);
+        });
+      })
+      .catch((err) => {
+        log.error('Launcher', 'Make Curation From Game - Failed to save Logo file.\nError: ' + err.toString());
+      });
+
+      const ssUrl = `http://localhost:${state.fileServerPort}/images/Screenshots/${gameId.substring(0, 2)}/${gameId.substring(2, 4)}/${game.id}.png`;
+      const ssWriter = fs.createWriteStream(path.join(curPath, 'ss.png'));
+      await new Promise<void>((resolve, reject) => {
+        axios.get(ssUrl, { responseType: 'stream' })
+        .then((res) => {
+          res.data.pipe(ssWriter);
+          ssWriter.on('close', resolve);
+          ssWriter.on('error', (err) => {
+            ssWriter.close();
+            reject(err);
+          });
+        })
+        .catch((err) => {
+          ssWriter.close();
+          reject(err);
+        });
+      })
+      .catch((err) => {
+        log.error('Launcher', 'Make Curation From Game - Failed to save Screenshot file.\nError: ' + err.toString());
+      });
+
+      // Extract active data pack if exists
+      if (game.activeDataId) {
+        await checkAndDownloadGameData(gameId, game.activeDataId);
+        const activeData = await GameDataManager.findOne(game.activeDataId);
+        if (activeData && activeData.path) {
+          // Extract data pack into curation folder
+          const dataPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, activeData.path);
+          await extractFullPromise([dataPath, curPath, { $bin: state.sevenZipPath }]);
+          // Clean up content.json file from extracted data pack
+          await fs.unlink(path.join(curPath, 'content.json'))
+          .catch((err) => { /** Probably doesn't exist */ });
+          log.debug('Launcher', 'Make Curation From Game - Found and extracted data pack into curation folder');
+        }
+      } else {
+        log.debug('Launcher', 'Make Curation From Game - Game has no active data');
+      }
+
+      const data: LoadedCuration = {
+        folder,
+        uuid: game.id,
+        group: '',
+        game: game,
+        addApps: game.addApps.map(a => {
+          return { ...a, key: uuid() };
+        }),
+        thumbnail: await loadCurationIndexImage(path.join(curPath, 'logo.png')),
+        screenshot: await loadCurationIndexImage(path.join(curPath, 'ss.png'))
+      };
+      const curation: CurationState = {
+        ...data,
+        alreadyImported: true,
+        warnings: await genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onWillGenCurationWarnings),
+      };
+      await saveCuration(curPath, curation);
+      state.loadedCurations.push(curation);
+
+      // Let contents update without blocking
+      genContentTree(getContentFolderByKey(folder, state.config.flashpointPath))
+      .then((contentTree) => {
+        const idx = state.loadedCurations.findIndex(c => c.folder === folder);
+        if (idx > -1) {
+          state.loadedCurations[idx].contents = contentTree;
+          state.socketServer.broadcast(BackOut.CURATE_CONTENTS_CHANGE, folder, contentTree);
+        }
+      });
+
+      // Send back responses
+      state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
+      return curation.folder;
+    }
+  });
+
+  state.socketServer.register(BackIn.CURATE_CREATE_CURATION, async (event, folder, meta) => {
+    const existingCuration = state.loadedCurations.find(c => c.folder === folder);
+    if (!existingCuration) {
+      const curPath = path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, folder);
+      await fs.promises.mkdir(curPath, { recursive: true });
+      const contentFolder = path.join(curPath, 'content');
+      await fs.promises.mkdir(contentFolder, { recursive: true });
+
+      const data: LoadedCuration = {
+        folder,
+        uuid: uuid(),
+        group: '',
+        game: meta || {},
+        addApps: [],
+        thumbnail: await loadCurationIndexImage(path.join(curPath, 'logo.png')),
+        screenshot: await loadCurationIndexImage(path.join(curPath, 'ss.png'))
+      };
+      const curation: CurationState = {
+        ...data,
+        alreadyImported: false,
+        warnings: await genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onWillGenCurationWarnings),
+        contents: await genContentTree(getContentFolderByKey(folder, state.config.flashpointPath))
+      };
+      await saveCuration(curPath, curation);
+      state.loadedCurations.push(curation);
+      state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
+    }
   });
 
   state.socketServer.register(BackIn.RUN_COMMAND, async (event, command, args = []) => {

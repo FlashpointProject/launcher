@@ -3,6 +3,7 @@ import { History } from 'history';
 import { applyMiddleware, createStore, Store } from 'redux';
 import { composeWithDevTools } from 'redux-devtools-extension';
 import { ApplicationState, createRootReducer } from './store';
+import { curationSyncMiddleware } from './store/curate/middleware';
 
 export default function configureStore(history: History, initialState?: Partial<ApplicationState>): Store<ApplicationState> {
   const composeEnhancers = composeWithDevTools({});
@@ -13,6 +14,7 @@ export default function configureStore(history: History, initialState?: Partial<
     composeEnhancers(
       applyMiddleware(
         routerMiddleware(history),
+        curationSyncMiddleware
       )
     )
   );
