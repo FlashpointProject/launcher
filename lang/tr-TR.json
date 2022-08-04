@@ -16,6 +16,8 @@
     "searchLimitValue": "{0} Sonuçlar",
     "enableEditing": "Değişikliklere İzin Ver",
     "enableEditingDesc": "Oyunların ve fazladan eklentilerin düzenlenmesine izin verir. Ayrıca düzenlemeye bağlı seçenekleri gösterir.",
+    "symlinkCuration": "Symlink Curation Content",
+    "symlinkCurationDesc": "Uses symbolic links to test curations rather than copying files. Faster and supports MAD4FP. Admin rights required.",
     "onDemandImages": "İsteğe Bağlı Görüntüler",
     "onDemandImagesDesc": "Gerektiğinde eksik logoları ve ekran görüntülerini indir ve kaydet.",
     "currentLanguage": "Dil",
@@ -331,13 +333,17 @@
     "locked": "İşlenirken kilitlendi..."
   },
   "curate": {
+    "noCurationSelected": "No Curation Selected",
+    "headerFileOperations": "File",
+    "headerEditCuration": "Düzenle",
+    "headerTest": "Test",
     "importAll": "Tümünü İçe Aktar",
     "importAllDesc": "Şu an yüklü olan tüm kürasyonları içe aktar",
     "deleteAll": "Hepsini Sil",
     "deleteAllDesc": "Şu an yüklü olan tüm kürasyonları sil",
     "saveImportedCurations": "İçe Aktarılmış Kürasyonları Kaydet",
     "keepArchiveKey": "Kürasyon Arşiv UUID'sini Sakla",
-    "symlinkCurationContent": "Symlink Kürasyon İçeriği Klasörü (Windows'ta yönetici istemleri, MAD4FP için gerekli)",
+    "symlinkCurationContent": "Symlink Curation Content",
     "useTagFilters": "Önerilerde Etiket Filtrelerini Kullan",
     "openCurationsFolder": "Kürasyonlar Klasörü",
     "openCurationsFolderDesc": "Kürasyonlar klasörünü dosya gezgininde aç",
@@ -347,6 +353,8 @@
     "openImportedFolderDesc": "İçe aktarılmış kürasyonlarını barındıran varsayılan İçe Aktarılanlar klasörünü aç.",
     "newCuration": "Yeni Kürasyon",
     "newCurationDesc": "Özel bir klasörle yeni bir kürasyon yaratır",
+    "duplicateCuration": "Duplicate",
+    "newCurationFromTemplate": "New Curation (Template)",
     "loadMeta": "Meta Yükle",
     "loadMetaDesc": "Bir veya birden fazla Kürasyon meta dosyasını yükle",
     "loadArchive": "Arşivi Yükle",
@@ -376,6 +384,7 @@
     "run": "Çalıştır",
     "runWithMAD4FP": "MAD4FP ile çalıştır",
     "export": "Dışa aktar",
+    "exportDataPacks": "Export Data Pack",
     "import": "İçe aktar",
     "contentFiles": "İçerik Dosyaları",
     "warnings": "Uyarılar",
@@ -394,7 +403,14 @@
     "noScreenshot": "Bu kürasyonun ekran görüntüsü yok.",
     "ilc_notHttp": "HTTP kullan.",
     "ilc_nonExistant": "Kürasyon'unun içinde var olan bir 'içerik' dosyasına yönlendirin.",
-    "sort": "Kürasyonları Sınıflandır (A-Z)"
+    "documentStatus": "Notes must document changes and missing content for Hacked / Partial games",
+    "sort": "Kürasyonları Sınıflandır (A-Z)",
+    "contextCopyName": "Copy File Name",
+    "contextCopyPath": "Copy File Path",
+    "contextCopyAsURL": "Copy File Path as URL",
+    "contextShowInExplorer": "Show File in Explorer",
+    "contextOpenFolderInExplorer": "Open Folder in Explorer",
+    "shortcuts": "Shortcuts"
   },
   "playlist": {
     "enterDescriptionHere": "Buraya bir açıklama yazın...",
@@ -432,7 +448,8 @@
     "exportMetaEditTitle": "Meta Düzenlemesini Dışa Aktar",
     "exportMetaEditDesc": "Dışa aktarılacak tüm özellikleri seç:",
     "showImage": "Resmi Göster",
-    "searching": "Searching..."
+    "searching": "Searching...",
+    "loading": "Loading..."
   },
   "menu": {
     "viewThumbnailInFolder": "Klasördeki küçükresmi İncele",
@@ -446,7 +463,8 @@
     "exportMetaAndImages": "Dışa Aktar (Meta & Resimler)",
     "exportMetaEdit": "Meta Düzenlemesini Dışa Aktar",
     "duplicatePlaylist": "Oynama Listesini Kopyala",
-    "exportPlaylist": "Oynama Listesini Dışa Aktar"
+    "exportPlaylist": "Oynama Listesini Dışa Aktar",
+    "makeCurationFromGame": "Make Curation from Game"
   },
   "dialog": {
     "programNotFound": "Program bulunamadı!",
@@ -507,7 +525,13 @@
     "unableToDeleteGame": "Oyun silinemedi. Kullanımda mı? Başlatıcıyı yeniden başlatmayı deneyin.",
     "downloadingGame": "Oyun İndiriliyor...",
     "verifyingGame": "Oyun Doğrulanıyor...",
-    "aFewMinutes": "Bu işlem birkaç dakika sürebilir."
+    "aFewMinutes": "Bu işlem birkaç dakika sürebilir.",
+    "importCurationWithWarnings": "Import this curation? There are still warnings present.",
+    "errorImportingCuration": "Error import curation '{0}', check logs page for details.",
+    "mustBePngImage": "Must be a .PNG Image.",
+    "mustBe7zArchiveSkipping": "Must be a .7z archive, skipping {0}",
+    "failedToLoadCuration": "Failed to load curation! {0}",
+    "exportCurationWithWarnings": "Export Curation even though it has Warnings?"
   },
   "libraries": {
     "arcade": "Oyunlar",
