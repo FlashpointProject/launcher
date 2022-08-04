@@ -16,6 +16,8 @@
     "searchLimitValue": "{0} Results",
     "enableEditing": "Ebligu Redaktadon",
     "enableEditingDesc": "Ebligu redaktadon de ludoj kaj aldonaj programoj. Ankaŭ montras langetojn rilataj al redaktado.",
+    "symlinkCuration": "Symlink Curation Content",
+    "symlinkCurationDesc": "Uses symbolic links to test curations rather than copying files. Faster and supports MAD4FP. Admin rights required.",
     "onDemandImages": "Laŭpetaj Bildoj",
     "onDemandImagesDesc": "Elŝutu kaj konservu laŭbezone mankantajn logotipojn kaj ekrankopiojn.",
     "currentLanguage": "Lingvo",
@@ -331,13 +333,17 @@
     "locked": "Ŝlosita dum prilaborado..."
   },
   "curate": {
+    "noCurationSelected": "No Curation Selected",
+    "headerFileOperations": "File",
+    "headerEditCuration": "Redakti",
+    "headerTest": "Test",
     "importAll": "Importu ĉiujn",
     "importAllDesc": "Importu ĉiujn ŝarĝitajn ŝanĝojn",
     "deleteAll": "Forigi Ĉiujn",
     "deleteAllDesc": "Forigu ĉiujn ŝarĝitajn ŝanĝojn",
     "saveImportedCurations": "Konservu Importitajn Ŝanĝojn",
     "keepArchiveKey": "Konservu UUID-Ŝangarkivon",
-    "symlinkCurationContent": "\"Symlink Curation Content Folder\" (Admin-instigoj en Vindozo, Bezonata por MAD4FP)",
+    "symlinkCurationContent": "Symlink Curation Content",
     "useTagFilters": "Use Tag Filters in Suggestions",
     "openCurationsFolder": "Ŝanĝdosierujo",
     "openCurationsFolderDesc": "Malfermu Ŝanĝdosierujon en esplorilo",
@@ -347,6 +353,8 @@
     "openImportedFolderDesc": "Malfermu la defaŭltan dosierujon Importoj enhavantan viajn importitajn ŝanĝojn.",
     "newCuration": "Nova Ŝanĝo",
     "newCurationDesc": "Kreas novan ŝanĝon kun unika dosierujo",
+    "duplicateCuration": "Duplicate",
+    "newCurationFromTemplate": "New Curation (Template)",
     "loadMeta": "Ŝarĝu Meta-n",
     "loadMetaDesc": "Ŝarĝu unu aŭ plurajn Kuracajn meta-dosierojn",
     "loadArchive": "Ŝargu Arkivon",
@@ -376,6 +384,7 @@
     "run": "Lanĉu",
     "runWithMAD4FP": "Lanĉu per MAD4FP",
     "export": "Eksporti",
+    "exportDataPacks": "Export Data Pack",
     "import": "Importu",
     "contentFiles": "Enhavaj Dosieroj",
     "warnings": "Avertoj",
@@ -394,7 +403,14 @@
     "noScreenshot": "There is no screenshot on this curation.",
     "ilc_notHttp": "Uzu HTTP.",
     "ilc_nonExistant": "Indiku ekzistantan dosieron en la dosierujo 'enhavo' de via ŝanĝo.",
-    "sort": "Sort Curations (A-Z)"
+    "documentStatus": "Notes must document changes and missing content for Hacked / Partial games",
+    "sort": "Sort Curations (A-Z)",
+    "contextCopyName": "Copy File Name",
+    "contextCopyPath": "Copy File Path",
+    "contextCopyAsURL": "Copy File Path as URL",
+    "contextShowInExplorer": "Show File in Explorer",
+    "contextOpenFolderInExplorer": "Open Folder in Explorer",
+    "shortcuts": "Shortcuts"
   },
   "playlist": {
     "enterDescriptionHere": "Enigu priskribon ĉi tie...",
@@ -432,7 +448,8 @@
     "exportMetaEditTitle": "Eksportu Meta-redakton",
     "exportMetaEditDesc": "Elektu ĉiujn eksportotajn ecojn:",
     "showImage": "Show Image",
-    "searching": "Searching..."
+    "searching": "Searching...",
+    "loading": "Loading..."
   },
   "menu": {
     "viewThumbnailInFolder": "Vidu Bildeton en Dosierujo",
@@ -446,7 +463,8 @@
     "exportMetaAndImages": "Eksportu (Meta-n kaj Bildojn)",
     "exportMetaEdit": "Eksportu Meta-redakton",
     "duplicatePlaylist": "Kopiu Ludliston",
-    "exportPlaylist": "Eksportu Ludliston"
+    "exportPlaylist": "Eksportu Ludliston",
+    "makeCurationFromGame": "Make Curation from Game"
   },
   "dialog": {
     "programNotFound": "Programo ne trovita!",
@@ -507,7 +525,13 @@
     "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher.",
     "downloadingGame": "Downloading Game...",
     "verifyingGame": "Verifying Game...",
-    "aFewMinutes": "This may take a few minutes."
+    "aFewMinutes": "This may take a few minutes.",
+    "importCurationWithWarnings": "Import this curation? There are still warnings present.",
+    "errorImportingCuration": "Error import curation '{0}', check logs page for details.",
+    "mustBePngImage": "Must be a .PNG Image.",
+    "mustBe7zArchiveSkipping": "Must be a .7z archive, skipping {0}",
+    "failedToLoadCuration": "Failed to load curation! {0}",
+    "exportCurationWithWarnings": "Export Curation even though it has Warnings?"
   },
   "libraries": {
     "arcade": "Ludoj",
