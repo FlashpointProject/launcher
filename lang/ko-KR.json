@@ -16,6 +16,8 @@
     "searchLimitValue": "{0} Results",
     "enableEditing": "편집 허용하기",
     "enableEditingDesc": "Enable editing of games and additional applications. Also shows tabs related to editing.",
+    "symlinkCuration": "Symlink Curation Content",
+    "symlinkCurationDesc": "Uses symbolic links to test curations rather than copying files. Faster and supports MAD4FP. Admin rights required.",
     "onDemandImages": "On Demand Images",
     "onDemandImagesDesc": "Download and save missing logos and screenshots as they are needed.",
     "currentLanguage": "언어",
@@ -331,13 +333,17 @@
     "locked": "Locked while processing..."
   },
   "curate": {
+    "noCurationSelected": "No Curation Selected",
+    "headerFileOperations": "File",
+    "headerEditCuration": " 수정",
+    "headerTest": "Test",
     "importAll": "모두 가져오기",
     "importAllDesc": "현재 로딩된 모든 큐레이션을 가져옵니다",
     "deleteAll": "모두 삭제",
     "deleteAllDesc": "현재 로딩된 모든 큐레이션을 삭제합니다",
     "saveImportedCurations": "가져온 큐레이션 저장",
     "keepArchiveKey": "Keep Curation Archive UUID",
-    "symlinkCurationContent": "Symlink Curation Content Folder (Admin prompts on Windows, Required for MAD4FP)",
+    "symlinkCurationContent": "Symlink Curation Content",
     "useTagFilters": "Use Tag Filters in Suggestions",
     "openCurationsFolder": "큐레이션 폴더",
     "openCurationsFolderDesc": "탐색기에서 큐레이션 폴더 열기",
@@ -347,6 +353,8 @@
     "openImportedFolderDesc": "가져온 큐레이션들이 있는 기본 '가져온 큐레이션' 폴더를 엽니다.",
     "newCuration": "새 큐레이션",
     "newCurationDesc": "새 큐레이션과 함께 유일한 폴더를 만듭니다",
+    "duplicateCuration": "Duplicate",
+    "newCurationFromTemplate": "New Curation (Template)",
     "loadMeta": "메타 불러오기",
     "loadMetaDesc": "하나 이상의 큐레이션 메타파일을 불러옵니다",
     "loadArchive": "보존기록 불러오기",
@@ -376,6 +384,7 @@
     "run": "실행",
     "runWithMAD4FP": "Run with MAD4FP",
     "export": "내보내기",
+    "exportDataPacks": "Export Data Pack",
     "import": "가져오기",
     "contentFiles": "컨텐츠 파일",
     "warnings": "경고",
@@ -394,7 +403,14 @@
     "noScreenshot": "There is no screenshot on this curation.",
     "ilc_notHttp": "HTTP를 사용하세요.",
     "ilc_nonExistant": "큐레이션의 '컨텐츠' 폴더에 존재하는 파일로 가리킵니다.",
-    "sort": "Sort Curations (A-Z)"
+    "documentStatus": "Notes must document changes and missing content for Hacked / Partial games",
+    "sort": "Sort Curations (A-Z)",
+    "contextCopyName": "Copy File Name",
+    "contextCopyPath": "Copy File Path",
+    "contextCopyAsURL": "Copy File Path as URL",
+    "contextShowInExplorer": "Show File in Explorer",
+    "contextOpenFolderInExplorer": "Open Folder in Explorer",
+    "shortcuts": "Shortcuts"
   },
   "playlist": {
     "enterDescriptionHere": "이 곳에 설명을 입력하세요...",
@@ -432,7 +448,8 @@
     "exportMetaEditTitle": "Export Meta Edit",
     "exportMetaEditDesc": "Select all properties to export:",
     "showImage": "Show Image",
-    "searching": "Searching..."
+    "searching": "Searching...",
+    "loading": "Loading..."
   },
   "menu": {
     "viewThumbnailInFolder": "폴더에 있는 썸네일 보기",
@@ -446,7 +463,8 @@
     "exportMetaAndImages": "내보내기 (메타 & 이미지)",
     "exportMetaEdit": "Export Meta Edit",
     "duplicatePlaylist": "플레이 리스트 복제",
-    "exportPlaylist": "재생목록 가져오기"
+    "exportPlaylist": "재생목록 가져오기",
+    "makeCurationFromGame": "Make Curation from Game"
   },
   "dialog": {
     "programNotFound": "프로그램을 찾을 수 없습니다!",
@@ -507,7 +525,13 @@
     "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher.",
     "downloadingGame": "게임 다운로드중...",
     "verifyingGame": "확인 중...",
-    "aFewMinutes": "이 작업은 몇 분 정도 소요될 수 있습니다."
+    "aFewMinutes": "이 작업은 몇 분 정도 소요될 수 있습니다.",
+    "importCurationWithWarnings": "Import this curation? There are still warnings present.",
+    "errorImportingCuration": "Error import curation '{0}', check logs page for details.",
+    "mustBePngImage": "Must be a .PNG Image.",
+    "mustBe7zArchiveSkipping": "Must be a .7z archive, skipping {0}",
+    "failedToLoadCuration": "Failed to load curation! {0}",
+    "exportCurationWithWarnings": "Export Curation even though it has Warnings?"
   },
   "libraries": {
     "arcade": "게임",
