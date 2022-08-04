@@ -16,6 +16,8 @@
     "searchLimitValue": "{0} Αποτελέσματα",
     "enableEditing": "Ενεργοποίηση Επεξεργασίας",
     "enableEditingDesc": "Ενεργοποίηση επεξεργασίας παιχνιδιών και επιπλέον εφαρμογών. Επίσης εμφανίζει καρτέλες που σχετίζονται με την επεξεργασία.",
+    "symlinkCuration": "Symlink Curation Content",
+    "symlinkCurationDesc": "Uses symbolic links to test curations rather than copying files. Faster and supports MAD4FP. Admin rights required.",
     "onDemandImages": "Κατά Παραγγελία Εικόνες",
     "onDemandImagesDesc": "Κατεβάστε και αποθηκεύστε τα λογότυπα και τα στιγμιότυπα οθόνης που λείπουν.",
     "currentLanguage": "Γλώσσα",
@@ -331,13 +333,17 @@
     "locked": "Κλειδωμένο κατά την επεξεργασία..."
   },
   "curate": {
+    "noCurationSelected": "No Curation Selected",
+    "headerFileOperations": "File",
+    "headerEditCuration": "Επεξεργασία",
+    "headerTest": "Test",
     "importAll": "Εισαγωγή Όλων",
     "importAllDesc": "Εισαγωγή όλων των ήδη φορτισμένων επιμελειών",
     "deleteAll": "Διαγραφή Όλων",
     "deleteAllDesc": "Διαγραφή όλων των ήδη φορτισμένων επιμελειών",
     "saveImportedCurations": "Αποθήκευση Εισαγόμενων Επιμελειών",
     "keepArchiveKey": "Διατήρηση Αρχειοθήκης Επιμελειών Καθολικά Μοναδικών Αναγνωριστικών",
-    "symlinkCurationContent": "Φάκελος Περιεχομένου Επιμέλειας Συμβολικού Συνδέσμου (Προκλήσεις διαχειριστή στα Windows, Απαιτούνται για το MAD4FP)",
+    "symlinkCurationContent": "Symlink Curation Content",
     "useTagFilters": "Χρήση Φίλτρων Ετικετών στις Προτάσεις",
     "openCurationsFolder": "Φάκελος Επιμελειών",
     "openCurationsFolderDesc": "Άνοιγμα φακέλου Επιμελειών στον εξερευνητή",
@@ -347,6 +353,8 @@
     "openImportedFolderDesc": "Άνοιγμα προεπιλεγμένου φακέλου Εισαγωγών που εμπεριέχει τις εισαγόμενες επιμέλειές σας.",
     "newCuration": "Νέα Επιμέλεια",
     "newCurationDesc": "Δημιουργία νέας επιμέλειας σε ξεχωριστό φάκελο",
+    "duplicateCuration": "Duplicate",
+    "newCurationFromTemplate": "New Curation (Template)",
     "loadMeta": "Φόρτωση Μεταδεδομένων",
     "loadMetaDesc": "Φόρτωση ενός ή περισσοτέρων αρχείων μεταδεδομένων Επιμέλειας",
     "loadArchive": "Φόρτωση Αρχείου",
@@ -376,6 +384,7 @@
     "run": "Εκτέλεση",
     "runWithMAD4FP": "Εκτέλεση με το MAD4FP",
     "export": "Εξαγωγή",
+    "exportDataPacks": "Export Data Pack",
     "import": "Εισαγωγή",
     "contentFiles": "Αρχεία Περιεχομένου",
     "warnings": "Προειδοποιήσεις",
@@ -394,7 +403,14 @@
     "noScreenshot": "Δεν υπάρχει στιγμιότυπο σε αυτή την επιμέλεια.",
     "ilc_notHttp": "Χρήση HTTP.",
     "ilc_nonExistant": "Παραπεμφθείτε σε ένα υπάρχον αρχείο στον φάκελο 'content' των επιμέλειάς σας.",
-    "sort": "Ταξινόμηση Επιμελειών (Α-Ω)"
+    "documentStatus": "Notes must document changes and missing content for Hacked / Partial games",
+    "sort": "Ταξινόμηση Επιμελειών (Α-Ω)",
+    "contextCopyName": "Copy File Name",
+    "contextCopyPath": "Copy File Path",
+    "contextCopyAsURL": "Copy File Path as URL",
+    "contextShowInExplorer": "Show File in Explorer",
+    "contextOpenFolderInExplorer": "Open Folder in Explorer",
+    "shortcuts": "Shortcuts"
   },
   "playlist": {
     "enterDescriptionHere": "Εισάγετε μία περιγραφή εδώ...",
@@ -432,7 +448,8 @@
     "exportMetaEditTitle": "Εξαγωγή Μετεπεξεργασίας",
     "exportMetaEditDesc": "Επιλογή όλων των ιδιοτήτων για εξαγωγή:",
     "showImage": "Εμφάνιση Εικόνας",
-    "searching": "Searching..."
+    "searching": "Searching...",
+    "loading": "Loading..."
   },
   "menu": {
     "viewThumbnailInFolder": "Προβολή Μικρογραφίας στον Φάκελο",
@@ -446,7 +463,8 @@
     "exportMetaAndImages": "Εξαγωγή (Μεταδεδομένα && Εικόνες)",
     "exportMetaEdit": "Εξαγωγή Μετεπεξεργασίας",
     "duplicatePlaylist": "Αντιγραφή Λίστας Αναπαραγωγής",
-    "exportPlaylist": "Εξαγωγή Λίστας Αναπαραγωγής"
+    "exportPlaylist": "Εξαγωγή Λίστας Αναπαραγωγής",
+    "makeCurationFromGame": "Make Curation from Game"
   },
   "dialog": {
     "programNotFound": "Το πρόγραμμα δεν βρέθηκε!",
@@ -507,7 +525,13 @@
     "unableToDeleteGame": "Δεν είναι δυνατή η διαγραφή του παιχνιδιού. Μήπως είναι σε χρήση; Δοκιμάστε να επανεκκινήσετε τον εκτελεστή.",
     "downloadingGame": "Λήψη Παιχνιδιού...",
     "verifyingGame": "Επαλήθευση Παιχνιδιού...",
-    "aFewMinutes": "Αυτή η διαδικασία μπορεί να διαρκέσει λίγα λεπτά."
+    "aFewMinutes": "Αυτή η διαδικασία μπορεί να διαρκέσει λίγα λεπτά.",
+    "importCurationWithWarnings": "Import this curation? There are still warnings present.",
+    "errorImportingCuration": "Error import curation '{0}', check logs page for details.",
+    "mustBePngImage": "Must be a .PNG Image.",
+    "mustBe7zArchiveSkipping": "Must be a .7z archive, skipping {0}",
+    "failedToLoadCuration": "Failed to load curation! {0}",
+    "exportCurationWithWarnings": "Export Curation even though it has Warnings?"
   },
   "libraries": {
     "arcade": "Παιχνίδια",
