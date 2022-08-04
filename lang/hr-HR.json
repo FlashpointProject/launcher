@@ -16,6 +16,8 @@
     "searchLimitValue": "{0} rezultata",
     "enableEditing": "Uključi uređivanje",
     "enableEditingDesc": "Omogućava uređivanje igara i dodatnih aplikacija. Također prikazuje kartice vezane za uređivanje.",
+    "symlinkCuration": "Symlink Curation Content",
+    "symlinkCurationDesc": "Uses symbolic links to test curations rather than copying files. Faster and supports MAD4FP. Admin rights required.",
     "onDemandImages": "Slike na zahtjev",
     "onDemandImagesDesc": "Preuzmi i spremi nedostajuće logotipe i snimke zaslona čim su potrebni.",
     "currentLanguage": "Jezik",
@@ -331,13 +333,17 @@
     "locked": "Zaključano dok se obrađuje..."
   },
   "curate": {
+    "noCurationSelected": "No Curation Selected",
+    "headerFileOperations": "File",
+    "headerEditCuration": "Uredi",
+    "headerTest": "Test",
     "importAll": "Uvezi sve",
     "importAllDesc": "Import all curations that are currently loaded",
     "deleteAll": "Izbriši sve",
     "deleteAllDesc": "Delete all curations that are currently loaded",
     "saveImportedCurations": "Save Imported Curations",
     "keepArchiveKey": "Keep Curation Archive UUID",
-    "symlinkCurationContent": "Symlink Curation Content Folder (Admin prompts on Windows, Required for MAD4FP)",
+    "symlinkCurationContent": "Symlink Curation Content",
     "useTagFilters": "Use Tag Filters in Suggestions",
     "openCurationsFolder": "Curations Folder",
     "openCurationsFolderDesc": "Open the Curations folder in explorer",
@@ -347,6 +353,8 @@
     "openImportedFolderDesc": "Open the default Imported curations folder containing your imported curations.",
     "newCuration": "New Curation",
     "newCurationDesc": "Creates a new curation with a unique folder",
+    "duplicateCuration": "Duplicate",
+    "newCurationFromTemplate": "New Curation (Template)",
     "loadMeta": "Load Meta",
     "loadMetaDesc": "Load one or more Curation meta files",
     "loadArchive": "Load Archive",
@@ -376,6 +384,7 @@
     "run": "Pokreni",
     "runWithMAD4FP": "Pokreni pomoću MAD4FP",
     "export": "Izvezi",
+    "exportDataPacks": "Export Data Pack",
     "import": "Uvezi",
     "contentFiles": "Content Files",
     "warnings": "Upozorenja",
@@ -394,7 +403,14 @@
     "noScreenshot": "There is no screenshot on this curation.",
     "ilc_notHttp": "Koristi HTTP.",
     "ilc_nonExistant": "Point to an existing file in your curation's 'content' folder.",
-    "sort": "Sort Curations (A-Z)"
+    "documentStatus": "Notes must document changes and missing content for Hacked / Partial games",
+    "sort": "Sort Curations (A-Z)",
+    "contextCopyName": "Copy File Name",
+    "contextCopyPath": "Copy File Path",
+    "contextCopyAsURL": "Copy File Path as URL",
+    "contextShowInExplorer": "Show File in Explorer",
+    "contextOpenFolderInExplorer": "Open Folder in Explorer",
+    "shortcuts": "Shortcuts"
   },
   "playlist": {
     "enterDescriptionHere": "Dodaj opis ovdje...",
@@ -432,7 +448,8 @@
     "exportMetaEditTitle": "Izvezi uređene metapodatke",
     "exportMetaEditDesc": "Izaberi sve stavke za izvoz:",
     "showImage": "Prikaži sliku",
-    "searching": "Searching..."
+    "searching": "Searching...",
+    "loading": "Loading..."
   },
   "menu": {
     "viewThumbnailInFolder": "Vidi simboličnu sličicu u mapi",
@@ -446,7 +463,8 @@
     "exportMetaAndImages": "Izvezi (metapodatke i slike)",
     "exportMetaEdit": "Izvezi uređene metapodatke",
     "duplicatePlaylist": "Udvostruči playlistu",
-    "exportPlaylist": "Izvezi playlistu"
+    "exportPlaylist": "Izvezi playlistu",
+    "makeCurationFromGame": "Make Curation from Game"
   },
   "dialog": {
     "programNotFound": "Program nije pronađen!",
@@ -507,7 +525,13 @@
     "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher.",
     "downloadingGame": "Preuzimanje igre...",
     "verifyingGame": "Provjeravanje igre...",
-    "aFewMinutes": "Ovo bi moglo potrajati nekoliko minuta."
+    "aFewMinutes": "Ovo bi moglo potrajati nekoliko minuta.",
+    "importCurationWithWarnings": "Import this curation? There are still warnings present.",
+    "errorImportingCuration": "Error import curation '{0}', check logs page for details.",
+    "mustBePngImage": "Must be a .PNG Image.",
+    "mustBe7zArchiveSkipping": "Must be a .7z archive, skipping {0}",
+    "failedToLoadCuration": "Failed to load curation! {0}",
+    "exportCurationWithWarnings": "Export Curation even though it has Warnings?"
   },
   "libraries": {
     "arcade": "Igre",
