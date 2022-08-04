@@ -16,6 +16,8 @@
     "searchLimitValue": "{0} kết quả",
     "enableEditing": "Bật khả năng chỉnh sửa",
     "enableEditingDesc": "Cho phép sửa trò chơi và phần mềm đi kèm. Cũng hiện thêm các mục liên quan đến việc chỉnh sửa.",
+    "symlinkCuration": "Symlink Curation Content",
+    "symlinkCurationDesc": "Uses symbolic links to test curations rather than copying files. Faster and supports MAD4FP. Admin rights required.",
     "onDemandImages": "Tải hình khi cần",
     "onDemandImagesDesc": "Tải và lưu các biểu trưng và ảnh chụp màn hình khi cần.",
     "currentLanguage": "Ngôn ngữ",
@@ -331,13 +333,17 @@
     "locked": "Bị khoá khi đang xử lí..."
   },
   "curate": {
+    "noCurationSelected": "No Curation Selected",
+    "headerFileOperations": "File",
+    "headerEditCuration": "Sửa",
+    "headerTest": "Test",
     "importAll": "Nhập tất cả",
     "importAllDesc": "Nhập tất cả bản đóng góp đã nạp vào chương trình",
     "deleteAll": "Xoá tất cả",
     "deleteAllDesc": "Xoá tất cả bản đóng góp đã nạp vào chương trình",
     "saveImportedCurations": "Lưu bản đóng góp đã nhập",
     "keepArchiveKey": "Giữ UUID của tập tin nén của bản đóng góp",
-    "symlinkCurationContent": "Bật Symlink cho thư mục chứa nội dung bản đóng góp (sẽ hiện thông báo yêu cầu quyền quản trị trên Windows, phải bật khi dùng MAD4FP)",
+    "symlinkCurationContent": "Symlink Curation Content",
     "useTagFilters": "Sử dụng Bộ lọc thẻ trong Đề xuất",
     "openCurationsFolder": "Thư mục chứa bản đóng góp",
     "openCurationsFolderDesc": "Mở thư mục chứa bản đóng góp trong Explorer",
@@ -347,6 +353,8 @@
     "openImportedFolderDesc": "Mở thư mục nhập mặc định có chứa bản đóng góp bạn đã nhập.",
     "newCuration": "Bản đóng góp mới",
     "newCurationDesc": "Tạo bản đóng góp mới và một thư mục riêng",
+    "duplicateCuration": "Duplicate",
+    "newCurationFromTemplate": "New Curation (Template)",
     "loadMeta": "Nạp Meta",
     "loadMetaDesc": "Nạp một hay nhiều tập tin meta của bản đóng góp",
     "loadArchive": "Nạp tập tin nén",
@@ -376,6 +384,7 @@
     "run": "Chạy",
     "runWithMAD4FP": "Chạy bằng MAD4FP",
     "export": "Xuất",
+    "exportDataPacks": "Export Data Pack",
     "import": "Nhập",
     "contentFiles": "Nội dung",
     "warnings": "Cảnh báo",
@@ -394,7 +403,14 @@
     "noScreenshot": "Bản đóng góp này không có ảnh chụp màn hình.",
     "ilc_notHttp": "Dùng HTTP.",
     "ilc_nonExistant": "Trỏ đến một tệp hiện có trong thư mục 'nội dung' của bản đóng góp của bạn.",
-    "sort": "Xếp bản đóng góp (A-Z)"
+    "documentStatus": "Notes must document changes and missing content for Hacked / Partial games",
+    "sort": "Xếp bản đóng góp (A-Z)",
+    "contextCopyName": "Copy File Name",
+    "contextCopyPath": "Copy File Path",
+    "contextCopyAsURL": "Copy File Path as URL",
+    "contextShowInExplorer": "Show File in Explorer",
+    "contextOpenFolderInExplorer": "Open Folder in Explorer",
+    "shortcuts": "Shortcuts"
   },
   "playlist": {
     "enterDescriptionHere": "Hãy điền mô tả vào đây...",
@@ -432,7 +448,8 @@
     "exportMetaEditTitle": "Xuất sửa đổi meta",
     "exportMetaEditDesc": "Chọn tất cả thuộc tính cần xuất:",
     "showImage": "Hiện ảnh",
-    "searching": "Đang tìm kiếm..."
+    "searching": "Đang tìm kiếm...",
+    "loading": "Loading..."
   },
   "menu": {
     "viewThumbnailInFolder": "Xem ảnh thu nhỏ trong thư mục",
@@ -446,7 +463,8 @@
     "exportMetaAndImages": "Xuất (meta && hình)",
     "exportMetaEdit": "Xuất sửa đổi meta",
     "duplicatePlaylist": "Tạo bản sao của danh sách",
-    "exportPlaylist": "Xuất danh sách"
+    "exportPlaylist": "Xuất danh sách",
+    "makeCurationFromGame": "Make Curation from Game"
   },
   "dialog": {
     "programNotFound": "Không tìm thấy chương trình!",
@@ -507,7 +525,13 @@
     "unableToDeleteGame": "Không thể xoá trò chơi. Bạn có đang mở trò này không? Hãy thử mở lại trình khởi chạy.",
     "downloadingGame": "Đang tải trò chơi...",
     "verifyingGame": "Đang xác nhận trò chơi...",
-    "aFewMinutes": "Có thể mất vài phút."
+    "aFewMinutes": "Có thể mất vài phút.",
+    "importCurationWithWarnings": "Import this curation? There are still warnings present.",
+    "errorImportingCuration": "Error import curation '{0}', check logs page for details.",
+    "mustBePngImage": "Must be a .PNG Image.",
+    "mustBe7zArchiveSkipping": "Must be a .7z archive, skipping {0}",
+    "failedToLoadCuration": "Failed to load curation! {0}",
+    "exportCurationWithWarnings": "Export Curation even though it has Warnings?"
   },
   "libraries": {
     "arcade": "Trò chơi",
