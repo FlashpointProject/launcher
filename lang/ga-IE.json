@@ -136,7 +136,8 @@
     "newGame": "Cluiche Nua",
     "list": "Liosta",
     "grid": "Greille",
-    "searchResults": "Search Results"
+    "searchResults": "Search Results",
+    "manual": "Help"
   },
   "filter": {
     "dateAdded": "Dáta Breise",
