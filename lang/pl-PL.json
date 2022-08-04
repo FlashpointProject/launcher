@@ -115,7 +115,7 @@
     "uploadLog": "Wyślij Log",
     "copiedToClipboard": "Skopiowano do schowka",
     "openLogsWindow": "Otwórz okno dzienników",
-    "copyDiagnostics": "Copy Diagnostics"
+    "copyDiagnostics": "Kopiuj diagnostykę"
   },
   "app": {
     "home": "Strona główna",
@@ -136,7 +136,8 @@
     "newGame": "Nowa gra",
     "list": "Lista",
     "grid": "Siatka",
-    "searchResults": "Znaleziono"
+    "searchResults": "Znaleziono",
+    "manual": "Help"
   },
   "filter": {
     "dateAdded": "Data dodania",
@@ -304,7 +305,7 @@
     "mountParameters": "Parametry montowania",
     "noMountParameters": "Brak parametrów montowania",
     "showExtremeScreenshot": "Pokaż ekstremalny zrzut ekranu",
-    "busy": "Please Wait..."
+    "busy": "Proszę czekać..."
   },
   "tags": {
     "name": "Nazwa",
