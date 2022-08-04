@@ -114,8 +114,8 @@
     "copy404Urls": "Копирај 404 URLs",
     "uploadLog": "Прикачи Лог",
     "copiedToClipboard": "Копирано во Kлипборд",
-    "openLogsWindow": "Open Logs Window",
-    "copyDiagnostics": "Copy Diagnostics"
+    "openLogsWindow": "Отвори Logs Прозорец",
+    "copyDiagnostics": "Копирај Дијагностика"
   },
   "app": {
     "home": "Почеток",
@@ -136,7 +136,8 @@
     "newGame": "Нова Игра",
     "list": "Листа",
     "grid": "Мрежа",
-    "searchResults": "Резултати од Пребарувањето"
+    "searchResults": "Резултати од Пребарувањето",
+    "manual": "Help"
   },
   "filter": {
     "dateAdded": "Датум Додадено",
@@ -278,7 +279,7 @@
     "thumbnail": "Лого",
     "screenshot": "Слика од екранот",
     "dropImageHere": "Постави слика за да ја додадеш",
-    "noGameSelected": "No {0} Selected",
+    "noGameSelected": "Нема {0} Селектирано",
     "clickToSelectGame": "Кликни на игра за да ја селектираш.",
     "deleteAdditionalApplication": "Избриши Додатната Апликација",
     "deleteGameAndAdditionalApps": "Избриши игра(и додатните апликации)",
@@ -304,7 +305,7 @@
     "mountParameters": "Моунт Параметри",
     "noMountParameters": "Нема Моунт Параметри",
     "showExtremeScreenshot": "Покажувај Eкстремни Cлики од Eкраноt",
-    "busy": "Please Wait..."
+    "busy": "Ве Молиме Да Почекате..."
   },
   "tags": {
     "name": "Име",
@@ -431,7 +432,7 @@
     "exportMetaEditTitle": "Изведувај Meta Edit",
     "exportMetaEditDesc": "Изберете ги сите својства за извоз:",
     "showImage": "Покажи Слика",
-    "searching": "Searching..."
+    "searching": "Пребарување..."
   },
   "menu": {
     "viewThumbnailInFolder": "Прегледај лого во папката",
@@ -510,13 +511,13 @@
   },
   "libraries": {
     "arcade": "Игри",
-    "arcadeSingular": "Game",
+    "arcadeSingular": "Игра",
     "arcadePlural": "Сите Игри",
     "theatre": "Анимации",
-    "theatreSingular": "Animation",
+    "theatreSingular": "Анимација",
     "theatrePlural": "Сите Анимации",
     "auditorium": "НГ Аудиториум",
-    "auditoriumSingular": "Animation",
+    "auditoriumSingular": "Анимација",
     "auditoriumPlural": "Сите НГ Анимации"
   },
   "upgrades": {
