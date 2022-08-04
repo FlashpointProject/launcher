@@ -16,6 +16,8 @@
     "searchLimitValue": "{0} eredmény",
     "enableEditing": "Szerkesztés engedélyezése",
     "enableEditingDesc": "Játékok és további alkalmazások módosítását engedélyezi, valamint a szerkesztéshez kapcsolódó lapokat is mutatja.",
+    "symlinkCuration": "Symlink Curation Content",
+    "symlinkCurationDesc": "Uses symbolic links to test curations rather than copying files. Faster and supports MAD4FP. Admin rights required.",
     "onDemandImages": "Igény szerinti Képek",
     "onDemandImagesDesc": "Letölti és lementi a hiányzó logókat és képernyőmentéseket, mivel szükségesek.",
     "currentLanguage": "Nyelv",
@@ -331,13 +333,17 @@
     "locked": "Zárolva a feldolgozás alatt.."
   },
   "curate": {
+    "noCurationSelected": "No Curation Selected",
+    "headerFileOperations": "File",
+    "headerEditCuration": "Szerkesztés",
+    "headerTest": "Test",
     "importAll": "Összes importálása",
     "importAllDesc": "A jelenleg betöltött összes kuráció importálása",
     "deleteAll": "Összes törlése",
     "deleteAllDesc": "A jelenleg betöltött összes kuráció törlése",
     "saveImportedCurations": "Importált Kurációk elmentése",
     "keepArchiveKey": "Kuráció UUID-jének a megőrzése",
-    "symlinkCurationContent": "Symlink Kurációs Tartalom Mappa (Admin megerősítés Windows alatt, MAD4FP-hez szükséges)",
+    "symlinkCurationContent": "Symlink Curation Content",
     "useTagFilters": "Tag szűrő használata a javaslatoknál",
     "openCurationsFolder": "Kurációs Mappa",
     "openCurationsFolderDesc": "Megnyitja a Kurációs mappát a fájlkezelőben",
@@ -347,6 +353,8 @@
     "openImportedFolderDesc": "Megnyitja az alapértelmezett Importált kurációk mappát ami az importált kurációkat tartalmazza.",
     "newCuration": "Új Kuráció",
     "newCurationDesc": "Új kurációt készít egy egyedi mappával",
+    "duplicateCuration": "Duplicate",
+    "newCurationFromTemplate": "New Curation (Template)",
     "loadMeta": "Meta betöltése",
     "loadMetaDesc": "Egy vagy több Kurációs meta fájlt betölt",
     "loadArchive": "Archívum betöltése",
@@ -376,6 +384,7 @@
     "run": "Futtatás",
     "runWithMAD4FP": "Futtatás MAD4FP-vel",
     "export": "Exportálás",
+    "exportDataPacks": "Export Data Pack",
     "import": "Importálás",
     "contentFiles": "Tartalom fájlok",
     "warnings": "Figyelmeztetések",
@@ -394,7 +403,14 @@
     "noScreenshot": "Nincsen képernyőmentés ebben a kurációban.",
     "ilc_notHttp": "HTTP használata.",
     "ilc_nonExistant": "Egy meglétező fájl-ra mutat a kurátori \"tartalom\" mappában.",
-    "sort": "Kurációk rendezése (A-Z)"
+    "documentStatus": "Notes must document changes and missing content for Hacked / Partial games",
+    "sort": "Kurációk rendezése (A-Z)",
+    "contextCopyName": "Copy File Name",
+    "contextCopyPath": "Copy File Path",
+    "contextCopyAsURL": "Copy File Path as URL",
+    "contextShowInExplorer": "Show File in Explorer",
+    "contextOpenFolderInExplorer": "Open Folder in Explorer",
+    "shortcuts": "Shortcuts"
   },
   "playlist": {
     "enterDescriptionHere": "Adja meg a leírást itt.....",
@@ -432,7 +448,8 @@
     "exportMetaEditTitle": "Meta módosítás exportálása",
     "exportMetaEditDesc": "Válassza ki az összes exportálni kívánt tulajdonságot",
     "showImage": "Kép mutatása",
-    "searching": "Keresés..."
+    "searching": "Keresés...",
+    "loading": "Loading..."
   },
   "menu": {
     "viewThumbnailInFolder": "Előnézeti kép megtekintése mappában",
@@ -446,7 +463,8 @@
     "exportMetaAndImages": "Exportálás (Meta&&Képek)",
     "exportMetaEdit": "Meta módosítás exportálása",
     "duplicatePlaylist": "Duplikált Lejátszólista",
-    "exportPlaylist": "Lejátszólista exportálása"
+    "exportPlaylist": "Lejátszólista exportálása",
+    "makeCurationFromGame": "Make Curation from Game"
   },
   "dialog": {
     "programNotFound": "Program nem található!",
@@ -507,7 +525,13 @@
     "unableToDeleteGame": "A játék törlése nem lehetséges. Használatban van? Próbálja meg újraindítani a launcher-t.",
     "downloadingGame": "Játék letöltése...",
     "verifyingGame": "Játék ellenőrzése...",
-    "aFewMinutes": "Ez néhány percig eltarthat."
+    "aFewMinutes": "Ez néhány percig eltarthat.",
+    "importCurationWithWarnings": "Import this curation? There are still warnings present.",
+    "errorImportingCuration": "Error import curation '{0}', check logs page for details.",
+    "mustBePngImage": "Must be a .PNG Image.",
+    "mustBe7zArchiveSkipping": "Must be a .7z archive, skipping {0}",
+    "failedToLoadCuration": "Failed to load curation! {0}",
+    "exportCurationWithWarnings": "Export Curation even though it has Warnings?"
   },
   "libraries": {
     "arcade": "Játékok",
