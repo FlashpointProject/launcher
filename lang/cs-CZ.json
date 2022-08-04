@@ -16,6 +16,8 @@
     "searchLimitValue": "{0} Výsledků",
     "enableEditing": "Povolit upravování",
     "enableEditingDesc": "Povolit úpravy her a přídavných aplikací. Také zobrazí záložky související s úpravami.",
+    "symlinkCuration": "Symlink Curation Content",
+    "symlinkCurationDesc": "Uses symbolic links to test curations rather than copying files. Faster and supports MAD4FP. Admin rights required.",
     "onDemandImages": "Obrázky na vyžádání",
     "onDemandImagesDesc": "Stahovat a ukládat chybějící screenshoty a náhledy podle potřeby.",
     "currentLanguage": "Jazyk",
@@ -331,13 +333,17 @@
     "locked": "Uzamčeno během zpracovávání..."
   },
   "curate": {
+    "noCurationSelected": "No Curation Selected",
+    "headerFileOperations": "File",
+    "headerEditCuration": "Upravit",
+    "headerTest": "Test",
     "importAll": "Importovat vše",
     "importAllDesc": "Importovat všechny aktuálně načtené kurace",
     "deleteAll": "Smazat vše",
     "deleteAllDesc": "Smazat všechny aktuálně načtené kurace",
     "saveImportedCurations": "Uložit importované kurace",
     "keepArchiveKey": "Uchovávat Archiv UUID Kurací",
-    "symlinkCurationContent": "Složka Obsahu Kurace se Symlink (Správcovská oprávnění na Windows, povinné pro MAD4FP)",
+    "symlinkCurationContent": "Symlink Curation Content",
     "useTagFilters": "Používat Filtry Štítků v Návrzích",
     "openCurationsFolder": "Složka kurací",
     "openCurationsFolderDesc": "Otevřít složku kurací v Průzkumníku",
@@ -347,6 +353,8 @@
     "openImportedFolderDesc": "Otevřít základní složku Importů obsahující vaše importované kurace.",
     "newCuration": "Nová kurace",
     "newCurationDesc": "Vytvoří novou kuraci ve zvláštní složce",
+    "duplicateCuration": "Duplicate",
+    "newCurationFromTemplate": "New Curation (Template)",
     "loadMeta": "Načíst metadata",
     "loadMetaDesc": "Načíst jeden nebo více souborů obsahujících metadata",
     "loadArchive": "Načíst archiv",
@@ -376,6 +384,7 @@
     "run": "Spustit",
     "runWithMAD4FP": "Spustit s MAD4FP",
     "export": "Exportovat",
+    "exportDataPacks": "Export Data Pack",
     "import": "Importovat",
     "contentFiles": "Soubory s obsahem",
     "warnings": "Varování",
@@ -394,7 +403,14 @@
     "noScreenshot": "Na této kuraci není žádný snímek obrazovky.",
     "ilc_notHttp": "Použít HTTP.",
     "ilc_nonExistant": "Míří na existující soubor ve složce 'content' ve vaší složce kurace.",
-    "sort": "Seřadit Kurace (A-Z)"
+    "documentStatus": "Notes must document changes and missing content for Hacked / Partial games",
+    "sort": "Seřadit Kurace (A-Z)",
+    "contextCopyName": "Copy File Name",
+    "contextCopyPath": "Copy File Path",
+    "contextCopyAsURL": "Copy File Path as URL",
+    "contextShowInExplorer": "Show File in Explorer",
+    "contextOpenFolderInExplorer": "Open Folder in Explorer",
+    "shortcuts": "Shortcuts"
   },
   "playlist": {
     "enterDescriptionHere": "Zadejte popis...",
@@ -432,7 +448,8 @@
     "exportMetaEditTitle": "Exportovat úpravy metadat",
     "exportMetaEditDesc": "Vyberte všechny vlastnosti k exportu:",
     "showImage": "Zaostřit obrázek",
-    "searching": "Vyhledávám..."
+    "searching": "Vyhledávám...",
+    "loading": "Loading..."
   },
   "menu": {
     "viewThumbnailInFolder": "Otevřít složku s umístěním miniatury",
@@ -446,7 +463,8 @@
     "exportMetaAndImages": "Exportovat (metadata a obrázky)",
     "exportMetaEdit": "Exportovat úpravy metadat",
     "duplicatePlaylist": "Duplikovat seznam",
-    "exportPlaylist": "Exportovat seznam"
+    "exportPlaylist": "Exportovat seznam",
+    "makeCurationFromGame": "Make Curation from Game"
   },
   "dialog": {
     "programNotFound": "Program nebyl nalezen!",
@@ -507,7 +525,13 @@
     "unableToDeleteGame": "Nepovedlo se odstranit hru. Není právě používána? Zkuste restartovat spouštěč.",
     "downloadingGame": "Stahování Hry...",
     "verifyingGame": "Ověřování Hry...",
-    "aFewMinutes": "Toto může zabrat pár minut."
+    "aFewMinutes": "Toto může zabrat pár minut.",
+    "importCurationWithWarnings": "Import this curation? There are still warnings present.",
+    "errorImportingCuration": "Error import curation '{0}', check logs page for details.",
+    "mustBePngImage": "Must be a .PNG Image.",
+    "mustBe7zArchiveSkipping": "Must be a .7z archive, skipping {0}",
+    "failedToLoadCuration": "Failed to load curation! {0}",
+    "exportCurationWithWarnings": "Export Curation even though it has Warnings?"
   },
   "libraries": {
     "arcade": "Hry",
