@@ -136,7 +136,8 @@
     "newGame": "Νέο Παιχνίδι",
     "list": "Λίστα",
     "grid": "Πλέγμα",
-    "searchResults": "Αποτελέσματα Αναζήτησης"
+    "searchResults": "Αποτελέσματα Αναζήτησης",
+    "manual": "Help"
   },
   "filter": {
     "dateAdded": "Ημερομηνία Προσθήκης",
