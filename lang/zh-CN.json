@@ -16,8 +16,8 @@
     "searchLimitValue": "{0} 个结果",
     "enableEditing": "启用编辑",
     "enableEditingDesc": "启用对游戏与附加应用的编辑。也显示与编辑有关的标签页。",
-    "symlinkCuration": "Symlink Curation Content",
-    "symlinkCurationDesc": "Uses symbolic links to test curations rather than copying files. Faster and supports MAD4FP. Admin rights required.",
+    "symlinkCuration": "创建展品内容软链接",
+    "symlinkCurationDesc": "测试展品时使用符号链接而不复制文件。更快速并且支持 MAD4FP。需要管理员权限。 ",
     "onDemandImages": "按需显示图像",
     "onDemandImagesDesc": "按需下载并保存缺失的图标与屏幕截图。",
     "currentLanguage": "首选语言",
@@ -139,7 +139,7 @@
     "list": "列表",
     "grid": "网格",
     "searchResults": "搜索结果",
-    "manual": "Help"
+    "manual": "帮助"
   },
   "filter": {
     "dateAdded": "添加日期",
@@ -333,17 +333,17 @@
     "locked": "处理过程中暂时锁定..."
   },
   "curate": {
-    "noCurationSelected": "No Curation Selected",
-    "headerFileOperations": "File",
+    "noCurationSelected": "未选择展品",
+    "headerFileOperations": "文件",
     "headerEditCuration": "编辑",
-    "headerTest": "Test",
+    "headerTest": "测试",
     "importAll": "导入全部",
     "importAllDesc": "导入所有当前加载的展品",
     "deleteAll": "删除全部",
     "deleteAllDesc": "删除所有当前加载的展品",
     "saveImportedCurations": "保存导入的展品",
     "keepArchiveKey": "保留展品档案 UUID",
-    "symlinkCurationContent": "Symlink Curation Content",
+    "symlinkCurationContent": "创建展品内容软链接",
     "useTagFilters": "在推荐中使用标签筛选器",
     "openCurationsFolder": "展品文件夹",
     "openCurationsFolderDesc": "在资源管理器中打开展品文件夹",
@@ -353,8 +353,8 @@
     "openImportedFolderDesc": "打开默认的导入展品文件夹，其中包含您导入的展品。",
     "newCuration": "新展品",
     "newCurationDesc": "创建新展品与相应的唯一文件夹",
-    "duplicateCuration": "Duplicate",
-    "newCurationFromTemplate": "New Curation (Template)",
+    "duplicateCuration": "创建副本",
+    "newCurationFromTemplate": "新展品（模板）",
     "loadMeta": "加载元数据",
     "loadMetaDesc": "加载一个或多个展品元数据文件",
     "loadArchive": "加载档案",
@@ -384,7 +384,7 @@
     "run": "运行",
     "runWithMAD4FP": "使用 MAD4FP 运行",
     "export": "导出",
-    "exportDataPacks": "Export Data Pack",
+    "exportDataPacks": "导出数据包",
     "import": "导入",
     "contentFiles": "内容文件",
     "warnings": "警告",
@@ -403,14 +403,14 @@
     "noScreenshot": "此展品没有屏幕截图。",
     "ilc_notHttp": "使用 HTTP。",
     "ilc_nonExistant": "指向您展品的 'content' 文件夹中已存在的文件。",
-    "documentStatus": "Notes must document changes and missing content for Hacked / Partial games",
+    "documentStatus": "对于破解 / 不完整游戏，备注必须记录修改和缺失内容。",
     "sort": "排序展品（A-Z）",
-    "contextCopyName": "Copy File Name",
-    "contextCopyPath": "Copy File Path",
-    "contextCopyAsURL": "Copy File Path as URL",
-    "contextShowInExplorer": "Show File in Explorer",
-    "contextOpenFolderInExplorer": "Open Folder in Explorer",
-    "shortcuts": "Shortcuts"
+    "contextCopyName": "复制文件名",
+    "contextCopyPath": "复制文件路径",
+    "contextCopyAsURL": "复制文件路径为 URL",
+    "contextShowInExplorer": "在资源管理器中显示文件",
+    "contextOpenFolderInExplorer": "在资源管理器中打开文件夹",
+    "shortcuts": "快捷方式"
   },
   "playlist": {
     "enterDescriptionHere": "在此输入描述...",
@@ -449,7 +449,7 @@
     "exportMetaEditDesc": "选择所有要导出的属性：",
     "showImage": "显示图像",
     "searching": "正在搜索…",
-    "loading": "Loading..."
+    "loading": "正在加载…"
   },
   "menu": {
     "viewThumbnailInFolder": "在文件夹中查看缩略图",
@@ -464,7 +464,7 @@
     "exportMetaEdit": "导出元数据变更",
     "duplicatePlaylist": "创建播放列表副本",
     "exportPlaylist": "导出播放列表",
-    "makeCurationFromGame": "Make Curation from Game"
+    "makeCurationFromGame": "从游戏创建展品"
   },
   "dialog": {
     "programNotFound": "未找到程序！",
@@ -526,12 +526,12 @@
     "downloadingGame": "正在下载游戏...",
     "verifyingGame": "正在验证游戏...",
     "aFewMinutes": "这可能需要几分钟的时间。",
-    "importCurationWithWarnings": "Import this curation? There are still warnings present.",
-    "errorImportingCuration": "Error import curation '{0}', check logs page for details.",
-    "mustBePngImage": "Must be a .PNG Image.",
-    "mustBe7zArchiveSkipping": "Must be a .7z archive, skipping {0}",
-    "failedToLoadCuration": "Failed to load curation! {0}",
-    "exportCurationWithWarnings": "Export Curation even though it has Warnings?"
+    "importCurationWithWarnings": "要导入此展品吗？目前仍然存在警告。",
+    "errorImportingCuration": "导入展品 '{0}' 错误，请在日志页面查看详情。",
+    "mustBePngImage": "必须是 .PNG 图像。",
+    "mustBe7zArchiveSkipping": "必须是 .7z 压缩档案，跳过 {0}",
+    "failedToLoadCuration": "加载展品失败！{0}",
+    "exportCurationWithWarnings": "即使有警告也导出展品吗？"
   },
   "libraries": {
     "arcade": "游戏",
