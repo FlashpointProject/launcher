@@ -136,7 +136,8 @@
     "newGame": "Uusi peli",
     "list": "Listanäkymä",
     "grid": "Verkkonäkymä",
-    "searchResults": "Hakutulokset"
+    "searchResults": "Hakutulokset",
+    "manual": "Help"
   },
   "filter": {
     "dateAdded": "Päiväys",
