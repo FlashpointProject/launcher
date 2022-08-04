@@ -136,7 +136,8 @@
     "newGame": "Adăugare joc",
     "list": "Listă",
     "grid": "Tabel",
-    "searchResults": "Rezultate"
+    "searchResults": "Rezultate",
+    "manual": "Help"
   },
   "filter": {
     "dateAdded": "Data adăugării",
