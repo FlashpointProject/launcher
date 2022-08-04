@@ -16,6 +16,8 @@
     "searchLimitValue": "{0} 个结果",
     "enableEditing": "启用编辑",
     "enableEditingDesc": "启用对游戏与附加应用的编辑。也显示与编辑有关的标签页。",
+    "symlinkCuration": "Symlink Curation Content",
+    "symlinkCurationDesc": "Uses symbolic links to test curations rather than copying files. Faster and supports MAD4FP. Admin rights required.",
     "onDemandImages": "按需显示图像",
     "onDemandImagesDesc": "按需下载并保存缺失的图标与屏幕截图。",
     "currentLanguage": "首选语言",
@@ -331,13 +333,17 @@
     "locked": "处理过程中暂时锁定..."
   },
   "curate": {
+    "noCurationSelected": "No Curation Selected",
+    "headerFileOperations": "File",
+    "headerEditCuration": "编辑",
+    "headerTest": "Test",
     "importAll": "导入全部",
     "importAllDesc": "导入所有当前加载的展品",
     "deleteAll": "删除全部",
     "deleteAllDesc": "删除所有当前加载的展品",
     "saveImportedCurations": "保存导入的展品",
     "keepArchiveKey": "保留展品档案 UUID",
-    "symlinkCurationContent": "符号链接展品内容文件夹（在 Windows 上需要管理员权限，MAD4FP 需要此功能）",
+    "symlinkCurationContent": "Symlink Curation Content",
     "useTagFilters": "在推荐中使用标签筛选器",
     "openCurationsFolder": "展品文件夹",
     "openCurationsFolderDesc": "在资源管理器中打开展品文件夹",
@@ -347,6 +353,8 @@
     "openImportedFolderDesc": "打开默认的导入展品文件夹，其中包含您导入的展品。",
     "newCuration": "新展品",
     "newCurationDesc": "创建新展品与相应的唯一文件夹",
+    "duplicateCuration": "Duplicate",
+    "newCurationFromTemplate": "New Curation (Template)",
     "loadMeta": "加载元数据",
     "loadMetaDesc": "加载一个或多个展品元数据文件",
     "loadArchive": "加载档案",
@@ -376,6 +384,7 @@
     "run": "运行",
     "runWithMAD4FP": "使用 MAD4FP 运行",
     "export": "导出",
+    "exportDataPacks": "Export Data Pack",
     "import": "导入",
     "contentFiles": "内容文件",
     "warnings": "警告",
@@ -394,7 +403,14 @@
     "noScreenshot": "此展品没有屏幕截图。",
     "ilc_notHttp": "使用 HTTP。",
     "ilc_nonExistant": "指向您展品的 'content' 文件夹中已存在的文件。",
-    "sort": "排序展品（A-Z）"
+    "documentStatus": "Notes must document changes and missing content for Hacked / Partial games",
+    "sort": "排序展品（A-Z）",
+    "contextCopyName": "Copy File Name",
+    "contextCopyPath": "Copy File Path",
+    "contextCopyAsURL": "Copy File Path as URL",
+    "contextShowInExplorer": "Show File in Explorer",
+    "contextOpenFolderInExplorer": "Open Folder in Explorer",
+    "shortcuts": "Shortcuts"
   },
   "playlist": {
     "enterDescriptionHere": "在此输入描述...",
@@ -432,7 +448,8 @@
     "exportMetaEditTitle": "导出元数据变更",
     "exportMetaEditDesc": "选择所有要导出的属性：",
     "showImage": "显示图像",
-    "searching": "正在搜索…"
+    "searching": "正在搜索…",
+    "loading": "Loading..."
   },
   "menu": {
     "viewThumbnailInFolder": "在文件夹中查看缩略图",
@@ -446,7 +463,8 @@
     "exportMetaAndImages": "导出（元数据与图像）",
     "exportMetaEdit": "导出元数据变更",
     "duplicatePlaylist": "创建播放列表副本",
-    "exportPlaylist": "导出播放列表"
+    "exportPlaylist": "导出播放列表",
+    "makeCurationFromGame": "Make Curation from Game"
   },
   "dialog": {
     "programNotFound": "未找到程序！",
@@ -507,7 +525,13 @@
     "unableToDeleteGame": "无法删除游戏。您正在运行它吗？请尝试重启启动器。",
     "downloadingGame": "正在下载游戏...",
     "verifyingGame": "正在验证游戏...",
-    "aFewMinutes": "这可能需要几分钟的时间。"
+    "aFewMinutes": "这可能需要几分钟的时间。",
+    "importCurationWithWarnings": "Import this curation? There are still warnings present.",
+    "errorImportingCuration": "Error import curation '{0}', check logs page for details.",
+    "mustBePngImage": "Must be a .PNG Image.",
+    "mustBe7zArchiveSkipping": "Must be a .7z archive, skipping {0}",
+    "failedToLoadCuration": "Failed to load curation! {0}",
+    "exportCurationWithWarnings": "Export Curation even though it has Warnings?"
   },
   "libraries": {
     "arcade": "游戏",
