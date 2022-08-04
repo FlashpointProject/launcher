@@ -28,6 +28,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
 
       return {
         ...state,
+        selectedPlaylistId: playlistId,
         views: {
           ...state.views,
           [action.library]: {

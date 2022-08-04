@@ -114,7 +114,8 @@
     "copy404Urls": "Copia URL 404",
     "uploadLog": "Carica Registro",
     "copiedToClipboard": "Copiato negli appunti",
-    "openLogsWindow": "Apri Finestra Di Log"
+    "openLogsWindow": "Apri Finestra dei Registri",
+    "copyDiagnostics": "Copia Diagnostica"
   },
   "app": {
     "home": "Per Iniziare",
@@ -302,7 +303,8 @@
     "noGameMatchedSearch": "Prova a cercare qualcosa di meno specifico.",
     "mountParameters": "Parametri di Montaggio",
     "noMountParameters": "Nessun Parametro di Montaggio",
-    "showExtremeScreenshot": "Mostra Schermata Estrema"
+    "showExtremeScreenshot": "Mostra Schermata Estrema",
+    "busy": "Attendere Prego..."
   },
   "tags": {
     "name": "Nome",
@@ -508,7 +510,7 @@
   },
   "libraries": {
     "arcade": "Giochi",
-    "arcadeSingular": "Partita",
+    "arcadeSingular": "Gioco",
     "arcadePlural": "Tutti i Giochi",
     "theatre": "Animazioni",
     "theatreSingular": "Animazione",

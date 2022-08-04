@@ -114,7 +114,8 @@
     "copy404Urls": "Kopieer 404 URL's",
     "uploadLog": "Uploaden van logs",
     "copiedToClipboard": "Gekopieerd naar klembord",
-    "openLogsWindow": "Open Logs Window"
+    "openLogsWindow": "Open Logs Window",
+    "copyDiagnostics": "Copy Diagnostics"
   },
   "app": {
     "home": "Thuis",
@@ -302,7 +303,8 @@
     "noGameMatchedSearch": "Probeer naar iets gemakkelijker te zoeken.",
     "mountParameters": "Koppel Parameters",
     "noMountParameters": "Geen Koppel Parameters",
-    "showExtremeScreenshot": "Extreme Schermafbeelding Weergeven"
+    "showExtremeScreenshot": "Extreme Schermafbeelding Weergeven",
+    "busy": "Please Wait..."
   },
   "tags": {
     "name": "Naam",

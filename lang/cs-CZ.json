@@ -114,7 +114,8 @@
     "copy404Urls": "Zkopírovat 404 URL adresy",
     "uploadLog": "Nahrát Log",
     "copiedToClipboard": "Zkopírováno do Schránky",
-    "openLogsWindow": "Otevřít okno s logy"
+    "openLogsWindow": "Otevřít okno s logy",
+    "copyDiagnostics": "Kopírovat diagnostiku"
   },
   "app": {
     "home": "Domů",
@@ -302,7 +303,8 @@
     "noGameMatchedSearch": "Zkuste méně omezit výběr hledání.",
     "mountParameters": "Zavádějící parametry",
     "noMountParameters": "Žádné zavádějící parametry",
-    "showExtremeScreenshot": "Zobrazovat snímky obrazovky pro dospělé"
+    "showExtremeScreenshot": "Zobrazovat snímky obrazovky pro dospělé",
+    "busy": "Čekejte prosím..."
   },
   "tags": {
     "name": "Název",
@@ -494,12 +496,12 @@
     "removePlaylistGame": "Odstranit tuto Hru ze Seznamu?",
     "deleteGame": "Odstranit tuto Hru? Tato akce je trvalá.",
     "deleteGameData": "Odstranit Data této Hry? Tato akce je trvalá.",
-    "deleteAddApp": "Odstranit tuto Přídatnou Aplikaci?",
-    "deleteTagCategory": "Odstranit tuto Kategorii Štítků?",
-    "deleteTag": "Odstranit tento Štítek?",
-    "deleteTagAlias": "Odstranit tento Alias Štítku?",
-    "deleteSource": "Odstranit tento Zdroj?",
-    "uninstallGame": "Odinstalovat tuto Hru?",
+    "deleteAddApp": "Odstranit tuto přídatnou aplikaci?",
+    "deleteTagCategory": "Odstranit tuto kategorii štítků?",
+    "deleteTag": "Odstranit tento štítek?",
+    "deleteTagAlias": "Odstranit tento alias štítku?",
+    "deleteSource": "Odstranit tento zdroj?",
+    "uninstallGame": "Odinstalovat tuto hru?",
     "unableToUninstallGameData": "Nepovedlo se odstranit datový balíček. Není právě používán? Zkuste restartovat spouštěč.",
     "unableToDeleteGame": "Nepovedlo se odstranit hru. Není právě používána? Zkuste restartovat spouštěč.",
     "downloadingGame": "Stahování Hry...",

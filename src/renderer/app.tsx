@@ -828,8 +828,8 @@ export class App extends React.Component<AppProps> {
   onRemoveSelectedGameFromPlaylist = async (): Promise<void> => {
     // Remove game from playlist
     if (this.props.main.currentGame) {
-      if (this.props.main.currentPlaylist) {
-        await window.Shared.back.request(BackIn.DELETE_PLAYLIST_GAME, this.props.main.currentPlaylist.id, this.props.main.currentGame.id);
+      if (this.props.main.selectedPlaylistId) {
+        await window.Shared.back.request(BackIn.DELETE_PLAYLIST_GAME, this.props.main.selectedPlaylistId, this.props.main.currentGame.id);
       } else { logError('No playlist is selected'); }
     } else { logError('No game is selected'); }
 
@@ -843,8 +843,8 @@ export class App extends React.Component<AppProps> {
       isEditingGame: false
     });
 
-    if (this.props.main.currentPlaylist) {
-      this.onUpdatePlaylist(this.props.main.currentPlaylist);
+    if (this.props.main.selectedPlaylistId) {
+      this.onUpdatePlaylistById(this.props.main.selectedPlaylistId);
     }
 
     function logError(text: string) {
@@ -1038,6 +1038,7 @@ export class App extends React.Component<AppProps> {
       rollRandomGames: this.rollRandomGames,
       updateView: this.updateView,
       gamesTotal: view && view.total,
+      allPlaylists: this.props.main.playlists,
       playlists: playlists,
       suggestions: this.props.main.suggestions,
       appPaths: this.props.main.appPaths,
@@ -1060,7 +1061,7 @@ export class App extends React.Component<AppProps> {
       creditsDoneLoading: this.props.main.creditsDoneLoading,
       selectedGameId: this.props.main.selectedGameId,
       gameRunning: this.checkGameRunningMemo(this.props.main.selectedGameId, this.props.main.services),
-      selectedPlaylistId: view && view.query.filter.playlistId,
+      selectedPlaylistId: this.props.main.selectedPlaylistId,
       onSelectGame: this.onSelectGame,
       onDeletePlaylist: this.onPlaylistDelete,
       onUpdatePlaylist: this.onUpdatePlaylist,
@@ -1081,6 +1082,7 @@ export class App extends React.Component<AppProps> {
       logoVersion: this.props.main.logoVersion,
       services: this.props.main.services,
       updateFeedMarkdown: window.Shared.initialUpdateFeedMarkdown,
+      manualUrl: this.props.preferencesData.onlineManual || pathToFileUrl(path.join(window.Shared.config.fullFlashpointPath, this.props.preferencesData.offlineManual)),
     };
 
     // Render
@@ -1121,7 +1123,7 @@ export class App extends React.Component<AppProps> {
                       This website requires JavaScript to be enabled.
                     </div>
                   </noscript>
-                  { this.props.main.currentGame && (
+                  { this.props.main.currentGame && this.props.history.location.pathname !== '/logs' && this.props.history.location.pathname !== '/about' && this.props.history.location.pathname !== '/manual' && (
                     <ResizableSidebar
                       hide={this.props.preferencesData.browsePageShowRightSidebar}
                       divider='before'
@@ -1262,6 +1264,13 @@ export class App extends React.Component<AppProps> {
     }
   }
 
+  private onUpdatePlaylistById = (playlistId: string) => {
+    const playlist = this.props.main.playlists.find(p => p.id === playlistId);
+    if (playlist) {
+      this.onUpdatePlaylist(playlist);
+    }
+  }
+
   private onUpdatePlaylist = (playlist: Playlist) => {
     const state: Partial<Pick<MainState, 'playlistIconCache' | 'playlists' | 'views'>> = {};
 
@@ -1295,10 +1304,7 @@ export class App extends React.Component<AppProps> {
 
     // Clear view caches (that use this playlist)
     for (const library in this.props.main.views) {
-      const view = this.props.main.views[library];
-      if (view && (view.query.filter.playlistId === playlist.id)) {
-        this.setViewQuery(library);
-      }
+      this.setViewQuery(library, playlist.id);
     }
 
     this.props.setMainState(state as any); // (This is very annoying to make typesafe)
@@ -1588,6 +1594,14 @@ function openContextMenu(template: MenuItemConstructorOptions[]): Menu {
 
 type MenuItemLibrary = MenuItemConstructorOptions & {
   library: string;
+}
+
+function pathToFileUrl(p: string) {
+  try {
+    return `file:///${path.resolve(p)}`;
+  } catch {
+    return '';
+  }
 }
 
 function UniquePlaylistMenuFactory(playlists: Playlist[], strings: LangContainer, onClick: (playlistId: string) => any, selectedPlaylistId?: string): MenuItemConstructorOptions[] {

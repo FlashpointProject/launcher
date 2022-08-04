@@ -144,6 +144,7 @@ const langTemplate = {
     'list',
     'grid',
     'searchResults',
+    'manual',
   ] as const,
   filter: [
     'dateAdded',

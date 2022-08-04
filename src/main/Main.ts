@@ -298,13 +298,18 @@ export function main(init: Init): void {
       // * The back server(s)
       // * DevTools (I have no idea if this is safe or not, but DevTools won't work without it)
       const remoteHostname = state.backHost.hostname;
+      const allowedHosts = [ ...ALLOWED_HOSTS ];
+      if (state.preferences && state.preferences.onlineManual) {
+        const hostname = new URL(state.preferences.onlineManual).hostname;
+        allowedHosts.push(hostname);
+      }
       const allow = (
         url && (
           (url.protocol === 'file:') ||
           (url.protocol === 'devtools:') ||
           (
             url.hostname === remoteHostname ||
-            (ALLOWED_HOSTS.includes(url.hostname) && ALLOWED_HOSTS.includes(remoteHostname))
+            (allowedHosts.includes(url.hostname) && allowedHosts.includes(remoteHostname))
           )
         )
       );

@@ -114,7 +114,8 @@
     "copy404Urls": "Kopioi 404 URL-osoitteet",
     "uploadLog": "Lataa Loki",
     "copiedToClipboard": "Kopioitu leikepöydälle",
-    "openLogsWindow": "Avaa Loki-Ikkuna"
+    "openLogsWindow": "Avaa Loki-Ikkuna",
+    "copyDiagnostics": "Copy Diagnostics"
   },
   "app": {
     "home": "Koti",
@@ -302,7 +303,8 @@
     "noGameMatchedSearch": "Yritä etsiä yleisemmillä hakusanoilla.",
     "mountParameters": "Mount Parameters",
     "noMountParameters": "No Mount Parameters",
-    "showExtremeScreenshot": "Show Extreme Screenshot"
+    "showExtremeScreenshot": "Show Extreme Screenshot",
+    "busy": "Please Wait..."
   },
   "tags": {
     "name": "Nimi",

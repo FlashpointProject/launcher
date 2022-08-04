@@ -119,6 +119,8 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   updateFeedUrl: 'https://bluemaxima.org/flashpoint/updateFeed/stable.txt',
   fancyAnimations: true,
   searchLimit: 0,
+  onlineManual: 'https://flashpointproject.github.io/manual/',
+  offlineManual: '',
 });
 
 /**
@@ -179,6 +181,8 @@ export function overwritePreferenceData(
   parser.prop('disableExtremeGames',         v => source.disableExtremeGames         = !!v);
   parser.prop('showBrokenGames',             v => source.showBrokenGames             = !!v);
   parser.prop('updateFeedUrl',               v => source.updateFeedUrl               = str(v));
+  parser.prop('onlineManual',                v => source.onlineManual                = str(v));
+  parser.prop('offlineManual',               v => source.offlineManual               = str(v));
   parser.prop('fancyAnimations',             v => source.fancyAnimations             = !!v);
   parser.prop('searchLimit', v => source.searchLimit                 = num(v));
   if (data.appPathOverrides) {

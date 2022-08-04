@@ -114,7 +114,8 @@
     "copy404Urls": "404 URLをコピー",
     "uploadLog": "ログをアップロード",
     "copiedToClipboard": "クリップボードにコピーしました",
-    "openLogsWindow": "Open Logs Window"
+    "openLogsWindow": "Open Logs Window",
+    "copyDiagnostics": "Copy Diagnostics"
   },
   "app": {
     "home": "ホーム",
@@ -302,7 +303,8 @@
     "noGameMatchedSearch": "制限の少ないものを探してみてください。",
     "mountParameters": "Mount Parameters",
     "noMountParameters": "No Mount Parameters",
-    "showExtremeScreenshot": "Show Extreme Screenshot"
+    "showExtremeScreenshot": "Show Extreme Screenshot",
+    "busy": "Please Wait..."
   },
   "tags": {
     "name": "名前",

@@ -114,7 +114,8 @@
     "copy404Urls": "Копіювати 404 адреси",
     "uploadLog": "Завантажити журнал",
     "copiedToClipboard": "Скопійовано до буфера обміну",
-    "openLogsWindow": "Open Logs Window"
+    "openLogsWindow": "Open Logs Window",
+    "copyDiagnostics": "Copy Diagnostics"
   },
   "app": {
     "home": "Домашній екран",
@@ -302,7 +303,8 @@
     "noGameMatchedSearch": "Спробуйте пошукати менше обмежуючих.",
     "mountParameters": "Mount Parameters",
     "noMountParameters": "No Mount Parameters",
-    "showExtremeScreenshot": "Show Extreme Screenshot"
+    "showExtremeScreenshot": "Show Extreme Screenshot",
+    "busy": "Please Wait..."
   },
   "tags": {
     "name": "Ім'я",

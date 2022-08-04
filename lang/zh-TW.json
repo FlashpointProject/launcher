@@ -114,7 +114,8 @@
     "copy404Urls": "複製 404 路徑",
     "uploadLog": "上傳紀錄",
     "copiedToClipboard": "已複製到剪貼簿",
-    "openLogsWindow": "Open Logs Window"
+    "openLogsWindow": "Open Logs Window",
+    "copyDiagnostics": "Copy Diagnostics"
   },
   "app": {
     "home": "首頁",
@@ -302,7 +303,8 @@
     "noGameMatchedSearch": "嘗試以較為寬鬆的關鍵字進行搜尋",
     "mountParameters": "掛載參數",
     "noMountParameters": "無掛載參數",
-    "showExtremeScreenshot": "顯示成人截圖"
+    "showExtremeScreenshot": "顯示成人截圖",
+    "busy": "Please Wait..."
   },
   "tags": {
     "name": "名稱",
