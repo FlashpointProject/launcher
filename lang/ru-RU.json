@@ -16,6 +16,8 @@
     "searchLimitValue": "{0} Results",
     "enableEditing": "Включить редактирование",
     "enableEditingDesc": "Включите редактирование игр и дополнительных приложений. Также показывает вкладки, связанные с редактированием.",
+    "symlinkCuration": "Symlink Curation Content",
+    "symlinkCurationDesc": "Uses symbolic links to test curations rather than copying files. Faster and supports MAD4FP. Admin rights required.",
     "onDemandImages": "Изображения по требованию",
     "onDemandImagesDesc": "Скачать и сохранить недостающие логотипы и скриншоты по мере необходимости.",
     "currentLanguage": "Язык",
@@ -331,13 +333,17 @@
     "locked": "Заблокировано во время обработки..."
   },
   "curate": {
+    "noCurationSelected": "No Curation Selected",
+    "headerFileOperations": "File",
+    "headerEditCuration": "Изменить",
+    "headerTest": "Test",
     "importAll": "Импортировать все",
     "importAllDesc": "Импортировать все загруженные на данный момент правки",
     "deleteAll": "Удалить все",
     "deleteAllDesc": "Удалить все курации, которые в данный момент загружены",
     "saveImportedCurations": "Сохранить импортированные курации",
     "keepArchiveKey": "Сохранить архив UUID",
-    "symlinkCurationContent": "Symlink Curation Content Folder (Требует подтверждение администратора в Windows, требуется для MAD4FP)",
+    "symlinkCurationContent": "Symlink Curation Content",
     "useTagFilters": "Использовать фильтры тегов в предложениях",
     "openCurationsFolder": "Папка Курации",
     "openCurationsFolderDesc": "Откройте папку Кураций в проводнике",
@@ -347,6 +353,8 @@
     "openImportedFolderDesc": "Откройте папку импортированнные курации по умолчанию, содержащую ваши импортированные курации.",
     "newCuration": "Новая Курация",
     "newCurationDesc": "Создает новое курирование с уникальной папкой",
+    "duplicateCuration": "Duplicate",
+    "newCurationFromTemplate": "New Curation (Template)",
     "loadMeta": "Загрузить метафайлы",
     "loadMetaDesc": "Загрузить один или больше метафайлов",
     "loadArchive": "Загрузить архив",
@@ -376,6 +384,7 @@
     "run": "Запуск",
     "runWithMAD4FP": "Запустить с помощью MAD4FP",
     "export": "Экспорт",
+    "exportDataPacks": "Export Data Pack",
     "import": "Импортировать",
     "contentFiles": "Файлы содержания",
     "warnings": "Предупреждение",
@@ -394,7 +403,14 @@
     "noScreenshot": "На этом курировании нет скриншотов.",
     "ilc_notHttp": "Использовать HTTP.",
     "ilc_nonExistant": "Укажите на существующий файл в папке 'содержимое' вашего курирования.",
-    "sort": "Сортировка курирований (A-Z)"
+    "documentStatus": "Notes must document changes and missing content for Hacked / Partial games",
+    "sort": "Сортировка курирований (A-Z)",
+    "contextCopyName": "Copy File Name",
+    "contextCopyPath": "Copy File Path",
+    "contextCopyAsURL": "Copy File Path as URL",
+    "contextShowInExplorer": "Show File in Explorer",
+    "contextOpenFolderInExplorer": "Open Folder in Explorer",
+    "shortcuts": "Shortcuts"
   },
   "playlist": {
     "enterDescriptionHere": "Введите описание сюда...",
@@ -432,7 +448,8 @@
     "exportMetaEditTitle": "Экспорт мета-правок",
     "exportMetaEditDesc": "Выберите все свойства для экспорта:",
     "showImage": "Показать Изображение",
-    "searching": "Searching..."
+    "searching": "Searching...",
+    "loading": "Loading..."
   },
   "menu": {
     "viewThumbnailInFolder": "Отображать превью в папке",
@@ -446,7 +463,8 @@
     "exportMetaAndImages": "Экспортировать (Метафайлы и изображения)",
     "exportMetaEdit": "Экспорт мета-правок",
     "duplicatePlaylist": "Копировать плейлист",
-    "exportPlaylist": "Экспорт плейлиста"
+    "exportPlaylist": "Экспорт плейлиста",
+    "makeCurationFromGame": "Make Curation from Game"
   },
   "dialog": {
     "programNotFound": "Программа не найдена!",
@@ -507,7 +525,13 @@
     "unableToDeleteGame": "Не удается удалить игру. Используется ли она? Попробуйте перезапустить лаунчер.",
     "downloadingGame": "Загрузка игры...",
     "verifyingGame": "Проверка игры...",
-    "aFewMinutes": "Это может занять несколько минут."
+    "aFewMinutes": "Это может занять несколько минут.",
+    "importCurationWithWarnings": "Import this curation? There are still warnings present.",
+    "errorImportingCuration": "Error import curation '{0}', check logs page for details.",
+    "mustBePngImage": "Must be a .PNG Image.",
+    "mustBe7zArchiveSkipping": "Must be a .7z archive, skipping {0}",
+    "failedToLoadCuration": "Failed to load curation! {0}",
+    "exportCurationWithWarnings": "Export Curation even though it has Warnings?"
   },
   "libraries": {
     "arcade": "Игры",
