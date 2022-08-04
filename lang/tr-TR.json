@@ -136,7 +136,8 @@
     "newGame": "Yeni Oyun",
     "list": "Liste",
     "grid": "Izgara",
-    "searchResults": "Arama Sonuçları"
+    "searchResults": "Arama Sonuçları",
+    "manual": "Help"
   },
   "filter": {
     "dateAdded": "Eklenme Tarihi",
