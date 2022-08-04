@@ -16,6 +16,8 @@
     "searchLimitValue": "{0} résultats",
     "enableEditing": "Activer le mode édition",
     "enableEditingDesc": "Active l'édition des jeux et des applications additionnelles. Affiche également les onglets liés à l'édition.",
+    "symlinkCuration": "Symlink Curation Content",
+    "symlinkCurationDesc": "Uses symbolic links to test curations rather than copying files. Faster and supports MAD4FP. Admin rights required.",
     "onDemandImages": "Images sur demande",
     "onDemandImagesDesc": "Télécharge et sauvegarde les logos et captures d'écran manquants quand nécessaire.",
     "currentLanguage": "Langue",
@@ -331,13 +333,17 @@
     "locked": "Protégé pendant le traitement..."
   },
   "curate": {
+    "noCurationSelected": "No Curation Selected",
+    "headerFileOperations": "File",
+    "headerEditCuration": "Éditer",
+    "headerTest": "Test",
     "importAll": "Tout importer",
     "importAllDesc": "Importe toutes les conservations actuellement chargées",
     "deleteAll": "Tout supprimer",
     "deleteAllDesc": "Supprime toutes les conservations actuellement chargées",
     "saveImportedCurations": "Sauvegarder les conservations importées",
     "keepArchiveKey": "Garder l'UUID de l'archive de curation",
-    "symlinkCurationContent": "Lier symboliquement le dossier de contenu de curation (Nécessite les droits d'administrateur sous Windows, requis pour MAD4FP)",
+    "symlinkCurationContent": "Symlink Curation Content",
     "useTagFilters": "Utiliser les filtres de tags dans les suggestions",
     "openCurationsFolder": "Dossier de conservations",
     "openCurationsFolderDesc": "Ouvre le dossier de conservations dans l'explorateur",
@@ -347,6 +353,8 @@
     "openImportedFolderDesc": "Ouvre le dossier par défaut des conservations importées.",
     "newCuration": "Nouvelle conservation",
     "newCurationDesc": "Crée une nouvelle conservation avec un dossier unique",
+    "duplicateCuration": "Duplicate",
+    "newCurationFromTemplate": "New Curation (Template)",
     "loadMeta": "Charger un fichier meta",
     "loadMetaDesc": "Charge un ou plusieurs fichiers meta de conservation",
     "loadArchive": "Charger une archive",
@@ -376,6 +384,7 @@
     "run": "Lancer",
     "runWithMAD4FP": "Lancer (MAD4FP)",
     "export": "Exporter",
+    "exportDataPacks": "Export Data Pack",
     "import": "Importer",
     "contentFiles": "Fichiers Content",
     "warnings": "Avertissements",
@@ -394,7 +403,14 @@
     "noScreenshot": "Il n'y a aucune capture d'écran sur cette conservation.",
     "ilc_notHttp": "Utilise HTTP.",
     "ilc_nonExistant": "Pointe un fichier existant dans ton dossier 'Content' de conservation.",
-    "sort": "Trier les conservations (A-Z)"
+    "documentStatus": "Notes must document changes and missing content for Hacked / Partial games",
+    "sort": "Trier les conservations (A-Z)",
+    "contextCopyName": "Copy File Name",
+    "contextCopyPath": "Copy File Path",
+    "contextCopyAsURL": "Copy File Path as URL",
+    "contextShowInExplorer": "Show File in Explorer",
+    "contextOpenFolderInExplorer": "Open Folder in Explorer",
+    "shortcuts": "Shortcuts"
   },
   "playlist": {
     "enterDescriptionHere": "Ajouter une description ici...",
@@ -432,7 +448,8 @@
     "exportMetaEditTitle": "Exporter les modifications de meta",
     "exportMetaEditDesc": "Sélectionner toutes les propriétés à exporter :",
     "showImage": "Afficher l'image",
-    "searching": "Recherche en cours..."
+    "searching": "Recherche en cours...",
+    "loading": "Loading..."
   },
   "menu": {
     "viewThumbnailInFolder": "Voir la miniature dans le dossier",
@@ -446,7 +463,8 @@
     "exportMetaAndImages": "Exporter (meta et images)",
     "exportMetaEdit": "Exporter les modifications de meta",
     "duplicatePlaylist": "Dupliquer la playlist",
-    "exportPlaylist": "Exporter la playlist"
+    "exportPlaylist": "Exporter la playlist",
+    "makeCurationFromGame": "Make Curation from Game"
   },
   "dialog": {
     "programNotFound": "Programme non trouvé !",
@@ -507,7 +525,13 @@
     "unableToDeleteGame": "Incapable de supprimer le jeu. Est-il utilisé ? Essayez de redémarrer le lanceur.",
     "downloadingGame": "Téléchargement du jeu...",
     "verifyingGame": "Vérification du jeu...",
-    "aFewMinutes": "Ceci peut prendre quelques minutes."
+    "aFewMinutes": "Ceci peut prendre quelques minutes.",
+    "importCurationWithWarnings": "Import this curation? There are still warnings present.",
+    "errorImportingCuration": "Error import curation '{0}', check logs page for details.",
+    "mustBePngImage": "Must be a .PNG Image.",
+    "mustBe7zArchiveSkipping": "Must be a .7z archive, skipping {0}",
+    "failedToLoadCuration": "Failed to load curation! {0}",
+    "exportCurationWithWarnings": "Export Curation even though it has Warnings?"
   },
   "libraries": {
     "arcade": "Jeux",
