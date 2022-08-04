@@ -136,7 +136,8 @@
     "newGame": "لعبة جديدة",
     "list": "قائمة",
     "grid": "شكل شبكي",
-    "searchResults": "نتائج البحث"
+    "searchResults": "نتائج البحث",
+    "manual": "Help"
   },
   "filter": {
     "dateAdded": "تاريخ الإضافة",
