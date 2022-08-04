@@ -136,7 +136,8 @@
     "newGame": "新增遊戲",
     "list": "清單顯示",
     "grid": "格狀顯示",
-    "searchResults": "搜尋結果"
+    "searchResults": "搜尋結果",
+    "manual": "Help"
   },
   "filter": {
     "dateAdded": "新增日期",
