@@ -16,6 +16,8 @@
     "searchLimitValue": "{0} Resultaten",
     "enableEditing": "Bewerken inschakelen",
     "enableEditingDesc": "Bewerken inschakelen voor spellen en extra applicaties. Toont ook de gerelateerde tabbladen voor het bewerken.",
+    "symlinkCuration": "Symlink Curation Content",
+    "symlinkCurationDesc": "Uses symbolic links to test curations rather than copying files. Faster and supports MAD4FP. Admin rights required.",
     "onDemandImages": "Aangevraagde afbeeldingen",
     "onDemandImagesDesc": "Downloaden van ontbrekende logo's en screenshots en die opslaan indien nodig.",
     "currentLanguage": "Taal",
@@ -331,13 +333,17 @@
     "locked": "Vergrendeld tijdens verwerking..."
   },
   "curate": {
+    "noCurationSelected": "No Curation Selected",
+    "headerFileOperations": "File",
+    "headerEditCuration": "Bewerken",
+    "headerTest": "Test",
     "importAll": "Alles importeren",
     "importAllDesc": "Importeer alle curaties die momenteel zijn geladen",
     "deleteAll": "Verwijder alles",
     "deleteAllDesc": "Verwijder alle curaties die momenteel zijn geladen",
     "saveImportedCurations": "Sla geïmporteerde curaties op",
     "keepArchiveKey": "Houd Curatie-Archief UUID",
-    "symlinkCurationContent": "Symlink inhoud map voor curatie (Admin aanvragingen in Windows, vereist voor MAD4FP)",
+    "symlinkCurationContent": "Symlink Curation Content",
     "useTagFilters": "Gebruik Tag Filters in Suggesties",
     "openCurationsFolder": "Curatie map",
     "openCurationsFolderDesc": "Open de curatiesmap in de verkenner",
@@ -347,6 +353,8 @@
     "openImportedFolderDesc": "Open de standaard geïmporteerde curaties map met jouw geïmporteerde curaties.",
     "newCuration": "Nieuwe curatie",
     "newCurationDesc": "Maakt een nieuwe curatie met een unieke map",
+    "duplicateCuration": "Duplicate",
+    "newCurationFromTemplate": "New Curation (Template)",
     "loadMeta": "Laadt metadata",
     "loadMetaDesc": "Laadt één of meer curatie metabestanden",
     "loadArchive": "Archief laden",
@@ -376,6 +384,7 @@
     "run": "Uitvoeren",
     "runWithMAD4FP": "Uitvoeren met MAD4FP",
     "export": "Exporteren",
+    "exportDataPacks": "Export Data Pack",
     "import": "Importeren",
     "contentFiles": "Inhoudsbestanden",
     "warnings": "Waarschuwingen",
@@ -394,7 +403,14 @@
     "noScreenshot": "Deze curatie heeft geen schermafbeelding.",
     "ilc_notHttp": "Gebruik HTTP.",
     "ilc_nonExistant": "Richt een bestaand bestand naar de curatie 'inhouds'-map.",
-    "sort": "Curaties sorteren (A-Z)"
+    "documentStatus": "Notes must document changes and missing content for Hacked / Partial games",
+    "sort": "Curaties sorteren (A-Z)",
+    "contextCopyName": "Copy File Name",
+    "contextCopyPath": "Copy File Path",
+    "contextCopyAsURL": "Copy File Path as URL",
+    "contextShowInExplorer": "Show File in Explorer",
+    "contextOpenFolderInExplorer": "Open Folder in Explorer",
+    "shortcuts": "Shortcuts"
   },
   "playlist": {
     "enterDescriptionHere": "Voer hier een beschrijving in...",
@@ -432,7 +448,8 @@
     "exportMetaEditTitle": "Exporteren van Metadata wijziging",
     "exportMetaEditDesc": "Selecteer alle eigenschappen om te exporteren:",
     "showImage": "Afbeelding Weergeven",
-    "searching": "Searching..."
+    "searching": "Searching...",
+    "loading": "Loading..."
   },
   "menu": {
     "viewThumbnailInFolder": "Miniatuur in map bekijken",
@@ -446,7 +463,8 @@
     "exportMetaAndImages": "Exporteren (Metadata && Afbeeldingen)",
     "exportMetaEdit": "Exporteren van Metadata wijziging",
     "duplicatePlaylist": "Afspeellijst dupliceren",
-    "exportPlaylist": "Exporteer afspeellijst"
+    "exportPlaylist": "Exporteer afspeellijst",
+    "makeCurationFromGame": "Make Curation from Game"
   },
   "dialog": {
     "programNotFound": "Programma niet gevonden!",
@@ -507,7 +525,13 @@
     "unableToDeleteGame": "Kan het spel niet verwijderen. Is het in gebruik? Probeer het programma opnieuw te starten.",
     "downloadingGame": "Spel downloaden...",
     "verifyingGame": "Spel verifiëren...",
-    "aFewMinutes": "Dit kan enkele minuten duren."
+    "aFewMinutes": "Dit kan enkele minuten duren.",
+    "importCurationWithWarnings": "Import this curation? There are still warnings present.",
+    "errorImportingCuration": "Error import curation '{0}', check logs page for details.",
+    "mustBePngImage": "Must be a .PNG Image.",
+    "mustBe7zArchiveSkipping": "Must be a .7z archive, skipping {0}",
+    "failedToLoadCuration": "Failed to load curation! {0}",
+    "exportCurationWithWarnings": "Export Curation even though it has Warnings?"
   },
   "libraries": {
     "arcade": "Spellen",
