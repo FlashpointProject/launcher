@@ -136,7 +136,8 @@
     "newGame": "Új játék",
     "list": "Lista",
     "grid": "Rács",
-    "searchResults": "Keresési eredmények"
+    "searchResults": "Keresési eredmények",
+    "manual": "Help"
   },
   "filter": {
     "dateAdded": "Hozzáadás dátuma",
