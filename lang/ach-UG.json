@@ -16,6 +16,8 @@
     "searchLimitValue": "crwdns1938:0{0}crwdne1938:0",
     "enableEditing": "crwdns1940:0crwdne1940:0",
     "enableEditingDesc": "crwdns1942:0crwdne1942:0",
+    "symlinkCuration": "crwdns2906:0crwdne2906:0",
+    "symlinkCurationDesc": "crwdns2908:0crwdne2908:0",
     "onDemandImages": "crwdns1944:0crwdne1944:0",
     "onDemandImagesDesc": "crwdns1946:0crwdne1946:0",
     "currentLanguage": "crwdns1948:0crwdne1948:0",
@@ -331,13 +333,17 @@
     "locked": "crwdns2536:0crwdne2536:0"
   },
   "curate": {
+    "noCurationSelected": "crwdns2910:0crwdne2910:0",
+    "headerFileOperations": "crwdns2912:0crwdne2912:0",
+    "headerEditCuration": "crwdns2914:0crwdne2914:0",
+    "headerTest": "crwdns2916:0crwdne2916:0",
     "importAll": "crwdns2538:0crwdne2538:0",
     "importAllDesc": "crwdns2540:0crwdne2540:0",
     "deleteAll": "crwdns2542:0crwdne2542:0",
     "deleteAllDesc": "crwdns2544:0crwdne2544:0",
     "saveImportedCurations": "crwdns2546:0crwdne2546:0",
     "keepArchiveKey": "crwdns2548:0crwdne2548:0",
-    "symlinkCurationContent": "crwdns2550:0crwdne2550:0",
+    "symlinkCurationContent": "crwdns2918:0crwdne2918:0",
     "useTagFilters": "crwdns2552:0crwdne2552:0",
     "openCurationsFolder": "crwdns2554:0crwdne2554:0",
     "openCurationsFolderDesc": "crwdns2556:0crwdne2556:0",
@@ -347,6 +353,8 @@
     "openImportedFolderDesc": "crwdns2564:0crwdne2564:0",
     "newCuration": "crwdns2566:0crwdne2566:0",
     "newCurationDesc": "crwdns2568:0crwdne2568:0",
+    "duplicateCuration": "crwdns2920:0crwdne2920:0",
+    "newCurationFromTemplate": "crwdns2922:0crwdne2922:0",
     "loadMeta": "crwdns2570:0crwdne2570:0",
     "loadMetaDesc": "crwdns2572:0crwdne2572:0",
     "loadArchive": "crwdns2574:0crwdne2574:0",
@@ -376,6 +384,7 @@
     "run": "crwdns2622:0crwdne2622:0",
     "runWithMAD4FP": "crwdns2624:0crwdne2624:0",
     "export": "crwdns2626:0crwdne2626:0",
+    "exportDataPacks": "crwdns2924:0crwdne2924:0",
     "import": "crwdns2628:0crwdne2628:0",
     "contentFiles": "crwdns2630:0crwdne2630:0",
     "warnings": "crwdns2632:0crwdne2632:0",
@@ -394,7 +403,14 @@
     "noScreenshot": "crwdns2658:0crwdne2658:0",
     "ilc_notHttp": "crwdns2660:0crwdne2660:0",
     "ilc_nonExistant": "crwdns2662:0crwdne2662:0",
-    "sort": "crwdns2664:0crwdne2664:0"
+    "documentStatus": "crwdns2926:0crwdne2926:0",
+    "sort": "crwdns2664:0crwdne2664:0",
+    "contextCopyName": "crwdns2928:0crwdne2928:0",
+    "contextCopyPath": "crwdns2930:0crwdne2930:0",
+    "contextCopyAsURL": "crwdns2932:0crwdne2932:0",
+    "contextShowInExplorer": "crwdns2934:0crwdne2934:0",
+    "contextOpenFolderInExplorer": "crwdns2936:0crwdne2936:0",
+    "shortcuts": "crwdns2938:0crwdne2938:0"
   },
   "playlist": {
     "enterDescriptionHere": "crwdns2666:0crwdne2666:0",
@@ -432,7 +448,8 @@
     "exportMetaEditTitle": "crwdns2726:0crwdne2726:0",
     "exportMetaEditDesc": "crwdns2728:0crwdne2728:0",
     "showImage": "crwdns2730:0crwdne2730:0",
-    "searching": "crwdns2732:0crwdne2732:0"
+    "searching": "crwdns2732:0crwdne2732:0",
+    "loading": "crwdns2940:0crwdne2940:0"
   },
   "menu": {
     "viewThumbnailInFolder": "crwdns2734:0crwdne2734:0",
@@ -446,7 +463,8 @@
     "exportMetaAndImages": "crwdns2750:0crwdne2750:0",
     "exportMetaEdit": "crwdns2752:0crwdne2752:0",
     "duplicatePlaylist": "crwdns2754:0crwdne2754:0",
-    "exportPlaylist": "crwdns2756:0crwdne2756:0"
+    "exportPlaylist": "crwdns2756:0crwdne2756:0",
+    "makeCurationFromGame": "crwdns2942:0crwdne2942:0"
   },
   "dialog": {
     "programNotFound": "crwdns2758:0crwdne2758:0",
@@ -507,7 +525,13 @@
     "unableToDeleteGame": "crwdns2868:0crwdne2868:0",
     "downloadingGame": "crwdns2870:0crwdne2870:0",
     "verifyingGame": "crwdns2872:0crwdne2872:0",
-    "aFewMinutes": "crwdns2874:0crwdne2874:0"
+    "aFewMinutes": "crwdns2874:0crwdne2874:0",
+    "importCurationWithWarnings": "crwdns2944:0crwdne2944:0",
+    "errorImportingCuration": "crwdns2946:0{0}crwdne2946:0",
+    "mustBePngImage": "crwdns2948:0crwdne2948:0",
+    "mustBe7zArchiveSkipping": "crwdns2950:0{0}crwdne2950:0",
+    "failedToLoadCuration": "crwdns2952:0{0}crwdne2952:0",
+    "exportCurationWithWarnings": "crwdns2954:0crwdne2954:0"
   },
   "libraries": {
     "arcade": "crwdns2876:0crwdne2876:0",
