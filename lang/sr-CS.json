@@ -136,7 +136,8 @@
     "newGame": "Nova Igra",
     "list": "Lista",
     "grid": "Rešetka",
-    "searchResults": "Rezultati pretrage"
+    "searchResults": "Rezultati pretrage",
+    "manual": "Help"
   },
   "filter": {
     "dateAdded": "Datum dodavanja",
