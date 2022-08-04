@@ -136,7 +136,8 @@
     "newGame": "Bagong Laro",
     "list": "Listahan",
     "grid": "Grid",
-    "searchResults": "Mga resulta sa paghahanap"
+    "searchResults": "Mga resulta sa paghahanap",
+    "manual": "Help"
   },
   "filter": {
     "dateAdded": "Petsa kung kailan idinagdag",
