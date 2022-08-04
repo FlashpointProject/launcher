@@ -16,6 +16,8 @@
     "searchLimitValue": "{0} tulosta",
     "enableEditing": "Muokkaustila",
     "enableEditingDesc": "Ota käyttöön pelien ja muiden sovellusten muokkaus. Näyttää myös muokkaukseen liittyvät välilehdet.",
+    "symlinkCuration": "Symlink Curation Content",
+    "symlinkCurationDesc": "Uses symbolic links to test curations rather than copying files. Faster and supports MAD4FP. Admin rights required.",
     "onDemandImages": "Kysyntää Koskevissa Kuvissa",
     "onDemandImagesDesc": "Lataa ja tallenna puuttuvat logot ja kuvakaappaukset tarvittaessa.",
     "currentLanguage": "Kieli",
@@ -137,7 +139,7 @@
     "list": "Listanäkymä",
     "grid": "Verkkonäkymä",
     "searchResults": "Hakutulokset",
-    "manual": "Help"
+    "manual": "Apua"
   },
   "filter": {
     "dateAdded": "Päiväys",
@@ -331,13 +333,17 @@
     "locked": "Lukittu käsittelyn aikana..."
   },
   "curate": {
+    "noCurationSelected": "No Curation Selected",
+    "headerFileOperations": "Tiedosto",
+    "headerEditCuration": "Muokkaa",
+    "headerTest": "Testi",
     "importAll": "Tuo kaikki kuratoinnit",
     "importAllDesc": "Tuo kaikki kuratoinnit jotka on ladattu",
     "deleteAll": "Tuhoa kaikki",
     "deleteAllDesc": "Tuhoa kaikki kurantoinnit jotka on ladattu",
     "saveImportedCurations": "Tallenna viedyt kuratoinnit",
     "keepArchiveKey": "Pidä Kuraattoriarkisto UUID",
-    "symlinkCurationContent": "Symlink Curation Content -kansio (Admin kehittelee Windowsissa, vaaditaan MAD4FP: lle)",
+    "symlinkCurationContent": "Symlink Curation Content",
     "useTagFilters": "Use Tag Filters in Suggestions",
     "openCurationsFolder": "Kuratointien kansio",
     "openCurationsFolderDesc": "Avaa kuratointien kansio selaimessa",
@@ -347,6 +353,8 @@
     "openImportedFolderDesc": "Avaa tuotujen kuratiointien kansio.",
     "newCuration": "Uusi kuratointi",
     "newCurationDesc": "Luo uuden kuratoinnin uuteen kansioon",
+    "duplicateCuration": "Duplicate",
+    "newCurationFromTemplate": "New Curation (Template)",
     "loadMeta": "Lataa metatiedot",
     "loadMetaDesc": "Lataa yksi tai useampi kuratoinnin metatiedosto",
     "loadArchive": "Lataa arkisto",
@@ -376,6 +384,7 @@
     "run": "Käynnistä",
     "runWithMAD4FP": "Suorita MAD4FP: llä",
     "export": "Vie",
+    "exportDataPacks": "Vie Data Pack",
     "import": "Tuo",
     "contentFiles": "Sisältötiedostot",
     "warnings": "Varoitukset",
@@ -394,7 +403,14 @@
     "noScreenshot": "There is no screenshot on this curation.",
     "ilc_notHttp": "Käytä HTTP.",
     "ilc_nonExistant": "Osoitus olemassaolevaan tiedostoon kuratoinnin 'content'-kansiossa.",
-    "sort": "Sort Curations (A-Z)"
+    "documentStatus": "Notes must document changes and missing content for Hacked / Partial games",
+    "sort": "Sort Curations (A-Z)",
+    "contextCopyName": "Kopioi Tiedoston Nimi",
+    "contextCopyPath": "Kopioi tiedoston polku",
+    "contextCopyAsURL": "Kopioi tiedostopolku URL-osoitteena",
+    "contextShowInExplorer": "Näytä tiedosto Explorerissa",
+    "contextOpenFolderInExplorer": "Avaa kansio Explorerissa",
+    "shortcuts": "Shortcuts"
   },
   "playlist": {
     "enterDescriptionHere": "Kirjoita kuvaus tähän...",
@@ -432,7 +448,8 @@
     "exportMetaEditTitle": "Vie Meta Muokkaus",
     "exportMetaEditDesc": "Valitse kaikki vietävät ominaisuudet:",
     "showImage": "Näytä kuva",
-    "searching": "Haetaan..."
+    "searching": "Haetaan...",
+    "loading": "Ladataan..."
   },
   "menu": {
     "viewThumbnailInFolder": "Katso kuvaketta kansiossa",
@@ -446,7 +463,8 @@
     "exportMetaAndImages": "Vie (Meta & kuvat)",
     "exportMetaEdit": "Vie Meta Muokkaus",
     "duplicatePlaylist": "Monista Soittolista",
-    "exportPlaylist": "Vie Soittolista"
+    "exportPlaylist": "Vie Soittolista",
+    "makeCurationFromGame": "Make Curation from Game"
   },
   "dialog": {
     "programNotFound": "Ohjelmaa ei löydy!",
@@ -507,7 +525,13 @@
     "unableToDeleteGame": "Peliä ei voi poistaa. Onko se käytössä? Yritä käynnistää launcher uudelleen.",
     "downloadingGame": "Ladataan Peliä...",
     "verifyingGame": "Vahvistetaan Peliä...",
-    "aFewMinutes": "Tämä saattaa viedä hetken."
+    "aFewMinutes": "Tämä saattaa viedä hetken.",
+    "importCurationWithWarnings": "Import this curation? There are still warnings present.",
+    "errorImportingCuration": "Error import curation '{0}', check logs page for details.",
+    "mustBePngImage": "Täytyy olla .PNG kuva.",
+    "mustBe7zArchiveSkipping": "Täytyy olla .7z arkisto, ohitetaan {0}",
+    "failedToLoadCuration": "Failed to load curation! {0}",
+    "exportCurationWithWarnings": "Export Curation even though it has Warnings?"
   },
   "libraries": {
     "arcade": "Pelit",
