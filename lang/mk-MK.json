@@ -16,6 +16,8 @@
     "searchLimitValue": "{0} Резултати",
     "enableEditing": "Овозможи Уредувања",
     "enableEditingDesc": "Овозможи уредување на игри и дополнителни апликации. Исто така, покажува јазичиња поврзани со уредување.",
+    "symlinkCuration": "Symlink Curation Content",
+    "symlinkCurationDesc": "Uses symbolic links to test curations rather than copying files. Faster and supports MAD4FP. Admin rights required.",
     "onDemandImages": "Слики на барање",
     "onDemandImagesDesc": "Преземете и зачувајте логоа и слики од екранот што недостасуваат, колку што се потребни.",
     "currentLanguage": "Јазик",
@@ -331,13 +333,17 @@
     "locked": "Заклучено додека се обработува..."
   },
   "curate": {
+    "noCurationSelected": "No Curation Selected",
+    "headerFileOperations": "File",
+    "headerEditCuration": "Уреди",
+    "headerTest": "Test",
     "importAll": "Увози се",
     "importAllDesc": "Увезете ги сите курации што се моментално вчитани",
     "deleteAll": "Избриши сè",
     "deleteAllDesc": "Избришете ги сите курации што се моментално вчитани",
     "saveImportedCurations": "Зачувај Увозни Курации",
     "keepArchiveKey": "Чуваја Архивата за Курација UUID",
-    "symlinkCurationContent": "Папка за содржини за курирање на симлинк (Административни инструкции на Windows, потребни за MAD4FP)",
+    "symlinkCurationContent": "Symlink Curation Content",
     "useTagFilters": "Користи Филтри за Ознаки во Предлозите",
     "openCurationsFolder": "Папка со Курации",
     "openCurationsFolderDesc": "Отвори ја Кураторската Папка во Explorer",
@@ -347,6 +353,8 @@
     "openImportedFolderDesc": "Отворете ја стандардната папка Увезени курации што ги содржи увезените курации.",
     "newCuration": "Нова Курација",
     "newCurationDesc": "Создава нова курација со единствена папка",
+    "duplicateCuration": "Duplicate",
+    "newCurationFromTemplate": "New Curation (Template)",
     "loadMeta": "Учитај Мета",
     "loadMetaDesc": "Учитај една или повеќе мета-фајлови на Курацијата",
     "loadArchive": "Учитај Архива",
@@ -376,6 +384,7 @@
     "run": "Стартувај",
     "runWithMAD4FP": "Стартувај со MAD4FP",
     "export": "Извоз",
+    "exportDataPacks": "Export Data Pack",
     "import": "Увоз",
     "contentFiles": "Содржински Фајлови",
     "warnings": "Преопредувања",
@@ -394,7 +403,14 @@
     "noScreenshot": "Нема слика од екранот за оваа курација.",
     "ilc_notHttp": "Користи HTTP.",
     "ilc_nonExistant": "Посочете на постоечкиот фајл во „содржината“ на вашата курациска Папка.",
-    "sort": "Сортирај курации (A-Z)"
+    "documentStatus": "Notes must document changes and missing content for Hacked / Partial games",
+    "sort": "Сортирај курации (A-Z)",
+    "contextCopyName": "Copy File Name",
+    "contextCopyPath": "Copy File Path",
+    "contextCopyAsURL": "Copy File Path as URL",
+    "contextShowInExplorer": "Show File in Explorer",
+    "contextOpenFolderInExplorer": "Open Folder in Explorer",
+    "shortcuts": "Shortcuts"
   },
   "playlist": {
     "enterDescriptionHere": "Внеси опис овде...",
@@ -432,7 +448,8 @@
     "exportMetaEditTitle": "Изведувај Meta Edit",
     "exportMetaEditDesc": "Изберете ги сите својства за извоз:",
     "showImage": "Покажи Слика",
-    "searching": "Пребарување..."
+    "searching": "Пребарување...",
+    "loading": "Loading..."
   },
   "menu": {
     "viewThumbnailInFolder": "Прегледај лого во папката",
@@ -446,7 +463,8 @@
     "exportMetaAndImages": "Изведувај(Meta && Слики)",
     "exportMetaEdit": "Изведувај Meta Edit",
     "duplicatePlaylist": "Дуплицирај плејлист",
-    "exportPlaylist": "Изведувај плејлист"
+    "exportPlaylist": "Изведувај плејлист",
+    "makeCurationFromGame": "Make Curation from Game"
   },
   "dialog": {
     "programNotFound": "Програмата не е најдена!",
@@ -507,7 +525,13 @@
     "unableToDeleteGame": "Не може да се избрише играта. Дали е во употреба? Обидете се повторно да ја стартувате апликацијата.",
     "downloadingGame": "Играта се инсталира...",
     "verifyingGame": "Играта се проверува...",
-    "aFewMinutes": "Ова може да трае неколку минути."
+    "aFewMinutes": "Ова може да трае неколку минути.",
+    "importCurationWithWarnings": "Import this curation? There are still warnings present.",
+    "errorImportingCuration": "Error import curation '{0}', check logs page for details.",
+    "mustBePngImage": "Must be a .PNG Image.",
+    "mustBe7zArchiveSkipping": "Must be a .7z archive, skipping {0}",
+    "failedToLoadCuration": "Failed to load curation! {0}",
+    "exportCurationWithWarnings": "Export Curation even though it has Warnings?"
   },
   "libraries": {
     "arcade": "Игри",
