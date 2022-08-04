@@ -136,7 +136,8 @@
     "newGame": "Trò chơi mới",
     "list": "Danh sách",
     "grid": "Lưới",
-    "searchResults": "Kết quả tìm kiếm"
+    "searchResults": "Kết quả tìm kiếm",
+    "manual": "Help"
   },
   "filter": {
     "dateAdded": "Ngày thêm",
