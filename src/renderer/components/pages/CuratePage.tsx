@@ -50,6 +50,7 @@ export function CuratePage(props: CuratePageProps) {
 
   const onSymlinkCurationContentChange = onCheckboxChange('symlinkCurationContent');
   const onSaveImportedCurationChange = onCheckboxChange('saveImportedCurations');
+  const onTagFiltersInCurateChange = onCheckboxChange('tagFiltersInCurate');
 
   const onDupeCurations = React.useCallback(() => {
     const selected = props.curate.selected;
@@ -670,6 +671,13 @@ export function CuratePage(props: CuratePageProps) {
               disabled={disabled}
               value={strings.curate.exportDataPacks}/>
           )}
+          <div className='curate-page__right--checkbox'>
+            <div>{strings.curate.useTagFilters}</div>
+            <CheckBox
+              className='browse-right-sidebar__row__check-box'
+              onToggle={onTagFiltersInCurateChange}
+              checked={props.preferencesData.tagFiltersInCurate} />
+          </div>
           <div className='curate-page__right--checkbox'>
             <div>{strings.curate.saveImportedCurations}</div>
             <CheckBox
