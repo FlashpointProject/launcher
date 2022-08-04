@@ -136,7 +136,8 @@
     "newGame": "Uus mäng",
     "list": "Nimekiri",
     "grid": "Ruudustik",
-    "searchResults": "Tulemusi leitud"
+    "searchResults": "Tulemusi leitud",
+    "manual": "Help"
   },
   "filter": {
     "dateAdded": "Kuupäev Lisatud",
