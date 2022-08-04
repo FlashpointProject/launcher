@@ -136,7 +136,8 @@
     "newGame": "Ny Spil",
     "list": "Liste",
     "grid": "Grid",
-    "searchResults": "Søgeresultater"
+    "searchResults": "Søgeresultater",
+    "manual": "Help"
   },
   "filter": {
     "dateAdded": "Dato Tilføjet",
