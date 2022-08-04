@@ -16,6 +16,8 @@
     "searchLimitValue": "{0} Tulemust",
     "enableEditing": "Luba Kohaldada",
     "enableEditingDesc": "Luba kohaldamist mängudele ja lisarakendustele. Avab ka selle jaoks akna.",
+    "symlinkCuration": "Symlink Curation Content",
+    "symlinkCurationDesc": "Uses symbolic links to test curations rather than copying files. Faster and supports MAD4FP. Admin rights required.",
     "onDemandImages": "Pildid Nõudlusel",
     "onDemandImagesDesc": "Lae alla ja salvesta logosid ja ekraanipilte, kui neid vaja on.",
     "currentLanguage": "Keel",
@@ -331,13 +333,17 @@
     "locked": "Lukus protsessi ajal..."
   },
   "curate": {
+    "noCurationSelected": "No Curation Selected",
+    "headerFileOperations": "File",
+    "headerEditCuration": "Muuda",
+    "headerTest": "Test",
     "importAll": "Impordi Kõik",
     "importAllDesc": "Impordi kõik laetud kureeringud",
     "deleteAll": "Kustuta Kõik",
     "deleteAllDesc": "Kustuta kõik laetud kureeringud",
     "saveImportedCurations": "Salvesta Imporditud Kureeringud",
     "keepArchiveKey": "Hoia Kureeringu Arhiivi UUID",
-    "symlinkCurationContent": "Seo Kureeringu Sisukaust (Admini promptid Windowsil, MAD4FP Jaoks Vajalik)",
+    "symlinkCurationContent": "Symlink Curation Content",
     "useTagFilters": "Kasuta Soovitustes Märksõna Filtreid",
     "openCurationsFolder": "Kureeringu Kaust",
     "openCurationsFolderDesc": "Ava kureeringu kaust exploreris",
@@ -347,6 +353,8 @@
     "openImportedFolderDesc": "Ava vaikimisi valitud importide kaust, milles on sinu imporditud kureeringud.",
     "newCuration": "Uus Kureering",
     "newCurationDesc": "Loob uue kureeringu unikaalse kaustaga",
+    "duplicateCuration": "Duplicate",
+    "newCurationFromTemplate": "New Curation (Template)",
     "loadMeta": "Lae Üles Meta",
     "loadMetaDesc": "Lae üles ühe või rohkema kureeringu metafailid",
     "loadArchive": "Lae Üles Arhiiv",
@@ -376,6 +384,7 @@
     "run": "Mängi",
     "runWithMAD4FP": "Mängi MAD4FP'ga",
     "export": "Ekspordi",
+    "exportDataPacks": "Export Data Pack",
     "import": "Impordi",
     "contentFiles": "Sisufailid",
     "warnings": "Hoiatused",
@@ -394,7 +403,14 @@
     "noScreenshot": "Sellel kureeringul pole ekraanipilti.",
     "ilc_notHttp": "Kasuta HTTP.",
     "ilc_nonExistant": "Osuta olemasolevale failile oma kureeringu 'sisu' kaustas.",
-    "sort": "Sorteeri Kureeringud (A-Z)"
+    "documentStatus": "Notes must document changes and missing content for Hacked / Partial games",
+    "sort": "Sorteeri Kureeringud (A-Z)",
+    "contextCopyName": "Copy File Name",
+    "contextCopyPath": "Copy File Path",
+    "contextCopyAsURL": "Copy File Path as URL",
+    "contextShowInExplorer": "Show File in Explorer",
+    "contextOpenFolderInExplorer": "Open Folder in Explorer",
+    "shortcuts": "Shortcuts"
   },
   "playlist": {
     "enterDescriptionHere": "Lisa kirjeldus siia...",
@@ -432,7 +448,8 @@
     "exportMetaEditTitle": "Ekspordi Meta Muudatus",
     "exportMetaEditDesc": "Vali kõik väljad, mida eksportida:",
     "showImage": "Näita pilti",
-    "searching": "Searching..."
+    "searching": "Searching...",
+    "loading": "Loading..."
   },
   "menu": {
     "viewThumbnailInFolder": "Vaata Logo Kaustas",
@@ -446,7 +463,8 @@
     "exportMetaAndImages": "Ekspordi (Meta && Pildid)",
     "exportMetaEdit": "Ekspordi Meta Muudatus",
     "duplicatePlaylist": "Dubleeri Esitlusloend",
-    "exportPlaylist": "Ekspordi Esitlusloend"
+    "exportPlaylist": "Ekspordi Esitlusloend",
+    "makeCurationFromGame": "Make Curation from Game"
   },
   "dialog": {
     "programNotFound": "Programmi ei Leitud!",
@@ -507,7 +525,13 @@
     "unableToDeleteGame": "Ei saanud mängu kustutada. Kas see on kasutuses? Proovi rakendus taaskäivitada.",
     "downloadingGame": "Laen Mängu Alla...",
     "verifyingGame": "Kinnitan Mängu...",
-    "aFewMinutes": "See võib võtta mõne minuti."
+    "aFewMinutes": "See võib võtta mõne minuti.",
+    "importCurationWithWarnings": "Import this curation? There are still warnings present.",
+    "errorImportingCuration": "Error import curation '{0}', check logs page for details.",
+    "mustBePngImage": "Must be a .PNG Image.",
+    "mustBe7zArchiveSkipping": "Must be a .7z archive, skipping {0}",
+    "failedToLoadCuration": "Failed to load curation! {0}",
+    "exportCurationWithWarnings": "Export Curation even though it has Warnings?"
   },
   "libraries": {
     "arcade": "Mängud",
