@@ -136,7 +136,8 @@
     "newGame": "新しいゲーム",
     "list": "一覧表示",
     "grid": "並べて表示",
-    "searchResults": "検索結果"
+    "searchResults": "検索結果",
+    "manual": "Help"
   },
   "filter": {
     "dateAdded": "追加日時",
