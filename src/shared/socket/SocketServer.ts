@@ -154,8 +154,8 @@ export function server_broadcast<
   server: SocketServerData<T, U, SOCKET>,
   type: TYPE,
   ...args: Parameters<SocketTemplate<T, U>[TYPE]>
-): Promise<void> {
-  return Promise.all(server.clients.map(client => server_send(client, type, ...args))).then(() => {});
+) {
+  server.clients.map(client => server_send(client, type, ...args));
 }
 
 function log(...args: any[]): void {
