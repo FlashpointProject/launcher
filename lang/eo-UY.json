@@ -136,7 +136,8 @@
     "newGame": "Nova Ludo",
     "list": "Listo",
     "grid": "Krado",
-    "searchResults": "Serĉrezultoj"
+    "searchResults": "Serĉrezultoj",
+    "manual": "Help"
   },
   "filter": {
     "dateAdded": "Dato de Aldono",
