@@ -136,7 +136,8 @@
     "newGame": "משחק חדש",
     "list": "רשימה",
     "grid": "טבלה",
-    "searchResults": "תוצאות חיפוש"
+    "searchResults": "תוצאות חיפוש",
+    "manual": "Help"
   },
   "filter": {
     "dateAdded": "תאריך הוספה",
