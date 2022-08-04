@@ -328,6 +328,9 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
           </div>
 
           {/* -- Advanced -- */}
+
+          {extConfigSections}
+
           <div className='setting'>
             <p className='setting__title'>{strings.extensionsHeader}</p>
             { extensions.length > 0 ? (
@@ -336,8 +339,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
               </div>
             ) : <div>{formatString(strings.noExtensionsLoaded, this.props.preferencesData.extensionsPath)}</div>}
           </div>
-
-          {extConfigSections}
 
           {/* -- Save & Restart -- */}
           <div className='setting'>
