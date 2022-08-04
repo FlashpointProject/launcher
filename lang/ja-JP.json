@@ -16,6 +16,8 @@
     "searchLimitValue": "{0} Results",
     "enableEditing": "カスタムを有効にする",
     "enableEditingDesc": "ゲームや追加のアプリケーションの編集を有効にします。編集に関連するタブも表示されます。",
+    "symlinkCuration": "Symlink Curation Content",
+    "symlinkCurationDesc": "Uses symbolic links to test curations rather than copying files. Faster and supports MAD4FP. Admin rights required.",
     "onDemandImages": "オンデマンド画像",
     "onDemandImagesDesc": "不足しているロゴやスクリーンショットを必要に応じてダウンロードして保存します。",
     "currentLanguage": "言語",
@@ -331,13 +333,17 @@
     "locked": "処理中にロックしています..."
   },
   "curate": {
+    "noCurationSelected": "No Curation Selected",
+    "headerFileOperations": "File",
+    "headerEditCuration": "編集",
+    "headerTest": "Test",
     "importAll": "すべてインポート",
     "importAllDesc": "現在読み込まれているすべてのキュレーションをインポート",
     "deleteAll": "すべて削除",
     "deleteAllDesc": "現在読み込まれているすべてのキュレーションを削除します",
     "saveImportedCurations": "インポートされたキュレーションを保存",
     "keepArchiveKey": "キュレーションアーカイブUUIDを保持",
-    "symlinkCurationContent": "シンボリックリンクキュレーションコンテンツフォルダ (管理者はWindowsでプロンプトを表示し、MAD4FPに必要)",
+    "symlinkCurationContent": "Symlink Curation Content",
     "useTagFilters": "Use Tag Filters in Suggestions",
     "openCurationsFolder": "キュレーションフォルダ",
     "openCurationsFolderDesc": "エクスプローラでキュレーションフォルダを開く",
@@ -347,6 +353,8 @@
     "openImportedFolderDesc": "インポートしたキュレーションを含むデフォルトのインポートキュレーションフォルダを開きます。",
     "newCuration": "新しいCuration",
     "newCurationDesc": "ユニークフォルダーに新しいCurationを作成します。",
+    "duplicateCuration": "Duplicate",
+    "newCurationFromTemplate": "New Curation (Template)",
     "loadMeta": "メタをロード",
     "loadMetaDesc": "1つ以上のキュレーションメタ ファイルを読み込む",
     "loadArchive": "アーカイブを読み込み",
@@ -376,6 +384,7 @@
     "run": "実行",
     "runWithMAD4FP": "MAD4FPで実行",
     "export": "エクスポート",
+    "exportDataPacks": "Export Data Pack",
     "import": "インポート",
     "contentFiles": "コンテンツファイル",
     "warnings": "警告",
@@ -394,7 +403,14 @@
     "noScreenshot": "There is no screenshot on this curation.",
     "ilc_notHttp": "HTTPを使用してください",
     "ilc_nonExistant": "キュレーションの「コンテンツ」フォルダにある既存のファイルをポイントします。",
-    "sort": "Sort Curations (A-Z)"
+    "documentStatus": "Notes must document changes and missing content for Hacked / Partial games",
+    "sort": "Sort Curations (A-Z)",
+    "contextCopyName": "Copy File Name",
+    "contextCopyPath": "Copy File Path",
+    "contextCopyAsURL": "Copy File Path as URL",
+    "contextShowInExplorer": "Show File in Explorer",
+    "contextOpenFolderInExplorer": "Open Folder in Explorer",
+    "shortcuts": "Shortcuts"
   },
   "playlist": {
     "enterDescriptionHere": "ここに説明を入力...",
@@ -432,7 +448,8 @@
     "exportMetaEditTitle": "メタ編集をエクスポート",
     "exportMetaEditDesc": "エクスポートするすべてのプロパティを選択:",
     "showImage": "Show Image",
-    "searching": "Searching..."
+    "searching": "Searching...",
+    "loading": "Loading..."
   },
   "menu": {
     "viewThumbnailInFolder": "サムネイルフォルダーを表示します",
@@ -446,7 +463,8 @@
     "exportMetaAndImages": "エクスポート(MetaとImages)",
     "exportMetaEdit": "メタ編集をエクスポート",
     "duplicatePlaylist": "プレイリストを複製",
-    "exportPlaylist": "プレイリストをエクスポート"
+    "exportPlaylist": "プレイリストをエクスポート",
+    "makeCurationFromGame": "Make Curation from Game"
   },
   "dialog": {
     "programNotFound": "プログラムが見つかりません。",
@@ -507,7 +525,13 @@
     "unableToDeleteGame": "Unable to delete game. Is it in use? Try restarting the launcher.",
     "downloadingGame": "ゲームをダウンロード中...",
     "verifyingGame": "Verifying Game...",
-    "aFewMinutes": "This may take a few minutes."
+    "aFewMinutes": "This may take a few minutes.",
+    "importCurationWithWarnings": "Import this curation? There are still warnings present.",
+    "errorImportingCuration": "Error import curation '{0}', check logs page for details.",
+    "mustBePngImage": "Must be a .PNG Image.",
+    "mustBe7zArchiveSkipping": "Must be a .7z archive, skipping {0}",
+    "failedToLoadCuration": "Failed to load curation! {0}",
+    "exportCurationWithWarnings": "Export Curation even though it has Warnings?"
   },
   "libraries": {
     "arcade": "ゲーム",
