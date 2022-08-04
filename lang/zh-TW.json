@@ -16,6 +16,8 @@
     "searchLimitValue": "{0} 個結果",
     "enableEditing": "允許修改",
     "enableEditingDesc": "開啟修改遊戲與額外應用程式的功能，同時顯示其他修改相關之頁籤",
+    "symlinkCuration": "Symlink Curation Content",
+    "symlinkCurationDesc": "Uses symbolic links to test curations rather than copying files. Faster and supports MAD4FP. Admin rights required.",
     "onDemandImages": "依需求下載圖片",
     "onDemandImagesDesc": "在需要時下載並儲存縮圖與截圖",
     "currentLanguage": "語言",
@@ -331,13 +333,17 @@
     "locked": "系統處理時將鎖定操作..."
   },
   "curate": {
+    "noCurationSelected": "No Curation Selected",
+    "headerFileOperations": "File",
+    "headerEditCuration": "修改",
+    "headerTest": "Test",
     "importAll": "全部匯入",
     "importAllDesc": "匯入所有已讀取之上傳內容",
     "deleteAll": "刪除全部",
     "deleteAllDesc": "刪除所有已讀取之上傳內容",
     "saveImportedCurations": "保存已匯入之上傳檔案",
     "keepArchiveKey": "保持策展檔案UUID",
-    "symlinkCurationContent": "於上傳資料夾進行符號連結（Windows的管理員指令，使用MAD4FP時必備）",
+    "symlinkCurationContent": "Symlink Curation Content",
     "useTagFilters": "在推薦中使用標籤篩選器",
     "openCurationsFolder": "上傳檔案之資料夾",
     "openCurationsFolderDesc": "開啟上傳檔案之資料夾",
@@ -347,6 +353,8 @@
     "openImportedFolderDesc": "開啟含有已匯入之上傳檔案的預設資料夾",
     "newCuration": "新增上傳檔案",
     "newCurationDesc": "建立一個全新的上傳檔案之資料夾",
+    "duplicateCuration": "Duplicate",
+    "newCurationFromTemplate": "New Curation (Template)",
     "loadMeta": "讀取元資料檔",
     "loadMetaDesc": "讀取單一或多個上傳檔案之元資料檔",
     "loadArchive": "讀取資料集",
@@ -376,6 +384,7 @@
     "run": "執行",
     "runWithMAD4FP": "以MAD4FP執行",
     "export": "匯出",
+    "exportDataPacks": "Export Data Pack",
     "import": "匯入",
     "contentFiles": "內容文件",
     "warnings": "警告",
@@ -394,7 +403,14 @@
     "noScreenshot": "此展品沒有屏幕截圖。",
     "ilc_notHttp": "請使用 HTTP。",
     "ilc_nonExistant": "請將路徑指向「content」資料夾內所存在的上傳檔案",
-    "sort": "排序展品（A-Z）"
+    "documentStatus": "Notes must document changes and missing content for Hacked / Partial games",
+    "sort": "排序展品（A-Z）",
+    "contextCopyName": "Copy File Name",
+    "contextCopyPath": "Copy File Path",
+    "contextCopyAsURL": "Copy File Path as URL",
+    "contextShowInExplorer": "Show File in Explorer",
+    "contextOpenFolderInExplorer": "Open Folder in Explorer",
+    "shortcuts": "Shortcuts"
   },
   "playlist": {
     "enterDescriptionHere": "在此輸入敘述...",
@@ -432,7 +448,8 @@
     "exportMetaEditTitle": "匯出元資料檔修改",
     "exportMetaEditDesc": "選擇所有要匯出的屬性：",
     "showImage": "顯示圖片",
-    "searching": "Searching..."
+    "searching": "Searching...",
+    "loading": "Loading..."
   },
   "menu": {
     "viewThumbnailInFolder": "於資料夾中查看縮圖",
@@ -446,7 +463,8 @@
     "exportMetaAndImages": "匯出 (元資料檔與圖片)",
     "exportMetaEdit": "匯出元資料檔修改",
     "duplicatePlaylist": "複製播放清單",
-    "exportPlaylist": "匯出播放清單"
+    "exportPlaylist": "匯出播放清單",
+    "makeCurationFromGame": "Make Curation from Game"
   },
   "dialog": {
     "programNotFound": "無法找到應用程式！",
@@ -507,7 +525,13 @@
     "unableToDeleteGame": "無法刪除遊戲。您正在運行它嗎？請嘗試重啟啟動器。",
     "downloadingGame": "正在下載遊戲...",
     "verifyingGame": "正在驗證遊戲...",
-    "aFewMinutes": "這可能需要幾分鐘的時間。"
+    "aFewMinutes": "這可能需要幾分鐘的時間。",
+    "importCurationWithWarnings": "Import this curation? There are still warnings present.",
+    "errorImportingCuration": "Error import curation '{0}', check logs page for details.",
+    "mustBePngImage": "Must be a .PNG Image.",
+    "mustBe7zArchiveSkipping": "Must be a .7z archive, skipping {0}",
+    "failedToLoadCuration": "Failed to load curation! {0}",
+    "exportCurationWithWarnings": "Export Curation even though it has Warnings?"
   },
   "libraries": {
     "arcade": "遊戲",
