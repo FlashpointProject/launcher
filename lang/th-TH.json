@@ -136,7 +136,8 @@
     "newGame": "เกมใหม่",
     "list": "รายการ",
     "grid": "ตาราง",
-    "searchResults": "ผลการค้นหา"
+    "searchResults": "ผลการค้นหา",
+    "manual": "Help"
   },
   "filter": {
     "dateAdded": "วันที่เพิ่ม",
