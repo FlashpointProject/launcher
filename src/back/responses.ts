@@ -26,7 +26,7 @@ import { throttle } from '@shared/utils/throttle';
 import * as axiosImport from 'axios';
 import * as child_process from 'child_process';
 import { execSync } from 'child_process';
-import { CurationState } from 'flashpoint-launcher';
+import { AddAppCuration, CurationState } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as fs_extra from 'fs-extra';
 import { add, Progress } from 'node-7z';
@@ -1768,8 +1768,13 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         uuid: game.id,
         group: '',
         game: game,
-        addApps: game.addApps.map(a => {
-          return { ...a, key: uuid() };
+        addApps: game.addApps.map<AddAppCuration>(a => {
+          return {
+            key: uuid(),
+            heading: a.name,
+            applicationPath: a.applicationPath,
+            launchCommand: a.launchCommand
+          };
         }),
         thumbnail: await loadCurationIndexImage(path.join(curPath, 'logo.png')),
         screenshot: await loadCurationIndexImage(path.join(curPath, 'ss.png'))
