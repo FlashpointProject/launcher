@@ -915,9 +915,9 @@ async function initialize() {
         log.info('Log Watcher', `Failed to watch file "${filePath}" - ${error}`);
       }
     }
-    state.init[BackInit.SERVICES] = true;
-    state.initEmitter.emit(BackInit.SERVICES);
   }
+  state.init[BackInit.SERVICES] = true;
+  state.initEmitter.emit(BackInit.SERVICES);
 
   console.log('Back - Initialized Services');
 
