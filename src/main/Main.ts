@@ -18,6 +18,7 @@ import { Init } from './types';
 import * as Util from './Util';
 
 const TIMEOUT_DELAY = 60_000;
+const SECRETS_FILE = 'secret.dat';
 
 const ALLOWED_HOSTS = [
   'localhost',
@@ -108,7 +109,7 @@ export function main(init: Init): void {
     app.commandLine.appendSwitch('ignore-connections-limit', 'localhost');
 
     state.mainFolderPath = Util.getMainFolderPath(state._installed);
-    console.log(path.join(state.mainFolderPath, 'secret.txt'));
+    console.log(path.join(state.mainFolderPath, SECRETS_FILE));
 
     // ---- Initialize ----
     // Check if installed
@@ -129,7 +130,7 @@ export function main(init: Init): void {
     // Load or generate secret
     .then(async () => {
       if (init.args['connect-remote'] || init.args['host-remote'] || init.args['back-only']) {
-        const secretFilePath = path.join(state.mainFolderPath, 'secret.txt');
+        const secretFilePath = path.join(state.mainFolderPath, SECRETS_FILE);
         try {
           state._secret = await fs.readFile(secretFilePath, { encoding: 'utf8' });
         } catch (e) {
@@ -141,7 +142,7 @@ export function main(init: Init): void {
           }
         }
       } else {
-        const secretFilePath = path.join(state.mainFolderPath, 'secret.txt');
+        const secretFilePath = path.join(state.mainFolderPath, SECRETS_FILE);
         state._secret = randomBytes(2048).toString('hex');
         try {
           await fs.writeFile(secretFilePath, state._secret, { encoding: 'utf8' });

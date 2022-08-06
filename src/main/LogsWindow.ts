@@ -74,7 +74,7 @@ export async function startLogger(init: Init): Promise<void> {
     state.prefs = PreferencesFile.readOrCreateFileSync(path.join(state.config.flashpointPath, PREFERENCES_FILENAME));
 
     // Get secret to connect to backend
-    const secretFilePath = path.join(state.mainFolderPath, 'secret.txt');
+    const secretFilePath = path.join(state.mainFolderPath, 'secret.dat');
     try {
       state._secret = await fs.readFile(secretFilePath, { encoding: 'utf8' });
     } catch (e) {
