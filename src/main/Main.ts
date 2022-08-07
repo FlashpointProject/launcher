@@ -140,7 +140,7 @@ export function main(init: Init): void {
     .catch(() => { /** No file, ignore */ });
 
     // Load or generate secret
-    const secretFilePath = path.join(state.mainFolderPath, 'secret.txt');
+    const secretFilePath = path.join(state.mainFolderPath, 'secret.dat');
     try {
       state._secret = await fs.readFile(secretFilePath, { encoding: 'utf8' });
     } catch (e) {
