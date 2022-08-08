@@ -406,11 +406,11 @@
     "documentStatus": "Notes must document changes and missing content for Hacked / Partial games",
     "sort": "Sortiraj Kuracije (A-Z)",
     "contextCopyName": "Copy File Name",
-    "contextCopyPath": "Copy File Path",
+    "contextCopyPath": "Kopiraj putanju datotеkе",
     "contextCopyAsURL": "Copy File Path as URL",
     "contextShowInExplorer": "Show File in Explorer",
     "contextOpenFolderInExplorer": "Open Folder in Explorer",
-    "shortcuts": "Shortcuts"
+    "shortcuts": "Prečice"
   },
   "playlist": {
     "enterDescriptionHere": "Unesi opis ovde...",
@@ -449,7 +449,7 @@
     "exportMetaEditDesc": "Izaberite sve postavke za iznošenje:",
     "showImage": "Show Image",
     "searching": "Searching...",
-    "loading": "Loading..."
+    "loading": "Učitavanje..."
   },
   "menu": {
     "viewThumbnailInFolder": "Pregledaj simboličnu sliku u fascikli",
