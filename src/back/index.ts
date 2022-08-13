@@ -58,7 +58,7 @@ import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
 import { LogFile } from './util/LogFile';
 import { logFactory } from './util/logging';
-import { createContainer, exit, runService } from './util/misc';
+import { createContainer, exit, getMacPATH, runService } from './util/misc';
 
 const dataSourceOptions: DataSourceOptions = {
   type: 'better-sqlite3',
@@ -339,6 +339,12 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   console.log('Back - Loaded Preferences');
 
+  let pathReadPromise: Promise<string> | undefined = undefined;
+  if (process.platform === 'darwin') {
+    pathReadPromise = getMacPATH();
+    console.log('Back - Started Mac PATH-reading');
+  }
+
   try {
     const [extConf] = await (Promise.all([
       ExtConfigFile.readOrCreateFile(path.join(state.config.flashpointPath, EXT_CONFIG_FILENAME))
@@ -406,6 +412,11 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   console.log('Back - Initialized Database');
 
+  if (pathReadPromise) {
+    state.pathVar = await pathReadPromise;
+    console.log('Back - Got Mac PATH');
+  }
+
   // Init extensions
   const addExtLogFactory = (extId: string) => (entry: ILogEntry) => {
     state.extensionsService.logExtension(extId, entry);
@@ -469,13 +480,19 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     // Run processes
     if (state.serviceInfo.server.length > 0) {
       const chosenServer = state.serviceInfo.server.find(i => i.name === state.config.server);
-      runService(state, 'server', 'Server', state.config.flashpointPath, {}, chosenServer || state.serviceInfo.server[0]);
+      runService(state, 'server', 'Server', state.config.flashpointPath, {env: {
+        ...process.env,
+        'PATH': state.pathVar ?? process.env.PATH,
+      }}, chosenServer || state.serviceInfo.server[0]);
     }
     // Start daemons
     for (let i = 0; i < state.serviceInfo.daemon.length; i++) {
       const service = state.serviceInfo.daemon[i];
       const id = 'daemon_' + i;
-      runService(state, id, service.name || id, state.config.flashpointPath, {}, service);
+      runService(state, id, service.name || id, state.config.flashpointPath, {env: {
+        ...process.env,
+        'PATH': state.pathVar ?? process.env.PATH,
+      }}, service);
     }
     // Start file watchers
     for (let i = 0; i < state.serviceInfo.watch.length; i++) {
