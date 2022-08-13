@@ -108,23 +108,6 @@ export class ManagedChildProcess extends EventEmitter {
         this.autoRestartCount = 0;
       }
       // Spawn process
-      if (process.platform == 'darwin') {
-        if (this.env === undefined) {
-          this.env = {};
-        }
-        if (this.env.PATH === undefined) {
-          this.env.PATH = '';
-        }
-        const pathArr: string[] = this.env.PATH.split(':');
-        // HACK: manually read in /etc/paths to PATH. Needs to be done on Mac, because otherwise
-        // the brew path won't be found.
-        for (const entry of readFileSync('/etc/paths').toString().split('\n')) {
-          if (entry != '' && !pathArr.includes(entry)) {
-            pathArr.push(entry);
-          }
-        }
-        this.env.PATH = pathArr.join(':');
-      }
       this.process = spawn(this.info.filename, this.info.arguments, { cwd: this.cwd, detached: this.detached, shell: this.shell , env: this.env});
       // Set start timestamp
       this.startTime = Date.now();
