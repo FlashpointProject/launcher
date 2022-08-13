@@ -408,9 +408,9 @@
     "contextCopyName": "Copier le nom du fichier",
     "contextCopyPath": "Copier le chemin du fichier",
     "contextCopyAsURL": "Copier le chemin du fichier en tant qu'URL",
-    "contextShowInExplorer": "Afficher le fichier dans Explorateur de fichiers",
-    "contextOpenFolderInExplorer": "Ouvrir le dossier dans Explorateur de fichiers",
-    "shortcuts": "Shortcuts"
+    "contextShowInExplorer": "Afficher le fichier dans l'explorateur",
+    "contextOpenFolderInExplorer": "Ouvrir le dossier dans l'explorateur",
+    "shortcuts": "Raccourcis"
   },
   "playlist": {
     "enterDescriptionHere": "Ajouter une description ici...",
@@ -449,7 +449,7 @@
     "exportMetaEditDesc": "Sélectionner toutes les propriétés à exporter :",
     "showImage": "Afficher l'image",
     "searching": "Recherche en cours...",
-    "loading": "Loading..."
+    "loading": "Chargement..."
   },
   "menu": {
     "viewThumbnailInFolder": "Voir la miniature dans le dossier",
@@ -464,7 +464,7 @@
     "exportMetaEdit": "Exporter les modifications de meta",
     "duplicatePlaylist": "Dupliquer la playlist",
     "exportPlaylist": "Exporter la playlist",
-    "makeCurationFromGame": "Make Curation from Game"
+    "makeCurationFromGame": "Faire une curation à partir d'un jeu"
   },
   "dialog": {
     "programNotFound": "Programme non trouvé !",
@@ -526,12 +526,12 @@
     "downloadingGame": "Téléchargement du jeu...",
     "verifyingGame": "Vérification du jeu...",
     "aFewMinutes": "Ceci peut prendre quelques minutes.",
-    "importCurationWithWarnings": "Import this curation? There are still warnings present.",
-    "errorImportingCuration": "Error import curation '{0}', check logs page for details.",
-    "mustBePngImage": "Must be a .PNG Image.",
-    "mustBe7zArchiveSkipping": "Must be a .7z archive, skipping {0}",
-    "failedToLoadCuration": "Failed to load curation! {0}",
-    "exportCurationWithWarnings": "Export Curation even though it has Warnings?"
+    "importCurationWithWarnings": "Importer cette curation? Il y a encore des avertissements présents.",
+    "errorImportingCuration": "Erreur lors de l'importation de la curation '{0}', vérifiez la page des logs pour les détails.",
+    "mustBePngImage": "Doit être une image .PNG.",
+    "mustBe7zArchiveSkipping": "Doit être une archive .7z, {0} ignoré",
+    "failedToLoadCuration": "Échec du chargement de la curation! {0}",
+    "exportCurationWithWarnings": "Exporter la curation même si elle a des avertissements?"
   },
   "libraries": {
     "arcade": "Jeux",
