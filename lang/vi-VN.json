@@ -336,7 +336,7 @@
     "noCurationSelected": "No Curation Selected",
     "headerFileOperations": "File",
     "headerEditCuration": "Sửa",
-    "headerTest": "Test",
+    "headerTest": "Thử",
     "importAll": "Nhập tất cả",
     "importAllDesc": "Nhập tất cả bản đóng góp đã nạp vào chương trình",
     "deleteAll": "Xoá tất cả",
@@ -405,11 +405,11 @@
     "ilc_nonExistant": "Trỏ đến một tệp hiện có trong thư mục 'nội dung' của bản đóng góp của bạn.",
     "documentStatus": "Notes must document changes and missing content for Hacked / Partial games",
     "sort": "Xếp bản đóng góp (A-Z)",
-    "contextCopyName": "Copy File Name",
-    "contextCopyPath": "Copy File Path",
-    "contextCopyAsURL": "Copy File Path as URL",
-    "contextShowInExplorer": "Show File in Explorer",
-    "contextOpenFolderInExplorer": "Open Folder in Explorer",
+    "contextCopyName": "Sao Chép Tên Tệp",
+    "contextCopyPath": "Sao Chép Đường Dẫn Tệp",
+    "contextCopyAsURL": "Sao Chép Đường Dẫn Tệp Dưới Dạng Liên Kết URL",
+    "contextShowInExplorer": "Hiển Thị Tệp Trong Explorer",
+    "contextOpenFolderInExplorer": "Mở Thư Mục Trong Explorer",
     "shortcuts": "Shortcuts"
   },
   "playlist": {
@@ -449,7 +449,7 @@
     "exportMetaEditDesc": "Chọn tất cả thuộc tính cần xuất:",
     "showImage": "Hiện ảnh",
     "searching": "Đang tìm kiếm...",
-    "loading": "Loading..."
+    "loading": "Đang tải..."
   },
   "menu": {
     "viewThumbnailInFolder": "Xem ảnh thu nhỏ trong thư mục",
@@ -464,7 +464,7 @@
     "exportMetaEdit": "Xuất sửa đổi meta",
     "duplicatePlaylist": "Tạo bản sao của danh sách",
     "exportPlaylist": "Xuất danh sách",
-    "makeCurationFromGame": "Make Curation from Game"
+    "makeCurationFromGame": "Tạo Thẩm Định Tử Trò Chơi"
   },
   "dialog": {
     "programNotFound": "Không tìm thấy chương trình!",
