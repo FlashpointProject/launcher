@@ -309,9 +309,9 @@ export namespace GameLauncher {
     // On Linux/Mac, WINE obeys the HTTP_PROXY env var so we can run unpatched Windows executables
     if (process.platform === 'linux' || process.platform === 'darwin') {
       // Add proxy env vars and prevent WINE from flooding the logs with debug messages
-      newEnvVars = { 
-        ...newEnvVars, 'WINEDEBUG': 'fixme-all', 
-        ...(proxy !== '' ? {'http_proxy': `http://${proxy}/`, 'HTTP_PROXY': `http://${proxy}/`} : null) 
+      newEnvVars = {
+        ...newEnvVars, 'WINEDEBUG': 'fixme-all',
+        ...(proxy !== '' ? {'http_proxy': `http://${proxy}/`, 'HTTP_PROXY': `http://${proxy}/`} : null)
       };
     }
     return {
