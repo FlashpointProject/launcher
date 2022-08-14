@@ -16,8 +16,8 @@
     "searchLimitValue": "{0} Resultados",
     "enableEditing": "Habilitar Edição",
     "enableEditingDesc": "Habilita a edição de jogos e aplicativos adicionais. Também revela abas relacionadas a edição.",
-    "symlinkCuration": "Symlink Curation Content",
-    "symlinkCurationDesc": "Uses symbolic links to test curations rather than copying files. Faster and supports MAD4FP. Admin rights required.",
+    "symlinkCuration": "Conteúdo de Curação Symlink",
+    "symlinkCurationDesc": "Usa links simbólicos para testar curações no lugar de copiar arquivos. Mais rápido e suporta MAD4FP. Permissões de administrador necessárias.",
     "onDemandImages": "Imagens Sob Demanda",
     "onDemandImagesDesc": "Baixe e salve logotipos e capturas de tela faltantes conforme necessário.",
     "currentLanguage": "Idioma",
@@ -139,7 +139,7 @@
     "list": "Lista",
     "grid": "Grade",
     "searchResults": "Resultados da Pesquisa",
-    "manual": "Help"
+    "manual": "Ajuda"
   },
   "filter": {
     "dateAdded": "Data de Adição",
@@ -333,17 +333,17 @@
     "locked": "Bloqueado durante o processamento..."
   },
   "curate": {
-    "noCurationSelected": "No Curation Selected",
-    "headerFileOperations": "File",
+    "noCurationSelected": "Nenhuma Curação Selecionada",
+    "headerFileOperations": "Arquivo",
     "headerEditCuration": "Editar",
-    "headerTest": "Test",
+    "headerTest": "Testar",
     "importAll": "Importar Tudo",
     "importAllDesc": "Importar todas as curações atualmente carregadas",
     "deleteAll": "Deletar Tudo",
     "deleteAllDesc": "Deleta todas as curações atualmente carregadas",
     "saveImportedCurations": "Salvar Curações Importadas",
     "keepArchiveKey": "Manter UUID do Arquivo da Curação",
-    "symlinkCurationContent": "Symlink Curation Content",
+    "symlinkCurationContent": "Conteúdo de Curação Symlink",
     "useTagFilters": "Usar Filtros de Tags nas Sugestões",
     "openCurationsFolder": "Pasta das Curações",
     "openCurationsFolderDesc": "Abre a pasta das curações no explorador",
@@ -353,8 +353,8 @@
     "openImportedFolderDesc": "Abre a pasta Imported padrão contendo suas curações importadas.",
     "newCuration": "Nova Curação",
     "newCurationDesc": "Cria uma nova curação com uma pasta única",
-    "duplicateCuration": "Duplicate",
-    "newCurationFromTemplate": "New Curation (Template)",
+    "duplicateCuration": "Duplicar",
+    "newCurationFromTemplate": "Nova Curação (Modelo)",
     "loadMeta": "Carregar Metadados",
     "loadMetaDesc": "Carregar um ou mais arquivos de metadados de Curação",
     "loadArchive": "Carregar Arquivo",
@@ -384,7 +384,7 @@
     "run": "Iniciar",
     "runWithMAD4FP": "Iniciar com MAD4FP",
     "export": "Exportar",
-    "exportDataPacks": "Export Data Pack",
+    "exportDataPacks": "Exportar Data Pack",
     "import": "Importar",
     "contentFiles": "Arquivos de Conteúdo",
     "warnings": "Avisos",
@@ -403,14 +403,14 @@
     "noScreenshot": "Não há nenhuma captura de tela nesta curação.",
     "ilc_notHttp": "Use HTTP.",
     "ilc_nonExistant": "Aponte para um arquivo existente na pasta 'content' da sua curação.",
-    "documentStatus": "Notes must document changes and missing content for Hacked / Partial games",
+    "documentStatus": "As notas devem documentar alterações e conteúdo ausente para jogos Hackeados / Parciais",
     "sort": "Ordenar Curações (A-Z)",
-    "contextCopyName": "Copy File Name",
-    "contextCopyPath": "Copy File Path",
-    "contextCopyAsURL": "Copy File Path as URL",
-    "contextShowInExplorer": "Show File in Explorer",
-    "contextOpenFolderInExplorer": "Open Folder in Explorer",
-    "shortcuts": "Shortcuts"
+    "contextCopyName": "Copiar Nome do Arquivo",
+    "contextCopyPath": "Copiar Caminho do Arquivo",
+    "contextCopyAsURL": "Copiar Caminho do Arquivo como URL",
+    "contextShowInExplorer": "Mostrar Arquivo no Explorador",
+    "contextOpenFolderInExplorer": "Abrir Pasta no Explorador",
+    "shortcuts": "Atalhos"
   },
   "playlist": {
     "enterDescriptionHere": "Escreva uma descrição aqui...",
@@ -449,7 +449,7 @@
     "exportMetaEditDesc": "Selecione todas as propriedades para exportar:",
     "showImage": "Mostrar Imagem",
     "searching": "Pesquisando...",
-    "loading": "Loading..."
+    "loading": "Carregando..."
   },
   "menu": {
     "viewThumbnailInFolder": "Ver Miniatura na Pasta",
@@ -464,7 +464,7 @@
     "exportMetaEdit": "Exportar Edição de Metadados",
     "duplicatePlaylist": "Duplicar Playlist",
     "exportPlaylist": "Exportar Playlist",
-    "makeCurationFromGame": "Make Curation from Game"
+    "makeCurationFromGame": "Criar Curação a partir do Jogo"
   },
   "dialog": {
     "programNotFound": "Programa não encontrado!",
@@ -526,12 +526,12 @@
     "downloadingGame": "Baixando Jogo...",
     "verifyingGame": "Verificando Jogo...",
     "aFewMinutes": "Isto pode levar alguns minutos.",
-    "importCurationWithWarnings": "Import this curation? There are still warnings present.",
-    "errorImportingCuration": "Error import curation '{0}', check logs page for details.",
-    "mustBePngImage": "Must be a .PNG Image.",
-    "mustBe7zArchiveSkipping": "Must be a .7z archive, skipping {0}",
-    "failedToLoadCuration": "Failed to load curation! {0}",
-    "exportCurationWithWarnings": "Export Curation even though it has Warnings?"
+    "importCurationWithWarnings": "Importar esta curação? Ainda há avisos presentes.",
+    "errorImportingCuration": "Erro ao importar curação '{0}, verifique a página de logs para detalhes.",
+    "mustBePngImage": "Deve ser uma imagem .PNG.",
+    "mustBe7zArchiveSkipping": "Deve ser um arquivo .7z, ignorando {0}",
+    "failedToLoadCuration": "Falha ao carregar a curação! {0}",
+    "exportCurationWithWarnings": "Exportar Curação mesmo com Avisos?"
   },
   "libraries": {
     "arcade": "Jogos",
