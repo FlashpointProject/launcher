@@ -303,17 +303,21 @@ export namespace GameLauncher {
 
   /** Get an object containing the environment variables to use for the game / additional application. */
   function getEnvironment(fpPath: string, proxy: string, path?: string): NodeJS.ProcessEnv {
-    // When using Linux, use the proxy created in BackgroundServices.ts
-    // This is only needed on Linux because the proxy is installed on system
-    // level entire system when using Windows.
-    // When using WINE on mac, the proxy variable is needed as well.
+    let newEnvVars: NodeJS.ProcessEnv = {'FP_PATH': fpPath, 'PATH': path ?? process.env.PATH};
+    // On Linux, we tell native applications to use Flashpoint's proxy using the HTTP_PROXY env var
+    // On Windows, executables are patched to load the FlashpointProxy library
+    // On Linux/Mac, WINE obeys the HTTP_PROXY env var so we can run unpatched Windows executables
+    if (process.platform === 'linux' || process.platform === 'darwin') {
+      // Add proxy env vars and prevent WINE from flooding the logs with debug messages
+      newEnvVars = {
+        ...newEnvVars, 'WINEDEBUG': 'fixme-all',
+        ...(proxy !== '' ? {'http_proxy': `http://${proxy}/`, 'HTTP_PROXY': `http://${proxy}/`} : null)
+      };
+    }
     return {
       // Copy this processes environment variables
       ...process.env,
-      'FP_PATH': fpPath,
-      // Add proxy env vars if it's running on linux
-      ...(((process.platform === 'linux' || process.platform === 'darwin') && proxy !== '') ? { http_proxy: `http://${proxy}/`, HTTP_PROXY: `http://${proxy}/` } : null),
-      'PATH': path ?? process.env.PATH,
+      ...newEnvVars
     };
   }
 
