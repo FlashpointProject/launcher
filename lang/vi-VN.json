@@ -16,8 +16,8 @@
     "searchLimitValue": "{0} kết quả",
     "enableEditing": "Bật khả năng chỉnh sửa",
     "enableEditingDesc": "Cho phép sửa trò chơi và phần mềm đi kèm. Cũng hiện thêm các mục liên quan đến việc chỉnh sửa.",
-    "symlinkCuration": "Symlink Curation Content",
-    "symlinkCurationDesc": "Uses symbolic links to test curations rather than copying files. Faster and supports MAD4FP. Admin rights required.",
+    "symlinkCuration": "Nội Dung Thẩm Định Bằng Liên Kết Tượng Trưng",
+    "symlinkCurationDesc": "Sử dụng liên kết tượng trưng để kiểm thử thẩm định thay vì sao chép tệp tin. Nhanh hơn và có hỗ trợ MAD4FP. Yêu cầu quyền truy cập từ quản trị viên.",
     "onDemandImages": "Tải hình khi cần",
     "onDemandImagesDesc": "Tải và lưu các biểu trưng và ảnh chụp màn hình khi cần.",
     "currentLanguage": "Ngôn ngữ",
@@ -139,7 +139,7 @@
     "list": "Danh sách",
     "grid": "Lưới",
     "searchResults": "Kết quả tìm kiếm",
-    "manual": "Help"
+    "manual": "Trợ Giúp"
   },
   "filter": {
     "dateAdded": "Ngày thêm",
@@ -333,8 +333,8 @@
     "locked": "Bị khoá khi đang xử lí..."
   },
   "curate": {
-    "noCurationSelected": "No Curation Selected",
-    "headerFileOperations": "File",
+    "noCurationSelected": "Không Có Thẩm Định Được Chọn",
+    "headerFileOperations": "Tệp",
     "headerEditCuration": "Sửa",
     "headerTest": "Thử",
     "importAll": "Nhập tất cả",
@@ -343,7 +343,7 @@
     "deleteAllDesc": "Xoá tất cả bản đóng góp đã nạp vào chương trình",
     "saveImportedCurations": "Lưu bản đóng góp đã nhập",
     "keepArchiveKey": "Giữ UUID của tập tin nén của bản đóng góp",
-    "symlinkCurationContent": "Symlink Curation Content",
+    "symlinkCurationContent": "Nội Dung Thẩm Định Bằng Liên Kết Tượng Trưng",
     "useTagFilters": "Sử dụng Bộ lọc thẻ trong Đề xuất",
     "openCurationsFolder": "Thư mục chứa bản đóng góp",
     "openCurationsFolderDesc": "Mở thư mục chứa bản đóng góp trong Explorer",
@@ -353,8 +353,8 @@
     "openImportedFolderDesc": "Mở thư mục nhập mặc định có chứa bản đóng góp bạn đã nhập.",
     "newCuration": "Bản đóng góp mới",
     "newCurationDesc": "Tạo bản đóng góp mới và một thư mục riêng",
-    "duplicateCuration": "Duplicate",
-    "newCurationFromTemplate": "New Curation (Template)",
+    "duplicateCuration": "Tạo Bản Sao",
+    "newCurationFromTemplate": "Thẩm Định Mới (Có Bản Mẫu)",
     "loadMeta": "Nạp Meta",
     "loadMetaDesc": "Nạp một hay nhiều tập tin meta của bản đóng góp",
     "loadArchive": "Nạp tập tin nén",
@@ -384,7 +384,7 @@
     "run": "Chạy",
     "runWithMAD4FP": "Chạy bằng MAD4FP",
     "export": "Xuất",
-    "exportDataPacks": "Export Data Pack",
+    "exportDataPacks": "Xuất Gói Dữ Liệu",
     "import": "Nhập",
     "contentFiles": "Nội dung",
     "warnings": "Cảnh báo",
@@ -526,12 +526,12 @@
     "downloadingGame": "Đang tải trò chơi...",
     "verifyingGame": "Đang xác nhận trò chơi...",
     "aFewMinutes": "Có thể mất vài phút.",
-    "importCurationWithWarnings": "Import this curation? There are still warnings present.",
-    "errorImportingCuration": "Error import curation '{0}', check logs page for details.",
-    "mustBePngImage": "Must be a .PNG Image.",
-    "mustBe7zArchiveSkipping": "Must be a .7z archive, skipping {0}",
-    "failedToLoadCuration": "Failed to load curation! {0}",
-    "exportCurationWithWarnings": "Export Curation even though it has Warnings?"
+    "importCurationWithWarnings": "Bạn có muốn nhập thẩm định này không? Thông báo vẫn sẽ tiếp tục xuất hiện.",
+    "errorImportingCuration": "Lỗi nhập thẩm định \"{0}\"; vui lòng kiểm tra trang bản ghi để biết thêm chi tiết.",
+    "mustBePngImage": "Phải là tệp .PNG.",
+    "mustBe7zArchiveSkipping": "Phải là một tệp lưu trữ .7z, bỏ qua {0}",
+    "failedToLoadCuration": "Tải thẩm định thất bại! {0}",
+    "exportCurationWithWarnings": "Xuất Thẩm Định này khi vẫn tồn tại Thông Báo chứ?"
   },
   "libraries": {
     "arcade": "Trò chơi",
