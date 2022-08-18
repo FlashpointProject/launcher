@@ -267,10 +267,6 @@ export function registerRequestCallbacks(state: BackState): void {
   state.socketServer.register(BackIn.LAUNCH_GAME, async (event, id) => {
     const game = await GameManager.findGame(id);
 
-    await new Promise<void>((resolve) => {
-      setTimeout(resolve, 5000);
-    });
-
     if (game) {
       // Make sure Server is set to configured server - Curations may have changed it
       const configServer = state.serviceInfo ? state.serviceInfo.server.find(s => s.name === state.config.server) : undefined;
