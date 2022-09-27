@@ -386,7 +386,13 @@ export async function removePlaylistGame(playlistId: string, gameId: string): Pr
   const playlistGame = await findPlaylistGame(playlistId, gameId);
   if (playlistGame) {
     onDidRemovePlaylistGame.fire(playlistGame);
-    return playlistGameRepository.remove(playlistGame);
+    await playlistGameRepository.remove(playlistGame);
+
+    const playlistRepository = AppDataSource.getRepository(Playlist);
+    const playlist = await playlistRepository.findOneBy({ id: playlistId });
+    if (playlist) {
+      onDidUpdatePlaylist.fire({ oldPlaylist: playlist, newPlaylist: playlist });
+    }
   }
   return null;
 }
@@ -408,19 +414,34 @@ export async function addPlaylistGame(playlistId: string, gameId: string): Promi
   .select('pg.order')
   .getOne();
 
-  await repository.save<PlaylistGame>({
+  const pg = await repository.save<PlaylistGame>({
     gameId: gameId,
     playlistId: playlistId,
     order: highestOrder ? highestOrder.order + 1 : 0,
     notes: '',
   });
+
+  onDidUpdatePlaylistGame.fire({oldGame: pg, newGame: pg});
+  const playlistRepository = AppDataSource.getRepository(Playlist);
+  const playlist = await playlistRepository.findOneBy({ id: playlistId });
+  if (playlist) {
+    onDidUpdatePlaylist.fire({ oldPlaylist: playlist, newPlaylist: playlist });
+  }
+
 }
 
 /** Updates a Playlist Game */
 export async function updatePlaylistGame(playlistGame: PlaylistGame): Promise<PlaylistGame> {
   const playlistGameRepository = AppDataSource.getRepository(PlaylistGame);
   const savedPlaylistGame = await playlistGameRepository.save(playlistGame);
-  if (savedPlaylistGame) { onDidUpdatePlaylistGame.fire({oldGame: playlistGame, newGame: savedPlaylistGame }); }
+  onDidUpdatePlaylistGame.fire({oldGame: playlistGame, newGame: savedPlaylistGame });
+
+  const playlistRepository = AppDataSource.getRepository(Playlist);
+  const playlist = await playlistRepository.findOneBy({ id: savedPlaylistGame.playlistId });
+  if (playlist) {
+    onDidUpdatePlaylist.fire({ oldPlaylist: playlist, newPlaylist: playlist });
+  }
+
   return savedPlaylistGame;
 }
 
