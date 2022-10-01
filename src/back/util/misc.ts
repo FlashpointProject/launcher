@@ -337,3 +337,69 @@ export function getCwd(isDev: boolean, exePath: string) {
 export async function getTempFilename(ext = 'tmp') {
   return path.join(await fs.promises.realpath(os.tmpdir()), uuid() + '.' + ext);
 }
+
+/**
+ * Gets the default shell's configured PATH on MacOS
+ * @param shell Override and use this shell instead of the user's default shell.
+ * @returns The user's PATH in that shell.
+ */
+export async function getMacPATH(shell?: string): Promise<string> {
+  // If we weren't given a shell override, detect the user's default shell.
+  if (!shell) {
+    // Read the user's shell using dscl. No clue how it works, deal with it.
+    const shellDetector = child_process.spawn('dscl', ['.', '-read', os.homedir(), 'UserShell'], {
+      shell: false
+    });
+    // Get the full output and wait for the process to exit.
+    let builder = '';
+    shellDetector.stdout.on('data', (chunk) => {
+      builder += chunk;
+    });
+    await new Promise<void>(resolve => {
+      shellDetector.on('exit', () => {
+        resolve();
+      });
+    });
+    // Look for a known shell in the output.
+    for (const option of ['bash', 'zsh', 'ksh', 'tcsh', 'csh']) {
+      const matchresult = builder.match(new RegExp('/.*' + option));
+      if (matchresult) {
+        shell = matchresult[0];
+        break;
+      }
+    }
+  }
+  // Default to bash if none of the other shells are found.
+  shell = shell ?? '/bin/bash';
+  const spawnOpts: child_process.SpawnOptionsWithoutStdio = {
+    shell: false
+  };
+  // Different shells require different arguments to start in "login" (profile-reading) mode.
+  const loginArgs = [];
+  switch (shell.slice(shell.lastIndexOf('/') + 1)) {
+    case 'bash':
+    case 'zsh':
+    case 'ksh':
+      loginArgs.push('-i', '-l');
+      break;
+    case 'tcsh':
+    case 'csh':
+      loginArgs.push('-i');
+      spawnOpts.argv0 = '-' + shell.slice(shell.lastIndexOf('/') + 1);
+      break;
+  }
+  // Run the shell, tell it to echo $PATH when it's done with init.
+  const pathDetector = child_process.spawn(shell, [...loginArgs, '-c', 'echo $PATH'], spawnOpts);
+  // Get the full output and wait for the process to exit.
+  let builder = '';
+  pathDetector.stdout.on('data', (chunk) => {
+    builder += chunk;
+  });
+  await new Promise<void>(resolve => {
+    pathDetector.on('exit', () => {
+      resolve();
+    });
+  });
+  // Trim any whitespace, etc.
+  return builder.trim();
+}

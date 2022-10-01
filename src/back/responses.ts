@@ -257,7 +257,8 @@ export function registerRequestCallbacks(state: BackState): void {
         proxy: state.preferences.browserModeProxy,
         openDialog: state.socketServer.showMessageBoxBack(event.client),
         openExternal: state.socketServer.openExternal(event.client),
-        runGame: runGameFactory(state)
+        runGame: runGameFactory(state),
+        envPATH: state.pathVar,
       });
       state.apiEmitters.games.onDidLaunchAddApp.fire(addApp);
     }
@@ -265,10 +266,6 @@ export function registerRequestCallbacks(state: BackState): void {
 
   state.socketServer.register(BackIn.LAUNCH_GAME, async (event, id) => {
     const game = await GameManager.findGame(id);
-
-    await new Promise<void>((resolve) => {
-      setTimeout(resolve, 5000);
-    });
 
     if (game) {
       // Make sure Server is set to configured server - Curations may have changed it
@@ -278,7 +275,10 @@ export function registerRequestCallbacks(state: BackState): void {
         if (!server || !('name' in server.info) || server.info.name !== configServer.name) {
           // Server is different, change now
           if (server) { await removeService(state, 'server'); }
-          runService(state, 'server', 'Server', state.config.flashpointPath, {}, configServer);
+          runService(state, 'server', 'Server', state.config.flashpointPath, {env: {
+            ...process.env,
+            'PATH': state.pathVar ?? process.env.PATH,
+          }}, configServer);
         }
       }
       log.debug('TEST', 'Server change done');
@@ -329,6 +329,7 @@ export function registerRequestCallbacks(state: BackState): void {
         openDialog: state.socketServer.showMessageBoxBack(event.client),
         openExternal: state.socketServer.openExternal(event.client),
         runGame: runGameFactory(state),
+        envPATH: state.pathVar,
       },
       state.apiEmitters.games.onWillLaunchGame);
       await state.apiEmitters.games.onDidLaunchGame.fire(game);
@@ -1075,11 +1076,17 @@ export function registerRequestCallbacks(state: BackState): void {
             // Set the content folder path as the final parameter
             mad4fpServerCopy.arguments.push(getContentFolderByKey(data.key, state.config.flashpointPath));
             await removeService(state, 'server');
-            runService(state, 'server', 'Server', state.config.flashpointPath, {}, mad4fpServerCopy);
+            runService(state, 'server', 'Server', state.config.flashpointPath, {env: {
+              ...process.env,
+              'PATH': state.pathVar ?? process.env.PATH,
+            }}, mad4fpServerCopy);
           } else if (!data.mad4fp && activeServerInfo && activeServerInfo.mad4fp && !configServer.mad4fp) {
             // Swap to mad4fp server
             await removeService(state, 'server');
-            runService(state, 'server', 'Server', state.config.flashpointPath, {}, configServer);
+            runService(state, 'server', 'Server', state.config.flashpointPath, {env: {
+              ...process.env,
+              'PATH': state.pathVar ?? process.env.PATH,
+            }}, configServer);
           }
         }
       }
@@ -1098,6 +1105,7 @@ export function registerRequestCallbacks(state: BackState): void {
         openDialog: state.socketServer.showMessageBoxBack(event.client),
         openExternal: state.socketServer.openExternal(event.client),
         runGame: runGameFactory(state),
+        envPATH: state.pathVar,
       },
       state.apiEmitters.games.onWillLaunchCurationGame,
       state.apiEmitters.games.onDidLaunchCurationGame);
@@ -1124,6 +1132,7 @@ export function registerRequestCallbacks(state: BackState): void {
         openDialog: state.socketServer.showMessageBoxBack(event.client),
         openExternal: state.socketServer.openExternal(event.client),
         runGame: runGameFactory(state),
+        envPATH: state.pathVar,
       },
       state.apiEmitters.games.onWillLaunchCurationAddApp,
       state.apiEmitters.games.onDidLaunchCurationAddApp);
@@ -1134,7 +1143,7 @@ export function registerRequestCallbacks(state: BackState): void {
 
   state.socketServer.register(BackIn.OPEN_LOGS_WINDOW, async (event) => {
     if (!state.services.has('logger_window')) {
-      const env = process.env;
+      const env: NodeJS.ProcessEnv = {...process.env, 'PATH': state.pathVar ?? process.env.PATH};
       if ('ELECTRON_RUN_AS_NODE' in env) {
         delete env['ELECTRON_RUN_AS_NODE']; // If this flag is present, it will disable electron features from the process
       }
