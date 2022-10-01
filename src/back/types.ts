@@ -82,6 +82,7 @@ export type BackState = {
   writeLocks: number;
   prefsQueue: EventQueue;
   logsWindowProc?: ManagedChildProcess;
+  pathVar?: string;
 }
 
 export type BackQueryChache = {

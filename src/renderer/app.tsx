@@ -584,8 +584,8 @@ export class App extends React.Component<AppProps> {
       }
     }
 
-    // Check for Wine and PHP on Linux/Mac
-    if (process.platform !== 'win32') {
+    // Check for PHP on Linux
+    if (process.platform === 'linux') {
       which('php', function(err: Error | null) {
         if (err) {
           log.warn('Launcher', 'Warning: PHP not found in path, may cause unexpected behaviour.');

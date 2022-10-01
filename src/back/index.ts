@@ -84,7 +84,7 @@ import { FileServer, serveFile } from './util/FileServer';
 import { FolderWatcher } from './util/FolderWatcher';
 import { LogFile } from './util/LogFile';
 import { logFactory } from './util/logging';
-import { createContainer, exit, runService } from './util/misc';
+import { createContainer, exit, getMacPATH, runService } from './util/misc';
 import { uuid } from './util/uuid';
 // Required for the DB Models to function
 
@@ -619,6 +619,11 @@ async function initialize() {
     await fs.ensureDir(path.join(state.config.flashpointPath, CURATIONS_FOLDER_EXPORTED));
   } catch (err: any) {
     console.error('Failed to create a required directory - ' + err.toString());
+  }
+
+  if (process.platform === 'darwin') {
+    state.pathVar = await getMacPATH();
+    console.log('Back - Started Mac PATH-reading');
   }
 
   try {

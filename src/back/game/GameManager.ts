@@ -394,7 +394,13 @@ export async function removePlaylistGame(playlistId: string, gameId: string): Pr
   const playlistGame = await findPlaylistGame(playlistId, gameId);
   if (playlistGame) {
     onDidRemovePlaylistGame.fire(playlistGame);
-    return playlistGameRepository.remove(playlistGame);
+    await playlistGameRepository.remove(playlistGame);
+
+    const playlistRepository = AppDataSource.getRepository(Playlist);
+    const playlist = await playlistRepository.findOneBy({ id: playlistId });
+    if (playlist) {
+      onDidUpdatePlaylist.fire({ oldPlaylist: playlist, newPlaylist: playlist });
+    }
   }
   return null;
 }
@@ -416,19 +422,34 @@ export async function addPlaylistGame(playlistId: string, gameId: string): Promi
   .select('pg.order')
   .getOne();
 
-  await repository.save<PlaylistGame>({
+  const pg = await repository.save<PlaylistGame>({
     gameId: gameId,
     playlistId: playlistId,
     order: highestOrder ? highestOrder.order + 1 : 0,
     notes: '',
   });
+
+  onDidUpdatePlaylistGame.fire({oldGame: pg, newGame: pg});
+  const playlistRepository = AppDataSource.getRepository(Playlist);
+  const playlist = await playlistRepository.findOneBy({ id: playlistId });
+  if (playlist) {
+    onDidUpdatePlaylist.fire({ oldPlaylist: playlist, newPlaylist: playlist });
+  }
+
 }
 
 /** Updates a Playlist Game */
 export async function updatePlaylistGame(playlistGame: PlaylistGame): Promise<PlaylistGame> {
   const playlistGameRepository = AppDataSource.getRepository(PlaylistGame);
   const savedPlaylistGame = await playlistGameRepository.save(playlistGame);
-  if (savedPlaylistGame) { onDidUpdatePlaylistGame.fire({oldGame: playlistGame, newGame: savedPlaylistGame }); }
+  onDidUpdatePlaylistGame.fire({oldGame: playlistGame, newGame: savedPlaylistGame });
+
+  const playlistRepository = AppDataSource.getRepository(Playlist);
+  const playlist = await playlistRepository.findOneBy({ id: savedPlaylistGame.playlistId });
+  if (playlist) {
+    onDidUpdatePlaylist.fire({ oldPlaylist: playlist, newPlaylist: playlist });
+  }
+
   return savedPlaylistGame;
 }
 
@@ -565,15 +586,33 @@ async function applyTagFilters(aliases: string[], alias: string, query: SelectQu
   .select('tag_alias.tagId')
   .distinct();
 
-  const subQuery = AppDataSource.createQueryBuilder()
+  let subQueryTwo = undefined;
+  if (whitelist) {
+    subQueryTwo = AppDataSource.createQueryBuilder()
+    .select('game_tag.gameId, COUNT(*) as count')
+    .from('game_tags_tag', 'game_tag')
+    .where(`game_tag.tagId IN (${tagIdQuery.getQuery()})`)
+    .groupBy('game_tag.gameId');
+  }
+
+  let subQuery = AppDataSource.createQueryBuilder()
   .select('game_tag.gameId')
-  .distinct()
-  .from('game_tags_tag', 'game_tag')
-  .where(`game_tag.tagId IN (${tagIdQuery.getQuery()})`);
+  .distinct();
+
+  if (subQueryTwo) {
+    subQuery = subQuery.from(`(${subQueryTwo.getQuery()})`, 'game_tag')
+    .where(`game_tag.count == ${aliases.length}`);
+  } else {
+    subQuery = subQuery.from('game_tags_tag', 'game_tag')
+    .where(`game_tag.tagId IN (${tagIdQuery.getQuery()})`);
+  }
 
   query.andWhere(`${alias}.id ${comparator} (${subQuery.getQuery()})`);
   query.setParameters(subQuery.getParameters());
   query.setParameters(tagIdQuery.getParameters());
+  if (subQueryTwo) {
+    query.setParameters(subQueryTwo.getParameters());
+  }
 }
 
 async function getGameQuery(
