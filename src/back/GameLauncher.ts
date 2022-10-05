@@ -89,13 +89,14 @@ export namespace GameLauncher {
         });
       }
       default: {
-        let appPath: string = fixSlashes(path.join(opts.fpPath, getApplicationPath(opts.addApp.applicationPath, opts.execMappings, opts.native)));
+        let appPath: string = getApplicationPath(opts.addApp.applicationPath, opts.execMappings, opts.native);
         const appPathOverride = opts.appPathOverrides.filter(a => a.enabled).find(a => a.path === appPath);
         if (appPathOverride) { appPath = appPathOverride.override; }
         const appArgs: string = opts.addApp.launchCommand;
         const useWine: boolean = process.platform != 'win32' && appPath.endsWith('.exe');
+        const gamePath: string = path.isAbsolute(appPath) ? fixSlashes(appPath) : fixSlashes(path.join(opts.fpPath, appPath));
         const launchInfo: LaunchInfo = {
-          gamePath: appPath,
+          gamePath: gamePath,
           gameArgs: appArgs,
           useWine,
           env: getEnvironment(opts.fpPath, opts.proxy, opts.envPATH),
