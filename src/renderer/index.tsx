@@ -180,6 +180,7 @@ export function createInitialMainState(): MainState {
     downloadOpen: false,
     downloadVerifying: false,
     taskBarOpen: false,
+    socketOpen: true,
     isEditingGame: false,
     updateFeedMarkdown: '',
     busyGames: [],

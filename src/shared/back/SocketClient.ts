@@ -40,7 +40,11 @@ export class SocketClient<SOCKET extends BaseSocket> {
   /** Callbacks for when the socket starts listening. */
   protected when_listeners: (() => void)[] = [];
 
-  constructor(socketCon: SocketConstructor<SOCKET>) {
+  constructor(
+    socketCon: SocketConstructor<SOCKET>,
+    private onFatal?: () => void,
+    public onStateChange?: (open: boolean) => void,
+  ) {
     this.socketCon = socketCon;
   }
 
@@ -104,7 +108,12 @@ export class SocketClient<SOCKET extends BaseSocket> {
         // Connect
         console.log(`Reconnecting to ${this.url} - Attempt ${count}`);
         return SocketClient.connect(this.socketCon, this.url, this.secret)
-        .then(socket => { this.setSocket(socket); })
+        .then(socket => {
+          this.setSocket(socket);
+          if (this.onStateChange) {
+            this.onStateChange(true);
+          }
+        })
         .catch(async (error) => {
           if (count < 5) {
             console.error(`Failed Connection Attempt: ${error}`);
@@ -114,6 +123,9 @@ export class SocketClient<SOCKET extends BaseSocket> {
             return this.reconnect(count + 1);
           } else {
             console.error(`Reconnecting failed ${count} times, please restart the application.`);
+            if (this.onFatal) {
+              this.onFatal();
+            }
           }
         });
       } else {
@@ -225,6 +237,9 @@ export class SocketClient<SOCKET extends BaseSocket> {
 
   protected onClose(event: CloseEvent): void {
     console.log(`SharedSocket Closed (Code: ${event.code}, Clean: ${event.wasClean}, Reason: "${event.reason}", URL: "${this.url}").`);
+    if (this.onStateChange) {
+      this.onStateChange(false);
+    }
     this.reconnect();
   }
 

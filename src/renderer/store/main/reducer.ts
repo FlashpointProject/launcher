@@ -532,6 +532,7 @@ function createInitialState(): MainState {
     downloadPercent: 0,
     downloadSize: 0,
     downloadVerifying: false,
+    socketOpen: true,
     taskBarOpen: false,
     isEditingGame: false,
     loadedAll: new Gate(),

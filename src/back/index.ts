@@ -759,6 +759,7 @@ async function initialize() {
   const addExtLogFactory = (extId: string) => (entry: ILogEntry) => {
     state.extensionsService.logExtension(extId, entry);
   };
+
   // Create module interceptor
   registerInterceptor(new FPLNodeModuleFactory(
     await state.extensionsService.getExtensionPathIndex(),

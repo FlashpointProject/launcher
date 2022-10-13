@@ -1,11 +1,13 @@
 import * as remote from '@electron/remote';
 import { SocketClient } from '@shared/back/SocketClient';
 import { BackIn, BackOut } from '@shared/back/types';
+import { WindowIPC } from '@shared/interfaces';
 import { InitRendererChannel, InitRendererData } from '@shared/IPC';
 import { setTheme } from '@shared/Theme';
 import { createErrorProxy } from '@shared/Util';
 import * as electron from 'electron';
 import { OpenDialogOptions } from 'electron';
+import { ipcRenderer } from 'electron/renderer';
 import * as path from 'path';
 import { isDev } from './Util';
 
@@ -14,6 +16,10 @@ import { isDev } from './Util';
  * (Note: This is mostly a left-over from when "node integration" was disabled.
  *        It might be a good idea to move this to the Renderer?)
  */
+const a = remote.dialog.showMessageBox;
+remote.dialog.showMessageBox = async (window, options) => {
+  return a(window, options);
+};
 
 window.Shared = {
   version: createErrorProxy('version'),
@@ -70,7 +76,10 @@ window.Shared = {
 
   isBackRemote: createErrorProxy('isBackRemote'),
 
-  back: new SocketClient(WebSocket),
+  back: new SocketClient(WebSocket, () => {
+    // Ask to send output to renderer if backend crashes
+    ipcRenderer.send(WindowIPC.MAIN_OUTPUT);
+  }),
 
   fileServerPort: -1,
 

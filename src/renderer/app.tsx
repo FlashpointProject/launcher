@@ -27,6 +27,7 @@ import { GameOrderChangeEvent } from './components/GameOrder';
 import { MetaEditExporter, MetaEditExporterConfirmData } from './components/MetaEditExporter';
 import { placeholderProgressData, ProgressBar } from './components/ProgressComponents';
 import { ResizableSidebar, SidebarResizeEvent } from './components/ResizableSidebar';
+import { SimpleButton } from './components/SimpleButton';
 import { SplashScreen } from './components/SplashScreen';
 import { TaskBar } from './components/TaskBar';
 import { TitleBar } from './components/TitleBar';
@@ -85,7 +86,7 @@ export class App extends React.Component<AppProps> {
         switch (parts[0]) {
           case 'open': {
             if (parts.length >= 2) {
-            // Open game in sidebar
+              // Open game in sidebar
               window.Shared.back.request(BackIn.GET_GAME, parts[1])
               .then(game => {
                 if (game) {
@@ -163,6 +164,12 @@ export class App extends React.Component<AppProps> {
     });
     ipcRenderer.on(WindowIPC.PROTOCOL, (sender, url: string) => {
       handleProtocol(url);
+    });
+    // Displays main proc output
+    ipcRenderer.on(WindowIPC.MAIN_OUTPUT, (sender, output: string) => {
+      this.props.setMainState({
+        mainOutput: output
+      });
     });
 
     // if (window.Shared.url) {
@@ -438,6 +445,13 @@ export class App extends React.Component<AppProps> {
 
   init() {
     const strings = this.props.main.lang;
+
+    window.Shared.back.onStateChange = (state) => {
+      this.props.setMainState({
+        socketOpen: state
+      });
+    };
+
     // Warn the user when closing the launcher WHILE downloading or installing an upgrade
     (() => {
       let askBeforeClosing = true;
@@ -1135,6 +1149,10 @@ export class App extends React.Component<AppProps> {
     };
   });
 
+  copyCrashLog = () => {
+    clipboard.writeText(this.props.main.mainOutput || '');
+  }
+
   render() {
     const libraryPath = getBrowseSubPath(this.props.location.pathname);
     const view = this.props.main.views[libraryPath];
@@ -1201,6 +1219,27 @@ export class App extends React.Component<AppProps> {
       <LangContext.Provider value={this.props.main.lang}>
         { !this.props.main.stopRender ? (
           <>
+            {/* Backend disconnect and crash report dialogs */}
+            { !this.props.main.socketOpen && !this.props.main.mainOutput && (
+              <FloatingContainer>
+                <div className='main-output-header'>Disconnected from Backend</div>
+                <div>Reconnecting...</div>
+              </FloatingContainer>
+            )}
+            { this.props.main.mainOutput && (
+              <FloatingContainer>
+                <div className='main-output-header'>Backend Crash Log</div>
+                <div className='main-output-content'>{this.props.main.mainOutput}</div>
+                <div className='main-output-buttons'>
+                  <SimpleButton
+                    value={'Copy Crash Log'}
+                    onClick={this.copyCrashLog}/>
+                  <SimpleButton
+                    value={'Restart Launcher'}
+                    onClick={window.Shared.restart}/>
+                </div>
+              </FloatingContainer>
+            )}
             {/* Splash screen */}
             <SplashScreen
               loadedAll={this.props.main.loadedAll.isOpen}
@@ -1692,6 +1731,8 @@ function onUpdateDownloaded() {
     buttons: ['OK']
   })
   .then(() => {
+    console.log('update cb returned');
+    console.trace();
     setImmediate(() => autoUpdater.quitAndInstall());
   });
 }

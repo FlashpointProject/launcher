@@ -138,6 +138,10 @@ export type MainState = {
   updateFeedMarkdown: string;
   /** Games which are in the middle of a busy operation */
   busyGames: string[];
+  /** State of the Socket connection */
+  socketOpen: boolean;
+  /** Main Proc output (when requested) */
+  mainOutput?: string;
 }
 
 export type MainAction = {

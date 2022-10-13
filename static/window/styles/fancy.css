@@ -1304,3 +1304,7 @@ body {
     opacity: 0;
   }
 }
+
+.main-output-content {
+  background-color: var(--layout__tertiary-background);
+}

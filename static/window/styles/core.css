@@ -2872,3 +2872,23 @@ body {
 .task-status {
   font-size: 0.8em;
 }
+
+.main-output-header {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.main-output-content {
+  margin: 0.2rem;
+  padding: 0.1rem;
+  text-align: left;
+  white-space: pre-wrap;
+  overflow: auto;
+  max-height: 65vh;
+  max-width: 80vw;
+}
+
+.main-output-buttons {
+  display: flex;
+  justify-content: space-around;
+}

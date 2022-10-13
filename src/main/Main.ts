@@ -50,6 +50,8 @@ type MainState = {
   isQuitting: boolean;
   /** Path of the folder containing the config and preferences files. */
   mainFolderPath: string;
+  /** Stdout output */
+  output: string;
 }
 
 export function main(init: Init): void {
@@ -67,6 +69,7 @@ export function main(init: Init): void {
     _sentLocaleCode: false,
     isQuitting: false,
     mainFolderPath: createErrorProxy('mainFolderPath'),
+    output: '',
   };
 
   startup({
@@ -156,7 +159,19 @@ export function main(init: Init): void {
     if (opts.backend) {
       await new Promise<void>((resolve, reject) => {
         // Fork backend, init.rest will contain possible flashpoint:// message
-        state.backProc = fork(path.join(__dirname, '../back/index.js'), [init.rest], { detached: true });
+        state.backProc = fork(path.join(__dirname, '../back/index.js'), [init.rest], { detached: true, stdio: 'pipe' });
+        if (state.backProc.stdout) {
+          state.backProc.stdout.on('data', (chunk) => {
+            process.stdout.write(chunk);
+            state.output += chunk.toString();
+          });
+        }
+        if (state.backProc.stderr) {
+          state.backProc.stderr.on('data', (chunk) => {
+            process.stderr.write(chunk);
+            state.output += chunk.toString();
+          });
+        }
         const initHandler = (message: any) => {
           // Stop listening after a port, quit or other message arrives, keep going for preferences checks
           if (state.backProc && !message.preferencesRefresh) {
@@ -394,6 +409,10 @@ export function main(init: Init): void {
       },
     });
     remoteMain.enable(window.webContents);
+    // Enable crash reporter
+    ipcMain.on(WindowIPC.MAIN_OUTPUT, () => {
+      window.webContents.send(WindowIPC.MAIN_OUTPUT, state.output);
+    });
     // Remove the menu bar
     window.setMenu(null);
     // and load the index.html of the app.
