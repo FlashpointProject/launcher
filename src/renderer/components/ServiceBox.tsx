@@ -1,9 +1,9 @@
-import * as remote from '@electron/remote';
 import { BackIn } from '@shared/back/types';
-import { IBackProcessInfo, IService, ProcessAction, ProcessState } from '@shared/interfaces';
+import { CustomIPC, IBackProcessInfo, IService, ProcessAction, ProcessState } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { ILogEntry } from '@shared/Log/interface';
 import { escapeHTML, formatTime, padLines, timeChars } from '@shared/Log/LogCommon';
+import { ipcRenderer } from 'electron';
 import * as React from 'react';
 import { setInterval } from 'timers';
 import { LangContext } from '../util/lang';
@@ -129,7 +129,7 @@ function generateStatusText(service: IService, lang: LangContainer['developer'])
  * @param info Info to display.
  */
 function displayDetails(info: IBackProcessInfo): void {
-  remote.dialog.showMessageBox({
+  ipcRenderer.invoke(CustomIPC.SHOW_MESSAGE_BOX, {
     type: 'info',
     title: 'Service Details',
     message: `Path: ${info.path}\n`+

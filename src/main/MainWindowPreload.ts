@@ -1,7 +1,7 @@
 import * as remote from '@electron/remote';
 import { SocketClient } from '@shared/back/SocketClient';
 import { BackIn, BackOut } from '@shared/back/types';
-import { WindowIPC } from '@shared/interfaces';
+import { CustomIPC, WindowIPC } from '@shared/interfaces';
 import { InitRendererChannel, InitRendererData } from '@shared/IPC';
 import { setTheme } from '@shared/Theme';
 import { createErrorProxy } from '@shared/Util';
@@ -16,10 +16,6 @@ import { isDev } from './Util';
  * (Note: This is mostly a left-over from when "node integration" was disabled.
  *        It might be a good idea to move this to the Renderer?)
  */
-const a = remote.dialog.showMessageBox;
-remote.dialog.showMessageBox = async (window, options) => {
-  return a(window, options);
-};
 
 window.Shared = {
   version: createErrorProxy('version'),
@@ -165,17 +161,17 @@ function registerHandlers(): void {
   });
 
   window.Shared.back.register(BackOut.OPEN_MESSAGE_BOX, async (event, data) => {
-    const result = await remote.dialog.showMessageBox(data);
+    const result = await ipcRenderer.invoke(CustomIPC.SHOW_MESSAGE_BOX, data);
     return result.response;
   });
 
   window.Shared.back.register(BackOut.OPEN_SAVE_DIALOG, async (event, data) => {
-    const result = await remote.dialog.showSaveDialog(data);
+    const result = await ipcRenderer.invoke(CustomIPC.SHOW_SAVE_DIALOG, data);
     return result.filePath;
   });
 
   window.Shared.back.register(BackOut.OPEN_OPEN_DIALOG, async (event, data) => {
-    const result = await remote.dialog.showOpenDialog(data);
+    const result = await ipcRenderer.invoke(CustomIPC.SHOW_OPEN_DIALOG, data);
     return result.filePaths;
   });
 

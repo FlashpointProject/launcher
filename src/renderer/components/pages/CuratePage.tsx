@@ -13,11 +13,12 @@ import { LangContext } from '@renderer/util/lang';
 import { BackIn, TagSuggestion } from '@shared/back/types';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
 import { ExtensionContribution } from '@shared/extensions/interfaces';
-import { Task } from '@shared/interfaces';
+import { CustomIPC, Task } from '@shared/interfaces';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
 import axios from 'axios';
+import { ipcRenderer } from 'electron';
 import { AppPreferencesData, CurationState } from 'flashpoint-launcher';
 import * as path from 'path';
 import * as React from 'react';
@@ -74,14 +75,15 @@ export function CuratePage(props: CuratePageProps) {
 
   const onLoadCuration = React.useCallback(() => {
     // Generate task
-    remote.dialog.showOpenDialog({
+    ipcRenderer.invoke(CustomIPC.SHOW_OPEN_DIALOG, {
       title: strings.dialog.selectCurationArchive,
       properties: [ 'multiSelections' ],
     })
     .then(value => {
-      if (value.filePaths.length > 0) {
-        const newTask = newCurateTask(`Loading ${value.filePaths.length} Archives`, 'Loading...', props.addTask);
-        window.Shared.back.send(BackIn.CURATE_LOAD_ARCHIVES, value.filePaths, newTask.id);
+      const filePaths = value.filePaths;
+      if (filePaths.length > 0) {
+        const newTask = newCurateTask(`Loading ${filePaths.length} Archives`, 'Loading...', props.addTask);
+        window.Shared.back.send(BackIn.CURATE_LOAD_ARCHIVES, filePaths, newTask.id);
       }
     });
   }, []);

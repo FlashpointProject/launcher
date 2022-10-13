@@ -4,7 +4,7 @@ import { PlaylistGame } from '@database/entity/PlaylistGame';
 import * as remote from '@electron/remote';
 import { BackIn, BackInit, BackOut } from '@shared/back/types';
 import { APP_TITLE, VIEW_PAGE_SIZE } from '@shared/constants';
-import { IService, ProcessState, WindowIPC } from '@shared/interfaces';
+import { CustomIPC, IService, ProcessState, WindowIPC } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
 import { updatePreferencesData } from '@shared/preferences/util';
@@ -136,7 +136,7 @@ export class App extends React.Component<AppProps> {
             break;
           }
           default:
-            remote.dialog.showMessageBox({ title: 'Protocol Error', message: `Unsupported action "${parts[0]}"` });
+            ipcRenderer.invoke(CustomIPC.SHOW_SAVE_DIALOG, { title: 'Protocol Error', message: `Unsupported action "${parts[0]}"` });
             break;
         }
       }
@@ -603,12 +603,12 @@ export class App extends React.Component<AppProps> {
       which('php', function(err: Error | null) {
         if (err) {
           log.warn('Launcher', 'Warning: PHP not found in path, may cause unexpected behaviour.');
-          remote.dialog.showMessageBox({
+          ipcRenderer.invoke(CustomIPC.SHOW_MESSAGE_BOX, {
             type: 'error',
             title: strings.dialog.programNotFound,
             message: strings.dialog.phpNotFound,
             buttons: ['Ok']
-          } );
+          });
         }
       });
     }
@@ -1006,7 +1006,7 @@ export class App extends React.Component<AppProps> {
                       message: 'GameData has not been downloaded yet, cannot open the file location!',
                       buttons: ['Ok'],
                     };
-                    remote.dialog.showMessageBox(opts);
+                    ipcRenderer.invoke(CustomIPC.SHOW_MESSAGE_BOX, opts);
                     return;
                   }
                 } catch (error: any) {
@@ -1030,7 +1030,7 @@ export class App extends React.Component<AppProps> {
                     );
                   }
                   opts.message += `Path: "${gamePath}"\n\nNote: If the path is too long, some portion will be replaced with three dots ("...").`;
-                  remote.dialog.showMessageBox(opts);
+                  ipcRenderer.invoke(CustomIPC.SHOW_MESSAGE_BOX, opts);
                 }
               }
             });
@@ -1073,14 +1073,14 @@ export class App extends React.Component<AppProps> {
                   // Redirect to Curate once it's been made
                   this.props.history.push(Paths.CURATE);
                 } else {
-                  remote.dialog.showMessageBox({
+                  ipcRenderer.invoke(CustomIPC.SHOW_MESSAGE_BOX, {
                     title: 'Failed to create curation',
                     message: 'Failed to create curation from this game. No error provided.'
                   });
                 }
               })
               .catch((err: any) => {
-                remote.dialog.showMessageBox({
+                ipcRenderer.invoke(CustomIPC.SHOW_MESSAGE_BOX, {
                   title: 'Failed to create curation',
                   message: `Failed to create curation from this game.\nError: ${err.toString()}`
                 });
@@ -1725,12 +1725,11 @@ async function cacheIcon(icon: string): Promise<string> {
 }
 
 function onUpdateDownloaded() {
-  remote.dialog.showMessageBox({
+  ipcRenderer.invoke(CustomIPC.SHOW_MESSAGE_BOX, {
     title: 'Installing Update',
     message: 'The Launcher will restart to install the update now.',
     buttons: ['OK']
-  })
-  .then(() => {
+  }).then(() => {
     console.log('update cb returned');
     console.trace();
     setImmediate(() => autoUpdater.quitAndInstall());

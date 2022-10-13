@@ -147,6 +147,14 @@ export enum WindowIPC {
   MAIN_OUTPUT     = 'main-output'
 }
 
+/** IPC channels for everything else */
+
+export enum CustomIPC {
+  SHOW_MESSAGE_BOX = 'show-message-box',
+  SHOW_SAVE_DIALOG = 'show-save-dialog',
+  SHOW_OPEN_DIALOG = 'show-open-dialog'
+}
+
 /** IPC channels used to relay game manager events from  */
 
 export type INamedBackProcessInfo = IBackProcessInfo & {

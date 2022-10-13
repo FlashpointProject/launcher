@@ -1,8 +1,9 @@
 import { Game } from '@database/entity/Game';
-import * as remote from '@electron/remote';
 import { BackIn } from '@shared/back/types';
 import { parseSearchText } from '@shared/game/GameFilter';
+import { CustomIPC } from '@shared/interfaces';
 import { getFileServerURL } from '@shared/Util';
+import { ipcRenderer } from 'electron';
 import { TagFilterGroup } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -261,7 +262,7 @@ export function toURL(str: string): URL | undefined {
 export async function openConfirmDialog(title: string, message: string, cancel = false): Promise<boolean> {
   const buttons = ['Yes', 'No'];
   if (cancel) { buttons.push('Cancel'); }
-  const res = await remote.dialog.showMessageBox({
+  const res = await ipcRenderer.invoke(CustomIPC.SHOW_MESSAGE_BOX, {
     title: title,
     message: message,
     buttons: buttons

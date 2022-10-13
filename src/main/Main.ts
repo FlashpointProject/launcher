@@ -3,7 +3,7 @@ import { SocketClient } from '@shared/back/SocketClient';
 import { BackIn, BackInitArgs, BackOut } from '@shared/back/types';
 import { AppConfigData } from '@shared/config/interfaces';
 import { APP_TITLE } from '@shared/constants';
-import { WindowIPC } from '@shared/interfaces';
+import { CustomIPC, WindowIPC } from '@shared/interfaces';
 import { InitRendererChannel, InitRendererData } from '@shared/IPC';
 import { createErrorProxy } from '@shared/Util';
 import { ChildProcess, fork } from 'child_process';
@@ -121,6 +121,15 @@ export function main(init: Init): void {
 
     // Add IPC event listener(s)
     ipcMain.on(InitRendererChannel, onInit);
+    ipcMain.handle(CustomIPC.SHOW_MESSAGE_BOX, async (event, opts) => {
+      return dialog.showMessageBox(opts);
+    });
+    ipcMain.handle(CustomIPC.SHOW_OPEN_DIALOG, async (event, opts) => {
+      return dialog.showOpenDialog(opts);
+    });
+    ipcMain.handle(CustomIPC.SHOW_SAVE_DIALOG, async (event, opts) => {
+      return dialog.showSaveDialog(opts);
+    });
 
     // Add Socket event listener(s)
     state.socket.register(BackOut.QUIT, () => {

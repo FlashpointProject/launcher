@@ -1,8 +1,9 @@
-import * as remote from '@electron/remote';
 import { GameMetaDefaults } from '@shared/curate/defaultValues';
-import { parseCurationMetaNew, parseCurationMetaOld, ParsedCurationMeta } from '@shared/curate/parse';
 import { CurationIndexImage, EditCurationMeta } from '@shared/curate/OLD_types';
+import { parseCurationMetaNew, parseCurationMetaOld, ParsedCurationMeta } from '@shared/curate/parse';
+import { CustomIPC } from '@shared/interfaces';
 import { stripBOM } from '@shared/Util';
+import { ipcRenderer } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
@@ -46,7 +47,7 @@ export async function readCurationMeta(filePath: string, defaultMetaData?: GameM
 
 /** Warning box with given message*/
 export function showWarningBox(str: string): void {
-  remote.dialog.showMessageBox({
+  ipcRenderer.invoke(CustomIPC.SHOW_MESSAGE_BOX, {
     type: 'warning',
     message: str,
     buttons: ['OK']
