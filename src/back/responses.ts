@@ -918,7 +918,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     state.socketServer.send(event.client, BackOut.IMAGE_CHANGE, folder, id);
   });
 
-  state.socketServer.register(BackIn.UPDATE_CONFIG, async(event, data) => {
+  state.socketServer.register(BackIn.UPDATE_CONFIG, async (event, data) => {
     const newConfig = deepCopy(state.config);
     overwriteConfigData(newConfig, data);
 
@@ -1824,7 +1824,13 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         folder,
         uuid: uuid(),
         group: '',
-        game: meta || {},
+        game: meta || {
+          language: 'en',
+          platform: 'Flash',
+          playMode: 'Single Player',
+          status:   'Playable',
+          library:  'Arcade'.toLowerCase() // must be lower case
+        },
         addApps: [],
         thumbnail: await loadCurationIndexImage(path.join(curPath, 'logo.png')),
         screenshot: await loadCurationIndexImage(path.join(curPath, 'ss.png'))
