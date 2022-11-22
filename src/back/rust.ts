@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const rust = require('../fp-rust.node');
+const rust = require('./fp-rust.node');
 
 export async function genContentTree(folder: string): Promise<ContentTree> {
   try {
