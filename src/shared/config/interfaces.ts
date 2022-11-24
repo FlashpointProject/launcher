@@ -23,6 +23,8 @@ export type AppConfigData = {
   logsBaseUrl: string;
   /** Whether to notify that launcher updates are available */
   updatesEnabled: boolean;
+  /** Url to fetch Game of the Day JSON */
+  gotdUrl: string;
 };
 
 export type AppExtConfigData = {

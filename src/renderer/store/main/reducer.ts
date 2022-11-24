@@ -483,6 +483,7 @@ const defaultSuggestionsState: GamePropSuggestions = {
 
 function createInitialState(): MainState {
   return {
+    gotdList: [],
     views: {},
     libraries: [],
     serverNames: [],

@@ -20,7 +20,8 @@ const configDataDefaultBase: Readonly<AppConfigData> = Object.freeze({
   imagesPortMin: 12101,
   imagesPortMax: 12200,
   logsBaseUrl: 'https://logs.unstable.life/',
-  updatesEnabled: true
+  updatesEnabled: true,
+  gotdUrl: 'https://download.unstable.life/gotd.json'
 });
 
 /**

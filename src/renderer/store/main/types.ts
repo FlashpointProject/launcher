@@ -5,7 +5,7 @@ import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { CreditsData } from '@renderer/credits/types';
 import { ViewGameSet } from '@renderer/interfaces';
 import { UpgradeStage } from '@renderer/upgrade/types';
-import { BackInit, PageKeyset, ResponseGameRange, SearchGamesOpts, ViewGame } from '@shared/back/types';
+import { BackInit, GameOfTheDay, PageKeyset, ResponseGameRange, SearchGamesOpts, ViewGame } from '@shared/back/types';
 import { AppExtConfigData } from '@shared/config/interfaces';
 import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { GamePropSuggestions, IService } from '@shared/interfaces';
@@ -59,6 +59,7 @@ export type ViewQuery = SearchGamesOpts & {
 export type ViewPageStates = Partial<Record<number, RequestState>>
 
 export type MainState = {
+  gotdList: GameOfTheDay[];
   views: Record<string, View | undefined>; // views[id] = view
   libraries: string[];
   serverNames: string[];

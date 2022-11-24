@@ -980,6 +980,14 @@ export class App extends React.Component<AppProps> {
     return (gameId: string) => {
       let contextButtons: MenuItemConstructorOptions[] = [
         {
+          label: strings.menu.addToFavorites,
+          enabled: playlists.filter(p => p.title.includes('Favorites')).length > 0,
+          click: () => {
+            const playlistId = playlists.filter(p => p.title.includes('Favorites'))[0].id;
+            window.Shared.back.send(BackIn.ADD_PLAYLIST_GAME, playlistId, gameId);
+          }
+        },
+        {
           type: 'submenu',
           label: strings.menu.addToPlaylist,
           enabled: playlists.length > 0,
@@ -1161,6 +1169,7 @@ export class App extends React.Component<AppProps> {
 
     // Props to set to the router
     const routerProps: AppRouterProps = {
+      gotdList: this.props.main.gotdList,
       games: view && view.games || {},
       randomGames: this.props.main.randomGames,
       rollRandomGames: this.rollRandomGames,

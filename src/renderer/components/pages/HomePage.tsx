@@ -1,14 +1,15 @@
 import { Playlist } from '@database/entity/Playlist';
 import * as remote from '@electron/remote';
 import { FancyAnimation } from '@renderer/components/FancyAnimation';
-import { ViewGame } from '@shared/back/types';
-import { ARCADE, THEATRE } from '@shared/constants';
+import { BackIn, GameOfTheDay, ViewGame } from '@shared/back/types';
+import { ARCADE, LOGOS, THEATRE } from '@shared/constants';
 import { wrapSearchTerm } from '@shared/game/GameFilter';
 import { LangContainer } from '@shared/lang';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { getUpgradeString } from '@shared/upgrade/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { AppUpdater, UpdateInfo } from 'electron-updater';
+import { Game } from 'flashpoint-launcher';
 import * as React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Link } from 'react-router-dom';
@@ -18,8 +19,10 @@ import { WithSearchProps } from '../../containers/withSearch';
 import { ProgressContext } from '../../context/ProgressContext';
 import { Paths } from '../../Paths';
 import { UpgradeStage } from '../../upgrade/types';
-import { getPlatformIconURL, joinLibraryRoute } from '../../Util';
+import { getExtremeIconURL, getGameImageURL, getPlatformIconURL, joinLibraryRoute } from '../../Util';
 import { LangContext } from '../../util/lang';
+import { GameGridItem } from '../GameGridItem';
+import { GameItemContainer } from '../GameItemContainer';
 import { HomePageBox } from '../HomePageBox';
 import { OpenIcon, OpenIconType } from '../OpenIcon';
 import { AutoProgressComponent } from '../ProgressComponents';
@@ -27,6 +30,7 @@ import { RandomGames } from '../RandomGames';
 import { SizeProvider } from '../SizeProvider';
 
 type OwnProps = {
+  gotdList: GameOfTheDay[];
   platforms: Record<string, string[]>;
   playlists: Playlist[];
   /** Data and state used for the upgrade system (optional install-able downloads from the HomePage). */
@@ -360,6 +364,67 @@ export function HomePage(props: HomePageProps) {
     </SizeProvider>
   ), [strings, props.onGameContextMenu, props.selectedGameId, props.logoVersion, props.preferencesData.tagFilters, props.randomGames, onLaunchGame, props.rollRandomGames, props.preferencesData.minimizedHomePageBoxes, toggleMinimizeBox]);
 
+  const [loadedGotd, setLoadedGotd] = React.useState<Game | null>(null);
+  React.useEffect(() => {
+    if (props.gotdList.length > 0) {
+      window.Shared.back.request(BackIn.GET_GAME, props.gotdList[0].id)
+      .then((game) => {
+        setLoadedGotd(game);
+      });
+    }
+  }, [props.gotdList]);
+
+  const extremeIconPath = React.useMemo(() => getExtremeIconURL(props.logoVersion), [props.logoVersion]);
+
+  const renderedGotd = React.useMemo(() => {
+    let formattedDate = '';
+    if (props.gotdList.length > 0) {
+      const d = new Date(props.gotdList[0].date);
+      formattedDate = `${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()}`;
+    }
+    const extremeTags = props.preferencesData.tagFilters.filter(t => !t.enabled && t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
+    return (
+      <HomePageBox
+        minimized={props.preferencesData.minimizedHomePageBoxes.includes('gotd')}
+        title={strings.gotdHeader}
+        cssKey='gotd'
+        onToggleMinimize={() => toggleMinimizeBox('gotd')}>
+        <SizeProvider width={width} height={height}>
+          { props.gotdList.length > 0 ? <div className='home-page__box-item--gotd'>
+            <div className='home-page__box-item--gotd-left'>
+              { loadedGotd && (
+                <GameItemContainer
+                  className='gotd-container'
+                  onGameContextMenu={(event, gameId) => props.onGameContextMenu(gameId)}
+                  onGameSelect={(event, gameId) => props.onGameSelect(gameId)}
+                  onGameLaunch={(event, gameId) => props.onLaunchGame(gameId)}
+                  findGameId={() => loadedGotd.id}>
+                  <GameGridItem
+                    key={loadedGotd.id}
+                    id={loadedGotd.id}
+                    title={loadedGotd.title}
+                    platform={loadedGotd.platform}
+                    extreme={loadedGotd.tagsStr.split(';').findIndex(t => extremeTags.includes(t.trim())) !== -1}
+                    extremeIconPath={extremeIconPath}
+                    thumbnail={getGameImageURL(LOGOS, loadedGotd.id)}
+                    logoVersion={props.logoVersion}
+                    isDraggable={true}
+                    isSelected={loadedGotd.id === props.selectedGameId}
+                    isDragged={false} />
+                </GameItemContainer>
+              )}
+            </div>
+            <div className='home-page__box-item--gotd-right'>
+              <div className='home-page__box-item--gotd-author'><b>Suggested By:</b> {props.gotdList[0].author || 'Anonymous'}</div>
+              <div className='home-page__box-item--gotd-desc'>{props.gotdList[0].description}</div>
+              <div className='home-page__box-item--gotd-date'>{formattedDate}</div>
+            </div>
+          </div> : 'None Found' }
+        </SizeProvider>
+      </HomePageBox>
+    );
+  }, [props.gotdList, props.selectedGameId, extremeIconPath, loadedGotd, props.preferencesData.minimizedHomePageBoxes]);
+
   const renderedUpdateFeed = React.useMemo(() => {
     if (props.updateFeedMarkdown) {
       const markdownRender =
@@ -396,6 +461,8 @@ export function HomePage(props: HomePageProps) {
         </div>
         {/* Update Feed */}
         { renderedUpdateFeed }
+        {/* Game of the Day */}
+        { renderedGotd }
         {/* Updates */}
         { renderedUpdates }
         {/* Quick Start */}
@@ -410,7 +477,7 @@ export function HomePage(props: HomePageProps) {
         { renderedExtras }
       </div>
     </div>
-  ), [renderedUpdates, renderedQuickStart, renderedUpgrades, renderedExtras, renderedNotes, renderedRandomGames, renderedUpdateFeed]);
+  ), [renderedUpdates, renderedQuickStart, renderedUpgrades, renderedExtras, renderedNotes, renderedRandomGames, renderedUpdateFeed, renderedGotd]);
 }
 
 function QuickStartItem(props: { icon?: OpenIconType, className?: string, children?: React.ReactNode }): JSX.Element {

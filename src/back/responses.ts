@@ -5,7 +5,7 @@ import { Playlist } from '@database/entity/Playlist';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
-import { BackIn, BackInit, BackOut, CurationImageEnum, DownloadDetails, GetRendererLoadedDataResponse } from '@shared/back/types';
+import { BackIn, BackInit, BackOut, CurationImageEnum, DownloadDetails, GameOfTheDay, GetRendererLoadedDataResponse } from '@shared/back/types';
 import { overwriteConfigData } from '@shared/config/util';
 import { CURATIONS_FOLDER_EXPORTED, CURATIONS_FOLDER_TEMP, CURATIONS_FOLDER_WORKING, LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
@@ -147,7 +147,35 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       log.debug('Launcher', 'No Update Feed URL specified');
     }
 
+    // Fetch GOTD file
+    const gotdUrl = state.config.gotdUrl;
+    const gotdPath = path.join(state.config.flashpointPath, 'Data', 'gotd.json');
+    await new Promise((resolve, reject) => {
+      const thumbnailWriter = fs.createWriteStream(gotdPath);
+      axios.get(gotdUrl, { responseType: 'stream' })
+      .then((res) => {
+        res.data.pipe(thumbnailWriter);
+        thumbnailWriter.on('close', resolve);
+        thumbnailWriter.on('error', (err) => {
+          thumbnailWriter.close();
+          reject(err);
+        });
+      })
+      .catch((err) => {
+        reject(err);
+      });
+    })
+    .catch(() => {
+      log.error('Launcher', 'Failed to download gotd list from ' + gotdUrl);
+    });
+
+    let gotdList = [];
+    try {
+      gotdList = JSON.parse(fs.readFileSync(gotdPath, { encoding: 'utf8' })).games || [];
+    } catch {}
+
     const res: GetRendererLoadedDataResponse = {
+      gotdList: gotdList,
       libraries: libraries,
       platforms: platforms,
       services: Array.from(state.services.values()).map(s => procToService(s)),

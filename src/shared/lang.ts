@@ -79,6 +79,7 @@ const langTemplate = {
     'tagFilterGroupEditor',
   ] as const,
   home: [
+    'gotdHeader',
     'updateHeader',
     'currentVersion',
     'nextVersion',
@@ -468,6 +469,7 @@ const langTemplate = {
     'viewThumbnailInFolder',
     'viewScreenshotInFolder',
     'openFileLocation',
+    'addToFavorites',
     'addToPlaylist',
     'duplicateMetaOnly',
     'duplicateMetaAndImages',

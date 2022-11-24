@@ -741,6 +741,32 @@ body {
   display: flex;
   margin: auto 0.35rem auto 0;
 }
+/* GOTD Box */
+.home-page__box-item--gotd {
+  flex-direction: row;
+  display: flex;
+}
+.home-page__box-item--gotd-left {
+  width: var(--width);
+  padding-left: 0.3rem;
+  padding-right: 0.6rem;
+  border-right: 1px solid;
+}
+.home-page__box-item--gotd-right {
+  margin-left: 0.6rem;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+.home-page__box-item--gotd-author {
+  font-size: 1.25em;
+}
+.home-page__box-item--gotd-desc {
+  flex-grow: 1;
+}
+.home-page__box-item--gotd-date {
+  text-align: right;
+}
 /* HomePage Box - Upgrades */
 .home-page__box--upgrades b,
 .home-page__box--upgrades i {

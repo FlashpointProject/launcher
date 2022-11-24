@@ -442,7 +442,15 @@ export type GetRendererExtDataResponse = {
   extConfig: AppExtConfigData;
 }
 
+export type GameOfTheDay = {
+  id: string;
+  author?: string;
+  description: string;
+  date: number;
+}
+
 export type GetRendererLoadedDataResponse = {
+  gotdList: GameOfTheDay[],
   services: IService[];
   libraries: string[];
   suggestions: GamePropSuggestions;

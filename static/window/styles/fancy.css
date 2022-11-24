@@ -494,6 +494,11 @@ body {
   background-color: var(--layout__secondary-background);
 }
 
+/* GOTD Box */
+.home-page__box-item--gotd-left {
+  border-color: var(--layout__home-page-box-border);
+}
+
 
 /* ------ About ------ */
 /* Credits */

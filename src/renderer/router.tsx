@@ -1,7 +1,7 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
-import { ViewGame } from '@shared/back/types';
+import { GameOfTheDay, ViewGame } from '@shared/back/types';
 import { AppExtConfigData } from '@shared/config/interfaces';
 import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { GamePropSuggestions, IService } from '@shared/interfaces';
@@ -28,6 +28,7 @@ import { Paths } from './Paths';
 import { UpgradeStage } from './upgrade/types';
 
 export type AppRouterProps = {
+  gotdList: GameOfTheDay[];
   games: ViewGameSet;
   randomGames: ViewGame[];
   rollRandomGames: () => void;
@@ -85,6 +86,7 @@ export type AppRouterProps = {
 export class AppRouter extends React.Component<AppRouterProps> {
   render() {
     const homeProps: ConnectedHomePageProps = {
+      gotdList: this.props.gotdList,
       platforms: this.props.platforms,
       playlists: this.props.allPlaylists,
       upgrades: this.props.upgrades,
