@@ -420,7 +420,7 @@ export function HomePage(props: HomePageProps) {
                 <ReactDatePicker
                   dateFormat="yyyy-MM-dd"
                   selected={new Date(selectedGotd.date)}
-                  includeDates={props.gotdList.map(g => new Date(g.date))}
+                  includeDates={props.gotdList.filter(g => window.Shared.config.data.gotdShowAll || (new Date(g.date)).getTime() < Date.now()).map(g => new Date(g.date))}
                   onChange={(date) => {
                     if (date) {
                       const newGotd = props.gotdList.find(g => (new Date(g.date)).toDateString() === date.toDateString());

@@ -172,7 +172,10 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     let gotdList = [];
     try {
       gotdList = JSON.parse(fs.readFileSync(gotdPath, { encoding: 'utf8' })).games || [];
-    } catch {}
+      gotdList = gotdList.filter((g: any) => g.id !== '');
+    } catch {
+      /** Ignore */
+    }
 
     const res: GetRendererLoadedDataResponse = {
       gotdList: gotdList,

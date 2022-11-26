@@ -31,7 +31,8 @@ describe('Configuration Files', () => {
       'imagesPortMax': 12345,
       'logsBaseUrl': 'https://example.com/',
       'updatesEnabled': true,
-      'gotdUrl': 'dogga'
+      'gotdUrl': 'dogga',
+      'gotdShowAll': true
     };
     const newData: AppConfigData = deepCopy(getDefaultConfigData('win32'));
     overwriteConfigData(newData, data);

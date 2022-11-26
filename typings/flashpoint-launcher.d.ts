@@ -885,6 +885,10 @@ declare module 'flashpoint-launcher' {
         logsBaseUrl: string;
         /** Whether to notify that launcher updates are available */
         updatesEnabled: boolean;
+        /** Url to fetch Game of the Day JSON */
+        gotdUrl: string;
+        /** Show GOTD entries later than Today */
+        gotdShowAll: boolean;
     };
 
     export type TagFilterGroup = {

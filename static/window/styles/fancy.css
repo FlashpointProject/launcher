@@ -29,6 +29,7 @@
   --layout__secondary-text-color:   #aaaaaa;
   --layout__highlighted-text-color: #ffffff;
   --layout__disabled-text-color:    #9b9b9b;
+  --layout__disabled-text-color-2:  #5a5a5a;
   --layout__contrast-text-color:    #191919;
   /* Background */
   --layout__primary-background:    #1b1b1c;
@@ -1343,7 +1344,7 @@ body {
 }
 
 .react-datepicker__day--disabled {
-  color: var(--layout__disabled-text-color)
+  color: var(--layout__disabled-text-color-2)
 }
 
 .react-datepicker {

@@ -21,7 +21,8 @@ const configDataDefaultBase: Readonly<AppConfigData> = Object.freeze({
   imagesPortMax: 12200,
   logsBaseUrl: 'https://logs.unstable.life/',
   updatesEnabled: true,
-  gotdUrl: 'https://download.unstable.life/gotd.json'
+  gotdUrl: 'https://download.unstable.life/gotd.json',
+  gotdShowAll: false
 });
 
 /**
@@ -75,6 +76,8 @@ export function overwriteConfigData(
   parser.prop('server',              v => source.server              = str(v));
   parser.prop('logsBaseUrl',         v => source.logsBaseUrl         = parseVarStr(str(v)));
   parser.prop('updatesEnabled',      v => source.updatesEnabled      = !!v);
+  parser.prop('gotdUrl',             v => source.gotdUrl             = str(v));
+  parser.prop('gotdShowAll',         v => source.gotdShowAll         = !!v);
   // Do some alterations
   source.flashpointPath = fixSlashes(source.flashpointPath); // (Clean path)
   // Return
