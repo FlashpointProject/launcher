@@ -1313,3 +1313,48 @@ body {
 .main-output-content {
   background-color: var(--layout__tertiary-background);
 }
+
+/** Datepicker Overrides */
+
+.react-datepicker__header {
+  color: var(--layout__primary-text-color);
+  background-color: var(--layout__secondary-background);
+  border-bottom: 0px;
+}
+
+.react-datepicker-popper[data-placement^=bottom] .react-datepicker__triangle::before {
+  border-bottom-color: var(--layout__home-page-box-border);
+}
+
+.react-datepicker-popper[data-placement^=bottom] .react-datepicker__triangle::after {
+  border-bottom-color: var(--layout__secondary-background);
+}
+
+.react-datepicker__current-month {
+  color: var(--layout__primary-text-color);
+}
+
+.react-datepicker__day-name {
+  color: var(--layout__primary-text-color);
+}
+
+.react-datepicker__day {
+  color: var(--layout__primary-text-color)
+}
+
+.react-datepicker__day--disabled {
+  color: var(--layout__disabled-text-color)
+}
+
+.react-datepicker {
+  color: var(--layout__primary-text-color);
+  background-color: var(--layout__home-page-box-background);
+  border: 2px solid var(--layout__home-page-box-border);
+  border-radius: 8px;
+}
+
+.react-datepicker__input-container > input {
+  background-color: var(--layout__secondary-background);
+  border-color: var(--layout__primary-outline-color);
+  color: var(--layout__primary-text-color);
+}

@@ -11,6 +11,7 @@ import { formatString } from '@shared/utils/StringFormatter';
 import { AppUpdater, UpdateInfo } from 'electron-updater';
 import { Game } from 'flashpoint-launcher';
 import * as React from 'react';
+import ReactDatePicker from 'react-datepicker';
 import ReactMarkdown from 'react-markdown';
 import { Link } from 'react-router-dom';
 import remarkGfm from 'remark-gfm';
@@ -27,6 +28,7 @@ import { HomePageBox } from '../HomePageBox';
 import { OpenIcon, OpenIconType } from '../OpenIcon';
 import { AutoProgressComponent } from '../ProgressComponents';
 import { RandomGames } from '../RandomGames';
+import { SimpleButton } from '../SimpleButton';
 import { SizeProvider } from '../SizeProvider';
 
 type OwnProps = {
@@ -68,6 +70,8 @@ export function HomePage(props: HomePageProps) {
 
   /** Offset of the starting point in the animated logo's animation (sync it with time of the machine). */
   const logoDelay = React.useMemo(() => (Date.now() * -0.001) + 's', []);
+
+  const [selectedGotd, setSelectedGotd] = React.useState(props.gotdList[0]);
 
   const allStrings = React.useContext(LangContext);
   const strings = allStrings.home;
@@ -366,22 +370,17 @@ export function HomePage(props: HomePageProps) {
 
   const [loadedGotd, setLoadedGotd] = React.useState<Game | null>(null);
   React.useEffect(() => {
-    if (props.gotdList.length > 0) {
-      window.Shared.back.request(BackIn.GET_GAME, props.gotdList[0].id)
+    if (selectedGotd) {
+      window.Shared.back.request(BackIn.GET_GAME, selectedGotd.id)
       .then((game) => {
         setLoadedGotd(game);
       });
     }
-  }, [props.gotdList]);
+  }, [selectedGotd]);
 
   const extremeIconPath = React.useMemo(() => getExtremeIconURL(props.logoVersion), [props.logoVersion]);
 
   const renderedGotd = React.useMemo(() => {
-    let formattedDate = '';
-    if (props.gotdList.length > 0) {
-      const d = new Date(props.gotdList[0].date);
-      formattedDate = `${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()}`;
-    }
     const extremeTags = props.preferencesData.tagFilters.filter(t => !t.enabled && t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
     return (
       <HomePageBox
@@ -390,7 +389,7 @@ export function HomePage(props: HomePageProps) {
         cssKey='gotd'
         onToggleMinimize={() => toggleMinimizeBox('gotd')}>
         <SizeProvider width={width} height={height}>
-          { props.gotdList.length > 0 ? <div className='home-page__box-item--gotd'>
+          { selectedGotd ? <div className='home-page__box-item--gotd'>
             <div className='home-page__box-item--gotd-left'>
               { loadedGotd && (
                 <GameItemContainer
@@ -415,15 +414,33 @@ export function HomePage(props: HomePageProps) {
               )}
             </div>
             <div className='home-page__box-item--gotd-right'>
-              <div className='home-page__box-item--gotd-author'><b>Suggested By:</b> {props.gotdList[0].author || 'Anonymous'}</div>
-              <div className='home-page__box-item--gotd-desc'>{props.gotdList[0].description}</div>
-              <div className='home-page__box-item--gotd-date'>{formattedDate}</div>
+              <div className='home-page__box-item--gotd-author'><b>Suggested By:</b> {selectedGotd.author || 'Anonymous'}</div>
+              <div className='home-page__box-item--gotd-desc'>{selectedGotd.description}</div>
+              <div className='home-page__box-item--gotd-date'>
+                <ReactDatePicker
+                  dateFormat="yyyy-MM-dd"
+                  selected={new Date(selectedGotd.date)}
+                  includeDates={props.gotdList.map(g => new Date(g.date))}
+                  onChange={(date) => {
+                    if (date) {
+                      const newGotd = props.gotdList.find(g => (new Date(g.date)).toDateString() === date.toDateString());
+                      if (newGotd) {
+                        setSelectedGotd(newGotd);
+                      }
+                    }
+                  }}
+                  customInput={
+                    <SimpleButton/>
+                  }>
+
+                </ReactDatePicker>
+              </div>
             </div>
           </div> : 'None Found' }
         </SizeProvider>
       </HomePageBox>
     );
-  }, [props.gotdList, props.selectedGameId, extremeIconPath, loadedGotd, props.preferencesData.minimizedHomePageBoxes]);
+  }, [props.gotdList, props.selectedGameId, extremeIconPath, loadedGotd, props.preferencesData.minimizedHomePageBoxes, selectedGotd]);
 
   const renderedUpdateFeed = React.useMemo(() => {
     if (props.updateFeedMarkdown) {

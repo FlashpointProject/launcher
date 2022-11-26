@@ -766,6 +766,7 @@ body {
 }
 .home-page__box-item--gotd-date {
   text-align: right;
+  margin-left: auto;
 }
 /* HomePage Box - Upgrades */
 .home-page__box--upgrades b,
