@@ -72,6 +72,7 @@
     "tagFilterGroupEditor": "Tag Filter Group Editor"
   },
   "home": {
+    "gotdHeader": "Game of the Day",
     "updateHeader": "ランチャーの更新",
     "currentVersion": "現在のバージョン",
     "nextVersion": "次のバージョン",
@@ -121,7 +122,7 @@
   },
   "app": {
     "home": "ホーム",
-    "browse": "検索",
+    "browse": "参照",
     "tags": "タグ",
     "categories": "カテゴリー",
     "logs": "ログ",
@@ -210,7 +211,7 @@
     "detailsDesc": "サービスの詳細ダイアログを開く"
   },
   "about": {
-    "aboutHeader": "Flashpointについて",
+    "aboutHeader": "概要",
     "flashpoint": "BlueMaxima's Flashpoint",
     "flashpointDesc": "このランチャーは、ウェブベースなインターネットゲームを保存、展示、そしてプレイ可能なコレクションにすることを目的とした、\n保存プロジェクトのために作られました。",
     "website": "Webサイト",
@@ -311,7 +312,7 @@
   },
   "tags": {
     "name": "名前",
-    "noName": "名前がありません",
+    "noName": "名称未設定",
     "description": "説明",
     "noDescription": "説明なし",
     "category": "カテゴリ",
@@ -414,7 +415,7 @@
   },
   "playlist": {
     "enterDescriptionHere": "ここに説明を入力...",
-    "noDescription": "説明はありません",
+    "noDescription": "説明なし",
     "save": "変更を保存",
     "saveDesc": "変更を保存し編集を終了する",
     "discard": "破棄する",
@@ -432,7 +433,7 @@
     "noAuthor": "作成者なし",
     "authorPlaceholder": "作成者、、、",
     "id": "ID",
-    "by": "作成者:",
+    "by": "開発者:",
     "extreme": "極端な"
   },
   "misc": {
@@ -448,13 +449,14 @@
     "exportMetaEditTitle": "メタ編集をエクスポート",
     "exportMetaEditDesc": "エクスポートするすべてのプロパティを選択:",
     "showImage": "Show Image",
-    "searching": "Searching...",
+    "searching": "検索中...",
     "loading": "Loading..."
   },
   "menu": {
     "viewThumbnailInFolder": "サムネイルフォルダーを表示します",
     "viewScreenshotInFolder": "スクリーンショットフォルダを開きます。",
     "openFileLocation": "ファイルの場所を開く",
+    "addToFavorites": "Add to Favorites",
     "addToPlaylist": "Add to Playlist",
     "duplicateMetaOnly": "複製（メタのみ）",
     "duplicateMetaAndImages": "複製（メタ&&画像）",
@@ -462,7 +464,7 @@
     "exportMetaOnly": "エクスポート(Metaのみ)",
     "exportMetaAndImages": "エクスポート(MetaとImages)",
     "exportMetaEdit": "メタ編集をエクスポート",
-    "duplicatePlaylist": "プレイリストを複製",
+    "duplicatePlaylist": "プレイリストを複製する",
     "exportPlaylist": "プレイリストをエクスポート",
     "makeCurationFromGame": "Make Curation from Game"
   },
@@ -495,7 +497,7 @@
     "verifyPathSelection": "将来のアップグレードもここにインストールされます。これは正しいですか？",
     "restartNow": "今すぐ再起動しますか？",
     "restartToApplyUpgrade": "このアップグレードは再起動するまで適用されません。\n今すぐ再起動しますか？",
-    "areYouSure": "本当によろしいですか？",
+    "areYouSure": "本当に削除してよろしいですか?",
     "areYouSureDelete": "Are you sure you want to delete this entry?",
     "areYouSurePlaylistRemove": "Are you sure you want to remove this entry from the playlist?",
     "cancel": "キャンセル",
@@ -536,10 +538,10 @@
   "libraries": {
     "arcade": "ゲーム",
     "arcadeSingular": "Game",
-    "arcadePlural": "すべてのゲーム",
+    "arcadePlural": "全てのゲーム",
     "theatre": "アニメーション",
     "theatreSingular": "Animation",
-    "theatrePlural": "すべてのアニメーション",
+    "theatrePlural": "全てのアニメーション",
     "auditorium": "NG講堂（講堂）",
     "auditoriumSingular": "Animation",
     "auditoriumPlural": "すべてのNGアニメーション"
