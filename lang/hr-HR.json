@@ -72,6 +72,7 @@
     "tagFilterGroupEditor": "Tag Filter Group Editor"
   },
   "home": {
+    "gotdHeader": "Game of the Day",
     "updateHeader": "Ažuriranje pokretača",
     "currentVersion": "Current Version",
     "nextVersion": "Next Version",
@@ -86,7 +87,7 @@
     "allAnimationsInfo": "Just want something to watch? View {0}.",
     "allAnimations": "Sve animacije",
     "configInfo": "Želiš li nešto promijeniti? Idi na {0}.",
-    "config": "Postavke",
+    "config": " Ustaše",
     "helpInfo": "Need help? {0}.",
     "help": "Read the manual",
     "upgradesHeader": "Upgrades",
@@ -121,11 +122,11 @@
   },
   "app": {
     "home": "Home",
-    "browse": "Browse",
+    "browse": "Pretraži",
     "tags": "Tags",
     "categories": "Categories",
     "logs": "Logs",
-    "config": "Postavke",
+    "config": " Ustaše",
     "about": "O programu",
     "curate": "Curate",
     "developer": "Developer",
@@ -210,7 +211,7 @@
     "detailsDesc": "Open dialog with service details"
   },
   "about": {
-    "aboutHeader": "About",
+    "aboutHeader": "O programu",
     "flashpoint": "BlueMaxima's Flashpoint",
     "flashpointDesc": "The preservation project this launcher was built for, that aims to be an archive, museum and playable collection of web-based Internet games.",
     "website": "Website",
@@ -249,7 +250,7 @@
     "noVersion": "No Version",
     "releaseDate": "Release Date",
     "noReleaseDate": "No Release Date",
-    "language": "Language",
+    "language": " Ustaški jezik",
     "noLanguage": "No Language",
     "dateAdded": "Date Added",
     "dateModified": "Date Modified",
@@ -298,7 +299,7 @@
     "leftSidebar": "lijeva bočna traka",
     "setFlashpointPathQuestion": "Have you set the path to the {0} at the {1} page?",
     "flashpointPath": "Putanja Flashpointa",
-    "config": "Config",
+    "config": " Ustaše",
     "noteSaveAndRestart": "Napomena: Moraš pritisnuti {0} da bi promjene stupile na snagu.",
     "saveAndRestart": "Spremi i ponovno pokreni",
     "thereAreNoGames": "There are no games.",
@@ -311,7 +312,7 @@
   },
   "tags": {
     "name": "Naziv",
-    "noName": "Nema naziva",
+    "noName": "No Name",
     "description": "Description",
     "noDescription": "No Description",
     "category": "Kategorija",
@@ -414,7 +415,7 @@
   },
   "playlist": {
     "enterDescriptionHere": "Dodaj opis ovdje...",
-    "noDescription": "Nema opisa",
+    "noDescription": "No Description",
     "save": "Spremi",
     "saveDesc": "Spremi učinjene izmjene i prekini uređivanje",
     "discard": "Odbaci",
@@ -427,12 +428,12 @@
     "duplicatePlaylistDesc": "Udvostruči playlistu",
     "exportPlaylistDesc": "Izvezi playlistu u datoteku",
     "areYouSure": "Jesi li siguran?",
-    "noTitle": "Nema naslova",
+    "noTitle": "No Title",
     "titlePlaceholder": "Naslov...",
     "noAuthor": "Nema autora",
     "authorPlaceholder": "Autor...",
     "id": "ID",
-    "by": "od",
+    "by": "by",
     "extreme": "ekstremno"
   },
   "misc": {
@@ -455,6 +456,7 @@
     "viewThumbnailInFolder": "Vidi simboličnu sličicu u mapi",
     "viewScreenshotInFolder": "Vidi snimku zaslona u mapi",
     "openFileLocation": "Otvori lokaciju datoteke",
+    "addToFavorites": "Add to Favorites",
     "addToPlaylist": "Dodaj u playlistu",
     "duplicateMetaOnly": "Udvostruči (samo metapodatke)",
     "duplicateMetaAndImages": "Udvostruči (metapodatke i slike)",
