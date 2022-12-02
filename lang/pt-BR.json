@@ -72,6 +72,7 @@
     "tagFilterGroupEditor": "Editor de Grupo de Filtragem de Tags"
   },
   "home": {
+    "gotdHeader": "Game of the Day",
     "updateHeader": "Atualização do Launcher",
     "currentVersion": "Versão atual",
     "nextVersion": "Próxima Versão",
@@ -117,7 +118,7 @@
     "uploadLog": "Enviar Log",
     "copiedToClipboard": "Copiado para a área de transferência",
     "openLogsWindow": "Abrir Janela de Logs",
-    "copyDiagnostics": "Copy Diagnostics"
+    "copyDiagnostics": "Copiar Diagnósticos"
   },
   "app": {
     "home": "Início",
@@ -125,7 +126,7 @@
     "tags": "Tags",
     "categories": "Categorias",
     "logs": "Logs",
-    "config": "Config",
+    "config": "Configurações",
     "about": "Sobre",
     "curate": "Curar",
     "developer": "Desenvolvedor",
@@ -251,7 +252,7 @@
     "noReleaseDate": "Sem Data de Lançamento",
     "language": "Idioma",
     "noLanguage": "Sem Idioma",
-    "dateAdded": "Data de Inclusão",
+    "dateAdded": "Data de Adição",
     "dateModified": "Data de Modificação",
     "brokenInInfinity": "Quebrado (no Infinity)",
     "extreme": "Extremo",
@@ -307,7 +308,7 @@
     "mountParameters": "Parâmetros de Mount",
     "noMountParameters": "Sem Parâmetros de Mount",
     "showExtremeScreenshot": "Mostrar Captura de Tela Extrema",
-    "busy": "Please Wait..."
+    "busy": "Por favor, aguarde..."
   },
   "tags": {
     "name": "Nome",
@@ -455,6 +456,7 @@
     "viewThumbnailInFolder": "Ver Miniatura na Pasta",
     "viewScreenshotInFolder": "Ver Captura de Tela na Pasta",
     "openFileLocation": "Abrir Local do Arquivo",
+    "addToFavorites": "Add to Favorites",
     "addToPlaylist": "Adicionar à Playlist",
     "duplicateMetaOnly": "Duplicar (Apenas Metadados)",
     "duplicateMetaAndImages": "Duplicar (Metadados && Imagens)",
