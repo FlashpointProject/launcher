@@ -72,6 +72,7 @@
     "tagFilterGroupEditor": "Tag filter csoport szerkesztő"
   },
   "home": {
+    "gotdHeader": "Game of the Day",
     "updateHeader": "Program frissítése",
     "currentVersion": "Jelenlegi Verzió",
     "nextVersion": "Következő verzió",
@@ -226,7 +227,7 @@
     "noTitle": "Nincs cím",
     "by": "által",
     "play": "Indítás",
-    "stop": "Megállítás",
+    "stop": "Leállítás",
     "noDeveloper": "Nincs fejlesztő",
     "alternateTitles": "Alternatív címek",
     "noAlternateTitles": "Nincsen alternatív cím(ek)",
@@ -249,7 +250,7 @@
     "noVersion": "Nincs verzió",
     "releaseDate": "Megjelenési dátum",
     "noReleaseDate": "Nincs megjelenési dátum",
-    "language": "Nyelvek",
+    "language": "Nyelv",
     "noLanguage": "Nincs nyelv",
     "dateAdded": "Hozzáadás dátuma",
     "dateModified": "Módosítás dátuma",
@@ -414,7 +415,7 @@
   },
   "playlist": {
     "enterDescriptionHere": "Adja meg a leírást itt.....",
-    "noDescription": "Nincs leírás",
+    "noDescription": "Nincs Leírás",
     "save": "Mentés",
     "saveDesc": "A változtatásokat elveti és befejezi a szerkesztést",
     "discard": "Elvetés",
@@ -455,6 +456,7 @@
     "viewThumbnailInFolder": "Előnézeti kép megtekintése mappában",
     "viewScreenshotInFolder": "Képernyőmentések megtekintése mappában",
     "openFileLocation": "Fájl helyének megnyitása",
+    "addToFavorites": "Add to Favorites",
     "addToPlaylist": "Lejátszási listához való hozzáadás",
     "duplicateMetaOnly": "Duplikát (csak Meta)",
     "duplicateMetaAndImages": "Duplikátum (Meta &&Képek)",
@@ -462,7 +464,7 @@
     "exportMetaOnly": "Exportálás (csak a Meta)",
     "exportMetaAndImages": "Exportálás (Meta&&Képek)",
     "exportMetaEdit": "Meta módosítás exportálása",
-    "duplicatePlaylist": "Duplikált Lejátszólista",
+    "duplicatePlaylist": "Lejátszólista duplikálása",
     "exportPlaylist": "Lejátszólista exportálása",
     "makeCurationFromGame": "Make Curation from Game"
   },
@@ -536,7 +538,7 @@
   "libraries": {
     "arcade": "Játékok",
     "arcadeSingular": "Játék",
-    "arcadePlural": "Összes Játék",
+    "arcadePlural": "Összes játék",
     "theatre": "Animációk",
     "theatreSingular": "Animáció",
     "theatrePlural": "Összes Animáció",
