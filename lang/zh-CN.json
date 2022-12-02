@@ -72,6 +72,7 @@
     "tagFilterGroupEditor": "标签筛选器组编辑器"
   },
   "home": {
+    "gotdHeader": "Game of the Day",
     "updateHeader": "启动器更新",
     "currentVersion": "当前版本",
     "nextVersion": "新版本",
@@ -249,7 +250,7 @@
     "noVersion": "无版本",
     "releaseDate": "发布日期",
     "noReleaseDate": "无发布日期",
-    "language": "语言",
+    "language": "首选语言",
     "noLanguage": "无语言",
     "dateAdded": "添加日期",
     "dateModified": "修改日期",
@@ -448,13 +449,14 @@
     "exportMetaEditTitle": "导出元数据变更",
     "exportMetaEditDesc": "选择所有要导出的属性：",
     "showImage": "显示图像",
-    "searching": "正在搜索…",
+    "searching": "正在搜索...",
     "loading": "正在加载…"
   },
   "menu": {
     "viewThumbnailInFolder": "在文件夹中查看缩略图",
     "viewScreenshotInFolder": "在文件夹中查看屏幕截图",
     "openFileLocation": "打开文件位置",
+    "addToFavorites": "Add to Favorites",
     "addToPlaylist": "添加至播放列表",
     "duplicateMetaOnly": "创建副本（仅元数据）",
     "duplicateMetaAndImages": "创建副本（元数据与图像）",
