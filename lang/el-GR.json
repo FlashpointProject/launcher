@@ -72,6 +72,7 @@
     "tagFilterGroupEditor": "Επεξεργαστής Ομάδας Φίλτρων Ετικετών"
   },
   "home": {
+    "gotdHeader": "Game of the Day",
     "updateHeader": "Ενημέρωση Εκτοξευτή",
     "currentVersion": "Τρέχουσα Έκδοση",
     "nextVersion": "Επόμενη Έκδοση",
@@ -414,7 +415,7 @@
   },
   "playlist": {
     "enterDescriptionHere": "Εισάγετε μία περιγραφή εδώ...",
-    "noDescription": "Δεν υπάρχει περιγραφή",
+    "noDescription": "Χωρίς περιγραφή",
     "save": "Αποθήκευση",
     "saveDesc": "Αποθήκευση αλλαγών που έγιναν και διακοπή επεξεργασίας",
     "discard": "Απόρριψη",
@@ -448,13 +449,14 @@
     "exportMetaEditTitle": "Εξαγωγή Μετεπεξεργασίας",
     "exportMetaEditDesc": "Επιλογή όλων των ιδιοτήτων για εξαγωγή:",
     "showImage": "Εμφάνιση Εικόνας",
-    "searching": "Searching...",
+    "searching": "Αναζήτηση...",
     "loading": "Loading..."
   },
   "menu": {
     "viewThumbnailInFolder": "Προβολή Μικρογραφίας στον Φάκελο",
     "viewScreenshotInFolder": "Προβολή Στιγμιότυπου στον Φάκελο",
     "openFileLocation": "Άνοιγμα Διαδρομής Αρχείου",
+    "addToFavorites": "Add to Favorites",
     "addToPlaylist": "Προσθήκη στη Λίστα Αναπαραγωγής",
     "duplicateMetaOnly": "Διπλότυπο (Μεταδεδομένα μόνον)",
     "duplicateMetaAndImages": "Διπλότυπο (Μεταδεδομένα && Εικόνες)",
