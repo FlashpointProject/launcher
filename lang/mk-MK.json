@@ -72,6 +72,7 @@
     "tagFilterGroupEditor": "Уредувач на Филтерот на Група Ознаки"
   },
   "home": {
+    "gotdHeader": "Game of the Day",
     "updateHeader": "Ажурирање на Лаунчерот",
     "currentVersion": "Моментална Верзија",
     "nextVersion": "Следна Верзија",
@@ -147,7 +148,7 @@
     "platform": "Платформа",
     "series": "Серии",
     "title": "Наслов",
-    "developer": "Произведувач",
+    "developer": "Програмер",
     "publisher": "Издавач",
     "ascending": "Растечки",
     "descending": "Опаѓачки"
@@ -448,13 +449,14 @@
     "exportMetaEditTitle": "Изведувај Meta Edit",
     "exportMetaEditDesc": "Изберете ги сите својства за извоз:",
     "showImage": "Покажи Слика",
-    "searching": "Пребарување...",
+    "searching": "Барај...",
     "loading": "Loading..."
   },
   "menu": {
     "viewThumbnailInFolder": "Прегледај лого во папката",
     "viewScreenshotInFolder": "Прегледај слика од екран во папката",
     "openFileLocation": "Отвори локацијата на фајлот",
+    "addToFavorites": "Add to Favorites",
     "addToPlaylist": "Додади во плејлиста",
     "duplicateMetaOnly": "Дуплицирај(Meta само)",
     "duplicateMetaAndImages": "Дуплицирај (Meta && Слики)",
@@ -462,7 +464,7 @@
     "exportMetaOnly": "Изведувај(Meta само)",
     "exportMetaAndImages": "Изведувај(Meta && Слики)",
     "exportMetaEdit": "Изведувај Meta Edit",
-    "duplicatePlaylist": "Дуплицирај плејлист",
+    "duplicatePlaylist": "Дуплицирај опис на плејлист",
     "exportPlaylist": "Изведувај плејлист",
     "makeCurationFromGame": "Make Curation from Game"
   },
