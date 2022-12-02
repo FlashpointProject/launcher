@@ -72,6 +72,7 @@
     "tagFilterGroupEditor": "Tag-Filtergruppen-Editor"
   },
   "home": {
+    "gotdHeader": "Game of the Day",
     "updateHeader": "Launcher Update",
     "currentVersion": "Aktuelle Version",
     "nextVersion": "Nächste Version",
@@ -251,7 +252,7 @@
     "noReleaseDate": "Kein Erscheinungsdatum",
     "language": "Sprache",
     "noLanguage": "Keine Sprache",
-    "dateAdded": "Hinzugefügt",
+    "dateAdded": "Hinzugefügt am",
     "dateModified": "Änderungsdatum",
     "brokenInInfinity": "Nicht spielbar (in Infinity)",
     "extreme": "Extrem",
@@ -298,7 +299,7 @@
     "leftSidebar": "linke Seitenleiste",
     "setFlashpointPathQuestion": "Hast du den Pfad zum {0} auf der {1} -Seite gesetzt?",
     "flashpointPath": "Flashpoint-Dateipfad",
-    "config": "Konfigurations",
+    "config": "Konfiguration",
     "noteSaveAndRestart": "Hinweis: Du musst {0} drücken, damit die Änderung wirksam wird.",
     "saveAndRestart": "Speichern & neu starten",
     "thereAreNoGames": "Es gibt keine Spiele.",
@@ -432,7 +433,7 @@
     "noAuthor": "Kein Autor",
     "authorPlaceholder": "Autor...",
     "id": "ID",
-    "by": "nach",
+    "by": "von",
     "extreme": "extrem"
   },
   "misc": {
@@ -455,6 +456,7 @@
     "viewThumbnailInFolder": "Miniaturansicht im Ordner anzeigen",
     "viewScreenshotInFolder": "Screenshot im Ordner anzeigen",
     "openFileLocation": "Am Speicherort öffnen",
+    "addToFavorites": "Add to Favorites",
     "addToPlaylist": "Zur Playlist hinzufügen",
     "duplicateMetaOnly": "Duplizieren (nur Meta)",
     "duplicateMetaAndImages": "Duplizieren (Meta && Bilder)",
@@ -462,7 +464,7 @@
     "exportMetaOnly": "Exportieren (nur Meta)",
     "exportMetaAndImages": "Exportieren (Meta && Bilder)",
     "exportMetaEdit": "Meta-Edit exportieren",
-    "duplicatePlaylist": "Playlist duplizieren",
+    "duplicatePlaylist": "Playlist mehrfach vorhanden",
     "exportPlaylist": "Playlist exportieren",
     "makeCurationFromGame": "Kuratieren aus dem Spiel"
   },
