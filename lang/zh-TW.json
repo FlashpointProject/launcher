@@ -72,6 +72,7 @@
     "tagFilterGroupEditor": "標籤篩選器組編輯器"
   },
   "home": {
+    "gotdHeader": "Game of the Day",
     "updateHeader": "瀏覽器更新",
     "currentVersion": "當前版本",
     "nextVersion": "下一版本",
@@ -116,8 +117,8 @@
     "copy404Urls": "複製 404 路徑",
     "uploadLog": "上傳紀錄",
     "copiedToClipboard": "已複製到剪貼簿",
-    "openLogsWindow": "Open Logs Window",
-    "copyDiagnostics": "Copy Diagnostics"
+    "openLogsWindow": "開啟紀錄",
+    "copyDiagnostics": "複製診斷資料"
   },
   "app": {
     "home": "首頁",
@@ -139,7 +140,7 @@
     "list": "清單顯示",
     "grid": "格狀顯示",
     "searchResults": "搜尋結果",
-    "manual": "Help"
+    "manual": "說明"
   },
   "filter": {
     "dateAdded": "新增日期",
@@ -281,7 +282,7 @@
     "thumbnail": "縮圖",
     "screenshot": "截圖",
     "dropImageHere": "將圖片拖曳至此處",
-    "noGameSelected": "No {0} Selected",
+    "noGameSelected": "未選取任何 {0}",
     "clickToSelectGame": "點擊以選取遊戲",
     "deleteAdditionalApplication": "刪除額外應用程式",
     "deleteGameAndAdditionalApps": "刪除遊戲(與額外應用程式)",
@@ -307,7 +308,7 @@
     "mountParameters": "掛載參數",
     "noMountParameters": "無掛載參數",
     "showExtremeScreenshot": "顯示成人截圖",
-    "busy": "Please Wait..."
+    "busy": "請稍候..."
   },
   "tags": {
     "name": "名稱",
@@ -334,9 +335,9 @@
   },
   "curate": {
     "noCurationSelected": "No Curation Selected",
-    "headerFileOperations": "File",
+    "headerFileOperations": "檔案",
     "headerEditCuration": "修改",
-    "headerTest": "Test",
+    "headerTest": "測試",
     "importAll": "全部匯入",
     "importAllDesc": "匯入所有已讀取之上傳內容",
     "deleteAll": "刪除全部",
@@ -353,7 +354,7 @@
     "openImportedFolderDesc": "開啟含有已匯入之上傳檔案的預設資料夾",
     "newCuration": "新增上傳檔案",
     "newCurationDesc": "建立一個全新的上傳檔案之資料夾",
-    "duplicateCuration": "Duplicate",
+    "duplicateCuration": "複製",
     "newCurationFromTemplate": "New Curation (Template)",
     "loadMeta": "讀取元資料檔",
     "loadMetaDesc": "讀取單一或多個上傳檔案之元資料檔",
@@ -405,12 +406,12 @@
     "ilc_nonExistant": "請將路徑指向「content」資料夾內所存在的上傳檔案",
     "documentStatus": "Notes must document changes and missing content for Hacked / Partial games",
     "sort": "排序展品（A-Z）",
-    "contextCopyName": "Copy File Name",
-    "contextCopyPath": "Copy File Path",
+    "contextCopyName": "複製檔案名稱",
+    "contextCopyPath": "複製檔案路徑",
     "contextCopyAsURL": "Copy File Path as URL",
     "contextShowInExplorer": "Show File in Explorer",
     "contextOpenFolderInExplorer": "Open Folder in Explorer",
-    "shortcuts": "Shortcuts"
+    "shortcuts": "捷徑"
   },
   "playlist": {
     "enterDescriptionHere": "在此輸入敘述...",
@@ -448,13 +449,14 @@
     "exportMetaEditTitle": "匯出元資料檔修改",
     "exportMetaEditDesc": "選擇所有要匯出的屬性：",
     "showImage": "顯示圖片",
-    "searching": "Searching...",
-    "loading": "Loading..."
+    "searching": "正在搜尋...",
+    "loading": "載入中..."
   },
   "menu": {
     "viewThumbnailInFolder": "於資料夾中查看縮圖",
     "viewScreenshotInFolder": "於資料夾中查看截圖",
     "openFileLocation": "開啟檔案所在位置",
+    "addToFavorites": "Add to Favorites",
     "addToPlaylist": "添加至播放列表",
     "duplicateMetaOnly": "複製 (僅元資料檔)",
     "duplicateMetaAndImages": "複製 (元資料檔與圖片)",
@@ -528,20 +530,20 @@
     "aFewMinutes": "這可能需要幾分鐘的時間。",
     "importCurationWithWarnings": "Import this curation? There are still warnings present.",
     "errorImportingCuration": "Error import curation '{0}', check logs page for details.",
-    "mustBePngImage": "Must be a .PNG Image.",
-    "mustBe7zArchiveSkipping": "Must be a .7z archive, skipping {0}",
+    "mustBePngImage": "圖片格式必須為 .PNG",
+    "mustBe7zArchiveSkipping": "壓縮格式必須為 .7z，已略過 {0} 個檔案",
     "failedToLoadCuration": "Failed to load curation! {0}",
     "exportCurationWithWarnings": "Export Curation even though it has Warnings?"
   },
   "libraries": {
     "arcade": "遊戲",
-    "arcadeSingular": "Game",
+    "arcadeSingular": "遊戲",
     "arcadePlural": "所有遊戲",
     "theatre": "動畫",
-    "theatreSingular": "Animation",
+    "theatreSingular": "動畫",
     "theatrePlural": "所有動畫",
     "auditorium": "Newgrounds 劇院",
-    "auditoriumSingular": "Animation",
+    "auditoriumSingular": "動畫",
     "auditoriumPlural": "所有Newgrounds 動畫"
   },
   "upgrades": {
