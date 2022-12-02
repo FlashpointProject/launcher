@@ -72,6 +72,7 @@
     "tagFilterGroupEditor": "Etiket Filtreleme Grubu Düzenleyicisi"
   },
   "home": {
+    "gotdHeader": "Game of the Day",
     "updateHeader": "Başlatıcı Güncellemesi",
     "currentVersion": "Mevcut Sürüm",
     "nextVersion": "Sonraki Sürüm",
@@ -116,12 +117,12 @@
     "copy404Urls": "404 URL'lerini kopyala",
     "uploadLog": "Kayıtları Yükle",
     "copiedToClipboard": "Panoya Kopyalandı",
-    "openLogsWindow": "Open Logs Window",
-    "copyDiagnostics": "Copy Diagnostics"
+    "openLogsWindow": "Kayıt Ekranını Aç",
+    "copyDiagnostics": "Teşhisi Kopyala"
   },
   "app": {
     "home": "Ana Sayfa",
-    "browse": "Ara",
+    "browse": "Gözat",
     "tags": "Etiketler",
     "categories": "Kategoriler",
     "logs": "Kayıtlar",
@@ -139,7 +140,7 @@
     "list": "Liste",
     "grid": "Izgara",
     "searchResults": "Arama Sonuçları",
-    "manual": "Help"
+    "manual": "Yardım"
   },
   "filter": {
     "dateAdded": "Eklenme Tarihi",
@@ -251,7 +252,7 @@
     "noReleaseDate": "Yayın Tarihi Yok",
     "language": "Dil",
     "noLanguage": "Dil Yok",
-    "dateAdded": "Eklenen Tarih",
+    "dateAdded": "Eklenme Tarihi",
     "dateModified": "Düzenlenme Tarihi",
     "brokenInInfinity": "Bozuk (İnfinity'de)",
     "extreme": "Ekstrem",
@@ -281,7 +282,7 @@
     "thumbnail": "Küçükresim",
     "screenshot": "Ekran görüntüsü",
     "dropImageHere": "Eklemek için bir resmi buraya bırakın",
-    "noGameSelected": "No {0} Selected",
+    "noGameSelected": "Hayır {0} Seçildi",
     "clickToSelectGame": "Seçmek için bir oyuna tıklayın.",
     "deleteAdditionalApplication": "Ek Uygulamaları Sil",
     "deleteGameAndAdditionalApps": "Oyunu Sil (ve Ek Uygulamaları)",
@@ -307,7 +308,7 @@
     "mountParameters": "Bağlama Parametresi",
     "noMountParameters": "Bağlama Parametresi yok",
     "showExtremeScreenshot": "Ekstrem Ekran Görüntüsünü Göster",
-    "busy": "Please Wait..."
+    "busy": "Lütfen Bekleyin..."
   },
   "tags": {
     "name": "Adı",
@@ -333,10 +334,10 @@
     "locked": "İşlenirken kilitlendi..."
   },
   "curate": {
-    "noCurationSelected": "No Curation Selected",
-    "headerFileOperations": "File",
+    "noCurationSelected": "Küratör Seçilmedi",
+    "headerFileOperations": "Dosya",
     "headerEditCuration": "Düzenle",
-    "headerTest": "Test",
+    "headerTest": "Deneme",
     "importAll": "Tümünü İçe Aktar",
     "importAllDesc": "Şu an yüklü olan tüm kürasyonları içe aktar",
     "deleteAll": "Hepsini Sil",
@@ -353,8 +354,8 @@
     "openImportedFolderDesc": "İçe aktarılmış kürasyonlarını barındıran varsayılan İçe Aktarılanlar klasörünü aç.",
     "newCuration": "Yeni Kürasyon",
     "newCurationDesc": "Özel bir klasörle yeni bir kürasyon yaratır",
-    "duplicateCuration": "Duplicate",
-    "newCurationFromTemplate": "New Curation (Template)",
+    "duplicateCuration": "Çoğalt",
+    "newCurationFromTemplate": "Yeni Küratörlük (Şablon)",
     "loadMeta": "Meta Yükle",
     "loadMetaDesc": "Bir veya birden fazla Kürasyon meta dosyasını yükle",
     "loadArchive": "Arşivi Yükle",
@@ -384,7 +385,7 @@
     "run": "Çalıştır",
     "runWithMAD4FP": "MAD4FP ile çalıştır",
     "export": "Dışa aktar",
-    "exportDataPacks": "Export Data Pack",
+    "exportDataPacks": "Veri Paketini İçeri Aktar",
     "import": "İçe aktar",
     "contentFiles": "İçerik Dosyaları",
     "warnings": "Uyarılar",
@@ -403,14 +404,14 @@
     "noScreenshot": "Bu kürasyonun ekran görüntüsü yok.",
     "ilc_notHttp": "HTTP kullan.",
     "ilc_nonExistant": "Kürasyon'unun içinde var olan bir 'içerik' dosyasına yönlendirin.",
-    "documentStatus": "Notes must document changes and missing content for Hacked / Partial games",
+    "documentStatus": "Notlar Hacklenmiş veya Kısmi oyunlar için değişiklikleri ve eksik içeriği belgelemelidir",
     "sort": "Kürasyonları Sınıflandır (A-Z)",
-    "contextCopyName": "Copy File Name",
-    "contextCopyPath": "Copy File Path",
-    "contextCopyAsURL": "Copy File Path as URL",
-    "contextShowInExplorer": "Show File in Explorer",
-    "contextOpenFolderInExplorer": "Open Folder in Explorer",
-    "shortcuts": "Shortcuts"
+    "contextCopyName": "Dosya Adını Kopyala",
+    "contextCopyPath": "Dosya Kısayolunu Kopyala",
+    "contextCopyAsURL": "Dosya Kısayolunu URL Olarak Kopyala",
+    "contextShowInExplorer": "Dosyayı Dosya Gezgini Üzerinde Görüntüle",
+    "contextOpenFolderInExplorer": "Klasörü Dosya Gezgini Üzerinde Görüntüle",
+    "shortcuts": "Kısayollar"
   },
   "playlist": {
     "enterDescriptionHere": "Buraya bir açıklama yazın...",
@@ -448,13 +449,14 @@
     "exportMetaEditTitle": "Meta Düzenlemesini Dışa Aktar",
     "exportMetaEditDesc": "Dışa aktarılacak tüm özellikleri seç:",
     "showImage": "Resmi Göster",
-    "searching": "Searching...",
-    "loading": "Loading..."
+    "searching": "Aranıyor...",
+    "loading": "Yükleniyor..."
   },
   "menu": {
     "viewThumbnailInFolder": "Klasördeki küçükresmi İncele",
     "viewScreenshotInFolder": "Klasördeki Ekran Görüntüsünü İncele",
     "openFileLocation": "Dosya Konumunu Aç",
+    "addToFavorites": "Add to Favorites",
     "addToPlaylist": "Oynama Listesine Ekle",
     "duplicateMetaOnly": "Kopyala (Sadece Meta)",
     "duplicateMetaAndImages": "Kopyala (Meta & Resimler)",
@@ -464,7 +466,7 @@
     "exportMetaEdit": "Meta Düzenlemesini Dışa Aktar",
     "duplicatePlaylist": "Oynama Listesini Kopyala",
     "exportPlaylist": "Oynama Listesini Dışa Aktar",
-    "makeCurationFromGame": "Make Curation from Game"
+    "makeCurationFromGame": "Oyundan Küratörlük Yap"
   },
   "dialog": {
     "programNotFound": "Program bulunamadı!",
@@ -528,20 +530,20 @@
     "aFewMinutes": "Bu işlem birkaç dakika sürebilir.",
     "importCurationWithWarnings": "Import this curation? There are still warnings present.",
     "errorImportingCuration": "Error import curation '{0}', check logs page for details.",
-    "mustBePngImage": "Must be a .PNG Image.",
-    "mustBe7zArchiveSkipping": "Must be a .7z archive, skipping {0}",
-    "failedToLoadCuration": "Failed to load curation! {0}",
+    "mustBePngImage": ".PNG Uzantılı resim olmalı.",
+    "mustBe7zArchiveSkipping": ".7z Uzantılı Arşiv olmalı, atlanıyor {0}",
+    "failedToLoadCuration": "Küratör yüklenemedi! {0}",
     "exportCurationWithWarnings": "Export Curation even though it has Warnings?"
   },
   "libraries": {
     "arcade": "Oyunlar",
-    "arcadeSingular": "Game",
+    "arcadeSingular": "Oyun",
     "arcadePlural": "Tüm Oyunlar",
     "theatre": "Animasyonlar",
-    "theatreSingular": "Animation",
+    "theatreSingular": "Animasyon",
     "theatrePlural": "Tüm Animasyonlar",
     "auditorium": "NG Auditorium",
-    "auditoriumSingular": "Animation",
+    "auditoriumSingular": "Animasyon",
     "auditoriumPlural": "Tüm NG Animasyonları"
   },
   "upgrades": {
