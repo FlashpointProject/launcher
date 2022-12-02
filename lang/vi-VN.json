@@ -72,6 +72,7 @@
     "tagFilterGroupEditor": "Trình chỉnh sửa nhóm bộ lọc nhãn"
   },
   "home": {
+    "gotdHeader": "Game of the Day",
     "updateHeader": "Cập nhật trình khởi chạy",
     "currentVersion": "Phiên bản hiện tại",
     "nextVersion": "Phiên bản tiếp theo",
@@ -414,7 +415,7 @@
   },
   "playlist": {
     "enterDescriptionHere": "Hãy điền mô tả vào đây...",
-    "noDescription": "Không có mô tả",
+    "noDescription": "Không có",
     "save": "Lưu",
     "saveDesc": "Lưu thay đổi đã thực hiện và ngừng sửa",
     "discard": "Huỷ",
@@ -432,7 +433,7 @@
     "noAuthor": "Vô danh",
     "authorPlaceholder": "Tác giả...",
     "id": "ID",
-    "by": "của",
+    "by": "bởi",
     "extreme": "phản cảm"
   },
   "misc": {
@@ -448,13 +449,14 @@
     "exportMetaEditTitle": "Xuất sửa đổi meta",
     "exportMetaEditDesc": "Chọn tất cả thuộc tính cần xuất:",
     "showImage": "Hiện ảnh",
-    "searching": "Đang tìm kiếm...",
+    "searching": "Đang tìm...",
     "loading": "Đang tải..."
   },
   "menu": {
     "viewThumbnailInFolder": "Xem ảnh thu nhỏ trong thư mục",
     "viewScreenshotInFolder": "Xem ảnh chụp màn hình trong thư mục",
     "openFileLocation": "Mở vị trí tập tin",
+    "addToFavorites": "Add to Favorites",
     "addToPlaylist": "Thêm vào danh sách",
     "duplicateMetaOnly": "Tạo bản sao (chỉ meta)",
     "duplicateMetaAndImages": "Tạo bản sao (meta && hình)",
