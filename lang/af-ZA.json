@@ -72,6 +72,7 @@
     "tagFilterGroupEditor": "Tag Filter Group Editor"
   },
   "home": {
+    "gotdHeader": "Game of the Day",
     "updateHeader": "Launcher Update",
     "currentVersion": "Current Version",
     "nextVersion": "Next Version",
@@ -455,6 +456,7 @@
     "viewThumbnailInFolder": "View Thumbnail in Folder",
     "viewScreenshotInFolder": "View Screenshot in Folder",
     "openFileLocation": "Open File Location",
+    "addToFavorites": "Add to Favorites",
     "addToPlaylist": "Add to Playlist",
     "duplicateMetaOnly": "Duplicate (Meta Only)",
     "duplicateMetaAndImages": "Duplicate (Meta && Images)",
