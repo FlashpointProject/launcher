@@ -72,6 +72,7 @@
     "tagFilterGroupEditor": "Tag Filter Group Editor"
   },
   "home": {
+    "gotdHeader": "Game of the Day",
     "updateHeader": "Launcher Update",
     "currentVersion": "Current Version",
     "nextVersion": "Next Version",
@@ -277,7 +278,7 @@
     "installed": "Installed",
     "notInstalled": "Not Installed",
     "legacyGame": "Legacy Game",
-    "download": "Download",
+    "download": "Íoslódáil",
     "thumbnail": "Mionsamhail",
     "screenshot": "Seatscáileáin",
     "dropImageHere": "Drop an image here to add it",
@@ -427,12 +428,12 @@
     "duplicatePlaylistDesc": "Duplicate Playlist",
     "exportPlaylistDesc": "Export playlist to a file",
     "areYouSure": "Are you sure?",
-    "noTitle": "Gan Teideal",
+    "noTitle": "Uimh Teideal",
     "titlePlaceholder": "Teideal...",
     "noAuthor": "Gan Údar",
     "authorPlaceholder": "Údar...",
     "id": "ID",
-    "by": "le",
+    "by": "de",
     "extreme": "míchuibheasach"
   },
   "misc": {
@@ -455,6 +456,7 @@
     "viewThumbnailInFolder": "View Thumbnail in Folder",
     "viewScreenshotInFolder": "View Screenshot in Folder",
     "openFileLocation": "Open File Location",
+    "addToFavorites": "Add to Favorites",
     "addToPlaylist": "Add to Playlist",
     "duplicateMetaOnly": "Duplicate (Meta Only)",
     "duplicateMetaAndImages": "Duplicate (Meta && Images)",
