@@ -446,7 +446,7 @@ export type GameOfTheDay = {
   id: string;
   author?: string;
   description: string;
-  date: number;
+  date: string;
 }
 
 export type GetRendererLoadedDataResponse = {

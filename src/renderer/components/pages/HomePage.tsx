@@ -71,7 +71,42 @@ export function HomePage(props: HomePageProps) {
   /** Offset of the starting point in the animated logo's animation (sync it with time of the machine). */
   const logoDelay = React.useMemo(() => (Date.now() * -0.001) + 's', []);
 
-  const [selectedGotd, setSelectedGotd] = React.useState(props.gotdList[0]);
+  const parsedGotdList = React.useMemo(() => {
+    return props.gotdList.map(g => {
+      const parts = g.date.split('-');
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10);
+      const day = parseInt(parts[2], 10);
+      const newDate = new Date(year, month - 1, day);
+      return {
+        ...g,
+        date: newDate
+      };
+    }).sort((a, b) => { return a.date.getTime() - b.date.getTime(); });
+  }, [props.gotdList]);
+
+  const [selectedGotd, setSelectedGotd] = React.useState(() => {
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const filteredList = window.Shared.config.data.gotdShowAll ? parsedGotdList : parsedGotdList.filter(g => g.date < today);
+    const todaysGame = filteredList.find(g => (g.date > yesterday && g.date < today));
+    if (todaysGame) {
+      // Found todays game
+      return todaysGame;
+    } else {
+      if (filteredList.length >= 1) {
+        const nextGameIndex = filteredList.findIndex(g => g.date > today);
+        if (nextGameIndex > 0) {
+          // Found game closest to today, going backwards in time
+          return filteredList[nextGameIndex - 1];
+        } else {
+          // No GOTD entries before today, just grab the first one on the list
+          return filteredList[0];
+        }
+      }
+    }
+  });
 
   const allStrings = React.useContext(LangContext);
   const strings = allStrings.home;
@@ -391,7 +426,7 @@ export function HomePage(props: HomePageProps) {
         <SizeProvider width={width} height={height}>
           { selectedGotd ? <div className='home-page__box-item--gotd'>
             <div className='home-page__box-item--gotd-left'>
-              { loadedGotd && (
+              { loadedGotd ? (
                 <GameItemContainer
                   className='gotd-container'
                   onGameContextMenu={(event, gameId) => props.onGameContextMenu(gameId)}
@@ -411,6 +446,8 @@ export function HomePage(props: HomePageProps) {
                     isSelected={loadedGotd.id === props.selectedGameId}
                     isDragged={false} />
                 </GameItemContainer>
+              ) : (
+                <div className='game-grid-item'></div>
               )}
             </div>
             <div className='home-page__box-item--gotd-right'>
@@ -420,10 +457,10 @@ export function HomePage(props: HomePageProps) {
                 <ReactDatePicker
                   dateFormat="yyyy-MM-dd"
                   selected={new Date(selectedGotd.date)}
-                  includeDates={props.gotdList.filter(g => window.Shared.config.data.gotdShowAll || (new Date(g.date)).getTime() < Date.now()).map(g => new Date(g.date))}
+                  includeDates={parsedGotdList.filter(g => window.Shared.config.data.gotdShowAll || g.date.getTime() < Date.now()).map(g => new Date(g.date))}
                   onChange={(date) => {
                     if (date) {
-                      const newGotd = props.gotdList.find(g => (new Date(g.date)).toDateString() === date.toDateString());
+                      const newGotd = parsedGotdList.find(g => g.date.toDateString() === date.toDateString());
                       if (newGotd) {
                         setSelectedGotd(newGotd);
                       }
@@ -440,7 +477,7 @@ export function HomePage(props: HomePageProps) {
         </SizeProvider>
       </HomePageBox>
     );
-  }, [props.gotdList, props.selectedGameId, extremeIconPath, loadedGotd, props.preferencesData.minimizedHomePageBoxes, selectedGotd]);
+  }, [parsedGotdList, props.selectedGameId, extremeIconPath, loadedGotd, props.preferencesData.minimizedHomePageBoxes, selectedGotd]);
 
   const renderedUpdateFeed = React.useMemo(() => {
     if (props.updateFeedMarkdown) {

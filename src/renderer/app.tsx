@@ -205,6 +205,7 @@ export class App extends React.Component<AppProps> {
                 type: MainActionType.SETUP_VIEWS,
                 preferencesData: { ...this.props.preferencesData }
               });
+              this.props.setTagCategories(data.tagCategories);
             })
             .then(async () => {
               const data = await window.Shared.back.request(BackIn.GET_GAMES_TOTAL);
