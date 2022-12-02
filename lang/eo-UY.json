@@ -72,6 +72,7 @@
     "tagFilterGroupEditor": "Tag Filter Group Editor"
   },
   "home": {
+    "gotdHeader": "Game of the Day",
     "updateHeader": "Lanĉila Ĝisdatigo",
     "currentVersion": "Nuna Versio",
     "nextVersion": "Sekva Versio",
@@ -277,7 +278,7 @@
     "installed": "Installed",
     "notInstalled": "Not Installed",
     "legacyGame": "Legacy Game",
-    "download": "Download",
+    "download": "Elŝuti",
     "thumbnail": "Miniaturo",
     "screenshot": "Ekrankopio",
     "dropImageHere": "Faligu bildon ĉi tie por aldoni ĝin",
@@ -421,7 +422,7 @@
     "discardDesc": "Forĵetu ŝanĝojn kaj ĉesu redakti",
     "edit": "Redakti",
     "editDesc": "Redakti la ludliston",
-    "delete": "Forigi",
+    "delete": "Forigu",
     "deleteDesc": "Forigi la ludliston",
     "changeIcon": "Ŝanĝi Ludlistan Bildeton",
     "duplicatePlaylistDesc": "Kopii Ludliston",
@@ -448,13 +449,14 @@
     "exportMetaEditTitle": "Eksportu Meta-redakton",
     "exportMetaEditDesc": "Elektu ĉiujn eksportotajn ecojn:",
     "showImage": "Show Image",
-    "searching": "Searching...",
+    "searching": "Serĉado...",
     "loading": "Loading..."
   },
   "menu": {
     "viewThumbnailInFolder": "Vidu Bildeton en Dosierujo",
     "viewScreenshotInFolder": "Vidu Ekrankopion en Dosierujo",
     "openFileLocation": "Malfermu Dosierlokon",
+    "addToFavorites": "Add to Favorites",
     "addToPlaylist": "Add to Playlist",
     "duplicateMetaOnly": "Duplikatu (Nur Meta-n)",
     "duplicateMetaAndImages": "Duplikatu (Meta-n kaj Bildojn)",
@@ -462,7 +464,7 @@
     "exportMetaOnly": "Eksportu (nur Meta-n)",
     "exportMetaAndImages": "Eksportu (Meta-n kaj Bildojn)",
     "exportMetaEdit": "Eksportu Meta-redakton",
-    "duplicatePlaylist": "Kopiu Ludliston",
+    "duplicatePlaylist": "Kopii Ludliston",
     "exportPlaylist": "Eksportu Ludliston",
     "makeCurationFromGame": "Make Curation from Game"
   },
