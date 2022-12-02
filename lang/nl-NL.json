@@ -72,6 +72,7 @@
     "tagFilterGroupEditor": "Label filtergroep bewerker"
   },
   "home": {
+    "gotdHeader": "Game of the Day",
     "updateHeader": "Launcher Update",
     "currentVersion": "Huidige versie",
     "nextVersion": "Volgende versie",
@@ -226,7 +227,7 @@
     "noTitle": "Geen titel",
     "by": "door",
     "play": "Speel",
-    "stop": "Stop",
+    "stop": "Stoppen",
     "noDeveloper": "Geen ontwikkelaar",
     "alternateTitles": "Alternatieve titels",
     "noAlternateTitles": "Geen alternatieve titels",
@@ -251,8 +252,8 @@
     "noReleaseDate": "Geen datum van uitgave",
     "language": "Taal",
     "noLanguage": "Geen taal",
-    "dateAdded": "Toegevoegd op",
-    "dateModified": "Laatst gewijzigd",
+    "dateAdded": "Datum toegevoegd",
+    "dateModified": "Datum gewijzigd",
     "brokenInInfinity": "Gebroken (in 'Oneindigheid' / Infinity)",
     "extreme": "Extreem",
     "playlistNotes": "Afspeellijst notities",
@@ -448,13 +449,14 @@
     "exportMetaEditTitle": "Exporteren van Metadata wijziging",
     "exportMetaEditDesc": "Selecteer alle eigenschappen om te exporteren:",
     "showImage": "Afbeelding Weergeven",
-    "searching": "Searching...",
+    "searching": "Bezig met zoeken...",
     "loading": "Loading..."
   },
   "menu": {
     "viewThumbnailInFolder": "Miniatuur in map bekijken",
     "viewScreenshotInFolder": "Schermafbeelding in map bekijken",
     "openFileLocation": "Open bestandslocatie",
+    "addToFavorites": "Add to Favorites",
     "addToPlaylist": "Toevoegen aan afspeellijst",
     "duplicateMetaOnly": "Dupliceren (Metadata alleen)",
     "duplicateMetaAndImages": "Dupliceren (Metadata && Afbeeldingen)",
