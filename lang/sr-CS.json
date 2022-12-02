@@ -72,6 +72,7 @@
     "tagFilterGroupEditor": "Uređivač grupe filtera oznake"
   },
   "home": {
+    "gotdHeader": "Game of the Day",
     "updateHeader": "Ažuriranje pokretača",
     "currentVersion": "Trenutna verzija",
     "nextVersion": "Naredna verzija",
@@ -311,7 +312,7 @@
   },
   "tags": {
     "name": "Ime",
-    "noName": "Bez imena",
+    "noName": "Nema imena",
     "description": "Opis",
     "noDescription": "Bez opisa",
     "category": "Kategorija",
@@ -414,7 +415,7 @@
   },
   "playlist": {
     "enterDescriptionHere": "Unesi opis ovde...",
-    "noDescription": "Nema opisa",
+    "noDescription": "Bez opisa",
     "save": "Sačuvaj",
     "saveDesc": "Sačuvaj napravljene izmene i zaustavi uređivanje",
     "discard": "Odbaci",
@@ -427,7 +428,7 @@
     "duplicatePlaylistDesc": "Dupliraj plejlistu",
     "exportPlaylistDesc": "Iznesi plajlistu u fajl",
     "areYouSure": "Da li si siguran?",
-    "noTitle": "Nema naslova",
+    "noTitle": "Bez naslova",
     "titlePlaceholder": "Наслов...",
     "noAuthor": "Nema autora",
     "authorPlaceholder": "Autor...",
@@ -448,13 +449,14 @@
     "exportMetaEditTitle": "Izvoz izmena metapodatka",
     "exportMetaEditDesc": "Izaberite sve postavke za iznošenje:",
     "showImage": "Show Image",
-    "searching": "Searching...",
+    "searching": "Tražim...",
     "loading": "Učitavanje..."
   },
   "menu": {
     "viewThumbnailInFolder": "Pregledaj simboličnu sliku u fascikli",
     "viewScreenshotInFolder": "Pregledaj slike ekrana u fascikli",
     "openFileLocation": "Otvori lokaciju fajla",
+    "addToFavorites": "Add to Favorites",
     "addToPlaylist": "Dodaj u plejlistu",
     "duplicateMetaOnly": "Dupliraj (samo metapodatke)",
     "duplicateMetaAndImages": "Dupliraj (metapodatke i slike)",
