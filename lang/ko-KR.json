@@ -72,6 +72,7 @@
     "tagFilterGroupEditor": "Tag Filter Group Editor"
   },
   "home": {
+    "gotdHeader": "Game of the Day",
     "updateHeader": "런처 업데이트",
     "currentVersion": "현재 버전",
     "nextVersion": "다음 버전",
@@ -226,7 +227,7 @@
     "noTitle": "제목 없음",
     "by": "-",
     "play": "실행",
-    "stop": "정지",
+    "stop": "중지",
     "noDeveloper": "개발자 없음",
     "alternateTitles": "다른 제목",
     "noAlternateTitles": "다른 제목 없음",
@@ -448,13 +449,14 @@
     "exportMetaEditTitle": "Export Meta Edit",
     "exportMetaEditDesc": "Select all properties to export:",
     "showImage": "Show Image",
-    "searching": "Searching...",
+    "searching": "검색 중...",
     "loading": "Loading..."
   },
   "menu": {
     "viewThumbnailInFolder": "폴더에 있는 썸네일 보기",
     "viewScreenshotInFolder": "폴더에 있는 스크린샷 확인",
     "openFileLocation": "파일 위치 열기",
+    "addToFavorites": "Add to Favorites",
     "addToPlaylist": "재생목록에 추가",
     "duplicateMetaOnly": "복사 (메타만)",
     "duplicateMetaAndImages": "복사 (메타 & 이미지)",
@@ -462,7 +464,7 @@
     "exportMetaOnly": "내보내기 (메타만)",
     "exportMetaAndImages": "내보내기 (메타 & 이미지)",
     "exportMetaEdit": "Export Meta Edit",
-    "duplicatePlaylist": "플레이 리스트 복제",
+    "duplicatePlaylist": "재생목록 복제",
     "exportPlaylist": "재생목록 가져오기",
     "makeCurationFromGame": "Make Curation from Game"
   },
@@ -495,7 +497,7 @@
     "verifyPathSelection": "미래 업그레이드도 이곳에 설치됩니다. 맞습니까?",
     "restartNow": "지금 재시작하겠습니까?",
     "restartToApplyUpgrade": "이 업그레이드는 재시작하기 전에는 적용되지 않습니다.\n그래도 지금 하시겠습니까?",
-    "areYouSure": "확실하십니까?",
+    "areYouSure": "정말로 삭제하시겠습니까?",
     "areYouSureDelete": "Are you sure you want to delete this entry?",
     "areYouSurePlaylistRemove": "Are you sure you want to remove this entry from the playlist?",
     "cancel": "취소",
