@@ -72,6 +72,7 @@
     "tagFilterGroupEditor": "Éditeur de groupe de filtre de tags"
   },
   "home": {
+    "gotdHeader": "Game of the Day",
     "updateHeader": "Mise à jour du lanceur",
     "currentVersion": "Version actuelle",
     "nextVersion": "Prochaine version",
@@ -421,7 +422,7 @@
     "discardDesc": "Annuler les changements apportés et arrêter l'édition",
     "edit": "Éditer",
     "editDesc": "Éditer cette playlist",
-    "delete": "Supprimer",
+    "delete": "Effacer",
     "deleteDesc": "Supprimer cette playlist",
     "changeIcon": "Changer l'icône de la playlist",
     "duplicatePlaylistDesc": "Dupliquer la playlist",
@@ -455,6 +456,7 @@
     "viewThumbnailInFolder": "Voir la miniature dans le dossier",
     "viewScreenshotInFolder": "Voir la capture d'écran dans le dossier",
     "openFileLocation": "Ouvrir l'emplacement du fichier",
+    "addToFavorites": "Add to Favorites",
     "addToPlaylist": "Ajouter à la playlist",
     "duplicateMetaOnly": "Dupliquer (meta seulement)",
     "duplicateMetaAndImages": "Dupliquer (meta et images)",
@@ -495,7 +497,7 @@
     "verifyPathSelection": "Les futures mises à niveau seront installées ici. Est-ce correct ?",
     "restartNow": "Redémarrer maintenant ?",
     "restartToApplyUpgrade": "Cette mise à niveau ne sera appliquée qu'après un redémarrage.\nVoulez-vous le faire maintenant ?",
-    "areYouSure": "Êtes-vous sûr ?",
+    "areYouSure": "Êtes-vous sûr(e) ?",
     "areYouSureDelete": "Êtes-vous sûr de vouloir supprimer cette entrée ?",
     "areYouSurePlaylistRemove": "Êtes-vous sûr de vouloir supprimer cette entrée de la playlist ?",
     "cancel": "Annuler",
