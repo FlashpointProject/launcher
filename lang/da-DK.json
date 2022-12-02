@@ -72,6 +72,7 @@
     "tagFilterGroupEditor": "Tag Filter Group Editor"
   },
   "home": {
+    "gotdHeader": "Game of the Day",
     "updateHeader": "Launcher Opdatering",
     "currentVersion": "Aktuel Version",
     "nextVersion": "Næste Version",
@@ -230,7 +231,7 @@
     "noDeveloper": "Ingen Udvikler",
     "alternateTitles": "Alternative Titler",
     "noAlternateTitles": "Ingen Alternative Titler",
-    "tags": "Tags",
+    "tags": "Mærker",
     "noTags": "Ingen Tags",
     "enterTag": "Indtast Tag",
     "series": "Serie",
@@ -277,7 +278,7 @@
     "installed": "Installeret",
     "notInstalled": "Ikke Installeret",
     "legacyGame": "Legacy Spil",
-    "download": "Hent",
+    "download": "Download",
     "thumbnail": "Thumbnail",
     "screenshot": "Skærmbillede",
     "dropImageHere": "Sæt et billede her for at tilføje det",
@@ -311,7 +312,7 @@
   },
   "tags": {
     "name": "Navn",
-    "noName": "Intet Navn",
+    "noName": "Ingen Navn",
     "description": "Beskrivelse",
     "noDescription": "Ingen beskrivelse",
     "category": "Kategori",
@@ -448,13 +449,14 @@
     "exportMetaEditTitle": "Eksporter Meta Rediger",
     "exportMetaEditDesc": "Vælg alle egenskaber at eksportere:",
     "showImage": "Show Image",
-    "searching": "Searching...",
+    "searching": "Søger...",
     "loading": "Loading..."
   },
   "menu": {
     "viewThumbnailInFolder": "Vis Thumbnail i Folderen",
     "viewScreenshotInFolder": "Vis Skærmbillede i Folderen",
     "openFileLocation": "Åbn fil placering",
+    "addToFavorites": "Add to Favorites",
     "addToPlaylist": "Tilføj til spilleliste",
     "duplicateMetaOnly": "Dupliker (Kun Meta)",
     "duplicateMetaAndImages": "Dupliker (Meta && Billeder)",
