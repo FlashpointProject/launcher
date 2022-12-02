@@ -72,6 +72,7 @@
     "tagFilterGroupEditor": "ตัดต่อกลุ่มตัวกรองแท็ก"
   },
   "home": {
+    "gotdHeader": "Game of the Day",
     "updateHeader": "อัพเดตตัวเปิด",
     "currentVersion": "เวอร์ชั่นปัจจุบัน",
     "nextVersion": "เวอร์ชั่นต่อไป",
@@ -121,7 +122,7 @@
   },
   "app": {
     "home": "หน้าหลัก",
-    "browse": "ค้นหา",
+    "browse": "เปิดหา",
     "tags": "แท็ก",
     "categories": "หมวดหมู่",
     "logs": "ล็อก",
@@ -147,13 +148,13 @@
     "platform": "แพลตฟอร์ม",
     "series": "ซีรีส์",
     "title": "ชื่อ",
-    "developer": "ผู้พัฒนา",
+    "developer": "นักพัฒนา",
     "publisher": "ผู้เผยแพร่",
     "ascending": "จากน้อยไปมาก",
     "descending": "จากมากไปน้อย"
   },
   "developer": {
-    "developerHeader": "ผู้พัฒนา",
+    "developerHeader": "นักพัฒนา",
     "developerDesc": "ตรงนี้เป็นส่วนที่เอาไว้สำหรับเครื่องมือให้ผู้พัฒนาใช้",
     "checkMissingImages": "ตรวจสอบภาพที่ขาดหายไป",
     "checkMissingImagesDesc": "ลงรายการเกมทั้งหมดที่ยังขาดภาพเล็กหรือภาพตัวอย่าง",
@@ -210,7 +211,7 @@
     "detailsDesc": "เปิดกรอบไดอะล็อกพร้อมกับรายละเอียดบริการ"
   },
   "about": {
-    "aboutHeader": "เกี่ยวกับ",
+    "aboutHeader": "เกี่ยวกับเรา",
     "flashpoint": "BlueMaxima's Flashpoint",
     "flashpointDesc": "โปรเจ็กต์อนุรักษ์ที่ได้สร้างตัวเปิดนี้ขึ้น ด้วยจุดประสงค์หลักคือทำหน้าที่เป็นทั้งคลังบันทึก และพิพิธภัณฑ์แสดงเกมกับสื่อต่างๆสำหรับเทคโนโลยีเว็บ",
     "website": "เว็บไซต์",
@@ -249,10 +250,10 @@
     "noVersion": "ไม่มีเวอร์ชัน",
     "releaseDate": "วันที่เผยแพร่",
     "noReleaseDate": "ไม่มีวันที่เผยแพร่",
-    "language": "ภาษา",
+    "language": "ภาษาหลัก",
     "noLanguage": "ไม่มีภาษา",
-    "dateAdded": "เพิ่มในวันที่",
-    "dateModified": "แก้ไขวันที่",
+    "dateAdded": "วันที่เพิ่ม",
+    "dateModified": "วันที่แก้ไข",
     "brokenInInfinity": "ชำรุด (ใน Infinity)",
     "extreme": "ไม่เหมาะสม",
     "playlistNotes": "หมายเหตุสำหรับเพลย์ลิสต์",
@@ -414,7 +415,7 @@
   },
   "playlist": {
     "enterDescriptionHere": "Enter a description here...",
-    "noDescription": "No Description",
+    "noDescription": "ไม่มีคำอธิบาย",
     "save": "Save",
     "saveDesc": "Save changes made and stop editing",
     "discard": "Discard",
@@ -427,12 +428,12 @@
     "duplicatePlaylistDesc": "Duplicate Playlist",
     "exportPlaylistDesc": "Export playlist to a file",
     "areYouSure": "Are you sure?",
-    "noTitle": "No Title",
+    "noTitle": "ไม่มีชื่อ",
     "titlePlaceholder": "Title...",
     "noAuthor": "No Author",
     "authorPlaceholder": "Author...",
     "id": "ID",
-    "by": "by",
+    "by": "ตาม",
     "extreme": "extreme"
   },
   "misc": {
@@ -448,13 +449,14 @@
     "exportMetaEditTitle": "Export Meta Edit",
     "exportMetaEditDesc": "Select all properties to export:",
     "showImage": "Show Image",
-    "searching": "Searching...",
+    "searching": "กำลังค้นหา...",
     "loading": "Loading..."
   },
   "menu": {
     "viewThumbnailInFolder": "View Thumbnail in Folder",
     "viewScreenshotInFolder": "View Screenshot in Folder",
     "openFileLocation": "Open File Location",
+    "addToFavorites": "Add to Favorites",
     "addToPlaylist": "Add to Playlist",
     "duplicateMetaOnly": "Duplicate (Meta Only)",
     "duplicateMetaAndImages": "Duplicate (Meta && Images)",
@@ -536,10 +538,10 @@
   "libraries": {
     "arcade": "Games",
     "arcadeSingular": "Game",
-    "arcadePlural": "All Games",
+    "arcadePlural": "เกมทั้งหมด",
     "theatre": "Animations",
     "theatreSingular": "Animation",
-    "theatrePlural": "All Animations",
+    "theatrePlural": "แอนิเมชั่นทั้งหมด",
     "auditorium": "NG Auditorium",
     "auditoriumSingular": "Animation",
     "auditoriumPlural": "แอนิเมชั่น Newgrounds ทั้งหมด"
