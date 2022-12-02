@@ -72,6 +72,7 @@
     "tagFilterGroupEditor": "Уређивач групе филтера ознаке"
   },
   "home": {
+    "gotdHeader": "Game of the Day",
     "updateHeader": "Ажурирање покретача",
     "currentVersion": "Тренутна верзија",
     "nextVersion": "Наредна верзија",
@@ -121,7 +122,7 @@
   },
   "app": {
     "home": "Почетак",
-    "browse": "Преглед",
+    "browse": "Претражи",
     "tags": "Ознаке",
     "categories": "Категорије",
     "logs": "Записи",
@@ -147,7 +148,7 @@
     "platform": "Платформа",
     "series": "Серија",
     "title": "Наслов",
-    "developer": "Произвођач",
+    "developer": "Програмер",
     "publisher": "Издавач",
     "ascending": "Растуће",
     "descending": "Опадајуће"
@@ -311,7 +312,7 @@
   },
   "tags": {
     "name": "Име",
-    "noName": "Без имена",
+    "noName": "Нема имена",
     "description": "Опис",
     "noDescription": "Без описа",
     "category": "Категорија",
@@ -414,7 +415,7 @@
   },
   "playlist": {
     "enterDescriptionHere": "Унеси опис овде...",
-    "noDescription": "Нема описа",
+    "noDescription": "Без описа",
     "save": "Сачувај",
     "saveDesc": "Сачувај направљене измене и заустави уређивање",
     "discard": "Одбаци",
@@ -427,7 +428,7 @@
     "duplicatePlaylistDesc": "Дуплирај плејлисту",
     "exportPlaylistDesc": "Изнеси плајлисту у фајл",
     "areYouSure": "Да ли си сигуран?",
-    "noTitle": "Нема наслова",
+    "noTitle": "Без наслова",
     "titlePlaceholder": "Наслов...",
     "noAuthor": "Нема аутора",
     "authorPlaceholder": "Аутор...",
@@ -448,13 +449,14 @@
     "exportMetaEditTitle": "Извоз измена метаподатка",
     "exportMetaEditDesc": "Изаберите све поставке за изношење:",
     "showImage": "Show Image",
-    "searching": "Searching...",
+    "searching": "Тражим...",
     "loading": "Loading..."
   },
   "menu": {
     "viewThumbnailInFolder": "Прегледај симболичну слику у фасцикли",
     "viewScreenshotInFolder": "Прегледај слике екрана у фасцикли",
     "openFileLocation": "Отвори локацију фајла",
+    "addToFavorites": "Add to Favorites",
     "addToPlaylist": "Додај у плејлисту",
     "duplicateMetaOnly": "Дуплирај (само метаподатке)",
     "duplicateMetaAndImages": "Дуплирај (метаподатке и слике)",
