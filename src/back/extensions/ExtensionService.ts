@@ -122,7 +122,11 @@ export class ExtensionService {
           throw new Error('No "activate" export found in extension module!');
         }
         // Activate extension
-        await Promise.resolve(extModule.activate.apply(global, [context]));
+        try {
+          await Promise.resolve(extModule.activate.apply(global, [context]));
+        } catch (err: any) {
+          throw new Error(`Error during extension activation: ${err}`);
+        }
       }
       this._setSubscriptions(ext.id, context.subscriptions);
       this._enableExtension(ext.id);

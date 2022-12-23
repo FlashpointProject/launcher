@@ -40,10 +40,14 @@ export class ApiEmitter<T> {
   // Fires a given event to all listeners
   public async fire(event: T): Promise<void> {
     for (const listener of this._listeners) {
-      if (typeof listener === 'function') {
-        await Promise.resolve(listener.call(undefined, event));
-      } else {
-        await Promise.resolve(listener[0].call(listener[1], event));
+      try {
+        if (typeof listener === 'function') {
+          await Promise.resolve(listener.call(undefined, event));
+        } else {
+          await Promise.resolve(listener[0].call(listener[1], event));
+        }
+      } catch (e) {
+        log.error('Launcher', `Error in ApiEmitter listener: ${e}`);
       }
     }
   }

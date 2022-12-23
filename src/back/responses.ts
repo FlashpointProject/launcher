@@ -38,7 +38,7 @@ import * as YAML from 'yaml';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME } from './constants';
 import { loadCurationIndexImage } from './curate/parse';
-import { duplicateCuration, genCurationWarnings } from './curate/util';
+import { duplicateCuration, genCurationWarnings, loadCurationFolder } from './curate/util';
 import { saveCuration } from './curate/write';
 import { ExtConfigFile } from './ExtConfigFile';
 import { parseAppVar } from './extensions/util';
@@ -1738,6 +1738,23 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     }
   });
 
+  state.socketServer.register(BackIn.CURATE_SCAN_NEW_CURATIONS, async (event) => {
+    const curationsPath = path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING);
+    await fs.ensureDir(curationsPath);
+    const curations = await fs.promises.readdir(curationsPath, { withFileTypes: true });
+    for (const curation of curations) {
+      console.log(curation.name);
+      if (curation.isDirectory()) {
+        const exists = state.loadedCurations.find(c => c.folder === curation.name);
+        if (!exists) {
+          await loadCurationFolder(curationsPath, curation.name, state);
+          const curationIdx = state.loadedCurations.findIndex(c => c.folder === curation.name);
+          state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [state.loadedCurations[curationIdx]]);
+        }
+      }
+    }
+  });
+
   state.socketServer.register(BackIn.CURATE_FROM_GAME, async (event, gameId) => {
     const game = await GameManager.findGame(gameId);
     const folder = uuid();
@@ -1967,7 +1984,8 @@ function difObjects<T>(template: T, a: T, b: DeepPartial<T>): DeepPartial<T> | u
       // Other
       else {
         if (!dif) { dif = {}; }
-        dif[key] = bVal;
+        // Works, but type checker complains
+        dif[key] = bVal as any;
       }
     }
   }

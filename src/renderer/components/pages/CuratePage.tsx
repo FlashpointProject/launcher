@@ -73,6 +73,10 @@ export function CuratePage(props: CuratePageProps) {
     });
   }, [props.curate.selected]);
 
+  const onScanForNewCurations = React.useCallback(() => {
+    window.Shared.back.send(BackIn.CURATE_SCAN_NEW_CURATIONS);
+  }, []);
+
   const onLoadCuration = React.useCallback(() => {
     // Generate task
     ipcRenderer.invoke(CustomIPC.SHOW_OPEN_DIALOG, {
@@ -551,6 +555,24 @@ export function CuratePage(props: CuratePageProps) {
     );
   }, [props.shortcut]);
 
+  const dependantStrings = React.useMemo(() => {
+    if (props.curate.selected.length > 1) {
+      return {
+        import: strings.curate.importSelected,
+        export: strings.curate.exportSelected,
+        delete: strings.curate.deleteSelected,
+        exportDataPack: strings.curate.exportSelectedDataPacks
+      };
+    } else {
+      return {
+        import: strings.curate.import,
+        export: strings.curate.export,
+        delete: strings.curate.delete,
+        exportDataPack: strings.curate.exportDataPacks
+      };
+    }
+  }, [props.curate.selected]);
+
   return (
     <div className='curate-page'>
       {leftSidebar}
@@ -601,6 +623,10 @@ export function CuratePage(props: CuratePageProps) {
             value={strings.curate.loadArchive}/>
           <SimpleButton
             className='curate-page__right--button'
+            onClick={onScanForNewCurations}
+            value={strings.curate.scanNewCurationFolders}/>
+          <SimpleButton
+            className='curate-page__right--button'
             onClick={onOpenCurationsFolder}
             value={strings.curate.openCurationsFolder}
             title={strings.curate.openCurationsFolderDesc}/>
@@ -618,7 +644,7 @@ export function CuratePage(props: CuratePageProps) {
             onConfirm={onDeleteCurations}
             extra={{
               className: 'curate-page__right--button',
-              value: strings.curate.delete,
+              value: dependantStrings.delete,
               disabled
             }}/>
           <ConfirmElement
@@ -627,7 +653,7 @@ export function CuratePage(props: CuratePageProps) {
             onConfirm={onImportCuration}
             extra={{
               className: 'curate-page__right--button',
-              value: strings.curate.import,
+              value: dependantStrings.import,
               disabled
             }}/>
           { warningCount > 0 ? (
@@ -637,7 +663,7 @@ export function CuratePage(props: CuratePageProps) {
               onConfirm={onExportCurations}
               extra={{
                 className: 'curate-page__right--button',
-                value: strings.curate.export,
+                value: dependantStrings.export,
                 disabled
               }}/>
           ) : (
@@ -645,7 +671,7 @@ export function CuratePage(props: CuratePageProps) {
               className='curate-page__right--button'
               onClick={onExportCurations}
               disabled={disabled}
-              value={strings.curate.export}/>
+              value={dependantStrings.export}/>
           )}
           <ConfirmElement
             render={renderConfirmButton}
@@ -663,7 +689,7 @@ export function CuratePage(props: CuratePageProps) {
               onConfirm={onExportDataPacks}
               extra={{
                 className: 'curate-page__right--button',
-                value: strings.curate.exportDataPacks,
+                value: dependantStrings.exportDataPack,
                 disabled
               }}/>
           ) : (
@@ -671,8 +697,17 @@ export function CuratePage(props: CuratePageProps) {
               className='curate-page__right--button'
               onClick={onExportDataPacks}
               disabled={disabled}
-              value={strings.curate.exportDataPacks}/>
+              value={dependantStrings.exportDataPack}/>
           )}
+          <SimpleButton
+            className='curate-page__right--button'
+            onClick={() => {
+              if (props.curate.current) {
+                window.Shared.back.request(BackIn.CURATE_REFRESH_CONTENT, props.curate.current);
+              }
+            }}
+            disabled={disabled}
+            value={strings.curate.indexContent}/>
           <div className='curate-page__right--checkbox'>
             <div>{strings.curate.useTagFilters}</div>
             <CheckBox
