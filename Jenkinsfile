@@ -1,11 +1,12 @@
 pipeline {
     agent {
-        docker { image 'vibbioinfocore/rust-node-ci' }
+        docker { image 'cimg/rust:1.65.0' }
     }
     stages {
         stage('Test') {
             steps {
-                sh 'node --version'
+                sh 'npm install --force'
+                sh 'npm build'
             }
         }
     }
