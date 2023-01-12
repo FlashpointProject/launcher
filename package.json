@@ -16,6 +16,7 @@
     "snapshot": "cross-env-shell PACK_PLATFORM=win32 PACK_ARCH=ia32 NODE_ENV=production \"npm run build && npm run pack\"",
     "test": "jest",
     "lint": "eslint ./src/**/*.{ts,tsx} ./gulpfile.js",
+    "nexusPack": "gulp nexusPack",
     "pack:linux": "cross-env PACK_PLATFORM=linux PACK_ARCH=x64 gulp pack",
     "pack:win32": "cross-env PACK_PLATFORM=win32 PACK_ARCH=ia32 gulp pack",
     "pack:darwin": "cross-env PACK_PLATFORM=darwin PACK_ARCH=x64 gulp pack",

@@ -152,6 +152,46 @@ function configVersion(done) {
 
 /* ------ Pack ------ */
 
+function nexusPack(done) {
+  builder
+    .build({
+      targets: builder.Platform.WINDOWS.createTarget(),
+      config: Object.assign(
+        {
+          appId: "com.bluemaxima.flashpoint-launcher",
+          productName: "Flashpoint",
+          directories: {
+            buildResources: "./static/",
+            output: "./dist/",
+          },
+          files: ["./build"],
+          extraFiles: copyFiles, // Files to copy to the build folder
+          extraResources: extraResources, // Copy System Extensions
+          compression: "maximum", // Only used if a compressed target (like 7z, nsis, dmg etc.)
+          asar: true,
+          asarUnpack: ["**/fp-rust.node"],
+          artifactName: "${productName}.${ext}",
+          win: {
+            target: [
+              {
+                target: "7z",
+                arch: "ia32",
+              }
+            ],
+            icon: "./icons/icon.ico",
+          }
+        }
+      ),
+    })
+    .then(() => {
+      console.log("Pack - Done!");
+    })
+    .catch((error) => {
+      console.log("Pack - Error!", error);
+    })
+    .finally(done);
+}
+
 function pack(done) {
   const publish = config.publish ? publishInfo : []; // Uses Git repo for unpublished builds
   const extraOpts = config.publish ? extraOptions : {};
@@ -237,3 +277,5 @@ exports.watch = series(
 );
 
 exports.pack = series(pack);
+
+exports.nexusPack = series(nexusPack);

@@ -1,0 +1,72 @@
+name: Nexus (Development)
+
+on:
+  push:
+    branches:
+      - feat/nexus-repo
+      - develop
+
+jobs:
+  build:
+    name: Build
+    runs-on: windows-2019
+        
+    steps:
+    - uses: actions/checkout@v3
+    - name: Checkout submodules
+      shell: bash
+      run: |
+        auth_header="$(git config --local --get http.https://github.com/.extraheader)"
+        git submodule sync --recursive
+        git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
+    - name: Use Node.js 16.x
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16
+    - uses: actions/cache@v3
+      id: cache
+      with:
+        path: | 
+          **/node_modules
+        key: ${{ runner.os }}-${{ hashFiles('package.json') }}
+    - name: Install Dependencies
+      run: npm install --force
+      if: steps.cache.outputs.cache-hit != 'true'
+      env:
+        CI: true
+    - name: Build
+      env:
+        NODE_ENV: "production"
+        PACK_ARCH: "ia32"
+      run: npm run build
+    - name: Pack
+      run: npm run nexusPack
+    - name: Temporarily save 7z
+      uses: actions/upload-artifact@v3
+      with:
+        name: 7z-artifact
+        path: dist/Flashpoint.7z
+        retention-days: 1
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+    - name: Pass 7z to Linux runner
+      uses: actions/download-artifact@v3
+      with:
+        name: 7z-artifact
+        path: dist/
+    - name: Deploy to Nexus
+      uses: sonatype-nexus-community/nexus-repo-github-action@master
+      with:
+        serverUrl: https://nexus-dev.unstable.life
+        username: admin
+        password: ${{ secrets.NEXUS_PASSWORD }}
+        format: raw
+        repository: launcher
+        coordinates: directory=/
+        assets: filename=launchers-electron.7z
+        filename: dist/Flashpoint.7z
