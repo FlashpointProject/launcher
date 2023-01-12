@@ -25,14 +25,8 @@ pipeline {
             }
         }
         stage('Package') {
-            axes {
-                axis {
-                    name 'OS'
-                    values 'win32'
-                }
-            }
             steps {
-                sh 'npm run pack:${OS}'
+                sh 'npm run pack:win32'
                 script {
                     packageInfo = readJSON file: 'package.json';
                     filesByGlob = findFiles(glob: 'dist/Flashpoint*.7z');
