@@ -21,8 +21,8 @@ pipeline {
             steps {
                 sh 'rustup default stable'
                 sh 'rustup target add i686-pc-windows-msvc'
+                sh 'npm install -g electron-builder'
                 sh 'npm install --force'
-                sh 'npm install --force --save-dev electron-builder'
                 sh 'npm run build'
             }
         }
