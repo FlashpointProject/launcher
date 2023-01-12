@@ -6,7 +6,7 @@ pipeline {
         stage('Test') {
             steps {
                 sh 'npm install --force'
-                sh 'npm build'
+                sh 'npm run build'
             }
         }
     }
