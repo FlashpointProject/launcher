@@ -2,9 +2,7 @@ pipeline {
     agent {
         docker { image 'cimg/rust:1.65.0-node' }
     }
-    environment { 
-        NODE_ENV = 'production'
-        PACK_ARCH = 'ia32'
+    environment {
         // This can be nexus3 or nexus2
         NEXUS_VERSION = "nexus3"
         // This can be http or https
@@ -17,16 +15,29 @@ pipeline {
         NEXUS_CREDENTIAL_ID = "nexus-credentials"
     }
     stages {
-        stage('Test') {
+        stage('Setup') {
             steps {
                 sh 'rustup default stable'
                 sh 'rustup target add i686-pc-windows-msvc'
-                sh 'npm install -g electron-builder'
+                sh 'npm install -g electron-builder gulp'
                 sh 'npm install --force'
                 sh 'npm run build'
             }
         }
+        stage('Build') {
+            environment {
+                PACK_ARCH = 'ia32'
+                NODE_ENV = 'production'
+            }
+            steps {
+                sh 'npm run build'
+            }
+        }
         stage('Package') {
+            environment {
+                PACK_ARCH = 'ia32'
+                NODE_ENV = 'production'
+            }
             steps {
                 sh 'npm run pack:win32'
                 script {
