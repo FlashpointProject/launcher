@@ -154,7 +154,20 @@ function configVersion(done) {
 
 function pack(done) {
   const publish = config.publish ? publishInfo : []; // Uses Git repo for unpublished builds
-  const extraOpts = config.publish ? extraOptions : {};
+  let extraOpts = config.publish ? extraOptions : {};
+  if (config.isRelease && process.env.PACK_ARCH === "ia32") {
+    extraOpts = {
+      win: {
+        target: [
+          {
+            target: "7z",
+            arch: "ia32"
+          }
+        ]
+      },
+      icon: "./icons/icon.ico",
+    }
+  }
   builder
     .build({
       ia32: process.env.PACK_ARCH === "ia32" || undefined,
