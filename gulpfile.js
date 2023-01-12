@@ -9,7 +9,8 @@ const { execute } = require("./gulpfile.util");
 const packageJson = JSON.parse(fs.readFileSync("./package.json"));
 const config = {
   buildVersion: Date.now().toString(),
-  isRelease: !!process.env.PUBLISH,
+  publish: !!process.env.PUBLISH,
+  isRelease: process.env.NODE_ENV === "production",
   isStaticInstall: packageJson.config.installed,
   static: {
     src: "./static",
@@ -123,8 +124,9 @@ function watchStatic() {
 function buildRust(done) {
   const targetOption =
     process.env.PACK_ARCH === "ia32" ? "--target i686-pc-windows-msvc" : "";
+  const releaseOption = config.isRelease ? "--release" : "";
   execute(
-    `npx cargo-cp-artifact -a cdylib fp-rust ./build/back/fp-rust.node -- cargo build ${targetOption} --message-format=json-render-diagnostics`,
+    `npx cargo-cp-artifact -a cdylib fp-rust ./build/back/fp-rust.node -- cargo build ${targetOption} ${releaseOption} --message-format=json-render-diagnostics`,
     done
   );
 }
@@ -151,10 +153,8 @@ function configVersion(done) {
 /* ------ Pack ------ */
 
 function pack(done) {
-  const publish = config.isRelease ? publishInfo : []; // Uses Git repo for unpublished builds
-  const extraOpts = config.isRelease ? extraOptions : {};
-  console.log(config.isRelease);
-  console.log(extraOpts);
+  const publish = config.publish ? publishInfo : []; // Uses Git repo for unpublished builds
+  const extraOpts = config.publish ? extraOptions : {};
   builder
     .build({
       ia32: process.env.PACK_ARCH === "ia32" || undefined,
@@ -213,6 +213,7 @@ function clean(done) {
 exports.clean = series(clean);
 
 exports.build = series(
+  clean,
   parallel(
     buildRust,
     buildBack,
@@ -224,6 +225,7 @@ exports.build = series(
 );
 
 exports.watch = series(
+  clean,
   parallel(
     buildRust,
     watchBack,

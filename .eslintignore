@@ -2,3 +2,4 @@
 src/database/migration/*
 build/*
 typings/*
+gulpfile.*

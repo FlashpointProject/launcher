@@ -162,8 +162,10 @@ function generateMessageAddApp(message: string) : AddAppCuration {
 async function getTagsFromStr(tagsStr: string, tagCategoriesStr: string): Promise<Tag[]> {
   const splitTags = tagsStr.split(';');
   const splitCategories = tagCategoriesStr.split(';');
+  const tags = [];
 
-  const tags = await Promise.all(splitTags.map(async (tagName, index) => {
+  for (let index = 0; index < splitTags.length; index++) {
+    const tagName = splitTags[index];
     const trimmedName = tagName.trim();
     const category = splitCategories.length > index ? splitCategories[index].trim() : undefined;
     let tag = await TagManager.findTag(trimmedName);
@@ -171,8 +173,13 @@ async function getTagsFromStr(tagsStr: string, tagCategoriesStr: string): Promis
       // Tag doesn't exist, make a new one
       tag = await TagManager.createTag(trimmedName, category);
     }
-    return tag as Tag; // @TYPESAFE fix this?
-  }));
+    if (tag !== null) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      if (tags.findIndex(t => t.id === tag!.id) === -1) {
+        tags.push(tag);
+      }
+    }
+  }
 
   return tags;
 }

@@ -14,29 +14,20 @@
     "strictPropertyInitialization": false,
     "strictNullChecks": true,
     "paths": {
-      "@shared/*": [ "./src/shared/*" ],
-      "@main/*": [ "./src/main/*" ],
-      "@back/*": [ "./src/back/*" ],
-      "@renderer/*": [ "./src/renderer/*" ],
-      "@database/*": [ "./src/database/*" ],
-      "@tests/*": [ "./tests/*" ],
+      "@shared/*": ["./src/shared/*"],
+      "@main/*": ["./src/main/*"],
+      "@back/*": ["./src/back/*"],
+      "@renderer/*": ["./src/renderer/*"],
+      "@database/*": ["./src/database/*"],
+      "@tests/*": ["./tests/*"]
     },
     "plugins": [
       {
         "name": "empty",
-        "transform": "ts-transform-paths",
+        "transform": "ts-transform-paths"
       }
     ]
   },
-  "exclude": [
-    "node_modules",
-    "dist",
-    "build",
-    "./src/shared"
-  ],
-  "include": [
-    "./typings/**/*",
-    "./src",
-    "./tests"
-  ],
+  "exclude": ["node_modules", "dist", "build", "./src/shared"],
+  "include": ["./typings/**/*", "./src", "./tests"]
 }
