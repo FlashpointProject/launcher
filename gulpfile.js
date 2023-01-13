@@ -174,7 +174,7 @@ function nexusPack(done) {
           win: {
             target: [
               {
-                target: "7z",
+                target: "zip",
                 arch: "ia32",
               }
             ],
