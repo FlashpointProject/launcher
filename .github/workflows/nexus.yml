@@ -41,11 +41,11 @@ jobs:
       run: npm run build
     - name: Pack
       run: npm run nexusPack
-    - name: Temporarily save 7z
+    - name: Temporarily save zip
       uses: actions/upload-artifact@v3
       with:
-        name: 7z-artifact
-        path: dist/Flashpoint.7z
+        name: zip-artifact
+        path: dist/Flashpoint.zip
         retention-days: 1
 
   deploy:
@@ -54,10 +54,10 @@ jobs:
     needs: build
 
     steps:
-    - name: Pass 7z to Linux runner
+    - name: Pass zip to Linux runner
       uses: actions/download-artifact@v3
       with:
-        name: 7z-artifact
+        name: zip-artifact
         path: dist/
     - name: Deploy to Nexus
       uses: sonatype-nexus-community/nexus-repo-github-action@master
