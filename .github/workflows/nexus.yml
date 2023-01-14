@@ -68,5 +68,5 @@ jobs:
         format: raw
         repository: launcher
         coordinates: directory=/
-        assets: filename=launchers-electron.zip
+        assets: filename=launcher-electron.zip
         filename: dist/Flashpoint.zip
