@@ -1313,7 +1313,7 @@ export class App extends React.Component<AppProps> {
                   )}
                 </div>
                 {/* Tasks - @TODO Find a better way to hide it than behind enableEditing */}
-                { this.props.preferencesData.enableEditing && (
+                { this.props.preferencesData.enableEditing && this.props.tasks.length > 0 && (
                   <TaskBar
                     open={this.props.main.taskBarOpen}
                     onToggleOpen={this.onToggleTaskBarOpen} />
