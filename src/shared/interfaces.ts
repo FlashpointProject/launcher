@@ -159,9 +159,11 @@ export enum CustomIPC {
 
 export type INamedBackProcessInfo = IBackProcessInfo & {
   /** Name of the server */
-  name?: string;
+  name: string;
   /** Whether to use this service when toggling MAD4FP */
   mad4fp?: boolean;
+  /** Aliases for the name */
+  aliases: string[];
 }
 
 export type IBackProcessInfo = {

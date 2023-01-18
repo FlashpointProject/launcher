@@ -359,8 +359,11 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       const platform = addApp.parentGame ? addApp.parentGame : '';
       GameLauncher.launchAdditionalApplication({
         addApp,
+        changeServer: changeServerFactory(state),
         fpPath: path.resolve(state.config.flashpointPath),
         htdocsPath: state.preferences.htdocsFolderPath,
+        dataPacksFolderPath: state.preferences.dataPacksFolderPath,
+        sevenZipPath: state.sevenZipPath,
         native: addApp.parentGame && state.preferences.nativePlatforms.some(p => p === platform) || false,
         execMappings: state.execMappings,
         lang: state.languageContainer,
@@ -432,6 +435,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         game,
         fpPath: path.resolve(state.config.flashpointPath),
         htdocsPath: state.preferences.htdocsFolderPath,
+        dataPacksFolderPath: state.preferences.dataPacksFolderPath,
+        sevenZipPath: state.sevenZipPath,
         native: state.preferences.nativePlatforms.some(p => p === game.platform),
         execMappings: state.execMappings,
         lang: state.languageContainer,
@@ -444,6 +449,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         openExternal: state.socketServer.openExternal(event.client),
         runGame: runGameFactory(state),
         envPATH: state.pathVar,
+        changeServer: changeServerFactory(state),
       },
       state.apiEmitters.games.onWillLaunchGame);
       await state.apiEmitters.games.onDidLaunchGame.fire(game);
@@ -1226,6 +1232,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     const skipLink = (curation.folder === state.lastLinkedCurationKey);
     state.lastLinkedCurationKey = data.symlinkCurationContent ? curation.folder : '';
     try {
+      let serverOverride: string | undefined = undefined;
       if (state.serviceInfo) {
         // Make sure all 3 relevant server infos are present before considering MAD4FP opt
         const configServer = state.serviceInfo.server.find(s => s.name === state.config.server);
@@ -1243,13 +1250,15 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
               ...process.env,
               'PATH': state.pathVar ?? process.env.PATH,
             }}, mad4fpServerCopy);
+            serverOverride = mad4fpServerCopy.name;
           } else if (!data.mad4fp && activeServerInfo && activeServerInfo.mad4fp && !configServer.mad4fp) {
-            // Swap to mad4fp server
+            // Swap to default non-mad4fp server
             await removeService(state, 'server');
             runService(state, 'server', 'Server', state.config.flashpointPath, {env: {
               ...process.env,
               'PATH': state.pathVar ?? process.env.PATH,
             }}, configServer);
+            serverOverride = configServer.name;
           }
         }
       }
@@ -1257,6 +1266,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       await launchCuration(data.curation, data.symlinkCurationContent, skipLink, {
         fpPath: path.resolve(state.config.flashpointPath),
         htdocsPath: state.preferences.htdocsFolderPath,
+        dataPacksFolderPath: state.preferences.dataPacksFolderPath,
+        sevenZipPath: state.sevenZipPath,
         native: state.preferences.nativePlatforms.some(p => p === data.curation.game.platform),
         execMappings: state.execMappings,
         lang: state.languageContainer,
@@ -1269,9 +1280,11 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         openExternal: state.socketServer.openExternal(event.client),
         runGame: runGameFactory(state),
         envPATH: state.pathVar,
+        changeServer: changeServerFactory(state),
       },
       state.apiEmitters.games.onWillLaunchCurationGame,
-      state.apiEmitters.games.onDidLaunchCurationGame);
+      state.apiEmitters.games.onDidLaunchCurationGame,
+      serverOverride);
     } catch (e) {
       log.error('Launcher', e + '');
     }
@@ -1284,6 +1297,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       await launchAddAppCuration(data.folder, data.addApp, data.symlinkCurationContent, skipLink, {
         fpPath: path.resolve(state.config.flashpointPath),
         htdocsPath: state.preferences.htdocsFolderPath,
+        dataPacksFolderPath: state.preferences.dataPacksFolderPath,
+        sevenZipPath: state.sevenZipPath,
         native: state.preferences.nativePlatforms.some(p => p === data.platform) || false,
         execMappings: state.execMappings,
         lang: state.languageContainer,
@@ -1295,6 +1310,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         openDialog: state.socketServer.showMessageBoxBack(event.client),
         openExternal: state.socketServer.openExternal(event.client),
         runGame: runGameFactory(state),
+        changeServer: changeServerFactory(state),
         envPATH: state.pathVar,
       },
       state.apiEmitters.games.onWillLaunchCurationAddApp,
@@ -2124,4 +2140,36 @@ async function getProviders(state: BackState): Promise<AppProvider[]> {
     .reduce((prev, cur) => cur = cur.concat(prev), []);
   }
   );
+}
+
+function changeServerFactory(state: BackState): (server?: string) => Promise<void> {
+  return async (server?: string) => {
+    if (state.serviceInfo) {
+      if (!server) {
+        // No server name given, assume the default server
+        server = state.config.server;
+      }
+      // Cast to fix type error after if check above
+      const serverInfo = state.serviceInfo.server.find(s => s.name === server || s.aliases.includes(server as string));
+      if (serverInfo) {
+        // Found server info, safely stop the server if it's not the correct one, then run the correct one
+        const runningServer = state.services.get('server');
+        if (!runningServer || !('name' in runningServer.info) || runningServer.info.name !== serverInfo.name) {
+          if (runningServer) {
+            // Wrong server running, stop it
+            await removeService(state, 'server');
+          }
+          // Start the correct server
+          log.debug('Launcher', `Changing server to: ${serverInfo.name}`);
+          state.services.delete('server');
+          runService(state, 'server', 'Server', state.config.flashpointPath, {env: {
+            ...process.env,
+            'PATH': state.pathVar ?? process.env.PATH,
+          }}, serverInfo);
+        }
+      } else {
+        throw new Error(`Server '${server}' not found`);
+      }
+    }
+  };
 }

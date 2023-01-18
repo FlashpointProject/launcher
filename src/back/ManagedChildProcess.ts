@@ -4,7 +4,6 @@ import { Coerce } from '@shared/utils/Coerce';
 import { ChildProcess, spawn } from 'child_process';
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint-launcher';
-import { readFileSync } from 'fs';
 import { kill as processKill } from 'process';
 import * as psTree from 'ps-tree';
 import * as readline from 'readline';
@@ -108,6 +107,7 @@ export class ManagedChildProcess extends EventEmitter {
         this.autoRestartCount = 0;
       }
       // Spawn process
+      log.debug('Server', `Arguments: ${this.info.arguments.join('; ')}`);
       this.process = spawn(this.info.filename, this.info.arguments, { cwd: this.cwd, detached: this.detached, shell: this.shell , env: this.env});
       // Set start timestamp
       this.startTime = Date.now();

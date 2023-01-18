@@ -274,7 +274,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
  * @param curation Curation to launch
  */
 export async function launchCuration(curation: LoadedCuration, symlinkCurationContent: boolean,
-  skipLink: boolean, opts: Omit<LaunchGameOpts, 'game'|'addApps'>, onWillEvent:ApiEmitter<GameLaunchInfo>, onDidEvent: ApiEmitter<Game>) {
+  skipLink: boolean, opts: Omit<LaunchGameOpts, 'game'|'addApps'>, onWillEvent:ApiEmitter<GameLaunchInfo>, onDidEvent: ApiEmitter<Game>, serverOverride?: string) {
   if (!skipLink || !symlinkCurationContent) { await linkContentFolder(curation.folder, opts.fpPath, opts.isDev, opts.exePath, opts.htdocsPath, symlinkCurationContent); }
   curationLog(`Launching Curation ${curation.game.title}`);
   const game = await createGameFromCurationMeta(curation.folder, curation.game, [], new Date());
@@ -282,7 +282,7 @@ export async function launchCuration(curation: LoadedCuration, symlinkCurationCo
     ...opts,
     game: game,
   },
-  onWillEvent);
+  onWillEvent, serverOverride);
   await onDidEvent.fire(game);
 }
 

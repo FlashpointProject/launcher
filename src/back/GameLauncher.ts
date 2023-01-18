@@ -1,3 +1,5 @@
+import * as GameDataManager from '@back/game/GameDataManager';
+import * as GameManager from '@back/game/GameManager';
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
 import { AppProvider } from '@shared/extensions/interfaces';
@@ -7,13 +9,14 @@ import { fixSlashes, padStart, stringifyArray } from '@shared/Util';
 import { Coerce } from '@shared/utils/Coerce';
 import { ChildProcess, exec } from 'child_process';
 import { EventEmitter } from 'events';
-import * as GameManager from '@back/game/GameManager';
 import { AppPathOverride, GameData, ManagedChildProcess } from 'flashpoint-launcher';
+import * as minimist from 'minimist';
 import * as path from 'path';
+import { extractFullPromise } from '.';
 import { ApiEmitter } from './extensions/ApiEmitter';
 import { OpenExternalFunc, ShowMessageBoxFunc } from './types';
 import { getCwd, isBrowserOpts } from './util/misc';
-import * as GameDataManager from '@back/game/GameDataManager';
+import * as fs from 'fs-extra';
 
 const { str } = Coerce;
 
@@ -43,7 +46,10 @@ export type LaunchInfo = {
 }
 
 type LaunchBaseOpts = {
+  changeServer: (server?: string) => Promise<void>;
   fpPath: string;
+  dataPacksFolderPath: string;
+  sevenZipPath: string;
   htdocsPath: string;
   execMappings: ExecMapping[];
   lang: LangContainer;
@@ -61,7 +67,7 @@ type LaunchBaseOpts = {
 export namespace GameLauncher {
   const logSource = 'Game Launcher';
 
-  export function launchAdditionalApplication(opts: LaunchAddAppOpts): Promise<void> {
+  export async function launchAdditionalApplication(opts: LaunchAddAppOpts, serverOverride?: string): Promise<void> {
     // @FIXTHIS It is not possible to open dialog windows from the back process (all electron APIs are undefined).
     switch (opts.addApp.applicationPath) {
       case ':message:':
@@ -95,6 +101,10 @@ export namespace GameLauncher {
         const appArgs: string = opts.addApp.launchCommand;
         const useWine: boolean = process.platform != 'win32' && appPath.endsWith('.exe');
         const gamePath: string = path.isAbsolute(appPath) ? fixSlashes(appPath) : fixSlashes(path.join(opts.fpPath, appPath));
+        if (opts.addApp.parentGame.activeDataId) {
+          const gameData = await GameDataManager.findOne(opts.addApp.parentGame.activeDataId);
+          await handleGameDataParams(opts, serverOverride, gameData || undefined);
+        }
         const launchInfo: LaunchInfo = {
           gamePath: gamePath,
           gameArgs: appArgs,
@@ -121,14 +131,17 @@ export namespace GameLauncher {
   /**
    * Launch a game
    */
-  export async function launchGame(opts: LaunchGameOpts, onWillEvent: ApiEmitter<GameLaunchInfo>): Promise<void> {
+  export async function launchGame(opts: LaunchGameOpts, onWillEvent: ApiEmitter<GameLaunchInfo>, serverOverride?: string): Promise<void> {
     // Abort if placeholder (placeholders are not "actual" games)
     if (opts.game.placeholder) { return; }
     // Run all provided additional applications with "AutoRunBefore" enabled
     if (opts.game.addApps) {
       const addAppOpts: Omit<LaunchAddAppOpts, 'addApp'> = {
+        changeServer: opts.changeServer,
         fpPath: opts.fpPath,
         htdocsPath: opts.htdocsPath,
+        dataPacksFolderPath: opts.dataPacksFolderPath,
+        sevenZipPath: opts.sevenZipPath,
         native: opts.native,
         execMappings: opts.execMappings,
         lang: opts.lang,
@@ -242,6 +255,7 @@ export namespace GameLauncher {
       log.error('Launcher', 'Error Finding Game - ' + err.toString());
     }
     const gameData = opts.game.activeDataId ? await GameDataManager.findOne(opts.game.activeDataId) : null;
+    await handleGameDataParams(opts, serverOverride, gameData || undefined);
     const gameLaunchInfo: GameLaunchInfo = {
       game: opts.game,
       activeData: gameData,
@@ -465,4 +479,43 @@ function splitQuotes(str: string): string[] {
     splits.push(str.substring(start, str.length));
   }
   return splits;
+}
+
+async function handleGameDataParams(opts: LaunchBaseOpts, serverOverride?: string, gameData?: GameData) {
+  if (gameData) {
+    const mountParams = minimist(gameData.parameters?.split(' ') ?? []);
+    const extract = gameData.parameters?.startsWith('-extract') ?? false;
+    const extractFile = mountParams['extracted'];
+    const server = mountParams['server'];
+    if (extract) {
+      let alreadyExtracted = false;
+      if (extractFile) {
+        const filePath = path.join(opts.fpPath, opts.htdocsPath, extractFile);
+        alreadyExtracted = fs.existsSync(filePath);
+      }
+      if (!alreadyExtracted) {
+        // Extra game data to htdocs folder
+        const gameDataPath = path.join(opts.fpPath, opts.dataPacksFolderPath, gameData.path || '');
+        const tempPath = path.join(opts.fpPath, '.temp', 'extract');
+        await fs.ensureDir(tempPath);
+        const destPath = path.join(opts.fpPath, opts.htdocsPath);
+        log.debug('Launcher', `Extracting game data from "${gameDataPath}" to "${tempPath}"`);
+        await extractFullPromise([gameDataPath, tempPath, { $bin: opts.sevenZipPath }]);
+        const contentFolder = path.join(tempPath, 'content');
+        // Move contents of contentFolder to destPath
+        log.debug('Launcher', `Moving extracted game data from "${contentFolder}" to "${destPath}"`);
+        for (const file of await fs.readdir(contentFolder)) {
+          await fs.move(path.join(contentFolder, file), path.join(destPath, file), { overwrite: true });
+        }
+        // Remove temp dir
+        await fs.remove(tempPath);
+      } else {
+        log.debug('Launcher', 'Game data already extracted, skipping...');
+      }
+    }
+    await opts.changeServer(serverOverride ?? server);
+  } else {
+    // Ignore default server switch if launching curation
+    await opts.changeServer(serverOverride);
+  }
 }

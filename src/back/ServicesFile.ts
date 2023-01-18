@@ -53,10 +53,12 @@ export namespace ServicesFile {
       ...backProcessInfo,
       name: '',
       mad4fp: false,
+      aliases: [],
     };
 
     parser.prop('name',   v => parsed.name   = str(v));
     parser.prop('mad4fp', v => parsed.mad4fp = !!v, true);
+    parser.prop('aliases', true).arrayRaw(item => parsed.aliases.push(str(item)));
     return parsed;
   }
 
