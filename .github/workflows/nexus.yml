@@ -59,17 +59,6 @@ jobs:
       with:
         name: zip-artifact
         path: dist/
-    - name: Deploy to Nexus
-      uses: sonatype-nexus-community/nexus-repo-github-action@master
-      with:
-        serverUrl: https://nexus-dev.unstable.life
-        username: admin
-        password: ${{ secrets.NEXUS_PASSWORD }}
-        format: raw
-        repository: components
-        coordinates: directory=/
-        assets: filename=core-launcher.zip
-        filename: dist/Flashpoint.zip
     - name: Generate Metadata
       run: |
         sudo apt install libarchive-zip-perl -y
@@ -90,6 +79,17 @@ jobs:
           }' > metadata.json
         ls -la
         cat metadata.json
+    - name: Deploy to Nexus
+      uses: sonatype-nexus-community/nexus-repo-github-action@master
+      with:
+        serverUrl: https://nexus-dev.unstable.life
+        username: github
+        password: ${{ secrets.NEXUS_PASSWORD }}
+        format: raw
+        repository: components
+        coordinates: directory=/
+        assets: filename=core-launcher.zip
+        filename: dist/Flashpoint.zip
     - name: Deploy Metadata to Nexus
       uses: sonatype-nexus-community/nexus-repo-github-action@master
       with:
