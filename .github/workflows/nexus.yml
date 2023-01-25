@@ -68,6 +68,8 @@ jobs:
           --arg date     $(date +%s) \
           --arg download $(du -b dist/Flashpoint.zip | awk '{print $1}') \
           --arg install  $(7z l dist/Flashpoint.zip | tail -n 1 | awk '{print $3}') \
+          --arg path     "Launcher" \
+          --arg depends  "core-logos core-credits core-database core-server-gamezip core-server-legacy" \
           --arg hash     $(crc32 dist/Flashpoint.zip) \
           '{ 
             "title": $name,
@@ -75,6 +77,8 @@ jobs:
             "date-modified": $date,
             "download-size": $download,
             "install-size": $install,
+            "path": $path,
+            "depends": $depends,
             "crc32": $hash 
           }' > metadata.json
         ls -la
