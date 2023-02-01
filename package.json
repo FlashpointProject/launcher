@@ -102,7 +102,7 @@
     "chokidar": "^3.5.3",
     "coveralls": "3.1.0",
     "cross-env": "7.0.2",
-    "electron": "19.1.0",
+    "electron": "19.1.9",
     "electron-builder": "23.6.0",
     "eslint": "7.2.0",
     "eslint-plugin-only-warn": "1.0.2",
