@@ -182,6 +182,13 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
               {/* Show Extreme Games */}
               {((!this.props.preferencesData.disableExtremeGames)) ? (
                 <ConfigBoxCheckbox
+                  title={strings.disableExtreme}
+                  description={strings.disableExtremeDesc}
+                  checked={this.props.preferencesData.disableExtremeGames}
+                  onToggle={this.onDisableExtremeChange} />
+              ) : undefined }
+              {((!this.props.preferencesData.disableExtremeGames)) ? (
+                <ConfigBoxCheckbox
                   title={strings.extremeGames}
                   description={strings.extremeGamesDesc}
                   checked={this.props.preferencesData.browsePageShowExtreme}
@@ -716,7 +723,12 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       </div>
     );
   }
-
+  onDisableExtremeChange = (isChecked: boolean): void => {
+    updatePreferencesData({ disableExtremeGames: isChecked });
+    if (isChecked) {
+      updatePreferencesData({ browsePageShowExtreme: false });
+    }
+  }
   onShowExtremeChange = (isChecked: boolean): void => {
     updatePreferencesData({ browsePageShowExtreme: isChecked });
   }

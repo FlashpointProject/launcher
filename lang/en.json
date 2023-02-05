@@ -69,7 +69,9 @@
     "extApplications": "Application(s)",
     "saveAndRestart": "Save and Restart",
     "saveAndClose": "Save and Close",
-    "tagFilterGroupEditor": "Tag Filter Group Editor"
+    "tagFilterGroupEditor": "Tag Filter Group Editor",
+    "disableExtreme": "Disable Extreme Games",
+    "disableExtremeDesc": "Hides the option to edit Extreme tag filters, and itself."
   },
   "home": {
     "gotdHeader": "Game of the Day",
