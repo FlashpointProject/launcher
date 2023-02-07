@@ -822,7 +822,7 @@ export class App extends React.Component<AppProps> {
     updatePreferencesData({
       browsePageRightSidebarWidth: Math.min(targetWidth, maxWidth)
     });
-  }
+  };
 
   onGameLaunch = async (gameId: string): Promise<void> => {
     log.debug('Launcher', 'Launching Game - ' + gameId);
@@ -837,7 +837,7 @@ export class App extends React.Component<AppProps> {
         gameId
       });
     });
-  }
+  };
 
   onDeleteSelectedGame = async (): Promise<void> => {
     // Delete the game
@@ -855,7 +855,7 @@ export class App extends React.Component<AppProps> {
     });
     // Focus the game grid/list
     // this.focusGameGridOrList();
-  }
+  };
 
   onEditGame = (game: Partial<Game>) => {
     log.debug('Launcher', `Editing: ${JSON.stringify(game)}`);
@@ -867,7 +867,7 @@ export class App extends React.Component<AppProps> {
         currentGame: newGame
       });
     }
-  }
+  };
 
   onSaveEditClick = async (): Promise<void> => {
     if (!this.props.main.currentGame) {
@@ -880,7 +880,7 @@ export class App extends React.Component<AppProps> {
       isEditingGame: false
     });
     // this.focusGameGridOrList();
-  }
+  };
 
   onDiscardEditClick = (): void => {
     this.props.setMainState({
@@ -888,13 +888,13 @@ export class App extends React.Component<AppProps> {
       currentGame: this.props.main.currentGame,
     });
     // this.focusGameGridOrList();
-  }
+  };
 
   onStartEditClick = (): void => {
     if (this.props.preferencesData.enableEditing) {
       this.props.setMainState({ isEditingGame: true });
     }
-  }
+  };
 
   onEditPlaylistNotes = (text: string): void => {
     if (this.props.main.currentPlaylistEntry) {
@@ -905,7 +905,7 @@ export class App extends React.Component<AppProps> {
         }
       });
     }
-  }
+  };
 
   onUpdateActiveGameData = (activeDataOnDisk: boolean, activeDataId?: number): void => {
     if (this.props.main.currentGame) {
@@ -920,7 +920,7 @@ export class App extends React.Component<AppProps> {
         }
       });
     }
-  }
+  };
 
   onRemoveSelectedGameFromPlaylist = async (): Promise<void> => {
     // Remove game from playlist
@@ -947,12 +947,12 @@ export class App extends React.Component<AppProps> {
     function logError(text: string) {
       console.error('Unable to remove game from selected playlist - ' + text);
     }
-  }
+  };
 
   /** Deselect without clearing search (Right sidebar will search itself) */
   onRightSidebarDeselectPlaylist = (): void => {
     this.onSelectPlaylist(getBrowseSubPath(this.props.location.pathname), undefined);
-  }
+  };
 
   /** Replace the "current game" with the selected game (in the appropriate circumstances). */
   updateCurrentGame = queueOne(async (gameId?: string, playlistId?: string): Promise<void> => {
@@ -1160,7 +1160,7 @@ export class App extends React.Component<AppProps> {
 
   copyCrashLog = () => {
     clipboard.writeText(this.props.main.mainOutput || '');
-  }
+  };
 
   render() {
     const libraryPath = getBrowseSubPath(this.props.location.pathname);
@@ -1369,31 +1369,31 @@ export class App extends React.Component<AppProps> {
       gamesOrderBy: event.orderBy,
       gamesOrder: event.orderReverse,
     });
-  }
+  };
 
   private onToggleLeftSidebarClick = (): void => {
     updatePreferencesData({ browsePageShowLeftSidebar: !this.props.preferencesData.browsePageShowLeftSidebar });
-  }
+  };
 
   private onToggleRightSidebarClick = (): void => {
     updatePreferencesData({ browsePageShowRightSidebar: !this.props.preferencesData.browsePageShowRightSidebar });
-  }
+  };
 
   private onSelectGame = (gameId?: string): void => {
     this.props.dispatchMain({
       type: MainActionType.SET_SELECTED_GAME,
       gameId: gameId,
     });
-  }
+  };
 
   /** Set the selected playlist for a single "browse route" */
   private onSelectPlaylist = (library: string, playlistId: string | undefined): void => {
     this.setViewQuery(library, playlistId);
-  }
+  };
 
   private onDownloadUpgradeClick = (stage: UpgradeStage, strings: LangContainer) => {
     downloadAndInstallStage(stage, this.setUpgradeStageState, strings);
-  }
+  };
 
   private setUpgradeStageState = (id: string, data: Partial<UpgradeStageState>) => {
     const { upgrades } = this.props.main;
@@ -1407,7 +1407,7 @@ export class App extends React.Component<AppProps> {
         upgrades: newUpgrades,
       });
     }
-  }
+  };
 
   private onPlaylistDelete = (playlist: Playlist) => {
     if (playlist) {
@@ -1426,14 +1426,14 @@ export class App extends React.Component<AppProps> {
         });
       }
     }
-  }
+  };
 
   private onUpdatePlaylistById = (playlistId: string) => {
     const playlist = this.props.main.playlists.find(p => p.id === playlistId);
     if (playlist) {
       this.onUpdatePlaylist(playlist);
     }
-  }
+  };
 
   private onUpdatePlaylist = (playlist: Playlist) => {
     const state: Partial<Pick<MainState, 'playlistIconCache' | 'playlists' | 'views'>> = {};
@@ -1472,7 +1472,7 @@ export class App extends React.Component<AppProps> {
     }
 
     this.props.setMainState(state as any); // (This is very annoying to make typesafe)
-  }
+  };
 
   onSaveGame = async (game: Game, playlistEntry?: PlaylistGame): Promise<Game | null> => {
     const data = await window.Shared.back.request(BackIn.SAVE_GAME, game);
@@ -1481,7 +1481,7 @@ export class App extends React.Component<AppProps> {
     }
     this.setViewQuery(game.library);
     return data.game;
-  }
+  };
 
   onDeleteGame = (gameId: string): void => {
     const strings = this.props.main.lang;
@@ -1492,11 +1492,11 @@ export class App extends React.Component<AppProps> {
       log.error('Launcher', `Error deleting game: ${error}`);
       alert(strings.dialog.unableToDeleteGame + '\n\n' + error);
     });
-  }
+  };
 
   onQuickSearch = (search: string): void => {
     // @TODO
-  }
+  };
 
   cachePlaylistIcons(playlists: Playlist[]): void {
     Promise.all(playlists.map(p => (async () => {
@@ -1529,7 +1529,7 @@ export class App extends React.Component<AppProps> {
   private unmountBeforeClose = (): void => {
     this.props.dispatchMain({ type: MainActionType.STOP_RENDER });
     setTimeout(() => { window.close(); }, 100);
-  }
+  };
 
   /** Convert the platforms object into a flat array of platform names (with all duplicates removed). */
   private flattenPlatformsMemo = memoizeOne((platforms: Record<string, string[]>): string[] => {
@@ -1575,27 +1575,27 @@ export class App extends React.Component<AppProps> {
       start: start,
       count: count,
     });
-  }
+  };
 
   onOpenExportMetaEdit = (gameId: string): void => {
     this.props.dispatchMain({
       type: MainActionType.OPEN_META_EXPORTER,
       gameId: gameId,
     });
-  }
+  };
 
   onCancelExportMetaEdit = (): void => {
     this.props.dispatchMain({ type: MainActionType.CLOSE_META_EXPORTER });
-  }
+  };
 
   onConfirmExportMetaEdit = (data: MetaEditExporterConfirmData): void => {
     this.props.dispatchMain({ type: MainActionType.CLOSE_META_EXPORTER });
     window.Shared.back.send(BackIn.EXPORT_META_EDIT, data.id, data.properties);
-  }
+  };
 
   onToggleTaskBarOpen = (): void => {
     this.props.setMainState({ taskBarOpen: !this.props.main.taskBarOpen });
-  }
+  };
 
   rollRandomGames = (first?: boolean) => {
     const { randomGames, requestingRandomGames } = this.props.main;

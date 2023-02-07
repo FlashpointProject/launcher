@@ -375,7 +375,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
       const curState = await loadCurationArchive(filePath)
       .catch((error) => {
         log.error('Curate', `Failed to load curation archive! ${error.toString()}`);
-        state.socketServer.broadcast(BackOut.OPEN_ALERT, formatString(state.languageContainer['dialog'].failedToLoadCuration, error.toString()));
+        state.socketServer.broadcast(BackOut.OPEN_ALERT, formatString(state.languageContainer['dialog'].failedToLoadCuration, error.toString()) as string);
       });
       if (taskId) {
         state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {

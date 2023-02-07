@@ -97,13 +97,13 @@ export class TagList extends React.Component<TagListProps> {
     if (this.props.onTagSelect && !this.props.isLocked) {
       this.props.onTagSelect(tagId);
     }
-  }
+  };
 
   /** Find a tag's ID. */
   findTagId = (element: EventTarget): number | undefined => {
     const tag = findElementAncestor(element as Element, target => TagListItem.isElement(target), true);
     if (tag) { return TagListItem.getId(tag); }
-  }
+  };
 
   rowRenderer = (props: ListRowProps): React.ReactNode => {
     const { tags, selectedTagId } = this.props;
@@ -116,7 +116,7 @@ export class TagList extends React.Component<TagListProps> {
         isSelected={tag.id === selectedTagId}
         tag={tag} />
     ) : <div key={props.key} style={props.style} />;
-  }
+  };
 
   /** Update CSS Variables */
   updateCssVars() {

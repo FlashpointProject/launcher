@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { ConfigBox, ConfigBoxProps } from './ConfigBox';
 import { SelectItem } from './ConfigBoxSelect';
 import { Dropdown } from './Dropdown';

@@ -89,7 +89,7 @@ export function GameListItem(props: GameListItemProps) {
   }, [style, className, isDraggable, id, tagsStr, title, platformIcon]);
 }
 
-export namespace GameListItem { // eslint-disable-line no-redeclare
+export namespace GameListItem {
   /** ID of the attribute used to store the game's id. */
   export const idAttribute = 'data-game-id';
 

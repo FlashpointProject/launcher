@@ -60,7 +60,7 @@ export function withConfirmDialog<P>(Component: React.ComponentType<P>) {
             break;
         }
       }
-    }
+    };
 
     openConfirmDialog = (message: string, buttons: string[], cancelId?: number, confirmId?: number): Promise<number> => {
       return new Promise<number>((resolve, reject) => {
@@ -81,7 +81,7 @@ export function withConfirmDialog<P>(Component: React.ComponentType<P>) {
           }
         });
       });
-    }
+    };
 
     render() {
       return (

@@ -21,12 +21,12 @@ export class FileServer {
     }
 
     this.handlers.set(region.toLowerCase(), callback);
-  }
+  };
 
   public close = () => {
     this.server.close();
     this.handlers.clear();
-  }
+  };
 
   private onHandleRequest = (req: http.IncomingMessage, res: http.ServerResponse) => {
     const url = new URL(`http://example${req.url || ''}`);
@@ -43,7 +43,7 @@ export class FileServer {
       res.writeHead(404);
       res.end();
     }
-  }
+  };
 }
 
 export function serveFile(req: http.IncomingMessage, res: http.ServerResponse, filePath: string): void {

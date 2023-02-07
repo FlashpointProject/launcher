@@ -13,6 +13,8 @@ export type TagItemContainerProps = HTMLDivProps & {
    * @returns The tag's ID (or undefined if no tag was found).
    */
   findTagId: (element: EventTarget) => number | undefined;
+  // Overrides onTagSelect
+  onClick?: (event: React.MouseEvent<HTMLDivElement>) => void;
 };
 
 /**
@@ -36,7 +38,7 @@ export class TagItemContainer extends React.Component<TagItemContainerProps> {
     if (this.props.onTagSelect) {
       this.props.onTagSelect(event, this.findTagId(event.target));
     }
-  }
+  };
 
   /** Short-hand for "props.findGameId". */
   findTagId(target: EventTarget): number | undefined {

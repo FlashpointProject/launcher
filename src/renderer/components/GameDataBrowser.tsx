@@ -3,7 +3,6 @@ import { GameData } from '@database/entity/GameData';
 import { SourceData } from '@database/entity/SourceData';
 import { LangContext } from '@renderer/util/lang';
 import { BackIn } from '@shared/back/types';
-import { LangContainer } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
 import * as React from 'react';
 import { FloatingContainer } from './FloatingContainer';
@@ -12,7 +11,7 @@ import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
 
 class GameDataPaired extends GameData {
-  sourceData: SourceData[]
+  sourceData: SourceData[];
 
   constructor(gData: GameData, sourceData: SourceData[]) {
     super();
@@ -30,16 +29,13 @@ export type GameDataBrowserState = {
 export type GameDataBrowserProps = {
   game: Game;
   onClose: () => void;
-  onEditGame: (game: Partial<Game>) => void;
   onUpdateActiveGameData: (activeDataOnDisk: boolean, activeDataId?: number) => void;
   onForceUpdateGameData: () => void;
 }
 
-export interface GameDataBrowser {
-  context: LangContainer;
-}
-
 export class GameDataBrowser extends React.Component<GameDataBrowserProps, GameDataBrowserState> {
+  static contextType = LangContext;
+  declare context: React.ContextType<typeof LangContext>;
 
   constructor(props: GameDataBrowserProps) {
     super(props);
@@ -93,19 +89,19 @@ export class GameDataBrowser extends React.Component<GameDataBrowserProps, GameD
         });
       });
     }
-  }
+  };
 
   onUpdateTitle = (index: number, title: string) => {
     const newData = [...this.state.pairedData];
     newData[index].title = title;
     this.setState({ pairedData: newData });
-  }
+  };
 
   onUpdateParameters = (index: number, parameters: string) => {
     const newData = [...this.state.pairedData];
     newData[index].parameters = parameters;
     this.setState({ pairedData: newData });
-  }
+  };
 
   updateGameData = async (id: number) => {
     const gameData = await window.Shared.back.request(BackIn.GET_GAME_DATA, id);
@@ -117,7 +113,7 @@ export class GameDataBrowser extends React.Component<GameDataBrowserProps, GameD
         this.setState({ pairedData: newData });
       }
     }
-  }
+  };
 
   deleteGameData = async (id: number) => {
     await window.Shared.back.request(BackIn.DELETE_GAME_DATA, id);
@@ -130,7 +126,7 @@ export class GameDataBrowser extends React.Component<GameDataBrowserProps, GameD
       newPairedData.splice(idx, 1);
       this.setState({ pairedData: newPairedData });
     }
-  }
+  };
 
   render() {
     const strings = this.context;
@@ -208,6 +204,4 @@ export class GameDataBrowser extends React.Component<GameDataBrowserProps, GameD
       </FloatingContainer>
     );
   }
-
-  static contextType = LangContext;
 }

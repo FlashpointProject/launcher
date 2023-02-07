@@ -1,5 +1,3 @@
-import * as React from 'react';
-
 export type TitleBarProps = {
   /** Title to display. */
   title?: string;

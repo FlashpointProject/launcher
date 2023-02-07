@@ -5,16 +5,16 @@ import { Tag } from './Tag';
 export class TagAlias {
   @PrimaryGeneratedColumn()
   /** ID of the tag alias (unique identifier) */
-  id: number;
+    id: number;
 
   @Column({ nullable: true })
-  tagId?: number;
+    tagId?: number;
 
   @ManyToOne(type => Tag, t => t.aliases)
-  tag?: Tag;
+    tag?: Tag;
 
   @Index()
   @Column({collation: 'NOCASE', unique: true})
   /** Alias */
-  name: string;
+    name: string;
 }

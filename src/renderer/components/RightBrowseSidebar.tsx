@@ -784,7 +784,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
         }
       }
     }
-  }
+  };
 
   checkImageExistance(folder: typeof LOGOS | typeof SCREENSHOTS, id: string) {
     fetch(getGameImageURL(folder, id))
@@ -809,7 +809,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       if (this.launchCommandRef.current) { this.launchCommandRef.current.focus(); }
       event.preventDefault();
     }
-  }
+  };
 
   onLocalKeyDown = (event: React.KeyboardEvent) => {
     // Save changes
@@ -818,7 +818,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       this.props.onSaveGame();
       event.preventDefault();
     }
-  }
+  };
 
   onCurrentTagChange = (event: React.ChangeEvent<InputElement>) => {
     const newTag = event.currentTarget.value;
@@ -839,7 +839,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       currentTagInput: newTag,
       tagSuggestions: newSuggestions
     });
-  }
+  };
 
   onScreenshotContextMenu = (event: React.MouseEvent) => {
     const { currentGame } = this.props;
@@ -860,7 +860,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       event.preventDefault();
       openContextMenu(template);
     }
-  }
+  };
 
   setImageFactory = (folder: typeof LOGOS | typeof SCREENSHOTS) => async (data: ArrayBuffer) => {
     if (this.props.currentGame) {
@@ -905,7 +905,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
 
   onShowExtremeScreenshots = (): void => {
     this.setState({ showExtremeScreenshots: true });
-  }
+  };
 
   onThumbnailDrop = this.imageDrop(LOGOS);
   onScreenshotDrop = this.imageDrop(SCREENSHOTS);
@@ -944,7 +944,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
 
   onDeleteGameClick = (): void => {
     this.props.onDeleteSelectedGame();
-  }
+  };
 
   onAddAppLaunch(addAppId: string): void {
     window.Shared.back.send(BackIn.LAUNCH_ADDAPP, addAppId);
@@ -959,26 +959,26 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       newAddApps.splice(index, 1);
       this.props.onEditGame({ addApps: newAddApps });
     }
-  }
+  };
 
   onNewAddAppClick = (): void => {
     if (!this.props.currentGame)    { throw new Error('Unable to add a new AddApp. "currentGame" is missing.'); }
     const newAddApp = ModelUtils.createAddApp(this.props.currentGame);
     newAddApp.id = uuid();
     this.props.onEditGame({ addApps: [...this.props.currentGame.addApps, ...[newAddApp]] });
-  }
+  };
 
   onScreenshotClick = (): void => {
     this.setState({ showPreview: true });
-  }
+  };
 
   onScreenshotPreviewClick = (): void => {
     this.setState({ showPreview: false });
-  }
+  };
 
   onEditPlaylistNotes = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
     this.props.onEditPlaylistNotes(event.currentTarget.value);
-  }
+  };
 
   /** When a key is pressed while an input field is selected (except for multiline fields). */
   onInputKeyDown = (event: React.KeyboardEvent): void => {
@@ -986,13 +986,13 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     //   this.props.onSaveGame();
     //   event.preventDefault();
     // }
-  }
+  };
 
   onTagSelect = (tag: Tag, index: number): void => {
     const alias = tag.primaryAlias.name;
     const search = `tag:${wrapSearchTerm(alias)}`;
     this.props.onSearch(search);
-  }
+  };
 
   onAddTagSuggestion = (suggestion: TagSuggestion): void => {
     if (suggestion.tag.id) {
@@ -1013,7 +1013,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       tagSuggestions: [],
       currentTagInput: ''
     });
-  }
+  };
 
   onForceUpdateGameData = (): void => {
     if (this.props.currentGame && this.props.currentGame.activeDataId) {
@@ -1043,7 +1043,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       tagSuggestions: [],
       currentTagInput: ''
     });
-  }
+  };
 
   onRemoveTag = (tag: Tag, index: number): void => {
     const game = this.props.currentGame;
@@ -1052,7 +1052,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       newTags.splice(index, 1);
       this.props.onEditGame({ tags: newTags });
     }
-  }
+  };
 
   /** Create a callback for when a game field is clicked. */
   wrapOnTextClick<T extends PickType<Game, string>>(field: T): () => void {

@@ -47,12 +47,10 @@ type RightTagsSidebarState = {
   makeAliasWhenMerged: boolean;
 };
 
-export interface RightTagsSidebar {
-  context: LangContainer;
-}
-
 /** Sidebar on the right side of BrowsePage. */
 export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, RightTagsSidebarState> {
+  static contextType = LangContext;
+  declare context: React.ContextType<typeof LangContext>;
 
   launchCommandRef: React.RefObject<HTMLInputElement> = React.createRef();
 
@@ -233,7 +231,7 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
       if (this.launchCommandRef.current) { this.launchCommandRef.current.focus(); }
       event.preventDefault();
     }
-  }
+  };
 
   onLocalKeyDown = (event: React.KeyboardEvent) => {
     // Save changes
@@ -242,15 +240,15 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
       this.props.onSaveTag();
       event.preventDefault();
     }
-  }
+  };
 
   onDescriptionChange = (event: React.ChangeEvent<InputElement>) => {
     this.props.onEditTag({ description: event.currentTarget.value });
-  }
+  };
 
   onCurrentTagChange = (event: React.ChangeEvent<InputElement>) => {
     this.setState({ currentTagInput: event.currentTarget.value });
-  }
+  };
 
   onCurrentTagMergeChange = (event: React.ChangeEvent<InputElement>) => {
     const newTag = event.currentTarget.value;
@@ -274,7 +272,7 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
       currentTagMergeInput: newTag,
       tagMergeSuggestions: newSuggestions
     });
-  }
+  };
 
   onMergeTag = (event: React.MouseEvent) => {
     if (this.props.currentTag) {
@@ -292,7 +290,7 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
         this.setState({ currentTagMergeInput: '', makeAliasWhenMerged: false });
       });
     }
-  }
+  };
 
   onSelectTagMergeSuggestion = (suggestion: TagSuggestion): void => {
     // Clear out suggestions box
@@ -300,22 +298,22 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
       tagMergeSuggestions: [],
       currentTagMergeInput: suggestion.primaryAlias
     });
-  }
+  };
 
   onMakeAliasWhenMergedToggle = (checked: boolean): void => {
     this.setState({ makeAliasWhenMerged: checked });
-  }
+  };
 
   /** When a key is pressed while an input field is selected (except for multiline fields) */
   onInputKeyDown = (event: React.KeyboardEvent): void => {
     // if (event.key === 'Enter') { this.props.onSaveGame(); }
-  }
+  };
 
   onTagAliasSelect = (tagAlias: TagAlias, index: number): void => {
     if (!this.props.isLocked) {
       this.props.onEditTag({ primaryAlias: tagAlias, primaryAliasId: tagAlias.id });
     }
-  }
+  };
 
   onRemoveTagAlias = (tagAlias: TagAlias, index: number): void => {
     if (this.props.currentTag) {
@@ -326,7 +324,7 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
       }
       this.props.onEditTag({ aliases: aliases });
     }
-  }
+  };
 
   onAddTagAliasByString = (text: string): void => {
     if (text !== '') {
@@ -349,19 +347,17 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
     this.setState({
       currentTagInput: ''
     });
-  }
+  };
 
   onDeleteTagClick = (): void => {
     console.log('called');
     if (this.props.onDeleteTag) {
       this.props.onDeleteTag();
     }
-  }
+  };
 
   onSelectCategory = (text: string, index: number) => {
     const selected = this.props.tagCategories[index];
     this.props.onEditTag({ categoryId: selected.id });
-  }
-
-  static contextType = LangContext;
+  };
 }

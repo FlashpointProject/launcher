@@ -32,12 +32,11 @@ type TagAliasInputFieldState = {
 
 };
 
-export interface TagAliasInputField {
-  context: LangContainer;
-}
-
 /** An input element with a drop-down menu that can list any number of selectable and clickable text elements. */
 export class TagAliasInputField extends React.Component<TagAliasInputFieldProps, TagAliasInputFieldState> {
+  static contextType = LangContext;
+  declare context: React.ContextType<typeof LangContext>;
+
   rootRef: React.RefObject<HTMLDivElement> = React.createRef();
   contentRef: React.RefObject<HTMLDivElement> = React.createRef();
   inputRef: React.RefObject<InputElement> = React.createRef();
@@ -132,19 +131,19 @@ export class TagAliasInputField extends React.Component<TagAliasInputFieldProps,
         </div>
       );
     });
-  }
+  };
 
   onPrimaryAliasClick = (tagAlias: TagAlias, index: number) => {
     if (this.props.onTagAliasSelect) {
       this.props.onTagAliasSelect(tagAlias, index);
     }
-  }
+  };
 
   onDeleteAliasClick = (tagAlias: TagAlias, index: number) => {
     if (this.props.onTagAliasDelete) {
       this.props.onTagAliasDelete(tagAlias, index);
     }
-  }
+  };
 
   renderPrimaryButton({ confirm, extra }: ConfirmElementArgs<LangContainer['tags']>): JSX.Element {
     const className = 'tag-alias__buttons-primary';
@@ -181,7 +180,7 @@ export class TagAliasInputField extends React.Component<TagAliasInputFieldProps,
         }
       }
     }
-  }
+  };
 
   onListItemKeyDown = (event: React.KeyboardEvent): void => {
     if (!this.props.disabled) {
@@ -208,13 +207,13 @@ export class TagAliasInputField extends React.Component<TagAliasInputFieldProps,
         }
       }
     }
-  }
+  };
 
   onInputChange = (event: React.ChangeEvent<InputElement>): void => {
     if (!this.props.disabled) {
       if (this.props.onChange) { this.props.onChange(event); }
     }
-  }
+  };
 
   onInputKeyDown = (event: React.KeyboardEvent<InputElement>): void => {
     if (!this.props.disabled) {
@@ -233,7 +232,7 @@ export class TagAliasInputField extends React.Component<TagAliasInputFieldProps,
       // Relay event
       if (this.props.onKeyDown) { this.props.onKeyDown(event); }
     }
-  }
+  };
 
   /**
    * Call the "ref" property functions.
@@ -244,8 +243,6 @@ export class TagAliasInputField extends React.Component<TagAliasInputFieldProps,
       this.props.inputRef(this.inputRef.current || null);
     }
   }
-
-  static contextType = LangContext;
 }
 
 /** Get the index of an item element (or -1 if index was not found). */

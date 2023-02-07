@@ -17,6 +17,13 @@ export type GameItemContainerProps = HTMLDivProps & {
    * @returns The game's ID (or undefined if no game was found).
    */
   findGameId: (element: EventTarget) => string | undefined;
+  // TODO: Check if needed for removal
+  // Override functions for the...overrides?
+  onClick?:       (event: React.MouseEvent<HTMLDivElement>) => void;
+  onDoubleClick?: (event: React.MouseEvent<HTMLDivElement>) => void;
+  onContextMenu?: (event: React.MouseEvent<HTMLDivElement>) => void;
+  onDragStart?:   (event: React.DragEvent<HTMLDivElement>) => void;
+  onDragEnd?:     (event: React.DragEvent<HTMLDivElement>) => void;
 };
 
 /**
@@ -44,7 +51,7 @@ export class GameItemContainer extends React.Component<GameItemContainerProps> {
     if (this.props.onGameSelect) {
       this.props.onGameSelect(event, this.findGameId(event.target));
     }
-  }
+  };
 
   onDoubleClick = (event: React.MouseEvent<HTMLDivElement>) => {
     if (this.props.onDoubleClick) { this.props.onDoubleClick(event); }
@@ -52,7 +59,7 @@ export class GameItemContainer extends React.Component<GameItemContainerProps> {
       const gameId = this.findGameId(event.target);
       if (gameId !== undefined) { this.props.onGameLaunch(event, gameId); }
     }
-  }
+  };
 
   onContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
     if (this.props.onContextMenu) { this.props.onContextMenu(event); }
@@ -60,7 +67,7 @@ export class GameItemContainer extends React.Component<GameItemContainerProps> {
       const gameId = this.findGameId(event.target);
       if (gameId !== undefined) { this.props.onGameContextMenu(event, gameId); }
     }
-  }
+  };
 
   onDragStart = (event: React.DragEvent<HTMLDivElement>) => {
     if (this.props.onDragStart) { this.props.onDragStart(event); }
@@ -68,7 +75,7 @@ export class GameItemContainer extends React.Component<GameItemContainerProps> {
       const gameId = this.findGameId(event.target);
       if (gameId !== undefined) { this.props.onGameDragStart(event, gameId); }
     }
-  }
+  };
 
   onDragEnd = (event: React.DragEvent<HTMLDivElement>) => {
     if (this.props.onDragEnd) { this.props.onDragEnd(event); }
@@ -76,7 +83,7 @@ export class GameItemContainer extends React.Component<GameItemContainerProps> {
       const gameId = this.findGameId(event.target);
       if (gameId !== undefined) { this.props.onGameDragEnd(event, gameId); }
     }
-  }
+  };
 
   /** Short-hand for "props.findGameId". */
   findGameId(target: EventTarget): string | undefined {

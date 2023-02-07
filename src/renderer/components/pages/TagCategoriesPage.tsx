@@ -5,7 +5,6 @@ import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
 import { findElementAncestor, gameScaleSpan } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
 import { BackIn } from '@shared/back/types';
-import { LangContainer } from '@shared/lang';
 import { deepCopy, getRandomHexColor } from '@shared/Util';
 import * as React from 'react';
 import { ResizableSidebar } from '../ResizableSidebar';
@@ -29,12 +28,9 @@ export type TagCategoriesPageState = {
   isEditing: boolean;
 }
 
-export interface TagCategoriesPage {
-  context: LangContainer;
-}
-
 export class TagCategoriesPage extends React.Component<TagCategoriesPageProps, TagCategoriesPageState> {
-
+  static contextType = LangContext;
+  declare context: React.ContextType<typeof LangContext>;
 
   constructor(props: TagCategoriesPageProps) {
     super(props);
@@ -85,31 +81,31 @@ export class TagCategoriesPage extends React.Component<TagCategoriesPageProps, T
     if (categoryId) {
       this.updateCurrentCategory(categoryId);
     }
-  }
+  };
 
   /** Find a tag's ID. */
   findTagId = (element: EventTarget): number | undefined => {
     const tag = findElementAncestor(element as Element, target => TagListItem.isElement(target), true);
     if (tag) { return TagListItem.getId(tag); }
-  }
+  };
 
   onEditClick = () => {
     this.setState({ isEditing: !this.state.isEditing });
-  }
+  };
 
   onDiscardClick = () => {
     this.setState({
       currentCategory: deepCopy(this.state.originalCategory),
       isEditing: false
     });
-  }
+  };
 
   onEditCategory = (category: Partial<TagCategory>) => {
     if (this.state.currentCategory) {
       const newCategory = {...deepCopy(this.state.currentCategory), ...category};
       this.setState({ currentCategory: newCategory });
     }
-  }
+  };
 
   onSaveCategory = async () => {
     this.setState({
@@ -125,7 +121,7 @@ export class TagCategoriesPage extends React.Component<TagCategoriesPageProps, T
         }
       });
     }
-  }
+  };
 
   createNewCategory = () => {
     const name = 'New Category ' + this.props.tagCategories.reduce((big, cur) => {
@@ -143,7 +139,7 @@ export class TagCategoriesPage extends React.Component<TagCategoriesPageProps, T
 
       window.Shared.back.send(BackIn.SAVE_TAG_CATEGORY, newCat);
     }
-  }
+  };
 
   updateCurrentCategory = (categoryId: number) => {
     window.Shared.back.request(BackIn.GET_TAG_CATEGORY_BY_ID, categoryId)
@@ -155,7 +151,7 @@ export class TagCategoriesPage extends React.Component<TagCategoriesPageProps, T
         });
       }
     });
-  }
+  };
 
   deleteCurrentCategory = () => {
     if (this.state.selectedCategoryId) {
@@ -167,9 +163,7 @@ export class TagCategoriesPage extends React.Component<TagCategoriesPageProps, T
         }
       });
     }
-  }
-
-  static contextType = LangContext;
+  };
 }
 
 function calcScale(defHeight: number, scale: number): number {

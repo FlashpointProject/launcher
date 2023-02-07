@@ -191,7 +191,7 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
         }
       }
     }
-  }
+  };
 
   onSuggestionItemClick = (suggestion: TagSuggestion): void => {
     if (!this.props.disabled) {
@@ -199,17 +199,17 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
         this.props.onTagSuggestionSelect(suggestion);
       }
     }
-  }
+  };
 
   onInputChange = (event: React.ChangeEvent<InputElement>): void => {
     if (!this.props.disabled) {
       if (this.props.onChange) { this.props.onChange(event); }
     }
-  }
+  };
 
   onInputFieldClick = (event: React.MouseEvent): void => {
     this.setState({ expanded: true });
-  }
+  };
 
   onSuggestionKeyDown = (event: React.KeyboardEvent<HTMLDivElement>): void => {
     const { key } = event;
@@ -238,7 +238,7 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
       }
       event.preventDefault();
     }
-  }
+  };
 
   onInputKeyDown = (event: React.KeyboardEvent<InputElement>): void => {
     this.setState({ expanded: true });
@@ -262,7 +262,7 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
       // Relay event
       if (this.props.onKeyDown) { this.props.onKeyDown(event); }
     }
-  }
+  };
 
   onGlobalMouseDown = (event: MouseEvent) => {
     if (this.state.expanded && !event.defaultPrevented) {
@@ -270,7 +270,7 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
         this.setState({ expanded: false });
       }
     }
-  }
+  };
 
   onGlobalKeyDown = (event: KeyboardEvent): void => {
     if (this.state.expanded && event.key === 'Escape') {
@@ -278,7 +278,7 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
       if (!this.inputRef.current) { throw new Error('input field is missing'); }
       this.inputRef.current.focus();
     }
-  }
+  };
 
   /**
    * Call the "ref" property functions.

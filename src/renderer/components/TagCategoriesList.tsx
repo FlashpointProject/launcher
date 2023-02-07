@@ -93,13 +93,13 @@ export class TagCategoriesList extends React.Component<TagCategoriesProps> {
     if (this.props.onCategorySelect) {
       this.props.onCategorySelect(tagId);
     }
-  }
+  };
 
   /** Find a tag's ID. */
   findTagId = (element: EventTarget): number | undefined => {
     const tag = findElementAncestor(element as Element, target => TagListItem.isElement(target), true);
     if (tag) { return TagListItem.getId(tag); }
-  }
+  };
 
   rowRenderer = (props: ListRowProps): React.ReactNode => {
     const { categories, selectedCategoryId } = this.props;
@@ -111,7 +111,7 @@ export class TagCategoriesList extends React.Component<TagCategoriesProps> {
         isSelected={category.id === selectedCategoryId}
         category={category} />
     ) : <div key={props.key} style={props.style} />;
-  }
+  };
 
   /** Update CSS Variables */
   updateCssVars() {

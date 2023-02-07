@@ -1,5 +1,4 @@
 import { Playlist } from '@database/entity/Playlist';
-import { LangContainer } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
 import * as React from 'react';
 import { WithPreferencesProps } from '../containers/withPreferences';
@@ -41,12 +40,11 @@ type OwnProps = {
 
 export type LeftBrowseSidebarProps = OwnProps & WithPreferencesProps;
 
-export interface LeftBrowseSidebar {
-  context: LangContainer;
-}
-
 /** Sidebar on the left side of BrowsePage. */
 export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps> {
+  static contextType = LangContext;
+  declare context: React.ContextType<typeof LangContext>;
+
   render() {
     const allStrings = this.context;
     const strings = this.context.browse;
@@ -158,7 +156,7 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps> {
       renderItem(this.props.currentPlaylist, true);
     }
     return elements;
-  })
+  });
 
   onPlaylistItemDragOver = (event: React.DragEvent): void => {
     const types = event.dataTransfer.types;
@@ -167,7 +165,5 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps> {
       event.dataTransfer.dropEffect = 'copy';
       event.preventDefault();
     }
-  }
-
-  static contextType = LangContext;
+  };
 }

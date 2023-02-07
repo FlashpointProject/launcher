@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { ConfigBox, ConfigBoxProps } from './ConfigBox';
 import { InputField, InputFieldProps } from './InputField';
 

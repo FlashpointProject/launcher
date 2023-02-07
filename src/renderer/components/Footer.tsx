@@ -1,7 +1,6 @@
 import { WithMainStateProps } from '@renderer/containers/withMainState';
 import { MainActionType } from '@renderer/store/main/enums';
 import { parseBrowsePageLayout, stringifyBrowsePageLayout } from '@shared/BrowsePageLayout';
-import { LangContainer } from '@shared/lang';
 import { getLibraryItemTitle } from '@shared/library/util';
 import { updatePreferencesData } from '@shared/preferences/util';
 import * as React from 'react';
@@ -12,12 +11,11 @@ import { LangContext } from '../util/lang';
 
 export type FooterProps = RouteComponentProps & WithPreferencesProps & WithMainStateProps;
 
-export interface Footer {
-  context: LangContainer;
-}
-
 /** The footer that is always visible at the bottom of the main window. */
 export class Footer extends React.Component<FooterProps> {
+  static contextType = LangContext;
+  declare context: React.ContextType<typeof LangContext>;
+
   static scaleSliderMax = 1000;
   /** Reference to the scale slider. */
   scaleSliderRef: React.RefObject<HTMLInputElement> = React.createRef();
@@ -45,12 +43,12 @@ export class Footer extends React.Component<FooterProps> {
           {/* Game Count */}
           <div className='footer__game-count'>
             <p>{`${strings.total}: ${this.props.main.gamesTotal}`}</p>
-            { currentLabel && strings.searchResults ? (
+            {currentLabel && strings.searchResults ? (
               <>
                 <p>|</p>
                 <p>{`${strings.searchResults}: ${gamesTotal > -1 ? gamesTotal : this.context.misc.searching}`}</p>
               </>
-            ) : undefined }
+            ) : undefined}
           </div>
         </div>
         {/* Right Side */}
@@ -58,7 +56,7 @@ export class Footer extends React.Component<FooterProps> {
           <div>
             <div className='footer__right__inner'>
               {/* New Game */}
-              { this.props.preferencesData.enableEditing ? (
+              {this.props.preferencesData.enableEditing ? (
                 <div className='footer__wrap'>
                   <div className='simple-center'>
                     <input
@@ -68,7 +66,7 @@ export class Footer extends React.Component<FooterProps> {
                       className='footer__new-game simple-button simple-center__vertical-inner' />
                   </div>
                 </div>
-              ) : undefined }
+              ) : undefined}
               {/* Layout Selector */}
               <div className='footer__wrap'>
                 <div>
@@ -115,17 +113,17 @@ export class Footer extends React.Component<FooterProps> {
   onNewGameClick = () => {
     // @TODO Replace this with a proper action (it should both change the location and state of the current or most recent view)
     this.props.dispatchMain({ type: MainActionType.CLICK_NEW_GAME });
-  }
+  };
 
   onScaleSliderChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     updatePreferencesData({ browsePageGameScale: +event.currentTarget.value / Footer.scaleSliderMax });
-  }
+  };
 
   onLayoutChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     const value = parseBrowsePageLayout(event.target.value);
     if (value === undefined) { throw new Error(`Layout selector option has an invalid value (${event.target.value})`); }
     updatePreferencesData({ browsePageLayout: value });
-  }
+  };
 
   onGlobalKeydown = (event: KeyboardEvent): void => {
     const scaleDif = 0.1; // How much the scale should change per increase/decrease
@@ -141,7 +139,7 @@ export class Footer extends React.Component<FooterProps> {
       this.setScaleSliderValue(scale - scaleDif);
       event.preventDefault();
     }
-  }
+  };
 
   /**
    * Set the value of the scale slider.
@@ -154,6 +152,4 @@ export class Footer extends React.Component<FooterProps> {
       updatePreferencesData({ browsePageGameScale: scale });
     }
   }
-
-  static contextType = LangContext;
 }

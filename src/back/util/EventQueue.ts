@@ -1,13 +1,12 @@
 /** Event functions accepted by EventQueue. */
 type EventFunction = (() => void) | (() => Promise<any>) | Promise<any>;
 
-export interface EventQueue {
-  push(event: EventFunction, returnPromise: true): Promise<void>;
-  push(event: EventFunction, returnPromise?: false): void;
+interface IEventQueue {
+  push(event: EventFunction, returnPromise?: boolean): Promise<void> | void;
 }
 
 /** Executes a queue of asynchronous functions, one at a time. */
-export class EventQueue {
+export class EventQueue implements IEventQueue {
   /** Max size of queue (Unlimited if undefined) */
   private maxSize?: number;
   /** Queue of functions. */

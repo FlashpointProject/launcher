@@ -177,11 +177,11 @@ class _GameList extends React.Component<GameListProps> {
         isSelected={game.id === selectedGameId}
         isDragged={game.id === draggedGameId} />
     ) : <div key={props.key} style={props.style} />;
-  }
+  };
 
   onRowsRendered = (info: RowsRenderedInfo) => {
     this.updateView(info.overscanStartIndex, info.overscanStopIndex);
-  }
+  };
 
   /** When a key is pressed (while the list, or one of its children, is selected). */
   onKeyPress = (event: React.KeyboardEvent): void => {
@@ -190,32 +190,32 @@ class _GameList extends React.Component<GameListProps> {
         this.props.onGameLaunch(this.props.selectedGameId);
       }
     }
-  }
+  };
 
   /** When a row is clicked. */
   onGameSelect = (event: React.MouseEvent, gameId: string | undefined): void => {
     this.props.onGameSelect(gameId);
-  }
+  };
 
   /** When a row is double clicked. */
   onGameLaunch = (event: React.MouseEvent, gameId: string): void => {
     this.props.onGameLaunch(gameId);
-  }
+  };
 
   /** When a row is right clicked. */
   onGameContextMenu = (event: React.MouseEvent<HTMLDivElement>, gameId: string): void => {
     this.props.onContextMenu(gameId);
-  }
+  };
 
   /** When a row is starting to be dragged. */
   onGameDragStart = (event: React.DragEvent, gameId: string): void => {
     this.props.onGameDragStart(event, gameId);
-  }
+  };
 
   /** When a row is ending being dragged. */
   onGameDragEnd = (event: React.DragEvent, gameId: string): void => {
     this.props.onGameDragEnd(event, gameId);
-  }
+  };
 
   /** When a row is selected. */
   onScrollToChange = (params: ScrollIndices): void => {
@@ -226,13 +226,13 @@ class _GameList extends React.Component<GameListProps> {
       const game = this.props.games[params.scrollToRow];
       if (game) { this.props.onGameSelect(game.id); }
     }
-  }
+  };
 
   /** Find a game's ID. */
   findGameId = (element: EventTarget): string | undefined => {
     const game = findElementAncestor(element as Element, target => GameListItem.isElement(target), true);
     if (game) { return GameListItem.getId(game); }
-  }
+  };
 
   /** Update CSS Variables */
   updateCssVars() {

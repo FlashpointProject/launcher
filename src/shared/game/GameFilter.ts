@@ -67,7 +67,6 @@ export function parseSearchText(text: string): ParsedSearch {
             if (inverse) { parsed.genericBlacklist.push(phrase); }
             else         { parsed.genericWhitelist.push(phrase); }
           }
-          continue;
         } else {
           parsed.genericWhitelist.push(phrase);
         }

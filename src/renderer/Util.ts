@@ -131,8 +131,6 @@ export function getGameImagePath(folderName: string, gameId: string): string {
   );
 }
 
-type IGamePathInfo = Pick<Game, 'platform' | 'launchCommand'>;
-
 /* istanbul ignore next */
 export async function getGamePath(game: Game, fpPath: string, htdocsPath: string, dataPacksPath: string): Promise<string | undefined> {
   // Check for GameData first

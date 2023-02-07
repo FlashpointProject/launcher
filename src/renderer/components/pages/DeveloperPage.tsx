@@ -1,14 +1,12 @@
 /* eslint-disable react/no-unused-state */
 import { chunkArray } from '@shared/utils/misc';
 import { Game } from '@database/entity/Game';
-import { Playlist } from '@database/entity/Playlist';
 import * as remote from '@electron/remote';
 import { getGamePath } from '@renderer/Util';
 import { BackIn, BackOut } from '@shared/back/types';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { DevScript, ExtensionContribution } from '@shared/extensions/interfaces';
 import { ExecMapping, IService } from '@shared/interfaces';
-import { LangContainer } from '@shared/lang';
 import { Legacy_PlatformFileIterator } from '@shared/legacy/GameManager';
 import { stringifyMetaValue } from '@shared/MetaEdit';
 import * as fs from 'fs-extra';
@@ -30,8 +28,6 @@ type Map<K extends string, V> = { [key in K]: V };
 
 export type DeveloperPageProps = {
   devConsole: string;
-  platforms: string[];
-  playlists: Playlist[];
   devScripts: ExtensionContribution<'devScripts'>[];
   services: IService[];
 };
@@ -41,16 +37,15 @@ type DeveloperPageState = {
   text: string;
 };
 
-export interface DeveloperPage {
-  context: LangContainer;
-}
-
 /**
  * Page made for developers or advanced users only.
  * It has various "tools" that the user can run to gather information about the current Flashpoint folders data (games, playlists, images etc.), or edit that data on mass.
  * New tools are added as needed.
  */
 export class DeveloperPage extends React.Component<DeveloperPageProps, DeveloperPageState> {
+  static contextType = LangContext;
+  declare context: React.ContextType<typeof LangContext>;
+
   constructor(props: DeveloperPageProps) {
     super(props);
     this.state = {
@@ -191,26 +186,26 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
 
   onServiceUpdate: Parameters<typeof window.Shared.back.registerAny>[0] = (event, type, data) => {
     if (type === BackOut.SERVICE_CHANGE || type === BackOut.SERVICE_REMOVED) { this.forceUpdate(); }
-  }
+  };
 
   onCheckMissingImagesClick = async (): Promise<void> => {
     // @TODO
-  }
+  };
 
   onCheckGameIDsClick = async (): Promise<void> => {
     const res = await fetchAllGames();
     this.setState({ text: checkGameIDs(res) });
-  }
+  };
 
   onCheckGameNamesClick = async (): Promise<void> => {
     const res = await fetchAllGames();
     this.setState({ text: checkGameTitles(res) });
-  }
+  };
 
   onCheckGameFieldsClick = async (): Promise<void> => {
     const res = await fetchAllGames();
     this.setState({ text: checkGameEmptyFields(res) });
-  }
+  };
 
   // onCheckPlaylistsClick = async (): Promise<void> => {
   //   const playlists = this.props.playlists;
@@ -221,7 +216,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
   onCheckFileLocation = async (): Promise<void> => {
     const res = await fetchAllGames();
     this.setState({ text: await checkFileLocation(res) });
-  }
+  };
 
   onCheckMissingExecMappings = async (): Promise<void> => {
     const [games, execMappings] = await Promise.all([
@@ -232,19 +227,19 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     if (games) {
       this.setState({ text: checkMissingExecMappings(games, execMappings) });
     }
-  }
+  };
 
   onCreateMissingFoldersClick = (): void => {
     setTimeout(async () => {
       this.setState({ text: await createMissingFolders() });
     }, 0);
-  }
+  };
 
   onImportLegacyPlatformsClick = (): void => {
     setTimeout(async () => {
       importLegacyPlatforms(path.join(window.Shared.config.data.flashpointPath, window.Shared.preferences.data.platformFolderPath), (text) => this.setState({ text: text }));
     });
-  }
+  };
 
   onImportLegacyPlaylistsClick = () : void => {
     setTimeout(async () => {
@@ -253,7 +248,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
         this.setState({ text: `${num} Playlists Imported!` });
       });
     });
-  }
+  };
 
   onDeleteAllPlaylistsClick = () : void => {
     setTimeout(async () => {
@@ -261,7 +256,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
       await window.Shared.back.request(BackIn.DELETE_ALL_PLAYLISTS);
       this.setState({ text: 'Deleted all playlists!' });
     });
-  }
+  };
 
   onFixPrimaryAliases = () : void => {
     setTimeout(async () => {
@@ -270,7 +265,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
         this.setState({ text: `${num} Tag Aliases Fixed!`});
       });
     });
-  }
+  };
 
   onFixCommaTags = () : void => {
     setTimeout(async () => {
@@ -279,7 +274,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
         this.setState({ text: 'Tags Fixed!'});
       });
     });
-  }
+  };
 
   onExportTagsClick = () : void => {
     setTimeout(async () => {
@@ -291,7 +286,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
         this.setState({ text: `Tags Not Exported\nERROR - ${error}`});
       });
     });
-  }
+  };
 
   onImportTagsClick = () : void => {
     setTimeout(async () => {
@@ -303,7 +298,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
         this.setState({ text: `Tags Not Imported\nERROR - ${error}`});
       });
     });
-  }
+  };
 
   onUpdateTagsStr = (): void => {
     setTimeout(async () => {
@@ -330,7 +325,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
       }
       this.setState({ text: text + '\n' + createTextBarProgress(processed, games.length) + '\n' + `Finished, updated ${processed} games.`});
     });
-  }
+  };
 
   onMassImportGameData = (): void => {
     const files = window.Shared.showOpenDialogSync({
@@ -378,7 +373,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
         this.setState({ text: text + `FINISHED - ${failures} Failures, ${files.length - failures} Successes\n` });
       });
     }
-  }
+  };
 
   onMigrateExtremeGamesClick = (): void => {
     setTimeout(async () => {
@@ -389,6 +384,10 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
         return `Progress: [${'#'.repeat(filledSegments)}${'-'.repeat(30 - filledSegments)}] (${current}/${total})`;
       };
       const extremeTag = await window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, 'LEGACY-Extreme');
+      if (!extremeTag) {
+        this.setState({ text: text + '\nError creating or finding legacy extreme tag'});
+        return;
+      }
       const games = await fetchAllGames();
       let processed = 0;
       let edited = 0;
@@ -412,7 +411,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
       }
       this.setState({ text: text + '\n' + createTextBarProgress(processed, games.length) + '\n' + `Finished, converted ${edited} games. Please restart the Launcher.`});
     });
-  }
+  };
 
   onImportMetaEdits = (): void => {
     setTimeout(async () => {
@@ -494,8 +493,6 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
       await window.Shared.back.request(BackIn.RUN_COMMAND, script.command);
     }, 0);
   }
-
-  static contextType = LangContext;
 }
 
 function checkGameIDs(games: Game[]): string {

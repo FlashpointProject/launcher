@@ -1,4 +1,3 @@
-import { LangContainer } from '@shared/lang';
 import { gameOrderByOptions } from '@shared/order/util';
 import { GameOrderBy, GameOrderReverse, Game } from 'flashpoint-launcher';
 import * as React from 'react';
@@ -18,10 +17,6 @@ export type GameOrderChangeEvent = {
   orderBy: GameOrderBy;
   orderReverse: GameOrderReverse;
 };
-
-export interface GameOrder {
-  context: LangContainer;
-}
 
 /**
  * Two drop down lists, the first for selecting what to order the games by, and
@@ -63,7 +58,7 @@ export class GameOrder extends React.Component<GameOrderProps> {
     } else {
       console.error(`Failed to set "Order By". Value is invalid! (value: "${event.target.value}")`);
     }
-  }
+  };
 
   onOrderReverseChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     if (isOrderReverse(event.target.value)) {
@@ -71,7 +66,7 @@ export class GameOrder extends React.Component<GameOrderProps> {
     } else {
       console.error(`Failed to set "Order Reverse". Value is invalid! (value: "${event.target.value}")`);
     }
-  }
+  };
 
   updateOrder(data: Partial<GameOrderChangeEvent>): void {
     if (this.props.onChange) {

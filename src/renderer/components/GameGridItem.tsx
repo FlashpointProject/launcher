@@ -75,7 +75,7 @@ export function GameGridItem(props: GameGridItemProps) {
   }, [style, className, isDraggable, id, title, platformIcon, thumbnail]);
 }
 
-export namespace GameGridItem { // eslint-disable-line no-redeclare
+export namespace GameGridItem {
   /** ID of the attribute used to store the game's id. */
   export const idAttribute = 'data-game-id';
 

@@ -1139,7 +1139,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         const existingTag = await TagManager.findTag(bareTag.primaryAlias);
         if (existingTag) {
           // TODO: Detect alias collisions
-          continue;
         } else {
           await TagManager.createTag(bareTag.primaryAlias, categories[bareTag.categoryId].name, bareTag.aliases.filter(a => a !== bareTag.primaryAlias));
           res += 1;
@@ -1201,7 +1200,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         })
         .catch(() => {
           state.socketServer.broadcast(BackOut.CURATE_SELECT_LOCK, curation.folder, false);
-          const alertString = formatString(state.languageContainer.dialog.errorImportingCuration, curation.folder);
+          const alertString = formatString(state.languageContainer.dialog.errorImportingCuration, curation.folder) as string;
           state.socketServer.broadcast(BackOut.OPEN_ALERT, alertString);
         });
         state.queries = {};
@@ -1539,7 +1538,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       }, 200))
       .catch((error) => {
         log.error('Curate', `Failed to load curation archive! ${error.toString()}`);
-        state.socketServer.broadcast(BackOut.OPEN_ALERT, formatString(state.languageContainer['dialog'].failedToLoadCuration, error.toString()));
+        state.socketServer.broadcast(BackOut.OPEN_ALERT, formatString(state.languageContainer['dialog'].failedToLoadCuration, error.toString())  as string);
       });
       taskProgress.setStageProgress(1, 'Extracted');
     }

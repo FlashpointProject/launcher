@@ -1,10 +1,8 @@
-import * as React from 'react';
 import { SimpleButton } from './SimpleButton';
 
 export type ConfirmDialogProps = {
   message: string;
   buttons: string[];
-  cancelId?: number;
   onResult: (result: number) => void;
 }
 

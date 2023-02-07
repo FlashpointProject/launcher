@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
 
-export interface TaskProgress {
+interface ITaskProgress {
   on(event: 'done', listener: (text: string) => void): this;
   emit(event: 'done', text: string): boolean;
   on(event: 'progress', listener: (text: string, done: number) => void): this;
@@ -11,7 +11,7 @@ export interface TaskProgress {
   done(stageTask: string): void;
 }
 
-export class TaskProgress extends EventEmitter {
+export class TaskProgress extends EventEmitter implements ITaskProgress {
   private _stageCount: number;
   private _stage: number;
   private _stageTask: string;

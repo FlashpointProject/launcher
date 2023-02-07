@@ -42,7 +42,7 @@ export class ConfigFlashpointPathInput extends React.Component<ConfigFlashpointP
 
   onInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     this.setInput(event.target.value);
-  }
+  };
 
   onBrowseClick = (): void => {
     // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
@@ -51,7 +51,7 @@ export class ConfigFlashpointPathInput extends React.Component<ConfigFlashpointP
       properties: ['openDirectory'],
     });
     if (filePaths) { this.setInput(filePaths[0]); }
-  }
+  };
 
   setInput(input: string): void {
     if (this.props.onInputChange) { this.props.onInputChange(input || ''); }

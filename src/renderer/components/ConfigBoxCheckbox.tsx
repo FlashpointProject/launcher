@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { CheckBox, CheckBoxProps } from './CheckBox';
 import { ConfigBox, ConfigBoxProps } from './ConfigBox';
 

@@ -5,34 +5,34 @@ import { SourceData } from './SourceData';
 export class Source {
 
   @PrimaryGeneratedColumn()
-  id: number;
+    id: number;
 
   @Column({collation: 'NOCASE'})
   /** Name of the Source */
-  name: string;
+    name: string;
 
   @Column()
   /** Base URL of the Source */
-  sourceFileUrl: string;
+    sourceFileUrl: string;
 
   @Column()
   /** Base URL of the Source */
-  baseUrl: string;
+    baseUrl: string;
 
   @Column()
   /** File Count provided as SourceData */
-  count: number;
+    count: number;
 
   @Column({ type: 'datetime' })
   /** When this Source was added */
-  dateAdded: Date;
+    dateAdded: Date;
 
   @Column({ type: 'datetime' })
   /** Last time this Source was updated */
-  lastUpdated: Date;
+    lastUpdated: Date;
 
   @OneToMany(type => SourceData, data => data.source)
   /** Any data provided by this Source */
-  data: SourceData[];
+    data: SourceData[];
 
 }

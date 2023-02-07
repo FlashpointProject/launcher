@@ -197,7 +197,7 @@ export class ManagedChildProcess extends EventEmitter {
     });
     // Kill the parent process.
     processKill(PID);
-  }
+  };
   /**
     * Set the state of the process.
    * @param state State to set.
@@ -232,7 +232,7 @@ export class ManagedChildProcess extends EventEmitter {
     } catch (e) {
       console.warn(`ManagedChildProcess failed to log content: "${content}" (type: ${typeof content})`);
     }
-  }
+  };
 }
 
 /** Remove all newlines at the end of a string */

@@ -244,7 +244,7 @@ export class ProgressDispatch {
         percentDone: percentDone
       }
     });
-  }
+  };
 
   public static setUsePercentDone = (handle: ProgressHandle, usePercentDone: boolean) => {
     handle.dispatch({
@@ -255,7 +255,7 @@ export class ProgressDispatch {
         usePercentDone: usePercentDone
       }
     });
-  }
+  };
 
   public static setText = (handle: ProgressHandle, text: string) => {
     handle.dispatch({
@@ -266,7 +266,7 @@ export class ProgressDispatch {
         text: text
       }
     });
-  }
+  };
 
   public static setSecondaryText = (handle: ProgressHandle, text: string) => {
     handle.dispatch({
@@ -277,7 +277,7 @@ export class ProgressDispatch {
         secondaryText: text
       }
     });
-  }
+  };
 
   public static setTotalItems = (handle: ProgressHandle, totalItems: number) => {
     handle.dispatch({
@@ -288,7 +288,7 @@ export class ProgressDispatch {
         totalItems: totalItems
       }
     });
-  }
+  };
 
   public static countItem = (handle: ProgressHandle) => {
     handle.dispatch({
@@ -298,7 +298,7 @@ export class ProgressDispatch {
         key: handle.key
       }
     });
-  }
+  };
 
   public static finished = (handle: ProgressHandle) => {
     handle.dispatch({
@@ -308,5 +308,5 @@ export class ProgressDispatch {
         key: handle.key
       }
     });
-  }
+  };
 }

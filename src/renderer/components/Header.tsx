@@ -1,6 +1,5 @@
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
 import { BackIn, TagSuggestion } from '@shared/back/types';
-import { LangContainer } from '@shared/lang';
 import { getLibraryItemTitle } from '@shared/library/util';
 import { GameOrderBy, GameOrderReverse } from 'flashpoint-launcher';
 import * as React from 'react';
@@ -43,12 +42,11 @@ type HeaderState = {
   tagSuggestions: TagSuggestion[];
 };
 
-export interface Header {
-  context: LangContainer;
-}
-
 /** The header that is always visible at the top of the main window (just below the title bar). */
 export class Header extends React.Component<HeaderProps, HeaderState> {
+  static contextType = LangContext;
+  declare context: React.ContextType<typeof LangContext>;
+
   searchInputRef: React.RefObject<InputElement> = React.createRef();
 
   constructor(props: HeaderProps) {
@@ -218,12 +216,12 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
     });
     // "Clear" the search when the search field gets empty
     if (value === '') { this.props.onSearch('', false); }
-  }
+  };
 
   onSearchSubmit = (value: string): void => {
     this.props.onSearch(value, true);
     easterEgg(value);
-  }
+  };
 
   onTagSuggestionSelect = (suggestion: TagSuggestion): void => {
     const tagRegex = /((#)([^\s]+)|(tag:)([^\s]+))$/;
@@ -238,7 +236,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
         tagSuggestions: []
       });
     }
-  }
+  };
 
   onKeypress = (event: KeyboardEvent): void => {
     if (event.ctrlKey && event.code === 'KeyF') {
@@ -248,14 +246,12 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
         event.preventDefault();
       }
     }
-  }
+  };
 
   onClearClick = (): void => {
     this.setState({ searchText: '' });
     this.props.onSearch('', false);
-  }
-
-  static contextType = LangContext;
+  };
 }
 
 type MenuItemProps = {

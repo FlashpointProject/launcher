@@ -1,5 +1,4 @@
 import { BackInit } from '@shared/back/types';
-import * as React from 'react';
 
 export type SplashScreenProps = {
   loadedAll: boolean;

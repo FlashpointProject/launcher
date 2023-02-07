@@ -31,16 +31,15 @@ type GameImageSplitState = {
   showPreview: boolean;
 };
 
-export interface GameImageSplit {
-  context: LangContainer;
-}
-
 /**
  * An "image slot" inside the "game image split" area.
  * This component will either display a text and an "add" button, or an image and a "remove" button (depending on if the image source is undefined).
  * It's meant to be used for displaying the current, or allowing the user to add a new, image for a game.
  */
 export class GameImageSplit extends React.Component<GameImageSplitProps, GameImageSplitState> {
+  static contextType = LangContext;
+  declare context: React.ContextType<typeof LangContext>;
+
   inputRef: HTMLInputElement | null;
 
   constructor(props: GameImageSplitProps) {
@@ -108,11 +107,11 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
       const data = await file.arrayBuffer();
       this.props.onSetImage(data);
     }
-  }
+  };
 
   onRemoveClick = () => {
     this.props.onRemoveClick();
-  }
+  };
 
   onDragOver = (event: React.DragEvent): void => {
     const types = event.dataTransfer.types;
@@ -121,16 +120,16 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
       event.dataTransfer.dropEffect = 'copy';
       if (!this.state.hover) { this.setState({ hover: true }); }
     }
-  }
+  };
 
   onDrop = (event: React.DragEvent): void => {
     if (this.state.hover) { this.setState({ hover: false }); }
     this.props.onDrop(event);
-  }
+  };
 
   onDragLeave = (event: React.DragEvent): void => {
     if (this.state.hover) { this.setState({ hover: false }); }
-  }
+  };
 
   /** Refresh all images of all game image splits. */
   static refreshImages() {
@@ -149,13 +148,11 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
     if (event.target === event.currentTarget && this.props.imgSrc) {
       this.setState({ showPreview: true });
     }
-  }
+  };
 
   onPreviewCancel = () => {
     this.setState({ showPreview: false });
-  }
-
-  static contextType = LangContext;
+  };
 }
 
 function renderDeleteImageButton({ confirm, extra }: ConfirmElementArgs<[LangContainer['misc'], string, boolean]>): JSX.Element {
@@ -166,7 +163,7 @@ function renderDeleteImageButton({ confirm, extra }: ConfirmElementArgs<[LangCon
         'game-image-split__buttons__remove-image' +
         (disabled ? ' game-image-split__buttons__remove-image--disabled' : '')
       }
-      title={formatString(strings.deleteAllBlankImages, text)}
+      title={formatString(strings.deleteAllBlankImages, text) as string}
       onClick={!disabled ? confirm : undefined} >
       <OpenIcon icon='trash' />
     </div>

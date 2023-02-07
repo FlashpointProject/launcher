@@ -51,7 +51,7 @@ export function DropdownInput<T>(props: DropdownInputProps<T>): JSX.Element {
       document.removeEventListener('mousedown', onGlobalMouseDown);
       document.removeEventListener('keydown', onGlobalKeyDown);
       updateRef(props.inputRef, inputRef.current || null);
-    }
+    };
   });
 
   React.useLayoutEffect(() => {
@@ -91,10 +91,10 @@ export function DropdownInput<T>(props: DropdownInputProps<T>): JSX.Element {
 
   const onExpandButtonMouseDown = React.useCallback((): void => {
     if (props.disabled) { return; }
-    
+
     setExpanded(!expanded.ref.current);
   }, [props.disabled]);
-  
+
   const onListItemClick = React.useCallback((event: React.MouseEvent): void => {
     if (props.disabled) { return; }
 

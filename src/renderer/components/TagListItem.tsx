@@ -60,7 +60,7 @@ export function TagListItem(props: TagListItemProps) {
   }, [style, className, tag]);
 }
 
-export namespace TagListItem { // eslint-disable-line no-redeclare
+export namespace TagListItem {
   /** ID of the attribute used to store the game's id. */
   export const idAttribute = 'data-tag-id';
 

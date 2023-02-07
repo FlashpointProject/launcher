@@ -61,11 +61,11 @@ export class ConfirmButton extends React.Component<ConfirmButtonProps, ConfirmBu
         this.setState({ showConfirm: true });
       }
     }
-  }
+  };
 
   onMouseLeave = (): void => {
     if (this.state.showConfirm) {
       this.setState({ showConfirm: false });
     }
-  }
+  };
 }

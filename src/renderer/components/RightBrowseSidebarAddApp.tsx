@@ -20,12 +20,11 @@ export type RightBrowseSidebarAddAppProps = {
   editDisabled?: boolean;
 };
 
-export interface RightBrowseSidebarAddApp {
-  context: LangContainer;
-}
-
 /** Displays an additional application for a game in the right sidebar of BrowsePage. */
 export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebarAddAppProps> {
+  static contextType = LangContext;
+  declare context: React.ContextType<typeof LangContext>;
+
   onNameEditDone            = this.wrapOnTextChange((addApp, text) => { addApp.name = text; });
   onApplicationPathEditDone = this.wrapOnTextChange((addApp, text) => { addApp.applicationPath = text; });
   onLaunchCommandEditDone   = this.wrapOnTextChange((addApp, text) => { addApp.launchCommand = text; });
@@ -123,13 +122,13 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
     if (this.props.onLaunch) {
       this.props.onLaunch(this.props.addApp.id);
     }
-  }
+  };
 
   onDeleteClick = (): void => {
     if (this.props.onDelete) {
       this.props.onDelete(this.props.addApp.id);
     }
-  }
+  };
 
   onEdit(): void {
     if (this.props.onEdit) {
@@ -158,6 +157,4 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
       }
     };
   }
-
-  static contextType = LangContext;
 }

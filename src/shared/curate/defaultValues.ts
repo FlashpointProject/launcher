@@ -1,15 +1,3 @@
-/** Generic associative array with strings as keys and values. */
-type StringMap = {
-  [key: string]: string;
-};
-
-/** Container used when counting applications paths per platform. */
-type Count = {
-  [platform: string]: {
-    [applicationPath: string]: number;
-  };
-};
-
 /** Container of all default values for curation game meta. */
 export type GameMetaDefaults = {
   /** Default application paths (ordered after each platform). */

@@ -6,20 +6,20 @@ import { Source } from './Source';
 @Entity()
 export class SourceData {
   @PrimaryGeneratedColumn()
-  id: number;
+    id: number;
 
   @ManyToOne(type => Source, source => source.data)
   /** Source providing the download */
-  source: Source;
+    source: Source;
 
   @Column({ nullable: true })
-  sourceId: number;
+    sourceId: number;
 
   @Column({collation: 'NOCASE'})
   /** SHA256 hash of this download */
-  sha256: string;
+    sha256: string;
 
   @Column()
-  urlPath: string;
+    urlPath: string;
 
 }

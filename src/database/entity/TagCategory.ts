@@ -5,19 +5,19 @@ import { Tag } from './Tag';
 export class TagCategory {
   @PrimaryGeneratedColumn()
   /** ID of the tag category (unique identifier) */
-  id: number;
+    id: number;
 
   @Column({collation: 'NOCASE'})
   /** Category Name */
-  name: string;
+    name: string;
 
   @Column()
   /** Category Color */
-  color: string;
+    color: string;
 
   @Column({ nullable: true })
-  description?: string;
+    description?: string;
 
   @OneToMany(type => Tag, t => t.category)
-  tags: Tag[];
+    tags: Tag[];
 }

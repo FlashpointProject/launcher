@@ -13,6 +13,8 @@ import { Dispatch } from 'redux';
 import { DropdownInputField } from './DropdownInputField';
 import { TagInputField } from './TagInputField';
 
+// TODO: Figure out why these type members are reading as unused props
+/* eslint-disable react/no-unused-prop-types */
 export type CurateBoxInputRowProps = {
   title: string;
   text?: string;

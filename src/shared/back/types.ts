@@ -211,6 +211,8 @@ export const BackRes = {
   ...BackOut,
   ...BackIn
 };
+// Don't ask why this redeclare even works or why it's necessary, it just does and it is.
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export type BackRes = BackOut | BackIn;
 
 export type BackInTemplate = SocketTemplate<BackIn, {

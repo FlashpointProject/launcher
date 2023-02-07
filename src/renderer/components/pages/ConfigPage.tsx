@@ -79,10 +79,6 @@ type ConfigPageState = {
   editorOpen: boolean;
 };
 
-export interface ConfigPage {
-  context: LangContainer;
-}
-
 /**
  * A page displaying some of the current "configs" / "preferences", as well as a way of changing them.
  * All changed "configs" (settings stored in "config.json") require you to "Save & Restart" to take effect.
@@ -90,6 +86,8 @@ export interface ConfigPage {
  * @TODO Make it clear which settings are "configs" and which are "preferences" (or at least which require you to "save & restart")?
  */
 export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState> {
+  static contextType = LangContext;
+  declare context: React.ContextType<typeof LangContext>;
 
   constructor(props: ConfigPageProps) {
     super(props);
@@ -113,7 +111,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     const strings = this.context.config;
     const autoString = formatString(strings.auto, this.props.localeCode);
     const searchLimitOptions = this.itemizeSearchLimitOptionsMemo(this.context.config);
-    const langOptions = this.itemizeLangOptionsMemo(this.props.availableLangs, autoString);
+    const langOptions = this.itemizeLangOptionsMemo(this.props.availableLangs, autoString as string);
     const serverOptions = this.itemizeServerOptionsMemo(this.props.serverNames);
     const libraryOptions = this.itemizeLibraryOptionsMemo(this.props.libraries, this.props.preferencesData.excludedRandomLibraries, this.context.libraries);
     const platformOptions = this.itemizePlatformOptionsMemo(this.props.platforms, this.props.preferencesData.nativePlatforms);
@@ -392,7 +390,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     })
   );
 
-  itemizeSearchLimitOptionsMemo = memoizeOne( (strings: LangContainer['config']) => {
+  itemizeSearchLimitOptionsMemo = memoizeOne( (strings: LangContainer['config']): SelectItem[] => {
     return [
       {
         value: '0',
@@ -400,31 +398,31 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       },
       {
         value: '50',
-        display: formatString(strings.searchLimitValue, '50')
+        display: formatString(strings.searchLimitValue, '50') as string
       },
       {
         value: '100',
-        display: formatString(strings.searchLimitValue, '100')
+        display: formatString(strings.searchLimitValue, '100') as string
       },
       {
         value: '250',
-        display: formatString(strings.searchLimitValue, '250')
+        display: formatString(strings.searchLimitValue, '250') as string
       },
       {
         value: '500',
-        display: formatString(strings.searchLimitValue, '500')
+        display: formatString(strings.searchLimitValue, '500') as string
       },
       {
         value: '1000',
-        display: formatString(strings.searchLimitValue, '1000')
+        display: formatString(strings.searchLimitValue, '1000') as string
       },
       {
         value: '2500',
-        display: formatString(strings.searchLimitValue, '2500')
+        display: formatString(strings.searchLimitValue, '2500') as string
       },
       {
         value: '5000',
-        display: formatString(strings.searchLimitValue, '5000')
+        display: formatString(strings.searchLimitValue, '5000') as string
       }
     ];
   });
@@ -491,7 +489,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
           icon='delete' />
       </div>
     );
-  }
+  };
 
   renderAppPathOverridesMemo = memoizeOne((appPathOverrides: AppPathOverride[]) => {
     return appPathOverrides.map((item, index) => {
@@ -715,47 +713,47 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
           icon='delete' />
       </div>
     );
-  }
+  };
 
   onShowExtremeChange = (isChecked: boolean): void => {
     updatePreferencesData({ browsePageShowExtreme: isChecked });
-  }
+  };
 
   onToggleHideExtremeScreenshots = (isChecked: boolean): void => {
     updatePreferencesData({ hideExtremeScreenshots: isChecked });
-  }
+  };
 
   onEnableEditingChange = (isChecked: boolean): void => {
     updatePreferencesData({ enableEditing: isChecked });
-  }
+  };
 
   onSymlinkCurationContentChange = (isChecked: boolean): void => {
     updatePreferencesData({ symlinkCurationContent: isChecked });
-  }
+  };
 
   onOnDemandImagesChange = (isChecked: boolean): void => {
     updatePreferencesData({ onDemandImages: isChecked });
-  }
+  };
 
   onFancyAnimationsChange = (isChecked: boolean): void => {
     updatePreferencesData({ fancyAnimations: isChecked });
-  }
+  };
 
   onSearchLimitChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     updatePreferencesData({ searchLimit: num(event.target.value) });
-  }
+  };
 
   onCurrentLanguageSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     updatePreferencesData({ currentLanguage: event.target.value });
-  }
+  };
 
   onServerSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     this.setState({ server: event.target.value });
-  }
+  };
 
   onFallbackLanguageSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     updatePreferencesData({ fallbackLanguage: event.target.value });
-  }
+  };
 
   onExcludedLibraryCheckboxChange = (library: string): void => {
     const excludedRandomLibraries = [ ...this.props.preferencesData.excludedRandomLibraries ];
@@ -768,16 +766,16 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     }
 
     updatePreferencesData({ excludedRandomLibraries });
-  }
+  };
 
   onNewSourceURLChange = (event: React.ChangeEvent<InputElement>) => {
     this.setState({ newSourceUrl: event.target.value });
-  }
+  };
 
   onSubmitSourceURL = () => {
     this.submitSourceURL(this.state.newSourceUrl);
     this.setState({ newSourceUrl: '' });
-  }
+  };
 
   submitSourceURL = (url: string) => {
     window.Shared.back.request(BackIn.ADD_SOURCE_BY_URL, url)
@@ -794,7 +792,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     .catch((error) => {
       alert(error);
     });
-  }
+  };
 
   deleteSource = async (source: Source) => {
     await window.Shared.back.request(BackIn.DELETE_SOURCE, source.id);
@@ -804,38 +802,38 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       newSources.splice(idx, 1);
       this.setState({ sources: newSources });
     }
-  }
+  };
 
   onRemoveAppPathOverride = (index: number): void => {
     const newPaths = [...this.props.preferencesData.appPathOverrides];
     newPaths.splice(index, 1);
     console.log('SPLICED');
     updatePreferencesData({ appPathOverrides: newPaths });
-  }
+  };
 
   onNewAppPathOverride = (): void => {
     const newPaths = [...this.props.preferencesData.appPathOverrides];
     newPaths.push({path: '', override: '', enabled: true});
     updatePreferencesData({ appPathOverrides: newPaths });
-  }
+  };
 
   onAppPathOverridePathChange = (index: number, newPath: string): void => {
     const newPaths = [...this.props.preferencesData.appPathOverrides];
     newPaths[index] = { ...newPaths[index], path: newPath };
     updatePreferencesData({ appPathOverrides: newPaths });
-  }
+  };
 
   onAppPathOverrideOverrideChange = (index: number, newOverride: string): void => {
     const newPaths = [...this.props.preferencesData.appPathOverrides];
     newPaths[index] = { ...newPaths[index], override: newOverride };
     updatePreferencesData({ appPathOverrides: newPaths });
-  }
+  };
 
   onAppPathOverrideEnabledToggle = (index: number, checked: boolean): void => {
     const newPaths = [...this.props.preferencesData.appPathOverrides];
     newPaths[index] = { ...newPaths[index], enabled: checked };
     updatePreferencesData({ appPathOverrides: newPaths });
-  }
+  };
 
   onNewTagFilterGroup = (): void => {
     const tfg: TagFilterGroup = {
@@ -850,13 +848,13 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     const newTagFilters = [...this.props.preferencesData.tagFilters];
     newTagFilters.push(tfg);
     updatePreferencesData({ tagFilters: newTagFilters });
-  }
+  };
 
   onTagFilterGroupEnabledToggle = (index: number, checked: boolean): void => {
     const newTagFilters = [...this.props.preferencesData.tagFilters];
     newTagFilters[index] = { ...newTagFilters[index], enabled: checked };
     updatePreferencesData({ tagFilters: newTagFilters });
-  }
+  };
 
   onAddTagEditorTagEvent = (index: number, tag: string): void => {
     if (this.state.editingTagFilterGroup) {
@@ -864,7 +862,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       newTFG.tags.push(tag);
       this.setState({ editingTagFilterGroup: newTFG });
     }
-  }
+  };
 
   onAddTagEditorCategoryEvent = (index: number, category: string): void => {
     if (this.state.editingTagFilterGroup) {
@@ -872,7 +870,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       newTFG.categories.push(category);
       this.setState({ editingTagFilterGroup: newTFG });
     }
-  }
+  };
 
   onRemoveTagEditorTagEvent = (index: number, tag: string): void => {
     if (this.state.editingTagFilterGroup) {
@@ -883,7 +881,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       }
       this.setState({ editingTagFilterGroup: newTFG });
     }
-  }
+  };
 
   onRemoveTagEditorCategoryEvent = (index: number, category: string): void => {
     if (this.state.editingTagFilterGroup) {
@@ -894,39 +892,39 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       }
       this.setState({ editingTagFilterGroup: newTFG });
     }
-  }
+  };
 
   onChangeTagEditorNameEvent = (name: string): void => {
     if (this.state.editingTagFilterGroup) {
       const newTFG = {...this.state.editingTagFilterGroup, name };
       this.setState({ editingTagFilterGroup: newTFG });
     }
-  }
+  };
 
   onChangeTagEditorDescriptionEvent = (description: string): void => {
     if (this.state.editingTagFilterGroup) {
       const newTFG = {...this.state.editingTagFilterGroup, description };
       this.setState({ editingTagFilterGroup: newTFG });
     }
-  }
+  };
 
   onToggleExtremeTagEditorEvent = (checked: boolean): void => {
     if (this.state.editingTagFilterGroup) {
       const newTFG = {...this.state.editingTagFilterGroup, extreme: checked };
       this.setState({ editingTagFilterGroup: newTFG });
     }
-  }
+  };
 
   onDuplicateTagFilterGroup = (index: number): void => {
     const newTagFilters = [...this.props.preferencesData.tagFilters];
     newTagFilters.push({...newTagFilters[index], name: `${newTagFilters[index].name} - Copy`});
     updatePreferencesData({ tagFilters: newTagFilters });
-  }
+  };
 
   onEditTagFilterGroup = (index: number): void => {
     const tagFilter = this.props.preferencesData.tagFilters[index];
     this.setState({ editingTagFilterGroup: tagFilter, editingTagFilterGroupIdx: index, editorOpen: true });
-  }
+  };
 
   onNativeCheckboxChange = (platform: string): void => {
     const newPlatforms = [...this.props.preferencesData.nativePlatforms];
@@ -941,7 +939,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     }
 
     updatePreferencesData({ nativePlatforms: newPlatforms });
-  }
+  };
 
   /** When the "FlashPoint Folder Path" input text is changed. */
   onFlashpointPathChange = async (filePath: string): Promise<void> => {
@@ -949,15 +947,15 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     // Check if the file-path points at a valid FlashPoint folder
     const isValid = await isFlashpointValidCheck(filePath);
     this.setState({ isFlashpointPathValid: isValid });
-  }
+  };
 
   onUseCustomTitlebarChange = (isChecked: boolean): void => {
     this.setState({ useCustomTitlebar: isChecked });
-  }
+  };
 
   onShowDeveloperTab = (isChecked: boolean): void => {
     updatePreferencesData({ showDeveloperTab: isChecked });
-  }
+  };
 
   onCurrentThemeChange = (value: string): void => {
     const selectedTheme = this.props.themeList.find(t => t.id === value);
@@ -966,11 +964,11 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       const logoSetId = suggestedLogoSet ? suggestedLogoSet.id : this.props.preferencesData.currentLogoSet;
       updatePreferencesData({ currentTheme: selectedTheme.id, currentLogoSet: logoSetId });
     }
-  }
+  };
 
   onCurrentLogoSetChange = (value: string): void => {
     updatePreferencesDataAsync({ currentLogoSet: value });
-  }
+  };
 
   onCurrentThemeItemSelect = (value: string, index: number): void => {
     // Note: Suggestions with index 0 to "length - 1" registered themes.
@@ -982,7 +980,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     const suggestedLogoSet = this.props.logoSets.find(ls => ls.id === (theme ? theme.logoSet : undefined));
     const logoSetId = suggestedLogoSet ? suggestedLogoSet.id : this.props.preferencesData.currentLogoSet;
     updatePreferencesData({ currentTheme: theme ? theme.id : '', currentLogoSet: logoSetId });
-  }
+  };
 
   onCurrentLogoSetSelect = (value: string, index: number): void => {
     // Note: Suggestions with index 0 to "length - 1" registered logo sets.
@@ -992,7 +990,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       logoSet = this.props.logoSets[index];
     } else { logoSet = undefined; } // (Deselect the current logo set)
     updatePreferencesDataAsync({ currentLogoSet: logoSet ? logoSet.id : undefined });
-  }
+  };
 
   getThemeName(id: string) {
     const theme = this.props.themeList.find(t => t.id === id);
@@ -1011,13 +1009,13 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       updatePreferencesData({ tagFilters: newTagFilters });
       this.setState({ editingTagFilterGroup: undefined, editingTagFilterGroupIdx: undefined, editorOpen: false });
     }
-  }
+  };
 
   onTagFilterGroupDelete = async (index: number) => {
     const newTagFilters = [...this.props.preferencesData.tagFilters];
     newTagFilters.splice(index, 1);
     updatePreferencesData({ tagFilters: newTagFilters });
-  }
+  };
 
   /** When the "Save & Restart" button is clicked. */
   onSaveAndRestartClick = () => {
@@ -1027,9 +1025,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       useCustomTitlebar: this.state.useCustomTitlebar,
       server: this.state.server,
     }).then(() => { window.Shared.restart(); });
-  }
-
-  static contextType = LangContext;
+  };
 }
 
 function setExtConfigValue(key: string, value: any): void {

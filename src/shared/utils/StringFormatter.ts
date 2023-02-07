@@ -8,9 +8,6 @@ const opts: VariableStringOptions = {
 
 type Arg = string | JSX.Element;
 
-export function formatString<T extends string[]>(str: string, ...args: T): string;
-export function formatString<T extends Arg[]   >(str: string, ...args: T): any[] | string;
-
 /**
  * Format a string by replacing all instanced of "{N}" (where N is an integer) with the argument with the same index
  * (minus one, so the 2nd argument is mapped to the number 0).

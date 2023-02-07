@@ -51,7 +51,7 @@ export function TagCategoriesListItem(props: TagCategoriesListItemProps) {
   }, [style, className, category]);
 }
 
-export namespace TagCategoriesListItem { // eslint-disable-line no-redeclare
+export namespace TagCategoriesListItem {
   /** ID of the attribute used to store the game's id. */
   export const idAttribute = 'data-tag-id';
 

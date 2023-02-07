@@ -1,5 +1,3 @@
-import * as React from 'react';
-
 /**
  * Source: https://loading.io/css/
  * License: CC0

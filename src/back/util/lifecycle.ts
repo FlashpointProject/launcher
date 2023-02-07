@@ -9,7 +9,7 @@ export type Disposable = {
 }
 
 /** Dispose of a disposable and all its children */
-export function dispose<T>(disposable: Disposable) {
+export function dispose(disposable: Disposable) {
   if (disposable.isDisposed) {
     return;
   }

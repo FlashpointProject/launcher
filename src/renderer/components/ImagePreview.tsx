@@ -98,13 +98,13 @@ export class ImagePreview extends React.Component<ImagePreviewProps, ImagePrevie
 
   onClickImage = (): void => {
     this.setState({ scaleUp: !this.state.scaleUp });
-  }
+  };
 
   onClickBackground = (event: React.MouseEvent): void => {
     if (event.target === event.currentTarget) {
       if (this.props.onCancel) { this.props.onCancel(); }
     }
-  }
+  };
 
   updateBorderSize = (): void => {
     const border = this.borderRef.current;
@@ -113,12 +113,12 @@ export class ImagePreview extends React.Component<ImagePreviewProps, ImagePrevie
       borderWidth: border.offsetWidth,
       borderHeight: border.offsetHeight,
     });
-  }
+  };
 
   onLoad = (event: React.SyntheticEvent<HTMLImageElement>): void => {
     this.setState({
       imageWidth: event.currentTarget.naturalWidth,
       imageHeight: event.currentTarget.naturalHeight,
     });
-  }
+  };
 }

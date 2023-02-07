@@ -5,34 +5,34 @@ import { PlaylistGame } from './PlaylistGame';
 export class Playlist {
   @PrimaryGeneratedColumn('uuid')
   /** ID of the playlist (unique identifier) */
-  id: string;
+    id: string;
 
   @OneToMany(type => PlaylistGame, pg => pg.playlist, {
     cascade: true
   })
-  games: PlaylistGame[];
+    games: PlaylistGame[];
 
   @Column({collation: 'NOCASE'})
   /** Title of the playlist. */
-  title: string;
+    title: string;
 
   @Column({collation: 'NOCASE'})
   /** Description of the playlist. */
-  description: string;
+    description: string;
 
   @Column({collation: 'NOCASE'})
   /** Author of the playlist. */
-  author: string;
+    author: string;
 
   @Column({ nullable: true })
   /** Icon of the playlist (Base64 encoded image). */
-  icon: string;
+    icon: string;
 
   @Column()
   /** Route of the library this playlist is for. */
-  library: string;
+    library: string;
 
   @Column({ default: false })
   /** Attribute for if playlist contains games not suitable for children */
-  extreme: boolean;
+    extreme: boolean;
 }
