@@ -927,7 +927,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     this.props.onDeleteSelectedGame();
   };
 
-  onAddAppLaunch(addAppId: string): void {
+  static onAddAppLaunch(addAppId: string): void {
     window.Shared.back.send(BackIn.LAUNCH_ADDAPP, addAppId);
   }
 

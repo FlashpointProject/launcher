@@ -381,11 +381,11 @@ export class App extends React.Component<AppProps> {
       }
     });
 
-    window.Shared.back.register(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG, (event) => {
+    window.Shared.back.register(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG, () => {
       this.props.setMainState({ downloadOpen: true, downloadVerifying: false, downloadPercent: 0 });
     });
 
-    window.Shared.back.register(BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG, (event) => {
+    window.Shared.back.register(BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG, () => {
       this.props.setMainState({ downloadOpen: false, downloadPercent: 0 });
     });
 
@@ -439,7 +439,7 @@ export class App extends React.Component<AppProps> {
       this.props.addTask(task);
     });
 
-    window.Shared.back.register(BackOut.FOCUS_WINDOW, (event) => {
+    window.Shared.back.register(BackOut.FOCUS_WINDOW, () => {
       window.focus();
     });
   }
@@ -1187,7 +1187,6 @@ export class App extends React.Component<AppProps> {
       onSaveGame: this.onSaveGame,
       onDeleteGame: this.onDeleteGame,
       onLaunchGame: this.onGameLaunch,
-      onQuickSearch: this.onQuickSearch,
       onOpenExportMetaEdit: this.onOpenExportMetaEdit,
       libraries: this.props.main.libraries,
       serverNames: this.props.main.serverNames,
@@ -1493,11 +1492,6 @@ export class App extends React.Component<AppProps> {
       alert(strings.dialog.unableToDeleteGame + '\n\n' + error);
     });
   };
-
-  onQuickSearch = (search: string): void => {
-    // @TODO
-  };
-
   cachePlaylistIcons(playlists: Playlist[]): void {
     Promise.all(playlists.map(p => (async () => {
       if (p.icon) { return cacheIcon(p.icon); }

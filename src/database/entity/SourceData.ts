@@ -8,7 +8,7 @@ export class SourceData {
   @PrimaryGeneratedColumn()
     id: number;
 
-  @ManyToOne(type => Source, source => source.data)
+  @ManyToOne(() => Source, source => source.data)
   /** Source providing the download */
     source: Source;
 

@@ -88,7 +88,8 @@ function setPosition(element: HTMLElement, x: number, y: number): void {
 
 /**
  * Get the color associated with a specific role.
- * @param role Role to get the associated color for.
+ * @param name Name of the role to find
+ * @param roles List of roles with associated color info
  */
 function getRoleColor(name: string, roles?: CreditsDataRole[]): string | undefined {
   if (roles) {

@@ -31,7 +31,7 @@ export class Source {
   /** Last time this Source was updated */
     lastUpdated: Date;
 
-  @OneToMany(type => SourceData, data => data.source)
+  @OneToMany(() => SourceData, data => data.source)
   /** Any data provided by this Source */
     data: SourceData[];
 

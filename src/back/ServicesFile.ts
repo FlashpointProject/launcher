@@ -17,6 +17,7 @@ export namespace ServicesFile {
   /**
    * Read and parse the file asynchronously.
    * @param jsonFolder Path of the JSON folder.
+   * @param config Application Config
    * @param onError Called for each error that occurs while parsing.
    */
   export function readFile(jsonFolder: string, config: AppConfigData, onError?: (error: string) => void): Promise<ServiceFileData> {

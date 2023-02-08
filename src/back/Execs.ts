@@ -16,7 +16,8 @@ const filePath = 'execs.json';
 
 /**
  * Load exec mapping file
- * @param filePath Path to execs.json
+ * @param jsonFolder Path to the folder containing execs.json
+ * @param onError Callback for error
  */
 export function loadExecMappingsFile(jsonFolder: string, onError?: (error: string) => void): Promise<ExecMapping[]> {
   return new Promise((resolve, reject) => {

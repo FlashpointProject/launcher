@@ -96,6 +96,7 @@ type MouseRef<T> = {
 /**
  * Flexible hook for detecting clicks (single, double, triple etc.) of any mouse button.
  * @param initializer Returns the options object to use for this hook. Only called the first time.
+ * @param deps Array of dependencies that if changed, will call the initializer again.
  */
 export function useMouse<T>(initializer: () => UseMouseOpts<T>, deps: React.DependencyList | undefined) {
   const ref = React.useRef<MouseRef<T>>(undefined as any);

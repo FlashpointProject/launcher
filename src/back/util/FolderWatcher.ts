@@ -85,7 +85,7 @@ export class FolderWatcher extends WrappedEventEmitter {
 
   /**
    * @param folderPath Path of the folder to watch.
-   * @param recursionDepth Options.
+   * @param opts Folder watcher options
    */
   constructor(folderPath?: string, opts?: FolderWatcherOptions) {
     super();
@@ -96,7 +96,7 @@ export class FolderWatcher extends WrappedEventEmitter {
    * Set the folder this should watch.
    * If this is already watching a folder, it will immediately abort.
    * @param folderPath Path of the folder to watch.
-   * @param recursionDepth Options.
+   * @param opts Folder watcher options
    */
   watch(folderPath: string, opts?: FolderWatcherOptions): void {
     // Abort if already watching a folder.
@@ -108,7 +108,7 @@ export class FolderWatcher extends WrappedEventEmitter {
       if (opts.recursionDepth !== undefined) { this._recursionDepth = opts.recursionDepth; }
     }
     // Check if the folder exists
-    fs.stat(folderPath, (error, stats) => {
+    fs.stat(folderPath, (error) => {
       if (error) {
         this.emit('error', error);
       } else if (this._folderPath === undefined) {

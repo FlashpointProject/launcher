@@ -82,7 +82,7 @@ export class FPLNodeModuleFactory implements INodeModuleFactory {
 
   private readonly _extApiImpl = new Map<string, typeof flashpoint>();
   private _defaultApiImpl?: typeof flashpoint;
-  private _apiFactory: IExtensionApiFactory;
+  private readonly _apiFactory: IExtensionApiFactory;
 
   constructor(
     protected readonly _extensionPaths: TernarySearchTree<string, IExtension>,
@@ -129,7 +129,7 @@ export class FPLNodeModuleFactory implements INodeModuleFactory {
 export class SqliteInterceptorFactory implements INodeModuleFactory {
   public readonly nodeModuleName = 'better-sqlite3';
 
-  public load(_request: string, parent: string): any {
+  public load(_request: string): any {
     return Database;
   }
 }

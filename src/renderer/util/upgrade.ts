@@ -113,7 +113,7 @@ export function downloadAndInstallUpgrade(upgrade: UpgradeStage, opts: IGetUpgra
             // Requested to keep, copy if not present
             await fs.access(dest, fs.constants.F_OK)
             .then(() => { /* File found, don't copy */ })
-            .catch(async (error) => { await fs.move(source, dest); });
+            .catch(async () => { await fs.move(source, dest); });
           }
         }))
         .catch((errors) => {
@@ -144,7 +144,7 @@ export function downloadAndInstallUpgrade(upgrade: UpgradeStage, opts: IGetUpgra
  * @param upgrade Upgrade to download
  * @returns Path of the local zip file, ready for extraction/installation
  */
-function downloadUpgrade(upgrade: UpgradeStage, filename: string, onData: (offset: number) => void): UpgradeDownloadStatus {
+function downloadUpgrade(upgrade: UpgradeStage, filename: string): UpgradeDownloadStatus {
   const status = new UpgradeDownloadStatus();
   tryDownload(0);
   return status;
@@ -193,7 +193,7 @@ export async function checkUpgradeStateInstalled(stage: UpgradeStage, baseFolder
       // File exists
       .then(() => resolve(true))
       // File does not exist
-      .catch((error) => resolve(false));
+      .catch(() => resolve(false));
     })
   )));
   return success.indexOf(false) === -1;

@@ -17,7 +17,7 @@ export class ApiEmitter<T> {
   // Returns the event instance of the emitter
   get event(): ApiEvent<T> {
     if (!this._event) {
-      this._event = (listener: (e: T) => any, thisArgs?: any, disposables?: Disposable): Disposable => {
+      this._event = (listener: (e: T) => any, thisArgs?: any): Disposable => {
         // Push onto listeners then get exact item back to compare when unregistering.
         const index = this._listeners.push(thisArgs ? listener : [listener, thisArgs]);
         const item = this._listeners[index];

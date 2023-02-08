@@ -71,7 +71,7 @@ export namespace GameLauncher {
     // @FIXTHIS It is not possible to open dialog windows from the back process (all electron APIs are undefined).
     switch (opts.addApp.applicationPath) {
       case ':message:':
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
           opts.openDialog({
             type: 'info',
             title: 'About This Game',

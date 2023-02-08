@@ -8,19 +8,3 @@ export type GameMetaDefaults = {
   status: string;
   library: string;
 };
-
-/**
- * Get the default values for curation game meta.
- * @param games Games to get values from.
- */
-export function getDefaultMetaValues(appPaths: { [platform: string]: string; }): GameMetaDefaults {
-  return {
-    // @TODO Make this value not hard-coded (maybe it should be loaded from the preferences file?)
-    appPaths: appPaths,
-    language: 'en',
-    platform: 'Flash',
-    playMode: 'Single Player',
-    status:   'Playable',
-    library:  'Arcade'.toLowerCase() // must be lower case
-  };
-}

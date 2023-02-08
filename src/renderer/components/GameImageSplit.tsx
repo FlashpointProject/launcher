@@ -127,7 +127,7 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
     this.props.onDrop(event);
   };
 
-  onDragLeave = (event: React.DragEvent): void => {
+  onDragLeave = (): void => {
     if (this.state.hover) { this.setState({ hover: false }); }
   };
 

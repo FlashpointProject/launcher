@@ -31,7 +31,6 @@ export const isDev: boolean = (function() {
 
 /**
  * Get the path of the folder containing the config and preferences files.
- * @param installed If the application is installed (instead of portable).
  */
 export function getMainFolderPath(): string {
   return isDev

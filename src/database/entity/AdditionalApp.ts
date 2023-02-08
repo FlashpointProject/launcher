@@ -26,7 +26,7 @@ export class AdditionalApp {
   @Column()
   /** Wait for this to exit before the Game will launch (if starting before launch) */
     waitForExit: boolean;
-  @ManyToOne(type => Game, game => game.addApps)
+  @ManyToOne(() => Game, game => game.addApps)
   /** Parent of this add app */
     parentGame: Game;
 }

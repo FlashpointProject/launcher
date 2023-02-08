@@ -62,7 +62,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
   }
 
   // TODO: Remove when all functions are in back
-  componentDidUpdate(prevProps: DeveloperPageProps, prevState: DeveloperPageState) {
+  componentDidUpdate(prevProps: DeveloperPageProps) {
     // Transfer prop to state
     if (this.props.devConsole !== prevProps.devConsole) {
       this.setState({ text: this.props.devConsole });
@@ -184,7 +184,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     );
   }
 
-  onServiceUpdate: Parameters<typeof window.Shared.back.registerAny>[0] = (event, type, data) => {
+  onServiceUpdate: Parameters<typeof window.Shared.back.registerAny>[0] = (event, type) => {
     if (type === BackOut.SERVICE_CHANGE || type === BackOut.SERVICE_REMOVED) { this.forceUpdate(); }
   };
 
@@ -358,7 +358,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               if (game) {
                 // Game exists, import the data
                 await window.Shared.back.request(BackIn.IMPORT_GAME_DATA, game.id, filePath)
-                .then((gameData) => {
+                .then(() => {
                   this.setState({ text: text + filePath + '\n' +  createTextBarProgress(current, files.length) });
                 })
                 .catch((error) => {

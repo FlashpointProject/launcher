@@ -131,9 +131,9 @@ type InputElementOnChangeEvent = {
  * Create a callback for InputField's onChange.
  * When called, the callback will set the value of a metadata property to the value of the input field.
  * @param property Property the input field should change.
- * @param curationKey Key of the curation the additional application belongs to.
  * @param key Key of the additional application to edit.
- * @param dispatch Dispatcher to use.
+ * @param folder Folder of the curation that owns this add app.
+ * @param dispatch Curate action dispatcher.
  */
 function useOnInputChange(property: keyof AddAppCurationMeta, key: string, folder: string, dispatch: React.Dispatch<CurateAction>) {
   return useCallback((event: InputElementOnChangeEvent) => {

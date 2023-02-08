@@ -17,7 +17,7 @@ export class Game {
   /** ID of the game (unique identifier) */
     id: string;
 
-  @ManyToOne(type => Game)
+  @ManyToOne(() => Game)
     parentGame?: Game;
 
   @Column({ nullable: true })
@@ -76,7 +76,7 @@ export class Game {
   /** Information that could be useful for the player (of varying importance) */
     notes: string;
 
-  @ManyToMany(type => Tag, t => t.gamesUsing, { cascade: true, eager: true })
+  @ManyToMany(() => Tag, t => t.gamesUsing, { cascade: true, eager: true })
   @JoinTable()
   /** Tags of the game (separated by semi-colon) */
     tags: Tag[];
@@ -120,7 +120,7 @@ export class Game {
   /** The title but reconstructed to be suitable for sorting and ordering (and not be shown visually) */
     orderTitle: string;
 
-  @OneToMany(type => AdditionalApp, addApp => addApp.parentGame, {
+  @OneToMany(() => AdditionalApp, addApp => addApp.parentGame, {
     cascade: true,
     eager: true
   })
@@ -138,7 +138,7 @@ export class Game {
   @Column({ default: false })
     activeDataOnDisk: boolean;
 
-  @OneToMany(type => GameData, datas => datas.game)
+  @OneToMany(() => GameData, datas => datas.game)
     data?: GameData[];
 
   // This doesn't run... sometimes.

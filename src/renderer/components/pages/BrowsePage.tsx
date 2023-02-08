@@ -36,7 +36,6 @@ type OwnProps = {
   playlistIconCache: Record<string, string>;
   onSaveGame: (game: Game, playlistEntry?: PlaylistGame) => Promise<Game | null>;
   onDeleteGame: (gameId: string) => void;
-  onQuickSearch: (search: string) => void;
   updateView: UpdateView;
 
   /** Currently selected game (if any). */
@@ -123,7 +122,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
 
   componentDidUpdate(prevProps: BrowsePageProps, prevState: BrowsePageState) {
     const { gameLibrary, selectedGameId, selectedPlaylistId } = this.props;
-    const { isEditingGame, quickSearch } = this.state;
+    const { isEditingGame } = this.state;
     // Check if it started or ended editing
     if (isEditingGame != prevState.isEditingGame) {
       this.updateCurrentGame(this.props.selectedGameId, this.props.selectedPlaylistId);
@@ -150,10 +149,6 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         isNewGame: false,
         isEditingGame: false
       });
-    }
-    // Check if quick search string changed, and if it isn't empty
-    if (prevState.quickSearch !== quickSearch && quickSearch !== '') {
-      this.props.onQuickSearch(quickSearch);
     }
     // Create a new game if the "New Game" button is pushed
     this.createNewGameIfClicked(prevProps.wasNewGameClicked);
@@ -421,7 +416,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     event.dataTransfer.setData(gameIdDataType, gameId);
   };
 
-  onGameDragEnd = (event: React.DragEvent, gameId: string): void => {
+  onGameDragEnd = (event: React.DragEvent): void => {
     this.setState({ draggedGameId: undefined });
     event.dataTransfer.clearData(gameIdDataType);
   };

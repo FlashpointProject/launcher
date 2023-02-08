@@ -131,7 +131,7 @@ export class GameDataBrowser extends React.Component<GameDataBrowserProps, GameD
   render() {
     const strings = this.context;
 
-    const dataInfoMemo = memoizeOne((data) => {
+    const dataInfoMemo = memoizeOne(() => {
       return this.state.pairedData.map((data, index) => {
         return (
           <GameDataInfo
@@ -146,14 +146,14 @@ export class GameDataBrowser extends React.Component<GameDataBrowserProps, GameD
             }}
             onUninstall={() => {
               window.Shared.back.request(BackIn.UNINSTALL_GAME_DATA, data.id)
-              .then((game) => {
+              .then(() => {
                 const newDatas = [...this.state.pairedData];
                 newDatas[index].presentOnDisk = false;
                 newDatas[index].path = undefined;
                 this.setState({ pairedData: newDatas });
                 this.props.onForceUpdateGameData();
               })
-              .catch((error) => {
+              .catch(() => {
                 alert(strings.dialog.unableToUninstallGameData);
               });
             }}
@@ -163,7 +163,7 @@ export class GameDataBrowser extends React.Component<GameDataBrowserProps, GameD
             }}
             delete={async () => {
               await this.deleteGameData(data.id)
-              .catch((error) => {
+              .catch(() => {
                 alert(strings.dialog.unableToUninstallGameData);
               });
               this.props.onForceUpdateGameData();
@@ -181,7 +181,7 @@ export class GameDataBrowser extends React.Component<GameDataBrowserProps, GameD
               <OpenIcon icon='x'/>
             </div>
             <div className='game-data-browser__content'>
-              {dataInfoMemo(this.state.pairedData)}
+              {dataInfoMemo()}
               {this.state.pairedData.length === 0 && (
                 <i>No Game Data Found</i>
               )}
