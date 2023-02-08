@@ -341,18 +341,14 @@ const errorProxyValue = {}; // Unique pointer
 export function createErrorProxy(title: string): any {
   return new Proxy({}, {
     // @TODO Make it throw errors for all(?) cases (delete, construct etc.)
-    get: (target, p, receiver) => {
+    get: (target, p) => {
       if (p === errorProxySymbol) { return errorProxyValue; }
       throw new Error(`You must not get a value from ${title} before it is initialized (property: "${p.toString()}").`);
     },
-    set: (target, p, value, receiver) => {
+    set: (target, p) => {
       throw new Error(`You must not set a value from ${title} before it is initialized (property: "${p.toString()}").`);
     },
   });
-}
-
-export function isErrorProxy(object: any) {
-  return (object[errorProxySymbol] === errorProxyValue);
 }
 
 /**

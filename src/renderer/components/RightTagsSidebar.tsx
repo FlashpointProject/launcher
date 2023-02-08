@@ -274,7 +274,7 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
     });
   };
 
-  onMergeTag = (event: React.MouseEvent) => {
+  onMergeTag = () => {
     if (this.props.currentTag) {
       this.props.onLockEdit(true);
       window.Shared.back.request(BackIn.MERGE_TAGS, {
@@ -305,17 +305,17 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
   };
 
   /** When a key is pressed while an input field is selected (except for multiline fields) */
-  onInputKeyDown = (event: React.KeyboardEvent): void => {
+  onInputKeyDown = (): void => {
     // if (event.key === 'Enter') { this.props.onSaveGame(); }
   };
 
-  onTagAliasSelect = (tagAlias: TagAlias, index: number): void => {
+  onTagAliasSelect = (tagAlias: TagAlias): void => {
     if (!this.props.isLocked) {
       this.props.onEditTag({ primaryAlias: tagAlias, primaryAliasId: tagAlias.id });
     }
   };
 
-  onRemoveTagAlias = (tagAlias: TagAlias, index: number): void => {
+  onRemoveTagAlias = (tagAlias: TagAlias): void => {
     if (this.props.currentTag) {
       const aliases = deepCopy(this.props.currentTag.aliases);
       const index = aliases.findIndex(ta => ta.id == tagAlias.id);

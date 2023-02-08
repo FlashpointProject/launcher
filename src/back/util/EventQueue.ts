@@ -8,7 +8,7 @@ interface IEventQueue {
 /** Executes a queue of asynchronous functions, one at a time. */
 export class EventQueue implements IEventQueue {
   /** Max size of queue (Unlimited if undefined) */
-  private maxSize?: number;
+  private readonly maxSize?: number;
   /** Queue of functions. */
   private queue: EventFunction[] = [];
   /** If this is currently executing an event (flag). */

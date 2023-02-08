@@ -54,17 +54,17 @@ export class ManagedChildProcess extends EventEmitter {
   /** Display name of the service. */
   public readonly name: string;
   /** The current working directory of the process. */
-  private cwd: string;
+  private readonly cwd: string;
   /** If the process is detached (it is not spawned as a child process of this program). */
-  private detached: boolean;
+  private readonly detached: boolean;
   /** If the process should be restarted if it exits unexpectedly. */
   private autoRestart: boolean;
   /** Number of times the process has auto restarted. Used to prevent infinite loops. */
   private autoRestartCount: number;
   /** Whether to run in a shell */
-  private shell: boolean;
+  private readonly shell: boolean;
   /** Launch with these Environmental Variables */
-  private env?: NodeJS.ProcessEnv;
+  private readonly env?: NodeJS.ProcessEnv;
   /** A timestamp of when the process was started. */
   private startTime = 0;
   /** State of the process. */
@@ -207,7 +207,8 @@ export class ManagedChildProcess extends EventEmitter {
       const oldState = this.state;
       this.state = state;
       this.emit('change', state);
-      onServiceChange.fire({ process: this, oldState, newState: state });
+      onServiceChange.fire({ process: this, oldState, newState: state })
+      .catch((err) => log.warn('Launcher', `Error during onServiceChange callback/n:ERROR: ${err}`));
     }
   }
 

@@ -117,8 +117,7 @@ export class RightTagCategoriesSidebar extends React.Component<RightTagCategorie
                   text={category.description || ''}
                   placeholder={strings.noDescription}
                   onChange={this.onDescriptionChange}
-                  editable={editable}
-                  onKeyDown={this.onInputKeyDown} />
+                  editable={editable} />
               </div>
               <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                 <p>{strings.color}: </p>
@@ -163,7 +162,7 @@ export class RightTagCategoriesSidebar extends React.Component<RightTagCategorie
   onGlobalKeyDown = (event: KeyboardEvent) => {
     // Start editing
     if (event.ctrlKey && event.code === 'KeyE' && // (CTRL + E ...
-        !this.props.isEditing && this.props.currentCategory) { // ... while not editing, and a game is selected)
+        !this.props.isEditing && this.props.currentCategory) { // ... while not editing, and a game is selected
       this.props.onEditClick();
       if (this.launchCommandRef.current) { this.launchCommandRef.current.focus(); }
       event.preventDefault();
@@ -173,7 +172,7 @@ export class RightTagCategoriesSidebar extends React.Component<RightTagCategorie
   onLocalKeyDown = (event: React.KeyboardEvent) => {
     // Save changes
     if (event.ctrlKey && event.key === 's' && // (CTRL + S ...
-        this.props.isEditing && this.props.currentCategory) { // ... while editing, and a game is selected)
+        this.props.isEditing && this.props.currentCategory) { // ... while editing, and a game is selected
       this.props.onSaveCategory();
       event.preventDefault();
     }
@@ -189,11 +188,6 @@ export class RightTagCategoriesSidebar extends React.Component<RightTagCategorie
 
   onColorChange = (color: ColorResult) => {
     this.props.onEditCategory({ color: color.hex });
-  };
-
-  /** When a key is pressed while an input field is selected (except for multiline fields) */
-  onInputKeyDown = (event: React.KeyboardEvent): void => {
-    // if (event.key === 'Enter') { this.props.onSaveGame(); }
   };
 
   onDeleteCategoryClick = (): void => {

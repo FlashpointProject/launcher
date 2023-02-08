@@ -52,7 +52,7 @@ export async function saveCuration(fullCurationPath: string, curation: LoadedCur
 
 function convertEditToCurationMetaFile(curation: LoadedCuration): CurationMetaFile {
   const parsed: CurationMetaFile = {};
-  const tagCategories = curation.game.tags ? curation.game.tags.map(t => {
+  const tagCategories = curation.game.tags ? curation.game.tags.map(() => {
     // @TODO Save Tag Category names
     return 'default';
   }) : [''];

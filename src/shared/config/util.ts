@@ -92,8 +92,7 @@ export function overwriteConfigData(
  */
 export function overwriteExtConfigData(
   source: AppExtConfigData,
-  data: any,
-  onError?: (error: string) => void
+  data: any
 ): AppExtConfigData {
   for (const key in data) {
     source[key] = data[key];

@@ -103,7 +103,7 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
   }
 
   /** Renders the list of items in the drop-down menu. */
-  renderSuggestions = memoizeOne<(items: TagSuggestion[], expanded: boolean) => JSX.Element[]>((items: TagSuggestion[], expanded: boolean) => {
+  renderSuggestions = memoizeOne<(items: TagSuggestion[], expanded: boolean) => JSX.Element[]>((items: TagSuggestion[]) => {
     return items.map((suggestion, index) => this.renderSuggestionItem(suggestion, index));
   }, ([ itemsA, expandedA ], [ itemsB, expandedB ]) => {
     return expandedA === expandedB ? checkIfArraysAreEqual(itemsA, itemsB) : false;
@@ -207,7 +207,7 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
     }
   };
 
-  onInputFieldClick = (event: React.MouseEvent): void => {
+  onInputFieldClick = (): void => {
     this.setState({ expanded: true });
   };
 

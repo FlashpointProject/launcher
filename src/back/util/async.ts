@@ -5,12 +5,12 @@
 export class Barrier {
 
   private _isOpen: boolean;
-  private _promise: Promise<boolean>;
+  private readonly _promise: Promise<boolean>;
   private _completePromise!: (v: boolean) => void;
 
   constructor() {
     this._isOpen = false;
-    this._promise = new Promise<boolean>((c, e) => {
+    this._promise = new Promise<boolean>((c) => {
       this._completePromise = c;
     });
   }

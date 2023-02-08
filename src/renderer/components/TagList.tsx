@@ -72,7 +72,7 @@ export class TagList extends React.Component<TagListProps> {
                   isControlled={true}
                   columnCount={1}
                   rowCount={10} >
-                  {({ onSectionRendered, scrollToRow }) => (
+                  {() => (
                     <List
                       className='tag-list simple-scroll'
                       width={width}

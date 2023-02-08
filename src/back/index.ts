@@ -1201,7 +1201,7 @@ function readLangFile(filepath: string): Promise<RecursivePartial<LangFileConten
  * @param events Events that causes the promise to resolve.
  */
 function awaitEvents(emitter: EventEmitter, events: string[]): Promise<void> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     // @TODO Maybe add a timeout that rejects it?
     const safeEvents = [ ...events ]; // This is a copy in case another function edits the events array after calling this
 

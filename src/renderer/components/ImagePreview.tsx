@@ -42,7 +42,7 @@ export class ImagePreview extends React.Component<ImagePreviewProps, ImagePrevie
     this.element = document.createElement('div');
   }
 
-  componentDidUpdate(prevProps: ImagePreviewProps, prevState: ImagePreviewState) {
+  componentDidUpdate(prevProps: ImagePreviewProps) {
     if (this.props.src !== prevProps.src) {
       this.updateBorderSize();
     }

@@ -10,7 +10,7 @@ export class TagAlias {
   @Column({ nullable: true })
     tagId?: number;
 
-  @ManyToOne(type => Tag, t => t.aliases)
+  @ManyToOne(() => Tag, t => t.aliases)
     tag?: Tag;
 
   @Index()

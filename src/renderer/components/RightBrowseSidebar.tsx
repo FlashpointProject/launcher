@@ -109,13 +109,9 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   onApplicationPathChange     = this.wrapOnTextChange((game, text) => this.props.onEditGame({ applicationPath: text }));
   onNotesChange               = this.wrapOnTextChange((game, text) => this.props.onEditGame({ notes: text }));
   onOriginalDescriptionChange = this.wrapOnTextChange((game, text) => this.props.onEditGame({ originalDescription: text }));
-  onBrokenChange              = this.wrapOnCheckBoxChange(game => {
+  onBrokenChange              = this.wrapOnCheckBoxChange(() => {
     if (this.props.currentGame) {
       this.props.onEditGame({ broken: !this.props.currentGame.broken });
-    }});
-  onExtremeChange             = this.wrapOnCheckBoxChange(game => {
-    if (this.props.currentGame) {
-      this.props.onEditGame({ extreme: !this.props.currentGame.extreme });
     }});
   // Bound "on click" callbacks for game fields
   onDeveloperClick            = this.wrapOnTextClick('developer');
@@ -167,7 +163,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     window.removeEventListener('keydown', this.onGlobalKeyDown);
   }
 
-  componentDidUpdate(prevProps: RightBrowseSidebarProps, prevState: RightBrowseSidebarState): void {
+  componentDidUpdate(prevProps: RightBrowseSidebarProps): void {
     if (this.props.isEditing && !prevProps.isEditing) {
       if (this.props.currentGame) {
         this.checkImageExistance(SCREENSHOTS, this.props.currentGame.id);
@@ -236,8 +232,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       text={game.title}
                       placeholder={strings.noTitle}
                       editable={editable}
-                      onChange={this.onTitleChange}
-                      onKeyDown={this.onInputKeyDown} />
+                      onChange={this.onTitleChange} />
                   </div>
                   <div className='browse-right-sidebar__title-row__buttons'>
                     { editDisabled ? (
@@ -301,8 +296,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     className='browse-right-sidebar__searchable'
                     editable={editable}
                     onChange={this.onDeveloperChange}
-                    onClick={this.onDeveloperClick}
-                    onKeyDown={this.onInputKeyDown} />
+                    onClick={this.onDeveloperClick} />
                 </div>
               ) }
             </div>
@@ -360,10 +354,10 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                                   const res = await this.props.openConfirmDialog(allStrings.dialog.uninstallGame, [allStrings.misc.yes, allStrings.misc.no], 1);
                                   if (res === 0) {
                                     window.Shared.back.request(BackIn.UNINSTALL_GAME_DATA, this.state.activeData.id)
-                                    .then((game) => {
+                                    .then(() => {
                                       this.onForceUpdateGameData();
                                     })
-                                    .catch((error) => {
+                                    .catch(() => {
                                       alert(allStrings.dialog.unableToUninstallGameData);
                                     });
                                   }
@@ -393,8 +387,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       placeholder={strings.noAlternateTitles}
                       className='browse-right-sidebar__searchable'
                       onChange={this.onAlternateTitlesChange}
-                      editable={editable}
-                      onKeyDown={this.onInputKeyDown} />
+                      editable={editable} />
                   </div>
                   <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                     <p>{strings.tags}: </p>
@@ -410,8 +403,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       onTagSelect={this.onTagSelect}
                       onTagEditableSelect={this.onRemoveTag}
                       onTagSuggestionSelect={this.onAddTagSuggestion}
-                      onTagSubmit={this.onAddTagByString}
-                      onKeyDown={this.onInputKeyDown} />
+                      onTagSubmit={this.onAddTagByString} />
                   </div>
                   <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                     <p>{strings.series}: </p>
@@ -421,8 +413,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       className='browse-right-sidebar__searchable'
                       onChange={this.onSeriesChange}
                       editable={editable}
-                      onClick={this.onSeriesClick}
-                      onKeyDown={this.onInputKeyDown} />
+                      onClick={this.onSeriesClick} />
                   </div>
                   <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                     <p>{strings.publisher}: </p>
@@ -432,8 +423,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       className='browse-right-sidebar__searchable'
                       onChange={this.onPublisherChange}
                       editable={editable}
-                      onClick={this.onPublisherClick}
-                      onKeyDown={this.onInputKeyDown} />
+                      onClick={this.onPublisherClick} />
                   </div>
                   <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                     <p>{strings.source}: </p>
@@ -443,8 +433,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       onChange={this.onSourceChange}
                       className='browse-right-sidebar__searchable'
                       editable={editable}
-                      onClick={this.onSourceClick}
-                      onKeyDown={this.onInputKeyDown} />
+                      onClick={this.onSourceClick} />
                   </div>
                   <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                     <p>{strings.platform}: </p>
@@ -456,8 +445,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       editable={editable}
                       items={suggestions && filterSuggestions(suggestions.platform) || []}
                       onItemSelect={text => this.props.onEditGame({ platform: text })}
-                      onClick={this.onPlatformClick}
-                      onKeyDown={this.onInputKeyDown} />
+                      onClick={this.onPlatformClick} />
                   </div>
                   <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                     <p>{strings.playMode}: </p>
@@ -469,8 +457,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       editable={editable}
                       items={suggestions && filterSuggestions(suggestions.playMode) || []}
                       onItemSelect={text => this.props.onEditGame({ playMode: text })}
-                      onClick={this.onPlayModeClick}
-                      onKeyDown={this.onInputKeyDown} />
+                      onClick={this.onPlayModeClick} />
 
                   </div>
                   <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
@@ -483,8 +470,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       editable={editable}
                       items={suggestions && filterSuggestions(suggestions.status) || []}
                       onItemSelect={text => this.props.onEditGame({ status: text })}
-                      onClick={this.onStatusClick}
-                      onKeyDown={this.onInputKeyDown} />
+                      onClick={this.onStatusClick} />
                   </div>
                   <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                     <p>{strings.version}: </p>
@@ -494,8 +480,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       className='browse-right-sidebar__searchable'
                       onChange={this.onVersionChange}
                       editable={editable}
-                      onClick={this.onVersionClick}
-                      onKeyDown={this.onInputKeyDown} />
+                      onClick={this.onVersionClick} />
                   </div>
                   <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                     <p>{strings.releaseDate}: </p>
@@ -505,8 +490,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       onChange={this.onReleaseDateChange}
                       className='browse-right-sidebar__searchable'
                       editable={editable}
-                      onClick={this.onReleaseDateClick}
-                      onKeyDown={this.onInputKeyDown} />
+                      onClick={this.onReleaseDateClick} />
                   </div>
                   <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                     <p>{strings.language}: </p>
@@ -516,8 +500,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       onChange={this.onLanguageChange}
                       className='browse-right-sidebar__searchable'
                       editable={editable}
-                      onClick={this.onLanguageClick}
-                      onKeyDown={this.onInputKeyDown} />
+                      onClick={this.onLanguageClick} />
                   </div>
                   <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                     <p>{strings.dateAdded}: </p>
@@ -630,8 +613,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     onChange={this.onApplicationPathChange}
                     editable={editable}
                     items={suggestions && filterSuggestions(suggestions.applicationPath) || []}
-                    onItemSelect={text => this.props.onEditGame({ applicationPath: text })}
-                    onKeyDown={this.onInputKeyDown} />
+                    onItemSelect={text => this.props.onEditGame({ applicationPath: text })} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>{strings.launchCommand}: </p>
@@ -640,7 +622,6 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     placeholder={strings.noLaunchCommand}
                     onChange={this.onLaunchCommandChange}
                     editable={editable}
-                    onKeyDown={this.onInputKeyDown}
                     reference={this.launchCommandRef} />
                 </div>
               </div>
@@ -980,15 +961,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     this.props.onEditPlaylistNotes(event.currentTarget.value);
   };
 
-  /** When a key is pressed while an input field is selected (except for multiline fields). */
-  onInputKeyDown = (event: React.KeyboardEvent): void => {
-    // if (event.key === 'Enter') {
-    //   this.props.onSaveGame();
-    //   event.preventDefault();
-    // }
-  };
-
-  onTagSelect = (tag: Tag, index: number): void => {
+  onTagSelect = (tag: Tag): void => {
     const alias = tag.primaryAlias.name;
     const search = `tag:${wrapSearchTerm(alias)}`;
     this.props.onSearch(search);

@@ -1,7 +1,7 @@
 import { parse_message_data, validate_socket_message } from '@shared/socket/shared';
 import { api_handle_message, api_register, api_register_any, api_unregister, api_unregister_any, create_api, SocketAPIData } from '@shared/socket/SocketAPI';
 import { server_request, server_send, SocketServerClient } from '@shared/socket/SocketServer';
-import { BaseSocket, SocketResponseData, isErrorResponse } from '@shared/socket/types';
+import { BaseSocket, SocketResponseData } from '@shared/socket/types';
 import { BackIn, BackInTemplate, BackOut, BackOutTemplate } from './types';
 
 interface SocketConstructor<T> {
@@ -50,7 +50,7 @@ export class SocketClient<SOCKET extends BaseSocket> {
 
   /** Resolves when the socket starts listening. If it is already listening this is resolved immediately. */
   whenListening(): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       if (this.client.socket && this.client.socket.readyState === WebSocket.OPEN) {
         resolve();
       } else {
@@ -179,7 +179,6 @@ export class SocketClient<SOCKET extends BaseSocket> {
   // Event Handlers
 
   protected async onMessage(event: EVENT): Promise<void> {
-    log('Socket Client - Message received');
 
     // Parse
 
@@ -207,12 +206,6 @@ export class SocketClient<SOCKET extends BaseSocket> {
       const index = this.client.sent.findIndex(sent => sent.id === inc.id);
       const sent = this.client.sent[index];
       if (sent) {
-        log(
-          '  Response',
-          '\n    ID:    ', inc.id,
-          '\n    Result:', isErrorResponse(inc) ? undefined : inc.result,
-          '\n    Error: ', isErrorResponse(inc) ? inc.error : undefined,
-        );
 
         this.client.sent.splice(index, 1);
         sent.resolve(inc as SocketResponseData<BackInTemplate[BackIn]>);
@@ -261,9 +254,4 @@ export class SocketClient<SOCKET extends BaseSocket> {
     });
   }
 }
-
-function log(...args: any[]): void {
-  // console.log(...args);
-}
-
 function noop() { /* Does nothing. */ }

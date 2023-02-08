@@ -7,7 +7,7 @@ export class Playlist {
   /** ID of the playlist (unique identifier) */
     id: string;
 
-  @OneToMany(type => PlaylistGame, pg => pg.playlist, {
+  @OneToMany(() => PlaylistGame, pg => pg.playlist, {
     cascade: true
   })
     games: PlaylistGame[];

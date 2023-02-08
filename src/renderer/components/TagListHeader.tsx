@@ -8,7 +8,7 @@ export type TagListHeaderProps = {};
  * Header on top of the GameList.
  * It contains the resizable columns that decide how wide each column is.
  */
-export function TagListHeader(props: TagListHeaderProps) {
+export function TagListHeader() {
   const strings = React.useContext(LangContext);
   return useMemo(() => (
     <div className='tag-list-header'>

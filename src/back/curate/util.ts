@@ -40,7 +40,7 @@ export const onFileServerRequestPostCuration =
         await fs.promises.mkdir(path.dirname(randomFilePath), { recursive: true });
         await fs.promises.writeFile(randomFilePath, data);
         await onNewCuration(randomFilePath)
-        .then((curation) => {
+        .then(() => {
           res.writeHead(200);
           res.end();
         })

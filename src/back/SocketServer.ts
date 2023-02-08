@@ -4,7 +4,6 @@ import { parse_message_data, validate_socket_message } from '@shared/socket/shar
 import { api_handle_message, api_register, api_register_any, api_unregister, api_unregister_any, create_api, SocketAPIData } from '@shared/socket/SocketAPI';
 import { create_server, server_add_client, server_broadcast, server_request, server_send, SocketServerData } from '@shared/socket/SocketServer';
 import { SocketRequestData, SocketResponseData } from '@shared/socket/types';
-import * as http from 'http';
 import * as ws from 'ws';
 import { genPipelineBackOut, MiddlewareRes, PipelineRes } from './SocketServerMiddleware';
 
@@ -227,7 +226,7 @@ export class SocketServer {
 
   // Event Handlers
 
-  protected onConnect(socket: ws, request: http.IncomingMessage): void {
+  protected onConnect(socket: ws): void {
     // Read the first message as a "secret key"
     socket.onmessage = (event) => {
       if (event.data === this.secret) {

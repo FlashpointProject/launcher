@@ -214,7 +214,7 @@ export function main(init: Init): void {
         // Wait for process to prep, handle any queries, store config and prefs after finishing
         state.backProc.on('message', initHandler);
         // On windows you have to wait for app to be ready before you call app.getLocale() (so it will be sent later)
-        let localeCode = 'en';
+        let localeCode: string;
         if (process.platform === 'win32' && !app.isReady()) {
           localeCode = 'en';
         } else {
@@ -355,7 +355,7 @@ export function main(init: Init): void {
     }
   }
 
-  function onAppSecondInstance(event: Electron.Event, argv: string[], workingDirectory: string): void {
+  function onAppSecondInstance(event: Electron.Event, argv: string[]): void {
     if (state.window) {
       if (process.platform !== 'darwin') {
         // Find the arg that is our custom protocol url and store it

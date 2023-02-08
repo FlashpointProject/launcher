@@ -12,7 +12,7 @@ interface ITaskProgress {
 }
 
 export class TaskProgress extends EventEmitter implements ITaskProgress {
-  private _stageCount: number;
+  private readonly _stageCount: number;
   private _stage: number;
   private _stageTask: string;
   private _stageProgressDone: number;

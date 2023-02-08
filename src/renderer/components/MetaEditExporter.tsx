@@ -30,7 +30,7 @@ export function MetaEditExporter(props: MetaEditExporterProps) {
     }
   }, [props.onCancel]);
 
-  const onClickConfirm = React.useCallback((event: React.MouseEvent) => {
+  const onClickConfirm = React.useCallback(() => {
     props.onConfirm({
       id: props.gameId,
       properties,

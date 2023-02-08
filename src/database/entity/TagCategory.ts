@@ -18,6 +18,6 @@ export class TagCategory {
   @Column({ nullable: true })
     description?: string;
 
-  @OneToMany(type => Tag, t => t.category)
+  @OneToMany(() => Tag, t => t.category)
     tags: Tag[];
 }

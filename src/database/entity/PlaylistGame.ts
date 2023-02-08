@@ -12,7 +12,7 @@ export class PlaylistGame {
   @Column()
     playlistId?: string;
 
-  @ManyToOne(type => Playlist, p => p.games)
+  @ManyToOne(() => Playlist, p => p.games)
     playlist?: Playlist;
 
   @Column()
@@ -26,7 +26,7 @@ export class PlaylistGame {
   @Column({ nullable: true })
     gameId?: string;
 
-  @ManyToOne(type => Game)
+  @ManyToOne(() => Game)
   /** The game this represents */
     game?: Game;
 }

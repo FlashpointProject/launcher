@@ -94,14 +94,14 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     }
   });
 
-  state.socketServer.register(BackIn.GET_MAIN_INIT_DATA, (event) => {
+  state.socketServer.register(BackIn.GET_MAIN_INIT_DATA, () => {
     return {
       preferences: state.preferences,
       config: state.config,
     };
   });
 
-  state.socketServer.register(BackIn.GET_LOGGER_INIT_DATA, (event) => {
+  state.socketServer.register(BackIn.GET_LOGGER_INIT_DATA, () => {
     return {
       preferences: state.preferences,
       config: state.config,
@@ -109,7 +109,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     };
   });
 
-  state.socketServer.register(BackIn.GET_RENDERER_EXTENSION_INFO, async (event) => {
+  state.socketServer.register(BackIn.GET_RENDERER_EXTENSION_INFO, async () => {
     return {
       devScripts: await state.extensionsService.getContributions('devScripts'),
       contextButtons: await state.extensionsService.getContributions('contextButtons'),
@@ -196,7 +196,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     return res;
   });
 
-  state.socketServer.register(BackIn.GET_RENDERER_INIT_DATA, async (event) => {
+  state.socketServer.register(BackIn.GET_RENDERER_INIT_DATA, async () => {
     state.languageContainer = createContainer(
       state.languages,
       state.preferences.currentLanguage,
@@ -288,7 +288,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     return { done };
   });
 
-  state.socketServer.register(BackIn.GET_SUGGESTIONS, async (event) => {
+  state.socketServer.register(BackIn.GET_SUGGESTIONS, async () => {
     const startTime = Date.now();
     const suggestions: GamePropSuggestions = {
       tags: await GameManager.findUniqueValues(TagAlias, 'name'),
@@ -310,7 +310,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     };
   });
 
-  state.socketServer.register(BackIn.GET_GAMES_TOTAL, async (event) => {
+  state.socketServer.register(BackIn.GET_GAMES_TOTAL, async () => {
     return await GameManager.countGames();
   });
 
@@ -322,7 +322,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     return data;
   });
 
-  state.socketServer.register(BackIn.GET_EXEC, (event) => {
+  state.socketServer.register(BackIn.GET_EXEC, () => {
     return state.execMappings;
   });
 
@@ -757,7 +757,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     return SourceManager.remove(id);
   });
 
-  state.socketServer.register(BackIn.GET_SOURCES, async (event) => {
+  state.socketServer.register(BackIn.GET_SOURCES, async () => {
     return SourceManager.find();
   });
 
@@ -765,7 +765,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     return GameDataManager.findSourceDataForHashes(hashes);
   });
 
-  state.socketServer.register(BackIn.GET_ALL_GAMES, async (event) => {
+  state.socketServer.register(BackIn.GET_ALL_GAMES, async () => {
     return GameManager.findAllGames();
   });
 
@@ -1014,7 +1014,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     return await GameManager.findPlaylist(playlistId, true) as Playlist; // @TYPESAFE fix this?
   });
 
-  state.socketServer.register(BackIn.CLEANUP_TAG_ALIASES, async (event) => {
+  state.socketServer.register(BackIn.CLEANUP_TAG_ALIASES, async () => {
     await TagManager.cleanupTagAliases();
   });
 
@@ -1024,7 +1024,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     return result;
   });
 
-  state.socketServer.register(BackIn.FIX_TAG_PRIMARY_ALIASES, async (event, data) => {
+  state.socketServer.register(BackIn.FIX_TAG_PRIMARY_ALIASES, async (event) => {
     const fixed = await TagManager.fixPrimaryAliases();
     state.socketServer.send(event.client, BackOut.FIX_TAG_PRIMARY_ALIASES, fixed);
     return fixed;
@@ -1041,7 +1041,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     return tag;
   });
 
-  state.socketServer.register(BackIn.GET_PLAYLISTS, async (event) => {
+  state.socketServer.register(BackIn.GET_PLAYLISTS, async () => {
     return await GameManager.findPlaylists(state.preferences.browsePageShowExtreme);
   });
 
@@ -1319,7 +1319,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     }
   });
 
-  state.socketServer.register(BackIn.OPEN_LOGS_WINDOW, async (event) => {
+  state.socketServer.register(BackIn.OPEN_LOGS_WINDOW, async () => {
     if (!state.services.has('logger_window')) {
       const env: NodeJS.ProcessEnv = {...process.env, 'PATH': state.pathVar ?? process.env.PATH};
       if ('ELECTRON_RUN_AS_NODE' in env) {
@@ -1370,7 +1370,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     return getUrl;
   });
 
-  state.socketServer.register(BackIn.FETCH_DIAGNOSTICS, async (event) => {
+  state.socketServer.register(BackIn.FETCH_DIAGNOSTICS, async () => {
     type Diagnostics = {
       services: Array<{
         id: string;
@@ -1440,7 +1440,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     return '```' + message + '```';
   });
 
-  state.socketServer.register(BackIn.QUIT, async (event) => {
+  state.socketServer.register(BackIn.QUIT, async () => {
     console.log('Exiting...');
     // Unload all extensions before quitting
     await state.extensionsService.unloadAll();
@@ -1549,7 +1549,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     return genCurationWarnings(curation, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onWillGenCurationWarnings);
   });
 
-  state.socketServer.register(BackIn.CURATE_GET_LIST, async (event) => {
+  state.socketServer.register(BackIn.CURATE_GET_LIST, async () => {
     return state.loadedCurations;
   });
 
@@ -1753,7 +1753,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     }
   });
 
-  state.socketServer.register(BackIn.CURATE_SCAN_NEW_CURATIONS, async (event) => {
+  state.socketServer.register(BackIn.CURATE_SCAN_NEW_CURATIONS, async () => {
     const curationsPath = path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING);
     await fs.ensureDir(curationsPath);
     const curations = await fs.promises.readdir(curationsPath, { withFileTypes: true });
@@ -1832,7 +1832,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
           await extractFullPromise([dataPath, curPath, { $bin: state.sevenZipPath }]);
           // Clean up content.json file from extracted data pack
           await fs.unlink(path.join(curPath, 'content.json'))
-          .catch((err) => { /** Probably doesn't exist */ });
+          .catch(() => { /** Probably doesn't exist */ });
           log.debug('Launcher', 'Make Curation From Game - Found and extracted data pack into curation folder');
         }
       } else {

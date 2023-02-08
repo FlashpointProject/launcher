@@ -98,11 +98,11 @@ class ObjectParserError implements IObjectParserError {
  */
 class ObjectParserProp<P> implements IObjectParserProp<P> {
   /** The value this is wrapping. */
-  private _property: P;
+  private readonly _property: P;
   /** The context of this object parser tree. */
-  private _context: Context;
+  private readonly _context: Context;
   /** Stack of property names that lead to this value. */
-  private _stack: string[];
+  private readonly _stack: string[];
 
   constructor(property: P, context: Context, stack: string[]) {
     this._property = property;
@@ -163,7 +163,7 @@ class ObjectParserProp<P> implements IObjectParserProp<P> {
   prop<L extends keyof P>(label: L, funcOrOptional?: ((prop: P[L]) => void) | boolean, optional?: boolean): IObjectParserProp<P[L]> {
     // Figure out which argument is used for what purpose
     let func: ((prop: P[L]) => void)|undefined; // ("func" from parameter)
-    let isOptional = false; // ("optional" from parameter)
+    let isOptional: boolean; // ("optional" from parameter)
     if (typeof funcOrOptional === 'function') {
       func = funcOrOptional;
       isOptional = !!optional;

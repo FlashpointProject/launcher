@@ -7,7 +7,7 @@ export class GameData {
   @PrimaryGeneratedColumn()
     id: number;
 
-  @ManyToOne(type => Game, game => game.data)
+  @ManyToOne(() => Game, game => game.data)
   /** ID of the related game */
     game?: Game;
 

@@ -30,10 +30,8 @@ export type ParsedCurationMeta = {
  */
 export async function parseCurationMetaOld(text: string): Promise<ParsedCurationMeta> {
   // Try parsing the meta text
-  let tokens: CFTokenizer.AnyToken[] | undefined = undefined;
-  let rawMeta: CurationFormatObject | undefined = undefined;
-  tokens = tokenizeCurationFormat(text);
-  rawMeta = parseCurationFormat(tokens);
+  const tokens: CFTokenizer.AnyToken[] | undefined = tokenizeCurationFormat(text);
+  const rawMeta: CurationFormatObject | undefined = parseCurationFormat(tokens);
   // Convert the raw meta to a programmer friendly object
   return await parseCurationMetaFile(rawMeta);
 }

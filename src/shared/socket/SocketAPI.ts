@@ -1,4 +1,4 @@
-import { SocketRequestData, SocketResponseData, SocketTemplate, isErrorResponse } from './types';
+import { SocketRequestData, SocketResponseData, SocketTemplate } from './types';
 
 /** Callback that is registered to a specific type. */
 type Callback<T, U extends (...args: any[]) => any> = (event: T, ...args: Parameters<U>) => (ReturnType<U> | Promise<ReturnType<U>>)
@@ -102,16 +102,8 @@ export async function api_handle_message<
     SocketResponseData<unknown> | undefined, // Incoming response (resolve/reject promise)
     SocketResponseData<unknown> | undefined, // Outgoing response (send this)
   ]> {
-  log('Socket Server - Message received');
 
   if ('type' in data) { // Request
-    log(
-      '  Request',
-      '\n    ID:  ', data.id,
-      '\n    Type:', data.type,
-      '\n    Args:', data.args,
-    );
-
     // Handle message
     for (let i = 0; i < api.registered_any.length; i++) {
       const callback_any = api.registered_any[i];
@@ -146,12 +138,6 @@ export async function api_handle_message<
           };
         }
 
-        log(
-          '  Response',
-          '\n    Result:', isErrorResponse(response) ? undefined : response.result,
-          '\n    Error: ', isErrorResponse(response)? response.error : undefined,
-        );
-
         return [undefined, response];
       } else {
         console.error(`Socket Client - Failed to respond to request, request ID is not of type "number" (type: "${typeof data.id}").`);
@@ -162,8 +148,4 @@ export async function api_handle_message<
   }
 
   return [undefined, undefined];
-}
-
-function log(...args: any[]): void {
-  // console.log(...args);
 }
