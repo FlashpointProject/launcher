@@ -12,6 +12,7 @@ export namespace PreferencesFile {
 
   /**
    * Synchronous way to read Preferences, used in BrowserMode - Note: Will not save default values
+   * @param filePath Path to preferences.json
    * @param onError Called for each error that occurs while parsing.
    */
   export function readOrCreateFileSync(filePath: string, onError?: (error: string) => void): AppPreferencesData {
@@ -27,6 +28,8 @@ export namespace PreferencesFile {
   /**
    * Attempt to read and parse the preferences file, then return the result.
    * If the file does not exist, create a new one with the default values and return that instead.
+   * @param filePath Path to preferences.json
+   * @param flashpointPath Path to the Flashpoint Data folder
    * @param onError Called for each error that occurs while parsing.
    */
   export async function readOrCreateFile(filePath: string, flashpointPath: string, onError?: (error: string) => void): Promise<AppPreferencesData> {

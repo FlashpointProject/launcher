@@ -12,7 +12,8 @@ export type VariableStringOptions = {
 /**
  * Parse a "variable string" by replacing the variable references with the appropriate values.
  * @param str Variable string to parse.
- * @param getValue Function the provide variable values.
+ * @param getValue Function that provides variable values in a given variable string
+ * @param options Options used when splitting variable strings E.G open and close markers
  */
 export function parseVariableString(str: string, getValue: GetVariableStringValue, options: VariableStringOptions = defaultOptions): string {
   const arr = splitVariableString(str, options);
@@ -28,6 +29,7 @@ export function parseVariableString(str: string, getValue: GetVariableStringValu
 /**
  * Split a "variable string" into an array.
  * @param str Variable string to split.
+ * @param options Options used when splitting variable strings E.G open and close markers
  * @returns Array of string segments from the variable string.
  *          All elements with even indices are variable names, and those with odd indices are plain text.
  */

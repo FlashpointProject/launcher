@@ -730,7 +730,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     }
   }
 
-  renderDeleteGameButton({ confirm, extra }: ConfirmElementArgs<LangContainer['browse']>): JSX.Element {
+  static renderDeleteGameButton({ confirm, extra }: ConfirmElementArgs<LangContainer['browse']>): JSX.Element {
     return (
       <div
         className='browse-right-sidebar__title-row__buttons__delete-game'
@@ -741,7 +741,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     );
   }
 
-  renderRemoveFromPlaylistButton({ confirm, extra }: ConfirmElementArgs<LangContainer['browse']>): JSX.Element {
+  static renderRemoveFromPlaylistButton({ confirm, extra }: ConfirmElementArgs<LangContainer['browse']>): JSX.Element {
     return (
       <div
         className='browse-right-sidebar__title-row__buttons__remove-from-playlist'

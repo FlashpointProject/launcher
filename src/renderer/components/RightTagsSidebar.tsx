@@ -210,7 +210,7 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
     }
   }
 
-  renderDeleteTagButton({ confirm, extra }: ConfirmElementArgs<LangContainer['tags']>): JSX.Element {
+  static renderDeleteTagButton({ confirm, extra }: ConfirmElementArgs<LangContainer['tags']>): JSX.Element {
     const className = 'tag-alias__buttons-delete';
     return (
       <div

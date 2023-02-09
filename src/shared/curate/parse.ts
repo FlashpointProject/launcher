@@ -22,17 +22,15 @@ export type ParsedCurationMeta = {
  */
 export async function parseCurationMetaOld(text: string): Promise<ParsedCurationMeta> {
   // Try parsing the meta text
-  let tokens: CFTokenizer.AnyToken[] | undefined = undefined;
-  let rawMeta: CurationFormatObject | undefined = undefined;
-  tokens = tokenizeCurationFormat(text);
-  rawMeta = parseCurationFormat(tokens);
+  const tokens: CFTokenizer.AnyToken[] = tokenizeCurationFormat(text);
+  const rawMeta: CurationFormatObject = parseCurationFormat(tokens);
   // Convert the raw meta to a programmer friendly object
   return await parseCurationMetaFile(rawMeta);
 }
 
 /**
- * Parse a string containing meta for an new style (YAML) curation
- * @param text A string of curation meta.
+ * Parse a string containing meta for a new style (YAML) curation
+ * @param rawMeta String representation of the meta file
  */
 export async function parseCurationMetaNew(rawMeta: any): Promise<ParsedCurationMeta> {
   // Try parsing yaml file
@@ -120,6 +118,7 @@ export async function parseCurationMetaFile(data: any, onError?: (error: string)
  * Convert a "raw" curation additional application meta object into a more programmer friendly object.
  * @param item Object parser, wrapped around the "raw" add-app meta object to convert.
  * @param label Label of the object.
+ * @param rawValue Used to generate add apps when the label is extras or message
  */
 function convertAddApp(item: IObjectParserProp<any>, label: string | number | symbol, rawValue: any): EditAddAppCurationMeta {
   const addApp: EditAddAppCurationMeta = {};

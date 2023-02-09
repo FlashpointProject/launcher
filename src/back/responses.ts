@@ -72,6 +72,7 @@ const axios = axiosImport.default;
 /**
  * Register all request callbacks to the socket server.
  * @param state State of the back.
+ * @param init Initialization function (only runs once per state)
  */
 export function registerRequestCallbacks(state: BackState, init: () => Promise<void>): void {
   state.socketServer.register(BackIn.ADD_LOG, (event, data) => {
@@ -125,7 +126,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     };
   });
 
-  state.socketServer.register(BackIn.GET_RENDERER_LOADED_DATA, async (event) => {
+  state.socketServer.register(BackIn.GET_RENDERER_LOADED_DATA, async () => {
     const libraries = await GameManager.findUniqueValues(Game, 'library');
     const platforms: Record<string, string[]> = {};
     for (const library of libraries) {
@@ -1092,7 +1093,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
   state.socketServer.register(BackIn.EXPORT_TAGS, async (event, data) => {
     const jsonTagsFile: TagsFile = { categories: [], tags: [] };
-    let res = 0;
+    let res: number;
     try {
       const allTagCategories = await TagManager.findTagCategories();
       jsonTagsFile.categories = allTagCategories;
@@ -2086,6 +2087,7 @@ function createCommand(filename: string, useWine: boolean, noshell: boolean): st
 
 /**
  * Run a command registered by an Extension
+ * @param state Back state
  * @param command Command to run
  * @param args Arguments for the command
  */
@@ -2136,7 +2138,7 @@ async function getProviders(state: BackState): Promise<AppProvider[]> {
         };
       });
     })
-    .reduce((prev, cur) => cur = cur.concat(prev), []);
+    .reduce((prev, cur) => cur.concat(prev), []);
   }
   );
 }

@@ -10,6 +10,8 @@ import { curationLog } from './util';
 /**
  * Import a curation archive (Extract all files to unique folder)
  * @param filePath Path of the archive to import
+ * @param preserveKey Tries to preserve the folder name from the curation archive
+ * @param progress Frontend Progress handle to report to
  * @return Curation key
  */
 export async function importCurationArchive(filePath: string, preserveKey: boolean, progress: ProgressHandle): Promise<string> {

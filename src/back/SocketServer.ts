@@ -99,7 +99,7 @@ export class SocketServer {
 
   /**
    * Return a function that opens a save box on a specific client.
-   * @param target Client to open a save box on.
+   * @param client Client to open a save box on.
    */
   public showSaveDialogBack(client: BackClient): ShowSaveDialogFunc {
     return (options) => {
@@ -109,7 +109,7 @@ export class SocketServer {
 
   /**
    * Return a function that opens a load file box on a specific client.
-   * @param target Client to open a load file box on.
+   * @param client Client to open a load file box on.
    */
   public showOpenDialogFunc(client: BackClient): ShowOpenDialogFunc {
     return (options) => {
@@ -119,7 +119,7 @@ export class SocketServer {
 
   /**
    * Return a function that opens an external path at a specific client.
-   * @param target Client to open an external path at.
+   * @param client Client to open an external path at.
    */
   public openExternal(client: BackClient): OpenExternalFunc {
     return (url, options) => {

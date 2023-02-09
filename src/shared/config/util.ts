@@ -55,6 +55,7 @@ export function getDefaultConfigData(platform: NodeJS.Platform): AppConfigData {
  * Overwrite a config data object with data from another object.
  * @param source Object to overwrite.
  * @param data Object with data to overwrite the source with.
+ * @param onError Called when an error occurs
  * @returns Source argument (not a copy).
  */
 export function overwriteConfigData(

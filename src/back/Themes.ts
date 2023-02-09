@@ -8,11 +8,14 @@ import { ThemeState } from './types';
 import { FolderWatcher } from './util/FolderWatcher';
 
 /**
- * Add a new watcher for a Theme path to the Theme State
+ * Starts a watcher for a newly registered theme
+ * @param id ID of the theme to register
  * @param themePath Path to the Theme
  * @param themeState Theme State to use
- * @param socketServer Socket Server to broadcast on
- * @returns Index of the new watcher on themeState.watchers
+ * @param registry Theme Registry to write to
+ * @param socketServer Socket Server to broadcast changes on
+ * @param owner Name of the extension providing this theme
+ * @param logoSet ID of an associated logo set to use when this theme is selected
  */
 export async function newThemeWatcher(id: string, basePath: string, themePath: string, themeState: ThemeState, registry: Registry, socketServer: SocketServer, owner?: string, logoSet?: string): Promise<void> {
   // Throw if going to override other theme

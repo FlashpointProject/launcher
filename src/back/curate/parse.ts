@@ -109,6 +109,7 @@ export async function parseCurationMetaFile(data: any, onError?: (error: string)
  * Convert a "raw" curation additional application meta object into a more programmer friendly object.
  * @param item Object parser, wrapped around the "raw" add-app meta object to convert.
  * @param label Label of the object.
+ * @param rawValue Used to generate add apps if using a message or extras label
  */
 function convertAddApp(item: IObjectParserProp<any>, label: string | number | symbol, rawValue: any): AddAppCuration {
   const addApp: AddAppCuration = {

@@ -272,6 +272,12 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
 /**
  * Create and launch a game from curation metadata.
  * @param curation Curation to launch
+ * @param symlinkCurationContent Symlink the curation content to htdocs/content/
+ * @param skipLink Skips any linking of the content folder
+ * @param opts Options for game launches
+ * @param onWillEvent Fires before the curation has launched
+ * @param onDidEvent Fires after the curation has launched
+ * @param serverOverride Changes the active server given a server name / alias as defined in services.json
  */
 export async function launchCuration(curation: LoadedCuration, symlinkCurationContent: boolean,
   skipLink: boolean, opts: Omit<LaunchGameOpts, 'game'|'addApps'>, onWillEvent:ApiEmitter<GameLaunchInfo>, onDidEvent: ApiEmitter<Game>, serverOverride?: string) {
@@ -290,6 +296,11 @@ export async function launchCuration(curation: LoadedCuration, symlinkCurationCo
  * Create and launch an additional application from curation metadata.
  * @param folder Key of the parent curation index
  * @param appCuration Add App Curation to launch
+ * @param symlinkCurationContent Symlink the curation content to htdocs/content/
+ * @param skipLink Skips any linking of the content folder
+ * @param opts Options for add app launches
+ * @param onWillEvent Fires before the curation add app has launched
+ * @param onDidEvent Fires after the curation add app has launched
  */
 export async function launchAddAppCuration(folder: string, appCuration: AddAppCuration, symlinkCurationContent: boolean,
   skipLink: boolean, opts: Omit<LaunchAddAppOpts, 'addApp'>, onWillEvent: ApiEmitter<AdditionalApp>, onDidEvent: ApiEmitter<AdditionalApp>) {
@@ -309,8 +320,10 @@ function logMessage(text: string, folder: string): void {
 
 /**
  * Create a game info from a curation.
- * @param curation Curation to get data from.
- * @param gameId ID to use for Game
+ * @param gameId ID to use for created Game
+ * @param gameMeta Curation Metadata to inherit
+ * @param addApps Curation add apps to inherit
+ * @param date Date to mark this game as added on
  */
 async function createGameFromCurationMeta(gameId: string, gameMeta: CurationMeta, addApps : AddAppCuration[], date: Date): Promise<Game> {
   const game: Game = new Game();
@@ -379,7 +392,11 @@ async function importGameImage(image: CurationIndexImage, gameId: string, folder
 }
 
 /** Symlinks (or copies if unavailable) a curations `content` folder to `htdocs\content`
- * @param curationKey Key of the (game) curation to link
+ * @param curationKey Key of the curation to link content from
+ * @param fpPath Path to the root of the Flashpoint Data folder
+ * @param exePath Path to the Flashpoint Launcher exe
+ * @param htdocsPath Path to the htdocs folder
+ * @param symlinkCurationContent Symlink the curation content instead of copying files
  */
 async function linkContentFolder(curationKey: string, fpPath: string, isDev: boolean, exePath: string, htdocsPath: string, symlinkCurationContent: boolean) {
   const curationPath = path.join(fpPath, 'Curations', 'Working', curationKey);
@@ -418,105 +435,9 @@ async function linkContentFolder(curationKey: string, fpPath: string, isDev: boo
   }
 }
 
-/**
- * Move a folders contents to another, with warnings for overwrites
- * @param inFolder Folder to copy from
- * @param outFolder Folder to copy to
- */
-// async function copyFolder(inFolder: string, outFolder: string, move: boolean, openDialog: ShowMessageBoxFunc) {
-//   const contentIndex = await indexContentFolder(inFolder, curationLog);
-//   let yesToAll = false;
-//   return Promise.all(
-//     contentIndex.map(async (content) => {
-//       // For checking cancel at end
-//       let cancel = false;
-//       const source = path.join(inFolder, content.filePath);
-//       const dest = path.join(outFolder, content.filePath);
-//       // Ensure that the folders leading up to the file exists
-//       await fs.promises.mkdir(path.dirname(dest), { recursive: true });
-//       await fs.access(dest, fs.constants.F_OK)
-//       .then(async () => {
-//         // Ask to overwrite if file already exists
-//         const filesDifferent = !(await equalFileHashes(source, dest));
-//         // Only ask when files don't match
-//         if (filesDifferent) {
-//           if (!yesToAll) {
-//             await copyOrMoveFile(source, dest, move);
-//             return;
-//           }
-//           const newStats = await fs.lstat(source);
-//           const currentStats = await fs.lstat(dest);
-//           const response = await openDialog({
-//             type: 'warning',
-//             title: 'Import Warning',
-//             message: 'Overwrite File?\n' +
-//                     `${content.filePath}\n` +
-//                     `Current File: ${sizeToString(currentStats.size)} (${currentStats.size} Bytes)\n`+
-//                     `New File: ${sizeToString(newStats.size)} (${newStats.size} Bytes)`,
-//             buttons: ['Yes', 'No', 'Yes to All', 'Cancel']
-//           });
-//           switch (response) {
-//             case 0:
-//               await copyOrMoveFile(source, dest, move);
-//               break;
-//             case 2:
-//               yesToAll = true;
-//               await copyOrMoveFile(source, dest, move);
-//               break;
-//             case 3:
-//               cancel = true;
-//               break;
-//           }
-//           if (response === 0) {
-//             await copyOrMoveFile(source, dest, move);
-//           }
-//           if (response === 2) { cancel = true; }
-//         }
-//       })
-//       .catch(async () => {
-//         // Dest file doesn't exist, just move
-//         copyOrMoveFile(source, dest, move);
-//       });
-//       if (cancel) { throw new Error('Import cancelled by user.'); }
-//     })
-//   );
-// }
-//
-// async function copyOrMoveFile(source: string, dest: string, move: boolean) {
-//   try {
-//     if (move) { await fs.rename(source, dest); } // @TODO Make sure this overwrites files
-//     else      { await fs.copyFile(source, dest); }
-//   } catch (error) {
-//     curationLog(`Error copying file '${source}' to '${dest}' - ${error.message}`);
-//     if (move) {
-//       curationLog('Attempting to copy file instead of move...');
-//       try {
-//         await fs.copyFile(source, dest);
-//       } catch (error) {
-//         curationLog('Copy unsuccessful');
-//         throw error;
-//       }
-//       curationLog('Copy successful');
-//     }
-//   }
-// }
-
 function curationLog(content: string): void {
   log.info('Curate', content);
 }
-
-/**
- * Check whether 2 files hashes match
- * @param filePath First file to compare
- * @param secondFilePath Second file to compare
- * @returns True if matching, false if not.
- */
-// async function equalFileHashes(filePath: string, secondFilePath: string) {
-//   // Hash first file
-//   const buffer = await fs.readFile(filePath);
-//   const secondBuffer = await fs.readFile(secondFilePath);
-//   return buffer.equals(secondBuffer);
-// }
 
 function createPlaceholderGame(): Game {
   const id = uuid();

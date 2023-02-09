@@ -91,6 +91,7 @@ type CombinedMetas = {
 /**
  * Import all meta edits from a folder.
  * @param fullMetaEditsFolderPath Path to load meta edit files from.
+ * @param openDialog Function used to open a message box for prompting on collisions
  */
 export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDialog: ShowMessageBoxFunc): Promise<ImportMetaEditResult> {
   const errors: Error[] = [];

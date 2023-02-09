@@ -176,7 +176,7 @@ function progressReducer(prevState: Record<string, (ProgressData[]|undefined)>, 
 /**
  * Returns the ProgressData of a parent (initializes it if necessary)
  * @param state Mutable ProgressState
- * @param key Parent's Key
+ * @param parentKey Parent's Key
  */
 function ensureParent(state: Record<string, (ProgressData[]|undefined)>, parentKey: string): ProgressData[] {
   const parent = state[parentKey];
@@ -229,7 +229,7 @@ export function newProgress(parentKey: string, dispatch: React.Dispatch<Progress
 export type ProgressHandle = {
   parentKey: string;
   key: string;
-  dispatch: React.Dispatch<ProgressAction>;
+  dispatch: Dispatch<ProgressAction>;
 }
 
 

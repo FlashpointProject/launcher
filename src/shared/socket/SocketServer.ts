@@ -131,14 +131,6 @@ function server_send_internal<
       args: args,
     };
 
-    log(
-      'Socket Server - Message sent',
-      '\n  Request',
-      '\n    ID:  ', request.id,
-      '\n    Type:', request.type,
-      '\n    Args:', request.args,
-    );
-
     client.socket.send(JSON.stringify(request));
   } else {
     throw new Error(`Failed to send message. Client does not have a socket (Client ID: ${client.id}).`);
@@ -156,8 +148,4 @@ export function server_broadcast<
   ...args: Parameters<SocketTemplate<T, U>[TYPE]>
 ) {
   server.clients.map(client => server_send(client, type, ...args));
-}
-
-function log(...args: any[]): void {
-  // console.log(...args);
 }
