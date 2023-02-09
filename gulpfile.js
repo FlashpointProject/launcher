@@ -6,7 +6,7 @@ const { parallel, series } = require("gulp");
 const { buildExtensions, watchExtensions } = require("./gulpfile.extensions");
 const { execute } = require("./gulpfile.util");
 
-const packageJson = JSON.parse(fs.readFileSync("./package.json"));
+const packageJson = JSON.parse(fs.readFileSync("./package.json", { encoding: 'utf-8' }));
 const config = {
   buildVersion: Date.now().toString(),
   publish: !!process.env.PUBLISH,

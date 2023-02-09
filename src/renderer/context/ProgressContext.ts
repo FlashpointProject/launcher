@@ -1,7 +1,7 @@
 
 import { createContextReducer } from '../context-reducer/contextReducer';
 import { ReducerAction } from '../context-reducer/interfaces';
-import { uuid } from '@shared/utils/uuid';
+import { Dispatch } from 'react';
 
 export type ProgressData = {
   /* Key identifier */
@@ -209,20 +209,6 @@ function ensureProgressIndex(state: ProgressData[], key: string): number {
       isDone: false
     }) - 1;
   }
-}
-
-/**
- * Return a new ProgressHandle to be given out to other functions
- * @param parentKey Identifier of parent (page, component etc.)
- * @param dispatch Dispatcher to ProgressContext
- * @returns Handle containing all data necessary to dispatch ProgressAction's
- */
-export function newProgress(parentKey: string, dispatch: React.Dispatch<ProgressAction>): ProgressHandle {
-  return {
-    parentKey: parentKey,
-    key: uuid(),
-    dispatch: dispatch
-  };
 }
 
 /** Passed around to allow recording progress */

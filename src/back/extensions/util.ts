@@ -7,13 +7,6 @@ export async function parseAppVar(extId: string, appPath: string, launchCommand:
   const ext = await state.extensionsService.getExtension(extId);
   return parseVariableString(appPath, (name) => {
     switch (name) {
-      default: {
-        if (name.startsWith('extConf:')) {
-          const key = name.substr(8);
-          return state.extConfig[key];
-        }
-        return '';
-      }
       case 'extPath': return path.resolve(ext ? ext.extensionPath : '');
       case 'extDataURL': return `http://localhost:${state.fileServerPort}/extdata/${extId}/`;
       case 'os': return process.platform;
@@ -22,6 +15,13 @@ export async function parseAppVar(extId: string, appPath: string, launchCommand:
       case 'cwd': return fixSlashes(process.cwd());
       case 'fpPath': return state.config ? fixSlashes(state.config.flashpointPath) : '';
       case 'proxy': return state.preferences.browserModeProxy || '';
+      default: {
+        if (name.startsWith('extConf:')) {
+          const key = name.substr(8);
+          return state.extConfig[key];
+        }
+        return '';
+      }
     }
   });
 }

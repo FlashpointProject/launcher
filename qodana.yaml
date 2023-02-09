@@ -4,13 +4,14 @@ exclude:
   - name: All
     paths:
       - src/database/migration
+      - src/back/util/charCode.ts
       - static
   - name: JSXNamespaceValidation
+  - name: JSMethodCanBeStatic
 include:
   - name: TrivialIfJS
   - name: ES6RedundantAwait
   - name: DefaultNotLastCaseInSwitchJS
   - name: RedundantSuppression
   - name: ProblematicWhitespace
-  - name: NegatedIfStatementJS
   - name: ConfusingPlusesOrMinusesJS

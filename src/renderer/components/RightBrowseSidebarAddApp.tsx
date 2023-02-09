@@ -106,7 +106,7 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
     );
   }
 
-  static renderDeleteButton({ confirm, extra }: ConfirmElementArgs<LangContainer['browse']>): JSX.Element {
+  renderDeleteButton({ confirm, extra }: ConfirmElementArgs<LangContainer['browse']>): JSX.Element {
     const className = 'browse-right-sidebar__additional-application__delete-button';
     return (
       <div

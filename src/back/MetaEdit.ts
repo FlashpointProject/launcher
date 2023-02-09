@@ -361,9 +361,6 @@ function paranoidSetGameProperty(game: Game, property: unknown, value: unknown):
   if (typeof property !== 'string') { throw new Error(`${errorPrefix} Property is not a string (typeof property: ${typeof property}).`); }
 
   switch (property) {
-    default:
-      throw new Error(`${errorPrefix} Property "${property}" is not allowed.`);
-
     // Boolean
     case 'broken':
     case 'extreme':
@@ -392,5 +389,7 @@ function paranoidSetGameProperty(game: Game, property: unknown, value: unknown):
       if (typeof value !== 'string') { throw new Error(`${errorPrefix} Value is not a string (typeof value: "${typeof value}", property: "${property}").`); }
       game[property] = value;
       break;
+    default:
+      throw new Error(`${errorPrefix} Property "${property}" is not allowed.`);
   }
 }

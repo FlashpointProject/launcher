@@ -157,7 +157,7 @@ export class TagAliasInputField extends React.Component<TagAliasInputFieldProps,
     );
   }
 
-  static renderDeleteButton({ confirm, extra }: ConfirmElementArgs<LangContainer['tags']>): JSX.Element {
+  renderDeleteButton({ confirm, extra }: ConfirmElementArgs<LangContainer['tags']>): JSX.Element {
     const className = 'tag-alias__buttons-delete';
     return (
       <div

@@ -111,7 +111,6 @@ function getGameString(key: keyof MetaEditFlags, strings: LangContainer): string
   // @TODO Put all the strings for the different properties/field of a Game into the
   //       same place, instead of having them spread out?
   switch (key) {
-    default:                    return key;
     case 'title':               return strings.filter.title;
     case 'alternateTitles':     return strings.browse.alternateTitles;
     case 'series':              return strings.browse.series;
@@ -132,6 +131,7 @@ function getGameString(key: keyof MetaEditFlags, strings: LangContainer): string
     case 'originalDescription': return strings.browse.originalDescription;
     case 'language':            return strings.browse.language;
     case 'library':             return strings.browse.library;
+    default:                    return key;
   }
 }
 

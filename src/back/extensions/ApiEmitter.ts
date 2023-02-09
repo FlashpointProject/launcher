@@ -16,23 +16,22 @@ export class ApiEmitter<T> {
 
   // Returns the event instance of the emitter
   get event(): ApiEvent<T> {
-    if (!this._event) {
+    if (this._event) {
+      return this._event;
+    } else {
       this._event = (listener: (e: T) => any, thisArgs?: any): Disposable => {
         // Push onto listeners then get exact item back to compare when unregistering.
         const index = this._listeners.push(thisArgs ? listener : [listener, thisArgs]);
         const item = this._listeners[index];
 
-        const disp = newDisposable(() => {
+        return newDisposable(() => {
           // Remove from listener when disposed
           const i = this._listeners.findIndex(i => i == item);
           if (i > -1) {
             this._listeners.splice(i, 1);
           }
         });
-        return disp;
       };
-      return this._event;
-    } else {
       return this._event;
     }
   }
@@ -42,9 +41,9 @@ export class ApiEmitter<T> {
     for (const listener of this._listeners) {
       try {
         if (typeof listener === 'function') {
-          await Promise.resolve(listener.call(undefined, event));
+          await listener.call(undefined, event);
         } else {
-          await Promise.resolve(listener[0].call(listener[1], event));
+          await listener[0].call(listener[1], event);
         }
       } catch (e) {
         log.error('Launcher', `Error in ApiEmitter listener: ${e}`);

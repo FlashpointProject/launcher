@@ -394,6 +394,7 @@ async function importGameImage(image: CurationIndexImage, gameId: string, folder
 /** Symlinks (or copies if unavailable) a curations `content` folder to `htdocs\content`
  * @param curationKey Key of the curation to link content from
  * @param fpPath Path to the root of the Flashpoint Data folder
+ * @param isDev Running in a dev environment
  * @param exePath Path to the Flashpoint Launcher exe
  * @param htdocsPath Path to the htdocs folder
  * @param symlinkCurationContent Symlink the curation content instead of copying files

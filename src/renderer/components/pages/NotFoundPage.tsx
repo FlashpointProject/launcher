@@ -1,7 +1,5 @@
-import * as React from 'react';
-
 /** Page shown when the current URL does not point to an existing page. */
-export const NotFoundPage: React.StatelessComponent<{}> = () => {
+export function NotFoundPage() {
   return (
     <div className='page-not-found'>
       <h1 className='page-not-found__error-number'>404</h1>
@@ -9,4 +7,4 @@ export const NotFoundPage: React.StatelessComponent<{}> = () => {
       The page you were looking for is not here.
     </div>
   );
-};
+}

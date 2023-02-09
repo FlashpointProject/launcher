@@ -123,7 +123,7 @@ export class ExtensionService {
         }
         // Activate extension
         try {
-          await Promise.resolve(extModule.activate.apply(global, [context]));
+          await extModule.activate.apply(global, [context]);
         } catch (err: any) {
           throw new Error(`Error during extension activation: ${err}`);
         }
@@ -161,7 +161,7 @@ export class ExtensionService {
         const extModule: ExtensionModule = await import(entryPath);
         if (extModule.deactivate) {
           try {
-            await Promise.resolve(extModule.deactivate.apply(global));
+            await extModule.deactivate.apply(global);
           } catch (error) {
             log.error('Extensions', `[${ext.manifest.displayName || ext.manifest.name}] Error in deactivation function.\n${error}'`);
           }

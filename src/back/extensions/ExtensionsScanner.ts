@@ -5,7 +5,7 @@ import { Coerce } from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Application, ButtonContext, ContextButton, Contributions, CurationTemplate, DevScript, ExtConfiguration, ExtConfigurationProp, ExtensionType, ExtTheme, IExtension, IExtensionManifest, ILogoSet } from '../../shared/extensions/interfaces';
+import { Application, ButtonContext, ContextButton, Contributions, CurationTemplate, DevScript, ExtConfiguration, ExtConfigurationProp, ExtensionType, ExtTheme, IExtension, IExtensionManifest, ILogoSet } from '@shared/extensions/interfaces';
 
 const { str, num } = Coerce;
 const fsPromises = fs.promises;
@@ -116,13 +116,12 @@ function getExtensionID(author: string, name: string) {
 async function parseExtension(extFilePath: string, type: ExtensionType): Promise<IExtension> {
   const data = await readJsonFile(extFilePath);
   const manifest = await parseExtensionManifest(data);
-  const ext: IExtension = {
+  return {
     id: getExtensionID(manifest.author, manifest.name),
     type: type,
     manifest: manifest,
     extensionPath: path.resolve(path.dirname(extFilePath))
   };
-  return ext;
 }
 
 /**
@@ -148,7 +147,7 @@ async function parseExtensionManifest(data: any) {
   parser.prop('description',      v => parsed.description     = str(v), true);
   parser.prop('icon',             v => parsed.icon            = str(v), true);
   parser.prop('main',             v => parsed.main            = str(v), true);
-  parser.prop('contributes',      v => parsed.contributes     = parseContributions(parser.prop('contributes')), true);
+  parser.prop('contributes',      v => parsed.contributes     = parseContributions(v), true);
   return parsed;
 }
 
@@ -278,7 +277,7 @@ function parseCurationMeta(parser: IObjectParserProp<EditCurationMeta>): EditCur
   parser.prop('applicationPath',      v => parsed.applicationPath     = str(v));
   parser.prop('curationNotes',        v => parsed.curationNotes       = str(v));
   parser.prop('developer',            v => parsed.developer           = arrayStr(v));
-  parser.prop('extreme',              v => parsed.extreme             = str(v).toLowerCase() === 'yes' ? true : false);
+  parser.prop('extreme',              v => parsed.extreme             = str(v).toLowerCase() === 'yes');
   parser.prop('language',             v => parsed.language            = arrayStr(v));
   parser.prop('launchCommand',        v => parsed.launchCommand       = str(v));
   parser.prop('originalDescription',  v => parsed.originalDescription = str(v));

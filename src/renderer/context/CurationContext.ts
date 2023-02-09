@@ -26,7 +26,6 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
   //   changed). This should be applied "recursively" so you can trace all the changed values from the
   //   root state object.
   switch (action.type) {
-    default: throw new Error(`Invalid or not-yet-supported action type (type: "${(action as any).type}").`);
     // Remove curation
     case 'remove-curation': {
       // Find the curation
@@ -241,6 +240,7 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
       nextCurations[index] = action.payload.curation;
       return { ...prevState, curations: nextCurations };
     }
+    default: throw new Error(`Invalid or not-yet-supported action type (type: "${(action as any).type}").`);
   }
 }
 

@@ -146,7 +146,7 @@ export class RightTagCategoriesSidebar extends React.Component<RightTagCategorie
     }
   }
 
-  static renderDeleteCategoryButton({ confirm, extra }: ConfirmElementArgs<LangContainer['tags']>): JSX.Element {
+  renderDeleteCategoryButton({ confirm, extra }: ConfirmElementArgs<LangContainer['tags']>): JSX.Element {
     const className = 'tag-category__buttons-delete';
     return (
       <div
