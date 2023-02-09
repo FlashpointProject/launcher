@@ -9,10 +9,8 @@ exclude:
 include:
   - name: TrivialIfJS
   - name: ES6RedundantAwait
-  - name: ES6MissingAwait
   - name: DefaultNotLastCaseInSwitchJS
   - name: RedundantSuppression
   - name: ProblematicWhitespace
-  - name: BlockStatementJS
   - name: NegatedIfStatementJS
   - name: ConfusingPlusesOrMinusesJS
