@@ -99,7 +99,7 @@ export function checkIfAncestor(start: Element | null, target: Element | null): 
 }
 
 export function getGameImageURL(folderName: string, gameId: string): string {
-  return `${getFileServerURL()}/images/${folderName}/${gameId.substr(0, 2)}/${gameId.substr(2, 2)}/${gameId}.png`;
+  return `${getFileServerURL()}/images/${folderName}/${gameId.substring(0, 2)}/${gameId.substring(2, 4)}/${gameId}.png`;
 }
 
 export function getPlatformIconURL(platform: string, version: number): string {
@@ -127,7 +127,7 @@ export function getGameImagePath(folderName: string, gameId: string): string {
     window.Shared.config.fullFlashpointPath,
     window.Shared.preferences.data.imageFolderPath,
     folderName,
-    `${gameId.substr(0, 2)}/${gameId.substr(2, 2)}/${gameId}.png`
+    `${gameId.substring(0, 2)}/${gameId.substring(2, 4)}/${gameId}.png`
   );
 }
 
@@ -313,7 +313,7 @@ export function rebuildQuery(opts: RebuildQueryOpts): ViewQuery {
 /** Get the "library route" of a url (returns empty string if URL is not a valid "sub-browse path") */
 export function getBrowseSubPath(urlPath: string): string {
   if (urlPath.startsWith(Paths.BROWSE)) {
-    let str = urlPath.substr(Paths.BROWSE.length);
+    let str = urlPath.substring(Paths.BROWSE.length);
     if (str[0] === '/') { str = str.substring(1); }
     return str;
   }

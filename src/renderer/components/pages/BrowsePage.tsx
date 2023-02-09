@@ -393,7 +393,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       if (key === 'backspace') { // (Backspace - Remove a character)
         const timedOut = updateTime.call(this);
         let newString: string = (timedOut ? '' : this.state.quickSearch);
-        newString = newString.substr(0, newString.length - 1);
+        newString = newString.substring(0, newString.length - 1);
         this.setState({ quickSearch: newString });
       } else if (key.length === 1) { // (Single character - add it to the search string)
         const timedOut = updateTime.call(this);

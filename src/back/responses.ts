@@ -509,8 +509,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       // Copy images
       if (dupeImages) {
         const imageFolder = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
-        const oldLast = path.join(game.id.substr(0, 2), game.id.substr(2, 2), game.id+'.png');
-        const newLast = path.join(newGame.id.substr(0, 2), newGame.id.substr(2, 2), newGame.id+'.png');
+        const oldLast = path.join(game.id.substring(0, 2), game.id.substring(2, 4), game.id+'.png');
+        const newLast = path.join(newGame.id.substring(0, 2), newGame.id.substring(2, 4), newGame.id+'.png');
 
         const oldLogoPath = path.join(imageFolder, LOGOS, oldLast);
         const newLogoPath = path.join(imageFolder, LOGOS, newLast);
@@ -623,7 +623,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         // Copy images
         if (!metaOnly) {
           const imageFolder = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
-          const last = path.join(game.id.substr(0, 2), game.id.substr(2, 2), game.id+'.png');
+          const last = path.join(game.id.substring(0, 2), game.id.substring(2, 4), game.id+'.png');
 
           const oldLogoPath = path.join(imageFolder, LOGOS, last);
           const newLogoPath = path.join(location, 'logo.png');
@@ -926,7 +926,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     const imageFolder = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
     const folder = sanitizeFilename(raw_folder);
     const id = sanitizeFilename(raw_id);
-    const fullPath = path.join(imageFolder, folder, id.substr(0, 2), id.substr(2, 2), id + '.png');
+    const fullPath = path.join(imageFolder, folder, id.substring(0, 2), id.substring(2, 4), id + '.png');
 
     if (fullPath.startsWith(imageFolder)) { // (Ensure that it does not climb out of the image folder)
       try {

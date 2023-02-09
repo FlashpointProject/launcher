@@ -374,7 +374,7 @@ function createAddAppFromCurationMeta(addAppMeta: AddAppCuration, game: Game): A
 
 async function importGameImage(image: CurationIndexImage, gameId: string, folder: typeof LOGOS | typeof SCREENSHOTS, fullImagePath: string): Promise<void> {
   if (image.exists) {
-    const last = path.join(gameId.substr(0, 2), gameId.substr(2, 2), gameId+'.png');
+    const last = path.join(gameId.substring(0, 2), gameId.substring(2, 4), gameId+'.png');
     const imagePath = path.join(fullImagePath, folder, last);
     if (imagePath.startsWith(fullImagePath)) { // (Make sure the image path does not climb out of the image folder)
       // Check if the image is its own file

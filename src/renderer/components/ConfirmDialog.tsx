@@ -3,6 +3,7 @@ import { SimpleButton } from './SimpleButton';
 export type ConfirmDialogProps = {
   message: string;
   buttons: string[];
+  // eslint-disable-next-line react/no-unused-prop-types
   cancelId?: number;
   onResult: (result: number) => void;
 }

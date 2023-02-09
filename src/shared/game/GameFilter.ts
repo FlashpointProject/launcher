@@ -56,7 +56,7 @@ export function parseSearchText(text: string): ParsedSearch {
           }
           const inverse = tempPhrase.charAt(0) === '-';
           // Get quick search from created temp phrase (If undefined, there is no quick search)
-          const filter = parseQuickSearch(inverse ? tempPhrase.substr(1) : tempPhrase);
+          const filter = parseQuickSearch(inverse ? tempPhrase.substring(1) : tempPhrase);
           // Process as a field filter
           if (filter) {
             if (inverse) { parsed.blacklist.push(filter); }

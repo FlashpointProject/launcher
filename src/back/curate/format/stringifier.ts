@@ -23,9 +23,6 @@ function stringifyObject(obj: any, indent: number): string {
     str += `${indentStr}${key}:`;
     // Push the value of the declaration
     switch (typeof val) {
-      default:
-        str += ' \n';
-        break;
       case 'boolean':
         str += ` ${val ? 'true' : 'false'}\n`;
         break;
@@ -61,6 +58,9 @@ function stringifyObject(obj: any, indent: number): string {
           str += ` ${val}\n`;
         }
       } break;
+      default:
+        str += ' \n';
+        break;
     }
   }
   return str;

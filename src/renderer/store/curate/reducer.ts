@@ -6,9 +6,6 @@ import uuid = require('uuid');
 
 export function curateStateReducer(state: CurateState = createInitialState(), action: CurateAction): CurateState {
   switch (action.type) {
-    default:
-      return state;
-
     case CurateActionType.CREATE_CURATION:
     {
       window.Shared.back.send(BackIn.CURATE_CREATE_CURATION, action.folder, action.meta);
@@ -446,6 +443,9 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
         curations: newCurations,
       };
     }
+
+    default:
+      return state;
   }
 }
 

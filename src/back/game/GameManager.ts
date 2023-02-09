@@ -15,7 +15,7 @@ import { chunkArray } from '@shared/utils/misc';
 import { GameOrderBy, GameOrderReverse } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Brackets, FindOneOptions, SelectQueryBuilder } from 'typeorm';
+import { Brackets, FindOneOptions, In, SelectQueryBuilder } from 'typeorm';
 import { AppDataSource } from '..';
 import * as GameDataManager from './GameDataManager';
 import * as TagManager from './TagManager';
@@ -264,17 +264,6 @@ export async function findUniqueValues(entity: any, column: string, commaSeperat
   }
 }
 
-export async function findUniqueValuesInOrder(entity: any, column: string): Promise<string[]> {
-  validateSqlName(column);
-
-  const repository = AppDataSource.getRepository(entity);
-  const values = await repository.createQueryBuilder('entity')
-  .select(`entity.${column}`)
-  .distinct()
-  .getRawMany();
-  return Coerce.strArray(values.map(v => v[`entity_${column}`]));
-}
-
 export async function findPlatforms(library: string): Promise<string[]> {
   const gameRepository = AppDataSource.getRepository(Game);
   const libraries = await gameRepository.createQueryBuilder('game')
@@ -479,7 +468,7 @@ async function chunkedFindByIds(gameIds: string[]): Promise<Game[]> {
   const chunks = chunkArray(gameIds, 100);
   let gamesFound: Game[] = [];
   for (const chunk of chunks) {
-    gamesFound = gamesFound.concat(await gameRepository.findByIds(chunk));
+    gamesFound = gamesFound.concat(await gameRepository.findBy({ id: In(chunk) }));
   }
 
   return gamesFound;

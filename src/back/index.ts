@@ -325,10 +325,10 @@ async function prepForInit(message: any, sendHandle: any): Promise<void> {
   {
     const basePath = state.isDev ? process.cwd() : path.dirname(state.exePath);
     switch (process.platform) {
-      default:       state.sevenZipPath = '7za'; break;
       case 'darwin': state.sevenZipPath = path.join(basePath, 'extern/7zip-bin/mac', '7za'); break;
       case 'win32':  state.sevenZipPath = path.join(basePath, 'extern/7zip-bin/win', process.arch, '7za'); break;
       case 'linux':  state.sevenZipPath = path.join(basePath, 'extern/7zip-bin/linux', process.arch, '7za'); break;
+      default:       state.sevenZipPath = '7za'; break;
     }
   }
 
@@ -1054,8 +1054,8 @@ async function onFileServerRequestImages(pathname: string, url: URL, req: http.I
     if (req.method === 'POST') {
       const fileName = path.basename(pathname);
       if (fileName.length >= 39 && fileName.endsWith('.png') && splitPath.length === 4) {
-        const gameId = fileName.substr(0,36);
-        if (validateSemiUUID(gameId) && splitPath[1] === gameId.substr(0,2) && splitPath[2] === gameId.substr(2,2)) {
+        const gameId = fileName.substring(0,36);
+        if (validateSemiUUID(gameId) && splitPath[1] === gameId.substring(0,2) && splitPath[2] === gameId.substring(2,4)) {
           await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
           const chunks: any[] = [];
           req.on('data', (chunk) => {
@@ -1095,7 +1095,7 @@ async function onFileServerRequestImages(pathname: string, url: URL, req: http.I
             stream.on('error', error => {
               console.warn(`File server failed to stream file. ${error}`);
               stream.destroy(); // Calling "destroy" inside the "error" event seems like it could case an endless loop (although it hasn't thus far)
-              if (!res.finished) { res.end(); }
+              if (!res.writableEnded) { res.end(); }
             });
             stream.pipe(res);
           } else {

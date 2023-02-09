@@ -134,7 +134,7 @@ export function tokenizeCurationFormat(text: string): CFTokenizer.AnyToken[] {
       // Tokenize the remaining contents of the line
       if (state.inMultiLine) {
         // Copy data to state chunks
-        state.multiLineChunks.push(line.substring(countIndentChars(line, state.multiLineIndent)).trimRight());
+        state.multiLineChunks.push(line.substring(countIndentChars(line, state.multiLineIndent)).trimEnd());
         // Set flag (because the indentation in the multi-line value shouldn't be confused with object indentation)
         skipIndentUpdate = true;
       } else {
@@ -143,7 +143,7 @@ export function tokenizeCurationFormat(text: string): CFTokenizer.AnyToken[] {
           // Add list item token
           tokens.push({
             type: CFTokenizer.TokenType.LIST_ITEM,
-            value: line.substr(spaces + 1).trim(),
+            value: line.substring(spaces + 1).trim(),
           });
         } else {
           // Check if it is an identifier/value pair

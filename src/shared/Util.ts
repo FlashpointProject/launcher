@@ -43,7 +43,7 @@ export function readJsonFileSync(path: string, options?: ReadFileOptions): any {
 export function removeFileExtension(filename: string): string {
   const lastDotIndex = filename.lastIndexOf('.');
   if (lastDotIndex === -1) { return filename; }
-  return filename.substr(0, lastDotIndex);
+  return filename.substring(0, lastDotIndex);
 }
 
 /**
@@ -52,7 +52,7 @@ export function removeFileExtension(filename: string): string {
  * @param filePath Path to get filename from
  */
 export function getFilename(filePath: string): string {
-  return filePath.substr(Math.max(filePath.lastIndexOf('/'), filePath.lastIndexOf('\\')) + 1);
+  return filePath.substring(Math.max(filePath.lastIndexOf('/'), filePath.lastIndexOf('\\')) + 1);
 }
 
 /**

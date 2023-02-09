@@ -240,7 +240,7 @@ export class ManagedChildProcess extends EventEmitter {
 function removeTrailingNewlines(str: string): string {
   let newString = str;
   while (newString.endsWith('\n')) {
-    newString = newString.substr(0, newString.length - 1);
+    newString = newString.substring(0, newString.length - 1);
   }
   return newString;
 }

@@ -278,7 +278,7 @@ export namespace GameLauncher {
 
     // Bat files won't work on Wine, force a .sh file on non-Windows platforms instead. Sh File may not exist.
     if (platform !== 'win32' && filePath.endsWith('.bat')) {
-      return filePath.substr(0, filePath.length - 4) + '.sh';
+      return filePath.substring(0, filePath.length - 4) + '.sh';
     }
 
     // Skip mapping if on Windows

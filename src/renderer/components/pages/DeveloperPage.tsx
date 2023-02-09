@@ -885,7 +885,7 @@ async function createMissingFolders(): Promise<string> {
 }
 /** Remove the last "item" in a path ("C:/foo/bar.png" => "C:/foo") */
 export function removeLastItemOfPath(filePath: string): string {
-  return filePath.substr(0, Math.max(0, filePath.lastIndexOf('/'), filePath.lastIndexOf('\\')));
+  return filePath.substring(0, Math.max(0, filePath.lastIndexOf('/'), filePath.lastIndexOf('\\')));
 }
 
 function repeat(char: string, n: number): string {

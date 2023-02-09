@@ -17,7 +17,7 @@ export async function parseAppVar(extId: string, appPath: string, launchCommand:
       case 'proxy': return state.preferences.browserModeProxy || '';
       default: {
         if (name.startsWith('extConf:')) {
-          const key = name.substr(8);
+          const key = name.substring(8);
           return state.extConfig[key];
         }
         return '';

@@ -29,8 +29,8 @@ function getArgs(): Init {
     const arg = args[i];
     const eqIndex = arg.indexOf('=');
     if (eqIndex >= 0) {
-      const name = arg.substr(0, eqIndex);
-      const value = arg.substr(eqIndex + 1);
+      const name = arg.substring(0, eqIndex);
+      const value = arg.substring(eqIndex + 1);
       switch (name) {
         // String value
         case 'connect-remote':

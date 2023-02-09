@@ -62,7 +62,7 @@ export function serveFile(req: http.IncomingMessage, res: http.ServerResponse, f
           stream.on('error', error => {
             console.warn(`File server failed to stream file. ${error}`);
             stream.destroy(); // Calling "destroy" inside the "error" event seems like it could case an endless loop (although it hasn't thus far)
-            if (!res.finished) { res.end(); }
+            if (!res.writableEnded) { res.end(); }
           });
           stream.pipe(res);
         } else {

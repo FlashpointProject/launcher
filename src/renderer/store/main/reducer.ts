@@ -11,9 +11,6 @@ export const RANDOM_GAME_ROW_COUNT = 6;
 
 export function mainStateReducer(state: MainState = createInitialState(), action: MainAction): MainState {
   switch (action.type) {
-    default:
-      return state;
-
     case MainActionType.SET_STATE:
       return {
         ...state,
@@ -134,7 +131,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
             //
             metaState: RequestState.RECEIVED,
             // Dirty games
-            isDirty: action.total === 0 ? false : true,
+            isDirty: action.total !== 0,
             games: action.total === 0 ? [] : view.games,
             lastCount: action.total === 0 ? 0 : view.lastCount,
             pageState: {},
@@ -251,7 +248,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
 
       // Open the gate if everything has been loaded
       const values = Object.values(nextLoaded);
-      if (values.length === values.reduce((prev, cur) => prev + (cur === true ? 1 : 0), 0)) {
+      if (values.length === values.reduce((prev, cur) => prev + (cur ? 1 : 0), 0)) {
         state.loadedAll.open();
       }
 
@@ -469,6 +466,9 @@ export function mainStateReducer(state: MainState = createInitialState(), action
         views
       };
     }
+
+    default:
+      return state;
   }
 }
 

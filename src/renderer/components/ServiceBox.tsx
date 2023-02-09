@@ -114,13 +114,13 @@ export function ServiceBox(props: ServiceBoxProps) {
  */
 function generateStatusText(service: IService, lang: LangContainer['developer']): string {
   switch (service.state) {
-    default: throw new Error('Failed to generate status text. Unexpected process state value.');
     case ProcessState.RUNNING:
       return `${lang.running} (PID: ${service.pid})`;
     case ProcessState.KILLING:
       return `${lang.killing} (PID: ${service.pid})`;
     case ProcessState.STOPPED:
       return lang.stopped;
+    default: throw new Error('Failed to generate status text. Unexpected process state value.');
   }
 }
 
