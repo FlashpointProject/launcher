@@ -17,7 +17,12 @@ export const CurationContext = createContextReducer(
   curationDefaultState
 );
 
-/** Reducer for the curation state. */
+/**
+ * Reducer for the curation state.
+ *
+ * @param prevState Previous curation state
+ * @param action Action to perform on state
+ */
 function curationReducer(prevState: CurationsState, action: CurationAction): CurationsState {
   // Things to keep in mind when writing an action handler:
   // * Don't mutate the previous state or the action object.
@@ -244,7 +249,9 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
   }
 }
 
-/** Ensure a curation exists in the state
+/**
+ * Ensure a curation exists in the state
+ *
  * @param curations Mutable CurationState
  * @param key Unique curation key to find
  * @returns Index of the curation inside the CurationState
@@ -257,7 +264,11 @@ function ensureCurationIndex(curations: EditCuration[], key: string): number {
   return index;
 }
 
-/** Create an "empty" edit curation. */
+/**
+ * Create an "empty" edit curation.
+ *
+ * @param key Folder / Key of the new curation
+ */
 export function createEditCuration(key: string): EditCuration {
   return {
     key: key,

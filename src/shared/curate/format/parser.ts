@@ -7,6 +7,7 @@ export type CurationFormatObject = {
 
 /**
  * Parse Curation Format tokens into a Curation Format object.
+ *
  * @param tokens Tokens to parse into an object.
  */
 export function parseCurationFormat(tokens: CFTokenizer.AnyToken[]): CurationFormatObject {
@@ -21,6 +22,7 @@ export function parseCurationFormat(tokens: CFTokenizer.AnyToken[]): CurationFor
  * Parse a single object from a set of tokens.
  * The "state" parameter object contains some properties that are used as additional
  * arguments for the parser, while some properties are used as additional return values.
+ *
  * @param tokens Tokens to parse from (not all tokens must be parsed).
  * @param state State of the parser (this is mutated during the parsing).
  * @returns The parsed object.
@@ -194,6 +196,7 @@ type ParseState = {
 
 /**
  * Get the index of the first non-comment token (from first to last).
+ *
  * @param tokens Tokens to search through.
  * @param startIndex First index to check.
  * @returns The index of the first non-comment token, or -1 if none was found.

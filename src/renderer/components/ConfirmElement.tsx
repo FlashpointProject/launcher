@@ -25,7 +25,7 @@ type ConfirmElementComponentProps<T = undefined> = {
   extra: T;
 }) & WithConfirmDialogProps;
 
-/** Wrapper component around the "useConfirm" hook. */
+// Wrapper component around the "useConfirm" hook.
 function ConfirmElementComponent<T = undefined>(props: ConfirmElementComponentProps<T>) {
   const { onConfirm, message, render, extra } = props;
   const strings = React.useContext(LangContext);

@@ -5,6 +5,7 @@ exclude:
     paths:
       - src/database/migration
       - src/back/util/charCode.ts
+      - .gitmodules
       - static
   - name: JSXNamespaceValidation
   - name: JSMethodCanBeStatic

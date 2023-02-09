@@ -12,7 +12,7 @@ export type DropdownProps = {
   text: string;
 };
 
-/** A text element, with a drop-down element that can be shown/hidden. */
+// A text element, with a drop-down element that can be shown/hidden.
 export function Dropdown(props: DropdownProps) {
   // Hooks
   const [expanded, setExpanded] = useState<boolean>(false);

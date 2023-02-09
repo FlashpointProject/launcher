@@ -54,7 +54,9 @@ export class ExtensionService {
     });
   }
 
-  /** Returns a list of all extension contributions of a particular type
+  /**
+   * Returns a list of all extension contributions of a particular type
+   *
    * @param key Type of contribution to get
    * @returns All of this contribution type from all loaded extensions
    */
@@ -89,7 +91,11 @@ export class ExtensionService {
     });
   }
 
-  /** Loads an extension (returns immediately if already loaded) */
+  /**
+   * Loads an extension (returns immediately if already loaded)
+   *
+   * @param extId
+   */
   public async loadExtension(extId: string): Promise<void> {
     return this.installedExtensionsReady.wait().then(() => {
       const ext = this._extensions.find(e => e.id === extId);
@@ -185,7 +191,12 @@ export class ExtensionService {
     };
   }
 
-  /** Copy an extensions subscriptions into its running data (usually from the context) */
+  /**
+   * Copy an extensions subscriptions into its running data (usually from the context)
+   *
+   * @param extId
+   * @param subscriptions
+   */
   private _setSubscriptions(extId: string, subscriptions: Disposable) {
     const data = this._getExtensionData(extId);
     // Dispose of old subscriptions
@@ -194,14 +205,23 @@ export class ExtensionService {
     this._extensionData[extId] = data;
   }
 
-  /** Push a log onto an extensions running data */
+  /**
+   * Push a log onto an extensions running data
+   *
+   * @param extId
+   * @param entry
+   */
   public logExtension(extId: string, entry: ILogEntry) {
     const data = this._getExtensionData(extId);
     data.logs.push(entry);
     this._extensionData[extId] = data;
   }
 
-  /** Mark the extension as enabled in its running data */
+  /**
+   * Mark the extension as enabled in its running data
+   *
+   * @param extId
+   */
   private _enableExtension(extId: string) {
     const data = this._getExtensionData(extId);
     data.enabled = true;

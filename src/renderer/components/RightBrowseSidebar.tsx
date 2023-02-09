@@ -710,10 +710,6 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
               <GameDataBrowser
                 onClose={() => this.setState({ gameDataBrowserOpen: false })}
                 game={game}
-                onEditGame={(game) => {
-                  this.props.onEditGame(game);
-                  this.props.onSaveGame();
-                }}
                 onUpdateActiveGameData={this.props.onUpdateActiveGameData}
                 onForceUpdateGameData={this.onForceUpdateGameData} />
             )}
@@ -730,7 +726,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     }
   }
 
-  static renderDeleteGameButton({ confirm, extra }: ConfirmElementArgs<LangContainer['browse']>): JSX.Element {
+  renderDeleteGameButton({ confirm, extra }: ConfirmElementArgs<LangContainer['browse']>): JSX.Element {
     return (
       <div
         className='browse-right-sidebar__title-row__buttons__delete-game'
@@ -741,7 +737,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     );
   }
 
-  static renderRemoveFromPlaylistButton({ confirm, extra }: ConfirmElementArgs<LangContainer['browse']>): JSX.Element {
+  renderRemoveFromPlaylistButton({ confirm, extra }: ConfirmElementArgs<LangContainer['browse']>): JSX.Element {
     return (
       <div
         className='browse-right-sidebar__title-row__buttons__remove-from-playlist'
@@ -781,7 +777,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     });
   }
 
-  /** When a key is pressed down "globally" (and this component is present) */
+  // When a key is pressed down "globally" (and this component is present)
   onGlobalKeyDown = (event: KeyboardEvent) => {
     // Start editing
     if (event.ctrlKey && event.code === 'KeyE' && // (CTRL + E ...
@@ -927,7 +923,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     this.props.onDeleteSelectedGame();
   };
 
-  static onAddAppLaunch(addAppId: string): void {
+  onAddAppLaunch(addAppId: string): void {
     window.Shared.back.send(BackIn.LAUNCH_ADDAPP, addAppId);
   }
 
@@ -1027,7 +1023,11 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     }
   };
 
-  /** Create a callback for when a game field is clicked. */
+  /**
+   * Create a callback for when a game field is clicked.
+   *
+   * @param field Name of metadata field that was clicked
+   */
   wrapOnTextClick<T extends PickType<Game, string>>(field: T): () => void {
     return () => {
       const { currentGame, isEditing } = this.props;
@@ -1042,7 +1042,11 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     };
   }
 
-  /** Create a wrapper for a EditableTextWrap's onChange callback (this is to reduce redundancy). */
+  /**
+   * Create a wrapper for a EditableTextWrap's onChange callback (this is to reduce redundancy).
+   *
+   * @param func Function to wrap
+   */
   wrapOnTextChange(func: (game: Game, text: string) => void): (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void {
     return (event) => {
       const game = this.props.currentGame;
@@ -1052,7 +1056,11 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     };
   }
 
-  /** Create a wrapper for a CheckBox's onChange callback (this is to reduce redundancy). */
+  /**
+   * Create a wrapper for a CheckBox's onChange callback (this is to reduce redundancy).
+   *
+   * @param func Function to wrap
+   */
   wrapOnCheckBoxChange(func: (game: Game) => void): () => void {
     return () => {
       const game = this.props.currentGame;
@@ -1072,7 +1080,11 @@ function filterSuggestions(suggestions?: string[]): string[] {
   return suggestions;
 }
 
-/** Open a context menu, built from the specified template. */
+/**
+ * Open a context menu, built from the specified template.
+ *
+ * @param template Template list of Menu Items to use in Context Menu
+ */
 function openContextMenu(template: MenuItemConstructorOptions[]): Menu {
   const menu = remote.Menu.buildFromTemplate(template);
   menu.popup({ window: remote.getCurrentWindow() });

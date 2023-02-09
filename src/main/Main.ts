@@ -466,6 +466,7 @@ export function main(init: Init): void {
 
   /**
    * Resolves/Rejects when the wrapped promise does. Rejects if the timeout happens before that.
+   *
    * @param promise Promise to wrap.
    * @param ms Time to wait before timing out (in ms).
    */

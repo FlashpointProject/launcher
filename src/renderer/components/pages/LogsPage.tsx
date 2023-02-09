@@ -307,6 +307,7 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
 
 /**
  * Parse a HTML string into plain text (potentially unsafe).
+ *
  * @param text HTML string.
  * @returns text representation of HTML.
  */
@@ -316,7 +317,11 @@ function parseHtmlToText(text: string): string {
   return element.innerText;
 }
 
-/** Convert "boolean | undefined" to "boolean" (undefined is converted to true). */
+/**
+ * Coerce undefined values to true
+ *
+ * @param value Value to coerce
+ */
 function getBoolean(value?: boolean): boolean {
   return (value === undefined) ? true : value;
 }

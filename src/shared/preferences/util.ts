@@ -141,6 +141,7 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
 
 /**
  * Overwrite a preferences data object with data from another object.
+ *
  * @param source Object to overwrite.
  * @param data Object with data to overwrite the source with.
  * @param onError Called when an error occurs
@@ -284,6 +285,7 @@ function parseCurateGroup(parser: IObjectParserProp<any>): CurateGroup {
 /**
  * Coerce a value to a string, then return it if it matches at least on of the options.
  * If it does not match any option, the default option is returned.
+ *
  * @param value Value to coerce.
  * @param options Options the value must match at least one of.
  * @param defaultOption This is returned if the value doesn't match any of the options.

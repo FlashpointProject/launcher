@@ -153,7 +153,7 @@ class _GameList extends React.Component<GameListProps> {
     );
   }
 
-  /** Renders a single row in the game list. */
+  // Renders a single row in the game list.
   rowRenderer = (props: ListRowProps): React.ReactNode => {
     const extremeIconPath = this.extremeIconPathMemo(this.props.logoVersion);
     const { draggedGameId, games, selectedGameId, showExtremeIcon } = this.props;
@@ -183,7 +183,11 @@ class _GameList extends React.Component<GameListProps> {
     this.updateView(info.overscanStartIndex, info.overscanStopIndex);
   };
 
-  /** When a key is pressed (while the list, or one of its children, is selected). */
+  /**
+   * When a key is pressed (while the list, or one of its children, is selected).
+   *
+   * @param event
+   */
   onKeyPress = (event: React.KeyboardEvent): void => {
     if (event.key === 'Enter') {
       if (this.props.selectedGameId) {
@@ -192,32 +196,61 @@ class _GameList extends React.Component<GameListProps> {
     }
   };
 
-  /** When a row is clicked. */
+  /**
+   * When a row is clicked.
+   *
+   * @param event
+   * @param gameId
+   */
   onGameSelect = (event: React.MouseEvent, gameId: string | undefined): void => {
     this.props.onGameSelect(gameId);
   };
 
-  /** When a row is double clicked. */
+  /**
+   * When a row is double clicked.
+   *
+   * @param event
+   * @param gameId
+   */
   onGameLaunch = (event: React.MouseEvent, gameId: string): void => {
     this.props.onGameLaunch(gameId);
   };
 
-  /** When a row is right clicked. */
+  /**
+   * When a row is right clicked.
+   *
+   * @param event
+   * @param gameId
+   */
   onGameContextMenu = (event: React.MouseEvent<HTMLDivElement>, gameId: string): void => {
     this.props.onContextMenu(gameId);
   };
 
-  /** When a row is starting to be dragged. */
+  /**
+   * When a row is starting to be dragged.
+   *
+   * @param event
+   * @param gameId
+   */
   onGameDragStart = (event: React.DragEvent, gameId: string): void => {
     this.props.onGameDragStart(event, gameId);
   };
 
-  /** When a row is ending being dragged. */
+  /**
+   * When a row is ending being dragged.
+   *
+   * @param event
+   * @param gameId
+   */
   onGameDragEnd = (event: React.DragEvent, gameId: string): void => {
     this.props.onGameDragEnd(event, gameId);
   };
 
-  /** When a row is selected. */
+  /**
+   * When a row is selected.
+   *
+   * @param params
+   */
   onScrollToChange = (params: ScrollIndices): void => {
     if (!this.props.games) { throw new Error('Games array is missing.'); }
     if (params.scrollToRow === -1) {
@@ -228,7 +261,11 @@ class _GameList extends React.Component<GameListProps> {
     }
   };
 
-  /** Find a game's ID. */
+  /**
+   * Find a game's ID.
+   *
+   * @param element
+   */
   findGameId = (element: EventTarget): string | undefined => {
     const game = findElementAncestor(element as Element, target => GameListItem.isElement(target), true);
     if (game) { return GameListItem.getId(game); }

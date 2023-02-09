@@ -2,7 +2,7 @@ import { TagCategory } from '@database/entity/TagCategory';
 import { ConnectedRightTagCategoriesSidebar } from '@renderer/containers/ConnectedRightTagsCategoriesSidebar';
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
-import { findElementAncestor, gameScaleSpan } from '@renderer/Util';
+import { gameScaleSpan } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
 import { BackIn } from '@shared/back/types';
 import { deepCopy, getRandomHexColor } from '@shared/Util';
@@ -10,7 +10,6 @@ import * as React from 'react';
 import { ResizableSidebar } from '../ResizableSidebar';
 import { SimpleButton } from '../SimpleButton';
 import { TagCategoriesList } from '../TagCategoriesList';
-import { TagListItem } from '../TagListItem';
 
 type OwnProps = {
 }
@@ -81,12 +80,6 @@ export class TagCategoriesPage extends React.Component<TagCategoriesPageProps, T
     if (categoryId) {
       this.updateCurrentCategory(categoryId);
     }
-  };
-
-  /** Find a tag's ID. */
-  findTagId = (element: EventTarget): number | undefined => {
-    const tag = findElementAncestor(element as Element, target => TagListItem.isElement(target), true);
-    if (tag) { return TagListItem.getId(tag); }
   };
 
   onEditClick = () => {

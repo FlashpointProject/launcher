@@ -9,10 +9,11 @@ import { curationLog } from './util';
 
 /**
  * Import a curation archive (Extract all files to unique folder)
+ *
  * @param filePath Path of the archive to import
  * @param preserveKey Tries to preserve the folder name from the curation archive
  * @param progress Frontend Progress handle to report to
- * @return Curation key
+ * @returns Curation key
  */
 export async function importCurationArchive(filePath: string, preserveKey: boolean, progress: ProgressHandle): Promise<string> {
   ProgressDispatch.setText(progress, 'Extracting Curation Archive');
@@ -57,6 +58,7 @@ export async function importCurationArchive(filePath: string, preserveKey: boole
 
 /**
  * Fully extracts an archive with optional progress events (include '$progress: true' in your extractFull options)
+ *
  * @param args Arguments to call extractFull
  * @param progress Progress handle to update, if any
  */
@@ -81,6 +83,7 @@ function extractFullPromise(args: Parameters<typeof extractFull>, progress?: Pro
 
 /**
  * Return the name of the only entry in a folder if it's a UUID (undefined otherwise)
+ *
  * @param dir Path to search
  */
 async function getKeyFromPath(dir: string): Promise<string | undefined> {
@@ -98,6 +101,7 @@ async function getKeyFromPath(dir: string): Promise<string | undefined> {
 const validMetaNames = ['meta.txt', 'meta.yaml', 'meta.yml'];
 /**
  * Return the first path containing any valid meta name (undefined if none found)
+ *
  * @param dir Path to search
  */
 async function getRootPath(dir: string): Promise<string | undefined> {

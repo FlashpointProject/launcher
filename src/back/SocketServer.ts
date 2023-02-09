@@ -58,6 +58,7 @@ export class SocketServer {
    * Try to listen on one of the ports in the given range (starting from the lowest).
    * If it succeeds it will set the "server" and "port" properties of this object.
    * If it fails it will reject with the error.
+   *
    * @param minPort Minimum port number (tried first).
    * @param maxPort Maximum port number (tried last).
    * @param host Server host (determines what clients can connect).
@@ -89,6 +90,7 @@ export class SocketServer {
 
   /**
    * Return a function that opens a message box on a specific client.
+   *
    * @param client Client to open a message box on.
    */
   public showMessageBoxBack(client: BackClient): ShowMessageBoxFunc {
@@ -99,6 +101,7 @@ export class SocketServer {
 
   /**
    * Return a function that opens a save box on a specific client.
+   *
    * @param client Client to open a save box on.
    */
   public showSaveDialogBack(client: BackClient): ShowSaveDialogFunc {
@@ -109,6 +112,7 @@ export class SocketServer {
 
   /**
    * Return a function that opens a load file box on a specific client.
+   *
    * @param client Client to open a load file box on.
    */
   public showOpenDialogFunc(client: BackClient): ShowOpenDialogFunc {
@@ -119,6 +123,7 @@ export class SocketServer {
 
   /**
    * Return a function that opens an external path at a specific client.
+   *
    * @param client Client to open an external path at.
    */
   public openExternal(client: BackClient): OpenExternalFunc {
@@ -131,6 +136,7 @@ export class SocketServer {
 
   /**
    * Create and add a new queue.
+   *
    * @param types Types of requests that should be put into this queue.
    */
   public addQueue(types: BackIn[]): void {
@@ -342,6 +348,7 @@ type StartServerResult = {
 
 /**
  * Try to start a WebSocket server on the first available port in a given range (from lowest to highest).
+ *
  * @param minPort Minimum port number (tried first).
  * @param maxPort Maximum port number (tried last).
  * @param host Server host (determines what clients can connect).

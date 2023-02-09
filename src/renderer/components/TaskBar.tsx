@@ -10,7 +10,7 @@ type OwnProps = {
 
 export type TaskBarProps = OwnProps & WithTasksProps;
 
-/** Title bar of the window (the top-most part of the window). */
+// Title bar of the window (the top-most part of the window).
 function taskBar(props: TaskBarProps) {
   const tasksRender = React.useMemo(() => {
     return props.tasks.length == 0 ? (<div className='task-bar-empty'>No Tasks</div>) : props.tasks.map(task => {

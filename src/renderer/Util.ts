@@ -25,6 +25,7 @@ export function easterEgg(search: string) {
 
 /**
  * Copy and shuffle an array.
+ *
  * @param {Array} array The array to copy and shuffle
  * @returns Shuffled copy of the given array
  */
@@ -41,6 +42,7 @@ export function shuffle<T>(array: T[]): T[] {
 
 /**
  * Join a library route with the browse route
+ *
  * @param route Library route
  */
 export function joinLibraryRoute(route: string): string {
@@ -66,6 +68,7 @@ export type ElementAncestorFunction<T extends ElementBase<T>> = (target: T, coun
 
 /**
  * Find the first ancestor of an element where "fn" returns true (starting with the parent of the input element).
+ *
  * @param element The input element.
  * @param fn Function that is called for each ancestor of element until it returns true, or runs out of ancestors.
  * @param checkElement If the input element should also be checked. Defaults to false.
@@ -85,6 +88,7 @@ export function findElementAncestor<T extends ElementBase<T>>(element: T, fn: El
 
 /**
  * Check if an element is the same as another element, or an ancestor of it.
+ *
  * @param start First element to compare to (it will climb up the parents of this recursively).
  * @param target Element to find.
  * @returns If the "target" element was found.
@@ -240,23 +244,41 @@ export async function getGamePath(game: Game, fpPath: string, htdocsPath: string
   }
 }
 
-/** Convert a URL to a path, where the hostname is the first folder, and the pathname the folders afterwards. */
+/**
+ * Convert a URL to a path, where the hostname is the first folder, and the pathname the folders afterwards.
+ *
+ * @param url
+ */
 function urlToFilePath(url: URL): string {
   return decodeURIComponent(path.join(url.hostname, url.pathname));
 }
 
-/** Try to create a URL object (both with the unedited string and a protocol). */
+/**
+ * Try to create a URL object (both with the unedited string and a protocol).
+ *
+ * @param str
+ */
 export function toForcedURL(str: string): URL | undefined {
   return toURL(str) || toURL('http://'+str);
 }
 
-/** Try to create a URL object (returns undefined if the string is not valid). */
+/**
+ * Try to create a URL object (returns undefined if the string is not valid).
+ *
+ * @param str
+ */
 export function toURL(str: string): URL | undefined {
   try { return new URL(str); }
   catch { return undefined; }
 }
 
-/** Open a confirmation box, returning true if Yes, false if No, throwing if Cancelled. */
+/**
+ * Open a confirmation box, returning true if Yes, false if No, throwing if Cancelled.
+ *
+ * @param title
+ * @param message
+ * @param cancel
+ */
 export async function openConfirmDialog(title: string, message: string, cancel = false): Promise<boolean> {
   const buttons = ['Yes', 'No'];
   if (cancel) { buttons.push('Cancel'); }
@@ -310,7 +332,11 @@ export function rebuildQuery(opts: RebuildQueryOpts): ViewQuery {
   };
 }
 
-/** Get the "library route" of a url (returns empty string if URL is not a valid "sub-browse path") */
+/**
+ * Get the "library route" of a url (returns empty string if URL is not a valid "sub-browse path")
+ *
+ * @param urlPath
+ */
 export function getBrowseSubPath(urlPath: string): string {
   if (urlPath.startsWith(Paths.BROWSE)) {
     let str = urlPath.substring(Paths.BROWSE.length);

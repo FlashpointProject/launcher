@@ -9,7 +9,7 @@ export type CurateBoxWarningsProps = {
   warnings: CurationWarnings;
 };
 
-/** The part of a Curation Box that displays all the warnings (if any). */
+// The part of a Curation Box that displays all the warnings (if any).
 export function CurateBoxWarnings(props: CurateBoxWarningsProps) {
   const strings = React.useContext(LangContext).curate;
   const { warnings } = props;

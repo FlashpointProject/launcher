@@ -11,6 +11,7 @@ type Arg = string | JSX.Element;
 /**
  * Format a string by replacing all instanced of "{N}" (where N is an integer) with the argument with the same index
  * (minus one, so the 2nd argument is mapped to the number 0).
+ *
  * @param str String to format.
  * @param args Arguments to replace "{N}" instances with.
  */

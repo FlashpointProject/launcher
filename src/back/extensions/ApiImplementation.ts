@@ -45,6 +45,7 @@ import uuid = require('uuid');
 
 /**
  * Create a Flashpoint API implementation specific to an extension, used during module load interception
+ *
  * @param extId Extension ID
  * @param extManifest Manifest of the caller
  * @param addExtLog Function to add an Extensions log to the Logs page

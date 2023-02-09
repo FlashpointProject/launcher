@@ -11,7 +11,7 @@ export type ContextReducerProviderProps<R extends AnyReducer> = {
   context: ReducerContext<R>;
 };
 
-/** Stores the state of a Context and provides a dispatcher for changing its value. */
+// Stores the state of a Context and provides a dispatcher for changing its value.
 export function ContextReducerProvider<R extends AnyReducer>(props: ContextReducerProviderProps<R>) {
   const { Provider } = props.context.context;
   // Reducer that stores the state

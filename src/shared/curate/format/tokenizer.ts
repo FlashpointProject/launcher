@@ -75,6 +75,7 @@ type TokenizerState = {
 /**
  * Parse a string following the Curation Format into tokens.
  * These tokens can later be parsed into an object representation of the original text.
+ *
  * @param text Text to parse into tokens.
  */
 export function tokenizeCurationFormat(text: string): CFTokenizer.AnyToken[] {
@@ -190,6 +191,7 @@ export function tokenizeCurationFormat(text: string): CFTokenizer.AnyToken[] {
 /**
  * Create a string representation of a token.
  * This is meant to be used for error messages and debugging.
+ *
  * @param token Token to create string of.
  */
 export function tokenToString(token: CFTokenizer.AnyToken): string {
@@ -201,6 +203,7 @@ export function tokenToString(token: CFTokenizer.AnyToken): string {
 /**
  * Consume the current multi-line state, then create and add a token from it.
  * If there is no multi-line state to consume, do nothing.
+ *
  * @param state State of the tokenizer.
  * @param tokens Array to add the token to.
  */
@@ -221,6 +224,7 @@ function applyMultiLine(state: TokenizerState, tokens: CFTokenizer.AnyToken[]): 
 
 /**
  * Count the number of space characters on the left side of a string.
+ *
  * @param str String to check.
  */
 function countSpacesLeft(str: string): number {
@@ -244,6 +248,7 @@ function countSpacesLeft(str: string): number {
 
 /**
  * Calculate the indentation level of a line of text.
+ *
  * @param line Line of text (using the Curation Format).
  */
 function calculateIndent(line: string): number {
@@ -258,6 +263,7 @@ function calculateIndent(line: string): number {
 
 /**
  * Count the maximum number of space characters at the start of a string needed to reach some indentation level.
+ *
  * @param line Line of text.
  * @param target Target indentation level.
  */
@@ -276,6 +282,7 @@ function countIndentChars(line: string, target: number): number {
 
 /**
  * Get the indentation power of a character (or undefined if it's not an indent character).
+ *
  * @param char Character to get indentation power of.
  * @returns The indentation power of the character (4 indentation power is equal to 1 indentation), or undefined.
  */

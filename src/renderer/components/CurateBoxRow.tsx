@@ -8,7 +8,7 @@ type CurateRowProps = {
   className?: string;
 };
 
-/** A row inside a curate box. */
+// A row inside a curate box.
 export function CurateBoxRow(props: CurateRowProps) {
   return (
     <tr className={'curate-box-row' + (props.className ? (' ' + props.className) : '')}>

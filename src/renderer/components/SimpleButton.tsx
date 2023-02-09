@@ -6,7 +6,7 @@ type InputProps = React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputEle
 
 export type SimpleButtonProps = Omit<InputProps, 'type'>;
 
-/** A normal button, but with the "simple-button" css class added. */
+// A normal button, but with the "simple-button" css class added.
 export function SimpleButton(props: SimpleButtonProps) {
   const { className, ...rest } = props;
   return (

@@ -99,7 +99,11 @@ export class TagList extends React.Component<TagListProps> {
     }
   };
 
-  /** Find a tag's ID. */
+  /**
+   * Find a tag's ID.
+   *
+   * @param element Element to search for a Tag identifier inside
+   */
   findTagId = (element: EventTarget): number | undefined => {
     const tag = findElementAncestor(element as Element, target => TagListItem.isElement(target), true);
     if (tag) { return TagListItem.getId(tag); }

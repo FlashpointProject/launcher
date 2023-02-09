@@ -26,6 +26,7 @@ export type ParsedCurationMeta = {
 
 /**
  * Parse a string containing meta for an old style curation
+ *
  * @param text A string of curation meta.
  */
 export async function parseCurationMetaOld(text: string): Promise<ParsedCurationMeta> {
@@ -38,6 +39,7 @@ export async function parseCurationMetaOld(text: string): Promise<ParsedCuration
 
 /**
  * Convert a "raw" curation meta object into a more programmer friendly object.
+ *
  * @param data "Raw" meta object to convert.
  * @param onError Called whenever an error occurs.
  */
@@ -107,6 +109,7 @@ export async function parseCurationMetaFile(data: any, onError?: (error: string)
 
 /**
  * Convert a "raw" curation additional application meta object into a more programmer friendly object.
+ *
  * @param item Object parser, wrapped around the "raw" add-app meta object to convert.
  * @param label Label of the object.
  * @param rawValue Used to generate add apps if using a message or extras label

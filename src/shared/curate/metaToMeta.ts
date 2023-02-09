@@ -5,6 +5,7 @@ import { AddAppCurationMeta, CurationMeta } from './types';
 
 /**
  * Convert game and its additional applications into a raw object representation in the curation format.
+ *
  * @param game Game to convert.
  * @param categories List of all tag categories
  */
@@ -72,9 +73,10 @@ export function convertGameToCurationMetaFile(game: Game, categories: TagCategor
 
 /**
  * Convert curation and its additional applications into a raw object representation in the curation meta format. (for saving)
+ *
  * @param curation Curation to convert.
- * @param addApps Additional applications of the curation.
  * @param categories List of all tag categories
+ * @param addApps Additional applications of the curation.
  */
 export function convertEditToCurationMetaFile(curation: CurationMeta, categories: TagCategory[], addApps?: AddAppCurationMeta[]): CurationMetaFile {
   const parsed: CurationMetaFile = {};
@@ -147,6 +149,7 @@ export function convertEditToCurationMetaFile(curation: CurationMeta, categories
 
 /**
  * Convert parsed meta and its additional applications into a raw object representation in the curation meta format. (for saving)
+ *
  * @param curation Parsed meta to convert.
  * @param categories List of all tag categories
  */

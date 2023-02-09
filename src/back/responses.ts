@@ -71,6 +71,7 @@ const axios = axiosImport.default;
 
 /**
  * Register all request callbacks to the socket server.
+ *
  * @param state State of the back.
  * @param init Initialization function (only runs once per state)
  */
@@ -1956,6 +1957,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
  * __Note:__ Arrays work differently in order to preserve the types and indices.
  * If the length of the arrays are not equal, or if not all items in the array are strictly equal (to the items of the other array),
  * then the whole array will be added to the return object.
+ *
  * @param template Template object. Iteration will be done over this object.
  * @param a Compared to B.
  * @param b Compared to A. Values in the returned object is copied from this.
@@ -2028,6 +2030,8 @@ function adjustGameFilter(filterOpts: FilterGameOpts): FilterGameOpts {
 
 /**
  * Creates a function that will run any game launch info given to it and register it as a service
+ *
+ * @param state Current back state
  */
 function runGameFactory(state: BackState) {
   return (gameLaunchInfo: GameLaunchInfo): ManagedChildProcess => {
@@ -2087,6 +2091,7 @@ function createCommand(filename: string, useWine: boolean, noshell: boolean): st
 
 /**
  * Run a command registered by an Extension
+ *
  * @param state Back state
  * @param command Command to run
  * @param args Arguments for the command
@@ -2109,6 +2114,8 @@ async function runCommand(state: BackState, command: string, args: any[] = []): 
 
 /**
  * Returns a set of AppProviders from all extension registered Applications, complete with callbacks to run them.
+ *
+ * @param state Current back state
  */
 async function getProviders(state: BackState): Promise<AppProvider[]> {
   return state.extensionsService.getContributions('applications')

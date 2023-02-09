@@ -1,6 +1,7 @@
 /**
  * Create a string representation of a value in the curation format.
  * This is the Curation Format's answer to "JSON.stringify()".
+ *
  * @param value Value to stringify.
  */
 export function stringifyCurationFormat(value: any): string {
@@ -9,6 +10,7 @@ export function stringifyCurationFormat(value: any): string {
 
 /**
  * Create a string representation of an object in the curation format.
+ *
  * @param obj Object to stringify.
  * @param indent Indentation level of object (in case it is nested).
  */
@@ -68,6 +70,7 @@ function stringifyObject(obj: any, indent: number): string {
 
 /**
  * Check if an array starts at index 0 and has no "gaps" (no undefined or null values).
+ *
  * @param array Array to check.
  */
 function isCondenseArray(array: any[]): boolean {
@@ -81,6 +84,7 @@ function isCondenseArray(array: any[]): boolean {
 
 /**
  * Create a string of indentation characters.
+ *
  * @param indent Level of indentation of the returned string.
  */
 function createIndent(indent: number): string {

@@ -158,7 +158,7 @@ export class RightTagCategoriesSidebar extends React.Component<RightTagCategorie
     );
   }
 
-  /** When a key is pressed down "globally" (and this component is present) */
+  // When a key is pressed down "globally" (and this component is present)
   onGlobalKeyDown = (event: KeyboardEvent) => {
     // Start editing
     if (event.ctrlKey && event.code === 'KeyE' && // (CTRL + E ...

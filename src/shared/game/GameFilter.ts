@@ -8,6 +8,7 @@ const falsePhrases = ['false', 'none', 'no'];
 
 /**
  * Parse a search query text into an object.
+ *
  * @param text Search query text.
  */
 export function parseSearchText(text: string): ParsedSearch {
@@ -78,6 +79,7 @@ export function parseSearchText(text: string): ParsedSearch {
 
 /**
  * Parse a "quick search" into an object.
+ *
  * @param text Quick search text to parse.
  */
 function parseQuickSearch(text: string): FieldFilter | undefined {
@@ -91,7 +93,14 @@ function parseQuickSearch(text: string): FieldFilter | undefined {
   }
 }
 
-/** Outputs the correct field filter onto `parsed` */
+/**
+ * Outputs the correct field filter onto the Search object
+ *
+ * @param field First half of the filter (first:second)
+ * @param phrase Second half of the filter (first:second)
+ * @param inverse Negate the comparison
+ * @param parsed Search object to append this filter to
+ */
 function handleFieldFilter(field: string, phrase: string, inverse: boolean, parsed: ParsedSearch) {
   // missing:field
   if (blacklistFields.includes(field)) {
@@ -152,6 +161,7 @@ export type OrderGamesOpts = {
 
 /**
  * Wrap a search term in quotes if they are needed (to keep it as a single search term).
+ *
  * @param text Search term to wrap.
  */
 export function wrapSearchTerm(text: string): string {

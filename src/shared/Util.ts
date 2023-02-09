@@ -18,6 +18,7 @@ type ReadFileOptions = { encoding?: BufferEncoding; flag?: string; } | BufferEnc
 /**
  * Read and parse a JSON file asynchronously.
  * Wrapper around "fs.readFile()" plus "JSON.parse()".
+ *
  * @param path Path of the JSON file.
  * @param options Options for reading the file.
  */
@@ -29,6 +30,7 @@ export async function readJsonFile(path: string, options?: ReadFileOptions): Pro
  * Read and parse a JSON file synchronously.
  * Wrapper around "fs.readFileSync()" plus "JSON.parse()".
  * Throws an error if either the read or parsing fails.
+ *
  * @param path Path of the JSON file.
  * @param options Options for reading the file.
  */
@@ -39,6 +41,8 @@ export function readJsonFileSync(path: string, options?: ReadFileOptions): any {
 /**
  * Remove the file extension of a filename
  * (Remove everything after the last dot, including the dot)
+ *
+ * @param filename Filename to remove extension from
  */
 export function removeFileExtension(filename: string): string {
   const lastDotIndex = filename.lastIndexOf('.');
@@ -49,6 +53,7 @@ export function removeFileExtension(filename: string): string {
 /**
  * Get the filename of a path or url
  * (get everything after the last slash symbol)
+ *
  * @param filePath Path to get filename from
  */
 export function getFilename(filePath: string): string {
@@ -57,6 +62,7 @@ export function getFilename(filePath: string): string {
 
 /**
  * Pad a the end of a string with spaces until the string is of a specified length
+ *
  * @param str String to pad
  * @param length Target length of string (max number of spaces to add)
  * @returns String padded with spaces
@@ -69,6 +75,7 @@ export function padEnd(str: string|number, length: number): string {
 
 /**
  * Pad a the start of a string with spaces until the string is of a specified length
+ *
  * @param str String to pad
  * @param length Target length of string (max number of spaces to add)
  * @returns String padded with spaces
@@ -87,6 +94,7 @@ export type StringifyArrayOpts = {
 /**
  * Write an array to a string in a pretty and readable way
  * Ex. [0,'test',null] => '[ 0, "test", null ]'
+ *
  * @param array Array to "stringify"
  * @param opts Options to apply to resulting string
  * @returns Readable text representation of the array
@@ -106,7 +114,12 @@ export function stringifyArray(array: Array<any>, opts?: StringifyArrayOpts): st
   return str;
 }
 
-/** Remove all spaces and new line characters at the start and end of the string. */
+/**
+ * Remove all spaces and new line characters at the start and end of the string.
+ *
+ * @deprecated Use string.trim()
+ * @param str String to trim
+ */
 function trim(str: string): string {
   let first = 0;
   let last: number = str.length;
@@ -142,6 +155,7 @@ function pad(str: string|number, len: number): string {
 
 /**
  * Stringify anything to a json string ready to be saved to a file
+ *
  * @param data Data to be stringified
  * @returns JSON string of given data
  */
@@ -152,8 +166,9 @@ export function stringifyJsonDataFile(data: any): string {
 /**
  * Check if all properties of both arguments have strictly equals values,
  * and if both objects have identical properties (same number of props with the same names)
- * @param first
- * @param second
+ *
+ * @param first First to compare
+ * @param second Second to compare
  */
 export function shallowStrictEquals(first: any, second: any): boolean {
   for (const key in first) {
@@ -171,6 +186,7 @@ export function shallowStrictEquals(first: any, second: any): boolean {
 
 /**
  * Recursively copy values from data to target (for every property of the same name)
+ *
  * @param target Target object to copy data to
  * @param source Source object to copy data from
  * @returns Target object
@@ -199,6 +215,7 @@ export function recursiveReplace<T = any>(target: T, source: any): T {
 /**
  * Recursively copy and object and its "sub-objects"
  * (WARNING: This will overflow the stack if it tries to copy circular references)
+ *
  * @param source Object to copy from
  * @returns New copy of source
  */
@@ -216,6 +233,7 @@ export function deepCopy<T>(source: T): T {
 
 /**
  * Recursively go down a folder and call back for each file encountered
+ *
  * @param options Various options (a shallow copy of this is accessible from the callback)
  * @returns A promise that resolves when either all files have been called back for or recursion is aborted
  */
@@ -276,6 +294,7 @@ export interface IRecursiveDirectorySharedObject {
 
 /**
  * Remove the BOM (Byte Order Mark) character from the start of an UTF8 string if it is present.
+ *
  * @param str The string to remove the BOM from.
  * @returns The same string but with the BOM removed (or the same string if no BOM was found).
  */
@@ -291,6 +310,7 @@ function isString(obj: any): boolean {
 
 /**
  * Convert a launcher version number to a human readable string (including error messages).
+ *
  * @param version Launcher version number.
  */
 export function versionNumberToText(version: number): string {
@@ -308,6 +328,7 @@ export function versionNumberToText(version: number): string {
 
 /**
  * Create a copy of an array with all the undefined values taken out (shifting everything along to not leave any empty spaces).
+ *
  * @param array Array to copy and clear.
  */
 export function clearArray<T>(array: Array<T | undefined>): Array<T> {
@@ -320,6 +341,7 @@ export function clearArray<T>(array: Array<T | undefined>): Array<T> {
 
 /**
  * Parse a variable string using a generic get variable value function.
+ *
  * @param str String to parse.
  */
 // @TODO: Make better variables. Why are we using cwd() ?
@@ -337,7 +359,11 @@ export function parseVarStr(str: string, config?: AppConfigData) {
 const errorProxySymbol = Symbol('Error Proxy');
 const errorProxyValue = {}; // Unique pointer
 
-/** Create a proxy that throws an error when you try to use it. */
+/**
+ * Create a proxy that throws an error when you try to use it.
+ *
+ * @param title Title to use in the error, usually the name of the variable the error proxy will be set for
+ */
 export function createErrorProxy(title: string): any {
   return new Proxy({}, {
     // @TODO Make it throw errors for all(?) cases (delete, construct etc.)
@@ -353,6 +379,7 @@ export function createErrorProxy(title: string): any {
 
 /**
  * Convert a size (in bytes) to a more human readable format.
+ *
  * @param size Size in bytes.
  * @param precision Precision of the returned number
  * @returns Size, but in a more human readable format.
@@ -364,13 +391,18 @@ export function sizeToString(size: number, precision = 3): string {
   return `${(size / 1000000000).toPrecision(precision)}GB`;
 }
 
-/** Replace all back-slashes with forward-slashes. */
+/**
+ * Replace all back-slashes with forward-slashes.
+ *
+ * @param str String to fix
+ */
 export function fixSlashes(str: string): string {
   return str.replace(/\\/g, '/');
 }
 
 /**
  * Checks whether we can write and read to a folder
+ *
  * @param folder folder to check
  */
 export async function canReadWrite(folder: string): Promise<boolean> {

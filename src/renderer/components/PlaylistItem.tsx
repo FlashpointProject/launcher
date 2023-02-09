@@ -137,7 +137,12 @@ export function PlaylistItem(props: PlaylistItemProps) {
   );
 }
 
-/** Check if an element or one of its parents is the same as another element. */
+/**
+ * Check if an element or one of its parents is the same as another element.
+ *
+ * @param parent Parent to find
+ * @param leafElement Current element to search upwards from
+ */
 function findParent(parent: Element, leafElement: Element | null): boolean {
   let element: Element|null = leafElement;
   for (let i = 20; i >= 0; i--) { // (Depth limit - to stop endless looping)

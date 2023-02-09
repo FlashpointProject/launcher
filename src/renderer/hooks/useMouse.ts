@@ -59,11 +59,13 @@ type UseMouseOpts<T> = {
   chain_delay: number;
   /**
    * Returns the ID of the item the event is related to, or undefined if no item is found.
+   *
    * @param event Mouse event related to the click (mouse up/down).
    */
   find_id(event: React.MouseEvent<HTMLElement, MouseEvent>): T | undefined;
   /**
    * Compares if two IDs are "equal".
+   *
    * @param a First ID.
    * @param b Second ID.
    * @returns True if the are "equal". False otherwise.
@@ -71,6 +73,7 @@ type UseMouseOpts<T> = {
   compare_id?(a: T, b: T): boolean;
   /**
    * Called when a "click" has occurred.
+   *
    * @param event Event of the click.
    * @param id Current ID.
    * @param clicks Number of clicks (1 is a "click", 2 is a "double click" etc.).
@@ -95,6 +98,7 @@ type MouseRef<T> = {
 
 /**
  * Flexible hook for detecting clicks (single, double, triple etc.) of any mouse button.
+ *
  * @param initializer Returns the options object to use for this hook. Only called the first time.
  * @param deps Array of dependencies that if changed, will call the initializer again.
  */
@@ -167,6 +171,7 @@ export function useMouse<T>(initializer: () => UseMouseOpts<T>, deps: React.Depe
 
 /**
  * Compare if two IDs are considered equal. If at least one ID is undefined they will not be considered equal.
+ *
  * @param a First ID.
  * @param b Second ID.
  * @param compare_id Function for comparing IDs. If undefined a strict equals will be performed instead.

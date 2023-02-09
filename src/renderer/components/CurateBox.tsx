@@ -610,6 +610,7 @@ function useAddImageCallback(type: CurationImageEnum, curation: LoadedCuration |
 
 /**
  * Delete an image file inside the curation's folder.
+ *
  * @param type Enum (Logo or Screenshot)
  * @param curation Curation to delete it from.
  * @param dispatch Curate Action Dispatch Func

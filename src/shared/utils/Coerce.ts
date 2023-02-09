@@ -2,6 +2,7 @@ export namespace Coerce {
   /**
    * Coerce a value to a string.
    * If the value is undefined, an empty string is returned instead.
+   *
    * @param value Value to coerce.
    */
   export function str(value: any): string {
@@ -13,6 +14,7 @@ export namespace Coerce {
   /**
    * Coerce a value to a string.
    * If the value is undefined, an empty string is returned instead.
+   *
    * @param value Value to coerce.
    */
   export function strArray(value: any[]): string[] {
@@ -22,6 +24,7 @@ export namespace Coerce {
   /**
    * Coerce a value to a number.
    * If the coerced value is NaN, 0 will be returned instead.
+   *
    * @param value Value to coerce.
    */
   export function num(value: any): number {
@@ -30,6 +33,7 @@ export namespace Coerce {
 
   /**
    * Convert a string to a boolean (case insensitive).
+   *
    * @param str String to convert ("true" and "yes" is true, "false" and "no" is false).
    * @param defaultVal Value returned if the string is neither true nor false.
    */

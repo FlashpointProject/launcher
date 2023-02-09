@@ -32,7 +32,7 @@ export type InputFieldProps = {
   onKeyDown?: (event: React.KeyboardEvent<InputElement>) => void;
 };
 
-/** A generic input field. */
+// A generic input field.
 export function InputField(props: InputFieldProps) {
   const { className, disabled, editable, multiline, onChange, onClick, onKeyDown, placeholder, reference, text } = props;
   let cleanClassName = (className ? ' '+className : '');
@@ -195,7 +195,7 @@ export function InputFieldEntry(props: InputFieldEntryProps) {
   );
 }
 
-/** Get the index of an item element (or -1 if index was not found). */
+// Get the index of an item element (or -1 if index was not found).
 function getListItemIndex(target: any): number {
   if (target instanceof Element || target instanceof HTMLElement) {
     return parseInt(target.getAttribute('data-dropdown-index') || '-1', 10);

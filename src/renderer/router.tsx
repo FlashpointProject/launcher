@@ -5,7 +5,7 @@ import { GameOfTheDay, ViewGame } from '@shared/back/types';
 import { AppExtConfigData } from '@shared/config/interfaces';
 import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { GamePropSuggestions, IService } from '@shared/interfaces';
-import { LangContainer, LangFile } from '@shared/lang';
+import { LangFile } from '@shared/lang';
 import { ITheme } from '@shared/ThemeFile';
 import { Menu } from 'electron';
 import { AppUpdater, UpdateInfo } from 'electron-updater';
@@ -25,7 +25,6 @@ import { ConnectedTagsPage } from './containers/ConnectedTagsPage';
 import { CreditsData } from './credits/types';
 import { UpdateView, ViewGameSet } from './interfaces';
 import { Paths } from './Paths';
-import { UpgradeStage } from './upgrade/types';
 
 export type AppRouterProps = {
   gotdList: GameOfTheDay[];
@@ -51,7 +50,6 @@ export type AppRouterProps = {
   localeCode: string;
   devConsole: string;
 
-  upgrades: UpgradeStage[];
   creditsData?: CreditsData;
   creditsDoneLoading: boolean;
   selectedGameId?: string;
@@ -63,7 +61,6 @@ export type AppRouterProps = {
   onDeletePlaylist: (playlist: Playlist) => void;
   onSelectPlaylist: (library: string, playlistId: string | undefined) => void;
   wasNewGameClicked: boolean;
-  onDownloadUpgradeClick: (stage: UpgradeStage, strings: LangContainer) => void;
   gameLibrary: string;
   themeList: ITheme[];
   languages: LangFile[];
@@ -88,12 +85,10 @@ export class AppRouter extends React.Component<AppRouterProps> {
       gotdList: this.props.gotdList,
       platforms: this.props.platforms,
       playlists: this.props.allPlaylists,
-      upgrades: this.props.upgrades,
       onGameContextMenu: this.props.onGameContextMenu,
       onSelectPlaylist: this.props.onSelectPlaylist,
       onLaunchGame: this.props.onLaunchGame,
       onGameSelect: this.props.onSelectGame,
-      onDownloadUpgradeClick: this.props.onDownloadUpgradeClick,
       updateInfo: this.props.updateInfo,
       autoUpdater: this.props.autoUpdater,
       randomGames: this.props.randomGames,
@@ -107,14 +102,11 @@ export class AppRouter extends React.Component<AppRouterProps> {
       updateView: this.props.updateView,
       gamesTotal: this.props.gamesTotal,
       playlists: this.props.playlists,
-      suggestions: this.props.suggestions,
       playlistIconCache: this.props.playlistIconCache,
       onGameContextMenu: this.props.onGameContextMenu,
       onSaveGame: this.props.onSaveGame,
       onDeleteGame: this.props.onDeleteGame,
-      onOpenExportMetaEdit: this.props.onOpenExportMetaEdit,
       selectedGameId: this.props.selectedGameId,
-      gameRunning: this.props.gameRunning,
       selectedPlaylistId: this.props.selectedPlaylistId,
       onSelectGame: this.props.onSelectGame,
       onUpdatePlaylist: this.props.onUpdatePlaylist,
@@ -149,8 +141,6 @@ export class AppRouter extends React.Component<AppRouterProps> {
     };
     const developerProps: DeveloperPageProps = {
       devConsole: this.props.devConsole,
-      platforms: this.props.platformsFlat,
-      playlists: this.props.playlists,
       devScripts: this.props.devScripts,
       services: this.props.services
     };
@@ -203,7 +193,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
   }
 }
 
-/** Reusable way to pass properties down a router and to its component. */
+// Reusable way to pass properties down a router and to its component.
 const PropsRoute = ({ component, ...rest }: any) => (
   <Route
     { ...rest }

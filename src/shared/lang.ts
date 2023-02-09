@@ -584,6 +584,7 @@ export type LangContainer = BaseLangContainer & {
 
 /**
  * Create a language category object from a language template category.
+ *
  * @param tempCat Language template category.
  */
 function createCategory<T extends readonly string[]>(tempCat: T): LangCategory<T> {

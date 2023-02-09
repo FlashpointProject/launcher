@@ -176,7 +176,7 @@ export class GameGrid extends React.Component<GameGridProps> {
     );
   }
 
-  /** Renders a single cell in the game grid. */
+  // Renders a single cell in the game grid.
   cellRenderer = (props: GridCellProps): React.ReactNode => {
     const extremeIconPath = this.extremeIconPathMemo(this.props.logoVersion);
     const { draggedGameId, games, gamesTotal, selectedGameId } = this.props;
@@ -234,7 +234,11 @@ export class GameGrid extends React.Component<GameGridProps> {
     this.updateView(params.rowOverscanStartIndex, params.rowOverscanStopIndex, columns);
   };
 
-  /** When a key is pressed (while the grid, or one of its children, is selected). */
+  /**
+   * When a key is pressed (while the grid, or one of its children, is selected).
+   *
+   * @param event
+   */
   onKeyPress = (event: React.KeyboardEvent): void => {
     if (event.key === 'Enter') {
       if (this.props.selectedGameId) {
@@ -243,38 +247,67 @@ export class GameGrid extends React.Component<GameGridProps> {
     }
   };
 
-  /** When a cell is clicked. */
+  /**
+   * When a cell is clicked.
+   *
+   * @param event
+   * @param gameId
+   */
   onGameSelect = (event: React.MouseEvent, gameId: string | undefined): void => {
     this.props.onGameSelect(gameId);
   };
 
-  /** When a cell is double clicked. */
+  /**
+   * When a cell is double clicked.
+   *
+   * @param event
+   * @param gameId
+   */
   onGameLaunch = (event: React.MouseEvent, gameId: string): void => {
     this.props.onGameLaunch(gameId);
   };
 
-  /** When a cell is right clicked. */
+  /**
+   * When a cell is right clicked.
+   *
+   * @param event
+   * @param gameId
+   */
   onGameContextMenu = (event: React.MouseEvent<HTMLDivElement>, gameId: string | undefined): void => {
     if (this.props.onContextMenu) {
       if (gameId) { this.props.onContextMenu(gameId); }
     }
   };
 
-  /** When a cell is starting to be dragged. */
+  /**
+   * When a cell is starting to be dragged.
+   *
+   * @param event
+   * @param gameId
+   */
   onGameDragStart = (event: React.DragEvent, gameId: string | undefined): void => {
     if (this.props.onGameDragStart) {
       if (gameId) { this.props.onGameDragStart(event, gameId); }
     }
   };
 
-  /** When a cell is ending being dragged. */
+  /**
+   * When a cell is ending being dragged.
+   *
+   * @param event
+   * @param gameId
+   */
   onGameDragEnd = (event: React.DragEvent, gameId: string | undefined): void => {
     if (this.props.onGameDragEnd) {
       if (gameId) { this.props.onGameDragEnd(event, gameId); }
     }
   };
 
-  /** When a cell is selected. */
+  /**
+   * When a cell is selected.
+   *
+   * @param params
+   */
   onScrollToChange = (params: ScrollIndices): void => {
     if (!this.props.games) { throw new Error('Games array is missing.'); }
     if (params.scrollToColumn === -1 || params.scrollToRow === -1) {
@@ -285,7 +318,11 @@ export class GameGrid extends React.Component<GameGridProps> {
     }
   };
 
-  /** Find a game's ID. */
+  /**
+   * Find a game's ID.
+   *
+   * @param element
+   */
   findGameId = (element: EventTarget): string | undefined => {
     const game = findElementAncestor(element as Element, target => GameGridItem.isElement(target), true);
     if (game) { return GameGridItem.getId(game); }

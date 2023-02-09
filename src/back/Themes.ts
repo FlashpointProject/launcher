@@ -9,6 +9,7 @@ import { FolderWatcher } from './util/FolderWatcher';
 
 /**
  * Starts a watcher for a newly registered theme
+ *
  * @param id ID of the theme to register
  * @param basePath Path to the Theme's directory
  * @param themePath Path to the Theme file (will join with base path)

@@ -1163,6 +1163,7 @@ function onFileServerRequestLogos(pathname: string, url: URL, req: http.Incoming
 
 /**
  * Execute a back process (a)synchronously.
+ *
  * @param proc Back process to run.
  * @param sync If the process should run synchronously (block this thread until it exits).
  */
@@ -1197,6 +1198,7 @@ function readLangFile(filepath: string): Promise<RecursivePartial<LangFileConten
 
 /**
  * Create a promise that resolves when the emitter emits one of the given events.
+ *
  * @param emitter Emitter to listen on.
  * @param events Events that causes the promise to resolve.
  */
@@ -1367,6 +1369,7 @@ export async function loadCurationArchive(filePath: string, onProgress?: (progre
 
 /**
  * Return the first path containing any valid meta name (undefined if none found)
+ *
  * @param dir Path to search
  */
 async function getRootPath(dir: string): Promise<string | undefined> {

@@ -96,6 +96,7 @@ export interface IMainWindowExternal {
 
   /**
    * Wait for the preload to initialize.
+   *
    * @returns A promise that resolves when initialization is complete, or nothing if already initialized.
    */
   waitUntilInitialized(): Promise<void> | void;

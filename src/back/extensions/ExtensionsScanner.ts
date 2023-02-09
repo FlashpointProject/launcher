@@ -53,7 +53,12 @@ export async function scanSystemExtensions(): Promise<IExtension[]> {
   return r;
 }
 
-/** Scans all extensions in System and User paths and returns them. */
+/**
+ * Scans all extensions in System and User paths and returns them.
+ *
+ * @param configData
+ * @param extensionPath
+ */
 export async function scanExtensions(configData: AppConfigData, extensionPath: string): Promise<IExtension[]> {
   const result = new Map<string, IExtension>();
 
@@ -99,7 +104,12 @@ export async function scanExtensions(configData: AppConfigData, extensionPath: s
   return r;
 }
 
-/** Returns the extensions ID given its author and name from its manifest */
+/**
+ * Returns the extensions ID given its author and name from its manifest
+ *
+ * @param author
+ * @param name
+ */
 function getExtensionID(author: string, name: string) {
   const fAuthor = author.toLowerCase().replace(' ', '-');
   if (name.includes(' ') || name.toLowerCase() !== name) {
@@ -108,7 +118,9 @@ function getExtensionID(author: string, name: string) {
   return `${fAuthor}.${name}`;
 }
 
-/** Parses an extension
+/**
+ * Parses an extension
+ *
  * @param extFilePath Path to the Extension Manifest (package.json)
  * @param type System or User extension
  * @returns Fully formed Extension
@@ -126,6 +138,7 @@ async function parseExtension(extFilePath: string, type: ExtensionType): Promise
 
 /**
  * Parses the manifest file
+ *
  * @param data JSON data of manifest
  * @returns Parsed Manifest
  */

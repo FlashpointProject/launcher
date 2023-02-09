@@ -13,6 +13,7 @@ export type GameItemContainerProps = HTMLDivProps & {
   onGameDragEnd?:     (event: React.DragEvent<HTMLDivElement>,  gameId: string) => void;
   /**
    * Find the game ID of an element (or sub-element) of a game.
+   *
    * @param element Element or sub-element of a game.
    * @returns The game's ID (or undefined if no game was found).
    */
@@ -85,16 +86,12 @@ export class GameItemContainer extends React.Component<GameItemContainerProps> {
     }
   };
 
-  /** Short-hand for "props.findGameId". */
   findGameId(target: EventTarget): string | undefined {
     return this.props.findGameId(target);
   }
 }
 
-/**
- * Create a shallow copy of the props object, but without all non-div element props.
- * @param props Properties to copy.
- */
+// Create a shallow copy of the props object, but without all non-div element props.
 function filterDivProps(props: GameItemContainerProps): JSX.IntrinsicElements['div'] {
   const rest: HTMLDivProps & {
     // These need to be explicitly specified: the compiler doesn't infer them correctly.

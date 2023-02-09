@@ -3,6 +3,7 @@ import { SocketRequestData, SocketResponseData } from './types';
 /**
  * Parse WebSocket data as a JSON string.
  * Note: This expects the raw_data to be a string or buffer (of some sort). Arbitrary objects will not work!
+ *
  * @param raw_data Raw JSON data to parse.
  */
 export function parse_message_data(raw_data: any): [unknown | undefined, Error | undefined] {
@@ -43,6 +44,7 @@ export function parse_message_data(raw_data: any): [unknown | undefined, Error |
 
 /**
  * Validate that an object is a valid socket request/response.
+ *
  * @param data Object to validate.
  * @returns Same object (if valid) or an error.
  */

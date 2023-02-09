@@ -727,6 +727,7 @@ function checkMissingExecMappings(games: Game[], execMappings: ExecMapping[]): s
 
 /**
  * Organize the elements in an array into a map of arrays, based on the value of a key of the objects.
+ *
  * @param array Elements to sort.
  * @param prop Property of the elements to organize by.
  */
@@ -743,6 +744,7 @@ function categorizeByProp<T extends Map<K, V>, K extends string, V extends strin
 
 /**
  * Find all elements in an array with common values.
+ *
  * @param array Elements to search through.
  * @param fn Function that gets the value of an element to compare.
  */
@@ -841,7 +843,14 @@ async function createMissingFolders(): Promise<string> {
   str += '\n';
   return str;
 
-  /** Create all the folders that are missing in a folder structure. */
+  /**
+   * Create all the folders that are missing in a folder structure.
+   *
+   * @param rootPath Root path
+   * @param structure Folder structure
+   * @param log Log function
+   * @param depth Current depth
+   */
   async function createFolderStructure(rootPath: string, structure: FolderStructure, log: (text: string) => void, depth = 0) {
     const pad = '| '.repeat(depth - 1);
     if (Array.isArray(structure)) {
@@ -859,14 +868,18 @@ async function createMissingFolders(): Promise<string> {
         await createFolderStructure(folderPath, structure[key], log, depth + 1);
       }
     }
-    /** */
+
     function folderLogMessage(folderName: string, success: boolean): string {
       let str = `${pad}+ ${folderName}`;
       str += ' '.repeat(Math.max(1, 40 - str.length));
       str += success ? 'Created!' : 'Exists.';
       return str;
     }
-    /** Create a folder if it is missing. */
+    /**
+     * Create a folder if it is missing.
+     *
+     * @param folderPath Folder to create
+     */
     async function createMissingFolder(folderPath: string): Promise<boolean> {
       if (!await exists(folderPath)) { // Folder does not already exist
         if (folderPath.startsWith(rootPath)) { // Folder is a sub-folder of it's root (no "../" climbing allowed)
@@ -878,12 +891,20 @@ async function createMissingFolders(): Promise<string> {
     }
   }
 
-  /** Log error (if there is any). */
+  /**
+   * Log error (if there is any).
+   *
+   * @param error Error to log
+   */
   function logError(error: any): void {
     if (error) { console.warn(error); }
   }
 }
-/** Remove the last "item" in a path ("C:/foo/bar.png" => "C:/foo") */
+/**
+ * Remove the last "item" in a path ("C:/foo/bar.png" => "C:/foo")
+ *
+ * @param filePath File path to use
+ */
 export function removeLastItemOfPath(filePath: string): string {
   return filePath.substring(0, Math.max(0, filePath.lastIndexOf('/'), filePath.lastIndexOf('\\')));
 }

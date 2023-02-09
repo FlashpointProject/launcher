@@ -25,7 +25,9 @@ export type InterceptorState = {
   factories: Map<string, INodeModuleFactory>;
 }
 
-/** Registers a module interceptor
+/**
+ * Registers a module interceptor
+ *
  * @param interceptor Module interceptor
  * @param state State object holding all interceptor data
  */
@@ -47,6 +49,7 @@ export function registerInterceptor(interceptor: INodeModuleFactory, state: Inte
 
 /**
  * Installs the module interceptor. You can register interceptors even after this is called.
+ *
  * @param state State object holding all interceptor data
  */
 export async function installNodeInterceptor(state: InterceptorState): Promise<void> {
@@ -93,7 +96,12 @@ export class FPLNodeModuleFactory implements INodeModuleFactory {
     this._apiFactory = createApiFactory;
   }
 
-  /** Return an API implementation given an import request */
+  /**
+   * Return an API implementation given an import request
+   *
+   * @param _request
+   * @param parent
+   */
   public load(_request: string, parent: string): any {
     const ext = this._extensionPaths.findSubstr(parent);
     if (ext) {

@@ -99,7 +99,11 @@ export class ManagedChildProcess extends EventEmitter {
     return this.startTime;
   }
 
-  /** Spawn process and keep track on it. */
+  /**
+   * Spawn process and keep track on it.
+   *
+   * @param auto Automatically restart if exits early
+   */
   public spawn(auto?: boolean): void {
     if (!this.process && !this._isRestarting) {
       // Reset the auto restart counter when we've manually / deliberately spawned the process
@@ -199,7 +203,8 @@ export class ManagedChildProcess extends EventEmitter {
     processKill(PID);
   };
   /**
-    * Set the state of the process.
+   * Set the state of the process.
+   *
    * @param state State to set.
    */
   private setState(state: ProcessState): void {
@@ -214,6 +219,7 @@ export class ManagedChildProcess extends EventEmitter {
 
   /**
    * Add an entry in the log.
+   *
    * @param content Content of the entry.
    */
   private logContent(content: string): void {
@@ -236,7 +242,12 @@ export class ManagedChildProcess extends EventEmitter {
   };
 }
 
-/** Remove all newlines at the end of a string */
+/**
+ * Remove all newlines at the end of a string
+ *
+ * @deprecated Use string.trim()
+ * @param str String to trim
+ */
 function removeTrailingNewlines(str: string): string {
   let newString = str;
   while (newString.endsWith('\n')) {

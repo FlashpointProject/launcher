@@ -14,6 +14,7 @@ export namespace UpgradeFile {
 
   /**
    * Read and parse the file asynchronously.
+   *
    * @param jsonFolder Path of the JSON folder.
    * @param onError Called for each error that occurs while parsing.
    */

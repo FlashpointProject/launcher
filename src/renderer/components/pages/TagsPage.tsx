@@ -2,13 +2,12 @@ import { Tag } from '@database/entity/Tag';
 import { ConnectedRightTagsSidebar } from '@renderer/containers/ConnectedRightTagsSidebar';
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
-import { findElementAncestor, gameScaleSpan } from '@renderer/Util';
+import { gameScaleSpan } from '@renderer/Util';
 import { BackIn } from '@shared/back/types';
 import { deepCopy } from '@shared/Util';
 import * as React from 'react';
 import { ResizableSidebar } from '../ResizableSidebar';
 import { TagList } from '../TagList';
-import { TagListItem } from '../TagListItem';
 
 type OwnProps = {
 }
@@ -99,12 +98,6 @@ export class TagsPage extends React.Component<TagsPageProps, TagsPageState> {
   onTagsChange = (newTags: Tag[]) => {
     this.setState({ tags: newTags, tagsTotal: newTags.length });
     this.forceUpdate();
-  };
-
-  /** Find a tag's ID. */
-  findTagId = (element: EventTarget): number | undefined => {
-    const tag = findElementAncestor(element as Element, target => TagListItem.isElement(target), true);
-    if (tag) { return TagListItem.getId(tag); }
   };
 
   onEditClick = () => {

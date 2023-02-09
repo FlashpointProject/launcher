@@ -31,6 +31,7 @@ export interface IObjectParserProp<P> {
   /**
    * Call a function for each property of this object.
    * (An error will be "fired" if this is not a non-array object).
+   *
    * @param func Called for each property of this object.
    */
   map(func: ObjectParserMapFunc<P>): this;
@@ -39,6 +40,7 @@ export interface IObjectParserProp<P> {
    * Call a function for each property of this object.
    * (An error will be "fired" if this is not a non-array object).
    * (This uses the raw values of the object - it does NOT wrap the properties in "ObjectParserProp").
+   *
    * @param func Called for each property of this object.
    */
   mapRaw(func: ObjectParserMapRawFunc<P>): this;
@@ -46,6 +48,7 @@ export interface IObjectParserProp<P> {
   /**
    * Call a function for each element in this array.
    * (If this is not an array an error will be "fired" instead).
+   *
    * @param func Called for each element in the array (starting at index 0 and counting up).
    */
   array(func: ObjectParserArrayFunc<P>): this;
@@ -54,12 +57,14 @@ export interface IObjectParserProp<P> {
    * Call a function for each element in this array.
    * (If this is not an array an error will be "fired" instead).
    * (This uses the raw values of the array - it does NOT wrap the element in "ObjectParserProp").
+   *
    * @param func Called for each element in the array (starting at index 0 and counting up).
    */
   arrayRaw(func: ObjectParserArrayRawFunc<P>): this;
 
   /**
    * Get a property of this object.
+   *
    * @param label Label of the property (also known as "property name").
    * @param optional If the property is optional (no error is "fired" if it is not found, default is false).
    * @returns Property with given label (wrapped in ObjectParserProp).
@@ -68,6 +73,7 @@ export interface IObjectParserProp<P> {
 
   /**
    * Get a property of this object.
+   *
    * @param label Label of the property (also known as "property name").
    * @param func Called if the property was found (and passes the unwrapped property value).
    * @param optional If the property is optional (no error is "fired" if it is not found, default is false).
@@ -232,6 +238,7 @@ export class ObjectParser<T> extends ObjectParserProp<T> {
 
 /**
  * Copy a label stack and add a label to the end of it.
+ *
  * @param stack Stack to add element to.
  * @param label Label to put at the end of the stack.
  */
@@ -245,6 +252,7 @@ function createStack(stack: string[], label: string | number | Symbol): string[]
 
 /**
  * Create a (pretty) string from a stack.
+ *
  * @param stack Stack to create string from.
  */
 function stackToString(stack: string[]): string {
@@ -254,6 +262,7 @@ function stackToString(stack: string[]): string {
 
 /**
  * Check if a string is a valid array index (whole number, not NaN, etc.).
+ *
  * @param index String to check.
  */
 function isArrayIndex(index: string): boolean {

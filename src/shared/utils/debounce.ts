@@ -7,6 +7,7 @@ interface CallableCopy<T extends AnyFunction> extends Function {
 
 /**
  * Executes a callback after a `time` millisecond timer, resetting the existing timer (cancelling its callback) with each call
+ *
  * @param callback Called when the timer ends
  * @param time Time in milliseconds before calling
  */

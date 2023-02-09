@@ -11,7 +11,7 @@ export type CheckBoxProps = Omit<InputProps, 'type'> & {
   onToggle?: (isChecked: boolean) => void;
 };
 
-/** Basic checkbox element. Wrapper around the <input> element. */
+// Basic checkbox element. Wrapper around the <input> element.
 export function CheckBox(props: CheckBoxProps) {
   const { onToggle, onChange, ...rest } = props;
   // Hooks

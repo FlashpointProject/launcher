@@ -11,16 +11,20 @@ const access = promisify(fs.access);
 const lstat = promisify(fs.lstat);
 const readdir = promisify(fs.readdir);
 
-/** Full path to a Curation's folder
- * @param curation: Curation to fetch folder from
+/**
+ * Full path to a Curation's folder
+ *
+ * @param curation Curation to fetch folder from
  * @param fpPath Flashpoint Path
  */
 export function getCurationFolder(curation: LoadedCuration, fpPath: string): string {
   return path.join(fpPath, 'Curations', 'Working', curation.folder);
 }
 
-/** Full path to a Curation's content folder
- * @param key: Key to use
+/**
+ * Full path to a Curation's content folder
+ *
+ * @param key Folder of the curation
  * @param fpPath Flashpoint Path
  */
 export function getContentFolderByKey(key: string, fpPath: string): string {
@@ -29,6 +33,7 @@ export function getContentFolderByKey(key: string, fpPath: string): string {
 
 /**
  * Recursively index the content folder
+ *
  * @param contentPath Folder to index
  * @param log Log function to use for errors
  */

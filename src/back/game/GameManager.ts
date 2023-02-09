@@ -40,7 +40,12 @@ export async function countGames(): Promise<number> {
   return gameRepository.count();
 }
 
-/** Find the game with the specified ID. */
+/**
+ * Find the game with the specified ID.
+ *
+ * @param id
+ * @param filter
+ */
 export async function findGame(id?: string, filter?: FindOneOptions<Game>): Promise<Game | null> {
   if (!filter) {
     filter = {};
@@ -182,7 +187,12 @@ export async function findAllGames(): Promise<Game[]> {
   return gameRepository.find();
 }
 
-/** Search the database for games. */
+/**
+ * Search the database for games.
+ *
+ * @param opts
+ * @param shallow
+ */
 export async function findGames<T extends boolean>(opts: FindGamesOpts, shallow: T): Promise<Array<ResponseGameRange<T>>> {
   const ranges = opts.ranges || [{ start: 0, length: undefined }];
   const rangesOut: ResponseGameRange<T>[] = [];
@@ -217,7 +227,12 @@ export async function findGames<T extends boolean>(opts: FindGamesOpts, shallow:
   return rangesOut;
 }
 
-/** Find an add apps with the specified ID. */
+/**
+ * Find an add apps with the specified ID.
+ *
+ * @param id
+ * @param filter
+ */
 export async function findAddApp(id?: string, filter?: FindOneOptions<AdditionalApp>): Promise<AdditionalApp | null> {
   if (!filter) {
     filter = {
@@ -342,7 +357,11 @@ export async function findPlaylistByName(playlistName: string, join?: boolean): 
   return playlistRepository.findOne(opts);
 }
 
-/** Find playlists given a filter. @TODO filter */
+/**
+ * Find playlists given a filter. @TODO filter
+ *
+ * @param showExtreme
+ */
 export async function findPlaylists(showExtreme: boolean): Promise<Playlist[]> {
   const playlistRepository = AppDataSource.getRepository(Playlist);
   if (showExtreme) {
@@ -352,7 +371,11 @@ export async function findPlaylists(showExtreme: boolean): Promise<Playlist[]> {
   }
 }
 
-/** Removes a playlist */
+/**
+ * Removes a playlist
+ *
+ * @param playlistId
+ */
 export async function removePlaylist(playlistId: string): Promise<Playlist | undefined> {
   const playlistRepository = AppDataSource.getRepository(Playlist);
   const playlistGameRepository = AppDataSource.getRepository(PlaylistGame);
@@ -363,7 +386,11 @@ export async function removePlaylist(playlistId: string): Promise<Playlist | und
   }
 }
 
-/** Updates a playlist */
+/**
+ * Updates a playlist
+ *
+ * @param playlist
+ */
 export async function updatePlaylist(playlist: Playlist): Promise<Playlist> {
   const playlistRepository = AppDataSource.getRepository(Playlist);
   const savedPlaylist = await playlistRepository.save(playlist);
@@ -371,13 +398,23 @@ export async function updatePlaylist(playlist: Playlist): Promise<Playlist> {
   return savedPlaylist;
 }
 
-/** Finds a Playlist Game */
+/**
+ * Finds a Playlist Game
+ *
+ * @param playlistId
+ * @param gameId
+ */
 export async function findPlaylistGame(playlistId: string, gameId: string): Promise<PlaylistGame | null> {
   const playlistGameRepository = AppDataSource.getRepository(PlaylistGame);
   return await playlistGameRepository.findOneBy({ gameId, playlistId });
 }
 
-/** Removes a Playlist Game */
+/**
+ * Removes a Playlist Game
+ *
+ * @param playlistId
+ * @param gameId
+ */
 export async function removePlaylistGame(playlistId: string, gameId: string): Promise<PlaylistGame | null> {
   const playlistGameRepository = AppDataSource.getRepository(PlaylistGame);
   const playlistGame = await findPlaylistGame(playlistId, gameId);
@@ -394,7 +431,12 @@ export async function removePlaylistGame(playlistId: string, gameId: string): Pr
   return null;
 }
 
-/** Adds a new Playlist Game (to the end of the playlist). */
+/**
+ * Adds a new Playlist Game (to the end of the playlist).
+ *
+ * @param playlistId
+ * @param gameId
+ */
 export async function addPlaylistGame(playlistId: string, gameId: string): Promise<void> {
   const repository = AppDataSource.getRepository(PlaylistGame);
 
@@ -427,7 +469,11 @@ export async function addPlaylistGame(playlistId: string, gameId: string): Promi
 
 }
 
-/** Updates a Playlist Game */
+/**
+ * Updates a Playlist Game
+ *
+ * @param playlistGame
+ */
 export async function updatePlaylistGame(playlistGame: PlaylistGame): Promise<PlaylistGame> {
   const playlistGameRepository = AppDataSource.getRepository(PlaylistGame);
   const savedPlaylistGame = await playlistGameRepository.save(playlistGame);
@@ -442,7 +488,11 @@ export async function updatePlaylistGame(playlistGame: PlaylistGame): Promise<Pl
   return savedPlaylistGame;
 }
 
-/** Updates a collection of Playlist Games */
+/**
+ * Updates a collection of Playlist Games
+ *
+ * @param playlistGames
+ */
 export async function updatePlaylistGames(playlistGames: PlaylistGame[]): Promise<void> {
   return AppDataSource.transaction(async transEntityManager => {
     for (const game of playlistGames) {

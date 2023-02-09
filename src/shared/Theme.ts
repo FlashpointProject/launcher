@@ -8,7 +8,11 @@ import { getFileServerURL } from './Util';
  */
 const globalThemeAttribute = 'data-theme';
 
-/** Set the theme data of the "global" theme style element. */
+/**
+ * Set the theme data of the "global" theme style element.
+ *
+ * @param theme Theme to apply on top of the default
+ */
 export function setTheme(theme: ITheme | undefined): void {
   let element = findThemeGlobal();
   if (!element) {

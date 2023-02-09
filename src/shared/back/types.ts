@@ -637,6 +637,7 @@ export type TagDeleteResponse = {
 
 /**
  * Data passed to merge tags together
+ *
  * @param toMerge Tag to merge from
  * @param mergeInto Tag to merge into
  * @param makeAlias Whether to move all aliases from toMerge into mergeInto as well

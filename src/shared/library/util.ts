@@ -2,6 +2,7 @@ import { LangContainer } from '../lang';
 
 /**
  * Get the title of a library item from a language sub-container (or return the item's route if none was found).
+ *
  * @param library Library ID
  * @param lang Language sub-container to look for title in.
  */

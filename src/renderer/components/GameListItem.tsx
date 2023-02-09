@@ -95,6 +95,7 @@ export namespace GameListItem {
 
   /**
    * Get the id of the game displayed in a GameListItem element (or throw an error if it fails).
+   *
    * @param element GameListItem element.
    */
   export function getId(element: Element): string {
@@ -105,6 +106,7 @@ export namespace GameListItem {
 
   /**
    * Check if an element is the top element of GameListItem or not.
+   *
    * @param element Potential element to check.
    */
   export function isElement(element: Element | null | undefined): boolean {

@@ -143,6 +143,7 @@ export class Footer extends React.Component<FooterProps> {
 
   /**
    * Set the value of the scale slider.
+   *
    * @param scale Value (between 0 and 1).
    */
   setScaleSliderValue(scale: number): void {

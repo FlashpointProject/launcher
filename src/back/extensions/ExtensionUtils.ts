@@ -12,6 +12,7 @@ export function extensionString(ext: IExtension): string {
 
 /**
  * Get modules entry point
+ *
  * @param ext Extension to read module from
  * @returns Path to module entry point
  */
@@ -29,17 +30,21 @@ export function getExtensionEntry(ext: IExtension): string | undefined {
   }
 }
 
-/** Creates an Extension log (Message format "[extension-name] <message>")
+/**
+ * Creates an Extension log (Message format "[extension-name] <message>")
+ *
  * @param extManifest Manifest of the Extension
  * @param message Message to fill in
  * @param func Log function to use (log.info, warn, error etc.)
  * @returns Complete Log Entry
-*/
+ */
 export function newExtLog(extManifest: IExtensionManifest, message: string, func: LogFunc): ILogEntry {
   return func('Extensions', `[${extManifest.displayName || extManifest.name}] ${message}`);
 }
 
-/** Creates an Extension Log Function
+/**
+ * Creates an Extension Log Function
+ *
  * @param extManifest Manifest of the Extension
  * @param addLog Function to push new log onto Logs page stack
  * @param func Log function to use (log.info, warn, error etc.)

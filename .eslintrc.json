@@ -13,14 +13,15 @@
     "ecmaFeatures": {
       "jsx": true
     },
-    "ecmaVersion": 2018,
+    "ecmaVersion": 2020,
     "sourceType": "module"
   },
   "extends": [
     "eslint:recommended",
     "plugin:react/recommended",
     "plugin:react/jsx-runtime",
-    "plugin:@typescript-eslint/recommended"
+    "plugin:@typescript-eslint/recommended",
+    "plugin:jsdoc/recommended"
   ],
   "plugins": [
     "react",
@@ -126,6 +127,10 @@
     "use-isnan": "error",
     "valid-typeof": "error",
     "wrap-iife": "error",
-    "yoda": "error"
+    "yoda": "error",
+    "jsdoc/require-param-type": "off",
+    "jsdoc/require-returns-type": "off",
+    "jsdoc/require-returns": "off",
+    "jsdoc/require-jsdoc": "off"
   }
 }

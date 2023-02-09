@@ -90,6 +90,7 @@ type CombinedMetas = {
 
 /**
  * Import all meta edits from a folder.
+ *
  * @param fullMetaEditsFolderPath Path to load meta edit files from.
  * @param openDialog Function used to open a message box for prompting on collisions
  */
@@ -354,6 +355,10 @@ export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDi
 /**
  * Set the value of a games property (only some properties are supported).
  * Throws an error if the property is not allowed or the value is of the incorrect type.
+ *
+ * @param game
+ * @param property
+ * @param value
  */
 function paranoidSetGameProperty(game: Game, property: unknown, value: unknown): void {
   const errorPrefix = 'Failed to set game property.';

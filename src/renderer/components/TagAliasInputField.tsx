@@ -87,7 +87,11 @@ export class TagAliasInputField extends React.Component<TagAliasInputFieldProps,
     );
   }
 
-  /** Renders the list of items in the drop-down menu. */
+  /**
+   * Renders the list of Tag Alias items in the drop-down menu.
+   *
+   * @param items Tag Alias items
+   */
   renderItems = (items: TagAlias[]) => {
     const baseClassName = this.props.editable ? 'tag-alias-editable ' : '';
     return items.map((tagAlias, index) => {
@@ -245,7 +249,7 @@ export class TagAliasInputField extends React.Component<TagAliasInputFieldProps,
   }
 }
 
-/** Get the index of an item element (or -1 if index was not found). */
+// Get the index of an item element (or -1 if index was not found).
 function getListItemIndex(target: any): number {
   if (target instanceof Element || target instanceof HTMLElement) {
     return parseInt(target.getAttribute('data-dropdown-index') || '-1', 10);

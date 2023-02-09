@@ -15,7 +15,7 @@ export type ServiceBoxProps = {
   service: IService;
 };
 
-/** A box that displays information about, and lets you interact with, a single service. */
+// A box that displays information about, and lets you interact with, a single service.
 export function ServiceBox(props: ServiceBoxProps) {
   const { service } = props;
   // Get language strings
@@ -109,6 +109,7 @@ export function ServiceBox(props: ServiceBoxProps) {
 
 /**
  * Generate a human readable status text from a service.
+ *
  * @param service Service to generate the text about.
  * @param lang Language object.
  */
@@ -126,6 +127,7 @@ function generateStatusText(service: IService, lang: LangContainer['developer'])
 
 /**
  * Display the info of a service in a dialog window.
+ *
  * @param info Info to display.
  */
 function displayDetails(info: IBackProcessInfo): void {
@@ -142,6 +144,7 @@ function displayDetails(info: IBackProcessInfo): void {
 
 /**
  * Return a memoized callback that sends a request to perform an action on a service.
+ *
  * @param action Action to perform (this value is only read the first time).
  * @param id Identifier of the service.
  */
@@ -153,6 +156,7 @@ function useProcessActionCallback(action: ProcessAction, id: string): () => void
 
 /**
  * Set an interval (wrapper around the "setInterval" function).
+ *
  * @param callback Function to call every interval.
  * @param ms Minimum time between each call.
  * @param deps If present, the interval will reset if any value in the array change.
@@ -166,6 +170,7 @@ function useInterval(callback: () => void, ms: number, deps?: any[]): void {
 
 /**
  * Stringify all entries that are from a specific source.
+ *
  * @param entries Entries to stringify.
  * @param source The source to filter by.
  */
@@ -185,6 +190,7 @@ function stringifyServiceLogEntries(entries: ILogEntry[], source: string): strin
 
 /**
  * Format time as a string of hours, minutes and seconds ("hh:mm:ss").
+ *
  * @param ms Time (in milliseconds).
  */
 function formatMsTime(ms: number): string {

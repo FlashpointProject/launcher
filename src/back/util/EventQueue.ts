@@ -22,6 +22,7 @@ export class EventQueue implements IEventQueue {
 
   /**
    * Add en event to the end of the queue.
+   *
    * @param event Event function to add.
    * @param returnPromise If a promise should be returned.
    * @returns Nothing or a promise that resolves after the event is executed,
@@ -53,6 +54,7 @@ export class EventQueue implements IEventQueue {
 
   /**
    * Execute the next event in the queue (and continue doing so until the queue is empty).
+   *
    * @returns A promise that resolves when it reaches the end of the queue.
    */
   private async executeNext(): Promise<void> {
@@ -67,6 +69,7 @@ export class EventQueue implements IEventQueue {
 
 /**
  * Execute an event function.
+ *
  * @param event Event function to execute.
  * @returns A promise the resolves when the event function is done executing,
  *          or rejects if it throws an error.
@@ -78,6 +81,7 @@ async function executeEventFunction(event: EventFunction): Promise<void> {
 
 /**
  * Wrap an event function in another event that resolves a promise when done.
+ *
  * @param event Event function to wrap.
  * @returns The wrapped event function and a promise that resolves when the event is done executing,
  *          or rejects if it rejects or throws an error.

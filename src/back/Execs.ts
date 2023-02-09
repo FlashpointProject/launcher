@@ -16,6 +16,7 @@ const filePath = 'execs.json';
 
 /**
  * Load exec mapping file
+ *
  * @param jsonFolder Path to the folder containing execs.json
  * @param onError Callback for error
  */

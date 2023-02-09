@@ -10,7 +10,7 @@ export type SizeProviderProps = {
   height: string | number;
 };
 
-/** Sets and updates the "--width" and "--height" CSS variables to match the prop values. */
+// Sets and updates the "--width" and "--height" CSS variables to match the prop values.
 export function SizeProvider(props: SizeProviderProps) {
   const ref = useRef(null);
   // Update "--width"
@@ -31,6 +31,7 @@ export function SizeProvider(props: SizeProviderProps) {
 
 /**
  * Update the a style property of the style attribute of an element.
+ *
  * @param element Element to update the style attribute of.
  * @param prop Name of the style property.
  * @param value Value of the style property.

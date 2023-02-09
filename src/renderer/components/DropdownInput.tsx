@@ -179,7 +179,7 @@ export function DropdownInput<T>(props: DropdownInputProps<T>): JSX.Element {
   );
 }
 
-/** Get the index of an item element (or -1 if index was not found). */
+// Get the index of an item element (or -1 if index was not found).
 function getListItemIndex(target: unknown): number {
   if (target instanceof Element || target instanceof HTMLElement) {
     return parseInt(target.getAttribute(DDI_INDEX) || '-1', 10);

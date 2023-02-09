@@ -8,10 +8,7 @@ export type GameListHeaderProps = WithPreferencesProps & {
   showExtremeIcon: boolean;
 };
 
-/**
- * Header on top of the GameList.
- * It contains the resizable columns that decide how wide each column is.
- */
+// Header on top of the GameList. It contains the resizable columns that decide how wide each column is.
 export function GameListHeader(props: GameListHeaderProps) {
   const {gamesOrderBy, gamesOrder} = props.preferencesData;
 

@@ -226,6 +226,7 @@ export async function duplicateCuration(srcFolder: string, state: BackState): Pr
  *              "M" must be between 1 and 12, and "D" must be between 1 and 31.
  * Examples: "2007", "2010-11", "2019-07-17"
  * Source: https://stackoverflow.com/questions/22061723/regex-date-validation-for-yyyy-mm-dd (but slightly modified)
+ *
  * @param str String to check.
  */
 function isValidDate(str: string): boolean {
@@ -234,6 +235,7 @@ function isValidDate(str: string): boolean {
 
 /**
  * Check if a the value of a field is in the suggestions for that field.
+ *
  * @param curation Curation to check
  * @param suggestions Game Prop Suggestions to check against
  * @param key Key of the field to check.

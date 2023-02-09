@@ -54,6 +54,8 @@ export const onWillImportCuration: ApiEmitter<CurationImportState> = new ApiEmit
 
 /**
  * Import a curation.
+ *
+ * @param opts Import options
  * @returns A promise that resolves when the import is complete.
  */
 export async function importCuration(opts: ImportCurationOpts): Promise<void> {
@@ -271,6 +273,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
 
 /**
  * Create and launch a game from curation metadata.
+ *
  * @param curation Curation to launch
  * @param symlinkCurationContent Symlink the curation content to htdocs/content/
  * @param skipLink Skips any linking of the content folder
@@ -294,6 +297,7 @@ export async function launchCuration(curation: LoadedCuration, symlinkCurationCo
 
 /**
  * Create and launch an additional application from curation metadata.
+ *
  * @param folder Key of the parent curation index
  * @param appCuration Add App Curation to launch
  * @param symlinkCurationContent Symlink the curation content to htdocs/content/
@@ -320,6 +324,7 @@ function logMessage(text: string, folder: string): void {
 
 /**
  * Create a game info from a curation.
+ *
  * @param gameId ID to use for created Game
  * @param gameMeta Curation Metadata to inherit
  * @param addApps Curation add apps to inherit
@@ -391,7 +396,9 @@ async function importGameImage(image: CurationIndexImage, gameId: string, folder
   }
 }
 
-/** Symlinks (or copies if unavailable) a curations `content` folder to `htdocs\content`
+/**
+ * Symlinks (or copies if unavailable) a curations `content` folder to `htdocs\content`
+ *
  * @param curationKey Key of the curation to link content from
  * @param fpPath Path to the root of the Flashpoint Data folder
  * @param isDev Running in a dev environment
@@ -502,6 +509,7 @@ export async function createTagsFromLegacy(tags: string, tagCache: Record<string
 
 /**
  * Recursively iterate over the children of a directory and call a callback for each file/directory (including the root file or directory).
+ *
  * @param filePath Path of file/directory to iterate over.
  * @param callback Callback to call for each file/directory encountered.
  */

@@ -45,6 +45,7 @@ const configDataDefaults: IConfigDataDefaults = {
 
 /**
  * Get the default config data for a specific platform.
+ *
  * @param platform Platform to get the defaults for.
  */
 export function getDefaultConfigData(platform: NodeJS.Platform): AppConfigData {
@@ -53,6 +54,7 @@ export function getDefaultConfigData(platform: NodeJS.Platform): AppConfigData {
 
 /**
  * Overwrite a config data object with data from another object.
+ *
  * @param source Object to overwrite.
  * @param data Object with data to overwrite the source with.
  * @param onError Called when an error occurs
@@ -87,6 +89,7 @@ export function overwriteConfigData(
 
 /**
  * Overwrite a config data object with data from another object.
+ *
  * @param source Object to overwrite.
  * @param data Object with data to overwrite the source with.
  * @returns Source argument (not a copy).

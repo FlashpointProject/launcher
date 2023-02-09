@@ -94,7 +94,11 @@ export class SocketClient<SOCKET extends BaseSocket> {
     }
   }
 
-  /** Open a new socket and try to connect again. */
+  /**
+   * Open a new socket and try to connect again.
+   *
+   * @param count Number of current retries
+   */
   async reconnect(count = 1): Promise<void> {
     if (this.keepOpen) {
       // Disconnect
@@ -164,6 +168,7 @@ export class SocketClient<SOCKET extends BaseSocket> {
   /**
    * Send a request to the client.
    * An error is thrown if the server throws an error while handling the request or if the message fails to be sent/received.
+   *
    * @param type Type of the request.
    * @param args Arguments of the request.
    * @returns The result of the request.

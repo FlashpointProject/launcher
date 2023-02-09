@@ -1,8 +1,9 @@
 import {BackIn} from '@shared/back/types';
-import {AddAppCuration, CurationState} from '@shared/curate/types';
+import {AddAppCuration} from '@shared/curate/types';
 import {CurateActionType} from './enums';
 import {CurateAction, CurateState} from './types';
 import uuid = require('uuid');
+import { CurationState } from 'flashpoint-launcher';
 
 export function curateStateReducer(state: CurateState = createInitialState(), action: CurateAction): CurateState {
   switch (action.type) {

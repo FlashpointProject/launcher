@@ -9,11 +9,9 @@ import { LangContainer } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { setTheme } from '@shared/Theme';
-import { getUpgradeString } from '@shared/upgrade/util';
-import { canReadWrite, deepCopy, getFileServerURL, recursiveReplace, sizeToString } from '@shared/Util';
+import { getFileServerURL, recursiveReplace, sizeToString } from '@shared/Util';
 import { arrayShallowStrictEquals } from '@shared/utils/compare';
 import { debounce } from '@shared/utils/debounce';
-import { formatString } from '@shared/utils/StringFormatter';
 import { clipboard, ipcRenderer, Menu, MenuItemConstructorOptions } from 'electron';
 import { AppUpdater } from 'electron-updater';
 import * as fs from 'fs-extra';
@@ -40,7 +38,7 @@ import { WithPreferencesProps } from './containers/withPreferences';
 import { WithTagCategoriesProps } from './containers/withTagCategories';
 import { WithTasksProps } from './containers/withTasks';
 import { CreditsFile } from './credits/CreditsFile';
-import { UpdateView, UpgradeStageState } from './interfaces';
+import { UpdateView } from './interfaces';
 import { Paths } from './Paths';
 import { AppRouter, AppRouterProps } from './router';
 import { CurateActionType } from './store/curate/enums';
@@ -49,11 +47,9 @@ import { MainActionType, RequestState } from './store/main/enums';
 import { RANDOM_GAME_ROW_COUNT } from './store/main/reducer';
 import { MainState } from './store/main/types';
 import { SearchQuery } from './store/search';
-import { UpgradeStage } from './upgrade/types';
-import { getBrowseSubPath, getGamePath, isFlashpointValidCheck, joinLibraryRoute, openConfirmDialog } from './Util';
+import { getBrowseSubPath, getGamePath, joinLibraryRoute } from './Util';
 import { LangContext } from './util/lang';
 import { queueOne } from './util/queue';
-import { downloadAndInstallUpgrade } from './util/upgrade';
 
 const autoUpdater: AppUpdater = remote.require('electron-updater').autoUpdater;
 
@@ -1193,7 +1189,6 @@ export class App extends React.Component<AppProps> {
       mad4fpEnabled: this.props.main.mad4fpEnabled,
       localeCode: this.props.main.localeCode,
       devConsole: this.props.main.devConsole,
-      upgrades: this.props.main.upgrades,
       creditsData: this.props.main.creditsData,
       creditsDoneLoading: this.props.main.creditsDoneLoading,
       selectedGameId: this.props.main.selectedGameId,
@@ -1204,7 +1199,6 @@ export class App extends React.Component<AppProps> {
       onUpdatePlaylist: this.onUpdatePlaylist,
       onSelectPlaylist: this.onSelectPlaylist,
       wasNewGameClicked: this.props.main.wasNewGameClicked,
-      onDownloadUpgradeClick: this.onDownloadUpgradeClick,
       gameLibrary: libraryPath,
       themeList: this.props.main.themeList,
       languages: this.props.main.langList,
@@ -1385,27 +1379,14 @@ export class App extends React.Component<AppProps> {
     });
   };
 
-  /** Set the selected playlist for a single "browse route" */
+  /**
+   * Set the selected playlist for a single "browse route"
+   *
+   * @param library Library view to set the view for
+   * @param playlistId Playlist ID to load into the view
+   */
   private onSelectPlaylist = (library: string, playlistId: string | undefined): void => {
     this.setViewQuery(library, playlistId);
-  };
-
-  private onDownloadUpgradeClick = (stage: UpgradeStage, strings: LangContainer) => {
-    downloadAndInstallStage(stage, this.setUpgradeStageState, strings);
-  };
-
-  private setUpgradeStageState = (id: string, data: Partial<UpgradeStageState>) => {
-    const { upgrades } = this.props.main;
-    const index = upgrades.findIndex(u => u.id === id);
-    if (index !== -1) {
-      const newUpgrades = deepCopy(upgrades);
-      const newStageState = Object.assign({}, upgrades[index].state, data);
-      newUpgrades[index].state = newStageState;
-      this.props.dispatchMain({
-        type: MainActionType.SET_UPGRADES,
-        upgrades: newUpgrades,
-      });
-    }
   };
 
   private onPlaylistDelete = (playlist: Playlist) => {
@@ -1545,6 +1526,9 @@ export class App extends React.Component<AppProps> {
   /**
    * Set the query of a view.
    * Note: If there is only one argument (counted by length) then the playlistId will remain the same.
+   *
+   * @param library Library view to set the query for (default to current view)
+   * @param playlistId ID of the playlist to load
    */
   setViewQuery = (function(this: App, library: string = getBrowseSubPath(this.props.location.pathname), playlistId?: string): void {
     this.props.dispatchMain({
@@ -1619,109 +1603,6 @@ export class App extends React.Component<AppProps> {
   };
 }
 
-async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: string, stage: Partial<UpgradeStageState>) => void, strings: LangContainer) {
-  // Check data folder is set
-  let flashpointPath = window.Shared.config.data.flashpointPath;
-  const isValid = await isFlashpointValidCheck(flashpointPath);
-  if (!isValid) {
-    let verifiedPath = false;
-    let chosenPath: (string | undefined);
-    while (verifiedPath !== true) {
-      // If folder isn't set, ask to set now
-      const res = await openConfirmDialog(strings.dialog.flashpointPathInvalid, strings.dialog.flashpointPathNotFound);
-      if (!res) { return; }
-      // Set folder now
-      const chosenPaths = window.Shared.showOpenDialogSync({
-        title: strings.dialog.selectFolder,
-        properties: ['openDirectory', 'promptToCreate', 'createDirectory']
-      });
-      if (chosenPaths && chosenPaths.length > 0) {
-        // Take first selected folder (Should only be able to select 1 anyway!)
-        chosenPath = chosenPaths[0];
-        // Make sure we can write to this path
-        const havePerms = await canReadWrite(chosenPath);
-        if (!havePerms) {
-          remote.dialog.showMessageBoxSync({
-            title: strings.dialog.badFolderPerms,
-            type: 'error',
-            message: strings.dialog.pickAnotherFolder
-          });
-        } else {
-          // Verify the path chosen is the one desired
-          const topString = formatString(strings.dialog.upgradeWillInstallTo, getUpgradeString(stage.title, strings.upgrades));
-          const choiceVerify = await openConfirmDialog(strings.dialog.areYouSure, `${topString}:\n\n${chosenPath}\n\n${strings.dialog.verifyPathSelection}`);
-          if (choiceVerify) {
-            verifiedPath = true;
-          }
-        }
-      } else {
-        // Window closed, cancel the upgrade
-        return;
-      }
-    }
-    // Make sure folder given exists
-    if (chosenPath) {
-      flashpointPath = chosenPath;
-      fs.ensureDirSync(flashpointPath);
-      // Save picked folder to config
-      window.Shared.back.request(BackIn.UPDATE_CONFIG, {
-        flashpointPath: flashpointPath,
-      })
-      .then(() => { /* window.Shared.restart(); */ });
-    }
-  }
-  // Flag as installing
-  setStageState(stage.id, {
-    isInstalling: true,
-    installProgressNote: '...',
-  });
-  // Grab filename from url
-
-  for (const source of stage.sources) {
-    const filename = stage.id + '__' + source.split('/').pop() || 'unknown';
-    let lastUpdateType = '';
-    // Start download and installation
-    let prevProgressUpdate = Date.now();
-    const state = downloadAndInstallUpgrade(stage, {
-      installPath: path.join(flashpointPath),
-      downloadFilename: filename
-    })
-    .on('progress', () => {
-      const now = Date.now();
-      if (now - prevProgressUpdate > 100 || lastUpdateType !== state.currentTask) {
-        prevProgressUpdate = now;
-        lastUpdateType = state.currentTask;
-        switch (state.currentTask) {
-          case 'downloading': setStageState(stage.id, { installProgressNote: `${strings.misc.downloading}: ${(state.downloadProgress * 100).toFixed(1)}%` }); break;
-          case 'extracting':  setStageState(stage.id, { installProgressNote: `${strings.misc.extracting}: ${(state.extractProgress * 100).toFixed(1)}%` });   break;
-          case 'installing':  setStageState(stage.id, { installProgressNote: `${strings.misc.installingFiles}`});                                         break;
-          default:            setStageState(stage.id, { installProgressNote: '...' });                                                        break;
-        }
-      }
-    })
-    .once('done', async () => {
-      // Flag as done installing
-      setStageState(stage.id, {
-        isInstalling: false,
-        isInstallationComplete: true,
-      });
-      const res = await openConfirmDialog(strings.dialog.restartNow, strings.dialog.restartToApplyUpgrade);
-      if (res) {
-        window.Shared.restart();
-      }
-    })
-    .once('error', (error) => {
-      // Flag as not installing (so the user can retry if they want to)
-      setStageState(stage.id, {
-        isInstalling: false,
-      });
-      log.error('Launcher', `Error installing '${stage.title}' - ${error.message}`);
-      console.error(error);
-    })
-    .on('warn', console.warn);
-  }
-}
-
 async function cacheIcon(icon: string): Promise<string> {
   const r = await fetch(icon);
   const blob = await r.blob();
@@ -1763,14 +1644,13 @@ function UniquePlaylistMenuFactory(playlists: Playlist[], strings: LangContainer
   for (const p of playlists.filter(p => p.id != selectedPlaylistId)) {
     let group = grouped.find(g => g.library === p.library);
     if (!group) {
-      const newGroup: MenuItemLibrary = {
+      group = {
         type: 'submenu',
         library: p.library,
         enabled: true,
         label: strings.libraries[p.library] || p.library,
         submenu: []
       };
-      group = newGroup;
       grouped.push(group);
     }
     if (group.submenu && Array.isArray(group.submenu)) {

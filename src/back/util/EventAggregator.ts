@@ -25,6 +25,7 @@ export type EventAggregatorOpts<T extends AnyFunction> = {
 
 /**
  * Collect unique callbacks and execute them all `time` after the first call
+ *
  * @param callback Called when the timer is "released".
  * @param opts Options.
  * @returns Function that buffers events when called.
@@ -73,7 +74,12 @@ export function eventAggregator<T extends AnyFunction>(callback: T, opts?: Event
   return eventAggregator;
 }
 
-/** Default function used to compare arguments. */
+/**
+ * Default function used to compare arguments.
+ *
+ * @param newArgs
+ * @param prevArgs
+ */
 function defaultEqualsFunc<T extends any[]>(newArgs: T, prevArgs: T): boolean {
   return newArgs.length === prevArgs.length &&
          shallowStrictEquals(newArgs, prevArgs);

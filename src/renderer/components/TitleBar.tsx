@@ -3,7 +3,7 @@ export type TitleBarProps = {
   title?: string;
 };
 
-/** Title bar of the window (the top-most part of the window). */
+// Title bar of the window (the top-most part of the window).
 export function TitleBar(props: TitleBarProps) {
   return (
     <div className='title-bar'>

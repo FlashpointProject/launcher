@@ -43,7 +43,11 @@ export type ErrorCopy = {
   stack?: string;
 }
 
-/** Copy properties from an error to a new object. */
+/**
+ * Copy properties from an error to a new object.
+ *
+ * @param error Error to copy
+ */
 export function copyError(error: any): ErrorCopy {
   if (typeof error !== 'object' || error === null) { error = {}; }
   const copy: ErrorCopy = {
@@ -101,7 +105,11 @@ export function createContainer(languages: LangFile[], currentCode: string, auto
   return data;
 }
 
-/** Exit the back process cleanly. */
+/**
+ * Exit the back process cleanly.
+ *
+ * @param state Current back state
+ */
 export async function exit(state: BackState): Promise<void> {
   if (!state.isExit) {
     state.isExit = true;
@@ -333,6 +341,7 @@ export function isBrowserOpts(val: any): val is BrowserApplicationOpts {
 
 /**
  * Converts a date to a filename safe string in the form YYYY-MM-DD_HH-MM-SS
+ *
  * @param date Date to convert
  */
 export function dateToFilenameString(date: Date): string {
@@ -361,6 +370,7 @@ export async function getTempFilename(ext = 'tmp') {
 
 /**
  * Gets the default shell's configured PATH on MacOS
+ *
  * @param shell Override and use this shell instead of the user's default shell.
  * @returns The user's PATH in that shell.
  */

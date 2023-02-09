@@ -219,7 +219,7 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
   }
 }
 
-/** Get the index of an item element (or -1 if index was not found). */
+// Get the index of an item element (or -1 if index was not found).
 function getListItemIndex(target: any): number {
   if (target instanceof Element || target instanceof HTMLElement) {
     return parseInt(target.getAttribute('data-dropdown-index') || '-1', 10);
@@ -227,7 +227,7 @@ function getListItemIndex(target: any): number {
   return -1;
 }
 
-/** Check if two arrays are of equal length and contains the exact same items in the same order. */
+// Check if two arrays are of equal length and contains the exact same items in the same order.
 function checkIfArraysAreEqual(a: Array<any>, b: Array<any>): boolean {
   if (a.length !== b.length) { return false; }
   for (let i = a.length; i >= 0; i--) {

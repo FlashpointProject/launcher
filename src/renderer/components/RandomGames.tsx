@@ -24,7 +24,7 @@ type RandomGamesProps = {
   onToggleMinimize: () => void;
 };
 
-/** A small "grid" of randomly selected games. */
+// A small "grid" of randomly selected games.
 export function RandomGames(props: RandomGamesProps) {
   const strings = React.useContext(LangContext);
 
@@ -92,6 +92,7 @@ export function RandomGames(props: RandomGamesProps) {
 
 /**
  * Try getting a game ID by checking an element and all of its ancestors.
+ *
  * @param element Element or sub-element of a game.
  */
 function findGameId(element: EventTarget): string | undefined {

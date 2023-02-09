@@ -136,7 +136,11 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
     }
   }
 
-  /** Create a wrapper for a EditableTextWrap's onEditDone callback (this is to reduce redundancy). */
+  /**
+   * Create a wrapper for a EditableTextWrap's onEditDone callback (this is to reduce redundancy).
+   *
+   * @param func Function to wrap
+   */
   wrapOnTextChange(func: (addApp: AdditionalApp, text: string) => void): (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>) => void {
     return (event) => {
       const addApp = this.props.addApp;
@@ -147,7 +151,11 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
     };
   }
 
-  /** Create a wrapper for a CheckBox's onChange callback (this is to reduce redundancy). */
+  /**
+   * Create a wrapper for a CheckBox's onChange callback (this is to reduce redundancy).
+   *
+   * @param func Function to wrap
+   */
   wrapOnCheckBoxChange(func: (addApp: AdditionalApp) => void) {
     return () => {
       if (!this.props.editDisabled) {

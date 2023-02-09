@@ -95,6 +95,7 @@ export class FolderWatcher extends WrappedEventEmitter {
   /**
    * Set the folder this should watch.
    * If this is already watching a folder, it will immediately abort.
+   *
    * @param folderPath Path of the folder to watch.
    * @param opts Folder watcher options
    */
@@ -163,6 +164,7 @@ export class FolderWatcher extends WrappedEventEmitter {
 
   /**
    * Update the filenames array.
+   *
    * @param filenames Array of filenames to replace the current array with.
    */
   protected setFilenames(filenames: string[]): void {
@@ -185,7 +187,11 @@ export class FolderWatcher extends WrappedEventEmitter {
     }
   }
 
-  /** Called when the watched folder is read. This happens once per "watch" call. */
+  /**
+   * Called when the watched folder is read. This happens once per "watch" call.
+   *
+   * @param files
+   */
   protected onWatchedFolderRead(files: string[]): void {
     // Set initial filenames
     this.setFilenames(files);
@@ -193,7 +199,12 @@ export class FolderWatcher extends WrappedEventEmitter {
     this._queue.push(() => { this.emit('ready'); });
   }
 
-  /** Called when a child file is changed. */
+  /**
+   * Called when a child file is changed.
+   *
+   * @param eventType
+   * @param filename
+   */
   protected onWatcherChange(eventType: string, filename: string): void {
     // Update filenames array
     if (eventType === 'rename') {
@@ -210,6 +221,7 @@ export class FolderWatcher extends WrappedEventEmitter {
 
   /**
    * Call this when a file has been added to the watched folder.
+   *
    * @param filename Filename of the added file.
    */
   protected addFile(filename: string): void {
@@ -252,6 +264,7 @@ export class FolderWatcher extends WrappedEventEmitter {
 
   /**
    * Call this when a file has been removed from the watched folder.
+   *
    * @param filename Filename of the removed file.
    */
   protected removeFile(filename: string): void {
@@ -274,6 +287,7 @@ export class FolderWatcher extends WrappedEventEmitter {
 
   /**
    * Turn a watcher into a child watcher.
+   *
    * @param parentWatcher Watcher of the parent folder.
    * @param childWatcher Watcher of a folder inside the parent folder.
    * @param filename Filename of the folder the child watcher is watching.

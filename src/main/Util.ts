@@ -7,6 +7,7 @@ const execFile = util.promisify(child_process.execFile);
 
 /**
  * Check if an application is installed
+ *
  * @param binaryName The command you would use the run an application command
  * @param argument An argument to pass the command. This argument should not cause any side effects. By default --version
  */

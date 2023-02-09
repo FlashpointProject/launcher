@@ -130,6 +130,10 @@ export namespace GameLauncher {
 
   /**
    * Launch a game
+   *
+   * @param opts
+   * @param onWillEvent
+   * @param serverOverride
    */
   export async function launchGame(opts: LaunchGameOpts, onWillEvent: ApiEmitter<GameLaunchInfo>, serverOverride?: string): Promise<void> {
     // Abort if placeholder (placeholders are not "actual" games)
@@ -272,6 +276,10 @@ export namespace GameLauncher {
   /**
    * The paths provided in the Game/AdditionalApplication XMLs are only accurate
    * on Windows. So we replace them with other hard-coded paths here.
+   *
+   * @param filePath
+   * @param execMappings
+   * @param native
    */
   function getApplicationPath(filePath: string, execMappings: ExecMapping[], native: boolean): string {
     const platform = process.platform;
@@ -316,7 +324,13 @@ export namespace GameLauncher {
     return filePath;
   }
 
-  /** Get an object containing the environment variables to use for the game / additional application. */
+  /**
+   * Get an object containing the environment variables to use for the game / additional application.
+   *
+   * @param fpPath
+   * @param proxy
+   * @param path
+   */
   function getEnvironment(fpPath: string, proxy: string, path?: string): NodeJS.ProcessEnv {
     let newEnvVars: NodeJS.ProcessEnv = {'FP_PATH': fpPath, 'PATH': path ?? process.env.PATH};
     // On Linux, we tell native applications to use Flashpoint's proxy using the HTTP_PROXY env var
@@ -387,6 +401,8 @@ function registerEventListeners(emitter: EventEmitter, events: string[], callbac
 
 /**
  * Escapes Arguments for the operating system (Used when running a process in a shell)
+ *
+ * @param gameArgs
  */
 export function escapeArgsForShell(gameArgs: string | string[]): string[] {
   if (typeof gameArgs === 'string') {
@@ -415,6 +431,8 @@ export function escapeArgsForShell(gameArgs: string | string[]): string[] {
 /**
  * Escape a string that will be used in a Windows shell (command line)
  * ( According to this: http://www.robvanderwoude.com/escapechars.php )
+ *
+ * @param str
  */
 function escapeWin(str: string): string {
   return (
@@ -429,6 +447,8 @@ function escapeWin(str: string): string {
 /**
  * Escape arguments that will be used in a Linux shell (command line)
  * ( According to this: https://stackoverflow.com/questions/15783701/which-characters-need-to-be-escaped-when-using-bash )
+ *
+ * @param str
  */
 function escapeLinuxArgs(str: string): string {
   // Characters to always escape:
@@ -454,6 +474,7 @@ function escapeLinuxArgs(str: string): string {
 /**
  * Split a string to separate the characters wrapped in quotes from all other.
  * Example: '-a -b="123" "example.com"' => ['-a -b=', '123', ' ', 'example.com']
+ *
  * @param str String to split.
  * @returns Split of the argument string.
  *          Items with odd indices are wrapped in quotes.

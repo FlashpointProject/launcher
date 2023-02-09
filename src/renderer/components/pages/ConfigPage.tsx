@@ -83,7 +83,6 @@ type ConfigPageState = {
  * A page displaying some of the current "configs" / "preferences", as well as a way of changing them.
  * All changed "configs" (settings stored in "config.json") require you to "Save & Restart" to take effect.
  * The changed "preferences" (settings stored in "preferences.json") do not require a restart, and are updated directly.
- * @TODO Make it clear which settings are "configs" and which are "preferences" (or at least which require you to "save & restart")?
  */
 export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState> {
   static contextType = LangContext;
@@ -941,7 +940,11 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     updatePreferencesData({ nativePlatforms: newPlatforms });
   };
 
-  /** When the "FlashPoint Folder Path" input text is changed. */
+  /**
+   * When the "Flashpoint Data Folder Path" input text is changed.
+   *
+   * @param filePath Changed file path
+   */
   onFlashpointPathChange = async (filePath: string): Promise<void> => {
     this.setState({ flashpointPath: filePath });
     // Check if the file-path points at a valid FlashPoint folder
@@ -1079,7 +1082,11 @@ function renderExtConfigProp(key: string, prop: ExtConfigurationProp, value: any
   }
 }
 
-/** Format a theme item into a displayable name for the themes drop-down. */
+/**
+ * Format a theme item into a displayable name for the themes drop-down.
+ *
+ * @param item Theme item to format
+ */
 function formatThemeItemName(item: ITheme): string {
   return `${item.meta.name} (${item.id})`;
 }

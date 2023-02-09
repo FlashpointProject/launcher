@@ -13,7 +13,7 @@ export type CreditsTooltipProps = {
   profileY: number;
 };
 
-/** Tooltip that follows the cursor and displays information about a credits profile. */
+// Tooltip that follows the cursor and displays information about a credits profile.
 export function CreditsTooltip(props: CreditsTooltipProps) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -88,6 +88,7 @@ function setPosition(element: HTMLElement, x: number, y: number): void {
 
 /**
  * Get the color associated with a specific role.
+ *
  * @param name Name of the role to find
  * @param roles List of roles with associated color info
  */

@@ -558,7 +558,13 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     }
   };
 
-  /** Create a new game if the "New Game" button was clicked */
+  /**
+   * Create a new game if the "New Game" button was clicked
+   *
+   * @deprecated New game functionality was removed
+   * @param prevWasNewGameClicked Was new game clicked last update
+   * @param cb Callback to set state
+   */
   createNewGameIfClicked(prevWasNewGameClicked: boolean, cb: (state: StateCallback1) => void = this.boundSetState): void {
     const { wasNewGameClicked } = this.props;
     const id = uuid();
@@ -853,6 +859,7 @@ type FileReaderResult = typeof FileReader['prototype']['result'];
 /**
  * Convert the body of a URL to a data URL.
  * This will reject if the request or conversion fails.
+ *
  * @param url URL of content to convert.
  */
 function toDataURL(url: string): Promise<FileReaderResult> {

@@ -21,7 +21,7 @@ export type GameGridItemProps = Partial<GridCellProps> & {
   extremeIconPath: string;
 };
 
-/** Displays a single game. Meant to be rendered inside a grid. */
+// Displays a single game. Meant to be rendered inside a grid.
 export function GameGridItem(props: GameGridItemProps) {
   const { id, title, platform, thumbnail, extreme, isDraggable, isSelected, isDragged, extremeIconPath, style } = props;
   // Get the platform icon path
@@ -81,6 +81,7 @@ export namespace GameGridItem {
 
   /**
    * Get the id of the game displayed in a GameGridItem element (or throw an error if it fails).
+   *
    * @param element GameGridItem element.
    */
   export function getId(element: Element): string {
@@ -91,6 +92,7 @@ export namespace GameGridItem {
 
   /**
    * Check if an element is the top element of GameGridItem or not.
+   *
    * @param element Potential element to check.
    */
   export function isElement(element: Element | null | undefined): boolean {

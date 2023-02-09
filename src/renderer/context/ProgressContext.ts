@@ -86,7 +86,12 @@ export const ProgressContext = createContextReducer(
   defaultProgressState
 );
 
-/** Reducer for the progress state. */
+/**
+ * Reducer for the progress state.
+ *
+ * @param prevState Previous progress state
+ * @param action Action to perform on state
+ */
 function progressReducer(prevState: Record<string, (ProgressData[]|undefined)>, action: ProgressAction): Record<string, (ProgressData[]|undefined)> {
   // Things to keep in mind when writing an action handler:
   // * Don't mutate the previous state or the action object.
@@ -175,6 +180,7 @@ function progressReducer(prevState: Record<string, (ProgressData[]|undefined)>, 
 
 /**
  * Returns the ProgressData of a parent (initializes it if necessary)
+ *
  * @param state Mutable ProgressState
  * @param parentKey Parent's Key
  */
@@ -190,6 +196,7 @@ function ensureParent(state: Record<string, (ProgressData[]|undefined)>, parentK
 
 /**
  * Returns the index to the unique ProgressData inside a parent's ProgressData array
+ *
  * @param state State of a parent's ProgressData ( state[parentKey] )
  * @param key Unique progress key
  */
