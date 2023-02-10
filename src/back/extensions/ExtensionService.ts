@@ -94,7 +94,7 @@ export class ExtensionService {
   /**
    * Loads an extension (returns immediately if already loaded)
    *
-   * @param extId
+   * @param extId ID of extension to load
    */
   public async loadExtension(extId: string): Promise<void> {
     return this.installedExtensionsReady.wait().then(() => {
@@ -194,8 +194,8 @@ export class ExtensionService {
   /**
    * Copy an extensions subscriptions into its running data (usually from the context)
    *
-   * @param extId
-   * @param subscriptions
+   * @param extId ID of extension to set subscriptions for
+   * @param subscriptions Subscriptions to set
    */
   private _setSubscriptions(extId: string, subscriptions: Disposable) {
     const data = this._getExtensionData(extId);
@@ -208,8 +208,8 @@ export class ExtensionService {
   /**
    * Push a log onto an extensions running data
    *
-   * @param extId
-   * @param entry
+   * @param extId ID of extension triggering log
+   * @param entry pre-filled Log Entry
    */
   public logExtension(extId: string, entry: ILogEntry) {
     const data = this._getExtensionData(extId);
@@ -220,7 +220,7 @@ export class ExtensionService {
   /**
    * Mark the extension as enabled in its running data
    *
-   * @param extId
+   * @param extId ID of extension to enable
    */
   private _enableExtension(extId: string) {
     const data = this._getExtensionData(extId);

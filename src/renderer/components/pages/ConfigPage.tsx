@@ -30,7 +30,7 @@ import { OpenIcon } from '../OpenIcon';
 import { TagFilterGroupEditor } from '../TagFilterGroupEditor';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
-import { Coerce } from '@shared/utils/Coerce';
+import * as Coerce from '@shared/utils/Coerce';
 
 const { num } = Coerce;
 

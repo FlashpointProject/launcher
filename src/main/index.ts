@@ -1,5 +1,5 @@
 import * as remoteMain from '@electron/remote/main';
-import { Coerce } from '@shared/utils/Coerce';
+import * as Coerce from '@shared/utils/Coerce';
 import { startBrowserMode } from './BrowserMode';
 import { startLogger } from './LogsWindow';
 import { main } from './Main';

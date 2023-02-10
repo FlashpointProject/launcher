@@ -259,13 +259,7 @@ type MenuItemProps = {
   link: string;
 };
 
-/**
- * An item in the header menu. Used as buttons to switch between tabs/pages.
- *
- * @param root0
- * @param root0.title
- * @param root0.link
- */
+// An item in the header menu. Used as buttons to switch between tabs/pages.
 function MenuItem({ title, link }: MenuItemProps) {
   const location = useLocation();
   const selected = link === '/' ? location.pathname === link : location.pathname.startsWith(link);

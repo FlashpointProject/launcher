@@ -99,8 +99,8 @@ export class FPLNodeModuleFactory implements INodeModuleFactory {
   /**
    * Return an API implementation given an import request
    *
-   * @param _request
-   * @param parent
+   * @param _request Unused
+   * @param parent Module that made this request, substring of an extension path
    */
   public load(_request: string, parent: string): any {
     const ext = this._extensionPaths.findSubstr(parent);

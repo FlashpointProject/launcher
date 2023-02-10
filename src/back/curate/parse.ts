@@ -2,7 +2,7 @@ import * as TagManager from '@back/game/TagManager';
 import { uuid } from '@back/util/uuid';
 import { CurationIndexImage } from '@shared/curate/OLD_types';
 import { AddAppCuration, CurationMeta } from '@shared/curate/types';
-import { Coerce } from '@shared/utils/Coerce';
+import * as Coerce from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import { Tag } from 'flashpoint-launcher';
 import * as fs from 'fs';

@@ -74,12 +74,7 @@ export function eventAggregator<T extends AnyFunction>(callback: T, opts?: Event
   return eventAggregator;
 }
 
-/**
- * Default function used to compare arguments.
- *
- * @param newArgs
- * @param prevArgs
- */
+// Default function used to compare arguments.
 function defaultEqualsFunc<T extends any[]>(newArgs: T, prevArgs: T): boolean {
   return newArgs.length === prevArgs.length &&
          shallowStrictEquals(newArgs, prevArgs);

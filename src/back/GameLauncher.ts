@@ -6,7 +6,7 @@ import { AppProvider } from '@shared/extensions/interfaces';
 import { ExecMapping, Omit } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { fixSlashes, padStart, stringifyArray } from '@shared/Util';
-import { Coerce } from '@shared/utils/Coerce';
+import * as Coerce from '@shared/utils/Coerce';
 import { ChildProcess, exec } from 'child_process';
 import { EventEmitter } from 'events';
 import { AppPathOverride, GameData, ManagedChildProcess } from 'flashpoint-launcher';
@@ -131,9 +131,9 @@ export namespace GameLauncher {
   /**
    * Launch a game
    *
-   * @param opts
-   * @param onWillEvent
-   * @param serverOverride
+   * @param opts Launch Opts
+   * @param onWillEvent Fired with launch info before Game launches
+   * @param serverOverride Change active server for this game launch only
    */
   export async function launchGame(opts: LaunchGameOpts, onWillEvent: ApiEmitter<GameLaunchInfo>, serverOverride?: string): Promise<void> {
     // Abort if placeholder (placeholders are not "actual" games)
@@ -274,12 +274,11 @@ export namespace GameLauncher {
   }
 
   /**
-   * The paths provided in the Game/AdditionalApplication XMLs are only accurate
-   * on Windows. So we replace them with other hard-coded paths here.
+   * Replaces an Application Path from the metadata with one appropriate for the operating system.
    *
-   * @param filePath
-   * @param execMappings
-   * @param native
+   * @param filePath Application Path as provided in the metadata
+   * @param execMappings Mappings of execs from execs.json
+   * @param native Use application native to the users operating system, if possible
    */
   function getApplicationPath(filePath: string, execMappings: ExecMapping[], native: boolean): string {
     const platform = process.platform;
@@ -327,9 +326,9 @@ export namespace GameLauncher {
   /**
    * Get an object containing the environment variables to use for the game / additional application.
    *
-   * @param fpPath
-   * @param proxy
-   * @param path
+   * @param fpPath Path to Flashpoint Data Folder
+   * @param proxy HTTP_PROXY environmental variable to add to env (For Linux / Mac)
+   * @param path Override PATH environmental variable
    */
   function getEnvironment(fpPath: string, proxy: string, path?: string): NodeJS.ProcessEnv {
     let newEnvVars: NodeJS.ProcessEnv = {'FP_PATH': fpPath, 'PATH': path ?? process.env.PATH};
@@ -402,7 +401,7 @@ function registerEventListeners(emitter: EventEmitter, events: string[], callbac
 /**
  * Escapes Arguments for the operating system (Used when running a process in a shell)
  *
- * @param gameArgs
+ * @param gameArgs Argument(s) to escape
  */
 export function escapeArgsForShell(gameArgs: string | string[]): string[] {
   if (typeof gameArgs === 'string') {
@@ -432,7 +431,7 @@ export function escapeArgsForShell(gameArgs: string | string[]): string[] {
  * Escape a string that will be used in a Windows shell (command line)
  * ( According to this: http://www.robvanderwoude.com/escapechars.php )
  *
- * @param str
+ * @param str String to escape
  */
 function escapeWin(str: string): string {
   return (
@@ -448,7 +447,7 @@ function escapeWin(str: string): string {
  * Escape arguments that will be used in a Linux shell (command line)
  * ( According to this: https://stackoverflow.com/questions/15783701/which-characters-need-to-be-escaped-when-using-bash )
  *
- * @param str
+ * @param str String to escape
  */
 function escapeLinuxArgs(str: string): string {
   // Characters to always escape:

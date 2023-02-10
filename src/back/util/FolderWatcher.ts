@@ -190,7 +190,7 @@ export class FolderWatcher extends WrappedEventEmitter {
   /**
    * Called when the watched folder is read. This happens once per "watch" call.
    *
-   * @param files
+   * @param files List of files found
    */
   protected onWatchedFolderRead(files: string[]): void {
     // Set initial filenames
@@ -202,8 +202,8 @@ export class FolderWatcher extends WrappedEventEmitter {
   /**
    * Called when a child file is changed.
    *
-   * @param eventType
-   * @param filename
+   * @param eventType Watcher Event Type
+   * @param filename File that was affected
    */
   protected onWatcherChange(eventType: string, filename: string): void {
     // Update filenames array

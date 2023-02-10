@@ -1,7 +1,7 @@
 import { AppConfigData } from '@shared/config/interfaces';
 import { IBackProcessInfo, INamedBackProcessInfo } from '@shared/interfaces';
 import { parseVarStr, readJsonFile } from '@shared/Util';
-import { Coerce } from '@shared/utils/Coerce';
+import * as Coerce from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import * as path from 'path';
 import { ServiceFileData } from './types';

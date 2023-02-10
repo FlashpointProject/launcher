@@ -1,6 +1,6 @@
 import { AppConfigData, AppExtConfigData } from '@shared/config/interfaces';
 import { deepCopy, fixSlashes, parseVarStr } from '@shared/Util';
-import { Coerce } from '@shared/utils/Coerce';
+import * as Coerce from '@shared/utils/Coerce';
 import { ObjectParser } from '@shared/utils/ObjectParser';
 
 const { num, str } = Coerce;

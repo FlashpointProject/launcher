@@ -3,7 +3,7 @@ import { Tag } from '@database/entity/Tag';
 import { ImportMetaEditResult, MetaEditGameNotFound } from '@shared/back/types';
 import { ChangedMeta, MetaChange, MetaChangeBase, MetaEditFile, MetaEditMeta, MetaEditMetaMap, stringifyMetaValue } from '@shared/MetaEdit';
 import { readJsonFile, shallowStrictEquals } from '@shared/Util';
-import { Coerce } from '@shared/utils/Coerce';
+import * as Coerce from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -356,9 +356,9 @@ export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDi
  * Set the value of a games property (only some properties are supported).
  * Throws an error if the property is not allowed or the value is of the incorrect type.
  *
- * @param game
- * @param property
- * @param value
+ * @param game Game to set property for
+ * @param property Name of property to set
+ * @param value Value to set property to
  */
 function paranoidSetGameProperty(game: Game, property: unknown, value: unknown): void {
   const errorPrefix = 'Failed to set game property.';

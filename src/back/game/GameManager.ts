@@ -10,7 +10,7 @@ import { PageKeyset, PageTuple, RequestGameRange, ResponseGameRange, ViewGame } 
 import { VIEW_PAGE_SIZE } from '@shared/constants';
 import { FilterGameOpts } from '@shared/game/GameFilter';
 import { tagSort } from '@shared/Util';
-import { Coerce } from '@shared/utils/Coerce';
+import * as Coerce from '@shared/utils/Coerce';
 import { chunkArray } from '@shared/utils/misc';
 import { GameOrderBy, GameOrderReverse } from 'flashpoint-launcher';
 import * as fs from 'fs';
@@ -43,8 +43,8 @@ export async function countGames(): Promise<number> {
 /**
  * Find the game with the specified ID.
  *
- * @param id
- * @param filter
+ * @param id ID of game to find
+ * @param filter Filters to append (Can be used to find first match if ID is undefined)
  */
 export async function findGame(id?: string, filter?: FindOneOptions<Game>): Promise<Game | null> {
   if (!filter) {
@@ -190,8 +190,8 @@ export async function findAllGames(): Promise<Game[]> {
 /**
  * Search the database for games.
  *
- * @param opts
- * @param shallow
+ * @param opts Search Options
+ * @param shallow Limit columns in result to those in ViewGame
  */
 export async function findGames<T extends boolean>(opts: FindGamesOpts, shallow: T): Promise<Array<ResponseGameRange<T>>> {
   const ranges = opts.ranges || [{ start: 0, length: undefined }];
@@ -230,8 +230,8 @@ export async function findGames<T extends boolean>(opts: FindGamesOpts, shallow:
 /**
  * Find an add apps with the specified ID.
  *
- * @param id
- * @param filter
+ * @param id ID to find
+ * @param filter Filters to append (Useful to find first match if ID is undefined)
  */
 export async function findAddApp(id?: string, filter?: FindOneOptions<AdditionalApp>): Promise<AdditionalApp | null> {
   if (!filter) {
@@ -358,9 +358,9 @@ export async function findPlaylistByName(playlistName: string, join?: boolean): 
 }
 
 /**
- * Find playlists given a filter. @TODO filter
+ * Returns all playlists
  *
- * @param showExtreme
+ * @param showExtreme Include playlists marked as Extreme
  */
 export async function findPlaylists(showExtreme: boolean): Promise<Playlist[]> {
   const playlistRepository = AppDataSource.getRepository(Playlist);
@@ -374,7 +374,7 @@ export async function findPlaylists(showExtreme: boolean): Promise<Playlist[]> {
 /**
  * Removes a playlist
  *
- * @param playlistId
+ * @param playlistId ID of playlist to remove
  */
 export async function removePlaylist(playlistId: string): Promise<Playlist | undefined> {
   const playlistRepository = AppDataSource.getRepository(Playlist);
@@ -389,7 +389,7 @@ export async function removePlaylist(playlistId: string): Promise<Playlist | und
 /**
  * Updates a playlist
  *
- * @param playlist
+ * @param playlist Playlist to update
  */
 export async function updatePlaylist(playlist: Playlist): Promise<Playlist> {
   const playlistRepository = AppDataSource.getRepository(Playlist);
@@ -399,10 +399,11 @@ export async function updatePlaylist(playlist: Playlist): Promise<Playlist> {
 }
 
 /**
- * Finds a Playlist Game
+ * Finds a Playlist Game. An object linked Games to Playlists.
+ * Playlist Game also contains playlist specific info for games, like notes.
  *
- * @param playlistId
- * @param gameId
+ * @param playlistId Playlist to search
+ * @param gameId Game ID to find in Playlist
  */
 export async function findPlaylistGame(playlistId: string, gameId: string): Promise<PlaylistGame | null> {
   const playlistGameRepository = AppDataSource.getRepository(PlaylistGame);
@@ -412,8 +413,8 @@ export async function findPlaylistGame(playlistId: string, gameId: string): Prom
 /**
  * Removes a Playlist Game
  *
- * @param playlistId
- * @param gameId
+ * @param playlistId Playlist ID to search
+ * @param gameId Game ID to remove from Playlist
  */
 export async function removePlaylistGame(playlistId: string, gameId: string): Promise<PlaylistGame | null> {
   const playlistGameRepository = AppDataSource.getRepository(PlaylistGame);
@@ -432,10 +433,10 @@ export async function removePlaylistGame(playlistId: string, gameId: string): Pr
 }
 
 /**
- * Adds a new Playlist Game (to the end of the playlist).
+ * Adds a Game to the end of a Playlist
  *
- * @param playlistId
- * @param gameId
+ * @param playlistId Playlist ID to add to
+ * @param gameId ID of Game to add
  */
 export async function addPlaylistGame(playlistId: string, gameId: string): Promise<void> {
   const repository = AppDataSource.getRepository(PlaylistGame);
@@ -470,9 +471,9 @@ export async function addPlaylistGame(playlistId: string, gameId: string): Promi
 }
 
 /**
- * Updates a Playlist Game
+ * Updates a Game on a Playlist.
  *
- * @param playlistGame
+ * @param playlistGame Data to update
  */
 export async function updatePlaylistGame(playlistGame: PlaylistGame): Promise<PlaylistGame> {
   const playlistGameRepository = AppDataSource.getRepository(PlaylistGame);
@@ -489,9 +490,9 @@ export async function updatePlaylistGame(playlistGame: PlaylistGame): Promise<Pl
 }
 
 /**
- * Updates a collection of Playlist Games
+ * Updates a collection of Games in Playlists
  *
- * @param playlistGames
+ * @param playlistGames List of data to update
  */
 export async function updatePlaylistGames(playlistGames: PlaylistGame[]): Promise<void> {
   return AppDataSource.transaction(async transEntityManager => {

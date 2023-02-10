@@ -1,7 +1,7 @@
 import { AppConfigData } from '@shared/config/interfaces';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
 import { readJsonFile } from '@shared/Util';
-import { Coerce } from '@shared/utils/Coerce';
+import * as Coerce from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -56,8 +56,8 @@ export async function scanSystemExtensions(): Promise<IExtension[]> {
 /**
  * Scans all extensions in System and User paths and returns them.
  *
- * @param configData
- * @param extensionPath
+ * @param configData Application Config
+ * @param extensionPath Path to extensions folder
  */
 export async function scanExtensions(configData: AppConfigData, extensionPath: string): Promise<IExtension[]> {
   const result = new Map<string, IExtension>();
@@ -107,8 +107,8 @@ export async function scanExtensions(configData: AppConfigData, extensionPath: s
 /**
  * Returns the extensions ID given its author and name from its manifest
  *
- * @param author
- * @param name
+ * @param author Author of the extension
+ * @param name Name of the extension
  */
 function getExtensionID(author: string, name: string) {
   const fAuthor = author.toLowerCase().replace(' ', '-');

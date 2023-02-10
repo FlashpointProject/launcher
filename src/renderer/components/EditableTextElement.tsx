@@ -101,14 +101,7 @@ export function EditableTextElement<T>(props: EditableTextElementProps<T>) {
 }
 
 export namespace EditableTextElement {
-  /**
-   * Default callback for the "onEditKeyDown" prop.
-   *
-   * @param root0
-   * @param root0.event
-   * @param root0.cancel
-   * @param root0.confirm
-   */
+  // Default callback for the "onEditKeyDown" prop.
   export const onEditKeyDown = ({ event, cancel, confirm }: EditableTextElementKeyArgs): void => {
     if (event.key === 'Enter' && !event.shiftKey) {
       confirm();

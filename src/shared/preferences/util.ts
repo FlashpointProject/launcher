@@ -9,7 +9,7 @@ import { ARCADE } from '../constants';
 import { DeepPartial } from '../interfaces';
 import { gameOrderByOptions, gameOrderReverseOptions } from '../order/util';
 import { deepCopy, parseVarStr } from '../Util';
-import { Coerce } from '../utils/Coerce';
+import * as Coerce from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
 
 export function updatePreferencesData(data: DeepPartial<AppPreferencesData>, send = true) {

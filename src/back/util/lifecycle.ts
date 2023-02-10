@@ -11,7 +11,7 @@ export type Disposable = {
 /**
  * Dispose of a disposable and all its children
  *
- * @param disposable
+ * @param disposable Disposable to dispose of
  */
 export function dispose(disposable: Disposable) {
   if (disposable.isDisposed) {
@@ -28,7 +28,7 @@ export function dispose(disposable: Disposable) {
 /**
  * Dispose of all a disposable's children but not itself
  *
- * @param disposable
+ * @param disposable Disposable to dispose the children of and then clear
  */
 export function clearDisposable(disposable: Disposable) {
   disposable.toDispose.forEach(d => dispose(d));
@@ -38,8 +38,8 @@ export function clearDisposable(disposable: Disposable) {
 /**
  * Register a disposable to its parent. They must not be the same.
  *
- * @param parent
- * @param child
+ * @param parent Parent disposable
+ * @param child Child disposable to chain to parent
  */
 export function registerDisposable(parent: Disposable, child: Disposable) {
   if (parent == child) {
@@ -54,7 +54,8 @@ export function registerDisposable(parent: Disposable, child: Disposable) {
 /**
  * Creates Disposable data to fill a newly created Disposable type object
  *
- * @param onDispose
+ * @param onDispose Called when the returned Disposable is disposed
+ * @returns Disposable
  */
 export function newDisposable(onDispose?: () => void): Disposable {
   return {
