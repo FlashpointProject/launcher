@@ -1,125 +1,63 @@
-import { DbHelper } from './DbHelper';
 import * as GameManager from '@back/game/GameManager';
-import { Game } from '@database/entity/Game';
+import { createTestGame, GameFactory, GameImportFactory } from '@tests/util/factories/game';
+import { cleanMemoryDb } from '@back/index';
+import { PlaylistImportFactory } from '@tests/util/factories/playlist';
 import { Playlist } from '@database/entity/Playlist';
-import { getManager } from 'typeorm';
 
-describe('Games', () => {
+describe('Game', () => {
   beforeAll(async () => {
-    await DbHelper.instance.setupTestDB();
+    await cleanMemoryDb();
+    await (new GameImportFactory()).runMany(25);
   });
 
-  afterAll(() => {
-    DbHelper.instance.teardownTestDB();
+  test('Save and fetch many games', async () => {
+    let games = await GameManager.findAllGames();
+    expect(games.length).toEqual(25);
+
+    const newGames = await (new GameFactory()).runMany(10);
+    await GameManager.updateGames(newGames);
+    games = await GameManager.findAllGames();
+    expect(games.length).toEqual(35);
   });
 
-  it('save game' , async () => {
-    const game = createPlaceholderGame({
-      id: '12345',
-      title: 'Test Game'
-    });
-    const savedGame = await GameManager.save(game);
-    expect(savedGame.id).toEqual(game.id);
-  });
-
-  it('find game', async() => {
-    const game = await GameManager.findGame('12345');
-    expect(game).toBeTruthy();
-    if (game) {
-      expect(game.title).toEqual('Test Game');
-    }
-  });
-
-  it('count games', async () => {
-    const count = await GameManager.countGames();
-    expect(count).toEqual(1);
+  test('Save and fetch game', async () => {
+    const id = 'test-game';
+    const game = createTestGame({ id });
+    await GameManager.save(game);
+    const foundGame = await GameManager.findGame(id);
+    expect(foundGame).not.toBeNull();
+    expect(foundGame?.id).toEqual(id);
   });
 });
 
-describe('Playlists',  () => {
-  const testGame = createPlaceholderGame({
-    id: '12345',
-    title: 'Test Game'
-  });
+describe('Playlist', () => {
+  let firstPlaylist: Playlist;
 
   beforeAll(async () => {
-    await DbHelper.instance.setupTestDB();
-    await GameManager.save(testGame);
+    await cleanMemoryDb();
+    await (new PlaylistImportFactory()).runMany(10, { gameCount: 10 });
   });
 
-  afterAll(() => {
-    DbHelper.instance.teardownTestDB();
+  test('Fetch all playlist', async () => {
+    const playlists = await GameManager.findPlaylists(true);
+    expect(playlists.length).toEqual(10);
+    firstPlaylist = playlists[0];
   });
 
-  it('create playlist', async () => {
-    const playlist = new Playlist();
-    playlist.id = '12345';
-    playlist.author = 'generic';
-    playlist.title = 'testPlaylist';
-    playlist.description = '';
-    playlist.library = 'arcade';
-    playlist.extreme = false;
-    const savedPlaylist = await GameManager.updatePlaylist(playlist);
-    expect(savedPlaylist.title).toEqual('testPlaylist');
-  });
+  test('Fetch playlist and games', async () => {
+    const playlist = await GameManager.findPlaylist(firstPlaylist.id, true);
+    expect(playlist).not.toBeNull();
+    expect(firstPlaylist.id).toEqual(playlist?.id);
 
-  it('find playlist', async () => {
-    const playlist = await GameManager.findPlaylist('12345');
-    expect(playlist).toBeTruthy();
     if (playlist) {
-      expect(playlist.title).toEqual('testPlaylist');
+      // Check Join works
+      expect(playlist.games.length).toEqual(10);
     }
   });
 
-  it('find playlist by name', async () => {
-    // const playlist = await GameManager.findPlaylistByName('testPlaylist');
-    const playlist = await getManager().getRepository(Playlist).findOne({ where: {
-      title: 'testPlaylist'
-    }});
-    expect(playlist).toBeTruthy();
-    if (playlist) {
-      expect(playlist.id).toEqual('12345');
-    }
-  });
-
-  it('save playlist game', async () => {
-
+  test('Fetch playlist by name', async () => {
+    const playlist = await GameManager.findPlaylistByName(firstPlaylist.title);
+    expect(playlist).not.toBeNull();
+    expect(firstPlaylist.id).toEqual(playlist?.id);
   });
 });
-
-function createPlaceholderGame(data: Partial<Game>): Game {
-  const id = '12345';
-  const game = new Game();
-  Object.assign(game, {
-    id: id,
-    parentGameId: id,
-    title: 'Test Game',
-    alternateTitles: '',
-    series: '',
-    developer: '',
-    publisher: '',
-    platform: '',
-    dateAdded: new Date().toISOString(),
-    dateModified: new Date().toISOString(),
-    broken: false,
-    extreme: false,
-    playMode: '',
-    status: '',
-    notes: '',
-    tags: [],
-    source: '',
-    applicationPath: '',
-    launchCommand: '',
-    releaseDate: '',
-    version: '',
-    originalDescription: '',
-    language: '',
-    library: '',
-    orderTitle: '',
-    addApps: [],
-    placeholder: true,
-    activeDataOnDisk: false,
-    ...data
-  });
-  return game;
-}

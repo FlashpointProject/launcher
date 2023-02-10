@@ -7,6 +7,8 @@ const config: Config.InitialOptions = {
   transform: {
     '^.+\\.tsx?$': 'ts-jest',
   },
+  runner: '@kayahr/jest-electron-runner/main',
+  testEnvironment: 'node',
   setupFiles: ['<rootDir>/tests/setup.ts'],
   moduleNameMapper: {
     '^@shared(.*)$': '<rootDir>/src/shared/$1',

@@ -95,7 +95,17 @@ const dataSourceOptions: DataSourceOptions = {
   migrations: [Initial1593172736527, AddExtremeToPlaylist1599706152407, GameData1611753257950, SourceDataUrlPath1612434225789, SourceFileURL1612435692266,
     SourceFileCount1612436426353, GameTagsStr1613571078561, GameDataParams1619885915109]
 };
-export const AppDataSource: DataSource = new DataSource(dataSourceOptions);
+export let AppDataSource: DataSource = new DataSource(dataSourceOptions);
+
+export async function cleanMemoryDb() {
+  if (AppDataSource && AppDataSource.isInitialized) {
+    await AppDataSource.destroy();
+  }
+  AppDataSource = new DataSource(dataSourceOptions);
+  await AppDataSource.initialize();
+  await AppDataSource.query('PRAGMA foreign_keys=off;');
+  await AppDataSource.runMigrations();
+}
 
 const DEFAULT_LOGO_PATH = 'window/images/Logos/404.png';
 
