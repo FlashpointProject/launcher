@@ -945,7 +945,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     const imageFolder = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
     const folder = sanitizeFilename(raw_folder);
     const id = sanitizeFilename(raw_id);
-    const fullPath = path.join(imageFolder, folder, id.substr(0, 2), id.substr(2, 2), id + '.png');
+    const fullPath = path.join(imageFolder, folder, id.substring(0, 2), id.substring(2, 4), id + '.png');
 
     if (fullPath.startsWith(imageFolder)) { // (Ensure that it does not climb out of the image folder)
       try {

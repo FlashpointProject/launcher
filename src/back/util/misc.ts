@@ -83,12 +83,12 @@ export function createContainer(languages: LangFile[], currentCode: string, auto
   }
   if (!current) { // (Auto language)
     current = languages.find(item => item.code === autoLangCode);
-    if (!current) { current = languages.find(item => item.code.startsWith(autoLangCode.substr(0, 2))); }
+    if (!current) { current = languages.find(item => item.code.startsWith(autoLangCode.substring(0, 2))); }
   }
   // Get fallback language
   const fallback = (
     languages.find(item => item.code === fallbackCode) || // (Exact match)
-    languages.find(item => item.code.startsWith(fallbackCode.substr(0, 2))) // (Same language)
+    languages.find(item => item.code.startsWith(fallbackCode.substring(0, 2))) // (Same language)
   );
   // Combine all language container objects (by overwriting the default with the fallback and the current)
   const data = recursiveReplace(recursiveReplace(deepCopy(defaultLang), fallback && fallback.data), current && current.data);

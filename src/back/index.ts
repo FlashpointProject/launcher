@@ -291,7 +291,7 @@ async function main() {
   process.on('disconnect', () => { exit(state); }); // (Exit when the main process does)
 }
 
-async function prepForInit(message: any, sendHandle: any): Promise<void> {
+async function prepForInit(message: any): Promise<void> {
   console.log('Back - Initializing...');
 
   const content: BackInitArgs = JSON.parse(message);
@@ -583,7 +583,7 @@ async function prepForInit(message: any, sendHandle: any): Promise<void> {
   });
 }
 
-async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
+async function onProcessMessage(message: any): Promise<void> {
   console.warn('Back - Received Message from Main, not handled - ' + message);
 }
 

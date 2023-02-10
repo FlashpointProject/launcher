@@ -349,9 +349,9 @@ export function clearArray<T>(array: Array<T | undefined>): Array<T> {
 export function parseVarStr(str: string, config?: AppConfigData) {
   return parseVariableString(str, (name) => {
     switch (name) {
-      default: return '';
       case 'cwd': return fixSlashes(process.cwd());
       case 'fpPath': return config ? fixSlashes(config.flashpointPath) : '';
+      default: return '';
     }
   });
 }
