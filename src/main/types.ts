@@ -24,4 +24,5 @@ export type InitArgs = Partial<{
 export type Init = {
   args: InitArgs;
   rest: string;
+  protocol?: string;
 }

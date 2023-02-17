@@ -422,6 +422,12 @@ export function main(init: Init): void {
     ipcMain.on(WindowIPC.MAIN_OUTPUT, () => {
       window.webContents.send(WindowIPC.MAIN_OUTPUT, state.output);
     });
+    // Add protocol report func
+    ipcMain.on(WindowIPC.PROTOCOL, () => {
+      if (init.protocol) {
+        window.webContents.send(WindowIPC.PROTOCOL, init.protocol);
+      }
+    });
     // Remove the menu bar
     window.setMenu(null);
     // and load the index.html of the app.

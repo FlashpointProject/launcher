@@ -1,9 +1,10 @@
 import { Game } from '@database/entity/Game';
 import { rebuildQuery } from '@renderer/Util';
 import { BackInit } from '@shared/back/types';
-import { GamePropSuggestions } from '@shared/interfaces';
+import { GamePropSuggestions, WindowIPC } from '@shared/interfaces';
 import { createLangContainer } from '@shared/lang';
 import { Gate } from '@shared/utils/Gate';
+import { ipcRenderer } from 'electron';
 import { MainActionType, RequestState } from './enums';
 import { MainAction, MainState, View, ViewPageStates } from './types';
 
@@ -250,6 +251,8 @@ export function mainStateReducer(state: MainState = createInitialState(), action
       const values = Object.values(nextLoaded);
       if (values.length === values.reduce((prev, cur) => prev + (cur ? 1 : 0), 0)) {
         state.loadedAll.open();
+        // Ready to accept protocol, if available
+        ipcRenderer.send(WindowIPC.PROTOCOL);
       }
 
       return {

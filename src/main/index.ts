@@ -21,9 +21,11 @@ function getArgs(): Init {
   const init: Init = {
     args: {},
     rest: '',
+    protocol: undefined
   };
 
   const args = process.argv.slice(2);
+  init.protocol = args.find((arg) => arg.startsWith('flashpoint://'));
   let lastArgIndex = -1;
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
