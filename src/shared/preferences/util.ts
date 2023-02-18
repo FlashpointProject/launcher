@@ -2,7 +2,7 @@ import { CurateGroup } from '@renderer/store/curate/types';
 import { autoCode } from '@shared/lang';
 import { LogLevel } from '@shared/Log/interface';
 import { delayedThrottle, delayedThrottleAsync } from '@shared/utils/throttle';
-import { AppPathOverride, AppPreferencesData, AppPreferencesDataMainWindow, TagFilterGroup } from 'flashpoint-launcher';
+import { AppPathOverride, AppPreferencesData, AppPreferencesDataMainWindow, GameDataSource, TagFilterGroup } from 'flashpoint-launcher';
 import { BackIn } from '../back/types';
 import { BrowsePageLayout } from '../BrowsePageLayout';
 import { ARCADE } from '../constants';
@@ -136,7 +136,8 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
       run: ['ctrl+t', 'cmd+t'],
       runMad4fp: ['ctrl+shift+t', 'cmd+shift+t']
     }
-  }
+  },
+  gameDataSources: [],
 });
 
 /**
@@ -228,6 +229,11 @@ export function overwritePreferenceData(
     parser.prop('tagFilters').array((item, index) => newTagFilters[index] = parseTagFilterGroup(item as IObjectParserProp<TagFilterGroup>));
     source.tagFilters = newTagFilters;
   }
+  if (data.gameDataSources) {
+    const newSources: GameDataSource[] = [];
+    parser.prop('gameDataSources').array((item, index) => newSources[index] = parseGameDataSource(item as IObjectParserProp<GameDataSource>));
+    source.gameDataSources = newSources;
+  }
   // Done
   return source;
 }
@@ -250,6 +256,18 @@ function parseAppPathOverride(parser: IObjectParserProp<any>): AppPathOverride {
   parser.prop('override', v => override.override = str(v));
   parser.prop('enabled',  v => override.enabled  = !!v);
   return override;
+}
+
+function parseGameDataSource(parser: IObjectParserProp<GameDataSource>): GameDataSource {
+  const source: GameDataSource = {
+    type: 'raw',
+    name: '',
+    arguments: []
+  };
+  parser.prop('type', v => source.type = str(v));
+  parser.prop('name', v => source.name = str(v));
+  parser.prop('arguments').arrayRaw((item, index) => source.arguments.push(item));
+  return source;
 }
 
 function parseTagFilterGroup(parser: IObjectParserProp<TagFilterGroup>): TagFilterGroup {

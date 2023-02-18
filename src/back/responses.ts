@@ -1,4 +1,3 @@
-import * as SourceManager from '@back/game/SourceManager';
 import { Game } from '@database/entity/Game';
 import { GameData } from '@database/entity/GameData';
 import { Playlist } from '@database/entity/Playlist';
@@ -343,7 +342,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
           };
           state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
           try {
-            await GameDataManager.downloadGameData(gameData.id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), onProgress)
+            await GameDataManager.downloadGameData(gameData.id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), state.preferences.gameDataSources, onProgress)
             .finally(() => {
               // Close PLACEHOLDER download dialog on client, cosmetic delay to look nice
               setTimeout(() => {
@@ -417,7 +416,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
           };
           state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
           try {
-            await GameDataManager.downloadGameData(gameData.id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), onProgress, onDetails)
+            await GameDataManager.downloadGameData(gameData.id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), state.preferences.gameDataSources, onProgress, onDetails)
             .finally(() => {
               // Close PLACEHOLDER download dialog on client, cosmetic delay to look nice
               setTimeout(() => {
@@ -708,7 +707,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT, percent);
     };
     state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
-    await GameDataManager.downloadGameData(gameDataId, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), onProgress)
+    await GameDataManager.downloadGameData(gameDataId, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), state.preferences.gameDataSources, onProgress)
     .catch((error) => {
       state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
     })
@@ -747,24 +746,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     return null;
   });
 
-  state.socketServer.register(BackIn.ADD_SOURCE_BY_URL, async (event, url) => {
-    const sourceDir = path.join(state.config.flashpointPath, 'Data/Sources');
-    await fs.promises.mkdir(sourceDir, { recursive: true });
-    return SourceManager.importFromURL(url.trim(), sourceDir, (percent) => {
-      log.debug('Launcher', `Progress: ${percent * 100}%`);
-    });
-  });
-
-  state.socketServer.register(BackIn.DELETE_SOURCE, async (event, id) => {
-    return SourceManager.remove(id);
-  });
-
   state.socketServer.register(BackIn.GET_SOURCES, async () => {
-    return SourceManager.find();
-  });
-
-  state.socketServer.register(BackIn.GET_SOURCE_DATA, async (event, hashes) => {
-    return GameDataManager.findSourceDataForHashes(hashes);
+    return state.preferences.gameDataSources;
   });
 
   state.socketServer.register(BackIn.GET_ALL_GAMES, async () => {

@@ -1,8 +1,6 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
-import { Source } from '@database/entity/Source';
-import { SourceData } from '@database/entity/SourceData';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
@@ -13,7 +11,7 @@ import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
 import { ChangedMeta, MetaEditFlags } from '@shared/MetaEdit';
 import { SocketTemplate } from '@shared/socket/types';
 import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
-import { AppPreferencesData, CurationState, CurationWarnings, GameData, GameOrderBy, GameOrderReverse, TagAlias, TagFilterGroup } from 'flashpoint-launcher';
+import { AppPreferencesData, CurationState, CurationWarnings, GameData, GameDataSource, GameOrderBy, GameOrderReverse, TagAlias, TagFilterGroup } from 'flashpoint-launcher';
 import { AppConfigData, AppExtConfigData } from '../config/interfaces';
 import { ExecMapping, GamePropSuggestions, IService, ProcessAction, Task } from '../interfaces';
 import { LangContainer, LangFile } from '../lang';
@@ -39,7 +37,6 @@ export enum BackIn {
   UNINSTALL_GAME_DATA,
   SAVE_GAME_DATAS,
   GET_SOURCES,
-  GET_SOURCE_DATA,
   GET_ALL_GAMES,
   RANDOM_GAMES,
   LAUNCH_GAME,
@@ -68,10 +65,6 @@ export enum BackIn {
   LAUNCH_CURATION,
   LAUNCH_CURATION_ADDAPP,
   QUIT,
-
-  // Sources
-  ADD_SOURCE_BY_URL,
-  DELETE_SOURCE,
 
   // Tag funcs
   GET_OR_CREATE_TAG,
@@ -223,8 +216,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.GET_GAMES_GAME_DATA]: (gameId: string) => GameData[];
   [BackIn.GET_GAME_DATA]: (gameDataId: number) => GameData | null;
   [BackIn.DELETE_GAME_DATA]: (gameDataId: number) => void;
-  [BackIn.GET_SOURCES]: () => Source[];
-  [BackIn.GET_SOURCE_DATA]: (hashes: string[]) => SourceData[];
+  [BackIn.GET_SOURCES]: () => GameDataSource[];
   [BackIn.DOWNLOAD_GAME_DATA]: (gameDataId: number) => void;
   [BackIn.UNINSTALL_GAME_DATA]: (id: number) => Game | null;
   [BackIn.IMPORT_GAME_DATA]: (gameId: string, path: string) => GameData;
@@ -284,10 +276,6 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.SAVE_TAG_CATEGORY]: (data: TagCategory) => TagCategory;
   [BackIn.GET_TAG_CATEGORY_BY_ID]: (data: number) => TagCategory | null;
   [BackIn.DELETE_TAG_CATEGORY]: (data: number) => boolean;
-
-  // Sources
-  [BackIn.ADD_SOURCE_BY_URL]: (url: string) => Source;
-  [BackIn.DELETE_SOURCE]: (id: number) => void;
 
   [BackIn.BROWSE_VIEW_PAGE]: (data: BrowseViewPageData) => BrowseViewPageResponseData;
   /** @returns Index of the game (equal to or greater than 0 if found, otherwise -1). */

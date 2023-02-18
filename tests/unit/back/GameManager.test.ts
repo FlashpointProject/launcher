@@ -41,6 +41,7 @@ describe('Playlist', () => {
   test('Fetch all playlist', async () => {
     const playlists = await GameManager.findPlaylists(true);
     expect(playlists.length).toEqual(10);
+    expect(true).toEqual(false);
     firstPlaylist = playlists[0];
   });
 

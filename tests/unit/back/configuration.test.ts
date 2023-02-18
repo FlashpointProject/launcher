@@ -146,7 +146,14 @@ describe('Configuration Files', () => {
           run: ['ctrl+p', 'cmd+t'],
           runMad4fp: ['ctrl+shift+p', 'cmd+shift+t']
         }
-      }
+      },
+      'gameDataSources': [
+        {
+          'type': 'gordon',
+          'name': 'ramsay',
+          'arguments': ['first']
+        }
+      ]
     };
     const newData = deepCopy(defaultPreferencesData);
     overwritePreferenceData(newData, data);

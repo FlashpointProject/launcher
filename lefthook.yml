@@ -34,6 +34,12 @@
 #     "any.go":
 #       runner: go run
 
+pre-push:
+  commands:
+    test:
+      glob: "*.test.{js,ts,jsx,tsx}"
+      run: npx jest {staged_files}
+
 pre-commit:
   commands:
     lint:

@@ -1,63 +1,56 @@
 import { ApiEmitter } from '@back/extensions/ApiEmitter';
 import { GameData } from '@database/entity/GameData';
-import { SourceData } from '@database/entity/SourceData';
 import { DownloadDetails } from '@shared/back/types';
 import { downloadFile } from '@shared/Util';
 import * as crypto from 'crypto';
 import * as flashpoint from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as path from 'path';
-import { In } from 'typeorm';
 import { AppDataSource } from '..';
 import * as GameManager from './GameManager';
-import * as SourceManager from './SourceManager';
 
 export const onDidInstallGameData = new ApiEmitter<flashpoint.GameData>();
 export const onWillUninstallGameData = new ApiEmitter<flashpoint.GameData>();
 export const onDidUninstallGameData = new ApiEmitter<flashpoint.GameData>();
 
-export async function downloadGameData(gameDataId: number, dataPacksFolderPath: string, onProgress?: (percent: number) => void, onDetails?: (details: DownloadDetails) => void): Promise<void> {
+export async function downloadGameData(gameDataId: number, dataPacksFolderPath: string, sources: flashpoint.GameDataSource[], onProgress?: (percent: number) => void, onDetails?: (details: DownloadDetails) => void): Promise<void> {
   const gameData = await findOne(gameDataId);
   const sourceErrors: string[] = [];
+  log.debug('Game Launcher', `Checking ${sources.length} Sources for this GameData...`);
   if (gameData) {
     if (gameData.presentOnDisk) { return; }
-    // GameData real, check each source that's available
-    const sourceData = await findSourceDataForHashes([gameData.sha256]);
-    log.debug('Game Launcher', `Found ${sourceData.length} Sources for this GameData, trying each...`);
-    for (const sd of sourceData) {
-      const source = await SourceManager.findOne(sd.sourceId);
-      if (source) {
-        const fullUrl = new URL(sd.urlPath, source.baseUrl).href;
+    // GameData real, find an available source
+    for (const source of sources) {
+      try {
+        const fullUrl = new URL(`${gameData.gameId}-${gameData.dateAdded.getTime()}.zip`, source.arguments[0]).href;
         const tempPath = path.join(dataPacksFolderPath, `${gameData.gameId}-${gameData.dateAdded.getTime()}.zip.temp`);
-        try {
-          await downloadFile(fullUrl, tempPath, onProgress, onDetails);
-          // Check hash of download
-          const hash = crypto.createHash('sha256');
-          hash.setEncoding('hex');
-          const stream = fs.createReadStream(tempPath);
-          await new Promise<void>((resolve, reject) => {
-            stream.on('end', async () => {
-              const sha256 = hash.digest('hex').toUpperCase();
-              console.log(`hash ${sha256}`);
-              if (sha256 !== gameData.sha256) {
-                reject('Hash of download does not match! Download aborted.\n (It may be a corrupted download, try again)');
-              } else {
-                await importGameDataSkipHash(gameData.gameId, tempPath, dataPacksFolderPath, sha256);
-                await fs.promises.unlink(tempPath);
-                resolve();
-              }
-            });
-            stream.pipe(hash);
-          })
-          .then(async () => {
-            await onDidInstallGameData.fire(gameData);
+        await downloadFile(fullUrl, tempPath, onProgress, onDetails);
+        // Check hash of download
+        const hash = crypto.createHash('sha256');
+        hash.setEncoding('hex');
+        const stream = fs.createReadStream(tempPath);
+        await new Promise<void>((resolve, reject) => {
+          stream.on('end', async () => {
+            const sha256 = hash.digest('hex').toUpperCase();
+            console.log(`hash ${sha256}`);
+            if (sha256 !== gameData.sha256) {
+              reject('Hash of download does not match! Download aborted.\n (It may be a corrupted download, try again)');
+            } else {
+              await importGameDataSkipHash(gameData.gameId, tempPath, dataPacksFolderPath, sha256);
+              await fs.promises.unlink(tempPath);
+              resolve();
+            }
           });
-          return;
-        } catch (error) {
-          const sourceError = `Downloading from Source "${source.name}" failed:\n ${error}`;
-          sourceErrors.push(sourceError);
+          stream.pipe(hash);
+        })
+        .then(async () => {
+          await onDidInstallGameData.fire(gameData);
+        });
+        return;
+      } catch (error) {
+        const sourceError = `Downloading from Source "${source.name}" failed:\n ${error}`;
+        sourceErrors.push(sourceError);
 
-        }
       }
     }
     throw ['No working Sources available for this GameData.'].concat(sourceErrors).join('\n\n');
@@ -75,13 +68,6 @@ export function findGameData(gameId: string): Promise<GameData[]> {
     where: {
       gameId
     }
-  });
-}
-
-export function findSourceDataForHashes(hashes: string[]): Promise<SourceData[]> {
-  const sourceDataRepository = AppDataSource.getRepository(SourceData);
-  return sourceDataRepository.findBy({
-    sha256: In(hashes)
   });
 }
 

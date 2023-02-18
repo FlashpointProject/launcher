@@ -4,8 +4,6 @@ import { Game } from '@database/entity/Game';
 import { GameData } from '@database/entity/GameData';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
-import { Source } from '@database/entity/Source';
-import { SourceData } from '@database/entity/SourceData';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
@@ -45,6 +43,7 @@ import * as path from 'path';
 import 'reflect-metadata';
 import { genCurationWarnings, loadCurationFolder } from './curate/util';
 // Required for the DB Models to function
+import { RemoveSources1676712700000 } from '@database/migration/1676712700000-RemoveSources';
 import {
   CURATIONS_FOLDER_EXPORTED,
   CURATIONS_FOLDER_EXTRACTING,
@@ -91,9 +90,9 @@ import { uuid } from './util/uuid';
 const dataSourceOptions: DataSourceOptions = {
   type: 'better-sqlite3',
   database: ':memory:',
-  entities: [Game, AdditionalApp, Playlist, PlaylistGame, Tag, TagAlias, TagCategory, GameData, Source, SourceData],
+  entities: [Game, AdditionalApp, Playlist, PlaylistGame, Tag, TagAlias, TagCategory, GameData],
   migrations: [Initial1593172736527, AddExtremeToPlaylist1599706152407, GameData1611753257950, SourceDataUrlPath1612434225789, SourceFileURL1612435692266,
-    SourceFileCount1612436426353, GameTagsStr1613571078561, GameDataParams1619885915109]
+    SourceFileCount1612436426353, GameTagsStr1613571078561, GameDataParams1619885915109, RemoveSources1676712700000]
 };
 export let AppDataSource: DataSource = new DataSource(dataSourceOptions);
 
@@ -1434,7 +1433,7 @@ export async function checkAndDownloadGameData(gameId: string, activeDataId: num
     };
     state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
     try {
-      await GameDataManager.downloadGameData(gameData.id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), onProgress, onDetails)
+      await GameDataManager.downloadGameData(gameData.id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), state.preferences.gameDataSources, onProgress, onDetails)
       .finally(() => {
         // Close PLACEHOLDER download dialog on client, cosmetic delay to look nice
         setTimeout(() => {

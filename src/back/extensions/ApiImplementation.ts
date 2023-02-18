@@ -5,7 +5,6 @@ import { saveCuration } from '@back/curate/write';
 import { ExtConfigFile } from '@back/ExtConfigFile';
 import * as GameDataManager from '@back/game/GameDataManager';
 import * as GameManager from '@back/game/GameManager';
-import * as SourceManager from '@back/game/SourceManager';
 import * as TagManager from '@back/game/TagManager';
 import { DisposableChildProcess, ManagedChildProcess } from '@back/ManagedChildProcess';
 import { genContentTree } from '@back/rust';
@@ -236,7 +235,6 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
   const extGameData: typeof flashpoint.gameData = {
     findOne: GameDataManager.findOne,
     findGameData: GameDataManager.findGameData,
-    findSourceDataForHashes: GameDataManager.findSourceDataForHashes,
     save: GameDataManager.save,
     importGameData: (gameId: string, filePath: string) => GameDataManager.importGameData(gameId, filePath, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath)),
     downloadGameData: async (gameDataId: number) => {
@@ -245,7 +243,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
         state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT, percent);
       };
       state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
-      await GameDataManager.downloadGameData(gameDataId, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), onProgress)
+      await GameDataManager.downloadGameData(gameDataId, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), state.preferences.gameDataSources, onProgress)
       .catch((error) => {
         state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
       })
@@ -259,10 +257,6 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     get onDidImportGameData() {
       return apiEmitters.gameData.onDidImportGameData.event;
     }
-  };
-
-  const extSources: typeof flashpoint.sources = {
-    findOne: SourceManager.findOne
   };
 
   const extTags: typeof flashpoint.tags = {
@@ -526,7 +520,6 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     curations: extCurations,
     games: extGames,
     gameData: extGameData,
-    sources: extSources,
     tags: extTags,
     status: extStatus,
     services: extServices,

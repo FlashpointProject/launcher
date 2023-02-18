@@ -306,15 +306,10 @@ declare module 'flashpoint-launcher' {
     namespace gameData {
         function findOne(id: number): Promise<GameData | null>;
         function findGameData(gameId: string): Promise<GameData[]>;
-        function findSourceDataForHashes(hashes: string[]): Promise<SourceData[]>;
         function save(gameData: GameData): Promise<GameData>;
         function importGameData(gameId: string, filePath: string): Promise<GameData>;
         function downloadGameData(gameDataId: number): Promise<void>;
         const onDidImportGameData: Event<GameData>;
-    }
-
-    namespace sources {
-        function findOne(sourceId: number): Promise<Source | null>;
     }
 
     /** Collection of Tag related API functions */
@@ -1014,7 +1009,15 @@ declare module 'flashpoint-launcher' {
         onlineManual: string;
         /** Offline manual path */
         offlineManual: string;
+        /** Game Data download sources */
+        gameDataSources: GameDataSource[];
     };
+
+    type GameDataSource = {
+        type: string;
+        name: string;
+        arguments: string[];
+    }
 
     type Shortcuts = {
         curate: {

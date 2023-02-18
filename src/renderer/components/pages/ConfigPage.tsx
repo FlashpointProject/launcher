@@ -1,4 +1,3 @@
-import { Source } from '@database/entity/Source';
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
 import { BackIn } from '@shared/back/types';
@@ -25,7 +24,7 @@ import { ConfigBoxSelectInput } from '../ConfigBoxSelectInput';
 import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
 import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
 import { FloatingContainer } from '../FloatingContainer';
-import { InputElement, InputField } from '../InputField';
+import { InputField } from '../InputField';
 import { OpenIcon } from '../OpenIcon';
 import { TagFilterGroupEditor } from '../TagFilterGroupEditor';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -69,10 +68,6 @@ type ConfigPageState = {
   useCustomTitlebar: boolean;
   /** Current Server */
   server: string;
-  /** Currently entered new Source URL */
-  newSourceUrl: string;
-  /** List of Sources given from the backend */
-  sources?: Source[];
   /** Currently editable Tag Filter Group */
   editingTagFilterGroupIdx?: number;
   editingTagFilterGroup?: TagFilterGroup;
@@ -96,14 +91,8 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       flashpointPath: configData.flashpointPath,
       useCustomTitlebar: configData.useCustomTitlebar,
       server: configData.server,
-      newSourceUrl: '',
       editorOpen: false,
     };
-  }
-
-  async componentDidMount() {
-    const sources = await window.Shared.back.request(BackIn.GET_SOURCES);
-    this.setState({ sources });
   }
 
   render() {
@@ -114,7 +103,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     const serverOptions = this.itemizeServerOptionsMemo(this.props.serverNames);
     const libraryOptions = this.itemizeLibraryOptionsMemo(this.props.libraries, this.props.preferencesData.excludedRandomLibraries, this.context.libraries);
     const platformOptions = this.itemizePlatformOptionsMemo(this.props.platforms, this.props.preferencesData.nativePlatforms);
-    const sources = this.renderSourcesMemo(this.context, this.state.sources);
     const appPathOverrides = this.renderAppPathOverridesMemo(this.props.preferencesData.appPathOverrides);
     const tagFilters = this.renderTagFiltersMemo(this.props.preferencesData.tagFilters, this.props.preferencesData.browsePageShowExtreme, this.context, this.props.logoVersion);
     const logoSetPreviewRows = this.renderLogoSetMemo(this.props.platforms, this.props.logoVersion);
@@ -246,19 +234,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   className='setting__row__content--override-row__new'>
                   <OpenIcon
                     icon='plus' />
-                </div>
-              </ConfigBox>
-              <ConfigBox
-                title={'Sources'}
-                description={'List of all sources providing on-demand game data'}
-                swapChildren={true} >
-                <div className='setting__row__header--sources'>
-                  <InputField
-                    text={this.state.newSourceUrl}
-                    editable={true}
-                    onChange={this.onNewSourceURLChange}
-                    onKeyDown={(event) => event.key === 'Enter' && this.onSubmitSourceURL()}/>
-                  {sources}
                 </div>
               </ConfigBox>
             </div>
@@ -443,39 +418,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
         checked: nativePlatforms.includes(platform)
       };
     });
-  });
-
-  renderSourcesMemo = memoizeOne((strings: LangContainer, sources?: Source[]) => {
-    if (sources) {
-      return sources.map(s => {
-        return (
-          <div
-            key={s.id}
-            className='setting__row__content--source-row'>
-            <div className='setting__row__content--source-row__name'>{s.name}</div>
-            <div
-              className='setting__row__content--source-row__count'>
-              {`${s.count} Data Packs`}
-            </div>
-            <div
-              title={strings.config.updateSource}
-              className='browse-right-sidebar__title-row__buttons__edit-button'
-              onClick={() => this.submitSourceURL(s.sourceFileUrl)}>
-              <OpenIcon
-                icon='data-transfer-download' />
-            </div>
-            <ConfirmElement
-              message={strings.dialog.deleteSource}
-              onConfirm={() => this.deleteSource(s)}
-              render={this.renderDeleteSource} />
-          </div>
-        );
-      });
-    } else {
-      return (
-        <p>{'...'}</p>
-      );
-    }
   });
 
   renderDeleteSource = ({ confirm }: ConfirmElementArgs) => {
@@ -765,42 +707,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     }
 
     updatePreferencesData({ excludedRandomLibraries });
-  };
-
-  onNewSourceURLChange = (event: React.ChangeEvent<InputElement>) => {
-    this.setState({ newSourceUrl: event.target.value });
-  };
-
-  onSubmitSourceURL = () => {
-    this.submitSourceURL(this.state.newSourceUrl);
-    this.setState({ newSourceUrl: '' });
-  };
-
-  submitSourceURL = (url: string) => {
-    window.Shared.back.request(BackIn.ADD_SOURCE_BY_URL, url)
-    .then((source) => {
-      const newSources = [...(this.state.sources || [])];
-      const idx = newSources.findIndex(s => s.id === source.id);
-      if (idx > -1) {
-        newSources[idx] = source;
-      } else {
-        newSources.push(source);
-      }
-      this.setState({ sources: newSources });
-    })
-    .catch((error) => {
-      alert(error);
-    });
-  };
-
-  deleteSource = async (source: Source) => {
-    await window.Shared.back.request(BackIn.DELETE_SOURCE, source.id);
-    const newSources = [...(this.state.sources || [])];
-    const idx = newSources.findIndex(s => s.id === source.id);
-    if (idx > -1) {
-      newSources.splice(idx, 1);
-      this.setState({ sources: newSources });
-    }
   };
 
   onRemoveAppPathOverride = (index: number): void => {
