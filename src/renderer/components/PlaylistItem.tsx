@@ -1,4 +1,4 @@
-import { Playlist } from '@database/entity/Playlist';
+import { Playlist } from 'flashpoint-launcher';
 import * as React from 'react';
 import { useCallback, useMemo } from 'react';
 import { LangContext } from '../util/lang';

@@ -23,13 +23,13 @@ export function mainStateReducer(state: MainState = createInitialState(), action
 
       if (!view) { return state; }
 
-      const playlistId = (action.playlistId !== null)
-        ? action.playlistId
-        : view.query.filter.playlistId;
+      const playlist = (action.playlist != null)
+        ? action.playlist
+        : view.query.filter.playlist;
 
       return {
         ...state,
-        selectedPlaylistId: playlistId,
+        selectedPlaylistId: playlist?.id,
         views: {
           ...state.views,
           [action.library]: {
@@ -39,12 +39,12 @@ export function mainStateReducer(state: MainState = createInitialState(), action
               extreme: action.showExtreme,
               library: action.library,
               searchLimit: action.searchLimit,
-              playlistId: playlistId,
+              playlist: action.playlist == null ? undefined : action.playlist,
               order: {
                 orderBy: action.orderBy,
                 orderReverse: action.orderReverse,
               },
-              tagFilters: playlistId ? [] : action.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !action.showExtreme))
+              tagFilters: playlist ? [] : action.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !action.showExtreme))
             }),
             queryId: (view.queryId + 1) % 0x80000000, // 32 bit signed integer
             metaState: RequestState.WAITING,
@@ -442,7 +442,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
             text: '',
             extreme: action.preferencesData.browsePageShowExtreme,
             library: library,
-            playlistId: undefined,
+            playlist: undefined,
             searchLimit: action.preferencesData.searchLimit,
             order: {
               orderBy: action.preferencesData.gamesOrderBy,

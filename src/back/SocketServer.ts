@@ -11,7 +11,7 @@ type BackAPI = SocketAPIData<BackIn, BackInTemplate, MsgEvent>
 type BackClients = SocketServerData<BackOut, BackOutTemplate, ws>
 type BackClient = BackClients['clients'][number]
 
-type MsgEvent = {
+export type MsgEvent = {
   wsEvent: ws.MessageEvent;
   client: BackClient;
 }

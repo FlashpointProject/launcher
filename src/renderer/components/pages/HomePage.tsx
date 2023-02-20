@@ -1,4 +1,3 @@
-import { Playlist } from '@database/entity/Playlist';
 import * as remote from '@electron/remote';
 import { FancyAnimation } from '@renderer/components/FancyAnimation';
 import { BackIn, GameOfTheDay, ViewGame } from '@shared/back/types';
@@ -7,7 +6,7 @@ import { wrapSearchTerm } from '@shared/game/GameFilter';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { AppUpdater, UpdateInfo } from 'electron-updater';
-import { Game } from 'flashpoint-launcher';
+import { Game, Playlist } from 'flashpoint-launcher';
 import * as React from 'react';
 import ReactDatePicker from 'react-datepicker';
 import ReactMarkdown from 'react-markdown';
@@ -32,7 +31,7 @@ type OwnProps = {
   playlists: Playlist[];
   /** Generator for game context menu */
   onGameContextMenu: (gameId: string) => void;
-  onSelectPlaylist: (library: string, playlistId: string | undefined) => void;
+  onSelectPlaylist: (library: string, playlistId: string | null) => void;
   onLaunchGame: (gameId: string) => void;
   onGameSelect: (gameId: string | undefined) => void;
   /** Clear the current search query (resets the current search filters). */
@@ -137,12 +136,12 @@ export function HomePage(props: HomePageProps) {
   }, [props.playlists, props.onSelectPlaylist, props.clearSearch]);
 
   const onAllGamesClick = React.useCallback(() => {
-    props.onSelectPlaylist(ARCADE, undefined);
+    props.onSelectPlaylist(ARCADE, null);
     props.clearSearch();
   }, [props.onSelectPlaylist, props.clearSearch]);
 
   const onAllAnimationsClick = React.useCallback(() => {
-    props.onSelectPlaylist(THEATRE, undefined);
+    props.onSelectPlaylist(THEATRE, null);
     props.clearSearch();
   }, [props.onSelectPlaylist, props.clearSearch]);
 
@@ -173,7 +172,7 @@ export function HomePage(props: HomePageProps) {
                 to={joinLibraryRoute(library)}
                 onClick={() => {
                   props.onSearch('!' + wrapSearchTerm(platform));
-                  props.onSelectPlaylist(library, undefined);
+                  props.onSelectPlaylist(library, null);
                 }}>
                 <div
                   className='home-page__platform-entry__logo'
@@ -361,7 +360,6 @@ export function HomePage(props: HomePageProps) {
                   customInput={
                     <SimpleButton/>
                   }>
-
                 </ReactDatePicker>
               </div>
             </div>

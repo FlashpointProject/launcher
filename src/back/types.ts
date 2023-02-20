@@ -1,5 +1,4 @@
 import { Game } from '@database/entity/Game';
-import { Playlist } from '@database/entity/Playlist';
 import { TagCategory } from '@database/entity/TagCategory';
 import { BackInit, ViewGame } from '@shared/back/types';
 import { AppConfigData, AppExtConfigData } from '@shared/config/interfaces';
@@ -65,7 +64,7 @@ export type BackState = {
   languages: LangFile[];
   languageContainer: LangContainer;
   readonly themeState: ThemeState;
-  playlists: Playlist[];
+  playlists: flashpoint.Playlist[];
   execMappings: ExecMapping[];
   lastLinkedCurationKey: string;
   moduleInterceptor: ModuleInterceptorState;

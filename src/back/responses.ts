@@ -1,6 +1,5 @@
 import { Game } from '@database/entity/Game';
 import { GameData } from '@database/entity/GameData';
-import { Playlist } from '@database/entity/Playlist';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
@@ -49,6 +48,7 @@ import { importCuration, launchAddAppCuration, launchCuration } from './importGa
 import { checkAndDownloadGameData, extractFullPromise, loadCurationArchive } from './index';
 import { ManagedChildProcess } from './ManagedChildProcess';
 import { importAllMetaEdits } from './MetaEdit';
+import { addPlaylistGame, deletePlaylist, deletePlaylistGame, duplicatePlaylist, filterPlaylists, getPlaylistGame, importPlaylist, savePlaylistGame, updatePlaylist } from './playlist';
 import { copyFolder, genContentTree } from './rust';
 import { BackState, BareTag, TagsFile } from './types';
 import { pathToBluezip } from './util/Bluezip';
@@ -57,7 +57,6 @@ import {
   createAddAppFromLegacy,
   createContainer,
   createGameFromLegacy,
-  createPlaylistFromJson,
   dateToFilenameString,
   deleteCuration,
   exit, getCwd, pathExists, procToService, removeService,
@@ -541,72 +540,12 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     };
   });
 
-  state.socketServer.register(BackIn.DUPLICATE_PLAYLIST, async (event, data) => {
-    const playlist = await GameManager.findPlaylist(data, true);
-    if (playlist) {
-      const newPlaylistId = uuid();
-      playlist.id = newPlaylistId;
-      playlist.title += ' - Copy';
-      playlist.games = playlist.games.map(g => {
-        g.id = undefined; // New Entry
-        g.playlistId = newPlaylistId;
-        return g;
-      });
-      await GameManager.updatePlaylist(playlist);
-      state.socketServer.send(event.client, BackOut.PLAYLISTS_CHANGE, await GameManager.findPlaylists(state.preferences.browsePageShowExtreme));
-    }
+  state.socketServer.register(BackIn.DUPLICATE_PLAYLIST, async (event, playlistId) => {
+    await duplicatePlaylist(state, playlistId);
   });
 
   state.socketServer.register(BackIn.IMPORT_PLAYLIST, async (event, filePath, library) => {
-    try {
-      const rawData = await fs.promises.readFile(filePath, 'utf-8');
-      const jsonData = JSON.parse(rawData);
-      const newPlaylist = createPlaylistFromJson(jsonData, library);
-      const existingPlaylist = await GameManager.findPlaylistByName(newPlaylist.title, true);
-      if (existingPlaylist) {
-        newPlaylist.title += ' - New';
-        // Conflict, resolve with user
-        const dialogFunc = state.socketServer.showMessageBoxBack(event.client);
-        const strings = state.languageContainer;
-        const result = await dialogFunc({
-          title: strings.dialog.playlistConflict,
-          message:  `${formatString(strings.dialog.importedPlaylistAlreadyExists, existingPlaylist.title)}\n\n${strings.dialog.importPlaylistAs} ${newPlaylist.title}?`,
-          buttons: [strings.misc.yes, strings.misc.no, strings.dialog.cancel]
-        });
-        switch (result) {
-          case 0: {
-            // Continue importing
-            break;
-          }
-          default:
-            // Cancel or No
-            throw 'User Cancelled';
-        }
-      }
-      await GameManager.updatePlaylist(newPlaylist);
-      log.info('Launcher', `Imported playlist - ${newPlaylist.title}`);
-      state.socketServer.broadcast(BackOut.PLAYLISTS_CHANGE, await GameManager.findPlaylists(state.preferences.browsePageShowExtreme));
-      state.socketServer.send(event.client, BackOut.IMPORT_PLAYLIST, newPlaylist);
-    } catch (e) {
-      console.log(e);
-    }
-  });
-
-  state.socketServer.register(BackIn.DELETE_ALL_PLAYLISTS, async (event) => {
-    const playlists = await GameManager.findPlaylists(true);
-    for (const playlist of playlists) {
-      await GameManager.removePlaylist(playlist.id);
-    }
-    state.socketServer.send(event.client, BackOut.PLAYLISTS_CHANGE, await GameManager.findPlaylists(state.preferences.browsePageShowExtreme));
-  });
-
-  state.socketServer.register(BackIn.EXPORT_PLAYLIST, async (event, id, location) => {
-    const playlist = await GameManager.findPlaylist(id, true);
-    if (playlist) {
-      try {
-        await fs.promises.writeFile(location, JSON.stringify(playlist, null, '\t'));
-      } catch (e) { console.error(e); }
-    }
+    return importPlaylist(state, filePath, library, event);
   });
 
   state.socketServer.register(BackIn.EXPORT_GAME, async (event, id, location, metaOnly) => {
@@ -996,7 +935,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.GET_PLAYLIST, async (event, playlistId) => {
-    return await GameManager.findPlaylist(playlistId, true) as Playlist; // @TYPESAFE fix this?
+    return state.playlists.find(p => p.id === playlistId);
   });
 
   state.socketServer.register(BackIn.CLEANUP_TAG_ALIASES, async () => {
@@ -1027,40 +966,31 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.GET_PLAYLISTS, async () => {
-    return await GameManager.findPlaylists(state.preferences.browsePageShowExtreme);
+    return filterPlaylists(state.playlists, state.preferences.browsePageShowExtreme);
   });
 
   state.socketServer.register(BackIn.SAVE_PLAYLIST, async (event, playlist) => {
-    const savedPlaylist = await GameManager.updatePlaylist(playlist);
-    state.queries = {};
-    return savedPlaylist;
+    return updatePlaylist(state, playlist, playlist);
   });
 
   state.socketServer.register(BackIn.DELETE_PLAYLIST, async (event, playlistId) => {
-    const playlist = await GameManager.removePlaylist(playlistId);
-    state.queries = {};
-    return playlist as Playlist; // @TYPESAFE fix this?
+    return deletePlaylist(state, playlistId);
   });
 
   state.socketServer.register(BackIn.GET_PLAYLIST_GAME, async (event, playlistId, gameId) => {
-    const playlistGame = await GameManager.findPlaylistGame(playlistId, gameId);
-    return playlistGame;
+    return getPlaylistGame(state, playlistId, gameId);
   });
 
   state.socketServer.register(BackIn.ADD_PLAYLIST_GAME, async (event, playlistId, gameId) => {
-    await GameManager.addPlaylistGame(playlistId, gameId);
+    return addPlaylistGame(state, playlistId, gameId);
   });
 
-  state.socketServer.register(BackIn.SAVE_PLAYLIST_GAME, async (event, data) => {
-    const playlistGame = await GameManager.updatePlaylistGame(data);
-    state.queries = {};
-    return playlistGame;
+  state.socketServer.register(BackIn.SAVE_PLAYLIST_GAME, async (event, playlistId, playlistGame) => {
+    return savePlaylistGame(state, playlistId, playlistGame);
   });
 
   state.socketServer.register(BackIn.DELETE_PLAYLIST_GAME, async (event, playlistId, gameId) => {
-    const playlistGame = await GameManager.removePlaylistGame(playlistId, gameId);
-    state.queries = {};
-    return playlistGame;
+    return deletePlaylistGame(state, playlistId, gameId);
   });
 
   state.socketServer.register(BackIn.SAVE_LEGACY_PLATFORM, async (event, platform) => {
@@ -1995,7 +1925,7 @@ function difObjects<T>(template: T, a: T, b: DeepPartial<T>): DeepPartial<T> | u
 }
 
 function adjustGameFilter(filterOpts: FilterGameOpts): FilterGameOpts {
-  if (filterOpts && filterOpts.playlistId && filterOpts.searchQuery) {
+  if (filterOpts && filterOpts.playlist && filterOpts.searchQuery) {
     // Remove library filter if viewing playlist
     let index = filterOpts.searchQuery.whitelist.findIndex(f => f.field === 'library');
     while (index > -1) {

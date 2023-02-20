@@ -5,7 +5,6 @@ import { SocketServer } from '@back/SocketServer';
 import { BackState, ShowMessageBoxFunc, ShowOpenDialogFunc, ShowSaveDialogFunc, StatusState } from '@back/types';
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
-import { Playlist } from '@database/entity/Playlist';
 import { Tag } from '@database/entity/Tag';
 import { BackOut } from '@shared/back/types';
 import { getCurationFolder } from '@shared/curate/util';
@@ -228,31 +227,6 @@ export async function createGameFromLegacy(game: Legacy_IGameInfo, tagCache: Rec
     activeDataOnDisk: false
   });
   return newGame;
-}
-
-export function createPlaylistFromJson(jsonData: any, library?: string): Playlist {
-  const playlist: Playlist = {
-    id: jsonData['id'] || uuid(),
-    title: jsonData['title'] || 'No Name',
-    description: jsonData['description'] || '',
-    author: jsonData['author'] || '',
-    icon: jsonData['icon'] || '',
-    library: library || jsonData['library'] || 'arcade',
-    games: [],
-    extreme: jsonData['extreme'] || false
-  };
-
-  for (let i = 0; i < jsonData['games'].length ; i++) {
-    const game = jsonData['games'][i];
-    playlist.games.push({
-      playlistId: playlist.id,
-      order: game['order'] ? Number(game['order']) : i,
-      notes: game['notes'] || '',
-      gameId: game['gameId'] || game['id']
-    });
-  }
-
-  return playlist;
 }
 
 export function runService(state: BackState, id: string, name: string, basePath: string, opts: ProcessOpts, info: INamedBackProcessInfo | IBackProcessInfo): ManagedChildProcess {

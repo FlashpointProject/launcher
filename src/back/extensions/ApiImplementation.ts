@@ -10,8 +10,8 @@ import { DisposableChildProcess, ManagedChildProcess } from '@back/ManagedChildP
 import { genContentTree } from '@back/rust';
 import { BackState, StatusState } from '@back/types';
 import { clearDisposable, dispose, newDisposable, registerDisposable } from '@back/util/lifecycle';
+import { addPlaylistGame, deletePlaylist, deletePlaylistGame, filterPlaylists, findPlaylist, findPlaylistByName, getPlaylistGame, savePlaylistGame, updatePlaylist } from '../playlist';
 import {
-  createPlaylistFromJson,
   deleteCuration,
   getOpenMessageBoxFunc,
   getOpenOpenDialogFunc,
@@ -134,32 +134,27 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     }
   };
 
-  function broadcastPlaylistWrapper<T, R>(cb: (arg: T) => Promise<R>): (args: T) => Promise<R>;
-  function broadcastPlaylistWrapper<T, T2, R>(cb: (arg: T, arg2: T2) => Promise<R>): (arg: T, arg2: T2) => Promise<R>;
-  function broadcastPlaylistWrapper<R>(cb: (...args: any[]) => Promise<R>): (args: any[]) => Promise<R> {
-    return async (...args: any[]) => {
-      return cb(...args)
-      .then(async (r) => {
-        state.socketServer.broadcast(BackOut.PLAYLISTS_CHANGE, await GameManager.findPlaylists(state.preferences.browsePageShowExtreme));
-        return r;
-      });
-    };
-  }
-
   const extGames: typeof flashpoint.games = {
     // Playlists
-    findPlaylist: GameManager.findPlaylist,
-    findPlaylistByName: GameManager.findPlaylistByName,
-    findPlaylists: GameManager.findPlaylists,
-    updatePlaylist: broadcastPlaylistWrapper(GameManager.updatePlaylist),
-    removePlaylist: broadcastPlaylistWrapper(GameManager.removePlaylist),
-    addPlaylistGame: broadcastPlaylistWrapper(GameManager.addPlaylistGame),
+    findPlaylist: (playlistId) => findPlaylist(state, playlistId),
+    findPlaylistByName: (playlistName) => findPlaylistByName(state, playlistName),
+    findPlaylists: (showExtreme) => filterPlaylists(state.playlists, showExtreme),
+    updatePlaylist: async (playlist) => {
+      const oldPlaylist = state.playlists.find(p => p.id === playlist.id);
+      if (oldPlaylist) {
+        await updatePlaylist(state, oldPlaylist, playlist);
+        return playlist;
+      } else {
+        throw 'Playlist does not exist';
+      }
+    },
+    removePlaylist: (playlistId) => deletePlaylist(state, playlistId),
+    addPlaylistGame: (playlistId, gameId) => addPlaylistGame(state, playlistId, gameId),
 
     // Playlist Game
-    findPlaylistGame: GameManager.findPlaylistGame,
-    removePlaylistGame: broadcastPlaylistWrapper(GameManager.removePlaylistGame),
-    updatePlaylistGame: broadcastPlaylistWrapper(GameManager.updatePlaylistGame),
-    updatePlaylistGames: broadcastPlaylistWrapper(GameManager.updatePlaylistGames),
+    findPlaylistGame: (playlistId, gameId) => getPlaylistGame(state, playlistId, gameId),
+    removePlaylistGame: (playlistId, gameId) => deletePlaylistGame(state, playlistId, gameId),
+    updatePlaylistGame: (playlistId, playlistGame) => savePlaylistGame(state, playlistId, playlistGame),
 
     // Games
     countGames: GameManager.countGames,
@@ -176,7 +171,6 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
 
     // Misc
     findPlatforms: GameManager.findPlatforms,
-    createPlaylistFromJson: createPlaylistFromJson,
 
     // Events
     get onWillLaunchGame() {

@@ -1,6 +1,4 @@
 import { Game } from '@database/entity/Game';
-import { Playlist } from '@database/entity/Playlist';
-import { PlaylistGame } from '@database/entity/PlaylistGame';
 import * as remote from '@electron/remote';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
 import { BackIn } from '@shared/back/types';
@@ -12,6 +10,7 @@ import { updatePreferencesData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
 import { Menu, MenuItemConstructorOptions } from 'electron';
+import { Playlist, PlaylistGame } from 'flashpoint-launcher';
 import * as React from 'react';
 import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowseSidebar';
 import { WithPreferencesProps } from '../../containers/withPreferences';
@@ -47,7 +46,7 @@ type OwnProps = {
   /** Called when a game is selected. */
   onSelectGame: (gameId?: string) => void;
   /** Called when a playlist is selected. */
-  onSelectPlaylist: (library: string, playlistId: string | undefined) => void;
+  onSelectPlaylist: (library: string, playlistId: string | null) => void;
   /** Called when a playlist is updated */
   onUpdatePlaylist: (playlist: Playlist) => void;
   /** Called when a playlist is deleted */
@@ -352,7 +351,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   /** Deselect without clearing search (Right sidebar will search itself) */
   onRightSidebarDeselectPlaylist = (): void => {
     const { onSelectPlaylist } = this.props;
-    if (onSelectPlaylist) { onSelectPlaylist(this.props.gameLibrary, undefined); }
+    if (onSelectPlaylist) { onSelectPlaylist(this.props.gameLibrary, null); }
   };
 
   onLeftSidebarResize = (event: SidebarResizeEvent): void => {
@@ -614,10 +613,8 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   onSavePlaylist = (): void => {
     if (this.state.currentPlaylist) {
       window.Shared.back.request(BackIn.SAVE_PLAYLIST, this.state.currentPlaylist)
-      .then(data => {
-        if (data) {
-          this.props.onUpdatePlaylist(data);
-        }
+      .then((data) => {
+        this.props.onUpdatePlaylist(data);
       });
       this.setState({
         isEditingPlaylist: false,
@@ -643,6 +640,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   onCreatePlaylistClick = (): void => {
     this.setState({
       currentPlaylist: {
+        filePath: '',
         id: uuid(),
         games: [],
         title: '',
@@ -656,7 +654,8 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       isNewPlaylist: true,
     });
     if (this.props.selectedPlaylistId !== undefined) {
-      this.props.onSelectPlaylist(this.props.gameLibrary, undefined);
+      this.props.onSelectPlaylist(this.props.gameLibrary, null);
+      this.props.onSelectPlaylist(this.props.gameLibrary, null);
     }
   };
 
@@ -678,7 +677,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       const playlistId = this.state.currentPlaylist.id;
       window.Shared.back.request(BackIn.DELETE_PLAYLIST, playlistId)
       .then((data) => {
-        this.props.onSelectPlaylist(this.props.gameLibrary, undefined);
+        this.props.onSelectPlaylist(this.props.gameLibrary, null);
         if (data) {
           // DB wipes it, need it to remove it locally
           data.id = playlistId;
@@ -802,8 +801,12 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
 
   onLeftSidebarShowAllClick = (): void => {
     const { clearSearch, onSelectPlaylist } = this.props;
+    if (onSelectPlaylist) {
+      // 2 calls makes the left sidebar visual update. Why? Who knows.
+      onSelectPlaylist(this.props.gameLibrary, null);
+      onSelectPlaylist(this.props.gameLibrary, null);
+    }
     if (clearSearch)      { clearSearch(); }
-    if (onSelectPlaylist) { onSelectPlaylist(this.props.gameLibrary, undefined); }
     this.setState({
       isEditingPlaylist: false,
       isNewPlaylist: false,

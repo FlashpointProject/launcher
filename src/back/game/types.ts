@@ -1,6 +1,6 @@
 import { Game } from '@database/entity/Game';
-import { Playlist } from '@database/entity/Playlist';
 import { OrderGamesOpts } from '@shared/game/GameFilter';
+import { Playlist } from 'flashpoint-launcher';
 import { EventQueue } from '../util/EventQueue';
 import { ErrorCopy } from '../util/misc';
 

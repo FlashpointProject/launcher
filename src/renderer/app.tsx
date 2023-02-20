@@ -1,6 +1,4 @@
 import { Game } from '@database/entity/Game';
-import { Playlist } from '@database/entity/Playlist';
-import { PlaylistGame } from '@database/entity/PlaylistGame';
 import * as remote from '@electron/remote';
 import { BackIn, BackInit, BackOut } from '@shared/back/types';
 import { APP_TITLE, VIEW_PAGE_SIZE } from '@shared/constants';
@@ -14,6 +12,7 @@ import { arrayShallowStrictEquals } from '@shared/utils/compare';
 import { debounce } from '@shared/utils/debounce';
 import { clipboard, ipcRenderer, Menu, MenuItemConstructorOptions } from 'electron';
 import { AppUpdater } from 'electron-updater';
+import { Playlist, PlaylistGame } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as React from 'react';
@@ -947,7 +946,7 @@ export class App extends React.Component<AppProps> {
 
   /** Deselect without clearing search (Right sidebar will search itself) */
   onRightSidebarDeselectPlaylist = (): void => {
-    this.onSelectPlaylist(getBrowseSubPath(this.props.location.pathname), undefined);
+    this.onSelectPlaylist(getBrowseSubPath(this.props.location.pathname), null);
   };
 
   /** Replace the "current game" with the selected game (in the appropriate circumstances). */
@@ -1385,8 +1384,13 @@ export class App extends React.Component<AppProps> {
    * @param library Library view to set the view for
    * @param playlistId Playlist ID to load into the view
    */
-  private onSelectPlaylist = (library: string, playlistId: string | undefined): void => {
-    this.setViewQuery(library, playlistId);
+  private onSelectPlaylist = (library: string, playlistId: string | null): void => {
+    if (playlistId == null) {
+      this.setViewQuery(library, null);
+    } else {
+      const playlist = this.props.main.playlists.find(p => p.id === playlistId);
+      this.setViewQuery(library, playlist);
+    }
   };
 
   private onPlaylistDelete = (playlist: Playlist) => {
@@ -1448,7 +1452,7 @@ export class App extends React.Component<AppProps> {
 
     // Clear view caches (that use this playlist)
     for (const library in this.props.main.views) {
-      this.setViewQuery(library, playlist.id);
+      this.setViewQuery(library, playlist);
     }
 
     this.props.setMainState(state as any); // (This is very annoying to make typesafe)
@@ -1457,7 +1461,7 @@ export class App extends React.Component<AppProps> {
   onSaveGame = async (game: Game, playlistEntry?: PlaylistGame): Promise<Game | null> => {
     const data = await window.Shared.back.request(BackIn.SAVE_GAME, game);
     if (playlistEntry) {
-      window.Shared.back.send(BackIn.SAVE_PLAYLIST_GAME, playlistEntry);
+      window.Shared.back.send(BackIn.SAVE_PLAYLIST_GAME, this.props.main.selectedPlaylistId || '', playlistEntry);
     }
     this.setViewQuery(game.library);
     return data.game;
@@ -1494,9 +1498,7 @@ export class App extends React.Component<AppProps> {
       playlists
       .filter(p => p.library ? p.library.toLowerCase() === lowerLibrary : (lowerLibrary === '' || lowerLibrary === 'arcade'))
       .sort((a, b) => {
-        if (a.title < b.title) { return -1; }
-        if (a.title > b.title) { return  1; }
-        return 0;
+        return a.title.toLowerCase().localeCompare(b.title.toLowerCase());
       })
     );
   });
@@ -1528,9 +1530,9 @@ export class App extends React.Component<AppProps> {
    * Note: If there is only one argument (counted by length) then the playlistId will remain the same.
    *
    * @param library Library view to set the query for (default to current view)
-   * @param playlistId ID of the playlist to load
+   * @param playlist Playlist to search
    */
-  setViewQuery = (function(this: App, library: string = getBrowseSubPath(this.props.location.pathname), playlistId?: string): void {
+  setViewQuery = (function(this: App, library: string = getBrowseSubPath(this.props.location.pathname), playlist?: Playlist | null): void {
     this.props.dispatchMain({
       type: MainActionType.SET_VIEW_QUERY,
       library: library,
@@ -1539,9 +1541,7 @@ export class App extends React.Component<AppProps> {
       orderBy: this.props.preferencesData.gamesOrderBy,
       orderReverse: this.props.preferencesData.gamesOrder,
       searchLimit: this.props.preferencesData.searchLimit,
-      playlistId: (arguments.length >= 2)
-        ? playlistId
-        : null,
+      playlist: playlist,
       tagFilters: this.props.preferencesData.tagFilters
     });
   }).bind(this);

@@ -1,9 +1,11 @@
 import * as axiosImport from 'axios';
-import { Tag, TagFilterGroup } from 'flashpoint-launcher';
+import { Playlist, PlaylistGame, Tag, TagFilterGroup } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as path from 'path';
 import { DownloadDetails } from './back/types';
 import { AppConfigData } from './config/interfaces';
+import { num, str } from './utils/Coerce';
+import { IObjectParserProp, ObjectParser } from './utils/ObjectParser';
 import { throttle } from './utils/throttle';
 import { parseVariableString } from './utils/VariableString';
 
@@ -490,4 +492,40 @@ export function compare(a: string, b: string): number {
   } else {
     return 0;
   }
+}
+
+export function overwritePlaylistData(
+  source: Playlist,
+  data: Partial<Playlist>,
+  onError?: (error: string) => void
+): Playlist {
+  const parser = new ObjectParser({
+    input: data,
+    onError: onError && (e => onError(`Error while parsing Playlist: ${e.toString()}`)),
+  });
+  parser.prop('id',          v => source.id          = str(v));
+  parser.prop('title',       v => source.title       = str(v));
+  parser.prop('description', v => source.description = str(v));
+  parser.prop('icon',        v => source.icon        = str(v));
+  parser.prop('library',     v => source.library     = str(v));
+  parser.prop('author',      v => source.author      = str(v));
+  parser.prop('extreme',     v => source.extreme     = !!v);
+  if (data.games) {
+    const newGames: PlaylistGame[] = [];
+    parser.prop('games').array((item, index) => newGames.push(parsePlaylistGame(item as IObjectParserProp<PlaylistGame>)));
+    source.games = newGames;
+  }
+  return source;
+}
+
+function parsePlaylistGame(parser: IObjectParserProp<PlaylistGame>): PlaylistGame {
+  const game: PlaylistGame = {
+    order: 0,
+    notes: '',
+    gameId: ''
+  };
+  parser.prop('gameId', v => game.gameId = str(v));
+  parser.prop('notes',  v => game.notes  = str(v));
+  parser.prop('order',  v => game.order  = num(v));
+  return game;
 }

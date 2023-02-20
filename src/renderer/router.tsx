@@ -1,6 +1,4 @@
 import { Game } from '@database/entity/Game';
-import { Playlist } from '@database/entity/Playlist';
-import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { GameOfTheDay, ViewGame } from '@shared/back/types';
 import { AppExtConfigData } from '@shared/config/interfaces';
 import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
@@ -9,6 +7,7 @@ import { LangFile } from '@shared/lang';
 import { ITheme } from '@shared/ThemeFile';
 import { Menu } from 'electron';
 import { AppUpdater, UpdateInfo } from 'electron-updater';
+import { Playlist, PlaylistGame } from 'flashpoint-launcher';
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
 import { AboutPage, AboutPageProps } from './components/pages/AboutPage';
@@ -59,7 +58,7 @@ export type AppRouterProps = {
   onSelectGame: (gameId?: string) => void;
   onUpdatePlaylist: (playlist: Playlist) => void;
   onDeletePlaylist: (playlist: Playlist) => void;
-  onSelectPlaylist: (library: string, playlistId: string | undefined) => void;
+  onSelectPlaylist: (library: string, playlistId: string | null) => void;
   wasNewGameClicked: boolean;
   gameLibrary: string;
   themeList: ITheme[];

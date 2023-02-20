@@ -2,8 +2,6 @@ import { ApiEmitter } from '@back/extensions/ApiEmitter';
 import { validateSqlName, validateSqlOrder } from '@back/util/sql';
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
-import { Playlist } from '@database/entity/Playlist';
-import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { PageKeyset, PageTuple, RequestGameRange, ResponseGameRange, ViewGame } from '@shared/back/types';
@@ -12,7 +10,7 @@ import { FilterGameOpts } from '@shared/game/GameFilter';
 import { tagSort } from '@shared/Util';
 import * as Coerce from '@shared/utils/Coerce';
 import { chunkArray } from '@shared/utils/misc';
-import { GameOrderBy, GameOrderReverse } from 'flashpoint-launcher';
+import { GameOrderBy, GameOrderReverse, Playlist, PlaylistGame } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Brackets, FindOneOptions, In, SelectQueryBuilder } from 'typeorm';
@@ -212,10 +210,20 @@ export async function findGames<T extends boolean>(opts: FindGamesOpts, shallow:
     const games = (shallow)
       ? (await query.select('game.id, game.title, game.platform, game.developer, game.publisher, game.extreme, game.tagsStr').getRawMany()) as ViewGame[]
       : await query.getMany();
+    if (opts.filter?.playlist) {
+      games.sort((a, b) => {
+        if (opts.filter?.playlist) {
+          const aOrder = opts.filter.playlist.games.find(p => p.gameId === a.id)?.order || 0;
+          const bOrder = opts.filter.playlist.games.find(p => p.gameId === b.id)?.order || 0;
+          return aOrder - bOrder;
+        }
+        return 0;
+      });
+    }
     rangesOut.push({
       start: range.start,
       length: range.length,
-      games: ((opts.filter && opts.filter.playlistId)
+      games: ((opts.filter && opts.filter.playlist)
         ? games.slice(range.start, range.start + (range.length || games.length - range.start))
         : games
       ) as (T extends true ? ViewGame[] : Game[]),
@@ -329,177 +337,6 @@ export async function removeGameAndAddApps(gameId: string, dataPacksFolderPath: 
     onDidRemoveGame.fire(game);
   }
   return game;
-}
-
-export async function findPlaylist(playlistId: string, join?: boolean): Promise<Playlist | null> {
-  const opts: FindOneOptions<Playlist> = join ? { relations: ['games'] } : {};
-  const playlistRepository = AppDataSource.getRepository(Playlist);
-  return playlistRepository.findOne({
-    ...opts,
-    where: {
-      id: playlistId
-    }
-  });
-}
-
-export async function findPlaylistByName(playlistName: string, join?: boolean): Promise<Playlist | null> {
-  const opts: FindOneOptions<Playlist> = join ? {
-    relations: ['games'],
-    where: {
-      title: playlistName
-    }
-  } : {
-    where: {
-      title: playlistName
-    }
-  };
-  const playlistRepository = AppDataSource.getRepository(Playlist);
-  return playlistRepository.findOne(opts);
-}
-
-/**
- * Returns all playlists
- *
- * @param showExtreme Include playlists marked as Extreme
- */
-export async function findPlaylists(showExtreme: boolean): Promise<Playlist[]> {
-  const playlistRepository = AppDataSource.getRepository(Playlist);
-  if (showExtreme) {
-    return await playlistRepository.find();
-  } else {
-    return await playlistRepository.find({ where: { extreme: false }});
-  }
-}
-
-/**
- * Removes a playlist
- *
- * @param playlistId ID of playlist to remove
- */
-export async function removePlaylist(playlistId: string): Promise<Playlist | undefined> {
-  const playlistRepository = AppDataSource.getRepository(Playlist);
-  const playlistGameRepository = AppDataSource.getRepository(PlaylistGame);
-  const playlist = await findPlaylist(playlistId);
-  if (playlist) {
-    await playlistGameRepository.delete({ playlistId: playlist.id });
-    return playlistRepository.remove(playlist);
-  }
-}
-
-/**
- * Updates a playlist
- *
- * @param playlist Playlist to update
- */
-export async function updatePlaylist(playlist: Playlist): Promise<Playlist> {
-  const playlistRepository = AppDataSource.getRepository(Playlist);
-  const savedPlaylist = await playlistRepository.save(playlist);
-  if (savedPlaylist) { onDidUpdatePlaylist.fire({oldPlaylist: playlist, newPlaylist: savedPlaylist}); }
-  return savedPlaylist;
-}
-
-/**
- * Finds a Playlist Game. An object linked Games to Playlists.
- * Playlist Game also contains playlist specific info for games, like notes.
- *
- * @param playlistId Playlist to search
- * @param gameId Game ID to find in Playlist
- */
-export async function findPlaylistGame(playlistId: string, gameId: string): Promise<PlaylistGame | null> {
-  const playlistGameRepository = AppDataSource.getRepository(PlaylistGame);
-  return await playlistGameRepository.findOneBy({ gameId, playlistId });
-}
-
-/**
- * Removes a Playlist Game
- *
- * @param playlistId Playlist ID to search
- * @param gameId Game ID to remove from Playlist
- */
-export async function removePlaylistGame(playlistId: string, gameId: string): Promise<PlaylistGame | null> {
-  const playlistGameRepository = AppDataSource.getRepository(PlaylistGame);
-  const playlistGame = await findPlaylistGame(playlistId, gameId);
-  if (playlistGame) {
-    onDidRemovePlaylistGame.fire(playlistGame);
-    await playlistGameRepository.remove(playlistGame);
-
-    const playlistRepository = AppDataSource.getRepository(Playlist);
-    const playlist = await playlistRepository.findOneBy({ id: playlistId });
-    if (playlist) {
-      onDidUpdatePlaylist.fire({ oldPlaylist: playlist, newPlaylist: playlist });
-    }
-  }
-  return null;
-}
-
-/**
- * Adds a Game to the end of a Playlist
- *
- * @param playlistId Playlist ID to add to
- * @param gameId ID of Game to add
- */
-export async function addPlaylistGame(playlistId: string, gameId: string): Promise<void> {
-  const repository = AppDataSource.getRepository(PlaylistGame);
-
-  const duplicate = await repository.createQueryBuilder()
-  .where('playlistId = :playlistId', { playlistId })
-  .andWhere('gameId = :gameId', { gameId })
-  .getOne();
-
-  if (duplicate) { return; }
-
-  const highestOrder = await repository.createQueryBuilder('pg')
-  .where('pg.playlistId = :playlistId', { playlistId })
-  .orderBy('pg.order', 'DESC')
-  .select('pg.order')
-  .getOne();
-
-  const pg = await repository.save<PlaylistGame>({
-    gameId: gameId,
-    playlistId: playlistId,
-    order: highestOrder ? highestOrder.order + 1 : 0,
-    notes: '',
-  });
-
-  onDidUpdatePlaylistGame.fire({oldGame: pg, newGame: pg});
-  const playlistRepository = AppDataSource.getRepository(Playlist);
-  const playlist = await playlistRepository.findOneBy({ id: playlistId });
-  if (playlist) {
-    onDidUpdatePlaylist.fire({ oldPlaylist: playlist, newPlaylist: playlist });
-  }
-
-}
-
-/**
- * Updates a Game on a Playlist.
- *
- * @param playlistGame Data to update
- */
-export async function updatePlaylistGame(playlistGame: PlaylistGame): Promise<PlaylistGame> {
-  const playlistGameRepository = AppDataSource.getRepository(PlaylistGame);
-  const savedPlaylistGame = await playlistGameRepository.save(playlistGame);
-  onDidUpdatePlaylistGame.fire({oldGame: playlistGame, newGame: savedPlaylistGame });
-
-  const playlistRepository = AppDataSource.getRepository(Playlist);
-  const playlist = await playlistRepository.findOneBy({ id: savedPlaylistGame.playlistId });
-  if (playlist) {
-    onDidUpdatePlaylist.fire({ oldPlaylist: playlist, newPlaylist: playlist });
-  }
-
-  return savedPlaylistGame;
-}
-
-/**
- * Updates a collection of Games in Playlists
- *
- * @param playlistGames List of data to update
- */
-export async function updatePlaylistGames(playlistGames: PlaylistGame[]): Promise<void> {
-  return AppDataSource.transaction(async transEntityManager => {
-    for (const game of playlistGames) {
-      await transEntityManager.save(PlaylistGame, game);
-    }
-  });
 }
 
 export async function findGamesWithTag(tag: Tag): Promise<Game[]> {
@@ -667,7 +504,7 @@ async function getGameQuery(
   const query = AppDataSource.getRepository(Game).createQueryBuilder(alias);
 
   // Use Page Index if available (ignored for Playlists)
-  if ((!filterOpts || !filterOpts.playlistId) && index) {
+  if ((!filterOpts || !filterOpts.playlist) && index) {
     const comparator = direction === 'ASC' ? '>' : '<';
     if (!orderBy) { throw new Error('Failed to get game query. "index" is set but "orderBy" is missing.'); }
     query.where(`(${alias}.${orderBy}, ${alias}.title, ${alias}.id) ${comparator} (:orderVal, :title, :id)`, { orderVal: index.orderVal, title: index.title, id: index.id });
@@ -683,12 +520,9 @@ async function getGameQuery(
   if (!index && offset) { query.skip(offset); }
   if (limit) { query.take(limit); }
   // Playlist filtering
-  if (filterOpts && filterOpts.playlistId) {
-    query.innerJoin(PlaylistGame, 'pg', `pg.gameId = ${alias}.id`);
-    query.orderBy('pg.order', 'ASC');
-    if (whereCount === 0) { query.where('pg.playlistId = :playlistId', { playlistId: filterOpts.playlistId }); }
-    else                  { query.andWhere('pg.playlistId = :playlistId', { playlistId: filterOpts.playlistId }); }
-    query.skip(offset); // TODO: Why doesn't offset work here?
+  if (filterOpts && filterOpts.playlist) {
+    const gameIds = filterOpts.playlist.games.map(g => g.gameId).filter(gameId => !!gameId) as string[];
+    query.where(`${alias}.id IN (:...playlistGameIds)`, { playlistGameIds: gameIds });
   }
   // Tag filtering
   if (filterOpts && filterOpts.searchQuery) {

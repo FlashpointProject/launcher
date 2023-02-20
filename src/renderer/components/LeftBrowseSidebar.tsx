@@ -1,5 +1,5 @@
-import { Playlist } from '@database/entity/Playlist';
 import { memoizeOne } from '@shared/memoize';
+import { Playlist } from 'flashpoint-launcher';
 import * as React from 'react';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { gameIdDataType } from '../Util';

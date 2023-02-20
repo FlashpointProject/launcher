@@ -1,5 +1,5 @@
 import { Game } from '@database/entity/Game';
-import { GameOrderBy, GameOrderReverse } from 'flashpoint-launcher';
+import { GameOrderBy, GameOrderReverse, Playlist } from 'flashpoint-launcher';
 
 const blacklistFields = ['not', 'no', 'missing'];
 const whitelistFields = ['is', 'has'];
@@ -149,7 +149,7 @@ export type FilterGameOpts = {
   /** Search Limit (0 if disabled */
   searchLimit?: number;
   /** Playlist to limit the results to (no playlist limit will be applied if undefined). */
-  playlistId?: string;
+  playlist?: Playlist;
 };
 
 export type OrderGamesOpts = {

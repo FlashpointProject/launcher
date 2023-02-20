@@ -175,15 +175,15 @@ declare module 'flashpoint-launcher' {
          * @param playlistId ID of the Playlist
          * @param join Whether to include Playlist Games in the result
          */
-        function findPlaylist(playlistId: string, join?: boolean): Promise<Playlist | null>;
+        function findPlaylist(playlistId: string, join?: boolean): Playlist;
         /**
          * Finds a playlist given its name
          * @param playlistName Name of the Playlist
          * @param join Whether to include Playlist Games in the result
          */
-        function findPlaylistByName(playlistName: string, join?: boolean): Promise<Playlist | null>;
+        function findPlaylistByName(playlistName: string, join?: boolean): Playlist;
         /** Find all Playlists in the database (Playlist Games not returned) */
-        function findPlaylists(showExtreme: boolean): Promise<Playlist[]>;
+        function findPlaylists(showExtreme: boolean): Playlist[];
         /**
          * Updates / Creates a Playlist
          * @param playlist Playlist data to save
@@ -213,12 +213,7 @@ declare module 'flashpoint-launcher' {
          * Update / Create a Playlist Game entry
          * @param playlistGame Playlist Game entry to save
          */
-        function updatePlaylistGame(playlistGame: PlaylistGame): Promise<PlaylistGame>;
-        /**
-         * Update / Create many Playlist Game entries in a transaction
-         * @param playlistGames Playlist Game entries to save
-         */
-        function updatePlaylistGames(playlistGames: PlaylistGame[]): Promise<void>;
+        function updatePlaylistGame(playlistId: string, playlistGame: PlaylistGame): Promise<PlaylistGame>;
         /**
          * Adds a Game to a Playlist
          * @param playlistId Playlist to add the Game to
@@ -267,12 +262,6 @@ declare module 'flashpoint-launcher' {
          * @param library Library to search
          */
         function findPlatforms(library: string): Promise<string[]>;
-        /**
-         * Parses a Playlist JSON file and returns an object you can save later.
-         * @param jsonData Raw JSON data of the Playlist file
-         * @param library Library to use instead of Playlist defined library
-         */
-        function createPlaylistFromJson(jsonData: any, library?: string): Playlist;
         /**
          * Returns whether a game is extreme based on its tags.
          * @param game Game to check
@@ -722,6 +711,8 @@ declare module 'flashpoint-launcher' {
     };
 
     type Playlist = {
+        /** Path to the playlist file */
+        filePath: string;
         /** ID of the playlist (unique identifier) */
         id: string;
         /** Games in this playlist */
@@ -741,20 +732,12 @@ declare module 'flashpoint-launcher' {
     };
 
     type PlaylistGame = {
-        /** Internal ID of the playlist game entry */
-        id?: string;
-        /** Playlist which owns this game (either ID or Playlist will exist) */
-        playlistId?: string;
-        /** Playlist which owns this game (either ID or Playlist will exist) */
-        playlist?: Playlist;
         /** Order priority of the game in the playlist */
         order: number;
         /** Notes for the game inside the playlist specifically */
         notes: string;
-        /** Game this represents (either ID or Game will exist) */
-        gameId?: string;
-        /** Game this represents (either ID or Game will exist) */
-        game?: Game;
+        /** Game this represents */
+        gameId: string;
     };
 
     /**
@@ -813,7 +796,7 @@ declare module 'flashpoint-launcher' {
         /** Search query to filter by */
         searchQuery?: ParsedSearch;
         /** Playlist to limit the results to (no playlist limit will be applied if undefined). */
-        playlistId?: string;
+        playlist?: Playlist;
     };
 
     /** Object representation of a parsed search query. */

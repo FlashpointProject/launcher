@@ -1,7 +1,5 @@
 import { Game } from '@database/entity/Game';
 import { GameData } from '@database/entity/GameData';
-import { Playlist } from '@database/entity/Playlist';
-import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { CreditsData } from '@renderer/credits/types';
 import { ViewGameSet } from '@renderer/interfaces';
 import { UpgradeStage } from '@renderer/upgrade/types';
@@ -14,7 +12,7 @@ import { ITheme, Theme } from '@shared/ThemeFile';
 import { Gate } from '@shared/utils/Gate';
 import * as axiosImport from 'axios';
 import { UpdateInfo } from 'electron-updater';
-import { AppPreferencesData, GameOrderBy, GameOrderReverse, TagFilterGroup } from 'flashpoint-launcher';
+import { AppPreferencesData, GameOrderBy, GameOrderReverse, Playlist, PlaylistGame, TagFilterGroup } from 'flashpoint-launcher';
 import { MainActionType, RequestState } from './enums';
 
 export type View = {
@@ -158,7 +156,7 @@ export type MainAction = {
   orderReverse: GameOrderReverse;
   tagFilters: TagFilterGroup[];
   /** The playlistId can be of type string or undefined. Null means it will remain the same as before. */
-  playlistId: string | undefined | null;
+  playlist?: Playlist | null;
 } | {
   type: MainActionType.SET_VIEW_BOUNDRIES;
   library: string;

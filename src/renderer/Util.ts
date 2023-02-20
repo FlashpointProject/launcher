@@ -2,7 +2,7 @@ import { Game } from '@database/entity/Game';
 import { BackIn } from '@shared/back/types';
 import { parseSearchText } from '@shared/game/GameFilter';
 import { getFileServerURL } from '@shared/Util';
-import { TagFilterGroup } from 'flashpoint-launcher';
+import { Playlist, TagFilterGroup } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as path from 'path';
 import { GameOrderChangeEvent } from './components/GameOrder';
@@ -263,7 +263,7 @@ type RebuildQueryOpts = {
   extreme: boolean;
   library: string;
   searchLimit: number;
-  playlistId: string | undefined;
+  playlist?: Playlist;
   order: GameOrderChangeEvent;
   tagFilters: TagFilterGroup[];
 }
@@ -285,7 +285,7 @@ export function rebuildQuery(opts: RebuildQueryOpts): ViewQuery {
     extreme: opts.extreme,
     filter: {
       searchQuery: searchQuery,
-      playlistId: opts.playlistId,
+      playlist: opts.playlist,
     },
     searchLimit: opts.searchLimit,
     orderBy: opts.order.orderBy,

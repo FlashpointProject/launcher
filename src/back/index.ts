@@ -2,8 +2,6 @@ import * as GameDataManager from '@back/game/GameDataManager';
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
 import { GameData } from '@database/entity/GameData';
-import { Playlist } from '@database/entity/Playlist';
-import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
@@ -85,14 +83,15 @@ import { LogFile } from './util/LogFile';
 import { logFactory } from './util/logging';
 import { createContainer, exit, getMacPATH, runService } from './util/misc';
 import { uuid } from './util/uuid';
-// Required for the DB Models to function
+import { RemovePlaylist1676713895000 } from '@database/migration/1676713895000-RemovePlaylist';
+import { PlaylistFile } from './PlaylistFile';
 
 const dataSourceOptions: DataSourceOptions = {
   type: 'better-sqlite3',
   database: ':memory:',
-  entities: [Game, AdditionalApp, Playlist, PlaylistGame, Tag, TagAlias, TagCategory, GameData],
+  entities: [Game, AdditionalApp, Tag, TagAlias, TagCategory, GameData],
   migrations: [Initial1593172736527, AddExtremeToPlaylist1599706152407, GameData1611753257950, SourceDataUrlPath1612434225789, SourceFileURL1612435692266,
-    SourceFileCount1612436426353, GameTagsStr1613571078561, GameDataParams1619885915109, RemoveSources1676712700000]
+    SourceFileCount1612436426353, GameTagsStr1613571078561, GameDataParams1619885915109, RemoveSources1676712700000, RemovePlaylist1676713895000]
 };
 export let AppDataSource: DataSource = new DataSource(dataSourceOptions);
 
@@ -488,6 +487,20 @@ async function prepForInit(message: any): Promise<void> {
 
   console.log('Back - Initialized Languages');
 
+  // Load Playlists
+
+  const playlistDir = path.join(state.config.flashpointPath, state.preferences.playlistFolderPath);
+  const playlistFiles = await fs.promises.readdir(playlistDir, { withFileTypes: true });
+  for (const file of playlistFiles.filter(f => f.isFile() && f.name.endsWith('.json'))) {
+    const playlist = await PlaylistFile.readFile(path.join(playlistDir, file.name), (err) => {
+      console.error('Launcher', `Failed to load Playlist ${file.name}, ERROR:\n${err}`);
+    });
+    state.playlists.push(playlist);
+  }
+  console.log('Back. Parsed Playlists');
+
+  // Load Extensions
+
   await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.extensionsPath));
   state.extensionsService = new ExtensionService(state.config, path.join(state.config.flashpointPath, state.preferences.extensionsPath));
   await state.extensionsService.installedExtensionsReady.wait();
@@ -622,6 +635,7 @@ async function initialize() {
     await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.themeFolderPath));
     await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.logoSetsFolderPath));
     await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.metaEditsFolderPath));
+    await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.playlistFolderPath));
     await fs.ensureDir(path.join(state.config.flashpointPath, CURATIONS_FOLDER_EXTRACTING));
     await fs.ensureDir(path.join(state.config.flashpointPath, CURATIONS_FOLDER_TEMP));
     await fs.ensureDir(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING));
@@ -660,35 +674,6 @@ async function initialize() {
     }
     return next();
   });
-
-  // @TEST Example Middleware
-  // const mTest = (ctx: ContextMiddlewareRes, next: Next) => {
-  //   const stringify = (type: BackRes) => {
-  //     if (BackOut[type]) {
-  //       return `BackOut.${BackOut[type]}`;
-  //     } else {
-  //       return `BackIn.${BackIn[type]}`;
-  //     }
-  //   };
-  //   if (ctx.type !== BackOut.LOG_ENTRY_ADDED) {
-  //     if (ctx.type === BackOut.CURATE_LIST_CHANGE) {
-  //       log.debug('TEST', `Middleware FOUND ${stringify(ctx.type)}`);
-  //       if (ctx.args) {
-  //         const [ added, removed ] = ctx.args as BackResParams<typeof ctx.type>;
-  //         if (added) {
-  //           log.debug('TEST', `New Curations: ${added.map(a => JSON.stringify(a, undefined, 2))}`);
-  //         }
-  //         if (removed) {
-  //           log.debug('TEST', `New Curations: ${removed.map(a => JSON.stringify(a, undefined, 2))}`);
-  //         }
-  //       }
-  //     } else {
-  //       log.debug('TEST', `Middleware ignored: ${stringify(ctx.type)}`);
-  //     }
-  //   }
-  //   return next();
-  // };
-  // state.socketServer.registerMiddlewareBackOut(mTest);
 
   // Create Game Data Directory and clean up temp files
   const fullDataPacksFolderPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath);

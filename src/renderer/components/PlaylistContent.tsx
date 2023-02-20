@@ -1,4 +1,3 @@
-import { Playlist } from '@database/entity/Playlist';
 import { LangContainer } from '@shared/lang';
 import * as React from 'react';
 import { LangContext } from '../util/lang';
@@ -6,6 +5,7 @@ import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { InputElement, InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { CheckBox } from './CheckBox';
+import { Playlist } from 'flashpoint-launcher';
 
 export type PlaylistItemContentProps = {
   editingDisabled: boolean;

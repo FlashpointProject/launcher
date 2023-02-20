@@ -1,5 +1,4 @@
 import { Game } from '@database/entity/Game';
-import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
 import * as remote from '@electron/remote';
@@ -15,7 +14,7 @@ import axios from 'axios';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
 import { clipboard, Menu, MenuItemConstructorOptions } from 'electron';
-import { GameData } from 'flashpoint-launcher';
+import { GameData, PlaylistGame } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as React from 'react';
 import { WithPreferencesProps } from '../containers/withPreferences';
