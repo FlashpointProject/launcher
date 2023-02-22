@@ -1,12 +1,13 @@
 import { BackInit } from '@shared/back/types';
 
 export type SplashScreenProps = {
+  quitting: boolean,
   loadedAll: boolean;
   loaded: { [key in BackInit]: boolean; };
 }
 
 export function SplashScreen(props: SplashScreenProps) {
-  const extraClass = (props.loadedAll)
+  const extraClass = (props.loadedAll && !props.quitting)
     ? ' splash-screen--fade-out'
     : '';
 
@@ -17,7 +18,7 @@ export function SplashScreen(props: SplashScreenProps) {
       </div>
       <div className='splash-screen__status-block'>
         <div className='splash-screen__status-header'>
-          Loading
+          { props.quitting ? 'Closing Down' : 'Loading' }
         </div>
         { !props.loaded[BackInit.DATABASE] ? (
           <div className='splash-screen__status'>

@@ -141,6 +141,10 @@ export type MainState = {
   socketOpen: boolean;
   /** Main Proc output (when requested) */
   mainOutput?: string;
+  /** List of components ready to update */
+  componentUpdates: string[];
+  /** In the process of quitting, suspend all action */
+  quitting: boolean;
 }
 
 export type MainAction = {

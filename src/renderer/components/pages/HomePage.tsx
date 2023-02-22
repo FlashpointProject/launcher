@@ -50,6 +50,9 @@ type OwnProps = {
   /** Raw HTML of the Update page grabbed */
   updateFeedMarkdown: string;
   selectedGameId?: string;
+  /** List of components that are ready to be updated */
+  componentUpdates: string[];
+  openFlashpointManager: () => void;
 };
 
 export type HomePageProps = OwnProps & WithPreferencesProps & WithSearchProps;
@@ -191,6 +194,30 @@ export function HomePage(props: HomePageProps) {
   // (These are kind of "magic numbers" and the CSS styles are designed to fit with them)
   const height = 140;
   const width: number = (height * 0.666) | 0;
+
+  const renderedUpdateButton = React.useMemo(() => {
+    if (props.componentUpdates.length > 0) {
+      return (
+        <div className='home-page__update-button-container'>
+          <SimpleButton
+            className='home-page__update-button'
+            onClick={props.openFlashpointManager}
+            value={formatString(strings.componentUpdatesReady, props.componentUpdates.length.toString())}>
+          </SimpleButton>
+        </div>
+      );
+    } else {
+      return (
+        <div className='home-page__update-button-container'>
+          <SimpleButton
+            className='home-page__update-button'
+            disabled={true}
+            value={strings.componentUpToDate}>
+          </SimpleButton>
+        </div>
+      );
+    }
+  }, [props.componentUpdates]);
 
   const renderedQuickStart = React.useMemo(() => {
     const render = (
@@ -369,7 +396,7 @@ export function HomePage(props: HomePageProps) {
     );
   }, [parsedGotdList, props.selectedGameId, extremeIconPath, loadedGotd, props.preferencesData.minimizedHomePageBoxes, selectedGotd]);
 
-  const renderedUpdateFeed = React.useMemo(() => {
+  const renderedNewsFeed = React.useMemo(() => {
     if (props.updateFeedMarkdown) {
       const markdownRender =
         <ReactMarkdown remarkPlugins={[remarkGfm]} linkTarget={'_blank'}>
@@ -391,6 +418,8 @@ export function HomePage(props: HomePageProps) {
   return React.useMemo(() => (
     <div className='home-page simple-scroll'>
       <div className='home-page__inner'>
+        {/* Update Button */}
+        { renderedUpdateButton }
         {/* Logo */}
         <div className='home-page__logo fp-logo-box'>
           <FancyAnimation
@@ -403,8 +432,8 @@ export function HomePage(props: HomePageProps) {
               <div className='fp-logo'/>
             )}/>
         </div>
-        {/* Update Feed */}
-        { renderedUpdateFeed }
+        {/* News Feed */}
+        { renderedNewsFeed }
         {/* Game of the Day */}
         { renderedGotd }
         {/* Quick Start */}
@@ -417,7 +446,7 @@ export function HomePage(props: HomePageProps) {
         { renderedExtras }
       </div>
     </div>
-  ), [renderedQuickStart, renderedExtras, renderedNotes, renderedRandomGames, renderedUpdateFeed, renderedGotd]);
+  ), [renderedQuickStart, renderedExtras, renderedNotes, renderedRandomGames, renderedNewsFeed, renderedGotd, renderedUpdateButton]);
 }
 
 function QuickStartItem(props: { icon?: OpenIconType, className?: string, children?: React.ReactNode }): JSX.Element {

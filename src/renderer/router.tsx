@@ -76,6 +76,8 @@ export type AppRouterProps = {
   logoVersion: number,
   updateFeedMarkdown: string,
   manualUrl: string,
+  componentUpdates: string[],
+  openFlashpointManager: () => void,
 };
 
 export class AppRouter extends React.Component<AppRouterProps> {
@@ -94,7 +96,9 @@ export class AppRouter extends React.Component<AppRouterProps> {
       rollRandomGames: this.props.rollRandomGames,
       logoVersion: this.props.logoVersion,
       updateFeedMarkdown: this.props.updateFeedMarkdown,
-      selectedGameId: this.props.selectedGameId
+      selectedGameId: this.props.selectedGameId,
+      componentUpdates: this.props.componentUpdates,
+      openFlashpointManager: this.props.openFlashpointManager,
     };
     const browseProps: ConnectedBrowsePageProps = {
       games: this.props.games,

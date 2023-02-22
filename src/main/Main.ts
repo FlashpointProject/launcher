@@ -134,6 +134,7 @@ export function main(init: Init): void {
     // Add Socket event listener(s)
     state.socket.register(BackOut.QUIT, () => {
       state.isQuitting = true;
+      state.socket.allowDeath();
       app.quit();
     });
 

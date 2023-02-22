@@ -82,6 +82,7 @@ export type BackState = {
   prefsQueue: EventQueue;
   logsWindowProc?: ManagedChildProcess;
   pathVar?: string;
+  componentUpdates: string[];
 }
 
 export type BackQueryChache = {

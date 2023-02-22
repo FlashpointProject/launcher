@@ -137,6 +137,7 @@ export enum BackIn {
   UPLOAD_LOG,
   SET_EXT_CONFIG_VALUE,
   FETCH_DIAGNOSTICS,
+  OPEN_FLASHPOINT_MANAGER,
 }
 
 export enum BackOut {
@@ -318,6 +319,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.UPLOAD_LOG]: () => string | undefined;
   [BackIn.SET_EXT_CONFIG_VALUE]: (key: string, value: any) => void;
   [BackIn.FETCH_DIAGNOSTICS]: () => string;
+  [BackIn.OPEN_FLASHPOINT_MANAGER]: () => void;
 }>
 
 export type BackOutTemplate = SocketTemplate<BackOut, {
@@ -450,6 +452,7 @@ export type GetRendererLoadedDataResponse = {
   tagCategories: TagCategory[];
   logoSets: LogoSet[];
   updateFeedMarkdown: string;
+  componentUpdates: string[];
 }
 
 export type GetRendererInitDataResponse = {
@@ -457,28 +460,11 @@ export type GetRendererInitDataResponse = {
   preferences: AppPreferencesData;
   fileServerPort: number;
   log: ILogEntry[];
-  // services: IService[];
   customVersion?: string;
   languages: LangFile[];
   language: LangContainer;
   themes: Theme[];
-  // libraries: string[];
-  // suggestions: GamePropSuggestions;
-  // serverNames: string[];
-  // mad4fpEnabled: boolean;
-  // platforms: Record<string, string[]>;
-  // playlists: Playlist[];
   localeCode: string;
-  // tagCategories: TagCategory[];
-  // extensions: IExtensionDescription[];
-  // devScripts: ExtensionContribution<'devScripts'>[];
-  // contextButtons: ExtensionContribution<'contextButtons'>[];
-  // curationTemplates: ExtensionContribution<'curationTemplates'>[];
-  // logoSets: LogoSet[];
-  // extConfigs: ExtensionContribution<'configuration'>[];
-  // extConfig: AppExtConfigData;
-  // updateFeedMarkdown: string;
-  // curations: CurationState[];
 }
 
 export type GetSuggestionsResponseData = {

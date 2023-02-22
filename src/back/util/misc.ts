@@ -108,10 +108,15 @@ export function createContainer(languages: LangFile[], currentCode: string, auto
  * Exit the back process cleanly.
  *
  * @param state Current back state
+ * @param beforeProcessExit Function to call right before process exits
  */
-export async function exit(state: BackState): Promise<void> {
+export async function exit(state: BackState, beforeProcessExit?: () => void | Promise<void>): Promise<void> {
   if (!state.isExit) {
     state.isExit = true;
+    console.log('Exiting...');
+    // Unload all extensions before quitting
+    await state.extensionsService.unloadAll();
+    console.log(' - Extensions Unloaded');
 
     if (state.serviceInfo) {
       // Kill services
@@ -134,15 +139,14 @@ export async function exit(state: BackState): Promise<void> {
     }
     console.log(' - Watchers Aborted');
 
-    Promise.all([
-      // Close WebSocket server
-      state.socketServer.close()
-      .catch(e => { console.error(e); }),
+    await Promise.all([
       // Close file server
-      new Promise<void>(resolve => state.fileServer.server.close(error => {
+      new Promise<void>(resolve => state.fileServer.close(error => {
         if (error) { console.warn('An error occurred while closing the file server.', error); }
         resolve();
-      })),
+      })).then(() => {
+        console.log(' - File Server Closed');
+      }),
       // Wait for preferences writes to complete
       state.prefsQueue.push(() => {}, true),
       // Wait for game manager to complete all saves
@@ -162,8 +166,17 @@ export async function exit(state: BackState): Promise<void> {
           }
         }
       })(),
-    ]).then(() => {
+    ]).then(async () => {
       console.log(' - Cleanup Complete, Exiting Process...');
+      if (beforeProcessExit) {
+        console.log(' - Executing callback before process exit...');
+        await beforeProcessExit();
+      }
+      await state.socketServer.broadcast(BackOut.QUIT);
+      console.log(' - Quit Broadcast Sent');
+      // Close WebSocket server
+      state.socketServer.close()
+      .catch(e => { console.error(e); }),
       process.exit();
     });
   }

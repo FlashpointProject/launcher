@@ -115,6 +115,8 @@ const langTemplate = {
     'linuxSupportLinkText',
     'randomPicks',
     'rerollPicks',
+    'componentUpToDate',
+    'componentUpdatesReady',
   ] as const,
   logs: [
     'filters',

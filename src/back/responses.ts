@@ -140,7 +140,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         return res.data;
       })
       .catch((err) => {
-        log.debug('Launcher', 'Failed to fetch update feed, ERROR: ' + err);
+        log.debug('Launcher', `Failed to fetch news feed from ${state.preferences.updateFeedUrl}, ERROR: ${err}`);
         return '';
       });
     } else {
@@ -187,7 +187,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       suggestions: state.suggestions,
       logoSets: Array.from(state.registry.logoSets.values()),
       updateFeedMarkdown,
-      mad4fpEnabled: state.serviceInfo ? (state.serviceInfo.server.findIndex(s => s.mad4fp === true) !== -1) : false
+      mad4fpEnabled: state.serviceInfo ? (state.serviceInfo.server.findIndex(s => s.mad4fp === true) !== -1) : false,
+      componentUpdates: state.componentUpdates,
     };
 
     // Fire after return has sent
@@ -204,65 +205,16 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       state.preferences.fallbackLanguage
     );
 
-    // const playlists = await GameManager.findPlaylists(state.preferences.browsePageShowExtreme);
-    // const libraries = await GameManager.findUniqueValues(Game, 'library');
-    // const serverNames = state.serviceInfo ? state.serviceInfo.server.map(i => i.name || '') : [];
-    // const mad4fpEnabled = state.serviceInfo ? (state.serviceInfo.server.findIndex(s => s.mad4fp === true) !== -1) : false;
-    // const platforms: Record<string, string[]> = {};
-    // for (const library of libraries) {
-    //   platforms[library] = (await GameManager.findPlatforms(library)).sort();
-    // }
-
-    // Fire after return has sent
-    // setTimeout(() => state.apiEmitters.onDidConnect.fire(), 100);
-
-    // Fetch update feed
-    // let updateFeedMarkdown = '';
-    // if (state.preferences.updateFeedUrl) {
-    //   updateFeedMarkdown = await axios.get(state.preferences.updateFeedUrl, { timeout: 3000 })
-    //   .then((res) => {
-    //     return res.data;
-    //   })
-    //   .catch((err) => {
-    //     log.debug('Launcher', 'Failed to fetch update feed, ERROR: ' + err);
-    //     return '';
-    //   });
-    // } else {
-    //   log.debug('Launcher', 'No Update Feed URL specified');
-    // }
-
     return {
       preferences: state.preferences,
       config: state.config,
       fileServerPort: state.fileServerPort,
       log: state.log,
-      // services: Array.from(state.services.values()).map(s => procToService(s)),
       customVersion: state.customVersion,
       languages: state.languages,
       language: state.languageContainer,
       themes: Array.from(state.registry.themes.values()),
-      // playlists: playlists,
-      // libraries: libraries,
-      // suggestions: state.suggestions,
-      // serverNames: serverNames,
-      // mad4fpEnabled: mad4fpEnabled,
-      // platforms: platforms,
       localeCode: state.localeCode,
-      // tagCategories: await TagManager.findTagCategories(),
-      // extensions: (await state.extensionsService.getExtensions()).map(e => {
-      //   return {
-      //     id: e.id,
-      //     ...e.manifest
-      //   };
-      // }),
-      // devScripts: await state.extensionsService.getContributions('devScripts'),
-      // contextButtons: await state.extensionsService.getContributions('contextButtons'),
-      // curationTemplates: await state.extensionsService.getContributions('curationTemplates'),
-      // logoSets: Array.from(state.registry.logoSets.values()),
-      // extConfigs: await state.extensionsService.getContributions('configuration'),
-      // extConfig: state.extConfig,
-      // updateFeedMarkdown: updateFeedMarkdown,
-      // curations: state.loadedCurations,
     };
 
   });
@@ -1355,14 +1307,18 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     return '```' + message + '```';
   });
 
+  state.socketServer.register(BackIn.OPEN_FLASHPOINT_MANAGER, async () => {
+    const cwd = state.config.flashpointPath;
+    const fpmPath = path.join(state.config.flashpointPath, 'FlashpointManager.exe');
+    console.log(fpmPath);
+    exitApp(state, async () => {
+      const child = child_process.spawn(fpmPath, { detached: true, cwd, stdio: ['ignore', 'ignore', 'ignore'] });
+      child.unref();
+    });
+  });
+
   state.socketServer.register(BackIn.QUIT, async () => {
-    console.log('Exiting...');
-    // Unload all extensions before quitting
-    await state.extensionsService.unloadAll();
-    console.log(' - Extensions Unloaded');
-    state.socketServer.broadcast(BackOut.QUIT);
-    console.log(' - Quit Broadcast Sent');
-    exit(state);
+    return exitApp(state);
   });
 
   state.socketServer.register(BackIn.EXPORT_META_EDIT, async (event, id, properties) => {
@@ -2093,4 +2049,14 @@ function changeServerFactory(state: BackState): (server?: string) => Promise<voi
       }
     }
   };
+}
+
+/**
+ * Exits the Flashpoint Launcher safely
+ *
+ * @param state Back State
+ * @param beforeProcessExit Function to call right before process exit
+ */
+async function exitApp(state: BackState, beforeProcessExit?: () => void | Promise<void>) {
+  return exit(state, beforeProcessExit);
 }

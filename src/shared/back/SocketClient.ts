@@ -23,6 +23,9 @@ type AnyCallback<T, U extends number> = (event: T, type: U, args: any[]) => void
 export class SocketClient<SOCKET extends BaseSocket> {
   api: SocketAPIData<BackOut, BackOutTemplate, EVENT> = create_api();
 
+  /** If true, do not attempt to reconnect */
+  abortReconnects = false;
+
   client: SocketServerClient<BackIn, BackInTemplate, SOCKET> = {
     id: -1, // Unused (only used by servers)
     next_id: 0,
@@ -181,6 +184,10 @@ export class SocketClient<SOCKET extends BaseSocket> {
     server_send(this.client, type, ...args);
   }
 
+  allowDeath(): void {
+    this.abortReconnects = true;
+  }
+
   // Event Handlers
 
   protected async onMessage(event: EVENT): Promise<void> {
@@ -234,11 +241,15 @@ export class SocketClient<SOCKET extends BaseSocket> {
   }
 
   protected onClose(event: CloseEvent): void {
-    console.log(`SharedSocket Closed (Code: ${event.code}, Clean: ${event.wasClean}, Reason: "${event.reason}", URL: "${this.url}").`);
-    if (this.onStateChange) {
-      this.onStateChange(false);
+    if (this.abortReconnects) {
+      console.log('Socket Client - Connection closed.');
+    } else {
+      console.log(`SharedSocket Closed (Code: ${event.code}, Clean: ${event.wasClean}, Reason: "${event.reason}", URL: "${this.url}").`);
+      if (this.onStateChange) {
+        this.onStateChange(false);
+      }
+      this.reconnect();
     }
-    this.reconnect();
   }
 
   // Static

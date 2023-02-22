@@ -107,7 +107,9 @@
     "linuxSupport": "Issues on Linux? {0}",
     "linuxSupportLinkText": "Open FAQ",
     "randomPicks": "Random Picks",
-    "rerollPicks": "Re-Roll Picks"
+    "rerollPicks": "Re-Roll Picks",
+    "componentUpdatesReady": "{0} component updates ready",
+    "componentUpToDate": "Flashpoint is up to date"
   },
   "logs": {
     "filters": "Filters",

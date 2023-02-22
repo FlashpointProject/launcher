@@ -2,16 +2,23 @@ import * as http from 'http';
 import * as fs from 'fs';
 import * as mime from 'mime';
 import * as path from 'path';
+import { Socket } from 'net';
 
 type HandlerFunc = (relativePathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse) => any;
 
 export class FileServer {
   server: http.Server;
   private handlers: Map<string, HandlerFunc>;
+  private sockets = new Set<Socket>();
 
   constructor() {
     this.handlers = new Map();
     this.server = new http.Server(this.onHandleRequest);
+    // Track all sockets so we can kill them later
+    this.server.on('connection', socket => {
+      this.sockets.add(socket);
+      socket.once('close', () => this.sockets.delete(socket)); // Stop tracking closed sockets
+    });
   }
 
   public registerRequestHandler = (region: string, callback: HandlerFunc) => {
@@ -23,8 +30,9 @@ export class FileServer {
     this.handlers.set(region.toLowerCase(), callback);
   };
 
-  public close = () => {
-    this.server.close();
+  public close = (onError?: (err?: Error) => void) => {
+    for (const socket of this.sockets) { socket.destroy();}
+    this.server.close(onError);
     this.handlers.clear();
   };
 

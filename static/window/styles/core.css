@@ -832,6 +832,12 @@ body {
   display: inline-flex;
   flex-wrap: wrap;
 }
+.home-page__update-button-container {
+  position: fixed;
+  left: 0;
+  margin: 0 0 0 0.5rem;
+  font-size: 1.75em;
+}
 .random-games {
   display: flex;
   justify-content: space-between;
@@ -2543,6 +2549,7 @@ body {
   /* Position relative to the window - not the parent */
   position: fixed;
   top: 0;
+  z-index: 9999999999;
 }
 .splash-screen--fade-out {
   opacity: 0;
@@ -2911,7 +2918,7 @@ body {
   text-align: left;
   white-space: pre-wrap;
   overflow: auto;
-  max-height: 65vh;
+  height: 45vh;
   max-width: 80vw;
 }
 

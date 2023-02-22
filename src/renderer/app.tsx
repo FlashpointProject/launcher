@@ -452,6 +452,10 @@ export class App extends React.Component<AppProps> {
     (() => {
       let askBeforeClosing = true;
       window.onbeforeunload = (event: BeforeUnloadEvent) => {
+        if (this.props.main.quitting) {
+          return;
+        }
+        event.returnValue = false;
         const { upgrades } = this.props.main;
         let stillDownloading = false;
         for (const stage of upgrades) {
@@ -1214,6 +1218,8 @@ export class App extends React.Component<AppProps> {
       services: this.props.main.services,
       manualUrl: this.props.preferencesData.onlineManual || pathToFileUrl(path.join(window.Shared.config.fullFlashpointPath, this.props.preferencesData.offlineManual)),
       updateFeedMarkdown: this.props.main.updateFeedMarkdown,
+      componentUpdates: this.props.main.componentUpdates,
+      openFlashpointManager: this.openFlashpointManager,
     };
 
     // Render
@@ -1221,7 +1227,7 @@ export class App extends React.Component<AppProps> {
       <LangContext.Provider value={this.props.main.lang}>
         { !this.props.main.stopRender ? (
           <>
-            {/* Backend disconnect and crash report dialogs */}
+            {/* Backend Crash Log and Report */}
             { !this.props.main.socketOpen && !this.props.main.mainOutput && (
               <FloatingContainer>
                 <div className='main-output-header'>Disconnected from Backend</div>
@@ -1238,12 +1244,18 @@ export class App extends React.Component<AppProps> {
                     onClick={this.copyCrashLog}/>
                   <SimpleButton
                     value={'Restart Launcher'}
-                    onClick={window.Shared.restart}/>
+                    onClick={() => {
+                      this.props.setMainState({
+                        quitting: true
+                      });
+                      window.Shared.restart();
+                    }}/>
                 </div>
               </FloatingContainer>
             )}
             {/* Splash screen */}
             <SplashScreen
+              quitting={this.props.main.quitting}
               loadedAll={this.props.main.loadedAll.isOpen}
               loaded={this.props.main.loaded} />
             {/* Title-bar (if enabled) */}
@@ -1504,8 +1516,16 @@ export class App extends React.Component<AppProps> {
   });
 
   private unmountBeforeClose = (): void => {
-    this.props.dispatchMain({ type: MainActionType.STOP_RENDER });
-    setTimeout(() => { window.close(); }, 100);
+    setTimeout(() => {
+      window.Shared.back.allowDeath();
+      this.props.setMainState({
+        quitting: true
+      });
+      window.Shared.back.request(BackIn.QUIT)
+      .finally(() => {
+        window.close();
+      });
+    }, 100);
   };
 
   /** Convert the platforms object into a flat array of platform names (with all duplicates removed). */
@@ -1600,6 +1620,13 @@ export class App extends React.Component<AppProps> {
         });
       });
     }
+  };
+
+  openFlashpointManager = () => {
+    this.props.setMainState({
+      quitting: true
+    });
+    window.Shared.back.send(BackIn.OPEN_FLASHPOINT_MANAGER);
   };
 }
 

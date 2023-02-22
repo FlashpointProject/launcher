@@ -228,6 +228,7 @@ const state: BackState = {
   recentAppPaths: {},
   writeLocks: 0,
   prefsQueue: new EventQueue(),
+  componentUpdates: [],
 };
 
 main();
@@ -408,6 +409,25 @@ async function prepForInit(message: any): Promise<void> {
   }
 
   console.log('Back - Loaded Preferences');
+
+  // Ensure all directory structures exist
+  try {
+    await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath));
+    await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.extensionsPath));
+    await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.jsonFolderPath));
+    await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.logoFolderPath));
+    await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.imageFolderPath));
+    await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.themeFolderPath));
+    await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.logoSetsFolderPath));
+    await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.metaEditsFolderPath));
+    await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.playlistFolderPath));
+    await fs.ensureDir(path.join(state.config.flashpointPath, CURATIONS_FOLDER_EXTRACTING));
+    await fs.ensureDir(path.join(state.config.flashpointPath, CURATIONS_FOLDER_TEMP));
+    await fs.ensureDir(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING));
+    await fs.ensureDir(path.join(state.config.flashpointPath, CURATIONS_FOLDER_EXPORTED));
+  } catch (err: any) {
+    console.error('Failed to create a required directory - ' + err.toString());
+  }
 
   // Check for custom version to report
   const versionFilePath = state.isDev ? path.join(process.cwd(), 'version.txt') : path.join(state.config.flashpointPath, 'version.txt');
@@ -625,25 +645,6 @@ async function whenReady(): Promise<void> {
 async function initialize() {
   await whenReady();
 
-  // Ensure all directory structures exist
-  try {
-    await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath));
-    await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.extensionsPath));
-    await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.jsonFolderPath));
-    await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.logoFolderPath));
-    await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.imageFolderPath));
-    await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.themeFolderPath));
-    await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.logoSetsFolderPath));
-    await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.metaEditsFolderPath));
-    await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.playlistFolderPath));
-    await fs.ensureDir(path.join(state.config.flashpointPath, CURATIONS_FOLDER_EXTRACTING));
-    await fs.ensureDir(path.join(state.config.flashpointPath, CURATIONS_FOLDER_TEMP));
-    await fs.ensureDir(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING));
-    await fs.ensureDir(path.join(state.config.flashpointPath, CURATIONS_FOLDER_EXPORTED));
-  } catch (err: any) {
-    console.error('Failed to create a required directory - ' + err.toString());
-  }
-
   if (process.platform === 'darwin') {
     state.pathVar = await getMacPATH();
     console.log('Back - Started Mac PATH-reading');
@@ -723,6 +724,45 @@ async function initialize() {
     applicationPath: await GameManager.findUniqueValues(Game, 'applicationPath'),
     library: await GameManager.findUniqueValues(Game, 'library'),
   };
+
+  // Check for Flashpoint Manager Updates
+
+  const fpmPath = path.join(state.config.flashpointPath, 'fpm.exe');
+  if (fs.existsSync(fpmPath)) {
+    // FPM exists, make sure path is correct, then check for updates
+    state.componentUpdates = await new Promise<string[]>((resolve, reject) => {
+      child_process.execFile(fpmPath, ['path', path.join(state.config.flashpointPath)], { cwd: state.config.flashpointPath }, (error, stdout, stderr) => {
+        if (error) {
+          reject(error);
+        } else {
+          // Path set, check for updates
+          child_process.execFile(fpmPath, ['list', 'updates'], { cwd: state.config.flashpointPath }, (error, stdout, stderr) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(stdout.split('\n').filter(line => line !== '').map(line => line.trim()));
+            }
+          });
+        }
+      });
+    })
+    .then((updates) => {
+      if (updates.length > 0) {
+        log.info('Launcher', `Found ${updates.length} component updates.\n${updates.join('\n')}`);
+      } else {
+        log.info('Launcher', 'All components up to update');
+      }
+      return updates;
+    })
+    .catch((error) => {
+      log.error('Launcher', `Error checking for component updates: ${error}`);
+      return [];
+    });
+  } else {
+    log.info('Launcher', 'Flashpoint Manager not found, skipping component update check');
+  }
+
+  console.log('Back - Checked Component Updates');
 
   state.init[BackInit.DATABASE] = true;
   state.initEmitter.emit(BackInit.DATABASE);
