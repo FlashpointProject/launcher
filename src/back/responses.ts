@@ -1312,7 +1312,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     const fpmPath = path.join(state.config.flashpointPath, 'FlashpointManager.exe');
     console.log(fpmPath);
     exitApp(state, async () => {
-      const child = child_process.spawn(fpmPath, { detached: true, cwd, stdio: ['ignore', 'ignore', 'ignore'] });
+      const child = child_process.spawn(fpmPath,  ['/update'], { detached: true, cwd, stdio: ['ignore', 'ignore', 'ignore'] });
       child.unref();
     });
   });
