@@ -264,7 +264,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
 
     if (game.id) {
       // Clean up half imported entries
-      GameManager.removeGameAndAddApps(game.id, dataPacksFolderPath);
+      GameManager.removeGameAndAddApps(game.id, dataPacksFolderPath, path.join(fpPath, imagePath));
     }
     // Let it bubble up
     throw error;

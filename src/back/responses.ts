@@ -430,7 +430,9 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.DELETE_GAME, async (event, id) => {
-    const game = await GameManager.removeGameAndAddApps(id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath));
+    const game = await GameManager.removeGameAndAddApps(id,
+      path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath),
+      path.join(state.config.flashpointPath, state.preferences.imageFolderPath));
 
     state.queries = {}; // Clear entire cache
 
@@ -1060,7 +1062,9 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     const gameChunks = chunkArray(Array.from(games), 20);
     for (const chunk of gameChunks) {
       await Promise.all(chunk.map(async game => {
-        await GameManager.removeGameAndAddApps(game.id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath));
+        await GameManager.removeGameAndAddApps(game.id,
+          path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath),
+          path.join(state.config.flashpointPath, state.preferences.imageFolderPath));
       }));
       state.queries = {}; // Reset search queries
     }

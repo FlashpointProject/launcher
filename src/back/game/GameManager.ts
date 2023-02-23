@@ -316,11 +316,20 @@ export async function save(game: Game): Promise<Game> {
   return savedGame;
 }
 
-export async function removeGameAndAddApps(gameId: string, dataPacksFolderPath: string): Promise<Game | null> {
+export async function removeGameAndAddApps(gameId: string, dataPacksFolderPath: string, imageFolderPath: string): Promise<Game | null> {
   const gameRepository = AppDataSource.getRepository(Game);
   const addAppRepository = AppDataSource.getRepository(AdditionalApp);
   const game = await findGame(gameId);
   if (game) {
+    // Delete logo and screenshot
+    try {
+      const logoPath = path.join(imageFolderPath, 'Logos', game.id.substring(0, 2), game.id.substring(2, 4), game.id+'.png');
+      await fs.promises.unlink(logoPath);
+    } catch { /** Assume doesn't exist */ }
+    try {
+      const ssPath = path.join(imageFolderPath, 'Screenshots', game.id.substring(0, 2), game.id.substring(2, 4), game.id+'.png');
+      await fs.promises.unlink(ssPath);
+    } catch { /** Assume doesn't exist */ }
     // Delete GameData
     for (const gameData of (await GameDataManager.findGameData(game.id))) {
       if (gameData.presentOnDisk && gameData.path) {
