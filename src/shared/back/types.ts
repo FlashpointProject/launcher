@@ -79,6 +79,7 @@ export enum BackIn {
   FIX_TAG_PRIMARY_ALIASES,
   EXPORT_TAGS,
   IMPORT_TAGS,
+  NUKE_TAGS,
 
   // Tag Category funcs
   SAVE_TAG_CATEGORY,
@@ -270,6 +271,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.FIX_TAG_PRIMARY_ALIASES]: (data: null) => number;
   [BackIn.EXPORT_TAGS]: (data: string) => number;
   [BackIn.IMPORT_TAGS]: (data: string) => number;
+  [BackIn.NUKE_TAGS]: (tags: string[]) => Promise<void>;
 
   // Tag Category funcs
   [BackIn.SAVE_TAG_CATEGORY]: (data: TagCategory) => TagCategory;

@@ -1171,6 +1171,7 @@ body {
 
 /** Confirm Dialog */
 .confirm-dialog__message {
+  white-space: pre-wrap;
   font-weight: bold;
 }
 
@@ -1358,4 +1359,8 @@ body {
   background-color: var(--layout__secondary-background);
   border-color: var(--layout__primary-outline-color);
   color: var(--layout__primary-text-color);
+}
+
+.tag-nuke-box {
+  font-weight: bold;
 }

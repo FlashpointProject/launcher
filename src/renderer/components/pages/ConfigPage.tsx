@@ -30,6 +30,7 @@ import { TagFilterGroupEditor } from '../TagFilterGroupEditor';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import * as Coerce from '@shared/utils/Coerce';
+import { Spinner } from '../Spinner';
 
 const { num } = Coerce;
 
@@ -72,6 +73,8 @@ type ConfigPageState = {
   editingTagFilterGroupIdx?: number;
   editingTagFilterGroup?: TagFilterGroup;
   editorOpen: boolean;
+  /** Progress for nuking tags */
+  nukeInProgress: boolean;
 };
 
 /**
@@ -92,6 +95,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       useCustomTitlebar: configData.useCustomTitlebar,
       server: configData.server,
       editorOpen: false,
+      nukeInProgress: false,
     };
   }
 
@@ -340,6 +344,14 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
               activeTagFilterGroups={this.props.preferencesData.tagFilters.filter((tfg, index) => (tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme)) && index != this.state.editingTagFilterGroupIdx)} />
           </FloatingContainer>
         )}
+        { this.state.nukeInProgress && (
+          <FloatingContainer>
+            <div className='tag-nuke-box'>
+              <div>{strings.nukeInProgress}</div>
+              <Spinner/>
+            </div>
+          </FloatingContainer>
+        )}
       </div>
     );
   }
@@ -521,6 +533,10 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 icon='layers' />
             </div>
             <ConfirmElement
+              message={strings.dialog.nukeTagFilterGroup}
+              onConfirm={() => this.onTagFilterGroupNuke(index)}
+              render={this.renderTagFilterGroupNuke} />
+            <ConfirmElement
               message={strings.dialog.deleteTagFilterGroup}
               onConfirm={() => this.onTagFilterGroupDelete(index)}
               render={this.renderTagFilterGroupDelete} />
@@ -641,6 +657,20 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
     return sections;
   });
+
+  renderTagFilterGroupNuke = ({ confirm }: ConfirmElementArgs) => {
+    const strings = this.context.config;
+    return (
+      <div
+        className={'browse-right-sidebar__title-row__buttons__discard-button'}
+        title={strings.nukeTagFilter}
+        onClick={confirm} >
+        <OpenIcon
+          className='setting__row__content--override-row__delete'
+          icon='trash' />
+      </div>
+    );
+  };
 
   renderTagFilterGroupDelete = ({ confirm }: ConfirmElementArgs) => {
     const strings = this.context.config;
@@ -918,6 +948,23 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       updatePreferencesData({ tagFilters: newTagFilters });
       this.setState({ editingTagFilterGroup: undefined, editingTagFilterGroupIdx: undefined, editorOpen: false });
     }
+  };
+
+  onTagFilterGroupNuke = async (index: number) => {
+    // Nuke all the tags
+    this.setState({ nukeInProgress: true });
+    window.Shared.back.request(BackIn.NUKE_TAGS, this.props.preferencesData.tagFilters[index].tags)
+    .then(() => {
+      const newTagFilters = [...this.props.preferencesData.tagFilters];
+      newTagFilters.splice(index, 1);
+      updatePreferencesData({ tagFilters: newTagFilters });
+    })
+    .catch((error) => {
+      alert('Failed to nuke tags: ' + error);
+    })
+    .finally(() => {
+      this.setState({ nukeInProgress: false });
+    });
   };
 
   onTagFilterGroupDelete = async (index: number) => {

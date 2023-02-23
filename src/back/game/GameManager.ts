@@ -324,7 +324,9 @@ export async function removeGameAndAddApps(gameId: string, dataPacksFolderPath: 
     // Delete GameData
     for (const gameData of (await GameDataManager.findGameData(game.id))) {
       if (gameData.presentOnDisk && gameData.path) {
-        await fs.promises.unlink(path.join(dataPacksFolderPath, gameData.path));
+        try {
+          await fs.promises.unlink(path.join(dataPacksFolderPath, gameData.path));
+        } catch { /** Assume not present on disk */ }
       }
       await GameDataManager.remove(gameData.id);
     }

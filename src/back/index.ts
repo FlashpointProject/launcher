@@ -517,7 +517,7 @@ async function prepForInit(message: any): Promise<void> {
     });
     state.playlists.push(playlist);
   }
-  console.log('Back. Parsed Playlists');
+  console.log('Back - Parsed Playlists');
 
   // Load Extensions
 

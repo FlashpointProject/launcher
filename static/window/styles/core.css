@@ -2926,3 +2926,10 @@ body {
   display: flex;
   justify-content: space-around;
 }
+
+.tag-nuke-box {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  font-size: 2rem;
+}

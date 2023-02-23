@@ -17,6 +17,7 @@ import { MetaEditFile, MetaEditMeta } from '@shared/MetaEdit';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { defaultPreferencesData, overwritePreferenceData } from '@shared/preferences/util';
 import { deepCopy, padEnd } from '@shared/Util';
+import { chunkArray } from '@shared/utils/misc';
 import { sanitizeFilename } from '@shared/utils/sanitizeFilename';
 import { formatString } from '@shared/utils/StringFormatter';
 import { TaskProgress } from '@shared/utils/TaskProgress';
@@ -49,6 +50,7 @@ import { checkAndDownloadGameData, extractFullPromise, loadCurationArchive } fro
 import { ManagedChildProcess } from './ManagedChildProcess';
 import { importAllMetaEdits } from './MetaEdit';
 import { addPlaylistGame, deletePlaylist, deletePlaylistGame, duplicatePlaylist, filterPlaylists, getPlaylistGame, importPlaylist, savePlaylistGame, updatePlaylist } from './playlist';
+import { PlaylistFile } from './PlaylistFile';
 import { copyFolder, genContentTree } from './rust';
 import { BackState, BareTag, TagsFile } from './types';
 import { pathToBluezip } from './util/Bluezip';
@@ -1017,6 +1019,58 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     state.socketServer.send(event.client, BackOut.IMPORT_TAGS, res);
     await TagManager.sendTagCategories(state.socketServer);
     return res;
+  });
+
+  state.socketServer.register(BackIn.NUKE_TAGS, async (event, tagNames) => {
+    // Get list of tags to nuke
+    const tags: Tag[] = [];
+    for (const tagName of tagNames) {
+      const tag = await TagManager.findTag(tagName);
+      if (tag) {
+        tags.push(tag);
+      }
+    }
+
+    // Find all matching games
+    const games = new Set<Game>();
+    for (const tag of tags) {
+      const foundGames = await GameManager.findGamesWithTag(tag);
+      for (const game of foundGames) {
+        games.add(game);
+      }
+    }
+    const gameIds = Array.from(games).map(g => g.id);
+
+    // Remove games from any playlists
+    for (const playlist of state.playlists) {
+      let modified = false;
+      for (let i = playlist.games.length - 1; i >= 0; i--) {
+        const pg = playlist.games[i];
+        if (gameIds.includes(pg.gameId)) {
+          playlist.games.splice(i, 1);
+          modified = true;
+        }
+      }
+      if (modified) {
+        await PlaylistFile.saveFile(playlist.filePath, playlist);
+      }
+    }
+
+    // Remove games from database
+    const gameChunks = chunkArray(Array.from(games), 20);
+    for (const chunk of gameChunks) {
+      await Promise.all(chunk.map(async game => {
+        await GameManager.removeGameAndAddApps(game.id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath));
+      }));
+      state.queries = {}; // Reset search queries
+    }
+
+    // Remove tags from database
+    for (const tag of tags) {
+      if (tag.id) {
+        await TagManager.deleteTag(tag.id, undefined, true);
+      }
+    }
   });
 
   state.socketServer.register(BackIn.IMPORT_CURATION, async (event, data) => {

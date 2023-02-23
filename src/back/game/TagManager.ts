@@ -13,7 +13,7 @@ export async function findTagCategories(): Promise<TagCategory[]> {
   return AppDataSource.getRepository(TagCategory).find();
 }
 
-export async function deleteTag(tagId: number, openDialog: ShowMessageBoxFunc, skipWarn?: boolean): Promise<boolean> {
+export async function deleteTag(tagId: number, openDialog?: ShowMessageBoxFunc, skipWarn?: boolean): Promise<boolean> {
   const tagRepository = AppDataSource.getRepository(Tag);
   const tagAliasRepository = AppDataSource.getRepository(TagAlias);
 
@@ -24,7 +24,7 @@ export async function deleteTag(tagId: number, openDialog: ShowMessageBoxFunc, s
     .where('game_tag.tagId = :id', { id: tagId })
     .getRawOne())['COUNT(*)'];
 
-    if (gameCount > 0) {
+    if (gameCount > 0 && openDialog) {
       const res = await openDialog({
         title: 'Deletion Warning',
         message: `This tag will be removed from ${gameCount} games.\n\n Are you sure you want to delete this tag?`,
@@ -33,6 +33,7 @@ export async function deleteTag(tagId: number, openDialog: ShowMessageBoxFunc, s
       if (res === 1) { return false; }
     }
   }
+
   await tagAliasRepository.delete({ tagId: tagId });
   await tagRepository.delete(tagId);
   return true;
