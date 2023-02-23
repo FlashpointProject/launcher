@@ -50,6 +50,9 @@ import { getBrowseSubPath, getGamePath, joinLibraryRoute } from './Util';
 import { LangContext } from './util/lang';
 import { queueOne } from './util/queue';
 
+// Hide the right sidebar if the page is inside these paths
+const hiddenRightSidebarPages = [Paths.ABOUT, Paths.CURATE, Paths.CONFIG, Paths.MANUAL, Paths.LOGS, Paths.TAGS, Paths.CATEGORIES];
+
 const autoUpdater: AppUpdater = remote.require('electron-updater').autoUpdater;
 
 type AppOwnProps = {
@@ -1285,7 +1288,7 @@ export class App extends React.Component<AppProps> {
                       This website requires JavaScript to be enabled.
                     </div>
                   </noscript>
-                  { this.props.main.currentGame && this.props.history.location.pathname !== '/logs' && this.props.history.location.pathname !== '/about' && this.props.history.location.pathname !== '/manual' && (
+                  { this.props.main.currentGame && !hiddenRightSidebarPages.reduce((prev, cur) => prev || this.props.history.location.pathname.startsWith(cur), false) && (
                     <ResizableSidebar
                       hide={this.props.preferencesData.browsePageShowRightSidebar}
                       divider='before'
