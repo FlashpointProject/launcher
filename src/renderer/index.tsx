@@ -187,5 +187,6 @@ export function createInitialMainState(): MainState {
     gotdList: [],
     componentStatuses: [],
     quitting: false,
+    openDialogs: [],
   };
 }

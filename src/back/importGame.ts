@@ -20,7 +20,8 @@ import * as TagManager from './game/TagManager';
 import { GameManagerState } from './game/types';
 import { checkAndInstallPlatform, GameLauncher, GameLaunchInfo, LaunchAddAppOpts, LaunchGameOpts } from './GameLauncher';
 import { copyFolder } from './rust';
-import { OpenExternalFunc, ShowMessageBoxFunc } from './types';
+import { BackState, OpenExternalFunc, ShowMessageBoxFunc } from './types';
+import { awaitDialog } from './util/dialog';
 import { getMklinkBatPath } from './util/elevate';
 import { uuid } from './util/uuid';
 
@@ -39,6 +40,7 @@ type ImportCurationOpts = {
   tagCategories: TagCategory[];
   taskProgress: TaskProgress;
   sevenZipPath: string;
+  state: BackState;
 }
 
 export type CurationImportState = {
@@ -83,13 +85,13 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
     });
     if (existingGame) {
       // Warn user of possible duplicate
-      const response = await opts.openDialog({
-        title: 'Possible Duplicate',
+      const dialogId = await opts.openDialog({
         message: 'There is already a game using this launch command. It may be a duplicate.\nContinue importing this curation?\n\n'
                 + `Curation:\n\tTitle: ${curation.game.title}\n\tLaunch Command: ${curation.game.launchCommand}\n\tPlatform: ${curation.game.platform}\n\n`
                 + `Existing Game:\n\tID: ${existingGame.id}\n\tTitle: ${existingGame.title}\n\tPlatform: ${existingGame.platform}`,
         buttons: ['Yes', 'No']
       });
+      const response = (await awaitDialog(opts.state, dialogId)).buttonIdx;
       if (response === 1) {
         throw new Error('User Cancelled Import');
       }
@@ -106,13 +108,13 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   const gameId = curation.uuid;
   const oldGame = await GameManager.findGame(gameId);
   if (oldGame) {
-    const response = await opts.openDialog({
-      title: 'Overwriting Game',
+    const dialogId = await opts.openDialog({
       message: 'There is already a game using this id. Importing will override it.\nContinue importing this curation?\n\n'
               + `Curation:\n\tTitle: ${curation.game.title}\n\tLaunch Command: ${curation.game.launchCommand}\n\tPlatform: ${curation.game.platform}\n\n`
               + `Existing Game:\n\tTitle: ${oldGame.title}\n\tLaunch Command: ${oldGame.launchCommand}\n\tPlatform: ${oldGame.platform}`,
       buttons: ['Yes', 'No']
     });
+    const response = (await awaitDialog(opts.state, dialogId)).buttonIdx;
     if (response === 1) {
       throw new Error('User Cancelled Import');
     }
@@ -185,11 +187,11 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
       }
     } catch (error) {
       curationLog(`Error importing ${curation.game.title} - Informing user...`);
-      const res = await opts.openDialog({
-        title: 'Error saving curation',
-        message: 'Saving curation import failed. Some/all files failed to move. Please check the content folder yourself before removing manually.\n\nOpen folder now?',
+      const dialogId = await opts.openDialog({
+        message: 'Saving curation import failed. Some/all files failed to move.\nPlease check the content folder yourself before removing manually.\nOpen folder now?',
         buttons: ['Yes', 'No']
       });
+      const res = (await awaitDialog(opts.state, dialogId)).buttonIdx;
       if (res === 0) {
         console.log('Opening curation folder after error');
         await opts.openExternal(getCurationFolder(curation, fpPath));

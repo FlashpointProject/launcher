@@ -6,13 +6,14 @@ import { UpgradeStage } from '@renderer/upgrade/types';
 import { BackInit, ComponentStatus, GameOfTheDay, PageKeyset, ResponseGameRange, SearchGamesOpts, ViewGame } from '@shared/back/types';
 import { AppExtConfigData } from '@shared/config/interfaces';
 import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
-import { GamePropSuggestions, IService } from '@shared/interfaces';
+import { DialogField, DialogState, GamePropSuggestions, IService } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { ITheme, Theme } from '@shared/ThemeFile';
 import { Gate } from '@shared/utils/Gate';
 import * as axiosImport from 'axios';
 import { UpdateInfo } from 'electron-updater';
 import { AppPreferencesData, GameOrderBy, GameOrderReverse, Playlist, PlaylistGame, TagFilterGroup } from 'flashpoint-launcher';
+import { EventEmitter } from 'stream';
 import { MainActionType, RequestState } from './enums';
 
 export type View = {
@@ -145,6 +146,10 @@ export type MainState = {
   componentStatuses: ComponentStatus[];
   /** In the process of quitting, suspend all action */
   quitting: boolean;
+  /** Open Dialog States */
+  openDialogs: DialogState[];
+  /** Renderer side dialog response emitter (event code = dialog id) */
+  dialogResEvent: EventEmitter;
 }
 
 export type MainAction = {
@@ -257,4 +262,21 @@ export type MainAction = {
 } | {
   type: MainActionType.UNBUSY_GAME;
   gameId: string;
+} | {
+  type: MainActionType.NEW_DIALOG;
+  dialog: DialogState;
+} | {
+  type: MainActionType.CANCEL_DIALOG;
+  dialogId: string;
+} | {
+  type: MainActionType.UPDATE_DIALOG;
+  dialog: DialogState;
+} | {
+  type: MainActionType.RESOLVE_DIALOG;
+  dialogId: string;
+  button: number;
+} | {
+  type: MainActionType.UPDATE_DIALOG_FIELD;
+  dialogId: string;
+  field: DialogField;
 }

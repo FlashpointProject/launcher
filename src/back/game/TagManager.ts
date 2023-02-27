@@ -1,5 +1,6 @@
 import { SocketServer } from '@back/SocketServer';
-import { ShowMessageBoxFunc } from '@back/types';
+import { BackState, ShowMessageBoxFunc } from '@back/types';
+import { awaitDialog } from '@back/util/dialog';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
@@ -13,7 +14,7 @@ export async function findTagCategories(): Promise<TagCategory[]> {
   return AppDataSource.getRepository(TagCategory).find();
 }
 
-export async function deleteTag(tagId: number, openDialog?: ShowMessageBoxFunc, skipWarn?: boolean): Promise<boolean> {
+export async function deleteTag(tagId: number, state: BackState, openDialog?: ShowMessageBoxFunc, skipWarn?: boolean): Promise<boolean> {
   const tagRepository = AppDataSource.getRepository(Tag);
   const tagAliasRepository = AppDataSource.getRepository(TagAlias);
 
@@ -25,11 +26,12 @@ export async function deleteTag(tagId: number, openDialog?: ShowMessageBoxFunc, 
     .getRawOne())['COUNT(*)'];
 
     if (gameCount > 0 && openDialog) {
-      const res = await openDialog({
-        title: 'Deletion Warning',
+      const dialogId = await openDialog({
+        largeMessage: true,
         message: `This tag will be removed from ${gameCount} games.\n\n Are you sure you want to delete this tag?`,
         buttons: ['Yes', 'No']
       });
+      const res = (await awaitDialog(state, dialogId)).buttonIdx;
       if (res === 1) { return false; }
     }
   }
@@ -79,17 +81,18 @@ export async function findTags(name?: string, flatFilters?: string[]): Promise<T
 }
 
 // @TODO : Localize
-export async function mergeTags(mergeData: MergeTagData, openDialog: ShowMessageBoxFunc): Promise<Tag | null> {
+export async function mergeTags(mergeData: MergeTagData, openDialog: ShowMessageBoxFunc, state: BackState): Promise<Tag | null> {
   const mergeSorc = await findTag(mergeData.toMerge);
   const mergeDest = await findTag(mergeData.mergeInto);
   if (mergeDest && mergeSorc) {
     if (mergeDest.id !== mergeSorc.id) {
       // Confirm merge
-      const res = await openDialog({
-        title: 'Are you sure?',
+      const dialogId = await openDialog({
+        largeMessage: true,
         message: 'Merge ' + mergeSorc.primaryAlias.name + ' into ' + mergeData.mergeInto + '?',
         buttons: [ 'Yes', 'No', 'Cancel' ]
       });
+      const res = (await awaitDialog(state, dialogId)).buttonIdx;
       if (res !== 0) {
         return null;
       }
@@ -109,19 +112,17 @@ export async function mergeTags(mergeData: MergeTagData, openDialog: ShowMessage
       // Update games, delete source tag, then save dest tag
       await GameManager.updateGames(games);
       if (mergeSorc.id) {
-        await deleteTag(mergeSorc.id, openDialog, true);
+        await deleteTag(mergeSorc.id, state, openDialog, true);
       }
       await saveTag(mergeDest);
     } else {
       openDialog({
-        title: 'Error!',
         message: 'Cannot merge tag into itself!',
         buttons: [ 'Ok' ]
       });
     }
   } else {
     openDialog({
-      title: 'No Tag Found!',
       message: 'No tag found for "' + mergeData.mergeInto + '"',
       buttons: [ 'Ok ' ]
     });
@@ -343,7 +344,7 @@ export async function fixPrimaryAliases(): Promise<number> {
   return fixed;
 }
 
-export async function deleteTagCategory(tagCategoryId: number, openDialog: ShowMessageBoxFunc): Promise<boolean> {
+export async function deleteTagCategory(tagCategoryId: number, openDialog: ShowMessageBoxFunc, state: BackState): Promise<boolean> {
   const tagCategoryRepository = AppDataSource.getRepository(TagCategory);
   const tagRepository = AppDataSource.getRepository(Tag);
 
@@ -355,16 +356,16 @@ export async function deleteTagCategory(tagCategoryId: number, openDialog: ShowM
 
   if (attachedTags.length > 0) {
     // Warn about moving tags
-    const res = await openDialog({
-      title: 'Deletion Warning',
+    const dialogId = await openDialog({
       message: `This tag category will be removed from ${attachedTags.length} tags.\n\n What do you want to do with the remaining tags?`,
       buttons: ['Move to Default Category', 'Delete Tags', 'Cancel']
     });
+    const res = (await awaitDialog(state, dialogId)).buttonIdx;
     if (res == 2) { return false; }
     if (res == 1) {
       for (const tag of attachedTags) {
         if (tag.id) {
-          await deleteTag(tag.id, openDialog, true);
+          await deleteTag(tag.id, state, openDialog, true);
         }
       }
     }

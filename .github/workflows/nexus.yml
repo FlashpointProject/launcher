@@ -109,7 +109,7 @@ jobs:
       run: |
         git clone https://gitlab.unstable.life/flashpoint/docker/nexus-deploy-action.git nexus
         cd nexus
-        python3 ./merge-metadata.py "https://nexus-dev.unstable.life/service/rest/v1/search?repository=development&name=*.json" components.xml
+        python3 ./merge-metadata.py "https://nexus-dev.unstable.life/service/rest/v1/search?repository=development&name=*.json" components.xml "https://nexus-dev.unstable.life/repository/development/"
     - name: Deploy components.xml to Nexus
       uses: sonatype-nexus-community/nexus-repo-github-action@master
       with:

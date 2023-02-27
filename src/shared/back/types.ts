@@ -9,7 +9,7 @@ import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
 import { ChangedMeta, MetaEditFlags } from '@shared/MetaEdit';
 import { SocketTemplate } from '@shared/socket/types';
 import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
-import { AppPreferencesData, CurationState, CurationWarnings, GameData, GameDataSource, GameOrderBy, GameOrderReverse, Playlist, PlaylistGame, TagAlias, TagFilterGroup } from 'flashpoint-launcher';
+import { AppPreferencesData, CurationState, CurationWarnings, DialogState, DialogStateTemplate, GameData, GameDataSource, GameOrderBy, GameOrderReverse, Playlist, PlaylistGame, TagAlias, TagFilterGroup } from 'flashpoint-launcher';
 import { AppConfigData, AppExtConfigData } from '../config/interfaces';
 import { ExecMapping, GamePropSuggestions, IService, ProcessAction, Task } from '../interfaces';
 import { LangContainer, LangFile } from '../lang';
@@ -139,6 +139,10 @@ export enum BackIn {
   SET_EXT_CONFIG_VALUE,
   FETCH_DIAGNOSTICS,
   OPEN_FLASHPOINT_MANAGER,
+
+  // Dialogs
+  DIALOG_RESPONSE,
+  NEW_DIALOG_RESPONSE,
 }
 
 export enum BackOut {
@@ -199,6 +203,10 @@ export enum BackOut {
   CREATE_TASK,
 
   FOCUS_WINDOW,
+
+  // Dialogs
+  NEW_DIALOG,
+  CANCEL_DIALOG,
 }
 
 export const BackRes = {
@@ -323,6 +331,10 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.SET_EXT_CONFIG_VALUE]: (key: string, value: any) => void;
   [BackIn.FETCH_DIAGNOSTICS]: () => string;
   [BackIn.OPEN_FLASHPOINT_MANAGER]: () => void;
+
+  // Dialogs
+  [BackIn.DIALOG_RESPONSE]: (dialog: DialogState, button: number) => void;
+  [BackIn.NEW_DIALOG_RESPONSE]: (dialogId: string, responseId: string) => void;
 }>
 
 export type BackOutTemplate = SocketTemplate<BackOut, {
@@ -384,6 +396,10 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.CREATE_TASK]: (task: Task) => void;
 
   [BackOut.FOCUS_WINDOW]: () => void;
+
+  // Dialogs
+  [BackOut.NEW_DIALOG]: (template: DialogStateTemplate, responseId: string) => void;
+  [BackOut.CANCEL_DIALOG]: (dialogId: string) => void;
 }>
 
 export type BackResTemplate = BackOutTemplate & BackInTemplate;

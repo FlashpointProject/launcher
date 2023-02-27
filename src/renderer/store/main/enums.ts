@@ -67,6 +67,16 @@ export enum MainActionType {
   BUSY_GAME = '@@main/BUSY_GAME',
   /** Remove game from busy list */
   UNBUSY_GAME = '@@main/UNBUSY_GAME',
+  /** Create new dialog */
+  NEW_DIALOG = '@@main/NEW_DIALOG',
+  /** Cancel dialog */
+  CANCEL_DIALOG = '@@main/CANCEL_DIALOG',
+  /** Update dialog values */
+  UPDATE_DIALOG = '@@main/UPDATE_DIALOG',
+  /** Resolve a dialog and return the values with a button press */
+  RESOLVE_DIALOG = '@@main/RESOLVE_DIALOG',
+  /** Update dialog field value */
+  UPDATE_DIALOG_FIELD = '@@main/UPDATE_DIALOG_FIELD',
 }
 
 export enum RequestState {

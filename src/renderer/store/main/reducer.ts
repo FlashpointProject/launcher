@@ -1,10 +1,12 @@
 import { Game } from '@database/entity/Game';
 import { rebuildQuery } from '@renderer/Util';
-import { BackInit } from '@shared/back/types';
+import { BackIn, BackInit } from '@shared/back/types';
 import { GamePropSuggestions, WindowIPC } from '@shared/interfaces';
 import { createLangContainer } from '@shared/lang';
+import { deepCopy } from '@shared/Util';
 import { Gate } from '@shared/utils/Gate';
 import { ipcRenderer } from 'electron';
+import { EventEmitter } from 'stream';
 import { MainActionType, RequestState } from './enums';
 import { MainAction, MainState, View, ViewPageStates } from './types';
 
@@ -470,6 +472,77 @@ export function mainStateReducer(state: MainState = createInitialState(), action
       };
     }
 
+    case MainActionType.NEW_DIALOG: {
+      const dialogs = [...state.openDialogs];
+      dialogs.push(action.dialog);
+      return {
+        ...state,
+        openDialogs: dialogs
+      };
+    }
+
+    case MainActionType.CANCEL_DIALOG: {
+      const dialogs = [...state.openDialogs];
+      const exisingIdx = dialogs.findIndex(d => d.id === action.dialogId);
+      if (exisingIdx > -1) {
+        const dialog = dialogs.splice(exisingIdx, 1)[0];
+        window.Shared.back.send(BackIn.DIALOG_RESPONSE, dialog, dialog.cancelId || -1);
+        return {
+          ...state,
+          openDialogs: dialogs
+        };
+      } else {
+        return state;
+      }
+    }
+
+    case MainActionType.RESOLVE_DIALOG: {
+      const dialogs = [...state.openDialogs];
+      const exisingIdx = dialogs.findIndex(d => d.id === action.dialogId);
+      if (exisingIdx > -1) {
+        const dialog = dialogs.splice(exisingIdx, 1)[0];
+        window.Shared.back.send(BackIn.DIALOG_RESPONSE, dialog, action.button);
+        return {
+          ...state,
+          openDialogs: dialogs
+        };
+      } else {
+        return state;
+      }
+    }
+
+    case MainActionType.UPDATE_DIALOG: {
+      const dialogs = [...state.openDialogs];
+      const existingIdx = dialogs.findIndex(d => d.id === action.dialog.id);
+      if (existingIdx > -1) {
+        dialogs[existingIdx] = action.dialog;
+        return {
+          ...state,
+          openDialogs: dialogs
+        };
+      } else {
+        return state;
+      }
+    }
+
+    case MainActionType.UPDATE_DIALOG_FIELD: {
+      const dialogs = [...state.openDialogs];
+      const existingIdx = dialogs.findIndex(d => d.id === action.dialogId);
+      if (existingIdx) {
+        const dialog = deepCopy(dialogs[existingIdx]);
+        const fieldIdx = dialog.fields?.findIndex(f => f.name === action.field.name) || -1;
+        if (dialog.fields && fieldIdx > -1) {
+          dialog.fields[fieldIdx] = action.field;
+          dialogs[existingIdx] = dialog;
+          return {
+            ...state,
+            openDialogs: dialogs
+          };
+        }
+      }
+      return state;
+    }
+
     default:
       return state;
   }
@@ -542,5 +615,9 @@ function createInitialState(): MainState {
     loadedAll: new Gate(),
     updateFeedMarkdown: '',
     busyGames: [],
+    componentStatuses: [],
+    quitting: false,
+    openDialogs: [],
+    dialogResEvent: new EventEmitter()
   };
 }

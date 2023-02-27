@@ -542,7 +542,8 @@
     "mustBePngImage": "Must be a .PNG Image.",
     "mustBe7zArchiveSkipping": "Must be a .7z archive, skipping {0}",
     "failedToLoadCuration": "Failed to load curation! {0}",
-    "exportCurationWithWarnings": "Export Curation even though it has Warnings?"
+    "exportCurationWithWarnings": "Export Curation even though it has Warnings?",
+    "requiresAdditionalDownload": "You are missing the {0} support pack, which is required to launch this entry.\nDownload now?"
   },
   "libraries": {
     "arcade": "Games",

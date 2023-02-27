@@ -303,9 +303,9 @@ export function setStatus<T extends keyof StatusState>(state: BackState, key: T,
   }
 }
 
-export function getOpenMessageBoxFunc(socketServer: SocketServer): ShowMessageBoxFunc | undefined {
-  if (socketServer.lastClient) {
-    return socketServer.showMessageBoxBack(socketServer.lastClient);
+export function getOpenMessageBoxFunc(state: BackState): ShowMessageBoxFunc | undefined {
+  if (state.socketServer.lastClient) {
+    return state.socketServer.showMessageBoxBack(state, state.socketServer.lastClient);
   }
 }
 

@@ -559,6 +559,7 @@ const langTemplate = {
     'mustBePngImage',
     'mustBe7zArchiveSkipping',
     'failedToLoadCuration',
+    'requiresAdditionalDownload',
   ] as const,
   // libraries: [], // (This is dynamically populated in run-time)
 } as const;

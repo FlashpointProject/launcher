@@ -12,16 +12,19 @@ import { arrayShallowStrictEquals } from '@shared/utils/compare';
 import { debounce } from '@shared/utils/debounce';
 import { clipboard, ipcRenderer, Menu, MenuItemConstructorOptions } from 'electron';
 import { AppUpdater } from 'electron-updater';
-import { Playlist, PlaylistGame } from 'flashpoint-launcher';
+import { DialogField, DialogState, Playlist, PlaylistGame } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import { Dispatch } from 'redux';
+import uuid = require('uuid');
 import * as which from 'which';
 import { FloatingContainer } from './components/FloatingContainer';
 import { GameOrderChangeEvent } from './components/GameOrder';
+import { InputField } from './components/InputField';
 import { MetaEditExporter, MetaEditExporterConfirmData } from './components/MetaEditExporter';
+import { OpenIcon } from './components/OpenIcon';
 import { placeholderProgressData, ProgressBar } from './components/ProgressComponents';
 import { ResizableSidebar, SidebarResizeEvent } from './components/ResizableSidebar';
 import { SimpleButton } from './components/SimpleButton';
@@ -44,7 +47,7 @@ import { CurateActionType } from './store/curate/enums';
 import { CurateAction } from './store/curate/types';
 import { MainActionType, RequestState } from './store/main/enums';
 import { RANDOM_GAME_ROW_COUNT } from './store/main/reducer';
-import { MainState } from './store/main/types';
+import { MainAction, MainState } from './store/main/types';
 import { SearchQuery } from './store/search';
 import { getBrowseSubPath, getGamePath, joinLibraryRoute } from './Util';
 import { LangContext } from './util/lang';
@@ -445,6 +448,25 @@ export class App extends React.Component<AppProps> {
 
     window.Shared.back.register(BackOut.FOCUS_WINDOW, () => {
       window.focus();
+    });
+
+    window.Shared.back.register(BackOut.NEW_DIALOG, (event, dialog, code) => {
+      const d: DialogState = {
+        ...dialog,
+        id: uuid()
+      };
+      this.props.dispatchMain({
+        type: MainActionType.NEW_DIALOG,
+        dialog: d
+      });
+      window.Shared.back.send(BackIn.NEW_DIALOG_RESPONSE, d.id, code);
+    });
+
+    window.Shared.back.register(BackOut.CANCEL_DIALOG, (event, dialogId) => {
+      this.props.dispatchMain({
+        type: MainActionType.CANCEL_DIALOG,
+        dialogId
+      });
     });
   }
 
@@ -1262,6 +1284,10 @@ export class App extends React.Component<AppProps> {
                 </div>
               </FloatingContainer>
             )}
+            {/* First Open Dialog */}
+            { this.props.main.openDialogs.length > 0 && (
+              renderDialogMemo(this.props.main.openDialogs[0], this.props.dispatchMain)
+            )}
             {/* Splash screen */}
             <SplashScreen
               quitting={this.props.main.quitting}
@@ -1698,4 +1724,76 @@ function UniquePlaylistMenuFactory(playlists: Playlist[], strings: LangContainer
     }
   }
   return grouped;
+}
+
+function renderDialogMemo(dialog: DialogState, dispatch: Dispatch<MainAction>): JSX.Element {
+  return (
+    <FloatingContainer>
+      <>
+        { dialog.userCanCancel && (
+          <div className='dialog-cancel-button' onClick={() => {
+            dispatch({
+              type: MainActionType.CANCEL_DIALOG,
+              dialogId: dialog.id
+            });
+          }}>
+            <OpenIcon icon='x'/>
+          </div>
+        )}
+        <div className={`dialog-message ${dialog.largeMessage ? 'dialog-message--large' : ''}`}>{ dialog.message }</div>
+        { dialog.fields?.map(f => {
+          return (
+            <div key={f.name} className='dialog-field'>
+              <div className='dialog-field-message'>{ f.message }</div>
+              <div className='dialog-field-input'>{renderDialogField(dialog.id, f, dispatch)}</div>
+            </div>
+          );
+        })}
+        <div className='dialog-buttons-container'>
+          { dialog.buttons.map((b, idx) => {
+            return (
+              <SimpleButton
+                key={b}
+                onClick={() => {
+                  dispatch({
+                    type: MainActionType.RESOLVE_DIALOG,
+                    dialogId: dialog.id,
+                    button: idx
+                  });
+                }}
+                value={b}/>
+            );
+          })}
+        </div>
+      </>
+    </FloatingContainer>
+  );
+}
+
+function renderDialogField(dialogId: string, field: DialogField, dispatch: Dispatch<MainAction>): JSX.Element {
+  switch (field.type) {
+    case 'string': {
+      return (
+        <InputField
+          onChange={(event) => {
+            dispatch({
+              type: MainActionType.UPDATE_DIALOG_FIELD,
+              dialogId,
+              field: {
+                ...field,
+                value: event.currentTarget.value
+              }
+            });
+          }}
+          text={field.value}
+          editable={!field.locked}
+          placeholder={field.placeholder} />
+      );
+    }
+    default: {
+      return (
+        <div>Unsupported Field Type</div>
+      );
+    }
+  }
 }

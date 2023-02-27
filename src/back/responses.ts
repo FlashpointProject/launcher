@@ -54,6 +54,7 @@ import { PlaylistFile } from './PlaylistFile';
 import { copyFolder, genContentTree } from './rust';
 import { BackState, BareTag, TagsFile } from './types';
 import { pathToBluezip } from './util/Bluezip';
+import { awaitDialog } from './util/dialog';
 import {
   copyError,
   createAddAppFromLegacy,
@@ -326,7 +327,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         appPathOverrides: state.preferences.appPathOverrides,
         providers: await getProviders(state),
         proxy: state.preferences.browserModeProxy,
-        openDialog: state.socketServer.showMessageBoxBack(event.client),
+        openDialog: state.socketServer.showMessageBoxBack(state, event.client),
         openExternal: state.socketServer.openExternal(event.client),
         runGame: runGameFactory(state),
         envPATH: state.pathVar,
@@ -400,7 +401,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         appPathOverrides: state.preferences.appPathOverrides,
         providers: await getProviders(state),
         proxy: state.preferences.browserModeProxy,
-        openDialog: state.socketServer.showMessageBoxBack(event.client),
+        openDialog: state.socketServer.showMessageBoxBack(state, event.client),
         openExternal: state.socketServer.openExternal(event.client),
         runGame: runGameFactory(state),
         envPATH: state.pathVar,
@@ -683,7 +684,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.DELETE_TAG_CATEGORY, async (event, data) => {
-    const result = await TagManager.deleteTagCategory(data, state.socketServer.showMessageBoxBack(event.client));
+    const result = await TagManager.deleteTagCategory(data, state.socketServer.showMessageBoxBack(state, event.client), state);
     state.socketServer.send(event.client, BackOut.DELETE_TAG_CATEGORY, result);
     await TagManager.sendTagCategories(state.socketServer);
     return result;
@@ -716,7 +717,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.MERGE_TAGS, async (event, data) => {
-    const newTag = await TagManager.mergeTags(data, state.socketServer.showMessageBoxBack(event.client)) as Tag; // @TYPESAFE fix this?
+    const newTag = await TagManager.mergeTags(data, state.socketServer.showMessageBoxBack(state, event.client), state) as Tag; // @TYPESAFE fix this?
     state.socketServer.send(event.client, BackOut.MERGE_TAGS, newTag);
     return newTag;
   });
@@ -761,13 +762,13 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       await GameManager.updateGames(gamesToEdit);
       // Remove old tag
       if (oldTag.id) {
-        await TagManager.deleteTag(oldTag.id, state.socketServer.showMessageBoxBack(event.client));
+        await TagManager.deleteTag(oldTag.id, state, state.socketServer.showMessageBoxBack(state, event.client));
       }
     }
   });
 
   state.socketServer.register(BackIn.DELETE_TAG, async (event, data) => {
-    const success = await TagManager.deleteTag(data, state.socketServer.showMessageBoxBack(event.client));
+    const success = await TagManager.deleteTag(data, state, state.socketServer.showMessageBoxBack(state, event.client));
     return {
       success: success,
       id: data,
@@ -1074,7 +1075,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     // Remove tags from database
     for (const tag of tags) {
       if (tag.id) {
-        await TagManager.deleteTag(tag.id, undefined, true);
+        await TagManager.deleteTag(tag.id, state, undefined, true);
       }
     }
   });
@@ -1114,11 +1115,12 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
           dataPacksFolderPath: path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath),
           bluezipPath: pathToBluezip(state.isDev, state.exePath),
           imageFolderPath: state.preferences.imageFolderPath,
-          openDialog: state.socketServer.showMessageBoxBack(event.client),
+          openDialog: state.socketServer.showMessageBoxBack(state, event.client),
           openExternal: state.socketServer.openExternal(event.client),
           tagCategories: await TagManager.findTagCategories(),
           taskProgress,
           sevenZipPath: state.sevenZipPath,
+          state,
         })
         .then(() => {
           // Delete curation afterwards
@@ -1202,7 +1204,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         appPathOverrides: state.preferences.appPathOverrides,
         providers: await getProviders(state),
         proxy: state.preferences.browserModeProxy,
-        openDialog: state.socketServer.showMessageBoxBack(event.client),
+        openDialog: state.socketServer.showMessageBoxBack(state, event.client),
         openExternal: state.socketServer.openExternal(event.client),
         runGame: runGameFactory(state),
         envPATH: state.pathVar,
@@ -1234,7 +1236,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         appPathOverrides: state.preferences.appPathOverrides,
         providers: await getProviders(state),
         proxy: state.preferences.browserModeProxy,
-        openDialog: state.socketServer.showMessageBoxBack(event.client),
+        openDialog: state.socketServer.showMessageBoxBack(state, event.client),
         openExternal: state.socketServer.openExternal(event.client),
         runGame: runGameFactory(state),
         changeServer: changeServerFactory(state),
@@ -1414,14 +1416,12 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
         if (await pathExists(filePath)) {
           const strings = state.languageContainer;
-          const result = await state.socketServer.showMessageBoxBack(event.client)({
-            type: 'warning',
-            title: strings.dialog.overwriteFileTitle,
-            message: strings.dialog.overwriteFileMessage,
-            detail: `${strings.dialog.overwriteFileDetail}\n${filePath}`,
+          const dialogId = await state.socketServer.showMessageBoxBack(state, event.client)({
+            message: `${strings.dialog.overwriteFileMessage}\n${strings.dialog.overwriteFileDetail}\n${filePath}`,
             buttons: [strings.misc.yes, strings.misc.no],
             cancelId: 1,
           });
+          const result = (await awaitDialog(state, dialogId)).buttonIdx;
 
           if (result === 1) { save = false; }
         }
@@ -1439,7 +1439,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   state.socketServer.register(BackIn.IMPORT_META_EDITS, async (event) => {
     const result = await importAllMetaEdits(
       path.join(state.config.flashpointPath, state.preferences.metaEditsFolderPath),
-      state.socketServer.showMessageBoxBack(event.client),
+      state.socketServer.showMessageBoxBack(state, event.client),
+      state,
     );
 
     return result;
@@ -1876,6 +1877,14 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     state.extConfig[key] = value;
     await ExtConfigFile.saveFile(path.join(state.config.flashpointPath, EXT_CONFIG_FILENAME), state.extConfig);
     state.socketServer.send(event.client, BackOut.UPDATE_EXT_CONFIG_DATA, state.extConfig);
+  });
+
+  state.socketServer.register(BackIn.NEW_DIALOG_RESPONSE, (event, dialogId, code) => {
+    state.newDialogEvents.emit(code, dialogId);
+  });
+
+  state.socketServer.register(BackIn.DIALOG_RESPONSE, (event, dialog, buttonIdx) => {
+    state.resolveDialogEvents.emit(dialog.id, dialog, buttonIdx);
   });
 }
 

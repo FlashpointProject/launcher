@@ -5,7 +5,7 @@ import { AppConfigData, AppExtConfigData } from '@shared/config/interfaces';
 import { ExecMapping, GamePropSuggestions, IBackProcessInfo, INamedBackProcessInfo } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { ILogEntry } from '@shared/Log/interface';
-import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
+import { OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint-launcher';
 import { GameOrderBy, GameOrderReverse } from 'flashpoint-launcher';
@@ -83,6 +83,8 @@ export type BackState = {
   logsWindowProc?: ManagedChildProcess;
   pathVar?: string;
   componentStatuses: ComponentStatus[];
+  newDialogEvents: EventEmitter;
+  resolveDialogEvents: EventEmitter;
 }
 
 export type BackQueryChache = {
@@ -159,7 +161,7 @@ export type TagsFile = {
   tags: BareTag[]
 }
 
-export type ShowMessageBoxFunc = (options: MessageBoxOptions) => Promise<number>;
+export type ShowMessageBoxFunc = (options: flashpoint.DialogStateTemplate) => Promise<string>;
 export type ShowSaveDialogFunc = (options: SaveDialogOptions) => Promise<string | undefined>;
 export type ShowOpenDialogFunc = (options: OpenDialogOptions) => Promise<string[] | undefined>;
 export type OpenExternalFunc = (url: string, options?: OpenExternalOptions) => Promise<void>;

@@ -228,7 +228,9 @@ const state: BackState = {
   recentAppPaths: {},
   writeLocks: 0,
   prefsQueue: new EventQueue(),
-  componentStatuses: []
+  componentStatuses: [],
+  newDialogEvents: new EventEmitter(),
+  resolveDialogEvents: new EventEmitter()
 };
 
 main();

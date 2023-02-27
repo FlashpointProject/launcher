@@ -9,7 +9,7 @@ import { fixSlashes, padStart, stringifyArray } from '@shared/Util';
 import * as Coerce from '@shared/utils/Coerce';
 import { ChildProcess, exec } from 'child_process';
 import { EventEmitter } from 'events';
-import { AppPathOverride, GameData, ManagedChildProcess } from 'flashpoint-launcher';
+import { AppPathOverride, DialogStateTemplate, GameData, ManagedChildProcess } from 'flashpoint-launcher';
 import * as minimist from 'minimist';
 import * as path from 'path';
 import { extractFullPromise } from '.';
@@ -19,6 +19,8 @@ import { getCwd, isBrowserOpts } from './util/misc';
 import * as fs from 'fs-extra';
 import { BackOut, ComponentState } from '@shared/back/types';
 import * as child_process from 'child_process';
+import { awaitDialog, createNewDialog } from './util/dialog';
+import { formatString } from '@shared/utils/StringFormatter';
 
 const { str } = Coerce;
 
@@ -77,8 +79,7 @@ export namespace GameLauncher {
       case ':message:':
         return new Promise((resolve) => {
           opts.openDialog({
-            type: 'info',
-            title: 'About This Game',
+            largeMessage: true,
             message: opts.addApp.launchCommand,
             buttons: ['Ok'],
           }).finally(() => resolve());
@@ -89,8 +90,7 @@ export namespace GameLauncher {
         .catch(error => {
           if (error) {
             opts.openDialog({
-              type: 'error',
-              title: 'Failed to Open Extras',
+              largeMessage: true,
               message: `${error.toString()}\n`+
                        `Path: ${folderPath}`,
               buttons: ['Ok'],
@@ -551,15 +551,24 @@ export async function checkAndInstallPlatform(platform: string, state: BackState
   if (compIdx > -1) {
     const component = state.componentStatuses[compIdx];
     if (component.state === ComponentState.UNINSTALLED) {
-      const res = await openMessageBox({
-        title: 'Required component missing',
-        message: `${platform} games require an additional download to run. Download now?`,
+      const dialogId = await openMessageBox({
+        largeMessage: true,
+        message: formatString(state.languageContainer.dialog.requiresAdditionalDownload, platform) as string,
         cancelId: 1,
         buttons: ['Yes', 'No']
       });
+      const res = (await awaitDialog(state, dialogId)).buttonIdx;
       if (res === 1) {
         throw 'User aborted game launch (denied required component download)';
       } else {
+        // Create dialog to cover screen
+        const template: DialogStateTemplate = {
+          largeMessage: true,
+          message: 'Downloading Required Components...',
+          buttons: []
+        };
+        const dialogId = await createNewDialog(state, template);
+        // Run process to download components
         await new Promise<void>((resolve, reject) => {
           const fpmPath = path.join(state.config.flashpointPath, 'FlashpointManager.exe');
           child_process.execFile(fpmPath, ['/notemp', '/download', component.id], { cwd: state.config.flashpointPath }, (error, stdout, stderr) => {
@@ -575,6 +584,10 @@ export async function checkAndInstallPlatform(platform: string, state: BackState
         .then(() => {
           state.componentStatuses[compIdx].state = ComponentState.UP_TO_DATE;
           state.socketServer.broadcast(BackOut.UPDATE_COMPONENT_STATUSES, state.componentStatuses);
+        })
+        .finally(() => {
+          // Close downloading dialog
+          state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
         });
       }
     }

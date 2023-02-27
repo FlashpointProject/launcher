@@ -447,11 +447,28 @@ declare module 'flashpoint-launcher' {
     /** Front facing dialogs */
     export namespace dialogs {
         /**
-         * Opens a message box on the client. Buttons can be provided in options.
+         * Opens a message box on the client. Buttons can be provided in options. Returns when the dialog closes
          * @param options Message box options
-         * @returns Button index pressed (0 or cancelId if exited)
+         * @returns Button index pressed (-1 or cancelId if exited)
          */
-        function showMessageBox(options: ShowMessageBoxOptions): Promise<number>;
+        function showMessageBox(options: DialogStateTemplate): Promise<number>;
+        /**
+         * Opens a message box on the client. Buttons can be provided in options. Returns a handle. Can use awaitDialog to get result or cancelDialog from yourself.
+         * @param options Message box options
+         * @returns Dialog ID
+         */
+        function showMessageBoxWithHandle(options: DialogStateTemplate): Promise<string>;
+        /**
+         * Awaits a message box dialogs result
+         * @param dialogId Dialog ID
+         * @returns Dialog Response
+         */
+        function awaitDialog(dialogId: string): Promise<DialogResponse>;
+        /**
+         * Cancels a dialog. Use awaitDialog to get result.
+         * @param dialogId Dialog ID
+         */
+        function cancelDialog(dialogId: string): void;
         /**
          * Opens a save dialog on the client. They can select a file to save to.
          * @param options Save dialog options
@@ -472,14 +489,6 @@ declare module 'flashpoint-launcher' {
 
     /** Called when a client connects to the backend */
     const onDidConnect: Event<void>;
-
-    /** See Electron docs for explanations. https://www.electronjs.org/docs/api/dialog */
-    type ShowMessageBoxOptions = {
-        title?: string;
-        message: string;
-        buttons?: string[];
-        cancelId?: number;
-    };
 
     /** See Electron docs for explanations. http://electronjs.org/docs/api/structures/file-filter */
     interface FileFilter {
@@ -1381,4 +1390,32 @@ declare module 'flashpoint-launcher' {
         language: string;
         mountParameters: string;
     }>
+
+    export type DialogStateTemplate = Omit<DialogState, 'id'>;
+
+    export type DialogState = {
+        id: string;
+        largeMessage?: boolean;
+        userCanCancel?: boolean;
+        message: string;
+        fields?: DialogField[];
+        cancelId?: number;
+        buttons: string[];
+    }
+
+    export type DialogFieldString = {
+        type: 'string';
+        locked?: boolean;
+        name: string;
+        message: string;
+        placeholder?: string;
+        value: string;
+    }
+
+    export type DialogField = DialogFieldString;
+
+    export type DialogResponse = {
+        dialog: DialogState,
+        buttonIdx: number
+    }
 }

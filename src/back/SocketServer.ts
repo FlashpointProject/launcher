@@ -1,4 +1,4 @@
-import { OpenExternalFunc, ShowMessageBoxFunc, ShowOpenDialogFunc, ShowSaveDialogFunc } from '@back/types';
+import { BackState, OpenExternalFunc, ShowMessageBoxFunc, ShowOpenDialogFunc, ShowSaveDialogFunc } from '@back/types';
 import { BackIn, BackInTemplate, BackOut, BackOutTemplate, BackRes, BackResTemplate } from '@shared/back/types';
 import { parse_message_data, validate_socket_message } from '@shared/socket/shared';
 import { api_handle_message, api_register, api_register_any, api_unregister, api_unregister_any, create_api, SocketAPIData } from '@shared/socket/SocketAPI';
@@ -6,6 +6,7 @@ import { create_server, server_add_client, server_broadcast, server_request, ser
 import { SocketRequestData, SocketResponseData } from '@shared/socket/types';
 import * as ws from 'ws';
 import { genPipelineBackOut, MiddlewareRes, PipelineRes } from './SocketServerMiddleware';
+import { createNewDialog } from './util/dialog';
 
 type BackAPI = SocketAPIData<BackIn, BackInTemplate, MsgEvent>
 type BackClients = SocketServerData<BackOut, BackOutTemplate, ws>
@@ -91,11 +92,12 @@ export class SocketServer {
   /**
    * Return a function that opens a message box on a specific client.
    *
+   * @param state Back State
    * @param client Client to open a message box on.
    */
-  public showMessageBoxBack(client: BackClient): ShowMessageBoxFunc {
+  public showMessageBoxBack(state: BackState, client: BackClient): ShowMessageBoxFunc {
     return (options) => {
-      return this.request(client, BackOut.OPEN_MESSAGE_BOX, options);
+      return createNewDialog(state, options);
     };
   }
 

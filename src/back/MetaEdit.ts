@@ -9,7 +9,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as GameManager from './game/GameManager';
 import * as TagManager from './game/TagManager';
-import { ShowMessageBoxFunc } from './types';
+import { BackState, ShowMessageBoxFunc } from './types';
+import { awaitDialog } from './util/dialog';
 import { copyError } from './util/misc';
 
 const { str, strToBool } = Coerce;
@@ -93,8 +94,9 @@ type CombinedMetas = {
  *
  * @param fullMetaEditsFolderPath Path to load meta edit files from.
  * @param openDialog Function used to open a message box for prompting on collisions
+ * @param state Back State
  */
-export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDialog: ShowMessageBoxFunc): Promise<ImportMetaEditResult> {
+export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDialog: ShowMessageBoxFunc, state: BackState): Promise<ImportMetaEditResult> {
   const errors: Error[] = [];
 
   // Load all meta edit files
@@ -215,23 +217,20 @@ export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDi
       if (!values) { throw new Error(`Failed to check for collisions. "values" is missing (id: "${id}", property: "${property}") (bug)`); }
 
       if (values.length > 1) { // Collision
-        const buttonIndex = await openDialog({
-          type: 'question',
-          title: 'Meta Edit Collision!',
-          message: `${values.length} meta edits wants to change the same property.`,
-          detail: (
+        const dialogId = await openDialog({
+          message: `${values.length} meta edits wants to change the same property.\n`+
             `Title: ${game.title}\n`+
             `ID: ${id}\n\n`+
             `Property: ${property}\n`+
             `Current Value: ${`${stringifyMetaValue(game[property])}`}\n\n`+
-            'Select the value to apply:'
-          ),
+            'Select the value to apply:',
           buttons: [
             ...(values as MetaChangeBase<keyof MetaEditMetaMap>[]).map(v => stringifyMetaValue(v.value)),
             'Abort Import',
           ],
           cancelId: values.length,
         });
+        const buttonIndex = (await awaitDialog(state, dialogId)).buttonIdx;
 
         if (buttonIndex === values.length) { // Abort clicked
           return { aborted: true };

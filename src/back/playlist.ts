@@ -10,6 +10,7 @@ import { MsgEvent } from './SocketServer';
 import { BackState } from './types';
 import { uuid } from './util/uuid';
 import path = require('path');
+import { awaitDialog } from './util/dialog';
 
 export function filterPlaylists(playlist: Playlist[], extreme: boolean): Playlist[] {
   return playlist.filter(p => {
@@ -121,13 +122,13 @@ export async function importPlaylist(state: BackState, filePath: string, library
       }
       // Conflict, resolve with user if run by frontend
       if (event) {
-        const dialogFunc = state.socketServer.showMessageBoxBack(event.client);
+        const dialogFunc = state.socketServer.showMessageBoxBack(state, event.client);
         const strings = state.languageContainer;
-        const result = await dialogFunc({
-          title: strings.dialog.playlistConflict,
+        const dialogId = await dialogFunc({
           message:  `${formatString(strings.dialog.importedPlaylistAlreadyExists, existingPlaylist.title)}\n\n${strings.dialog.importPlaylistAs} ${newPlaylist.title}?`,
           buttons: [strings.misc.yes, strings.misc.no, strings.dialog.cancel]
         });
+        const result = (await awaitDialog(state, dialogId)).buttonIdx;
         switch (result) {
           case 0: {
             // Continue importing

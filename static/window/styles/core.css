@@ -2936,3 +2936,30 @@ body {
   flex-direction: column;
   font-size: 2rem;
 }
+
+/** Dialogs */
+
+.dialog-message, .dialog-field-message {
+  white-space: pre-wrap;
+}
+
+.dialog-message--large {
+  font-size: 1.75em;
+  font-weight: bold;
+}
+
+.dialog-buttons-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+}
+
+.dialog-buttons-container {
+  margin-top: 0.5rem;
+}
+
+.dialog-buttons-container .simple-button {
+  font-size: 1.75rem;
+  font-weight: bold;
+  height: 2rem;
+}

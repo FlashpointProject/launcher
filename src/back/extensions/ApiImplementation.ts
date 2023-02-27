@@ -41,6 +41,7 @@ import { loadCurationArchive } from '..';
 import { newExtLog } from './ExtensionUtils';
 import { Command } from './types';
 import uuid = require('uuid');
+import { awaitDialog } from '@back/util/dialog';
 
 /**
  * Create a Flashpoint API implementation specific to an extension, used during module load interception
@@ -264,9 +265,9 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     saveTag: TagManager.saveTag,
     addAliasToTag: TagManager.addAliasToTag,
     deleteTag: (tagId: number, skipWarn?: boolean) => {
-      const openDialogFunc = getOpenMessageBoxFunc(state.socketServer);
+      const openDialogFunc = getOpenMessageBoxFunc(state);
       if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
-      return TagManager.deleteTag(tagId, openDialogFunc, skipWarn);
+      return TagManager.deleteTag(tagId, state, openDialogFunc, skipWarn);
     },
     findGameTags: TagManager.findGameTags,
 
@@ -276,9 +277,9 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     createTagCategory: TagManager.createTagCategory,
     saveTagCategory: TagManager.saveTagCategory,
     deleteTagCategory: (tagCategoryId: number) => {
-      const openDialogFunc = getOpenMessageBoxFunc(state.socketServer);
+      const openDialogFunc = getOpenMessageBoxFunc(state);
       if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
-      return TagManager.deleteTagCategory(tagCategoryId, openDialogFunc);
+      return TagManager.deleteTagCategory(tagCategoryId, openDialogFunc, state);
     },
 
     // Tag Suggestions
@@ -287,9 +288,9 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
 
     // Misc
     mergeTags: (mergeData: flashpoint.MergeTagData) => {
-      const openDialogFunc = getOpenMessageBoxFunc(state.socketServer);
+      const openDialogFunc = getOpenMessageBoxFunc(state);
       if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
-      return TagManager.mergeTags(mergeData, openDialogFunc);
+      return TagManager.mergeTags(mergeData, openDialogFunc, state);
     },
   };
 
@@ -339,10 +340,26 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
   };
 
   const extDialogs: typeof flashpoint.dialogs = {
-    showMessageBox: (options: flashpoint.ShowMessageBoxOptions): Promise<number> => {
-      const openDialogFunc = getOpenMessageBoxFunc(state.socketServer);
+    showMessageBox: async (options: flashpoint.DialogStateTemplate) => {
+      const openDialogFunc = getOpenMessageBoxFunc(state);
+      if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
+      const dialogId = await openDialogFunc(options);
+      return (await awaitDialog(state, dialogId)).buttonIdx;
+    },
+    showMessageBoxWithHandle: async (options: flashpoint.DialogStateTemplate) => {
+      const openDialogFunc = getOpenMessageBoxFunc(state);
       if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
       return openDialogFunc(options);
+    },
+    awaitDialog: async (dialogId: string) => {
+      return new Promise<flashpoint.DialogResponse>((resolve) => {
+        state.resolveDialogEvents.once(dialogId, (res) => {
+          resolve(res);
+        });
+      });
+    },
+    cancelDialog: async (dialogId: string) => {
+      state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
     },
     showSaveDialog: (options: flashpoint.ShowSaveDialogOptions) => {
       const openDialogFunc = getOpenSaveDialogFunc(state.socketServer);
