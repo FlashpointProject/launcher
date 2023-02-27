@@ -185,7 +185,7 @@ export function createInitialMainState(): MainState {
     updateFeedMarkdown: '',
     busyGames: [],
     gotdList: [],
-    componentUpdates: [],
+    componentStatuses: [],
     quitting: false,
   };
 }

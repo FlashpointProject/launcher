@@ -13,7 +13,7 @@ import { SourceFileURL1612435692266 } from '@database/migration/1612435692266-So
 import { SourceFileCount1612436426353 } from '@database/migration/1612436426353-SourceFileCount';
 import { GameTagsStr1613571078561 } from '@database/migration/1613571078561-GameTagsStr';
 import { GameDataParams1619885915109 } from '@database/migration/1619885915109-GameDataParams';
-import { BackIn, BackInit, BackInitArgs, BackOut, BackResParams, DownloadDetails } from '@shared/back/types';
+import { BackIn, BackInit, BackInitArgs, BackOut, BackResParams, ComponentState, ComponentStatus, DownloadDetails } from '@shared/back/types';
 import { LoadedCuration } from '@shared/curate/types';
 import { getContentFolderByKey } from '@shared/curate/util';
 import { ILogoSet, LogoSet } from '@shared/extensions/interfaces';
@@ -228,7 +228,7 @@ const state: BackState = {
   recentAppPaths: {},
   writeLocks: 0,
   prefsQueue: new EventQueue(),
-  componentUpdates: [],
+  componentStatuses: []
 };
 
 main();
@@ -730,29 +730,60 @@ async function initialize() {
   const fpmPath = path.join(state.config.flashpointPath, 'fpm.exe');
   if (fs.existsSync(fpmPath)) {
     // FPM exists, make sure path is correct, then check for updates
-    state.componentUpdates = await new Promise<string[]>((resolve, reject) => {
+    state.componentStatuses = await new Promise<ComponentStatus[]>((resolve, reject) => {
       child_process.execFile(fpmPath, ['path', path.join(state.config.flashpointPath)], { cwd: state.config.flashpointPath }, (error, stdout, stderr) => {
         if (error) {
           reject(error);
         } else {
-          // Path set, check for updates
-          child_process.execFile(fpmPath, ['list', 'updates'], { cwd: state.config.flashpointPath }, (error, stdout, stderr) => {
+          // Path set, check component statuses
+          child_process.execFile(fpmPath, ['list', 'verbose'], { cwd: state.config.flashpointPath }, (error, stdout, stderr) => {
             if (error) {
               reject(error);
             } else {
-              resolve(stdout.split('\n').filter(line => line !== '').map(line => line.trim()));
+              const statuses = [];
+              for (const line of stdout.split('\n').filter(line => line !== '')) {
+                try {
+                  let state: ComponentState;
+                  switch (line.charAt(0)) {
+                    case '*':
+                      state = ComponentState.UP_TO_DATE;
+                      break;
+                    case '!':
+                      state = ComponentState.NEEDS_UPDATE;
+                      break;
+                    default:
+                      state = ComponentState.UNINSTALLED;
+                      break;
+                  }
+                  // ! comp-id (Comp Name)
+                  const nameIdx = line.indexOf('(');
+                  const id = line.substring(1, nameIdx - 1).trim();
+                  const name = line.substring(nameIdx + 1, line.length - 2);
+                  const status: ComponentStatus = {
+                    id,
+                    name,
+                    state
+                  };
+                  statuses.push(status);
+                  log.debug('Launcher', `Parsed: ${JSON.stringify({...status, state: ComponentState[status.state]})}`);
+                } catch (err) {
+                  log.error('Launcher', `Failed to parse component entry: ${line}\nERROR: ${err}`);
+                }
+              }
+              resolve(statuses);
             }
           });
         }
       });
     })
-    .then((updates) => {
-      if (updates.length > 0) {
-        log.info('Launcher', `Found ${updates.length} component updates.\n${updates.join('\n')}`);
+    .then((statuses) => {
+      const updatesReady = statuses.filter(s => s.state === ComponentState.NEEDS_UPDATE);
+      if (updatesReady.length > 0) {
+        log.info('Launcher', `Found ${updatesReady.length} component updates.\n${updatesReady.map(s => s.id).join('\n')}`);
       } else {
         log.info('Launcher', 'All components up to update');
       }
-      return updates;
+      return statuses;
     })
     .catch((error) => {
       log.error('Launcher', `Error checking for component updates: ${error}`);

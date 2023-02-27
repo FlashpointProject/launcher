@@ -3,7 +3,7 @@ import { GameData } from '@database/entity/GameData';
 import { CreditsData } from '@renderer/credits/types';
 import { ViewGameSet } from '@renderer/interfaces';
 import { UpgradeStage } from '@renderer/upgrade/types';
-import { BackInit, GameOfTheDay, PageKeyset, ResponseGameRange, SearchGamesOpts, ViewGame } from '@shared/back/types';
+import { BackInit, ComponentStatus, GameOfTheDay, PageKeyset, ResponseGameRange, SearchGamesOpts, ViewGame } from '@shared/back/types';
 import { AppExtConfigData } from '@shared/config/interfaces';
 import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { GamePropSuggestions, IService } from '@shared/interfaces';
@@ -141,8 +141,8 @@ export type MainState = {
   socketOpen: boolean;
   /** Main Proc output (when requested) */
   mainOutput?: string;
-  /** List of components ready to update */
-  componentUpdates: string[];
+  /** List of components from FPM */
+  componentStatuses: ComponentStatus[];
   /** In the process of quitting, suspend all action */
   quitting: boolean;
 }

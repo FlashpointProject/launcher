@@ -1,6 +1,6 @@
 import { Game } from '@database/entity/Game';
 import { TagCategory } from '@database/entity/TagCategory';
-import { BackInit, ViewGame } from '@shared/back/types';
+import { BackInit, ComponentStatus, ViewGame } from '@shared/back/types';
 import { AppConfigData, AppExtConfigData } from '@shared/config/interfaces';
 import { ExecMapping, GamePropSuggestions, IBackProcessInfo, INamedBackProcessInfo } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
@@ -82,7 +82,7 @@ export type BackState = {
   prefsQueue: EventQueue;
   logsWindowProc?: ManagedChildProcess;
   pathVar?: string;
-  componentUpdates: string[];
+  componentStatuses: ComponentStatus[];
 }
 
 export type BackQueryChache = {

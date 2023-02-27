@@ -1,6 +1,6 @@
 import * as remote from '@electron/remote';
 import { FancyAnimation } from '@renderer/components/FancyAnimation';
-import { BackIn, GameOfTheDay, ViewGame } from '@shared/back/types';
+import { BackIn, ComponentState, ComponentStatus, GameOfTheDay, ViewGame } from '@shared/back/types';
 import { ARCADE, LOGOS, THEATRE } from '@shared/constants';
 import { wrapSearchTerm } from '@shared/game/GameFilter';
 import { updatePreferencesData } from '@shared/preferences/util';
@@ -50,8 +50,8 @@ type OwnProps = {
   /** Raw HTML of the Update page grabbed */
   updateFeedMarkdown: string;
   selectedGameId?: string;
-  /** List of components that are ready to be updated */
-  componentUpdates: string[];
+  /** List of components from FPM */
+  componentStatuses: ComponentStatus[];
   openFlashpointManager: () => void;
 };
 
@@ -196,13 +196,14 @@ export function HomePage(props: HomePageProps) {
   const width: number = (height * 0.666) | 0;
 
   const renderedUpdateButton = React.useMemo(() => {
-    if (props.componentUpdates.length > 0) {
+    const updatesReady = props.componentStatuses.filter(s => s.state === ComponentState.NEEDS_UPDATE);
+    if (updatesReady.length > 0) {
       return (
         <div className='home-page__update-button-container'>
           <SimpleButton
             className='home-page__update-button'
             onClick={props.openFlashpointManager}
-            value={formatString(strings.componentUpdatesReady, props.componentUpdates.length.toString())}>
+            value={formatString(strings.componentUpdatesReady, updatesReady.length.toString())}>
           </SimpleButton>
         </div>
       );
@@ -217,7 +218,7 @@ export function HomePage(props: HomePageProps) {
         </div>
       );
     }
-  }, [props.componentUpdates]);
+  }, [props.componentStatuses]);
 
   const renderedQuickStart = React.useMemo(() => {
     const render = (

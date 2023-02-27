@@ -836,7 +836,10 @@ body {
   position: fixed;
   left: 0;
   margin: 0 0 0 0.5rem;
+}
+.home-page__update-button-container .simple-button {
   font-size: 1.75em;
+  height: 1.5em;
 }
 .random-games {
   display: flex;

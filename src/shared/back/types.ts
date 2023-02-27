@@ -187,6 +187,7 @@ export enum BackOut {
   SET_PLACEHOLDER_DOWNLOAD_PERCENT,
   OPEN_PLACEHOLDER_DOWNLOAD_DIALOG,
   CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG,
+  UPDATE_COMPONENT_STATUSES,
 
   // Curate
   CURATE_CONTENTS_CHANGE,
@@ -370,6 +371,7 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT]: (percent: number) => void;
   [BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG]: () => void;
   [BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG]: () => void;
+  [BackOut.UPDATE_COMPONENT_STATUSES]: (componentStatuses: ComponentStatus[]) => void;
 
   // Curate
   [BackOut.CURATE_CONTENTS_CHANGE]: (folder: string, contents: ContentTree) => void;
@@ -454,7 +456,7 @@ export type GetRendererLoadedDataResponse = {
   tagCategories: TagCategory[];
   logoSets: LogoSet[];
   updateFeedMarkdown: string;
-  componentUpdates: string[];
+  componentStatuses: ComponentStatus[];
 }
 
 export type GetRendererInitDataResponse = {
@@ -653,4 +655,16 @@ export type DownloadDetails = {
 export enum CurationImageEnum {
   THUMBNAIL,
   SCREENSHOT
+}
+
+export enum ComponentState {
+  UNINSTALLED,
+  UP_TO_DATE,
+  NEEDS_UPDATE,
+}
+
+export type ComponentStatus = {
+  id: string;
+  name: string;
+  state: ComponentState
 }

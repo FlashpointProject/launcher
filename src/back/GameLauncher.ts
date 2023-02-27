@@ -14,9 +14,11 @@ import * as minimist from 'minimist';
 import * as path from 'path';
 import { extractFullPromise } from '.';
 import { ApiEmitter } from './extensions/ApiEmitter';
-import { OpenExternalFunc, ShowMessageBoxFunc } from './types';
+import { BackState, OpenExternalFunc, ShowMessageBoxFunc } from './types';
 import { getCwd, isBrowserOpts } from './util/misc';
 import * as fs from 'fs-extra';
+import { BackOut, ComponentState } from '@shared/back/types';
+import * as child_process from 'child_process';
 
 const { str } = Coerce;
 
@@ -62,12 +64,14 @@ type LaunchBaseOpts = {
   openDialog: ShowMessageBoxFunc;
   openExternal: OpenExternalFunc;
   runGame: (gameLaunchInfo: GameLaunchInfo) => ManagedChildProcess;
+  state: BackState;
 }
 
 export namespace GameLauncher {
   const logSource = 'Game Launcher';
 
   export async function launchAdditionalApplication(opts: LaunchAddAppOpts, serverOverride?: string): Promise<void> {
+    await checkAndInstallPlatform(opts.addApp.parentGame.platform, opts.state, opts.openDialog);
     // @FIXTHIS It is not possible to open dialog windows from the back process (all electron APIs are undefined).
     switch (opts.addApp.applicationPath) {
       case ':message:':
@@ -136,6 +140,7 @@ export namespace GameLauncher {
    * @param serverOverride Change active server for this game launch only
    */
   export async function launchGame(opts: LaunchGameOpts, onWillEvent: ApiEmitter<GameLaunchInfo>, serverOverride?: string): Promise<void> {
+    await checkAndInstallPlatform(opts.game.platform, opts.state, opts.openDialog);
     // Abort if placeholder (placeholders are not "actual" games)
     if (opts.game.placeholder) { return; }
     // Run all provided additional applications with "AutoRunBefore" enabled
@@ -157,7 +162,8 @@ export namespace GameLauncher {
         openDialog: opts.openDialog,
         openExternal: opts.openExternal,
         runGame: opts.runGame,
-        envPATH: opts.envPATH
+        envPATH: opts.envPATH,
+        state: opts.state
       };
       for (const addApp of opts.game.addApps) {
         if (addApp.autoRunBefore) {
@@ -537,5 +543,42 @@ async function handleGameDataParams(opts: LaunchBaseOpts, serverOverride?: strin
   } else {
     // Ignore default server switch if launching curation
     await opts.changeServer(serverOverride);
+  }
+}
+
+export async function checkAndInstallPlatform(platform: string, state: BackState, openMessageBox: ShowMessageBoxFunc) {
+  const compIdx = state.componentStatuses.findIndex(c => c.name === platform);
+  if (compIdx > -1) {
+    const component = state.componentStatuses[compIdx];
+    if (component.state === ComponentState.UNINSTALLED) {
+      const res = await openMessageBox({
+        title: 'Required component missing',
+        message: `${platform} games require an additional download to run. Download now?`,
+        cancelId: 1,
+        buttons: ['Yes', 'No']
+      });
+      if (res === 1) {
+        throw 'User aborted game launch (denied required component download)';
+      } else {
+        await new Promise<void>((resolve, reject) => {
+          const fpmPath = path.join(state.config.flashpointPath, 'FlashpointManager.exe');
+          child_process.execFile(fpmPath, ['/notemp', '/download', component.id], { cwd: state.config.flashpointPath }, (error, stdout, stderr) => {
+            log.debug('FP Manager', stdout);
+            if (error) {
+              reject(error);
+              return;
+            } else {
+              resolve();
+            }
+          });
+        })
+        .then(() => {
+          state.componentStatuses[compIdx].state = ComponentState.UP_TO_DATE;
+          state.socketServer.broadcast(BackOut.UPDATE_COMPONENT_STATUSES, state.componentStatuses);
+        });
+      }
+    }
+  } else {
+    log.warn('Launcher', `No component found for ${platform}, assuming none required.`);
   }
 }

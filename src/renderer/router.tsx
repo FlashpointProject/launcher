@@ -1,5 +1,5 @@
 import { Game } from '@database/entity/Game';
-import { GameOfTheDay, ViewGame } from '@shared/back/types';
+import { ComponentStatus, GameOfTheDay, ViewGame } from '@shared/back/types';
 import { AppExtConfigData } from '@shared/config/interfaces';
 import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { GamePropSuggestions, IService } from '@shared/interfaces';
@@ -76,7 +76,7 @@ export type AppRouterProps = {
   logoVersion: number,
   updateFeedMarkdown: string,
   manualUrl: string,
-  componentUpdates: string[],
+  componentStatuses: ComponentStatus[],
   openFlashpointManager: () => void,
 };
 
@@ -97,7 +97,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       logoVersion: this.props.logoVersion,
       updateFeedMarkdown: this.props.updateFeedMarkdown,
       selectedGameId: this.props.selectedGameId,
-      componentUpdates: this.props.componentUpdates,
+      componentStatuses: this.props.componentStatuses,
       openFlashpointManager: this.props.openFlashpointManager,
     };
     const browseProps: ConnectedBrowsePageProps = {

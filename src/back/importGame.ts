@@ -18,7 +18,7 @@ import { ApiEmitter } from './extensions/ApiEmitter';
 import * as GameManager from './game/GameManager';
 import * as TagManager from './game/TagManager';
 import { GameManagerState } from './game/types';
-import { GameLauncher, GameLaunchInfo, LaunchAddAppOpts, LaunchGameOpts } from './GameLauncher';
+import { checkAndInstallPlatform, GameLauncher, GameLaunchInfo, LaunchAddAppOpts, LaunchGameOpts } from './GameLauncher';
 import { copyFolder } from './rust';
 import { OpenExternalFunc, ShowMessageBoxFunc } from './types';
 import { getMklinkBatPath } from './util/elevate';
@@ -284,6 +284,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
  */
 export async function launchCuration(curation: LoadedCuration, symlinkCurationContent: boolean,
   skipLink: boolean, opts: Omit<LaunchGameOpts, 'game'|'addApps'>, onWillEvent:ApiEmitter<GameLaunchInfo>, onDidEvent: ApiEmitter<Game>, serverOverride?: string) {
+  await checkAndInstallPlatform(curation.game.platform || 'invalid', opts.state, opts.openDialog);
   if (!skipLink || !symlinkCurationContent) { await linkContentFolder(curation.folder, opts.fpPath, opts.isDev, opts.exePath, opts.htdocsPath, symlinkCurationContent); }
   curationLog(`Launching Curation ${curation.game.title}`);
   const game = await createGameFromCurationMeta(curation.folder, curation.game, [], new Date());
@@ -300,14 +301,16 @@ export async function launchCuration(curation: LoadedCuration, symlinkCurationCo
  *
  * @param folder Key of the parent curation index
  * @param appCuration Add App Curation to launch
+ * @param platform Platform of the curation
  * @param symlinkCurationContent Symlink the curation content to htdocs/content/
  * @param skipLink Skips any linking of the content folder
  * @param opts Options for add app launches
  * @param onWillEvent Fires before the curation add app has launched
  * @param onDidEvent Fires after the curation add app has launched
  */
-export async function launchAddAppCuration(folder: string, appCuration: AddAppCuration, symlinkCurationContent: boolean,
+export async function launchAddAppCuration(folder: string, appCuration: AddAppCuration, platform: string, symlinkCurationContent: boolean,
   skipLink: boolean, opts: Omit<LaunchAddAppOpts, 'addApp'>, onWillEvent: ApiEmitter<AdditionalApp>, onDidEvent: ApiEmitter<AdditionalApp>) {
+  await checkAndInstallPlatform(platform, opts.state, opts.openDialog);
   if (!skipLink || !symlinkCurationContent) { await linkContentFolder(folder, opts.fpPath, opts.isDev, opts.exePath, opts.htdocsPath, symlinkCurationContent); }
   const addApp = createAddAppFromCurationMeta(appCuration, createPlaceholderGame());
   await onWillEvent.fire(addApp);

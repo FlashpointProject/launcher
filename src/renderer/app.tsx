@@ -324,6 +324,12 @@ export class App extends React.Component<AppProps> {
       });
     });
 
+    window.Shared.back.register(BackOut.UPDATE_COMPONENT_STATUSES, (event, statuses) => {
+      this.props.setMainState({
+        componentStatuses: statuses
+      });
+    });
+
     window.Shared.back.register(BackOut.THEME_CHANGE, (event, theme) => {
       if (theme.id === this.props.preferencesData.currentTheme) { setTheme(theme); }
     });
@@ -1221,7 +1227,7 @@ export class App extends React.Component<AppProps> {
       services: this.props.main.services,
       manualUrl: this.props.preferencesData.onlineManual || pathToFileUrl(path.join(window.Shared.config.fullFlashpointPath, this.props.preferencesData.offlineManual)),
       updateFeedMarkdown: this.props.main.updateFeedMarkdown,
-      componentUpdates: this.props.main.componentUpdates,
+      componentStatuses: this.props.main.componentStatuses,
       openFlashpointManager: this.openFlashpointManager,
     };
 

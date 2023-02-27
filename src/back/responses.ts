@@ -190,7 +190,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       logoSets: Array.from(state.registry.logoSets.values()),
       updateFeedMarkdown,
       mad4fpEnabled: state.serviceInfo ? (state.serviceInfo.server.findIndex(s => s.mad4fp === true) !== -1) : false,
-      componentUpdates: state.componentUpdates,
+      componentStatuses: state.componentStatuses,
     };
 
     // Fire after return has sent
@@ -330,6 +330,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         openExternal: state.socketServer.openExternal(event.client),
         runGame: runGameFactory(state),
         envPATH: state.pathVar,
+        state,
       });
       state.apiEmitters.games.onDidLaunchAddApp.fire(addApp);
     }
@@ -404,6 +405,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         runGame: runGameFactory(state),
         envPATH: state.pathVar,
         changeServer: changeServerFactory(state),
+        state,
       },
       state.apiEmitters.games.onWillLaunchGame);
       await state.apiEmitters.games.onDidLaunchGame.fire(game);
@@ -1205,6 +1207,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         runGame: runGameFactory(state),
         envPATH: state.pathVar,
         changeServer: changeServerFactory(state),
+        state,
       },
       state.apiEmitters.games.onWillLaunchCurationGame,
       state.apiEmitters.games.onDidLaunchCurationGame,
@@ -1218,7 +1221,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     const skipLink = (data.folder === state.lastLinkedCurationKey);
     state.lastLinkedCurationKey = data.folder;
     try {
-      await launchAddAppCuration(data.folder, data.addApp, data.symlinkCurationContent, skipLink, {
+      await launchAddAppCuration(data.folder, data.addApp, data.platform || 'invalid', data.symlinkCurationContent, skipLink, {
         fpPath: path.resolve(state.config.flashpointPath),
         htdocsPath: state.preferences.htdocsFolderPath,
         dataPacksFolderPath: state.preferences.dataPacksFolderPath,
@@ -1236,6 +1239,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         runGame: runGameFactory(state),
         changeServer: changeServerFactory(state),
         envPATH: state.pathVar,
+        state,
       },
       state.apiEmitters.games.onWillLaunchCurationAddApp,
       state.apiEmitters.games.onDidLaunchCurationAddApp);
