@@ -9,7 +9,7 @@ import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
 import { ChangedMeta, MetaEditFlags } from '@shared/MetaEdit';
 import { SocketTemplate } from '@shared/socket/types';
 import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
-import { AppPreferencesData, CurationState, CurationWarnings, DialogState, DialogStateTemplate, GameData, GameDataSource, GameOrderBy, GameOrderReverse, Playlist, PlaylistGame, TagAlias, TagFilterGroup } from 'flashpoint-launcher';
+import { AppPreferencesData, CurationState, CurationWarnings, DialogState, DialogStateTemplate, GameData, GameDataSource, GameOrderBy, GameOrderReverse, Platform, Playlist, PlaylistGame, TagAlias, TagFilterGroup } from 'flashpoint-launcher';
 import { AppConfigData, AppExtConfigData } from '../config/interfaces';
 import { ExecMapping, GamePropSuggestions, IService, ProcessAction, Task } from '../interfaces';
 import { LangContainer, LangFile } from '../lang';
@@ -612,7 +612,7 @@ export type LaunchCurationData = {
 export type LaunchCurationAddAppData = {
   folder: string;
   addApp: AddAppCuration;
-  platform?: string;
+  platforms?: Platform[];
   symlinkCurationContent: boolean;
 }
 

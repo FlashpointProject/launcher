@@ -4,7 +4,7 @@ import { CurationIndexImage } from '@shared/curate/OLD_types';
 import { AddAppCuration, CurationMeta } from '@shared/curate/types';
 import * as Coerce from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
-import { Tag } from 'flashpoint-launcher';
+import { Platform, Tag } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as path from 'path';
 import { CurationFormatObject, parseCurationFormat } from './format/parser';
@@ -82,7 +82,6 @@ export async function parseCurationMetaFile(data: any, onError?: (error: string)
   parser.prop('launch command',       v => parsed.game.launchCommand       = str(v));
   parser.prop('original description', v => parsed.game.originalDescription = str(v));
   parser.prop('play mode',            v => parsed.game.playMode            = arrayStr(v));
-  parser.prop('platform',             v => parsed.game.platform            = str(v));
   parser.prop('publisher',            v => parsed.game.publisher           = arrayStr(v));
   parser.prop('release date',         v => parsed.game.releaseDate         = str(v));
   parser.prop('series',               v => parsed.game.series              = str(v));
@@ -94,9 +93,11 @@ export async function parseCurationMetaFile(data: any, onError?: (error: string)
   parser.prop('library',              v => parsed.game.library             = str(v).toLowerCase()); // must be lower case
   parser.prop('uuid',                 v => parsed.uuid                     = str(v), true);
   parser.prop('group',                v => parsed.group                    = str(v), true);
-  if (lowerCaseData.genre)  { parsed.game.tags = await getTagsFromStr(arrayStr(lowerCaseData.genre), str(lowerCaseData['tag categories']));  }
-  if (lowerCaseData.genres) { parsed.game.tags = await getTagsFromStr(arrayStr(lowerCaseData.genres), str(lowerCaseData['tag categories'])); }
-  if (lowerCaseData.tags)   { parsed.game.tags = await getTagsFromStr(arrayStr(lowerCaseData.tags), str(lowerCaseData['tag categories']));   }
+  if (lowerCaseData.genre)      { parsed.game.tags = await getTagsFromStr(arrayStr(lowerCaseData.genre), str(lowerCaseData['tag categories']));  }
+  if (lowerCaseData.genres)     { parsed.game.tags = await getTagsFromStr(arrayStr(lowerCaseData.genres), str(lowerCaseData['tag categories'])); }
+  if (lowerCaseData.tags)       { parsed.game.tags = await getTagsFromStr(arrayStr(lowerCaseData.tags), str(lowerCaseData['tag categories']));   }
+  if (lowerCaseData.platform)   { parsed.game.platforms = await getPlatformsFromStr(arrayStr(lowerCaseData.platform)); }
+  if (lowerCaseData.platforms)  { parsed.game.platforms = await getPlatformsFromStr(arrayStr(lowerCaseData.platforms)); }
   // property aliases
   parser.prop('animation notes',      v => parsed.game.notes               = str(v));
   // Add-apps
@@ -159,6 +160,29 @@ function generateMessageAddApp(message: string) : AddAppCuration {
     applicationPath: ':message:',
     launchCommand: message
   };
+}
+
+async function getPlatformsFromStr(platformsStr: string): Promise<Platform[]> {
+  const splitPlatforms = platformsStr.split(';');
+  const platforms = [];
+
+  for (let index = 0; index < splitPlatforms.length; index++) {
+    const platformName = splitPlatforms[index];
+    const trimmedName = platformName.trim();
+    let platform = await TagManager.findPlatform(trimmedName);
+    if (!platform) {
+      // Tag doesn't exist, make a new one
+      platform = await TagManager.createPlatform(trimmedName);
+    }
+    if (platform !== null) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      if (platforms.findIndex(t => t.id === platform!.id) === -1) {
+        platforms.push(platform);
+      }
+    }
+  }
+
+  return platforms;
 }
 
 async function getTagsFromStr(tagsStr: string, tagCategoriesStr: string): Promise<Tag[]> {

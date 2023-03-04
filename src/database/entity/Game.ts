@@ -1,6 +1,7 @@
 import { BeforeUpdate, Column, Entity, Index, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { AdditionalApp } from './AdditionalApp';
 import { GameData } from './GameData';
+import { Platform } from './Platform';
 import { Tag } from './Tag';
 
 @Index('IDX_lookup_title',        ['library', 'title'])
@@ -52,9 +53,9 @@ export class Game {
   /** Date-time of when the game was added to collection */
     dateModified: string;
 
-  @Column({collation: 'NOCASE'})
-  /** Platform the game runs on (Flash, HTML5, Shockwave etc.) */
-    platform: string;
+  @ManyToMany(() => Platform, t => t.gamesUsing, { cascade: true, eager: true })
+  @JoinTable()
+    platforms: Platform[];
 
   @Column()
   /** If the game is "broken" or not */

@@ -1,6 +1,8 @@
 import { SocketServer } from '@back/SocketServer';
 import { BackState, ShowMessageBoxFunc } from '@back/types';
 import { awaitDialog } from '@back/util/dialog';
+import { Platform } from '@database/entity/Platform';
+import { PlatformAlias } from '@database/entity/PlatformAlias';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
@@ -138,6 +140,27 @@ export async function cleanupTagAliases() {
   return q.execute();
 }
 
+export async function findPlatform(name: string): Promise<Platform | null> {
+  const platformRepository = AppDataSource.getRepository(Platform);
+  const platformAliasRepostiory = AppDataSource.getRepository(PlatformAlias);
+
+  const alias = await platformAliasRepostiory.findOne({
+    where: [
+      { name: name }
+    ]
+  });
+
+  if (alias) {
+    return platformRepository.findOne({
+      where: [
+        { id: alias.tagId }
+      ]
+    });
+  }
+
+  return null;
+}
+
 export async function findTag(name: string): Promise<Tag | null> {
   const tagRepository = AppDataSource.getRepository(Tag);
   const tagAliasRepostiory = AppDataSource.getRepository(TagAlias);
@@ -217,6 +240,32 @@ export async function findGameTags(gameId: string): Promise<Tag[] | undefined> {
   .getMany();
 
   return tags;
+}
+
+export async function createPlatform(name: string, aliases?: string[]): Promise<Platform> {
+  const platformRepository = AppDataSource.getRepository(Platform);
+  const platformAliasRepostiory = AppDataSource.getRepository(PlatformAlias);
+
+  const platformAliases = [];
+  // Create tag and alias
+  const platform = platformRepository.create();
+  // Save the newly created tag, return it
+  let savedPlatform = await platformRepository.save(platform);
+  const platformAlias = platformAliasRepostiory.create();
+  platformAlias.name = name;
+  platformAlias.tagId = savedPlatform.id;
+  if (aliases) {
+    for (const a of aliases) {
+      const platformAlias = platformAliasRepostiory.create();
+      platformAlias.name = a;
+      platformAlias.tagId = savedPlatform.id;
+      platformAliases.push(await platformAliasRepostiory.save(platformAlias));
+    }
+  }
+  savedPlatform.primaryAlias = platformAlias;
+  savedPlatform = await platformRepository.save(savedPlatform);
+  savedPlatform.aliases = [await platformAliasRepostiory.save(platformAlias), ...platformAliases];
+  return savedPlatform;
 }
 
 export async function createTag(name: string, categoryName?: string, aliases?: string[]): Promise<Tag | null> {

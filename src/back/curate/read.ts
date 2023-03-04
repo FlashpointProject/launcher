@@ -4,6 +4,7 @@ import { stripBOM } from '@shared/Util';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as YAML from 'yaml';
+import * as TagManager from '../game/TagManager';
 import { parseCurationMetaFile, parseCurationMetaOld, ParsedCurationMeta } from './parse';
 
 export async function readCurationMeta(folderPath: string, appPaths: { [platform: string]: string; }): Promise<ParsedCurationMeta | undefined> {
@@ -59,7 +60,7 @@ export async function readCurationMeta(folderPath: string, appPaths: { [platform
         } else {
           parsed = await parseCurationMetaFile(YAML.parse(stripBOM(fileData.toString())));
         }
-        setGameMetaDefaults(parsed.game, defaultMetaData);
+        await setGameMetaDefaults(parsed.game, defaultMetaData);
         parsedMeta = parsed;
       } else {
         log.error('Launcher', `BUG! Tried to parse a curation's meta file with an unsupported file extension! (curation: "${folderName}", meta file: "${metaName}")`);
@@ -84,18 +85,19 @@ type GameMetaDefaults = {
   library: string;
 }
 
-function setGameMetaDefaults(meta: CurationMeta, defaults?: GameMetaDefaults): void {
+async function setGameMetaDefaults(meta: CurationMeta, defaults?: GameMetaDefaults): Promise<void> {
   if (defaults) {
+    const platformDefault = await TagManager.findPlatform(defaults.platform);
     // Set default meta values
-    if (!meta.language) { meta.language = defaults.language; }
-    if (!meta.playMode) { meta.playMode = defaults.playMode; }
-    if (!meta.status)   { meta.status   = defaults.status;   }
-    if (!meta.platform) { meta.platform = defaults.platform; }
-    if (!meta.library)  { meta.library  = defaults.library;  }
+    if (!meta.language)  { meta.language = defaults.language; }
+    if (!meta.playMode)  { meta.playMode = defaults.playMode; }
+    if (!meta.status)    { meta.status   = defaults.status;   }
+    if (!meta.platforms) { meta.platforms = platformDefault ? [platformDefault]: []; }
+    if (!meta.library)   { meta.library  = defaults.library;  }
     // Set default application path
     // (Note: This has to be set after the default platform)
     if (!meta.applicationPath) {
-      meta.applicationPath = defaults.appPaths[meta.platform || ''] || '';
+      meta.applicationPath = platformDefault ? defaults.appPaths[platformDefault.primaryAlias.name] || '' : '';
     }
   }
 }

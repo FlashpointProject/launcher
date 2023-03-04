@@ -1,5 +1,6 @@
 import { Game } from '@database/entity/Game';
 import { GameData } from '@database/entity/GameData';
+import { Platform } from '@database/entity/Platform';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
@@ -247,16 +248,12 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     const startTime = Date.now();
     const suggestions: GamePropSuggestions = {
       tags: await GameManager.findUniqueValues(TagAlias, 'name'),
-      platform: (await GameManager.findUniqueValues(Game, 'platform')).sort(),
       playMode: await GameManager.findUniqueValues(Game, 'playMode', true),
       status: await GameManager.findUniqueValues(Game, 'status', true),
       applicationPath: await GameManager.findUniqueValues(Game, 'applicationPath'),
       library: await GameManager.findUniqueValues(Game, 'library'),
     };
     const appPaths: {[platform: string]: string} = {};
-    for (const platform of suggestions.platform) {
-      appPaths[platform] = (await GameManager.findPlatformAppPaths(platform))[0] || '';
-    }
     console.log(Date.now() - startTime);
     state.recentAppPaths = appPaths; // Update cache
     return {
@@ -387,13 +384,14 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       }
       log.debug('TEST', 'Running game');
       // Launch game
+      const flatGamePlatforms = makeFlatPlatforms(game.platforms);
       await GameLauncher.launchGame({
         game,
         fpPath: path.resolve(state.config.flashpointPath),
         htdocsPath: state.preferences.htdocsFolderPath,
         dataPacksFolderPath: state.preferences.dataPacksFolderPath,
         sevenZipPath: state.sevenZipPath,
-        native: state.preferences.nativePlatforms.some(p => p === game.platform),
+        native: state.preferences.nativePlatforms.some(p => flatGamePlatforms.includes(p)),
         execMappings: state.execMappings,
         lang: state.languageContainer,
         isDev: state.isDev,
@@ -1191,12 +1189,13 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         }
       }
 
+      const flatPlatforms = makeFlatPlatforms(data.curation.game.platforms || []);
       await launchCuration(data.curation, data.symlinkCurationContent, skipLink, {
         fpPath: path.resolve(state.config.flashpointPath),
         htdocsPath: state.preferences.htdocsFolderPath,
         dataPacksFolderPath: state.preferences.dataPacksFolderPath,
         sevenZipPath: state.sevenZipPath,
-        native: state.preferences.nativePlatforms.some(p => p === data.curation.game.platform),
+        native: state.preferences.nativePlatforms.some(p => flatPlatforms.includes(p)),
         execMappings: state.execMappings,
         lang: state.languageContainer,
         isDev: state.isDev,
@@ -1223,12 +1222,13 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     const skipLink = (data.folder === state.lastLinkedCurationKey);
     state.lastLinkedCurationKey = data.folder;
     try {
-      await launchAddAppCuration(data.folder, data.addApp, data.platform || 'invalid', data.symlinkCurationContent, skipLink, {
+      const flatPlatforms = makeFlatPlatforms(data.platforms || []);
+      await launchAddAppCuration(data.folder, data.addApp, data.platforms || [], data.symlinkCurationContent, skipLink, {
         fpPath: path.resolve(state.config.flashpointPath),
         htdocsPath: state.preferences.htdocsFolderPath,
         dataPacksFolderPath: state.preferences.dataPacksFolderPath,
         sevenZipPath: state.sevenZipPath,
-        native: state.preferences.nativePlatforms.some(p => p === data.platform) || false,
+        native: state.preferences.nativePlatforms.some(p => flatPlatforms.includes(p)) || false,
         execMappings: state.execMappings,
         lang: state.languageContainer,
         isDev: state.isDev,
@@ -1397,10 +1397,17 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       for (let i = 0; i < keys.length; i++) {
         const key = keys[i];
         if (properties[key]) {
-          if (key === 'tags') {
-            meta.tags = game.tags.map(tag => tag.primaryAlias.name);
-          } else {
-            (meta as any)[key] = game[key]; // (I wish typescript could understand this...)
+          switch (key) {
+            case 'tags': {
+              meta.tags = game.tags.map(tag => tag.primaryAlias.name);
+              break;
+            }
+            case 'platforms': {
+              meta.platforms = game.platforms.map(tag => tag.primaryAlias.name);
+              break;
+            }
+            default:
+              (meta as any)[key] = game[key]; // (I wish typescript could understand this...)
           }
         }
       }
@@ -1822,13 +1829,15 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       const contentFolder = path.join(curPath, 'content');
       await fs.promises.mkdir(contentFolder, { recursive: true });
 
+      const defaultPlats = await TagManager.findPlatform('Flash');
+
       const data: LoadedCuration = {
         folder,
         uuid: uuid(),
         group: '',
         game: meta || {
           language: 'en',
-          platform: 'Flash',
+          platforms: defaultPlats ? [defaultPlats] : [],
           playMode: 'Single Player',
           status:   'Playable',
           library:  'Arcade'.toLowerCase() // must be lower case
@@ -2131,4 +2140,8 @@ function changeServerFactory(state: BackState): (server?: string) => Promise<voi
  */
 async function exitApp(state: BackState, beforeProcessExit?: () => void | Promise<void>) {
   return exit(state, beforeProcessExit);
+}
+
+function makeFlatPlatforms(platforms: Platform[]): string[] {
+  return platforms.reduce<string[]>((prev, cur) => prev.concat(cur.aliases.map(a => a.name)), []);
 }

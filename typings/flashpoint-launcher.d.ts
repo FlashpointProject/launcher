@@ -541,12 +541,12 @@ declare module 'flashpoint-launcher' {
         developer: string;
         /** Name of the publisher of the game */
         publisher: string;
+        /** List of platforms this game uses */
+        platforms: Platform[];
         /** Date-time of when the game was added to collection */
         dateAdded: string;
         /** Date-time of when the game was added to collection */
         dateModified: string;
-        /** Platform the game runs on (Flash, HTML5, Shockwave etc.) */
-        platform: string;
         /** If the game is "broken" or not */
         broken: boolean;
         /** Game is not suitable for children */
@@ -614,34 +614,6 @@ declare module 'flashpoint-launcher' {
         parameters?: string;
     };
 
-    type SourceData = {
-        id: number;
-        /** Source providing the download */
-        source?: Source;
-        sourceId: number;
-        /** SHA256 hash of this download */
-        sha256: string;
-        urlPath: string;
-    }
-
-    type Source = {
-        id: number;
-        /** Name of the Source */
-        name: string;
-        /** Base URL of the Source */
-        sourceFileUrl: string;
-        /** Base URL of the Source */
-        baseUrl: string;
-        /** File Count provided as SourceData */
-        count: number;
-        /** When this Source was added */
-        dateAdded: Date;
-        /** Last time this Source was updated */
-        lastUpdated: Date;
-        /** Any data provided by this Source */
-        data?: SourceData[];
-    }
-
     type AdditionalApp = {
         /** ID of the additional application (unique identifier) */
         id: string;
@@ -661,6 +633,36 @@ declare module 'flashpoint-launcher' {
         waitForExit: boolean;
         /** Parent of this add app */
         parentGame: Game;
+    };
+
+    type Platform = {
+        /** ID of the tag (unique identifier) */
+        id?: number;
+        /** Date when this tag was last modified */
+        dateModified: string;
+        /** ID of Primary Alias */
+        primaryAliasId: number;
+        /** Primary Alias */
+        primaryAlias: PlatformAlias;
+        /** Aliases / Names of the tag */
+        aliases: PlatformAlias[];
+        /** Description of the tag */
+        description?: string;
+        /** Games which are marked with this Tag */
+        gamesUsing?: Game[];
+        /** Number of games this tag belongs to */
+        count?: number;
+    };
+
+    type PlatformAlias = {
+        /** ID of the tag alias (unique identifier) */
+        id: number;
+        /** Tag this alias belongs to (either ID or Tag will exist) */
+        tagId?: number;
+        /** Tag this alias belongs to (either ID or Tag will exist) */
+        tag?: Platform;
+        /** The name this alias represents */
+        name: string;
     };
 
     type Tag = {

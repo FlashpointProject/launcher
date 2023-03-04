@@ -7,7 +7,7 @@ export type MetaEditMetaMap = Partial<{
   series: string;
   developer: string;
   publisher: string;
-  platform: string;
+  platforms: string[];
   broken: boolean;
   extreme: boolean;
   playMode: string;

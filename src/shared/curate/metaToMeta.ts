@@ -29,7 +29,7 @@ export function convertGameToCurationMetaFile(game: Game, categories: TagCategor
   parsed['Tags']                 = game.tags.map(t => t.primaryAlias.name).join('; ');
   parsed['Tag Categories']       = tagCategories.join('; ');
   parsed['Source']               = game.source;
-  parsed['Platform']             = game.platform;
+  parsed['Platforms']            = game.platforms.map(p => p.primaryAlias.name).join('; ');
   parsed['Status']               = game.status;
   parsed['Application Path']     = game.applicationPath;
   parsed['Launch Command']       = game.launchCommand;
@@ -99,7 +99,7 @@ export function convertEditToCurationMetaFile(curation: CurationMeta, categories
   parsed['Tags']                 = curation.tags ? curation.tags.map(t => t.primaryAlias.name).join('; ') : '';
   parsed['Tag Categories']       = tagCategories.join('; ');
   parsed['Source']               = curation.source;
-  parsed['Platform']             = curation.platform;
+  parsed['Platforms']            = curation.platforms ? curation.platforms.map(p => p.primaryAlias.name).join('; ') : '';
   parsed['Status']               = curation.status;
   parsed['Application Path']     = curation.applicationPath;
   parsed['Launch Command']       = curation.launchCommand;
@@ -174,7 +174,7 @@ export function convertParsedToCurationMeta(curation: ParsedCurationMeta, catego
   parsed['Tags']                 = curation.game.tags ? curation.game.tags.map(t => t.primaryAlias.name).join('; ') : '';
   parsed['Tag Categories']       = tagCategories.join('; ');
   parsed['Source']               = curation.game.source;
-  parsed['Platform']             = curation.game.platform;
+  parsed['Platforms']            = curation.game.platforms ? curation.game.platforms.map(p => p.primaryAlias.name).join('; ') : '';
   parsed['Status']               = curation.game.status;
   parsed['Application Path']     = curation.game.applicationPath;
   parsed['Launch Command']       = curation.game.launchCommand;
@@ -231,7 +231,7 @@ type CurationMetaFile = {
   'Launch Command'?: string;
   'Original Description'?: string;
   'Play Mode'?: string;
-  'Platform'?: string;
+  'Platforms'?: string;
   'Publisher'?: string;
   'Release Date'?: string;
   'Series'?: string;

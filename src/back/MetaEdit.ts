@@ -43,7 +43,6 @@ function parseMetaEditMeta(parser: IObjectParserProp<any>) : MetaEditMeta {
   parser.prop('series',              v => parsed.series              = str(v), true);
   parser.prop('developer',           v => parsed.developer           = str(v), true);
   parser.prop('publisher',           v => parsed.publisher           = str(v), true);
-  parser.prop('platform',            v => parsed.platform            = str(v), true);
   parser.prop('broken',              v => parsed.broken              = strToBool(v + ''), true);
   parser.prop('extreme',             v => parsed.extreme             = strToBool(v + ''), true);
   parser.prop('playMode',            v => parsed.playMode            = str(v), true);
@@ -57,7 +56,12 @@ function parseMetaEditMeta(parser: IObjectParserProp<any>) : MetaEditMeta {
   parser.prop('originalDescription', v => parsed.originalDescription = str(v), true);
   parser.prop('language',            v => parsed.language            = str(v), true);
   parser.prop('library',             v => parsed.library             = str(v), true);
+  parser.prop('platform',            v => parsed.platforms?.push(str(v)));
 
+  parser.prop('platforms', v => parsed.platforms = (v !== undefined) ? [] : undefined, true).arrayRaw(v => {
+    if (!parsed.platforms) { throw new Error('"parsed.tags" is missing (bug)'); }
+    parsed.platforms.push(str(v));
+  });
   parser.prop('tags', v => parsed.tags = (v !== undefined) ? [] : undefined, true).arrayRaw(v => {
     if (!parsed.tags) { throw new Error('"parsed.tags" is missing (bug)'); }
     parsed.tags.push(str(v));
@@ -267,13 +271,24 @@ export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDi
       const values = combined[property];
       if (!values || !values[0]) { throw new Error(`Failed to GIDDY UP PARTNER. "values" is missing (id: "${id}", property: "${property}") (bug)`); }
 
+      let prevValue;
+      switch (property) {
+        case 'tags': {
+          prevValue = game.tags.map(tag => tag.primaryAlias.name);
+          break;
+        }
+        case 'platforms': {
+          prevValue = game.platforms.map(p => p.primaryAlias.name);
+          break;
+        }
+        default:
+          prevValue = game[property];
+      }
       // First value
       const change: MetaChange<typeof property> = {
         ...values[0],
         property,
-        prevValue: (property === 'tags')
-          ? game.tags.map(tag => tag.primaryAlias.name)
-          : game[property],
+        prevValue
       };
 
       if (property === 'tags') {
@@ -299,12 +314,23 @@ export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDi
           if (!Array.isArray(values[i].value)) { throw new Error(`Failed to GIDDY UP PARTNER. "tags" is not an array (id: "${id}", value: "${values[i].value}") (bug)`); }
         }
 
+        let prevValue;
+        switch (property) {
+          case 'tags': {
+            prevValue = game.tags.map(tag => tag.primaryAlias.name);
+            break;
+          }
+          case 'platforms': {
+            prevValue = game.platforms.map(p => p.primaryAlias.name);
+            break;
+          }
+          default:
+            prevValue = game[property];
+        }
         changedMeta.discard.push({
           ...values[i],
           property,
-          prevValue: (property === 'tags')
-            ? game.tags.map(tag => tag.primaryAlias.name)
-            : game[property],
+          prevValue
         });
       }
     }
@@ -378,7 +404,6 @@ function paranoidSetGameProperty(game: Game, property: unknown, value: unknown):
     case 'series':
     case 'developer':
     case 'publisher':
-    case 'platform':
     case 'playMode':
     case 'status':
     case 'notes':

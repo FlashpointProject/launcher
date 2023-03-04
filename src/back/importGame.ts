@@ -11,6 +11,7 @@ import { getCurationFolder } from '@shared/curate/util';
 import { TaskProgress } from '@shared/utils/TaskProgress';
 import * as child_process from 'child_process';
 import { execFile } from 'child_process';
+import { Platform } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as YAML from 'yaml';
@@ -87,8 +88,8 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
       // Warn user of possible duplicate
       const dialogId = await opts.openDialog({
         message: 'There is already a game using this launch command. It may be a duplicate.\nContinue importing this curation?\n\n'
-                + `Curation:\n\tTitle: ${curation.game.title}\n\tLaunch Command: ${curation.game.launchCommand}\n\tPlatform: ${curation.game.platform}\n\n`
-                + `Existing Game:\n\tID: ${existingGame.id}\n\tTitle: ${existingGame.title}\n\tPlatform: ${existingGame.platform}`,
+                + `Curation:\n\tTitle: ${curation.game.title}\n\tLaunch Command: ${curation.game.launchCommand}\n\tPlatform: ${curation.game.platforms ? curation.game.platforms.map(p => p.primaryAlias.name).join('; ') : ''}\n\n`
+                + `Existing Game:\n\tID: ${existingGame.id}\n\tTitle: ${existingGame.title}\n\tPlatforms: ${existingGame.platforms.map(p => p.primaryAlias.name).join('; ')}`,
         buttons: ['Yes', 'No']
       });
       const response = (await awaitDialog(opts.state, dialogId)).buttonIdx;
@@ -110,8 +111,8 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   if (oldGame) {
     const dialogId = await opts.openDialog({
       message: 'There is already a game using this id. Importing will override it.\nContinue importing this curation?\n\n'
-              + `Curation:\n\tTitle: ${curation.game.title}\n\tLaunch Command: ${curation.game.launchCommand}\n\tPlatform: ${curation.game.platform}\n\n`
-              + `Existing Game:\n\tTitle: ${oldGame.title}\n\tLaunch Command: ${oldGame.launchCommand}\n\tPlatform: ${oldGame.platform}`,
+              + `Curation:\n\tTitle: ${curation.game.title}\n\tLaunch Command: ${curation.game.launchCommand}\n\tPlatform: ${curation.game.platforms ? curation.game.platforms.map(p => p.primaryAlias.name).join('; ') : ''}\n\n`
+              + `Existing Game:\n\tTitle: ${oldGame.title}\n\tLaunch Command: ${oldGame.launchCommand}\n\tPlatform: ${oldGame.platforms.map(p => p.primaryAlias.name).join('; ')}`,
       buttons: ['Yes', 'No']
     });
     const response = (await awaitDialog(opts.state, dialogId)).buttonIdx;
@@ -286,7 +287,9 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
  */
 export async function launchCuration(curation: LoadedCuration, symlinkCurationContent: boolean,
   skipLink: boolean, opts: Omit<LaunchGameOpts, 'game'|'addApps'>, onWillEvent:ApiEmitter<GameLaunchInfo>, onDidEvent: ApiEmitter<Game>, serverOverride?: string) {
-  await checkAndInstallPlatform(curation.game.platform || 'invalid', opts.state, opts.openDialog);
+  if (curation.game.platforms) {
+    await checkAndInstallPlatform(curation.game.platforms, opts.state, opts.openDialog);
+  }
   if (!skipLink || !symlinkCurationContent) { await linkContentFolder(curation.folder, opts.fpPath, opts.isDev, opts.exePath, opts.htdocsPath, symlinkCurationContent); }
   curationLog(`Launching Curation ${curation.game.title}`);
   const game = await createGameFromCurationMeta(curation.folder, curation.game, [], new Date());
@@ -303,16 +306,18 @@ export async function launchCuration(curation: LoadedCuration, symlinkCurationCo
  *
  * @param folder Key of the parent curation index
  * @param appCuration Add App Curation to launch
- * @param platform Platform of the curation
+ * @param platforms Platforms of the curation
  * @param symlinkCurationContent Symlink the curation content to htdocs/content/
  * @param skipLink Skips any linking of the content folder
  * @param opts Options for add app launches
  * @param onWillEvent Fires before the curation add app has launched
  * @param onDidEvent Fires after the curation add app has launched
  */
-export async function launchAddAppCuration(folder: string, appCuration: AddAppCuration, platform: string, symlinkCurationContent: boolean,
+export async function launchAddAppCuration(folder: string, appCuration: AddAppCuration, platforms: Platform[], symlinkCurationContent: boolean,
   skipLink: boolean, opts: Omit<LaunchAddAppOpts, 'addApp'>, onWillEvent: ApiEmitter<AdditionalApp>, onDidEvent: ApiEmitter<AdditionalApp>) {
-  await checkAndInstallPlatform(platform, opts.state, opts.openDialog);
+  if (platforms) {
+    await checkAndInstallPlatform(platforms, opts.state, opts.openDialog);
+  }
   if (!skipLink || !symlinkCurationContent) { await linkContentFolder(folder, opts.fpPath, opts.isDev, opts.exePath, opts.htdocsPath, symlinkCurationContent); }
   const addApp = createAddAppFromCurationMeta(appCuration, createPlaceholderGame());
   await onWillEvent.fire(addApp);
@@ -344,7 +349,7 @@ async function createGameFromCurationMeta(gameId: string, gameMeta: CurationMeta
     series:              gameMeta.series              || '',
     developer:           gameMeta.developer           || '',
     publisher:           gameMeta.publisher           || '',
-    platform:            gameMeta.platform            || '',
+    platforms:           gameMeta.platforms           || [],
     playMode:            gameMeta.playMode            || '',
     status:              gameMeta.status              || '',
     notes:               gameMeta.notes               || '',

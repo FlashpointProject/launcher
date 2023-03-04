@@ -1,4 +1,4 @@
-import { Tag } from 'flashpoint-launcher';
+import { Platform, Tag } from 'flashpoint-launcher';
 import { CurationIndexImage } from './OLD_types';
 
 export type LoadedCuration = {
@@ -44,7 +44,7 @@ export type CurationMeta = Partial<{
   library: string;
   notes: string;
   curationNotes: string;
-  platform: string;
+  platforms: Platform[];
   applicationPath: string;
   playMode: string;
   releaseDate: string;

@@ -295,7 +295,6 @@ function parseCurationMeta(parser: IObjectParserProp<EditCurationMeta>): EditCur
   parser.prop('launchCommand',        v => parsed.launchCommand       = str(v));
   parser.prop('originalDescription',  v => parsed.originalDescription = str(v));
   parser.prop('playMode',             v => parsed.playMode            = arrayStr(v));
-  parser.prop('platform',             v => parsed.platform            = str(v));
   parser.prop('publisher',            v => parsed.publisher           = arrayStr(v));
   parser.prop('releaseDate',          v => parsed.releaseDate         = str(v));
   parser.prop('series',               v => parsed.series              = str(v));

@@ -9,7 +9,7 @@ import { fixSlashes, padStart, stringifyArray } from '@shared/Util';
 import * as Coerce from '@shared/utils/Coerce';
 import { ChildProcess, exec } from 'child_process';
 import { EventEmitter } from 'events';
-import { AppPathOverride, DialogStateTemplate, GameData, ManagedChildProcess } from 'flashpoint-launcher';
+import { AppPathOverride, DialogStateTemplate, GameData, ManagedChildProcess, Platform } from 'flashpoint-launcher';
 import * as minimist from 'minimist';
 import * as path from 'path';
 import { extractFullPromise } from '.';
@@ -17,7 +17,7 @@ import { ApiEmitter } from './extensions/ApiEmitter';
 import { BackState, OpenExternalFunc, ShowMessageBoxFunc } from './types';
 import { getCwd, isBrowserOpts } from './util/misc';
 import * as fs from 'fs-extra';
-import { BackOut, ComponentState } from '@shared/back/types';
+import { BackOut, ComponentState, ComponentStatus } from '@shared/back/types';
 import * as child_process from 'child_process';
 import { awaitDialog, createNewDialog } from './util/dialog';
 import { formatString } from '@shared/utils/StringFormatter';
@@ -73,7 +73,7 @@ export namespace GameLauncher {
   const logSource = 'Game Launcher';
 
   export async function launchAdditionalApplication(opts: LaunchAddAppOpts, serverOverride?: string): Promise<void> {
-    await checkAndInstallPlatform(opts.addApp.parentGame.platform, opts.state, opts.openDialog);
+    await checkAndInstallPlatform(opts.addApp.parentGame.platforms, opts.state, opts.openDialog);
     // @FIXTHIS It is not possible to open dialog windows from the back process (all electron APIs are undefined).
     switch (opts.addApp.applicationPath) {
       case ':message:':
@@ -140,7 +140,7 @@ export namespace GameLauncher {
    * @param serverOverride Change active server for this game launch only
    */
   export async function launchGame(opts: LaunchGameOpts, onWillEvent: ApiEmitter<GameLaunchInfo>, serverOverride?: string): Promise<void> {
-    await checkAndInstallPlatform(opts.game.platform, opts.state, opts.openDialog);
+    await checkAndInstallPlatform(opts.game.platforms, opts.state, opts.openDialog);
     // Abort if placeholder (placeholders are not "actual" games)
     if (opts.game.placeholder) { return; }
     // Run all provided additional applications with "AutoRunBefore" enabled
@@ -546,52 +546,63 @@ async function handleGameDataParams(opts: LaunchBaseOpts, serverOverride?: strin
   }
 }
 
-export async function checkAndInstallPlatform(platform: string, state: BackState, openMessageBox: ShowMessageBoxFunc) {
-  const compIdx = state.componentStatuses.findIndex(c => c.name === platform);
-  if (compIdx > -1) {
-    const component = state.componentStatuses[compIdx];
-    if (component.state === ComponentState.UNINSTALLED) {
-      const dialogId = await openMessageBox({
-        largeMessage: true,
-        message: formatString(state.languageContainer.dialog.requiresAdditionalDownload, platform) as string,
-        cancelId: 1,
-        buttons: ['Yes', 'No']
-      });
-      const res = (await awaitDialog(state, dialogId)).buttonIdx;
-      if (res === 1) {
-        throw 'User aborted game launch (denied required component download)';
-      } else {
-        // Create dialog to cover screen
-        const template: DialogStateTemplate = {
-          largeMessage: true,
-          message: 'Downloading Required Components...',
-          buttons: []
-        };
-        const dialogId = await createNewDialog(state, template);
-        // Run process to download components
-        await new Promise<void>((resolve, reject) => {
-          const fpmPath = path.join(state.config.flashpointPath, 'FlashpointManager.exe');
-          child_process.execFile(fpmPath, ['/notemp', '/download', component.id], { cwd: state.config.flashpointPath }, (error, stdout, stderr) => {
-            log.debug('FP Manager', stdout);
-            if (error) {
-              reject(error);
-              return;
-            } else {
-              resolve();
-            }
-          });
-        })
-        .then(() => {
-          state.componentStatuses[compIdx].state = ComponentState.UP_TO_DATE;
-          state.socketServer.broadcast(BackOut.UPDATE_COMPONENT_STATUSES, state.componentStatuses);
-        })
-        .finally(() => {
-          // Close downloading dialog
-          state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
-        });
-      }
+export async function checkAndInstallPlatform(platforms: Platform[], state: BackState, openMessageBox: ShowMessageBoxFunc) {
+  const compsToInstall: ComponentStatus[] = [];
+  for (const platform of platforms) {
+    const compIdx = state.componentStatuses.findIndex(c => c.name.toLowerCase() === platform.primaryAlias.name.toLowerCase());
+    if (compIdx > -1 && state.componentStatuses[compIdx].state === ComponentState.UNINSTALLED) {
+      compsToInstall.push(state.componentStatuses[compIdx]);
+    } else {
+      log.warn('Launcher', `No components found for ${platform}, assuming none required.`);
     }
-  } else {
-    log.warn('Launcher', `No component found for ${platform}, assuming none required.`);
+  }
+  if (compsToInstall.length > 0) {
+    const platformText = compsToInstall.length > 1 ?
+      formatString(state.languageContainer.dialog.requiresAdditionalDownloadPlural, compsToInstall.length.toString()) :
+      formatString(state.languageContainer.dialog.requiresAdditionalDownload, compsToInstall[0].name);
+    const dialogId = await openMessageBox({
+      largeMessage: true,
+      message: platformText as string,
+      cancelId: 1,
+      buttons: ['Yes', 'No']
+    });
+    const res = (await awaitDialog(state, dialogId)).buttonIdx;
+    if (res === 1) {
+      throw 'User aborted game launch (denied required component download)';
+    } else {
+      // Create dialog to cover screen
+      const template: DialogStateTemplate = {
+        largeMessage: true,
+        message: 'Downloading Required Components...',
+        buttons: []
+      };
+      const dialogId = await createNewDialog(state, template);
+      // Run process to download components
+      await new Promise<void>((resolve, reject) => {
+        const fpmPath = path.join(state.config.flashpointPath, 'FlashpointManager.exe');
+        child_process.execFile(fpmPath, ['/notemp', '/download', compsToInstall.map(c => c.id).join(' ')], { cwd: state.config.flashpointPath }, (error, stdout, stderr) => {
+          log.debug('FP Manager', stdout);
+          if (error) {
+            reject(error);
+            return;
+          } else {
+            resolve();
+          }
+        });
+      })
+      .then(() => {
+        for (const comp of compsToInstall) {
+          const idx = state.componentStatuses.findIndex(c => c.id === comp.id);
+          if (idx > -1) {
+            state.componentStatuses[idx].state = ComponentState.UP_TO_DATE;
+          }
+        }
+        state.socketServer.broadcast(BackOut.UPDATE_COMPONENT_STATUSES, state.componentStatuses);
+      })
+      .finally(() => {
+        // Close downloading dialog
+        state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
+      });
+    }
   }
 }

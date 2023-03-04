@@ -1,4 +1,5 @@
 import { Tag } from '@database/entity/Tag';
+import { Platform } from 'flashpoint-launcher';
 import { ParsedCurationMeta } from './parse';
 
 /** Data of a curation in the curation importer. */
@@ -47,7 +48,7 @@ export type EditCurationMeta = Partial<{
   library: string;
   notes: string;
   curationNotes: string;
-  platform: string;
+  platforms: Platform[];
   applicationPath: string;
   playMode: string;
   releaseDate: string;

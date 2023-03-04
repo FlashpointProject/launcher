@@ -145,7 +145,6 @@ export async function genCurationWarnings(curation: LoadedCuration, fpPath: stri
   // Validate release date
   if (curation.game.releaseDate && !isValidDate(curation.game.releaseDate)) { warns.writtenWarnings.push('releaseDateInvalid'); }
   // Check for unused values (with suggestions)
-  if (!isValueSuggested(curation, suggestions, 'platform')) { warns.writtenWarnings.push('unusedPlatform'); }
   if (curation.game.applicationPath && !fs.existsSync(path.join(fpPath, curation.game.applicationPath))) { warns.writtenWarnings.push('unusedApplicationPath'); }
   // Check if library is set
   if (suggestions.library.findIndex(l => l === curation.game.library) === -1) { warns.writtenWarnings.push('nonExistingLibrary'); }
@@ -231,20 +230,4 @@ export async function duplicateCuration(srcFolder: string, state: BackState): Pr
  */
 function isValidDate(str: string): boolean {
   return (/^\d{4}(-(0?[1-9]|1[012])(-(0?[1-9]|[12][0-9]|3[01]))?)?$/).test(str);
-}
-
-/**
- * Check if a the value of a field is in the suggestions for that field.
- *
- * @param curation Curation to check
- * @param suggestions Game Prop Suggestions to check against
- * @param key Key of the field to check.
- */
-function isValueSuggested<T extends keyof GamePropSuggestions>(curation: LoadedCuration, suggestions: GamePropSuggestions, key: T & string): boolean {
-  // Get the values used
-  // (the dumb compiler doesn't understand that this is a string >:((( )
-  const value = (curation.game[key] || '') as string;
-  const valueSuggestions = suggestions[key];
-  // Check if the value is suggested
-  return valueSuggestions.indexOf(value) >= 0;
 }
