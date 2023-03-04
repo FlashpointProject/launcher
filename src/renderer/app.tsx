@@ -1205,7 +1205,8 @@ export class App extends React.Component<AppProps> {
       randomGames: this.props.main.randomGames,
       rollRandomGames: this.rollRandomGames,
       updateView: this.updateView,
-      gamesTotal: view && view.total,
+      gamesTotal: this.props.main.gamesTotal,
+      viewGamesTotal: view && view.total,
       allPlaylists: this.props.main.playlists,
       playlists: playlists,
       suggestions: this.props.main.suggestions,
@@ -1327,6 +1328,7 @@ export class App extends React.Component<AppProps> {
                       width={this.props.preferencesData.browsePageRightSidebarWidth}
                       onResize={this.onRightSidebarResize}>
                       <ConnectedRightBrowseSidebar
+                        logoVersion={this.props.main.logoVersion}
                         currentGame={this.props.main.currentGame}
                         isExtreme={this.props.main.currentGame ? this.props.main.currentGame.tags.reduce<boolean>((prev, next) => extremeTags.includes(next.primaryAlias.name), false) : false}
                         gameRunning={routerProps.gameRunning}

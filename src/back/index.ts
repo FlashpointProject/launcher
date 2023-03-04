@@ -85,13 +85,18 @@ import { createContainer, exit, getMacPATH, runService } from './util/misc';
 import { uuid } from './util/uuid';
 import { RemovePlaylist1676713895000 } from '@database/migration/1676713895000-RemovePlaylist';
 import { PlaylistFile } from './PlaylistFile';
+import { TagifyPlatform1677943090621 } from '@database/migration/1677943090621-TagifyPlatform';
+import { Platform } from '@database/entity/Platform';
+import { PlatformAlias } from '@database/entity/PlatformAlias';
+import { AddPlatformsRedundancyFieldToGame1677951346785 } from '@database/migration/1677951346785-AddPlatformsRedundancyFieldToGame';
 
 const dataSourceOptions: DataSourceOptions = {
   type: 'better-sqlite3',
   database: ':memory:',
-  entities: [Game, AdditionalApp, Tag, TagAlias, TagCategory, GameData],
+  entities: [Game, AdditionalApp, Tag, TagAlias, TagCategory, GameData, Platform, PlatformAlias],
   migrations: [Initial1593172736527, AddExtremeToPlaylist1599706152407, GameData1611753257950, SourceDataUrlPath1612434225789, SourceFileURL1612435692266,
-    SourceFileCount1612436426353, GameTagsStr1613571078561, GameDataParams1619885915109, RemoveSources1676712700000, RemovePlaylist1676713895000]
+    SourceFileCount1612436426353, GameTagsStr1613571078561, GameDataParams1619885915109, RemoveSources1676712700000, RemovePlaylist1676713895000,
+    TagifyPlatform1677943090621, AddPlatformsRedundancyFieldToGame1677951346785]
 };
 export let AppDataSource: DataSource = new DataSource(dataSourceOptions);
 

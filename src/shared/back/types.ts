@@ -66,6 +66,7 @@ export enum BackIn {
 
   // Tag funcs
   GET_OR_CREATE_TAG,
+  GET_OR_CREATE_PLATFORM,
   GET_TAG_SUGGESTIONS,
   GET_TAG_BY_ID,
   GET_TAGS,
@@ -139,6 +140,9 @@ export enum BackIn {
   SET_EXT_CONFIG_VALUE,
   FETCH_DIAGNOSTICS,
   OPEN_FLASHPOINT_MANAGER,
+
+  // Developer
+  UPDATE_TAGGED_FIELDS,
 
   // Dialogs
   DIALOG_RESPONSE,
@@ -236,7 +240,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.SAVE_GAME]: (data: Game) => BrowseChangeData;
   [BackIn.SAVE_GAMES]: (data: Game[]) => void;
   [BackIn.GET_GAME]: (id: string) => Game | null;
-  [BackIn.GET_ALL_GAMES]: () => Game[];
+  [BackIn.GET_ALL_GAMES]: (startFrom?: string) => Game[];
   [BackIn.RANDOM_GAMES]: (data: RandomGamesData) => ViewGame[];
   [BackIn.LAUNCH_GAME]: (id: string) => void;
   [BackIn.DELETE_GAME]: (id: string) => BrowseChangeData;
@@ -267,6 +271,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
 
   // Tag funcs
   [BackIn.GET_OR_CREATE_TAG]: (tagName: string, tagCategory?: string) => Tag | null;
+  [BackIn.GET_OR_CREATE_PLATFORM]: (platformName: string) => Platform;
   [BackIn.GET_TAG_SUGGESTIONS]: (data: string, tagFilters: TagFilterGroup[]) => TagSuggestion<Tag>[];
   [BackIn.GET_TAG_BY_ID]: (data: number) => Tag | null;
   [BackIn.GET_TAGS]: (data: string, tagFilters?: TagFilterGroup[]) => Tag[];
@@ -331,6 +336,9 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.SET_EXT_CONFIG_VALUE]: (key: string, value: any) => void;
   [BackIn.FETCH_DIAGNOSTICS]: () => string;
   [BackIn.OPEN_FLASHPOINT_MANAGER]: () => void;
+
+  // Developer
+  [BackIn.UPDATE_TAGGED_FIELDS]: () => void;
 
   // Dialogs
   [BackIn.DIALOG_RESPONSE]: (dialog: DialogState, button: number) => void;
@@ -468,7 +476,6 @@ export type GetRendererLoadedDataResponse = {
   suggestions: GamePropSuggestions;
   serverNames: string[];
   mad4fpEnabled: boolean;
-  platforms: Record<string, string[]>;
   tagCategories: TagCategory[];
   logoSets: LogoSet[];
   updateFeedMarkdown: string;
@@ -573,7 +580,7 @@ export type SearchGamesOpts = {
 export type ViewGame = {
   id: string;
   title: string;
-  platform: string;
+  platformsStr: string;
   // List view only
   tagsStr: string;
   developer: string;

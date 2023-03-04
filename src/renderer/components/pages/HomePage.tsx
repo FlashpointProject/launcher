@@ -331,7 +331,7 @@ export function HomePage(props: HomePageProps) {
                     key={loadedGotd.id}
                     id={loadedGotd.id}
                     title={loadedGotd.title}
-                    platform={loadedGotd.platform}
+                    platforms={loadedGotd.platformsStr.split(';').map(p => p.trim())}
                     extreme={loadedGotd.tagsStr.split(';').findIndex(t => extremeTags.includes(t.trim())) !== -1}
                     extremeIconPath={extremeIconPath}
                     thumbnail={getGameImageURL(LOGOS, loadedGotd.id)}

@@ -24,12 +24,12 @@ import { SimpleButton } from '../SimpleButton';
 
 const exists = promisify(fs.exists);
 const mkdir  = promisify(fs.mkdir);
-type Map<K extends string, V> = { [key in K]: V };
 
 export type DeveloperPageProps = {
   devConsole: string;
   devScripts: ExtensionContribution<'devScripts'>[];
   services: IService[];
+  totalGames: number;
 };
 
 type DeveloperPageState = {
@@ -88,10 +88,6 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               value={strings.checkGameIds}
               title={strings.checkGameIdsDesc}
               onClick={this.onCheckGameIDsClick} />
-            <SimpleButton
-              value={strings.checkGameTitles}
-              title={strings.checkGameTitlesDesc}
-              onClick={this.onCheckGameNamesClick} />
             <SimpleButton
               value={strings.checkGameFields}
               title={strings.checkGameFieldsDesc}
@@ -197,21 +193,10 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     this.setState({ text: checkGameIDs(res) });
   };
 
-  onCheckGameNamesClick = async (): Promise<void> => {
-    const res = await fetchAllGames();
-    this.setState({ text: checkGameTitles(res) });
-  };
-
   onCheckGameFieldsClick = async (): Promise<void> => {
     const res = await fetchAllGames();
     this.setState({ text: checkGameEmptyFields(res) });
   };
-
-  // onCheckPlaylistsClick = async (): Promise<void> => {
-  //   const playlists = this.props.playlists;
-  //   const res = await fetchAllGames();
-  //   this.setState({ text: checkPlaylists(playlists, res) });
-  // }
 
   onCheckFileLocation = async (): Promise<void> => {
     const res = await fetchAllGames();
@@ -302,28 +287,33 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
 
   onUpdateTagsStr = (): void => {
     setTimeout(async () => {
-      const text = 'Updating Tag Strings...';
+      const text = 'Updating Tagified Field Strings...';
       this.setState({ text });
-      const createTextBarProgress = (current: number, total: number) => {
-        const filledSegments = (current / total) * 30;
-        return `Progress: [${'#'.repeat(filledSegments)}${'-'.repeat(30 - filledSegments)}] (${current}/${total})`;
+      const createTextBarProgress = (current: number) => {
+        const filledSegments = (current / this.props.totalGames) * 30;
+        return `Progress: [${'#'.repeat(filledSegments)}${'-'.repeat(30 - filledSegments)}] (${current}/${this.props.totalGames})`;
       };
-      const games = await fetchAllGames();
+      this.setState({ text: text + '\nFetching games...' });
+      let games = await fetchAllGames();
       let processed = 0;
-      const buffer: Game[] = [];
-      for (const chunk of chunkArray(games, 250)) {
-        for (const game of chunk) {
-          const newGame = new Game();
-          Object.assign(newGame, { ...game });
-          newGame.updateTagsStr();
-          buffer.push(newGame);
+      while (games.length !== 0) {
+        const buffer: Game[] = [];
+        for (const chunk of chunkArray(games, 250)) {
+          for (const game of chunk) {
+            const newGame = new Game();
+            Object.assign(newGame, { ...game });
+            newGame.updateTagsStr();
+            buffer.push(newGame);
+          }
+          processed += chunk.length;
+          await window.Shared.back.request(BackIn.SAVE_GAMES, buffer);
+          buffer.length = 0;
+          this.setState({ text: text + '\n' + createTextBarProgress(processed)});
         }
-        processed += chunk.length;
-        await window.Shared.back.request(BackIn.SAVE_GAMES, buffer);
-        buffer.length = 0;
-        this.setState({ text: text + '\n' + createTextBarProgress(processed, games.length)});
+        // Fetch next batch of games
+        games = await fetchAllGames(games[games.length - 1].id);
       }
-      this.setState({ text: text + '\n' + createTextBarProgress(processed, games.length) + '\n' + `Finished, updated ${processed} games.`});
+      this.setState({ text: text + '\n' + createTextBarProgress(processed) + '\n' + `Finished, updated ${processed} games.`});
     });
   };
 
@@ -515,40 +505,6 @@ function checkGameIDs(games: Game[]): string {
   return text;
 }
 
-function checkGameTitles(games: Game[]): string {
-  // Find all games for the same platform that has identical titles
-  const timeStart = Date.now(); // Start timing
-  const gamesPerPlatform = categorizeByProp(games, 'platform');
-  const dupesPerPlatform: Map<string, Map<string, Game[]>> = {};
-  for (const key in gamesPerPlatform) {
-    dupesPerPlatform[key] = checkDupes(gamesPerPlatform[key], game => game.title.toUpperCase());
-  }
-  const timeEnd = Date.now(); // End timing
-  // Write log message
-  let text = '';
-  text += `Checked for games with identical titles (case-insensitive) on the same platform (in ${timeEnd - timeStart}ms)\n`;
-  text += '\n';
-  const platforms = Object.keys(gamesPerPlatform).sort();
-  if (platforms.length > 0) {
-    for (let i = 0; i < platforms.length; i++) {
-      const platform = platforms[i];
-      const dupes = dupesPerPlatform[platform];
-      const titles = Object.keys(dupes).sort();
-      if (titles.length > 0) {
-        text += `Platform: "${platform}" (${titles.length})\n`;
-        for (let j = 0; j < titles.length; j++) {
-          const title = titles[j];
-          text += `  "${title}" ${repeat(' ', 60 - title.length)}(Games: ${dupes[title].length})\n`;
-        }
-        text += '\n';
-      }
-    }
-  } else {
-    text += 'No duplicates found!\n';
-  }
-  return text;
-}
-
 type GameKeys = NonNullable<AllowedNames<Game, string>>;
 type EmptyRegister = { [key in GameKeys]?: Game[] }; // empty[fieldName] = [ game... ]
 function checkGameEmptyFields(games: Game[]): string {
@@ -560,7 +516,6 @@ function checkGameEmptyFields(games: Game[]): string {
     // Check if any game field (that should not be empty) is empty
     checkField(game, empty, 'developer');
     checkField(game, empty, 'source');
-    checkField(game, empty, 'platform');
     checkField(game, empty, 'playMode');
     checkField(game, empty, 'status');
     checkField(game, empty, 'applicationPath');
@@ -605,86 +560,6 @@ function checkGameEmptyFields(games: Game[]): string {
   }
 }
 
-// type PlaylistReport = {
-//   playlist: GamePlaylist;
-//   missingGameIDs: string[];
-//   duplicateGames: { [key: string]: GamePlaylistEntry[] };
-//   invalidGameIDs: GamePlaylistEntry[];
-// };
-// function checkPlaylists(playlists: GamePlaylist[], games: Game[]): string {
-//   const timeStart = Date.now(); // Start timing
-//   const dupes = checkDupes(playlists, playlist => playlist.filename); // Find all playlists with duplicate IDs
-//   const invalidIDs: GamePlaylist[] = playlists.filter(playlist => !uuidValidate(playlist.filename, 4)); // Find all playlists with invalid IDs
-//   // Check the games of all playlists (if they are missing or if their IDs are invalid or duplicates)
-//   const reports: PlaylistReport[] = [];
-//   for (let i = 0; i < playlists.length - 1; i++) {
-//     const playlist = playlists[i];
-//     const duplicateGames = checkDupes(playlist.games, game => game.id); // Find all games with duplicate IDs
-//     const invalidGameIDs = playlist.games.filter(game => !validateSemiUUID(game.id)); // Find all games with invalid IDs
-//     // Check for missing games (games that are in the playlist, and not in the game collection)
-//     const missingGameIDs: string[] = [];
-//     for (let gameEntry of playlist.games) {
-//       const id = gameEntry.id;
-//       if (!games.find(game => game.id === id)) {
-//         missingGameIDs.push(id);
-//       }
-//     }
-//     // Add "report" of this playlist
-//     if (Object.keys(duplicateGames).length > 0 ||
-//         invalidGameIDs.length > 0 ||
-//         missingGameIDs.length > 0) {
-//       reports.push({
-//         playlist,
-//         duplicateGames,Legacy_GameManager
-//         missingGameIDs,
-//         invalidGameIDs
-//       });
-//     }
-//   }
-//   const timeEnd = Date.now(); // End timing
-//   // Write log message
-//   let text = '';
-//   text += `Checked all playlists for duplicate or invalid IDs, and for game entries with invalid, missing or duplicate IDs (in ${timeEnd - timeStart}ms)\n`;
-//   text += '\n';
-//   text += `Playlists with invalid IDs (${invalidIDs.length}):\n`;
-//   invalidIDs.forEach(playlist => { text += `"${playlist.title}" (ID: ${playlist.filename})\n`; });
-//   text += '\n';
-//   text += `Playlists with duplicate IDs (${Object.keys(dupes).length}):\n`;
-//   for (let id in dupes) {
-//     text += `ID: "${id}" | Playlists (${dupes[id].length}): ${dupes[id].map(playlist => `${playlist.filename}`).join(', ')}\n`;
-//   }
-//   text += '\n';
-//   text += `Playlists with game entry issues (${reports.length}):\n`;
-//   reports.forEach(({ playlist, duplicateGames, missingGameIDs, invalidGameIDs }) => {
-//     text += `  "${playlist.title}" (ID: ${playlist.filename}):\n`;
-//     // Log duplicate game entry IDs
-//     if (Object.keys(duplicateGames).length > 0) {
-//       text += `    Game entries with duplicate IDs (${Object.keys(duplicateGames).length}):\n`;
-//       for (let id in duplicateGames) {
-//         const dupes = duplicateGames[id];
-//         const game = games.find(game => game.id === id);
-//         text += `      ${game ? `"${game.title}"` : 'Game not found'} (ID: ${id}) (Duplicates: ${dupes.length})\n`;
-//       }
-//     }
-//     // Log missing game entry IDs
-//     if (missingGameIDs.length > 0) {
-//       text += `    Game entries with IDs of missing games (${missingGameIDs.length}):\n`;
-//       for (let id of missingGameIDs) {
-//         text += `      ${id}\n`;
-//       }
-//     }
-//     // Log invalid game entry IDs
-//     if (invalidGameIDs.length > 0) {
-//       text += `    Game entries with invalid IDs (${invalidGameIDs.length}):\n`;
-//       for (let id of invalidGameIDs) {
-//         text += `      ${id}\n`;
-//       }
-//     }
-//   });
-//   text += '\n';
-//   return text;
-// }
-
 // Find and list any used executables missing an entry in the exec mapping file
 function checkMissingExecMappings(games: Game[], execMappings: ExecMapping[]): string {
   const allExecs: string[] = [];
@@ -723,23 +598,6 @@ function checkMissingExecMappings(games: Game[], execMappings: ExecMapping[]): s
     }
   }
   return text;
-}
-
-/**
- * Organize the elements in an array into a map of arrays, based on the value of a key of the objects.
- *
- * @param array Elements to sort.
- * @param prop Property of the elements to organize by.
- */
-function categorizeByProp<T extends Map<K, V>, K extends string, V extends string>(array: T[], prop: K): Map<string, T[]> {
-  const map: Map<string, T[]> = {};
-  for (let i = 0; i < array.length; i++) {
-    const item = array[i];
-    const key = item[prop];
-    if (!map[key]) { map[key] = []; }
-    map[key].push(item);
-  }
-  return map;
 }
 
 /**
@@ -795,12 +653,12 @@ async function checkFileLocation(games: Game[]): Promise<string> {
   text += '\n';
   text += `Path not found (${pathFailed.length}):\n`;
   for (const game of pathFailed) {
-    text += `"${game.title}" (Platform: "${game.platform}", ID: ${game.id})\n`;
+    text += `"${game.title}" (ID: ${game.id})\n`;
   }
   text += '\n';
   text += `Error while getting path (${pathError.length}):\n`;
   for (const [ game, error ] of pathError) {
-    text += `"${game.title}" (Platform: "${game.platform}", ID: "${game.id}")\n`+
+    text += `"${game.title}" (ID: "${game.id}")\n`+
             `    ${error.toString()}\n`;
   }
   // Done
@@ -909,12 +767,8 @@ export function removeLastItemOfPath(filePath: string): string {
   return filePath.substring(0, Math.max(0, filePath.lastIndexOf('/'), filePath.lastIndexOf('\\')));
 }
 
-function repeat(char: string, n: number): string {
-  return char.repeat(Math.max(0, n));
-}
-
-function fetchAllGames(): Promise<Game[]> {
-  return window.Shared.back.request(BackIn.GET_ALL_GAMES);
+function fetchAllGames(startFrom?: string): Promise<Game[]> {
+  return window.Shared.back.request(BackIn.GET_ALL_GAMES, startFrom);
 }
 
 async function importLegacyPlatforms(platformsPath: string, setText: (text: string) => void): Promise<void> {

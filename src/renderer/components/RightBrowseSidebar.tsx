@@ -14,12 +14,12 @@ import axios from 'axios';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
 import { clipboard, Menu, MenuItemConstructorOptions } from 'electron';
-import { GameData, PlaylistGame } from 'flashpoint-launcher';
+import { GameData, Platform, PlaylistGame } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as React from 'react';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { WithSearchProps } from '../containers/withSearch';
-import { getGameImagePath, getGameImageURL } from '../Util';
+import { getGameImagePath, getGameImageURL, getPlatformIconURL } from '../Util';
 import { LangContext } from '../util/lang';
 import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
@@ -34,6 +34,7 @@ import { SimpleButton } from './SimpleButton';
 import { TagInputField } from './TagInputField';
 
 type OwnProps = {
+  logoVersion: number;
   /** Currently selected game (if any) */
   currentGame?: Game;
   /** Whether the current game is extreme */
@@ -82,6 +83,7 @@ type RightBrowseSidebarState = {
   screenshotExists: boolean;
   thumbnailExists: boolean;
   currentTagInput: string;
+  currentPlatformInput: string;
   tagSuggestions: TagSuggestion<Tag>[];
   gameDataBrowserOpen: boolean;
   activeData: GameData | null;
@@ -98,7 +100,6 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   onSeriesChange              = this.wrapOnTextChange((game, text) => this.props.onEditGame({ series: text }));
   onSourceChange              = this.wrapOnTextChange((game, text) => this.props.onEditGame({ source: text }));
   onPublisherChange           = this.wrapOnTextChange((game, text) => this.props.onEditGame({ publisher: text }));
-  onPlatformChange            = this.wrapOnTextChange((game, text) => this.props.onEditGame({ platform: text }));
   onPlayModeChange            = this.wrapOnTextChange((game, text) => this.props.onEditGame({ playMode: text }));
   onStatusChange              = this.wrapOnTextChange((game, text) => this.props.onEditGame({ status: text }));
   onVersionChange             = this.wrapOnTextChange((game, text) => this.props.onEditGame({ version: text }));
@@ -117,7 +118,6 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   onSeriesClick               = this.wrapOnTextClick('series');
   onSourceClick               = this.wrapOnTextClick('source');
   onPublisherClick            = this.wrapOnTextClick('publisher');
-  onPlatformClick             = this.wrapOnTextClick('platform');
   onPlayModeClick             = this.wrapOnTextClick('playMode');
   onStatusClick               = this.wrapOnTextClick('status');
   onVersionClick              = this.wrapOnTextClick('version');
@@ -132,6 +132,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       showPreview: false,
       screenshotExists: false,
       thumbnailExists: false,
+      currentPlatformInput: '',
       currentTagInput: '',
       tagSuggestions: [],
       gameDataBrowserOpen: false,
@@ -436,15 +437,20 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   </div>
                   <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                     <p>{strings.platform}: </p>
-                    <DropdownInputField
-                      text={game.platform}
-                      placeholder={strings.noPlatform}
-                      onChange={this.onPlatformChange}
+                    <TagInputField
+                      text={this.state.currentPlatformInput}
+                      placeholder={strings.enterTag}
                       className='browse-right-sidebar__searchable'
                       editable={editable}
-                      items={suggestions && filterSuggestions(suggestions.platform) || []}
-                      onItemSelect={text => this.props.onEditGame({ platform: text })}
-                      onClick={this.onPlatformClick} />
+                      onChange={this.onCurrentPlatformChange}
+                      tags={game.platforms}
+                      suggestions={[]}
+                      categories={tagCategories}
+                      onTagSelect={this.onPlatformSelect}
+                      onTagEditableSelect={this.onRemovePlatform}
+                      onTagSuggestionSelect={() => {}}
+                      onTagSubmit={this.onAddPlatformByString}
+                      renderIcon={this.renderPlatformIcon} />
                   </div>
                   <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                     <p>{strings.playMode}: </p>
@@ -817,6 +823,12 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     });
   };
 
+  onCurrentPlatformChange = (event: React.ChangeEvent<InputElement>) => {
+    this.setState({
+      currentPlatformInput: event.currentTarget.value
+    });
+  };
+
   onScreenshotContextMenu = (event: React.MouseEvent) => {
     const { currentGame } = this.props;
     const template: MenuItemConstructorOptions[] = [];
@@ -962,6 +974,12 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     this.props.onSearch(search);
   };
 
+  onPlatformSelect = (platform: Platform): void => {
+    const alias = platform.primaryAlias.name;
+    const search = `platform:${wrapSearchTerm(alias)}`;
+    this.props.onSearch(search);
+  };
+
   onAddTagSuggestion = (suggestion: TagSuggestion<Tag>): void => {
     if (suggestion.tag.id) {
       window.Shared.back.request(BackIn.GET_TAG_BY_ID, suggestion.tag.id)
@@ -1001,7 +1019,6 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
           // Ignore dupe tags
           if (game && game.tags.findIndex(t => t.id == tag.id) == -1) {
             this.props.onEditGame({ tags: [...game.tags, tag] });
-            console.log('ADDED TAG ' + tag.id);
           }
         }
       });
@@ -1013,12 +1030,39 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     });
   };
 
+  onAddPlatformByString = (text: string): void => {
+    if (text !== '') {
+      window.Shared.back.request(BackIn.GET_OR_CREATE_PLATFORM, text)
+      .then((platform) => {
+        if (platform) {
+          const game = this.props.currentGame;
+          // Ignore dupe platforms
+          if (game && game.platforms.findIndex(t => t.id == platform.id) == -1) {
+            this.props.onEditGame({ platforms: [...game.platforms, platform] });
+          }
+        }
+      });
+    }
+    this.setState({
+      currentPlatformInput: ''
+    });
+  };
+
   onRemoveTag = (tag: Tag, index: number): void => {
     const game = this.props.currentGame;
     if (game) {
       const newTags = deepCopy(game.tags);
       newTags.splice(index, 1);
       this.props.onEditGame({ tags: newTags });
+    }
+  };
+
+  onRemovePlatform = (platform: Platform, index: number): void => {
+    const game = this.props.currentGame;
+    if (game) {
+      const newPlatforms = deepCopy(game.platforms);
+      newPlatforms.splice(index, 1);
+      this.props.onEditGame({ platforms: newPlatforms });
     }
   };
 
@@ -1069,6 +1113,15 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       }
     };
   }
+
+  renderPlatformIcon = (platform: Platform): JSX.Element => {
+    const platformIcon = getPlatformIconURL(platform.primaryAlias.name, this.props.logoVersion);
+    return (
+      <div
+        className='tag-icon tag-icon-image'
+        style={{ backgroundImage: `url('${platformIcon}')` }} />
+    );
+  };
 
   static contextType = LangContext;
 }

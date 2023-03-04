@@ -205,6 +205,8 @@ const langTemplate = {
     'fixCommaTagsDesc', // @NOT_ASSIGNED
     'updateTagsString',
     'updateTagsStringDesc',
+    'updatePlatformsString',
+    'updatePlatformsStringDesc',
     'massImportGameData',
     'massImportGameDataDesc',
     'migrateExtremeGames',

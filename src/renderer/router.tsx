@@ -30,7 +30,8 @@ export type AppRouterProps = {
   games: ViewGameSet;
   randomGames: ViewGame[];
   rollRandomGames: () => void;
-  gamesTotal?: number;
+  gamesTotal: number;
+  viewGamesTotal?: number;
   allPlaylists: Playlist[];
   playlists: Playlist[];
   suggestions: Partial<GamePropSuggestions>;
@@ -103,7 +104,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
     const browseProps: ConnectedBrowsePageProps = {
       games: this.props.games,
       updateView: this.props.updateView,
-      gamesTotal: this.props.gamesTotal,
+      gamesTotal: this.props.viewGamesTotal,
       playlists: this.props.playlists,
       playlistIconCache: this.props.playlistIconCache,
       onGameContextMenu: this.props.onGameContextMenu,
@@ -145,7 +146,8 @@ export class AppRouter extends React.Component<AppRouterProps> {
     const developerProps: DeveloperPageProps = {
       devConsole: this.props.devConsole,
       devScripts: this.props.devScripts,
-      services: this.props.services
+      services: this.props.services,
+      totalGames: this.props.gamesTotal || 1,
     };
     const iframePageProps: IFramePageProps = {
       url: this.props.manualUrl

@@ -9,10 +9,10 @@ export class PlatformAlias implements ITagAlias {
     id: number;
 
   @Column({ nullable: true })
-    tagId?: number;
+    platformId?: number;
 
   @ManyToOne(() => Platform, t => t.aliases)
-    tag?: Platform;
+    platform?: Platform;
 
   @Index()
   @Column({collation: 'NOCASE', unique: true})

@@ -23,7 +23,7 @@ export class Platform implements ITagObject {
     primaryAlias: PlatformAlias;
 
   /** Aliases / Names of the tag */
-  @OneToMany(() => PlatformAlias, t => t.tag,  { cascade: true, eager: true, onDelete: 'CASCADE' })
+  @OneToMany(() => PlatformAlias, t => t.platform,  { cascade: true, eager: true, onDelete: 'CASCADE' })
     aliases: PlatformAlias[];
 
   @Column({ nullable: true })

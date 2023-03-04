@@ -1,6 +1,5 @@
 import { Game } from '@database/entity/Game';
 import { GameData } from '@database/entity/GameData';
-import { Platform } from '@database/entity/Platform';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
@@ -26,7 +25,7 @@ import { throttle } from '@shared/utils/throttle';
 import * as axiosImport from 'axios';
 import * as child_process from 'child_process';
 import { execSync } from 'child_process';
-import { AddAppCuration, CurationState } from 'flashpoint-launcher';
+import { AddAppCuration, CurationState, Platform } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as fs_extra from 'fs-extra';
 import { add, Progress } from 'node-7z';
@@ -131,10 +130,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
   state.socketServer.register(BackIn.GET_RENDERER_LOADED_DATA, async () => {
     const libraries = await GameManager.findUniqueValues(Game, 'library');
-    const platforms: Record<string, string[]> = {};
-    for (const library of libraries) {
-      platforms[library] = (await GameManager.findPlatforms(library)).sort();
-    }
 
     // Fetch update feed
     let updateFeedMarkdown = '';
@@ -184,7 +179,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     const res: GetRendererLoadedDataResponse = {
       gotdList: gotdList,
       libraries: libraries,
-      platforms: platforms,
       services: Array.from(state.services.values()).map(s => procToService(s)),
       serverNames: state.serviceInfo ? state.serviceInfo.server.map(i => i.name || '') : [],
       tagCategories: await TagManager.findTagCategories(),
@@ -646,8 +640,15 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     return state.preferences.gameDataSources;
   });
 
-  state.socketServer.register(BackIn.GET_ALL_GAMES, async () => {
-    return GameManager.findAllGames();
+  state.socketServer.register(BackIn.GET_ALL_GAMES, async (event, startFrom) => {
+    return GameManager.findAllGames(startFrom);
+  });
+
+  state.socketServer.register(BackIn.UPDATE_TAGGED_FIELDS, async () => {
+    for (const game of (await GameManager.findAllGames())) {
+      game.updateTagsStr();
+      await GameManager.save(game);
+    }
   });
 
   state.socketServer.register(BackIn.RANDOM_GAMES, async (event, data) => {
@@ -920,6 +921,16 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       tag = await TagManager.createTag(name, category);
     }
     return tag;
+  });
+
+  state.socketServer.register(BackIn.GET_OR_CREATE_PLATFORM, async (event, platformName) => {
+    const name = platformName.trim();
+    let platform = await TagManager.findPlatform(name);
+    if (!platform) {
+      // Platform doesn't exist, make a new one
+      platform = await TagManager.createPlatform(name);
+    }
+    return platform;
   });
 
   state.socketServer.register(BackIn.GET_PLAYLISTS, async () => {

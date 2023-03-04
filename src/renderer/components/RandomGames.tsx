@@ -48,7 +48,7 @@ export function RandomGames(props: RandomGamesProps) {
           key={game.id}
           id={game.id}
           title={game.title}
-          platform={game.platform}
+          platforms={game.platformsStr.split(';').map(p => p.trim())}
           extreme={game ? game.tagsStr.split(';').findIndex(t => props.extremeTags.includes(t.trim())) !== -1 : false}
           extremeIconPath={getExtremeIconURL(props.logoVersion)}
           thumbnail={getGameImageURL(LOGOS, game.id)}

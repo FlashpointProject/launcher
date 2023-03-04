@@ -5,7 +5,7 @@ import { getPlatformIconURL } from '../Util';
 export type GameGridItemProps = Partial<GridCellProps> & {
   id: string;
   title: string;
-  platform: string;
+  platforms: string[];
   extreme: boolean;
   /** Updates to clear platform icon cache */
   logoVersion: number;
@@ -23,11 +23,11 @@ export type GameGridItemProps = Partial<GridCellProps> & {
 
 // Displays a single game. Meant to be rendered inside a grid.
 export function GameGridItem(props: GameGridItemProps) {
-  const { id, title, platform, thumbnail, extreme, isDraggable, isSelected, isDragged, extremeIconPath, style } = props;
+  const { id, title, platforms, thumbnail, extreme, isDraggable, isSelected, isDragged, extremeIconPath, style } = props;
   // Get the platform icon path
   const platformIcon = React.useMemo(() => (
-    getPlatformIconURL(platform, props.logoVersion)
-  ), [platform]);
+    getPlatformIconURL(platforms ? platforms[0] : '', props.logoVersion)
+  ), [platforms]);
   // Pick class names
   const className = React.useMemo(() => {
     let className = 'game-grid-item';

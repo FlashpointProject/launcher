@@ -153,7 +153,7 @@ export async function findPlatform(name: string): Promise<Platform | null> {
   if (alias) {
     return platformRepository.findOne({
       where: [
-        { id: alias.tagId }
+        { id: alias.platformId }
       ]
     });
   }
@@ -253,12 +253,12 @@ export async function createPlatform(name: string, aliases?: string[]): Promise<
   let savedPlatform = await platformRepository.save(platform);
   const platformAlias = platformAliasRepostiory.create();
   platformAlias.name = name;
-  platformAlias.tagId = savedPlatform.id;
+  platformAlias.platformId = savedPlatform.id;
   if (aliases) {
     for (const a of aliases) {
       const platformAlias = platformAliasRepostiory.create();
       platformAlias.name = a;
-      platformAlias.tagId = savedPlatform.id;
+      platformAlias.platformId = savedPlatform.id;
       platformAliases.push(await platformAliasRepostiory.save(platformAlias));
     }
   }

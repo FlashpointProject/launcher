@@ -159,13 +159,14 @@ class _GameList extends React.Component<GameListProps> {
     const { draggedGameId, games, selectedGameId, showExtremeIcon } = this.props;
     if (!games) { throw new Error('Trying to render a row in game list, but no games are found?'); }
     const game = games[props.index];
+    const platform = game?.platformsStr.split(';')[0];
     return game ? (
       <GameListItem
         { ...props }
         key={props.key}
         id={game.id}
         title={game.title}
-        platform={game.platform}
+        platform={platform ? platform.trim() : ''}
         tagsStr={game.tagsStr}
         developer={game.developer}
         publisher={game.publisher}

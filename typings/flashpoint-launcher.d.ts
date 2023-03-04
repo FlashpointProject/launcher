@@ -258,11 +258,6 @@ declare module 'flashpoint-launcher' {
 
         // Misc
         /**
-         * Returns all unique Platform strings in a library
-         * @param library Library to search
-         */
-        function findPlatforms(library: string): Promise<string[]>;
-        /**
          * Returns whether a game is extreme based on its tags.
          * @param game Game to check
          */
@@ -561,6 +556,8 @@ declare module 'flashpoint-launcher' {
         tags: Tag[];
         /** List of tags attached to the game in a string format */
         tagsStr: string;
+        /** List of platforms in a string format (; seperated) */
+        platformsStr: string;
         /** Source if the game files, either full URL or the name of the website */
         source: string;
         /** Path to the application that runs the game */
@@ -843,7 +840,7 @@ declare module 'flashpoint-launcher' {
     type ViewGame = {
         id: string;
         title: string;
-        platform: string;
+        platformsStr: string;
         tagsStr: string;
         developer: string;
         publisher: string;

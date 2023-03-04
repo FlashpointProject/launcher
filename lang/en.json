@@ -188,6 +188,8 @@
     "importLegacyPlaylistsDesc": "Imports Legacy Playlists from `/Data/Playlists`",
     "deleteAllPlaylists": "Delete All Playlists",
     "deleteAllPlaylistsDesc": "DANGEROUS! Deletes all playlists.",
+    "updateTagsString": "Update Tagged Field Strings",
+    "updateTagsStringDesc": "Updates all tagged fields on all games (e.g Tags, Platforms)",
     "importMetaEdits": "Import Meta Edits",
     "importMetaEditsDesc": "Imports ALL Meta Edits from `/Data/MetaEdits`",
     "fixPrimaryAliases": "Fix Primary Aliases",

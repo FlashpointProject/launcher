@@ -172,9 +172,6 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
       return game.tagsStr.split(';').findIndex(t => extremeTags.includes(t.trim())) !== -1;
     },
 
-    // Misc
-    findPlatforms: GameManager.findPlatforms,
-
     // Events
     get onWillLaunchGame() {
       return apiEmitters.games.onWillLaunchGame.event;

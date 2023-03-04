@@ -17,7 +17,7 @@ export function GameListHeader(props: GameListHeaderProps) {
       { props.showExtremeIcon ? (
         <Column modifier='icon' hideDivider={true} />
       ) : undefined}
-      <SortableColumn modifier='icon' hideDivider={true} orderBy='platform' preferencesData={props.preferencesData} />
+      <SortableColumn modifier='icon' hideDivider={true} orderBy='platformsStr' preferencesData={props.preferencesData} />
       <div className='game-list-header__right'>
         <SortableColumn
           title='Title'

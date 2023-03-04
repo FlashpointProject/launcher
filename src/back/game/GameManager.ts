@@ -13,7 +13,7 @@ import { chunkArray } from '@shared/utils/misc';
 import { GameOrderBy, GameOrderReverse, Playlist, PlaylistGame } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Brackets, FindOneOptions, In, SelectQueryBuilder } from 'typeorm';
+import { Brackets, FindOneOptions, In, MoreThan, SelectQueryBuilder } from 'typeorm';
 import { AppDataSource } from '..';
 import * as GameDataManager from './GameDataManager';
 import * as TagManager from './TagManager';
@@ -92,7 +92,7 @@ export async function findGameRow(gameId: string, filterOpts?: FilterGameOpts, o
 export async function findRandomGames(count: number, broken: boolean, excludedLibraries: string[], flatFilters: string[]): Promise<ViewGame[]> {
   const gameRepository = AppDataSource.getRepository(Game);
   const query = gameRepository.createQueryBuilder('game');
-  query.select('game.id, game.title, game.platform, game.developer, game.publisher, game.tagsStr');
+  query.select('game.id, game.title, game.developer, game.publisher, game.platformsStr, game.tagsStr');
   if (!broken)  { query.andWhere('broken = false');  }
   if (excludedLibraries.length > 0) {
     query.andWhere('library NOT IN (:...libs)', { libs: excludedLibraries });
@@ -180,9 +180,15 @@ export type FindGamesOpts = {
   getTotal?: boolean;
 }
 
-export async function findAllGames(): Promise<Game[]> {
+export async function findAllGames(startFrom?: string): Promise<Game[]> {
   const gameRepository = AppDataSource.getRepository(Game);
-  return gameRepository.find();
+  if (startFrom) {
+    return gameRepository.find({ take: 10000, order: { id: 'asc' }, where: {
+      id: MoreThan(startFrom)
+    }});
+  } else {
+    return gameRepository.find({ take: 10000, order: { id: 'asc' }});
+  }
 }
 
 /**
@@ -208,7 +214,7 @@ export async function findGames<T extends boolean>(opts: FindGamesOpts, shallow:
     // @TODO Make it infer the type of T from the value of "shallow", and then use that to make "games" get the correct type, somehow?
     // @PERF When multiple pages are requested as individual ranges, select all of them with a single query then split them up
     const games = (shallow)
-      ? (await query.select('game.id, game.title, game.platform, game.developer, game.publisher, game.extreme, game.tagsStr').getRawMany()) as ViewGame[]
+      ? (await query.select('game.id, game.title, game.developer, game.publisher, game.extreme, game.platformsStr, game.tagsStr').getRawMany()) as ViewGame[]
       : await query.getMany();
     if (opts.filter?.playlist) {
       games.sort((a, b) => {
@@ -287,16 +293,6 @@ export async function findUniqueValues(entity: any, column: string, commaSeperat
   }
 }
 
-export async function findPlatforms(library: string): Promise<string[]> {
-  const gameRepository = AppDataSource.getRepository(Game);
-  const libraries = await gameRepository.createQueryBuilder('game')
-  .where('game.library = :library', {library: library})
-  .select('game.platform')
-  .distinct()
-  .getRawMany();
-  return Coerce.strArray(libraries.map(l => l.game_platform));
-}
-
 export async function updateGames(games: Game[]): Promise<void> {
   const chunks = chunkArray(games, 2000);
   for (const chunk of chunks) {
@@ -310,7 +306,6 @@ export async function updateGames(games: Game[]): Promise<void> {
 
 export async function save(game: Game): Promise<Game> {
   const gameRepository = AppDataSource.getRepository(Game);
-  log.debug('Launcher', 'Saving game...');
   const savedGame = await gameRepository.save(game);
   if (savedGame) { onDidUpdateGame.fire({oldGame: game, newGame: savedGame}); }
   return savedGame;

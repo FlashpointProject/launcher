@@ -10,7 +10,6 @@ import { Tag } from './Tag';
 @Index('IDX_lookup_developer',    ['library', 'developer'])
 @Index('IDX_lookup_publisher',    ['library', 'publisher'])
 @Index('IDX_lookup_series',       ['library', 'series'])
-@Index('IDX_lookup_platform',     ['library', 'platform'])
 @Index('IDX_total',               ['library', 'broken', 'extreme'])
 @Entity()
 export class Game {
@@ -85,6 +84,9 @@ export class Game {
   @Column({collation: 'NOCASE', default: '' })
     tagsStr: string;
 
+  @Column({collation: 'NOCASE', default: '' })
+    platformsStr: string;
+
   @Column({collation: 'NOCASE'})
   /** Source if the game files, either full URL or the name of the website */
     source: string;
@@ -145,6 +147,7 @@ export class Game {
   // This doesn't run... sometimes.
   @BeforeUpdate()
   updateTagsStr() {
+    // Tags
     try {
       this.tagsStr = this.tags.map(t => {
         if (t.primaryAlias) {
@@ -155,9 +158,20 @@ export class Game {
       }).join('; ');
     } catch (err) {
       // Skip setting tagsStr if the entities tag info isn't loaded properly
-      return;
     }
-    log.debug('Launcher', `NEW TAGS STR ${this.tags.length} tags: ${this.tagsStr}`);
+
+    // Platforms
+    try {
+      this.platformsStr = this.platforms.map(t => {
+        if (t.primaryAlias) {
+          return t.primaryAlias.name;
+        } else {
+          throw 'PrimaryAliases missing';
+        }
+      }).join('; ');
+    } catch (err) {
+      // Skip setting tagsStr if the entities tag info isn't loaded properly
+    }
   }
 
 }
