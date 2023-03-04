@@ -1,8 +1,9 @@
 import { Column, Entity, Index, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Tag } from './Tag';
+import { ITagAlias } from '@shared/back/types';
 
 @Entity()
-export class TagAlias {
+export class TagAlias implements ITagAlias {
   @PrimaryGeneratedColumn()
   /** ID of the tag alias (unique identifier) */
     id: number;

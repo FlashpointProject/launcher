@@ -159,7 +159,7 @@ export async function findTag(name: string): Promise<Tag | null> {
   return null;
 }
 
-export async function findTagSuggestions(name: string, flatTagFilter: string[] = [], flatCatFilter: string[] = []): Promise<TagSuggestion[]> {
+export async function findTagSuggestions(name: string, flatTagFilter: string[] = [], flatCatFilter: string[] = []): Promise<TagSuggestion<Tag>[]> {
   const tagAliasRepostiory = AppDataSource.getRepository(TagAlias);
   const tagCategoryRepository = AppDataSource.getRepository(TagCategory);
   const tagCategories = (await Promise.all(flatCatFilter.map(async (cat) => tagCategoryRepository.findOne({ where: { name: cat }})))).filter(t => t !== undefined) as TagCategory[];
@@ -187,7 +187,7 @@ export async function findTagSuggestions(name: string, flatTagFilter: string[] =
   .setParameters(subQuery.getParameters())
   .getRawMany();
 
-  const suggestions: TagSuggestion[] = tagAliases.map(ta => {
+  const suggestions: TagSuggestion<Tag>[] = tagAliases.map(ta => {
     const alias = ta.name != ta.primaryName ? ta.name : undefined;
     const primaryAlias = ta.primaryName;
     const tag = new Tag();

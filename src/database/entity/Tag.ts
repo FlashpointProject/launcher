@@ -1,10 +1,11 @@
+import { ITagObject } from '@shared/back/types';
 import { Column, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { Game } from './Game';
 import { TagAlias } from './TagAlias';
 import { TagCategory } from './TagCategory';
 
 @Entity()
-export class Tag {
+export class Tag implements ITagObject {
   @PrimaryGeneratedColumn()
   /** ID of the tag (unique identifier) */
     id?: number;

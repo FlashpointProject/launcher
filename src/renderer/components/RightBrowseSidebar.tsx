@@ -82,7 +82,7 @@ type RightBrowseSidebarState = {
   screenshotExists: boolean;
   thumbnailExists: boolean;
   currentTagInput: string;
-  tagSuggestions: TagSuggestion[];
+  tagSuggestions: TagSuggestion<Tag>[];
   gameDataBrowserOpen: boolean;
   activeData: GameData | null;
   showExtremeScreenshots: boolean;
@@ -798,7 +798,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
 
   onCurrentTagChange = (event: React.ChangeEvent<InputElement>) => {
     const newTag = event.currentTarget.value;
-    let newSuggestions: TagSuggestion[] = this.state.tagSuggestions;
+    let newSuggestions: TagSuggestion<Tag>[] = this.state.tagSuggestions;
 
     if (newTag !== '' && this.props.currentGame) {
       // Delayed set
@@ -962,7 +962,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     this.props.onSearch(search);
   };
 
-  onAddTagSuggestion = (suggestion: TagSuggestion): void => {
+  onAddTagSuggestion = (suggestion: TagSuggestion<Tag>): void => {
     if (suggestion.tag.id) {
       window.Shared.back.request(BackIn.GET_TAG_BY_ID, suggestion.tag.id)
       .then((tag) => {

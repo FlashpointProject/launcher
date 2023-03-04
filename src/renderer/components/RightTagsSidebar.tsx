@@ -43,7 +43,7 @@ export type RightTagsSidebarProps = OwnProps & WithPreferencesProps;
 type RightTagsSidebarState = {
   currentTagInput: string;
   currentTagMergeInput: string;
-  tagMergeSuggestions: TagSuggestion[];
+  tagMergeSuggestions: TagSuggestion<Tag>[];
   makeAliasWhenMerged: boolean;
 };
 
@@ -252,7 +252,7 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
 
   onCurrentTagMergeChange = (event: React.ChangeEvent<InputElement>) => {
     const newTag = event.currentTarget.value;
-    let newSuggestions: TagSuggestion[] = this.state.tagMergeSuggestions;
+    let newSuggestions: TagSuggestion<Tag>[] = this.state.tagMergeSuggestions;
 
     if (newTag !== '' && this.props.currentTag) {
       // Delayed set
@@ -292,7 +292,7 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
     }
   };
 
-  onSelectTagMergeSuggestion = (suggestion: TagSuggestion): void => {
+  onSelectTagMergeSuggestion = (suggestion: TagSuggestion<Tag>): void => {
     // Clear out suggestions box
     this.setState({
       tagMergeSuggestions: [],

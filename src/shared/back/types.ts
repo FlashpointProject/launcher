@@ -267,7 +267,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
 
   // Tag funcs
   [BackIn.GET_OR_CREATE_TAG]: (tagName: string, tagCategory?: string) => Tag | null;
-  [BackIn.GET_TAG_SUGGESTIONS]: (data: string, tagFilters: TagFilterGroup[]) => TagSuggestion[];
+  [BackIn.GET_TAG_SUGGESTIONS]: (data: string, tagFilters: TagFilterGroup[]) => TagSuggestion<Tag>[];
   [BackIn.GET_TAG_BY_ID]: (data: number) => Tag | null;
   [BackIn.GET_TAGS]: (data: string, tagFilters?: TagFilterGroup[]) => Tag[];
   [BackIn.GET_TAG]: (data: string) => Tag | null;
@@ -360,7 +360,7 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.THEME_CHANGE]: (theme: Theme) => void;
   [BackOut.THEME_LIST_CHANGE]: (themes: Theme[]) => void;
   [BackOut.IMPORT_CURATION_RESPONSE]: () => void;
-  [BackOut.GET_TAG_SUGGESTIONS]: (data: TagSuggestion[]) => void;
+  [BackOut.GET_TAG_SUGGESTIONS]: (data: TagSuggestion<Tag>[]) => void;
   [BackOut.GET_TAG_BY_ID]: (SAVE_TAGdata: Tag | null) => Tag | undefined;
   [BackOut.GET_TAGS]: (data: Tag[]) => void;
   [BackOut.GET_TAG]: (data: Tag | null) => void;
@@ -616,10 +616,27 @@ export type LaunchCurationAddAppData = {
   symlinkCurationContent: boolean;
 }
 
-export type TagSuggestion = {
+export type ITagObject = {
+  id?: number;
+  dateModified: string;
+  primaryAlias: ITagAlias;
+  aliases: ITagAlias[];
+  description?: string;
+  categoryId?: number;
+  count?: number;
+}
+
+export type ITagAlias = {
+  id: number;
+  tagId?: number;
+  tag?: ITagObject;
+  name: string;
+}
+
+export type TagSuggestion<TaggedObject> = {
   alias?: string;
   primaryAlias: string;
-  tag: Tag;
+  tag: TaggedObject;
 }
 
 export type TagDeleteResponse = {

@@ -1,5 +1,5 @@
-import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
+import { ITagObject } from '@shared/back/types';
 import { GameOrderReverse } from 'flashpoint-launcher';
 import * as React from 'react';
 import { ArrowKeyStepper, AutoSizer, List, ListRowProps } from 'react-virtualized-reactv17';
@@ -12,9 +12,9 @@ type RefFunc<T extends HTMLElement> = (instance: T | null) => void;
 
 const RENDERER_OVERSCAN = 15;
 
-export type TagListProps = {
+export type TagListProps<T extends ITagObject> = {
   /** All tags that will be shown in the list. */
-  tags: Tag[];
+  tags: T[];
   /** Tag category info */
   tagCategories: TagCategory[];
   /** Total number of tags there are. */
@@ -36,10 +36,10 @@ export type TagListProps = {
 };
 
 /** A list of rows, where each rows displays a game. */
-export class TagList extends React.Component<TagListProps> {
+export class TagList<T extends ITagObject> extends React.Component<TagListProps<T>> {
   private _wrapper: React.RefObject<HTMLDivElement> = React.createRef();
   /** Currently displayed games. */
-  currentTags: Tag[] | undefined = undefined;
+  currentTags: T[] | undefined = undefined;
 
   componentDidMount(): void {
     this.updateCssVars();

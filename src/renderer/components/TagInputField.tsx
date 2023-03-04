@@ -1,6 +1,5 @@
-import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
-import { TagSuggestion } from '@shared/back/types';
+import { ITagObject, TagSuggestion } from '@shared/back/types';
 import { memoizeOne } from '@shared/memoize';
 import * as React from 'react';
 import { checkIfAncestor } from '../Util';
@@ -13,21 +12,23 @@ type RefFunc<T extends HTMLElement> = (instance: T | null) => void;
 /** Input element types used by this component. */
 type InputElement = HTMLInputElement | HTMLTextAreaElement;
 
-export type TagInputFieldProps = InputFieldProps & {
+export type TagInputFieldProps<T extends ITagObject> = InputFieldProps & {
   /** Items to display in the drop-down list. */
-  tags: Tag[];
+  tags: T[];
   /** Called when a tag is selected */
-  onTagSelect?: (tag: Tag, index: number) => void;
+  onTagSelect?: (tag: T, index: number) => void;
   /** Called when a tag is selected when editable */
-  onTagEditableSelect?: (tag: Tag, index: number) => void;
+  onTagEditableSelect?: (tag: T, index: number) => void;
   /** Called when a tag suggestion is selected */
-  onTagSuggestionSelect?: (suggestion: TagSuggestion) => void;
+  onTagSuggestionSelect?: (suggestion: TagSuggestion<T>) => void;
   /** Called when the tag input box is submitted */
   onTagSubmit?: (text: string) => void;
   /** Function for getting a reference to the input element. Called whenever the reference could change. */
   inputRef?: RefFunc<InputElement>;
+  /** Custom icon render func */
+  renderIcon?: (tag: T) => JSX.Element;
   /** Tag suggestions based on currently entered tag */
-  suggestions: TagSuggestion[];
+  suggestions: TagSuggestion<T>[];
   /** Tag Category info */
   categories: TagCategory[];
 };
@@ -37,12 +38,12 @@ type TagInputFieldState = {
 };
 
 /** An input element with a drop-down menu that can list any number of selectable and clickable text elements. */
-export class TagInputField extends React.Component<TagInputFieldProps, TagInputFieldState> {
+export class TagInputField<T extends ITagObject> extends React.Component<TagInputFieldProps<T>, TagInputFieldState> {
   rootRef: React.RefObject<HTMLDivElement> = React.createRef();
   contentRef: React.RefObject<HTMLDivElement> = React.createRef();
   inputRef: React.RefObject<InputElement> = React.createRef();
 
-  constructor(props: TagInputFieldProps) {
+  constructor(props: TagInputFieldProps<T>) {
     super(props);
     this.state = {
       expanded: false
@@ -103,13 +104,13 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
   }
 
   /** Renders the list of items in the drop-down menu. */
-  renderSuggestions = memoizeOne<(items: TagSuggestion[], expanded: boolean) => JSX.Element[]>((items: TagSuggestion[]) => {
-    return items.map((suggestion, index) => this.renderSuggestionItem(suggestion, index));
+  renderSuggestions = memoizeOne<(items: TagSuggestion<T>[], expanded: boolean) => JSX.Element[]>((items: TagSuggestion<T>[]) => {
+    return items.map((suggestion, index) => this.renderSuggestionItem(suggestion, index, this.props.renderIcon));
   }, ([ itemsA, expandedA ], [ itemsB, expandedB ]) => {
     return expandedA === expandedB ? checkIfArraysAreEqual(itemsA, itemsB) : false;
   });
 
-  renderSuggestionItem = (suggestion: TagSuggestion, index: number) => {
+  renderSuggestionItem = (suggestion: TagSuggestion<T>, index: number, renderIcon?: (tag: T) => JSX.Element) => {
     const category = this.props.categories.find(c => c.id == suggestion.tag.categoryId);
     const aliasRender = suggestion.alias ? (
       <div className='tag-inner'>
@@ -122,16 +123,21 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
         {suggestion.tag.count ? (<p className='tag-count'>{suggestion.tag.count}</p>) : undefined}
       </div>
     );
+
+    const icon = renderIcon ? renderIcon(suggestion.tag) : (
+      <OpenIcon
+        className='tag-icon'
+        color={category ? category.color : '#FFFFFF'}
+        key={index * 2}
+        icon='tag'/>
+    );
+
     return (
       <div
         onClick={() => this.onSuggestionItemClick(suggestion)}
         data-dropdown-index={index}
         className='tag-input-dropdown__suggestion' key={index} >
-        <OpenIcon
-          className='tag-icon'
-          color={category ? category.color : '#FFFFFF'}
-          key={index * 2}
-          icon='tag'/>
+        {icon}
         <label
           className='tag-suggestion-label'
           key={index * 2 + 1}
@@ -143,20 +149,24 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
   };
 
   /** Renders the list of items in the drop-down menu. */
-  renderItems = memoizeOne<(items: Tag[]) => JSX.Element[]>((items: Tag[]) => {
+  renderItems = memoizeOne<(items: T[]) => JSX.Element[]>((items: T[]) => {
     const className = this.props.editable ? 'tag-editable' : 'tag-static';
     return items.map((tag, index) => {
       const category = this.props.categories.find(c => c.id == tag.categoryId);
       const shownAlias = tag.primaryAlias ? tag.primaryAlias.name : 'No Primary Alias Set';
+      const icon = this.props.renderIcon ? this.props.renderIcon(tag) : (
+        <OpenIcon
+          className='tag-icon'
+          color={category ? category.color : '#FFFFFF'}
+          key={index * 2}
+          icon={category ? 'tag' : 'question-mark'}/>
+      );
+
       return (
         <div
           className={'tag ' + className}
           key={index}>
-          <OpenIcon
-            className='tag-icon'
-            color={category ? category.color : '#FFFFFF'}
-            key={index * 2}
-            icon={category ? 'tag' : 'question-mark'}/>
+          {icon}
           <label
             className='tag-label'
             title={tag.description}
@@ -193,7 +203,7 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
     }
   };
 
-  onSuggestionItemClick = (suggestion: TagSuggestion): void => {
+  onSuggestionItemClick = (suggestion: TagSuggestion<T>): void => {
     if (!this.props.disabled) {
       if (this.props.onTagSuggestionSelect) {
         this.props.onTagSuggestionSelect(suggestion);

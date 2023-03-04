@@ -1,3 +1,4 @@
+import { Tag } from '@database/entity/Tag';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
 import { BackIn, TagSuggestion } from '@shared/back/types';
 import { getLibraryItemTitle } from '@shared/library/util';
@@ -39,7 +40,7 @@ type HeaderState = {
   /** Current text in the search field. */
   searchText: string;
   /** Current tag suggestions under the search field */
-  tagSuggestions: TagSuggestion[];
+  tagSuggestions: TagSuggestion<Tag>[];
 };
 
 /** The header that is always visible at the top of the main window (just below the title bar). */
@@ -223,7 +224,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
     easterEgg(value);
   };
 
-  onTagSuggestionSelect = (suggestion: TagSuggestion): void => {
+  onTagSuggestionSelect = (suggestion: TagSuggestion<Tag>): void => {
     const tagRegex = /((#)([^\s]+)|(tag:)([^\s]+))$/;
     const match = tagRegex.exec(this.state.searchText);
     if (match) {

@@ -1,19 +1,19 @@
-import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
+import { ITagObject } from '@shared/back/types';
 import * as React from 'react';
 import { ListRowProps } from 'react-virtualized';
 import { OpenIcon } from './OpenIcon';
 
-export type TagListItemProps = ListRowProps & {
+export type TagListItemProps<T extends ITagObject> = ListRowProps & {
   /** Current tag */
-  tag: Tag;
+  tag: T;
   /** If the row is selected. */
   isSelected: boolean;
   /** Tag Categories */
   readonly tagCategories: TagCategory[];
 };
 
-export function TagListItem(props: TagListItemProps) {
+export function TagListItem<T extends ITagObject>(props: TagListItemProps<T>) {
   const { tag, isSelected, index, style } = props;
   // Pick class names
   const className = React.useMemo(() => {

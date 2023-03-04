@@ -30,7 +30,7 @@ export function TagFilterGroupEditor(props: TagFilterGroupEditorProps) {
   const strings = React.useContext(LangContext);
   const [editTag, setEditTag] = React.useState('');
   // const [editCategory, setEditCategory] = React.useState('');
-  const [tagSuggestions, setTagSuggestions] = React.useState<TagSuggestion[]>([]);
+  const [tagSuggestions, setTagSuggestions] = React.useState<TagSuggestion<Tag>[]>([]);
   const [parsedTagsList, setParsedTagsList] = React.useState<Tag[]>(buildPlaceholderTags(props.tagFilterGroup.tags));
 
   // const tags = React.useMemo(() => tagsFactory(props.tagFilterGroup.tags, props.onRemoveTag), [props.tagFilterGroup.tags, props.onRemoveTag]);
