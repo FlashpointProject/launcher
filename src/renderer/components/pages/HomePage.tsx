@@ -1,6 +1,6 @@
 import * as remote from '@electron/remote';
 import { FancyAnimation } from '@renderer/components/FancyAnimation';
-import { BackIn, ComponentState, ComponentStatus, GameOfTheDay, ViewGame } from '@shared/back/types';
+import { BackIn, ComponentStatus, GameOfTheDay, ViewGame } from '@shared/back/types';
 import { ARCADE, LOGOS, THEATRE } from '@shared/constants';
 import { wrapSearchTerm } from '@shared/game/GameFilter';
 import { updatePreferencesData } from '@shared/preferences/util';
@@ -194,31 +194,6 @@ export function HomePage(props: HomePageProps) {
   // (These are kind of "magic numbers" and the CSS styles are designed to fit with them)
   const height = 140;
   const width: number = (height * 0.666) | 0;
-
-  const renderedUpdateButton = React.useMemo(() => {
-    const updatesReady = props.componentStatuses.filter(s => s.state === ComponentState.NEEDS_UPDATE);
-    if (updatesReady.length > 0) {
-      return (
-        <div className='home-page__update-button-container'>
-          <SimpleButton
-            className='home-page__update-button'
-            onClick={props.openFlashpointManager}
-            value={formatString(strings.componentUpdatesReady, updatesReady.length.toString())}>
-          </SimpleButton>
-        </div>
-      );
-    } else {
-      return (
-        <div className='home-page__update-button-container'>
-          <SimpleButton
-            className='home-page__update-button'
-            disabled={true}
-            value={strings.componentUpToDate}>
-          </SimpleButton>
-        </div>
-      );
-    }
-  }, [props.componentStatuses]);
 
   const renderedQuickStart = React.useMemo(() => {
     const render = (
@@ -419,8 +394,6 @@ export function HomePage(props: HomePageProps) {
   return React.useMemo(() => (
     <div className='home-page simple-scroll'>
       <div className='home-page__inner'>
-        {/* Update Button */}
-        { renderedUpdateButton }
         {/* Logo */}
         <div className='home-page__logo fp-logo-box'>
           <FancyAnimation
@@ -447,7 +420,7 @@ export function HomePage(props: HomePageProps) {
         { renderedExtras }
       </div>
     </div>
-  ), [renderedQuickStart, renderedExtras, renderedNotes, renderedRandomGames, renderedNewsFeed, renderedGotd, renderedUpdateButton]);
+  ), [renderedQuickStart, renderedExtras, renderedNotes, renderedRandomGames, renderedNewsFeed, renderedGotd]);
 }
 
 function QuickStartItem(props: { icon?: OpenIconType, className?: string, children?: React.ReactNode }): JSX.Element {

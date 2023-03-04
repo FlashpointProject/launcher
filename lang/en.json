@@ -110,7 +110,7 @@
     "linuxSupportLinkText": "Open FAQ",
     "randomPicks": "Random Picks",
     "rerollPicks": "Re-Roll Picks",
-    "componentUpdatesReady": "{0} component updates ready",
+    "componentUpdatesReady": "Install {0} updates",
     "componentUpToDate": "Flashpoint is up to date"
   },
   "logs": {
@@ -144,7 +144,9 @@
     "list": "List",
     "grid": "Grid",
     "searchResults": "Search Results",
-    "manual": "Help"
+    "manual": "Help",
+    "layout": "Browser Layout",
+    "openFlashpointManager": "Open Flashpoint Manager"
   },
   "filter": {
     "dateAdded": "Date Added",

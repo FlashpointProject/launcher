@@ -1,8 +1,10 @@
 import { WithMainStateProps } from '@renderer/containers/withMainState';
 import { MainActionType } from '@renderer/store/main/enums';
+import { BackIn, ComponentState } from '@shared/back/types';
 import { parseBrowsePageLayout, stringifyBrowsePageLayout } from '@shared/BrowsePageLayout';
 import { getLibraryItemTitle } from '@shared/library/util';
 import { updatePreferencesData } from '@shared/preferences/util';
+import { formatString } from '@shared/utils/StringFormatter';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import { WithPreferencesProps } from '../containers/withPreferences';
@@ -35,74 +37,80 @@ export class Footer extends React.Component<FooterProps> {
     const currentLabel = libraryPath && getLibraryItemTitle(libraryPath, this.props.main.lang.libraries);
     const view = this.props.main.views[libraryPath];
     const gamesTotal = (view && view.total != undefined) ? view.total : -1;
+    const fpmAvailable = this.props.main.componentStatuses.length > 0;
+    const updatesReady = this.props.main.componentStatuses.filter(c => c.state === ComponentState.NEEDS_UPDATE).length;
 
     return (
       <div className='footer'>
         {/* Left Side */}
-        <div className='footer__wrap'>
-          {/* Game Count */}
-          <div className='footer__game-count'>
-            <p>{`${strings.total}: ${this.props.main.gamesTotal}`}</p>
-            {currentLabel && strings.searchResults ? (
-              <>
-                <p>|</p>
-                <p>{`${strings.searchResults}: ${gamesTotal > -1 ? gamesTotal : this.context.misc.searching}`}</p>
-              </>
-            ) : undefined}
+        <div className='footer__wrap footer__left'>
+          <div className='footer__left__inner'>
+            {/* Update Panel */}
+            { fpmAvailable && (
+              <div
+                onClick={() => {
+                  this.props.setMainState({
+                    quitting: true
+                  });
+                  window.Shared.back.send(BackIn.OPEN_FLASHPOINT_MANAGER);
+                }}
+                className={`${updatesReady > 0 ? 'footer__update-panel-updates-ready' : 'footer__update-panel-up-to-date'} footer__update-panel footer__wrap`}>
+                {updatesReady ? formatString(this.context.home.componentUpdatesReady, updatesReady.toString()) : strings.openFlashpointManager }
+              </div>
+            )}
+            {/* Game Count */}
+            <div className='footer__game-count'>
+              <p>{`${strings.total}: ${this.props.main.gamesTotal}`}</p>
+              {currentLabel && strings.searchResults ? (
+                <>
+                  <p>|</p>
+                  <p>{`${strings.searchResults}: ${gamesTotal > -1 ? gamesTotal : this.context.misc.searching}`}</p>
+                </>
+              ) : undefined}
+            </div>
           </div>
         </div>
         {/* Right Side */}
         <div className='footer__wrap footer__right'>
-          <div>
-            <div className='footer__right__inner'>
-              {/* New Game */}
-              {this.props.preferencesData.enableEditing ? (
-                <div className='footer__wrap'>
-                  <div className='simple-center'>
-                    <input
-                      type='button'
-                      value={strings.newGame}
-                      onClick={this.onNewGameClick}
-                      className='footer__new-game simple-button simple-center__vertical-inner' />
-                  </div>
-                </div>
-              ) : undefined}
-              {/* Layout Selector */}
-              <div className='footer__wrap'>
-                <div>
-                  <select
-                    className='footer__layout-selector simple-selector'
-                    value={stringifyBrowsePageLayout(this.props.preferencesData.browsePageLayout)}
-                    onChange={this.onLayoutChange}>
-                    <option value='list'>{strings.list}</option>
-                    <option value='grid'>{strings.grid}</option>
-                  </select>
-                </div>
+          <div className='footer__right__inner'>
+            {/* Layout Selector */}
+            <div className='footer__wrap'>
+              <div className='footer__layout-title'>{strings.layout}</div>
+            </div>
+            <div className='footer__wrap'>
+              <div>
+                <select
+                  className='footer__layout-selector simple-selector'
+                  value={stringifyBrowsePageLayout(this.props.preferencesData.browsePageLayout)}
+                  onChange={this.onLayoutChange}>
+                  <option value='list'>{strings.list}</option>
+                  <option value='grid'>{strings.grid}</option>
+                </select>
               </div>
-              {/* Scale Slider */}
-              <div className='footer__wrap footer__scale-slider'>
-                <div className='footer__scale-slider__inner'>
-                  <div className='footer__scale-slider__icon footer__scale-slider__icon--left simple-center'>
-                    <div>-</div>
-                  </div>
-                  <div className='footer__scale-slider__icon footer__scale-slider__icon--center simple-center' />
-                  <div className='footer__scale-slider__icon footer__scale-slider__icon--right simple-center'>
-                    <div>+</div>
-                  </div>
-                  <input
-                    type='range'
-                    className='footer__scale-slider__input hidden-slider'
-                    value={scale * Footer.scaleSliderMax}
-                    min={0}
-                    max={Footer.scaleSliderMax}
-                    ref={this.scaleSliderRef}
-                    onChange={this.onScaleSliderChange} />
+            </div>
+            {/* Scale Slider */}
+            <div className='footer__wrap footer__scale-slider'>
+              <div className='footer__scale-slider__inner'>
+                <div className='footer__scale-slider__icon footer__scale-slider__icon--left simple-center'>
+                  <div>-</div>
                 </div>
+                <div className='footer__scale-slider__icon footer__scale-slider__icon--center simple-center' />
+                <div className='footer__scale-slider__icon footer__scale-slider__icon--right simple-center'>
+                  <div>+</div>
+                </div>
+                <input
+                  type='range'
+                  className='footer__scale-slider__input hidden-slider'
+                  value={scale * Footer.scaleSliderMax}
+                  min={0}
+                  max={Footer.scaleSliderMax}
+                  ref={this.scaleSliderRef}
+                  onChange={this.onScaleSliderChange} />
               </div>
-              {/* Slider Percent */}
-              <div className='footer__wrap footer__scale-percent'>
-                <p>{Math.round(100 + (scale - 0.5) * 200 * gameScaleSpan)}%</p>
-              </div>
+            </div>
+            {/* Slider Percent */}
+            <div className='footer__wrap footer__scale-percent'>
+              <p>{Math.round(100 + (scale - 0.5) * 200 * gameScaleSpan)}%</p>
             </div>
           </div>
         </div>

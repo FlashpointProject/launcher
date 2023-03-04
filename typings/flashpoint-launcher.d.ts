@@ -461,7 +461,7 @@ declare module 'flashpoint-launcher' {
         /**
          * Awaits a message box dialogs result
          * @param dialogId Dialog ID
-         * @returns Dialog Response
+         * @returns Dialog Response (Button index pressed + field values)
          */
         function awaitDialog(dialogId: string): Promise<DialogResponse>;
         /**

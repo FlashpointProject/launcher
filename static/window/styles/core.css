@@ -584,31 +584,42 @@ body {
 .footer {
   display: inline-flex;
   flex-flow: wrap;
-  padding: 0.05rem 0.2rem;
   /* Pimp */
   user-select: none;
   z-index: 1;
 }
 .footer__wrap {
+  align-self: center;
   padding: 0.025rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
-.footer__right {
+.footer__left {
   flex-grow: 1;
+}
+.footer__right {
+  margin-right: 0.3rem;
+  flex-grow: 0;
 }
 .footer__right__inner {
   display: flex;
   float: right;
   width: 100%;
-  max-width: 22.5em;
+  flex-wrap: wrap;
+}
+.footer__left__inner {
+  display: flex;
+  float: left;
+  width: 100%;
   flex-wrap: wrap;
 }
 /* Game Count */
 .footer__game-count {
+  margin-left: 0.3rem;
   font-size: 0.9rem;
   cursor: default;
+  align-self: center;
 }
 .footer__game-count p {
   display: inline-block;
@@ -629,7 +640,7 @@ body {
 /* Scale Slider */
 .footer__scale-slider {
   flex: 1 1 auto;
-  min-width: 6em;
+  min-width: 10rem;
 }
 .footer__scale-slider__inner {
   --slider-size: 1em;
@@ -637,6 +648,7 @@ body {
   position: relative;
   height: var(--slider-size);
   cursor: pointer;
+  max-width: 10rem;
 }
 .footer__scale-slider__icon {
   position: absolute;
@@ -667,6 +679,14 @@ body {
 }
 .footer__scale-percent p {
   float: right;
+}
+/* Update Panel */
+.footer__update-panel {
+  border: 0px;
+  border-radius: 0px;
+  padding: 0.2rem 0.3rem 0.2rem 0.3rem;
+  padding-left: 0.3rem;
+  height: 100%;
 }
 
 /* ----- IFrame ----- */

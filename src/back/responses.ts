@@ -3,7 +3,7 @@ import { GameData } from '@database/entity/GameData';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
-import { BackIn, BackInit, BackOut, CurationImageEnum, DownloadDetails, GetRendererLoadedDataResponse } from '@shared/back/types';
+import { BackIn, BackInit, BackOut, ComponentState, CurationImageEnum, DownloadDetails, GetRendererLoadedDataResponse } from '@shared/back/types';
 import { overwriteConfigData } from '@shared/config/util';
 import { CURATIONS_FOLDER_EXPORTED, CURATIONS_FOLDER_TEMP, CURATIONS_FOLDER_WORKING, LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
@@ -1374,9 +1374,10 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   state.socketServer.register(BackIn.OPEN_FLASHPOINT_MANAGER, async () => {
     const cwd = state.config.flashpointPath;
     const fpmPath = path.join(state.config.flashpointPath, 'FlashpointManager.exe');
-    console.log(fpmPath);
+    const updatesReady = state.componentStatuses.filter(c => c.state === ComponentState.NEEDS_UPDATE).length > 0;
     exitApp(state, async () => {
-      const child = child_process.spawn(fpmPath,  ['/update'], { detached: true, cwd, stdio: ['ignore', 'ignore', 'ignore'] });
+      const args = updatesReady ? ['/update'] : [];
+      const child = child_process.spawn(fpmPath, args, { detached: true, cwd, stdio: ['ignore', 'ignore', 'ignore'] });
       child.unref();
     });
   });

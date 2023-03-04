@@ -152,6 +152,8 @@ const langTemplate = {
     'grid',
     'searchResults',
     'manual',
+    'layout',
+    'openFlashpointManager',
   ] as const,
   filter: [
     'dateAdded',

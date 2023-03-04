@@ -150,6 +150,7 @@
   --layout__drop-down-content-background-selected: #1e90ff;
   /* Flashpoint */
   --layout__flashpoint-red: #DD0428;
+  --layout__flashpoint-light-red: #E85971;
 }
 
 body {
@@ -179,6 +180,10 @@ body {
 .simple-button:hover {
   background-color: var(--layout__simple-button-background);
   border-color: var(--layout__simple-button-border);
+}
+.simple-button:active {
+	background-color: var(--layout__primary-background);
+	box-shadow: 0px -1px 0px 0px #09090a;
 }
 .simple-button:disabled {
   color: var(--layout__disabled-text-color);
@@ -470,7 +475,28 @@ body {
 .footer__scale-slider__input::-webkit-slider-thumb:active {
   background-color: var(--layout__slider-background-active);
 }
-
+/* Update Panel */
+.footer__update-panel-up-to-date {
+  background-color: var(--layout__secondary-background);
+}
+.footer__update-panel-up-to-date:hover {
+  background-color: var(--layout__simple-button-background);
+}
+.footer__update-panel-up-to-date:active {
+  background-color: var(--layout__primary-background);
+}
+.footer__update-panel-updates-ready {
+  background-color: var(--layout__flashpoint-red);
+}
+.footer__update-panel-updates-ready:hover {
+  background-color: var(--layout__flashpoint-light-red);
+}
+.footer__update-panel-updates-ready:active {
+  background-color: var(--layout__title-bar-cross-color);
+}
+.footer__update-panel:active {
+	box-shadow: 0px -1px 0px 0px #09090a;
+}
 
 /* ------ Home ------ */
 /* HomePage Box */
