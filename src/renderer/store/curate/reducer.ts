@@ -221,6 +221,20 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
       };
     }
 
+    case CurateActionType.ADD_PLATFORM: {
+      const { index, newCurations } = genCurationState(action.folder, state);
+      const newPlatforms = [...(newCurations[index].game.platforms || [])];
+      if (!newPlatforms.find(p => p.id === action.platform.id)) {
+        newPlatforms.push(action.platform);
+      }
+      newCurations[index].game.platforms = newPlatforms;
+
+      return {
+        ...state,
+        curations: newCurations
+      };
+    }
+
     case CurateActionType.REMOVE_TAG: {
       const { index, newCurations } = genCurationState(action.folder, state);
 
@@ -234,6 +248,26 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
           newTags.splice(tagIdx, 1);
         }
         newCurations[index].game.tags = newTags;
+      }
+      return {
+        ...state,
+        curations: newCurations
+      };
+    }
+
+    case CurateActionType.REMOVE_PLATFORM: {
+      const { index, newCurations } = genCurationState(action.folder, state);
+
+      if (index === -1) { return { ...state }; }
+
+      // @TODO Apply disabling to onMouse instead?
+      if (!newCurations[index].locked) {
+        const newPlatforms = [...(newCurations[index].game.platforms || [])];
+        const platformIdx = newPlatforms.findIndex(t => t.id === action.platformId);
+        if (platformIdx > -1) {
+          newPlatforms.splice(platformIdx, 1);
+        }
+        newCurations[index].game.platforms = newPlatforms;
       }
       return {
         ...state,

@@ -726,6 +726,7 @@ async function initialize() {
   state.suggestions = {
     tags: await GameManager.findUniqueValues(TagAlias, 'name'),
     playMode: await GameManager.findUniqueValues(Game, 'playMode', true),
+    platforms: await GameManager.findUniqueValues(PlatformAlias, 'name'),
     status: await GameManager.findUniqueValues(Game, 'status', true),
     applicationPath: await GameManager.findUniqueValues(Game, 'applicationPath'),
     library: await GameManager.findUniqueValues(Game, 'library'),

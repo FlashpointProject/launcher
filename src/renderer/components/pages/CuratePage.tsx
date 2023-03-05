@@ -19,7 +19,7 @@ import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
 import axios from 'axios';
 import { ipcRenderer } from 'electron';
-import { AppPreferencesData, CurationState } from 'flashpoint-launcher';
+import { AppPreferencesData, CurationState, Tag } from 'flashpoint-launcher';
 import * as path from 'path';
 import * as React from 'react';
 import { IWithShortcut } from 'react-keybind';
@@ -34,6 +34,7 @@ type OwnProps = {
   extCurationTemplates: ExtensionContribution<'curationTemplates'>[];
   extContextButtons: ExtensionContribution<'contextButtons'>[];
   mad4fpEnabled: boolean;
+  logoVersion: number;
 }
 
 export type CuratePageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps & WithMainStateProps & WithCurateStateProps & WithConfirmDialogProps & WithTasksProps & IWithShortcut;
@@ -43,7 +44,8 @@ export function CuratePage(props: CuratePageProps) {
   const strings = React.useContext(LangContext);
 
   const [tagText, setTagText] = React.useState<string>('');
-  const [tagSuggestions, setTagSuggestions] = React.useState<TagSuggestion[]>([]);
+  const [tagSuggestions, setTagSuggestions] = React.useState<TagSuggestion<Tag>[]>([]);
+  const [platformText, setPlatformText] = React.useState<string>('');
 
   const onCheckboxChange = (key: keyof AppPreferencesData) => React.useCallback((checked: boolean) => {
     updatePreferencesData({ [key]: checked });
@@ -295,6 +297,10 @@ export function CuratePage(props: CuratePageProps) {
       setTagSuggestions([]);
     }
   }, [setTagText, setTagSuggestions]);
+
+  const onPlatformTextChange = React.useCallback((platformText: string) => {
+    setPlatformText(platformText);
+  }, [setPlatformText]);
 
   const onLeftSidebarCurationClick = React.useCallback((folder: string, ctrl?: boolean, shift?: boolean) => {
     props.dispatchCurate({
@@ -587,9 +593,12 @@ export function CuratePage(props: CuratePageProps) {
             suggestions={props.main.suggestions}
             tagCategories={props.tagCategories}
             tagText={tagText}
+            platformText={platformText}
+            onPlatformTextChange={onPlatformTextChange}
             onTagTextChange={onTagTextChange}
             tagSuggestions={tagSuggestions}
             dispatch={props.dispatchCurate}
+            logoVersion={props.logoVersion}
             symlinkCurationContent={props.preferencesData.symlinkCurationContent} />
         ) : (
           <div className='curate-page__header-text'>

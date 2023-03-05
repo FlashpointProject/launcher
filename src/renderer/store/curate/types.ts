@@ -1,7 +1,7 @@
 import { Tag } from '@database/entity/Tag';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
 import { AddAppCurationMeta, ContentTree, CurationMeta } from '@shared/curate/types';
-import { CurationState, CurationWarnings } from 'flashpoint-launcher';
+import { CurationState, CurationWarnings, Platform } from 'flashpoint-launcher';
 import { CurateActionType } from './enums';
 
 export type CurateGroup = {
@@ -65,9 +65,17 @@ export type CurateAction = {
   folder: string;
   tag: Tag;
 } | {
+  type: CurateActionType.ADD_PLATFORM;
+  folder: string;
+  platform: Platform;
+} | {
   type: CurateActionType.REMOVE_TAG;
   folder: string;
   tagId: number;
+} | {
+  type: CurateActionType.REMOVE_PLATFORM;
+  folder: string;
+  platformId: number;
 } | {
   type: CurateActionType.EDIT_ADDAPP;
   folder: string;

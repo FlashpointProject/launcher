@@ -1,5 +1,6 @@
 import { Game } from '@database/entity/Game';
 import { GameData } from '@database/entity/GameData';
+import { PlatformAlias } from '@database/entity/PlatformAlias';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
@@ -243,6 +244,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     const suggestions: GamePropSuggestions = {
       tags: await GameManager.findUniqueValues(TagAlias, 'name'),
       playMode: await GameManager.findUniqueValues(Game, 'playMode', true),
+      platforms: await GameManager.findUniqueValues(PlatformAlias, 'name'),
       status: await GameManager.findUniqueValues(Game, 'status', true),
       applicationPath: await GameManager.findUniqueValues(Game, 'applicationPath'),
       library: await GameManager.findUniqueValues(Game, 'library'),

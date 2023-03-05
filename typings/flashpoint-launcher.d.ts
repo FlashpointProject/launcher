@@ -1308,13 +1308,13 @@ declare module 'flashpoint-launcher' {
         publisher: string;
         status: string;
         extreme: boolean;
+        platforms: Platform[];
         tags: Tag[];
         source: string;
         launchCommand: string;
         library: string;
         notes: string;
         curationNotes: string;
-        platform: string;
         applicationPath: string;
         playMode: string;
         releaseDate: string;

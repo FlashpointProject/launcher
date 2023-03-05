@@ -141,7 +141,8 @@ export class AppRouter extends React.Component<AppRouterProps> {
     const curateProps: ConnectedCuratePageProps = {
       extCurationTemplates: this.props.curationTemplates,
       extContextButtons: this.props.contextButtons,
-      mad4fpEnabled: this.props.mad4fpEnabled
+      mad4fpEnabled: this.props.mad4fpEnabled,
+      logoVersion: this.props.logoVersion,
     };
     const developerProps: DeveloperPageProps = {
       devConsole: this.props.devConsole,

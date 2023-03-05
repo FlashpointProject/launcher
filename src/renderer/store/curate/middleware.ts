@@ -82,7 +82,9 @@ export const curationSyncMiddleware: Middleware<{}, ApplicationState> = (store) 
     case CurateActionType.REMOVE_ADDAPP:
     case CurateActionType.EDIT_CURATION_META:
     case CurateActionType.ADD_TAG:
+    case CurateActionType.ADD_PLATFORM:
     case CurateActionType.REGEN_UUID:
+    case CurateActionType.REMOVE_PLATFORM:
     case CurateActionType.REMOVE_TAG: {
       next(action);
       const state = store.getState();

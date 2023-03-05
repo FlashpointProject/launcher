@@ -9,6 +9,7 @@ export type BoxListProps<ItemType> = {
   getIndexAttr: (item: ItemType) => number;
   getItemValue: (item: ItemType) => string;
   getColor?: (item: ItemType) => string | undefined;
+  renderIcon?: (item: ItemType) => JSX.Element;
 }
 
 export function BoxList<ItemType>(props: BoxListProps<ItemType>) {
@@ -30,6 +31,18 @@ export function BoxList<ItemType>(props: BoxListProps<ItemType>) {
     },
   }), [props.onRemove]);
 
+  const getIcon = (item: ItemType) => {
+    if (props.renderIcon) {
+      return props.renderIcon(item);
+    } else {
+      return (
+        <OpenIcon
+          className='curate-tag__icon'
+          color={getColor ? getColor(item) || '#FFFFFF' : '#FFFFFF'}
+          icon='x' />
+      );
+    }
+  };
   return (
     <tr>
       <td/>
@@ -43,10 +56,7 @@ export function BoxList<ItemType>(props: BoxListProps<ItemType>) {
                 className='curate-tag'
                 key={index}
                 { ...{ [indexAttr]: getIndexAttr(item) } }>
-                <OpenIcon
-                  className='curate-tag__icon'
-                  color={getColor ? getColor(item) || '#FFFFFF' : '#FFFFFF'}
-                  icon='x' />
+                {getIcon(item)}
                 <span className='curate-tag__text'>
                   {getItemValue(item)}
                 </span>

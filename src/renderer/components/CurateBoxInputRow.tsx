@@ -1,11 +1,10 @@
-import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
 import { CurateBoxRow } from '@renderer/components/CurateBoxRow';
 import { InputElement, InputField, InputFieldEntry } from '@renderer/components/InputField';
 import { CurateActionType } from '@renderer/store/curate/enums';
 import { CurateAction } from '@renderer/store/curate/types';
 import { LangContext } from '@renderer/util/lang';
-import { BackIn } from '@shared/back/types';
+import { ITagObject } from '@shared/back/types';
 import { CurationMeta } from '@shared/curate/types';
 import { TagSuggestion } from 'flashpoint-launcher';
 import * as React from 'react';
@@ -110,22 +109,23 @@ export function CurateBoxDropdownInputRow(props: CurateBoxDropdownInputRowProps)
   );
 }
 
-export type CurateBoxTagDropdownInputRowProps = CurateBoxInputRowProps & {
+export type CurateBoxTagDropdownInputRowProps<T extends ITagObject> = CurateBoxInputRowProps & {
   className?: string;
   tagCategories: TagCategory[];
   tagSuggestions: TagSuggestion[];
-  onAddTag: (tag: Tag) => void;
+  onAddTag: (tag: T) => void;
   onChange?: (event: React.ChangeEvent<InputElement>) => void;
   onKeyDown?: (event: React.KeyboardEvent<InputElement>) => void;
+  getTagFromName: (tagName: string) => Promise<T | null>;
 }
 
-export function CurateBoxTagDropdownInputRow(props: CurateBoxTagDropdownInputRowProps) {
+export function CurateBoxTagDropdownInputRow<T extends ITagObject>(props: CurateBoxTagDropdownInputRowProps<T>) {
   const strings = React.useContext(LangContext);
 
   const onSubmitTag = React.useCallback((text: string) => {
     const tags = text.split(';');
     tags.map(t => {
-      window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, t.trim())
+      props.getTagFromName(t)
       .then((tag) => {
         if (tag) {
           props.onAddTag(tag);
@@ -135,7 +135,7 @@ export function CurateBoxTagDropdownInputRow(props: CurateBoxTagDropdownInputRow
   }, [props.onAddTag]);
 
   const onTagSuggestionSelect = React.useCallback((sug: TagSuggestion) => {
-    window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, sug.primaryAlias)
+    props.getTagFromName(sug.primaryAlias)
     .then((tag) => {
       if (tag) {
         props.onAddTag(tag);

@@ -1303,11 +1303,19 @@ body {
   margin-right: 0.5rem;
   padding: 0 0.25rem;
   user-select: none;
+  vertical-align: sub;
 }
 .curate-tag__icon {
-  width: 0.6rem;
-  height: 0.6rem;
+  display: inline-flex;
+  background-size: contain;
+  background-repeat: no-repeat;
+  width: 1rem;
+  height: 1rem;
   margin-right: 0.2rem;
+  transform: translateY(0.1rem);
+}
+.curate-tag__text {
+  vertical-align: top;
 }
 
 /* Tag Dropdown Item */

@@ -133,7 +133,7 @@ export async function getGamePath(game: Game, fpPath: string, htdocsPath: string
   const shockwavePath = 'FPSoftware/Shockwave/PJX'; // (Path to a shockwave executable)
   const groovePath = 'FPSoftware/3DGrooveGX'; // (Path to the 3D Groove GZ executable)
   // Extract file path from the game's launch command
-  const platform = game.platform.toLowerCase();
+  const platform = game.platforms[0].primaryAlias.name.toLowerCase();
   switch (platform) {
     // Example: 5.x http://example.com/games/cool_game.html
     case 'unity': {

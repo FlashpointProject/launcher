@@ -230,6 +230,7 @@ export type SuggestionProps = (
   | 'tags'
   | 'playMode'
   | 'status'
+  | 'platforms'
   | 'applicationPath'
   | 'library'
 )

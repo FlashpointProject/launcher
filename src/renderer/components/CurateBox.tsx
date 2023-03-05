@@ -11,7 +11,7 @@ import {
 import { GameImageSplit } from '@renderer/components/GameImageSplit';
 import { CurateActionType } from '@renderer/store/curate/enums';
 import { AddAppType, CurateAction } from '@renderer/store/curate/types';
-import { getCurationURL } from '@renderer/Util';
+import { getCurationURL, getPlatformIconURL } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
 import { BackIn, CurationImageEnum } from '@shared/back/types';
 import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
@@ -21,7 +21,7 @@ import { LangContainer } from '@shared/lang';
 import { fixSlashes, sizeToString } from '@shared/Util';
 import axios from 'axios';
 import { clipboard, MenuItemConstructorOptions } from 'electron';
-import { CurationState, LoadedCuration, TagSuggestion } from 'flashpoint-launcher';
+import { CurationState, LoadedCuration, Platform, TagSuggestion } from 'flashpoint-launcher';
 import * as path from 'path';
 import * as React from 'react';
 import { Dispatch } from 'redux';
@@ -39,9 +39,12 @@ export type CurateBoxProps = {
   tagSuggestions: TagSuggestion[];
   tagCategories: TagCategory[];
   tagText: string;
+  platformText: string;
   onTagTextChange: (tagText: string) => void;
+  onPlatformTextChange: (platformText: string) => void;
   dispatch: Dispatch<CurateAction>;
   symlinkCurationContent: boolean;
+  logoVersion: number;
 }
 
 export function CurateBox(props: CurateBoxProps) {
@@ -50,6 +53,32 @@ export function CurateBox(props: CurateBoxProps) {
 
   const splitStatus = React.useMemo(() => props.curation.game.status ? props.curation.game.status.split(';').map(s => s.trim()).sort() : [], [props.curation.game.status]);
   const splitPlayMode = React.useMemo(() => props.curation.game.playMode ? props.curation.game.playMode.split(';').map(s => s.trim()).sort() : [], [props.curation.game.playMode]);
+
+  const sortedTags = React.useMemo(() => {
+    const tags = props.curation.game.tags;
+    if (tags) {
+      return tags.sort((a, b) => {
+        // Sort by category, then name secondarily
+        if (a.categoryId !== b.categoryId) {
+          const categoryA: TagCategory | undefined = props.tagCategories.find(c => c.id === a.categoryId);
+          const categoryB: TagCategory | undefined = props.tagCategories.find(c => c.id === b.categoryId);
+          if (!categoryA && !categoryB) {
+            return a.primaryAlias.name.toLowerCase().localeCompare(b.primaryAlias.name);
+          } else if (!categoryA) {
+            return -1;
+          } else if (!categoryB) {
+            return 1;
+          } else {
+            return categoryA.name.toLowerCase().localeCompare(categoryB.name.toLowerCase());
+          }
+        } else {
+          return a.primaryAlias.name.toLowerCase().localeCompare(b.primaryAlias.name);
+        }
+      });
+    } else {
+      return [];
+    }
+  }, [props.curation.game.tags]);
 
   const onSetThumbnail  = useAddImageCallback(CurationImageEnum.THUMBNAIL, props.curation);
   const onSetScreenshot = useAddImageCallback(CurationImageEnum.SCREENSHOT,   props.curation);
@@ -115,6 +144,10 @@ export function CurateBox(props: CurateBoxProps) {
     props.onTagTextChange(event.currentTarget.value);
   }, [props.onTagTextChange]);
 
+  const onPlatformChange = React.useCallback((event: React.ChangeEvent<InputElement>): void => {
+    props.onPlatformTextChange(event.currentTarget.value);
+  }, [props.onPlatformTextChange]);
+
   const onTagKeyDown = React.useCallback((event: React.KeyboardEvent<InputElement>): void => {
     console.log(event.key);
     if (event.defaultPrevented) { return; }
@@ -124,6 +157,20 @@ export function CurateBox(props: CurateBoxProps) {
         const index = props.suggestions.tags.findIndex(tag => tag === event.currentTarget.value);
         if (index !== -1) {
           console.log(index, props.suggestions.tags[index]);
+        }
+      }
+    }
+  }, []);
+
+  const onPlatformKeyDown = React.useCallback((event: React.KeyboardEvent<InputElement>): void => {
+    console.log(event.key);
+    if (event.defaultPrevented) { return; }
+
+    if (event.key === 'Enter') {
+      if (props.suggestions.platforms) {
+        const index = props.suggestions.platforms.findIndex(p => p === event.currentTarget.value);
+        if (index !== -1) {
+          console.log(index, props.suggestions.platforms[index]);
         }
       }
     }
@@ -141,11 +188,31 @@ export function CurateBox(props: CurateBoxProps) {
     props.onTagTextChange('');
   }, [props.curation.folder]);
 
+  const onAddPlatform = React.useCallback((platform: Platform) => {
+    const platforms = props.curation.game.platforms || [];
+    if (!platforms.find(p => p.id === platform.id)) {
+      props.dispatch({
+        type: CurateActionType.ADD_PLATFORM,
+        folder: props.curation.folder,
+        platform
+      });
+    }
+    props.onPlatformTextChange('');
+  }, [props.curation.folder]);
+
   const onRemoveTag = React.useCallback((tagId: number) => {
     props.dispatch({
       type: CurateActionType.REMOVE_TAG,
       folder: props.curation.folder,
       tagId,
+    });
+  }, [props.curation.folder]);
+
+  const onRemovePlatform = React.useCallback((platformId) => {
+    props.dispatch({
+      type: CurateActionType.REMOVE_PLATFORM,
+      folder: props.curation.folder,
+      platformId
     });
   }, [props.curation.folder]);
 
@@ -273,6 +340,26 @@ export function CurateBox(props: CurateBoxProps) {
     );
   }, [props.curation.contents, props.curation.game.launchCommand]);
 
+  const renderTagIcon = React.useCallback((tag: Tag) => {
+    const category = props.tagCategories.find(c => c.id === tag.categoryId);
+    return (
+      <OpenIcon
+        className='curate-tag__icon'
+        color={category ? category.color : '#FFFFFF'}
+        icon='tag'/>
+    );
+  }, []);
+
+  const renderPlatformIcon = React.useCallback((platform: Platform) => {
+    const iconUrl = getPlatformIconURL(platform.primaryAlias.name, props.logoVersion);
+    console.log(`Icon for: ${JSON.stringify(platform)} - ${iconUrl}`);
+    return (
+      <div
+        className='curate-tag__icon'
+        style={{ backgroundImage: `url(${iconUrl})` }} />
+    );
+  }, []);
+
   const addAppBoxes = (
     <table className="curate-box-table">
       <tbody>
@@ -370,6 +457,7 @@ export function CurateBox(props: CurateBoxProps) {
                 tagCategories={props.tagCategories}
                 text={props.tagText}
                 tagSuggestions={props.tagSuggestions}
+                getTagFromName={getTagFromName}
                 onAddTag={onAddTag}
                 onChange={onTagChange}
                 onKeyDown={onTagKeyDown}
@@ -378,47 +466,16 @@ export function CurateBox(props: CurateBoxProps) {
                 { ...shared } />
               {/* Tag List */}
               <BoxList
-                items={props.curation.game.tags || []}
+                items={sortedTags}
                 getIndexAttr={(tag) => {
                   return tag.id || 0;
                 }}
                 getItemValue={(tag) => {
                   return tag.primaryAlias.name;
                 }}
-                getColor={(tag) => {
-                  const cat = props.tagCategories.find(tc => tc.id === tag.categoryId);
-                  if (cat) {
-                    return cat.color;
-                  }
-                }}
+                renderIcon={renderTagIcon}
                 onRemove={onRemoveTag}
               />
-              {/* <tr>
-                <td/>
-                <td
-                  onMouseDown={onTagMouseDown}
-                  onMouseUp={onTagMouseUp}>
-                  { props.curation.game.tags ? (
-                    props.curation.game.tags.map((tag, index) => {
-                      const category = props.tagCategories.find(tc => tc.id === tag.categoryId);
-                      return (
-                        <div
-                          className='curate-tag'
-                          key={index}
-                          { ...{ [tagIndexAttr]: tag.id } }>
-                          <OpenIcon
-                            className='curate-tag__icon'
-                            color={category ? category.color : '#FFFFFF'}
-                            icon='x' />
-                          <span className='curate-tag__text'>
-                            {tag.primaryAlias.name}
-                          </span>
-                        </div>
-                      );
-                    })
-                  ) : undefined }
-                </td>
-              </tr> */}
               {/* End of Tag List */}
               <CurateBoxInputEntryRow
                 title={strings.browse.playMode}
@@ -478,14 +535,30 @@ export function CurateBox(props: CurateBoxProps) {
                 warned={props.curation.warnings.fieldWarnings.includes('source')}
                 property='source'
                 { ...shared } />
-              <CurateBoxDropdownInputRow
+              {/* Platform */}
+              <CurateBoxTagDropdownInputRow
                 title={strings.browse.platform}
-                text={props.curation.game.platform}
-                placeholder={strings.browse.noPlatform}
-                items={createDropdownItems(props.suggestions.platform || [])}
-                warned={props.curation.warnings.fieldWarnings.includes('platform')}
-                property='platform'
+                tagCategories={[]}
+                text={props.platformText}
+                tagSuggestions={[]}
+                getTagFromName={getPlatformFromName}
+                onAddTag={onAddPlatform}
+                onChange={onPlatformChange}
+                onKeyDown={onPlatformKeyDown}
+                warned={props.curation.warnings.fieldWarnings.includes('platforms')}
+                property='platforms'
                 { ...shared } />
+              <BoxList
+                items={props.curation.game.platforms || []}
+                getIndexAttr={(platform) => {
+                  return platform.id || 0;
+                }}
+                getItemValue={(platform) => {
+                  return platform.primaryAlias.name;
+                }}
+                renderIcon={renderPlatformIcon}
+                onRemove={onRemovePlatform}
+              />
               <CurateBoxDropdownInputRow
                 title={strings.browse.applicationPath}
                 text={props.curation.game.applicationPath}
@@ -654,4 +727,12 @@ function createDropdownItems(values: string[], strings?: LangContainer['librarie
       value: strings ? strings[v] || v : v
     };
   });
+}
+
+async function getTagFromName(name: string) {
+  return window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, name.trim());
+}
+
+async function getPlatformFromName(name: string) {
+  return window.Shared.back.request(BackIn.GET_OR_CREATE_PLATFORM, name.trim());
 }
