@@ -635,8 +635,6 @@ export type ITagObject = {
 
 export type ITagAlias = {
   id: number;
-  tagId?: number;
-  tag?: ITagObject;
   name: string;
 }
 

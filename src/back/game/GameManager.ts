@@ -2,6 +2,7 @@ import { ApiEmitter } from '@back/extensions/ApiEmitter';
 import { validateSqlName, validateSqlOrder } from '@back/util/sql';
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
+import { PlatformAlias } from '@database/entity/PlatformAlias';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { PageKeyset, PageTuple, RequestGameRange, ResponseGameRange, ViewGame } from '@shared/back/types';
@@ -10,10 +11,10 @@ import { FilterGameOpts } from '@shared/game/GameFilter';
 import { tagSort } from '@shared/Util';
 import * as Coerce from '@shared/utils/Coerce';
 import { chunkArray } from '@shared/utils/misc';
-import { GameOrderBy, GameOrderReverse, Playlist, PlaylistGame } from 'flashpoint-launcher';
+import { GameOrderBy, GameOrderReverse, ParsedSearch, Playlist, PlaylistGame } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Brackets, FindOneOptions, In, MoreThan, SelectQueryBuilder } from 'typeorm';
+import { Brackets, EntityTarget, FindOneOptions, In, MoreThan, ObjectLiteral, SelectQueryBuilder } from 'typeorm';
 import { AppDataSource } from '..';
 import * as GameDataManager from './GameDataManager';
 import * as TagManager from './TagManager';
@@ -21,7 +22,7 @@ import * as TagManager from './TagManager';
 const exactFields = [ 'broken', 'library', 'activeDataOnDisk' ];
 enum flatGameFields {
   'id', 'title', 'alternateTitles', 'developer', 'publisher', 'dateAdded', 'dateModified', 'series',
-  'platform', 'broken', 'playMode', 'status', 'notes', 'source', 'applicationPath', 'launchCommand', 'releaseDate',
+  'broken', 'playMode', 'status', 'notes', 'source', 'applicationPath', 'launchCommand', 'releaseDate',
   'version', 'originalDescription', 'language', 'library', 'activeDataOnDisk'
 }
 
@@ -457,24 +458,47 @@ function doWhereField(alias: string, query: SelectQueryBuilder<Game>, field: str
   }
 }
 
-async function applyTagFilters(aliases: string[], alias: string, query: SelectQueryBuilder<Game>, whereCount: number, whitelist: boolean) {
+async function applyPlatformFieldFilters(searchQuery: ParsedSearch, alias: string, query: SelectQueryBuilder<Game>, whereCount: number) {
+  const whitelist = searchQuery.whitelist.filter(f => f.field === 'platform').map(f => f.value);
+  const blacklist = searchQuery.blacklist.filter(f => f.field === 'platform').map(f => f.value);
+  if (whitelist.length > 0) {
+    await applyTaggedFieldFilters(PlatformAlias, 'game_platforms_platform', 'platformId', whitelist, alias, query, whereCount, true);
+  }
+  if (blacklist.length > 0) {
+    await applyTaggedFieldFilters(PlatformAlias, 'game_platforms_platform', 'platformId', blacklist, alias, query, whereCount, false);
+  }
+}
+
+async function applyTagFieldFilters(searchQuery: ParsedSearch, alias: string, query: SelectQueryBuilder<Game>, whereCount: number) {
+  const whitelist = searchQuery.whitelist.filter(f => f.field === 'tag').map(f => f.value);
+  const blacklist = searchQuery.blacklist.filter(f => f.field === 'tag').map(f => f.value);
+  if (whitelist.length > 0) {
+    await applyTaggedFieldFilters(TagAlias, 'game_tags_tag', 'tagId', whitelist, alias, query, whereCount, true);
+  }
+  if (blacklist.length > 0) {
+    await applyTaggedFieldFilters(TagAlias, 'game_tags_tag', 'tagId', blacklist, alias, query, whereCount, false);
+  }
+}
+
+async function applyTaggedFieldFilters<T extends EntityTarget<ObjectLiteral>>(entity: T, pivotTable: string, aliasIdColumn: string, aliases: string[], alias: string, query: SelectQueryBuilder<Game>, whereCount: number, whitelist: boolean) {
   validateSqlName(alias);
 
-  const tagAliasRepository = AppDataSource.getRepository(TagAlias);
+  const aliasRepository = AppDataSource.getRepository(entity);
+  const aliasRepoMetadata = AppDataSource.getMetadata(entity);
   const comparator = whitelist ? 'IN' : 'NOT IN';
-  const aliasKey = `${whitelist ? 'whitelist_' : 'blacklist_'}${whereCount}`;
+  const aliasKey = `${whitelist ? 'whitelist_' : 'blacklist_'}${pivotTable}`;
 
-  const tagIdQuery = tagAliasRepository.createQueryBuilder('tag_alias')
-  .where(`tag_alias.name IN (:...${aliasKey})`, { [aliasKey]: aliases })
-  .select('tag_alias.tagId')
+  const idQuery = aliasRepository.createQueryBuilder(aliasRepoMetadata.tableName)
+  .where(`${aliasRepoMetadata.tableName}.name IN (:...${aliasKey})`, { [aliasKey]: aliases })
+  .select(`${aliasRepoMetadata.tableName}.${aliasIdColumn}`)
   .distinct();
 
   let subQueryTwo = undefined;
   if (whitelist) {
     subQueryTwo = AppDataSource.createQueryBuilder()
     .select('game_tag.gameId, COUNT(*) as count')
-    .from('game_tags_tag', 'game_tag')
-    .where(`game_tag.tagId IN (${tagIdQuery.getQuery()})`)
+    .from(pivotTable, 'game_tag')
+    .where(`game_tag.${aliasIdColumn} IN (${idQuery.getQuery()})`)
     .groupBy('game_tag.gameId');
   }
 
@@ -486,13 +510,13 @@ async function applyTagFilters(aliases: string[], alias: string, query: SelectQu
     subQuery = subQuery.from(`(${subQueryTwo.getQuery()})`, 'game_tag')
     .where(`game_tag.count == ${aliases.length}`);
   } else {
-    subQuery = subQuery.from('game_tags_tag', 'game_tag')
-    .where(`game_tag.tagId IN (${tagIdQuery.getQuery()})`);
+    subQuery = subQuery.from(pivotTable, 'game_tag')
+    .where(`game_tag.${aliasIdColumn} IN (${idQuery.getQuery()})`);
   }
 
   query.andWhere(`${alias}.id ${comparator} (${subQuery.getQuery()})`);
   query.setParameters(subQuery.getParameters());
-  query.setParameters(tagIdQuery.getParameters());
+  query.setParameters(idQuery.getParameters());
   if (subQueryTwo) {
     query.setParameters(subQueryTwo.getParameters());
   }
@@ -530,19 +554,15 @@ async function getGameQuery(
     const gameIds = filterOpts.playlist.games.map(g => g.gameId).filter(gameId => !!gameId) as string[];
     query.where(`${alias}.id IN (:...playlistGameIds)`, { playlistGameIds: gameIds });
   }
-  // Tag filtering
+  // Tagged field filtering
   if (filterOpts && filterOpts.searchQuery) {
-    const aliasWhitelist = filterOpts.searchQuery.whitelist.filter(f => f.field === 'tag').map(f => f.value);
-    const aliasBlacklist = filterOpts.searchQuery.blacklist.filter(f => f.field === 'tag').map(f => f.value);
+    // Tag filtering
+    await applyTagFieldFilters(filterOpts.searchQuery, alias, query, whereCount);
+    whereCount++;
 
-    if (aliasWhitelist.length > 0) {
-      await applyTagFilters(aliasWhitelist, alias, query, whereCount, true);
-      whereCount++;
-    }
-    if (aliasBlacklist.length > 0) {
-      await applyTagFilters(aliasBlacklist, alias, query, whereCount, false);
-      whereCount++;
-    }
+    // Platform filtering
+    await applyPlatformFieldFilters(filterOpts.searchQuery, alias, query, whereCount);
+    whereCount++;
   }
 
   return query;
