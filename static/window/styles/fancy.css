@@ -58,6 +58,7 @@
   --layout__game-item-background-selected--secondary:       #571354;
   --layout__game-item-background-selected-hover:            #a72aa2;
   --layout__game-item-thumb-image-rendering:                  normal; /* Used to set the "image-rendering" of the thumbnail. */
+  --layout__game-grid-icon-shadow:                          black;
   /* Browse Sidebar(s) */
   --layout__browse-sidebar-background:               #181819;
   --layout__browse-sidebar-divider-background:       #131313;
@@ -902,6 +903,9 @@ body {
   border-color: var(--layout__tertiary-background);
   box-shadow: 0px 2px 4px 0px #09090a;
   image-rendering: var(--layout__game-item-thumb-image-rendering);
+}
+.game-grid-item__thumb__icons__icon {
+  filter: drop-shadow(1px 1px 4px var(--layout__game-grid-icon-shadow));
 }
 
 

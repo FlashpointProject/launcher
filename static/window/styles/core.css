@@ -1934,6 +1934,9 @@ body {
 }
 .game-grid-item__thumb__icons {
   width: 100%;
+  display: flex;
+  flex-wrap: wrap-reverse;
+  justify-content: right;
   padding: calc(0.001rem * var(--width));
   position: absolute;
   bottom: 0;
@@ -1946,15 +1949,13 @@ body {
   top: 0;
 }
 .game-grid-item__thumb__icons__icon {
+  margin-left: 2px;
   width: calc(0.144px * var(--width));
   height: calc(0.144px * var(--width));
   float: right;
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-}
-.game-grid-item__thumb__icons__icon:nth-child(2) {
-  margin-right: 0.15rem;
 }
 /* GameGrid Item Title */
 .game-grid-item__title {

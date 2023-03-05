@@ -25,9 +25,9 @@ export type GameGridItemProps = Partial<GridCellProps> & {
 export function GameGridItem(props: GameGridItemProps) {
   const { id, title, platforms, thumbnail, extreme, isDraggable, isSelected, isDragged, extremeIconPath, style } = props;
   // Get the platform icon path
-  const platformIcon = React.useMemo(() => (
-    getPlatformIconURL(platforms ? platforms[0] : '', props.logoVersion)
-  ), [platforms]);
+  const platformIcons = React.useMemo(() =>
+    platforms.slice(0, 5).map(p => getPlatformIconURL(p, props.logoVersion))
+  , [platforms, props.logoVersion]);
   // Pick class names
   const className = React.useMemo(() => {
     let className = 'game-grid-item';
@@ -59,11 +59,12 @@ export function GameGridItem(props: GameGridItemProps) {
               </div>
             ) : undefined }
             <div className='game-grid-item__thumb__icons'>
-              {(platformIcon) ? (
+              {platformIcons.map(p => (
                 <div
+                  key={p}
                   className='game-grid-item__thumb__icons__icon'
-                  style={{ backgroundImage: `url('${platformIcon}')` }} />
-              ) : undefined }
+                  style={{ backgroundImage: `url('${p}')` }} />
+              ))}
             </div>
           </div>
         </div>
@@ -72,7 +73,7 @@ export function GameGridItem(props: GameGridItemProps) {
         </div>
       </li>
     );
-  }, [style, className, isDraggable, id, title, platformIcon, thumbnail]);
+  }, [style, className, isDraggable, id, title, platformIcons, thumbnail]);
 }
 
 export namespace GameGridItem {
