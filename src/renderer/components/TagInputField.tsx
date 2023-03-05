@@ -27,6 +27,8 @@ export type TagInputFieldProps<T extends ITagObject> = InputFieldProps & {
   inputRef?: RefFunc<InputElement>;
   /** Custom icon render func */
   renderIcon?: (tag: T) => JSX.Element;
+  /** Custom icon render func (suggestion) */
+  renderIconSugg?: (suggestion: TagSuggestion<T>) => JSX.Element;
   /** Tag suggestions based on currently entered tag */
   suggestions: TagSuggestion<T>[];
   /** Tag Category info */
@@ -105,12 +107,12 @@ export class TagInputField<T extends ITagObject> extends React.Component<TagInpu
 
   /** Renders the list of items in the drop-down menu. */
   renderSuggestions = memoizeOne<(items: TagSuggestion<T>[], expanded: boolean) => JSX.Element[]>((items: TagSuggestion<T>[]) => {
-    return items.map((suggestion, index) => this.renderSuggestionItem(suggestion, index, this.props.renderIcon));
+    return items.map((suggestion, index) => this.renderSuggestionItem(suggestion, index, this.props.renderIconSugg));
   }, ([ itemsA, expandedA ], [ itemsB, expandedB ]) => {
     return expandedA === expandedB ? checkIfArraysAreEqual(itemsA, itemsB) : false;
   });
 
-  renderSuggestionItem = (suggestion: TagSuggestion<T>, index: number, renderIcon?: (tag: T) => JSX.Element) => {
+  renderSuggestionItem = (suggestion: TagSuggestion<T>, index: number, renderIconSugg?: (suggestion: TagSuggestion<T>) => JSX.Element) => {
     const category = this.props.categories.find(c => c.id == suggestion.tag.categoryId);
     const aliasRender = suggestion.alias ? (
       <div className='tag-inner'>
@@ -124,7 +126,7 @@ export class TagInputField<T extends ITagObject> extends React.Component<TagInpu
       </div>
     );
 
-    const icon = renderIcon ? renderIcon(suggestion.tag) : (
+    const icon = renderIconSugg ? renderIconSugg(suggestion) : (
       <OpenIcon
         className='tag-icon'
         color={category ? category.color : '#FFFFFF'}

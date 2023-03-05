@@ -112,11 +112,12 @@ export function CurateBoxDropdownInputRow(props: CurateBoxDropdownInputRowProps)
 export type CurateBoxTagDropdownInputRowProps<T extends ITagObject> = CurateBoxInputRowProps & {
   className?: string;
   tagCategories: TagCategory[];
-  tagSuggestions: TagSuggestion[];
+  tagSuggestions: TagSuggestion<T>[];
   onAddTag: (tag: T) => void;
   onChange?: (event: React.ChangeEvent<InputElement>) => void;
   onKeyDown?: (event: React.KeyboardEvent<InputElement>) => void;
   getTagFromName: (tagName: string) => Promise<T | null>;
+  renderIconSugg?: (sugg: TagSuggestion<T>) => JSX.Element;
 }
 
 export function CurateBoxTagDropdownInputRow<T extends ITagObject>(props: CurateBoxTagDropdownInputRowProps<T>) {
@@ -134,7 +135,7 @@ export function CurateBoxTagDropdownInputRow<T extends ITagObject>(props: Curate
     });
   }, [props.onAddTag]);
 
-  const onTagSuggestionSelect = React.useCallback((sug: TagSuggestion) => {
+  const onTagSuggestionSelect = React.useCallback((sug: TagSuggestion<T>) => {
     props.getTagFromName(sug.primaryAlias)
     .then((tag) => {
       if (tag) {
@@ -155,6 +156,7 @@ export function CurateBoxTagDropdownInputRow<T extends ITagObject>(props: Curate
         onTagSubmit={onSubmitTag}
         onTagSuggestionSelect={onTagSuggestionSelect}
         onChange={props.onChange}
+        renderIconSugg={props.renderIconSugg}
         editable={true} />
     </CurateBoxRow>
   );

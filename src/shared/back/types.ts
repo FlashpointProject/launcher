@@ -68,6 +68,7 @@ export enum BackIn {
   GET_OR_CREATE_TAG,
   GET_OR_CREATE_PLATFORM,
   GET_TAG_SUGGESTIONS,
+  GET_PLATFORM_SUGGESTIONS,
   GET_TAG_BY_ID,
   GET_TAGS,
   GET_TAG,
@@ -273,6 +274,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.GET_OR_CREATE_TAG]: (tagName: string, tagCategory?: string) => Tag | null;
   [BackIn.GET_OR_CREATE_PLATFORM]: (platformName: string) => Platform;
   [BackIn.GET_TAG_SUGGESTIONS]: (data: string, tagFilters: TagFilterGroup[]) => TagSuggestion<Tag>[];
+  [BackIn.GET_PLATFORM_SUGGESTIONS]: (data: string) => TagSuggestion<Platform>[];
   [BackIn.GET_TAG_BY_ID]: (data: number) => Tag | null;
   [BackIn.GET_TAGS]: (data: string, tagFilters?: TagFilterGroup[]) => Tag[];
   [BackIn.GET_TAG]: (data: string) => Tag | null;

@@ -376,7 +376,7 @@ declare module 'flashpoint-launcher' {
          * Finds a list of Tag Suggestions given a string they start with
          * @param name Partial name that a tag starts with
          */
-        function findTagSuggestions(name: string): Promise<TagSuggestion[]>;
+        function findTagSuggestions(name: string): Promise<TagSuggestion<Tag>[]>;
 
         // Misc
         /**
@@ -538,6 +538,8 @@ declare module 'flashpoint-launcher' {
         publisher: string;
         /** List of platforms this game uses */
         platforms: Platform[];
+        /** List of platforms attached to the game in a string format */
+        platformsStr: string;
         /** Date-time of when the game was added to collection */
         dateAdded: string;
         /** Date-time of when the game was added to collection */
@@ -556,8 +558,6 @@ declare module 'flashpoint-launcher' {
         tags: Tag[];
         /** List of tags attached to the game in a string format */
         tagsStr: string;
-        /** List of platforms in a string format (; seperated) */
-        platformsStr: string;
         /** Source if the game files, either full URL or the name of the website */
         source: string;
         /** Path to the application that runs the game */
@@ -696,14 +696,29 @@ declare module 'flashpoint-launcher' {
         name: string;
     };
 
-    type TagSuggestion = {
+    type TagSuggestion<T extends ITagObject> = {
         /** Alias found, only present if not the same as the primary alias */
         alias?: string;
         /** Primary alias of the tag suggestion */
         primaryAlias: string;
         /** Tag suggested */
-        tag: Tag;
+        tag: T;
     };
+
+    type ITagObject = {
+        id?: number;
+        dateModified: string;
+        primaryAlias: ITagAlias;
+        aliases: ITagAlias[];
+        description?: string;
+        categoryId?: number;
+        count?: number;
+    }
+
+    export type ITagAlias = {
+        id: number;
+        name: string;
+    }
 
     type TagCategory = {
         /** ID of the tag category (unique identifier) */
@@ -1365,7 +1380,7 @@ declare module 'flashpoint-launcher' {
     }
 
     /** Meta data of a curation. */
-    export type EditCurationMeta = Partial<{
+    type EditCurationMeta = Partial<{
         // Game fields
         title: string;
         alternateTitles: string;
@@ -1380,7 +1395,7 @@ declare module 'flashpoint-launcher' {
         library: string;
         notes: string;
         curationNotes: string;
-        platform: string;
+        platforms: Platform[];
         applicationPath: string;
         playMode: string;
         releaseDate: string;

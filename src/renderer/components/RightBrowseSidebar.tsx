@@ -85,6 +85,7 @@ type RightBrowseSidebarState = {
   currentTagInput: string;
   currentPlatformInput: string;
   tagSuggestions: TagSuggestion<Tag>[];
+  platformSuggestions: TagSuggestion<Platform>[];
   gameDataBrowserOpen: boolean;
   activeData: GameData | null;
   showExtremeScreenshots: boolean;
@@ -135,6 +136,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       currentPlatformInput: '',
       currentTagInput: '',
       tagSuggestions: [],
+      platformSuggestions: [],
       gameDataBrowserOpen: false,
       showExtremeScreenshots: false,
       activeData: null,
@@ -436,7 +438,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       onClick={this.onSourceClick} />
                   </div>
                   <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                    <p>{strings.platform}: </p>
+                    <p>{allStrings.config.platforms}: </p>
                     <TagInputField
                       text={this.state.currentPlatformInput}
                       placeholder={strings.enterTag}
@@ -444,13 +446,14 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       editable={editable}
                       onChange={this.onCurrentPlatformChange}
                       tags={game.platforms}
-                      suggestions={[]}
+                      suggestions={this.state.platformSuggestions}
                       categories={tagCategories}
                       onTagSelect={this.onPlatformSelect}
                       onTagEditableSelect={this.onRemovePlatform}
                       onTagSuggestionSelect={() => {}}
                       onTagSubmit={this.onAddPlatformByString}
-                      renderIcon={this.renderPlatformIcon} />
+                      renderIcon={this.renderPlatformIcon}
+                      renderIconSugg={this.renderPlatformIconSugg} />
                   </div>
                   <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                     <p>{strings.playMode}: </p>
@@ -824,8 +827,22 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   };
 
   onCurrentPlatformChange = (event: React.ChangeEvent<InputElement>) => {
+    const newPlatform = event.currentTarget.value;
+    let newSuggestions: TagSuggestion<Platform>[] = this.state.platformSuggestions;
+
+    if (newPlatform !== '' && this.props.currentGame) {
+      // Delayed set
+      window.Shared.back.request(BackIn.GET_PLATFORM_SUGGESTIONS, newPlatform)
+      .then(data => {
+        if (data) { this.setState({ platformSuggestions: data }); }
+      });
+    } else {
+      newSuggestions = [];
+    }
+
     this.setState({
-      currentPlatformInput: event.currentTarget.value
+      currentPlatformInput: event.currentTarget.value,
+      platformSuggestions: newSuggestions
     });
   };
 
@@ -1120,6 +1137,15 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       <div
         className='tag-icon tag-icon-image'
         style={{ backgroundImage: `url('${platformIcon}')` }} />
+    );
+  };
+
+  renderPlatformIconSugg = (platformSugg: TagSuggestion<Platform>) => {
+    const iconUrl = getPlatformIconURL(platformSugg.primaryAlias, this.props.logoVersion);
+    return (
+      <div
+        className='platform-tag__icon'
+        style={{ backgroundImage: `url(${iconUrl})` }} />
     );
   };
 

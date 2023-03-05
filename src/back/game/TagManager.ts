@@ -182,6 +182,37 @@ export async function findTag(name: string): Promise<Tag | null> {
   return null;
 }
 
+export async function findPlatformSuggestions(name: string): Promise<TagSuggestion<Platform>[]> {
+  const platformAliasRepostiory = AppDataSource.getRepository(PlatformAlias);
+
+  const subQuery = platformAliasRepostiory.createQueryBuilder('platform_alias')
+  .leftJoin(Platform, 'platform', 'platform_alias.platformId = platform.id')
+  .select('platform.id, platform.primaryAliasId, platform_alias.name')
+  .where('platform_alias.name like :partial', { partial: name + '%' })
+  .limit(25);
+
+  const platformAliases = await AppDataSource.createQueryBuilder()
+  .select('sugg.id, sugg.name, count(game_platform.gameId) as gameCount, primary_alias.name as primaryName')
+  .from(`(${ subQuery.getQuery() })`, 'sugg')
+  .leftJoin(PlatformAlias, 'primary_alias', 'sugg.primaryAliasId = primary_alias.id')
+  .leftJoin('game_platforms_platform', 'game_platform', 'game_platform.platformId = sugg.id')
+  .groupBy('sugg.name')
+  .orderBy('COUNT(game_platform.gameId) DESC, sugg.name', 'ASC')
+  .setParameters(subQuery.getParameters())
+  .getRawMany();
+
+  const suggestions: TagSuggestion<Platform>[] = platformAliases.map(p => {
+    const alias = p.name != p.primaryName ? p.name : undefined;
+    const primaryAlias = p.primaryName;
+    const platform = new Platform();
+    platform.id = p.id;
+    platform.count = p.gameCount;
+    return { alias: alias, primaryAlias: primaryAlias, tag: platform };
+  });
+
+  return suggestions;
+}
+
 export async function findTagSuggestions(name: string, flatTagFilter: string[] = [], flatCatFilter: string[] = []): Promise<TagSuggestion<Tag>[]> {
   const tagAliasRepostiory = AppDataSource.getRepository(TagAlias);
   const tagCategoryRepository = AppDataSource.getRepository(TagCategory);

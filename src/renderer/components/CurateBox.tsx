@@ -36,7 +36,8 @@ import { SimpleButton } from './SimpleButton';
 export type CurateBoxProps = {
   curation: CurationState;
   suggestions: Partial<GamePropSuggestions>;
-  tagSuggestions: TagSuggestion[];
+  tagSuggestions: TagSuggestion<Tag>[];
+  platformSuggestions: TagSuggestion<Platform>[];
   tagCategories: TagCategory[];
   tagText: string;
   platformText: string;
@@ -350,9 +351,17 @@ export function CurateBox(props: CurateBoxProps) {
     );
   }, []);
 
+  const renderPlatformIconSugg = React.useCallback((platformSugg: TagSuggestion<Platform>) => {
+    const iconUrl = getPlatformIconURL(platformSugg.primaryAlias, props.logoVersion);
+    return (
+      <div
+        className='curate-tag__icon'
+        style={{ backgroundImage: `url(${iconUrl})` }} />
+    );
+  }, []);
+
   const renderPlatformIcon = React.useCallback((platform: Platform) => {
     const iconUrl = getPlatformIconURL(platform.primaryAlias.name, props.logoVersion);
-    console.log(`Icon for: ${JSON.stringify(platform)} - ${iconUrl}`);
     return (
       <div
         className='curate-tag__icon'
@@ -452,6 +461,7 @@ export function CurateBox(props: CurateBoxProps) {
                 warned={props.curation.warnings.fieldWarnings.includes('publisher')}
                 property='publisher'
                 { ...shared } />
+              {/* Tags */}
               <CurateBoxTagDropdownInputRow
                 title={strings.browse.tags}
                 tagCategories={props.tagCategories}
@@ -464,7 +474,6 @@ export function CurateBox(props: CurateBoxProps) {
                 warned={props.curation.warnings.fieldWarnings.includes('tags')}
                 property='tags'
                 { ...shared } />
-              {/* Tag List */}
               <BoxList
                 items={sortedTags}
                 getIndexAttr={(tag) => {
@@ -476,7 +485,6 @@ export function CurateBox(props: CurateBoxProps) {
                 renderIcon={renderTagIcon}
                 onRemove={onRemoveTag}
               />
-              {/* End of Tag List */}
               <CurateBoxInputEntryRow
                 title={strings.browse.playMode}
                 placeholder={strings.browse.noPlayMode}
@@ -537,14 +545,15 @@ export function CurateBox(props: CurateBoxProps) {
                 { ...shared } />
               {/* Platform */}
               <CurateBoxTagDropdownInputRow
-                title={strings.browse.platform}
+                title={strings.config.platforms}
                 tagCategories={[]}
                 text={props.platformText}
-                tagSuggestions={[]}
+                tagSuggestions={props.platformSuggestions}
                 getTagFromName={getPlatformFromName}
                 onAddTag={onAddPlatform}
                 onChange={onPlatformChange}
                 onKeyDown={onPlatformKeyDown}
+                renderIconSugg={renderPlatformIconSugg}
                 warned={props.curation.warnings.fieldWarnings.includes('platforms')}
                 property='platforms'
                 { ...shared } />

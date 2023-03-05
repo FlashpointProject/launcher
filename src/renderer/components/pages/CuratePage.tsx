@@ -19,7 +19,7 @@ import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
 import axios from 'axios';
 import { ipcRenderer } from 'electron';
-import { AppPreferencesData, CurationState, Tag } from 'flashpoint-launcher';
+import { AppPreferencesData, CurationState, Platform, Tag } from 'flashpoint-launcher';
 import * as path from 'path';
 import * as React from 'react';
 import { IWithShortcut } from 'react-keybind';
@@ -46,6 +46,7 @@ export function CuratePage(props: CuratePageProps) {
   const [tagText, setTagText] = React.useState<string>('');
   const [tagSuggestions, setTagSuggestions] = React.useState<TagSuggestion<Tag>[]>([]);
   const [platformText, setPlatformText] = React.useState<string>('');
+  const [platformSuggestions, setPlatformSuggestions] = React.useState<TagSuggestion<Platform>[]>([]);
 
   const onCheckboxChange = (key: keyof AppPreferencesData) => React.useCallback((checked: boolean) => {
     updatePreferencesData({ [key]: checked });
@@ -299,8 +300,16 @@ export function CuratePage(props: CuratePageProps) {
   }, [setTagText, setTagSuggestions]);
 
   const onPlatformTextChange = React.useCallback((platformText: string) => {
+    const splitPlatforms = platformText.split(';');
+    const lastPlatform = (splitPlatforms.length > 0 ? splitPlatforms.pop() || '' : '').trim();
+    if (platformText !== '') {
+      window.Shared.back.request(BackIn.GET_PLATFORM_SUGGESTIONS, lastPlatform)
+      .then(setPlatformSuggestions);
+    } else {
+      setPlatformSuggestions([]);
+    }
     setPlatformText(platformText);
-  }, [setPlatformText]);
+  }, [setPlatformText, setPlatformSuggestions]);
 
   const onLeftSidebarCurationClick = React.useCallback((folder: string, ctrl?: boolean, shift?: boolean) => {
     props.dispatchCurate({
@@ -597,6 +606,7 @@ export function CuratePage(props: CuratePageProps) {
             onPlatformTextChange={onPlatformTextChange}
             onTagTextChange={onTagTextChange}
             tagSuggestions={tagSuggestions}
+            platformSuggestions={platformSuggestions}
             dispatch={props.dispatchCurate}
             logoVersion={props.logoVersion}
             symlinkCurationContent={props.preferencesData.symlinkCurationContent} />

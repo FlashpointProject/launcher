@@ -1311,7 +1311,8 @@ export class App extends React.Component<AppProps> {
                   onToggleLeftSidebarClick={this.onToggleLeftSidebarClick}
                   onToggleRightSidebarClick={this.onToggleRightSidebarClick}
                   orderBy={this.props.preferencesData.gamesOrderBy}
-                  orderReverse={this.props.preferencesData.gamesOrder} />
+                  orderReverse={this.props.preferencesData.gamesOrder}
+                  logoVersion={this.props.main.logoVersion} />
                 {/* Main */}
                 <div className='main'
                   ref={this.appRef} >

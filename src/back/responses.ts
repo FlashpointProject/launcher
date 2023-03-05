@@ -794,6 +794,11 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     return result;
   });
 
+  state.socketServer.register(BackIn.GET_PLATFORM_SUGGESTIONS, async (event, text) => {
+    const result = await TagManager.findPlatformSuggestions(text);
+    return result;
+  });
+
   state.socketServer.register(BackIn.BROWSE_VIEW_INDEX, async (event, gameId, query) => {
     const position = await GameManager.findGameRow(
       gameId,
