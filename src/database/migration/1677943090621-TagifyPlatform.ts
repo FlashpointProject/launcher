@@ -17,7 +17,8 @@ export class TagifyPlatform1677943090621 implements MigrationInterface {
         // Add entries for games
         await queryRunner.query(`INSERT INTO "game_platforms_platform" (gameId, platformId) SELECT "game"."id", "platform_alias"."platformId" FROM "game" LEFT JOIN "platform_alias" ON "platform_alias"."name" == "game"."platform"`);
         // Remove old "platform" game column
-        await queryRunner.query(`ALTER TABLE "game" DROP COLUMN "game"."platform"`);
+        await queryRunner.query(`DROP INDEX IF EXISTS "IDX_lookup_platform"`);
+        await queryRunner.query(`ALTER TABLE "game" DROP COLUMN "platform"`);
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
