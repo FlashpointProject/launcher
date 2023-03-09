@@ -36,8 +36,7 @@ export type AppRouterProps = {
   playlists: Playlist[];
   suggestions: Partial<GamePropSuggestions>;
   appPaths: Record<string, string>;
-  platforms: Record<string, string[]>;
-  platformsFlat: string[];
+  platforms: string[];
   onSaveGame: (game: Game, playlistEntry?: PlaylistGame) => Promise<Game | null>;
   onDeleteGame: (gameId: string) => void;
   onLaunchGame: (gameId: string) => void;
@@ -127,7 +126,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       logoVersion: this.props.logoVersion,
       availableLangs: this.props.languages,
       libraries: this.props.libraries,
-      platforms: this.props.platformsFlat,
+      platforms: this.props.platforms,
       localeCode: this.props.localeCode,
       serverNames: this.props.serverNames,
       extensions: this.props.extensions,

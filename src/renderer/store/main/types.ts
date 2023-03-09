@@ -6,13 +6,13 @@ import { UpgradeStage } from '@renderer/upgrade/types';
 import { BackInit, ComponentStatus, GameOfTheDay, PageKeyset, ResponseGameRange, SearchGamesOpts, ViewGame } from '@shared/back/types';
 import { AppExtConfigData } from '@shared/config/interfaces';
 import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
-import { DialogField, DialogState, GamePropSuggestions, IService } from '@shared/interfaces';
+import { GamePropSuggestions, IService } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { ITheme, Theme } from '@shared/ThemeFile';
 import { Gate } from '@shared/utils/Gate';
 import * as axiosImport from 'axios';
 import { UpdateInfo } from 'electron-updater';
-import { AppPreferencesData, GameOrderBy, GameOrderReverse, Playlist, PlaylistGame, TagFilterGroup } from 'flashpoint-launcher';
+import { AppPreferencesData, DialogField, DialogState, GameOrderBy, GameOrderReverse, Playlist, PlaylistGame, TagFilterGroup } from 'flashpoint-launcher';
 import { EventEmitter } from 'stream';
 import { MainActionType, RequestState } from './enums';
 
@@ -67,7 +67,6 @@ export type MainState = {
   playlistIconCache: Record<string, string>; // [PLAYLIST_ID] = ICON_BLOB_URL
   suggestions: GamePropSuggestions;
   appPaths: Record<string, string>;
-  platforms: Record<string, string[]>;
   loadedAll: Gate;
   loaded: { [key in BackInit]: boolean; };
   extensions: IExtensionDescription[];

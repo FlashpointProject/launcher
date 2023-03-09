@@ -27,7 +27,7 @@ import { SizeProvider } from '../SizeProvider';
 
 type OwnProps = {
   gotdList: GameOfTheDay[];
-  platforms: Record<string, string[]>;
+  platforms: string[];
   playlists: Playlist[];
   /** Generator for game context menu */
   onGameContextMenu: (gameId: string) => void;
@@ -154,7 +154,7 @@ export function HomePage(props: HomePageProps) {
     let key = 0;
     for (let i = 0; i < libraries.length; i++) {
       const library = libraries[i];
-      const platforms = props.platforms[library];
+      const platforms = props.platforms;
       if (platforms.length > 0) {
         // Add a space between library platforms
         if (i !== 0) {

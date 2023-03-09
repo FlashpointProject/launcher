@@ -1211,8 +1211,7 @@ export class App extends React.Component<AppProps> {
       playlists: playlists,
       suggestions: this.props.main.suggestions,
       appPaths: this.props.main.appPaths,
-      platforms: this.props.main.platforms,
-      platformsFlat: this.flattenPlatformsMemo(this.props.main.platforms),
+      platforms: this.props.main.suggestions.platforms,
       playlistIconCache: this.props.main.playlistIconCache,
       onGameContextMenu: this.onGameContextMenuMemo(this.props.main.playlists, this.props.main.lang, this.props.main.selectedPlaylistId),
       onSaveGame: this.onSaveGame,
@@ -1565,19 +1564,6 @@ export class App extends React.Component<AppProps> {
       });
     }, 100);
   };
-
-  /** Convert the platforms object into a flat array of platform names (with all duplicates removed). */
-  private flattenPlatformsMemo = memoizeOne((platforms: Record<string, string[]>): string[] => {
-    const names: string[] = [];
-    const libraries = Object.keys(platforms);
-    for (let i = 0; i < libraries.length; i++) {
-      const p = platforms[libraries[i]];
-      for (let j = 0; j < p.length; j++) {
-        if (names.indexOf(p[j]) === -1) { names.push(p[j]); }
-      }
-    }
-    return names;
-  });
 
   private checkGameRunningMemo = memoizeOne((gameId: string | undefined, services: IService[]) => {
     return gameId ? !!services.find(s => s.id === `game.${gameId}`) : false;

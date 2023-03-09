@@ -549,7 +549,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
 }
 
 const defaultSuggestionsState: GamePropSuggestions = {
-  platform: [],
+  platforms: [],
   playMode: [],
   status: [],
   applicationPath: [],
@@ -568,7 +568,6 @@ function createInitialState(): MainState {
     playlistIconCache: {},
     suggestions: { ...defaultSuggestionsState },
     appPaths: {},
-    platforms: {},
     loaded: {
       [BackInit.SERVICES]: false,
       [BackInit.DATABASE]: false,
