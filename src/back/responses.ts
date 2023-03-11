@@ -1391,7 +1391,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
   state.socketServer.register(BackIn.OPEN_FLASHPOINT_MANAGER, async () => {
     const cwd = state.config.flashpointPath;
-    const fpmPath = path.join(state.config.flashpointPath, 'FlashpointManager.exe');
+    const fpmPath = path.join(state.config.flashpointPath, 'Manager', 'FlashpointManager.exe');
     const updatesReady = state.componentStatuses.filter(c => c.state === ComponentState.NEEDS_UPDATE).length > 0;
     exitApp(state, async () => {
       const args = updatesReady ? ['/update'] : [];

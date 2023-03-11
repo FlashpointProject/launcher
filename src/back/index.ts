@@ -734,7 +734,7 @@ async function initialize() {
 
   // Check for Flashpoint Manager Updates
 
-  const fpmPath = path.join(state.config.flashpointPath, 'fpm.exe');
+  const fpmPath = path.join(state.config.flashpointPath, 'Manager', 'fpm.exe');
   if (fs.existsSync(fpmPath)) {
     // FPM exists, make sure path is correct, then check for updates
     state.componentStatuses = await new Promise<ComponentStatus[]>((resolve, reject) => {
