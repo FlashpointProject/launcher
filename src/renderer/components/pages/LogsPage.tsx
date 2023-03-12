@@ -123,7 +123,7 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
                     </div>
                     <div className='simple-center'>
                       <p className='simple-center__vertical-inner log-page__dropdown-item-text'>
-                        {label}
+                        {LogLevel[label]}
                       </p>
                     </div>
                   </label>

@@ -160,7 +160,8 @@ async function parseExtensionManifest(data: any) {
   parser.prop('description',      v => parsed.description     = str(v), true);
   parser.prop('icon',             v => parsed.icon            = str(v), true);
   parser.prop('main',             v => parsed.main            = str(v), true);
-  parser.prop('contributes',      v => parsed.contributes     = parseContributions(v), true);
+  // Don't change this to v. Probably happens because it's a map.
+  parser.prop('contributes',      v => parsed.contributes     = parseContributions(parser.prop('contributes')), true);
   return parsed;
 }
 

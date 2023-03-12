@@ -579,8 +579,9 @@ export async function checkAndInstallPlatform(platforms: Platform[], state: Back
       const dialogId = await createNewDialog(state, template);
       // Run process to download components
       await new Promise<void>((resolve, reject) => {
-        const fpmPath = path.join(state.config.flashpointPath, 'Manager', 'FlashpointManager.exe');
-        child_process.execFile(fpmPath, ['/notemp', '/download', compsToInstall.map(c => c.id).join(' ')], { cwd: state.config.flashpointPath }, (error, stdout, stderr) => {
+        const cwd = path.join(state.config.flashpointPath, 'Manager');
+        const fpmPath = 'FlashpointManager.exe';
+        child_process.execFile(path.resolve(fpmPath), ['/notemp', '/download', compsToInstall.map(c => c.id).join(' ')], { cwd }, (error, stdout, stderr) => {
           log.debug('FP Manager', stdout);
           if (error) {
             reject(error);

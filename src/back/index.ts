@@ -734,16 +734,17 @@ async function initialize() {
 
   // Check for Flashpoint Manager Updates
 
-  const fpmPath = path.join(state.config.flashpointPath, 'Manager', 'fpm.exe');
-  if (fs.existsSync(fpmPath)) {
+  const cwd = path.join(state.config.flashpointPath, 'Manager');
+  const fpmPath = 'fpm.exe';
+  if (fs.existsSync(path.join(cwd, fpmPath))) {
     // FPM exists, make sure path is correct, then check for updates
     state.componentStatuses = await new Promise<ComponentStatus[]>((resolve, reject) => {
-      child_process.execFile(fpmPath, ['path', path.join(state.config.flashpointPath)], { cwd: state.config.flashpointPath }, (error, stdout, stderr) => {
+      child_process.execFile(fpmPath, ['path', path.join(state.config.flashpointPath)], { cwd }, (error, stdout, stderr) => {
         if (error) {
           reject(error);
         } else {
           // Path set, check component statuses
-          child_process.execFile(fpmPath, ['list', 'verbose'], { cwd: state.config.flashpointPath }, (error, stdout, stderr) => {
+          child_process.execFile(fpmPath, ['list', 'verbose'], { cwd }, (error, stdout, stderr) => {
             if (error) {
               reject(error);
             } else {
