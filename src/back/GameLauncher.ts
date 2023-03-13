@@ -581,7 +581,7 @@ export async function checkAndInstallPlatform(platforms: Platform[], state: Back
       await new Promise<void>((resolve, reject) => {
         const cwd = path.join(state.config.flashpointPath, 'Manager');
         const fpmPath = 'FlashpointManager.exe';
-        child_process.execFile(path.resolve(fpmPath), ['/notemp', '/download', compsToInstall.map(c => c.id).join(' ')], { cwd }, (error, stdout, stderr) => {
+        child_process.execFile(fpmPath, ['/notemp', '/download', compsToInstall.map(c => c.id).join(' ')], { cwd }, (error, stdout, stderr) => {
           log.debug('FP Manager', stdout);
           if (error) {
             reject(error);
