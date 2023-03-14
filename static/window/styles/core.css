@@ -839,6 +839,7 @@ body {
   display: flex;
   align-items: center;
   width: 25%;
+  min-height: 2rem;
   margin-bottom: 0.1rem;
 }
 .home-page__platform-entry__logo {

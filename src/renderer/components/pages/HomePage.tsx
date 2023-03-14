@@ -149,45 +149,27 @@ export function HomePage(props: HomePageProps) {
   }, [props.onSelectPlaylist, props.clearSearch]);
 
   const platformList = React.useMemo(() => {
-    const libraries = Object.keys(props.platforms);
     const elements: JSX.Element[] = [];
-    let key = 0;
-    for (let i = 0; i < libraries.length; i++) {
-      const library = libraries[i];
-      const platforms = props.platforms;
-      if (platforms.length > 0) {
-        // Add a space between library platforms
-        if (i !== 0) {
-          elements.push(<br key={key++} />);
-          elements.push(<br key={key++} />);
-        }
-        // Add library name above links
-        elements.push(<p key={key++}>{allStrings.libraries[library] || library}</p>);
-        // Add all libraries from the platform
-        elements.push(
-          <div
-            className='home-page__platform-box'
-            key={key++} >
-            {platforms.map((platform, j) => (
-              <Link
-                key={j}
-                className='home-page__platform-entry'
-                to={joinLibraryRoute(library)}
-                onClick={() => {
-                  props.onSearch('!' + wrapSearchTerm(platform));
-                  props.onSelectPlaylist(library, null);
-                }}>
-                <div
-                  className='home-page__platform-entry__logo'
-                  style={{ backgroundImage: `url("${getPlatformIconURL(platform, props.logoVersion)}")` }}/>
-                <div className='home-page__platform-entry__text'>{platform}</div>
-              </Link>
-            )
-            )}
-          </div>
-        );
-      }
-    }
+    elements.push(
+      <div className='home-page__platform-box'>
+        {props.platforms.map((platform, idx) => (
+          <Link
+            key={idx}
+            className='home-page__platform-entry'
+            to={joinLibraryRoute('arcade')}
+            onClick={() => {
+              props.onSearch('!' + wrapSearchTerm(platform));
+              props.onSelectPlaylist('arcade', null);
+            }}>
+            <div
+              className='home-page__platform-entry__logo'
+              style={{ backgroundImage: `url("${getPlatformIconURL(platform, props.logoVersion)}")` }}/>
+            <div className='home-page__platform-entry__text'>{platform}</div>
+          </Link>
+        )
+        )}
+      </div>
+    );
     return elements;
   }, [props.platforms]);
 
