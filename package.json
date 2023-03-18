@@ -26,7 +26,7 @@
     "release:win32": "cross-env-shell NODE_ENV=production PUBLISH=true \"npm run build && npm run pack:win32\"",
     "release:darwin": "cross-env-shell NODE_ENV=production PUBLISH=true \"npm run build && npm run pack:darwin\"",
     "release:all": "cross-env-shell NODE_ENV=production PUBLISH=true \"npm run build && npm run pack:all\"",
-    "postinstall": "electron-builder install-app-deps",
+    "postinstall": "electron-builder install-app-deps & gulp extInstall",
     "clean": "gulp clean"
   },
   "author": {

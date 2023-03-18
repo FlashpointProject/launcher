@@ -3,7 +3,7 @@ const fs = require("fs-extra");
 const gulp = require("gulp");
 const builder = require("electron-builder");
 const { parallel, series } = require("gulp");
-const { buildExtensions, watchExtensions } = require("./gulpfile.extensions");
+const { installExtensions, buildExtensions, watchExtensions } = require("./gulpfile.extensions");
 const { execute } = require("./gulpfile.util");
 
 const packageJson = JSON.parse(fs.readFileSync("./package.json", { encoding: 'utf-8' }));
@@ -278,4 +278,10 @@ exports.watch = series(
 
 exports.pack = series(pack);
 
-exports.nexusPack = series(nexusPack);
+exports.nexusPack = series(
+  installExtensions,
+  buildExtensions,
+  nexusPack
+);
+
+exports.extInstall = series(installExtensions);
