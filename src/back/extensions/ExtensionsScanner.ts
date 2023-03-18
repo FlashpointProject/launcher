@@ -10,8 +10,8 @@ import { Application, ButtonContext, ContextButton, Contributions, CurationTempl
 const { str, num } = Coerce;
 const fsPromises = fs.promises;
 
-export async function scanSystemExtensions(): Promise<IExtension[]> {
-  const extensionPath = './extensions';
+export async function scanSystemExtensions(isDev: boolean): Promise<IExtension[]> {
+  const extensionPath = isDev ? './extensions' : './resources/extensions';
 
   const result = new Map<string, IExtension>();
 

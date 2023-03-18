@@ -411,7 +411,7 @@ export function CuratePage(props: CuratePageProps) {
   const disabled = !curation;
 
   const runExtCommand = (command: string) => {
-    window.Shared.back.send(BackIn.RUN_COMMAND, command, [curation]);
+    window.Shared.back.send(BackIn.RUN_COMMAND, command, [curation, props.curate.selected]);
   };
 
   // Gen extension buttons

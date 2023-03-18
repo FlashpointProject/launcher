@@ -136,6 +136,8 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
   };
 
   const extGames: typeof flashpoint.games = {
+    // Platforms
+    findPlatformByName: (name) => TagManager.findPlatform(name),
     // Playlists
     findPlaylist: (playlistId) => findPlaylist(state, playlistId),
     findPlaylistByName: (playlistName) => findPlaylistByName(state, playlistName),
@@ -423,7 +425,12 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
         if (curation.locked) {
           return false;
         }
-        curation.game = meta;
+        curation.game = {
+          ...curation.game,
+          ...meta
+        };
+        saveCuration(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, curation.folder), curation)
+        .then(() => state.apiEmitters.curations.onDidCurationChange.fire(curation));
         state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
         return true;
       } else {

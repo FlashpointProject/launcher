@@ -169,6 +169,8 @@ declare module 'flashpoint-launcher' {
 
     /** Collection of Game related API functions */
     namespace games {
+        // Platforms
+        function findPlatformByName(name: string): Promise<Platform | null>;
         // Playlist
         /**
          * Finds a playlist given its ID

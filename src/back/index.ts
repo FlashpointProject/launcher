@@ -529,7 +529,7 @@ async function prepForInit(message: any): Promise<void> {
   // Load Extensions
 
   await fs.ensureDir(path.join(state.config.flashpointPath, state.preferences.extensionsPath));
-  state.extensionsService = new ExtensionService(state.config, path.join(state.config.flashpointPath, state.preferences.extensionsPath));
+  state.extensionsService = new ExtensionService(state.config, path.join(state.config.flashpointPath, state.preferences.extensionsPath), state.isDev);
   await state.extensionsService.installedExtensionsReady.wait();
 
   console.log('Back - Parsed Extensions');
