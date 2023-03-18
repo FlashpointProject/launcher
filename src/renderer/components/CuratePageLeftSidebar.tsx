@@ -76,6 +76,7 @@ export function CuratePageLeftSidebar(props: CuratePageLeftSidebarProps) {
 
   const renderCuration = React.useCallback((curation: CurationState) => {
     let className = '';
+    const firstPlatform = curation.game.platforms ? curation.game.platforms[0].primaryAlias.name : '';
     if (props.curate.selected.includes(curation.folder)) { className = 'curate-list-item--selected--secondary'; }
     if (props.curate.current === curation.folder)        { className = 'curate-list-item--selected';            }
     return (
@@ -93,7 +94,7 @@ export function CuratePageLeftSidebar(props: CuratePageLeftSidebarProps) {
         )}
         <div
           className='curate-list-item__icon'
-          style={{ backgroundImage: `url('${getPlatformIconURL(curation.game.platform || '', props.logoVersion)}')` }} />
+          style={{ backgroundImage: `url('${getPlatformIconURL(firstPlatform, props.logoVersion)}')` }} />
         <p className='curate-list-item__title'>
           {curation.game.title || curation.folder}
         </p>
