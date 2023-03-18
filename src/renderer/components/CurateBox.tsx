@@ -574,6 +574,7 @@ export function CurateBox(props: CurateBoxProps) {
                 placeholder={strings.browse.noApplicationPath}
                 items={createDropdownItems(props.suggestions.applicationPath || [])}
                 warned={props.curation.warnings.fieldWarnings.includes('applicationPath')}
+                allowNonMatching={true}
                 property='applicationPath'
                 { ...shared } />
               <CurateBoxInputRow

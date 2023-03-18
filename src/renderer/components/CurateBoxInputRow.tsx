@@ -74,6 +74,7 @@ export type DropdownItem = {
 }
 
 export type CurateBoxDropdownInputRowProps = CurateBoxInputRowProps & {
+  allowNonMatching?: boolean;
   className?: string;
   items: DropdownItem[];
 }
@@ -82,12 +83,12 @@ export function CurateBoxDropdownInputRow(props: CurateBoxDropdownInputRowProps)
   const { curationFolder, property, dispatch } = props;
   const onChange = React.useCallback((event: InputElementOnChangeEvent) => {
     const item = props.items.find(i => i.value === event.currentTarget.value);
-    if (curationFolder !== undefined && item) {
+    if (curationFolder !== undefined && (item || props.allowNonMatching)) {
       dispatch({
         type: CurateActionType.EDIT_CURATION_META,
         folder: curationFolder,
         property: property,
-        value: item.key,
+        value: item ? item.key : event.currentTarget.value,
       });
     }
   }, [dispatch, curationFolder]);
