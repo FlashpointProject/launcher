@@ -239,7 +239,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
         state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT, percent);
       };
       state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
-      await GameDataManager.downloadGameData(gameDataId, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), state.preferences.gameDataSources, onProgress)
+      await GameDataManager.downloadGameData(gameDataId, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), state.preferences.gameDataSources, state.downloadController.signal(), onProgress)
       .catch((error) => {
         state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
       })

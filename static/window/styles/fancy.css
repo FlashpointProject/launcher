@@ -1394,3 +1394,7 @@ body {
 .tag-nuke-box {
   font-weight: bold;
 }
+
+.cancel-download-button {
+  font-size: 2rem !important;
+}

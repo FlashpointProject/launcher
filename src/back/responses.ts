@@ -129,6 +129,10 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     };
   });
 
+  state.socketServer.register(BackIn.CANCEL_DOWNLOAD, async () => {
+    state.downloadController.abort();
+  });
+
   state.socketServer.register(BackIn.GET_RENDERER_LOADED_DATA, async () => {
     const libraries = await GameManager.findUniqueValues(Game, 'library');
 
@@ -286,13 +290,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         if (gameData && !gameData.presentOnDisk) {
           // Download GameData
           try {
-            await downloadGameData(state, gameData)
-            .finally(() => {
-              // Close PLACEHOLDER download dialog on client, cosmetic delay to look nice
-              setTimeout(() => {
-                state.socketServer.broadcast(BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG);
-              }, 250);
-            });
+            await downloadGameData(state, gameData);
           } catch (error: any) {
             state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
             log.info('Game Launcher', `Add App Launch Aborted: ${error}`);
@@ -352,13 +350,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         if (gameData && !gameData.presentOnDisk) {
           // Download GameData
           try {
-            await downloadGameData(state, gameData)
-            .finally(() => {
-              // Close PLACEHOLDER download dialog on client, cosmetic delay to look nice
-              setTimeout(() => {
-                state.socketServer.broadcast(BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG);
-              }, 250);
-            });
+            await downloadGameData(state, gameData);
           } catch (error: any) {
             state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
             log.info('Game Launcher', `Game Launch Aborted: ${error}`);
@@ -584,7 +576,10 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   state.socketServer.register(BackIn.DOWNLOAD_GAME_DATA, async (event, gameDataId) => {
     const gameData = await GameDataManager.findOne(gameDataId);
     if (gameData) {
-      await downloadGameData(state, gameData);
+      await downloadGameData(state, gameData)
+      .catch((err) => {
+        throw 'Failed to download';
+      });
     } else {
       log.error('Launcher', `Game Data not found (ID=${gameDataId})`);
       throw new Error(`Game Data not found (ID=${gameDataId})`);
@@ -2154,16 +2149,11 @@ async function downloadGameData(state: BackState, gameData: GameData) {
   };
   state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
   try {
-    await GameDataManager.downloadGameData(gameData.id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), state.preferences.gameDataSources, onProgress, onDetails)
-    .finally(() => {
-      // Close PLACEHOLDER download dialog on client, cosmetic delay to look nice
-      setTimeout(() => {
-        state.socketServer.broadcast(BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG);
-      }, 250);
-    });
-  } catch (error: any) {
-    state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
-    log.info('Game Launcher', `Game Launch Aborted: ${error}`);
-    return;
+    await GameDataManager.downloadGameData(gameData.id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), state.preferences.gameDataSources, state.downloadController.signal(), onProgress, onDetails);
+  } finally {
+    // Close PLACEHOLDER download dialog on client, cosmetic delay to look nice
+    setTimeout(() => {
+      state.socketServer.broadcast(BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG);
+    }, 250);
   }
 }

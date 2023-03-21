@@ -16,6 +16,7 @@ import { ExtensionService } from './extensions/ExtensionService';
 import { InterceptorState as ModuleInterceptorState } from './extensions/NodeInterceptor';
 import { Registry } from './extensions/types';
 import { GameManagerState } from './game/types';
+import { InstancedAbortController } from './InstancedAbortController';
 import { ManagedChildProcess } from './ManagedChildProcess';
 import { SocketServer } from './SocketServer';
 import { EventQueue } from './util/EventQueue';
@@ -85,6 +86,7 @@ export type BackState = {
   componentStatuses: ComponentStatus[];
   newDialogEvents: EventEmitter;
   resolveDialogEvents: EventEmitter;
+  downloadController: InstancedAbortController;
 }
 
 export type BackQueryChache = {

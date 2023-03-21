@@ -1399,6 +1399,10 @@ export class App extends React.Component<AppProps> {
                 }}
               />
             )}
+            <SimpleButton
+              className='cancel-download-button'
+              value={this.props.main.lang.dialog.cancel}
+              onClick={() => window.Shared.back.send(BackIn.CANCEL_DOWNLOAD)}/>
           </FloatingContainer>
         )}
       </LangContext.Provider>

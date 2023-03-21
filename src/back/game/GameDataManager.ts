@@ -13,7 +13,7 @@ export const onDidInstallGameData = new ApiEmitter<flashpoint.GameData>();
 export const onWillUninstallGameData = new ApiEmitter<flashpoint.GameData>();
 export const onDidUninstallGameData = new ApiEmitter<flashpoint.GameData>();
 
-export async function downloadGameData(gameDataId: number, dataPacksFolderPath: string, sources: flashpoint.GameDataSource[], onProgress?: (percent: number) => void, onDetails?: (details: DownloadDetails) => void): Promise<void> {
+export async function downloadGameData(gameDataId: number, dataPacksFolderPath: string, sources: flashpoint.GameDataSource[], abortSignal: AbortSignal, onProgress?: (percent: number) => void, onDetails?: (details: DownloadDetails) => void): Promise<void> {
   const gameData = await findOne(gameDataId);
   const sourceErrors: string[] = [];
   log.debug('Game Launcher', `Checking ${sources.length} Sources for this GameData...`);
@@ -24,7 +24,7 @@ export async function downloadGameData(gameDataId: number, dataPacksFolderPath: 
       try {
         const fullUrl = new URL(`${gameData.gameId}-${gameData.dateAdded.getTime()}.zip`, source.arguments[0]).href;
         const tempPath = path.join(dataPacksFolderPath, `${gameData.gameId}-${gameData.dateAdded.getTime()}.zip.temp`);
-        await downloadFile(fullUrl, tempPath, onProgress, onDetails);
+        await downloadFile(fullUrl, tempPath, abortSignal, onProgress, onDetails);
         // Check hash of download
         const hash = crypto.createHash('sha256');
         hash.setEncoding('hex');
@@ -50,7 +50,6 @@ export async function downloadGameData(gameDataId: number, dataPacksFolderPath: 
       } catch (error) {
         const sourceError = `Downloading from Source "${source.name}" failed:\n ${error}`;
         sourceErrors.push(sourceError);
-
       }
     }
     throw ['No working Sources available for this GameData.'].concat(sourceErrors).join('\n\n');

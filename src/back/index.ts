@@ -41,7 +41,12 @@ import * as path from 'path';
 import 'reflect-metadata';
 import { genCurationWarnings, loadCurationFolder } from './curate/util';
 // Required for the DB Models to function
+import { Platform } from '@database/entity/Platform';
+import { PlatformAlias } from '@database/entity/PlatformAlias';
 import { RemoveSources1676712700000 } from '@database/migration/1676712700000-RemoveSources';
+import { RemovePlaylist1676713895000 } from '@database/migration/1676713895000-RemovePlaylist';
+import { TagifyPlatform1677943090621 } from '@database/migration/1677943090621-TagifyPlatform';
+import { AddPlatformsRedundancyFieldToGame1677951346785 } from '@database/migration/1677951346785-AddPlatformsRedundancyFieldToGame';
 import {
   CURATIONS_FOLDER_EXPORTED,
   CURATIONS_FOLDER_EXTRACTING,
@@ -69,7 +74,9 @@ import {
 import { Command } from './extensions/types';
 import * as GameManager from './game/GameManager';
 import { onWillImportCuration } from './importGame';
+import { InstancedAbortController } from './InstancedAbortController';
 import { ManagedChildProcess, onServiceChange } from './ManagedChildProcess';
+import { PlaylistFile } from './PlaylistFile';
 import { registerRequestCallbacks } from './responses';
 import { genContentTree } from './rust';
 import { ServicesFile } from './ServicesFile';
@@ -83,12 +90,6 @@ import { LogFile } from './util/LogFile';
 import { logFactory } from './util/logging';
 import { createContainer, exit, getMacPATH, runService } from './util/misc';
 import { uuid } from './util/uuid';
-import { RemovePlaylist1676713895000 } from '@database/migration/1676713895000-RemovePlaylist';
-import { PlaylistFile } from './PlaylistFile';
-import { TagifyPlatform1677943090621 } from '@database/migration/1677943090621-TagifyPlatform';
-import { Platform } from '@database/entity/Platform';
-import { PlatformAlias } from '@database/entity/PlatformAlias';
-import { AddPlatformsRedundancyFieldToGame1677951346785 } from '@database/migration/1677951346785-AddPlatformsRedundancyFieldToGame';
 
 const dataSourceOptions: DataSourceOptions = {
   type: 'better-sqlite3',
@@ -235,7 +236,8 @@ const state: BackState = {
   prefsQueue: new EventQueue(),
   componentStatuses: [],
   newDialogEvents: new EventEmitter(),
-  resolveDialogEvents: new EventEmitter()
+  resolveDialogEvents: new EventEmitter(),
+  downloadController: new InstancedAbortController(),
 };
 
 main();
@@ -1497,7 +1499,7 @@ export async function checkAndDownloadGameData(gameId: string, activeDataId: num
     };
     state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
     try {
-      await GameDataManager.downloadGameData(gameData.id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), state.preferences.gameDataSources, onProgress, onDetails)
+      await GameDataManager.downloadGameData(gameData.id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), state.preferences.gameDataSources, state.downloadController.signal(), onProgress, onDetails)
       .finally(() => {
         // Close PLACEHOLDER download dialog on client, cosmetic delay to look nice
         setTimeout(() => {

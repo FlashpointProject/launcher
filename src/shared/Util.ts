@@ -438,10 +438,11 @@ export function tagSort(tagA: Tag, tagB: Tag): number {
   return 0;
 }
 
-export async function downloadFile(url: string, filePath: string, onProgress?: (percent: number) => void, onDetails?: (details: DownloadDetails) => void): Promise<number> {
+export async function downloadFile(url: string, filePath: string, abortSignal: AbortSignal, onProgress?: (percent: number) => void, onDetails?: (details: DownloadDetails) => void): Promise<number> {
   try {
     const res = await axios.get(url, {
-      responseType: 'stream'
+      responseType: 'stream',
+      signal: abortSignal
     });
     let progress = 0;
     const contentLength = res.headers['content-length'];

@@ -70,7 +70,7 @@ body {
 }
 /* Simple Button */
 .simple-button {
-  height: 1.4em;
+  min-height: 1.4em;
   padding: 0 0.4em;
   font-size: 0.875em;
   border: 1px solid;
@@ -3006,4 +3006,8 @@ body {
   font-size: 1.75rem;
   font-weight: bold;
   height: 2rem;
+}
+
+.cancel-download-button {
+  margin-top: 1rem;
 }

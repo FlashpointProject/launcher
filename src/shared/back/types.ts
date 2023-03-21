@@ -141,6 +141,7 @@ export enum BackIn {
   SET_EXT_CONFIG_VALUE,
   FETCH_DIAGNOSTICS,
   OPEN_FLASHPOINT_MANAGER,
+  CANCEL_DOWNLOAD,
 
   // Developer
   UPDATE_TAGGED_FIELDS,
@@ -338,6 +339,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.SET_EXT_CONFIG_VALUE]: (key: string, value: any) => void;
   [BackIn.FETCH_DIAGNOSTICS]: () => string;
   [BackIn.OPEN_FLASHPOINT_MANAGER]: () => void;
+  [BackIn.CANCEL_DOWNLOAD]: () => void;
 
   // Developer
   [BackIn.UPDATE_TAGGED_FIELDS]: () => void;
