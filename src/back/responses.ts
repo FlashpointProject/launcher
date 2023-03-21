@@ -347,24 +347,15 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
           }}, configServer);
         }
       }
-      log.debug('TEST', 'Server change done');
       // If it has GameData, make sure it's present
       let gameData: GameData | null;
       if (game.activeDataId) {
-        log.debug('TEST', 'Found active game data');
+        log.debug('Launcher', 'Found active game data');
         gameData = await GameDataManager.findOne(game.activeDataId);
         if (gameData && !gameData.presentOnDisk) {
           // Download GameData
-          const onDetails = (details: DownloadDetails) => {
-            state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_DETAILS, details);
-          };
-          const onProgress = (percent: number) => {
-            // Sent to PLACEHOLDER download dialog on client
-            state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT, percent);
-          };
-          state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
           try {
-            await GameDataManager.downloadGameData(gameData.id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), state.preferences.gameDataSources, onProgress, onDetails)
+            await downloadGameData(state, gameData)
             .finally(() => {
               // Close PLACEHOLDER download dialog on client, cosmetic delay to look nice
               setTimeout(() => {
@@ -594,21 +585,13 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.DOWNLOAD_GAME_DATA, async (event, gameDataId) => {
-    const onProgress = (percent: number) => {
-      // Sent to PLACEHOLDER download dialog on client
-      state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT, percent);
-    };
-    state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
-    await GameDataManager.downloadGameData(gameDataId, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), state.preferences.gameDataSources, onProgress)
-    .catch((error) => {
-      state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
-    })
-    .finally(() => {
-      // Close PLACEHOLDER download dialog on client, cosmetic delay to look nice
-      setTimeout(() => {
-        state.socketServer.broadcast(BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG);
-      }, 250);
-    });
+    const gameData = await GameDataManager.findOne(gameDataId);
+    if (gameData) {
+      await downloadGameData(state, gameData);
+    } else {
+      log.error('Launcher', `Game Data not found (ID=${gameDataId})`);
+      throw new Error(`Game Data not found (ID=${gameDataId})`);
+    }
   });
 
   state.socketServer.register(BackIn.UNINSTALL_GAME_DATA, async (event, id) => {
@@ -2162,4 +2145,28 @@ async function exitApp(state: BackState, beforeProcessExit?: () => void | Promis
 
 function makeFlatPlatforms(platforms: Platform[]): string[] {
   return platforms.reduce<string[]>((prev, cur) => prev.concat(cur.aliases.map(a => a.name)), []);
+}
+
+async function downloadGameData(state: BackState, gameData: GameData) {
+  const onDetails = (details: DownloadDetails) => {
+    state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_DETAILS, details);
+  };
+  const onProgress = (percent: number) => {
+    // Sent to PLACEHOLDER download dialog on client
+    state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT, percent);
+  };
+  state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
+  try {
+    await GameDataManager.downloadGameData(gameData.id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), state.preferences.gameDataSources, onProgress, onDetails)
+    .finally(() => {
+      // Close PLACEHOLDER download dialog on client, cosmetic delay to look nice
+      setTimeout(() => {
+        state.socketServer.broadcast(BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG);
+      }, 250);
+    });
+  } catch (error: any) {
+    state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
+    log.info('Game Launcher', `Game Launch Aborted: ${error}`);
+    return;
+  }
 }

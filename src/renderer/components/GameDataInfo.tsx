@@ -1,4 +1,3 @@
-import { SourceData } from '@database/entity/SourceData';
 import { LangContext } from '@renderer/util/lang';
 import { BackIn } from '@shared/back/types';
 import { sizeToString } from '@shared/Util';
@@ -12,7 +11,6 @@ import { SimpleButton } from './SimpleButton';
 
 export type GameDataInfoProps = {
   data: GameData;
-  sourceData: SourceData[];
   active: boolean;
   onActiveToggle: () => void;
   onUninstall: () => void;
@@ -64,7 +62,7 @@ export function GameDataInfo(props: GameDataInfoProps) {
               message={strings.dialog.uninstallGame}
               render={renderUninstallButton}
               onConfirm={props.onUninstall}/>
-          ) : ( props.sourceData.length > 0 ? (
+          ) : (
             <SimpleButton
               onClick={() => {
                 window.Shared.back.request(BackIn.DOWNLOAD_GAME_DATA, props.data.id)
@@ -73,10 +71,6 @@ export function GameDataInfo(props: GameDataInfoProps) {
                 });
               }}
               value='Download'/>
-          ) :
-            <SimpleButton
-              disabled={true}
-              value='Unavailable'/>
           )}
           <ConfirmElement
             message={strings.dialog.deleteGameData}
