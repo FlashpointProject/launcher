@@ -277,19 +277,16 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   state.socketServer.register(BackIn.LAUNCH_ADDAPP, async (event, id) => {
     const addApp = await GameManager.findAddApp(id);
     if (addApp) {
+      // Force load relation
+      addApp.parentGame = await GameManager.findGame(addApp.parentGameId) as Game;
       // If it has GameData, make sure it's present
       let gameData: GameData | null;
       if (addApp.parentGame.activeDataId) {
         gameData = await GameDataManager.findOne(addApp.parentGame.activeDataId);
         if (gameData && !gameData.presentOnDisk) {
           // Download GameData
-          const onProgress = (percent: number) => {
-            // Sent to PLACEHOLDER download dialog on client
-            state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT, percent);
-          };
-          state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
           try {
-            await GameDataManager.downloadGameData(gameData.id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), state.preferences.gameDataSources, onProgress)
+            await downloadGameData(state, gameData)
             .finally(() => {
               // Close PLACEHOLDER download dialog on client, cosmetic delay to look nice
               setTimeout(() => {
@@ -298,21 +295,21 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
             });
           } catch (error: any) {
             state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
-            log.info('Game Launcher', `Game Launch Aborted: ${error}`);
+            log.info('Game Launcher', `Add App Launch Aborted: ${error}`);
             return;
           }
         }
       }
       await state.apiEmitters.games.onWillLaunchAddApp.fire(addApp);
-      const platform = addApp.parentGame ? addApp.parentGame : '';
-      GameLauncher.launchAdditionalApplication({
+      const platforms = addApp.parentGame ? addApp.parentGame.platforms.map(p => p.primaryAlias.name): [];
+      await GameLauncher.launchAdditionalApplication({
         addApp,
         changeServer: changeServerFactory(state),
         fpPath: path.resolve(state.config.flashpointPath),
         htdocsPath: state.preferences.htdocsFolderPath,
         dataPacksFolderPath: state.preferences.dataPacksFolderPath,
         sevenZipPath: state.sevenZipPath,
-        native: addApp.parentGame && state.preferences.nativePlatforms.some(p => p === platform) || false,
+        native: addApp.parentGame && state.preferences.nativePlatforms.some(p => platforms.includes(p)) || false,
         execMappings: state.execMappings,
         lang: state.languageContainer,
         isDev: state.isDev,

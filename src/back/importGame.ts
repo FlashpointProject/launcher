@@ -383,7 +383,8 @@ function createAddAppFromCurationMeta(addAppMeta: AddAppCuration, game: Game): A
     launchCommand: addAppMeta.launchCommand || '',
     autoRunBefore: false,
     waitForExit: false,
-    parentGame: game
+    parentGame: game,
+    parentGameId: game.id,
   };
 }
 

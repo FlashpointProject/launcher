@@ -29,4 +29,6 @@ export class AdditionalApp {
   @ManyToOne(() => Game, game => game.addApps)
   /** Parent of this add app */
     parentGame: Game;
+  @Column()
+    parentGameId: string;
 }

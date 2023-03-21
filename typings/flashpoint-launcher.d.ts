@@ -632,6 +632,7 @@ declare module 'flashpoint-launcher' {
         waitForExit: boolean;
         /** Parent of this add app */
         parentGame: Game;
+        parentGameId: string;
     };
 
     type Platform = {

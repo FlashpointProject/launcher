@@ -202,7 +202,8 @@ export function createAddAppFromLegacy(addApps: Legacy_IAdditionalApplicationInf
       launchCommand: a.launchCommand,
       autoRunBefore: a.autoRunBefore,
       waitForExit: a.waitForExit,
-      parentGame: game
+      parentGame: game,
+      parentGameId: game.id,
     };
   });
 }
