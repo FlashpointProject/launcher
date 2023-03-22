@@ -14,3 +14,19 @@ export function ConfigBoxCheckbox(props: ConfigBoxCheckboxProps) {
     </ConfigBox>
   );
 }
+
+export function ConfigBoxInnerCheckbox(props: ConfigBoxCheckboxProps) {
+  return (
+    <div className='setting__inner__row'>
+      <div>
+        <p className='setting__row__title setting__row__title__inner'>
+          {props.title}
+        </p>
+        <div className='setting__row__description'>
+          {props.description}
+        </div>
+      </div>
+      <CheckBox {...props} />
+    </div>
+  );
+}

@@ -1889,6 +1889,26 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   state.socketServer.register(BackIn.DIALOG_RESPONSE, (event, dialog, buttonIdx) => {
     state.resolveDialogEvents.emit(dialog.id, dialog, buttonIdx);
   });
+
+  state.socketServer.register(BackIn.DELETE_ALL_IMAGES, async (event) => {
+    // Display dialog to prevent user input
+    const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
+    const dialogId = await openDialog({
+      message: 'Deleting Images, Please Wait...',
+      buttons: []
+    });
+    const imagesFolder = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
+    // Delete images
+    try {
+      await fs.remove(imagesFolder);
+    } finally {
+      setTimeout(() => {
+        // Close dialog, finished task
+        state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
+      }, 1000);
+      await fs.ensureDir(imagesFolder);
+    }
+  });
 }
 
 /**

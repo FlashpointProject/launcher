@@ -1301,6 +1301,7 @@ function awaitEvents(emitter: EventEmitter, events: string[]): Promise<void> {
   });
 }
 
+
 function updateFileServerDownloadQueue() {
   // @NOTE This will fail to stream the image to the client if it fails to save it to the disk.
 
@@ -1315,7 +1316,12 @@ function updateFileServerDownloadQueue() {
     state.fileServerDownloads.current.push(item);
 
     // Start download
-    const url = state.preferences.onDemandBaseUrl + (state.preferences.onDemandBaseUrl.endsWith('/') ? '' : '/') + item.subPath;
+    let url = state.preferences.onDemandBaseUrl + (state.preferences.onDemandBaseUrl.endsWith('/') ? '' : '/') + item.subPath;
+    // Add compressed modifier if enabled
+    if (state.preferences.onDemandImagesCompressed) {
+      url += '?type=jpg';
+    }
+    console.log(url);
     const protocol = url.startsWith('https://') ? httpsFollow : httpFollow;
     try {
       const req = protocol.get(url, async (res) => {

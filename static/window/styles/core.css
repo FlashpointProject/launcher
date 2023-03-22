@@ -2359,6 +2359,18 @@ body {
 .setting__row {
   padding: 0.75em;
 }
+.setting__inner__row {
+  text-align: left;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+.setting__inner__row:first-child {
+  margin-top: 1rem;
+}
+.setting__inner__row:not(:first-child) {
+  margin-top: 0.5rem;
+}
 .setting__row:not(:first-child) {
   border-top: 1px solid;
 }
@@ -2386,6 +2398,9 @@ body {
   font-size: 1.15em;
   font-weight: bold;
   user-select: none;
+}
+.setting__row__title__inner {
+  font-size: 1em !important;
 }
 .setting__row__title--flex {
   display: flex;
@@ -2527,6 +2542,9 @@ body {
 }
 .setting__row__content--tag-filter-eye--hidden {
   opacity: 40%;
+}
+.setting__row__button {
+  font-size: 1em !important;
 }
 
 

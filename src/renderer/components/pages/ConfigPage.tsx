@@ -15,8 +15,8 @@ import {getExtIconURL, getExtremeIconURL, getPlatformIconURL, isFlashpointValidC
 import { LangContext } from '../../util/lang';
 import { CheckBox } from '../CheckBox';
 import { ConfigBox } from '../ConfigBox';
-import { ConfigBoxButton } from '../ConfigBoxButton';
-import { ConfigBoxCheckbox } from '../ConfigBoxCheckbox';
+import { ConfigBoxButton, ConfigBoxInnerButton } from '../ConfigBoxButton';
+import { ConfigBoxCheckbox, ConfigBoxInnerCheckbox } from '../ConfigBoxCheckbox';
 import { ConfigBoxInput } from '../ConfigBoxInput';
 import { ConfigBoxMultiSelect, MultiSelectItem } from '../ConfigBoxMultiSelect';
 import { ConfigBoxSelect, SelectItem } from '../ConfigBoxSelect';
@@ -100,6 +100,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   }
 
   render() {
+    const allStrings = this.context;
     const strings = this.context.config;
     const autoString = formatString(strings.auto, this.props.localeCode);
     const searchLimitOptions = this.itemizeSearchLimitOptionsMemo(this.context.config);
@@ -137,11 +138,26 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   onToggle={this.onSymlinkCurationContentChange}/>
               )}
               {/* On Demand Images */}
-              <ConfigBoxCheckbox
+              <ConfigBox
                 title={strings.onDemandImages}
                 description={strings.onDemandImagesDesc}
-                checked={this.props.preferencesData.onDemandImages}
-                onToggle={this.onOnDemandImagesChange} />
+                swapChildren={true} >
+                <ConfigBoxInnerCheckbox
+                  title={strings.onDemandImagesEnabled}
+                  description={strings.onDemandImagesEnabledDesc}
+                  checked={this.props.preferencesData.onDemandImages}
+                  onToggle={this.onOnDemandImagesChange} />
+                <ConfigBoxInnerCheckbox
+                  title={strings.onDemandImagesCompressed}
+                  description={strings.onDemandImagesCompressedDesc}
+                  checked={this.props.preferencesData.onDemandImagesCompressed}
+                  onToggle={this.onDemandImagesCompressedChange} />
+                <ConfigBoxInnerButton
+                  title={strings.onDemandImagesDelete}
+                  description={strings.onDemandImagesDeleteDesc}
+                  value={allStrings.curate.delete}
+                  onClick={this.onDeleteImages} />
+              </ConfigBox>
               {/* Fancy Animations */}
               <ConfigBoxCheckbox
                 title={strings.fancyAnimations}
@@ -706,6 +722,10 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     updatePreferencesData({ onDemandImages: isChecked });
   };
 
+  onDemandImagesCompressedChange = (isChecked: boolean): void => {
+    updatePreferencesData({ onDemandImagesCompressed: isChecked });
+  };
+
   onFancyAnimationsChange = (isChecked: boolean): void => {
     updatePreferencesData({ fancyAnimations: isChecked });
   };
@@ -981,6 +1001,13 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       useCustomTitlebar: this.state.useCustomTitlebar,
       server: this.state.server,
     }).then(() => { window.Shared.restart(); });
+  };
+
+  onDeleteImages = () => {
+    window.Shared.back.request(BackIn.DELETE_ALL_IMAGES)
+    .catch((err) => {
+      alert('Error: ' + err);
+    });
   };
 }
 

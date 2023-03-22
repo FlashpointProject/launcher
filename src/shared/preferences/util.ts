@@ -93,8 +93,9 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   saveImportedCurations: true,
   keepArchiveKey: true,
   symlinkCurationContent: true,
-  onDemandImages: false,
-  onDemandBaseUrl: 'https://infinity.unstable.life/Flashpoint/Data/Images/',
+  onDemandImages: true,
+  onDemandImagesCompressed: true,
+  onDemandBaseUrl: 'https://infinity.unstable.life/images/',
   browserModeProxy: 'localhost:22500',
   showLogSource: Object.freeze({
     // (Add log sources that should be hidden by default here)
@@ -192,6 +193,7 @@ export function overwritePreferenceData(
   parser.prop('symlinkCurationContent',      v => source.symlinkCurationContent      = !!v);
   parser.prop('tagFiltersInCurate',          v => source.tagFiltersInCurate          = !!v);
   parser.prop('onDemandImages',              v => source.onDemandImages              = !!v);
+  parser.prop('onDemandImagesCompressed',    v => source.onDemandImagesCompressed    = !!v);
   parser.prop('browserModeProxy',            v => source.browserModeProxy            = str(v));
   parser.prop('onDemandBaseUrl',             v => source.onDemandBaseUrl             = parseVarStr(str(v)));
   parser.prop('excludedRandomLibraries',     v => source.excludedRandomLibraries     = strArray(v), true);
@@ -204,6 +206,10 @@ export function overwritePreferenceData(
   parser.prop('offlineManual',               v => source.offlineManual               = str(v));
   parser.prop('fancyAnimations',             v => source.fancyAnimations             = !!v);
   parser.prop('searchLimit',                 v => source.searchLimit                 = num(v));
+  // Migrate onDemandBaseUrl from the older FP url
+  if (source.onDemandBaseUrl == 'https://infinity.unstable.life/Flashpoint/Data/Images/') {
+    source.onDemandBaseUrl = 'https://infinity.unstable.life/images/';
+  }
   if (data.shortcuts) {
     // @TODO Validate
     source.shortcuts = Object.assign(source.shortcuts, data.shortcuts);

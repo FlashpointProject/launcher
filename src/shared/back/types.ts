@@ -142,6 +142,7 @@ export enum BackIn {
   FETCH_DIAGNOSTICS,
   OPEN_FLASHPOINT_MANAGER,
   CANCEL_DOWNLOAD,
+  DELETE_ALL_IMAGES,
 
   // Developer
   UPDATE_TAGGED_FIELDS,
@@ -340,6 +341,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.FETCH_DIAGNOSTICS]: () => string;
   [BackIn.OPEN_FLASHPOINT_MANAGER]: () => void;
   [BackIn.CANCEL_DOWNLOAD]: () => void;
+  [BackIn.DELETE_ALL_IMAGES]: () => void;
 
   // Developer
   [BackIn.UPDATE_TAGGED_FIELDS]: () => void;

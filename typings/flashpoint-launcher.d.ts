@@ -986,6 +986,8 @@ declare module 'flashpoint-launcher' {
         symlinkCurationContent: boolean;
         /** Download missing thumbnails/screenshots from a remote server. */
         onDemandImages: boolean;
+        /** Whether to download compressed images or not */
+        onDemandImagesCompressed: boolean;
         /** Base URL of the server to download missing thumbnails/screenshots from. */
         onDemandBaseUrl: string;
         /** Proxy server to use during Browser Mode */
