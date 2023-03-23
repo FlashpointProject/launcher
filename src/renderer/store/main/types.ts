@@ -150,7 +150,7 @@ export type MainState = {
   /** Renderer side dialog response emitter (event code = dialog id) */
   dialogResEvent: EventEmitter;
 }
-
+export type ConnectedMainAction = WithAsyncDispatch & MainAction;
 export type MainAction = {
   type: MainActionType.SET_STATE;
   payload: Partial<MainState>;
@@ -279,3 +279,35 @@ export type MainAction = {
   dialogId: string;
   field: DialogField;
 }
+
+export type WithAsyncDispatch = {
+  asyncDispatch: (asyncAction: MainAction) => void;
+}
+
+export const asyncDispatchMiddleware = (store: any) => (next: any) => (action: MainAction) => {
+  let syncActivityFinished = false;
+  let actionQueue: MainAction[] = [];
+
+  function flushQueue() {
+    actionQueue.forEach(a => store.dispatch(a)); // flush queue
+    actionQueue = [];
+  }
+
+  function asyncDispatch(asyncAction: MainAction) {
+    actionQueue = actionQueue.concat([asyncAction]);
+
+    if (syncActivityFinished) {
+      flushQueue();
+    }
+  }
+
+  const actionWithAsyncDispatch =
+    Object.assign({}, action, { asyncDispatch });
+
+  const res = next(actionWithAsyncDispatch);
+
+  syncActivityFinished = true;
+  flushQueue();
+
+  return res;
+};

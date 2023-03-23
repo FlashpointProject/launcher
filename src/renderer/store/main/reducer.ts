@@ -8,11 +8,11 @@ import { Gate } from '@shared/utils/Gate';
 import { ipcRenderer } from 'electron';
 import { EventEmitter } from 'stream';
 import { MainActionType, RequestState } from './enums';
-import { MainAction, MainState, View, ViewPageStates } from './types';
+import { ConnectedMainAction, MainState, View, ViewPageStates } from './types';
 
 export const RANDOM_GAME_ROW_COUNT = 6;
 
-export function mainStateReducer(state: MainState = createInitialState(), action: MainAction): MainState {
+export function mainStateReducer(state: MainState = createInitialState(), action: ConnectedMainAction): MainState {
   switch (action.type) {
     case MainActionType.SET_STATE:
       return {
@@ -103,6 +103,26 @@ export function mainStateReducer(state: MainState = createInitialState(), action
       const view = state.views[action.library];
 
       if (!view || action.queryId !== view.queryId) { return state; }
+
+      if (view.metaState === RequestState.WAITING) {
+        // Request meta
+        window.Shared.back.request(BackIn.BROWSE_VIEW_KEYSET, action.library, view.query)
+        .then((data) => {
+          if (data) {
+            action.asyncDispatch({
+              type: MainActionType.SET_VIEW_META,
+              library: action.library,
+              queryId: view.queryId,
+              keyset: data.keyset,
+              total: data.total,
+            });
+          }
+        })
+        .catch((error) => {
+          log.error('Launcher', `Error getting browse view keyset - ${error}`);
+        });
+      }
+
 
       return {
         ...state,

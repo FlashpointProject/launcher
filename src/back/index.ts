@@ -1321,7 +1321,6 @@ function updateFileServerDownloadQueue() {
     if (state.preferences.onDemandImagesCompressed) {
       url += '?type=jpg';
     }
-    console.log(url);
     const protocol = url.startsWith('https://') ? httpsFollow : httpFollow;
     try {
       const req = protocol.get(url, async (res) => {

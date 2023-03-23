@@ -769,34 +769,15 @@ export class App extends React.Component<AppProps> {
         }
       }
 
-      for (const l in this.props.main.views) {
-        const v = this.props.main.views[l];
-        // Check if the meta has not yet been requested
-        if (v && v.metaState === RequestState.WAITING) {
-        // Request meta
-          window.Shared.back.request(BackIn.BROWSE_VIEW_KEYSET, l, v.query)
-          .then((data) => {
-            if (data) {
-              this.props.dispatchMain({
-                type: MainActionType.SET_VIEW_META,
-                library: l,
-                queryId: v.queryId,
-                keyset: data.keyset,
-                total: data.total,
-              });
-            }
-          })
-          .catch((error) => {
-            log.error('Launcher', `Error getting browse view keyset - ${error}`);
-          });
-
-          // Flag meta as requested
-          this.props.dispatchMain({
-            type: MainActionType.REQUEST_VIEW_META,
-            library: l,
-            queryId: v.queryId,
-          });
-        }
+      const v = this.props.main.views[library];
+      // Check if the meta has not yet been requested
+      if (v && v.metaState === RequestState.WAITING) {
+        // Flag meta as requested
+        this.props.dispatchMain({
+          type: MainActionType.REQUEST_VIEW_META,
+          library: library,
+          queryId: v.queryId,
+        });
       }
 
       // Check for selected game changes
