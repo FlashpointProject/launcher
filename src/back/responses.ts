@@ -29,6 +29,7 @@ import { execSync } from 'child_process';
 import { AddAppCuration, CurationState, Platform } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as fs_extra from 'fs-extra';
+import * as https from 'https';
 import { add, Progress } from 'node-7z';
 import * as os from 'os';
 import * as path from 'path';
@@ -49,11 +50,12 @@ import { escapeArgsForShell, GameLauncher, GameLaunchInfo } from './GameLauncher
 import { importCuration, launchAddAppCuration, launchCuration } from './importGame';
 import { checkAndDownloadGameData, extractFullPromise, loadCurationArchive } from './index';
 import { ManagedChildProcess } from './ManagedChildProcess';
+import { importGames, importPlatforms, importTagCategories, importTags } from './metadataImport';
 import { importAllMetaEdits } from './MetaEdit';
 import { addPlaylistGame, deletePlaylist, deletePlaylistGame, duplicatePlaylist, filterPlaylists, getPlaylistGame, importPlaylist, savePlaylistGame, updatePlaylist } from './playlist';
 import { PlaylistFile } from './PlaylistFile';
 import { copyFolder, genContentTree } from './rust';
-import { BackState, BareTag, TagsFile } from './types';
+import { BackState, BareTag, MetadataRaw, TagsFile } from './types';
 import { pathToBluezip } from './util/Bluezip';
 import { awaitDialog } from './util/dialog';
 import {
@@ -956,15 +958,21 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.EXPORT_TAGS, async (event, data) => {
-    const jsonTagsFile: TagsFile = { categories: [], tags: [] };
+    const jsonTagsFile: TagsFile = { categories: [], tags: [], aliases: [] };
     let res: number;
     try {
+      // Collect tag categories
       const allTagCategories = await TagManager.findTagCategories();
       jsonTagsFile.categories = allTagCategories;
+      // Collect aliases
+      const allTagAliases = await TagManager.dumpTagAliases();
+      jsonTagsFile.aliases = allTagAliases;
+      // Collect tags
       const allTags = await TagManager.findTags('');
       jsonTagsFile.tags = allTags.map(t => {
         const primaryAlias = t.aliases.find(a => a.id === t.primaryAliasId);
         const bareTag: BareTag = {
+          id: t.id || 0,
           categoryId: t.categoryId || -1,
           description: t.description,
           primaryAlias: primaryAlias ? primaryAlias.name : 'ERROR',
@@ -1909,6 +1917,69 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       await fs.ensureDir(imagesFolder);
     }
   });
+
+  state.socketServer.register(BackIn.IMPORT_METADATA, async (event, data) => {
+    console.log('importing platforms');
+    // Import platforms
+    await importPlatforms(data.platforms);
+    console.log('importing tag cats');
+    // Import tag cats
+    await importTagCategories(data.categories);
+    console.log('importing tags');
+    // Import tags
+    await importTags(data.tags);
+    console.log('importing games');
+    // Import games
+    await importGames(data.games);
+    // Check for extras
+    if (data.gameDataSources) {
+      // Add any extra sources
+      for (const source of data.gameDataSources) {
+        const existingSourceIdx = state.preferences.gameDataSources.findIndex(s => s.name === source.name);
+        if (existingSourceIdx > -1) {
+          state.preferences.gameDataSources[existingSourceIdx] = source;
+        } else {
+          state.preferences.gameDataSources.push(source);
+        }
+      }
+    }
+    if (data.tagFilters) {
+      // Add any extra filters
+      for (const tfg of data.tagFilters) {
+        const existingTfgIdx = state.preferences.tagFilters.findIndex(tfg => tfg.name === tfg.name);
+        if (existingTfgIdx > -1) {
+          state.preferences.tagFilters[existingTfgIdx] = tfg;
+        } else {
+          state.preferences.tagFilters.push(tfg);
+        }
+      }
+    }
+    // Save prefs
+    state.prefsQueue.push(() => {
+      PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences);
+    });
+  });
+
+  state.socketServer.register(BackIn.SYNC_METADATA_SERVER, async (event, serverInfo) => {
+    switch (serverInfo.type) {
+      case 'raw': {
+        // Download file
+        const data: MetadataRaw = unsafeParseJsonBuffer(await downloadJsonDataToBuffer(serverInfo.host));
+        // Import platforms
+        await importPlatforms(data.platforms);
+        // Import tags
+        await importTags(data.tags);
+        // Import games
+        await importGames(data.games);
+        break;
+      }
+      case 'python': {
+        break;
+      }
+      default:
+        throw 'Unsupported type';
+    }
+  });
 }
 
 /**
@@ -2177,3 +2248,26 @@ async function downloadGameData(state: BackState, gameData: GameData) {
     }, 250);
   }
 }
+
+const unsafeParseJsonBuffer = <T>(buffer: Buffer): T => {
+  const data = buffer.toString();
+  return JSON.parse(data) as T;
+};
+
+// Download the JSON file from a URL and save it to a buffer
+const downloadJsonDataToBuffer = async (url: string): Promise<Buffer> => {
+  return new Promise((resolve, reject) => {
+    https.get(url, (response) => {
+      const data: Buffer[] = [];
+      response.on('data', (chunk) => {
+        data.push(chunk);
+      });
+      response.on('end', () => {
+        const buffer = Buffer.concat(data);
+        resolve(buffer);
+      });
+    }).on('error', (error) => {
+      reject(error);
+    });
+  });
+};

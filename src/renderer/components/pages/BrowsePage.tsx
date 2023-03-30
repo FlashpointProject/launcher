@@ -655,7 +655,6 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     });
     if (this.props.selectedPlaylistId !== undefined) {
       this.props.onSelectPlaylist(this.props.gameLibrary, null);
-      this.props.onSelectPlaylist(this.props.gameLibrary, null);
     }
   };
 
@@ -802,8 +801,6 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   onLeftSidebarShowAllClick = (): void => {
     const { clearSearch, onSelectPlaylist } = this.props;
     if (onSelectPlaylist) {
-      // 2 calls makes the left sidebar visual update. Why? Who knows.
-      onSelectPlaylist(this.props.gameLibrary, null);
       onSelectPlaylist(this.props.gameLibrary, null);
     }
     if (clearSearch)      { clearSearch(); }

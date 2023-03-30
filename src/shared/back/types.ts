@@ -111,6 +111,8 @@ export enum BackIn {
 
   // API
   SYNC_GAME_METADATA,
+  SYNC_METADATA_SERVER,
+  IMPORT_METADATA,
 
   // Meta edits
   EXPORT_META_EDIT,
@@ -310,6 +312,8 @@ export type BackInTemplate = SocketTemplate<BackIn, {
 
   // API
   [BackIn.SYNC_GAME_METADATA]: () => GameMetadataSyncResponse;
+  [BackIn.SYNC_METADATA_SERVER]: (serverInfo: MetadataServerInfo) => void;
+  [BackIn.IMPORT_METADATA]: (metadata: any) => void;
 
   // Meta edits
   [BackIn.EXPORT_META_EDIT]: (id: string, properties: MetaEditFlags) => void;
@@ -711,4 +715,10 @@ export type ComponentStatus = {
   id: string;
   name: string;
   state: ComponentState
+}
+
+export type MetadataServerInfo = {
+  name: string;
+  host: string;
+  type: 'raw' | 'python';
 }

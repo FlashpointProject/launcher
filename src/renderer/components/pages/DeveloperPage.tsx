@@ -157,6 +157,10 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               value={strings.importMetaEdits}
               title={strings.importMetaEditsDesc}
               onClick={this.onImportMetaEdits} />
+            <SimpleButton
+              value={'Import Metadata'}
+              title={'Import Metadata File'}
+              onClick={this.onImportMetadata} />
             { this.props.devScripts.map(contribution => contribution.value.map((script, index) => (
               <SimpleButton
                 key={contribution.extId + index}
@@ -400,6 +404,19 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
         this.setState({ text: text + '\n' + createTextBarProgress(processed, games.length)});
       }
       this.setState({ text: text + '\n' + createTextBarProgress(processed, games.length) + '\n' + `Finished, converted ${edited} games. Please restart the Launcher.`});
+    });
+  };
+
+  onImportMetadata = (): void => {
+    setTimeout(async () => {
+      this.setState({ text: 'Importing...' });
+      const filePath = remote.dialog.showOpenDialogSync({
+        title: 'select',
+        properties: ['openFile']
+      });
+      const metadata = fs.readFileSync(filePath ? filePath[0] : 'NONE', { encoding: 'utf-8' });
+      await window.Shared.back.request(BackIn.IMPORT_METADATA, JSON.parse(metadata));
+      this.setState({ text: 'DONE... Please Restart Flashpoint.' });
     });
   };
 

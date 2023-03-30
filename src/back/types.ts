@@ -152,6 +152,7 @@ export type ThemeListItem = {
 }
 
 export type BareTag = {
+  id: number;
   categoryId: number;
   description?: string;
   primaryAlias: string;
@@ -160,7 +161,8 @@ export type BareTag = {
 
 export type TagsFile = {
   categories: TagCategory[];
-  tags: BareTag[]
+  tags: BareTag[];
+  aliases: flashpoint.TagAlias[];
 }
 
 export type ShowMessageBoxFunc = (options: flashpoint.DialogStateTemplate) => Promise<string>;
@@ -215,3 +217,99 @@ export type ApiEmittersState = Readonly<{
     onExtConfigChange: ApiEmitter<{key: string, value: any}>;
   }>,
 }>
+
+export type MetadataRaw = {
+  games: MetadataGame[];
+  tags: MetadataTag[];
+  platforms: MetadataPlatform[];
+  categories: MetadataCategory[];
+}
+
+export type MetadataAddApp = {
+  applicationPath: string;
+  autoRunBefore?: number;
+  id: string;
+  launchCommand: string;
+  name: string;
+  parentGameId: string;
+  waitForExit?: number;
+}
+
+export type MetadataGameData = {
+  id: number;
+  gameId: string;
+  title: string;
+  dateAdded: string;
+  sha256: string;
+  crc32: number;
+  size: number;
+  parameters?: string;
+}
+
+export type MetadataGame = {
+  addApps: MetadataAddApp[];
+  gameData: MetadataGameData[];
+  tags: number[];
+  platforms: number[];
+  id: string;
+  title: string;
+  alternateTitles: string;
+  series: string;
+  developer: string;
+  publisher: string;
+  status: string;
+  extreme: boolean;
+  source: string;
+  launchCommand: string;
+  library: string;
+  notes: string;
+  curationNotes: string;
+  applicationPath: string;
+  playMode: string;
+  releaseDate: string;
+  version: string;
+  originalDescription: string;
+  mountParameters: string;
+  language: string;
+  dateAdded: string;
+  platformsStr: string;
+  tagsStr: string;
+  parentGameId?: string;
+  activeDataId?: number;
+}
+
+export type MetadataTag = {
+  id: number;
+  dateModified: string;
+  description?: string;
+  categoryId: number;
+  tagAliases: MetadataTagAlias[];
+  primaryAliasId: number;
+}
+
+export type MetadataTagAlias = {
+  id: number;
+  name: string;
+  tagId: number;
+}
+
+export type MetadataPlatform = {
+  id: number;
+  dateModified: string;
+  description?: string;
+  platformAliases: MetadataPlatformAlias[];
+  primaryAliasId: number;
+}
+
+export type MetadataPlatformAlias = {
+  id: number;
+  name: string;
+  platformId: number;
+}
+
+export type MetadataCategory = {
+  id: number;
+  name: string;
+  color: string;
+  description?: string
+}

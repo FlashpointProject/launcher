@@ -12,6 +12,18 @@ import { IsNull, Not, SelectQueryBuilder } from 'typeorm';
 import { AppDataSource } from '..';
 import * as GameManager from './GameManager';
 
+export async function dumpTagAliases() {
+  return AppDataSource.getRepository(TagAlias).find({ where: { name: Not('') }});
+}
+
+export async function findTagAlias(name: string) {
+  return AppDataSource.getRepository(TagAlias).findOne({ where: { name }});
+}
+
+export async function findPlatformAlias(name: string) {
+  return AppDataSource.getRepository(PlatformAlias).findOne({ where: { name }});
+}
+
 export async function findTagCategories(): Promise<TagCategory[]> {
   return AppDataSource.getRepository(TagCategory).find();
 }
