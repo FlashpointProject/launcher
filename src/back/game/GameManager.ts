@@ -321,7 +321,7 @@ export async function save(game: Game): Promise<Game> {
   return savedGame;
 }
 
-export async function removeGameAndAddApps(gameId: string, dataPacksFolderPath: string, imageFolderPath: string): Promise<Game | null> {
+export async function removeGameAndAddApps(gameId: string, dataPacksFolderPath: string, imageFolderPath: string, htdocsFolderPath: string): Promise<Game | null> {
   const gameRepository = AppDataSource.getRepository(Game);
   const addAppRepository = AppDataSource.getRepository(AdditionalApp);
   const game = await findGame(gameId);
@@ -334,6 +334,16 @@ export async function removeGameAndAddApps(gameId: string, dataPacksFolderPath: 
     try {
       const ssPath = path.join(imageFolderPath, 'Screenshots', game.id.substring(0, 2), game.id.substring(2, 4), game.id+'.png');
       await fs.promises.unlink(ssPath);
+    } catch { /** Assume doesn't exist */ }
+    // Delete Launch Command file from htdocs
+    try {
+      const urlObj = new URL(game.launchCommand) || new URL('http://'+game.launchCommand);
+      const filePath = urlObj
+        ? path.join(htdocsFolderPath, decodeURIComponent(path.join(urlObj.hostname, urlObj.pathname)))
+        : undefined;
+      if (filePath) {
+        await fs.promises.unlink(filePath);
+      }
     } catch { /** Assume doesn't exist */ }
     // Delete GameData
     for (const gameData of (await GameDataManager.findGameData(game.id))) {

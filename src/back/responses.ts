@@ -56,7 +56,7 @@ import { importAllMetaEdits } from './MetaEdit';
 import { addPlaylistGame, deletePlaylist, deletePlaylistGame, duplicatePlaylist, filterPlaylists, getPlaylistGame, importPlaylist, savePlaylistGame, updatePlaylist } from './playlist';
 import { PlaylistFile } from './PlaylistFile';
 import { copyFolder, genContentTree } from './rust';
-import { BackState, BarePlatform, BareTag, DatabaseExportFile, MetadataRaw, TagsFile } from './types';
+import { BackState, BarePlatform, BareTag, MetadataRaw, TagsFile } from './types';
 import { pathToBluezip } from './util/Bluezip';
 import { awaitDialog } from './util/dialog';
 import {
@@ -412,7 +412,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   state.socketServer.register(BackIn.DELETE_GAME, async (event, id) => {
     const game = await GameManager.removeGameAndAddApps(id,
       path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath),
-      path.join(state.config.flashpointPath, state.preferences.imageFolderPath));
+      path.join(state.config.flashpointPath, state.preferences.imageFolderPath),
+      path.join(state.config.flashpointPath, state.preferences.htdocsFolderPath));
 
     state.queries = {}; // Clear entire cache
 
@@ -1172,7 +1173,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       await Promise.all(chunk.map(async game => {
         await GameManager.removeGameAndAddApps(game.id,
           path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath),
-          path.join(state.config.flashpointPath, state.preferences.imageFolderPath));
+          path.join(state.config.flashpointPath, state.preferences.imageFolderPath),
+          path.join(state.config.flashpointPath, state.preferences.htdocsFolderPath));
       }));
       state.queries = {}; // Reset search queries
     }
@@ -1213,6 +1215,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         state.socketServer.broadcast(BackOut.CURATE_SELECT_LOCK, curation.folder, true);
         await importCuration({
           curation: curation,
+          htdocsFolderPath: state.preferences.htdocsFolderPath,
           gameManager: state.gameManager,
           date: (data.date !== undefined) ? new Date(data.date) : undefined,
           saveCuration: data.saveCuration,

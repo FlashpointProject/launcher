@@ -34,6 +34,7 @@ type ImportCurationOpts = {
   saveCuration: boolean;
   fpPath: string;
   dataPacksFolderPath: string;
+  htdocsFolderPath: string;
   bluezipPath: string;
   imageFolderPath: string;
   openDialog: ShowMessageBoxFunc;
@@ -65,6 +66,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   if (opts.date === undefined) { opts.date = new Date(); }
   const {
     dataPacksFolderPath,
+    htdocsFolderPath,
     bluezipPath,
     curation,
     date,
@@ -267,7 +269,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
 
     if (game.id) {
       // Clean up half imported entries
-      GameManager.removeGameAndAddApps(game.id, dataPacksFolderPath, path.join(fpPath, imagePath));
+      GameManager.removeGameAndAddApps(game.id, dataPacksFolderPath, path.join(fpPath, imagePath), path.join(fpPath, htdocsFolderPath));
     }
     // Let it bubble up
     throw error;
