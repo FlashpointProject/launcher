@@ -2,6 +2,7 @@ import { ApiEmitter } from '@back/extensions/ApiEmitter';
 import { validateSqlName, validateSqlOrder } from '@back/util/sql';
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
+import { GameData } from '@database/entity/GameData';
 import { PlatformAlias } from '@database/entity/PlatformAlias';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
@@ -33,6 +34,14 @@ export const onDidRemoveGame = new ApiEmitter<Game>();
 export const onDidUpdatePlaylist = new ApiEmitter<{oldPlaylist: Playlist, newPlaylist: Playlist}>();
 export const onDidUpdatePlaylistGame = new ApiEmitter<{oldGame: PlaylistGame, newGame: PlaylistGame}>();
 export const onDidRemovePlaylistGame = new ApiEmitter<PlaylistGame>();
+
+export async function dumpAddApps(): Promise<AdditionalApp[]> {
+  return AppDataSource.getRepository(AdditionalApp).find();
+}
+
+export async function dumpGameData(): Promise<GameData[]> {
+  return AppDataSource.getRepository(GameData).find();
+}
 
 export async function countGames(): Promise<number> {
   const gameRepository = AppDataSource.getRepository(Game);

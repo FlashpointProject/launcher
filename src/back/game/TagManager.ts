@@ -1,5 +1,5 @@
 import { SocketServer } from '@back/SocketServer';
-import { BackState, ShowMessageBoxFunc } from '@back/types';
+import { BackState, ExportRelation, ShowMessageBoxFunc } from '@back/types';
 import { awaitDialog } from '@back/util/dialog';
 import { Platform } from '@database/entity/Platform';
 import { PlatformAlias } from '@database/entity/PlatformAlias';
@@ -14,6 +14,32 @@ import * as GameManager from './GameManager';
 
 export async function dumpTagAliases() {
   return AppDataSource.getRepository(TagAlias).find({ where: { name: Not('') }});
+}
+
+export async function dumpPlatformAliases() {
+  return AppDataSource.getRepository(PlatformAlias).find({ where: { name: Not('') }});
+}
+
+export async function dumpPlatforms() {
+  return AppDataSource.getRepository(Platform).find();
+}
+
+export async function dumpTagRelations(): Promise<ExportRelation[]> {
+  const queryBuilder = AppDataSource.createQueryBuilder()
+  .select('gt.gameId', 'g')
+  .addSelect('gt.tagId', 'v')
+  .from('game_tags_tag', 'gt');
+
+  return await queryBuilder.getRawMany();
+}
+
+export async function dumpPlatformRelations(): Promise<ExportRelation[]> {
+  const queryBuilder = AppDataSource.createQueryBuilder()
+  .select('gp.gameId', 'g')
+  .addSelect('gp.platformId', 'v')
+  .from('game_platforms_platform', 'gp');
+
+  return await queryBuilder.getRawMany();
 }
 
 export async function findTagAlias(name: string) {

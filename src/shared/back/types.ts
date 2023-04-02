@@ -80,6 +80,7 @@ export enum BackIn {
   CLEANUP_TAGS,
   FIX_TAG_PRIMARY_ALIASES,
   EXPORT_TAGS,
+  EXPORT_DATABASE,
   IMPORT_TAGS,
   NUKE_TAGS,
 
@@ -290,6 +291,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.CLEANUP_TAGS]: () => void;
   [BackIn.FIX_TAG_PRIMARY_ALIASES]: (data: null) => number;
   [BackIn.EXPORT_TAGS]: (data: string) => number;
+  [BackIn.EXPORT_DATABASE]: (data: string) => string;
   [BackIn.IMPORT_TAGS]: (data: string) => number;
   [BackIn.NUKE_TAGS]: (tags: string[]) => Promise<void>;
 

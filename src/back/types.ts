@@ -151,12 +151,43 @@ export type ThemeListItem = {
   basename: string;
 }
 
+export type BarePlatform = {
+  id: number;
+  description?: string;
+  primaryAlias: string;
+}
+
 export type BareTag = {
   id: number;
   categoryId: number;
   description?: string;
   primaryAlias: string;
-  aliases: string[];
+}
+
+export type ExportRelation = {
+  g: string,
+  v: number
+}
+
+export type BareGame = Omit<flashpoint.Game, 'activeDataOnDisk' | 'updateTagsStr'>;
+
+export type DatabaseExportFile = {
+  tags: TagsFile,
+  games: GamesFile
+  platforms: PlatformsFile,
+  tagRelations: ExportRelation[],
+  platformRelations: ExportRelation[]
+}
+
+type GamesFile = {
+  addApps: flashpoint.AdditionalApp[];
+  gameData: flashpoint.GameData[];
+  games: BareGame[];
+}
+
+type PlatformsFile = {
+  platforms: BarePlatform[];
+  aliases: flashpoint.PlatformAlias[];
 }
 
 export type TagsFile = {

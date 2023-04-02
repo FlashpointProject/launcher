@@ -138,6 +138,10 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               title={strings.exportTagsDesc}
               onClick={this.onExportTagsClick} />
             <SimpleButton
+              value={strings.exportDatabase}
+              title={strings.exportDatabaseDesc}
+              onClick={this.onExportDatabaseClick} />
+            <SimpleButton
               value={strings.importTags}
               title={strings.importTagsDesc}
               onClick={this.onImportTagsClick} />
@@ -273,6 +277,15 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
       })
       .catch((error) => {
         this.setState({ text: `Tags Not Exported\nERROR - ${error}`});
+      });
+    });
+  };
+
+  onExportDatabaseClick = () : void => {
+    setTimeout(async () => {
+      exportDatabase((text) => this.setState({ text: text }))
+      .catch((error) => {
+        this.setState({ text: `Database Not Exported\nERROR - ${error}`});
       });
     });
   };
@@ -831,6 +844,26 @@ async function importLegacyPlaylists(playlistsPath: string): Promise<number> {
 async function fixPrimaryAliases(): Promise<number> {
   const data = await window.Shared.back.request(BackIn.FIX_TAG_PRIMARY_ALIASES, null);
   return data || 0;
+}
+
+async function exportDatabase(setText: (text: string) => void): Promise<void> {
+  const defaultPath = path.join(window.Shared.config.fullFlashpointPath, 'Data');
+  await fs.ensureDir(defaultPath);
+  const filePath = remote.dialog.showSaveDialogSync({
+    title: 'Export Database',
+    defaultPath: path.join(defaultPath, 'exported_database.json'),
+    filters: [{
+      name: 'Database JSON file',
+      extensions: ['json'],
+    }]
+  });
+  if (filePath) {
+    setText('Exporting database, please wait...');
+    const res = await window.Shared.back.request(BackIn.EXPORT_DATABASE, filePath);
+    setText(res);
+  } else {
+    throw new Error('User Cancelled');
+  }
 }
 
 async function exportTags(setText: (text: string) => void): Promise<number> {

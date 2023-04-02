@@ -204,6 +204,8 @@
     "fixCommaTagsDesc": "Splits tags with commas into many tags and applies them to all applicable games",
     "exportTags": "Export Tags",
     "exportTagsDesc": "Creates a file full of tags and tag categories that can be used by 'Import Tags'",
+    "exportDatabase": "Export Database",
+    "exportDatabaseDesc": "Creates a file full of tags and tag categories that can be used by live metadata servers",
     "importTags": "Import Tags",
     "importTagsDesc": "Imports Tags from an file created by 'Export Tags'",
     "migrateExtremeGames": "Migrate Extreme Games",

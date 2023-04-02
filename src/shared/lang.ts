@@ -201,6 +201,8 @@ const langTemplate = {
     'importLegacyPlaylistsDesc',
     'exportTags',
     'exportTagsDesc',
+    'exportDatabase',
+    'exportDatabaseDesc',
     'importTags',
     'importTagsDesc',
     'deleteAllPlaylists',

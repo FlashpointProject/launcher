@@ -30,6 +30,7 @@ import { AddAppCuration, CurationState, Platform } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as fs_extra from 'fs-extra';
 import * as https from 'https';
+import { snakeCase, transform } from 'lodash';
 import { add, Progress } from 'node-7z';
 import * as os from 'os';
 import * as path from 'path';
@@ -55,7 +56,7 @@ import { importAllMetaEdits } from './MetaEdit';
 import { addPlaylistGame, deletePlaylist, deletePlaylistGame, duplicatePlaylist, filterPlaylists, getPlaylistGame, importPlaylist, savePlaylistGame, updatePlaylist } from './playlist';
 import { PlaylistFile } from './PlaylistFile';
 import { copyFolder, genContentTree } from './rust';
-import { BackState, BareTag, MetadataRaw, TagsFile } from './types';
+import { BackState, BarePlatform, BareTag, DatabaseExportFile, MetadataRaw, TagsFile } from './types';
 import { pathToBluezip } from './util/Bluezip';
 import { awaitDialog } from './util/dialog';
 import {
@@ -975,8 +976,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
           id: t.id || 0,
           categoryId: t.categoryId || -1,
           description: t.description,
-          primaryAlias: primaryAlias ? primaryAlias.name : 'ERROR',
-          aliases: t.aliases.map(a => a.name)
+          primaryAlias: primaryAlias ? primaryAlias.name : 'ERROR'
         };
         return bareTag;
       });
@@ -986,6 +986,112 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       res = -1;
     }
     state.socketServer.send(event.client, BackOut.EXPORT_TAGS, res);
+    return res;
+  });
+
+  state.socketServer.register(BackIn.EXPORT_DATABASE, async (event, data) => {
+    let jsonFile: any = {
+      games: {
+        games: [],
+        addApps: [],
+        gameData: []
+      },
+      tags: {
+        categories: [],
+        tags: [],
+        aliases: []
+      },
+      platforms: {
+        platforms: [],
+        aliases: []
+      },
+      tagRelations: [],
+      platformRelations: []
+    };
+
+    // --- TAGS ---
+
+    // Collect tag categories
+    jsonFile.tags.categories = await TagManager.findTagCategories();
+    // Collect aliases
+    jsonFile.tags.aliases = await TagManager.dumpTagAliases();
+    // Collect tags
+    jsonFile.tags.tags = (await TagManager.findTags('')).map(t => {
+      const primaryAlias = t.aliases.find(a => a.id === t.primaryAliasId);
+      const bareTag: BareTag = {
+        id: t.id || 0,
+        categoryId: t.categoryId || -1,
+        description: t.description,
+        primaryAlias: primaryAlias ? primaryAlias.name : 'ERROR'
+      };
+      return bareTag;
+    });
+
+    // --- PLATFORMS ---
+
+    // Collect aliases
+    jsonFile.platforms.aliases = await TagManager.dumpPlatformAliases();
+    // Collect tags
+    jsonFile.platforms.platforms = (await TagManager.dumpPlatforms()).map(p => {
+      const primaryAlias = p.aliases.find(a => a.id === p.primaryAliasId);
+      const barePlatform: BarePlatform = {
+        id: p.id || 0,
+        description: p.description,
+        primaryAlias: primaryAlias ? primaryAlias.name : 'ERROR'
+      };
+      return barePlatform;
+    });
+
+    // --- GAMES ----
+
+    // Collect add apps
+    jsonFile.games.addApps = await GameManager.dumpAddApps();
+    // Collect game data
+    jsonFile.games.gameData = await GameManager.dumpGameData();
+    // Collect games
+    let games = await GameManager.findAllGames();
+    while (games.length > 0) {
+      for (const game of games) {
+        jsonFile.games.games.push({
+          ...game,
+          platforms: [],
+          data: [],
+          addApps: [],
+          tags: []
+        });
+      }
+      games = await GameManager.findAllGames(games[games.length - 1].id);
+    }
+
+    // --- RELATIONS ---
+    jsonFile.tagRelations = await TagManager.dumpTagRelations();
+    jsonFile.platformRelations = await TagManager.dumpPlatformRelations();
+
+    // --- CONVERSION ---
+    const snekify = (obj: Record<string, unknown>) => {
+      return transform(obj, (result: Record<string, unknown>, value: unknown, key: string, target) => {
+        const camelKey = Array.isArray(target) ? key : snakeCase(key);
+        result[camelKey] = (value !== null && typeof value === 'object') ? snekify(value as Record<string, unknown>) : value;
+      });
+    };
+
+    const res = 'Exported Database:' +
+    `\nTag Categories: ${jsonFile.tags.categories.length.toString().padStart(5, ' ')} ` +
+    `\nTag Alias: ${jsonFile.tags.aliases.length.toString().padStart(5, ' ')} ` +
+    `\nTags: ${jsonFile.tags.tags.length.toString().padStart(11, ' ')} ` +
+    `\nPlatform Aliases: ${jsonFile.platforms.aliases.length.toString().padStart(3, ' ')} ` +
+    `\nPlatforms: ${jsonFile.platforms.platforms.length.toString().padStart(9, ' ')} ` +
+    `\nGames: ${jsonFile.games.games.length.toString().padStart(14, ' ')} ` +
+    `\nAdd Apps: ${jsonFile.games.addApps.length.toString().padStart(8, ' ')} ` +
+    `\nGame Data: ${jsonFile.games.gameData.length.toString().padStart(10, ' ')} ` +
+    `\nTag Relations: ${jsonFile.tagRelations.length.toString().padStart(2, ' ')} ` +
+    `\nPlatform Relations: ${jsonFile.platformRelations.length.toString().padStart(2, ' ')} `;
+
+    jsonFile = JSON.stringify(jsonFile, null, 0);
+    jsonFile = JSON.parse(jsonFile);
+    jsonFile = snekify(jsonFile);
+    await fs.promises.writeFile(data, JSON.stringify(jsonFile,  null, ' '), { encoding: 'utf8' });
+
     return res;
   });
 
@@ -1013,7 +1119,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         if (existingTag) {
           // TODO: Detect alias collisions
         } else {
-          await TagManager.createTag(bareTag.primaryAlias, categories[bareTag.categoryId].name, bareTag.aliases.filter(a => a !== bareTag.primaryAlias));
+          await TagManager.createTag(bareTag.primaryAlias, categories[bareTag.categoryId].name, (json.aliases.filter(a => a.tagId === bareTag.id).map(a => a.name)).filter(a => a !== bareTag.primaryAlias));
           res += 1;
         }
       }
