@@ -523,6 +523,7 @@ body {
 .header-user-box {
   display: flex;
   flex-direction: row;
+  margin-right: 0.2rem;
 }
 .header-user-icon {
   height: 1.7rem;

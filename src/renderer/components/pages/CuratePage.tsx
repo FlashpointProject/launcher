@@ -778,7 +778,7 @@ function renderConfirmButton({ confirm, extra }: ConfirmElementArgs<SimpleButton
   );
 }
 
-function newCurateTask(name: string, status: string, addTask: (task: Task) => void): Task {
+export function newCurateTask(name: string, status: string, addTask: (task: Task) => void): Task {
   const task: Task = {
     id: uuid(),
     name,

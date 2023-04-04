@@ -26,6 +26,7 @@ import { GameOrderChangeEvent } from './components/GameOrder';
 import { InputField } from './components/InputField';
 import { MetaEditExporter, MetaEditExporterConfirmData } from './components/MetaEditExporter';
 import { OpenIcon } from './components/OpenIcon';
+import { newCurateTask } from './components/pages/CuratePage';
 import { placeholderProgressData, ProgressBar } from './components/ProgressComponents';
 import { ResizableSidebar, SidebarResizeEvent } from './components/ResizableSidebar';
 import { SimpleButton } from './components/SimpleButton';
@@ -144,6 +145,21 @@ export class App extends React.Component<AppProps> {
               alert('Invalid Protocol: ' + url);
             } else {
               switch (parts[1]) {
+                case 'open_curation': {
+                  this.performFpfssAction(async (user) => {
+                    try {
+                      // Build url
+                      const url = `${this.props.preferencesData.fpfssBaseUrl}/${parts.slice(2).join('/')}`;
+                      // Generate task
+                      const newTask = newCurateTask('Importing FPFSS Submission...', 'Importing...', this.props.addTask);
+                      // Import
+                      await window.Shared.back.request(BackIn.FPFSS_OPEN_CURATION, url, user.accessToken, newTask.id);
+                    } catch (err) {
+                      alert(`Error fetching curation: ${err}`);
+                    }
+                  });
+                  break;
+                }
                 case 'edit_game': {
                   // Edit game in-launcher then send it back to server
                   this.performFpfssAction((user) => {
@@ -1338,6 +1354,7 @@ export class App extends React.Component<AppProps> {
               <>
                 {/* Header */}
                 <HeaderContainer
+                  logoutUser={this.logoutUser}
                   user={this.props.main.fpfss.user}
                   libraries={this.props.main.libraries}
                   onOrderChange={this.onOrderChange}

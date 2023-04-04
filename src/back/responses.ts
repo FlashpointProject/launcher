@@ -17,7 +17,7 @@ import { LogLevel } from '@shared/Log/interface';
 import { MetaEditFile, MetaEditMeta } from '@shared/MetaEdit';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { defaultPreferencesData, overwritePreferenceData } from '@shared/preferences/util';
-import { deepCopy, padEnd } from '@shared/Util';
+import { deepCopy, downloadFile, padEnd } from '@shared/Util';
 import { chunkArray } from '@shared/utils/misc';
 import { sanitizeFilename } from '@shared/utils/sanitizeFilename';
 import { formatString } from '@shared/utils/StringFormatter';
@@ -66,7 +66,7 @@ import {
   createGameFromLegacy,
   dateToFilenameString,
   deleteCuration,
-  exit, getCwd, pathExists, procToService, removeService,
+  exit, getCwd, getTempFilename, pathExists, procToService, removeService,
   runService
 } from './util/misc';
 import { pathTo7zBack } from './util/SevenZip';
@@ -1966,6 +1966,49 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       state.loadedCurations.push(curation);
       state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
     }
+  });
+
+  state.socketServer.register(BackIn.FPFSS_OPEN_CURATION, async (event, url, accessToken, taskId) => {
+    // Setup task info
+    const taskProgress = new TaskProgress(2);
+    if (taskId) {
+      taskProgress.on('progress', (text, done) => {
+        state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
+          status: text,
+          progress: done,
+        });
+      });
+      taskProgress.on('done', (text) => {
+        state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
+          status: text,
+          progress: 1,
+          finished: true
+        });
+      });
+    }
+
+    // Download to temp file
+    let tempFile = '';
+    try {
+      taskProgress.setStage(1, `Downloading ${url}`);
+      tempFile = await getTempFilename('.7z');
+      await downloadFile(url, tempFile, undefined, undefined, undefined, { headers: { 'Authorization': `Bearer ${accessToken}` } });
+      taskProgress.setStageProgress(1, 'Downloaded');
+    } catch (err) {
+      throw 'Error downloading curation file';
+    }
+
+
+    taskProgress.setStage(2, `Loading ${tempFile}`);
+    await loadCurationArchive(tempFile, throttle((progress: Progress) => {
+      taskProgress.setStageProgress((progress.percent / 100), `Extracting Files - ${progress.fileCount}`);
+    }, 200))
+    .catch((error) => {
+      log.error('Curate', `Failed to load curation archive! ${error.toString()}`);
+      state.socketServer.broadcast(BackOut.OPEN_ALERT, formatString(state.languageContainer['dialog'].failedToLoadCuration, error.toString())  as string);
+    });
+    taskProgress.setStageProgress(2, 'Extracted');
+    taskProgress.done('Imported FPFSS Curation');
   });
 
   state.socketServer.register(BackIn.RUN_COMMAND, async (event, command, args = []) => {

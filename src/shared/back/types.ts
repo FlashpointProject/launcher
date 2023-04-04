@@ -123,6 +123,9 @@ export enum BackIn {
   RUN_COMMAND,
   DOWNLOAD_EXTENSION,
 
+  // FPFSS
+  FPFSS_OPEN_CURATION,
+
   // Curate
   CURATE_LOAD_ARCHIVES,
   CURATE_GET_LIST,
@@ -324,6 +327,9 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   // Extensions
   [BackIn.RUN_COMMAND]: (command: string, args?: any[]) => RunCommandResponse;
   [BackIn.DOWNLOAD_EXTENSION]: (downloadPath: string) => void;
+
+  // FPFSS
+  [BackIn.FPFSS_OPEN_CURATION]: (url: string, accessToken: string, taskId: string) => void;
 
   // Curate
   [BackIn.CURATE_LOAD_ARCHIVES]: (filePaths: string[], taskId?: string) => void;
