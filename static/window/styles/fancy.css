@@ -438,6 +438,13 @@ body {
 .header__toggle-sidebar:active .icon__use {
   fill: var(--layout__secondary-text-color);
 }
+.header-user-icon {
+  border: 1px solid var(--layout__simple-button-border);
+  border-radius: 25%;
+}
+.header-user-box:hover {
+  background-color: var(--layout__simple-button-background);
+}
 
 
 /* ------ Footer ------ */

@@ -509,10 +509,32 @@ body {
   max-width: calc(100vw - var(--header-padding));
 }
 .header__right {
+  display: flex;
+  flex-direction: row;
   flex-grow: 1;
+  align-items: center;
+}
+.header__right > :first-child {
+  margin-left: auto;
 }
 .header__right > div > :not(:first-child) {
   margin-right: 0.75rem;
+}
+.header-user-box {
+  display: flex;
+  flex-direction: row;
+}
+.header-user-icon {
+  height: 1.7rem;
+  width: 1.7rem;
+  margin-right: 0.3rem;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+.header-user-name {
+  align-self: center;
+  font-weight: bold;
+  font-size: 1.25em;
 }
 /* Header Menu */
 .header__menu {

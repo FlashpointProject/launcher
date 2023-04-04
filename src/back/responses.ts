@@ -2070,6 +2070,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.SYNC_METADATA_SERVER, async (event, serverInfo) => {
+    // OUTDATED CODE
     switch (serverInfo.type) {
       case 'raw': {
         // Download file

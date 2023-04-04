@@ -27,6 +27,7 @@ const ALLOWED_HOSTS = [
   'clients2.google.com',
   // React Devtools
   'react-developer-tools',
+  'cdn.discordapp.com',
 ];
 
 type LaunchOptions = {
@@ -298,6 +299,10 @@ export function main(init: Init): void {
       const allowedHosts = [ ...ALLOWED_HOSTS ];
       if (state.preferences && state.preferences.onlineManual) {
         const hostname = new URL(state.preferences.onlineManual).hostname;
+        allowedHosts.push(hostname);
+      }
+      if (state.preferences && state.preferences.fpfssBaseUrl) {
+        const hostname = new URL(state.preferences.fpfssBaseUrl).hostname;
         allowedHosts.push(hostname);
       }
       const allow = (

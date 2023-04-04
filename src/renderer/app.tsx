@@ -1,6 +1,6 @@
 import { Game } from '@database/entity/Game';
 import * as remote from '@electron/remote';
-import { BackIn, BackInit, BackOut } from '@shared/back/types';
+import { BackIn, BackInit, BackOut, FpfssUser } from '@shared/back/types';
 import { APP_TITLE, VIEW_PAGE_SIZE } from '@shared/constants';
 import { CustomIPC, IService, ProcessState, WindowIPC } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
@@ -10,6 +10,7 @@ import { setTheme } from '@shared/Theme';
 import { getFileServerURL, recursiveReplace, sizeToString } from '@shared/Util';
 import { arrayShallowStrictEquals } from '@shared/utils/compare';
 import { debounce } from '@shared/utils/debounce';
+import axios from 'axios';
 import { clipboard, ipcRenderer, Menu, MenuItemConstructorOptions } from 'electron';
 import { AppUpdater } from 'electron-updater';
 import { DialogField, DialogState, Playlist, PlaylistGame } from 'flashpoint-launcher';
@@ -40,6 +41,7 @@ import { WithPreferencesProps } from './containers/withPreferences';
 import { WithTagCategoriesProps } from './containers/withTagCategories';
 import { WithTasksProps } from './containers/withTasks';
 import { CreditsFile } from './credits/CreditsFile';
+import { fpfssLogin } from './fpfss';
 import { UpdateView } from './interfaces';
 import { Paths } from './Paths';
 import { AppRouter, AppRouterProps } from './router';
@@ -133,6 +135,26 @@ export class App extends React.Component<AppProps> {
                   }
                 } else { log.error('Launcher', `Failed to get game. Game is undefined (GameID: "${parts[1]}").`); }
               });
+            }
+            break;
+          }
+          // FPFSS related protocol actions
+          case 'fpfss': {
+            if (parts.length < 3) {
+              alert('Invalid Protocol: ' + url);
+            } else {
+              switch (parts[1]) {
+                case 'edit_game': {
+                  // Edit game in-launcher then send it back to server
+                  this.performFpfssAction((user) => {
+                    alert(user.username);
+                  });
+                  break;
+                }
+                default:
+                  alert('Invalid FPFSS action: ' + parts[1]);
+                  break;
+              }
             }
             break;
           }
@@ -478,6 +500,35 @@ export class App extends React.Component<AppProps> {
         socketOpen: state
       });
     };
+
+    // Load FPFSS user info and check that profile works
+    (() => {
+      const userBase64 = localStorage.getItem('fpfss_user');
+      if (userBase64) {
+        const user = JSON.parse(Buffer.from(userBase64, 'base64').toString('utf-8')) as FpfssUser;
+        // Test profile uri
+        const profileUrl = `${window.Shared.preferences.data.fpfssBaseUrl}/api/profile`;
+        axios.get(profileUrl, { headers: {
+          'Authorization': `Bearer ${user.accessToken}`
+        }})
+        .then((res) => {
+          // Success, use most recent info and save to storage and state
+          user.username = res.data['Username'];
+          user.avatarUrl = res.data['AvatarURL'];
+          user.roles = res.data['Roles'];
+          const newUserBase64 = Buffer.from(JSON.stringify(user, null, 0)).toString('base64');
+          localStorage.setItem('fpfss_user', newUserBase64);
+          this.props.dispatchMain({
+            type: MainActionType.SET_FPFSS_USER,
+            user
+          });
+        })
+        .catch(() => {
+          // Failed auth
+          localStorage.removeItem('fpfss_user');
+        });
+      }
+    })();
 
     // Warn the user when closing the launcher WHILE downloading or installing an upgrade
     (() => {
@@ -1181,6 +1232,7 @@ export class App extends React.Component<AppProps> {
 
     // Props to set to the router
     const routerProps: AppRouterProps = {
+      fpfssUser: this.props.main.fpfss.user,
       gotdList: this.props.main.gotdList,
       games: view && view.games || {},
       randomGames: this.props.main.randomGames,
@@ -1286,6 +1338,7 @@ export class App extends React.Component<AppProps> {
               <>
                 {/* Header */}
                 <HeaderContainer
+                  user={this.props.main.fpfss.user}
                   libraries={this.props.main.libraries}
                   onOrderChange={this.onOrderChange}
                   onToggleLeftSidebarClick={this.onToggleLeftSidebarClick}
@@ -1637,6 +1690,41 @@ export class App extends React.Component<AppProps> {
     });
     window.Shared.back.send(BackIn.OPEN_FLASHPOINT_MANAGER);
   };
+
+  async logoutUser() {
+    // @TODO actually logout to invalid server side
+    this.props.dispatchMain({
+      type: MainActionType.SET_FPFSS_USER,
+      user: null
+    });
+    localStorage.removeItem('fpfss_user');
+  }
+
+  async performFpfssAction(cb: (user: FpfssUser) => any) {
+    let user = this.props.main.fpfss.user;
+    if (!user) {
+      // Logged out, try login
+      user = await fpfssLogin()
+      .catch((err) => {
+        alert(err);
+      }) as FpfssUser | null; // Weird void from inferred typing?
+      if (user) {
+        // Store in main state
+        this.props.dispatchMain({
+          type: MainActionType.SET_FPFSS_USER,
+          user
+        });
+        // Store in localstorage
+        const userBase64 = Buffer.from(JSON.stringify(user, null, 0)).toString('base64');
+        localStorage.setItem('fpfss_user', userBase64);
+      }
+    }
+
+    if (user) {
+      // User exists, carry on to callback
+      await cb(user);
+    }
+  }
 }
 
 async function cacheIcon(icon: string): Promise<string> {
@@ -1657,7 +1745,7 @@ function onUpdateDownloaded() {
   });
 }
 
-function openContextMenu(template: MenuItemConstructorOptions[]): Menu {
+export function openContextMenu(template: MenuItemConstructorOptions[]): Menu {
   const menu = remote.Menu.buildFromTemplate(template);
   menu.popup({ window: remote.getCurrentWindow() });
   return menu;

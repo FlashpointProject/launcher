@@ -16,6 +16,7 @@ import { ProgressContext } from './context/ProgressContext';
 import { MainState, View } from './store/main/types';
 import { logFactory } from './util/logging';
 import { MessageBoxSyncOptions } from 'electron';
+import { EventEmitter } from 'stream';
 
 (async () => {
   globalThis.alert = function(str) {
@@ -115,8 +116,6 @@ export function createInitialMainState(): MainState {
   //   };
   // }
 
-  // Prepare platforms
-  const platforms: Record<string, string[]> = {};
   // for (const library of libraries) {
   //   platforms[library] = window.Shared.initialPlatforms[library].slice().sort();
   // }
@@ -128,16 +127,16 @@ export function createInitialMainState(): MainState {
     mad4fpEnabled: false,
     playlists: [],
     playlistIconCache: {},
+    dialogResEvent: new EventEmitter(),
     suggestions: {
       tags: [],
-      platform: [],
+      platforms: [],
       playMode: [],
       status: [],
       applicationPath: [],
       library: []
     },
     appPaths: {},
-    platforms: platforms,
     loadedAll: new Gate(),
     loaded: {
       [BackInit.SERVICES]: false,
@@ -188,5 +187,6 @@ export function createInitialMainState(): MainState {
     componentStatuses: [],
     quitting: false,
     openDialogs: [],
+    fpfss: { user: null },
   };
 }

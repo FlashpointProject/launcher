@@ -3,7 +3,7 @@ import { GameData } from '@database/entity/GameData';
 import { CreditsData } from '@renderer/credits/types';
 import { ViewGameSet } from '@renderer/interfaces';
 import { UpgradeStage } from '@renderer/upgrade/types';
-import { BackInit, ComponentStatus, GameOfTheDay, PageKeyset, ResponseGameRange, SearchGamesOpts, ViewGame } from '@shared/back/types';
+import { BackInit, ComponentStatus, FpfssState, FpfssUser, GameOfTheDay, PageKeyset, ResponseGameRange, SearchGamesOpts, ViewGame } from '@shared/back/types';
 import { AppExtConfigData } from '@shared/config/interfaces';
 import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { GamePropSuggestions, IService } from '@shared/interfaces';
@@ -149,6 +149,8 @@ export type MainState = {
   openDialogs: DialogState[];
   /** Renderer side dialog response emitter (event code = dialog id) */
   dialogResEvent: EventEmitter;
+  /** State information for FPFSS connection */
+  fpfss: FpfssState;
 }
 export type ConnectedMainAction = WithAsyncDispatch & MainAction;
 export type MainAction = {
@@ -278,6 +280,9 @@ export type MainAction = {
   type: MainActionType.UPDATE_DIALOG_FIELD;
   dialogId: string;
   field: DialogField;
+} | {
+  type: MainActionType.SET_FPFSS_USER;
+  user: FpfssUser | null;
 }
 
 export type WithAsyncDispatch = {

@@ -160,6 +160,8 @@ const langTemplate = {
     'manual',
     'layout',
     'openFlashpointManager',
+    'fpfssProfile',
+    'fpfssLogout'
   ] as const,
   filter: [
     'dateAdded',

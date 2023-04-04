@@ -152,7 +152,9 @@
     "searchResults": "Search Results",
     "manual": "Help",
     "layout": "Browser Layout",
-    "openFlashpointManager": "Open Flashpoint Manager"
+    "openFlashpointManager": "Open Flashpoint Manager",
+    "fpfssProfile": "Open Profile",
+    "fpfssLogout": "Logout from FPFSS"
   },
   "filter": {
     "dateAdded": "Date Added",

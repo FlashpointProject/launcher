@@ -122,6 +122,7 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   searchLimit: 0,
   onlineManual: 'https://flashpointproject.github.io/manual/',
   offlineManual: '',
+  fpfssBaseUrl: 'https://fpfss.unstable.life',
   groups: [],
   shortcuts: {
     curate: {
@@ -204,6 +205,7 @@ export function overwritePreferenceData(
   parser.prop('updateFeedUrl',               v => source.updateFeedUrl               = str(v));
   parser.prop('onlineManual',                v => source.onlineManual                = str(v));
   parser.prop('offlineManual',               v => source.offlineManual               = str(v));
+  parser.prop('fpfssBaseUrl',                v => source.fpfssBaseUrl                = str(v));
   parser.prop('fancyAnimations',             v => source.fancyAnimations             = !!v);
   parser.prop('searchLimit',                 v => source.searchLimit                 = num(v));
   // Migrate onDemandBaseUrl from the older FP url

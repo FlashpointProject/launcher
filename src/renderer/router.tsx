@@ -1,5 +1,5 @@
 import { Game } from '@database/entity/Game';
-import { ComponentStatus, GameOfTheDay, ViewGame } from '@shared/back/types';
+import { ComponentStatus, FpfssUser, GameOfTheDay, ViewGame } from '@shared/back/types';
 import { AppExtConfigData } from '@shared/config/interfaces';
 import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { GamePropSuggestions, IService } from '@shared/interfaces';
@@ -26,6 +26,7 @@ import { UpdateView, ViewGameSet } from './interfaces';
 import { Paths } from './Paths';
 
 export type AppRouterProps = {
+  fpfssUser: FpfssUser | null;
   gotdList: GameOfTheDay[];
   games: ViewGameSet;
   randomGames: ViewGame[];

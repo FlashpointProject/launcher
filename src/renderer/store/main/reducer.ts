@@ -456,6 +456,16 @@ export function mainStateReducer(state: MainState = createInitialState(), action
       };
     }
 
+    case MainActionType.SET_FPFSS_USER: {
+      const newFpfssState = deepCopy(state.fpfss);
+      newFpfssState.user = action.user;
+
+      return {
+        ...state,
+        fpfss: newFpfssState
+      };
+    }
+
     case MainActionType.SETUP_VIEWS: {
       const views: Record<string, View> = {};
       for (const library of state.libraries) {
@@ -596,6 +606,7 @@ function createInitialState(): MainState {
       [BackInit.EXEC_MAPPINGS]: false,
       [BackInit.EXTENSIONS]: false
     },
+    fpfss: { user: null },
     themeList: [],
     logoSets: [],
     logoVersion: 0,

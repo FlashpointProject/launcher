@@ -168,7 +168,8 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     updateGames: GameManager.updateGames,
     removeGameAndAddApps: (gameId: string) => GameManager.removeGameAndAddApps(gameId,
       path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath),
-      path.join(state.config.flashpointPath, state.preferences.imageFolderPath)),
+      path.join(state.config.flashpointPath, state.preferences.imageFolderPath),
+      path.join(state.config.flashpointPath, state.preferences.htdocsFolderPath)),
     isGameExtreme: (game: Game) => {
       const extremeTags = state.preferences.tagFilters.filter(t => t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
       return game.tagsStr.split(';').findIndex(t => extremeTags.includes(t.trim())) !== -1;

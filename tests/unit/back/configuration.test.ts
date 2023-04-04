@@ -41,6 +41,7 @@ describe('Configuration Files', () => {
 
   it('overwrite preferences data', () => {
     const data: AppPreferencesData = {
+      'onDemandImagesCompressed': false,
       'imageFolderPath': 'test/Images',
       'logoFolderPath': 'test/Logos',
       'playlistFolderPath': 'test/Playlists',
@@ -67,7 +68,7 @@ describe('Configuration Files', () => {
       'currentTheme': 'Metal\\test.css',
       'currentLogoSet': 'test',
       'lastSelectedLibrary': 'test',
-      'gamesOrderBy': 'platform',
+      'gamesOrderBy': 'platforms',
       'gamesOrder': 'DESC',
       'defaultLibrary': 'test',
       'mainWindow': {
@@ -128,6 +129,7 @@ describe('Configuration Files', () => {
       'searchLimit': 100,
       'onlineManual': 'test',
       'offlineManual': 'test',
+      'fpfssBaseUrl': 'https://example.com',
       'groups': [{
         name: 'test',
         icon: 'test'

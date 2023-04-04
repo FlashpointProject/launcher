@@ -1,7 +1,10 @@
 import { Tag } from '@database/entity/Tag';
+import * as remote from '@electron/remote';
+import { openContextMenu } from '@renderer/app';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
-import { BackIn, TagSuggestion } from '@shared/back/types';
+import { BackIn, FpfssUser, TagSuggestion } from '@shared/back/types';
 import { getLibraryItemTitle } from '@shared/library/util';
+import { MenuItemConstructorOptions } from 'electron';
 import { GameOrderBy, GameOrderReverse, Platform } from 'flashpoint-launcher';
 import * as React from 'react';
 import { Link, RouteComponentProps, useLocation } from 'react-router-dom';
@@ -33,6 +36,8 @@ type OwnProps = {
   /** Called when the right sidebar toggle button is clicked. */
   onToggleRightSidebarClick?: () => void;
   logoVersion: number;
+  user: FpfssUser | null;
+  logoutUser: () => void;
 };
 
 export type HeaderProps = OwnProps & RouteComponentProps & WithPreferencesProps & WithTagCategoriesProps;
@@ -86,6 +91,24 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
       onOrderChange, onToggleLeftSidebarClick, onToggleRightSidebarClick, libraries
     } = this.props;
     const { searchText } = this.state;
+
+    // FPFSS user context menu
+    const contextButtons: MenuItemConstructorOptions[] = [
+      {
+        label: strings.fpfssProfile,
+        enabled: true,
+        click: () => {
+          remote.shell.openExternal(`${this.props.preferencesData.fpfssBaseUrl}/web/profile`);
+        }
+      },
+      {
+        label: strings.fpfssLogout,
+        enabled: true,
+        click: () => {
+          this.props.logoutUser();
+        }
+      }
+    ];
     return (
       <div className='header'>
         {/* Header Menu */}
@@ -170,6 +193,13 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
         </div>
         {/* Right-most portion */}
         <div className='header__wrap header__right'>
+          {this.props.user && (
+            <div className='header-user-box' onClick={() => openContextMenu(contextButtons)}>
+              {/* FPFSS user status */}
+              <div className='header-user-icon' style={{backgroundImage: `url(${this.props.user.avatarUrl})`}}></div>
+              <div className='header-user-name'>{this.props.user.username}</div>
+            </div>
+          )}
           <div>
             {/* Toggle Right Sidebar */}
             <div

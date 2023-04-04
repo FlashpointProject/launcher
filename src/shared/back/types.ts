@@ -724,3 +724,16 @@ export type MetadataServerInfo = {
   host: string;
   type: 'raw' | 'python';
 }
+
+export type FpfssUser = {
+  username: string;
+  userId: string;
+  avatarUrl: string;
+  roles: string[];
+  accessToken: string;
+}
+
+export type FpfssState = {
+  user: FpfssUser | null;
+  editingGame?: Game;
+}
