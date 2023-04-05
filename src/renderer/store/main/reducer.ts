@@ -466,6 +466,32 @@ export function mainStateReducer(state: MainState = createInitialState(), action
       };
     }
 
+    case MainActionType.SET_FPFSS_GAME: {
+      const newFpfssState = deepCopy(state.fpfss);
+      newFpfssState.editingGame = action.game;
+
+      return {
+        ...state,
+        fpfss: newFpfssState
+      };
+    }
+
+    case MainActionType.APPLY_DELTA_FPFSS_GAME: {
+      const newFpfssState = deepCopy(state.fpfss);
+      if (newFpfssState.editingGame) {
+        newFpfssState.editingGame = {
+          ...newFpfssState.editingGame,
+          ...action.game,
+          updateTagsStr: newFpfssState.editingGame.updateTagsStr
+        };
+      }
+
+      return {
+        ...state,
+        fpfss: newFpfssState
+      };
+    }
+
     case MainActionType.SETUP_VIEWS: {
       const views: Record<string, View> = {};
       for (const library of state.libraries) {
@@ -606,7 +632,7 @@ function createInitialState(): MainState {
       [BackInit.EXEC_MAPPINGS]: false,
       [BackInit.EXTENSIONS]: false
     },
-    fpfss: { user: null },
+    fpfss: { user: null, editingGame: null },
     themeList: [],
     logoSets: [],
     logoVersion: 0,

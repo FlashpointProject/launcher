@@ -187,6 +187,6 @@ export function createInitialMainState(): MainState {
     componentStatuses: [],
     quitting: false,
     openDialogs: [],
-    fpfss: { user: null },
+    fpfss: { user: null, editingGame: null },
   };
 }

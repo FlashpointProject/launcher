@@ -283,6 +283,12 @@ export type MainAction = {
 } | {
   type: MainActionType.SET_FPFSS_USER;
   user: FpfssUser | null;
+} | {
+  type: MainActionType.SET_FPFSS_GAME;
+  game: Game | null;
+} | {
+  type: MainActionType.APPLY_DELTA_FPFSS_GAME;
+  game: Partial<Game>;
 }
 
 export type WithAsyncDispatch = {

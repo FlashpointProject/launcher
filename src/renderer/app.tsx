@@ -7,7 +7,7 @@ import { LangContainer } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { setTheme } from '@shared/Theme';
-import { getFileServerURL, recursiveReplace, sizeToString } from '@shared/Util';
+import { getFileServerURL, mapFpfssGameToLocal, mapLocalToFpfssGame, recursiveReplace, sizeToString } from '@shared/Util';
 import { arrayShallowStrictEquals } from '@shared/utils/compare';
 import { debounce } from '@shared/utils/debounce';
 import axios from 'axios';
@@ -19,9 +19,9 @@ import * as path from 'path';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import { Dispatch } from 'redux';
-import uuid = require('uuid');
 import * as which from 'which';
 import { FloatingContainer } from './components/FloatingContainer';
+import { ConnectedFpfssEditGame } from './components/FpfssEditGame';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { InputField } from './components/InputField';
 import { MetaEditExporter, MetaEditExporterConfirmData } from './components/MetaEditExporter';
@@ -55,6 +55,7 @@ import { SearchQuery } from './store/search';
 import { getBrowseSubPath, getGamePath, joinLibraryRoute } from './Util';
 import { LangContext } from './util/lang';
 import { queueOne } from './util/queue';
+import uuid = require('uuid');
 
 // Hide the right sidebar if the page is inside these paths
 const hiddenRightSidebarPages = [Paths.ABOUT, Paths.CURATE, Paths.CONFIG, Paths.MANUAL, Paths.LOGS, Paths.TAGS, Paths.CATEGORIES];
@@ -163,7 +164,13 @@ export class App extends React.Component<AppProps> {
                 case 'edit_game': {
                   // Edit game in-launcher then send it back to server
                   this.performFpfssAction((user) => {
-                    alert(user.username);
+                    if (this.props.main.fpfss.editingGame) {
+                      alert('Game edit already open');
+                    } else {
+                      // Download Game metadata and add to state
+                      const url = `${this.props.preferencesData.fpfssBaseUrl}/${parts.slice(2).join('/')}`;
+                      this.fetchFpfssGame(url);
+                    }
                   });
                   break;
                 }
@@ -1337,6 +1344,32 @@ export class App extends React.Component<AppProps> {
             { this.props.main.openDialogs.length > 0 && (
               renderDialogMemo(this.props.main.openDialogs[0], this.props.dispatchMain)
             )}
+            {/** Fancy FPFSS edit */}
+            { this.props.main.fpfss.editingGame && (
+              <FloatingContainer floatingClassName='fpfss-edit-container'>
+                <ConnectedFpfssEditGame
+                  logoVersion={this.props.main.logoVersion}
+                  gameRunning={false}
+                  currentGame={this.props.main.fpfss.editingGame}
+                  currentLibrary={this.props.main.fpfss.editingGame.library}
+                  onGameLaunch={async () => alert('Cannot launch game during FPFSS edit')}
+                  onDeleteSelectedGame={() => {/** unused */}}
+                  onDeselectPlaylist={() => {/** unused */}}
+                  onEditPlaylistNotes={() => {/** unused */}}
+                  isEditing={true}
+                  isExtreme={false}
+                  isNewGame={false}
+                  suggestions={this.props.main.suggestions}
+                  tagCategories={this.props.tagCategories}
+                  busyGames={[]}
+                  onEditClick={() => {/** unused */}}
+                  onDiscardClick={this.onCancelFpfssEditGame}
+                  onSaveGame={this.onSaveFpfssEditGame}
+                  onOpenExportMetaEdit={() => {/** unused */}}
+                  onEditGame={this.onApplyFpfssEditGame}
+                  onUpdateActiveGameData={(disk, id) => id && this.onApplyFpfssEditGameData(id)}/>
+              </FloatingContainer>
+            )}
             {/* Splash screen */}
             <SplashScreen
               quitting={this.props.main.quitting}
@@ -1715,6 +1748,72 @@ export class App extends React.Component<AppProps> {
       user: null
     });
     localStorage.removeItem('fpfss_user');
+  }
+
+  fetchFpfssGame = async (url: string) => {
+    try {
+      const res = await axios.get(url, {
+        headers: {
+          Authorization: `Bearer ${this.props.main.fpfss.user?.accessToken}`
+        }
+      });
+      const game = mapFpfssGameToLocal(res.data, this.props.tagCategories);
+      this.props.dispatchMain({
+        type: MainActionType.SET_FPFSS_GAME,
+        game
+      });
+    } catch (err) {
+      alert(`Error loading FPFSS game: ${err}`);
+    }
+  };
+
+  onCancelFpfssEditGame = () => {
+    // Just clear the state
+    this.props.dispatchMain({
+      type: MainActionType.SET_FPFSS_GAME,
+      game: null
+    });
+  };
+
+  onSaveFpfssEditGame = async () => {
+    const localGame = this.props.main.fpfss.editingGame;
+    if (localGame && this.props.main.fpfss.user) {
+      const game = mapLocalToFpfssGame(localGame, this.props.tagCategories, this.props.main.fpfss.user.userId);
+      this.props.dispatchMain({
+        type: MainActionType.SET_FPFSS_GAME,
+        game: null
+      });
+      const url = `${this.props.preferencesData.fpfssBaseUrl}/api/game/${localGame.id}`;
+
+      console.log(JSON.stringify(game));
+      // Post changes
+      await axios.post(url, game, {
+        headers: {
+          Authorization: `Bearer ${this.props.main.fpfss.user?.accessToken}`
+        }
+      })
+      .then(() => {
+        alert('Success');
+      }).catch((err) => {
+        alert('Error submitting game changes: ' + err);
+      });
+    }
+  };
+
+  onApplyFpfssEditGame = (game: Partial<Game>) => {
+    this.props.dispatchMain({
+      type: MainActionType.APPLY_DELTA_FPFSS_GAME,
+      game
+    });
+  };
+
+  onApplyFpfssEditGameData(id: number) {
+    this.props.dispatchMain({
+      type: MainActionType.APPLY_DELTA_FPFSS_GAME,
+      game: {
+        activeDataId: id
+      }
+    });
   }
 
   async performFpfssAction(cb: (user: FpfssUser) => any) {

@@ -70,6 +70,7 @@ export enum BackIn {
   GET_TAG_SUGGESTIONS,
   GET_PLATFORM_SUGGESTIONS,
   GET_TAG_BY_ID,
+  GET_PLATFORM_BY_ID,
   GET_TAGS,
   GET_TAG,
   SAVE_TAG,
@@ -284,6 +285,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.GET_TAG_SUGGESTIONS]: (data: string, tagFilters: TagFilterGroup[]) => TagSuggestion<Tag>[];
   [BackIn.GET_PLATFORM_SUGGESTIONS]: (data: string) => TagSuggestion<Platform>[];
   [BackIn.GET_TAG_BY_ID]: (data: number) => Tag | null;
+  [BackIn.GET_PLATFORM_BY_ID]: (data: number) => Platform | null;
   [BackIn.GET_TAGS]: (data: string, tagFilters?: TagFilterGroup[]) => Tag[];
   [BackIn.GET_TAG]: (data: string) => Tag | null;
   [BackIn.SAVE_TAG]: (data: Tag) => Tag;
@@ -733,7 +735,7 @@ export type MetadataServerInfo = {
 
 export type FpfssUser = {
   username: string;
-  userId: string;
+  userId: number;
   avatarUrl: string;
   roles: string[];
   accessToken: string;
@@ -741,5 +743,5 @@ export type FpfssUser = {
 
 export type FpfssState = {
   user: FpfssUser | null;
-  editingGame?: Game;
+  editingGame: Game | null;
 }

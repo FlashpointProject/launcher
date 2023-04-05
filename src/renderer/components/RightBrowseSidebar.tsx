@@ -450,7 +450,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       categories={tagCategories}
                       onTagSelect={this.onPlatformSelect}
                       onTagEditableSelect={this.onRemovePlatform}
-                      onTagSuggestionSelect={() => {}}
+                      onTagSuggestionSelect={this.onAddPlatformSuggestion}
                       onTagSubmit={this.onAddPlatformByString}
                       renderIcon={this.renderPlatformIcon}
                       renderIconSugg={this.renderPlatformIconSugg} />
@@ -1015,6 +1015,27 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     this.setState({
       tagSuggestions: [],
       currentTagInput: ''
+    });
+  };
+
+  onAddPlatformSuggestion = (suggestion: TagSuggestion<Platform>): void => {
+    if (suggestion.tag.id) {
+      window.Shared.back.request(BackIn.GET_PLATFORM_BY_ID, suggestion.tag.id)
+      .then((platform) => {
+        if (platform) {
+          const game = this.props.currentGame;
+          // Ignore dupe tags
+          if (game && game.platforms.findIndex(p => p.id == platform.id) == -1) {
+            this.props.onEditGame({ platforms: [...game.platforms, platform] });
+            console.log('ADDED PLATFORM ' + platform.id);
+          }
+        }
+      });
+    }
+    // Clear out suggestions box
+    this.setState({
+      platformSuggestions: [],
+      currentPlatformInput: ''
     });
   };
 

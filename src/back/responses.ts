@@ -689,6 +689,11 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     return tag;
   });
 
+  state.socketServer.register(BackIn.GET_PLATFORM_BY_ID, async (event, data) => {
+    const platform = await TagManager.getPlatformById(data);
+    return platform;
+  });
+
   state.socketServer.register(BackIn.GET_TAGS, async (event, name, tagFilters) => {
     const flatFilters: string[] = tagFilters ? tagFilters.reduce<string[]>((prev, cur) => prev.concat(cur.tags), []) : [];
     const tags = await TagManager.findTags(name, flatFilters);

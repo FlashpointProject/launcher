@@ -416,7 +416,11 @@ export async function getTagCategoryById(categoryId: number): Promise<TagCategor
 
 export async function getTagById(tagId: number): Promise<Tag | null> {
   const tagRepository = AppDataSource.getRepository(Tag);
-  return tagRepository.findOneBy({ id: tagId});
+  return tagRepository.findOneBy({ id: tagId });
+}
+
+export async function getPlatformById(platformId: number): Promise<Platform | null> {
+  return AppDataSource.getRepository(Platform).findOneBy({ id: platformId });
 }
 
 export async function addAliasToTag(tagId: number, alias: string): Promise<Tag> {

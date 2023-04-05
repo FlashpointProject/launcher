@@ -1,6 +1,7 @@
 import * as axiosImport from 'axios';
-import { Playlist, PlaylistGame, Tag, TagFilterGroup } from 'flashpoint-launcher';
+import { Game, Playlist, PlaylistGame, Tag, TagCategory, TagFilterGroup } from 'flashpoint-launcher';
 import * as fs from 'fs';
+import { camelCase, snakeCase, transform } from 'lodash';
 import * as path from 'path';
 import { DownloadDetails } from './back/types';
 import { AppConfigData } from './config/interfaces';
@@ -531,3 +532,80 @@ function parsePlaylistGame(parser: IObjectParserProp<PlaylistGame>): PlaylistGam
   parser.prop('order',  v => game.order  = num(v));
   return game;
 }
+
+export function mapFpfssGameToLocal(data: any, categories: TagCategory[]): Game {
+  const game = camelify(data) as unknown as Game;
+  // Initialize nil variables which should be arrays
+  if (!game.addApps) { game.addApps = []; }
+  if (!game.data) { game.data = []; }
+  if (!game.platforms) { game.platforms = []; }
+  if (!game.tags) { game.tags = []; }
+  // Tags
+  for (const tag of game.tags) {
+    tag.primaryAlias = {
+      id: -1,
+      name: (tag as any).name
+    };
+    const category = categories.find(c => c.name === (tag as any).category);
+    if (!category) {
+      throw 'Tag has invalid category. Desynced from server?';
+    }
+    tag.categoryId = category.id;
+  }
+  // Platforms
+  for (const platform of game.platforms) {
+    platform.primaryAlias = {
+      id: -1,
+      name: (platform as any).name
+    };
+  }
+
+  return game;
+}
+
+export function mapLocalToFpfssGame(game: Game, categories: TagCategory[], userId: number): Record<string, any> {
+  const newTags = [];
+  for (const tag of game.tags) {
+    const category = categories.find(c => c.id === tag.categoryId);
+    if (!category) {
+      throw 'Tag has invalid tag category';
+    }
+    newTags.push({
+      id: tag.id,
+      dateModified: (new Date()).toISOString(),
+      category: category.name,
+      description: tag.description,
+      name: tag.primaryAlias.name,
+      userId: userId
+    });
+  }
+  const newPlatforms = [];
+  for (const platform of game.platforms) {
+    newPlatforms.push({
+      id: platform.id,
+      dateModified: (new Date()).toISOString(),
+      description: platform.description,
+      name: platform.primaryAlias.name,
+      userId: userId
+    });
+  }
+  return snekify({
+    ...game,
+    tags: newTags,
+    platforms: newPlatforms
+  });
+}
+
+const snekify = (obj: Record<string, unknown>) => {
+  return transform(obj, (result: Record<string, unknown>, value: unknown, key: string, target) => {
+    const camelKey = Array.isArray(target) ? key : snakeCase(key);
+    result[camelKey] = (value !== null && typeof value === 'object') ? snekify(value as Record<string, unknown>) : value;
+  });
+};
+
+const camelify = (obj: Record<string, unknown>) => {
+  return transform(obj, (result: Record<string, unknown>, value: unknown, key: string, target) => {
+    const camelKey = Array.isArray(target) ? key : camelCase(key);
+    result[camelKey] = (value !== null && typeof value === 'object') ? camelify(value as Record<string, unknown>) : value;
+  });
+};

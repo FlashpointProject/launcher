@@ -282,7 +282,9 @@ body {
   width: 100%;
 }
 .tag-label {
+  flex-grow: 1;
   vertical-align: top;
+  text-align: left;
 }
 .tag-alias-label {
   vertical-align: top;
@@ -1804,9 +1806,6 @@ body {
 .tag {
   display: flex;
 }
-.tag-label {
-  flex-grow: 1;
-}
 .tag-list {}
 /* GameList Item */
 .game-list-item,
@@ -3051,4 +3050,8 @@ body {
 
 .cancel-download-button {
   margin-top: 1rem;
+}
+
+.fpfss-edit-container {
+  width: 80%
 }

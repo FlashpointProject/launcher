@@ -77,8 +77,12 @@ export enum MainActionType {
   RESOLVE_DIALOG = '@@main/RESOLVE_DIALOG',
   /** Update dialog field value */
   UPDATE_DIALOG_FIELD = '@@main/UPDATE_DIALOG_FIELD',
-  /** Set fpfss user in state */
-  SET_FPFSS_USER = '@@main/SET_FPFSS_USER'
+  /** Set FPFSS user in state */
+  SET_FPFSS_USER = '@@main/SET_FPFSS_USER',
+  /** Set current editing game for FPFSS */
+  SET_FPFSS_GAME = '@@main/SET_FPFSS_GAME',
+  /** Apply delta edit to FPFSS editing game */
+  APPLY_DELTA_FPFSS_GAME = '@@main/APPLY_DELTA_FPFSS_GAME',
 }
 
 export enum RequestState {
