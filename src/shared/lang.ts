@@ -125,6 +125,8 @@ const langTemplate = {
     'rerollPicks',
     'componentUpToDate',
     'componentUpdatesReady',
+    'lastUpdated',
+    'updateComplete',
   ] as const,
   logs: [
     'filters',
@@ -161,7 +163,9 @@ const langTemplate = {
     'layout',
     'openFlashpointManager',
     'fpfssProfile',
-    'fpfssLogout'
+    'fpfssLogout',
+    'softwareUpdateRequired',
+    'noLauncherUpdateReady',
   ] as const,
   filter: [
     'dateAdded',
@@ -486,6 +490,7 @@ const langTemplate = {
     'showImage',
     'searching',
     'loading',
+    'ok',
   ] as const,
   menu: [
     'viewThumbnailInFolder',
@@ -658,6 +663,8 @@ export function getDefaultLocalization(): LangContainer {
   // Get the base language container
   const lang: LangContainer = createLangContainer();
   // Make some changes
+  lang.config.searchLimitValue += ' {0}';
+  lang.config.noExtensionsLoaded += ' {0}';
   lang.config.auto += ' ({0})';
   lang.home.hallOfFameInfo += ' {0}';
   lang.home.allGamesInfo += ' {0}';
@@ -665,12 +672,19 @@ export function getDefaultLocalization(): LangContainer {
   lang.home.configInfo += ' {0}';
   lang.home.helpInfo += ' {0}';
   lang.home.linuxSupport += ' {0}';
+  lang.home.componentUpdatesReady += '{0}';
+  lang.browse.noGameSelected += ' {0}';
   lang.browse.dropGameOnLeft += ' {0}';
   lang.browse.setFlashpointPathQuestion += ' {0} {1}';
   lang.browse.noteSaveAndRestart += ' {0}';
-  lang.misc.noBlankFound = '{0} ' + lang.misc.noBlankFound;
+  lang.misc.noBlankFound = ' {0} ' + lang.misc.noBlankFound;
   lang.misc.addBlank += ' {0}';
   lang.misc.deleteAllBlankImages += ' {0}';
+  lang.dialog.errorImportingCuration += ' {0}';
+  lang.dialog.mustBe7zArchiveSkipping += ' {0}';
+  lang.dialog.failedToLoadCuration += ' {0}';
+  lang.dialog.requiresAdditionalDownload += ' {0}';
+  lang.dialog.requiresAdditionalDownloadPlural += ' {0}';
   lang.dialog.upgradeWillInstallTo = '{0} ' + lang.dialog.upgradeWillInstallTo;
   lang.dialog.importedPlaylistAlreadyExists = lang.dialog.importedPlaylistAlreadyExists + ' - "{0}"';
   // Return object

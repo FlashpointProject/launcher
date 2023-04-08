@@ -3055,3 +3055,23 @@ body {
 .fpfss-edit-container {
   width: 80%
 }
+
+.update-metadata-box {
+  position: fixed;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  text-align: center;
+}
+
+.update-metadata-button-inner {
+  width: 100%;
+  font-weight: bold;
+  font-size: 2.2em !important;
+}
+
+.update-metadata-name {
+  font-size: 1.2em;
+  font-weight: bold;
+}

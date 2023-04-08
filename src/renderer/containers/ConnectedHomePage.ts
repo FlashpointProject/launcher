@@ -5,6 +5,7 @@ import { HomePage, HomePageProps } from '../components/pages/HomePage';
 import * as searchActions from '../store/search/actions';
 import { withPreferences, WithPreferencesProps } from './withPreferences';
 import { withSearch, WithSearchProps } from './withSearch';
+import { withMainState } from './withMainState';
 
 type DispatchToProps = {
   /** Clear the current search query (resets the current search filters). */
@@ -17,7 +18,7 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchToProps => bindActionCr
   clearSearch: () => searchActions.setQuery({ text: '' }),
 }, dispatch);
 
-export const ConnectedHomePage = withSearch(withPreferences(connect(
+export const ConnectedHomePage = withMainState(withSearch(withPreferences(connect(
   undefined,
   mapDispatchToProps
-)(HomePage)));
+)(HomePage))));

@@ -1,12 +1,15 @@
 import * as remote from '@electron/remote';
 import { FancyAnimation } from '@renderer/components/FancyAnimation';
+import { WithMainStateProps } from '@renderer/containers/withMainState';
+import { MainActionType } from '@renderer/store/main/enums';
 import { BackIn, ComponentStatus, GameOfTheDay, ViewGame } from '@shared/back/types';
 import { ARCADE, LOGOS, THEATRE } from '@shared/constants';
 import { wrapSearchTerm } from '@shared/game/GameFilter';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
+import { uuid } from '@shared/utils/uuid';
 import { AppUpdater, UpdateInfo } from 'electron-updater';
-import { Game, Playlist } from 'flashpoint-launcher';
+import { DialogState, Game, Playlist } from 'flashpoint-launcher';
 import * as React from 'react';
 import ReactDatePicker from 'react-datepicker';
 import ReactMarkdown from 'react-markdown';
@@ -55,11 +58,12 @@ type OwnProps = {
   openFlashpointManager: () => void;
 };
 
-export type HomePageProps = OwnProps & WithPreferencesProps & WithSearchProps;
+export type HomePageProps = OwnProps & WithPreferencesProps & WithSearchProps & WithMainStateProps;
 
 export function HomePage(props: HomePageProps) {
   /** Offset of the starting point in the animated logo's animation (sync it with time of the machine). */
   const logoDelay = React.useMemo(() => (Date.now() * -0.001) + 's', []);
+  const [updating, setUpdating] = React.useState(false);
 
   const parsedGotdList = React.useMemo(() => {
     return props.gotdList.map(g => {
@@ -372,12 +376,75 @@ export function HomePage(props: HomePageProps) {
     }
   }, [strings, props.updateFeedMarkdown, props.preferencesData.minimizedHomePageBoxes, toggleMinimizeBox]);
 
+  const renderedMetadataUpdate = React.useMemo(() => {
+    const onPressUpdate = () => {
+      if (updating) {
+        return;
+      }
+      setUpdating(true);
+      window.Shared.back.request(BackIn.SYNC_ALL, window.Shared.preferences.data.gameMetadataSources[0])
+      .then((success) => {
+        if (success) {
+          const dialog: DialogState = {
+            largeMessage: true,
+            message: strings.updateComplete,
+            buttons: [allStrings.misc.ok],
+            id: uuid()
+          };
+          props.dispatchMain({
+            type: MainActionType.NEW_DIALOG,
+            dialog
+          });
+        }
+      })
+      .catch((err) => {
+        log.error('Launcher', `Error updating metadata: ${err}`);
+        const dialog: DialogState = {
+          largeMessage: true,
+          message: `ERROR: ${err}`,
+          buttons: [allStrings.misc.ok],
+          id: uuid()
+        };
+        props.dispatchMain({
+          type: MainActionType.NEW_DIALOG,
+          dialog
+        });
+      })
+      .finally(() => {
+        setUpdating(false);
+      });
+    };
+    if (props.preferencesData.gameMetadataSources.length > 0) {
+      return (
+        <div className='update-metadata-box'>
+          <div className='update-metadata-button'>
+            <SimpleButton
+              className='update-metadata-button-inner'
+              value={strings.update}
+              onClick={onPressUpdate} />
+          </div>
+          <div className='update-metadata-name'>
+            {props.preferencesData.gameMetadataSources[0].name}
+          </div>
+          <div className='update-metadata-last'>
+            {`${strings.lastUpdated}: ${(new Date(props.preferencesData.gameMetadataSources[0].lastUpdatedGames)).toLocaleString()}`}
+          </div>
+        </div>
+      );
+    } else {
+      return (<></>);
+    }
+
+  }, [strings, props.preferencesData.gameMetadataSources, updating]);
+
   // Render
   return React.useMemo(() => (
     <div className='home-page simple-scroll'>
       <div className='home-page__inner'>
         {/* Logo */}
         <div className='home-page__logo fp-logo-box'>
+          {/* Metadata Update */}
+          { props.preferencesData.gameMetadataSources.length > 0 && renderedMetadataUpdate }
           <FancyAnimation
             fancyRender={() => (
               <div
@@ -402,7 +469,8 @@ export function HomePage(props: HomePageProps) {
         { renderedExtras }
       </div>
     </div>
-  ), [renderedQuickStart, renderedExtras, renderedNotes, renderedRandomGames, renderedNewsFeed, renderedGotd]);
+  ), [renderedQuickStart, renderedExtras, renderedNotes, renderedRandomGames, renderedNewsFeed,
+    renderedGotd, renderedMetadataUpdate]);
 }
 
 function QuickStartItem(props: { icon?: OpenIconType, className?: string, children?: React.ReactNode }): JSX.Element {

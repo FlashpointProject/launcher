@@ -365,7 +365,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   // Developer
   [BackIn.UPDATE_TAGGED_FIELDS]: () => void;
   [BackIn.SYNC_TAGGED]: (source: GameMetadataSource) => void;
-  [BackIn.SYNC_ALL]: (source: GameMetadataSource) => void;
+  [BackIn.SYNC_ALL]: (source: GameMetadataSource) => boolean;
 
   // Dialogs
   [BackIn.DIALOG_RESPONSE]: (dialog: DialogState, button: number) => void;

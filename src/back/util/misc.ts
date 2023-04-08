@@ -1,12 +1,13 @@
 import { SERVICES_SOURCE } from '@back/constants';
 import { createTagsFromLegacy } from '@back/importGame';
 import { ManagedChildProcess, ProcessOpts } from '@back/ManagedChildProcess';
+import { exitApp } from '@back/responses';
 import { SocketServer } from '@back/SocketServer';
 import { BackState, ShowMessageBoxFunc, ShowOpenDialogFunc, ShowSaveDialogFunc, StatusState } from '@back/types';
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
 import { Tag } from '@database/entity/Tag';
-import { BackOut } from '@shared/back/types';
+import { BackOut, ComponentState } from '@shared/back/types';
 import { getCurationFolder } from '@shared/curate/util';
 import { BrowserApplicationOpts } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, INamedBackProcessInfo, IService, ProcessState } from '@shared/interfaces';
@@ -421,4 +422,42 @@ export async function getMacPATH(shell?: string): Promise<string> {
   });
   // Trim any whitespace, etc.
   return builder.trim();
+}
+
+export function openFlashpointManager(state: BackState): void {
+  const cwd = path.join(state.config.flashpointPath, 'Manager');
+  const fpmPath = 'FlashpointManager.exe';
+  const updatesReady = state.componentStatuses.filter(c => c.state === ComponentState.NEEDS_UPDATE).length > 0;
+  exitApp(state, async () => {
+    const args = updatesReady ? ['/update', '/launcher'] : ['/launcher'];
+    const child = child_process.spawn(fpmPath, args, { detached: true, cwd, stdio: ['ignore', 'ignore', 'ignore'] });
+    child.unref();
+  });
+}
+
+export function compareSemVerVersions(v1: string, v2: string): number {
+  const v1Parts = v1.split('.').map(part => parseInt(part));
+  const v2Parts = v2.split('.').map(part => parseInt(part));
+
+  // Compare Major versions
+  if (v1Parts[0] !== v2Parts[0]) {
+    return v1Parts[0] - v2Parts[0];
+  }
+
+  // Compare Minor versions, handling missing Minor versions
+  const v1Minor = v1Parts.length > 1 ? v1Parts[1] : 0;
+  const v2Minor = v2Parts.length > 1 ? v2Parts[1] : 0;
+  if (v1Minor !== v2Minor) {
+    return v1Minor - v2Minor;
+  }
+
+  // Compare Patch versions, handling missing Patch versions
+  const v1Patch = v1Parts.length > 2 ? v1Parts[2] : 0;
+  const v2Patch = v2Parts.length > 2 ? v2Parts[2] : 0;
+  if (v1Patch !== v2Patch) {
+    return v1Patch - v2Patch;
+  }
+
+  // Versions are equal
+  return 0;
 }

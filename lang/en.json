@@ -116,8 +116,10 @@
     "linuxSupportLinkText": "Open FAQ",
     "randomPicks": "Random Picks",
     "rerollPicks": "Re-Roll Picks",
-    "componentUpdatesReady": "Install {0} updates",
-    "componentUpToDate": "Flashpoint is up to date"
+    "componentUpdatesReady": "Install {0} software updates",
+    "componentUpToDate": "Flashpoint is up to date",
+    "lastUpdated": "Last Updated",
+    "updateComplete": "Update Complete!"
   },
   "logs": {
     "filters": "Filters",
@@ -154,7 +156,9 @@
     "layout": "Browser Layout",
     "openFlashpointManager": "Open Flashpoint Manager",
     "fpfssProfile": "Open Profile",
-    "fpfssLogout": "Logout from FPFSS"
+    "fpfssLogout": "Logout from FPFSS",
+    "softwareUpdateRequired": "Software updated required. Do this now?",
+    "noLauncherUpdateReady": "Metadata update requires a newer Launcher version, but the software update is not currently available."
   },
   "filter": {
     "dateAdded": "Date Added",
@@ -472,7 +476,8 @@
     "exportMetaEditDesc": "Select all properties to export:",
     "showImage": "Show Image",
     "searching": "Searching...",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "ok": "OK"
   },
   "menu": {
     "viewThumbnailInFolder": "View Thumbnail in Folder",

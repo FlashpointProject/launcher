@@ -61,13 +61,14 @@ import { BackState, BarePlatform, BareTag, MetadataRaw, TagsFile } from './types
 import { pathToBluezip } from './util/Bluezip';
 import { awaitDialog } from './util/dialog';
 import {
+  compareSemVerVersions,
   copyError,
   createAddAppFromLegacy,
   createContainer,
   createGameFromLegacy,
   dateToFilenameString,
   deleteCuration,
-  exit, getCwd, getTempFilename, pathExists, procToService, removeService,
+  exit, getCwd, getTempFilename, openFlashpointManager, pathExists, procToService, removeService,
   runService
 } from './util/misc';
 import { pathTo7zBack } from './util/SevenZip';
@@ -255,6 +256,42 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.SYNC_ALL, async (event, source) => {
+    if (!state.isDev) {
+      // Make sure we meet minimum verison requirements
+      const updatesReady = state.componentStatuses.filter(c => c.id === 'core-launcher' && c.state === ComponentState.NEEDS_UPDATE).length > 0;
+      const version = state.version;
+      const versionUrl = `${source.baseUrl}/api/min-launcher`;
+      const res = await axios.get(versionUrl)
+      .catch((err) => { throw `Failed to find minimum launcher version requirement from metadata server.\n${err}`; });
+      if (compareSemVerVersions(version, res.data['min-version'] || '9999999999999') < 0) {
+        if (!updatesReady) {
+          // No software update ready but metadata server requires it
+          const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
+          await openDialog({
+            largeMessage: true,
+            message: state.languageContainer.app.noLauncherUpdateReady,
+            buttons: [state.languageContainer.misc.ok]
+          });
+          return false;
+        }
+        // Too old to sync metadata, prompt a software update
+        const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
+        const dialogId = await openDialog({
+          largeMessage: true,
+          message: state.languageContainer.app.softwareUpdateRequired,
+          buttons: [state.languageContainer.misc.yes, state.languageContainer.misc.no],
+          cancelId: 1
+        });
+        const button = (await awaitDialog(state, dialogId)).buttonIdx;
+        if (button !== 0) {
+          log.info('Launcher', 'User aborted metadata update: Refused required software update.');
+          return false;
+        } else {
+          openFlashpointManager(state);
+          return false;
+        }
+      }
+    }
     const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
     const dialogId = await openDialog({
       largeMessage: true,
@@ -314,7 +351,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       };
       const total = await GameManager.countGames();
       state.socketServer.broadcast(BackOut.POST_SYNC_CHANGES, state.suggestions.library, state.suggestions, total);
-
+      return true;
     })
     .finally(() => {
       state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
@@ -2476,7 +2513,7 @@ function changeServerFactory(state: BackState): (server?: string) => Promise<voi
  * @param state Back State
  * @param beforeProcessExit Function to call right before process exit
  */
-async function exitApp(state: BackState, beforeProcessExit?: () => void | Promise<void>) {
+export async function exitApp(state: BackState, beforeProcessExit?: () => void | Promise<void>) {
   return exit(state, beforeProcessExit);
 }
 
