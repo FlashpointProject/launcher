@@ -289,6 +289,12 @@ export type MainAction = {
 } | {
   type: MainActionType.APPLY_DELTA_FPFSS_GAME;
   game: Partial<Game>;
+} | {
+  type: MainActionType.POST_FPFSS_SYNC;
+  libraries: string[];
+  suggestions: GamePropSuggestions;
+  total: number;
+  preferencesData: AppPreferencesData;
 }
 
 export type WithAsyncDispatch = {

@@ -2,7 +2,7 @@ import { CurateGroup } from '@renderer/store/curate/types';
 import { autoCode } from '@shared/lang';
 import { LogLevel } from '@shared/Log/interface';
 import { delayedThrottle, delayedThrottleAsync } from '@shared/utils/throttle';
-import { AppPathOverride, AppPreferencesData, AppPreferencesDataMainWindow, GameDataSource, TagFilterGroup } from 'flashpoint-launcher';
+import { AppPathOverride, AppPreferencesData, AppPreferencesDataMainWindow, GameDataSource, GameMetadataSource, TagFilterGroup } from 'flashpoint-launcher';
 import { BackIn } from '../back/types';
 import { BrowsePageLayout } from '../BrowsePageLayout';
 import { ARCADE } from '../constants';
@@ -140,6 +140,7 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
     }
   },
   gameDataSources: [],
+  gameMetadataSources: [],
 });
 
 /**
@@ -242,6 +243,11 @@ export function overwritePreferenceData(
     parser.prop('gameDataSources').array((item, index) => newSources[index] = parseGameDataSource(item as IObjectParserProp<GameDataSource>));
     source.gameDataSources = newSources;
   }
+  if (data.gameMetadataSources) {
+    const newSources: GameMetadataSource[] = [];
+    parser.prop('gameMetadataSources').array((item, index) => newSources[index] = parseGameMetadataSource(item as IObjectParserProp<GameMetadataSource>));
+    source.gameMetadataSources = newSources;
+  }
   // Done
   return source;
 }
@@ -275,6 +281,20 @@ function parseGameDataSource(parser: IObjectParserProp<GameDataSource>): GameDat
   parser.prop('type', v => source.type = str(v));
   parser.prop('name', v => source.name = str(v));
   parser.prop('arguments').arrayRaw((item, index) => source.arguments.push(item));
+  return source;
+}
+
+function parseGameMetadataSource(parser: IObjectParserProp<GameMetadataSource>): GameMetadataSource {
+  const source: GameMetadataSource = {
+    name: '',
+    baseUrl: '',
+    lastUpdatedTags: '1970-01-01',
+    lastUpdatedGames: '1970-01-01',
+  };
+  parser.prop('name',             v => source.name             = str(v));
+  parser.prop('baseUrl',          v => source.baseUrl          = str(v));
+  parser.prop('lastUpdatedTags',  v => source.lastUpdatedTags  = str(v), true);
+  parser.prop('lastUpdatedGames', v => source.lastUpdatedGames = str(v), true);
   return source;
 }
 

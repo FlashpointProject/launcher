@@ -49,13 +49,14 @@ import * as GameManager from './game/GameManager';
 import * as TagManager from './game/TagManager';
 import { escapeArgsForShell, GameLauncher, GameLaunchInfo } from './GameLauncher';
 import { importCuration, launchAddAppCuration, launchCuration } from './importGame';
-import { checkAndDownloadGameData, extractFullPromise, loadCurationArchive } from './index';
+import { AppDataSource, checkAndDownloadGameData, extractFullPromise, loadCurationArchive } from './index';
 import { ManagedChildProcess } from './ManagedChildProcess';
 import { importGames, importPlatforms, importTagCategories, importTags } from './metadataImport';
 import { importAllMetaEdits } from './MetaEdit';
 import { addPlaylistGame, deletePlaylist, deletePlaylistGame, duplicatePlaylist, filterPlaylists, getPlaylistGame, importPlaylist, savePlaylistGame, updatePlaylist } from './playlist';
 import { PlaylistFile } from './PlaylistFile';
 import { copyFolder, genContentTree } from './rust';
+import { syncGames, syncPlatforms, syncTags } from './sync';
 import { BackState, BarePlatform, BareTag, MetadataRaw, TagsFile } from './types';
 import { pathToBluezip } from './util/Bluezip';
 import { awaitDialog } from './util/dialog';
@@ -223,6 +224,101 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       localeCode: state.localeCode,
     };
 
+  });
+
+  state.socketServer.register(BackIn.SYNC_TAGGED, async (event, source) => {
+    const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
+    const dialogId = await openDialog({
+      largeMessage: true,
+      message: `Updating tags from ${source.name}...`,
+      buttons: []
+    });
+    const newDate = new Date();
+    const categories = await TagManager.findTagCategories();
+    return AppDataSource.transaction(async (tx) => {
+      await syncPlatforms(tx, source);
+      await syncTags(tx, source, categories);
+    })
+    .then(() => {
+      /** Success */
+      const sourceIdx = state.preferences.gameMetadataSources.findIndex(s => s.name === source.name);
+      if (sourceIdx !== -1) {
+        state.preferences.gameMetadataSources[sourceIdx].lastUpdatedTags = newDate.toISOString();
+        state.prefsQueue.push(() => {
+          PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
+        });
+      }
+    })
+    .finally(() => {
+      state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
+    });
+  });
+
+  state.socketServer.register(BackIn.SYNC_ALL, async (event, source) => {
+    const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
+    const dialogId = await openDialog({
+      largeMessage: true,
+      message: `Syncing metadata from ${source.name}...`,
+      buttons: []
+    });
+    const newDate = new Date();
+    const categories = await TagManager.findTagCategories();
+    // Always do a full sync if empty DB
+    if ((await GameManager.countGames()) === 0) {
+      source.lastUpdatedGames = '1970-01-01';
+      source.lastUpdatedTags = '1970-01-01';
+    }
+    return AppDataSource.transaction(async (tx) => {
+      console.log('plats');
+      await syncPlatforms(tx, source);
+      console.log('tags');
+      await syncTags(tx, source, categories);
+    })
+    .then(() => {
+      /** Tags Success */
+      const sourceIdx = state.preferences.gameMetadataSources.findIndex(s => s.name === source.name);
+      if (sourceIdx !== -1) {
+        state.preferences.gameMetadataSources[sourceIdx].lastUpdatedTags = newDate.toISOString();
+        state.prefsQueue.push(() => {
+          PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
+        });
+      }
+    })
+    .then(() => {
+      console.log('games');
+      // Open new transaction for games
+      return AppDataSource.transaction(async (tx) => {
+        await syncGames(tx, source);
+      });
+    })
+    .then(() => {
+      /** Games Success */
+      const sourceIdx = state.preferences.gameMetadataSources.findIndex(s => s.name === source.name);
+      if (sourceIdx !== -1) {
+        state.preferences.gameMetadataSources[sourceIdx].lastUpdatedGames = newDate.toISOString();
+        state.prefsQueue.push(() => {
+          PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
+        });
+        state.socketServer.broadcast(BackOut.UPDATE_PREFERENCES_RESPONSE, state.preferences);
+      }
+    })
+    .then(async () => {
+      // Send out new suggestions and library lists
+      state.suggestions = {
+        tags: await GameManager.findUniqueValues(TagAlias, 'name'),
+        playMode: await GameManager.findUniqueValues(Game, 'playMode', true),
+        platforms: await GameManager.findUniqueValues(PlatformAlias, 'name'),
+        status: await GameManager.findUniqueValues(Game, 'status', true),
+        applicationPath: await GameManager.findUniqueValues(Game, 'applicationPath'),
+        library: await GameManager.findUniqueValues(Game, 'library'),
+      };
+      const total = await GameManager.countGames();
+      state.socketServer.broadcast(BackOut.POST_SYNC_CHANGES, state.suggestions.library, state.suggestions, total);
+
+    })
+    .finally(() => {
+      state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
+    });
   });
 
   state.socketServer.register(BackIn.INIT_LISTEN, (event) => {
@@ -856,7 +952,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
       overwritePreferenceData(state.preferences, dif);
       state.prefsQueue.push(() => {
-        PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences);
+        PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
       });
     }
     if (refresh) {
@@ -2113,7 +2209,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     }
     // Save prefs
     state.prefsQueue.push(() => {
-      PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences);
+      PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
     });
   });
 

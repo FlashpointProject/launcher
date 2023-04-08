@@ -9,7 +9,7 @@ import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
 import { ChangedMeta, MetaEditFlags } from '@shared/MetaEdit';
 import { SocketTemplate } from '@shared/socket/types';
 import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
-import { AppPreferencesData, CurationState, CurationWarnings, DialogState, DialogStateTemplate, GameData, GameDataSource, GameOrderBy, GameOrderReverse, Platform, Playlist, PlaylistGame, TagAlias, TagFilterGroup } from 'flashpoint-launcher';
+import { AppPreferencesData, CurationState, CurationWarnings, DialogState, DialogStateTemplate, GameData, GameDataSource, GameMetadataSource, GameOrderBy, GameOrderReverse, Platform, Playlist, PlaylistGame, TagAlias, TagFilterGroup } from 'flashpoint-launcher';
 import { AppConfigData, AppExtConfigData } from '../config/interfaces';
 import { ExecMapping, GamePropSuggestions, IService, ProcessAction, Task } from '../interfaces';
 import { LangContainer, LangFile } from '../lang';
@@ -115,6 +115,8 @@ export enum BackIn {
   SYNC_GAME_METADATA,
   SYNC_METADATA_SERVER,
   IMPORT_METADATA,
+  SYNC_TAGGED,
+  SYNC_ALL,
 
   // Meta edits
   EXPORT_META_EDIT,
@@ -206,6 +208,9 @@ export enum BackOut {
   OPEN_PLACEHOLDER_DOWNLOAD_DIALOG,
   CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG,
   UPDATE_COMPONENT_STATUSES,
+
+  // Metadata Sync
+  POST_SYNC_CHANGES,
 
   // Curate
   CURATE_CONTENTS_CHANGE,
@@ -359,6 +364,8 @@ export type BackInTemplate = SocketTemplate<BackIn, {
 
   // Developer
   [BackIn.UPDATE_TAGGED_FIELDS]: () => void;
+  [BackIn.SYNC_TAGGED]: (source: GameMetadataSource) => void;
+  [BackIn.SYNC_ALL]: (source: GameMetadataSource) => void;
 
   // Dialogs
   [BackIn.DIALOG_RESPONSE]: (dialog: DialogState, button: number) => void;
@@ -412,6 +419,9 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG]: () => void;
   [BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG]: () => void;
   [BackOut.UPDATE_COMPONENT_STATUSES]: (componentStatuses: ComponentStatus[]) => void;
+
+  // Metadata Sync
+  [BackOut.POST_SYNC_CHANGES]: (libraries: string[], suggestions: GamePropSuggestions, total: number) => void;
 
   // Curate
   [BackOut.CURATE_CONTENTS_CHANGE]: (folder: string, contents: ContentTree) => void;

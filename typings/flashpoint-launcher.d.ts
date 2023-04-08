@@ -1022,6 +1022,8 @@ declare module 'flashpoint-launcher' {
         offlineManual: string;
         /** Game Data download sources */
         gameDataSources: GameDataSource[];
+        /** Game Metadata sources */
+        gameMetadataSources: GameMetadataSource[];
         /** FPFSS base url (for authoring actions on remote metadata) */
         fpfssBaseUrl: string;
     };
@@ -1030,6 +1032,13 @@ declare module 'flashpoint-launcher' {
         type: string;
         name: string;
         arguments: string[];
+    }
+
+    type GameMetadataSource = {
+        name: string;
+        baseUrl: string;
+        lastUpdatedTags: string;
+        lastUpdatedGames: string;
     }
 
     type Shortcuts = {

@@ -90,6 +90,7 @@ import { LogFile } from './util/LogFile';
 import { logFactory } from './util/logging';
 import { createContainer, exit, getMacPATH, runService } from './util/misc';
 import { uuid } from './util/uuid';
+import { GDIndex1680813346696 } from '@database/migration/1680813346696-GDIndex';
 
 const dataSourceOptions: DataSourceOptions = {
   type: 'better-sqlite3',
@@ -97,7 +98,7 @@ const dataSourceOptions: DataSourceOptions = {
   entities: [Game, AdditionalApp, Tag, TagAlias, TagCategory, GameData, Platform, PlatformAlias],
   migrations: [Initial1593172736527, AddExtremeToPlaylist1599706152407, GameData1611753257950, SourceDataUrlPath1612434225789, SourceFileURL1612435692266,
     SourceFileCount1612436426353, GameTagsStr1613571078561, GameDataParams1619885915109, RemoveSources1676712700000, RemovePlaylist1676713895000,
-    TagifyPlatform1677943090621, AddPlatformsRedundancyFieldToGame1677951346785]
+    TagifyPlatform1677943090621, AddPlatformsRedundancyFieldToGame1677951346785, GDIndex1680813346696]
 };
 export let AppDataSource: DataSource = new DataSource(dataSourceOptions);
 
@@ -300,6 +301,7 @@ async function main() {
     BackIn.CURATE_SYNC_CURATIONS,
     // ?
     BackIn.SYNC_GAME_METADATA,
+    BackIn.SYNC_TAGGED,
     // Meta Edits
     BackIn.EXPORT_META_EDIT,
     BackIn.IMPORT_META_EDITS,
@@ -371,7 +373,7 @@ async function prepForInit(message: any): Promise<void> {
     // @TODO Figure out why async loading isn't always working?
     const prefsFilePath = path.join(state.config.flashpointPath, PREFERENCES_FILENAME);
     try {
-      state.preferences = await PreferencesFile.readOrCreateFile(prefsFilePath, state.config.flashpointPath);
+      state.preferences = await PreferencesFile.readOrCreateFile(prefsFilePath, state, state.config.flashpointPath);
     } catch (e) {
       console.log('Failed to load preferences, prompting for defaults');
       const res = await new Promise<number>((resolve) => {
@@ -400,7 +402,7 @@ async function prepForInit(message: any): Promise<void> {
         const defaultPrefs = deepCopy(defaultPreferencesData);
         state.preferences = defaultPrefs;
         try {
-          await PreferencesFile.saveFile(prefsFilePath, state.preferences);
+          await PreferencesFile.saveFile(prefsFilePath, state.preferences, state);
           console.log('Copied default preferences');
         } catch (err) {
           send({quit: true, errorMessage: 'Failed to save default preferences file? Quitting...'});

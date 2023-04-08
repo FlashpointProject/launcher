@@ -552,6 +552,47 @@ export function mainStateReducer(state: MainState = createInitialState(), action
       }
     }
 
+    case MainActionType.POST_FPFSS_SYNC: {
+      // Create views for new libraries
+      const newViews = deepCopy(state.views);
+      for (const library of action.libraries) {
+        if (!newViews[library]) {
+          newViews[library] = {
+            query: rebuildQuery({
+              text: '',
+              extreme: action.preferencesData.browsePageShowExtreme,
+              library: library,
+              playlist: undefined,
+              searchLimit: action.preferencesData.searchLimit,
+              order: {
+                orderBy: action.preferencesData.gamesOrderBy,
+                orderReverse: action.preferencesData.gamesOrder
+              },
+              tagFilters: action.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !action.preferencesData.browsePageShowExtreme))
+            }),
+            pageState: {},
+            meta: undefined,
+            metaState: RequestState.WAITING,
+            games: {},
+            queryId: 0,
+            isDirty: false,
+            total: undefined,
+            selectedGameId: undefined,
+            lastStart: 0,
+            lastCount: 0,
+            tagFilters: [],
+          };
+        }
+      }
+      return {
+        ...state,
+        views: newViews,
+        gamesTotal: action.total,
+        libraries: action.libraries,
+        suggestions: action.suggestions,
+      };
+    }
+
     case MainActionType.RESOLVE_DIALOG: {
       const dialogs = [...state.openDialogs];
       const exisingIdx = dialogs.findIndex(d => d.id === action.dialogId);

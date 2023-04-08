@@ -165,6 +165,10 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               value={'Import Metadata'}
               title={'Import Metadata File'}
               onClick={this.onImportMetadata} />
+            <SimpleButton
+              value={'Test Tag Sync'}
+              title={'Test Tag Sync from first Metadata source'}
+              onClick={this.onTestTagSync} />
             { this.props.devScripts.map(contribution => contribution.value.map((script, index) => (
               <SimpleButton
                 key={contribution.extId + index}
@@ -430,6 +434,21 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
       const metadata = fs.readFileSync(filePath ? filePath[0] : 'NONE', { encoding: 'utf-8' });
       await window.Shared.back.request(BackIn.IMPORT_METADATA, JSON.parse(metadata));
       this.setState({ text: 'DONE... Please Restart Flashpoint.' });
+    });
+  };
+
+  onTestTagSync = (): void => {
+    setTimeout(async () => {
+      const startTime = new Date();
+      this.setState({ text: 'Syncing...' });
+      window.Shared.back.request(BackIn.SYNC_ALL, window.Shared.preferences.data.gameMetadataSources[0])
+      .then(() => {
+        const doneTime = (new Date()).getTime() - startTime.getTime();
+        this.setState({ text: `Updated metadata (${doneTime}ms)` });
+      })
+      .catch((err) => {
+        this.setState({ text: `Error: ${err}` });
+      });
     });
   };
 

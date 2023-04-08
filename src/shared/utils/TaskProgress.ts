@@ -33,6 +33,11 @@ export class TaskProgress extends EventEmitter implements ITaskProgress {
     this._done = false;
   }
 
+  /**
+   * Advance the stage ahead forcefully, setting progress of that stage to 0
+   * @param stage Numbered stage to skip to
+   * @param task Task progress string to show user
+   */
   setStage(stage: number, task: string) {
     if (!this._done) {
       if (stage > this._stageCount) {
@@ -48,6 +53,11 @@ export class TaskProgress extends EventEmitter implements ITaskProgress {
     }
   }
 
+  /**
+   * Set progress and task string for a stage
+   * @param done Demical progress (1 is done)
+   * @param task Task progress string to show user
+   */
   setStageProgress(done: number, task: string) {
     if (!this._done) {
       console.log(`Stage progress: ${done.toFixed(4)}`);

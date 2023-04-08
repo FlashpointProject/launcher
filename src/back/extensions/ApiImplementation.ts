@@ -63,7 +63,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     onError?: (error: string) => void
   ) => {
     overwritePreferenceData(state.preferences, data, onError);
-    await PreferencesFile.saveFile(path.join(state.configFolder, PREFERENCES_FILENAME), state.preferences);
+    await PreferencesFile.saveFile(path.join(state.configFolder, PREFERENCES_FILENAME), state.preferences, state);
     state.socketServer.broadcast(BackOut.UPDATE_PREFERENCES_RESPONSE, state.preferences);
     return state.preferences;
   };

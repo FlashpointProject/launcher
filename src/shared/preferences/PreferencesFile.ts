@@ -1,3 +1,5 @@
+import { PREFERENCES_FILENAME } from '@back/constants';
+import { BackState } from '@back/types';
 import { getTempFilename } from '@back/util/misc';
 import { AppPreferencesData } from 'flashpoint-launcher';
 import * as fs from 'fs';
@@ -31,10 +33,11 @@ export namespace PreferencesFile {
    * If the file does not exist, create a new one with the default values and return that instead.
    *
    * @param filePath Path to preferences.json
+   * @param state Backend State
    * @param flashpointPath Path to the Flashpoint Data folder
    * @param onError Called for each error that occurs while parsing.
    */
-  export async function readOrCreateFile(filePath: string, flashpointPath: string, onError?: (error: string) => void): Promise<AppPreferencesData> {
+  export async function readOrCreateFile(filePath: string, state: BackState, flashpointPath: string, onError?: (error: string) => void): Promise<AppPreferencesData> {
     // Try to get the data from the file
     const data = await readFile(filePath, onError)
     .catch((e) => {
@@ -52,12 +55,12 @@ export namespace PreferencesFile {
         await fs.promises.copyFile(overridePath, filePath);
         console.log('Copied default preferences (override)');
         // File copied, try loading again
-        return readOrCreateFile(filePath, flashpointPath, onError);
+        return readOrCreateFile(filePath, state, flashpointPath, onError);
       } catch (err) {
         console.log(err);
         // Failed to copy overrides, use defaults
         const defaultPrefs = deepCopy(defaultPreferencesData);
-        await saveFile(filePath, defaultPrefs)
+        await saveFile(filePath, defaultPrefs, state)
         .catch(() => console.error('Failed to save default preferences file!'));
         console.log('Copied default preferences');
         return defaultPrefs;
@@ -72,7 +75,7 @@ export namespace PreferencesFile {
     return overwritePreferenceData(deepCopy(defaultPreferencesData), json, onError);
   }
 
-  export async function saveFile(filePath: string, data: AppPreferencesData): Promise<void> {
+  export async function saveFile(filePath: string, data: AppPreferencesData, state: BackState): Promise<void> {
     const json = stringifyJsonDataFile(data);
     if (json.length === 0) {
       log.error('PreferencesFile', 'Serialized preferences string is empty, skipping write.');
@@ -95,8 +98,15 @@ export namespace PreferencesFile {
     try {
       await fs.promises.rename(temp, filePath);
     } catch {
-      await fs.promises.copyFile(temp, filePath);
-      await fs.promises.unlink(temp);
+      try {
+        await fs.promises.copyFile(temp, filePath);
+        await fs.promises.unlink(temp);
+      } catch (err) {
+        log.error('Launcher', 'PARTICULARLY BAD ERROR: Failed to save temp file for Prefs correctly, requeued');
+        state.prefsQueue.push(() => {
+          PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
+        });
+      }
     }
   }
 }

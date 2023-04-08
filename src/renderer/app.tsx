@@ -162,15 +162,27 @@ export class App extends React.Component<AppProps> {
                   break;
                 }
                 case 'edit_game': {
-                  // Edit game in-launcher then send it back to server
-                  this.performFpfssAction((user) => {
-                    if (this.props.main.fpfss.editingGame) {
-                      alert('Game edit already open');
-                    } else {
-                      // Download Game metadata and add to state
-                      const url = `${this.props.preferencesData.fpfssBaseUrl}/${parts.slice(2).join('/')}`;
-                      this.fetchFpfssGame(url);
-                    }
+                  // Force a tags update
+                  if (this.props.preferencesData.gameMetadataSources.length === 0) {
+                    alert('No metadata sources in preferences.json, aborting remote edit');
+                    return;
+                  }
+                  const source = this.props.preferencesData.gameMetadataSources[0];
+                  window.Shared.back.request(BackIn.SYNC_TAGGED, source)
+                  .then(() => {
+                    // Edit game in-launcher then send it back to server
+                    this.performFpfssAction((user) => {
+                      if (this.props.main.fpfss.editingGame) {
+                        alert('Game edit already open');
+                      } else {
+                        // Download Game metadata and add to state
+                        const url = `${this.props.preferencesData.fpfssBaseUrl}/${parts.slice(2).join('/')}`;
+                        this.fetchFpfssGame(url);
+                      }
+                    });
+                  })
+                  .catch((err) => {
+                    alert(`Failed to update tags: ${err}`);
                   });
                   break;
                 }
@@ -511,6 +523,16 @@ export class App extends React.Component<AppProps> {
       this.props.dispatchMain({
         type: MainActionType.CANCEL_DIALOG,
         dialogId
+      });
+    });
+
+    window.Shared.back.register(BackOut.POST_SYNC_CHANGES, (event, libraries, suggestions, total) => {
+      this.props.dispatchMain({
+        type: MainActionType.POST_FPFSS_SYNC,
+        libraries,
+        suggestions,
+        preferencesData: this.props.preferencesData,
+        total
       });
     });
   }
@@ -1741,14 +1763,14 @@ export class App extends React.Component<AppProps> {
     window.Shared.back.send(BackIn.OPEN_FLASHPOINT_MANAGER);
   };
 
-  async logoutUser() {
+  logoutUser = () => {
     // @TODO actually logout to invalid server side
     this.props.dispatchMain({
       type: MainActionType.SET_FPFSS_USER,
       user: null
     });
     localStorage.removeItem('fpfss_user');
-  }
+  };
 
   fetchFpfssGame = async (url: string) => {
     try {

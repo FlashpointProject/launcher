@@ -83,6 +83,8 @@ export enum MainActionType {
   SET_FPFSS_GAME = '@@main/SET_FPFSS_GAME',
   /** Apply delta edit to FPFSS editing game */
   APPLY_DELTA_FPFSS_GAME = '@@main/APPLY_DELTA_FPFSS_GAME',
+  /** Data to sync after a metadata sync */
+  POST_FPFSS_SYNC = '@@main/POST_FPFSS_SYNC',
 }
 
 export enum RequestState {
