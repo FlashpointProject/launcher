@@ -69,6 +69,8 @@ const langTemplate = {
     'noLogoSet',
     'logoSetDesc',
     'advancedHeader',
+    'optimizeDatabase',
+    'optimizeDatabaseDesc',
     'showDeveloperTab',
     'showDeveloperTabDesc',
     'server',

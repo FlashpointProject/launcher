@@ -296,6 +296,12 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
           <div className='setting'>
             <p className='setting__title'>{strings.advancedHeader}</p>
             <div className='setting__body'>
+              {/* Optimize Database */}
+              <ConfigBoxButton
+                title={strings.optimizeDatabase}
+                description={strings.optimizeDatabaseDesc}
+                value={allStrings.curate.run}
+                onClick={this.onOptimizeDatabase}/>
               {/* Show Developer Tab */}
               <ConfigBoxCheckbox
                 title={strings.showDeveloperTab}
@@ -1009,6 +1015,14 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       alert('Error: ' + err);
     });
   };
+
+  onOptimizeDatabase = () => {
+    window.Shared.back.request(BackIn.OPTIMIZE_DATABASE)
+    .catch((err) => {
+      alert('Error: ' + err);
+    });
+  };
+
 }
 
 function setExtConfigValue(key: string, value: any): void {

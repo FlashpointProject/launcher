@@ -625,7 +625,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
     case MainActionType.UPDATE_DIALOG_FIELD: {
       const dialogs = [...state.openDialogs];
       const existingIdx = dialogs.findIndex(d => d.id === action.dialogId);
-      if (existingIdx) {
+      if (existingIdx > -1) {
         const dialog = deepCopy(dialogs[existingIdx]);
         const fieldIdx = dialog.fields?.findIndex(f => f.name === action.field.name) || -1;
         if (dialog.fields && fieldIdx > -1) {
@@ -636,6 +636,21 @@ export function mainStateReducer(state: MainState = createInitialState(), action
             openDialogs: dialogs
           };
         }
+      }
+      return state;
+    }
+
+    case MainActionType.UPDATE_DIALOG_MESSAGE: {
+      const dialogs = [...state.openDialogs];
+      const existingIdx = dialogs.findIndex(d => d.id === action.dialogId);
+      if (existingIdx > -1) {
+        const dialog = deepCopy(dialogs[existingIdx]);
+        dialog.message = action.message;
+        dialogs[existingIdx] = dialog;
+        return {
+          ...state,
+          openDialogs: dialogs
+        };
       }
       return state;
     }

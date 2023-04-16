@@ -20,6 +20,7 @@ import * as os from 'os';
 import * as path from 'path';
 import { promisify } from 'util';
 import { uuid } from './uuid';
+import { AppDataSource } from '..';
 
 const unlink = promisify(fs.unlink);
 
@@ -460,4 +461,19 @@ export function compareSemVerVersions(v1: string, v2: string): number {
 
   // Versions are equal
   return 0;
+}
+
+export async function optimizeDatabase(state: BackState, dialogId: string) {
+  state.socketServer.broadcast(BackOut.UPDATE_DIALOG_MESSAGE, 'Analyzing...', dialogId);
+  await AppDataSource.query('ANALYZE');
+  state.socketServer.broadcast(BackOut.UPDATE_DIALOG_MESSAGE, 'Reindexing...', dialogId);
+  await AppDataSource.query('REINDEX');
+  state.socketServer.broadcast(BackOut.UPDATE_DIALOG_MESSAGE, 'Vacuuming...', dialogId);
+  await AppDataSource.query('VACUUM');
+}
+
+export async function promiseSleep(ms: number) {
+  return new Promise<void>((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }

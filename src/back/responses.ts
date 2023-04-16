@@ -59,7 +59,7 @@ import { copyFolder, genContentTree } from './rust';
 import { syncGames, syncPlatforms, syncTags } from './sync';
 import { BackState, BarePlatform, BareTag, MetadataRaw, TagsFile } from './types';
 import { pathToBluezip } from './util/Bluezip';
-import { awaitDialog } from './util/dialog';
+import { awaitDialog, createNewDialog } from './util/dialog';
 import {
   compareSemVerVersions,
   copyError,
@@ -68,7 +68,7 @@ import {
   createGameFromLegacy,
   dateToFilenameString,
   deleteCuration,
-  exit, getCwd, getTempFilename, openFlashpointManager, pathExists, procToService, removeService,
+  exit, getCwd, getTempFilename, openFlashpointManager, optimizeDatabase, pathExists, procToService, promiseSleep, removeService,
   runService
 } from './util/misc';
 import { pathTo7zBack } from './util/SevenZip';
@@ -2270,6 +2270,21 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       default:
         throw 'Unsupported type';
     }
+  });
+
+  state.socketServer.register(BackIn.OPTIMIZE_DATABASE, async (event) => {
+    const dialogId = await createNewDialog(state, {
+      largeMessage: true,
+      message: 'Optimizing Database...',
+      buttons: []
+    });
+    // Make the user feel like we're doing something special
+    await promiseSleep(1000);
+    // Actually do the work now
+    await optimizeDatabase(state, dialogId)
+    .finally(() => {
+      state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
+    });
   });
 }
 

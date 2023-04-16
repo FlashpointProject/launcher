@@ -295,6 +295,10 @@ export type MainAction = {
   suggestions: GamePropSuggestions;
   total: number;
   preferencesData: AppPreferencesData;
+} | {
+  type: MainActionType.UPDATE_DIALOG_MESSAGE;
+  dialogId: string;
+  message: string;
 }
 
 export type WithAsyncDispatch = {

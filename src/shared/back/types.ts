@@ -152,6 +152,7 @@ export enum BackIn {
   OPEN_FLASHPOINT_MANAGER,
   CANCEL_DOWNLOAD,
   DELETE_ALL_IMAGES,
+  OPTIMIZE_DATABASE,
 
   // Developer
   UPDATE_TAGGED_FIELDS,
@@ -226,6 +227,7 @@ export enum BackOut {
   // Dialogs
   NEW_DIALOG,
   CANCEL_DIALOG,
+  UPDATE_DIALOG_MESSAGE,
 }
 
 export const BackRes = {
@@ -361,6 +363,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.OPEN_FLASHPOINT_MANAGER]: () => void;
   [BackIn.CANCEL_DOWNLOAD]: () => void;
   [BackIn.DELETE_ALL_IMAGES]: () => void;
+  [BackIn.OPTIMIZE_DATABASE]: () => void;
 
   // Developer
   [BackIn.UPDATE_TAGGED_FIELDS]: () => void;
@@ -438,6 +441,7 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   // Dialogs
   [BackOut.NEW_DIALOG]: (template: DialogStateTemplate, responseId: string) => void;
   [BackOut.CANCEL_DIALOG]: (dialogId: string) => void;
+  [BackOut.UPDATE_DIALOG_MESSAGE]: (message: string, dialogId: string) => void;
 }>
 
 export type BackResTemplate = BackOutTemplate & BackInTemplate;

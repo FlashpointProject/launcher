@@ -85,6 +85,8 @@ export enum MainActionType {
   APPLY_DELTA_FPFSS_GAME = '@@main/APPLY_DELTA_FPFSS_GAME',
   /** Data to sync after a metadata sync */
   POST_FPFSS_SYNC = '@@main/POST_FPFSS_SYNC',
+  /** Update Dialog Message */
+  UPDATE_DIALOG_MESSAGE = '@@main/UPDATE_DIALOG_MESSAGE',
 }
 
 export enum RequestState {

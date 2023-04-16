@@ -519,6 +519,14 @@ export class App extends React.Component<AppProps> {
       window.Shared.back.send(BackIn.NEW_DIALOG_RESPONSE, d.id, code);
     });
 
+    window.Shared.back.register(BackOut.UPDATE_DIALOG_MESSAGE, (event, message, id) => {
+      this.props.dispatchMain({
+        type: MainActionType.UPDATE_DIALOG_MESSAGE,
+        dialogId: id,
+        message: message
+      });
+    });
+
     window.Shared.back.register(BackOut.CANCEL_DIALOG, (event, dialogId) => {
       this.props.dispatchMain({
         type: MainActionType.CANCEL_DIALOG,
