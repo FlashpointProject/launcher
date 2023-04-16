@@ -45,4 +45,12 @@ export class GameData {
   @Column({ nullable: true })
   /** Parameters passed to the mounter */
     parameters?: string;
+
+  @Column()
+  /** Application path used to launch game with this data */
+    applicationPath: string;
+
+  @Column()
+  /** Application path used to launch game with this data */
+    launchCommand: string;
 }

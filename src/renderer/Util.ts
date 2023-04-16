@@ -139,9 +139,9 @@ export async function getGamePath(game: Game, fpPath: string, htdocsPath: string
     case 'unity': {
       // Extract the URL (get the content after the first space, or the whole string if there is no space)
       let str: string | undefined = undefined;
-      const index = game.launchCommand.indexOf(' ');
-      if (index >= 0) { str = game.launchCommand.substring(index + 1); }
-      else            { str = game.launchCommand; }
+      const index = game.legacyLaunchCommand.indexOf(' ');
+      if (index >= 0) { str = game.legacyLaunchCommand.substring(index + 1); }
+      else            { str = game.legacyLaunchCommand; }
       // Create URL
       const url = toForcedURL(str);
       if (url) { return path.join(fpPath, htdocsPath, urlToFilePath(url)); }
@@ -149,22 +149,22 @@ export async function getGamePath(game: Game, fpPath: string, htdocsPath: string
     // Relative path to a ".ini" file
     // Example: game.ini
     case '3d groove gx':
-      return path.join(fpPath, groovePath, game.launchCommand);
+      return path.join(fpPath, groovePath, game.legacyLaunchCommand);
     // Examples: -J-Dfile.encoding=UTF8 -J-Duser.language=ja -J-Duser.country=JP http://www.example.jp/game.html
     //           http://www.example.com/game.html
     //           "http://www.example.com/game.html"
     case 'java': {
       // Extract the path/url from the launch command
       let str: string | undefined = undefined;
-      if (game.launchCommand[0] === '"') { // (URL wrappen in quotation marks)
+      if (game.legacyLaunchCommand[0] === '"') { // (URL wrappen in quotation marks)
         // Get the contents between the first pair of quotation marks
-        const index = game.launchCommand.indexOf('"', 1);
-        if (index >= 0) { str = game.launchCommand.substring(1, index); }
+        const index = game.legacyLaunchCommand.indexOf('"', 1);
+        if (index >= 0) { str = game.legacyLaunchCommand.substring(1, index); }
       } else {
         // Get the content after the last space (or the while string if there is no space)
-        const index = game.launchCommand.lastIndexOf(' ');
-        if (index >= 0) { str = game.launchCommand.substring(index); }
-        else            { str = game.launchCommand; }
+        const index = game.legacyLaunchCommand.lastIndexOf(' ');
+        if (index >= 0) { str = game.legacyLaunchCommand.substring(index); }
+        else            { str = game.legacyLaunchCommand; }
       }
       // Create a full path from the extracted url
       if (str !== undefined) {
@@ -178,15 +178,15 @@ export async function getGamePath(game: Game, fpPath: string, htdocsPath: string
     case 'shockwave': {
       // Extract the path/url from the launch command
       let str: string | undefined = undefined;
-      if (game.launchCommand[0] === '"') { // (Path/URL wrappen in quotation marks)
+      if (game.legacyLaunchCommand[0] === '"') { // (Path/URL wrappen in quotation marks)
         // Get the contents between the first pair of quotation marks
-        const index = game.launchCommand.indexOf('"', 1);
-        if (index >= 0) { str = game.launchCommand.substring(1, index); }
+        const index = game.legacyLaunchCommand.indexOf('"', 1);
+        if (index >= 0) { str = game.legacyLaunchCommand.substring(1, index); }
       } else {
         // Get the content before the first space (or the while string if there is no space)
-        const index = game.launchCommand.indexOf(' ');
-        if (index >= 0) { str = game.launchCommand.substring(0, index); }
-        else            { str = game.launchCommand; }
+        const index = game.legacyLaunchCommand.indexOf(' ');
+        if (index >= 0) { str = game.legacyLaunchCommand.substring(0, index); }
+        else            { str = game.legacyLaunchCommand; }
       }
       // Create a full path from the extracted path/url
       if (str !== undefined) {
@@ -202,9 +202,9 @@ export async function getGamePath(game: Game, fpPath: string, htdocsPath: string
     case 'activex': {
       // Extract everything before the first space
       let str: string | undefined = undefined;
-      const index = game.launchCommand.lastIndexOf(' ');
-      if (index >= 0) { str = game.launchCommand.substring(0, index); }
-      else            { str = game.launchCommand; }
+      const index = game.legacyLaunchCommand.lastIndexOf(' ');
+      if (index >= 0) { str = game.legacyLaunchCommand.substring(0, index); }
+      else            { str = game.legacyLaunchCommand; }
       // Create a full path from the extracted url
       const url = toForcedURL(str);
       if (url) { return path.join(fpPath, htdocsPath, urlToFilePath(url)); }
@@ -217,7 +217,7 @@ export async function getGamePath(game: Game, fpPath: string, htdocsPath: string
     case 'popcap plugin':
     case 'silverlight':
     default: {
-      const urlObj = toForcedURL(game.launchCommand);
+      const urlObj = toForcedURL(game.legacyLaunchCommand);
       return urlObj
         ? path.join(fpPath, htdocsPath, urlToFilePath(urlObj))
         : undefined;

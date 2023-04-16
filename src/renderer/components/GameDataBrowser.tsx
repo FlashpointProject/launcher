@@ -89,6 +89,18 @@ export class GameDataBrowser extends React.Component<GameDataBrowserProps, GameD
     this.setState({ gameData: newData });
   };
 
+  onUpdateApplicationPath = (index: number, applicationPath: string) => {
+    const newData = [...this.state.gameData];
+    newData[index].applicationPath = applicationPath;
+    this.setState({ gameData: newData });
+  };
+
+  onUpdateLaunchCommand = (index: number, launchCommand: string) => {
+    const newData = [...this.state.gameData];
+    newData[index].launchCommand = launchCommand;
+    this.setState({ gameData: newData });
+  };
+
   updateGameData = async (id: number) => {
     const gameData = await window.Shared.back.request(BackIn.GET_GAME_DATA, id);
     if (gameData) {
@@ -126,6 +138,8 @@ export class GameDataBrowser extends React.Component<GameDataBrowserProps, GameD
             active={data.id === this.props.game.activeDataId}
             onUpdateTitle={(title) => this.onUpdateTitle(index, title)}
             onUpdateParameters={(parameters) => this.onUpdateParameters(index, parameters)}
+            onUpdateApplicationPath={(appPath) => this.onUpdateApplicationPath(index, appPath)}
+            onUpdateLaunchCommand={(lc) => this.onUpdateLaunchCommand(index, lc)}
             onActiveToggle={() => {
               this.props.onUpdateActiveGameData(data.presentOnDisk, data.id);
             }}
@@ -184,7 +198,7 @@ export class GameDataBrowser extends React.Component<GameDataBrowserProps, GameD
             </div>
           </>
         ) : (
-          <i>FETCHING</i>
+          <i>Fetching Game Data...</i>
         )}
       </FloatingContainer>
     );

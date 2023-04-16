@@ -81,11 +81,21 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   // TODO: Consider moving this check outside importCuration
   // Warn if launch command is already present on another game
   if (curation.game.launchCommand) {
-    const existingGame = await GameManager.findGame(undefined, {
+    const existingGameData = await GameManager.findGameData({
       where: {
         launchCommand: curation.game.launchCommand
       }
     });
+    let existingGame: Game | null = null;
+    if (existingGameData) {
+      existingGame = await GameManager.findGame(existingGameData.gameId);
+    } else {
+      existingGame = await GameManager.findGame(undefined, {
+        where: {
+          legacyLaunchCommand: curation.game.launchCommand
+        }
+      });
+    }
     if (existingGame) {
       // Warn user of possible duplicate
       const dialogId = await opts.openDialog({
@@ -111,10 +121,19 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   const gameId = curation.uuid;
   const oldGame = await GameManager.findGame(gameId);
   if (oldGame) {
+    const existingGameData = await GameManager.findGameData({
+      where: {
+        gameId
+      },
+      order: {
+        dateAdded: 'DESC'
+      }
+    });
+    const launchCommand = existingGameData ? existingGameData.launchCommand : oldGame.legacyLaunchCommand;
     const dialogId = await opts.openDialog({
       message: 'There is already a game using this id. Importing will override it.\nContinue importing this curation?\n\n'
               + `Curation:\n\tTitle: ${curation.game.title}\n\tLaunch Command: ${curation.game.launchCommand}\n\tPlatform: ${curation.game.platforms ? curation.game.platforms.map(p => p.primaryAlias.name).join('; ') : ''}\n\n`
-              + `Existing Game:\n\tTitle: ${oldGame.title}\n\tLaunch Command: ${oldGame.launchCommand}\n\tPlatform: ${oldGame.platforms.map(p => p.primaryAlias.name).join('; ')}`,
+              + `Existing Game:\n\tTitle: ${oldGame.title}\n\tLaunch Command: ${launchCommand}\n\tPlatform: ${oldGame.platforms.map(p => p.primaryAlias.name).join('; ')}`,
       buttons: ['Yes', 'No']
     });
     const response = (await awaitDialog(opts.state, dialogId)).buttonIdx;

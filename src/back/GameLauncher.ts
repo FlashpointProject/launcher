@@ -179,8 +179,8 @@ export namespace GameLauncher {
         const command: string = createCommand(launchInfo.launchInfo);
         const managedProc = opts.runGame(launchInfo);
         log.info(logSource,`Launch Game "${opts.game.title}" (PID: ${managedProc.getPid()}) [\n`+
-                    `    applicationPath: "${opts.game.applicationPath}",\n`+
-                    `    launchCommand:   "${opts.game.launchCommand}",\n`+
+                    `    applicationPath: "${appPath}",\n`+
+                    `    launchCommand:   "${metadataLaunchCommand}",\n`+
                     `    command:         "${command}" ]`);
       })
       .catch((error) => {
@@ -188,16 +188,18 @@ export namespace GameLauncher {
       });
     };
     // Launch game
-    let appPath: string = getApplicationPath(opts.game.applicationPath, opts.execMappings, opts.native);
+    const gameData = opts.game.activeDataId ? await GameDataManager.findOne(opts.game.activeDataId) : null;
+    const metadataAppPath = gameData ? gameData.applicationPath : opts.game.legacyApplicationPath;
+    const metadataLaunchCommand = gameData ? gameData.launchCommand : opts.game.legacyLaunchCommand;
+    let appPath: string = getApplicationPath(metadataAppPath, opts.execMappings, opts.native);
     let appArgs: string[] = [];
     const appPathOverride = opts.appPathOverrides.filter(a => a.enabled).find(a => a.path === appPath);
     if (appPathOverride) { appPath = appPathOverride.override; }
-    const availableApps = opts.providers.filter(p => p.provides.includes(appPath) || p.provides.includes(opts.game.applicationPath));
-    log.debug('TEST', 'Checked for available apps');
+    const availableApps = opts.providers.filter(p => p.provides.includes(appPath) || p.provides.includes(metadataAppPath));
     // If any available provided applications, check if any work.
     for (const app of availableApps) {
       try {
-        const res = await app.callback(opts.game);
+        const res = await app.callback(opts.game, appPath, metadataLaunchCommand);
 
         // Simple path return, treat as regular app
         if (typeof res === 'string') {
@@ -220,7 +222,6 @@ export namespace GameLauncher {
           const browserLaunchArgs = [path.join(__dirname, '../main/index.js'), 'browser_mode=true'];
           if (res.proxy) { browserLaunchArgs.push(`proxy=${res.proxy}`); }
           browserLaunchArgs.push(`browser_url=${(res.url)}`);
-          const gameData = opts.game.activeDataId ? await GameDataManager.findOne(opts.game.activeDataId) : null;
           const gameLaunchInfo: GameLaunchInfo = {
             game: opts.game,
             activeData: gameData,
@@ -238,7 +239,7 @@ export namespace GameLauncher {
             const managedProc = opts.runGame(gameLaunchInfo);
             log.info(logSource, `Launch Game "${opts.game.title}" (PID: ${managedProc.getPid()}) [\n`+
                       `    applicationPath: "${appPath}",\n`+
-                      `    launchCommand:   "${opts.game.launchCommand}" ]`);
+                      `    launchCommand:   "${metadataLaunchCommand}" ]`);
           })
           .catch((error) => {
             log.info('Game Launcher', `Game Launch Aborted: ${error}`);
@@ -256,7 +257,7 @@ export namespace GameLauncher {
     }
     // Continue with launching normally
     const gamePath: string = path.isAbsolute(appPath) ? fixSlashes(appPath) : fixSlashes(path.join(opts.fpPath, appPath));
-    const gameArgs: string[] = [...appArgs, opts.game.launchCommand];
+    const gameArgs: string[] = [...appArgs, metadataLaunchCommand];
     const useWine: boolean = process.platform != 'win32' && gamePath.endsWith('.exe');
     const env = getEnvironment(opts.fpPath, opts.proxy, opts.envPATH);
     try {
@@ -264,7 +265,6 @@ export namespace GameLauncher {
     } catch (err: any) {
       log.error('Launcher', 'Error Finding Game - ' + err.toString());
     }
-    const gameData = opts.game.activeDataId ? await GameDataManager.findOne(opts.game.activeDataId) : null;
     await handleGameDataParams(opts, serverOverride, gameData || undefined);
     const gameLaunchInfo: GameLaunchInfo = {
       game: opts.game,

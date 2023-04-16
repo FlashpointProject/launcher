@@ -168,6 +168,9 @@ export function importGameData(gameId: string, filePath: string, dataPacksFolder
           .then(async (gameData) => {
             const game = await GameManager.findGame(gameId);
             if (game) {
+              // Remove legacy info when adding game data
+              game.legacyApplicationPath = '';
+              game.legacyLaunchCommand = '';
               game.activeDataId = gameData.id;
               game.activeDataOnDisk = gameData.presentOnDisk;
               await GameManager.save(game);

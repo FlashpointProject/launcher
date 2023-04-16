@@ -31,8 +31,8 @@ export function convertGameToCurationMetaFile(game: Game, categories: TagCategor
   parsed['Source']               = game.source;
   parsed['Platforms']            = game.platforms.map(p => p.primaryAlias.name).join('; ');
   parsed['Status']               = game.status;
-  parsed['Application Path']     = game.applicationPath;
-  parsed['Launch Command']       = game.launchCommand;
+  parsed['Application Path']     = game.legacyApplicationPath;
+  parsed['Launch Command']       = game.legacyLaunchCommand;
   parsed['Game Notes']           = game.notes;
   parsed['Original Description'] = game.originalDescription;
   // Add-apps meta

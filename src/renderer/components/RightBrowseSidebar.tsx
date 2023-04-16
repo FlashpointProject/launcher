@@ -106,8 +106,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   onVersionChange             = this.wrapOnTextChange((game, text) => this.props.onEditGame({ version: text }));
   onReleaseDateChange         = this.wrapOnTextChange((game, text) => this.props.onEditGame({ releaseDate: text }));
   onLanguageChange            = this.wrapOnTextChange((game, text) => this.props.onEditGame({ language: text }));
-  onLaunchCommandChange       = this.wrapOnTextChange((game, text) => this.props.onEditGame({ launchCommand: text }));
-  onApplicationPathChange     = this.wrapOnTextChange((game, text) => this.props.onEditGame({ applicationPath: text }));
+  onLaunchCommandChange       = this.wrapOnTextChange((game, text) => this.props.onEditGame({ legacyLaunchCommand: text }));
+  onApplicationPathChange     = this.wrapOnTextChange((game, text) => this.props.onEditGame({ legacyApplicationPath: text }));
   onNotesChange               = this.wrapOnTextChange((game, text) => this.props.onEditGame({ notes: text }));
   onOriginalDescriptionChange = this.wrapOnTextChange((game, text) => this.props.onEditGame({ originalDescription: text }));
   onBrokenChange              = this.wrapOnCheckBoxChange(() => {
@@ -610,23 +610,23 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                 )) }
               </div>
             ) : undefined }
-            {/* -- Application Path & Launch Command -- */}
-            { editable && !isPlaceholder ? (
+            {/* -- LEGACY GAMES ONLY - Application Path & Launch Command -- */}
+            { editable && game.activeDataId === null && !isPlaceholder ? (
               <div className='browse-right-sidebar__section'>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>{strings.applicationPath}: </p>
                   <DropdownInputField
-                    text={game.applicationPath}
+                    text={game.legacyApplicationPath}
                     placeholder={strings.noApplicationPath}
                     onChange={this.onApplicationPathChange}
                     editable={editable}
                     items={suggestions && filterSuggestions(suggestions.applicationPath) || []}
-                    onItemSelect={text => this.props.onEditGame({ applicationPath: text })} />
+                    onItemSelect={text => this.props.onEditGame({ legacyApplicationPath: text })} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>{strings.launchCommand}: </p>
                   <InputField
-                    text={game.launchCommand}
+                    text={game.legacyLaunchCommand}
                     placeholder={strings.noLaunchCommand}
                     onChange={this.onLaunchCommandChange}
                     editable={editable}

@@ -49,6 +49,16 @@ export async function countGames(): Promise<number> {
 }
 
 /**
+ * Find the first matching game data with the specified criteria
+ *
+ * @param filter Filters to append
+ */
+export async function findGameData(filter: FindOneOptions<GameData>): Promise<GameData | null> {
+  const repo = AppDataSource.getRepository(GameData);
+  return await repo.findOne(filter);
+}
+
+/**
  * Find the game with the specified ID.
  *
  * @param id ID of game to find
@@ -336,15 +346,17 @@ export async function removeGameAndAddApps(gameId: string, dataPacksFolderPath: 
       await fs.promises.unlink(ssPath);
     } catch { /** Assume doesn't exist */ }
     // Delete Launch Command file from htdocs
-    try {
-      const urlObj = new URL(game.launchCommand) || new URL('http://'+game.launchCommand);
-      const filePath = urlObj
-        ? path.join(htdocsFolderPath, decodeURIComponent(path.join(urlObj.hostname, urlObj.pathname)))
-        : undefined;
-      if (filePath) {
-        await fs.promises.unlink(filePath);
-      }
-    } catch { /** Assume doesn't exist */ }
+    if (game.legacyLaunchCommand) {
+      try {
+        const urlObj = new URL(game.legacyLaunchCommand) || new URL('http://'+game.legacyLaunchCommand);
+        const filePath = urlObj
+          ? path.join(htdocsFolderPath, decodeURIComponent(path.join(urlObj.hostname, urlObj.pathname)))
+          : undefined;
+        if (filePath) {
+          await fs.promises.unlink(filePath);
+        }
+      } catch { /** Assume doesn't exist */ }
+    }
     // Delete GameData
     for (const gameData of (await GameDataManager.findGameData(game.id))) {
       if (gameData.presentOnDisk && gameData.path) {

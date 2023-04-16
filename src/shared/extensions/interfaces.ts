@@ -29,7 +29,7 @@ export type Application = {
 }
 
 export type AppProvider = Application & {
-  callback: (game: Game) => Promise<string | BrowserApplicationOpts>;
+  callback: (game: Game, applicationPath: string, launchCommand: string) => Promise<string | BrowserApplicationOpts>;
 }
 
 export type ApplicationMode = 'regular' | 'browser';

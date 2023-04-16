@@ -91,6 +91,7 @@ import { logFactory } from './util/logging';
 import { createContainer, exit, getMacPATH, runService } from './util/misc';
 import { uuid } from './util/uuid';
 import { GDIndex1680813346696 } from '@database/migration/1680813346696-GDIndex';
+import { MoveLaunchPath1681561150000 } from '@database/migration/1681561150000-MoveLaunchPath';
 
 const dataSourceOptions: DataSourceOptions = {
   type: 'better-sqlite3',
@@ -98,7 +99,7 @@ const dataSourceOptions: DataSourceOptions = {
   entities: [Game, AdditionalApp, Tag, TagAlias, TagCategory, GameData, Platform, PlatformAlias],
   migrations: [Initial1593172736527, AddExtremeToPlaylist1599706152407, GameData1611753257950, SourceDataUrlPath1612434225789, SourceFileURL1612435692266,
     SourceFileCount1612436426353, GameTagsStr1613571078561, GameDataParams1619885915109, RemoveSources1676712700000, RemovePlaylist1676713895000,
-    TagifyPlatform1677943090621, AddPlatformsRedundancyFieldToGame1677951346785, GDIndex1680813346696]
+    TagifyPlatform1677943090621, AddPlatformsRedundancyFieldToGame1677951346785, GDIndex1680813346696, MoveLaunchPath1681561150000]
 };
 export let AppDataSource: DataSource = new DataSource(dataSourceOptions);
 

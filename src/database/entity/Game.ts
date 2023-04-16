@@ -91,13 +91,13 @@ export class Game {
   /** Source if the game files, either full URL or the name of the website */
     source: string;
 
-  @Column()
-  /** Path to the application that runs the game */
-    applicationPath: string;
+  @Column({ name: 'applicationPath' })
+  /** LEGACY GAMES ONLY - Path to the application that runs the game */
+    legacyApplicationPath: string;
 
-  @Column()
-  /** Command line argument(s) passed to the application to launch the game */
-    launchCommand: string;
+  @Column({ name: 'launchCommand' })
+  /** LEGACY GAMES ONLY - Command line argument(s) passed to the application to launch the game */
+    legacyLaunchCommand: string;
 
   @Column({collation: 'NOCASE'})
   /** Date of when the game was released */

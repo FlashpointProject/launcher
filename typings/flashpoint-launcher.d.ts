@@ -562,10 +562,10 @@ declare module 'flashpoint-launcher' {
         tagsStr: string;
         /** Source if the game files, either full URL or the name of the website */
         source: string;
-        /** Path to the application that runs the game */
-        applicationPath: string;
-        /** Command line argument(s) passed to the application to launch the game */
-        launchCommand: string;
+        /** LEGACY GAMES ONLY - Path to the application that runs the game */
+        legacyApplicationPath: string;
+        /** LEGACY GAMES ONLY - Command line argument(s) passed to the application to launch the game */
+        legacyLaunchCommand: string;
         /** Date of when the game was released */
         releaseDate: string;
         /** Version of the game */
@@ -611,6 +611,10 @@ declare module 'flashpoint-launcher' {
         size: number;
         /** Parameters passed to the mounter */
         parameters?: string;
+        /** Application path used to launch game with this data */
+        applicationPath: string;
+        /** Application path used to launch game with this data */
+        launchCommand: string;
     };
 
     type AdditionalApp = {

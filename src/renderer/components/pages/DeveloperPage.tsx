@@ -567,8 +567,6 @@ function checkGameEmptyFields(games: Game[]): string {
     checkField(game, empty, 'source');
     checkField(game, empty, 'playMode');
     checkField(game, empty, 'status');
-    checkField(game, empty, 'applicationPath');
-    checkField(game, empty, 'launchCommand');
   }
   const timeEnd = Date.now(); // End timing
   // Write log message
@@ -616,8 +614,8 @@ function checkMissingExecMappings(games: Game[], execMappings: ExecMapping[]): s
   // Gather list of all unique execs
   for (let i = 0; i < games.length; i++) {
     const game = games[i];
-    if (allExecs.findIndex((exec) => { return exec === game.applicationPath; }) === -1) {
-      allExecs.push(game.applicationPath);
+    if (allExecs.findIndex((exec) => { return exec === game.legacyApplicationPath; }) === -1) {
+      allExecs.push(game.legacyApplicationPath);
     }
   }
   // Report missing win32 exec mappings
