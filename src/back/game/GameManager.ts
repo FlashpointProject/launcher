@@ -578,8 +578,10 @@ async function getGameQuery(
 
   // Order By + Limit
   if (orderBy) { query.orderBy(`${alias}.${orderBy} ${direction}, ${alias}.title`, direction); }
-  if (!index && offset) { query.skip(offset); }
-  if (limit) { query.take(limit); }
+  if (!filterOpts || !filterOpts.playlist) {
+    if (!index && offset) { query.skip(offset); }
+    if (limit) { query.take(limit); }
+  }
   // Playlist filtering
   if (filterOpts && filterOpts.playlist) {
     const gameIds = filterOpts.playlist.games.map(g => g.gameId).filter(gameId => !!gameId) as string[];

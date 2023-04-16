@@ -1281,7 +1281,7 @@ export class App extends React.Component<AppProps> {
     const libraryPath = getBrowseSubPath(this.props.location.pathname);
     const view = this.props.main.views[libraryPath];
     const playlists = this.filterAndOrderPlaylistsMemo(this.props.main.playlists, libraryPath);
-    const extremeTags = this.props.preferencesData.tagFilters.filter(t => !t.enabled && t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
+    const extremeTags = this.props.preferencesData.tagFilters.filter(t => t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
 
     // Props to set to the router
     const routerProps: AppRouterProps = {
@@ -1444,7 +1444,7 @@ export class App extends React.Component<AppProps> {
                       <ConnectedRightBrowseSidebar
                         logoVersion={this.props.main.logoVersion}
                         currentGame={this.props.main.currentGame}
-                        isExtreme={this.props.main.currentGame ? this.props.main.currentGame.tags.reduce<boolean>((prev, next) => extremeTags.includes(next.primaryAlias.name), false) : false}
+                        isExtreme={this.props.main.currentGame ? this.props.main.currentGame.tags.reduce<boolean>((prev, next) => extremeTags.includes(next.primaryAlias.name) || prev, false) : false}
                         gameRunning={routerProps.gameRunning}
                         currentPlaylistEntry={this.props.main.currentPlaylistEntry}
                         currentLibrary={routerProps.gameLibrary}

@@ -140,6 +140,12 @@ export async function importPlaylist(state: BackState, filePath: string, library
         }
       }
     }
+    // Add order number if missing
+    if (newPlaylist.games.reduce((prev, cur) => prev + cur.order, 0) === 0) {
+      for (let i = 0; i < newPlaylist.games.length; i++) {
+        newPlaylist.games[i].order = i;
+      }
+    }
     await updatePlaylist(state, newPlaylist, newPlaylist);
     log.info('Launcher', `Imported playlist - ${newPlaylist.title}`);
     if (event) {

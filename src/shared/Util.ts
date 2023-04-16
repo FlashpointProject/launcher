@@ -521,12 +521,13 @@ export function overwritePlaylistData(
   return source;
 }
 
-function parsePlaylistGame(parser: IObjectParserProp<PlaylistGame>): PlaylistGame {
+function parsePlaylistGame(parser: IObjectParserProp<any>): PlaylistGame {
   const game: PlaylistGame = {
     order: 0,
     notes: '',
     gameId: ''
   };
+  parser.prop('id',     v => game.gameId = str(v));
   parser.prop('gameId', v => game.gameId = str(v));
   parser.prop('notes',  v => game.notes  = str(v));
   parser.prop('order',  v => game.order  = num(v));
