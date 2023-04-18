@@ -659,12 +659,12 @@ declare module 'flashpoint-launcher' {
     };
 
     type PlatformAlias = {
-        /** ID of the tag alias (unique identifier) */
+        /** ID of the Platform alias (unique identifier) */
         id: number;
-        /** Tag this alias belongs to (either ID or Tag will exist) */
-        tagId?: number;
-        /** Tag this alias belongs to (either ID or Tag will exist) */
-        tag?: Platform;
+        /** Platform this alias belongs to (either ID or Platform will exist) */
+        platformId?: number;
+        /** Platform this alias belongs to (either ID or Platform will exist) */
+        platform?: Platform;
         /** The name this alias represents */
         name: string;
     };

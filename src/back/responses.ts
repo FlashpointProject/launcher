@@ -2025,7 +2025,14 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
           .catch(() => { /** Probably doesn't exist */ });
           log.debug('Launcher', 'Make Curation From Game - Found and extracted data pack into curation folder');
         }
+        if (activeData) {
+          // Update curation meta fields with saved
+          (game as any).applicationPath = activeData.applicationPath;
+          (game as any).launchCommand = activeData.launchCommand;
+        }
       } else {
+        (game as any).applicationPath = game.legacyApplicationPath;
+        (game as any).launchCommand = game.legacyApplicationPath;
         log.debug('Launcher', 'Make Curation From Game - Game has no active data');
       }
 

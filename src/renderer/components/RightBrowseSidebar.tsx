@@ -73,6 +73,8 @@ type OwnProps = {
 
   onEditGame: (game: Partial<Game>) => void;
   onUpdateActiveGameData: (activeDataOnDisk: boolean, activeDataId?: number) => void;
+
+  fpfssEditMode?: boolean;
 };
 
 export type RightBrowseSidebarProps = OwnProps & WithPreferencesProps & WithSearchProps & WithConfirmDialogProps;
@@ -644,84 +646,86 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
               </div>
             ) : undefined }
           </div>
-          <div className='browse-right-sidebar__bottom'>
-            {/* -- Screenshot -- */}
-            <div className='browse-right-sidebar__section browse-right-sidebar__section--below-gap'>
-              <div className='browse-right-sidebar__row browse-right-sidebar__row__spacer' />
-              <div className='browse-right-sidebar__row'>
-                <div
-                  className='browse-right-sidebar__row__screenshot'
-                  onContextMenu={this.onScreenshotContextMenu}>
-                  { isEditing ? (
-                    <div className='browse-right-sidebar__row__screenshot__placeholder'>
-                      <div className='browse-right-sidebar__row__screenshot__placeholder__back'>
-                        <GameImageSplit
-                          text={strings.thumbnail}
-                          imgSrc={this.state.thumbnailExists ? getGameImageURL(LOGOS, game.id) : undefined}
-                          showHeaders={true}
-                          onSetImage={this.onSetThumbnail}
-                          onRemoveClick={this.onRemoveThumbnailClick}
-                          onDrop={this.onThumbnailDrop} />
-                        <GameImageSplit
-                          text={strings.screenshot}
-                          imgSrc={this.state.screenshotExists ? screenshotSrc : undefined}
-                          showHeaders={true}
-                          onSetImage={this.onSetScreenshot}
-                          onRemoveClick={this.onRemoveScreenshotClick}
-                          onDrop={this.onScreenshotDrop} />
-                      </div>
-                      <div className='browse-right-sidebar__row__screenshot__placeholder__front'>
-                        <p>{strings.dropImageHere}</p>
-                      </div>
-                    </div>
-                  ) :
-                    (this.props.isExtreme && this.props.preferencesData.hideExtremeScreenshots && !this.state.showExtremeScreenshots) ? (
-                      <div
-                        className='browse-right-sidebar__row__screenshot-image--hidden'
-                        onClick={this.onShowExtremeScreenshots}>
-                        <div className='browse-right-sidebar__row__screenshot-image--hidden-text'>
-                          {strings.showExtremeScreenshot}
+          { !this.props.fpfssEditMode && (
+            <div className='browse-right-sidebar__bottom'>
+              {/* -- Screenshot -- */}
+              <div className='browse-right-sidebar__section browse-right-sidebar__section--below-gap'>
+                <div className='browse-right-sidebar__row browse-right-sidebar__row__spacer' />
+                <div className='browse-right-sidebar__row'>
+                  <div
+                    className='browse-right-sidebar__row__screenshot'
+                    onContextMenu={this.onScreenshotContextMenu}>
+                    { isEditing ? (
+                      <div className='browse-right-sidebar__row__screenshot__placeholder'>
+                        <div className='browse-right-sidebar__row__screenshot__placeholder__back'>
+                          <GameImageSplit
+                            text={strings.thumbnail}
+                            imgSrc={this.state.thumbnailExists ? getGameImageURL(LOGOS, game.id) : undefined}
+                            showHeaders={true}
+                            onSetImage={this.onSetThumbnail}
+                            onRemoveClick={this.onRemoveThumbnailClick}
+                            onDrop={this.onThumbnailDrop} />
+                          <GameImageSplit
+                            text={strings.screenshot}
+                            imgSrc={this.state.screenshotExists ? screenshotSrc : undefined}
+                            showHeaders={true}
+                            onSetImage={this.onSetScreenshot}
+                            onRemoveClick={this.onRemoveScreenshotClick}
+                            onDrop={this.onScreenshotDrop} />
+                        </div>
+                        <div className='browse-right-sidebar__row__screenshot__placeholder__front'>
+                          <p>{strings.dropImageHere}</p>
                         </div>
                       </div>
-                    ) : (
-                      <img
-                        className='browse-right-sidebar__row__screenshot-image'
-                        alt='' // Hide the broken link image if source is not found
-                        src={screenshotSrc}
-                        onClick={this.onScreenshotClick} />
-                    )
-                  }
+                    ) :
+                      (this.props.isExtreme && this.props.preferencesData.hideExtremeScreenshots && !this.state.showExtremeScreenshots) ? (
+                        <div
+                          className='browse-right-sidebar__row__screenshot-image--hidden'
+                          onClick={this.onShowExtremeScreenshots}>
+                          <div className='browse-right-sidebar__row__screenshot-image--hidden-text'>
+                            {strings.showExtremeScreenshot}
+                          </div>
+                        </div>
+                      ) : (
+                        <img
+                          className='browse-right-sidebar__row__screenshot-image'
+                          alt='' // Hide the broken link image if source is not found
+                          src={screenshotSrc}
+                          onClick={this.onScreenshotClick} />
+                      )
+                    }
+                  </div>
                 </div>
               </div>
+              {/* -- Screenshot Preview -- */}
+              { this.state.showPreview ? (
+                <ImagePreview
+                  src={screenshotSrc}
+                  onCancel={this.onScreenshotPreviewClick} />
+              ) : undefined }
+              <SimpleButton
+                value='Open Game Data Browser'
+                onClick={() => this.setState({ gameDataBrowserOpen: !this.state.gameDataBrowserOpen })}/>
+              { this.props.preferencesData.enableEditing && !this.props.isEditing && (
+                <>
+                  <SimpleButton
+                    value={allStrings.misc.exportMetaEditTitle}
+                    title={allStrings.misc.exportMetaEditDesc}
+                    onClick={() => this.props.currentGame && this.props.onOpenExportMetaEdit(this.props.currentGame.id)} />
+                  <SimpleButton
+                    value={allStrings.menu.copyGameUUID}
+                    onClick={() => this.props.currentGame && clipboard.writeText(this.props.currentGame.id)} />
+                </>
+              )}
+              { this.state.gameDataBrowserOpen && (
+                <GameDataBrowser
+                  onClose={() => this.setState({ gameDataBrowserOpen: false })}
+                  game={game}
+                  onUpdateActiveGameData={this.props.onUpdateActiveGameData}
+                  onForceUpdateGameData={this.onForceUpdateGameData} />
+              )}
             </div>
-            {/* -- Screenshot Preview -- */}
-            { this.state.showPreview ? (
-              <ImagePreview
-                src={screenshotSrc}
-                onCancel={this.onScreenshotPreviewClick} />
-            ) : undefined }
-            <SimpleButton
-              value='Open Game Data Browser'
-              onClick={() => this.setState({ gameDataBrowserOpen: !this.state.gameDataBrowserOpen })}/>
-            { this.props.preferencesData.enableEditing && !this.props.isEditing && (
-              <>
-                <SimpleButton
-                  value={allStrings.misc.exportMetaEditTitle}
-                  title={allStrings.misc.exportMetaEditDesc}
-                  onClick={() => this.props.currentGame && this.props.onOpenExportMetaEdit(this.props.currentGame.id)} />
-                <SimpleButton
-                  value={allStrings.menu.copyGameUUID}
-                  onClick={() => this.props.currentGame && clipboard.writeText(this.props.currentGame.id)} />
-              </>
-            )}
-            { this.state.gameDataBrowserOpen && (
-              <GameDataBrowser
-                onClose={() => this.setState({ gameDataBrowserOpen: false })}
-                game={game}
-                onUpdateActiveGameData={this.props.onUpdateActiveGameData}
-                onForceUpdateGameData={this.onForceUpdateGameData} />
-            )}
-          </div>
+          )}
         </div>
       );
     } else {
@@ -1050,16 +1054,42 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
 
   onAddTagByString = (text: string): void => {
     if (text !== '') {
-      window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, text)
-      .then((tag) => {
-        if (tag) {
-          const game = this.props.currentGame;
-          // Ignore dupe tags
-          if (game && game.tags.findIndex(t => t.id == tag.id) == -1) {
-            this.props.onEditGame({ tags: [...game.tags, tag] });
-          }
+      if (this.props.fpfssEditMode) {
+        const game = this.props.currentGame;
+        if (game) {
+          const tag: Tag = {
+            id: -1,
+            primaryAlias: {
+              id: -1,
+              tagId: -1,
+              name: text
+            },
+            aliases: [
+              {
+                id: -1,
+                tagId: -1,
+                name: text
+              }
+            ],
+            primaryAliasId: -1,
+            dateModified: '',
+            categoryId: 0
+          };
+          this.props.onEditGame({ tags: [...game.tags, tag]});
         }
-      });
+      } else {
+        window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, text)
+        .then((tag) => {
+          if (tag) {
+            const game = this.props.currentGame;
+            // Ignore dupe tags
+            if (game && game.tags.findIndex(t => t.id == tag.id) == -1) {
+              this.props.onEditGame({ tags: [...game.tags, tag] });
+            }
+          }
+        });
+      }
+
     }
     // Clear out suggestions box
     this.setState({
@@ -1070,16 +1100,38 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
 
   onAddPlatformByString = (text: string): void => {
     if (text !== '') {
-      window.Shared.back.request(BackIn.GET_OR_CREATE_PLATFORM, text)
-      .then((platform) => {
-        if (platform) {
-          const game = this.props.currentGame;
-          // Ignore dupe platforms
-          if (game && game.platforms.findIndex(t => t.id == platform.id) == -1) {
-            this.props.onEditGame({ platforms: [...game.platforms, platform] });
-          }
+      if (this.props.fpfssEditMode) {
+        const game = this.props.currentGame;
+        if (game) {
+          const platform: Platform = {
+            id: -1,
+            primaryAlias: {
+              id: -1,
+              platformId: -1,
+              name: text
+            },
+            aliases: [{
+              id: -1,
+              platformId: -1,
+              name: text
+            }],
+            primaryAliasId: -1,
+            dateModified: ''
+          };
+          this.props.onEditGame({ platforms: [...game.platforms, platform]});
         }
-      });
+      } else {
+        window.Shared.back.request(BackIn.GET_OR_CREATE_PLATFORM, text)
+        .then((platform) => {
+          if (platform) {
+            const game = this.props.currentGame;
+            // Ignore dupe platforms
+            if (game && game.platforms.findIndex(t => t.id == platform.id) == -1) {
+              this.props.onEditGame({ platforms: [...game.platforms, platform] });
+            }
+          }
+        });
+      }
     }
     this.setState({
       currentPlatformInput: ''

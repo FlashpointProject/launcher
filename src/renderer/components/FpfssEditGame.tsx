@@ -8,7 +8,8 @@ export type FpfssEditGameProps = RightBrowseSidebarProps;
 function FpfssEditGame(props: FpfssEditGameProps) {
   return (
     <RightBrowseSidebar
-      {...props}/>
+      {...props}
+      fpfssEditMode={true} />
   );
 }
 

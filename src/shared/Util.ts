@@ -565,22 +565,25 @@ export function mapFpfssGameToLocal(data: any, categories: TagCategory[]): Game 
 }
 
 export function mapLocalToFpfssGame(game: Game, categories: TagCategory[], userId: number): Record<string, any> {
-  const newTags = [];
+  const newTags: any[] = [];
   for (const tag of game.tags) {
     const category = categories.find(c => c.id === tag.categoryId);
-    if (!category) {
-      throw 'Tag has invalid tag category';
+    if (tag.id !== -1) {
+      // Not a new tag, just revalidate some things to make sure we're not making a mistake
+      if (!category) {
+        throw 'Tag has invalid tag category';
+      }
     }
     newTags.push({
       id: tag.id,
       dateModified: (new Date()).toISOString(),
-      category: category.name,
+      category: category ? category.name : 'default',
       description: tag.description,
       name: tag.primaryAlias.name,
       userId: userId
     });
   }
-  const newPlatforms = [];
+  const newPlatforms: any[] = [];
   for (const platform of game.platforms) {
     newPlatforms.push({
       id: platform.id,
