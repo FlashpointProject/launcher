@@ -976,7 +976,7 @@ async function initialize() {
     }
     // Run processes
     if (state.serviceInfo.server.length > 0) {
-      const chosenServer = state.serviceInfo.server.find(i => i.name === state.config.server);
+      const chosenServer = state.serviceInfo.server.find(i => i.name === state.preferences.server);
       runService(state, 'server', 'Server', state.config.flashpointPath, {}, chosenServer || state.serviceInfo.server[0]);
     }
     // Start daemons

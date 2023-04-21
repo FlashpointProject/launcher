@@ -75,6 +75,8 @@ const langTemplate = {
     'showDeveloperTabDesc',
     'server',
     'serverDesc',
+    'curateServer',
+    'curateServerDesc',
     'metadataServerHost',
     'metadataServerHostDesc',
     'extensionsHeader',

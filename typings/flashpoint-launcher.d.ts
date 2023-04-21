@@ -879,8 +879,6 @@ declare module 'flashpoint-launcher' {
          * The "server" is defined in "services.json".
          */
         startServer: boolean;
-        // Name of the Server process to run
-        server: string;
         /** Lower limit of the range of ports that the back should listen on. */
         backPortMin: number;
         /** Upper limit of the range of ports that the back should listen on. */
@@ -1030,6 +1028,10 @@ declare module 'flashpoint-launcher' {
         gameMetadataSources: GameMetadataSource[];
         /** FPFSS base url (for authoring actions on remote metadata) */
         fpfssBaseUrl: string;
+        /** Name of the Server process to run */ 
+        server: string;
+        /** Name of the Server to use when running curations */
+        curateServer: string;
     };
 
     type GameDataSource = {

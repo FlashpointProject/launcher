@@ -124,6 +124,8 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   offlineManual: '',
   fpfssBaseUrl: 'https://fpfss.unstable.life',
   groups: [],
+  server: 'Apache Webserver',
+  curateServer: 'Apache Webserver',
   shortcuts: {
     curate: {
       prev: ['ctrl+arrowup', 'cmd+arrowup'],
@@ -209,6 +211,8 @@ export function overwritePreferenceData(
   parser.prop('fpfssBaseUrl',                v => source.fpfssBaseUrl                = str(v));
   parser.prop('fancyAnimations',             v => source.fancyAnimations             = !!v);
   parser.prop('searchLimit',                 v => source.searchLimit                 = num(v));
+  parser.prop('server',                      v => source.server                      = str(v));
+  parser.prop('curateServer',                v => source.curateServer                = str(v));
   // Migrate onDemandBaseUrl from the older FP url
   if (source.onDemandBaseUrl == 'https://infinity.unstable.life/Flashpoint/Data/Images/') {
     source.onDemandBaseUrl = 'https://infinity.unstable.life/images/';

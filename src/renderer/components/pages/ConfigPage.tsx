@@ -67,8 +67,6 @@ type ConfigPageState = {
   flashpointPath: string;
   /** If the "use custom title bar" checkbox is checked. */
   useCustomTitlebar: boolean;
-  /** Current Server */
-  server: string;
   /** Currently editable Tag Filter Group */
   editingTagFilterGroupIdx?: number;
   editingTagFilterGroup?: TagFilterGroup;
@@ -93,7 +91,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       isFlashpointPathValid: undefined,
       flashpointPath: configData.flashpointPath,
       useCustomTitlebar: configData.useCustomTitlebar,
-      server: configData.server,
       editorOpen: false,
       nukeInProgress: false,
     };
@@ -312,9 +309,17 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
               <ConfigBoxSelect
                 title={strings.server}
                 description={strings.serverDesc}
-                value={this.state.server}
+                value={this.props.preferencesData.server}
                 onChange={this.onServerSelect}
                 items={serverOptions} />
+              {this.props.preferencesData.enableEditing && (
+                <ConfigBoxSelect
+                  title={strings.curateServer}
+                  description={strings.curateServerDesc}
+                  value={this.props.preferencesData.curateServer}
+                  onChange={this.onCurateServerSelect}
+                  items={serverOptions} />
+              )}
               {/* Fallback Language */}
               <ConfigBoxSelect
                 title={strings.fallbackLanguage}
@@ -745,7 +750,11 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   };
 
   onServerSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    this.setState({ server: event.target.value });
+    updatePreferencesData({ server: event.target.value });
+  };
+
+  onCurateServerSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
+    updatePreferencesData({ curateServer: event.target.value });
   };
 
   onFallbackLanguageSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
@@ -1005,7 +1014,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     window.Shared.back.request(BackIn.UPDATE_CONFIG, {
       flashpointPath: this.state.flashpointPath,
       useCustomTitlebar: this.state.useCustomTitlebar,
-      server: this.state.server,
     }).then(() => { window.Shared.restart(); });
   };
 

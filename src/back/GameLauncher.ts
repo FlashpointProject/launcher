@@ -72,7 +72,7 @@ type LaunchBaseOpts = {
 export namespace GameLauncher {
   const logSource = 'Game Launcher';
 
-  export async function launchAdditionalApplication(opts: LaunchAddAppOpts, serverOverride?: string): Promise<void> {
+  export async function launchAdditionalApplication(opts: LaunchAddAppOpts, child: boolean, serverOverride?: string): Promise<void> {
     await checkAndInstallPlatform(opts.addApp.parentGame.platforms, opts.state, opts.openDialog);
     // @FIXTHIS It is not possible to open dialog windows from the back process (all electron APIs are undefined).
     switch (opts.addApp.applicationPath) {
@@ -105,7 +105,8 @@ export namespace GameLauncher {
         const appArgs: string = opts.addApp.launchCommand;
         const useWine: boolean = process.platform != 'win32' && appPath.endsWith('.exe');
         const gamePath: string = path.isAbsolute(appPath) ? fixSlashes(appPath) : fixSlashes(path.join(opts.fpPath, appPath));
-        if (opts.addApp.parentGame.activeDataId) {
+        if (opts.addApp.parentGame.activeDataId && !child) {
+          // If run from a game, game would already have done this!
           const gameData = await GameDataManager.findOne(opts.addApp.parentGame.activeDataId);
           await handleGameDataParams(opts, serverOverride, gameData || undefined);
         }
@@ -137,12 +138,18 @@ export namespace GameLauncher {
    *
    * @param opts Launch Opts
    * @param onWillEvent Fired with launch info before Game launches
+   * @param curation Is a curation game
    * @param serverOverride Change active server for this game launch only
    */
-  export async function launchGame(opts: LaunchGameOpts, onWillEvent: ApiEmitter<GameLaunchInfo>, serverOverride?: string): Promise<void> {
+  export async function launchGame(opts: LaunchGameOpts, onWillEvent: ApiEmitter<GameLaunchInfo>, curation: boolean, serverOverride?: string): Promise<void> {
     await checkAndInstallPlatform(opts.game.platforms, opts.state, opts.openDialog);
+    console.log('DELETE - done plat check');
     // Abort if placeholder (placeholders are not "actual" games)
     if (opts.game.placeholder) { return; }
+    // Handle any special game data actions
+    const gameData = !curation ? (opts.game.activeDataId ? await GameDataManager.findOne(opts.game.activeDataId) : null) : null;
+    await handleGameDataParams(opts, serverOverride, gameData || undefined);
+    console.log('DELETE - Done game data check');
     // Run all provided additional applications with "AutoRunBefore" enabled
     if (opts.game.addApps) {
       const addAppOpts: Omit<LaunchAddAppOpts, 'addApp'> = {
@@ -167,11 +174,12 @@ export namespace GameLauncher {
       };
       for (const addApp of opts.game.addApps) {
         if (addApp.autoRunBefore) {
-          const promise = launchAdditionalApplication({ ...addAppOpts, addApp });
+          const promise = launchAdditionalApplication({ ...addAppOpts, addApp }, curation);
           if (addApp.waitForExit) { await promise; }
         }
       }
     }
+    console.log('DELETE - done add apps');
     // Launch game callback
     const launchCb = async (launchInfo: GameLaunchInfo): Promise<void> =>  {
       await onWillEvent.fire(launchInfo)
@@ -188,10 +196,13 @@ export namespace GameLauncher {
       });
     };
     // Launch game
-    const gameData = opts.game.activeDataId ? await GameDataManager.findOne(opts.game.activeDataId) : null;
     const metadataAppPath = gameData ? gameData.applicationPath : opts.game.legacyApplicationPath;
     const metadataLaunchCommand = gameData ? gameData.launchCommand : opts.game.legacyLaunchCommand;
     let appPath: string = getApplicationPath(metadataAppPath, opts.execMappings, opts.native);
+    console.log('DELETE - ' + JSON.stringify(opts.game, undefined, 2));
+    console.log('DELETE - ' + JSON.stringify(gameData));
+    console.log('DELETE - meta app path ' + metadataAppPath);
+    console.log('DELETE - app path ' + appPath);
     let appArgs: string[] = [];
     const appPathOverride = opts.appPathOverrides.filter(a => a.enabled).find(a => a.path === appPath);
     if (appPathOverride) { appPath = appPathOverride.override; }
@@ -255,17 +266,19 @@ export namespace GameLauncher {
         log.error('Launcher', `Error running provider for game.\n${error}`);
       }
     }
+    console.log('DELETE - doing launch');
     // Continue with launching normally
     const gamePath: string = path.isAbsolute(appPath) ? fixSlashes(appPath) : fixSlashes(path.join(opts.fpPath, appPath));
     const gameArgs: string[] = [...appArgs, metadataLaunchCommand];
     const useWine: boolean = process.platform != 'win32' && gamePath.endsWith('.exe');
+    console.log('DELETE - getting env');
     const env = getEnvironment(opts.fpPath, opts.proxy, opts.envPATH);
+    console.log('DELETE - goten env');
     try {
       await GameManager.findGame(opts.game.id);
     } catch (err: any) {
       log.error('Launcher', 'Error Finding Game - ' + err.toString());
     }
-    await handleGameDataParams(opts, serverOverride, gameData || undefined);
     const gameLaunchInfo: GameLaunchInfo = {
       game: opts.game,
       activeData: gameData,
@@ -276,6 +289,7 @@ export namespace GameLauncher {
         env,
       }
     };
+    console.log('DELETE - launching');
     await launchCb(gameLaunchInfo);
   }
 
@@ -513,6 +527,7 @@ async function handleGameDataParams(opts: LaunchBaseOpts, serverOverride?: strin
     const extract = gameData.parameters?.startsWith('-extract') ?? false;
     const extractFile = mountParams['extracted'];
     const server = mountParams['server'];
+    // Handle -extract param
     if (extract) {
       let alreadyExtracted = false;
       if (extractFile) {
@@ -539,7 +554,8 @@ async function handleGameDataParams(opts: LaunchBaseOpts, serverOverride?: strin
         log.debug('Launcher', 'Game data already extracted, skipping...');
       }
     }
-    await opts.changeServer(serverOverride ?? server);
+    // Use -server param if present
+    await opts.changeServer(server || serverOverride);
   } else {
     // Ignore default server switch if launching curation
     await opts.changeServer(serverOverride);
@@ -549,11 +565,14 @@ async function handleGameDataParams(opts: LaunchBaseOpts, serverOverride?: strin
 export async function checkAndInstallPlatform(platforms: Platform[], state: BackState, openMessageBox: ShowMessageBoxFunc) {
   const compsToInstall: ComponentStatus[] = [];
   for (const platform of platforms) {
+    console.log(JSON.stringify(state.componentStatuses.map(c => c.name), undefined, 2));
     const compIdx = state.componentStatuses.findIndex(c => c.name.toLowerCase() === platform.primaryAlias.name.toLowerCase());
-    if (compIdx > -1 && state.componentStatuses[compIdx].state === ComponentState.UNINSTALLED) {
-      compsToInstall.push(state.componentStatuses[compIdx]);
+    if (compIdx > -1) {
+      if (state.componentStatuses[compIdx].state === ComponentState.UNINSTALLED) {
+        compsToInstall.push(state.componentStatuses[compIdx]);
+      }
     } else {
-      log.warn('Launcher', `No components found for ${platform}, assuming none required.`);
+      log.warn('Launcher', `No components found for ${platform.primaryAlias.name}, assuming none required.`);
     }
   }
   if (compsToInstall.length > 0) {

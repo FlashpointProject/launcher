@@ -14,7 +14,6 @@ const configDataDefaultBase: Readonly<AppConfigData> = Object.freeze({
   flashpointPath: '',
   useCustomTitlebar: false,
   startServer: true,
-  server: 'Apache Webserver', // @TODO Read from IServiceInfos to find first valid
   backPortMin: 12001,
   backPortMax: 12100,
   imagesPortMin: 12101,
@@ -76,7 +75,6 @@ export function overwriteConfigData(
   parser.prop('backPortMax',         v => source.backPortMax         = num(v));
   parser.prop('imagesPortMin',       v => source.imagesPortMin       = num(v));
   parser.prop('imagesPortMax',       v => source.imagesPortMax       = num(v));
-  parser.prop('server',              v => source.server              = str(v));
   parser.prop('logsBaseUrl',         v => source.logsBaseUrl         = parseVarStr(str(v)));
   parser.prop('updatesEnabled',      v => source.updatesEnabled      = !!v);
   parser.prop('gotdUrl',             v => source.gotdUrl             = str(v));

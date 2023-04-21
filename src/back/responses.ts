@@ -456,7 +456,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         runGame: runGameFactory(state),
         envPATH: state.pathVar,
         state,
-      });
+      }, false);
       state.apiEmitters.games.onDidLaunchAddApp.fire(addApp);
     }
   });
@@ -466,7 +466,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
     if (game) {
       // Make sure Server is set to configured server - Curations may have changed it
-      const configServer = state.serviceInfo ? state.serviceInfo.server.find(s => s.name === state.config.server) : undefined;
+      const configServer = state.serviceInfo ? state.serviceInfo.server.find(s => s.name === state.preferences.server) : undefined;
       if (configServer) {
         const server = state.services.get('server');
         if (!server || !('name' in server.info) || server.info.name !== configServer.name) {
@@ -518,7 +518,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         changeServer: changeServerFactory(state),
         state,
       },
-      state.apiEmitters.games.onWillLaunchGame);
+      state.apiEmitters.games.onWillLaunchGame, false);
       await state.apiEmitters.games.onDidLaunchGame.fire(game);
     }
   });
@@ -1409,30 +1409,20 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       let serverOverride: string | undefined = undefined;
       if (state.serviceInfo) {
         // Make sure all 3 relevant server infos are present before considering MAD4FP opt
-        const configServer = state.serviceInfo.server.find(s => s.name === state.config.server);
+        const configServer = state.serviceInfo.server.find(s => s.name === state.preferences.curateServer);
         const mad4fpServer = state.serviceInfo.server.find(s => s.mad4fp);
         const activeServer = state.services.get('server');
         const activeServerInfo = state.serviceInfo.server.find(s => (activeServer && 'name' in activeServer.info && s.name === activeServer.info?.name));
-        if (activeServer && configServer && mad4fpServer) {
-          if (data.mad4fp && activeServerInfo && !activeServerInfo.mad4fp) {
-            // Swap to mad4fp server
-            const mad4fpServerCopy = deepCopy(mad4fpServer);
-            // Set the content folder path as the final parameter
-            mad4fpServerCopy.arguments.push(getContentFolderByKey(curation.folder, state.config.flashpointPath));
-            await removeService(state, 'server');
-            runService(state, 'server', 'Server', state.config.flashpointPath, {env: {
-              ...process.env,
-              'PATH': state.pathVar ?? process.env.PATH,
-            }}, mad4fpServerCopy);
-            serverOverride = mad4fpServerCopy.name;
-          } else if (!data.mad4fp && activeServerInfo && activeServerInfo.mad4fp && !configServer.mad4fp) {
-            // Swap to default non-mad4fp server
-            await removeService(state, 'server');
-            runService(state, 'server', 'Server', state.config.flashpointPath, {env: {
-              ...process.env,
-              'PATH': state.pathVar ?? process.env.PATH,
-            }}, configServer);
+
+        if (activeServerInfo) {
+          if (data.mad4fp && mad4fpServer && !activeServerInfo.mad4fp) {
+            // Swap to MAD4FP server
+            serverOverride = mad4fpServer.name;
+          } else if (configServer) {
+            // Swap to default curate server (non-mad4fp)
             serverOverride = configServer.name;
+          } else {
+            serverOverride = activeServerInfo.name;
           }
         }
       }
@@ -2502,7 +2492,7 @@ function changeServerFactory(state: BackState): (server?: string) => Promise<voi
     if (state.serviceInfo) {
       if (!server) {
         // No server name given, assume the default server
-        server = state.config.server;
+        server = state.preferences.server;
       }
       // Cast to fix type error after if check above
       const serverInfo = state.serviceInfo.server.find(s => s.name === server || s.aliases.includes(server as string));

@@ -316,9 +316,9 @@ export async function launchCuration(curation: LoadedCuration, symlinkCurationCo
   const game = await createGameFromCurationMeta(curation.folder, curation.game, [], new Date());
   await GameLauncher.launchGame({
     ...opts,
-    game: game,
+    game: game
   },
-  onWillEvent, serverOverride);
+  onWillEvent, true, serverOverride);
   await onDidEvent.fire(game);
 }
 
@@ -344,8 +344,8 @@ export async function launchAddAppCuration(folder: string, appCuration: AddAppCu
   await onWillEvent.fire(addApp);
   await GameLauncher.launchAdditionalApplication({
     ...opts,
-    addApp: addApp,
-  });
+    addApp: addApp
+  }, true);
   await onDidEvent.fire(addApp);
 }
 
@@ -364,29 +364,29 @@ function logMessage(text: string, folder: string): void {
 async function createGameFromCurationMeta(gameId: string, gameMeta: CurationMeta, addApps : AddAppCuration[], date: Date): Promise<Game> {
   const game: Game = new Game();
   Object.assign(game, {
-    id:                  gameId, // (Re-use the id of the curation)
-    title:               gameMeta.title               || '',
-    alternateTitles:     gameMeta.alternateTitles     || '',
-    series:              gameMeta.series              || '',
-    developer:           gameMeta.developer           || '',
-    publisher:           gameMeta.publisher           || '',
-    platforms:           gameMeta.platforms           || [],
-    playMode:            gameMeta.playMode            || '',
-    status:              gameMeta.status              || '',
-    notes:               gameMeta.notes               || '',
-    tags:                gameMeta.tags                || [],
-    source:              gameMeta.source              || '',
-    applicationPath:     gameMeta.applicationPath     || '',
-    launchCommand:       gameMeta.launchCommand       || '',
-    releaseDate:         gameMeta.releaseDate         || '',
-    version:             gameMeta.version             || '',
-    originalDescription: gameMeta.originalDescription || '',
-    language:            gameMeta.language            || '',
-    dateAdded:           date.toISOString(),
-    dateModified:        date.toISOString(),
-    broken:              false,
-    extreme:             gameMeta.extreme || false,
-    library:             gameMeta.library || '',
+    id:                    gameId, // (Re-use the id of the curation)
+    title:                 gameMeta.title               || '',
+    alternateTitles:       gameMeta.alternateTitles     || '',
+    series:                gameMeta.series              || '',
+    developer:             gameMeta.developer           || '',
+    publisher:             gameMeta.publisher           || '',
+    platforms:             gameMeta.platforms           || [],
+    playMode:              gameMeta.playMode            || '',
+    status:                gameMeta.status              || '',
+    notes:                 gameMeta.notes               || '',
+    tags:                  gameMeta.tags                || [],
+    source:                gameMeta.source              || '',
+    legacyApplicationPath: gameMeta.applicationPath     || '',
+    legacyLaunchCommand:   gameMeta.launchCommand       || '',
+    releaseDate:           gameMeta.releaseDate         || '',
+    version:               gameMeta.version             || '',
+    originalDescription:   gameMeta.originalDescription || '',
+    language:              gameMeta.language            || '',
+    dateAdded:             date.toISOString(),
+    dateModified:          date.toISOString(),
+    broken:                false,
+    extreme:               gameMeta.extreme || false,
+    library:               gameMeta.library || '',
     orderTitle: '', // This will be set when saved
     addApps: [],
     placeholder: false,

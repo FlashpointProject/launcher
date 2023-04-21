@@ -9,6 +9,7 @@ import { num, str } from './utils/Coerce';
 import { IObjectParserProp, ObjectParser } from './utils/ObjectParser';
 import { throttle } from './utils/throttle';
 import { parseVariableString } from './utils/VariableString';
+import { uuid } from './utils/uuid';
 
 const axios = axiosImport.default;
 
@@ -506,13 +507,16 @@ export function overwritePlaylistData(
     input: data,
     onError: onError && (e => onError(`Error while parsing Playlist: ${e.toString()}`)),
   });
-  parser.prop('id',          v => source.id          = str(v));
+  parser.prop('id',          v => source.id          = str(v), true);
   parser.prop('title',       v => source.title       = str(v));
   parser.prop('description', v => source.description = str(v));
   parser.prop('icon',        v => source.icon        = str(v));
   parser.prop('library',     v => source.library     = str(v));
   parser.prop('author',      v => source.author      = str(v));
   parser.prop('extreme',     v => source.extreme     = !!v);
+  if (!source.id) {
+    source.id = uuid();
+  }
   if (data.games) {
     const newGames: PlaylistGame[] = [];
     parser.prop('games').array((item, index) => newGames.push(parsePlaylistGame(item as IObjectParserProp<PlaylistGame>)));
@@ -527,10 +531,13 @@ function parsePlaylistGame(parser: IObjectParserProp<any>): PlaylistGame {
     notes: '',
     gameId: ''
   };
-  parser.prop('id',     v => game.gameId = str(v));
-  parser.prop('gameId', v => game.gameId = str(v));
+  parser.prop('id',     v => game.gameId = str(v), true);
+  parser.prop('gameId', v => game.gameId = str(v), true);
   parser.prop('notes',  v => game.notes  = str(v));
   parser.prop('order',  v => game.order  = num(v));
+  if (!game.gameId) {
+    throw 'No ID for playlist game';
+  }
   return game;
 }
 
