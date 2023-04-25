@@ -237,14 +237,20 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     const newDate = new Date();
     const categories = await TagManager.findTagCategories();
     return AppDataSource.transaction(async (tx) => {
-      await syncPlatforms(tx, source);
-      await syncTags(tx, source, categories);
+      const lastDatePlats = await syncPlatforms(tx, source);
+      const lastDateTags = await syncTags(tx, source, categories);
+      if (lastDatePlats > lastDateTags) {
+        return lastDatePlats;
+      } else {
+        return lastDateTags;
+      }
     })
-    .then(() => {
+    .then((lastDate) => {
       /** Success */
       const sourceIdx = state.preferences.gameMetadataSources.findIndex(s => s.name === source.name);
       if (sourceIdx !== -1) {
-        state.preferences.gameMetadataSources[sourceIdx].lastUpdatedTags = newDate.toISOString();
+        state.preferences.gameMetadataSources[sourceIdx].tags.latestUpdateTime = lastDate.toISOString();
+        state.preferences.gameMetadataSources[sourceIdx].tags.actualUpdateTime = newDate.toISOString();
         state.prefsQueue.push(() => {
           PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
         });
@@ -302,20 +308,34 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     const categories = await TagManager.findTagCategories();
     // Always do a full sync if empty DB
     if ((await GameManager.countGames()) === 0) {
-      source.lastUpdatedGames = '1970-01-01';
-      source.lastUpdatedTags = '1970-01-01';
+      source.games = {
+        actualUpdateTime: source.games.actualUpdateTime,
+        latestDeleteTime: source.games.latestDeleteTime,
+        latestUpdateTime: '1970-01-01'
+      };
+      source.tags = {
+        actualUpdateTime: source.games.actualUpdateTime,
+        latestDeleteTime: source.games.latestDeleteTime,
+        latestUpdateTime: '1970-01-01'
+      };
     }
     return AppDataSource.transaction(async (tx) => {
       console.log('plats');
-      await syncPlatforms(tx, source);
+      const lastDatePlats = await syncPlatforms(tx, source);
       console.log('tags');
-      await syncTags(tx, source, categories);
+      const lastDateTags = await syncTags(tx, source, categories);
+      if (lastDatePlats < lastDateTags) {
+        return lastDateTags;
+      } else {
+        return lastDatePlats;
+      }
     })
-    .then(() => {
+    .then((lastDate) => {
       /** Tags Success */
       const sourceIdx = state.preferences.gameMetadataSources.findIndex(s => s.name === source.name);
       if (sourceIdx !== -1) {
-        state.preferences.gameMetadataSources[sourceIdx].lastUpdatedTags = newDate.toISOString();
+        state.preferences.gameMetadataSources[sourceIdx].tags.latestUpdateTime = lastDate.toISOString();
+        state.preferences.gameMetadataSources[sourceIdx].tags.actualUpdateTime = newDate.toISOString();
         state.prefsQueue.push(() => {
           PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
         });
@@ -325,14 +345,15 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       console.log('games');
       // Open new transaction for games
       return AppDataSource.transaction(async (tx) => {
-        await syncGames(tx, source);
+        return await syncGames(tx, source);
       });
     })
-    .then(() => {
+    .then((lastDate) => {
       /** Games Success */
       const sourceIdx = state.preferences.gameMetadataSources.findIndex(s => s.name === source.name);
       if (sourceIdx !== -1) {
-        state.preferences.gameMetadataSources[sourceIdx].lastUpdatedGames = newDate.toISOString();
+        state.preferences.gameMetadataSources[sourceIdx].games.latestUpdateTime = lastDate.toISOString();
+        state.preferences.gameMetadataSources[sourceIdx].games.actualUpdateTime = newDate.toISOString();
         state.prefsQueue.push(() => {
           PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
         });
@@ -759,10 +780,26 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.UPDATE_TAGGED_FIELDS, async () => {
-    for (const game of (await GameManager.findAllGames())) {
-      game.updateTagsStr();
-      await GameManager.save(game);
-    }
+    await AppDataSource.query(`
+    UPDATE game 
+    SET platformsStr = (
+      SELECT GROUP_CONCAT(
+        (SELECT name FROM platform_alias WHERE platformId = p.platformId), '; '
+      ) 
+      FROM game_platforms_platform p 
+      WHERE p.gameId = game.id
+    )`);
+    await AppDataSource.query(`
+    UPDATE game 
+    SET tagsStr = (
+      SELECT IFNULL(tags, "") tags FROM (
+        SELECT GROUP_CONCAT(
+          (SELECT name FROM tag_alias WHERE tagId = t.tagId), '; '
+        ) tags
+        FROM game_tags_tag t
+        WHERE t.gameId = game.id
+      )
+    )`);
   });
 
   state.socketServer.register(BackIn.RANDOM_GAMES, async (event, data) => {

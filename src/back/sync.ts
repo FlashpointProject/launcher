@@ -11,12 +11,14 @@ import { GameData } from '@database/entity/GameData';
 import { TagCategory } from '@database/entity/TagCategory';
 import { PlatformAlias } from '@database/entity/PlatformAlias';
 import { Platform } from '@database/entity/Platform';
+import { num } from '@shared/utils/Coerce';
 
-export async function syncTags(tx: EntityManager, source: GameMetadataSource, categories: TagCategory[]): Promise<number> {
-  const tagsUrl = `${source.baseUrl}/api/tags?after=${source.lastUpdatedTags}`;
+export async function syncTags(tx: EntityManager, source: GameMetadataSource, categories: TagCategory[]): Promise<Date> {
+  const tagsUrl = `${source.baseUrl}/api/tags?after=${source.tags.latestUpdateTime}`;
   const tagAliasRepo = tx.getRepository(TagAlias);
   const tagRepo = tx.getRepository(Tag);
   const tagCategoryRepo = tx.getRepository(TagCategory);
+  const nextLatestDate = new Date(source.tags.latestUpdateTime);
 
   const res = await axios.get(tagsUrl)
   .catch((err) => {
@@ -24,6 +26,14 @@ export async function syncTags(tx: EntityManager, source: GameMetadataSource, ca
   });
 
   const tagsRaw = res.data.tags as RemoteTagRaw[];
+  const lastDate = tagsRaw.reduce((prev, cur) => {
+    const nextDate = new Date(cur.date_modified);
+    if (prev < nextDate) {
+      return nextDate;
+    } else {
+      return prev;
+    }
+  }, nextLatestDate);
   const categoriesRaw = res.data.categories as RemoteCategory[];
 
   // Insert any missing tag categories
@@ -106,11 +116,11 @@ export async function syncTags(tx: EntityManager, source: GameMetadataSource, ca
     ]);
   }
 
-  return tags.length;
+  return lastDate;
 }
 
-export async function syncPlatforms(tx: EntityManager, source: GameMetadataSource): Promise<number> {
-  const platformsUrl = `${source.baseUrl}/api/platforms?after=${source.lastUpdatedTags}`;
+export async function syncPlatforms(tx: EntityManager, source: GameMetadataSource): Promise<Date> {
+  const platformsUrl = `${source.baseUrl}/api/platforms?after=${source.tags.latestUpdateTime}`;
 
   const res = await axios.get(platformsUrl)
   .catch((err) => {
@@ -128,6 +138,16 @@ export async function syncPlatforms(tx: EntityManager, source: GameMetadataSourc
       })
     };
   }) as RemotePlatformParsed[];
+
+  const nextLatestDate = new Date(source.tags.latestUpdateTime);
+  const lastDate = platforms.reduce((prev, cur) => {
+    const nextDate = new Date(cur.date_modified);
+    if (prev < nextDate) {
+      return nextDate;
+    } else {
+      return prev;
+    }
+  }, nextLatestDate);
 
   const platformAliasRepo = tx.getRepository(PlatformAlias);
   const platformRepo = tx.getRepository(Platform);
@@ -179,17 +199,18 @@ export async function syncPlatforms(tx: EntityManager, source: GameMetadataSourc
     ]);
   }
 
-  return platforms.length;
+  return lastDate;
 }
 
-export async function syncGames(tx: EntityManager, source: GameMetadataSource) {
+export async function syncGames(tx: EntityManager, source: GameMetadataSource): Promise<Date> {
   const gamesUrl = `${source.baseUrl}/api/games`;
   const gamesRepo = tx.getRepository(Game);
   const addAppRepo = tx.getRepository(AdditionalApp);
   const gameDataRepo = tx.getRepository(GameData);
 
   // Fetch until none remain
-  let nextDate = source.lastUpdatedGames;
+  let nextDate = source.games.latestUpdateTime;
+  let lastDate = new Date(nextDate);
   let nextId = '';
   while (true) {
     console.log('NEXT BLOCK OF 2500');
@@ -202,16 +223,26 @@ export async function syncGames(tx: EntityManager, source: GameMetadataSource) {
     const tagRelations = data.tag_relations.map(t => {
       return {
         gameId: t[0],
-        tagId: t[1]
+        tagId: num(t[1])
       };
     });
     const platformRelations = data.platform_relations.map(p => {
       return {
         gameId: p[0],
-        platformId: p[1]
+        platformId: num(p[1])
       };
     });
     const games = data.games;
+
+    // Store latest date
+    lastDate = games.reduce((prev, cur) => {
+      const nextDate = new Date(cur.date_modified);
+      if (prev < nextDate) {
+        return nextDate;
+      } else {
+        return prev;
+      }
+    }, lastDate);
 
     // Update loop params
     if (data.games.length === 0) {
@@ -354,25 +385,40 @@ export async function syncGames(tx: EntityManager, source: GameMetadataSource) {
       WHERE game.activeDataId = -1`);
 
     console.log('tag relations');
-    // Rebuild tag relations
+    // Remove existing relations
+    for (const chunk of chunkArray(changedGameIds, 150)) {
+      await tx.query(`DELETE FROM game_tags_tag WHERE gameId IN (${chunk.map(c => '?').join(',')})`, chunk);
+    }
+    console.log('cleared');
+    // Add new relations
     for (const chunk of chunkArray(tagRelations, 100)) {
       await tx.createQueryBuilder()
       .insert()
       .into('game_tags_tag', ['gameId', 'tagId'])
       .values(chunk)
+      .orIgnore()
       .execute();
     }
+    console.log('built');
 
     console.log('platform relations');
     // Rebuild platform relations
+    for (const chunk of chunkArray(changedGameIds, 150)) {
+      await tx.query(`DELETE FROM game_platforms_platform WHERE gameId IN (${chunk.map(c => '?').join(',')})`, chunk);
+    }
+    console.log('cleared');
     for (const chunk of chunkArray(platformRelations, 100)) {
       await tx.createQueryBuilder()
       .insert()
       .into('game_platforms_platform', ['gameId', 'platformId'])
       .values(chunk)
+      .orIgnore()
       .execute();
     }
+    console.log('built');
   }
+
+  return lastDate;
 }
 
 type RemoteGamesRes = {

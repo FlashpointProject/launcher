@@ -1159,8 +1159,17 @@ export class App extends React.Component<AppProps> {
               }
             });
           },
-        }, {
-        /* Copy Game UUID */
+        },
+        {
+          /* Copy Shortcut URL */
+          label: strings.menu.copyShortcutURL,
+          enabled: true,
+          click : () => {
+            clipboard.writeText(`flashpoint://run/${gameId}`);
+          }
+        },
+        {
+          /* Copy Game UUID */
           label: strings.menu.copyGameUUID,
           enabled: true,
           click : () => {

@@ -2,7 +2,7 @@ import { CurateGroup } from '@renderer/store/curate/types';
 import { autoCode } from '@shared/lang';
 import { LogLevel } from '@shared/Log/interface';
 import { delayedThrottle, delayedThrottleAsync } from '@shared/utils/throttle';
-import { AppPathOverride, AppPreferencesData, AppPreferencesDataMainWindow, GameDataSource, GameMetadataSource, TagFilterGroup } from 'flashpoint-launcher';
+import { AppPathOverride, AppPreferencesData, AppPreferencesDataMainWindow, GameDataSource, GameMetadataSource, MetadataUpdateInfo, TagFilterGroup } from 'flashpoint-launcher';
 import { BackIn } from '../back/types';
 import { BrowsePageLayout } from '../BrowsePageLayout';
 import { ARCADE } from '../constants';
@@ -292,14 +292,28 @@ function parseGameMetadataSource(parser: IObjectParserProp<GameMetadataSource>):
   const source: GameMetadataSource = {
     name: '',
     baseUrl: '',
-    lastUpdatedTags: '1970-01-01',
-    lastUpdatedGames: '1970-01-01',
+    games: {
+      actualUpdateTime: '1970-01-01',
+      latestDeleteTime: '1970-01-01',
+      latestUpdateTime: '1970-01-01'
+    },
+    tags: {
+      actualUpdateTime: '1970-01-01',
+      latestDeleteTime: '1970-01-01',
+      latestUpdateTime: '1970-01-01'
+    },
   };
   parser.prop('name',             v => source.name             = str(v));
   parser.prop('baseUrl',          v => source.baseUrl          = str(v));
-  parser.prop('lastUpdatedTags',  v => source.lastUpdatedTags  = str(v), true);
-  parser.prop('lastUpdatedGames', v => source.lastUpdatedGames = str(v), true);
+  parseMetadataUpdateInfo(parser.prop('games'), source.games);
+  parseMetadataUpdateInfo(parser.prop('tags'), source.tags);
   return source;
+}
+
+function parseMetadataUpdateInfo(parser: IObjectParserProp<MetadataUpdateInfo>, output: MetadataUpdateInfo) {
+  parser.prop('actualUpdateTime', v => output.actualUpdateTime = str(v), true);
+  parser.prop('latestUpdateTime', v => output.latestUpdateTime = str(v), true);
+  parser.prop('latestDeleteTime', v => output.latestDeleteTime = str(v), true);
 }
 
 function parseTagFilterGroup(parser: IObjectParserProp<TagFilterGroup>): TagFilterGroup {

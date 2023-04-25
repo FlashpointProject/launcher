@@ -1043,8 +1043,14 @@ declare module 'flashpoint-launcher' {
     type GameMetadataSource = {
         name: string;
         baseUrl: string;
-        lastUpdatedTags: string;
-        lastUpdatedGames: string;
+        tags: MetadataUpdateInfo;
+        games: MetadataUpdateInfo;
+    }
+
+    type MetadataUpdateInfo = {
+        actualUpdateTime: string;
+        latestUpdateTime: string;
+        latestDeleteTime: string;
     }
 
     type Shortcuts = {

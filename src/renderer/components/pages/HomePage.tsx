@@ -427,7 +427,7 @@ export function HomePage(props: HomePageProps) {
             {props.preferencesData.gameMetadataSources[0].name}
           </div>
           <div className='update-metadata-last'>
-            {`${strings.lastUpdated}: ${(new Date(props.preferencesData.gameMetadataSources[0].lastUpdatedGames)).toLocaleString()}`}
+            {`${strings.lastUpdated}: ${(new Date(props.preferencesData.gameMetadataSources[0].games.actualUpdateTime)).toLocaleString()}`}
           </div>
         </div>
       );

@@ -511,6 +511,7 @@ const langTemplate = {
     'duplicatePlaylist',
     'exportPlaylist',
     'makeCurationFromGame',
+    'copyShortcutURL',
   ] as const,
   dialog: [
     'programNotFound',
