@@ -39,7 +39,7 @@ export namespace PreferencesFile {
    */
   export async function readOrCreateFile(filePath: string, state: BackState, flashpointPath: string, onError?: (error: string) => void): Promise<AppPreferencesData> {
     // Try to get the data from the file
-    const data = await readFile(filePath, onError)
+    const data = await readFile(filePath, flashpointPath, onError)
     .catch((e) => {
       if (e.code !== 'ENOENT') {
         if (onError) { onError(e); }
@@ -70,9 +70,20 @@ export namespace PreferencesFile {
     return data;
   }
 
-  export async function readFile(filePath: string, onError?: (error: string) => void): Promise<AppPreferencesData> {
+  export async function readFile(filePath: string, fpPath: string, onError?: (error: string) => void): Promise<AppPreferencesData> {
+    let defaultPrefs = deepCopy(defaultPreferencesData);
+    try {
+      const overridePath = path.join(fpPath, '.preferences.defaults.json');
+      console.log('Checking for prefs override at ' + overridePath);
+      const overrideJson = JSON.parse(fs.readFileSync(overridePath, { encoding: 'utf8' }));
+      defaultPrefs = overwritePreferenceData(defaultPrefs, overrideJson, (e) => {
+        throw 'Bad parse: ' + e;
+      });
+    } catch (err) {
+      log.debug('Launcher', 'Failed to load default prefs override, ignoring: ' + err);
+    }
     const json = await readJsonFile(filePath, fileEncoding);
-    return overwritePreferenceData(deepCopy(defaultPreferencesData), json, onError);
+    return overwritePreferenceData(defaultPrefs, json, onError);
   }
 
   export async function saveFile(filePath: string, data: AppPreferencesData, state: BackState): Promise<void> {
