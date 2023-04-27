@@ -2065,7 +2065,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         }
       } else {
         (game as any).applicationPath = game.legacyApplicationPath;
-        (game as any).launchCommand = game.legacyApplicationPath;
+        (game as any).launchCommand = game.legacyLaunchCommand;
         log.debug('Launcher', 'Make Curation From Game - Game has no active data');
       }
 
