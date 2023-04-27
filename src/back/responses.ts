@@ -344,8 +344,9 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     .then(() => {
       console.log('games');
       // Open new transaction for games
+      const dataPacksFolder = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath);
       return AppDataSource.transaction(async (tx) => {
-        return await syncGames(tx, source);
+        return await syncGames(tx, source, dataPacksFolder);
       });
     })
     .then((lastDate) => {
@@ -1197,7 +1198,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       const bareTag: BareTag = {
         id: t.id || 0,
         categoryId: t.categoryId || -1,
-        description: t.description,
+        description: t.description || '',
         primaryAlias: primaryAlias ? primaryAlias.name : 'ERROR'
       };
       return bareTag;
@@ -1996,47 +1997,52 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       const contentFolder = path.join(curPath, 'content');
       await fs.promises.mkdir(contentFolder, { recursive: true });
 
-      // Copy images if exists
-      const thumbnailUrl = `http://localhost:${state.fileServerPort}/images/Logos/${gameId.substring(0, 2)}/${gameId.substring(2, 4)}/${game.id}.png`;
-      const thumbnailWriter = fs.createWriteStream(path.join(curPath, 'logo.png'));
-      await new Promise<void>((resolve, reject) => {
-        axios.get(thumbnailUrl, { responseType: 'stream' })
-        .then((res) => {
-          res.data.pipe(thumbnailWriter);
-          thumbnailWriter.on('close', resolve);
-          thumbnailWriter.on('error', (err) => {
-            thumbnailWriter.close();
-            reject(err);
-          });
-        })
-        .catch((err) => {
-          thumbnailWriter.close();
-          reject(err);
-        });
+      const imagesRoot = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
+      // Copy images (download from remote if does not exist)
+      const logoRelPath = path.join('Logos', gameId.substring(0, 2), gameId.substring(2, 4), `${gameId}.png`);
+      const logoPath = path.join(imagesRoot, logoRelPath);
+      await fs.access(logoPath, fs.constants.F_OK)
+      .then(() => {
+        // Copy existing image
+        return fs.copyFile(logoPath, path.join(curPath, 'logo.png'));
       })
-      .catch((err) => {
-        log.error('Launcher', 'Make Curation From Game - Failed to save Logo file.\nError: ' + err.toString());
+      .catch(async () => {
+        // Download fresh image
+        const destPath = path.join(curPath, 'logo.png');
+        const url = new URL(logoRelPath, state.preferences.onDemandBaseUrl);
+        const writer = fs.createWriteStream(destPath);
+        await axios.get(url.href, {
+          responseType: 'stream',
+        }).then((response) => {
+          return new Promise<void>((resolve, reject) => {
+            response.data.pipe(writer);
+            writer.on('error', reject);
+            writer.on('close', resolve);
+          });
+        });
       });
 
-      const ssUrl = `http://localhost:${state.fileServerPort}/images/Screenshots/${gameId.substring(0, 2)}/${gameId.substring(2, 4)}/${game.id}.png`;
-      const ssWriter = fs.createWriteStream(path.join(curPath, 'ss.png'));
-      await new Promise<void>((resolve, reject) => {
-        axios.get(ssUrl, { responseType: 'stream' })
-        .then((res) => {
-          res.data.pipe(ssWriter);
-          ssWriter.on('close', resolve);
-          ssWriter.on('error', (err) => {
-            ssWriter.close();
-            reject(err);
-          });
-        })
-        .catch((err) => {
-          ssWriter.close();
-          reject(err);
-        });
+      const screenshotRelPath = path.join('Screenshots', gameId.substring(0, 2), gameId.substring(2, 4), `${gameId}.png`);
+      const screenshotPath = path.join(imagesRoot, screenshotRelPath);
+      await fs.access(screenshotPath, fs.constants.F_OK)
+      .then(() => {
+        // Copy existing image
+        return fs.copyFile(screenshotPath, path.join(curPath, 'ss.png'));
       })
-      .catch((err) => {
-        log.error('Launcher', 'Make Curation From Game - Failed to save Screenshot file.\nError: ' + err.toString());
+      .catch(async () => {
+        // Download fresh image
+        const destPath = path.join(curPath, 'ss.png');
+        const url = new URL(screenshotRelPath, state.preferences.onDemandBaseUrl);
+        const writer = fs.createWriteStream(destPath);
+        await axios.get(url.href, {
+          responseType: 'stream',
+        }).then((response) => {
+          return new Promise<void>((resolve, reject) => {
+            response.data.pipe(writer);
+            writer.on('error', reject);
+            writer.on('close', resolve);
+          });
+        });
       });
 
       // Extract active data pack if exists

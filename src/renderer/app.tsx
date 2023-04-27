@@ -162,28 +162,8 @@ export class App extends React.Component<AppProps> {
                   break;
                 }
                 case 'edit_game': {
-                  // Force a tags update
-                  if (this.props.preferencesData.gameMetadataSources.length === 0) {
-                    alert('No metadata sources in preferences.json, aborting remote edit');
-                    return;
-                  }
-                  const source = this.props.preferencesData.gameMetadataSources[0];
-                  window.Shared.back.request(BackIn.SYNC_TAGGED, source)
-                  .then(() => {
-                    // Edit game in-launcher then send it back to server
-                    this.performFpfssAction((user) => {
-                      if (this.props.main.fpfss.editingGame) {
-                        alert('Game edit already open');
-                      } else {
-                        // Download Game metadata and add to state
-                        const url = `${this.props.preferencesData.fpfssBaseUrl}/${parts.slice(2).join('/')}`;
-                        this.fetchFpfssGame(url);
-                      }
-                    });
-                  })
-                  .catch((err) => {
-                    alert(`Failed to update tags: ${err}`);
-                  });
+                  const url = `${this.props.preferencesData.fpfssBaseUrl}/${parts.slice(2).join('/')}`;
+                  this.openFpfssEditGame(url);
                   break;
                 }
                 default:
@@ -1219,6 +1199,13 @@ export class App extends React.Component<AppProps> {
                 });
               });
             }
+          }, {
+            /* Edit via FPFSS*/
+            label: strings.browse.editFpfssGame,
+            enabled: this.props.preferencesData.enableEditing && this.props.main.fpfss.user !== null,
+            click: () => {
+              this.onFpfssEditGame(gameId);
+            }
           }, { type: 'separator' }, {
             /* Export Meta */
             label: strings.menu.exportMetaOnly,
@@ -1406,6 +1393,8 @@ export class App extends React.Component<AppProps> {
                   onSaveGame={this.onSaveFpfssEditGame}
                   onOpenExportMetaEdit={() => {/** unused */}}
                   onEditGame={this.onApplyFpfssEditGame}
+                  onFpfssEditGame={this.onFpfssEditGame}
+                  fpfssUser={this.props.main.fpfss.user}
                   onUpdateActiveGameData={(disk, id) => id && this.onApplyFpfssEditGameData(id)}/>
               </FloatingContainer>
             )}
@@ -1462,7 +1451,7 @@ export class App extends React.Component<AppProps> {
                         onRemoveSelectedGameFromPlaylist={this.onRemoveSelectedGameFromPlaylist}
                         onDeselectPlaylist={this.onRightSidebarDeselectPlaylist}
                         onEditPlaylistNotes={this.onEditPlaylistNotes}
-                        isEditing={this.props.main.isEditingGame}
+                        isEditing={this.props.main.isEditingGame && this.props.preferencesData.enableEditing}
                         isNewGame={false} /* Deprecated */
                         onEditGame={this.onEditGame}
                         onUpdateActiveGameData={this.onUpdateActiveGameData}
@@ -1472,6 +1461,8 @@ export class App extends React.Component<AppProps> {
                         tagCategories={this.props.tagCategories}
                         suggestions={this.props.main.suggestions}
                         busyGames={this.props.main.busyGames}
+                        onFpfssEditGame={this.onFpfssEditGame}
+                        fpfssUser={this.props.main.fpfss.user}
                         onOpenExportMetaEdit={this.onOpenExportMetaEdit} />
                     </ResizableSidebar>
                   )}
@@ -1806,6 +1797,30 @@ export class App extends React.Component<AppProps> {
     }
   };
 
+  openFpfssEditGame = (url: string) => {
+    // Force a tags update
+    if (this.props.preferencesData.gameMetadataSources.length === 0) {
+      alert('No metadata sources in preferences.json, aborting remote edit');
+      return;
+    }
+    const source = this.props.preferencesData.gameMetadataSources[0];
+    window.Shared.back.request(BackIn.SYNC_TAGGED, source)
+    .then(() => {
+      // Edit game in-launcher then send it back to server
+      this.performFpfssAction((user) => {
+        if (this.props.main.fpfss.editingGame) {
+          alert('Game edit already open');
+        } else {
+          // Download Game metadata and add to state
+          this.fetchFpfssGame(url);
+        }
+      });
+    })
+    .catch((err) => {
+      alert(`Failed to update tags: ${err}`);
+    });
+  };
+
   onCancelFpfssEditGame = () => {
     // Just clear the state
     this.props.dispatchMain({
@@ -1836,6 +1851,13 @@ export class App extends React.Component<AppProps> {
       }).catch((err) => {
         alert('Error submitting game changes: ' + err);
       });
+    }
+  };
+
+  onFpfssEditGame = (gameId: string) => {
+    if (this.props.preferencesData.gameMetadataSources.length > 0) {
+      const url = `${this.props.preferencesData.gameMetadataSources[0].baseUrl}/api/game/${gameId}`;
+      this.openFpfssEditGame(url);
     }
   };
 

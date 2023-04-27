@@ -319,6 +319,7 @@ const langTemplate = {
     'removeGameFromPlaylist',
     'saveChanges',
     'discardChanges',
+    'editFpfssGame',
     'editGame',
     'allGames',
     'newPlaylist',

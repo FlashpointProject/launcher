@@ -12,6 +12,8 @@ import { TagCategory } from '@database/entity/TagCategory';
 import { PlatformAlias } from '@database/entity/PlatformAlias';
 import { Platform } from '@database/entity/Platform';
 import { num } from '@shared/utils/Coerce';
+import * as fs from 'fs-extra';
+import * as path from 'path';
 
 export async function syncTags(tx: EntityManager, source: GameMetadataSource, categories: TagCategory[]): Promise<Date> {
   const tagsUrl = `${source.baseUrl}/api/tags?after=${source.tags.latestUpdateTime}`;
@@ -202,7 +204,7 @@ export async function syncPlatforms(tx: EntityManager, source: GameMetadataSourc
   return lastDate;
 }
 
-export async function syncGames(tx: EntityManager, source: GameMetadataSource): Promise<Date> {
+export async function syncGames(tx: EntityManager, source: GameMetadataSource, dataPacksFolder: string): Promise<Date> {
   const gamesUrl = `${source.baseUrl}/api/games`;
   const gamesRepo = tx.getRepository(Game);
   const addAppRepo = tx.getRepository(AdditionalApp);
@@ -266,6 +268,9 @@ export async function syncGames(tx: EntityManager, source: GameMetadataSource): 
       };
     });
     const changedGameData = data.game_data.map(d => {
+      const dataPath = `${d.game_id}-${(new Date(d.date_added)).getTime()}.zip`;
+      const fullPath = path.join(dataPacksFolder, dataPath);
+      const presentOnDisk = fs.existsSync(fullPath);
       return {
         gameId: d.game_id,
         title: d.title,
@@ -273,7 +278,11 @@ export async function syncGames(tx: EntityManager, source: GameMetadataSource): 
         sha256: d.sha_256,
         crc32: d.crc_32,
         size: d.size,
-        parameters: d.parameters
+        path: dataPath,
+        presentOnDisk,
+        parameters: d.parameters,
+        applicationPath: d.application_path,
+        launchCommand: d.launch_command
       };
     });
 
@@ -438,6 +447,8 @@ type RemoteGameData = {
   crc_32: number;
   size: number;
   parameters?: string;
+  application_path: string;
+  launch_command: string;
 }
 
 type RemoteAddApp = {

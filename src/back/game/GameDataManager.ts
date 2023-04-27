@@ -33,7 +33,7 @@ export async function downloadGameData(gameDataId: number, dataPacksFolderPath: 
           stream.on('end', async () => {
             const sha256 = hash.digest('hex').toUpperCase();
             console.log(`hash ${sha256}`);
-            if (sha256 !== gameData.sha256) {
+            if (sha256.toLowerCase() !== gameData.sha256.toLowerCase()) {
               reject('Hash of download does not match! Download aborted.\n (It may be a corrupted download, try again)');
             } else {
               await importGameDataSkipHash(gameData.gameId, tempPath, dataPacksFolderPath, sha256);
@@ -85,7 +85,7 @@ export async function importGameDataSkipHash(gameId: string, filePath: string, d
   // Gather basic info
   const stats = await fs.promises.stat(filePath);
   const gameData = await findGameData(gameId);
-  const existingGameData = gameData.find(g => g.sha256 === sha256);
+  const existingGameData = gameData.find(g => g.sha256.toLowerCase() === sha256.toLowerCase());
   // Copy file
   const dateAdded = new Date();
   const newFilename = existingGameData ? `${gameId}-${existingGameData.dateAdded.getTime()}.zip` : `${gameId}-${dateAdded.getTime()}.zip`;
@@ -131,7 +131,7 @@ export function importGameData(gameId: string, filePath: string, dataPacksFolder
       stream.on('end', async () => {
         const sha256 = hash.digest('hex').toUpperCase();
         const gameData = await findGameData(gameId);
-        const existingGameData = gameData.find(g => g.sha256 === sha256);
+        const existingGameData = gameData.find(g => g.sha256.toLowerCase() === sha256.toLowerCase());
         // Copy file
         const dateAdded = new Date();
         const newFilename = existingGameData ? `${gameId}-${existingGameData.dateAdded.getTime()}.zip` : `${gameId}-${dateAdded.getTime()}.zip`;

@@ -27,7 +27,7 @@ export async function importGames(games: MetadataGame[]): Promise<void> {
       // Save game data
       const existingDataArr = await findGameData(game.id);
       for (const gameData of game.gameData) {
-        const existingData = existingDataArr.find(d => d.sha256 === gameData.sha256);
+        const existingData = existingDataArr.find(d => d.sha256.toLowerCase() === gameData.sha256.toLowerCase());
         if (existingData) {
           // Data exists, if active then update number for when we save later
           if (game.activeDataId == gameData.id && game.activeDataId !== existingData.id) {

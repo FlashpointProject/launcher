@@ -3,7 +3,7 @@ import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
 import * as remote from '@electron/remote';
 import { WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
-import { BackIn, BackOut, BackOutTemplate, TagSuggestion } from '@shared/back/types';
+import { BackIn, BackOut, BackOutTemplate, FpfssUser, TagSuggestion } from '@shared/back/types';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { wrapSearchTerm } from '@shared/game/GameFilter';
 import { ModelUtils } from '@shared/game/util';
@@ -71,6 +71,8 @@ type OwnProps = {
   onSaveGame: () => void;
   onOpenExportMetaEdit: (gameId: string) => void;
 
+  fpfssUser: FpfssUser | null;
+  onFpfssEditGame: (gameId: string) => void;
   onEditGame: (game: Partial<Game>) => void;
   onUpdateActiveGameData: (activeDataOnDisk: boolean, activeDataId?: number) => void;
 
@@ -209,7 +211,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       const currentAddApps = game.addApps;
       const isPlaceholder = game.placeholder;
       const editDisabled = !preferencesData.enableEditing;
-      const editable = !editDisabled && isEditing;
+      const editable = isEditing;
       const dateAdded = game.dateAdded;
       const dateModified = game.dateModified;
       const screenshotSrc = getGameImageURL(SCREENSHOTS, game.id);
@@ -265,8 +267,16 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                           </>
                         ) : ( /* While NOT Editing */
                           <>
+                            { this.props.fpfssUser !== null && !editDisabled && !isPlaceholder && (
+                              <div
+                                className='browse-right-sidebar__title-row__buttons__edit-button'
+                                title={strings.editFpfssGame}
+                                onClick={() => this.props.onFpfssEditGame(game.id)}>
+                                <OpenIcon icon='cloud-upload' />
+                              </div>
+                            ) }
                             {/* "Edit" Button */}
-                            { isPlaceholder ? undefined : (
+                            { editDisabled || isPlaceholder ? undefined : (
                               <div
                                 className='browse-right-sidebar__title-row__buttons__edit-button'
                                 title={strings.editGame}
@@ -277,7 +287,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                             {/* "Remove From Playlist" Button */}
                             { currentPlaylistEntry ? removeGameFromPlaylistElement : undefined }
                             {/* "Delete Game" Button */}
-                            { (isPlaceholder || isNewGame || currentPlaylistEntry) ? undefined : (
+                            { (isPlaceholder || isNewGame || currentPlaylistEntry) && !editDisabled ? undefined : (
                               <ConfirmElement
                                 message={allStrings.dialog.deleteGame}
                                 onConfirm={this.onDeleteGameClick}

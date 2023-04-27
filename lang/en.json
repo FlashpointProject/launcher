@@ -315,6 +315,7 @@
     "removeGameFromPlaylist": "Remove Game from Playlist",
     "saveChanges": "Save Changes",
     "discardChanges": "Discard Changes",
+    "editFpfssGame": "Edit Game (FPFSS)",
     "editGame": "Edit Game",
     "allGames": "All Games",
     "newPlaylist": "New Playlist",
