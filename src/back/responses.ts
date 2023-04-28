@@ -4,6 +4,9 @@ import { PlatformAlias } from '@database/entity/PlatformAlias';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
+import { LogLevel } from '@shared/Log/interface';
+import { MetaEditFile, MetaEditMeta } from '@shared/MetaEdit';
+import { deepCopy, downloadFile, padEnd } from '@shared/Util';
 import { BackIn, BackInit, BackOut, ComponentState, CurationImageEnum, DownloadDetails, GetRendererLoadedDataResponse } from '@shared/back/types';
 import { overwriteConfigData } from '@shared/config/util';
 import { CURATIONS_FOLDER_EXPORTED, CURATIONS_FOLDER_TEMP, CURATIONS_FOLDER_WORKING, LOGOS, SCREENSHOTS } from '@shared/constants';
@@ -13,52 +16,50 @@ import { getContentFolderByKey, getCurationFolder } from '@shared/curate/util';
 import { AppProvider, BrowserApplicationOpts } from '@shared/extensions/interfaces';
 import { FilterGameOpts } from '@shared/game/GameFilter';
 import { DeepPartial, GamePropSuggestions, ProcessAction, ProcessState } from '@shared/interfaces';
-import { LogLevel } from '@shared/Log/interface';
-import { MetaEditFile, MetaEditMeta } from '@shared/MetaEdit';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { defaultPreferencesData, overwritePreferenceData } from '@shared/preferences/util';
-import { deepCopy, downloadFile, padEnd } from '@shared/Util';
-import { chunkArray } from '@shared/utils/misc';
-import { sanitizeFilename } from '@shared/utils/sanitizeFilename';
 import { formatString } from '@shared/utils/StringFormatter';
 import { TaskProgress } from '@shared/utils/TaskProgress';
+import { chunkArray } from '@shared/utils/misc';
+import { sanitizeFilename } from '@shared/utils/sanitizeFilename';
 import { throttle } from '@shared/utils/throttle';
 import * as axiosImport from 'axios';
 import * as child_process from 'child_process';
 import { execSync } from 'child_process';
-import { AddAppCuration, CurationState, Platform } from 'flashpoint-launcher';
+import { CurationState, Platform } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as fs_extra from 'fs-extra';
 import * as https from 'https';
 import { snakeCase, transform } from 'lodash';
-import { add, Progress } from 'node-7z';
+import { Progress, add } from 'node-7z';
 import * as os from 'os';
 import * as path from 'path';
 import * as url from 'url';
 import * as util from 'util';
 import * as YAML from 'yaml';
 import { ConfigFile } from './ConfigFile';
+import { ExtConfigFile } from './ExtConfigFile';
+import { GameLaunchInfo, GameLauncher, escapeArgsForShell } from './GameLauncher';
+import { ManagedChildProcess } from './ManagedChildProcess';
+import { importAllMetaEdits } from './MetaEdit';
+import { PlaylistFile } from './PlaylistFile';
 import { CONFIG_FILENAME, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME } from './constants';
 import { loadCurationIndexImage } from './curate/parse';
-import { duplicateCuration, genCurationWarnings, loadCurationFolder } from './curate/util';
+import { duplicateCuration, genCurationWarnings, loadCurationFolder, makeCurationFromGame, refreshCurationContent } from './curate/util';
 import { saveCuration } from './curate/write';
-import { ExtConfigFile } from './ExtConfigFile';
 import { parseAppVar } from './extensions/util';
 import * as GameDataManager from './game/GameDataManager';
 import * as GameManager from './game/GameManager';
 import * as TagManager from './game/TagManager';
-import { escapeArgsForShell, GameLauncher, GameLaunchInfo } from './GameLauncher';
 import { importCuration, launchAddAppCuration, launchCuration } from './importGame';
-import { AppDataSource, checkAndDownloadGameData, extractFullPromise, loadCurationArchive } from './index';
-import { ManagedChildProcess } from './ManagedChildProcess';
+import { AppDataSource, loadCurationArchive } from './index';
 import { importGames, importPlatforms, importTagCategories, importTags } from './metadataImport';
-import { importAllMetaEdits } from './MetaEdit';
 import { addPlaylistGame, deletePlaylist, deletePlaylistGame, duplicatePlaylist, filterPlaylists, getPlaylistGame, importPlaylist, savePlaylistGame, updatePlaylist } from './playlist';
-import { PlaylistFile } from './PlaylistFile';
 import { copyFolder, genContentTree } from './rust';
 import { syncGames, syncPlatforms, syncTags } from './sync';
 import { BackState, BarePlatform, BareTag, MetadataRaw, TagsFile } from './types';
 import { pathToBluezip } from './util/Bluezip';
+import { pathTo7zBack } from './util/SevenZip';
 import { awaitDialog, createNewDialog } from './util/dialog';
 import {
   compareSemVerVersions,
@@ -71,7 +72,6 @@ import {
   exit, getCwd, getTempFilename, openFlashpointManager, optimizeDatabase, pathExists, procToService, promiseSleep, removeService,
   runService
 } from './util/misc';
-import { pathTo7zBack } from './util/SevenZip';
 import { uuid } from './util/uuid';
 
 const axios = axiosImport.default;
@@ -1960,15 +1960,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.CURATE_REFRESH_CONTENT, async (event, folder) => {
-    const curationIdx = state.loadedCurations.findIndex(c => c.folder === folder);
-    if (curationIdx !== -1) {
-      const curation = state.loadedCurations[curationIdx];
-      const contentPath = getContentFolderByKey(curation.folder, state.config.flashpointPath);
-      curation.contents = await genContentTree(contentPath);
-      curation.warnings = await genCurationWarnings(curation, state.config.flashpointPath, state.suggestions, state.languageContainer['curate'], state.apiEmitters.curations.onWillGenCurationWarnings);
-      state.loadedCurations[curationIdx] = curation;
-      state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
-    }
+    return refreshCurationContent(state, folder);
   });
 
   state.socketServer.register(BackIn.CURATE_SCAN_NEW_CURATIONS, async () => {
@@ -1989,124 +1981,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.CURATE_FROM_GAME, async (event, gameId) => {
-    const game = await GameManager.findGame(gameId);
-    const folder = uuid();
-    if (game) {
-      const curPath = path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, folder);
-      await fs.promises.mkdir(curPath, { recursive: true });
-      const contentFolder = path.join(curPath, 'content');
-      await fs.promises.mkdir(contentFolder, { recursive: true });
-
-      const imagesRoot = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
-      // Copy images (download from remote if does not exist)
-      const logoRelPath = path.join('Logos', gameId.substring(0, 2), gameId.substring(2, 4), `${gameId}.png`);
-      const logoPath = path.join(imagesRoot, logoRelPath);
-      await fs.access(logoPath, fs.constants.F_OK)
-      .then(() => {
-        // Copy existing image
-        return fs.copyFile(logoPath, path.join(curPath, 'logo.png'));
-      })
-      .catch(async () => {
-        // Download fresh image
-        const destPath = path.join(curPath, 'logo.png');
-        const url = new URL(logoRelPath, state.preferences.onDemandBaseUrl);
-        const writer = fs.createWriteStream(destPath);
-        await axios.get(url.href, {
-          responseType: 'stream',
-        }).then((response) => {
-          return new Promise<void>((resolve, reject) => {
-            response.data.pipe(writer);
-            writer.on('error', reject);
-            writer.on('close', resolve);
-          });
-        });
-      });
-
-      const screenshotRelPath = path.join('Screenshots', gameId.substring(0, 2), gameId.substring(2, 4), `${gameId}.png`);
-      const screenshotPath = path.join(imagesRoot, screenshotRelPath);
-      await fs.access(screenshotPath, fs.constants.F_OK)
-      .then(() => {
-        // Copy existing image
-        return fs.copyFile(screenshotPath, path.join(curPath, 'ss.png'));
-      })
-      .catch(async () => {
-        // Download fresh image
-        const destPath = path.join(curPath, 'ss.png');
-        const url = new URL(screenshotRelPath, state.preferences.onDemandBaseUrl);
-        const writer = fs.createWriteStream(destPath);
-        await axios.get(url.href, {
-          responseType: 'stream',
-        }).then((response) => {
-          return new Promise<void>((resolve, reject) => {
-            response.data.pipe(writer);
-            writer.on('error', reject);
-            writer.on('close', resolve);
-          });
-        });
-      });
-
-      // Extract active data pack if exists
-      if (game.activeDataId) {
-        await checkAndDownloadGameData(gameId, game.activeDataId);
-        const activeData = await GameDataManager.findOne(game.activeDataId);
-        if (activeData && activeData.path) {
-          // Extract data pack into curation folder
-          const dataPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, activeData.path);
-          await extractFullPromise([dataPath, curPath, { $bin: state.sevenZipPath }]);
-          // Clean up content.json file from extracted data pack
-          await fs.unlink(path.join(curPath, 'content.json'))
-          .catch(() => { /** Probably doesn't exist */ });
-          log.debug('Launcher', 'Make Curation From Game - Found and extracted data pack into curation folder');
-        }
-        if (activeData) {
-          // Update curation meta fields with saved
-          (game as any).applicationPath = activeData.applicationPath;
-          (game as any).launchCommand = activeData.launchCommand;
-        }
-      } else {
-        (game as any).applicationPath = game.legacyApplicationPath;
-        (game as any).launchCommand = game.legacyLaunchCommand;
-        log.debug('Launcher', 'Make Curation From Game - Game has no active data');
-      }
-
-      const data: LoadedCuration = {
-        folder,
-        uuid: game.id,
-        group: '',
-        game: game,
-        addApps: game.addApps.map<AddAppCuration>(a => {
-          return {
-            key: uuid(),
-            heading: a.name,
-            applicationPath: a.applicationPath,
-            launchCommand: a.launchCommand
-          };
-        }),
-        thumbnail: await loadCurationIndexImage(path.join(curPath, 'logo.png')),
-        screenshot: await loadCurationIndexImage(path.join(curPath, 'ss.png'))
-      };
-      const curation: CurationState = {
-        ...data,
-        alreadyImported: true,
-        warnings: await genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onWillGenCurationWarnings),
-      };
-      await saveCuration(curPath, curation);
-      state.loadedCurations.push(curation);
-
-      // Let contents update without blocking
-      genContentTree(getContentFolderByKey(folder, state.config.flashpointPath))
-      .then((contentTree) => {
-        const idx = state.loadedCurations.findIndex(c => c.folder === folder);
-        if (idx > -1) {
-          state.loadedCurations[idx].contents = contentTree;
-          state.socketServer.broadcast(BackOut.CURATE_CONTENTS_CHANGE, folder, contentTree);
-        }
-      });
-
-      // Send back responses
-      state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);
-      return curation.folder;
-    }
+    return makeCurationFromGame(state, gameId);
   });
 
   state.socketServer.register(BackIn.CURATE_CREATE_CURATION, async (event, folder, meta) => {

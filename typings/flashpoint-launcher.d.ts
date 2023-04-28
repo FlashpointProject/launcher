@@ -1,4 +1,4 @@
-// Type definitions for non-npm package flashpoint-launcher 11
+// Type definitions for non-npm package flashpoint-launcher 12
 // Project: Flashpoint Launcher https://github.com/FlashpointProject/launcher
 // Definitions by: Colin Berry <https://github.com/colin969>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
@@ -58,7 +58,7 @@ declare module 'flashpoint-launcher' {
      * @param outDir Directory to output into
      * @param opts SevenZip Extraction Options
      */
-    function unzipFile(filePath: string, outDir: string, opts: ZipExtractOptions): Promise<void>;
+    function unzipFile(filePath: string, outDir: string, opts?: ZipExtractOptions): Promise<void>;
 
     /**
      * Gets an extension configuration value given its key
@@ -157,6 +157,14 @@ declare module 'flashpoint-launcher' {
          * @param folder Folder name of the curation
          */
         function getCurationPath(folder: string): string;
+        /** Automatically create a curation for the existing game id
+         * @param gameId Game ID
+         */
+        function makeCurationFromGame(gameId: string, skipDataPack?: boolean): Promise<string | undefined>;
+        /** Update the content index for a curation
+         * @param folder Curation Folder name
+         */
+        function refreshCurationContent(folder: string): Promise<void>;
 
         // Events
         const onDidCurationListChange: Event<{ added?: CurationState[], removed?: string[] }>;
