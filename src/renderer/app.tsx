@@ -1074,6 +1074,17 @@ export class App extends React.Component<AppProps> {
 
   private onGameContextMenuMemo = memoizeOne((playlists: Playlist[], strings: LangContainer, selectedPlaylistId?: string) => {
     return (gameId: string) => {
+      const fpfssButtons: MenuItemConstructorOptions[] = this.props.preferencesData.fpfssBaseUrl ? [
+        {
+          /* Edit via FPFSS */
+          label: strings.browse.editFpfssGame,
+          enabled: this.props.preferencesData.enableEditing,
+          click: () => {
+            this.onFpfssEditGame(gameId);
+          }
+        }
+      ] : [];
+
       let contextButtons: MenuItemConstructorOptions[] = [
         {
           label: strings.menu.addToFavorites,
@@ -1199,14 +1210,7 @@ export class App extends React.Component<AppProps> {
                 });
               });
             }
-          }, {
-            /* Edit via FPFSS*/
-            label: strings.browse.editFpfssGame,
-            enabled: this.props.preferencesData.enableEditing && this.props.main.fpfss.user !== null,
-            click: () => {
-              this.onFpfssEditGame(gameId);
-            }
-          }, { type: 'separator' }, {
+          }, ...fpfssButtons, { type: 'separator' }, {
             /* Export Meta */
             label: strings.menu.exportMetaOnly,
             enabled: !window.Shared.isBackRemote, // (Local "back" only)

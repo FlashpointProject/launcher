@@ -3,7 +3,7 @@ import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
 import * as remote from '@electron/remote';
 import { WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
-import { BackIn, BackOut, BackOutTemplate, FpfssUser, TagSuggestion } from '@shared/back/types';
+import { BackIn, BackOut, BackOutTemplate, TagSuggestion } from '@shared/back/types';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { wrapSearchTerm } from '@shared/game/GameFilter';
 import { ModelUtils } from '@shared/game/util';
@@ -71,7 +71,6 @@ type OwnProps = {
   onSaveGame: () => void;
   onOpenExportMetaEdit: (gameId: string) => void;
 
-  fpfssUser: FpfssUser | null;
   onFpfssEditGame: (gameId: string) => void;
   onEditGame: (game: Partial<Game>) => void;
   onUpdateActiveGameData: (activeDataOnDisk: boolean, activeDataId?: number) => void;
@@ -267,7 +266,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                           </>
                         ) : ( /* While NOT Editing */
                           <>
-                            { this.props.fpfssUser !== null && !editDisabled && !isPlaceholder && (
+                            { this.props.preferencesData.fpfssBaseUrl && !editDisabled && !isPlaceholder && (
                               <div
                                 className='browse-right-sidebar__title-row__buttons__edit-button'
                                 title={strings.editFpfssGame}
@@ -623,7 +622,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
               </div>
             ) : undefined }
             {/* -- LEGACY GAMES ONLY - Application Path & Launch Command -- */}
-            { editable && game.activeDataId === null && !isPlaceholder ? (
+            { !game.activeDataId && !isPlaceholder ? (
               <div className='browse-right-sidebar__section'>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>{strings.applicationPath}: </p>
