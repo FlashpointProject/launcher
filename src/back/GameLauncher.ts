@@ -210,7 +210,7 @@ export namespace GameLauncher {
     // If any available provided applications, check if any work.
     for (const app of availableApps) {
       try {
-        const res = await app.callback(opts.game, appPath, metadataLaunchCommand);
+        const res = await app.callback(opts.game, metadataLaunchCommand);
 
         // Simple path return, treat as regular app
         if (typeof res === 'string') {

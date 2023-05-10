@@ -2380,15 +2380,15 @@ async function getProviders(state: BackState): Promise<AppProvider[]> {
       return apps.map(app => {
         return {
           ...app,
-          callback: async (game: Game) => {
+          callback: async (game: Game, launchCommand: string) => {
             if (app.command) {
               return runCommand(state, app.command, [game]);
             } else if (app.path) {
-              const parsedArgs = await Promise.all(app.arguments.map(a => parseAppVar(c.extId, a, game.legacyLaunchCommand, state)));
-              const parsedPath = await parseAppVar(c.extId, app.path, game.legacyLaunchCommand, state);
+              const parsedArgs = await Promise.all(app.arguments.map(a => parseAppVar(c.extId, a, launchCommand, state)));
+              const parsedPath = await parseAppVar(c.extId, app.path, launchCommand, state);
               return [parsedPath, ...parsedArgs];
             } else if (app.url) {
-              const formattedUrl = await parseAppVar(c.extId, app.url, game.legacyLaunchCommand, state);
+              const formattedUrl = await parseAppVar(c.extId, app.url, launchCommand, state);
               const opts: BrowserApplicationOpts = {
                 url: formattedUrl
               };
