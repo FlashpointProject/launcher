@@ -758,6 +758,10 @@ async function initialize() {
               for (const line of stdout.split('\n').filter(line => line !== '')) {
                 try {
                   let state: ComponentState;
+                  // ! comp-id (Comp Name)
+                  const nameIdx = line.indexOf('(');
+                  const id = line.substring(1, nameIdx - 1).trim();
+                  const name = line.substring(nameIdx + 1, line.length - 2);
                   switch (line.charAt(0)) {
                     case '*':
                       state = ComponentState.UP_TO_DATE;
@@ -769,10 +773,10 @@ async function initialize() {
                       state = ComponentState.UNINSTALLED;
                       break;
                   }
-                  // ! comp-id (Comp Name)
-                  const nameIdx = line.indexOf('(');
-                  const id = line.substring(1, nameIdx - 1).trim();
-                  const name = line.substring(nameIdx + 1, line.length - 2);
+                  // Ignore updates for core-database
+                  if (id === 'core-database' && state === ComponentState.NEEDS_UPDATE) {
+                    state = ComponentState.UP_TO_DATE;
+                  }
                   const status: ComponentStatus = {
                     id,
                     name,
