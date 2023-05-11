@@ -30,6 +30,7 @@ npm-debug.log.*
 /launcher.log
 /extern/bluezip/bluezip.db
 /flashpoint.sqlite
+/extensions/test
 Data/flashpoint.sqlite
 
 # Jest related files

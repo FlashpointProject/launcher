@@ -294,6 +294,16 @@ export async function findPlatformAppPaths(platform: string): Promise<string[]> 
   return Coerce.strArray(values.map(v => v['game_applicationPath']));
 }
 
+export async function findUniqueApplicationPaths(): Promise<string[]> {
+  const rawValues = await AppDataSource.query(
+    `SELECT DISTINCT applicationPath FROM game UNION
+    SELECT DISTINCT applicationPath FROM game_data
+    WHERE applicationPath IS NOT NULL`
+  );
+
+  return rawValues.map((val: any) => val['applicationPath']).filter((val: any) => val !== '');
+}
+
 export async function findUniqueValues(entity: any, column: string, commaSeperated?: boolean): Promise<string[]> {
   validateSqlName(column);
 

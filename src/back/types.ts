@@ -197,6 +197,7 @@ export type TagsFile = {
 }
 
 export type ShowMessageBoxFunc = (options: flashpoint.DialogStateTemplate) => Promise<string>;
+export type ShowMessageBoxBroadcastFunc = (options: flashpoint.DialogStateTemplate) => void;
 export type ShowSaveDialogFunc = (options: SaveDialogOptions) => Promise<string | undefined>;
 export type ShowOpenDialogFunc = (options: OpenDialogOptions) => Promise<string[] | undefined>;
 export type OpenExternalFunc = (url: string, options?: OpenExternalOptions) => Promise<void>;

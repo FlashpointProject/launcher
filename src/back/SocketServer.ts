@@ -1,4 +1,4 @@
-import { BackState, OpenExternalFunc, ShowMessageBoxFunc, ShowOpenDialogFunc, ShowSaveDialogFunc } from '@back/types';
+import { BackState, OpenExternalFunc, ShowMessageBoxBroadcastFunc, ShowMessageBoxFunc, ShowOpenDialogFunc, ShowSaveDialogFunc } from '@back/types';
 import { BackIn, BackInTemplate, BackOut, BackOutTemplate, BackRes, BackResTemplate } from '@shared/back/types';
 import { parse_message_data, validate_socket_message } from '@shared/socket/shared';
 import { api_handle_message, api_register, api_register_any, api_unregister, api_unregister_any, create_api, SocketAPIData } from '@shared/socket/SocketAPI';
@@ -10,7 +10,7 @@ import { createNewDialog } from './util/dialog';
 
 type BackAPI = SocketAPIData<BackIn, BackInTemplate, MsgEvent>
 type BackClients = SocketServerData<BackOut, BackOutTemplate, ws>
-type BackClient = BackClients['clients'][number]
+export type BackClient = BackClients['clients'][number]
 
 export type MsgEvent = {
   wsEvent: ws.MessageEvent;
@@ -97,7 +97,18 @@ export class SocketServer {
    */
   public showMessageBoxBack(state: BackState, client: BackClient): ShowMessageBoxFunc {
     return (options) => {
-      return createNewDialog(state, options);
+      return createNewDialog(state, options, client);
+    };
+  }
+
+  /**
+   * Return a function that opens a message box on any connected clients, unawaitable
+   *
+   * @param state Back State
+   */
+  public showMessageBoxBackBroadcast(state: BackState): ShowMessageBoxBroadcastFunc {
+    return (options) => {
+      createNewDialog(state, options);
     };
   }
 

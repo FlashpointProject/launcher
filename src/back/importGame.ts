@@ -15,7 +15,7 @@ import { Platform } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as YAML from 'yaml';
-import { ApiEmitter } from './extensions/ApiEmitter';
+import { ApiEmitter, ApiEmitterFirable } from './extensions/ApiEmitter';
 import * as GameManager from './game/GameManager';
 import * as TagManager from './game/TagManager';
 import { GameManagerState } from './game/types';
@@ -307,7 +307,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
  * @param serverOverride Changes the active server given a server name / alias as defined in services.json
  */
 export async function launchCuration(curation: LoadedCuration, symlinkCurationContent: boolean,
-  skipLink: boolean, opts: Omit<LaunchGameOpts, 'game'|'addApps'>, onWillEvent:ApiEmitter<GameLaunchInfo>, onDidEvent: ApiEmitter<Game>, serverOverride?: string) {
+  skipLink: boolean, opts: Omit<LaunchGameOpts, 'game'|'addApps'>, onWillEvent: ApiEmitterFirable<GameLaunchInfo>, onDidEvent: ApiEmitterFirable<Game>, serverOverride?: string) {
   if (curation.game.platforms) {
     await checkAndInstallPlatform(curation.game.platforms, opts.state, opts.openDialog);
   }
@@ -335,7 +335,7 @@ export async function launchCuration(curation: LoadedCuration, symlinkCurationCo
  * @param onDidEvent Fires after the curation add app has launched
  */
 export async function launchAddAppCuration(folder: string, appCuration: AddAppCuration, platforms: Platform[], symlinkCurationContent: boolean,
-  skipLink: boolean, opts: Omit<LaunchAddAppOpts, 'addApp'>, onWillEvent: ApiEmitter<AdditionalApp>, onDidEvent: ApiEmitter<AdditionalApp>) {
+  skipLink: boolean, opts: Omit<LaunchAddAppOpts, 'addApp'>, onWillEvent: ApiEmitterFirable<AdditionalApp>, onDidEvent: ApiEmitterFirable<AdditionalApp>) {
   if (platforms) {
     await checkAndInstallPlatform(platforms, opts.state, opts.openDialog);
   }

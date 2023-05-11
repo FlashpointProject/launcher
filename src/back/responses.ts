@@ -456,7 +456,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
           }
         }
       }
-      await state.apiEmitters.games.onWillLaunchAddApp.fire(addApp);
+      await state.apiEmitters.games.onWillLaunchAddApp.fireAlert(state, addApp, event.client, 'Error during add app launch api event');
       const platforms = addApp.parentGame ? addApp.parentGame.platforms.map(p => p.primaryAlias.name): [];
       await GameLauncher.launchAdditionalApplication({
         addApp,
@@ -479,7 +479,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         envPATH: state.pathVar,
         state,
       }, false);
-      state.apiEmitters.games.onDidLaunchAddApp.fire(addApp);
+      state.apiEmitters.games.onDidLaunchAddApp.fireAlert(state, addApp, event.client, 'Error during post add app launch api event');
     }
   });
 
@@ -516,7 +516,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
           }
         }
       }
-      log.debug('TEST', 'Running game');
       // Launch game
       const flatGamePlatforms = makeFlatPlatforms(game.platforms);
       await GameLauncher.launchGame({
@@ -540,8 +539,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         changeServer: changeServerFactory(state),
         state,
       },
-      state.apiEmitters.games.onWillLaunchGame, false);
-      await state.apiEmitters.games.onDidLaunchGame.fire(game);
+      state.apiEmitters.games.onWillLaunchGame.fireableFactory(state, event.client, 'Error during game launch api event'), false);
+      await state.apiEmitters.games.onDidLaunchGame.fireAlert(state, game, event.client, 'Error from post game launch api event');
     }
   });
 
@@ -1486,8 +1485,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         changeServer: changeServerFactory(state),
         state,
       },
-      state.apiEmitters.games.onWillLaunchCurationGame,
-      state.apiEmitters.games.onDidLaunchCurationGame,
+      state.apiEmitters.games.onWillLaunchCurationGame.fireableFactory(state, event.client, 'Error during curate game launch api event'),
+      state.apiEmitters.games.onDidLaunchCurationGame.fireableFactory(state, event.client, 'Error during curate post game launch api event'),
       serverOverride);
     } catch (e) {
       log.error('Launcher', e + '');
@@ -1519,8 +1518,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         envPATH: state.pathVar,
         state,
       },
-      state.apiEmitters.games.onWillLaunchCurationAddApp,
-      state.apiEmitters.games.onDidLaunchCurationAddApp);
+      state.apiEmitters.games.onWillLaunchCurationAddApp.fireableFactory(state, event.client, 'Error during curate add app launch api event'),
+      state.apiEmitters.games.onDidLaunchCurationAddApp.fireableFactory(state, event.client, 'Error during curate post add app launch api event'));
     } catch (e) {
       log.error('Launcher', e + '');
     }

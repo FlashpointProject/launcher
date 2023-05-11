@@ -13,7 +13,7 @@ import { AppPathOverride, DialogStateTemplate, GameData, ManagedChildProcess, Pl
 import * as minimist from 'minimist';
 import * as path from 'path';
 import { extractFullPromise } from '.';
-import { ApiEmitter } from './extensions/ApiEmitter';
+import { ApiEmitterFirable } from './extensions/ApiEmitter';
 import { BackState, OpenExternalFunc, ShowMessageBoxFunc } from './types';
 import { getCwd, isBrowserOpts } from './util/misc';
 import * as fs from 'fs-extra';
@@ -141,15 +141,13 @@ export namespace GameLauncher {
    * @param curation Is a curation game
    * @param serverOverride Change active server for this game launch only
    */
-  export async function launchGame(opts: LaunchGameOpts, onWillEvent: ApiEmitter<GameLaunchInfo>, curation: boolean, serverOverride?: string): Promise<void> {
+  export async function launchGame(opts: LaunchGameOpts, onWillEvent: ApiEmitterFirable<GameLaunchInfo>, curation: boolean, serverOverride?: string): Promise<void> {
     await checkAndInstallPlatform(opts.game.platforms, opts.state, opts.openDialog);
-    console.log('DELETE - done plat check');
     // Abort if placeholder (placeholders are not "actual" games)
     if (opts.game.placeholder) { return; }
     // Handle any special game data actions
     const gameData = !curation ? (opts.game.activeDataId ? await GameDataManager.findOne(opts.game.activeDataId) : null) : null;
     await handleGameDataParams(opts, serverOverride, gameData || undefined);
-    console.log('DELETE - Done game data check');
     // Run all provided additional applications with "AutoRunBefore" enabled
     if (opts.game.addApps) {
       const addAppOpts: Omit<LaunchAddAppOpts, 'addApp'> = {
@@ -179,7 +177,6 @@ export namespace GameLauncher {
         }
       }
     }
-    console.log('DELETE - done add apps');
     // Launch game callback
     const launchCb = async (launchInfo: GameLaunchInfo): Promise<void> =>  {
       await onWillEvent.fire(launchInfo)
@@ -199,10 +196,6 @@ export namespace GameLauncher {
     const metadataAppPath = gameData ? gameData.applicationPath : opts.game.legacyApplicationPath;
     const metadataLaunchCommand = gameData ? gameData.launchCommand : opts.game.legacyLaunchCommand;
     let appPath: string = getApplicationPath(metadataAppPath, opts.execMappings, opts.native);
-    console.log('DELETE - ' + JSON.stringify(opts.game, undefined, 2));
-    console.log('DELETE - ' + JSON.stringify(gameData));
-    console.log('DELETE - meta app path ' + metadataAppPath);
-    console.log('DELETE - app path ' + appPath);
     let appArgs: string[] = [];
     const appPathOverride = opts.appPathOverrides.filter(a => a.enabled).find(a => a.path === appPath);
     if (appPathOverride) { appPath = appPathOverride.override; }
@@ -266,14 +259,11 @@ export namespace GameLauncher {
         log.error('Launcher', `Error running provider for game.\n${error}`);
       }
     }
-    console.log('DELETE - doing launch');
     // Continue with launching normally
     const gamePath: string = path.isAbsolute(appPath) ? fixSlashes(appPath) : fixSlashes(path.join(opts.fpPath, appPath));
     const gameArgs: string[] = [...appArgs, metadataLaunchCommand];
     const useWine: boolean = process.platform != 'win32' && gamePath.endsWith('.exe');
-    console.log('DELETE - getting env');
     const env = getEnvironment(opts.fpPath, opts.proxy, opts.envPATH);
-    console.log('DELETE - goten env');
     try {
       await GameManager.findGame(opts.game.id);
     } catch (err: any) {
@@ -289,7 +279,6 @@ export namespace GameLauncher {
         env,
       }
     };
-    console.log('DELETE - launching');
     await launchCb(gameLaunchInfo);
   }
 

@@ -405,6 +405,7 @@ async function prepForInit(message: any): Promise<void> {
         try {
           await PreferencesFile.saveFile(prefsFilePath, state.preferences, state);
           console.log('Copied default preferences');
+          return loadPrefs();
         } catch (err) {
           send({quit: true, errorMessage: 'Failed to save default preferences file? Quitting...'});
           return;
@@ -733,7 +734,7 @@ async function initialize() {
     playMode: await GameManager.findUniqueValues(Game, 'playMode', true),
     platforms: await GameManager.findUniqueValues(PlatformAlias, 'name'),
     status: await GameManager.findUniqueValues(Game, 'status', true),
-    applicationPath: await GameManager.findUniqueValues(Game, 'applicationPath'),
+    applicationPath: await GameManager.findUniqueApplicationPaths(),
     library: await GameManager.findUniqueValues(Game, 'library'),
   };
 

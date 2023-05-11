@@ -2,14 +2,19 @@ import { BackState } from '@back/types';
 import { BackOut } from '@shared/back/types';
 import { DialogResponse, DialogStateTemplate } from 'flashpoint-launcher';
 import { uuid } from './uuid';
+import { BackClient } from '@back/SocketServer';
 
-export async function createNewDialog(state: BackState, template: DialogStateTemplate): Promise<string> {
+export async function createNewDialog(state: BackState, template: DialogStateTemplate, client?: BackClient): Promise<string> {
   const code = uuid();
   return new Promise<string>((resolve) => {
     state.newDialogEvents.once(code, (dialogId: string) => {
       resolve(dialogId);
     });
-    state.socketServer.broadcast(BackOut.NEW_DIALOG, template, code);
+    if (client) {
+      state.socketServer.send(client, BackOut.NEW_DIALOG, template, code);
+    } else {
+      state.socketServer.broadcast(BackOut.NEW_DIALOG, template, code);
+    }
   });
 }
 
