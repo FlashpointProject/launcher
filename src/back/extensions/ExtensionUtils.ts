@@ -42,6 +42,10 @@ export function newExtLog(extManifest: IExtensionManifest, message: string, func
   return func('Extensions', `[${extManifest.displayName || extManifest.name}] ${message}`);
 }
 
+export function internalNewExtLog(name: string, message: string, func: LogFunc): ILogEntry {
+  return func('Extensions', `[${name}] ${message}`);
+}
+
 /**
  * Creates an Extension Log Function
  *

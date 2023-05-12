@@ -110,7 +110,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     info:  (message: string) => addExtLog(newExtLog(extManifest, message, log.info)),
     warn:  (message: string) => addExtLog(newExtLog(extManifest, message, log.warn)),
     error: (message: string) => addExtLog(newExtLog(extManifest, message, log.error)),
-    onLog: state.apiEmitters.onLog.event,
+    onLog: state.apiEmitters.onLog.extEvent(extManifest.displayName || extManifest.name),
   };
 
   // Commands Namespace
@@ -177,55 +177,55 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
 
     // Events
     get onWillLaunchGame() {
-      return apiEmitters.games.onWillLaunchGame.event;
+      return apiEmitters.games.onWillLaunchGame.extEvent(extManifest.displayName || extManifest.name);
     },
     get onWillLaunchAddApp() {
-      return apiEmitters.games.onWillLaunchAddApp.event;
+      return apiEmitters.games.onWillLaunchAddApp.extEvent(extManifest.displayName || extManifest.name);
     },
     get onWillLaunchCurationGame() {
-      return apiEmitters.games.onWillLaunchCurationGame.event;
+      return apiEmitters.games.onWillLaunchCurationGame.extEvent(extManifest.displayName || extManifest.name);
     },
     get onWillLaunchCurationAddApp() {
-      return apiEmitters.games.onWillLaunchCurationAddApp.event;
+      return apiEmitters.games.onWillLaunchCurationAddApp.extEvent(extManifest.displayName || extManifest.name);
     },
     get onDidLaunchGame() {
-      return apiEmitters.games.onDidLaunchGame.event;
+      return apiEmitters.games.onDidLaunchGame.extEvent(extManifest.displayName || extManifest.name);
     },
     get onDidLaunchAddApp() {
-      return apiEmitters.games.onDidLaunchAddApp.event;
+      return apiEmitters.games.onDidLaunchAddApp.extEvent(extManifest.displayName || extManifest.name);
     },
     get onDidLaunchCurationGame() {
-      return apiEmitters.games.onDidLaunchCurationGame.event;
+      return apiEmitters.games.onDidLaunchCurationGame.extEvent(extManifest.displayName || extManifest.name);
     },
     get onDidLaunchCurationAddApp() {
-      return apiEmitters.games.onDidLaunchCurationAddApp.event;
+      return apiEmitters.games.onDidLaunchCurationAddApp.extEvent(extManifest.displayName || extManifest.name);
     },
     get onDidUpdateGame() {
-      return apiEmitters.games.onDidUpdateGame.event;
+      return apiEmitters.games.onDidUpdateGame.extEvent(extManifest.displayName || extManifest.name);
     },
     get onDidRemoveGame() {
-      return apiEmitters.games.onDidRemoveGame.event;
+      return apiEmitters.games.onDidRemoveGame.extEvent(extManifest.displayName || extManifest.name);
     },
     get onDidUpdatePlaylist() {
-      return apiEmitters.games.onDidUpdatePlaylist.event;
+      return apiEmitters.games.onDidUpdatePlaylist.extEvent(extManifest.displayName || extManifest.name);
     },
     get onDidUpdatePlaylistGame() {
-      return apiEmitters.games.onDidUpdatePlaylistGame.event;
+      return apiEmitters.games.onDidUpdatePlaylistGame.extEvent(extManifest.displayName || extManifest.name);
     },
     get onDidRemovePlaylistGame() {
-      return apiEmitters.games.onDidRemovePlaylistGame.event;
+      return apiEmitters.games.onDidRemovePlaylistGame.extEvent(extManifest.displayName || extManifest.name);
     },
     get onDidInstallGameData() {
-      return apiEmitters.games.onDidInstallGameData.event;
+      return apiEmitters.games.onDidInstallGameData.extEvent(extManifest.displayName || extManifest.name);
     },
     get onDidUninstallGameData() {
-      return apiEmitters.games.onDidUninstallGameData.event;
+      return apiEmitters.games.onDidUninstallGameData.extEvent(extManifest.displayName || extManifest.name);
     },
     get onWillImportGame() {
-      return apiEmitters.games.onWillImportCuration.event;
+      return apiEmitters.games.onWillImportCuration.extEvent(extManifest.displayName || extManifest.name);
     },
     get onWillUninstallGameData() {
-      return apiEmitters.games.onWillUninstallGameData.event;
+      return apiEmitters.games.onWillUninstallGameData.extEvent(extManifest.displayName || extManifest.name);
     }
   };
 
@@ -252,7 +252,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
       });
     },
     get onDidImportGameData() {
-      return apiEmitters.gameData.onDidImportGameData.event;
+      return apiEmitters.gameData.onDidImportGameData.extEvent(extManifest.displayName || extManifest.name);
     }
   };
 
@@ -329,13 +329,13 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     getServices: () => Array.from(state.services.values()),
 
     get onServiceNew() {
-      return apiEmitters.services.onServiceNew.event;
+      return apiEmitters.services.onServiceNew.extEvent(extManifest.displayName || extManifest.name);
     },
     get onServiceRemove() {
-      return apiEmitters.services.onServiceRemove.event;
+      return apiEmitters.services.onServiceRemove.extEvent(extManifest.displayName || extManifest.name);
     },
     get onServiceChange() {
-      return apiEmitters.services.onServiceChange.event;
+      return apiEmitters.services.onServiceChange.extEvent(extManifest.displayName || extManifest.name);
     }
   };
 
@@ -412,13 +412,13 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
       return curation ? {...curation} : undefined;
     },
     get onDidCurationListChange() {
-      return apiEmitters.curations.onDidCurationListChange.event;
+      return apiEmitters.curations.onDidCurationListChange.extEvent(extManifest.displayName || extManifest.name);
     },
     get onDidCurationChange() {
-      return apiEmitters.curations.onDidCurationChange.event;
+      return apiEmitters.curations.onDidCurationChange.extEvent(extManifest.displayName || extManifest.name);
     },
     get onWillGenCurationWarnings() {
-      return apiEmitters.curations.onWillGenCurationWarnings.event;
+      return apiEmitters.curations.onWillGenCurationWarnings.extEvent(extManifest.displayName || extManifest.name);
     },
     setCurationGameMeta: (folder: string, meta: flashpoint.CurationMeta) => {
       const curation = state.loadedCurations.find(c => c.folder === folder);
@@ -535,7 +535,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     unzipFile: unzipFile,
     getExtConfigValue: getExtConfigValue,
     setExtConfigValue: setExtConfigValue,
-    onExtConfigChange: state.apiEmitters.ext.onExtConfigChange.event,
+    onExtConfigChange: state.apiEmitters.ext.onExtConfigChange.extEvent(extManifest.displayName || extManifest.name),
     focusWindow: focusWindow,
 
     // Namespaces
@@ -550,8 +550,8 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     dialogs: extDialogs,
 
     // Events
-    onDidInit: apiEmitters.onDidInit.event,
-    onDidConnect: apiEmitters.onDidConnect.event,
+    onDidInit: apiEmitters.onDidInit.extEvent(extManifest.displayName || extManifest.name),
+    onDidConnect: apiEmitters.onDidConnect.extEvent(extManifest.displayName || extManifest.name),
 
     // Classes
     DisposableChildProcess: DisposableChildProcess,
