@@ -24,7 +24,7 @@ const exactFields = [ 'broken', 'library', 'activeDataOnDisk' ];
 enum flatGameFields {
   'id', 'title', 'alternateTitles', 'developer', 'publisher', 'dateAdded', 'dateModified', 'series',
   'broken', 'playMode', 'status', 'notes', 'source', 'applicationPath', 'launchCommand', 'releaseDate',
-  'version', 'originalDescription', 'language', 'library', 'activeDataOnDisk'
+  'version', 'originalDescription', 'language', 'library', 'activeDataOnDisk', 'platformName'
 }
 
 // Events
@@ -234,7 +234,7 @@ export async function findGames<T extends boolean>(opts: FindGamesOpts, shallow:
     // @TODO Make it infer the type of T from the value of "shallow", and then use that to make "games" get the correct type, somehow?
     // @PERF When multiple pages are requested as individual ranges, select all of them with a single query then split them up
     const games = (shallow)
-      ? (await query.select('game.id, game.title, game.developer, game.publisher, game.extreme, game.platformsStr, game.tagsStr').getRawMany()) as ViewGame[]
+      ? (await query.select('game.id, game.title, game.developer, game.publisher, game.extreme, game.platformsStr, game.tagsStr, game.platformName').getRawMany()) as ViewGame[]
       : await query.getMany();
     if (opts.filter?.playlist) {
       games.sort((a, b) => {
@@ -499,9 +499,9 @@ function doWhereField(alias: string, query: SelectQueryBuilder<Game>, field: str
   }
 }
 
-async function applyPlatformFieldFilters(searchQuery: ParsedSearch, alias: string, query: SelectQueryBuilder<Game>, whereCount: number) {
-  const whitelist = searchQuery.whitelist.filter(f => f.field === 'platform').map(f => f.value);
-  const blacklist = searchQuery.blacklist.filter(f => f.field === 'platform').map(f => f.value);
+async function applyMultiPlatformFieldFilters(searchQuery: ParsedSearch, alias: string, query: SelectQueryBuilder<Game>, whereCount: number) {
+  const whitelist = searchQuery.whitelist.filter(f => f.field === 'platforms').map(f => f.value);
+  const blacklist = searchQuery.blacklist.filter(f => f.field === 'platforms').map(f => f.value);
   if (whitelist.length > 0) {
     await applyTaggedFieldFilters(PlatformAlias, 'game_platforms_platform', 'platformId', whitelist, alias, query, whereCount, true);
   }
@@ -604,7 +604,7 @@ async function getGameQuery(
     whereCount++;
 
     // Platform filtering
-    await applyPlatformFieldFilters(filterOpts.searchQuery, alias, query, whereCount);
+    await applyMultiPlatformFieldFilters(filterOpts.searchQuery, alias, query, whereCount);
     whereCount++;
   }
 

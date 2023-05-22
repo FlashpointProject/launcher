@@ -615,6 +615,7 @@ export type ViewGame = {
   id: string;
   title: string;
   platformsStr: string;
+  platformName: string;
   // List view only
   tagsStr: string;
   developer: string;

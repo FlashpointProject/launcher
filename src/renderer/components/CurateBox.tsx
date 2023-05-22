@@ -369,6 +369,15 @@ export function CurateBox(props: CurateBoxProps) {
     );
   }, []);
 
+  const onChangePrimaryPlatform = React.useCallback((newPrimary: string) => {
+    props.dispatch({
+      type: CurateActionType.EDIT_CURATION_META,
+      folder: props.curation.folder,
+      property: 'primaryPlatform',
+      value: newPrimary
+    });
+  }, [props.curation.folder]);
+
   const addAppBoxes = (
     <table className="curate-box-table">
       <tbody>
@@ -567,6 +576,8 @@ export function CurateBox(props: CurateBoxProps) {
                 }}
                 renderIcon={renderPlatformIcon}
                 onRemove={onRemovePlatform}
+                primaryValue={props.curation.game.primaryPlatform}
+                changePrimaryValue={onChangePrimaryPlatform}
               />
               <CurateBoxDropdownInputRow
                 title={strings.browse.applicationPath}

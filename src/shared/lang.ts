@@ -277,6 +277,7 @@ const langTemplate = {
     'noSource',
     'platform',
     'noPlatform',
+    'otherTechnologies',
     'playMode',
     'noPlayMode',
     'status',

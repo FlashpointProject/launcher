@@ -1,5 +1,3 @@
-import { useMouse } from '@renderer/hooks/useMouse';
-import { findElementAncestor } from '@renderer/Util';
 import { OpenIcon } from './OpenIcon';
 
 export type BoxListProps<ItemType> = {
@@ -10,26 +8,13 @@ export type BoxListProps<ItemType> = {
   getItemValue: (item: ItemType) => string;
   getColor?: (item: ItemType) => string | undefined;
   renderIcon?: (item: ItemType) => JSX.Element;
+  primaryValue?: string;
+  changePrimaryValue?: (newPrimary: string) => void;
 }
 
 export function BoxList<ItemType>(props: BoxListProps<ItemType>) {
   const indexAttr = props.indexAttr || 'data-index';
   const { items, getItemValue, getIndexAttr, getColor, onRemove } = props;
-
-  const [onTagMouseDown, onTagMouseUp] = useMouse<number>(() => ({
-    chain_delay: 500,
-    find_id: (event) => {
-      let dataId: number | undefined;
-      try { dataId = findAncestorRowDataIndex(event.target as Element, indexAttr); }
-      catch (error) { console.error(error); }
-      return dataId;
-    },
-    on_click: (event, dataId, clicks) => {
-      if (event.button === 0 && clicks === 1) { // Single left click
-        onRemove(dataId);
-      }
-    },
-  }), [props.onRemove]);
 
   const getIcon = (item: ItemType) => {
     if (props.renderIcon) {
@@ -43,23 +28,50 @@ export function BoxList<ItemType>(props: BoxListProps<ItemType>) {
       );
     }
   };
+
+  const renderPrimary = (itemValue: string) => {
+    if (props.primaryValue && props.changePrimaryValue) {
+      if (itemValue === props.primaryValue) {
+        return (
+          <div className='curate-tag-primary-icon'>{'(Primary)'}</div>
+        );
+      } else {
+        return (
+          <div
+            className='curate-tag-primary-icon curate-tag-primary-icon__promote'
+            onClick={() => props.changePrimaryValue && props.changePrimaryValue(itemValue)}>
+            <OpenIcon
+              icon='chevron-top'/>
+          </div>
+        );
+      }
+    }
+  };
+
   return (
     <tr>
       <td/>
-      <td
-        onMouseDown={onTagMouseDown}
-        onMouseUp={onTagMouseUp}>
+      <td>
         { items.length > 0 ? (
           items.map((item, index) => {
+            const itemValue = getItemValue(item);
             return (
               <div
                 className='curate-tag'
                 key={index}
                 { ...{ [indexAttr]: getIndexAttr(item) } }>
-                {getIcon(item)}
-                <span className='curate-tag__text'>
-                  {getItemValue(item)}
-                </span>
+                <div className='curate-tag-inner'
+                  onClick={() => {
+                    if (onRemove) {
+                      onRemove(getIndexAttr(item));
+                    }
+                  }}>
+                  {getIcon(item)}
+                  <span className='curate-tag__text'>
+                    {itemValue}
+                  </span>
+                </div>
+                {renderPrimary(itemValue)}
               </div>
             );
           })
@@ -67,14 +79,4 @@ export function BoxList<ItemType>(props: BoxListProps<ItemType>) {
       </td>
     </tr>
   );
-}
-
-function findAncestorRowDataIndex(element: Element, dataIndex: string): number | undefined {
-  const ancestor = findElementAncestor(element, target => target.getAttribute(dataIndex) !== null, true);
-  if (!ancestor) { return undefined; }
-
-  const index = ancestor.getAttribute(dataIndex);
-  if (typeof index !== 'string') { throw new Error('Failed to get attribute from ancestor!'); }
-
-  return (index as any) * 1; // Coerce to number
 }

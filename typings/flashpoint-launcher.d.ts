@@ -550,6 +550,10 @@ declare module 'flashpoint-launcher' {
         platforms: Platform[];
         /** List of platforms attached to the game in a string format */
         platformsStr: string;
+        /** Primary platform ID */
+        platformId: number;
+        /** Primary platform name (cached) */
+        platformName: string;
         /** Date-time of when the game was added to collection */
         dateAdded: string;
         /** Date-time of when the game was added to collection */
@@ -870,6 +874,7 @@ declare module 'flashpoint-launcher' {
     type ViewGame = {
         id: string;
         title: string;
+        platformName: string;
         platformsStr: string;
         tagsStr: string;
         developer: string;
@@ -1359,6 +1364,7 @@ declare module 'flashpoint-launcher' {
         publisher: string;
         status: string;
         extreme: boolean;
+        primaryPlatform: string;
         platforms: Platform[];
         tags: Tag[];
         source: string;

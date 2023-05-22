@@ -105,20 +105,31 @@ function handleFieldFilter(field: string, phrase: string, inverse: boolean, pars
   // missing:field
   if (blacklistFields.includes(field)) {
     const formattedPhrase: string | boolean = booleanFields.includes(phrase) ? false : '';
-    parsed.whitelist.push({field: phrase, value: formattedPhrase});
+    parsed.whitelist.push({field: convertField(phrase), value: formattedPhrase});
   // has:field
   } else if (whitelistFields.includes(field)) {
     const formattedPhrase: string | boolean = booleanFields.includes(phrase) ? false : '';
-    parsed.blacklist.push({field: phrase, value: formattedPhrase});
+    parsed.blacklist.push({field: convertField(phrase), value: formattedPhrase});
   // field:phrase
   } else {
     const formattedPhrase: string | boolean = booleanFields.includes(field) ? !falsePhrases.includes(phrase) : phrase;
-    const gameField = field as keyof Game;
+    const gameField = convertField(field);
     if (inverse) {
       parsed.blacklist.push({field: gameField, value: formattedPhrase});
     } else {
       parsed.whitelist.push({field: gameField, value: formattedPhrase});
     }
+  }
+}
+
+function convertField(field: string): keyof Game {
+  switch (field) {
+    case 'platform':
+      return 'platformName';
+    case 'tech':
+      return 'platforms';
+    default:
+      return field as keyof Game;
   }
 }
 

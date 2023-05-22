@@ -269,11 +269,14 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
         // Not searching by tag
         this.setState({ tagSuggestions: [] });
       }
-      // Update platform suggestions if currently in `platform:` search
-      const platformRegex = /(#([^\s]+)|platform:([^\s]+))$/;
+      // Update platform suggestions if currently in `platform:` or `platforms:` or `tech:` search
+      const platformRegex = /(#([^\s]+)|platform[s]?:([^\s]+))$/;
+      const techRegex = /(#([^\s]+)|tech[s]?:([^\s]+))$/;
       const platformMatch = platformRegex.exec(this.state.searchText);
-      if (platformMatch) {
-        const platformName = platformMatch[2] || platformMatch[3];
+      const techMatch = techRegex.exec(this.state.searchText);
+      const match = platformMatch || techMatch;
+      if (match) {
+        const platformName = match[2] || match[3];
         window.Shared.back.request(BackIn.GET_PLATFORM_SUGGESTIONS, platformName)
         .then(data => {
           if (data) { this.setState({ platformSuggestions: data }); }

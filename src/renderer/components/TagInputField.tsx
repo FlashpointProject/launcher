@@ -33,6 +33,10 @@ export type TagInputFieldProps<T extends ITagObject> = InputFieldProps & {
   suggestions: TagSuggestion<T>[];
   /** Tag Category info */
   categories: TagCategory[];
+  /** Primary value */
+  primaryValue?: string;
+  /** Promote value to primary */
+  selectPrimaryValue?: (value: string) => void;
 };
 
 type TagInputFieldState = {
@@ -99,7 +103,7 @@ export class TagInputField<T extends ITagObject> extends React.Component<TagInpu
         <div
           className={'tag-input-dropdown__content'}
           onClick={this.onListItemClick} >
-          { this.renderItems(items) }
+          { this.renderItems(items, this.props.primaryValue) }
         </div>
       </div>
     );
@@ -151,7 +155,7 @@ export class TagInputField<T extends ITagObject> extends React.Component<TagInpu
   };
 
   /** Renders the list of items in the drop-down menu. */
-  renderItems = memoizeOne<(items: T[]) => JSX.Element[]>((items: T[]) => {
+  renderItems = memoizeOne<(items: T[], primaryPlatform?: string) => JSX.Element[]>((items: T[], primaryPlatform?: string) => {
     const className = this.props.editable ? 'tag-editable' : 'tag-static';
     return items.map((tag, index) => {
       const category = this.props.categories.find(c => c.id == tag.categoryId);
@@ -163,6 +167,29 @@ export class TagInputField<T extends ITagObject> extends React.Component<TagInpu
           key={index * 2}
           icon={category ? 'tag' : 'question-mark'}/>
       );
+
+      let primaryElement = <></>;
+      if (primaryPlatform && this.props.selectPrimaryValue && this.props.editable) {
+        const isPrimary = tag.primaryAlias.name === primaryPlatform;
+        if (!isPrimary) {
+          primaryElement = (
+            <div
+              className='browse-right-sidebar__title-row__buttons__promote-button'
+              onClick={() => this.props.selectPrimaryValue && this.props.selectPrimaryValue(tag.primaryAlias.name)}>
+              <OpenIcon
+                icon='chevron-top' />
+            </div>
+          );
+        } else {
+          primaryElement = (
+            <div
+              className='browse-right-sidebar__title-row__buttons__promote-button'>
+              {'(Primary)'}
+            </div>
+          );
+        }
+
+      }
 
       return (
         <div
@@ -177,6 +204,7 @@ export class TagInputField<T extends ITagObject> extends React.Component<TagInpu
             tabIndex={0}>
             { shownAlias }
           </label>
+          {primaryElement}
           { this.props.editable && (
             <div
               className='browse-right-sidebar__title-row__buttons__discard-button'
@@ -188,8 +216,8 @@ export class TagInputField<T extends ITagObject> extends React.Component<TagInpu
         </div>
       );
     });
-  }, ([ itemsA ], [ itemsB ]) => {
-    return checkIfArraysAreEqual(itemsA, itemsB);
+  }, ([ itemsA, valueA ], [ itemsB, valueB]) => {
+    return checkIfArraysAreEqual(itemsA, itemsB) && valueA === valueB;
   });
 
   onListItemClick = (event: React.MouseEvent): void => {

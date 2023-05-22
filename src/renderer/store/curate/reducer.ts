@@ -226,6 +226,9 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
       const newPlatforms = [...(newCurations[index].game.platforms || [])];
       if (!newPlatforms.find(p => p.id === action.platform.id)) {
         newPlatforms.push(action.platform);
+        if (newPlatforms.length === 1) {
+          newCurations[index].game.primaryPlatform = action.platform.primaryAlias.name;
+        }
       }
       newCurations[index].game.platforms = newPlatforms;
 
@@ -260,12 +263,18 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
 
       if (index === -1) { return { ...state }; }
 
-      // @TODO Apply disabling to onMouse instead?
       if (!newCurations[index].locked) {
         const newPlatforms = [...(newCurations[index].game.platforms || [])];
         const platformIdx = newPlatforms.findIndex(t => t.id === action.platformId);
         if (platformIdx > -1) {
-          newPlatforms.splice(platformIdx, 1);
+          const platform = newPlatforms.splice(platformIdx, 1);
+          if (platform[0].primaryAlias.name === newCurations[index].game.primaryPlatform) {
+            if (newPlatforms.length > 0) {
+              newCurations[index].game.primaryPlatform = newPlatforms[0].primaryAlias.name;
+            } else {
+              newCurations[index].game.primaryPlatform = '';
+            }
+          }
         }
         newCurations[index].game.platforms = newPlatforms;
       }

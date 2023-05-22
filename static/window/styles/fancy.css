@@ -670,8 +670,14 @@ body {
   border: 1px solid;
   border-color: var(--layout__home-page-box-border);
 }
-.curate-tag:hover {
+.curate-tag-inner:hover {
   background-color: var(--layout__warning-dark-color);
+}
+.curate-tag-primary-icon {
+  font-weight: bold;
+}
+.curate-tag-primary-icon__promote:hover {
+  background-color: var(--layout__confirm-hover-color);
 }
 .curate-box-content__entry:hover {
   background-color: var(--layout__secondary-background);
@@ -796,6 +802,9 @@ body {
 /* BrowseSidebar Title-Row Discard */
 .browse-right-sidebar__title-row__buttons__discard-button:hover .icon__use {
   fill: var(--layout__warning-bright-color);
+}
+.browse-right-sidebar__title-row__buttons__promote-button:hover .icon__use {
+  fill: var(--layout__confirm-color);
 }
 /* BrowseSidebar Title-Row Save */
 .browse-right-sidebar__title-row__buttons__save-button:hover .icon__use {

@@ -20,7 +20,6 @@ import * as React from 'react';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { WithSearchProps } from '../containers/withSearch';
 import { getGameImagePath, getGameImageURL, getPlatformIconURL } from '../Util';
-import { LangContext } from '../util/lang';
 import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { DropdownInputField } from './DropdownInputField';
@@ -32,6 +31,7 @@ import { OpenIcon } from './OpenIcon';
 import { RightBrowseSidebarAddApp } from './RightBrowseSidebarAddApp';
 import { SimpleButton } from './SimpleButton';
 import { TagInputField } from './TagInputField';
+import { LangContext } from '@renderer/util/lang';
 
 type OwnProps = {
   logoVersion: number;
@@ -215,13 +215,12 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       const dateModified = game.dateModified;
       const screenshotSrc = getGameImageURL(SCREENSHOTS, game.id);
 
-      const removeGameFromPlaylistElement = (
+      const removeGameFromPlaylistElement =
         <ConfirmElement
           message={allStrings.dialog.removePlaylistGame}
           onConfirm={this.props.onRemoveSelectedGameFromPlaylist}
           render={this.renderRemoveFromPlaylistButton}
-          extra={strings} />
-      );
+          extra={strings} />;
 
       return (
         <div
@@ -448,15 +447,30 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       editable={editable}
                       onClick={this.onSourceClick} />
                   </div>
+                  { !editable && (
+                    <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                      <p>{strings.platform}: </p>
+                      <TagInputField
+                        text={''}
+                        className='browse-right-sidebar__searchable'
+                        editable={false}
+                        tags={game.platforms.filter(p => p.primaryAlias.name === game.platformName)}
+                        suggestions={[]}
+                        categories={[]}
+                        onTagSelect={this.onPlatformSelect}
+                        renderIcon={this.renderPlatformIcon}
+                        renderIconSugg={this.renderPlatformIconSugg} />
+                    </div>
+                  )}
                   <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                    <p>{allStrings.config.platforms}: </p>
+                    <p>{editable ? allStrings.config.platforms : strings.otherTechnologies}: </p>
                     <TagInputField
                       text={this.state.currentPlatformInput}
                       placeholder={strings.enterTag}
                       className='browse-right-sidebar__searchable'
                       editable={editable}
                       onChange={this.onCurrentPlatformChange}
-                      tags={game.platforms}
+                      tags={editable ? game.platforms : game.platforms.filter(p => p.primaryAlias.name !== game.platformName)}
                       suggestions={this.state.platformSuggestions}
                       categories={tagCategories}
                       onTagSelect={this.onPlatformSelect}
@@ -464,7 +478,9 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       onTagSuggestionSelect={this.onAddPlatformSuggestion}
                       onTagSubmit={this.onAddPlatformByString}
                       renderIcon={this.renderPlatformIcon}
-                      renderIconSugg={this.renderPlatformIconSugg} />
+                      renderIconSugg={this.renderPlatformIconSugg}
+                      primaryValue={game.platformName}
+                      selectPrimaryValue={this.promotePlatform} />
                   </div>
                   <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                     <p>{strings.playMode}: </p>
@@ -1229,6 +1245,14 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
         className='platform-tag__icon'
         style={{ backgroundImage: `url(${iconUrl})` }} />
     );
+  };
+
+  promotePlatform = (value: string) => {
+    console.log(value);
+    const platform = this.props.currentGame?.platforms.find(p => p.primaryAlias.name === value);
+    if (platform) {
+      this.props.onEditGame({ platformId: platform.id, platformName: value });
+    }
   };
 
   static contextType = LangContext;

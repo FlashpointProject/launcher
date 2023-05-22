@@ -12,6 +12,7 @@ type CurationMetaFile = {
   'Launch Command'?: string;
   'Original Description'?: string;
   'Play Mode'?: string;
+  'Primary Platform'?: string;
   'Platforms'?: string;
   'Publisher'?: string;
   'Release Date'?: string;
@@ -70,6 +71,7 @@ function convertEditToCurationMetaFile(curation: LoadedCuration): CurationMetaFi
   parsed['Tags']                 = curation.game.tags ? curation.game.tags.map(t => t.primaryAlias.name).join('; ') : '';
   parsed['Tag Categories']       = tagCategories.join('; ');
   parsed['Source']               = curation.game.source;
+  parsed['Primary Platform']     = curation.game.primaryPlatform;
   parsed['Platforms']            = curation.game.platforms ? curation.game.platforms.map(p => p.primaryAlias.name).join('; ') : '';
   parsed['Status']               = curation.game.status;
   parsed['Application Path']     = curation.game.applicationPath;

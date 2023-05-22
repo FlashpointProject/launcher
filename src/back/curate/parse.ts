@@ -93,11 +93,15 @@ export async function parseCurationMetaFile(data: any, onError?: (error: string)
   parser.prop('library',              v => parsed.game.library             = str(v).toLowerCase()); // must be lower case
   parser.prop('uuid',                 v => parsed.uuid                     = str(v), true);
   parser.prop('group',                v => parsed.group                    = str(v), true);
+  parser.prop('primary platform',     v => parsed.game.primaryPlatform     = str(v), true);
   if (lowerCaseData.genre)      { parsed.game.tags = await getTagsFromStr(arrayStr(lowerCaseData.genre), str(lowerCaseData['tag categories']));  }
   if (lowerCaseData.genres)     { parsed.game.tags = await getTagsFromStr(arrayStr(lowerCaseData.genres), str(lowerCaseData['tag categories'])); }
   if (lowerCaseData.tags)       { parsed.game.tags = await getTagsFromStr(arrayStr(lowerCaseData.tags), str(lowerCaseData['tag categories']));   }
   if (lowerCaseData.platform)   { parsed.game.platforms = await getPlatformsFromStr(arrayStr(lowerCaseData.platform)); }
   if (lowerCaseData.platforms)  { parsed.game.platforms = await getPlatformsFromStr(arrayStr(lowerCaseData.platforms)); }
+  if (!parsed.game.primaryPlatform && parsed.game.platforms && parsed.game.platforms.length > 0) {
+    parsed.game.primaryPlatform = parsed.game.platforms[0].primaryAlias.name;
+  }
   // property aliases
   parser.prop('animation notes',      v => parsed.game.notes               = str(v));
   // Add-apps

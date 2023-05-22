@@ -133,6 +133,14 @@ export class Game {
   /** If the game is a placeholder (and can therefore not be saved) */
   placeholder: boolean;
 
+  /** ID of the primary platform */
+  @Column()
+    platformId: number;
+
+  /** Cached name of the primary platform */
+  @Column({collation: 'NOCASE'})
+    platformName: string;
+
   /** ID of the active data */
   @Column({ nullable: true })
     activeDataId?: number;
