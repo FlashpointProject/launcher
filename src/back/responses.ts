@@ -1194,6 +1194,9 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     // Collect tags
     jsonFile.tags.tags = (await TagManager.findTags('')).map(t => {
       const primaryAlias = t.aliases.find(a => a.id === t.primaryAliasId);
+      if (!primaryAlias || primaryAlias.name === '') {
+        throw 'Failed for tag ' + t.id;
+      }
       const bareTag: BareTag = {
         id: t.id || 0,
         categoryId: t.categoryId || -1,

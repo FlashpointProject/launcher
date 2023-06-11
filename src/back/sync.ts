@@ -350,7 +350,8 @@ export async function syncGames(tx: EntityManager, source: GameMetadataSource, d
         originalDescription: changedGame.original_description,
         language: changedGame.language,
         library: changedGame.library,
-        activeDataId: -1
+        activeDataId: -1,
+        platformName: changedGame.platform_name
       }).where({ id: changedGame.id }).execute();
     }
     console.log('new');
@@ -383,6 +384,7 @@ export async function syncGames(tx: EntityManager, source: GameMetadataSource, d
         orderTitle: '',
         activeDataId: -1,
         activeDataOnDisk: false,
+        platformName: newGame.platform_name,
       });
       await gamesRepo.save(g);
     }
@@ -482,6 +484,7 @@ type RemoteGame = {
   original_description: string;
   language: string;
   library: string;
+  platform_name: string;
 }
 
 type RemoteTagRaw = {
