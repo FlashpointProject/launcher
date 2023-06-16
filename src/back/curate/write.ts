@@ -29,6 +29,7 @@ type CurationMetaFile = {
   'Curation Notes'?: string;
   'UUID'?: string;
   'Group'?: string;
+  'Mount Parameters'?: string;
 };
 
 type CurationFormatAddApps = {
@@ -80,6 +81,7 @@ function convertEditToCurationMetaFile(curation: LoadedCuration): CurationMetaFi
   parsed['Original Description'] = curation.game.originalDescription;
   parsed['Curation Notes']       = curation.game.curationNotes;
   parsed['UUID']                 = curation.uuid;
+  parsed['Mount Parameters']     = curation.game.mountParameters;
   parsed['Group']                = curation.group;
   // Add-apps meta
   const parsedAddApps: CurationFormatAddApps = {};
