@@ -1998,12 +1998,10 @@ function renderDialogField(dialogId: string, field: DialogField, dispatch: Dispa
         <InputField
           onChange={(event) => {
             dispatch({
-              type: MainActionType.UPDATE_DIALOG_FIELD,
+              type: MainActionType.UPDATE_DIALOG_FIELD_VALUE,
               dialogId,
-              field: {
-                ...field,
-                value: event.currentTarget.value
-              }
+              name: field.name,
+              value: event.currentTarget.value
             });
           }}
           text={field.value}

@@ -3057,6 +3057,10 @@ body {
   height: 2rem;
 }
 
+.dialog-buttons-container > :not(:first-child) {
+  margin-left: 0.5rem;
+}
+
 .cancel-download-button {
   margin-top: 1rem;
 }

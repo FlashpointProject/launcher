@@ -1,17 +1,18 @@
-import { FloatingContainer } from '@renderer/components/FloatingContainer';
-import { InputField } from '@renderer/components/InputField';
 import { OpenIcon } from '@renderer/components/OpenIcon';
-import { SimpleButton } from '@renderer/components/SimpleButton';
+import { withMainState, WithMainStateProps } from '@renderer/containers/withMainState';
 import { useMouse } from '@renderer/hooks/useMouse';
 import { CurateGroup, CurateState } from '@renderer/store/curate/types';
+import { MainActionType } from '@renderer/store/main/enums';
 import { findElementAncestor, getPlatformIconURL } from '@renderer/Util';
+import { Subtract } from '@shared/interfaces';
 import { compare } from '@shared/Util';
-import { CurationState } from 'flashpoint-launcher';
+import { uuid } from '@shared/utils/uuid';
+import { CurationState, DialogState } from 'flashpoint-launcher';
 import * as React from 'react';
 
 const index_attr = 'data-index';
 
-export type CuratePageLeftSidebarProps = {
+type OwnProps = {
   curate: CurateState;
   logoVersion: number;
   onCurationSelect: (folder: string, ctrl?: boolean, shift?: boolean) => void;
@@ -23,9 +24,12 @@ export type CuratePageLeftSidebarProps = {
   moveCurationToGroup: (folder: string, group: string) => void;
 }
 
-export function CuratePageLeftSidebar(props: CuratePageLeftSidebarProps) {
+type CuratePageLeftSidebarComponentProps = OwnProps & WithMainStateProps;
+
+export type CuratePageLeftSidebarProps = Subtract<CuratePageLeftSidebarComponentProps, WithMainStateProps>;
+
+function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentProps) {
   const [isHovering, setIsHovering] = React.useState(false);
-  const [newGroupOpen, setNewGroupOpen] = React.useState(false);
   const [groupName, setGroupName] = React.useState('');
   const [draggedCuration, setDraggedCuration] = React.useState('');
   const [dragGroupTarget, setDragGroupTarget] = React.useState<string | undefined>(undefined);
@@ -197,18 +201,36 @@ export function CuratePageLeftSidebar(props: CuratePageLeftSidebarProps) {
     }).reduce<JSX.Element[]>((prev, cur) => prev.concat([cur[1]]), []);
   }, [props.curate, props.curate.groups, draggedCuration, dragGroupTarget]);
 
-  const openGroupEdit = React.useCallback(() => {
-    setNewGroupOpen(true);
-  }, [setNewGroupOpen]);
-
   const createNewGroup = React.useCallback(() => {
-    if (!!props.curate.groups.find(g => g.name === groupName) || groupName === '' || groupName === 'No Group') {
-      alert('Group already exists.');
-    } else {
-      props.createNewGroup(groupName);
-      setNewGroupOpen(false);
-      setGroupName('');
-    }
+    // Open new group dialog
+    const dialog: DialogState = {
+      largeMessage: true,
+      message: 'Group Name',
+      cancelId: 1,
+      buttons: ['Create', 'Cancel'],
+      fields: [{
+        type: 'string',
+        name: 'groupName',
+        value: ''
+      }],
+      id: uuid()
+    };
+    props.dispatchMain({
+      type: MainActionType.NEW_DIALOG,
+      dialog
+    });
+    // Listen for dialog response
+    props.main.dialogResEvent.once(dialog.id, (d: DialogState, res: number) => {
+      if (res !== d.cancelId) {
+        const field = d.fields && d.fields.find(f => f.name === 'groupName');
+        if (field) {
+          const exists = props.curate.groups.findIndex(g => g.name === field.value) > -1;
+          if (!exists) {
+            props.createNewGroup(field.value as string);
+          }
+        }
+      }
+    });
   }, [props.createNewGroup, props.curate.groups, setGroupName, groupName]);
 
   return (
@@ -222,7 +244,7 @@ export function CuratePageLeftSidebar(props: CuratePageLeftSidebarProps) {
       <div className="playlist-list-fake-item-buttons">
         <div
           className='playlist-list-fake-item'
-          onClick={openGroupEdit}>
+          onClick={createNewGroup}>
           <div className='playlist-list-fake-item__inner'>
             <OpenIcon icon='plus' />
           </div>
@@ -232,22 +254,6 @@ export function CuratePageLeftSidebar(props: CuratePageLeftSidebarProps) {
         </div>
       </div>
       {curationsRender}
-      { newGroupOpen && (
-        <FloatingContainer
-          onClick={() => {
-            setNewGroupOpen(false);
-            setGroupName('');
-          }}>
-          <InputField
-            editable={true}
-            text={groupName}
-            onChange={(e) => setGroupName(e.target.value)}
-            placeholder={'Group Name'} />
-          <SimpleButton
-            onClick={createNewGroup}
-            value={'Create'}/>
-        </FloatingContainer>
-      )}
     </div>
   );
 }
@@ -261,3 +267,5 @@ function findAncestorRowIndex(element: Element): string | undefined {
 
   return (index as any) + '';
 }
+
+export const CuratePageLeftSidebar = withMainState(CuratePageLeftSidebarComponent);

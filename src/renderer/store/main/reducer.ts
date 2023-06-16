@@ -542,7 +542,10 @@ export function mainStateReducer(state: MainState = createInitialState(), action
       const exisingIdx = dialogs.findIndex(d => d.id === action.dialogId);
       if (exisingIdx > -1) {
         const dialog = dialogs.splice(exisingIdx, 1)[0];
+        // Send to back
         window.Shared.back.send(BackIn.DIALOG_RESPONSE, dialog, dialog.cancelId || -1);
+        // Send to renderer
+        setTimeout(() => state.dialogResEvent.emit(dialog.id, dialog, dialog.cancelId || -1), 100);
         return {
           ...state,
           openDialogs: dialogs
@@ -610,7 +613,10 @@ export function mainStateReducer(state: MainState = createInitialState(), action
       const exisingIdx = dialogs.findIndex(d => d.id === action.dialogId);
       if (exisingIdx > -1) {
         const dialog = dialogs.splice(exisingIdx, 1)[0];
+        // Send to back
         window.Shared.back.send(BackIn.DIALOG_RESPONSE, dialog, action.button);
+        // Send to renderer
+        setTimeout(() => state.dialogResEvent.emit(dialog.id, dialog, action.button), 100);
         return {
           ...state,
           openDialogs: dialogs

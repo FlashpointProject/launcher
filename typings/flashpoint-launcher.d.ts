@@ -1463,7 +1463,7 @@ declare module 'flashpoint-launcher' {
         type: 'string';
         locked?: boolean;
         name: string;
-        message: string;
+        message?: string;
         placeholder?: string;
         value: string;
     }
