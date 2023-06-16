@@ -135,6 +135,7 @@ export type MainState = {
   currentPlaylistEntry?: PlaylistGame;
   isEditingGame: boolean;
   updateFeedMarkdown: string;
+  metadataUpdate: MetaUpdateState;
   /** Games which are in the middle of a busy operation */
   busyGames: string[];
   /** State of the Socket connection */
@@ -152,6 +153,12 @@ export type MainState = {
   /** State information for FPFSS connection */
   fpfss: FpfssState;
 }
+
+export type MetaUpdateState = {
+  ready: boolean;
+  total: number;
+}
+
 export type ConnectedMainAction = WithAsyncDispatch & MainAction;
 export type MainAction = {
   type: MainActionType.SET_STATE;
@@ -296,9 +303,17 @@ export type MainAction = {
   total: number;
   preferencesData: AppPreferencesData;
 } | {
+  type: MainActionType.UPDATE_UPDATE_INFO;
+  total: number;
+} | {
   type: MainActionType.UPDATE_DIALOG_MESSAGE;
   dialogId: string;
   message: string;
+} | {
+  type: MainActionType.UPDATE_DIALOG_FIELD_VALUE;
+  dialogId: string;
+  name: string;
+  value: any;
 }
 
 export type WithAsyncDispatch = {

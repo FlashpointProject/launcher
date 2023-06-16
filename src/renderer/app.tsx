@@ -12,7 +12,6 @@ import { arrayShallowStrictEquals } from '@shared/utils/compare';
 import { debounce } from '@shared/utils/debounce';
 import axios from 'axios';
 import { clipboard, ipcRenderer, Menu, MenuItemConstructorOptions } from 'electron';
-import { AppUpdater } from 'electron-updater';
 import { DialogField, DialogState, Playlist, PlaylistGame } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as path from 'path';
@@ -56,11 +55,10 @@ import { getBrowseSubPath, getGamePath, joinLibraryRoute } from './Util';
 import { LangContext } from './util/lang';
 import { queueOne } from './util/queue';
 import uuid = require('uuid');
+import { ProgressData } from './context/ProgressContext';
 
 // Hide the right sidebar if the page is inside these paths
 const hiddenRightSidebarPages = [Paths.ABOUT, Paths.CURATE, Paths.CONFIG, Paths.MANUAL, Paths.LOGS, Paths.TAGS, Paths.CATEGORIES];
-
-const autoUpdater: AppUpdater = remote.require('electron-updater').autoUpdater;
 
 type AppOwnProps = {
   /** Most recent search query. */
@@ -499,11 +497,20 @@ export class App extends React.Component<AppProps> {
       window.Shared.back.send(BackIn.NEW_DIALOG_RESPONSE, d.id, code);
     });
 
-    window.Shared.back.register(BackOut.UPDATE_DIALOG_MESSAGE, (event, message, id) => {
+    window.Shared.back.register(BackOut.UPDATE_DIALOG_MESSAGE, (event, message, dialogId) => {
       this.props.dispatchMain({
         type: MainActionType.UPDATE_DIALOG_MESSAGE,
-        dialogId: id,
-        message: message
+        dialogId,
+        message
+      });
+    });
+
+    window.Shared.back.register(BackOut.UPDATE_DIALOG_FIELD_VALUE, (event, dialogId, name, value) => {
+      this.props.dispatchMain({
+        type: MainActionType.UPDATE_DIALOG_FIELD_VALUE,
+        dialogId,
+        name,
+        value
       });
     });
 
@@ -527,6 +534,16 @@ export class App extends React.Component<AppProps> {
 
   init() {
     const strings = this.props.main.lang;
+
+    if (this.props.preferencesData.gameMetadataSources.length > 0) {
+      window.Shared.back.request(BackIn.PRE_UPDATE_INFO, this.props.preferencesData.gameMetadataSources[0])
+      .then((total) => {
+        this.props.dispatchMain({
+          type: MainActionType.UPDATE_UPDATE_INFO,
+          total
+        });
+      });
+    }
 
     window.Shared.back.onStateChange = (state) => {
       this.props.setMainState({
@@ -688,30 +705,6 @@ export class App extends React.Component<AppProps> {
       log.warn('Launcher', `Failed to load credits.\n${error}`);
       this.props.dispatchMain({ type: MainActionType.SET_CREDITS });
     });
-
-    // Updater code - DO NOT run in development environment!
-    if (!window.Shared.isDev) {
-      autoUpdater.autoDownload = false;
-      autoUpdater.on('error', (error: Error) => {
-        console.log(error);
-      });
-      autoUpdater.on('update-available', (info) => {
-        log.info('Launcher', `Update Available - ${info.version}`);
-        console.log(info);
-        this.props.dispatchMain({
-          type: MainActionType.SET_UPDATE_INFO,
-          updateInfo: info,
-        });
-      });
-      autoUpdater.on('update-downloaded', onUpdateDownloaded);
-      if (window.Shared.config.data.updatesEnabled) {
-        autoUpdater.checkForUpdates()
-        .catch((error) => { log.error('Launcher', `Error Fetching Update Info - ${error.message}`); });
-        log.info('Launcher', 'Checking for updates...');
-      } else {
-        log.info('Launcher', 'Update check disabled, skipping...');
-      }
-    }
 
     // Check for PHP on Linux
     if (process.platform === 'linux') {
@@ -1323,7 +1316,6 @@ export class App extends React.Component<AppProps> {
       themeList: this.props.main.themeList,
       languages: this.props.main.langList,
       updateInfo: this.props.main.updateInfo,
-      autoUpdater: autoUpdater,
       extensions: this.props.main.extensions,
       devScripts: this.props.main.devScripts,
       contextButtons: this.props.main.contextButtons,
@@ -1398,7 +1390,6 @@ export class App extends React.Component<AppProps> {
                   onOpenExportMetaEdit={() => {/** unused */}}
                   onEditGame={this.onApplyFpfssEditGame}
                   onFpfssEditGame={this.onFpfssEditGame}
-                  fpfssUser={this.props.main.fpfss.user}
                   onUpdateActiveGameData={(disk, id) => id && this.onApplyFpfssEditGameData(id)}/>
               </FloatingContainer>
             )}
@@ -1466,7 +1457,6 @@ export class App extends React.Component<AppProps> {
                         suggestions={this.props.main.suggestions}
                         busyGames={this.props.main.busyGames}
                         onFpfssEditGame={this.onFpfssEditGame}
-                        fpfssUser={this.props.main.fpfss.user}
                         onOpenExportMetaEdit={this.onOpenExportMetaEdit} />
                     </ResizableSidebar>
                   )}
@@ -1914,18 +1904,6 @@ async function cacheIcon(icon: string): Promise<string> {
   return `url(${URL.createObjectURL(blob)})`;
 }
 
-function onUpdateDownloaded() {
-  ipcRenderer.invoke(CustomIPC.SHOW_MESSAGE_BOX, {
-    title: 'Installing Update',
-    message: 'The Launcher will restart to install the update now.',
-    buttons: ['OK']
-  }).then(() => {
-    console.log('update cb returned');
-    console.trace();
-    setImmediate(() => autoUpdater.quitAndInstall());
-  });
-}
-
 export function openContextMenu(template: MenuItemConstructorOptions[]): Menu {
   const menu = remote.Menu.buildFromTemplate(template);
   menu.popup({ window: remote.getCurrentWindow() });
@@ -1987,7 +1965,7 @@ function renderDialogMemo(dialog: DialogState, dispatch: Dispatch<MainAction>): 
         { dialog.fields?.map(f => {
           return (
             <div key={f.name} className='dialog-field'>
-              <div className='dialog-field-message'>{ f.message }</div>
+              {f.message && (<div className='dialog-field-message'>{ f.message }</div>)}
               <div className='dialog-field-input'>{renderDialogField(dialog.id, f, dispatch)}</div>
             </div>
           );
@@ -2031,6 +2009,21 @@ function renderDialogField(dialogId: string, field: DialogField, dispatch: Dispa
           text={field.value}
           editable={!field.locked}
           placeholder={field.placeholder} />
+      );
+    }
+    case 'progress': {
+      // Wrap in progress data
+      const data: ProgressData = {
+        key: '',
+        itemCount: 0,
+        totalItems: 0,
+        percentDone: field.value,
+        usePercentDone: true,
+        isDone: false
+      };
+      return (
+        <ProgressBar
+          progressData={data}/>
       );
     }
     default: {

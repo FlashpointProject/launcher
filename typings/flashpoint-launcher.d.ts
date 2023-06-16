@@ -1468,7 +1468,14 @@ declare module 'flashpoint-launcher' {
         value: string;
     }
 
-    export type DialogField = DialogFieldString;
+    export type DialogFieldProgress = {
+        type: 'progress';
+        name: string;
+        message?: string;
+        value: number;
+    }
+
+    export type DialogField = DialogFieldString | DialogFieldProgress;
 
     export type DialogResponse = {
         dialog: DialogState,

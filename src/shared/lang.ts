@@ -114,6 +114,9 @@ const langTemplate = {
     'installComplete',
     'alreadyInstalled',
     'download',
+    'error',
+    'checkingUpdate',
+    'updatedGamesReady',
     'update',
     'checkingUpgradeState',
     'extrasHeader',
@@ -680,6 +683,7 @@ export function getDefaultLocalization(): LangContainer {
   lang.home.helpInfo += ' {0}';
   lang.home.linuxSupport += ' {0}';
   lang.home.componentUpdatesReady += '{0}';
+  lang.home.updatedGamesReady = lang.home.updatedGamesReady + ' - {0}';
   lang.browse.noGameSelected += ' {0}';
   lang.browse.dropGameOnLeft += ' {0}';
   lang.browse.setFlashpointPathQuestion += ' {0} {1}';

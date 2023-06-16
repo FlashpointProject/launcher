@@ -8,17 +8,16 @@ import { wrapSearchTerm } from '@shared/game/GameFilter';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
-import { AppUpdater, UpdateInfo } from 'electron-updater';
 import { DialogState, Game, Playlist } from 'flashpoint-launcher';
 import * as React from 'react';
 import ReactDatePicker from 'react-datepicker';
 import ReactMarkdown from 'react-markdown';
 import { Link } from 'react-router-dom';
 import remarkGfm from 'remark-gfm';
-import { WithPreferencesProps } from '../../containers/withPreferences';
-import { WithSearchProps } from '../../containers/withSearch';
 import { Paths } from '../../Paths';
 import { getExtremeIconURL, getGameImageURL, getPlatformIconURL, joinLibraryRoute } from '../../Util';
+import { WithPreferencesProps } from '../../containers/withPreferences';
+import { WithSearchProps } from '../../containers/withSearch';
 import { LangContext } from '../../util/lang';
 import { GameGridItem } from '../GameGridItem';
 import { GameItemContainer } from '../GameItemContainer';
@@ -40,10 +39,6 @@ type OwnProps = {
   /** Clear the current search query (resets the current search filters). */
   clearSearch: () => void;
   /** Called when the "download tech" button is clicked. */
-  /** Whether an update is available to the Launcher */
-  updateInfo: UpdateInfo | undefined;
-  /** Callback to initiate the update */
-  autoUpdater: AppUpdater;
   /** Pass to Random Picks */
   randomGames: ViewGame[];
   /** Re-rolls the Random Games */
@@ -395,6 +390,10 @@ export function HomePage(props: HomePageProps) {
             type: MainActionType.NEW_DIALOG,
             dialog
           });
+          props.dispatchMain({
+            type: MainActionType.UPDATE_UPDATE_INFO,
+            total: 0
+          });
         }
       })
       .catch((err) => {
@@ -415,17 +414,27 @@ export function HomePage(props: HomePageProps) {
       });
     };
     if (props.preferencesData.gameMetadataSources.length > 0) {
+      const text = props.main.metadataUpdate.ready ? (
+        props.main.metadataUpdate.total > 0 ? strings.update :
+          props.main.metadataUpdate.total === -1 ? strings.error : strings.upToDate
+      ) : strings.checkingUpdate;
       return (
         <div className='update-metadata-box'>
           <div className='update-metadata-button'>
             <SimpleButton
               className='update-metadata-button-inner'
-              value={strings.update}
+              value={text}
+              disabled={text !== strings.update}
               onClick={onPressUpdate} />
           </div>
           <div className='update-metadata-name'>
             {props.preferencesData.gameMetadataSources[0].name}
           </div>
+          { props.main.metadataUpdate.ready && props.main.metadataUpdate.total > 0 && (
+            <div className='update-metadata-last'>
+              {formatString(strings.updatedGamesReady, props.main.metadataUpdate.total.toString())}
+            </div>
+          )}
           <div className='update-metadata-last'>
             {`${strings.lastUpdated}: ${(new Date(props.preferencesData.gameMetadataSources[0].games.actualUpdateTime)).toLocaleString()}`}
           </div>

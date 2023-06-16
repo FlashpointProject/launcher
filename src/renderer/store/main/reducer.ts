@@ -552,6 +552,18 @@ export function mainStateReducer(state: MainState = createInitialState(), action
       }
     }
 
+    case MainActionType.UPDATE_UPDATE_INFO: {
+      const newTotal = action.total;
+
+      return {
+        ...state,
+        metadataUpdate: {
+          ready: true,
+          total: newTotal
+        }
+      };
+    }
+
     case MainActionType.POST_FPFSS_SYNC: {
       // Create views for new libraries
       const newViews = deepCopy(state.views);
@@ -655,6 +667,26 @@ export function mainStateReducer(state: MainState = createInitialState(), action
       return state;
     }
 
+    case MainActionType.UPDATE_DIALOG_FIELD_VALUE: {
+      const dialogs = [...state.openDialogs];
+      const existingIdx = dialogs.findIndex(d => d.id === action.dialogId);
+      if (existingIdx > -1) {
+        const dialog = deepCopy(dialogs[existingIdx]);
+        if (dialog.fields) {
+          const field = dialog.fields.find(f => f.name === action.name);
+          if (field) {
+            field.value = action.value;
+          }
+        }
+        dialogs[existingIdx] = dialog;
+        return {
+          ...state,
+          openDialogs: dialogs
+        };
+      }
+      return state;
+    }
+
     default:
       return state;
   }
@@ -726,6 +758,10 @@ function createInitialState(): MainState {
     isEditingGame: false,
     loadedAll: new Gate(),
     updateFeedMarkdown: '',
+    metadataUpdate: {
+      ready: false,
+      total: 0
+    },
     busyGames: [],
     componentStatuses: [],
     quitting: false,

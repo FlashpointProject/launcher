@@ -26,7 +26,7 @@ import { throttle } from '@shared/utils/throttle';
 import * as axiosImport from 'axios';
 import * as child_process from 'child_process';
 import { execSync } from 'child_process';
-import { CurationState, Platform } from 'flashpoint-launcher';
+import { CurationState, GameMetadataSource, Platform } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as fs_extra from 'fs-extra';
 import * as https from 'https';
@@ -56,7 +56,7 @@ import { AppDataSource, loadCurationArchive } from './index';
 import { importGames, importPlatforms, importTagCategories, importTags } from './metadataImport';
 import { addPlaylistGame, deletePlaylist, deletePlaylistGame, duplicatePlaylist, filterPlaylists, getPlaylistGame, importPlaylist, savePlaylistGame, updatePlaylist } from './playlist';
 import { copyFolder, genContentTree } from './rust';
-import { syncGames, syncPlatforms, syncTags } from './sync';
+import { getMetaUpdateInfo, syncGames, syncPlatforms, syncTags } from './sync';
 import { BackState, BarePlatform, BareTag, MetadataRaw, TagsFile } from './types';
 import { pathToBluezip } from './util/Bluezip';
 import { pathTo7zBack } from './util/SevenZip';
@@ -205,6 +205,10 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     return res;
   });
 
+  state.socketServer.register(BackIn.PRE_UPDATE_INFO, async (event, source: GameMetadataSource) => {
+    return getMetaUpdateInfo(source);
+  });
+
   state.socketServer.register(BackIn.GET_RENDERER_INIT_DATA, async () => {
     state.languageContainer = createContainer(
       state.languages,
@@ -298,11 +302,25 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         }
       }
     }
+
+
+    // Fetch pre-update info to estimate progress bar size
+    const total = await getMetaUpdateInfo(source, true);
+    const chunks = Math.ceil(total / 2500);
+
     const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
     const dialogId = await openDialog({
       largeMessage: true,
       message: `Syncing metadata from ${source.name}...`,
-      buttons: []
+      buttons: [],
+      fields: [
+        {
+          type: 'progress',
+          name: 'progress',
+          message: `${total} Updates...`,
+          value: 0
+        }
+      ]
     });
     const newDate = new Date();
     const categories = await TagManager.findTagCategories();
@@ -319,6 +337,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         latestUpdateTime: '1970-01-01'
       };
     }
+
     return AppDataSource.transaction(async (tx) => {
       console.log('plats');
       const lastDatePlats = await syncPlatforms(tx, source);
@@ -345,11 +364,17 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       console.log('games');
       // Open new transaction for games
       const dataPacksFolder = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath);
+      let chunk = 0;
       return AppDataSource.transaction(async (tx) => {
-        return await syncGames(tx, source, dataPacksFolder);
+        return await syncGames(tx, source, dataPacksFolder, () => {
+          chunk = chunk + 1;
+          const progress = chunk / chunks;
+          state.socketServer.broadcast(BackOut.UPDATE_DIALOG_FIELD_VALUE, dialogId, 'progress', progress * 100);
+        });
       });
     })
     .then((lastDate) => {
+      console.log(lastDate.toISOString());
       /** Games Success */
       const sourceIdx = state.preferences.gameMetadataSources.findIndex(s => s.name === source.name);
       if (sourceIdx !== -1) {

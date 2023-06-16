@@ -153,6 +153,7 @@ export enum BackIn {
   CANCEL_DOWNLOAD,
   DELETE_ALL_IMAGES,
   OPTIMIZE_DATABASE,
+  PRE_UPDATE_INFO,
 
   // Developer
   UPDATE_TAGGED_FIELDS,
@@ -228,6 +229,7 @@ export enum BackOut {
   NEW_DIALOG,
   CANCEL_DIALOG,
   UPDATE_DIALOG_MESSAGE,
+  UPDATE_DIALOG_FIELD_VALUE,
 }
 
 export const BackRes = {
@@ -364,6 +366,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.CANCEL_DOWNLOAD]: () => void;
   [BackIn.DELETE_ALL_IMAGES]: () => void;
   [BackIn.OPTIMIZE_DATABASE]: () => void;
+  [BackIn.PRE_UPDATE_INFO]: (source: GameMetadataSource) => number;
 
   // Developer
   [BackIn.UPDATE_TAGGED_FIELDS]: () => void;
@@ -442,6 +445,7 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.NEW_DIALOG]: (template: DialogStateTemplate, responseId: string) => void;
   [BackOut.CANCEL_DIALOG]: (dialogId: string) => void;
   [BackOut.UPDATE_DIALOG_MESSAGE]: (message: string, dialogId: string) => void;
+  [BackOut.UPDATE_DIALOG_FIELD_VALUE]: (dialogId: string, name: string, value: any) => void;
 }>
 
 export type BackResTemplate = BackOutTemplate & BackInTemplate;

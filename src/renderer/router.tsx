@@ -1,15 +1,16 @@
 import { Game } from '@database/entity/Game';
+import { ITheme } from '@shared/ThemeFile';
 import { ComponentStatus, FpfssUser, GameOfTheDay, ViewGame } from '@shared/back/types';
 import { AppExtConfigData } from '@shared/config/interfaces';
 import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { GamePropSuggestions, IService } from '@shared/interfaces';
 import { LangFile } from '@shared/lang';
-import { ITheme } from '@shared/ThemeFile';
 import { Menu } from 'electron';
-import { AppUpdater, UpdateInfo } from 'electron-updater';
+import { UpdateInfo } from 'electron-updater';
 import { Playlist, PlaylistGame } from 'flashpoint-launcher';
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
+import { Paths } from './Paths';
 import { AboutPage, AboutPageProps } from './components/pages/AboutPage';
 import { DeveloperPage, DeveloperPageProps } from './components/pages/DeveloperPage';
 import { IFramePage, IFramePageProps } from './components/pages/IFramePage';
@@ -23,7 +24,6 @@ import { ConnectedTagCategoriesPage } from './containers/ConnectedTagCategoriesP
 import { ConnectedTagsPage } from './containers/ConnectedTagsPage';
 import { CreditsData } from './credits/types';
 import { UpdateView, ViewGameSet } from './interfaces';
-import { Paths } from './Paths';
 
 export type AppRouterProps = {
   fpfssUser: FpfssUser | null;
@@ -65,7 +65,6 @@ export type AppRouterProps = {
   themeList: ITheme[];
   languages: LangFile[];
   updateInfo: UpdateInfo | undefined,
-  autoUpdater: AppUpdater,
   extensions: IExtensionDescription[],
   devScripts: ExtensionContribution<'devScripts'>[],
   contextButtons: ExtensionContribution<'contextButtons'>[],
@@ -91,8 +90,6 @@ export class AppRouter extends React.Component<AppRouterProps> {
       onSelectPlaylist: this.props.onSelectPlaylist,
       onLaunchGame: this.props.onLaunchGame,
       onGameSelect: this.props.onSelectGame,
-      updateInfo: this.props.updateInfo,
-      autoUpdater: this.props.autoUpdater,
       randomGames: this.props.randomGames,
       rollRandomGames: this.props.rollRandomGames,
       logoVersion: this.props.logoVersion,

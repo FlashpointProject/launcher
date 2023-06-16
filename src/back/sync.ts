@@ -204,7 +204,8 @@ export async function syncPlatforms(tx: EntityManager, source: GameMetadataSourc
   return lastDate;
 }
 
-export async function syncGames(tx: EntityManager, source: GameMetadataSource, dataPacksFolder: string): Promise<Date> {
+export async function syncGames(tx: EntityManager, source: GameMetadataSource, dataPacksFolder: string, beforeChunk?: () => void): Promise<Date> {
+  const capUpdateTime = new Date();
   const gamesUrl = `${source.baseUrl}/api/games`;
   const gamesRepo = tx.getRepository(Game);
   const addAppRepo = tx.getRepository(AdditionalApp);
@@ -215,8 +216,8 @@ export async function syncGames(tx: EntityManager, source: GameMetadataSource, d
   let lastDate = new Date(nextDate);
   let nextId = '';
   while (true) {
-    console.log('NEXT BLOCK OF 2500');
-    const reqUrl = `${gamesUrl}?after=${nextDate}&broad=true&afterId=${nextId}`;
+    const reqUrl = `${gamesUrl}?after=${nextDate}&before=${capUpdateTime.toISOString()}&broad=true&afterId=${nextId}`;
+    console.log(reqUrl);
     const res = await axios.get(reqUrl)
     .catch((err) => {
       throw 'Failed to search games';
@@ -236,6 +237,10 @@ export async function syncGames(tx: EntityManager, source: GameMetadataSource, d
     });
     const games = data.games;
 
+    if (beforeChunk && games.length > 0) {
+      beforeChunk();
+    }
+
     // Store latest date
     lastDate = games.reduce((prev, cur) => {
       const nextDate = new Date(cur.date_modified);
@@ -246,6 +251,8 @@ export async function syncGames(tx: EntityManager, source: GameMetadataSource, d
       }
     }, lastDate);
 
+    console.log(lastDate);
+
     // Update loop params
     if (data.games.length === 0) {
       break;
@@ -253,8 +260,6 @@ export async function syncGames(tx: EntityManager, source: GameMetadataSource, d
       nextDate = data.games[data.games.length - 1].date_modified;
       nextId = data.games[data.games.length - 1].id;
     }
-
-    console.log('searched');
 
     const changedGameIds = games.map(game => game.id);
     const changedAddApps = data.add_apps.map(d => {
@@ -301,9 +306,6 @@ export async function syncGames(tx: EntityManager, source: GameMetadataSource, d
       .where('game_platforms_platform.gameId IN (:...changed)', { changed: chunk })
       .execute();
     }
-    console.log('clear');
-
-    console.log('add apps');
     for (const chunk of chunkArray(changedAddApps, 50)) {
       await tx.createQueryBuilder()
       .insert()
@@ -311,7 +313,6 @@ export async function syncGames(tx: EntityManager, source: GameMetadataSource, d
       .values(chunk)
       .execute();
     }
-    console.log('game data');
     // Reassign all game data
     for (const chunk of chunkArray(changedGameData, 50)) {
       await tx.createQueryBuilder()
@@ -321,9 +322,6 @@ export async function syncGames(tx: EntityManager, source: GameMetadataSource, d
       .execute();
     }
 
-
-
-    console.log('changed');
     const existingGameIds = (await gamesRepo.createQueryBuilder('game').select('game.id').getMany()).map(e => e.id);
     // Update changed games
     for (const changedGame of games.filter(g => existingGameIds.includes(g.id))) {
@@ -354,7 +352,7 @@ export async function syncGames(tx: EntityManager, source: GameMetadataSource, d
         platformName: changedGame.platform_name
       }).where({ id: changedGame.id }).execute();
     }
-    console.log('new');
+
     // Add new games
     for (const newGame of games.filter(g => !existingGameIds.includes(g.id))) {
       const g = gamesRepo.create({
@@ -389,18 +387,16 @@ export async function syncGames(tx: EntityManager, source: GameMetadataSource, d
       await gamesRepo.save(g);
     }
 
-    console.log('update active data ids');
     // Update Active Data IDs to most recent Game Data
     await tx.query(`UPDATE game 
       SET activeDataId = (SELECT game_data.id FROM game_data WHERE game.id = game_data.gameId ORDER BY game_data.dateAdded DESC LIMIT 1)
       WHERE game.activeDataId = -1`);
 
-    console.log('tag relations');
     // Remove existing relations
     for (const chunk of chunkArray(changedGameIds, 150)) {
       await tx.query(`DELETE FROM game_tags_tag WHERE gameId IN (${chunk.map(c => '?').join(',')})`, chunk);
     }
-    console.log('cleared');
+
     // Add new relations
     for (const chunk of chunkArray(tagRelations, 100)) {
       await tx.createQueryBuilder()
@@ -410,14 +406,12 @@ export async function syncGames(tx: EntityManager, source: GameMetadataSource, d
       .orIgnore()
       .execute();
     }
-    console.log('built');
 
-    console.log('platform relations');
     // Rebuild platform relations
     for (const chunk of chunkArray(changedGameIds, 150)) {
       await tx.query(`DELETE FROM game_platforms_platform WHERE gameId IN (${chunk.map(c => '?').join(',')})`, chunk);
     }
-    console.log('cleared');
+
     for (const chunk of chunkArray(platformRelations, 100)) {
       await tx.createQueryBuilder()
       .insert()
@@ -426,10 +420,28 @@ export async function syncGames(tx: EntityManager, source: GameMetadataSource, d
       .orIgnore()
       .execute();
     }
-    console.log('built');
+
   }
 
   return lastDate;
+}
+
+export async function getMetaUpdateInfo(source: GameMetadataSource, accurate?: boolean): Promise<number> {
+  console.log('checking ' + source.games.latestUpdateTime);
+  // Add 1 second to update time to prevent rounding down errors
+  const d = new Date(source.games.latestUpdateTime);
+  if (!accurate) {
+    d.setSeconds(d.getSeconds() + 2);
+  }
+  const countUrl = `${source.baseUrl}/api/games/updates?after=${d.toISOString()}`;
+  console.log(countUrl);
+  try {
+    const res = await axios.get(countUrl);
+    return res.data.total;
+  } catch (err) {
+    log.error('Launcher', 'Error fetching update info for ' + countUrl + ' - ' + err);
+    return -1;
+  }
 }
 
 type RemoteGamesRes = {
