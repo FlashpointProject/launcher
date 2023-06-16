@@ -207,9 +207,12 @@ export async function syncPlatforms(tx: EntityManager, source: GameMetadataSourc
 export async function syncGames(tx: EntityManager, source: GameMetadataSource, dataPacksFolder: string, beforeChunk?: () => void): Promise<Date> {
   const capUpdateTime = new Date();
   const gamesUrl = `${source.baseUrl}/api/games`;
+  const deletedUrl = `${source.baseUrl}/api/games/deleted`;
   const gamesRepo = tx.getRepository(Game);
   const addAppRepo = tx.getRepository(AdditionalApp);
   const gameDataRepo = tx.getRepository(GameData);
+
+  // -- New and Updated Games -- //
 
   // Fetch until none remain
   let nextDate = source.games.latestUpdateTime;
@@ -423,6 +426,30 @@ export async function syncGames(tx: EntityManager, source: GameMetadataSource, d
 
   }
 
+  // -- Deleted Games -- //
+  const reqUrl = `${deletedUrl}?after=${source.games.latestUpdateTime}`;
+  const res = await axios.get(reqUrl)
+  .catch((err) => {
+    throw 'Failed to search deleted games';
+  });
+  const data = res.data as RemoteDeletedGamesRes;
+
+  // Make configurable later
+  const selfDeleteReasons = ['Duplicate', 'Blacklisted Content'];
+
+  for (const game of data.games) {
+    if (selfDeleteReasons.includes(game.reason)) {
+      // Delete own game
+      const existingGame = await gamesRepo.findOne({ where: { id: game.id }});
+      if (existingGame) {
+        // Remove games add apps (just to be safe)
+        await addAppRepo.delete({ parentGameId: game.id });
+        // Remove game (tags etc should follow)
+        await gamesRepo.remove(existingGame);
+      }
+    }
+  }
+
   return lastDate;
 }
 
@@ -442,6 +469,16 @@ export async function getMetaUpdateInfo(source: GameMetadataSource, accurate?: b
     log.error('Launcher', 'Error fetching update info for ' + countUrl + ' - ' + err);
     return -1;
   }
+}
+
+type RemoteDeletedGamesRes = {
+  games: RemoteDeletedGame[];
+}
+
+type RemoteDeletedGame = {
+  id: string;
+  date_modified: string;
+  reason: string;
 }
 
 type RemoteGamesRes = {
