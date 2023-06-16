@@ -8,6 +8,7 @@ import { LangContext } from '../util/lang';
 import { CurateBoxRow } from './CurateBoxRow';
 import { InputField } from './InputField';
 import { SimpleButton } from './SimpleButton';
+import { Platform } from 'flashpoint-launcher';
 
 export type CurateBoxAddAppProps = {
   /** Folder of the curation the displayed additional application belongs to. */
@@ -19,7 +20,7 @@ export type CurateBoxAddAppProps = {
   /** Dispatcher for the curate page state reducer. */
   dispatch: React.Dispatch<CurateAction>;
   /** Platform of the game this belongs to. */
-  platform?: string;
+  platforms?: Platform[];
   /** Whether to symlink curation content before running */
   symlinkCurationContent: boolean;
   /** Callback for the "onKeyDown" event for all input fields. */
@@ -65,10 +66,10 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
     return window.Shared.back.request(BackIn.LAUNCH_CURATION_ADDAPP, {
       folder: props.folder,
       addApp: props.addApp,
-      platform: props.platform,
+      platforms: props.platforms,
       symlinkCurationContent: props.symlinkCurationContent
     });
-  }, [props.addApp && props.folder, props.symlinkCurationContent, props.platform]);
+  }, [props.addApp && props.folder, props.symlinkCurationContent, props.platforms]);
   // Render
   return (
     <>

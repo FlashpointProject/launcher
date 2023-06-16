@@ -385,6 +385,7 @@ export function CurateBox(props: CurateBoxProps) {
           <CurateBoxAddApp
             key={idx}
             disabled={disabled}
+            platforms={props.curation.game.platforms}
             folder={props.curation.folder}
             addApp={addApp}
             dispatch={props.dispatch}
