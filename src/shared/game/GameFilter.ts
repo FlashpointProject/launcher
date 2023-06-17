@@ -85,11 +85,11 @@ export function parseSearchText(text: string): ParsedSearch {
 function parseQuickSearch(text: string): FieldFilter | undefined {
   switch (text.charAt(0)) {
     case '@':
-      return { field: 'developer', value: text.substring(1) };
+      return { field: convertField('developer'), value: text.substring(1) };
     case '#':
-      return { field: 'tag', value: text.substring(1) };
+      return { field: convertField('tag'), value: text.substring(1) };
     case '!':
-      return { field: 'platform', value: text.substring(1) };
+      return { field: convertField('platform'), value: text.substring(1) };
   }
 }
 

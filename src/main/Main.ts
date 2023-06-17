@@ -170,7 +170,9 @@ export function main(init: Init): void {
     if (opts.backend) {
       await new Promise<void>((resolve, reject) => {
         // Fork backend, init.rest will contain possible flashpoint:// message
-        state.backProc = fork(path.join(__dirname, '../back/index.js'), [init.rest], { detached: true, stdio: 'pipe' });
+        // Increase memory limit in dev instance (mostly for developer page functions)
+        const env = Util.isDev ? Object.assign({ 'NODE_OPTIONS' : '--max-old-space-size=6144' }, process.env ) : process.env;
+        state.backProc = fork(path.join(__dirname, '../back/index.js'), [init.rest], { detached: true, env, stdio: 'pipe' });
         if (state.backProc.stdout) {
           state.backProc.stdout.on('data', (chunk) => {
             process.stdout.write(chunk);
