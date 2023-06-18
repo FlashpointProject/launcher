@@ -1055,7 +1055,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
           const game = this.props.currentGame;
           // Ignore dupe tags
           if (game && game.platforms.findIndex(p => p.id == platform.id) == -1) {
-            this.props.onEditGame({ platforms: [...game.platforms, platform] });
+            const primary = game.platforms.length === 0 ? platform.primaryAlias.name : game.platformName;
+            this.props.onEditGame({ platforms: [...game.platforms, platform], platformName: primary });
             console.log('ADDED PLATFORM ' + platform.id);
           }
         }
@@ -1143,7 +1144,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
             primaryAliasId: -1,
             dateModified: ''
           };
-          this.props.onEditGame({ platforms: [...game.platforms, platform]});
+          const primary = game.platforms.length === 0 ? platform.primaryAlias.name : game.platformName;
+          this.props.onEditGame({ platforms: [...game.platforms, platform], platformName: primary });
         }
       } else {
         window.Shared.back.request(BackIn.GET_OR_CREATE_PLATFORM, text)
