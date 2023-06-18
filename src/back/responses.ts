@@ -206,7 +206,15 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.PRE_UPDATE_INFO, async (event, source: GameMetadataSource) => {
-    return getMetaUpdateInfo(source);
+    let totalGames = 0;
+    try {
+      totalGames = await GameManager.countGames();
+    } catch {/** ignore, errors if 0 count */}
+    if (totalGames === 0) {
+      return getMetaUpdateInfo(source, false, true);
+    } else {
+      return getMetaUpdateInfo(source);
+    }
   });
 
   state.socketServer.register(BackIn.GET_RENDERER_INIT_DATA, async () => {
@@ -303,9 +311,28 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       }
     }
 
+    const newDate = new Date();
+    const categories = await TagManager.findTagCategories();
+    let totalGames = 0;
+    try {
+      totalGames = await GameManager.countGames();
+    } catch {/** ignore, errors on 0 count */}
+    // Always do a full sync if empty DB
+    if (totalGames === 0) {
+      source.games = {
+        actualUpdateTime: source.games.actualUpdateTime,
+        latestDeleteTime: source.games.latestDeleteTime,
+        latestUpdateTime: '1970-01-01'
+      };
+      source.tags = {
+        actualUpdateTime: source.games.actualUpdateTime,
+        latestDeleteTime: source.games.latestDeleteTime,
+        latestUpdateTime: '1970-01-01'
+      };
+    }
 
     // Fetch pre-update info to estimate progress bar size
-    const total = await getMetaUpdateInfo(source, true);
+    const total = await getMetaUpdateInfo(source, true, totalGames === 0);
     const chunks = Math.ceil(total / 2500);
 
     const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
@@ -322,21 +349,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         }
       ]
     });
-    const newDate = new Date();
-    const categories = await TagManager.findTagCategories();
-    // Always do a full sync if empty DB
-    if ((await GameManager.countGames()) === 0) {
-      source.games = {
-        actualUpdateTime: source.games.actualUpdateTime,
-        latestDeleteTime: source.games.latestDeleteTime,
-        latestUpdateTime: '1970-01-01'
-      };
-      source.tags = {
-        actualUpdateTime: source.games.actualUpdateTime,
-        latestDeleteTime: source.games.latestDeleteTime,
-        latestUpdateTime: '1970-01-01'
-      };
-    }
 
     return AppDataSource.transaction(async (tx) => {
       console.log('plats');

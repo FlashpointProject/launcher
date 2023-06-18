@@ -748,52 +748,45 @@ async function initialize() {
   if (fs.existsSync(path.join(cwd, fpmPath))) {
     // FPM exists, make sure path is correct, then check for updates
     state.componentStatuses = await new Promise<ComponentStatus[]>((resolve, reject) => {
-      child_process.execFile(fpmPath, ['path', path.join(state.config.flashpointPath)], { cwd }, (error, stdout, stderr) => {
+      child_process.execFile(fpmPath, ['list', 'verbose'], { cwd }, (error, stdout, stderr) => {
         if (error) {
           reject(error);
         } else {
-          // Path set, check component statuses
-          child_process.execFile(fpmPath, ['list', 'verbose'], { cwd }, (error, stdout, stderr) => {
-            if (error) {
-              reject(error);
-            } else {
-              const statuses = [];
-              for (const line of stdout.split('\n').filter(line => line !== '')) {
-                try {
-                  let state: ComponentState;
-                  // ! comp-id (Comp Name)
-                  const nameIdx = line.indexOf('(');
-                  const id = line.substring(1, nameIdx - 1).trim();
-                  const name = line.substring(nameIdx + 1, line.length - 2);
-                  switch (line.charAt(0)) {
-                    case '*':
-                      state = ComponentState.UP_TO_DATE;
-                      break;
-                    case '!':
-                      state = ComponentState.NEEDS_UPDATE;
-                      break;
-                    default:
-                      state = ComponentState.UNINSTALLED;
-                      break;
-                  }
-                  // Ignore updates for core-database
-                  if (id === 'core-database' && state === ComponentState.NEEDS_UPDATE) {
-                    state = ComponentState.UP_TO_DATE;
-                  }
-                  const status: ComponentStatus = {
-                    id,
-                    name,
-                    state
-                  };
-                  statuses.push(status);
-                  log.debug('Launcher', `Parsed: ${JSON.stringify({...status, state: ComponentState[status.state]})}`);
-                } catch (err) {
-                  log.error('Launcher', `Failed to parse component entry: ${line}\nERROR: ${err}`);
-                }
+          const statuses = [];
+          for (const line of stdout.split('\n').filter(line => line !== '')) {
+            try {
+              let state: ComponentState;
+              // ! comp-id (Comp Name)
+              const nameIdx = line.indexOf('(');
+              const id = line.substring(1, nameIdx - 1).trim();
+              const name = line.substring(nameIdx + 1, line.length - 2);
+              switch (line.charAt(0)) {
+                case '*':
+                  state = ComponentState.UP_TO_DATE;
+                  break;
+                case '!':
+                  state = ComponentState.NEEDS_UPDATE;
+                  break;
+                default:
+                  state = ComponentState.UNINSTALLED;
+                  break;
               }
-              resolve(statuses);
+              // Ignore updates for core-database
+              if (id === 'core-database' && state === ComponentState.NEEDS_UPDATE) {
+                state = ComponentState.UP_TO_DATE;
+              }
+              const status: ComponentStatus = {
+                id,
+                name,
+                state
+              };
+              statuses.push(status);
+              log.debug('Launcher', `Parsed: ${JSON.stringify({...status, state: ComponentState[status.state]})}`);
+            } catch (err) {
+              log.error('Launcher', `Failed to parse component entry: ${line}\nERROR: ${err}`);
             }
-          });
+          }
+          resolve(statuses);
         }
       });
     })
