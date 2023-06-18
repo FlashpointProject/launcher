@@ -22,6 +22,8 @@ type GameImageSplitProps = {
   onDrop: (event: React.DragEvent) => void;
   /** If the user should not be able to add a new image. */
   disabled?: boolean;
+  /** Force reload by changing version */
+  version?: number;
 };
 
 type GameImageSplitState = {
@@ -52,8 +54,13 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
 
   render() {
     const strings = this.context;
-    const { disabled, imgSrc, text, showHeaders } = this.props;
+    let imgSrc = this.props.imgSrc;
+    const { disabled, text, showHeaders, version } = this.props;
     const { hover, showPreview } = this.state;
+    // Add version to image source
+    if (imgSrc && version) {
+      imgSrc += '?' + version;
+    }
     // Class name
     let className = 'game-image-split';
     if (imgSrc === undefined) { className += ' simple-center'; }

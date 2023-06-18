@@ -52,6 +52,7 @@ export function CurateBox(props: CurateBoxProps) {
   const strings = React.useContext(LangContext);
   const disabled = !!props.curation.locked;
 
+  const [imageVersion, setImageVersion] = React.useState(1);
   const splitStatus = React.useMemo(() => props.curation.game.status ? props.curation.game.status.split(';').map(s => s.trim()).sort() : [], [props.curation.game.status]);
   const splitPlayMode = React.useMemo(() => props.curation.game.playMode ? props.curation.game.playMode.split(';').map(s => s.trim()).sort() : [], [props.curation.game.playMode]);
 
@@ -81,8 +82,11 @@ export function CurateBox(props: CurateBoxProps) {
     }
   }, [props.curation.game.tags]);
 
-  const onSetThumbnail  = useAddImageCallback(CurationImageEnum.THUMBNAIL, props.curation);
-  const onSetScreenshot = useAddImageCallback(CurationImageEnum.SCREENSHOT,   props.curation);
+  const incrementVersion = React.useCallback(() => {
+    setImageVersion(imageVersion + 1);
+  }, [imageVersion]);
+  const onSetThumbnail  = useAddImageCallback(CurationImageEnum.THUMBNAIL, props.curation, incrementVersion);
+  const onSetScreenshot = useAddImageCallback(CurationImageEnum.SCREENSHOT, props.curation, incrementVersion);
   const onRemoveThumbnailClick  = useRemoveImageCallback(CurationImageEnum.THUMBNAIL, props.curation, props.dispatch);
   const onRemoveScreenshotClick = useRemoveImageCallback(CurationImageEnum.SCREENSHOT,  props.curation, props.dispatch);
   const onDropThumbnail  = useDropImageCallback('logo.png', props.curation, strings.dialog);
@@ -691,16 +695,19 @@ export function CurateBox(props: CurateBoxProps) {
   );
 }
 
-function useAddImageCallback(type: CurationImageEnum, curation: LoadedCuration | undefined): (data: ArrayBuffer) => void {
+function useAddImageCallback(type: CurationImageEnum, curation: LoadedCuration | undefined, incrementVersion: () => void): (data: ArrayBuffer) => void {
   return React.useCallback(async (data: ArrayBuffer) => {
     if (curation) {
       const suffix = type === CurationImageEnum.THUMBNAIL ? 'logo.png' : 'ss.png';
       const res = await axios.post(`${getCurationURL(curation.folder)}/${suffix}`, data);
       if (res.status !== 200) {
         alert(`ERROR: Server Returned ${res.status} - ${res.statusText}`);
+      } else {
+        // Delayed force update of image
+        setTimeout(incrementVersion, 200);
       }
     }
-  }, [curation && curation.folder]);
+  }, [curation && curation.folder, incrementVersion]);
 }
 
 /**
