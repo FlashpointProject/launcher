@@ -274,7 +274,6 @@ async function main() {
     BackIn.DUPLICATE_PLAYLIST,
     BackIn.IMPORT_PLAYLIST,
     BackIn.EXPORT_PLAYLIST,
-    BackIn.EXPORT_PLAYLIST,
     BackIn.GET_PLAYLISTS,
     BackIn.GET_PLAYLIST,
     BackIn.SAVE_PLAYLIST,

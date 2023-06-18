@@ -1159,6 +1159,13 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     return deletePlaylistGame(state, playlistId, gameId);
   });
 
+  state.socketServer.register(BackIn.EXPORT_PLAYLIST, async (event, playlistId, filePath) => {
+    const playlist = state.playlists.find(p => p.id === playlistId);
+    if (playlist) {
+      return PlaylistFile.saveFile(filePath, playlist);
+    }
+  });
+
   state.socketServer.register(BackIn.SAVE_LEGACY_PLATFORM, async (event, platform) => {
     const translatedGames = [];
     const tagCache: Record<string, Tag> = {};

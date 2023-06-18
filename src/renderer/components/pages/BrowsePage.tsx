@@ -24,6 +24,7 @@ import { GameList } from '../GameList';
 import { InputElement } from '../InputField';
 import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
 import { Spinner } from '../Spinner';
+import path = require('path');
 
 type Pick<T, K extends keyof T> = { [P in K]: T[P]; };
 type StateCallback1 = Pick<BrowsePageState, 'currentGame'|'isEditingGame'|'isNewGame'|'currentPlaylistEntry'>;
@@ -820,9 +821,10 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   };
 
   onExportPlaylist = (strings: LangContainer, playlistId: string): void => {
+    const playlist = this.props.playlists.find(p => p.id === playlistId);
     const filePath = remote.dialog.showSaveDialogSync({
       title: strings.dialog.selectFileToExportPlaylist,
-      defaultPath: 'playlist.json',
+      defaultPath: playlist ? path.basename(playlist.filePath) : 'playlist.json',
       filters: [{
         name: 'Playlist file',
         extensions: ['json'],
