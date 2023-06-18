@@ -41,8 +41,8 @@ export function TagListItem<T extends ITagObject>(props: TagListItemProps<T>) {
         <div className='tag-list-item__right'>
           <div
             className='tag-list-item__field tag-list-item__field--name'
-            title={tag.primaryAlias.name}>
-            {tag.primaryAlias.name}
+            title={tag.primaryAlias ? tag.primaryAlias.name : 'BROKEN TAG - ID ' + tag.id}>
+            {tag.primaryAlias ? tag.primaryAlias.name : 'BROKEN TAG - ID ' + tag.id}
           </div>
           <div
             className='tag-list-item__field tag-list-item__field--aliases'

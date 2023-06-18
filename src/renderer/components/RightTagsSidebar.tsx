@@ -91,7 +91,7 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
               <div className='browse-right-sidebar__title-row'>
                 <div className='browse-right-sidebar__title-row__title'>
                   <InputField
-                    text={tag.primaryAlias.name}
+                    text={tag.primaryAlias ? tag.primaryAlias.name : 'BROKEN TAG - ID ' + tag.id}
                     placeholder={strings.noName} />
                 </div>
                 <div className='browse-right-sidebar__title-row__buttons'>
