@@ -3,8 +3,9 @@ name: Nexus (Development)
 on:
   push:
     branches:
-      - feat/nexus-repo
+      - master
       - develop
+      - 'release/**'
 
 jobs:
   build:
