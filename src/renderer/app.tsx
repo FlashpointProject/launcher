@@ -218,6 +218,15 @@ export class App extends React.Component<AppProps> {
       for (const index of data.done) {
         switch (+index) { // Conversion to number, type safe bug
           case BackInit.DATABASE: {
+            if (this.props.preferencesData.gameMetadataSources.length > 0) {
+              window.Shared.back.request(BackIn.PRE_UPDATE_INFO, this.props.preferencesData.gameMetadataSources[0])
+              .then((total) => {
+                this.props.dispatchMain({
+                  type: MainActionType.UPDATE_UPDATE_INFO,
+                  total
+                });
+              });
+            }
             window.Shared.back.request(BackIn.GET_PLAYLISTS)
             .then(data => {
               if (data) {
@@ -534,16 +543,6 @@ export class App extends React.Component<AppProps> {
 
   init() {
     const strings = this.props.main.lang;
-
-    if (this.props.preferencesData.gameMetadataSources.length > 0) {
-      window.Shared.back.request(BackIn.PRE_UPDATE_INFO, this.props.preferencesData.gameMetadataSources[0])
-      .then((total) => {
-        this.props.dispatchMain({
-          type: MainActionType.UPDATE_UPDATE_INFO,
-          total
-        });
-      });
-    }
 
     window.Shared.back.onStateChange = (state) => {
       this.props.setMainState({
