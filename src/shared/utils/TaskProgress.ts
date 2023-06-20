@@ -43,7 +43,6 @@ export class TaskProgress extends EventEmitter implements ITaskProgress {
       if (stage > this._stageCount) {
         throw Error('Stage given exceeds Progress Stage Count');
       } else {
-        console.log(`Set Stage: ${stage}`);
         this._stage = stage;
         this._stageTask = task;
         this._stageProgressDone = 0;
@@ -60,7 +59,6 @@ export class TaskProgress extends EventEmitter implements ITaskProgress {
    */
   setStageProgress(done: number, task: string) {
     if (!this._done) {
-      console.log(`Stage progress: ${done.toFixed(4)}`);
       this._stageProgressDone = Math.min(done, 1);
       this._stageProgressTask = task;
       this._fireProgress();

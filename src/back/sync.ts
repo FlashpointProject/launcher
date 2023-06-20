@@ -219,7 +219,6 @@ export async function syncGames(tx: EntityManager, source: GameMetadataSource, d
   let nextId = '';
   while (true) {
     const reqUrl = `${gamesUrl}?after=${source.games.latestUpdateTime}&before=${capUpdateTime.toISOString()}&broad=true&afterId=${nextId}`;
-    console.log(reqUrl);
     const res = await axios.get(reqUrl)
     .catch((err) => {
       throw 'Failed to search games';
@@ -252,8 +251,6 @@ export async function syncGames(tx: EntityManager, source: GameMetadataSource, d
         return prev;
       }
     }, lastDate);
-
-    console.log(lastDate);
 
     // Update loop params
     if (data.games.length === 0) {
@@ -452,14 +449,12 @@ export async function syncGames(tx: EntityManager, source: GameMetadataSource, d
 }
 
 export async function getMetaUpdateInfo(source: GameMetadataSource, accurate?: boolean, fromScratch?: boolean): Promise<number> {
-  console.log('checking ' + source.games.latestUpdateTime);
   // Add 1 second to update time to prevent rounding down errors
   const d = new Date(source.games.latestUpdateTime);
   if (!accurate) {
     d.setSeconds(d.getSeconds() + 2);
   }
   const countUrl = `${source.baseUrl}/api/games/updates?after=${fromScratch ? '1970-01-01' : d.toISOString()}`;
-  console.log(countUrl);
   try {
     const res = await axios.get(countUrl);
     return res.data.total;

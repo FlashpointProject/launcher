@@ -98,6 +98,7 @@ type RightBrowseSidebarState = {
 /** Sidebar on the right side of BrowsePage. */
 export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps, RightBrowseSidebarState> {
   // Bound "on change" callbacks for game fields
+  onLibraryChange             = this.wrapOnTextChange((game, text) => this.props.onEditGame({ library: text }));
   onTitleChange               = this.wrapOnTextChange((game, text) => this.props.onEditGame({ title: text }));
   onAlternateTitlesChange     = this.wrapOnTextChange((game, text) => this.props.onEditGame({ alternateTitles: text }));
   onDeveloperChange           = this.wrapOnTextChange((game, text) => this.props.onEditGame({ developer: text }));
@@ -392,6 +393,20 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
             { isPlaceholder ? undefined : (
               <>
                 <div className='browse-right-sidebar__section'>
+                  { editable && (
+                    <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                      <p>{strings.library}: </p>
+                      {/** TODO: Localize library options, make visible once library searching has merged */}
+                      <DropdownInputField
+                        text={game.library}
+                        placeholder={strings.noLibrary}
+                        onChange={this.onLibraryChange}
+                        className='browse-right-sidebar__searchable'
+                        editable={editable}
+                        items={suggestions && filterSuggestions(suggestions.library) || []}
+                        onItemSelect={text => this.props.onEditGame({ library: text })} />
+                    </div>
+                  )}
                   <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                     <p>{strings.alternateTitles}: </p>
                     <InputField
@@ -493,7 +508,6 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       items={suggestions && filterSuggestions(suggestions.playMode) || []}
                       onItemSelect={text => this.props.onEditGame({ playMode: text })}
                       onClick={this.onPlayModeClick} />
-
                   </div>
                   <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                     <p>{strings.status}: </p>
