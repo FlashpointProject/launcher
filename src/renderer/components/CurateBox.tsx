@@ -92,8 +92,8 @@ export function CurateBox(props: CurateBoxProps) {
   const onDropThumbnail  = useDropImageCallback('logo.png', props.curation, strings.dialog);
   const onDropScreenshot = useDropImageCallback('ss.png',   props.curation, strings.dialog);
 
-  const thumbnailPath  = props.curation.thumbnail.exists  ? fixSlashes(`${props.curation.thumbnail.filePath }?v=${props.curation.thumbnail.version }`) : undefined;
-  const screenshotPath = props.curation.screenshot.exists ? fixSlashes(`${props.curation.screenshot.filePath}?v=${props.curation.screenshot.version}`) : undefined;
+  const thumbnailPath  = props.curation.thumbnail.exists  ? fixSlashes(`${props.curation.thumbnail.filePath }?v=${imageVersion}`) : undefined;
+  const screenshotPath = props.curation.screenshot.exists ? fixSlashes(`${props.curation.screenshot.filePath}?v=${imageVersion}`) : undefined;
 
   const onNewAddApp  = useCreateAddAppCallback('normal',  props.curation.folder, props.dispatch);
   const onAddExtras  = useCreateAddAppCallback('extras',  props.curation.folder, props.dispatch);
@@ -704,7 +704,7 @@ function useAddImageCallback(type: CurationImageEnum, curation: LoadedCuration |
         alert(`ERROR: Server Returned ${res.status} - ${res.statusText}`);
       } else {
         // Delayed force update of image
-        setTimeout(incrementVersion, 3000);
+        setTimeout(incrementVersion, 1000);
       }
     }
   }, [curation && curation.folder, incrementVersion]);
