@@ -18,7 +18,7 @@ import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
 import { ContentTreeNode } from '@shared/curate/types';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
-import { fixSlashes, sizeToString } from '@shared/Util';
+import { sizeToString } from '@shared/Util';
 import axios from 'axios';
 import { clipboard, MenuItemConstructorOptions } from 'electron';
 import { CurationState, LoadedCuration, Platform, TagSuggestion } from 'flashpoint-launcher';
@@ -52,7 +52,6 @@ export function CurateBox(props: CurateBoxProps) {
   const strings = React.useContext(LangContext);
   const disabled = !!props.curation.locked;
 
-  const [imageVersion, setImageVersion] = React.useState(1);
   const splitStatus = React.useMemo(() => props.curation.game.status ? props.curation.game.status.split(';').map(s => s.trim()).sort() : [], [props.curation.game.status]);
   const splitPlayMode = React.useMemo(() => props.curation.game.playMode ? props.curation.game.playMode.split(';').map(s => s.trim()).sort() : [], [props.curation.game.playMode]);
 
@@ -82,18 +81,15 @@ export function CurateBox(props: CurateBoxProps) {
     }
   }, [props.curation.game.tags]);
 
-  const incrementVersion = React.useCallback(() => {
-    setImageVersion(imageVersion + 1);
-  }, [imageVersion]);
-  const onSetThumbnail  = useAddImageCallback(CurationImageEnum.THUMBNAIL, props.curation, incrementVersion);
-  const onSetScreenshot = useAddImageCallback(CurationImageEnum.SCREENSHOT, props.curation, incrementVersion);
+  const onSetThumbnail  = useAddImageCallback(CurationImageEnum.THUMBNAIL, props.curation);
+  const onSetScreenshot = useAddImageCallback(CurationImageEnum.SCREENSHOT, props.curation);
   const onRemoveThumbnailClick  = useRemoveImageCallback(CurationImageEnum.THUMBNAIL, props.curation, props.dispatch);
   const onRemoveScreenshotClick = useRemoveImageCallback(CurationImageEnum.SCREENSHOT,  props.curation, props.dispatch);
   const onDropThumbnail  = useDropImageCallback('logo.png', props.curation, strings.dialog);
   const onDropScreenshot = useDropImageCallback('ss.png',   props.curation, strings.dialog);
 
-  const thumbnailPath  = props.curation.thumbnail.exists  ? fixSlashes(`${props.curation.thumbnail.filePath }?v=${imageVersion}`) : undefined;
-  const screenshotPath = props.curation.screenshot.exists ? fixSlashes(`${props.curation.screenshot.filePath}?v=${imageVersion}`) : undefined;
+  const thumbnailPath  = props.curation.thumbnail.exists  ? `${getCurationURL(props.curation.folder)}/logo.png` : undefined;
+  const screenshotPath = props.curation.screenshot.exists ? `${getCurationURL(props.curation.folder)}/ss.png` : undefined;
 
   const onNewAddApp  = useCreateAddAppCallback('normal',  props.curation.folder, props.dispatch);
   const onAddExtras  = useCreateAddAppCallback('extras',  props.curation.folder, props.dispatch);
@@ -695,19 +691,16 @@ export function CurateBox(props: CurateBoxProps) {
   );
 }
 
-function useAddImageCallback(type: CurationImageEnum, curation: LoadedCuration | undefined, incrementVersion: () => void): (data: ArrayBuffer) => void {
+function useAddImageCallback(type: CurationImageEnum, curation: LoadedCuration | undefined): (data: ArrayBuffer) => void {
   return React.useCallback(async (data: ArrayBuffer) => {
     if (curation) {
       const suffix = type === CurationImageEnum.THUMBNAIL ? 'logo.png' : 'ss.png';
       const res = await axios.post(`${getCurationURL(curation.folder)}/${suffix}`, data);
       if (res.status !== 200) {
         alert(`ERROR: Server Returned ${res.status} - ${res.statusText}`);
-      } else {
-        // Delayed force update of image
-        setTimeout(incrementVersion, 1000);
       }
     }
-  }, [curation && curation.folder, incrementVersion]);
+  }, [curation && curation.folder]);
 }
 
 /**
