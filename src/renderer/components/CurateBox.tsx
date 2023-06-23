@@ -704,7 +704,7 @@ function useAddImageCallback(type: CurationImageEnum, curation: LoadedCuration |
         alert(`ERROR: Server Returned ${res.status} - ${res.statusText}`);
       } else {
         // Delayed force update of image
-        setTimeout(incrementVersion, 200);
+        setTimeout(incrementVersion, 3000);
       }
     }
   }, [curation && curation.folder, incrementVersion]);

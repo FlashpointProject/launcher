@@ -115,6 +115,7 @@ const langTemplate = {
     'alreadyInstalled',
     'download',
     'error',
+    'checkForUpdates',
     'checkingUpdate',
     'updatedGamesReady',
     'update',

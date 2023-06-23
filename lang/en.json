@@ -109,6 +109,7 @@
     "download": "Download",
     "update": "Update",
     "error": "Error",
+    "checkForUpdates": "Check for Update",
     "checkingUpdate": "Checking Updates",
     "updatedGamesReady": "{0} Game Info Updates Ready",
     "checkingUpgradeState": "Checking Upgrade State...",
