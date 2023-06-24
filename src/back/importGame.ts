@@ -340,7 +340,7 @@ export async function launchAddAppCuration(folder: string, appCuration: AddAppCu
     await checkAndInstallPlatform(platforms, opts.state, opts.openDialog);
   }
   if (!skipLink || !symlinkCurationContent) { await linkContentFolder(folder, opts.fpPath, opts.isDev, opts.exePath, opts.htdocsPath, symlinkCurationContent); }
-  const addApp = createAddAppFromCurationMeta(appCuration, createPlaceholderGame());
+  const addApp = createAddAppFromCurationMeta(appCuration, createPlaceholderGame(platforms));
   await onWillEvent.fire(addApp);
   await GameLauncher.launchAdditionalApplication({
     ...opts,
@@ -479,7 +479,7 @@ function curationLog(content: string): void {
   log.info('Curate', content);
 }
 
-function createPlaceholderGame(): Game {
+function createPlaceholderGame(platforms: Platform[] = []): Game {
   const id = uuid();
   const game = new Game();
   Object.assign(game, {
@@ -509,6 +509,7 @@ function createPlaceholderGame(): Game {
     library: '',
     orderTitle: '',
     addApps: [],
+    platforms: platforms,
     placeholder: true,
     activeDataOnDisk: false
   });
