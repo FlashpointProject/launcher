@@ -2046,6 +2046,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         group: '',
         game: meta || {
           language: 'en',
+          primaryPlatform: defaultPlats ? defaultPlats.primaryAlias.name : undefined,
           platforms: defaultPlats ? [defaultPlats] : [],
           playMode: 'Single Player',
           status:   'Playable',

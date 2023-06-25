@@ -316,7 +316,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
             {/** Mini download info */}
             <div className='browse-right-sidebar__mini-download-info'>
               <div className='browse-right-sidebar__mini-download-info__state'>
-                {this.state.activeData ? (this.state.activeData.presentOnDisk ? strings.installed : strings.notInstalled): strings.legacyGame}
+                { this.props.fpfssEditMode ? strings.fpfssGame :
+                  this.state.activeData ? (this.state.activeData.presentOnDisk ? strings.installed : strings.notInstalled): strings.legacyGame}
               </div>
               { this.state.activeData && (
                 <div className='browse-right-sidebar__mini-download-info__size'>
@@ -325,7 +326,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
               )}
             </div>
             {/* -- Play Button -- */}
-            { isPlaceholder ? undefined :
+            { isPlaceholder || this.props.fpfssEditMode ? undefined :
               (this.props.currentGame && this.props.busyGames.includes(this.props.currentGame.id)) ? (
                 <div className='browse-right-sidebar__play-button--busy'>
                   {strings.busy}
