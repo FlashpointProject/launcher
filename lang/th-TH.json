@@ -486,7 +486,7 @@
     "selectFolder": "Select Folder",
     "selectScreenshot": "Select Screenshot",
     "selectThumbnail": "Select Thumbnail",
-    "selectCurationFolder": "เลือกโฟลเดอร์รายการจัดทำ",
+    "selectCurationFolder": "Select Curation Folder(s)",
     "selectCurationArchive": "Select Curation Archive(s)",
     "selectCurationMeta": "Select Curation Meta(s)",
     "selectPlaylistToImport": "Select Playlist to Import",
@@ -520,7 +520,7 @@
     "deleteAddApp": "Delete this Add App?",
     "deleteTagCategory": "Delete this Tag Category?",
     "deleteTag": "Delete this Tag?",
-    "deleteTagAlias": "ลบนามแฝงของแท็กนี้?",
+    "deleteTagAlias": "Delete this Tag Alias?",
     "deleteSource": "Delete this Source?",
     "uninstallGame": "Uninstall this Game?",
     "unableToUninstallGameData": "Unable to delete data pack. Is it in use? Try restarting the launcher.",
@@ -544,7 +544,7 @@
     "theatrePlural": "แอนิเมชั่นทั้งหมด",
     "auditorium": "NG Auditorium",
     "auditoriumSingular": "Animation",
-    "auditoriumPlural": "แอนิเมชั่น Newgrounds ทั้งหมด"
+    "auditoriumPlural": "All NG Animations"
   },
   "upgrades": {
     "infinity": "Flashpoint Infinity",
