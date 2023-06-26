@@ -305,7 +305,7 @@
     "searching": "正在搜索...",
     "library": "展馆",
     "defaultLibrary": "默认展馆",
-    "fpfssGame": "FPFSS Game",
+    "fpfssGame": "FPFSS 游戏",
     "uninstallGame": "卸载游戏",
     "installed": "已安装",
     "notInstalled": "未安装",
@@ -321,7 +321,7 @@
     "removeGameFromPlaylist": "从播放列表中删除游戏",
     "saveChanges": "保存更改",
     "discardChanges": "取消更改",
-    "editFpfssGame": "Edit Game (FPFSS)",
+    "editFpfssGame": "编辑游戏（FPFSS）",
     "editGame": "编辑游戏",
     "allGames": "所有游戏",
     "newPlaylist": "新播放列表",
@@ -413,17 +413,17 @@
     "removeAddApp": "删除应用",
     "indexContent": "刷新内容",
     "delete": "删除",
-    "deleteSelected": "Delete Selected",
+    "deleteSelected": "删除所选",
     "deleteCurationDesc": "删除此展品（无法恢复文件）",
     "openFolder": "打开文件夹",
     "run": "运行",
     "runWithMAD4FP": "使用 MAD4FP 运行",
     "export": "导出",
-    "exportSelected": "Export Selected",
+    "exportSelected": "导出所选",
     "exportDataPacks": "导出数据包",
-    "exportSelectedDataPacks": "Export Selected Data Packs",
+    "exportSelectedDataPacks": "导出所选数据包",
     "import": "导入",
-    "importSelected": "Import Selected",
+    "importSelected": "导入所选",
     "contentFiles": "内容文件",
     "warnings": "警告",
     "noTitle": "'Title' is a required field.",
@@ -491,7 +491,7 @@
     "showImage": "显示图像",
     "searching": "正在搜索...",
     "loading": "正在加载…",
-    "ok": "OK"
+    "ok": "确定"
   },
   "menu": {
     "viewThumbnailInFolder": "在文件夹中查看缩略图",
@@ -508,7 +508,7 @@
     "duplicatePlaylist": "创建播放列表副本",
     "exportPlaylist": "导出播放列表",
     "makeCurationFromGame": "从游戏创建展品",
-    "copyShortcutURL": "Copy Shortcut URL"
+    "copyShortcutURL": "复制快捷方式 URL"
   },
   "dialog": {
     "programNotFound": "未找到程序！",
