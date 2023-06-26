@@ -72,7 +72,7 @@
     "tagFilterGroupEditor": "Éditeur de groupe de filtre de tags"
   },
   "home": {
-    "gotdHeader": "Game of the Day",
+    "gotdHeader": "Jeu du jour",
     "updateHeader": "Mise à jour du lanceur",
     "currentVersion": "Version actuelle",
     "nextVersion": "Prochaine version",
@@ -128,7 +128,7 @@
     "logs": "Historique",
     "config": "Configuration",
     "about": "À propos",
-    "curate": "Conserver",
+    "curate": "Préserver",
     "developer": "Développeur",
     "searchPlaceholder": "Rechercher...",
     "hideRightSidebar": "Cacher la barre latérale droite",
@@ -456,7 +456,7 @@
     "viewThumbnailInFolder": "Voir la miniature dans le dossier",
     "viewScreenshotInFolder": "Voir la capture d'écran dans le dossier",
     "openFileLocation": "Ouvrir l'emplacement du fichier",
-    "addToFavorites": "Add to Favorites",
+    "addToFavorites": "Ajouter aux favoris",
     "addToPlaylist": "Ajouter à la playlist",
     "duplicateMetaOnly": "Dupliquer (meta seulement)",
     "duplicateMetaAndImages": "Dupliquer (meta et images)",
