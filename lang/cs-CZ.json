@@ -72,7 +72,7 @@
     "tagFilterGroupEditor": "Editor skupin filtrů štítků"
   },
   "home": {
-    "gotdHeader": "Game of the Day",
+    "gotdHeader": "Hra dne",
     "updateHeader": "Aktualizace spouštěče",
     "currentVersion": "Současná verze",
     "nextVersion": "Další verze",
@@ -456,7 +456,7 @@
     "viewThumbnailInFolder": "Otevřít složku s umístěním miniatury",
     "viewScreenshotInFolder": "Otevřít složku s umístěním náhledu",
     "openFileLocation": "Otevřít umístění souboru",
-    "addToFavorites": "Add to Favorites",
+    "addToFavorites": "Přidat k oblíbeným",
     "addToPlaylist": "Přidat do Seznamu",
     "duplicateMetaOnly": "Duplikovat (pouze metadata)",
     "duplicateMetaAndImages": "Duplikovat (metadata a obrázky)",
