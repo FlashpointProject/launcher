@@ -16,8 +16,8 @@
     "searchLimitValue": "{0} rezultate",
     "enableEditing": "Activați editarea",
     "enableEditingDesc": "Activați editarea jocurilor și a aplicațiilor suplimentare. De asemenea, arată categorii legate de editare.",
-    "symlinkCuration": "Symlink Curation Content",
-    "symlinkCurationDesc": "Uses symbolic links to test curations rather than copying files. Faster and supports MAD4FP. Admin rights required.",
+    "symlinkCuration": "Conținut de curare Symlink",
+    "symlinkCurationDesc": "Folosește link-uri simbolice pentru a testa curbări mai degrabă decât pentru a copia fișiere. Mai rapid și suportă drepturile de administrator MAD4FP.",
     "onDemandImages": "Imagini la cerere",
     "onDemandImagesDesc": "Descarcă și salvează logo-uri lipsă și capturi de ecran când e cazul.",
     "currentLanguage": "Limba principală",
@@ -72,7 +72,7 @@
     "tagFilterGroupEditor": "Editor de grup de filtre de etichete"
   },
   "home": {
-    "gotdHeader": "Game of the Day",
+    "gotdHeader": "Jocul zilei",
     "updateHeader": "Actualizare lansator",
     "currentVersion": "Versiune curentă",
     "nextVersion": "Versiune următoare",
@@ -140,7 +140,7 @@
     "list": "Listă",
     "grid": "Tabel",
     "searchResults": "Rezultate",
-    "manual": "Help"
+    "manual": "Ajutor"
   },
   "filter": {
     "dateAdded": "Data adăugării",
@@ -282,7 +282,7 @@
     "thumbnail": "logo-ul jocului",
     "screenshot": "captură de ecran",
     "dropImageHere": "Glisați aici o imagine pentru a o adăuga",
-    "noGameSelected": "No {0} Selected",
+    "noGameSelected": "Niciun/nicio {0} selectat/e",
     "clickToSelectGame": "Apăsați pe un joc pentru a-l selecta.",
     "deleteAdditionalApplication": "Înlăturați aplicația suplimentară",
     "deleteGameAndAdditionalApps": "Înlăturați jocul (împreună cu aplicațiile sale suplimentare)",
@@ -334,17 +334,17 @@
     "locked": "Blocate în timpul procesării..."
   },
   "curate": {
-    "noCurationSelected": "No Curation Selected",
-    "headerFileOperations": "File",
+    "noCurationSelected": "Nici o curare selectată",
+    "headerFileOperations": "Fișier",
     "headerEditCuration": "Modificați",
-    "headerTest": "Test",
+    "headerTest": "Testează",
     "importAll": "Importați tot",
     "importAllDesc": "Importați toate reparațiile încărcate",
     "deleteAll": "Ștergeți tot",
     "deleteAllDesc": "Șterge toate reparările încărcate în prezent",
     "saveImportedCurations": "Salvați reparările importate",
     "keepArchiveKey": "Păstrați ID-ul arhivei de reparații",
-    "symlinkCurationContent": "Symlink Curation Content",
+    "symlinkCurationContent": "Conținut de curare Symlink",
     "useTagFilters": "Utilizați filtrele de etichete în sugestii",
     "openCurationsFolder": "Dosarul reparărilor",
     "openCurationsFolderDesc": "Deschide dosarul reparărilor în exploratorul de fișiere corespunzător",
@@ -354,8 +354,8 @@
     "openImportedFolderDesc": "Deschide fișierul prestabilit de importări ce conține reparările importate.",
     "newCuration": "Reparare nouă",
     "newCurationDesc": "Creați nouă reparare cu un dosar nou",
-    "duplicateCuration": "Duplicate",
-    "newCurationFromTemplate": "New Curation (Template)",
+    "duplicateCuration": "Duplicare",
+    "newCurationFromTemplate": "Curare noua (Templat)",
     "loadMeta": "Încărcați informațiile jocurilor",
     "loadMetaDesc": "Încărcați fișiere cu informațiile jocurilor de reparat",
     "loadArchive": "Încărcați arhive",
@@ -385,7 +385,7 @@
     "run": "Executare",
     "runWithMAD4FP": "Rulați cu MAD4FP",
     "export": "Exportați",
-    "exportDataPacks": "Export Data Pack",
+    "exportDataPacks": "Export Pachet de date",
     "import": "Importați",
     "contentFiles": "Fișiere",
     "warnings": "Avertizări",
@@ -404,14 +404,14 @@
     "noScreenshot": "Nu există captură de ecran pentru această reparație.",
     "ilc_notHttp": "Folosiți HTTP.",
     "ilc_nonExistant": "Selectați un fișier existent din dosarul reparației.",
-    "documentStatus": "Notes must document changes and missing content for Hacked / Partial games",
+    "documentStatus": "Notele trebuie să documenteze modificările și conținutul lipsă pentru jocurile Hacked / Partial",
     "sort": "Sortare reparații (de la A la Z)",
-    "contextCopyName": "Copy File Name",
-    "contextCopyPath": "Copy File Path",
-    "contextCopyAsURL": "Copy File Path as URL",
-    "contextShowInExplorer": "Show File in Explorer",
-    "contextOpenFolderInExplorer": "Open Folder in Explorer",
-    "shortcuts": "Shortcuts"
+    "contextCopyName": "Copiază numele fișierului",
+    "contextCopyPath": "Copiază calea fișierului",
+    "contextCopyAsURL": "Copiază calea fișierului ca URL",
+    "contextShowInExplorer": "Arată fișierul în Explorator",
+    "contextOpenFolderInExplorer": "Deschide Dosarul în Explorator",
+    "shortcuts": "Comenzi rapide"
   },
   "playlist": {
     "enterDescriptionHere": "Iintroduceți descrierea aici...",
@@ -450,13 +450,13 @@
     "exportMetaEditDesc": "Selectați proprietățile de exportat:",
     "showImage": "Arată imaginea",
     "searching": "Se caută...",
-    "loading": "Loading..."
+    "loading": "Se încarcă ..."
   },
   "menu": {
     "viewThumbnailInFolder": "Vizualizați imaginea în dosar",
     "viewScreenshotInFolder": "Vizualizați imaginea în dosar",
     "openFileLocation": "Deschidere locație fișier",
-    "addToFavorites": "Add to Favorites",
+    "addToFavorites": "Adaugă la Favorite",
     "addToPlaylist": "Adaugă la lista de joc",
     "duplicateMetaOnly": "Dublare (numai informațiile jocurilor)",
     "duplicateMetaAndImages": "Dublare (informațiile jocurilor și imagini)",
@@ -466,7 +466,7 @@
     "exportMetaEdit": "Exportați modificări ale informațiilor jocurilor",
     "duplicatePlaylist": "Listă de joc duplicat",
     "exportPlaylist": "Exportați lista de joc",
-    "makeCurationFromGame": "Make Curation from Game"
+    "makeCurationFromGame": "Faceți curare din joc"
   },
   "dialog": {
     "programNotFound": "Programul nu a fost găsit.",
@@ -528,12 +528,12 @@
     "downloadingGame": "Se descarcă jocul…",
     "verifyingGame": "Se verifică jocul…",
     "aFewMinutes": "Acțiunea poate dura câteva minute.",
-    "importCurationWithWarnings": "Import this curation? There are still warnings present.",
-    "errorImportingCuration": "Error import curation '{0}', check logs page for details.",
-    "mustBePngImage": "Must be a .PNG Image.",
-    "mustBe7zArchiveSkipping": "Must be a .7z archive, skipping {0}",
-    "failedToLoadCuration": "Failed to load curation! {0}",
-    "exportCurationWithWarnings": "Export Curation even though it has Warnings?"
+    "importCurationWithWarnings": "Vrei sa importi această curare? Inca sunt prezente avertismente.",
+    "errorImportingCuration": "Eroare import curation '{0}', verificați pagina de însemnări pentru detalii.",
+    "mustBePngImage": "Trebuie să fie o imagine .PNG.",
+    "mustBe7zArchiveSkipping": "Trebuie să fie o arhivă .7z, sărind peste {0}",
+    "failedToLoadCuration": "Nu s-a putut încărca curationul! {0}",
+    "exportCurationWithWarnings": "Exportă curation chiar dacă are avertismente?"
   },
   "libraries": {
     "arcade": "Jocuri",
