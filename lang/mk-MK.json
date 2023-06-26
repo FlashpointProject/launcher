@@ -16,8 +16,8 @@
     "searchLimitValue": "{0} Резултати",
     "enableEditing": "Овозможи Уредувања",
     "enableEditingDesc": "Овозможи уредување на игри и дополнителни апликации. Исто така, покажува јазичиња поврзани со уредување.",
-    "symlinkCuration": "Symlink Curation Content",
-    "symlinkCurationDesc": "Uses symbolic links to test curations rather than copying files. Faster and supports MAD4FP. Admin rights required.",
+    "symlinkCuration": "Симлинк Курациска Содржина",
+    "symlinkCurationDesc": "Користи симболички линкови за да се тестираат курациите наместо копирање фајлови. Побрзо и подржува MAD4FP. Администраторски права се барани.",
     "onDemandImages": "Слики на барање",
     "onDemandImagesDesc": "Преземете и зачувајте логоа и слики од екранот што недостасуваат, колку што се потребни.",
     "currentLanguage": "Јазик",
@@ -72,7 +72,7 @@
     "tagFilterGroupEditor": "Уредувач на Филтерот на Група Ознаки"
   },
   "home": {
-    "gotdHeader": "Game of the Day",
+    "gotdHeader": "Игра на Денот",
     "updateHeader": "Ажурирање на Лаунчерот",
     "currentVersion": "Моментална Верзија",
     "nextVersion": "Следна Верзија",
@@ -140,7 +140,7 @@
     "list": "Листа",
     "grid": "Мрежа",
     "searchResults": "Резултати од Пребарувањето",
-    "manual": "Help"
+    "manual": "Помош"
   },
   "filter": {
     "dateAdded": "Датум Додадено",
@@ -334,17 +334,17 @@
     "locked": "Заклучено додека се обработува..."
   },
   "curate": {
-    "noCurationSelected": "No Curation Selected",
-    "headerFileOperations": "File",
+    "noCurationSelected": "Никаква Курација Селектирана",
+    "headerFileOperations": "Фајл",
     "headerEditCuration": "Уреди",
-    "headerTest": "Test",
+    "headerTest": "Тест",
     "importAll": "Увози се",
     "importAllDesc": "Увезете ги сите курации што се моментално вчитани",
     "deleteAll": "Избриши сè",
     "deleteAllDesc": "Избришете ги сите курации што се моментално вчитани",
     "saveImportedCurations": "Зачувај Увозни Курации",
     "keepArchiveKey": "Чуваја Архивата за Курација UUID",
-    "symlinkCurationContent": "Symlink Curation Content",
+    "symlinkCurationContent": "Симлинк Курациска Содржина",
     "useTagFilters": "Користи Филтри за Ознаки во Предлозите",
     "openCurationsFolder": "Папка со Курации",
     "openCurationsFolderDesc": "Отвори ја Кураторската Папка во Explorer",
@@ -354,8 +354,8 @@
     "openImportedFolderDesc": "Отворете ја стандардната папка Увезени курации што ги содржи увезените курации.",
     "newCuration": "Нова Курација",
     "newCurationDesc": "Создава нова курација со единствена папка",
-    "duplicateCuration": "Duplicate",
-    "newCurationFromTemplate": "New Curation (Template)",
+    "duplicateCuration": "Дуплицирај",
+    "newCurationFromTemplate": "Нова Курација (Шаблон)",
     "loadMeta": "Учитај Мета",
     "loadMetaDesc": "Учитај една или повеќе мета-фајлови на Курацијата",
     "loadArchive": "Учитај Архива",
@@ -385,7 +385,7 @@
     "run": "Стартувај",
     "runWithMAD4FP": "Стартувај со MAD4FP",
     "export": "Извоз",
-    "exportDataPacks": "Export Data Pack",
+    "exportDataPacks": "Изведувај Податочниот Пакет",
     "import": "Увоз",
     "contentFiles": "Содржински Фајлови",
     "warnings": "Преопредувања",
@@ -404,14 +404,14 @@
     "noScreenshot": "Нема слика од екранот за оваа курација.",
     "ilc_notHttp": "Користи HTTP.",
     "ilc_nonExistant": "Посочете на постоечкиот фајл во „содржината“ на вашата курациска Папка.",
-    "documentStatus": "Notes must document changes and missing content for Hacked / Partial games",
+    "documentStatus": "Забелешките да прикажува промените и недостасената содржина за Hacked / Partial игри",
     "sort": "Сортирај курации (A-Z)",
-    "contextCopyName": "Copy File Name",
-    "contextCopyPath": "Copy File Path",
-    "contextCopyAsURL": "Copy File Path as URL",
-    "contextShowInExplorer": "Show File in Explorer",
-    "contextOpenFolderInExplorer": "Open Folder in Explorer",
-    "shortcuts": "Shortcuts"
+    "contextCopyName": "Копирај Името на Фајлот",
+    "contextCopyPath": "Копирај Патот на Фајлот",
+    "contextCopyAsURL": "Копирај патеката на Фајлот во URL",
+    "contextShowInExplorer": "Прикажи го Фајлот во Explorer",
+    "contextOpenFolderInExplorer": "Отвори Фолдерот во Explorer",
+    "shortcuts": "Кратенки"
   },
   "playlist": {
     "enterDescriptionHere": "Внеси опис овде...",
@@ -450,13 +450,13 @@
     "exportMetaEditDesc": "Изберете ги сите својства за извоз:",
     "showImage": "Покажи Слика",
     "searching": "Барај...",
-    "loading": "Loading..."
+    "loading": "Вчитување..."
   },
   "menu": {
     "viewThumbnailInFolder": "Прегледај лого во папката",
     "viewScreenshotInFolder": "Прегледај слика од екран во папката",
     "openFileLocation": "Отвори локацијата на фајлот",
-    "addToFavorites": "Add to Favorites",
+    "addToFavorites": "Додади во Омилени",
     "addToPlaylist": "Додади во плејлиста",
     "duplicateMetaOnly": "Дуплицирај(Meta само)",
     "duplicateMetaAndImages": "Дуплицирај (Meta && Слики)",
@@ -466,7 +466,7 @@
     "exportMetaEdit": "Изведувај Meta Edit",
     "duplicatePlaylist": "Дуплицирај опис на плејлист",
     "exportPlaylist": "Изведувај плејлист",
-    "makeCurationFromGame": "Make Curation from Game"
+    "makeCurationFromGame": "Направи Курација од Играта"
   },
   "dialog": {
     "programNotFound": "Програмата не е најдена!",
@@ -528,12 +528,12 @@
     "downloadingGame": "Играта се инсталира...",
     "verifyingGame": "Играта се проверува...",
     "aFewMinutes": "Ова може да трае неколку минути.",
-    "importCurationWithWarnings": "Import this curation? There are still warnings present.",
-    "errorImportingCuration": "Error import curation '{0}', check logs page for details.",
-    "mustBePngImage": "Must be a .PNG Image.",
-    "mustBe7zArchiveSkipping": "Must be a .7z archive, skipping {0}",
-    "failedToLoadCuration": "Failed to load curation! {0}",
-    "exportCurationWithWarnings": "Export Curation even though it has Warnings?"
+    "importCurationWithWarnings": "Увезуваја ова курација? Сеуште имате предупредувања.",
+    "errorImportingCuration": "Грешка на увезување курација '{0}', проверете ja logs страната за детали.",
+    "mustBePngImage": "Треба да биде .PNG Слика.",
+    "mustBe7zArchiveSkipping": "Мора да биде .7z архива, скокање {0}",
+    "failedToLoadCuration": "Не се вчитува курацијата! {0}",
+    "exportCurationWithWarnings": "Изведуваја Курацијата иако има предупредувања?"
   },
   "libraries": {
     "arcade": "Игри",
