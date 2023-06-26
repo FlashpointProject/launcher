@@ -72,7 +72,7 @@
     "tagFilterGroupEditor": "Märksõna Filtri Grupi Toimetaja"
   },
   "home": {
-    "gotdHeader": "Game of the Day",
+    "gotdHeader": "Päevamäng",
     "updateHeader": "Rakenduse Uuendus",
     "currentVersion": "Praegune Versioon",
     "nextVersion": "Järgmine Versioon",
@@ -140,7 +140,7 @@
     "list": "Nimekiri",
     "grid": "Ruudustik",
     "searchResults": "Tulemusi leitud",
-    "manual": "Help"
+    "manual": "Abiinfo"
   },
   "filter": {
     "dateAdded": "Kuupäev Lisatud",
@@ -334,8 +334,8 @@
     "locked": "Lukus protsessi ajal..."
   },
   "curate": {
-    "noCurationSelected": "No Curation Selected",
-    "headerFileOperations": "File",
+    "noCurationSelected": "Ühtki modifikatsiooni pole valitud",
+    "headerFileOperations": "Fail",
     "headerEditCuration": "Muuda",
     "headerTest": "Test",
     "importAll": "Impordi Kõik",
@@ -354,8 +354,8 @@
     "openImportedFolderDesc": "Ava vaikimisi valitud kaust, milles on sinu imporditud kureeringud.",
     "newCuration": "Uus Kureering",
     "newCurationDesc": "Loob uue kureeringu unikaalse kaustaga",
-    "duplicateCuration": "Duplicate",
-    "newCurationFromTemplate": "New Curation (Template)",
+    "duplicateCuration": "Dubleeri",
+    "newCurationFromTemplate": "Uus modifikatsioon (mall)",
     "loadMeta": "Lae Üles Meta",
     "loadMetaDesc": "Lae üles ühe või rohkema kureeringute metafailid",
     "loadArchive": "Lae Üles Arhiiv",
@@ -385,7 +385,7 @@
     "run": "Mängi",
     "runWithMAD4FP": "Mängi MAD4FP'ga",
     "export": "Ekspordi",
-    "exportDataPacks": "Export Data Pack",
+    "exportDataPacks": "Ekspordi andmete kogum",
     "import": "Impordi",
     "contentFiles": "Sisufailid",
     "warnings": "Hoiatused",
@@ -404,14 +404,14 @@
     "noScreenshot": "Sellel kureeringul pole ekraanipilti.",
     "ilc_notHttp": "Kasuta HTTP.",
     "ilc_nonExistant": "Osuta olemasolevale failile oma kureeringu 'sisu' kaustas.",
-    "documentStatus": "Notes must document changes and missing content for Hacked / Partial games",
+    "documentStatus": "Märkmed peavad jäädvustama muutusi ja puuduvat sisu Hacked / Partial mängudel",
     "sort": "Sorteeri Kureeringud (A-Z)",
-    "contextCopyName": "Copy File Name",
-    "contextCopyPath": "Copy File Path",
-    "contextCopyAsURL": "Copy File Path as URL",
-    "contextShowInExplorer": "Show File in Explorer",
-    "contextOpenFolderInExplorer": "Open Folder in Explorer",
-    "shortcuts": "Shortcuts"
+    "contextCopyName": "Kopeeri faili nimi",
+    "contextCopyPath": "Kopeeri faili asukoht",
+    "contextCopyAsURL": "Kopeeri faili asukoht URL-na",
+    "contextShowInExplorer": "Kuva fail Explorer'is",
+    "contextOpenFolderInExplorer": "Ava kaust Explorer'is",
+    "shortcuts": "Otseteed"
   },
   "playlist": {
     "enterDescriptionHere": "Lisa kirjeldus siia...",
@@ -450,13 +450,13 @@
     "exportMetaEditDesc": "Vali kõik väljad, mida eksportida:",
     "showImage": "Näita pilti",
     "searching": "Otsin...",
-    "loading": "Loading..."
+    "loading": "Laadimine..."
   },
   "menu": {
     "viewThumbnailInFolder": "Vaata Logo Kaustas",
     "viewScreenshotInFolder": "Vaata Ekraanipilti Kaustas",
     "openFileLocation": "Ava Faili Asukoht",
-    "addToFavorites": "Add to Favorites",
+    "addToFavorites": "Lisa lemmikute hulka",
     "addToPlaylist": "Lisa Esitlusloendisse",
     "duplicateMetaOnly": "Duplikaat (Vaid Meta)",
     "duplicateMetaAndImages": "Duplikaat (Meta && Pildid)",
@@ -466,7 +466,7 @@
     "exportMetaEdit": "Ekspordi Meta Muudatus",
     "duplicatePlaylist": "Dubleeri Esitlusloend",
     "exportPlaylist": "Ekspordi Esitlusloend",
-    "makeCurationFromGame": "Make Curation from Game"
+    "makeCurationFromGame": "Loo modifikatsioon mängust"
   },
   "dialog": {
     "programNotFound": "Programmi ei Leitud!",
@@ -528,12 +528,12 @@
     "downloadingGame": "Laen Mängu Alla...",
     "verifyingGame": "Kinnitan Mängu...",
     "aFewMinutes": "See võib võtta mõne minuti.",
-    "importCurationWithWarnings": "Import this curation? There are still warnings present.",
-    "errorImportingCuration": "Error import curation '{0}', check logs page for details.",
-    "mustBePngImage": "Must be a .PNG Image.",
-    "mustBe7zArchiveSkipping": "Must be a .7z archive, skipping {0}",
-    "failedToLoadCuration": "Failed to load curation! {0}",
-    "exportCurationWithWarnings": "Export Curation even though it has Warnings?"
+    "importCurationWithWarnings": "Kas importida see modifikatsioon? Endiselt leidub hoiatusmärguandeid.",
+    "errorImportingCuration": "Ilmnes tõrge modifikatsioon \"{0}\" importides, täpsemaid detaile leiate aruannete leheküljelt.",
+    "mustBePngImage": "Peab olema .PNG pilt.",
+    "mustBe7zArchiveSkipping": "Peab olema .7z arhiiv, jätan vahele {0}",
+    "failedToLoadCuration": "Viga modifikatsiooni laadimisel! {0}",
+    "exportCurationWithWarnings": "Kas eksportida modifikatsioon, vaatamata hoiatusmärguannetele?"
   },
   "libraries": {
     "arcade": "Mängud",
