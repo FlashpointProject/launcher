@@ -72,7 +72,7 @@
     "tagFilterGroupEditor": "Редактор групп фильтров тегов"
   },
   "home": {
-    "gotdHeader": "Game of the Day",
+    "gotdHeader": "Игра дня",
     "updateHeader": "Обновление Лаунчера",
     "currentVersion": "Текущая версия",
     "nextVersion": "Следующая версия",
@@ -456,7 +456,7 @@
     "viewThumbnailInFolder": "Отображать превью в папке",
     "viewScreenshotInFolder": "Отображать скриншоты в папке",
     "openFileLocation": "Открыть расположение файлов",
-    "addToFavorites": "Add to Favorites",
+    "addToFavorites": "Добавить в избранное",
     "addToPlaylist": "Добавить в плейлист",
     "duplicateMetaOnly": "Дублировать (Только метафайлы)",
     "duplicateMetaAndImages": "Дублировать (Метафайлы и изображения)",
