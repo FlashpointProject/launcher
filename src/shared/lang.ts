@@ -266,6 +266,14 @@ const langTemplate = {
     'noTitle',
     'by',
     'play',
+    'lastPlayed',
+    'playtime',
+    'playCount',
+    'never',
+    'today',
+    'yesterday',
+    'daysAgo',
+    'weeksAgo',
     'stop',
     'noDeveloper',
     'alternateTitles',
@@ -694,6 +702,8 @@ export function getDefaultLocalization(): LangContainer {
   lang.browse.dropGameOnLeft += ' {0}';
   lang.browse.setFlashpointPathQuestion += ' {0} {1}';
   lang.browse.noteSaveAndRestart += ' {0}';
+  lang.browse.daysAgo += ' {0}';
+  lang.browse.weeksAgo += ' {0}';
   lang.misc.noBlankFound = ' {0} ' + lang.misc.noBlankFound;
   lang.misc.addBlank += ' {0}';
   lang.misc.deleteAllBlankImages += ' {0}';

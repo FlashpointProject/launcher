@@ -386,6 +386,27 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     </div>
                   )
             }
+            {/** Gameplay Statistics */}
+            { isPlaceholder || this.props.fpfssEditMode ? undefined : (
+              <div className='browse-right-sidebar__stats'>
+                <div className='browse-right-sidebar__stats-row'>
+                  <div className='browse-right-sidebar__stats-row-left'>
+                    {strings.lastPlayed}
+                  </div>
+                  <div className='browse-right-sidebar__stats-row-right'>
+                    {game.lastPlayed ? formatLastPlayed(game.lastPlayed, strings) : strings.never}
+                  </div>
+                </div>
+                <div className='browse-right-sidebar__stats-row'>
+                  <div className='browse-right-sidebar__stats-row-left'>
+                    {strings.playtime}
+                  </div>
+                  <div className='browse-browser-right-sidebarright-sidebar__stats-row-right'>
+                    {formatPlaytime(game.playtime)}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
           <div
             ref={this.state.middleScrollRef}
@@ -691,7 +712,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
               {/* -- Screenshot -- */}
               <div className='browse-right-sidebar__section browse-right-sidebar__section--below-gap'>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row__spacer' />
-                <div className='browse-right-sidebar__row'>
+                <div className='browse-right-sidebar__row browse-right-sidebar__row__screenshot-container'>
                   <div
                     className='browse-right-sidebar__row__screenshot'
                     onContextMenu={this.onScreenshotContextMenu}>
@@ -743,6 +764,10 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   src={screenshotSrc}
                   onCancel={this.onScreenshotPreviewClick} />
               ) : undefined }
+            </div>
+          )}
+          { !this.props.fpfssEditMode && (
+            <div className='browse-right-sidebar__super-bottom'>
               <SimpleButton
                 value={strings.openGameDataBrowser}
                 onClick={() => this.setState({ gameDataBrowserOpen: !this.state.gameDataBrowserOpen })}/>
@@ -1290,4 +1315,66 @@ function openContextMenu(template: MenuItemConstructorOptions[]): Menu {
   const menu = remote.Menu.buildFromTemplate(template);
   menu.popup({ window: remote.getCurrentWindow() });
   return menu;
+}
+
+/**
+ * Get a formatted last played string (Rounded to the nearest useful amount)
+ *
+ * @param lastPlayed Last Played Date
+ * @param strings localized strings
+ */
+function formatLastPlayed(lastPlayed: string, strings: any): string {
+  const secondsInDay = 60 * 60 * 24;
+  const lpdate = new Date(lastPlayed);
+  const diff = Math.ceil((Date.now() - lpdate.getTime()) / 1000);
+
+  if (diff < (secondsInDay * 2)) {
+    if ((new Date()).getDate() === lpdate.getDate()) {
+      return strings.today;
+    } else {
+      return strings.yesterday;
+    }
+  } else if (diff < (secondsInDay * 8)) {
+    return formatString(strings.daysAgo, Math.floor(diff / secondsInDay).toString()) as string;
+  } else if (diff < (secondsInDay * 7 * 4)) {
+    return formatString(strings.weeksAgo, Math.floor(diff / (secondsInDay * 7)).toString()) as string;
+  } else {
+    const ordinal = ordinalSuffixOf(lpdate.getDate());
+    const month = lpdate.toLocaleString('default', { month: 'long' });
+    return `${ordinal} ${month} ${lpdate.getFullYear()}`;
+  }
+}
+
+/**
+ * Get a formatted playtime string (Rounded to the nearest useful amount)
+ *
+ * @param playtime Seconds of playtime
+ */
+function formatPlaytime(playtime: number): string {
+  // Less than 1 minute
+  if (playtime <= 60) {
+    return `${playtime} Seconds`;
+  }
+  // Less than 2 hours
+  if (playtime <= (60 * 120)) {
+    return `${Math.floor(playtime / 60)} Minutes`;
+  } else {
+    return `${(playtime / (60 * 60)).toFixed(1)} Hours`;
+  }
+}
+
+// https://stackoverflow.com/questions/13627308/add-st-nd-rd-and-th-ordinal-suffix-to-a-number
+function ordinalSuffixOf(i: number) {
+  const j = i % 10,
+    k = i % 100;
+  if (j == 1 && k != 11) {
+    return i + 'st';
+  }
+  if (j == 2 && k != 12) {
+    return i + 'nd';
+  }
+  if (j == 3 && k != 13) {
+    return i + 'rd';
+  }
+  return i + 'th';
 }

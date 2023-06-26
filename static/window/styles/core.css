@@ -1532,17 +1532,57 @@ body {
   overflow-x: hidden;
   display: flex;
   flex-grow: 1;
-  min-height: 30%;
+  min-height: 40%;
   flex-direction: column;
   padding: 0 0.8rem;
 }
-.browse-right-sidebar__bottom {
+.browse-right-sidebar__super-bottom {
   flex-shrink: 0;
   margin-top: 0.5rem;
   display: flex;
   flex-direction: column;
   padding: 0 0.8rem 0.5rem 0.8rem;
 }
+.browse-right-sidebar__bottom {
+  flex-shrink: 0;
+  margin-top: 0.5rem;
+  display: flex;
+  max-height: 30%;
+  flex-direction: column;
+  padding: 0 0.8rem 0 0.8rem;
+}
+.browse-right-sidebar__bottom > .browse-right-sidebar__section {
+  height: 100%;
+}
+.browse-right-sidebar__bottom > .browse-right-sidebar__section > .browse-right-sidebar__row__screenshot-container {
+  height: 100%;
+}
+.browse-right-sidebar__bottom > .browse-right-sidebar__section > .browse-right-sidebar__row__screenshot-container > .browse-right-sidebar__row__screenshot {
+  height: 100%;
+}
+.browse-right-sidebar__bottom > .browse-right-sidebar__section > .browse-right-sidebar__row__screenshot-container > .browse-right-sidebar__row__screenshot> img {
+  height: 100%;
+}
+
+/* Browse game stats */
+.browse-right-sidebar__stats {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.5rem;
+}
+.browse-right-sidebar__stats-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.browse-right-sidebar__stats-row-left {
+  font-weight: bold;
+}
+.browse-right-sidebar__stats-row-right {
+  text-align: left;
+}
+
+
 
 /* Browse-Right-Sidebar Play Button */
 .browse-right-sidebar__play-button,
@@ -1553,7 +1593,7 @@ body {
   font-size: 2.5em;
   text-align: center;
   margin: auto;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.2rem;
   user-select: none;
   cursor: pointer;
   max-height: 3.2rem;
@@ -1687,6 +1727,7 @@ body {
 }
 .browse-right-sidebar__row__screenshot-image {
   width: 100%;
+  object-fit: contain;
   cursor: zoom-in;
 }
 .browse-right-sidebar__row__screenshot-image--hidden {

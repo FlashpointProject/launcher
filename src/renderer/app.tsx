@@ -325,6 +325,21 @@ export class App extends React.Component<AppProps> {
 
     window.Shared.back.register(BackOut.SERVICE_CHANGE, (event, data) => {
       if (data.id) {
+        // Check if game just stopped, update to reflect time played changes if so
+        if (this.props.main.currentGame && data.state === ProcessState.STOPPED) {
+          if (data.id.startsWith('game.') && data.id.length > 5) {
+            const id = data.id.slice(5);
+            if (id === this.props.main.currentGame.id) {
+              // Reload game in sidebar
+              window.Shared.back.request(BackIn.GET_GAME, this.props.main.currentGame.id)
+              .then((game) => {
+                if (game && this.props.main.selectedGameId === game.id) {
+                  this.props.setMainState({ currentGame: game });
+                }
+              });
+            }
+          }
+        }
         const newServices = [...this.props.main.services];
         const service = newServices.find(item => item.id === data.id);
         if (service) {

@@ -152,7 +152,7 @@ export async function importPlaylist(state: BackState, filePath: string, library
       state.socketServer.send(event.client, BackOut.IMPORT_PLAYLIST, newPlaylist);
     }
   } catch (e) {
-    console.log(e);
+    log.error('Launcher', `Error importing playlist: ${e}`);
   }
 }
 

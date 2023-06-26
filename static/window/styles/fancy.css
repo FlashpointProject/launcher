@@ -832,6 +832,7 @@ body {
 .browse-right-sidebar__row__screenshot-image--hidden:hover {
   background-color: var(--layout__simple-button-background);
 }
+
 /* GameImageSplit */
 .game-image-split {
   --inner-border-color: var(--layout__secondary-background);

@@ -2363,12 +2363,26 @@ function runGameFactory(state: BackState) {
         kill: true
       }
     );
+    if (proc.getState() === ProcessState.RUNNING) {
+      // Update game last played
+      GameManager.logGameStart(gameLaunchInfo.game.id);
+    } else {
+      proc.on('change', async () => {
+        if (proc.getState() === ProcessState.RUNNING) {
+          // Update game last played
+          await GameManager.logGameStart(gameLaunchInfo.game.id);
+        }
+      });
+    }
     // Remove game service when it exits
     proc.on('change', () => {
       if (proc.getState() === ProcessState.STOPPED) {
+        // Update game playtime counter
+        GameManager.addGamePlaytime(gameLaunchInfo.game.id, Date.now() - proc.getStartTime());
         removeService(state, proc.id);
       }
     });
+
     return proc;
   };
 }

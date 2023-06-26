@@ -152,6 +152,18 @@ export class Game {
   @OneToMany(() => GameData, datas => datas.game)
     data?: GameData[];
 
+  /** Last Played Date */
+  @Column({ type: 'datetime' })
+    lastPlayed?: string;
+
+  /** Total Playtime (seconds) */
+  @Column({ default: 0 })
+    playtime: number;
+
+  /** Number of plays */
+  @Column({ default: 0 })
+    playCounter: number;
+
   // This doesn't run... sometimes.
   @BeforeUpdate()
   updateTagsStr() {

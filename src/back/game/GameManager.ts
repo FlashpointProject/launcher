@@ -610,3 +610,20 @@ async function getGameQuery(
 
   return query;
 }
+
+export async function logGameStart(gameId: string) {
+  const game = await findGame(gameId);
+  if (game) {
+    game.lastPlayed = (new Date()).toISOString();
+    game.playCounter += 1;
+    await save(game);
+  }
+}
+
+export async function addGamePlaytime(gameId: string, time: number) {
+  const game = await findGame(gameId);
+  if (game) {
+    game.playtime = game.playtime + Math.ceil(time / 1000);
+    await save(game);
+  }
+}

@@ -599,6 +599,12 @@ declare module 'flashpoint-launcher' {
         /** Whether the data is present on disk */
         activeDataOnDisk: boolean;
         data?: GameData[];
+        /** Last Played Date */
+        lastPlayed?: string;
+        /** Total Playtime (seconds) */
+        playtime: number;
+        /** Number of plays */
+        playCounter: number;
         updateTagsStr: () => void;
     };
 
