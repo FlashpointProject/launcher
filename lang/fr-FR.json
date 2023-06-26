@@ -124,7 +124,7 @@
     "linuxSupportLinkText": "Ouvrir la FAQ",
     "randomPicks": "Choix aléatoires",
     "rerollPicks": "Relancer la sélection",
-    "componentUpdatesReady": "Install {0} software updates",
+    "componentUpdatesReady": "Installer {0} mises à jour logicielles",
     "componentUpToDate": "Flashpoint est à jour",
     "lastUpdated": "Dernière mise à jour",
     "updateComplete": "Mise à jour terminée !"
@@ -135,9 +135,9 @@
     "copyText": "Copier le texte",
     "clearLog": "Effacer le log",
     "copy404Urls": "Copier les URL 404",
-    "uploadLog": "Télécharger l'historique",
+    "uploadLog": "Téléverser le log",
     "copiedToClipboard": "Copié dans le presse-papier",
-    "openLogsWindow": "Ouvrir la fenêtre de l'historique",
+    "openLogsWindow": "Ouvrir la fenêtre de logs",
     "copyDiagnostics": "Copier les diagnostics"
   },
   "app": {
@@ -208,7 +208,7 @@
     "importLegacyPlaylistsDesc": "Importe les anciennes playlists de '/Data/Playlist'",
     "deleteAllPlaylists": "Supprimer toutes les playlists",
     "deleteAllPlaylistsDesc": "ATTENTION ! Supprime toutes les playlists.",
-    "updateTagsString": "Update Tagged Field Strings",
+    "updateTagsString": "Mettre à jour les champs taggés",
     "updateTagsStringDesc": "Met à jour tous les champs taggés de tous les jeux (par exemple Tags, Plateformes)",
     "importMetaEdits": "Importer les modifications de meta",
     "importMetaEditsDesc": "Importe toutes les modifications de meta de '/Data/MetaEdits'",
@@ -367,7 +367,7 @@
     "locked": "Protégé pendant le traitement..."
   },
   "curate": {
-    "noCurationSelected": "Aucune curation sélectionnée",
+    "noCurationSelected": "Aucune conservation sélectionnée",
     "headerFileOperations": "Fichier",
     "headerEditCuration": "Éditer",
     "headerTest": "Test",
@@ -421,7 +421,7 @@
     "export": "Exporter",
     "exportSelected": "Exporter la sélection",
     "exportDataPacks": "Exporter le pack de données",
-    "exportSelectedDataPacks": "Export Selected Data Packs",
+    "exportSelectedDataPacks": "Exporter la sélection de packs de données",
     "import": "Importer",
     "importSelected": "Importer la sélection",
     "contentFiles": "Fichiers Content",
@@ -545,7 +545,7 @@
     "cancel": "Annuler",
     "mergePlaylists": "Fusionner les playlists",
     "newPlaylist": "Les laisser séparées",
-    "uploadPrivacyWarning": "Ceci va rendre votre historique public.\nUn lien va être copié dans votre presse-papier.\n\nÊtes-vous sûr ?",
+    "uploadPrivacyWarning": "Ceci va rendre votre log public.\nUn lien va être copié dans votre presse-papier.\n\nÊtes-vous sûr ?",
     "overwriteFileTitle": "Le fichier existe déjà !",
     "overwriteFileMessage": "Un fichier du même nom existe déjà. Voulez-vous l'écraser ?",
     "overwriteFileDetail": "Chemin du fichier :",
