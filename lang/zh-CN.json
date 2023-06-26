@@ -72,7 +72,7 @@
     "tagFilterGroupEditor": "标签筛选器组编辑器"
   },
   "home": {
-    "gotdHeader": "Game of the Day",
+    "gotdHeader": "今日游戏",
     "updateHeader": "启动器更新",
     "currentVersion": "当前版本",
     "nextVersion": "新版本",
@@ -456,7 +456,7 @@
     "viewThumbnailInFolder": "在文件夹中查看缩略图",
     "viewScreenshotInFolder": "在文件夹中查看屏幕截图",
     "openFileLocation": "打开文件位置",
-    "addToFavorites": "Add to Favorites",
+    "addToFavorites": "添加到收藏",
     "addToPlaylist": "添加至播放列表",
     "duplicateMetaOnly": "创建副本（仅元数据）",
     "duplicateMetaAndImages": "创建副本（元数据与图像）",
