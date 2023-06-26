@@ -341,7 +341,8 @@
     "mountParameters": "Mount Parameters",
     "noMountParameters": "No Mount Parameters",
     "showExtremeScreenshot": "Show Extreme Screenshot",
-    "busy": "Please Wait..."
+    "busy": "Please Wait...",
+    "openGameDataBrowser": "Open Game Data Browser"
   },
   "tags": {
     "name": "Name",

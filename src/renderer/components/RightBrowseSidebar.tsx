@@ -744,7 +744,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   onCancel={this.onScreenshotPreviewClick} />
               ) : undefined }
               <SimpleButton
-                value='Open Game Data Browser'
+                value={strings.openGameDataBrowser}
                 onClick={() => this.setState({ gameDataBrowserOpen: !this.state.gameDataBrowserOpen })}/>
               { this.props.preferencesData.enableEditing && !this.props.isEditing && (
                 <>

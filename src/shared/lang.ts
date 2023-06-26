@@ -354,6 +354,7 @@ const langTemplate = {
     'noMountParameters',
     'showExtremeScreenshot',
     'busy',
+    'openGameDataBrowser',
   ] as const,
   tags: [
     'name',

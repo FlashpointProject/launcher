@@ -172,6 +172,7 @@ export namespace GameLauncher {
       };
       for (const addApp of opts.game.addApps) {
         if (addApp.autoRunBefore) {
+          addApp.parentGame = opts.game;
           const promise = launchAdditionalApplication({ ...addAppOpts, addApp }, curation);
           if (addApp.waitForExit) { await promise; }
         }

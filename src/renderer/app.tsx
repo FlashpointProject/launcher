@@ -172,7 +172,7 @@ export class App extends React.Component<AppProps> {
             break;
           }
           default:
-            ipcRenderer.invoke(CustomIPC.SHOW_SAVE_DIALOG, { title: 'Protocol Error', message: `Unsupported action "${parts[0]}"` });
+            ipcRenderer.invoke(CustomIPC.SHOW_MESSAGE_BOX, { title: 'Protocol Error', message: `Unsupported action "${parts[0]}"` });
             break;
         }
       }
