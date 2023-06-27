@@ -20,11 +20,13 @@ import { AppDataSource } from '..';
 import * as GameDataManager from './GameDataManager';
 import * as TagManager from './TagManager';
 
-const exactFields = [ 'broken', 'library', 'activeDataOnDisk' ];
+const nullableFields = [ 'lastPlayed' ];
+const exactFields = [ 'broken', 'library', 'activeDataOnDisk'];
 enum flatGameFields {
   'id', 'title', 'alternateTitles', 'developer', 'publisher', 'dateAdded', 'dateModified', 'series',
   'broken', 'playMode', 'status', 'notes', 'source', 'applicationPath', 'launchCommand', 'releaseDate',
-  'version', 'originalDescription', 'language', 'library', 'activeDataOnDisk', 'platformName'
+  'version', 'originalDescription', 'language', 'library', 'activeDataOnDisk', 'platformName', 'lastPlayed',
+  'playtime'
 }
 
 // Events
@@ -474,18 +476,24 @@ function doWhereField(alias: string, query: SelectQueryBuilder<Game>, field: str
   // Create comparator
   const typing = typeof value;
   const exact = !(typing === 'string') || exactFields.includes(field);
+  const nullable = nullableFields.includes(field);
+
   let comparator: string;
-  if (!exact && value.length != '') {
+  if (!nullable && !exact && value.length != '') {
     if (whitelist) { comparator = 'like'; }
     else           { comparator = 'not like'; }
-  } else {
+  } else if (!nullable) {
     if (whitelist) { comparator = '=';  }
     else           { comparator = '!='; }
+  } else {
+    if (whitelist) { comparator = 'IS'; }
+    else           { comparator = 'IS NOT'; }
+    value = null;
   }
 
   // Create formed value
   let formedValue: any = value;
-  if (!exact && value.length != '') {
+  if (!nullable && !exact && value.length != '') {
     formedValue = '%' + value + '%';
   }
 
@@ -592,6 +600,7 @@ async function getGameQuery(
     if (!index && offset) { query.skip(offset); }
     if (limit) { query.take(limit); }
   }
+
   // Playlist filtering
   if (filterOpts && filterOpts.playlist) {
     const gameIds = filterOpts.playlist.games.map(g => g.gameId).filter(gameId => !!gameId) as string[];
@@ -607,6 +616,8 @@ async function getGameQuery(
     await applyMultiPlatformFieldFilters(filterOpts.searchQuery, alias, query, whereCount);
     whereCount++;
   }
+
+
 
   return query;
 }
@@ -626,4 +637,13 @@ export async function addGamePlaytime(gameId: string, time: number) {
     game.playtime = game.playtime + Math.ceil(time / 1000);
     await save(game);
   }
+}
+
+export async function clearPlaytimeTracking() {
+  const gameRepository = AppDataSource.getRepository(Game);
+  await gameRepository.update({}, {
+    lastPlayed: null,
+    playtime: 0,
+    playCounter: 0
+  });
 }

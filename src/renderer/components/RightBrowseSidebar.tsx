@@ -402,7 +402,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     {strings.playtime}
                   </div>
                   <div className='browse-browser-right-sidebarright-sidebar__stats-row-right'>
-                    {formatPlaytime(game.playtime)}
+                    {formatPlaytime(game.playtime, strings)}
                   </div>
                 </div>
               </div>
@@ -1349,17 +1349,18 @@ function formatLastPlayed(lastPlayed: string, strings: any): string {
  * Get a formatted playtime string (Rounded to the nearest useful amount)
  *
  * @param playtime Seconds of playtime
+ * @param strings localized strings
  */
-function formatPlaytime(playtime: number): string {
+function formatPlaytime(playtime: number, strings: any): string {
   // Less than 1 minute
   if (playtime <= 60) {
-    return `${playtime} Seconds`;
+    return formatString(strings.seconds, playtime.toString()) as string;
   }
   // Less than 2 hours
   if (playtime <= (60 * 120)) {
-    return `${Math.floor(playtime / 60)} Minutes`;
+    return formatString(strings.minutes, Math.floor(playtime / 60).toString()) as string;
   } else {
-    return `${(playtime / (60 * 60)).toFixed(1)} Hours`;
+    return formatString(strings.hours, (playtime / (60 * 60)).toFixed(1)) as string;
   }
 }
 

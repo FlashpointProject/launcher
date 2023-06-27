@@ -600,7 +600,7 @@ declare module 'flashpoint-launcher' {
         activeDataOnDisk: boolean;
         data?: GameData[];
         /** Last Played Date */
-        lastPlayed?: string;
+        lastPlayed: string | null;
         /** Total Playtime (seconds) */
         playtime: number;
         /** Number of plays */
@@ -938,7 +938,7 @@ declare module 'flashpoint-launcher' {
      * This is the data contained in the Preferences file.
      */
     type AppPreferencesData = {
-        [key: string]: any;
+        [key: string]: any; // TODO: Remove this!
         /** Path to the image folder (relative to the flashpoint path) */
         imageFolderPath: string;
         /** Path to the logo folder (relative to the flashpoint path) */
@@ -1051,6 +1051,10 @@ declare module 'flashpoint-launcher' {
         server: string;
         /** Name of the Server to use when running curations */
         curateServer: string;
+        /** Enable Playtime Tracking (last played, playtime, play count) */
+        enablePlaytimeTracking: boolean;
+        /** Enable Playtime Tracking for Extreme games (last played, playtime, play count) */
+        enablePlaytimeTrackingExtreme: boolean;
     };
 
     type GameDataSource = {

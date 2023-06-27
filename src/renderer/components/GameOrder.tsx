@@ -25,6 +25,7 @@ export type GameOrderChangeEvent = {
 export class GameOrder extends React.Component<GameOrderProps> {
   render() {
     const strings = this.context.filter;
+    const allStrings = this.context;
     return (
       <>
         {/* Order By */}
@@ -38,6 +39,8 @@ export class GameOrder extends React.Component<GameOrderProps> {
           <option value='title'>{strings.title}</option>
           <option value='developer'>{strings.developer}</option>
           <option value='publisher'>{strings.publisher}</option>
+          <option value='lastPlayed'>{allStrings.browse.lastPlayed}</option>
+          <option value='playtime'>{allStrings.browse.playtime}</option>
         </select>
         {/* Order Reverse */}
         <select

@@ -1740,6 +1740,7 @@ body {
 .browse-right-sidebar__row__screenshot-image--hidden-text {
   font-weight: bold;
   font-size: 2rem;
+  text-align: center;
 }
 .browse-right-sidebar__row__screenshot__placeholder {
   width: 100%;

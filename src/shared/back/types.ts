@@ -154,6 +154,7 @@ export enum BackIn {
   DELETE_ALL_IMAGES,
   OPTIMIZE_DATABASE,
   PRE_UPDATE_INFO,
+  CLEAR_PLAYTIME_TRACKING,
 
   // Developer
   UPDATE_TAGGED_FIELDS,
@@ -367,6 +368,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.DELETE_ALL_IMAGES]: () => void;
   [BackIn.OPTIMIZE_DATABASE]: () => void;
   [BackIn.PRE_UPDATE_INFO]: (source: GameMetadataSource) => number;
+  [BackIn.CLEAR_PLAYTIME_TRACKING]: () => Promise<void>;
 
   // Developer
   [BackIn.UPDATE_TAGGED_FIELDS]: () => void;

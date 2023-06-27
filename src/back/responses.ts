@@ -2111,6 +2111,19 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     taskProgress.done('Imported FPFSS Curation');
   });
 
+  state.socketServer.register(BackIn.CLEAR_PLAYTIME_TRACKING, async (event) => {
+    const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
+    const dialogId = await openDialog({
+      message: 'Clearing Playtime Data...',
+      largeMessage: true,
+      buttons: []
+    });
+    await GameManager.clearPlaytimeTracking()
+    .finally(() => {
+      state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
+    });
+  });
+
   state.socketServer.register(BackIn.RUN_COMMAND, async (event, command, args = []) => {
     // Find command
     const c = state.registry.commands.get(command);
@@ -2365,12 +2378,32 @@ function runGameFactory(state: BackState) {
     );
     if (proc.getState() === ProcessState.RUNNING) {
       // Update game last played
-      GameManager.logGameStart(gameLaunchInfo.game.id);
+      if (state.preferences.enablePlaytimeTracking) {
+        if (!state.preferences.enablePlaytimeTrackingExtreme) {
+          const extremeTags = state.preferences.tagFilters.filter(t => t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
+          const isExtreme = gameLaunchInfo.game.tagsStr.split(';').findIndex(t => extremeTags.includes(t.trim())) !== -1;
+          if (!isExtreme) {
+            GameManager.logGameStart(gameLaunchInfo.game.id);
+          }
+        } else {
+          GameManager.logGameStart(gameLaunchInfo.game.id);
+        }
+      }
     } else {
       proc.on('change', async () => {
         if (proc.getState() === ProcessState.RUNNING) {
           // Update game last played
-          await GameManager.logGameStart(gameLaunchInfo.game.id);
+          if (state.preferences.enablePlaytimeTracking) {
+            if (!state.preferences.enablePlaytimeTrackingExtreme) {
+              const extremeTags = state.preferences.tagFilters.filter(t => t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
+              const isExtreme = gameLaunchInfo.game.tagsStr.split(';').findIndex(t => extremeTags.includes(t.trim())) !== -1;
+              if (!isExtreme) {
+                GameManager.logGameStart(gameLaunchInfo.game.id);
+              }
+            } else {
+              GameManager.logGameStart(gameLaunchInfo.game.id);
+            }
+          }
         }
       });
     }
@@ -2378,7 +2411,17 @@ function runGameFactory(state: BackState) {
     proc.on('change', () => {
       if (proc.getState() === ProcessState.STOPPED) {
         // Update game playtime counter
-        GameManager.addGamePlaytime(gameLaunchInfo.game.id, Date.now() - proc.getStartTime());
+        if (state.preferences.enablePlaytimeTracking) {
+          if (!state.preferences.enablePlaytimeTrackingExtreme) {
+            const extremeTags = state.preferences.tagFilters.filter(t => t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
+            const isExtreme = gameLaunchInfo.game.tagsStr.split(';').findIndex(t => extremeTags.includes(t.trim())) !== -1;
+            if (!isExtreme) {
+              GameManager.addGamePlaytime(gameLaunchInfo.game.id, Date.now() - proc.getStartTime());
+            }
+          } else {
+            GameManager.addGamePlaytime(gameLaunchInfo.game.id, Date.now() - proc.getStartTime());
+          }
+        }
         removeService(state, proc.id);
       }
     });

@@ -154,7 +154,7 @@ export class Game {
 
   /** Last Played Date */
   @Column({ type: 'datetime' })
-    lastPlayed?: string;
+    lastPlayed: string | null;
 
   /** Total Playtime (seconds) */
   @Column({ default: 0 })
