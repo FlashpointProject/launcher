@@ -1698,7 +1698,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     const fpmPath = 'FlashpointManager.exe';
     const updatesReady = state.componentStatuses.filter(c => c.state === ComponentState.NEEDS_UPDATE).length > 0;
     exitApp(state, async () => {
-      const args = updatesReady ? ['/update'] : [];
+      const args = updatesReady ? ['/update', '/launcher'] : ['/launcher'];
       const child = child_process.spawn(fpmPath, args, { detached: true, cwd, stdio: ['ignore', 'ignore', 'ignore'] });
       child.unref();
     });
