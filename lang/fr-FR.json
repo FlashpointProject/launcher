@@ -48,7 +48,7 @@
     "tagFilterGroupsDesc": "Ces groupes filtreront les suggestions et les jeux des résultats de recherche",
     "editTagFilter": "Modifier le groupe de filtres de tags",
     "duplicateTagFilter": "Dupliquer le groupe de filtres de tags",
-    "nukeTagFilter": "Nuke Tag Filter Group",
+    "nukeTagFilter": "Supprimer le groupe de filtres de tags",
     "nukeInProgress": "Suppression des tags, veuillez patienter...",
     "deleteTagFilter": "Supprimer le groupe de filtres de tags",
     "appPathOverrides": "Remplacements du chemin d'application",
