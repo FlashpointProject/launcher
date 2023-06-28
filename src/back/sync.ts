@@ -78,6 +78,9 @@ export async function syncTags(tx: EntityManager, source: GameMetadataSource, ca
   console.log('changed');
   // Update any changed tags
   for (const changedTag of tags.filter(t => existingTags.findIndex(et => et.id === t.id) !== -1)) {
+    if (changedTag.id === 7 || changedTag.id === 14) {
+      log.debug('Launcher', JSON.stringify(changedTag));
+    }
     // Remove all aliases that aren't on the changed tag anymore
     await tagAliasRepo.createQueryBuilder().delete()
     .where({ name: Not(In(changedTag.aliases.map(c => c.name)))})
@@ -103,6 +106,9 @@ export async function syncTags(tx: EntityManager, source: GameMetadataSource, ca
   console.log('new');
   // Add any new tags
   for (const newTag of tags.filter(t => existingTags.findIndex(et => et.id === t.id) === -1)) {
+    if (newTag.id === 7 || newTag.id === 14) {
+      log.debug('Launcher', JSON.stringify(newTag));
+    }
     await tx.query(`INSERT INTO tag ("id", "dateModified", "primaryAliasId", "categoryId", "description") VALUES (
         ?,
         ?,
