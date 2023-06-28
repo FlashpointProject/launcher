@@ -106,13 +106,13 @@ export async function syncTags(tx: EntityManager, source: GameMetadataSource, ca
     await tx.query(`INSERT INTO tag ("id", "dateModified", "primaryAliasId", "categoryId", "description") VALUES (
         ?,
         ?,
-        (SELECT ta.id FROM tag_alias ta WHERE ta.tagId = ?),
+        (SELECT ta.id FROM tag_alias ta WHERE ta.tagId = ? AND ta.name = ?),
         (SELECT tc.id FROM tag_category tc WHERE tc.name = ?),
         ?
       )`, [
       newTag.id,
       newTag.date_modified,
-      newTag.id,
+      newTag.id, newTag.name,
       newTag.category,
       newTag.description || ''
     ]);
