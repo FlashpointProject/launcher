@@ -26,6 +26,15 @@
     "onDemandImagesCompressedDesc": "Scarica invece immagini compresse, salvando ~80% spazio su disco. (Non elimina le immagini esistenti)",
     "onDemandImagesDelete": "Elimina Tutte Le Immagini",
     "onDemandImagesDeleteDesc": "Elimina tutti i loghi e le schermate.",
+    "playtimeTracking": "Playtime Tracking",
+    "playtimeTrackingDesc": "Options based around tracking game playtime. (Not used in analytics)",
+    "enablePlaytimeTracking": "Track Playtime",
+    "enablePlaytimeTrackingDesc": "Allow tracking last played date, total playtime and play count for games.",
+    "enablePlaytimeTrackingExtreme": "Track Extreme Games Playtime",
+    "enablePlaytimeTrackingExtremeDesc": "Allow tracking last played date, total playtime and play count for Extreme games.",
+    "clearPlaytimeTracking": "Clear Playtime Data",
+    "clearPlaytimeTrackingDesc": "Clears last played, total playtime and play count for every game. Irreversible.",
+    "clearData": "Clear Data",
     "currentLanguage": "Lingua",
     "currentLanguageDesc": "Quale lingua verrà utilizzata principalmente dal launcher.",
     "fallbackLanguage": "Lingua di Riserva",
@@ -257,6 +266,17 @@
     "noTitle": "Nessun Titolo",
     "by": "da",
     "play": "Esegui",
+    "lastPlayed": "Last Played",
+    "playtime": "Playtime",
+    "playCount": "Play Count",
+    "never": "Never",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "daysAgo": "{0} Days Ago",
+    "weeksAgo": "{0} Weeks Ago",
+    "seconds": "{0} Seconds",
+    "minutes": "{0} Minutes",
+    "hours": "{0} Hours",
     "stop": "Interrompi",
     "noDeveloper": "Nessuno Sviluppatore",
     "alternateTitles": "Titoli Alternativi",
@@ -341,7 +361,8 @@
     "mountParameters": "Parametri di Montaggio",
     "noMountParameters": "Nessun Parametro di Montaggio",
     "showExtremeScreenshot": "Mostra Schermata Estrema",
-    "busy": "Attendere Prego..."
+    "busy": "Attendere Prego...",
+    "openGameDataBrowser": "Open Game Data Browser"
   },
   "tags": {
     "name": "Nome",
@@ -578,7 +599,8 @@
     "failedToLoadCuration": "Impossibile caricare il contenuto curato! {0}",
     "exportCurationWithWarnings": "Esportare il contenuto curato anche se ha avvertimenti?",
     "requiresAdditionalDownload": "Ti manca il pacchetto di supporto {0}, necessario per lanciare questa voce.\nScarica ora?",
-    "requiresAdditionalDownloadPlural": "Ti mancano {0} pacchetti di supporto che sono necessari per avviare questa voce.\nScarica ora?"
+    "requiresAdditionalDownloadPlural": "Ti mancano {0} pacchetti di supporto che sono necessari per avviare questa voce.\nScarica ora?",
+    "confirmClearPlaytime": "Clear all game playtime and play history data? This is irreversible."
   },
   "libraries": {
     "arcade": "Giochi",
