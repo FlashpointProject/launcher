@@ -26,6 +26,15 @@
     "onDemandImagesCompressedDesc": "Downloads compressed images instead, saving ~80% disk space. (Does not delete existing images)",
     "onDemandImagesDelete": "Delete All Images",
     "onDemandImagesDeleteDesc": "Deletes all logos and screenshots.",
+    "playtimeTracking": "Playtime Tracking",
+    "playtimeTrackingDesc": "Options based around tracking game playtime. (Not used in analytics)",
+    "enablePlaytimeTracking": "Track Playtime",
+    "enablePlaytimeTrackingDesc": "Allow tracking last played date, total playtime and play count for games.",
+    "enablePlaytimeTrackingExtreme": "Track Extreme Games Playtime",
+    "enablePlaytimeTrackingExtremeDesc": "Allow tracking last played date, total playtime and play count for Extreme games.",
+    "clearPlaytimeTracking": "Clear Playtime Data",
+    "clearPlaytimeTrackingDesc": "Clears last played, total playtime and play count for every game. Irreversible.",
+    "clearData": "Clear Data",
     "currentLanguage": "Idioma",
     "currentLanguageDesc": "Qué idioma usará la aplicación principalmente.",
     "fallbackLanguage": "Idioma de reserva",
@@ -257,6 +266,17 @@
     "noTitle": "Sin título",
     "by": "por",
     "play": "Jugar",
+    "lastPlayed": "Last Played",
+    "playtime": "Playtime",
+    "playCount": "Play Count",
+    "never": "Never",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "daysAgo": "{0} Days Ago",
+    "weeksAgo": "{0} Weeks Ago",
+    "seconds": "{0} Seconds",
+    "minutes": "{0} Minutes",
+    "hours": "{0} Hours",
     "stop": "Detener",
     "noDeveloper": "Sin desarrollador",
     "alternateTitles": "Títulos alternativos",
@@ -341,7 +361,8 @@
     "mountParameters": "Montar parámetros",
     "noMountParameters": "No montar parámetros",
     "showExtremeScreenshot": "Mostrar capturas de pantalla extremas",
-    "busy": "Por favor, espera..."
+    "busy": "Por favor, espera...",
+    "openGameDataBrowser": "Open Game Data Browser"
   },
   "tags": {
     "name": "Nombre",
@@ -578,7 +599,8 @@
     "failedToLoadCuration": "Error al cargar la curación ({0})",
     "exportCurationWithWarnings": "¿Seguro que quieres exportar esta curación? Todavía hay advertencias.",
     "requiresAdditionalDownload": "You are missing the {0} support pack, which is required to launch this entry.\nDownload now?",
-    "requiresAdditionalDownloadPlural": "You are missing {0} support packs which are required to launch this entry.\nDownload now?"
+    "requiresAdditionalDownloadPlural": "You are missing {0} support packs which are required to launch this entry.\nDownload now?",
+    "confirmClearPlaytime": "Clear all game playtime and play history data? This is irreversible."
   },
   "libraries": {
     "arcade": "Juegos",
