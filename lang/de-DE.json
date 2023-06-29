@@ -26,6 +26,15 @@
     "onDemandImagesCompressedDesc": "Downloads compressed images instead, saving ~80% disk space. (Does not delete existing images)",
     "onDemandImagesDelete": "Delete All Images",
     "onDemandImagesDeleteDesc": "Deletes all logos and screenshots.",
+    "playtimeTracking": "Playtime Tracking",
+    "playtimeTrackingDesc": "Options based around tracking game playtime. (Not used in analytics)",
+    "enablePlaytimeTracking": "Track Playtime",
+    "enablePlaytimeTrackingDesc": "Allow tracking last played date, total playtime and play count for games.",
+    "enablePlaytimeTrackingExtreme": "Track Extreme Games Playtime",
+    "enablePlaytimeTrackingExtremeDesc": "Allow tracking last played date, total playtime and play count for Extreme games.",
+    "clearPlaytimeTracking": "Clear Playtime Data",
+    "clearPlaytimeTrackingDesc": "Clears last played, total playtime and play count for every game. Irreversible.",
+    "clearData": "Clear Data",
     "currentLanguage": "Sprache",
     "currentLanguageDesc": "Welche Sprache vom Launcher primär genutzt wird.",
     "fallbackLanguage": "Zweitrangige Sprache",
@@ -257,6 +266,17 @@
     "noTitle": "Kein Titel",
     "by": "von",
     "play": "Abspielen",
+    "lastPlayed": "Last Played",
+    "playtime": "Playtime",
+    "playCount": "Play Count",
+    "never": "Never",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "daysAgo": "{0} Days Ago",
+    "weeksAgo": "{0} Weeks Ago",
+    "seconds": "{0} Seconds",
+    "minutes": "{0} Minutes",
+    "hours": "{0} Hours",
     "stop": "Anhalten",
     "noDeveloper": "Kein Entwickler",
     "alternateTitles": "Alternative Titel",
@@ -341,7 +361,8 @@
     "mountParameters": "Mount-Parameter",
     "noMountParameters": "Keine Mount-Parameter",
     "showExtremeScreenshot": "Extremen Screenshot anzeigen",
-    "busy": "Bitte warten..."
+    "busy": "Bitte warten...",
+    "openGameDataBrowser": "Open Game Data Browser"
   },
   "tags": {
     "name": "Name",
@@ -578,7 +599,8 @@
     "failedToLoadCuration": "Fehler beim Laden der Kuration! {0}",
     "exportCurationWithWarnings": "Kuration exportieren, obwohl Warnungen vorhanden sind?",
     "requiresAdditionalDownload": "You are missing the {0} support pack, which is required to launch this entry.\nDownload now?",
-    "requiresAdditionalDownloadPlural": "You are missing {0} support packs which are required to launch this entry.\nDownload now?"
+    "requiresAdditionalDownloadPlural": "You are missing {0} support packs which are required to launch this entry.\nDownload now?",
+    "confirmClearPlaytime": "Clear all game playtime and play history data? This is irreversible."
   },
   "libraries": {
     "arcade": "Spiele",
