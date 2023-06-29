@@ -113,7 +113,7 @@ export async function importPlaylist(state: BackState, filePath: string, library
   try {
     const newPlaylist = await PlaylistFile.readFile(filePath);
     newPlaylist.filePath = path.join(state.config.flashpointPath, state.preferences.playlistFolderPath, `${sanitizeFilename(newPlaylist.title)} - ${(new Date()).getTime()}.json`);
-    const existingPlaylist = state.playlists.find(p => p.title === newPlaylist.title);
+    const existingPlaylist = state.playlists.find(p => p.title === newPlaylist.title || p.id === newPlaylist.id);
     if (existingPlaylist) {
       newPlaylist.title += ' - New';
       newPlaylist.id = uuid();
