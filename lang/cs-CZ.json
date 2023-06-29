@@ -26,6 +26,15 @@
     "onDemandImagesCompressedDesc": "Místo toho stahuje komprimované obrázky, čímž ušetří ~80 % místa na disku. (Nemaže existující obrázky)",
     "onDemandImagesDelete": "Odstranit všechny obrázky",
     "onDemandImagesDeleteDesc": "Odstranit všechna loga a snímky obrazovky.",
+    "playtimeTracking": "Playtime Tracking",
+    "playtimeTrackingDesc": "Options based around tracking game playtime. (Not used in analytics)",
+    "enablePlaytimeTracking": "Track Playtime",
+    "enablePlaytimeTrackingDesc": "Allow tracking last played date, total playtime and play count for games.",
+    "enablePlaytimeTrackingExtreme": "Track Extreme Games Playtime",
+    "enablePlaytimeTrackingExtremeDesc": "Allow tracking last played date, total playtime and play count for Extreme games.",
+    "clearPlaytimeTracking": "Clear Playtime Data",
+    "clearPlaytimeTrackingDesc": "Clears last played, total playtime and play count for every game. Irreversible.",
+    "clearData": "Clear Data",
     "currentLanguage": "Jazyk",
     "currentLanguageDesc": "Jazyk, který bude program primárně používat.",
     "fallbackLanguage": "Záložní jazyk",
@@ -257,6 +266,17 @@
     "noTitle": "Bez názvu",
     "by": "od",
     "play": "Hrát",
+    "lastPlayed": "Last Played",
+    "playtime": "Playtime",
+    "playCount": "Play Count",
+    "never": "Never",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "daysAgo": "{0} Days Ago",
+    "weeksAgo": "{0} Weeks Ago",
+    "seconds": "{0} Seconds",
+    "minutes": "{0} Minutes",
+    "hours": "{0} Hours",
     "stop": "Zastavit",
     "noDeveloper": "Žádný vývojář",
     "alternateTitles": "Alternativní názvy",
@@ -341,7 +361,8 @@
     "mountParameters": "Zavádějící parametry",
     "noMountParameters": "Žádné zavádějící parametry",
     "showExtremeScreenshot": "Zobrazovat snímky obrazovky pro dospělé",
-    "busy": "Čekejte prosím..."
+    "busy": "Čekejte prosím...",
+    "openGameDataBrowser": "Open Game Data Browser"
   },
   "tags": {
     "name": "Název",
@@ -578,7 +599,8 @@
     "failedToLoadCuration": "Selhání při načítání kurace! {0}",
     "exportCurationWithWarnings": "Exportovat kuraci, i když jsou tu stále nějaká varování?",
     "requiresAdditionalDownload": "Chybí vám podpůrný balíček {0}, který je nutný pro spuštění této položky.\nChcete ho nyní stáhnout?",
-    "requiresAdditionalDownloadPlural": "Chybí vám {0} podpůrných balíčků, které jsou nutné pro spuštění této položky.\nChcete ho nyní stáhnout?"
+    "requiresAdditionalDownloadPlural": "Chybí vám {0} podpůrných balíčků, které jsou nutné pro spuštění této položky.\nChcete ho nyní stáhnout?",
+    "confirmClearPlaytime": "Clear all game playtime and play history data? This is irreversible."
   },
   "libraries": {
     "arcade": "Hry",
