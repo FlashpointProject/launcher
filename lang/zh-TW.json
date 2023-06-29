@@ -26,6 +26,15 @@
     "onDemandImagesCompressedDesc": "改為下載已壓縮的圖片，可以節省大約 80% 的磁碟空間。(不會刪除已存在的圖片)",
     "onDemandImagesDelete": "刪除所有圖片",
     "onDemandImagesDeleteDesc": "Deletes all logos and screenshots.",
+    "playtimeTracking": "Playtime Tracking",
+    "playtimeTrackingDesc": "Options based around tracking game playtime. (Not used in analytics)",
+    "enablePlaytimeTracking": "Track Playtime",
+    "enablePlaytimeTrackingDesc": "Allow tracking last played date, total playtime and play count for games.",
+    "enablePlaytimeTrackingExtreme": "Track Extreme Games Playtime",
+    "enablePlaytimeTrackingExtremeDesc": "Allow tracking last played date, total playtime and play count for Extreme games.",
+    "clearPlaytimeTracking": "Clear Playtime Data",
+    "clearPlaytimeTrackingDesc": "Clears last played, total playtime and play count for every game. Irreversible.",
+    "clearData": "Clear Data",
     "currentLanguage": "語言",
     "currentLanguageDesc": "此程式主要使用之語言",
     "fallbackLanguage": "備用語言",
@@ -257,6 +266,17 @@
     "noTitle": "無標題",
     "by": "作者︰",
     "play": "開始",
+    "lastPlayed": "Last Played",
+    "playtime": "Playtime",
+    "playCount": "Play Count",
+    "never": "Never",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "daysAgo": "{0} Days Ago",
+    "weeksAgo": "{0} Weeks Ago",
+    "seconds": "{0} Seconds",
+    "minutes": "{0} Minutes",
+    "hours": "{0} Hours",
     "stop": "停止",
     "noDeveloper": "無開發者",
     "alternateTitles": "其他標題",
@@ -341,7 +361,8 @@
     "mountParameters": "掛載參數",
     "noMountParameters": "無掛載參數",
     "showExtremeScreenshot": "顯示成人截圖",
-    "busy": "請稍候..."
+    "busy": "請稍候...",
+    "openGameDataBrowser": "Open Game Data Browser"
   },
   "tags": {
     "name": "名稱",
@@ -578,7 +599,8 @@
     "failedToLoadCuration": "無法載入展品！ {0}",
     "exportCurationWithWarnings": "仍有未解決的警告，您確定要匯出展品嗎？",
     "requiresAdditionalDownload": "You are missing the {0} support pack, which is required to launch this entry.\nDownload now?",
-    "requiresAdditionalDownloadPlural": "You are missing {0} support packs which are required to launch this entry.\nDownload now?"
+    "requiresAdditionalDownloadPlural": "You are missing {0} support packs which are required to launch this entry.\nDownload now?",
+    "confirmClearPlaytime": "Clear all game playtime and play history data? This is irreversible."
   },
   "libraries": {
     "arcade": "遊戲",
