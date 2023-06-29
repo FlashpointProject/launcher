@@ -26,6 +26,15 @@
     "onDemandImagesCompressedDesc": "Downloads compressed images instead, saving ~80% disk space. (Does not delete existing images)",
     "onDemandImagesDelete": "Delete All Images",
     "onDemandImagesDeleteDesc": "Deletes all logos and screenshots.",
+    "playtimeTracking": "Playtime Tracking",
+    "playtimeTrackingDesc": "Options based around tracking game playtime. (Not used in analytics)",
+    "enablePlaytimeTracking": "Track Playtime",
+    "enablePlaytimeTrackingDesc": "Allow tracking last played date, total playtime and play count for games.",
+    "enablePlaytimeTrackingExtreme": "Track Extreme Games Playtime",
+    "enablePlaytimeTrackingExtremeDesc": "Allow tracking last played date, total playtime and play count for Extreme games.",
+    "clearPlaytimeTracking": "Clear Playtime Data",
+    "clearPlaytimeTrackingDesc": "Clears last played, total playtime and play count for every game. Irreversible.",
+    "clearData": "Clear Data",
     "currentLanguage": "언어",
     "currentLanguageDesc": "런처가 주로 사용하는 언어입니다.",
     "fallbackLanguage": "대체어",
@@ -257,6 +266,17 @@
     "noTitle": "제목 없음",
     "by": "-",
     "play": "실행",
+    "lastPlayed": "Last Played",
+    "playtime": "Playtime",
+    "playCount": "Play Count",
+    "never": "Never",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "daysAgo": "{0} Days Ago",
+    "weeksAgo": "{0} Weeks Ago",
+    "seconds": "{0} Seconds",
+    "minutes": "{0} Minutes",
+    "hours": "{0} Hours",
     "stop": "중지",
     "noDeveloper": "개발자 없음",
     "alternateTitles": "다른 제목",
@@ -341,7 +361,8 @@
     "mountParameters": "Mount Parameters",
     "noMountParameters": "No Mount Parameters",
     "showExtremeScreenshot": "Show Extreme Screenshot",
-    "busy": "Please Wait..."
+    "busy": "Please Wait...",
+    "openGameDataBrowser": "Open Game Data Browser"
   },
   "tags": {
     "name": "이름",
@@ -578,7 +599,8 @@
     "failedToLoadCuration": "Failed to load curation! {0}",
     "exportCurationWithWarnings": "Export Curation even though it has Warnings?",
     "requiresAdditionalDownload": "You are missing the {0} support pack, which is required to launch this entry.\nDownload now?",
-    "requiresAdditionalDownloadPlural": "You are missing {0} support packs which are required to launch this entry.\nDownload now?"
+    "requiresAdditionalDownloadPlural": "You are missing {0} support packs which are required to launch this entry.\nDownload now?",
+    "confirmClearPlaytime": "Clear all game playtime and play history data? This is irreversible."
   },
   "libraries": {
     "arcade": "게임",
