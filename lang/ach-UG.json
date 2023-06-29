@@ -26,6 +26,15 @@
     "onDemandImagesCompressedDesc": "crwdns6005:0crwdne6005:0",
     "onDemandImagesDelete": "crwdns6007:0crwdne6007:0",
     "onDemandImagesDeleteDesc": "crwdns6009:0crwdne6009:0",
+    "playtimeTracking": "crwdns6669:0crwdne6669:0",
+    "playtimeTrackingDesc": "crwdns6671:0crwdne6671:0",
+    "enablePlaytimeTracking": "crwdns6673:0crwdne6673:0",
+    "enablePlaytimeTrackingDesc": "crwdns6675:0crwdne6675:0",
+    "enablePlaytimeTrackingExtreme": "crwdns6677:0crwdne6677:0",
+    "enablePlaytimeTrackingExtremeDesc": "crwdns6679:0crwdne6679:0",
+    "clearPlaytimeTracking": "crwdns6681:0crwdne6681:0",
+    "clearPlaytimeTrackingDesc": "crwdns6683:0crwdne6683:0",
+    "clearData": "crwdns6685:0crwdne6685:0",
     "currentLanguage": "crwdns4961:0crwdne4961:0",
     "currentLanguageDesc": "crwdns4963:0crwdne4963:0",
     "fallbackLanguage": "crwdns4965:0crwdne4965:0",
@@ -257,6 +266,17 @@
     "noTitle": "crwdns5341:0crwdne5341:0",
     "by": "crwdns5343:0crwdne5343:0",
     "play": "crwdns5345:0crwdne5345:0",
+    "lastPlayed": "crwdns6687:0crwdne6687:0",
+    "playtime": "crwdns6689:0crwdne6689:0",
+    "playCount": "crwdns6691:0crwdne6691:0",
+    "never": "crwdns6693:0crwdne6693:0",
+    "today": "crwdns6695:0crwdne6695:0",
+    "yesterday": "crwdns6697:0crwdne6697:0",
+    "daysAgo": "crwdns6699:0{0}crwdne6699:0",
+    "weeksAgo": "crwdns6701:0{0}crwdne6701:0",
+    "seconds": "crwdns6703:0{0}crwdne6703:0",
+    "minutes": "crwdns6705:0{0}crwdne6705:0",
+    "hours": "crwdns6707:0{0}crwdne6707:0",
     "stop": "crwdns5347:0crwdne5347:0",
     "noDeveloper": "crwdns5349:0crwdne5349:0",
     "alternateTitles": "crwdns5351:0crwdne5351:0",
@@ -341,7 +361,8 @@
     "mountParameters": "crwdns5503:0crwdne5503:0",
     "noMountParameters": "crwdns5505:0crwdne5505:0",
     "showExtremeScreenshot": "crwdns5507:0crwdne5507:0",
-    "busy": "crwdns5509:0crwdne5509:0"
+    "busy": "crwdns5509:0crwdne5509:0",
+    "openGameDataBrowser": "crwdns6709:0crwdne6709:0"
   },
   "tags": {
     "name": "crwdns5511:0crwdne5511:0",
@@ -578,7 +599,8 @@
     "failedToLoadCuration": "crwdns5933:0{0}crwdne5933:0",
     "exportCurationWithWarnings": "crwdns5935:0crwdne5935:0",
     "requiresAdditionalDownload": "crwdns6091:0{0}crwdne6091:0",
-    "requiresAdditionalDownloadPlural": "crwdns6093:0{0}crwdne6093:0"
+    "requiresAdditionalDownloadPlural": "crwdns6093:0{0}crwdne6093:0",
+    "confirmClearPlaytime": "crwdns6711:0crwdne6711:0"
   },
   "libraries": {
     "arcade": "crwdns5937:0crwdne5937:0",
