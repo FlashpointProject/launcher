@@ -20,7 +20,7 @@
     "symlinkCurationDesc": "Utiliza enlaces simbólicos para probar curaciones en lugar de copiar los archivos. Resulta más rápido, y soporta MAD4FP. Requiere permisos de administrador.",
     "onDemandImages": "Imágenes bajo demanda",
     "onDemandImagesDesc": "Descarga y guarda logotipos y capturas de pantalla cuando sea necesario.",
-    "onDemandImagesEnabled": "Enabled",
+    "onDemandImagesEnabled": "Activado",
     "onDemandImagesEnabledDesc": "Enable downloading of on-demand logos and screenshots.",
     "onDemandImagesCompressed": "Compressed Images",
     "onDemandImagesCompressedDesc": "Downloads compressed images instead, saving ~80% disk space. (Does not delete existing images)",
@@ -136,7 +136,7 @@
     "componentUpdatesReady": "Install {0} software updates",
     "componentUpToDate": "Flashpoint is up to date",
     "lastUpdated": "Last Updated",
-    "updateComplete": "Update Complete!"
+    "updateComplete": "¡Actualización Completada!"
   },
   "logs": {
     "filters": "Filtros",
@@ -272,8 +272,8 @@
     "never": "Never",
     "today": "Today",
     "yesterday": "Yesterday",
-    "daysAgo": "{0} Days Ago",
-    "weeksAgo": "{0} Weeks Ago",
+    "daysAgo": "Hace {0} días",
+    "weeksAgo": "Hace {0} semanas",
     "seconds": "{0} Seconds",
     "minutes": "{0} Minutes",
     "hours": "{0} Hours",
