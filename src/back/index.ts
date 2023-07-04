@@ -532,6 +532,13 @@ async function prepForInit(message: any): Promise<void> {
     const playlist = await PlaylistFile.readFile(path.join(playlistDir, file.name), (err) => {
       console.error('Launcher', `Failed to load Playlist ${file.name}, ERROR:\n${err}`);
     });
+    // Check for ID collision
+    const collisionIdx = state.playlists.findIndex(p => p.id === playlist.id);
+    if (collisionIdx > -1) {
+      const oldId = playlist.id;
+      playlist.id = uuid();
+      log.warn('Launcher', `Playlist ID Collision - Renamed ID for ${playlist.title} (${oldId}) to ${playlist.id}`);
+    }
     state.playlists.push(playlist);
   }
   console.log('Back - Parsed Playlists');
