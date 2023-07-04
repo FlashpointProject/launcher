@@ -405,7 +405,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         playMode: await GameManager.findUniqueValues(Game, 'playMode', true),
         platforms: await GameManager.findUniqueValues(PlatformAlias, 'name'),
         status: await GameManager.findUniqueValues(Game, 'status', true),
-        applicationPath: await GameManager.findUniqueValues(Game, 'applicationPath'),
+        applicationPath: await GameManager.findUniqueApplicationPaths(),
         library: await GameManager.findUniqueValues(Game, 'library'),
       };
       const total = await GameManager.countGames();
@@ -445,7 +445,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       playMode: await GameManager.findUniqueValues(Game, 'playMode', true),
       platforms: await GameManager.findUniqueValues(PlatformAlias, 'name'),
       status: await GameManager.findUniqueValues(Game, 'status', true),
-      applicationPath: await GameManager.findUniqueValues(Game, 'applicationPath'),
+      applicationPath: await GameManager.findUniqueApplicationPaths(),
       library: await GameManager.findUniqueValues(Game, 'library'),
     };
     const appPaths: {[platform: string]: string} = {};
