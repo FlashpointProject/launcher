@@ -1148,6 +1148,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.ADD_PLAYLIST_GAME, async (event, playlistId, gameId) => {
+    log.debug('Launcher', `Adding ${gameId} to ${playlistId}`);
     return addPlaylistGame(state, playlistId, gameId);
   });
 

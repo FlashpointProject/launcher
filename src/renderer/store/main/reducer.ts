@@ -29,6 +29,10 @@ export function mainStateReducer(state: MainState = createInitialState(), action
         ? action.playlist
         : view.query.filter.playlist;
 
+      if (playlist != undefined) {
+        action.searchText = '';
+      }
+
       return {
         ...state,
         selectedPlaylistId: playlist?.id,
