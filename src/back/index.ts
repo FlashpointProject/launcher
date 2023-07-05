@@ -32,7 +32,6 @@ import { validateSemiUUID } from '@shared/utils/uuid';
 import * as child_process from 'child_process';
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint-launcher';
-import { http as httpFollow, https as httpsFollow } from 'follow-redirects';
 import * as fs from 'fs-extra';
 import * as http from 'http';
 import * as mime from 'mime';
@@ -95,6 +94,7 @@ import { logFactory } from './util/logging';
 import { createContainer, exit, getMacPATH, runService } from './util/misc';
 import { uuid } from './util/uuid';
 import { PlayTimeIndices1687847922729 } from '@database/migration/1687847922729-PlayTimeIndices';
+import axios from 'axios';
 
 const dataSourceOptions: DataSourceOptions = {
   type: 'better-sqlite3',
@@ -1167,50 +1167,60 @@ async function onFileServerRequestImages(pathname: string, url: URL, req: http.I
       res.end();
     }
     else if (req.method === 'GET' || req.method === 'HEAD') {
-      fs.stat(filePath, (error, stats) => {
-        if (error && error.code !== 'ENOENT') {
-          res.writeHead(404);
-          res.end();
-        } else if (stats && stats.isFile()) {
-          // Respond with file
-          res.writeHead(200, {
-            'Content-Type': mime.getType(path.extname(filePath)) || '',
-            'Content-Length': stats.size,
+      fs.stat(filePath)
+      .then((stats) => {
+        // Respond with file
+        res.writeHead(200, {
+          'Content-Type': mime.getType(path.extname(filePath)) || '',
+          'Content-Length': stats.size,
+        });
+        if (req.method === 'GET') {
+          const stream = fs.createReadStream(filePath);
+          stream.on('error', error => {
+            console.warn(`File server failed to stream file. ${error}`);
+            stream.destroy(); // Calling "destroy" inside the "error" event seems like it could case an endless loop (although it hasn't thus far)
+            if (!res.writableEnded) { res.end(); }
           });
-          if (req.method === 'GET') {
-            const stream = fs.createReadStream(filePath);
-            stream.on('error', error => {
-              console.warn(`File server failed to stream file. ${error}`);
-              stream.destroy(); // Calling "destroy" inside the "error" event seems like it could case an endless loop (although it hasn't thus far)
-              if (!res.writableEnded) { res.end(); }
-            });
-            stream.pipe(res);
-          } else {
-            res.end();
-          }
-        } else if (state.preferences.onDemandImages) {
-          // Remove any older duplicate requests
-          const index = state.fileServerDownloads.queue.findIndex(v => v.subPath === pathname);
-          if (index >= 0) {
-            const item = state.fileServerDownloads.queue[index];
-            item.res.writeHead(404);
-            item.res.end();
-            state.fileServerDownloads.queue.splice(index, 1);
-          }
-
-          // Add to download queue
-          const item: ImageDownloadItem = {
-            subPath: pathname,
-            req: req,
-            res: res,
-            cancelled: false,
-          };
-          state.fileServerDownloads.queue.push(item);
-          req.once('close', () => { item.cancelled = true; });
-          updateFileServerDownloadQueue();
+          stream.pipe(res);
         } else {
+          res.end();
+        }
+      })
+      .catch(async (err) => {
+        if (err.code !== 'ENOENT') {
+          // Can't read file
           res.writeHead(404);
           res.end();
+        } else {
+          // File missing
+          if (!state.preferences.onDemandImages) {
+            // Not downloading new files
+            res.writeHead(404);
+            res.end();
+          } else {
+            // Remove any older duplicate requests
+            const index = state.fileServerDownloads.queue.findIndex(v => v.subPath === pathname);
+            if (index >= 0) {
+              const item = state.fileServerDownloads.queue[index];
+              item.res.writeHead(404);
+              item.res.end();
+              state.fileServerDownloads.queue.splice(index, 1);
+            }
+
+            // Add to download queue
+            const item: ImageDownloadItem = {
+              subPath: pathname,
+              req: req,
+              res: res,
+              cancelled: false,
+            };
+            state.fileServerDownloads.queue.push(item);
+            req.once('close', () => { item.cancelled = true; });
+            updateFileServerDownloadQueue()
+            .catch((err) => {
+              log.error('Launcher', 'Somethign really broke in updateFileServerDownloadQueue: ' + err);
+            });
+          }
         }
       });
     } else {
@@ -1314,7 +1324,7 @@ function awaitEvents(emitter: EventEmitter, events: string[]): Promise<void> {
 }
 
 
-function updateFileServerDownloadQueue() {
+async function updateFileServerDownloadQueue() {
   // @NOTE This will fail to stream the image to the client if it fails to save it to the disk.
 
   // Fill all available current slots
@@ -1333,65 +1343,36 @@ function updateFileServerDownloadQueue() {
     if (state.preferences.onDemandImagesCompressed) {
       url += '?type=jpg';
     }
-    const protocol = url.startsWith('https://') ? httpsFollow : httpFollow;
-    try {
-      const req = protocol.get(url, async (res) => {
-        try {
-          if (res.statusCode === 200) {
-            const imageFolder = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
-            const filePath = path.join(imageFolder, item.subPath);
+    // Use arraybuffer since it's small memory footprint anyway
+    await axios.get(url, { responseType: 'arraybuffer' })
+    .then(async (res) => {
+      // Save response to image file
+      const imageData = res.data;
 
-            await fs.ensureDir(path.dirname(filePath));
-            const fileStream = fs.createWriteStream(filePath);
+      const imageFolder = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
+      const filePath = path.join(imageFolder, item.subPath);
 
-            res.on('data', (chunk: Buffer) => {
-              fileStream.write(chunk);
-              item.res.write(chunk);
-            });
-            res.once('close', () => {
-              fileStream.end();
-              removeFileServerDownloadItem(item);
-            });
-            res.once('end', () => {
-              fileStream.end();
-              removeFileServerDownloadItem(item);
-            });
-            res.once('error', error => {
-              console.error('An error occurred while downloading an image on demand.', error);
-              fileStream.end();
-              fs.unlink(filePath).catch(error => { console.error(`Failed to delete incomplete on demand image file (filepath: "${filePath}")`, error); });
-              removeFileServerDownloadItem(item);
-            });
-          } else {
-            // throw new Error(`The status code is not 200 (status code: ${res.statusCode})`);
-            removeFileServerDownloadItem(item); // (This way it doesn't clog up the console when displaying games without an image)
-          }
-        } catch (error) {
-          console.error('Failed to download an image on demand.', error);
-          removeFileServerDownloadItem(item);
-        }
-      });
-      req.on('error', error => {
-        removeFileServerDownloadItem(item);
-        if ((error as any)?.code !== 'ENOTFOUND') {
-          console.error('Failed to download an image on demand.', error);
-        }
-      });
-    } catch (error) {
-      console.error('Failed to download an image on demand.', error);
+      await fs.ensureDir(path.dirname(filePath));
+      await fs.promises.writeFile(filePath, imageData, 'binary');
+
+      item.res.writeHead(200);
+      item.res.write(imageData);
+    })
+    .catch((err) => {
+      log.error('Launcher', 'Failure downloading image on demand: ' + err);
+    })
+    .finally(async () => {
       removeFileServerDownloadItem(item);
-    }
+    });
   }
 }
 
-function removeFileServerDownloadItem(item: ImageDownloadItem): void {
+async function removeFileServerDownloadItem(item: ImageDownloadItem): Promise<void> {
   item.res.end();
 
   // Remove item from current
   const index = state.fileServerDownloads.current.indexOf(item);
   if (index >= 0) { state.fileServerDownloads.current.splice(index, 1); }
-
-  updateFileServerDownloadQueue();
 }
 
 export async function loadCurationArchive(filePath: string, onProgress?: (progress: Progress) => void): Promise<flashpoint.CurationState> {
