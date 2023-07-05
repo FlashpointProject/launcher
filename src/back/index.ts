@@ -1359,6 +1359,7 @@ async function updateFileServerDownloadQueue() {
       item.res.write(imageData);
     })
     .catch((err) => {
+      item.res.writeHead(404);
       log.error('Launcher', 'Failure downloading image on demand: ' + err);
     })
     .finally(async () => {
