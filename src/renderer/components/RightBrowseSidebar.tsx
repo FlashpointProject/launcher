@@ -851,6 +851,9 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
         // @PERF It is a little bit wasteful to refresh all images instead of just the changed one
         GameImageSplit.refreshImages();
       }
+    })
+    .catch((err) => {
+      log.error('Launcher', 'Error fetching new image url ' + err);
     });
   }
 
