@@ -174,7 +174,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         className='game-browser'
         ref={this.gameBrowserRef}>
         <ResizableSidebar
-          hide={this.props.preferencesData.browsePageShowLeftSidebar}
+          show={this.props.preferencesData.browsePageShowLeftSidebar}
           divider='after'
           width={this.props.preferencesData.browsePageLeftSidebarWidth}
           onResize={this.onLeftSidebarResize}>

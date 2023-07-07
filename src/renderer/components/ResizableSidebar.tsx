@@ -3,8 +3,8 @@ import { FancyAnimation } from './FancyAnimation';
 
 type ResizableSidebarProps = {
   className?: string;
-  /** If the sidebar should not be visible. */
-  hide: boolean;
+  /** If the sidebar should be visible. */
+  show: boolean;
   /** Where the divider should be located (relative to the sidebar). */
   divider: DividerOrientation;
   /** Width of the whole sidebar (in pixels). */
@@ -59,22 +59,22 @@ export class ResizableSidebar extends React.Component<ResizableSidebarProps, Res
   }
 
   render() {
-    const { hide, className, divider, width } = this.props;
+    const { show, className, divider, width } = this.props;
     return (
       <div
         className={
           'game-browser__sidebar' +
           (className ? ' '+className+' ' : '') +
-          (hide ? '' : ' game-browser__sidebar--hidden')
+          (show ? '' : ' game-browser__sidebar--hidden')
         }
         style={{ width }}
         ref={this.sidebarRef}>
         <div className='game-browser__sidebar__inner'>
-          { divider === 'before' && this.renderDivider() }
+          { divider === 'before' && show && this.renderDivider() }
           <div className='game-browser__sidebar__content simple-scroll'>
             {this.props.children}
           </div>
-          { divider === 'after' && this.renderDivider() }
+          { divider === 'after' && show && this.renderDivider() }
         </div>
       </div>
     );

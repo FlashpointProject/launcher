@@ -1462,6 +1462,7 @@ body {
   max-width: 100%;
 }
 .game-browser__sidebar--hidden {
+  min-width: 0px !important;
   width: 0px !important;
 }
 .game-browser__sidebar--animated {

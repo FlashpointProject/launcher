@@ -1456,7 +1456,7 @@ export class App extends React.Component<AppProps> {
                   </noscript>
                   { this.props.main.currentGame && !hiddenRightSidebarPages.reduce((prev, cur) => prev || this.props.history.location.pathname.startsWith(cur), false) && (
                     <ResizableSidebar
-                      hide={this.props.preferencesData.browsePageShowRightSidebar}
+                      show={this.props.preferencesData.browsePageShowRightSidebar}
                       divider='before'
                       width={this.props.preferencesData.browsePageRightSidebarWidth}
                       onResize={this.onRightSidebarResize}>
