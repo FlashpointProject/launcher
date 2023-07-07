@@ -1,6 +1,10 @@
 # Flashpoint Launcher
 The launcher for BlueMaxima's Flashpoint (the web preservation project).
 
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/FlashpointProject/launcher/tree/develop)
+
+Want to contribute? Get started quickly with a GitHub Codespace using the button above.
+
 ![Screenshot](https://user-images.githubusercontent.com/10117720/55276674-a24e8c80-52f6-11e9-8b59-4fb396c36026.png)
 
 ### Status
