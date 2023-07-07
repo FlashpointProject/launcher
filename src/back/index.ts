@@ -1147,15 +1147,15 @@ async function onFileServerRequestImages(pathname: string, url: URL, req: http.I
           const chunks: any[] = [];
           req.on('data', (chunk) => {
             chunks.push(chunk);
-          });
-          req.on('end', async () => {
+          })
+          .on('end', async () => {
             const data = Buffer.concat(chunks);
             await fs.promises.writeFile(filePath, data);
             state.socketServer.broadcast(BackOut.IMAGE_CHANGE, folder, gameId);
             res.writeHead(200);
             res.end();
-          });
-          req.on('error', async (err) => {
+          })
+          .on('error', async (err) => {
             log.error('Launcher', `Error writing Game image - ${err}`);
             res.writeHead(500);
             res.end();
@@ -1167,6 +1167,11 @@ async function onFileServerRequestImages(pathname: string, url: URL, req: http.I
       res.end();
     }
     else if (req.method === 'GET' || req.method === 'HEAD') {
+      req.on('error', (err) => {
+        log.error('Launcher', `Error serving Game image - ${err}`);
+        res.writeHead(500);
+        res.end();
+      });
       fs.stat(filePath)
       .then((stats) => {
         // Respond with file

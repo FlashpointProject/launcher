@@ -61,6 +61,11 @@ export class FileServer {
 
 export function serveFile(req: http.IncomingMessage, res: http.ServerResponse, filePath: string): void {
   if (req.method === 'GET' || req.method === 'HEAD') {
+    req.on('error', (err) => {
+      log.error('Launcher', `Error serving file - ${err}`);
+      res.writeHead(500);
+      res.end();
+    });
     fs.stat(filePath, (error, stats) => {
       if (error || stats && !stats.isFile()) {
         res.writeHead(404);

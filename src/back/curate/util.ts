@@ -38,6 +38,11 @@ export const onFileServerRequestPostCuration =
       req.on('data', (chunk) => {
         chunks.push(chunk);
       });
+      req.on('error', (error) => {
+        log.error('Curate', `Failure in request! ${error.toString()}`);
+        res.writeHead(500);
+        res.end();
+      });
       req.on('end', async () => {
         const data = Buffer.concat(chunks);
         const randomFilePath = path.join(tempCurationsPath, `${uuid()}.7z`);
