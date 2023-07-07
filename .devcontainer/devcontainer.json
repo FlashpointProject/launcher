@@ -1,9 +1,15 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/typescript-node
+// README at: https://github.com/devcontainers/templates/tree/main/src/javascript-node
 {
-	"name": "Node.js & TypeScript",
+	"name": "Node.js",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/typescript-node:1-18-bookworm",
+	"image": "mcr.microsoft.com/devcontainers/javascript-node:1-18-bullseye",
+	"features": {
+		"ghcr.io/devcontainers/features/rust:1": {
+			"version": "latest",
+			"profile": "minimal"
+		}
+	}
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
@@ -12,17 +18,7 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "npm install; npm run build",
-
-	"features": {
-		"ghcr.io/devcontainers/features/desktop-lite:1": {
-			"version": "latest",
-			"noVncVersion": "1.2.0",
-			"password": "codespaces",
-			"webPort": "6080",
-			"vncPort": "5901"
-		}
-	}
+	// "postCreateCommand": "yarn install",
 
 	// Configure tool-specific properties.
 	// "customizations": {},
