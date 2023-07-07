@@ -803,15 +803,28 @@ export class App extends React.Component<AppProps> {
       }
 
       if (view) {
-      // Check if any parameters for the search query has changed (they don't match the current view's)
-        if (view.query.text                   !== this.props.search.text ||
-          view.query.extreme                !== this.props.preferencesData.browsePageShowExtreme ||
+        // Prevent order changes from updating playlist search results
+        let orderUpdate = false;
+        if (
           view.query.orderBy                !== this.props.preferencesData.gamesOrderBy ||
-          view.query.orderReverse           !== this.props.preferencesData.gamesOrder ||
+          view.query.orderReverse           !== this.props.preferencesData.gamesOrder
+        ) {
+          orderUpdate = true;
+        }
+        if (!!view.query.filter.playlist || !!this.props.main.selectedPlaylistId) {
+          orderUpdate = false;
+        }
+
+        // Check if any parameters for the search query has changed (they don't match the current view's)
+        if (view.query.text                 !== this.props.search.text ||
+          view.query.extreme                !== this.props.preferencesData.browsePageShowExtreme ||
+          orderUpdate ||
           JSON.stringify(view.tagFilters)   !== JSON.stringify(this.props.preferencesData.tagFilters) ||
-          view.query.searchLimit            !== this.props.preferencesData.searchLimit) {
+          view.query.searchLimit            !== this.props.preferencesData.searchLimit
+        ) {
           this.setViewQuery(library);
         }
+
         // Fetch pages
         else if (view.metaState === RequestState.RECEIVED) {
           let pages: number[] | undefined;
