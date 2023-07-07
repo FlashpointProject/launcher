@@ -46,7 +46,12 @@ export class FileServer {
     // Pass to handler
     const handler = this.handlers.get(region);
     if (handler) {
-      return handler(pathname, url, req, res);
+      Promise.resolve(handler(pathname, url, req, res))
+      .catch((err) => {
+        console.log(`FS Handler Error: ${err}`);
+        res.writeHead(404);
+        res.end();
+      });
     } else {
       res.writeHead(404);
       res.end();
