@@ -43,6 +43,14 @@ export class FileServer {
     const region = parts.length > 1 ? parts[1].toLowerCase() : '';
     const pathname = decodeURIComponent(parts.length > 2 ? parts.slice(2).join('/') : '');
 
+    // Immediately slap on error handlers, see if we can find any disconnected errors
+    req.on('error', (err) => {
+      log.error('Launcher', `Generic fileserver request error: ${err}`);
+    });
+    res.on('error', (err) => {
+      log.error('Launcher', `Generic fileserver response error: ${err}`);
+    });
+
     // Pass to handler
     const handler = this.handlers.get(region);
     if (handler) {
