@@ -370,6 +370,7 @@ async function createGameFromCurationMeta(gameId: string, gameMeta: CurationMeta
     series:                gameMeta.series              || '',
     developer:             gameMeta.developer           || '',
     publisher:             gameMeta.publisher           || '',
+    platformName:          gameMeta.primaryPlatform     || '',
     platforms:             gameMeta.platforms           || [],
     playMode:              gameMeta.playMode            || '',
     status:                gameMeta.status              || '',
@@ -385,7 +386,7 @@ async function createGameFromCurationMeta(gameId: string, gameMeta: CurationMeta
     dateAdded:             date.toISOString(),
     dateModified:          date.toISOString(),
     broken:                false,
-    extreme:               gameMeta.extreme || false,
+    extreme:               false,
     library:               gameMeta.library || '',
     orderTitle: '', // This will be set when saved
     addApps: [],
