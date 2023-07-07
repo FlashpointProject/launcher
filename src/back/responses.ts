@@ -83,6 +83,8 @@ const axios = axiosImport.default;
  * @param init Initialization function (only runs once per state)
  */
 export function registerRequestCallbacks(state: BackState, init: () => Promise<void>): void {
+  state.socketServer.register(BackIn.KEEP_ALIVE, () => {});
+
   state.socketServer.register(BackIn.ADD_LOG, (event, data) => {
     switch (data.logLevel) {
       case LogLevel.TRACE:

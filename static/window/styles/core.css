@@ -2671,6 +2671,7 @@ body {
   --zoom: 1800%;
   width: var(--size);
   height: var(--size);
+  margin-bottom: 2rem;
 }
 .fp-logo {
   width: 100%;

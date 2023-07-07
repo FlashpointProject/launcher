@@ -1,4 +1,4 @@
-import { BackInit } from '@shared/back/types';
+import { BackIn, BackInit } from '@shared/back/types';
 import { LogLevel } from '@shared/Log/interface';
 import { Gate } from '@shared/utils/Gate';
 import { ConnectedRouter } from 'connected-react-router';
@@ -47,6 +47,15 @@ import { EventEmitter } from 'stream';
 
   // Wait for the preferences and config to initialize
   await window.Shared.waitUntilInitialized();
+
+  // Start keepalive routine
+  setInterval(async () => {
+    try {
+      await window.Shared.back.request(BackIn.KEEP_ALIVE);
+    } catch {
+      /** Ignore any bad response */
+    }
+  }, 30000);
 
   // Create history
   const history = createMemoryHistory();
