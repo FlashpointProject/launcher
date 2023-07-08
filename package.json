@@ -67,6 +67,7 @@
     "reflect-metadata": "0.1.10",
     "remark-gfm": "2.0.0",
     "tail": "2.0.3",
+    "terminate": "^2.6.1",
     "typeorm": "0.3.7",
     "typesafe-actions": "4.4.2",
     "uuid": "3.3.2",
