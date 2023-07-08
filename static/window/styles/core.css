@@ -1322,6 +1322,7 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  align-self: self-start;
 }
 /* Curate Tag (Game tag for the curate page) */
 .curate-tag {
