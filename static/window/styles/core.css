@@ -365,6 +365,7 @@ body {
   height: 100%;
   /* Pimp */
   padding: 2rem;
+  z-index: 2;
 }
 .image-preview * {
   user-select: none;
