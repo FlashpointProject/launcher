@@ -95,7 +95,6 @@ import { createContainer, exit, getMacPATH, runService } from './util/misc';
 import { uuid } from './util/uuid';
 import { PlayTimeIndices1687847922729 } from '@database/migration/1687847922729-PlayTimeIndices';
 import axios from 'axios';
-require('longjohn');
 
 const dataSourceOptions: DataSourceOptions = {
   type: 'better-sqlite3',

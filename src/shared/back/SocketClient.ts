@@ -66,7 +66,7 @@ export class SocketClient<SOCKET extends BaseSocket> {
     this.keepOpen = true;
     this.client.socket = socket;
     this.client.socket.onmessage = this.onMessage.bind(this);
-    // this.client.socket.onerror = this.onError;
+    this.client.socket.onerror = this.onError.bind(this);
     this.client.socket.onclose = this.onClose.bind(this);
     this.client.socket.onopen = this.onOpen.bind(this);
     this.ensureConnection();
@@ -228,6 +228,13 @@ export class SocketClient<SOCKET extends BaseSocket> {
 
     if (out && this.client.socket) {
       this.client.socket.send(JSON.stringify(out));
+    }
+  }
+
+  protected onError(err: any): void {
+    console.log(`Socket Error - ${err}`);
+    if (!this.abortReconnects) {
+      this.reconnect();
     }
   }
 

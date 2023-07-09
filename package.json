@@ -49,7 +49,6 @@
     "follow-redirects": "1.14.8",
     "fs-extra": "8.1.0",
     "lodash": "^4.17.21",
-    "longjohn": "^0.2.12",
     "mime": "2.4.4",
     "minimist": "^1.2.7",
     "node-7z": "1.1.1",
