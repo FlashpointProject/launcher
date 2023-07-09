@@ -16,6 +16,7 @@ import { argv } from 'process';
 import * as WebSocket from 'ws';
 import { Init } from './types';
 import * as Util from './Util';
+require('longjohn');
 
 const TIMEOUT_DELAY = 60_000;
 
