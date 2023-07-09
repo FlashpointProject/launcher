@@ -23,6 +23,7 @@ import { EventQueue } from './util/EventQueue';
 import { FileServer } from './util/FileServer';
 import { FolderWatcher } from './util/FolderWatcher';
 import { LogFile } from './util/LogFile';
+import { PlatformAppPathSuggestions } from '@shared/curate/types';
 
 /** Contains most state for the back process. */
 export type BackState = {
@@ -78,7 +79,7 @@ export type BackState = {
   /** All currently loaded curations. */
   loadedCurations: flashpoint.CurationState[];
   /** Most recent app paths that were fetched from the database (cached in the back so it's available for the curation stuff /obelisk). */
-  recentAppPaths: { [platform: string]: string; };
+  platformAppPaths: PlatformAppPathSuggestions;
   writeLocks: number;
   prefsQueue: EventQueue;
   logsWindowProc?: ManagedChildProcess;

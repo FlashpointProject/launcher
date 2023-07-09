@@ -1,5 +1,5 @@
 import { CURATION_META_FILENAMES } from '@shared/constants';
-import { CurationMeta } from '@shared/curate/types';
+import { CurationMeta, PlatformAppPathSuggestions } from '@shared/curate/types';
 import { stripBOM } from '@shared/Util';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -7,7 +7,7 @@ import * as YAML from 'yaml';
 import * as TagManager from '../game/TagManager';
 import { parseCurationMetaFile, parseCurationMetaOld, ParsedCurationMeta } from './parse';
 
-export async function readCurationMeta(folderPath: string, appPaths: { [platform: string]: string; }): Promise<ParsedCurationMeta | undefined> {
+export async function readCurationMeta(folderPath: string, appPaths: PlatformAppPathSuggestions): Promise<ParsedCurationMeta | undefined> {
   const defaultMetaData: GameMetaDefaults = {
     // @TODO Make this value not hard-coded (maybe it should be loaded from the preferences file?)
     appPaths: appPaths,
@@ -77,7 +77,7 @@ export async function readCurationMeta(folderPath: string, appPaths: { [platform
 
 type GameMetaDefaults = {
   /** Default application paths (ordered after each platform). */
-  appPaths: { [platform: string]: string; };
+  appPaths: PlatformAppPathSuggestions;
   language: string;
   platform: string;
   playMode: string;
@@ -94,10 +94,15 @@ async function setGameMetaDefaults(meta: CurationMeta, defaults?: GameMetaDefaul
     if (!meta.status)    { meta.status   = defaults.status;   }
     if (!meta.platforms) { meta.platforms = platformDefault ? [platformDefault]: []; }
     if (!meta.library)   { meta.library  = defaults.library;  }
-    // Set default application path
-    // (Note: This has to be set after the default platform)
+    // Set default application path based on platform
     if (!meta.applicationPath) {
-      meta.applicationPath = platformDefault ? defaults.appPaths[platformDefault.primaryAlias.name] || '' : '';
+      meta.applicationPath = '';
+      if (defaults && platformDefault) {
+        const platformName = platformDefault.primaryAlias.name;
+        if (platformName in defaults.appPaths) {
+          meta.applicationPath = defaults.appPaths[platformName][0].appPath;
+        }
+      }
     }
   }
 }

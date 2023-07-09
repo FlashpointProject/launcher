@@ -19,6 +19,7 @@ import { Brackets, EntityTarget, FindOneOptions, In, MoreThan, ObjectLiteral, Se
 import { AppDataSource } from '..';
 import * as GameDataManager from './GameDataManager';
 import * as TagManager from './TagManager';
+import { PlatformAppPathSuggestions } from '@shared/curate/types';
 
 const nullableFields = [ 'lastPlayed' ];
 const exactFields = [ 'broken', 'library', 'activeDataOnDisk'];
@@ -304,6 +305,29 @@ export async function findUniqueApplicationPaths(): Promise<string[]> {
   );
 
   return rawValues.map((val: any) => val['applicationPath']).filter((val: any) => val !== '');
+}
+
+export async function findPlatformsAppPaths(): Promise<PlatformAppPathSuggestions> {
+  const rawValues = await AppDataSource.query(`
+    SELECT platformName, game_data.applicationPath as appPath, COUNT(*) as c FROM game
+    LEFT JOIN game_data ON game_data.gameId = game.id
+    WHERE game_data.applicationPath IS NOT NULL
+    GROUP BY platformName, game_data.applicationPath
+    ORDER BY platformName, c DESC
+  `);
+
+  const grouped: PlatformAppPathSuggestions = {};
+  for (const row of rawValues) {
+    if (!(row['platformName'] in grouped)) {
+      grouped[row['platformName']] = [];
+    }
+    grouped[row['platformName']].push({
+      appPath: row['appPath'],
+      total: row['c']
+    });
+  }
+
+  return grouped;
 }
 
 export async function findUniqueValues(entity: any, column: string, commaSeperated?: boolean): Promise<string[]> {

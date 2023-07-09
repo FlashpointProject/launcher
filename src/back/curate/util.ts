@@ -207,7 +207,7 @@ export async function genCurationWarnings(curation: LoadedCuration, fpPath: stri
 }
 
 export async function loadCurationFolder(rootPath: string, folderName: string, state: BackState) {
-  const parsedMeta = await readCurationMeta(path.join(rootPath, folderName), state.recentAppPaths);
+  const parsedMeta = await readCurationMeta(path.join(rootPath, folderName), state.platformAppPaths);
   if (parsedMeta) {
     const loadedCuration: LoadedCuration = {
       folder: folderName,

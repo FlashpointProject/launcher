@@ -1,6 +1,6 @@
 import { Tag } from '@database/entity/Tag';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
-import { AddAppCurationMeta, ContentTree, CurationMeta } from '@shared/curate/types';
+import { AddAppCurationMeta, ContentTree, CurationMeta, PlatformAppPathSuggestions } from '@shared/curate/types';
 import { CurationState, CurationWarnings, Platform } from 'flashpoint-launcher';
 import { CurateActionType } from './enums';
 
@@ -68,6 +68,7 @@ export type CurateAction = {
   type: CurateActionType.ADD_PLATFORM;
   folder: string;
   platform: Platform;
+  platformAppPaths?: PlatformAppPathSuggestions;
 } | {
   type: CurateActionType.REMOVE_TAG;
   folder: string;
@@ -76,6 +77,7 @@ export type CurateAction = {
   type: CurateActionType.REMOVE_PLATFORM;
   folder: string;
   platformId: number;
+  platformAppPaths?: PlatformAppPathSuggestions;
 } | {
   type: CurateActionType.EDIT_ADDAPP;
   folder: string;
@@ -133,4 +135,9 @@ export type CurateAction = {
   type: CurateActionType.SET_CONTENTS;
   folder: string;
   contents: ContentTree;
+} | {
+  type: CurateActionType.SET_PRIMARY_PLATFORM;
+  folder: string;
+  value: string;
+  platformAppPaths?: PlatformAppPathSuggestions;
 }

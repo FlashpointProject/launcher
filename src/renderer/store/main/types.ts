@@ -15,6 +15,7 @@ import { UpdateInfo } from 'electron-updater';
 import { AppPreferencesData, DialogField, DialogState, GameOrderBy, GameOrderReverse, Playlist, PlaylistGame, TagFilterGroup } from 'flashpoint-launcher';
 import { EventEmitter } from 'stream';
 import { MainActionType, RequestState } from './enums';
+import { PlatformAppPathSuggestions } from '@shared/curate/types';
 
 export type View = {
   /** The most recent query used for this view. */
@@ -63,6 +64,7 @@ export type MainState = {
   libraries: string[];
   serverNames: string[];
   mad4fpEnabled: boolean;
+  platformAppPaths: PlatformAppPathSuggestions;
   playlists: Playlist[];
   playlistIconCache: Record<string, string>; // [PLAYLIST_ID] = ICON_BLOB_URL
   suggestions: GamePropSuggestions;
@@ -301,6 +303,7 @@ export type MainAction = {
   libraries: string[];
   suggestions: GamePropSuggestions;
   total: number;
+  platformAppPaths: PlatformAppPathSuggestions;
   preferencesData: AppPreferencesData;
 } | {
   type: MainActionType.UPDATE_UPDATE_INFO;

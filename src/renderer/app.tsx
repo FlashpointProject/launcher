@@ -545,12 +545,13 @@ export class App extends React.Component<AppProps> {
       });
     });
 
-    window.Shared.back.register(BackOut.POST_SYNC_CHANGES, (event, libraries, suggestions, total) => {
+    window.Shared.back.register(BackOut.POST_SYNC_CHANGES, (event, libraries, suggestions, platformAppPaths, total) => {
       this.props.dispatchMain({
         type: MainActionType.POST_FPFSS_SYNC,
         libraries,
         suggestions,
         preferencesData: this.props.preferencesData,
+        platformAppPaths,
         total
       });
     });

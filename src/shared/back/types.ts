@@ -2,7 +2,7 @@ import { Game } from '@database/entity/Game';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
-import { AddAppCuration, ContentTree, LoadedCuration } from '@shared/curate/types';
+import { AddAppCuration, ContentTree, LoadedCuration, PlatformAppPathSuggestions } from '@shared/curate/types';
 import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/extensions/interfaces';
 import { FilterGameOpts } from '@shared/game/GameFilter';
 import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
@@ -431,7 +431,7 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.UPDATE_COMPONENT_STATUSES]: (componentStatuses: ComponentStatus[]) => void;
 
   // Metadata Sync
-  [BackOut.POST_SYNC_CHANGES]: (libraries: string[], suggestions: GamePropSuggestions, total: number) => void;
+  [BackOut.POST_SYNC_CHANGES]: (libraries: string[], suggestions: GamePropSuggestions, platformAppPaths: PlatformAppPathSuggestions, total: number) => void;
 
   // Curate
   [BackOut.CURATE_CONTENTS_CHANGE]: (folder: string, contents: ContentTree) => void;
@@ -520,6 +520,7 @@ export type GetRendererLoadedDataResponse = {
   mad4fpEnabled: boolean;
   tagCategories: TagCategory[];
   logoSets: LogoSet[];
+  platformAppPaths: PlatformAppPathSuggestions;
   updateFeedMarkdown: string;
   componentStatuses: ComponentStatus[];
 }
@@ -538,7 +539,7 @@ export type GetRendererInitDataResponse = {
 
 export type GetSuggestionsResponseData = {
   suggestions: GamePropSuggestions;
-  appPaths: { [platform: string]: string; };
+  platformAppPaths: PlatformAppPathSuggestions;
 }
 
 export type RandomGamesData = {

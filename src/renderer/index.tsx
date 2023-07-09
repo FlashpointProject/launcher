@@ -192,6 +192,7 @@ export function createInitialMainState(): MainState {
     isEditingGame: false,
     updateFeedMarkdown: '',
     busyGames: [],
+    platformAppPaths: {},
     gotdList: [],
     componentStatuses: [],
     quitting: false,

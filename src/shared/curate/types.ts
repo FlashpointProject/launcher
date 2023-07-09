@@ -64,3 +64,10 @@ export type AddAppCurationMeta = Partial<{
 }>
 
 export type AddAppCuration = {key: string} & AddAppCurationMeta;
+
+export type PlatformAppPathSuggestions = {[platform: string]: PlatformAppPath[]};
+
+export type PlatformAppPath = {
+  appPath: string;
+  total: number;
+}

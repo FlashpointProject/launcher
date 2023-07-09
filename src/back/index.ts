@@ -238,7 +238,7 @@ const state: BackState = {
   extensionsService: createErrorProxy('extensionsService'),
   sevenZipPath: '',
   loadedCurations: [],
-  recentAppPaths: {},
+  platformAppPaths: {},
   writeLocks: 0,
   prefsQueue: new EventQueue(),
   componentStatuses: [],
@@ -1411,7 +1411,7 @@ export async function loadCurationArchive(filePath: string, onProgress?: (progre
   await fs.remove(extractPath);
 
   // Load curation
-  const parsedMeta = await readCurationMeta(curationPath, state.recentAppPaths);
+  const parsedMeta = await readCurationMeta(curationPath, state.platformAppPaths);
   if (!parsedMeta) { throw new Error('Fail'); }
 
   const loadedCuration: LoadedCuration = {

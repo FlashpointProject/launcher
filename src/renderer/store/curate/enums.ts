@@ -26,4 +26,5 @@ export enum CurateActionType {
   NEW_PERSISTANT_GROUP = '@@curate/NEW_PERSISTANT_GROUP',
   CHANGE_GROUP = '@@curate/CHANGE_GROUP',
   REGEN_UUID = '@@curate/REGEN_UUID',
+  SET_PRIMARY_PLATFORM = '@@curate/SET_PRIMARY_PLATFORM',
 }

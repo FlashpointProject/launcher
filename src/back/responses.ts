@@ -11,7 +11,7 @@ import { BackIn, BackInit, BackOut, ComponentState, CurationImageEnum, DownloadD
 import { overwriteConfigData } from '@shared/config/util';
 import { CURATIONS_FOLDER_EXPORTED, CURATIONS_FOLDER_TEMP, CURATIONS_FOLDER_WORKING, LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
-import { LoadedCuration } from '@shared/curate/types';
+import { LoadedCuration, PlatformAppPathSuggestions } from '@shared/curate/types';
 import { getContentFolderByKey, getCurationFolder } from '@shared/curate/util';
 import { AppProvider, BrowserApplicationOpts } from '@shared/extensions/interfaces';
 import { FilterGameOpts } from '@shared/game/GameFilter';
@@ -188,6 +188,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       /** Ignore */
     }
 
+    state.platformAppPaths = await GameManager.findPlatformsAppPaths();
+
     const res: GetRendererLoadedDataResponse = {
       gotdList: gotdList,
       libraries: libraries,
@@ -195,6 +197,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       serverNames: state.serviceInfo ? state.serviceInfo.server.map(i => i.name || '') : [],
       tagCategories: await TagManager.findTagCategories(),
       suggestions: state.suggestions,
+      platformAppPaths: state.platformAppPaths,
       logoSets: Array.from(state.registry.logoSets.values()),
       updateFeedMarkdown,
       mad4fpEnabled: state.serviceInfo ? (state.serviceInfo.server.findIndex(s => s.mad4fp === true) !== -1) : false,
@@ -410,8 +413,10 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         applicationPath: await GameManager.findUniqueApplicationPaths(),
         library: await GameManager.findUniqueValues(Game, 'library'),
       };
+      const appPaths: PlatformAppPathSuggestions = await GameManager.findPlatformsAppPaths();
+      state.platformAppPaths = appPaths; // Update cache
       const total = await GameManager.countGames();
-      state.socketServer.broadcast(BackOut.POST_SYNC_CHANGES, state.suggestions.library, state.suggestions, total);
+      state.socketServer.broadcast(BackOut.POST_SYNC_CHANGES, state.suggestions.library, state.suggestions, state.platformAppPaths, total);
       return true;
     })
     .finally(() => {
@@ -441,7 +446,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.GET_SUGGESTIONS, async () => {
-    const startTime = Date.now();
     const suggestions: GamePropSuggestions = {
       tags: await GameManager.findUniqueValues(TagAlias, 'name'),
       playMode: await GameManager.findUniqueValues(Game, 'playMode', true),
@@ -450,12 +454,11 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       applicationPath: await GameManager.findUniqueApplicationPaths(),
       library: await GameManager.findUniqueValues(Game, 'library'),
     };
-    const appPaths: {[platform: string]: string} = {};
-    console.log(Date.now() - startTime);
-    state.recentAppPaths = appPaths; // Update cache
+    const appPaths: PlatformAppPathSuggestions = await GameManager.findPlatformsAppPaths();
+    state.platformAppPaths = appPaths; // Update cache
     return {
       suggestions: suggestions,
-      appPaths: appPaths,
+      platformAppPaths: appPaths,
     };
   });
 
@@ -2059,6 +2062,9 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         thumbnail: await loadCurationIndexImage(path.join(curPath, 'logo.png')),
         screenshot: await loadCurationIndexImage(path.join(curPath, 'ss.png'))
       };
+      if (data.game.primaryPlatform && data.game.primaryPlatform in state.platformAppPaths) {
+        data.game.applicationPath = state.platformAppPaths[data.game.primaryPlatform][0].appPath;
+      }
       const curation: CurationState = {
         ...data,
         alreadyImported: false,

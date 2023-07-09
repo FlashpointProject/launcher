@@ -609,6 +609,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
         gamesTotal: action.total,
         libraries: action.libraries,
         suggestions: action.suggestions,
+        platformAppPaths: action.platformAppPaths,
       };
     }
 
@@ -773,6 +774,7 @@ function createInitialState(): MainState {
       total: 0
     },
     busyGames: [],
+    platformAppPaths: {},
     componentStatuses: [],
     quitting: false,
     openDialogs: [],

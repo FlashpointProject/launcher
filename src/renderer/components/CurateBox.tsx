@@ -15,7 +15,7 @@ import { getCurationURL, getPlatformIconURL } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
 import { BackIn, CurationImageEnum } from '@shared/back/types';
 import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
-import { ContentTreeNode } from '@shared/curate/types';
+import { ContentTreeNode, PlatformAppPathSuggestions } from '@shared/curate/types';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { sizeToString } from '@shared/Util';
@@ -38,6 +38,7 @@ export type CurateBoxProps = {
   suggestions: Partial<GamePropSuggestions>;
   tagSuggestions: TagSuggestion<Tag>[];
   platformSuggestions: TagSuggestion<Platform>[];
+  platformAppPaths: PlatformAppPathSuggestions;
   tagCategories: TagCategory[];
   tagText: string;
   platformText: string;
@@ -195,7 +196,8 @@ export function CurateBox(props: CurateBoxProps) {
       props.dispatch({
         type: CurateActionType.ADD_PLATFORM,
         folder: props.curation.folder,
-        platform
+        platform,
+        platformAppPaths: props.platformAppPaths,
       });
     }
     props.onPlatformTextChange('');
@@ -213,7 +215,8 @@ export function CurateBox(props: CurateBoxProps) {
     props.dispatch({
       type: CurateActionType.REMOVE_PLATFORM,
       folder: props.curation.folder,
-      platformId
+      platformId,
+      platformAppPaths: props.platformAppPaths,
     });
   }, [props.curation.folder]);
 
@@ -371,10 +374,10 @@ export function CurateBox(props: CurateBoxProps) {
 
   const onChangePrimaryPlatform = React.useCallback((newPrimary: string) => {
     props.dispatch({
-      type: CurateActionType.EDIT_CURATION_META,
+      type: CurateActionType.SET_PRIMARY_PLATFORM,
       folder: props.curation.folder,
-      property: 'primaryPlatform',
-      value: newPrimary
+      value: newPrimary,
+      platformAppPaths: props.platformAppPaths,
     });
   }, [props.curation.folder]);
 
@@ -584,7 +587,7 @@ export function CurateBox(props: CurateBoxProps) {
                 title={strings.browse.applicationPath}
                 text={props.curation.game.applicationPath}
                 placeholder={strings.browse.noApplicationPath}
-                items={createDropdownItems(props.suggestions.applicationPath || [])}
+                items={createAppPathDropdownItems(props.platformAppPaths, props.curation.game.primaryPlatform)}
                 warned={props.curation.warnings.fieldWarnings.includes('applicationPath')}
                 allowNonMatching={true}
                 property='applicationPath'
@@ -740,6 +743,50 @@ function useCreateAddAppCallback(type: AddAppType, folder: string, dispatch: Dis
       addAppType: type,
     });
   }, [dispatch, folder]);
+}
+
+function createAppPathDropdownItems(platformAppPaths: PlatformAppPathSuggestions, currentPlatform?: string): DropdownItem[] {
+  if (currentPlatform && currentPlatform in platformAppPaths) {
+    let values: string[] = [];
+    // Sort current platform seperately and put on top
+    values = values.concat(platformAppPaths[currentPlatform].map(a => a.appPath));
+
+    // Sort rest
+    let appPaths: string[] = [];
+    for (const oKey of Object.keys(platformAppPaths)) {
+      if (oKey !== currentPlatform) {
+        appPaths = appPaths.concat(platformAppPaths[oKey].map(a => a.appPath));
+      }
+    }
+    // Remove duplicates
+    appPaths = appPaths.filter(function(elem, index, self) {
+      return index === self.indexOf(elem);
+    });
+    values = values.concat(appPaths.sort());
+
+    return values.map(v => {
+      return {
+        key: v,
+        value: v
+      };
+    });
+  } else {
+    // Sort entire list of used app paths by alphabetical
+    let appPaths: string[] = [];
+    for (const oKey of Object.keys(platformAppPaths)) {
+      appPaths = appPaths.concat(platformAppPaths[oKey].map(a => a.appPath));
+    }
+    // Remove duplicates
+    appPaths = appPaths.filter(function(elem, index, self) {
+      return index === self.indexOf(elem);
+    });
+    return appPaths.sort().map(v => {
+      return {
+        key: v,
+        value: v
+      };
+    });
+  }
 }
 
 function createDropdownItems(values: string[], strings?: LangContainer['libraries']): DropdownItem[] {
