@@ -20,7 +20,7 @@
     "symlinkCurationDesc": "Использует символические ссылки для проверки кураций вместо копирования файлов. Быстрее и поддерживает MAD4FP. Требуются права администратора.",
     "onDemandImages": "Изображения по требованию",
     "onDemandImagesDesc": "Скачать и сохранить недостающие логотипы и скриншоты по мере необходимости.",
-    "onDemandImagesEnabled": "Enabled",
+    "onDemandImagesEnabled": "Включено",
     "onDemandImagesEnabledDesc": "Enable downloading of on-demand logos and screenshots.",
     "onDemandImagesCompressed": "Compressed Images",
     "onDemandImagesCompressedDesc": "Downloads compressed images instead, saving ~80% disk space. (Does not delete existing images)",
