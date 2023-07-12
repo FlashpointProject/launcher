@@ -29,6 +29,10 @@ export function mainStateReducer(state: MainState = createInitialState(), action
         ? action.playlist
         : view.query.filter.playlist;
 
+      if (playlist != undefined) {
+        action.searchText = '';
+      }
+
       return {
         ...state,
         selectedPlaylistId: playlist?.id,
@@ -605,6 +609,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
         gamesTotal: action.total,
         libraries: action.libraries,
         suggestions: action.suggestions,
+        platformAppPaths: action.platformAppPaths,
       };
     }
 
@@ -769,6 +774,7 @@ function createInitialState(): MainState {
       total: 0
     },
     busyGames: [],
+    platformAppPaths: {},
     componentStatuses: [],
     quitting: false,
     openDialogs: [],

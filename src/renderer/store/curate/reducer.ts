@@ -221,16 +221,41 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
       };
     }
 
+    case CurateActionType.SET_PRIMARY_PLATFORM: {
+      const { index, newCurations } = genCurationState(action.folder, state);
+      const curation = newCurations[index];
+
+      curation.game.primaryPlatform = action.value;
+      if (action.platformAppPaths) {
+        if (curation.game.primaryPlatform in action.platformAppPaths) {
+          curation.game.applicationPath = action.platformAppPaths[curation.game.primaryPlatform][0].appPath;
+        }
+      }
+
+      return {
+        ...state,
+        curations: newCurations
+      };
+    }
+
     case CurateActionType.ADD_PLATFORM: {
       const { index, newCurations } = genCurationState(action.folder, state);
-      const newPlatforms = [...(newCurations[index].game.platforms || [])];
+      const curation = newCurations[index];
+      const newPlatforms = [...(curation.game.platforms || [])];
       if (!newPlatforms.find(p => p.id === action.platform.id)) {
         newPlatforms.push(action.platform);
         if (newPlatforms.length === 1) {
-          newCurations[index].game.primaryPlatform = action.platform.primaryAlias.name;
+          // Update platform name
+          curation.game.primaryPlatform = action.platform.primaryAlias.name;
+          if (action.platformAppPaths) {
+            // Find best app path
+            if (curation.game.primaryPlatform in action.platformAppPaths) {
+              curation.game.applicationPath = action.platformAppPaths[curation.game.primaryPlatform][0].appPath;
+            }
+          }
         }
       }
-      newCurations[index].game.platforms = newPlatforms;
+      curation.game.platforms = newPlatforms;
 
       return {
         ...state,
@@ -262,21 +287,28 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
       const { index, newCurations } = genCurationState(action.folder, state);
 
       if (index === -1) { return { ...state }; }
+      const curation = newCurations[index];
 
-      if (!newCurations[index].locked) {
-        const newPlatforms = [...(newCurations[index].game.platforms || [])];
+      if (!curation.locked) {
+        const newPlatforms = [...(curation.game.platforms || [])];
         const platformIdx = newPlatforms.findIndex(t => t.id === action.platformId);
         if (platformIdx > -1) {
           const platform = newPlatforms.splice(platformIdx, 1);
-          if (platform[0].primaryAlias.name === newCurations[index].game.primaryPlatform) {
+          if (platform[0].primaryAlias.name === curation.game.primaryPlatform) {
             if (newPlatforms.length > 0) {
-              newCurations[index].game.primaryPlatform = newPlatforms[0].primaryAlias.name;
+              curation.game.primaryPlatform = newPlatforms[0].primaryAlias.name;
             } else {
-              newCurations[index].game.primaryPlatform = '';
+              curation.game.primaryPlatform = '';
+            }
+            if (action.platformAppPaths && curation.game.primaryPlatform) {
+              // Find best app path
+              if (curation.game.primaryPlatform in action.platformAppPaths) {
+                curation.game.applicationPath = action.platformAppPaths[curation.game.primaryPlatform][0].appPath;
+              }
             }
           }
         }
-        newCurations[index].game.platforms = newPlatforms;
+        curation.game.platforms = newPlatforms;
       }
       return {
         ...state,

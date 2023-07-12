@@ -19,12 +19,15 @@ import { Brackets, EntityTarget, FindOneOptions, In, MoreThan, ObjectLiteral, Se
 import { AppDataSource } from '..';
 import * as GameDataManager from './GameDataManager';
 import * as TagManager from './TagManager';
+import { PlatformAppPathSuggestions } from '@shared/curate/types';
 
-const exactFields = [ 'broken', 'library', 'activeDataOnDisk' ];
+const nullableFields = [ 'lastPlayed' ];
+const exactFields = [ 'broken', 'library', 'activeDataOnDisk'];
 enum flatGameFields {
   'id', 'title', 'alternateTitles', 'developer', 'publisher', 'dateAdded', 'dateModified', 'series',
   'broken', 'playMode', 'status', 'notes', 'source', 'applicationPath', 'launchCommand', 'releaseDate',
-  'version', 'originalDescription', 'language', 'library', 'activeDataOnDisk', 'platformName'
+  'version', 'originalDescription', 'language', 'library', 'activeDataOnDisk', 'platformName', 'lastPlayed',
+  'playtime'
 }
 
 // Events
@@ -304,6 +307,29 @@ export async function findUniqueApplicationPaths(): Promise<string[]> {
   return rawValues.map((val: any) => val['applicationPath']).filter((val: any) => val !== '');
 }
 
+export async function findPlatformsAppPaths(): Promise<PlatformAppPathSuggestions> {
+  const rawValues = await AppDataSource.query(`
+    SELECT platformName, game_data.applicationPath as appPath, COUNT(*) as c FROM game
+    LEFT JOIN game_data ON game_data.gameId = game.id
+    WHERE game_data.applicationPath IS NOT NULL
+    GROUP BY platformName, game_data.applicationPath
+    ORDER BY platformName, c DESC
+  `);
+
+  const grouped: PlatformAppPathSuggestions = {};
+  for (const row of rawValues) {
+    if (!(row['platformName'] in grouped)) {
+      grouped[row['platformName']] = [];
+    }
+    grouped[row['platformName']].push({
+      appPath: row['appPath'],
+      total: row['c']
+    });
+  }
+
+  return grouped;
+}
+
 export async function findUniqueValues(entity: any, column: string, commaSeperated?: boolean): Promise<string[]> {
   validateSqlName(column);
 
@@ -474,18 +500,24 @@ function doWhereField(alias: string, query: SelectQueryBuilder<Game>, field: str
   // Create comparator
   const typing = typeof value;
   const exact = !(typing === 'string') || exactFields.includes(field);
+  const nullable = nullableFields.includes(field);
+
   let comparator: string;
-  if (!exact && value.length != '') {
+  if (!nullable && !exact && value.length != '') {
     if (whitelist) { comparator = 'like'; }
     else           { comparator = 'not like'; }
-  } else {
+  } else if (!nullable) {
     if (whitelist) { comparator = '=';  }
     else           { comparator = '!='; }
+  } else {
+    if (whitelist) { comparator = 'IS'; }
+    else           { comparator = 'IS NOT'; }
+    value = null;
   }
 
   // Create formed value
   let formedValue: any = value;
-  if (!exact && value.length != '') {
+  if (!nullable && !exact && value.length != '') {
     formedValue = '%' + value + '%';
   }
 
@@ -592,6 +624,7 @@ async function getGameQuery(
     if (!index && offset) { query.skip(offset); }
     if (limit) { query.take(limit); }
   }
+
   // Playlist filtering
   if (filterOpts && filterOpts.playlist) {
     const gameIds = filterOpts.playlist.games.map(g => g.gameId).filter(gameId => !!gameId) as string[];
@@ -608,5 +641,33 @@ async function getGameQuery(
     whereCount++;
   }
 
+
+
   return query;
+}
+
+export async function logGameStart(gameId: string) {
+  const game = await findGame(gameId);
+  if (game) {
+    game.lastPlayed = (new Date()).toISOString();
+    game.playCounter += 1;
+    await save(game);
+  }
+}
+
+export async function addGamePlaytime(gameId: string, time: number) {
+  const game = await findGame(gameId);
+  if (game) {
+    game.playtime = game.playtime + Math.ceil(time / 1000);
+    await save(game);
+  }
+}
+
+export async function clearPlaytimeTracking() {
+  const gameRepository = AppDataSource.getRepository(Game);
+  await gameRepository.update({}, {
+    lastPlayed: null,
+    playtime: 0,
+    playCounter: 0
+  });
 }

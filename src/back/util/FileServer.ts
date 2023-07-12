@@ -43,10 +43,23 @@ export class FileServer {
     const region = parts.length > 1 ? parts[1].toLowerCase() : '';
     const pathname = decodeURIComponent(parts.length > 2 ? parts.slice(2).join('/') : '');
 
+    // Immediately slap on error handlers, see if we can find any disconnected errors
+    req.on('error', (err) => {
+      log.error('Launcher', `Generic fileserver request error: ${err}`);
+    });
+    res.on('error', (err) => {
+      log.error('Launcher', `Generic fileserver response error: ${err}`);
+    });
+
     // Pass to handler
     const handler = this.handlers.get(region);
     if (handler) {
-      return handler(pathname, url, req, res);
+      Promise.resolve(handler(pathname, url, req, res))
+      .catch((err) => {
+        console.log(`FS Handler Error: ${err}`);
+        res.writeHead(404);
+        res.end();
+      });
     } else {
       res.writeHead(404);
       res.end();
@@ -56,6 +69,11 @@ export class FileServer {
 
 export function serveFile(req: http.IncomingMessage, res: http.ServerResponse, filePath: string): void {
   if (req.method === 'GET' || req.method === 'HEAD') {
+    req.on('error', (err) => {
+      log.error('Launcher', `Error serving file - ${err}`);
+      res.writeHead(500);
+      res.end();
+    });
     fs.stat(filePath, (error, stats) => {
       if (error || stats && !stats.isFile()) {
         res.writeHead(404);

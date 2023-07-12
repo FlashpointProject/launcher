@@ -3,8 +3,9 @@ name: Nexus (Development)
 on:
   push:
     branches:
-      - feat/nexus-repo
+      - master
       - develop
+      - 'release/**'
 
 jobs:
   build:
@@ -19,10 +20,10 @@ jobs:
         auth_header="$(git config --local --get http.https://github.com/.extraheader)"
         git submodule sync --recursive
         git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
-    - name: Use Node.js 16.x
+    - name: Use Node.js 18.x
       uses: actions/setup-node@v3
       with:
-        node-version: 16
+        node-version: 18
     - uses: actions/cache@v3
       id: cache
       with:

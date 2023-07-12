@@ -174,7 +174,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         className='game-browser'
         ref={this.gameBrowserRef}>
         <ResizableSidebar
-          hide={this.props.preferencesData.browsePageShowLeftSidebar}
+          show={this.props.preferencesData.browsePageShowLeftSidebar}
           divider='after'
           width={this.props.preferencesData.browsePageLeftSidebarWidth}
           onResize={this.onLeftSidebarResize}>
@@ -746,6 +746,9 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
               }
             });
           }
+        })
+        .catch((err) => {
+          log.error('Launcher', 'Error fetching playlist icon: ' + err);
         });
       }
     }
@@ -864,7 +867,7 @@ type FileReaderResult = typeof FileReader['prototype']['result'];
  *
  * @param url URL of content to convert.
  */
-function toDataURL(url: string): Promise<FileReaderResult> {
+async function toDataURL(url: string): Promise<FileReaderResult> {
   return fetch(url)
   .then(response => response.blob())
   .then(blob => new Promise<FileReaderResult>((resolve, reject) => {

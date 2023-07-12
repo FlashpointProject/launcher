@@ -224,6 +224,9 @@ export class GameGrid extends React.Component<GameGridProps> {
               }
             }
           }
+        })
+        .catch((err) => {
+          log.error('Launcher', 'Error fetching new image url ' + err);
         });
       }
     }

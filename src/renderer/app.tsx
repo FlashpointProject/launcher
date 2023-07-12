@@ -172,7 +172,7 @@ export class App extends React.Component<AppProps> {
             break;
           }
           default:
-            ipcRenderer.invoke(CustomIPC.SHOW_SAVE_DIALOG, { title: 'Protocol Error', message: `Unsupported action "${parts[0]}"` });
+            ipcRenderer.invoke(CustomIPC.SHOW_MESSAGE_BOX, { title: 'Protocol Error', message: `Unsupported action "${parts[0]}"` });
             break;
         }
       }
@@ -325,6 +325,21 @@ export class App extends React.Component<AppProps> {
 
     window.Shared.back.register(BackOut.SERVICE_CHANGE, (event, data) => {
       if (data.id) {
+        // Check if game just stopped, update to reflect time played changes if so
+        if (this.props.main.currentGame && data.state === ProcessState.STOPPED) {
+          if (data.id.startsWith('game.') && data.id.length > 5) {
+            const id = data.id.slice(5);
+            if (id === this.props.main.currentGame.id) {
+              // Reload game in sidebar
+              window.Shared.back.request(BackIn.GET_GAME, this.props.main.currentGame.id)
+              .then((game) => {
+                if (game && this.props.main.selectedGameId === game.id) {
+                  this.props.setMainState({ currentGame: game });
+                }
+              });
+            }
+          }
+        }
         const newServices = [...this.props.main.services];
         const service = newServices.find(item => item.id === data.id);
         if (service) {
@@ -530,12 +545,13 @@ export class App extends React.Component<AppProps> {
       });
     });
 
-    window.Shared.back.register(BackOut.POST_SYNC_CHANGES, (event, libraries, suggestions, total) => {
+    window.Shared.back.register(BackOut.POST_SYNC_CHANGES, (event, libraries, suggestions, platformAppPaths, total) => {
       this.props.dispatchMain({
         type: MainActionType.POST_FPFSS_SYNC,
         libraries,
         suggestions,
         preferencesData: this.props.preferencesData,
+        platformAppPaths,
         total
       });
     });
@@ -788,16 +804,28 @@ export class App extends React.Component<AppProps> {
       }
 
       if (view) {
-      // Check if any parameters for the search query has changed (they don't match the current view's)
-        if (view.query.text                   !== this.props.search.text ||
-          view.query.extreme                !== this.props.preferencesData.browsePageShowExtreme ||
+        // Prevent order changes from updating playlist search results
+        let orderUpdate = false;
+        if (
           view.query.orderBy                !== this.props.preferencesData.gamesOrderBy ||
-          view.query.orderReverse           !== this.props.preferencesData.gamesOrder ||
-          prevProps.main.playlists          !== this.props.main.playlists ||
+          view.query.orderReverse           !== this.props.preferencesData.gamesOrder
+        ) {
+          orderUpdate = true;
+        }
+        if (!!view.query.filter.playlist || !!this.props.main.selectedPlaylistId) {
+          orderUpdate = false;
+        }
+
+        // Check if any parameters for the search query has changed (they don't match the current view's)
+        if (view.query.text                 !== this.props.search.text ||
+          view.query.extreme                !== this.props.preferencesData.browsePageShowExtreme ||
+          orderUpdate ||
           JSON.stringify(view.tagFilters)   !== JSON.stringify(this.props.preferencesData.tagFilters) ||
-          view.query.searchLimit            !== this.props.preferencesData.searchLimit) {
+          view.query.searchLimit            !== this.props.preferencesData.searchLimit
+        ) {
           this.setViewQuery(library);
         }
+
         // Fetch pages
         else if (view.metaState === RequestState.RECEIVED) {
           let pages: number[] | undefined;
@@ -1429,7 +1457,7 @@ export class App extends React.Component<AppProps> {
                   </noscript>
                   { this.props.main.currentGame && !hiddenRightSidebarPages.reduce((prev, cur) => prev || this.props.history.location.pathname.startsWith(cur), false) && (
                     <ResizableSidebar
-                      hide={this.props.preferencesData.browsePageShowRightSidebar}
+                      show={this.props.preferencesData.browsePageShowRightSidebar}
                       divider='before'
                       width={this.props.preferencesData.browsePageRightSidebarWidth}
                       onResize={this.onRightSidebarResize}>

@@ -215,7 +215,7 @@ export function HomePage(props: HomePageProps) {
           </Link>
         </QuickStartItem><QuickStartItem icon='list'>
           <div
-            onClick={() => remote.shell.openExternal('http://bluemaxima.org/flashpoint/datahub/Tags')}
+            onClick={() => remote.shell.openExternal('http://flashpointarchive.org/datahub/Tags')}
             className='clickable-url' >
             {strings.tagList}
           </div>
@@ -224,13 +224,6 @@ export function HomePage(props: HomePageProps) {
         </QuickStartItem><QuickStartItem className='home-page__box-item--platforms'>
           {platformList}
         </QuickStartItem><br />
-        <QuickStartItem icon='code'>
-          <div
-            onClick={() => remote.shell.openExternal('https://trello.com/b/Tu9E5GLk/launcher')}
-            className='clickable-url' >
-            {strings.plannedFeatures}
-          </div>
-        </QuickStartItem>
       </>
     );
 
@@ -377,12 +370,45 @@ export function HomePage(props: HomePageProps) {
         return;
       }
       setUpdating(true);
-      window.Shared.back.request(BackIn.SYNC_ALL, window.Shared.preferences.data.gameMetadataSources[0])
-      .then((success) => {
-        if (success) {
+
+      if (props.main.metadataUpdate.total <= 0) {
+        // Fetch update info
+        window.Shared.back.request(BackIn.PRE_UPDATE_INFO, props.preferencesData.gameMetadataSources[0])
+        .then((total) => {
+          props.dispatchMain({
+            type: MainActionType.UPDATE_UPDATE_INFO,
+            total
+          });
+        })
+        .finally(() => {
+          setUpdating(false);
+        });
+      } else {
+        // Do update
+        window.Shared.back.request(BackIn.SYNC_ALL, props.preferencesData.gameMetadataSources[0])
+        .then((success) => {
+          if (success) {
+            const dialog: DialogState = {
+              largeMessage: true,
+              message: strings.updateComplete,
+              buttons: [allStrings.misc.ok],
+              id: uuid()
+            };
+            props.dispatchMain({
+              type: MainActionType.NEW_DIALOG,
+              dialog
+            });
+            props.dispatchMain({
+              type: MainActionType.UPDATE_UPDATE_INFO,
+              total: 0
+            });
+          }
+        })
+        .catch((err) => {
+          log.error('Launcher', `Error updating metadata: ${err}`);
           const dialog: DialogState = {
             largeMessage: true,
-            message: strings.updateComplete,
+            message: `ERROR: ${err}`,
             buttons: [allStrings.misc.ok],
             id: uuid()
           };
@@ -390,33 +416,17 @@ export function HomePage(props: HomePageProps) {
             type: MainActionType.NEW_DIALOG,
             dialog
           });
-          props.dispatchMain({
-            type: MainActionType.UPDATE_UPDATE_INFO,
-            total: 0
-          });
-        }
-      })
-      .catch((err) => {
-        log.error('Launcher', `Error updating metadata: ${err}`);
-        const dialog: DialogState = {
-          largeMessage: true,
-          message: `ERROR: ${err}`,
-          buttons: [allStrings.misc.ok],
-          id: uuid()
-        };
-        props.dispatchMain({
-          type: MainActionType.NEW_DIALOG,
-          dialog
+        })
+        .finally(() => {
+          setUpdating(false);
         });
-      })
-      .finally(() => {
-        setUpdating(false);
-      });
+      }
     };
+
     if (props.preferencesData.gameMetadataSources.length > 0) {
       const text = props.main.metadataUpdate.ready ? (
         props.main.metadataUpdate.total > 0 ? strings.update :
-          props.main.metadataUpdate.total === -1 ? strings.error : strings.upToDate
+          props.main.metadataUpdate.total === -1 ? strings.error : strings.checkForUpdates
       ) : strings.checkingUpdate;
       return (
         <div className='update-metadata-box'>
@@ -424,7 +434,7 @@ export function HomePage(props: HomePageProps) {
             <SimpleButton
               className='update-metadata-button-inner'
               value={text}
-              disabled={text !== strings.update}
+              disabled={updating}
               onClick={onPressUpdate} />
           </div>
           <div className='update-metadata-name'>
@@ -444,7 +454,7 @@ export function HomePage(props: HomePageProps) {
       return (<></>);
     }
 
-  }, [strings, props.preferencesData.gameMetadataSources, updating]);
+  }, [strings, props.preferencesData.gameMetadataSources, props.main.metadataUpdate, updating]);
 
   // Render
   return React.useMemo(() => (

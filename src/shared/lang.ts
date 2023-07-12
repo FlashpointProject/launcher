@@ -31,6 +31,15 @@ const langTemplate = {
     'onDemandImagesCompressedDesc',
     'onDemandImagesDelete',
     'onDemandImagesDeleteDesc',
+    'playtimeTracking',
+    'playtimeTrackingDesc',
+    'enablePlaytimeTracking',
+    'enablePlaytimeTrackingDesc',
+    'enablePlaytimeTrackingExtreme',
+    'enablePlaytimeTrackingExtremeDesc',
+    'clearPlaytimeTracking',
+    'clearPlaytimeTrackingDesc',
+    'clearData',
     'currentLanguage',
     'currentLanguageDesc',
     'fallbackLanguage',
@@ -115,6 +124,7 @@ const langTemplate = {
     'alreadyInstalled',
     'download',
     'error',
+    'checkForUpdates',
     'checkingUpdate',
     'updatedGamesReady',
     'update',
@@ -265,6 +275,17 @@ const langTemplate = {
     'noTitle',
     'by',
     'play',
+    'lastPlayed',
+    'playtime',
+    'playCount',
+    'never',
+    'today',
+    'yesterday',
+    'daysAgo',
+    'weeksAgo',
+    'seconds',
+    'minutes',
+    'hours',
     'stop',
     'noDeveloper',
     'alternateTitles',
@@ -344,6 +365,7 @@ const langTemplate = {
     'library',
     'defaultLibrary',
     'legacyGame',
+    'fpfssGame',
     'notInstalled',
     'installed',
     'download',
@@ -352,6 +374,7 @@ const langTemplate = {
     'noMountParameters',
     'showExtremeScreenshot',
     'busy',
+    'openGameDataBrowser',
   ] as const,
   tags: [
     'name',
@@ -435,6 +458,9 @@ const langTemplate = {
     'contentFiles',
     'default',
     'warnings',
+    'noTitle',
+    'noApplicationPath',
+    'noPlatforms',
     'noLaunchCommand',
     'invalidLaunchCommand',
     'releaseDateInvalid',
@@ -590,6 +616,7 @@ const langTemplate = {
     'failedToLoadCuration',
     'requiresAdditionalDownload',
     'requiresAdditionalDownloadPlural',
+    'confirmClearPlaytime',
   ] as const,
   // libraries: [], // (This is dynamically populated in run-time)
 } as const;
@@ -688,6 +715,11 @@ export function getDefaultLocalization(): LangContainer {
   lang.browse.dropGameOnLeft += ' {0}';
   lang.browse.setFlashpointPathQuestion += ' {0} {1}';
   lang.browse.noteSaveAndRestart += ' {0}';
+  lang.browse.daysAgo += ' {0}';
+  lang.browse.weeksAgo += ' {0}';
+  lang.browse.seconds += ' {0}';
+  lang.browse.minutes += ' {0}';
+  lang.browse.hours += ' {0}';
   lang.misc.noBlankFound = ' {0} ' + lang.misc.noBlankFound;
   lang.misc.addBlank += ' {0}';
   lang.misc.deleteAllBlankImages += ' {0}';

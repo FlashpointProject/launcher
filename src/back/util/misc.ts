@@ -21,6 +21,7 @@ import * as path from 'path';
 import { promisify } from 'util';
 import { uuid } from './uuid';
 import { AppDataSource } from '..';
+import terminate from 'terminate';
 
 const unlink = promisify(fs.unlink);
 
@@ -124,7 +125,13 @@ export async function exit(state: BackState, beforeProcessExit?: () => void | Pr
       // Kill services
       for (const service of state.services.values()) {
         if (service.info.kill) {
-          await service.kill();
+          // Kill with 10s timeout
+          await Promise.race([
+            service.kill(),
+            new Promise(resolve => {
+              setTimeout(resolve, 10000);
+            })
+          ]);
         }
       }
       console.log(' - Managed Services Killed');
@@ -178,8 +185,9 @@ export async function exit(state: BackState, beforeProcessExit?: () => void | Pr
       console.log(' - Quit Broadcast Sent');
       // Close WebSocket server
       state.socketServer.close()
-      .catch(e => { console.error(e); }),
-      process.exit();
+      .catch(e => { console.error(e); });
+
+      terminate(process.pid);
     });
   }
 }

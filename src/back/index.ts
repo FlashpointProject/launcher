@@ -13,30 +13,29 @@ import { SourceFileURL1612435692266 } from '@database/migration/1612435692266-So
 import { SourceFileCount1612436426353 } from '@database/migration/1612436426353-SourceFileCount';
 import { GameTagsStr1613571078561 } from '@database/migration/1613571078561-GameTagsStr';
 import { GameDataParams1619885915109 } from '@database/migration/1619885915109-GameDataParams';
-import { BackIn, BackInit, BackInitArgs, BackOut, BackResParams, ComponentState, ComponentStatus, DownloadDetails } from '@shared/back/types';
-import { LoadedCuration } from '@shared/curate/types';
-import { getContentFolderByKey } from '@shared/curate/util';
-import { ILogoSet, LogoSet } from '@shared/extensions/interfaces';
-import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
-import { getDefaultLocalization, LangFileContent } from '@shared/lang';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
-import { PreferencesFile } from '@shared/preferences/PreferencesFile';
-import { defaultPreferencesData } from '@shared/preferences/util';
 import { Theme } from '@shared/ThemeFile';
 import {
   createErrorProxy, deepCopy,
   removeFileExtension,
   stringifyArray
 } from '@shared/Util';
+import { BackIn, BackInit, BackInitArgs, BackOut, BackResParams, ComponentState, ComponentStatus, DownloadDetails } from '@shared/back/types';
+import { LoadedCuration } from '@shared/curate/types';
+import { getContentFolderByKey } from '@shared/curate/util';
+import { ILogoSet, LogoSet } from '@shared/extensions/interfaces';
+import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
+import { LangFileContent, getDefaultLocalization } from '@shared/lang';
+import { PreferencesFile } from '@shared/preferences/PreferencesFile';
+import { defaultPreferencesData } from '@shared/preferences/util';
 import { validateSemiUUID } from '@shared/utils/uuid';
 import * as child_process from 'child_process';
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint-launcher';
-import { http as httpFollow, https as httpsFollow } from 'follow-redirects';
 import * as fs from 'fs-extra';
 import * as http from 'http';
 import * as mime from 'mime';
-import { extractFull, Progress } from 'node-7z';
+import { Progress, extractFull } from 'node-7z';
 import * as path from 'path';
 import 'reflect-metadata';
 import { genCurationWarnings, loadCurationFolder } from './curate/util';
@@ -47,6 +46,10 @@ import { RemoveSources1676712700000 } from '@database/migration/1676712700000-Re
 import { RemovePlaylist1676713895000 } from '@database/migration/1676713895000-RemovePlaylist';
 import { TagifyPlatform1677943090621 } from '@database/migration/1677943090621-TagifyPlatform';
 import { AddPlatformsRedundancyFieldToGame1677951346785 } from '@database/migration/1677951346785-AddPlatformsRedundancyFieldToGame';
+import { GDIndex1680813346696 } from '@database/migration/1680813346696-GDIndex';
+import { MoveLaunchPath1681561150000 } from '@database/migration/1681561150000-MoveLaunchPath';
+import { PrimaryPlatform1684673859425 } from '@database/migration/1684673859425-PrimaryPlatform';
+import { PlayTime1687807237714 } from '@database/migration/1687807237714-PlayTime';
 import {
   CURATIONS_FOLDER_EXPORTED,
   CURATIONS_FOLDER_EXTRACTING,
@@ -56,32 +59,32 @@ import {
 import { Tail } from 'tail';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { ConfigFile } from './ConfigFile';
+import { loadExecMappingsFile } from './Execs';
+import { ExtConfigFile } from './ExtConfigFile';
+import { InstancedAbortController } from './InstancedAbortController';
+import { ManagedChildProcess, onServiceChange } from './ManagedChildProcess';
+import { PlaylistFile } from './PlaylistFile';
+import { ServicesFile } from './ServicesFile';
+import { SocketServer } from './SocketServer';
+import { newThemeWatcher } from './Themes';
 import { CONFIG_FILENAME, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE } from './constants';
 import { loadCurationIndexImage } from './curate/parse';
 import { readCurationMeta } from './curate/read';
 import { onFileServerRequestCurationFileFactory, onFileServerRequestPostCuration } from './curate/util';
-import { loadExecMappingsFile } from './Execs';
-import { ExtConfigFile } from './ExtConfigFile';
 import { ApiEmitter } from './extensions/ApiEmitter';
 import { ExtensionService } from './extensions/ExtensionService';
 import {
   FPLNodeModuleFactory,
   INodeModuleFactory,
+  SqliteInterceptorFactory,
   installNodeInterceptor,
-  registerInterceptor,
-  SqliteInterceptorFactory
+  registerInterceptor
 } from './extensions/NodeInterceptor';
 import { Command } from './extensions/types';
 import * as GameManager from './game/GameManager';
 import { onWillImportCuration } from './importGame';
-import { InstancedAbortController } from './InstancedAbortController';
-import { ManagedChildProcess, onServiceChange } from './ManagedChildProcess';
-import { PlaylistFile } from './PlaylistFile';
 import { registerRequestCallbacks } from './responses';
 import { genContentTree } from './rust';
-import { ServicesFile } from './ServicesFile';
-import { SocketServer } from './SocketServer';
-import { newThemeWatcher } from './Themes';
 import { BackState, ImageDownloadItem } from './types';
 import { EventQueue } from './util/EventQueue';
 import { FileServer, serveFile } from './util/FileServer';
@@ -90,9 +93,8 @@ import { LogFile } from './util/LogFile';
 import { logFactory } from './util/logging';
 import { createContainer, exit, getMacPATH, runService } from './util/misc';
 import { uuid } from './util/uuid';
-import { GDIndex1680813346696 } from '@database/migration/1680813346696-GDIndex';
-import { MoveLaunchPath1681561150000 } from '@database/migration/1681561150000-MoveLaunchPath';
-import { PrimaryPlatform1684673859425 } from '@database/migration/1684673859425-PrimaryPlatform';
+import { PlayTimeIndices1687847922729 } from '@database/migration/1687847922729-PlayTimeIndices';
+import axios from 'axios';
 
 const dataSourceOptions: DataSourceOptions = {
   type: 'better-sqlite3',
@@ -101,7 +103,7 @@ const dataSourceOptions: DataSourceOptions = {
   migrations: [Initial1593172736527, AddExtremeToPlaylist1599706152407, GameData1611753257950, SourceDataUrlPath1612434225789, SourceFileURL1612435692266,
     SourceFileCount1612436426353, GameTagsStr1613571078561, GameDataParams1619885915109, RemoveSources1676712700000, RemovePlaylist1676713895000,
     TagifyPlatform1677943090621, AddPlatformsRedundancyFieldToGame1677951346785, GDIndex1680813346696, MoveLaunchPath1681561150000,
-    PrimaryPlatform1684673859425
+    PrimaryPlatform1684673859425, PlayTime1687807237714, PlayTimeIndices1687847922729
   ]
 };
 export let AppDataSource: DataSource = new DataSource(dataSourceOptions);
@@ -236,7 +238,7 @@ const state: BackState = {
   extensionsService: createErrorProxy('extensionsService'),
   sevenZipPath: '',
   loadedCurations: [],
-  recentAppPaths: {},
+  platformAppPaths: {},
   writeLocks: 0,
   prefsQueue: new EventQueue(),
   componentStatuses: [],
@@ -530,6 +532,13 @@ async function prepForInit(message: any): Promise<void> {
     const playlist = await PlaylistFile.readFile(path.join(playlistDir, file.name), (err) => {
       console.error('Launcher', `Failed to load Playlist ${file.name}, ERROR:\n${err}`);
     });
+    // Check for ID collision
+    const collisionIdx = state.playlists.findIndex(p => p.id === playlist.id);
+    if (collisionIdx > -1) {
+      const oldId = playlist.id;
+      playlist.id = uuid();
+      log.warn('Launcher', `Playlist ID Collision - Renamed ID for ${playlist.title} (${oldId}) to ${playlist.id}`);
+    }
     state.playlists.push(playlist);
   }
   console.log('Back - Parsed Playlists');
@@ -1138,15 +1147,15 @@ async function onFileServerRequestImages(pathname: string, url: URL, req: http.I
           const chunks: any[] = [];
           req.on('data', (chunk) => {
             chunks.push(chunk);
-          });
-          req.on('end', async () => {
+          })
+          .on('end', async () => {
             const data = Buffer.concat(chunks);
             await fs.promises.writeFile(filePath, data);
             state.socketServer.broadcast(BackOut.IMAGE_CHANGE, folder, gameId);
             res.writeHead(200);
             res.end();
-          });
-          req.on('error', async (err) => {
+          })
+          .on('error', async (err) => {
             log.error('Launcher', `Error writing Game image - ${err}`);
             res.writeHead(500);
             res.end();
@@ -1158,50 +1167,65 @@ async function onFileServerRequestImages(pathname: string, url: URL, req: http.I
       res.end();
     }
     else if (req.method === 'GET' || req.method === 'HEAD') {
-      fs.stat(filePath, (error, stats) => {
-        if (error && error.code !== 'ENOENT') {
-          res.writeHead(404);
-          res.end();
-        } else if (stats && stats.isFile()) {
-          // Respond with file
-          res.writeHead(200, {
-            'Content-Type': mime.getType(path.extname(filePath)) || '',
-            'Content-Length': stats.size,
+      req.on('error', (err) => {
+        log.error('Launcher', `Error serving Game image - ${err}`);
+        res.writeHead(500);
+        res.end();
+      });
+      fs.stat(filePath)
+      .then((stats) => {
+        // Respond with file
+        res.writeHead(200, {
+          'Content-Type': mime.getType(path.extname(filePath)) || '',
+          'Content-Length': stats.size,
+        });
+        if (req.method === 'GET') {
+          const stream = fs.createReadStream(filePath);
+          stream.on('error', error => {
+            console.warn(`File server failed to stream file. ${error}`);
+            stream.destroy(); // Calling "destroy" inside the "error" event seems like it could case an endless loop (although it hasn't thus far)
+            if (!res.writableEnded) { res.end(); }
           });
-          if (req.method === 'GET') {
-            const stream = fs.createReadStream(filePath);
-            stream.on('error', error => {
-              console.warn(`File server failed to stream file. ${error}`);
-              stream.destroy(); // Calling "destroy" inside the "error" event seems like it could case an endless loop (although it hasn't thus far)
-              if (!res.writableEnded) { res.end(); }
-            });
-            stream.pipe(res);
-          } else {
-            res.end();
-          }
-        } else if (state.preferences.onDemandImages) {
-          // Remove any older duplicate requests
-          const index = state.fileServerDownloads.queue.findIndex(v => v.subPath === pathname);
-          if (index >= 0) {
-            const item = state.fileServerDownloads.queue[index];
-            item.res.writeHead(404);
-            item.res.end();
-            state.fileServerDownloads.queue.splice(index, 1);
-          }
-
-          // Add to download queue
-          const item: ImageDownloadItem = {
-            subPath: pathname,
-            req: req,
-            res: res,
-            cancelled: false,
-          };
-          state.fileServerDownloads.queue.push(item);
-          req.once('close', () => { item.cancelled = true; });
-          updateFileServerDownloadQueue();
+          stream.pipe(res);
         } else {
+          res.end();
+        }
+      })
+      .catch(async (err) => {
+        if (err.code !== 'ENOENT') {
+          // Can't read file
           res.writeHead(404);
           res.end();
+        } else {
+          // File missing
+          if (!state.preferences.onDemandImages) {
+            // Not downloading new files
+            res.writeHead(404);
+            res.end();
+          } else {
+            // Remove any older duplicate requests
+            const index = state.fileServerDownloads.queue.findIndex(v => v.subPath === pathname);
+            if (index >= 0) {
+              const item = state.fileServerDownloads.queue[index];
+              item.res.writeHead(404);
+              item.res.end();
+              state.fileServerDownloads.queue.splice(index, 1);
+            }
+
+            // Add to download queue
+            const item: ImageDownloadItem = {
+              subPath: pathname,
+              req: req,
+              res: res,
+              cancelled: false,
+            };
+            state.fileServerDownloads.queue.push(item);
+            req.once('close', () => { item.cancelled = true; });
+            updateFileServerDownloadQueue()
+            .catch((err) => {
+              log.error('Launcher', 'Somethign really broke in updateFileServerDownloadQueue: ' + err);
+            });
+          }
         }
       });
     } else {
@@ -1305,7 +1329,7 @@ function awaitEvents(emitter: EventEmitter, events: string[]): Promise<void> {
 }
 
 
-function updateFileServerDownloadQueue() {
+async function updateFileServerDownloadQueue() {
   // @NOTE This will fail to stream the image to the client if it fails to save it to the disk.
 
   // Fill all available current slots
@@ -1324,65 +1348,37 @@ function updateFileServerDownloadQueue() {
     if (state.preferences.onDemandImagesCompressed) {
       url += '?type=jpg';
     }
-    const protocol = url.startsWith('https://') ? httpsFollow : httpFollow;
-    try {
-      const req = protocol.get(url, async (res) => {
-        try {
-          if (res.statusCode === 200) {
-            const imageFolder = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
-            const filePath = path.join(imageFolder, item.subPath);
+    // Use arraybuffer since it's small memory footprint anyway
+    await axios.get(url, { responseType: 'arraybuffer' })
+    .then(async (res) => {
+      // Save response to image file
+      const imageData = res.data;
 
-            await fs.ensureDir(path.dirname(filePath));
-            const fileStream = fs.createWriteStream(filePath);
+      const imageFolder = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
+      const filePath = path.join(imageFolder, item.subPath);
 
-            res.on('data', (chunk: Buffer) => {
-              fileStream.write(chunk);
-              item.res.write(chunk);
-            });
-            res.once('close', () => {
-              fileStream.end();
-              removeFileServerDownloadItem(item);
-            });
-            res.once('end', () => {
-              fileStream.end();
-              removeFileServerDownloadItem(item);
-            });
-            res.once('error', error => {
-              console.error('An error occurred while downloading an image on demand.', error);
-              fileStream.end();
-              fs.unlink(filePath).catch(error => { console.error(`Failed to delete incomplete on demand image file (filepath: "${filePath}")`, error); });
-              removeFileServerDownloadItem(item);
-            });
-          } else {
-            // throw new Error(`The status code is not 200 (status code: ${res.statusCode})`);
-            removeFileServerDownloadItem(item); // (This way it doesn't clog up the console when displaying games without an image)
-          }
-        } catch (error) {
-          console.error('Failed to download an image on demand.', error);
-          removeFileServerDownloadItem(item);
-        }
-      });
-      req.on('error', error => {
-        removeFileServerDownloadItem(item);
-        if ((error as any)?.code !== 'ENOTFOUND') {
-          console.error('Failed to download an image on demand.', error);
-        }
-      });
-    } catch (error) {
-      console.error('Failed to download an image on demand.', error);
+      await fs.ensureDir(path.dirname(filePath));
+      await fs.promises.writeFile(filePath, imageData, 'binary');
+
+      item.res.writeHead(200);
+      item.res.write(imageData);
+    })
+    .catch((err) => {
+      item.res.writeHead(404);
+      log.error('Launcher', 'Failure downloading image on demand: ' + err);
+    })
+    .finally(async () => {
       removeFileServerDownloadItem(item);
-    }
+    });
   }
 }
 
-function removeFileServerDownloadItem(item: ImageDownloadItem): void {
+async function removeFileServerDownloadItem(item: ImageDownloadItem): Promise<void> {
   item.res.end();
 
   // Remove item from current
   const index = state.fileServerDownloads.current.indexOf(item);
   if (index >= 0) { state.fileServerDownloads.current.splice(index, 1); }
-
-  updateFileServerDownloadQueue();
 }
 
 export async function loadCurationArchive(filePath: string, onProgress?: (progress: Progress) => void): Promise<flashpoint.CurationState> {
@@ -1415,7 +1411,7 @@ export async function loadCurationArchive(filePath: string, onProgress?: (progre
   await fs.remove(extractPath);
 
   // Load curation
-  const parsedMeta = await readCurationMeta(curationPath, state.recentAppPaths);
+  const parsedMeta = await readCurationMeta(curationPath, state.platformAppPaths);
   if (!parsedMeta) { throw new Error('Fail'); }
 
   const loadedCuration: LoadedCuration = {

@@ -11,7 +11,7 @@ import { BackIn, BackInit, BackOut, ComponentState, CurationImageEnum, DownloadD
 import { overwriteConfigData } from '@shared/config/util';
 import { CURATIONS_FOLDER_EXPORTED, CURATIONS_FOLDER_TEMP, CURATIONS_FOLDER_WORKING, LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
-import { LoadedCuration } from '@shared/curate/types';
+import { LoadedCuration, PlatformAppPathSuggestions } from '@shared/curate/types';
 import { getContentFolderByKey, getCurationFolder } from '@shared/curate/util';
 import { AppProvider, BrowserApplicationOpts } from '@shared/extensions/interfaces';
 import { FilterGameOpts } from '@shared/game/GameFilter';
@@ -83,6 +83,8 @@ const axios = axiosImport.default;
  * @param init Initialization function (only runs once per state)
  */
 export function registerRequestCallbacks(state: BackState, init: () => Promise<void>): void {
+  state.socketServer.register(BackIn.KEEP_ALIVE, () => {});
+
   state.socketServer.register(BackIn.ADD_LOG, (event, data) => {
     switch (data.logLevel) {
       case LogLevel.TRACE:
@@ -186,6 +188,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       /** Ignore */
     }
 
+    state.platformAppPaths = await GameManager.findPlatformsAppPaths();
+
     const res: GetRendererLoadedDataResponse = {
       gotdList: gotdList,
       libraries: libraries,
@@ -193,6 +197,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       serverNames: state.serviceInfo ? state.serviceInfo.server.map(i => i.name || '') : [],
       tagCategories: await TagManager.findTagCategories(),
       suggestions: state.suggestions,
+      platformAppPaths: state.platformAppPaths,
       logoSets: Array.from(state.registry.logoSets.values()),
       updateFeedMarkdown,
       mad4fpEnabled: state.serviceInfo ? (state.serviceInfo.server.findIndex(s => s.mad4fp === true) !== -1) : false,
@@ -405,11 +410,13 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         playMode: await GameManager.findUniqueValues(Game, 'playMode', true),
         platforms: await GameManager.findUniqueValues(PlatformAlias, 'name'),
         status: await GameManager.findUniqueValues(Game, 'status', true),
-        applicationPath: await GameManager.findUniqueValues(Game, 'applicationPath'),
+        applicationPath: await GameManager.findUniqueApplicationPaths(),
         library: await GameManager.findUniqueValues(Game, 'library'),
       };
+      const appPaths: PlatformAppPathSuggestions = await GameManager.findPlatformsAppPaths();
+      state.platformAppPaths = appPaths; // Update cache
       const total = await GameManager.countGames();
-      state.socketServer.broadcast(BackOut.POST_SYNC_CHANGES, state.suggestions.library, state.suggestions, total);
+      state.socketServer.broadcast(BackOut.POST_SYNC_CHANGES, state.suggestions.library, state.suggestions, state.platformAppPaths, total);
       return true;
     })
     .finally(() => {
@@ -439,21 +446,19 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.GET_SUGGESTIONS, async () => {
-    const startTime = Date.now();
     const suggestions: GamePropSuggestions = {
       tags: await GameManager.findUniqueValues(TagAlias, 'name'),
       playMode: await GameManager.findUniqueValues(Game, 'playMode', true),
       platforms: await GameManager.findUniqueValues(PlatformAlias, 'name'),
       status: await GameManager.findUniqueValues(Game, 'status', true),
-      applicationPath: await GameManager.findUniqueValues(Game, 'applicationPath'),
+      applicationPath: await GameManager.findUniqueApplicationPaths(),
       library: await GameManager.findUniqueValues(Game, 'library'),
     };
-    const appPaths: {[platform: string]: string} = {};
-    console.log(Date.now() - startTime);
-    state.recentAppPaths = appPaths; // Update cache
+    const appPaths: PlatformAppPathSuggestions = await GameManager.findPlatformsAppPaths();
+    state.platformAppPaths = appPaths; // Update cache
     return {
       suggestions: suggestions,
-      appPaths: appPaths,
+      platformAppPaths: appPaths,
     };
   });
 
@@ -1148,6 +1153,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.ADD_PLAYLIST_GAME, async (event, playlistId, gameId) => {
+    log.debug('Launcher', `Adding ${gameId} to ${playlistId}`);
     return addPlaylistGame(state, playlistId, gameId);
   });
 
@@ -1698,7 +1704,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     const fpmPath = 'FlashpointManager.exe';
     const updatesReady = state.componentStatuses.filter(c => c.state === ComponentState.NEEDS_UPDATE).length > 0;
     exitApp(state, async () => {
-      const args = updatesReady ? ['/update'] : [];
+      const args = updatesReady ? ['/update', '/launcher'] : ['/launcher'];
       const child = child_process.spawn(fpmPath, args, { detached: true, cwd, stdio: ['ignore', 'ignore', 'ignore'] });
       child.unref();
     });
@@ -2046,6 +2052,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         group: '',
         game: meta || {
           language: 'en',
+          primaryPlatform: defaultPlats ? defaultPlats.primaryAlias.name : undefined,
           platforms: defaultPlats ? [defaultPlats] : [],
           playMode: 'Single Player',
           status:   'Playable',
@@ -2055,6 +2062,9 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         thumbnail: await loadCurationIndexImage(path.join(curPath, 'logo.png')),
         screenshot: await loadCurationIndexImage(path.join(curPath, 'ss.png'))
       };
+      if (data.game.primaryPlatform && data.game.primaryPlatform in state.platformAppPaths) {
+        data.game.applicationPath = state.platformAppPaths[data.game.primaryPlatform][0].appPath;
+      }
       const curation: CurationState = {
         ...data,
         alreadyImported: false,
@@ -2108,6 +2118,19 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     });
     taskProgress.setStageProgress(2, 'Extracted');
     taskProgress.done('Imported FPFSS Curation');
+  });
+
+  state.socketServer.register(BackIn.CLEAR_PLAYTIME_TRACKING, async (event) => {
+    const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
+    const dialogId = await openDialog({
+      message: 'Clearing Playtime Data...',
+      largeMessage: true,
+      buttons: []
+    });
+    await GameManager.clearPlaytimeTracking()
+    .finally(() => {
+      state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
+    });
   });
 
   state.socketServer.register(BackIn.RUN_COMMAND, async (event, command, args = []) => {
@@ -2362,12 +2385,56 @@ function runGameFactory(state: BackState) {
         kill: true
       }
     );
+    if (proc.getState() === ProcessState.RUNNING) {
+      // Update game last played
+      if (state.preferences.enablePlaytimeTracking) {
+        if (!state.preferences.enablePlaytimeTrackingExtreme) {
+          const extremeTags = state.preferences.tagFilters.filter(t => t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
+          const isExtreme = gameLaunchInfo.game.tagsStr.split(';').findIndex(t => extremeTags.includes(t.trim())) !== -1;
+          if (!isExtreme) {
+            GameManager.logGameStart(gameLaunchInfo.game.id);
+          }
+        } else {
+          GameManager.logGameStart(gameLaunchInfo.game.id);
+        }
+      }
+    } else {
+      proc.on('change', async () => {
+        if (proc.getState() === ProcessState.RUNNING) {
+          // Update game last played
+          if (state.preferences.enablePlaytimeTracking) {
+            if (!state.preferences.enablePlaytimeTrackingExtreme) {
+              const extremeTags = state.preferences.tagFilters.filter(t => t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
+              const isExtreme = gameLaunchInfo.game.tagsStr.split(';').findIndex(t => extremeTags.includes(t.trim())) !== -1;
+              if (!isExtreme) {
+                GameManager.logGameStart(gameLaunchInfo.game.id);
+              }
+            } else {
+              GameManager.logGameStart(gameLaunchInfo.game.id);
+            }
+          }
+        }
+      });
+    }
     // Remove game service when it exits
     proc.on('change', () => {
       if (proc.getState() === ProcessState.STOPPED) {
+        // Update game playtime counter
+        if (state.preferences.enablePlaytimeTracking) {
+          if (!state.preferences.enablePlaytimeTrackingExtreme) {
+            const extremeTags = state.preferences.tagFilters.filter(t => t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
+            const isExtreme = gameLaunchInfo.game.tagsStr.split(';').findIndex(t => extremeTags.includes(t.trim())) !== -1;
+            if (!isExtreme) {
+              GameManager.addGamePlaytime(gameLaunchInfo.game.id, Date.now() - proc.getStartTime());
+            }
+          } else {
+            GameManager.addGamePlaytime(gameLaunchInfo.game.id, Date.now() - proc.getStartTime());
+          }
+        }
         removeService(state, proc.id);
       }
     });
+
     return proc;
   };
 }

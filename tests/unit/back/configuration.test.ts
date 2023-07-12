@@ -24,7 +24,6 @@ describe('Configuration Files', () => {
       'flashpointPath': 'example',
       'useCustomTitlebar': false,
       'startServer': false,
-      'server': 'example',
       'backPortMin': 12345,
       'backPortMax': 12345,
       'imagesPortMin': 12345,
@@ -68,7 +67,7 @@ describe('Configuration Files', () => {
       'currentTheme': 'Metal\\test.css',
       'currentLogoSet': 'test',
       'lastSelectedLibrary': 'test',
-      'gamesOrderBy': 'platforms',
+      'gamesOrderBy': 'lastPlayed',
       'gamesOrder': 'DESC',
       'defaultLibrary': 'test',
       'mainWindow': {
@@ -155,7 +154,27 @@ describe('Configuration Files', () => {
           'name': 'ramsay',
           'arguments': ['first']
         }
-      ]
+      ],
+      'server': 'dog',
+      'curateServer': 'dog2',
+      gameMetadataSources: [
+        {
+          name: 'dog',
+          baseUrl: 'dogurl',
+          tags: {
+            actualUpdateTime: 'dog',
+            latestUpdateTime: 'dog',
+            latestDeleteTime: 'dog',
+          },
+          games: {
+            actualUpdateTime: 'dog',
+            latestUpdateTime: 'dog',
+            latestDeleteTime: 'dog',
+          },
+        }
+      ],
+      'enablePlaytimeTracking': false,
+      'enablePlaytimeTrackingExtreme': false
     };
     const newData = deepCopy(defaultPreferencesData);
     overwritePreferenceData(newData, data);

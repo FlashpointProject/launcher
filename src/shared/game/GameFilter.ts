@@ -128,6 +128,8 @@ function convertField(field: string): keyof Game {
       return 'platformName';
     case 'tech':
       return 'platforms';
+    case 'played':
+      return 'lastPlayed';
     default:
       return field as keyof Game;
   }

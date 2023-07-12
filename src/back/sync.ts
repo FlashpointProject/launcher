@@ -78,6 +78,9 @@ export async function syncTags(tx: EntityManager, source: GameMetadataSource, ca
   console.log('changed');
   // Update any changed tags
   for (const changedTag of tags.filter(t => existingTags.findIndex(et => et.id === t.id) !== -1)) {
+    if (changedTag.id === 7 || changedTag.id === 14) {
+      log.debug('Launcher', JSON.stringify(changedTag));
+    }
     // Remove all aliases that aren't on the changed tag anymore
     await tagAliasRepo.createQueryBuilder().delete()
     .where({ name: Not(In(changedTag.aliases.map(c => c.name)))})
@@ -103,16 +106,19 @@ export async function syncTags(tx: EntityManager, source: GameMetadataSource, ca
   console.log('new');
   // Add any new tags
   for (const newTag of tags.filter(t => existingTags.findIndex(et => et.id === t.id) === -1)) {
+    if (newTag.id === 7 || newTag.id === 14) {
+      log.debug('Launcher', JSON.stringify(newTag));
+    }
     await tx.query(`INSERT INTO tag ("id", "dateModified", "primaryAliasId", "categoryId", "description") VALUES (
         ?,
         ?,
-        (SELECT ta.id FROM tag_alias ta WHERE ta.tagId = ?),
+        (SELECT ta.id FROM tag_alias ta WHERE ta.tagId = ? AND ta.name = ?),
         (SELECT tc.id FROM tag_category tc WHERE tc.name = ?),
         ?
       )`, [
       newTag.id,
       newTag.date_modified,
-      newTag.id,
+      newTag.id, newTag.name,
       newTag.category,
       newTag.description || ''
     ]);
@@ -219,7 +225,6 @@ export async function syncGames(tx: EntityManager, source: GameMetadataSource, d
   let nextId = '';
   while (true) {
     const reqUrl = `${gamesUrl}?after=${source.games.latestUpdateTime}&before=${capUpdateTime.toISOString()}&broad=true&afterId=${nextId}`;
-    console.log(reqUrl);
     const res = await axios.get(reqUrl)
     .catch((err) => {
       throw 'Failed to search games';
@@ -252,8 +257,6 @@ export async function syncGames(tx: EntityManager, source: GameMetadataSource, d
         return prev;
       }
     }, lastDate);
-
-    console.log(lastDate);
 
     // Update loop params
     if (data.games.length === 0) {
@@ -452,14 +455,12 @@ export async function syncGames(tx: EntityManager, source: GameMetadataSource, d
 }
 
 export async function getMetaUpdateInfo(source: GameMetadataSource, accurate?: boolean, fromScratch?: boolean): Promise<number> {
-  console.log('checking ' + source.games.latestUpdateTime);
   // Add 1 second to update time to prevent rounding down errors
   const d = new Date(source.games.latestUpdateTime);
   if (!accurate) {
     d.setSeconds(d.getSeconds() + 2);
   }
   const countUrl = `${source.baseUrl}/api/games/updates?after=${fromScratch ? '1970-01-01' : d.toISOString()}`;
-  console.log(countUrl);
   try {
     const res = await axios.get(countUrl);
     return res.data.total;

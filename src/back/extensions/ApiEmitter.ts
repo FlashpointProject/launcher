@@ -62,9 +62,9 @@ export class ApiEmitter<T> implements ApiEmitterFirable<T> {
       try {
         const f = listener.func;
         if (typeof f === 'function') {
-          await f(event);
+          await Promise.resolve(f.call(undefined, event));
         } else {
-          f[0].call(f[1], event);
+          await Promise.resolve(f[0].call(f[1], event));
         }
       } catch (e: any) {
         if (listener.name) {

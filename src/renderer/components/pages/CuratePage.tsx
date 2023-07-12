@@ -601,6 +601,7 @@ export function CuratePage(props: CuratePageProps) {
             curation={curation}
             suggestions={props.main.suggestions}
             tagCategories={props.tagCategories}
+            platformAppPaths={props.main.platformAppPaths}
             tagText={tagText}
             platformText={platformText}
             onPlatformTextChange={onPlatformTextChange}

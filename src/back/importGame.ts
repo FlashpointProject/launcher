@@ -340,7 +340,7 @@ export async function launchAddAppCuration(folder: string, appCuration: AddAppCu
     await checkAndInstallPlatform(platforms, opts.state, opts.openDialog);
   }
   if (!skipLink || !symlinkCurationContent) { await linkContentFolder(folder, opts.fpPath, opts.isDev, opts.exePath, opts.htdocsPath, symlinkCurationContent); }
-  const addApp = createAddAppFromCurationMeta(appCuration, createPlaceholderGame());
+  const addApp = createAddAppFromCurationMeta(appCuration, createPlaceholderGame(platforms));
   await onWillEvent.fire(addApp);
   await GameLauncher.launchAdditionalApplication({
     ...opts,
@@ -370,6 +370,7 @@ async function createGameFromCurationMeta(gameId: string, gameMeta: CurationMeta
     series:                gameMeta.series              || '',
     developer:             gameMeta.developer           || '',
     publisher:             gameMeta.publisher           || '',
+    platformName:          gameMeta.primaryPlatform     || '',
     platforms:             gameMeta.platforms           || [],
     playMode:              gameMeta.playMode            || '',
     status:                gameMeta.status              || '',
@@ -385,7 +386,7 @@ async function createGameFromCurationMeta(gameId: string, gameMeta: CurationMeta
     dateAdded:             date.toISOString(),
     dateModified:          date.toISOString(),
     broken:                false,
-    extreme:               gameMeta.extreme || false,
+    extreme:               false,
     library:               gameMeta.library || '',
     orderTitle: '', // This will be set when saved
     addApps: [],
@@ -479,7 +480,7 @@ function curationLog(content: string): void {
   log.info('Curate', content);
 }
 
-function createPlaceholderGame(): Game {
+function createPlaceholderGame(platforms: Platform[] = []): Game {
   const id = uuid();
   const game = new Game();
   Object.assign(game, {
@@ -509,6 +510,7 @@ function createPlaceholderGame(): Game {
     library: '',
     orderTitle: '',
     addApps: [],
+    platforms: platforms,
     placeholder: true,
     activeDataOnDisk: false
   });

@@ -15,10 +15,10 @@ import { getCurationURL, getPlatformIconURL } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
 import { BackIn, CurationImageEnum } from '@shared/back/types';
 import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
-import { ContentTreeNode } from '@shared/curate/types';
+import { ContentTreeNode, PlatformAppPathSuggestions } from '@shared/curate/types';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
-import { fixSlashes, sizeToString } from '@shared/Util';
+import { sizeToString } from '@shared/Util';
 import axios from 'axios';
 import { clipboard, MenuItemConstructorOptions } from 'electron';
 import { CurationState, LoadedCuration, Platform, TagSuggestion } from 'flashpoint-launcher';
@@ -38,6 +38,7 @@ export type CurateBoxProps = {
   suggestions: Partial<GamePropSuggestions>;
   tagSuggestions: TagSuggestion<Tag>[];
   platformSuggestions: TagSuggestion<Platform>[];
+  platformAppPaths: PlatformAppPathSuggestions;
   tagCategories: TagCategory[];
   tagText: string;
   platformText: string;
@@ -52,7 +53,6 @@ export function CurateBox(props: CurateBoxProps) {
   const strings = React.useContext(LangContext);
   const disabled = !!props.curation.locked;
 
-  const [imageVersion, setImageVersion] = React.useState(1);
   const splitStatus = React.useMemo(() => props.curation.game.status ? props.curation.game.status.split(';').map(s => s.trim()).sort() : [], [props.curation.game.status]);
   const splitPlayMode = React.useMemo(() => props.curation.game.playMode ? props.curation.game.playMode.split(';').map(s => s.trim()).sort() : [], [props.curation.game.playMode]);
 
@@ -82,18 +82,15 @@ export function CurateBox(props: CurateBoxProps) {
     }
   }, [props.curation.game.tags]);
 
-  const incrementVersion = React.useCallback(() => {
-    setImageVersion(imageVersion + 1);
-  }, [imageVersion]);
-  const onSetThumbnail  = useAddImageCallback(CurationImageEnum.THUMBNAIL, props.curation, incrementVersion);
-  const onSetScreenshot = useAddImageCallback(CurationImageEnum.SCREENSHOT, props.curation, incrementVersion);
+  const onSetThumbnail  = useAddImageCallback(CurationImageEnum.THUMBNAIL, props.curation);
+  const onSetScreenshot = useAddImageCallback(CurationImageEnum.SCREENSHOT, props.curation);
   const onRemoveThumbnailClick  = useRemoveImageCallback(CurationImageEnum.THUMBNAIL, props.curation, props.dispatch);
   const onRemoveScreenshotClick = useRemoveImageCallback(CurationImageEnum.SCREENSHOT,  props.curation, props.dispatch);
   const onDropThumbnail  = useDropImageCallback('logo.png', props.curation, strings.dialog);
   const onDropScreenshot = useDropImageCallback('ss.png',   props.curation, strings.dialog);
 
-  const thumbnailPath  = props.curation.thumbnail.exists  ? fixSlashes(`${props.curation.thumbnail.filePath }?v=${props.curation.thumbnail.version }`) : undefined;
-  const screenshotPath = props.curation.screenshot.exists ? fixSlashes(`${props.curation.screenshot.filePath}?v=${props.curation.screenshot.version}`) : undefined;
+  const thumbnailPath  = props.curation.thumbnail.exists  ? `${getCurationURL(props.curation.folder)}/logo.png` : undefined;
+  const screenshotPath = props.curation.screenshot.exists ? `${getCurationURL(props.curation.folder)}/ss.png` : undefined;
 
   const onNewAddApp  = useCreateAddAppCallback('normal',  props.curation.folder, props.dispatch);
   const onAddExtras  = useCreateAddAppCallback('extras',  props.curation.folder, props.dispatch);
@@ -199,7 +196,8 @@ export function CurateBox(props: CurateBoxProps) {
       props.dispatch({
         type: CurateActionType.ADD_PLATFORM,
         folder: props.curation.folder,
-        platform
+        platform,
+        platformAppPaths: props.platformAppPaths,
       });
     }
     props.onPlatformTextChange('');
@@ -217,7 +215,8 @@ export function CurateBox(props: CurateBoxProps) {
     props.dispatch({
       type: CurateActionType.REMOVE_PLATFORM,
       folder: props.curation.folder,
-      platformId
+      platformId,
+      platformAppPaths: props.platformAppPaths,
     });
   }, [props.curation.folder]);
 
@@ -238,7 +237,7 @@ export function CurateBox(props: CurateBoxProps) {
       click: () => clipboard.writeText(tree.join(path.sep))
     }, {
       label: strings.curate.contextCopyAsURL,
-      click: () => clipboard.writeText(`"http://${tree.join('/')}"`)
+      click: () => clipboard.writeText(encodeURI(`http://${tree.join('/')}`))
     }, {
       type: 'separator'
     }];
@@ -375,10 +374,10 @@ export function CurateBox(props: CurateBoxProps) {
 
   const onChangePrimaryPlatform = React.useCallback((newPrimary: string) => {
     props.dispatch({
-      type: CurateActionType.EDIT_CURATION_META,
+      type: CurateActionType.SET_PRIMARY_PLATFORM,
       folder: props.curation.folder,
-      property: 'primaryPlatform',
-      value: newPrimary
+      value: newPrimary,
+      platformAppPaths: props.platformAppPaths,
     });
   }, [props.curation.folder]);
 
@@ -588,7 +587,7 @@ export function CurateBox(props: CurateBoxProps) {
                 title={strings.browse.applicationPath}
                 text={props.curation.game.applicationPath}
                 placeholder={strings.browse.noApplicationPath}
-                items={createDropdownItems(props.suggestions.applicationPath || [])}
+                items={createAppPathDropdownItems(props.platformAppPaths, props.curation.game.primaryPlatform)}
                 warned={props.curation.warnings.fieldWarnings.includes('applicationPath')}
                 allowNonMatching={true}
                 property='applicationPath'
@@ -695,19 +694,16 @@ export function CurateBox(props: CurateBoxProps) {
   );
 }
 
-function useAddImageCallback(type: CurationImageEnum, curation: LoadedCuration | undefined, incrementVersion: () => void): (data: ArrayBuffer) => void {
+function useAddImageCallback(type: CurationImageEnum, curation: LoadedCuration | undefined): (data: ArrayBuffer) => void {
   return React.useCallback(async (data: ArrayBuffer) => {
     if (curation) {
       const suffix = type === CurationImageEnum.THUMBNAIL ? 'logo.png' : 'ss.png';
       const res = await axios.post(`${getCurationURL(curation.folder)}/${suffix}`, data);
       if (res.status !== 200) {
         alert(`ERROR: Server Returned ${res.status} - ${res.statusText}`);
-      } else {
-        // Delayed force update of image
-        setTimeout(incrementVersion, 200);
       }
     }
-  }, [curation && curation.folder, incrementVersion]);
+  }, [curation && curation.folder]);
 }
 
 /**
@@ -747,6 +743,50 @@ function useCreateAddAppCallback(type: AddAppType, folder: string, dispatch: Dis
       addAppType: type,
     });
   }, [dispatch, folder]);
+}
+
+function createAppPathDropdownItems(platformAppPaths: PlatformAppPathSuggestions, currentPlatform?: string): DropdownItem[] {
+  if (currentPlatform && currentPlatform in platformAppPaths) {
+    let values: string[] = [];
+    // Sort current platform seperately and put on top
+    values = values.concat(platformAppPaths[currentPlatform].map(a => a.appPath));
+
+    // Sort rest
+    let appPaths: string[] = [];
+    for (const oKey of Object.keys(platformAppPaths)) {
+      if (oKey !== currentPlatform) {
+        appPaths = appPaths.concat(platformAppPaths[oKey].map(a => a.appPath));
+      }
+    }
+    // Remove duplicates
+    appPaths = appPaths.filter(function(elem, index, self) {
+      return index === self.indexOf(elem);
+    });
+    values = values.concat(appPaths.sort());
+
+    return values.map(v => {
+      return {
+        key: v,
+        value: v
+      };
+    });
+  } else {
+    // Sort entire list of used app paths by alphabetical
+    let appPaths: string[] = [];
+    for (const oKey of Object.keys(platformAppPaths)) {
+      appPaths = appPaths.concat(platformAppPaths[oKey].map(a => a.appPath));
+    }
+    // Remove duplicates
+    appPaths = appPaths.filter(function(elem, index, self) {
+      return index === self.indexOf(elem);
+    });
+    return appPaths.sort().map(v => {
+      return {
+        key: v,
+        value: v
+      };
+    });
+  }
 }
 
 function createDropdownItems(values: string[], strings?: LangContainer['libraries']): DropdownItem[] {

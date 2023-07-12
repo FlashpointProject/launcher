@@ -172,6 +172,7 @@ export namespace GameLauncher {
       };
       for (const addApp of opts.game.addApps) {
         if (addApp.autoRunBefore) {
+          addApp.parentGame = opts.game;
           const promise = launchAdditionalApplication({ ...addAppOpts, addApp }, curation);
           if (addApp.waitForExit) { await promise; }
         }
@@ -554,7 +555,6 @@ async function handleGameDataParams(opts: LaunchBaseOpts, serverOverride?: strin
 export async function checkAndInstallPlatform(platforms: Platform[], state: BackState, openMessageBox: ShowMessageBoxFunc) {
   const compsToInstall: ComponentStatus[] = [];
   for (const platform of platforms) {
-    console.log(JSON.stringify(state.componentStatuses.map(c => c.name), undefined, 2));
     const compIdx = state.componentStatuses.findIndex(c => c.name.toLowerCase() === platform.primaryAlias.name.toLowerCase());
     if (compIdx > -1) {
       if (state.componentStatuses[compIdx].state === ComponentState.UNINSTALLED) {

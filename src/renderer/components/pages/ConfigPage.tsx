@@ -14,7 +14,7 @@ import * as React from 'react';
 import {getExtIconURL, getExtremeIconURL, getPlatformIconURL, isFlashpointValidCheck} from '../../Util';
 import { LangContext } from '../../util/lang';
 import { CheckBox } from '../CheckBox';
-import { ConfigBox } from '../ConfigBox';
+import { ConfigBox, ConfigBoxInner } from '../ConfigBox';
 import { ConfigBoxButton, ConfigBoxInnerButton } from '../ConfigBoxButton';
 import { ConfigBoxCheckbox, ConfigBoxInnerCheckbox } from '../ConfigBoxCheckbox';
 import { ConfigBoxInput } from '../ConfigBoxInput';
@@ -31,6 +31,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import * as Coerce from '@shared/utils/Coerce';
 import { Spinner } from '../Spinner';
+import { SimpleButton } from '../SimpleButton';
 
 const { num } = Coerce;
 
@@ -154,6 +155,31 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   description={strings.onDemandImagesDeleteDesc}
                   value={allStrings.curate.delete}
                   onClick={this.onDeleteImages} />
+              </ConfigBox>
+              {/* Playtime Tracking */}
+              <ConfigBox
+                title={strings.playtimeTracking}
+                description={strings.playtimeTrackingDesc}
+                swapChildren={true}>
+                <ConfigBoxInnerCheckbox
+                  title={strings.enablePlaytimeTracking}
+                  description={strings.enablePlaytimeTrackingDesc}
+                  checked={this.props.preferencesData.enablePlaytimeTracking}
+                  onToggle={this.onToggleEnablePlaytimeTracking} />
+                <ConfigBoxInnerCheckbox
+                  title={strings.enablePlaytimeTrackingExtreme}
+                  description={strings.enablePlaytimeTrackingExtremeDesc}
+                  checked={this.props.preferencesData.enablePlaytimeTrackingExtreme}
+                  onToggle={this.onToggleEnablePlaytimeTrackingExtreme} />
+                <ConfigBoxInner
+                  title={strings.clearPlaytimeTracking}
+                  description={strings.clearPlaytimeTrackingDesc}>
+                  <ConfirmElement
+                    render={this.renderClearPlaytimeButton}
+                    onConfirm={this.onClearPlaytimeTracking}
+                    message={allStrings.dialog.confirmClearPlaytime}
+                    extra={[strings]}/>
+                </ConfigBoxInner>
               </ConfigBox>
               {/* Fancy Animations */}
               <ConfigBoxCheckbox
@@ -459,6 +485,15 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     });
   });
 
+  renderClearPlaytimeButton = ({ confirm, extra }: ConfirmElementArgs<[LangContainer['config']]>) => {
+    return (
+      <SimpleButton
+        className='setting__row__button'
+        value={extra[0].clearData}
+        onClick={confirm}/>
+    );
+  };
+
   renderDeleteSource = ({ confirm }: ConfirmElementArgs) => {
     return (
       <div
@@ -719,6 +754,18 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   onToggleHideExtremeScreenshots = (isChecked: boolean): void => {
     updatePreferencesData({ hideExtremeScreenshots: isChecked });
+  };
+
+  onToggleEnablePlaytimeTracking = (isChecked: boolean): void => {
+    updatePreferencesData({ enablePlaytimeTracking: isChecked });
+  };
+
+  onToggleEnablePlaytimeTrackingExtreme = (isChecked: boolean): void => {
+    updatePreferencesData({ enablePlaytimeTrackingExtreme: isChecked });
+  };
+
+  onClearPlaytimeTracking = (): void => {
+    window.Shared.back.request(BackIn.CLEAR_PLAYTIME_TRACKING);
   };
 
   onEnableEditingChange = (isChecked: boolean): void => {

@@ -38,6 +38,11 @@ export const onFileServerRequestPostCuration =
       req.on('data', (chunk) => {
         chunks.push(chunk);
       });
+      req.on('error', (error) => {
+        log.error('Curate', `Failure in request! ${error.toString()}`);
+        res.writeHead(500);
+        res.end();
+      });
       req.on('end', async () => {
         const data = Buffer.concat(chunks);
         const randomFilePath = path.join(tempCurationsPath, `${uuid()}.7z`);
@@ -141,22 +146,55 @@ export async function genCurationWarnings(curation: LoadedCuration, fpPath: stri
   };
   // Check launch command exists
   const launchCommand = curation.game.launchCommand || '';
+  if (!curation.game.title || curation.game.title == '') { warns.writtenWarnings.push('noTitle'); }
+  if (!curation.game.applicationPath || curation.game.applicationPath == '') { warns.writtenWarnings.push('noApplicationPath'); }
+  if (!curation.game.platforms || curation.game.platforms.length == 0) { warns.writtenWarnings.push('noPlatforms'); }
   if (launchCommand === '') { warns.writtenWarnings.push('noLaunchCommand'); }
-  if (!curation.thumbnail.exists) { warns.writtenWarnings.push('noLogo'); }
-  if (!curation.screenshot.exists) { warns.writtenWarnings.push('noScreenshot'); }
-  if (!curation.game.tags || curation.game.tags.length === 0) { warns.writtenWarnings.push('noTags'); }
   if (!curation.game.source) { warns.writtenWarnings.push('noSource'); }
   // Validate release date
   if (curation.game.releaseDate && !isValidDate(curation.game.releaseDate)) { warns.writtenWarnings.push('releaseDateInvalid'); }
   // Check for unused values (with suggestions)
-  if (curation.game.applicationPath && !fs.existsSync(path.join(fpPath, curation.game.applicationPath))) { warns.writtenWarnings.push('unusedApplicationPath'); }
+  if (curation.game.applicationPath) {
+    if (!curation.game.applicationPath.startsWith(':') && !fs.existsSync(path.join(fpPath, fixSlashes(curation.game.applicationPath)))) {
+      warns.writtenWarnings.push('unusedApplicationPath');
+    }
+  }
   // Check if library is set
   if (suggestions.library.findIndex(l => l === curation.game.library) === -1) { warns.writtenWarnings.push('nonExistingLibrary'); }
+  if (!curation.game.tags || curation.game.tags.length === 0) { warns.writtenWarnings.push('noTags'); }
+  if (!curation.thumbnail.exists) { warns.writtenWarnings.push('noLogo'); }
+  if (!curation.screenshot.exists) { warns.writtenWarnings.push('noScreenshot'); }
 
   const mutable = {
     curation: { ...curation },
     warnings: warns
   };
+  // Map to field warnings
+  mutable.warnings.fieldWarnings = mutable.warnings.writtenWarnings.map(s => {
+    switch (s) {
+      case 'noTitle':
+        return 'title';
+      case 'noApplicationPath':
+        return 'applicationPath';
+      case 'noPlatforms':
+        return 'platforms';
+      case 'noTags':
+        return 'tags';
+      case 'noSource':
+        return 'source';
+      case 'releaseDateInvalid':
+        return 'releaseDate';
+      case 'unusedApplicationPath':
+        return 'applicationPath';
+      case 'nonExistingLibrary':
+        return 'library';
+      case 'noLaunchCommand':
+        return 'launchCommand';
+      default:
+        return '';
+    }
+  });
+  // Let extensions make changes
   await onWillGenCurationWarnings.fire(mutable);
 
   // Clean up fieldWarnings
@@ -169,7 +207,7 @@ export async function genCurationWarnings(curation: LoadedCuration, fpPath: stri
 }
 
 export async function loadCurationFolder(rootPath: string, folderName: string, state: BackState) {
-  const parsedMeta = await readCurationMeta(path.join(rootPath, folderName), state.recentAppPaths);
+  const parsedMeta = await readCurationMeta(path.join(rootPath, folderName), state.platformAppPaths);
   if (parsedMeta) {
     const loadedCuration: LoadedCuration = {
       folder: folderName,
