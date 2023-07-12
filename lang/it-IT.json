@@ -252,10 +252,10 @@
   "about": {
     "aboutHeader": "Informazioni",
     "flashpoint": "Flashpoint Archive",
-    "flashpointDesc": "The preservation project this launcher was built for, a non-profit with the goal of furthering archival and accessibility efforts of games, animations and other digital interactive experiences on the web.",
+    "flashpointDesc": "Il progetto di conservazione di questo launcher è stato costruito per, un non-profit con l'obiettivo di promuovere gli sforzi di archiviazione e accessibilità dei giochi, animazioni e altre esperienze digitali interattive sul web.",
     "website": "Sito Web",
     "flashpointLauncher": "Launcher di Flashpoint",
-    "flashpointLauncherDesc": "An open-source desktop application used to browse, manage and play games from the Flashpoint Archive.",
+    "flashpointLauncherDesc": "Un'applicazione desktop open-source utilizzata per navigare, gestire e giocare i giochi dal Flashpoint Archive.",
     "version": "Versione",
     "license": "Licenza",
     "licenseInfo": "MIT (Leggi il file chiamato \"LICENSE\" per maggiori informazioni)",
