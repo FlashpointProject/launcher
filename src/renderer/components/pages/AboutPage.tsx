@@ -22,7 +22,7 @@ export type AboutPageState = {
   profileY: number;
 };
 
-/** Page displaying information about this launcher, the "BlueMaxima's Flashpoint" project and its contributors. */
+/** Page displaying information about this launcher, Flashpoint Archive and its contributors. */
 export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
   static contextType = LangContext;
   declare context: React.ContextType<typeof LangContext>;
@@ -65,7 +65,7 @@ export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
                       {strings.flashpointDesc}
                     </p>
                     <div className='about-page__section__links'>
-                      {link(strings.website, 'http://bluemaxima.org/flashpoint/')}
+                      {link(strings.website, 'http://flashpointarchive.org/')}
                       {link('Discord', 'https://discord.gg/Nc3DScn')}
                     </div>
                   </div>

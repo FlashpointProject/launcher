@@ -1,9 +1,5 @@
 # Flashpoint Launcher
-The launcher for BlueMaxima's Flashpoint (the web preservation project).
-
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/FlashpointProject/launcher/tree/develop)
-
-Want to contribute? Get started quickly with a GitHub Codespace using the button above.
+The launcher for Flashpoint Archive (the non-profit web preservation project).
 
 ![Screenshot](https://user-images.githubusercontent.com/10117720/55276674-a24e8c80-52f6-11e9-8b59-4fb396c36026.png)
 
@@ -15,12 +11,11 @@ Want to contribute? Get started quickly with a GitHub Codespace using the button
 [![Crowdin](https://badges.crowdin.net/flashpoint-launcher/localized.svg)](https://crowdin.com/project/flashpoint-launcher)
 
 ### Links
-* [BlueMaxima's Flashpoint](http://bluemaxima.org/flashpoint) - Download Flashpoint here (the launcher is bundled with it)
-* [Trello](https://trello.com/b/Tu9E5GLk/launcher) - Upcoming features, known bugs etc.
-* [Launcher Releases](https://github.com/FlashpointProject/launcher/releases) - Download release builds of the launcher here
+* [Flashpoint Archive](http://flashpointarchive.org) - Download Flashpoint here (the launcher is bundled with it)
+* [Donate](https://opencollective.com/flashpointarchive) - Funds go towards the Flashpoint Archive non-profit to sustain archival efforts, not to fund developers of the launcher.
 
 ## About
-The Flashpoint Launcher (FPL) is a desktop application made for browsing, storing and launching other applications (games, animations, web apps etc.). It is specifically made for BlueMaxima's Flashpoint, which is a web preservation project.
+The Flashpoint Launcher (FPL) is a desktop application made for browsing, storing and launching other applications (games, animations, web apps etc.). It is specifically made for Flashpoint Archive, a non-profit with the goal of furthering archival and accessibility efforts for games, animations and other digital interactive experiences on the web.
 
 See the `docs` folder for more information on setting up Flashpoint and Extension authoring.
 

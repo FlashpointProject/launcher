@@ -215,7 +215,7 @@ export function HomePage(props: HomePageProps) {
           </Link>
         </QuickStartItem><QuickStartItem icon='list'>
           <div
-            onClick={() => remote.shell.openExternal('http://bluemaxima.org/flashpoint/datahub/Tags')}
+            onClick={() => remote.shell.openExternal('http://flashpointarchive.org/datahub/Tags')}
             className='clickable-url' >
             {strings.tagList}
           </div>
@@ -224,13 +224,6 @@ export function HomePage(props: HomePageProps) {
         </QuickStartItem><QuickStartItem className='home-page__box-item--platforms'>
           {platformList}
         </QuickStartItem><br />
-        <QuickStartItem icon='code'>
-          <div
-            onClick={() => remote.shell.openExternal('https://trello.com/b/Tu9E5GLk/launcher')}
-            className='clickable-url' >
-            {strings.plannedFeatures}
-          </div>
-        </QuickStartItem>
       </>
     );
 
