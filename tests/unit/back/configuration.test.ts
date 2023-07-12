@@ -1,8 +1,8 @@
 import { AppConfigData } from '@shared/config/interfaces';
 import { getDefaultConfigData, overwriteConfigData } from '@shared/config/util';
-import { AppPreferencesData } from '@shared/preferences/interfaces';
 import { defaultPreferencesData, overwritePreferenceData } from '@shared/preferences/util';
 import { deepCopy } from '@shared/Util';
+import { AppPreferencesData } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as os from 'os';
 import * as path from 'path';
@@ -24,13 +24,14 @@ describe('Configuration Files', () => {
       'flashpointPath': 'example',
       'useCustomTitlebar': false,
       'startServer': false,
-      'server': 'example',
       'backPortMin': 12345,
       'backPortMax': 12345,
       'imagesPortMin': 12345,
       'imagesPortMax': 12345,
       'logsBaseUrl': 'https://example.com/',
-      'updatesEnabled': true
+      'updatesEnabled': true,
+      'gotdUrl': 'dogga',
+      'gotdShowAll': true
     };
     const newData: AppConfigData = deepCopy(getDefaultConfigData('win32'));
     overwriteConfigData(newData, data);
@@ -39,6 +40,7 @@ describe('Configuration Files', () => {
 
   it('overwrite preferences data', () => {
     const data: AppPreferencesData = {
+      'onDemandImagesCompressed': false,
       'imageFolderPath': 'test/Images',
       'logoFolderPath': 'test/Logos',
       'playlistFolderPath': 'test/Playlists',
@@ -65,7 +67,7 @@ describe('Configuration Files', () => {
       'currentTheme': 'Metal\\test.css',
       'currentLogoSet': 'test',
       'lastSelectedLibrary': 'test',
-      'gamesOrderBy': 'platform',
+      'gamesOrderBy': 'lastPlayed',
       'gamesOrder': 'DESC',
       'defaultLibrary': 'test',
       'mainWindow': {
@@ -126,6 +128,53 @@ describe('Configuration Files', () => {
       'searchLimit': 100,
       'onlineManual': 'test',
       'offlineManual': 'test',
+      'fpfssBaseUrl': 'https://example.com',
+      'groups': [{
+        name: 'test',
+        icon: 'test'
+      }],
+      'shortcuts': {
+        'curate': {
+          prev: ['ctrl+p', 'cmd+arrowup'],
+          next: ['ctrl+p', 'cmd+arrowdown'],
+          load: ['ctrl+p', 'cmd+o'],
+          newCur: ['ctrl+p', 'cmd+n'],
+          deleteCurs: ['ctrl+p', 'cmd+delete'],
+          exportCurs: ['ctrl+p', 'cmd+s'],
+          exportDataPacks: ['ctrl+shift+p', 'cmd+shift+s'],
+          importCurs: ['ctrl+p', 'cmd+i'],
+          refresh: ['ctrl+p', 'cmd+p'],
+          run: ['ctrl+p', 'cmd+t'],
+          runMad4fp: ['ctrl+shift+p', 'cmd+shift+t']
+        }
+      },
+      'gameDataSources': [
+        {
+          'type': 'gordon',
+          'name': 'ramsay',
+          'arguments': ['first']
+        }
+      ],
+      'server': 'dog',
+      'curateServer': 'dog2',
+      gameMetadataSources: [
+        {
+          name: 'dog',
+          baseUrl: 'dogurl',
+          tags: {
+            actualUpdateTime: 'dog',
+            latestUpdateTime: 'dog',
+            latestDeleteTime: 'dog',
+          },
+          games: {
+            actualUpdateTime: 'dog',
+            latestUpdateTime: 'dog',
+            latestDeleteTime: 'dog',
+          },
+        }
+      ],
+      'enablePlaytimeTracking': false,
+      'enablePlaytimeTrackingExtreme': false
     };
     const newData = deepCopy(defaultPreferencesData);
     overwritePreferenceData(newData, data);

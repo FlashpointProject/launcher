@@ -1,23 +1,20 @@
 import { Game } from '@database/entity/Game';
-import { Playlist } from '@database/entity/Playlist';
-import { PlaylistGame } from '@database/entity/PlaylistGame';
 import * as remote from '@electron/remote';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
 import { BackIn } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { ExtensionContribution } from '@shared/extensions/interfaces';
-import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
 import { Menu, MenuItemConstructorOptions } from 'electron';
+import { Playlist, PlaylistGame } from 'flashpoint-launcher';
 import * as React from 'react';
 import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowseSidebar';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { UpdateView, ViewGameSet } from '../../interfaces';
-import { SearchQuery } from '../../store/search';
 import { gameIdDataType, gameScaleSpan } from '../../Util';
 import { LangContext } from '../../util/lang';
 import { queueOne } from '../../util/queue';
@@ -27,6 +24,7 @@ import { GameList } from '../GameList';
 import { InputElement } from '../InputField';
 import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
 import { Spinner } from '../Spinner';
+import path = require('path');
 
 type Pick<T, K extends keyof T> = { [P in K]: T[P]; };
 type StateCallback1 = Pick<BrowsePageState, 'currentGame'|'isEditingGame'|'isNewGame'|'currentPlaylistEntry'>;
@@ -35,20 +33,13 @@ type OwnProps = {
   games: ViewGameSet;
   gamesTotal?: number;
   playlists: Playlist[];
-  suggestions: Partial<GamePropSuggestions>;
   playlistIconCache: Record<string, string>;
   onSaveGame: (game: Game, playlistEntry?: PlaylistGame) => Promise<Game | null>;
   onDeleteGame: (gameId: string) => void;
-  onQuickSearch: (search: string) => void;
-  onOpenExportMetaEdit: (gameId: string) => void;
   updateView: UpdateView;
 
-  /** Most recent search query. */
-  search: SearchQuery;
   /** Currently selected game (if any). */
   selectedGameId?: string;
-  /** Is game running? */
-  gameRunning: boolean;
   /** Currently selected playlist (if any). */
   selectedPlaylistId?: string;
   /** Generator for game context menu */
@@ -56,7 +47,7 @@ type OwnProps = {
   /** Called when a game is selected. */
   onSelectGame: (gameId?: string) => void;
   /** Called when a playlist is selected. */
-  onSelectPlaylist: (library: string, playlistId: string | undefined) => void;
+  onSelectPlaylist: (library: string, playlistId: string | null) => void;
   /** Called when a playlist is updated */
   onUpdatePlaylist: (playlist: Playlist) => void;
   /** Called when a playlist is deleted */
@@ -97,12 +88,11 @@ export type BrowsePageState = {
 
 };
 
-export interface BrowsePage {
-  context: LangContainer;
-}
-
 /** Page displaying the games and playlists. */
 export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState> {
+  static contextType = LangContext;
+  declare context: React.ContextType<typeof LangContext>;
+
   /** Reference of the game grid/list element. */
   gameGridOrListRef: HTMLDivElement | null = null;
   /** A timestamp of the previous the the quick search string was updated */
@@ -132,7 +122,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
 
   componentDidUpdate(prevProps: BrowsePageProps, prevState: BrowsePageState) {
     const { gameLibrary, selectedGameId, selectedPlaylistId } = this.props;
-    const { isEditingGame, quickSearch } = this.state;
+    const { isEditingGame } = this.state;
     // Check if it started or ended editing
     if (isEditingGame != prevState.isEditingGame) {
       this.updateCurrentGame(this.props.selectedGameId, this.props.selectedPlaylistId);
@@ -160,10 +150,6 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         isEditingGame: false
       });
     }
-    // Check if quick search string changed, and if it isn't empty
-    if (prevState.quickSearch !== quickSearch && quickSearch !== '') {
-      this.props.onQuickSearch(quickSearch);
-    }
     // Create a new game if the "New Game" button is pushed
     this.createNewGameIfClicked(prevProps.wasNewGameClicked);
     // Check the library selection changed (and no game is selected)
@@ -188,7 +174,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         className='game-browser'
         ref={this.gameBrowserRef}>
         <ResizableSidebar
-          hide={this.props.preferencesData.browsePageShowLeftSidebar}
+          show={this.props.preferencesData.browsePageShowLeftSidebar}
           divider='after'
           width={this.props.preferencesData.browsePageLeftSidebarWidth}
           onResize={this.onLeftSidebarResize}>
@@ -366,8 +352,8 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   /** Deselect without clearing search (Right sidebar will search itself) */
   onRightSidebarDeselectPlaylist = (): void => {
     const { onSelectPlaylist } = this.props;
-    if (onSelectPlaylist) { onSelectPlaylist(this.props.gameLibrary, undefined); }
-  }
+    if (onSelectPlaylist) { onSelectPlaylist(this.props.gameLibrary, null); }
+  };
 
   onLeftSidebarResize = (event: SidebarResizeEvent): void => {
     const maxWidth = (this.getGameBrowserDivWidth() - this.props.preferencesData.browsePageRightSidebarWidth) - 5;
@@ -375,7 +361,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     updatePreferencesData({
       browsePageLeftSidebarWidth: Math.min(targetWidth, maxWidth)
     });
-  }
+  };
 
   onRightSidebarResize = (event: SidebarResizeEvent): void => {
     const maxWidth = (this.getGameBrowserDivWidth() - this.props.preferencesData.browsePageLeftSidebarWidth) - 5;
@@ -383,7 +369,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     updatePreferencesData({
       browsePageRightSidebarWidth: Math.min(targetWidth, maxWidth)
     });
-  }
+  };
 
   getGameBrowserDivWidth(): number {
     if (!document.defaultView) { throw new Error('"document.defaultView" missing.'); }
@@ -395,11 +381,11 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     if (this.props.selectedGameId !== gameId) {
       this.props.onSelectGame(gameId);
     }
-  }
+  };
 
   onGameLaunch = async (gameId: string): Promise<void> => {
     await window.Shared.back.request(BackIn.LAUNCH_GAME, gameId);
-  }
+  };
 
   onCenterKeyDown = (event: React.KeyboardEvent): void => {
     const key: string = event.key.toLowerCase();
@@ -407,7 +393,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       if (key === 'backspace') { // (Backspace - Remove a character)
         const timedOut = updateTime.call(this);
         let newString: string = (timedOut ? '' : this.state.quickSearch);
-        newString = newString.substr(0, newString.length - 1);
+        newString = newString.substring(0, newString.length - 1);
         this.setState({ quickSearch: newString });
       } else if (key.length === 1) { // (Single character - add it to the search string)
         const timedOut = updateTime.call(this);
@@ -423,17 +409,17 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       this._prevQuickSearchUpdate = now;
       return timedOut;
     }
-  }
+  };
 
   onGameDragStart = (event: React.DragEvent, gameId: string): void => {
     this.setState({ draggedGameId: gameId });
     event.dataTransfer.setData(gameIdDataType, gameId);
-  }
+  };
 
-  onGameDragEnd = (event: React.DragEvent, gameId: string): void => {
+  onGameDragEnd = (event: React.DragEvent): void => {
     this.setState({ draggedGameId: undefined });
     event.dataTransfer.clearData(gameIdDataType);
-  }
+  };
 
   onDeleteSelectedGame = async (): Promise<void> => {
     // Delete the game
@@ -451,7 +437,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     });
     // Focus the game grid/list
     this.focusGameGridOrList();
-  }
+  };
 
   onRemoveSelectedGameFromPlaylist = async (): Promise<void> => {
     // Remove game from playlist
@@ -479,7 +465,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     function logError(text: string) {
       console.error('Unable to remove game from selected playlist - ' + text);
     }
-  }
+  };
 
   onEditGame = (game: Partial<Game>) => {
     log.debug('Launcher', `Editing: ${JSON.stringify(game)}`);
@@ -491,7 +477,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         currentGame: newGame
       });
     }
-  }
+  };
 
   onEditPlaylistNotes = (text: string): void => {
     if (this.state.currentPlaylistEntry) {
@@ -502,7 +488,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         }
       });
     }
-  }
+  };
 
   /** Replace the "current game" with the selected game (in the appropriate circumstances). */
   updateCurrentGame = queueOne(async (gameId?: string, playlistId?: string): Promise<void> => {
@@ -532,7 +518,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     if (this.props.preferencesData.enableEditing) {
       this.setState({ isEditingGame: true });
     }
-  }
+  };
 
   onDiscardEditClick = (): void => {
     this.setState({
@@ -541,7 +527,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       currentGame: this.state.isNewGame ? undefined : this.state.currentGame,
     });
     this.focusGameGridOrList();
-  }
+  };
 
   onSaveEditClick = async (): Promise<void> => {
     if (!this.state.currentGame) {
@@ -555,7 +541,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       isNewGame: false
     });
     this.focusGameGridOrList();
-  }
+  };
 
   onUpdateActiveGameData = (activeDataOnDisk: boolean, activeDataId?: number): void => {
     if (this.state.currentGame) {
@@ -570,9 +556,15 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         }
       });
     }
-  }
+  };
 
-  /** Create a new game if the "New Game" button was clicked */
+  /**
+   * Create a new game if the "New Game" button was clicked
+   *
+   * @deprecated New game functionality was removed
+   * @param prevWasNewGameClicked Was new game clicked last update
+   * @param cb Callback to set state
+   */
   createNewGameIfClicked(prevWasNewGameClicked: boolean, cb: (state: StateCallback1) => void = this.boundSetState): void {
     const { wasNewGameClicked } = this.props;
     const id = uuid();
@@ -622,17 +614,15 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   onSavePlaylist = (): void => {
     if (this.state.currentPlaylist) {
       window.Shared.back.request(BackIn.SAVE_PLAYLIST, this.state.currentPlaylist)
-      .then(data => {
-        if (data) {
-          this.props.onUpdatePlaylist(data);
-        }
+      .then((data) => {
+        this.props.onUpdatePlaylist(data);
       });
       this.setState({
         isEditingPlaylist: false,
         isNewPlaylist: false,
       });
     }
-  }
+  };
 
   onImportPlaylistClick = (strings: LangContainer): void => {
     const filePath = remote.dialog.showOpenDialogSync({
@@ -646,11 +636,12 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     if (filePath) {
       window.Shared.back.send(BackIn.IMPORT_PLAYLIST, filePath[0], this.props.gameLibrary);
     }
-  }
+  };
 
   onCreatePlaylistClick = (): void => {
     this.setState({
       currentPlaylist: {
+        filePath: '',
         id: uuid(),
         games: [],
         title: '',
@@ -664,9 +655,9 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       isNewPlaylist: true,
     });
     if (this.props.selectedPlaylistId !== undefined) {
-      this.props.onSelectPlaylist(this.props.gameLibrary, undefined);
+      this.props.onSelectPlaylist(this.props.gameLibrary, null);
     }
-  }
+  };
 
   onDiscardPlaylistClick = (): void => {
     const newState: Pick<BrowsePageState, 'isEditingPlaylist' | 'isNewPlaylist' | 'currentPlaylist'> = {
@@ -679,14 +670,14 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     }
 
     this.setState(newState);
-  }
+  };
 
   onDeletePlaylist = (): void => {
     if (this.state.currentPlaylist) {
       const playlistId = this.state.currentPlaylist.id;
       window.Shared.back.request(BackIn.DELETE_PLAYLIST, playlistId)
       .then((data) => {
-        this.props.onSelectPlaylist(this.props.gameLibrary, undefined);
+        this.props.onSelectPlaylist(this.props.gameLibrary, null);
         if (data) {
           // DB wipes it, need it to remove it locally
           data.id = playlistId;
@@ -694,7 +685,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         }
       });
     }
-  }
+  };
 
   onEditPlaylistClick = () => {
     if (this.state.currentPlaylist) {
@@ -703,7 +694,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         isNewPlaylist: false,
       });
     }
-  }
+  };
 
   onPlaylistDrop = (event: React.DragEvent, playlistId: string) => {
     if (!this.state.isEditingPlaylist) {
@@ -712,7 +703,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         window.Shared.back.send(BackIn.ADD_PLAYLIST_GAME, playlistId, gameId);
       }
     }
-  }
+  };
 
   onPlaylistClick = (playlistId: string, selected: boolean): void => {
     if (!this.state.isEditingPlaylist || !selected) {
@@ -725,7 +716,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       this.props.onSelectPlaylist(this.props.gameLibrary, playlistId);
       this.props.clearSearch();
     }
-  }
+  };
 
   onPlaylistSetIcon = () => {
     if (this.state.currentPlaylist && this.state.isEditingPlaylist) {
@@ -755,10 +746,13 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
               }
             });
           }
+        })
+        .catch((err) => {
+          log.error('Launcher', 'Error fetching playlist icon: ' + err);
         });
       }
     }
-  }
+  };
 
   onPlaylistTitleChange = (event: React.ChangeEvent<InputElement>) => {
     if (this.state.currentPlaylist) {
@@ -769,7 +763,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         }
       });
     }
-  }
+  };
 
   onPlaylistAuthorChange = (event: React.ChangeEvent<InputElement>) => {
     if (this.state.currentPlaylist) {
@@ -780,7 +774,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         }
       });
     }
-  }
+  };
 
   onPlaylistDescriptionChange = (event: React.ChangeEvent<InputElement>) => {
     if (this.state.currentPlaylist) {
@@ -791,7 +785,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         }
       });
     }
-  }
+  };
 
   onPlaylistExtremeToggle = (isChecked: boolean) => {
     if (this.state.currentPlaylist) {
@@ -802,16 +796,18 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         }
       });
     }
-  }
+  };
 
   onPlaylistKeyDown = (event: React.KeyboardEvent): void => {
     if (event.key === 'Enter') { this.onSavePlaylist(); }
-  }
+  };
 
   onLeftSidebarShowAllClick = (): void => {
     const { clearSearch, onSelectPlaylist } = this.props;
+    if (onSelectPlaylist) {
+      onSelectPlaylist(this.props.gameLibrary, null);
+    }
     if (clearSearch)      { clearSearch(); }
-    if (onSelectPlaylist) { onSelectPlaylist(this.props.gameLibrary, undefined); }
     this.setState({
       isEditingPlaylist: false,
       isNewPlaylist: false,
@@ -821,23 +817,24 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       currentGame: undefined,
       currentPlaylistEntry: undefined,
     });
-  }
+  };
 
   onDuplicatePlaylist = (playlistId: string): void => {
     window.Shared.back.send(BackIn.DUPLICATE_PLAYLIST, playlistId);
-  }
+  };
 
   onExportPlaylist = (strings: LangContainer, playlistId: string): void => {
+    const playlist = this.props.playlists.find(p => p.id === playlistId);
     const filePath = remote.dialog.showSaveDialogSync({
       title: strings.dialog.selectFileToExportPlaylist,
-      defaultPath: 'playlist.json',
+      defaultPath: playlist ? path.basename(playlist.filePath) : 'playlist.json',
       filters: [{
         name: 'Playlist file',
         extensions: ['json'],
       }]
     });
     if (filePath) { window.Shared.back.send(BackIn.EXPORT_PLAYLIST, playlistId, filePath); }
-  }
+  };
 
   /** Focus the game grid/list (if this has a reference to one). */
   focusGameGridOrList() {
@@ -849,9 +846,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
 
   gameGridOrListRefFunc = (ref: HTMLDivElement | null): void => {
     this.gameGridOrListRef = ref;
-  }
-
-  static contextType = LangContext;
+  };
 }
 
 function calcScale(defHeight: number, scale: number): number {
@@ -869,9 +864,10 @@ type FileReaderResult = typeof FileReader['prototype']['result'];
 /**
  * Convert the body of a URL to a data URL.
  * This will reject if the request or conversion fails.
+ *
  * @param url URL of content to convert.
  */
-function toDataURL(url: string): Promise<FileReaderResult> {
+async function toDataURL(url: string): Promise<FileReaderResult> {
   return fetch(url)
   .then(response => response.blob())
   .then(blob => new Promise<FileReaderResult>((resolve, reject) => {

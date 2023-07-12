@@ -1,0 +1,125 @@
+name: Nexus (Development)
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+      - 'release/**'
+
+jobs:
+  build:
+    name: Build
+    runs-on: windows-2019
+        
+    steps:
+    - uses: actions/checkout@v3
+    - name: Checkout submodules
+      shell: bash
+      run: |
+        auth_header="$(git config --local --get http.https://github.com/.extraheader)"
+        git submodule sync --recursive
+        git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
+    - name: Use Node.js 18.x
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+    - uses: actions/cache@v3
+      id: cache
+      with:
+        path: | 
+          **/node_modules
+        key: ${{ runner.os }}-${{ hashFiles('package.json') }}
+    - name: Install Dependencies
+      run: npm install --force
+      if: steps.cache.outputs.cache-hit != 'true'
+      env:
+        CI: true
+    - name: Build
+      env:
+        NODE_ENV: "production"
+        PACK_ARCH: "ia32"
+      run: npm run build
+    - name: Pack
+      run: npm run nexusPack
+    - name: Temporarily save zip
+      uses: actions/upload-artifact@v3
+      with:
+        name: zip-artifact
+        path: dist/Flashpoint.zip
+        retention-days: 1
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+    - name: Pass zip to Linux runner
+      uses: actions/download-artifact@v3
+      with:
+        name: zip-artifact
+        path: dist/
+    - name: Generate Metadata
+      run: |
+        sudo apt install libarchive-zip-perl -y
+        jq --null-input \
+          --arg name     "Launcher" \
+          --arg desc     "Launcher for browsing and running games" \
+          --arg date     $(date +%s) \
+          --arg download $(du -b dist/Flashpoint.zip | awk '{print $1}') \
+          --arg install  $(7z l dist/Flashpoint.zip | tail -n 1 | awk '{print $3}') \
+          --arg path     "Launcher" \
+          --arg depends  "core-logos core-credits core-database core-server-gamezip core-server-legacy" \
+          --arg hash     $(crc32 dist/Flashpoint.zip) \
+          '{ 
+            "title": $name,
+            "description": $desc,
+            "date-modified": $date,
+            "download-size": $download,
+            "install-size": $install,
+            "path": $path,
+            "depends": $depends,
+            "crc32": $hash 
+          }' > metadata.json
+        ls -la
+        cat metadata.json
+    - name: Deploy to Nexus
+      uses: sonatype-nexus-community/nexus-repo-github-action@master
+      with:
+        serverUrl: https://nexus-dev.unstable.life
+        username: github
+        password: ${{ secrets.NEXUS_PASSWORD }}
+        format: raw
+        repository: components
+        coordinates: directory=/
+        assets: filename=core-launcher.zip
+        filename: dist/Flashpoint.zip
+    - name: Deploy Metadata to Nexus
+      uses: sonatype-nexus-community/nexus-repo-github-action@master
+      with:
+        serverUrl: https://nexus-dev.unstable.life
+        username: github
+        password: ${{ secrets.NEXUS_PASSWORD }}
+        format: raw
+        repository: components
+        coordinates: directory=/
+        assets: filename=core-launcher.json
+        filename: metadata.json
+    - name: Generate components.xml
+      run: |
+        git clone https://gitlab.unstable.life/flashpoint/docker/nexus-deploy-action.git nexus
+        cd nexus
+        python3 ./merge-metadata.py "https://nexus-dev.unstable.life/service/rest/v1/search?repository=development&name=*.json" components.xml "https://nexus-dev.unstable.life/repository/development/"
+    - name: Deploy components.xml to Nexus
+      uses: sonatype-nexus-community/nexus-repo-github-action@master
+      with:
+        serverUrl: https://nexus-dev.unstable.life
+        username: github
+        password: ${{ secrets.NEXUS_PASSWORD }}
+        format: raw
+        repository: components
+        coordinates: directory=/
+        assets: filename=components.xml
+        filename: ./nexus/components.xml
+

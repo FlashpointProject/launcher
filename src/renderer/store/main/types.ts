@@ -1,21 +1,21 @@
 import { Game } from '@database/entity/Game';
 import { GameData } from '@database/entity/GameData';
-import { Playlist } from '@database/entity/Playlist';
-import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { CreditsData } from '@renderer/credits/types';
 import { ViewGameSet } from '@renderer/interfaces';
 import { UpgradeStage } from '@renderer/upgrade/types';
-import { BackInit, PageKeyset, ResponseGameRange, SearchGamesOpts, ViewGame } from '@shared/back/types';
+import { BackInit, ComponentStatus, FpfssState, FpfssUser, GameOfTheDay, PageKeyset, ResponseGameRange, SearchGamesOpts, ViewGame } from '@shared/back/types';
 import { AppExtConfigData } from '@shared/config/interfaces';
 import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { GamePropSuggestions, IService } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
-import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { ITheme, Theme } from '@shared/ThemeFile';
+import { Gate } from '@shared/utils/Gate';
 import * as axiosImport from 'axios';
 import { UpdateInfo } from 'electron-updater';
-import { TagFilterGroup } from 'flashpoint-launcher';
+import { AppPreferencesData, DialogField, DialogState, GameOrderBy, GameOrderReverse, Playlist, PlaylistGame, TagFilterGroup } from 'flashpoint-launcher';
+import { EventEmitter } from 'stream';
 import { MainActionType, RequestState } from './enums';
+import { PlatformAppPathSuggestions } from '@shared/curate/types';
 
 export type View = {
   /** The most recent query used for this view. */
@@ -59,15 +59,17 @@ export type ViewQuery = SearchGamesOpts & {
 export type ViewPageStates = Partial<Record<number, RequestState>>
 
 export type MainState = {
+  gotdList: GameOfTheDay[];
   views: Record<string, View | undefined>; // views[id] = view
   libraries: string[];
   serverNames: string[];
   mad4fpEnabled: boolean;
+  platformAppPaths: PlatformAppPathSuggestions;
   playlists: Playlist[];
   playlistIconCache: Record<string, string>; // [PLAYLIST_ID] = ICON_BLOB_URL
-  suggestions: Partial<GamePropSuggestions>;
+  suggestions: GamePropSuggestions;
   appPaths: Record<string, string>;
-  platforms: Record<string, string[]>;
+  loadedAll: Gate;
   loaded: { [key in BackInit]: boolean; };
   extensions: IExtensionDescription[];
   themeList: ITheme[];
@@ -112,6 +114,8 @@ export type MainState = {
   devScripts: ExtensionContribution<'devScripts'>[];
   /** Context buttons added by extensions */
   contextButtons: ExtensionContribution<'contextButtons'>[];
+  /** Curation Templates added by extensions */
+  curationTemplates: ExtensionContribution<'curationTemplates'>[];
   /** Extension config options */
   extConfigs: ExtensionContribution<'configuration'>[];
   /** Current extension config data */
@@ -124,6 +128,7 @@ export type MainState = {
   downloadOpen: boolean;
   cancelToken?: axiosImport.CancelToken;
   downloadVerifying: boolean;
+  taskBarOpen: boolean;
   selectedGameId?: string;
   selectedPlaylistId?: string;
   currentGame?: Game;
@@ -131,10 +136,32 @@ export type MainState = {
   currentPlaylist?: Playlist;
   currentPlaylistEntry?: PlaylistGame;
   isEditingGame: boolean;
+  updateFeedMarkdown: string;
+  metadataUpdate: MetaUpdateState;
   /** Games which are in the middle of a busy operation */
   busyGames: string[];
+  /** State of the Socket connection */
+  socketOpen: boolean;
+  /** Main Proc output (when requested) */
+  mainOutput?: string;
+  /** List of components from FPM */
+  componentStatuses: ComponentStatus[];
+  /** In the process of quitting, suspend all action */
+  quitting: boolean;
+  /** Open Dialog States */
+  openDialogs: DialogState[];
+  /** Renderer side dialog response emitter (event code = dialog id) */
+  dialogResEvent: EventEmitter;
+  /** State information for FPFSS connection */
+  fpfss: FpfssState;
 }
 
+export type MetaUpdateState = {
+  ready: boolean;
+  total: number;
+}
+
+export type ConnectedMainAction = WithAsyncDispatch & MainAction;
 export type MainAction = {
   type: MainActionType.SET_STATE;
   payload: Partial<MainState>;
@@ -148,7 +175,7 @@ export type MainAction = {
   orderReverse: GameOrderReverse;
   tagFilters: TagFilterGroup[];
   /** The playlistId can be of type string or undefined. Null means it will remain the same as before. */
-  playlistId: string | undefined | null;
+  playlist?: Playlist | null;
 } | {
   type: MainActionType.SET_VIEW_BOUNDRIES;
   library: string;
@@ -195,7 +222,7 @@ export type MainAction = {
   total: number;
 } | {
   type: MainActionType.SET_SUGGESTIONS;
-  suggestions: Partial<GamePropSuggestions>;
+  suggestions: GamePropSuggestions;
   appPaths: Record<string, string>;
 } | {
   type: MainActionType.SET_LOCALE;
@@ -237,9 +264,89 @@ export type MainAction = {
   type: MainActionType.FORCE_UPDATE_GAME_DATA;
   gameData: GameData;
 } | {
+  type: MainActionType.SETUP_VIEWS;
+  preferencesData: AppPreferencesData;
+} | {
   type: MainActionType.BUSY_GAME;
   gameId: string;
 } | {
   type: MainActionType.UNBUSY_GAME;
   gameId: string;
+} | {
+  type: MainActionType.NEW_DIALOG;
+  dialog: DialogState;
+} | {
+  type: MainActionType.CANCEL_DIALOG;
+  dialogId: string;
+} | {
+  type: MainActionType.UPDATE_DIALOG;
+  dialog: DialogState;
+} | {
+  type: MainActionType.RESOLVE_DIALOG;
+  dialogId: string;
+  button: number;
+} | {
+  type: MainActionType.UPDATE_DIALOG_FIELD;
+  dialogId: string;
+  field: DialogField;
+} | {
+  type: MainActionType.SET_FPFSS_USER;
+  user: FpfssUser | null;
+} | {
+  type: MainActionType.SET_FPFSS_GAME;
+  game: Game | null;
+} | {
+  type: MainActionType.APPLY_DELTA_FPFSS_GAME;
+  game: Partial<Game>;
+} | {
+  type: MainActionType.POST_FPFSS_SYNC;
+  libraries: string[];
+  suggestions: GamePropSuggestions;
+  total: number;
+  platformAppPaths: PlatformAppPathSuggestions;
+  preferencesData: AppPreferencesData;
+} | {
+  type: MainActionType.UPDATE_UPDATE_INFO;
+  total: number;
+} | {
+  type: MainActionType.UPDATE_DIALOG_MESSAGE;
+  dialogId: string;
+  message: string;
+} | {
+  type: MainActionType.UPDATE_DIALOG_FIELD_VALUE;
+  dialogId: string;
+  name: string;
+  value: any;
 }
+
+export type WithAsyncDispatch = {
+  asyncDispatch: (asyncAction: MainAction) => void;
+}
+
+export const asyncDispatchMiddleware = (store: any) => (next: any) => (action: MainAction) => {
+  let syncActivityFinished = false;
+  let actionQueue: MainAction[] = [];
+
+  function flushQueue() {
+    actionQueue.forEach(a => store.dispatch(a)); // flush queue
+    actionQueue = [];
+  }
+
+  function asyncDispatch(asyncAction: MainAction) {
+    actionQueue = actionQueue.concat([asyncAction]);
+
+    if (syncActivityFinished) {
+      flushQueue();
+    }
+  }
+
+  const actionWithAsyncDispatch =
+    Object.assign({}, action, { asyncDispatch });
+
+  const res = next(actionWithAsyncDispatch);
+
+  syncActivityFinished = true;
+  flushQueue();
+
+  return res;
+};

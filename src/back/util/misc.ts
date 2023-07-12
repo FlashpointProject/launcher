@@ -1,24 +1,27 @@
 import { SERVICES_SOURCE } from '@back/constants';
 import { createTagsFromLegacy } from '@back/importGame';
 import { ManagedChildProcess, ProcessOpts } from '@back/ManagedChildProcess';
+import { exitApp } from '@back/responses';
 import { SocketServer } from '@back/SocketServer';
 import { BackState, ShowMessageBoxFunc, ShowOpenDialogFunc, ShowSaveDialogFunc, StatusState } from '@back/types';
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
-import { Playlist } from '@database/entity/Playlist';
 import { Tag } from '@database/entity/Tag';
-import { BackOut } from '@shared/back/types';
+import { BackOut, ComponentState } from '@shared/back/types';
+import { getCurationFolder } from '@shared/curate/util';
 import { BrowserApplicationOpts } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, INamedBackProcessInfo, IService, ProcessState } from '@shared/interfaces';
 import { autoCode, getDefaultLocalization, LangContainer, LangFile } from '@shared/lang';
 import { Legacy_IAdditionalApplicationInfo, Legacy_IGameInfo } from '@shared/legacy/interfaces';
 import { deepCopy, recursiveReplace, stringifyArray } from '@shared/Util';
 import * as child_process from 'child_process';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as os from 'os';
 import * as path from 'path';
 import { promisify } from 'util';
 import { uuid } from './uuid';
+import { AppDataSource } from '..';
+import terminate from 'terminate';
 
 const unlink = promisify(fs.unlink);
 
@@ -42,7 +45,11 @@ export type ErrorCopy = {
   stack?: string;
 }
 
-/** Copy properties from an error to a new object. */
+/**
+ * Copy properties from an error to a new object.
+ *
+ * @param error Error to copy
+ */
 export function copyError(error: any): ErrorCopy {
   if (typeof error !== 'object' || error === null) { error = {}; }
   const copy: ErrorCopy = {
@@ -78,12 +85,12 @@ export function createContainer(languages: LangFile[], currentCode: string, auto
   }
   if (!current) { // (Auto language)
     current = languages.find(item => item.code === autoLangCode);
-    if (!current) { current = languages.find(item => item.code.startsWith(autoLangCode.substr(0, 2))); }
+    if (!current) { current = languages.find(item => item.code.startsWith(autoLangCode.substring(0, 2))); }
   }
   // Get fallback language
   const fallback = (
     languages.find(item => item.code === fallbackCode) || // (Exact match)
-    languages.find(item => item.code.startsWith(fallbackCode.substr(0, 2))) // (Same language)
+    languages.find(item => item.code.startsWith(fallbackCode.substring(0, 2))) // (Same language)
   );
   // Combine all language container objects (by overwriting the default with the fallback and the current)
   const data = recursiveReplace(recursiveReplace(deepCopy(defaultLang), fallback && fallback.data), current && current.data);
@@ -100,16 +107,31 @@ export function createContainer(languages: LangFile[], currentCode: string, auto
   return data;
 }
 
-/** Exit the back process cleanly. */
-export async function exit(state: BackState): Promise<void> {
+/**
+ * Exit the back process cleanly.
+ *
+ * @param state Current back state
+ * @param beforeProcessExit Function to call right before process exits
+ */
+export async function exit(state: BackState, beforeProcessExit?: () => void | Promise<void>): Promise<void> {
   if (!state.isExit) {
     state.isExit = true;
+    console.log('Exiting...');
+    // Unload all extensions before quitting
+    await state.extensionsService.unloadAll();
+    console.log(' - Extensions Unloaded');
 
     if (state.serviceInfo) {
       // Kill services
       for (const service of state.services.values()) {
         if (service.info.kill) {
-          await service.kill();
+          // Kill with 10s timeout
+          await Promise.race([
+            service.kill(),
+            new Promise(resolve => {
+              setTimeout(resolve, 10000);
+            })
+          ]);
         }
       }
       console.log(' - Managed Services Killed');
@@ -126,15 +148,14 @@ export async function exit(state: BackState): Promise<void> {
     }
     console.log(' - Watchers Aborted');
 
-    Promise.all([
-      // Close WebSocket server
-      state.socketServer.close()
-      .catch(e => { console.error(e); }),
+    await Promise.all([
       // Close file server
       new Promise<void>(resolve => state.fileServer.close(error => {
         if (error) { console.warn('An error occurred while closing the file server.', error); }
         resolve();
-      })),
+      })).then(() => {
+        console.log(' - File Server Closed');
+      }),
       // Wait for preferences writes to complete
       state.prefsQueue.push(() => {}, true),
       // Wait for game manager to complete all saves
@@ -154,9 +175,19 @@ export async function exit(state: BackState): Promise<void> {
           }
         }
       })(),
-    ]).then(() => {
+    ]).then(async () => {
       console.log(' - Cleanup Complete, Exiting Process...');
-      process.exit();
+      if (beforeProcessExit) {
+        console.log(' - Executing callback before process exit...');
+        await beforeProcessExit();
+      }
+      await state.socketServer.broadcast(BackOut.QUIT);
+      console.log(' - Quit Broadcast Sent');
+      // Close WebSocket server
+      state.socketServer.close()
+      .catch(e => { console.error(e); });
+
+      terminate(process.pid);
     });
   }
 }
@@ -181,7 +212,8 @@ export function createAddAppFromLegacy(addApps: Legacy_IAdditionalApplicationInf
       launchCommand: a.launchCommand,
       autoRunBefore: a.autoRunBefore,
       waitForExit: a.waitForExit,
-      parentGame: game
+      parentGame: game,
+      parentGameId: game.id,
     };
   });
 }
@@ -219,31 +251,6 @@ export async function createGameFromLegacy(game: Legacy_IGameInfo, tagCache: Rec
     activeDataOnDisk: false
   });
   return newGame;
-}
-
-export function createPlaylistFromJson(jsonData: any, library?: string): Playlist {
-  const playlist: Playlist = {
-    id: jsonData['id'] || uuid(),
-    title: jsonData['title'] || 'No Name',
-    description: jsonData['description'] || '',
-    author: jsonData['author'] || '',
-    icon: jsonData['icon'] || '',
-    library: library || jsonData['library'] || 'arcade',
-    games: [],
-    extreme: jsonData['extreme'] || false
-  };
-
-  for (let i = 0; i < jsonData['games'].length ; i++) {
-    const game = jsonData['games'][i];
-    playlist.games.push({
-      playlistId: playlist.id,
-      order: game['order'] ? Number(game['order']) : i,
-      notes: game['notes'] || '',
-      gameId: game['gameId'] || game['id']
-    });
-  }
-
-  return playlist;
 }
 
 export function runService(state: BackState, id: string, name: string, basePath: string, opts: ProcessOpts, info: INamedBackProcessInfo | IBackProcessInfo): ManagedChildProcess {
@@ -307,9 +314,9 @@ export function setStatus<T extends keyof StatusState>(state: BackState, key: T,
   }
 }
 
-export function getOpenMessageBoxFunc(socketServer: SocketServer): ShowMessageBoxFunc | undefined {
-  if (socketServer.lastClient) {
-    return socketServer.showMessageBoxBack(socketServer.lastClient);
+export function getOpenMessageBoxFunc(state: BackState): ShowMessageBoxFunc | undefined {
+  if (state.socketServer.lastClient) {
+    return state.socketServer.showMessageBoxBack(state, state.socketServer.lastClient);
   }
 }
 
@@ -330,6 +337,27 @@ export function isBrowserOpts(val: any): val is BrowserApplicationOpts {
    (val.proxy === undefined || typeof val.proxy === 'string');
 }
 
+/**
+ * Converts a date to a filename safe string in the form YYYY-MM-DD_HH-MM-SS
+ *
+ * @param date Date to convert
+ */
+export function dateToFilenameString(date: Date): string {
+  const padFour = (num: number) => { return `${num}`.padStart(4,'0'); };
+  const padTwo = (num: number) => { return `${num}`.padStart(2,'0'); };
+  return `${padFour(date.getFullYear())}-${padTwo(date.getMonth())}-${padTwo(date.getDay())}_${padTwo(date.getHours())}-${padTwo(date.getMinutes())}-${padTwo(date.getSeconds())}`;
+}
+
+export async function deleteCuration(state: BackState, folder: string) {
+  const curationIdx = state.loadedCurations.findIndex(c => c.folder === folder);
+  if (curationIdx !== -1) {
+    const curationPath = getCurationFolder(state.loadedCurations[curationIdx], state.config.flashpointPath);
+    await fs.remove(curationPath);
+    state.loadedCurations.splice(curationIdx, 1);
+    state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, undefined, [folder]);
+  }
+}
+
 export function getCwd(isDev: boolean, exePath: string) {
   return isDev ? process.cwd() : process.platform == 'darwin' ? path.resolve(path.dirname(exePath), '..') : path.dirname(exePath);
 }
@@ -340,6 +368,7 @@ export async function getTempFilename(ext = 'tmp') {
 
 /**
  * Gets the default shell's configured PATH on MacOS
+ *
  * @param shell Override and use this shell instead of the user's default shell.
  * @returns The user's PATH in that shell.
  */
@@ -402,4 +431,57 @@ export async function getMacPATH(shell?: string): Promise<string> {
   });
   // Trim any whitespace, etc.
   return builder.trim();
+}
+
+export function openFlashpointManager(state: BackState): void {
+  const cwd = path.join(state.config.flashpointPath, 'Manager');
+  const fpmPath = 'FlashpointManager.exe';
+  const updatesReady = state.componentStatuses.filter(c => c.state === ComponentState.NEEDS_UPDATE).length > 0;
+  exitApp(state, async () => {
+    const args = updatesReady ? ['/update', '/launcher'] : ['/launcher'];
+    const child = child_process.spawn(fpmPath, args, { detached: true, cwd, stdio: ['ignore', 'ignore', 'ignore'] });
+    child.unref();
+  });
+}
+
+export function compareSemVerVersions(v1: string, v2: string): number {
+  const v1Parts = v1.split('.').map(part => parseInt(part));
+  const v2Parts = v2.split('.').map(part => parseInt(part));
+
+  // Compare Major versions
+  if (v1Parts[0] !== v2Parts[0]) {
+    return v1Parts[0] - v2Parts[0];
+  }
+
+  // Compare Minor versions, handling missing Minor versions
+  const v1Minor = v1Parts.length > 1 ? v1Parts[1] : 0;
+  const v2Minor = v2Parts.length > 1 ? v2Parts[1] : 0;
+  if (v1Minor !== v2Minor) {
+    return v1Minor - v2Minor;
+  }
+
+  // Compare Patch versions, handling missing Patch versions
+  const v1Patch = v1Parts.length > 2 ? v1Parts[2] : 0;
+  const v2Patch = v2Parts.length > 2 ? v2Parts[2] : 0;
+  if (v1Patch !== v2Patch) {
+    return v1Patch - v2Patch;
+  }
+
+  // Versions are equal
+  return 0;
+}
+
+export async function optimizeDatabase(state: BackState, dialogId: string) {
+  state.socketServer.broadcast(BackOut.UPDATE_DIALOG_MESSAGE, 'Analyzing...', dialogId);
+  await AppDataSource.query('ANALYZE');
+  state.socketServer.broadcast(BackOut.UPDATE_DIALOG_MESSAGE, 'Reindexing...', dialogId);
+  await AppDataSource.query('REINDEX');
+  state.socketServer.broadcast(BackOut.UPDATE_DIALOG_MESSAGE, 'Vacuuming...', dialogId);
+  await AppDataSource.query('VACUUM');
+}
+
+export async function promiseSleep(ms: number) {
+  return new Promise<void>((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }

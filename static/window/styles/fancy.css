@@ -29,6 +29,7 @@
   --layout__secondary-text-color:   #aaaaaa;
   --layout__highlighted-text-color: #ffffff;
   --layout__disabled-text-color:    #9b9b9b;
+  --layout__disabled-text-color-2:  #5a5a5a;
   --layout__contrast-text-color:    #191919;
   /* Background */
   --layout__primary-background:    #1b1b1c;
@@ -49,13 +50,15 @@
   /* Game Item */
   --layout__game-item-color: var(--layout__secondary-text-color);
   --layout__game-item-color-hover: var(--layout__primary-text-color);
-  --layout__game-item-color-selected:            #cecece;
+  --layout__game-item-color-selected:                       #cecece;
   --layout__game-item-color-selected-hover: var(--layout__game-item-color-hover);
-  --layout__game-list-item-background-even:      #1e1e1f; /* Only used in "list" mode. */
-  --layout__game-item-background-hover:          #3c3c41;
-  --layout__game-item-background-selected:       #791c76;
-  --layout__game-item-background-selected-hover: #a72aa2;
-  --layout__game-item-thumb-image-rendering:       normal; /* Used to set the "image-rendering" of the thumbnail. */
+  --layout__game-list-item-background-even:                 #1e1e1f; /* Only used in "list" mode. */
+  --layout__game-item-background-hover:                     #3c3c41;
+  --layout__game-item-background-selected:                  #791c76;
+  --layout__game-item-background-selected--secondary:       #571354;
+  --layout__game-item-background-selected-hover:            #a72aa2;
+  --layout__game-item-thumb-image-rendering:                  normal; /* Used to set the "image-rendering" of the thumbnail. */
+  --layout__game-grid-icon-shadow:                          black;
   /* Browse Sidebar(s) */
   --layout__browse-sidebar-background:               #181819;
   --layout__browse-sidebar-divider-background:       #131313;
@@ -86,6 +89,7 @@
   --layout__curate-page-box-background: var(--layout__tertiary-background);
   --layout__curate-page-box-border: var(--layout__primary-outline-color);
   --layout__curate-page-floating-box-background: var(--layout__quaternary-background);
+  --layout__curate-page-floating-box-background-secondary: var(--layout__primary-background);
   --layout__curate-page-floating-box-border: var(--layout__tertiary-background);
   /* Log (at the Log Page) */
   --layout__log-time-stamp:                 #857df3;
@@ -147,6 +151,7 @@
   --layout__drop-down-content-background-selected: #1e90ff;
   /* Flashpoint */
   --layout__flashpoint-red: #DD0428;
+  --layout__flashpoint-light-red: #E85971;
 }
 
 body {
@@ -176,6 +181,10 @@ body {
 .simple-button:hover {
   background-color: var(--layout__simple-button-background);
   border-color: var(--layout__simple-button-border);
+}
+.simple-button:active {
+	background-color: var(--layout__primary-background);
+	box-shadow: 0px -1px 0px 0px #09090a;
 }
 .simple-button:disabled {
   color: var(--layout__disabled-text-color);
@@ -239,6 +248,10 @@ body {
   font-family: var(--layout__primary-font);
   background-color: var(--layout__primary-background);
   color: var(--layout__primary-text-color);
+}
+.simple-dropdown-button:hover {
+  background-color: var(--layout__simple-button-background);
+  border-color: var(--layout__simple-button-border);
 }
 .simple-dropdown__select-box {
   background-color: var(--layout__primary-background);
@@ -425,6 +438,13 @@ body {
 .header__toggle-sidebar:active .icon__use {
   fill: var(--layout__secondary-text-color);
 }
+.header-user-icon {
+  border: 1px solid var(--layout__simple-button-border);
+  border-radius: 25%;
+}
+.header-user-box:hover {
+  background-color: var(--layout__simple-button-background);
+}
 
 
 /* ------ Footer ------ */
@@ -463,7 +483,28 @@ body {
 .footer__scale-slider__input::-webkit-slider-thumb:active {
   background-color: var(--layout__slider-background-active);
 }
-
+/* Update Panel */
+.footer__update-panel-up-to-date {
+  background-color: var(--layout__secondary-background);
+}
+.footer__update-panel-up-to-date:hover {
+  background-color: var(--layout__simple-button-background);
+}
+.footer__update-panel-up-to-date:active {
+  background-color: var(--layout__primary-background);
+}
+.footer__update-panel-updates-ready {
+  background-color: var(--layout__flashpoint-red);
+}
+.footer__update-panel-updates-ready:hover {
+  background-color: var(--layout__flashpoint-light-red);
+}
+.footer__update-panel-updates-ready:active {
+  background-color: var(--layout__title-bar-cross-color);
+}
+.footer__update-panel:active {
+	box-shadow: 0px -1px 0px 0px #09090a;
+}
 
 /* ------ Home ------ */
 /* HomePage Box */
@@ -488,6 +529,11 @@ body {
   background-color: var(--layout__secondary-background);
 }
 
+/* GOTD Box */
+.home-page__box-item--gotd-left {
+  border-color: var(--layout__home-page-box-border);
+}
+
 
 /* ------ About ------ */
 /* Credits */
@@ -505,10 +551,22 @@ body {
 
 
 /* ------ Curate ------ */
+.curate-page__center {
+  background-color: var(--layout__curate-page-box-background);
+}
+.curate-page__right--header {
+  font-weight: bold;
+}
+.curate-page__header-text {
+  font-weight: bold;
+}
 /* Curate Page Top */
 .curate-page__floating-box {
   border-color: var(--layout__curate-page-floating-box-border);
   background-color: var(--layout__curate-page-floating-box-background);
+}
+.curate-page__left--hover {
+  background-color: var(--layout__game-image-split-hover-color);
 }
 /* Curate Page Left Sidebar Items */
 .curate-page__left-sidebar-item {
@@ -521,11 +579,21 @@ body {
 .curate-page__left-sidebar-item:hover {
   background-color: var(--layout__playlist-list-item-drag-over-background);
 }
-/* Curate Box */
-.curate-box {
-  background-color: var(--layout__curate-page-box-background);
-  border-color: var(--layout__curate-page-box-border);
+.curate-page-keybinds-box {
+  border: 1px solid;
+  border-color: var(--layout__curate-page-floating-box-border);
+  background-color: var(--layout__curate-page-floating-box-background);
 }
+.curate-page-keybinds-box-combo {
+  font-weight: bold;
+  border-color: var(--layout__curate-page-floating-box-border);
+  background-color: var(--layout__curate-page-floating-box-background-secondary);
+}
+.curate-page-keybinds-box-row td:first-child {
+  border-right: 2px solid;
+  border-color: var(--layout__curate-page-floating-box-border);
+}
+
 .curate-box input[type="checkbox"] {
   vertical-align: middle;
   transform: scale(1rem);
@@ -567,6 +635,63 @@ body {
 }
 .curate-box-select--warn select option:not(.curate-box-select__invalid-option) {
   background-color: var(--layout__secondary-background);
+}
+/* Curate List Item */
+.curate-list-item:nth-child(n+2) { /* All but first */
+  border-color: var(--layout__tertiary-background);
+}
+.curate-list-item:hover {
+  background-color: var(--layout__game-item-background-hover);
+}
+.curate-list-item--selected {
+  background-color: var(--layout__game-item-background-selected);
+}
+.curate-list-item--selected--secondary {
+  background-color: var(--layout__game-item-background-selected--secondary);
+}
+.curate-list-item__warning .icon__use {
+  fill: var(--layout__warning-shallow);
+}
+.curate-list-group__hovered-curation {
+  background-color: var(--layout__secondary-background);
+}
+.curate-list-group__header {
+  background-color: var(--layout__secondary-background);
+}
+.curate-list-group__header-unpinned .icon__use {
+  fill: var(--layout__primary-background);
+}
+.curate-list-group__header-text--counter {
+  font-style: italic;
+  color: var(--layout__disabled-text-color);
+}
+/* Curate Tag (Game tag for the curate page) */
+.curate-tag {
+  border: 1px solid;
+  border-color: var(--layout__home-page-box-border);
+}
+.curate-tag-inner:hover {
+  background-color: var(--layout__warning-dark-color);
+}
+.curate-tag-primary-icon {
+  font-weight: bold;
+}
+.curate-tag-primary-icon__promote:hover {
+  background-color: var(--layout__confirm-hover-color);
+}
+.curate-box-content__entry:hover {
+  background-color: var(--layout__secondary-background);
+}
+.curate-box-content__entry-icon--launch-path .icon__use {
+  fill: var(--layout__confirm-color);
+}
+
+/* Tag Dropdown Item */
+.tag-dropdown-item:hover {
+  background-color: var(--layout__game-item-background-hover);
+}
+.tag-dropdown-item--selected {
+  background-color: var(--layout__game-item-background-selected);
 }
 
 
@@ -678,6 +803,9 @@ body {
 .browse-right-sidebar__title-row__buttons__discard-button:hover .icon__use {
   fill: var(--layout__warning-bright-color);
 }
+.browse-right-sidebar__title-row__buttons__promote-button:hover .icon__use {
+  fill: var(--layout__confirm-color);
+}
 /* BrowseSidebar Title-Row Save */
 .browse-right-sidebar__title-row__buttons__save-button:hover .icon__use {
   fill: var(--layout__confirm-color);
@@ -704,6 +832,7 @@ body {
 .browse-right-sidebar__row__screenshot-image--hidden:hover {
   background-color: var(--layout__simple-button-background);
 }
+
 /* GameImageSplit */
 .game-image-split {
   --inner-border-color: var(--layout__secondary-background);
@@ -791,6 +920,9 @@ body {
   border-color: var(--layout__tertiary-background);
   box-shadow: 0px 2px 4px 0px #09090a;
   image-rendering: var(--layout__game-item-thumb-image-rendering);
+}
+.game-grid-item__thumb__icons__icon {
+  filter: drop-shadow(1px 1px 4px var(--layout__game-grid-icon-shadow));
 }
 
 
@@ -1086,6 +1218,7 @@ body {
 
 /** Confirm Dialog */
 .confirm-dialog__message {
+  white-space: pre-wrap;
   font-weight: bold;
 }
 
@@ -1115,6 +1248,35 @@ body {
 .clickable-url {
   text-decoration: underline;
   cursor: pointer;
+}
+
+/** Tasks */
+.task-bar--header {
+  background-color: var(--layout__secondary-background)
+}
+
+.task-bar-empty {
+  font-size: 2em;
+  font-weight: bold;
+  color: var(--layout__secondary-text-color);
+}
+
+.task-status {
+  font-style: italic;
+  color: var(--layout__secondary-text-color);
+}
+
+.task-progress-bar {
+  color: var(--layout__contrast-text-color);
+  background-color: var(--layout__slider-background);
+}
+
+.task-progress-bar--fill {
+  background-color: var(--layout__confirm-color);
+}
+
+.task-progress-bar--failure {
+  background-color: var(--layout__invalid-color);
 }
 
 /* Spinner */
@@ -1195,4 +1357,61 @@ body {
   100% {
     opacity: 0;
   }
+}
+
+.main-output-content {
+  background-color: var(--layout__tertiary-background);
+}
+
+/** Datepicker Overrides */
+
+.react-datepicker__header {
+  color: var(--layout__primary-text-color);
+  background-color: var(--layout__secondary-background);
+  border-bottom: 0px;
+}
+
+.react-datepicker-popper[data-placement^=bottom] .react-datepicker__triangle::before {
+  border-bottom-color: var(--layout__home-page-box-border);
+}
+
+.react-datepicker-popper[data-placement^=bottom] .react-datepicker__triangle::after {
+  border-bottom-color: var(--layout__secondary-background);
+}
+
+.react-datepicker__current-month {
+  color: var(--layout__primary-text-color);
+}
+
+.react-datepicker__day-name {
+  color: var(--layout__primary-text-color);
+}
+
+.react-datepicker__day {
+  color: var(--layout__primary-text-color)
+}
+
+.react-datepicker__day--disabled {
+  color: var(--layout__disabled-text-color-2)
+}
+
+.react-datepicker {
+  color: var(--layout__primary-text-color);
+  background-color: var(--layout__home-page-box-background);
+  border: 2px solid var(--layout__home-page-box-border);
+  border-radius: 8px;
+}
+
+.react-datepicker__input-container > input {
+  background-color: var(--layout__secondary-background);
+  border-color: var(--layout__primary-outline-color);
+  color: var(--layout__primary-text-color);
+}
+
+.tag-nuke-box {
+  font-weight: bold;
+}
+
+.cancel-download-button {
+  font-size: 2rem !important;
 }

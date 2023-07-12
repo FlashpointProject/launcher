@@ -9,7 +9,11 @@ export enum BrowsePageLayout {
 /** BrowsePageLayout in string form */
 export type BrowsePageLayoutString = 'list' | 'grid';
 
-/** Convert a BrowsePageLayout value to a string (returns undefined if value is invalid) */
+/**
+ * Convert a BrowsePageLayout value to a string (returns undefined if value is invalid)
+ *
+ * @param layout Browse page layout type (list or grid)
+ */
 export function stringifyBrowsePageLayout(layout: BrowsePageLayout): BrowsePageLayoutString|undefined {
   switch (layout) {
     case BrowsePageLayout.list: return 'list';
@@ -18,7 +22,11 @@ export function stringifyBrowsePageLayout(layout: BrowsePageLayout): BrowsePageL
   return undefined;
 }
 
-/** Convert a string to a BrowsePageLayout value (returns undefined if string is invalid) */
+/**
+ * Convert a string to a BrowsePageLayout value (returns undefined if string is invalid)
+ *
+ * @param str 'list' or 'grid'
+ */
 export function parseBrowsePageLayout(str: string): BrowsePageLayout|undefined {
   switch (str) {
     case 'list': return BrowsePageLayout.list;

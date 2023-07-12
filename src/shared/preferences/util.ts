@@ -1,16 +1,16 @@
+import { CurateGroup } from '@renderer/store/curate/types';
 import { autoCode } from '@shared/lang';
 import { LogLevel } from '@shared/Log/interface';
 import { delayedThrottle, delayedThrottleAsync } from '@shared/utils/throttle';
-import { TagFilterGroup } from 'flashpoint-launcher';
+import { AppPathOverride, AppPreferencesData, AppPreferencesDataMainWindow, GameDataSource, GameMetadataSource, MetadataUpdateInfo, TagFilterGroup } from 'flashpoint-launcher';
 import { BackIn } from '../back/types';
 import { BrowsePageLayout } from '../BrowsePageLayout';
 import { ARCADE } from '../constants';
 import { DeepPartial } from '../interfaces';
 import { gameOrderByOptions, gameOrderReverseOptions } from '../order/util';
 import { deepCopy, parseVarStr } from '../Util';
-import { Coerce } from '../utils/Coerce';
+import * as Coerce from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
-import { AppPathOverride, AppPreferencesData, AppPreferencesDataMainWindow } from './interfaces';
 
 export function updatePreferencesData(data: DeepPartial<AppPreferencesData>, send = true) {
   const preferences = window.Shared.preferences;
@@ -93,8 +93,9 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   saveImportedCurations: true,
   keepArchiveKey: true,
   symlinkCurationContent: true,
-  onDemandImages: false,
-  onDemandBaseUrl: 'https://infinity.unstable.life/Flashpoint/Data/Images/',
+  onDemandImages: true,
+  onDemandImagesCompressed: true,
+  onDemandBaseUrl: 'https://infinity.unstable.life/images/',
   browserModeProxy: 'localhost:22500',
   showLogSource: Object.freeze({
     // (Add log sources that should be hidden by default here)
@@ -121,12 +122,37 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   searchLimit: 0,
   onlineManual: 'https://flashpointproject.github.io/manual/',
   offlineManual: '',
+  fpfssBaseUrl: 'https://fpfss.unstable.life',
+  groups: [],
+  server: 'Apache Webserver',
+  curateServer: 'Apache Webserver',
+  shortcuts: {
+    curate: {
+      prev: ['ctrl+arrowup', 'cmd+arrowup'],
+      next: ['ctrl+arrowdown', 'cmd+arrowdown'],
+      load: ['ctrl+o', 'cmd+o'],
+      newCur: ['ctrl+n', 'cmd+n'],
+      deleteCurs: ['ctrl+delete', 'cmd+delete'],
+      exportCurs: ['ctrl+s', 'cmd+s'],
+      exportDataPacks: ['ctrl+shift+s', 'cmd+shift+s'],
+      importCurs: ['ctrl+i', 'cmd+i'],
+      refresh: ['ctrl+r', 'cmd+r'],
+      run: ['ctrl+t', 'cmd+t'],
+      runMad4fp: ['ctrl+shift+t', 'cmd+shift+t']
+    }
+  },
+  gameDataSources: [],
+  gameMetadataSources: [],
+  enablePlaytimeTracking: true,
+  enablePlaytimeTrackingExtreme: true,
 });
 
 /**
  * Overwrite a preferences data object with data from another object.
+ *
  * @param source Object to overwrite.
  * @param data Object with data to overwrite the source with.
+ * @param onError Called when an error occurs
  * @returns Source argument (not a copy).
  */
 export function overwritePreferenceData(
@@ -139,52 +165,72 @@ export function overwritePreferenceData(
     onError: onError && (e => onError(`Error while parsing Preferences: ${e.toString()}`)),
   });
   // Parse root object
-  parser.prop('imageFolderPath',             v => source.imageFolderPath             = parseVarStr(str(v)));
-  parser.prop('logoFolderPath',              v => source.logoFolderPath              = parseVarStr(str(v)));
-  parser.prop('playlistFolderPath',          v => source.playlistFolderPath          = parseVarStr(str(v)));
-  parser.prop('jsonFolderPath',              v => source.jsonFolderPath              = parseVarStr(str(v)));
-  parser.prop('htdocsFolderPath',            v => source.htdocsFolderPath            = parseVarStr(str(v)));
-  parser.prop('platformFolderPath',          v => source.platformFolderPath          = parseVarStr(str(v)));
-  parser.prop('themeFolderPath',             v => source.themeFolderPath             = parseVarStr(str(v)));
-  parser.prop('logoSetsFolderPath',          v => source.logoSetsFolderPath          = parseVarStr(str(v)));
-  parser.prop('metaEditsFolderPath',         v => source.metaEditsFolderPath         = parseVarStr(str(v)));
-  parser.prop('extensionsPath',              v => source.extensionsPath              = parseVarStr(str(v)));
-  parser.prop('dataPacksFolderPath',         v => source.dataPacksFolderPath         = parseVarStr(str(v)));
-  parser.prop('browsePageGameScale',         v => source.browsePageGameScale         = num(v));
-  parser.prop('browsePageShowExtreme',       v => source.browsePageShowExtreme       = !!v);
-  parser.prop('hideExtremeScreenshots',      v => source.hideExtremeScreenshots      = !!v);
-  parser.prop('enableEditing',               v => source.enableEditing               = !!v);
-  parser.prop('fallbackLanguage',            v => source.fallbackLanguage            = str(v));
-  parser.prop('currentLanguage',             v => source.currentLanguage             = str(v));
-  parser.prop('browsePageLayout',            v => source.browsePageLayout            = num(v));
-  parser.prop('browsePageShowLeftSidebar',   v => source.browsePageShowLeftSidebar   = !!v);
-  parser.prop('browsePageShowRightSidebar',  v => source.browsePageShowRightSidebar  = !!v);
-  parser.prop('browsePageLeftSidebarWidth',  v => source.browsePageLeftSidebarWidth  = num(v));
-  parser.prop('browsePageRightSidebarWidth', v => source.browsePageRightSidebarWidth = num(v));
-  parser.prop('curatePageLeftSidebarWidth',  v => source.curatePageLeftSidebarWidth  = num(v));
-  parser.prop('showDeveloperTab',            v => source.showDeveloperTab            = !!v);
-  parser.prop('currentTheme',                v => source.currentTheme                = str(v), true);
-  parser.prop('lastSelectedLibrary',         v => source.lastSelectedLibrary         = str(v));
-  parser.prop('gamesOrderBy',                v => source.gamesOrderBy                = strOpt(v, gameOrderByOptions,      'title'    ));
-  parser.prop('gamesOrder',                  v => source.gamesOrder                  = strOpt(v, gameOrderReverseOptions, 'ASC'));
-  parser.prop('defaultLibrary',              v => source.defaultLibrary              = str(v));
-  parser.prop('saveImportedCurations',       v => source.saveImportedCurations       = !!v);
-  parser.prop('keepArchiveKey',              v => source.keepArchiveKey              = !!v);
-  parser.prop('symlinkCurationContent',      v => source.symlinkCurationContent      = !!v);
-  parser.prop('tagFiltersInCurate',          v => source.tagFiltersInCurate          = !!v);
-  parser.prop('onDemandImages',              v => source.onDemandImages              = !!v);
-  parser.prop('browserModeProxy',            v => source.browserModeProxy            = str(v));
-  parser.prop('onDemandBaseUrl',             v => source.onDemandBaseUrl             = parseVarStr(str(v)));
-  parser.prop('excludedRandomLibraries',     v => source.excludedRandomLibraries     = strArray(v), true);
-  parser.prop('minimizedHomePageBoxes',      v => source.minimizedHomePageBoxes      = strArray(v), true);
-  parser.prop('nativePlatforms',             v => source.nativePlatforms             = strArray(v));
-  parser.prop('disableExtremeGames',         v => source.disableExtremeGames         = !!v);
-  parser.prop('showBrokenGames',             v => source.showBrokenGames             = !!v);
-  parser.prop('updateFeedUrl',               v => source.updateFeedUrl               = str(v));
-  parser.prop('onlineManual',                v => source.onlineManual                = str(v));
-  parser.prop('offlineManual',               v => source.offlineManual               = str(v));
-  parser.prop('fancyAnimations',             v => source.fancyAnimations             = !!v);
-  parser.prop('searchLimit', v => source.searchLimit                 = num(v));
+  parser.prop('imageFolderPath',               v => source.imageFolderPath               = parseVarStr(str(v)), true);
+  parser.prop('logoFolderPath',                v => source.logoFolderPath                = parseVarStr(str(v)), true);
+  parser.prop('playlistFolderPath',            v => source.playlistFolderPath            = parseVarStr(str(v)), true);
+  parser.prop('jsonFolderPath',                v => source.jsonFolderPath                = parseVarStr(str(v)), true);
+  parser.prop('htdocsFolderPath',              v => source.htdocsFolderPath              = parseVarStr(str(v)), true);
+  parser.prop('platformFolderPath',            v => source.platformFolderPath            = parseVarStr(str(v)), true);
+  parser.prop('themeFolderPath',               v => source.themeFolderPath               = parseVarStr(str(v)), true);
+  parser.prop('logoSetsFolderPath',            v => source.logoSetsFolderPath            = parseVarStr(str(v)), true);
+  parser.prop('metaEditsFolderPath',           v => source.metaEditsFolderPath           = parseVarStr(str(v)), true);
+  parser.prop('extensionsPath',                v => source.extensionsPath                = parseVarStr(str(v)), true);
+  parser.prop('dataPacksFolderPath',           v => source.dataPacksFolderPath           = parseVarStr(str(v)), true);
+  parser.prop('browsePageGameScale',           v => source.browsePageGameScale           = num(v), true);
+  parser.prop('browsePageShowExtreme',         v => source.browsePageShowExtreme         = !!v, true);
+  parser.prop('hideExtremeScreenshots',        v => source.hideExtremeScreenshots        = !!v, true);
+  parser.prop('enableEditing',                 v => source.enableEditing                 = !!v, true);
+  parser.prop('fallbackLanguage',              v => source.fallbackLanguage              = str(v), true);
+  parser.prop('currentLanguage',               v => source.currentLanguage               = str(v), true);
+  parser.prop('browsePageLayout',              v => source.browsePageLayout              = num(v), true);
+  parser.prop('browsePageShowLeftSidebar',     v => source.browsePageShowLeftSidebar     = !!v, true);
+  parser.prop('browsePageShowRightSidebar',    v => source.browsePageShowRightSidebar    = !!v, true);
+  parser.prop('browsePageLeftSidebarWidth',    v => source.browsePageLeftSidebarWidth    = num(v), true);
+  parser.prop('browsePageRightSidebarWidth',   v => source.browsePageRightSidebarWidth   = num(v), true);
+  parser.prop('curatePageLeftSidebarWidth',    v => source.curatePageLeftSidebarWidth    = num(v), true);
+  parser.prop('showDeveloperTab',              v => source.showDeveloperTab              = !!v, true);
+  parser.prop('currentTheme',                  v => source.currentTheme                  = str(v), true);
+  parser.prop('lastSelectedLibrary',           v => source.lastSelectedLibrary           = str(v), true);
+  parser.prop('gamesOrderBy',                  v => source.gamesOrderBy                  = strOpt(v, gameOrderByOptions,      'title'    ), true);
+  parser.prop('gamesOrder',                    v => source.gamesOrder                    = strOpt(v, gameOrderReverseOptions, 'ASC'), true);
+  parser.prop('defaultLibrary',                v => source.defaultLibrary                = str(v), true);
+  parser.prop('saveImportedCurations',         v => source.saveImportedCurations         = !!v, true);
+  parser.prop('keepArchiveKey',                v => source.keepArchiveKey                = !!v, true);
+  parser.prop('symlinkCurationContent',        v => source.symlinkCurationContent        = !!v, true);
+  parser.prop('tagFiltersInCurate',            v => source.tagFiltersInCurate            = !!v, true);
+  parser.prop('onDemandImages',                v => source.onDemandImages                = !!v, true);
+  parser.prop('onDemandImagesCompressed',      v => source.onDemandImagesCompressed      = !!v, true);
+  parser.prop('browserModeProxy',              v => source.browserModeProxy              = str(v), true);
+  parser.prop('onDemandBaseUrl',               v => source.onDemandBaseUrl               = parseVarStr(str(v)), true);
+  parser.prop('excludedRandomLibraries',       v => source.excludedRandomLibraries       = strArray(v), true);
+  parser.prop('minimizedHomePageBoxes',        v => source.minimizedHomePageBoxes        = strArray(v), true);
+  parser.prop('nativePlatforms',               v => source.nativePlatforms               = strArray(v), true);
+  parser.prop('disableExtremeGames',           v => source.disableExtremeGames           = !!v, true);
+  parser.prop('showBrokenGames',               v => source.showBrokenGames               = !!v, true);
+  parser.prop('updateFeedUrl',                 v => source.updateFeedUrl                 = str(v), true);
+  parser.prop('onlineManual',                  v => source.onlineManual                  = str(v), true);
+  parser.prop('offlineManual',                 v => source.offlineManual                 = str(v), true);
+  parser.prop('fpfssBaseUrl',                  v => source.fpfssBaseUrl                  = str(v), true);
+  parser.prop('fancyAnimations',               v => source.fancyAnimations               = !!v, true);
+  parser.prop('searchLimit',                   v => source.searchLimit                   = num(v), true);
+  parser.prop('server',                        v => source.server                        = str(v), true);
+  parser.prop('curateServer',                  v => source.curateServer                  = str(v), true);
+  parser.prop('enablePlaytimeTracking',        v => source.enablePlaytimeTracking        = !!v, true);
+  parser.prop('enablePlaytimeTrackingExtreme', v => source.enablePlaytimeTrackingExtreme = !!v, true);
+
+  // Migrate onDemandBaseUrl from the older FP url
+  if (source.onDemandBaseUrl == 'https://infinity.unstable.life/Flashpoint/Data/Images/') {
+    source.onDemandBaseUrl = 'https://infinity.unstable.life/images/';
+  }
+  if (data.shortcuts) {
+    // @TODO Validate
+    source.shortcuts = Object.assign(source.shortcuts, data.shortcuts);
+  }
+  if (data.groups) {
+    const newGroups: CurateGroup[] = [];
+    parser.prop('groups').array((item, index) => newGroups[index] = parseCurateGroup(item));
+    source.groups = newGroups;
+  }
   if (data.appPathOverrides) {
     const newAppPathOverrides: AppPathOverride[] = [];
     parser.prop('appPathOverrides').array((item, index) => newAppPathOverrides[index] = parseAppPathOverride(item));
@@ -200,6 +246,16 @@ export function overwritePreferenceData(
     const newTagFilters: TagFilterGroup[] = [];
     parser.prop('tagFilters').array((item, index) => newTagFilters[index] = parseTagFilterGroup(item as IObjectParserProp<TagFilterGroup>));
     source.tagFilters = newTagFilters;
+  }
+  if (data.gameDataSources) {
+    const newSources: GameDataSource[] = [];
+    parser.prop('gameDataSources').array((item, index) => newSources[index] = parseGameDataSource(item as IObjectParserProp<GameDataSource>));
+    source.gameDataSources = newSources;
+  }
+  if (data.gameMetadataSources) {
+    const newSources: GameMetadataSource[] = [];
+    parser.prop('gameMetadataSources').array((item, index) => newSources[index] = parseGameMetadataSource(item as IObjectParserProp<GameMetadataSource>));
+    source.gameMetadataSources = newSources;
   }
   // Done
   return source;
@@ -225,6 +281,46 @@ function parseAppPathOverride(parser: IObjectParserProp<any>): AppPathOverride {
   return override;
 }
 
+function parseGameDataSource(parser: IObjectParserProp<GameDataSource>): GameDataSource {
+  const source: GameDataSource = {
+    type: 'raw',
+    name: '',
+    arguments: []
+  };
+  parser.prop('type', v => source.type = str(v));
+  parser.prop('name', v => source.name = str(v));
+  parser.prop('arguments').arrayRaw((item, index) => source.arguments.push(item));
+  return source;
+}
+
+function parseGameMetadataSource(parser: IObjectParserProp<GameMetadataSource>): GameMetadataSource {
+  const source: GameMetadataSource = {
+    name: '',
+    baseUrl: '',
+    games: {
+      actualUpdateTime: '1970-01-01',
+      latestDeleteTime: '1970-01-01',
+      latestUpdateTime: '1970-01-01'
+    },
+    tags: {
+      actualUpdateTime: '1970-01-01',
+      latestDeleteTime: '1970-01-01',
+      latestUpdateTime: '1970-01-01'
+    },
+  };
+  parser.prop('name',             v => source.name             = str(v));
+  parser.prop('baseUrl',          v => source.baseUrl          = str(v));
+  parseMetadataUpdateInfo(parser.prop('games'), source.games);
+  parseMetadataUpdateInfo(parser.prop('tags'), source.tags);
+  return source;
+}
+
+function parseMetadataUpdateInfo(parser: IObjectParserProp<MetadataUpdateInfo>, output: MetadataUpdateInfo) {
+  parser.prop('actualUpdateTime', v => output.actualUpdateTime = str(v), true);
+  parser.prop('latestUpdateTime', v => output.latestUpdateTime = str(v), true);
+  parser.prop('latestDeleteTime', v => output.latestDeleteTime = str(v), true);
+}
+
 function parseTagFilterGroup(parser: IObjectParserProp<TagFilterGroup>): TagFilterGroup {
   const tfg: TagFilterGroup = {
     name: '',
@@ -245,9 +341,20 @@ function parseTagFilterGroup(parser: IObjectParserProp<TagFilterGroup>): TagFilt
   return tfg;
 }
 
+function parseCurateGroup(parser: IObjectParserProp<any>): CurateGroup {
+  const g: CurateGroup = {
+    name: '',
+    icon: ''
+  };
+  parser.prop('name', v => g.name = str(v));
+  parser.prop('icon', v => g.icon = str(v));
+  return g;
+}
+
 /**
  * Coerce a value to a string, then return it if it matches at least on of the options.
  * If it does not match any option, the default option is returned.
+ *
  * @param value Value to coerce.
  * @param options Options the value must match at least one of.
  * @param defaultOption This is returned if the value doesn't match any of the options.

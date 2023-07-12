@@ -27,12 +27,10 @@ export type RightTagCategoriesSidebarProps = OwnProps & WithPreferencesProps;
 type RRightTagCategoriesSidebarState = {
 };
 
-export interface RightTagCategoriesSidebar {
-  context: LangContainer;
-}
-
 /** Sidebar on the right side of BrowsePage. */
 export class RightTagCategoriesSidebar extends React.Component<RightTagCategoriesSidebarProps, RRightTagCategoriesSidebarState> {
+  static contextType = LangContext;
+  declare context: React.ContextType<typeof LangContext>;
 
   launchCommandRef: React.RefObject<HTMLInputElement> = React.createRef();
 
@@ -119,8 +117,7 @@ export class RightTagCategoriesSidebar extends React.Component<RightTagCategorie
                   text={category.description || ''}
                   placeholder={strings.noDescription}
                   onChange={this.onDescriptionChange}
-                  editable={editable}
-                  onKeyDown={this.onInputKeyDown} />
+                  editable={editable} />
               </div>
               <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                 <p>{strings.color}: </p>
@@ -161,49 +158,42 @@ export class RightTagCategoriesSidebar extends React.Component<RightTagCategorie
     );
   }
 
-  /** When a key is pressed down "globally" (and this component is present) */
+  // When a key is pressed down "globally" (and this component is present)
   onGlobalKeyDown = (event: KeyboardEvent) => {
     // Start editing
     if (event.ctrlKey && event.code === 'KeyE' && // (CTRL + E ...
-        !this.props.isEditing && this.props.currentCategory) { // ... while not editing, and a game is selected)
+        !this.props.isEditing && this.props.currentCategory) { // ... while not editing, and a game is selected
       this.props.onEditClick();
       if (this.launchCommandRef.current) { this.launchCommandRef.current.focus(); }
       event.preventDefault();
     }
-  }
+  };
 
   onLocalKeyDown = (event: React.KeyboardEvent) => {
     // Save changes
     if (event.ctrlKey && event.key === 's' && // (CTRL + S ...
-        this.props.isEditing && this.props.currentCategory) { // ... while editing, and a game is selected)
+        this.props.isEditing && this.props.currentCategory) { // ... while editing, and a game is selected
       this.props.onSaveCategory();
       event.preventDefault();
     }
-  }
+  };
 
   onNameChange = (event: React.ChangeEvent<InputElement>) => {
     this.props.onEditCategory({ name: event.currentTarget.value });
-  }
+  };
 
   onDescriptionChange = (event: React.ChangeEvent<InputElement>) => {
     this.props.onEditCategory({ description: event.currentTarget.value });
-  }
+  };
 
   onColorChange = (color: ColorResult) => {
     this.props.onEditCategory({ color: color.hex });
-  }
-
-  /** When a key is pressed while an input field is selected (except for multiline fields) */
-  onInputKeyDown = (event: React.KeyboardEvent): void => {
-    // if (event.key === 'Enter') { this.props.onSaveGame(); }
-  }
+  };
 
   onDeleteCategoryClick = (): void => {
     console.log('called');
     if (this.props.onDeleteCategory) {
       this.props.onDeleteCategory();
     }
-  }
-
-  static contextType = LangContext;
+  };
 }

@@ -13,9 +13,9 @@ export type SocketRequestData = {
 }
 
 /** Data of a websocket response message. */
-export type SocketResponseData<T> = SocketResponseData_Error<T> | SocketResponseData_Result<T>;
+export type SocketResponseData<T> = SocketResponseData_Error | SocketResponseData_Result<T>;
 
-export type SocketResponseData_Error<T> = {
+export type SocketResponseData_Error = {
   /** Unique ID of the message. */
   id: number;
   /** Arguments to call the callback with. */
@@ -29,7 +29,7 @@ export type SocketResponseData_Result<T> = {
   result: T;
 }
 
-export function isErrorResponse<T>(variable: SocketResponseData<T>): variable is SocketResponseData_Error<T> {
+export function isErrorResponse<T>(variable: SocketResponseData<T>): variable is SocketResponseData_Error {
   return Object.prototype.hasOwnProperty.call(variable, 'error');
 }
 

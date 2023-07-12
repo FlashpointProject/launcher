@@ -1,14 +1,17 @@
+import { Tag } from '@database/entity/Tag';
+import * as remote from '@electron/remote';
+import { openContextMenu } from '@renderer/app';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
-import { BackIn, TagSuggestion } from '@shared/back/types';
-import { LangContainer } from '@shared/lang';
+import { BackIn, FpfssUser, TagSuggestion } from '@shared/back/types';
 import { getLibraryItemTitle } from '@shared/library/util';
-import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
+import { MenuItemConstructorOptions } from 'electron';
+import { GameOrderBy, GameOrderReverse, Platform } from 'flashpoint-launcher';
 import * as React from 'react';
 import { Link, RouteComponentProps, useLocation } from 'react-router-dom';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { Paths } from '../Paths';
 import { SearchQuery } from '../store/search';
-import { easterEgg, joinLibraryRoute } from '../Util';
+import { easterEgg, getPlatformIconURL, joinLibraryRoute } from '../Util';
 import { LangContext } from '../util/lang';
 import { GameOrder, GameOrderChangeEvent } from './GameOrder';
 import { InputElement } from './InputField';
@@ -32,6 +35,9 @@ type OwnProps = {
   onToggleLeftSidebarClick?: () => void;
   /** Called when the right sidebar toggle button is clicked. */
   onToggleRightSidebarClick?: () => void;
+  logoVersion: number;
+  user: FpfssUser | null;
+  logoutUser: () => void;
 };
 
 export type HeaderProps = OwnProps & RouteComponentProps & WithPreferencesProps & WithTagCategoriesProps;
@@ -40,22 +46,24 @@ type HeaderState = {
   /** Current text in the search field. */
   searchText: string;
   /** Current tag suggestions under the search field */
-  tagSuggestions: TagSuggestion[];
+  tagSuggestions: TagSuggestion<Tag>[];
+  /** Current platform suggestions under the search field */
+  platformSuggestions: TagSuggestion<Platform>[];
 };
-
-export interface Header {
-  context: LangContainer;
-}
 
 /** The header that is always visible at the top of the main window (just below the title bar). */
 export class Header extends React.Component<HeaderProps, HeaderState> {
+  static contextType = LangContext;
+  declare context: React.ContextType<typeof LangContext>;
+
   searchInputRef: React.RefObject<InputElement> = React.createRef();
 
   constructor(props: HeaderProps) {
     super(props);
     this.state = {
       searchText: this.props.searchQuery.text,
-      tagSuggestions: []
+      tagSuggestions: [],
+      platformSuggestions: [],
     };
   }
 
@@ -83,6 +91,24 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
       onOrderChange, onToggleLeftSidebarClick, onToggleRightSidebarClick, libraries
     } = this.props;
     const { searchText } = this.state;
+
+    // FPFSS user context menu
+    const contextButtons: MenuItemConstructorOptions[] = [
+      {
+        label: strings.fpfssProfile,
+        enabled: true,
+        click: () => {
+          remote.shell.openExternal(`${this.props.preferencesData.fpfssBaseUrl}/web/profile`);
+        }
+      },
+      {
+        label: strings.fpfssLogout,
+        enabled: true,
+        click: () => {
+          this.props.logoutUser();
+        }
+      }
+    ];
     return (
       <div className='header'>
         {/* Header Menu */}
@@ -142,17 +168,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
           <div>
             <div className='header__search'>
               <div className='header__search__left'>
-                <TagInputField
-                  className='header__search__input'
-                  editable={true}
-                  text={searchText}
-                  tags={[]} /** We're not using the tag list */
-                  suggestions={this.state.tagSuggestions}
-                  categories={this.props.tagCategories}
-                  placeholder={strings.searchPlaceholder}
-                  onTagSubmit={this.onSearchSubmit}
-                  onTagSuggestionSelect={this.onTagSuggestionSelect}
-                  onChange={this.onSearchChange} />
+                {this.renderTagInput()}
               </div>
               <div
                 className='header__search__right'
@@ -177,6 +193,13 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
         </div>
         {/* Right-most portion */}
         <div className='header__wrap header__right'>
+          {this.props.user && (
+            <div className='header-user-box' onClick={() => openContextMenu(contextButtons)}>
+              {/* FPFSS user status */}
+              <div className='header-user-icon' style={{backgroundImage: `url(${this.props.user.avatarUrl})`}}></div>
+              <div className='header-user-name'>{this.props.user.username}</div>
+            </div>
+          )}
           <div>
             {/* Toggle Right Sidebar */}
             <div
@@ -198,15 +221,46 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
     );
   }
 
+  renderTagInput = () => {
+    const strings = this.context.app;
+
+    // Set the suggestions to the appropriate field being searched for currently
+    let suggestions: TagSuggestion<any>[] = [];
+    let onSuggSubmit: ((tag: TagSuggestion<any>) => void) = (t) => {};
+    let renderIconSugg: ((sugg: TagSuggestion<any>) => JSX.Element) | undefined = undefined;
+    if (this.state.tagSuggestions.length > 0) {
+      suggestions = this.state.tagSuggestions;
+      onSuggSubmit = this.onTagSuggestionSelect;
+    } else if (this.state.platformSuggestions.length > 0) {
+      suggestions = this.state.platformSuggestions;
+      onSuggSubmit = this.onPlatformSuggestionSelect;
+      renderIconSugg = this.renderPlatformIconSugg;
+    }
+
+    return (
+      <TagInputField
+        className='header__search__input'
+        editable={true}
+        text={this.state.searchText}
+        tags={[]} /** We're not using the tag list */
+        suggestions={suggestions}
+        categories={this.props.tagCategories}
+        placeholder={strings.searchPlaceholder}
+        onTagSubmit={this.onSearchSubmit}
+        onTagSuggestionSelect={onSuggSubmit}
+        renderIconSugg={renderIconSugg}
+        onChange={this.onSearchChange} />
+    );
+  };
+
   onSearchChange = (event: React.ChangeEvent<InputElement>): void => {
     const value = event.target.value;
     this.setState({ searchText: value }, () => {
       // Update tag suggestions if currently in `tag:` search
       const tagRegex = /(#([^\s]+)|tag:([^\s]+))$/;
-      const match = tagRegex.exec(this.state.searchText);
-      if (match) {
-        console.log(match);
-        const tagName = match[2] || match[3];
+      const tagMatch = tagRegex.exec(this.state.searchText);
+      if (tagMatch) {
+        const tagName = tagMatch[2] || tagMatch[3];
         window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, tagName, this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme)))
         .then(data => {
           if (data) { this.setState({ tagSuggestions: data }); }
@@ -215,17 +269,33 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
         // Not searching by tag
         this.setState({ tagSuggestions: [] });
       }
+      // Update platform suggestions if currently in `platform:` or `platforms:` or `tech:` search
+      const platformRegex = /(#([^\s]+)|platform[s]?:([^\s]+))$/;
+      const techRegex = /(#([^\s]+)|tech[s]?:([^\s]+))$/;
+      const platformMatch = platformRegex.exec(this.state.searchText);
+      const techMatch = techRegex.exec(this.state.searchText);
+      const match = platformMatch || techMatch;
+      if (match) {
+        const platformName = match[2] || match[3];
+        window.Shared.back.request(BackIn.GET_PLATFORM_SUGGESTIONS, platformName)
+        .then(data => {
+          if (data) { this.setState({ platformSuggestions: data }); }
+        });
+      } else {
+        // Not searching by platform
+        this.setState({ platformSuggestions: [] });
+      }
     });
     // "Clear" the search when the search field gets empty
     if (value === '') { this.props.onSearch('', false); }
-  }
+  };
 
   onSearchSubmit = (value: string): void => {
     this.props.onSearch(value, true);
     easterEgg(value);
-  }
+  };
 
-  onTagSuggestionSelect = (suggestion: TagSuggestion): void => {
+  onTagSuggestionSelect = (suggestion: TagSuggestion<Tag>): void => {
     const tagRegex = /((#)([^\s]+)|(tag:)([^\s]+))$/;
     const match = tagRegex.exec(this.state.searchText);
     if (match) {
@@ -238,7 +308,23 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
         tagSuggestions: []
       });
     }
-  }
+  };
+
+
+  onPlatformSuggestionSelect = (suggestion: TagSuggestion<Platform>): void => {
+    const platformRegex = /((#)([^\s]+)|(platform:)([^\s]+))$/;
+    const match = platformRegex.exec(this.state.searchText);
+    if (match) {
+      console.log(match);
+      const quickSearch = match[4] ? false : true;
+      console.log(quickSearch);
+      const index = match.index + (quickSearch ? 1 : 9);
+      this.setState({
+        searchText: this.state.searchText.slice(0, index) + `"${suggestion.primaryAlias}"`,
+        platformSuggestions: []
+      });
+    }
+  };
 
   onKeypress = (event: KeyboardEvent): void => {
     if (event.ctrlKey && event.code === 'KeyF') {
@@ -248,14 +334,21 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
         event.preventDefault();
       }
     }
-  }
+  };
 
   onClearClick = (): void => {
     this.setState({ searchText: '' });
     this.props.onSearch('', false);
-  }
+  };
 
-  static contextType = LangContext;
+  renderPlatformIconSugg = (platformSugg: TagSuggestion<Platform>) => {
+    const iconUrl = getPlatformIconURL(platformSugg.primaryAlias, this.props.logoVersion);
+    return (
+      <div
+        className='platform-tag__icon'
+        style={{ backgroundImage: `url(${iconUrl})` }} />
+    );
+  };
 }
 
 type MenuItemProps = {
@@ -263,7 +356,7 @@ type MenuItemProps = {
   link: string;
 };
 
-/** An item in the header menu. Used as buttons to switch between tabs/pages. */
+// An item in the header menu. Used as buttons to switch between tabs/pages.
 function MenuItem({ title, link }: MenuItemProps) {
   const location = useLocation();
   const selected = link === '/' ? location.pathname === link : location.pathname.startsWith(link);

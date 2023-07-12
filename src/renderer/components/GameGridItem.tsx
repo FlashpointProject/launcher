@@ -5,7 +5,7 @@ import { getPlatformIconURL } from '../Util';
 export type GameGridItemProps = Partial<GridCellProps> & {
   id: string;
   title: string;
-  platform: string;
+  platforms: string[];
   extreme: boolean;
   /** Updates to clear platform icon cache */
   logoVersion: number;
@@ -21,13 +21,13 @@ export type GameGridItemProps = Partial<GridCellProps> & {
   extremeIconPath: string;
 };
 
-/** Displays a single game. Meant to be rendered inside a grid. */
+// Displays a single game. Meant to be rendered inside a grid.
 export function GameGridItem(props: GameGridItemProps) {
-  const { id, title, platform, thumbnail, extreme, isDraggable, isSelected, isDragged, extremeIconPath, style } = props;
+  const { id, title, platforms, thumbnail, extreme, isDraggable, isSelected, isDragged, extremeIconPath, style } = props;
   // Get the platform icon path
-  const platformIcon = React.useMemo(() => (
-    getPlatformIconURL(platform, props.logoVersion)
-  ), [platform]);
+  const platformIcons = React.useMemo(() =>
+    platforms.slice(0, 5).map(p => getPlatformIconURL(p, props.logoVersion))
+  , [platforms, props.logoVersion]);
   // Pick class names
   const className = React.useMemo(() => {
     let className = 'game-grid-item';
@@ -59,11 +59,12 @@ export function GameGridItem(props: GameGridItemProps) {
               </div>
             ) : undefined }
             <div className='game-grid-item__thumb__icons'>
-              {(platformIcon) ? (
+              {platformIcons.map(p => (
                 <div
+                  key={p}
                   className='game-grid-item__thumb__icons__icon'
-                  style={{ backgroundImage: `url('${platformIcon}')` }} />
-              ) : undefined }
+                  style={{ backgroundImage: `url('${p}')` }} />
+              ))}
             </div>
           </div>
         </div>
@@ -72,15 +73,16 @@ export function GameGridItem(props: GameGridItemProps) {
         </div>
       </li>
     );
-  }, [style, className, isDraggable, id, title, platformIcon, thumbnail]);
+  }, [style, className, isDraggable, id, title, platformIcons, thumbnail]);
 }
 
-export namespace GameGridItem { // eslint-disable-line no-redeclare
+export namespace GameGridItem {
   /** ID of the attribute used to store the game's id. */
   export const idAttribute = 'data-game-id';
 
   /**
    * Get the id of the game displayed in a GameGridItem element (or throw an error if it fails).
+   *
    * @param element GameGridItem element.
    */
   export function getId(element: Element): string {
@@ -91,6 +93,7 @@ export namespace GameGridItem { // eslint-disable-line no-redeclare
 
   /**
    * Check if an element is the top element of GameGridItem or not.
+   *
    * @param element Potential element to check.
    */
   export function isElement(element: Element | null | undefined): boolean {

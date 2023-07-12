@@ -17,8 +17,8 @@ export type ExtensionContext = {
 }
 
 export type ExtensionModule = {
-  activate?: (context: ExtensionContext) => Promise<void>;
-  deactivate?: () => void;
+  activate?: (context: ExtensionContext) => void | Promise<void>;
+  deactivate?: () => void | Promise<void>;
 }
 
 export type Registry = {

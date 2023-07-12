@@ -51,12 +51,13 @@ export function TagCategoriesListItem(props: TagCategoriesListItemProps) {
   }, [style, className, category]);
 }
 
-export namespace TagCategoriesListItem { // eslint-disable-line no-redeclare
+export namespace TagCategoriesListItem {
   /** ID of the attribute used to store the game's id. */
   export const idAttribute = 'data-tag-id';
 
   /**
    * Get the id of the game displayed in a GameListItem element (or throw an error if it fails).
+   *
    * @param element GameListItem element.
    */
   export function getId(element: Element): number {
@@ -67,6 +68,7 @@ export namespace TagCategoriesListItem { // eslint-disable-line no-redeclare
 
   /**
    * Check if an element is the top element of GameListItem or not.
+   *
    * @param element Potential element to check.
    */
   export function isElement(element: Element | null | undefined): boolean {

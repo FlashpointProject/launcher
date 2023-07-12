@@ -4,21 +4,28 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
 import { fixSlashes } from '../Util';
-import { CurationIndex, EditCuration, IndexedContent } from './types';
+import { IndexedContent } from './OLD_types';
+import { LoadedCuration } from './types';
 
 const access = promisify(fs.access);
 const lstat = promisify(fs.lstat);
 const readdir = promisify(fs.readdir);
 
-/** Full path to a Curation's folder
- * @param curation: Curation to fetch folder from
+/**
+ * Full path to a Curation's folder
+ *
+ * @param curation Curation to fetch folder from
+ * @param fpPath Flashpoint Path
  */
-export function getCurationFolder(curation: CurationIndex | EditCuration, fpPath: string): string {
-  return path.join(fpPath, 'Curations', 'Working', curation.key);
+export function getCurationFolder(curation: LoadedCuration, fpPath: string): string {
+  return path.join(fpPath, 'Curations', 'Working', curation.folder);
 }
 
-/** Full path to a Curation's content folder
- * @param key: Key to use
+/**
+ * Full path to a Curation's content folder
+ *
+ * @param key Folder of the curation
+ * @param fpPath Flashpoint Path
  */
 export function getContentFolderByKey(key: string, fpPath: string): string {
   return path.join(fpPath, 'Curations', 'Working', key, 'content');
@@ -26,7 +33,9 @@ export function getContentFolderByKey(key: string, fpPath: string): string {
 
 /**
  * Recursively index the content folder
+ *
  * @param contentPath Folder to index
+ * @param log Log function to use for errors
  */
 export async function indexContentFolder(contentPath: string, log: (content: string) => void): Promise<IndexedContent[]> {
   const content: IndexedContent[] = [];
@@ -38,7 +47,7 @@ export async function indexContentFolder(contentPath: string, log: (content: str
       console.error(error);
     });
   })
-  .catch((error) => {
+  .catch(() => {
     const msg = `Content folder given doesn't exist, skipping... (${contentPath})`;
     log(msg);
     console.log(msg);

@@ -1,52 +1,57 @@
 import { Game } from '@database/entity/Game';
-import { Playlist } from '@database/entity/Playlist';
 import { TagCategory } from '@database/entity/TagCategory';
-import { BackInit, ViewGame } from '@shared/back/types';
+import { BackInit, ComponentStatus, ViewGame } from '@shared/back/types';
 import { AppConfigData, AppExtConfigData } from '@shared/config/interfaces';
-import { ExecMapping, IBackProcessInfo, INamedBackProcessInfo } from '@shared/interfaces';
+import { ExecMapping, GamePropSuggestions, IBackProcessInfo, INamedBackProcessInfo } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { ILogEntry } from '@shared/Log/interface';
-import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
-import { AppPreferencesData } from '@shared/preferences/interfaces';
-import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
+import { OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint-launcher';
-import { IncomingMessage, Server, ServerResponse } from 'http';
+import { GameOrderBy, GameOrderReverse } from 'flashpoint-launcher';
+import { IncomingMessage, ServerResponse } from 'http';
 import * as WebSocket from 'ws';
 import { ApiEmitter } from './extensions/ApiEmitter';
 import { ExtensionService } from './extensions/ExtensionService';
 import { InterceptorState as ModuleInterceptorState } from './extensions/NodeInterceptor';
 import { Registry } from './extensions/types';
 import { GameManagerState } from './game/types';
+import { InstancedAbortController } from './InstancedAbortController';
 import { ManagedChildProcess } from './ManagedChildProcess';
 import { SocketServer } from './SocketServer';
 import { EventQueue } from './util/EventQueue';
+import { FileServer } from './util/FileServer';
 import { FolderWatcher } from './util/FolderWatcher';
 import { LogFile } from './util/LogFile';
+import { PlatformAppPathSuggestions } from '@shared/curate/types';
 
 /** Contains most state for the back process. */
 export type BackState = {
   // @TODO Write comments for these properties
-  isInit: boolean;
+  readyForInit: boolean;
+  runInit: boolean;
   isExit: boolean;
   isDev: boolean;
   verbose: boolean;
   socketServer: SocketServer;
-  fileServer: Server;
+  fileServer: FileServer;
   fileServerPort: number;
   fileServerDownloads: {
     queue: ImageDownloadItem[];
     current: ImageDownloadItem[];
   };
-  preferences: AppPreferencesData;
+  preferences: flashpoint.AppPreferencesData;
   config: AppConfigData;
   extConfig: AppExtConfigData;
   configFolder: string;
   exePath: string;
   localeCode: string;
   version: string;
+  versionStr: string;
+  suggestions: GamePropSuggestions;
   logFile: LogFile;
   customVersion?: string,
+  acceptRemote: boolean;
   gameManager: GameManagerState;
   messageQueue: WebSocket.MessageEvent[];
   isHandling: boolean;
@@ -61,7 +66,7 @@ export type BackState = {
   languages: LangFile[];
   languageContainer: LangContainer;
   readonly themeState: ThemeState;
-  playlists: Playlist[];
+  playlists: flashpoint.Playlist[];
   execMappings: ExecMapping[];
   lastLinkedCurationKey: string;
   moduleInterceptor: ModuleInterceptorState;
@@ -69,9 +74,20 @@ export type BackState = {
   readonly apiEmitters: ApiEmittersState,
   readonly registry: Registry;
   extensionsService: ExtensionService;
+  /** Path of the SevenZip binary. */
+  sevenZipPath: string;
+  /** All currently loaded curations. */
+  loadedCurations: flashpoint.CurationState[];
+  /** Most recent app paths that were fetched from the database (cached in the back so it's available for the curation stuff /obelisk). */
+  platformAppPaths: PlatformAppPathSuggestions;
+  writeLocks: number;
   prefsQueue: EventQueue;
   logsWindowProc?: ManagedChildProcess;
   pathVar?: string;
+  componentStatuses: ComponentStatus[];
+  newDialogEvents: EventEmitter;
+  resolveDialogEvents: EventEmitter;
+  downloadController: InstancedAbortController;
 }
 
 export type BackQueryChache = {
@@ -136,19 +152,53 @@ export type ThemeListItem = {
   basename: string;
 }
 
+export type BarePlatform = {
+  id: number;
+  description?: string;
+  primaryAlias: string;
+}
+
 export type BareTag = {
+  id: number;
   categoryId: number;
   description?: string;
   primaryAlias: string;
-  aliases: string[];
+}
+
+export type ExportRelation = {
+  g: string,
+  v: number
+}
+
+export type BareGame = Omit<flashpoint.Game, 'activeDataOnDisk' | 'updateTagsStr'>;
+
+export type DatabaseExportFile = {
+  tags: TagsFile,
+  games: GamesFile
+  platforms: PlatformsFile,
+  tagRelations: ExportRelation[],
+  platformRelations: ExportRelation[]
+}
+
+type GamesFile = {
+  addApps: flashpoint.AdditionalApp[];
+  gameData: flashpoint.GameData[];
+  games: BareGame[];
+}
+
+type PlatformsFile = {
+  platforms: BarePlatform[];
+  aliases: flashpoint.PlatformAlias[];
 }
 
 export type TagsFile = {
   categories: TagCategory[];
-  tags: BareTag[]
+  tags: BareTag[];
+  aliases: flashpoint.TagAlias[];
 }
 
-export type ShowMessageBoxFunc = (options: MessageBoxOptions) => Promise<number>;
+export type ShowMessageBoxFunc = (options: flashpoint.DialogStateTemplate) => Promise<string>;
+export type ShowMessageBoxBroadcastFunc = (options: flashpoint.DialogStateTemplate) => void;
 export type ShowSaveDialogFunc = (options: SaveDialogOptions) => Promise<string | undefined>;
 export type ShowOpenDialogFunc = (options: OpenDialogOptions) => Promise<string[] | undefined>;
 export type OpenExternalFunc = (url: string, options?: OpenExternalOptions) => Promise<void>;
@@ -180,6 +230,14 @@ export type ApiEmittersState = Readonly<{
     onDidUninstallGameData: ApiEmitter<flashpoint.GameData>;
     onWillImportCuration: ApiEmitter<flashpoint.CurationImportState>;
   }>,
+  curations: Readonly <{
+    onDidCurationListChange: ApiEmitter<{ added?: flashpoint.CurationState[], removed?: string[] }>;
+    onDidCurationChange: ApiEmitter<flashpoint.CurationState>;
+    onWillGenCurationWarnings: ApiEmitter<{
+      curation: flashpoint.LoadedCuration,
+      warnings: flashpoint.CurationWarnings
+    }>;
+  }>,
   gameData: Readonly<{
     onDidImportGameData: ApiEmitter<flashpoint.GameData>;
   }>,
@@ -192,3 +250,99 @@ export type ApiEmittersState = Readonly<{
     onExtConfigChange: ApiEmitter<{key: string, value: any}>;
   }>,
 }>
+
+export type MetadataRaw = {
+  games: MetadataGame[];
+  tags: MetadataTag[];
+  platforms: MetadataPlatform[];
+  categories: MetadataCategory[];
+}
+
+export type MetadataAddApp = {
+  applicationPath: string;
+  autoRunBefore?: number;
+  id: string;
+  launchCommand: string;
+  name: string;
+  parentGameId: string;
+  waitForExit?: number;
+}
+
+export type MetadataGameData = {
+  id: number;
+  gameId: string;
+  title: string;
+  dateAdded: string;
+  sha256: string;
+  crc32: number;
+  size: number;
+  parameters?: string;
+}
+
+export type MetadataGame = {
+  addApps: MetadataAddApp[];
+  gameData: MetadataGameData[];
+  tags: number[];
+  platforms: number[];
+  id: string;
+  title: string;
+  alternateTitles: string;
+  series: string;
+  developer: string;
+  publisher: string;
+  status: string;
+  extreme: boolean;
+  source: string;
+  launchCommand: string;
+  library: string;
+  notes: string;
+  curationNotes: string;
+  applicationPath: string;
+  playMode: string;
+  releaseDate: string;
+  version: string;
+  originalDescription: string;
+  mountParameters: string;
+  language: string;
+  dateAdded: string;
+  platformsStr: string;
+  tagsStr: string;
+  parentGameId?: string;
+  activeDataId?: number;
+}
+
+export type MetadataTag = {
+  id: number;
+  dateModified: string;
+  description?: string;
+  categoryId: number;
+  tagAliases: MetadataTagAlias[];
+  primaryAliasId: number;
+}
+
+export type MetadataTagAlias = {
+  id: number;
+  name: string;
+  tagId: number;
+}
+
+export type MetadataPlatform = {
+  id: number;
+  dateModified: string;
+  description?: string;
+  platformAliases: MetadataPlatformAlias[];
+  primaryAliasId: number;
+}
+
+export type MetadataPlatformAlias = {
+  id: number;
+  name: string;
+  platformId: number;
+}
+
+export type MetadataCategory = {
+  id: number;
+  name: string;
+  color: string;
+  description?: string
+}

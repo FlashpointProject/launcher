@@ -1,11 +1,15 @@
 import * as axiosImport from 'axios';
-import { Tag, TagFilterGroup } from 'flashpoint-launcher';
+import { Game, Playlist, PlaylistGame, Tag, TagCategory, TagFilterGroup } from 'flashpoint-launcher';
 import * as fs from 'fs';
+import { camelCase, snakeCase, transform } from 'lodash';
 import * as path from 'path';
 import { DownloadDetails } from './back/types';
 import { AppConfigData } from './config/interfaces';
+import { num, str } from './utils/Coerce';
+import { IObjectParserProp, ObjectParser } from './utils/ObjectParser';
 import { throttle } from './utils/throttle';
 import { parseVariableString } from './utils/VariableString';
+import { uuid } from './utils/uuid';
 
 const axios = axiosImport.default;
 
@@ -18,6 +22,7 @@ type ReadFileOptions = { encoding?: BufferEncoding; flag?: string; } | BufferEnc
 /**
  * Read and parse a JSON file asynchronously.
  * Wrapper around "fs.readFile()" plus "JSON.parse()".
+ *
  * @param path Path of the JSON file.
  * @param options Options for reading the file.
  */
@@ -29,6 +34,7 @@ export async function readJsonFile(path: string, options?: ReadFileOptions): Pro
  * Read and parse a JSON file synchronously.
  * Wrapper around "fs.readFileSync()" plus "JSON.parse()".
  * Throws an error if either the read or parsing fails.
+ *
  * @param path Path of the JSON file.
  * @param options Options for reading the file.
  */
@@ -39,24 +45,28 @@ export function readJsonFileSync(path: string, options?: ReadFileOptions): any {
 /**
  * Remove the file extension of a filename
  * (Remove everything after the last dot, including the dot)
+ *
+ * @param filename Filename to remove extension from
  */
 export function removeFileExtension(filename: string): string {
   const lastDotIndex = filename.lastIndexOf('.');
   if (lastDotIndex === -1) { return filename; }
-  return filename.substr(0, lastDotIndex);
+  return filename.substring(0, lastDotIndex);
 }
 
 /**
  * Get the filename of a path or url
  * (get everything after the last slash symbol)
+ *
  * @param filePath Path to get filename from
  */
 export function getFilename(filePath: string): string {
-  return filePath.substr(Math.max(filePath.lastIndexOf('/'), filePath.lastIndexOf('\\')) + 1);
+  return filePath.substring(Math.max(filePath.lastIndexOf('/'), filePath.lastIndexOf('\\')) + 1);
 }
 
 /**
  * Pad a the end of a string with spaces until the string is of a specified length
+ *
  * @param str String to pad
  * @param length Target length of string (max number of spaces to add)
  * @returns String padded with spaces
@@ -69,6 +79,7 @@ export function padEnd(str: string|number, length: number): string {
 
 /**
  * Pad a the start of a string with spaces until the string is of a specified length
+ *
  * @param str String to pad
  * @param length Target length of string (max number of spaces to add)
  * @returns String padded with spaces
@@ -87,7 +98,9 @@ export type StringifyArrayOpts = {
 /**
  * Write an array to a string in a pretty and readable way
  * Ex. [0,'test',null] => '[ 0, "test", null ]'
+ *
  * @param array Array to "stringify"
+ * @param opts Options to apply to resulting string
  * @returns Readable text representation of the array
  */
 export function stringifyArray(array: Array<any>, opts?: StringifyArrayOpts): string {
@@ -105,7 +118,12 @@ export function stringifyArray(array: Array<any>, opts?: StringifyArrayOpts): st
   return str;
 }
 
-/** Remove all spaces and new line characters at the start and end of the string. */
+/**
+ * Remove all spaces and new line characters at the start and end of the string.
+ *
+ * @deprecated Use string.trim()
+ * @param str String to trim
+ */
 function trim(str: string): string {
   let first = 0;
   let last: number = str.length;
@@ -141,6 +159,7 @@ function pad(str: string|number, len: number): string {
 
 /**
  * Stringify anything to a json string ready to be saved to a file
+ *
  * @param data Data to be stringified
  * @returns JSON string of given data
  */
@@ -151,8 +170,9 @@ export function stringifyJsonDataFile(data: any): string {
 /**
  * Check if all properties of both arguments have strictly equals values,
  * and if both objects have identical properties (same number of props with the same names)
- * @param first
- * @param second
+ *
+ * @param first First to compare
+ * @param second Second to compare
  */
 export function shallowStrictEquals(first: any, second: any): boolean {
   for (const key in first) {
@@ -170,6 +190,7 @@ export function shallowStrictEquals(first: any, second: any): boolean {
 
 /**
  * Recursively copy values from data to target (for every property of the same name)
+ *
  * @param target Target object to copy data to
  * @param source Source object to copy data from
  * @returns Target object
@@ -198,6 +219,7 @@ export function recursiveReplace<T = any>(target: T, source: any): T {
 /**
  * Recursively copy and object and its "sub-objects"
  * (WARNING: This will overflow the stack if it tries to copy circular references)
+ *
  * @param source Object to copy from
  * @returns New copy of source
  */
@@ -215,6 +237,7 @@ export function deepCopy<T>(source: T): T {
 
 /**
  * Recursively go down a folder and call back for each file encountered
+ *
  * @param options Various options (a shallow copy of this is accessible from the callback)
  * @returns A promise that resolves when either all files have been called back for or recursion is aborted
  */
@@ -275,6 +298,7 @@ export interface IRecursiveDirectorySharedObject {
 
 /**
  * Remove the BOM (Byte Order Mark) character from the start of an UTF8 string if it is present.
+ *
  * @param str The string to remove the BOM from.
  * @returns The same string but with the BOM removed (or the same string if no BOM was found).
  */
@@ -290,6 +314,7 @@ function isString(obj: any): boolean {
 
 /**
  * Convert a launcher version number to a human readable string (including error messages).
+ *
  * @param version Launcher version number.
  */
 export function versionNumberToText(version: number): string {
@@ -307,6 +332,7 @@ export function versionNumberToText(version: number): string {
 
 /**
  * Create a copy of an array with all the undefined values taken out (shifting everything along to not leave any empty spaces).
+ *
  * @param array Array to copy and clear.
  */
 export function clearArray<T>(array: Array<T | undefined>): Array<T> {
@@ -319,6 +345,7 @@ export function clearArray<T>(array: Array<T | undefined>): Array<T> {
 
 /**
  * Parse a variable string using a generic get variable value function.
+ *
  * @param str String to parse.
  */
 // @TODO: Make better variables. Why are we using cwd() ?
@@ -326,9 +353,9 @@ export function clearArray<T>(array: Array<T | undefined>): Array<T> {
 export function parseVarStr(str: string, config?: AppConfigData) {
   return parseVariableString(str, (name) => {
     switch (name) {
-      default: return '';
       case 'cwd': return fixSlashes(process.cwd());
       case 'fpPath': return config ? fixSlashes(config.flashpointPath) : '';
+      default: return '';
     }
   });
 }
@@ -336,27 +363,29 @@ export function parseVarStr(str: string, config?: AppConfigData) {
 const errorProxySymbol = Symbol('Error Proxy');
 const errorProxyValue = {}; // Unique pointer
 
-/** Create a proxy that throws an error when you try to use it. */
+/**
+ * Create a proxy that throws an error when you try to use it.
+ *
+ * @param title Title to use in the error, usually the name of the variable the error proxy will be set for
+ */
 export function createErrorProxy(title: string): any {
   return new Proxy({}, {
     // @TODO Make it throw errors for all(?) cases (delete, construct etc.)
-    get: (target, p, receiver) => {
+    get: (target, p) => {
       if (p === errorProxySymbol) { return errorProxyValue; }
       throw new Error(`You must not get a value from ${title} before it is initialized (property: "${p.toString()}").`);
     },
-    set: (target, p, value, receiver) => {
+    set: (target, p) => {
       throw new Error(`You must not set a value from ${title} before it is initialized (property: "${p.toString()}").`);
     },
   });
 }
 
-export function isErrorProxy(object: any) {
-  return (object[errorProxySymbol] === errorProxyValue);
-}
-
 /**
  * Convert a size (in bytes) to a more human readable format.
+ *
  * @param size Size in bytes.
+ * @param precision Precision of the returned number
  * @returns Size, but in a more human readable format.
  */
 export function sizeToString(size: number, precision = 3): string {
@@ -366,13 +395,18 @@ export function sizeToString(size: number, precision = 3): string {
   return `${(size / 1000000000).toPrecision(precision)}GB`;
 }
 
-/** Replace all back-slashes with forward-slashes. */
+/**
+ * Replace all back-slashes with forward-slashes.
+ *
+ * @param str String to fix
+ */
 export function fixSlashes(str: string): string {
   return str.replace(/\\/g, '/');
 }
 
 /**
  * Checks whether we can write and read to a folder
+ *
  * @param folder folder to check
  */
 export async function canReadWrite(folder: string): Promise<boolean> {
@@ -406,10 +440,12 @@ export function tagSort(tagA: Tag, tagB: Tag): number {
   return 0;
 }
 
-export async function downloadFile(url: string, filePath: string, onProgress?: (percent: number) => void, onDetails?: (details: DownloadDetails) => void): Promise<number> {
+export async function downloadFile(url: string, filePath: string, abortSignal?: AbortSignal, onProgress?: (percent: number) => void, onDetails?: (details: DownloadDetails) => void, options?: axiosImport.AxiosRequestConfig): Promise<number> {
   try {
     const res = await axios.get(url, {
-      responseType: 'stream'
+      ...options,
+      responseType: 'stream',
+      signal: abortSignal
     });
     let progress = 0;
     const contentLength = res.headers['content-length'];
@@ -451,3 +487,136 @@ export function generateTagFilterGroup(tags?: string[]): TagFilterGroup {
     childFilters: []
   };
 }
+
+export function compare(a: string, b: string): number {
+  if (a < b) {
+    return -1;
+  } else if (a > b) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+export function overwritePlaylistData(
+  source: Playlist,
+  data: Partial<Playlist>,
+  onError?: (error: string) => void
+): Playlist {
+  const parser = new ObjectParser({
+    input: data,
+    onError: onError && (e => onError(`Error while parsing Playlist: ${e.toString()}`)),
+  });
+  parser.prop('id',          v => source.id          = str(v), true);
+  parser.prop('title',       v => source.title       = str(v));
+  parser.prop('description', v => source.description = str(v));
+  parser.prop('icon',        v => source.icon        = str(v));
+  parser.prop('library',     v => source.library     = str(v));
+  parser.prop('author',      v => source.author      = str(v));
+  parser.prop('extreme',     v => source.extreme     = !!v);
+  if (!source.id) {
+    source.id = uuid();
+  }
+  if (data.games) {
+    const newGames: PlaylistGame[] = [];
+    parser.prop('games').array((item, index) => newGames.push(parsePlaylistGame(item as IObjectParserProp<PlaylistGame>)));
+    source.games = newGames;
+  }
+  return source;
+}
+
+function parsePlaylistGame(parser: IObjectParserProp<any>): PlaylistGame {
+  const game: PlaylistGame = {
+    order: 0,
+    notes: '',
+    gameId: ''
+  };
+  parser.prop('id',     v => game.gameId = str(v), true);
+  parser.prop('gameId', v => game.gameId = str(v), true);
+  parser.prop('notes',  v => game.notes  = str(v));
+  parser.prop('order',  v => game.order  = num(v));
+  if (!game.gameId) {
+    throw 'No ID for playlist game';
+  }
+  return game;
+}
+
+export function mapFpfssGameToLocal(data: any, categories: TagCategory[]): Game {
+  const game = camelify(data) as unknown as Game;
+  // Initialize nil variables which should be arrays
+  if (!game.addApps) { game.addApps = []; }
+  if (!game.data) { game.data = []; }
+  if (!game.platforms) { game.platforms = []; }
+  if (!game.tags) { game.tags = []; }
+  // Tags
+  for (const tag of game.tags) {
+    tag.primaryAlias = {
+      id: -1,
+      name: (tag as any).name
+    };
+    const category = categories.find(c => c.name === (tag as any).category);
+    if (!category) {
+      throw 'Tag has invalid category. Desynced from server?';
+    }
+    tag.categoryId = category.id;
+  }
+  // Platforms
+  for (const platform of game.platforms) {
+    platform.primaryAlias = {
+      id: -1,
+      name: (platform as any).name
+    };
+  }
+
+  return game;
+}
+
+export function mapLocalToFpfssGame(game: Game, categories: TagCategory[], userId: number): Record<string, any> {
+  const newTags: any[] = [];
+  for (const tag of game.tags) {
+    const category = categories.find(c => c.id === tag.categoryId);
+    if (tag.id !== -1) {
+      // Not a new tag, just revalidate some things to make sure we're not making a mistake
+      if (!category) {
+        throw 'Tag has invalid tag category';
+      }
+    }
+    newTags.push({
+      id: tag.id,
+      dateModified: (new Date()).toISOString(),
+      category: category ? category.name : 'default',
+      description: tag.description,
+      name: tag.primaryAlias.name,
+      userId: userId
+    });
+  }
+  const newPlatforms: any[] = [];
+  for (const platform of game.platforms) {
+    newPlatforms.push({
+      id: platform.id,
+      dateModified: (new Date()).toISOString(),
+      description: platform.description,
+      name: platform.primaryAlias.name,
+      userId: userId
+    });
+  }
+  return snekify({
+    ...game,
+    tags: newTags,
+    platforms: newPlatforms
+  });
+}
+
+const snekify = (obj: Record<string, unknown>) => {
+  return transform(obj, (result: Record<string, unknown>, value: unknown, key: string, target) => {
+    const camelKey = Array.isArray(target) ? key : snakeCase(key);
+    result[camelKey] = (value !== null && typeof value === 'object') ? snekify(value as Record<string, unknown>) : value;
+  });
+};
+
+const camelify = (obj: Record<string, unknown>) => {
+  return transform(obj, (result: Record<string, unknown>, value: unknown, key: string, target) => {
+    const camelKey = Array.isArray(target) ? key : camelCase(key);
+    result[camelKey] = (value !== null && typeof value === 'object') ? camelify(value as Record<string, unknown>) : value;
+  });
+};

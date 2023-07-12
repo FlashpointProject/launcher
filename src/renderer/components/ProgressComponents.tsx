@@ -9,7 +9,7 @@ export type ProgressComponentProps = {
   wrapperClass?: string;
 }
 
-/** Choose a StatusBar or ProgressBar, letting the Progress handler decide. */
+// Choose a StatusBar or ProgressBar, letting the Progress handler decide.
 export function AutoProgressComponent(props: ProgressComponentProps) {
   if (!props.progressData.isDone) {
     if (props.progressData.usePercentDone) {
@@ -30,7 +30,7 @@ export function AutoProgressComponent(props: ProgressComponentProps) {
   }
 }
 
-/** Large centered primary text, smaller underneath secondary text. */
+// Large centered primary text, smaller underneath secondary text.
 export function StatusBar(props: ProgressComponentProps) {
   return (
     <div className={(props.wrapperClass ? ' ' + props.wrapperClass : '') + 'progress-component__wrapper'}>
@@ -44,7 +44,7 @@ export function StatusBar(props: ProgressComponentProps) {
   );
 }
 
-/** Large top text `Percent% Complete`, medium progress bar, small underneath primary text. */
+// Large top text `Percent% Complete`, medium progress bar, small underneath primary text.
 export function ProgressBar(props: ProgressComponentProps) {
   const strings = React.useContext(LangContext);
   const barCssProps: React.CSSProperties = React.useMemo(() => ({

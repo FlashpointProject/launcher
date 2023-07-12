@@ -1,11 +1,13 @@
 import * as remote from '@electron/remote';
 import { SocketClient } from '@shared/back/SocketClient';
 import { BackIn, BackOut } from '@shared/back/types';
+import { CustomIPC, WindowIPC } from '@shared/interfaces';
 import { InitRendererChannel, InitRendererData } from '@shared/IPC';
 import { setTheme } from '@shared/Theme';
 import { createErrorProxy } from '@shared/Util';
 import * as electron from 'electron';
 import { OpenDialogOptions } from 'electron';
+import { ipcRenderer } from 'electron/renderer';
 import * as path from 'path';
 import { isDev } from './Util';
 
@@ -16,11 +18,9 @@ import { isDev } from './Util';
  */
 
 window.Shared = {
-  installed: createErrorProxy('installed'),
-
   version: createErrorProxy('version'),
 
-  platform: remote.process.platform+ '' as NodeJS.Platform, // (Coerce to string to make sure its not a remote object)
+  platform: remote.process.platform + '' as NodeJS.Platform, // (Coerce to string to make sure its not a remote object)
 
   minimize() {
     const currentWindow = remote.getCurrentWindow();
@@ -68,13 +68,14 @@ window.Shared = {
     offset: 0,
   },
 
-  initialServices: createErrorProxy('services'),
-
   isDev,
 
   isBackRemote: createErrorProxy('isBackRemote'),
 
-  back: new SocketClient(WebSocket),
+  back: new SocketClient(WebSocket, () => {
+    // Ask to send output to renderer if backend crashes
+    ipcRenderer.send(WindowIPC.MAIN_OUTPUT);
+  }),
 
   fileServerPort: -1,
 
@@ -85,20 +86,7 @@ window.Shared = {
   initialLang: createErrorProxy('initialLang'),
   initialLangList: createErrorProxy('initialLangList'),
   initialThemes: createErrorProxy('initialThemes'),
-  initialPlaylists: createErrorProxy('initialPlaylists'),
-  initialLibraries: createErrorProxy('initialLibraries'),
-  initialServerNames: createErrorProxy('initialServerNames'),
-  initialMad4fpEnabled: createErrorProxy('initialMad4fpEnabled'),
-  initialPlatforms: createErrorProxy('initialPlatforms'),
   initialLocaleCode: createErrorProxy('initialLocaleCode'),
-  initialTagCategories: createErrorProxy('initialTagCategories'),
-  initialExtensions: createErrorProxy('initialExtensions'),
-  initialDevScripts: createErrorProxy('initialDevScripts'),
-  initialContextButtons: createErrorProxy('initialContextButtons'),
-  initialLogoSets: createErrorProxy('initialLogoSets'),
-  initialExtConfigs: createErrorProxy('initialExtConfigs'),
-  initialExtConfig: createErrorProxy('initialExtConfig'),
-  initialUpdateFeedMarkdown: createErrorProxy('initialUpdateFeedMarkdown'),
 
   waitUntilInitialized() {
     if (!isInitDone) { return onInit; }
@@ -110,7 +98,6 @@ const onInit = (async () => {
   // Fetch data from main process
   const data: InitRendererData = electron.ipcRenderer.sendSync(InitRendererChannel);
   // Store value(s)
-  window.Shared.installed = data.installed;
   window.Shared.version = data.version;
   window.Shared.isBackRemote = data.isBackRemote;
   window.Shared.backUrl = new URL(data.host);
@@ -137,25 +124,27 @@ const onInit = (async () => {
       };
       window.Shared.fileServerPort = data.fileServerPort;
       window.Shared.log.entries = data.log;
-      window.Shared.initialServices = data.services;
+      // window.Shared.initialServices = data.services;
       window.Shared.customVersion = data.customVersion;
       window.Shared.initialLang = data.language;
       window.Shared.initialLangList = data.languages;
       window.Shared.initialThemes = data.themes;
-      window.Shared.initialPlaylists = data.playlists;
-      window.Shared.initialLibraries = data.libraries;
-      window.Shared.initialServerNames = data.serverNames;
-      window.Shared.initialMad4fpEnabled = data.mad4fpEnabled;
-      window.Shared.initialPlatforms = data.platforms;
+      // window.Shared.initialPlaylists = data.playlists;
+      // window.Shared.initialLibraries = data.libraries;
+      // window.Shared.initialServerNames = data.serverNames;
+      // window.Shared.initialMad4fpEnabled = data.mad4fpEnabled;
+      // window.Shared.initialPlatforms = data.platforms;
       window.Shared.initialLocaleCode = data.localeCode;
-      window.Shared.initialTagCategories = data.tagCategories;
-      window.Shared.initialExtensions = data.extensions;
-      window.Shared.initialDevScripts = data.devScripts;
-      window.Shared.initialContextButtons = data.contextButtons;
-      window.Shared.initialLogoSets = data.logoSets;
-      window.Shared.initialExtConfigs = data.extConfigs;
-      window.Shared.initialExtConfig = data.extConfig;
-      window.Shared.initialUpdateFeedMarkdown = data.updateFeedMarkdown;
+      // window.Shared.initialTagCategories = data.tagCategories;
+      // window.Shared.initialExtensions = data.extensions;
+      // window.Shared.initialDevScripts = data.devScripts;
+      // window.Shared.initialContextButtons = data.contextButtons;
+      // window.Shared.initialCurationTemplates = data.curationTemplates;
+      // window.Shared.initialLogoSets = data.logoSets;
+      // window.Shared.initialExtConfigs = data.extConfigs;
+      // window.Shared.initialExtConfig = data.extConfig;
+      // window.Shared.initialUpdateFeedMarkdown = data.updateFeedMarkdown;
+      // window.Shared.initialCurations = data.curations;
       if (window.Shared.preferences.data.currentTheme) {
         const theme = window.Shared.initialThemes.find(t => t.id === window.Shared.preferences.data.currentTheme);
         if (theme) { setTheme(theme); }
@@ -172,17 +161,17 @@ function registerHandlers(): void {
   });
 
   window.Shared.back.register(BackOut.OPEN_MESSAGE_BOX, async (event, data) => {
-    const result = await remote.dialog.showMessageBox(data);
+    const result = await ipcRenderer.invoke(CustomIPC.SHOW_MESSAGE_BOX, data);
     return result.response;
   });
 
   window.Shared.back.register(BackOut.OPEN_SAVE_DIALOG, async (event, data) => {
-    const result = await remote.dialog.showSaveDialog(data);
+    const result = await ipcRenderer.invoke(CustomIPC.SHOW_SAVE_DIALOG, data);
     return result.filePath;
   });
 
   window.Shared.back.register(BackOut.OPEN_OPEN_DIALOG, async (event, data) => {
-    const result = await remote.dialog.showOpenDialog(data);
+    const result = await ipcRenderer.invoke(CustomIPC.SHOW_OPEN_DIALOG, data);
     return result.filePaths;
   });
 

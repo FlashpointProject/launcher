@@ -11,6 +11,7 @@ interface CallableCopyAsync<T extends AnyFunction> extends Function {
 
 /**
  * Executes a callback immediately and starts a timer, only executes if timer is finished
+ *
  * @param callback Called when the timer ends
  * @param time Time in milliseconds before calling
  */
@@ -32,6 +33,7 @@ export function throttle<T extends AnyFunction>(callback: T, time:number): Calla
 
 /**
  * Executes a callback after a `time` millisecond timer, only starting the timer if it doesn't exist
+ *
  * @param callback Called when the timer ends
  * @param time Time in milliseconds before calling
  */
@@ -53,6 +55,7 @@ export function delayedThrottle<T extends AnyFunction>(callback: T, time:number)
 
 /**
  * Executes a callback after a `time` millisecond timer, only starting the timer if it doesn't exist
+ *
  * @param callback Called when the timer ends
  * @param time Time in milliseconds before calling
  */

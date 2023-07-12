@@ -1,16 +1,19 @@
 import { Game } from '@database/entity/Game';
 import { rebuildQuery } from '@renderer/Util';
+import { BackIn, BackInit } from '@shared/back/types';
+import { GamePropSuggestions, WindowIPC } from '@shared/interfaces';
 import { createLangContainer } from '@shared/lang';
+import { deepCopy } from '@shared/Util';
+import { Gate } from '@shared/utils/Gate';
+import { ipcRenderer } from 'electron';
+import { EventEmitter } from 'stream';
 import { MainActionType, RequestState } from './enums';
-import { MainAction, MainState, View, ViewPageStates } from './types';
+import { ConnectedMainAction, MainState, View, ViewPageStates } from './types';
 
 export const RANDOM_GAME_ROW_COUNT = 6;
 
-export function mainStateReducer(state: MainState = createInitialState(), action: MainAction): MainState {
+export function mainStateReducer(state: MainState = createInitialState(), action: ConnectedMainAction): MainState {
   switch (action.type) {
-    default:
-      return state;
-
     case MainActionType.SET_STATE:
       return {
         ...state,
@@ -22,13 +25,17 @@ export function mainStateReducer(state: MainState = createInitialState(), action
 
       if (!view) { return state; }
 
-      const playlistId = (action.playlistId !== null)
-        ? action.playlistId
-        : view.query.filter.playlistId;
+      const playlist = (action.playlist != null)
+        ? action.playlist
+        : view.query.filter.playlist;
+
+      if (playlist != undefined) {
+        action.searchText = '';
+      }
 
       return {
         ...state,
-        selectedPlaylistId: playlistId,
+        selectedPlaylistId: playlist?.id,
         views: {
           ...state.views,
           [action.library]: {
@@ -38,12 +45,12 @@ export function mainStateReducer(state: MainState = createInitialState(), action
               extreme: action.showExtreme,
               library: action.library,
               searchLimit: action.searchLimit,
-              playlistId: playlistId,
+              playlist: action.playlist == null ? undefined : action.playlist,
               order: {
                 orderBy: action.orderBy,
                 orderReverse: action.orderReverse,
               },
-              tagFilters: playlistId ? [] : action.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !action.showExtreme))
+              tagFilters: playlist ? [] : action.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !action.showExtreme))
             }),
             queryId: (view.queryId + 1) % 0x80000000, // 32 bit signed integer
             metaState: RequestState.WAITING,
@@ -101,6 +108,26 @@ export function mainStateReducer(state: MainState = createInitialState(), action
 
       if (!view || action.queryId !== view.queryId) { return state; }
 
+      if (view.metaState === RequestState.WAITING) {
+        // Request meta
+        window.Shared.back.request(BackIn.BROWSE_VIEW_KEYSET, action.library, view.query)
+        .then((data) => {
+          if (data) {
+            action.asyncDispatch({
+              type: MainActionType.SET_VIEW_META,
+              library: action.library,
+              queryId: view.queryId,
+              keyset: data.keyset,
+              total: data.total,
+            });
+          }
+        })
+        .catch((error) => {
+          log.error('Launcher', `Error getting browse view keyset - ${error}`);
+        });
+      }
+
+
       return {
         ...state,
         views: {
@@ -131,7 +158,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
             //
             metaState: RequestState.RECEIVED,
             // Dirty games
-            isDirty: action.total === 0 ? false : true,
+            isDirty: action.total !== 0,
             games: action.total === 0 ? [] : view.games,
             lastCount: action.total === 0 ? 0 : view.lastCount,
             pageState: {},
@@ -242,7 +269,16 @@ export function mainStateReducer(state: MainState = createInitialState(), action
       const nextLoaded = { ...state.loaded };
 
       for (const key of action.loaded) {
+        console.log('Loaded ' + BackInit[key]);
         nextLoaded[key] = true;
+      }
+
+      // Open the gate if everything has been loaded
+      const values = Object.values(nextLoaded);
+      if (values.length === values.reduce((prev, cur) => prev + (cur ? 1 : 0), 0)) {
+        state.loadedAll.open();
+        // Ready to accept protocol, if available
+        ipcRenderer.send(WindowIPC.PROTOCOL);
       }
 
       return {
@@ -423,25 +459,279 @@ export function mainStateReducer(state: MainState = createInitialState(), action
         ...state
       };
     }
+
+    case MainActionType.SET_FPFSS_USER: {
+      const newFpfssState = deepCopy(state.fpfss);
+      newFpfssState.user = action.user;
+
+      return {
+        ...state,
+        fpfss: newFpfssState
+      };
+    }
+
+    case MainActionType.SET_FPFSS_GAME: {
+      const newFpfssState = deepCopy(state.fpfss);
+      newFpfssState.editingGame = action.game;
+
+      return {
+        ...state,
+        fpfss: newFpfssState
+      };
+    }
+
+    case MainActionType.APPLY_DELTA_FPFSS_GAME: {
+      const newFpfssState = deepCopy(state.fpfss);
+      if (newFpfssState.editingGame) {
+        newFpfssState.editingGame = {
+          ...newFpfssState.editingGame,
+          ...action.game,
+          updateTagsStr: newFpfssState.editingGame.updateTagsStr
+        };
+      }
+
+      return {
+        ...state,
+        fpfss: newFpfssState
+      };
+    }
+
+    case MainActionType.SETUP_VIEWS: {
+      const views: Record<string, View> = {};
+      for (const library of state.libraries) {
+        views[library] = {
+          query: rebuildQuery({
+            text: '',
+            extreme: action.preferencesData.browsePageShowExtreme,
+            library: library,
+            playlist: undefined,
+            searchLimit: action.preferencesData.searchLimit,
+            order: {
+              orderBy: action.preferencesData.gamesOrderBy,
+              orderReverse: action.preferencesData.gamesOrder
+            },
+            tagFilters: action.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !action.preferencesData.browsePageShowExtreme))
+          }),
+          pageState: {},
+          meta: undefined,
+          metaState: RequestState.WAITING,
+          games: {},
+          queryId: 0,
+          isDirty: false,
+          total: undefined,
+          selectedGameId: undefined,
+          lastStart: 0,
+          lastCount: 0,
+          tagFilters: [],
+        };
+      }
+
+      return {
+        ...state,
+        views
+      };
+    }
+
+    case MainActionType.NEW_DIALOG: {
+      const dialogs = [...state.openDialogs];
+      dialogs.push(action.dialog);
+      return {
+        ...state,
+        openDialogs: dialogs
+      };
+    }
+
+    case MainActionType.CANCEL_DIALOG: {
+      const dialogs = [...state.openDialogs];
+      const exisingIdx = dialogs.findIndex(d => d.id === action.dialogId);
+      if (exisingIdx > -1) {
+        const dialog = dialogs.splice(exisingIdx, 1)[0];
+        // Send to back
+        window.Shared.back.send(BackIn.DIALOG_RESPONSE, dialog, dialog.cancelId || -1);
+        // Send to renderer
+        setTimeout(() => state.dialogResEvent.emit(dialog.id, dialog, dialog.cancelId || -1), 100);
+        return {
+          ...state,
+          openDialogs: dialogs
+        };
+      } else {
+        return state;
+      }
+    }
+
+    case MainActionType.UPDATE_UPDATE_INFO: {
+      const newTotal = action.total;
+
+      return {
+        ...state,
+        metadataUpdate: {
+          ready: true,
+          total: newTotal
+        }
+      };
+    }
+
+    case MainActionType.POST_FPFSS_SYNC: {
+      // Create views for new libraries
+      const newViews = deepCopy(state.views);
+      for (const library of action.libraries) {
+        if (!newViews[library]) {
+          newViews[library] = {
+            query: rebuildQuery({
+              text: '',
+              extreme: action.preferencesData.browsePageShowExtreme,
+              library: library,
+              playlist: undefined,
+              searchLimit: action.preferencesData.searchLimit,
+              order: {
+                orderBy: action.preferencesData.gamesOrderBy,
+                orderReverse: action.preferencesData.gamesOrder
+              },
+              tagFilters: action.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !action.preferencesData.browsePageShowExtreme))
+            }),
+            pageState: {},
+            meta: undefined,
+            metaState: RequestState.WAITING,
+            games: {},
+            queryId: 0,
+            isDirty: false,
+            total: undefined,
+            selectedGameId: undefined,
+            lastStart: 0,
+            lastCount: 0,
+            tagFilters: [],
+          };
+        }
+      }
+      return {
+        ...state,
+        views: newViews,
+        gamesTotal: action.total,
+        libraries: action.libraries,
+        suggestions: action.suggestions,
+        platformAppPaths: action.platformAppPaths,
+      };
+    }
+
+    case MainActionType.RESOLVE_DIALOG: {
+      const dialogs = [...state.openDialogs];
+      const exisingIdx = dialogs.findIndex(d => d.id === action.dialogId);
+      if (exisingIdx > -1) {
+        const dialog = dialogs.splice(exisingIdx, 1)[0];
+        // Send to back
+        window.Shared.back.send(BackIn.DIALOG_RESPONSE, dialog, action.button);
+        // Send to renderer
+        setTimeout(() => state.dialogResEvent.emit(dialog.id, dialog, action.button), 100);
+        return {
+          ...state,
+          openDialogs: dialogs
+        };
+      } else {
+        return state;
+      }
+    }
+
+    case MainActionType.UPDATE_DIALOG: {
+      const dialogs = [...state.openDialogs];
+      const existingIdx = dialogs.findIndex(d => d.id === action.dialog.id);
+      if (existingIdx > -1) {
+        dialogs[existingIdx] = action.dialog;
+        return {
+          ...state,
+          openDialogs: dialogs
+        };
+      } else {
+        return state;
+      }
+    }
+
+    case MainActionType.UPDATE_DIALOG_FIELD: {
+      const dialogs = [...state.openDialogs];
+      const existingIdx = dialogs.findIndex(d => d.id === action.dialogId);
+      if (existingIdx > -1) {
+        const dialog = deepCopy(dialogs[existingIdx]);
+        const fieldIdx = dialog.fields?.findIndex(f => f.name === action.field.name) || -1;
+        if (dialog.fields && fieldIdx > -1) {
+          dialog.fields[fieldIdx] = action.field;
+          dialogs[existingIdx] = dialog;
+          return {
+            ...state,
+            openDialogs: dialogs
+          };
+        }
+      }
+      return state;
+    }
+
+    case MainActionType.UPDATE_DIALOG_MESSAGE: {
+      const dialogs = [...state.openDialogs];
+      const existingIdx = dialogs.findIndex(d => d.id === action.dialogId);
+      if (existingIdx > -1) {
+        const dialog = deepCopy(dialogs[existingIdx]);
+        dialog.message = action.message;
+        dialogs[existingIdx] = dialog;
+        return {
+          ...state,
+          openDialogs: dialogs
+        };
+      }
+      return state;
+    }
+
+    case MainActionType.UPDATE_DIALOG_FIELD_VALUE: {
+      const dialogs = [...state.openDialogs];
+      const existingIdx = dialogs.findIndex(d => d.id === action.dialogId);
+      if (existingIdx > -1) {
+        const dialog = deepCopy(dialogs[existingIdx]);
+        if (dialog.fields) {
+          const field = dialog.fields.find(f => f.name === action.name);
+          if (field) {
+            field.value = action.value;
+          }
+        }
+        dialogs[existingIdx] = dialog;
+        return {
+          ...state,
+          openDialogs: dialogs
+        };
+      }
+      return state;
+    }
+
+    default:
+      return state;
   }
 }
 
+const defaultSuggestionsState: GamePropSuggestions = {
+  platforms: [],
+  playMode: [],
+  status: [],
+  applicationPath: [],
+  tags: [],
+  library: []
+};
+
 function createInitialState(): MainState {
   return {
+    gotdList: [],
     views: {},
     libraries: [],
     serverNames: [],
     mad4fpEnabled: false,
     playlists: [],
     playlistIconCache: {},
-    suggestions: {},
+    suggestions: { ...defaultSuggestionsState },
     appPaths: {},
-    platforms: {},
     loaded: {
-      0: false,
-      1: false,
-      2: false,
+      [BackInit.SERVICES]: false,
+      [BackInit.DATABASE]: false,
+      [BackInit.PLAYLISTS]: false,
+      [BackInit.CURATE]: false,
+      [BackInit.EXEC_MAPPINGS]: false,
+      [BackInit.EXTENSIONS]: false
     },
+    fpfss: { user: null, editingGame: null },
     themeList: [],
     logoSets: [],
     logoVersion: 0,
@@ -468,12 +758,26 @@ function createInitialState(): MainState {
     extConfigs: [],
     devScripts: [],
     contextButtons: [],
+    curationTemplates: [],
     services: [],
     downloadOpen: false,
     downloadPercent: 0,
     downloadSize: 0,
     downloadVerifying: false,
+    socketOpen: true,
+    taskBarOpen: false,
     isEditingGame: false,
+    loadedAll: new Gate(),
+    updateFeedMarkdown: '',
+    metadataUpdate: {
+      ready: false,
+      total: 0
+    },
     busyGames: [],
+    platformAppPaths: {},
+    componentStatuses: [],
+    quitting: false,
+    openDialogs: [],
+    dialogResEvent: new EventEmitter()
   };
 }

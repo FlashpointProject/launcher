@@ -1,14 +1,12 @@
 /* eslint-disable react/no-unused-state */
 import { chunkArray } from '@shared/utils/misc';
 import { Game } from '@database/entity/Game';
-import { Playlist } from '@database/entity/Playlist';
 import * as remote from '@electron/remote';
 import { getGamePath } from '@renderer/Util';
 import { BackIn, BackOut } from '@shared/back/types';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { DevScript, ExtensionContribution } from '@shared/extensions/interfaces';
 import { ExecMapping, IService } from '@shared/interfaces';
-import { LangContainer } from '@shared/lang';
 import { Legacy_PlatformFileIterator } from '@shared/legacy/GameManager';
 import { stringifyMetaValue } from '@shared/MetaEdit';
 import * as fs from 'fs-extra';
@@ -26,14 +24,12 @@ import { SimpleButton } from '../SimpleButton';
 
 const exists = promisify(fs.exists);
 const mkdir  = promisify(fs.mkdir);
-type Map<K extends string, V> = { [key in K]: V };
 
 export type DeveloperPageProps = {
   devConsole: string;
-  platforms: string[];
-  playlists: Playlist[];
   devScripts: ExtensionContribution<'devScripts'>[];
   services: IService[];
+  totalGames: number;
 };
 
 type DeveloperPageState = {
@@ -41,16 +37,15 @@ type DeveloperPageState = {
   text: string;
 };
 
-export interface DeveloperPage {
-  context: LangContainer;
-}
-
 /**
  * Page made for developers or advanced users only.
  * It has various "tools" that the user can run to gather information about the current Flashpoint folders data (games, playlists, images etc.), or edit that data on mass.
  * New tools are added as needed.
  */
 export class DeveloperPage extends React.Component<DeveloperPageProps, DeveloperPageState> {
+  static contextType = LangContext;
+  declare context: React.ContextType<typeof LangContext>;
+
   constructor(props: DeveloperPageProps) {
     super(props);
     this.state = {
@@ -67,7 +62,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
   }
 
   // TODO: Remove when all functions are in back
-  componentDidUpdate(prevProps: DeveloperPageProps, prevState: DeveloperPageState) {
+  componentDidUpdate(prevProps: DeveloperPageProps) {
     // Transfer prop to state
     if (this.props.devConsole !== prevProps.devConsole) {
       this.setState({ text: this.props.devConsole });
@@ -93,10 +88,6 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               value={strings.checkGameIds}
               title={strings.checkGameIdsDesc}
               onClick={this.onCheckGameIDsClick} />
-            <SimpleButton
-              value={strings.checkGameTitles}
-              title={strings.checkGameTitlesDesc}
-              onClick={this.onCheckGameNamesClick} />
             <SimpleButton
               value={strings.checkGameFields}
               title={strings.checkGameFieldsDesc}
@@ -147,6 +138,10 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               title={strings.exportTagsDesc}
               onClick={this.onExportTagsClick} />
             <SimpleButton
+              value={strings.exportDatabase}
+              title={strings.exportDatabaseDesc}
+              onClick={this.onExportDatabaseClick} />
+            <SimpleButton
               value={strings.importTags}
               title={strings.importTagsDesc}
               onClick={this.onImportTagsClick} />
@@ -166,6 +161,14 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               value={strings.importMetaEdits}
               title={strings.importMetaEditsDesc}
               onClick={this.onImportMetaEdits} />
+            <SimpleButton
+              value={'Import Metadata'}
+              title={'Import Metadata File'}
+              onClick={this.onImportMetadata} />
+            <SimpleButton
+              value={'Test Tag Sync'}
+              title={'Test Tag Sync from first Metadata source'}
+              onClick={this.onTestTagSync} />
             { this.props.devScripts.map(contribution => contribution.value.map((script, index) => (
               <SimpleButton
                 key={contribution.extId + index}
@@ -189,39 +192,28 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     );
   }
 
-  onServiceUpdate: Parameters<typeof window.Shared.back.registerAny>[0] = (event, type, data) => {
+  onServiceUpdate: Parameters<typeof window.Shared.back.registerAny>[0] = (event, type) => {
     if (type === BackOut.SERVICE_CHANGE || type === BackOut.SERVICE_REMOVED) { this.forceUpdate(); }
-  }
+  };
 
   onCheckMissingImagesClick = async (): Promise<void> => {
     // @TODO
-  }
+  };
 
   onCheckGameIDsClick = async (): Promise<void> => {
     const res = await fetchAllGames();
     this.setState({ text: checkGameIDs(res) });
-  }
-
-  onCheckGameNamesClick = async (): Promise<void> => {
-    const res = await fetchAllGames();
-    this.setState({ text: checkGameTitles(res) });
-  }
+  };
 
   onCheckGameFieldsClick = async (): Promise<void> => {
     const res = await fetchAllGames();
     this.setState({ text: checkGameEmptyFields(res) });
-  }
-
-  // onCheckPlaylistsClick = async (): Promise<void> => {
-  //   const playlists = this.props.playlists;
-  //   const res = await fetchAllGames();
-  //   this.setState({ text: checkPlaylists(playlists, res) });
-  // }
+  };
 
   onCheckFileLocation = async (): Promise<void> => {
     const res = await fetchAllGames();
     this.setState({ text: await checkFileLocation(res) });
-  }
+  };
 
   onCheckMissingExecMappings = async (): Promise<void> => {
     const [games, execMappings] = await Promise.all([
@@ -232,19 +224,19 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     if (games) {
       this.setState({ text: checkMissingExecMappings(games, execMappings) });
     }
-  }
+  };
 
   onCreateMissingFoldersClick = (): void => {
     setTimeout(async () => {
       this.setState({ text: await createMissingFolders() });
     }, 0);
-  }
+  };
 
   onImportLegacyPlatformsClick = (): void => {
     setTimeout(async () => {
       importLegacyPlatforms(path.join(window.Shared.config.data.flashpointPath, window.Shared.preferences.data.platformFolderPath), (text) => this.setState({ text: text }));
     });
-  }
+  };
 
   onImportLegacyPlaylistsClick = () : void => {
     setTimeout(async () => {
@@ -253,7 +245,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
         this.setState({ text: `${num} Playlists Imported!` });
       });
     });
-  }
+  };
 
   onDeleteAllPlaylistsClick = () : void => {
     setTimeout(async () => {
@@ -261,7 +253,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
       await window.Shared.back.request(BackIn.DELETE_ALL_PLAYLISTS);
       this.setState({ text: 'Deleted all playlists!' });
     });
-  }
+  };
 
   onFixPrimaryAliases = () : void => {
     setTimeout(async () => {
@@ -270,7 +262,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
         this.setState({ text: `${num} Tag Aliases Fixed!`});
       });
     });
-  }
+  };
 
   onFixCommaTags = () : void => {
     setTimeout(async () => {
@@ -279,7 +271,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
         this.setState({ text: 'Tags Fixed!'});
       });
     });
-  }
+  };
 
   onExportTagsClick = () : void => {
     setTimeout(async () => {
@@ -291,7 +283,16 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
         this.setState({ text: `Tags Not Exported\nERROR - ${error}`});
       });
     });
-  }
+  };
+
+  onExportDatabaseClick = () : void => {
+    setTimeout(async () => {
+      exportDatabase((text) => this.setState({ text: text }))
+      .catch((error) => {
+        this.setState({ text: `Database Not Exported\nERROR - ${error}`});
+      });
+    });
+  };
 
   onImportTagsClick = () : void => {
     setTimeout(async () => {
@@ -303,34 +304,39 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
         this.setState({ text: `Tags Not Imported\nERROR - ${error}`});
       });
     });
-  }
+  };
 
   onUpdateTagsStr = (): void => {
     setTimeout(async () => {
-      const text = 'Updating Tag Strings...';
+      const text = 'Updating Tagified Field Strings...';
       this.setState({ text });
-      const createTextBarProgress = (current: number, total: number) => {
-        const filledSegments = (current / total) * 30;
-        return `Progress: [${'#'.repeat(filledSegments)}${'-'.repeat(30 - filledSegments)}] (${current}/${total})`;
+      const createTextBarProgress = (current: number) => {
+        const filledSegments = (current / this.props.totalGames) * 30;
+        return `Progress: [${'#'.repeat(filledSegments)}${'-'.repeat(30 - filledSegments)}] (${current}/${this.props.totalGames})`;
       };
-      const games = await fetchAllGames();
+      this.setState({ text: text + '\nFetching games...' });
+      let games = await fetchAllGames();
       let processed = 0;
-      const buffer: Game[] = [];
-      for (const chunk of chunkArray(games, 250)) {
-        for (const game of chunk) {
-          const newGame = new Game();
-          Object.assign(newGame, { ...game });
-          newGame.updateTagsStr();
-          buffer.push(newGame);
+      while (games.length !== 0) {
+        const buffer: Game[] = [];
+        for (const chunk of chunkArray(games, 250)) {
+          for (const game of chunk) {
+            const newGame = new Game();
+            Object.assign(newGame, { ...game });
+            newGame.updateTagsStr();
+            buffer.push(newGame);
+          }
+          processed += chunk.length;
+          await window.Shared.back.request(BackIn.SAVE_GAMES, buffer);
+          buffer.length = 0;
+          this.setState({ text: text + '\n' + createTextBarProgress(processed)});
         }
-        processed += chunk.length;
-        await window.Shared.back.request(BackIn.SAVE_GAMES, buffer);
-        buffer.length = 0;
-        this.setState({ text: text + '\n' + createTextBarProgress(processed, games.length)});
+        // Fetch next batch of games
+        games = await fetchAllGames(games[games.length - 1].id);
       }
-      this.setState({ text: text + '\n' + createTextBarProgress(processed, games.length) + '\n' + `Finished, updated ${processed} games.`});
+      this.setState({ text: text + '\n' + createTextBarProgress(processed) + '\n' + `Finished, updated ${processed} games.`});
     });
-  }
+  };
 
   onMassImportGameData = (): void => {
     const files = window.Shared.showOpenDialogSync({
@@ -363,7 +369,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               if (game) {
                 // Game exists, import the data
                 await window.Shared.back.request(BackIn.IMPORT_GAME_DATA, game.id, filePath)
-                .then((gameData) => {
+                .then(() => {
                   this.setState({ text: text + filePath + '\n' +  createTextBarProgress(current, files.length) });
                 })
                 .catch((error) => {
@@ -378,7 +384,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
         this.setState({ text: text + `FINISHED - ${failures} Failures, ${files.length - failures} Successes\n` });
       });
     }
-  }
+  };
 
   onMigrateExtremeGamesClick = (): void => {
     setTimeout(async () => {
@@ -389,6 +395,10 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
         return `Progress: [${'#'.repeat(filledSegments)}${'-'.repeat(30 - filledSegments)}] (${current}/${total})`;
       };
       const extremeTag = await window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, 'LEGACY-Extreme');
+      if (!extremeTag) {
+        this.setState({ text: text + '\nError creating or finding legacy extreme tag'});
+        return;
+      }
       const games = await fetchAllGames();
       let processed = 0;
       let edited = 0;
@@ -412,7 +422,35 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
       }
       this.setState({ text: text + '\n' + createTextBarProgress(processed, games.length) + '\n' + `Finished, converted ${edited} games. Please restart the Launcher.`});
     });
-  }
+  };
+
+  onImportMetadata = (): void => {
+    setTimeout(async () => {
+      this.setState({ text: 'Importing...' });
+      const filePath = remote.dialog.showOpenDialogSync({
+        title: 'select',
+        properties: ['openFile']
+      });
+      const metadata = fs.readFileSync(filePath ? filePath[0] : 'NONE', { encoding: 'utf-8' });
+      await window.Shared.back.request(BackIn.IMPORT_METADATA, JSON.parse(metadata));
+      this.setState({ text: 'DONE... Please Restart Flashpoint.' });
+    });
+  };
+
+  onTestTagSync = (): void => {
+    setTimeout(async () => {
+      const startTime = new Date();
+      this.setState({ text: 'Syncing...' });
+      window.Shared.back.request(BackIn.SYNC_ALL, window.Shared.preferences.data.gameMetadataSources[0])
+      .then(() => {
+        const doneTime = (new Date()).getTime() - startTime.getTime();
+        this.setState({ text: `Updated metadata (${doneTime}ms)` });
+      })
+      .catch((err) => {
+        this.setState({ text: `Error: ${err}` });
+      });
+    });
+  };
 
   onImportMetaEdits = (): void => {
     setTimeout(async () => {
@@ -494,8 +532,6 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
       await window.Shared.back.request(BackIn.RUN_COMMAND, script.command);
     }, 0);
   }
-
-  static contextType = LangContext;
 }
 
 function checkGameIDs(games: Game[]): string {
@@ -518,40 +554,6 @@ function checkGameIDs(games: Game[]): string {
   return text;
 }
 
-function checkGameTitles(games: Game[]): string {
-  // Find all games for the same platform that has identical titles
-  const timeStart = Date.now(); // Start timing
-  const gamesPerPlatform = categorizeByProp(games, 'platform');
-  const dupesPerPlatform: Map<string, Map<string, Game[]>> = {};
-  for (const key in gamesPerPlatform) {
-    dupesPerPlatform[key] = checkDupes(gamesPerPlatform[key], game => game.title.toUpperCase());
-  }
-  const timeEnd = Date.now(); // End timing
-  // Write log message
-  let text = '';
-  text += `Checked for games with identical titles (case-insensitive) on the same platform (in ${timeEnd - timeStart}ms)\n`;
-  text += '\n';
-  const platforms = Object.keys(gamesPerPlatform).sort();
-  if (platforms.length > 0) {
-    for (let i = 0; i < platforms.length; i++) {
-      const platform = platforms[i];
-      const dupes = dupesPerPlatform[platform];
-      const titles = Object.keys(dupes).sort();
-      if (titles.length > 0) {
-        text += `Platform: "${platform}" (${titles.length})\n`;
-        for (let j = 0; j < titles.length; j++) {
-          const title = titles[j];
-          text += `  "${title}" ${repeat(' ', 60 - title.length)}(Games: ${dupes[title].length})\n`;
-        }
-        text += '\n';
-      }
-    }
-  } else {
-    text += 'No duplicates found!\n';
-  }
-  return text;
-}
-
 type GameKeys = NonNullable<AllowedNames<Game, string>>;
 type EmptyRegister = { [key in GameKeys]?: Game[] }; // empty[fieldName] = [ game... ]
 function checkGameEmptyFields(games: Game[]): string {
@@ -563,11 +565,8 @@ function checkGameEmptyFields(games: Game[]): string {
     // Check if any game field (that should not be empty) is empty
     checkField(game, empty, 'developer');
     checkField(game, empty, 'source');
-    checkField(game, empty, 'platform');
     checkField(game, empty, 'playMode');
     checkField(game, empty, 'status');
-    checkField(game, empty, 'applicationPath');
-    checkField(game, empty, 'launchCommand');
   }
   const timeEnd = Date.now(); // End timing
   // Write log message
@@ -608,86 +607,6 @@ function checkGameEmptyFields(games: Game[]): string {
   }
 }
 
-// type PlaylistReport = {
-//   playlist: GamePlaylist;
-//   missingGameIDs: string[];
-//   duplicateGames: { [key: string]: GamePlaylistEntry[] };
-//   invalidGameIDs: GamePlaylistEntry[];
-// };
-// function checkPlaylists(playlists: GamePlaylist[], games: Game[]): string {
-//   const timeStart = Date.now(); // Start timing
-//   const dupes = checkDupes(playlists, playlist => playlist.filename); // Find all playlists with duplicate IDs
-//   const invalidIDs: GamePlaylist[] = playlists.filter(playlist => !uuidValidate(playlist.filename, 4)); // Find all playlists with invalid IDs
-//   // Check the games of all playlists (if they are missing or if their IDs are invalid or duplicates)
-//   const reports: PlaylistReport[] = [];
-//   for (let i = 0; i < playlists.length - 1; i++) {
-//     const playlist = playlists[i];
-//     const duplicateGames = checkDupes(playlist.games, game => game.id); // Find all games with duplicate IDs
-//     const invalidGameIDs = playlist.games.filter(game => !validateSemiUUID(game.id)); // Find all games with invalid IDs
-//     // Check for missing games (games that are in the playlist, and not in the game collection)
-//     const missingGameIDs: string[] = [];
-//     for (let gameEntry of playlist.games) {
-//       const id = gameEntry.id;
-//       if (!games.find(game => game.id === id)) {
-//         missingGameIDs.push(id);
-//       }
-//     }
-//     // Add "report" of this playlist
-//     if (Object.keys(duplicateGames).length > 0 ||
-//         invalidGameIDs.length > 0 ||
-//         missingGameIDs.length > 0) {
-//       reports.push({
-//         playlist,
-//         duplicateGames,Legacy_GameManager
-//         missingGameIDs,
-//         invalidGameIDs
-//       });
-//     }
-//   }
-//   const timeEnd = Date.now(); // End timing
-//   // Write log message
-//   let text = '';
-//   text += `Checked all playlists for duplicate or invalid IDs, and for game entries with invalid, missing or duplicate IDs (in ${timeEnd - timeStart}ms)\n`;
-//   text += '\n';
-//   text += `Playlists with invalid IDs (${invalidIDs.length}):\n`;
-//   invalidIDs.forEach(playlist => { text += `"${playlist.title}" (ID: ${playlist.filename})\n`; });
-//   text += '\n';
-//   text += `Playlists with duplicate IDs (${Object.keys(dupes).length}):\n`;
-//   for (let id in dupes) {
-//     text += `ID: "${id}" | Playlists (${dupes[id].length}): ${dupes[id].map(playlist => `${playlist.filename}`).join(', ')}\n`;
-//   }
-//   text += '\n';
-//   text += `Playlists with game entry issues (${reports.length}):\n`;
-//   reports.forEach(({ playlist, duplicateGames, missingGameIDs, invalidGameIDs }) => {
-//     text += `  "${playlist.title}" (ID: ${playlist.filename}):\n`;
-//     // Log duplicate game entry IDs
-//     if (Object.keys(duplicateGames).length > 0) {
-//       text += `    Game entries with duplicate IDs (${Object.keys(duplicateGames).length}):\n`;
-//       for (let id in duplicateGames) {
-//         const dupes = duplicateGames[id];
-//         const game = games.find(game => game.id === id);
-//         text += `      ${game ? `"${game.title}"` : 'Game not found'} (ID: ${id}) (Duplicates: ${dupes.length})\n`;
-//       }
-//     }
-//     // Log missing game entry IDs
-//     if (missingGameIDs.length > 0) {
-//       text += `    Game entries with IDs of missing games (${missingGameIDs.length}):\n`;
-//       for (let id of missingGameIDs) {
-//         text += `      ${id}\n`;
-//       }
-//     }
-//     // Log invalid game entry IDs
-//     if (invalidGameIDs.length > 0) {
-//       text += `    Game entries with invalid IDs (${invalidGameIDs.length}):\n`;
-//       for (let id of invalidGameIDs) {
-//         text += `      ${id}\n`;
-//       }
-//     }
-//   });
-//   text += '\n';
-//   return text;
-// }
-
 // Find and list any used executables missing an entry in the exec mapping file
 function checkMissingExecMappings(games: Game[], execMappings: ExecMapping[]): string {
   const allExecs: string[] = [];
@@ -695,8 +614,8 @@ function checkMissingExecMappings(games: Game[], execMappings: ExecMapping[]): s
   // Gather list of all unique execs
   for (let i = 0; i < games.length; i++) {
     const game = games[i];
-    if (allExecs.findIndex((exec) => { return exec === game.applicationPath; }) === -1) {
-      allExecs.push(game.applicationPath);
+    if (allExecs.findIndex((exec) => { return exec === game.legacyApplicationPath; }) === -1) {
+      allExecs.push(game.legacyApplicationPath);
     }
   }
   // Report missing win32 exec mappings
@@ -729,23 +648,8 @@ function checkMissingExecMappings(games: Game[], execMappings: ExecMapping[]): s
 }
 
 /**
- * Organize the elements in an array into a map of arrays, based on the value of a key of the objects.
- * @param array Elements to sort.
- * @param prop Property of the elements to organize by.
- */
-function categorizeByProp<T extends Map<K, V>, K extends string, V extends string>(array: T[], prop: K): Map<string, T[]> {
-  const map: Map<string, T[]> = {};
-  for (let i = 0; i < array.length; i++) {
-    const item = array[i];
-    const key = item[prop];
-    if (!map[key]) { map[key] = []; }
-    map[key].push(item);
-  }
-  return map;
-}
-
-/**
  * Find all elements in an array with common values.
+ *
  * @param array Elements to search through.
  * @param fn Function that gets the value of an element to compare.
  */
@@ -796,12 +700,12 @@ async function checkFileLocation(games: Game[]): Promise<string> {
   text += '\n';
   text += `Path not found (${pathFailed.length}):\n`;
   for (const game of pathFailed) {
-    text += `"${game.title}" (Platform: "${game.platform}", ID: ${game.id})\n`;
+    text += `"${game.title}" (ID: ${game.id})\n`;
   }
   text += '\n';
   text += `Error while getting path (${pathError.length}):\n`;
   for (const [ game, error ] of pathError) {
-    text += `"${game.title}" (Platform: "${game.platform}", ID: "${game.id}")\n`+
+    text += `"${game.title}" (ID: "${game.id}")\n`+
             `    ${error.toString()}\n`;
   }
   // Done
@@ -844,7 +748,14 @@ async function createMissingFolders(): Promise<string> {
   str += '\n';
   return str;
 
-  /** Create all the folders that are missing in a folder structure. */
+  /**
+   * Create all the folders that are missing in a folder structure.
+   *
+   * @param rootPath Root path
+   * @param structure Folder structure
+   * @param log Log function
+   * @param depth Current depth
+   */
   async function createFolderStructure(rootPath: string, structure: FolderStructure, log: (text: string) => void, depth = 0) {
     const pad = '| '.repeat(depth - 1);
     if (Array.isArray(structure)) {
@@ -862,14 +773,18 @@ async function createMissingFolders(): Promise<string> {
         await createFolderStructure(folderPath, structure[key], log, depth + 1);
       }
     }
-    /** */
+
     function folderLogMessage(folderName: string, success: boolean): string {
       let str = `${pad}+ ${folderName}`;
       str += ' '.repeat(Math.max(1, 40 - str.length));
       str += success ? 'Created!' : 'Exists.';
       return str;
     }
-    /** Create a folder if it is missing. */
+    /**
+     * Create a folder if it is missing.
+     *
+     * @param folderPath Folder to create
+     */
     async function createMissingFolder(folderPath: string): Promise<boolean> {
       if (!await exists(folderPath)) { // Folder does not already exist
         if (folderPath.startsWith(rootPath)) { // Folder is a sub-folder of it's root (no "../" climbing allowed)
@@ -881,22 +796,26 @@ async function createMissingFolders(): Promise<string> {
     }
   }
 
-  /** Log error (if there is any). */
+  /**
+   * Log error (if there is any).
+   *
+   * @param error Error to log
+   */
   function logError(error: any): void {
     if (error) { console.warn(error); }
   }
 }
-/** Remove the last "item" in a path ("C:/foo/bar.png" => "C:/foo") */
+/**
+ * Remove the last "item" in a path ("C:/foo/bar.png" => "C:/foo")
+ *
+ * @param filePath File path to use
+ */
 export function removeLastItemOfPath(filePath: string): string {
-  return filePath.substr(0, Math.max(0, filePath.lastIndexOf('/'), filePath.lastIndexOf('\\')));
+  return filePath.substring(0, Math.max(0, filePath.lastIndexOf('/'), filePath.lastIndexOf('\\')));
 }
 
-function repeat(char: string, n: number): string {
-  return char.repeat(Math.max(0, n));
-}
-
-function fetchAllGames(): Promise<Game[]> {
-  return window.Shared.back.request(BackIn.GET_ALL_GAMES);
+function fetchAllGames(startFrom?: string): Promise<Game[]> {
+  return window.Shared.back.request(BackIn.GET_ALL_GAMES, startFrom);
 }
 
 async function importLegacyPlatforms(platformsPath: string, setText: (text: string) => void): Promise<void> {
@@ -942,6 +861,26 @@ async function importLegacyPlaylists(playlistsPath: string): Promise<number> {
 async function fixPrimaryAliases(): Promise<number> {
   const data = await window.Shared.back.request(BackIn.FIX_TAG_PRIMARY_ALIASES, null);
   return data || 0;
+}
+
+async function exportDatabase(setText: (text: string) => void): Promise<void> {
+  const defaultPath = path.join(window.Shared.config.fullFlashpointPath, 'Data');
+  await fs.ensureDir(defaultPath);
+  const filePath = remote.dialog.showSaveDialogSync({
+    title: 'Export Database',
+    defaultPath: path.join(defaultPath, 'exported_database.json'),
+    filters: [{
+      name: 'Database JSON file',
+      extensions: ['json'],
+    }]
+  });
+  if (filePath) {
+    setText('Exporting database, please wait...');
+    const res = await window.Shared.back.request(BackIn.EXPORT_DATABASE, filePath);
+    setText(res);
+  } else {
+    throw new Error('User Cancelled');
+  }
 }
 
 async function exportTags(setText: (text: string) => void): Promise<number> {

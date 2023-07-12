@@ -2,13 +2,12 @@ import { Tag } from '@database/entity/Tag';
 import { ConnectedRightTagsSidebar } from '@renderer/containers/ConnectedRightTagsSidebar';
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
-import { findElementAncestor, gameScaleSpan } from '@renderer/Util';
+import { gameScaleSpan } from '@renderer/Util';
 import { BackIn } from '@shared/back/types';
 import { deepCopy } from '@shared/Util';
 import * as React from 'react';
 import { ResizableSidebar } from '../ResizableSidebar';
 import { TagList } from '../TagList';
-import { TagListItem } from '../TagListItem';
 
 type OwnProps = {
 }
@@ -94,36 +93,30 @@ export class TagsPage extends React.Component<TagsPageProps, TagsPageState> {
     if (tagId) {
       this.updateCurrentTag(tagId);
     }
-  }
+  };
 
   onTagsChange = (newTags: Tag[]) => {
     this.setState({ tags: newTags, tagsTotal: newTags.length });
     this.forceUpdate();
-  }
-
-  /** Find a tag's ID. */
-  findTagId = (element: EventTarget): number | undefined => {
-    const tag = findElementAncestor(element as Element, target => TagListItem.isElement(target), true);
-    if (tag) { return TagListItem.getId(tag); }
-  }
+  };
 
   onEditClick = () => {
     this.setState({ isEditing: !this.state.isEditing });
-  }
+  };
 
   onDiscardClick = () => {
     this.setState({
       currentTag: deepCopy(this.state.originalTag),
       isEditing: false
     });
-  }
+  };
 
   onEditTag = (tag: Partial<Tag>) => {
     if (this.state.currentTag) {
       const newTag = {...deepCopy(this.state.currentTag), ...tag};
       this.setState({currentTag: newTag});
     }
-  }
+  };
 
   onSaveTag = async () => {
     this.setState({
@@ -148,7 +141,7 @@ export class TagsPage extends React.Component<TagsPageProps, TagsPageState> {
         }
       });
     }
-  }
+  };
 
   onTagMerged = (tag: Tag) => {
     const newTags = deepCopy(this.state.tags);
@@ -159,11 +152,11 @@ export class TagsPage extends React.Component<TagsPageProps, TagsPageState> {
     this.setState({ tags: newTags }, () => {
       if (tag.id) { this.updateCurrentTag(tag.id); }
     });
-  }
+  };
 
   onLockEdit = (locked: boolean) => {
     this.setState({ isLocked: locked });
-  }
+  };
 
   updateCurrentTag = (tagId: number) => {
     window.Shared.back.request(BackIn.GET_TAG_BY_ID, tagId)
@@ -182,7 +175,7 @@ export class TagsPage extends React.Component<TagsPageProps, TagsPageState> {
         });
       }
     });
-  }
+  };
 
   deleteCurrentTag = () => {
     if (this.state.selectedTagId) {
@@ -200,7 +193,7 @@ export class TagsPage extends React.Component<TagsPageProps, TagsPageState> {
         }
       });
     }
-  }
+  };
 }
 
 function calcScale(defHeight: number, scale: number): number {

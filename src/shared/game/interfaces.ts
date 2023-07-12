@@ -1,7 +1,7 @@
 import { AdditionalApp } from '../../database/entity/AdditionalApp';
 import { Game } from '../../database/entity/Game';
-import { Playlist } from '../../database/entity/Playlist';
 import { OrderGamesOpts } from './GameFilter';
+import { Playlist } from 'flashpoint-launcher';
 
 export const UNKNOWN_LIBRARY = 'unknown';
 

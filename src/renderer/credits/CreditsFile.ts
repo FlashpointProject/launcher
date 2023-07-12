@@ -1,4 +1,4 @@
-import { Coerce } from '@shared/utils/Coerce';
+import * as Coerce from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import { CreditsData, CreditsDataProfile, CreditsDataRole } from './types';
 

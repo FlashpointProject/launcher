@@ -21,8 +21,25 @@ const langTemplate = {
     'searchLimitValue',
     'enableEditing',
     'enableEditingDesc',
+    'symlinkCuration',
+    'symlinkCurationDesc',
     'onDemandImages',
     'onDemandImagesDesc',
+    'onDemandImagesEnabled',
+    'onDemandImagesEnabledDesc',
+    'onDemandImagesCompressed',
+    'onDemandImagesCompressedDesc',
+    'onDemandImagesDelete',
+    'onDemandImagesDeleteDesc',
+    'playtimeTracking',
+    'playtimeTrackingDesc',
+    'enablePlaytimeTracking',
+    'enablePlaytimeTrackingDesc',
+    'enablePlaytimeTrackingExtreme',
+    'enablePlaytimeTrackingExtremeDesc',
+    'clearPlaytimeTracking',
+    'clearPlaytimeTrackingDesc',
+    'clearData',
     'currentLanguage',
     'currentLanguageDesc',
     'fallbackLanguage',
@@ -46,6 +63,8 @@ const langTemplate = {
     'tagFilterGroupsDesc',
     'editTagFilter',
     'duplicateTagFilter',
+    'nukeTagFilter',
+    'nukeInProgress',
     'deleteTagFilter',
     'appPathOverrides',
     'appPathOverridesDesc',
@@ -59,10 +78,14 @@ const langTemplate = {
     'noLogoSet',
     'logoSetDesc',
     'advancedHeader',
+    'optimizeDatabase',
+    'optimizeDatabaseDesc',
     'showDeveloperTab',
     'showDeveloperTabDesc',
     'server',
     'serverDesc',
+    'curateServer',
+    'curateServerDesc',
     'metadataServerHost',
     'metadataServerHostDesc',
     'extensionsHeader',
@@ -77,6 +100,7 @@ const langTemplate = {
     'tagFilterGroupEditor',
   ] as const,
   home: [
+    'gotdHeader',
     'updateHeader',
     'currentVersion',
     'nextVersion',
@@ -99,6 +123,10 @@ const langTemplate = {
     'installComplete',
     'alreadyInstalled',
     'download',
+    'error',
+    'checkForUpdates',
+    'checkingUpdate',
+    'updatedGamesReady',
     'update',
     'checkingUpgradeState',
     'extrasHeader',
@@ -112,6 +140,10 @@ const langTemplate = {
     'linuxSupportLinkText',
     'randomPicks',
     'rerollPicks',
+    'componentUpToDate',
+    'componentUpdatesReady',
+    'lastUpdated',
+    'updateComplete',
   ] as const,
   logs: [
     'filters',
@@ -145,6 +177,12 @@ const langTemplate = {
     'grid',
     'searchResults',
     'manual',
+    'layout',
+    'openFlashpointManager',
+    'fpfssProfile',
+    'fpfssLogout',
+    'softwareUpdateRequired',
+    'noLauncherUpdateReady',
   ] as const,
   filter: [
     'dateAdded',
@@ -186,6 +224,8 @@ const langTemplate = {
     'importLegacyPlaylistsDesc',
     'exportTags',
     'exportTagsDesc',
+    'exportDatabase',
+    'exportDatabaseDesc',
     'importTags',
     'importTagsDesc',
     'deleteAllPlaylists',
@@ -196,6 +236,8 @@ const langTemplate = {
     'fixCommaTagsDesc', // @NOT_ASSIGNED
     'updateTagsString',
     'updateTagsStringDesc',
+    'updatePlatformsString',
+    'updatePlatformsStringDesc',
     'massImportGameData',
     'massImportGameDataDesc',
     'migrateExtremeGames',
@@ -233,6 +275,17 @@ const langTemplate = {
     'noTitle',
     'by',
     'play',
+    'lastPlayed',
+    'playtime',
+    'playCount',
+    'never',
+    'today',
+    'yesterday',
+    'daysAgo',
+    'weeksAgo',
+    'seconds',
+    'minutes',
+    'hours',
     'stop',
     'noDeveloper',
     'alternateTitles',
@@ -248,6 +301,7 @@ const langTemplate = {
     'noSource',
     'platform',
     'noPlatform',
+    'otherTechnologies',
     'playMode',
     'noPlayMode',
     'status',
@@ -290,6 +344,7 @@ const langTemplate = {
     'removeGameFromPlaylist',
     'saveChanges',
     'discardChanges',
+    'editFpfssGame',
     'editGame',
     'allGames',
     'newPlaylist',
@@ -310,6 +365,7 @@ const langTemplate = {
     'library',
     'defaultLibrary',
     'legacyGame',
+    'fpfssGame',
     'notInstalled',
     'installed',
     'download',
@@ -318,6 +374,7 @@ const langTemplate = {
     'noMountParameters',
     'showExtremeScreenshot',
     'busy',
+    'openGameDataBrowser',
   ] as const,
   tags: [
     'name',
@@ -343,6 +400,10 @@ const langTemplate = {
     'locked',
   ] as const,
   curate: [
+    'noCurationSelected',
+    'headerFileOperations',
+    'headerEditCuration',
+    'headerTest',
     'importAll',
     'importAllDesc',
     'deleteAll',
@@ -355,6 +416,8 @@ const langTemplate = {
     'openImportedFolderDesc',
     'newCuration',
     'newCurationDesc',
+    'duplicateCuration',
+    'newCurationFromTemplate',
     'loadMeta',
     'loadMetaDesc',
     'loadArchive',
@@ -382,16 +445,22 @@ const langTemplate = {
     'addMessage',
     'removeAddApp',
     'delete',
+    'deleteSelected',
     'deleteCurationDesc',
     'openFolder',
     'indexContent',
     'run',
     'runWithMAD4FP',
     'export',
+    'exportSelected',
     'import',
+    'importSelected',
     'contentFiles',
     'default',
     'warnings',
+    'noTitle',
+    'noApplicationPath',
+    'noPlatforms',
     'noLaunchCommand',
     'invalidLaunchCommand',
     'releaseDateInvalid',
@@ -407,7 +476,16 @@ const langTemplate = {
     'noScreenshot',
     'ilc_notHttp',
     'ilc_nonExistant',
+    'documentStatus',
     'sort',
+    'contextCopyName',
+    'contextCopyPath',
+    'contextCopyAsURL',
+    'contextShowInExplorer',
+    'contextOpenFolderInExplorer',
+    'exportDataPacks',
+    'exportSelectedDataPacks',
+    'shortcuts',
   ] as const,
   playlist: [
     'enterDescriptionHere',
@@ -445,12 +523,15 @@ const langTemplate = {
     'exportMetaEditTitle',
     'exportMetaEditDesc',
     'showImage',
-    'searching'
+    'searching',
+    'loading',
+    'ok',
   ] as const,
   menu: [
     'viewThumbnailInFolder',
     'viewScreenshotInFolder',
     'openFileLocation',
+    'addToFavorites',
     'addToPlaylist',
     'duplicateMetaOnly',
     'duplicateMetaAndImages',
@@ -460,6 +541,8 @@ const langTemplate = {
     'exportMetaEdit',
     'duplicatePlaylist',
     'exportPlaylist',
+    'makeCurationFromGame',
+    'copyShortcutURL',
   ] as const,
   dialog: [
     'programNotFound',
@@ -503,6 +586,7 @@ const langTemplate = {
     'overwriteFileTitle',
     'overwriteFileMessage',
     'overwriteFileDetail',
+    'nukeTagFilterGroup',
     'deleteTagFilterGroup',
     'deleteCuration',
     'importCuration',
@@ -524,6 +608,15 @@ const langTemplate = {
     'downloadingGame',
     'verifyingGame',
     'aFewMinutes',
+    'importCurationWithWarnings',
+    'exportCurationWithWarnings',
+    'errorImportingCuration',
+    'mustBePngImage',
+    'mustBe7zArchiveSkipping',
+    'failedToLoadCuration',
+    'requiresAdditionalDownload',
+    'requiresAdditionalDownloadPlural',
+    'confirmClearPlaytime',
   ] as const,
   // libraries: [], // (This is dynamically populated in run-time)
 } as const;
@@ -554,6 +647,7 @@ export type LangContainer = BaseLangContainer & {
 
 /**
  * Create a language category object from a language template category.
+ *
  * @param tempCat Language template category.
  */
 function createCategory<T extends readonly string[]>(tempCat: T): LangCategory<T> {
@@ -606,6 +700,8 @@ export function getDefaultLocalization(): LangContainer {
   // Get the base language container
   const lang: LangContainer = createLangContainer();
   // Make some changes
+  lang.config.searchLimitValue += ' {0}';
+  lang.config.noExtensionsLoaded += ' {0}';
   lang.config.auto += ' ({0})';
   lang.home.hallOfFameInfo += ' {0}';
   lang.home.allGamesInfo += ' {0}';
@@ -613,12 +709,25 @@ export function getDefaultLocalization(): LangContainer {
   lang.home.configInfo += ' {0}';
   lang.home.helpInfo += ' {0}';
   lang.home.linuxSupport += ' {0}';
+  lang.home.componentUpdatesReady += '{0}';
+  lang.home.updatedGamesReady = lang.home.updatedGamesReady + ' - {0}';
+  lang.browse.noGameSelected += ' {0}';
   lang.browse.dropGameOnLeft += ' {0}';
   lang.browse.setFlashpointPathQuestion += ' {0} {1}';
   lang.browse.noteSaveAndRestart += ' {0}';
-  lang.misc.noBlankFound = '{0} ' + lang.misc.noBlankFound;
+  lang.browse.daysAgo += ' {0}';
+  lang.browse.weeksAgo += ' {0}';
+  lang.browse.seconds += ' {0}';
+  lang.browse.minutes += ' {0}';
+  lang.browse.hours += ' {0}';
+  lang.misc.noBlankFound = ' {0} ' + lang.misc.noBlankFound;
   lang.misc.addBlank += ' {0}';
   lang.misc.deleteAllBlankImages += ' {0}';
+  lang.dialog.errorImportingCuration += ' {0}';
+  lang.dialog.mustBe7zArchiveSkipping += ' {0}';
+  lang.dialog.failedToLoadCuration += ' {0}';
+  lang.dialog.requiresAdditionalDownload += ' {0}';
+  lang.dialog.requiresAdditionalDownloadPlural += ' {0}';
   lang.dialog.upgradeWillInstallTo = '{0} ' + lang.dialog.upgradeWillInstallTo;
   lang.dialog.importedPlaylistAlreadyExists = lang.dialog.importedPlaylistAlreadyExists + ' - "{0}"';
   // Return object

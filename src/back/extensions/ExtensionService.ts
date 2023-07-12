@@ -5,7 +5,7 @@ import { TernarySearchTree } from '@back/util/map';
 import { AppConfigData } from '@shared/config/interfaces';
 import { ILogEntry } from '@shared/Log/interface';
 import { Contributions, ExtensionContribution, IExtension } from '../../shared/extensions/interfaces';
-import { scanExtensions } from './ExtensionsScanner';
+import { scanExtensions, scanSystemExtensions } from './ExtensionsScanner';
 import { getExtensionEntry, newExtLog } from './ExtensionUtils';
 import { ExtensionContext, ExtensionData, ExtensionModule } from './types';
 
@@ -18,15 +18,16 @@ export class ExtensionService {
   private _extensionPathIndex: Promise<TernarySearchTree<string, IExtension>> | null;
 
   /** Opens when _extensions is ready to be read from */
-  private readonly _installedExtensionsReady: Barrier;
+  public readonly installedExtensionsReady: Barrier;
 
   constructor(
     protected readonly _configData: AppConfigData,
-    protected readonly _extensionPath: string
+    protected readonly _extensionPath: string,
+    protected readonly _isDev: boolean,
   ) {
     this._extensions = [];
     this._extensionData = {};
-    this._installedExtensionsReady = new Barrier();
+    this.installedExtensionsReady = new Barrier();
     this._init();
   }
 
@@ -35,29 +36,33 @@ export class ExtensionService {
   }
 
   private async _scanExtensions(): Promise<void> {
+    const sysExts = await scanSystemExtensions(this._isDev);
+    sysExts.forEach(e => this._extensions.push(e));
     const exts = await scanExtensions(this._configData, this._extensionPath);
     exts.forEach(e => this._extensions.push(e));
-    this._installedExtensionsReady.open();
+    this.installedExtensionsReady.open();
   }
 
   getExtensions(): Promise<IExtension[]> {
-    return this._installedExtensionsReady.wait().then(() => {
+    return this.installedExtensionsReady.wait().then(() => {
       return this._extensions;
     });
   }
 
   getExtension(id: string): Promise<IExtension | undefined> {
-    return this._installedExtensionsReady.wait().then(() => {
+    return this.installedExtensionsReady.wait().then(() => {
       return this._extensions.find(e => e.id === id);
     });
   }
 
-  /** Returns a list of all extension contributions of a particular type
+  /**
+   * Returns a list of all extension contributions of a particular type
+   *
    * @param key Type of contribution to get
    * @returns All of this contribution type from all loaded extensions
    */
   getContributions<T extends keyof Contributions>(key: T): Promise<ExtensionContribution<T>[]> {
-    return this._installedExtensionsReady.wait().then(() => {
+    return this.installedExtensionsReady.wait().then(() => {
       return this._extensions.reduce<ExtensionContribution<T>[]>((list, ext) => {
         list.push({
           key: key,
@@ -71,7 +76,7 @@ export class ExtensionService {
 
   /** Build a search tree mapping extensions and their paths */
   public async getExtensionPathIndex(): Promise<TernarySearchTree<string, IExtension>> {
-    return this._installedExtensionsReady.wait().then(() => {
+    return this.installedExtensionsReady.wait().then(() => {
       if (!this._extensionPathIndex) {
         const index = TernarySearchTree.forPaths<IExtension>();
         const extensions = this._extensions.map(ext => {
@@ -87,9 +92,13 @@ export class ExtensionService {
     });
   }
 
-  /** Loads an extension (returns immediately if already loaded) */
+  /**
+   * Loads an extension (returns immediately if already loaded)
+   *
+   * @param extId ID of extension to load
+   */
   public async loadExtension(extId: string): Promise<void> {
-    return this._installedExtensionsReady.wait().then(() => {
+    return this.installedExtensionsReady.wait().then(() => {
       const ext = this._extensions.find(e => e.id === extId);
       if (ext) {
         return this._loadExtension(ext);
@@ -120,7 +129,11 @@ export class ExtensionService {
           throw new Error('No "activate" export found in extension module!');
         }
         // Activate extension
-        await Promise.resolve(extModule.activate.apply(global, [context]));
+        try {
+          await extModule.activate.apply(global, [context]);
+        } catch (err: any) {
+          throw new Error(`Error during extension activation: ${err}`);
+        }
       }
       this._setSubscriptions(ext.id, context.subscriptions);
       this._enableExtension(ext.id);
@@ -131,7 +144,7 @@ export class ExtensionService {
   }
 
   public async unloadAll(): Promise<void> {
-    if (this._installedExtensionsReady.isOpen()) {
+    if (this.installedExtensionsReady.isOpen()) {
       for (const ext of this._extensions) {
         await this._unloadExtension(ext);
       }
@@ -139,7 +152,7 @@ export class ExtensionService {
   }
 
   public async unloadExtension(id: string): Promise<void> {
-    if (this._installedExtensionsReady.isOpen()) {
+    if (this.installedExtensionsReady.isOpen()) {
       const ext = this._extensions.find(e => e.id == id);
       if (ext) {
         this._unloadExtension(ext);
@@ -155,7 +168,7 @@ export class ExtensionService {
         const extModule: ExtensionModule = await import(entryPath);
         if (extModule.deactivate) {
           try {
-            await Promise.resolve(extModule.deactivate.apply(global));
+            await extModule.deactivate.apply(global);
           } catch (error) {
             log.error('Extensions', `[${ext.manifest.displayName || ext.manifest.name}] Error in deactivation function.\n${error}'`);
           }
@@ -179,7 +192,12 @@ export class ExtensionService {
     };
   }
 
-  /** Copy an extensions subscriptions into its running data (usually from the context) */
+  /**
+   * Copy an extensions subscriptions into its running data (usually from the context)
+   *
+   * @param extId ID of extension to set subscriptions for
+   * @param subscriptions Subscriptions to set
+   */
   private _setSubscriptions(extId: string, subscriptions: Disposable) {
     const data = this._getExtensionData(extId);
     // Dispose of old subscriptions
@@ -188,14 +206,23 @@ export class ExtensionService {
     this._extensionData[extId] = data;
   }
 
-  /** Push a log onto an extensions running data */
+  /**
+   * Push a log onto an extensions running data
+   *
+   * @param extId ID of extension triggering log
+   * @param entry pre-filled Log Entry
+   */
   public logExtension(extId: string, entry: ILogEntry) {
     const data = this._getExtensionData(extId);
     data.logs.push(entry);
     this._extensionData[extId] = data;
   }
 
-  /** Mark the extension as enabled in its running data */
+  /**
+   * Mark the extension as enabled in its running data
+   *
+   * @param extId ID of extension to enable
+   */
   private _enableExtension(extId: string) {
     const data = this._getExtensionData(extId);
     data.enabled = true;

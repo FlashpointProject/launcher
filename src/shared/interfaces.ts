@@ -1,12 +1,9 @@
-import { Playlist } from '@database/entity/Playlist';
-import { TagCategory } from '@database/entity/TagCategory';
 import { SocketClient } from '@shared/back/SocketClient';
-import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/extensions/interfaces';
 import { OpenDialogOptions } from 'electron';
-import { AppConfigData, AppExtConfigData } from './config/interfaces';
+import { AppPreferencesData } from 'flashpoint-launcher';
+import { AppConfigData } from './config/interfaces';
 import { LangContainer, LangFile } from './lang';
 import { ILogEntry } from './Log/interface';
-import { AppPreferencesData } from './preferences/interfaces';
 import { ITheme } from './ThemeFile';
 
 /** Replacement of "object" type. Note: I'm not sure how effective it is though //obelisk */
@@ -24,9 +21,6 @@ export type DeepPartial<T> = {
 export type Subtract<T, U extends ObjectLike> = Pick<T, Exclude<keyof T, keyof U>>;
 
 export interface IMainWindowExternal {
-  /** If the launcher is installed (instead of being portable). */
-  installed: boolean;
-
   /** Version of the current launcher build. */
   version: number;
 
@@ -76,9 +70,6 @@ export interface IMainWindowExternal {
     offset: number;
   }
 
-  /** Current status of the services. */
-  initialServices: IService[];
-
   /** If the launcher is running in development mode (using something like "npm run start"). */
   isDev: boolean;
 
@@ -97,25 +88,15 @@ export interface IMainWindowExternal {
   /** Custom version to display alongside launcher version (useful for packaged copies) */
   customVersion?: string;
 
+  // @REFACTOR Figure out a way to delete these after they have been used (put them in a sub-object and just set it to undefined after it has been used?)
   initialLang: LangContainer;
   initialLangList: LangFile[];
   initialThemes: ITheme[];
-  initialPlaylists?: Playlist[];
-  initialLibraries: string[];
-  initialServerNames: string[];
-  initialMad4fpEnabled: boolean;
-  initialPlatforms: Record<string, string[]>;
   initialLocaleCode: string;
-  initialTagCategories: TagCategory[];
-  initialExtensions: IExtensionDescription[];
-  initialDevScripts: ExtensionContribution<'devScripts'>[];
-  initialContextButtons: ExtensionContribution<'contextButtons'>[];
-  initialLogoSets: LogoSet[];
-  initialExtConfigs: ExtensionContribution<'configuration'>[];
-  initialExtConfig: AppExtConfigData;
-  initialUpdateFeedMarkdown: string;
+
   /**
    * Wait for the preload to initialize.
+   *
    * @returns A promise that resolves when initialization is complete, or nothing if already initialized.
    */
   waitUntilInitialized(): Promise<void> | void;
@@ -162,16 +143,28 @@ export enum WindowIPC {
   /** Sent whenever the windows size changes. (main -> renderer). */
   WINDOW_RESIZE   = 'window-resize',
   /** Sent whenever a flashpoint:// protocol is run */
-  PROTOCOL        = 'protocol'
+  PROTOCOL        = 'protocol',
+  /** Sends Main Process output to renderer */
+  MAIN_OUTPUT     = 'main-output'
+}
+
+/** IPC channels for everything else */
+
+export enum CustomIPC {
+  SHOW_MESSAGE_BOX = 'show-message-box',
+  SHOW_SAVE_DIALOG = 'show-save-dialog',
+  SHOW_OPEN_DIALOG = 'show-open-dialog'
 }
 
 /** IPC channels used to relay game manager events from  */
 
 export type INamedBackProcessInfo = IBackProcessInfo & {
   /** Name of the server */
-  name?: string;
+  name: string;
   /** Whether to use this service when toggling MAD4FP */
   mad4fp?: boolean;
+  /** Aliases for the name */
+  aliases: string[];
 }
 
 export type IBackProcessInfo = {
@@ -235,9 +228,9 @@ export type ExecMapping = {
 /** Game properties that will have suggestions gathered and displayed. */
 export type SuggestionProps = (
   | 'tags'
-  | 'platform'
   | 'playMode'
   | 'status'
+  | 'platforms'
   | 'applicationPath'
   | 'library'
 )
@@ -245,4 +238,13 @@ export type SuggestionProps = (
 /** Suggestions for game properties organized by property. */
 export type GamePropSuggestions = {
   [P in SuggestionProps]: string[];
+}
+
+export type Task = {
+  id: string;
+  name: string;
+  status: string;
+  finished: boolean;
+  error?: string;
+  progress?: number;
 }

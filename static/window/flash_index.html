@@ -22,7 +22,7 @@
         game.appendChild(createParam('allownetworkingmode', 'all'));
         document.body.appendChild(game);
       }
-      if (document.readyState != 'loading') {
+      if (document.readyState !== 'loading') {
         fillGame();
       } else {
         document.addEventListener("DOMContentLoaded", fillGame)

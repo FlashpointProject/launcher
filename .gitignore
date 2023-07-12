@@ -30,6 +30,7 @@ npm-debug.log.*
 /launcher.log
 /extern/bluezip/bluezip.db
 /flashpoint.sqlite
+/extensions/test
 Data/flashpoint.sqlite
 
 # Jest related files
@@ -41,3 +42,6 @@ Data/flashpoint.sqlite
 .DS_Store
 
 secrets.json
+
+# Rust
+target

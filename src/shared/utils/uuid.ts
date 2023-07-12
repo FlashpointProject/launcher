@@ -18,6 +18,8 @@ const guid = require('uuid/v4') as (options?: { random?: Buffer }) => string;
  * See
  *  https://developer.mozilla.org/en-US/docs/Web/API/Window/crypto
  *  https://github.com/kelektiv/node-uuid/issues/189
+ *
+ *  @param count Number of bytes to return
  */
 function getRandomBytes(count: number): Buffer {
   const rndBuf = new Uint8Array(count);
@@ -40,6 +42,7 @@ export function uuid() {
  *  we have to make a more lenient script for validating them)
  * (A "semi-UUIDv4" follows the following pattern:
  *  "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" where "x" is any hexadecimal character)
+ *
  * @param uuid Semi-UUIDv4 string to check the validity of
  * @returns Whether or not the argument is a valid semi-UUIDv4 string
  */

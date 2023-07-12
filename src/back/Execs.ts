@@ -1,7 +1,7 @@
 import * as path from 'path';
 import { ExecMapping } from '@shared/interfaces';
 import { parseVarStr, readJsonFile } from '@shared/Util';
-import { Coerce } from '@shared/utils/Coerce';
+import * as Coerce from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 
 const { str } = Coerce;
@@ -16,7 +16,9 @@ const filePath = 'execs.json';
 
 /**
  * Load exec mapping file
- * @param filePath Path to execs.json
+ *
+ * @param jsonFolder Path to the folder containing execs.json
+ * @param onError Callback for error
  */
 export function loadExecMappingsFile(jsonFolder: string, onError?: (error: string) => void): Promise<ExecMapping[]> {
   return new Promise((resolve, reject) => {

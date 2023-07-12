@@ -1,7 +1,5 @@
-import { Game } from '@database/entity/Game';
-import { LangContainer } from '@shared/lang';
-import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { gameOrderByOptions } from '@shared/order/util';
+import { GameOrderBy, GameOrderReverse, Game } from 'flashpoint-launcher';
 import * as React from 'react';
 import { LangContext } from '../util/lang';
 
@@ -20,10 +18,6 @@ export type GameOrderChangeEvent = {
   orderReverse: GameOrderReverse;
 };
 
-export interface GameOrder {
-  context: LangContainer;
-}
-
 /**
  * Two drop down lists, the first for selecting what to order the games by, and
  * the second for selecting what way to order the games in.
@@ -31,6 +25,7 @@ export interface GameOrder {
 export class GameOrder extends React.Component<GameOrderProps> {
   render() {
     const strings = this.context.filter;
+    const allStrings = this.context;
     return (
       <>
         {/* Order By */}
@@ -40,11 +35,12 @@ export class GameOrder extends React.Component<GameOrderProps> {
           onChange={this.onOrderByChange}>
           <option value='dateAdded'>{strings.dateAdded}</option>
           <option value='dateModified'>{strings.dateModified}</option>
-          <option value='platform'>{strings.platform}</option>
           <option value='series'>{strings.series}</option>
           <option value='title'>{strings.title}</option>
           <option value='developer'>{strings.developer}</option>
           <option value='publisher'>{strings.publisher}</option>
+          <option value='lastPlayed'>{allStrings.browse.lastPlayed}</option>
+          <option value='playtime'>{allStrings.browse.playtime}</option>
         </select>
         {/* Order Reverse */}
         <select
@@ -64,7 +60,7 @@ export class GameOrder extends React.Component<GameOrderProps> {
     } else {
       console.error(`Failed to set "Order By". Value is invalid! (value: "${event.target.value}")`);
     }
-  }
+  };
 
   onOrderReverseChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     if (isOrderReverse(event.target.value)) {
@@ -72,7 +68,7 @@ export class GameOrder extends React.Component<GameOrderProps> {
     } else {
       console.error(`Failed to set "Order Reverse". Value is invalid! (value: "${event.target.value}")`);
     }
-  }
+  };
 
   updateOrder(data: Partial<GameOrderChangeEvent>): void {
     if (this.props.onChange) {

@@ -1,5 +1,6 @@
 /**
  * Check if two arrays are shallowly strictly equal.
+ *
  * @param a Array to compare.
  * @param b Array to compare.
  */

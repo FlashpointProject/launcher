@@ -81,7 +81,7 @@ export interface Legacy_IAdditionalApplicationInfo {
   launchCommand: string;
   /** Name of the additional application */
   name: string;
-  /** @TODO Write this comment */
+  /** I'm not sure honestly */
   waitForExit: boolean;
 }
 

@@ -7,6 +7,8 @@ import { IExtension, IExtensionManifest } from '@shared/extensions/interfaces';
 import { ILogEntry } from '@shared/Log/interface';
 import * as flashpoint from 'flashpoint-launcher';
 import { createApiFactory } from './ApiImplementation';
+import * as Database from 'better-sqlite3';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 
 type LoadFunction = {
   (request: string): any;
@@ -23,7 +25,9 @@ export type InterceptorState = {
   factories: Map<string, INodeModuleFactory>;
 }
 
-/** Registers a module interceptor
+/**
+ * Registers a module interceptor
+ *
  * @param interceptor Module interceptor
  * @param state State object holding all interceptor data
  */
@@ -45,6 +49,7 @@ export function registerInterceptor(interceptor: INodeModuleFactory, state: Inte
 
 /**
  * Installs the module interceptor. You can register interceptors even after this is called.
+ *
  * @param state State object holding all interceptor data
  */
 export async function installNodeInterceptor(state: InterceptorState): Promise<void> {
@@ -80,7 +85,7 @@ export class FPLNodeModuleFactory implements INodeModuleFactory {
 
   private readonly _extApiImpl = new Map<string, typeof flashpoint>();
   private _defaultApiImpl?: typeof flashpoint;
-  private _apiFactory: IExtensionApiFactory;
+  private readonly _apiFactory: IExtensionApiFactory;
 
   constructor(
     protected readonly _extensionPaths: TernarySearchTree<string, IExtension>,
@@ -91,7 +96,12 @@ export class FPLNodeModuleFactory implements INodeModuleFactory {
     this._apiFactory = createApiFactory;
   }
 
-  /** Return an API implementation given an import request */
+  /**
+   * Return an API implementation given an import request
+   *
+   * @param _request Unused
+   * @param parent Module that made this request, substring of an extension path
+   */
   public load(_request: string, parent: string): any {
     const ext = this._extensionPaths.findSubstr(parent);
     if (ext) {
@@ -121,5 +131,13 @@ export class FPLNodeModuleFactory implements INodeModuleFactory {
         this._state);
     }
     return this._defaultApiImpl;
+  }
+}
+
+export class SqliteInterceptorFactory implements INodeModuleFactory {
+  public readonly nodeModuleName = 'better-sqlite3';
+
+  public load(_request: string): any {
+    return Database;
   }
 }

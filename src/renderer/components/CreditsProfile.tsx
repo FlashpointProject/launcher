@@ -11,7 +11,7 @@ export type CreditsIconProps = {
   onMouseLeave: () => void;
 };
 
-/** Displays an icon from a credits profile. */
+// Displays an icon from a credits profile.
 export function CreditsIcon(props: CreditsIconProps) {
   const ref = useRef<HTMLDivElement>(null);
 

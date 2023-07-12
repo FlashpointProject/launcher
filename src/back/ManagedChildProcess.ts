@@ -1,10 +1,9 @@
 import { IBackProcessInfo, INamedBackProcessInfo, ProcessState } from '@shared/interfaces';
 import { ILogPreEntry } from '@shared/Log/interface';
-import { Coerce } from '@shared/utils/Coerce';
+import * as Coerce from '@shared/utils/Coerce';
 import { ChildProcess, spawn } from 'child_process';
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint-launcher';
-import { readFileSync } from 'fs';
 import { kill as processKill } from 'process';
 import * as psTree from 'ps-tree';
 import * as readline from 'readline';
@@ -55,17 +54,17 @@ export class ManagedChildProcess extends EventEmitter {
   /** Display name of the service. */
   public readonly name: string;
   /** The current working directory of the process. */
-  private cwd: string;
+  private readonly cwd: string;
   /** If the process is detached (it is not spawned as a child process of this program). */
-  private detached: boolean;
+  private readonly detached: boolean;
   /** If the process should be restarted if it exits unexpectedly. */
   private autoRestart: boolean;
   /** Number of times the process has auto restarted. Used to prevent infinite loops. */
   private autoRestartCount: number;
   /** Whether to run in a shell */
-  private shell: boolean;
+  private readonly shell: boolean;
   /** Launch with these Environmental Variables */
-  private env?: NodeJS.ProcessEnv;
+  private readonly env?: NodeJS.ProcessEnv;
   /** A timestamp of when the process was started. */
   private startTime = 0;
   /** State of the process. */
@@ -100,7 +99,11 @@ export class ManagedChildProcess extends EventEmitter {
     return this.startTime;
   }
 
-  /** Spawn process and keep track on it. */
+  /**
+   * Spawn process and keep track on it.
+   *
+   * @param auto Automatically restart if exits early
+   */
   public spawn(auto?: boolean): void {
     if (!this.process && !this._isRestarting) {
       // Reset the auto restart counter when we've manually / deliberately spawned the process
@@ -108,6 +111,7 @@ export class ManagedChildProcess extends EventEmitter {
         this.autoRestartCount = 0;
       }
       // Spawn process
+      log.debug('Server', `Arguments: ${this.info.arguments.join('; ')}`);
       this.process = spawn(this.info.filename, this.info.arguments, { cwd: this.cwd, detached: this.detached, shell: this.shell , env: this.env});
       // Set start timestamp
       this.startTime = Date.now();
@@ -197,9 +201,10 @@ export class ManagedChildProcess extends EventEmitter {
     });
     // Kill the parent process.
     processKill(PID);
-  }
+  };
   /**
-    * Set the state of the process.
+   * Set the state of the process.
+   *
    * @param state State to set.
    */
   private setState(state: ProcessState): void {
@@ -207,12 +212,14 @@ export class ManagedChildProcess extends EventEmitter {
       const oldState = this.state;
       this.state = state;
       this.emit('change', state);
-      onServiceChange.fire({ process: this, oldState, newState: state });
+      onServiceChange.fire({ process: this, oldState, newState: state })
+      .catch((err) => log.warn('Launcher', `Error during onServiceChange callback/n:ERROR: ${err}`));
     }
   }
 
   /**
    * Add an entry in the log.
+   *
    * @param content Content of the entry.
    */
   private logContent(content: string): void {
@@ -232,14 +239,19 @@ export class ManagedChildProcess extends EventEmitter {
     } catch (e) {
       console.warn(`ManagedChildProcess failed to log content: "${content}" (type: ${typeof content})`);
     }
-  }
+  };
 }
 
-/** Remove all newlines at the end of a string */
+/**
+ * Remove all newlines at the end of a string
+ *
+ * @deprecated Use string.trim()
+ * @param str String to trim
+ */
 function removeTrailingNewlines(str: string): string {
   let newString = str;
   while (newString.endsWith('\n')) {
-    newString = newString.substr(0, newString.length - 1);
+    newString = newString.substring(0, newString.length - 1);
   }
   return newString;
 }

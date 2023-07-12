@@ -1,15 +1,13 @@
-import * as React from 'react';
+import { BackInit } from '@shared/back/types';
 
 export type SplashScreenProps = {
-  gamesLoaded: boolean;
-  upgradesLoaded: boolean;
-  creditsLoaded: boolean;
-  miscLoaded: boolean;
+  quitting: boolean,
+  loadedAll: boolean;
+  loaded: { [key in BackInit]: boolean; };
 }
 
 export function SplashScreen(props: SplashScreenProps) {
-  const { gamesLoaded, upgradesLoaded, creditsLoaded, miscLoaded } = props;
-  const extraClass = (gamesLoaded && upgradesLoaded && creditsLoaded && miscLoaded)
+  const extraClass = (props.loadedAll && !props.quitting)
     ? ' splash-screen--fade-out'
     : '';
 
@@ -20,26 +18,36 @@ export function SplashScreen(props: SplashScreenProps) {
       </div>
       <div className='splash-screen__status-block'>
         <div className='splash-screen__status-header'>
-          Loading
+          { props.quitting ? 'Closing Down' : 'Loading' }
         </div>
-        { !gamesLoaded ? (
+        { !props.loaded[BackInit.DATABASE] ? (
           <div className='splash-screen__status'>
-            Games
+            Database
           </div>
         ) : undefined }
-        { !upgradesLoaded ? (
+        { !props.loaded[BackInit.PLAYLISTS] ? (
           <div className='splash-screen__status'>
-            Upgrades
+            Playlists
           </div>
         ) : undefined }
-        { !creditsLoaded ? (
+        { !props.loaded[BackInit.CURATE] ? (
           <div className='splash-screen__status'>
-            Credits
+            Curations
           </div>
         ) : undefined }
-        { !miscLoaded ? (
+        { !props.loaded[BackInit.SERVICES] ? (
           <div className='splash-screen__status'>
-            Misc
+            Services
+          </div>
+        ) : undefined }
+        { !props.loaded[BackInit.EXTENSIONS] ? (
+          <div className='splash-screen__status'>
+            Extensions
+          </div>
+        ) : undefined }
+        { !props.loaded[BackInit.EXEC_MAPPINGS] ? (
+          <div className='splash-screen__status'>
+            Exec Mappings
           </div>
         ) : undefined }
       </div>

@@ -22,12 +22,11 @@ export type AboutPageState = {
   profileY: number;
 };
 
-export interface AboutPage {
-  context: LangContainer;
-}
-
-/** Page displaying information about this launcher, the "BlueMaxima's Flashpoint" project and its contributors. */
+/** Page displaying information about this launcher, Flashpoint Archive and its contributors. */
 export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
+  static contextType = LangContext;
+  declare context: React.ContextType<typeof LangContext>;
+
   constructor(props: AboutPageProps) {
     super(props);
     this.state = {
@@ -66,7 +65,7 @@ export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
                       {strings.flashpointDesc}
                     </p>
                     <div className='about-page__section__links'>
-                      {link(strings.website, 'http://bluemaxima.org/flashpoint/')}
+                      {link(strings.website, 'http://flashpointarchive.org/')}
                       {link('Discord', 'https://discord.gg/Nc3DScn')}
                     </div>
                   </div>
@@ -118,13 +117,13 @@ export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
         profileY: event.clientY,
       });
     }
-  }
+  };
 
   onMouseLeaveCreditsIcon = () => {
     if (this.state.profile !== undefined) {
       this.setState({ profile: undefined });
     }
-  }
+  };
 
   renderProfileElements = memoizeOne((strings: LangContainer, creditsData: CreditsData | undefined) => {
     const roles: CreditsDataRole[] = creditsData ?
@@ -214,8 +213,6 @@ export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
       </React.Fragment>
     ));
   });
-
-  static contextType = LangContext;
 }
 
 function link(title: string, url: string): JSX.Element {

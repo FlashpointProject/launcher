@@ -1,5 +1,5 @@
 import * as remoteMain from '@electron/remote/main';
-import { Coerce } from '@shared/utils/Coerce';
+import * as Coerce from '@shared/utils/Coerce';
 import { startBrowserMode } from './BrowserMode';
 import { startLogger } from './LogsWindow';
 import { main } from './Main';
@@ -21,16 +21,18 @@ function getArgs(): Init {
   const init: Init = {
     args: {},
     rest: '',
+    protocol: undefined
   };
 
   const args = process.argv.slice(2);
+  init.protocol = args.find((arg) => arg.startsWith('flashpoint://'));
   let lastArgIndex = -1;
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     const eqIndex = arg.indexOf('=');
     if (eqIndex >= 0) {
-      const name = arg.substr(0, eqIndex);
-      const value = arg.substr(eqIndex + 1);
+      const name = arg.substring(0, eqIndex);
+      const value = arg.substring(eqIndex + 1);
       switch (name) {
         // String value
         case 'connect-remote':

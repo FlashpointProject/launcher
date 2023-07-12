@@ -1,15 +1,64 @@
 import { AppConfigData } from '@shared/config/interfaces';
+import { EditCurationMeta } from '@shared/curate/OLD_types';
 import { readJsonFile } from '@shared/Util';
-import { Coerce } from '@shared/utils/Coerce';
+import * as Coerce from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Application, ButtonContext, ContextButton, Contributions, DevScript, ExtConfiguration, ExtConfigurationProp, ExtensionType, ExtTheme, IExtension, IExtensionManifest, ILogoSet } from '../../shared/extensions/interfaces';
+import { Application, ButtonContext, ContextButton, Contributions, CurationTemplate, DevScript, ExtConfiguration, ExtConfigurationProp, ExtensionType, ExtTheme, IExtension, IExtensionManifest, ILogoSet } from '@shared/extensions/interfaces';
 
 const { str, num } = Coerce;
 const fsPromises = fs.promises;
 
-/** Scans all extensions in System and User paths and returns them. */
+export async function scanSystemExtensions(isDev: boolean): Promise<IExtension[]> {
+  const extensionPath = isDev ? './extensions' : './resources/extensions';
+
+  const result = new Map<string, IExtension>();
+
+  await fsPromises.readdir(extensionPath)
+  .then(filenames => {
+    // Each folder inside is an Extension
+    return Promise.all(filenames.map(async filename => {
+      // Make sure it is a folder or symlink folder
+      const stats = await fs.promises.stat(path.join(extensionPath, filename));
+      if (!stats.isDirectory()) { return; }
+      // Read Manifest
+      const manifestPath = path.join(extensionPath, filename, 'package.json');
+      return fsPromises.stat(manifestPath)
+      .then(async (stats) => {
+        // Manifest file (package.json) exists, continue loading extension
+        if (stats.isFile()) {
+          await fsPromises.access(manifestPath);
+          const ext = await parseExtension(manifestPath, ExtensionType.User);
+          if (result.get(ext.id) !== undefined) {
+            // An Extension with the same id has been registered earlier, latest read survives
+            log.warn('Extensions', `Overriding Extension ${ext.id} with extension at "${path.join(extensionPath, filename)}"`);
+          }
+          result.set(ext.id, ext);
+        }
+      })
+      .catch(err => log.error('Extensions', `Error loading User extension at "${filename}"\n${err}`));
+    }));
+  })
+  .catch(() => {
+    log.warn('Launcher', 'Failed to read System Extensions folder. This may be expected behaviour.');
+  });
+
+  // Convert the map to an array and return
+  const r: IExtension[] = [];
+  result.forEach((ext) => {
+    log.debug('Extensions', `System Extension Scanned "${ext.manifest.displayName || ext.manifest.name}" (${ext.id})`);
+    r.push(ext);
+  });
+  return r;
+}
+
+/**
+ * Scans all extensions in System and User paths and returns them.
+ *
+ * @param configData Application Config
+ * @param extensionPath Path to extensions folder
+ */
 export async function scanExtensions(configData: AppConfigData, extensionPath: string): Promise<IExtension[]> {
   const result = new Map<string, IExtension>();
 
@@ -55,7 +104,12 @@ export async function scanExtensions(configData: AppConfigData, extensionPath: s
   return r;
 }
 
-/** Returns the extensions ID given its author and name from its manifest */
+/**
+ * Returns the extensions ID given its author and name from its manifest
+ *
+ * @param author Author of the extension
+ * @param name Name of the extension
+ */
 function getExtensionID(author: string, name: string) {
   const fAuthor = author.toLowerCase().replace(' ', '-');
   if (name.includes(' ') || name.toLowerCase() !== name) {
@@ -64,7 +118,9 @@ function getExtensionID(author: string, name: string) {
   return `${fAuthor}.${name}`;
 }
 
-/** Parses an extension
+/**
+ * Parses an extension
+ *
  * @param extFilePath Path to the Extension Manifest (package.json)
  * @param type System or User extension
  * @returns Fully formed Extension
@@ -72,17 +128,17 @@ function getExtensionID(author: string, name: string) {
 async function parseExtension(extFilePath: string, type: ExtensionType): Promise<IExtension> {
   const data = await readJsonFile(extFilePath);
   const manifest = await parseExtensionManifest(data);
-  const ext: IExtension = {
+  return {
     id: getExtensionID(manifest.author, manifest.name),
     type: type,
     manifest: manifest,
     extensionPath: path.resolve(path.dirname(extFilePath))
   };
-  return ext;
 }
 
 /**
  * Parses the manifest file
+ *
  * @param data JSON data of manifest
  * @returns Parsed Manifest
  */
@@ -104,6 +160,7 @@ async function parseExtensionManifest(data: any) {
   parser.prop('description',      v => parsed.description     = str(v), true);
   parser.prop('icon',             v => parsed.icon            = str(v), true);
   parser.prop('main',             v => parsed.main            = str(v), true);
+  // Don't change this to v. Probably happens because it's a map.
   parser.prop('contributes',      v => parsed.contributes     = parseContributions(parser.prop('contributes')), true);
   return parsed;
 }
@@ -116,13 +173,15 @@ function parseContributions(parser: IObjectParserProp<Contributions>): Contribut
     contextButtons: [],
     applications: [],
     configuration: [],
+    curationTemplates: [],
   };
-  parser.prop('logoSets',       true).array(item => contributes.logoSets.push(parseLogoSet(item)));
-  parser.prop('themes',         true).array(item => contributes.themes.push(parseTheme(item)));
-  parser.prop('devScripts',     true).array(item => contributes.devScripts.push(parseDevScript(item)));
-  parser.prop('contextButtons', true).array(item => contributes.contextButtons.push(parseContextButton(item)));
-  parser.prop('applications',   true).array(item => contributes.applications.push(parseApplication(item)));
-  parser.prop('configuration', true).array(item => contributes.configuration.push(parseConfiguration(item)));
+  parser.prop('logoSets',          true).array(item => contributes.logoSets.push(parseLogoSet(item)));
+  parser.prop('themes',            true).array(item => contributes.themes.push(parseTheme(item)));
+  parser.prop('devScripts',        true).array(item => contributes.devScripts.push(parseDevScript(item)));
+  parser.prop('contextButtons',    true).array(item => contributes.contextButtons.push(parseContextButton(item)));
+  parser.prop('applications',      true).array(item => contributes.applications.push(parseApplication(item)));
+  parser.prop('configuration',     true).array(item => contributes.configuration.push(parseConfiguration(item)));
+  parser.prop('curationTemplates', true).array(item => contributes.curationTemplates.push(parseCurationTemplate(item)));
   return contributes;
 }
 
@@ -167,9 +226,10 @@ function parseContextButton(parser: IObjectParserProp<ContextButton>): ContextBu
     name: '',
     command: ''
   };
-  parser.prop('context',     v => contextButton.context     = parseButtonContext(v));
-  parser.prop('name',        v => contextButton.name        = str(v));
-  parser.prop('command',     v => contextButton.command     = str(v));
+  parser.prop('context',           v => contextButton.context           = parseButtonContext(v));
+  parser.prop('name',              v => contextButton.name              = str(v));
+  parser.prop('command',           v => contextButton.command           = str(v));
+  parser.prop('runWithNoCuration', v => contextButton.runWithNoCuration = !!v, true);
   return contextButton;
 }
 
@@ -208,6 +268,47 @@ function parseConfiguration(parser: IObjectParserProp<ExtConfiguration>): ExtCon
   return configuration;
 }
 
+function parseCurationTemplate(parser: IObjectParserProp<CurationTemplate>): CurationTemplate {
+  const curationTemplate: CurationTemplate = {
+    name: '',
+    logo: '',
+    meta: {}
+  };
+
+  parser.prop('name', v => curationTemplate.name = str(v));
+  parser.prop('logo', v => curationTemplate.logo = str(v));
+  curationTemplate.meta = parseCurationMeta(parser.prop('meta'));
+
+  // @TODO reuse code
+
+  return curationTemplate;
+}
+
+function parseCurationMeta(parser: IObjectParserProp<EditCurationMeta>): EditCurationMeta {
+  const parsed: EditCurationMeta = {};
+
+  parser.prop('notes',                v => parsed.notes               = str(v));
+  parser.prop('applicationPath',      v => parsed.applicationPath     = str(v));
+  parser.prop('curationNotes',        v => parsed.curationNotes       = str(v));
+  parser.prop('developer',            v => parsed.developer           = arrayStr(v));
+  parser.prop('extreme',              v => parsed.extreme             = str(v).toLowerCase() === 'yes');
+  parser.prop('language',             v => parsed.language            = arrayStr(v));
+  parser.prop('launchCommand',        v => parsed.launchCommand       = str(v));
+  parser.prop('originalDescription',  v => parsed.originalDescription = str(v));
+  parser.prop('playMode',             v => parsed.playMode            = arrayStr(v));
+  parser.prop('publisher',            v => parsed.publisher           = arrayStr(v));
+  parser.prop('releaseDate',          v => parsed.releaseDate         = str(v));
+  parser.prop('series',               v => parsed.series              = str(v));
+  parser.prop('source',               v => parsed.source              = str(v));
+  parser.prop('status',               v => parsed.status              = str(v));
+  parser.prop('title',                v => parsed.title               = str(v));
+  parser.prop('alternateTitles',      v => parsed.alternateTitles     = arrayStr(v));
+  parser.prop('version',              v => parsed.version             = str(v));
+  parser.prop('library',              v => parsed.library             = str(v).toLowerCase()); // must be lower case
+
+  return parsed;
+}
+
 function parseConfigurationProperty(parser: IObjectParserProp<ExtConfigurationProp>): ExtConfigurationProp {
   const prop: ExtConfigurationProp = {
     title: '',
@@ -233,4 +334,13 @@ function toPropType(v: any): ExtConfigurationProp['type'] {
   } else {
     throw new Error('Configuration prop type is not valid. (string, object, number or boolean)');
   }
+}
+
+// Coerce an object into a sensible string
+function arrayStr(rawStr: any): string {
+  if (Array.isArray(rawStr)) {
+    // Convert lists to ; separated strings
+    return rawStr.join('; ');
+  }
+  return str(rawStr);
 }

@@ -3,8 +3,8 @@ import { FancyAnimation } from './FancyAnimation';
 
 type ResizableSidebarProps = {
   className?: string;
-  /** If the sidebar should not be visible. */
-  hide: boolean;
+  /** If the sidebar should be visible. */
+  show: boolean;
   /** Where the divider should be located (relative to the sidebar). */
   divider: DividerOrientation;
   /** Width of the whole sidebar (in pixels). */
@@ -15,6 +15,7 @@ type ResizableSidebarProps = {
   onResize?: (event: SidebarResizeEvent) => void;
   /** Called when ending the resize the sidebar (when the divider is released). */
   onResizeEnd?: () => void;
+  children?: React.ReactNode;
 };
 
 type ResizableSidebarState = {
@@ -58,22 +59,22 @@ export class ResizableSidebar extends React.Component<ResizableSidebarProps, Res
   }
 
   render() {
-    const { hide, className, divider, width } = this.props;
+    const { show, className, divider, width } = this.props;
     return (
       <div
         className={
           'game-browser__sidebar' +
           (className ? ' '+className+' ' : '') +
-          (hide ? '' : ' game-browser__sidebar--hidden')
+          (show ? '' : ' game-browser__sidebar--hidden')
         }
         style={{ width }}
         ref={this.sidebarRef}>
         <div className='game-browser__sidebar__inner'>
-          { divider === 'before' && this.renderDivider() }
+          { divider === 'before' && show && this.renderDivider() }
           <div className='game-browser__sidebar__content simple-scroll'>
             {this.props.children}
           </div>
-          { divider === 'after' && this.renderDivider() }
+          { divider === 'after' && show && this.renderDivider() }
         </div>
       </div>
     );
@@ -107,7 +108,7 @@ export class ResizableSidebar extends React.Component<ResizableSidebarProps, Res
       if (this.props.onResizeStart) { this.props.onResizeStart(); }
       event.preventDefault();
     }
-  }
+  };
 
   onMouseUp = (event: MouseEvent): void => {
     if (event.button === 0 && this.state.isDragging) {
@@ -115,14 +116,14 @@ export class ResizableSidebar extends React.Component<ResizableSidebarProps, Res
       if (this.props.onResizeEnd) { this.props.onResizeEnd(); }
       event.preventDefault();
     }
-  }
+  };
 
   onMouseMove = (event: MouseEvent): void => {
     if (this.state.isDragging) {
       const { startX, startWidth } = this.state;
       if (this.props.onResize) { this.props.onResize({ event, startX, startWidth }); }
     }
-  }
+  };
 }
 
 type DividerOrientation = 'before' | 'after';

@@ -1,6 +1,6 @@
 import { GameMetaDefaults } from '@shared/curate/defaultValues';
 import { generateExtrasAddApp, generateMessageAddApp, ParsedCurationMeta } from '@shared/curate/parse';
-import { CurationIndexImage, EditAddAppCurationMeta, EditCuration, EditCurationMeta, IndexedContent } from '@shared/curate/types';
+import { CurationIndexImage, EditAddAppCurationMeta, EditCuration, EditCurationMeta, IndexedContent } from '@shared/curate/OLD_types';
 import { createContextReducer } from '../context-reducer/contextReducer';
 import { ReducerAction } from '../context-reducer/interfaces';
 import { createCurationIndexImage } from '../curate/importCuration';
@@ -17,7 +17,12 @@ export const CurationContext = createContextReducer(
   curationDefaultState
 );
 
-/** Reducer for the curation state. */
+/**
+ * Reducer for the curation state.
+ *
+ * @param prevState Previous curation state
+ * @param action Action to perform on state
+ */
 function curationReducer(prevState: CurationsState, action: CurationAction): CurationsState {
   // Things to keep in mind when writing an action handler:
   // * Don't mutate the previous state or the action object.
@@ -26,7 +31,6 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
   //   changed). This should be applied "recursively" so you can trace all the changed values from the
   //   root state object.
   switch (action.type) {
-    default: throw new Error(`Invalid or not-yet-supported action type (type: "${(action as any).type}").`);
     // Remove curation
     case 'remove-curation': {
       // Find the curation
@@ -241,10 +245,13 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
       nextCurations[index] = action.payload.curation;
       return { ...prevState, curations: nextCurations };
     }
+    default: throw new Error(`Invalid or not-yet-supported action type (type: "${(action as any).type}").`);
   }
 }
 
-/** Ensure a curation exists in the state
+/**
+ * Ensure a curation exists in the state
+ *
  * @param curations Mutable CurationState
  * @param key Unique curation key to find
  * @returns Index of the curation inside the CurationState
@@ -257,7 +264,11 @@ function ensureCurationIndex(curations: EditCuration[], key: string): number {
   return index;
 }
 
-/** Create an "empty" edit curation. */
+/**
+ * Create an "empty" edit curation.
+ *
+ * @param key Folder / Key of the new curation
+ */
 export function createEditCuration(key: string): EditCuration {
   return {
     key: key,

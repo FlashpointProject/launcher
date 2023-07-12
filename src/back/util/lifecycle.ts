@@ -8,8 +8,12 @@ export type Disposable = {
   onDispose?: () => void;
 }
 
-/** Dispose of a disposable and all its children */
-export function dispose<T>(disposable: Disposable) {
+/**
+ * Dispose of a disposable and all its children
+ *
+ * @param disposable Disposable to dispose of
+ */
+export function dispose(disposable: Disposable) {
   if (disposable.isDisposed) {
     return;
   }
@@ -21,13 +25,22 @@ export function dispose<T>(disposable: Disposable) {
   }
 }
 
-/** Dispose of all a disposable's children but not itself */
+/**
+ * Dispose of all a disposable's children but not itself
+ *
+ * @param disposable Disposable to dispose the children of and then clear
+ */
 export function clearDisposable(disposable: Disposable) {
   disposable.toDispose.forEach(d => dispose(d));
   disposable.toDispose = [];
 }
 
-/** Register a disposable to its parent. They must not be the same. */
+/**
+ * Register a disposable to its parent. They must not be the same.
+ *
+ * @param parent Parent disposable
+ * @param child Child disposable to chain to parent
+ */
 export function registerDisposable(parent: Disposable, child: Disposable) {
   if (parent == child) {
     throw new Error('Cannot add disposable to itself!');
@@ -38,7 +51,12 @@ export function registerDisposable(parent: Disposable, child: Disposable) {
   parent.toDispose.push(child);
 }
 
-/** Creates Disposable data to fill a newly created Disposable type object */
+/**
+ * Creates Disposable data to fill a newly created Disposable type object
+ *
+ * @param onDispose Called when the returned Disposable is disposed
+ * @returns Disposable
+ */
 export function newDisposable(onDispose?: () => void): Disposable {
   return {
     toDispose: [],

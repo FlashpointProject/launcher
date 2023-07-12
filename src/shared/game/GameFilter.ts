@@ -1,5 +1,5 @@
 import { Game } from '@database/entity/Game';
-import { GameOrderBy, GameOrderReverse } from '../order/interfaces';
+import { GameOrderBy, GameOrderReverse, Playlist } from 'flashpoint-launcher';
 
 const blacklistFields = ['not', 'no', 'missing'];
 const whitelistFields = ['is', 'has'];
@@ -8,6 +8,7 @@ const falsePhrases = ['false', 'none', 'no'];
 
 /**
  * Parse a search query text into an object.
+ *
  * @param text Search query text.
  */
 export function parseSearchText(text: string): ParsedSearch {
@@ -56,7 +57,7 @@ export function parseSearchText(text: string): ParsedSearch {
           }
           const inverse = tempPhrase.charAt(0) === '-';
           // Get quick search from created temp phrase (If undefined, there is no quick search)
-          const filter = parseQuickSearch(inverse ? tempPhrase.substr(1) : tempPhrase);
+          const filter = parseQuickSearch(inverse ? tempPhrase.substring(1) : tempPhrase);
           // Process as a field filter
           if (filter) {
             if (inverse) { parsed.blacklist.push(filter); }
@@ -67,7 +68,6 @@ export function parseSearchText(text: string): ParsedSearch {
             if (inverse) { parsed.genericBlacklist.push(phrase); }
             else         { parsed.genericWhitelist.push(phrase); }
           }
-          continue;
         } else {
           parsed.genericWhitelist.push(phrase);
         }
@@ -79,38 +79,59 @@ export function parseSearchText(text: string): ParsedSearch {
 
 /**
  * Parse a "quick search" into an object.
+ *
  * @param text Quick search text to parse.
  */
 function parseQuickSearch(text: string): FieldFilter | undefined {
   switch (text.charAt(0)) {
     case '@':
-      return { field: 'developer', value: text.substring(1) };
+      return { field: convertField('developer'), value: text.substring(1) };
     case '#':
-      return { field: 'tag', value: text.substring(1) };
+      return { field: convertField('tag'), value: text.substring(1) };
     case '!':
-      return { field: 'platform', value: text.substring(1) };
+      return { field: convertField('platform'), value: text.substring(1) };
   }
 }
 
-/** Outputs the correct field filter onto `parsed` */
+/**
+ * Outputs the correct field filter onto the Search object
+ *
+ * @param field First half of the filter (first:second)
+ * @param phrase Second half of the filter (first:second)
+ * @param inverse Negate the comparison
+ * @param parsed Search object to append this filter to
+ */
 function handleFieldFilter(field: string, phrase: string, inverse: boolean, parsed: ParsedSearch) {
   // missing:field
   if (blacklistFields.includes(field)) {
     const formattedPhrase: string | boolean = booleanFields.includes(phrase) ? false : '';
-    parsed.whitelist.push({field: phrase, value: formattedPhrase});
+    parsed.whitelist.push({field: convertField(phrase), value: formattedPhrase});
   // has:field
   } else if (whitelistFields.includes(field)) {
     const formattedPhrase: string | boolean = booleanFields.includes(phrase) ? false : '';
-    parsed.blacklist.push({field: phrase, value: formattedPhrase});
+    parsed.blacklist.push({field: convertField(phrase), value: formattedPhrase});
   // field:phrase
   } else {
     const formattedPhrase: string | boolean = booleanFields.includes(field) ? !falsePhrases.includes(phrase) : phrase;
-    const gameField = field as keyof Game;
+    const gameField = convertField(field);
     if (inverse) {
       parsed.blacklist.push({field: gameField, value: formattedPhrase});
     } else {
       parsed.whitelist.push({field: gameField, value: formattedPhrase});
     }
+  }
+}
+
+function convertField(field: string): keyof Game {
+  switch (field) {
+    case 'platform':
+      return 'platformName';
+    case 'tech':
+      return 'platforms';
+    case 'played':
+      return 'lastPlayed';
+    default:
+      return field as keyof Game;
   }
 }
 
@@ -141,7 +162,7 @@ export type FilterGameOpts = {
   /** Search Limit (0 if disabled */
   searchLimit?: number;
   /** Playlist to limit the results to (no playlist limit will be applied if undefined). */
-  playlistId?: string;
+  playlist?: Playlist;
 };
 
 export type OrderGamesOpts = {
@@ -153,6 +174,7 @@ export type OrderGamesOpts = {
 
 /**
  * Wrap a search term in quotes if they are needed (to keep it as a single search term).
+ *
  * @param text Search term to wrap.
  */
 export function wrapSearchTerm(text: string): string {

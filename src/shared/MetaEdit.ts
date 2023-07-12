@@ -7,7 +7,7 @@ export type MetaEditMetaMap = Partial<{
   series: string;
   developer: string;
   publisher: string;
-  platform: string;
+  platforms: string[];
   broken: boolean;
   extreme: boolean;
   playMode: string;
@@ -15,8 +15,6 @@ export type MetaEditMetaMap = Partial<{
   notes: string;
   tags: string[];
   source: string;
-  applicationPath: string;
-  launchCommand: string;
   releaseDate: string;
   version: string;
   originalDescription: string;

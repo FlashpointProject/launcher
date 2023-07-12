@@ -2,11 +2,10 @@ import { ConfigFile } from '@back/ConfigFile';
 import { CONFIG_FILENAME, PREFERENCES_FILENAME } from '@back/constants';
 import * as remoteMain from '@electron/remote/main';
 import { AppConfigData } from '@shared/config/interfaces';
-import { AppPreferencesData } from '@shared/preferences/interfaces';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { createErrorProxy } from '@shared/Util';
 import { app, BrowserWindow, session, shell } from 'electron';
-import * as fs from 'fs';
+import { AppPreferencesData } from 'flashpoint-launcher';
 import * as path from 'path';
 import { Init } from './types';
 import { getMainFolderPath } from './Util';
@@ -40,8 +39,7 @@ export async function startBrowserMode(init: Init): Promise<void> {
     app.once('web-contents-created', onAppWebContentsCreated);
     app.on('activate', onAppActivate);
 
-    const installed = fs.existsSync('./.installed');
-    state.mainFolderPath = getMainFolderPath(installed);
+    state.mainFolderPath = getMainFolderPath();
     state.config = ConfigFile.readOrCreateFileSync(path.join(state.mainFolderPath, CONFIG_FILENAME));
     state.prefs = PreferencesFile.readOrCreateFileSync(path.join(state.config.flashpointPath, PREFERENCES_FILENAME));
 

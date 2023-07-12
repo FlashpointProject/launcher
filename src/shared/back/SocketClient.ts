@@ -1,7 +1,7 @@
 import { parse_message_data, validate_socket_message } from '@shared/socket/shared';
 import { api_handle_message, api_register, api_register_any, api_unregister, api_unregister_any, create_api, SocketAPIData } from '@shared/socket/SocketAPI';
 import { server_request, server_send, SocketServerClient } from '@shared/socket/SocketServer';
-import { BaseSocket, SocketResponseData, isErrorResponse } from '@shared/socket/types';
+import { BaseSocket, SocketResponseData } from '@shared/socket/types';
 import { BackIn, BackInTemplate, BackOut, BackOutTemplate } from './types';
 
 interface SocketConstructor<T> {
@@ -23,6 +23,9 @@ type AnyCallback<T, U extends number> = (event: T, type: U, args: any[]) => void
 export class SocketClient<SOCKET extends BaseSocket> {
   api: SocketAPIData<BackOut, BackOutTemplate, EVENT> = create_api();
 
+  /** If true, do not attempt to reconnect */
+  abortReconnects = false;
+
   client: SocketServerClient<BackIn, BackInTemplate, SOCKET> = {
     id: -1, // Unused (only used by servers)
     next_id: 0,
@@ -40,13 +43,17 @@ export class SocketClient<SOCKET extends BaseSocket> {
   /** Callbacks for when the socket starts listening. */
   protected when_listeners: (() => void)[] = [];
 
-  constructor(socketCon: SocketConstructor<SOCKET>) {
+  constructor(
+    socketCon: SocketConstructor<SOCKET>,
+    private onFatal?: () => void,
+    public onStateChange?: (open: boolean) => void,
+  ) {
     this.socketCon = socketCon;
   }
 
   /** Resolves when the socket starts listening. If it is already listening this is resolved immediately. */
   whenListening(): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       if (this.client.socket && this.client.socket.readyState === WebSocket.OPEN) {
         resolve();
       } else {
@@ -59,7 +66,7 @@ export class SocketClient<SOCKET extends BaseSocket> {
     this.keepOpen = true;
     this.client.socket = socket;
     this.client.socket.onmessage = this.onMessage.bind(this);
-    // this.client.socket.onerror = this.onError;
+    this.client.socket.onerror = this.onError.bind(this);
     this.client.socket.onclose = this.onClose.bind(this);
     this.client.socket.onopen = this.onOpen.bind(this);
     this.ensureConnection();
@@ -90,7 +97,11 @@ export class SocketClient<SOCKET extends BaseSocket> {
     }
   }
 
-  /** Open a new socket and try to connect again. */
+  /**
+   * Open a new socket and try to connect again.
+   *
+   * @param count Number of current retries
+   */
   async reconnect(count = 1): Promise<void> {
     if (this.keepOpen) {
       // Disconnect
@@ -104,7 +115,12 @@ export class SocketClient<SOCKET extends BaseSocket> {
         // Connect
         console.log(`Reconnecting to ${this.url} - Attempt ${count}`);
         return SocketClient.connect(this.socketCon, this.url, this.secret)
-        .then(socket => { this.setSocket(socket); })
+        .then(socket => {
+          this.setSocket(socket);
+          if (this.onStateChange) {
+            this.onStateChange(true);
+          }
+        })
         .catch(async (error) => {
           if (count < 5) {
             console.error(`Failed Connection Attempt: ${error}`);
@@ -114,6 +130,9 @@ export class SocketClient<SOCKET extends BaseSocket> {
             return this.reconnect(count + 1);
           } else {
             console.error(`Reconnecting failed ${count} times, please restart the application.`);
+            if (this.onFatal) {
+              this.onFatal();
+            }
           }
         });
       } else {
@@ -152,6 +171,7 @@ export class SocketClient<SOCKET extends BaseSocket> {
   /**
    * Send a request to the client.
    * An error is thrown if the server throws an error while handling the request or if the message fails to be sent/received.
+   *
    * @param type Type of the request.
    * @param args Arguments of the request.
    * @returns The result of the request.
@@ -164,10 +184,13 @@ export class SocketClient<SOCKET extends BaseSocket> {
     server_send(this.client, type, ...args);
   }
 
+  allowDeath(): void {
+    this.abortReconnects = true;
+  }
+
   // Event Handlers
 
   protected async onMessage(event: EVENT): Promise<void> {
-    log('Socket Client - Message received');
 
     // Parse
 
@@ -195,12 +218,6 @@ export class SocketClient<SOCKET extends BaseSocket> {
       const index = this.client.sent.findIndex(sent => sent.id === inc.id);
       const sent = this.client.sent[index];
       if (sent) {
-        log(
-          '  Response',
-          '\n    ID:    ', inc.id,
-          '\n    Result:', isErrorResponse(inc) ? undefined : inc.result,
-          '\n    Error: ', isErrorResponse(inc) ? inc.error : undefined,
-        );
 
         this.client.sent.splice(index, 1);
         sent.resolve(inc as SocketResponseData<BackInTemplate[BackIn]>);
@@ -214,6 +231,13 @@ export class SocketClient<SOCKET extends BaseSocket> {
     }
   }
 
+  protected onError(err: any): void {
+    console.log(`Socket Error - ${err}`);
+    if (!this.abortReconnects) {
+      this.reconnect();
+    }
+  }
+
   protected onOpen(): void {
     const listeners = this.when_listeners.slice();
     this.when_listeners.length = 0;
@@ -224,8 +248,15 @@ export class SocketClient<SOCKET extends BaseSocket> {
   }
 
   protected onClose(event: CloseEvent): void {
-    console.log(`SharedSocket Closed (Code: ${event.code}, Clean: ${event.wasClean}, Reason: "${event.reason}", URL: "${this.url}").`);
-    this.reconnect();
+    if (this.abortReconnects) {
+      console.log('Socket Client - Connection closed.');
+    } else {
+      console.log(`SharedSocket Closed (Code: ${event.code}, Clean: ${event.wasClean}, Reason: "${event.reason}", URL: "${this.url}").`);
+      if (this.onStateChange) {
+        this.onStateChange(false);
+      }
+      this.reconnect();
+    }
   }
 
   // Static
@@ -246,9 +277,4 @@ export class SocketClient<SOCKET extends BaseSocket> {
     });
   }
 }
-
-function log(...args: any[]): void {
-  // console.log(...args);
-}
-
 function noop() { /* Does nothing. */ }

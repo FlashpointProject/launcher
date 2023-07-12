@@ -187,6 +187,7 @@ export namespace LaunchBox {
   /**
    * Format the result of "fast-xml-parser" into a structured object.
    * This ensures that all types that will be used exists and is of the proper type.
+   *
    * @param data Object to format.
    */
   export function formatPlatformFileData(data: any): data is Legacy_IRawPlatformFile {

@@ -1,7 +1,6 @@
 import * as remote from '@electron/remote';
 import { BackIn, BackOut } from '@shared/back/types';
 import { ArgumentTypesOf } from '@shared/interfaces';
-import { LangContainer } from '@shared/lang';
 import { LogLevel } from '@shared/Log/interface';
 import { stringifyLogEntries } from '@shared/Log/LogCommon';
 import { memoizeOne } from '@shared/memoize';
@@ -32,11 +31,11 @@ const sourceLabels = [
   'Extensions',
 ];
 const levelLabels = [
-  LogLevel[0],
-  LogLevel[1],
-  LogLevel[2],
-  LogLevel[3],
-  LogLevel[4],
+  LogLevel.TRACE,
+  LogLevel.DEBUG,
+  LogLevel.INFO,
+  LogLevel.WARN,
+  LogLevel.ERROR,
 ];
 
 export type LogsPageState = {
@@ -48,12 +47,11 @@ export type LogsPageState = {
   fetchedDiagnostics: boolean;
 }
 
-export interface LogsPage {
-  context: LangContainer;
-}
-
 /** Page displaying this launcher's log. */
 export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
+  static contextType = LangContext;
+  declare context: React.ContextType<typeof LangContext>;
+
   stringifyLogEntriesMemo = memoizeOne(stringifyLogEntries, stringifyLogEntriesEquals);
 
   constructor(props: LogsPageProps) {
@@ -125,7 +123,7 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
                     </div>
                     <div className='simple-center'>
                       <p className='simple-center__vertical-inner log-page__dropdown-item-text'>
-                        {label}
+                        {LogLevel[label]}
                       </p>
                     </div>
                   </label>
@@ -219,13 +217,13 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
     if (!navigator.clipboard) { throw new Error('Clipboard API is not available.'); }
     const logData = this.getLogString();
     navigator.clipboard.writeText(parseHtmlToText(logData));
-  }
+  };
 
   onClearClick = (): void => {
     window.Shared.log.offset += window.Shared.log.entries.length;
     window.Shared.log.entries = [];
     this.forceUpdate();
-  }
+  };
 
   onCopy404Click = (): void => {
     // Store found URLs
@@ -242,11 +240,11 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
     }
     // Copy with each URL on a new line
     clipboard.writeText(urls.join('\n'));
-  }
+  };
 
   onOpenLogsWindowClick = async (): Promise<void> => {
     window.Shared.back.send(BackIn.OPEN_LOGS_WINDOW);
-  }
+  };
 
   onCopyDiagnosticsClick = async (): Promise<void> => {
     window.Shared.back.request(BackIn.FETCH_DIAGNOSTICS)
@@ -254,7 +252,7 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
       this.setState({ fetchedDiagnostics: true });
       clipboard.writeText(diagnostics);
     });
-  }
+  };
 
   onUploadClick = async (): Promise<void> => {
     this.setState({ uploading: true });
@@ -279,7 +277,7 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
     } else {
       this.setState({ uploading: false });
     }
-  }
+  };
 
   onSourceCheckboxClick = (index: number): void => {
     const label = sourceLabels[index];
@@ -290,7 +288,7 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
         [label]: !getBoolean(showLogSource[label]),
       },
     });
-  }
+  };
 
   onLevelCheckboxClick = (index: number): void => {
     const { showLogLevel } = this.props.preferencesData;
@@ -300,17 +298,16 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
         [index]: !getBoolean(showLogLevel[index as LogLevel]),
       },
     });
-  }
+  };
 
   onMessage: Parameters<typeof window.Shared.back.registerAny>[0] = (event, type) => {
     if (type === BackOut.LOG_ENTRY_ADDED) { this.forceUpdate(); }
-  }
-
-  static contextType = LangContext;
+  };
 }
 
 /**
  * Parse a HTML string into plain text (potentially unsafe).
+ *
  * @param text HTML string.
  * @returns text representation of HTML.
  */
@@ -320,7 +317,11 @@ function parseHtmlToText(text: string): string {
   return element.innerText;
 }
 
-/** Convert "boolean | undefined" to "boolean" (undefined is converted to true). */
+/**
+ * Coerce undefined values to true
+ *
+ * @param value Value to coerce
+ */
 function getBoolean(value?: boolean): boolean {
   return (value === undefined) ? true : value;
 }

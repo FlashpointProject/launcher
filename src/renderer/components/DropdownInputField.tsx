@@ -117,7 +117,7 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
         this.setState({ expanded: false });
       }
     }
-  }
+  };
 
   onGlobalKeyDown = (event: KeyboardEvent): void => {
     if (this.state.expanded && event.key === 'Escape') {
@@ -125,7 +125,7 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
       if (!this.inputRef.current) { throw new Error('input field is missing'); }
       this.inputRef.current.focus();
     }
-  }
+  };
 
   onListItemClick = (event: React.MouseEvent): void => {
     if (!this.props.disabled) {
@@ -137,7 +137,7 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
         }
       }
     }
-  }
+  };
 
   onListItemKeyDown = (event: React.KeyboardEvent): void => {
     if (!this.props.disabled) {
@@ -169,21 +169,21 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
         if (!this.state.expanded) { this.setState({ expanded: true }); }
       }
     }
-  }
+  };
 
   onBlur = (event: React.FocusEvent): void => {
     const { relatedTarget } = event;
     if (relatedTarget && !checkIfAncestor(relatedTarget as any, this.rootRef.current)) {
       this.setState({ expanded: false });
     }
-  }
+  };
 
   onInputChange = (event: React.ChangeEvent<InputElement>): void => {
     if (!this.props.disabled) {
       if (!this.state.expanded) { this.setState({ expanded: true }); }
       if (this.props.onChange) { this.props.onChange(event); }
     }
-  }
+  };
 
   onInputKeyDown = (event: React.KeyboardEvent<InputElement>): void => {
     if (!this.props.disabled) {
@@ -200,13 +200,13 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
       // Relay event
       if (this.props.onKeyDown) { this.props.onKeyDown(event); }
     }
-  }
+  };
 
   onExpandButtonMouseDown = (): void => {
     if (!this.props.disabled) {
       this.setState({ expanded: !this.state.expanded });
     }
-  }
+  };
 
   /**
    * Call the "ref" property functions.
@@ -219,7 +219,7 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
   }
 }
 
-/** Get the index of an item element (or -1 if index was not found). */
+// Get the index of an item element (or -1 if index was not found).
 function getListItemIndex(target: any): number {
   if (target instanceof Element || target instanceof HTMLElement) {
     return parseInt(target.getAttribute('data-dropdown-index') || '-1', 10);
@@ -227,7 +227,7 @@ function getListItemIndex(target: any): number {
   return -1;
 }
 
-/** Check if two arrays are of equal length and contains the exact same items in the same order. */
+// Check if two arrays are of equal length and contains the exact same items in the same order.
 function checkIfArraysAreEqual(a: Array<any>, b: Array<any>): boolean {
   if (a.length !== b.length) { return false; }
   for (let i = a.length; i >= 0; i--) {

@@ -1,18 +1,14 @@
-import * as React from 'react';
-import { useMemo } from 'react';
-import { updatePreferencesData } from '@shared/preferences/util';
-import { GameOrderBy } from '@shared/order/interfaces';
-import { OpenIcon } from './OpenIcon';
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
+import { updatePreferencesData } from '@shared/preferences/util';
+import { GameOrderBy } from 'flashpoint-launcher';
+import { useMemo } from 'react';
+import { OpenIcon } from './OpenIcon';
 
 export type GameListHeaderProps = WithPreferencesProps & {
   showExtremeIcon: boolean;
 };
 
-/**
- * Header on top of the GameList.
- * It contains the resizable columns that decide how wide each column is.
- */
+// Header on top of the GameList. It contains the resizable columns that decide how wide each column is.
 export function GameListHeader(props: GameListHeaderProps) {
   const {gamesOrderBy, gamesOrder} = props.preferencesData;
 
@@ -21,7 +17,7 @@ export function GameListHeader(props: GameListHeaderProps) {
       { props.showExtremeIcon ? (
         <Column modifier='icon' hideDivider={true} />
       ) : undefined}
-      <SortableColumn modifier='icon' hideDivider={true} orderBy='platform' preferencesData={props.preferencesData} />
+      <SortableColumn modifier='icon' hideDivider={true} orderBy='platformsStr' preferencesData={props.preferencesData} />
       <div className='game-list-header__right'>
         <SortableColumn
           title='Title'

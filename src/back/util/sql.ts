@@ -2,6 +2,7 @@
  * Validate an SQL name.
  * Some valid names will be treated as invalid to keep this function simple.
  * Source: https://social.msdn.microsoft.com/Forums/sqlserver/en-US/154c19c4-95ba-4b6f-b6ca-479288feabfb/characters-that-are-not-allowed-in-table-name-amp-column-name-in-sql-server-?forum=databasedesign
+ *
  * @param name Name of an SQL table or field.
  * @throws Throws an error if the name is invalid.
  */
@@ -26,6 +27,7 @@ export function validateSqlName(name: string): void {
 
 /**
  * Validate an SQL order value ("ASC" or "DESC").
+ *
  * @param val String to validate.
  * @throws Throws an error if the value is invalid.
  */

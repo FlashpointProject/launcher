@@ -1,7 +1,7 @@
 
 import { createContextReducer } from '../context-reducer/contextReducer';
 import { ReducerAction } from '../context-reducer/interfaces';
-import { uuid } from '@shared/utils/uuid';
+import { Dispatch } from 'react';
 
 export type ProgressData = {
   /* Key identifier */
@@ -86,8 +86,13 @@ export const ProgressContext = createContextReducer(
   defaultProgressState
 );
 
-/** Reducer for the progress state. */
-function progressReducer(prevState: Record<string, (ProgressData[]|undefined)>, action: ProgressAction) {
+/**
+ * Reducer for the progress state.
+ *
+ * @param prevState Previous progress state
+ * @param action Action to perform on state
+ */
+function progressReducer(prevState: Record<string, (ProgressData[]|undefined)>, action: ProgressAction): Record<string, (ProgressData[]|undefined)> {
   // Things to keep in mind when writing an action handler:
   // * Don't mutate the previous state or the action object.
   // * Objects/Arrays that have at least one property/element change value should be copied, so that
@@ -175,8 +180,9 @@ function progressReducer(prevState: Record<string, (ProgressData[]|undefined)>, 
 
 /**
  * Returns the ProgressData of a parent (initializes it if necessary)
+ *
  * @param state Mutable ProgressState
- * @param key Parent's Key
+ * @param parentKey Parent's Key
  */
 function ensureParent(state: Record<string, (ProgressData[]|undefined)>, parentKey: string): ProgressData[] {
   const parent = state[parentKey];
@@ -190,6 +196,7 @@ function ensureParent(state: Record<string, (ProgressData[]|undefined)>, parentK
 
 /**
  * Returns the index to the unique ProgressData inside a parent's ProgressData array
+ *
  * @param state State of a parent's ProgressData ( state[parentKey] )
  * @param key Unique progress key
  */
@@ -211,25 +218,11 @@ function ensureProgressIndex(state: ProgressData[], key: string): number {
   }
 }
 
-/**
- * Return a new ProgressHandle to be given out to other functions
- * @param parentKey Identifier of parent (page, component etc.)
- * @param dispatch Dispatcher to ProgressContext
- * @returns Handle containing all data necessary to dispatch ProgressAction's
- */
-export function newProgress(parentKey: string, dispatch: React.Dispatch<ProgressAction>): ProgressHandle {
-  return {
-    parentKey: parentKey,
-    key: uuid(),
-    dispatch: dispatch
-  };
-}
-
 /** Passed around to allow recording progress */
 export type ProgressHandle = {
   parentKey: string;
   key: string;
-  dispatch: React.Dispatch<ProgressAction>;
+  dispatch: Dispatch<ProgressAction>;
 }
 
 
@@ -244,7 +237,7 @@ export class ProgressDispatch {
         percentDone: percentDone
       }
     });
-  }
+  };
 
   public static setUsePercentDone = (handle: ProgressHandle, usePercentDone: boolean) => {
     handle.dispatch({
@@ -255,7 +248,7 @@ export class ProgressDispatch {
         usePercentDone: usePercentDone
       }
     });
-  }
+  };
 
   public static setText = (handle: ProgressHandle, text: string) => {
     handle.dispatch({
@@ -266,7 +259,7 @@ export class ProgressDispatch {
         text: text
       }
     });
-  }
+  };
 
   public static setSecondaryText = (handle: ProgressHandle, text: string) => {
     handle.dispatch({
@@ -277,7 +270,7 @@ export class ProgressDispatch {
         secondaryText: text
       }
     });
-  }
+  };
 
   public static setTotalItems = (handle: ProgressHandle, totalItems: number) => {
     handle.dispatch({
@@ -288,7 +281,7 @@ export class ProgressDispatch {
         totalItems: totalItems
       }
     });
-  }
+  };
 
   public static countItem = (handle: ProgressHandle) => {
     handle.dispatch({
@@ -298,7 +291,7 @@ export class ProgressDispatch {
         key: handle.key
       }
     });
-  }
+  };
 
   public static finished = (handle: ProgressHandle) => {
     handle.dispatch({
@@ -308,5 +301,5 @@ export class ProgressDispatch {
         key: handle.key
       }
     });
-  }
+  };
 }

@@ -49,10 +49,7 @@ export type EditableTextElementProps<T> = {
   extra: T;
 });
 
-/**
- * A "render prop" component that stores and manages state for an editable text field.
- * Note that this is an old component that should probably be replaced with something nicer.
- */
+// A "render prop" component that stores and manages state for an editable text field. Note that this is an old component that should probably be replaced with something nicer.
 export function EditableTextElement<T>(props: EditableTextElementProps<T>) {
   // State
   const [editing, setEditing] = React.useState(false);
@@ -103,8 +100,8 @@ export function EditableTextElement<T>(props: EditableTextElementProps<T>) {
   }) || (<></>);
 }
 
-export namespace EditableTextElement { // eslint-disable-line no-redeclare
-  /** Default callback for the "onEditKeyDown" prop. */
+export namespace EditableTextElement {
+  // Default callback for the "onEditKeyDown" prop.
   export const onEditKeyDown = ({ event, cancel, confirm }: EditableTextElementKeyArgs): void => {
     if (event.key === 'Enter' && !event.shiftKey) {
       confirm();

@@ -1,5 +1,8 @@
 import { SocketServer } from '@back/SocketServer';
-import { ShowMessageBoxFunc } from '@back/types';
+import { BackState, ExportRelation, ShowMessageBoxFunc } from '@back/types';
+import { awaitDialog } from '@back/util/dialog';
+import { Platform } from '@database/entity/Platform';
+import { PlatformAlias } from '@database/entity/PlatformAlias';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
@@ -9,11 +12,49 @@ import { IsNull, Not, SelectQueryBuilder } from 'typeorm';
 import { AppDataSource } from '..';
 import * as GameManager from './GameManager';
 
+export async function dumpTagAliases() {
+  return AppDataSource.getRepository(TagAlias).find({ where: { name: Not('') }});
+}
+
+export async function dumpPlatformAliases() {
+  return AppDataSource.getRepository(PlatformAlias).find({ where: { name: Not('') }});
+}
+
+export async function dumpPlatforms() {
+  return AppDataSource.getRepository(Platform).find();
+}
+
+export async function dumpTagRelations(): Promise<ExportRelation[]> {
+  const queryBuilder = AppDataSource.createQueryBuilder()
+  .select('gt.gameId', 'g')
+  .addSelect('gt.tagId', 'v')
+  .from('game_tags_tag', 'gt');
+
+  return await queryBuilder.getRawMany();
+}
+
+export async function dumpPlatformRelations(): Promise<ExportRelation[]> {
+  const queryBuilder = AppDataSource.createQueryBuilder()
+  .select('gp.gameId', 'g')
+  .addSelect('gp.platformId', 'v')
+  .from('game_platforms_platform', 'gp');
+
+  return await queryBuilder.getRawMany();
+}
+
+export async function findTagAlias(name: string) {
+  return AppDataSource.getRepository(TagAlias).findOne({ where: { name }});
+}
+
+export async function findPlatformAlias(name: string) {
+  return AppDataSource.getRepository(PlatformAlias).findOne({ where: { name }});
+}
+
 export async function findTagCategories(): Promise<TagCategory[]> {
   return AppDataSource.getRepository(TagCategory).find();
 }
 
-export async function deleteTag(tagId: number, openDialog: ShowMessageBoxFunc, skipWarn?: boolean): Promise<boolean> {
+export async function deleteTag(tagId: number, state: BackState, openDialog?: ShowMessageBoxFunc, skipWarn?: boolean): Promise<boolean> {
   const tagRepository = AppDataSource.getRepository(Tag);
   const tagAliasRepository = AppDataSource.getRepository(TagAlias);
 
@@ -24,15 +65,17 @@ export async function deleteTag(tagId: number, openDialog: ShowMessageBoxFunc, s
     .where('game_tag.tagId = :id', { id: tagId })
     .getRawOne())['COUNT(*)'];
 
-    if (gameCount > 0) {
-      const res = await openDialog({
-        title: 'Deletion Warning',
+    if (gameCount > 0 && openDialog) {
+      const dialogId = await openDialog({
+        largeMessage: true,
         message: `This tag will be removed from ${gameCount} games.\n\n Are you sure you want to delete this tag?`,
         buttons: ['Yes', 'No']
       });
+      const res = (await awaitDialog(state, dialogId)).buttonIdx;
       if (res === 1) { return false; }
     }
   }
+
   await tagAliasRepository.delete({ tagId: tagId });
   await tagRepository.delete(tagId);
   return true;
@@ -78,17 +121,18 @@ export async function findTags(name?: string, flatFilters?: string[]): Promise<T
 }
 
 // @TODO : Localize
-export async function mergeTags(mergeData: MergeTagData, openDialog: ShowMessageBoxFunc): Promise<Tag | null> {
+export async function mergeTags(mergeData: MergeTagData, openDialog: ShowMessageBoxFunc, state: BackState): Promise<Tag | null> {
   const mergeSorc = await findTag(mergeData.toMerge);
   const mergeDest = await findTag(mergeData.mergeInto);
   if (mergeDest && mergeSorc) {
     if (mergeDest.id !== mergeSorc.id) {
       // Confirm merge
-      const res = await openDialog({
-        title: 'Are you sure?',
+      const dialogId = await openDialog({
+        largeMessage: true,
         message: 'Merge ' + mergeSorc.primaryAlias.name + ' into ' + mergeData.mergeInto + '?',
         buttons: [ 'Yes', 'No', 'Cancel' ]
       });
+      const res = (await awaitDialog(state, dialogId)).buttonIdx;
       if (res !== 0) {
         return null;
       }
@@ -108,19 +152,17 @@ export async function mergeTags(mergeData: MergeTagData, openDialog: ShowMessage
       // Update games, delete source tag, then save dest tag
       await GameManager.updateGames(games);
       if (mergeSorc.id) {
-        await deleteTag(mergeSorc.id, openDialog, true);
+        await deleteTag(mergeSorc.id, state, openDialog, true);
       }
       await saveTag(mergeDest);
     } else {
       openDialog({
-        title: 'Error!',
         message: 'Cannot merge tag into itself!',
         buttons: [ 'Ok' ]
       });
     }
   } else {
     openDialog({
-      title: 'No Tag Found!',
       message: 'No tag found for "' + mergeData.mergeInto + '"',
       buttons: [ 'Ok ' ]
     });
@@ -134,6 +176,27 @@ export async function cleanupTagAliases() {
   .delete()
   .where('tag_alias.tagId IS NULL');
   return q.execute();
+}
+
+export async function findPlatform(name: string): Promise<Platform | null> {
+  const platformRepository = AppDataSource.getRepository(Platform);
+  const platformAliasRepostiory = AppDataSource.getRepository(PlatformAlias);
+
+  const alias = await platformAliasRepostiory.findOne({
+    where: [
+      { name: name }
+    ]
+  });
+
+  if (alias) {
+    return platformRepository.findOne({
+      where: [
+        { id: alias.platformId }
+      ]
+    });
+  }
+
+  return null;
 }
 
 export async function findTag(name: string): Promise<Tag | null> {
@@ -157,7 +220,38 @@ export async function findTag(name: string): Promise<Tag | null> {
   return null;
 }
 
-export async function findTagSuggestions(name: string, flatTagFilter: string[] = [], flatCatFilter: string[] = []): Promise<TagSuggestion[]> {
+export async function findPlatformSuggestions(name: string): Promise<TagSuggestion<Platform>[]> {
+  const platformAliasRepostiory = AppDataSource.getRepository(PlatformAlias);
+
+  const subQuery = platformAliasRepostiory.createQueryBuilder('platform_alias')
+  .leftJoin(Platform, 'platform', 'platform_alias.platformId = platform.id')
+  .select('platform.id, platform.primaryAliasId, platform_alias.name')
+  .where('platform_alias.name like :partial', { partial: name + '%' })
+  .limit(25);
+
+  const platformAliases = await AppDataSource.createQueryBuilder()
+  .select('sugg.id, sugg.name, count(game_platform.gameId) as gameCount, primary_alias.name as primaryName')
+  .from(`(${ subQuery.getQuery() })`, 'sugg')
+  .leftJoin(PlatformAlias, 'primary_alias', 'sugg.primaryAliasId = primary_alias.id')
+  .leftJoin('game_platforms_platform', 'game_platform', 'game_platform.platformId = sugg.id')
+  .groupBy('sugg.name')
+  .orderBy('COUNT(game_platform.gameId) DESC, sugg.name', 'ASC')
+  .setParameters(subQuery.getParameters())
+  .getRawMany();
+
+  const suggestions: TagSuggestion<Platform>[] = platformAliases.map(p => {
+    const alias = p.name != p.primaryName ? p.name : undefined;
+    const primaryAlias = p.primaryName;
+    const platform = new Platform();
+    platform.id = p.id;
+    platform.count = p.gameCount;
+    return { alias: alias, primaryAlias: primaryAlias, tag: platform };
+  });
+
+  return suggestions;
+}
+
+export async function findTagSuggestions(name: string, flatTagFilter: string[] = [], flatCatFilter: string[] = []): Promise<TagSuggestion<Tag>[]> {
   const tagAliasRepostiory = AppDataSource.getRepository(TagAlias);
   const tagCategoryRepository = AppDataSource.getRepository(TagCategory);
   const tagCategories = (await Promise.all(flatCatFilter.map(async (cat) => tagCategoryRepository.findOne({ where: { name: cat }})))).filter(t => t !== undefined) as TagCategory[];
@@ -185,7 +279,7 @@ export async function findTagSuggestions(name: string, flatTagFilter: string[] =
   .setParameters(subQuery.getParameters())
   .getRawMany();
 
-  const suggestions: TagSuggestion[] = tagAliases.map(ta => {
+  const suggestions: TagSuggestion<Tag>[] = tagAliases.map(ta => {
     const alias = ta.name != ta.primaryName ? ta.name : undefined;
     const primaryAlias = ta.primaryName;
     const tag = new Tag();
@@ -215,6 +309,32 @@ export async function findGameTags(gameId: string): Promise<Tag[] | undefined> {
   .getMany();
 
   return tags;
+}
+
+export async function createPlatform(name: string, aliases?: string[]): Promise<Platform> {
+  const platformRepository = AppDataSource.getRepository(Platform);
+  const platformAliasRepostiory = AppDataSource.getRepository(PlatformAlias);
+
+  const platformAliases = [];
+  // Create tag and alias
+  const platform = platformRepository.create();
+  // Save the newly created tag, return it
+  let savedPlatform = await platformRepository.save(platform);
+  const platformAlias = platformAliasRepostiory.create();
+  platformAlias.name = name;
+  platformAlias.platformId = savedPlatform.id;
+  if (aliases) {
+    for (const a of aliases) {
+      const platformAlias = platformAliasRepostiory.create();
+      platformAlias.name = a;
+      platformAlias.platformId = savedPlatform.id;
+      platformAliases.push(await platformAliasRepostiory.save(platformAlias));
+    }
+  }
+  savedPlatform.primaryAlias = platformAlias;
+  savedPlatform = await platformRepository.save(savedPlatform);
+  savedPlatform.aliases = [await platformAliasRepostiory.save(platformAlias), ...platformAliases];
+  return savedPlatform;
 }
 
 export async function createTag(name: string, categoryName?: string, aliases?: string[]): Promise<Tag | null> {
@@ -296,7 +416,32 @@ export async function getTagCategoryById(categoryId: number): Promise<TagCategor
 
 export async function getTagById(tagId: number): Promise<Tag | null> {
   const tagRepository = AppDataSource.getRepository(Tag);
-  return tagRepository.findOneBy({ id: tagId});
+  return tagRepository.findOneBy({ id: tagId });
+}
+
+export async function getPlatformById(platformId: number): Promise<Platform | null> {
+  return AppDataSource.getRepository(Platform).findOneBy({ id: platformId });
+}
+
+export async function addAliasToTag(tagId: number, alias: string): Promise<Tag> {
+  const tag = await getTagById(tagId);
+  if (!tag) {
+    throw 'Tag not found';
+  }
+  const existAliasTag = await findTag(alias);
+  if (existAliasTag) {
+    throw 'Alias already on another tag';
+  }
+  const tagAliasRepostiory = AppDataSource.getRepository(TagAlias);
+  const newAlias = tagAliasRepostiory.create();
+  newAlias.name = alias;
+  newAlias.tagId = tagId;
+  await tagAliasRepostiory.save(newAlias);
+  const updatedTag = await getTagById(tagId);
+  if (!updatedTag) {
+    throw 'How did this throw?';
+  }
+  return updatedTag;
 }
 
 export async function fixPrimaryAliases(): Promise<number> {
@@ -321,7 +466,7 @@ export async function fixPrimaryAliases(): Promise<number> {
   return fixed;
 }
 
-export async function deleteTagCategory(tagCategoryId: number, openDialog: ShowMessageBoxFunc): Promise<boolean> {
+export async function deleteTagCategory(tagCategoryId: number, openDialog: ShowMessageBoxFunc, state: BackState): Promise<boolean> {
   const tagCategoryRepository = AppDataSource.getRepository(TagCategory);
   const tagRepository = AppDataSource.getRepository(Tag);
 
@@ -333,16 +478,16 @@ export async function deleteTagCategory(tagCategoryId: number, openDialog: ShowM
 
   if (attachedTags.length > 0) {
     // Warn about moving tags
-    const res = await openDialog({
-      title: 'Deletion Warning',
+    const dialogId = await openDialog({
       message: `This tag category will be removed from ${attachedTags.length} tags.\n\n What do you want to do with the remaining tags?`,
       buttons: ['Move to Default Category', 'Delete Tags', 'Cancel']
     });
+    const res = (await awaitDialog(state, dialogId)).buttonIdx;
     if (res == 2) { return false; }
     if (res == 1) {
       for (const tag of attachedTags) {
         if (tag.id) {
-          await deleteTag(tag.id, openDialog, true);
+          await deleteTag(tag.id, state, openDialog, true);
         }
       }
     }

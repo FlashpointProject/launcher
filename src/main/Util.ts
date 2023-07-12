@@ -7,6 +7,7 @@ const execFile = util.promisify(child_process.execFile);
 
 /**
  * Check if an application is installed
+ *
  * @param binaryName The command you would use the run an application command
  * @param argument An argument to pass the command. This argument should not cause any side effects. By default --version
  */
@@ -31,14 +32,11 @@ export const isDev: boolean = (function() {
 
 /**
  * Get the path of the folder containing the config and preferences files.
- * @param installed If the application is installed (instead of portable).
  */
-export function getMainFolderPath(installed: boolean | undefined): string {
-  return installed
-    ? path.join(app.getPath('appData'), 'flashpoint-launcher') // Installed
-    : isDev
-      ? process.cwd() // Dev
-      : process.platform == 'darwin'
-        ? path.resolve(path.dirname(app.getPath('exe')), '../../..')
-        : path.dirname(app.getPath('exe')); // Portable
+export function getMainFolderPath(): string {
+  return isDev
+    ? process.cwd() // Dev
+    : process.platform == 'darwin'
+      ? path.resolve(path.dirname(app.getPath('exe')), '../../..')
+      : path.dirname(app.getPath('exe')); // Portable
 }

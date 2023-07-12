@@ -6,5 +6,5 @@
   "include": [
     "../../typings/**/*",
     "./**/*", "../database/entity/Game.ts", "../database/entity/AdditionalApp.ts"
-  ]
+, "../renderer/util/curate.ts"  ]
 }

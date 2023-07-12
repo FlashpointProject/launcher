@@ -1,7 +1,7 @@
 import { TagCategory } from '@database/entity/TagCategory';
-import { GameOrderReverse } from '@shared/order/interfaces';
+import { GameOrderReverse } from 'flashpoint-launcher';
 import * as React from 'react';
-import { ArrowKeyStepper, AutoSizer, List, ListRowProps } from 'react-virtualized';
+import { ArrowKeyStepper, AutoSizer, List, ListRowProps } from 'react-virtualized-reactv17';
 import { findElementAncestor } from '../Util';
 import { TagCategoriesListHeader } from './TagCategoriesListHeader';
 import { TagCategoriesListItem } from './TagCategoriesListItem';
@@ -93,13 +93,17 @@ export class TagCategoriesList extends React.Component<TagCategoriesProps> {
     if (this.props.onCategorySelect) {
       this.props.onCategorySelect(tagId);
     }
-  }
+  };
 
-  /** Find a tag's ID. */
+  /**
+   * Find a tag's ID.
+   *
+   * @param element Event Target to search for the tag list identifier in
+   */
   findTagId = (element: EventTarget): number | undefined => {
     const tag = findElementAncestor(element as Element, target => TagListItem.isElement(target), true);
     if (tag) { return TagListItem.getId(tag); }
-  }
+  };
 
   rowRenderer = (props: ListRowProps): React.ReactNode => {
     const { categories, selectedCategoryId } = this.props;
@@ -111,7 +115,7 @@ export class TagCategoriesList extends React.Component<TagCategoriesProps> {
         isSelected={category.id === selectedCategoryId}
         category={category} />
     ) : <div key={props.key} style={props.style} />;
-  }
+  };
 
   /** Update CSS Variables */
   updateCssVars() {

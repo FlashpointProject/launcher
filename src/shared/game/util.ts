@@ -41,6 +41,7 @@ export namespace ModelUtils {
     return {
       id: '',
       parentGame: game,
+      parentGameId: game.id,
       applicationPath: '',
       autoRunBefore: false,
       launchCommand: '',

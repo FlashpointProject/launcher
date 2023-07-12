@@ -1,20 +1,21 @@
 import { Column, Entity, Index, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Tag } from './Tag';
+import { ITagAlias } from '@shared/back/types';
 
 @Entity()
-export class TagAlias {
+export class TagAlias implements ITagAlias {
   @PrimaryGeneratedColumn()
   /** ID of the tag alias (unique identifier) */
-  id: number;
+    id: number;
 
   @Column({ nullable: true })
-  tagId?: number;
+    tagId?: number;
 
-  @ManyToOne(type => Tag, t => t.aliases)
-  tag?: Tag;
+  @ManyToOne(() => Tag, t => t.aliases)
+    tag?: Tag;
 
   @Index()
   @Column({collation: 'NOCASE', unique: true})
   /** Alias */
-  name: string;
+    name: string;
 }

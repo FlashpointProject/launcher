@@ -1,6 +1,10 @@
 import { Legacy_ErrorCopy } from './types';
 
-/** Copy properties from an error to a new object. */
+/**
+ * Copy properties from an error to a new object.
+ *
+ * @param error Error to copy
+ */
 export function Legacy_errorCopy(error: any): Legacy_ErrorCopy {
   if (typeof error !== 'object' || error === null) { error = {}; }
   const copy: Legacy_ErrorCopy = {

@@ -15,7 +15,7 @@ export type IconProps = {
   props?: React.HTMLAttributes<SVGElement>;
 };
 
-/** A SVG Icon from the "Open Iconic" collection. */
+// A SVG Icon from the "Open Iconic" collection.
 export function OpenIcon (props: IconProps) {
   return (
     <svg

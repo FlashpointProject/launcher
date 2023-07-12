@@ -3,13 +3,13 @@ import { SocketClient } from '@shared/back/SocketClient';
 import { BackIn, BackInitArgs, BackOut } from '@shared/back/types';
 import { AppConfigData } from '@shared/config/interfaces';
 import { APP_TITLE } from '@shared/constants';
-import { WindowIPC } from '@shared/interfaces';
+import { CustomIPC, WindowIPC } from '@shared/interfaces';
 import { InitRendererChannel, InitRendererData } from '@shared/IPC';
-import { AppPreferencesData } from '@shared/preferences/interfaces';
 import { createErrorProxy } from '@shared/Util';
 import { ChildProcess, fork } from 'child_process';
 import { randomBytes } from 'crypto';
 import { app, BrowserWindow, dialog, ipcMain, IpcMainEvent, session, shell, WebContents } from 'electron';
+import { AppPreferencesData } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { argv } from 'process';
@@ -18,7 +18,6 @@ import { Init } from './types';
 import * as Util from './Util';
 
 const TIMEOUT_DELAY = 60_000;
-const SECRETS_FILE = 'secret.dat';
 
 const ALLOWED_HOSTS = [
   'localhost',
@@ -28,7 +27,13 @@ const ALLOWED_HOSTS = [
   'clients2.google.com',
   // React Devtools
   'react-developer-tools',
+  'cdn.discordapp.com',
 ];
+
+type LaunchOptions = {
+  backend: boolean;
+  frontend: boolean;
+}
 
 type MainState = {
   window?: BrowserWindow;
@@ -46,6 +51,8 @@ type MainState = {
   isQuitting: boolean;
   /** Path of the folder containing the config and preferences files. */
   mainFolderPath: string;
+  /** Stdout output */
+  output: string;
 }
 
 export function main(init: Init): void {
@@ -63,13 +70,29 @@ export function main(init: Init): void {
     _sentLocaleCode: false,
     isQuitting: false,
     mainFolderPath: createErrorProxy('mainFolderPath'),
+    output: '',
   };
 
-  startup();
+  startup({
+    backend: !init.args['host-remote'],
+    frontend: !init.args['back-only'],
+  })
+  .catch((error) => {
+    console.error(error);
+    if (!Util.isDev) {
+      dialog.showMessageBoxSync({
+        title: 'Failed to start launcher!',
+        type: 'error',
+        message: 'Something went wrong while starting the launcher.\n\n' + error,
+      });
+    }
+    state.socket.disconnect();
+    app.quit();
+  });
 
   // -- Functions --
 
-  function startup() {
+  async function startup(opts: LaunchOptions) {
     // Register flashpoint:// protocol
     if (process.defaultApp) {
       if (process.argv.length >= 2) {
@@ -99,63 +122,69 @@ export function main(init: Init): void {
 
     // Add IPC event listener(s)
     ipcMain.on(InitRendererChannel, onInit);
+    ipcMain.handle(CustomIPC.SHOW_MESSAGE_BOX, async (event, opts) => {
+      return dialog.showMessageBox(opts);
+    });
+    ipcMain.handle(CustomIPC.SHOW_OPEN_DIALOG, async (event, opts) => {
+      return dialog.showOpenDialog(opts);
+    });
+    ipcMain.handle(CustomIPC.SHOW_SAVE_DIALOG, async (event, opts) => {
+      return dialog.showSaveDialog(opts);
+    });
 
     // Add Socket event listener(s)
     state.socket.register(BackOut.QUIT, () => {
       state.isQuitting = true;
+      state.socket.allowDeath();
       app.quit();
     });
 
     app.commandLine.appendSwitch('ignore-connections-limit', 'localhost');
 
-    state.mainFolderPath = Util.getMainFolderPath(state._installed);
-    console.log(path.join(state.mainFolderPath, SECRETS_FILE));
+    state.mainFolderPath = Util.getMainFolderPath();
 
     // ---- Initialize ----
-    // Check if installed
-    let p = exists('./.installed')
-    .then(exists => {
-      state._installed = exists;
-      state.mainFolderPath = Util.getMainFolderPath(state._installed);
+    // Load custom version text file
+    await fs.promises.readFile(path.join(state.mainFolderPath, '.version'))
+    .then((data) => {
+      state._version = (data)
+        ? parseInt(data.toString().replace(/[^\d]/g, ''), 10) // (Remove all non-numerical characters, then parse it as a string)
+        : -1; // (Version not found error code)
     })
-    // Load version number
-    .then(() => new Promise<void>(resolve => {
-      fs.readFile(path.join(state.mainFolderPath, '.version'), (error, data) => {
-        state._version = (data)
-          ? parseInt(data.toString().replace(/[^\d]/g, ''), 10) // (Remove all non-numerical characters, then parse it as a string)
-          : -1; // (Version not found error code)
-        resolve();
-      });
-    }))
+    .catch(() => { /** No file, ignore */ });
+
     // Load or generate secret
-    .then(async () => {
-      if (init.args['connect-remote'] || init.args['host-remote'] || init.args['back-only']) {
-        const secretFilePath = path.join(state.mainFolderPath, SECRETS_FILE);
-        try {
-          state._secret = await fs.readFile(secretFilePath, { encoding: 'utf8' });
-        } catch (e) {
-          state._secret = randomBytes(2048).toString('hex');
-          try {
-            await fs.writeFile(secretFilePath, state._secret, { encoding: 'utf8' });
-          } catch (e) {
-            console.warn(`Failed to save new secret to disk.\n${e}`);
-          }
-        }
-      } else {
-        const secretFilePath = path.join(state.mainFolderPath, SECRETS_FILE);
-        state._secret = randomBytes(2048).toString('hex');
-        try {
-          await fs.writeFile(secretFilePath, state._secret, { encoding: 'utf8' });
-        } catch (e) {
-          console.warn(`Failed to save new secret to disk.\n${e}`);
-        }
+    const secretFilePath = path.join(state.mainFolderPath, 'secret.dat');
+    try {
+      state._secret = await fs.readFile(secretFilePath, { encoding: 'utf8' });
+    } catch (e) {
+      state._secret = randomBytes(2048).toString('hex');
+      try {
+        await fs.writeFile(secretFilePath, state._secret, { encoding: 'utf8' });
+      } catch (e) {
+        console.warn(`Failed to save new secret to disk.\n${e}`);
       }
-    });
-    // Start back process
-    if (!init.args['connect-remote']) {
-      p = p.then(() => new Promise((resolve, reject) => {
+    }
+
+    // Start backend
+    if (opts.backend) {
+      await new Promise<void>((resolve, reject) => {
         // Fork backend, init.rest will contain possible flashpoint:// message
-        state.backProc = fork(path.join(__dirname, '../back/index.js'), [init.rest], { detached: true });
+        // Increase memory limit in dev instance (mostly for developer page functions)
+        const env = Util.isDev ? Object.assign({ 'NODE_OPTIONS' : '--max-old-space-size=6144' }, process.env ) : process.env;
+        state.backProc = fork(path.join(__dirname, '../back/index.js'), [init.rest], { detached: true, env, stdio: 'pipe' });
+        if (state.backProc.stdout) {
+          state.backProc.stdout.on('data', (chunk) => {
+            process.stdout.write(chunk);
+            state.output += chunk.toString();
+          });
+        }
+        if (state.backProc.stderr) {
+          state.backProc.stderr.on('data', (chunk) => {
+            process.stderr.write(chunk);
+            state.output += chunk.toString();
+          });
+        }
         const initHandler = (message: any) => {
           // Stop listening after a port, quit or other message arrives, keep going for preferences checks
           if (state.backProc && !message.preferencesRefresh) {
@@ -163,6 +192,8 @@ export function main(init: Init): void {
           }
           if (message.port) {
             state.backHost.port = message.port as string;
+            state.config = message.config as AppConfigData;
+            state.preferences = message.prefs as AppPreferencesData;
             resolve();
           } else if (message.quit) {
             if (message.errorMessage) {
@@ -184,17 +215,17 @@ export function main(init: Init): void {
             reject(new Error('Failed to start server in back process. Perhaps because it could not find an available port.'));
           }
         };
-        // Wait for process to initialize
+        // Wait for process to prep, handle any queries, store config and prefs after finishing
         state.backProc.on('message', initHandler);
         // On windows you have to wait for app to be ready before you call app.getLocale() (so it will be sent later)
-        let localeCode = 'en';
+        let localeCode: string;
         if (process.platform === 'win32' && !app.isReady()) {
           localeCode = 'en';
         } else {
           localeCode = app.getLocale().toLowerCase();
           state._sentLocaleCode = true;
         }
-        // Send initialize message
+        // Send prep message
         const msg: BackInitArgs = {
           configFolder: state.mainFolderPath,
           secret: state._secret,
@@ -207,68 +238,36 @@ export function main(init: Init): void {
           version: app.getVersion(), // @TODO Manually load this from the package.json file while in a dev environment (so it doesn't use Electron's version)
         };
         state.backProc.send(JSON.stringify(msg));
-      }));
-    }
-    // Connect to back and start renderer
-    if (!init.args['back-only']) {
-      // Connect to back process
-      p = p.then<WebSocket>(() => timeout(new Promise((resolve, reject) => {
-        const sock = new WebSocket(state.backHost.href);
-        sock.onclose = () => { reject(new Error('Failed to authenticate connection to back.')); };
-        sock.onerror = (event) => { reject(event.error); };
-        sock.onopen  = () => {
-          sock.onmessage = () => {
-            sock.onclose = noop;
-            sock.onerror = noop;
-            resolve(sock);
-          };
-          sock.send(state._secret);
-        };
-      }), TIMEOUT_DELAY))
-      // Send init message
-      .then(ws => timeout(new Promise<void>((resolve, reject) => {
-        state.socket.setSocket(ws);
-
-        state.socket.request(BackIn.GET_MAIN_INIT_DATA)
-        .then((data) => {
-          state.preferences = data.preferences;
-          state.config = data.config;
-          state.socket.setSocket(ws);
-          resolve();
-        });
-      }), TIMEOUT_DELAY))
-      // Create main window
-      .then(() => app.whenReady())
-      // Install React Devtools Extension
-      .then(() => {
-        if (Util.isDev) {
-          // Requiring here is intentional, seems to fix crashes in release builds
-          // eslint-disable-next-line @typescript-eslint/no-var-requires
-          const { default: installExtension } = require('electron-devtools-installer');
-          installExtension(['REACT_DEVELOPER_TOOLS'])
-          .then((name: string) => console.log(`Added Extension:  ${name}`))
-          .catch((err: any) => console.log('An error occurred: ', err));
-        }
-      })
-      .then(() => {
-        if (!state.window) {
-          state.window = createMainWindow();
-        }
       });
     }
-    // Catch errors
-    p.catch((error) => {
-      console.error(error);
-      if (!Util.isDev) {
-        dialog.showMessageBoxSync({
-          title: 'Failed to start launcher!',
-          type: 'error',
-          message: 'Something went wrong while starting the launcher.\n\n' + error,
-        });
+
+    // Open websocket to backend, for communication between front and back
+    const ws = await timeout<WebSocket>(new Promise((resolve, reject) => {
+      const sock = new WebSocket(state.backHost.href);
+      sock.onclose = () => { reject(new Error('Failed to authenticate connection to back.')); };
+      sock.onerror = (event) => { reject(event.error); };
+      sock.onopen  = () => {
+        sock.onmessage = () => {
+          sock.onclose = noop;
+          sock.onerror = noop;
+          resolve(sock);
+        };
+        sock.send(state._secret);
+      };
+    }), TIMEOUT_DELAY);
+    state.socket.setSocket(ws);
+
+    // Start frontend
+    if (opts.frontend) {
+      await app.whenReady();
+      // Create main window
+      if (!state.window) {
+        state.window = createMainWindow();
       }
-      state.socket.disconnect();
-      app.quit();
-    });
+    } else {
+      // Frontend not running, give Backend init message from Main
+      state.socket.send(BackIn.INIT_LISTEN);
+    }
   }
 
   function onAppReady(): void {
@@ -302,6 +301,10 @@ export function main(init: Init): void {
       const allowedHosts = [ ...ALLOWED_HOSTS ];
       if (state.preferences && state.preferences.onlineManual) {
         const hostname = new URL(state.preferences.onlineManual).hostname;
+        allowedHosts.push(hostname);
+      }
+      if (state.preferences && state.preferences.fpfssBaseUrl) {
+        const hostname = new URL(state.preferences.fpfssBaseUrl).hostname;
         allowedHosts.push(hostname);
       }
       const allow = (
@@ -360,7 +363,7 @@ export function main(init: Init): void {
     }
   }
 
-  function onAppSecondInstance(event: Electron.Event, argv: string[], workingDirectory: string): void {
+  function onAppSecondInstance(event: Electron.Event, argv: string[]): void {
     if (state.window) {
       if (process.platform !== 'darwin') {
         // Find the arg that is our custom protocol url and store it
@@ -397,15 +400,6 @@ export function main(init: Init): void {
     event.returnValue = data;
   }
 
-  function exists(filePath: string): Promise<boolean> {
-    return new Promise(resolve => {
-      fs.stat(filePath, (error, stats) => {
-        if (error) { resolve(false); }
-        else { resolve(stats.isFile()); }
-      });
-    });
-  }
-
   function createMainWindow(): BrowserWindow {
     if (!state.preferences) { throw new Error('Preferences must be set before you can open a window.'); }
     if (!state.config)      { throw new Error('Configs must be set before you can open a window.'); }
@@ -432,6 +426,16 @@ export function main(init: Init): void {
       },
     });
     remoteMain.enable(window.webContents);
+    // Enable crash reporter
+    ipcMain.on(WindowIPC.MAIN_OUTPUT, () => {
+      window.webContents.send(WindowIPC.MAIN_OUTPUT, state.output);
+    });
+    // Add protocol report func
+    ipcMain.on(WindowIPC.PROTOCOL, () => {
+      if (init.protocol) {
+        window.webContents.send(WindowIPC.PROTOCOL, init.protocol);
+      }
+    });
     // Remove the menu bar
     window.setMenu(null);
     // and load the index.html of the app.
@@ -476,6 +480,7 @@ export function main(init: Init): void {
 
   /**
    * Resolves/Rejects when the wrapped promise does. Rejects if the timeout happens before that.
+   *
    * @param promise Promise to wrap.
    * @param ms Time to wait before timing out (in ms).
    */

@@ -3,6 +3,7 @@ import { ReducerContext, ReducerContextValue } from './interfaces';
 
 /**
  * Create a Reducer Context.
+ *
  * @param reducer Reducer that will manage the state.
  * @param initialState Initial state of the context (and the default value in case no context is available).
  */

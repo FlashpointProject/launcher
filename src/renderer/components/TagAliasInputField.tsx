@@ -1,5 +1,5 @@
-import { TagAlias } from '@database/entity/TagAlias';
 import { LangContext } from '@renderer/util/lang';
+import { ITagAlias } from '@shared/back/types';
 import { LangContainer } from '@shared/lang';
 import * as React from 'react';
 import { checkIfAncestor } from '../Util';
@@ -13,15 +13,15 @@ type RefFunc<T extends HTMLElement> = (instance: T | null) => void;
 /** Input element types used by this component. */
 type InputElement = HTMLInputElement | HTMLTextAreaElement;
 
-export type TagAliasInputFieldProps = InputFieldProps & {
+export type TagAliasInputFieldProps<T extends ITagAlias> = InputFieldProps & {
   /** Id of the primary alias */
   primaryAliasId?: number;
   /** Items to display in the drop-down list. */
-  aliases: TagAlias[];
+  aliases: T[];
   /** Called when a tag is selected for primary */
-  onTagAliasSelect?: (tagAlias: TagAlias, index: number) => void;
+  onTagAliasSelect?: (tagAlias: T, index: number) => void;
   /** Called when a tag alias is deleted */
-  onTagAliasDelete?: (tagAlias: TagAlias, index: number) => void;
+  onTagAliasDelete?: (tagAlias: T, index: number) => void;
   /** Called when the tag input box is submitted */
   onTagAliasSubmit?: (text: string) => void;
   /** Function for getting a reference to the input element. Called whenever the reference could change. */
@@ -32,17 +32,16 @@ type TagAliasInputFieldState = {
 
 };
 
-export interface TagAliasInputField {
-  context: LangContainer;
-}
-
 /** An input element with a drop-down menu that can list any number of selectable and clickable text elements. */
-export class TagAliasInputField extends React.Component<TagAliasInputFieldProps, TagAliasInputFieldState> {
+export class TagAliasInputField<T extends ITagAlias> extends React.Component<TagAliasInputFieldProps<T>, TagAliasInputFieldState> {
+  static contextType = LangContext;
+  declare context: React.ContextType<typeof LangContext>;
+
   rootRef: React.RefObject<HTMLDivElement> = React.createRef();
   contentRef: React.RefObject<HTMLDivElement> = React.createRef();
   inputRef: React.RefObject<InputElement> = React.createRef();
 
-  constructor(props: TagAliasInputFieldProps) {
+  constructor(props: TagAliasInputFieldProps<T>) {
     super(props);
     this.state = {};
   }
@@ -88,8 +87,12 @@ export class TagAliasInputField extends React.Component<TagAliasInputFieldProps,
     );
   }
 
-  /** Renders the list of items in the drop-down menu. */
-  renderItems = (items: TagAlias[]) => {
+  /**
+   * Renders the list of Tag Alias items in the drop-down menu.
+   *
+   * @param items Tag Alias items
+   */
+  renderItems = (items: T[]) => {
     const baseClassName = this.props.editable ? 'tag-alias-editable ' : '';
     return items.map((tagAlias, index) => {
       const className = baseClassName + (tagAlias.id == this.props.primaryAliasId ? 'tag-primary' : '');
@@ -132,21 +135,21 @@ export class TagAliasInputField extends React.Component<TagAliasInputFieldProps,
         </div>
       );
     });
-  }
+  };
 
-  onPrimaryAliasClick = (tagAlias: TagAlias, index: number) => {
+  onPrimaryAliasClick = (tagAlias: T, index: number) => {
     if (this.props.onTagAliasSelect) {
       this.props.onTagAliasSelect(tagAlias, index);
     }
-  }
+  };
 
-  onDeleteAliasClick = (tagAlias: TagAlias, index: number) => {
+  onDeleteAliasClick = (tagAlias: T, index: number) => {
     if (this.props.onTagAliasDelete) {
       this.props.onTagAliasDelete(tagAlias, index);
     }
-  }
+  };
 
-  renderPrimaryButton({ confirm, extra }: ConfirmElementArgs<LangContainer['tags']>): JSX.Element {
+  static renderPrimaryButton({ confirm, extra }: ConfirmElementArgs<LangContainer['tags']>): JSX.Element {
     const className = 'tag-alias__buttons-primary';
     return (
       <div
@@ -181,7 +184,7 @@ export class TagAliasInputField extends React.Component<TagAliasInputFieldProps,
         }
       }
     }
-  }
+  };
 
   onListItemKeyDown = (event: React.KeyboardEvent): void => {
     if (!this.props.disabled) {
@@ -208,13 +211,13 @@ export class TagAliasInputField extends React.Component<TagAliasInputFieldProps,
         }
       }
     }
-  }
+  };
 
   onInputChange = (event: React.ChangeEvent<InputElement>): void => {
     if (!this.props.disabled) {
       if (this.props.onChange) { this.props.onChange(event); }
     }
-  }
+  };
 
   onInputKeyDown = (event: React.KeyboardEvent<InputElement>): void => {
     if (!this.props.disabled) {
@@ -233,7 +236,7 @@ export class TagAliasInputField extends React.Component<TagAliasInputFieldProps,
       // Relay event
       if (this.props.onKeyDown) { this.props.onKeyDown(event); }
     }
-  }
+  };
 
   /**
    * Call the "ref" property functions.
@@ -244,11 +247,9 @@ export class TagAliasInputField extends React.Component<TagAliasInputFieldProps,
       this.props.inputRef(this.inputRef.current || null);
     }
   }
-
-  static contextType = LangContext;
 }
 
-/** Get the index of an item element (or -1 if index was not found). */
+// Get the index of an item element (or -1 if index was not found).
 function getListItemIndex(target: any): number {
   if (target instanceof Element || target instanceof HTMLElement) {
     return parseInt(target.getAttribute('data-dropdown-index') || '-1', 10);

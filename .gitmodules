@@ -4,3 +4,6 @@
 [submodule "docs/api"]
 	path = docs/api
 	url = https://github.com/FlashpointProject/launcher_ApiDocs.git
+[submodule "extensions/core-curation"]
+	path = extensions/core-curation
+	url = https://github.com/FlashpointProject/Sys-Extension-Core-Curation.git

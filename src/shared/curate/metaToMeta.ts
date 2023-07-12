@@ -1,12 +1,13 @@
 import { Game } from '@database/entity/Game';
 import { TagCategory } from '@database/entity/TagCategory';
 import { ParsedCurationMeta } from './parse';
-import { EditAddAppCuration, EditCurationMeta } from './types';
+import { AddAppCurationMeta, CurationMeta } from './types';
 
 /**
  * Convert game and its additional applications into a raw object representation in the curation format.
+ *
  * @param game Game to convert.
- * @param addApps Additional applications of the game.
+ * @param categories List of all tag categories
  */
 export function convertGameToCurationMetaFile(game: Game, categories: TagCategory[]): CurationMetaFile {
   const parsed: CurationMetaFile = {};
@@ -28,10 +29,11 @@ export function convertGameToCurationMetaFile(game: Game, categories: TagCategor
   parsed['Tags']                 = game.tags.map(t => t.primaryAlias.name).join('; ');
   parsed['Tag Categories']       = tagCategories.join('; ');
   parsed['Source']               = game.source;
-  parsed['Platform']             = game.platform;
+  parsed['Primary Platform']     = game.platformName;
+  parsed['Platforms']            = game.platforms.map(p => p.primaryAlias.name).join('; ');
   parsed['Status']               = game.status;
-  parsed['Application Path']     = game.applicationPath;
-  parsed['Launch Command']       = game.launchCommand;
+  parsed['Application Path']     = game.legacyApplicationPath;
+  parsed['Launch Command']       = game.legacyLaunchCommand;
   parsed['Game Notes']           = game.notes;
   parsed['Original Description'] = game.originalDescription;
   // Add-apps meta
@@ -72,10 +74,12 @@ export function convertGameToCurationMetaFile(game: Game, categories: TagCategor
 
 /**
  * Convert curation and its additional applications into a raw object representation in the curation meta format. (for saving)
+ *
  * @param curation Curation to convert.
+ * @param categories List of all tag categories
  * @param addApps Additional applications of the curation.
  */
-export function convertEditToCurationMetaFile(curation: EditCurationMeta, categories: TagCategory[], addApps?: EditAddAppCuration[]): CurationMetaFile {
+export function convertEditToCurationMetaFile(curation: CurationMeta, categories: TagCategory[], addApps?: AddAppCurationMeta[]): CurationMetaFile {
   const parsed: CurationMetaFile = {};
   const tagCategories = curation.tags ? curation.tags.map(t => {
     const cat = categories.find(c => c.id === t.categoryId);
@@ -96,7 +100,8 @@ export function convertEditToCurationMetaFile(curation: EditCurationMeta, catego
   parsed['Tags']                 = curation.tags ? curation.tags.map(t => t.primaryAlias.name).join('; ') : '';
   parsed['Tag Categories']       = tagCategories.join('; ');
   parsed['Source']               = curation.source;
-  parsed['Platform']             = curation.platform;
+  parsed['Primary Platform']     = curation.primaryPlatform;
+  parsed['Platforms']            = curation.platforms ? curation.platforms.map(p => p.primaryAlias.name).join('; ') : '';
   parsed['Status']               = curation.status;
   parsed['Application Path']     = curation.applicationPath;
   parsed['Launch Command']       = curation.launchCommand;
@@ -108,7 +113,7 @@ export function convertEditToCurationMetaFile(curation: EditCurationMeta, catego
   const parsedAddApps: CurationFormatAddApps = {};
   if (addApps) {
     for (let i = 0; i < addApps.length; i++) {
-      const addApp = addApps[i].meta;
+      const addApp = addApps[i];
       if (addApp.applicationPath === ':extras:') {
         parsedAddApps['Extras'] = addApp.launchCommand;
       } else if (addApp.applicationPath === ':message:') {
@@ -146,8 +151,9 @@ export function convertEditToCurationMetaFile(curation: EditCurationMeta, catego
 
 /**
  * Convert parsed meta and its additional applications into a raw object representation in the curation meta format. (for saving)
+ *
  * @param curation Parsed meta to convert.
- * @param addApps Additional applications of the curation.
+ * @param categories List of all tag categories
  */
 export function convertParsedToCurationMeta(curation: ParsedCurationMeta, categories: TagCategory[]): CurationMetaFile {
   const parsed: CurationMetaFile = {};
@@ -170,7 +176,8 @@ export function convertParsedToCurationMeta(curation: ParsedCurationMeta, catego
   parsed['Tags']                 = curation.game.tags ? curation.game.tags.map(t => t.primaryAlias.name).join('; ') : '';
   parsed['Tag Categories']       = tagCategories.join('; ');
   parsed['Source']               = curation.game.source;
-  parsed['Platform']             = curation.game.platform;
+  parsed['Primary Platform']     = curation.game.primaryPlatform;
+  parsed['Platforms']            = curation.game.platforms ? curation.game.platforms.map(p => p.primaryAlias.name).join('; ') : '';
   parsed['Status']               = curation.game.status;
   parsed['Application Path']     = curation.game.applicationPath;
   parsed['Launch Command']       = curation.game.launchCommand;
@@ -227,7 +234,8 @@ type CurationMetaFile = {
   'Launch Command'?: string;
   'Original Description'?: string;
   'Play Mode'?: string;
-  'Platform'?: string;
+  'Primary Platform'?: string;
+  'Platforms'?: string;
   'Publisher'?: string;
   'Release Date'?: string;
   'Series'?: string;

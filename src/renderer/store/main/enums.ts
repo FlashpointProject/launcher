@@ -3,6 +3,8 @@ export enum MainActionType {
   /** Drop in replacement for "this.setState". */
   SET_STATE = '@@main/SET_STATE',
   // Normal actions
+  /** Sets up initial views */
+  SETUP_VIEWS = '@@main/SETUP_VIEWS',
   /** Set the query of a view. */
   SET_VIEW_QUERY = '@@main/SET_VIEW_QUERY',
   /** Set the current "boundries" of a view. These describe the range of currently visible pages. */
@@ -65,6 +67,30 @@ export enum MainActionType {
   BUSY_GAME = '@@main/BUSY_GAME',
   /** Remove game from busy list */
   UNBUSY_GAME = '@@main/UNBUSY_GAME',
+  /** Create new dialog */
+  NEW_DIALOG = '@@main/NEW_DIALOG',
+  /** Cancel dialog */
+  CANCEL_DIALOG = '@@main/CANCEL_DIALOG',
+  /** Update dialog values */
+  UPDATE_DIALOG = '@@main/UPDATE_DIALOG',
+  /** Resolve a dialog and return the values with a button press */
+  RESOLVE_DIALOG = '@@main/RESOLVE_DIALOG',
+  /** Update dialog field value */
+  UPDATE_DIALOG_FIELD = '@@main/UPDATE_DIALOG_FIELD',
+  /** Set FPFSS user in state */
+  SET_FPFSS_USER = '@@main/SET_FPFSS_USER',
+  /** Set current editing game for FPFSS */
+  SET_FPFSS_GAME = '@@main/SET_FPFSS_GAME',
+  /** Apply delta edit to FPFSS editing game */
+  APPLY_DELTA_FPFSS_GAME = '@@main/APPLY_DELTA_FPFSS_GAME',
+  /** Data to sync after a metadata sync */
+  POST_FPFSS_SYNC = '@@main/POST_FPFSS_SYNC',
+  /** Updates the pre-update info total changes */
+  UPDATE_UPDATE_INFO = '@@main/UPDATE_UPDATE_INFO',
+  /** Update Dialog Message */
+  UPDATE_DIALOG_MESSAGE = '@@main/UPDATE_DIALOG_MESSAGE',
+  /** Update Dialog Field Value */
+  UPDATE_DIALOG_FIELD_VALUE = '@@main/UPDATE_DIALOG_FIELD_VALUE',
 }
 
 export enum RequestState {

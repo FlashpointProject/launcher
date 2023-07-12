@@ -1,6 +1,6 @@
 import * as path from 'path';
 import { readJsonFile } from '@shared/Util';
-import { Coerce } from '@shared/utils/Coerce';
+import * as Coerce from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import { UpgradeStageState } from '../interfaces';
 import { uuid } from '@shared/utils/uuid';
@@ -14,6 +14,7 @@ export namespace UpgradeFile {
 
   /**
    * Read and parse the file asynchronously.
+   *
    * @param jsonFolder Path of the JSON folder.
    * @param onError Called for each error that occurs while parsing.
    */

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useContext } from 'react';
 import { Subtract } from '@shared/interfaces';
-import { AppPreferencesData } from '@shared/preferences/interfaces';
+import { AppPreferencesData } from 'flashpoint-launcher';
 import { PreferencesContext } from '../context/PreferencesContext';
 
 export type WithPreferencesProps = {

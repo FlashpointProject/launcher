@@ -1,19 +1,26 @@
+import * as GameDataManager from '@back/game/GameDataManager';
+import * as GameManager from '@back/game/GameManager';
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
 import { AppProvider } from '@shared/extensions/interfaces';
 import { ExecMapping, Omit } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { fixSlashes, padStart, stringifyArray } from '@shared/Util';
-import { Coerce } from '@shared/utils/Coerce';
+import * as Coerce from '@shared/utils/Coerce';
 import { ChildProcess, exec } from 'child_process';
 import { EventEmitter } from 'events';
-import * as GameManager from '@back/game/GameManager';
-import { AppPathOverride, GameData, ManagedChildProcess } from 'flashpoint-launcher';
+import { AppPathOverride, DialogStateTemplate, GameData, ManagedChildProcess, Platform } from 'flashpoint-launcher';
+import * as minimist from 'minimist';
 import * as path from 'path';
-import { ApiEmitter } from './extensions/ApiEmitter';
-import { OpenExternalFunc, ShowMessageBoxFunc } from './types';
+import { extractFullPromise } from '.';
+import { ApiEmitterFirable } from './extensions/ApiEmitter';
+import { BackState, OpenExternalFunc, ShowMessageBoxFunc } from './types';
 import { getCwd, isBrowserOpts } from './util/misc';
-import * as GameDataManager from '@back/game/GameDataManager';
+import * as fs from 'fs-extra';
+import { BackOut, ComponentState, ComponentStatus } from '@shared/back/types';
+import * as child_process from 'child_process';
+import { awaitDialog, createNewDialog } from './util/dialog';
+import { formatString } from '@shared/utils/StringFormatter';
 
 const { str } = Coerce;
 
@@ -43,7 +50,10 @@ export type LaunchInfo = {
 }
 
 type LaunchBaseOpts = {
+  changeServer: (server?: string) => Promise<void>;
   fpPath: string;
+  dataPacksFolderPath: string;
+  sevenZipPath: string;
   htdocsPath: string;
   execMappings: ExecMapping[];
   lang: LangContainer;
@@ -56,19 +66,20 @@ type LaunchBaseOpts = {
   openDialog: ShowMessageBoxFunc;
   openExternal: OpenExternalFunc;
   runGame: (gameLaunchInfo: GameLaunchInfo) => ManagedChildProcess;
+  state: BackState;
 }
 
 export namespace GameLauncher {
   const logSource = 'Game Launcher';
 
-  export function launchAdditionalApplication(opts: LaunchAddAppOpts): Promise<void> {
+  export async function launchAdditionalApplication(opts: LaunchAddAppOpts, child: boolean, serverOverride?: string): Promise<void> {
+    await checkAndInstallPlatform(opts.addApp.parentGame.platforms, opts.state, opts.openDialog);
     // @FIXTHIS It is not possible to open dialog windows from the back process (all electron APIs are undefined).
     switch (opts.addApp.applicationPath) {
       case ':message:':
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
           opts.openDialog({
-            type: 'info',
-            title: 'About This Game',
+            largeMessage: true,
             message: opts.addApp.launchCommand,
             buttons: ['Ok'],
           }).finally(() => resolve());
@@ -79,8 +90,7 @@ export namespace GameLauncher {
         .catch(error => {
           if (error) {
             opts.openDialog({
-              type: 'error',
-              title: 'Failed to Open Extras',
+              largeMessage: true,
               message: `${error.toString()}\n`+
                        `Path: ${folderPath}`,
               buttons: ['Ok'],
@@ -89,13 +99,19 @@ export namespace GameLauncher {
         });
       }
       default: {
-        let appPath: string = fixSlashes(path.join(opts.fpPath, getApplicationPath(opts.addApp.applicationPath, opts.execMappings, opts.native)));
+        let appPath: string = getApplicationPath(opts.addApp.applicationPath, opts.execMappings, opts.native);
         const appPathOverride = opts.appPathOverrides.filter(a => a.enabled).find(a => a.path === appPath);
         if (appPathOverride) { appPath = appPathOverride.override; }
         const appArgs: string = opts.addApp.launchCommand;
         const useWine: boolean = process.platform != 'win32' && appPath.endsWith('.exe');
+        const gamePath: string = path.isAbsolute(appPath) ? fixSlashes(appPath) : fixSlashes(path.join(opts.fpPath, appPath));
+        if (opts.addApp.parentGame.activeDataId && !child) {
+          // If run from a game, game would already have done this!
+          const gameData = await GameDataManager.findOne(opts.addApp.parentGame.activeDataId);
+          await handleGameDataParams(opts, serverOverride, gameData || undefined);
+        }
         const launchInfo: LaunchInfo = {
-          gamePath: appPath,
+          gamePath: gamePath,
           gameArgs: appArgs,
           useWine,
           env: getEnvironment(opts.fpPath, opts.proxy, opts.envPATH),
@@ -119,15 +135,27 @@ export namespace GameLauncher {
 
   /**
    * Launch a game
+   *
+   * @param opts Launch Opts
+   * @param onWillEvent Fired with launch info before Game launches
+   * @param curation Is a curation game
+   * @param serverOverride Change active server for this game launch only
    */
-  export async function launchGame(opts: LaunchGameOpts, onWillEvent: ApiEmitter<GameLaunchInfo>): Promise<void> {
+  export async function launchGame(opts: LaunchGameOpts, onWillEvent: ApiEmitterFirable<GameLaunchInfo>, curation: boolean, serverOverride?: string): Promise<void> {
+    await checkAndInstallPlatform(opts.game.platforms, opts.state, opts.openDialog);
     // Abort if placeholder (placeholders are not "actual" games)
     if (opts.game.placeholder) { return; }
+    // Handle any special game data actions
+    const gameData = !curation ? (opts.game.activeDataId ? await GameDataManager.findOne(opts.game.activeDataId) : null) : null;
+    await handleGameDataParams(opts, serverOverride, gameData || undefined);
     // Run all provided additional applications with "AutoRunBefore" enabled
     if (opts.game.addApps) {
       const addAppOpts: Omit<LaunchAddAppOpts, 'addApp'> = {
+        changeServer: opts.changeServer,
         fpPath: opts.fpPath,
         htdocsPath: opts.htdocsPath,
+        dataPacksFolderPath: opts.dataPacksFolderPath,
+        sevenZipPath: opts.sevenZipPath,
         native: opts.native,
         execMappings: opts.execMappings,
         lang: opts.lang,
@@ -139,11 +167,13 @@ export namespace GameLauncher {
         openDialog: opts.openDialog,
         openExternal: opts.openExternal,
         runGame: opts.runGame,
-        envPATH: opts.envPATH
+        envPATH: opts.envPATH,
+        state: opts.state
       };
       for (const addApp of opts.game.addApps) {
         if (addApp.autoRunBefore) {
-          const promise = launchAdditionalApplication({ ...addAppOpts, addApp });
+          addApp.parentGame = opts.game;
+          const promise = launchAdditionalApplication({ ...addAppOpts, addApp }, curation);
           if (addApp.waitForExit) { await promise; }
         }
       }
@@ -155,8 +185,8 @@ export namespace GameLauncher {
         const command: string = createCommand(launchInfo.launchInfo);
         const managedProc = opts.runGame(launchInfo);
         log.info(logSource,`Launch Game "${opts.game.title}" (PID: ${managedProc.getPid()}) [\n`+
-                    `    applicationPath: "${opts.game.applicationPath}",\n`+
-                    `    launchCommand:   "${opts.game.launchCommand}",\n`+
+                    `    applicationPath: "${appPath}",\n`+
+                    `    launchCommand:   "${metadataLaunchCommand}",\n`+
                     `    command:         "${command}" ]`);
       })
       .catch((error) => {
@@ -164,16 +194,17 @@ export namespace GameLauncher {
       });
     };
     // Launch game
-    let appPath: string = getApplicationPath(opts.game.applicationPath, opts.execMappings, opts.native);
+    const metadataAppPath = gameData ? gameData.applicationPath : opts.game.legacyApplicationPath;
+    const metadataLaunchCommand = gameData ? gameData.launchCommand : opts.game.legacyLaunchCommand;
+    let appPath: string = getApplicationPath(metadataAppPath, opts.execMappings, opts.native);
     let appArgs: string[] = [];
     const appPathOverride = opts.appPathOverrides.filter(a => a.enabled).find(a => a.path === appPath);
     if (appPathOverride) { appPath = appPathOverride.override; }
-    const availableApps = opts.providers.filter(p => p.provides.includes(appPath) || p.provides.includes(opts.game.applicationPath));
-    log.debug('TEST', 'Checked for available apps');
+    const availableApps = opts.providers.filter(p => p.provides.includes(appPath) || p.provides.includes(metadataAppPath));
     // If any available provided applications, check if any work.
     for (const app of availableApps) {
       try {
-        const res = await app.callback(opts.game);
+        const res = await app.callback(opts.game, metadataLaunchCommand);
 
         // Simple path return, treat as regular app
         if (typeof res === 'string') {
@@ -196,7 +227,6 @@ export namespace GameLauncher {
           const browserLaunchArgs = [path.join(__dirname, '../main/index.js'), 'browser_mode=true'];
           if (res.proxy) { browserLaunchArgs.push(`proxy=${res.proxy}`); }
           browserLaunchArgs.push(`browser_url=${(res.url)}`);
-          const gameData = opts.game.activeDataId ? await GameDataManager.findOne(opts.game.activeDataId) : null;
           const gameLaunchInfo: GameLaunchInfo = {
             game: opts.game,
             activeData: gameData,
@@ -214,7 +244,7 @@ export namespace GameLauncher {
             const managedProc = opts.runGame(gameLaunchInfo);
             log.info(logSource, `Launch Game "${opts.game.title}" (PID: ${managedProc.getPid()}) [\n`+
                       `    applicationPath: "${appPath}",\n`+
-                      `    launchCommand:   "${opts.game.launchCommand}" ]`);
+                      `    launchCommand:   "${metadataLaunchCommand}" ]`);
           })
           .catch((error) => {
             log.info('Game Launcher', `Game Launch Aborted: ${error}`);
@@ -232,7 +262,7 @@ export namespace GameLauncher {
     }
     // Continue with launching normally
     const gamePath: string = path.isAbsolute(appPath) ? fixSlashes(appPath) : fixSlashes(path.join(opts.fpPath, appPath));
-    const gameArgs: string[] = [...appArgs, opts.game.launchCommand];
+    const gameArgs: string[] = [...appArgs, metadataLaunchCommand];
     const useWine: boolean = process.platform != 'win32' && gamePath.endsWith('.exe');
     const env = getEnvironment(opts.fpPath, opts.proxy, opts.envPATH);
     try {
@@ -240,7 +270,6 @@ export namespace GameLauncher {
     } catch (err: any) {
       log.error('Launcher', 'Error Finding Game - ' + err.toString());
     }
-    const gameData = opts.game.activeDataId ? await GameDataManager.findOne(opts.game.activeDataId) : null;
     const gameLaunchInfo: GameLaunchInfo = {
       game: opts.game,
       activeData: gameData,
@@ -255,15 +284,18 @@ export namespace GameLauncher {
   }
 
   /**
-   * The paths provided in the Game/AdditionalApplication XMLs are only accurate
-   * on Windows. So we replace them with other hard-coded paths here.
+   * Replaces an Application Path from the metadata with one appropriate for the operating system.
+   *
+   * @param filePath Application Path as provided in the metadata
+   * @param execMappings Mappings of execs from execs.json
+   * @param native Use application native to the users operating system, if possible
    */
   function getApplicationPath(filePath: string, execMappings: ExecMapping[], native: boolean): string {
     const platform = process.platform;
 
     // Bat files won't work on Wine, force a .sh file on non-Windows platforms instead. Sh File may not exist.
     if (platform !== 'win32' && filePath.endsWith('.bat')) {
-      return filePath.substr(0, filePath.length - 4) + '.sh';
+      return filePath.substring(0, filePath.length - 4) + '.sh';
     }
 
     // Skip mapping if on Windows
@@ -301,7 +333,13 @@ export namespace GameLauncher {
     return filePath;
   }
 
-  /** Get an object containing the environment variables to use for the game / additional application. */
+  /**
+   * Get an object containing the environment variables to use for the game / additional application.
+   *
+   * @param fpPath Path to Flashpoint Data Folder
+   * @param proxy HTTP_PROXY environmental variable to add to env (For Linux / Mac)
+   * @param path Override PATH environmental variable
+   */
   function getEnvironment(fpPath: string, proxy: string, path?: string): NodeJS.ProcessEnv {
     let newEnvVars: NodeJS.ProcessEnv = {'FP_PATH': fpPath, 'PATH': path ?? process.env.PATH};
     // On Linux, we tell native applications to use Flashpoint's proxy using the HTTP_PROXY env var
@@ -372,6 +410,8 @@ function registerEventListeners(emitter: EventEmitter, events: string[], callbac
 
 /**
  * Escapes Arguments for the operating system (Used when running a process in a shell)
+ *
+ * @param gameArgs Argument(s) to escape
  */
 export function escapeArgsForShell(gameArgs: string | string[]): string[] {
   if (typeof gameArgs === 'string') {
@@ -400,6 +440,8 @@ export function escapeArgsForShell(gameArgs: string | string[]): string[] {
 /**
  * Escape a string that will be used in a Windows shell (command line)
  * ( According to this: http://www.robvanderwoude.com/escapechars.php )
+ *
+ * @param str String to escape
  */
 function escapeWin(str: string): string {
   return (
@@ -414,6 +456,8 @@ function escapeWin(str: string): string {
 /**
  * Escape arguments that will be used in a Linux shell (command line)
  * ( According to this: https://stackoverflow.com/questions/15783701/which-characters-need-to-be-escaped-when-using-bash )
+ *
+ * @param str String to escape
  */
 function escapeLinuxArgs(str: string): string {
   // Characters to always escape:
@@ -439,6 +483,7 @@ function escapeLinuxArgs(str: string): string {
 /**
  * Split a string to separate the characters wrapped in quotes from all other.
  * Example: '-a -b="123" "example.com"' => ['-a -b=', '123', ' ', 'example.com']
+ *
  * @param str String to split.
  * @returns Split of the argument string.
  *          Items with odd indices are wrapped in quotes.
@@ -464,4 +509,109 @@ function splitQuotes(str: string): string[] {
     splits.push(str.substring(start, str.length));
   }
   return splits;
+}
+
+async function handleGameDataParams(opts: LaunchBaseOpts, serverOverride?: string, gameData?: GameData) {
+  if (gameData) {
+    const mountParams = minimist(gameData.parameters?.split(' ') ?? []);
+    const extract = gameData.parameters?.startsWith('-extract') ?? false;
+    const extractFile = mountParams['extracted'];
+    const server = mountParams['server'];
+    // Handle -extract param
+    if (extract) {
+      let alreadyExtracted = false;
+      if (extractFile) {
+        const filePath = path.join(opts.fpPath, opts.htdocsPath, extractFile);
+        alreadyExtracted = fs.existsSync(filePath);
+      }
+      if (!alreadyExtracted) {
+        // Extra game data to htdocs folder
+        const gameDataPath = path.join(opts.fpPath, opts.dataPacksFolderPath, gameData.path || '');
+        const tempPath = path.join(opts.fpPath, '.temp', 'extract');
+        await fs.ensureDir(tempPath);
+        const destPath = path.join(opts.fpPath, opts.htdocsPath);
+        log.debug('Launcher', `Extracting game data from "${gameDataPath}" to "${tempPath}"`);
+        await extractFullPromise([gameDataPath, tempPath, { $bin: opts.sevenZipPath }]);
+        const contentFolder = path.join(tempPath, 'content');
+        // Move contents of contentFolder to destPath
+        log.debug('Launcher', `Moving extracted game data from "${contentFolder}" to "${destPath}"`);
+        for (const file of await fs.readdir(contentFolder)) {
+          await fs.move(path.join(contentFolder, file), path.join(destPath, file), { overwrite: true });
+        }
+        // Remove temp dir
+        await fs.remove(tempPath);
+      } else {
+        log.debug('Launcher', 'Game data already extracted, skipping...');
+      }
+    }
+    // Use -server param if present
+    await opts.changeServer(server || serverOverride);
+  } else {
+    // Ignore default server switch if launching curation
+    await opts.changeServer(serverOverride);
+  }
+}
+
+export async function checkAndInstallPlatform(platforms: Platform[], state: BackState, openMessageBox: ShowMessageBoxFunc) {
+  const compsToInstall: ComponentStatus[] = [];
+  for (const platform of platforms) {
+    const compIdx = state.componentStatuses.findIndex(c => c.name.toLowerCase() === platform.primaryAlias.name.toLowerCase());
+    if (compIdx > -1) {
+      if (state.componentStatuses[compIdx].state === ComponentState.UNINSTALLED) {
+        compsToInstall.push(state.componentStatuses[compIdx]);
+      }
+    } else {
+      log.warn('Launcher', `No components found for ${platform.primaryAlias.name}, assuming none required.`);
+    }
+  }
+  if (compsToInstall.length > 0) {
+    const platformText = compsToInstall.length > 1 ?
+      formatString(state.languageContainer.dialog.requiresAdditionalDownloadPlural, compsToInstall.length.toString()) :
+      formatString(state.languageContainer.dialog.requiresAdditionalDownload, compsToInstall[0].name);
+    const dialogId = await openMessageBox({
+      largeMessage: true,
+      message: platformText as string,
+      cancelId: 1,
+      buttons: ['Yes', 'No']
+    });
+    const res = (await awaitDialog(state, dialogId)).buttonIdx;
+    if (res === 1) {
+      throw 'User aborted game launch (denied required component download)';
+    } else {
+      // Create dialog to cover screen
+      const template: DialogStateTemplate = {
+        largeMessage: true,
+        message: 'Downloading Required Components...',
+        buttons: []
+      };
+      const dialogId = await createNewDialog(state, template);
+      // Run process to download components
+      await new Promise<void>((resolve, reject) => {
+        const cwd = path.join(state.config.flashpointPath, 'Manager');
+        const fpmPath = 'FlashpointManager.exe';
+        child_process.execFile(fpmPath, ['/notemp', '/download', compsToInstall.map(c => c.id).join(' ')], { cwd }, (error, stdout, stderr) => {
+          log.debug('FP Manager', stdout);
+          if (error) {
+            reject(error);
+            return;
+          } else {
+            resolve();
+          }
+        });
+      })
+      .then(() => {
+        for (const comp of compsToInstall) {
+          const idx = state.componentStatuses.findIndex(c => c.id === comp.id);
+          if (idx > -1) {
+            state.componentStatuses[idx].state = ComponentState.UP_TO_DATE;
+          }
+        }
+        state.socketServer.broadcast(BackOut.UPDATE_COMPONENT_STATUSES, state.componentStatuses);
+      })
+      .finally(() => {
+        // Close downloading dialog
+        state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
+      });
+    }
+  }
 }

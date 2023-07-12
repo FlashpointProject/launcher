@@ -1,4 +1,4 @@
-// Type definitions for non-npm package flashpoint-launcher 10.2
+// Type definitions for non-npm package flashpoint-launcher 12
 // Project: Flashpoint Launcher https://github.com/FlashpointProject/launcher
 // Definitions by: Colin Berry <https://github.com/colin969>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
@@ -20,7 +20,7 @@
 declare module 'flashpoint-launcher' {
     /** Version of the Flashpoint Launcher */
     const version: string;
-    
+
     /** Data Version of the Flashpoint Launcher */
     const dataVersion: string | undefined;
 
@@ -56,9 +56,9 @@ declare module 'flashpoint-launcher' {
      * Unzips a file into a given directory (7zip)
      * @param filePath Path to archive
      * @param outDir Directory to output into
-     * @param onProgress Function called whenever a new file is extracted
+     * @param opts SevenZip Extraction Options
      */
-    function unzipFile(filePath: string, outDir: string, opts: ZipExtractOptions): Promise<void>;
+    function unzipFile(filePath: string, outDir: string, opts?: ZipExtractOptions): Promise<void>;
 
     /**
      * Gets an extension configuration value given its key
@@ -72,6 +72,10 @@ declare module 'flashpoint-launcher' {
      * Fires when an extension configuration value changes
      */
     const onExtConfigChange: Event<{key: string, value: any}>;
+    /**
+     * Focusses the Flashpoint Window
+     */
+    function focusWindow(): void;
 
     /**
      * Log functions to properly pass messages to the Logs Page.
@@ -96,23 +100,100 @@ declare module 'flashpoint-launcher' {
         function registerCommand(command: string, callback: (...args: any[]) => any): Disposable;
     }
 
+    namespace curations {
+        /** Loads the Curation Archive at the path
+         * @param filePath Path to the archive
+         * @param taskId ID of Task to update progress on (See Status Namespace)
+         */
+        function loadCurationArchive(filePath: string, taskId?: string): Promise<LoadedCuration>;
+        /** Get all loaded curations */
+        function getCurations(): CurationState[];
+        /** Get all curation templates */
+        function getCurationTemplates(): Promise<CurationTemplate[]>;
+        /**
+         * Gets a curation given its folder
+         * @param folder Folder name of the curation
+         */
+        function getCuration(folder: string): CurationState | undefined;
+        /**
+         * Writes metadata to a loaded curation
+         * @param folder Folder name of the curation
+         * @param meta Metadata to write
+         */
+        function setCurationGameMeta(folder: string, meta: CurationMeta): boolean;
+        /**
+         * Writes metadata to a loaded curation's AddApp
+         * @param folder Folder name of the curation
+         * @param key Key of the AddApp
+         * @param meta AddApp Metadata to write
+         */
+        function setCurationAddAppMeta(folder: string, key: string, meta: AddAppCurationMeta): boolean;
+        /** Selects all given curations (if exist) 
+         * @param folders Folder names of curations to select
+        */
+        function selectCurations(folders: string[]): void;
+        /**
+         * Updates a curations content tree
+         * @param folder Folder name of the curation
+         */
+        function updateCurationContentTree(folder: string): Promise<ContentTree | undefined>;
+        /** Creates a new curation
+         * @param meta Template Curation Metadata
+         */
+        function newCuration(meta?: CurationMeta): Promise<CurationState>;
+        /**
+         * Deletes a curation
+         * @param folder Folder name of the curation
+         */
+        function deleteCuration(folder: string): Promise<void>;
+        /**
+         * Duplicates a curation
+         * @param folder Folder name of curation
+         * @returns Folder name of duplicate curation
+         */
+        function duplicateCuration(folder: string): Promise<string>;
+        /**
+         * Returns the absolute path to a curations folder
+         * @param folder Folder name of the curation
+         */
+        function getCurationPath(folder: string): string;
+        /** Automatically create a curation for the existing game id
+         * @param gameId Game ID
+         */
+        function makeCurationFromGame(gameId: string, skipDataPack?: boolean): Promise<string | undefined>;
+        /** Update the content index for a curation
+         * @param folder Curation Folder name
+         */
+        function refreshCurationContent(folder: string): Promise<void>;
+
+        // Events
+        const onDidCurationListChange: Event<{ added?: CurationState[], removed?: string[] }>;
+        const onDidCurationChange: Event<CurationState>;
+        const onWillGenCurationWarnings: Event<{
+            curation: LoadedCuration,
+            warnings: CurationWarnings
+        }>;
+    }
+
     /** Collection of Game related API functions */
     namespace games {
+        // Platforms
+        function findPlatformByName(name: string): Promise<Platform | null>;
         // Playlist
         /**
          * Finds a playlist given its ID
          * @param playlistId ID of the Playlist
          * @param join Whether to include Playlist Games in the result
          */
-        function findPlaylist(playlistId: string, join?: boolean): Promise<Playlist | null>;
+        function findPlaylist(playlistId: string, join?: boolean): Playlist;
         /**
          * Finds a playlist given its name
          * @param playlistName Name of the Playlist
          * @param join Whether to include Playlist Games in the result
          */
-        function findPlaylistByName(playlistName: string, join?: boolean): Promise<Playlist | null>;
+        function findPlaylistByName(playlistName: string, join?: boolean): Playlist;
         /** Find all Playlists in the database (Playlist Games not returned) */
-        function findPlaylists(showExtreme: boolean): Promise<Playlist[]>;
+        function findPlaylists(showExtreme: boolean): Playlist[];
         /**
          * Updates / Creates a Playlist
          * @param playlist Playlist data to save
@@ -120,7 +201,7 @@ declare module 'flashpoint-launcher' {
         function updatePlaylist(playlist: Playlist): Promise<Playlist>;
         /**
          * Removes a playlist
-         * @param playlist Playlist ID to remove
+         * @param playlistId Playlist ID to remove
          * @returns Playlist that was removed
          */
         function removePlaylist(playlistId: string): Promise<Playlist | undefined>;
@@ -142,12 +223,7 @@ declare module 'flashpoint-launcher' {
          * Update / Create a Playlist Game entry
          * @param playlistGame Playlist Game entry to save
          */
-        function updatePlaylistGame(playlistGame: PlaylistGame): Promise<PlaylistGame>;
-        /**
-         * Update / Create many Playlist Game entries in a transaction
-         * @param playlistGames Playlist Game entries to save
-         */
-        function updatePlaylistGames(playlistGames: PlaylistGame[]): Promise<void>;
+        function updatePlaylistGame(playlistId: string, playlistGame: PlaylistGame): Promise<PlaylistGame>;
         /**
          * Adds a Game to a Playlist
          * @param playlistId Playlist to add the Game to
@@ -192,17 +268,6 @@ declare module 'flashpoint-launcher' {
 
         // Misc
         /**
-         * Returns all unique Platform strings in a library
-         * @param library Library to search
-         */
-        function findPlatforms(library: string): Promise<string[]>;
-        /**
-         * Parses a Playlist JSON file and returns an object you can save later.
-         * @param jsonData Raw JSON data of the Playlist file
-         * @param library Library to use instead of Playlist defined library
-         */
-        function createPlaylistFromJson(jsonData: any, library?: string): Playlist;
-        /**
          * Returns whether a game is extreme based on its tags.
          * @param game Game to check
          */
@@ -235,15 +300,10 @@ declare module 'flashpoint-launcher' {
     namespace gameData {
         function findOne(id: number): Promise<GameData | null>;
         function findGameData(gameId: string): Promise<GameData[]>;
-        function findSourceDataForHashes(hashes: string[]): Promise<SourceData[]>;
         function save(gameData: GameData): Promise<GameData>;
         function importGameData(gameId: string, filePath: string): Promise<GameData>;
         function downloadGameData(gameDataId: number): Promise<void>;
         const onDidImportGameData: Event<GameData>;
-    }
-
-    namespace sources {
-        function findOne(sourceId: number): Promise<Source | null>;
     }
 
     /** Collection of Tag related API functions */
@@ -276,6 +336,12 @@ declare module 'flashpoint-launcher' {
          * @param tag Tag data to save
          */
         function saveTag(tag: Tag): Promise<Tag>;
+        /**
+         * Updates a Tag with a new alias
+         * @param tagId Tag to add alias to
+         * @param alias Alias to add to tag
+         */
+        function addAliasToTag(tagId: number, alias: string): Promise<Tag>;
         /**
          * Removes a Tag (from all Games)
          * @param tagId ID of Tag to remove
@@ -320,7 +386,7 @@ declare module 'flashpoint-launcher' {
          * Finds a list of Tag Suggestions given a string they start with
          * @param name Partial name that a tag starts with
          */
-        function findTagSuggestions(name: string): Promise<TagSuggestion[]>;
+        function findTagSuggestions(name: string): Promise<TagSuggestion<Tag>[]>;
 
         // Misc
         /**
@@ -343,6 +409,8 @@ declare module 'flashpoint-launcher' {
          * @param key Element to view
          */
         function getStatus<T extends keyof StatusState>(key: T): StatusState[T];
+        function newTask(task: PreTask): Task;
+        function setTask(taskId: string, taskData: Partial<Task>): void;
     }
 
     /** Collection of Service related API function */
@@ -351,6 +419,7 @@ declare module 'flashpoint-launcher' {
          * Runs a managed service given info, will die when the launcher exits.
          * @param name Name of the service
          * @param info Service info to run.
+         * @param opts Process Options
          * @param basePath Override for directory to start in (info is relative to this), Extension path if none given
          * @returns A managed process. Can be passed to removeService.
          */
@@ -359,6 +428,7 @@ declare module 'flashpoint-launcher' {
          * Creates a managed process given info, will die when disposed. (Does not start it)
          * @param name Name of the process
          * @param info Process info to run.
+         * @param opts Process Options
          * @param basePath Override for directory to start in (info is relative to this), Extension path if none given
          * @returns A managed process.
          */
@@ -382,11 +452,28 @@ declare module 'flashpoint-launcher' {
     /** Front facing dialogs */
     export namespace dialogs {
         /**
-         * Opens a message box on the client. Buttons can be provided in options.
+         * Opens a message box on the client. Buttons can be provided in options. Returns when the dialog closes
          * @param options Message box options
-         * @returns Button index pressed (0 or cancelId if exited)
+         * @returns Button index pressed (-1 or cancelId if exited)
          */
-        function showMessageBox(options: ShowMessageBoxOptions): Promise<number>;
+        function showMessageBox(options: DialogStateTemplate): Promise<number>;
+        /**
+         * Opens a message box on the client. Buttons can be provided in options. Returns a handle. Can use awaitDialog to get result or cancelDialog from yourself.
+         * @param options Message box options
+         * @returns Dialog ID
+         */
+        function showMessageBoxWithHandle(options: DialogStateTemplate): Promise<string>;
+        /**
+         * Awaits a message box dialogs result
+         * @param dialogId Dialog ID
+         * @returns Dialog Response (Button index pressed + field values)
+         */
+        function awaitDialog(dialogId: string): Promise<DialogResponse>;
+        /**
+         * Cancels a dialog. Use awaitDialog to get result.
+         * @param dialogId Dialog ID
+         */
+        function cancelDialog(dialogId: string): void;
         /**
          * Opens a save dialog on the client. They can select a file to save to.
          * @param options Save dialog options
@@ -407,14 +494,6 @@ declare module 'flashpoint-launcher' {
 
     /** Called when a client connects to the backend */
     const onDidConnect: Event<void>;
-
-    /** See Electron docs for explanations. https://www.electronjs.org/docs/api/dialog */
-    type ShowMessageBoxOptions = {
-        title?: string;
-        message: string;
-        buttons?: string[];
-        cancelId?: number;
-    };
 
     /** See Electron docs for explanations. http://electronjs.org/docs/api/structures/file-filter */
     interface FileFilter {
@@ -467,12 +546,18 @@ declare module 'flashpoint-launcher' {
         developer: string;
         /** Name of the publisher of the game */
         publisher: string;
+        /** List of platforms this game uses */
+        platforms: Platform[];
+        /** List of platforms attached to the game in a string format */
+        platformsStr: string;
+        /** Primary platform ID */
+        platformId: number;
+        /** Primary platform name (cached) */
+        platformName: string;
         /** Date-time of when the game was added to collection */
         dateAdded: string;
         /** Date-time of when the game was added to collection */
         dateModified: string;
-        /** Platform the game runs on (Flash, HTML5, Shockwave etc.) */
-        platform: string;
         /** If the game is "broken" or not */
         broken: boolean;
         /** Game is not suitable for children */
@@ -489,10 +574,10 @@ declare module 'flashpoint-launcher' {
         tagsStr: string;
         /** Source if the game files, either full URL or the name of the website */
         source: string;
-        /** Path to the application that runs the game */
-        applicationPath: string;
-        /** Command line argument(s) passed to the application to launch the game */
-        launchCommand: string;
+        /** LEGACY GAMES ONLY - Path to the application that runs the game */
+        legacyApplicationPath: string;
+        /** LEGACY GAMES ONLY - Command line argument(s) passed to the application to launch the game */
+        legacyLaunchCommand: string;
         /** Date of when the game was released */
         releaseDate: string;
         /** Version of the game */
@@ -514,6 +599,12 @@ declare module 'flashpoint-launcher' {
         /** Whether the data is present on disk */
         activeDataOnDisk: boolean;
         data?: GameData[];
+        /** Last Played Date */
+        lastPlayed: string | null;
+        /** Total Playtime (seconds) */
+        playtime: number;
+        /** Number of plays */
+        playCounter: number;
         updateTagsStr: () => void;
     };
 
@@ -538,35 +629,11 @@ declare module 'flashpoint-launcher' {
         size: number;
         /** Parameters passed to the mounter */
         parameters?: string;
+        /** Application path used to launch game with this data */
+        applicationPath: string;
+        /** Application path used to launch game with this data */
+        launchCommand: string;
     };
-
-    type SourceData = {
-        id: number;
-        /** Source providing the download */
-        source?: Source;
-        sourceId: number;
-        /** SHA256 hash of this download */
-        sha256: string;
-        urlPath: string;
-    }
-
-    type Source = {
-        id: number;
-        /** Name of the Source */
-        name: string;
-        /** Base URL of the Source */
-        sourceFileUrl: string;
-        /** Base URL of the Source */
-        baseUrl: string;
-        /** File Count provided as SourceData */
-        count: number;
-        /** When this Source was added */
-        dateAdded: Date;
-        /** Last time this Source was updated */
-        lastUpdated: Date;
-        /** Any data provided by this Source */
-        data?: SourceData[];
-    }  
 
     type AdditionalApp = {
         /** ID of the additional application (unique identifier) */
@@ -587,6 +654,37 @@ declare module 'flashpoint-launcher' {
         waitForExit: boolean;
         /** Parent of this add app */
         parentGame: Game;
+        parentGameId: string;
+    };
+
+    type Platform = {
+        /** ID of the tag (unique identifier) */
+        id?: number;
+        /** Date when this tag was last modified */
+        dateModified: string;
+        /** ID of Primary Alias */
+        primaryAliasId: number;
+        /** Primary Alias */
+        primaryAlias: PlatformAlias;
+        /** Aliases / Names of the tag */
+        aliases: PlatformAlias[];
+        /** Description of the tag */
+        description?: string;
+        /** Games which are marked with this Tag */
+        gamesUsing?: Game[];
+        /** Number of games this tag belongs to */
+        count?: number;
+    };
+
+    type PlatformAlias = {
+        /** ID of the Platform alias (unique identifier) */
+        id: number;
+        /** Platform this alias belongs to (either ID or Platform will exist) */
+        platformId?: number;
+        /** Platform this alias belongs to (either ID or Platform will exist) */
+        platform?: Platform;
+        /** The name this alias represents */
+        name: string;
     };
 
     type Tag = {
@@ -623,14 +721,29 @@ declare module 'flashpoint-launcher' {
         name: string;
     };
 
-    type TagSuggestion = {
+    type TagSuggestion<T extends ITagObject> = {
         /** Alias found, only present if not the same as the primary alias */
         alias?: string;
         /** Primary alias of the tag suggestion */
         primaryAlias: string;
         /** Tag suggested */
-        tag: Tag;
+        tag: T;
     };
+
+    type ITagObject = {
+        id?: number;
+        dateModified: string;
+        primaryAlias: ITagAlias;
+        aliases: ITagAlias[];
+        description?: string;
+        categoryId?: number;
+        count?: number;
+    }
+
+    export type ITagAlias = {
+        id: number;
+        name: string;
+    }
 
     type TagCategory = {
         /** ID of the tag category (unique identifier) */
@@ -646,6 +759,8 @@ declare module 'flashpoint-launcher' {
     };
 
     type Playlist = {
+        /** Path to the playlist file */
+        filePath: string;
         /** ID of the playlist (unique identifier) */
         id: string;
         /** Games in this playlist */
@@ -665,20 +780,12 @@ declare module 'flashpoint-launcher' {
     };
 
     type PlaylistGame = {
-        /** Internal ID of the playlist game entry */
-        id?: string;
-        /** Playlist which owns this game (either ID or Playlist will exist) */
-        playlistId?: string;
-        /** Playlist which owns this game (either ID or Playlist will exist) */
-        playlist?: Playlist;
         /** Order priority of the game in the playlist */
         order: number;
         /** Notes for the game inside the playlist specifically */
         notes: string;
-        /** Game this represents (either ID or Game will exist) */
-        gameId?: string;
-        /** Game this represents (either ID or Game will exist) */
-        game?: Game;
+        /** Game this represents */
+        gameId: string;
     };
 
     /**
@@ -704,6 +811,8 @@ declare module 'flashpoint-launcher' {
 
     /** Game field to order the results by */
     type GameOrderBy = keyof Game;
+    /** Ways to order games */
+    type GameOrderReverse = 'ASC'|'DESC';
     /** Direction to return the results in (ascending or descending) */
     type GameOrderDirection = 'ASC' | 'DESC';
 
@@ -735,7 +844,7 @@ declare module 'flashpoint-launcher' {
         /** Search query to filter by */
         searchQuery?: ParsedSearch;
         /** Playlist to limit the results to (no playlist limit will be applied if undefined). */
-        playlistId?: string;
+        playlist?: Playlist;
     };
 
     /** Object representation of a parsed search query. */
@@ -771,7 +880,8 @@ declare module 'flashpoint-launcher' {
     type ViewGame = {
         id: string;
         title: string;
-        platform: string;
+        platformName: string;
+        platformsStr: string;
         tagsStr: string;
         developer: string;
         publisher: string;
@@ -788,8 +898,6 @@ declare module 'flashpoint-launcher' {
          * The "server" is defined in "services.json".
          */
         startServer: boolean;
-        // Name of the Server process to run
-        server: string;
         /** Lower limit of the range of ports that the back should listen on. */
         backPortMin: number;
         /** Upper limit of the range of ports that the back should listen on. */
@@ -802,6 +910,10 @@ declare module 'flashpoint-launcher' {
         logsBaseUrl: string;
         /** Whether to notify that launcher updates are available */
         updatesEnabled: boolean;
+        /** Url to fetch Game of the Day JSON */
+        gotdUrl: string;
+        /** Show GOTD entries later than Today */
+        gotdShowAll: boolean;
     };
 
     export type TagFilterGroup = {
@@ -818,7 +930,7 @@ declare module 'flashpoint-launcher' {
         /** Are these tags considered Extreme? */
         extreme: boolean;
     }
-    
+
     export type TagFilter = string[];
 
     /**
@@ -826,7 +938,7 @@ declare module 'flashpoint-launcher' {
      * This is the data contained in the Preferences file.
      */
     type AppPreferencesData = {
-        [key: string]: any;
+        [key: string]: any; // TODO: Remove this!
         /** Path to the image folder (relative to the flashpoint path) */
         imageFolderPath: string;
         /** Path to the logo folder (relative to the flashpoint path) */
@@ -895,6 +1007,8 @@ declare module 'flashpoint-launcher' {
         symlinkCurationContent: boolean;
         /** Download missing thumbnails/screenshots from a remote server. */
         onDemandImages: boolean;
+        /** Whether to download compressed images or not */
+        onDemandImagesCompressed: boolean;
         /** Base URL of the server to download missing thumbnails/screenshots from. */
         onDemandBaseUrl: string;
         /** Proxy server to use during Browser Mode */
@@ -921,7 +1035,62 @@ declare module 'flashpoint-launcher' {
         disableExtremeGames: boolean;
         /** If games flagged as "broken" should be hidden */
         showBrokenGames: boolean;
+        /** Pair of key combos to shortcuts */
+        shortcuts: Shortcuts;
+        /** Online manual website */
+        onlineManual: string;
+        /** Offline manual path */
+        offlineManual: string;
+        /** Game Data download sources */
+        gameDataSources: GameDataSource[];
+        /** Game Metadata sources */
+        gameMetadataSources: GameMetadataSource[];
+        /** FPFSS base url (for authoring actions on remote metadata) */
+        fpfssBaseUrl: string;
+        /** Name of the Server process to run */ 
+        server: string;
+        /** Name of the Server to use when running curations */
+        curateServer: string;
+        /** Enable Playtime Tracking (last played, playtime, play count) */
+        enablePlaytimeTracking: boolean;
+        /** Enable Playtime Tracking for Extreme games (last played, playtime, play count) */
+        enablePlaytimeTrackingExtreme: boolean;
     };
+
+    type GameDataSource = {
+        type: string;
+        name: string;
+        arguments: string[];
+    }
+
+    type GameMetadataSource = {
+        name: string;
+        baseUrl: string;
+        tags: MetadataUpdateInfo;
+        games: MetadataUpdateInfo;
+    }
+
+    type MetadataUpdateInfo = {
+        actualUpdateTime: string;
+        latestUpdateTime: string;
+        latestDeleteTime: string;
+    }
+
+    type Shortcuts = {
+        curate: {
+            prev: string[];
+            next: string[];
+            load: string[];
+            newCur: string[];
+            deleteCurs: string[];
+            exportCurs: string[];
+            exportDataPacks: string[];
+            importCurs: string[];
+            refresh: string[];
+            run: string[];
+            runMad4fp: string[];
+        }
+    }
 
     type AppPathOverride = {
         path: string;
@@ -1152,5 +1321,174 @@ declare module 'flashpoint-launcher' {
         timestamp: number;
         /** Level of the log, 0-5, Trace, Info, Warn, Error, Fatal, Silent */
         logLevel: number;
+    }
+
+    export type LoadedCuration = {
+        folder: string;
+        uuid: string;
+        group: string;
+        game: CurationMeta;
+        addApps: AddAppCuration[];
+        thumbnail: CurationIndexImage;
+        screenshot: CurationIndexImage;
+    }
+
+    export type CurationState = LoadedCuration & {
+        alreadyImported: boolean;
+        warnings: CurationWarnings;
+        locked?: boolean;
+        contents?: ContentTree;
+    }
+
+    export type ContentTree = {
+        root: ContentTreeNode;
+    }
+
+    export type ContentTreeNode = {
+        name: string;
+        /** Frontend - Whether this is expanded in the content tree view */
+        expanded: boolean;
+        /** File size (if type is file) */
+        size?: number;
+        type: 'file' | 'directory';
+        /** Immediate items below this node */
+        children: ContentTreeNode[];
+        /** Number of items below this node */
+        count: number;
+      }
+
+    /** A set of warnings for things that should be fixed in a curation. */
+    export type CurationWarnings = {
+        /** Keys of any field that should be in yellow as a warning */
+        fieldWarnings: string[];
+        /** Text warnings to display at the bottom */
+        writtenWarnings: string[];
+    };
+
+    export type CurationMeta = Partial<{
+        // Game fields
+        title: string;
+        alternateTitles: string;
+        series: string;
+        developer: string;
+        publisher: string;
+        status: string;
+        extreme: boolean;
+        primaryPlatform: string;
+        platforms: Platform[];
+        tags: Tag[];
+        source: string;
+        launchCommand: string;
+        library: string;
+        notes: string;
+        curationNotes: string;
+        applicationPath: string;
+        playMode: string;
+        releaseDate: string;
+        version: string;
+        originalDescription: string;
+        mountParameters: string;
+        language: string;
+    }>
+
+    export type Task = {
+        id: string;
+        name: string;
+        status: string;
+        finished: boolean;
+        error?: string;
+        progress?: number;
+    }
+
+    export type PreTask = Omit<Task, 'id'>;
+
+    export type AddAppCurationMeta = Partial<{
+        heading: string;
+        applicationPath: string;
+        launchCommand: string;
+    }>
+
+    export type AddAppCuration = {key: string} & AddAppCurationMeta;
+
+    export type CurationIndexImage = {
+        /** Base64 encoded data of the image file (in case it was extracted from an archive). */
+        data?: string;
+        /** Raw data of the image file (in case it was extracted from an archive). */
+        rawData?: Buffer;
+        /** If the images was found. */
+        exists: boolean;
+        /** Name and path of the file (relative to the curation folder). */
+        fileName?: string;
+        /** Full path of the image (in case it was loaded from a folder). */
+        filePath?: string;
+        /** Version to force CSS refresh later */
+        version: number;
+    }
+
+    export interface CurationTemplate {
+        name: string;
+        logo: string;
+        meta: EditCurationMeta;
+    }
+
+    /** Meta data of a curation. */
+    type EditCurationMeta = Partial<{
+        // Game fields
+        title: string;
+        alternateTitles: string;
+        series: string;
+        developer: string;
+        publisher: string;
+        status: string;
+        extreme: boolean;
+        tags: Tag[];
+        source: string;
+        launchCommand: string;
+        library: string;
+        notes: string;
+        curationNotes: string;
+        platforms: Platform[];
+        applicationPath: string;
+        playMode: string;
+        releaseDate: string;
+        version: string;
+        originalDescription: string;
+        language: string;
+        mountParameters: string;
+    }>
+
+    export type DialogStateTemplate = Omit<DialogState, 'id'>;
+
+    export type DialogState = {
+        id: string;
+        largeMessage?: boolean;
+        userCanCancel?: boolean;
+        message: string;
+        fields?: DialogField[];
+        cancelId?: number;
+        buttons: string[];
+    }
+
+    export type DialogFieldString = {
+        type: 'string';
+        locked?: boolean;
+        name: string;
+        message?: string;
+        placeholder?: string;
+        value: string;
+    }
+
+    export type DialogFieldProgress = {
+        type: 'progress';
+        name: string;
+        message?: string;
+        value: number;
+    }
+
+    export type DialogField = DialogFieldString | DialogFieldProgress;
+
+    export type DialogResponse = {
+        dialog: DialogState,
+        buttonIdx: number
     }
 }

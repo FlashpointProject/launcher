@@ -1,9 +1,8 @@
 import { Game } from '@database/entity/Game';
-import * as remote from '@electron/remote';
 import { BackIn } from '@shared/back/types';
 import { parseSearchText } from '@shared/game/GameFilter';
-import { TagFilterGroup } from '@shared/preferences/interfaces';
 import { getFileServerURL } from '@shared/Util';
+import { Playlist, TagFilterGroup } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as path from 'path';
 import { GameOrderChangeEvent } from './components/GameOrder';
@@ -23,23 +22,8 @@ export function easterEgg(search: string) {
 }
 
 /**
- * Copy and shuffle an array.
- * @param {Array} array The array to copy and shuffle
- * @returns Shuffled copy of the given array
- */
-export function shuffle<T>(array: T[]): T[] {
-  const shuffled = array.slice();
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    const temp = shuffled[j];
-    shuffled[j] = shuffled[i];
-    shuffled[i] = temp;
-  }
-  return shuffled;
-}
-
-/**
  * Join a library route with the browse route
+ *
  * @param route Library route
  */
 export function joinLibraryRoute(route: string): string {
@@ -65,6 +49,7 @@ export type ElementAncestorFunction<T extends ElementBase<T>> = (target: T, coun
 
 /**
  * Find the first ancestor of an element where "fn" returns true (starting with the parent of the input element).
+ *
  * @param element The input element.
  * @param fn Function that is called for each ancestor of element until it returns true, or runs out of ancestors.
  * @param checkElement If the input element should also be checked. Defaults to false.
@@ -84,6 +69,7 @@ export function findElementAncestor<T extends ElementBase<T>>(element: T, fn: El
 
 /**
  * Check if an element is the same as another element, or an ancestor of it.
+ *
  * @param start First element to compare to (it will climb up the parents of this recursively).
  * @param target Element to find.
  * @returns If the "target" element was found.
@@ -98,7 +84,7 @@ export function checkIfAncestor(start: Element | null, target: Element | null): 
 }
 
 export function getGameImageURL(folderName: string, gameId: string): string {
-  return `${getFileServerURL()}/images/${folderName}/${gameId.substr(0, 2)}/${gameId.substr(2, 2)}/${gameId}.png`;
+  return `${getFileServerURL()}/images/${folderName}/${gameId.substring(0, 2)}/${gameId.substring(2, 4)}/${gameId}.png`;
 }
 
 export function getPlatformIconURL(platform: string, version: number): string {
@@ -113,16 +99,22 @@ export function getExtIconURL(id: string): string {
   return `${getFileServerURL()}/exticons/${id}`;
 }
 
+export function getCurationURL(folder: string): string {
+  return `${getFileServerURL()}/curations/${folder}`;
+}
+
+export function getCurationPostURL(): string {
+  return `${getFileServerURL()}/curation`;
+}
+
 export function getGameImagePath(folderName: string, gameId: string): string {
   return path.join(
     window.Shared.config.fullFlashpointPath,
     window.Shared.preferences.data.imageFolderPath,
     folderName,
-    `${gameId.substr(0, 2)}/${gameId.substr(2, 2)}/${gameId}.png`
+    `${gameId.substring(0, 2)}/${gameId.substring(2, 4)}/${gameId}.png`
   );
 }
-
-type IGamePathInfo = Pick<Game, 'platform' | 'launchCommand'>;
 
 /* istanbul ignore next */
 export async function getGamePath(game: Game, fpPath: string, htdocsPath: string, dataPacksPath: string): Promise<string | undefined> {
@@ -141,15 +133,15 @@ export async function getGamePath(game: Game, fpPath: string, htdocsPath: string
   const shockwavePath = 'FPSoftware/Shockwave/PJX'; // (Path to a shockwave executable)
   const groovePath = 'FPSoftware/3DGrooveGX'; // (Path to the 3D Groove GZ executable)
   // Extract file path from the game's launch command
-  const platform = game.platform.toLowerCase();
+  const platform = game.platforms[0].primaryAlias.name.toLowerCase();
   switch (platform) {
     // Example: 5.x http://example.com/games/cool_game.html
     case 'unity': {
       // Extract the URL (get the content after the first space, or the whole string if there is no space)
       let str: string | undefined = undefined;
-      const index = game.launchCommand.indexOf(' ');
-      if (index >= 0) { str = game.launchCommand.substring(index + 1); }
-      else            { str = game.launchCommand; }
+      const index = game.legacyLaunchCommand.indexOf(' ');
+      if (index >= 0) { str = game.legacyLaunchCommand.substring(index + 1); }
+      else            { str = game.legacyLaunchCommand; }
       // Create URL
       const url = toForcedURL(str);
       if (url) { return path.join(fpPath, htdocsPath, urlToFilePath(url)); }
@@ -157,22 +149,22 @@ export async function getGamePath(game: Game, fpPath: string, htdocsPath: string
     // Relative path to a ".ini" file
     // Example: game.ini
     case '3d groove gx':
-      return path.join(fpPath, groovePath, game.launchCommand);
+      return path.join(fpPath, groovePath, game.legacyLaunchCommand);
     // Examples: -J-Dfile.encoding=UTF8 -J-Duser.language=ja -J-Duser.country=JP http://www.example.jp/game.html
     //           http://www.example.com/game.html
     //           "http://www.example.com/game.html"
     case 'java': {
       // Extract the path/url from the launch command
       let str: string | undefined = undefined;
-      if (game.launchCommand[0] === '"') { // (URL wrappen in quotation marks)
+      if (game.legacyLaunchCommand[0] === '"') { // (URL wrappen in quotation marks)
         // Get the contents between the first pair of quotation marks
-        const index = game.launchCommand.indexOf('"', 1);
-        if (index >= 0) { str = game.launchCommand.substring(1, index); }
+        const index = game.legacyLaunchCommand.indexOf('"', 1);
+        if (index >= 0) { str = game.legacyLaunchCommand.substring(1, index); }
       } else {
         // Get the content after the last space (or the while string if there is no space)
-        const index = game.launchCommand.lastIndexOf(' ');
-        if (index >= 0) { str = game.launchCommand.substring(index); }
-        else            { str = game.launchCommand; }
+        const index = game.legacyLaunchCommand.lastIndexOf(' ');
+        if (index >= 0) { str = game.legacyLaunchCommand.substring(index); }
+        else            { str = game.legacyLaunchCommand; }
       }
       // Create a full path from the extracted url
       if (str !== undefined) {
@@ -186,15 +178,15 @@ export async function getGamePath(game: Game, fpPath: string, htdocsPath: string
     case 'shockwave': {
       // Extract the path/url from the launch command
       let str: string | undefined = undefined;
-      if (game.launchCommand[0] === '"') { // (Path/URL wrappen in quotation marks)
+      if (game.legacyLaunchCommand[0] === '"') { // (Path/URL wrappen in quotation marks)
         // Get the contents between the first pair of quotation marks
-        const index = game.launchCommand.indexOf('"', 1);
-        if (index >= 0) { str = game.launchCommand.substring(1, index); }
+        const index = game.legacyLaunchCommand.indexOf('"', 1);
+        if (index >= 0) { str = game.legacyLaunchCommand.substring(1, index); }
       } else {
         // Get the content before the first space (or the while string if there is no space)
-        const index = game.launchCommand.indexOf(' ');
-        if (index >= 0) { str = game.launchCommand.substring(0, index); }
-        else            { str = game.launchCommand; }
+        const index = game.legacyLaunchCommand.indexOf(' ');
+        if (index >= 0) { str = game.legacyLaunchCommand.substring(0, index); }
+        else            { str = game.legacyLaunchCommand; }
       }
       // Create a full path from the extracted path/url
       if (str !== undefined) {
@@ -210,9 +202,9 @@ export async function getGamePath(game: Game, fpPath: string, htdocsPath: string
     case 'activex': {
       // Extract everything before the first space
       let str: string | undefined = undefined;
-      const index = game.launchCommand.lastIndexOf(' ');
-      if (index >= 0) { str = game.launchCommand.substring(0, index); }
-      else            { str = game.launchCommand; }
+      const index = game.legacyLaunchCommand.lastIndexOf(' ');
+      if (index >= 0) { str = game.legacyLaunchCommand.substring(0, index); }
+      else            { str = game.legacyLaunchCommand; }
       // Create a full path from the extracted url
       const url = toForcedURL(str);
       if (url) { return path.join(fpPath, htdocsPath, urlToFilePath(url)); }
@@ -225,7 +217,7 @@ export async function getGamePath(game: Game, fpPath: string, htdocsPath: string
     case 'popcap plugin':
     case 'silverlight':
     default: {
-      const urlObj = toForcedURL(game.launchCommand);
+      const urlObj = toForcedURL(game.legacyLaunchCommand);
       return urlObj
         ? path.join(fpPath, htdocsPath, urlToFilePath(urlObj))
         : undefined;
@@ -233,34 +225,32 @@ export async function getGamePath(game: Game, fpPath: string, htdocsPath: string
   }
 }
 
-/** Convert a URL to a path, where the hostname is the first folder, and the pathname the folders afterwards. */
+/**
+ * Convert a URL to a path, where the hostname is the first folder, and the pathname the folders afterwards.
+ *
+ * @param url Url to convert
+ */
 function urlToFilePath(url: URL): string {
   return decodeURIComponent(path.join(url.hostname, url.pathname));
 }
 
-/** Try to create a URL object (both with the unedited string and a protocol). */
+/**
+ * Try to create a URL object (both with the unedited string and a protocol).
+ *
+ * @param str String to convert into a URL
+ */
 export function toForcedURL(str: string): URL | undefined {
   return toURL(str) || toURL('http://'+str);
 }
 
-/** Try to create a URL object (returns undefined if the string is not valid). */
+/**
+ * Try to create a URL object (returns undefined if the string is not valid).
+ *
+ * @param str String to try and convert to a URL
+ */
 export function toURL(str: string): URL | undefined {
   try { return new URL(str); }
   catch { return undefined; }
-}
-
-/** Open a confirmation box, returning true if Yes, false if No, throwing if Cancelled. */
-export async function openConfirmDialog(title: string, message: string, cancel = false): Promise<boolean> {
-  const buttons = ['Yes', 'No'];
-  if (cancel) { buttons.push('Cancel'); }
-  const res = await remote.dialog.showMessageBox({
-    title: title,
-    message: message,
-    buttons: buttons
-  });
-  if (res.response === 0) { return true; }
-  if (res.response === 1) { return false; }
-  else { throw 'Cancelled'; }
 }
 
 // @TODO Move this to the back process
@@ -273,7 +263,7 @@ type RebuildQueryOpts = {
   extreme: boolean;
   library: string;
   searchLimit: number;
-  playlistId: string | undefined;
+  playlist?: Playlist;
   order: GameOrderChangeEvent;
   tagFilters: TagFilterGroup[];
 }
@@ -295,7 +285,7 @@ export function rebuildQuery(opts: RebuildQueryOpts): ViewQuery {
     extreme: opts.extreme,
     filter: {
       searchQuery: searchQuery,
-      playlistId: opts.playlistId,
+      playlist: opts.playlist,
     },
     searchLimit: opts.searchLimit,
     orderBy: opts.order.orderBy,
@@ -303,10 +293,14 @@ export function rebuildQuery(opts: RebuildQueryOpts): ViewQuery {
   };
 }
 
-/** Get the "library route" of a url (returns empty string if URL is not a valid "sub-browse path") */
+/**
+ * Get the "library route" of a URL (returns empty string if URL is not a valid "sub-browse path")
+ *
+ * @param urlPath URL to check
+ */
 export function getBrowseSubPath(urlPath: string): string {
   if (urlPath.startsWith(Paths.BROWSE)) {
-    let str = urlPath.substr(Paths.BROWSE.length);
+    let str = urlPath.substring(Paths.BROWSE.length);
     if (str[0] === '/') { str = str.substring(1); }
     return str;
   }

@@ -49,6 +49,12 @@ function truncate(string: string, byteLength: number): string {
 
 /* node-sanitize-filename */
 
+const illegalRe = /[/?<>\\:*|"]/g;
+const controlRe = /[\x00-\x1f\x80-\x9f]/g;
+const reservedRe = /^\.+$/;
+const windowsReservedRe = /^(con|prn|aux|nul|com[0-9]|lpt[0-9])(\..*)?$/i;
+const windowsTrailingRe = /[. ]+$/;
+
 /**
  * Replaces characters in strings that are illegal/unsafe for filenames.
  * Unsafe characters are either removed or replaced by a substitute set
@@ -71,17 +77,10 @@ function truncate(string: string, byteLength: number): string {
  * Capped at 255 characters in length.
  * http://unix.stackexchange.com/questions/32795/what-is-the-maximum-allowed-filename-and-folder-size-with-ecryptfs
  *
- * @param  {String} input   Original filename
- * @param  {Object} options {replacement: String | Function }
- * @return {String}         Sanitized filename
+ * @param  input Original filename
+ * @param  replacement Character to replace bad characters with
+ * @returns Sanitized filename
  */
-
-const illegalRe = /[/?<>\\:*|"]/g;
-const controlRe = /[\x00-\x1f\x80-\x9f]/g;
-const reservedRe = /^\.+$/;
-const windowsReservedRe = /^(con|prn|aux|nul|com[0-9]|lpt[0-9])(\..*)?$/i;
-const windowsTrailingRe = /[. ]+$/;
-
 export function sanitizeFilename(input: string, replacement = '') {
   if (typeof input !== 'string') {
     throw new Error('Input must be string');

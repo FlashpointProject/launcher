@@ -32,6 +32,7 @@ export const themeEntryFilename = 'theme.css';
 
 /**
  * Try to parse the meta data of a theme file.
+ *
  * @param content Content of a theme file.
  */
 export function parseThemeMetaData(content: string): ThemeMeta | undefined {
@@ -47,6 +48,7 @@ export function parseThemeMetaData(content: string): ThemeMeta | undefined {
 
 /**
  * Get the content of the first comment in a string of css and return it.
+ *
  * @param content CSS Content.
  * @returns Content of the first comment (or undefined if no comment was found).
  */
@@ -75,6 +77,7 @@ function getContentOfFirstComment(content: string): string | undefined {
 /**
  * Get the content in a theme block from a string of text.
  * (Everything between "==Theme==" and "==/Theme==")
+ *
  * @param content Content to search through.
  * @returns Content of the theme block (or undefined if no block was found).
  */
@@ -85,6 +88,7 @@ function getContentOfThemeBlock(content: string): string | undefined {
 
 /**
  * Get the meta data from a string of theme block content.
+ *
  * @param content Theme block content.
  * @returns Theme meta data object with the values parsed from the content.
  */
@@ -107,6 +111,7 @@ function getMetaDataFromThemeBlock(content: string): ThemeMeta {
 
 /**
  * Get the "raw" tag-value pairs from a theme's meta data block.
+ *
  * @param content Content of a theme's meta data block.
  * @returns Map of tag-value pairs (missing values are replaced with empty strings).
  */

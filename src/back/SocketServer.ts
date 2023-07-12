@@ -1,17 +1,18 @@
-import { OpenExternalFunc, ShowMessageBoxFunc, ShowOpenDialogFunc, ShowSaveDialogFunc } from '@back/types';
-import { BackIn, BackInTemplate, BackOut, BackOutTemplate } from '@shared/back/types';
+import { BackState, OpenExternalFunc, ShowMessageBoxBroadcastFunc, ShowMessageBoxFunc, ShowOpenDialogFunc, ShowSaveDialogFunc } from '@back/types';
+import { BackIn, BackInTemplate, BackOut, BackOutTemplate, BackRes, BackResTemplate } from '@shared/back/types';
 import { parse_message_data, validate_socket_message } from '@shared/socket/shared';
 import { api_handle_message, api_register, api_register_any, api_unregister, api_unregister_any, create_api, SocketAPIData } from '@shared/socket/SocketAPI';
 import { create_server, server_add_client, server_broadcast, server_request, server_send, SocketServerData } from '@shared/socket/SocketServer';
 import { SocketRequestData, SocketResponseData } from '@shared/socket/types';
-import * as http from 'http';
 import * as ws from 'ws';
+import { genPipelineBackOut, MiddlewareRes, PipelineRes } from './SocketServerMiddleware';
+import { createNewDialog } from './util/dialog';
 
 type BackAPI = SocketAPIData<BackIn, BackInTemplate, MsgEvent>
 type BackClients = SocketServerData<BackOut, BackOutTemplate, ws>
-type BackClient = BackClients['clients'][number]
+export type BackClient = BackClients['clients'][number]
 
-type MsgEvent = {
+export type MsgEvent = {
   wsEvent: ws.MessageEvent;
   client: BackClient;
 }
@@ -46,6 +47,9 @@ export class SocketServer {
   /** Secret value used for authentication. */
   secret: any;
 
+  /** Middleware for BackOut responses */
+  middlewareRes: PipelineRes = genPipelineBackOut();
+
   /** Queues for incoming requests. */
   queues: RequestQueue[] = [];
 
@@ -55,6 +59,7 @@ export class SocketServer {
    * Try to listen on one of the ports in the given range (starting from the lowest).
    * If it succeeds it will set the "server" and "port" properties of this object.
    * If it fails it will reject with the error.
+   *
    * @param minPort Minimum port number (tried first).
    * @param maxPort Maximum port number (tried last).
    * @param host Server host (determines what clients can connect).
@@ -86,17 +91,31 @@ export class SocketServer {
 
   /**
    * Return a function that opens a message box on a specific client.
+   *
+   * @param state Back State
    * @param client Client to open a message box on.
    */
-  public showMessageBoxBack(client: BackClient): ShowMessageBoxFunc {
+  public showMessageBoxBack(state: BackState, client: BackClient): ShowMessageBoxFunc {
     return (options) => {
-      return this.request(client, BackOut.OPEN_MESSAGE_BOX, options);
+      return createNewDialog(state, options, client);
+    };
+  }
+
+  /**
+   * Return a function that opens a message box on any connected clients, unawaitable
+   *
+   * @param state Back State
+   */
+  public showMessageBoxBackBroadcast(state: BackState): ShowMessageBoxBroadcastFunc {
+    return (options) => {
+      createNewDialog(state, options);
     };
   }
 
   /**
    * Return a function that opens a save box on a specific client.
-   * @param target Client to open a save box on.
+   *
+   * @param client Client to open a save box on.
    */
   public showSaveDialogBack(client: BackClient): ShowSaveDialogFunc {
     return (options) => {
@@ -106,7 +125,8 @@ export class SocketServer {
 
   /**
    * Return a function that opens a load file box on a specific client.
-   * @param target Client to open a load file box on.
+   *
+   * @param client Client to open a load file box on.
    */
   public showOpenDialogFunc(client: BackClient): ShowOpenDialogFunc {
     return (options) => {
@@ -116,7 +136,8 @@ export class SocketServer {
 
   /**
    * Return a function that opens an external path at a specific client.
-   * @param target Client to open an external path at.
+   *
+   * @param client Client to open an external path at.
    */
   public openExternal(client: BackClient): OpenExternalFunc {
     return (url, options) => {
@@ -128,6 +149,7 @@ export class SocketServer {
 
   /**
    * Create and add a new queue.
+   *
    * @param types Types of requests that should be put into this queue.
    */
   public addQueue(types: BackIn[]): void {
@@ -148,6 +170,10 @@ export class SocketServer {
 
   // API
 
+  public registerMiddlewareBackRes(middleware: MiddlewareRes): void {
+    this.middlewareRes.push(middleware);
+  }
+
   public register<TYPE extends BackIn>(type: TYPE, callback: Callback<MsgEvent, BackInTemplate[TYPE]>): void {
     api_register(this.api, type, callback);
   }
@@ -166,21 +192,60 @@ export class SocketServer {
 
   // Send
 
-  public request<TYPE extends BackOut>(client: BackClients['clients'][number], type: TYPE, ...args: Parameters<BackOutTemplate[TYPE]>) {
+  public async request<TYPE extends BackOut>(client: BackClients['clients'][number], type: TYPE, ...args: Parameters<BackOutTemplate[TYPE]>) {
+    // Wrap in context object so it can be mutated by middleware
+    const res = {
+      type,
+      args
+    };
+    try {
+      // Call middleware
+      await this.middlewareRes.execute(res);
+    } catch (err) {
+      if (res.type !== BackOut.LOG_ENTRY_ADDED) {
+        log.info('Launcher', 'Error in middleware - Type: ' + BackOut[type]);
+      }
+    }
     return server_request(client, type, ...args);
   }
 
-  public send<TYPE extends BackOut>(client: BackClients['clients'][number], type: TYPE, ...args: Parameters<BackOutTemplate[TYPE]>): void {
-    server_send(client, type, ...args);
+  public async send<TYPE extends BackOut>(client: BackClients['clients'][number], type: TYPE, ...args: Parameters<BackOutTemplate[TYPE]>): Promise<void> {
+    // Wrap in context object so it can be mutated by middleware
+    const res = {
+      type,
+      args
+    };
+    try {
+      // Call middleware
+      await this.middlewareRes.execute(res);
+    } catch (err) {
+      if (res.type !== BackOut.LOG_ENTRY_ADDED) {
+        log.info('Launcher', 'Error in middleware - Type: ' + BackOut[type]);
+      }
+    }
+    return server_send(client, type, ...args);
   }
 
-  public broadcast<TYPE extends BackOut>(type: TYPE, ...args: Parameters<BackOutTemplate[TYPE]>) {
-    return server_broadcast(this.clients, type, ...args);
+  public async broadcast<TYPE extends BackOut>(type: TYPE, ...args: Parameters<BackOutTemplate[TYPE]>) {
+    // Wrap in context object so it can be mutated by middleware
+    const res = {
+      type,
+      args
+    };
+    try {
+      // Call middleware
+      await this.middlewareRes.execute(res);
+    } catch (err) {
+      if (res.type !== BackOut.LOG_ENTRY_ADDED) {
+        log.info('Launcher', 'Error in middleware - Type: ' + BackOut[type]);
+      }
+    }
+    return server_broadcast(this.clients, res.type, ...res.args);
   }
 
   // Event Handlers
 
-  protected onConnect(socket: ws, request: http.IncomingMessage): void {
+  protected onConnect(socket: ws): void {
     // Read the first message as a "secret key"
     socket.onmessage = (event) => {
       if (event.data === this.secret) {
@@ -236,9 +301,7 @@ export class SocketServer {
   }
 
   protected async handleMessage(event: ws.MessageEvent, data: SocketRequestData | SocketResponseData<any>): Promise<void> {
-    log('Socket Server - Message received');
-
-    // Prepare event
+  // Prepare event
 
     const client = this.clients.clients.find(client => client.socket === event.target);
 
@@ -268,6 +331,22 @@ export class SocketServer {
     }
 
     if (out) {
+      if ('type' in data && 'result' in out) {
+        const res = {
+          type: data.type as BackRes,
+          res: out.result as ReturnType<BackResTemplate[BackRes]>
+        };
+        try {
+          // Call middleware
+          await this.middlewareRes.execute(res);
+          // Modify output
+          out.result = res.res;
+        } catch (err) {
+          if (res.type !== BackOut.LOG_ENTRY_ADDED) {
+            log.info('Launcher', 'Error in middleware - Type: ' + BackRes[res.type]);
+          }
+        }
+      }
       event.target.send(JSON.stringify(out));
     }
   }
@@ -282,6 +361,7 @@ type StartServerResult = {
 
 /**
  * Try to start a WebSocket server on the first available port in a given range (from lowest to highest).
+ *
  * @param minPort Minimum port number (tried first).
  * @param maxPort Maximum port number (tried last).
  * @param host Server host (determines what clients can connect).
@@ -325,8 +405,4 @@ function startServer(minPort: number, maxPort: number, host: string | undefined)
       }
     }
   });
-}
-
-function log(...args: any[]): void {
-  // console.log(...args);
 }

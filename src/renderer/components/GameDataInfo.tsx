@@ -1,4 +1,3 @@
-import { SourceData } from '@database/entity/SourceData';
 import { LangContext } from '@renderer/util/lang';
 import { BackIn } from '@shared/back/types';
 import { sizeToString } from '@shared/Util';
@@ -12,12 +11,13 @@ import { SimpleButton } from './SimpleButton';
 
 export type GameDataInfoProps = {
   data: GameData;
-  sourceData: SourceData[];
   active: boolean;
   onActiveToggle: () => void;
   onUninstall: () => void;
   onUpdateTitle: (title: string) => void;
   onUpdateParameters: (parameters: string) => void;
+  onUpdateApplicationPath: (appPath: string) => void;
+  onUpdateLaunchCommand: (lc: string) => void;
   update: () => void;
   delete: () => void;
 }
@@ -64,7 +64,7 @@ export function GameDataInfo(props: GameDataInfoProps) {
               message={strings.dialog.uninstallGame}
               render={renderUninstallButton}
               onConfirm={props.onUninstall}/>
-          ) : ( props.sourceData.length > 0 ? (
+          ) : (
             <SimpleButton
               onClick={() => {
                 window.Shared.back.request(BackIn.DOWNLOAD_GAME_DATA, props.data.id)
@@ -73,10 +73,6 @@ export function GameDataInfo(props: GameDataInfoProps) {
                 });
               }}
               value='Download'/>
-          ) :
-            <SimpleButton
-              disabled={true}
-              value='Unavailable'/>
           )}
           <ConfirmElement
             message={strings.dialog.deleteGameData}
@@ -86,16 +82,32 @@ export function GameDataInfo(props: GameDataInfoProps) {
       </div>
       <table className='curate-box-table game-data-info__table'>
         <tbody>
-          <CurateBoxRow title='Date Added:'>
+          <CurateBoxRow title='Date Added'>
             {data.dateAdded}
           </CurateBoxRow>
-          <CurateBoxRow title='Path:'>
+          <CurateBoxRow title='Application Path'>
+            <InputField
+              text={data.applicationPath}
+              editable={true}
+              onChange={(event) => {
+                props.onUpdateApplicationPath(event.target.value);
+              }} />
+          </CurateBoxRow>
+          <CurateBoxRow title='Launch Command'>
+            <InputField
+              text={data.launchCommand}
+              editable={true}
+              onChange={(event) => {
+                props.onUpdateLaunchCommand(event.target.value);
+              }} />
+          </CurateBoxRow>
+          <CurateBoxRow title='Path'>
             {data.path || <i>Not Downloaded</i>}
           </CurateBoxRow>
-          <CurateBoxRow title='Size:'>
+          <CurateBoxRow title='Size'>
             {`${sizeToString(data.size)} (${data.size} bytes)`}
           </CurateBoxRow>
-          <CurateBoxRow title='SHA256:'>
+          <CurateBoxRow title='SHA256'>
             {data.sha256}
           </CurateBoxRow>
           <CurateBoxRow

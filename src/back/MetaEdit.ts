@@ -3,13 +3,14 @@ import { Tag } from '@database/entity/Tag';
 import { ImportMetaEditResult, MetaEditGameNotFound } from '@shared/back/types';
 import { ChangedMeta, MetaChange, MetaChangeBase, MetaEditFile, MetaEditMeta, MetaEditMetaMap, stringifyMetaValue } from '@shared/MetaEdit';
 import { readJsonFile, shallowStrictEquals } from '@shared/Util';
-import { Coerce } from '@shared/utils/Coerce';
+import * as Coerce from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as GameManager from './game/GameManager';
 import * as TagManager from './game/TagManager';
-import { ShowMessageBoxFunc } from './types';
+import { BackState, ShowMessageBoxFunc } from './types';
+import { awaitDialog } from './util/dialog';
 import { copyError } from './util/misc';
 
 const { str, strToBool } = Coerce;
@@ -42,21 +43,23 @@ function parseMetaEditMeta(parser: IObjectParserProp<any>) : MetaEditMeta {
   parser.prop('series',              v => parsed.series              = str(v), true);
   parser.prop('developer',           v => parsed.developer           = str(v), true);
   parser.prop('publisher',           v => parsed.publisher           = str(v), true);
-  parser.prop('platform',            v => parsed.platform            = str(v), true);
   parser.prop('broken',              v => parsed.broken              = strToBool(v + ''), true);
   parser.prop('extreme',             v => parsed.extreme             = strToBool(v + ''), true);
   parser.prop('playMode',            v => parsed.playMode            = str(v), true);
   parser.prop('status',              v => parsed.status              = str(v), true);
   parser.prop('notes',               v => parsed.notes               = str(v), true);
   parser.prop('source',              v => parsed.source              = str(v), true);
-  parser.prop('applicationPath',     v => parsed.applicationPath     = str(v), true);
-  parser.prop('launchCommand',       v => parsed.launchCommand       = str(v), true);
   parser.prop('releaseDate',         v => parsed.releaseDate         = str(v), true);
   parser.prop('version',             v => parsed.version             = str(v), true);
   parser.prop('originalDescription', v => parsed.originalDescription = str(v), true);
   parser.prop('language',            v => parsed.language            = str(v), true);
   parser.prop('library',             v => parsed.library             = str(v), true);
+  parser.prop('platform',            v => parsed.platforms?.push(str(v)));
 
+  parser.prop('platforms', v => parsed.platforms = (v !== undefined) ? [] : undefined, true).arrayRaw(v => {
+    if (!parsed.platforms) { throw new Error('"parsed.tags" is missing (bug)'); }
+    parsed.platforms.push(str(v));
+  });
   parser.prop('tags', v => parsed.tags = (v !== undefined) ? [] : undefined, true).arrayRaw(v => {
     if (!parsed.tags) { throw new Error('"parsed.tags" is missing (bug)'); }
     parsed.tags.push(str(v));
@@ -90,9 +93,12 @@ type CombinedMetas = {
 
 /**
  * Import all meta edits from a folder.
+ *
  * @param fullMetaEditsFolderPath Path to load meta edit files from.
+ * @param openDialog Function used to open a message box for prompting on collisions
+ * @param state Back State
  */
-export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDialog: ShowMessageBoxFunc): Promise<ImportMetaEditResult> {
+export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDialog: ShowMessageBoxFunc, state: BackState): Promise<ImportMetaEditResult> {
   const errors: Error[] = [];
 
   // Load all meta edit files
@@ -213,23 +219,20 @@ export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDi
       if (!values) { throw new Error(`Failed to check for collisions. "values" is missing (id: "${id}", property: "${property}") (bug)`); }
 
       if (values.length > 1) { // Collision
-        const buttonIndex = await openDialog({
-          type: 'question',
-          title: 'Meta Edit Collision!',
-          message: `${values.length} meta edits wants to change the same property.`,
-          detail: (
+        const dialogId = await openDialog({
+          message: `${values.length} meta edits wants to change the same property.\n`+
             `Title: ${game.title}\n`+
             `ID: ${id}\n\n`+
             `Property: ${property}\n`+
             `Current Value: ${`${stringifyMetaValue(game[property])}`}\n\n`+
-            'Select the value to apply:'
-          ),
+            'Select the value to apply:',
           buttons: [
             ...(values as MetaChangeBase<keyof MetaEditMetaMap>[]).map(v => stringifyMetaValue(v.value)),
             'Abort Import',
           ],
           cancelId: values.length,
         });
+        const buttonIndex = (await awaitDialog(state, dialogId)).buttonIdx;
 
         if (buttonIndex === values.length) { // Abort clicked
           return { aborted: true };
@@ -266,13 +269,24 @@ export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDi
       const values = combined[property];
       if (!values || !values[0]) { throw new Error(`Failed to GIDDY UP PARTNER. "values" is missing (id: "${id}", property: "${property}") (bug)`); }
 
+      let prevValue;
+      switch (property) {
+        case 'tags': {
+          prevValue = game.tags.map(tag => tag.primaryAlias.name);
+          break;
+        }
+        case 'platforms': {
+          prevValue = game.platforms.map(p => p.primaryAlias.name);
+          break;
+        }
+        default:
+          prevValue = game[property];
+      }
       // First value
       const change: MetaChange<typeof property> = {
         ...values[0],
         property,
-        prevValue: (property === 'tags')
-          ? game.tags.map(tag => tag.primaryAlias.name)
-          : game[property],
+        prevValue
       };
 
       if (property === 'tags') {
@@ -298,12 +312,23 @@ export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDi
           if (!Array.isArray(values[i].value)) { throw new Error(`Failed to GIDDY UP PARTNER. "tags" is not an array (id: "${id}", value: "${values[i].value}") (bug)`); }
         }
 
+        let prevValue;
+        switch (property) {
+          case 'tags': {
+            prevValue = game.tags.map(tag => tag.primaryAlias.name);
+            break;
+          }
+          case 'platforms': {
+            prevValue = game.platforms.map(p => p.primaryAlias.name);
+            break;
+          }
+          default:
+            prevValue = game[property];
+        }
         changedMeta.discard.push({
           ...values[i],
           property,
-          prevValue: (property === 'tags')
-            ? game.tags.map(tag => tag.primaryAlias.name)
-            : game[property],
+          prevValue
         });
       }
     }
@@ -353,6 +378,10 @@ export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDi
 /**
  * Set the value of a games property (only some properties are supported).
  * Throws an error if the property is not allowed or the value is of the incorrect type.
+ *
+ * @param game Game to set property for
+ * @param property Name of property to set
+ * @param value Value to set property to
  */
 function paranoidSetGameProperty(game: Game, property: unknown, value: unknown): void {
   const errorPrefix = 'Failed to set game property.';
@@ -360,9 +389,6 @@ function paranoidSetGameProperty(game: Game, property: unknown, value: unknown):
   if (typeof property !== 'string') { throw new Error(`${errorPrefix} Property is not a string (typeof property: ${typeof property}).`); }
 
   switch (property) {
-    default:
-      throw new Error(`${errorPrefix} Property "${property}" is not allowed.`);
-
     // Boolean
     case 'broken':
     case 'extreme':
@@ -376,13 +402,10 @@ function paranoidSetGameProperty(game: Game, property: unknown, value: unknown):
     case 'series':
     case 'developer':
     case 'publisher':
-    case 'platform':
     case 'playMode':
     case 'status':
     case 'notes':
     case 'source':
-    case 'applicationPath':
-    case 'launchCommand':
     case 'releaseDate':
     case 'version':
     case 'originalDescription':
@@ -391,5 +414,7 @@ function paranoidSetGameProperty(game: Game, property: unknown, value: unknown):
       if (typeof value !== 'string') { throw new Error(`${errorPrefix} Value is not a string (typeof value: "${typeof value}", property: "${property}").`); }
       game[property] = value;
       break;
+    default:
+      throw new Error(`${errorPrefix} Property "${property}" is not allowed.`);
   }
 }

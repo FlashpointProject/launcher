@@ -9,10 +9,13 @@ export type TagItemContainerProps = HTMLDivProps & {
   onTagSelect?: (event: React.MouseEvent<HTMLDivElement>, tagId: number | undefined) => void;
   /**
    * Find the tag ID of an element (or sub-element) of a game.
+   *
    * @param element Element or sub-element of a game.
    * @returns The tag's ID (or undefined if no tag was found).
    */
   findTagId: (element: EventTarget) => number | undefined;
+  // Overrides onTagSelect
+  onClick?: (event: React.MouseEvent<HTMLDivElement>) => void;
 };
 
 /**
@@ -36,18 +39,19 @@ export class TagItemContainer extends React.Component<TagItemContainerProps> {
     if (this.props.onTagSelect) {
       this.props.onTagSelect(event, this.findTagId(event.target));
     }
-  }
+  };
 
-  /** Short-hand for "props.findGameId". */
+  /**
+   * Find a tag ID given an event target
+   *
+   * @param target Event target
+   */
   findTagId(target: EventTarget): number | undefined {
     return this.props.findTagId(target);
   }
 }
 
-/**
- * Create a shallow copy of the props object, but without all non-div element props.
- * @param props Properties to copy.
- */
+// Create a shallow copy of the props object, but without all non-div element props.
 function filterDivProps(props: TagItemContainerProps): JSX.IntrinsicElements['div'] {
   const rest: HTMLDivProps & {
     // These need to be explicitly specified: the compiler doesn't infer them correctly.

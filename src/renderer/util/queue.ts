@@ -5,6 +5,7 @@ type QueueOneWrapper<T extends (...args: any[]) => Promise<void>> = (...args: Pa
  * If the wrapper is called before that and there is no call queued,
  * the call will be queued and executed when the promise resolves or rejects.
  * If there is a call queued then it will replace the currently queued call (hence "queueOne").
+ *
  * @param fn Function to wrap.
  * @returns Wrapper function.
  */

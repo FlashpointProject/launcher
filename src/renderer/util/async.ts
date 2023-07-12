@@ -2,6 +2,7 @@ type DoAsyncFunction = (done: () => void) => void;
 
 /**
  * Call several functions in parallel, then resolve the promise once all are done
+ *
  * @param calls Functions to call in parallel, they are considered "done" once the "done" callback parameter has been called
  */
 export function doAsyncParallel(calls: Array<DoAsyncFunction>): Promise<void> {

@@ -1,16 +1,16 @@
 import { Game } from '@database/entity/Game';
-import { Playlist } from '@database/entity/Playlist';
-import { PlaylistGame } from '@database/entity/PlaylistGame';
-import { ViewGame } from '@shared/back/types';
+import { ITheme } from '@shared/ThemeFile';
+import { ComponentStatus, FpfssUser, GameOfTheDay, ViewGame } from '@shared/back/types';
 import { AppExtConfigData } from '@shared/config/interfaces';
 import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { GamePropSuggestions, IService } from '@shared/interfaces';
-import { LangContainer, LangFile } from '@shared/lang';
-import { ITheme } from '@shared/ThemeFile';
+import { LangFile } from '@shared/lang';
 import { Menu } from 'electron';
-import { AppUpdater, UpdateInfo } from 'electron-updater';
+import { UpdateInfo } from 'electron-updater';
+import { Playlist, PlaylistGame } from 'flashpoint-launcher';
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
+import { Paths } from './Paths';
 import { AboutPage, AboutPageProps } from './components/pages/AboutPage';
 import { DeveloperPage, DeveloperPageProps } from './components/pages/DeveloperPage';
 import { IFramePage, IFramePageProps } from './components/pages/IFramePage';
@@ -24,24 +24,23 @@ import { ConnectedTagCategoriesPage } from './containers/ConnectedTagCategoriesP
 import { ConnectedTagsPage } from './containers/ConnectedTagsPage';
 import { CreditsData } from './credits/types';
 import { UpdateView, ViewGameSet } from './interfaces';
-import { Paths } from './Paths';
-import { UpgradeStage } from './upgrade/types';
 
 export type AppRouterProps = {
+  fpfssUser: FpfssUser | null;
+  gotdList: GameOfTheDay[];
   games: ViewGameSet;
   randomGames: ViewGame[];
   rollRandomGames: () => void;
-  gamesTotal?: number;
+  gamesTotal: number;
+  viewGamesTotal?: number;
   allPlaylists: Playlist[];
   playlists: Playlist[];
   suggestions: Partial<GamePropSuggestions>;
   appPaths: Record<string, string>;
-  platforms: Record<string, string[]>;
-  platformsFlat: string[];
+  platforms: string[];
   onSaveGame: (game: Game, playlistEntry?: PlaylistGame) => Promise<Game | null>;
   onDeleteGame: (gameId: string) => void;
   onLaunchGame: (gameId: string) => void;
-  onQuickSearch: (search: string) => void;
   onOpenExportMetaEdit: (gameId: string) => void;
   updateView: UpdateView;
   playlistIconCache: Record<string, string>;
@@ -51,7 +50,6 @@ export type AppRouterProps = {
   localeCode: string;
   devConsole: string;
 
-  upgrades: UpgradeStage[];
   creditsData?: CreditsData;
   creditsDoneLoading: boolean;
   selectedGameId?: string;
@@ -61,17 +59,16 @@ export type AppRouterProps = {
   onSelectGame: (gameId?: string) => void;
   onUpdatePlaylist: (playlist: Playlist) => void;
   onDeletePlaylist: (playlist: Playlist) => void;
-  onSelectPlaylist: (library: string, playlistId: string | undefined) => void;
+  onSelectPlaylist: (library: string, playlistId: string | null) => void;
   wasNewGameClicked: boolean;
-  onDownloadUpgradeClick: (stage: UpgradeStage, strings: LangContainer) => void;
   gameLibrary: string;
   themeList: ITheme[];
   languages: LangFile[];
   updateInfo: UpdateInfo | undefined,
-  autoUpdater: AppUpdater,
   extensions: IExtensionDescription[],
   devScripts: ExtensionContribution<'devScripts'>[],
   contextButtons: ExtensionContribution<'contextButtons'>[],
+  curationTemplates: ExtensionContribution<'curationTemplates'>[],
   logoSets: ILogoSet[],
   extConfigs: ExtensionContribution<'configuration'>[],
   extConfig: AppExtConfigData,
@@ -79,41 +76,38 @@ export type AppRouterProps = {
   logoVersion: number,
   updateFeedMarkdown: string,
   manualUrl: string,
+  componentStatuses: ComponentStatus[],
+  openFlashpointManager: () => void,
 };
 
 export class AppRouter extends React.Component<AppRouterProps> {
   render() {
     const homeProps: ConnectedHomePageProps = {
+      gotdList: this.props.gotdList,
       platforms: this.props.platforms,
       playlists: this.props.allPlaylists,
-      upgrades: this.props.upgrades,
       onGameContextMenu: this.props.onGameContextMenu,
       onSelectPlaylist: this.props.onSelectPlaylist,
       onLaunchGame: this.props.onLaunchGame,
       onGameSelect: this.props.onSelectGame,
-      onDownloadUpgradeClick: this.props.onDownloadUpgradeClick,
-      updateInfo: this.props.updateInfo,
-      autoUpdater: this.props.autoUpdater,
       randomGames: this.props.randomGames,
       rollRandomGames: this.props.rollRandomGames,
       logoVersion: this.props.logoVersion,
       updateFeedMarkdown: this.props.updateFeedMarkdown,
-      selectedGameId: this.props.selectedGameId
+      selectedGameId: this.props.selectedGameId,
+      componentStatuses: this.props.componentStatuses,
+      openFlashpointManager: this.props.openFlashpointManager,
     };
     const browseProps: ConnectedBrowsePageProps = {
       games: this.props.games,
       updateView: this.props.updateView,
-      gamesTotal: this.props.gamesTotal,
+      gamesTotal: this.props.viewGamesTotal,
       playlists: this.props.playlists,
-      suggestions: this.props.suggestions,
       playlistIconCache: this.props.playlistIconCache,
       onGameContextMenu: this.props.onGameContextMenu,
       onSaveGame: this.props.onSaveGame,
       onDeleteGame: this.props.onDeleteGame,
-      onQuickSearch: this.props.onQuickSearch,
-      onOpenExportMetaEdit: this.props.onOpenExportMetaEdit,
       selectedGameId: this.props.selectedGameId,
-      gameRunning: this.props.gameRunning,
       selectedPlaylistId: this.props.selectedPlaylistId,
       onSelectGame: this.props.onSelectGame,
       onUpdatePlaylist: this.props.onUpdatePlaylist,
@@ -130,7 +124,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       logoVersion: this.props.logoVersion,
       availableLangs: this.props.languages,
       libraries: this.props.libraries,
-      platforms: this.props.platformsFlat,
+      platforms: this.props.platforms,
       localeCode: this.props.localeCode,
       serverNames: this.props.serverNames,
       extensions: this.props.extensions,
@@ -142,18 +136,16 @@ export class AppRouter extends React.Component<AppRouterProps> {
       creditsDoneLoading: this.props.creditsDoneLoading
     };
     const curateProps: ConnectedCuratePageProps = {
-      suggestions: this.props.suggestions,
-      appPaths: this.props.appPaths,
-      libraries: this.props.libraries,
+      extCurationTemplates: this.props.curationTemplates,
+      extContextButtons: this.props.contextButtons,
       mad4fpEnabled: this.props.mad4fpEnabled,
       logoVersion: this.props.logoVersion,
     };
     const developerProps: DeveloperPageProps = {
       devConsole: this.props.devConsole,
-      platforms: this.props.platformsFlat,
-      playlists: this.props.playlists,
       devScripts: this.props.devScripts,
-      services: this.props.services
+      services: this.props.services,
+      totalGames: this.props.gamesTotal || 1,
     };
     const iframePageProps: IFramePageProps = {
       url: this.props.manualUrl
@@ -204,7 +196,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
   }
 }
 
-/** Reusable way to pass properties down a router and to its component. */
+// Reusable way to pass properties down a router and to its component.
 const PropsRoute = ({ component, ...rest }: any) => (
   <Route
     { ...rest }

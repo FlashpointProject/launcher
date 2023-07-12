@@ -2,7 +2,6 @@ import { BackOut } from '@shared/back/types';
 import { LogLevel } from '@shared/Log/interface';
 import { ConnectedRouter } from 'connected-react-router';
 import { createMemoryHistory } from 'history';
-import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
 import { createInitialMainState } from '.';

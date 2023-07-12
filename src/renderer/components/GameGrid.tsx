@@ -2,8 +2,7 @@ import { BackOut, BackOutTemplate } from '@shared/back/types';
 import { LOGOS, VIEW_PAGE_SIZE } from '@shared/constants';
 import { memoizeOne } from '@shared/memoize';
 import * as React from 'react';
-import { ArrowKeyStepper, AutoSizer, ScrollIndices } from 'react-virtualized';
-import { Grid, GridCellProps, RenderedSection } from 'react-virtualized/dist/es/Grid';
+import { ArrowKeyStepper, AutoSizer, Grid, GridCellProps, ScrollIndices } from 'react-virtualized-reactv17';
 import { UpdateView, ViewGameSet } from '../interfaces';
 import { findElementAncestor, getExtremeIconURL, getGameImageURL } from '../Util';
 import { GameGridItem } from './GameGridItem';
@@ -163,7 +162,7 @@ export class GameGrid extends React.Component<GameGridProps> {
                       // ArrowKeyStepper props
                       scrollToColumn={scrollToColumn}
                       scrollToRow={scrollToRow}
-                      onSectionRendered={(params: RenderedSection) => this.onSectionRendered(params, columns, onSectionRendered)}
+                      onSectionRendered={(params) => this.onSectionRendered(params, columns, onSectionRendered)}
                       // Pass-through props (they have no direct effect on the grid)
                       // (If any property is changed the grid is re-rendered, even these)
                       pass_currentGamesCount={this.currentGamesCount} />
@@ -177,7 +176,7 @@ export class GameGrid extends React.Component<GameGridProps> {
     );
   }
 
-  /** Renders a single cell in the game grid. */
+  // Renders a single cell in the game grid.
   cellRenderer = (props: GridCellProps): React.ReactNode => {
     const extremeIconPath = this.extremeIconPathMemo(this.props.logoVersion);
     const { draggedGameId, games, gamesTotal, selectedGameId } = this.props;
@@ -190,7 +189,7 @@ export class GameGrid extends React.Component<GameGridProps> {
           key={props.key}
           id={game ? game.id : ''}
           title={game ? game.title : ''}
-          platform={game ? game.platform : ''}
+          platforms={game ? [game.platformName] : []}
           extreme={game ? game.tagsStr.split(';').findIndex(t => this.props.extremeTags.includes(t.trim())) !== -1 : false}
           extremeIconPath={extremeIconPath}
           thumbnail={game ? getGameImageURL(LOGOS, game.id) : ''}
@@ -202,7 +201,7 @@ export class GameGrid extends React.Component<GameGridProps> {
     } else {
       return undefined;
     }
-  }
+  };
 
   onResponse: Parameters<typeof window.Shared.back.registerAny>[0] = (event, type, args) => {
     if (type === BackOut.IMAGE_CHANGE) {
@@ -225,57 +224,89 @@ export class GameGrid extends React.Component<GameGridProps> {
               }
             }
           }
+        })
+        .catch((err) => {
+          log.error('Launcher', 'Error fetching new image url ' + err);
         });
       }
     }
-  }
+  };
 
-  onSectionRendered = (params: RenderedSection, columns: number, callback?: (params: RenderedSection) => void) => {
+  onSectionRendered = (params: any, columns: number, callback?: (params: any) => void) => {
     if (callback) { callback(params); }
     this.updateView(params.rowOverscanStartIndex, params.rowOverscanStopIndex, columns);
-  }
+  };
 
-  /** When a key is pressed (while the grid, or one of its children, is selected). */
+  // When a key is pressed (while the grid, or one of its children, is selected).
   onKeyPress = (event: React.KeyboardEvent): void => {
     if (event.key === 'Enter') {
       if (this.props.selectedGameId) {
         this.props.onGameLaunch(this.props.selectedGameId);
       }
     }
-  }
+  };
 
-  /** When a cell is clicked. */
+  /**
+   * When a cell is clicked.
+   *
+   * @param event React event
+   * @param gameId ID of pressed Game
+   */
   onGameSelect = (event: React.MouseEvent, gameId: string | undefined): void => {
     this.props.onGameSelect(gameId);
-  }
+  };
 
-  /** When a cell is double clicked. */
+  /**
+   * When a cell is double clicked.
+   *
+   * @param event React event
+   * @param gameId ID of Game to launch
+   */
   onGameLaunch = (event: React.MouseEvent, gameId: string): void => {
     this.props.onGameLaunch(gameId);
-  }
+  };
 
-  /** When a cell is right clicked. */
+  /**
+   * When a cell is right clicked.
+   *
+   * @param event React event
+   * @param gameId ID of Game to open context menu for
+   */
   onGameContextMenu = (event: React.MouseEvent<HTMLDivElement>, gameId: string | undefined): void => {
     if (this.props.onContextMenu) {
       if (gameId) { this.props.onContextMenu(gameId); }
     }
-  }
+  };
 
-  /** When a cell is starting to be dragged. */
+  /**
+   * When a cell is starting to be dragged.
+   *
+   * @param event React event
+   * @param gameId ID of dragged Game
+   */
   onGameDragStart = (event: React.DragEvent, gameId: string | undefined): void => {
     if (this.props.onGameDragStart) {
       if (gameId) { this.props.onGameDragStart(event, gameId); }
     }
-  }
+  };
 
-  /** When a cell is ending being dragged. */
+  /**
+   * When a cell is ending being dragged.
+   *
+   * @param event React event
+   * @param gameId ID of dragged Game
+   */
   onGameDragEnd = (event: React.DragEvent, gameId: string | undefined): void => {
     if (this.props.onGameDragEnd) {
       if (gameId) { this.props.onGameDragEnd(event, gameId); }
     }
-  }
+  };
 
-  /** When a cell is selected. */
+  /**
+   * When a cell is selected.
+   *
+   * @param params Position params to scroll to
+   */
   onScrollToChange = (params: ScrollIndices): void => {
     if (!this.props.games) { throw new Error('Games array is missing.'); }
     if (params.scrollToColumn === -1 || params.scrollToRow === -1) {
@@ -284,13 +315,13 @@ export class GameGrid extends React.Component<GameGridProps> {
       const game = this.props.games[params.scrollToRow * this.columns + params.scrollToColumn];
       if (game) { this.props.onGameSelect(game.id); }
     }
-  }
+  };
 
-  /** Find a game's ID. */
+  // Find a game's ID.
   findGameId = (element: EventTarget): string | undefined => {
     const game = findElementAncestor(element as Element, target => GameGridItem.isElement(target), true);
     if (game) { return GameGridItem.getId(game); }
-  }
+  };
 
   /** Update CSS Variables. */
   updateCssVars() {

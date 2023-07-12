@@ -3,8 +3,8 @@ import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
 import { LangContext } from '@renderer/util/lang';
 import { BackIn, TagSuggestion } from '@shared/back/types';
-import { TagFilterGroup } from '@shared/preferences/interfaces';
-import { tagSort, generateTagFilterGroup } from '@shared/Util';
+import { generateTagFilterGroup, tagSort } from '@shared/Util';
+import { TagFilterGroup } from 'flashpoint-launcher';
 import * as React from 'react';
 import { CheckBox } from './CheckBox';
 import { InputField } from './InputField';
@@ -30,7 +30,7 @@ export function TagFilterGroupEditor(props: TagFilterGroupEditorProps) {
   const strings = React.useContext(LangContext);
   const [editTag, setEditTag] = React.useState('');
   // const [editCategory, setEditCategory] = React.useState('');
-  const [tagSuggestions, setTagSuggestions] = React.useState<TagSuggestion[]>([]);
+  const [tagSuggestions, setTagSuggestions] = React.useState<TagSuggestion<Tag>[]>([]);
   const [parsedTagsList, setParsedTagsList] = React.useState<Tag[]>(buildPlaceholderTags(props.tagFilterGroup.tags));
 
   // const tags = React.useMemo(() => tagsFactory(props.tagFilterGroup.tags, props.onRemoveTag), [props.tagFilterGroup.tags, props.onRemoveTag]);
