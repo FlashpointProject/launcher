@@ -251,11 +251,11 @@
   },
   "about": {
     "aboutHeader": "关于",
-    "flashpoint": "Flashpoint Archive",
+    "flashpoint": "Flashpoint 档案馆",
     "flashpointDesc": "The preservation project this launcher was built for, a non-profit with the goal of furthering archival and accessibility efforts of games, animations and other digital interactive experiences on the web.",
     "website": "网站",
     "flashpointLauncher": "Flashpoint 启动器",
-    "flashpointLauncherDesc": "An open-source desktop application used to browse, manage and play games from the Flashpoint Archive.",
+    "flashpointLauncherDesc": "用于浏览、管理与游玩 Flashpoint 档案馆中游戏的开源桌面应用。",
     "version": "版本",
     "license": "许可证",
     "licenseInfo": "MIT（阅读 'LICENSE' 文件了解详情）",
