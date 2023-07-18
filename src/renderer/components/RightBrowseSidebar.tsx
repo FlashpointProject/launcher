@@ -317,9 +317,11 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
             <div className='browse-right-sidebar__mini-download-info'>
               <div className='browse-right-sidebar__mini-download-info__state'>
                 { this.props.fpfssEditMode ? strings.fpfssGame :
-                  this.state.activeData ? (this.state.activeData.presentOnDisk ? strings.installed : strings.notInstalled): strings.legacyGame}
+                  this.props.currentGame?.archiveState === 0 ? strings.notArchived :
+                    this.props.currentGame?.archiveState === 1 ? strings.archived :
+                      this.state.activeData ? (this.state.activeData.presentOnDisk ? strings.installed : strings.notInstalled): strings.legacyGame}
               </div>
-              { this.state.activeData && (
+              { this.props.currentGame?.archiveState === 2 && this.state.activeData && (
                 <div className='browse-right-sidebar__mini-download-info__size'>
                   {`${sizeToString(this.state.activeData.size)}`}
                 </div>
@@ -341,6 +343,29 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       }
                     }}>
                     {strings.stop}
+                  </div>
+                ) : (this.props.currentGame?.archiveState == 0) ? (
+                  <div
+                    className='browse-right-sidebar__play-button--busy'>
+                    {strings.notArchived}
+                  </div>
+                ) : (this.props.currentGame?.archiveState == 1) ? (
+                  <div
+                    className='browse-right-sidebar__play-button--download'
+                    onClick={() => {
+                      if (this.props.currentGame) {
+                        let url = this.props.currentGame.source;
+                        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                          alert('Cannot open, not a valid source url.');
+                        }
+                        if (url.endsWith(')') && url.toLowerCase().includes('wayback')) {
+                          // Cut off after space
+                          url = url.split(' ')[0];
+                        }
+                        remote.shell.openExternal(url);
+                      }
+                    }}>
+                    {strings.playOnline}
                   </div>
                 ) : (this.state.activeData && !this.state.activeData.presentOnDisk) ? (
                   <div

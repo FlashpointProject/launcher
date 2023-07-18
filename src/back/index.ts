@@ -95,6 +95,7 @@ import { createContainer, exit, getMacPATH, runService } from './util/misc';
 import { uuid } from './util/uuid';
 import { PlayTimeIndices1687847922729 } from '@database/migration/1687847922729-PlayTimeIndices';
 import axios from 'axios';
+import { ArchiveState1689423335642 } from '@database/migration/1689423335642-ArchiveState';
 
 const dataSourceOptions: DataSourceOptions = {
   type: 'better-sqlite3',
@@ -103,7 +104,7 @@ const dataSourceOptions: DataSourceOptions = {
   migrations: [Initial1593172736527, AddExtremeToPlaylist1599706152407, GameData1611753257950, SourceDataUrlPath1612434225789, SourceFileURL1612435692266,
     SourceFileCount1612436426353, GameTagsStr1613571078561, GameDataParams1619885915109, RemoveSources1676712700000, RemovePlaylist1676713895000,
     TagifyPlatform1677943090621, AddPlatformsRedundancyFieldToGame1677951346785, GDIndex1680813346696, MoveLaunchPath1681561150000,
-    PrimaryPlatform1684673859425, PlayTime1687807237714, PlayTimeIndices1687847922729
+    PrimaryPlatform1684673859425, PlayTime1687807237714, PlayTimeIndices1687847922729, ArchiveState1689423335642
   ]
 };
 export let AppDataSource: DataSource = new DataSource(dataSourceOptions);
