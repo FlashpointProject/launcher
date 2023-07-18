@@ -21,7 +21,7 @@
     "onDemandImages": "Изображения по требованию",
     "onDemandImagesDesc": "Скачать и сохранить недостающие логотипы и скриншоты по мере необходимости.",
     "onDemandImagesEnabled": "Включено",
-    "onDemandImagesEnabledDesc": "Enable downloading of on-demand logos and screenshots.",
+    "onDemandImagesEnabledDesc": "Загружать логотипы и скриншоты по необходимости.",
     "onDemandImagesCompressed": "Compressed Images",
     "onDemandImagesCompressedDesc": "Downloads compressed images instead, saving ~80% disk space. (Does not delete existing images)",
     "onDemandImagesDelete": "Delete All Images",
