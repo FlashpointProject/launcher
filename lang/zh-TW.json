@@ -449,7 +449,7 @@
     "warnings": "警告",
     "noTitle": "'Title' is a required field.",
     "noApplicationPath": "'Application Path' is a required field.",
-    "noPlatforms": "At least 1 'Platform' is requried on every curation.",
+    "noPlatforms": "必須至少為典藏作品指定一個「平台」。",
     "noLaunchCommand": "'Launch Command' is a required field.",
     "invalidLaunchCommand": "「啟動指令」之內容不符合以下URL網址的條件：",
     "releaseDateInvalid": "發布日期必須遵照 YYYY-MM-DD 的格式（月份與日期為非必填）",
