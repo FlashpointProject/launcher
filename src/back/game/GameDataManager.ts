@@ -36,9 +36,13 @@ export async function downloadGameData(gameDataId: number, dataPacksFolderPath: 
             if (sha256.toLowerCase() !== gameData.sha256.toLowerCase()) {
               reject('Hash of download does not match! Download aborted.\n (It may be a corrupted download, try again)');
             } else {
-              await importGameDataSkipHash(gameData.gameId, tempPath, dataPacksFolderPath, sha256);
-              await fs.promises.unlink(tempPath);
-              resolve();
+              try {
+                await importGameDataSkipHash(gameData.gameId, tempPath, dataPacksFolderPath, sha256);
+                await fs.promises.unlink(tempPath);
+                resolve();
+              } catch (err) {
+                reject(err);
+              }
             }
           });
           stream.pipe(hash);
@@ -92,11 +96,9 @@ export async function importGameDataSkipHash(gameId: string, filePath: string, d
   const newPath = path.join(dataPacksFolderPath, newFilename);
   await fs.promises.copyFile(filePath, newPath);
   if (existingGameData) {
-    if (existingGameData.presentOnDisk === false) {
-      existingGameData.path = newFilename;
-      existingGameData.presentOnDisk = true;
-      return save(existingGameData);
-    }
+    existingGameData.path = newFilename;
+    existingGameData.presentOnDisk = true;
+    return save(existingGameData);
   } else {
     const newGameData = new GameData();
     newGameData.title = 'Data Pack';
