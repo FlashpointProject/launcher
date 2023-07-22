@@ -173,6 +173,18 @@ export function main(init: Init): void {
         // Increase memory limit in dev instance (mostly for developer page functions)
         const env = Util.isDev ? Object.assign({ 'NODE_OPTIONS' : '--max-old-space-size=6144' }, process.env ) : process.env;
         state.backProc = fork(path.join(__dirname, '../back/index.js'), [init.rest], { detached: true, env, stdio: 'pipe' });
+        state.backProc.on('exit', (code) => {
+          if (!code || code === 0) {
+            console.log('Back proc exited cleanly, killing self.');
+            process.exit(process.pid);
+          } else {
+            console.log(`Back proc exited unclean (${code}), killing self after 60 seconds to allow time to view message.`);
+            setTimeout(() => {
+              process.exit(process.pid);
+
+            }, 60000);
+          }
+        });
         if (state.backProc.stdout) {
           state.backProc.stdout.on('data', (chunk) => {
             process.stdout.write(chunk);
