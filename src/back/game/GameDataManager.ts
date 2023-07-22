@@ -37,7 +37,11 @@ export async function downloadGameData(gameDataId: number, dataPacksFolderPath: 
               reject('Hash of download does not match! Download aborted.\n (It may be a corrupted download, try again)');
             } else {
               try {
-                await importGameDataSkipHash(gameData.gameId, tempPath, dataPacksFolderPath, sha256);
+                await importGameDataSkipHash(gameData.gameId, tempPath, dataPacksFolderPath, sha256)
+                .catch((err) => {
+                  log.error('Launcher', 'Error importing game data ' + err);
+                  throw err;
+                });
                 await fs.promises.unlink(tempPath);
                 resolve();
               } catch (err) {

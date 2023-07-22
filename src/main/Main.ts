@@ -268,6 +268,7 @@ export function main(init: Init): void {
       };
     }), TIMEOUT_DELAY);
     state.socket.setSocket(ws);
+    state.socket.killOnDisconnect = true;
 
     // Start frontend
     if (opts.frontend) {
