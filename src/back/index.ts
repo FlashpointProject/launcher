@@ -50,12 +50,15 @@ import { GDIndex1680813346696 } from '@database/migration/1680813346696-GDIndex'
 import { MoveLaunchPath1681561150000 } from '@database/migration/1681561150000-MoveLaunchPath';
 import { PrimaryPlatform1684673859425 } from '@database/migration/1684673859425-PrimaryPlatform';
 import { PlayTime1687807237714 } from '@database/migration/1687807237714-PlayTime';
+import { PlayTimeIndices1687847922729 } from '@database/migration/1687847922729-PlayTimeIndices';
+import { ArchiveState1689423335642 } from '@database/migration/1689423335642-ArchiveState';
 import {
   CURATIONS_FOLDER_EXPORTED,
   CURATIONS_FOLDER_EXTRACTING,
   CURATIONS_FOLDER_TEMP,
   CURATIONS_FOLDER_WORKING, CURATION_META_FILENAMES
 } from '@shared/constants';
+import axios from 'axios';
 import { Tail } from 'tail';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { ConfigFile } from './ConfigFile';
@@ -93,9 +96,6 @@ import { LogFile } from './util/LogFile';
 import { logFactory } from './util/logging';
 import { createContainer, exit, getMacPATH, runService } from './util/misc';
 import { uuid } from './util/uuid';
-import { PlayTimeIndices1687847922729 } from '@database/migration/1687847922729-PlayTimeIndices';
-import axios from 'axios';
-import { ArchiveState1689423335642 } from '@database/migration/1689423335642-ArchiveState';
 
 const dataSourceOptions: DataSourceOptions = {
   type: 'better-sqlite3',
@@ -993,7 +993,7 @@ async function initialize() {
     for (let i = 0; i < state.serviceInfo.daemon.length; i++) {
       const service = state.serviceInfo.daemon[i];
       const id = 'daemon_' + i;
-      runService(state, id, service.name || id, state.config.flashpointPath, {}, service);
+      runService(state, id, service.name || id, state.config.flashpointPath, { detached: !service.kill, noshell: !!service.kill }, service);
     }
     // Start file watchers
     for (let i = 0; i < state.serviceInfo.watch.length; i++) {

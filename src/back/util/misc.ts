@@ -1,27 +1,27 @@
+import { ManagedChildProcess, ProcessOpts } from '@back/ManagedChildProcess';
+import { SocketServer } from '@back/SocketServer';
 import { SERVICES_SOURCE } from '@back/constants';
 import { createTagsFromLegacy } from '@back/importGame';
-import { ManagedChildProcess, ProcessOpts } from '@back/ManagedChildProcess';
 import { exitApp } from '@back/responses';
-import { SocketServer } from '@back/SocketServer';
 import { BackState, ShowMessageBoxFunc, ShowOpenDialogFunc, ShowSaveDialogFunc, StatusState } from '@back/types';
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
 import { Tag } from '@database/entity/Tag';
+import { deepCopy, recursiveReplace, stringifyArray } from '@shared/Util';
 import { BackOut, ComponentState } from '@shared/back/types';
 import { getCurationFolder } from '@shared/curate/util';
 import { BrowserApplicationOpts } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, INamedBackProcessInfo, IService, ProcessState } from '@shared/interfaces';
-import { autoCode, getDefaultLocalization, LangContainer, LangFile } from '@shared/lang';
+import { LangContainer, LangFile, autoCode, getDefaultLocalization } from '@shared/lang';
 import { Legacy_IAdditionalApplicationInfo, Legacy_IGameInfo } from '@shared/legacy/interfaces';
-import { deepCopy, recursiveReplace, stringifyArray } from '@shared/Util';
 import * as child_process from 'child_process';
 import * as fs from 'fs-extra';
 import * as os from 'os';
 import * as path from 'path';
+import * as psTree from 'ps-tree';
 import { promisify } from 'util';
-import { uuid } from './uuid';
 import { AppDataSource } from '..';
-import terminate from 'terminate';
+import { uuid } from './uuid';
 
 const unlink = promisify(fs.unlink);
 
@@ -129,9 +129,14 @@ export async function exit(state: BackState, beforeProcessExit?: () => void | Pr
           await Promise.race([
             service.kill(),
             new Promise(resolve => {
-              setTimeout(resolve, 10000);
+              setTimeout((resolve), 10000);
             })
           ]);
+          if (!('name' in service.info)) {
+            console.log(` - Killed '${service.info.filename}' Service`);
+          } else {
+            console.log(` - Killed '${service.info.name}' Service`);
+          }
         }
       }
       console.log(' - Managed Services Killed');
@@ -187,7 +192,21 @@ export async function exit(state: BackState, beforeProcessExit?: () => void | Pr
       state.socketServer.close()
       .catch(e => { console.error(e); });
 
-      terminate(process.pid);
+      await new Promise<void>((resolve, reject) => {
+        psTree(process.pid, async (error, children) => {
+          if (error) {
+            reject(error);
+          }
+          // Kill each child process.
+          for (const child of children) {
+            process.kill(Number(child.PID));
+          }
+          resolve();
+        });
+      });
+      // Kill the parent process.
+      process.kill(process.pid);
+      process.exit(0);
     });
   }
 }
