@@ -251,7 +251,7 @@
   },
   "about": {
     "aboutHeader": "Névjegy",
-    "flashpoint": "Flashpoint Archive",
+    "flashpoint": "Flashpoint Archívum",
     "flashpointDesc": "The preservation project this launcher was built for, a non-profit with the goal of furthering archival and accessibility efforts of games, animations and other digital interactive experiences on the web.",
     "website": "Weboldal",
     "flashpointLauncher": "Flashpoint Launcher",
@@ -362,7 +362,7 @@
     "noMountParameters": "Nincsen mount paraméter(ek)",
     "showExtremeScreenshot": "Extrém képernyőmentések mutatása",
     "busy": "Kérem várjon...",
-    "openGameDataBrowser": "Open Game Data Browser"
+    "openGameDataBrowser": "Játékadat Böngésző Megnyitása"
   },
   "tags": {
     "name": "Név",
