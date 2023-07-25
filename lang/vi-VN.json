@@ -44,7 +44,7 @@
     "contentFiltersHeader": "Lọc nội dung",
     "flashpointHeader": "Flashpoint",
     "flashpointPath": "Đường dẫn Flashpoint",
-    "flashpointPathDesc": "Đường dẫn đến thư mục Flashpoint (có thể là đường dẫn tương đối)",
+    "flashpointPathDesc": "Đường dẫn đến thư mục Flashpoint (có thể dùng đường dẫn tương đối)",
     "browse": "Tìm",
     "libraries": "Thư viện",
     "randomLibraries": "Thư viện ngẫu nhiên",
@@ -361,7 +361,7 @@
     "mountParameters": "Tham Số Khởi Động Trò Chơi",
     "noMountParameters": "Không có",
     "showExtremeScreenshot": "Hiện ảnh chụp màn hình phản cảm",
-    "busy": "Bạn đợi xíu nhé...",
+    "busy": "Đợi xíu nhé...",
     "openGameDataBrowser": "Mở trình duyệt dữ liệu trò chơi"
   },
   "tags": {
