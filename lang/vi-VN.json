@@ -361,7 +361,7 @@
     "mountParameters": "Tham Số Khởi Động Trò Chơi",
     "noMountParameters": "Không có",
     "showExtremeScreenshot": "Hiện ảnh chụp màn hình phản cảm",
-    "busy": "Đợi xíu nhé...",
+    "busy": "Bạn đợi xíu nhé...",
     "openGameDataBrowser": "Mở trình duyệt dữ liệu trò chơi"
   },
   "tags": {
