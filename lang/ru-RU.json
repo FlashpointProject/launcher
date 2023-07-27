@@ -33,7 +33,7 @@
     "enablePlaytimeTrackingExtreme": "Отслеживать игровое время экстремальных игр",
     "enablePlaytimeTrackingExtremeDesc": "Разрешать отслеживание последней даты, времени воспроизведения и количества запусков для игр с экстремальным контентом.",
     "clearPlaytimeTracking": "Очистить данные об игровом времени",
-    "clearPlaytimeTrackingDesc": "Необратимо удаляет данные о последней запущенной игре, суммарном игровом времени и количестве запусков для каждой игры.",
+    "clearPlaytimeTrackingDesc": "Безвозвратно удаляет данные о последней запущенной игре, суммарном игровом времени и количестве запусков для каждой игры.",
     "clearData": "Очистить данные",
     "currentLanguage": "Язык",
     "currentLanguageDesc": "Язык, который лаунчер будет использовать по умолчанию.",
@@ -78,8 +78,8 @@
     "showDeveloperTabDesc": "Показывает вкладку \"Разработчикам\". Она полезна в большинстве случаев только для разработчиков и кураторов.",
     "server": "Сервер",
     "serverDesc": "Which Server to run when playing games.",
-    "curateServer": "Curate Server",
-    "curateServerDesc": "Which Server to run when running curations.",
+    "curateServer": "Сервер кураций",
+    "curateServerDesc": "Используемый сервер для выполнения кураций.",
     "metadataServerHost": "Хост сервера метаданных",
     "metadataServerHostDesc": "Хост сервера метаданных. Используется для синхронизации новой и обновлённой информации об игре в лаунчере.",
     "extensionsHeader": "Расширения",
@@ -598,9 +598,9 @@
     "mustBe7zArchiveSkipping": "Должен быть .7z архивом. Пропуск {0}",
     "failedToLoadCuration": "Не удалось загрузить курацию! {0}",
     "exportCurationWithWarnings": "Экспортировать курацию, даже если у неё есть предупреждения?",
-    "requiresAdditionalDownload": "You are missing the {0} support pack, which is required to launch this entry.\nDownload now?",
-    "requiresAdditionalDownloadPlural": "You are missing {0} support packs which are required to launch this entry.\nDownload now?",
-    "confirmClearPlaytime": "Clear all game playtime and play history data? This is irreversible."
+    "requiresAdditionalDownload": "У вас отсутствует пакет поддержки {0}, необходимый для запуска этого контента.\nУстановить сейчас?",
+    "requiresAdditionalDownloadPlural": "У вас отсутствуют пакеты поддержки {0}, необходимые для запуска этого контента.\nУстановить сейчас?",
+    "confirmClearPlaytime": "Очистить все данные об игровом времени и истории игр? Данное действие необратимо."
   },
   "libraries": {
     "arcade": "Игры",
