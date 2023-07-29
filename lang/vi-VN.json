@@ -139,7 +139,7 @@
     "updateComplete": "Đã cập nhật!"
   },
   "logs": {
-    "filters": "Bộ lọc",
+    "filters": "Lọc theo",
     "logLevels": "Cấp độ bản ghi",
     "copyText": "Chép bản ghi",
     "clearLog": "Xoá bản ghi",
