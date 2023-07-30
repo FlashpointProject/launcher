@@ -1574,16 +1574,17 @@ body {
   flex-direction: column;
   margin-bottom: 0.5rem;
 }
+.browse-right-sidebar__stats-row-top,
+.browse-right-sidebar__stats-row-bottom,
 .browse-right-sidebar__stats-row {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
+  display: inline-flex;
 }
-.browse-right-sidebar__stats-row-left {
+.browse-right-sidebar__stats-row-top {
   font-weight: bold;
 }
-.browse-right-sidebar__stats-row-right {
-  text-align: left;
+.browse-right-sidebar__stats-cell {
+  width: 50%;
+  text-align: center;
 }
 
 

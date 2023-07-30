@@ -3,7 +3,7 @@ import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
 import * as remote from '@electron/remote';
 import { WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
-import { BackIn, BackOut, BackOutTemplate, TagSuggestion } from '@shared/back/types';
+import { ArchiveState, BackIn, BackOut, BackOutTemplate, TagSuggestion } from '@shared/back/types';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { wrapSearchTerm } from '@shared/game/GameFilter';
 import { ModelUtils } from '@shared/game/util';
@@ -412,21 +412,21 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   )
             }
             {/** Gameplay Statistics */}
-            { isPlaceholder || this.props.fpfssEditMode ? undefined : (
+            { (isPlaceholder || this.props.fpfssEditMode || this.props.currentGame?.archiveState !== ArchiveState.Available) ? undefined : (
               <div className='browse-right-sidebar__stats'>
-                <div className='browse-right-sidebar__stats-row'>
-                  <div className='browse-right-sidebar__stats-row-left'>
+                <div className='browse-right-sidebar__stats-row-top'>
+                  <div className='browse-right-sidebar__stats-cell'>
                     {strings.lastPlayed}
                   </div>
-                  <div className='browse-right-sidebar__stats-row-right'>
-                    {game.lastPlayed ? formatLastPlayed(game.lastPlayed, strings) : strings.never}
-                  </div>
-                </div>
-                <div className='browse-right-sidebar__stats-row'>
-                  <div className='browse-right-sidebar__stats-row-left'>
+                  <div className='browse-right-sidebar__stats-cell'>
                     {strings.playtime}
                   </div>
-                  <div className='browse-browser-right-sidebarright-sidebar__stats-row-right'>
+                </div>
+                <div className='browse-right-sidebar__stats-row-bottom'>
+                  <div className='browse-right-sidebar__stats-cell'>
+                    {game.lastPlayed ? formatLastPlayed(game.lastPlayed, strings) : strings.never}
+                  </div>
+                  <div className='browse-right-sidebar__stats-cell'>
                     {formatPlaytime(game.playtime, strings)}
                   </div>
                 </div>
