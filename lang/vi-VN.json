@@ -4,7 +4,7 @@
     "configHeader": "Cài đặt",
     "configDesc": "(Bạn phải nhấn \"Lưu rồi khởi động lại\" thì vài thay đổi mới có hiệu lực)",
     "preferencesHeader": "Tuỳ chọn",
-    "extremeGames": "Hiện nhóm nội dung phản cảm",
+    "extremeGames": "Hiện nội dung phản cảm",
     "extremeGamesDesc": "Cho phép bật - tắt, tạo và sửa các nhóm nhãn Phản cảm để kiểm soát nội dung không phù hợp với trẻ em.",
     "hideExtremeScreenshots": "Ẩn ảnh chụp màn hình phản cảm",
     "hideExtremeScreenshotsDesc": "Ẩn ảnh chụp màn hình của nội dung có nhãn Phản cảm. Nhấp chuột lên khung ảnh để hiện ảnh.",
@@ -90,7 +90,7 @@
     "extApplications": "Phần mềm",
     "saveAndRestart": "Lưu rồi khởi động lại",
     "saveAndClose": "Lưu rồi thoát",
-    "tagFilterGroupEditor": "Trình sửa nhóm nhãn"
+    "tagFilterGroupEditor": "Sửa nhóm nhãn"
   },
   "home": {
     "gotdHeader": "Trò chơi của ngày",
@@ -133,7 +133,7 @@
     "linuxSupportLinkText": "Mở câu hỏi thường gặp",
     "randomPicks": "Ngẫu nhiên",
     "rerollPicks": "Chọn lại",
-    "componentUpdatesReady": "Cài {0} bản cập nhật phần mềm",
+    "componentUpdatesReady": "Đã có {0} bản cập nhật phần mềm",
     "componentUpToDate": "Flashpoint đã được cập nhật",
     "lastUpdated": "Lần cuối cập nhật",
     "updateComplete": "Đã cập nhật!"
