@@ -548,6 +548,8 @@ export function mapFpfssGameToLocal(data: any, categories: TagCategory[]): Game 
   if (!game.data) { game.data = []; }
   if (!game.platforms) { game.platforms = []; }
   if (!game.tags) { game.tags = []; }
+  game.legacyApplicationPath = (game as any).applicationPath;
+  game.legacyLaunchCommand = (game as any).launchCommand;
   // Tags
   for (const tag of game.tags) {
     tag.primaryAlias = {
@@ -600,6 +602,8 @@ export function mapLocalToFpfssGame(game: Game, categories: TagCategory[], userI
       userId: userId
     });
   }
+  (game as any).launchCommand = game.legacyLaunchCommand;
+  (game as any).applicationPath = game.legacyApplicationPath;
   return snekify({
     ...game,
     tags: newTags,

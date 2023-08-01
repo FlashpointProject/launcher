@@ -1102,6 +1102,14 @@ export class App extends React.Component<AppProps> {
           click: () => {
             this.onFpfssEditGame(gameId);
           }
+        },
+        {
+          /* Show on FPFSS */
+          label: strings.browse.showOnFpfss,
+          enabled: this.props.preferencesData.enableEditing,
+          click: () => {
+            remote.shell.openExternal(`${this.props.preferencesData.fpfssBaseUrl}/web/game/${gameId}`);
+          }
         }
       ] : [];
 

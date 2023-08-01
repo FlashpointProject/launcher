@@ -345,6 +345,7 @@ const langTemplate = {
     'saveChanges',
     'discardChanges',
     'editFpfssGame',
+    'showOnFpfss',
     'editGame',
     'allGames',
     'newPlaylist',

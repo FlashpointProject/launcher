@@ -342,6 +342,7 @@
     "saveChanges": "Save Changes",
     "discardChanges": "Discard Changes",
     "editFpfssGame": "Edit Game (FPFSS)",
+    "showOnFpfss": "Show Game on FPFSS",
     "editGame": "Edit Game",
     "allGames": "All Games",
     "newPlaylist": "New Playlist",
