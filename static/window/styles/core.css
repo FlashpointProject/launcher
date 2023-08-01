@@ -1513,7 +1513,7 @@ body {
 }
 /* Browse-Right-Sidebar Section */
 .browse-right-sidebar__section {
-  margin-bottom: 1.1em;
+  margin-bottom: 1em;
 }
 .browse-right-sidebar__section:last-child {
   margin-bottom: 0;
@@ -1571,20 +1571,35 @@ body {
 /* Browse game stats */
 .browse-right-sidebar__stats {
   display: flex;
-  flex-direction: column;
+  flex-flow: wrap;
+  flex-direction: row;
   margin-bottom: 0.5rem;
 }
 .browse-right-sidebar__stats-row-top,
 .browse-right-sidebar__stats-row-bottom,
 .browse-right-sidebar__stats-row {
+  width: 100%;
   display: inline-flex;
 }
 .browse-right-sidebar__stats-row-top {
+  width: 100%;
   font-weight: bold;
 }
 .browse-right-sidebar__stats-cell {
-  width: 50%;
+  width: 100%;
+  white-space: nowrap;
   text-align: center;
+}
+.browse-right-sidebar__stats-box {
+  margin-left: 0.3rem;
+  margin-right: 0.3rem;
+  flex-direction: column;
+  flex-grow: 1;
+  display: flex;
+}
+/** @TODO: Remove awful workaround */
+.browse-right-sidebar__stats-cell-placeholder {
+  font-style: unset !important;
 }
 
 
