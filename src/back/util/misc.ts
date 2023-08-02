@@ -184,7 +184,7 @@ export async function exit(state: BackState, beforeProcessExit?: () => void | Pr
       console.log(' - Cleanup Complete, Exiting Process...');
       if (beforeProcessExit) {
         console.log(' - Executing callback before process exit...');
-        await beforeProcessExit();
+        await Promise.resolve(beforeProcessExit());
       }
       await state.socketServer.broadcast(BackOut.QUIT);
       console.log(' - Quit Broadcast Sent');
