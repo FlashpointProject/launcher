@@ -78,7 +78,7 @@
     "showDeveloperTabDesc": "Mostra a aba de 'Desenvolvedor'. Isto provavelmente só é útil para desenvolvedores e curadores.",
     "server": "Servidor",
     "serverDesc": "Which Server to run when playing games.",
-    "curateServer": "Curate Server",
+    "curateServer": "Servidor de curadoria",
     "curateServerDesc": "Which Server to run when running curations.",
     "metadataServerHost": "Host de Servidor de Metadados",
     "metadataServerHostDesc": "Host de um servidor de metadados. Usado para sincronizar informações de jogo novas e atualizadas com o launcher.",
@@ -448,7 +448,7 @@
     "contentFiles": "Arquivos de Conteúdo",
     "warnings": "Avisos",
     "noTitle": "'Title' is a required field.",
-    "noApplicationPath": "'Application Path' is a required field.",
+    "noApplicationPath": "'Caminho da Aplicação' é um campo obrigatório.",
     "noPlatforms": "At least 1 'Platform' is requried on every curation.",
     "noLaunchCommand": "'Launch Command' is a required field.",
     "invalidLaunchCommand": "'Comando de Início' não corresponde a estes requisitos de URL:",
@@ -529,7 +529,7 @@
     "duplicatePlaylist": "Duplicar Playlist",
     "exportPlaylist": "Exportar Playlist",
     "makeCurationFromGame": "Criar Curação a partir do Jogo",
-    "copyShortcutURL": "Copy Shortcut URL"
+    "copyShortcutURL": "Copiar URL encurtada"
   },
   "dialog": {
     "programNotFound": "Programa não encontrado!",
