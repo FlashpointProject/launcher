@@ -258,9 +258,9 @@
     "flashpointLauncherDesc": "An open-source desktop application used to browse, manage and play games from the Flashpoint Archive.",
     "version": "Ship Material",
     "license": "License",
-    "licenseInfo": "MIT (Read the file named 'LICENSE' for more information)",
+    "licenseInfo": "MIT (Read the verse labeled 'LETTER O' MARQUE' fer more information)",
     "creditsHeader": "Credits",
-    "specialThanks": "Special Thanks"
+    "specialThanks": "Noble thanks"
   },
   "browse": {
     "noTitle": "No Title",
@@ -331,7 +331,7 @@
     "notInstalled": "Nah Installed",
     "legacyGame": "Marooned game",
     "download": "Download",
-    "thumbnail": "Thumbnail",
+    "thumbnail": "Photoframe",
     "screenshot": "Screenshot",
     "dropImageHere": "Drop an image here to add it",
     "noGameSelected": "No {0} Selected",
