@@ -93,12 +93,12 @@
     "tagFilterGroupEditor": "Tag Filter Group Editor"
   },
   "home": {
-    "gotdHeader": "Game of the Day",
+    "gotdHeader": "Game o' the mornin'",
     "updateHeader": "Launcher Update",
     "currentVersion": "Current Version",
     "nextVersion": "Next Version",
     "updateAvailable": "Update Available",
-    "upToDate": "Up to date",
+    "upToDate": "Up t' date",
     "downloadingUpdate": "Downloading Update...",
     "quickStartHeader": "Quick Start",
     "hallOfFameInfo": "Only want thar best o' thar best? Check out thar {0}!",
