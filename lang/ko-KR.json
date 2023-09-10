@@ -4,7 +4,7 @@
     "configHeader": "설정",
     "configDesc": "(설정을 적용하기 위해선 '저장 후 재시작' 버튼을 눌러야 합니다)",
     "preferencesHeader": "설정",
-    "extremeGames": "Show Extreme Filters",
+    "extremeGames": "자극적인 콘텐츠 보기",
     "extremeGamesDesc": "Allows Extreme tag filters to be toggled, created and modified to control content unsuitable for children.",
     "hideExtremeScreenshots": "Hide Extreme Screenshots",
     "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
