@@ -464,7 +464,7 @@
     "noLogo": "此展品没有缩略图。",
     "noScreenshot": "此展品没有屏幕截图。",
     "ilc_notHttp": "使用 HTTP。",
-    "ilc_nonExistant": "指向您展品的 'content' 文件夹中已存在的文件。",
+    "ilc_nonExistant": "必须指向您展品的 'content' 文件夹中已存在的文件。",
     "documentStatus": "对于破解 / 不完整游戏，备注必须记录修改和缺失内容。",
     "sort": "排序展品（A-Z）",
     "contextCopyName": "复制文件名",
