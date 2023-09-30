@@ -301,6 +301,7 @@
     "noVersion": "Pa Verzion",
     "releaseDate": "Release Date",
     "noReleaseDate": "No Release Date",
+    "noneFound": "None Found",
     "language": "Gjuha",
     "noLanguage": "No Language",
     "dateAdded": "Date Added",
@@ -342,6 +343,7 @@
     "saveChanges": "Save Changes",
     "discardChanges": "Discard Changes",
     "editFpfssGame": "Edit Game (FPFSS)",
+    "showOnFpfss": "Show Game on FPFSS",
     "editGame": "Edit Game",
     "allGames": "All Games",
     "newPlaylist": "New Playlist",
@@ -362,7 +364,10 @@
     "noMountParameters": "No Mount Parameters",
     "showExtremeScreenshot": "Show Extreme Screenshot",
     "busy": "Please Wait...",
-    "openGameDataBrowser": "Open Game Data Browser"
+    "openGameDataBrowser": "Open Game Data Browser",
+    "notArchived": "Not Archived",
+    "archived": "Archived",
+    "playOnline": "Play Online"
   },
   "tags": {
     "name": "Name",
