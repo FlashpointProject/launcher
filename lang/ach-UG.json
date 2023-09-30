@@ -301,6 +301,7 @@
     "noVersion": "crwdns5387:0crwdne5387:0",
     "releaseDate": "crwdns5389:0crwdne5389:0",
     "noReleaseDate": "crwdns5391:0crwdne5391:0",
+    "noneFound": "crwdns6994:0crwdne6994:0",
     "language": "crwdns5393:0crwdne5393:0",
     "noLanguage": "crwdns5395:0crwdne5395:0",
     "dateAdded": "crwdns5397:0crwdne5397:0",
@@ -342,6 +343,7 @@
     "saveChanges": "crwdns5467:0crwdne5467:0",
     "discardChanges": "crwdns5469:0crwdne5469:0",
     "editFpfssGame": "crwdns6067:0crwdne6067:0",
+    "showOnFpfss": "crwdns6996:0crwdne6996:0",
     "editGame": "crwdns5471:0crwdne5471:0",
     "allGames": "crwdns5473:0crwdne5473:0",
     "newPlaylist": "crwdns5475:0crwdne5475:0",
@@ -362,7 +364,10 @@
     "noMountParameters": "crwdns5505:0crwdne5505:0",
     "showExtremeScreenshot": "crwdns5507:0crwdne5507:0",
     "busy": "crwdns5509:0crwdne5509:0",
-    "openGameDataBrowser": "crwdns6709:0crwdne6709:0"
+    "openGameDataBrowser": "crwdns6709:0crwdne6709:0",
+    "notArchived": "crwdns6998:0crwdne6998:0",
+    "archived": "crwdns7000:0crwdne7000:0",
+    "playOnline": "crwdns7002:0crwdne7002:0"
   },
   "tags": {
     "name": "crwdns5511:0crwdne5511:0",
