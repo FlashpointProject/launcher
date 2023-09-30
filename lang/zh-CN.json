@@ -301,7 +301,7 @@
     "noVersion": "无版本",
     "releaseDate": "发布日期",
     "noReleaseDate": "无发布日期",
-    "noneFound": "None Found",
+    "noneFound": "未找到",
     "language": "首选语言",
     "noLanguage": "无语言",
     "dateAdded": "添加日期",
@@ -343,7 +343,7 @@
     "saveChanges": "保存更改",
     "discardChanges": "取消更改",
     "editFpfssGame": "编辑游戏（FPFSS）",
-    "showOnFpfss": "Show Game on FPFSS",
+    "showOnFpfss": "在 FPFSS 上显示游戏",
     "editGame": "编辑游戏",
     "allGames": "所有游戏",
     "newPlaylist": "新播放列表",
@@ -365,9 +365,9 @@
     "showExtremeScreenshot": "显示成人截图",
     "busy": "请稍候…",
     "openGameDataBrowser": "打开游戏数据浏览器",
-    "notArchived": "Not Archived",
-    "archived": "Archived",
-    "playOnline": "Play Online"
+    "notArchived": "未存档",
+    "archived": "已存档",
+    "playOnline": "在线播放"
   },
   "tags": {
     "name": "名称",
