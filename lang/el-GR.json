@@ -301,6 +301,7 @@
     "noVersion": "Χωρίς Έκδοση",
     "releaseDate": "Ημερομηνία Κυκλοφορίας",
     "noReleaseDate": "Χωρίς Ημερομηνία Κυκλοφορίας",
+    "noneFound": "None Found",
     "language": "Γλώσσα",
     "noLanguage": "Χωρίς Γλώσσα",
     "dateAdded": "Ημερομηνία Προσθήκης",
@@ -342,6 +343,7 @@
     "saveChanges": "Αποθήκευση Αλλαγών",
     "discardChanges": "Απόρριψη Αλλαγών",
     "editFpfssGame": "Edit Game (FPFSS)",
+    "showOnFpfss": "Show Game on FPFSS",
     "editGame": "Επεξεργασία Παιχνιδιού",
     "allGames": "Όλα Τα Παιχνίδια",
     "newPlaylist": "Νέα Λίστα Αναπαραγωγής",
@@ -362,7 +364,10 @@
     "noMountParameters": "Χωρίς Παραμέτρους Προσάρτησης",
     "showExtremeScreenshot": "Απόκρυψη Ακραίων Στιγμιοτύπων",
     "busy": "Please Wait...",
-    "openGameDataBrowser": "Open Game Data Browser"
+    "openGameDataBrowser": "Open Game Data Browser",
+    "notArchived": "Not Archived",
+    "archived": "Archived",
+    "playOnline": "Play Online"
   },
   "tags": {
     "name": "Όνομα",
