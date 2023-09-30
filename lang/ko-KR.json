@@ -301,6 +301,7 @@
     "noVersion": "버전 없음",
     "releaseDate": "출시일",
     "noReleaseDate": "출시일 없음",
+    "noneFound": "None Found",
     "language": "언어",
     "noLanguage": "언어 없음",
     "dateAdded": "추가된 날짜",
@@ -342,6 +343,7 @@
     "saveChanges": "변경사항 저장",
     "discardChanges": "변경 취소",
     "editFpfssGame": "Edit Game (FPFSS)",
+    "showOnFpfss": "Show Game on FPFSS",
     "editGame": "게임 편집",
     "allGames": "모든 게임",
     "newPlaylist": "새 플레이리스트",
@@ -362,7 +364,10 @@
     "noMountParameters": "No Mount Parameters",
     "showExtremeScreenshot": "Show Extreme Screenshot",
     "busy": "Please Wait...",
-    "openGameDataBrowser": "Open Game Data Browser"
+    "openGameDataBrowser": "Open Game Data Browser",
+    "notArchived": "Not Archived",
+    "archived": "Archived",
+    "playOnline": "Play Online"
   },
   "tags": {
     "name": "이름",
