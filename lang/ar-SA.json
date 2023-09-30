@@ -301,6 +301,7 @@
     "noVersion": "بدون إصدار",
     "releaseDate": "تاريخ الإصدار",
     "noReleaseDate": "بدون تاريخ",
+    "noneFound": "None Found",
     "language": "اللغة",
     "noLanguage": "بدون لغة",
     "dateAdded": "تاريخ الإضافة",
@@ -342,6 +343,7 @@
     "saveChanges": "حفظ التغييرات",
     "discardChanges": "إلغاء التغييرات",
     "editFpfssGame": "Edit Game (FPFSS)",
+    "showOnFpfss": "Show Game on FPFSS",
     "editGame": "تحرير اللعبة",
     "allGames": "جميع الألعاب",
     "newPlaylist": "قائمة لعب جديدة",
@@ -362,7 +364,10 @@
     "noMountParameters": "No Mount Parameters",
     "showExtremeScreenshot": "أظهر لقطة الشاشة المُتطرّفة",
     "busy": "الرجاء الانتظار...",
-    "openGameDataBrowser": "Open Game Data Browser"
+    "openGameDataBrowser": "Open Game Data Browser",
+    "notArchived": "Not Archived",
+    "archived": "Archived",
+    "playOnline": "Play Online"
   },
   "tags": {
     "name": "الاسم",
