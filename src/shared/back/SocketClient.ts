@@ -26,6 +26,9 @@ export class SocketClient<SOCKET extends BaseSocket> {
   /** If true, do not attempt to reconnect */
   abortReconnects = false;
 
+  /** Kill self if connection ever fully dies (can't reconnect) */
+  killOnDisconnect = false;
+
   client: SocketServerClient<BackIn, BackInTemplate, SOCKET> = {
     id: -1, // Unused (only used by servers)
     next_id: 0,
@@ -250,6 +253,12 @@ export class SocketClient<SOCKET extends BaseSocket> {
   protected onClose(event: CloseEvent): void {
     if (this.abortReconnects) {
       console.log('Socket Client - Connection closed.');
+      if (this.killOnDisconnect) {
+        process.exit(process.pid);
+      }
+      if (this.onStateChange) {
+        this.onStateChange(false);
+      }
     } else {
       console.log(`SharedSocket Closed (Code: ${event.code}, Clean: ${event.wasClean}, Reason: "${event.reason}", URL: "${this.url}").`);
       if (this.onStateChange) {

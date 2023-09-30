@@ -18,7 +18,6 @@ export async function downloadGameData(gameDataId: number, dataPacksFolderPath: 
   const sourceErrors: string[] = [];
   log.debug('Game Launcher', `Checking ${sources.length} Sources for this GameData...`);
   if (gameData) {
-    if (gameData.presentOnDisk) { return; }
     // GameData real, find an available source
     for (const source of sources) {
       try {
@@ -36,9 +35,19 @@ export async function downloadGameData(gameDataId: number, dataPacksFolderPath: 
             if (sha256.toLowerCase() !== gameData.sha256.toLowerCase()) {
               reject('Hash of download does not match! Download aborted.\n (It may be a corrupted download, try again)');
             } else {
-              await importGameDataSkipHash(gameData.gameId, tempPath, dataPacksFolderPath, sha256);
-              await fs.promises.unlink(tempPath);
-              resolve();
+              try {
+                log.debug('Game Launcher', 'Validated game data, importing to games folder');
+                await importGameDataSkipHash(gameData.gameId, tempPath, dataPacksFolderPath, sha256, gameData)
+                .catch((err) => {
+                  console.log(`Error importing game data ${err}`);
+                  log.error('Launcher', 'Error importing game data ' + err);
+                  throw err;
+                });
+                await fs.promises.unlink(tempPath);
+                resolve();
+              } catch (err) {
+                reject(err);
+              }
             }
           });
           stream.pipe(hash);
@@ -80,23 +89,23 @@ export async function remove(gameDataId: number): Promise<void> {
   await gameDataRepository.delete({ id: gameDataId });
 }
 
-export async function importGameDataSkipHash(gameId: string, filePath: string, dataPacksFolderPath: string, sha256: string): Promise<GameData> {
+export async function importGameDataSkipHash(gameId: string, filePath: string, dataPacksFolderPath: string, sha256: string, existingGameData?: GameData): Promise<GameData> {
   await fs.promises.access(filePath, fs.constants.F_OK);
   // Gather basic info
   const stats = await fs.promises.stat(filePath);
-  const gameData = await findGameData(gameId);
-  const existingGameData = gameData.find(g => g.sha256.toLowerCase() === sha256.toLowerCase());
+  if (!existingGameData) {
+    const gameData = await findGameData(gameId);
+    existingGameData = gameData.find(g => g.sha256.toLowerCase() === sha256.toLowerCase());
+  }
   // Copy file
   const dateAdded = new Date();
   const newFilename = existingGameData ? `${gameId}-${existingGameData.dateAdded.getTime()}.zip` : `${gameId}-${dateAdded.getTime()}.zip`;
   const newPath = path.join(dataPacksFolderPath, newFilename);
   await fs.promises.copyFile(filePath, newPath);
   if (existingGameData) {
-    if (existingGameData.presentOnDisk === false) {
-      existingGameData.path = newFilename;
-      existingGameData.presentOnDisk = true;
-      return save(existingGameData);
-    }
+    existingGameData.path = newFilename;
+    existingGameData.presentOnDisk = true;
+    return save(existingGameData);
   } else {
     const newGameData = new GameData();
     newGameData.title = 'Data Pack';

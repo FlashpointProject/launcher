@@ -769,3 +769,9 @@ export type FpfssState = {
   user: FpfssUser | null;
   editingGame: Game | null;
 }
+
+export enum ArchiveState {
+  NotArchived = 0,
+  Archived,
+  Available
+}

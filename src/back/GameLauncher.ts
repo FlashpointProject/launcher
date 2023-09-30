@@ -525,13 +525,18 @@ async function handleGameDataParams(opts: LaunchBaseOpts, serverOverride?: strin
         alreadyExtracted = fs.existsSync(filePath);
       }
       if (!alreadyExtracted) {
-        // Extra game data to htdocs folder
+        // Extract game data to htdocs folder
         const gameDataPath = path.join(opts.fpPath, opts.dataPacksFolderPath, gameData.path || '');
         const tempPath = path.join(opts.fpPath, '.temp', 'extract');
         await fs.ensureDir(tempPath);
         const destPath = path.join(opts.fpPath, opts.htdocsPath);
         log.debug('Launcher', `Extracting game data from "${gameDataPath}" to "${tempPath}"`);
-        await extractFullPromise([gameDataPath, tempPath, { $bin: opts.sevenZipPath }]);
+        await extractFullPromise([gameDataPath, tempPath, { $bin: opts.sevenZipPath }])
+        .catch((err) => {
+          console.log(err);
+          log.error('Launcher', `Failed to extract game data: ${err}`);
+          throw err;
+        });
         const contentFolder = path.join(tempPath, 'content');
         // Move contents of contentFolder to destPath
         log.debug('Launcher', `Moving extracted game data from "${contentFolder}" to "${destPath}"`);

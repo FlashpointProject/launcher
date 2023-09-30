@@ -1102,6 +1102,14 @@ export class App extends React.Component<AppProps> {
           click: () => {
             this.onFpfssEditGame(gameId);
           }
+        },
+        {
+          /* Show on FPFSS */
+          label: strings.browse.showOnFpfss,
+          enabled: this.props.preferencesData.enableEditing,
+          click: () => {
+            remote.shell.openExternal(`${this.props.preferencesData.fpfssBaseUrl}/web/game/${gameId}`);
+          }
         }
       ] : [];
 
@@ -1902,9 +1910,11 @@ export class App extends React.Component<AppProps> {
     let user = this.props.main.fpfss.user;
     if (!user) {
       // Logged out, try login
-      user = await fpfssLogin()
+      user = await fpfssLogin(this.props.dispatchMain, this.props.main.dialogResEvent)
       .catch((err) => {
-        alert(err);
+        if (err !== 'User Cancelled') {
+          alert(err);
+        }
       }) as FpfssUser | null; // Weird void from inferred typing?
       if (user) {
         // Store in main state

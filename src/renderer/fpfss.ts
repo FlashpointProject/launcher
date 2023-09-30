@@ -1,8 +1,14 @@
 import { FpfssUser } from '@shared/back/types';
 import axios from 'axios';
 import * as remote from '@electron/remote';
+import { uuid } from '@shared/utils/uuid';
+import { DialogState } from 'flashpoint-launcher';
+import { MainActionType } from './store/main/enums';
+import { Dispatch } from 'redux';
+import { MainAction } from './store/main/types';
+import EventEmitter = require('events');
 
-export async function fpfssLogin(): Promise<FpfssUser | null> {
+export async function fpfssLogin(dispatchMain: Dispatch<MainAction>, dialogResEvent: EventEmitter): Promise<FpfssUser | null> {
   const fpfssBaseUrl = window.Shared.preferences.data.fpfssBaseUrl;
   // Get device auth token from FPFSS
   const tokenUrl = `${fpfssBaseUrl}/auth/token`;
@@ -19,6 +25,17 @@ export async function fpfssLogin(): Promise<FpfssUser | null> {
   const pollUrl = `${fpfssBaseUrl}/auth/token?device_code=${token.device_code}`;
   const profileUrl = `${fpfssBaseUrl}/api/profile`;
   await remote.shell.openExternal(verifyUrl);
+
+  const dialog: DialogState = {
+    largeMessage: true,
+    message: 'Please login in your browser to continue',
+    buttons: ['Cancel'],
+    id: uuid()
+  };
+  dispatchMain({
+    type: MainActionType.NEW_DIALOG,
+    dialog
+  });
 
   // Start loop until an end state occurs
   return new Promise<FpfssUser | null>((resolve, reject) => {
@@ -70,5 +87,16 @@ export async function fpfssLogin(): Promise<FpfssUser | null> {
         reject('Failed to contact FPFSS while polling');
       });
     }, token.interval * 1000);
+    // Listen for dialog response
+    dialogResEvent.once(dialog.id, (d: DialogState, res: number) => {
+      clearInterval(interval);
+      reject('User Cancelled');
+    });
+  })
+  .finally(() => {
+    dispatchMain({
+      type: MainActionType.CANCEL_DIALOG,
+      dialogId: dialog.id
+    });
   });
 }
