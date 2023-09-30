@@ -301,6 +301,7 @@
     "noVersion": "Indisponibil",
     "releaseDate": "Data publicării",
     "noReleaseDate": "Data publicării necunoscută",
+    "noneFound": "None Found",
     "language": "Limba principală",
     "noLanguage": "Indisponibil",
     "dateAdded": "Data adăugării",
@@ -342,6 +343,7 @@
     "saveChanges": "Salvați modificările",
     "discardChanges": "Renunțați la modificări",
     "editFpfssGame": "Editare joc (FPFSS)",
+    "showOnFpfss": "Show Game on FPFSS",
     "editGame": "Editați jocul",
     "allGames": "toate jocurile",
     "newPlaylist": "Listă de joc nouă",
@@ -362,7 +364,10 @@
     "noMountParameters": "Fără parametri de montare",
     "showExtremeScreenshot": "Arată capturile de ecran extreme",
     "busy": "Așteptați…",
-    "openGameDataBrowser": "Explorați datele jocului"
+    "openGameDataBrowser": "Explorați datele jocului",
+    "notArchived": "Not Archived",
+    "archived": "Archived",
+    "playOnline": "Play Online"
   },
   "tags": {
     "name": "Nume",
