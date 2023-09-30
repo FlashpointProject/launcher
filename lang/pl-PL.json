@@ -301,6 +301,7 @@
     "noVersion": "Brak wersji",
     "releaseDate": "Data wydania",
     "noReleaseDate": "Brak daty wydania",
+    "noneFound": "None Found",
     "language": "Język",
     "noLanguage": "Brak języka",
     "dateAdded": "Data dodania",
@@ -342,6 +343,7 @@
     "saveChanges": "Zapisz zmiany",
     "discardChanges": "Anuluj zmiany",
     "editFpfssGame": "Edytuj grę (FPFSS)",
+    "showOnFpfss": "Show Game on FPFSS",
     "editGame": "Edytuj grę",
     "allGames": "Wszystkie gry",
     "newPlaylist": "Nowa playlista",
@@ -362,7 +364,10 @@
     "noMountParameters": "Brak parametrów montowania",
     "showExtremeScreenshot": "Pokaż ekstremalny zrzut ekranu",
     "busy": "Proszę czekać...",
-    "openGameDataBrowser": "Otwórz przeglądarkę danych gry"
+    "openGameDataBrowser": "Otwórz przeglądarkę danych gry",
+    "notArchived": "Not Archived",
+    "archived": "Archived",
+    "playOnline": "Play Online"
   },
   "tags": {
     "name": "Nazwa",
