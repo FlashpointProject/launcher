@@ -301,6 +301,7 @@
     "noVersion": "Walang nakasaad na bersyon",
     "releaseDate": "Petsa ng paglabas",
     "noReleaseDate": "Walang petsa ng paglabas nakasaad",
+    "noneFound": "None Found",
     "language": "Wika",
     "noLanguage": "Walang wika ang nakasaad",
     "dateAdded": "Petsa kung kailan idinagdag",
@@ -342,6 +343,7 @@
     "saveChanges": "I-save ang mga napalit",
     "discardChanges": "I-tangal ang mga napalit",
     "editFpfssGame": "Edit Game (FPFSS)",
+    "showOnFpfss": "Show Game on FPFSS",
     "editGame": "I-edit ang laro",
     "allGames": "Lahat ng Laro",
     "newPlaylist": "Bagong Playlist",
@@ -362,7 +364,10 @@
     "noMountParameters": "No Mount Parameters",
     "showExtremeScreenshot": "Show Extreme Screenshot",
     "busy": "Please Wait...",
-    "openGameDataBrowser": "Open Game Data Browser"
+    "openGameDataBrowser": "Open Game Data Browser",
+    "notArchived": "Not Archived",
+    "archived": "Archived",
+    "playOnline": "Play Online"
   },
   "tags": {
     "name": "Pangalan",
