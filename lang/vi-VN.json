@@ -301,6 +301,7 @@
     "noVersion": "Không có",
     "releaseDate": "Ngày xuất bản",
     "noReleaseDate": "Không có",
+    "noneFound": "None Found",
     "language": "Ngôn ngữ",
     "noLanguage": "Không có",
     "dateAdded": "Ngày thêm",
@@ -342,6 +343,7 @@
     "saveChanges": "Lưu thay đổi",
     "discardChanges": "Huỷ thay đổi",
     "editFpfssGame": "Sửa thông tin (FPFSS)",
+    "showOnFpfss": "Show Game on FPFSS",
     "editGame": "Sửa thông tin",
     "allGames": "Toàn bộ trò chơi",
     "newPlaylist": "Danh sách mới",
@@ -362,7 +364,10 @@
     "noMountParameters": "Không có",
     "showExtremeScreenshot": "Hiện ảnh chụp màn hình phản cảm",
     "busy": "Bạn đợi xíu nhé...",
-    "openGameDataBrowser": "Mở trình duyệt dữ liệu trò chơi"
+    "openGameDataBrowser": "Mở trình duyệt dữ liệu trò chơi",
+    "notArchived": "Not Archived",
+    "archived": "Archived",
+    "playOnline": "Play Online"
   },
   "tags": {
     "name": "Tên",
