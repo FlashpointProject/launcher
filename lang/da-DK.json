@@ -301,6 +301,7 @@
     "noVersion": "Ingen Version",
     "releaseDate": "Udgivelsesdato",
     "noReleaseDate": "Ingen Udgivelsesdato",
+    "noneFound": "None Found",
     "language": "Sprog",
     "noLanguage": "Ingen Sprog",
     "dateAdded": "Dato Tilføjet",
@@ -342,6 +343,7 @@
     "saveChanges": "Gem Ændringer",
     "discardChanges": "Smid Ud Ændringer",
     "editFpfssGame": "Edit Game (FPFSS)",
+    "showOnFpfss": "Show Game on FPFSS",
     "editGame": "Rediger Spil",
     "allGames": "Alle Spil",
     "newPlaylist": "Ny Playliste",
@@ -362,7 +364,10 @@
     "noMountParameters": "No Mount Parameters",
     "showExtremeScreenshot": "Show Extreme Screenshot",
     "busy": "Please Wait...",
-    "openGameDataBrowser": "Open Game Data Browser"
+    "openGameDataBrowser": "Open Game Data Browser",
+    "notArchived": "Not Archived",
+    "archived": "Archived",
+    "playOnline": "Play Online"
   },
   "tags": {
     "name": "Navn",
