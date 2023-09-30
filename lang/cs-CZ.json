@@ -301,7 +301,7 @@
     "noVersion": "Žádná verze",
     "releaseDate": "Datum vydání",
     "noReleaseDate": "Žádné datum vydání",
-    "noneFound": "None Found",
+    "noneFound": "Nic nenalezeno",
     "language": "Jazyk",
     "noLanguage": "Žádný jazyk",
     "dateAdded": "Datum přidání",
@@ -343,7 +343,7 @@
     "saveChanges": "Uložit změny",
     "discardChanges": "Zahodit změny",
     "editFpfssGame": "Upravit hru (FPFSS)",
-    "showOnFpfss": "Show Game on FPFSS",
+    "showOnFpfss": "Zobrazit hru v FPFSS",
     "editGame": "Upravit hru",
     "allGames": "Katalogu her",
     "newPlaylist": "Nový seznam",
@@ -365,9 +365,9 @@
     "showExtremeScreenshot": "Zobrazovat snímky obrazovky pro dospělé",
     "busy": "Čekejte prosím...",
     "openGameDataBrowser": "Otevřít prohlížeč herních dat",
-    "notArchived": "Not Archived",
-    "archived": "Archived",
-    "playOnline": "Play Online"
+    "notArchived": "Nearchivováno",
+    "archived": "Archivováno",
+    "playOnline": "Hrát online"
   },
   "tags": {
     "name": "Název",
