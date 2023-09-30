@@ -301,6 +301,7 @@
     "noVersion": "Нема Верзија",
     "releaseDate": "Датум на Издавање",
     "noReleaseDate": "Нема Датум на Издавање",
+    "noneFound": "None Found",
     "language": "Јазик",
     "noLanguage": "Нема Јазик",
     "dateAdded": "Датум Додадено",
@@ -342,6 +343,7 @@
     "saveChanges": "Зачувај Промени",
     "discardChanges": "Отфрли Промени",
     "editFpfssGame": "Edit Game (FPFSS)",
+    "showOnFpfss": "Show Game on FPFSS",
     "editGame": "Уреди Игра",
     "allGames": "Сите Игри",
     "newPlaylist": "Нова Плејлиста",
@@ -362,7 +364,10 @@
     "noMountParameters": "Нема Моунт Параметри",
     "showExtremeScreenshot": "Покажувај Eкстремни Cлики од Eкраноt",
     "busy": "Ве Молиме Да Почекате...",
-    "openGameDataBrowser": "Open Game Data Browser"
+    "openGameDataBrowser": "Open Game Data Browser",
+    "notArchived": "Not Archived",
+    "archived": "Archived",
+    "playOnline": "Play Online"
   },
   "tags": {
     "name": "Име",
