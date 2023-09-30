@@ -301,6 +301,7 @@
     "noVersion": "Sürüm Yok",
     "releaseDate": "Yayın Tarihi",
     "noReleaseDate": "Yayın Tarihi Yok",
+    "noneFound": "None Found",
     "language": "Dil",
     "noLanguage": "Dil Yok",
     "dateAdded": "Eklenme Tarihi",
@@ -342,6 +343,7 @@
     "saveChanges": "Değişiklikleri Kaydet",
     "discardChanges": "Değişiklikleri İptal Et",
     "editFpfssGame": "Edit Game (FPFSS)",
+    "showOnFpfss": "Show Game on FPFSS",
     "editGame": "Oyunu Düzenle",
     "allGames": "Tüm Oyunlar",
     "newPlaylist": "Yeni Oynama Listesi",
@@ -362,7 +364,10 @@
     "noMountParameters": "Bağlama Parametresi yok",
     "showExtremeScreenshot": "Ekstrem Ekran Görüntüsünü Göster",
     "busy": "Lütfen Bekleyin...",
-    "openGameDataBrowser": "Open Game Data Browser"
+    "openGameDataBrowser": "Open Game Data Browser",
+    "notArchived": "Not Archived",
+    "archived": "Archived",
+    "playOnline": "Play Online"
   },
   "tags": {
     "name": "Adı",
