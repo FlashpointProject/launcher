@@ -301,6 +301,7 @@
     "noVersion": "無版本",
     "releaseDate": "發佈日期",
     "noReleaseDate": "無發佈日期",
+    "noneFound": "None Found",
     "language": "語言",
     "noLanguage": "無語言",
     "dateAdded": "新增日期",
@@ -342,6 +343,7 @@
     "saveChanges": "儲存變更",
     "discardChanges": "取消變更",
     "editFpfssGame": "Edit Game (FPFSS)",
+    "showOnFpfss": "Show Game on FPFSS",
     "editGame": "修改遊戲",
     "allGames": "所有遊戲",
     "newPlaylist": "新增播放清單",
@@ -362,7 +364,10 @@
     "noMountParameters": "無掛載參數",
     "showExtremeScreenshot": "顯示成人截圖",
     "busy": "請稍候...",
-    "openGameDataBrowser": "Open Game Data Browser"
+    "openGameDataBrowser": "Open Game Data Browser",
+    "notArchived": "Not Archived",
+    "archived": "Archived",
+    "playOnline": "Play Online"
   },
   "tags": {
     "name": "名稱",
