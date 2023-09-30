@@ -548,6 +548,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         log.debug('Launcher', 'Found active game data');
         gameData = await GameDataManager.findOne(game.activeDataId);
         if (gameData && !gameData.presentOnDisk) {
+          log.debug('Game Launcher', 'Downloading Game Data for ' + gameData.path || 'UNKNOWN');
           // Download GameData
           try {
             await downloadGameData(state, gameData);
@@ -1705,7 +1706,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     const updatesReady = state.componentStatuses.filter(c => c.state === ComponentState.NEEDS_UPDATE).length > 0;
     exitApp(state, async () => {
       const args = updatesReady ? ['/update', '/launcher'] : ['/launcher'];
-      const child = child_process.spawn(fpmPath, args, { detached: true, cwd, stdio: ['ignore', 'ignore', 'ignore'] });
+      const child = child_process.spawn(fpmPath, args, { detached: true, shell: true, cwd, stdio: ['ignore', 'ignore', 'ignore'] });
       child.unref();
     });
   });

@@ -605,6 +605,12 @@ declare module 'flashpoint-launcher' {
         playtime: number;
         /** Number of plays */
         playCounter: number;
+        /** Archive State
+         * 0 = Not Archived
+         * 1 = Archived
+         * 2 = Available
+         */
+        archiveState: number;
         updateTagsStr: () => void;
     };
 

@@ -1,5 +1,5 @@
-import { IBackProcessInfo, INamedBackProcessInfo, ProcessState } from '@shared/interfaces';
 import { ILogPreEntry } from '@shared/Log/interface';
+import { IBackProcessInfo, INamedBackProcessInfo, ProcessState } from '@shared/interfaces';
 import * as Coerce from '@shared/utils/Coerce';
 import { ChildProcess, spawn } from 'child_process';
 import { EventEmitter } from 'events';
@@ -112,7 +112,7 @@ export class ManagedChildProcess extends EventEmitter {
       }
       // Spawn process
       log.debug('Server', `Arguments: ${this.info.arguments.join('; ')}`);
-      this.process = spawn(this.info.filename, this.info.arguments, { cwd: this.cwd, detached: this.detached, shell: this.shell , env: this.env});
+      this.process = spawn(this.info.filename, this.info.arguments, { cwd: this.cwd, detached: this.detached, shell: this.shell, env: this.env});
       // Set start timestamp
       this.startTime = Date.now();
       // Log

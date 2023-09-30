@@ -3,6 +3,7 @@ import { AdditionalApp } from './AdditionalApp';
 import { GameData } from './GameData';
 import { Platform } from './Platform';
 import { Tag } from './Tag';
+import { ArchiveState } from '@shared/back/types';
 
 @Index('IDX_lookup_title',        ['library', 'title'])
 @Index('IDX_lookup_dateAdded',    ['library', 'dateAdded'])
@@ -163,6 +164,9 @@ export class Game {
   /** Number of plays */
   @Column({ default: 0 })
     playCounter: number;
+
+  @Column({ default: ArchiveState.Available })
+    archiveState: ArchiveState;
 
   // This doesn't run... sometimes.
   @BeforeUpdate()

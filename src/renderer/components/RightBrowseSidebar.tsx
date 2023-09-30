@@ -3,7 +3,7 @@ import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
 import * as remote from '@electron/remote';
 import { WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
-import { BackIn, BackOut, BackOutTemplate, TagSuggestion } from '@shared/back/types';
+import { ArchiveState, BackIn, BackOut, BackOutTemplate, TagSuggestion } from '@shared/back/types';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { wrapSearchTerm } from '@shared/game/GameFilter';
 import { ModelUtils } from '@shared/game/util';
@@ -126,7 +126,6 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   onPlayModeClick             = this.wrapOnTextClick('playMode');
   onStatusClick               = this.wrapOnTextClick('status');
   onVersionClick              = this.wrapOnTextClick('version');
-  onReleaseDateClick          = this.wrapOnTextClick('releaseDate');
   onLanguageClick             = this.wrapOnTextClick('language');
 
   launchCommandRef: React.RefObject<HTMLInputElement> = React.createRef();
@@ -212,8 +211,6 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       const isPlaceholder = game.placeholder;
       const editDisabled = !preferencesData.enableEditing;
       const editable = isEditing;
-      const dateAdded = game.dateAdded;
-      const dateModified = game.dateModified;
       const screenshotSrc = getGameImageURL(SCREENSHOTS, game.id);
 
       const removeGameFromPlaylistElement =
@@ -317,9 +314,11 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
             <div className='browse-right-sidebar__mini-download-info'>
               <div className='browse-right-sidebar__mini-download-info__state'>
                 { this.props.fpfssEditMode ? strings.fpfssGame :
-                  this.state.activeData ? (this.state.activeData.presentOnDisk ? strings.installed : strings.notInstalled): strings.legacyGame}
+                  this.props.currentGame?.archiveState === 0 ? strings.notArchived :
+                    this.props.currentGame?.archiveState === 1 ? strings.archived :
+                      this.state.activeData ? (this.state.activeData.presentOnDisk ? strings.installed : strings.notInstalled): strings.legacyGame}
               </div>
-              { this.state.activeData && (
+              { this.props.currentGame?.archiveState === 2 && this.state.activeData && (
                 <div className='browse-right-sidebar__mini-download-info__size'>
                   {`${sizeToString(this.state.activeData.size)}`}
                 </div>
@@ -341,6 +340,29 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       }
                     }}>
                     {strings.stop}
+                  </div>
+                ) : (this.props.currentGame?.archiveState == 0) ? (
+                  <div
+                    className='browse-right-sidebar__play-button--busy'>
+                    {strings.notArchived}
+                  </div>
+                ) : (this.props.currentGame?.archiveState == 1) ? (
+                  <div
+                    className='browse-right-sidebar__play-button--download'
+                    onClick={() => {
+                      if (this.props.currentGame) {
+                        let url = this.props.currentGame.source;
+                        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                          alert('Cannot open, not a valid source url.');
+                        }
+                        if (url.endsWith(')') && url.toLowerCase().includes('wayback')) {
+                          // Cut off after space
+                          url = url.split(' ')[0];
+                        }
+                        remote.shell.openExternal(url);
+                      }
+                    }}>
+                    {strings.playOnline}
                   </div>
                 ) : (this.state.activeData && !this.state.activeData.presentOnDisk) ? (
                   <div
@@ -387,22 +409,30 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   )
             }
             {/** Gameplay Statistics */}
-            { isPlaceholder || this.props.fpfssEditMode ? undefined : (
+            { (isPlaceholder || this.props.fpfssEditMode || this.props.currentGame?.archiveState !== ArchiveState.Available) ? undefined : (
               <div className='browse-right-sidebar__stats'>
-                <div className='browse-right-sidebar__stats-row'>
-                  <div className='browse-right-sidebar__stats-row-left'>
-                    {strings.lastPlayed}
+                <div className='browse-right-sidebar__stats-box'>
+                  <div className='browse-right-sidebar__stats-row-top'>
+                    <div className='browse-right-sidebar__stats-cell'>
+                      {strings.lastPlayed}
+                    </div>
                   </div>
-                  <div className='browse-right-sidebar__stats-row-right'>
-                    {game.lastPlayed ? formatLastPlayed(game.lastPlayed, strings) : strings.never}
+                  <div className='browse-right-sidebar__stats-row-bottom'>
+                    <div className='browse-right-sidebar__stats-cell'>
+                      {game.lastPlayed ? formatLastPlayed(game.lastPlayed, strings) : strings.never}
+                    </div>
                   </div>
                 </div>
-                <div className='browse-right-sidebar__stats-row'>
-                  <div className='browse-right-sidebar__stats-row-left'>
-                    {strings.playtime}
+                <div className='browse-right-sidebar__stats-box'>
+                  <div className='browse-right-sidebar__stats-row-top'>
+                    <div className='browse-right-sidebar__stats-cell'>
+                      {strings.playtime}
+                    </div>
                   </div>
-                  <div className='browse-browser-right-sidebarright-sidebar__stats-row-right'>
-                    {formatPlaytime(game.playtime, strings)}
+                  <div className='browse-right-sidebar__stats-row-bottom'>
+                    <div className='browse-right-sidebar__stats-cell'>
+                      {formatPlaytime(game.playtime, strings)}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -553,16 +583,17 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       editable={editable}
                       onClick={this.onVersionClick} />
                   </div>
-                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                    <p>{strings.releaseDate}: </p>
-                    <InputField
-                      text={game.releaseDate}
-                      placeholder={strings.noReleaseDate}
-                      onChange={this.onReleaseDateChange}
-                      className='browse-right-sidebar__searchable'
-                      editable={editable}
-                      onClick={this.onReleaseDateClick} />
-                  </div>
+                  { editable && (
+                    <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                      <p>{strings.releaseDate}: </p>
+                      <InputField
+                        text={game.releaseDate}
+                        placeholder={strings.noReleaseDate}
+                        onChange={this.onReleaseDateChange}
+                        className='browse-right-sidebar__searchable'
+                        editable={editable}/>
+                    </div>
+                  )}
                   <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                     <p>{strings.language}: </p>
                     <InputField
@@ -572,22 +603,6 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       className='browse-right-sidebar__searchable'
                       editable={editable}
                       onClick={this.onLanguageClick} />
-                  </div>
-                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                    <p>{strings.dateAdded}: </p>
-                    <p
-                      className='browse-right-sidebar__row__date-added'
-                      title={dateAdded}>
-                      {(new Date(dateAdded)).toUTCString()}
-                    </p>
-                  </div>
-                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                    <p>{strings.dateModified}: </p>
-                    <p
-                      className='browse-right-sidebar__row__date-added'
-                      title={dateModified}>
-                      {(new Date(dateModified)).toUTCString()}
-                    </p>
                   </div>
                   { game.broken || editable ? (
                     <div className='browse-right-sidebar__row'>
@@ -608,6 +623,49 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                 </div>
               </>
             ) }
+            {/* -- Date Display -- */}
+            { !editable && (
+              <div className='browse-right-sidebar__section'>
+                <div className='browse-right-sidebar__stats'>
+                  <div className='browse-right-sidebar__stats-box'>
+                    <div className='browse-right-sidebar__stats-row-top'>
+                      <div className='browse-right-sidebar__stats-cell'>
+                        {strings.dateAdded}
+                      </div>
+                    </div>
+                    <div className='browse-right-sidebar__stats-row-bottom'>
+                      <div className='browse-right-sidebar__stats-cell'>
+                        {formatSidebarDate(game.dateAdded)}
+                      </div>
+                    </div>
+                  </div>
+                  <div className='browse-right-sidebar__stats-box'>
+                    <div className='browse-right-sidebar__stats-row-top'>
+                      <div className='browse-right-sidebar__stats-cell'>
+                        {strings.dateModified}
+                      </div>
+                    </div>
+                    <div className='browse-right-sidebar__stats-row-bottom'>
+                      <div className='browse-right-sidebar__stats-cell'>
+                        {formatSidebarDate(game.dateModified)}
+                      </div>
+                    </div>
+                  </div>
+                  <div className='browse-right-sidebar__stats-box'>
+                    <div className='browse-right-sidebar__stats-row-top'>
+                      <div className='browse-right-sidebar__stats-cell'>
+                        {strings.releaseDate}
+                      </div>
+                    </div>
+                    <div className='browse-right-sidebar__stats-row-bottom'>
+                      <div className={`browse-right-sidebar__stats-cell ${game.releaseDate ? '' : 'browse-right-sidebar__stats-cell-placeholder simple-disabled-text'}`}>
+                        {game.releaseDate ? game.releaseDate : strings.noneFound}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
             {/* -- Playlist Game Entry Notes -- */}
             { currentPlaylistEntry ? (
               <div className='browse-right-sidebar__section'>
@@ -1381,4 +1439,13 @@ function ordinalSuffixOf(i: number) {
     return i + 'rd';
   }
   return i + 'th';
+}
+
+function formatSidebarDate(dStr: string): string {
+  try {
+    const d = new Date(dStr);
+    return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
+  } catch {
+    return 'Invalid Date';
+  }
 }
