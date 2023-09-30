@@ -1,6 +1,6 @@
 {
   "name": "flashpoint-launcher",
-  "version": "12.1.0",
+  "version": "12.1.1",
   "description": "A desktop application used to browse, manage and play games from Flashpoint Archive",
   "main": "build/main/index.js",
   "config": {
@@ -123,7 +123,7 @@
     "tsconfig-paths-webpack-plugin": "3.2.0",
     "tslint": "5.18.0",
     "tswc": "^1.1.1",
-    "ttypescript": "^1.5.13",
+    "ttypescript": "^1.5.15",
     "typedoc": "0.22.15",
     "typescript": "4.6.2",
     "webpack": "5.74.0",
