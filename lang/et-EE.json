@@ -301,6 +301,7 @@
     "noVersion": "Pole Versiooni",
     "releaseDate": "Avalduskuupäev",
     "noReleaseDate": "Pole Avalduskuupäeva",
+    "noneFound": "None Found",
     "language": "Keel",
     "noLanguage": "Pole Keelt",
     "dateAdded": "Kuupäev Lisatud",
@@ -342,6 +343,7 @@
     "saveChanges": "Salvesta Muudatused",
     "discardChanges": "Kustuta Muudatused",
     "editFpfssGame": "Edit Game (FPFSS)",
+    "showOnFpfss": "Show Game on FPFSS",
     "editGame": "Muuda Mängu Metat",
     "allGames": "Kõiki Mänge",
     "newPlaylist": "Uus Esitlusloend",
@@ -362,7 +364,10 @@
     "noMountParameters": "Pole Rakendusparameetreid",
     "showExtremeScreenshot": "Näita Ekstreemset Ekraanipilti",
     "busy": "Palun Oota...",
-    "openGameDataBrowser": "Open Game Data Browser"
+    "openGameDataBrowser": "Open Game Data Browser",
+    "notArchived": "Not Archived",
+    "archived": "Archived",
+    "playOnline": "Play Online"
   },
   "tags": {
     "name": "Nimi",
