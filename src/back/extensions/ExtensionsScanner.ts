@@ -53,6 +53,11 @@ export async function scanSystemExtensions(isDev: boolean): Promise<IExtension[]
   return r;
 }
 
+// Hacky way to prevent loading extensions that have been replaced with system extensions
+const UNSUPPORTED_EXTENSION_IDS = [
+  'ruffle'
+];
+
 /**
  * Scans all extensions in System and User paths and returns them.
  *
@@ -84,6 +89,10 @@ export async function scanExtensions(configData: AppConfigData, extensionPath: s
         if (stats.isFile()) {
           await fsPromises.access(manifestPath);
           const ext = await parseExtension(manifestPath, ExtensionType.User);
+          if (UNSUPPORTED_EXTENSION_IDS.includes(ext.id)) {
+            log.warn('Extensions', `Ignoring Extension ${ext.id} because of replacement with system extension.`);
+            return;
+          }
           if (result.get(ext.id) !== undefined) {
             // An Extension with the same id has been registered earlier, latest read survives
             log.warn('Extensions', `Overriding Extension ${ext.id} with extension at "${path.join(userExtPath, filename)}"`);

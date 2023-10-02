@@ -450,7 +450,7 @@ declare module 'flashpoint-launcher' {
     }
 
     /** Front facing dialogs */
-    export namespace dialogs {
+    namespace dialogs {
         /**
          * Opens a message box on the client. Buttons can be provided in options. Returns when the dialog closes
          * @param options Message box options
@@ -486,6 +486,38 @@ declare module 'flashpoint-launcher' {
          * @returns Path to file(s) chosen, if any
          */
         function showOpenDialog(options: ShowOpenDialogOptions): Promise<string[] | undefined>;
+    }
+
+    namespace middleware {
+        /**
+         * Registers a game middleware to be supported in modifying games and allow in-launcher configuration to appear
+         * @param middleware Middleware to register
+         */
+        function registerMiddleware(middleware: IGameMiddleware): void;
+        /**
+         * Write data to a game file path
+         * @param path Relative path to game file
+         * @param stream Data stream
+         */
+        function writeGameFile(path: string, stream: ReadableStream): Promise<void>;
+        /**
+         * Write data to a game file path, built based on url
+         * @param url Game File URL 
+         * @param stream Data stream
+         */
+        function writeGameFileByUrl(url: string, stream: ReadableStream): Promise<void>;
+        /**
+         * Extract a game file from a gamezip
+         * @param path Relative path to game file
+         * @returns Readabale data stream
+         */
+        function extractGameFile(path: string): Promise<ReadableStream>;
+        /**
+         * Extract a game file from a gamezip, find path via url
+         * @param url Game File URL
+         * @returns Readable data stream
+         */
+        function extractGameFileByUrl(url: string): Promise<ReadableStream>;
     }
 
     // Events
@@ -1496,5 +1528,86 @@ declare module 'flashpoint-launcher' {
     export type DialogResponse = {
         dialog: DialogState,
         buttonIdx: number
+    }
+    
+    export type GameMiddlewareConfig = {
+        middlewareId: string;
+        enabled: string;
+        version: string;
+        config: any;
+    }
+    
+    export type GameConfig = {
+        id: number;
+        gameId: string;
+        name: string;
+        owner: string;
+        middleware: GameMiddlewareConfig[];
+    }
+
+    export type BaseConfigProp = {
+        title: string;
+        key: string;
+        optional?: boolean;
+        description?: string;
+        children?: ConfigProp[];
+        locked?: boolean;
+    }
+
+    export type StringConfigProp = BaseConfigProp & {
+        type: 'string';
+        options?: string[];
+        default?: string;
+        validate?: (value: string) => boolean;
+    }
+
+    export type NumberConfigProp = BaseConfigProp & {
+        type: 'number';
+        options?: number[];
+        default?: number;
+        maximum?: number;
+        minimum?: number;
+        validate?: (value: number) => boolean;
+    }
+
+    export type BooleanConfigProp = BaseConfigProp & {
+        type: 'boolean';
+        default?: boolean;
+    }
+
+    export type ConfigProp = StringConfigProp | NumberConfigProp | BooleanConfigProp;
+
+    export type ConfigSchema = ConfigProp | ConfigProp[];
+
+    export interface IGameMiddleware {
+        // Unique Middleware ID
+        id: string;
+        // Display Name
+        name: string;
+        /**
+         * Decides if this middleware is valid for a given game
+         * @param game Game to validate against
+         */
+        isValid(game: Game): Promise<boolean> | boolean;
+        /**
+         * Called when middleware is next to run before game launch. Do anything per-game important here.
+         * @param gameLaunchInfo Launch info for the game
+         * @param middlewareConfig Game middleware config specific to this middleware
+         */
+        execute(gameLaunchInfo: GameLaunchInfo, middlewareConfig: GameMiddlewareConfig): Promise<GameLaunchInfo> | GameLaunchInfo;
+        /**
+         * Should return a valid config schema for the selected middleware version. Game and current game config given for extra context.
+         * @param version Selected middleware version
+         * @param game Game selected
+         * @param config Current game config
+         */
+        getConfigSchema(version: string, game: Game, config: GameConfig): ConfigSchema;
+        /**
+         * Called when a game middleware's config is loaded from the database.
+         * Allows modification / upgrading of config values before the user or launcher is able to use / edit it themselves.
+         * @param version Selected middleware version
+         * @param config Current middleware config values
+         */
+        upgradeConfig(version: string, config: any): any;
     }
 }

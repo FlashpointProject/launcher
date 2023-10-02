@@ -83,7 +83,7 @@ import {
   installNodeInterceptor,
   registerInterceptor
 } from './extensions/NodeInterceptor';
-import { Command } from './extensions/types';
+import { Command, RegisteredMiddleware } from './extensions/types';
 import * as GameManager from './game/GameManager';
 import { onWillImportCuration } from './importGame';
 import { registerRequestCallbacks } from './responses';
@@ -235,6 +235,7 @@ const state: BackState = {
     commands: new Map<string, Command>(),
     logoSets: new Map<string, LogoSet>(),
     themes: new Map<string, Theme>(),
+    middlewares: new Map<string, RegisteredMiddleware>(),
   },
   extensionsService: createErrorProxy('extensionsService'),
   sevenZipPath: '',
