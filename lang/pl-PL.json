@@ -343,7 +343,7 @@
     "saveChanges": "Zapisz zmiany",
     "discardChanges": "Anuluj zmiany",
     "editFpfssGame": "Edytuj grę (FPFSS)",
-    "showOnFpfss": "Show Game on FPFSS",
+    "showOnFpfss": "Pokaż grę na FPFSS",
     "editGame": "Edytuj grę",
     "allGames": "Wszystkie gry",
     "newPlaylist": "Nowa playlista",
@@ -365,9 +365,9 @@
     "showExtremeScreenshot": "Pokaż ekstremalny zrzut ekranu",
     "busy": "Proszę czekać...",
     "openGameDataBrowser": "Otwórz przeglądarkę danych gry",
-    "notArchived": "Not Archived",
-    "archived": "Archived",
-    "playOnline": "Play Online"
+    "notArchived": "Nie zarchiwizowano",
+    "archived": "Zarchiwizowano",
+    "playOnline": "Zagraj online"
   },
   "tags": {
     "name": "Nazwa",
