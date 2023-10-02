@@ -301,7 +301,7 @@
     "noVersion": "Không có",
     "releaseDate": "Ngày xuất bản",
     "noReleaseDate": "Không có",
-    "noneFound": "None Found",
+    "noneFound": "Không tìm thấy",
     "language": "Ngôn ngữ",
     "noLanguage": "Không có",
     "dateAdded": "Ngày thêm",
@@ -367,7 +367,7 @@
     "openGameDataBrowser": "Mở trình duyệt dữ liệu trò chơi",
     "notArchived": "Not Archived",
     "archived": "Archived",
-    "playOnline": "Play Online"
+    "playOnline": "Chơi trực tuyến"
   },
   "tags": {
     "name": "Tên",
