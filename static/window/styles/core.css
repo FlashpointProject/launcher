@@ -1803,6 +1803,21 @@ body {
   justify-content: space-between;
   font-weight: bold;
 }
+.browse-right-sidebar__game-config-row {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 0.25rem;
+}
+.browse-right-sidebar__game-config-label {
+  margin-right: 0.5rem;
+}
+.browse-right-sidebar__game-config-dropdown {
+  flex-grow: 1;
+}
+.browse-right-sidebar__game-config-cog {
+  margin-left: 0.5rem;
+  align-self: center;
+}
 /* GameImageSplit */
 .game-image-split {
   flex: 1 1 auto;
@@ -3154,4 +3169,76 @@ body {
 .browse-right-sidebar__title-row__buttons__promote-button {
   font-weight: bold;
   margin-right: 0.3rem;
+}
+
+/** Game Config Dialog */
+.game-config-dialog-container {
+  width: 75%;
+  height: 75%;
+}
+
+.game-config-dialog {
+  text-align: left;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+}
+
+.game-config-dialog-header {
+  display: flex;
+  flex-direction: row;
+}
+
+.game-config-dialog-header-title {
+  flex-grow: 1;
+}
+
+.game-config-dialog-header-close {
+  width: 2rem;
+  height: 2rem;
+  align-self: center;
+}
+
+.game-config-dialog-content {
+  overflow-y: auto;
+}
+
+.game-config-dialog__config {
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 1.4em;
+  margin-bottom: 1rem;
+}
+
+.game-config-dialog__config-row {
+  width: 100%;
+  margin-bottom: 0.5rem;
+  display: flex;
+  flex-direction: row;
+}
+
+.game-config-dialog__config-left {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: row;
+}
+
+.game-config-dialog__config-right {
+  right: 0;
+  display: flex;
+  flex-direction: row;
+}
+
+.game-config-dialog__config-source-label {
+  margin-right: 0.2rem;
+}
+
+.game-config-dialog__config-middlewares {
+  display: inline-block;
+}
+
+.game-config-dialog__config-buttons > * {
+  margin-left: 0.5rem;
+  font-size: 1.1em !important;
 }

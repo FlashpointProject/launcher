@@ -9,7 +9,7 @@ import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
 import { ChangedMeta, MetaEditFlags } from '@shared/MetaEdit';
 import { SocketTemplate } from '@shared/socket/types';
 import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
-import { AppPreferencesData, CurationState, CurationWarnings, DialogState, DialogStateTemplate, GameData, GameDataSource, GameMetadataSource, GameOrderBy, GameOrderReverse, Platform, Playlist, PlaylistGame, TagAlias, TagFilterGroup } from 'flashpoint-launcher';
+import { AppPreferencesData, CurationState, CurationWarnings, DialogState, DialogStateTemplate, GameConfig, GameData, GameDataSource, GameMetadataSource, GameOrderBy, GameOrderReverse, Platform, Playlist, PlaylistGame, TagAlias, TagFilterGroup } from 'flashpoint-launcher';
 import { AppConfigData, AppExtConfigData } from '../config/interfaces';
 import { ExecMapping, GamePropSuggestions, IService, ProcessAction, Task } from '../interfaces';
 import { LangContainer, LangFile } from '../lang';
@@ -258,9 +258,9 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.GET_GAMES_TOTAL]: () => number;
   [BackIn.SET_LOCALE]: (data: string) => string;
   [BackIn.GET_EXEC]: () => ExecMapping[];
-  [BackIn.SAVE_GAME]: (data: Game) => BrowseChangeData;
+  [BackIn.SAVE_GAME]: (data: FetchedGameInfo) => BrowseChangeData;
   [BackIn.SAVE_GAMES]: (data: Game[]) => void;
-  [BackIn.GET_GAME]: (id: string) => Game | null;
+  [BackIn.GET_GAME]: (id: string) => FetchedGameInfo | null;
   [BackIn.GET_ALL_GAMES]: (startFrom?: string) => Game[];
   [BackIn.RANDOM_GAMES]: (data: RandomGamesData) => ViewGame[];
   [BackIn.LAUNCH_GAME]: (id: string) => void;
@@ -633,7 +633,7 @@ export type ViewGame = {
 }
 
 export type BrowseChangeData = {
-  game: Game | null;
+  fetchedInfo: FetchedGameInfo | null;
   library?: string;
   gamesTotal: number;
 }
@@ -767,11 +767,17 @@ export type FpfssUser = {
 
 export type FpfssState = {
   user: FpfssUser | null;
-  editingGame: Game | null;
+  editingGameInfo: FetchedGameInfo | null;
 }
 
 export enum ArchiveState {
   NotArchived = 0,
   Archived,
   Available
+}
+
+export type FetchedGameInfo = {
+  game: Game;
+  activeConfig: GameConfig | null;
+  configs: GameConfig[];
 }

@@ -365,7 +365,8 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
           if (fileName.length >= 39) {
             const uuid = fileName.substring(0, 36);
             if (validateSemiUUID(uuid)) {
-              const game = await window.Shared.back.request(BackIn.GET_GAME, uuid);
+              const fetchedInfo = await window.Shared.back.request(BackIn.GET_GAME, uuid);
+              const game = fetchedInfo.game;
               if (game) {
                 // Game exists, import the data
                 await window.Shared.back.request(BackIn.IMPORT_GAME_DATA, game.id, filePath)

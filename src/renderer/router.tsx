@@ -1,6 +1,5 @@
-import { Game } from '@database/entity/Game';
 import { ITheme } from '@shared/ThemeFile';
-import { ComponentStatus, FpfssUser, GameOfTheDay, ViewGame } from '@shared/back/types';
+import { ComponentStatus, FetchedGameInfo, FpfssUser, GameOfTheDay, ViewGame } from '@shared/back/types';
 import { AppExtConfigData } from '@shared/config/interfaces';
 import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { GamePropSuggestions, IService } from '@shared/interfaces';
@@ -38,7 +37,7 @@ export type AppRouterProps = {
   suggestions: Partial<GamePropSuggestions>;
   appPaths: Record<string, string>;
   platforms: string[];
-  onSaveGame: (game: Game, playlistEntry?: PlaylistGame) => Promise<Game | null>;
+  onSaveGame: (info: FetchedGameInfo, playlistEntry?: PlaylistGame) => Promise<FetchedGameInfo | null>;
   onDeleteGame: (gameId: string) => void;
   onLaunchGame: (gameId: string) => void;
   onOpenExportMetaEdit: (gameId: string) => void;

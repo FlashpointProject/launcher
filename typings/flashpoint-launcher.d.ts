@@ -637,6 +637,10 @@ declare module 'flashpoint-launcher' {
         playtime: number;
         /** Number of plays */
         playCounter: number;
+        /** Active game config id */
+        activeGameConfigId: number | null;
+        /** Active game config owner */
+        activeGameConfigOwner: string | null;
         /** Archive State
          * 0 = Not Archived
          * 1 = Archived
@@ -1234,6 +1238,7 @@ declare module 'flashpoint-launcher' {
     /** Info type passed to onWillLaunch events */
     type GameLaunchInfo = {
         game: Game;
+        activeConfig: GameConfig | null;
         activeData: GameData | null;
         launchInfo: LaunchInfo;
     };
@@ -1242,7 +1247,9 @@ declare module 'flashpoint-launcher' {
         gamePath: string;
         gameArgs: string | string[];
         useWine: boolean;
+        cwd?: string;
         env: ProcessEnv;
+        noshell?: boolean;
     };
 
     /** Options expected for 'browser' mode application return */
@@ -1532,7 +1539,8 @@ declare module 'flashpoint-launcher' {
     
     export type GameMiddlewareConfig = {
         middlewareId: string;
-        enabled: string;
+        name: string;
+        enabled: boolean;
         version: string;
         config: any;
     }

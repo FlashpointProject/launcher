@@ -16,7 +16,7 @@ export async function activate(context: flashpoint.ExtensionContext): Promise<vo
   const standaloneAssetFile = await getGithubAsset(getPlatformRegex(), logVoid);
   if (standaloneAssetFile) {
     const standalonePublishedAt = Date.parse(standaloneAssetFile.publishedAt);
-    const rawLastStandaloneUpdate = flashpoint.getExtConfigValue('com.ruffle.standalone_version');
+    const rawLastStandaloneUpdate = flashpoint.getExtConfigValue('com.ruffle.latest_standalone_version');
     const lastStandaloneUpdate = rawLastStandaloneUpdate ? Date.parse(rawLastStandaloneUpdate) : 0;
     if (standalonePublishedAt > lastStandaloneUpdate) {
       flashpoint.log.info(`Found Ruffle Standalone Update for ${standaloneAssetFile.publishedAt}, downloading...`);
@@ -32,7 +32,7 @@ export async function activate(context: flashpoint.ExtensionContext): Promise<vo
   const webAssetFile = await getGithubAsset(/.*selfhosted\.zip/, logVoid);
   if (webAssetFile) {
     const webPublishedAt = Date.parse(webAssetFile.publishedAt);
-    const rawLastWebUpdate = flashpoint.getExtConfigValue('com.ruffle.web_version');
+    const rawLastWebUpdate = flashpoint.getExtConfigValue('com.ruffle.latest_web_version');
     const lastWebUpdate = rawLastWebUpdate ? Date.parse(rawLastWebUpdate) : 0;
     if (webPublishedAt > lastWebUpdate) {
       flashpoint.log.info(`Found Ruffle Web Update for ${webAssetFile.publishedAt}, downloading...`);
@@ -66,7 +66,7 @@ async function downloadRuffleStandalone(ruffleStandaloneDir: string, assetFile: 
     await flashpoint.unzipFile(tarPath, ruffleStandaloneDir, { onData: dataPrintFactory(logDev) });
     await fs.promises.unlink(tarPath);
   }
-  flashpoint.setExtConfigValue('com.ruffle.standalone_version', assetFile.publishedAt);
+  flashpoint.setExtConfigValue('com.ruffle.latest_standalone_version', assetFile.publishedAt);
 }
 
 async function downloadRuffleWeb(ruffleWebDir: string, assetFile: AssetFile, logDev: (text: string) => void) {
@@ -86,7 +86,7 @@ async function downloadRuffleWeb(ruffleWebDir: string, assetFile: AssetFile, log
     await flashpoint.unzipFile(tarPath, ruffleWebDir, { onData: dataPrintFactory(logDev) });
     await fs.promises.unlink(tarPath);
   }
-  flashpoint.setExtConfigValue('com.ruffle.web_version', assetFile.publishedAt);
+  flashpoint.setExtConfigValue('com.ruffle.latest_web_version', assetFile.publishedAt);
 }
 
 function dataPrintFactory(logFunc: (val: string) => void) {

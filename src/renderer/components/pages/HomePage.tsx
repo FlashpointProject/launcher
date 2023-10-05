@@ -275,7 +275,8 @@ export function HomePage(props: HomePageProps) {
   React.useEffect(() => {
     if (selectedGotd) {
       window.Shared.back.request(BackIn.GET_GAME, selectedGotd.id)
-      .then((game) => {
+      .then((fetchedInfo) => {
+        const game = fetchedInfo.game;
         setLoadedGotd(game);
       });
     }

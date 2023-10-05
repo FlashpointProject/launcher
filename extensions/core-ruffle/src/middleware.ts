@@ -14,6 +14,14 @@ const schema: ConfigSchema = [
     options: ['default', 'vulkan', 'metal', 'dx12', 'gl'],
     default: 'default',
   },
+  // --no-gui
+  {
+    type: 'boolean',
+    title: 'Hide GUI',
+    key: 'noGui',
+    optional: true,
+    default: false
+  },
   // -P
   {
     type: 'string',
@@ -27,14 +35,6 @@ const schema: ConfigSchema = [
       return regex.test(input);
     }
   },
-  // --no-gui
-  {
-    type: 'boolean',
-    title: 'Hide GUI',
-    key: 'noGui',
-    optional: true,
-    default: false
-  }
 ];
 
 // Stored config value map
@@ -48,7 +48,6 @@ type FlashVar = {
   key: string;
   value: string;
 }
-
 export class RuffleStandaloneMiddleware implements IGameMiddleware {
   id = 'com.ruffle.middleware-standalone';
   name = 'Ruffle Standalone';

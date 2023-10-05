@@ -18,7 +18,7 @@ export class RawGameConfig {
   /** Who last modified this config (e.g local, remote - name) */
     owner: string;
 
-  @Column('json')
+  @Column({ name: 'middleware' })
   /** Middleware list, whether they're enabled, and associated configs */
     storedMiddleware: string;
 }

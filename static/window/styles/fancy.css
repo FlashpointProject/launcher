@@ -832,6 +832,12 @@ body {
 .browse-right-sidebar__row__screenshot-image--hidden:hover {
   background-color: var(--layout__simple-button-background);
 }
+.browse-right-sidebar__game-config-label {
+  font-weight: bold;
+}
+.browse-right-sidebar__game-config-dropdown-none {
+  font-style: italic;
+}
 
 /* GameImageSplit */
 .game-image-split {
@@ -1414,4 +1420,28 @@ body {
 
 .cancel-download-button {
   font-size: 2rem !important;
+}
+
+/** Game Config Dialog */
+.game-config-dialog-header-title {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.game-config-dialog__config {
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--layout__home-page-box-border);
+}
+
+.game-config-dialog__config-title {
+  font-weight: bold;
+}
+
+.game-config-dialog__config-source-label {
+  font-weight: bold;
+}
+
+.game-config-dialog__config-middleware-label {
+  font-weight: bold;
 }

@@ -9,7 +9,7 @@ import { fixSlashes, padStart, stringifyArray } from '@shared/Util';
 import * as Coerce from '@shared/utils/Coerce';
 import { ChildProcess, exec } from 'child_process';
 import { EventEmitter } from 'events';
-import { AppPathOverride, DialogStateTemplate, GameData, ManagedChildProcess, Platform } from 'flashpoint-launcher';
+import { AppPathOverride, DialogStateTemplate, GameConfig, GameData, GameLaunchInfo, ManagedChildProcess, Platform } from 'flashpoint-launcher';
 import * as minimist from 'minimist';
 import * as path from 'path';
 import { extractFullPromise } from '.';
@@ -32,12 +32,6 @@ export type LaunchAddAppOpts = LaunchBaseOpts & {
 export type LaunchGameOpts = LaunchBaseOpts & {
   game: Game;
   native: boolean;
-}
-
-export type GameLaunchInfo = {
-  game: Game;
-  activeData: GameData | null;
-  launchInfo: LaunchInfo;
 }
 
 export type LaunchInfo = {
@@ -67,6 +61,7 @@ type LaunchBaseOpts = {
   openExternal: OpenExternalFunc;
   runGame: (gameLaunchInfo: GameLaunchInfo) => ManagedChildProcess;
   state: BackState;
+  activeConfig: GameConfig | null;
 }
 
 export namespace GameLauncher {
@@ -168,7 +163,8 @@ export namespace GameLauncher {
         openExternal: opts.openExternal,
         runGame: opts.runGame,
         envPATH: opts.envPATH,
-        state: opts.state
+        state: opts.state,
+        activeConfig: opts.activeConfig,
       };
       for (const addApp of opts.game.addApps) {
         if (addApp.autoRunBefore) {
@@ -181,11 +177,30 @@ export namespace GameLauncher {
     // Launch game callback
     const launchCb = async (launchInfo: GameLaunchInfo): Promise<void> =>  {
       await onWillEvent.fire(launchInfo)
-      .then(() => {
+      .then(async () => {
+        // Handle middleware
+        if (launchInfo.activeConfig) {
+          log.info(logSource, `Using Game Configuration: ${launchInfo.activeConfig.name}`);
+          console.log(JSON.stringify(launchInfo.activeConfig, undefined, 2));
+          for (const middlewareConfig of launchInfo.activeConfig.middleware) {
+            // Find middleware in registry
+            const middleware = opts.state.registry.middlewares.get(middlewareConfig.middlewareId);
+            if (!middleware) {
+              throw `Middleware not found (${middlewareConfig.middlewareId})`;
+            }
+            try {
+              launchInfo = await Promise.resolve(middleware.execute(launchInfo, middlewareConfig));
+            } catch (err) {
+              throw `Failed to execute middleware (${middlewareConfig.middlewareId}) - ${err}`;
+            }
+            // @TODO - Validate launch info
+          }
+          log.info(logSource, 'Applied Game Configuration Successfully.');
+        }
         const command: string = createCommand(launchInfo.launchInfo);
         const managedProc = opts.runGame(launchInfo);
         log.info(logSource,`Launch Game "${opts.game.title}" (PID: ${managedProc.getPid()}) [\n`+
-                    `    applicationPath: "${appPath}",\n`+
+                    `    applicationPath: "${launchInfo.launchInfo.gamePath}",\n`+
                     `    launchCommand:   "${metadataLaunchCommand}",\n`+
                     `    command:         "${command}" ]`);
       })
@@ -236,8 +251,9 @@ export namespace GameLauncher {
               useWine: false,
               env,
               cwd: getCwd(opts.isDev, opts.exePath),
-              noshell: true
-            }
+              noshell: true,
+            },
+            activeConfig: opts.activeConfig,
           };
           await onWillEvent.fire(gameLaunchInfo)
           .then(() => {
@@ -278,7 +294,8 @@ export namespace GameLauncher {
         gameArgs,
         useWine,
         env,
-      }
+      },
+      activeConfig: opts.activeConfig
     };
     await launchCb(gameLaunchInfo);
   }

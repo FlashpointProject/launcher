@@ -26,7 +26,7 @@ import { throttle } from '@shared/utils/throttle';
 import * as axiosImport from 'axios';
 import * as child_process from 'child_process';
 import { execSync } from 'child_process';
-import { CurationState, GameMetadataSource, Platform } from 'flashpoint-launcher';
+import { CurationState, GameLaunchInfo, GameMetadataSource, Platform } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as fs_extra from 'fs-extra';
 import * as https from 'https';
@@ -39,7 +39,7 @@ import * as util from 'util';
 import * as YAML from 'yaml';
 import { ConfigFile } from './ConfigFile';
 import { ExtConfigFile } from './ExtConfigFile';
-import { GameLaunchInfo, GameLauncher, escapeArgsForShell } from './GameLauncher';
+import { GameLauncher, escapeArgsForShell } from './GameLauncher';
 import { ManagedChildProcess } from './ManagedChildProcess';
 import { importAllMetaEdits } from './MetaEdit';
 import { PlaylistFile } from './PlaylistFile';
@@ -483,6 +483,12 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     if (addApp) {
       // Force load relation
       addApp.parentGame = await GameManager.findGame(addApp.parentGameId) as Game;
+      const configs = await GameManager.findGameConfigs(addApp.parentGameId, state.registry.middlewares);
+      const activeConfigIdx = configs.findIndex(c => c.id === addApp.parentGame.activeGameConfigId);
+      if (addApp.parentGame.activeGameConfigId && activeConfigIdx === -1) {
+        throw 'Failed to load game config data despite it being selected?';
+      }
+      const activeConfig = configs[activeConfigIdx];
       // If it has GameData, make sure it's present
       let gameData: GameData | null;
       if (addApp.parentGame.activeDataId) {
@@ -519,6 +525,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         openExternal: state.socketServer.openExternal(event.client),
         runGame: runGameFactory(state),
         envPATH: state.pathVar,
+        activeConfig,
         state,
       }, false);
       state.apiEmitters.games.onDidLaunchAddApp.fireAlert(state, addApp, event.client, 'Error during post add app launch api event');
@@ -559,6 +566,12 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
           }
         }
       }
+      // Game config
+      const configs = await GameManager.findGameConfigs(game.id, state.registry.middlewares);
+      const activeConfig = configs.find(c => c.id === game.activeGameConfigId);
+      if (game.activeGameConfigId && activeConfig === undefined) {
+        throw 'Could not load game config despite one being selected?';
+      }
       // Launch game
       const flatGamePlatforms = makeFlatPlatforms(game.platforms);
       await GameLauncher.launchGame({
@@ -580,6 +593,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         runGame: runGameFactory(state),
         envPATH: state.pathVar,
         changeServer: changeServerFactory(state),
+        activeConfig: activeConfig ? activeConfig : null,
         state,
       },
       state.apiEmitters.games.onWillLaunchGame.fireableFactory(state, event.client, 'Error during game launch api event'), false);
@@ -591,12 +605,29 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     await GameManager.updateGames(data);
   });
 
-  state.socketServer.register(BackIn.SAVE_GAME, async (event, data) => {
+  state.socketServer.register(BackIn.SAVE_GAME, async (event, info) => {
     try {
-      const game = await GameManager.save(data);
+      // Save configs
+      for (const config of info.configs) {
+        await GameManager.saveGameConfig(config, state.registry.middlewares);
+      }
+      // Save game
+      if (info.activeConfig) {
+        info.game.activeGameConfigId = info.activeConfig.id;
+        info.game.activeGameConfigOwner = info.activeConfig.owner;
+      } else {
+        info.game.activeGameConfigId = null;
+        info.game.activeGameConfigOwner = null;
+      }
+      const game = await GameManager.save(info.game);
+      // Save up to date ids
       state.queries = {}; // Clear entire cache
       return {
-        game,
+        fetchedInfo: {
+          game,
+          activeConfig: info.activeConfig,
+          configs: info.configs,
+        },
         library: game.library,
         gamesTotal: await GameManager.countGames(),
       };
@@ -615,7 +646,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     state.queries = {}; // Clear entire cache
 
     return {
-      game,
+      fetchedInfo: null,
       library: game ? game.library : undefined,
       gamesTotal: await GameManager.countGames(),
     };
@@ -668,7 +699,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     }
 
     return {
-      game: null,
+      fetchedInfo: null,
       library: result ? result.library : undefined,
       gamesTotal: await GameManager.countGames(),
     };
@@ -715,7 +746,17 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.GET_GAME, async (event, id) => {
-    return GameManager.findGame(id);
+    const game = await GameManager.findGame(id);
+    if (game === null) {
+      return null;
+    }
+    const configs = await GameManager.findGameConfigs(game.id, state.registry.middlewares);
+    const activeConfig = configs.find(c => c.id === game.activeGameConfigId);
+    return {
+      game,
+      activeConfig: activeConfig || null,
+      configs,
+    };
   });
 
   state.socketServer.register(BackIn.GET_GAME_DATA, async (event, id) => {
@@ -1537,6 +1578,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         runGame: runGameFactory(state),
         envPATH: state.pathVar,
         changeServer: changeServerFactory(state),
+        activeConfig: null,
         state,
       },
       state.apiEmitters.games.onWillLaunchCurationGame.fireableFactory(state, event.client, 'Error during curate game launch api event'),
@@ -1570,6 +1612,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         runGame: runGameFactory(state),
         changeServer: changeServerFactory(state),
         envPATH: state.pathVar,
+        activeConfig: null,
         state,
       },
       state.apiEmitters.games.onWillLaunchCurationAddApp.fireableFactory(state, event.client, 'Error during curate add app launch api event'),

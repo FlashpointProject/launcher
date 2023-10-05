@@ -3,7 +3,7 @@ import { GameData } from '@database/entity/GameData';
 import { CreditsData } from '@renderer/credits/types';
 import { ViewGameSet } from '@renderer/interfaces';
 import { UpgradeStage } from '@renderer/upgrade/types';
-import { BackInit, ComponentStatus, FpfssState, FpfssUser, GameOfTheDay, PageKeyset, ResponseGameRange, SearchGamesOpts, ViewGame } from '@shared/back/types';
+import { BackInit, ComponentStatus, FetchedGameInfo, FpfssState, FpfssUser, GameOfTheDay, PageKeyset, ResponseGameRange, SearchGamesOpts, ViewGame } from '@shared/back/types';
 import { AppExtConfigData } from '@shared/config/interfaces';
 import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { GamePropSuggestions, IService } from '@shared/interfaces';
@@ -131,7 +131,7 @@ export type MainState = {
   taskBarOpen: boolean;
   selectedGameId?: string;
   selectedPlaylistId?: string;
-  currentGame?: Game;
+  currentGameInfo?: FetchedGameInfo;
   currentGameData?: GameData;
   currentPlaylist?: Playlist;
   currentPlaylistEntry?: PlaylistGame;
@@ -294,7 +294,7 @@ export type MainAction = {
   user: FpfssUser | null;
 } | {
   type: MainActionType.SET_FPFSS_GAME;
-  game: Game | null;
+  fetchedInfo: FetchedGameInfo | null;
 } | {
   type: MainActionType.APPLY_DELTA_FPFSS_GAME;
   game: Partial<Game>;
