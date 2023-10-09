@@ -1,20 +1,20 @@
 import { Game } from '@database/entity/Game';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
+import { ChangedMeta, MetaEditFlags } from '@shared/MetaEdit';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
 import { AddAppCuration, ContentTree, LoadedCuration, PlatformAppPathSuggestions } from '@shared/curate/types';
 import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/extensions/interfaces';
 import { FilterGameOpts } from '@shared/game/GameFilter';
 import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
-import { ChangedMeta, MetaEditFlags } from '@shared/MetaEdit';
 import { SocketTemplate } from '@shared/socket/types';
 import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
-import { AppPreferencesData, CurationState, CurationWarnings, DialogState, DialogStateTemplate, GameConfig, GameData, GameDataSource, GameMetadataSource, GameOrderBy, GameOrderReverse, Platform, Playlist, PlaylistGame, TagAlias, TagFilterGroup } from 'flashpoint-launcher';
+import { AppPreferencesData, ConfigSchema, CurationState, CurationWarnings, DialogState, DialogStateTemplate, GameConfig, GameData, GameDataSource, GameMetadataSource, GameMiddlewareConfig, GameMiddlewareInfo, GameOrderBy, GameOrderReverse, Platform, Playlist, PlaylistGame, TagAlias, TagFilterGroup } from 'flashpoint-launcher';
+import { ILogEntry, ILogPreEntry, LogLevel } from '../Log/interface';
+import { Theme } from '../ThemeFile';
 import { AppConfigData, AppExtConfigData } from '../config/interfaces';
 import { ExecMapping, GamePropSuggestions, IService, ProcessAction, Task } from '../interfaces';
 import { LangContainer, LangFile } from '../lang';
-import { ILogEntry, ILogPreEntry, LogLevel } from '../Log/interface';
-import { Theme } from '../ThemeFile';
 
 export enum BackIn {
   UNKNOWN = 1000,
@@ -26,6 +26,7 @@ export enum BackIn {
   GET_EXEC,
   SAVE_GAMES,
   SAVE_GAME,
+  SAVE_GAME_CONFIG,
   GET_GAME,
   GET_GAMES_GAME_DATA,
   GET_GAME_DATA,
@@ -41,6 +42,7 @@ export enum BackIn {
   DELETE_GAME,
   DUPLICATE_GAME,
   EXPORT_GAME,
+  GET_VALID_MIDDLEWARE,
   LAUNCH_ADDAPP,
   SAVE_IMAGE,
   DELETE_IMAGE,
@@ -125,6 +127,8 @@ export enum BackIn {
   // Extensions
   RUN_COMMAND,
   DOWNLOAD_EXTENSION,
+  GET_MIDDLEWARE_CONFIG_SCHEMAS,
+  GET_MIDDLEWARE_DEFAULT_CONFIG,
 
   // FPFSS
   FPFSS_OPEN_CURATION,
@@ -259,6 +263,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.SET_LOCALE]: (data: string) => string;
   [BackIn.GET_EXEC]: () => ExecMapping[];
   [BackIn.SAVE_GAME]: (data: FetchedGameInfo) => BrowseChangeData;
+  [BackIn.SAVE_GAME_CONFIG]: (config: GameConfig) => GameConfig;
   [BackIn.SAVE_GAMES]: (data: Game[]) => void;
   [BackIn.GET_GAME]: (id: string) => FetchedGameInfo | null;
   [BackIn.GET_ALL_GAMES]: (startFrom?: string) => Game[];
@@ -267,6 +272,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.DELETE_GAME]: (id: string) => BrowseChangeData;
   [BackIn.DUPLICATE_GAME]: (id: string, dupeImages: boolean) => BrowseChangeData;
   [BackIn.EXPORT_GAME]: (id: string, location: string, metaOnly: boolean) => void;
+  [BackIn.GET_VALID_MIDDLEWARE]: (game: Game) => GameMiddlewareInfo[];
   [BackIn.LAUNCH_ADDAPP]: (id: string) => void;
   [BackIn.SAVE_IMAGE]: (folder: string, id: string, content: string) => void;
   [BackIn.DELETE_IMAGE]: (folder: string, id: string) => void;
@@ -340,6 +346,8 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   // Extensions
   [BackIn.RUN_COMMAND]: (command: string, args?: any[]) => RunCommandResponse;
   [BackIn.DOWNLOAD_EXTENSION]: (downloadPath: string) => void;
+  [BackIn.GET_MIDDLEWARE_CONFIG_SCHEMAS]: (game: Game, mIds: MiddlewareVersionPair[]) => MiddlewareSchemasResponse;
+  [BackIn.GET_MIDDLEWARE_DEFAULT_CONFIG]: (middlewareId: string, game: Game) => GameMiddlewareNewConfig;
 
   // FPFSS
   [BackIn.FPFSS_OPEN_CURATION]: (url: string, accessToken: string, taskId: string) => void;
@@ -502,6 +510,11 @@ export type GetRendererExtDataResponse = {
   curationTemplates: ExtensionContribution<'curationTemplates'>[];
   extConfigs: ExtensionContribution<'configuration'>[];
   extConfig: AppExtConfigData;
+}
+
+export type GameMiddlewareNewConfig = {
+  config: GameMiddlewareConfig,
+  schema: ConfigSchema,
 }
 
 export type GameOfTheDay = {
@@ -781,3 +794,10 @@ export type FetchedGameInfo = {
   activeConfig: GameConfig | null;
   configs: GameConfig[];
 }
+
+export type MiddlewareSchemasResponse = Record<string, ConfigSchema>;
+
+export type MiddlewareVersionPair = {
+  id: string,
+  version: string
+};

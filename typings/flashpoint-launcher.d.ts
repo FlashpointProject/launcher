@@ -1536,6 +1536,11 @@ declare module 'flashpoint-launcher' {
         dialog: DialogState,
         buttonIdx: number
     }
+
+    export type GameMiddlewareInfo = {
+        middlewareId: string;
+        name: string;
+    }
     
     export type GameMiddlewareConfig = {
         middlewareId: string;
@@ -1573,9 +1578,14 @@ declare module 'flashpoint-launcher' {
         type: 'number';
         options?: number[];
         default?: number;
+        integer?: boolean;
         maximum?: number;
         minimum?: number;
         validate?: (value: number) => boolean;
+    }
+
+    export type LabelConfigProp = BaseConfigProp & {
+        type: 'label';
     }
 
     export type BooleanConfigProp = BaseConfigProp & {
@@ -1583,9 +1593,11 @@ declare module 'flashpoint-launcher' {
         default?: boolean;
     }
 
-    export type ConfigProp = StringConfigProp | NumberConfigProp | BooleanConfigProp;
+    type ConfigProp = StringConfigProp | NumberConfigProp | BooleanConfigProp | LabelConfigProp;
 
-    export type ConfigSchema = ConfigProp | ConfigProp[];
+    type ConfigSchema = ConfigProp[];
+
+    type GameMiddlewareDefaultConfig = Omit<GameMiddlewareConfig, 'middlewareId' | 'name' | 'enabled'>;
 
     export interface IGameMiddleware {
         // Unique Middleware ID
@@ -1604,12 +1616,17 @@ declare module 'flashpoint-launcher' {
          */
         execute(gameLaunchInfo: GameLaunchInfo, middlewareConfig: GameMiddlewareConfig): Promise<GameLaunchInfo> | GameLaunchInfo;
         /**
+         * Returns a default config when adding middleware to a new game config
+         * @param game Game selected
+         * @returns Middleware config
+         */
+        getDefaultConfig(game: Game): GameMiddlewareDefaultConfig;
+        /**
          * Should return a valid config schema for the selected middleware version. Game and current game config given for extra context.
          * @param version Selected middleware version
          * @param game Game selected
-         * @param config Current game config
          */
-        getConfigSchema(version: string, game: Game, config: GameConfig): ConfigSchema;
+        getConfigSchema(version: string, game: Game): ConfigSchema;
         /**
          * Called when a game middleware's config is loaded from the database.
          * Allows modification / upgrading of config values before the user or launcher is able to use / edit it themselves.

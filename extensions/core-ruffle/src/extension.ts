@@ -11,6 +11,10 @@ export async function activate(context: flashpoint.ExtensionContext): Promise<vo
   const ruffleWebLatestDir = path.join(baseDataPath, 'webhosted', 'latest');
   const ruffleStandaloneLatestDir = path.join(baseDataPath, 'standalone', 'latest');
 
+  // Register middleware
+  const standaloneMiddleware = new RuffleStandaloneMiddleware(path.join(baseDataPath, 'standalone'));
+  flashpoint.middleware.registerMiddleware(standaloneMiddleware);
+
   // Check for Standalone updates
   const logVoid = () => {};
   const standaloneAssetFile = await getGithubAsset(getPlatformRegex(), logVoid);
@@ -43,10 +47,6 @@ export async function activate(context: flashpoint.ExtensionContext): Promise<vo
   } else {
     flashpoint.log.info('No Ruffle Web Assets found?');
   }
-
-  // Register middleware
-  const standaloneMiddleware = new RuffleStandaloneMiddleware(path.join(baseDataPath, 'standalone'));
-  flashpoint.middleware.registerMiddleware(standaloneMiddleware);
 }
 
 async function downloadRuffleStandalone(ruffleStandaloneDir: string, assetFile: AssetFile, logDev: (text: string) => void) {

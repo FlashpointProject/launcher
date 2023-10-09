@@ -14,7 +14,7 @@ import axios from 'axios';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
 import { clipboard, Menu, MenuItemConstructorOptions } from 'electron';
-import { GameData, Platform, PlaylistGame } from 'flashpoint-launcher';
+import { GameConfig, GameData, Platform, PlaylistGame } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as React from 'react';
 import { WithPreferencesProps } from '../containers/withPreferences';
@@ -267,6 +267,33 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
         </label>
       );
 
+      const saveGameConfig = async (config: GameConfig, idx: number) => {
+        // Update config in loaded game copy
+        if (this.props.currentGameInfo) {
+          const newInfo = deepCopy(this.props.currentGameInfo);
+          if (idx >= newInfo.configs.length) {
+            // New config, add to list
+            newInfo.configs.push(config);
+          } else {
+            newInfo.configs[idx] = config;
+          }
+          this.props.onForceSaveGame(newInfo);
+        }
+      };
+
+      const deleteGameConfig = async (idx: number) => {
+        if (this.props.currentGameInfo) {
+          const newInfo = deepCopy(this.props.currentGameInfo);
+          if (idx > -1 && idx < newInfo.configs.length) {
+            const removed = newInfo.configs.splice(idx, 1);
+            if (newInfo.game.activeGameConfigId === removed[0].id) {
+              newInfo.activeConfig = null;
+            }
+          }
+          this.props.onForceSaveGame(newInfo);
+        }
+      }
+
       return (
         <div
           className={'browse-right-sidebar ' + (editable ? 'browse-right-sidebar--edit-enabled' : 'browse-right-sidebar--edit-disabled')}
@@ -274,6 +301,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
           {/** Game Config Dialog */}
           { this.state.gameConfigDialogOpen && this.props.currentGameInfo && (
             <GameConfigDialog
+              saveConfig={saveGameConfig}
+              deleteConfig={deleteGameConfig}
               info={this.props.currentGameInfo}
               close={this.closeGameConfigDialog}
             />

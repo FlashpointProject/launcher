@@ -205,6 +205,13 @@ body {
 .simple-dropdown__content--hidden {
   display: none;
 }
+.simple-dropdown-button {
+  font-style: normal;
+}
+.simple-dropdown-form__select-icon {
+  font-style: normal;
+}
+
 /* Input Dropdown */
 .input-dropdown {
   position: relative;
@@ -3174,7 +3181,7 @@ body {
 /** Game Config Dialog */
 .game-config-dialog-container {
   width: 75%;
-  height: 75%;
+  height: 85%;
 }
 
 .game-config-dialog {
@@ -3202,6 +3209,7 @@ body {
 
 .game-config-dialog-content {
   overflow-y: auto;
+  flex-grow: 1;
 }
 
 .game-config-dialog__config {
@@ -3211,9 +3219,15 @@ body {
   margin-bottom: 1rem;
 }
 
+.game-config-dialog__config-new {
+  display: flex;
+  flex-direction: row;
+  font-size: 1.4em;
+  justify-content: right;
+}
+
 .game-config-dialog__config-row {
   width: 100%;
-  margin-bottom: 0.5rem;
   display: flex;
   flex-direction: row;
 }
@@ -3241,4 +3255,125 @@ body {
 .game-config-dialog__config-buttons > * {
   margin-left: 0.5rem;
   font-size: 1.1em !important;
+}
+
+.game-config-dialog__config-title {
+  align-self: center;
+  font-size: 1.4em;
+  margin-right: 0.5rem;
+}
+
+.game-config-dialog__config-version {
+  align-self: center;
+}
+
+.game-config-dialog__config-chevron-expansion {
+  margin-left: 0.5rem;
+  align-self: center;
+}
+
+/** Game Config Dialog editor */
+.game-config-dialog-input-row {
+  display: inline-block;
+}
+
+.game-config-dialog-input-title {
+  font-weight: bold;
+  font-size: 1.25em;
+}
+
+.game-config-dialog-label-title {
+  font-weight: bold;
+  font-size: 1.5em;
+}
+
+.game-config-dialog-inputs {
+  display: flex;
+  flex-direction: column;
+  font-size: 1.4em;
+}
+
+.game-config-dialog-inputs > .game-config-dialog-label-row:not(:first-child) {
+  border-top: 1px solid;
+  margin-top: 0.4rem;
+  margin-bottom: 0.2rem;
+}
+
+.game-config-dialog-input-row > *:not(:first-child) {
+  margin-top: 0.5rem;
+}
+
+.game-config-dialog-inputs > *:not(:first-child) {
+  margin-top: 1rem;
+}
+
+.game-config-dialog-footer {
+  margin-top: 1rem;
+  font-size: 1.4em;
+}
+
+.game-config-dialog-footer > .game-config-dialog__config-row {
+  align-items: center;
+}
+
+.game-config-dialog__config-name-row {
+  display: flex;
+  flex-direction: row;
+  padding: 1rem;
+  font-size: 1.4rem;
+  align-items: center;
+}
+
+.game-config-dialog__config-name-label {
+  margin-right: 1rem;
+}
+
+.game-config-dialog__config-name-input {
+  flex-grow: 1;
+}
+
+/** Form Styles */
+
+.input-field-form {
+  border: 1px solid;
+  padding: 1.2rem !important;
+}
+
+.simple-dropdown-form {
+  --width: 11rem;
+  width: var(--width);
+  position: relative;
+}
+.simple-dropdown-form__select-box {
+  display: flex;
+  width: 100%;
+  cursor: default;
+  border: 1px solid;
+  padding: 1px; /* This makes it have the same size as <select> elements. Maybe it offsets the border? */
+  overflow: hidden;
+}
+.simple-dropdown-form__select-text {
+  padding: 0.4em;
+  flex: 1 0 auto;
+}
+.simple-dropdown-form__select-icon {
+  width: 1.25em;
+  flex: 0 0 auto;
+  align-self: center;
+}
+.simple-dropdown-form__select-icon:before {
+  content: "▾";
+}
+.simple-dropdown-form__content {
+  z-index: 10;
+  width: inherit;
+  display: block;
+  z-index: 9999;
+  /* Pimp */
+  border: 1px solid;
+  position: absolute;
+  overflow-y: auto;
+}
+.simple-dropdown-form__content--hidden {
+  display: none;
 }

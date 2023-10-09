@@ -1429,9 +1429,7 @@ body {
 }
 
 .game-config-dialog__config {
-  border-width: 1px;
-  border-style: solid;
-  border-color: var(--layout__home-page-box-border);
+  background-color: var(--layout__home-page-box-border);
 }
 
 .game-config-dialog__config-title {
@@ -1444,4 +1442,39 @@ body {
 
 .game-config-dialog__config-middleware-label {
   font-weight: bold;
+}
+
+.game-config-dialog-inputs > .game-config-dialog-label-row:not(:first-child) {
+  border-color: var(--layout__simple-button-border);
+}
+
+.game-config-dialog__config-name-label {
+  font-weight: bold;
+}
+
+/** Form Styles */
+
+.input-field-form {
+  border-color: var(--layout__simple-button-border);
+}
+
+.simple-dropdown-form {
+  font-family: var(--layout__primary-font);
+  background-color: var(--layout__primary-background);
+  color: var(--layout__primary-text-color);
+}
+.simple-dropdown-form-button:hover {
+  background-color: var(--layout__simple-button-background);
+  border-color: var(--layout__simple-button-border);
+}
+.simple-dropdown-form__select-box {
+  background-color: #323234;
+  color: var(--layout__primary-text-color);
+  box-shadow: 0px 0.5px 2px 1px #2a2a2c inset;
+  border-color: var(--layout__simple-button-border);
+}
+.simple-dropdown-form__content {
+  background-color: var(--layout__primary-background);
+  color: var(--layout__primary-text-color);
+  border-color: var(--layout__primary-outline-color);
 }

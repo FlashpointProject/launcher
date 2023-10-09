@@ -1684,8 +1684,15 @@ export class App extends React.Component<AppProps> {
       this.props.setMainState({
         currentGameInfo: info
       });
-      // Save without frontend update
-      window.Shared.back.send(BackIn.SAVE_GAME, info);
+      // Save without immediate frontend update
+      window.Shared.back.request(BackIn.SAVE_GAME, info)
+      .then((newInfo) => {
+        if (newInfo.fetchedInfo) {
+          this.props.setMainState({
+            currentGameInfo: newInfo.fetchedInfo
+          });
+        }
+      });
     }
   };
 

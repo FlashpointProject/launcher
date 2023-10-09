@@ -15,7 +15,7 @@ import { chunkArray } from '@shared/utils/misc';
 import { GameConfig, GameOrderBy, GameOrderReverse, IGameMiddleware, ParsedSearch, Playlist, PlaylistGame } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Brackets, EntityTarget, FindOneOptions, In, MoreThan, ObjectLiteral, SelectQueryBuilder } from 'typeorm';
+import { Brackets, EntityTarget, FindOneOptions, In, MoreThan, Not, ObjectLiteral, SelectQueryBuilder } from 'typeorm';
 import { AppDataSource } from '..';
 import * as GameDataManager from './GameDataManager';
 import * as TagManager from './TagManager';
@@ -373,6 +373,11 @@ export async function saveGameConfig(config: GameConfig, registry: Map<string, I
   const gameConfigRepository = AppDataSource.getRepository(RawGameConfig);
   const savedRaw = await gameConfigRepository.save(storeGameConfig(config));
   return loadGameConfig(savedRaw, registry);
+}
+
+export async function cleanupConfigs(game: Game, validConfigIds: number[]) {
+  const gameConfigRepository = AppDataSource.getRepository(RawGameConfig);
+  return gameConfigRepository.delete({ id: Not(In(validConfigIds)), gameId: game.id });
 }
 
 export async function removeGameAndAddApps(gameId: string, dataPacksFolderPath: string, imageFolderPath: string, htdocsFolderPath: string): Promise<Game | null> {

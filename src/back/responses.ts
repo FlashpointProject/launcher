@@ -26,7 +26,7 @@ import { throttle } from '@shared/utils/throttle';
 import * as axiosImport from 'axios';
 import * as child_process from 'child_process';
 import { execSync } from 'child_process';
-import { CurationState, GameLaunchInfo, GameMetadataSource, Platform } from 'flashpoint-launcher';
+import { ConfigSchema, CurationState, GameLaunchInfo, GameMetadataSource, GameMiddlewareInfo, Platform } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as fs_extra from 'fs-extra';
 import * as https from 'https';
@@ -608,11 +608,13 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   state.socketServer.register(BackIn.SAVE_GAME, async (event, info) => {
     try {
       // Save configs
-      for (const config of info.configs) {
-        await GameManager.saveGameConfig(config, state.registry.middlewares);
+      for (let i = 0; i < info.configs.length; i++) {
+        const config = info.configs[i];
+        info.configs[i] = await GameManager.saveGameConfig(config, state.registry.middlewares);
       }
+      const validConfigIds = info.configs.map(c => c.id);
       // Save game
-      if (info.activeConfig) {
+      if (info.activeConfig && validConfigIds.includes(info.activeConfig.id)) {
         info.game.activeGameConfigId = info.activeConfig.id;
         info.game.activeGameConfigOwner = info.activeConfig.owner;
       } else {
@@ -620,6 +622,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         info.game.activeGameConfigOwner = null;
       }
       const game = await GameManager.save(info.game);
+      // Clean up removed configs
+      await GameManager.cleanupConfigs(info.game, validConfigIds);
       // Save up to date ids
       state.queries = {}; // Clear entire cache
       return {
@@ -745,6 +749,19 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     }
   });
 
+  state.socketServer.register(BackIn.GET_VALID_MIDDLEWARE, (event, game) => {
+    const list: GameMiddlewareInfo[] = [];
+    for (const middleware of state.registry.middlewares.entries()) {
+      if (middleware[1].isValid(game)) {
+        list.push({
+          middlewareId: middleware[0],
+          name: middleware[1].name,
+        });
+      }
+    }
+    return list;
+  });
+
   state.socketServer.register(BackIn.GET_GAME, async (event, id) => {
     const game = await GameManager.findGame(id);
     if (game === null) {
@@ -757,6 +774,49 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       activeConfig: activeConfig || null,
       configs,
     };
+  });
+
+  state.socketServer.register(BackIn.GET_MIDDLEWARE_CONFIG_SCHEMAS, async (event, game, mIds) => {
+    const schemas: Record<string, ConfigSchema> = {};
+
+    for (const pair of mIds) {
+      // Find middleware in reg
+      const { id, version } = pair;
+      const middleware = state.registry.middlewares.get(id);
+      if (middleware) {
+        try {
+          schemas[`${id}-${version}`] = middleware.getConfigSchema(version, game);
+        } catch (err) {
+          log.error('Launcher', `Failed to load config schema for ${id} - ${err}`);
+        }
+      }
+    }
+
+    return schemas;
+  });
+
+  state.socketServer.register(BackIn.GET_MIDDLEWARE_DEFAULT_CONFIG, async (event, mId, game) => {
+    const middleware = state.registry.middlewares.get(mId);
+    if (middleware) {
+      try {
+        const defaultConfig = middleware.getDefaultConfig(game);
+        const schema = middleware.getConfigSchema(defaultConfig.version, game);
+        return {
+          config: {
+            ...defaultConfig,
+            enabled: true,
+            middlewareId: middleware.id,
+            name: middleware.name
+          },
+          schema
+        };
+      } catch (err) {
+        log.error('Launcher', `Failed to get default config for ${mId} - ${err}`);
+        throw `Failed to get default config for ${mId} - ${err}`;
+      }
+    } else {
+      throw `Failed to find middleware for ${mId}`;
+    }
   });
 
   state.socketServer.register(BackIn.GET_GAME_DATA, async (event, id) => {
