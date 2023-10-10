@@ -1,15 +1,15 @@
 import { deepCopy } from '@shared/Util';
 import { BackIn, FetchedGameInfo, MiddlewareVersionPair } from '@shared/back/types';
 import * as Coerce from '@shared/utils/Coerce';
-import { ConfigProp, ConfigSchema, Game, GameConfig, GameMiddlewareInfo } from 'flashpoint-launcher';
+import { ConfigProp, ConfigSchema, Game, GameConfig, GameMiddlewareConfig, GameMiddlewareInfo } from 'flashpoint-launcher';
 import * as React from 'react';
 import { CheckBox } from './CheckBox';
+import { ConfirmElement } from './ConfirmElement';
 import { Dropdown } from './Dropdown';
 import { FloatingContainer } from './FloatingContainer';
 import { InputElement, InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
-import { ConfirmElement } from './ConfirmElement';
 
 const { str } = Coerce;
 
@@ -211,6 +211,9 @@ type GameConfigEditorDialogProps = {
 };
 
 function GameConfigEditorDialog(props: GameConfigEditorDialogProps) {
+  const [versionEditorOpen, setVersionEditorOpen] = React.useState(false);
+  const [versionEditorMiddlewareIdx, setVersionEditorMiddlewareIdx] = React.useState(0);
+
   const onSaveMiddlewareConfig = React.useCallback((idx: number, config: any) => {
     // Find middleware and apply config
     const newConfig = deepCopy(props.config);
@@ -311,6 +314,9 @@ function GameConfigEditorDialog(props: GameConfigEditorDialogProps) {
                     }}
                     value='Delete'/>
                   <SimpleButton
+                    onClick={() => {
+                      onOpenVersionEditor(idx);
+                    }}
                     value='Set Version'/>
                 </div>
                 <div className='game-config-dialog__config-chevron-expansion'>
@@ -348,7 +354,26 @@ function GameConfigEditorDialog(props: GameConfigEditorDialogProps) {
     </div>
   );
 
-  return (
+  const onOpenVersionEditor = React.useCallback((idx: number) => {
+    setVersionEditorMiddlewareIdx(idx);
+    setVersionEditorOpen(true);
+  }, [props.config.middleware]);
+
+  const onSaveVersion = React.useCallback((version: string) => {
+    const newConfig: GameConfigEdit = {
+      ...props.config,
+    };
+    newConfig.middleware[versionEditorMiddlewareIdx].version = version;
+    props.setConfig(newConfig);
+    setVersionEditorOpen(false);
+  }, [props.config.middleware, versionEditorMiddlewareIdx]);
+
+  return versionEditorOpen ? (
+    <GameConfigSetVersionDialog
+      save={onSaveVersion}
+      cancel={() => setVersionEditorOpen(false)}
+      middleware={props.config.middleware[versionEditorMiddlewareIdx]} />
+  ) : (
     <FloatingContainer floatingClassName='game-config-dialog-container'>
       <div className='game-config-dialog'>
         <div className='game-config-dialog-header'>
@@ -547,4 +572,53 @@ function renderMiddlewareInput(inputProps: ConfigProp, config: any, saveConfig: 
   }
 
   return input;
+}
+
+type GameConfigSetVersionDialogProps = {
+  middleware: GameMiddlewareConfig;
+  save: (version: string) => void;
+  cancel: () => void;
+};
+
+function GameConfigSetVersionDialog(props: GameConfigSetVersionDialogProps) {
+  const [valid, setValid] = React.useState(true);
+  const [version, setVersion] = React.useState(props.middleware.version);
+
+  const onSave = React.useCallback(() => {
+    if (valid) {
+      props.save(version);
+    }
+  }, [valid, version]);
+
+  const onSetVersion = async (event: React.ChangeEvent<InputElement>) => {
+    const newVersion = event.target.value;
+    // Check if the new version is valid
+    const v = await window.Shared.back.request(BackIn.CHECK_MIDDLEWARE_VERSION_VALIDITY, props.middleware.middlewareId, newVersion);
+    setValid(v);
+    setVersion(newVersion);
+  };
+
+  // @TODO allow options for input
+  return (
+    <FloatingContainer>
+      <div className='game-config-dialog__set-version'>
+        <InputField
+          className='input-field-large-text'
+          form={true}
+          editable={true}
+          onChange={onSetVersion}
+          text={version} />
+        <div className='game-config-dialog__config-buttons'>
+          <SimpleButton
+            disabled={!valid}
+            onClick={onSave}
+            value='Save'/>
+          <SimpleButton
+            onClick={props.cancel}
+            value='Cancel'/>
+        </div>
+      </div>
+
+    </FloatingContainer>
+  );
 }

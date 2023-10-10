@@ -2155,6 +2155,7 @@ body {
   padding-left: 0.3rem;
   cursor: pointer;
   overflow: hidden;
+  flex-wrap: wrap;
 }
 .playlist-list-item--editing .playlist-list-item__head {
   cursor: default;
@@ -3354,7 +3355,20 @@ body {
   flex-grow: 1;
 }
 
+.game-config-dialog__set-version {
+  display: flex;
+  flex-direction: column;
+}
+
+.game-config-dialog__set-version > *:not(:first-child) {
+  margin-top: 0.5rem;
+}
+
 /** Form Styles */
+
+.input-field-large-text {
+  font-size: 1.4em;
+}
 
 .input-field-form {
   border: 1px solid;

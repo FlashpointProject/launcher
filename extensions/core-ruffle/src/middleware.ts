@@ -93,6 +93,13 @@ export class RuffleStandaloneMiddleware implements IGameMiddleware {
     private ruffleStandaloneRoot: string
   ) {}
 
+  isValidVersion(version: string): boolean {
+    if (version === 'latest') {
+      return true;
+    }
+    return false;
+  }
+
   async isValid(game: Game): Promise<boolean> {
     if (game.activeDataId && game.activeDataId >= 0) {
       const gameData = await flashpoint.gameData.findOne(game.activeDataId);

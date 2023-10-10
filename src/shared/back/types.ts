@@ -129,6 +129,7 @@ export enum BackIn {
   DOWNLOAD_EXTENSION,
   GET_MIDDLEWARE_CONFIG_SCHEMAS,
   GET_MIDDLEWARE_DEFAULT_CONFIG,
+  CHECK_MIDDLEWARE_VERSION_VALIDITY,
 
   // FPFSS
   FPFSS_OPEN_CURATION,
@@ -346,8 +347,9 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   // Extensions
   [BackIn.RUN_COMMAND]: (command: string, args?: any[]) => RunCommandResponse;
   [BackIn.DOWNLOAD_EXTENSION]: (downloadPath: string) => void;
-  [BackIn.GET_MIDDLEWARE_CONFIG_SCHEMAS]: (game: Game, mIds: MiddlewareVersionPair[]) => MiddlewareSchemasResponse;
+  [BackIn.GET_MIDDLEWARE_CONFIG_SCHEMAS]: (mIds: MiddlewareVersionPair[]) => MiddlewareSchemasResponse;
   [BackIn.GET_MIDDLEWARE_DEFAULT_CONFIG]: (middlewareId: string, game: Game) => GameMiddlewareNewConfig;
+  [BackIn.CHECK_MIDDLEWARE_VERSION_VALIDITY]: (middlewareId: string, version: string) => boolean;
 
   // FPFSS
   [BackIn.FPFSS_OPEN_CURATION]: (url: string, accessToken: string, taskId: string) => void;

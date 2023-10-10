@@ -791,7 +791,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     };
   });
 
-  state.socketServer.register(BackIn.GET_MIDDLEWARE_CONFIG_SCHEMAS, async (event, game, mIds) => {
+  state.socketServer.register(BackIn.GET_MIDDLEWARE_CONFIG_SCHEMAS, async (event, mIds) => {
     const schemas: Record<string, ConfigSchema> = {};
 
     for (const pair of mIds) {
@@ -800,7 +800,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       const middleware = state.registry.middlewares.get(id);
       if (middleware) {
         try {
-          schemas[`${id}-${version}`] = middleware.getConfigSchema(version, game);
+          schemas[`${id}-${version}`] = middleware.getConfigSchema(version);
         } catch (err) {
           log.error('Launcher', `Failed to load config schema for ${id} - ${err}`);
         }
@@ -815,7 +815,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     if (middleware) {
       try {
         const defaultConfig = middleware.getDefaultConfig(game);
-        const schema = middleware.getConfigSchema(defaultConfig.version, game);
+        const schema = middleware.getConfigSchema(defaultConfig.version);
         return {
           config: {
             ...defaultConfig,
@@ -831,6 +831,15 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       }
     } else {
       throw `Failed to find middleware for ${mId}`;
+    }
+  });
+
+  state.socketServer.register(BackIn.CHECK_MIDDLEWARE_VERSION_VALIDITY, async (event, mId, version) => {
+    const middleware = state.registry.middlewares.get(mId);
+    if (middleware) {
+      return Promise.resolve(middleware.isValidVersion(version));
+    } else {
+      throw 'Could not find middleware';
     }
   });
 

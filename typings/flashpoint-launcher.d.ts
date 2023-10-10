@@ -1610,6 +1610,11 @@ declare module 'flashpoint-launcher' {
          */
         isValid(game: Game): Promise<boolean> | boolean;
         /**
+         * Decides if the middleware version is valid
+         * @param version Middleware version
+         */
+        isValidVersion(version: string): Promise<boolean> | boolean;
+        /**
          * Called when middleware is next to run before game launch. Do anything per-game important here.
          * @param gameLaunchInfo Launch info for the game
          * @param middlewareConfig Game middleware config specific to this middleware
@@ -1624,9 +1629,8 @@ declare module 'flashpoint-launcher' {
         /**
          * Should return a valid config schema for the selected middleware version. Game and current game config given for extra context.
          * @param version Selected middleware version
-         * @param game Game selected
          */
-        getConfigSchema(version: string, game: Game): ConfigSchema;
+        getConfigSchema(version: string): ConfigSchema;
         /**
          * Called when a game middleware's config is loaded from the database.
          * Allows modification / upgrading of config values before the user or launcher is able to use / edit it themselves.
