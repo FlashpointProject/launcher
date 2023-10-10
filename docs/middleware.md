@@ -2,6 +2,27 @@
 
 Extensions can provide middleware which a user can choose to apply before a game launches. This can be useful for modifying game files, creating new files or modifying launch options before a game starts.
 
+# Context - Game Configurations
+
+Each game configuration belongs to a specific game ID, and has a specific owner. It contains a list of configured middleware to apply to a game before launching and these configurations can be swapped per game at will by the user:
+
+- **Game ID** - Either `template` for a template configuration, for the game id.
+- **Owner** - Either `local` for a user created configuration, or something else for remote synced configurations.
+
+Template configurations are available to use on any game, provided the game is valid for each used middleware. It is ideal for configurations applicable to a wide array of games.
+
+Configurations synced from a remote server are not modifiable by the user, but can be copied into a game specific configuration. This can be made into a local template too.
+
+# Middleware Structure
+
+- `id` - Unique identifier for the middleware
+- `name` - Name of the middleware to display to the user
+- `isValid(game)` - Returns whether the middleware is valid for the game
+- `isValidVersion(version)` - Returns whether the version string is valid for this middleware
+- `getDefaultConfig(game)` - Returns the default middleware configuration for a game
+- `getConfigSchema(version)` - Returns the configuration schema for the middleware version 
+- `execute(config)` - Executes to apply the middleware when launching game
+
 ## Changing Launch Info
 
 Whilst this can already be achieved globally via `onWillLaunchGame` and `onWillLaunchAddApp`, a preference should be made to use middleware unless intended to apply to every game without question.

@@ -29,6 +29,36 @@ export async function downloadJson(url: string): Promise<any> {
   return res.data;
 }
 
+export async function getGithubReleaseAsset(nameRegex: RegExp, tag: string): Promise<AssetFile | null> {
+  const releaseUrl = `https://api.github.com/repos/ruffle-rs/ruffle/releases/tags/${tag}`;
+
+  return axios.get(releaseUrl)
+  .then((response) => {
+    const releaseAssets = response.data.assets;
+
+    // Find the asset that matches your regex pattern
+    const asset = releaseAssets.find((asset: any) =>
+      nameRegex.test(asset.name)
+    );
+
+    if (asset) {
+      console.log(`Found matching asset: ${asset.name}`);
+      console.log(`Download URL: ${asset.browser_download_url}`);
+      const assetFile: AssetFile = {
+        name: asset['name'],
+        url: asset['browser_download_url'],
+        publishedAt: '',
+      };
+      return assetFile;
+    } else {
+      return null;
+    }
+  })
+  .catch((error) => {
+    throw `Error fetching release information: ${error}`;
+  });
+}
+
 export async function getGithubAsset(nameRegex: RegExp, logDev: (text: string) => void): Promise<AssetFile | null> {
   const releasesUrl = 'https://api.github.com/repos/ruffle-rs/ruffle/releases';
   logDev(`Fetching Release from ${releasesUrl}`);

@@ -1632,7 +1632,7 @@ declare module 'flashpoint-launcher' {
          */
         getConfigSchema(version: string): ConfigSchema;
         /**
-         * Called when a game middleware's config is loaded from the database.
+         * UNUSED - Called when a game middleware's config is loaded from the database.
          * Allows modification / upgrading of config values before the user or launcher is able to use / edit it themselves.
          * @param version Selected middleware version
          * @param config Current middleware config values

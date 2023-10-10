@@ -2,7 +2,9 @@
 import * as flashpoint from 'flashpoint-launcher';
 import { ConfigSchema, Game, GameLaunchInfo, GameMiddlewareConfig, GameMiddlewareDefaultConfig, IGameMiddleware } from 'flashpoint-launcher';
 import * as os from 'os';
+import * as fs from 'fs';
 import * as path from 'path';
+import { downloadFile, getGithubReleaseAsset, getPlatformRegex } from './util';
 
 // Config Schema used to configure the middleware per game
 const schema: ConfigSchema = [
@@ -94,10 +96,8 @@ export class RuffleStandaloneMiddleware implements IGameMiddleware {
   ) {}
 
   isValidVersion(version: string): boolean {
-    if (version === 'latest') {
-      return true;
-    }
-    return false;
+    // UNIMPLEMENTED
+    return true;
   }
 
   async isValid(game: Game): Promise<boolean> {
@@ -110,7 +110,7 @@ export class RuffleStandaloneMiddleware implements IGameMiddleware {
     return false;
   }
 
-  execute(gameLaunchInfo: GameLaunchInfo, middlewareConfig: GameMiddlewareConfig): GameLaunchInfo {
+  async execute(gameLaunchInfo: GameLaunchInfo, middlewareConfig: GameMiddlewareConfig): Promise<GameLaunchInfo> {
     // Cast our config values to the correct type
     const config = {
       ...DEFAULT_CONFIG,
@@ -120,6 +120,35 @@ export class RuffleStandaloneMiddleware implements IGameMiddleware {
     // Replace application path with ruffle standalone executable (<base>/<version>/<executable>)
     const executable = os.platform() === 'win32' ? 'ruffle.exe' : 'ruffle';
     const execPath = path.join(this.ruffleStandaloneRoot, middlewareConfig.version, executable);
+
+    // If exec path is missing, we need to download the correct version
+    if (!fs.existsSync(execPath)) {
+      // Download specific ruffle version
+      try {
+        const asset = await getGithubReleaseAsset(getPlatformRegex(), middlewareConfig.version);
+        if (asset === null) {
+          throw `Ruffle release tag  "${middlewareConfig.version}" not found.`;
+        }
+        const baseDataPath = path.join(flashpoint.config.flashpointPath, 'Data', 'Ruffle');
+        const ruffleStandaloneDir = path.join(baseDataPath, 'standalone', middlewareConfig.version);
+        if (fs.existsSync(ruffleStandaloneDir)) {
+          fs.rmdirSync(ruffleStandaloneDir, { recursive: true });
+        }
+        await fs.promises.mkdir(ruffleStandaloneDir, { recursive: true });
+        const filePath = path.join(ruffleStandaloneDir, asset.name);
+        await downloadFile(asset.url, filePath);
+        await flashpoint.unzipFile(filePath, ruffleStandaloneDir);
+        await fs.promises.unlink(filePath);
+        if (filePath.endsWith('.tar.gz')) {
+          // Extract .tar if present
+          const tarPath = filePath.substring(0, filePath.length - 3);
+          await flashpoint.unzipFile(tarPath, ruffleStandaloneDir);
+          await fs.promises.unlink(tarPath);
+        }
+      } catch (e: any) {
+        throw `Error downloading Ruffle version "${middlewareConfig.version}": ${e}`;
+      }
+    }
 
     // Add any configured ruffle params to the launch args
     const launchArgs = coerceToStringArray(gameLaunchInfo.launchInfo.gameArgs);
@@ -183,11 +212,11 @@ export class RuffleStandaloneMiddleware implements IGameMiddleware {
   getDefaultConfig(game: Game): GameMiddlewareDefaultConfig {
     return {
       version: 'latest',
-      config: this.getConfigSchema('latest', game),
+      config: this.getConfigSchema('latest'),
     };
   }
 
-  getConfigSchema(version: string, game: Game): ConfigSchema {
+  getConfigSchema(version: string): ConfigSchema {
     // Only 1 kind of schema for now
     return schema;
   }

@@ -46,7 +46,7 @@ export function GameConfigDialog(props: GameConfigDialogProps) {
       };
       return pair;
     });
-    const schemas = await window.Shared.back.request(BackIn.GET_MIDDLEWARE_CONFIG_SCHEMAS, props.info.game, pairs);
+    const schemas = await window.Shared.back.request(BackIn.GET_MIDDLEWARE_CONFIG_SCHEMAS, pairs);
     const copy: GameConfigEdit = {
       ...deepCopy(config),
       schemas,
@@ -359,10 +359,20 @@ function GameConfigEditorDialog(props: GameConfigEditorDialogProps) {
     setVersionEditorOpen(true);
   }, [props.config.middleware]);
 
-  const onSaveVersion = React.useCallback((version: string) => {
+  const onSaveVersion = React.useCallback(async (version: string) => {
+    // Fetch new config schema
+    const mId = props.config.middleware[versionEditorMiddlewareIdx].middlewareId;
+    const newSchemas = await window.Shared.back.request(BackIn.GET_MIDDLEWARE_CONFIG_SCHEMAS, [{
+      id: mId,
+      version,
+    }]);
     const newConfig: GameConfigEdit = {
       ...props.config,
+      middleware: [...props.config.middleware]
     };
+    for (const pair of Object.entries(newSchemas)) {
+      newConfig.schemas[pair[0]] = pair[1];
+    }
     newConfig.middleware[versionEditorMiddlewareIdx].version = version;
     props.setConfig(newConfig);
     setVersionEditorOpen(false);
