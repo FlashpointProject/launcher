@@ -9,6 +9,7 @@ import { FloatingContainer } from './FloatingContainer';
 import { InputElement, InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
+import { ConfirmElement } from './ConfirmElement';
 
 const { str } = Coerce;
 
@@ -20,6 +21,8 @@ export type GameConfigDialogProps = {
   close: () => void;
   saveConfig: (config: GameConfig, idx: number) => Promise<void>;
   deleteConfig: (idx: number) => Promise<void>;
+  makeTemplateConfig: (idx: number) => Promise<void>;
+  duplicateConfig: (idx: number) => Promise<void>;
   info: FetchedGameInfo;
 }
 
@@ -82,6 +85,11 @@ export function GameConfigDialog(props: GameConfigDialogProps) {
         <div className='game-config-dialog__config' key={idx}>
           <div className='game-config-dialog__config-row'>
             <div className='game-config-dialog__config-left'>
+              { c.gameId === 'template' && (
+                <div className='game-config-dialog__config-title-prefix'>
+                  {'(Template)'}
+                </div>
+              ) }
               <div className='game-config-dialog__config-title'>
                 {c.name}
               </div>
@@ -113,16 +121,37 @@ export function GameConfigDialog(props: GameConfigDialogProps) {
             <div className='game-config-dialog__config-left'>
             </div>
             <div className='game-config-dialog__config-right game-config-dialog__config-buttons'>
-              <SimpleButton
-                value='Delete'
-                onClick={() => {
+              { c.gameId !== 'template' && (
+                <SimpleButton
+                  value='Make Template'
+                  onClick={() => {
+                    props.makeTemplateConfig(idx);
+                  }}/>
+              )}
+              <ConfirmElement
+                message={'Are you sure you want to delete this configuration?'}
+                onConfirm={() => {
                   props.deleteConfig(idx);
-                }}/>
+                }}
+                render={({ confirm }) => {
+                  return (
+                    <SimpleButton
+                      onClick={() => { confirm(); }}
+                      value='Delete'/>
+                  );
+                }} />
+              { c.owner === 'local' && (
+                <SimpleButton
+                  value={'Modify'}
+                  onClick={() => {
+                    openEditor(c, idx);
+                  }} />
+              )}
               <SimpleButton
-                value={c.owner === 'local' ? 'Modify' : 'Make Local Copy'}
+                value={'Make Copy'}
                 onClick={() => {
-                  openEditor(c, idx);
-                }}/>
+                  props.duplicateConfig(idx);
+                }} />
             </div>
           </div>
         </div>
@@ -334,11 +363,11 @@ function GameConfigEditorDialog(props: GameConfigEditorDialogProps) {
           </div>
         </div>
         {nameEditRow}
+        <div className='game-config-dialog-new-middleware'>
+          {newMiddlewareRow}
+        </div>
         <div className='game-config-dialog-content simple-scroll'>
           {rows}
-        </div>
-        <div className='game-config-dialog-footer'>
-          {newMiddlewareRow}
         </div>
       </div>
     </FloatingContainer>

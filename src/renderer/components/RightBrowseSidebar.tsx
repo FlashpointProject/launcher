@@ -226,6 +226,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
           extra={strings} />;
 
       const gameConfigDropdown = this.props.currentGameInfo ? this.props.currentGameInfo.configs.map((val, idx) => {
+        const prefix = val.gameId === 'template' ? '(Template) ' : '';
         return <label
           className='curate-page__right-dropdown-content simple-dropdown-button'
           key={idx}
@@ -242,7 +243,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
             }
           }}>
           <div>
-            {val.name}
+            {prefix + val.name}
           </div>
         </label>;
       }): [];
@@ -285,14 +286,55 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
         if (this.props.currentGameInfo) {
           const newInfo = deepCopy(this.props.currentGameInfo);
           if (idx > -1 && idx < newInfo.configs.length) {
-            const removed = newInfo.configs.splice(idx, 1);
-            if (newInfo.game.activeGameConfigId === removed[0].id) {
+            const removed = newInfo.configs.splice(idx, 1)[0];
+            // Templates need to be forcefully removed
+            if (removed.gameId === 'template') {
+              await window.Shared.back.request(BackIn.DELETE_GAME_CONFIG, removed.id);
+            }
+            if (newInfo.game.activeGameConfigId === removed.id) {
               newInfo.activeConfig = null;
             }
           }
           this.props.onForceSaveGame(newInfo);
         }
-      }
+      };
+
+      const duplicateGameConfig = async (idx: number) => {
+        if (this.props.currentGameInfo) {
+          const newCopy: GameConfig = {
+            ...this.props.currentGameInfo.configs[idx]
+          };
+          // Hack to get a new ID when it next saves
+          (newCopy as any).id = null;
+          newCopy.gameId = this.props.currentGameInfo.game.id;
+          newCopy.name = 'Copy - ' + newCopy.name;
+          newCopy.owner = 'local';
+
+          // Add it to game config list to force the template to save
+          const newInfo = deepCopy(this.props.currentGameInfo);
+          newInfo.configs.push(newCopy);
+          this.props.onForceSaveGame(newInfo);
+        }
+      };
+
+      const makeTemplateGameConfig = async (idx: number) => {
+        if (this.props.currentGameInfo) {
+          const template: GameConfig = {
+            ...this.props.currentGameInfo.configs[idx]
+          };
+          // Hack to get a new ID when it next saves
+          (template as any).id = null;
+          template.gameId = 'template';
+
+          // Add it to game config list to force the template to save
+          const newInfo = deepCopy(this.props.currentGameInfo);
+          newInfo.configs.unshift(template);
+          this.props.onForceSaveGame(newInfo);
+        }
+      };
+
+      const activeConfig = this.props.currentGameInfo?.activeConfig;
+      const configNamePrefix = activeConfig && activeConfig.gameId === 'template' ? '(Template) ' : '';
 
       return (
         <div
@@ -303,6 +345,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
             <GameConfigDialog
               saveConfig={saveGameConfig}
               deleteConfig={deleteGameConfig}
+              makeTemplateConfig={makeTemplateGameConfig}
+              duplicateConfig={duplicateGameConfig}
               info={this.props.currentGameInfo}
               close={this.closeGameConfigDialog}
             />
@@ -916,7 +960,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                 </div>
                 <Dropdown
                   className={`browse-right-sidebar__game-config-dropdown ${this.props.currentGameInfo?.activeConfig ? '' : 'browse-right-sidebar__game-config-dropdown-none'}`}
-                  text={this.props.currentGameInfo?.activeConfig?.name || 'No Configuration'}>
+                  text={activeConfig ? `${configNamePrefix}${activeConfig.name}` : 'No Configuration'}>
                   {gameConfigDropdown}
                 </Dropdown>
                 <div

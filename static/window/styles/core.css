@@ -188,6 +188,7 @@ body {
 }
 .simple-dropdown__select-icon {
   width: 1.25em;
+  align-self: center;
   flex: 0 0 auto;
   margin-top: -0.125em;
 }
@@ -196,7 +197,7 @@ body {
 }
 .simple-dropdown__content {
   z-index: 10;
-  width: inherit;
+  width: 100%;
   display: block;
   position: absolute;
   /* Pimp */
@@ -247,6 +248,7 @@ body {
   flex: 0 0 auto;
   text-align: center;
   font-size: 0.75rem;
+  align-self: center;
 }
 .input-dropdown__content {
   width: 100%;
@@ -2830,6 +2832,10 @@ body {
   justify-content: space-evenly;
 }
 
+.confirm-dialog__buttons > .simple-button {
+  font-size: 1.4rem;
+}
+
 /** Floating Containers */
 .floating-container__wrapper {
   position: fixed;
@@ -3263,6 +3269,13 @@ body {
   margin-right: 0.5rem;
 }
 
+.game-config-dialog__config-title-prefix {
+  align-self: center;
+  font-style: italic;
+  font-size: 1.1em;
+  margin-right: 1rem;
+}
+
 .game-config-dialog__config-version {
   align-self: center;
 }
@@ -3295,7 +3308,7 @@ body {
 
 .game-config-dialog-inputs > .game-config-dialog-label-row:not(:first-child) {
   border-top: 1px solid;
-  margin-top: 0.4rem;
+  padding-top: 0.4rem;
   margin-bottom: 0.2rem;
 }
 
@@ -3305,6 +3318,15 @@ body {
 
 .game-config-dialog-inputs > *:not(:first-child) {
   margin-top: 1rem;
+}
+
+.game-config-dialog-new-middleware {
+  margin-bottom: 1rem;
+  font-size: 1.4em;
+}
+
+.game-config-dialog-new-middleware > .game-config-dialog__config-row {
+  align-items: center;
 }
 
 .game-config-dialog-footer {
@@ -3360,13 +3382,14 @@ body {
   width: 1.25em;
   flex: 0 0 auto;
   align-self: center;
+  text-align: center;
 }
 .simple-dropdown-form__select-icon:before {
   content: "▾";
 }
 .simple-dropdown-form__content {
   z-index: 10;
-  width: inherit;
+  width: 100%;
   display: block;
   z-index: 9999;
   /* Pimp */

@@ -26,7 +26,7 @@ export enum BackIn {
   GET_EXEC,
   SAVE_GAMES,
   SAVE_GAME,
-  SAVE_GAME_CONFIG,
+  DELETE_GAME_CONFIG,
   GET_GAME,
   GET_GAMES_GAME_DATA,
   GET_GAME_DATA,
@@ -263,7 +263,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.SET_LOCALE]: (data: string) => string;
   [BackIn.GET_EXEC]: () => ExecMapping[];
   [BackIn.SAVE_GAME]: (data: FetchedGameInfo) => BrowseChangeData;
-  [BackIn.SAVE_GAME_CONFIG]: (config: GameConfig) => GameConfig;
+  [BackIn.DELETE_GAME_CONFIG]: (id: number) => void;
   [BackIn.SAVE_GAMES]: (data: Game[]) => void;
   [BackIn.GET_GAME]: (id: string) => FetchedGameInfo | null;
   [BackIn.GET_ALL_GAMES]: (startFrom?: string) => Game[];

@@ -687,10 +687,20 @@ export async function clearPlaytimeTracking() {
 
 export async function findGameConfigs(gameId: string, registry: Map<string, IGameMiddleware>): Promise<GameConfig[]> {
   const gameConfigRepository = AppDataSource.getRepository(RawGameConfig);
-  return gameConfigRepository.find({ where: { gameId: gameId }})
+  return gameConfigRepository.find({ where: { gameId: In([gameId, 'template']) }})
   .then((rawConfigs) => {
     return rawConfigs.map((rc) => {
       return loadGameConfig(rc, registry);
     });
   });
+}
+
+export async function deleteGameConfig(id: number) {
+  const gameConfigRepository = AppDataSource.getRepository(RawGameConfig);
+  await gameConfigRepository.delete({ id });
+  const gameRepository = AppDataSource.getRepository(Game);
+  await gameRepository.update(
+    { activeGameConfigId: id },
+    { activeGameConfigId: null, activeGameConfigOwner: null }
+  );
 }

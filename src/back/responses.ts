@@ -641,6 +641,10 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     }
   });
 
+  state.socketServer.register(BackIn.DELETE_GAME_CONFIG, async (event, id) => {
+    await GameManager.deleteGameConfig(id);
+  });
+
   state.socketServer.register(BackIn.DELETE_GAME, async (event, id) => {
     const game = await GameManager.removeGameAndAddApps(id,
       path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath),
@@ -769,10 +773,21 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     }
     const configs = await GameManager.findGameConfigs(game.id, state.registry.middlewares);
     const activeConfig = configs.find(c => c.id === game.activeGameConfigId);
+    // Sort configs with templates at top
     return {
       game,
       activeConfig: activeConfig || null,
-      configs,
+      configs: configs.sort((a, b) => {
+        if (a.gameId === 'template' && b.gameId === 'template') {
+          return a.name.localeCompare(b.name);
+        } else if (a.gameId === 'template') {
+          return -1;
+        } else if (b.gameId === 'template') {
+          return 1;
+        } else {
+          return a.name.localeCompare(b.name);
+        }
+      }),
     };
   });
 
