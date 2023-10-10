@@ -142,7 +142,6 @@ export namespace GameLauncher {
     if (opts.game.placeholder) { return; }
     // Handle any special game data actions
     const gameData = !curation ? (opts.game.activeDataId ? await GameDataManager.findOne(opts.game.activeDataId) : null) : null;
-    await handleGameDataParams(opts, serverOverride, gameData || undefined);
     // Run all provided additional applications with "AutoRunBefore" enabled
     if (opts.game.addApps) {
       const addAppOpts: Omit<LaunchAddAppOpts, 'addApp'> = {
@@ -176,6 +175,12 @@ export namespace GameLauncher {
     }
     // Launch game callback
     const launchCb = async (launchInfo: GameLaunchInfo): Promise<void> =>  {
+      /**
+       * Order
+       * - API listeners
+       * - Middleware
+       * - Handle game data params
+       */
       await onWillEvent.fire(launchInfo)
       .then(async () => {
         // Handle middleware
@@ -197,6 +202,7 @@ export namespace GameLauncher {
           }
           log.info(logSource, 'Applied Game Configuration Successfully.');
         }
+        await handleGameDataParams(opts, serverOverride, launchInfo.activeData ? launchInfo.activeData : undefined);
         const command: string = createCommand(launchInfo.launchInfo);
         const managedProc = opts.runGame(launchInfo);
         log.info(logSource,`Launch Game "${opts.game.title}" (PID: ${managedProc.getPid()}) [\n`+

@@ -10,55 +10,111 @@ import { downloadFile, getGithubReleaseAsset, getPlatformRegex } from './util';
 const schema: ConfigSchema = [
   {
     type: 'label',
-    key: 'none',
-    title: 'Graphical Options'
+    key: 'label-player-options',
+    title: 'Player Options'
   },
   // --fullscreen
   {
     type: 'boolean',
-    title: 'Full Screen',
     key: 'fullscreen',
+    title: 'Full Screen',
+    description: 'Start application in fullscreen',
     optional: true,
     default: false
   },
   // --quality
   {
     type: 'string',
-    title: 'Quality',
     key: 'quality',
+    title: 'Quality',
+    description: 'Default quality of the movie',
     options: ['low', 'medium', 'high', 'best', 'high8x8', 'high8x8-linear', 'high16x16', 'high16x16-linear'],
     default: 'high',
   },
   // --graphics
   {
     type: 'string',
-    title: 'Graphics Mode',
     key: 'graphics',
+    title: 'Graphics Mode',
+    description: 'Type of graphics backend to use. Not all options may be supported by your current system. Default will attempt to pick the most supported graphics backend',
     options: ['default', 'vulkan', 'metal', 'dx12', 'gl'],
     default: 'default',
   },
+  // --letterbox
   {
-    type: 'label',
-    key: 'none',
-    title: 'Other Options'
+    type: 'string',
+    key: 'letterbox',
+    title: 'Letterbox',
+    description: 'Specify how Ruffle should handle areas outside the movie stage',
+    options: ['off', 'fullscreen', 'on'],
+    default: 'on',
   },
-  // --frame-rate
+  // --dummy-external-interface
+  {
+    type: 'boolean',
+    key: 'dummyExternalInterface',
+    title: 'Dummy External Interface',
+    description: 'Provide a dummy (completely empty) External Interface to the movie. This may break some movies that expect an External Interface to be functional, but may fix others that always require an External Interface',
+    optional: true,
+    default: false
+  },
+  // --player-version
   {
     type: 'number',
-    title: 'Player Version',
     key: 'playerVersion',
+    title: 'Player Version',
     description: 'The version of the player to emulate',
     default: 32,
     minimum: 1,
     maximum: 32,
     integer: true
   },
+  {
+    type: 'label',
+    key: 'label-network-options',
+    title: 'Network Options',
+  },
+  // --spoof-url
+  {
+    type: 'string',
+    key: 'spoofUrl',
+    title: 'Spoof SWF URL',
+    description: 'Spoofs the root SWF URL provided to ActionScript',
+  },
+  // Use Flashpoint Proxy
+  {
+    type: 'boolean',
+    key: 'fpProxyEnabled',
+    title: 'Use Flashpoint Proxy',
+    description: 'Overrides Custom Proxy. Disable to use the live web or a custom proxy',
+    default: true,
+  },
+  // --proxy
+  {
+    type: 'string',
+    key: 'proxy',
+    title: 'Custom Proxy',
+    description: 'Overriden by Use Flashpoint Proxy. Proxy to use when loading movies via URL',
+  },
+  // --upgrade-to-https
+  {
+    type: 'boolean',
+    key: 'upgradeToHttps',
+    title: 'Upgrade HTTP to HTTPS',
+    description: 'Replace all embedded HTTP URLs with HTTPS',
+    default: false
+  },
+  {
+    type: 'label',
+    key: 'label-other-options',
+    title: 'Other Options'
+  },
   // -P
   {
     type: 'string',
+    key: 'flash-vars',
     title: 'Flash Vars',
-    key: 'flashVars',
-    description: 'Format as pairs e.g `foo=bar speed=fast mode="Full Screen"',
+    description: 'A "flashvars" parameter to provide to the movie. Format as pairs e.g `foo=bar speed=fast mode="Full Screen"',
     optional: true
   },
   // --no-gui
@@ -73,15 +129,26 @@ const schema: ConfigSchema = [
 
 // Stored config value map
 type RuffleConfig = {
-  flashVars: string; // -P
+  /** Player Options */
+  fullscreen: boolean; // --fullscreen
   quality: 'low' | 'medium' | 'high' | 'high8x8' | 'high8x8-linear' | 'high16x16' | 'high16x16-linear';
   graphics: 'default' | 'vulkan' | 'metal' | 'dx12' | 'gl'; // --graphics
-  noGui: boolean; // --no-gui
+  letterbox: 'off' | 'fullscreen' | 'on'; // --letterbox
+  dummyExternalInterface: boolean; // --dummy-external-interface
   playerVersion: number; // --player-version
-  fullscreen: boolean; // --fullscreen
+  /** Network Options */
+  spoofUrl: string; // --spoof-url
+  fpProxyEnabled: boolean;
+  proxy: string; // --proxy
+  upgradeToHttps: boolean; // --upgrade-to-https
+  /** Other Options */
+  flashVars: string; // -P
+  noGui: boolean; // --no-gui
 };
 
-const DEFAULT_CONFIG: Partial<RuffleConfig> = {};
+const DEFAULT_CONFIG: Partial<RuffleConfig> = {
+  fpProxyEnabled: true
+};
 
 type FlashVar = {
   key: string;
@@ -152,6 +219,10 @@ export class RuffleStandaloneMiddleware implements IGameMiddleware {
 
     // Add any configured ruffle params to the launch args
     const launchArgs = coerceToStringArray(gameLaunchInfo.launchInfo.gameArgs);
+
+    /** Player options */
+    // --fullscreen
+    if (config.fullscreen) { launchArgs.unshift('--fullscreen'); }
     // --quality
     if (config.quality) {
       launchArgs.unshift(config.quality);
@@ -161,6 +232,15 @@ export class RuffleStandaloneMiddleware implements IGameMiddleware {
     if (config.graphics) {
       launchArgs.unshift(config.graphics);
       launchArgs.unshift('--graphics');
+    }
+    // --letterbox
+    if (config.letterbox) {
+      launchArgs.unshift(config.letterbox);
+      launchArgs.unshift('--letterbox');
+    }
+    // --dummy-external-interface
+    if (config.dummyExternalInterface) {
+      launchArgs.unshift('--dummy-external-interface');
     }
     // --player-version
     if (config.playerVersion) {
@@ -174,10 +254,28 @@ export class RuffleStandaloneMiddleware implements IGameMiddleware {
       launchArgs.unshift(config.playerVersion + '');
       launchArgs.unshift('--player-version');
     }
-    // --no-gui
-    if (config.noGui) { launchArgs.unshift('--no-gui'); }
-    // --fullscreen
-    if (config.fullscreen) { launchArgs.unshift('--fullscreen'); }
+
+    /** Network Options */
+    // --spoof-url
+    if (config.spoofUrl) {
+      launchArgs.unshift(config.spoofUrl);
+      launchArgs.unshift('--spoof-url');
+    }
+    // --proxy
+    if (config.fpProxyEnabled) {
+      const prefs = flashpoint.getPreferences();
+      launchArgs.unshift(prefs.browserModeProxy);
+      launchArgs.unshift('--proxy');
+    } else if (config.proxy) {
+      launchArgs.unshift(config.proxy);
+      launchArgs.unshift('--proxy');
+    }
+    // --upgrade-to-https
+    if (config.upgradeToHttps) {
+      launchArgs.unshift('--upgrade-to-https');
+    }
+
+    /** Other Options */
     // -P (flashvars) (Stored as pairs e.g `foo=bar speed=fast mode="Full Screen"`)
     if (config.flashVars) {
       const keyValuePairs: FlashVar[] = [];
@@ -195,12 +293,9 @@ export class RuffleStandaloneMiddleware implements IGameMiddleware {
       for (const pair of keyValuePairs) {
         launchArgs.unshift(`-P${pair.key}=${pair.value}`);
       }
+      // --no-gui
+      if (config.noGui) { launchArgs.unshift('--no-gui'); }
     }
-
-    // Add proxy
-    const prefs = flashpoint.getPreferences();
-    launchArgs.unshift(prefs.browserModeProxy);
-    launchArgs.unshift('--proxy');
 
     // Overwrite launch values
     gameLaunchInfo.launchInfo.gamePath = execPath;

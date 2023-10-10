@@ -186,7 +186,7 @@ export function GameConfigDialog(props: GameConfigDialogProps) {
           <div className='game-config-dialog-header-title'>
             {`Game Configurations: ${props.info.game.title}`}
           </div>
-          <div className='game-config-dialog-header-close' onClick={props.close}>
+          <div className='game-config-dialog-header-close browse-right-sidebar__title-row__buttons__save-button' onClick={props.close}>
             <OpenIcon icon='x'/>
           </div>
         </div>
@@ -319,9 +319,9 @@ function GameConfigEditorDialog(props: GameConfigEditorDialogProps) {
                     }}
                     value='Set Version'/>
                 </div>
-                <div className='game-config-dialog__config-chevron-expansion'>
+                {/* <div className='game-config-dialog__config-chevron-expansion'>
                   <OpenIcon icon='chevron-bottom'/>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
@@ -390,10 +390,10 @@ function GameConfigEditorDialog(props: GameConfigEditorDialogProps) {
           <div className='game-config-dialog-header-title'>
             {'Game Configuration Editor'}
           </div>
-          <div className='game-config-dialog-header-close' onClick={props.save}>
+          <div className='game-config-dialog-header-close browse-right-sidebar__title-row__buttons__save-button' onClick={props.save}>
             <OpenIcon icon='check'/>
           </div>
-          <div className='game-config-dialog-header-close' onClick={props.discard}>
+          <div className='game-config-dialog-header-close browse-right-sidebar__title-row__buttons__discard-button' onClick={props.discard}>
             <OpenIcon icon='x'/>
           </div>
         </div>
