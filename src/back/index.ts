@@ -98,6 +98,7 @@ import { createContainer, exit, getMacPATH, runService } from './util/misc';
 import { uuid } from './util/uuid';
 import { GameConfig1696150466000 } from '@database/migration/1696150466000-GameConfig';
 import { RawGameConfig } from '@database/entity/GameConfig';
+import { SystemEnvMiddleware } from './middleware';
 
 const dataSourceOptions: DataSourceOptions = {
   type: 'better-sqlite3',
@@ -586,6 +587,11 @@ async function prepForInit(message: any): Promise<void> {
   }
 
   console.log('Back - Initialized Themes');
+
+  const sysEnvMiddleware = new SystemEnvMiddleware();
+  state.registry.middlewares.set(sysEnvMiddleware.id, sysEnvMiddleware);
+
+  console.log('Back - Registered System Middleware');
 
   // Find the first available port in the range
   state.fileServerPort = await new Promise(resolve => {
