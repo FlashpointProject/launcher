@@ -111,7 +111,7 @@ export class ManagedChildProcess extends EventEmitter {
         this.autoRestartCount = 0;
       }
       // Spawn process
-      log.debug('Server', `Arguments: ${this.info.arguments.join('; ')}`);
+      log.debug('Server', `Executable: ${this.info.filename} - Arguments: ${this.info.arguments.join(' ')}`);
       this.process = spawn(this.info.filename, this.info.arguments, { cwd: this.cwd, detached: this.detached, shell: this.shell, env: this.env});
       // Set start timestamp
       this.startTime = Date.now();

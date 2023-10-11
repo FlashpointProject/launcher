@@ -83,7 +83,7 @@ import {
   installNodeInterceptor,
   registerInterceptor
 } from './extensions/NodeInterceptor';
-import { Command } from './extensions/types';
+import { Command, RegisteredMiddleware } from './extensions/types';
 import * as GameManager from './game/GameManager';
 import { onWillImportCuration } from './importGame';
 import { registerRequestCallbacks } from './responses';
@@ -96,15 +96,18 @@ import { LogFile } from './util/LogFile';
 import { logFactory } from './util/logging';
 import { createContainer, exit, getMacPATH, runService } from './util/misc';
 import { uuid } from './util/uuid';
+import { GameConfig1696150466000 } from '@database/migration/1696150466000-GameConfig';
+import { RawGameConfig } from '@database/entity/GameConfig';
+import { SystemEnvMiddleware } from './middleware';
 
 const dataSourceOptions: DataSourceOptions = {
   type: 'better-sqlite3',
   database: ':memory:',
-  entities: [Game, AdditionalApp, Tag, TagAlias, TagCategory, GameData, Platform, PlatformAlias],
+  entities: [Game, AdditionalApp, Tag, TagAlias, TagCategory, GameData, Platform, PlatformAlias, RawGameConfig],
   migrations: [Initial1593172736527, AddExtremeToPlaylist1599706152407, GameData1611753257950, SourceDataUrlPath1612434225789, SourceFileURL1612435692266,
     SourceFileCount1612436426353, GameTagsStr1613571078561, GameDataParams1619885915109, RemoveSources1676712700000, RemovePlaylist1676713895000,
     TagifyPlatform1677943090621, AddPlatformsRedundancyFieldToGame1677951346785, GDIndex1680813346696, MoveLaunchPath1681561150000,
-    PrimaryPlatform1684673859425, PlayTime1687807237714, PlayTimeIndices1687847922729, ArchiveState1689423335642
+    PrimaryPlatform1684673859425, PlayTime1687807237714, PlayTimeIndices1687847922729, ArchiveState1689423335642, GameConfig1696150466000
   ]
 };
 export let AppDataSource: DataSource = new DataSource(dataSourceOptions);
@@ -235,6 +238,7 @@ const state: BackState = {
     commands: new Map<string, Command>(),
     logoSets: new Map<string, LogoSet>(),
     themes: new Map<string, Theme>(),
+    middlewares: new Map<string, RegisteredMiddleware>(),
   },
   extensionsService: createErrorProxy('extensionsService'),
   sevenZipPath: '',
@@ -583,6 +587,11 @@ async function prepForInit(message: any): Promise<void> {
   }
 
   console.log('Back - Initialized Themes');
+
+  const sysEnvMiddleware = new SystemEnvMiddleware();
+  state.registry.middlewares.set(sysEnvMiddleware.id, sysEnvMiddleware);
+
+  console.log('Back - Registered System Middleware');
 
   // Find the first available port in the range
   state.fileServerPort = await new Promise(resolve => {

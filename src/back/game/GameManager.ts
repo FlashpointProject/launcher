@@ -12,14 +12,16 @@ import { FilterGameOpts } from '@shared/game/GameFilter';
 import { tagSort } from '@shared/Util';
 import * as Coerce from '@shared/utils/Coerce';
 import { chunkArray } from '@shared/utils/misc';
-import { GameOrderBy, GameOrderReverse, ParsedSearch, Playlist, PlaylistGame } from 'flashpoint-launcher';
+import { GameConfig, GameOrderBy, GameOrderReverse, IGameMiddleware, ParsedSearch, Playlist, PlaylistGame } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Brackets, EntityTarget, FindOneOptions, In, MoreThan, ObjectLiteral, SelectQueryBuilder } from 'typeorm';
+import { Brackets, EntityTarget, FindOneOptions, In, MoreThan, Not, ObjectLiteral, SelectQueryBuilder } from 'typeorm';
 import { AppDataSource } from '..';
 import * as GameDataManager from './GameDataManager';
 import * as TagManager from './TagManager';
 import { PlatformAppPathSuggestions } from '@shared/curate/types';
+import { RawGameConfig } from '@database/entity/GameConfig';
+import { loadGameConfig, storeGameConfig } from '@back/util/gameConfig';
 
 const nullableFields = [ 'lastPlayed' ];
 const exactFields = [ 'broken', 'library', 'activeDataOnDisk'];
@@ -367,6 +369,17 @@ export async function save(game: Game): Promise<Game> {
   return savedGame;
 }
 
+export async function saveGameConfig(config: GameConfig, registry: Map<string, IGameMiddleware>): Promise<GameConfig> {
+  const gameConfigRepository = AppDataSource.getRepository(RawGameConfig);
+  const savedRaw = await gameConfigRepository.save(storeGameConfig(config));
+  return loadGameConfig(savedRaw, registry);
+}
+
+export async function cleanupConfigs(game: Game, validConfigIds: number[]) {
+  const gameConfigRepository = AppDataSource.getRepository(RawGameConfig);
+  return gameConfigRepository.delete({ id: Not(In(validConfigIds)), gameId: game.id });
+}
+
 export async function removeGameAndAddApps(gameId: string, dataPacksFolderPath: string, imageFolderPath: string, htdocsFolderPath: string): Promise<Game | null> {
   const gameRepository = AppDataSource.getRepository(Game);
   const addAppRepository = AppDataSource.getRepository(AdditionalApp);
@@ -670,4 +683,24 @@ export async function clearPlaytimeTracking() {
     playtime: 0,
     playCounter: 0
   });
+}
+
+export async function findGameConfigs(gameId: string, registry: Map<string, IGameMiddleware>): Promise<GameConfig[]> {
+  const gameConfigRepository = AppDataSource.getRepository(RawGameConfig);
+  return gameConfigRepository.find({ where: { gameId: In([gameId, 'template']) }})
+  .then((rawConfigs) => {
+    return rawConfigs.map((rc) => {
+      return loadGameConfig(rc, registry);
+    });
+  });
+}
+
+export async function deleteGameConfig(id: number) {
+  const gameConfigRepository = AppDataSource.getRepository(RawGameConfig);
+  await gameConfigRepository.delete({ id });
+  const gameRepository = AppDataSource.getRepository(Game);
+  await gameRepository.update(
+    { activeGameConfigId: id },
+    { activeGameConfigId: null, activeGameConfigOwner: null }
+  );
 }

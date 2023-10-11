@@ -443,15 +443,18 @@ export function mainStateReducer(state: MainState = createInitialState(), action
 
     case MainActionType.FORCE_UPDATE_GAME_DATA: {
       const { gameData } = action;
-      if (state.currentGame) {
-        if (gameData.gameId === state.currentGame.id) {
+      if (state.currentGameInfo) {
+        if (gameData.gameId === state.currentGameInfo.game.id) {
           const newGame: Game = new Game();
-          Object.assign(newGame, state.currentGame);
+          Object.assign(newGame, state.currentGameInfo.game);
           newGame.activeDataOnDisk = gameData.presentOnDisk;
           return {
             ...state,
             currentGameData: gameData,
-            currentGame: newGame
+            currentGameInfo: {
+              ...state.currentGameInfo,
+              game: newGame
+            }
           };
         }
       }
@@ -472,7 +475,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
 
     case MainActionType.SET_FPFSS_GAME: {
       const newFpfssState = deepCopy(state.fpfss);
-      newFpfssState.editingGame = action.game;
+      newFpfssState.editingGameInfo = action.fetchedInfo;
 
       return {
         ...state,
@@ -482,11 +485,11 @@ export function mainStateReducer(state: MainState = createInitialState(), action
 
     case MainActionType.APPLY_DELTA_FPFSS_GAME: {
       const newFpfssState = deepCopy(state.fpfss);
-      if (newFpfssState.editingGame) {
-        newFpfssState.editingGame = {
-          ...newFpfssState.editingGame,
+      if (newFpfssState.editingGameInfo) {
+        newFpfssState.editingGameInfo.game = {
+          ...newFpfssState.editingGameInfo.game,
           ...action.game,
-          updateTagsStr: newFpfssState.editingGame.updateTagsStr
+          updateTagsStr: newFpfssState.editingGameInfo.game.updateTagsStr
         };
       }
 
@@ -731,7 +734,7 @@ function createInitialState(): MainState {
       [BackInit.EXEC_MAPPINGS]: false,
       [BackInit.EXTENSIONS]: false
     },
-    fpfss: { user: null, editingGame: null },
+    fpfss: { user: null, editingGameInfo: null },
     themeList: [],
     logoSets: [],
     logoVersion: 0,

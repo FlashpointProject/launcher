@@ -1,6 +1,6 @@
 import { Game } from '@database/entity/Game';
 import * as remote from '@electron/remote';
-import { BackIn, BackInit, BackOut, FpfssUser } from '@shared/back/types';
+import { BackIn, BackInit, BackOut, FetchedGameInfo, FpfssUser } from '@shared/back/types';
 import { APP_TITLE, VIEW_PAGE_SIZE } from '@shared/constants';
 import { CustomIPC, IService, ProcessState, WindowIPC } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
@@ -91,11 +91,11 @@ export class App extends React.Component<AppProps> {
             if (parts.length >= 2) {
               // Open game in sidebar
               window.Shared.back.request(BackIn.GET_GAME, parts[1])
-              .then(game => {
-                if (game) {
+              .then(fetchedInfo => {
+                if (fetchedInfo) {
                   this.props.setMainState({
-                    currentGame: game,
-                    selectedGameId: game.id,
+                    currentGameInfo: fetchedInfo,
+                    selectedGameId: fetchedInfo.game.id,
                     selectedPlaylistId: undefined,
                     currentPlaylist: undefined,
                     currentPlaylistEntry: undefined
@@ -108,17 +108,18 @@ export class App extends React.Component<AppProps> {
           case 'run': {
             if (parts.length >= 2) {
               window.Shared.back.request(BackIn.GET_GAME, parts[1])
-              .then(async (game) => {
-                if (game) {
+              .then(async (fetchedInfo) => {
+                if (fetchedInfo) {
                 // Open game in sidebar
                   this.props.setMainState({
-                    currentGame: game,
-                    selectedGameId: game.id,
+                    currentGameInfo: fetchedInfo,
+                    selectedGameId: fetchedInfo.game.id,
                     selectedPlaylistId: undefined,
                     currentPlaylist: undefined,
                     currentPlaylistEntry: undefined
                   });
                   // Launch game
+                  const game = fetchedInfo.game;
                   await this.onGameLaunch(game.id);
                   // Update game data (install state)
                   if (game && game.activeDataId) {
@@ -326,15 +327,15 @@ export class App extends React.Component<AppProps> {
     window.Shared.back.register(BackOut.SERVICE_CHANGE, (event, data) => {
       if (data.id) {
         // Check if game just stopped, update to reflect time played changes if so
-        if (this.props.main.currentGame && data.state === ProcessState.STOPPED) {
+        if (this.props.main.currentGameInfo && data.state === ProcessState.STOPPED) {
           if (data.id.startsWith('game.') && data.id.length > 5) {
             const id = data.id.slice(5);
-            if (id === this.props.main.currentGame.id) {
+            if (id === this.props.main.currentGameInfo.game.id) {
               // Reload game in sidebar
-              window.Shared.back.request(BackIn.GET_GAME, this.props.main.currentGame.id)
-              .then((game) => {
-                if (game && this.props.main.selectedGameId === game.id) {
-                  this.props.setMainState({ currentGame: game });
+              window.Shared.back.request(BackIn.GET_GAME, this.props.main.currentGameInfo.game.id)
+              .then((fetchedInfo) => {
+                if (fetchedInfo && this.props.main.selectedGameId === fetchedInfo.game.id) {
+                  this.props.setMainState({ currentGameInfo: fetchedInfo });
                 }
               });
             }
@@ -963,7 +964,7 @@ export class App extends React.Component<AppProps> {
     this.onSelectGame(undefined);
     // Reset the state related to the selected game
     this.props.setMainState({
-      currentGame: undefined,
+      currentGameInfo: undefined,
       selectedGameId: undefined,
       currentPlaylistEntry: undefined,
       isEditingGame: false
@@ -974,24 +975,28 @@ export class App extends React.Component<AppProps> {
 
   onEditGame = (game: Partial<Game>) => {
     log.debug('Launcher', `Editing: ${JSON.stringify(game)}`);
-    if (this.props.main.currentGame) {
+    if (this.props.main.currentGameInfo) {
       const newGame = new Game();
-      Object.assign(newGame, {...this.props.main.currentGame, ...game});
+      Object.assign(newGame, {...this.props.main.currentGameInfo.game, ...game});
       newGame.updateTagsStr();
       this.props.setMainState({
-        currentGame: newGame
+        currentGameInfo: {
+          game: newGame,
+          activeConfig: this.props.main.currentGameInfo.activeConfig,
+          configs: [...this.props.main.currentGameInfo.configs]
+        }
       });
     }
   };
 
   onSaveEditClick = async (): Promise<void> => {
-    if (!this.props.main.currentGame) {
+    if (!this.props.main.currentGameInfo) {
       console.error('Can\'t save game. "currentGame" is missing.');
       return;
     }
-    const game = await this.onSaveGame(this.props.main.currentGame, this.props.main.currentPlaylistEntry);
+    const game = await this.onSaveGame(this.props.main.currentGameInfo, this.props.main.currentPlaylistEntry);
     this.props.setMainState({
-      currentGame: game == null ? undefined : game,
+      currentGameInfo: game == null ? undefined : game,
       isEditingGame: false
     });
     // this.focusGameGridOrList();
@@ -1000,7 +1005,7 @@ export class App extends React.Component<AppProps> {
   onDiscardEditClick = (): void => {
     this.props.setMainState({
       isEditingGame: false,
-      currentGame: this.props.main.currentGame,
+      currentGameInfo: this.props.main.currentGameInfo,
     });
     // this.focusGameGridOrList();
   };
@@ -1023,15 +1028,22 @@ export class App extends React.Component<AppProps> {
   };
 
   onUpdateActiveGameData = (activeDataOnDisk: boolean, activeDataId?: number): void => {
-    if (this.props.main.currentGame) {
+    if (this.props.main.currentGameInfo) {
       const newGame = new Game();
-      Object.assign(newGame, {...this.props.main.currentGame, activeDataOnDisk, activeDataId });
-      window.Shared.back.request(BackIn.SAVE_GAME, newGame)
+      Object.assign(newGame, {...this.props.main.currentGameInfo.game, activeDataOnDisk, activeDataId });
+      window.Shared.back.request(BackIn.SAVE_GAME, {
+        game: newGame,
+        activeConfig: this.props.main.currentGameInfo.activeConfig,
+        configs: [...this.props.main.currentGameInfo.configs],
+      })
       .then(() => {
-        if (this.props.main.currentGame) {
+        if (this.props.main.currentGameInfo) {
           const newGame = new Game();
-          Object.assign(newGame, {...this.props.main.currentGame, activeDataOnDisk, activeDataId });
-          this.props.setMainState({ currentGame: newGame });
+          Object.assign(newGame, {...this.props.main.currentGameInfo.game, activeDataOnDisk, activeDataId });
+          this.props.setMainState({ currentGameInfo: {
+            ...this.props.main.currentGameInfo,
+            game: newGame,
+          }});
         }
       });
     }
@@ -1039,9 +1051,9 @@ export class App extends React.Component<AppProps> {
 
   onRemoveSelectedGameFromPlaylist = async (): Promise<void> => {
     // Remove game from playlist
-    if (this.props.main.currentGame) {
+    if (this.props.main.currentGameInfo) {
       if (this.props.main.selectedPlaylistId) {
-        await window.Shared.back.request(BackIn.DELETE_PLAYLIST_GAME, this.props.main.selectedPlaylistId, this.props.main.currentGame.id);
+        await window.Shared.back.request(BackIn.DELETE_PLAYLIST_GAME, this.props.main.selectedPlaylistId, this.props.main.currentGameInfo.game.id);
       } else { logError('No playlist is selected'); }
     } else { logError('No game is selected'); }
 
@@ -1050,7 +1062,7 @@ export class App extends React.Component<AppProps> {
 
     // Reset the state related to the selected game
     this.props.setMainState({
-      currentGame: undefined,
+      currentGameInfo: undefined,
       currentPlaylistEntry: undefined,
       isEditingGame: false
     });
@@ -1081,10 +1093,10 @@ export class App extends React.Component<AppProps> {
 
       // Update game
       window.Shared.back.request(BackIn.GET_GAME, gameId)
-      .then(game => {
-        if (game) {
+      .then(fetchedInfo => {
+        if (fetchedInfo) {
           this.props.setMainState({
-            currentGame: game,
+            currentGameInfo: fetchedInfo,
             currentPlaylistEntry: gamePlaylistEntry == null ? undefined : gamePlaylistEntry
           });
         } else { console.log(`Failed to get game. Game is undefined (GameID: "${gameId}").`); }
@@ -1136,9 +1148,9 @@ export class App extends React.Component<AppProps> {
           enabled: !window.Shared.isBackRemote, // (Local "back" only)
           click: () => {
             window.Shared.back.request(BackIn.GET_GAME, gameId)
-            .then(async (game) => {
-              if (game) {
-                const gamePath = await getGamePath(game, window.Shared.config.fullFlashpointPath, window.Shared.preferences.data.htdocsFolderPath, window.Shared.preferences.data.dataPacksFolderPath);
+            .then(async (fetchedInfo) => {
+              if (fetchedInfo) {
+                const gamePath = await getGamePath(fetchedInfo.game, window.Shared.config.fullFlashpointPath, window.Shared.preferences.data.htdocsFolderPath, window.Shared.preferences.data.dataPacksFolderPath);
                 try {
                   if (gamePath) {
                     await fs.promises.stat(gamePath);
@@ -1286,7 +1298,8 @@ export class App extends React.Component<AppProps> {
               label: contextButton.name,
               click: () => {
                 window.Shared.back.request(BackIn.GET_GAME, gameId)
-                .then((game) => {
+                .then((fetchedInfo) => {
+                  const game = fetchedInfo?.game;
                   window.Shared.back.request(BackIn.RUN_COMMAND, contextButton.command, [game]);
                 });
               }
@@ -1402,13 +1415,13 @@ export class App extends React.Component<AppProps> {
               renderDialogMemo(this.props.main.openDialogs[0], this.props.dispatchMain)
             )}
             {/** Fancy FPFSS edit */}
-            { this.props.main.fpfss.editingGame && (
+            { this.props.main.fpfss.editingGameInfo && (
               <FloatingContainer floatingClassName='fpfss-edit-container'>
                 <ConnectedFpfssEditGame
                   logoVersion={this.props.main.logoVersion}
                   gameRunning={false}
-                  currentGame={this.props.main.fpfss.editingGame}
-                  currentLibrary={this.props.main.fpfss.editingGame.library}
+                  currentGameInfo={this.props.main.fpfss.editingGameInfo}
+                  currentLibrary={this.props.main.fpfss.editingGameInfo.game.library}
                   onGameLaunch={async () => alert('Cannot launch game during FPFSS edit')}
                   onDeleteSelectedGame={() => {/** unused */}}
                   onDeselectPlaylist={() => {/** unused */}}
@@ -1422,6 +1435,7 @@ export class App extends React.Component<AppProps> {
                   onEditClick={() => {/** unused */}}
                   onDiscardClick={this.onCancelFpfssEditGame}
                   onSaveGame={this.onSaveFpfssEditGame}
+                  onForceSaveGame={this.onForceSaveGame}
                   onOpenExportMetaEdit={() => {/** unused */}}
                   onEditGame={this.onApplyFpfssEditGame}
                   onFpfssEditGame={this.onFpfssEditGame}
@@ -1463,7 +1477,7 @@ export class App extends React.Component<AppProps> {
                       This website requires JavaScript to be enabled.
                     </div>
                   </noscript>
-                  { this.props.main.currentGame && !hiddenRightSidebarPages.reduce((prev, cur) => prev || this.props.history.location.pathname.startsWith(cur), false) && (
+                  { this.props.main.currentGameInfo && !hiddenRightSidebarPages.reduce((prev, cur) => prev || this.props.history.location.pathname.startsWith(cur), false) && (
                     <ResizableSidebar
                       show={this.props.preferencesData.browsePageShowRightSidebar}
                       divider='before'
@@ -1471,8 +1485,8 @@ export class App extends React.Component<AppProps> {
                       onResize={this.onRightSidebarResize}>
                       <ConnectedRightBrowseSidebar
                         logoVersion={this.props.main.logoVersion}
-                        currentGame={this.props.main.currentGame}
-                        isExtreme={this.props.main.currentGame ? this.props.main.currentGame.tags.reduce<boolean>((prev, next) => extremeTags.includes(next.primaryAlias.name) || prev, false) : false}
+                        currentGameInfo={this.props.main.currentGameInfo}
+                        isExtreme={this.props.main.currentGameInfo ? this.props.main.currentGameInfo.game.tags.reduce<boolean>((prev, next) => extremeTags.includes(next.primaryAlias.name) || prev, false) : false}
                         gameRunning={routerProps.gameRunning}
                         currentPlaylistEntry={this.props.main.currentPlaylistEntry}
                         currentLibrary={routerProps.gameLibrary}
@@ -1488,6 +1502,7 @@ export class App extends React.Component<AppProps> {
                         onEditClick={this.onStartEditClick}
                         onDiscardClick={this.onDiscardEditClick}
                         onSaveGame={this.onSaveEditClick}
+                        onForceSaveGame={this.onForceSaveGame}
                         tagCategories={this.props.tagCategories}
                         suggestions={this.props.main.suggestions}
                         busyGames={this.props.main.busyGames}
@@ -1654,13 +1669,31 @@ export class App extends React.Component<AppProps> {
     this.props.setMainState(state as any); // (This is very annoying to make typesafe)
   };
 
-  onSaveGame = async (game: Game, playlistEntry?: PlaylistGame): Promise<Game | null> => {
-    const data = await window.Shared.back.request(BackIn.SAVE_GAME, game);
+  onSaveGame = async (info: FetchedGameInfo, playlistEntry?: PlaylistGame): Promise<FetchedGameInfo | null> => {
+    const data = await window.Shared.back.request(BackIn.SAVE_GAME, info);
     if (playlistEntry) {
       window.Shared.back.send(BackIn.SAVE_PLAYLIST_GAME, this.props.main.selectedPlaylistId || '', playlistEntry);
     }
-    this.setViewQuery(game.library);
-    return data.game;
+    this.setViewQuery(info.game.library);
+    return data.fetchedInfo;
+  };
+
+  // Deliberately avoids validating saved changes before updating frontend
+  onForceSaveGame = async (info: FetchedGameInfo): Promise<void> => {
+    if (this.props.main.currentGameInfo) {
+      this.props.setMainState({
+        currentGameInfo: info
+      });
+      // Save without immediate frontend update
+      window.Shared.back.request(BackIn.SAVE_GAME, info)
+      .then((newInfo) => {
+        if (newInfo.fetchedInfo) {
+          this.props.setMainState({
+            currentGameInfo: newInfo.fetchedInfo
+          });
+        }
+      });
+    }
   };
 
   onDeleteGame = (gameId: string): void => {
@@ -1817,9 +1850,14 @@ export class App extends React.Component<AppProps> {
         }
       });
       const game = mapFpfssGameToLocal(res.data, this.props.tagCategories);
+      const fetchedInfo: FetchedGameInfo = {
+        game,
+        activeConfig: null,
+        configs: []
+      };
       this.props.dispatchMain({
         type: MainActionType.SET_FPFSS_GAME,
-        game
+        fetchedInfo,
       });
     } catch (err) {
       alert(`Error loading FPFSS game: ${err}`);
@@ -1837,7 +1875,7 @@ export class App extends React.Component<AppProps> {
     .then(() => {
       // Edit game in-launcher then send it back to server
       this.performFpfssAction((user) => {
-        if (this.props.main.fpfss.editingGame) {
+        if (this.props.main.fpfss.editingGameInfo) {
           alert('Game edit already open');
         } else {
           // Download Game metadata and add to state
@@ -1854,19 +1892,19 @@ export class App extends React.Component<AppProps> {
     // Just clear the state
     this.props.dispatchMain({
       type: MainActionType.SET_FPFSS_GAME,
-      game: null
+      fetchedInfo: null
     });
   };
 
   onSaveFpfssEditGame = async () => {
-    const localGame = this.props.main.fpfss.editingGame;
-    if (localGame && this.props.main.fpfss.user) {
-      const game = mapLocalToFpfssGame(localGame, this.props.tagCategories, this.props.main.fpfss.user.userId);
+    const localGameInfo = this.props.main.fpfss.editingGameInfo;
+    if (localGameInfo && this.props.main.fpfss.user) {
+      const game = mapLocalToFpfssGame(localGameInfo.game, this.props.tagCategories, this.props.main.fpfss.user.userId);
       this.props.dispatchMain({
         type: MainActionType.SET_FPFSS_GAME,
-        game: null
+        fetchedInfo: null
       });
-      const url = `${this.props.preferencesData.fpfssBaseUrl}/api/game/${localGame.id}`;
+      const url = `${this.props.preferencesData.fpfssBaseUrl}/api/game/${game.id}`;
 
       console.log(JSON.stringify(game));
       // Post changes

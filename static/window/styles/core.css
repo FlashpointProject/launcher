@@ -188,6 +188,7 @@ body {
 }
 .simple-dropdown__select-icon {
   width: 1.25em;
+  align-self: center;
   flex: 0 0 auto;
   margin-top: -0.125em;
 }
@@ -196,7 +197,7 @@ body {
 }
 .simple-dropdown__content {
   z-index: 10;
-  width: inherit;
+  width: 100%;
   display: block;
   position: absolute;
   /* Pimp */
@@ -205,6 +206,13 @@ body {
 .simple-dropdown__content--hidden {
   display: none;
 }
+.simple-dropdown-button {
+  font-style: normal;
+}
+.simple-dropdown-form__select-icon {
+  font-style: normal;
+}
+
 /* Input Dropdown */
 .input-dropdown {
   position: relative;
@@ -240,6 +248,7 @@ body {
   flex: 0 0 auto;
   text-align: center;
   font-size: 0.75rem;
+  align-self: center;
 }
 .input-dropdown__content {
   width: 100%;
@@ -1803,6 +1812,21 @@ body {
   justify-content: space-between;
   font-weight: bold;
 }
+.browse-right-sidebar__game-config-row {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 0.25rem;
+}
+.browse-right-sidebar__game-config-label {
+  margin-right: 0.5rem;
+}
+.browse-right-sidebar__game-config-dropdown {
+  flex-grow: 1;
+}
+.browse-right-sidebar__game-config-cog {
+  margin-left: 0.5rem;
+  align-self: center;
+}
 /* GameImageSplit */
 .game-image-split {
   flex: 1 1 auto;
@@ -2131,6 +2155,7 @@ body {
   padding-left: 0.3rem;
   cursor: pointer;
   overflow: hidden;
+  flex-wrap: wrap;
 }
 .playlist-list-item--editing .playlist-list-item__head {
   cursor: default;
@@ -2808,6 +2833,10 @@ body {
   justify-content: space-evenly;
 }
 
+.confirm-dialog__buttons > .simple-button {
+  font-size: 1.4rem;
+}
+
 /** Floating Containers */
 .floating-container__wrapper {
   position: fixed;
@@ -3154,4 +3183,234 @@ body {
 .browse-right-sidebar__title-row__buttons__promote-button {
   font-weight: bold;
   margin-right: 0.3rem;
+}
+
+/** Game Config Dialog */
+.game-config-dialog-container {
+  width: 75%;
+  height: 85%;
+}
+
+.game-config-dialog {
+  text-align: left;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+}
+
+.game-config-dialog-header {
+  display: flex;
+  flex-direction: row;
+}
+
+.game-config-dialog-header-title {
+  flex-grow: 1;
+}
+
+.game-config-dialog-header-close {
+  width: 2rem;
+  height: 2rem;
+  align-self: center;
+}
+
+.game-config-dialog-content {
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+.game-config-dialog__config {
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 1.4em;
+  margin-bottom: 1rem;
+}
+
+.game-config-dialog__config-new {
+  display: flex;
+  flex-direction: row;
+  font-size: 1.4em;
+  justify-content: right;
+}
+
+.game-config-dialog__config-row {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
+.game-config-dialog__config-left {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: row;
+}
+
+.game-config-dialog__config-right {
+  right: 0;
+  display: flex;
+  flex-direction: row;
+}
+
+.game-config-dialog__config-source-label {
+  margin-right: 0.2rem;
+}
+
+.game-config-dialog__config-middlewares {
+  display: inline-block;
+}
+
+.game-config-dialog__config-buttons > * {
+  margin-left: 0.5rem;
+  font-size: 1.1em !important;
+}
+
+.game-config-dialog__config-title {
+  align-self: center;
+  font-size: 1.4em;
+  margin-right: 0.5rem;
+}
+
+.game-config-dialog__config-title-prefix {
+  align-self: center;
+  font-style: italic;
+  font-size: 1.1em;
+  margin-right: 1rem;
+}
+
+.game-config-dialog__config-version {
+  align-self: center;
+}
+
+.game-config-dialog__config-chevron-expansion {
+  margin-left: 0.5rem;
+  align-self: center;
+}
+
+/** Game Config Dialog editor */
+.game-config-dialog-input-row {
+  display: inline-block;
+}
+
+.game-config-dialog-input-title {
+  font-weight: bold;
+  font-size: 1.25em;
+}
+
+.game-config-dialog-label-title {
+  font-weight: bold;
+  font-size: 1.5em;
+}
+
+.game-config-dialog-inputs {
+  display: flex;
+  flex-direction: column;
+  font-size: 1.4em;
+}
+
+.game-config-dialog-inputs > .game-config-dialog-label-row:not(:first-child) {
+  border-top: 1px solid;
+  padding-top: 0.4rem;
+  margin-bottom: 0.2rem;
+}
+
+.game-config-dialog-input-row > *:not(:first-child) {
+  margin-top: 0.5rem;
+}
+
+.game-config-dialog-inputs > *:not(:first-child) {
+  margin-top: 1rem;
+}
+
+.game-config-dialog-new-middleware {
+  margin-bottom: 1rem;
+  font-size: 1.4em;
+}
+
+.game-config-dialog-new-middleware > .game-config-dialog__config-row {
+  align-items: center;
+}
+
+.game-config-dialog-footer {
+  margin-top: 1rem;
+  font-size: 1.4em;
+}
+
+.game-config-dialog-footer > .game-config-dialog__config-row {
+  align-items: center;
+}
+
+.game-config-dialog__config-name-row {
+  display: flex;
+  flex-direction: row;
+  padding: 1rem;
+  font-size: 1.4rem;
+  align-items: center;
+}
+
+.game-config-dialog__config-name-label {
+  margin-right: 1rem;
+}
+
+.game-config-dialog__config-name-input {
+  flex-grow: 1;
+}
+
+.game-config-dialog__set-version {
+  display: flex;
+  flex-direction: column;
+}
+
+.game-config-dialog__set-version > *:not(:first-child) {
+  margin-top: 0.5rem;
+}
+
+/** Form Styles */
+
+.input-field-large-text {
+  font-size: 1.4em;
+}
+
+.input-field-form {
+  border: 1px solid;
+  padding: 1.2rem !important;
+}
+
+.simple-dropdown-form {
+  --width: 11rem;
+  width: var(--width);
+  position: relative;
+}
+.simple-dropdown-form__select-box {
+  display: flex;
+  width: 100%;
+  cursor: default;
+  border: 1px solid;
+  padding: 1px; /* This makes it have the same size as <select> elements. Maybe it offsets the border? */
+  overflow: hidden;
+}
+.simple-dropdown-form__select-text {
+  padding: 0.4em;
+  flex: 1 0 auto;
+}
+.simple-dropdown-form__select-icon {
+  width: 1.25em;
+  flex: 0 0 auto;
+  align-self: center;
+  text-align: center;
+}
+.simple-dropdown-form__select-icon:before {
+  content: "▾";
+}
+.simple-dropdown-form__content {
+  z-index: 10;
+  width: 100%;
+  display: block;
+  z-index: 9999;
+  /* Pimp */
+  border: 1px solid;
+  position: absolute;
+  overflow-y: auto;
+}
+.simple-dropdown-form__content--hidden {
+  display: none;
 }

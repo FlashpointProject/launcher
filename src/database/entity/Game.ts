@@ -168,6 +168,12 @@ export class Game {
   @Column({ default: ArchiveState.Available })
     archiveState: ArchiveState;
 
+  @Column({ type: 'int', nullable: true })
+    activeGameConfigId: number | null;
+
+  @Column({ type: 'varchar', nullable: true })
+    activeGameConfigOwner: string | null;
+
   // This doesn't run... sometimes.
   @BeforeUpdate()
   updateTagsStr() {

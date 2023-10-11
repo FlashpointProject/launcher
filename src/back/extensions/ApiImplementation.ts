@@ -39,7 +39,7 @@ import { extractFull } from 'node-7z';
 import * as path from 'path';
 import { loadCurationArchive } from '..';
 import { newExtLog } from './ExtensionUtils';
-import { Command } from './types';
+import { Command, RegisteredMiddleware } from './types';
 import uuid = require('uuid');
 import { awaitDialog } from '@back/util/dialog';
 
@@ -521,6 +521,27 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     }
   };
 
+  const extMiddlewares: typeof flashpoint.middleware = {
+    registerMiddleware: (middleware: flashpoint.IGameMiddleware) => {
+      // Minor hack to set ext id
+      const registeredMiddleware: RegisteredMiddleware = middleware as RegisteredMiddleware;
+      registeredMiddleware.extId = extId;
+      state.registry.middlewares.set(middleware.id, registeredMiddleware);
+    },
+    writeGameFile: async (path: string, stream: ReadableStream) => {
+
+    },
+    writeGameFileByUrl: async (url: string, stream: ReadableStream) => {
+
+    },
+    extractGameFile: (path: string) => {
+      return '' as any; // UNIMPLEMENTED
+    },
+    extractGameFileByUrl: (url: string) => {
+      return '' as any; // UNIMPLEMENTED
+    }
+  };
+
   // Create API Module to give to caller
   return <typeof flashpoint>{
     // General information
@@ -548,6 +569,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     status: extStatus,
     services: extServices,
     dialogs: extDialogs,
+    middleware: extMiddlewares,
 
     // Events
     onDidInit: apiEmitters.onDidInit.extEvent(extManifest.displayName || extManifest.name),

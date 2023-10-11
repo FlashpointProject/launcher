@@ -450,7 +450,7 @@ declare module 'flashpoint-launcher' {
     }
 
     /** Front facing dialogs */
-    export namespace dialogs {
+    namespace dialogs {
         /**
          * Opens a message box on the client. Buttons can be provided in options. Returns when the dialog closes
          * @param options Message box options
@@ -486,6 +486,38 @@ declare module 'flashpoint-launcher' {
          * @returns Path to file(s) chosen, if any
          */
         function showOpenDialog(options: ShowOpenDialogOptions): Promise<string[] | undefined>;
+    }
+
+    namespace middleware {
+        /**
+         * Registers a game middleware to be supported in modifying games and allow in-launcher configuration to appear
+         * @param middleware Middleware to register
+         */
+        function registerMiddleware(middleware: IGameMiddleware): void;
+        /**
+         * Write data to a game file path
+         * @param path Relative path to game file
+         * @param stream Data stream
+         */
+        function writeGameFile(path: string, stream: ReadableStream): Promise<void>;
+        /**
+         * Write data to a game file path, built based on url
+         * @param url Game File URL 
+         * @param stream Data stream
+         */
+        function writeGameFileByUrl(url: string, stream: ReadableStream): Promise<void>;
+        /**
+         * Extract a game file from a gamezip
+         * @param path Relative path to game file
+         * @returns Readabale data stream
+         */
+        function extractGameFile(path: string): Promise<ReadableStream>;
+        /**
+         * Extract a game file from a gamezip, find path via url
+         * @param url Game File URL
+         * @returns Readable data stream
+         */
+        function extractGameFileByUrl(url: string): Promise<ReadableStream>;
     }
 
     // Events
@@ -605,6 +637,10 @@ declare module 'flashpoint-launcher' {
         playtime: number;
         /** Number of plays */
         playCounter: number;
+        /** Active game config id */
+        activeGameConfigId: number | null;
+        /** Active game config owner */
+        activeGameConfigOwner: string | null;
         /** Archive State
          * 0 = Not Archived
          * 1 = Archived
@@ -1202,6 +1238,7 @@ declare module 'flashpoint-launcher' {
     /** Info type passed to onWillLaunch events */
     type GameLaunchInfo = {
         game: Game;
+        activeConfig: GameConfig | null;
         activeData: GameData | null;
         launchInfo: LaunchInfo;
     };
@@ -1210,7 +1247,9 @@ declare module 'flashpoint-launcher' {
         gamePath: string;
         gameArgs: string | string[];
         useWine: boolean;
+        cwd?: string;
         env: ProcessEnv;
+        noshell?: boolean;
     };
 
     /** Options expected for 'browser' mode application return */
@@ -1496,5 +1535,108 @@ declare module 'flashpoint-launcher' {
     export type DialogResponse = {
         dialog: DialogState,
         buttonIdx: number
+    }
+
+    export type GameMiddlewareInfo = {
+        middlewareId: string;
+        name: string;
+    }
+    
+    export type GameMiddlewareConfig = {
+        middlewareId: string;
+        name: string;
+        enabled: boolean;
+        version: string;
+        config: any;
+    }
+    
+    export type GameConfig = {
+        id: number;
+        gameId: string;
+        name: string;
+        owner: string;
+        middleware: GameMiddlewareConfig[];
+    }
+
+    export type BaseConfigProp = {
+        title: string;
+        key: string;
+        optional?: boolean;
+        description?: string;
+        children?: ConfigProp[];
+        locked?: boolean;
+    }
+
+    export type StringConfigProp = BaseConfigProp & {
+        type: 'string';
+        options?: string[];
+        default?: string;
+        validate?: (value: string) => boolean;
+    }
+
+    export type NumberConfigProp = BaseConfigProp & {
+        type: 'number';
+        options?: number[];
+        default?: number;
+        integer?: boolean;
+        maximum?: number;
+        minimum?: number;
+        validate?: (value: number) => boolean;
+    }
+
+    export type LabelConfigProp = BaseConfigProp & {
+        type: 'label';
+    }
+
+    export type BooleanConfigProp = BaseConfigProp & {
+        type: 'boolean';
+        default?: boolean;
+    }
+
+    type ConfigProp = StringConfigProp | NumberConfigProp | BooleanConfigProp | LabelConfigProp;
+
+    type ConfigSchema = ConfigProp[];
+
+    type GameMiddlewareDefaultConfig = Omit<GameMiddlewareConfig, 'middlewareId' | 'name' | 'enabled'>;
+
+    export interface IGameMiddleware {
+        // Unique Middleware ID
+        id: string;
+        // Display Name
+        name: string;
+        /**
+         * Decides if this middleware is valid for a given game
+         * @param game Game to validate against
+         */
+        isValid(game: Game): Promise<boolean> | boolean;
+        /**
+         * Decides if the middleware version is valid
+         * @param version Middleware version
+         */
+        isValidVersion(version: string): Promise<boolean> | boolean;
+        /**
+         * Called when middleware is next to run before game launch. Do anything per-game important here.
+         * @param gameLaunchInfo Launch info for the game
+         * @param middlewareConfig Game middleware config specific to this middleware
+         */
+        execute(gameLaunchInfo: GameLaunchInfo, middlewareConfig: GameMiddlewareConfig): Promise<GameLaunchInfo> | GameLaunchInfo;
+        /**
+         * Returns a default config when adding middleware to a new game config
+         * @param game Game selected
+         * @returns Middleware config
+         */
+        getDefaultConfig(game: Game): GameMiddlewareDefaultConfig;
+        /**
+         * Should return a valid config schema for the selected middleware version. Game and current game config given for extra context.
+         * @param version Selected middleware version
+         */
+        getConfigSchema(version: string): ConfigSchema;
+        /**
+         * UNUSED - Called when a game middleware's config is loaded from the database.
+         * Allows modification / upgrading of config values before the user or launcher is able to use / edit it themselves.
+         * @param version Selected middleware version
+         * @param config Current middleware config values
+         */
+        upgradeConfig(version: string, config: any): any;
     }
 }
