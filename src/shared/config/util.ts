@@ -21,7 +21,8 @@ const configDataDefaultBase: Readonly<AppConfigData> = Object.freeze({
   logsBaseUrl: 'https://logs.unstable.life/',
   updatesEnabled: true,
   gotdUrl: 'https://download.unstable.life/gotd.json',
-  gotdShowAll: false
+  gotdShowAll: false,
+  middlewareOverridePath: 'Legacy/middleware_overrides/',
 });
 
 /**
@@ -68,17 +69,18 @@ export function overwriteConfigData(
     input: data,
     onError: onError && (e => onError(`Error while parsing Config: ${e.toString()}`)),
   });
-  parser.prop('flashpointPath',      v => source.flashpointPath      = parseVarStr(str(v)));
-  parser.prop('useCustomTitlebar',   v => source.useCustomTitlebar   = !!v);
-  parser.prop('startServer',         v => source.startServer         = !!v);
-  parser.prop('backPortMin',         v => source.backPortMin         = num(v));
-  parser.prop('backPortMax',         v => source.backPortMax         = num(v));
-  parser.prop('imagesPortMin',       v => source.imagesPortMin       = num(v));
-  parser.prop('imagesPortMax',       v => source.imagesPortMax       = num(v));
-  parser.prop('logsBaseUrl',         v => source.logsBaseUrl         = parseVarStr(str(v)));
-  parser.prop('updatesEnabled',      v => source.updatesEnabled      = !!v);
-  parser.prop('gotdUrl',             v => source.gotdUrl             = str(v));
-  parser.prop('gotdShowAll',         v => source.gotdShowAll         = !!v);
+  parser.prop('flashpointPath',         v => source.flashpointPath         = parseVarStr(str(v)));
+  parser.prop('useCustomTitlebar',      v => source.useCustomTitlebar      = !!v);
+  parser.prop('startServer',            v => source.startServer            = !!v);
+  parser.prop('backPortMin',            v => source.backPortMin            = num(v));
+  parser.prop('backPortMax',            v => source.backPortMax            = num(v));
+  parser.prop('imagesPortMin',          v => source.imagesPortMin          = num(v));
+  parser.prop('imagesPortMax',          v => source.imagesPortMax          = num(v));
+  parser.prop('logsBaseUrl',            v => source.logsBaseUrl            = parseVarStr(str(v)));
+  parser.prop('updatesEnabled',         v => source.updatesEnabled         = !!v);
+  parser.prop('gotdUrl',                v => source.gotdUrl                = str(v));
+  parser.prop('gotdShowAll',            v => source.gotdShowAll            = !!v);
+  parser.prop('middlewareOverridePath', v => source.middlewareOverridePath = str(v));
   // Do some alterations
   source.flashpointPath = fixSlashes(source.flashpointPath); // (Clean path)
   // Return

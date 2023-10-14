@@ -3,6 +3,8 @@
 // Definitions by: Colin Berry <https://github.com/colin969>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 
+/// <reference types="node" />
+
 /**
  * Based off Microsoft VSCode's extension system (MIT Licensed) https://github.com/Microsoft/vscode
  * Module is created during runtime and injected. Please read the documentation below to understand how to use these types.
@@ -18,6 +20,8 @@
 // tslint:disable:no-declare-current-package
 
 declare module 'flashpoint-launcher' {
+    import { Readable } from "stream";
+
     /** Version of the Flashpoint Launcher */
     const version: string;
 
@@ -499,25 +503,31 @@ declare module 'flashpoint-launcher' {
          * @param path Relative path to game file
          * @param stream Data stream
          */
-        function writeGameFile(path: string, stream: ReadableStream): Promise<void>;
+        function writeGameFile(path: string, stream: Readable): Promise<void>;
         /**
          * Write data to a game file path, built based on url
          * @param url Game File URL 
          * @param stream Data stream
          */
-        function writeGameFileByUrl(url: string, stream: ReadableStream): Promise<void>;
+        function writeGameFileByUrl(url: string, stream: Readable): Promise<void>;
+        /**
+         * Copy file / directory to a given url
+         * @param url Game File URL
+         * @param path Source file / directory path
+         */
+        function copyGameFilesByUrl(url: string, path: string): Promise<void>;
         /**
          * Extract a game file from a gamezip
          * @param path Relative path to game file
          * @returns Readabale data stream
          */
-        function extractGameFile(path: string): Promise<ReadableStream>;
+        function extractGameFile(path: string): Promise<Readable>;
         /**
          * Extract a game file from a gamezip, find path via url
          * @param url Game File URL
          * @returns Readable data stream
          */
-        function extractGameFileByUrl(url: string): Promise<ReadableStream>;
+        function extractGameFileByUrl(url: string): Promise<Readable>;
     }
 
     // Events
@@ -956,6 +966,8 @@ declare module 'flashpoint-launcher' {
         gotdUrl: string;
         /** Show GOTD entries later than Today */
         gotdShowAll: boolean;
+        /** Middleware override path */
+        middlewareOverridePath: string;
     };
 
     export type TagFilterGroup = {

@@ -394,6 +394,10 @@ async function createGameFromCurationMeta(gameId: string, gameMeta: CurationMeta
     activeDataOnDisk: false
   });
   game.addApps = addApps.map(addApp => createAddAppFromCurationMeta(addApp, game));
+  game.tagsStr = '';
+  if (game.tags.length > 0) {
+    game.tagsStr = game.tags.map(t => t.primaryAlias.name).join('; ');
+  }
   return game;
 }
 

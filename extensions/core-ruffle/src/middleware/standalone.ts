@@ -4,7 +4,7 @@ import { ConfigSchema, Game, GameLaunchInfo, GameMiddlewareConfig, GameMiddlewar
 import * as os from 'os';
 import * as fs from 'fs';
 import * as path from 'path';
-import { downloadFile, getGithubReleaseAsset, getPlatformRegex } from './util';
+import { downloadFile, getGithubReleaseAsset, getPlatformRegex } from '../util';
 
 // Config Schema used to configure the middleware per game
 const schema: ConfigSchema = [
@@ -154,6 +154,7 @@ type FlashVar = {
   key: string;
   value: string;
 }
+
 export class RuffleStandaloneMiddleware implements IGameMiddleware {
   id = 'com.ruffle.middleware-standalone';
   name = 'Ruffle Standalone';

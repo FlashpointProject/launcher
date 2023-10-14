@@ -3,7 +3,8 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { downloadFile, getGithubAsset, getPlatformRegex } from './util';
 import { AssetFile } from './types';
-import { RuffleStandaloneMiddleware } from './middleware';
+import { RuffleStandaloneMiddleware } from './middleware/standalone';
+import { RuffleWebEmbedMiddleware } from './middleware/embed';
 
 export async function activate(context: flashpoint.ExtensionContext): Promise<void> {
   // const registerSub = (d: flashpoint.Disposable) => { flashpoint.registerDisposable(context.subscriptions, d); };
@@ -14,6 +15,9 @@ export async function activate(context: flashpoint.ExtensionContext): Promise<vo
   // Register middleware
   const standaloneMiddleware = new RuffleStandaloneMiddleware(path.join(baseDataPath, 'standalone'));
   flashpoint.middleware.registerMiddleware(standaloneMiddleware);
+
+  const webEmbedMiddleware = new RuffleWebEmbedMiddleware(path.join(baseDataPath, 'webhosted'));
+  flashpoint.middleware.registerMiddleware(webEmbedMiddleware);
 
   // Check for Standalone updates
   const logVoid = () => {};

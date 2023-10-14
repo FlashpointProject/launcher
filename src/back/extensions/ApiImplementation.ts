@@ -35,6 +35,7 @@ import { overwritePreferenceData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import * as flashpoint from 'flashpoint-launcher';
 import * as fs from 'fs';
+import * as fsExtra from 'fs-extra';
 import { extractFull } from 'node-7z';
 import * as path from 'path';
 import { loadCurationArchive } from '..';
@@ -42,6 +43,7 @@ import { newExtLog } from './ExtensionUtils';
 import { Command, RegisteredMiddleware } from './types';
 import uuid = require('uuid');
 import { awaitDialog } from '@back/util/dialog';
+import stream = require('stream');
 
 /**
  * Create a Flashpoint API implementation specific to an extension, used during module load interception
@@ -528,11 +530,52 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
       registeredMiddleware.extId = extId;
       state.registry.middlewares.set(middleware.id, registeredMiddleware);
     },
-    writeGameFile: async (path: string, stream: ReadableStream) => {
-
+    writeGameFile: async (filePath: string, rs: stream.Readable) => {
+      // Append to overrides directory
+      const fullPath = path.join(state.config.flashpointPath, state.config.middlewareOverridePath, filePath);
+      await fs.promises.mkdir(path.dirname(fullPath), { recursive: true });
+      // Write file
+      const ws = fs.createWriteStream(fullPath);
+      log.debug('Launcher', 'Writing override file to ' + fullPath);
+      return new Promise((resolve, reject) => {
+        ws.on('error', reject);
+        ws.on('finish', resolve);
+        rs.pipe(ws);
+      });
     },
-    writeGameFileByUrl: async (url: string, stream: ReadableStream) => {
-
+    writeGameFileByUrl: async (url: string, rs: stream.Readable) => {
+      // Convert url to file path
+      let filePath = url;
+      if (url.startsWith('https://')) {
+        filePath = url.substring('https://'.length);
+      }
+      if (url.startsWith('http://')) {
+        filePath = url.substring('http://'.length);
+      }
+      const fullPath = path.join(state.config.flashpointPath, state.config.middlewareOverridePath, filePath);
+      await fs.promises.mkdir(path.dirname(fullPath), { recursive: true });
+      log.debug('Launcher', 'Writing override file to ' + fullPath);
+      // Write file
+      const ws = fs.createWriteStream(fullPath);
+      return new Promise((resolve, reject) => {
+        ws.on('error', reject);
+        ws.on('finish', resolve);
+        rs.pipe(ws);
+      });
+    },
+    copyGameFilesByUrl: async (url: string, source: string) => {
+      // Convert url to file path
+      let filePath = url;
+      if (url.startsWith('https://')) {
+        filePath = url.substring('https://'.length);
+      }
+      if (url.startsWith('http://')) {
+        filePath = url.substring('http://'.length);
+      }
+      const fullPath = path.join(state.config.flashpointPath, state.config.middlewareOverridePath, filePath);
+      await fs.promises.mkdir(path.dirname(fullPath), { recursive: true });
+      log.debug('Launcher', `Copying override from "${source}" to "${fullPath}"`);
+      return fsExtra.copy(source, fullPath);
     },
     extractGameFile: (path: string) => {
       return '' as any; // UNIMPLEMENTED
