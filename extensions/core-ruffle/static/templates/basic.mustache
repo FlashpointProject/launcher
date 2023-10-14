@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{{title}}</title>
+    <style type="text/css">
+      {{{styleData}}}
+    </style>
+  </head>
+  <body>
+    <div class="page-content">
+      <div class="game-title">{{title}}</div>
+      <div id="embed-container"></div>
+
+      <script>
+        window.RufflePlayer = window.RufflePlayer || {};
+        window.RufflePlayer.config = {
+          "allowScriptAccess": true,
+        }
+        window.addEventListener("load", (event) => {
+          const ruffle = window.RufflePlayer.newest();
+          const player = ruffle.createPlayer();
+          const container = document.getElementById("embed-container");
+          container.appendChild(player);
+          player.load("{{{sourceUrl}}}");
+        });
+      </script>
+      <script src="http://ruffle.rs/ruffle.js"></script>
+    </div>
+  </body>
+</html>

@@ -31,7 +31,8 @@ describe('Configuration Files', () => {
       'logsBaseUrl': 'https://example.com/',
       'updatesEnabled': true,
       'gotdUrl': 'dogga',
-      'gotdShowAll': true
+      'gotdShowAll': true,
+      'middlewareOverridePath': 'test'
     };
     const newData: AppConfigData = deepCopy(getDefaultConfigData('win32'));
     overwriteConfigData(newData, data);

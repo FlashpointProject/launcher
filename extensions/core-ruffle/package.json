@@ -4,31 +4,7 @@
   "description": "Required for Ruffle playback of Flash games",
   "version": "1.0.0",
   "main": "./dist/extension.js",
-  "contributes": {
-    "contextButtons": [
-      {
-        "context": "curation",
-        "runWithNoCuration": true,
-        "name": "Clear WinINet Cache",
-        "command": "core-curation.clear-wininet-cache"
-      },
-      {
-        "context": "curation",
-        "name": "Migrate to FP Navigator",
-        "command": "core-curation.fix-requirements"
-      },
-      {
-        "context": "curation",
-        "name": "Load Data Pack Into Curation",
-        "command": "core-curation.load-data-pack"
-      }, {
-        "context": "curation",
-        "runWithNoCuration": true,
-        "name": "Migrate Data Packs",
-        "command": "core-curation.migrate-data-packs"
-      }
-    ]
-  },
+  "contributes": {},
   "scripts": {
     "build": "webpack --mode development",
     "watch": "webpack --watch --mode development",
@@ -36,9 +12,11 @@
     "lint": "eslint src --ext ts"
   },
   "dependencies": {
-    "arch": "^2.2.0"
+    "arch": "^2.2.0",
+    "mustache": "^4.2.0"
   },
   "devDependencies": {
+    "@types/mustache": "^4.2.3",
     "@types/node": "18.x",
     "@typescript-eslint/eslint-plugin": "^5.21.0",
     "@typescript-eslint/parser": "^5.21.0",
