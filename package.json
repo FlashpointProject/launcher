@@ -4,6 +4,7 @@
   "description": "A desktop application used to browse, manage and play games from Flashpoint Archive",
   "main": "build/main/index.js",
   "config": {
+    "forceUpdate": 1,
     "installed": false
   },
   "scripts": {
