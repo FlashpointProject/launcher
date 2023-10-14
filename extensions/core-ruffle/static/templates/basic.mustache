@@ -10,11 +10,17 @@
     <div class="page-content">
       <div class="game-title">{{title}}</div>
       <div id="embed-container"></div>
+      <div class="button-row">
+        <button class="button-basic" onclick="(() => {
+          window.player.enterFullscreen();
+        })()">Fullscreen</button>
+      </div>
 
       <script>
         window.RufflePlayer = window.RufflePlayer || {};
         window.RufflePlayer.config = {
           "allowScriptAccess": true,
+          "autoplay": "on",
         }
         window.addEventListener("load", (event) => {
           const ruffle = window.RufflePlayer.newest();
@@ -22,6 +28,7 @@
           const container = document.getElementById("embed-container");
           container.appendChild(player);
           player.load("{{{sourceUrl}}}");
+          window.player = player;
         });
       </script>
       <script src="http://ruffle.rs/ruffle.js"></script>

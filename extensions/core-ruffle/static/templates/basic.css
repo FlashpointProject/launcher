@@ -24,3 +24,9 @@ body {
   margin-top: 1rem;
   margin-bottom: 1rem;
 }
+.button-row {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: left;
+}
