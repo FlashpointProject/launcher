@@ -29,7 +29,7 @@ const extraResources = [
   {
     from: "./extensions",
     to: "./extensions",
-    filter: ["!**/node_modules/**"],
+    filter: ["!**/node_modules/**", "!**/.git/**"],
   },
 ];
 // Files to copy after packing
