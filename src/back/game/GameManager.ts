@@ -385,6 +385,16 @@ export async function removeGameAndAddApps(gameId: string, dataPacksFolderPath: 
   const addAppRepository = AppDataSource.getRepository(AdditionalApp);
   const game = await findGame(gameId);
   if (game) {
+    // Delete GameData
+    for (const gameData of (await GameDataManager.findGameData(game.id))) {
+      if (gameData.presentOnDisk && gameData.path) {
+        await GameDataManager.onWillUninstallGameData.fire(gameData);
+        try {
+          await fs.promises.unlink(path.join(dataPacksFolderPath, gameData.path));
+        } catch { /** Assume not present on disk */ }
+      }
+      await GameDataManager.remove(gameData.id);
+    }
     // Delete logo and screenshot
     try {
       const logoPath = path.join(imageFolderPath, 'Logos', game.id.substring(0, 2), game.id.substring(2, 4), game.id+'.png');
@@ -405,15 +415,6 @@ export async function removeGameAndAddApps(gameId: string, dataPacksFolderPath: 
           await fs.promises.unlink(filePath);
         }
       } catch { /** Assume doesn't exist */ }
-    }
-    // Delete GameData
-    for (const gameData of (await GameDataManager.findGameData(game.id))) {
-      if (gameData.presentOnDisk && gameData.path) {
-        try {
-          await fs.promises.unlink(path.join(dataPacksFolderPath, gameData.path));
-        } catch { /** Assume not present on disk */ }
-      }
-      await GameDataManager.remove(gameData.id);
     }
     // Delete Add Apps
     for (const addApp of game.addApps) {
