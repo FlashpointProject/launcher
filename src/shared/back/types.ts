@@ -60,6 +60,7 @@ export enum BackIn {
   ADD_PLAYLIST_GAME,
   SAVE_PLAYLIST_GAME,
   DELETE_PLAYLIST_GAME,
+  RAISE_PLAYLIST_GAME,
   SAVE_LEGACY_PLATFORM,
   IMPORT_CURATION,
   LAUNCH_CURATION,
@@ -291,6 +292,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.ADD_PLAYLIST_GAME]: (playlistId: string, gameId: string) => void;
   [BackIn.SAVE_PLAYLIST_GAME]: (playlistId: string, data: PlaylistGame) => PlaylistGame;
   [BackIn.DELETE_PLAYLIST_GAME]: (playlistId: string, gameId: string) => PlaylistGame | null;
+  [BackIn.RAISE_PLAYLIST_GAME]: (playlistId: string, sourceIdx: number, destIdx: number) => void;
   [BackIn.SAVE_LEGACY_PLATFORM]: (platform: Legacy_GamePlatform) => void;
   [BackIn.IMPORT_CURATION]: (data: ImportCurationData) => ImportCurationResponseData;
   [BackIn.LAUNCH_CURATION]: (data: LaunchCurationData) => void;

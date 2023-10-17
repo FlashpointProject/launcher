@@ -4,24 +4,28 @@ import { memoizeOne } from '@shared/memoize';
 import * as React from 'react';
 import { ArrowKeyStepper, AutoSizer, List, ListRowProps, ScrollIndices } from 'react-virtualized-reactv17';
 import { UpdateView, ViewGameSet } from '../interfaces';
-import { findElementAncestor, getExtremeIconURL } from '../Util';
+import { findElementAncestor, gameDragDataType, getExtremeIconURL } from '../Util';
 import { GameItemContainer } from './GameItemContainer';
 import { GameListHeader } from './GameListHeader';
 import { GameListItem } from './GameListItem';
+import { GameDragData, GameDragEventData } from './pages/BrowsePage';
 /** A function that receives an HTML element. */
 type RefFunc<T extends HTMLElement> = (instance: T | null) => void;
 
 const RENDERER_OVERSCAN = 15;
 
 export type OwnProps = {
+  sourceTable: string;
   /** All games that will be shown in the list. */
   games?: ViewGameSet;
   /** Total number of games there are. */
   gamesTotal?: number;
+  /** Are we in a playlist view? */
+  insidePlaylist: boolean;
   /** Currently selected game (if any). */
   selectedGameId?: string;
-  /** Currently dragged game (if any). */
-  draggedGameId?: string;
+  /** Currently dragged game index (if any). */
+  draggedGameIndex: number | null;
   /** Height of each row in the list (in pixels). */
   rowHeight: number;
   /** Whether to render the extreme icon when possible */
@@ -37,9 +41,11 @@ export type OwnProps = {
   /** Called when the user attempts to open a context menu (at a game). */
   onContextMenu: (gameId: string) => void;
   /** Called when the user starts to drag a game. */
-  onGameDragStart: (event: React.DragEvent, gameId: string) => void;
+  onGameDragStart: (event: React.DragEvent, dragEventData: GameDragEventData) => void;
   /** Called when the user stops dragging a game (when they release it). */
-  onGameDragEnd: (event: React.DragEvent, gameId: string) => void;
+  onGameDragEnd: (event: React.DragEvent) => void;
+  /** Moves a game at the specified index above the other game at the destination index, inside tha playlist */
+  onMovePlaylistGame: (sourceIdx: number, destinationIdx: number) => void;
   updateView: UpdateView;
   /** Function for getting a reference to grid element. Called whenever the reference could change. */
   listRef?: RefFunc<HTMLDivElement>;
@@ -87,12 +93,36 @@ class _GameList extends React.Component<GameListProps> {
     }
   }
 
+  onGameDrop = (event: React.DragEvent) => {
+    const rawData = event.dataTransfer.getData(gameDragDataType);
+    if (rawData) {
+      const dragData = JSON.parse(rawData) as GameDragData;
+      console.log(`source: ${dragData.index}`);
+      const destData = this.findGameDragEventData(event.target);
+      if (destData) {
+        console.log(`dest: ${destData.index}`);
+        // Move the dropped game above the target game in the playlist
+        this.props.onMovePlaylistGame(dragData.index, destData.index);
+      }
+    }
+  };
+
+  onGameDragOver = (event: React.DragEvent): void => {
+    const types = event.dataTransfer.types;
+    if (types.length === 1 && types[0] === gameDragDataType) {
+      // Show the "You can drop here" cursor while dragging something droppable over this element
+      event.dataTransfer.dropEffect = 'copy';
+      event.preventDefault();
+    }
+  };
+
   render() {
     const games = this.props.games || [];
     // @HACK: Check if the games array changed
     // (This will cause the re-rendering of all cells any time the games prop uses a different reference)
     const gamesChanged = games !== this.currentGames;
     if (gamesChanged) { this.currentGames = games; }
+
     // Render
     return (
       <div
@@ -108,7 +138,9 @@ class _GameList extends React.Component<GameListProps> {
           onGameContextMenu={this.onGameContextMenu}
           onGameDragStart={this.onGameDragStart}
           onGameDragEnd={this.onGameDragEnd}
-          findGameId={this.findGameId}
+          onGameDrop={this.props.insidePlaylist ? this.onGameDrop : undefined}
+          onGameDragOver={this.props.insidePlaylist ? this.onGameDragOver : undefined}
+          findGameDragEventData={this.findGameDragEventData}
           onKeyPress={this.onKeyPress}>
           <AutoSizer>
             {({ width, height }) => {
@@ -154,16 +186,17 @@ class _GameList extends React.Component<GameListProps> {
   }
 
   // Renders a single row in the game list.
-  rowRenderer = (props: ListRowProps): React.ReactNode => {
+  rowRenderer = (cellProps: ListRowProps): React.ReactNode => {
     const extremeIconPath = this.extremeIconPathMemo(this.props.logoVersion);
-    const { draggedGameId, games, selectedGameId, showExtremeIcon } = this.props;
+    const { games, selectedGameId, showExtremeIcon } = this.props;
     if (!games) { throw new Error('Trying to render a row in game list, but no games are found?'); }
-    const game = games[props.index];
+    const game = games[cellProps.index];
     const platform = game?.platformName;
+
     return game ? (
       <GameListItem
-        { ...props }
-        key={props.key}
+        { ...cellProps }
+        key={cellProps.key}
         id={game.id}
         title={game.title}
         platform={platform ? platform.trim() : ''}
@@ -176,8 +209,8 @@ class _GameList extends React.Component<GameListProps> {
         logoVersion={this.props.logoVersion}
         isDraggable={true}
         isSelected={game.id === selectedGameId}
-        isDragged={game.id === draggedGameId} />
-    ) : <div key={props.key} style={props.style} />;
+        isDragged={false} /> // Bugged render update
+    ) : <div key={cellProps.key} style={cellProps.style} />;
   };
 
   onRowsRendered = (info: RowsRenderedInfo) => {
@@ -227,20 +260,19 @@ class _GameList extends React.Component<GameListProps> {
    * When a row is starting to be dragged.
    *
    * @param event React event
-   * @param gameId ID of dragged Game
+   * @param dragEventData The data of the cell being dragged
    */
-  onGameDragStart = (event: React.DragEvent, gameId: string): void => {
-    this.props.onGameDragStart(event, gameId);
+  onGameDragStart = (event: React.DragEvent, dragEventData: GameDragEventData): void => {
+    this.props.onGameDragStart(event, dragEventData);
   };
 
   /**
    * When a row is ending being dragged.
    *
    * @param event React event
-   * @param gameId ID of dragged Game
    */
-  onGameDragEnd = (event: React.DragEvent, gameId: string): void => {
-    this.props.onGameDragEnd(event, gameId);
+  onGameDragEnd = (event: React.DragEvent): void => {
+    this.props.onGameDragEnd(event);
   };
 
   /**
@@ -259,9 +291,9 @@ class _GameList extends React.Component<GameListProps> {
   };
 
   // Find a game's ID.
-  findGameId = (element: EventTarget): string | undefined => {
+  findGameDragEventData = (element: EventTarget): GameDragEventData | undefined => {
     const game = findElementAncestor(element as Element, target => GameListItem.isElement(target), true);
-    if (game) { return GameListItem.getId(game); }
+    if (game) { return GameListItem.getDragEventData(game); }
   };
 
   /** Update CSS Variables */

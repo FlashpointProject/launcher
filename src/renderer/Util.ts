@@ -9,7 +9,7 @@ import { GameOrderChangeEvent } from './components/GameOrder';
 import { Paths } from './Paths';
 import { ViewQuery } from './store/main/types';
 
-export const gameIdDataType = 'text/game-id';
+export const gameDragDataType = 'json/game-drag';
 
 /** How much the maximum/minimum game scale will scale the games up/down */
 export const gameScaleSpan = 0.6;

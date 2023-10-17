@@ -7,6 +7,7 @@ import { UpdateView, ViewGameSet } from '../interfaces';
 import { findElementAncestor, getExtremeIconURL, getGameImageURL } from '../Util';
 import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
+import { GameDragEventData } from './pages/BrowsePage';
 
 const RENDERER_OVERSCAN = 5;
 
@@ -26,8 +27,8 @@ export type GameGridProps = {
   gamesTotal?: number;
   /** Currently selected game (if any). */
   selectedGameId?: string;
-  /** Currently dragged game (if any). */
-  draggedGameId?: string;
+  /** Currently dragged game index (if any). */
+  draggedGameIndex: number | null;
   /** Width of each cell in the grid (in pixels). */
   cellWidth: number;
   /** Height of each cell in the grid (in pixels). */
@@ -41,9 +42,9 @@ export type GameGridProps = {
   /** Called when the user attempts to open a context menu (at a game). */
   onContextMenu?: (gameId: string) => void;
   /** Called when the user starts to drag a game. */
-  onGameDragStart?: (event: React.DragEvent, gameId: string) => void;
+  onGameDragStart?: (event: React.DragEvent, dragEventData: GameDragEventData) => void;
   /** Called when the user stops dragging a game (when they release it). */
-  onGameDragEnd?: (event: React.DragEvent, gameId: string) => void;
+  onGameDragEnd?: (event: React.DragEvent) => void;
   updateView: UpdateView;
   /** Function for getting a reference to grid element. Called whenever the reference could change. */
   gridRef?: RefFunc<HTMLDivElement>;
@@ -116,7 +117,7 @@ export class GameGrid extends React.Component<GameGridProps> {
         onGameContextMenu={this.onGameContextMenu}
         onGameDragStart={this.onGameDragStart}
         onGameDragEnd={this.onGameDragEnd}
-        findGameId={this.findGameId}
+        findGameDragEventData={this.findGameDragEventData}
         realRef={this.wrapperRef}
         onKeyPress={this.onKeyPress}>
         <AutoSizer>
@@ -179,7 +180,7 @@ export class GameGrid extends React.Component<GameGridProps> {
   // Renders a single cell in the game grid.
   cellRenderer = (props: GridCellProps): React.ReactNode => {
     const extremeIconPath = this.extremeIconPathMemo(this.props.logoVersion);
-    const { draggedGameId, games, gamesTotal, selectedGameId } = this.props;
+    const { games, gamesTotal, selectedGameId } = this.props;
     const index = props.rowIndex * this.columns + props.columnIndex;
     if (index < (gamesTotal || 0)) {
       const game = games[index];
@@ -196,7 +197,7 @@ export class GameGrid extends React.Component<GameGridProps> {
           logoVersion={this.props.logoVersion}
           isDraggable={true}
           isSelected={game ? game.id === selectedGameId : false}
-          isDragged={game ? game.id === draggedGameId : false} />
+          isDragged={false} /> // Bugged render update
       );
     } else {
       return undefined;
@@ -215,7 +216,7 @@ export class GameGrid extends React.Component<GameGridProps> {
           const elements = document.getElementsByClassName('game-grid-item');
           for (let i = 0; i < elements.length; i++) {
             const item = elements.item(i);
-            if (item && GameGridItem.getId(item) === id) {
+            if (item && GameGridItem.getDragEventData(item).gameId === id) {
               const img: HTMLElement | null = item.querySelector('.game-grid-item__thumb__image') as any;
               if (img) {
                 const val = img.style.backgroundImage;
@@ -282,11 +283,11 @@ export class GameGrid extends React.Component<GameGridProps> {
    * When a cell is starting to be dragged.
    *
    * @param event React event
-   * @param gameId ID of dragged Game
+   * @param dragEventData Data of the cell to be dragged
    */
-  onGameDragStart = (event: React.DragEvent, gameId: string | undefined): void => {
+  onGameDragStart = (event: React.DragEvent, dragEventData: GameDragEventData): void => {
     if (this.props.onGameDragStart) {
-      if (gameId) { this.props.onGameDragStart(event, gameId); }
+      this.props.onGameDragStart(event, dragEventData);
     }
   };
 
@@ -294,11 +295,10 @@ export class GameGrid extends React.Component<GameGridProps> {
    * When a cell is ending being dragged.
    *
    * @param event React event
-   * @param gameId ID of dragged Game
    */
-  onGameDragEnd = (event: React.DragEvent, gameId: string | undefined): void => {
+  onGameDragEnd = (event: React.DragEvent): void => {
     if (this.props.onGameDragEnd) {
-      if (gameId) { this.props.onGameDragEnd(event, gameId); }
+      this.props.onGameDragEnd(event);
     }
   };
 
@@ -318,9 +318,9 @@ export class GameGrid extends React.Component<GameGridProps> {
   };
 
   // Find a game's ID.
-  findGameId = (element: EventTarget): string | undefined => {
+  findGameDragEventData = (element: EventTarget): GameDragEventData | undefined => {
     const game = findElementAncestor(element as Element, target => GameGridItem.isElement(target), true);
-    if (game) { return GameGridItem.getId(game); }
+    if (game) { return GameGridItem.getDragEventData(game); }
   };
 
   /** Update CSS Variables. */

@@ -15,7 +15,7 @@ import * as React from 'react';
 import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowseSidebar';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { UpdateView, ViewGameSet } from '../../interfaces';
-import { gameIdDataType, gameScaleSpan } from '../../Util';
+import { gameDragDataType, gameScaleSpan } from '../../Util';
 import { LangContext } from '../../util/lang';
 import { queueOne } from '../../util/queue';
 import { FancyAnimation } from '../FancyAnimation';
@@ -29,13 +29,26 @@ import path = require('path');
 type Pick<T, K extends keyof T> = { [P in K]: T[P]; };
 type StateCallback1 = Pick<BrowsePageState, 'currentGameInfo'|'isEditingGame'|'isNewGame'|'currentPlaylistEntry'>;
 
+export type GameDragEventData = {
+  gameId: string;
+  index: number;
+}
+
+export type GameDragData = {
+  sourceTable: string;
+  gameId: string;
+  index: number;
+}
+
 type OwnProps = {
+  sourceTable: string;
   games: ViewGameSet;
   gamesTotal?: number;
   playlists: Playlist[];
   playlistIconCache: Record<string, string>;
   onSaveGame: (info: FetchedGameInfo, playlistEntry?: PlaylistGame) => Promise<FetchedGameInfo | null>;
   onDeleteGame: (gameId: string) => void;
+  onMovePlaylistGame: (sourceIdx: number, destIdx: number) => void;
   updateView: UpdateView;
 
   /** Currently selected game (if any). */
@@ -70,7 +83,7 @@ export type BrowsePageState = {
   /** Current quick search string (used to jump to a game in the list, not to filter the list). */
   quickSearch: string;
   /** Currently dragged game (if any). */
-  draggedGameId?: string;
+  draggedGameIndex: number | null;
 
   /** Buffer for the selected game (all changes are made to the game until saved). */
   currentGameInfo?: FetchedGameInfo;
@@ -113,6 +126,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       isNewGame: false,
       isEditingPlaylist: false,
       isNewPlaylist: false,
+      draggedGameIndex: null,
     };
     const assignToState = <T extends keyof BrowsePageState>(state: Pick<BrowsePageState, T>) => { Object.assign(initialState, state); };
     this.updateCurrentGame(this.props.selectedGameId, this.props.selectedPlaylistId);
@@ -165,7 +179,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   render() {
     const strings = this.context;
     const { games, selectedGameId, selectedPlaylistId } = this.props;
-    const { draggedGameId } = this.state;
+    const { draggedGameIndex } = this.state;
     const gamesTotalNum = this.props.gamesTotal != undefined ? this.props.gamesTotal : -1;
     const extremeTags = this.props.preferencesData.tagFilters.filter(t => !t.enabled && t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
     // Render
@@ -220,7 +234,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                     updateView={this.props.updateView}
                     gamesTotal={this.props.gamesTotal}
                     selectedGameId={selectedGameId}
-                    draggedGameId={draggedGameId}
+                    draggedGameIndex={draggedGameIndex}
                     extremeTags={extremeTags}
                     noRowsRenderer={this.noRowsRendererMemo(strings.browse)}
                     onGameSelect={this.onGameSelect}
@@ -237,10 +251,12 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                 const height: number = calcScale(30, this.props.preferencesData.browsePageGameScale);
                 return (
                   <GameList
+                    sourceTable={this.props.sourceTable}
                     games={games}
                     gamesTotal={this.props.gamesTotal}
+                    insidePlaylist={!!this.props.selectedPlaylistId}
                     selectedGameId={selectedGameId}
-                    draggedGameId={draggedGameId}
+                    draggedGameIndex={draggedGameIndex}
                     showExtremeIcon={this.props.preferencesData.browsePageShowExtreme}
                     extremeTags={extremeTags}
                     noRowsRenderer={this.noRowsRendererMemo(strings.browse)}
@@ -250,6 +266,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                     onGameDragStart={this.onGameDragStart}
                     onGameDragEnd={this.onGameDragEnd}
                     updateView={this.props.updateView}
+                    onMovePlaylistGame={this.onMovePlaylistGame}
                     rowHeight={height}
                     logoVersion={this.props.logoVersion}
                     listRef={this.gameGridOrListRefFunc} />
@@ -411,14 +428,23 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     }
   };
 
-  onGameDragStart = (event: React.DragEvent, gameId: string): void => {
-    this.setState({ draggedGameId: gameId });
-    event.dataTransfer.setData(gameIdDataType, gameId);
+  onGameDragStart = (event: React.DragEvent, dragEventData: GameDragEventData): void => {
+    const data: GameDragData = {
+      ...dragEventData,
+      sourceTable: this.props.sourceTable
+    };
+    console.log(data);
+    this.setState({ draggedGameIndex: dragEventData.index });
+    event.dataTransfer.setData(gameDragDataType, JSON.stringify(data));
   };
 
   onGameDragEnd = (event: React.DragEvent): void => {
-    this.setState({ draggedGameId: undefined });
-    event.dataTransfer.clearData(gameIdDataType);
+    this.setState({ draggedGameIndex: null });
+    event.dataTransfer.clearData(gameDragDataType);
+  };
+
+  onMovePlaylistGame = async (sourceIdx: number, destIdx: number): Promise<void> => {
+    this.props.onMovePlaylistGame(sourceIdx, destIdx);
   };
 
   onDeleteSelectedGame = async (): Promise<void> => {
@@ -714,10 +740,12 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   };
 
   onPlaylistDrop = (event: React.DragEvent, playlistId: string) => {
+    console.log('play drop');
     if (!this.state.isEditingPlaylist) {
-      const gameId = event.dataTransfer.getData(gameIdDataType);
-      if (gameId) {
-        window.Shared.back.send(BackIn.ADD_PLAYLIST_GAME, playlistId, gameId);
+      const rawData = event.dataTransfer.getData(gameDragDataType);
+      if (rawData) {
+        const dragData = JSON.parse(rawData) as GameDragData;
+        window.Shared.back.send(BackIn.ADD_PLAYLIST_GAME, playlistId, dragData.gameId);
       }
     }
   };

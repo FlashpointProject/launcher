@@ -317,6 +317,11 @@ export type MainAction = {
   dialogId: string;
   name: string;
   value: any;
+} | {
+  type: MainActionType.RAISE_PLAYLIST_GAME,
+  sourceIdx: number;
+  destIdx: number;
+  library: string;
 }
 
 export type WithAsyncDispatch = {

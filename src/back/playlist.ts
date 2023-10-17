@@ -64,7 +64,6 @@ export async function addPlaylistGame(state: BackState, playlistId: string, game
       playlist.games.push(
         {
           gameId,
-          order: playlist.games.reduce<number>((prev, cur) => Math.max(cur.order, prev), 0) + 1,
           notes: ''
         }
       );
@@ -138,12 +137,6 @@ export async function importPlaylist(state: BackState, filePath: string, library
             // Cancel or No
             throw 'User Cancelled';
         }
-      }
-    }
-    // Add order number if missing
-    if (newPlaylist.games.reduce((prev, cur) => prev + cur.order, 0) === 0) {
-      for (let i = 0; i < newPlaylist.games.length; i++) {
-        newPlaylist.games[i].order = i;
       }
     }
     await updatePlaylist(state, newPlaylist, newPlaylist);

@@ -77,6 +77,7 @@ export type AppRouterProps = {
   manualUrl: string,
   componentStatuses: ComponentStatus[],
   openFlashpointManager: () => void,
+  onMovePlaylistGame: (sourceIdx: number, destIdx: number) => void,
 };
 
 export class AppRouter extends React.Component<AppRouterProps> {
@@ -98,6 +99,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       openFlashpointManager: this.props.openFlashpointManager,
     };
     const browseProps: ConnectedBrowsePageProps = {
+      sourceTable: 'browse-page',
       games: this.props.games,
       updateView: this.props.updateView,
       gamesTotal: this.props.viewGamesTotal,
@@ -116,6 +118,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       gameLibrary: this.props.gameLibrary,
       logoVersion: this.props.logoVersion,
       contextButtons: this.props.contextButtons,
+      onMovePlaylistGame: this.props.onMovePlaylistGame,
     };
     const configProps: ConnectedConfigPageProps = {
       themeList: this.props.themeList,

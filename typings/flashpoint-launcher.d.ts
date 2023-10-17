@@ -832,8 +832,6 @@ declare module 'flashpoint-launcher' {
     };
 
     type PlaylistGame = {
-        /** Order priority of the game in the playlist */
-        order: number;
         /** Notes for the game inside the playlist specifically */
         notes: string;
         /** Game this represents */

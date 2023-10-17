@@ -5,10 +5,10 @@ import { camelCase, snakeCase, transform } from 'lodash';
 import * as path from 'path';
 import { DownloadDetails } from './back/types';
 import { AppConfigData } from './config/interfaces';
-import { num, str } from './utils/Coerce';
+import { str } from './utils/Coerce';
 import { IObjectParserProp, ObjectParser } from './utils/ObjectParser';
-import { throttle } from './utils/throttle';
 import { parseVariableString } from './utils/VariableString';
+import { throttle } from './utils/throttle';
 import { uuid } from './utils/uuid';
 
 const axios = axiosImport.default;
@@ -527,14 +527,12 @@ export function overwritePlaylistData(
 
 function parsePlaylistGame(parser: IObjectParserProp<any>): PlaylistGame {
   const game: PlaylistGame = {
-    order: 0,
     notes: '',
     gameId: ''
   };
   parser.prop('id',     v => game.gameId = str(v), true);
   parser.prop('gameId', v => game.gameId = str(v), true);
   parser.prop('notes',  v => game.notes  = str(v));
-  parser.prop('order',  v => game.order  = num(v));
   if (!game.gameId) {
     throw 'No ID for playlist game';
   }

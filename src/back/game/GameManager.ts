@@ -244,8 +244,8 @@ export async function findGames<T extends boolean>(opts: FindGamesOpts, shallow:
     if (opts.filter?.playlist) {
       games.sort((a, b) => {
         if (opts.filter?.playlist) {
-          const aOrder = opts.filter.playlist.games.find(p => p.gameId === a.id)?.order || 0;
-          const bOrder = opts.filter.playlist.games.find(p => p.gameId === b.id)?.order || 0;
+          const aOrder = opts.filter.playlist.games.findIndex(p => p.gameId === a.id);
+          const bOrder = opts.filter.playlist.games.findIndex(p => p.gameId === b.id);
           return aOrder - bOrder;
         }
         return 0;

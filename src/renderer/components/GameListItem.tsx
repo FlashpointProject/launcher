@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { ListRowProps } from 'react-virtualized';
 import { getPlatformIconURL } from '../Util';
+import { GameDragEventData } from './pages/BrowsePage';
+import { num } from '@shared/utils/Coerce';
 
 export type GameListItemProps = ListRowProps & {
   id: string;
@@ -22,10 +24,14 @@ export type GameListItemProps = ListRowProps & {
   isDragged: boolean;
   /** Path to the extreme icon */
   extremeIconPath: string;
+  /** Game drag event */
+  onDrop?: (event: React.DragEvent) => void;
+  onDragOver?: (event: React.DragEvent) => void;
 };
 
 export function GameListItem(props: GameListItemProps) {
-  const { id, title, platform, tagsStr, developer, publisher, extreme, isDraggable, isSelected, isDragged, extremeIconPath, showExtremeIcon, index, style } = props;
+  const { id, title, platform, tagsStr, developer, publisher, extreme, isDraggable, isSelected, isDragged, extremeIconPath, showExtremeIcon, index, style, onDrop,
+    onDragOver } = props;
   // Get the platform icon path
   const platformIcon = React.useMemo(() => (
     getPlatformIconURL(platform, props.logoVersion)
@@ -43,12 +49,15 @@ export function GameListItem(props: GameListItemProps) {
     // Set element attributes
     const attributes: any = {};
     attributes[GameListItem.idAttribute] = id;
+    attributes[GameListItem.indexAttribute] = index;
     // Render
     return (
       <li
         style={style}
         className={className}
         draggable={isDraggable}
+        onDrop={onDrop}
+        onDragOver={onDragOver}
         { ...attributes }>
         { showExtremeIcon &&
           (extreme ? (
@@ -86,22 +95,27 @@ export function GameListItem(props: GameListItemProps) {
         </div>
       </li>
     );
-  }, [style, className, isDraggable, id, tagsStr, title, platformIcon]);
+  }, [style, className, isDraggable, id, tagsStr, title, platformIcon, onDrop, onDragOver]);
 }
 
 export namespace GameListItem {
   /** ID of the attribute used to store the game's id. */
   export const idAttribute = 'data-game-id';
+  export const indexAttribute = 'data-game-index';
 
   /**
-   * Get the id of the game displayed in a GameListItem element (or throw an error if it fails).
+   * Get the data of the game displayed in a GameListItem element (or throw an error if it fails).
    *
    * @param element GameListItem element.
    */
-  export function getId(element: Element): string {
-    const value = element.getAttribute(GameListItem.idAttribute);
-    if (typeof value !== 'string') { throw new Error('Failed to get ID from GameListItem element. Attribute not found.'); }
-    return value;
+  export function getDragEventData(element: Element): GameDragEventData {
+    const gameId = element.getAttribute(GameListItem.idAttribute);
+    const index = num(element.getAttribute(GameListItem.indexAttribute));
+    if (typeof gameId !== 'string') { throw new Error('Failed to get ID from GameListItem element. Attribute not found.'); }
+    return {
+      gameId,
+      index
+    };
   }
 
   /**

@@ -1,6 +1,8 @@
+import { num } from '@shared/utils/Coerce';
 import * as React from 'react';
 import { GridCellProps } from 'react-virtualized';
 import { getPlatformIconURL } from '../Util';
+import { GameDragEventData } from './pages/BrowsePage';
 
 export type GameGridItemProps = Partial<GridCellProps> & {
   id: string;
@@ -19,11 +21,13 @@ export type GameGridItemProps = Partial<GridCellProps> & {
   isDragged: boolean;
   /** Path to the extreme icon */
   extremeIconPath: string;
+  /** On Drop event */
+  onDrop?: (event: React.DragEvent) => void;
 };
 
 // Displays a single game. Meant to be rendered inside a grid.
 export function GameGridItem(props: GameGridItemProps) {
-  const { id, title, platforms, thumbnail, extreme, isDraggable, isSelected, isDragged, extremeIconPath, style } = props;
+  const { rowIndex, id, title, platforms, thumbnail, extreme, isDraggable, isSelected, isDragged, extremeIconPath, style, onDrop } = props;
   // Get the platform icon path
   const platformIcons = React.useMemo(() =>
     platforms.slice(0, 5).map(p => getPlatformIconURL(p, props.logoVersion))
@@ -40,12 +44,14 @@ export function GameGridItem(props: GameGridItemProps) {
     // Set element attributes
     const attributes: any = {};
     attributes[GameGridItem.idAttribute] = id;
+    attributes[GameGridItem.indexAttribute] = rowIndex;
     // Render
     return (
       <li
         style={style}
         className={className}
         draggable={isDraggable}
+        onDrop={onDrop}
         { ...attributes }>
         <div className='game-grid-item__thumb'>
           <div
@@ -79,16 +85,21 @@ export function GameGridItem(props: GameGridItemProps) {
 export namespace GameGridItem {
   /** ID of the attribute used to store the game's id. */
   export const idAttribute = 'data-game-id';
+  export const indexAttribute = 'data-game-index';
 
   /**
    * Get the id of the game displayed in a GameGridItem element (or throw an error if it fails).
    *
    * @param element GameGridItem element.
    */
-  export function getId(element: Element): string {
-    const value = element.getAttribute(GameGridItem.idAttribute);
-    if (typeof value !== 'string') { throw new Error('Failed to get ID from GameGridItem element. Attribute not found.'); }
-    return value;
+  export function getDragEventData(element: Element): GameDragEventData {
+    const gameId = element.getAttribute(GameGridItem.idAttribute);
+    const index = num(element.getAttribute(GameGridItem.indexAttribute));
+    if (typeof gameId !== 'string') { throw new Error('Failed to get ID from GameListItem element. Attribute not found.'); }
+    return {
+      gameId,
+      index
+    };
   }
 
   /**

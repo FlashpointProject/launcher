@@ -988,6 +988,10 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
   state.socketServer.register(BackIn.BROWSE_VIEW_PAGE, async (event, data) => {
     data.query.filter = adjustGameFilter(data.query.filter);
+    if (data.query.filter.playlist) {
+      // Replace with backend copy of playlist
+      data.query.filter.playlist = state.playlists.find(p => p.id === data.query.filter.playlist?.id);
+    }
     const results = await GameManager.findGames({
       ranges: data.ranges,
       filter: data.query.filter,
@@ -1289,6 +1293,41 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
   state.socketServer.register(BackIn.DELETE_PLAYLIST_GAME, async (event, playlistId, gameId) => {
     return deletePlaylistGame(state, playlistId, gameId);
+  });
+
+  state.socketServer.register(BackIn.RAISE_PLAYLIST_GAME, async (event, playlistId, sourceIdx, destIdx) => {
+    const playlistIdx = state.playlists.findIndex(p => p.id === playlistId);
+    if (playlistIdx > -1 && state.playlists[playlistIdx].filePath) {
+      const playlist = state.playlists[playlistIdx];
+      const maxIndex = playlist.games.length;
+      if (maxIndex < Math.max(sourceIdx, destIdx)) {
+        alert('Out of bounds?');
+        return;
+      }
+
+      const movedGame = playlist.games[sourceIdx];
+
+      // If moving a game higher, move elements down. If moving a game lower, move elements up.
+      const reverse = sourceIdx < destIdx;
+      const upperBound = Math.max(destIdx, sourceIdx);
+      const lowerBound = Math.min(destIdx, sourceIdx);
+      if (reverse) {
+        // Moving games up the list
+        for (let i = lowerBound; i < upperBound; i++) {
+          playlist.games[i] = playlist.games[i + 1];
+        }
+        playlist.games[destIdx] = movedGame;
+      } else {
+        // Moving games down the list
+        for (let i = upperBound; i > lowerBound; i--) {
+          playlist.games[i] = playlist.games[i - 1];
+        }
+        playlist.games[destIdx] = movedGame;
+      }
+
+      state.playlists[playlistIdx] = playlist;
+      await PlaylistFile.saveFile(playlist.filePath, playlist);
+    }
   });
 
   state.socketServer.register(BackIn.EXPORT_PLAYLIST, async (event, playlistId, filePath) => {

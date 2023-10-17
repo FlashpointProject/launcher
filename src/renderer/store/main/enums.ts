@@ -91,6 +91,8 @@ export enum MainActionType {
   UPDATE_DIALOG_MESSAGE = '@@main/UPDATE_DIALOG_MESSAGE',
   /** Update Dialog Field Value */
   UPDATE_DIALOG_FIELD_VALUE = '@@main/UPDATE_DIALOG_FIELD_VALUE',
+  /** Raise a playlist game above another */
+  RAISE_PLAYLIST_GAME = '@@main/RAISE_PLAYLIST_GAME',
 }
 
 export enum RequestState {

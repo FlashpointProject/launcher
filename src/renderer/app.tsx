@@ -1314,6 +1314,19 @@ export class App extends React.Component<AppProps> {
     };
   });
 
+  onMovePlaylistGame = async (sourceIdx: number, destIdx: number) => {
+    if (this.props.main.selectedPlaylistId && (sourceIdx !== destIdx)) {
+      // Send swap to backend, reflect on frontend immediately
+      const library = getBrowseSubPath(this.props.location.pathname);
+      this.props.dispatchMain({
+        type: MainActionType.RAISE_PLAYLIST_GAME,
+        sourceIdx,
+        destIdx,
+        library
+      });
+    }
+  };
+
   copyCrashLog = () => {
     clipboard.writeText(this.props.main.mainOutput || '');
   };
@@ -1326,6 +1339,7 @@ export class App extends React.Component<AppProps> {
 
     // Props to set to the router
     const routerProps: AppRouterProps = {
+      onMovePlaylistGame: this.onMovePlaylistGame,
       fpfssUser: this.props.main.fpfss.user,
       gotdList: this.props.main.gotdList,
       games: view && view.games || {},

@@ -25,7 +25,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
 
       if (!view) { return state; }
 
-      const playlist = (action.playlist != null)
+      const playlist = (action.playlist !== undefined)
         ? action.playlist
         : view.query.filter.playlist;
 
@@ -676,6 +676,52 @@ export function mainStateReducer(state: MainState = createInitialState(), action
         return {
           ...state,
           openDialogs: dialogs
+        };
+      }
+      return state;
+    }
+
+    case MainActionType.RAISE_PLAYLIST_GAME: {
+      if (state.selectedPlaylistId) {
+        // Try and do frontend swap first
+        const newViews = {...state.views};
+        const newView = deepCopy(newViews[action.library]);
+        // Get maximum index
+        if (newView) {
+          const maxIndex = Object.keys(newView.games).map(Number).reduce((prev, cur) => prev < cur ? cur : prev, -1);
+          if (maxIndex < Math.max(action.sourceIdx, action.destIdx)) {
+            alert('Out of bounds?');
+            return state;
+          }
+
+          const movedGame = newView.games[action.sourceIdx];
+
+          // If moving a game higher, move elements down. If moving a game lower, move elements up.
+          const reverse = action.sourceIdx < action.destIdx;
+          const upperBound = Math.max(action.destIdx, action.sourceIdx);
+          const lowerBound = Math.min(action.destIdx, action.sourceIdx);
+          if (reverse) {
+            // Moving games up the list
+            for (let i = lowerBound; i < upperBound; i++) {
+              newView.games[i] = newView.games[i + 1];
+            }
+            newView.games[action.destIdx] = movedGame;
+          } else {
+            // Moving games down the list
+            for (let i = upperBound; i > lowerBound; i--) {
+              newView.games[i] = newView.games[i - 1];
+            }
+            newView.games[action.destIdx] = movedGame;
+          }
+
+          // Ask backend to update the order
+          window.Shared.back.send(BackIn.RAISE_PLAYLIST_GAME, state.selectedPlaylistId, action.sourceIdx, action.destIdx);
+
+          newViews[action.library] = newView;
+        }
+        return {
+          ...state,
+          views: newViews,
         };
       }
       return state;
