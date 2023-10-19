@@ -459,6 +459,11 @@ body {
   height: 18px;
   -webkit-app-region: drag; /* Dragging this moves the window */
 }
+.title-bar__build {
+  font-size: 0.85rem;
+  align-self: center;
+  margin-right: 0.5rem;
+}
 /* Title */
 .title-bar__title {
   display: inline;

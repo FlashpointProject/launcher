@@ -15,6 +15,7 @@ import { GameTagsStr1613571078561 } from '@database/migration/1613571078561-Game
 import { GameDataParams1619885915109 } from '@database/migration/1619885915109-GameDataParams';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
 import { Theme } from '@shared/ThemeFile';
+import { VERSION } from '@shared/version';
 import {
   createErrorProxy, deepCopy,
   removeFileExtension,
@@ -322,6 +323,7 @@ async function main() {
 }
 
 async function prepForInit(message: any): Promise<void> {
+  console.log(`--- Build Version: ${VERSION} ---`);
   console.log('Back - Initializing...');
 
   const content: BackInitArgs = JSON.parse(message);
@@ -346,6 +348,8 @@ async function prepForInit(message: any): Promise<void> {
     warn:  logFactory(LogLevel.WARN,  state.socketServer, addLog, state.logFile, state.verbose, state.apiEmitters.onLog),
     error: logFactory(LogLevel.ERROR, state.socketServer, addLog, state.logFile, state.verbose, state.apiEmitters.onLog)
   };
+
+  log.info('Launcher', `Build Version: ${VERSION}`);
 
   state.socketServer.secret = content.secret;
 

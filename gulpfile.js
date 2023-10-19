@@ -5,6 +5,7 @@ const builder = require("electron-builder");
 const { parallel, series } = require("gulp");
 const { installExtensions, buildExtensions, watchExtensions } = require("./gulpfile.extensions");
 const { execute } = require("./gulpfile.util");
+const { execSync } = require('child_process');
 
 const packageJson = JSON.parse(fs.readFileSync("./package.json", { encoding: 'utf-8' }));
 const config = {
@@ -150,6 +151,37 @@ function configVersion(done) {
   fs.writeFile(".version", config.buildVersion, done);
 }
 
+/* ----- Version ---- */
+
+function createVersionFile(done) {
+  // Get the current date
+  const currentDate = new Date();
+
+  // Get the year, month, and day components
+  const year = currentDate.getFullYear();
+  // JavaScript months are 0-indexed, so we add 1 to get the actual month
+  const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+  const day = currentDate.getDate().toString().padStart(2, '0');
+
+  // Create the formatted date string in "YYYY-MM-DD" format
+  const formattedDate = `${year}-${month}-${day}`;
+
+  // Get Git Commit Hash
+  const gitCommitHash = execSync('git rev-parse --short HEAD', { encoding: 'utf-8' }).trim();
+
+  const data = `export const VERSION = '${formattedDate} (${gitCommitHash})';\n`
+
+  // Write to src/shared/version.ts
+  fs.writeFile('src/shared/version.ts', data, (err) => {
+    if (err) {
+      throw `Error writing to version.ts: ${err}`;
+    } else {
+      console.log(`Build ver: "${formattedDate} (${gitCommitHash})"`);
+      done();
+    }
+  });
+}
+
 /* ------ Pack ------ */
 
 function nexusPack(done) {
@@ -254,6 +286,7 @@ exports.clean = series(clean);
 
 exports.build = series(
   clean,
+  createVersionFile,
   parallel(
     buildRust,
     buildBack,
@@ -266,6 +299,7 @@ exports.build = series(
 
 exports.watch = series(
   clean,
+  createVersionFile,
   parallel(
     buildRust,
     watchBack,
