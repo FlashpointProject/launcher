@@ -1044,7 +1044,7 @@ async function initialize() {
 }
 
 function getCurationFilePath(folder: string, relativePath: string) {
-  return path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, folder, relativePath);
+  return path.resolve(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, folder, relativePath);
 }
 
 async function onUpdateCurationFile(folder: string, relativePath: string, data: Buffer) {

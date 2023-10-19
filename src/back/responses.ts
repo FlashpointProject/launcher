@@ -2071,7 +2071,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
   state.socketServer.register(BackIn.CURATE_EXPORT_DATA_PACK, async (event, curations, taskId) => {
     const bluezipPath = pathToBluezip(state.isDev, state.exePath);
-    const dataPackFolder = path.join(state.config.flashpointPath, CURATIONS_FOLDER_EXPORTED, 'Data Packs');
+    const dataPackFolder = path.resolve(state.config.flashpointPath, CURATIONS_FOLDER_EXPORTED, 'Data Packs');
     await fs.ensureDir(dataPackFolder);
     let processed = 0;
 
@@ -2152,15 +2152,15 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       taskProgress.setStage(processed, `Exporting ${curation.game.title || curation.folder}`);
       // Find most appropriate filepath based on what already exists
       const name = (curation.game.title ? sanitizeFilename(curation.game.title) : curation.folder);
-      const filePathCheck = path.join(state.config.flashpointPath, CURATIONS_FOLDER_EXPORTED, `${name}.7z`);
+      const filePathCheck = path.resolve(state.config.flashpointPath, CURATIONS_FOLDER_EXPORTED, `${name}.7z`);
       const filePath = await fs.promises.access(filePathCheck, fs.constants.F_OK)
       .then(() => {
         // Exists, use date instead
-        return path.join(state.config.flashpointPath, CURATIONS_FOLDER_EXPORTED, `${name}_${dateToFilenameString(new Date())}.7z`);
+        return path.resolve(state.config.flashpointPath, CURATIONS_FOLDER_EXPORTED, `${name}_${dateToFilenameString(new Date())}.7z`);
       })
       .catch(() => { return filePathCheck; /** Doesn't exist, carry on */ });
       await fs.ensureDir(path.dirname(filePath));
-      const curPath = path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, curation.folder);
+      const curPath = path.resolve(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, curation.folder);
       await saveCuration(curPath, curation);
       await new Promise<void>((resolve) => {
         return add(filePath, curPath, { recursive: true, $bin: pathTo7zBack(state.isDev, state.exePath) })
@@ -2183,7 +2183,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.CURATE_SCAN_NEW_CURATIONS, async () => {
-    const curationsPath = path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING);
+    const curationsPath = path.resolve(state.config.flashpointPath, CURATIONS_FOLDER_WORKING);
     await fs.ensureDir(curationsPath);
     const curations = await fs.promises.readdir(curationsPath, { withFileTypes: true });
     for (const curation of curations) {
@@ -2206,7 +2206,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   state.socketServer.register(BackIn.CURATE_CREATE_CURATION, async (event, folder, meta) => {
     const existingCuration = state.loadedCurations.find(c => c.folder === folder);
     if (!existingCuration) {
-      const curPath = path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, folder);
+      const curPath = path.resolve(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, folder);
       await fs.promises.mkdir(curPath, { recursive: true });
       const contentFolder = path.join(curPath, 'content');
       await fs.promises.mkdir(contentFolder, { recursive: true });
