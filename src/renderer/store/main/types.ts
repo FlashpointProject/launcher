@@ -318,10 +318,13 @@ export type MainAction = {
   name: string;
   value: any;
 } | {
-  type: MainActionType.RAISE_PLAYLIST_GAME,
+  type: MainActionType.RAISE_PLAYLIST_GAME;
   sourceIdx: number;
   destIdx: number;
   library: string;
+} | {
+  type: MainActionType.VIEW_INDEX_CHANGED;
+  index: string;
 }
 
 export type WithAsyncDispatch = {

@@ -747,9 +747,25 @@ export class App extends React.Component<AppProps> {
 
   componentDidUpdate(prevProps: AppProps) {
     if (this.props.main.loadedAll.isOpen) {
+      let selectedPlaylistId = this.props.main.selectedPlaylistId;
       const { history, location, preferencesData } = this.props;
       const library = getBrowseSubPath(this.props.location.pathname);
       const view = this.props.main.views[library];
+
+      // Force update certain variables if the view index has changed
+      if (getBrowseSubPath(prevProps.location.pathname) !== library) {
+        this.props.dispatchMain({
+          type: MainActionType.VIEW_INDEX_CHANGED,
+          index: library
+        });
+        // Update the selected playlist id for the rest of the logic
+        const view = this.props.main.views[library];
+        if (view) {
+          if (view.query.filter.playlist?.id !== selectedPlaylistId) {
+            selectedPlaylistId = view.query.filter.playlist?.id;
+          }
+        }
+      }
 
       // Check if theme changed
       if (preferencesData.currentTheme !== prevProps.preferencesData.currentTheme) {
@@ -813,7 +829,7 @@ export class App extends React.Component<AppProps> {
         ) {
           orderUpdate = true;
         }
-        if (!!view.query.filter.playlist || !!this.props.main.selectedPlaylistId) {
+        if (!!view.query.filter.playlist || selectedPlaylistId) {
           orderUpdate = false;
         }
 
@@ -874,14 +890,13 @@ export class App extends React.Component<AppProps> {
         }
       }
 
-      const v = this.props.main.views[library];
       // Check if the meta has not yet been requested
-      if (v && v.metaState === RequestState.WAITING) {
+      if (view && view.metaState === RequestState.WAITING) {
         // Flag meta as requested
         this.props.dispatchMain({
           type: MainActionType.REQUEST_VIEW_META,
           library: library,
-          queryId: v.queryId,
+          queryId: view.queryId,
         });
       }
 
@@ -889,11 +904,11 @@ export class App extends React.Component<AppProps> {
 
       // Check if it started or ended editing
       if (this.props.main.isEditingGame != prevProps.main.isEditingGame) {
-        this.updateCurrentGame(this.props.main.selectedGameId, this.props.main.selectedPlaylistId);
+        this.updateCurrentGame(this.props.main.selectedGameId, selectedPlaylistId);
       }
       // Update current game and add-apps if the selected game changes
       if (this.props.main.selectedGameId && this.props.main.selectedGameId !== prevProps.main.selectedGameId) {
-        this.updateCurrentGame(this.props.main.selectedGameId, this.props.main.selectedPlaylistId);
+        this.updateCurrentGame(this.props.main.selectedGameId, selectedPlaylistId);
         this.props.setMainState({ isEditingGame: false });
       }
 

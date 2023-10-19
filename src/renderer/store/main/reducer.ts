@@ -13,6 +13,7 @@ import { ConnectedMainAction, MainState, View, ViewPageStates } from './types';
 export const RANDOM_GAME_ROW_COUNT = 6;
 
 export function mainStateReducer(state: MainState = createInitialState(), action: ConnectedMainAction): MainState {
+
   switch (action.type) {
     case MainActionType.SET_STATE:
       return {
@@ -743,6 +744,20 @@ export function mainStateReducer(state: MainState = createInitialState(), action
           ...state,
           openDialogs: dialogs
         };
+      }
+      return state;
+    }
+
+    case MainActionType.VIEW_INDEX_CHANGED: {
+      const view = state.views[action.index];
+      if (view) {
+        const newState = {...state};
+        if (view.query.filter.playlist?.id !== newState.selectedPlaylistId) {
+          newState.selectedPlaylistId = view.query.filter.playlist?.id;
+          newState.currentPlaylist = undefined;
+          newState.currentPlaylistEntry = undefined;
+          return newState;
+        }
       }
       return state;
     }

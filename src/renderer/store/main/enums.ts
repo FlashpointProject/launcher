@@ -93,6 +93,8 @@ export enum MainActionType {
   UPDATE_DIALOG_FIELD_VALUE = '@@main/UPDATE_DIALOG_FIELD_VALUE',
   /** Raise a playlist game above another */
   RAISE_PLAYLIST_GAME = '@@main/RAISE_PLAYLIST_GAME',
+  /** Adjusts the main state to match the view we're changing to */
+  VIEW_INDEX_CHANGED = '@@main/VIEW_INDEX_CHANGED',
 }
 
 export enum RequestState {
