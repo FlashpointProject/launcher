@@ -995,8 +995,11 @@ async function initialize() {
     }
     // Run processes
     if (state.serviceInfo.server.length > 0) {
-      const chosenServer = state.serviceInfo.server.find(i => i.name === state.preferences.server);
-      runService(state, 'server', 'Server', state.config.flashpointPath, {}, chosenServer || state.serviceInfo.server[0]);
+      let chosenServer = state.serviceInfo.server.find(i => i.name === state.preferences.server);
+      if (!chosenServer) {
+        chosenServer = state.serviceInfo.server[0];
+      }
+      runService(state, 'server', 'Server', state.config.flashpointPath, { detached: !chosenServer.kill, noshell: !!chosenServer.kill }, chosenServer);
     }
     // Start daemons
     for (let i = 0; i < state.serviceInfo.daemon.length; i++) {
