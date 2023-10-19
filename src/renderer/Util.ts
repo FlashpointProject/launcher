@@ -8,6 +8,9 @@ import * as path from 'path';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { Paths } from './Paths';
 import { ViewQuery } from './store/main/types';
+import { GameDragEventData } from './components/pages/BrowsePage';
+import { GameGridItem } from './components/GameGridItem';
+import { GameListItem } from './components/GameListItem';
 
 export const gameDragDataType = 'json/game-drag';
 
@@ -305,4 +308,14 @@ export function getBrowseSubPath(urlPath: string): string {
     return str;
   }
   return '';
+}
+
+export function findGameDragEventDataGrid(element: EventTarget): GameDragEventData | undefined {
+  const game = findElementAncestor(element as Element, target => GameGridItem.isElement(target), true);
+  if (game) { return GameGridItem.getDragEventData(game); }
+}
+
+export function findGameDragEventDataList(element: EventTarget): GameDragEventData | undefined {
+  const game = findElementAncestor(element as Element, target => GameListItem.isElement(target), true);
+  if (game) { return GameListItem.getDragEventData(game); }
 }

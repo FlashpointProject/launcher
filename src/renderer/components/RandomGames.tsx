@@ -3,7 +3,7 @@ import { LangContext } from '@renderer/util/lang';
 import { ViewGame } from '@shared/back/types';
 import { LOGOS } from '@shared/constants';
 import * as React from 'react';
-import { findElementAncestor, getExtremeIconURL, getGameImageURL } from '../Util';
+import { findGameDragEventDataGrid, getExtremeIconURL, getGameImageURL } from '../Util';
 import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
 import { HomePageBox } from './HomePageBox';
@@ -70,7 +70,7 @@ export function RandomGames(props: RandomGamesProps) {
         onGameContextMenu={onGameContextMenu}
         onGameSelect={onGameSelect}
         onGameLaunch={onLaunchGame}
-        findGameId={findGameId}>
+        findGameDragEventData={findGameDragEventDataGrid}>
         {gameItems}
       </GameItemContainer>
       <SimpleButton
@@ -88,14 +88,4 @@ export function RandomGames(props: RandomGamesProps) {
         {render}
     </HomePageBox>
   );
-}
-
-/**
- * Try getting a game ID by checking an element and all of its ancestors.
- *
- * @param element Element or sub-element of a game.
- */
-function findGameId(element: EventTarget): string | undefined {
-  const game = findElementAncestor(element as Element, target => GameGridItem.isElement(target), true);
-  if (game) { return GameGridItem.getId(game); }
 }

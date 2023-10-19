@@ -15,7 +15,7 @@ import ReactMarkdown from 'react-markdown';
 import { Link } from 'react-router-dom';
 import remarkGfm from 'remark-gfm';
 import { Paths } from '../../Paths';
-import { getExtremeIconURL, getGameImageURL, getPlatformIconURL, joinLibraryRoute } from '../../Util';
+import { findGameDragEventDataGrid, getExtremeIconURL, getGameImageURL, getPlatformIconURL, joinLibraryRoute } from '../../Util';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { WithSearchProps } from '../../containers/withSearch';
 import { LangContext } from '../../util/lang';
@@ -276,8 +276,10 @@ export function HomePage(props: HomePageProps) {
     if (selectedGotd) {
       window.Shared.back.request(BackIn.GET_GAME, selectedGotd.id)
       .then((fetchedInfo) => {
-        const game = fetchedInfo.game;
-        setLoadedGotd(game);
+        if (fetchedInfo) {
+          const game = fetchedInfo.game;
+          setLoadedGotd(game);
+        }
       });
     }
   }, [selectedGotd]);
@@ -301,7 +303,7 @@ export function HomePage(props: HomePageProps) {
                   onGameContextMenu={(event, gameId) => props.onGameContextMenu(gameId)}
                   onGameSelect={(event, gameId) => props.onGameSelect(gameId)}
                   onGameLaunch={(event, gameId) => props.onLaunchGame(gameId)}
-                  findGameId={() => loadedGotd.id}>
+                  findGameDragEventData={findGameDragEventDataGrid}>
                   <GameGridItem
                     key={loadedGotd.id}
                     id={loadedGotd.id}
