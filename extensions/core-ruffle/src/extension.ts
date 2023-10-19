@@ -8,7 +8,7 @@ import { RuffleWebEmbedMiddleware } from './middleware/embed';
 
 export async function activate(context: flashpoint.ExtensionContext): Promise<void> {
   // const registerSub = (d: flashpoint.Disposable) => { flashpoint.registerDisposable(context.subscriptions, d); };
-  const baseDataPath = path.join(flashpoint.config.flashpointPath, 'Data', 'Ruffle');
+  const baseDataPath = path.resolve(flashpoint.config.flashpointPath, 'Data', 'Ruffle');
   const ruffleWebLatestDir = path.join(baseDataPath, 'webhosted', 'latest');
   const ruffleStandaloneLatestDir = path.join(baseDataPath, 'standalone', 'latest');
 
