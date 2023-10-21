@@ -122,6 +122,9 @@ export function main(init: Init): void {
     ipcMain.handle(CustomIPC.SHOW_SAVE_DIALOG, async (event, opts) => {
       return dialog.showSaveDialog(opts);
     });
+    ipcMain.handle(CustomIPC.REGISTER_PROTOCOL, async (event, register) => {
+      return setProtocolRegistrationState(register);
+    });
 
     // Add Socket event listener(s)
     state.socket.register(BackOut.QUIT, () => {

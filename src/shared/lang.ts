@@ -84,6 +84,8 @@ const langTemplate = {
     'optimizeDatabaseDesc',
     'showDeveloperTab',
     'showDeveloperTabDesc',
+    'registerProtocol',
+    'registerProtocolDesc',
     'server',
     'serverDesc',
     'curateServer',
