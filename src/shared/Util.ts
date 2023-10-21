@@ -1,15 +1,12 @@
 import * as axiosImport from 'axios';
-import { Game, Playlist, PlaylistGame, Tag, TagCategory, TagFilterGroup } from 'flashpoint-launcher';
+import { Game, Tag, TagCategory, TagFilterGroup } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import { camelCase, snakeCase, transform } from 'lodash';
 import * as path from 'path';
 import { DownloadDetails } from './back/types';
 import { AppConfigData } from './config/interfaces';
-import { str } from './utils/Coerce';
-import { IObjectParserProp, ObjectParser } from './utils/ObjectParser';
 import { parseVariableString } from './utils/VariableString';
 import { throttle } from './utils/throttle';
-import { uuid } from './utils/uuid';
 
 const axios = axiosImport.default;
 
@@ -496,47 +493,6 @@ export function compare(a: string, b: string): number {
   } else {
     return 0;
   }
-}
-
-export function overwritePlaylistData(
-  source: Playlist,
-  data: Partial<Playlist>,
-  onError?: (error: string) => void
-): Playlist {
-  const parser = new ObjectParser({
-    input: data,
-    onError: onError && (e => onError(`Error while parsing Playlist: ${e.toString()}`)),
-  });
-  parser.prop('id',          v => source.id          = str(v), true);
-  parser.prop('title',       v => source.title       = str(v));
-  parser.prop('description', v => source.description = str(v));
-  parser.prop('icon',        v => source.icon        = str(v));
-  parser.prop('library',     v => source.library     = str(v));
-  parser.prop('author',      v => source.author      = str(v));
-  parser.prop('extreme',     v => source.extreme     = !!v);
-  if (!source.id) {
-    source.id = uuid();
-  }
-  if (data.games) {
-    const newGames: PlaylistGame[] = [];
-    parser.prop('games').array((item, index) => newGames.push(parsePlaylistGame(item as IObjectParserProp<PlaylistGame>)));
-    source.games = newGames;
-  }
-  return source;
-}
-
-function parsePlaylistGame(parser: IObjectParserProp<any>): PlaylistGame {
-  const game: PlaylistGame = {
-    notes: '',
-    gameId: ''
-  };
-  parser.prop('id',     v => game.gameId = str(v), true);
-  parser.prop('gameId', v => game.gameId = str(v), true);
-  parser.prop('notes',  v => game.notes  = str(v));
-  if (!game.gameId) {
-    throw 'No ID for playlist game';
-  }
-  return game;
 }
 
 export function mapFpfssGameToLocal(data: any, categories: TagCategory[]): Game {
