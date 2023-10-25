@@ -438,23 +438,25 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
               ) }
             </div>
             {/* -- Game Configurations */}
-            <div className='browse-right-sidebar__game-config-row'>
-              <div className='browse-right-sidebar__game-config-label'>
-                {'Configuration:'}
+            { !this.props.fpfssEditMode && (
+              <div className='browse-right-sidebar__game-config-row'>
+                <div className='browse-right-sidebar__game-config-label'>
+                  {'Configuration:'}
+                </div>
+                <Dropdown
+                  className={`browse-right-sidebar__game-config-dropdown ${this.props.currentGameInfo?.activeConfig ? '' : 'browse-right-sidebar__game-config-dropdown-none'}`}
+                  text={activeConfig ? `${configNamePrefix}${activeConfig.name}` : 'No Configuration'}>
+                  {gameConfigDropdown}
+                </Dropdown>
+                <div
+                  onClick={() => {
+                    this.openGameConfigDialog();
+                  }}
+                  className='browse-right-sidebar__game-config-cog browse-right-sidebar__title-row__buttons__save-button'>
+                  <OpenIcon icon={'cog'}/>
+                </div>
               </div>
-              <Dropdown
-                className={`browse-right-sidebar__game-config-dropdown ${this.props.currentGameInfo?.activeConfig ? '' : 'browse-right-sidebar__game-config-dropdown-none'}`}
-                text={activeConfig ? `${configNamePrefix}${activeConfig.name}` : 'No Configuration'}>
-                {gameConfigDropdown}
-              </Dropdown>
-              <div
-                onClick={() => {
-                  this.openGameConfigDialog();
-                }}
-                className='browse-right-sidebar__game-config-cog browse-right-sidebar__title-row__buttons__save-button'>
-                <OpenIcon icon={'cog'}/>
-              </div>
-            </div>
+            )}
             {/** Mini download info */}
             <div className='browse-right-sidebar__mini-download-info'>
               <div className='browse-right-sidebar__mini-download-info__state'>
