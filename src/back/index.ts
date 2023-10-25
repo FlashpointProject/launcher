@@ -538,17 +538,19 @@ async function prepForInit(message: any): Promise<void> {
   const playlistDir = path.join(state.config.flashpointPath, state.preferences.playlistFolderPath);
   const playlistFiles = await fs.promises.readdir(playlistDir, { withFileTypes: true });
   for (const file of playlistFiles.filter(f => f.isFile() && f.name.endsWith('.json'))) {
-    const playlist = await PlaylistFile.readFile(path.join(playlistDir, file.name), (err) => {
-      console.error('Launcher', `Failed to load Playlist ${file.name}, ERROR:\n${err}`);
-    });
-    // Check for ID collision
-    const collisionIdx = state.playlists.findIndex(p => p.id === playlist.id);
-    if (collisionIdx > -1) {
-      const oldId = playlist.id;
-      playlist.id = uuid();
-      log.warn('Launcher', `Playlist ID Collision - Renamed ID for ${playlist.title} (${oldId}) to ${playlist.id}`);
+    try {
+      const playlist = await PlaylistFile.readFile(path.join(playlistDir, file.name));
+      // Check for ID collision
+      const collisionIdx = state.playlists.findIndex(p => p.id === playlist.id);
+      if (collisionIdx > -1) {
+        const oldId = playlist.id;
+        playlist.id = uuid();
+        log.warn('Launcher', `Playlist ID Collision - Renamed ID for ${playlist.title} (${oldId}) to ${playlist.id}`);
+      }
+      state.playlists.push(playlist);
+    } catch (err) {
+      log.error('Launcher', `Failed to load Playlist ${file.name}, ERROR:\n${err}`);
     }
-    state.playlists.push(playlist);
   }
   console.log('Back - Parsed Playlists');
 
