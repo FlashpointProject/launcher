@@ -213,9 +213,10 @@ type GameConfigEditorDialogProps = {
 function GameConfigEditorDialog(props: GameConfigEditorDialogProps) {
   const [versionEditorOpen, setVersionEditorOpen] = React.useState(false);
   const [versionEditorMiddlewareIdx, setVersionEditorMiddlewareIdx] = React.useState(0);
+  const [collapsedRows, setCollapsedRows] = React.useState<number[]>([]);
 
+  // Apply config to middleware at idx
   const onSaveMiddlewareConfig = React.useCallback((idx: number, config: any) => {
-    // Find middleware and apply config
     const newConfig = deepCopy(props.config);
     newConfig.middleware[idx].config = config;
     props.setConfig(newConfig);
@@ -292,6 +293,7 @@ function GameConfigEditorDialog(props: GameConfigEditorDialogProps) {
 
   const rows = React.useMemo(() => {
     return props.config.middleware.map((m, idx) => {
+      const isCollapsed = collapsedRows.includes(idx);
       const schemaId = `${m.middlewareId}-${m.version}`;
       const schema = schemaId in props.config.schemas ? props.config.schemas[schemaId] : null;
       return (
@@ -319,25 +321,36 @@ function GameConfigEditorDialog(props: GameConfigEditorDialogProps) {
                     }}
                     value='Set Version'/>
                 </div>
-                {/* <div className='game-config-dialog__config-chevron-expansion'>
-                  <OpenIcon icon='chevron-bottom'/>
-                </div> */}
+                <div
+                  className='game-config-dialog__config-chevron-expansion'
+                  onClick={() => {
+                    // Toggle collapsed state
+                    if (isCollapsed) {
+                      setCollapsedRows(collapsedRows.filter((i) => i !== idx));
+                    } else {
+                      setCollapsedRows([...collapsedRows, idx]);
+                    }
+                  }}>
+                  <OpenIcon icon={isCollapsed ? 'chevron-top' : 'chevron-bottom'}/>
+                </div>
               </div>
             </div>
           </div>
-          <div className='game-config-dialog-inputs'>
-            {schema ?
-              schema.map((inputProps) => {
-                return renderMiddlewareInput(inputProps, m.config, (config) => {
-                  onSaveMiddlewareConfig(idx, config);
-                });
-              })
-              : ('Failed to load config schema')}
-          </div>
+          { !isCollapsed && (
+            <div className='game-config-dialog-inputs'>
+              {schema ?
+                schema.map((inputProps) => {
+                  return renderMiddlewareInput(inputProps, m.config, (config) => {
+                    onSaveMiddlewareConfig(idx, config);
+                  });
+                })
+                : ('Failed to load config schema')}
+            </div>
+          )}
         </div>
       );
     });
-  }, [props.config.middleware, props.config.schemas]);
+  }, [props.config.middleware, props.config.schemas, collapsedRows]);
 
   const nameEditRow = (
     <div className='game-config-dialog__config-name-row'>

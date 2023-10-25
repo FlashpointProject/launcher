@@ -3217,11 +3217,18 @@ body {
   width: 2rem;
   height: 2rem;
   align-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .game-config-dialog-content {
   overflow-y: auto;
   flex-grow: 1;
+}
+
+.game-config-dialog-content > :not(:first-child) {
+  margin-top: 1rem;
 }
 
 .game-config-dialog__config {
@@ -3289,6 +3296,11 @@ body {
 .game-config-dialog__config-chevron-expansion {
   margin-left: 0.5rem;
   align-self: center;
+  height: 100%;
+  width: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /** Game Config Dialog editor */
