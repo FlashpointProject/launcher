@@ -962,6 +962,9 @@ export class App extends React.Component<AppProps> {
       gameId
     });
     await window.Shared.back.request(BackIn.LAUNCH_GAME, gameId)
+    .catch((error) => {
+      log.error('Launcher', `Failed to launch game - ${gameId} - ERROR: ${error}`);
+    })
     .finally(() => {
       this.props.dispatchMain({
         type: MainActionType.UNBUSY_GAME,

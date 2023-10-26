@@ -69,16 +69,19 @@ export namespace GameLauncher {
 
   export async function launchAdditionalApplication(opts: LaunchAddAppOpts, child: boolean, serverOverride?: string): Promise<void> {
     await checkAndInstallPlatform(opts.addApp.parentGame.platforms, opts.state, opts.openDialog);
-    // @FIXTHIS It is not possible to open dialog windows from the back process (all electron APIs are undefined).
     switch (opts.addApp.applicationPath) {
-      case ':message:':
-        return new Promise((resolve) => {
-          opts.openDialog({
-            largeMessage: true,
-            message: opts.addApp.launchCommand,
-            buttons: ['Ok'],
-          }).finally(() => resolve());
+      case ':message:': {
+        const dialogId = await opts.openDialog({
+          largeMessage: true,
+          message: opts.addApp.launchCommand,
+          buttons: opts.addApp.waitForExit ? ['Ok', 'Cancel'] : ['Ok'],
         });
+        const result = (await awaitDialog(opts.state, dialogId)).buttonIdx;
+        if (result !== 0) {
+          throw 'User aborted game launch (denied message box)';
+        }
+        return;
+      }
       case ':extras:': {
         const folderPath = fixSlashes(path.join(opts.fpPath, path.posix.join('Extras', opts.addApp.launchCommand)));
         return opts.openExternal(folderPath, { activate: true })
@@ -118,10 +121,14 @@ export namespace GameLauncher {
         logProcessOutput(proc);
         log.info(logSource, `Launch Add-App "${opts.addApp.name}" (PID: ${proc.pid}) [ path: "${opts.addApp.applicationPath}", arg: "${opts.addApp.launchCommand}" ]`);
         return new Promise((resolve, reject) => {
-          if (proc.killed) { resolve(); }
-          else {
-            proc.once('exit', () => { resolve(); });
-            proc.once('error', error => { reject(error); });
+          if (opts.addApp.waitForExit) {
+            resolve();
+          } else {
+            if (proc.killed) { resolve(); }
+            else {
+              proc.once('exit', () => { resolve(); });
+              proc.once('error', error => { reject(error); });
+            }
           }
         });
       }
@@ -168,8 +175,7 @@ export namespace GameLauncher {
       for (const addApp of opts.game.addApps) {
         if (addApp.autoRunBefore) {
           addApp.parentGame = opts.game;
-          const promise = launchAdditionalApplication({ ...addAppOpts, addApp }, curation);
-          if (addApp.waitForExit) { await promise; }
+          await launchAdditionalApplication({ ...addAppOpts, addApp }, curation);
         }
       }
     }
