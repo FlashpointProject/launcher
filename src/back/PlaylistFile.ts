@@ -11,6 +11,8 @@ export namespace PlaylistFile {
       readJsonFile(filePath, 'utf8')
       .then(json => {
         const playlist = parse(json, onError);
+        // Remove any broken game entries
+        playlist.games = playlist.games.filter(game => !!game.gameId && game.gameId !== 'null'); // String of 'null' seems to have wormed in somehow in the past?
         playlist.filePath = filePath;
         resolve(playlist);
       })
