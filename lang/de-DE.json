@@ -251,11 +251,11 @@
   },
   "about": {
     "aboutHeader": "Über",
-    "flashpoint": "Flashpoint von BlueMaxima",
-    "flashpointDesc": "Das Erhaltungsprojekt, für das dieser Launcher entwickelt wurde, soll ein Archiv, Museum und spielbare Sammlung von Web-basierten Internetspielen sein.",
+    "flashpoint": "Flashpoint-Archiv",
+    "flashpointDesc": "Das gemeinnützige Erhaltungsprojekt, für das dieser Launcher gemacht wurde. Es hat das Ziel, die Archivierung und Zugänglichkeit von Spielen, Animationen und anderen digitalen Erfahrungen des Internets zu fördern.",
     "website": "Website",
     "flashpointLauncher": "Flashpoint Launcher",
-    "flashpointLauncherDesc": "Eine Open-Source-Desktop-Anwendung zum Surfen, Verwalten und Spielen von Spielen aus dem Flashpoint-Projekt.",
+    "flashpointLauncherDesc": "Eine Open-Source-Desktop-Anwendung zum Durchstöbern, Verwalten und Spielen von Spielen aus dem Flashpoint-Archiv.",
     "version": "Version",
     "license": "Lizenz",
     "licenseInfo": "MIT (Lies die Datei mit dem Namen \"LICENSE\" für weitere Informationen)",
@@ -301,6 +301,7 @@
     "noVersion": "Keine Version",
     "releaseDate": "Erscheinungsdatum",
     "noReleaseDate": "Kein Erscheinungsdatum",
+    "noneFound": "None Found",
     "language": "Sprache",
     "noLanguage": "Keine Sprache",
     "dateAdded": "Hinzugefügt am",
@@ -342,6 +343,7 @@
     "saveChanges": "Änderungen speichern",
     "discardChanges": "Änderungen verwerfen",
     "editFpfssGame": "Spiel bearbeiten (FPFSS)",
+    "showOnFpfss": "Show Game on FPFSS",
     "editGame": "Spiel bearbeiten",
     "allGames": "Alle Spiele",
     "newPlaylist": "Neue Playlist",
@@ -362,7 +364,10 @@
     "noMountParameters": "Keine Mount-Parameter",
     "showExtremeScreenshot": "Extremen Screenshot anzeigen",
     "busy": "Bitte warten...",
-    "openGameDataBrowser": "Spieldaten-Browser öffnen"
+    "openGameDataBrowser": "Spieldaten-Browser öffnen",
+    "notArchived": "Not Archived",
+    "archived": "Archived",
+    "playOnline": "Play Online"
   },
   "tags": {
     "name": "Name",

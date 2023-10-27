@@ -251,11 +251,11 @@
   },
   "about": {
     "aboutHeader": "O programu",
-    "flashpoint": "BlueMaxima's Flashpoint",
-    "flashpointDesc": "Bluemaxima's Flashpoint je projekt, jehož cílem je zachování her a animací vytvořených na starších webových platformách jako například Flash, Shockwave, Java Applet, ale i novějších, jako je HTML5 a Unity. Zároveň cílí na umožnění snadného procházení a spouštění všech těchto výtvorů.",
+    "flashpoint": "Archiv Flashpoint",
+    "flashpointDesc": "Uchovávací projekt, pro který byl tento launcher vytvořen, neziskovou organizaci, jejímž cílem je podpořit úsilí o archivaci a zpřístupnění her, animací a dalších digitálních interaktivních zážitků na webu.",
     "website": "Webová stránka",
     "flashpointLauncher": "Flashpoint Launcher",
-    "flashpointLauncherDesc": "Desktopová aplikace s otevřeným zdrojovým kódem, která slouží pro procházení, spuštění a správu her a animací z projektu Flashpoint.",
+    "flashpointLauncherDesc": "Open-source desktopová aplikace sloužící k procházení, správě a přehrávání her z archivu Flashpoint.",
     "version": "Verze",
     "license": "Licence",
     "licenseInfo": "MIT (Pro více informací si přečtěte soubor 'LICENSE')",
@@ -301,6 +301,7 @@
     "noVersion": "Žádná verze",
     "releaseDate": "Datum vydání",
     "noReleaseDate": "Žádné datum vydání",
+    "noneFound": "Nic nenalezeno",
     "language": "Jazyk",
     "noLanguage": "Žádný jazyk",
     "dateAdded": "Datum přidání",
@@ -342,6 +343,7 @@
     "saveChanges": "Uložit změny",
     "discardChanges": "Zahodit změny",
     "editFpfssGame": "Upravit hru (FPFSS)",
+    "showOnFpfss": "Zobrazit hru v FPFSS",
     "editGame": "Upravit hru",
     "allGames": "Katalogu her",
     "newPlaylist": "Nový seznam",
@@ -362,7 +364,10 @@
     "noMountParameters": "Žádné zavádějící parametry",
     "showExtremeScreenshot": "Zobrazovat snímky obrazovky pro dospělé",
     "busy": "Čekejte prosím...",
-    "openGameDataBrowser": "Otevřít prohlížeč herních dat"
+    "openGameDataBrowser": "Otevřít prohlížeč herních dat",
+    "notArchived": "Nearchivováno",
+    "archived": "Archivováno",
+    "playOnline": "Hrát online"
   },
   "tags": {
     "name": "Název",

@@ -251,11 +251,11 @@
   },
   "about": {
     "aboutHeader": "Informazioni",
-    "flashpoint": "BlueMaxima's Flashpoint",
-    "flashpointDesc": "Il progetto di preservazione per cui è stato costruito questo launcher vuole essere un archivio, un museo e una collezione giocabile di giochi di Internet nati e basati sul web.",
+    "flashpoint": "Flashpoint Archive",
+    "flashpointDesc": "Il progetto di conservazione di questo launcher è stato costruito per, un non-profit con l'obiettivo di promuovere gli sforzi di archiviazione e accessibilità dei giochi, animazioni e altre esperienze digitali interattive sul web.",
     "website": "Sito Web",
     "flashpointLauncher": "Launcher di Flashpoint",
-    "flashpointLauncherDesc": "Un programma open-source per computer desktop che consente di giocare ai giochi del progetto Flashpoint, di sfogliarli e di gestirli.",
+    "flashpointLauncherDesc": "Un'applicazione desktop open-source utilizzata per navigare, gestire e giocare i giochi dal Flashpoint Archive.",
     "version": "Versione",
     "license": "Licenza",
     "licenseInfo": "MIT (Leggi il file chiamato \"LICENSE\" per maggiori informazioni)",
@@ -301,6 +301,7 @@
     "noVersion": "Nessuna Versione",
     "releaseDate": "Data di Pubblicazione",
     "noReleaseDate": "Nessuna Data di Pubblicazione",
+    "noneFound": "None Found",
     "language": "Lingua",
     "noLanguage": "Nessuna Lingua",
     "dateAdded": "Data di Aggiunta",
@@ -342,6 +343,7 @@
     "saveChanges": "Salva le Modifiche",
     "discardChanges": "Annulla le Modifiche",
     "editFpfssGame": "Modifica Gioco (FPFSS)",
+    "showOnFpfss": "Show Game on FPFSS",
     "editGame": "Modifica il Gioco",
     "allGames": "Tutti i Giochi",
     "newPlaylist": "Crea una Nuova Scaletta",
@@ -362,7 +364,10 @@
     "noMountParameters": "Nessun Parametro di Montaggio",
     "showExtremeScreenshot": "Mostra Schermata Estrema",
     "busy": "Attendere Prego...",
-    "openGameDataBrowser": "Apri il browser dei dati di gioco"
+    "openGameDataBrowser": "Apri il browser dei dati di gioco",
+    "notArchived": "Not Archived",
+    "archived": "Archived",
+    "playOnline": "Play Online"
   },
   "tags": {
     "name": "Nome",

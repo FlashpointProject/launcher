@@ -251,11 +251,11 @@
   },
   "about": {
     "aboutHeader": "За програмата",
-    "flashpoint": "BlueMaxima's Flashpoint",
-    "flashpointDesc": "Проектот за зачувување за кој е создадена оваа апликација, чија цел е да биде архива, музеј и збирка на веб-игри засновани од Интернет.",
+    "flashpoint": "Flashpoint Archive",
+    "flashpointDesc": "The preservation project this launcher was built for, a non-profit with the goal of furthering archival and accessibility efforts of games, animations and other digital interactive experiences on the web.",
     "website": "Веб страна",
     "flashpointLauncher": "Flashpoint Лаунчер",
-    "flashpointLauncherDesc": "Десктоп апликација со отворен извор што се користи за прелистување, управување и играње игри од проектот Flashpoint.",
+    "flashpointLauncherDesc": "An open-source desktop application used to browse, manage and play games from the Flashpoint Archive.",
     "version": "Верзија",
     "license": "Лиценца",
     "licenseInfo": "МIТ (Прочитајте го фајлот со име 'LICЕNSE' за повеќе информации)",
@@ -301,6 +301,7 @@
     "noVersion": "Нема Верзија",
     "releaseDate": "Датум на Издавање",
     "noReleaseDate": "Нема Датум на Издавање",
+    "noneFound": "None Found",
     "language": "Јазик",
     "noLanguage": "Нема Јазик",
     "dateAdded": "Датум Додадено",
@@ -342,6 +343,7 @@
     "saveChanges": "Зачувај Промени",
     "discardChanges": "Отфрли Промени",
     "editFpfssGame": "Edit Game (FPFSS)",
+    "showOnFpfss": "Show Game on FPFSS",
     "editGame": "Уреди Игра",
     "allGames": "Сите Игри",
     "newPlaylist": "Нова Плејлиста",
@@ -362,7 +364,10 @@
     "noMountParameters": "Нема Моунт Параметри",
     "showExtremeScreenshot": "Покажувај Eкстремни Cлики од Eкраноt",
     "busy": "Ве Молиме Да Почекате...",
-    "openGameDataBrowser": "Open Game Data Browser"
+    "openGameDataBrowser": "Open Game Data Browser",
+    "notArchived": "Not Archived",
+    "archived": "Archived",
+    "playOnline": "Play Online"
   },
   "tags": {
     "name": "Име",
