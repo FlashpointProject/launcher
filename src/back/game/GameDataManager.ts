@@ -128,7 +128,7 @@ export async function importGameDataSkipHash(gameId: string, filePath: string, d
   throw 'Something went wrong importing (skipped hash)';
 }
 
-export function importGameData(gameId: string, filePath: string, dataPacksFolderPath: string, mountParameters?: string): Promise<GameData> {
+export function importGameData(gameId: string, filePath: string, dataPacksFolderPath: string, applicationPath?: string, launchCommand?: string, mountParameters?: string): Promise<GameData> {
   return new Promise<GameData>((resolve, reject) => {
     fs.promises.access(filePath, fs.constants.F_OK)
     .then(async () => {
@@ -171,6 +171,8 @@ export function importGameData(gameId: string, filePath: string, dataPacksFolder
           newGameData.presentOnDisk = true;
           newGameData.path = newFilename;
           newGameData.sha256 = sha256;
+          newGameData.applicationPath = applicationPath || '';
+          newGameData.launchCommand = launchCommand || '';
           newGameData.parameters = mountParameters;
           newGameData.crc32 = 0; // TODO: Find decent lib for CRC32
           save(newGameData)

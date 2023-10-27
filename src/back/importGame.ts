@@ -278,7 +278,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
     // Import bluezip
     const filePath = path.join(curationPath, `${curation.folder}.zip`);
     taskProgress.setStageProgress(0.9, 'Importing Zipped File...');
-    await GameDataManager.importGameData(game.id, filePath, dataPacksFolderPath, curation.game.mountParameters);
+    await GameDataManager.importGameData(game.id, filePath, dataPacksFolderPath, curation.game.applicationPath, curation.game.launchCommand, curation.game.mountParameters);
     await fs.promises.unlink(filePath);
   })
   .catch((error) => {

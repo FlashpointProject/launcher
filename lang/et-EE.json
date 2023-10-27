@@ -251,11 +251,11 @@
   },
   "about": {
     "aboutHeader": "Meist",
-    "flashpoint": "BlueMaxima Flashpoint",
-    "flashpointDesc": "See säilitusprojekt on ehitatud olema arhiiv, muuseum ja mängimisvõimalik kollektsioon veebipõhistest internetimängudest.",
+    "flashpoint": "Flashpoint Archive",
+    "flashpointDesc": "The preservation project this launcher was built for, a non-profit with the goal of furthering archival and accessibility efforts of games, animations and other digital interactive experiences on the web.",
     "website": "Veebileht",
     "flashpointLauncher": "Flashpoint'i Rakendus",
-    "flashpointLauncherDesc": "Avatud koodiga arvutirakendus loodud, et sirvida, hallata ja mängida mänge Flashpoint'i projektist.",
+    "flashpointLauncherDesc": "An open-source desktop application used to browse, manage and play games from the Flashpoint Archive.",
     "version": "Versioon",
     "license": "Litsents",
     "licenseInfo": "MIT (Rohkema info jaoks loe faili pealkirjaga LICENSE)",
@@ -301,6 +301,7 @@
     "noVersion": "Pole Versiooni",
     "releaseDate": "Avalduskuupäev",
     "noReleaseDate": "Pole Avalduskuupäeva",
+    "noneFound": "None Found",
     "language": "Keel",
     "noLanguage": "Pole Keelt",
     "dateAdded": "Kuupäev Lisatud",
@@ -342,6 +343,7 @@
     "saveChanges": "Salvesta Muudatused",
     "discardChanges": "Kustuta Muudatused",
     "editFpfssGame": "Edit Game (FPFSS)",
+    "showOnFpfss": "Show Game on FPFSS",
     "editGame": "Muuda Mängu Metat",
     "allGames": "Kõiki Mänge",
     "newPlaylist": "Uus Esitlusloend",
@@ -362,7 +364,10 @@
     "noMountParameters": "Pole Rakendusparameetreid",
     "showExtremeScreenshot": "Näita Ekstreemset Ekraanipilti",
     "busy": "Palun Oota...",
-    "openGameDataBrowser": "Open Game Data Browser"
+    "openGameDataBrowser": "Open Game Data Browser",
+    "notArchived": "Not Archived",
+    "archived": "Archived",
+    "playOnline": "Play Online"
   },
   "tags": {
     "name": "Nimi",
