@@ -46,6 +46,8 @@ const langTemplate = {
     'fallbackLanguageDesc',
     'auto',
     'none',
+    'precacheDatabase',
+    'precacheDatabaseDesc',
     'contentFiltersHeader',
     'flashpointHeader',
     'flashpointPath',

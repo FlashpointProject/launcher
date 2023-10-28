@@ -68,6 +68,7 @@ type ConfigPageState = {
   flashpointPath: string;
   /** If the "use custom title bar" checkbox is checked. */
   useCustomTitlebar: boolean;
+  precacheDatabase: boolean;
   /** Currently editable Tag Filter Group */
   editingTagFilterGroupIdx?: number;
   editingTagFilterGroup?: TagFilterGroup;
@@ -94,6 +95,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       useCustomTitlebar: configData.useCustomTitlebar,
       editorOpen: false,
       nukeInProgress: false,
+      precacheDatabase: configData.precacheDatabase,
     };
   }
 
@@ -201,6 +203,11 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 value={this.props.preferencesData.currentLanguage || ''}
                 onChange={this.onCurrentLanguageSelect}
                 items={langOptions} />
+              <ConfigBoxCheckbox
+                title={strings.precacheDatabase}
+                description={strings.precacheDatabaseDesc}
+                checked={this.state.precacheDatabase}
+                onToggle={this.onPrecacheDatabaseToggle} />
             </div>
           </div>
           {/* -- Content Filters -- */}
@@ -788,6 +795,10 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     updatePreferencesData({ fancyAnimations: isChecked });
   };
 
+  onPrecacheDatabaseToggle = (isChecked: boolean): void => {
+    this.setState({ precacheDatabase: isChecked });
+  };
+
   onSearchLimitChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     updatePreferencesData({ searchLimit: num(event.target.value) });
   };
@@ -1061,6 +1072,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     window.Shared.back.request(BackIn.UPDATE_CONFIG, {
       flashpointPath: this.state.flashpointPath,
       useCustomTitlebar: this.state.useCustomTitlebar,
+      precacheDatabase: this.state.precacheDatabase,
     }).then(() => { window.Shared.restart(); });
   };
 

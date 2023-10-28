@@ -19,6 +19,7 @@ import { VERSION } from '@shared/version';
 import {
   createErrorProxy, deepCopy,
   removeFileExtension,
+  sizeToString,
   stringifyArray
 } from '@shared/Util';
 import { BackIn, BackInit, BackInitArgs, BackOut, BackResParams, ComponentState, ComponentStatus, DownloadDetails } from '@shared/back/types';
@@ -752,6 +753,16 @@ async function initialize() {
     await AppDataSource.initialize();
     // TypeORM forces on but breaks Playlist Game links to unimported games
     await AppDataSource.query('PRAGMA foreign_keys=off;');
+    // Forcefully precache the tables into memory
+    if (state.config.precacheDatabase) {
+      const dbSize = await fs.promises.stat(databasePath).then((stats) => stats.size);
+      const start = performance.now();
+      await AppDataSource.query(`PRAGMA cache_size=${dbSize + 20000};`);
+      await AppDataSource.query('SELECT * FROM game;');
+      await AppDataSource.query('SELECT * FROM tag;');
+      const end = performance.now();
+      log.info('Launcher', `Database cache set to ${sizeToString(dbSize + 20000)} bytes in ${Math.floor(end - start)}ms`);
+    }
     log.info('Launcher', 'Database connection established');
   }
 

@@ -319,7 +319,12 @@ export class SocketServer {
 
     // Handle
 
+    const start = performance.now();
     const [inc, out] = await api_handle_message(this.api, data, msg_event);
+    const end = performance.now();
+    if ('type' in data && data.type !== BackIn.KEEP_ALIVE) {
+      console.log(`${Math.floor(end - start)}ms - "${BackIn[data.type]}"`);
+    }
 
     if (inc) {
       const sent = client.sent.find(s => s.id === data.id);

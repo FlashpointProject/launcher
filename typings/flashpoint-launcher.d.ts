@@ -966,6 +966,8 @@ declare module 'flashpoint-launcher' {
         gotdShowAll: boolean;
         /** Middleware override path */
         middlewareOverridePath: string;
+        /** Whether to precache the Games and Tags tables in memory when booting */
+        precacheDatabase: boolean;
     };
 
     export type TagFilterGroup = {

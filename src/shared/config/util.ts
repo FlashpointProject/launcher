@@ -23,6 +23,7 @@ const configDataDefaultBase: Readonly<AppConfigData> = Object.freeze({
   gotdUrl: 'https://download.unstable.life/gotd.json',
   gotdShowAll: false,
   middlewareOverridePath: 'Legacy/middleware_overrides/',
+  precacheDatabase: false,
 });
 
 /**
@@ -81,6 +82,7 @@ export function overwriteConfigData(
   parser.prop('gotdUrl',                v => source.gotdUrl                = str(v));
   parser.prop('gotdShowAll',            v => source.gotdShowAll            = !!v);
   parser.prop('middlewareOverridePath', v => source.middlewareOverridePath = str(v));
+  parser.prop('precacheDatabase',       v => source.precacheDatabase       = !!v);
   // Do some alterations
   source.flashpointPath = fixSlashes(source.flashpointPath); // (Clean path)
   // Return
