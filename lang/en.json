@@ -42,7 +42,7 @@
     "auto": "Auto ({0})",
     "none": "None",
     "precacheDatabase": "Precache Database",
-    "precacheDatabaseDesc": "Caches some database tables to memory on boot. Improves responsiveness on slower drives at the expense of additional memory usage and boot time. Requires Save & Restart to apply changes.",
+    "precacheDatabaseDesc": "Caches some database tables to memory on boot. Improves responsiveness on slower drives at the expense of additional memory usage and boot time. Requires launcher restart to apply change.",
     "contentFiltersHeader": "Content Filters",
     "flashpointHeader": "Flashpoint",
     "flashpointPath": "Flashpoint Path",

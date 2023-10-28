@@ -145,6 +145,7 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   gameMetadataSources: [],
   enablePlaytimeTracking: true,
   enablePlaytimeTrackingExtreme: true,
+  precacheDatabase: false,
 });
 
 /**
@@ -217,6 +218,7 @@ export function overwritePreferenceData(
   parser.prop('curateServer',                  v => source.curateServer                  = str(v), true);
   parser.prop('enablePlaytimeTracking',        v => source.enablePlaytimeTracking        = !!v, true);
   parser.prop('enablePlaytimeTrackingExtreme', v => source.enablePlaytimeTrackingExtreme = !!v, true);
+  parser.prop('precacheDatabase',              v => source.precacheDatabase              = !!v, true);
 
   // Migrate onDemandBaseUrl from the older FP url
   if (source.onDemandBaseUrl == 'https://infinity.unstable.life/Flashpoint/Data/Images/') {

@@ -966,8 +966,6 @@ declare module 'flashpoint-launcher' {
         gotdShowAll: boolean;
         /** Middleware override path */
         middlewareOverridePath: string;
-        /** Whether to precache the Games and Tags tables in memory when booting */
-        precacheDatabase: boolean;
     };
 
     export type TagFilterGroup = {
@@ -1109,6 +1107,8 @@ declare module 'flashpoint-launcher' {
         enablePlaytimeTracking: boolean;
         /** Enable Playtime Tracking for Extreme games (last played, playtime, play count) */
         enablePlaytimeTrackingExtreme: boolean;
+        /** Whether to precache the Games and Tags tables in memory when booting */
+        precacheDatabase: boolean;
     };
 
     type GameDataSource = {

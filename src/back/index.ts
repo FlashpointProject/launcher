@@ -754,7 +754,7 @@ async function initialize() {
     // TypeORM forces on but breaks Playlist Game links to unimported games
     await AppDataSource.query('PRAGMA foreign_keys=off;');
     // Forcefully precache the tables into memory
-    if (state.config.precacheDatabase) {
+    if (state.preferences.precacheDatabase) {
       const dbSize = await fs.promises.stat(databasePath).then((stats) => stats.size);
       const start = performance.now();
       await AppDataSource.query(`PRAGMA cache_size=${dbSize + 20000};`);
