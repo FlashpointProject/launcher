@@ -57,8 +57,8 @@
     "tagFilterGroupsDesc": "Estos grupos filtrarán sugerencias y juegos afuera de los resultados de búsqueda",
     "editTagFilter": "Editar grupo de filtros de etiquetas",
     "duplicateTagFilter": "Duplicar grupo de filtros de etiquetas",
-    "nukeTagFilter": "Nuke Tag Filter Group",
-    "nukeInProgress": "Nuking Tags, please wait...",
+    "nukeTagFilter": "Borrar grupos de filtros de etiquetas",
+    "nukeInProgress": "Borrando etiquetas, por favor, espere...",
     "deleteTagFilter": "Eliminar grupo de filtros de etiquetas",
     "appPathOverrides": "Reemplazos de rutas de aplicación",
     "appPathOverridesDesc": "Reemplaza la ruta de la aplicación de la izquierda con la de la derecha al iniciar juegos.",
@@ -78,8 +78,8 @@
     "showDeveloperTabDesc": "Mostrar la pestaña 'Desarrollador'. Esta es muy probable que sólo sea útil para desarrolladores y curadores.",
     "server": "Servidor",
     "serverDesc": "Qué servidor ejecutar al jugar juegos.",
-    "curateServer": "Curate Server",
-    "curateServerDesc": "Which Server to run when running curations.",
+    "curateServer": "Servidor de curado",
+    "curateServerDesc": "Cuál servidor usar al ejecutar curaciones.",
     "metadataServerHost": "Servidor de metadatos anfitrión",
     "metadataServerHostDesc": "Anfitrión del servidor de metadatos. Utilizado para sincronizar información nueva y actualizada de los juegos a la aplicación.",
     "extensionsHeader": "Extensiones",
@@ -175,7 +175,7 @@
     "fpfssProfile": "Abrir perfil",
     "fpfssLogout": "Cerrar sesión de FPFSS",
     "softwareUpdateRequired": "Se requiere una actualización. ¿Actualizar ahora?",
-    "noLauncherUpdateReady": "Metadata update requires a newer Launcher version, but the software update is not currently available."
+    "noLauncherUpdateReady": "La actualización de los metadatos equiere una versión del Launcher más reciente, pero la actualización del software no está disponible actualmente."
   },
   "filter": {
     "dateAdded": "Fecha de adición",
@@ -447,15 +447,15 @@
     "export": "Exportar",
     "exportSelected": "Exportar seleccionados",
     "exportDataPacks": "Exportar paquete de datos",
-    "exportSelectedDataPacks": "Export Selected Data Packs",
+    "exportSelectedDataPacks": "Exportar paquetes de datos seleccionados",
     "import": "Importar",
-    "importSelected": "Import Selected",
+    "importSelected": "Importar seleccionados",
     "contentFiles": "Archivos de contenido",
     "warnings": "Advertencias",
-    "noTitle": "'Title' is a required field.",
-    "noApplicationPath": "'Application Path' is a required field.",
-    "noPlatforms": "At least 1 'Platform' is requried on every curation.",
-    "noLaunchCommand": "'Launch Command' is a required field.",
+    "noTitle": "'Título' es un campo requerido.",
+    "noApplicationPath": "'Ruta de aplicación' es un campo requerido.",
+    "noPlatforms": "Al menos 1 'Plataforma' es requerida en cada curación.",
+    "noLaunchCommand": "'Comando de lanzamiento' es un campo requerido.",
     "invalidLaunchCommand": "'Comando de Lanzamiento' no se ajusta a los requerimientos de esta URL:",
     "releaseDateInvalid": "'Fecha de Adición' debe seguir el formato AAAA-MM-DD (mes y día son opcionales).",
     "unusedApplicationPath": "'Ruta de la Aplicación' tiene un valor inusual. ¡Asegúrate que esté deletreado correctamente!",
@@ -534,7 +534,7 @@
     "duplicatePlaylist": "Duplicar lista de reproducción",
     "exportPlaylist": "Exportar lista de reproducción",
     "makeCurationFromGame": "Crear curación del juego",
-    "copyShortcutURL": "Copy Shortcut URL"
+    "copyShortcutURL": "Copiar URL de acceso directo"
   },
   "dialog": {
     "programNotFound": "¡Programa no encontrado!",
@@ -575,7 +575,7 @@
     "overwriteFileTitle": "¡El archivo ya existe!",
     "overwriteFileMessage": "Ya existe un archivo con el mismo nombre. ¿Desea sobrescribirlo?",
     "overwriteFileDetail": "Ruta del archivo:",
-    "nukeTagFilterGroup": "Nuke this tag filter group?\nAll games with these tags will be deleted and unrecoverable.\nThis may take a long time.",
+    "nukeTagFilterGroup": "¿Borrar este grupo de filtros de etiquetas?\nTodos los juegos con estas etiquetas serán borrados e irrecuperables.\nEsto puede tomar un tiempo largo.",
     "deleteTagFilterGroup": "¿Eliminar este grupo de filtros de etiquetas?",
     "deleteCuration": "¿Eliminar esta curación?",
     "importCuration": "¿Importar esta curación?",
@@ -603,9 +603,9 @@
     "mustBe7zArchiveSkipping": "Debe ser un archivo .7z, omitiendo {0}",
     "failedToLoadCuration": "Error al cargar la curación ({0})",
     "exportCurationWithWarnings": "¿Seguro que quieres exportar esta curación? Todavía hay advertencias.",
-    "requiresAdditionalDownload": "You are missing the {0} support pack, which is required to launch this entry.\nDownload now?",
-    "requiresAdditionalDownloadPlural": "You are missing {0} support packs which are required to launch this entry.\nDownload now?",
-    "confirmClearPlaytime": "Clear all game playtime and play history data? This is irreversible."
+    "requiresAdditionalDownload": "Falta el {0} paquete de soporte que se necesita para ejecutar esta entrada.\n¿Descargar ahora?",
+    "requiresAdditionalDownloadPlural": "Faltan {0} paquetes de soporte que se necesitan para ejecutar esta entrada.\n¿Descargar ahora?",
+    "confirmClearPlaytime": "¿Borrar todos los datos de tiempo de juego e historial de juego? Esto es irreversible."
   },
   "libraries": {
     "arcade": "Juegos",
