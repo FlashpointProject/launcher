@@ -42,6 +42,7 @@ describe('Configuration Files', () => {
   it('overwrite preferences data', () => {
     const data: AppPreferencesData = {
       'onDemandImagesCompressed': false,
+      'registerProtocol': true,
       'imageFolderPath': 'test/Images',
       'logoFolderPath': 'test/Logos',
       'playlistFolderPath': 'test/Playlists',

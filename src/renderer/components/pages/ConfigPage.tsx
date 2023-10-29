@@ -2,6 +2,8 @@ import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
 import { BackIn } from '@shared/back/types';
 import { AppExtConfigData } from '@shared/config/interfaces';
+import { CustomIPC } from '@shared/interfaces';
+import { ipcRenderer } from 'electron';
 import { ExtConfigurationProp, ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { autoCode, LangContainer, LangFile } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
@@ -336,6 +338,12 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 description={strings.showDeveloperTabDesc}
                 checked={this.props.preferencesData.showDeveloperTab}
                 onToggle={this.onShowDeveloperTab} />
+              {/* Register As Protocol Handler */}
+              <ConfigBoxCheckbox
+                title={strings.registerProtocol}
+                description={strings.registerProtocolDesc}
+                checked={this.props.preferencesData.registerProtocol}
+                onToggle={this.onRegisterProtocol} />
               {/* Server */}
               <ConfigBoxSelect
                 title={strings.server}
@@ -985,6 +993,17 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   onShowDeveloperTab = (isChecked: boolean): void => {
     updatePreferencesData({ showDeveloperTab: isChecked });
+  };
+
+  onRegisterProtocol = (isChecked: boolean): void => {
+    updatePreferencesData({ registerProtocol: isChecked });
+    ipcRenderer.invoke(CustomIPC.REGISTER_PROTOCOL, isChecked)
+    .then((success) => {
+      if (!success) {
+        const regVerb = isChecked ? 'add' : 'remove';
+        alert('Failed to ' + regVerb + ' protocol registration');
+      }
+    });
   };
 
   onCurrentThemeChange = (value: string): void => {

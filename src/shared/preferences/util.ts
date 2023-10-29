@@ -54,6 +54,7 @@ const { num, str } = Coerce;
 
 /** Default Preferences Data used for values that are not found in the file */
 export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freeze<AppPreferencesData>({
+  registerProtocol: true,
   imageFolderPath: 'Data/Images',
   logoFolderPath: 'Data/Logos',
   playlistFolderPath: 'Data/Playlists',
@@ -166,6 +167,7 @@ export function overwritePreferenceData(
     onError: onError && (e => onError(`Error while parsing Preferences: ${e.toString()}`)),
   });
   // Parse root object
+  parser.prop('registerProtocol',              v => source.registerProtocol              = !!v, true);
   parser.prop('imageFolderPath',               v => source.imageFolderPath               = parseVarStr(str(v)), true);
   parser.prop('logoFolderPath',                v => source.logoFolderPath                = parseVarStr(str(v)), true);
   parser.prop('playlistFolderPath',            v => source.playlistFolderPath            = parseVarStr(str(v)), true);

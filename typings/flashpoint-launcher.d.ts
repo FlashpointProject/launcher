@@ -991,6 +991,8 @@ declare module 'flashpoint-launcher' {
      */
     type AppPreferencesData = {
         [key: string]: any; // TODO: Remove this!
+        /** If the launcher should register itself as the default handler for 'flashpoint://' requests. */
+        registerProtocol: boolean;
         /** Path to the image folder (relative to the flashpoint path) */
         imageFolderPath: string;
         /** Path to the logo folder (relative to the flashpoint path) */
