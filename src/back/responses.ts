@@ -1780,8 +1780,14 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.UPLOAD_LOG, async (event) => {
+    // Filter entries
+    const username = os.userInfo().username;
+    const entries = state.log.filter(e => e !== undefined).map(e => {
+      e.content = e.content.replace(new RegExp('([/\\\\])' + username, 'g'), '$1***');
+      return e;
+    });
+
     // Upload to log server
-    const entries = state.log.filter(e => e !== undefined);
     const postUrl = url.resolve(state.config.logsBaseUrl, 'logdata');
     // Server responds with log id e.g ABC123
     const res = await axios.post(postUrl, { entries: entries });
