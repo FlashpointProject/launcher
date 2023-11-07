@@ -343,7 +343,7 @@
     "saveChanges": "Salva le Modifiche",
     "discardChanges": "Annulla le Modifiche",
     "editFpfssGame": "Modifica Gioco (FPFSS)",
-    "showOnFpfss": "Show Game on FPFSS",
+    "showOnFpfss": "Mostra Gioco su FPFSS",
     "editGame": "Modifica il Gioco",
     "allGames": "Tutti i Giochi",
     "newPlaylist": "Crea una Nuova Scaletta",
@@ -365,9 +365,9 @@
     "showExtremeScreenshot": "Mostra Schermata Estrema",
     "busy": "Attendere Prego...",
     "openGameDataBrowser": "Apri il browser dei dati di gioco",
-    "notArchived": "Not Archived",
-    "archived": "Archived",
-    "playOnline": "Play Online"
+    "notArchived": "Non Archiviato",
+    "archived": "Archiviato",
+    "playOnline": "Gioca in Rete"
   },
   "tags": {
     "name": "Nome",
