@@ -13,7 +13,7 @@ export async function parseAppVar(extId: string, appPath: string, launchCommand:
       case 'arch': return process.arch;
       case 'launchCommand': return launchCommand;
       case 'cwd': return fixSlashes(process.cwd());
-      case 'fpPath': return state.config ? fixSlashes(state.config.flashpointPath) : '';
+      case 'fpPath': return state.config ? path.resolve(fixSlashes(state.config.flashpointPath)) : '';
       case 'proxy': return state.preferences.browserModeProxy || '';
       default: {
         if (name.startsWith('extConf:')) {
