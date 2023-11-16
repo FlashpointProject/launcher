@@ -351,7 +351,7 @@ export function parseVarStr(str: string, config?: AppConfigData) {
   return parseVariableString(str, (name) => {
     switch (name) {
       case 'cwd': return fixSlashes(process.cwd());
-      case 'fpPath': return config ? fixSlashes(config.flashpointPath) : '';
+      case 'fpPath': return config ? path.resolve(fixSlashes(config.flashpointPath)) : '';
       default: return '';
     }
   });
