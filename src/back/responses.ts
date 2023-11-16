@@ -868,6 +868,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       const existingData = await GameDataManager.findOne(d.id);
       if (existingData) {
         existingData.title = d.title;
+        existingData.applicationPath = d.applicationPath;
+        existingData.launchCommand = d.launchCommand;
         existingData.parameters = d.parameters;
         return GameDataManager.save(existingData);
       }
