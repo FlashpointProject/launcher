@@ -301,7 +301,7 @@
     "noVersion": "Без версии",
     "releaseDate": "Дата выпуска",
     "noReleaseDate": "Без даты выпуска",
-    "noneFound": "None Found",
+    "noneFound": "Ничего не найдено",
     "language": "Язык",
     "noLanguage": "Без языка",
     "dateAdded": "Дата добавления",
@@ -343,7 +343,7 @@
     "saveChanges": "Сохранить изменения",
     "discardChanges": "Отменить изменения",
     "editFpfssGame": "Изменить (FPFSS)",
-    "showOnFpfss": "Show Game on FPFSS",
+    "showOnFpfss": "Показать игру на FPFSS",
     "editGame": "Редактировать игру",
     "allGames": "Все игры",
     "newPlaylist": "Новая Коллекция",
@@ -365,9 +365,9 @@
     "showExtremeScreenshot": "Показать Экстремальный Скриншот",
     "busy": "Пожалуйста, подождите...",
     "openGameDataBrowser": "Открыть браузер игровых данных",
-    "notArchived": "Not Archived",
-    "archived": "Archived",
-    "playOnline": "Play Online"
+    "notArchived": "Не в архиве",
+    "archived": "В архиве",
+    "playOnline": "Играть в браузере"
   },
   "tags": {
     "name": "Наименование",
