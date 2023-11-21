@@ -11,7 +11,7 @@ import EventEmitter = require('events');
 export async function fpfssLogin(dispatchMain: Dispatch<MainAction>, dialogResEvent: EventEmitter): Promise<FpfssUser | null> {
   const fpfssBaseUrl = window.Shared.preferences.data.fpfssBaseUrl;
   // Get device auth token from FPFSS
-  const tokenUrl = `${fpfssBaseUrl}/auth/token`;
+  const tokenUrl = `${fpfssBaseUrl}/auth/device`;
   const data = {
     'client_id': 'flashpoint-launcher',
     'scope': 'identity game:read game:edit submission:read submission:read-files',
@@ -31,7 +31,7 @@ export async function fpfssLogin(dispatchMain: Dispatch<MainAction>, dialogResEv
     'interval': res.data['interval']
   };
 
-  const pollUrl = `${fpfssBaseUrl}/auth/token?device_code=${token.device_code}`;
+  const pollUrl = `${fpfssBaseUrl}/auth/token`;
   const profileUrl = `${fpfssBaseUrl}/api/profile`;
   await remote.shell.openExternal(token.verification_uri_complete);
 
@@ -50,7 +50,8 @@ export async function fpfssLogin(dispatchMain: Dispatch<MainAction>, dialogResEv
   return new Promise<FpfssUser | null>((resolve, reject) => {
     const pollData = {
       'device_code': token.device_code,
-      'client_id': 'flashpoint-launcher'
+      'client_id': 'flashpoint-launcher',
+      'grant_type': 'urn:ietf:params:oauth:grant-type:device_code'
     };
     const formData = new URLSearchParams(pollData).toString();
     const interval = setInterval(async () => {
