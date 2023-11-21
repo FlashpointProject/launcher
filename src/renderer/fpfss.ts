@@ -14,7 +14,7 @@ export async function fpfssLogin(dispatchMain: Dispatch<MainAction>, dialogResEv
   const tokenUrl = `${fpfssBaseUrl}/auth/token`;
   const data = {
     'client_id': 'flashpoint-launcher',
-    'scope': 'identity game:read game:edit',
+    'scope': 'identity game:read game:edit submission:read submission:read-files',
   };
   const formData = new URLSearchParams(data).toString();
   const res = await axios.post(tokenUrl, formData, {
