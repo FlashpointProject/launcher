@@ -365,9 +365,9 @@
     "showExtremeScreenshot": "Extremen Screenshot anzeigen",
     "busy": "Bitte warten...",
     "openGameDataBrowser": "Spieldaten-Browser öffnen",
-    "notArchived": "Not Archived",
-    "archived": "Archived",
-    "playOnline": "Play Online"
+    "notArchived": "Nicht archiviert",
+    "archived": "Archiviert",
+    "playOnline": "Online spielen"
   },
   "tags": {
     "name": "Name",
