@@ -172,6 +172,27 @@ export class App extends React.Component<AppProps> {
             }
             break;
           }
+          case 'playlist': {
+            if (parts.length > 2 && parts[1] === 'add') {
+              // Parse query string
+              if (parts[2].startsWith('?url=')) {
+                const url = decodeURIComponent(parts[2].slice(5));
+                // Download playlist and load
+                window.Shared.back.request(BackIn.DOWNLOAD_PLAYLIST, url)
+                .then((playlist) => {
+                  if (playlist) {
+                    alert(`Downloaded playlist: ${playlist.title}`);
+                  } else {
+                    alert(`Failed to download playlist: ${url}`);
+                  }
+                })
+                .catch((error) => {
+                  alert(`Error downloading playlist: ${error}`);
+                });
+              }
+            }
+            break;
+          }
           default:
             ipcRenderer.invoke(CustomIPC.SHOW_MESSAGE_BOX, { title: 'Protocol Error', message: `Unsupported action "${parts[0]}"` });
             break;

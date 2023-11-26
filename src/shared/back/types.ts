@@ -67,6 +67,9 @@ export enum BackIn {
   LAUNCH_CURATION_ADDAPP,
   QUIT,
 
+  // Web?
+  DOWNLOAD_PLAYLIST,
+
   // Tag funcs
   GET_OR_CREATE_TAG,
   GET_OR_CREATE_PLATFORM,
@@ -298,6 +301,9 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.LAUNCH_CURATION]: (data: LaunchCurationData) => void;
   [BackIn.LAUNCH_CURATION_ADDAPP]: (data: LaunchCurationAddAppData) => void;
   [BackIn.QUIT]: () => void;
+
+  // Web?
+  [BackIn.DOWNLOAD_PLAYLIST]: (url: string) => Playlist;
 
   // Tag funcs
   [BackIn.GET_OR_CREATE_TAG]: (tagName: string, tagCategory?: string) => Tag | null;

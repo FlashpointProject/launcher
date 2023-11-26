@@ -42,7 +42,7 @@ import { ExtConfigFile } from './ExtConfigFile';
 import { GameLauncher, escapeArgsForShell } from './GameLauncher';
 import { ManagedChildProcess } from './ManagedChildProcess';
 import { importAllMetaEdits } from './MetaEdit';
-import { PlaylistFile } from './PlaylistFile';
+import { PlaylistFile, overwritePlaylistData, DEFAULT_PLAYLIST_DATA } from './PlaylistFile';
 import { CONFIG_FILENAME, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME } from './constants';
 import { loadCurationIndexImage } from './curate/parse';
 import { duplicateCuration, genCurationWarnings, loadCurationFolder, makeCurationFromGame, refreshCurationContent } from './curate/util';
@@ -1887,6 +1887,31 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
   state.socketServer.register(BackIn.QUIT, async () => {
     return exitApp(state);
+  });
+
+  state.socketServer.register(BackIn.DOWNLOAD_PLAYLIST, async (event, url) => {
+    // Attempt download
+    console.log(url);
+    const res = await axios.get(url);
+    if (res.status == 200) {
+      // Load as json
+      const json = res.data;
+      // Check if valid
+      const playlist = overwritePlaylistData(deepCopy(DEFAULT_PLAYLIST_DATA), json);
+      // Save to file
+      const filePath = path.resolve(path.join(state.config.flashpointPath, state.preferences.playlistFolderPath, playlist.id + '.json'));
+      await PlaylistFile.saveFile(filePath, playlist);
+      const existingIdx = state.playlists.findIndex(p => p.filePath === playlist.filePath);
+      if (existingIdx > -1) {
+        state.playlists[existingIdx] = playlist;
+      } else {
+        state.playlists.push(playlist);
+      }
+      state.socketServer.send(event.client, BackOut.PLAYLISTS_CHANGE, state.playlists);
+      return playlist;
+    } else {
+      throw new Error('Failed to download playlist');
+    }
   });
 
   state.socketServer.register(BackIn.EXPORT_META_EDIT, async (event, id, properties) => {

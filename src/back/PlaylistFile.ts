@@ -83,7 +83,7 @@ export namespace PlaylistFile {
   }
 }
 
-const DEFAULT_PLAYLIST_DATA: Playlist = {
+export const DEFAULT_PLAYLIST_DATA: Playlist = {
   filePath: '',
   id: '',
   games: [],
