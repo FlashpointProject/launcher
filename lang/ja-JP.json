@@ -20,7 +20,7 @@
     "symlinkCurationDesc": "Uses symbolic links to test curations rather than copying files. Faster and supports MAD4FP. Admin rights required.",
     "onDemandImages": "オンデマンド画像",
     "onDemandImagesDesc": "不足しているロゴやスクリーンショットを必要に応じてダウンロードして保存します。",
-    "onDemandImagesEnabled": "Enabled",
+    "onDemandImagesEnabled": "有効",
     "onDemandImagesEnabledDesc": "Enable downloading of on-demand logos and screenshots.",
     "onDemandImagesCompressed": "Compressed Images",
     "onDemandImagesCompressedDesc": "Downloads compressed images instead, saving ~80% disk space. (Does not delete existing images)",
