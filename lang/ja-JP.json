@@ -609,13 +609,13 @@
   },
   "libraries": {
     "arcade": "ゲーム",
-    "arcadeSingular": "Game",
+    "arcadeSingular": "ゲーム",
     "arcadePlural": "全てのゲーム",
     "theatre": "アニメーション",
-    "theatreSingular": "Animation",
+    "theatreSingular": "アニメーション",
     "theatrePlural": "全てのアニメーション",
     "auditorium": "NG講堂（講堂）",
-    "auditoriumSingular": "Animation",
+    "auditoriumSingular": "アニメーション",
     "auditoriumPlural": "すべてのNGアニメーション"
   },
   "upgrades": {
