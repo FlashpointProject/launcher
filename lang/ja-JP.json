@@ -42,7 +42,7 @@
     "auto": "自動 ({0})",
     "none": "なし",
     "contentFiltersHeader": "Content Filters",
-    "flashpointHeader": "フラッシュポイント",
+    "flashpointHeader": "",
     "flashpointPath": "Flashpointのパス",
     "flashpointPathDesc": "Flashpointフォルダのパス (相対パスでよい)",
     "browse": "参照",
