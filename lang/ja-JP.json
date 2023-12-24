@@ -539,7 +539,7 @@
   "dialog": {
     "programNotFound": "プログラムが見つかりません。",
     "phpNotFound": "PHPがパス上に見つかりませんでした。インストールされていますか？\n予期しない動作と壊れた動作が発生する可能性があります。",
-    "wineNotFound": "Wine is not installed, but is required to run this game.\n詳細は Linux Support wiki の記事をご覧ください。",
+    "wineNotFound": "このゲームを実行するためにWineをインストールすることが必要です。\n詳細はLinuxのサポートwikiにある記事をご覧ください。",
     "flashpointPathNotFound": "Flashpointフォルダが設定されていないか、無効です。インストールするフォルダを選択しますか？",
     "fileNotFound": "ファイルが見つかりません！",
     "flashpointPathInvalid": "Flashpoint パスが無効です！",
