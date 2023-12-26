@@ -77,11 +77,11 @@
     "showDeveloperTab": "開発者タブを表示する",
     "showDeveloperTabDesc": "'開発者'タブを表示します。これはおそらく、開発者とキュレーターのみに役立ちます。",
     "server": "サーバー",
-    "serverDesc": "どのサーバーがゲームをプレイするときに実行されますか。",
+    "serverDesc": "ゲームをプレイするときに実行するサーバーになります。",
     "curateServer": "キュレートのサーバー",
-    "curateServerDesc": "キュレーションを実行するサーバーを選びます。",
-    "metadataServerHost": "メタデータサーバーホスト",
-    "metadataServerHostDesc": "メタデータサーバーのホスト。ランチャーと新しいゲーム情報と更新されたゲーム情報の同期に使用されます。",
+    "curateServerDesc": "キュレーションを実行するときに実行するサーバーになります。",
+    "metadataServerHost": "メタデータのサーバーホスト",
+    "metadataServerHostDesc": "メタデータのサーバーのホストです。新しいゲーム情報や更新されたゲーム情報をランチャーに同期することに使用しています。",
     "extensionsHeader": "拡張機能",
     "noExtensionsLoaded": "拡張機能が読み込まれていません。「{0}」にインストールしてください",
     "extDevScripts": "開発者用スクリプト",
@@ -146,7 +146,7 @@
     "copy404Urls": "404 URLをコピー",
     "uploadLog": "ログをアップロード",
     "copiedToClipboard": "クリップボードにコピーしました",
-    "openLogsWindow": "ログウィンドウを開く",
+    "openLogsWindow": "ログのウィンドウを開く",
     "copyDiagnostics": "診断をコピー"
   },
   "app": {
@@ -175,7 +175,7 @@
     "fpfssProfile": "プロフィールを開く",
     "fpfssLogout": "FPFSSからログアウト",
     "softwareUpdateRequired": "ソフトウエア更新が必要です。今すぐ更新しますか？",
-    "noLauncherUpdateReady": "メタデータの更新には新しいLauncherが必要ですが、現在ソフトウェアの更新は利用できません。"
+    "noLauncherUpdateReady": "メタデータの更新にはより新しいランチャーのバージョンが必要ですが、現在はソフトウェアの更新はまだ公開していません。"
   },
   "filter": {
     "dateAdded": "追加日時",
@@ -228,7 +228,7 @@
     "exportTags": "タグをエクスポート",
     "exportTagsDesc": "「タグをインポート」で使用できるタグとタグのカテゴリでいっぱいのファイルを作成します。",
     "exportDatabase": "データベースをエキスパート",
-    "exportDatabaseDesc": "ライブメタデータサーバーで使用できるタグとタグカテゴリでいっぱいのファイルを作成します。",
+    "exportDatabaseDesc": "メタデータの本番サーバーが利用できるタグとタグカテゴリのファイルを作成します。",
     "importTags": "タグをインポート",
     "importTagsDesc": "「タグのエクスポート」によって作成されたファイルからタグをインポートします",
     "migrateExtremeGames": "成人指定のゲームを移動",
@@ -365,8 +365,8 @@
     "showExtremeScreenshot": "成人指定のゲームのスクリーンショットを表示",
     "busy": "しばらくお待ちください...",
     "openGameDataBrowser": "ゲームデータブラウザを開く",
-    "notArchived": "未アーカイブ",
-    "archived": "アーカイブ済み",
+    "notArchived": "アーカイブに保存していない",
+    "archived": "アーカイブに保存している",
     "playOnline": "オンラインでプレイ"
   },
   "tags": {
@@ -422,7 +422,7 @@
     "loadFolder": "フォルダーを読み込み",
     "loadFolderDesc": "一つ、またはそれ以上のCurationフォルダーを読み込みます",
     "scanNewCurationFolders": "新しいキュレーションのスキャン",
-    "scanNewCurationFoldersDesc": "最初のスキャン後に追加されたキュレーションをスキャン",
+    "scanNewCurationFoldersDesc": "最初のスキャンの後に追加されたキュレーションを探します。",
     "noCurations": "Curationがありません",
     "id": "Curationフォルダー",
     "heading": "ヘッダー",
@@ -586,7 +586,7 @@
     "removePlaylistGame": "このゲームをプレイリストから削除しますか？",
     "deleteGame": "このゲームを削除しますか？この作業は元に戻せません。",
     "deleteGameData": "このゲームデータを削除しますか？この作業は元に戻せません。",
-    "deleteAddApp": "この追加アプリを削除しますか？",
+    "deleteAddApp": "このアプリを削除しますか？",
     "deleteTagCategory": "このタグカテゴリを削除しますか?",
     "deleteTag": "このタグを削除しますか？",
     "deleteTagAlias": "このタグエイリアスを削除しますか?",
