@@ -603,7 +603,7 @@
     "mustBe7zArchiveSkipping": "Must be a .7z archive, skipping {0}",
     "failedToLoadCuration": "キュレーションの読み込みに失敗しました。{0}",
     "exportCurationWithWarnings": "このキュレーションをエキスパートしますか？まだ警告があります。",
-    "requiresAdditionalDownload": "You are missing the {0} support pack, which is required to launch this entry.\nDownload now?",
+    "requiresAdditionalDownload": "このエントリーを起動するには、{0}のサポートパッケージが必須です。今すぐダウンロードしますか？",
     "requiresAdditionalDownloadPlural": "You are missing {0} support packs which are required to launch this entry.\nDownload now?",
     "confirmClearPlaytime": "プレイ時間とプレイしたゲームの歴史を全部削除しますか？元に戻せません。"
   },
