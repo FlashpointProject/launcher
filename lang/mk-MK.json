@@ -270,13 +270,13 @@
     "playtime": "Playtime",
     "playCount": "Play Count",
     "never": "Never",
-    "today": "Today",
-    "yesterday": "Yesterday",
+    "today": "Денес",
+    "yesterday": "Вчера",
     "daysAgo": "{0} Days Ago",
     "weeksAgo": "{0} Weeks Ago",
-    "seconds": "{0} Seconds",
-    "minutes": "{0} Minutes",
-    "hours": "{0} Hours",
+    "seconds": "{0} Секунди",
+    "minutes": "{0} Минути",
+    "hours": "{0} Часови",
     "stop": "Стоп",
     "noDeveloper": "Нема Произведувач",
     "alternateTitles": "Други Наслови",
@@ -326,7 +326,7 @@
     "searching": "Барај...",
     "library": "Библиотека",
     "defaultLibrary": "Стандардна Библиотека",
-    "fpfssGame": "FPFSS Game",
+    "fpfssGame": "FPFSS Игра",
     "uninstallGame": "Деинсталирај Игра",
     "installed": "Инсталирано",
     "notInstalled": "Не Инсталирано",
@@ -365,9 +365,9 @@
     "showExtremeScreenshot": "Покажувај Eкстремни Cлики од Eкраноt",
     "busy": "Ве Молиме Да Почекате...",
     "openGameDataBrowser": "Open Game Data Browser",
-    "notArchived": "Not Archived",
-    "archived": "Archived",
-    "playOnline": "Play Online"
+    "notArchived": "Не е Архивирано",
+    "archived": "Архивиран",
+    "playOnline": "Играј online"
   },
   "tags": {
     "name": "Име",
@@ -517,7 +517,7 @@
     "showImage": "Покажи Слика",
     "searching": "Барај...",
     "loading": "Вчитување...",
-    "ok": "OK"
+    "ok": "ОК"
   },
   "menu": {
     "viewThumbnailInFolder": "Прегледај лого во папката",
