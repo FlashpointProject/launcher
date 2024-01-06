@@ -202,6 +202,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       updateFeedMarkdown,
       mad4fpEnabled: state.serviceInfo ? (state.serviceInfo.server.findIndex(s => s.mad4fp === true) !== -1) : false,
       componentStatuses: state.componentStatuses,
+      shortcuts: state.shortcuts,
     };
 
     // Fire after return has sent

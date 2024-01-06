@@ -252,6 +252,7 @@ const state: BackState = {
   newDialogEvents: new EventEmitter(),
   resolveDialogEvents: new EventEmitter(),
   downloadController: new InstancedAbortController(),
+  shortcuts: {},
 };
 
 main();

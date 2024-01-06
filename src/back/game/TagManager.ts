@@ -337,6 +337,12 @@ export async function createPlatform(name: string, aliases?: string[]): Promise<
   return savedPlatform;
 }
 
+export async function findPlatforms(): Promise<Platform[]> {
+  const platformRepository = AppDataSource.getRepository(Platform);
+
+  return platformRepository.find({ relations: ['primaryAlias', 'aliases'] });
+}
+
 export async function createTag(name: string, categoryName?: string, aliases?: string[]): Promise<Tag | null> {
   const tagRepository = AppDataSource.getRepository(Tag);
   const tagAliasRepostiory = AppDataSource.getRepository(TagAlias);

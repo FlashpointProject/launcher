@@ -88,6 +88,7 @@ export type BackState = {
   newDialogEvents: EventEmitter;
   resolveDialogEvents: EventEmitter;
   downloadController: InstancedAbortController;
+  shortcuts: Record<string, string[]>;
 }
 
 export type BackQueryChache = {

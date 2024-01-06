@@ -236,6 +236,10 @@ export enum BackOut {
 
   FOCUS_WINDOW,
 
+  // Shortcuts
+  SHORTCUT_REGISTER_COMMAND,
+  SHORTCUT_UNREGISTER,
+
   // Dialogs
   NEW_DIALOG,
   CANCEL_DIALOG,
@@ -463,6 +467,10 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
 
   [BackOut.FOCUS_WINDOW]: () => void;
 
+  // Shortcuts
+  [BackOut.SHORTCUT_REGISTER_COMMAND]: (command: string, shortcuts: string[]) => void;
+  [BackOut.SHORTCUT_UNREGISTER]: (shortcuts: string[]) => void;
+
   // Dialogs
   [BackOut.NEW_DIALOG]: (template: DialogStateTemplate, responseId: string) => void;
   [BackOut.CANCEL_DIALOG]: (dialogId: string) => void;
@@ -546,6 +554,7 @@ export type GetRendererLoadedDataResponse = {
   platformAppPaths: PlatformAppPathSuggestions;
   updateFeedMarkdown: string;
   componentStatuses: ComponentStatus[];
+  shortcuts: Record<string, string[]>;
 }
 
 export type GetRendererInitDataResponse = {

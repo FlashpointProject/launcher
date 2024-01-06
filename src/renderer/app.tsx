@@ -56,6 +56,7 @@ import { LangContext } from './util/lang';
 import { queueOne } from './util/queue';
 import uuid = require('uuid');
 import { ProgressData } from './context/ProgressContext';
+import { IWithShortcut } from 'react-keybind';
 
 // Hide the right sidebar if the page is inside these paths
 const hiddenRightSidebarPages = [Paths.ABOUT, Paths.CURATE, Paths.CONFIG, Paths.MANUAL, Paths.LOGS, Paths.TAGS, Paths.CATEGORIES];
@@ -65,7 +66,7 @@ type AppOwnProps = {
   search: SearchQuery;
 };
 
-export type AppProps = AppOwnProps & RouteComponentProps & WithPreferencesProps & WithTagCategoriesProps & WithMainStateProps & WithTasksProps & WithCurateStateProps;
+export type AppProps = AppOwnProps & RouteComponentProps & WithPreferencesProps & WithTagCategoriesProps & WithMainStateProps & WithTasksProps & WithCurateStateProps & IWithShortcut;
 
 export class App extends React.Component<AppProps> {
   appRef: React.RefObject<HTMLDivElement>;
@@ -262,6 +263,21 @@ export class App extends React.Component<AppProps> {
             });
             window.Shared.back.request(BackIn.GET_RENDERER_LOADED_DATA)
             .then(data => {
+              for (const entry of Object.entries(data.shortcuts)) {
+                const command = entry[0];
+                const shortcuts = entry[1];
+                const commandName = command.split(':').slice(1).join(':');
+                if (this.props.shortcut && this.props.shortcut.registerShortcut && this.props.shortcut.unregisterShortcut) {
+                  try {
+                    this.props.shortcut.unregisterShortcut(shortcuts);
+                  } catch { /** ignore any errors from unregister check */}
+                  this.props.shortcut.registerShortcut(() => {
+                    window.Shared.back.send(BackIn.RUN_COMMAND, commandName, []);
+                  }, shortcuts, command, 'Extension Shortcut');
+                } else {
+                  log.error('Launcher', `Failed to register shortcut for ${command}, shortcut context missing?`);
+                }
+              }
               this.props.dispatchMain({
                 type: MainActionType.SET_STATE,
                 payload: {
@@ -577,7 +593,30 @@ export class App extends React.Component<AppProps> {
         total
       });
     });
+
+    window.Shared.back.register(BackOut.SHORTCUT_REGISTER_COMMAND, (event, command, shortcuts) => {
+      const commandName = command.split(':').slice(1).join(':');
+      if (this.props.shortcut && this.props.shortcut.registerShortcut && this.props.shortcut.unregisterShortcut) {
+        try {
+          this.props.shortcut.unregisterShortcut(shortcuts);
+        } catch { /** ignore any errors from unregister check */}
+        this.props.shortcut.registerShortcut(() => {
+          window.Shared.back.send(BackIn.RUN_COMMAND, commandName, []);
+        }, shortcuts, command, 'Extension Shortcut');
+      } else {
+        log.error('Launcher', `Failed to register shortcut for ${command}, shortcut context missing?`);
+      }
+    });
+
+    window.Shared.back.register(BackOut.SHORTCUT_UNREGISTER, (event, shortcuts) => {
+      if (this.props.shortcut && this.props.shortcut.unregisterShortcut) {
+        this.props.shortcut.unregisterShortcut(shortcuts);
+      } else {
+        log.error('Launcher', `Failed to register shortcut for ${shortcuts}, shortcut context missing?`);
+      }
+    });
   }
+
 
   init() {
     const strings = this.props.main.lang;

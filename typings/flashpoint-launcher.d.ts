@@ -47,8 +47,14 @@ declare module 'flashpoint-launcher' {
         onError?: (error: string) => void,
     ): Promise<AppPreferencesData>;
 
-    /** Unload own extension */
-    function unload(): Promise<void>;
+    /**
+     * Unloads the current extension
+     */    
+    function unloadExtension(): Promise<void>;
+    /**
+     * Reloads the current extension
+     */
+    function reloadExtension(): void;
 
     /**
      * Get a URL for an extensions file
@@ -77,7 +83,7 @@ declare module 'flashpoint-launcher' {
      */
     const onExtConfigChange: Event<{key: string, value: any}>;
     /**
-     * Focusses the Flashpoint Window
+     * Focuses the Flashpoint Window
      */
     function focusWindow(): void;
 
@@ -102,6 +108,14 @@ declare module 'flashpoint-launcher' {
          * @returns Disposable to register to context.subscriptions
          */
         function registerCommand(command: string, callback: (...args: any[]) => any): Disposable;
+        /**
+         * Registers a set of keyboard shortcuts to a command. This may conflict with existing shortcuts, especially those in the Curate page. Be aware that Windows and Mac require different control keys.
+         * See https://github.com/UnicornHeartClub/react-keybind for more details
+         * @param command Name of the command
+         * @param shortcut Keyboard shortcut(s)
+         * @returns Disposable to register to context.subscriptions
+         */
+        function registerShortcut(command: string, shortcut: string[] | string): Disposable;
     }
 
     namespace curations {
@@ -182,7 +196,16 @@ declare module 'flashpoint-launcher' {
     /** Collection of Game related API functions */
     namespace games {
         // Platforms
+        /**
+         * Finds a platform by its alias name
+         * @param name alias of the platform
+         * @returns Platform, or null if none exists
+         */
         function findPlatformByName(name: string): Promise<Platform | null>;
+        /**
+         * Returns a list of all platforms including their aliases
+         */
+        function findPlatforms(): Promise<Platform[]>;
         // Playlist
         /**
          * Finds a playlist given its ID
@@ -490,6 +513,13 @@ declare module 'flashpoint-launcher' {
          * @returns Path to file(s) chosen, if any
          */
         function showOpenDialog(options: ShowOpenDialogOptions): Promise<string[] | undefined>;
+        /**
+         * Updates a dialog field's value. Used to update progress bars, set input fields etc.
+         * @param dialogId ID of the Dialog
+         * @param name Name of the field
+         * @param value New value of the field
+         */
+        function updateDialogField(dialogId: string, name: string, value: any): void;
     }
 
     namespace middleware {

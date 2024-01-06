@@ -70,7 +70,16 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     return state.preferences;
   };
 
-  const unload = () => state.extensionsService.unloadExtension(extId);
+  const unloadExtension = () => state.extensionsService.unloadExtension(extId);
+
+  const reloadExtension = () => {
+    setTimeout(() => {
+      state.extensionsService.unloadExtension(extId).then(() => {
+        console.log(`Back - attempting reload for ${extId}`);
+        state.extensionsService.loadExtension(extId);
+      });
+    }, 10);
+  };
 
   const getExtensionFileURL = (filePath: string): string => {
     return `http://localhost:${state.fileServerPort}/extdata/${extId}/${filePath}`;
@@ -134,12 +143,36 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
       registry.commands.set(command, c);
       log.debug('Extensions', `[${extManifest.displayName || extManifest.name}] Registered Command "${command}"`);
       return c;
+    },
+    registerShortcut: (command, shortcut) => {
+      let shortcuts: string[] = [];
+      if (typeof shortcut === 'string') {
+        shortcuts = [shortcut];
+      } else {
+        shortcuts = shortcut;
+      }
+
+      const commandName = `${extId}:${command}`;
+
+      state.shortcuts[commandName] = shortcuts;
+      state.socketServer.broadcast(BackOut.SHORTCUT_REGISTER_COMMAND, commandName, shortcuts);
+
+      return {
+        toDispose: [],
+        isDisposed: false,
+        /** Callback to use when disposed */
+        onDispose: () => {
+          delete state.shortcuts[commandName];
+          state.socketServer.broadcast(BackOut.SHORTCUT_UNREGISTER, shortcuts);
+        }
+      };
     }
   };
 
   const extGames: typeof flashpoint.games = {
     // Platforms
     findPlatformByName: (name) => TagManager.findPlatform(name),
+    findPlatforms: TagManager.findPlatforms,
     // Playlists
     findPlaylist: (playlistId) => findPlaylist(state, playlistId),
     findPlaylistByName: (playlistName) => findPlaylistByName(state, playlistName),
@@ -372,6 +405,9 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
       const openDialogFunc = getOpenOpenDialogFunc(state.socketServer);
       if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
       return openDialogFunc(options);
+    },
+    updateDialogField: (dialogId, name, value) => {
+      state.socketServer.broadcast(BackOut.UPDATE_DIALOG_FIELD_VALUE, dialogId, name, value);
     }
   };
 
@@ -594,7 +630,8 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     config: state.config,
     getPreferences: getPreferences,
     overwritePreferenceData: extOverwritePreferenceData,
-    unload: unload,
+    unloadExtension: unloadExtension,
+    reloadExtension: reloadExtension,
     getExtensionFileURL: getExtensionFileURL,
     unzipFile: unzipFile,
     getExtConfigValue: getExtConfigValue,

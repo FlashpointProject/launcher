@@ -172,7 +172,7 @@ export function CuratePage(props: CuratePageProps) {
             });
           }
         }
-      }, props.preferencesData.shortcuts.curate.next, 'Next', 'Next Curation');
+      }, props.preferencesData.shortcuts.curate.next, 'curate:Next', 'Next Curation');
     }
     return () => {
       if (props.shortcut && props.shortcut.unregisterShortcut) {
@@ -186,7 +186,7 @@ export function CuratePage(props: CuratePageProps) {
     if (props.shortcut && props.shortcut.registerShortcut) {
       props.shortcut.registerShortcut(() => {
         onNewCuration();
-      }, props.preferencesData.shortcuts.curate.newCur, 'New', 'New Curation');
+      }, props.preferencesData.shortcuts.curate.newCur, 'curate:New', 'New Curation');
     }
     return () => {
       if (props.shortcut && props.shortcut.unregisterShortcut) {
@@ -200,7 +200,7 @@ export function CuratePage(props: CuratePageProps) {
     if (props.shortcut && props.shortcut.registerShortcut) {
       props.shortcut.registerShortcut(() => {
         onLoadCuration();
-      }, props.preferencesData.shortcuts.curate.load, 'Load Archives', 'Load Curation Archives');
+      }, props.preferencesData.shortcuts.curate.load, 'curate:Load Archives', 'Load Curation Archives');
     }
     return () => {
       if (props.shortcut && props.shortcut.unregisterShortcut) {
@@ -216,7 +216,7 @@ export function CuratePage(props: CuratePageProps) {
         if (props.curate.current) {
           window.Shared.back.request(BackIn.CURATE_REFRESH_CONTENT, props.curate.current);
         }
-      }, props.preferencesData.shortcuts.curate.refresh, 'Refresh', 'Refresh Active Curation + Content Tree');
+      }, props.preferencesData.shortcuts.curate.refresh, 'curate:Refresh', 'Refresh Active Curation + Content Tree');
     }
     return () => {
       if (props.shortcut && props.shortcut.unregisterShortcut) {
@@ -237,7 +237,7 @@ export function CuratePage(props: CuratePageProps) {
             taskId: newTask.id
           });
         }
-      }, props.preferencesData.shortcuts.curate.exportCurs, 'Export', 'Export Selected Curations');
+      }, props.preferencesData.shortcuts.curate.exportCurs, 'curate:Export', 'Export Selected Curations');
       props.shortcut.registerShortcut(() => {
         if (props.curate.selected.length > 0) {
           const newTask = newCurateTask(`Exporting Data Packs for ${props.curate.selected.length} Curations`, 'Exporting...', props.addTask);
@@ -247,7 +247,7 @@ export function CuratePage(props: CuratePageProps) {
             taskId: newTask.id
           });
         }
-      }, props.preferencesData.shortcuts.curate.exportDataPacks, 'Export Data Packs', 'Export Data Packs for Selected Curations');
+      }, props.preferencesData.shortcuts.curate.exportDataPacks, 'curate:Export Data Packs', 'Export Data Packs for Selected Curations');
     }
     return () => {
       if (props.shortcut && props.shortcut.unregisterShortcut) {
@@ -268,7 +268,7 @@ export function CuratePage(props: CuratePageProps) {
             symlinkCurationContent: props.preferencesData.symlinkCurationContent
           });
         }
-      }, props.preferencesData.shortcuts.curate.run, 'Test', 'Run Active Curation');
+      }, props.preferencesData.shortcuts.curate.run, 'curate:Test', 'Run Active Curation');
       props.shortcut.registerShortcut(() => {
         if (curation && props.preferencesData.symlinkCurationContent) {
           window.Shared.back.request(BackIn.LAUNCH_CURATION, {
@@ -277,7 +277,7 @@ export function CuratePage(props: CuratePageProps) {
             symlinkCurationContent: props.preferencesData.symlinkCurationContent
           });
         }
-      }, props.preferencesData.shortcuts.curate.runMad4fp, 'Test MAD4FP', 'Run Active Curation with MAD4FP');
+      }, props.preferencesData.shortcuts.curate.runMad4fp, 'curate:Test MAD4FP', 'Run Active Curation with MAD4FP');
     }
     return () => {
       if (props.shortcut && props.shortcut.unregisterShortcut) {
@@ -550,7 +550,7 @@ export function CuratePage(props: CuratePageProps) {
         <h3>{strings.curate.shortcuts}</h3>
         <table>
           <tbody>
-            {props.shortcut && props.shortcut.shortcuts.map((binding, idx) => (
+            {props.shortcut && props.shortcut.shortcuts.filter(s => s.title.startsWith('curate:')).map((binding, idx) => (
               <tr key={idx} className='curate-page-keybinds-box-row'>
                 <td>
                   {filterKeysByOS(binding.keys).map((combo, idx) => {
