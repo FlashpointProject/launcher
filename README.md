@@ -1,5 +1,5 @@
 # Flashpoint Launcher
-The launcher for Flashpoint Archive (the non-profit web preservation project).
+The launcher for Flashpoint Archive (the community-run web preservation project).
 
 ![Screenshot](https://user-images.githubusercontent.com/10117720/55276674-a24e8c80-52f6-11e9-8b59-4fb396c36026.png)
 
@@ -12,10 +12,10 @@ The launcher for Flashpoint Archive (the non-profit web preservation project).
 
 ### Links
 * [Flashpoint Archive](http://flashpointarchive.org) - Download Flashpoint here (the launcher is bundled with it)
-* [Donate](https://opencollective.com/flashpointarchive) - Funds go towards the Flashpoint Archive non-profit to sustain archival efforts, not to fund developers of the launcher.
+* [Donate](https://opencollective.com/flashpointarchive) - Funds go towards the Flashpoint Archive to sustain archival efforts, not to fund developers of the launcher.
 
 ## About
-The Flashpoint Launcher (FPL) is a desktop application made for browsing, storing and launching other applications (games, animations, web apps etc.). It is specifically made for Flashpoint Archive, a non-profit with the goal of furthering archival and accessibility efforts for games, animations and other digital interactive experiences on the web.
+The Flashpoint Launcher (FPL) is a desktop application made for browsing, storing and launching other applications (games, animations, web apps etc.). It is specifically made for Flashpoint Archive, a project with the goal of furthering archival and accessibility efforts for games, animations and other digital interactive experiences on the web.
 
 See the `docs` folder for more information on setting up Flashpoint and Extension authoring.
 
