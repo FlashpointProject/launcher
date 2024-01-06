@@ -89,8 +89,12 @@ export function CurateBox(props: CurateBoxProps) {
   const onDropThumbnail  = useDropImageCallback('logo.png', props.curation, strings.dialog);
   const onDropScreenshot = useDropImageCallback('ss.png',   props.curation, strings.dialog);
 
-  const thumbnailPath  = props.curation.thumbnail.exists  ? `${getCurationURL(props.curation.folder)}/logo.png` : undefined;
-  const screenshotPath = props.curation.screenshot.exists ? `${getCurationURL(props.curation.folder)}/ss.png` : undefined;
+  const thumbnailPath  = React.useMemo(() => {
+    return props.curation.thumbnail.exists ? `${getCurationURL(props.curation.folder)}/logo.png?v` + props.curation.thumbnail.version : undefined;
+  }, [props.curation.thumbnail]);
+  const screenshotPath  = React.useMemo(() => {
+    return props.curation.screenshot.exists ? `${getCurationURL(props.curation.folder)}/ss.png?v` + props.curation.screenshot.version : undefined;
+  }, [props.curation.screenshot]);
 
   const onNewAddApp  = useCreateAddAppCallback('normal',  props.curation.folder, props.dispatch);
   const onAddExtras  = useCreateAddAppCallback('extras',  props.curation.folder, props.dispatch);

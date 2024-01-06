@@ -400,6 +400,17 @@ export async function refreshCurationContent(state: BackState, folder: string) {
   if (curationIdx !== -1) {
     const curation = state.loadedCurations[curationIdx];
     const contentPath = getContentFolderByKey(curation.folder, state.config.flashpointPath);
+    // Check for new loaded images
+    if (curation.thumbnail.exists === false) {
+      curation.thumbnail = await loadCurationIndexImage(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, curation.folder, 'logo.png'));
+    } else {
+      curation.thumbnail.version += 1;
+    }
+    if (curation.screenshot.exists === false) {
+      curation.screenshot = await loadCurationIndexImage(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, curation.folder, 'ss.png'));
+    } else {
+      curation.screenshot.version += 1;
+    }
     curation.contents = await genContentTree(contentPath);
     curation.warnings = await genCurationWarnings(curation, state.config.flashpointPath, state.suggestions, state.languageContainer['curate'], state.apiEmitters.curations.onWillGenCurationWarnings);
     state.loadedCurations[curationIdx] = curation;
