@@ -742,7 +742,8 @@ async function initialize() {
     const migrationSource = new DataSource({
       ...dataSourceOptions,
       type: 'better-sqlite3',
-      database: databasePath
+      database: databasePath,
+      poolSize: undefined
     });
     await migrationSource.initialize();
     await migrationSource.query('PRAGMA foreign_keys=off;');
