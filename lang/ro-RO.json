@@ -335,7 +335,7 @@
     "thumbnail": "logo-ul jocului",
     "screenshot": "captură de ecran",
     "dropImageHere": "Glisați aici o imagine pentru a o adăuga",
-    "noGameSelected": "Niciun/nicio {0} selectat/e",
+    "noGameSelected": "Niciun {0} selectat",
     "clickToSelectGame": "Apăsați pe un joc pentru a-l selecta.",
     "deleteAdditionalApplication": "Înlăturați aplicația suplimentară",
     "deleteGameAndAdditionalApps": "Înlăturați jocul (împreună cu aplicațiile sale suplimentare)",
@@ -475,8 +475,8 @@
     "contextCopyName": "Copiați numele fișierului",
     "contextCopyPath": "Copiați calea fișierului",
     "contextCopyAsURL": "Copiați calea ca o legătură",
-    "contextShowInExplorer": "Arată fișierul în Explorator",
-    "contextOpenFolderInExplorer": "Deschide Dosarul în Explorator",
+    "contextShowInExplorer": "Afișați fișierul în Explorer",
+    "contextOpenFolderInExplorer": "Deschideți dosarul în Explorer",
     "shortcuts": "Comenzi rapide"
   },
   "playlist": {
