@@ -413,7 +413,7 @@ declare module 'flashpoint-launcher' {
          * Finds a list of Tag Suggestions given a string they start with
          * @param name Partial name that a tag starts with
          */
-        function findTagSuggestions(name: string): Promise<TagSuggestion<Tag>[]>;
+        // function findTagSuggestions(name: string): Promise<TagSuggestion<Tag>[]>;
 
         // Misc
         /**
@@ -619,9 +619,9 @@ declare module 'flashpoint-launcher' {
         /** Name of the publisher of the game */
         publisher: string;
         /** List of platforms this game uses */
-        platforms: Platform[];
+        platforms: String[];
         /** List of platforms attached to the game in a string format */
-        platformsStr: string;
+        detailedPlatforms: Platform[] | null;
         /** Primary platform ID */
         platformId: number;
         /** Primary platform name (cached) */
@@ -640,10 +640,10 @@ declare module 'flashpoint-launcher' {
         status: string;
         /** Information that could be useful for the player (of varying importance) */
         notes: string;
-        /** List of tags attached to the game */
-        tags: Tag[];
         /** List of tags attached to the game in a string format */
-        tagsStr: string;
+        tags: string[];
+        /** List of tags attached to the game */
+        detailedTags: Tag[] | null;
         /** Source if the game files, either full URL or the name of the website */
         source: string;
         /** LEGACY GAMES ONLY - Path to the application that runs the game */
@@ -687,7 +687,6 @@ declare module 'flashpoint-launcher' {
          * 2 = Available
          */
         archiveState: number;
-        updateTagsStr: () => void;
     };
 
     type GameData = {
@@ -739,93 +738,22 @@ declare module 'flashpoint-launcher' {
         parentGameId: string;
     };
 
-    type Platform = {
-        /** ID of the tag (unique identifier) */
-        id?: number;
-        /** Date when this tag was last modified */
-        dateModified: string;
-        /** ID of Primary Alias */
-        primaryAliasId: number;
-        /** Primary Alias */
-        primaryAlias: PlatformAlias;
-        /** Aliases / Names of the tag */
-        aliases: PlatformAlias[];
-        /** Description of the tag */
-        description?: string;
-        /** Games which are marked with this Tag */
-        gamesUsing?: Game[];
-        /** Number of games this tag belongs to */
-        count?: number;
-    };
-
-    type PlatformAlias = {
-        /** ID of the Platform alias (unique identifier) */
-        id: number;
-        /** Platform this alias belongs to (either ID or Platform will exist) */
-        platformId?: number;
-        /** Platform this alias belongs to (either ID or Platform will exist) */
-        platform?: Platform;
-        /** The name this alias represents */
-        name: string;
-    };
+    type Platform = Tag;
 
     type Tag = {
         /** ID of the tag (unique identifier) */
-        id?: number;
+        id: number;
+        /** Primary Alias */
+        name: string;
+        /** Description of the tag */
+        description: string;
         /** Date when this tag was last modified */
         dateModified: string;
-        /** ID of Primary Alias */
-        primaryAliasId: number;
-        /** Primary Alias */
-        primaryAlias: TagAlias;
         /** Aliases / Names of the tag */
-        aliases: TagAlias[];
-        /** Category this tag is a part of (either ID or TagCategory will exist) */
-        categoryId?: number;
-        /** Category this tag is a part of (either ID or TagCategory will exist) */
-        category?: TagCategory;
-        /** Description of the tag */
-        description?: string;
-        /** Games which are marked with this Tag */
-        gamesUsing?: Game[];
-        /** Number of games this tag belongs to */
-        count?: number;
+        aliases: string[];
+        /** Name of the category */
+        category: string | null;
     };
-
-    type TagAlias = {
-        /** ID of the tag alias (unique identifier) */
-        id: number;
-        /** Tag this alias belongs to (either ID or Tag will exist) */
-        tagId?: number;
-        /** Tag this alias belongs to (either ID or Tag will exist) */
-        tag?: Tag;
-        /** The name this alias represents */
-        name: string;
-    };
-
-    type TagSuggestion<T extends ITagObject> = {
-        /** Alias found, only present if not the same as the primary alias */
-        alias?: string;
-        /** Primary alias of the tag suggestion */
-        primaryAlias: string;
-        /** Tag suggested */
-        tag: T;
-    };
-
-    type ITagObject = {
-        id?: number;
-        dateModified: string;
-        primaryAlias: ITagAlias;
-        aliases: ITagAlias[];
-        description?: string;
-        categoryId?: number;
-        count?: number;
-    }
-
-    export type ITagAlias = {
-        id: number;
-        name: string;
-    }
 
     type TagCategory = {
         /** ID of the tag category (unique identifier) */
@@ -836,8 +764,6 @@ declare module 'flashpoint-launcher' {
         color: string;
         /** Description of the Tag Category */
         description?: string;
-        /** Tags using this Tag Category */
-        tags: Tag[];
     };
 
     type Playlist = {

@@ -1,6 +1,3 @@
-import { Game } from '@database/entity/Game';
-import { Tag } from '@database/entity/Tag';
-import { TagCategory } from '@database/entity/TagCategory';
 import { ChangedMeta, MetaEditFlags } from '@shared/MetaEdit';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
 import { AddAppCuration, ContentTree, LoadedCuration, PlatformAppPathSuggestions } from '@shared/curate/types';
@@ -9,7 +6,7 @@ import { FilterGameOpts } from '@shared/game/GameFilter';
 import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
 import { SocketTemplate } from '@shared/socket/types';
 import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
-import { AppPreferencesData, ConfigSchema, CurationState, CurationWarnings, DialogState, DialogStateTemplate, GameConfig, GameData, GameDataSource, GameMetadataSource, GameMiddlewareConfig, GameMiddlewareInfo, GameOrderBy, GameOrderReverse, Platform, Playlist, PlaylistGame, TagAlias, TagFilterGroup } from 'flashpoint-launcher';
+import { AppPreferencesData, ConfigSchema, CurationState, CurationWarnings, DialogState, DialogStateTemplate, Game, GameConfig, GameData, GameDataSource, GameMetadataSource, GameMiddlewareConfig, GameMiddlewareInfo, GameOrderBy, GameOrderReverse, Platform, Playlist, PlaylistGame, Tag, TagCategory, TagFilterGroup } from 'flashpoint-launcher';
 import { ILogEntry, ILogPreEntry, LogLevel } from '../Log/interface';
 import { Theme } from '../ThemeFile';
 import { AppConfigData, AppExtConfigData } from '../config/interfaces';
@@ -80,7 +77,6 @@ export enum BackIn {
   GET_TAGS,
   GET_TAG,
   SAVE_TAG,
-  SAVE_TAG_ALIAS,
   DELETE_TAG,
   MERGE_TAGS,
   CLEANUP_TAG_ALIASES,
@@ -319,7 +315,6 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.GET_TAGS]: (data: string, tagFilters?: TagFilterGroup[]) => Tag[];
   [BackIn.GET_TAG]: (data: string) => Tag | null;
   [BackIn.SAVE_TAG]: (data: Tag) => Tag;
-  [BackIn.SAVE_TAG_ALIAS]: (data: TagAlias) => TagAlias;
   [BackIn.DELETE_TAG]: (data: number) => TagDeleteResponse;
   [BackIn.MERGE_TAGS]: (data: MergeTagData) => Tag;
   [BackIn.CLEANUP_TAG_ALIASES]: () => void;

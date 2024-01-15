@@ -1,9 +1,3 @@
-import { Game } from '@database/entity/Game';
-import { GameData } from '@database/entity/GameData';
-import { PlatformAlias } from '@database/entity/PlatformAlias';
-import { Tag } from '@database/entity/Tag';
-import { TagAlias } from '@database/entity/TagAlias';
-import { TagCategory } from '@database/entity/TagCategory';
 import { LogLevel } from '@shared/Log/interface';
 import { MetaEditFile, MetaEditMeta } from '@shared/MetaEdit';
 import { deepCopy, downloadFile, padEnd } from '@shared/Util';
@@ -26,7 +20,8 @@ import { throttle } from '@shared/utils/throttle';
 import * as axiosImport from 'axios';
 import * as child_process from 'child_process';
 import { execSync } from 'child_process';
-import { ConfigSchema, CurationState, GameLaunchInfo, GameMetadataSource, GameMiddlewareInfo, Platform } from 'flashpoint-launcher';
+import { PartialTagCategory } from 'flashpoint-archive';
+import { ConfigSchema, CurationState, Game, GameData, GameLaunchInfo, GameMetadataSource, GameMiddlewareInfo, TagCategory } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as fs_extra from 'fs-extra';
 import * as https from 'https';
@@ -42,17 +37,15 @@ import { ExtConfigFile } from './ExtConfigFile';
 import { GameLauncher, escapeArgsForShell } from './GameLauncher';
 import { ManagedChildProcess } from './ManagedChildProcess';
 import { importAllMetaEdits } from './MetaEdit';
-import { PlaylistFile, overwritePlaylistData, DEFAULT_PLAYLIST_DATA } from './PlaylistFile';
+import { DEFAULT_PLAYLIST_DATA, PlaylistFile, overwritePlaylistData } from './PlaylistFile';
 import { CONFIG_FILENAME, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME } from './constants';
 import { loadCurationIndexImage } from './curate/parse';
 import { duplicateCuration, genCurationWarnings, loadCurationFolder, makeCurationFromGame, refreshCurationContent } from './curate/util';
 import { saveCuration } from './curate/write';
+import { downloadGameData } from './download';
 import { parseAppVar } from './extensions/util';
-import * as GameDataManager from './game/GameDataManager';
-import * as GameManager from './game/GameManager';
-import * as TagManager from './game/TagManager';
 import { importCuration, launchAddAppCuration, launchCuration } from './importGame';
-import { AppDataSource, loadCurationArchive } from './index';
+import { fpDatabase, loadCurationArchive, onDidUninstallGameData, onWillUninstallGameData } from './index';
 import { importGames, importPlatforms, importTagCategories, importTags } from './metadataImport';
 import { addPlaylistGame, deletePlaylist, deletePlaylistGame, duplicatePlaylist, filterPlaylists, getPlaylistGame, importPlaylist, savePlaylistGame, updatePlaylist } from './playlist';
 import { copyFolder, genContentTree } from './rust';
@@ -195,7 +188,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       libraries: libraries,
       services: Array.from(state.services.values()).map(s => procToService(s)),
       serverNames: state.serviceInfo ? state.serviceInfo.server.map(i => i.name || '') : [],
-      tagCategories: await TagManager.findTagCategories(),
+      tagCategories: fpDatabase.findAllTagCategories(),
       suggestions: state.suggestions,
       platformAppPaths: state.platformAppPaths,
       logoSets: Array.from(state.registry.logoSets.values()),
@@ -214,7 +207,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   state.socketServer.register(BackIn.PRE_UPDATE_INFO, async (event, source: GameMetadataSource) => {
     let totalGames = 0;
     try {
-      totalGames = await GameManager.countGames();
+      totalGames = fpDatabase.countGames();
     } catch {/** ignore, errors if 0 count */}
     if (totalGames === 0) {
       return getMetaUpdateInfo(source, false, true);
@@ -253,7 +246,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       buttons: []
     });
     const newDate = new Date();
-    const categories = await TagManager.findTagCategories();
+    const categories = fpDatabase.findAllTagCategories();
     return AppDataSource.transaction(async (tx) => {
       const lastDatePlats = await syncPlatforms(tx, source);
       const lastDateTags = await syncTags(tx, source, categories);
@@ -318,10 +311,10 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     }
 
     const newDate = new Date();
-    const categories = await TagManager.findTagCategories();
+    const categories = fpDatabase.findAllTagCategories();
     let totalGames = 0;
     try {
-      totalGames = await GameManager.countGames();
+      totalGames = fpDatabase.countGames();
     } catch {/** ignore, errors on 0 count */}
     // Always do a full sync if empty DB
     if (totalGames === 0) {
@@ -407,16 +400,16 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     .then(async () => {
       // Send out new suggestions and library lists
       state.suggestions = {
-        tags: await GameManager.findUniqueValues(TagAlias, 'name'),
-        playMode: await GameManager.findUniqueValues(Game, 'playMode', true),
-        platforms: await GameManager.findUniqueValues(PlatformAlias, 'name'),
-        status: await GameManager.findUniqueValues(Game, 'status', true),
-        applicationPath: await GameManager.findUniqueApplicationPaths(),
-        library: await GameManager.findUniqueValues(Game, 'library'),
+        tags: [],
+        playMode: [],
+        platforms: [],
+        status: [],
+        applicationPath: [],
+        library: [],
       };
       const appPaths: PlatformAppPathSuggestions = await GameManager.findPlatformsAppPaths();
       state.platformAppPaths = appPaths; // Update cache
-      const total = await GameManager.countGames();
+      const total = fpDatabase.countGames();
       state.socketServer.broadcast(BackOut.POST_SYNC_CHANGES, state.suggestions.library, state.suggestions, state.platformAppPaths, total);
       return true;
     })
@@ -448,12 +441,12 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
   state.socketServer.register(BackIn.GET_SUGGESTIONS, async () => {
     const suggestions: GamePropSuggestions = {
-      tags: await GameManager.findUniqueValues(TagAlias, 'name'),
-      playMode: await GameManager.findUniqueValues(Game, 'playMode', true),
-      platforms: await GameManager.findUniqueValues(PlatformAlias, 'name'),
-      status: await GameManager.findUniqueValues(Game, 'status', true),
-      applicationPath: await GameManager.findUniqueApplicationPaths(),
-      library: await GameManager.findUniqueValues(Game, 'library'),
+      tags: [],
+      playMode: [],
+      platforms: [],
+      status: [],
+      applicationPath: [],
+      library: [],
     };
     const appPaths: PlatformAppPathSuggestions = await GameManager.findPlatformsAppPaths();
     state.platformAppPaths = appPaths; // Update cache
@@ -464,7 +457,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.GET_GAMES_TOTAL, async () => {
-    return await GameManager.countGames();
+    return fpDatabase.countGames();
   });
 
   state.socketServer.register(BackIn.SET_LOCALE, (event, data) => {
@@ -483,7 +476,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     const addApp = await GameManager.findAddApp(id);
     if (addApp) {
       // Force load relation
-      addApp.parentGame = await GameManager.findGame(addApp.parentGameId) as Game;
+      addApp.parentGame = fpDatabase.findGame(addApp.parentGameId);
       const configs = await GameManager.findGameConfigs(addApp.parentGameId, state.registry.middlewares);
       const activeConfigIdx = configs.findIndex(c => c.id === addApp.parentGame.activeGameConfigId);
       if (addApp.parentGame.activeGameConfigId && activeConfigIdx === -1) {
@@ -493,11 +486,11 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       // If it has GameData, make sure it's present
       let gameData: GameData | null;
       if (addApp.parentGame.activeDataId) {
-        gameData = await GameDataManager.findOne(addApp.parentGame.activeDataId);
+        gameData = fpDatabase.findGameDataById(addApp.parentGame.activeDataId);
         if (gameData && !gameData.presentOnDisk) {
           // Download GameData
           try {
-            await downloadGameData(state, gameData);
+            await downloadGameDataRes(state, gameData);
           } catch (error: any) {
             state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
             log.info('Game Launcher', `Add App Launch Aborted: ${error}`);
@@ -534,7 +527,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.LAUNCH_GAME, async (event, id) => {
-    const game = await GameManager.findGame(id);
+    const game = fpDatabase.findGame(id);
 
     if (game) {
       // Make sure Server is set to configured server - Curations may have changed it
@@ -559,7 +552,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
           log.debug('Game Launcher', 'Downloading Game Data for ' + gameData.path || 'UNKNOWN');
           // Download GameData
           try {
-            await downloadGameData(state, gameData);
+            await downloadGameDataRes(state, gameData);
           } catch (error: any) {
             state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
             log.info('Game Launcher', `Game Launch Aborted: ${error}`);
@@ -574,14 +567,13 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         throw 'Could not load game config despite one being selected?';
       }
       // Launch game
-      const flatGamePlatforms = makeFlatPlatforms(game.platforms);
       await GameLauncher.launchGame({
         game,
         fpPath: path.resolve(state.config.flashpointPath),
         htdocsPath: state.preferences.htdocsFolderPath,
         dataPacksFolderPath: state.preferences.dataPacksFolderPath,
         sevenZipPath: state.sevenZipPath,
-        native: state.preferences.nativePlatforms.some(p => flatGamePlatforms.includes(p)),
+        native: state.preferences.nativePlatforms.some(p => game.platforms.inner.includes(p)),
         execMappings: state.execMappings,
         lang: state.languageContainer,
         isDev: state.isDev,
@@ -622,7 +614,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         info.game.activeGameConfigId = null;
         info.game.activeGameConfigOwner = null;
       }
-      const game = await GameManager.save(info.game);
+      const game = fpDatabase.saveGame(info.game);
       // Clean up removed configs
       await GameManager.cleanupConfigs(info.game, validConfigIds);
       // Save up to date ids
@@ -634,7 +626,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
           configs: info.configs,
         },
         library: game.library,
-        gamesTotal: await GameManager.countGames(),
+        gamesTotal: fpDatabase.countGames(),
       };
     } catch (err) {
       console.error(err);
@@ -657,12 +649,12 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     return {
       fetchedInfo: null,
       library: game ? game.library : undefined,
-      gamesTotal: await GameManager.countGames(),
+      gamesTotal: fpDatabase.countGames(),
     };
   });
 
   state.socketServer.register(BackIn.DUPLICATE_GAME, async (event, id, dupeImages) => {
-    const game = await GameManager.findGame(id);
+    const game = fpDatabase.findGame(id);
     let result: Game | undefined;
     if (game) {
 
@@ -677,7 +669,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       newGame.addApps = newAddApps;
 
       // Add copies
-      result = await GameManager.save(newGame);
+      result = fpDatabase.saveGame(newGame);
 
       // Copy images
       if (dupeImages) {
@@ -710,7 +702,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     return {
       fetchedInfo: null,
       library: result ? result.library : undefined,
-      gamesTotal: await GameManager.countGames(),
+      gamesTotal: fpDatabase.countGames(),
     };
   });
 
@@ -724,7 +716,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
   state.socketServer.register(BackIn.EXPORT_GAME, async (event, id, location, metaOnly) => {
     if (await pathExists(metaOnly ? path.dirname(location) : location)) {
-      const game = await GameManager.findGame(id);
+      const game = fpDatabase.findGame(id);
       if (game) {
         // Save to file
         try {
@@ -768,7 +760,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.GET_GAME, async (event, id) => {
-    const game = await GameManager.findGame(id);
+    const game = fpDatabase.findGame(id);
     if (game === null) {
       return null;
     }
@@ -845,7 +837,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.GET_GAME_DATA, async (event, id) => {
-    const gameData = await GameDataManager.findOne(id);
+    const gameData = fpDatabase.findGameDataById(id);
     // Verify it's still on disk
     if (gameData && gameData.presentOnDisk && gameData.path) {
       try {
@@ -860,39 +852,39 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.GET_GAMES_GAME_DATA, async (event, id) => {
-    return GameDataManager.findGameData(id);
+    return fpDatabase.findGameData(id);
   });
 
   state.socketServer.register(BackIn.SAVE_GAME_DATAS, async (event, data) => {
     // Ignore presentOnDisk, client isn't the most aware
     await Promise.all(data.map(async (d) => {
-      const existingData = await GameDataManager.findOne(d.id);
+      const existingData = fpDatabase.findGameDataById(d.id);
       if (existingData) {
         existingData.title = d.title;
         existingData.applicationPath = d.applicationPath;
         existingData.launchCommand = d.launchCommand;
         existingData.parameters = d.parameters;
-        return GameDataManager.save(existingData);
+        return fpDatabase.saveGameData(existingData);
       }
     }));
   });
 
   state.socketServer.register(BackIn.DELETE_GAME_DATA, async (event, gameDataId) => {
-    const gameData = await GameDataManager.findOne(gameDataId);
+    const gameData = fpDatabase.findGameDataById(gameDataId);
     if (gameData) {
       if (gameData.presentOnDisk && gameData.path) {
-        await GameDataManager.onWillUninstallGameData.fire(gameData);
+        await onWillUninstallGameData.fire(gameData);
         const gameDataPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, gameData.path);
         await fs.promises.unlink(gameDataPath);
         gameData.path = undefined;
         gameData.presentOnDisk = false;
-        GameDataManager.onDidUninstallGameData.fire(gameData);
+        onDidUninstallGameData.fire(gameData);
       }
-      const game = await GameManager.findGame(gameData.gameId);
+      const game = fpDatabase.findGame(gameData.gameId);
       if (game) {
         game.activeDataId = undefined;
         game.activeDataOnDisk = false;
-        await GameManager.save(game);
+        fpDatabase.saveGame(game);
       }
       await GameDataManager.remove(gameDataId);
     }
@@ -903,9 +895,9 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.DOWNLOAD_GAME_DATA, async (event, gameDataId) => {
-    const gameData = await GameDataManager.findOne(gameDataId);
+    const gameData = fpDatabase.findGameDataById(gameDataId);
     if (gameData) {
-      await downloadGameData(state, gameData)
+      await downloadGameDataRes(state, gameData)
       .catch((err) => {
         throw 'Failed to download';
       });
@@ -916,9 +908,9 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.UNINSTALL_GAME_DATA, async (event, id) => {
-    const gameData: GameData | null = await GameDataManager.findOne(id);
+    const gameData = fpDatabase.findGameDataById(id);
     if (gameData && gameData.path && gameData.presentOnDisk) {
-      await GameDataManager.onWillUninstallGameData.fire(gameData);
+      await onWillUninstallGameData.fire(gameData);
       // Delete Game Data
       const gameDataPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, gameData.path);
       await fs.promises.unlink(gameDataPath)
@@ -930,13 +922,13 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       });
       gameData.path = '';
       gameData.presentOnDisk = false;
-      await GameDataManager.save(gameData);
-      GameDataManager.onDidUninstallGameData.fire(gameData);
+      fpDatabase.saveGameData(gameData);
+      onDidUninstallGameData.fire(gameData);
       // Update Game
-      const game = await GameManager.findGame(gameData.gameId);
+      const game = fpDatabase.findGame(gameData.gameId);
       if (game && game.activeDataId === gameData.id) {
         game.activeDataOnDisk = false;
-        return GameManager.save(game);
+        return fpDatabase.saveGame(game);
       }
     }
     return null;
@@ -1053,13 +1045,13 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.CLEANUP_TAGS, async (event) => {
-    const allTags = await TagManager.findTags();
-    const commaTags = allTags.filter(t => t.primaryAlias.name.includes(','));
+    const allTags = fpDatabase.findAllTags();
+    const commaTags = allTags.filter(t => t.name.includes(','));
     for (const oldTag of commaTags) {
-      const allAliases = oldTag.primaryAlias.name.split(',').map(a => a.trim());
+      const allAliases = oldTag.name.split(',').map(a => a.trim());
       const tagsToAdd: Tag[] = [];
       for (const alias of allAliases) {
-        let tag = await TagManager.findTag(alias);
+        let tag = fpDatabase.findTag(alias);
         if (!tag) {
           // Tag doesn't exist, make a new one
           tag = await TagManager.createTag(alias);
@@ -1115,13 +1107,13 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     return TagManager.saveTagAlias(data);
   });
 
-  state.socketServer.register(BackIn.GET_TAG_SUGGESTIONS, async (event, text, tagFilters) => {
-    const flatTagFilter = tagFilters.reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
-    const flatCatFilter = tagFilters.reduce<string[]>((prev, cur) => prev.concat(cur.categories), []);
-    const result = await TagManager.findTagSuggestions(text, flatTagFilter, flatCatFilter);
-    state.socketServer.send(event.client, BackOut.GET_TAG_SUGGESTIONS, result);
-    return result;
-  });
+  // state.socketServer.register(BackIn.GET_TAG_SUGGESTIONS, async (event, text, tagFilters) => {
+  //   const flatTagFilter = tagFilters.reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
+  //   const flatCatFilter = tagFilters.reduce<string[]>((prev, cur) => prev.concat(cur.categories), []);
+  //   const result = await TagManager.findTagSuggestions(text, flatTagFilter, flatCatFilter);
+  //   state.socketServer.send(event.client, BackOut.GET_TAG_SUGGESTIONS, result);
+  //   return result;
+  // });
 
   state.socketServer.register(BackIn.GET_PLATFORM_SUGGESTIONS, async (event, text) => {
     const result = await TagManager.findPlatformSuggestions(text);
@@ -1261,7 +1253,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
   state.socketServer.register(BackIn.GET_OR_CREATE_PLATFORM, async (event, platformName) => {
     const name = platformName.trim();
-    let platform = await TagManager.findPlatform(name);
+    let platform = fpDatabase.findPlatform(name);
     if (!platform) {
       // Platform doesn't exist, make a new one
       platform = await TagManager.createPlatform(name);
@@ -1363,14 +1355,13 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       const allTagAliases = await TagManager.dumpTagAliases();
       jsonTagsFile.aliases = allTagAliases;
       // Collect tags
-      const allTags = await TagManager.findTags('');
+      const allTags = fpDatabase.findAllTags();
       jsonTagsFile.tags = allTags.map(t => {
-        const primaryAlias = t.aliases.find(a => a.id === t.primaryAliasId);
         const bareTag: BareTag = {
           id: t.id || 0,
-          categoryId: t.categoryId || -1,
+          category: t.category || '',
           description: t.description,
-          primaryAlias: primaryAlias ? primaryAlias.name : 'ERROR'
+          name: t.name
         };
         return bareTag;
       });
@@ -1406,7 +1397,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     // --- TAGS ---
 
     // Collect tag categories
-    jsonFile.tags.categories = await TagManager.findTagCategories();
+    jsonFile.tags.categories = fpDatabase.findAllTagCategories();
     // Collect aliases
     jsonFile.tags.aliases = await TagManager.dumpTagAliases();
     // Collect tags
@@ -1497,14 +1488,18 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     let res = 0;
     try {
       // Map JSON category ids to real categories
-      const existingCats = await TagManager.findTagCategories();
+      const existingCats = fpDatabase.findAllTagCategories();
       const categories: Record<number, TagCategory> = {};
       for (const rawCat of json.categories) {
         const foundCat = existingCats.find(c => c.name.toLowerCase() === rawCat.name.toLowerCase());
         if (foundCat) {
           categories[rawCat.id] = foundCat;
         } else {
-          const newCat = await TagManager.createTagCategory(rawCat.name, rawCat.color);
+          const partialCat: PartialTagCategory = {
+            name: rawCat.name,
+            color: rawCat.color
+          };
+          const newCat = fpDatabase.createTagCategory(partialCat);
           if (newCat) {
             categories[rawCat.id] = newCat;
           }
@@ -1512,11 +1507,11 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       }
       // Create and fill tags
       for (const bareTag of json.tags) {
-        const existingTag = await TagManager.findTag(bareTag.primaryAlias);
+        const existingTag = fpDatabase.findTag(bareTag.name);
         if (existingTag) {
           // TODO: Detect alias collisions
         } else {
-          await TagManager.createTag(bareTag.primaryAlias, categories[bareTag.categoryId].name, (json.aliases.filter(a => a.tagId === bareTag.id).map(a => a.name)).filter(a => a !== bareTag.primaryAlias));
+          await TagManager.createTag(bareTag.name, bareTag.category, (json.aliases.filter(a => a.tagId === bareTag.id).map(a => a.name)).filter(a => a !== bareTag.name));
           res += 1;
         }
       }
@@ -1621,7 +1616,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
           imageFolderPath: state.preferences.imageFolderPath,
           openDialog: state.socketServer.showMessageBoxBack(state, event.client),
           openExternal: state.socketServer.openExternal(event.client),
-          tagCategories: await TagManager.findTagCategories(),
+          tagCategories: fpDatabase.findAllTagCategories(),
           taskProgress,
           sevenZipPath: state.sevenZipPath,
           state,
@@ -1685,13 +1680,13 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         }
       }
 
-      const flatPlatforms = makeFlatPlatforms(data.curation.game.platforms || []);
+      const platforms = data.curation.game.platforms ? data.curation.game.platforms : [];
       await launchCuration(data.curation, data.symlinkCurationContent, skipLink, {
         fpPath: path.resolve(state.config.flashpointPath),
         htdocsPath: state.preferences.htdocsFolderPath,
         dataPacksFolderPath: state.preferences.dataPacksFolderPath,
         sevenZipPath: state.sevenZipPath,
-        native: state.preferences.nativePlatforms.some(p => flatPlatforms.includes(p)),
+        native: state.preferences.nativePlatforms.some(p => platforms.includes(p)),
         execMappings: state.execMappings,
         lang: state.languageContainer,
         isDev: state.isDev,
@@ -1916,7 +1911,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.EXPORT_META_EDIT, async (event, id, properties) => {
-    const game = await GameManager.findGame(id);
+    const game = fpDatabase.findGame(id);
     if (game) {
       const meta: MetaEditMeta = {
         id: game.id,
@@ -1928,11 +1923,11 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         if (properties[key]) {
           switch (key) {
             case 'tags': {
-              meta.tags = game.tags.map(tag => tag.primaryAlias.name);
+              meta.tags = game.tags.inner;
               break;
             }
             case 'platforms': {
-              meta.platforms = game.platforms.map(tag => tag.primaryAlias.name);
+              meta.platforms = game.platforms.inner;
               break;
             }
             default:
@@ -2245,7 +2240,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       const contentFolder = path.join(curPath, 'content');
       await fs.promises.mkdir(contentFolder, { recursive: true });
 
-      const defaultPlats = await TagManager.findPlatform('Flash');
+      const defaultPlats = fpDatabase.findPlatform('Flash');
 
       const data: LoadedCuration = {
         folder,
@@ -2253,7 +2248,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         group: '',
         game: meta || {
           language: 'en',
-          primaryPlatform: defaultPlats ? defaultPlats.primaryAlias.name : undefined,
+          primaryPlatform: defaultPlats ? defaultPlats.name : undefined,
           platforms: defaultPlats ? [defaultPlats] : [],
           playMode: 'Single Player',
           status:   'Playable',
@@ -2591,7 +2586,7 @@ function runGameFactory(state: BackState) {
       if (state.preferences.enablePlaytimeTracking) {
         if (!state.preferences.enablePlaytimeTrackingExtreme) {
           const extremeTags = state.preferences.tagFilters.filter(t => t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
-          const isExtreme = gameLaunchInfo.game.tagsStr.split(';').findIndex(t => extremeTags.includes(t.trim())) !== -1;
+          const isExtreme = gameLaunchInfo.game.tags.findIndex(t => extremeTags.includes(t.trim())) !== -1;
           if (!isExtreme) {
             GameManager.logGameStart(gameLaunchInfo.game.id);
           }
@@ -2606,7 +2601,7 @@ function runGameFactory(state: BackState) {
           if (state.preferences.enablePlaytimeTracking) {
             if (!state.preferences.enablePlaytimeTrackingExtreme) {
               const extremeTags = state.preferences.tagFilters.filter(t => t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
-              const isExtreme = gameLaunchInfo.game.tagsStr.split(';').findIndex(t => extremeTags.includes(t.trim())) !== -1;
+              const isExtreme = gameLaunchInfo.game.tags.findIndex(t => extremeTags.includes(t.trim())) !== -1;
               if (!isExtreme) {
                 GameManager.logGameStart(gameLaunchInfo.game.id);
               }
@@ -2624,7 +2619,7 @@ function runGameFactory(state: BackState) {
         if (state.preferences.enablePlaytimeTracking) {
           if (!state.preferences.enablePlaytimeTrackingExtreme) {
             const extremeTags = state.preferences.tagFilters.filter(t => t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
-            const isExtreme = gameLaunchInfo.game.tagsStr.split(';').findIndex(t => extremeTags.includes(t.trim())) !== -1;
+            const isExtreme = gameLaunchInfo.game.tags.findIndex(t => extremeTags.includes(t.trim())) !== -1;
             if (!isExtreme) {
               GameManager.addGamePlaytime(gameLaunchInfo.game.id, Date.now() - proc.getStartTime());
             }
@@ -2761,11 +2756,7 @@ export async function exitApp(state: BackState, beforeProcessExit?: () => void |
   return exit(state, beforeProcessExit);
 }
 
-function makeFlatPlatforms(platforms: Platform[]): string[] {
-  return platforms.reduce<string[]>((prev, cur) => prev.concat(cur.aliases.map(a => a.name)), []);
-}
-
-async function downloadGameData(state: BackState, gameData: GameData) {
+async function downloadGameDataRes(state: BackState, gameData: GameData) {
   const onDetails = (details: DownloadDetails) => {
     state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_DETAILS, details);
   };
@@ -2775,7 +2766,7 @@ async function downloadGameData(state: BackState, gameData: GameData) {
   };
   state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
   try {
-    await GameDataManager.downloadGameData(gameData.id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), state.preferences.gameDataSources, state.downloadController.signal(), onProgress, onDetails);
+    await downloadGameData(gameData.id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), state.preferences.gameDataSources, state.downloadController.signal(), onProgress, onDetails);
   } finally {
     // Close PLACEHOLDER download dialog on client, cosmetic delay to look nice
     setTimeout(() => {

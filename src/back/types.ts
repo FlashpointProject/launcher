@@ -161,9 +161,9 @@ export type BarePlatform = {
 
 export type BareTag = {
   id: number;
-  categoryId: number;
+  category: string;
   description?: string;
-  primaryAlias: string;
+  name: string;
 }
 
 export type ExportRelation = {

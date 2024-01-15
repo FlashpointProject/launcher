@@ -333,7 +333,7 @@ export async function makeCurationFromGame(state: BackState, gameId: string, ski
 
     // Extract active data pack if exists
     if (game.activeDataId) {
-      await checkAndDownloadGameData(gameId, game.activeDataId);
+      await checkAndDownloadGameData(game.activeDataId);
       const activeData = await GameDataManager.findOne(game.activeDataId);
       if (activeData && activeData.path && !skipDataPack) {
         // Extract data pack into curation folder

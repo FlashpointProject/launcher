@@ -1,25 +1,8 @@
-import * as GameDataManager from '@back/game/GameDataManager';
-import { AdditionalApp } from '@database/entity/AdditionalApp';
-import { Game } from '@database/entity/Game';
-import { GameData } from '@database/entity/GameData';
-import { Tag } from '@database/entity/Tag';
-import { TagAlias } from '@database/entity/TagAlias';
-import { TagCategory } from '@database/entity/TagCategory';
-import { Initial1593172736527 } from '@database/migration/1593172736527-Initial';
-import { AddExtremeToPlaylist1599706152407 } from '@database/migration/1599706152407-AddExtremeToPlaylist';
-import { GameData1611753257950 } from '@database/migration/1611753257950-GameData';
-import { SourceDataUrlPath1612434225789 } from '@database/migration/1612434225789-SourceData_UrlPath';
-import { SourceFileURL1612435692266 } from '@database/migration/1612435692266-Source_FileURL';
-import { SourceFileCount1612436426353 } from '@database/migration/1612436426353-SourceFileCount';
-import { GameTagsStr1613571078561 } from '@database/migration/1613571078561-GameTagsStr';
-import { GameDataParams1619885915109 } from '@database/migration/1619885915109-GameDataParams';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
 import { Theme } from '@shared/ThemeFile';
-import { VERSION } from '@shared/version';
 import {
   createErrorProxy, deepCopy,
   removeFileExtension,
-  sizeToString,
   stringifyArray
 } from '@shared/Util';
 import { BackIn, BackInit, BackInitArgs, BackOut, BackResParams, ComponentState, ComponentStatus, DownloadDetails } from '@shared/back/types';
@@ -31,6 +14,7 @@ import { LangFileContent, getDefaultLocalization } from '@shared/lang';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { defaultPreferencesData } from '@shared/preferences/util';
 import { validateSemiUUID } from '@shared/utils/uuid';
+import { VERSION } from '@shared/version';
 import * as child_process from 'child_process';
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint-launcher';
@@ -42,18 +26,6 @@ import * as path from 'path';
 import 'reflect-metadata';
 import { genCurationWarnings, loadCurationFolder } from './curate/util';
 // Required for the DB Models to function
-import { Platform } from '@database/entity/Platform';
-import { PlatformAlias } from '@database/entity/PlatformAlias';
-import { RemoveSources1676712700000 } from '@database/migration/1676712700000-RemoveSources';
-import { RemovePlaylist1676713895000 } from '@database/migration/1676713895000-RemovePlaylist';
-import { TagifyPlatform1677943090621 } from '@database/migration/1677943090621-TagifyPlatform';
-import { AddPlatformsRedundancyFieldToGame1677951346785 } from '@database/migration/1677951346785-AddPlatformsRedundancyFieldToGame';
-import { GDIndex1680813346696 } from '@database/migration/1680813346696-GDIndex';
-import { MoveLaunchPath1681561150000 } from '@database/migration/1681561150000-MoveLaunchPath';
-import { PrimaryPlatform1684673859425 } from '@database/migration/1684673859425-PrimaryPlatform';
-import { PlayTime1687807237714 } from '@database/migration/1687807237714-PlayTime';
-import { PlayTimeIndices1687847922729 } from '@database/migration/1687847922729-PlayTimeIndices';
-import { ArchiveState1689423335642 } from '@database/migration/1689423335642-ArchiveState';
 import {
   CURATIONS_FOLDER_EXPORTED,
   CURATIONS_FOLDER_EXTRACTING,
@@ -61,8 +33,8 @@ import {
   CURATIONS_FOLDER_WORKING, CURATION_META_FILENAMES
 } from '@shared/constants';
 import axios from 'axios';
+import { FlashpointArchive } from 'flashpoint-archive';
 import { Tail } from 'tail';
-import { DataSource, DataSourceOptions } from 'typeorm';
 import { ConfigFile } from './ConfigFile';
 import { loadExecMappingsFile } from './Execs';
 import { ExtConfigFile } from './ExtConfigFile';
@@ -86,8 +58,8 @@ import {
   registerInterceptor
 } from './extensions/NodeInterceptor';
 import { Command, RegisteredMiddleware } from './extensions/types';
-import * as GameManager from './game/GameManager';
 import { onWillImportCuration } from './importGame';
+import { SystemEnvMiddleware } from './middleware';
 import { registerRequestCallbacks } from './responses';
 import { genContentTree } from './rust';
 import { BackState, ImageDownloadItem } from './types';
@@ -98,31 +70,19 @@ import { LogFile } from './util/LogFile';
 import { logFactory } from './util/logging';
 import { createContainer, exit, getMacPATH, runService } from './util/misc';
 import { uuid } from './util/uuid';
-import { GameConfig1696150466000 } from '@database/migration/1696150466000-GameConfig';
-import { RawGameConfig } from '@database/entity/GameConfig';
-import { SystemEnvMiddleware } from './middleware';
+import { Game, GameData, Playlist, PlaylistGame } from 'flashpoint-launcher';
+import { downloadGameData } from './download';
 
-const dataSourceOptions: DataSourceOptions = {
-  type: 'better-sqlite3',
-  database: ':memory:',
-  entities: [Game, AdditionalApp, Tag, TagAlias, TagCategory, GameData, Platform, PlatformAlias, RawGameConfig],
-  migrations: [Initial1593172736527, AddExtremeToPlaylist1599706152407, GameData1611753257950, SourceDataUrlPath1612434225789, SourceFileURL1612435692266,
-    SourceFileCount1612436426353, GameTagsStr1613571078561, GameDataParams1619885915109, RemoveSources1676712700000, RemovePlaylist1676713895000,
-    TagifyPlatform1677943090621, AddPlatformsRedundancyFieldToGame1677951346785, GDIndex1680813346696, MoveLaunchPath1681561150000,
-    PrimaryPlatform1684673859425, PlayTime1687807237714, PlayTimeIndices1687847922729, ArchiveState1689423335642, GameConfig1696150466000
-  ]
-};
-export let AppDataSource: DataSource = new DataSource(dataSourceOptions);
+export const onDidInstallGameData = new ApiEmitter<GameData>();
+export const onWillUninstallGameData = new ApiEmitter<GameData>();
+export const onDidUninstallGameData = new ApiEmitter<GameData>();
+export const onDidUpdateGame = new ApiEmitter<{oldGame: Game, newGame: Game}>();
+export const onDidRemoveGame = new ApiEmitter<Game>();
+export const onDidUpdatePlaylist = new ApiEmitter<{oldPlaylist: Playlist, newPlaylist: Playlist}>();
+export const onDidUpdatePlaylistGame = new ApiEmitter<{oldGame: PlaylistGame, newGame: PlaylistGame}>();
+export const onDidRemovePlaylistGame = new ApiEmitter<PlaylistGame>();
 
-export async function cleanMemoryDb() {
-  if (AppDataSource && AppDataSource.isInitialized) {
-    await AppDataSource.destroy();
-  }
-  AppDataSource = new DataSource(dataSourceOptions);
-  await AppDataSource.initialize();
-  await AppDataSource.query('PRAGMA foreign_keys=off;');
-  await AppDataSource.runMigrations();
-}
+export const fpDatabase = new FlashpointArchive();
 
 const DEFAULT_LOGO_PATH = 'window/images/Logos/404.png';
 
@@ -202,18 +162,18 @@ const state: BackState = {
       onWillLaunchAddApp: new ApiEmitter<flashpoint.AdditionalApp>(),
       onWillLaunchCurationGame: new ApiEmitter<flashpoint.GameLaunchInfo>(),
       onWillLaunchCurationAddApp: new ApiEmitter<flashpoint.AdditionalApp>(),
-      onWillUninstallGameData: GameDataManager.onWillUninstallGameData,
+      onWillUninstallGameData: onWillUninstallGameData,
       onDidLaunchGame: new ApiEmitter<flashpoint.Game>(),
       onDidLaunchAddApp: new ApiEmitter<flashpoint.AdditionalApp>(),
       onDidLaunchCurationGame: new ApiEmitter<flashpoint.Game>(),
       onDidLaunchCurationAddApp: new ApiEmitter<flashpoint.AdditionalApp>(),
-      onDidUpdateGame: GameManager.onDidUpdateGame,
-      onDidRemoveGame: GameManager.onDidRemoveGame,
-      onDidUpdatePlaylist: GameManager.onDidUpdatePlaylist,
-      onDidUpdatePlaylistGame: GameManager.onDidUpdatePlaylistGame,
-      onDidRemovePlaylistGame: GameManager.onDidRemovePlaylistGame,
-      onDidInstallGameData: GameDataManager.onDidInstallGameData,
-      onDidUninstallGameData: GameDataManager.onDidUninstallGameData,
+      onDidUpdateGame: onDidUpdateGame,
+      onDidRemoveGame: onDidRemoveGame,
+      onDidUpdatePlaylist: onDidUpdatePlaylist,
+      onDidUpdatePlaylistGame: onDidUpdatePlaylistGame,
+      onDidRemovePlaylistGame: onDidRemovePlaylistGame,
+      onDidInstallGameData: onDidInstallGameData,
+      onDidUninstallGameData: onDidUninstallGameData,
       onWillImportCuration: onWillImportCuration,
     },
     curations: {
@@ -734,48 +694,17 @@ async function initialize() {
     // Non-fatal, don't quit.
   }
 
-  // Setup DB
-  if (!AppDataSource.isInitialized) {
-    const databasePath = path.resolve(state.config.flashpointPath, 'Data', 'flashpoint.sqlite');
-    console.log('Back - Using Database at ' + databasePath);
-    // Spin up another source just to run migrations
-    const migrationSource = new DataSource({
-      ...dataSourceOptions,
-      type: 'better-sqlite3',
-      database: databasePath,
-      poolSize: undefined
-    });
-    await migrationSource.initialize();
-    await migrationSource.query('PRAGMA foreign_keys=off;');
-    await migrationSource.runMigrations();
-    await migrationSource.showMigrations();
-    await migrationSource.destroy();
-    // Initialize real database
-    AppDataSource.setOptions({ database: databasePath });
-    await AppDataSource.initialize();
-    // TypeORM forces on but breaks Playlist Game links to unimported games
-    await AppDataSource.query('PRAGMA foreign_keys=off;');
-    // Forcefully precache the tables into memory
-    if (state.preferences.precacheDatabase) {
-      const dbSize = await fs.promises.stat(databasePath).then((stats) => stats.size);
-      const start = performance.now();
-      await AppDataSource.query(`PRAGMA cache_size=${dbSize + 20000};`);
-      await AppDataSource.query('SELECT * FROM game;');
-      await AppDataSource.query('SELECT * FROM tag;');
-      const end = performance.now();
-      log.info('Launcher', `Database cache set to ${sizeToString(dbSize + 20000)} bytes in ${Math.floor(end - start)}ms`);
-    }
-    log.info('Launcher', 'Database connection established');
-  }
+  const databasePath = path.resolve(state.config.flashpointPath, 'Data', 'flashpoint.sqlite');
+  fpDatabase.loadDatabase(databasePath);
 
   // Populate unique values
   state.suggestions = {
-    tags: await GameManager.findUniqueValues(TagAlias, 'name'),
-    playMode: await GameManager.findUniqueValues(Game, 'playMode', true),
-    platforms: await GameManager.findUniqueValues(PlatformAlias, 'name'),
-    status: await GameManager.findUniqueValues(Game, 'status', true),
-    applicationPath: await GameManager.findUniqueApplicationPaths(),
-    library: await GameManager.findUniqueValues(Game, 'library'),
+    tags: [],
+    playMode: [],
+    platforms: [],
+    status: [],
+    applicationPath: [],
+    library: [],
   };
 
   // Check for Flashpoint Manager Updates
@@ -1455,7 +1384,7 @@ export async function loadCurationArchive(filePath: string, onProgress?: (progre
     thumbnail: await loadCurationIndexImage(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, key, 'logo.png')),
     screenshot: await loadCurationIndexImage(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, key, 'ss.png')),
   };
-  const alreadyImported = (await GameManager.findGame(loadedCuration.uuid)) !== null;
+  const alreadyImported = fpDatabase.findGame(loadedCuration.uuid) !== null;
   const curation: flashpoint.CurationState = {
     ...loadedCuration,
     alreadyImported,
@@ -1522,8 +1451,8 @@ export function extractFullPromise(args: Parameters<typeof extractFull>) : Promi
   });
 }
 
-export async function checkAndDownloadGameData(gameId: string, activeDataId: number) {
-  const gameData = await GameDataManager.findOne(activeDataId);
+export async function checkAndDownloadGameData(activeDataId: number) {
+  const gameData = fpDatabase.findGameDataById(activeDataId);
   if (gameData && !gameData.presentOnDisk) {
     // Download GameData
     const onDetails = (details: DownloadDetails) => {
@@ -1535,7 +1464,7 @@ export async function checkAndDownloadGameData(gameId: string, activeDataId: num
     };
     state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
     try {
-      await GameDataManager.downloadGameData(gameData.id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), state.preferences.gameDataSources, state.downloadController.signal(), onProgress, onDetails)
+      await downloadGameData(gameData.id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), state.preferences.gameDataSources, state.downloadController.signal(), onProgress, onDetails)
       .finally(() => {
         // Close PLACEHOLDER download dialog on client, cosmetic delay to look nice
         setTimeout(() => {
