@@ -323,6 +323,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
     case MainActionType.ADD_LOADED: {
       const nextLoaded = { ...state.loaded };
 
+
       for (const key of action.loaded) {
         console.log('Loaded ' + BackInit[key]);
         nextLoaded[key] = true;

@@ -53,7 +53,7 @@ export type View = {
 export type ViewPageStates = Partial<Record<number, RequestState>>
 
 export type MainState = {
-  gotdList: GameOfTheDay[];
+  gotdList: GameOfTheDay[] | undefined;
   views: Record<string, View | undefined>; // views[id] = view
   libraries: string[];
   serverNames: string[];

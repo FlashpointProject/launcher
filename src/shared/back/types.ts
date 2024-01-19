@@ -216,6 +216,11 @@ export enum BackOut {
   UPDATE_COMPONENT_STATUSES,
   SET_VIEW_SEARCH_STATUS,
 
+  // Updates?
+  UPDATE_GOTD,
+  UPDATE_FEED,
+  UPDATE_PLATFORM_APP_PATHS,
+
   // Metadata Sync
   POST_SYNC_CHANGES,
 
@@ -444,6 +449,11 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.UPDATE_COMPONENT_STATUSES]: (componentStatuses: ComponentStatus[]) => void;
   [BackOut.SET_VIEW_SEARCH_STATUS]: (viewId: string, status: string | null) => void;
 
+  // Updates?
+  [BackOut.UPDATE_GOTD]: (gotd: GameOfTheDay[]) => void;
+  [BackOut.UPDATE_FEED]: (markdown: string) => void;
+  [BackOut.UPDATE_PLATFORM_APP_PATHS]: (paths: PlatformAppPathSuggestions) => void;
+
   // Metadata Sync
   [BackOut.POST_SYNC_CHANGES]: (libraries: string[], suggestions: GamePropSuggestions, platformAppPaths: PlatformAppPathSuggestions, cats: TagCategory[], total: number) => void;
 
@@ -535,7 +545,7 @@ export type GameOfTheDay = {
 }
 
 export type GetRendererLoadedDataResponse = {
-  gotdList: GameOfTheDay[],
+  gotdList: GameOfTheDay[] | undefined,
   services: IService[];
   libraries: string[];
   suggestions: GamePropSuggestions;
@@ -544,7 +554,6 @@ export type GetRendererLoadedDataResponse = {
   tagCategories: TagCategory[];
   logoSets: LogoSet[];
   platformAppPaths: PlatformAppPathSuggestions;
-  updateFeedMarkdown: string;
   componentStatuses: ComponentStatus[];
   shortcuts: Record<string, string[]>;
 }
