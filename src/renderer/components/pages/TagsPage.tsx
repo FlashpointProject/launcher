@@ -1,4 +1,3 @@
-import { Tag } from '@database/entity/Tag';
 import { ConnectedRightTagsSidebar } from '@renderer/containers/ConnectedRightTagsSidebar';
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
@@ -8,6 +7,7 @@ import { deepCopy } from '@shared/Util';
 import * as React from 'react';
 import { ResizableSidebar } from '../ResizableSidebar';
 import { TagList } from '../TagList';
+import { Tag } from 'flashpoint-launcher';
 
 type OwnProps = {
 }
@@ -137,7 +137,6 @@ export class TagsPage extends React.Component<TagsPageProps, TagsPageState> {
             }
           }
           this.setState({ tags: newTags, currentTag: data });
-          window.Shared.back.send(BackIn.CLEANUP_TAG_ALIASES);
         }
       });
     }
@@ -180,17 +179,19 @@ export class TagsPage extends React.Component<TagsPageProps, TagsPageState> {
   deleteCurrentTag = () => {
     if (this.state.selectedTagId) {
       console.log('DELETING');
-      window.Shared.back.request(BackIn.DELETE_TAG, this.state.selectedTagId)
+      const selectedTag = this.state.tags.find(t => t.id == this.state.selectedTagId);
+      if (!selectedTag) {
+        log.error('Launcher', 'Failed to delete tag, does not exist: ' + this.state.selectedTagId);
+        return;
+      }
+      window.Shared.back.request(BackIn.DELETE_TAG, selectedTag.name)
       .then((data) => {
-        if (data && data.success) {
-          const newTags = deepCopy(this.state.tags);
-          const newTagIndex = newTags.findIndex(t => t.id == this.state.selectedTagId);
-          if (newTagIndex > -1) {
-            newTags.splice(newTagIndex, 1);
-          }
-          this.setState({ tags: newTags, currentTag: undefined });
-          window.Shared.back.send(BackIn.CLEANUP_TAG_ALIASES);
+        const newTags = deepCopy(this.state.tags);
+        const newTagIndex = newTags.findIndex(t => t.id == this.state.selectedTagId);
+        if (newTagIndex > -1) {
+          newTags.splice(newTagIndex, 1);
         }
+        this.setState({ tags: newTags, currentTag: undefined });
       });
     }
   };

@@ -1,3 +1,5 @@
+import { Game } from 'flashpoint-launcher';
+
 export function chunkArray<T>(array: T[], chunkSize: number): T[][] {
   const chunks: T[][] = [];
 
@@ -6,4 +8,43 @@ export function chunkArray<T>(array: T[], chunkSize: number): T[][] {
   }
 
   return chunks;
+}
+
+export function newGame(): Game {
+  return {
+    id: '',
+    library: '',
+    title: '',
+    alternateTitles: '',
+    series: '',
+    developer: '',
+    publisher: '',
+    primaryPlatform: '',
+    platforms: [],
+    dateAdded: new Date(),
+    dateModified: new Date(),
+    detailedPlatforms: [],
+    playMode: '',
+    status: '',
+    notes: '',
+    tags: [],
+    detailedTags: [],
+    source: '',
+    legacyApplicationPath: '',
+    legacyLaunchCommand: '',
+    releaseDate: '',
+    version: '',
+    originalDescription: '',
+    language: '',
+    activeDataId: 0,
+    activeDataOnDisk: false,
+    lastPlayed: new Date(),
+    playtime: 0,
+    playCounter: 0,
+    activeGameConfigId: 0,
+    activeGameConfigOwner: '',
+    archiveState: 0,
+    gameData: [],
+    addApps: []
+  };
 }

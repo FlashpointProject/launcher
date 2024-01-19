@@ -191,7 +191,7 @@ class _GameList extends React.Component<GameListProps> {
     const { games, selectedGameId, showExtremeIcon } = this.props;
     if (!games) { throw new Error('Trying to render a row in game list, but no games are found?'); }
     const game = games[cellProps.index];
-    const platform = game?.platformName;
+    const platform = game?.primaryPlatform;
 
     return game ? (
       <GameListItem
@@ -200,10 +200,10 @@ class _GameList extends React.Component<GameListProps> {
         id={game.id}
         title={game.title}
         platform={platform ? platform.trim() : ''}
-        tagsStr={game.tagsStr}
+        tags={game.tags}
         developer={game.developer}
         publisher={game.publisher}
-        extreme={game.tagsStr.split(';').findIndex(t => this.props.extremeTags.includes(t.trim())) !== -1}
+        extreme={game.tags.findIndex(t => this.props.extremeTags.includes(t.trim())) !== -1}
         extremeIconPath={extremeIconPath}
         showExtremeIcon={showExtremeIcon}
         logoVersion={this.props.logoVersion}

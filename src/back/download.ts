@@ -8,7 +8,7 @@ import { DownloadDetails } from '@shared/back/types';
 import { PartialGameData } from 'flashpoint-archive';
 
 export async function downloadGameData(gameDataId: number, dataPacksFolderPath: string, sources: GameDataSource[], abortSignal: AbortSignal, onProgress?: (percent: number) => void, onDetails?: (details: DownloadDetails) => void): Promise<void> {
-  const gameData = fpDatabase.findGameDataById(gameDataId);
+  const gameData = await fpDatabase.findGameDataById(gameDataId);
   const sourceErrors: string[] = [];
   log.debug('Game Launcher', `Checking ${sources.length} Sources for this GameData...`);
   if (gameData) {
@@ -64,7 +64,7 @@ export async function importGameDataSkipHash(gameId: string, filePath: string, d
   // Gather basic info
   const stats = await fs.promises.stat(filePath);
   if (!existingGameData) {
-    const gameData = fpDatabase.findGameData(gameId);
+    const gameData = await fpDatabase.findGameData(gameId);
     existingGameData = gameData.find(g => g.sha256.toLowerCase() === sha256.toLowerCase());
   }
   // Copy file
@@ -89,12 +89,12 @@ export async function importGameDataSkipHash(gameId: string, filePath: string, d
       applicationPath: '',
       launchCommand: '',
     };
-    const gameData = fpDatabase.createGameData(newGameData);
-    const game = fpDatabase.findGame(gameId);
+    const gameData = await fpDatabase.createGameData(newGameData);
+    const game = await fpDatabase.findGame(gameId);
     if (game) {
       game.activeDataId = gameData.id;
       game.activeDataOnDisk = gameData.presentOnDisk;
-      fpDatabase.saveGame(game);
+      await fpDatabase.saveGame(game);
       return gameData;
     }
   }

@@ -1,12 +1,12 @@
 import { ITheme } from '@shared/ThemeFile';
-import { ComponentStatus, FetchedGameInfo, FpfssUser, GameOfTheDay, ViewGame } from '@shared/back/types';
+import { ComponentStatus, FetchedGameInfo, FpfssUser, GameOfTheDay } from '@shared/back/types';
 import { AppExtConfigData } from '@shared/config/interfaces';
 import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { GamePropSuggestions, IService } from '@shared/interfaces';
 import { LangFile } from '@shared/lang';
 import { Menu } from 'electron';
 import { UpdateInfo } from 'electron-updater';
-import { Playlist, PlaylistGame } from 'flashpoint-launcher';
+import { Playlist, PlaylistGame, ViewGame } from 'flashpoint-launcher';
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
 import { Paths } from './Paths';

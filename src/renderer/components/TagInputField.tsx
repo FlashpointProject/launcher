@@ -1,10 +1,10 @@
-import { TagCategory } from '@database/entity/TagCategory';
-import { ITagObject, TagSuggestion } from '@shared/back/types';
+import { TagSuggestion } from '@shared/back/types';
 import { memoizeOne } from '@shared/memoize';
 import * as React from 'react';
 import { checkIfAncestor } from '../Util';
 import { InputField, InputFieldProps } from './InputField';
 import { OpenIcon } from './OpenIcon';
+import { Tag, TagCategory } from 'flashpoint-launcher';
 
 /** A function that receives a HTML element (or null). */
 type RefFunc<T extends HTMLElement> = (instance: T | null) => void;
@@ -12,25 +12,25 @@ type RefFunc<T extends HTMLElement> = (instance: T | null) => void;
 /** Input element types used by this component. */
 type InputElement = HTMLInputElement | HTMLTextAreaElement;
 
-export type TagInputFieldProps<T extends ITagObject> = InputFieldProps & {
+export type TagInputFieldProps = InputFieldProps & {
   /** Items to display in the drop-down list. */
-  tags: T[];
+  tags: Tag[];
   /** Called when a tag is selected */
-  onTagSelect?: (tag: T, index: number) => void;
+  onTagSelect?: (tag: Tag, index: number) => void;
   /** Called when a tag is selected when editable */
-  onTagEditableSelect?: (tag: T, index: number) => void;
+  onTagEditableSelect?: (tag: Tag, index: number) => void;
   /** Called when a tag suggestion is selected */
-  onTagSuggestionSelect?: (suggestion: TagSuggestion<T>) => void;
+  onTagSuggestionSelect?: (suggestion: TagSuggestion) => void;
   /** Called when the tag input box is submitted */
   onTagSubmit?: (text: string) => void;
   /** Function for getting a reference to the input element. Called whenever the reference could change. */
   inputRef?: RefFunc<InputElement>;
   /** Custom icon render func */
-  renderIcon?: (tag: T) => JSX.Element;
+  renderIcon?: (tag: Tag) => JSX.Element;
   /** Custom icon render func (suggestion) */
-  renderIconSugg?: (suggestion: TagSuggestion<T>) => JSX.Element;
+  renderIconSugg?: (suggestion: TagSuggestion) => JSX.Element;
   /** Tag suggestions based on currently entered tag */
-  suggestions: TagSuggestion<T>[];
+  suggestions: TagSuggestion[];
   /** Tag Category info */
   categories: TagCategory[];
   /** Primary value */
@@ -44,12 +44,12 @@ type TagInputFieldState = {
 };
 
 /** An input element with a drop-down menu that can list any number of selectable and clickable text elements. */
-export class TagInputField<T extends ITagObject> extends React.Component<TagInputFieldProps<T>, TagInputFieldState> {
+export class TagInputField extends React.Component<TagInputFieldProps, TagInputFieldState> {
   rootRef: React.RefObject<HTMLDivElement> = React.createRef();
   contentRef: React.RefObject<HTMLDivElement> = React.createRef();
   inputRef: React.RefObject<InputElement> = React.createRef();
 
-  constructor(props: TagInputFieldProps<T>) {
+  constructor(props: TagInputFieldProps) {
     super(props);
     this.state = {
       expanded: false
@@ -110,25 +110,25 @@ export class TagInputField<T extends ITagObject> extends React.Component<TagInpu
   }
 
   /** Renders the list of items in the drop-down menu. */
-  renderSuggestions = memoizeOne<(items: TagSuggestion<T>[], expanded: boolean) => JSX.Element[]>((items: TagSuggestion<T>[]) => {
+  renderSuggestions = memoizeOne<(items: TagSuggestion[], expanded: boolean) => JSX.Element[]>((items: TagSuggestion[]) => {
     return items.map((suggestion, index) => this.renderSuggestionItem(suggestion, index, this.props.renderIconSugg));
   }, ([ itemsA, expandedA ], [ itemsB, expandedB ]) => {
     return expandedA === expandedB ? checkIfArraysAreEqual(itemsA, itemsB) : false;
   });
 
-  renderSuggestionItem = (suggestion: TagSuggestion<T>, index: number, renderIconSugg?: (suggestion: TagSuggestion<T>) => JSX.Element) => {
-    const category = this.props.categories.find(c => c.id == suggestion.tag.categoryId);
-    const aliasRender = suggestion.alias ? (
-      <div className='tag-inner'>
-        <p>{suggestion.alias} <b className='tag_alias-joiner'>{'->'}</b> {suggestion.primaryAlias}</p>
-        {suggestion.tag.count ? (<p className='tag-count'>{suggestion.tag.count}</p>) : undefined}
-      </div>
-    ) : (
-      <div className='tag-inner'>
-        <p>{suggestion.primaryAlias}</p>
-        {suggestion.tag.count ? (<p className='tag-count'>{suggestion.tag.count}</p>) : undefined}
-      </div>
-    );
+  renderSuggestionItem = (suggestion: TagSuggestion, index: number, renderIconSugg?: (suggestion: TagSuggestion) => JSX.Element) => {
+    const category = this.props.categories.find(c => c.name == suggestion.tag.category);
+    // const aliasRender = suggestion.alias ? (
+    //   <div className='tag-inner'>
+    //     <p>{suggestion.alias} <b className='tag_alias-joiner'>{'->'}</b> {suggestion.primaryAlias}</p>
+    //     {suggestion.tag.count ? (<p className='tag-count'>{suggestion.tag.count}</p>) : undefined}
+    //   </div>
+    // ) : (
+    //   <div className='tag-inner'>
+    //     <p>{suggestion.primaryAlias}</p>
+    //     {suggestion.tag.count ? (<p className='tag-count'>{suggestion.tag.count}</p>) : undefined}
+    //   </div>
+    // );
 
     const icon = renderIconSugg ? renderIconSugg(suggestion) : (
       <OpenIcon
@@ -148,18 +148,18 @@ export class TagInputField<T extends ITagObject> extends React.Component<TagInpu
           className='tag-suggestion-label'
           key={index * 2 + 1}
           tabIndex={0}>
-          {aliasRender}
+          {/* {aliasRender} */}
         </label>
       </div>
     );
   };
 
   /** Renders the list of items in the drop-down menu. */
-  renderItems = memoizeOne<(items: T[], primaryPlatform?: string) => JSX.Element[]>((items: T[], primaryPlatform?: string) => {
+  renderItems = memoizeOne<(items: Tag[], primaryPlatform?: string) => JSX.Element[]>((items: Tag[], primaryPlatform?: string) => {
     const className = this.props.editable ? 'tag-editable' : 'tag-static';
     return items.map((tag, index) => {
-      const category = this.props.categories.find(c => c.id == tag.categoryId);
-      const shownAlias = tag.primaryAlias ? tag.primaryAlias.name : 'No Primary Alias Set';
+      const category = this.props.categories.find(c => c.name == tag.category);
+      const shownAlias = tag.name || 'No Primary Alias Set';
       const icon = this.props.renderIcon ? this.props.renderIcon(tag) : (
         <OpenIcon
           className='tag-icon'
@@ -170,12 +170,12 @@ export class TagInputField<T extends ITagObject> extends React.Component<TagInpu
 
       let primaryElement = <></>;
       if (primaryPlatform && this.props.selectPrimaryValue && this.props.editable) {
-        const isPrimary = tag.primaryAlias.name === primaryPlatform;
+        const isPrimary = tag.name === primaryPlatform;
         if (!isPrimary) {
           primaryElement = (
             <div
               className='browse-right-sidebar__title-row__buttons__promote-button'
-              onClick={() => this.props.selectPrimaryValue && this.props.selectPrimaryValue(tag.primaryAlias.name)}>
+              onClick={() => this.props.selectPrimaryValue && this.props.selectPrimaryValue(tag.name)}>
               <OpenIcon
                 icon='chevron-top' />
             </div>
@@ -233,7 +233,7 @@ export class TagInputField<T extends ITagObject> extends React.Component<TagInpu
     }
   };
 
-  onSuggestionItemClick = (suggestion: TagSuggestion<T>): void => {
+  onSuggestionItemClick = (suggestion: TagSuggestion): void => {
     if (!this.props.disabled) {
       if (this.props.onTagSuggestionSelect) {
         this.props.onTagSuggestionSelect(suggestion);

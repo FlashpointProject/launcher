@@ -1,11 +1,10 @@
-import { Tag } from '@database/entity/Tag';
 import * as remote from '@electron/remote';
 import { openContextMenu } from '@renderer/app';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
 import { BackIn, FpfssUser, TagSuggestion } from '@shared/back/types';
 import { getLibraryItemTitle } from '@shared/library/util';
 import { MenuItemConstructorOptions } from 'electron';
-import { GameOrderBy, GameOrderReverse, Platform } from 'flashpoint-launcher';
+import { GameOrderBy, GameOrderReverse } from 'flashpoint-launcher';
 import * as React from 'react';
 import { Link, RouteComponentProps, useLocation } from 'react-router-dom';
 import { WithPreferencesProps } from '../containers/withPreferences';
@@ -46,9 +45,9 @@ type HeaderState = {
   /** Current text in the search field. */
   searchText: string;
   /** Current tag suggestions under the search field */
-  tagSuggestions: TagSuggestion<Tag>[];
+  tagSuggestions: TagSuggestion[];
   /** Current platform suggestions under the search field */
-  platformSuggestions: TagSuggestion<Platform>[];
+  platformSuggestions: TagSuggestion[];
 };
 
 /** The header that is always visible at the top of the main window (just below the title bar). */
@@ -225,9 +224,9 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
     const strings = this.context.app;
 
     // Set the suggestions to the appropriate field being searched for currently
-    let suggestions: TagSuggestion<any>[] = [];
-    let onSuggSubmit: ((tag: TagSuggestion<any>) => void) = (t) => {};
-    let renderIconSugg: ((sugg: TagSuggestion<any>) => JSX.Element) | undefined = undefined;
+    let suggestions: TagSuggestion[] = [];
+    let onSuggSubmit: ((tag: TagSuggestion) => void) = (t) => {};
+    let renderIconSugg: ((sugg: TagSuggestion) => JSX.Element) | undefined = undefined;
     if (this.state.tagSuggestions.length > 0) {
       suggestions = this.state.tagSuggestions;
       onSuggSubmit = this.onTagSuggestionSelect;
@@ -295,7 +294,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
     easterEgg(value);
   };
 
-  onTagSuggestionSelect = (suggestion: TagSuggestion<Tag>): void => {
+  onTagSuggestionSelect = (suggestion: TagSuggestion): void => {
     const tagRegex = /((#)([^\s]+)|(tag:)([^\s]+))$/;
     const match = tagRegex.exec(this.state.searchText);
     if (match) {
@@ -311,7 +310,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
   };
 
 
-  onPlatformSuggestionSelect = (suggestion: TagSuggestion<Platform>): void => {
+  onPlatformSuggestionSelect = (suggestion: TagSuggestion): void => {
     const platformRegex = /((#)([^\s]+)|(platform:)([^\s]+))$/;
     const match = platformRegex.exec(this.state.searchText);
     if (match) {
@@ -341,7 +340,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
     this.props.onSearch('', false);
   };
 
-  renderPlatformIconSugg = (platformSugg: TagSuggestion<Platform>) => {
+  renderPlatformIconSugg = (platformSugg: TagSuggestion) => {
     const iconUrl = getPlatformIconURL(platformSugg.primaryAlias, this.props.logoVersion);
     return (
       <div

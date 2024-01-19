@@ -2,20 +2,19 @@ import * as remote from '@electron/remote';
 import { FancyAnimation } from '@renderer/components/FancyAnimation';
 import { WithMainStateProps } from '@renderer/containers/withMainState';
 import { MainActionType } from '@renderer/store/main/enums';
-import { BackIn, ComponentStatus, GameOfTheDay, ViewGame } from '@shared/back/types';
+import { BackIn, ComponentStatus, GameOfTheDay } from '@shared/back/types';
 import { ARCADE, LOGOS, THEATRE } from '@shared/constants';
-import { wrapSearchTerm } from '@shared/game/GameFilter';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
-import { DialogState, Game, Playlist } from 'flashpoint-launcher';
+import { DialogState, Game, Playlist, ViewGame } from 'flashpoint-launcher';
 import * as React from 'react';
 import ReactDatePicker from 'react-datepicker';
 import ReactMarkdown from 'react-markdown';
 import { Link } from 'react-router-dom';
 import remarkGfm from 'remark-gfm';
 import { Paths } from '../../Paths';
-import { findGameDragEventDataGrid, getExtremeIconURL, getGameImageURL, getPlatformIconURL, joinLibraryRoute } from '../../Util';
+import { findGameDragEventDataGrid, getExtremeIconURL, getGameImageURL, getPlatformIconURL, joinLibraryRoute, wrapSearchTerm } from '../../Util';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { WithSearchProps } from '../../containers/withSearch';
 import { LangContext } from '../../util/lang';
@@ -308,8 +307,8 @@ export function HomePage(props: HomePageProps) {
                     key={loadedGotd.id}
                     id={loadedGotd.id}
                     title={loadedGotd.title}
-                    platforms={loadedGotd.platformsStr.split(';').map(p => p.trim())}
-                    extreme={loadedGotd.tagsStr.split(';').findIndex(t => extremeTags.includes(t.trim())) !== -1}
+                    platforms={loadedGotd.platforms.map(p => p.trim())}
+                    extreme={loadedGotd.tags.findIndex(t => extremeTags.includes(t.trim())) !== -1}
                     extremeIconPath={extremeIconPath}
                     thumbnail={getGameImageURL(LOGOS, loadedGotd.id)}
                     logoVersion={props.logoVersion}

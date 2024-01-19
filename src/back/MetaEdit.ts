@@ -1,5 +1,3 @@
-import { Game } from '@database/entity/Game';
-import { Tag } from '@database/entity/Tag';
 import { ImportMetaEditResult, MetaEditGameNotFound } from '@shared/back/types';
 import { ChangedMeta, MetaChange, MetaChangeBase, MetaEditFile, MetaEditMeta, MetaEditMetaMap, stringifyMetaValue } from '@shared/MetaEdit';
 import { readJsonFile, shallowStrictEquals } from '@shared/Util';
@@ -7,13 +5,13 @@ import * as Coerce from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as GameManager from './game/GameManager';
-import * as TagManager from './game/TagManager';
 import { BackState, ShowMessageBoxFunc } from './types';
 import { awaitDialog } from './util/dialog';
 import { copyError } from './util/misc';
+import { fpDatabase } from '.';
+import { Game, Tag } from 'flashpoint-launcher';
 
-const { str, strToBool } = Coerce;
+const { str } = Coerce;
 
 export function parseMetaEdit(data: any, onError?: (error: string) => void): MetaEditFile {
   const parser = new ObjectParser({
@@ -43,8 +41,6 @@ function parseMetaEditMeta(parser: IObjectParserProp<any>) : MetaEditMeta {
   parser.prop('series',              v => parsed.series              = str(v), true);
   parser.prop('developer',           v => parsed.developer           = str(v), true);
   parser.prop('publisher',           v => parsed.publisher           = str(v), true);
-  parser.prop('broken',              v => parsed.broken              = strToBool(v + ''), true);
-  parser.prop('extreme',             v => parsed.extreme             = strToBool(v + ''), true);
   parser.prop('playMode',            v => parsed.playMode            = str(v), true);
   parser.prop('status',              v => parsed.status              = str(v), true);
   parser.prop('notes',               v => parsed.notes               = str(v), true);
@@ -64,13 +60,6 @@ function parseMetaEditMeta(parser: IObjectParserProp<any>) : MetaEditMeta {
     if (!parsed.tags) { throw new Error('"parsed.tags" is missing (bug)'); }
     parsed.tags.push(str(v));
   });
-  // Extreme Migration
-  if (parsed.extreme) {
-    parsed.extreme = false;
-    if (parsed.tags && parsed.tags.findIndex(t => t === 'LEGACY-Extreme') === -1) {
-      parsed.tags.push('LEGACY-Extreme');
-    }
-  }
 
   return parsed;
 }
@@ -175,10 +164,10 @@ export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDi
   const games: Partial<Record<string, Game>> = {};
   const notFound: MetaEditGameNotFound[] = [];
   for (const id of combinedMetasKeys) {
-    const game = await GameManager.findGame(id);
+    const game = await fpDatabase.findGame(id);
 
     if (game) {
-      games[id] = (await GameManager.findGame(id)) || undefined;
+      games[id] = game;
     } else { // Game not found
       const combined = combinedMetas[id];
       if (!combined) { throw new Error(`Failed to check for collisions. "combined meta" is missing (id: "${id}") (bug)`); }
@@ -271,14 +260,6 @@ export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDi
 
       let prevValue;
       switch (property) {
-        case 'tags': {
-          prevValue = game.tags.map(tag => tag.primaryAlias.name);
-          break;
-        }
-        case 'platforms': {
-          prevValue = game.platforms.map(p => p.primaryAlias.name);
-          break;
-        }
         default:
           prevValue = game[property];
       }
@@ -293,7 +274,7 @@ export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDi
         const tags = values[0].value;
         if (!Array.isArray(tags)) { throw new Error(`Failed to GIDDY UP PARTNER. "tags" is not an array (id: "${id}", value: "${tags}") (bug)`); }
 
-        if ((game.tags.length === tags.length) && game.tags.every((tag, i) => tag.primaryAlias.name === tags[i])) {
+        if ((game.tags.length === tags.length) && game.tags.every((tag, i) => tag === tags[i])) {
           changedMeta.discard.push(change);
         } else {
           changedMeta.apply.push(change);
@@ -314,14 +295,6 @@ export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDi
 
         let prevValue;
         switch (property) {
-          case 'tags': {
-            prevValue = game.tags.map(tag => tag.primaryAlias.name);
-            break;
-          }
-          case 'platforms': {
-            prevValue = game.platforms.map(p => p.primaryAlias.name);
-            break;
-          }
           default:
             prevValue = game[property];
         }
@@ -347,12 +320,12 @@ export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDi
         // Replace all tags of the game
         const newTags: Tag[] = [];
         for (const tagName of tags) {
-          let tag = await TagManager.findTag(tagName);
-          if (!tag) { tag = await TagManager.createTag(tagName); }
+          let tag = await fpDatabase.findTag(tagName);
+          if (!tag) { tag = await fpDatabase.createTag(tagName); }
           if (!tag) { throw new Error(`Failed to apply change. Failed to find and create tag for game (tag: "${tagName}").`); }
           newTags.push(tag);
         }
-        game.tags = newTags;
+        game.tags = newTags.map(t => t.name);
       } else {
         try {
           paranoidSetGameProperty(game, change.property, change.value);
@@ -364,7 +337,7 @@ export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDi
       }
     }
 
-    GameManager.save(game);
+    await fpDatabase.saveGame(game);
   }
 
   return {
@@ -389,14 +362,6 @@ function paranoidSetGameProperty(game: Game, property: unknown, value: unknown):
   if (typeof property !== 'string') { throw new Error(`${errorPrefix} Property is not a string (typeof property: ${typeof property}).`); }
 
   switch (property) {
-    // Boolean
-    case 'broken':
-    case 'extreme':
-      if (typeof value !== 'boolean') { throw new Error(`${errorPrefix} Value is not a boolean (typeof value: "${typeof value}", property: "${property}").`); }
-      game[property] = value;
-      break;
-
-    // String
     case 'title':
     case 'alternateTitles':
     case 'series':

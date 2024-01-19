@@ -1,12 +1,10 @@
-import { TagCategory } from '@database/entity/TagCategory';
 import { CurateBoxRow } from '@renderer/components/CurateBoxRow';
 import { InputElement, InputField, InputFieldEntry } from '@renderer/components/InputField';
 import { CurateActionType } from '@renderer/store/curate/enums';
 import { CurateAction } from '@renderer/store/curate/types';
 import { LangContext } from '@renderer/util/lang';
-import { ITagObject } from '@shared/back/types';
 import { CurationMeta } from '@shared/curate/types';
-import { TagSuggestion } from 'flashpoint-launcher';
+import { Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
 import * as React from 'react';
 import { Dispatch } from 'redux';
 import { DropdownInputField } from './DropdownInputField';
@@ -110,18 +108,18 @@ export function CurateBoxDropdownInputRow(props: CurateBoxDropdownInputRowProps)
   );
 }
 
-export type CurateBoxTagDropdownInputRowProps<T extends ITagObject> = CurateBoxInputRowProps & {
+export type CurateBoxTagDropdownInputRowProps = CurateBoxInputRowProps & {
   className?: string;
   tagCategories: TagCategory[];
-  tagSuggestions: TagSuggestion<T>[];
-  onAddTag: (tag: T) => void;
+  tagSuggestions: TagSuggestion[];
+  onAddTag: (tag: Tag) => void;
   onChange?: (event: React.ChangeEvent<InputElement>) => void;
   onKeyDown?: (event: React.KeyboardEvent<InputElement>) => void;
-  getTagFromName: (tagName: string) => Promise<T | null>;
-  renderIconSugg?: (sugg: TagSuggestion<T>) => JSX.Element;
+  getTagFromName: (tagName: string) => Promise<Tag | null>;
+  renderIconSugg?: (sugg: TagSuggestion) => JSX.Element;
 }
 
-export function CurateBoxTagDropdownInputRow<T extends ITagObject>(props: CurateBoxTagDropdownInputRowProps<T>) {
+export function CurateBoxTagDropdownInputRow(props: CurateBoxTagDropdownInputRowProps) {
   const strings = React.useContext(LangContext);
 
   const onSubmitTag = React.useCallback((text: string) => {
@@ -136,7 +134,7 @@ export function CurateBoxTagDropdownInputRow<T extends ITagObject>(props: Curate
     });
   }, [props.onAddTag]);
 
-  const onTagSuggestionSelect = React.useCallback((sug: TagSuggestion<T>) => {
+  const onTagSuggestionSelect = React.useCallback((sug: TagSuggestion) => {
     props.getTagFromName(sug.primaryAlias)
     .then((tag) => {
       if (tag) {

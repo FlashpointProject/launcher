@@ -1,6 +1,5 @@
 /* eslint-disable react/no-unused-state */
-import { chunkArray } from '@shared/utils/misc';
-import { Game } from '@database/entity/Game';
+import { chunkArray, newGame } from '@shared/utils/misc';
 import * as remote from '@electron/remote';
 import { getGamePath } from '@renderer/Util';
 import { BackIn, BackOut } from '@shared/back/types';
@@ -18,6 +17,7 @@ import { validateSemiUUID } from '@shared/utils/uuid';
 import { LogData } from '../LogData';
 import { ServiceBox } from '../ServiceBox';
 import { SimpleButton } from '../SimpleButton';
+import { Game } from 'flashpoint-launcher';
 
 // @TODO Move the developer tools to the back and "stream" the log messages back.
 //       This makes it work remotely AND should make it lag less + work between changing tabs.
@@ -125,14 +125,6 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               value={strings.deleteAllPlaylists}
               title={strings.deleteAllPlaylistsDesc}
               onClick={this.onDeleteAllPlaylistsClick} />
-            <SimpleButton
-              value={strings.fixPrimaryAliases}
-              title={strings.fixPrimaryAliasesDesc}
-              onClick={this.onFixPrimaryAliases} />
-            <SimpleButton
-              value={strings.fixCommaTags}
-              title={strings.fixCommaTagsDesc}
-              onClick={this.onFixCommaTags} />
             <SimpleButton
               value={strings.exportTags}
               title={strings.exportTagsDesc}
@@ -255,24 +247,6 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     });
   };
 
-  onFixPrimaryAliases = () : void => {
-    setTimeout(async () => {
-      this.setState({ text: 'Fixing tags, please wait...'});
-      fixPrimaryAliases().then(num => {
-        this.setState({ text: `${num} Tag Aliases Fixed!`});
-      });
-    });
-  };
-
-  onFixCommaTags = () : void => {
-    setTimeout(async () => {
-      this.setState({ text: 'Fixing tags, please wait...'});
-      window.Shared.back.request(BackIn.CLEANUP_TAGS).then(() => {
-        this.setState({ text: 'Tags Fixed!'});
-      });
-    });
-  };
-
   onExportTagsClick = () : void => {
     setTimeout(async () => {
       exportTags((text) => this.setState({ text: text }))
@@ -321,10 +295,9 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
         const buffer: Game[] = [];
         for (const chunk of chunkArray(games, 250)) {
           for (const game of chunk) {
-            const newGame = new Game();
-            Object.assign(newGame, { ...game });
-            newGame.updateTagsStr();
-            buffer.push(newGame);
+            const ng = newGame();
+            Object.assign(ng, { ...game });
+            buffer.push(ng);
           }
           processed += chunk.length;
           await window.Shared.back.request(BackIn.SAVE_GAMES, buffer);
@@ -366,10 +339,9 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
             const uuid = fileName.substring(0, 36);
             if (validateSemiUUID(uuid)) {
               const fetchedInfo = await window.Shared.back.request(BackIn.GET_GAME, uuid);
-              const game = fetchedInfo.game;
-              if (game) {
+              if (fetchedInfo) {
                 // Game exists, import the data
-                await window.Shared.back.request(BackIn.IMPORT_GAME_DATA, game.id, filePath)
+                await window.Shared.back.request(BackIn.IMPORT_GAME_DATA, fetchedInfo.game.id, filePath)
                 .then(() => {
                   this.setState({ text: text + filePath + '\n' +  createTextBarProgress(current, files.length) });
                 })
@@ -676,17 +648,13 @@ async function checkFileLocation(games: Game[]): Promise<string> {
   const timeStart = Date.now(); // Start timing
   const pathFailed: Game[] = []; // (Games that it failed to get the path from)
   const pathError: [ Game, Error ][] = []; // (Games that it threw an error while attempting to get the path)
-  let skippedCount = 0; // (Number of skipped games)
   // Try getting the path from all games
   for (const game of games) {
-    if (game.broken) { skippedCount += 1; }
-    else {
-      try {
-        const gamePath = await getGamePath(game, window.Shared.config.fullFlashpointPath, window.Shared.preferences.data.htdocsFolderPath, window.Shared.preferences.data.dataPacksFolderPath);
-        if (gamePath === undefined) { pathFailed.push(game); }
-      } catch (error: any) {
-        pathError.push([ game, error ]);
-      }
+    try {
+      const gamePath = await getGamePath(game, window.Shared.config.fullFlashpointPath, window.Shared.preferences.data.htdocsFolderPath, window.Shared.preferences.data.dataPacksFolderPath);
+      if (gamePath === undefined) { pathFailed.push(game); }
+    } catch (error: any) {
+      pathError.push([ game, error ]);
     }
   }
   const timeEnd = Date.now(); // End timing
@@ -697,7 +665,6 @@ async function checkFileLocation(games: Game[]): Promise<string> {
   text += `Total games that failed: ${pathFailed.length + pathError.length}\n`;
   text += `Path not found: ${pathFailed.length}\n`;
   text += `Error while getting path: ${pathError.length}\n`;
-  text += `Games skipped (all "broken" games are skipped): ${skippedCount}\n`;
   text += '\n';
   text += `Path not found (${pathFailed.length}):\n`;
   for (const game of pathFailed) {
@@ -857,11 +824,6 @@ async function importLegacyPlaylists(playlistsPath: string): Promise<number> {
     }
   }
   return playlistsImported;
-}
-
-async function fixPrimaryAliases(): Promise<number> {
-  const data = await window.Shared.back.request(BackIn.FIX_TAG_PRIMARY_ALIASES, null);
-  return data || 0;
 }
 
 async function exportDatabase(setText: (text: string) => void): Promise<void> {

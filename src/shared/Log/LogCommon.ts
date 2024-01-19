@@ -13,7 +13,7 @@ const sourceChars = 19; // "Background Services" (sometimes used with +2 to add 
  */
 export function stringifyLogEntries(entries: ILogEntry[], sourceFilter: { [key: string]: boolean } = {}, levelFilter: { [key in LogLevel]: boolean }): string {
   let str = '';
-  let prevEntry: ILogEntry = { source: '', content: '', timestamp: 0, logLevel: -1 };
+  let prevEntry: ILogEntry = { source: '', content: '', timestamp: 0, logLevel: -1 as any };
   for (let i = 0; i < entries.length; i++) {
     const entry = entries[i];
 

@@ -190,8 +190,8 @@ export class GameGrid extends React.Component<GameGridProps> {
           key={props.key}
           id={game ? game.id : ''}
           title={game ? game.title : ''}
-          platforms={game ? [game.platformName] : []}
-          extreme={game ? game.tagsStr.split(';').findIndex(t => this.props.extremeTags.includes(t.trim())) !== -1 : false}
+          platforms={game ? [game.primaryPlatform] : []}
+          extreme={game ? game.tags.findIndex(t => this.props.extremeTags.includes(t.trim())) !== -1 : false}
           extremeIconPath={extremeIconPath}
           thumbnail={game ? getGameImageURL(LOGOS, game.id) : ''}
           logoVersion={this.props.logoVersion}

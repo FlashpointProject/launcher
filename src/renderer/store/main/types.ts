@@ -1,9 +1,7 @@
-import { Game } from '@database/entity/Game';
-import { GameData } from '@database/entity/GameData';
 import { CreditsData } from '@renderer/credits/types';
 import { ViewGameSet } from '@renderer/interfaces';
 import { UpgradeStage } from '@renderer/upgrade/types';
-import { BackInit, ComponentStatus, FetchedGameInfo, FpfssState, FpfssUser, GameOfTheDay, PageKeyset, ResponseGameRange, SearchGamesOpts, ViewGame } from '@shared/back/types';
+import { BackInit, ComponentStatus, FetchedGameInfo, FpfssState, FpfssUser, GameOfTheDay, PageKeyset, ResponseGameRange } from '@shared/back/types';
 import { AppExtConfigData } from '@shared/config/interfaces';
 import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { GamePropSuggestions, IService } from '@shared/interfaces';
@@ -12,10 +10,11 @@ import { ITheme, Theme } from '@shared/ThemeFile';
 import { Gate } from '@shared/utils/Gate';
 import * as axiosImport from 'axios';
 import { UpdateInfo } from 'electron-updater';
-import { AppPreferencesData, DialogField, DialogState, GameOrderBy, GameOrderReverse, Playlist, PlaylistGame, TagFilterGroup } from 'flashpoint-launcher';
+import { AppPreferencesData, DialogField, DialogState, Game, GameData, GameOrderBy, GameOrderReverse, Playlist, PlaylistGame, TagFilterGroup, ViewGame } from 'flashpoint-launcher';
 import { EventEmitter } from 'stream';
 import { MainActionType, RequestState } from './enums';
 import { PlatformAppPathSuggestions } from '@shared/curate/types';
+import { ViewQuery } from '@shared/library/util';
 
 export type View = {
   /** The most recent query used for this view. */
@@ -47,13 +46,6 @@ export type View = {
   lastCount: number;
   /** Tag filters used when building */
   tagFilters: TagFilterGroup[];
-}
-
-export type ViewQuery = SearchGamesOpts & {
-  /** Query string. */
-  text: string;
-  /** If extreme games are included. */
-  extreme: boolean;
 }
 
 export type ViewPageStates = Partial<Record<number, RequestState>>
@@ -178,27 +170,27 @@ export type MainAction = {
   playlist?: Playlist | null;
 } | {
   type: MainActionType.SET_VIEW_BOUNDRIES;
-  library: string;
+  viewIdentifier: string;
   start: number;
   count: number;
 } | {
   type: MainActionType.REQUEST_VIEW_META;
-  library: string;
+  viewIdentifier: string;
   queryId: number;
 } | {
   type: MainActionType.SET_VIEW_META;
-  library: string;
+  viewIdentifier: string;
   queryId: number;
   keyset: PageKeyset;
   total: number;
 } | {
   type: MainActionType.ADD_VIEW_PAGES;
-  library: string;
+  viewIdentifier: string;
   queryId: number;
-  ranges: ResponseGameRange<boolean>[];
+  ranges: ResponseGameRange[];
 } | {
   type: MainActionType.REQUEST_VIEW_PAGES;
-  library: string;
+  viewIdentifier: string;
   queryId: number;
   pages: number[];
 } | {

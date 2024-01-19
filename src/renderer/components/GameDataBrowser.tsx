@@ -1,5 +1,3 @@
-import { Game } from '@database/entity/Game';
-import { GameData } from '@database/entity/GameData';
 import { LangContext } from '@renderer/util/lang';
 import { BackIn } from '@shared/back/types';
 import { memoizeOne } from '@shared/memoize';
@@ -8,6 +6,7 @@ import { FloatingContainer } from './FloatingContainer';
 import { GameDataInfo } from './GameDataInfo';
 import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
+import { Game, GameData } from 'flashpoint-launcher';
 
 export type GameDataBrowserState = {
   error?: string;

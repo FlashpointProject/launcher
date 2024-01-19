@@ -1,4 +1,4 @@
-import { Tag } from '@database/entity/Tag';
+import { Tag } from 'flashpoint-launcher';
 
 /** Game properties that can be partially exported/imported. */
 export type MetaEditMetaMap = Partial<{
@@ -8,8 +8,6 @@ export type MetaEditMetaMap = Partial<{
   developer: string;
   publisher: string;
   platforms: string[];
-  broken: boolean;
-  extreme: boolean;
   playMode: string;
   status: string;
   notes: string;
@@ -74,7 +72,7 @@ export function stringifyMetaValue(value: string | string[] | Tag[] | boolean | 
     if (value.length > 0) {
       const stringArray = (typeof value[0] === 'string')
         ? (value as string[])
-        : (value as Tag[]).map(v => v.primaryAlias.name);
+        : (value as Tag[]).map(v => v.name);
 
       return `[ ${stringArray.map(v => `"${v}"`).join(', ')} ]`;
     } else {

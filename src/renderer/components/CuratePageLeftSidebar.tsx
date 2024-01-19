@@ -80,7 +80,7 @@ function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentPro
 
   const renderCuration = React.useCallback((curation: CurationState) => {
     let className = '';
-    const firstPlatform = (curation.game.platforms && curation.game.platforms.length > 0) ? curation.game.platforms[0].primaryAlias.name : '';
+    const firstPlatform = (curation.game.platforms && curation.game.platforms.length > 0) ? curation.game.platforms[0].name : '';
     if (props.curate.selected.includes(curation.folder)) { className = 'curate-list-item--selected--secondary'; }
     if (props.curate.current === curation.folder)        { className = 'curate-list-item--selected';            }
     return (

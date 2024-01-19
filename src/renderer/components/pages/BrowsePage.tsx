@@ -1,4 +1,3 @@
-import { Game } from '@database/entity/Game';
 import * as remote from '@electron/remote';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
 import { BackIn, FetchedGameInfo } from '@shared/back/types';
@@ -10,7 +9,7 @@ import { updatePreferencesData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
 import { Menu, MenuItemConstructorOptions } from 'electron';
-import { Playlist, PlaylistGame } from 'flashpoint-launcher';
+import { Game, Playlist, PlaylistGame } from 'flashpoint-launcher';
 import * as React from 'react';
 import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowseSidebar';
 import { WithPreferencesProps } from '../../containers/withPreferences';
@@ -25,6 +24,7 @@ import { InputElement } from '../InputField';
 import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
 import { Spinner } from '../Spinner';
 import path = require('path');
+import { newGame } from '@shared/utils/misc';
 
 type Pick<T, K extends keyof T> = { [P in K]: T[P]; };
 type StateCallback1 = Pick<BrowsePageState, 'currentGameInfo'|'isEditingGame'|'isNewGame'|'currentPlaylistEntry'>;
@@ -496,12 +496,11 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   onEditGame = (game: Partial<Game>) => {
     log.debug('Launcher', `Editing: ${JSON.stringify(game)}`);
     if (this.state.currentGameInfo) {
-      const newGame = new Game();
-      Object.assign(newGame, {...this.state.currentGameInfo.game, ...game});
-      newGame.updateTagsStr();
+      const ng = newGame();
+      Object.assign(ng, {...this.state.currentGameInfo.game, ...game});
       this.setState({
         currentGameInfo: {
-          game: newGame,
+          game: ng,
           activeConfig: this.state.currentGameInfo.activeConfig,
           configs: this.state.currentGameInfo.configs,
         }
@@ -575,20 +574,20 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
 
   onUpdateActiveGameData = (activeDataOnDisk: boolean, activeDataId?: number): void => {
     if (this.state.currentGameInfo) {
-      const newGame = new Game();
-      Object.assign(newGame, {...this.state.currentGameInfo.game, activeDataOnDisk, activeDataId });
+      const ng = newGame();
+      Object.assign(ng, {...this.state.currentGameInfo.game, activeDataOnDisk, activeDataId });
       const newInfo: FetchedGameInfo = {
-        game: newGame,
+        game: ng,
         activeConfig: this.state.currentGameInfo.activeConfig,
         configs: this.state.currentGameInfo.configs,
       };
       window.Shared.back.request(BackIn.SAVE_GAME, newInfo)
       .then(() => {
         if (this.state.currentGameInfo) {
-          const newGame = new Game();
-          Object.assign(newGame, {...this.state.currentGameInfo.game, activeDataOnDisk, activeDataId });
+          const ng = newGame();
+          Object.assign(ng, {...this.state.currentGameInfo.game, activeDataOnDisk, activeDataId });
           this.setState({ currentGameInfo: {
-            game: newGame,
+            game: ng,
             activeConfig: this.state.currentGameInfo.activeConfig,
             configs: this.state.currentGameInfo.configs,
           } });
@@ -609,8 +608,8 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     const id = uuid();
     // Create a new game if the "New Game" button is pushed
     if (wasNewGameClicked && !prevWasNewGameClicked) {
-      const newGame = new Game();
-      Object.assign(newGame, {
+      const ng = newGame();
+      Object.assign(ng, {
         id: id,
         parentGameId: id,
         title: '',
@@ -642,7 +641,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       });
       cb({
         currentGameInfo: {
-          game: newGame,
+          game: ng,
           activeConfig: null,
           configs: []
         },

@@ -119,10 +119,6 @@ const state: BackState = {
   suggestions: createErrorProxy('suggestions'),
   acceptRemote: createErrorProxy('acceptRemote'),
   customVersion: undefined,
-  gameManager: {
-    platformsPath: '',
-    saveQueue: new EventQueue(),
-  },
   messageQueue: [],
   isHandling: false,
   init: {
@@ -258,9 +254,6 @@ async function main() {
     BackIn.SAVE_TAG,
     BackIn.DELETE_TAG,
     BackIn.MERGE_TAGS,
-    BackIn.CLEANUP_TAG_ALIASES,
-    BackIn.CLEANUP_TAGS,
-    BackIn.FIX_TAG_PRIMARY_ALIASES,
     BackIn.EXPORT_TAGS,
     BackIn.IMPORT_TAGS,
     // Tag Categories
@@ -1384,7 +1377,7 @@ export async function loadCurationArchive(filePath: string, onProgress?: (progre
     thumbnail: await loadCurationIndexImage(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, key, 'logo.png')),
     screenshot: await loadCurationIndexImage(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, key, 'ss.png')),
   };
-  const alreadyImported = fpDatabase.findGame(loadedCuration.uuid) !== null;
+  const alreadyImported = await fpDatabase.findGame(loadedCuration.uuid) !== null;
   const curation: flashpoint.CurationState = {
     ...loadedCuration,
     alreadyImported,
@@ -1452,7 +1445,7 @@ export function extractFullPromise(args: Parameters<typeof extractFull>) : Promi
 }
 
 export async function checkAndDownloadGameData(activeDataId: number) {
-  const gameData = fpDatabase.findGameDataById(activeDataId);
+  const gameData = await fpDatabase.findGameDataById(activeDataId);
   if (gameData && !gameData.presentOnDisk) {
     // Download GameData
     const onDetails = (details: DownloadDetails) => {

@@ -1,4 +1,3 @@
-import { Game } from '@database/entity/Game';
 import * as remote from '@electron/remote';
 import { BackIn, BackInit, BackOut, FetchedGameInfo, FpfssUser } from '@shared/back/types';
 import { APP_TITLE, VIEW_PAGE_SIZE } from '@shared/constants';
@@ -12,7 +11,7 @@ import { arrayShallowStrictEquals } from '@shared/utils/compare';
 import { debounce } from '@shared/utils/debounce';
 import axios from 'axios';
 import { clipboard, ipcRenderer, Menu, MenuItemConstructorOptions } from 'electron';
-import { DialogField, DialogState, Playlist, PlaylistGame } from 'flashpoint-launcher';
+import { DialogField, DialogState, Game, Playlist, PlaylistGame, RequestGameRange } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as React from 'react';
@@ -57,6 +56,7 @@ import { queueOne } from './util/queue';
 import uuid = require('uuid');
 import { ProgressData } from './context/ProgressContext';
 import { IWithShortcut } from 'react-keybind';
+import { newGame } from '@shared/utils/misc';
 
 // Hide the right sidebar if the page is inside these paths
 const hiddenRightSidebarPages = [Paths.ABOUT, Paths.CURATE, Paths.CONFIG, Paths.MANUAL, Paths.LOGS, Paths.TAGS, Paths.CATEGORIES];
@@ -821,8 +821,8 @@ export class App extends React.Component<AppProps> {
         // Update the selected playlist id for the rest of the logic
         const view = this.props.main.views[library];
         if (view) {
-          if (view.query.filter.playlist?.id !== selectedPlaylistId) {
-            selectedPlaylistId = view.query.filter.playlist?.id;
+          if (view.query.playlistId !== selectedPlaylistId) {
+            selectedPlaylistId = view.query.playlistId;
           }
         }
       }
@@ -865,9 +865,7 @@ export class App extends React.Component<AppProps> {
         });
         window.Shared.back.request(BackIn.RANDOM_GAMES, {
           count: RANDOM_GAME_ROW_COUNT * 10,
-          broken: this.props.preferencesData.showBrokenGames,
           excludedLibraries: this.props.preferencesData.excludedRandomLibraries,
-          tagFilters: this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme))
         })
         .then((data) => {
           this.props.dispatchMain({
@@ -889,7 +887,7 @@ export class App extends React.Component<AppProps> {
         ) {
           orderUpdate = true;
         }
-        if (!!view.query.filter.playlist || selectedPlaylistId) {
+        if (!!view.query.playlistId || selectedPlaylistId) {
           orderUpdate = false;
         }
 
@@ -897,8 +895,7 @@ export class App extends React.Component<AppProps> {
         if (view.query.text                 !== this.props.search.text ||
           view.query.extreme                !== this.props.preferencesData.browsePageShowExtreme ||
           orderUpdate ||
-          JSON.stringify(view.tagFilters)   !== JSON.stringify(this.props.preferencesData.tagFilters) ||
-          view.query.searchLimit            !== this.props.preferencesData.searchLimit
+          JSON.stringify(view.tagFilters)   !== JSON.stringify(this.props.preferencesData.tagFilters)
         ) {
           this.setViewQuery(library);
         }
@@ -915,14 +912,14 @@ export class App extends React.Component<AppProps> {
           }
 
           if (pages && pages.length > 0) {
-          // Request pages
+          // Request needed pages
             window.Shared.back.request(BackIn.BROWSE_VIEW_PAGE, {
-              ranges: pages.map(index => ({
+              ranges: pages.map<RequestGameRange>(index => { return {
                 start: index * VIEW_PAGE_SIZE,
                 length: VIEW_PAGE_SIZE,
                 index: view.meta && view.meta.pageKeyset[index + 1], // Page keyset indices are one-indexed (start at 1 instead of 0)
-              })),
-              library: library,
+              }; }),
+              viewIdentifier: library,
               query: view.query,
               shallow: true,
             })
@@ -930,7 +927,7 @@ export class App extends React.Component<AppProps> {
               if (data) {
                 this.props.dispatchMain({
                   type: MainActionType.ADD_VIEW_PAGES,
-                  library: library,
+                  viewIdentifier: library,
                   queryId: view.queryId,
                   ranges: data.ranges,
                 });
@@ -938,11 +935,10 @@ export class App extends React.Component<AppProps> {
                 console.error('BROWSE_VIEW_PAGE response contains no data.');
               }
             });
-
             // Flag pages as requested
             this.props.dispatchMain({
               type: MainActionType.REQUEST_VIEW_PAGES,
-              library: library,
+              viewIdentifier: library,
               queryId: view.queryId,
               pages: pages,
             });
@@ -955,7 +951,7 @@ export class App extends React.Component<AppProps> {
         // Flag meta as requested
         this.props.dispatchMain({
           type: MainActionType.REQUEST_VIEW_META,
-          library: library,
+          viewIdentifier: library,
           queryId: view.queryId,
         });
       }
@@ -1054,12 +1050,11 @@ export class App extends React.Component<AppProps> {
   onEditGame = (game: Partial<Game>) => {
     log.debug('Launcher', `Editing: ${JSON.stringify(game)}`);
     if (this.props.main.currentGameInfo) {
-      const newGame = new Game();
-      Object.assign(newGame, {...this.props.main.currentGameInfo.game, ...game});
-      newGame.updateTagsStr();
+      const ng = newGame();
+      Object.assign(ng, {...this.props.main.currentGameInfo.game, ...game});
       this.props.setMainState({
         currentGameInfo: {
-          game: newGame,
+          game: ng,
           activeConfig: this.props.main.currentGameInfo.activeConfig,
           configs: [...this.props.main.currentGameInfo.configs]
         }
@@ -1107,20 +1102,20 @@ export class App extends React.Component<AppProps> {
 
   onUpdateActiveGameData = (activeDataOnDisk: boolean, activeDataId?: number): void => {
     if (this.props.main.currentGameInfo) {
-      const newGame = new Game();
+      const ng = newGame();
       Object.assign(newGame, {...this.props.main.currentGameInfo.game, activeDataOnDisk, activeDataId });
       window.Shared.back.request(BackIn.SAVE_GAME, {
-        game: newGame,
+        game: ng,
         activeConfig: this.props.main.currentGameInfo.activeConfig,
         configs: [...this.props.main.currentGameInfo.configs],
       })
       .then(() => {
         if (this.props.main.currentGameInfo) {
-          const newGame = new Game();
-          Object.assign(newGame, {...this.props.main.currentGameInfo.game, activeDataOnDisk, activeDataId });
+          const ng = newGame();
+          Object.assign(ng, {...this.props.main.currentGameInfo.game, activeDataOnDisk, activeDataId });
           this.props.setMainState({ currentGameInfo: {
             ...this.props.main.currentGameInfo,
-            game: newGame,
+            game: ng,
           }});
         }
       });
@@ -1578,7 +1573,7 @@ export class App extends React.Component<AppProps> {
                       <ConnectedRightBrowseSidebar
                         logoVersion={this.props.main.logoVersion}
                         currentGameInfo={this.props.main.currentGameInfo}
-                        isExtreme={this.props.main.currentGameInfo ? this.props.main.currentGameInfo.game.tags.reduce<boolean>((prev, next) => extremeTags.includes(next.primaryAlias.name) || prev, false) : false}
+                        isExtreme={this.props.main.currentGameInfo ? this.props.main.currentGameInfo.game.tags.reduce<boolean>((prev, next) => extremeTags.includes(next) || prev, false) : false}
                         gameRunning={routerProps.gameRunning}
                         currentPlaylistEntry={this.props.main.currentPlaylistEntry}
                         currentLibrary={routerProps.gameLibrary}
@@ -1865,7 +1860,7 @@ export class App extends React.Component<AppProps> {
   updateView: UpdateView = (start, count) => {
     this.props.dispatchMain({
       type: MainActionType.SET_VIEW_BOUNDRIES,
-      library: getBrowseSubPath(this.props.location.pathname),
+      viewIdentifier: getBrowseSubPath(this.props.location.pathname),
       start: start,
       count: count,
     });
@@ -1905,9 +1900,7 @@ export class App extends React.Component<AppProps> {
 
       window.Shared.back.request(BackIn.RANDOM_GAMES, {
         count: RANDOM_GAME_ROW_COUNT * 10,
-        broken: this.props.preferencesData.showBrokenGames,
         excludedLibraries: this.props.preferencesData.excludedRandomLibraries,
-        tagFilters: this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme))
       })
       .then((data) => {
         this.props.dispatchMain({

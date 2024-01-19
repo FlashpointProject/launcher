@@ -3,9 +3,6 @@ import { loadCurationIndexImage } from '@back/curate/parse';
 import { duplicateCuration, genCurationWarnings, makeCurationFromGame, refreshCurationContent } from '@back/curate/util';
 import { saveCuration } from '@back/curate/write';
 import { ExtConfigFile } from '@back/ExtConfigFile';
-import * as GameDataManager from '@back/game/GameDataManager';
-import * as GameManager from '@back/game/GameManager';
-import * as TagManager from '@back/game/TagManager';
 import { DisposableChildProcess, ManagedChildProcess } from '@back/ManagedChildProcess';
 import { genContentTree } from '@back/rust';
 import { BackState, StatusState } from '@back/types';
@@ -21,7 +18,6 @@ import {
   setStatus
 } from '@back/util/misc';
 import { pathTo7zBack } from '@back/util/SevenZip';
-import { Game } from '@database/entity/Game';
 import { BackOut } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
@@ -38,12 +34,14 @@ import * as fs from 'fs';
 import * as fsExtra from 'fs-extra';
 import { extractFull } from 'node-7z';
 import * as path from 'path';
-import { loadCurationArchive } from '..';
+import { fpDatabase, loadCurationArchive } from '..';
 import { newExtLog } from './ExtensionUtils';
 import { Command, RegisteredMiddleware } from './types';
 import uuid = require('uuid');
 import { awaitDialog } from '@back/util/dialog';
 import stream = require('stream');
+import { Game } from 'flashpoint-launcher';
+import { downloadGameData } from '@back/download';
 
 /**
  * Create a Flashpoint API implementation specific to an extension, used during module load interception
@@ -171,8 +169,8 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
 
   const extGames: typeof flashpoint.games = {
     // Platforms
-    findPlatformByName: (name) => TagManager.findPlatform(name),
-    findPlatforms: TagManager.findPlatforms,
+    findPlatformByName: async (name) => fpDatabase.findPlatform(name),
+    findPlatforms: async () => fpDatabase.findAllPlatforms(),
     // Playlists
     findPlaylist: (playlistId) => findPlaylist(state, playlistId),
     findPlaylistByName: (playlistName) => findPlaylistByName(state, playlistName),
@@ -195,19 +193,16 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     updatePlaylistGame: (playlistId, playlistGame) => savePlaylistGame(state, playlistId, playlistGame),
 
     // Games
-    countGames: GameManager.countGames,
-    findGame: GameManager.findGame,
-    findGames: GameManager.findGames,
-    findGamesWithTag: GameManager.findGamesWithTag,
-    updateGame: GameManager.save,
-    updateGames: GameManager.updateGames,
-    removeGameAndAddApps: (gameId: string) => GameManager.removeGameAndAddApps(gameId,
-      path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath),
-      path.join(state.config.flashpointPath, state.preferences.imageFolderPath),
-      path.join(state.config.flashpointPath, state.preferences.htdocsFolderPath)),
+    countGames: async () => fpDatabase.countGames(),
+    findGame: async (id) => fpDatabase.findGame(id),
+    // searchGames: await fpDatabase.searchGames,
+    findGamesWithTag: async (name) => fpDatabase.searchGamesWithTag(name),
+    updateGame: async (game) => fpDatabase.saveGame(game),
+    updateGames: async (games) => fpDatabase.saveGames(games),
+    removeGameAndAddApps: async (gameId: string) => fpDatabase.deleteGame(gameId),
     isGameExtreme: (game: Game) => {
       const extremeTags = state.preferences.tagFilters.filter(t => t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
-      return game.tagsStr.split(';').findIndex(t => extremeTags.includes(t.trim())) !== -1;
+      return game.tags.findIndex(t => extremeTags.includes(t.trim())) !== -1;
     },
 
     // Events
@@ -265,17 +260,17 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
   };
 
   const extGameData: typeof flashpoint.gameData = {
-    findOne: GameDataManager.findOne,
-    findGameData: GameDataManager.findGameData,
-    save: GameDataManager.save,
-    importGameData: (gameId: string, filePath: string) => GameDataManager.importGameData(gameId, filePath, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath)),
+    findOne: async (id) => fpDatabase.findGameDataById(id),
+    findGameData: async (gameId) => fpDatabase.findGameData(gameId),
+    save: async (gameData) => fpDatabase.saveGameData(gameData),
+    // importGameData: (gameId: string, filePath: string) => GameDataManager.importGameData(gameId, filePath, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath)),
     downloadGameData: async (gameDataId: number) => {
       const onProgress = (percent: number) => {
         // Sent to PLACEHOLDER download dialog on client
         state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT, percent);
       };
       state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
-      await GameDataManager.downloadGameData(gameDataId, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), state.preferences.gameDataSources, state.downloadController.signal(), onProgress)
+      await downloadGameData(gameDataId, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), state.preferences.gameDataSources, state.downloadController.signal(), onProgress)
       .catch((error) => {
         state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
       })
@@ -293,39 +288,42 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
 
   const extTags: typeof flashpoint.tags = {
     // Tags
-    getTagById: TagManager.getTagById,
-    findTag: TagManager.findTag,
-    findTags: TagManager.findTags,
-    createTag: TagManager.createTag,
-    saveTag: TagManager.saveTag,
-    addAliasToTag: TagManager.addAliasToTag,
-    deleteTag: (tagId: number, skipWarn?: boolean) => {
-      const openDialogFunc = getOpenMessageBoxFunc(state);
-      if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
-      return TagManager.deleteTag(tagId, state, openDialogFunc, skipWarn);
+    getTagById: async (id) => fpDatabase.findTagById(id),
+    findTag: async (name) => fpDatabase.findTag(name),
+    findTags: async () => fpDatabase.findAllTags(),
+    createTag: async (name, category) => fpDatabase.createTag(name, category),
+    saveTag: async (tag) => fpDatabase.saveTag(tag),
+    deleteTag: async (tagId: number, skipWarn?: boolean) => {
+      const tag = await fpDatabase.findTagById(tagId);
+      if (tag) {
+        return fpDatabase.deleteTag(tag.name);
+      } else {
+        throw 'Tag does not exist';
+      }
     },
-    findGameTags: TagManager.findGameTags,
 
     // Tag Categories
-    getTagCategoryById: TagManager.getTagCategoryById,
-    findTagCategories: TagManager.findTagCategories,
-    createTagCategory: TagManager.createTagCategory,
-    saveTagCategory: TagManager.saveTagCategory,
-    deleteTagCategory: (tagCategoryId: number) => {
-      const openDialogFunc = getOpenMessageBoxFunc(state);
-      if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
-      return TagManager.deleteTagCategory(tagCategoryId, openDialogFunc, state);
-    },
+    getTagCategoryById: async (id) => fpDatabase.findTagCategoryById(id),
+    findTagCategories: async () => fpDatabase.findAllTagCategories(),
+    createTagCategory: async (name, color) => fpDatabase.createTagCategory({
+      id: -1,
+      name,
+      color
+    }),
+    saveTagCategory: async (tc) => fpDatabase.saveTagCategory(tc),
+    // deleteTagCategory: (tagCategoryId: number) => {
+    //   const openDialogFunc = getOpenMessageBoxFunc(state);
+    //   if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
+    //   return TagManager.deleteTagCategory(tagCategoryId, openDialogFunc, state);
+    // },
 
     // Tag Suggestions
-    // TODO: Update event to allow custom filters from ext
-    findTagSuggestions: (text: string) => TagManager.findTagSuggestions(text, []),
+    // TODO FIX: Update event to allow custom filters from ext
+    findTagSuggestions: async (text: string) => [],
 
     // Misc
-    mergeTags: (mergeData: flashpoint.MergeTagData) => {
-      const openDialogFunc = getOpenMessageBoxFunc(state);
-      if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
-      return TagManager.mergeTags(mergeData, openDialogFunc, state);
+    mergeTags: async (mergeData: flashpoint.MergeTagData) => {
+      return fpDatabase.mergeTags(mergeData.toMerge, mergeData.mergeInto);
     },
   };
 

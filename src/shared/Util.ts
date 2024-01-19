@@ -198,7 +198,7 @@ export function recursiveReplace<T = any>(target: T, source: any): T {
   // Go through all properties of target
   for (const key in source) {
     // Check if data has a property of the same name
-    if (key in target) {
+    if (key in (target as any)) {
       const val = source[key];
       // If the value is an object
       if (val !== null && typeof val === 'object') {
@@ -426,14 +426,14 @@ export function getRandomHexColor(): string {
 }
 
 export function tagSort(tagA: Tag, tagB: Tag): number {
-  const catIdA = tagA.category ? tagA.category.id : tagA.categoryId;
-  const catIdB = tagB.category ? tagB.category.id : tagB.categoryId;
+  const catIdA = tagA.category ? tagA.category : tagA.category;
+  const catIdB = tagB.category ? tagB.category : tagB.category;
   if (catIdA && catIdB) {
     if (catIdA > catIdB) { return 1;  }
     if (catIdB > catIdA) { return -1; }
   }
-  if (tagA.primaryAlias.name > tagB.primaryAlias.name) { return 1;  }
-  if (tagB.primaryAlias.name > tagA.primaryAlias.name) { return -1; }
+  if (tagA.name > tagB.name) { return 1;  }
+  if (tagB.name > tagA.name) { return -1; }
   return 0;
 }
 
@@ -499,69 +499,45 @@ export function mapFpfssGameToLocal(data: any, categories: TagCategory[]): Game 
   const game = camelify(data) as unknown as Game;
   // Initialize nil variables which should be arrays
   if (!game.addApps) { game.addApps = []; }
-  if (!game.data) { game.data = []; }
+  if (!game.gameData) { game.gameData = []; }
   if (!game.platforms) { game.platforms = []; }
   if (!game.tags) { game.tags = []; }
   game.legacyApplicationPath = (game as any).applicationPath;
   game.legacyLaunchCommand = (game as any).launchCommand;
   // Tags
+  game.detailedTags = [];
+  game.detailedPlatforms = [];
   for (const tag of game.tags) {
-    tag.primaryAlias = {
+    const t: Tag = {
       id: -1,
-      name: (tag as any).name
+      name: tag,
+      dateModified: new Date(),
+      aliases: [],
+      description: '',
+      category: 'default'
     };
-    const category = categories.find(c => c.name === (tag as any).category);
-    if (!category) {
-      throw 'Tag has invalid category. Desynced from server?';
-    }
-    tag.categoryId = category.id;
+    game.detailedTags.push(t);
   }
   // Platforms
   for (const platform of game.platforms) {
-    platform.primaryAlias = {
+    const p: Tag = {
       id: -1,
-      name: (platform as any).name
+      name: platform,
+      dateModified: new Date(),
+      aliases: [],
+      description: '',
     };
+    game.detailedPlatforms.push(p);
   }
 
   return game;
 }
 
 export function mapLocalToFpfssGame(game: Game, categories: TagCategory[], userId: number): Record<string, any> {
-  const newTags: any[] = [];
-  for (const tag of game.tags) {
-    const category = categories.find(c => c.id === tag.categoryId);
-    if (tag.id !== -1) {
-      // Not a new tag, just revalidate some things to make sure we're not making a mistake
-      if (!category) {
-        throw 'Tag has invalid tag category';
-      }
-    }
-    newTags.push({
-      id: tag.id,
-      dateModified: (new Date()).toISOString(),
-      category: category ? category.name : 'default',
-      description: tag.description,
-      name: tag.primaryAlias.name,
-      userId: userId
-    });
-  }
-  const newPlatforms: any[] = [];
-  for (const platform of game.platforms) {
-    newPlatforms.push({
-      id: platform.id,
-      dateModified: (new Date()).toISOString(),
-      description: platform.description,
-      name: platform.primaryAlias.name,
-      userId: userId
-    });
-  }
   (game as any).launchCommand = game.legacyLaunchCommand;
   (game as any).applicationPath = game.legacyApplicationPath;
   return snekify({
     ...game,
-    tags: newTags,
-    platforms: newPlatforms
   });
 }
 

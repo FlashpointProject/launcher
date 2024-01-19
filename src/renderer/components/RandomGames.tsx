@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/indent */
 import { LangContext } from '@renderer/util/lang';
-import { ViewGame } from '@shared/back/types';
 import { LOGOS } from '@shared/constants';
 import * as React from 'react';
 import { findGameDragEventDataGrid, getExtremeIconURL, getGameImageURL } from '../Util';
@@ -8,6 +7,7 @@ import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
 import { HomePageBox } from './HomePageBox';
 import { SimpleButton } from './SimpleButton';
+import { ViewGame } from 'flashpoint-launcher';
 
 type RandomGamesProps = {
   games: ViewGame[];
@@ -48,8 +48,8 @@ export function RandomGames(props: RandomGamesProps) {
           key={game.id}
           id={game.id}
           title={game.title}
-          platforms={game.platformsStr.split(';').map(p => p.trim())}
-          extreme={game ? game.tagsStr.split(';').findIndex(t => props.extremeTags.includes(t.trim())) !== -1 : false}
+          platforms={game.platforms.map(p => p.trim())}
+          extreme={game ? game.tags.findIndex(t => props.extremeTags.includes(t.trim())) !== -1 : false}
           extremeIconPath={getExtremeIconURL(props.logoVersion)}
           thumbnail={getGameImageURL(LOGOS, game.id)}
           logoVersion={props.logoVersion}

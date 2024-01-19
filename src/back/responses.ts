@@ -5,23 +5,23 @@ import { BackIn, BackInit, BackOut, ComponentState, CurationImageEnum, DownloadD
 import { overwriteConfigData } from '@shared/config/util';
 import { CURATIONS_FOLDER_EXPORTED, CURATIONS_FOLDER_TEMP, CURATIONS_FOLDER_WORKING, LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
-import { LoadedCuration, PlatformAppPathSuggestions } from '@shared/curate/types';
+import { LoadedCuration } from '@shared/curate/types';
 import { getContentFolderByKey, getCurationFolder } from '@shared/curate/util';
 import { AppProvider, BrowserApplicationOpts } from '@shared/extensions/interfaces';
-import { FilterGameOpts } from '@shared/game/GameFilter';
 import { DeepPartial, GamePropSuggestions, ProcessAction, ProcessState } from '@shared/interfaces';
+import { ViewQuery } from '@shared/library/util';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { defaultPreferencesData, overwritePreferenceData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { TaskProgress } from '@shared/utils/TaskProgress';
-import { chunkArray } from '@shared/utils/misc';
+import { chunkArray, newGame } from '@shared/utils/misc';
 import { sanitizeFilename } from '@shared/utils/sanitizeFilename';
 import { throttle } from '@shared/utils/throttle';
 import * as axiosImport from 'axios';
 import * as child_process from 'child_process';
 import { execSync } from 'child_process';
-import { PartialTagCategory } from 'flashpoint-archive';
-import { ConfigSchema, CurationState, Game, GameData, GameLaunchInfo, GameMetadataSource, GameMiddlewareInfo, TagCategory } from 'flashpoint-launcher';
+import { GameSearch, GameSearchDirection, GameSearchOffset, GameSearchSortable, PartialTagCategory, parseUserSearchInput } from 'flashpoint-archive';
+import { ConfigSchema, CurationState, Game, GameConfig, GameData, GameLaunchInfo, GameMetadataSource, GameMiddlewareInfo, RequestGameRange, ResponseGameRange, Tag, TagCategory } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as fs_extra from 'fs-extra';
 import * as https from 'https';
@@ -49,20 +49,20 @@ import { fpDatabase, loadCurationArchive, onDidUninstallGameData, onWillUninstal
 import { importGames, importPlatforms, importTagCategories, importTags } from './metadataImport';
 import { addPlaylistGame, deletePlaylist, deletePlaylistGame, duplicatePlaylist, filterPlaylists, getPlaylistGame, importPlaylist, savePlaylistGame, updatePlaylist } from './playlist';
 import { copyFolder, genContentTree } from './rust';
-import { getMetaUpdateInfo, syncGames, syncPlatforms, syncTags } from './sync';
-import { BackState, BarePlatform, BareTag, MetadataRaw, TagsFile } from './types';
+import { getMetaUpdateInfo } from './sync';
+import { BackState, MetadataRaw, TagsFile } from './types';
 import { pathToBluezip } from './util/Bluezip';
 import { pathTo7zBack } from './util/SevenZip';
 import { awaitDialog, createNewDialog } from './util/dialog';
 import {
-  compareSemVerVersions,
   copyError,
   createAddAppFromLegacy,
   createContainer,
   createGameFromLegacy,
   dateToFilenameString,
   deleteCuration,
-  exit, getCwd, getTempFilename, openFlashpointManager, optimizeDatabase, pathExists, procToService, promiseSleep, removeService,
+  exit, getCwd, getTempFilename,
+  pathExists, procToService, promiseSleep, removeService,
   runService
 } from './util/misc';
 import { uuid } from './util/uuid';
@@ -134,7 +134,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.GET_RENDERER_LOADED_DATA, async () => {
-    const libraries = await GameManager.findUniqueValues(Game, 'library');
+    const libraries = await fpDatabase.findAllGameLibraries();
 
     // Fetch update feed
     let updateFeedMarkdown = '';
@@ -181,14 +181,15 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       /** Ignore */
     }
 
-    state.platformAppPaths = await GameManager.findPlatformsAppPaths();
+    // state.platformAppPaths = await GameManager.findPlatformsAppPaths();
+    state.platformAppPaths = {};
 
     const res: GetRendererLoadedDataResponse = {
       gotdList: gotdList,
       libraries: libraries,
       services: Array.from(state.services.values()).map(s => procToService(s)),
       serverNames: state.serviceInfo ? state.serviceInfo.server.map(i => i.name || '') : [],
-      tagCategories: fpDatabase.findAllTagCategories(),
+      tagCategories: await fpDatabase.findAllTagCategories(),
       suggestions: state.suggestions,
       platformAppPaths: state.platformAppPaths,
       logoSets: Array.from(state.registry.logoSets.values()),
@@ -207,7 +208,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   state.socketServer.register(BackIn.PRE_UPDATE_INFO, async (event, source: GameMetadataSource) => {
     let totalGames = 0;
     try {
-      totalGames = fpDatabase.countGames();
+      totalGames = await fpDatabase.countGames();
     } catch {/** ignore, errors if 0 count */}
     if (totalGames === 0) {
       return getMetaUpdateInfo(source, false, true);
@@ -238,185 +239,185 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
   });
 
-  state.socketServer.register(BackIn.SYNC_TAGGED, async (event, source) => {
-    const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
-    const dialogId = await openDialog({
-      largeMessage: true,
-      message: `Updating tags from ${source.name}...`,
-      buttons: []
-    });
-    const newDate = new Date();
-    const categories = fpDatabase.findAllTagCategories();
-    return AppDataSource.transaction(async (tx) => {
-      const lastDatePlats = await syncPlatforms(tx, source);
-      const lastDateTags = await syncTags(tx, source, categories);
-      if (lastDatePlats > lastDateTags) {
-        return lastDatePlats;
-      } else {
-        return lastDateTags;
-      }
-    })
-    .then((lastDate) => {
-      /** Success */
-      const sourceIdx = state.preferences.gameMetadataSources.findIndex(s => s.name === source.name);
-      if (sourceIdx !== -1) {
-        state.preferences.gameMetadataSources[sourceIdx].tags.latestUpdateTime = lastDate.toISOString();
-        state.preferences.gameMetadataSources[sourceIdx].tags.actualUpdateTime = newDate.toISOString();
-        state.prefsQueue.push(() => {
-          PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
-        });
-      }
-    })
-    .finally(() => {
-      state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
-    });
-  });
+  // state.socketServer.register(BackIn.SYNC_TAGGED, async (event, source) => {
+  //   const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
+  //   const dialogId = await openDialog({
+  //     largeMessage: true,
+  //     message: `Updating tags from ${source.name}...`,
+  //     buttons: []
+  //   });
+  //   const newDate = new Date();
+  //   const categories = await fpDatabase.findAllTagCategories();
+  //   return AppDataSource.transaction(async (tx) => {
+  //     const lastDatePlats = await syncPlatforms(tx, source);
+  //     const lastDateTags = await syncTags(tx, source, categories);
+  //     if (lastDatePlats > lastDateTags) {
+  //       return lastDatePlats;
+  //     } else {
+  //       return lastDateTags;
+  //     }
+  //   })
+  //   .then((lastDate) => {
+  //     /** Success */
+  //     const sourceIdx = state.preferences.gameMetadataSources.findIndex(s => s.name === source.name);
+  //     if (sourceIdx !== -1) {
+  //       state.preferences.gameMetadataSources[sourceIdx].tags.latestUpdateTime = lastDate.toISOString();
+  //       state.preferences.gameMetadataSources[sourceIdx].tags.actualUpdateTime = newDate.toISOString();
+  //       state.prefsQueue.push(() => {
+  //         PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
+  //       });
+  //     }
+  //   })
+  //   .finally(() => {
+  //     state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
+  //   });
+  // });
 
-  state.socketServer.register(BackIn.SYNC_ALL, async (event, source) => {
-    if (!state.isDev) {
-      // Make sure we meet minimum verison requirements
-      const updatesReady = state.componentStatuses.filter(c => c.id === 'core-launcher' && c.state === ComponentState.NEEDS_UPDATE).length > 0;
-      const version = state.version;
-      const versionUrl = `${source.baseUrl}/api/min-launcher`;
-      const res = await axios.get(versionUrl)
-      .catch((err) => { throw `Failed to find minimum launcher version requirement from metadata server.\n${err}`; });
-      if (compareSemVerVersions(version, res.data['min-version'] || '9999999999999') < 0) {
-        if (!updatesReady) {
-          // No software update ready but metadata server requires it
-          const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
-          await openDialog({
-            largeMessage: true,
-            message: state.languageContainer.app.noLauncherUpdateReady,
-            buttons: [state.languageContainer.misc.ok]
-          });
-          return false;
-        }
-        // Too old to sync metadata, prompt a software update
-        const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
-        const dialogId = await openDialog({
-          largeMessage: true,
-          message: state.languageContainer.app.softwareUpdateRequired,
-          buttons: [state.languageContainer.misc.yes, state.languageContainer.misc.no],
-          cancelId: 1
-        });
-        const button = (await awaitDialog(state, dialogId)).buttonIdx;
-        if (button !== 0) {
-          log.info('Launcher', 'User aborted metadata update: Refused required software update.');
-          return false;
-        } else {
-          openFlashpointManager(state);
-          return false;
-        }
-      }
-    }
+  // state.socketServer.register(BackIn.SYNC_ALL, async (event, source) => {
+  //   if (!state.isDev) {
+  //     // Make sure we meet minimum verison requirements
+  //     const updatesReady = state.componentStatuses.filter(c => c.id === 'core-launcher' && c.state === ComponentState.NEEDS_UPDATE).length > 0;
+  //     const version = state.version;
+  //     const versionUrl = `${source.baseUrl}/api/min-launcher`;
+  //     const res = await axios.get(versionUrl)
+  //     .catch((err) => { throw `Failed to find minimum launcher version requirement from metadata server.\n${err}`; });
+  //     if (compareSemVerVersions(version, res.data['min-version'] || '9999999999999') < 0) {
+  //       if (!updatesReady) {
+  //         // No software update ready but metadata server requires it
+  //         const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
+  //         await openDialog({
+  //           largeMessage: true,
+  //           message: state.languageContainer.app.noLauncherUpdateReady,
+  //           buttons: [state.languageContainer.misc.ok]
+  //         });
+  //         return false;
+  //       }
+  //       // Too old to sync metadata, prompt a software update
+  //       const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
+  //       const dialogId = await openDialog({
+  //         largeMessage: true,
+  //         message: state.languageContainer.app.softwareUpdateRequired,
+  //         buttons: [state.languageContainer.misc.yes, state.languageContainer.misc.no],
+  //         cancelId: 1
+  //       });
+  //       const button = (await awaitDialog(state, dialogId)).buttonIdx;
+  //       if (button !== 0) {
+  //         log.info('Launcher', 'User aborted metadata update: Refused required software update.');
+  //         return false;
+  //       } else {
+  //         openFlashpointManager(state);
+  //         return false;
+  //       }
+  //     }
+  //   }
 
-    const newDate = new Date();
-    const categories = fpDatabase.findAllTagCategories();
-    let totalGames = 0;
-    try {
-      totalGames = fpDatabase.countGames();
-    } catch {/** ignore, errors on 0 count */}
-    // Always do a full sync if empty DB
-    if (totalGames === 0) {
-      source.games = {
-        actualUpdateTime: source.games.actualUpdateTime,
-        latestDeleteTime: source.games.latestDeleteTime,
-        latestUpdateTime: '1970-01-01'
-      };
-      source.tags = {
-        actualUpdateTime: source.games.actualUpdateTime,
-        latestDeleteTime: source.games.latestDeleteTime,
-        latestUpdateTime: '1970-01-01'
-      };
-    }
+  //   const newDate = new Date();
+  //   const categories = await fpDatabase.findAllTagCategories();
+  //   let totalGames = 0;
+  //   try {
+  //     totalGames = await fpDatabase.countGames();
+  //   } catch {/** ignore, errors on 0 count */}
+  //   // Always do a full sync if empty DB
+  //   if (totalGames === 0) {
+  //     source.games = {
+  //       actualUpdateTime: source.games.actualUpdateTime,
+  //       latestDeleteTime: source.games.latestDeleteTime,
+  //       latestUpdateTime: '1970-01-01'
+  //     };
+  //     source.tags = {
+  //       actualUpdateTime: source.games.actualUpdateTime,
+  //       latestDeleteTime: source.games.latestDeleteTime,
+  //       latestUpdateTime: '1970-01-01'
+  //     };
+  //   }
 
-    // Fetch pre-update info to estimate progress bar size
-    const total = await getMetaUpdateInfo(source, true, totalGames === 0);
-    const chunks = Math.ceil(total / 2500);
+  //   // Fetch pre-update info to estimate progress bar size
+  //   const total = await getMetaUpdateInfo(source, true, totalGames === 0);
+  //   const chunks = Math.ceil(total / 2500);
 
-    const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
-    const dialogId = await openDialog({
-      largeMessage: true,
-      message: `Syncing metadata from ${source.name}...`,
-      buttons: [],
-      fields: [
-        {
-          type: 'progress',
-          name: 'progress',
-          message: `${total} Updates...`,
-          value: 0
-        }
-      ]
-    });
+  //   const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
+  //   const dialogId = await openDialog({
+  //     largeMessage: true,
+  //     message: `Syncing metadata from ${source.name}...`,
+  //     buttons: [],
+  //     fields: [
+  //       {
+  //         type: 'progress',
+  //         name: 'progress',
+  //         message: `${total} Updates...`,
+  //         value: 0
+  //       }
+  //     ]
+  //   });
 
-    return AppDataSource.transaction(async (tx) => {
-      console.log('plats');
-      const lastDatePlats = await syncPlatforms(tx, source);
-      console.log('tags');
-      const lastDateTags = await syncTags(tx, source, categories);
-      if (lastDatePlats < lastDateTags) {
-        return lastDateTags;
-      } else {
-        return lastDatePlats;
-      }
-    })
-    .then((lastDate) => {
-      /** Tags Success */
-      const sourceIdx = state.preferences.gameMetadataSources.findIndex(s => s.name === source.name);
-      if (sourceIdx !== -1) {
-        state.preferences.gameMetadataSources[sourceIdx].tags.latestUpdateTime = lastDate.toISOString();
-        state.preferences.gameMetadataSources[sourceIdx].tags.actualUpdateTime = newDate.toISOString();
-        state.prefsQueue.push(() => {
-          PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
-        });
-      }
-    })
-    .then(() => {
-      console.log('games');
-      // Open new transaction for games
-      const dataPacksFolder = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath);
-      let chunk = 0;
-      return AppDataSource.transaction(async (tx) => {
-        return await syncGames(tx, source, dataPacksFolder, () => {
-          chunk = chunk + 1;
-          const progress = chunk / chunks;
-          state.socketServer.broadcast(BackOut.UPDATE_DIALOG_FIELD_VALUE, dialogId, 'progress', progress * 100);
-        });
-      });
-    })
-    .then((lastDate) => {
-      console.log(lastDate.toISOString());
-      /** Games Success */
-      const sourceIdx = state.preferences.gameMetadataSources.findIndex(s => s.name === source.name);
-      if (sourceIdx !== -1) {
-        state.preferences.gameMetadataSources[sourceIdx].games.latestUpdateTime = lastDate.toISOString();
-        state.preferences.gameMetadataSources[sourceIdx].games.actualUpdateTime = newDate.toISOString();
-        state.prefsQueue.push(() => {
-          PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
-        });
-        state.socketServer.broadcast(BackOut.UPDATE_PREFERENCES_RESPONSE, state.preferences);
-      }
-    })
-    .then(async () => {
-      // Send out new suggestions and library lists
-      state.suggestions = {
-        tags: [],
-        playMode: [],
-        platforms: [],
-        status: [],
-        applicationPath: [],
-        library: [],
-      };
-      const appPaths: PlatformAppPathSuggestions = await GameManager.findPlatformsAppPaths();
-      state.platformAppPaths = appPaths; // Update cache
-      const total = fpDatabase.countGames();
-      state.socketServer.broadcast(BackOut.POST_SYNC_CHANGES, state.suggestions.library, state.suggestions, state.platformAppPaths, total);
-      return true;
-    })
-    .finally(() => {
-      state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
-    });
-  });
+  //   return AppDataSource.transaction(async (tx) => {
+  //     console.log('plats');
+  //     const lastDatePlats = await syncPlatforms(tx, source);
+  //     console.log('tags');
+  //     const lastDateTags = await syncTags(tx, source, categories);
+  //     if (lastDatePlats < lastDateTags) {
+  //       return lastDateTags;
+  //     } else {
+  //       return lastDatePlats;
+  //     }
+  //   })
+  //   .then((lastDate) => {
+  //     /** Tags Success */
+  //     const sourceIdx = state.preferences.gameMetadataSources.findIndex(s => s.name === source.name);
+  //     if (sourceIdx !== -1) {
+  //       state.preferences.gameMetadataSources[sourceIdx].tags.latestUpdateTime = lastDate.toISOString();
+  //       state.preferences.gameMetadataSources[sourceIdx].tags.actualUpdateTime = newDate.toISOString();
+  //       state.prefsQueue.push(() => {
+  //         PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
+  //       });
+  //     }
+  //   })
+  //   .then(() => {
+  //     console.log('games');
+  //     // Open new transaction for games
+  //     const dataPacksFolder = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath);
+  //     let chunk = 0;
+  //     return AppDataSource.transaction(async (tx) => {
+  //       return await syncGames(tx, source, dataPacksFolder, () => {
+  //         chunk = chunk + 1;
+  //         const progress = chunk / chunks;
+  //         state.socketServer.broadcast(BackOut.UPDATE_DIALOG_FIELD_VALUE, dialogId, 'progress', progress * 100);
+  //       });
+  //     });
+  //   })
+  //   .then((lastDate) => {
+  //     console.log(lastDate.toISOString());
+  //     /** Games Success */
+  //     const sourceIdx = state.preferences.gameMetadataSources.findIndex(s => s.name === source.name);
+  //     if (sourceIdx !== -1) {
+  //       state.preferences.gameMetadataSources[sourceIdx].games.latestUpdateTime = lastDate.toISOString();
+  //       state.preferences.gameMetadataSources[sourceIdx].games.actualUpdateTime = newDate.toISOString();
+  //       state.prefsQueue.push(() => {
+  //         PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
+  //       });
+  //       state.socketServer.broadcast(BackOut.UPDATE_PREFERENCES_RESPONSE, state.preferences);
+  //     }
+  //   })
+  //   .then(async () => {
+  //     // Send out new suggestions and library lists
+  //     state.suggestions = {
+  //       tags: [],
+  //       playMode: [],
+  //       platforms: [],
+  //       status: [],
+  //       applicationPath: [],
+  //       library: [],
+  //     };
+  //     const appPaths: PlatformAppPathSuggestions = await GameManager.findPlatformsAppPaths();
+  //     state.platformAppPaths = appPaths; // Update cache
+  //     const total = await fpDatabase.countGames();
+  //     state.socketServer.broadcast(BackOut.POST_SYNC_CHANGES, state.suggestions.library, state.suggestions, state.platformAppPaths, total);
+  //     return true;
+  //   })
+  //   .finally(() => {
+  //     state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
+  //   });
+  // });
 
   state.socketServer.register(BackIn.INIT_LISTEN, (event) => {
     const done: BackInit[] = [];
@@ -448,11 +449,11 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       applicationPath: [],
       library: [],
     };
-    const appPaths: PlatformAppPathSuggestions = await GameManager.findPlatformsAppPaths();
-    state.platformAppPaths = appPaths; // Update cache
+    // const appPaths: PlatformAppPathSuggestions = await GameManager.findPlatformsAppPaths();
+    // state.platformAppPaths = appPaths; // Update cache
     return {
       suggestions: suggestions,
-      platformAppPaths: appPaths,
+      platformAppPaths: {},
     };
   });
 
@@ -473,20 +474,25 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.LAUNCH_ADDAPP, async (event, id) => {
-    const addApp = await GameManager.findAddApp(id);
+    const addApp = await fpDatabase.findAddAppById(id);
     if (addApp) {
       // Force load relation
-      addApp.parentGame = fpDatabase.findGame(addApp.parentGameId);
-      const configs = await GameManager.findGameConfigs(addApp.parentGameId, state.registry.middlewares);
-      const activeConfigIdx = configs.findIndex(c => c.id === addApp.parentGame.activeGameConfigId);
-      if (addApp.parentGame.activeGameConfigId && activeConfigIdx === -1) {
-        throw 'Failed to load game config data despite it being selected?';
+      const parentGame = await fpDatabase.findGame(addApp.parentGameId);
+      if (!parentGame) {
+        log.error('Game Launcher', 'Add app missing parent game?: {}');
+        return;
       }
-      const activeConfig = configs[activeConfigIdx];
+      // const configs = parentGame?.gameConfigs;
+      // const activeConfigIdx = configs.findIndex(c => c.id === addApp.parentGame.activeGameConfigId);
+      // if (addApp.parentGame.activeGameConfigId && activeConfigIdx === -1) {
+      //   throw 'Failed to load game config data despite it being selected?';
+      // }
+      // const activeConfig = configs[activeConfigIdx];
+      const activeConfig = null;
       // If it has GameData, make sure it's present
       let gameData: GameData | null;
-      if (addApp.parentGame.activeDataId) {
-        gameData = fpDatabase.findGameDataById(addApp.parentGame.activeDataId);
+      if (parentGame.activeDataId) {
+        gameData = await fpDatabase.findGameDataById(parentGame.activeDataId);
         if (gameData && !gameData.presentOnDisk) {
           // Download GameData
           try {
@@ -499,7 +505,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         }
       }
       await state.apiEmitters.games.onWillLaunchAddApp.fireAlert(state, addApp, event.client, 'Error during add app launch api event');
-      const platforms = addApp.parentGame ? addApp.parentGame.platforms.map(p => p.primaryAlias.name): [];
       await GameLauncher.launchAdditionalApplication({
         addApp,
         changeServer: changeServerFactory(state),
@@ -507,7 +512,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         htdocsPath: state.preferences.htdocsFolderPath,
         dataPacksFolderPath: state.preferences.dataPacksFolderPath,
         sevenZipPath: state.sevenZipPath,
-        native: addApp.parentGame && state.preferences.nativePlatforms.some(p => platforms.includes(p)) || false,
+        native: parentGame && state.preferences.nativePlatforms.some(p => parentGame.platforms.includes(p)) || false,
         execMappings: state.execMappings,
         lang: state.languageContainer,
         isDev: state.isDev,
@@ -521,13 +526,14 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         envPATH: state.pathVar,
         activeConfig,
         state,
+        parentGame,
       }, false);
       state.apiEmitters.games.onDidLaunchAddApp.fireAlert(state, addApp, event.client, 'Error during post add app launch api event');
     }
   });
 
   state.socketServer.register(BackIn.LAUNCH_GAME, async (event, id) => {
-    const game = fpDatabase.findGame(id);
+    const game = await fpDatabase.findGame(id);
 
     if (game) {
       // Make sure Server is set to configured server - Curations may have changed it
@@ -544,10 +550,9 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         }
       }
       // If it has GameData, make sure it's present
-      let gameData: GameData | null;
       if (game.activeDataId) {
         log.debug('Launcher', 'Found active game data');
-        gameData = await GameDataManager.findOne(game.activeDataId);
+        const gameData = game.gameData?.find(gd => gd.id === game.activeDataId);
         if (gameData && !gameData.presentOnDisk) {
           log.debug('Game Launcher', 'Downloading Game Data for ' + gameData.path || 'UNKNOWN');
           // Download GameData
@@ -561,11 +566,12 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         }
       }
       // Game config
-      const configs = await GameManager.findGameConfigs(game.id, state.registry.middlewares);
-      const activeConfig = configs.find(c => c.id === game.activeGameConfigId);
-      if (game.activeGameConfigId && activeConfig === undefined) {
-        throw 'Could not load game config despite one being selected?';
-      }
+      // const configs = await GameManager.findGameConfigs(game.id, state.registry.middlewares);
+      // const activeConfig = configs.find(c => c.id === game.activeGameConfigId);
+      // if (game.activeGameConfigId && activeConfig === undefined) {
+      //   throw 'Could not load game config despite one being selected?';
+      // }
+      const activeConfig = null;
       // Launch game
       await GameLauncher.launchGame({
         game,
@@ -573,7 +579,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         htdocsPath: state.preferences.htdocsFolderPath,
         dataPacksFolderPath: state.preferences.dataPacksFolderPath,
         sevenZipPath: state.sevenZipPath,
-        native: state.preferences.nativePlatforms.some(p => game.platforms.inner.includes(p)),
+        native: state.preferences.nativePlatforms.some(p => game.platforms.includes(p)),
         execMappings: state.execMappings,
         lang: state.languageContainer,
         isDev: state.isDev,
@@ -595,28 +601,28 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.SAVE_GAMES, async (event, data) => {
-    await GameManager.updateGames(data);
+    await fpDatabase.saveGames(data);
   });
 
   state.socketServer.register(BackIn.SAVE_GAME, async (event, info) => {
     try {
       // Save configs
-      for (let i = 0; i < info.configs.length; i++) {
-        const config = info.configs[i];
-        info.configs[i] = await GameManager.saveGameConfig(config, state.registry.middlewares);
-      }
-      const validConfigIds = info.configs.map(c => c.id);
-      // Save game
-      if (info.activeConfig && validConfigIds.includes(info.activeConfig.id)) {
-        info.game.activeGameConfigId = info.activeConfig.id;
-        info.game.activeGameConfigOwner = info.activeConfig.owner;
-      } else {
-        info.game.activeGameConfigId = null;
-        info.game.activeGameConfigOwner = null;
-      }
-      const game = fpDatabase.saveGame(info.game);
+      // for (let i = 0; i < info.configs.length; i++) {
+      //   const config = info.configs[i];
+      //   info.configs[i] = await GameManager.saveGameConfig(config, state.registry.middlewares);
+      // }
+      // const validConfigIds = info.configs.map(c => c.id);
+      // // Save game
+      // if (info.activeConfig && validConfigIds.includes(info.activeConfig.id)) {
+      //   info.game.activeGameConfigId = info.activeConfig.id;
+      //   info.game.activeGameConfigOwner = info.activeConfig.owner;
+      // } else {
+      //   info.game.activeGameConfigId = undefined;
+      //   info.game.activeGameConfigOwner = undefined;
+      // }
+      const game = await fpDatabase.saveGame(info.game);
       // Clean up removed configs
-      await GameManager.cleanupConfigs(info.game, validConfigIds);
+      // await GameManager.cleanupConfigs(info.game, validConfigIds);
       // Save up to date ids
       state.queries = {}; // Clear entire cache
       return {
@@ -626,7 +632,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
           configs: info.configs,
         },
         library: game.library,
-        gamesTotal: fpDatabase.countGames(),
+        gamesTotal: await fpDatabase.countGames(),
       };
     } catch (err) {
       console.error(err);
@@ -635,41 +641,47 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.DELETE_GAME_CONFIG, async (event, id) => {
-    await GameManager.deleteGameConfig(id);
+    // await GameManager.deleteGameConfig(id);
   });
 
   state.socketServer.register(BackIn.DELETE_GAME, async (event, id) => {
-    const game = await GameManager.removeGameAndAddApps(id,
-      path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath),
-      path.join(state.config.flashpointPath, state.preferences.imageFolderPath),
-      path.join(state.config.flashpointPath, state.preferences.htdocsFolderPath));
+    const game = await fpDatabase.findGame(id);
+    if (game) {
+      fpDatabase.deleteGame(id);
+    } else {
+      throw 'Invalid game';
+    }
+    // TODO: Copy over file operations
+    // path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath),
+    // path.join(state.config.flashpointPath, state.preferences.imageFolderPath),
+    // path.join(state.config.flashpointPath, state.preferences.htdocsFolderPath));
 
     state.queries = {}; // Clear entire cache
 
     return {
       fetchedInfo: null,
       library: game ? game.library : undefined,
-      gamesTotal: fpDatabase.countGames(),
+      gamesTotal: await fpDatabase.countGames(),
     };
   });
 
   state.socketServer.register(BackIn.DUPLICATE_GAME, async (event, id, dupeImages) => {
-    const game = fpDatabase.findGame(id);
+    const game = await fpDatabase.findGame(id);
     let result: Game | undefined;
     if (game) {
 
       // Copy and apply new IDs
       const newGame = deepCopy(game);
-      const newAddApps = game.addApps.map(addApp => deepCopy(addApp));
+      const newAddApps = game.addApps!.map(addApp => deepCopy(addApp));
       newGame.id = uuid();
       for (let j = 0; j < newAddApps.length; j++) {
         newAddApps[j].id = uuid();
-        newAddApps[j].parentGame = newGame;
+        newAddApps[j].parentGameId = newGame.id;
       }
       newGame.addApps = newAddApps;
 
       // Add copies
-      result = fpDatabase.saveGame(newGame);
+      result = await fpDatabase.saveGame(newGame);
 
       // Copy images
       if (dupeImages) {
@@ -702,7 +714,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     return {
       fetchedInfo: null,
       library: result ? result.library : undefined,
-      gamesTotal: fpDatabase.countGames(),
+      gamesTotal: await fpDatabase.countGames(),
     };
   });
 
@@ -716,13 +728,13 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
   state.socketServer.register(BackIn.EXPORT_GAME, async (event, id, location, metaOnly) => {
     if (await pathExists(metaOnly ? path.dirname(location) : location)) {
-      const game = fpDatabase.findGame(id);
+      const game = await fpDatabase.findGame(id);
       if (game) {
         // Save to file
         try {
           await fs.promises.writeFile(
             metaOnly ? location : path.join(location, 'meta.yaml'),
-            YAML.stringify(convertGameToCurationMetaFile(game, await TagManager.findTagCategories())));
+            YAML.stringify(convertGameToCurationMetaFile(game, await fpDatabase.findAllTagCategories())));
         } catch (e) { console.error(e); }
 
         // Copy images
@@ -760,12 +772,14 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.GET_GAME, async (event, id) => {
-    const game = fpDatabase.findGame(id);
+    const game = await fpDatabase.findGame(id);
     if (game === null) {
       return null;
     }
-    const configs = await GameManager.findGameConfigs(game.id, state.registry.middlewares);
-    const activeConfig = configs.find(c => c.id === game.activeGameConfigId);
+    // const configs = await GameManager.findGameConfigs(game.id, state.registry.middlewares);
+    // const activeConfig = configs.find(c => c.id === game.activeGameConfigId);
+    const configs: GameConfig[] = [];
+    const activeConfig = null;
     // Sort configs with templates at top
     return {
       game,
@@ -837,7 +851,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.GET_GAME_DATA, async (event, id) => {
-    const gameData = fpDatabase.findGameDataById(id);
+    const gameData = await fpDatabase.findGameDataById(id);
     // Verify it's still on disk
     if (gameData && gameData.presentOnDisk && gameData.path) {
       try {
@@ -845,7 +859,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       } catch (err) {
         gameData.path = undefined;
         gameData.presentOnDisk = false;
-        return await GameDataManager.save(gameData);
+        return fpDatabase.saveGameData(gameData);
       }
     }
     return gameData;
@@ -858,7 +872,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   state.socketServer.register(BackIn.SAVE_GAME_DATAS, async (event, data) => {
     // Ignore presentOnDisk, client isn't the most aware
     await Promise.all(data.map(async (d) => {
-      const existingData = fpDatabase.findGameDataById(d.id);
+      const existingData = await fpDatabase.findGameDataById(d.id);
       if (existingData) {
         existingData.title = d.title;
         existingData.applicationPath = d.applicationPath;
@@ -870,7 +884,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.DELETE_GAME_DATA, async (event, gameDataId) => {
-    const gameData = fpDatabase.findGameDataById(gameDataId);
+    const gameData = await fpDatabase.findGameDataById(gameDataId);
     if (gameData) {
       if (gameData.presentOnDisk && gameData.path) {
         await onWillUninstallGameData.fire(gameData);
@@ -880,22 +894,22 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         gameData.presentOnDisk = false;
         onDidUninstallGameData.fire(gameData);
       }
-      const game = fpDatabase.findGame(gameData.gameId);
+      const game = await fpDatabase.findGame(gameData.gameId);
       if (game) {
         game.activeDataId = undefined;
         game.activeDataOnDisk = false;
-        fpDatabase.saveGame(game);
+        await fpDatabase.saveGame(game);
       }
-      await GameDataManager.remove(gameDataId);
+      await fpDatabase.deleteGameData(gameDataId);
     }
   });
 
-  state.socketServer.register(BackIn.IMPORT_GAME_DATA, async (event, gameId, filePath) => {
-    return GameDataManager.importGameData(gameId, filePath, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath));
-  });
+  // state.socketServer.register(BackIn.IMPORT_GAME_DATA, async (event, gameId, filePath) => {
+  //   return GameDataManager.importGameData(gameId, filePath, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath));
+  // });
 
   state.socketServer.register(BackIn.DOWNLOAD_GAME_DATA, async (event, gameDataId) => {
-    const gameData = fpDatabase.findGameDataById(gameDataId);
+    const gameData = await fpDatabase.findGameDataById(gameDataId);
     if (gameData) {
       await downloadGameDataRes(state, gameData)
       .catch((err) => {
@@ -908,7 +922,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.UNINSTALL_GAME_DATA, async (event, id) => {
-    const gameData = fpDatabase.findGameDataById(id);
+    const gameData = await fpDatabase.findGameDataById(id);
     if (gameData && gameData.path && gameData.presentOnDisk) {
       await onWillUninstallGameData.fire(gameData);
       // Delete Game Data
@@ -922,10 +936,10 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       });
       gameData.path = '';
       gameData.presentOnDisk = false;
-      fpDatabase.saveGameData(gameData);
+      await fpDatabase.saveGameData(gameData);
       onDidUninstallGameData.fire(gameData);
       // Update Game
-      const game = fpDatabase.findGame(gameData.gameId);
+      const game = await fpDatabase.findGame(gameData.gameId);
       if (game && game.activeDataId === gameData.id) {
         game.activeDataOnDisk = false;
         return fpDatabase.saveGame(game);
@@ -938,173 +952,124 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     return state.preferences.gameDataSources;
   });
 
-  state.socketServer.register(BackIn.GET_ALL_GAMES, async (event, startFrom) => {
-    return GameManager.findAllGames(startFrom);
-  });
-
-  state.socketServer.register(BackIn.UPDATE_TAGGED_FIELDS, async () => {
-    await AppDataSource.query(`
-    UPDATE game 
-    SET platformsStr = (
-      SELECT GROUP_CONCAT(
-        (SELECT name FROM platform_alias WHERE platformId = p.platformId), '; '
-      ) 
-      FROM game_platforms_platform p 
-      WHERE p.gameId = game.id
-    )`);
-    await AppDataSource.query(`
-    UPDATE game 
-    SET tagsStr = (
-      SELECT IFNULL(tags, "") tags FROM (
-        SELECT GROUP_CONCAT(
-          (SELECT name FROM tag_alias WHERE tagId = t.tagId), '; '
-        ) tags
-        FROM game_tags_tag t
-        WHERE t.gameId = game.id
-      )
-    )`);
+  state.socketServer.register(BackIn.GET_ALL_GAMES, async (event, offsetGameTitle, offsetGameId) => {
+    const search = parseUserSearchInput('');
+    search.limit = 10000;
+    if (offsetGameId && offsetGameTitle) {
+      search.offset = {
+        value: offsetGameTitle,
+        gameId: offsetGameId,
+      };
+    }
+    return fpDatabase.searchGames(search);
   });
 
   state.socketServer.register(BackIn.RANDOM_GAMES, async (event, data) => {
-    const flatFilters = data.tagFilters ? data.tagFilters.reduce<string[]>((prev, cur) => prev.concat(cur.tags),  []) : [];
-    return await GameManager.findRandomGames(data.count, data.broken, data.excludedLibraries, flatFilters);
+    const search = parseUserSearchInput('');
+    // Add tag filters
+    search.filter.exactBlacklist.tags = state.preferences.tagFilters.filter(t => t.enabled).reduce<string[]>((prev, cur) => prev.concat(cur.tags),  []);
+    // Add library filters
+    search.filter.exactBlacklist.library = data.excludedLibraries;
+    return fpDatabase.searchGamesRandom(search, data.count);
   });
 
-  state.socketServer.register(BackIn.BROWSE_VIEW_KEYSET, async (event, library, query) => {
-    query.filter = adjustGameFilter(query.filter);
+  state.socketServer.register(BackIn.BROWSE_VIEW_KEYSET, async (event, viewIdentifier, query) => {
+    const search = adjustGameFilter(state, query, parseUserSearchInput(query.text));
+    console.log(search);
     const startTime = Date.now();
-    const result = await GameManager.findGamePageKeyset(query.filter, query.orderBy, query.orderReverse, query.searchLimit);
-    log.debug('Launcher', 'Search Time: ' + (Date.now() - startTime) + 'ms');
+    const result = await fpDatabase.searchGamesIndex(search);
+    console.log(result);
+    const total = await fpDatabase.searchGamesTotal(search);
+    console.log(total);
+    log.debug('Launcher', 'Keyset Search Time: ' + (Date.now() - startTime) + 'ms');
     return {
-      keyset: result.keyset,
-      total: result.total,
+      keyset: result,
+      total,
     };
   });
 
   state.socketServer.register(BackIn.BROWSE_VIEW_PAGE, async (event, data) => {
-    data.query.filter = adjustGameFilter(data.query.filter);
-    if (data.query.filter.playlist) {
-      // Replace with backend copy of playlist
-      data.query.filter.playlist = state.playlists.find(p => p.id === data.query.filter.playlist?.id);
-    }
-    const results = await GameManager.findGames({
-      ranges: data.ranges,
-      filter: data.query.filter,
-      orderBy: data.query.orderBy,
-      direction: data.query.orderReverse,
-    }, !!data.shallow);
+    const search = adjustGameFilter(state, data.query, parseUserSearchInput(data.query.text));
+
+    const fetchFunc = async (range: RequestGameRange): Promise<ResponseGameRange> => {
+      // Add offset
+      if (range.index) {
+        search.offset = {
+          value: range.index.orderVal,
+          gameId: range.index.id
+        };
+      }
+      if (range.length) {
+        search.limit = range.length;
+      }
+      const results = await fpDatabase.searchGames(search);
+
+      return {
+        games: results,
+        start: range.start
+      };
+    };
+
+    const responses = await Promise.all(data.ranges.map(fetchFunc));
 
     return {
-      ranges: results,
-      library: data.library,
+      ranges: responses,
+      viewIdentifier: data.viewIdentifier,
     };
   });
 
-  state.socketServer.register(BackIn.DELETE_TAG_CATEGORY, async (event, data) => {
-    const result = await TagManager.deleteTagCategory(data, state.socketServer.showMessageBoxBack(state, event.client), state);
-    state.socketServer.send(event.client, BackOut.DELETE_TAG_CATEGORY, result);
-    await TagManager.sendTagCategories(state.socketServer);
-    return result;
-  });
+  // state.socketServer.register(BackIn.DELETE_TAG_CATEGORY, async (event, data) => {
+  //   const result = await TagManager.deleteTagCategory(data, state.socketServer.showMessageBoxBack(state, event.client), state);
+  //   state.socketServer.send(event.client, BackOut.DELETE_TAG_CATEGORY, result);
+  //   state.socketServer.broadcast(BackOut.TAG_CATEGORIES_CHANGE, await fpDatabase.findAllTagCategories());
+  //   return result;
+  // });
 
   state.socketServer.register(BackIn.GET_TAG_CATEGORY_BY_ID, async (event, data) => {
-    const result = await TagManager.getTagCategoryById(data);
+    const result = await fpDatabase.findTagCategoryById(data);
     state.socketServer.send(event.client, BackOut.GET_TAG_CATEGORY_BY_ID, result);
     return result;
   });
 
   state.socketServer.register(BackIn.SAVE_TAG_CATEGORY, async (event, data) => {
-    const result = await TagManager.saveTagCategory(data);
+    const result = await fpDatabase.saveTagCategory(data);
     state.socketServer.send(event.client, BackOut.SAVE_TAG_CATEGORY, result);
-    await TagManager.sendTagCategories(state.socketServer);
+    state.socketServer.broadcast(BackOut.TAG_CATEGORIES_CHANGE, await fpDatabase.findAllTagCategories());
     return result;
   });
 
   state.socketServer.register(BackIn.GET_TAG_BY_ID, async (event, data) => {
-    const tag = await TagManager.getTagById(data);
+    const tag = await fpDatabase.findTagById(data);
     state.socketServer.send(event.client, BackOut.GET_TAG_BY_ID, tag);
     return tag;
   });
 
   state.socketServer.register(BackIn.GET_PLATFORM_BY_ID, async (event, data) => {
-    const platform = await TagManager.getPlatformById(data);
+    const platform = await fpDatabase.findPlatformById(data);
     return platform;
   });
 
   state.socketServer.register(BackIn.GET_TAGS, async (event, name, tagFilters) => {
     const flatFilters: string[] = tagFilters ? tagFilters.reduce<string[]>((prev, cur) => prev.concat(cur.tags), []) : [];
-    const tags = await TagManager.findTags(name, flatFilters);
+    const tags = (await fpDatabase.findAllTags()).filter(t => !t.aliases.some(a => flatFilters.includes(a)));
     state.socketServer.send(event.client, BackOut.GET_TAGS, tags);
     return tags;
   });
 
   state.socketServer.register(BackIn.MERGE_TAGS, async (event, data) => {
-    const newTag = await TagManager.mergeTags(data, state.socketServer.showMessageBoxBack(state, event.client), state) as Tag; // @TYPESAFE fix this?
+    const newTag = await fpDatabase.mergeTags(data.toMerge, data.mergeInto);
     state.socketServer.send(event.client, BackOut.MERGE_TAGS, newTag);
     return newTag;
   });
 
-  state.socketServer.register(BackIn.CLEANUP_TAGS, async (event) => {
-    const allTags = fpDatabase.findAllTags();
-    const commaTags = allTags.filter(t => t.name.includes(','));
-    for (const oldTag of commaTags) {
-      const allAliases = oldTag.name.split(',').map(a => a.trim());
-      const tagsToAdd: Tag[] = [];
-      for (const alias of allAliases) {
-        let tag = fpDatabase.findTag(alias);
-        if (!tag) {
-          // Tag doesn't exist, make a new one
-          tag = await TagManager.createTag(alias);
-        }
-        // Add tag to list if unique
-        if (tag) {
-          if (tagsToAdd.findIndex(t => tag && tag.id == t.id) == -1) {
-            tagsToAdd.push(tag);
-          }
-        }
-      }
-      // Edit each game with this tag
-      const gamesToEdit = await GameManager.findGamesWithTag(oldTag);
-      for (let i = 0; i < gamesToEdit.length; i++) {
-        const game = gamesToEdit[i];
-        // Remove old tag
-        const oldTagIndex = game.tags.findIndex(t => t.id == oldTag.id);
-        if (oldTagIndex > -1) {
-          game.tags.splice(oldTagIndex, 1);
-        }
-        // Add new tags
-        for (const newTag of tagsToAdd) {
-          if (game.tags.findIndex(t => t.id == newTag.id) == -1) {
-            game.tags.push(newTag);
-          }
-        }
-        gamesToEdit[i] = game;
-      }
-      // Save all games
-      await GameManager.updateGames(gamesToEdit);
-      // Remove old tag
-      if (oldTag.id) {
-        await TagManager.deleteTag(oldTag.id, state, state.socketServer.showMessageBoxBack(state, event.client));
-      }
-    }
-  });
-
   state.socketServer.register(BackIn.DELETE_TAG, async (event, data) => {
-    const success = await TagManager.deleteTag(data, state, state.socketServer.showMessageBoxBack(state, event.client));
-    return {
-      success: success,
-      id: data,
-    };
+    await fpDatabase.deleteTag(data);
   });
 
   state.socketServer.register(BackIn.SAVE_TAG, async (event, data) => {
-    const result = await TagManager.saveTag(data);
+    const result = await fpDatabase.saveTag(data);
     state.socketServer.send(event.client, BackOut.SAVE_TAG, result);
     return result;
-  });
-
-  state.socketServer.register(BackIn.SAVE_TAG_ALIAS, async (event, data) => {
-    return TagManager.saveTagAlias(data);
   });
 
   // state.socketServer.register(BackIn.GET_TAG_SUGGESTIONS, async (event, text, tagFilters) => {
@@ -1116,19 +1081,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   // });
 
   state.socketServer.register(BackIn.GET_PLATFORM_SUGGESTIONS, async (event, text) => {
-    const result = await TagManager.findPlatformSuggestions(text);
-    return result;
-  });
-
-  state.socketServer.register(BackIn.BROWSE_VIEW_INDEX, async (event, gameId, query) => {
-    const position = await GameManager.findGameRow(
-      gameId,
-      query.filter,
-      query.orderBy,
-      query.orderReverse,
-      undefined);
-
-    return position - 1; // ("position" starts at 1, while "index" starts at 0)
+    // const result = await TagManager.findPlatformSuggestions(text);
+    return [];
   });
 
   state.socketServer.register(BackIn.SAVE_IMAGE, async (event, raw_folder, raw_id, content) => {
@@ -1224,39 +1178,29 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     return state.playlists.find(p => p.id === playlistId);
   });
 
-  state.socketServer.register(BackIn.CLEANUP_TAG_ALIASES, async () => {
-    await TagManager.cleanupTagAliases();
-  });
-
   state.socketServer.register(BackIn.GET_TAG, async (event, data) => {
-    const result = await TagManager.findTag(data);
+    const result = await fpDatabase.findTag(data);
     state.socketServer.send(event.client, BackOut.GET_TAG, result);
     return result;
-  });
-
-  state.socketServer.register(BackIn.FIX_TAG_PRIMARY_ALIASES, async (event) => {
-    const fixed = await TagManager.fixPrimaryAliases();
-    state.socketServer.send(event.client, BackOut.FIX_TAG_PRIMARY_ALIASES, fixed);
-    return fixed;
   });
 
   state.socketServer.register(BackIn.GET_OR_CREATE_TAG, async (event, tagName, tagCategory) => {
     const name = tagName.trim();
     const category = tagCategory ? tagCategory.trim() : undefined;
-    let tag = await TagManager.findTag(name);
+    let tag = await fpDatabase.findTag(name);
     if (!tag) {
       // Tag doesn't exist, make a new one
-      tag = await TagManager.createTag(name, category);
+      tag = await fpDatabase.createTag(name, category);
     }
     return tag;
   });
 
   state.socketServer.register(BackIn.GET_OR_CREATE_PLATFORM, async (event, platformName) => {
     const name = platformName.trim();
-    let platform = fpDatabase.findPlatform(name);
+    let platform = await fpDatabase.findPlatform(name);
     if (!platform) {
       // Platform doesn't exist, make a new one
-      platform = await TagManager.createPlatform(name);
+      platform = await fpDatabase.createPlatform(name);
     }
     return platform;
   });
@@ -1341,32 +1285,20 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       translatedGame.addApps = createAddAppFromLegacy(addApps, translatedGame);
       translatedGames.push(translatedGame);
     }
-    await GameManager.updateGames(translatedGames);
+    await fpDatabase.saveGames(translatedGames);
   });
 
   state.socketServer.register(BackIn.EXPORT_TAGS, async (event, data) => {
-    const jsonTagsFile: TagsFile = { categories: [], tags: [], aliases: [] };
+    const jsonTagsFile: TagsFile = { categories: [], tags: [] };
     let res: number;
     try {
       // Collect tag categories
-      const allTagCategories = await TagManager.findTagCategories();
+      const allTagCategories = await fpDatabase.findAllTagCategories();
       jsonTagsFile.categories = allTagCategories;
-      // Collect aliases
-      const allTagAliases = await TagManager.dumpTagAliases();
-      jsonTagsFile.aliases = allTagAliases;
       // Collect tags
-      const allTags = fpDatabase.findAllTags();
-      jsonTagsFile.tags = allTags.map(t => {
-        const bareTag: BareTag = {
-          id: t.id || 0,
-          category: t.category || '',
-          description: t.description,
-          name: t.name
-        };
-        return bareTag;
-      });
+      jsonTagsFile.tags = await fpDatabase.findAllTags();
       await fs.promises.writeFile(data, JSON.stringify(jsonTagsFile, null, ' '), { encoding: 'utf8' });
-      res = allTags.length;
+      res = jsonTagsFile.tags.length;
     } catch (error) {
       res = -1;
     }
@@ -1384,60 +1316,25 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       tags: {
         categories: [],
         tags: [],
-        aliases: []
       },
-      platforms: {
-        platforms: [],
-        aliases: []
-      },
-      tagRelations: [],
-      platformRelations: []
+      platforms: [],
     };
 
     // --- TAGS ---
 
-    // Collect tag categories
-    jsonFile.tags.categories = fpDatabase.findAllTagCategories();
-    // Collect aliases
-    jsonFile.tags.aliases = await TagManager.dumpTagAliases();
-    // Collect tags
-    jsonFile.tags.tags = (await TagManager.findTags('')).map(t => {
-      const primaryAlias = t.aliases.find(a => a.id === t.primaryAliasId);
-      if (!primaryAlias || primaryAlias.name === '') {
-        throw 'Failed for tag ' + t.id;
-      }
-      const bareTag: BareTag = {
-        id: t.id || 0,
-        categoryId: t.categoryId || -1,
-        description: t.description || '',
-        primaryAlias: primaryAlias ? primaryAlias.name : 'ERROR'
-      };
-      return bareTag;
-    });
+    jsonFile.tags.categories = await fpDatabase.findAllTagCategories();
+    jsonFile.tags.tags = await fpDatabase.findAllTags();
 
     // --- PLATFORMS ---
 
-    // Collect aliases
-    jsonFile.platforms.aliases = await TagManager.dumpPlatformAliases();
-    // Collect tags
-    jsonFile.platforms.platforms = (await TagManager.dumpPlatforms()).map(p => {
-      const primaryAlias = p.aliases.find(a => a.id === p.primaryAliasId);
-      const barePlatform: BarePlatform = {
-        id: p.id || 0,
-        description: p.description,
-        primaryAlias: primaryAlias ? primaryAlias.name : 'ERROR'
-      };
-      return barePlatform;
-    });
+    jsonFile.platforms = await fpDatabase.findAllPlatforms();
 
     // --- GAMES ----
 
-    // Collect add apps
-    jsonFile.games.addApps = await GameManager.dumpAddApps();
-    // Collect game data
-    jsonFile.games.gameData = await GameManager.dumpGameData();
     // Collect games
-    let games = await GameManager.findAllGames();
+    const search = parseUserSearchInput('');
+    search.limit = 5000;
+    let games = await fpDatabase.searchGames(search);
     while (games.length > 0) {
       for (const game of games) {
         jsonFile.games.games.push({
@@ -1448,12 +1345,14 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
           tags: []
         });
       }
-      games = await GameManager.findAllGames(games[games.length - 1].id);
+      // Get next page
+      const newOffset: GameSearchOffset = {
+        value: games[games.length - 1].title,
+        gameId: games[games.length - 1].id
+      };
+      search.offset = newOffset;
+      games = await fpDatabase.searchGames(search);
     }
-
-    // --- RELATIONS ---
-    jsonFile.tagRelations = await TagManager.dumpTagRelations();
-    jsonFile.platformRelations = await TagManager.dumpPlatformRelations();
 
     // --- CONVERSION ---
     const snekify = (obj: Record<string, unknown>) => {
@@ -1465,15 +1364,9 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
     const res = 'Exported Database:' +
     `\nTag Categories: ${jsonFile.tags.categories.length.toString().padStart(5, ' ')} ` +
-    `\nTag Alias: ${jsonFile.tags.aliases.length.toString().padStart(5, ' ')} ` +
     `\nTags: ${jsonFile.tags.tags.length.toString().padStart(11, ' ')} ` +
-    `\nPlatform Aliases: ${jsonFile.platforms.aliases.length.toString().padStart(3, ' ')} ` +
     `\nPlatforms: ${jsonFile.platforms.platforms.length.toString().padStart(9, ' ')} ` +
-    `\nGames: ${jsonFile.games.games.length.toString().padStart(14, ' ')} ` +
-    `\nAdd Apps: ${jsonFile.games.addApps.length.toString().padStart(8, ' ')} ` +
-    `\nGame Data: ${jsonFile.games.gameData.length.toString().padStart(10, ' ')} ` +
-    `\nTag Relations: ${jsonFile.tagRelations.length.toString().padStart(2, ' ')} ` +
-    `\nPlatform Relations: ${jsonFile.platformRelations.length.toString().padStart(2, ' ')} `;
+    `\nGames: ${jsonFile.games.games.length.toString().padStart(14, ' ')} `;
 
     jsonFile = JSON.stringify(jsonFile, null, 0);
     jsonFile = JSON.parse(jsonFile);
@@ -1488,7 +1381,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     let res = 0;
     try {
       // Map JSON category ids to real categories
-      const existingCats = fpDatabase.findAllTagCategories();
+      const existingCats = await fpDatabase.findAllTagCategories();
       const categories: Record<number, TagCategory> = {};
       for (const rawCat of json.categories) {
         const foundCat = existingCats.find(c => c.name.toLowerCase() === rawCat.name.toLowerCase());
@@ -1496,22 +1389,25 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
           categories[rawCat.id] = foundCat;
         } else {
           const partialCat: PartialTagCategory = {
+            id: -1,
             name: rawCat.name,
             color: rawCat.color
           };
-          const newCat = fpDatabase.createTagCategory(partialCat);
+          const newCat = await fpDatabase.createTagCategory(partialCat);
           if (newCat) {
             categories[rawCat.id] = newCat;
           }
         }
       }
       // Create and fill tags
-      for (const bareTag of json.tags) {
-        const existingTag = fpDatabase.findTag(bareTag.name);
+      for (const tag of json.tags) {
+        const existingTag = await fpDatabase.findTag(tag.name);
         if (existingTag) {
           // TODO: Detect alias collisions
         } else {
-          await TagManager.createTag(bareTag.name, bareTag.category, (json.aliases.filter(a => a.tagId === bareTag.id).map(a => a.name)).filter(a => a !== bareTag.name));
+          const newTag = await fpDatabase.createTag(tag.name, tag.category);
+          newTag.aliases = tag.aliases;
+          await fpDatabase.saveTag(newTag);
           res += 1;
         }
       }
@@ -1519,7 +1415,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       res = -1;
     }
     state.socketServer.send(event.client, BackOut.IMPORT_TAGS, res);
-    await TagManager.sendTagCategories(state.socketServer);
+    state.socketServer.broadcast(BackOut.TAG_CATEGORIES_CHANGE, await fpDatabase.findAllTagCategories());
     return res;
   });
 
@@ -1527,7 +1423,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     // Get list of tags to nuke
     const tags: Tag[] = [];
     for (const tagName of tagNames) {
-      const tag = await TagManager.findTag(tagName);
+      const tag = await fpDatabase.findTag(tagName);
       if (tag) {
         tags.push(tag);
       }
@@ -1536,7 +1432,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     // Find all matching games
     const games = new Set<Game>();
     for (const tag of tags) {
-      const foundGames = await GameManager.findGamesWithTag(tag);
+      const foundGames = await fpDatabase.searchGamesWithTag(tag.name);
       for (const game of foundGames) {
         games.add(game);
       }
@@ -1561,19 +1457,16 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     // Remove games from database
     const gameChunks = chunkArray(Array.from(games), 20);
     for (const chunk of gameChunks) {
-      await Promise.all(chunk.map(async game => {
-        await GameManager.removeGameAndAddApps(game.id,
-          path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath),
-          path.join(state.config.flashpointPath, state.preferences.imageFolderPath),
-          path.join(state.config.flashpointPath, state.preferences.htdocsFolderPath));
-      }));
+      for (const game of chunk) {
+        await fpDatabase.deleteGame(game.id);
+      }
       state.queries = {}; // Reset search queries
     }
 
     // Remove tags from database
     for (const tag of tags) {
       if (tag.id) {
-        await TagManager.deleteTag(tag.id, state, undefined, true);
+        await fpDatabase.deleteTag(tag.name);
       }
     }
   });
@@ -1607,7 +1500,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         await importCuration({
           curation: curation,
           htdocsFolderPath: state.preferences.htdocsFolderPath,
-          gameManager: state.gameManager,
           date: (data.date !== undefined) ? new Date(data.date) : undefined,
           saveCuration: data.saveCuration,
           fpPath: state.config.flashpointPath,
@@ -1616,7 +1508,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
           imageFolderPath: state.preferences.imageFolderPath,
           openDialog: state.socketServer.showMessageBoxBack(state, event.client),
           openExternal: state.socketServer.openExternal(event.client),
-          tagCategories: fpDatabase.findAllTagCategories(),
+          tagCategories: await fpDatabase.findAllTagCategories(),
           taskProgress,
           sevenZipPath: state.sevenZipPath,
           state,
@@ -1686,7 +1578,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         htdocsPath: state.preferences.htdocsFolderPath,
         dataPacksFolderPath: state.preferences.dataPacksFolderPath,
         sevenZipPath: state.sevenZipPath,
-        native: state.preferences.nativePlatforms.some(p => platforms.includes(p)),
+        native: state.preferences.nativePlatforms.some(p => platforms.map(p => p.name).includes(p)),
         execMappings: state.execMappings,
         lang: state.languageContainer,
         isDev: state.isDev,
@@ -1714,13 +1606,13 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     const skipLink = (data.folder === state.lastLinkedCurationKey);
     state.lastLinkedCurationKey = data.folder;
     try {
-      const flatPlatforms = makeFlatPlatforms(data.platforms || []);
+      const flatPlatforms = data.platforms?.map(p => p.name);
       await launchAddAppCuration(data.folder, data.addApp, data.platforms || [], data.symlinkCurationContent, skipLink, {
         fpPath: path.resolve(state.config.flashpointPath),
         htdocsPath: state.preferences.htdocsFolderPath,
         dataPacksFolderPath: state.preferences.dataPacksFolderPath,
         sevenZipPath: state.sevenZipPath,
-        native: state.preferences.nativePlatforms.some(p => flatPlatforms.includes(p)) || false,
+        native: state.preferences.nativePlatforms.some(p => flatPlatforms?.includes(p)) || false,
         execMappings: state.execMappings,
         lang: state.languageContainer,
         isDev: state.isDev,
@@ -1735,6 +1627,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         envPATH: state.pathVar,
         activeConfig: null,
         state,
+        parentGame: newGame(),
       },
       state.apiEmitters.games.onWillLaunchCurationAddApp.fireableFactory(state, event.client, 'Error during curate add app launch api event'),
       state.apiEmitters.games.onDidLaunchCurationAddApp.fireableFactory(state, event.client, 'Error during curate post add app launch api event'));
@@ -1911,7 +1804,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.EXPORT_META_EDIT, async (event, id, properties) => {
-    const game = fpDatabase.findGame(id);
+    const game = await fpDatabase.findGame(id);
     if (game) {
       const meta: MetaEditMeta = {
         id: game.id,
@@ -1923,15 +1816,15 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         if (properties[key]) {
           switch (key) {
             case 'tags': {
-              meta.tags = game.tags.inner;
+              meta.tags = game.tags;
               break;
             }
             case 'platforms': {
-              meta.platforms = game.platforms.inner;
+              meta.platforms = game.platforms;
               break;
             }
             default:
-              (meta as any)[key] = game[key]; // (I wish typescript could understand this...)
+              (meta as any)[key] = (game as any)[key]; // (I wish typescript could understand this...)
           }
         }
       }
@@ -2240,7 +2133,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       const contentFolder = path.join(curPath, 'content');
       await fs.promises.mkdir(contentFolder, { recursive: true });
 
-      const defaultPlats = fpDatabase.findPlatform('Flash');
+      const defaultPlats = await fpDatabase.findPlatform('Flash');
 
       const data: LoadedCuration = {
         folder,
@@ -2323,10 +2216,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       largeMessage: true,
       buttons: []
     });
-    await GameManager.clearPlaytimeTracking()
-    .finally(() => {
-      state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
-    });
+    await fpDatabase.clearPlaytimeTracking();
+    state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
   });
 
   state.socketServer.register(BackIn.RUN_COMMAND, async (event, command, args = []) => {
@@ -2461,10 +2352,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     // Make the user feel like we're doing something special
     await promiseSleep(1000);
     // Actually do the work now
-    await optimizeDatabase(state, dialogId)
-    .finally(() => {
-      state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
-    });
+    await fpDatabase.optimizeDatabase();
+    state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
   });
 }
 
@@ -2531,21 +2420,61 @@ function difObjects<T>(template: T, a: T, b: DeepPartial<T>): DeepPartial<T> | u
   return dif;
 }
 
-function adjustGameFilter(filterOpts: FilterGameOpts): FilterGameOpts {
-  if (filterOpts && filterOpts.playlist && filterOpts.searchQuery) {
-    // Remove library filter if viewing playlist
-    let index = filterOpts.searchQuery.whitelist.findIndex(f => f.field === 'library');
-    while (index > -1) {
-      filterOpts.searchQuery.whitelist.splice(index);
-      index = filterOpts.searchQuery.whitelist.findIndex(f => f.field === 'library');
-    }
-    index = filterOpts.searchQuery.blacklist.findIndex(f => f.field === 'library');
-    while (index > -1) {
-      filterOpts.searchQuery.blacklist.splice(index);
-      index = filterOpts.searchQuery.blacklist.findIndex(f => f.field === 'library');
+function adjustGameFilter(state: BackState, query: ViewQuery, search: GameSearch, library?: string): GameSearch {
+  // Order
+  switch (query.orderReverse) {
+    case 'ASC':
+      search.order.direction = GameSearchDirection.ASC;
+      break;
+    case 'DESC':
+      search.order.direction = GameSearchDirection.DESC;
+      break;
+  }
+
+  switch (query.orderBy) {
+    case 'title':
+      search.order.column = GameSearchSortable.TITLE;
+      break;
+    default:
+      search.order.column = GameSearchSortable.TITLE;
+  }
+
+  /** For now, view identifiers always map to libraries to filter by */
+  const filteredTags = state.preferences.tagFilters.filter(t => t.enabled || (t.extreme && !query.extreme)).map(t => t.tags).reduce((prev, cur) => prev.concat(cur), []);
+  // Allow library: search in user input to override
+  if (!search.filter.exactWhitelist.library && library) {
+    search.filter.exactWhitelist.library = [library];
+  }
+  if (filteredTags.length > 0) {
+    // Move current filter to subfilter
+    const queryFilter = deepCopy(search.filter);
+    search.filter = {
+      subfilters: [queryFilter],
+      exactBlacklist: {},
+      exactWhitelist: {},
+      blacklist: {},
+      whitelist: {},
+      matchAny: false,
+    };
+    // Add blacklisted tags to filter
+    search.filter.subfilters.push({
+      subfilters: [],
+      exactBlacklist: {
+        tags: filteredTags
+      },
+      exactWhitelist: {},
+      blacklist: {},
+      whitelist: {},
+      matchAny: true
+    });
+  }
+  if (query.playlistId) {
+    const playlist = state.playlists.find(p => p.id === query.playlistId);
+    if (playlist) {
+      // Do playlist searching here, or in library?
     }
   }
-  return filterOpts;
+  return search;
 }
 
 /**
@@ -2581,50 +2510,20 @@ function runGameFactory(state: BackState) {
         kill: true
       }
     );
-    if (proc.getState() === ProcessState.RUNNING) {
-      // Update game last played
-      if (state.preferences.enablePlaytimeTracking) {
-        if (!state.preferences.enablePlaytimeTrackingExtreme) {
-          const extremeTags = state.preferences.tagFilters.filter(t => t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
-          const isExtreme = gameLaunchInfo.game.tags.findIndex(t => extremeTags.includes(t.trim())) !== -1;
-          if (!isExtreme) {
-            GameManager.logGameStart(gameLaunchInfo.game.id);
-          }
-        } else {
-          GameManager.logGameStart(gameLaunchInfo.game.id);
-        }
-      }
-    } else {
-      proc.on('change', async () => {
-        if (proc.getState() === ProcessState.RUNNING) {
-          // Update game last played
-          if (state.preferences.enablePlaytimeTracking) {
-            if (!state.preferences.enablePlaytimeTrackingExtreme) {
-              const extremeTags = state.preferences.tagFilters.filter(t => t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
-              const isExtreme = gameLaunchInfo.game.tags.findIndex(t => extremeTags.includes(t.trim())) !== -1;
-              if (!isExtreme) {
-                GameManager.logGameStart(gameLaunchInfo.game.id);
-              }
-            } else {
-              GameManager.logGameStart(gameLaunchInfo.game.id);
-            }
-          }
-        }
-      });
-    }
     // Remove game service when it exits
     proc.on('change', () => {
       if (proc.getState() === ProcessState.STOPPED) {
         // Update game playtime counter
         if (state.preferences.enablePlaytimeTracking) {
+          const secondsPlayed = (Date.now() - proc.getStartTime()) / 1000;
           if (!state.preferences.enablePlaytimeTrackingExtreme) {
             const extremeTags = state.preferences.tagFilters.filter(t => t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
             const isExtreme = gameLaunchInfo.game.tags.findIndex(t => extremeTags.includes(t.trim())) !== -1;
             if (!isExtreme) {
-              GameManager.addGamePlaytime(gameLaunchInfo.game.id, Date.now() - proc.getStartTime());
+              fpDatabase.addGamePlaytime(gameLaunchInfo.game.id, secondsPlayed);
             }
           } else {
-            GameManager.addGamePlaytime(gameLaunchInfo.game.id, Date.now() - proc.getStartTime());
+            fpDatabase.addGamePlaytime(gameLaunchInfo.game.id, secondsPlayed);
           }
         }
         removeService(state, proc.id);

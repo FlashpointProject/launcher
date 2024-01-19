@@ -1,19 +1,18 @@
-import { TagCategory } from '@database/entity/TagCategory';
-import { ITagObject } from '@shared/back/types';
 import * as React from 'react';
 import { ListRowProps } from 'react-virtualized';
 import { OpenIcon } from './OpenIcon';
+import { Tag, TagCategory } from 'flashpoint-launcher';
 
-export type TagListItemProps<T extends ITagObject> = ListRowProps & {
+export type TagListItemProps = ListRowProps & {
   /** Current tag */
-  tag: T;
+  tag: Tag;
   /** If the row is selected. */
   isSelected: boolean;
   /** Tag Categories */
   readonly tagCategories: TagCategory[];
 };
 
-export function TagListItem<T extends ITagObject>(props: TagListItemProps<T>) {
+export function TagListItem(props: TagListItemProps) {
   const { tag, isSelected, index, style } = props;
   // Pick class names
   const className = React.useMemo(() => {
@@ -24,7 +23,7 @@ export function TagListItem<T extends ITagObject>(props: TagListItemProps<T>) {
   }, [index, isSelected]);
   // Memoize render
   return React.useMemo(() => {
-    const category = props.tagCategories.find(c => c.id == tag.categoryId);
+    const category = props.tagCategories.find(c => c.name == tag.category);
     // Set element attributes
     const attributes: any = {};
     attributes[TagListItem.idAttribute] = tag.id;
@@ -41,13 +40,13 @@ export function TagListItem<T extends ITagObject>(props: TagListItemProps<T>) {
         <div className='tag-list-item__right'>
           <div
             className='tag-list-item__field tag-list-item__field--name'
-            title={tag.primaryAlias ? tag.primaryAlias.name : 'BROKEN TAG - ID ' + tag.id}>
-            {tag.primaryAlias ? tag.primaryAlias.name : 'BROKEN TAG - ID ' + tag.id}
+            title={tag.name || 'BROKEN TAG - ID ' + tag.id}>
+            {tag.name || 'BROKEN TAG - ID ' + tag.id}
           </div>
           <div
             className='tag-list-item__field tag-list-item__field--aliases'
-            title={tag.aliases.map(a => a.name).join('; ')}>
-            {tag.aliases.map(a => a.name).join('; ')}
+            title={tag.aliases.join('; ')}>
+            {tag.aliases.join('; ')}
           </div>
           <div
             className='tag-list-item__field tag-list-item__field--category'

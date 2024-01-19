@@ -1,16 +1,14 @@
-import { Game } from '@database/entity/Game';
 import { BackIn } from '@shared/back/types';
-import { parseSearchText } from '@shared/game/GameFilter';
 import { getFileServerURL } from '@shared/Util';
-import { Playlist, TagFilterGroup } from 'flashpoint-launcher';
+import { Game, Playlist, TagFilterGroup } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as path from 'path';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { Paths } from './Paths';
-import { ViewQuery } from './store/main/types';
 import { GameDragEventData } from './components/pages/BrowsePage';
 import { GameGridItem } from './components/GameGridItem';
 import { GameListItem } from './components/GameListItem';
+import { ViewQuery } from '@shared/library/util';
 
 export const gameDragDataType = 'json/game-drag';
 
@@ -136,7 +134,7 @@ export async function getGamePath(game: Game, fpPath: string, htdocsPath: string
   const shockwavePath = 'FPSoftware/Shockwave/PJX'; // (Path to a shockwave executable)
   const groovePath = 'FPSoftware/3DGrooveGX'; // (Path to the 3D Groove GZ executable)
   // Extract file path from the game's launch command
-  const platform = game.platforms[0].primaryAlias.name.toLowerCase();
+  const platform = game.primaryPlatform.toLowerCase();
   switch (platform) {
     // Example: 5.x http://example.com/games/cool_game.html
     case 'unity': {
@@ -272,25 +270,10 @@ type RebuildQueryOpts = {
 }
 
 export function rebuildQuery(opts: RebuildQueryOpts): ViewQuery {
-  const searchQuery = parseSearchText(opts.text);
-  // Currently library filter
-  searchQuery.whitelist.push({ field: 'library', value: opts.library });
-  // Tag Filter... filter
-  for (const tfg of opts.tagFilters) {
-    for (const key of tfg.tags) {
-      searchQuery.blacklist.push({ field: 'tag', value: key });
-    }
-  }
-  if (!window.Shared.preferences.data.showBrokenGames) { searchQuery.whitelist.push({ field: 'broken',  value: false }); }
-
   return {
     text: opts.text,
     extreme: opts.extreme,
-    filter: {
-      searchQuery: searchQuery,
-      playlist: opts.playlist,
-    },
-    searchLimit: opts.searchLimit,
+    playlistId: opts.playlist?.id,
     orderBy: opts.order.orderBy,
     orderReverse: opts.order.orderReverse,
   };
@@ -318,4 +301,10 @@ export function findGameDragEventDataGrid(element: EventTarget): GameDragEventDa
 export function findGameDragEventDataList(element: EventTarget): GameDragEventData | undefined {
   const game = findElementAncestor(element as Element, target => GameListItem.isElement(target), true);
   if (game) { return GameListItem.getDragEventData(game); }
+}
+
+export function wrapSearchTerm(text: string): string {
+  return ((text === '') || /\s/.test(text))
+    ? `"${text}"`
+    : text;
 }

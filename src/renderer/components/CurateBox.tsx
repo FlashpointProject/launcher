@@ -1,5 +1,3 @@
-import { Tag } from '@database/entity/Tag';
-import { TagCategory } from '@database/entity/TagCategory';
 import * as remote from '@electron/remote';
 import {
   CurateBoxDropdownInputRow,
@@ -21,7 +19,7 @@ import { LangContainer } from '@shared/lang';
 import { sizeToString } from '@shared/Util';
 import axios from 'axios';
 import { clipboard, MenuItemConstructorOptions } from 'electron';
-import { CurationState, LoadedCuration, Platform, TagSuggestion } from 'flashpoint-launcher';
+import { CurationState, LoadedCuration, Platform, Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
 import * as path from 'path';
 import * as React from 'react';
 import { Dispatch } from 'redux';
@@ -36,8 +34,8 @@ import { SimpleButton } from './SimpleButton';
 export type CurateBoxProps = {
   curation: CurationState;
   suggestions: Partial<GamePropSuggestions>;
-  tagSuggestions: TagSuggestion<Tag>[];
-  platformSuggestions: TagSuggestion<Platform>[];
+  tagSuggestions: TagSuggestion[];
+  platformSuggestions: TagSuggestion[];
   platformAppPaths: PlatformAppPathSuggestions;
   tagCategories: TagCategory[];
   tagText: string;
@@ -61,11 +59,11 @@ export function CurateBox(props: CurateBoxProps) {
     if (tags) {
       return tags.sort((a, b) => {
         // Sort by category, then name secondarily
-        if (a.categoryId !== b.categoryId) {
-          const categoryA: TagCategory | undefined = props.tagCategories.find(c => c.id === a.categoryId);
-          const categoryB: TagCategory | undefined = props.tagCategories.find(c => c.id === b.categoryId);
+        if (a.category !== b.category) {
+          const categoryA: TagCategory | undefined = props.tagCategories.find(c => c.name === a.category);
+          const categoryB: TagCategory | undefined = props.tagCategories.find(c => c.name === b.category);
           if (!categoryA && !categoryB) {
-            return a.primaryAlias.name.toLowerCase().localeCompare(b.primaryAlias.name);
+            return a.name.toLowerCase().localeCompare(b.name);
           } else if (!categoryA) {
             return -1;
           } else if (!categoryB) {
@@ -74,7 +72,7 @@ export function CurateBox(props: CurateBoxProps) {
             return categoryA.name.toLowerCase().localeCompare(categoryB.name.toLowerCase());
           }
         } else {
-          return a.primaryAlias.name.toLowerCase().localeCompare(b.primaryAlias.name);
+          return a.name.toLowerCase().localeCompare(b.name);
         }
       });
     } else {
@@ -349,7 +347,7 @@ export function CurateBox(props: CurateBoxProps) {
   }, [props.curation.contents, props.curation.game.launchCommand]);
 
   const renderTagIcon = React.useCallback((tag: Tag) => {
-    const category = props.tagCategories.find(c => c.id === tag.categoryId);
+    const category = props.tagCategories.find(c => c.name === tag.category);
     return (
       <OpenIcon
         className='curate-tag__icon'
@@ -358,7 +356,7 @@ export function CurateBox(props: CurateBoxProps) {
     );
   }, []);
 
-  const renderPlatformIconSugg = React.useCallback((platformSugg: TagSuggestion<Platform>) => {
+  const renderPlatformIconSugg = React.useCallback((platformSugg: TagSuggestion) => {
     const iconUrl = getPlatformIconURL(platformSugg.primaryAlias, props.logoVersion);
     return (
       <div
@@ -368,7 +366,7 @@ export function CurateBox(props: CurateBoxProps) {
   }, []);
 
   const renderPlatformIcon = React.useCallback((platform: Platform) => {
-    const iconUrl = getPlatformIconURL(platform.primaryAlias.name, props.logoVersion);
+    const iconUrl = getPlatformIconURL(platform.name, props.logoVersion);
     return (
       <div
         className='curate-tag__icon'
@@ -497,7 +495,7 @@ export function CurateBox(props: CurateBoxProps) {
                   return tag.id || 0;
                 }}
                 getItemValue={(tag) => {
-                  return tag.primaryAlias.name;
+                  return tag.name;
                 }}
                 renderIcon={renderTagIcon}
                 onRemove={onRemoveTag}
@@ -580,7 +578,7 @@ export function CurateBox(props: CurateBoxProps) {
                   return platform.id || 0;
                 }}
                 getItemValue={(platform) => {
-                  return platform.primaryAlias.name;
+                  return platform.name;
                 }}
                 renderIcon={renderPlatformIcon}
                 onRemove={onRemovePlatform}

@@ -1,4 +1,3 @@
-import * as GameManager from '@back/game/GameManager';
 import { BackOut } from '@shared/back/types';
 import { deepCopy } from '@shared/Util';
 import { sanitizeFilename } from '@shared/utils/sanitizeFilename';
@@ -11,6 +10,7 @@ import { BackState } from './types';
 import { uuid } from './util/uuid';
 import path = require('path');
 import { awaitDialog } from './util/dialog';
+import { onDidUpdatePlaylist } from '.';
 
 export function filterPlaylists(playlist: Playlist[], extreme: boolean): Playlist[] {
   return playlist.filter(p => {
@@ -190,7 +190,7 @@ export async function updatePlaylist(state: BackState, oldPlaylist: Playlist, pl
   } else {
     state.playlists.push(playlist);
   }
-  GameManager.onDidUpdatePlaylist.fire({ oldPlaylist: oldPlaylist, newPlaylist: playlist });
+  onDidUpdatePlaylist.fire({ oldPlaylist: oldPlaylist, newPlaylist: playlist });
   state.socketServer.broadcast(BackOut.PLAYLISTS_CHANGE, filterPlaylists(state.playlists, state.preferences.browsePageShowExtreme));
   return playlist;
 }

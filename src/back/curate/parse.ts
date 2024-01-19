@@ -1,4 +1,3 @@
-import * as TagManager from '@back/game/TagManager';
 import { uuid } from '@back/util/uuid';
 import { CurationIndexImage } from '@shared/curate/OLD_types';
 import { AddAppCuration, CurationMeta } from '@shared/curate/types';
@@ -9,6 +8,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { CurationFormatObject, parseCurationFormat } from './format/parser';
 import { CFTokenizer, tokenizeCurationFormat } from './format/tokenizer';
+import { fpDatabase } from '..';
 
 const { str } = Coerce;
 
@@ -101,7 +101,7 @@ export async function parseCurationMetaFile(data: any, onError?: (error: string)
   if (lowerCaseData.platform)   { parsed.game.platforms = await getPlatformsFromStr(arrayStr(lowerCaseData.platform)); }
   if (lowerCaseData.platforms)  { parsed.game.platforms = await getPlatformsFromStr(arrayStr(lowerCaseData.platforms)); }
   if (!parsed.game.primaryPlatform && parsed.game.platforms && parsed.game.platforms.length > 0) {
-    parsed.game.primaryPlatform = parsed.game.platforms[0].primaryAlias.name;
+    parsed.game.primaryPlatform = parsed.game.platforms[0].name;
   }
   // property aliases
   parser.prop('animation notes',      v => parsed.game.notes               = str(v));
@@ -174,10 +174,10 @@ async function getPlatformsFromStr(platformsStr: string): Promise<Platform[]> {
   for (let index = 0; index < splitPlatforms.length; index++) {
     const platformName = splitPlatforms[index];
     const trimmedName = platformName.trim();
-    let platform = await TagManager.findPlatform(trimmedName);
+    let platform = await fpDatabase.findPlatform(trimmedName);
     if (!platform) {
       // Tag doesn't exist, make a new one
-      platform = await TagManager.createPlatform(trimmedName);
+      platform = await fpDatabase.createPlatform(trimmedName);
     }
     if (platform !== null) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -199,10 +199,10 @@ async function getTagsFromStr(tagsStr: string, tagCategoriesStr: string): Promis
     const tagName = splitTags[index];
     const trimmedName = tagName.trim();
     const category = splitCategories.length > index ? splitCategories[index].trim() : undefined;
-    let tag = await TagManager.findTag(trimmedName);
+    let tag = await fpDatabase.findTag(trimmedName);
     if (!tag) {
       // Tag doesn't exist, make a new one
-      tag = await TagManager.createTag(trimmedName, category);
+      tag = await fpDatabase.createTag(trimmedName, category);
     }
     if (tag !== null) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

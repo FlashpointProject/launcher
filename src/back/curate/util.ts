@@ -1,6 +1,4 @@
 import { ApiEmitter } from '@back/extensions/ApiEmitter';
-import * as GameDataManager from '@back/game/GameDataManager';
-import * as GameManager from '@back/game/GameManager';
 import { genContentTree } from '@back/rust';
 import { BackState } from '@back/types';
 import { serveFile } from '@back/util/FileServer';
@@ -18,7 +16,7 @@ import * as fs from 'fs-extra';
 import * as http from 'http';
 import { Progress } from 'node-7z';
 import * as path from 'path';
-import { checkAndDownloadGameData, extractFullPromise } from '..';
+import { checkAndDownloadGameData, extractFullPromise, fpDatabase } from '..';
 import { loadCurationIndexImage } from './parse';
 import { readCurationMeta } from './read';
 import { saveCuration } from './write';
@@ -218,7 +216,7 @@ export async function loadCurationFolder(rootPath: string, folderName: string, s
       thumbnail: await loadCurationIndexImage(path.join(rootPath, folderName, 'logo.png')),
       screenshot: await loadCurationIndexImage(path.join(rootPath, folderName, 'ss.png'))
     };
-    const alreadyImported = (await GameManager.findGame(loadedCuration.uuid)) !== null;
+    const alreadyImported = (await fpDatabase.findGame(loadedCuration.uuid)) !== null;
     const curation: CurationState = {
       ...loadedCuration,
       alreadyImported,
@@ -275,7 +273,7 @@ function isValidDate(str: string): boolean {
 }
 
 export async function makeCurationFromGame(state: BackState, gameId: string, skipDataPack?: boolean): Promise<string | undefined> {
-  const game = await GameManager.findGame(gameId);
+  const game = await fpDatabase.findGame(gameId);
   const folder = uuid();
   if (game) {
     const curPath = path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, folder);
@@ -334,7 +332,7 @@ export async function makeCurationFromGame(state: BackState, gameId: string, ski
     // Extract active data pack if exists
     if (game.activeDataId) {
       await checkAndDownloadGameData(game.activeDataId);
-      const activeData = await GameDataManager.findOne(game.activeDataId);
+      const activeData = await fpDatabase.findGameDataById(game.activeDataId);
       if (activeData && activeData.path && !skipDataPack) {
         // Extract data pack into curation folder
         const dataPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, activeData.path);
@@ -359,15 +357,19 @@ export async function makeCurationFromGame(state: BackState, gameId: string, ski
       folder,
       uuid: game.id,
       group: '',
-      game: game,
-      addApps: game.addApps.map<AddAppCuration>(a => {
+      game: {
+        ...game,
+        tags: game.detailedTags,
+        platforms: game.detailedPlatforms,
+      },
+      addApps: game.addApps ? game.addApps.map<AddAppCuration>(a => {
         return {
           key: uuid(),
           heading: a.name,
           applicationPath: a.applicationPath,
           launchCommand: a.launchCommand
         };
-      }),
+      }) : [],
       thumbnail: await loadCurationIndexImage(path.join(curPath, 'logo.png')),
       screenshot: await loadCurationIndexImage(path.join(curPath, 'ss.png'))
     };

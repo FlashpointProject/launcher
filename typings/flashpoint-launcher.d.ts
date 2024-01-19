@@ -271,12 +271,12 @@ declare module 'flashpoint-launcher' {
          * @param opts Filter options
          * @param shallow Whether to return ViewGame or Game objects
          */
-        function findGames<T extends boolean>(opts: FindGamesOpts, shallow: T): Promise<Array<ResponseGameRange<T>>>;
+        // function searchGames(opts: FindGamesOpts): Promise<ResponseGameRange>;
         /**
          * Finds all Games using a Tag
          * @param tag Tag to filter for
          */
-        function findGamesWithTag(tag: Tag): Promise<Game[]>;
+        function findGamesWithTag(tag: string): Promise<Game[]>;
         /**
          * Updates / Creates a Game
          * @param game Game data to save
@@ -286,12 +286,12 @@ declare module 'flashpoint-launcher' {
          * Updates / Creates many Games in a transaction
          * @param games Game data to save
          */
-        function updateGames(games: Game[]): Promise<void>;
+        function updateGames(games: Game[]): Promise<Game[]>;
         /**
          * Removes a Game and all its AddApps
          * @param gameId ID of Game to remove
          */
-        function removeGameAndAddApps(gameId: string): Promise<Game | null>;
+        function removeGameAndAddApps(gameId: string): Promise<void>;
 
         // Misc
         /**
@@ -328,7 +328,7 @@ declare module 'flashpoint-launcher' {
         function findOne(id: number): Promise<GameData | null>;
         function findGameData(gameId: string): Promise<GameData[]>;
         function save(gameData: GameData): Promise<GameData>;
-        function importGameData(gameId: string, filePath: string): Promise<GameData>;
+        // function importGameData(gameId: string, filePath: string): Promise<GameData>;
         function downloadGameData(gameDataId: number): Promise<void>;
         const onDidImportGameData: Event<GameData>;
     }
@@ -364,22 +364,11 @@ declare module 'flashpoint-launcher' {
          */
         function saveTag(tag: Tag): Promise<Tag>;
         /**
-         * Updates a Tag with a new alias
-         * @param tagId Tag to add alias to
-         * @param alias Alias to add to tag
-         */
-        function addAliasToTag(tagId: number, alias: string): Promise<Tag>;
-        /**
          * Removes a Tag (from all Games)
          * @param tagId ID of Tag to remove
          * @param skipWarn If true, warn user before deleting tag from games.
          */
-        function deleteTag(tagId: number, skipWarn?: boolean): Promise<boolean>;
-        /**
-         * Finds all the Tags a Game is tagged with
-         * @param gameId ID of the Game to find
-         */
-        function findGameTags(gameId: string): Promise<Tag[] | undefined>;
+        function deleteTag(tagId: number, skipWarn?: boolean): Promise<void>;
 
         // Tag Categories
         /**
@@ -406,21 +395,21 @@ declare module 'flashpoint-launcher' {
          * Removes a Tag Category. All owned Tags are moved to the first available Tag Category.
          * @param tagCategoryId ID of the Tag Category to remove
          */
-        function deleteTagCategory(tagCategoryId: number): Promise<boolean>;
+        // function deleteTagCategory(tagCategoryId: number): Promise<boolean>;
 
         // Tag Suggestions
         /**
          * Finds a list of Tag Suggestions given a string they start with
          * @param name Partial name that a tag starts with
          */
-        // function findTagSuggestions(name: string): Promise<TagSuggestion<Tag>[]>;
+        function findTagSuggestions(name: string): Promise<TagSuggestion[]>;
 
         // Misc
         /**
          * Merges 2 tags into a single tag.
          * @param mergeData Required data to merge.
          */
-        function mergeTags(mergeData: MergeTagData): Promise<Tag | null>;
+        function mergeTags(mergeData: MergeTagData): Promise<Tag>;
     }
 
     /** Collection of Status related API functions */
@@ -603,6 +592,12 @@ declare module 'flashpoint-launcher' {
         message?: string;
     };
 
+    type TagSuggestion = {
+        alias?: string;
+        primaryAlias: string;
+        tag: Tag;
+      }
+
     type Game = {
         /** ID of the game (unique identifier) */
         id: string;
@@ -619,21 +614,15 @@ declare module 'flashpoint-launcher' {
         /** Name of the publisher of the game */
         publisher: string;
         /** List of platforms this game uses */
-        platforms: String[];
+        platforms: string[];
         /** List of platforms attached to the game in a string format */
-        detailedPlatforms: Platform[] | null;
-        /** Primary platform ID */
-        platformId: number;
+        detailedPlatforms?: Platform[];
         /** Primary platform name (cached) */
-        platformName: string;
+        primaryPlatform: string;
         /** Date-time of when the game was added to collection */
-        dateAdded: string;
+        dateAdded: Date;
         /** Date-time of when the game was added to collection */
-        dateModified: string;
-        /** If the game is "broken" or not */
-        broken: boolean;
-        /** Game is not suitable for children */
-        extreme: boolean;
+        dateModified: Date;
         /** If the game is single player or multiplayer, and if the multiplayer is cooperative or not */
         playMode: string;
         /** How playable the game is */
@@ -643,7 +632,7 @@ declare module 'flashpoint-launcher' {
         /** List of tags attached to the game in a string format */
         tags: string[];
         /** List of tags attached to the game */
-        detailedTags: Tag[] | null;
+        detailedTags?: Tag[];
         /** Source if the game files, either full URL or the name of the website */
         source: string;
         /** LEGACY GAMES ONLY - Path to the application that runs the game */
@@ -661,26 +650,22 @@ declare module 'flashpoint-launcher' {
         /** Library this game belongs to */
         library: string;
         /** All attached Additional Apps of a game */
-        addApps: AdditionalApp[];
-        /** Unused */
-        orderTitle: string;
-        /** If the game is a placeholder (and can therefore not be saved) */
-        placeholder: boolean;
+        addApps?: AdditionalApp[];
         /** ID of the active data */
         activeDataId?: number;
         /** Whether the data is present on disk */
         activeDataOnDisk: boolean;
-        data?: GameData[];
+        gameData?: GameData[];
         /** Last Played Date */
-        lastPlayed: string | null;
+        lastPlayed?: Date;
         /** Total Playtime (seconds) */
         playtime: number;
         /** Number of plays */
         playCounter: number;
         /** Active game config id */
-        activeGameConfigId: number | null;
+        activeGameConfigId?: number;
         /** Active game config owner */
-        activeGameConfigOwner: string | null;
+        activeGameConfigOwner?: string;
         /** Archive State
          * 0 = Not Archived
          * 1 = Archived
@@ -733,8 +718,6 @@ declare module 'flashpoint-launcher' {
         name: string;
         /** Wait for this to exit before the Game will launch (if starting before launch) */
         waitForExit: boolean;
-        /** Parent of this add app */
-        parentGame: Game;
         parentGameId: string;
     };
 
@@ -748,11 +731,11 @@ declare module 'flashpoint-launcher' {
         /** Description of the tag */
         description: string;
         /** Date when this tag was last modified */
-        dateModified: string;
+        dateModified: Date;
         /** Aliases / Names of the tag */
         aliases: string[];
         /** Name of the category */
-        category: string | null;
+        category?: string;
     };
 
     type TagCategory = {
@@ -798,12 +781,10 @@ declare module 'flashpoint-launcher' {
      * Data passed to merge tags together
      * @param toMerge Tag to merge from
      * @param mergeInto Tag to merge into
-     * @param makeAlias Whether to move all aliases from toMerge into mergeInto as well
      */
     type MergeTagData = {
         toMerge: string;
         mergeInto: string;
-        makeAlias: boolean;
     };
 
     type FindGamesOpts = {
@@ -873,25 +854,23 @@ declare module 'flashpoint-launcher' {
         value: any;
     };
 
-    type ResponseGameRange<T extends boolean> = {
-        /** Index of the first game. */
+    type ResponseGameRange = {
         start: number;
-        /** Number of games requested. */
-        length?: number;
-        /** Games found within the range. */
-        games: T extends true ? ViewGame[] : Game[];
-    };
+        games: Game[];
+    }
 
     /** Shorten version of {@link Game} returned in searches, makes for better performance. */
-    type ViewGame = {
-        id: string;
-        title: string;
-        platformName: string;
-        platformsStr: string;
-        tagsStr: string;
-        developer: string;
-        publisher: string;
-    };
+    // type ViewGame = {
+    //     id: string;
+    //     title: string;
+    //     platformName: string;
+    //     platformsStr: string;
+    //     tagsStr: string;
+    //     developer: string;
+    //     publisher: string;
+    // };
+
+    type ViewGame = Game;
 
     /** Data contained in the Config file */
     type AppConfigData = {
