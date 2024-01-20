@@ -33,7 +33,8 @@ import {
   CURATIONS_FOLDER_WORKING, CURATION_META_FILENAMES
 } from '@shared/constants';
 import axios from 'axios';
-import { FlashpointArchive } from 'flashpoint-archive';
+import { FlashpointArchive, parseUserSearchInput } from 'flashpoint-archive';
+import { Game, GameData, Playlist, PlaylistGame } from 'flashpoint-launcher';
 import { Tail } from 'tail';
 import { ConfigFile } from './ConfigFile';
 import { loadExecMappingsFile } from './Execs';
@@ -48,6 +49,7 @@ import { CONFIG_FILENAME, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SO
 import { loadCurationIndexImage } from './curate/parse';
 import { readCurationMeta } from './curate/read';
 import { onFileServerRequestCurationFileFactory, onFileServerRequestPostCuration } from './curate/util';
+import { downloadGameData } from './download';
 import { ApiEmitter } from './extensions/ApiEmitter';
 import { ExtensionService } from './extensions/ExtensionService';
 import {
@@ -70,8 +72,6 @@ import { LogFile } from './util/LogFile';
 import { logFactory } from './util/logging';
 import { createContainer, exit, getMacPATH, runService } from './util/misc';
 import { uuid } from './util/uuid';
-import { Game, GameData, Playlist, PlaylistGame } from 'flashpoint-launcher';
-import { downloadGameData } from './download';
 
 export const onDidInstallGameData = new ApiEmitter<GameData>();
 export const onWillUninstallGameData = new ApiEmitter<GameData>();
@@ -689,6 +689,14 @@ async function initialize() {
 
   const databasePath = path.resolve(state.config.flashpointPath, 'Data', 'flashpoint.sqlite');
   fpDatabase.loadDatabase(databasePath);
+  const tagFilterSearch = parseUserSearchInput('');
+  tagFilterSearch.limit = 9999999999;
+  tagFilterSearch.filter.exactBlacklist.tags = state.preferences.tagFilters
+  .filter(t => t.enabled || (t.extreme && !state.preferences.browsePageShowExtreme))
+  .map(t => t.tags)
+  .reduce((prev, cur) => prev.concat(cur), []);
+  // Let the tag filter index generate
+  await fpDatabase.newTagFilterIndex(tagFilterSearch);
 
   // Populate unique values
   state.suggestions = {

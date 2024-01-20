@@ -163,6 +163,7 @@ class _GameList extends React.Component<GameListProps> {
                       ref={this.list}
                       width={width}
                       height={height}
+                      entries={this.props.games}
                       rowHeight={this.props.rowHeight}
                       rowCount={this.props.gamesTotal || 0}
                       overscanRowCount={RENDERER_OVERSCAN}

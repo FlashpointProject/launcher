@@ -3,7 +3,7 @@ import { MetaEditFile, MetaEditMeta } from '@shared/MetaEdit';
 import { deepCopy, downloadFile, padEnd } from '@shared/Util';
 import { BackIn, BackInit, BackOut, ComponentState, CurationImageEnum, DownloadDetails, GetRendererLoadedDataResponse } from '@shared/back/types';
 import { overwriteConfigData } from '@shared/config/util';
-import { CURATIONS_FOLDER_EXPORTED, CURATIONS_FOLDER_TEMP, CURATIONS_FOLDER_WORKING, LOGOS, SCREENSHOTS } from '@shared/constants';
+import { CURATIONS_FOLDER_EXPORTED, CURATIONS_FOLDER_TEMP, CURATIONS_FOLDER_WORKING, LOGOS, SCREENSHOTS, VIEW_PAGE_SIZE } from '@shared/constants';
 import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { LoadedCuration } from '@shared/curate/types';
 import { getContentFolderByKey, getCurationFolder } from '@shared/curate/util';
@@ -959,6 +959,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       search.offset = {
         value: offsetGameTitle,
         gameId: offsetGameId,
+        title: offsetGameTitle,
       };
     }
     return fpDatabase.searchGames(search);
@@ -966,21 +967,23 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
   state.socketServer.register(BackIn.RANDOM_GAMES, async (event, data) => {
     const search = parseUserSearchInput('');
-    // Add tag filters
-    search.filter.exactBlacklist.tags = state.preferences.tagFilters.filter(t => t.enabled).reduce<string[]>((prev, cur) => prev.concat(cur.tags),  []);
     // Add library filters
     search.filter.exactBlacklist.library = data.excludedLibraries;
+    // Add tag filters
+    const filteredTags = state.preferences.tagFilters
+    .filter(t => t.enabled || (t.extreme && !state.preferences.browsePageShowExtreme))
+    .reduce<string[]>((prev, cur) => prev.concat(cur.tags),  []);
+    if (filteredTags.length > 0) {
+      search.withTagFilter = filteredTags;
+    }
     return fpDatabase.searchGamesRandom(search, data.count);
   });
 
   state.socketServer.register(BackIn.BROWSE_VIEW_KEYSET, async (event, viewIdentifier, query) => {
-    const search = adjustGameFilter(state, query, parseUserSearchInput(query.text));
-    console.log(search);
+    const search = adjustGameFilter(state, query, parseUserSearchInput(query.text), viewIdentifier);
     const startTime = Date.now();
     const result = await fpDatabase.searchGamesIndex(search);
-    console.log(result);
     const total = await fpDatabase.searchGamesTotal(search);
-    console.log(total);
     log.debug('Launcher', 'Keyset Search Time: ' + (Date.now() - startTime) + 'ms');
     return {
       keyset: result,
@@ -989,14 +992,16 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.BROWSE_VIEW_PAGE, async (event, data) => {
-    const search = adjustGameFilter(state, data.query, parseUserSearchInput(data.query.text));
+    const search = adjustGameFilter(state, data.query, parseUserSearchInput(data.query.text), data.viewIdentifier);
+    search.slim = true;
 
     const fetchFunc = async (range: RequestGameRange): Promise<ResponseGameRange> => {
       // Add offset
       if (range.index) {
         search.offset = {
           value: range.index.orderVal,
-          gameId: range.index.id
+          gameId: range.index.id,
+          title: range.index.title,
         };
       }
       if (range.length) {
@@ -1348,7 +1353,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       // Get next page
       const newOffset: GameSearchOffset = {
         value: games[games.length - 1].title,
-        gameId: games[games.length - 1].id
+        gameId: games[games.length - 1].id,
+        title: games[games.length - 1].title,
       };
       search.offset = newOffset;
       games = await fpDatabase.searchGames(search);
@@ -2439,34 +2445,19 @@ function adjustGameFilter(state: BackState, query: ViewQuery, search: GameSearch
       search.order.column = GameSearchSortable.TITLE;
   }
 
+  search.limit = VIEW_PAGE_SIZE;
+
   /** For now, view identifiers always map to libraries to filter by */
-  const filteredTags = state.preferences.tagFilters.filter(t => t.enabled || (t.extreme && !query.extreme)).map(t => t.tags).reduce((prev, cur) => prev.concat(cur), []);
+  const filteredTags = state.preferences.tagFilters
+  .filter(t => t.enabled || (t.extreme && !state.preferences.browsePageShowExtreme))
+  .map(t => t.tags)
+  .reduce((prev, cur) => prev.concat(cur), []);
   // Allow library: search in user input to override
   if (!search.filter.exactWhitelist.library && library) {
     search.filter.exactWhitelist.library = [library];
   }
   if (filteredTags.length > 0) {
-    // Move current filter to subfilter
-    const queryFilter = deepCopy(search.filter);
-    search.filter = {
-      subfilters: [queryFilter],
-      exactBlacklist: {},
-      exactWhitelist: {},
-      blacklist: {},
-      whitelist: {},
-      matchAny: false,
-    };
-    // Add blacklisted tags to filter
-    search.filter.subfilters.push({
-      subfilters: [],
-      exactBlacklist: {
-        tags: filteredTags
-      },
-      exactWhitelist: {},
-      blacklist: {},
-      whitelist: {},
-      matchAny: true
-    });
+    search.withTagFilter = filteredTags;
   }
   if (query.playlistId) {
     const playlist = state.playlists.find(p => p.id === query.playlistId);

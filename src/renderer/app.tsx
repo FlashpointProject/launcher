@@ -917,7 +917,7 @@ export class App extends React.Component<AppProps> {
               ranges: pages.map<RequestGameRange>(index => { return {
                 start: index * VIEW_PAGE_SIZE,
                 length: VIEW_PAGE_SIZE,
-                index: view.meta && view.meta.pageKeyset[index + 1], // Page keyset indices are one-indexed (start at 1 instead of 0)
+                index: index > 0 ? view.meta && view.meta.pageKeyset[index - 1] : undefined, // Page keyset indices are one-indexed (start at 1 instead of 0)
               }; }),
               viewIdentifier: library,
               query: view.query,

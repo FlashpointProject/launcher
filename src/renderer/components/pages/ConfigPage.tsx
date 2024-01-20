@@ -76,6 +76,8 @@ type ConfigPageState = {
   editorOpen: boolean;
   /** Progress for nuking tags */
   nukeInProgress: boolean;
+  /** Tag filters that were ticked when we entered this page */
+  startingTagFilters: string[];
 };
 
 /**
@@ -96,7 +98,25 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       useCustomTitlebar: configData.useCustomTitlebar,
       editorOpen: false,
       nukeInProgress: false,
+      startingTagFilters: props.preferencesData.tagFilters
+      .filter(t => t.enabled || (t.extreme && props.preferencesData.browsePageShowExtreme))
+      .map(t => t.tags)
+      .reduce((prev, cur) => prev.concat(cur), [])
+      .sort()
     };
+  }
+
+  componentWillUnmount(): void {
+    const newTagFilters = this.props.preferencesData.tagFilters
+    .filter(t => t.enabled || (t.extreme && this.props.preferencesData.browsePageShowExtreme))
+    .map(t => t.tags)
+    .reduce((prev, cur) => prev.concat(cur), [])
+    .sort();
+
+    if (newTagFilters.length > 0 && newTagFilters !== this.state.startingTagFilters) {
+      // Open a dialog box while we regenerate the tag filter index
+      console.log('filter changed');
+    }
   }
 
   render() {
