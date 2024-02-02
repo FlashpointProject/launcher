@@ -10,7 +10,7 @@ import { CurateActionType } from '@renderer/store/curate/enums';
 import { CurateGroup } from '@renderer/store/curate/types';
 import { getCurationPostURL, getPlatformIconURL } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
-import { BackIn, TagSuggestion } from '@shared/back/types';
+import { BackIn } from '@shared/back/types';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
 import { ExtensionContribution } from '@shared/extensions/interfaces';
 import { CustomIPC, Task } from '@shared/interfaces';
@@ -19,7 +19,7 @@ import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
 import axios from 'axios';
 import { ipcRenderer } from 'electron';
-import { AppPreferencesData, CurationState, Platform, Tag } from 'flashpoint-launcher';
+import { AppPreferencesData, CurationState, TagSuggestion } from 'flashpoint-launcher';
 import * as path from 'path';
 import * as React from 'react';
 import { IWithShortcut } from 'react-keybind';
@@ -44,9 +44,9 @@ export function CuratePage(props: CuratePageProps) {
   const strings = React.useContext(LangContext);
 
   const [tagText, setTagText] = React.useState<string>('');
-  const [tagSuggestions, setTagSuggestions] = React.useState<TagSuggestion<Tag>[]>([]);
+  const [tagSuggestions, setTagSuggestions] = React.useState<TagSuggestion[]>([]);
   const [platformText, setPlatformText] = React.useState<string>('');
-  const [platformSuggestions, setPlatformSuggestions] = React.useState<TagSuggestion<Platform>[]>([]);
+  const [platformSuggestions, setPlatformSuggestions] = React.useState<TagSuggestion[]>([]);
 
   const onCheckboxChange = (key: keyof AppPreferencesData) => React.useCallback((checked: boolean) => {
     updatePreferencesData({ [key]: checked });

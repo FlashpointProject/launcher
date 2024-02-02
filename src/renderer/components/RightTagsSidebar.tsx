@@ -1,5 +1,5 @@
 import * as remote from '@electron/remote';
-import { BackIn, TagSuggestion } from '@shared/back/types';
+import { BackIn } from '@shared/back/types';
 import { LangContainer } from '@shared/lang';
 import { deepCopy, generateTagFilterGroup } from '@shared/Util';
 import * as React from 'react';
@@ -13,7 +13,7 @@ import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
 import { TagAliasInputField } from './TagAliasInputField';
 import { TagInputField } from './TagInputField';
-import { Tag, TagCategory } from 'flashpoint-launcher';
+import { Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
 
 type OwnProps = {
   /** Currently selected game (if any) */
@@ -293,7 +293,7 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
     // Clear out suggestions box
     this.setState({
       tagMergeSuggestions: [],
-      currentTagMergeInput: suggestion.primaryAlias
+      currentTagMergeInput: suggestion.name
     });
   };
 

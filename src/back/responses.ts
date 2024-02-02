@@ -20,7 +20,7 @@ import { throttle } from '@shared/utils/throttle';
 import * as axiosImport from 'axios';
 import * as child_process from 'child_process';
 import { execSync } from 'child_process';
-import { GameSearch, GameSearchDirection, GameSearchOffset, GameSearchSortable, PartialTagCategory, parseUserSearchInput } from 'flashpoint-archive';
+import { GameSearch, GameSearchDirection, GameSearchOffset, GameSearchSortable, PartialTagCategory, parseUserSearchInput } from '@fparchive/flashpoint-archive';
 import { ConfigSchema, CurationState, Game, GameConfig, GameData, GameLaunchInfo, GameMetadataSource, GameMiddlewareInfo, RequestGameRange, ResponseGameRange, Tag, TagCategory } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as fs_extra from 'fs-extra';
@@ -1077,17 +1077,17 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     return result;
   });
 
-  // state.socketServer.register(BackIn.GET_TAG_SUGGESTIONS, async (event, text, tagFilters) => {
-  //   const flatTagFilter = tagFilters.reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
-  //   const flatCatFilter = tagFilters.reduce<string[]>((prev, cur) => prev.concat(cur.categories), []);
-  //   const result = await TagManager.findTagSuggestions(text, flatTagFilter, flatCatFilter);
-  //   state.socketServer.send(event.client, BackOut.GET_TAG_SUGGESTIONS, result);
-  //   return result;
-  // });
+  state.socketServer.register(BackIn.GET_TAG_SUGGESTIONS, async (event, text, tagFilters) => {
+    const flatTagFilter = tagFilters.reduce<string[]>((prev, cur) => prev.concat(cur.tags.map(t => t.toLowerCase())), []);
+    const result = await fpDatabase.searchTagSuggestions(text);
+    const filtered = result.filter(sugg => !flatTagFilter.includes(sugg.name.toLowerCase()));
+    state.socketServer.send(event.client, BackOut.GET_TAG_SUGGESTIONS, filtered);
+    return result;
+  });
 
   state.socketServer.register(BackIn.GET_PLATFORM_SUGGESTIONS, async (event, text) => {
-    // const result = await TagManager.findPlatformSuggestions(text);
-    return [];
+    const result = await fpDatabase.searchPlatformSuggestions(text);
+    return result;
   });
 
   state.socketServer.register(BackIn.SAVE_IMAGE, async (event, raw_folder, raw_id, content) => {

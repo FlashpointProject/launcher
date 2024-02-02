@@ -1,7 +1,7 @@
 import { LangContext } from '@renderer/util/lang';
-import { BackIn, TagSuggestion } from '@shared/back/types';
+import { BackIn } from '@shared/back/types';
 import { generateTagFilterGroup, tagSort } from '@shared/Util';
-import { Tag, TagCategory, TagFilterGroup } from 'flashpoint-launcher';
+import { Tag, TagCategory, TagFilterGroup, TagSuggestion } from 'flashpoint-launcher';
 import * as React from 'react';
 import { CheckBox } from './CheckBox';
 import { InputField } from './InputField';
@@ -133,7 +133,7 @@ export function TagFilterGroupEditor(props: TagFilterGroupEditorProps) {
               suggestions={tagSuggestions}
               categories={props.tagCategories}
               onTagEditableSelect={(tag) => onRemoveTag(tag)}
-              onTagSuggestionSelect={(suggestion) => onTagSubmit(suggestion.primaryAlias)}
+              onTagSuggestionSelect={(suggestion) => onTagSubmit(suggestion.name)}
               onChange={(event) => updateSuggestions(event.target.value)}
               onTagSubmit={(tag) => onTagSubmit(tag)} />
           </div>

@@ -135,7 +135,7 @@ export function CurateBoxTagDropdownInputRow(props: CurateBoxTagDropdownInputRow
   }, [props.onAddTag]);
 
   const onTagSuggestionSelect = React.useCallback((sug: TagSuggestion) => {
-    props.getTagFromName(sug.primaryAlias)
+    props.getTagFromName(sug.name)
     .then((tag) => {
       if (tag) {
         props.onAddTag(tag);

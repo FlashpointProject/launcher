@@ -357,7 +357,7 @@ export function CurateBox(props: CurateBoxProps) {
   }, []);
 
   const renderPlatformIconSugg = React.useCallback((platformSugg: TagSuggestion) => {
-    const iconUrl = getPlatformIconURL(platformSugg.primaryAlias, props.logoVersion);
+    const iconUrl = getPlatformIconURL(platformSugg.name, props.logoVersion);
     return (
       <div
         className='curate-tag__icon'

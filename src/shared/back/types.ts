@@ -5,7 +5,7 @@ import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/e
 import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
 import { SocketTemplate } from '@shared/socket/types';
 import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
-import { AppPreferencesData, ConfigSchema, CurationState, CurationWarnings, DialogState, DialogStateTemplate, Game, GameConfig, GameData, GameDataSource, GameMetadataSource, GameMiddlewareConfig, GameMiddlewareInfo, MergeTagData, Platform, Playlist, PlaylistGame, Tag, TagCategory, TagFilterGroup } from 'flashpoint-launcher';
+import { AppPreferencesData, ConfigSchema, CurationState, CurationWarnings, DialogState, DialogStateTemplate, Game, GameConfig, GameData, GameDataSource, GameMetadataSource, GameMiddlewareConfig, GameMiddlewareInfo, MergeTagData, Platform, Playlist, PlaylistGame, Tag, TagCategory, TagFilterGroup, TagSuggestion } from 'flashpoint-launcher';
 import { ILogEntry, ILogPreEntry, LogLevel } from '../Log/interface';
 import { Theme } from '../ThemeFile';
 import { AppConfigData, AppExtConfigData } from '../config/interfaces';
@@ -648,12 +648,6 @@ export type LaunchCurationAddAppData = {
   addApp: AddAppCuration;
   platforms?: Platform[];
   symlinkCurationContent: boolean;
-}
-
-export type TagSuggestion = {
-  alias?: string;
-  primaryAlias: string;
-  tag: Tag;
 }
 
 export type TagDeleteResponse = {

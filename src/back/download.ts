@@ -5,7 +5,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { fpDatabase, onDidInstallGameData } from '.';
 import { DownloadDetails } from '@shared/back/types';
-import { PartialGameData } from 'flashpoint-archive';
+import { PartialGameData } from '@fparchive/flashpoint-archive';
 
 export async function downloadGameData(gameDataId: number, dataPacksFolderPath: string, sources: GameDataSource[], abortSignal: AbortSignal, onProgress?: (percent: number) => void, onDetails?: (details: DownloadDetails) => void): Promise<void> {
   const gameData = await fpDatabase.findGameDataById(gameDataId);

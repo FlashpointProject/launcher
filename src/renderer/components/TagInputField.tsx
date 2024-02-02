@@ -1,10 +1,9 @@
-import { TagSuggestion } from '@shared/back/types';
 import { memoizeOne } from '@shared/memoize';
 import * as React from 'react';
 import { checkIfAncestor } from '../Util';
 import { InputField, InputFieldProps } from './InputField';
 import { OpenIcon } from './OpenIcon';
-import { Tag, TagCategory } from 'flashpoint-launcher';
+import { Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
 
 /** A function that receives a HTML element (or null). */
 type RefFunc<T extends HTMLElement> = (instance: T | null) => void;
@@ -117,23 +116,22 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
   });
 
   renderSuggestionItem = (suggestion: TagSuggestion, index: number, renderIconSugg?: (suggestion: TagSuggestion) => JSX.Element) => {
-    const category = this.props.categories.find(c => c.name == suggestion.tag.category);
-    // const aliasRender = suggestion.alias ? (
-    //   <div className='tag-inner'>
-    //     <p>{suggestion.alias} <b className='tag_alias-joiner'>{'->'}</b> {suggestion.primaryAlias}</p>
-    //     {suggestion.tag.count ? (<p className='tag-count'>{suggestion.tag.count}</p>) : undefined}
-    //   </div>
-    // ) : (
-    //   <div className='tag-inner'>
-    //     <p>{suggestion.primaryAlias}</p>
-    //     {suggestion.tag.count ? (<p className='tag-count'>{suggestion.tag.count}</p>) : undefined}
-    //   </div>
-    // );
+    const aliasRender = suggestion.matchedFrom !== suggestion.name ? (
+      <div className='tag-inner'>
+        <p>{suggestion.matchedFrom} <b className='tag_alias-joiner'>{'->'}</b> {suggestion.name}</p>
+        {suggestion.gamesCount ? (<p className='tag-count'>{suggestion.gamesCount}</p>) : undefined}
+      </div>
+    ) : (
+      <div className='tag-inner'>
+        <p>{suggestion.name}</p>
+        {suggestion.gamesCount ? (<p className='tag-count'>{suggestion.gamesCount}</p>) : undefined}
+      </div>
+    );
 
     const icon = renderIconSugg ? renderIconSugg(suggestion) : (
       <OpenIcon
         className='tag-icon'
-        color={category ? category.color : '#FFFFFF'}
+        color={'#FFFFFF'}
         key={index * 2}
         icon='tag'/>
     );
@@ -148,7 +146,7 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
           className='tag-suggestion-label'
           key={index * 2 + 1}
           tabIndex={0}>
-          {/* {aliasRender} */}
+          {aliasRender}
         </label>
       </div>
     );

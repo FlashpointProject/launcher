@@ -593,10 +593,11 @@ declare module 'flashpoint-launcher' {
     };
 
     type TagSuggestion = {
-        alias?: string;
-        primaryAlias: string;
-        tag: Tag;
-      }
+        id: number
+        name: string
+        matchedFrom: string
+        gamesCount: number
+    }
 
     type Game = {
         /** ID of the game (unique identifier) */

@@ -1,10 +1,10 @@
 import * as remote from '@electron/remote';
 import { openContextMenu } from '@renderer/app';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
-import { BackIn, FpfssUser, TagSuggestion } from '@shared/back/types';
+import { BackIn, FpfssUser } from '@shared/back/types';
 import { getLibraryItemTitle } from '@shared/library/util';
 import { MenuItemConstructorOptions } from 'electron';
-import { GameOrderBy, GameOrderReverse } from 'flashpoint-launcher';
+import { GameOrderBy, GameOrderReverse, TagSuggestion } from 'flashpoint-launcher';
 import * as React from 'react';
 import { Link, RouteComponentProps, useLocation } from 'react-router-dom';
 import { WithPreferencesProps } from '../containers/withPreferences';
@@ -303,7 +303,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
       console.log(quickSearch);
       const index = match.index + (quickSearch ? 1 : 4);
       this.setState({
-        searchText: this.state.searchText.slice(0, index) + `"${suggestion.primaryAlias}"`,
+        searchText: this.state.searchText.slice(0, index) + `"${suggestion.name}"`,
         tagSuggestions: []
       });
     }
@@ -319,7 +319,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
       console.log(quickSearch);
       const index = match.index + (quickSearch ? 1 : 9);
       this.setState({
-        searchText: this.state.searchText.slice(0, index) + `"${suggestion.primaryAlias}"`,
+        searchText: this.state.searchText.slice(0, index) + `"${suggestion.name}"`,
         platformSuggestions: []
       });
     }
@@ -341,7 +341,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
   };
 
   renderPlatformIconSugg = (platformSugg: TagSuggestion) => {
-    const iconUrl = getPlatformIconURL(platformSugg.primaryAlias, this.props.logoVersion);
+    const iconUrl = getPlatformIconURL(platformSugg.name, this.props.logoVersion);
     return (
       <div
         className='platform-tag__icon'

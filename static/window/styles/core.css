@@ -305,6 +305,7 @@ body {
 }
 .tag-count {
   text-align: right;
+  flex-shrink: 0;
 }
 /* Log */
 .log {

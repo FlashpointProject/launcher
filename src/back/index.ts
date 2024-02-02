@@ -33,7 +33,7 @@ import {
   CURATIONS_FOLDER_WORKING, CURATION_META_FILENAMES
 } from '@shared/constants';
 import axios from 'axios';
-import { FlashpointArchive, parseUserSearchInput } from 'flashpoint-archive';
+import { FlashpointArchive, parseUserSearchInput } from '@fparchive/flashpoint-archive';
 import { Game, GameData, Playlist, PlaylistGame } from 'flashpoint-launcher';
 import { Tail } from 'tail';
 import { ConfigFile } from './ConfigFile';

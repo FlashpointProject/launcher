@@ -1,6 +1,6 @@
 import * as remote from '@electron/remote';
 import { WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
-import { ArchiveState, BackIn, BackOut, BackOutTemplate, FetchedGameInfo, TagSuggestion } from '@shared/back/types';
+import { ArchiveState, BackIn, BackOut, BackOutTemplate, FetchedGameInfo } from '@shared/back/types';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { ModelUtils } from '@shared/game/util';
 import { GamePropSuggestions, PickType, ProcessAction } from '@shared/interfaces';
@@ -10,7 +10,7 @@ import axios from 'axios';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
 import { clipboard, Menu, MenuItemConstructorOptions } from 'electron';
-import { Game, GameConfig, GameData, Platform, PlaylistGame, Tag, TagCategory } from 'flashpoint-launcher';
+import { Game, GameConfig, GameData, Platform, PlaylistGame, Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as React from 'react';
 import { WithPreferencesProps } from '../containers/withPreferences';
@@ -1250,19 +1250,17 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   };
 
   onAddTagSuggestion = (suggestion: TagSuggestion): void => {
-    if (suggestion.tag.id) {
-      window.Shared.back.request(BackIn.GET_TAG, suggestion.tag.name)
-      .then((tag) => {
-        if (tag) {
-          const game = this.props.currentGameInfo?.game;
-          // Ignore dupe tags
-          if (game && !game.tags.includes(tag.name)) {
-            this.props.onEditGame({ tags: [...game.tags, tag.name] });
-            console.log('ADDED TAG ' + tag.id);
-          }
+    window.Shared.back.request(BackIn.GET_TAG_BY_ID, suggestion.id)
+    .then((tag) => {
+      if (tag) {
+        const game = this.props.currentGameInfo?.game;
+        // Ignore dupe tags
+        if (game && !game.tags.includes(tag.name)) {
+          this.props.onEditGame({ tags: [...game.tags, tag.name] });
+          console.log('ADDED TAG ' + tag.id);
         }
-      });
-    }
+      }
+    });
     // Clear out suggestions box
     this.setState({
       tagSuggestions: [],
@@ -1271,20 +1269,18 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   };
 
   onAddPlatformSuggestion = (suggestion: TagSuggestion): void => {
-    if (suggestion.tag.id) {
-      window.Shared.back.request(BackIn.GET_PLATFORM_BY_ID, suggestion.tag.id)
-      .then((platform) => {
-        if (platform) {
-          const game = this.props.currentGameInfo?.game;
-          // Ignore dupe tags
-          if (game && !game.platforms.includes(platform.name)) {
-            const primary = game.platforms.length === 0 ? platform.name : game.primaryPlatform;
-            this.props.onEditGame({ platforms: [...game.platforms, platform.name], primaryPlatform: primary });
-            console.log('ADDED PLATFORM ' + platform.id);
-          }
+    window.Shared.back.request(BackIn.GET_PLATFORM_BY_ID, suggestion.id)
+    .then((platform) => {
+      if (platform) {
+        const game = this.props.currentGameInfo?.game;
+        // Ignore dupe tags
+        if (game && !game.platforms.includes(platform.name)) {
+          const primary = game.platforms.length === 0 ? platform.name : game.primaryPlatform;
+          this.props.onEditGame({ platforms: [...game.platforms, platform.name], primaryPlatform: primary });
+          console.log('ADDED PLATFORM ' + platform.id);
         }
-      });
-    }
+      }
+    });
     // Clear out suggestions box
     this.setState({
       platformSuggestions: [],
@@ -1447,7 +1443,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   };
 
   renderPlatformIconSugg = (platformSugg: TagSuggestion) => {
-    const iconUrl = getPlatformIconURL(platformSugg.primaryAlias, this.props.logoVersion);
+    const iconUrl = getPlatformIconURL(platformSugg.name, this.props.logoVersion);
     return (
       <div
         className='platform-tag__icon'
