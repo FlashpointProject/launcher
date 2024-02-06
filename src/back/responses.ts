@@ -20,7 +20,7 @@ import { throttle } from '@shared/utils/throttle';
 import * as axiosImport from 'axios';
 import * as child_process from 'child_process';
 import { execSync } from 'child_process';
-import { GameSearch, GameSearchDirection, GameSearchOffset, GameSearchSortable, PartialTagCategory, parseUserSearchInput } from '@fparchive/flashpoint-archive';
+import { GameSearch, GameSearchDirection, GameSearchOffset, GameSearchSortable, PartialTagCategory, newSubfilter, parseUserSearchInput } from '@fparchive/flashpoint-archive';
 import { ConfigSchema, CurationState, Game, GameConfig, GameData, GameLaunchInfo, GameMetadataSource, GameMiddlewareInfo, RequestGameRange, ResponseGameRange, Tag, TagCategory } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as fs_extra from 'fs-extra';
@@ -49,7 +49,7 @@ import { fpDatabase, loadCurationArchive, onDidUninstallGameData, onWillUninstal
 import { importGames, importPlatforms, importTagCategories, importTags } from './metadataImport';
 import { addPlaylistGame, deletePlaylist, deletePlaylistGame, duplicatePlaylist, filterPlaylists, getPlaylistGame, importPlaylist, savePlaylistGame, updatePlaylist } from './playlist';
 import { copyFolder, genContentTree } from './rust';
-import { getMetaUpdateInfo } from './sync';
+import { getMetaUpdateInfo, syncPlatforms, syncTags } from './sync';
 import { BackState, MetadataRaw, TagsFile } from './types';
 import { pathToBluezip } from './util/Bluezip';
 import { pathTo7zBack } from './util/SevenZip';
@@ -181,8 +181,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       /** Ignore */
     }
 
-    // state.platformAppPaths = await GameManager.findPlatformsAppPaths();
-    state.platformAppPaths = {};
+    state.platformAppPaths = await fpDatabase.findPlatformAppPaths();
 
     const res: GetRendererLoadedDataResponse = {
       gotdList: gotdList,
@@ -239,39 +238,37 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
   });
 
-  // state.socketServer.register(BackIn.SYNC_TAGGED, async (event, source) => {
-  //   const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
-  //   const dialogId = await openDialog({
-  //     largeMessage: true,
-  //     message: `Updating tags from ${source.name}...`,
-  //     buttons: []
-  //   });
-  //   const newDate = new Date();
-  //   const categories = await fpDatabase.findAllTagCategories();
-  //   return AppDataSource.transaction(async (tx) => {
-  //     const lastDatePlats = await syncPlatforms(tx, source);
-  //     const lastDateTags = await syncTags(tx, source, categories);
-  //     if (lastDatePlats > lastDateTags) {
-  //       return lastDatePlats;
-  //     } else {
-  //       return lastDateTags;
-  //     }
-  //   })
-  //   .then((lastDate) => {
-  //     /** Success */
-  //     const sourceIdx = state.preferences.gameMetadataSources.findIndex(s => s.name === source.name);
-  //     if (sourceIdx !== -1) {
-  //       state.preferences.gameMetadataSources[sourceIdx].tags.latestUpdateTime = lastDate.toISOString();
-  //       state.preferences.gameMetadataSources[sourceIdx].tags.actualUpdateTime = newDate.toISOString();
-  //       state.prefsQueue.push(() => {
-  //         PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
-  //       });
-  //     }
-  //   })
-  //   .finally(() => {
-  //     state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
-  //   });
-  // });
+  state.socketServer.register(BackIn.SYNC_TAGGED, async (event, source) => {
+    const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
+    const dialogId = await openDialog({
+      largeMessage: true,
+      message: `Updating tags from ${source.name}...`,
+      buttons: []
+    });
+    try {
+      const newDate = new Date();
+      let lastDate = new Date();
+      const categories = await fpDatabase.findAllTagCategories();
+      const lastDatePlats = await syncPlatforms(source);
+      const lastDateTags = await syncTags(source, categories);
+      if (lastDatePlats > lastDateTags) {
+        lastDate = lastDatePlats;
+      } else {
+        lastDate = lastDateTags;
+      }
+      /** Success */
+      const sourceIdx = state.preferences.gameMetadataSources.findIndex(s => s.name === source.name);
+      if (sourceIdx !== -1) {
+        state.preferences.gameMetadataSources[sourceIdx].tags.latestUpdateTime = lastDate.toISOString();
+        state.preferences.gameMetadataSources[sourceIdx].tags.actualUpdateTime = newDate.toISOString();
+        state.prefsQueue.push(() => {
+          PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
+        });
+      }
+    } finally {
+      state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
+    }
+  });
 
   // state.socketServer.register(BackIn.SYNC_ALL, async (event, source) => {
   //   if (!state.isDev) {
@@ -443,14 +440,14 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   state.socketServer.register(BackIn.GET_SUGGESTIONS, async () => {
     const suggestions: GamePropSuggestions = {
       tags: [],
-      playMode: [],
-      platforms: [],
-      status: [],
-      applicationPath: [],
-      library: [],
+      playMode: await fpDatabase.findAllGamePlayModes(),
+      platforms: (await fpDatabase.findAllPlatforms()).map(p => p.name),
+      status: await fpDatabase.findAllGameStatuses(),
+      applicationPath: await fpDatabase.findAllGameApplicationPaths(),
+      library: await fpDatabase.findAllGameLibraries(),
     };
     // const appPaths: PlatformAppPathSuggestions = await GameManager.findPlatformsAppPaths();
-    // state.platformAppPaths = appPaths; // Update cache
+    state.platformAppPaths = await fpDatabase.findPlatformAppPaths(); // Update cache
     return {
       suggestions: suggestions,
       platformAppPaths: {},
@@ -2462,7 +2459,11 @@ function adjustGameFilter(state: BackState, query: ViewQuery, search: GameSearch
   if (query.playlistId) {
     const playlist = state.playlists.find(p => p.id === query.playlistId);
     if (playlist) {
-      // Do playlist searching here, or in library?
+      // Cheap, but may be limited by playlist size?
+      const playlistFilter = newSubfilter();
+      playlistFilter.exactWhitelist.id = playlist.games.map(g => g.gameId);
+      playlistFilter.matchAny = true;
+      search.filter.subfilters.push(playlistFilter);
     }
   }
   return search;

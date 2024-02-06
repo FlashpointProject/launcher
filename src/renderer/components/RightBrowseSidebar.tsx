@@ -414,7 +414,6 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   </div>
                 </div>
               </div>
-              (
               <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                 <p>{strings.by} </p>
                 <InputField
@@ -425,7 +424,6 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   onChange={this.onDeveloperChange}
                   onClick={this.onDeveloperClick} />
               </div>
-              )
             </div>
             {/* -- Game Configurations */}
             { !this.props.fpfssEditMode && (
@@ -579,7 +577,6 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
             ref={this.state.middleScrollRef}
             className='browse-right-sidebar__middle simple-scroll'>
             {/* -- Most Fields -- */}
-            (
             <>
               <div className='browse-right-sidebar__section'>
                 { editable && (
@@ -743,7 +740,6 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                 </div>
               </div>
             </>
-            )
             {/* -- Date Display -- */}
             { !editable && (
               <div className='browse-right-sidebar__section'>
@@ -756,7 +752,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     </div>
                     <div className='browse-right-sidebar__stats-row-bottom'>
                       <div className='browse-right-sidebar__stats-cell'>
-                        {formatSidebarDate(game.dateAdded)}
+                        {formatSidebarDate(new Date(game.dateAdded))}
                       </div>
                     </div>
                   </div>
@@ -768,7 +764,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     </div>
                     <div className='browse-right-sidebar__stats-row-bottom'>
                       <div className='browse-right-sidebar__stats-cell'>
-                        {formatSidebarDate(game.dateModified)}
+                        {formatSidebarDate(new Date(game.dateModified))}
                       </div>
                     </div>
                   </div>
@@ -1556,6 +1552,6 @@ function formatSidebarDate(d: Date): string {
   try {
     return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
   } catch {
-    return 'Invalid Date';
+    return 'Invalid Date ' + typeof d;
   }
 }

@@ -1,205 +1,193 @@
+import { chunkArray } from '@shared/utils/misc';
 import axios from 'axios';
 import { GameMetadataSource, TagCategory } from 'flashpoint-launcher';
-import { EntityManager } from 'typeorm';
+import { fpDatabase } from '.';
 
-export async function syncTags(tx: EntityManager, source: GameMetadataSource, categories: TagCategory[]): Promise<Date> {
-  // const tagsUrl = `${source.baseUrl}/api/tags?after=${source.tags.latestUpdateTime}`;
-  // const tagAliasRepo = tx.getRepository(TagAlias);
-  // const tagRepo = tx.getRepository(Tag);
-  // const tagCategoryRepo = tx.getRepository(TagCategory);
-  // const nextLatestDate = new Date(source.tags.latestUpdateTime);
+export async function syncTags(source: GameMetadataSource, categories: TagCategory[]): Promise<Date> {
+  const tagsUrl = `${source.baseUrl}/api/tags?after=${source.tags.latestUpdateTime}`;
+  const nextLatestDate = source.tags.latestUpdateTime;
 
-  // const res = await axios.get(tagsUrl)
-  // .catch((err) => {
-  //   throw 'Failed to search tags';
-  // });
+  const res = await axios.get(tagsUrl)
+  .catch((err) => {
+    throw 'Failed to search tags';
+  });
 
-  // const tagsRaw = res.data.tags as RemoteTagRaw[];
-  // const lastDate = tagsRaw.reduce((prev, cur) => {
-  //   const nextDate = new Date(cur.date_modified);
-  //   if (prev < nextDate) {
-  //     return nextDate;
-  //   } else {
-  //     return prev;
-  //   }
-  // }, nextLatestDate);
-  // const categoriesRaw = res.data.categories as RemoteCategory[];
+  const tags = res.data.tags.map((t: RemoteTagRaw) => {
+    return {
+      id: t.id,
+      name: t.name,
+      description: t.description,
+      category: t.category,
+      dateModified: t.date_modified,
+      aliases: t.aliases.split(';').map(s => s.trim()),
+      deleted: t.Deleted
+    };
+  }) as RemoteTagParsed[];
 
-  // // Insert any missing tag categories
-  // for (const rawCat of categoriesRaw) {
-  //   if (categories.findIndex(c => c.name === rawCat.name) === -1) {
-  //     const newCat = tagCategoryRepo.create({
-  //       name: rawCat.name,
-  //       color: rawCat.color,
-  //       description: rawCat.description
-  //     });
-  //     categories.push(await tagCategoryRepo.save(newCat));
-  //   }
-  // }
+  const lastDate = tags.reduce((prev, cur) => {
+    const nextDate = cur.dateModified;
+    if ((new Date(prev)) < (new Date(nextDate))) {
+      return nextDate;
+    } else {
+      return prev;
+    }
+  }, nextLatestDate);
+  const categoriesRaw = res.data.categories as RemoteCategoryRaw[];
 
-  // const tags = tagsRaw.map((t) => {
-  //   return {
-  //     ...t,
-  //     aliases: t.aliases.split(';').map(s => {
-  //       return {
-  //         tagId: t.id,
-  //         name: s.trim()
-  //       };
-  //     })
-  //   };
-  // }) as RemoteTagParsed[];
+  // Insert any missing tag categories
+  for (const rawCat of categoriesRaw) {
+    if (categories.findIndex(c => c.name === rawCat.name) === -1) {
+      const newCat = await fpDatabase.createTagCategory({
+        id: -1,
+        name: rawCat.name,
+        color: rawCat.color,
+        description: rawCat.description
+      });
+      categories.push(newCat);
+    }
+  }
 
-  // const changedAliases = tags.reduce<Alias[]>((prev, cur) => prev.concat(cur.aliases), []);
-  // const existingTags = await TagManager.findTags();
+  const changedAliases = tags.reduce<Alias[]>((prev, cur) => {
+    return prev.concat(
+      cur.aliases.map(alias => {
+        return {
+          id: cur.id,
+          value: alias
+        };
+      })
+    );
+  }, []);
 
-  // console.log('clear');
-  // // Remove all changed aliases
-  // for (const chunk of chunkArray(changedAliases, 150)) {
-  //   await tagAliasRepo.delete({ name: In(chunk.map(c => c.name)) });
-  // }
-  // // Reassign them to the correct tag
-  // for (const chunk of chunkArray(changedAliases, 100)) {
-  //   await tagAliasRepo.createQueryBuilder().insert().values(chunk).execute();
-  // }
+  const existingTags = await fpDatabase.findAllTags();
 
-  // console.log('changed');
-  // // Update any changed tags
-  // for (const changedTag of tags.filter(t => existingTags.findIndex(et => et.id === t.id) !== -1)) {
-  //   if (changedTag.id === 7 || changedTag.id === 14) {
-  //     log.debug('Launcher', JSON.stringify(changedTag));
-  //   }
-  //   // Remove all aliases that aren't on the changed tag anymore
-  //   await tagAliasRepo.createQueryBuilder().delete()
-  //   .where({ name: Not(In(changedTag.aliases.map(c => c.name)))})
-  //   .andWhere({ tagId: changedTag.id }).execute();
-  //   // Find correct category and primary alias IDs to use
-  //   const category = categories.find(c => c.name === changedTag.category);
-  //   if (!category) {
-  //     // Create the missing tag category
-  //     throw 'Invalid tag category';
-  //   }
-  //   const pAlias = await tagAliasRepo.findOne({ where: { name: changedTag.name }});
-  //   if (!pAlias) {
-  //     throw 'Invalid primary alias? How?';
-  //   }
-  //   await tagRepo.createQueryBuilder().update({
-  //     dateModified: changedTag.date_modified,
-  //     categoryId: category.id,
-  //     description: changedTag.description,
-  //     primaryAliasId: pAlias.id
-  //   }).where({ id: changedTag.id }).execute();
-  // }
+  // Alias changes are dependant on the previous state, so we need to apply every change all at once to prevent collision
+  // Unassign any aliases that have changed
+  for (const chunk of chunkArray(changedAliases, 250)) {
+    await fpDatabase.unsafeDeleteTagAliases(chunk.map(a => a.value));
+  }
+  console.log('removed tag aliases');
+  // Reassign them to the correct platform
+  for (const chunk of chunkArray(changedAliases, 250)) {
+    await fpDatabase.unsafeInsertTagAliases(chunk);
+  }
+  console.log('reassigned tag aliases');
 
-  // console.log('new');
-  // // Add any new tags
-  // for (const newTag of tags.filter(t => existingTags.findIndex(et => et.id === t.id) === -1)) {
-  //   if (newTag.id === 7 || newTag.id === 14) {
-  //     log.debug('Launcher', JSON.stringify(newTag));
-  //   }
-  //   await tx.query(`INSERT INTO tag ("id", "dateModified", "primaryAliasId", "categoryId", "description") VALUES (
-  //       ?,
-  //       ?,
-  //       (SELECT ta.id FROM tag_alias ta WHERE ta.tagId = ? AND ta.name = ?),
-  //       (SELECT tc.id FROM tag_category tc WHERE tc.name = ?),
-  //       ?
-  //     )`, [
-  //     newTag.id,
-  //     newTag.date_modified,
-  //     newTag.id, newTag.name,
-  //     newTag.category,
-  //     newTag.description || ''
-  //   ]);
-  // }
+  // Update any changed tags
+  for (const changedTag of tags.filter(t => existingTags.findIndex(et => et.id === t.id) !== -1)) {
+    console.log(`c ${changedTag.id} - ${changedTag.name} - ${changedTag.category}`);
+    await fpDatabase.unsafeSaveTag(changedTag);
+    await fpDatabase.saveTag(changedTag);
+    if (changedTag.deleted) {
+      await fpDatabase.deleteTag(changedTag.name);
+    }
+  }
+  console.log('updated');
 
-  // return lastDate;
-  return new Date();
+  // Add any new tags
+  for (const newTag of tags.filter(t => existingTags.findIndex(et => et.id === t.id) === -1)) {
+    if (!newTag.deleted) {
+      // Double check there isn't a lingering tag without a tag alias
+      await fpDatabase.deleteTagById(newTag.id);
+      console.log(`${newTag.id} - ${newTag.name}`);
+      await fpDatabase.unsafeDeleteTagAliases(newTag.aliases);
+      const tag = await fpDatabase.createTag(newTag.name, newTag.category, newTag.id);
+      tag.aliases = newTag.aliases;
+      tag.dateModified = newTag.dateModified;
+      tag.description = newTag.description;
+      await fpDatabase.saveTag(tag);
+    }
+  }
+
+  return new Date(lastDate);
 }
 
-export async function syncPlatforms(tx: EntityManager, source: GameMetadataSource): Promise<Date> {
-  // const platformsUrl = `${source.baseUrl}/api/platforms?after=${source.tags.latestUpdateTime}`;
+export async function syncPlatforms(source: GameMetadataSource): Promise<Date> {
+  const platformsUrl = `${source.baseUrl}/api/platforms?after=${source.tags.latestUpdateTime}`;
 
-  // const res = await axios.get(platformsUrl)
-  // .catch((err) => {
-  //   throw 'Failed to search platforms';
-  // });
+  const res = await axios.get(platformsUrl)
+  .catch((err) => {
+    throw 'Failed to search platforms';
+  });
 
-  // const platforms = res.data.map((p: RemotePlatformRaw) => {
-  //   return {
-  //     ...p,
-  //     aliases: p.aliases.split(';').map(s => {
-  //       return {
-  //         platformId: p.id,
-  //         name: s.trim()
-  //       };
-  //     })
-  //   };
-  // }) as RemotePlatformParsed[];
+  const platforms = res.data.map((p: RemotePlatformRaw) => {
+    return {
+      id: p.id,
+      name: p.name,
+      description: p.description,
+      dateModified: p.date_modified,
+      aliases: p.aliases.split(';').map(s => s.trim()),
+      deleted: p.Deleted
+    };
+  }) as RemotePlatformParsed[];
 
-  // const nextLatestDate = new Date(source.tags.latestUpdateTime);
-  // const lastDate = platforms.reduce((prev, cur) => {
-  //   const nextDate = new Date(cur.date_modified);
-  //   if (prev < nextDate) {
-  //     return nextDate;
-  //   } else {
-  //     return prev;
-  //   }
-  // }, nextLatestDate);
+  const nextLatestDate = source.tags.latestUpdateTime;
+  const lastDate = platforms.reduce((prev, cur) => {
+    const nextDate = cur.dateModified;
+    if ((new Date(prev)) < (new Date(nextDate))) {
+      return nextDate;
+    } else {
+      return prev;
+    }
+  }, nextLatestDate);
 
-  // const platformAliasRepo = tx.getRepository(PlatformAlias);
-  // const platformRepo = tx.getRepository(Platform);
-  // const changedAliases = platforms.reduce<AliasPlatform[]>((prev, cur) => prev.concat(cur.aliases), []);
-  // const existingPlatforms = await TagManager.dumpPlatforms();
+  const changedAliases = platforms.reduce<Alias[]>((prev, cur) => {
+    return prev.concat(
+      cur.aliases.map(alias => {
+        return {
+          id: cur.id,
+          value: alias
+        };
+      })
+    );
+  }, []);
 
-  // // Remove all changed aliases
-  // for (const chunk of chunkArray(changedAliases, 150)) {
-  //   await platformAliasRepo.delete({ name: In(chunk.map(c => c.name)) });
-  // }
-  // console.log('removed');
-  // // Reassign them to the correct platform
-  // for (const chunk of chunkArray(changedAliases, 100)) {
-  //   await platformAliasRepo.createQueryBuilder().insert().values(chunk).execute();
-  // }
-  // console.log('reassigned');
+  const existingPlatforms = await fpDatabase.findAllPlatforms();
 
-  // // Update any changed platforms
-  // for (const changedPlatform of platforms.filter(t => existingPlatforms.findIndex(et => et.id === t.id) !== -1)) {
-  //   // Remove all aliases that aren't on the changed platform anymore
-  //   await platformAliasRepo.createQueryBuilder().delete()
-  //   .where({ name: Not(In(changedPlatform.aliases.map(c => c.name)))})
-  //   .andWhere({ platformId: changedPlatform.id }).execute();
-  //   // Find correct category and primary alias IDs to use
-  //   const pAlias = await platformAliasRepo.findOne({ where: { name: changedPlatform.name }});
-  //   if (!pAlias) {
-  //     throw 'Invalid primary alias? How?';
-  //   }
-  //   await platformRepo.createQueryBuilder().update({
-  //     dateModified: changedPlatform.date_modified,
-  //     description: changedPlatform.description,
-  //     primaryAliasId: pAlias.id
-  //   }).where({ id: changedPlatform.id }).execute();
-  // }
-  // console.log('updated');
+  // Alias changes are dependant on the previous state, so we need to apply every change all at once to prevent collision
+  // Unassign any aliases that have changed
+  for (const chunk of chunkArray(changedAliases, 250)) {
+    await fpDatabase.unsafeDeletePlatformAliases(chunk.map(a => a.value));
+  }
+  console.log('removed plat aliases');
+  // Reassign them to the correct platform
+  for (const chunk of chunkArray(changedAliases, 250)) {
+    await fpDatabase.unsafeInsertPlatformAliases(chunk);
+  }
+  console.log('reassigned plat aliases');
 
-  // // Add any new platforms
-  // for (const newPlatform of platforms.filter(t => existingPlatforms.findIndex(et => et.id === t.id) === -1)) {
-  //   await platformRepo.query(`INSERT INTO platform ("id", "dateModified", "primaryAliasId", "description") VALUES (
-  //       ?,
-  //       ?,
-  //       (SELECT pa.id FROM platform_alias pa WHERE pa.platformId = ?),
-  //       ?
-  //     )`, [
-  //     newPlatform.id,
-  //     newPlatform.date_modified,
-  //     newPlatform.id,
-  //     newPlatform.description || ''
-  //   ]);
-  // }
+  // Update any changed platforms
+  for (const changedPlatform of platforms.filter(t => existingPlatforms.findIndex(et => et.id === t.id) !== -1)) {
+    console.log(`${changedPlatform.id} - ${changedPlatform.deleted}`);
+    await fpDatabase.unsafeSavePlatform(changedPlatform); // Deleting a platform takes a name, make sure the primary alias is up to date first!
+    console.log('done unsafe');
+    await fpDatabase.savePlatform(changedPlatform); // Deleting a platform takes a name, make sure the primary alias is up to date first!
+    console.log('done save');
+    if (changedPlatform.deleted) {
+      await fpDatabase.deletePlatform(changedPlatform.name);
+      console.log('done delete');
+    }
+  }
+  console.log('updated');
 
-  // return lastDate;
-  return new Date();
+  // Add any new platforms
+  for (const newPlatform of platforms.filter(t => existingPlatforms.findIndex(et => et.id === t.id) === -1)) {
+    if (!newPlatform.deleted) {
+      // Make sure there isn't a lingering platform with no alias
+      await fpDatabase.unsafeDeletePlatformById(newPlatform.id);
+      // Remove possible aliases
+      await fpDatabase.unsafeDeletePlatformAliases(newPlatform.aliases);
+      const plat = await fpDatabase.createPlatform(newPlatform.name, newPlatform.id);
+      plat.aliases = newPlatform.aliases;
+      plat.dateModified = newPlatform.dateModified;
+      plat.description = newPlatform.description;
+      await fpDatabase.savePlatform(plat);
+    }
+  }
+
+  return new Date(lastDate);
 }
 
-export async function syncGames(tx: EntityManager, source: GameMetadataSource, dataPacksFolder: string, beforeChunk?: () => void): Promise<Date> {
+export async function syncGames(source: GameMetadataSource, dataPacksFolder: string, beforeChunk?: () => void): Promise<Date> {
   // const capUpdateTime = new Date();
   // const gamesUrl = `${source.baseUrl}/api/games`;
   // const deletedUrl = `${source.baseUrl}/api/games/deleted`;
@@ -528,34 +516,57 @@ export async function getMetaUpdateInfo(source: GameMetadataSource, accurate?: b
 //   archive_state: number;
 // }
 
-// type RemoteTagRaw = {
-//   id: number,
-//   name: string,
-//   description: string,
-//   category: string,
-//   date_modified: string,
-//   aliases: string,
-//   user_id: number
-// }
+type RemoteCategoryRaw = {
+  id: number,
+  name: string,
+  color: string,
+  description: string,
+}
 
-// type RemotePlatformRaw = {
-//   id: number,
-//   name: string,
-//   description: string,
-//   date_modified: string,
-//   aliases: string,
-//   user_id: number
-// }
+type RemoteTagRaw = {
+  id: number,
+  name: string,
+  description: string,
+  category: string,
+  date_modified: string,
+  aliases: string,
+  user_id: number,
+  Deleted: boolean
+}
 
-// type RemoteTagParsed = {
-//   id: number,
-//   name: string,
-//   description: string,
-//   category: string,
-//   date_modified: string,
-//   aliases: Alias[],
-//   user_id: number
-// }
+type RemoteTagParsed = {
+  id: number,
+  name: string,
+  description: string,
+  category: string,
+  dateModified: string,
+  aliases: string[],
+  deleted: boolean
+}
+
+type RemotePlatformRaw = {
+  id: number,
+  name: string,
+  description: string,
+  date_modified: string,
+  aliases: string,
+  user_id: number,
+  Deleted: boolean
+}
+
+type RemotePlatformParsed = {
+  id: number,
+  name: string,
+  description: string,
+  dateModified: string,
+  aliases: string[],
+  deleted: boolean
+}
+
+type Alias = {
+  id: number,
+  value: string,
+}
 
 // type RemotePlatformParsed = {
 //   id: number,

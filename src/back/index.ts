@@ -55,7 +55,6 @@ import { ExtensionService } from './extensions/ExtensionService';
 import {
   FPLNodeModuleFactory,
   INodeModuleFactory,
-  SqliteInterceptorFactory,
   installNodeInterceptor,
   registerInterceptor
 } from './extensions/NodeInterceptor';
@@ -701,11 +700,11 @@ async function initialize() {
   // Populate unique values
   state.suggestions = {
     tags: [],
-    playMode: [],
-    platforms: [],
-    status: [],
-    applicationPath: [],
-    library: [],
+    playMode: await fpDatabase.findAllGamePlayModes(),
+    platforms: (await fpDatabase.findAllPlatforms()).map(p => p.name),
+    status: await fpDatabase.findAllGameStatuses(),
+    applicationPath: await fpDatabase.findAllGameApplicationPaths(),
+    library: await fpDatabase.findAllGameLibraries(),
   };
 
   // Check for Flashpoint Manager Updates
@@ -814,7 +813,6 @@ async function initialize() {
     state,
   ),
   state.moduleInterceptor);
-  registerInterceptor(new SqliteInterceptorFactory(), state.moduleInterceptor);
   installNodeInterceptor(state.moduleInterceptor)
   .then(async () => {
     // Load each extension

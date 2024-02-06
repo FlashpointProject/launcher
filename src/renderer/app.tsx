@@ -85,7 +85,7 @@ export class App extends React.Component<AppProps> {
       const parts = url.split('/');
       log.debug('Launcher', 'Handling Protocol - ' + url);
       if (parts.length > 2) {
-      // remove "flashpoint:" and "" elements
+        // remove "flashpoint:" and "" elements
         parts.splice(0, 2);
         switch (parts[0]) {
           case 'open': {
@@ -111,7 +111,7 @@ export class App extends React.Component<AppProps> {
               window.Shared.back.request(BackIn.GET_GAME, parts[1])
               .then(async (fetchedInfo) => {
                 if (fetchedInfo) {
-                // Open game in sidebar
+                  // Open game in sidebar
                   this.props.setMainState({
                     currentGameInfo: fetchedInfo,
                     selectedGameId: fetchedInfo.game.id,
@@ -203,7 +203,7 @@ export class App extends React.Component<AppProps> {
     // Listen for the window to move or resize (and update the preferences when it does)
     ipcRenderer.on(WindowIPC.WINDOW_MOVE, debounce((sender, x: number, y: number, isMaximized: boolean) => {
       if (!isMaximized) {
-        updatePreferencesData({ mainWindow: { x: x|0, y: y|0 } });
+        updatePreferencesData({ mainWindow: { x: x | 0, y: y | 0 } });
       }
     }, 100));
     ipcRenderer.on(WindowIPC.WINDOW_RESIZE, debounce((sender, width: number, height: number, isMaximized: boolean) => {
@@ -215,7 +215,7 @@ export class App extends React.Component<AppProps> {
         if (height < 300) {
           height = 300;
         }
-        updatePreferencesData({ mainWindow: { width: width|0, height: height|0 } });
+        updatePreferencesData({ mainWindow: { width: width | 0, height: height | 0 } });
       }
     }, 100));
     ipcRenderer.on(WindowIPC.WINDOW_MAXIMIZE, (sender, isMaximized: boolean) => {
@@ -270,7 +270,7 @@ export class App extends React.Component<AppProps> {
                 if (this.props.shortcut && this.props.shortcut.registerShortcut && this.props.shortcut.unregisterShortcut) {
                   try {
                     this.props.shortcut.unregisterShortcut(shortcuts);
-                  } catch { /** ignore any errors from unregister check */}
+                  } catch { /** ignore any errors from unregister check */ }
                   this.props.shortcut.registerShortcut(() => {
                     window.Shared.back.send(BackIn.RUN_COMMAND, commandName, []);
                   }, shortcuts, command, 'Extension Shortcut');
@@ -599,7 +599,7 @@ export class App extends React.Component<AppProps> {
       if (this.props.shortcut && this.props.shortcut.registerShortcut && this.props.shortcut.unregisterShortcut) {
         try {
           this.props.shortcut.unregisterShortcut(shortcuts);
-        } catch { /** ignore any errors from unregister check */}
+        } catch { /** ignore any errors from unregister check */ }
         this.props.shortcut.registerShortcut(() => {
           window.Shared.back.send(BackIn.RUN_COMMAND, commandName, []);
         }, shortcuts, command, 'Extension Shortcut');
@@ -634,9 +634,11 @@ export class App extends React.Component<AppProps> {
         const user = JSON.parse(Buffer.from(userBase64, 'base64').toString('utf-8')) as FpfssUser;
         // Test profile uri
         const profileUrl = `${window.Shared.preferences.data.fpfssBaseUrl}/api/profile`;
-        axios.get(profileUrl, { headers: {
-          'Authorization': `Bearer ${user.accessToken}`
-        }})
+        axios.get(profileUrl, {
+          headers: {
+            'Authorization': `Bearer ${user.accessToken}`
+          }
+        })
         .then((res) => {
           // Success, use most recent info and save to storage and state
           user.username = res.data['Username'];
@@ -677,8 +679,8 @@ export class App extends React.Component<AppProps> {
           remote.dialog.showMessageBox({
             type: 'warning',
             title: 'Exit Launcher?',
-            message: 'All progress on downloading or installing the upgrade will be lost.\n'+
-                     'Are you sure you want to exit?',
+            message: 'All progress on downloading or installing the upgrade will be lost.\n' +
+              'Are you sure you want to exit?',
             buttons: ['Yes', 'No'],
             defaultId: 1,
             cancelId: 1,
@@ -784,7 +786,7 @@ export class App extends React.Component<AppProps> {
 
     // Check for PHP on Linux
     if (process.platform === 'linux') {
-      which('php', function(err: Error | null) {
+      which('php', function (err: Error | null) {
         if (err) {
           log.warn('Launcher', 'Warning: PHP not found in path, may cause unexpected behaviour.');
           ipcRenderer.invoke(CustomIPC.SHOW_MESSAGE_BOX, {
@@ -855,8 +857,8 @@ export class App extends React.Component<AppProps> {
       // @TODO: Is this really the best way to compare array contents? I guess it works
       if (
         this.props.preferencesData.browsePageShowExtreme !== prevProps.preferencesData.browsePageShowExtreme ||
-      !arrayShallowStrictEquals(this.props.preferencesData.excludedRandomLibraries, prevProps.preferencesData.excludedRandomLibraries) ||
-      JSON.stringify(prevProps.preferencesData.tagFilters) !== JSON.stringify(this.props.preferencesData.tagFilters)) {
+        !arrayShallowStrictEquals(this.props.preferencesData.excludedRandomLibraries, prevProps.preferencesData.excludedRandomLibraries) ||
+        JSON.stringify(prevProps.preferencesData.tagFilters) !== JSON.stringify(this.props.preferencesData.tagFilters)) {
         this.props.dispatchMain({
           type: MainActionType.CLEAR_RANDOM_GAMES
         });
@@ -882,8 +884,8 @@ export class App extends React.Component<AppProps> {
         // Prevent order changes from updating playlist search results
         let orderUpdate = false;
         if (
-          view.query.orderBy                !== this.props.preferencesData.gamesOrderBy ||
-          view.query.orderReverse           !== this.props.preferencesData.gamesOrder
+          view.query.orderBy !== this.props.preferencesData.gamesOrderBy ||
+          view.query.orderReverse !== this.props.preferencesData.gamesOrder
         ) {
           orderUpdate = true;
         }
@@ -892,10 +894,10 @@ export class App extends React.Component<AppProps> {
         }
 
         // Check if any parameters for the search query has changed (they don't match the current view's)
-        if (view.query.text                 !== this.props.search.text ||
-          view.query.extreme                !== this.props.preferencesData.browsePageShowExtreme ||
+        if (view.query.text !== this.props.search.text ||
+          view.query.extreme !== this.props.preferencesData.browsePageShowExtreme ||
           orderUpdate ||
-          JSON.stringify(view.tagFilters)   !== JSON.stringify(this.props.preferencesData.tagFilters)
+          JSON.stringify(view.tagFilters) !== JSON.stringify(this.props.preferencesData.tagFilters)
         ) {
           this.setViewQuery(library);
         }
@@ -912,13 +914,15 @@ export class App extends React.Component<AppProps> {
           }
 
           if (pages && pages.length > 0) {
-          // Request needed pages
+            // Request needed pages
             window.Shared.back.request(BackIn.BROWSE_VIEW_PAGE, {
-              ranges: pages.map<RequestGameRange>(index => { return {
-                start: index * VIEW_PAGE_SIZE,
-                length: VIEW_PAGE_SIZE,
-                index: index > 0 ? view.meta && view.meta.pageKeyset[index - 1] : undefined, // Page keyset indices are one-indexed (start at 1 instead of 0)
-              }; }),
+              ranges: pages.map<RequestGameRange>(index => {
+                return {
+                  start: index * VIEW_PAGE_SIZE,
+                  length: VIEW_PAGE_SIZE,
+                  index: index > 0 ? view.meta && view.meta.pageKeyset[index - 1] : undefined, // Page keyset indices are one-indexed (start at 1 instead of 0)
+                };
+              }),
               viewIdentifier: library,
               query: view.query,
               shallow: true,
@@ -1051,7 +1055,7 @@ export class App extends React.Component<AppProps> {
     log.debug('Launcher', `Editing: ${JSON.stringify(game)}`);
     if (this.props.main.currentGameInfo) {
       const ng = newGame();
-      Object.assign(ng, {...this.props.main.currentGameInfo.game, ...game});
+      Object.assign(ng, { ...this.props.main.currentGameInfo.game, ...game });
       this.props.setMainState({
         currentGameInfo: {
           game: ng,
@@ -1103,7 +1107,7 @@ export class App extends React.Component<AppProps> {
   onUpdateActiveGameData = (activeDataOnDisk: boolean, activeDataId?: number): void => {
     if (this.props.main.currentGameInfo) {
       const ng = newGame();
-      Object.assign(newGame, {...this.props.main.currentGameInfo.game, activeDataOnDisk, activeDataId });
+      Object.assign(newGame, { ...this.props.main.currentGameInfo.game, activeDataOnDisk, activeDataId });
       window.Shared.back.request(BackIn.SAVE_GAME, {
         game: ng,
         activeConfig: this.props.main.currentGameInfo.activeConfig,
@@ -1112,11 +1116,13 @@ export class App extends React.Component<AppProps> {
       .then(() => {
         if (this.props.main.currentGameInfo) {
           const ng = newGame();
-          Object.assign(ng, {...this.props.main.currentGameInfo.game, activeDataOnDisk, activeDataId });
-          this.props.setMainState({ currentGameInfo: {
-            ...this.props.main.currentGameInfo,
-            game: ng,
-          }});
+          Object.assign(ng, { ...this.props.main.currentGameInfo.game, activeDataOnDisk, activeDataId });
+          this.props.setMainState({
+            currentGameInfo: {
+              ...this.props.main.currentGameInfo,
+              game: ng,
+            }
+          });
         }
       });
     }
@@ -1168,6 +1174,7 @@ export class App extends React.Component<AppProps> {
       window.Shared.back.request(BackIn.GET_GAME, gameId)
       .then(fetchedInfo => {
         if (fetchedInfo) {
+          console.log(`TYPE - ${typeof fetchedInfo.game.dateAdded}`);
           this.props.setMainState({
             currentGameInfo: fetchedInfo,
             currentPlaylistEntry: gamePlaylistEntry == null ? undefined : gamePlaylistEntry
@@ -1216,7 +1223,7 @@ export class App extends React.Component<AppProps> {
             (playlistId) => window.Shared.back.send(BackIn.ADD_PLAYLIST_GAME, playlistId, gameId),
             selectedPlaylistId)
         }, {
-        /* File Location */
+          /* File Location */
           label: strings.menu.openFileLocation,
           enabled: !window.Shared.isBackRemote, // (Local "back" only)
           click: () => {
@@ -1246,15 +1253,15 @@ export class App extends React.Component<AppProps> {
                   if (error.code === 'ENOENT') {
                     opts.title = this.context.dialog.fileNotFound;
                     opts.message = (
-                      'Failed to find the game file.\n'+
-                    'If you are using Flashpoint Infinity, make sure you download the game first.\n'
+                      'Failed to find the game file.\n' +
+                        'If you are using Flashpoint Infinity, make sure you download the game first.\n'
                     );
                   } else {
                     opts.title = 'Unexpected error';
                     opts.message = (
-                      'Failed to check the game file.\n'+
-                    'If you see this, please report it back to us (a screenshot would be great)!\n\n'+
-                    `Error: ${error}\n`
+                      'Failed to check the game file.\n' +
+                        'If you see this, please report it back to us (a screenshot would be great)!\n\n' +
+                        `Error: ${error}\n`
                     );
                   }
                   opts.message += `Path: "${gamePath}"\n\nNote: If the path is too long, some portion will be replaced with three dots ("...").`;
@@ -1268,7 +1275,7 @@ export class App extends React.Component<AppProps> {
           /* Copy Shortcut URL */
           label: strings.menu.copyShortcutURL,
           enabled: true,
-          click : () => {
+          click: () => {
             clipboard.writeText(`flashpoint://run/${gameId}`);
           }
         },
@@ -1276,7 +1283,7 @@ export class App extends React.Component<AppProps> {
           /* Copy Game UUID */
           label: strings.menu.copyGameUUID,
           enabled: true,
-          click : () => {
+          click: () => {
             clipboard.writeText(gameId);
           }
         }, { type: 'separator' }];
@@ -1358,7 +1365,7 @@ export class App extends React.Component<AppProps> {
             click: () => {
               this.onOpenExportMetaEdit(gameId);
             },
-          }, {  type: 'separator' }
+          }, { type: 'separator' }
         ];
         contextButtons = contextButtons.concat(editingButtons);
       }
@@ -1469,23 +1476,23 @@ export class App extends React.Component<AppProps> {
     // Render
     return (
       <LangContext.Provider value={this.props.main.lang}>
-        { !this.props.main.stopRender ? (
+        {!this.props.main.stopRender ? (
           <>
             {/* Backend Crash Log and Report */}
-            { !this.props.main.socketOpen && !this.props.main.mainOutput && (
+            {!this.props.main.socketOpen && !this.props.main.mainOutput && (
               <FloatingContainer>
                 <div className='main-output-header'>Disconnected from Backend</div>
                 <div>Reconnecting...</div>
               </FloatingContainer>
             )}
-            { this.props.main.mainOutput && (
+            {this.props.main.mainOutput && (
               <FloatingContainer>
                 <div className='main-output-header'>Backend Crash Log</div>
                 <div className='main-output-content'>{this.props.main.mainOutput}</div>
                 <div className='main-output-buttons'>
                   <SimpleButton
                     value={'Copy Crash Log'}
-                    onClick={this.copyCrashLog}/>
+                    onClick={this.copyCrashLog} />
                   <SimpleButton
                     value={'Restart Launcher'}
                     onClick={() => {
@@ -1493,16 +1500,16 @@ export class App extends React.Component<AppProps> {
                         quitting: true
                       });
                       window.Shared.restart();
-                    }}/>
+                    }} />
                 </div>
               </FloatingContainer>
             )}
             {/* First Open Dialog */}
-            { this.props.main.openDialogs.length > 0 && (
+            {this.props.main.openDialogs.length > 0 && (
               renderDialogMemo(this.props.main.openDialogs[0], this.props.dispatchMain)
             )}
             {/** Fancy FPFSS edit */}
-            { this.props.main.fpfss.editingGameInfo && (
+            {this.props.main.fpfss.editingGameInfo && (
               <FloatingContainer floatingClassName='fpfss-edit-container'>
                 <ConnectedFpfssEditGame
                   logoVersion={this.props.main.logoVersion}
@@ -1510,23 +1517,23 @@ export class App extends React.Component<AppProps> {
                   currentGameInfo={this.props.main.fpfss.editingGameInfo}
                   currentLibrary={this.props.main.fpfss.editingGameInfo.game.library}
                   onGameLaunch={async () => alert('Cannot launch game during FPFSS edit')}
-                  onDeleteSelectedGame={() => {/** unused */}}
-                  onDeselectPlaylist={() => {/** unused */}}
-                  onEditPlaylistNotes={() => {/** unused */}}
+                  onDeleteSelectedGame={() => {/** unused */ }}
+                  onDeselectPlaylist={() => {/** unused */ }}
+                  onEditPlaylistNotes={() => {/** unused */ }}
                   isEditing={true}
                   isExtreme={false}
                   isNewGame={false}
                   suggestions={this.props.main.suggestions}
                   tagCategories={this.props.tagCategories}
                   busyGames={[]}
-                  onEditClick={() => {/** unused */}}
+                  onEditClick={() => {/** unused */ }}
                   onDiscardClick={this.onCancelFpfssEditGame}
                   onSaveGame={this.onSaveFpfssEditGame}
                   onForceSaveGame={this.onForceSaveGame}
-                  onOpenExportMetaEdit={() => {/** unused */}}
+                  onOpenExportMetaEdit={() => {/** unused */ }}
                   onEditGame={this.onApplyFpfssEditGame}
                   onFpfssEditGame={this.onFpfssEditGame}
-                  onUpdateActiveGameData={(disk, id) => id && this.onApplyFpfssEditGameData(id)}/>
+                  onUpdateActiveGameData={(disk, id) => id && this.onApplyFpfssEditGameData(id)} />
               </FloatingContainer>
             )}
             {/* Splash screen */}
@@ -1535,14 +1542,14 @@ export class App extends React.Component<AppProps> {
               loadedAll={this.props.main.loadedAll.isOpen}
               loaded={this.props.main.loaded} />
             {/* Title-bar (if enabled) */}
-            { window.Shared.config.data.useCustomTitlebar ?
+            {window.Shared.config.data.useCustomTitlebar ?
               window.Shared.customVersion ? (
                 <TitleBar title={window.Shared.customVersion} />
               ) : (
                 <TitleBar title={`${APP_TITLE} (${remote.app.getVersion()})`} />
-              ) : undefined }
+              ) : undefined}
             {/* "Content" */}
-            { this.props.main.loadedAll.isOpen ? (
+            {this.props.main.loadedAll.isOpen ? (
               <>
                 {/* Header */}
                 <HeaderContainer
@@ -1558,13 +1565,13 @@ export class App extends React.Component<AppProps> {
                 {/* Main */}
                 <div className='main'
                   ref={this.appRef} >
-                  <AppRouter { ...routerProps } />
+                  <AppRouter {...routerProps} />
                   <noscript className='nojs'>
-                    <div style={{textAlign:'center'}}>
+                    <div style={{ textAlign: 'center' }}>
                       This website requires JavaScript to be enabled.
                     </div>
                   </noscript>
-                  { this.props.main.currentGameInfo && !hiddenRightSidebarPages.reduce((prev, cur) => prev || this.props.history.location.pathname.startsWith(cur), false) && (
+                  {this.props.main.currentGameInfo && !hiddenRightSidebarPages.reduce((prev, cur) => prev || this.props.history.location.pathname.startsWith(cur), false) && (
                     <ResizableSidebar
                       show={this.props.preferencesData.browsePageShowRightSidebar}
                       divider='before'
@@ -1599,7 +1606,7 @@ export class App extends React.Component<AppProps> {
                   )}
                 </div>
                 {/* Tasks - @TODO Find a better way to hide it than behind enableEditing */}
-                { this.props.preferencesData.enableEditing && this.props.tasks.length > 0 && (
+                {this.props.preferencesData.enableEditing && this.props.tasks.length > 0 && (
                   <TaskBar
                     open={this.props.main.taskBarOpen}
                     onToggleOpen={this.onToggleTaskBarOpen} />
@@ -1607,19 +1614,19 @@ export class App extends React.Component<AppProps> {
                 {/* Footer */}
                 <ConnectedFooter />
                 {/* Meta Edit Popup */}
-                { this.props.main.metaEditExporterOpen ? (
+                {this.props.main.metaEditExporterOpen ? (
                   <MetaEditExporter
                     gameId={this.props.main.metaEditExporterGameId}
                     onCancel={this.onCancelExportMetaEdit}
                     onConfirm={this.onConfirmExportMetaEdit} />
-                ) : undefined }
+                ) : undefined}
               </>
-            ) : undefined }
+            ) : undefined}
           </>
-        ) : undefined }
-        { this.props.main.downloadOpen && (
+        ) : undefined}
+        {this.props.main.downloadOpen && (
           <FloatingContainer>
-            { this.props.main.downloadVerifying ? (
+            {this.props.main.downloadVerifying ? (
               <>
                 <div className='placeholder-download-bar--title'>
                   {this.props.main.lang.dialog.verifyingGame}
@@ -1634,7 +1641,7 @@ export class App extends React.Component<AppProps> {
                 <div>{`${sizeToString(this.props.main.downloadSize * (this.props.main.downloadPercent / 100))} / ${sizeToString(this.props.main.downloadSize)}`}</div>
               </>
             )}
-            { this.props.main.downloadVerifying ? <></> : (
+            {this.props.main.downloadVerifying ? <></> : (
               <ProgressBar
                 wrapperClass='placeholder-download-bar__wrapper'
                 progressData={{
@@ -1647,7 +1654,7 @@ export class App extends React.Component<AppProps> {
             <SimpleButton
               className='cancel-download-button'
               value={this.props.main.lang.dialog.cancel}
-              onClick={() => window.Shared.back.send(BackIn.CANCEL_DOWNLOAD)}/>
+              onClick={() => window.Shared.back.send(BackIn.CANCEL_DOWNLOAD)} />
           </FloatingContainer>
         )}
       </LangContext.Provider>
@@ -1695,7 +1702,7 @@ export class App extends React.Component<AppProps> {
     if (playlist) {
       const index = this.props.main.playlists.findIndex(p => p.id === playlist.id);
       if (index >= 0) {
-        const playlists = [ ...this.props.main.playlists ];
+        const playlists = [...this.props.main.playlists];
         playlists.splice(index, 1);
 
         const cache: Record<string, string> = { ...this.props.main.playlistIconCache };
@@ -1723,10 +1730,10 @@ export class App extends React.Component<AppProps> {
     // Update or add playlist
     const index = this.props.main.playlists.findIndex(p => p.id === playlist.id);
     if (index >= 0) {
-      state.playlists = [ ...this.props.main.playlists ];
+      state.playlists = [...this.props.main.playlists];
       state.playlists[index] = playlist;
     } else {
-      state.playlists = [ ...this.props.main.playlists, playlist ];
+      state.playlists = [...this.props.main.playlists, playlist];
     }
 
     // Remove old icon from cache
@@ -1843,7 +1850,7 @@ export class App extends React.Component<AppProps> {
    * @param library Library view to set the query for (default to current view)
    * @param playlist Playlist to search
    */
-  setViewQuery = (function(this: App, library: string = getBrowseSubPath(this.props.location.pathname), playlist?: Playlist | null): void {
+  setViewQuery = (function (this: App, library: string = getBrowseSubPath(this.props.location.pathname), playlist?: Playlist | null): void {
     this.props.dispatchMain({
       type: MainActionType.SET_VIEW_QUERY,
       library: library,
@@ -1934,12 +1941,13 @@ export class App extends React.Component<AppProps> {
           Authorization: `Bearer ${this.props.main.fpfss.user?.accessToken}`
         }
       });
-      const game = mapFpfssGameToLocal(res.data, this.props.tagCategories);
+      const game = mapFpfssGameToLocal(res.data);
       const fetchedInfo: FetchedGameInfo = {
         game,
         activeConfig: null,
         configs: []
       };
+      console.log(game);
       this.props.dispatchMain({
         type: MainActionType.SET_FPFSS_GAME,
         fetchedInfo,
@@ -1984,7 +1992,7 @@ export class App extends React.Component<AppProps> {
   onSaveFpfssEditGame = async () => {
     const localGameInfo = this.props.main.fpfss.editingGameInfo;
     if (localGameInfo && this.props.main.fpfss.user) {
-      const game = mapLocalToFpfssGame(localGameInfo.game, this.props.tagCategories, this.props.main.fpfss.user.userId);
+      const game = mapLocalToFpfssGame(localGameInfo.game);
       this.props.dispatchMain({
         type: MainActionType.SET_FPFSS_GAME,
         fetchedInfo: null
@@ -2111,27 +2119,27 @@ function renderDialogMemo(dialog: DialogState, dispatch: Dispatch<MainAction>): 
   return (
     <FloatingContainer>
       <>
-        { dialog.userCanCancel && (
+        {dialog.userCanCancel && (
           <div className='dialog-cancel-button' onClick={() => {
             dispatch({
               type: MainActionType.CANCEL_DIALOG,
               dialogId: dialog.id
             });
           }}>
-            <OpenIcon icon='x'/>
+            <OpenIcon icon='x' />
           </div>
         )}
-        <div className={`dialog-message ${dialog.largeMessage ? 'dialog-message--large' : ''}`}>{ dialog.message }</div>
-        { dialog.fields?.map(f => {
+        <div className={`dialog-message ${dialog.largeMessage ? 'dialog-message--large' : ''}`}>{dialog.message}</div>
+        {dialog.fields?.map(f => {
           return (
             <div key={f.name} className='dialog-field'>
-              {f.message && (<div className='dialog-field-message'>{ f.message }</div>)}
+              {f.message && (<div className='dialog-field-message'>{f.message}</div>)}
               <div className='dialog-field-input'>{renderDialogField(dialog.id, f, dispatch)}</div>
             </div>
           );
         })}
         <div className='dialog-buttons-container'>
-          { dialog.buttons.map((b, idx) => {
+          {dialog.buttons.map((b, idx) => {
             return (
               <SimpleButton
                 key={b}
@@ -2142,7 +2150,7 @@ function renderDialogMemo(dialog: DialogState, dispatch: Dispatch<MainAction>): 
                     button: idx
                   });
                 }}
-                value={b}/>
+                value={b} />
             );
           })}
         </div>
@@ -2181,7 +2189,7 @@ function renderDialogField(dialogId: string, field: DialogField, dispatch: Dispa
       };
       return (
         <ProgressBar
-          progressData={data}/>
+          progressData={data} />
       );
     }
     default: {

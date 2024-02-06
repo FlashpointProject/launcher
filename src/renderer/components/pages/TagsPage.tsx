@@ -67,7 +67,7 @@ export class TagsPage extends React.Component<TagsPageProps, TagsPageState> {
               isLocked={this.state.isLocked} />
           </div>
           <ResizableSidebar
-            hide={!!this.state.currentTag}
+            show={!!this.state.currentTag}
             divider='after'
             width={this.props.preferencesData.browsePageLeftSidebarWidth} >
             <ConnectedRightTagsSidebar
@@ -161,6 +161,7 @@ export class TagsPage extends React.Component<TagsPageProps, TagsPageState> {
     window.Shared.back.request(BackIn.GET_TAG_BY_ID, tagId)
     .then((data) => {
       if (data) {
+        console.log(data);
         const allTags = deepCopy(this.state.tags);
         const tagIndex = allTags.findIndex(t => t.id === tagId);
         if (tagIndex > -1) {

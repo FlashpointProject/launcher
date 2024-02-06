@@ -269,6 +269,8 @@ export class SocketServer {
       return;
     }
 
+    console.log(parsed_data);
+
     const [msg, msg_error] = validate_socket_message<any>(parsed_data);
 
     if (!msg || msg_error) {

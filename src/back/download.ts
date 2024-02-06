@@ -15,8 +15,8 @@ export async function downloadGameData(gameDataId: number, dataPacksFolderPath: 
     // GameData real, find an available source
     for (const source of sources) {
       try {
-        const fullUrl = new URL(`${gameData.gameId}-${gameData.dateAdded.getTime()}.zip`, source.arguments[0]).href;
-        const tempPath = path.join(dataPacksFolderPath, `${gameData.gameId}-${gameData.dateAdded.getTime()}.zip.temp`);
+        const fullUrl = new URL(`${gameData.gameId}-${new Date(gameData.dateAdded).getTime()}.zip`, source.arguments[0]).href;
+        const tempPath = path.join(dataPacksFolderPath, `${gameData.gameId}-${new Date(gameData.dateAdded).getTime()}.zip.temp`);
         await downloadFile(fullUrl, tempPath, abortSignal, onProgress, onDetails);
         // Check hash of download
         const hash = crypto.createHash('sha256');
@@ -69,7 +69,7 @@ export async function importGameDataSkipHash(gameId: string, filePath: string, d
   }
   // Copy file
   const dateAdded = new Date();
-  const newFilename = existingGameData ? `${gameId}-${existingGameData.dateAdded.getTime()}.zip` : `${gameId}-${dateAdded.getTime()}.zip`;
+  const newFilename = existingGameData ? `${gameId}-${new Date(existingGameData.dateAdded).getTime()}.zip` : `${gameId}-${dateAdded.getTime()}.zip`;
   const newPath = path.join(dataPacksFolderPath, newFilename);
   await fs.promises.copyFile(filePath, newPath);
   if (existingGameData) {
@@ -81,7 +81,7 @@ export async function importGameDataSkipHash(gameId: string, filePath: string, d
       title: 'Data Pack',
       gameId: gameId,
       size: stats.size,
-      dateAdded,
+      dateAdded: dateAdded.toISOString(),
       presentOnDisk: true,
       path: newFilename,
       sha256,

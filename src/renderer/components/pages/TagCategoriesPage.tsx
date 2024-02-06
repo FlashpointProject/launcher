@@ -58,7 +58,7 @@ export class TagCategoriesPage extends React.Component<TagCategoriesPageProps, T
               value={strings.newCategory}/>
           </div>
           <ResizableSidebar
-            hide={!!this.state.currentCategory}
+            show={!!this.state.currentCategory}
             divider='after'
             width={this.props.preferencesData.browsePageLeftSidebarWidth} >
             <ConnectedRightTagCategoriesSidebar

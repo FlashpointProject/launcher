@@ -621,9 +621,9 @@ declare module 'flashpoint-launcher' {
         /** Primary platform name (cached) */
         primaryPlatform: string;
         /** Date-time of when the game was added to collection */
-        dateAdded: Date;
+        dateAdded: string;
         /** Date-time of when the game was added to collection */
-        dateModified: Date;
+        dateModified: string;
         /** If the game is single player or multiplayer, and if the multiplayer is cooperative or not */
         playMode: string;
         /** How playable the game is */
@@ -658,7 +658,7 @@ declare module 'flashpoint-launcher' {
         activeDataOnDisk: boolean;
         gameData?: GameData[];
         /** Last Played Date */
-        lastPlayed?: Date;
+        lastPlayed?: string;
         /** Total Playtime (seconds) */
         playtime: number;
         /** Number of plays */
@@ -683,7 +683,7 @@ declare module 'flashpoint-launcher' {
         /** Title of this data pack */
         title: string;
         /** Date this data pack was added on */
-        dateAdded: Date;
+        dateAdded: string;
         /** Expected SHA256 hash of this data pack */
         sha256: string;
         /** Expected CRC32 of this data pack */
@@ -732,7 +732,7 @@ declare module 'flashpoint-launcher' {
         /** Description of the tag */
         description: string;
         /** Date when this tag was last modified */
-        dateModified: Date;
+        dateModified: string;
         /** Aliases / Names of the tag */
         aliases: string[];
         /** Name of the category */
