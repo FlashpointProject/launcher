@@ -9,6 +9,8 @@ export enum MainActionType {
   SET_VIEW_QUERY = '@@main/SET_VIEW_QUERY',
   /** Set the current "boundries" of a view. These describe the range of currently visible pages. */
   SET_VIEW_BOUNDRIES = '@@main/SET_VIEW_BOUNDRIES',
+  /** Set views search status */
+  SET_VIEW_SEARCH_STATUS = '@@main/SET_VIEW_SEARCH_STATUS',
   /** Flag the request meta as requested. */
   REQUEST_VIEW_META = '@@main/SET_VIEW_REQUESTED',
   /** Set the meta of a view and flag the meta as received. */

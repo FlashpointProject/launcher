@@ -44,6 +44,7 @@ type OwnProps = {
   sourceTable: string;
   games: ViewGameSet;
   gamesTotal?: number;
+  searchStatus: string | null;
   playlists: Playlist[];
   playlistIconCache: Record<string, string>;
   onSaveGame: (info: FetchedGameInfo, playlistEntry?: PlaylistGame) => Promise<FetchedGameInfo | null>;
@@ -280,11 +281,11 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
               <div className='game-browser__loading'>
                 <FancyAnimation
                   normalRender={(
-                    <div>{strings.misc.searching}</div>
+                    <div>{this.props.searchStatus || strings.misc.searching}</div>
                   )}
                   fancyRender={(
                     <>
-                      <div>{strings.misc.searching}</div>
+                      <div>{this.props.searchStatus || strings.misc.searching}</div>
                       <Spinner/>
                     </>
                   )}/>

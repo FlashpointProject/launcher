@@ -76,8 +76,6 @@ type ConfigPageState = {
   editorOpen: boolean;
   /** Progress for nuking tags */
   nukeInProgress: boolean;
-  /** Tag filters that were ticked when we entered this page */
-  startingTagFilters: string[];
 };
 
 /**
@@ -97,26 +95,8 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       flashpointPath: configData.flashpointPath,
       useCustomTitlebar: configData.useCustomTitlebar,
       editorOpen: false,
-      nukeInProgress: false,
-      startingTagFilters: props.preferencesData.tagFilters
-      .filter(t => t.enabled || (t.extreme && props.preferencesData.browsePageShowExtreme))
-      .map(t => t.tags)
-      .reduce((prev, cur) => prev.concat(cur), [])
-      .sort()
+      nukeInProgress: false
     };
-  }
-
-  componentWillUnmount(): void {
-    const newTagFilters = this.props.preferencesData.tagFilters
-    .filter(t => t.enabled || (t.extreme && this.props.preferencesData.browsePageShowExtreme))
-    .map(t => t.tags)
-    .reduce((prev, cur) => prev.concat(cur), [])
-    .sort();
-
-    if (newTagFilters.length > 0 && newTagFilters !== this.state.startingTagFilters) {
-      // Open a dialog box while we regenerate the tag filter index
-      console.log('filter changed');
-    }
   }
 
   render() {
@@ -215,7 +195,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 description={strings.searchLimitDesc}
                 value={this.props.preferencesData.searchLimit.toString()}
                 onChange={this.onSearchLimitChange}
-                items={searchLimitOptions}/>
+                items={searchLimitOptions}/>tagFilter
               {/* Current Language */}
               <ConfigBoxSelect
                 title={strings.currentLanguage}
@@ -223,11 +203,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 value={this.props.preferencesData.currentLanguage || ''}
                 onChange={this.onCurrentLanguageSelect}
                 items={langOptions} />
-              <ConfigBoxCheckbox
-                title={strings.precacheDatabase}
-                description={strings.precacheDatabaseDesc}
-                checked={this.props.preferencesData.precacheDatabase}
-                onToggle={this.onPrecacheDatabaseToggle} />
             </div>
           </div>
           {/* -- Content Filters -- */}
@@ -269,6 +244,12 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 text={strings.libraries}
                 onChange={this.onExcludedLibraryCheckboxChange}
                 items={libraryOptions} />
+              {/* Tag Filter Index */}
+              <ConfigBoxCheckbox
+                title={strings.enableTagFilterIndex}
+                description={strings.enableTagFilterIndexDesc}
+                checked={this.props.preferencesData.enableTagFilterIndex}
+                onToggle={this.onTagFilterIndexToggle} />
             </div>
           </div>
           {/* -- Flashpoint -- */}
@@ -821,8 +802,8 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     updatePreferencesData({ fancyAnimations: isChecked });
   };
 
-  onPrecacheDatabaseToggle = (isChecked: boolean): void => {
-    updatePreferencesData({ precacheDatabase: isChecked });
+  onTagFilterIndexToggle = (isChecked: boolean): void => {
+    updatePreferencesData({ enableTagFilterIndex: isChecked });
   };
 
   onSearchLimitChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {

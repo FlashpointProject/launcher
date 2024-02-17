@@ -304,7 +304,12 @@ export function CuratePage(props: CuratePageProps) {
     const lastPlatform = (splitPlatforms.length > 0 ? splitPlatforms.pop() || '' : '').trim();
     if (platformText !== '') {
       window.Shared.back.request(BackIn.GET_PLATFORM_SUGGESTIONS, lastPlatform)
-      .then(setPlatformSuggestions);
+      .then((data) => {
+        if (data) {
+          setPlatformSuggestions(data);
+          console.log(data.length + ' platform suggs');
+        }
+      });
     } else {
       setPlatformSuggestions([]);
     }

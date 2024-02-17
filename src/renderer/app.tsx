@@ -430,6 +430,14 @@ export class App extends React.Component<AppProps> {
       });
     });
 
+    window.Shared.back.register(BackOut.SET_VIEW_SEARCH_STATUS, (event, viewId, status) => {
+      this.props.dispatchMain({
+        type: MainActionType.SET_VIEW_SEARCH_STATUS,
+        viewIdentifier: viewId,
+        searchStatus: status,
+      });
+    });
+
     window.Shared.back.register(BackOut.THEME_CHANGE, (event, theme) => {
       if (theme.id === this.props.preferencesData.currentTheme) { setTheme(theme); }
     });
@@ -583,15 +591,16 @@ export class App extends React.Component<AppProps> {
       });
     });
 
-    window.Shared.back.register(BackOut.POST_SYNC_CHANGES, (event, libraries, suggestions, platformAppPaths, total) => {
+    window.Shared.back.register(BackOut.POST_SYNC_CHANGES, (event, libraries, suggestions, platformAppPaths, cats, total) => {
       this.props.dispatchMain({
         type: MainActionType.POST_FPFSS_SYNC,
         libraries,
         suggestions,
         preferencesData: this.props.preferencesData,
         platformAppPaths,
-        total
+        total,
       });
+      this.props.setTagCategories(cats);
     });
 
     window.Shared.back.register(BackOut.SHORTCUT_REGISTER_COMMAND, (event, command, shortcuts) => {
@@ -1174,7 +1183,6 @@ export class App extends React.Component<AppProps> {
       window.Shared.back.request(BackIn.GET_GAME, gameId)
       .then(fetchedInfo => {
         if (fetchedInfo) {
-          console.log(`TYPE - ${typeof fetchedInfo.game.dateAdded}`);
           this.props.setMainState({
             currentGameInfo: fetchedInfo,
             currentPlaylistEntry: gamePlaylistEntry == null ? undefined : gamePlaylistEntry
@@ -1471,6 +1479,7 @@ export class App extends React.Component<AppProps> {
       updateFeedMarkdown: this.props.main.updateFeedMarkdown,
       componentStatuses: this.props.main.componentStatuses,
       openFlashpointManager: this.openFlashpointManager,
+      searchStatus: view ? view.searchStatus : null,
     };
 
     // Render

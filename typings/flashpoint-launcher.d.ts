@@ -597,6 +597,7 @@ declare module 'flashpoint-launcher' {
         name: string
         matchedFrom: string
         gamesCount: number
+        category?: string
     }
 
     type Game = {
@@ -798,7 +799,7 @@ declare module 'flashpoint-launcher' {
     };
 
     /** Game field to order the results by */
-    type GameOrderBy = keyof Game;
+    type GameOrderBy = 'custom' | 'title' | 'developer' | 'publisher' | 'series' | 'dateAdded' | 'dateModified' | 'releaseDate' | 'lastPlayed' | 'playtime' | 'platform';
     /** Ways to order games */
     type GameOrderReverse = 'ASC'|'DESC';
     /** Direction to return the results in (ascending or descending) */
@@ -1045,8 +1046,8 @@ declare module 'flashpoint-launcher' {
         enablePlaytimeTracking: boolean;
         /** Enable Playtime Tracking for Extreme games (last played, playtime, play count) */
         enablePlaytimeTrackingExtreme: boolean;
-        /** Whether to precache the Games and Tags tables in memory when booting */
-        precacheDatabase: boolean;
+        /** Enable tag filter indexing */
+        enableTagFilterIndex: boolean;
     };
 
     type GameDataSource = {

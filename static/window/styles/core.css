@@ -590,7 +590,7 @@ body {
 }
 .header__search__left > .input-dropdown > .input-dropdown__content {
   position: fixed;
-  width: inherit;
+  width: 20rem;
 }
 .header__search__right {
   flex: 0 0 auto;

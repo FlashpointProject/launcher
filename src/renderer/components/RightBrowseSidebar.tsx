@@ -554,7 +554,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   </div>
                   <div className='browse-right-sidebar__stats-row-bottom'>
                     <div className='browse-right-sidebar__stats-cell'>
-                      {game.lastPlayed ? formatLastPlayed(game.lastPlayed, strings) : strings.never}
+                      {game.lastPlayed ? formatLastPlayed(new Date(game.lastPlayed), strings) : strings.never}
                     </div>
                   </div>
                 </div>
@@ -1303,7 +1303,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
             name: text,
             aliases: [text],
             description: '',
-            dateModified: new Date(),
+            dateModified: (new Date()).toISOString(),
             category: 'default'
           };
           this.props.onEditGame({ tags: [...game.tags, tag.name]});
@@ -1339,7 +1339,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
             name: text,
             aliases: [text],
             description: '',
-            dateModified: new Date()
+            dateModified: (new Date()).toISOString()
           };
           const primary = game.platforms.length === 0 ? platform.name : game.primaryPlatform;
           this.props.onEditGame({ platforms: [...game.platforms, platform.name], primaryPlatform: primary });

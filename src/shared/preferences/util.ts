@@ -146,7 +146,7 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   gameMetadataSources: [],
   enablePlaytimeTracking: true,
   enablePlaytimeTrackingExtreme: true,
-  precacheDatabase: false,
+  enableTagFilterIndex: true,
 });
 
 /**
@@ -194,7 +194,7 @@ export function overwritePreferenceData(
   parser.prop('showDeveloperTab',              v => source.showDeveloperTab              = !!v, true);
   parser.prop('currentTheme',                  v => source.currentTheme                  = str(v), true);
   parser.prop('lastSelectedLibrary',           v => source.lastSelectedLibrary           = str(v), true);
-  parser.prop('gamesOrderBy',                  v => source.gamesOrderBy                  = strOpt(v, gameOrderByOptions,      'title'    ), true);
+  parser.prop('gamesOrderBy',                  v => source.gamesOrderBy                  = strOpt(v, gameOrderByOptions, 'title'), true);
   parser.prop('gamesOrder',                    v => source.gamesOrder                    = strOpt(v, gameOrderReverseOptions, 'ASC'), true);
   parser.prop('defaultLibrary',                v => source.defaultLibrary                = str(v), true);
   parser.prop('saveImportedCurations',         v => source.saveImportedCurations         = !!v, true);
@@ -220,7 +220,7 @@ export function overwritePreferenceData(
   parser.prop('curateServer',                  v => source.curateServer                  = str(v), true);
   parser.prop('enablePlaytimeTracking',        v => source.enablePlaytimeTracking        = !!v, true);
   parser.prop('enablePlaytimeTrackingExtreme', v => source.enablePlaytimeTrackingExtreme = !!v, true);
-  parser.prop('precacheDatabase',              v => source.precacheDatabase              = !!v, true);
+  parser.prop('enableTagFilterIndex',          v => source.enableTagFilterIndex          = !!v, true);
 
   // Migrate onDemandBaseUrl from the older FP url
   if (source.onDemandBaseUrl == 'https://infinity.unstable.life/Flashpoint/Data/Images/') {

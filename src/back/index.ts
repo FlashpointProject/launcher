@@ -687,15 +687,25 @@ async function initialize() {
   }
 
   const databasePath = path.resolve(state.config.flashpointPath, 'Data', 'flashpoint.sqlite');
-  fpDatabase.loadDatabase(databasePath);
-  const tagFilterSearch = parseUserSearchInput('');
-  tagFilterSearch.limit = 9999999999;
-  tagFilterSearch.filter.exactBlacklist.tags = state.preferences.tagFilters
-  .filter(t => t.enabled || (t.extreme && !state.preferences.browsePageShowExtreme))
-  .map(t => t.tags)
-  .reduce((prev, cur) => prev.concat(cur), []);
-  // Let the tag filter index generate
-  await fpDatabase.newTagFilterIndex(tagFilterSearch);
+  try {
+    fpDatabase.loadDatabase(databasePath);
+  } catch (e) {
+    state.socketServer.broadcast(BackOut.OPEN_ALERT, 'Failed to open database: ' + e);
+  }
+  if (state.preferences.enableTagFilterIndex) {
+    const tagFilterSearch = parseUserSearchInput('');
+    tagFilterSearch.limit = 9999999999;
+    tagFilterSearch.filter.exactBlacklist.tags = state.preferences.tagFilters
+    .filter(t => t.enabled || (t.extreme && !state.preferences.browsePageShowExtreme))
+    .map(t => t.tags)
+    .reduce((prev, cur) => prev.concat(cur), []);
+    // Let the tag filter index generate
+    try {
+      await fpDatabase.newTagFilterIndex(tagFilterSearch);
+    } catch (e) {
+      state.socketServer.broadcast(BackOut.OPEN_ALERT, 'Failed to generate tag filter index: ' + e);
+    }
+  }
 
   // Populate unique values
   state.suggestions = {

@@ -78,6 +78,7 @@ export type AppRouterProps = {
   componentStatuses: ComponentStatus[],
   openFlashpointManager: () => void,
   onMovePlaylistGame: (sourceIdx: number, destIdx: number) => void,
+  searchStatus: string | null,
 };
 
 export class AppRouter extends React.Component<AppRouterProps> {
@@ -119,6 +120,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       logoVersion: this.props.logoVersion,
       contextButtons: this.props.contextButtons,
       onMovePlaylistGame: this.props.onMovePlaylistGame,
+      searchStatus: this.props.searchStatus,
     };
     const configProps: ConnectedConfigPageProps = {
       themeList: this.props.themeList,

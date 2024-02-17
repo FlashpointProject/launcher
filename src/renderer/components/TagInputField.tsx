@@ -131,7 +131,7 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
     const icon = renderIconSugg ? renderIconSugg(suggestion) : (
       <OpenIcon
         className='tag-icon'
-        color={'#FFFFFF'}
+        color={this.props.categories.find(c => c.name === suggestion.category)?.color || '#FFFFFF'}
         key={index * 2}
         icon='tag'/>
     );

@@ -208,6 +208,7 @@ export enum BackOut {
   OPEN_PLACEHOLDER_DOWNLOAD_DIALOG,
   CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG,
   UPDATE_COMPONENT_STATUSES,
+  SET_VIEW_SEARCH_STATUS,
 
   // Metadata Sync
   POST_SYNC_CHANGES,
@@ -430,9 +431,10 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG]: () => void;
   [BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG]: () => void;
   [BackOut.UPDATE_COMPONENT_STATUSES]: (componentStatuses: ComponentStatus[]) => void;
+  [BackOut.SET_VIEW_SEARCH_STATUS]: (viewId: string, status: string | null) => void;
 
   // Metadata Sync
-  [BackOut.POST_SYNC_CHANGES]: (libraries: string[], suggestions: GamePropSuggestions, platformAppPaths: PlatformAppPathSuggestions, total: number) => void;
+  [BackOut.POST_SYNC_CHANGES]: (libraries: string[], suggestions: GamePropSuggestions, platformAppPaths: PlatformAppPathSuggestions, cats: TagCategory[], total: number) => void;
 
   // Curate
   [BackOut.CURATE_CONTENTS_CHANGE]: (folder: string, contents: ContentTree) => void;

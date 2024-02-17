@@ -46,6 +46,8 @@ export type View = {
   lastCount: number;
   /** Tag filters used when building */
   tagFilters: TagFilterGroup[];
+  /** Text to display during searching */
+  searchStatus: string | null;
 }
 
 export type ViewPageStates = Partial<Record<number, RequestState>>
@@ -167,7 +169,11 @@ export type MainAction = {
   orderReverse: GameOrderReverse;
   tagFilters: TagFilterGroup[];
   /** The playlistId can be of type string or undefined. Null means it will remain the same as before. */
-  playlist?: Playlist | null;
+  playlistId?: string;
+} | {
+  type: MainActionType.SET_VIEW_SEARCH_STATUS;
+  searchStatus: string | null;
+  viewIdentifier: string;
 } | {
   type: MainActionType.SET_VIEW_BOUNDRIES;
   viewIdentifier: string;

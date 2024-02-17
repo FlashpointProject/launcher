@@ -174,15 +174,17 @@ async function getPlatformsFromStr(platformsStr: string): Promise<Platform[]> {
   for (let index = 0; index < splitPlatforms.length; index++) {
     const platformName = splitPlatforms[index];
     const trimmedName = platformName.trim();
-    let platform = await fpDatabase.findPlatform(trimmedName);
-    if (!platform) {
+    if (trimmedName !== '' && trimmedName !== '[object Object]') {
+      let platform = await fpDatabase.findPlatform(trimmedName);
+      if (!platform) {
       // Tag doesn't exist, make a new one
-      platform = await fpDatabase.createPlatform(trimmedName);
-    }
-    if (platform !== null) {
+        platform = await fpDatabase.createPlatform(trimmedName);
+      }
+      if (platform !== null) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      if (platforms.findIndex(t => t.id === platform!.id) === -1) {
-        platforms.push(platform);
+        if (platforms.findIndex(t => t.id === platform!.id) === -1) {
+          platforms.push(platform);
+        }
       }
     }
   }
@@ -199,15 +201,17 @@ async function getTagsFromStr(tagsStr: string, tagCategoriesStr: string): Promis
     const tagName = splitTags[index];
     const trimmedName = tagName.trim();
     const category = splitCategories.length > index ? splitCategories[index].trim() : undefined;
-    let tag = await fpDatabase.findTag(trimmedName);
-    if (!tag) {
-      // Tag doesn't exist, make a new one
-      tag = await fpDatabase.createTag(trimmedName, category);
-    }
-    if (tag !== null) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      if (tags.findIndex(t => t.id === tag!.id) === -1) {
-        tags.push(tag);
+    if (trimmedName !== '' && trimmedName !== '[object Object]') {
+      let tag = await fpDatabase.findTag(trimmedName);
+      if (!tag) {
+        // Tag doesn't exist, make a new one
+        tag = await fpDatabase.createTag(trimmedName, category);
+      }
+      if (tag !== null) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        if (tags.findIndex(t => t.id === tag!.id) === -1) {
+          tags.push(tag);
+        }
       }
     }
   }

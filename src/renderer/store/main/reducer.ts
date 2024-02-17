@@ -62,6 +62,25 @@ export function mainStateReducer(state: MainState = createInitialState(), action
       };
     }
 
+    case MainActionType.SET_VIEW_SEARCH_STATUS: {
+      const view = state.views[action.viewIdentifier];
+
+      if (!view) { return state; }
+
+      const newView: View = {
+        ...view,
+        searchStatus: action.searchStatus
+      };
+
+      return {
+        ...state,
+        views: {
+          ...state.views,
+          [action.viewIdentifier]: newView,
+        },
+      };
+    }
+
     case MainActionType.SET_VIEW_BOUNDRIES: {
       const view = state.views[action.viewIdentifier];
 
@@ -526,6 +545,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
           lastStart: 0,
           lastCount: 0,
           tagFilters: [],
+          searchStatus: null,
         };
       }
 
@@ -603,6 +623,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
             lastStart: 0,
             lastCount: 0,
             tagFilters: [],
+            searchStatus: null
           };
         }
       }
