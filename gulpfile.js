@@ -185,6 +185,15 @@ function createVersionFile(done) {
 /* ------ Pack ------ */
 
 function nexusPack(done) {
+  const files = ["./build"];
+  // Forcefully include ia32 library since nexus builds ia32
+  if (process.platform === 'win32') {
+    files.push({
+      from: '../../node_modules/@fparchive/flashpoint-archive-win32-ia32-msvc',
+      to: './node_modules/@fparchive/flashpoint-archive-win32-ia32-msvc',
+      filter: ["**/*"]
+    });
+  }
   builder
     .build({
       targets: builder.Platform.WINDOWS.createTarget(),
@@ -196,7 +205,7 @@ function nexusPack(done) {
             buildResources: "./static/",
             output: "./dist/",
           },
-          files: ["./build"],
+          files: files,
           extraFiles: copyFiles, // Files to copy to the build folder
           extraResources: extraResources, // Copy System Extensions
           compression: "maximum", // Only used if a compressed target (like 7z, nsis, dmg etc.)
