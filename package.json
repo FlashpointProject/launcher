@@ -26,7 +26,7 @@
     "release:win32": "cross-env-shell NODE_ENV=production PUBLISH=true \"npm run build && npm run pack:win32\"",
     "release:darwin": "cross-env-shell NODE_ENV=production PUBLISH=true \"npm run build && npm run pack:darwin\"",
     "release:all": "cross-env-shell NODE_ENV=production PUBLISH=true \"npm run build && npm run pack:all\"",
-    "postinstall": "electron-builder install-app-deps & gulp extInstall",
+    "postinstall": "electron-builder install-app-deps & gulp extInstall & node postinstall.mjs",
     "clean": "gulp clean"
   },
   "author": {
@@ -39,7 +39,7 @@
     "@fortawesome/fontawesome-svg-core": "1.2.36",
     "@fortawesome/free-solid-svg-icons": "5.15.4",
     "@fortawesome/react-fontawesome": "0.1.18",
-    "@fparchive/flashpoint-archive": "^0.3.0",
+    "@fparchive/flashpoint-archive": "0.4.3",
     "@types/react-virtualized": "^9.21.21",
     "axios": "1.3.4",
     "connected-react-router": "6.9.2",
