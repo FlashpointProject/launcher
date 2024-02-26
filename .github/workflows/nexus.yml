@@ -21,10 +21,10 @@ jobs:
         auth_header="$(git config --local --get http.https://github.com/.extraheader)"
         git submodule sync --recursive
         git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
-    - name: Use Node.js 18.x
+    - name: Use Node.js 20.x
       uses: actions/setup-node@v3
       with:
-        node-version: 18
+        node-version: 20
     - uses: actions/cache@v3
       id: cache
       with:
@@ -40,6 +40,7 @@ jobs:
       env:
         NODE_ENV: "production"
         PACK_ARCH: "ia32"
+        PACK_PLATFORM: "win32"
       run: npm run build
     - name: Pack
       run: npm run nexusPack

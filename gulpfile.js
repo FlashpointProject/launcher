@@ -105,6 +105,48 @@ const publishInfo = [
   },
 ];
 
+/* - Cross Arch Deps - */
+
+function installCrossDeps(done) {
+  if (process.env.PACK_ARCH || process.env.PACK_PLATFORM) {
+    console.log('Checking for installed cross-platform packages...');
+    // Get existing version of FP Archive
+    const packageLock = JSON.parse(fs.readFileSync('./package-lock.json', { encoding: 'utf-8' }));
+    const fpa = packageLock.packages['node_modules/@fparchive/flashpoint-archive'];
+
+    const platform = process.env.PACK_PLATFORM || process.platform;
+    const arch = process.env.PACK_ARCH || process.arch;
+    console.log(`Platform: ${platform} - Arch: ${arch}`);
+
+    const packageName = Object.keys(fpa.optionalDependencies).find(p => p.includes(`${platform}-${arch}`));
+    if (!packageName) {
+      console.log('No package found for this platform and arch combination, skipping...');
+      done();
+      return;
+    }
+    const packageLocation = 'node_modules/' + packageName;
+    try {
+      const existingInfo = JSON.parse(fs.readFileSync(packageLocation + '/package.json', { encoding: 'utf-8' }));
+      if (existingInfo.version === fpa.version) {
+        // Already exists, up to date
+        done();
+        return;
+      } else {
+        console.log(`Removed old version (${existingInfo.version})`);
+        // Wrong version, delete and replace
+        fs.removeSync(packageLocation);
+      }
+    } catch {
+      // Pacakge not installed, carry on
+    }
+
+    execSync(`npm install --no-save --force ${packageName}@${fpa.version}`);
+    console.log(`Installed ${packageName}@${fpa.version}`);
+  }
+  done();
+}
+
+
 /* ------ Watch ------ */
 
 function watchBack(done) {
@@ -124,7 +166,7 @@ function watchStatic() {
 
 function buildRust(done) {
   const targetOption =
-    process.env.PACK_ARCH === "ia32" ? "--target i686-pc-windows-msvc" : "";
+    process.env.PACK_ARCH === "ia32" ? "--target i686-pc-windows-gnu" : "";
   const releaseOption = config.isRelease ? "--release" : "";
   execute(
     `npx cargo-cp-artifact -a cdylib fp-rust ./build/back/fp-rust.node -- cargo build ${targetOption} ${releaseOption} --message-format=json-render-diagnostics`,
@@ -319,9 +361,13 @@ exports.watch = series(
   )
 );
 
-exports.pack = series(pack);
+exports.pack = series(
+  installCrossDeps,
+  pack
+);
 
 exports.nexusPack = series(
+  installCrossDeps,
   installExtensions,
   buildExtensions,
   nexusPack
