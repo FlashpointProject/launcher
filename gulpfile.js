@@ -166,7 +166,11 @@ function watchStatic() {
 
 function buildRust(done) {
   const targetOption =
-    process.env.PACK_ARCH === "ia32" ? "--target i686-pc-windows-gnu" : "";
+    process.env.PACK_ARCH === "ia32" ? 
+      (process.env.GITHUB_WORKFLOW ? // Use msvc with github actions
+      "--target i686-pc-windows-msvc" :
+      "--target i686-pc-windows-gnu")
+     : "";
   const releaseOption = config.isRelease ? "--release" : "";
   execute(
     `npx cargo-cp-artifact -a cdylib fp-rust ./build/back/fp-rust.node -- cargo build ${targetOption} ${releaseOption} --message-format=json-render-diagnostics`,
