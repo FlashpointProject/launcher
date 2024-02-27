@@ -38,7 +38,11 @@ jobs:
         PACK_ARCH: "ia32"
         PACK_PLATFORM: "win32"
       run: npm run build
+    - name: Create wine prefix folder
+      run: mkdir /__w/launcher/launcher/wine
     - name: Pack
+      env:
+        WINEPREFIX: "/__w/launcher/launcher/wine"
       run: npm run nexusPack
     - name: Generate Metadata
       run: |
