@@ -46,7 +46,7 @@ jobs:
       run: npm run nexusPack
     - name: Generate Metadata
       run: |
-        sudo apt install libarchive-zip-perl -y
+        apt-get install libarchive-zip-perl -y
         jq --null-input \
           --arg name     "Launcher" \
           --arg desc     "Launcher for browsing and running games" \
