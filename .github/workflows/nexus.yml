@@ -46,6 +46,7 @@ jobs:
       run: npm run nexusPack
     - name: Generate Metadata
       run: |
+        apt-get update
         apt-get install libarchive-zip-perl -y
         jq --null-input \
           --arg name     "Launcher" \
