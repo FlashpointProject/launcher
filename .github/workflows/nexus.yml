@@ -47,7 +47,7 @@ jobs:
     - name: Generate Metadata
       run: |
         apt-get update
-        apt-get install libarchive-zip-perl -y
+        apt-get install libarchive-zip-perl p7zip jq -y
         jq --null-input \
           --arg name     "Launcher" \
           --arg desc     "Launcher for browsing and running games" \
