@@ -129,6 +129,7 @@ function installCrossDeps(done) {
 
   // Remove old packages
   for (const bp of badPackages) {
+    console.log(`Removing: ${bp.path + bp.name}`);
     fs.removeSync(bp.path + bp.name);
   }
 
