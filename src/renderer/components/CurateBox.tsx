@@ -243,12 +243,12 @@ export function CurateBox(props: CurateBoxProps) {
     }, {
       type: 'separator'
     }];
-    if (node.type === 'file') {
+    if (node.nodeType === 'file') {
       contextButtons.push({
         label: strings.curate.contextShowInExplorer,
         click: () => remote.shell.showItemInFolder(path.join(window.Shared.config.fullFlashpointPath, CURATIONS_FOLDER_WORKING, props.curation.folder, 'content', tree.join(path.sep)))
       });
-    } else if (node.type === 'directory') {
+    } else if (node.nodeType === 'directory') {
       contextButtons.push({
         label: strings.curate.contextOpenFolderInExplorer,
         click: () => remote.shell.openExternal(path.join(window.Shared.config.fullFlashpointPath, CURATIONS_FOLDER_WORKING, props.curation.folder, 'content', tree.join(path.sep)))
@@ -266,7 +266,7 @@ export function CurateBox(props: CurateBoxProps) {
     for (let i = 0; i < depth; i++) {
       depthDivs.push(<div className='curate-box-content__depth' key={`${i}`} style={{ width: '1rem' }}/>);
     }
-    switch (node.type) {
+    switch (node.nodeType) {
       case 'directory': {
         const children = node.expanded ? node.children.map((node, index) => renderContentNode(depth + 1, node, index, tree.concat([node.name]), launchPath))
         .reduce<JSX.Element[]>((prev, next) => Array.isArray(next) ? prev.concat(next) : [...prev, next], []) : [];
@@ -302,6 +302,7 @@ export function CurateBox(props: CurateBoxProps) {
             <div>{node.name} ({sizeToString(node.size || 0)})</div>
           </div>
         );
+      default: return <></>;
     }
   }
 

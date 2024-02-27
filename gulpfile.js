@@ -190,20 +190,6 @@ function watchStatic() {
 
 /* ------ Build ------ */
 
-function buildRust(done) {
-  const targetOption =
-    process.env.PACK_ARCH === "ia32" ? 
-      (process.env.GITHUB_WORKFLOW ? // Use msvc with github actions
-      "--target i686-pc-windows-msvc" :
-      "--target i686-pc-windows-gnu")
-     : "";
-  const releaseOption = config.isRelease ? "--release" : "";
-  execute(
-    `npx cargo-cp-artifact -a cdylib fp-rust ./build/back/fp-rust.node -- cargo build ${targetOption} ${releaseOption} --message-format=json-render-diagnostics`,
-    done
-  );
-}
-
 function buildBack(done) {
   execute("npx ttsc --project tsconfig.backend.json --pretty", done);
 }
@@ -282,7 +268,6 @@ function nexusPack(done) {
           extraResources: extraResources, // Copy System Extensions
           compression: "maximum", // Only used if a compressed target (like 7z, nsis, dmg etc.)
           asar: true,
-          asarUnpack: ["**/fp-rust.node"],
           artifactName: "${productName}.${ext}",
           win: {
             target: [
@@ -326,7 +311,6 @@ function pack(done) {
           compression: "maximum", // Only used if a compressed target (like 7z, nsis, dmg etc.)
           target: "dir",
           asar: true,
-          asarUnpack: ["**/fp-rust.node"],
           publish: publish,
           artifactName: "${productName}-${version}_${os}-${arch}.${ext}",
           win: {
@@ -390,7 +374,6 @@ exports.build = series(
   createVersionFile,
   installCrossDeps,
   parallel(
-    buildRust,
     buildBack,
     buildRenderer,
     buildExtensions,
@@ -404,7 +387,6 @@ exports.watch = series(
   createVersionFile,
   installCrossDeps,
   parallel(
-    buildRust,
     watchBack,
     watchRenderer,
     watchExtensions,

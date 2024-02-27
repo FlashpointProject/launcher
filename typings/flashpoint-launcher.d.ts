@@ -1346,7 +1346,7 @@ declare module 'flashpoint-launcher' {
         expanded: boolean;
         /** File size (if type is file) */
         size?: number;
-        type: 'file' | 'directory';
+        nodeType: 'file' | 'directory' | string;
         /** Immediate items below this node */
         children: ContentTreeNode[];
         /** Number of items below this node */
