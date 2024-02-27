@@ -350,7 +350,7 @@ exports.clean = series(clean);
 exports.build = series(
   clean,
   createVersionFile,
-  installCrossDeps,
+//  installCrossDeps,
   parallel(
     buildRust,
     buildBack,
@@ -364,7 +364,7 @@ exports.build = series(
 exports.watch = series(
   clean,
   createVersionFile,
-  installCrossDeps,
+//  installCrossDeps,
   parallel(
     buildRust,
     watchBack,
