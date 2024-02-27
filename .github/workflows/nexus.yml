@@ -10,8 +10,8 @@ on:
 
 jobs:
   build:
-    name: Build
-    runs-on: windows-2019
+    name: Build and Deploy
+    runs-on: ubuntu-latest
         
     steps:
     - uses: actions/checkout@v3
@@ -32,7 +32,7 @@ jobs:
           **/node_modules
         key: ${{ runner.os }}-${{ hashFiles('package.json') }}
     - name: Install Dependencies
-      run: npm install --force
+      run: npm install
       if: steps.cache.outputs.cache-hit != 'true'
       env:
         CI: true
@@ -44,24 +44,6 @@ jobs:
       run: npm run build
     - name: Pack
       run: npm run nexusPack
-    - name: Temporarily save zip
-      uses: actions/upload-artifact@v3
-      with:
-        name: zip-artifact
-        path: dist/Flashpoint.zip
-        retention-days: 1
-
-  deploy:
-    name: Deploy
-    runs-on: ubuntu-latest
-    needs: build
-
-    steps:
-    - name: Pass zip to Linux runner
-      uses: actions/download-artifact@v3
-      with:
-        name: zip-artifact
-        path: dist/
     - name: Generate Metadata
       run: |
         sudo apt install libarchive-zip-perl -y
