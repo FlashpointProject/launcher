@@ -2,10 +2,16 @@
 const fs = require("fs-extra");
 const gulp = require("gulp");
 const builder = require("electron-builder");
+const tar = require("tar-fs");
+const zlib = require("zlib");
 const { parallel, series } = require("gulp");
 const { installExtensions, buildExtensions, watchExtensions } = require("./gulpfile.extensions");
 const { execute } = require("./gulpfile.util");
 const { execSync } = require('child_process');
+const { promisify } = require("util");
+
+// Promisify the pipeline function
+const pipeline = promisify(require("stream").pipeline);
 
 const packageJson = JSON.parse(fs.readFileSync("./package.json", { encoding: 'utf-8' }));
 const config = {
@@ -149,9 +155,21 @@ function installCrossDeps(done) {
     // Pacakge not installed, carry on
   }
 
-  execSync(`npm install --no-save --force ${packageName}@${fpa.version}`);
-  console.log(`Installed ${packageName}@${fpa.version}`);
-  done();
+  const packageFilename = `fparchive-${packageName.split('/')[1]}-${fpa.version}.tgz`;
+  execSync(`npm pack ${packageName}@${fpa.version}`);
+  console.log('Unpacking ' + packageFilename);
+  // Extract and move all files to new folder
+  extractTarball(packageFilename, "./package-extract")
+  .then(() => {
+    fs.removeSync(packageFilename);
+    fs.mkdirSync(`./node_modules/${packageName}`, { recursive: true });
+    for (const file of fs.readdirSync('./package-extract/package/')) {
+      fs.moveSync('./package-extract/package/' + file, packageLocation + '/' + file);
+    }
+    fs.removeSync('./package-extract');
+    console.log(`Installed ${packageName}@${fpa.version}`);
+    done();
+  });
 }
 
 
@@ -343,6 +361,26 @@ function clean(done) {
   });
 }
 
+/* ------ Util ------ */
+
+async function extractTarball(inputFilePath, outputDirectory) {
+  try {
+      // Create a readable stream from the input file
+      const readStream = fs.createReadStream(inputFilePath);
+
+      // Pipe the readable stream through zlib.createGunzip() and then through tar.extract()
+      await pipeline(
+          readStream,
+          zlib.createGunzip(),
+          tar.extract(outputDirectory)
+      );
+
+      console.log('Extraction complete.');
+  } catch (error) {
+      console.error('Extraction failed:', error);
+  }
+}
+
 /* ------ Meta Tasks ------*/
 
 exports.clean = series(clean);
@@ -350,7 +388,7 @@ exports.clean = series(clean);
 exports.build = series(
   clean,
   createVersionFile,
-//  installCrossDeps,
+  installCrossDeps,
   parallel(
     buildRust,
     buildBack,
@@ -364,7 +402,7 @@ exports.build = series(
 exports.watch = series(
   clean,
   createVersionFile,
-//  installCrossDeps,
+  installCrossDeps,
   parallel(
     buildRust,
     watchBack,
