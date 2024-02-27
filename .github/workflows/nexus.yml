@@ -47,13 +47,13 @@ jobs:
     - name: Generate Metadata
       run: |
         apt-get update
-        apt-get install libarchive-zip-perl p7zip jq -y
+        apt-get install libarchive-zip-perl p7zip-full jq -y
         jq --null-input \
           --arg name     "Launcher" \
           --arg desc     "Launcher for browsing and running games" \
           --arg date     $(date +%s) \
           --arg download $(du -b dist/Flashpoint.zip | awk '{print $1}') \
-          --arg install  $(7za l dist/Flashpoint.zip | tail -n 1 | awk '{print $3}') \
+          --arg install  $(7z l dist/Flashpoint.zip | tail -n 1 | awk '{print $3}') \
           --arg path     "Launcher" \
           --arg depends  "core-logos core-credits core-database core-server-gamezip core-server-legacy" \
           --arg hash     $(crc32 dist/Flashpoint.zip) \
