@@ -108,41 +108,48 @@ const publishInfo = [
 /* - Cross Arch Deps - */
 
 function installCrossDeps(done) {
-  if (process.env.PACK_ARCH || process.env.PACK_PLATFORM) {
-    console.log('Checking for installed cross-platform packages...');
-    // Get existing version of FP Archive
-    const packageLock = JSON.parse(fs.readFileSync('./package-lock.json', { encoding: 'utf-8' }));
-    const fpa = packageLock.packages['node_modules/@fparchive/flashpoint-archive'];
+  console.log('Checking for installed cross-platform packages...');
+  // Get existing version of FP Archive
+  const packageLock = JSON.parse(fs.readFileSync('./package-lock.json', { encoding: 'utf-8' }));
+  const fpa = packageLock.packages['node_modules/@fparchive/flashpoint-archive'];
 
-    const platform = process.env.PACK_PLATFORM || process.platform;
-    const arch = process.env.PACK_ARCH || process.arch;
-    console.log(`Platform: ${platform} - Arch: ${arch}`);
+  const platform = process.env.PACK_PLATFORM || process.platform;
+  const arch = process.env.PACK_ARCH || process.arch;
+  console.log(`Platform: ${platform} - Arch: ${arch}`);
 
-    const packageName = Object.keys(fpa.optionalDependencies).find(p => p.includes(`${platform}-${arch}`));
-    if (!packageName) {
-      console.log('No package found for this platform and arch combination, skipping...');
+  const packageName = Object.keys(fpa.optionalDependencies).find(p => p.includes(`${platform}-${arch}`));
+  if (!packageName) {
+    console.log('No package found for this platform and arch combination, skipping...');
+    done();
+    return;
+  }
+  // List installed deps for fparchive
+  const packageLocation = 'node_modules/' + packageName;
+  const badPackages = fs.readdirSync('node_modules/@fparchive/', { withFileTypes: true }).filter(m => m.isDirectory() && m.name !== 'flashpoint-archive' && ('@fparchive/' + m.name) !== packageName);
+
+  // Remove old packages
+  for (const bp of badPackages) {
+    fs.removeSync(bp.path + bp.name);
+  }
+
+  try {
+    // Check if required version already exists and exit early if matches version needed
+    const existingInfo = JSON.parse(fs.readFileSync(packageLocation + '/package.json', { encoding: 'utf-8' }));
+    if (existingInfo.version === fpa.version) {
+      // Already exists, up to date
       done();
       return;
+    } else {
+      console.log(`Removed old version (${existingInfo.version})`);
+      // Wrong version, delete and replace
+      fs.removeSync(packageLocation);
     }
-    const packageLocation = 'node_modules/' + packageName;
-    try {
-      const existingInfo = JSON.parse(fs.readFileSync(packageLocation + '/package.json', { encoding: 'utf-8' }));
-      if (existingInfo.version === fpa.version) {
-        // Already exists, up to date
-        done();
-        return;
-      } else {
-        console.log(`Removed old version (${existingInfo.version})`);
-        // Wrong version, delete and replace
-        fs.removeSync(packageLocation);
-      }
-    } catch {
-      // Pacakge not installed, carry on
-    }
-
-    execSync(`npm install --no-save --force ${packageName}@${fpa.version}`);
-    console.log(`Installed ${packageName}@${fpa.version}`);
+  } catch {
+    // Pacakge not installed, carry on
   }
+
+  execSync(`npm install --no-save --force ${packageName}@${fpa.version}`);
+  console.log(`Installed ${packageName}@${fpa.version}`);
   done();
 }
 
@@ -342,6 +349,7 @@ exports.clean = series(clean);
 exports.build = series(
   clean,
   createVersionFile,
+  installCrossDeps,
   parallel(
     buildRust,
     buildBack,
@@ -355,6 +363,7 @@ exports.build = series(
 exports.watch = series(
   clean,
   createVersionFile,
+  installCrossDeps,
   parallel(
     buildRust,
     watchBack,
@@ -366,12 +375,10 @@ exports.watch = series(
 );
 
 exports.pack = series(
-  installCrossDeps,
   pack
 );
 
 exports.nexusPack = series(
-  installCrossDeps,
   installExtensions,
   buildExtensions,
   nexusPack
