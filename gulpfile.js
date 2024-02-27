@@ -125,7 +125,7 @@ function installCrossDeps(done) {
   }
   // List installed deps for fparchive
   const packageLocation = 'node_modules/' + packageName;
-  const badPackages = fs.readdirSync('node_modules/@fparchive/', { withFileTypes: true }).filter(m => m.isDirectory() && m.name !== 'flashpoint-archive' && ('@fparchive/' + m.name) !== packageName);
+  const badPackages = fs.readdirSync('./node_modules/@fparchive/', { withFileTypes: true }).filter(m => m.isDirectory() && m.name !== 'flashpoint-archive' && ('@fparchive/' + m.name) !== packageName);
 
   // Remove old packages
   for (const bp of badPackages) {
