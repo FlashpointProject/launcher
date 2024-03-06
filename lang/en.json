@@ -34,6 +34,8 @@
     "enablePlaytimeTrackingExtremeDesc": "Allow tracking last played date, total playtime and play count for Extreme games.",
     "enableTagFilterIndex": "Tag Filter Index",
     "enableTagFilterIndexDesc": "Enable use of the Tag Filter Index to speed up lots of queries",
+    "enableVerboseLogging": "Verbose Logging",
+    "enableVerboseLoggingDesc": "Enables verbose logging for external libraries.",
     "clearPlaytimeTracking": "Clear Playtime Data",
     "clearPlaytimeTrackingDesc": "Clears last played, total playtime and play count for every game. Irreversible.",
     "clearData": "Clear Data",

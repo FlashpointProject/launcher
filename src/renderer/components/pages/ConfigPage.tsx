@@ -287,6 +287,12 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                     icon='plus' />
                 </div>
               </ConfigBox>
+              {/* Verbose Logging */}
+              <ConfigBoxCheckbox
+                title={strings.enableVerboseLogging}
+                description={strings.enableVerboseLoggingDesc}
+                checked={this.props.preferencesData.enableVerboseLogging}
+                onToggle={this.onVerboseLoggingToggle} />
             </div>
           </div>
 
@@ -804,6 +810,10 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   onTagFilterIndexToggle = (isChecked: boolean): void => {
     updatePreferencesData({ enableTagFilterIndex: isChecked });
+  };
+
+  onVerboseLoggingToggle = (isChecked: boolean): void => {
+    updatePreferencesData({ enableVerboseLogging: isChecked });
   };
 
   onSearchLimitChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {

@@ -1048,6 +1048,8 @@ declare module 'flashpoint-launcher' {
         enablePlaytimeTrackingExtreme: boolean;
         /** Enable tag filter indexing */
         enableTagFilterIndex: boolean;
+        /** Use verbose logging for the rust library */
+        enableVerboseLogging: boolean;
     };
 
     type GameDataSource = {

@@ -147,6 +147,7 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   enablePlaytimeTracking: true,
   enablePlaytimeTrackingExtreme: true,
   enableTagFilterIndex: true,
+  enableVerboseLogging: false,
 });
 
 /**
@@ -221,6 +222,7 @@ export function overwritePreferenceData(
   parser.prop('enablePlaytimeTracking',        v => source.enablePlaytimeTracking        = !!v, true);
   parser.prop('enablePlaytimeTrackingExtreme', v => source.enablePlaytimeTrackingExtreme = !!v, true);
   parser.prop('enableTagFilterIndex',          v => source.enableTagFilterIndex          = !!v, true);
+  parser.prop('enableVerboseLogging',          v => source.enableVerboseLogging          = !!v, true);
 
   // Migrate onDemandBaseUrl from the older FP url
   if (source.onDemandBaseUrl == 'https://infinity.unstable.life/Flashpoint/Data/Images/') {

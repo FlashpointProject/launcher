@@ -1,4 +1,4 @@
-import { RemoteCategory, RemoteDeletedGamesRes, RemoteGamesRes, RemotePlatform, RemoteTag } from '@fparchive/flashpoint-archive';
+import { GameRedirect, RemoteCategory, RemoteDeletedGamesRes, RemoteGamesRes, RemotePlatform, RemoteTag } from '@fparchive/flashpoint-archive';
 import axios from 'axios';
 import { GameMetadataSource } from 'flashpoint-launcher';
 import { camelCase, transform } from 'lodash';
@@ -130,6 +130,21 @@ export async function syncGames(source: GameMetadataSource, dataPacksFolder: str
   await fpDatabase.updateDeleteGames(data);
 
   return new Date(lastDate);
+}
+
+export async function syncRedirects(source: GameMetadataSource): Promise<void> {
+  const gamesUrl = `${source.baseUrl}/api/game-redirects`;
+  const res = await axios.get(gamesUrl)
+  .catch((err) => {
+    throw 'Failed to search game redirects';
+  });
+
+  const data = res.data.map((d: any) => { return {
+    sourceId: d.source_id,
+    destId: d.id
+  };}) as any as Array<GameRedirect>;
+  console.log('applying redirects');
+  await fpDatabase.updateApplyRedirects(data);
 }
 
 export async function getMetaUpdateInfo(source: GameMetadataSource, accurate?: boolean, fromScratch?: boolean): Promise<number> {

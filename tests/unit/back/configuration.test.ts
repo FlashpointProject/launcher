@@ -178,6 +178,7 @@ describe('Configuration Files', () => {
       'enablePlaytimeTracking': false,
       'enablePlaytimeTrackingExtreme': false,
       'enableTagFilterIndex': false,
+      'enableVerboseLogging': true,
     };
     const newData = deepCopy(defaultPreferencesData);
     overwritePreferenceData(newData, data);

@@ -33,7 +33,7 @@ import {
   CURATIONS_FOLDER_WORKING, CURATION_META_FILENAMES
 } from '@shared/constants';
 import axios from 'axios';
-import { FlashpointArchive, parseUserSearchInput } from '@fparchive/flashpoint-archive';
+import { FlashpointArchive, enableDebug, parseUserSearchInput } from '@fparchive/flashpoint-archive';
 import { Game, GameData, Playlist, PlaylistGame } from 'flashpoint-launcher';
 import { Tail } from 'tail';
 import { ConfigFile } from './ConfigFile';
@@ -684,6 +684,10 @@ async function initialize() {
   } catch (error) {
     console.log('Failed to create default Data Packs folder!');
     // Non-fatal, don't quit.
+  }
+
+  if (state.preferences.enableVerboseLogging) {
+    enableDebug();
   }
 
   const databasePath = path.resolve(state.config.flashpointPath, 'Data', 'flashpoint.sqlite');

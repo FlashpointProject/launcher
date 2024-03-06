@@ -49,7 +49,7 @@ import { fpDatabase, loadCurationArchive, onDidUninstallGameData, onWillUninstal
 import { importGames, importPlatforms, importTagCategories, importTags } from './metadataImport';
 import { addPlaylistGame, deletePlaylist, deletePlaylistGame, duplicatePlaylist, filterPlaylists, getPlaylistGame, importPlaylist, savePlaylistGame, updatePlaylist } from './playlist';
 import { copyFolder, genContentTree } from './rust';
-import { getMetaUpdateInfo, syncGames, syncPlatforms, syncTags } from './sync';
+import { getMetaUpdateInfo, syncGames, syncPlatforms, syncRedirects, syncTags } from './sync';
 import { BackState, MetadataRaw, TagsFile } from './types';
 import { pathToBluezip } from './util/Bluezip';
 import { pathTo7zBack } from './util/SevenZip';
@@ -374,6 +374,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         const progress = chunk / chunks;
         state.socketServer.broadcast(BackOut.UPDATE_DIALOG_FIELD_VALUE, dialogId, 'progress', progress * 100);
       });
+      await syncRedirects(source);
       if (sourceIdx !== -1) {
         state.preferences.gameMetadataSources[sourceIdx].games.latestUpdateTime = lastDate.toISOString();
         state.preferences.gameMetadataSources[sourceIdx].games.actualUpdateTime = newDate.toISOString();
@@ -1326,6 +1327,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     // --- GAMES ----
 
     // Collect games
+
     const search = parseUserSearchInput('');
     search.limit = 5000;
     let games = await fpDatabase.searchGames(search);

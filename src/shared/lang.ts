@@ -37,6 +37,8 @@ const langTemplate = {
     'enablePlaytimeTrackingDesc',
     'enableTagFilterIndex',
     'enableTagFilterIndexDesc',
+    'enableVerboseLogging',
+    'enableVerboseLoggingDesc',
     'enablePlaytimeTrackingExtreme',
     'enablePlaytimeTrackingExtremeDesc',
     'clearPlaytimeTracking',
