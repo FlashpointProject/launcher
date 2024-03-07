@@ -1,13 +1,15 @@
+import { ExtConfigFile } from '@back/ExtConfigFile';
+import { DisposableChildProcess, ManagedChildProcess } from '@back/ManagedChildProcess';
 import { EXT_CONFIG_FILENAME, PREFERENCES_FILENAME } from '@back/constants';
 import { loadCurationIndexImage } from '@back/curate/parse';
 import { duplicateCuration, genCurationWarnings, makeCurationFromGame, refreshCurationContent } from '@back/curate/util';
 import { saveCuration } from '@back/curate/write';
-import { ExtConfigFile } from '@back/ExtConfigFile';
-import { DisposableChildProcess, ManagedChildProcess } from '@back/ManagedChildProcess';
+import { downloadGameData } from '@back/download';
 import { genContentTree } from '@back/rust';
 import { BackState, StatusState } from '@back/types';
+import { pathTo7zBack } from '@back/util/SevenZip';
+import { awaitDialog } from '@back/util/dialog';
 import { clearDisposable, dispose, newDisposable, registerDisposable } from '@back/util/lifecycle';
-import { addPlaylistGame, deletePlaylist, deletePlaylistGame, filterPlaylists, findPlaylist, findPlaylistByName, getPlaylistGame, savePlaylistGame, updatePlaylist } from '../playlist';
 import {
   deleteCuration,
   getOpenMessageBoxFunc,
@@ -17,31 +19,29 @@ import {
   runService,
   setStatus
 } from '@back/util/misc';
-import { pathTo7zBack } from '@back/util/SevenZip';
+import { BrowsePageLayout, ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
+import { ILogEntry, LogLevel } from '@shared/Log/interface';
 import { BackOut } from '@shared/back/types';
-import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
 import { CurationMeta, LoadedCuration } from '@shared/curate/types';
 import { getContentFolderByKey } from '@shared/curate/util';
 import { CurationTemplate, IExtensionManifest } from '@shared/extensions/interfaces';
 import { ProcessState, Task } from '@shared/interfaces';
-import { ILogEntry, LogLevel } from '@shared/Log/interface';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { overwritePreferenceData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import * as flashpoint from 'flashpoint-launcher';
+import { Game } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as fsExtra from 'fs-extra';
 import { extractFull } from 'node-7z';
 import * as path from 'path';
 import { fpDatabase, loadCurationArchive } from '..';
+import { addPlaylistGame, deletePlaylist, deletePlaylistGame, filterPlaylists, findPlaylist, findPlaylistByName, getPlaylistGame, savePlaylistGame, updatePlaylist } from '../playlist';
 import { newExtLog } from './ExtensionUtils';
 import { Command, RegisteredMiddleware } from './types';
 import uuid = require('uuid');
-import { awaitDialog } from '@back/util/dialog';
 import stream = require('stream');
-import { Game } from 'flashpoint-launcher';
-import { downloadGameData } from '@back/download';
 
 /**
  * Create a Flashpoint API implementation specific to an extension, used during module load interception
@@ -661,6 +661,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     ProcessState: ProcessState,
     BrowsePageLayout: BrowsePageLayout,
     LogLevel: LogLevel,
+    ScreenshotPreviewMode: ScreenshotPreviewMode,
 
     // Disposable funcs
     dispose: dispose,

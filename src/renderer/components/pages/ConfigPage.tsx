@@ -34,6 +34,7 @@ import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import * as Coerce from '@shared/utils/Coerce';
 import { Spinner } from '../Spinner';
 import { SimpleButton } from '../SimpleButton';
+import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
 
 const { num } = Coerce;
 
@@ -326,6 +327,23 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 onChange={this.onCurrentLogoSetChange}
                 onItemSelect={this.onCurrentLogoSetSelect}
                 bottomChildren={logoSetPreviewRows}/>
+              {/* Screenshot Preview Mode */}
+              <ConfigBoxSelect
+                title={strings.screenshotPreviewMode}
+                description={strings.screenshotPreviewModeDesc}
+                value={this.props.preferencesData.screenshotPreviewMode}
+                items={this.itemizeScreenshotPreviewModes(strings)}
+                onChange={this.onScreenshotPreviewModeChange}
+              />
+              <ConfigBoxSelectInput
+                title={strings.screenshotPreviewDelay}
+                description={strings.screenshotPreviewDelayDesc}
+                editable={true}
+                text={this.props.preferencesData.screenshotPreviewDelay.toString()}
+                placeholder='250'
+                onChange={this.onScreenshotPreviewDelayChange}
+                onItemSelect={this.onScreenshotPreviewDelayChange}
+                items={['0', '150', '250', '350', '500', '750', '1000']}/>
             </div>
           </div>
 
@@ -429,8 +447,8 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     );
   }
 
-  itemizeLangOptionsMemo = memoizeOne((langs: LangFile[], autoString: string): SelectItem[] => {
-    const items: SelectItem[] = langs.map((lang) => {
+  itemizeLangOptionsMemo = memoizeOne((langs: LangFile[], autoString: string): SelectItem<string>[] => {
+    const items: SelectItem<string>[] = langs.map((lang) => {
       return {
         value: lang.code,
         display: lang.data.name ? `${lang.data.name} (${lang.code})` : lang.code
@@ -441,7 +459,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     return items;
   });
 
-  itemizeServerOptionsMemo = memoizeOne((serverNames: string[]): SelectItem[] =>
+  itemizeServerOptionsMemo = memoizeOne((serverNames: string[]): SelectItem<string>[] =>
     serverNames.map((name) => {
       return {
         value: name
@@ -449,7 +467,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     })
   );
 
-  itemizeSearchLimitOptionsMemo = memoizeOne( (strings: LangContainer['config']): SelectItem[] => {
+  itemizeSearchLimitOptionsMemo = memoizeOne( (strings: LangContainer['config']): SelectItem<string>[] => {
     return [
       {
         value: '0',
@@ -482,6 +500,23 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       {
         value: '5000',
         display: formatString(strings.searchLimitValue, '5000') as string
+      }
+    ];
+  });
+
+  itemizeScreenshotPreviewModes = memoizeOne( (strings: LangContainer['config']): SelectItem<number>[] => {
+    return [
+      {
+        value: ScreenshotPreviewMode.OFF,
+        display: strings.screenshotPreviewModeOff
+      },
+      {
+        value: ScreenshotPreviewMode.ON,
+        display: strings.screenshotPreviewModeOn
+      },
+      {
+        value: ScreenshotPreviewMode.ALWAYS,
+        display: strings.screenshotPreviewModeAlways
       }
     ];
   });
@@ -1052,6 +1087,14 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     updatePreferencesDataAsync({ currentLogoSet: logoSet ? logoSet.id : undefined });
   };
 
+  onScreenshotPreviewModeChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
+    updatePreferencesData({ screenshotPreviewMode: num(event.target.value) });
+  };
+
+  onScreenshotPreviewDelayChange = (value: string): void => {
+    updatePreferencesData({ screenshotPreviewDelay: num(value) });
+  };
+
   getThemeName(id: string) {
     const theme = this.props.themeList.find(t => t.id === id);
     if (theme) { return theme.meta.name || theme.id; }
@@ -1183,7 +1226,7 @@ function formatLogoSetName(item: ILogoSet): string {
   return `${item.name} (${item.id})`;
 }
 
-function itemizeExtEnums(enums: string[]): SelectItem[] {
+function itemizeExtEnums(enums: string[]): SelectItem<string>[] {
   return enums.map(e => {
     return {
       value: e

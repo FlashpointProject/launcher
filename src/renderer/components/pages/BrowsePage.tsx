@@ -246,6 +246,8 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                     cellWidth={width}
                     cellHeight={height}
                     logoVersion={this.props.logoVersion}
+                    screenshotPreviewMode={this.props.preferencesData.screenshotPreviewMode}
+                    screenshotPreviewDelay={this.props.preferencesData.screenshotPreviewDelay}
                     gridRef={this.gameGridOrListRefFunc} />
                 );
               } else {

@@ -2577,7 +2577,7 @@ function createCommand(filename: string, useWine: boolean, noshell: boolean): st
     case 'darwin':
     case 'linux':
       if (useWine) {
-        return `wine start /wait /unix "${filename}"`;
+        return `flatpak --env="WINEPREFIX=/home/colin/fpwinepfx" run org.winehq.Wine start /wait /unix "${filename}"`;
       }
       return noshell ? filename : `"${filename}"`;
     default:

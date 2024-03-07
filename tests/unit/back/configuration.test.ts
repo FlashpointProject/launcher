@@ -1,3 +1,4 @@
+import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
 import { AppConfigData } from '@shared/config/interfaces';
 import { getDefaultConfigData, overwriteConfigData } from '@shared/config/util';
 import { defaultPreferencesData, overwritePreferenceData } from '@shared/preferences/util';
@@ -179,6 +180,8 @@ describe('Configuration Files', () => {
       'enablePlaytimeTrackingExtreme': false,
       'enableTagFilterIndex': false,
       'enableVerboseLogging': true,
+      'screenshotPreviewMode': ScreenshotPreviewMode.LOGO,
+      'screenshotPreviewDelay': 100,
     };
     const newData = deepCopy(defaultPreferencesData);
     overwritePreferenceData(newData, data);

@@ -4,7 +4,7 @@ import { LogLevel } from '@shared/Log/interface';
 import { delayedThrottle, delayedThrottleAsync } from '@shared/utils/throttle';
 import { AppPathOverride, AppPreferencesData, AppPreferencesDataMainWindow, GameDataSource, GameMetadataSource, MetadataUpdateInfo, TagFilterGroup } from 'flashpoint-launcher';
 import { BackIn } from '../back/types';
-import { BrowsePageLayout } from '../BrowsePageLayout';
+import { BrowsePageLayout, ScreenshotPreviewMode } from '../BrowsePageLayout';
 import { ARCADE } from '../constants';
 import { DeepPartial } from '../interfaces';
 import { gameOrderByOptions, gameOrderReverseOptions } from '../order/util';
@@ -148,6 +148,8 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   enablePlaytimeTrackingExtreme: true,
   enableTagFilterIndex: true,
   enableVerboseLogging: false,
+  screenshotPreviewMode: ScreenshotPreviewMode.OFF,
+  screenshotPreviewDelay: 250,
 });
 
 /**
@@ -223,6 +225,13 @@ export function overwritePreferenceData(
   parser.prop('enablePlaytimeTrackingExtreme', v => source.enablePlaytimeTrackingExtreme = !!v, true);
   parser.prop('enableTagFilterIndex',          v => source.enableTagFilterIndex          = !!v, true);
   parser.prop('enableVerboseLogging',          v => source.enableVerboseLogging          = !!v, true);
+  parser.prop('screenshotPreviewMode',         v => source.screenshotPreviewMode         = parseScreenshotPreviewMode(v), true);
+  parser.prop('screenshotPreviewDelay',        v => source.screenshotPreviewDelay        = num(v), true);
+
+  // Can't have a negative delay!
+  if (source.screenshotPreviewDelay < 0) {
+    source.screenshotPreviewDelay = 0;
+  }
 
   // Migrate onDemandBaseUrl from the older FP url
   if (source.onDemandBaseUrl == 'https://infinity.unstable.life/Flashpoint/Data/Images/') {
@@ -265,6 +274,20 @@ export function overwritePreferenceData(
   }
   // Done
   return source;
+}
+
+function parseScreenshotPreviewMode(v: any): ScreenshotPreviewMode {
+  const n = num(v);
+  switch (n) {
+    case 0:
+      return ScreenshotPreviewMode.OFF;
+    case 1:
+      return ScreenshotPreviewMode.ON;
+    case 2:
+      return ScreenshotPreviewMode.ALWAYS;
+    default:
+      return ScreenshotPreviewMode.OFF;
+  }
 }
 
 function parseMainWindow(parser: IObjectParserProp<any>, output: AppPreferencesDataMainWindow): void {

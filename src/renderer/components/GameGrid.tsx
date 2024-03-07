@@ -1,5 +1,5 @@
 import { BackOut, BackOutTemplate } from '@shared/back/types';
-import { LOGOS, VIEW_PAGE_SIZE } from '@shared/constants';
+import { LOGOS, SCREENSHOTS, VIEW_PAGE_SIZE } from '@shared/constants';
 import { memoizeOne } from '@shared/memoize';
 import * as React from 'react';
 import { ArrowKeyStepper, AutoSizer, Grid, GridCellProps, ScrollIndices } from 'react-virtualized-reactv17';
@@ -8,6 +8,7 @@ import { findElementAncestor, getExtremeIconURL, getGameImageURL } from '../Util
 import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
 import { GameDragEventData } from './pages/BrowsePage';
+import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
 
 const RENDERER_OVERSCAN = 5;
 
@@ -50,6 +51,10 @@ export type GameGridProps = {
   gridRef?: RefFunc<HTMLDivElement>;
   /** Updates to clear platform icon cache */
   logoVersion: number;
+  /** Screenshot Preview Mode */
+  screenshotPreviewMode: ScreenshotPreviewMode;
+  /** Screenshot Preview Delay */
+  screenshotPreviewDelay: number;
 };
 
 /** A grid of cells, where each cell displays a game. */
@@ -194,6 +199,9 @@ export class GameGrid extends React.Component<GameGridProps> {
           extreme={game ? game.tags.findIndex(t => this.props.extremeTags.includes(t.trim())) !== -1 : false}
           extremeIconPath={extremeIconPath}
           thumbnail={game ? getGameImageURL(LOGOS, game.id) : ''}
+          screenshot={game ? getGameImageURL(SCREENSHOTS, game.id) : ''}
+          screenshotPreviewMode={this.props.screenshotPreviewMode}
+          screenshotPreviewDelay={this.props.screenshotPreviewDelay}
           logoVersion={this.props.logoVersion}
           isDraggable={true}
           isSelected={game ? game.id === selectedGameId : false}

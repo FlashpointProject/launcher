@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/indent */
 import { LangContext } from '@renderer/util/lang';
-import { LOGOS } from '@shared/constants';
+import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import * as React from 'react';
 import { findGameDragEventDataGrid, getExtremeIconURL, getGameImageURL } from '../Util';
 import { GameGridItem } from './GameGridItem';
@@ -8,6 +8,7 @@ import { GameItemContainer } from './GameItemContainer';
 import { HomePageBox } from './HomePageBox';
 import { SimpleButton } from './SimpleButton';
 import { ViewGame } from 'flashpoint-launcher';
+import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
 
 type RandomGamesProps = {
   games: ViewGame[];
@@ -22,6 +23,10 @@ type RandomGamesProps = {
   logoVersion: number;
   minimized: boolean;
   onToggleMinimize: () => void;
+  /** Screenshot Preview Mode */
+  screenshotPreviewMode: ScreenshotPreviewMode;
+  /** Screenshot Preview Delay */
+  screenshotPreviewDelay: number;
 };
 
 // A small "grid" of randomly selected games.
@@ -52,6 +57,9 @@ export function RandomGames(props: RandomGamesProps) {
           extreme={game ? game.tags.findIndex(t => props.extremeTags.includes(t.trim())) !== -1 : false}
           extremeIconPath={getExtremeIconURL(props.logoVersion)}
           thumbnail={getGameImageURL(LOGOS, game.id)}
+          screenshot={getGameImageURL(SCREENSHOTS, game.id)}
+          screenshotPreviewMode={props.screenshotPreviewMode}
+          screenshotPreviewDelay={props.screenshotPreviewDelay}
           logoVersion={props.logoVersion}
           isSelected={props.selectedGameId === game.id}
           isDragged={false} />

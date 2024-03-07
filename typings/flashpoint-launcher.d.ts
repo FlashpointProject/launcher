@@ -1050,7 +1050,17 @@ declare module 'flashpoint-launcher' {
         enableTagFilterIndex: boolean;
         /** Use verbose logging for the rust library */
         enableVerboseLogging: boolean;
+        /** Screenshot Preview Mode */
+        screenshotPreviewMode: ScreenshotPreviewMode;
+        /** Screenshot Preview Delay in milliseconds */
+        screenshotPreviewDelay: number;
     };
+
+    enum ScreenshotPreviewMode {
+        OFF = 0,
+        ON = 1,
+        ALWAYS = 2
+    }
 
     type GameDataSource = {
         type: string;

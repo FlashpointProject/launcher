@@ -3,7 +3,7 @@ import { FancyAnimation } from '@renderer/components/FancyAnimation';
 import { WithMainStateProps } from '@renderer/containers/withMainState';
 import { MainActionType } from '@renderer/store/main/enums';
 import { BackIn, ComponentStatus, GameOfTheDay } from '@shared/back/types';
-import { ARCADE, LOGOS, THEATRE } from '@shared/constants';
+import { ARCADE, LOGOS, SCREENSHOTS, THEATRE } from '@shared/constants';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
@@ -265,6 +265,8 @@ export function HomePage(props: HomePageProps) {
         extremeTags={props.preferencesData.tagFilters.filter(tfg => !tfg.enabled && tfg.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), [])}
         logoVersion={props.logoVersion}
         selectedGameId={props.selectedGameId}
+        screenshotPreviewMode={props.preferencesData.screenshotPreviewMode}
+        screenshotPreviewDelay={props.preferencesData.screenshotPreviewDelay}
         minimized={props.preferencesData.minimizedHomePageBoxes.includes('random-games')}
         onToggleMinimize={() => toggleMinimizeBox('random-games')} />
     </SizeProvider>
@@ -311,6 +313,9 @@ export function HomePage(props: HomePageProps) {
                     extreme={loadedGotd.tags.findIndex(t => extremeTags.includes(t.trim())) !== -1}
                     extremeIconPath={extremeIconPath}
                     thumbnail={getGameImageURL(LOGOS, loadedGotd.id)}
+                    screenshot={getGameImageURL(SCREENSHOTS, loadedGotd.id)}
+                    screenshotPreviewMode={props.preferencesData.screenshotPreviewMode}
+                    screenshotPreviewDelay={props.preferencesData.screenshotPreviewDelay}
                     logoVersion={props.logoVersion}
                     isDraggable={true}
                     isSelected={loadedGotd.id === props.selectedGameId}
