@@ -384,13 +384,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
       if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
       return openDialogFunc(options);
     },
-    awaitDialog: async (dialogId: string) => {
-      return new Promise<flashpoint.DialogResponse>((resolve) => {
-        state.resolveDialogEvents.once(dialogId, (res) => {
-          resolve(res);
-        });
-      });
-    },
+    awaitDialog: (dialogId: string) => awaitDialog(state, dialogId),
     cancelDialog: async (dialogId: string) => {
       state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
     },

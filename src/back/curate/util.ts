@@ -346,6 +346,7 @@ export async function makeCurationFromGame(state: BackState, gameId: string, ski
         // Update curation meta fields with saved
         (game as any).applicationPath = activeData.applicationPath;
         (game as any).launchCommand = activeData.launchCommand;
+        (game as any).mountParameters = activeData.parameters || '';
       }
     } else {
       (game as any).applicationPath = game.legacyApplicationPath;
