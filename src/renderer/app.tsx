@@ -1,6 +1,6 @@
 import * as remote from '@electron/remote';
 import { BackIn, BackInit, BackOut, FetchedGameInfo, FpfssUser } from '@shared/back/types';
-import { APP_TITLE, VIEW_PAGE_SIZE } from '@shared/constants';
+import { APP_TITLE, LOGOS, SCREENSHOTS, VIEW_PAGE_SIZE } from '@shared/constants';
 import { CustomIPC, IService, ProcessState, WindowIPC } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
@@ -50,7 +50,7 @@ import { MainActionType, RequestState } from './store/main/enums';
 import { RANDOM_GAME_ROW_COUNT } from './store/main/reducer';
 import { MainAction, MainState } from './store/main/types';
 import { SearchQuery } from './store/search';
-import { getBrowseSubPath, getGamePath, joinLibraryRoute } from './Util';
+import { getBrowseSubPath, getGameImagePath, getGameImageURL, getGamePath, joinLibraryRoute } from './Util';
 import { LangContext } from './util/lang';
 import { queueOne } from './util/queue';
 import uuid = require('uuid');
@@ -1231,6 +1231,21 @@ export class App extends React.Component<AppProps> {
             (playlistId) => window.Shared.back.send(BackIn.ADD_PLAYLIST_GAME, playlistId, gameId),
             selectedPlaylistId)
         }, {
+          /* Copy Shortcut URL */
+          label: strings.menu.copyShortcutURL,
+          enabled: true,
+          click: () => {
+            clipboard.writeText(`flashpoint://run/${gameId}`);
+          }
+        },
+        {
+          /* Copy Game UUID */
+          label: strings.menu.copyGameUUID,
+          enabled: true,
+          click: () => {
+            clipboard.writeText(gameId);
+          }
+        }, { type: 'separator'}, {
           /* File Location */
           label: strings.menu.openFileLocation,
           enabled: !window.Shared.isBackRemote, // (Local "back" only)
@@ -1280,19 +1295,41 @@ export class App extends React.Component<AppProps> {
           },
         },
         {
-          /* Copy Shortcut URL */
-          label: strings.menu.copyShortcutURL,
-          enabled: true,
+          /* Logo Location */
+          label: strings.menu.openLogoLocation,
+          enabled: !window.Shared.isBackRemote, // (Local "back" only)
           click: () => {
-            clipboard.writeText(`flashpoint://run/${gameId}`);
+            const logoPath = getGameImagePath(LOGOS, gameId);
+            fs.promises.access(logoPath, fs.constants.R_OK)
+            .then(() => {
+              /* Downloaded, open */
+              remote.shell.showItemInFolder(logoPath);
+            }).catch(() => {
+              /* Not downloaded, try and force it */
+              fetch(getGameImageURL(LOGOS, gameId))
+              .then(() => {
+                remote.shell.showItemInFolder(logoPath);
+              });
+            });
           }
         },
         {
-          /* Copy Game UUID */
-          label: strings.menu.copyGameUUID,
-          enabled: true,
+          /* Screenshot Location */
+          label: strings.menu.openScreenshotLocation,
+          enabled: !window.Shared.isBackRemote, // (Local "back" only)
           click: () => {
-            clipboard.writeText(gameId);
+            const logoPath = getGameImagePath(SCREENSHOTS, gameId);
+            fs.promises.access(logoPath, fs.constants.R_OK)
+            .then(() => {
+              /* Downloaded, open */
+              remote.shell.showItemInFolder(logoPath);
+            }).catch(() => {
+              /* Not downloaded, try and force it */
+              fetch(getGameImageURL(SCREENSHOTS, gameId))
+              .then(() => {
+                remote.shell.showItemInFolder(logoPath);
+              });
+            });
           }
         }, { type: 'separator' }];
 
@@ -1300,16 +1337,6 @@ export class App extends React.Component<AppProps> {
       if (this.props.preferencesData.enableEditing) {
         const editingButtons: MenuItemConstructorOptions[] = [
           {
-            /* Duplicate Meta */
-            label: strings.menu.duplicateMetaOnly,
-            enabled: this.props.preferencesData.enableEditing,
-            click: () => { window.Shared.back.request(BackIn.DUPLICATE_GAME, gameId, false); },
-          }, {
-            /* Duplicate Meta & Images */
-            label: strings.menu.duplicateMetaAndImages, // ("&&" will be shown as "&")
-            enabled: this.props.preferencesData.enableEditing,
-            click: () => { window.Shared.back.request(BackIn.DUPLICATE_GAME, gameId, true); },
-          }, {
             /* Load as a curation */
             label: strings.menu.makeCurationFromGame,
             enabled: this.props.preferencesData.enableEditing,
@@ -1338,42 +1365,7 @@ export class App extends React.Component<AppProps> {
                 });
               });
             }
-          }, ...fpfssButtons, { type: 'separator' }, {
-            /* Export Meta */
-            label: strings.menu.exportMetaOnly,
-            enabled: !window.Shared.isBackRemote, // (Local "back" only)
-            click: () => {
-              const filePath = remote.dialog.showSaveDialogSync({
-                title: strings.dialog.selectFileToExportMeta,
-                defaultPath: 'meta.yaml',
-                filters: [{
-                  name: 'Meta file',
-                  extensions: ['yaml'],
-                }]
-              });
-              if (filePath) { window.Shared.back.request(BackIn.EXPORT_GAME, gameId, filePath, true); }
-            },
-          }, {
-            /* Export Meta & Images */
-            label: strings.menu.exportMetaAndImages, // ("&&" will be shown as "&")
-            enabled: !window.Shared.isBackRemote, // (Local "back" only)
-            click: () => {
-              const filePaths = window.Shared.showOpenDialogSync({
-                title: strings.dialog.selectFolderToExportMetaAndImages,
-                properties: ['promptToCreate', 'openDirectory']
-              });
-              if (filePaths && filePaths.length > 0) {
-                window.Shared.back.request(BackIn.EXPORT_GAME, gameId, filePaths[0], false);
-              }
-            },
-          }, {
-            /* Export Partial Meta */
-            label: strings.menu.exportMetaEdit, // ("&&" will be shown as "&")
-            enabled: !window.Shared.isBackRemote, // (Local "back" only)
-            click: () => {
-              this.onOpenExportMetaEdit(gameId);
-            },
-          }, { type: 'separator' }
+          }, ...fpfssButtons, { type: 'separator' }
         ];
         contextButtons = contextButtons.concat(editingButtons);
       }

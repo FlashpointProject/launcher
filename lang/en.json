@@ -535,7 +535,9 @@
   "menu": {
     "viewThumbnailInFolder": "View Thumbnail in Folder",
     "viewScreenshotInFolder": "View Screenshot in Folder",
-    "openFileLocation": "Open File Location",
+    "openFileLocation": "Show Game in Explorer",
+    "openLogoLocation": "Show Logo in Explorer",
+    "openScreenshotLocation": "Show Screenshot in Explorer",
     "addToFavorites": "Add to Favorites",
     "addToPlaylist": "Add to Playlist",
     "duplicateMetaOnly": "Duplicate (Meta Only)",

@@ -119,7 +119,7 @@ export async function syncGames(source: GameMetadataSource, dataPacksFolder: str
   }
 
   // -- Deleted Games -- //
-  const reqUrl = `${deletedUrl}?after=${source.games.latestUpdateTime}`;
+  const reqUrl = `${deletedUrl}`;
   const res = await axios.get(reqUrl)
   .catch((err) => {
     throw 'Failed to search deleted games';
@@ -139,11 +139,11 @@ export async function syncRedirects(source: GameMetadataSource): Promise<void> {
     throw 'Failed to search game redirects';
   });
 
-  const data = res.data.map((d: any) => { return {
+  const data: Array<GameRedirect> = res.data.map((d: any) => { return {
     sourceId: d.source_id,
     destId: d.id
-  };}) as any as Array<GameRedirect>;
-  console.log('applying redirects');
+  };});
+  console.log(`applying ${data.length} redirects`);
   await fpDatabase.updateApplyRedirects(data);
 }
 

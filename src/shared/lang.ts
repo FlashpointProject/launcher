@@ -549,6 +549,8 @@ const langTemplate = {
     'viewThumbnailInFolder',
     'viewScreenshotInFolder',
     'openFileLocation',
+    'openLogoLocation',
+    'openScreenshotLocation',
     'addToFavorites',
     'addToPlaylist',
     'duplicateMetaOnly',
