@@ -14,9 +14,10 @@ export async function downloadGameData(gameDataId: number, dataPacksFolderPath: 
   if (gameData) {
     // GameData real, find an available source
     for (const source of sources) {
+      const cleanDate = gameData.dateAdded.includes('T') ? gameData.dateAdded : `${gameData.dateAdded} +0000 UTC`;
+      const fullUrl = new URL(`${gameData.gameId}-${new Date(cleanDate).getTime()}.zip`, source.arguments[0]).href;
       try {
-        const fullUrl = new URL(`${gameData.gameId}-${new Date(gameData.dateAdded).getTime()}.zip`, source.arguments[0]).href;
-        const tempPath = path.join(dataPacksFolderPath, `${gameData.gameId}-${new Date(gameData.dateAdded).getTime()}.zip.temp`);
+        const tempPath = path.join(dataPacksFolderPath, `${gameData.gameId}-${new Date(cleanDate).getTime()}.zip.temp`);
         await downloadFile(fullUrl, tempPath, abortSignal, onProgress, onDetails);
         // Check hash of download
         const hash = crypto.createHash('sha256');
@@ -51,7 +52,7 @@ export async function downloadGameData(gameDataId: number, dataPacksFolderPath: 
         });
         return;
       } catch (error) {
-        const sourceError = `Downloading from Source "${source.name}" failed:\n ${error}`;
+        const sourceError = `Downloading from Source "${source.name}" (${fullUrl}) failed:\n ${error}`;
         sourceErrors.push(sourceError);
       }
     }
@@ -69,7 +70,8 @@ export async function importGameDataSkipHash(gameId: string, filePath: string, d
   }
   // Copy file
   const dateAdded = new Date();
-  const newFilename = existingGameData ? `${gameId}-${new Date(existingGameData.dateAdded).getTime()}.zip` : `${gameId}-${dateAdded.getTime()}.zip`;
+  const cleanDate = existingGameData ? existingGameData.dateAdded.includes('T') ? existingGameData.dateAdded : `${existingGameData.dateAdded} +0000 UTC` : '';
+  const newFilename = existingGameData ? `${gameId}-${new Date(cleanDate).getTime()}.zip` : `${gameId}-${dateAdded.getTime()}.zip`;
   const newPath = path.join(dataPacksFolderPath, newFilename);
   await fs.promises.copyFile(filePath, newPath);
   if (existingGameData) {
