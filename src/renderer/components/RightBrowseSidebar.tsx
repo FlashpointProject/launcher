@@ -1251,8 +1251,11 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       if (tag) {
         const game = this.props.currentGameInfo?.game;
         // Ignore dupe tags
-        if (game && !game.tags.includes(tag.name)) {
-          this.props.onEditGame({ tags: [...game.tags, tag.name] });
+        if (game && !game.tags.map(t => t.toLowerCase()).includes(tag.name.toLowerCase())) {
+          if (!game.detailedTags) {
+            game.detailedTags = [];
+          }
+          this.props.onEditGame({ tags: [...game.tags, tag.name], detailedTags: [...game.detailedTags, tag]});
           console.log('ADDED TAG ' + tag.id);
         }
       }
@@ -1270,9 +1273,12 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       if (platform) {
         const game = this.props.currentGameInfo?.game;
         // Ignore dupe tags
-        if (game && !game.platforms.includes(platform.name)) {
+        if (game && !game.platforms.map(t => t.toLowerCase()).includes(platform.name.toLowerCase())) {
+          if (!game.detailedPlatforms) {
+            game.detailedPlatforms = [];
+          }
           const primary = game.platforms.length === 0 ? platform.name : game.primaryPlatform;
-          this.props.onEditGame({ platforms: [...game.platforms, platform.name], primaryPlatform: primary });
+          this.props.onEditGame({ platforms: [...game.platforms, platform.name], primaryPlatform: primary, detailedPlatforms: [...game.detailedPlatforms, platform] });
           console.log('ADDED PLATFORM ' + platform.id);
         }
       }
@@ -1296,17 +1302,21 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   onAddTagByString = (text: string): void => {
     if (text !== '') {
       if (this.props.fpfssEditMode) {
+        const newTagText = text.trim();
         const game = this.props.currentGameInfo?.game;
-        if (game) {
+        if (game && !game.tags.map(t => t.toLowerCase()).includes(newTagText.toLowerCase())) {
+          if (!game.detailedTags) {
+            game.detailedTags = [];
+          }
           const tag: Tag = {
             id: -1,
-            name: text,
-            aliases: [text],
+            name: newTagText,
+            aliases: [newTagText],
             description: '',
             dateModified: (new Date()).toISOString(),
             category: 'default'
           };
-          this.props.onEditGame({ tags: [...game.tags, tag.name]});
+          this.props.onEditGame({ tags: [...game.tags, tag.name], detailedTags: [...game.detailedTags, tag]});
         }
       } else {
         window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, text)
@@ -1314,8 +1324,11 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
           if (tag) {
             const game = this.props.currentGameInfo?.game;
             // Ignore dupe tags
-            if (game && !game.tags.includes(tag.name)) {
-              this.props.onEditGame({ tags: [...game.tags, tag.name] });
+            if (game && !game.tags.map(t => t.toLowerCase()).includes(tag.name.toLowerCase())) {
+              if (!game.detailedTags) {
+                game.detailedTags = [];
+              }
+              this.props.onEditGame({ tags: [...game.tags, tag.name], detailedTags: [...game.detailedTags, tag]});
             }
           }
         });
@@ -1332,17 +1345,21 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   onAddPlatformByString = (text: string): void => {
     if (text !== '') {
       if (this.props.fpfssEditMode) {
+        const newPlatformText = text.trim();
         const game = this.props.currentGameInfo?.game;
-        if (game) {
+        if (game && !game.platforms.map(t => t.toLowerCase()).includes(newPlatformText.toLowerCase())) {
+          if (!game.detailedPlatforms) {
+            game.detailedPlatforms = [];
+          }
           const platform: Platform = {
             id: -1,
-            name: text,
-            aliases: [text],
+            name: newPlatformText,
+            aliases: [newPlatformText],
             description: '',
             dateModified: (new Date()).toISOString()
           };
           const primary = game.platforms.length === 0 ? platform.name : game.primaryPlatform;
-          this.props.onEditGame({ platforms: [...game.platforms, platform.name], primaryPlatform: primary });
+          this.props.onEditGame({ platforms: [...game.platforms, platform.name], primaryPlatform: primary, detailedPlatforms: [...game.detailedPlatforms, platform] });
         }
       } else {
         window.Shared.back.request(BackIn.GET_OR_CREATE_PLATFORM, text)
@@ -1350,8 +1367,12 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
           if (platform) {
             const game = this.props.currentGameInfo?.game;
             // Ignore dupe platforms
-            if (game && !game.platforms.includes(platform.name)) {
-              this.props.onEditGame({ platforms: [...game.platforms, platform.name] });
+            if (game && !game.platforms.map(t => t.toLowerCase()).includes(platform.name.toLowerCase())) {
+              if (!game.detailedPlatforms) {
+                game.detailedPlatforms = [];
+              }
+              const primary = game.platforms.length === 0 ? platform.name : game.primaryPlatform;
+              this.props.onEditGame({ platforms: [...game.platforms, platform.name], primaryPlatform: primary, detailedPlatforms: [...game.detailedPlatforms, platform] });
             }
           }
         });
@@ -1365,18 +1386,30 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   onRemoveTag = (tag: Tag, index: number): void => {
     const game = this.props.currentGameInfo?.game;
     if (game) {
+      if (!game.detailedTags) {
+        game.detailedTags = [];
+      }
+      const newDetailedTags = deepCopy(game.detailedTags);
       const newTags = deepCopy(game.tags);
-      newTags.splice(index, 1);
-      this.props.onEditGame({ tags: newTags });
+      const tagsIndex = newTags.findIndex(t => t.toLowerCase() === newDetailedTags[index].name.toLowerCase());
+      newTags.splice(tagsIndex, 1);
+      newDetailedTags.splice(index, 1);
+      this.props.onEditGame({ tags: newTags, detailedTags: newDetailedTags });
     }
   };
 
   onRemovePlatform = (platform: Platform, index: number): void => {
     const game = this.props.currentGameInfo?.game;
     if (game) {
+      if (!game.detailedPlatforms) {
+        game.detailedPlatforms = [];
+      }
+      const newDetailedPlatforms = deepCopy(game.detailedPlatforms);
       const newPlatforms = deepCopy(game.platforms);
-      newPlatforms.splice(index, 1);
-      this.props.onEditGame({ platforms: newPlatforms });
+      const platIndex = newPlatforms.findIndex(p => p.toLowerCase() === newDetailedPlatforms[index].name.toLowerCase());
+      newPlatforms.splice(platIndex, 1);
+      newDetailedPlatforms.splice(index, 1);
+      this.props.onEditGame({ platforms: newPlatforms, detailedPlatforms: newDetailedPlatforms });
     }
   };
 

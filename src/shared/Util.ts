@@ -652,7 +652,7 @@ export function mapLocalToFpfssGame(game: Game): FpfssGame {
         id: t.id,
         name: t.name,
         description: t.description,
-        date_modified: t.dateModified,
+        date_modified: (new Date(t.dateModified)).toISOString(),
         category: t.category || 'default',
       };
     }) || [],
@@ -661,7 +661,7 @@ export function mapLocalToFpfssGame(game: Game): FpfssGame {
         id: p.id,
         name: p.name,
         description: p.description,
-        date_modified: p.dateModified,
+        date_modified: (new Date(p.dateModified)).toISOString(),
       };
     }) || [],
     add_apps: game.addApps?.map<FpfssAddApp>(a => {
