@@ -33,7 +33,7 @@ import {
   CURATIONS_FOLDER_WORKING, CURATION_META_FILENAMES
 } from '@shared/constants';
 import axios from 'axios';
-import { FlashpointArchive, enableDebug, parseUserSearchInput } from '@fparchive/flashpoint-archive';
+import { FlashpointArchive, enableDebug, loggerSusbcribe, parseUserSearchInput } from '@fparchive/flashpoint-archive';
 import { Game, GameData, Playlist, PlaylistGame } from 'flashpoint-launcher';
 import { Tail } from 'tail';
 import { ConfigFile } from './ConfigFile';
@@ -80,6 +80,10 @@ export const onDidRemoveGame = new ApiEmitter<Game>();
 export const onDidUpdatePlaylist = new ApiEmitter<{oldPlaylist: Playlist, newPlaylist: Playlist}>();
 export const onDidUpdatePlaylistGame = new ApiEmitter<{oldGame: PlaylistGame, newGame: PlaylistGame}>();
 export const onDidRemovePlaylistGame = new ApiEmitter<PlaylistGame>();
+
+export const VERBOSE = {
+  enabled: false
+};
 
 export const fpDatabase = new FlashpointArchive();
 
@@ -388,7 +392,27 @@ async function prepForInit(message: any): Promise<void> {
     return;
   }
 
+  VERBOSE.enabled = state.preferences.enableVerboseLogging;
+
   console.log('Back - Loaded Preferences');
+
+  // Hook into stdout for logging
+  const realWrite = process.stdout.write.bind(process.stdout);
+  process.stdout.write = ((string: any, encodingOrCb: any, cb: any) => {
+    if (typeof encodingOrCb === 'function') {
+      realWrite(string, encodingOrCb, cb);
+    } else {
+      realWrite(string, cb);
+    }
+
+    if (typeof string !== 'string') {
+      const enc = typeof encodingOrCb === 'function' ? encodingOrCb : undefined;
+      const decodder = new TextDecoder(enc);
+      string = decodder.decode(string);
+    }
+
+    log.debug('Main', string.trim());
+  }) as any;
 
   // Ensure all directory structures exist
   try {
@@ -687,6 +711,20 @@ async function initialize() {
   }
 
   if (state.preferences.enableVerboseLogging) {
+    loggerSusbcribe((err, line) => {
+      if (err) {
+        log.error('Rust Library', 'Logging error - ' + err);
+      } else {
+        try {
+          const output = line.toString().trim();
+          if (output) {
+            log.debug('Rust Library', line);
+          }
+        } catch {
+          log.error('Rust Library', 'Failed to convert output to string');
+        }
+      }
+    });
     enableDebug();
   }
 

@@ -307,6 +307,10 @@ body {
   text-align: right;
   flex-shrink: 0;
 }
+.tag-delete-icon {
+  margin-right: 0.5rem;
+}
+
 /* Log */
 .log {
   height: 100%;

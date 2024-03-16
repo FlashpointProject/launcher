@@ -17,20 +17,22 @@ export function stringifyLogEntries(entries: ILogEntry[], sourceFilter: { [key: 
   for (let i = 0; i < entries.length; i++) {
     const entry = entries[i];
 
+    const extraClass = i % 2 ? 'log__even' : 'log__odd';
+
     if (!entry) { continue; } // Temp fix for array gaps
 
     if (sourceFilter[entry.source] === false || levelFilter[entry.logLevel] === false) { continue; }
 
     // E.G log__level-WARN, log__level-DEBUG
-    str += `<span class="log__level-${LogLevel[entry.logLevel]}">${getLevelText(entry.logLevel)}</span> `;
+    str += `<div class="${extraClass}"><span class="log__level-${LogLevel[entry.logLevel]}">${getLevelText(entry.logLevel)}</span> `;
     str += `<span class="log__time-stamp">[${formatTime(new Date(entry.timestamp))}]</span> `;
     if (entry.source) {
       str += (!prevEntry || entry.source !== prevEntry.source)
         ? `<span class="log__source log__source--${getClassModifier(entry.source)}">${padStart(escapeHTML(entry.source), sourceChars)}:</span> `
-        : ' '.repeat(sourceChars + 2);
+        : `<span>${'-'.padStart(sourceChars + 1)}</span> `;
     }
-    str += padLines(escapeHTML(entry.content), timeChars + sourceChars + 2);
-    str += '\n';
+    str += `<span>${padLines(escapeHTML(entry.content), timeChars + sourceChars + 2)}</span>`;
+    str += '</div>';
 
     prevEntry = entry;
   }

@@ -7,6 +7,7 @@ import { SocketRequestData, SocketResponseData } from '@shared/socket/types';
 import * as ws from 'ws';
 import { genPipelineBackOut, MiddlewareRes, PipelineRes } from './SocketServerMiddleware';
 import { createNewDialog } from './util/dialog';
+import { VERBOSE } from '.';
 
 type BackAPI = SocketAPIData<BackIn, BackInTemplate, MsgEvent>
 type BackClients = SocketServerData<BackOut, BackOutTemplate, ws>
@@ -322,7 +323,7 @@ export class SocketServer {
     const start = performance.now();
     const [inc, out] = await api_handle_message(this.api, data, msg_event);
     const end = performance.now();
-    if ('type' in data && data.type !== BackIn.KEEP_ALIVE) {
+    if (VERBOSE.enabled && 'type' in data && data.type !== BackIn.KEEP_ALIVE) {
       console.log(`${Math.floor(end - start)}ms - "${BackIn[data.type]}"`);
     }
 
