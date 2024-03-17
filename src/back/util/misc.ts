@@ -20,6 +20,7 @@ import { promisify } from 'util';
 import { uuid } from './uuid';
 import { AdditionalApp, Game, Tag } from 'flashpoint-launcher';
 import { newGame } from '@shared/utils/misc';
+import { PlatformAppPath, PlatformAppPathSuggestions } from '@shared/curate/types';
 
 const unlink = promisify(fs.unlink);
 
@@ -490,4 +491,31 @@ export async function promiseSleep(ms: number) {
   return new Promise<void>((resolve) => {
     setTimeout(resolve, ms);
   });
+}
+
+export function processPlatformAppPaths(suggs: PlatformAppPathSuggestions): PlatformAppPathSuggestions {
+  const newSuggs: PlatformAppPathSuggestions = {};
+
+  for (const platform of Object.keys(suggs)) {
+    // For each platform group, process and remove duplicates
+    const group: PlatformAppPath[] = [];
+    const exists: string[] = [];
+
+    for (const value of suggs[platform]) {
+      const processedValue = value.appPath
+      .toLowerCase() // Lower case
+      .replace(/\//g, '\\'); // Fix slashes
+
+      if (exists.includes(processedValue)) {
+        continue; // Skip adding to group if processed value already seen
+      }
+
+      exists.push(processedValue);
+      group.push(value);
+    }
+
+    newSuggs[platform] = group;
+  }
+
+  return newSuggs;
 }

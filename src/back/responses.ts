@@ -64,7 +64,7 @@ import {
   deleteCuration,
   exit, getCwd, getTempFilename,
   openFlashpointManager,
-  pathExists, procToService, promiseSleep, removeService,
+  pathExists, procToService, processPlatformAppPaths, promiseSleep, removeService,
   runService
 } from './util/misc';
 import { uuid } from './util/uuid';
@@ -183,7 +183,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       /** Ignore */
     }
 
-    state.platformAppPaths = await fpDatabase.findPlatformAppPaths();
+    state.platformAppPaths = processPlatformAppPaths(await fpDatabase.findPlatformAppPaths());
 
     const res: GetRendererLoadedDataResponse = {
       gotdList: gotdList,
@@ -393,7 +393,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         applicationPath: await fpDatabase.findAllGameApplicationPaths(),
         library: await fpDatabase.findAllGameLibraries(),
       };
-      state.platformAppPaths = await fpDatabase.findPlatformAppPaths(); // Update cache
+      state.platformAppPaths = processPlatformAppPaths(await fpDatabase.findPlatformAppPaths()); // Update cache
       const total = await fpDatabase.countGames();
       const cats = await fpDatabase.findAllTagCategories();
       state.socketServer.broadcast(BackOut.POST_SYNC_CHANGES, state.suggestions.library, state.suggestions, state.platformAppPaths, cats, total);
@@ -433,8 +433,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       applicationPath: await fpDatabase.findAllGameApplicationPaths(),
       library: await fpDatabase.findAllGameLibraries(),
     };
-    // const appPaths: PlatformAppPathSuggestions = await GameManager.findPlatformsAppPaths();
-    state.platformAppPaths = await fpDatabase.findPlatformAppPaths(); // Update cache
+    state.platformAppPaths = processPlatformAppPaths(await fpDatabase.findPlatformAppPaths()); // Update cache
     return {
       suggestions: suggestions,
       platformAppPaths: {},
@@ -2614,7 +2613,7 @@ function createCommand(filename: string, useWine: boolean, noshell: boolean): st
     case 'darwin':
     case 'linux':
       if (useWine) {
-        return `flatpak --env="WINEPREFIX=/home/colin/fpwinepfx" run org.winehq.Wine start /wait /unix "${filename}"`;
+        return `wine start /wait /unix "${filename}"`;
       }
       return noshell ? filename : `"${filename}"`;
     default:

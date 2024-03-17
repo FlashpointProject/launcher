@@ -753,7 +753,7 @@ function createAppPathDropdownItems(platformAppPaths: PlatformAppPathSuggestions
     let values: string[] = [];
     // Sort current platform seperately and put on top
     values = values.concat(platformAppPaths[currentPlatform].map(a => a.appPath));
-
+    values.push('-- All Platform App Paths --');
     // Sort rest
     let appPaths: string[] = [];
     for (const oKey of Object.keys(platformAppPaths)) {
