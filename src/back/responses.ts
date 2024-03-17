@@ -2584,10 +2584,16 @@ function runGameFactory(state: BackState) {
             const extremeTags = state.preferences.tagFilters.filter(t => t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
             const isExtreme = gameLaunchInfo.game.tags.findIndex(t => extremeTags.includes(t.trim())) !== -1;
             if (!isExtreme) {
-              fpDatabase.addGamePlaytime(gameLaunchInfo.game.id, secondsPlayed);
+              fpDatabase.addGamePlaytime(gameLaunchInfo.game.id, secondsPlayed)
+              .catch(() => {
+                /** Game probably doesn't exist */
+              });
             }
           } else {
-            fpDatabase.addGamePlaytime(gameLaunchInfo.game.id, secondsPlayed);
+            fpDatabase.addGamePlaytime(gameLaunchInfo.game.id, secondsPlayed)
+            .catch(() => {
+              /** Game probably doesn't exist */
+            });
           }
         }
         removeService(state, proc.id);
