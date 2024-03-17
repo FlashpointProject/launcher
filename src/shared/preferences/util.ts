@@ -146,7 +146,7 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   gameMetadataSources: [],
   enablePlaytimeTracking: true,
   enablePlaytimeTrackingExtreme: true,
-  enableTagFilterIndex: true,
+  enableTagFilterIndex: false,
   enableVerboseLogging: false,
   screenshotPreviewMode: ScreenshotPreviewMode.OFF,
   screenshotPreviewDelay: 250,

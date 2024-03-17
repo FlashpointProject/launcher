@@ -1054,6 +1054,8 @@ declare module 'flashpoint-launcher' {
         screenshotPreviewMode: ScreenshotPreviewMode;
         /** Screenshot Preview Delay in milliseconds */
         screenshotPreviewDelay: number;
+        /** Search Limit for Browse Page */
+        searchLimit: number;
     };
 
     enum ScreenshotPreviewMode {

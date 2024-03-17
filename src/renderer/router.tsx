@@ -23,6 +23,7 @@ import { ConnectedTagCategoriesPage } from './containers/ConnectedTagCategoriesP
 import { ConnectedTagsPage } from './containers/ConnectedTagsPage';
 import { CreditsData } from './credits/types';
 import { UpdateView, ViewGameSet } from './interfaces';
+import { RequestState } from './store/main/enums';
 
 export type AppRouterProps = {
   fpfssUser: FpfssUser | null;
@@ -79,6 +80,7 @@ export type AppRouterProps = {
   openFlashpointManager: () => void,
   onMovePlaylistGame: (sourceIdx: number, destIdx: number) => void,
   searchStatus: string | null,
+  metaState?: RequestState,
 };
 
 export class AppRouter extends React.Component<AppRouterProps> {
@@ -121,6 +123,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       contextButtons: this.props.contextButtons,
       onMovePlaylistGame: this.props.onMovePlaylistGame,
       searchStatus: this.props.searchStatus,
+      metaState: this.props.metaState,
     };
     const configProps: ConnectedConfigPageProps = {
       themeList: this.props.themeList,

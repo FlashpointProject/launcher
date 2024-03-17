@@ -180,9 +180,14 @@ export type MainAction = {
   start: number;
   count: number;
 } | {
-  type: MainActionType.REQUEST_VIEW_META;
+  type: MainActionType.REQUEST_VIEW_FIRST_PAGE;
   viewIdentifier: string;
   queryId: number;
+} | {
+  type: MainActionType.SET_VIEW_FIRST_PAGE;
+  viewIdentifier: string;
+  queryId: number;
+  games: Game[];
 } | {
   type: MainActionType.SET_VIEW_META;
   viewIdentifier: string;

@@ -966,18 +966,49 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   state.socketServer.register(BackIn.BROWSE_VIEW_KEYSET, async (event, viewIdentifier, query) => {
     const search = adjustGameFilter(state, query, parseUserSearchInput(query.text), viewIdentifier);
     const startTime = Date.now();
+    // Set page size
+    search.limit = VIEW_PAGE_SIZE;
+
+    const searchLimit = (!query.playlistId && state.preferences.searchLimit) ? state.preferences.searchLimit : undefined;
+    const countLimit = (!query.playlistId && state.preferences.searchLimit) ? state.preferences.searchLimit : 999999999;
+    const result = await fpDatabase.searchGamesIndex(search, searchLimit);
+    const total = Math.min(await fpDatabase.searchGamesTotal(search), countLimit);
+    log.debug('Launcher', 'Keyset Search Time: ' + (Date.now() - startTime) + 'ms');
+    return {
+      keyset: result,
+      total,
+    };
+  });
+
+  state.socketServer.register(BackIn.BROWSE_VIEW_FIRST_PAGE, async (event, viewIdentifier, query) => {
+    const search = adjustGameFilter(state, query, parseUserSearchInput(query.text), viewIdentifier);
+
+    if (search.customIdOrder) {
+      const playlist = state.playlists.find(p => p.id === query.playlistId);
+      if (playlist) {
+        await fpDatabase.newCustomIdOrder(playlist.games.map(p => p.gameId));
+      }
+    }
+
     if (search.withTagFilter && search.withTagFilter.length > 0) {
       const t = setTimeout(() => state.socketServer.broadcast(BackOut.SET_VIEW_SEARCH_STATUS, viewIdentifier, 'Updating Tag Filter Index...'), 300);
       await fpDatabase.newTagFilterIndex(search);
       clearTimeout(t);
       state.socketServer.broadcast(BackOut.SET_VIEW_SEARCH_STATUS, viewIdentifier, null);
     }
-    const result = await fpDatabase.searchGamesIndex(search);
-    const total = await fpDatabase.searchGamesTotal(search);
-    log.debug('Launcher', 'Keyset Search Time: ' + (Date.now() - startTime) + 'ms');
+
+    const startTime = Date.now();
+    search.slim = true;
+
+    const searchLimit = (!query.playlistId && state.preferences.searchLimit) ? state.preferences.searchLimit : 999999999;
+    search.limit = Math.min(VIEW_PAGE_SIZE, searchLimit);
+    const results = await fpDatabase.searchGames(search);
+
+    log.debug('Launcher', 'First Page Search Time: ' + (Date.now() - startTime) + 'ms');
+
     return {
-      keyset: result,
-      total,
+      games: results,
+      viewIdentifier: viewIdentifier
     };
   });
 

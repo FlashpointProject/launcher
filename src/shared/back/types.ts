@@ -91,6 +91,8 @@ export enum BackIn {
 
   /** Get a page of a browse view. */
   BROWSE_VIEW_PAGE,
+  /** Get the first page of a browse view */
+  BROWSE_VIEW_FIRST_PAGE,
   /** Get the keyset of all pages (in the results of a given query). */
   BROWSE_VIEW_KEYSET,
   /** Get all data needed on init (by the renderer). */
@@ -320,6 +322,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.DELETE_TAG_CATEGORY]: (data: number) => boolean;
 
   [BackIn.BROWSE_VIEW_PAGE]: (data: BrowseViewPageData) => BrowseViewPageResponseData;
+  [BackIn.BROWSE_VIEW_FIRST_PAGE]: (library: string, query: ViewQuery) => BrowseViewFirstPageResponseData;
   [BackIn.BROWSE_VIEW_KEYSET]: (library: string, query: ViewQuery) => BrowseViewKeysetResponse;
   [BackIn.GET_LOGGER_INIT_DATA]: () => GetLoggerInitDataResponse;
   [BackIn.GET_RENDERER_INIT_DATA]: () => GetRendererInitDataResponse;
@@ -613,6 +616,13 @@ export type BrowseViewPageData = {
 export type BrowseViewPageResponseData = {
   /** Ranges of games. */
   ranges: ResponseGameRange[];
+  /** Identifier of the view this matches to */
+  viewIdentifier: string;
+}
+
+export type BrowseViewFirstPageResponseData = {
+  /** Games in the first page */
+  games: Game[];
   /** Identifier of the view this matches to */
   viewIdentifier: string;
 }

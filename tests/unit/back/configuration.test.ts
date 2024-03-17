@@ -178,9 +178,9 @@ describe('Configuration Files', () => {
       ],
       'enablePlaytimeTracking': false,
       'enablePlaytimeTrackingExtreme': false,
-      'enableTagFilterIndex': false,
+      'enableTagFilterIndex': true,
       'enableVerboseLogging': true,
-      'screenshotPreviewMode': ScreenshotPreviewMode.LOGO,
+      'screenshotPreviewMode': ScreenshotPreviewMode.ON,
       'screenshotPreviewDelay': 100,
     };
     const newData = deepCopy(defaultPreferencesData);

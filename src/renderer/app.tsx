@@ -374,6 +374,9 @@ export class App extends React.Component<AppProps> {
                 if (fetchedInfo && this.props.main.selectedGameId === fetchedInfo.game.id) {
                   this.props.setMainState({ currentGameInfo: fetchedInfo });
                 }
+              })
+              .catch(() => {
+                /** Game does not exist */
               });
             }
           }
@@ -926,6 +929,7 @@ export class App extends React.Component<AppProps> {
             // Request needed pages
             window.Shared.back.request(BackIn.BROWSE_VIEW_PAGE, {
               ranges: pages.map<RequestGameRange>(index => {
+                console.log(`requesting games {${index * VIEW_PAGE_SIZE}} to ${(index * VIEW_PAGE_SIZE) + VIEW_PAGE_SIZE}`);
                 return {
                   start: index * VIEW_PAGE_SIZE,
                   length: VIEW_PAGE_SIZE,
@@ -961,11 +965,11 @@ export class App extends React.Component<AppProps> {
 
       // Check if the meta has not yet been requested
       if (view && view.metaState === RequestState.WAITING) {
-        // Flag meta as requested
+        // Request the first page
         this.props.dispatchMain({
-          type: MainActionType.REQUEST_VIEW_META,
+          type: MainActionType.REQUEST_VIEW_FIRST_PAGE,
           viewIdentifier: library,
-          queryId: view.queryId,
+          queryId: view.queryId
         });
       }
 
@@ -1426,6 +1430,7 @@ export class App extends React.Component<AppProps> {
       randomGames: this.props.main.randomGames,
       rollRandomGames: this.rollRandomGames,
       updateView: this.updateView,
+      metaState: view?.metaState,
       gamesTotal: this.props.main.gamesTotal,
       viewGamesTotal: view && view.total,
       allPlaylists: this.props.main.playlists,

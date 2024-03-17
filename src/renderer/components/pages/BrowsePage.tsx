@@ -25,6 +25,7 @@ import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
 import { Spinner } from '../Spinner';
 import path = require('path');
 import { newGame } from '@shared/utils/misc';
+import { RequestState } from '@renderer/store/main/enums';
 
 type Pick<T, K extends keyof T> = { [P in K]: T[P]; };
 type StateCallback1 = Pick<BrowsePageState, 'currentGameInfo'|'isEditingGame'|'isNewGame'|'currentPlaylistEntry'>;
@@ -44,6 +45,7 @@ type OwnProps = {
   sourceTable: string;
   games: ViewGameSet;
   gamesTotal?: number;
+  metaState?: RequestState;
   searchStatus: string | null;
   playlists: Playlist[];
   playlistIconCache: Record<string, string>;
@@ -181,7 +183,8 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     const strings = this.context;
     const { games, selectedGameId, selectedPlaylistId } = this.props;
     const { draggedGameIndex } = this.state;
-    const gamesTotalNum = this.props.gamesTotal != undefined ? this.props.gamesTotal : -1;
+    console.log('games - ' + Object.values(games).length);
+    console.log(games);
     const extremeTags = this.props.preferencesData.tagFilters.filter(t => !t.enabled && t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
     // Render
     return (
@@ -220,7 +223,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             onExportPlaylist={(playlistId) => this.onExportPlaylist(strings, playlistId)}
             onContextMenu={this.onPlaylistContextMenuMemo(strings, this.state.isEditingPlaylist, this.props.selectedPlaylistId)} />
         </ResizableSidebar>
-        { (gamesTotalNum > -1) ? (
+        { this.props.metaState === RequestState.RECEIVED ? (
           <div
             className='game-browser__center'
             onKeyDown={this.onCenterKeyDown}>
@@ -233,7 +236,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   <GameGrid
                     games={games}
                     updateView={this.props.updateView}
-                    gamesTotal={this.props.gamesTotal}
+                    gamesTotal={Math.max(Object.keys(games).length, this.props.gamesTotal ? this.props.gamesTotal : 0)}
                     selectedGameId={selectedGameId}
                     draggedGameIndex={draggedGameIndex}
                     extremeTags={extremeTags}

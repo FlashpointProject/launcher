@@ -45,7 +45,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
               text: action.searchText,
               extreme: action.showExtreme,
               library: action.library,
-              searchLimit: action.searchLimit,
+              searchLimit: action.playlist !== null ? 0 : action.searchLimit,
               playlist: action.playlist == null ? undefined : action.playlist,
               order: {
                 orderBy: action.orderBy,
@@ -123,30 +123,27 @@ export function mainStateReducer(state: MainState = createInitialState(), action
       };
     }
 
-    case MainActionType.REQUEST_VIEW_META: {
+    case MainActionType.REQUEST_VIEW_FIRST_PAGE: {
       const view = state.views[action.viewIdentifier];
 
       if (!view || action.queryId !== view.queryId) { return state; }
 
       if (view.metaState === RequestState.WAITING) {
-        // Request meta
-        window.Shared.back.request(BackIn.BROWSE_VIEW_KEYSET, action.viewIdentifier, view.query)
+        window.Shared.back.request(BackIn.BROWSE_VIEW_FIRST_PAGE, action.viewIdentifier, view.query)
         .then((data) => {
           if (data) {
             action.asyncDispatch({
-              type: MainActionType.SET_VIEW_META,
+              type: MainActionType.SET_VIEW_FIRST_PAGE,
               viewIdentifier: action.viewIdentifier,
               queryId: view.queryId,
-              keyset: data.keyset,
-              total: data.total,
+              games: data.games,
             });
           }
         })
         .catch((error) => {
-          log.error('Launcher', `Error getting browse view keyset - ${error}`);
+          log.error('Launcher', `Error getting first browse page - ${error}`);
         });
       }
-
 
       return {
         ...state,
@@ -155,6 +152,46 @@ export function mainStateReducer(state: MainState = createInitialState(), action
           [action.viewIdentifier]: {
             ...view,
             metaState: RequestState.REQUESTED,
+          },
+        },
+      };
+    }
+
+    case MainActionType.SET_VIEW_FIRST_PAGE: {
+      const view = state.views[action.viewIdentifier];
+
+      if (!view || action.queryId !== view.queryId) { return state; }
+
+      window.Shared.back.request(BackIn.BROWSE_VIEW_KEYSET, action.viewIdentifier, view.query)
+      .then((data) => {
+        if (data) {
+          action.asyncDispatch({
+            type: MainActionType.SET_VIEW_META,
+            viewIdentifier: action.viewIdentifier,
+            queryId: view.queryId,
+            keyset: data.keyset,
+            total: data.total,
+          });
+        }
+      })
+      .catch((error) => {
+        log.error('Launcher', `Error getting browse view keyset - ${error}`);
+      });
+
+      console.log('FIRST PAGE - ' + action.games.length);
+
+      return {
+        ...state,
+        views: {
+          ...state.views,
+          [action.viewIdentifier]: {
+            ...view,
+            metaState: RequestState.RECEIVED,
+            games: action.games,
+            isDirty: false,
+            pageState: {
+              0: RequestState.RECEIVED
+            },
           },
         },
       };
@@ -175,11 +212,9 @@ export function mainStateReducer(state: MainState = createInitialState(), action
               pageKeyset: action.keyset,
               total: action.total,
             },
-            //
-            metaState: RequestState.RECEIVED,
             // Dirty games
-            isDirty: action.total !== 0,
-            games: [],
+            isDirty: false,
+            games: view.games,
             lastCount: action.total === 0 ? 0 : view.lastCount,
             pageState: {},
             // Update total (for the first response only)
