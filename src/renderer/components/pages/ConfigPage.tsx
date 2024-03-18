@@ -204,6 +204,23 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 value={this.props.preferencesData.currentLanguage || ''}
                 onChange={this.onCurrentLanguageSelect}
                 items={langOptions} />
+              {/* Screenshot Preview Mode */}
+              <ConfigBoxSelect
+                title={strings.screenshotPreviewMode}
+                description={strings.screenshotPreviewModeDesc}
+                value={this.props.preferencesData.screenshotPreviewMode}
+                items={this.itemizeScreenshotPreviewModes(strings)}
+                onChange={this.onScreenshotPreviewModeChange}
+              />
+              <ConfigBoxSelectInput
+                title={strings.screenshotPreviewDelay}
+                description={strings.screenshotPreviewDelayDesc}
+                editable={true}
+                text={this.props.preferencesData.screenshotPreviewDelay.toString()}
+                placeholder='250'
+                onChange={this.onScreenshotPreviewDelayChange}
+                onItemSelect={this.onScreenshotPreviewDelayChange}
+                items={['0', '150', '250', '350', '500', '750', '1000']}/>
             </div>
           </div>
           {/* -- Content Filters -- */}
@@ -245,12 +262,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 text={strings.libraries}
                 onChange={this.onExcludedLibraryCheckboxChange}
                 items={libraryOptions} />
-              {/* Tag Filter Index */}
-              <ConfigBoxCheckbox
-                title={strings.enableTagFilterIndex}
-                description={strings.enableTagFilterIndexDesc}
-                checked={this.props.preferencesData.enableTagFilterIndex}
-                onToggle={this.onTagFilterIndexToggle} />
             </div>
           </div>
           {/* -- Flashpoint -- */}
@@ -327,23 +338,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 onChange={this.onCurrentLogoSetChange}
                 onItemSelect={this.onCurrentLogoSetSelect}
                 bottomChildren={logoSetPreviewRows}/>
-              {/* Screenshot Preview Mode */}
-              <ConfigBoxSelect
-                title={strings.screenshotPreviewMode}
-                description={strings.screenshotPreviewModeDesc}
-                value={this.props.preferencesData.screenshotPreviewMode}
-                items={this.itemizeScreenshotPreviewModes(strings)}
-                onChange={this.onScreenshotPreviewModeChange}
-              />
-              <ConfigBoxSelectInput
-                title={strings.screenshotPreviewDelay}
-                description={strings.screenshotPreviewDelayDesc}
-                editable={true}
-                text={this.props.preferencesData.screenshotPreviewDelay.toString()}
-                placeholder='250'
-                onChange={this.onScreenshotPreviewDelayChange}
-                onItemSelect={this.onScreenshotPreviewDelayChange}
-                items={['0', '150', '250', '350', '500', '750', '1000']}/>
             </div>
           </div>
 
@@ -841,10 +835,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   onFancyAnimationsChange = (isChecked: boolean): void => {
     updatePreferencesData({ fancyAnimations: isChecked });
-  };
-
-  onTagFilterIndexToggle = (isChecked: boolean): void => {
-    updatePreferencesData({ enableTagFilterIndex: isChecked });
   };
 
   onVerboseLoggingToggle = (isChecked: boolean): void => {

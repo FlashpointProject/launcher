@@ -1046,8 +1046,6 @@ declare module 'flashpoint-launcher' {
         enablePlaytimeTracking: boolean;
         /** Enable Playtime Tracking for Extreme games (last played, playtime, play count) */
         enablePlaytimeTrackingExtreme: boolean;
-        /** Enable tag filter indexing */
-        enableTagFilterIndex: boolean;
         /** Use verbose logging for the rust library */
         enableVerboseLogging: boolean;
         /** Screenshot Preview Mode */

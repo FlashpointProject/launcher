@@ -33,7 +33,7 @@ import {
   CURATIONS_FOLDER_WORKING, CURATION_META_FILENAMES
 } from '@shared/constants';
 import axios from 'axios';
-import { FlashpointArchive, enableDebug, loggerSusbcribe, parseUserSearchInput } from '@fparchive/flashpoint-archive';
+import { FlashpointArchive, enableDebug, loggerSusbcribe } from '@fparchive/flashpoint-archive';
 import { Game, GameData, Playlist, PlaylistGame } from 'flashpoint-launcher';
 import { Tail } from 'tail';
 import { ConfigFile } from './ConfigFile';
@@ -734,20 +734,6 @@ async function initialize() {
   } catch (e) {
     state.socketServer.broadcast(BackOut.OPEN_ALERT, 'Failed to open database: ' + e);
   }
-  if (state.preferences.enableTagFilterIndex) {
-    const tagFilterSearch = parseUserSearchInput('');
-    tagFilterSearch.limit = 9999999999;
-    tagFilterSearch.filter.exactBlacklist.tags = state.preferences.tagFilters
-    .filter(t => t.enabled || (t.extreme && !state.preferences.browsePageShowExtreme))
-    .map(t => t.tags)
-    .reduce((prev, cur) => prev.concat(cur), []);
-    // Let the tag filter index generate
-    try {
-      await fpDatabase.newTagFilterIndex(tagFilterSearch);
-    } catch (e) {
-      state.socketServer.broadcast(BackOut.OPEN_ALERT, 'Failed to generate tag filter index: ' + e);
-    }
-  }
 
   // Populate unique values
   state.suggestions = {
@@ -1254,8 +1240,22 @@ function onFileServerRequestLogos(pathname: string, url: URL, req: http.Incoming
     : path.join(state.config.flashpointPath, state.preferences.logoFolderPath);
   const filePath = path.join(logoFolder, pathname);
   if (filePath.startsWith(logoFolder)) {
-    fs.access(filePath, fs.constants.F_OK, (err) => {
+    fs.access(filePath, fs.constants.F_OK, async (err) => {
       if (err) {
+        // Maybe we're on a case sensitive platform?
+        try {
+          const folder = path.dirname(filePath);
+          const filename = path.basename(filePath);
+          if (filePath.startsWith(logoFolder)) {
+            const files = await fs.readdir(folder);
+            for (const file of files) {
+              if (file.toLowerCase() == filename.toLowerCase()) {
+                serveFile(req, res, path.join(folder, file));
+                return;
+              }
+            }
+          }
+        } catch { /** Let error drop to return default image instead */ }
         // File doesn't exist, serve default image
         const basePath = state.isDev ? path.join(process.cwd(), 'build') : path.join(path.dirname(state.exePath), 'resources/app.asar/build');
         const replacementFilePath = path.join(basePath, 'window/images/Logos', pathname);

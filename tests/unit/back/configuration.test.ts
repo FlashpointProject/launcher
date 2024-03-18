@@ -178,7 +178,6 @@ describe('Configuration Files', () => {
       ],
       'enablePlaytimeTracking': false,
       'enablePlaytimeTrackingExtreme': false,
-      'enableTagFilterIndex': true,
       'enableVerboseLogging': true,
       'screenshotPreviewMode': ScreenshotPreviewMode.ON,
       'screenshotPreviewDelay': 100,

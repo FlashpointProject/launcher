@@ -146,7 +146,6 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   gameMetadataSources: [],
   enablePlaytimeTracking: true,
   enablePlaytimeTrackingExtreme: true,
-  enableTagFilterIndex: false,
   enableVerboseLogging: false,
   screenshotPreviewMode: ScreenshotPreviewMode.OFF,
   screenshotPreviewDelay: 250,
@@ -223,7 +222,6 @@ export function overwritePreferenceData(
   parser.prop('curateServer',                  v => source.curateServer                  = str(v), true);
   parser.prop('enablePlaytimeTracking',        v => source.enablePlaytimeTracking        = !!v, true);
   parser.prop('enablePlaytimeTrackingExtreme', v => source.enablePlaytimeTrackingExtreme = !!v, true);
-  parser.prop('enableTagFilterIndex',          v => source.enableTagFilterIndex          = !!v, true);
   parser.prop('enableVerboseLogging',          v => source.enableVerboseLogging          = !!v, true);
   parser.prop('screenshotPreviewMode',         v => source.screenshotPreviewMode         = parseScreenshotPreviewMode(v), true);
   parser.prop('screenshotPreviewDelay',        v => source.screenshotPreviewDelay        = num(v), true);

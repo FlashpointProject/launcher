@@ -2503,11 +2503,7 @@ function adjustGameFilter(state: BackState, query: ViewQuery, search: GameSearch
   .map(t => t.tags)
   .reduce((prev, cur) => prev.concat(cur), []);
   /** For now, view identifiers always map to libraries to filter by */
-  if (state.preferences.enableTagFilterIndex) {
-    if (filteredTags.length > 0) {
-      search.withTagFilter = filteredTags;
-    }
-  } else {
+  if (filteredTags.length > 0) {
     const filter = newSubfilter();
     filter.exactBlacklist.tags = filteredTags;
     filter.matchAny = true;
