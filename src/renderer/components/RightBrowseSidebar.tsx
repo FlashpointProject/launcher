@@ -425,8 +425,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   onClick={this.onDeveloperClick} />
               </div>
             </div>
-            {/* -- Game Configurations */}
-            { !this.props.fpfssEditMode && (
+            {/* -- Game Configurations  DISABLED - TODO: FIX */}
+            { !this.props.fpfssEditMode && false && (
               <div className='browse-right-sidebar__game-config-row'>
                 <div className='browse-right-sidebar__game-config-label'>
                   {'Configuration:'}
