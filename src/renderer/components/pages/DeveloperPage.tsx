@@ -161,6 +161,11 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               value={'Test Tag Sync'}
               title={'Test Tag Sync from first Metadata source'}
               onClick={this.onTestTagSync} />
+            <SimpleButton
+              value={'Test Disconnection'}
+              onClick={() => {
+                window.Shared.back.send(BackIn.TEST_RECONNECTIONS);
+              }}/>
             { this.props.devScripts.map(contribution => contribution.value.map((script, index) => (
               <SimpleButton
                 key={contribution.extId + index}

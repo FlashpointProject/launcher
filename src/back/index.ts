@@ -632,7 +632,7 @@ async function prepForInit(message: any): Promise<void> {
 
   console.log('Back - Opened Websocket');
 
-  // Set up general message handler now
+  // Set up general Main message handler now
   process.on('message', onProcessMessage);
   state.readyForInit = true;
 

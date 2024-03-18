@@ -162,6 +162,9 @@ export enum BackIn {
   // Dialogs
   DIALOG_RESPONSE,
   NEW_DIALOG_RESPONSE,
+
+  // Tests
+  TEST_RECONNECTIONS,
 }
 
 export enum BackOut {
@@ -386,6 +389,9 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   // Dialogs
   [BackIn.DIALOG_RESPONSE]: (dialog: DialogState, button: number) => void;
   [BackIn.NEW_DIALOG_RESPONSE]: (dialogId: string, responseId: string) => void;
+
+  // Tests
+  [BackIn.TEST_RECONNECTIONS]: () => void;
 }>
 
 export type BackOutTemplate = SocketTemplate<BackOut, {

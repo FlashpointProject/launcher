@@ -80,6 +80,11 @@ const axios = axiosImport.default;
 export function registerRequestCallbacks(state: BackState, init: () => Promise<void>): void {
   state.socketServer.register(BackIn.KEEP_ALIVE, () => {});
 
+  state.socketServer.register(BackIn.TEST_RECONNECTIONS, async () => {
+    // Close connections, expect them to restart
+    state.socketServer.onError(new Error('test'));
+  });
+
   state.socketServer.register(BackIn.ADD_LOG, (event, data) => {
     switch (data.logLevel) {
       case LogLevel.TRACE:
