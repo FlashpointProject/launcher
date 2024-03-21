@@ -236,7 +236,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   <GameGrid
                     games={games}
                     updateView={this.props.updateView}
-                    gamesTotal={Math.max(Object.keys(games).length, this.props.gamesTotal ? this.props.gamesTotal : 0)}
+                    gamesTotal={this.props.gamesTotal ? this.props.gamesTotal : Object.keys(games).length}
                     selectedGameId={selectedGameId}
                     draggedGameIndex={draggedGameIndex}
                     extremeTags={extremeTags}
@@ -259,7 +259,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   <GameList
                     sourceTable={this.props.sourceTable}
                     games={games}
-                    gamesTotal={this.props.gamesTotal}
+                    gamesTotal={this.props.gamesTotal ? this.props.gamesTotal : Object.keys(games).length}
                     insidePlaylist={!!this.props.selectedPlaylistId}
                     selectedGameId={selectedGameId}
                     draggedGameIndex={draggedGameIndex}
