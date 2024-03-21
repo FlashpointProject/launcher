@@ -157,6 +157,7 @@ export enum BackIn {
   OPTIMIZE_DATABASE,
   PRE_UPDATE_INFO,
   CLEAR_PLAYTIME_TRACKING,
+  CLEAR_PLAYTIME_TRACKING_BY_ID,
   KEEP_ALIVE,
 
   // Dialogs
@@ -380,6 +381,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.OPTIMIZE_DATABASE]: () => void;
   [BackIn.PRE_UPDATE_INFO]: (source: GameMetadataSource) => number;
   [BackIn.CLEAR_PLAYTIME_TRACKING]: () => Promise<void>;
+  [BackIn.CLEAR_PLAYTIME_TRACKING_BY_ID]: (gameId: string) => Promise<void>;
   [BackIn.KEEP_ALIVE]: () => void;
 
   // Developer

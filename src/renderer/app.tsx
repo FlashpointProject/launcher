@@ -1335,7 +1335,14 @@ export class App extends React.Component<AppProps> {
               });
             });
           }
-        }, { type: 'separator' }];
+        }, { type: 'separator' }, {
+          /* Clear Playtime Tracking */
+          label: strings.config.clearPlaytimeTracking,
+          enabled: !window.Shared.isBackRemote, // (Local "back" only)
+          click: () => {
+            window.Shared.back.send(BackIn.CLEAR_PLAYTIME_TRACKING_BY_ID, gameId);
+          }
+        }];
 
       // Add editing mode fields
       if (this.props.preferencesData.enableEditing) {

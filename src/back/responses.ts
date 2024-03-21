@@ -2252,6 +2252,13 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
   });
 
+  state.socketServer.register(BackIn.CLEAR_PLAYTIME_TRACKING_BY_ID, async (event, gameId) => {
+    if (gameId !== '') {
+      await fpDatabase.clearPlaytimeTrackingById(gameId);
+    }
+  });
+
+
   state.socketServer.register(BackIn.RUN_COMMAND, async (event, command, args = []) => {
     // Find command
     const c = state.registry.commands.get(command);
