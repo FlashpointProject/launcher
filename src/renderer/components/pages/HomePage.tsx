@@ -129,12 +129,21 @@ export function HomePage(props: HomePageProps) {
   }, [props.playlists, props.onSelectPlaylist, props.clearSearch]);
 
   const onFavoriteClick = React.useCallback(() => {
-    const playlist = props.playlists.find(p => p.title === '*Favorites*');
+    const playlist = props.playlists.find(p => p.title === ' Favorites' || p.title === '*Favorites*');
     if (playlist) {
       props.onSelectPlaylist(ARCADE, playlist.id);
       props.clearSearch();
     }
   }, [props.playlists, props.onSelectPlaylist, props.clearSearch]);
+
+  // const onHistoryClick = React.useCallback(() => {
+  //   updatePreferencesData({
+  //     gamesOrderBy: 'lastPlayed',
+  //     gamesOrder: 'DESC',
+  //   });
+  //   props.onSelectPlaylist(ARCADE, null);
+  //   props.clearSearch();
+  // }, [props.onSelectPlaylist, props.clearSearch]);
 
   const onAllGamesClick = React.useCallback(() => {
     props.onSelectPlaylist(ARCADE, null);
@@ -206,21 +215,31 @@ export function HomePage(props: HomePageProps) {
   const renderedExtras = React.useMemo(() => {
     const render = (
       <>
+        {/* <QuickStartItem icon='clock'>
+          <Link
+            to={joinLibraryRoute(ARCADE)}
+            onClick={onHistoryClick}>
+            {strings.playHistory}
+          </Link>
+        </QuickStartItem> */}
         <QuickStartItem icon='heart'>
           <Link
             to={joinLibraryRoute(ARCADE)}
             onClick={onFavoriteClick}>
             {strings.favoritesPlaylist}
           </Link>
-        </QuickStartItem><QuickStartItem icon='list'>
+        </QuickStartItem>
+        <QuickStartItem icon='list'>
           <div
             onClick={() => remote.shell.openExternal('http://flashpointarchive.org/datahub/Tags')}
             className='clickable-url' >
             {strings.tagList}
           </div>
-        </QuickStartItem><br /><QuickStartItem icon='puzzle-piece'>
+        </QuickStartItem><br />
+        <QuickStartItem icon='puzzle-piece'>
           {strings.filterByPlatform}:
-        </QuickStartItem><QuickStartItem className='home-page__box-item--platforms'>
+        </QuickStartItem>
+        <QuickStartItem className='home-page__box-item--platforms'>
           {platformList}
         </QuickStartItem><br />
       </>
@@ -449,7 +468,7 @@ export function HomePage(props: HomePageProps) {
           </div>
           { props.main.metadataUpdate.ready && props.main.metadataUpdate.total > 0 && (
             <div className='update-metadata-last'>
-              {formatString(strings.updatedGamesReady, props.main.metadataUpdate.total.toString())}
+              {formatString(strings.updatedGamesReady, (props.main.metadataUpdate.total + 1).toString())}
             </div>
           )}
           <div className='update-metadata-last'>

@@ -143,6 +143,7 @@ const langTemplate = {
     'update',
     'checkingUpgradeState',
     'extrasHeader',
+    'playHistory',
     'favoritesPlaylist',
     'tagList',
     'filterByPlatform',
