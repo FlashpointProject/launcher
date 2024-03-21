@@ -2499,14 +2499,14 @@ function adjustGameFilter(state: BackState, query: ViewQuery, search: GameSearch
       search.order.column = GameSearchSortable.RELEASEDATE;
       break;
     case 'lastPlayed':
-      if (!search.filter.higherThan.playtime && search.filter.equalTo.playcount === undefined && !query.playlistId) {
+      if (!search.filter.higherThan.playcount && search.filter.equalTo.playcount === undefined && search.filter.equalTo.playtime === undefined && !query.playlistId) {
         // When searching outside a playlist, treat playtime sorting like a history
         search.filter.higherThan.playcount = 0;
       }
       search.order.column = GameSearchSortable.LASTPLAYED;
       break;
     case 'playtime':
-      if (!search.filter.higherThan.playcount && search.filter.equalTo.playcount === undefined && !query.playlistId) {
+      if (!search.filter.higherThan.playcount && search.filter.equalTo.playcount === undefined && search.filter.equalTo.playtime === undefined && !query.playlistId) {
         // When searching outside a playlist, treat playtime sorting like a history
         search.filter.higherThan.playcount = 0;
       }
