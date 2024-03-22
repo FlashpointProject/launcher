@@ -55,6 +55,8 @@ export type GameGridProps = {
   screenshotPreviewMode: ScreenshotPreviewMode;
   /** Screenshot Preview Delay */
   screenshotPreviewDelay: number;
+  /** Hide extreme screenshots */
+  hideExtremeScreenshots: boolean;
 };
 
 /** A grid of cells, where each cell displays a game. */
@@ -203,6 +205,7 @@ export class GameGrid extends React.Component<GameGridProps> {
           screenshotPreviewMode={this.props.screenshotPreviewMode}
           screenshotPreviewDelay={this.props.screenshotPreviewDelay}
           logoVersion={this.props.logoVersion}
+          hideExtremeScreenshots={this.props.hideExtremeScreenshots}
           isDraggable={true}
           isSelected={game ? game.id === selectedGameId : false}
           isDragged={false} /> // Bugged render update

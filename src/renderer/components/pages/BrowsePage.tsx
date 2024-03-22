@@ -183,8 +183,6 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     const strings = this.context;
     const { games, selectedGameId, selectedPlaylistId } = this.props;
     const { draggedGameIndex } = this.state;
-    console.log('games - ' + Object.values(games).length);
-    console.log(games);
     const extremeTags = this.props.preferencesData.tagFilters.filter(t => !t.enabled && t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
     // Render
     return (
@@ -251,6 +249,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                     logoVersion={this.props.logoVersion}
                     screenshotPreviewMode={this.props.preferencesData.screenshotPreviewMode}
                     screenshotPreviewDelay={this.props.preferencesData.screenshotPreviewDelay}
+                    hideExtremeScreenshots={this.props.preferencesData.hideExtremeScreenshots}
                     gridRef={this.gameGridOrListRefFunc} />
                 );
               } else {

@@ -27,6 +27,8 @@ type RandomGamesProps = {
   screenshotPreviewMode: ScreenshotPreviewMode;
   /** Screenshot Preview Delay */
   screenshotPreviewDelay: number;
+  /** Hide extreme screenshots */
+  hideExtremeScreenshots: boolean;
 };
 
 // A small "grid" of randomly selected games.
@@ -60,6 +62,7 @@ export function RandomGames(props: RandomGamesProps) {
           screenshot={getGameImageURL(SCREENSHOTS, game.id)}
           screenshotPreviewMode={props.screenshotPreviewMode}
           screenshotPreviewDelay={props.screenshotPreviewDelay}
+          hideExtremeScreenshots={props.hideExtremeScreenshots}
           logoVersion={props.logoVersion}
           isSelected={props.selectedGameId === game.id}
           isDragged={false} />

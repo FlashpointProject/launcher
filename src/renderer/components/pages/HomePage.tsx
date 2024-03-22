@@ -264,6 +264,7 @@ export function HomePage(props: HomePageProps) {
         selectedGameId={props.selectedGameId}
         screenshotPreviewMode={props.preferencesData.screenshotPreviewMode}
         screenshotPreviewDelay={props.preferencesData.screenshotPreviewDelay}
+        hideExtremeScreenshots={props.preferencesData.hideExtremeScreenshots}
         minimized={props.preferencesData.minimizedHomePageBoxes.includes('random-games')}
         onToggleMinimize={() => toggleMinimizeBox('random-games')} />
     </SizeProvider>
@@ -313,6 +314,7 @@ export function HomePage(props: HomePageProps) {
                     screenshot={getGameImageURL(SCREENSHOTS, loadedGotd.id)}
                     screenshotPreviewMode={props.preferencesData.screenshotPreviewMode}
                     screenshotPreviewDelay={props.preferencesData.screenshotPreviewDelay}
+                    hideExtremeScreenshots={props.preferencesData.hideExtremeScreenshots}
                     logoVersion={props.logoVersion}
                     isDraggable={true}
                     isSelected={loadedGotd.id === props.selectedGameId}

@@ -30,15 +30,17 @@ export type GameGridItemProps = Partial<GridCellProps> & {
   screenshotPreviewMode: ScreenshotPreviewMode;
   /** Screenshot Preview Delay */
   screenshotPreviewDelay: number;
+  /** Whether to hide extreme screenshots */
+  hideExtremeScreenshots: boolean;
 };
 
 // Displays a single game. Meant to be rendered inside a grid.
 export function GameGridItem(props: GameGridItemProps) {
   const [isHovered, setIsHovered] = React.useState(false);
-  const [showScreenshot, setShowScreenshot] = React.useState(props.screenshotPreviewMode === ScreenshotPreviewMode.ALWAYS);
+  const [showScreenshot, setShowScreenshot] = React.useState(props.screenshotPreviewMode === ScreenshotPreviewMode.ALWAYS && (!props.extreme || !props.hideExtremeScreenshots));
 
   React.useEffect(() => {
-    if (props.screenshotPreviewMode === ScreenshotPreviewMode.ON) {
+    if (props.screenshotPreviewMode === ScreenshotPreviewMode.ON && (!props.extreme || !props.hideExtremeScreenshots)) {
       let timeoutId: any; // It's a timeout
       if (isHovered) {
         timeoutId = setTimeout(() => {
