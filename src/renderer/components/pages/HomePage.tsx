@@ -1,4 +1,3 @@
-import * as remote from '@electron/remote';
 import { FancyAnimation } from '@renderer/components/FancyAnimation';
 import { WithMainStateProps } from '@renderer/containers/withMainState';
 import { MainActionType } from '@renderer/store/main/enums';
@@ -215,27 +214,6 @@ export function HomePage(props: HomePageProps) {
   const renderedExtras = React.useMemo(() => {
     const render = (
       <>
-        {/* <QuickStartItem icon='clock'>
-          <Link
-            to={joinLibraryRoute(ARCADE)}
-            onClick={onHistoryClick}>
-            {strings.playHistory}
-          </Link>
-        </QuickStartItem> */}
-        <QuickStartItem icon='heart'>
-          <Link
-            to={joinLibraryRoute(ARCADE)}
-            onClick={onFavoriteClick}>
-            {strings.favoritesPlaylist}
-          </Link>
-        </QuickStartItem>
-        <QuickStartItem icon='list'>
-          <div
-            onClick={() => remote.shell.openExternal('http://flashpointarchive.org/datahub/Tags')}
-            className='clickable-url' >
-            {strings.tagList}
-          </div>
-        </QuickStartItem><br />
         <QuickStartItem icon='puzzle-piece'>
           {strings.filterByPlatform}:
         </QuickStartItem>

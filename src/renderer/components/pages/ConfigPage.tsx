@@ -196,7 +196,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 description={strings.searchLimitDesc}
                 value={this.props.preferencesData.searchLimit.toString()}
                 onChange={this.onSearchLimitChange}
-                items={searchLimitOptions}/>tagFilter
+                items={searchLimitOptions}/>
               {/* Current Language */}
               <ConfigBoxSelect
                 title={strings.currentLanguage}

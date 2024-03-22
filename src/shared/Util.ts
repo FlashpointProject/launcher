@@ -148,10 +148,6 @@ function isSpaceOrNewLine(char: string): boolean {
     default:   return false;
   }
 }
-// (Pads the beginning of a string with "0"s until it reaches a specified length)
-function pad(str: string|number, len: number): string {
-  return '0'.repeat(Math.max(0, len - (str+'').length)) + str;
-}
 
 /**
  * Stringify anything to a json string ready to be saved to a file
@@ -306,24 +302,6 @@ export function stripBOM(str: string): string {
 
 function isString(obj: any): boolean {
   return typeof obj === 'string' || obj instanceof String;
-}
-
-/**
- * Convert a launcher version number to a human readable string (including error messages).
- *
- * @param version Launcher version number.
- */
-export function versionNumberToText(version: number): string {
-  if (version >= 0) { // (Version number)
-    const d = new Date(version);
-    return `${pad(d.getFullYear(), 4)}-${pad(d.getMonth()+1, 2)}-${pad(d.getDate(), 2)}`;
-  } else { // (Error code)
-    switch (version) {
-      case -1: return 'version not found';
-      case -2: return 'version not loaded';
-      default: return 'unknown version error';
-    }
-  }
 }
 
 /**
