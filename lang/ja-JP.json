@@ -34,7 +34,7 @@
     "enablePlaytimeTrackingExtremeDesc": "成人向けのゲームの最終プレイ日時、プレイ時間、プレイ回数の記録を有効にする。",
     "enableTagFilterIndex": "Tag Filter Index",
     "enableTagFilterIndexDesc": "Enable use of the Tag Filter Index to speed up lots of queries",
-    "enableVerboseLogging": "Verbose Logging",
+    "enableVerboseLogging": "詳細なログ記録",
     "enableVerboseLoggingDesc": "Enables verbose logging for external libraries.",
     "clearPlaytimeTracking": "プレイ時間データをクリア",
     "clearPlaytimeTrackingDesc": "全ゲームの最終プレイ日時、プレイ時間、プレイ回数の記録を削除する。元に戻せない作業。",
