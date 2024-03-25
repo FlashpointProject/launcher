@@ -77,7 +77,7 @@
     "logoSetDesc": "使用するロゴセットのID。",
     "screenshotPreviewMode": "Screenshot Preview",
     "screenshotPreviewModeDesc": "Preview the screenshot of a Game in Grid mode",
-    "screenshotPreviewModeOff": "Off",
+    "screenshotPreviewModeOff": "無効化",
     "screenshotPreviewModeOn": "On (When Hovering)",
     "screenshotPreviewModeAlways": "Always",
     "screenshotPreviewDelay": "Screenshot Preview Delay",
