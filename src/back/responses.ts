@@ -960,9 +960,14 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     // Add tag filters
     const filteredTags = state.preferences.tagFilters
     .filter(t => t.enabled || (t.extreme && !state.preferences.browsePageShowExtreme))
-    .reduce<string[]>((prev, cur) => prev.concat(cur.tags),  []);
+    .map(t => t.tags)
+    .reduce((prev, cur) => prev.concat(cur), []);
+    /** For now, view identifiers always map to libraries to filter by */
     if (filteredTags.length > 0) {
-      search.withTagFilter = filteredTags;
+      const filter = newSubfilter();
+      filter.exactBlacklist.tags = filteredTags;
+      filter.matchAny = true;
+      search.filter.subfilters.push(filter);
     }
     return fpDatabase.searchGamesRandom(search, data.count);
   });
@@ -992,13 +997,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       if (playlist) {
         await fpDatabase.newCustomIdOrder(playlist.games.map(p => p.gameId));
       }
-    }
-
-    if (search.withTagFilter && search.withTagFilter.length > 0) {
-      const t = setTimeout(() => state.socketServer.broadcast(BackOut.SET_VIEW_SEARCH_STATUS, viewIdentifier, 'Updating Tag Filter Index...'), 300);
-      await fpDatabase.newTagFilterIndex(search);
-      clearTimeout(t);
-      state.socketServer.broadcast(BackOut.SET_VIEW_SEARCH_STATUS, viewIdentifier, null);
     }
 
     const startTime = Date.now();
