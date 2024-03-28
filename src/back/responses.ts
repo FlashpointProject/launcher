@@ -2529,7 +2529,7 @@ function adjustGameFilter(state: BackState, query: ViewQuery, search: GameSearch
   }
 
   // Allow library: search in user input to override
-  if (!search.filter.exactWhitelist.library && library) {
+  if (!query.playlistId && !search.filter.exactWhitelist.library && library) {
     search.filter.exactWhitelist.library = [library];
   }
 
