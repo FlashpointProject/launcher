@@ -1,4 +1,0 @@
-[workspace]
-members = [
-  "crates/fp-rust"
-]

@@ -1,5 +1,4 @@
-import { gameOrderByOptions } from '@shared/order/util';
-import { GameOrderBy, GameOrderReverse, Game } from 'flashpoint-launcher';
+import { GameOrderBy, GameOrderReverse } from 'flashpoint-launcher';
 import * as React from 'react';
 import { LangContext } from '../util/lang';
 
@@ -33,12 +32,14 @@ export class GameOrder extends React.Component<GameOrderProps> {
           className='simple-selector'
           value={this.props.orderBy}
           onChange={this.onOrderByChange}>
-          <option value='dateAdded'>{strings.dateAdded}</option>
-          <option value='dateModified'>{strings.dateModified}</option>
-          <option value='series'>{strings.series}</option>
           <option value='title'>{strings.title}</option>
           <option value='developer'>{strings.developer}</option>
           <option value='publisher'>{strings.publisher}</option>
+          <option value='series'>{strings.series}</option>
+          <option value='platform'>{strings.platform}</option>
+          <option value='releaseDate'>{allStrings.browse.releaseDate}</option>
+          <option value='dateAdded'>{strings.dateAdded}</option>
+          <option value='dateModified'>{strings.dateModified}</option>
           <option value='lastPlayed'>{allStrings.browse.lastPlayed}</option>
           <option value='playtime'>{allStrings.browse.playtime}</option>
         </select>
@@ -55,11 +56,7 @@ export class GameOrder extends React.Component<GameOrderProps> {
   }
 
   onOrderByChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    if (isOrderBy(event.target.value)) {
-      this.updateOrder({ orderBy: event.target.value });
-    } else {
-      console.error(`Failed to set "Order By". Value is invalid! (value: "${event.target.value}")`);
-    }
+    this.updateOrder({ orderBy: event.target.value as GameOrderBy }); // Let the parser deal with invalid values instead. How would this even happen?
   };
 
   onOrderReverseChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
@@ -80,10 +77,6 @@ export class GameOrder extends React.Component<GameOrderProps> {
   }
 
   static contextType = LangContext;
-}
-
-function isOrderBy(value: string): value is GameOrderBy {
-  return (gameOrderByOptions.indexOf(value as keyof Game) >= 0);
 }
 
 function isOrderReverse(value: string): value is GameOrderReverse {

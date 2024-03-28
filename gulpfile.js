@@ -2,9 +2,16 @@
 const fs = require("fs-extra");
 const gulp = require("gulp");
 const builder = require("electron-builder");
+const tar = require("tar-fs");
+const zlib = require("zlib");
 const { parallel, series } = require("gulp");
 const { installExtensions, buildExtensions, watchExtensions } = require("./gulpfile.extensions");
 const { execute } = require("./gulpfile.util");
+const { execSync } = require('child_process');
+const { promisify } = require("util");
+
+// Promisify the pipeline function
+const pipeline = promisify(require("stream").pipeline);
 
 const packageJson = JSON.parse(fs.readFileSync("./package.json", { encoding: 'utf-8' }));
 const config = {
@@ -29,7 +36,7 @@ const extraResources = [
   {
     from: "./extensions",
     to: "./extensions",
-    filter: ["!**/node_modules/**"],
+    filter: ["!**/node_modules/**", "!**/.git/**"],
   },
 ];
 // Files to copy after packing
@@ -104,6 +111,68 @@ const publishInfo = [
   },
 ];
 
+/* - Cross Arch Deps - */
+
+function installCrossDeps(done) {
+  console.log('Checking for installed cross-platform packages...');
+  // Get existing version of FP Archive
+  const packageLock = JSON.parse(fs.readFileSync('./package-lock.json', { encoding: 'utf-8' }));
+  const fpa = packageLock.packages['node_modules/@fparchive/flashpoint-archive'];
+
+  const platform = process.env.PACK_PLATFORM || process.platform;
+  const arch = process.env.PACK_ARCH || process.arch;
+  console.log(`Platform: ${platform} - Arch: ${arch}`);
+
+  const packageName = Object.keys(fpa.optionalDependencies).find(p => p.includes(`${platform}-${arch}`));
+  if (!packageName) {
+    console.log('No package found for this platform and arch combination, skipping...');
+    done();
+    return;
+  }
+  // List installed deps for fparchive
+  const packageLocation = 'node_modules/' + packageName;
+  const badPackages = fs.readdirSync('./node_modules/@fparchive/', { withFileTypes: true }).filter(m => m.isDirectory() && m.name !== 'flashpoint-archive' && ('@fparchive/' + m.name) !== packageName);
+
+  // Remove old packages
+  for (const bp of badPackages) {
+    console.log(`Removing: ${bp.path + bp.name}`);
+    fs.removeSync(bp.path + bp.name);
+  }
+
+  try {
+    // Check if required version already exists and exit early if matches version needed
+    const existingInfo = JSON.parse(fs.readFileSync(packageLocation + '/package.json', { encoding: 'utf-8' }));
+    if (existingInfo.version === fpa.version) {
+      // Already exists, up to date
+      done();
+      return;
+    } else {
+      console.log(`Removed old version (${existingInfo.version})`);
+      // Wrong version, delete and replace
+      fs.removeSync(packageLocation);
+    }
+  } catch {
+    // Pacakge not installed, carry on
+  }
+
+  const packageFilename = `fparchive-${packageName.split('/')[1]}-${fpa.version}.tgz`;
+  execSync(`npm pack ${packageName}@${fpa.version}`);
+  console.log('Unpacking ' + packageFilename);
+  // Extract and move all files to new folder
+  extractTarball(packageFilename, "./package-extract")
+  .then(() => {
+    fs.removeSync(packageFilename);
+    fs.mkdirSync(`./node_modules/${packageName}`, { recursive: true });
+    for (const file of fs.readdirSync('./package-extract/package/')) {
+      fs.moveSync('./package-extract/package/' + file, packageLocation + '/' + file);
+    }
+    fs.removeSync('./package-extract');
+    console.log(`Installed ${packageName}@${fpa.version}`);
+    done();
+  });
+}
+
+
 /* ------ Watch ------ */
 
 function watchBack(done) {
@@ -120,16 +189,6 @@ function watchStatic() {
 }
 
 /* ------ Build ------ */
-
-function buildRust(done) {
-  const targetOption =
-    process.env.PACK_ARCH === "ia32" ? "--target i686-pc-windows-msvc" : "";
-  const releaseOption = config.isRelease ? "--release" : "";
-  execute(
-    `npx cargo-cp-artifact -a cdylib fp-rust ./build/back/fp-rust.node -- cargo build ${targetOption} ${releaseOption} --message-format=json-render-diagnostics`,
-    done
-  );
-}
 
 function buildBack(done) {
   execute("npx ttsc --project tsconfig.backend.json --pretty", done);
@@ -150,9 +209,49 @@ function configVersion(done) {
   fs.writeFile(".version", config.buildVersion, done);
 }
 
+/* ----- Version ---- */
+
+function createVersionFile(done) {
+  // Get the current date
+  const currentDate = new Date();
+
+  // Get the year, month, and day components
+  const year = currentDate.getFullYear();
+  // JavaScript months are 0-indexed, so we add 1 to get the actual month
+  const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+  const day = currentDate.getDate().toString().padStart(2, '0');
+
+  // Create the formatted date string in "YYYY-MM-DD" format
+  const formattedDate = `${year}-${month}-${day}`;
+
+  // Get Git Commit Hash
+  const gitCommitHash = execSync('git rev-parse --short HEAD', { encoding: 'utf-8' }).trim();
+
+  const data = `export const VERSION = '${formattedDate} (${gitCommitHash})';\n`
+
+  // Write to src/shared/version.ts
+  fs.writeFile('src/shared/version.ts', data, (err) => {
+    if (err) {
+      throw `Error writing to version.ts: ${err}`;
+    } else {
+      console.log(`Build ver: "${formattedDate} (${gitCommitHash})"`);
+      done();
+    }
+  });
+}
+
 /* ------ Pack ------ */
 
 function nexusPack(done) {
+  const files = ["./build"];
+  // Forcefully include ia32 library since nexus builds ia32
+  if (process.platform === 'win32') {
+    files.push({
+      from: '../../node_modules/@fparchive/flashpoint-archive-win32-ia32-msvc',
+      to: './node_modules/@fparchive/flashpoint-archive-win32-ia32-msvc',
+      filter: ["**/*"]
+    });
+  }
   builder
     .build({
       targets: builder.Platform.WINDOWS.createTarget(),
@@ -164,12 +263,11 @@ function nexusPack(done) {
             buildResources: "./static/",
             output: "./dist/",
           },
-          files: ["./build"],
+          files: files,
           extraFiles: copyFiles, // Files to copy to the build folder
           extraResources: extraResources, // Copy System Extensions
           compression: "maximum", // Only used if a compressed target (like 7z, nsis, dmg etc.)
           asar: true,
-          asarUnpack: ["**/fp-rust.node"],
           artifactName: "${productName}.${ext}",
           win: {
             target: [
@@ -213,7 +311,6 @@ function pack(done) {
           compression: "maximum", // Only used if a compressed target (like 7z, nsis, dmg etc.)
           target: "dir",
           asar: true,
-          asarUnpack: ["**/fp-rust.node"],
           publish: publish,
           artifactName: "${productName}-${version}_${os}-${arch}.${ext}",
           win: {
@@ -248,14 +345,35 @@ function clean(done) {
   });
 }
 
+/* ------ Util ------ */
+
+async function extractTarball(inputFilePath, outputDirectory) {
+  try {
+      // Create a readable stream from the input file
+      const readStream = fs.createReadStream(inputFilePath);
+
+      // Pipe the readable stream through zlib.createGunzip() and then through tar.extract()
+      await pipeline(
+          readStream,
+          zlib.createGunzip(),
+          tar.extract(outputDirectory)
+      );
+
+      console.log('Extraction complete.');
+  } catch (error) {
+      console.error('Extraction failed:', error);
+  }
+}
+
 /* ------ Meta Tasks ------*/
 
 exports.clean = series(clean);
 
 exports.build = series(
   clean,
+  createVersionFile,
+  installCrossDeps,
   parallel(
-    buildRust,
     buildBack,
     buildRenderer,
     buildExtensions,
@@ -266,8 +384,9 @@ exports.build = series(
 
 exports.watch = series(
   clean,
+  createVersionFile,
+  installCrossDeps,
   parallel(
-    buildRust,
     watchBack,
     watchRenderer,
     watchExtensions,
@@ -276,7 +395,9 @@ exports.watch = series(
   )
 );
 
-exports.pack = series(pack);
+exports.pack = series(
+  pack
+);
 
 exports.nexusPack = series(
   installExtensions,

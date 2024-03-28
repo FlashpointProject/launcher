@@ -121,7 +121,7 @@ class ObjectParserProp<P> implements IObjectParserProp<P> {
     if (typeof prop === 'object' && prop !== null && !Array.isArray(prop)) {
       for (const label in prop) {
         const item = new ObjectParserProp(prop[label], this._context, createStack(this._stack, label));
-        func(item, label, prop);
+        func(item as any, label, prop);
       }
     } else {
       this._context.onError(new ObjectParserError(this._stack, 'Property is not a non-array object.'));
@@ -183,11 +183,11 @@ class ObjectParserProp<P> implements IObjectParserProp<P> {
       if (func) { func(this._property[label]); }
       // Create and return wrapper (around property)
       const prop = this._property && this._property[label];
-      return new ObjectParserProp(prop, this._context, createStack(this._stack, label));
+      return new ObjectParserProp(prop, this._context, createStack(this._stack, label)) as any;
     } else {
       // Error callback
       if (!isOptional) {
-        this._context.onError(new ObjectParserError(this._stack, `Property "${label}" was not found.`));
+        this._context.onError(new ObjectParserError(this._stack, `Property "${label as any}" was not found.`));
       }
       // Create and return wrapper (around nothing)
       return new ObjectParserPropNone();

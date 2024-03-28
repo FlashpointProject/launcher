@@ -8,6 +8,7 @@ import { Contributions, ExtensionContribution, IExtension } from '../../shared/e
 import { scanExtensions, scanSystemExtensions } from './ExtensionsScanner';
 import { getExtensionEntry, newExtLog } from './ExtensionUtils';
 import { ExtensionContext, ExtensionData, ExtensionModule } from './types';
+import * as path from 'path';
 
 export class ExtensionService {
   /** Stores unchanging Extension data */
@@ -113,6 +114,7 @@ export class ExtensionService {
 
     // Already loaded, exit early
     if (extData.enabled) {
+      log.debug('Extensions', `Attempted load of already loaded extension? (${ext.id})`);
       return;
     }
 
@@ -155,13 +157,24 @@ export class ExtensionService {
     if (this.installedExtensionsReady.isOpen()) {
       const ext = this._extensions.find(e => e.id == id);
       if (ext) {
-        this._unloadExtension(ext);
+        return this._unloadExtension(ext)
+        .then(() => {
+          log.info('Extensions', `[${ext.manifest.displayName || ext.manifest.name}] Extension Unloaded (${ext.id})`);
+        });
+      } else {
+        log.error('Extensions', `Attempted unload of unloaded extension ${id}, but no extension with this ID found`);
       }
     }
   }
 
   private async _unloadExtension(ext: IExtension): Promise<void> {
     const extData = this._extensionData[ext.id];
+
+    if (!extData) {
+      // Extension not loaded, return
+      return;
+    }
+
     const entryPath = getExtensionEntry(ext);
     if (entryPath) {
       try {
@@ -175,6 +188,15 @@ export class ExtensionService {
         }
       } catch (error) {
         log.error('Extensions', `[${ext.manifest.displayName || ext.manifest.name}] Error importing entry path.\n${error}'`);
+      } finally {
+        // Remove imported extension modules from require cache
+        const directory = path.dirname(entryPath);
+        for (const key of Object.keys(require.cache)) {
+          if (key.startsWith(directory)) {
+            delete require.cache[key];
+          }
+        }
+        delete require.cache[entryPath];
       }
     }
     // Dispose of all subscriptions the extension made

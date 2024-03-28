@@ -1,16 +1,15 @@
+import { ExtConfigFile } from '@back/ExtConfigFile';
+import { DisposableChildProcess, ManagedChildProcess } from '@back/ManagedChildProcess';
 import { EXT_CONFIG_FILENAME, PREFERENCES_FILENAME } from '@back/constants';
 import { loadCurationIndexImage } from '@back/curate/parse';
 import { duplicateCuration, genCurationWarnings, makeCurationFromGame, refreshCurationContent } from '@back/curate/util';
 import { saveCuration } from '@back/curate/write';
-import { ExtConfigFile } from '@back/ExtConfigFile';
-import * as GameDataManager from '@back/game/GameDataManager';
-import * as GameManager from '@back/game/GameManager';
-import * as TagManager from '@back/game/TagManager';
-import { DisposableChildProcess, ManagedChildProcess } from '@back/ManagedChildProcess';
+import { downloadGameData } from '@back/download';
 import { genContentTree } from '@back/rust';
 import { BackState, StatusState } from '@back/types';
+import { pathTo7zBack } from '@back/util/SevenZip';
+import { awaitDialog } from '@back/util/dialog';
 import { clearDisposable, dispose, newDisposable, registerDisposable } from '@back/util/lifecycle';
-import { addPlaylistGame, deletePlaylist, deletePlaylistGame, filterPlaylists, findPlaylist, findPlaylistByName, getPlaylistGame, savePlaylistGame, updatePlaylist } from '../playlist';
 import {
   deleteCuration,
   getOpenMessageBoxFunc,
@@ -20,28 +19,29 @@ import {
   runService,
   setStatus
 } from '@back/util/misc';
-import { pathTo7zBack } from '@back/util/SevenZip';
-import { Game } from '@database/entity/Game';
+import { BrowsePageLayout, ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
+import { ILogEntry, LogLevel } from '@shared/Log/interface';
 import { BackOut } from '@shared/back/types';
-import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
 import { CurationMeta, LoadedCuration } from '@shared/curate/types';
 import { getContentFolderByKey } from '@shared/curate/util';
 import { CurationTemplate, IExtensionManifest } from '@shared/extensions/interfaces';
 import { ProcessState, Task } from '@shared/interfaces';
-import { ILogEntry, LogLevel } from '@shared/Log/interface';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { overwritePreferenceData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import * as flashpoint from 'flashpoint-launcher';
+import { Game } from 'flashpoint-launcher';
 import * as fs from 'fs';
+import * as fsExtra from 'fs-extra';
 import { extractFull } from 'node-7z';
 import * as path from 'path';
-import { loadCurationArchive } from '..';
+import { fpDatabase, loadCurationArchive } from '..';
+import { addPlaylistGame, deletePlaylist, deletePlaylistGame, filterPlaylists, findPlaylist, findPlaylistByName, getPlaylistGame, savePlaylistGame, updatePlaylist } from '../playlist';
 import { newExtLog } from './ExtensionUtils';
-import { Command } from './types';
+import { Command, RegisteredMiddleware } from './types';
 import uuid = require('uuid');
-import { awaitDialog } from '@back/util/dialog';
+import stream = require('stream');
 
 /**
  * Create a Flashpoint API implementation specific to an extension, used during module load interception
@@ -68,7 +68,16 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     return state.preferences;
   };
 
-  const unload = () => state.extensionsService.unloadExtension(extId);
+  const unloadExtension = () => state.extensionsService.unloadExtension(extId);
+
+  const reloadExtension = () => {
+    setTimeout(() => {
+      state.extensionsService.unloadExtension(extId).then(() => {
+        console.log(`Back - attempting reload for ${extId}`);
+        state.extensionsService.loadExtension(extId);
+      });
+    }, 10);
+  };
 
   const getExtensionFileURL = (filePath: string): string => {
     return `http://localhost:${state.fileServerPort}/extdata/${extId}/${filePath}`;
@@ -132,12 +141,36 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
       registry.commands.set(command, c);
       log.debug('Extensions', `[${extManifest.displayName || extManifest.name}] Registered Command "${command}"`);
       return c;
+    },
+    registerShortcut: (command, shortcut) => {
+      let shortcuts: string[] = [];
+      if (typeof shortcut === 'string') {
+        shortcuts = [shortcut];
+      } else {
+        shortcuts = shortcut;
+      }
+
+      const commandName = `${extId}:${command}`;
+
+      state.shortcuts[commandName] = shortcuts;
+      state.socketServer.broadcast(BackOut.SHORTCUT_REGISTER_COMMAND, commandName, shortcuts);
+
+      return {
+        toDispose: [],
+        isDisposed: false,
+        /** Callback to use when disposed */
+        onDispose: () => {
+          delete state.shortcuts[commandName];
+          state.socketServer.broadcast(BackOut.SHORTCUT_UNREGISTER, shortcuts);
+        }
+      };
     }
   };
 
   const extGames: typeof flashpoint.games = {
     // Platforms
-    findPlatformByName: (name) => TagManager.findPlatform(name),
+    findPlatformByName: async (name) => fpDatabase.findPlatform(name),
+    findPlatforms: async () => fpDatabase.findAllPlatforms(),
     // Playlists
     findPlaylist: (playlistId) => findPlaylist(state, playlistId),
     findPlaylistByName: (playlistName) => findPlaylistByName(state, playlistName),
@@ -160,19 +193,16 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     updatePlaylistGame: (playlistId, playlistGame) => savePlaylistGame(state, playlistId, playlistGame),
 
     // Games
-    countGames: GameManager.countGames,
-    findGame: GameManager.findGame,
-    findGames: GameManager.findGames,
-    findGamesWithTag: GameManager.findGamesWithTag,
-    updateGame: GameManager.save,
-    updateGames: GameManager.updateGames,
-    removeGameAndAddApps: (gameId: string) => GameManager.removeGameAndAddApps(gameId,
-      path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath),
-      path.join(state.config.flashpointPath, state.preferences.imageFolderPath),
-      path.join(state.config.flashpointPath, state.preferences.htdocsFolderPath)),
+    countGames: async () => fpDatabase.countGames(),
+    findGame: async (id) => fpDatabase.findGame(id),
+    // searchGames: await fpDatabase.searchGames,
+    findGamesWithTag: async (name) => fpDatabase.searchGamesWithTag(name),
+    updateGame: async (game) => fpDatabase.saveGame(game),
+    updateGames: async (games) => fpDatabase.saveGames(games),
+    removeGameAndAddApps: async (gameId: string) => fpDatabase.deleteGame(gameId),
     isGameExtreme: (game: Game) => {
       const extremeTags = state.preferences.tagFilters.filter(t => t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
-      return game.tagsStr.split(';').findIndex(t => extremeTags.includes(t.trim())) !== -1;
+      return game.tags.findIndex(t => extremeTags.includes(t.trim())) !== -1;
     },
 
     // Events
@@ -230,17 +260,17 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
   };
 
   const extGameData: typeof flashpoint.gameData = {
-    findOne: GameDataManager.findOne,
-    findGameData: GameDataManager.findGameData,
-    save: GameDataManager.save,
-    importGameData: (gameId: string, filePath: string) => GameDataManager.importGameData(gameId, filePath, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath)),
+    findOne: async (id) => fpDatabase.findGameDataById(id),
+    findGameData: async (gameId) => fpDatabase.findGameData(gameId),
+    save: async (gameData) => fpDatabase.saveGameData(gameData),
+    // importGameData: (gameId: string, filePath: string) => GameDataManager.importGameData(gameId, filePath, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath)),
     downloadGameData: async (gameDataId: number) => {
       const onProgress = (percent: number) => {
         // Sent to PLACEHOLDER download dialog on client
         state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT, percent);
       };
       state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
-      await GameDataManager.downloadGameData(gameDataId, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), state.preferences.gameDataSources, state.downloadController.signal(), onProgress)
+      await downloadGameData(gameDataId, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), state.preferences.gameDataSources, state.downloadController.signal(), onProgress)
       .catch((error) => {
         state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
       })
@@ -258,39 +288,42 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
 
   const extTags: typeof flashpoint.tags = {
     // Tags
-    getTagById: TagManager.getTagById,
-    findTag: TagManager.findTag,
-    findTags: TagManager.findTags,
-    createTag: TagManager.createTag,
-    saveTag: TagManager.saveTag,
-    addAliasToTag: TagManager.addAliasToTag,
-    deleteTag: (tagId: number, skipWarn?: boolean) => {
-      const openDialogFunc = getOpenMessageBoxFunc(state);
-      if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
-      return TagManager.deleteTag(tagId, state, openDialogFunc, skipWarn);
+    getTagById: async (id) => fpDatabase.findTagById(id),
+    findTag: async (name) => fpDatabase.findTag(name),
+    findTags: async () => fpDatabase.findAllTags(),
+    createTag: async (name, category) => fpDatabase.createTag(name, category),
+    saveTag: async (tag) => fpDatabase.saveTag(tag),
+    deleteTag: async (tagId: number, skipWarn?: boolean) => {
+      const tag = await fpDatabase.findTagById(tagId);
+      if (tag) {
+        return fpDatabase.deleteTag(tag.name);
+      } else {
+        throw 'Tag does not exist';
+      }
     },
-    findGameTags: TagManager.findGameTags,
 
     // Tag Categories
-    getTagCategoryById: TagManager.getTagCategoryById,
-    findTagCategories: TagManager.findTagCategories,
-    createTagCategory: TagManager.createTagCategory,
-    saveTagCategory: TagManager.saveTagCategory,
-    deleteTagCategory: (tagCategoryId: number) => {
-      const openDialogFunc = getOpenMessageBoxFunc(state);
-      if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
-      return TagManager.deleteTagCategory(tagCategoryId, openDialogFunc, state);
-    },
+    getTagCategoryById: async (id) => fpDatabase.findTagCategoryById(id),
+    findTagCategories: async () => fpDatabase.findAllTagCategories(),
+    createTagCategory: async (name, color) => fpDatabase.createTagCategory({
+      id: -1,
+      name,
+      color
+    }),
+    saveTagCategory: async (tc) => fpDatabase.saveTagCategory(tc),
+    // deleteTagCategory: (tagCategoryId: number) => {
+    //   const openDialogFunc = getOpenMessageBoxFunc(state);
+    //   if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
+    //   return TagManager.deleteTagCategory(tagCategoryId, openDialogFunc, state);
+    // },
 
     // Tag Suggestions
-    // TODO: Update event to allow custom filters from ext
-    findTagSuggestions: (text: string) => TagManager.findTagSuggestions(text, []),
+    // TODO FIX: Update event to allow custom filters from ext
+    findTagSuggestions: async (text: string) => [],
 
     // Misc
-    mergeTags: (mergeData: flashpoint.MergeTagData) => {
-      const openDialogFunc = getOpenMessageBoxFunc(state);
-      if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
-      return TagManager.mergeTags(mergeData, openDialogFunc, state);
+    mergeTags: async (mergeData: flashpoint.MergeTagData) => {
+      return fpDatabase.mergeTags(mergeData.toMerge, mergeData.mergeInto);
     },
   };
 
@@ -351,13 +384,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
       if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
       return openDialogFunc(options);
     },
-    awaitDialog: async (dialogId: string) => {
-      return new Promise<flashpoint.DialogResponse>((resolve) => {
-        state.resolveDialogEvents.once(dialogId, (res) => {
-          resolve(res);
-        });
-      });
-    },
+    awaitDialog: (dialogId: string) => awaitDialog(state, dialogId),
     cancelDialog: async (dialogId: string) => {
       state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
     },
@@ -370,6 +397,9 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
       const openDialogFunc = getOpenOpenDialogFunc(state.socketServer);
       if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
       return openDialogFunc(options);
+    },
+    updateDialogField: (dialogId, name, value) => {
+      state.socketServer.broadcast(BackOut.UPDATE_DIALOG_FIELD_VALUE, dialogId, name, value);
     }
   };
 
@@ -521,6 +551,68 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     }
   };
 
+  const extMiddlewares: typeof flashpoint.middleware = {
+    registerMiddleware: (middleware: flashpoint.IGameMiddleware) => {
+      // Minor hack to set ext id
+      const registeredMiddleware: RegisteredMiddleware = middleware as RegisteredMiddleware;
+      registeredMiddleware.extId = extId;
+      state.registry.middlewares.set(middleware.id, registeredMiddleware);
+    },
+    writeGameFile: async (filePath: string, rs: stream.Readable) => {
+      // Append to overrides directory
+      const fullPath = path.join(state.config.flashpointPath, state.config.middlewareOverridePath, filePath);
+      await fs.promises.mkdir(path.dirname(fullPath), { recursive: true });
+      // Write file
+      const ws = fs.createWriteStream(fullPath);
+      log.debug('Launcher', 'Writing override file to ' + fullPath);
+      return new Promise((resolve, reject) => {
+        ws.on('error', reject);
+        ws.on('finish', resolve);
+        rs.pipe(ws);
+      });
+    },
+    writeGameFileByUrl: async (url: string, rs: stream.Readable) => {
+      // Convert url to file path
+      let filePath = url;
+      if (url.startsWith('https://')) {
+        filePath = url.substring('https://'.length);
+      }
+      if (url.startsWith('http://')) {
+        filePath = url.substring('http://'.length);
+      }
+      const fullPath = path.join(state.config.flashpointPath, state.config.middlewareOverridePath, filePath);
+      await fs.promises.mkdir(path.dirname(fullPath), { recursive: true });
+      log.debug('Launcher', 'Writing override file to ' + fullPath);
+      // Write file
+      const ws = fs.createWriteStream(fullPath);
+      return new Promise((resolve, reject) => {
+        ws.on('error', reject);
+        ws.on('finish', resolve);
+        rs.pipe(ws);
+      });
+    },
+    copyGameFilesByUrl: async (url: string, source: string) => {
+      // Convert url to file path
+      let filePath = url;
+      if (url.startsWith('https://')) {
+        filePath = url.substring('https://'.length);
+      }
+      if (url.startsWith('http://')) {
+        filePath = url.substring('http://'.length);
+      }
+      const fullPath = path.join(state.config.flashpointPath, state.config.middlewareOverridePath, filePath);
+      await fs.promises.mkdir(path.dirname(fullPath), { recursive: true });
+      log.debug('Launcher', `Copying override from "${source}" to "${fullPath}"`);
+      return fsExtra.copy(source, fullPath);
+    },
+    extractGameFile: (path: string) => {
+      return '' as any; // UNIMPLEMENTED
+    },
+    extractGameFileByUrl: (url: string) => {
+      return '' as any; // UNIMPLEMENTED
+    }
+  };
+
   // Create API Module to give to caller
   return <typeof flashpoint>{
     // General information
@@ -530,7 +622,8 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     config: state.config,
     getPreferences: getPreferences,
     overwritePreferenceData: extOverwritePreferenceData,
-    unload: unload,
+    unloadExtension: unloadExtension,
+    reloadExtension: reloadExtension,
     getExtensionFileURL: getExtensionFileURL,
     unzipFile: unzipFile,
     getExtConfigValue: getExtConfigValue,
@@ -548,6 +641,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     status: extStatus,
     services: extServices,
     dialogs: extDialogs,
+    middleware: extMiddlewares,
 
     // Events
     onDidInit: apiEmitters.onDidInit.extEvent(extManifest.displayName || extManifest.name),
@@ -561,6 +655,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     ProcessState: ProcessState,
     BrowsePageLayout: BrowsePageLayout,
     LogLevel: LogLevel,
+    ScreenshotPreviewMode: ScreenshotPreviewMode,
 
     // Disposable funcs
     dispose: dispose,

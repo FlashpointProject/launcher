@@ -1,4 +1,3 @@
-import { TagCategory } from '@database/entity/TagCategory';
 import { Task } from '@shared/interfaces';
 import { connectRouter, RouterState } from 'connected-react-router';
 import { History } from 'history';
@@ -10,6 +9,7 @@ import { MainState } from './main/types';
 import { searchReducer, SearchState } from './search';
 import { tagCategoriesReducer } from './tagCategories';
 import { tasksStateReducer } from './tasks';
+import { TagCategory } from 'flashpoint-launcher';
 
 // The top-level state object
 export interface ApplicationState {

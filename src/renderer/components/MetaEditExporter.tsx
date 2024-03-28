@@ -91,8 +91,6 @@ function initProperties(): MetaEditFlags {
     publisher: false,
     tags: false,
     platform: false,
-    broken: false,
-    extreme: false,
     playMode: false,
     status: false,
     notes: false,
@@ -104,7 +102,7 @@ function initProperties(): MetaEditFlags {
     originalDescription: false,
     language: false,
     library: false,
-  };
+  } as any; // TODO retire?
 }
 
 function getGameString(key: keyof MetaEditFlags, strings: LangContainer): string {
@@ -117,15 +115,13 @@ function getGameString(key: keyof MetaEditFlags, strings: LangContainer): string
     case 'developer':           return strings.filter.developer;
     case 'publisher':           return strings.browse.publisher;
     case 'tags':                return strings.browse.tags;
-    case 'platform':            return strings.browse.platform;
-    case 'broken':              return strings.browse.brokenInInfinity;
-    case 'extreme':             return strings.browse.extreme;
+    // case 'platform':            return strings.browse.platform;
     case 'playMode':            return strings.browse.playMode;
     case 'status':              return strings.browse.status;
     case 'notes':               return strings.browse.notes;
     case 'source':              return strings.browse.source;
-    case 'applicationPath':     return strings.browse.applicationPath;
-    case 'launchCommand':       return strings.browse.launchCommand;
+    // case 'applicationPath':     return strings.browse.applicationPath;
+    // case 'launchCommand':       return strings.browse.launchCommand;
     case 'releaseDate':         return strings.browse.releaseDate;
     case 'version':             return strings.browse.version;
     case 'originalDescription': return strings.browse.originalDescription;

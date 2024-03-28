@@ -1,5 +1,3 @@
-import { Tag } from '@database/entity/Tag';
-import { TagCategory } from '@database/entity/TagCategory';
 import * as remote from '@electron/remote';
 import {
   CurateBoxDropdownInputRow,
@@ -21,7 +19,7 @@ import { LangContainer } from '@shared/lang';
 import { sizeToString } from '@shared/Util';
 import axios from 'axios';
 import { clipboard, MenuItemConstructorOptions } from 'electron';
-import { CurationState, LoadedCuration, Platform, TagSuggestion } from 'flashpoint-launcher';
+import { CurationState, LoadedCuration, Platform, Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
 import * as path from 'path';
 import * as React from 'react';
 import { Dispatch } from 'redux';
@@ -36,8 +34,8 @@ import { SimpleButton } from './SimpleButton';
 export type CurateBoxProps = {
   curation: CurationState;
   suggestions: Partial<GamePropSuggestions>;
-  tagSuggestions: TagSuggestion<Tag>[];
-  platformSuggestions: TagSuggestion<Platform>[];
+  tagSuggestions: TagSuggestion[];
+  platformSuggestions: TagSuggestion[];
   platformAppPaths: PlatformAppPathSuggestions;
   tagCategories: TagCategory[];
   tagText: string;
@@ -61,11 +59,11 @@ export function CurateBox(props: CurateBoxProps) {
     if (tags) {
       return tags.sort((a, b) => {
         // Sort by category, then name secondarily
-        if (a.categoryId !== b.categoryId) {
-          const categoryA: TagCategory | undefined = props.tagCategories.find(c => c.id === a.categoryId);
-          const categoryB: TagCategory | undefined = props.tagCategories.find(c => c.id === b.categoryId);
+        if (a.category !== b.category) {
+          const categoryA: TagCategory | undefined = props.tagCategories.find(c => c.name === a.category);
+          const categoryB: TagCategory | undefined = props.tagCategories.find(c => c.name === b.category);
           if (!categoryA && !categoryB) {
-            return a.primaryAlias.name.toLowerCase().localeCompare(b.primaryAlias.name);
+            return a.name.toLowerCase().localeCompare(b.name);
           } else if (!categoryA) {
             return -1;
           } else if (!categoryB) {
@@ -74,7 +72,7 @@ export function CurateBox(props: CurateBoxProps) {
             return categoryA.name.toLowerCase().localeCompare(categoryB.name.toLowerCase());
           }
         } else {
-          return a.primaryAlias.name.toLowerCase().localeCompare(b.primaryAlias.name);
+          return a.name.toLowerCase().localeCompare(b.name);
         }
       });
     } else {
@@ -89,8 +87,12 @@ export function CurateBox(props: CurateBoxProps) {
   const onDropThumbnail  = useDropImageCallback('logo.png', props.curation, strings.dialog);
   const onDropScreenshot = useDropImageCallback('ss.png',   props.curation, strings.dialog);
 
-  const thumbnailPath  = props.curation.thumbnail.exists  ? `${getCurationURL(props.curation.folder)}/logo.png` : undefined;
-  const screenshotPath = props.curation.screenshot.exists ? `${getCurationURL(props.curation.folder)}/ss.png` : undefined;
+  const thumbnailPath  = React.useMemo(() => {
+    return props.curation.thumbnail.exists ? `${getCurationURL(props.curation.folder)}/logo.png?v` + props.curation.thumbnail.version : undefined;
+  }, [props.curation.thumbnail]);
+  const screenshotPath  = React.useMemo(() => {
+    return props.curation.screenshot.exists ? `${getCurationURL(props.curation.folder)}/ss.png?v` + props.curation.screenshot.version : undefined;
+  }, [props.curation.screenshot]);
 
   const onNewAddApp  = useCreateAddAppCallback('normal',  props.curation.folder, props.dispatch);
   const onAddExtras  = useCreateAddAppCallback('extras',  props.curation.folder, props.dispatch);
@@ -241,12 +243,12 @@ export function CurateBox(props: CurateBoxProps) {
     }, {
       type: 'separator'
     }];
-    if (node.type === 'file') {
+    if (node.nodeType === 'file') {
       contextButtons.push({
         label: strings.curate.contextShowInExplorer,
         click: () => remote.shell.showItemInFolder(path.join(window.Shared.config.fullFlashpointPath, CURATIONS_FOLDER_WORKING, props.curation.folder, 'content', tree.join(path.sep)))
       });
-    } else if (node.type === 'directory') {
+    } else if (node.nodeType === 'directory') {
       contextButtons.push({
         label: strings.curate.contextOpenFolderInExplorer,
         click: () => remote.shell.openExternal(path.join(window.Shared.config.fullFlashpointPath, CURATIONS_FOLDER_WORKING, props.curation.folder, 'content', tree.join(path.sep)))
@@ -264,7 +266,7 @@ export function CurateBox(props: CurateBoxProps) {
     for (let i = 0; i < depth; i++) {
       depthDivs.push(<div className='curate-box-content__depth' key={`${i}`} style={{ width: '1rem' }}/>);
     }
-    switch (node.type) {
+    switch (node.nodeType) {
       case 'directory': {
         const children = node.expanded ? node.children.map((node, index) => renderContentNode(depth + 1, node, index, tree.concat([node.name]), launchPath))
         .reduce<JSX.Element[]>((prev, next) => Array.isArray(next) ? prev.concat(next) : [...prev, next], []) : [];
@@ -300,6 +302,7 @@ export function CurateBox(props: CurateBoxProps) {
             <div>{node.name} ({sizeToString(node.size || 0)})</div>
           </div>
         );
+      default: return <></>;
     }
   }
 
@@ -345,7 +348,7 @@ export function CurateBox(props: CurateBoxProps) {
   }, [props.curation.contents, props.curation.game.launchCommand]);
 
   const renderTagIcon = React.useCallback((tag: Tag) => {
-    const category = props.tagCategories.find(c => c.id === tag.categoryId);
+    const category = props.tagCategories.find(c => c.name === tag.category);
     return (
       <OpenIcon
         className='curate-tag__icon'
@@ -354,8 +357,8 @@ export function CurateBox(props: CurateBoxProps) {
     );
   }, []);
 
-  const renderPlatformIconSugg = React.useCallback((platformSugg: TagSuggestion<Platform>) => {
-    const iconUrl = getPlatformIconURL(platformSugg.primaryAlias, props.logoVersion);
+  const renderPlatformIconSugg = React.useCallback((platformSugg: TagSuggestion) => {
+    const iconUrl = getPlatformIconURL(platformSugg.name, props.logoVersion);
     return (
       <div
         className='curate-tag__icon'
@@ -364,7 +367,7 @@ export function CurateBox(props: CurateBoxProps) {
   }, []);
 
   const renderPlatformIcon = React.useCallback((platform: Platform) => {
-    const iconUrl = getPlatformIconURL(platform.primaryAlias.name, props.logoVersion);
+    const iconUrl = getPlatformIconURL(platform.name, props.logoVersion);
     return (
       <div
         className='curate-tag__icon'
@@ -493,7 +496,7 @@ export function CurateBox(props: CurateBoxProps) {
                   return tag.id || 0;
                 }}
                 getItemValue={(tag) => {
-                  return tag.primaryAlias.name;
+                  return tag.name;
                 }}
                 renderIcon={renderTagIcon}
                 onRemove={onRemoveTag}
@@ -576,7 +579,7 @@ export function CurateBox(props: CurateBoxProps) {
                   return platform.id || 0;
                 }}
                 getItemValue={(platform) => {
-                  return platform.primaryAlias.name;
+                  return platform.name;
                 }}
                 renderIcon={renderPlatformIcon}
                 onRemove={onRemovePlatform}
@@ -750,7 +753,7 @@ function createAppPathDropdownItems(platformAppPaths: PlatformAppPathSuggestions
     let values: string[] = [];
     // Sort current platform seperately and put on top
     values = values.concat(platformAppPaths[currentPlatform].map(a => a.appPath));
-
+    values.push('-- All Platform App Paths --');
     // Sort rest
     let appPaths: string[] = [];
     for (const oKey of Object.keys(platformAppPaths)) {

@@ -1,7 +1,6 @@
-import { Game } from '@database/entity/Game';
 import * as remote from '@electron/remote';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
-import { BackIn } from '@shared/back/types';
+import { BackIn, FetchedGameInfo } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { ExtensionContribution } from '@shared/extensions/interfaces';
 import { LangContainer } from '@shared/lang';
@@ -10,12 +9,12 @@ import { updatePreferencesData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
 import { Menu, MenuItemConstructorOptions } from 'electron';
-import { Playlist, PlaylistGame } from 'flashpoint-launcher';
+import { Game, Playlist, PlaylistGame } from 'flashpoint-launcher';
 import * as React from 'react';
 import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowseSidebar';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { UpdateView, ViewGameSet } from '../../interfaces';
-import { gameIdDataType, gameScaleSpan } from '../../Util';
+import { gameDragDataType, gameScaleSpan } from '../../Util';
 import { LangContext } from '../../util/lang';
 import { queueOne } from '../../util/queue';
 import { FancyAnimation } from '../FancyAnimation';
@@ -25,17 +24,34 @@ import { InputElement } from '../InputField';
 import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
 import { Spinner } from '../Spinner';
 import path = require('path');
+import { newGame } from '@shared/utils/misc';
+import { RequestState } from '@renderer/store/main/enums';
 
 type Pick<T, K extends keyof T> = { [P in K]: T[P]; };
-type StateCallback1 = Pick<BrowsePageState, 'currentGame'|'isEditingGame'|'isNewGame'|'currentPlaylistEntry'>;
+type StateCallback1 = Pick<BrowsePageState, 'currentGameInfo'|'isEditingGame'|'isNewGame'|'currentPlaylistEntry'>;
+
+export type GameDragEventData = {
+  gameId: string;
+  index: number;
+}
+
+export type GameDragData = {
+  sourceTable: string;
+  gameId: string;
+  index: number;
+}
 
 type OwnProps = {
+  sourceTable: string;
   games: ViewGameSet;
   gamesTotal?: number;
+  metaState?: RequestState;
+  searchStatus: string | null;
   playlists: Playlist[];
   playlistIconCache: Record<string, string>;
-  onSaveGame: (game: Game, playlistEntry?: PlaylistGame) => Promise<Game | null>;
+  onSaveGame: (info: FetchedGameInfo, playlistEntry?: PlaylistGame) => Promise<FetchedGameInfo | null>;
   onDeleteGame: (gameId: string) => void;
+  onMovePlaylistGame: (sourceIdx: number, destIdx: number) => void;
   updateView: UpdateView;
 
   /** Currently selected game (if any). */
@@ -70,10 +86,10 @@ export type BrowsePageState = {
   /** Current quick search string (used to jump to a game in the list, not to filter the list). */
   quickSearch: string;
   /** Currently dragged game (if any). */
-  draggedGameId?: string;
+  draggedGameIndex: number | null;
 
   /** Buffer for the selected game (all changes are made to the game until saved). */
-  currentGame?: Game;
+  currentGameInfo?: FetchedGameInfo;
   /** Buffer for the playlist notes of the selected game/playlist (all changes are made to the game until saved). */
   currentPlaylistEntry?: PlaylistGame;
   /** If the "edit mode" is currently enabled. */
@@ -113,6 +129,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       isNewGame: false,
       isEditingPlaylist: false,
       isNewPlaylist: false,
+      draggedGameIndex: null,
     };
     const assignToState = <T extends keyof BrowsePageState>(state: Pick<BrowsePageState, T>) => { Object.assign(initialState, state); };
     this.updateCurrentGame(this.props.selectedGameId, this.props.selectedPlaylistId);
@@ -133,9 +150,9 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       this.setState({ isEditingGame: false });
     }
     // Deselect the current game if the game has been deselected (from outside this component most likely)
-    if (selectedGameId === undefined && this.state.currentGame && !this.state.isNewGame) {
+    if (selectedGameId === undefined && this.state.currentGameInfo && !this.state.isNewGame) {
       this.setState({
-        currentGame: undefined,
+        currentGameInfo: undefined,
         currentPlaylistEntry: undefined,
         isNewGame: false,
         isEditingGame: false
@@ -145,7 +162,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     if (gameLibrary === prevProps.gameLibrary &&
         selectedPlaylistId !== prevProps.selectedPlaylistId) {
       this.setState({
-        currentGame: undefined,
+        currentGameInfo: undefined,
         isNewGame: false,
         isEditingGame: false
       });
@@ -155,7 +172,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     // Check the library selection changed (and no game is selected)
     if (!selectedGameId && gameLibrary !== prevProps.gameLibrary) {
       this.setState({
-        currentGame: undefined,
+        currentGameInfo: undefined,
         isNewGame: false,
         isEditingGame: false
       });
@@ -165,8 +182,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   render() {
     const strings = this.context;
     const { games, selectedGameId, selectedPlaylistId } = this.props;
-    const { draggedGameId } = this.state;
-    const gamesTotalNum = this.props.gamesTotal != undefined ? this.props.gamesTotal : -1;
+    const { draggedGameIndex } = this.state;
     const extremeTags = this.props.preferencesData.tagFilters.filter(t => !t.enabled && t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
     // Render
     return (
@@ -205,7 +221,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             onExportPlaylist={(playlistId) => this.onExportPlaylist(strings, playlistId)}
             onContextMenu={this.onPlaylistContextMenuMemo(strings, this.state.isEditingPlaylist, this.props.selectedPlaylistId)} />
         </ResizableSidebar>
-        { (gamesTotalNum > -1) ? (
+        { this.props.metaState === RequestState.RECEIVED ? (
           <div
             className='game-browser__center'
             onKeyDown={this.onCenterKeyDown}>
@@ -218,9 +234,9 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   <GameGrid
                     games={games}
                     updateView={this.props.updateView}
-                    gamesTotal={this.props.gamesTotal}
+                    gamesTotal={this.props.gamesTotal ? this.props.gamesTotal : Object.keys(games).length}
                     selectedGameId={selectedGameId}
-                    draggedGameId={draggedGameId}
+                    draggedGameIndex={draggedGameIndex}
                     extremeTags={extremeTags}
                     noRowsRenderer={this.noRowsRendererMemo(strings.browse)}
                     onGameSelect={this.onGameSelect}
@@ -231,16 +247,21 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                     cellWidth={width}
                     cellHeight={height}
                     logoVersion={this.props.logoVersion}
+                    screenshotPreviewMode={this.props.preferencesData.screenshotPreviewMode}
+                    screenshotPreviewDelay={this.props.preferencesData.screenshotPreviewDelay}
+                    hideExtremeScreenshots={this.props.preferencesData.hideExtremeScreenshots}
                     gridRef={this.gameGridOrListRefFunc} />
                 );
               } else {
                 const height: number = calcScale(30, this.props.preferencesData.browsePageGameScale);
                 return (
                   <GameList
+                    sourceTable={this.props.sourceTable}
                     games={games}
-                    gamesTotal={this.props.gamesTotal}
+                    gamesTotal={this.props.gamesTotal ? this.props.gamesTotal : Object.keys(games).length}
+                    insidePlaylist={!!this.props.selectedPlaylistId}
                     selectedGameId={selectedGameId}
-                    draggedGameId={draggedGameId}
+                    draggedGameIndex={draggedGameIndex}
                     showExtremeIcon={this.props.preferencesData.browsePageShowExtreme}
                     extremeTags={extremeTags}
                     noRowsRenderer={this.noRowsRendererMemo(strings.browse)}
@@ -250,6 +271,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                     onGameDragStart={this.onGameDragStart}
                     onGameDragEnd={this.onGameDragEnd}
                     updateView={this.props.updateView}
+                    onMovePlaylistGame={this.onMovePlaylistGame}
                     rowHeight={height}
                     logoVersion={this.props.logoVersion}
                     listRef={this.gameGridOrListRefFunc} />
@@ -263,11 +285,11 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
               <div className='game-browser__loading'>
                 <FancyAnimation
                   normalRender={(
-                    <div>{strings.misc.searching}</div>
+                    <div>{this.props.searchStatus || strings.misc.searching}</div>
                   )}
                   fancyRender={(
                     <>
-                      <div>{strings.misc.searching}</div>
+                      <div>{this.props.searchStatus || strings.misc.searching}</div>
                       <Spinner/>
                     </>
                   )}/>
@@ -411,14 +433,23 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     }
   };
 
-  onGameDragStart = (event: React.DragEvent, gameId: string): void => {
-    this.setState({ draggedGameId: gameId });
-    event.dataTransfer.setData(gameIdDataType, gameId);
+  onGameDragStart = (event: React.DragEvent, dragEventData: GameDragEventData): void => {
+    const data: GameDragData = {
+      ...dragEventData,
+      sourceTable: this.props.sourceTable
+    };
+    console.log(data);
+    this.setState({ draggedGameIndex: dragEventData.index });
+    event.dataTransfer.setData(gameDragDataType, JSON.stringify(data));
   };
 
   onGameDragEnd = (event: React.DragEvent): void => {
-    this.setState({ draggedGameId: undefined });
-    event.dataTransfer.clearData(gameIdDataType);
+    this.setState({ draggedGameIndex: null });
+    event.dataTransfer.clearData(gameDragDataType);
+  };
+
+  onMovePlaylistGame = async (sourceIdx: number, destIdx: number): Promise<void> => {
+    this.props.onMovePlaylistGame(sourceIdx, destIdx);
   };
 
   onDeleteSelectedGame = async (): Promise<void> => {
@@ -430,7 +461,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     this.props.onSelectGame(undefined);
     // Reset the state related to the selected game
     this.setState({
-      currentGame: undefined,
+      currentGameInfo: undefined,
       currentPlaylistEntry: undefined,
       isNewGame: false,
       isEditingGame: false
@@ -441,9 +472,9 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
 
   onRemoveSelectedGameFromPlaylist = async (): Promise<void> => {
     // Remove game from playlist
-    if (this.state.currentGame) {
+    if (this.state.currentGameInfo) {
       if (this.state.currentPlaylist) {
-        await window.Shared.back.request(BackIn.DELETE_PLAYLIST_GAME, this.state.currentPlaylist.id, this.state.currentGame.id);
+        await window.Shared.back.request(BackIn.DELETE_PLAYLIST_GAME, this.state.currentPlaylist.id, this.state.currentGameInfo.game.id);
       } else { logError('No playlist is selected'); }
     } else { logError('No game is selected'); }
 
@@ -452,7 +483,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
 
     // Reset the state related to the selected game
     this.setState({
-      currentGame: undefined,
+      currentGameInfo: undefined,
       currentPlaylistEntry: undefined,
       isNewGame: false,
       isEditingGame: false
@@ -469,12 +500,15 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
 
   onEditGame = (game: Partial<Game>) => {
     log.debug('Launcher', `Editing: ${JSON.stringify(game)}`);
-    if (this.state.currentGame) {
-      const newGame = new Game();
-      Object.assign(newGame, {...this.state.currentGame, ...game});
-      newGame.updateTagsStr();
+    if (this.state.currentGameInfo) {
+      const ng = newGame();
+      Object.assign(ng, {...this.state.currentGameInfo.game, ...game});
       this.setState({
-        currentGame: newGame
+        currentGameInfo: {
+          game: ng,
+          activeConfig: this.state.currentGameInfo.activeConfig,
+          configs: this.state.currentGameInfo.configs,
+        }
       });
     }
   };
@@ -502,10 +536,10 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
 
       // Update game
       window.Shared.back.request(BackIn.GET_GAME, gameId)
-      .then(game => {
-        if (game) {
+      .then(fetchedInfo => {
+        if (fetchedInfo) {
           this.setState({
-            currentGame: game,
+            currentGameInfo: fetchedInfo,
             currentPlaylistEntry: gamePlaylistEntry == null ? undefined : gamePlaylistEntry,
             isNewGame: false,
           });
@@ -524,19 +558,19 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     this.setState({
       isEditingGame: false,
       isNewGame: false,
-      currentGame: this.state.isNewGame ? undefined : this.state.currentGame,
+      currentGameInfo: this.state.isNewGame ? undefined : this.state.currentGameInfo,
     });
     this.focusGameGridOrList();
   };
 
   onSaveEditClick = async (): Promise<void> => {
-    if (!this.state.currentGame) {
+    if (!this.state.currentGameInfo) {
       console.error('Can\'t save game. "currentGame" is missing.');
       return;
     }
-    const game = await this.props.onSaveGame(this.state.currentGame, this.state.currentPlaylistEntry);
+    const newInfo = await this.props.onSaveGame(this.state.currentGameInfo, this.state.currentPlaylistEntry);
     this.setState({
-      currentGame: game == null ? undefined : game,
+      currentGameInfo: newInfo == null ? undefined : newInfo,
       isEditingGame: false,
       isNewGame: false
     });
@@ -544,15 +578,24 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   };
 
   onUpdateActiveGameData = (activeDataOnDisk: boolean, activeDataId?: number): void => {
-    if (this.state.currentGame) {
-      const newGame = new Game();
-      Object.assign(newGame, {...this.state.currentGame, activeDataOnDisk, activeDataId });
-      window.Shared.back.request(BackIn.SAVE_GAME, newGame)
+    if (this.state.currentGameInfo) {
+      const ng = newGame();
+      Object.assign(ng, {...this.state.currentGameInfo.game, activeDataOnDisk, activeDataId });
+      const newInfo: FetchedGameInfo = {
+        game: ng,
+        activeConfig: this.state.currentGameInfo.activeConfig,
+        configs: this.state.currentGameInfo.configs,
+      };
+      window.Shared.back.request(BackIn.SAVE_GAME, newInfo)
       .then(() => {
-        if (this.state.currentGame) {
-          const newGame = new Game();
-          Object.assign(newGame, {...this.state.currentGame, activeDataOnDisk, activeDataId });
-          this.setState({ currentGame: newGame });
+        if (this.state.currentGameInfo) {
+          const ng = newGame();
+          Object.assign(ng, {...this.state.currentGameInfo.game, activeDataOnDisk, activeDataId });
+          this.setState({ currentGameInfo: {
+            game: ng,
+            activeConfig: this.state.currentGameInfo.activeConfig,
+            configs: this.state.currentGameInfo.configs,
+          } });
         }
       });
     }
@@ -570,8 +613,8 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     const id = uuid();
     // Create a new game if the "New Game" button is pushed
     if (wasNewGameClicked && !prevWasNewGameClicked) {
-      const newGame = new Game();
-      Object.assign(newGame, {
+      const ng = newGame();
+      Object.assign(ng, {
         id: id,
         parentGameId: id,
         title: '',
@@ -602,7 +645,11 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         activeDataOnDisk: false
       });
       cb({
-        currentGame: newGame,
+        currentGameInfo: {
+          game: ng,
+          activeConfig: null,
+          configs: []
+        },
         isEditingGame: true,
         isNewGame: true,
       });
@@ -697,10 +744,12 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   };
 
   onPlaylistDrop = (event: React.DragEvent, playlistId: string) => {
+    console.log('play drop');
     if (!this.state.isEditingPlaylist) {
-      const gameId = event.dataTransfer.getData(gameIdDataType);
-      if (gameId) {
-        window.Shared.back.send(BackIn.ADD_PLAYLIST_GAME, playlistId, gameId);
+      const rawData = event.dataTransfer.getData(gameDragDataType);
+      if (rawData) {
+        const dragData = JSON.parse(rawData) as GameDragData;
+        window.Shared.back.send(BackIn.ADD_PLAYLIST_GAME, playlistId, dragData.gameId);
       }
     }
   };
@@ -814,7 +863,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       currentPlaylist: undefined,
       isEditingGame: false,
       isNewGame: false,
-      currentGame: undefined,
+      currentGameInfo: undefined,
       currentPlaylistEntry: undefined,
     });
   };

@@ -1,4 +1,3 @@
-import { TagCategory } from '@database/entity/TagCategory';
 import { ConnectedRightTagCategoriesSidebar } from '@renderer/containers/ConnectedRightTagsCategoriesSidebar';
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
@@ -10,6 +9,7 @@ import * as React from 'react';
 import { ResizableSidebar } from '../ResizableSidebar';
 import { SimpleButton } from '../SimpleButton';
 import { TagCategoriesList } from '../TagCategoriesList';
+import { TagCategory } from 'flashpoint-launcher';
 
 type OwnProps = {
 }
@@ -58,7 +58,7 @@ export class TagCategoriesPage extends React.Component<TagCategoriesPageProps, T
               value={strings.newCategory}/>
           </div>
           <ResizableSidebar
-            hide={!!this.state.currentCategory}
+            show={!!this.state.currentCategory}
             divider='after'
             width={this.props.preferencesData.browsePageLeftSidebarWidth} >
             <ConnectedRightTagCategoriesSidebar
@@ -125,11 +125,11 @@ export class TagCategoriesPage extends React.Component<TagCategoriesPageProps, T
     }).id;
     if (this.props.tagCategories.findIndex(t => t.name == name) == -1) {
       // Tag category shouldn't exist, safe to call
-      const newCat = new TagCategory();
-      newCat.name = name;
-      newCat.color = getRandomHexColor();
-      newCat.tags = [];
-
+      const newCat: TagCategory = {
+        id: -1,
+        name,
+        color: getRandomHexColor()
+      };
       window.Shared.back.send(BackIn.SAVE_TAG_CATEGORY, newCat);
     }
   };

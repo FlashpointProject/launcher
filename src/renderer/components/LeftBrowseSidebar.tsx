@@ -2,12 +2,12 @@ import { memoizeOne } from '@shared/memoize';
 import { Playlist } from 'flashpoint-launcher';
 import * as React from 'react';
 import { WithPreferencesProps } from '../containers/withPreferences';
-import { gameIdDataType } from '../Util';
 import { LangContext } from '../util/lang';
 import { InputElement } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { PlaylistItemContent } from './PlaylistContent';
 import { PlaylistItem } from './PlaylistItem';
+import { gameDragDataType } from '@renderer/Util';
 
 type OwnProps = {
   library: string;
@@ -160,7 +160,7 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps> {
 
   onPlaylistItemDragOver = (event: React.DragEvent): void => {
     const types = event.dataTransfer.types;
-    if (types.length === 1 && types[0] === gameIdDataType) {
+    if (types.length === 1 && types[0] === gameDragDataType) {
       // Show the "You can drop here" cursor while dragging something droppable over this element
       event.dataTransfer.dropEffect = 'copy';
       event.preventDefault();

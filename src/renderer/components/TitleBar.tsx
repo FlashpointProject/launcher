@@ -1,3 +1,5 @@
+import { VERSION } from '@shared/version';
+
 export type TitleBarProps = {
   /** Title to display. */
   title?: string;
@@ -9,6 +11,7 @@ export function TitleBar(props: TitleBarProps) {
     <div className='title-bar'>
       <div className='title-bar__inner'>
         <p className='title-bar__title'>{props.title || ''}</p>
+        <p className='title-bar__build'>{VERSION}</p>
         <div className='title-bar__button-bar'>
           <div
             className='title-bar__button-bar__min'

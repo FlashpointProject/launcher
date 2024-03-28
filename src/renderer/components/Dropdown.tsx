@@ -10,6 +10,7 @@ export type DropdownProps = {
   children: React.ReactNode;
   /** Text to show in the text field (always visible). */
   text: string;
+  form?: boolean;
 };
 
 // A text element, with a drop-down element that can be shown/hidden.
@@ -35,20 +36,23 @@ export function Dropdown(props: DropdownProps) {
       setExpanded(!expanded);
     }
   }, [expanded]);
+
+  const baseClass = props.form ? 'simple-dropdown-form' : 'simple-dropdown';
+
   // Render
   return (
-    <div className={`simple-dropdown ${props.className}`}>
+    <div className={`${baseClass} ${props.className}`}>
       <div
-        className={`simple-dropdown__select-box ${props.headerClassName}`}
+        className={`${baseClass}__select-box ${props.headerClassName}`}
         onMouseDown={onMouseDown}
         tabIndex={0}>
-        <div className='simple-dropdown__select-text'>
+        <div className={`${baseClass}__select-text`}>
           { props.text }
         </div>
-        <div className='simple-dropdown__select-icon' />
+        <div className={`${baseClass}__select-icon`} />
       </div>
       <div
-        className={'simple-dropdown__content' + (expanded ? '' : ' simple-dropdown__content--hidden')}
+        className={`${baseClass}__content` + (expanded ? '' : ` ${baseClass}__content--hidden`)}
         onMouseUp={() => setExpanded(false)}
         ref={contentRef}>
         { props.children }

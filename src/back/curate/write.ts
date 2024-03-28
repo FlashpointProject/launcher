@@ -69,11 +69,11 @@ function convertEditToCurationMetaFile(curation: LoadedCuration): CurationMetaFi
   parsed['Release Date']         = curation.game.releaseDate;
   parsed['Version']              = curation.game.version;
   parsed['Languages']            = curation.game.language;
-  parsed['Tags']                 = curation.game.tags ? curation.game.tags.map(t => t.primaryAlias.name).join('; ') : '';
+  parsed['Tags']                 = curation.game.tags ? curation.game.tags.map(t => t.name).join('; ') : '';
   parsed['Tag Categories']       = tagCategories.join('; ');
   parsed['Source']               = curation.game.source;
   parsed['Primary Platform']     = curation.game.primaryPlatform;
-  parsed['Platforms']            = curation.game.platforms ? curation.game.platforms.map(p => p.primaryAlias.name).join('; ') : '';
+  parsed['Platforms']            = curation.game.platforms ? curation.game.platforms.map(p => p.name).join('; ') : '';
   parsed['Status']               = curation.game.status;
   parsed['Application Path']     = curation.game.applicationPath;
   parsed['Launch Command']       = curation.game.launchCommand;

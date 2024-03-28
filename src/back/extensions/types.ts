@@ -2,6 +2,7 @@ import { Disposable } from '@back/util/lifecycle';
 import { ILogEntry } from '@shared/Log/interface';
 import { Theme } from '@shared/ThemeFile';
 import { LogoSet } from '@shared/extensions/interfaces';
+import { IGameMiddleware } from 'flashpoint-launcher';
 
 export type ExtensionData = {
   extId: string;
@@ -21,10 +22,15 @@ export type ExtensionModule = {
   deactivate?: () => void | Promise<void>;
 }
 
+export type RegisteredMiddleware = IGameMiddleware & {
+  extId: string;
+}
+
 export type Registry = {
   commands: Map<string, Command>;
   logoSets: Map<string, LogoSet>;
   themes: Map<string, Theme>;
+  middlewares: Map<string, RegisteredMiddleware>;
 }
 
 export interface ICommand {

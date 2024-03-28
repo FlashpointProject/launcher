@@ -1,9 +1,9 @@
-import { AdditionalApp } from '../../database/entity/AdditionalApp';
-import { Game } from '../../database/entity/Game';
+import { newGame } from '@shared/utils/misc';
+import { AdditionalApp, Game } from 'flashpoint-launcher';
 
 export namespace ModelUtils {
   export function createGame(): Game {
-    const game = new Game();
+    const game = newGame();
     Object.assign(game, {
       id: '',
       title: '',
@@ -40,7 +40,6 @@ export namespace ModelUtils {
   export function createAddApp(game: Game): AdditionalApp {
     return {
       id: '',
-      parentGame: game,
       parentGameId: game.id,
       applicationPath: '',
       autoRunBefore: false,

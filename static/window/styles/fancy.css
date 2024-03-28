@@ -59,6 +59,7 @@
   --layout__game-item-background-selected-hover:            #a72aa2;
   --layout__game-item-thumb-image-rendering:                  normal; /* Used to set the "image-rendering" of the thumbnail. */
   --layout__game-grid-icon-shadow:                          black;
+  --layout__tag-editable-hover:                               var(--layout__background-faded);
   /* Browse Sidebar(s) */
   --layout__browse-sidebar-background:               #181819;
   --layout__browse-sidebar-divider-background:       #131313;
@@ -101,7 +102,8 @@
   --layout__log-source-server:              #00ff00;
   --layout__log-source-curation:            #efff00;
   --layout__log-source-log-watcher:         #cf0000;
-  --layout__log-source-extensions:          #209603;
+  --layout__log-source-extensions:          #2ab308;
+  --layout__log-source-main:                #da0000;
   --layout__log-level-TRACE:                #000000;
   --layout__log-level-DEBUG:                #5fa4f3;
   --layout__log-level-INFO:                 var(--layout__primary-background);
@@ -118,6 +120,9 @@
   --layout__credits-tooltip-roles-background: #000000;
   /* Log Page */
   --layout__log-page-bar-background: #222222;
+  --layout__log-text-color:            var(--layout__primary-text-color);
+  --layout__log-even:                  var(--layout__primary-background);
+  --layout__log-odd:                 #202022;
   /* Curate Page */
   --layout__curate-entry-collision-color: #efef98;
   /* Developer Page */
@@ -286,7 +291,14 @@ body {
 }
 /* Log */
 .log {
-  color: var(--layout__highlighted-text-color);
+  font-weight: 275;
+  color: var(--layout__log-text-color);
+}
+.log__even {
+  background-color: var(--layout__log-even);
+}
+.log__odd {
+  background-color: var(--layout__log-odd);
 }
 .log__level-TRACE {
   background-color: var(--layout__log-level-TRACE);
@@ -314,6 +326,7 @@ body {
 .log__source {
   /* Default color of sources, used on the unknown/unspecified sources */
   color: var(--layout__log-source);
+  font-weight: bold;
 }
 .log__source--background-services {
   color: var(--layout__log-source-background-services);
@@ -338,6 +351,9 @@ body {
 }
 .log__source--extensions {
   color: var(--layout__log-source-extensions);
+}
+.log__source--main {
+  color: var(--layout__log-source-main);
 }
 
 /* ------ Image Preview ------ */
@@ -832,6 +848,12 @@ body {
 .browse-right-sidebar__row__screenshot-image--hidden:hover {
   background-color: var(--layout__simple-button-background);
 }
+.browse-right-sidebar__game-config-label {
+  font-weight: bold;
+}
+.browse-right-sidebar__game-config-dropdown-none {
+  font-style: italic;
+}
 
 /* GameImageSplit */
 .game-image-split {
@@ -1134,6 +1156,9 @@ body {
 }
 
 /* ----- Tag Related Elements ----- */
+.tag-editable:hover {
+  background-color: var(--layout__tag-editable-hover);
+}
 .tag-static:hover {
   color: var(--layout__browse-right-sidebar-searchable-hover)
 }
@@ -1414,4 +1439,61 @@ body {
 
 .cancel-download-button {
   font-size: 2rem !important;
+}
+
+/** Game Config Dialog */
+.game-config-dialog-header-title {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.game-config-dialog__config {
+  background-color: var(--layout__home-page-box-border);
+}
+
+.game-config-dialog__config-title {
+  font-weight: bold;
+}
+
+.game-config-dialog__config-source-label {
+  font-weight: bold;
+}
+
+.game-config-dialog__config-middleware-label {
+  font-weight: bold;
+}
+
+.game-config-dialog-inputs > .game-config-dialog-label-row:not(:first-child) {
+  border-color: var(--layout__simple-button-border);
+}
+
+.game-config-dialog__config-name-label {
+  font-weight: bold;
+}
+
+/** Form Styles */
+
+.input-field-form {
+  border-color: var(--layout__simple-button-border);
+}
+
+.simple-dropdown-form {
+  font-family: var(--layout__primary-font);
+  background-color: var(--layout__primary-background);
+  color: var(--layout__primary-text-color);
+}
+.simple-dropdown-form-button:hover {
+  background-color: var(--layout__simple-button-background);
+  border-color: var(--layout__simple-button-border);
+}
+.simple-dropdown-form__select-box {
+  background-color: #323234;
+  color: var(--layout__primary-text-color);
+  box-shadow: 0px 0.5px 2px 1px #2a2a2c inset;
+  border-color: var(--layout__simple-button-border);
+}
+.simple-dropdown-form__content {
+  background-color: var(--layout__primary-background);
+  color: var(--layout__primary-text-color);
+  border-color: var(--layout__primary-outline-color);
 }

@@ -1,4 +1,3 @@
-import * as GameManager from '@back/game/GameManager';
 import { BackOut } from '@shared/back/types';
 import { deepCopy } from '@shared/Util';
 import { sanitizeFilename } from '@shared/utils/sanitizeFilename';
@@ -11,6 +10,7 @@ import { BackState } from './types';
 import { uuid } from './util/uuid';
 import path = require('path');
 import { awaitDialog } from './util/dialog';
+import { onDidUpdatePlaylist } from '.';
 
 export function filterPlaylists(playlist: Playlist[], extreme: boolean): Playlist[] {
   return playlist.filter(p => {
@@ -64,7 +64,6 @@ export async function addPlaylistGame(state: BackState, playlistId: string, game
       playlist.games.push(
         {
           gameId,
-          order: playlist.games.reduce<number>((prev, cur) => Math.max(cur.order, prev), 0) + 1,
           notes: ''
         }
       );
@@ -140,12 +139,6 @@ export async function importPlaylist(state: BackState, filePath: string, library
         }
       }
     }
-    // Add order number if missing
-    if (newPlaylist.games.reduce((prev, cur) => prev + cur.order, 0) === 0) {
-      for (let i = 0; i < newPlaylist.games.length; i++) {
-        newPlaylist.games[i].order = i;
-      }
-    }
     await updatePlaylist(state, newPlaylist, newPlaylist);
     log.info('Launcher', `Imported playlist - ${newPlaylist.title}`);
     if (event) {
@@ -197,7 +190,7 @@ export async function updatePlaylist(state: BackState, oldPlaylist: Playlist, pl
   } else {
     state.playlists.push(playlist);
   }
-  GameManager.onDidUpdatePlaylist.fire({ oldPlaylist: oldPlaylist, newPlaylist: playlist });
+  onDidUpdatePlaylist.fire({ oldPlaylist: oldPlaylist, newPlaylist: playlist });
   state.socketServer.broadcast(BackOut.PLAYLISTS_CHANGE, filterPlaylists(state.playlists, state.preferences.browsePageShowExtreme));
   return playlist;
 }

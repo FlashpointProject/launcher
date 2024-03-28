@@ -128,7 +128,7 @@ export class SocketClient<SOCKET extends BaseSocket> {
           if (count < 5) {
             console.error(`Failed Connection Attempt: ${error}`);
             await new Promise<void>(resolve => {
-              setTimeout(resolve, 1000);
+              setTimeout(resolve, 2000);
             });
             return this.reconnect(count + 1);
           } else {

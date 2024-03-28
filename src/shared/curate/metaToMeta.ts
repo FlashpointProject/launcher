@@ -1,5 +1,4 @@
-import { Game } from '@database/entity/Game';
-import { TagCategory } from '@database/entity/TagCategory';
+import { Game, TagCategory } from 'flashpoint-launcher';
 import { ParsedCurationMeta } from './parse';
 import { AddAppCurationMeta, CurationMeta } from './types';
 
@@ -11,8 +10,8 @@ import { AddAppCurationMeta, CurationMeta } from './types';
  */
 export function convertGameToCurationMetaFile(game: Game, categories: TagCategory[]): CurationMetaFile {
   const parsed: CurationMetaFile = {};
-  const tagCategories = game.tags.map(t => {
-    const cat = categories.find(c => c.id === t.categoryId);
+  const tagCategories = game.detailedTags?.map(t => {
+    const cat = categories.find(c => c.name === t.category);
     return cat ? cat.name : 'default';
   });
   // Game meta
@@ -25,12 +24,12 @@ export function convertGameToCurationMetaFile(game: Game, categories: TagCategor
   parsed['Release Date']         = game.releaseDate;
   parsed['Version']              = game.version;
   parsed['Languages']            = game.language;
-  parsed['Extreme']              = game.extreme ? 'Yes' : 'No';
-  parsed['Tags']                 = game.tags.map(t => t.primaryAlias.name).join('; ');
-  parsed['Tag Categories']       = tagCategories.join('; ');
+  parsed['Extreme']              = 'No';
+  parsed['Tags']                 = game.detailedTags ? game.detailedTags.map(t => t.name).join('; ') : '';
+  parsed['Tag Categories']       = tagCategories ? tagCategories.join('; ') : '';
   parsed['Source']               = game.source;
-  parsed['Primary Platform']     = game.platformName;
-  parsed['Platforms']            = game.platforms.map(p => p.primaryAlias.name).join('; ');
+  parsed['Primary Platform']     = game.primaryPlatform;
+  parsed['Platforms']            = game.detailedPlatforms ? game.detailedPlatforms.map(p => p.name).join('; ') : '';
   parsed['Status']               = game.status;
   parsed['Application Path']     = game.legacyApplicationPath;
   parsed['Launch Command']       = game.legacyLaunchCommand;
@@ -38,33 +37,36 @@ export function convertGameToCurationMetaFile(game: Game, categories: TagCategor
   parsed['Original Description'] = game.originalDescription;
   // Add-apps meta
   const parsedAddApps: CurationFormatAddApps = {};
-  for (let i = 0; i < game.addApps.length; i++) {
-    const addApp = game.addApps[i];
-    if (addApp.applicationPath === ':extras:') {
-      parsedAddApps['Extras'] = addApp.launchCommand;
-    } else if (addApp.applicationPath === ':message:') {
-      parsedAddApps['Message'] = addApp.launchCommand;
-    } else {
-      let heading = addApp.name;
-      // Check if the property name is already in use
-      if (parsedAddApps[heading] !== undefined) {
-        // Look for an available name (by appending a number after it)
-        let index = 2;
-        while (true) {
-          const testHeading = `${heading} (${index})`;
-          if (parsedAddApps[testHeading] === undefined) {
-            heading = testHeading;
-            break;
+  const gameAddApps = game.addApps;
+  if (gameAddApps) {
+    for (let i = 0; i < gameAddApps.length; i++) {
+      const addApp = gameAddApps[i];
+      if (addApp.applicationPath === ':extras:') {
+        parsedAddApps['Extras'] = addApp.launchCommand;
+      } else if (addApp.applicationPath === ':message:') {
+        parsedAddApps['Message'] = addApp.launchCommand;
+      } else {
+        let heading = addApp.name;
+        // Check if the property name is already in use
+        if (parsedAddApps[heading] !== undefined) {
+          // Look for an available name (by appending a number after it)
+          let index = 2;
+          while (true) {
+            const testHeading = `${heading} (${index})`;
+            if (parsedAddApps[testHeading] === undefined) {
+              heading = testHeading;
+              break;
+            }
+            index += 1;
           }
-          index += 1;
         }
+        // Add add-app
+        parsedAddApps[heading] = {
+          'Heading': addApp.name,
+          'Application Path': addApp.applicationPath,
+          'Launch Command': addApp.launchCommand,
+        };
       }
-      // Add add-app
-      parsedAddApps[heading] = {
-        'Heading': addApp.name,
-        'Application Path': addApp.applicationPath,
-        'Launch Command': addApp.launchCommand,
-      };
     }
   }
   parsed['Additional Applications'] = parsedAddApps;
@@ -82,7 +84,7 @@ export function convertGameToCurationMetaFile(game: Game, categories: TagCategor
 export function convertEditToCurationMetaFile(curation: CurationMeta, categories: TagCategory[], addApps?: AddAppCurationMeta[]): CurationMetaFile {
   const parsed: CurationMetaFile = {};
   const tagCategories = curation.tags ? curation.tags.map(t => {
-    const cat = categories.find(c => c.id === t.categoryId);
+    const cat = categories.find(c => c.name === t.category);
     return cat ? cat.name : 'default';
   }) : [''];
   // Edit curation meta
@@ -97,11 +99,11 @@ export function convertEditToCurationMetaFile(curation: CurationMeta, categories
   parsed['Version']              = curation.version;
   parsed['Languages']            = curation.language;
   parsed['Extreme']              = curation.extreme ? 'Yes' : 'No';
-  parsed['Tags']                 = curation.tags ? curation.tags.map(t => t.primaryAlias.name).join('; ') : '';
+  parsed['Tags']                 = curation.tags ? curation.tags.map(t => t.name).join('; ') : '';
   parsed['Tag Categories']       = tagCategories.join('; ');
   parsed['Source']               = curation.source;
   parsed['Primary Platform']     = curation.primaryPlatform;
-  parsed['Platforms']            = curation.platforms ? curation.platforms.map(p => p.primaryAlias.name).join('; ') : '';
+  parsed['Platforms']            = curation.platforms ? curation.platforms.map(p => p.name).join('; ') : '';
   parsed['Status']               = curation.status;
   parsed['Application Path']     = curation.applicationPath;
   parsed['Launch Command']       = curation.launchCommand;
@@ -158,7 +160,7 @@ export function convertEditToCurationMetaFile(curation: CurationMeta, categories
 export function convertParsedToCurationMeta(curation: ParsedCurationMeta, categories: TagCategory[]): CurationMetaFile {
   const parsed: CurationMetaFile = {};
   const tagCategories = curation.game.tags ? curation.game.tags.map(t => {
-    const cat = categories.find(c => c.id === t.categoryId);
+    const cat = categories.find(c => c.name === t.category);
     return cat ? cat.name : 'default';
   }) : [''];
   // Edit curation meta
@@ -173,11 +175,11 @@ export function convertParsedToCurationMeta(curation: ParsedCurationMeta, catego
   parsed['Version']              = curation.game.version;
   parsed['Languages']            = curation.game.language;
   parsed['Extreme']              = curation.game.extreme ? 'Yes' : 'No';
-  parsed['Tags']                 = curation.game.tags ? curation.game.tags.map(t => t.primaryAlias.name).join('; ') : '';
+  parsed['Tags']                 = curation.game.tags ? curation.game.tags.map(t => t.name).join('; ') : '';
   parsed['Tag Categories']       = tagCategories.join('; ');
   parsed['Source']               = curation.game.source;
   parsed['Primary Platform']     = curation.game.primaryPlatform;
-  parsed['Platforms']            = curation.game.platforms ? curation.game.platforms.map(p => p.primaryAlias.name).join('; ') : '';
+  parsed['Platforms']            = curation.game.platforms ? curation.game.platforms.map(p => p.name).join('; ') : '';
   parsed['Status']               = curation.game.status;
   parsed['Application Path']     = curation.game.applicationPath;
   parsed['Launch Command']       = curation.game.launchCommand;

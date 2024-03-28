@@ -1,4 +1,3 @@
-import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { LangContainer } from '@shared/lang';
 import * as React from 'react';
 import { LangContext } from '../util/lang';
@@ -6,6 +5,7 @@ import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
+import { AdditionalApp } from 'flashpoint-launcher';
 
 export type RightBrowseSidebarAddAppProps = {
   /** Additional Application to show and edit */

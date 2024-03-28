@@ -2,6 +2,8 @@ import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
 import { BackIn } from '@shared/back/types';
 import { AppExtConfigData } from '@shared/config/interfaces';
+import { CustomIPC } from '@shared/interfaces';
+import { ipcRenderer } from 'electron';
 import { ExtConfigurationProp, ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { autoCode, LangContainer, LangFile } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
@@ -32,6 +34,7 @@ import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import * as Coerce from '@shared/utils/Coerce';
 import { Spinner } from '../Spinner';
 import { SimpleButton } from '../SimpleButton';
+import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
 
 const { num } = Coerce;
 
@@ -93,7 +96,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       flashpointPath: configData.flashpointPath,
       useCustomTitlebar: configData.useCustomTitlebar,
       editorOpen: false,
-      nukeInProgress: false,
+      nukeInProgress: false
     };
   }
 
@@ -201,6 +204,23 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 value={this.props.preferencesData.currentLanguage || ''}
                 onChange={this.onCurrentLanguageSelect}
                 items={langOptions} />
+              {/* Screenshot Preview Mode */}
+              <ConfigBoxSelect
+                title={strings.screenshotPreviewMode}
+                description={strings.screenshotPreviewModeDesc}
+                value={this.props.preferencesData.screenshotPreviewMode}
+                items={this.itemizeScreenshotPreviewModes(strings)}
+                onChange={this.onScreenshotPreviewModeChange}
+              />
+              <ConfigBoxSelectInput
+                title={strings.screenshotPreviewDelay}
+                description={strings.screenshotPreviewDelayDesc}
+                editable={true}
+                text={this.props.preferencesData.screenshotPreviewDelay.toString()}
+                placeholder='250'
+                onChange={this.onScreenshotPreviewDelayChange}
+                onItemSelect={this.onScreenshotPreviewDelayChange}
+                items={['0', '150', '250', '350', '500', '750', '1000']}/>
             </div>
           </div>
           {/* -- Content Filters -- */}
@@ -279,6 +299,12 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                     icon='plus' />
                 </div>
               </ConfigBox>
+              {/* Verbose Logging */}
+              <ConfigBoxCheckbox
+                title={strings.enableVerboseLogging}
+                description={strings.enableVerboseLoggingDesc}
+                checked={this.props.preferencesData.enableVerboseLogging}
+                onToggle={this.onVerboseLoggingToggle} />
             </div>
           </div>
 
@@ -331,6 +357,12 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 description={strings.showDeveloperTabDesc}
                 checked={this.props.preferencesData.showDeveloperTab}
                 onToggle={this.onShowDeveloperTab} />
+              {/* Register As Protocol Handler */}
+              <ConfigBoxCheckbox
+                title={strings.registerProtocol}
+                description={strings.registerProtocolDesc}
+                checked={this.props.preferencesData.registerProtocol}
+                onToggle={this.onRegisterProtocol} />
               {/* Server */}
               <ConfigBoxSelect
                 title={strings.server}
@@ -409,8 +441,8 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     );
   }
 
-  itemizeLangOptionsMemo = memoizeOne((langs: LangFile[], autoString: string): SelectItem[] => {
-    const items: SelectItem[] = langs.map((lang) => {
+  itemizeLangOptionsMemo = memoizeOne((langs: LangFile[], autoString: string): SelectItem<string>[] => {
+    const items: SelectItem<string>[] = langs.map((lang) => {
       return {
         value: lang.code,
         display: lang.data.name ? `${lang.data.name} (${lang.code})` : lang.code
@@ -421,7 +453,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     return items;
   });
 
-  itemizeServerOptionsMemo = memoizeOne((serverNames: string[]): SelectItem[] =>
+  itemizeServerOptionsMemo = memoizeOne((serverNames: string[]): SelectItem<string>[] =>
     serverNames.map((name) => {
       return {
         value: name
@@ -429,7 +461,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     })
   );
 
-  itemizeSearchLimitOptionsMemo = memoizeOne( (strings: LangContainer['config']): SelectItem[] => {
+  itemizeSearchLimitOptionsMemo = memoizeOne( (strings: LangContainer['config']): SelectItem<string>[] => {
     return [
       {
         value: '0',
@@ -462,6 +494,23 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       {
         value: '5000',
         display: formatString(strings.searchLimitValue, '5000') as string
+      }
+    ];
+  });
+
+  itemizeScreenshotPreviewModes = memoizeOne( (strings: LangContainer['config']): SelectItem<number>[] => {
+    return [
+      {
+        value: ScreenshotPreviewMode.OFF,
+        display: strings.screenshotPreviewModeOff
+      },
+      {
+        value: ScreenshotPreviewMode.ON,
+        display: strings.screenshotPreviewModeOn
+      },
+      {
+        value: ScreenshotPreviewMode.ALWAYS,
+        display: strings.screenshotPreviewModeAlways
       }
     ];
   });
@@ -788,6 +837,10 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     updatePreferencesData({ fancyAnimations: isChecked });
   };
 
+  onVerboseLoggingToggle = (isChecked: boolean): void => {
+    updatePreferencesData({ enableVerboseLogging: isChecked });
+  };
+
   onSearchLimitChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     updatePreferencesData({ searchLimit: num(event.target.value) });
   };
@@ -978,6 +1031,17 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     updatePreferencesData({ showDeveloperTab: isChecked });
   };
 
+  onRegisterProtocol = (isChecked: boolean): void => {
+    updatePreferencesData({ registerProtocol: isChecked });
+    ipcRenderer.invoke(CustomIPC.REGISTER_PROTOCOL, isChecked)
+    .then((success) => {
+      if (!success) {
+        const regVerb = isChecked ? 'add' : 'remove';
+        alert('Failed to ' + regVerb + ' protocol registration');
+      }
+    });
+  };
+
   onCurrentThemeChange = (value: string): void => {
     const selectedTheme = this.props.themeList.find(t => t.id === value);
     if (selectedTheme) {
@@ -1011,6 +1075,14 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       logoSet = this.props.logoSets[index];
     } else { logoSet = undefined; } // (Deselect the current logo set)
     updatePreferencesDataAsync({ currentLogoSet: logoSet ? logoSet.id : undefined });
+  };
+
+  onScreenshotPreviewModeChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
+    updatePreferencesData({ screenshotPreviewMode: num(event.target.value) });
+  };
+
+  onScreenshotPreviewDelayChange = (value: string): void => {
+    updatePreferencesData({ screenshotPreviewDelay: num(value) });
   };
 
   getThemeName(id: string) {
@@ -1144,7 +1216,7 @@ function formatLogoSetName(item: ILogoSet): string {
   return `${item.name} (${item.id})`;
 }
 
-function itemizeExtEnums(enums: string[]): SelectItem[] {
+function itemizeExtEnums(enums: string[]): SelectItem<string>[] {
   return enums.map(e => {
     return {
       value: e

@@ -30,13 +30,14 @@ export type InputFieldProps = {
   onClick?: (event: React.MouseEvent<InputElement | HTMLParagraphElement>) => void;
   /** Called when a key is pressed (while "editable" and focused). */
   onKeyDown?: (event: React.KeyboardEvent<InputElement>) => void;
+  /** Use alternative form class */
+  form?: boolean;
 };
 
 // A generic input field.
 export function InputField(props: InputFieldProps) {
-  const { className, disabled, editable, multiline, onChange, onClick, onKeyDown, placeholder, reference, text } = props;
-  let cleanClassName = (className ? ' '+className : '');
-  if (disabled) { cleanClassName += ' simple-input--disabled'; }
+  const { className, disabled, editable, multiline, form, onChange, onClick, onKeyDown, placeholder, reference, text } = props;
+  const cleanClassName = className ? className : '';
   if (editable) {
     if (multiline) {
       return (
@@ -48,7 +49,7 @@ export function InputField(props: InputFieldProps) {
           onChange={onChange}
           onClick={onClick}
           onKeyDown={onKeyDown}
-          className={'input-field input-field--multiline input-field--edit simple-input simple-scroll' + cleanClassName} />
+          className={`input-field input-field--multiline input-field--edit simple-input simple-scroll ${form ? 'input-field-form' : ''} ${cleanClassName} ${disabled ? 'simple-input--disabled' : ''}`} />
       );
     } else {
       return (
@@ -60,14 +61,15 @@ export function InputField(props: InputFieldProps) {
           onChange={onChange}
           onClick={onClick}
           onKeyDown={onKeyDown}
-          className={'input-field input-field--edit simple-input' + cleanClassName} />
+          className={`input-field input-field--edit simple-input ${form ? 'input-field-form' : ''} ${cleanClassName}`} />
       );
     }
   } else {
     let cn = 'input-field';
     if (!text)     { cn += ' simple-disabled-text';   }
     if (multiline) { cn += ' input-field--multiline'; }
-    if (className) { cn += cleanClassName;            }
+    if (className) { cn += ' ' + cleanClassName;            }
+    if (form)      { cn += ' input-fielf-form'; }
     return (
       <p
         title={props.text}

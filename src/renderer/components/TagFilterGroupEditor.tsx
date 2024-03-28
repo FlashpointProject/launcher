@@ -1,10 +1,7 @@
-import { Tag } from '@database/entity/Tag';
-import { TagAlias } from '@database/entity/TagAlias';
-import { TagCategory } from '@database/entity/TagCategory';
 import { LangContext } from '@renderer/util/lang';
-import { BackIn, TagSuggestion } from '@shared/back/types';
+import { BackIn } from '@shared/back/types';
 import { generateTagFilterGroup, tagSort } from '@shared/Util';
-import { TagFilterGroup } from 'flashpoint-launcher';
+import { Tag, TagCategory, TagFilterGroup, TagSuggestion } from 'flashpoint-launcher';
 import * as React from 'react';
 import { CheckBox } from './CheckBox';
 import { InputField } from './InputField';
@@ -30,7 +27,7 @@ export function TagFilterGroupEditor(props: TagFilterGroupEditorProps) {
   const strings = React.useContext(LangContext);
   const [editTag, setEditTag] = React.useState('');
   // const [editCategory, setEditCategory] = React.useState('');
-  const [tagSuggestions, setTagSuggestions] = React.useState<TagSuggestion<Tag>[]>([]);
+  const [tagSuggestions, setTagSuggestions] = React.useState<TagSuggestion[]>([]);
   const [parsedTagsList, setParsedTagsList] = React.useState<Tag[]>(buildPlaceholderTags(props.tagFilterGroup.tags));
 
   // const tags = React.useMemo(() => tagsFactory(props.tagFilterGroup.tags, props.onRemoveTag), [props.tagFilterGroup.tags, props.onRemoveTag]);
@@ -39,7 +36,7 @@ export function TagFilterGroupEditor(props: TagFilterGroupEditorProps) {
   React.useEffect(() => {
     /** Parse the tags into 'real tags' on first load */
     Promise.all(parsedTagsList.map(async (t) => {
-      return (await window.Shared.back.request(BackIn.GET_TAG, t.primaryAlias.name)) || t;
+      return (await window.Shared.back.request(BackIn.GET_TAG, t.name)) || t;
     }))
     .then((parsedTags) => {
       setParsedTagsList(parsedTags);
@@ -48,25 +45,25 @@ export function TagFilterGroupEditor(props: TagFilterGroupEditorProps) {
 
   const onAddTag = React.useCallback(async (name: string) => {
     const tag = await window.Shared.back.request(BackIn.GET_TAG, name) || buildPlaceholderTags([name])[0];
-    const idx = parsedTagsList.findIndex(t => t.primaryAlias.name.toLowerCase() === tag.primaryAlias.name.toLowerCase());
+    const idx = parsedTagsList.findIndex(t => t.name.toLowerCase() === tag.name.toLowerCase());
     if (idx > -1) {
       /** Tag already exists, exit */
       return;
     }
     const newTagsList = [...parsedTagsList];
     newTagsList.push(tag);
-    props.onAddTag(tag.primaryAlias.name);
+    props.onAddTag(tag.name);
     setParsedTagsList(newTagsList);
   }, [parsedTagsList, props.onAddTag]);
 
   const onRemoveTag = React.useCallback((tag: Tag) => {
     const newTagsList = [...parsedTagsList];
-    const idx = newTagsList.findIndex(t => t.primaryAlias.name === tag.primaryAlias.name);
+    const idx = newTagsList.findIndex(t => t.name === tag.name);
     if (idx > -1) {
       newTagsList.splice(idx, 1);
       setParsedTagsList(newTagsList);
     }
-    props.onRemoveTag(tag.primaryAlias.name);
+    props.onRemoveTag(tag.name);
   }, [parsedTagsList, props.onRemoveTag]);
 
   const onTagSubmit = React.useCallback((tag: string) => {
@@ -80,7 +77,7 @@ export function TagFilterGroupEditor(props: TagFilterGroupEditorProps) {
     if (tag === '') {
       setTagSuggestions([]);
     } else {
-      const existingTagsList = parsedTagsList.filter(t => t.id ? t.id >= 0 : false).map(t => t.primaryAlias.name);
+      const existingTagsList = parsedTagsList.filter(t => t.id ? t.id >= 0 : false).map(t => t.name);
       const suggs = await window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, tag, props.activeTagFilterGroups.concat([generateTagFilterGroup(existingTagsList)]));
       setTagSuggestions(suggs);
     }
@@ -136,7 +133,7 @@ export function TagFilterGroupEditor(props: TagFilterGroupEditorProps) {
               suggestions={tagSuggestions}
               categories={props.tagCategories}
               onTagEditableSelect={(tag) => onRemoveTag(tag)}
-              onTagSuggestionSelect={(suggestion) => onTagSubmit(suggestion.primaryAlias)}
+              onTagSuggestionSelect={(suggestion) => onTagSubmit(suggestion.name)}
               onChange={(event) => updateSuggestions(event.target.value)}
               onTagSubmit={(tag) => onTagSubmit(tag)} />
           </div>
@@ -147,10 +144,14 @@ export function TagFilterGroupEditor(props: TagFilterGroupEditorProps) {
 
 function buildPlaceholderTags(tags: string[]): Tag[] {
   return tags.map(t => {
-    const tag = new Tag();
-    tag.primaryAlias = new TagAlias();
-    tag.primaryAlias.name = t;
-    tag.categoryId = -1;
+    const tag: Tag = {
+      id: -1,
+      name: t,
+      aliases: [],
+      description: '',
+      dateModified: new Date(),
+      category: 'default',
+    };
     return tag;
   });
 }

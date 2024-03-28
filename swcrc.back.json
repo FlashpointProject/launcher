@@ -17,7 +17,6 @@
       "@main/*": [ "./build/main/*" ],
       "@back/*": [ "./build/back/*" ],
       "@renderer/*": [ "./build/renderer/*" ],
-      "@database/*": [ "./build/database/*" ],
       "@tests/*": [ "./tests/*" ]
     },
     "parser": {

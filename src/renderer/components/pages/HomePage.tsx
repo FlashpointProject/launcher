@@ -1,21 +1,19 @@
-import * as remote from '@electron/remote';
 import { FancyAnimation } from '@renderer/components/FancyAnimation';
 import { WithMainStateProps } from '@renderer/containers/withMainState';
 import { MainActionType } from '@renderer/store/main/enums';
-import { BackIn, ComponentStatus, GameOfTheDay, ViewGame } from '@shared/back/types';
-import { ARCADE, LOGOS, THEATRE } from '@shared/constants';
-import { wrapSearchTerm } from '@shared/game/GameFilter';
+import { BackIn, ComponentStatus, GameOfTheDay } from '@shared/back/types';
+import { ARCADE, LOGOS, SCREENSHOTS, THEATRE } from '@shared/constants';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
-import { DialogState, Game, Playlist } from 'flashpoint-launcher';
+import { DialogState, Game, Playlist, ViewGame } from 'flashpoint-launcher';
 import * as React from 'react';
 import ReactDatePicker from 'react-datepicker';
 import ReactMarkdown from 'react-markdown';
 import { Link } from 'react-router-dom';
 import remarkGfm from 'remark-gfm';
 import { Paths } from '../../Paths';
-import { getExtremeIconURL, getGameImageURL, getPlatformIconURL, joinLibraryRoute } from '../../Util';
+import { findGameDragEventDataGrid, getExtremeIconURL, getGameImageURL, getPlatformIconURL, joinLibraryRoute, wrapSearchTerm } from '../../Util';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { WithSearchProps } from '../../containers/withSearch';
 import { LangContext } from '../../util/lang';
@@ -130,12 +128,21 @@ export function HomePage(props: HomePageProps) {
   }, [props.playlists, props.onSelectPlaylist, props.clearSearch]);
 
   const onFavoriteClick = React.useCallback(() => {
-    const playlist = props.playlists.find(p => p.title === '*Favorites*');
+    const playlist = props.playlists.find(p => p.title === ' Favorites' || p.title === '*Favorites*');
     if (playlist) {
       props.onSelectPlaylist(ARCADE, playlist.id);
       props.clearSearch();
     }
   }, [props.playlists, props.onSelectPlaylist, props.clearSearch]);
+
+  // const onHistoryClick = React.useCallback(() => {
+  //   updatePreferencesData({
+  //     gamesOrderBy: 'lastPlayed',
+  //     gamesOrder: 'DESC',
+  //   });
+  //   props.onSelectPlaylist(ARCADE, null);
+  //   props.clearSearch();
+  // }, [props.onSelectPlaylist, props.clearSearch]);
 
   const onAllGamesClick = React.useCallback(() => {
     props.onSelectPlaylist(ARCADE, null);
@@ -207,21 +214,10 @@ export function HomePage(props: HomePageProps) {
   const renderedExtras = React.useMemo(() => {
     const render = (
       <>
-        <QuickStartItem icon='heart'>
-          <Link
-            to={joinLibraryRoute(ARCADE)}
-            onClick={onFavoriteClick}>
-            {strings.favoritesPlaylist}
-          </Link>
-        </QuickStartItem><QuickStartItem icon='list'>
-          <div
-            onClick={() => remote.shell.openExternal('http://flashpointarchive.org/datahub/Tags')}
-            className='clickable-url' >
-            {strings.tagList}
-          </div>
-        </QuickStartItem><br /><QuickStartItem icon='puzzle-piece'>
+        <QuickStartItem icon='puzzle-piece'>
           {strings.filterByPlatform}:
-        </QuickStartItem><QuickStartItem className='home-page__box-item--platforms'>
+        </QuickStartItem>
+        <QuickStartItem className='home-page__box-item--platforms'>
           {platformList}
         </QuickStartItem><br />
       </>
@@ -266,6 +262,9 @@ export function HomePage(props: HomePageProps) {
         extremeTags={props.preferencesData.tagFilters.filter(tfg => !tfg.enabled && tfg.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), [])}
         logoVersion={props.logoVersion}
         selectedGameId={props.selectedGameId}
+        screenshotPreviewMode={props.preferencesData.screenshotPreviewMode}
+        screenshotPreviewDelay={props.preferencesData.screenshotPreviewDelay}
+        hideExtremeScreenshots={props.preferencesData.hideExtremeScreenshots}
         minimized={props.preferencesData.minimizedHomePageBoxes.includes('random-games')}
         onToggleMinimize={() => toggleMinimizeBox('random-games')} />
     </SizeProvider>
@@ -275,8 +274,11 @@ export function HomePage(props: HomePageProps) {
   React.useEffect(() => {
     if (selectedGotd) {
       window.Shared.back.request(BackIn.GET_GAME, selectedGotd.id)
-      .then((game) => {
-        setLoadedGotd(game);
+      .then((fetchedInfo) => {
+        if (fetchedInfo) {
+          const game = fetchedInfo.game;
+          setLoadedGotd(game);
+        }
       });
     }
   }, [selectedGotd]);
@@ -300,15 +302,19 @@ export function HomePage(props: HomePageProps) {
                   onGameContextMenu={(event, gameId) => props.onGameContextMenu(gameId)}
                   onGameSelect={(event, gameId) => props.onGameSelect(gameId)}
                   onGameLaunch={(event, gameId) => props.onLaunchGame(gameId)}
-                  findGameId={() => loadedGotd.id}>
+                  findGameDragEventData={findGameDragEventDataGrid}>
                   <GameGridItem
                     key={loadedGotd.id}
                     id={loadedGotd.id}
                     title={loadedGotd.title}
-                    platforms={loadedGotd.platformsStr.split(';').map(p => p.trim())}
-                    extreme={loadedGotd.tagsStr.split(';').findIndex(t => extremeTags.includes(t.trim())) !== -1}
+                    platforms={loadedGotd.platforms.map(p => p.trim())}
+                    extreme={loadedGotd.tags.findIndex(t => extremeTags.includes(t.trim())) !== -1}
                     extremeIconPath={extremeIconPath}
                     thumbnail={getGameImageURL(LOGOS, loadedGotd.id)}
+                    screenshot={getGameImageURL(SCREENSHOTS, loadedGotd.id)}
+                    screenshotPreviewMode={props.preferencesData.screenshotPreviewMode}
+                    screenshotPreviewDelay={props.preferencesData.screenshotPreviewDelay}
+                    hideExtremeScreenshots={props.preferencesData.hideExtremeScreenshots}
                     logoVersion={props.logoVersion}
                     isDraggable={true}
                     isSelected={loadedGotd.id === props.selectedGameId}
@@ -442,7 +448,7 @@ export function HomePage(props: HomePageProps) {
           </div>
           { props.main.metadataUpdate.ready && props.main.metadataUpdate.total > 0 && (
             <div className='update-metadata-last'>
-              {formatString(strings.updatedGamesReady, props.main.metadataUpdate.total.toString())}
+              {formatString(strings.updatedGamesReady, (props.main.metadataUpdate.total + 1).toString())}
             </div>
           )}
           <div className='update-metadata-last'>

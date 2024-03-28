@@ -93,15 +93,6 @@ export function main(init: Init): void {
   // -- Functions --
 
   async function startup(opts: LaunchOptions) {
-    // Register flashpoint:// protocol
-    if (process.defaultApp) {
-      if (process.argv.length >= 2) {
-        app.setAsDefaultProtocolClient('flashpoint', process.execPath, [path.resolve(process.argv[1])]);
-      }
-    } else {
-      app.setAsDefaultProtocolClient('flashpoint');
-    }
-
     app.disableHardwareAcceleration();
 
     // Single process
@@ -130,6 +121,9 @@ export function main(init: Init): void {
     });
     ipcMain.handle(CustomIPC.SHOW_SAVE_DIALOG, async (event, opts) => {
       return dialog.showSaveDialog(opts);
+    });
+    ipcMain.handle(CustomIPC.REGISTER_PROTOCOL, async (event, register) => {
+      return setProtocolRegistrationState(register);
     });
 
     // Add Socket event listener(s)
@@ -250,6 +244,11 @@ export function main(init: Init): void {
           version: app.getVersion(), // @TODO Manually load this from the package.json file while in a dev environment (so it doesn't use Electron's version)
         };
         state.backProc.send(JSON.stringify(msg));
+      })
+      .then(() => {
+        if (!state.preferences) { throw new Error('Preferences not loaded by backend.'); }
+        // Update flashpoint:// protocol registration state
+        setProtocolRegistrationState(state.preferences.registerProtocol);
       });
     }
 
@@ -510,6 +509,59 @@ export function main(init: Init): void {
         reject(error);
       });
     });
+  }
+
+  function setProtocolRegistrationState(registered: boolean) : boolean {
+    // Check how the Launcher was started
+    const procDefault = process.defaultApp;
+    const procArgCount = process.argv.length;
+
+    if (procDefault && procArgCount < 2) {
+      return true; // Don't need to change
+    }
+
+    /*
+     * The return value of app.removeAsDefaultProtocolClient() is really inconsistent
+     * between platforms, so we wrap it to consistently match:
+     *
+     * true - The app was set as the default handler for 'protocol' and was successfully
+     *        removed, or was not the default handler in the first place.
+     * false - The app was set as the default handler for 'protocol' and there was an
+     *         issue removing it.
+     */
+    function normalizedRemove(protocol: string, path: string, args: string[]) : boolean {
+      const needsRemove = app.isDefaultProtocolClient(protocol, path, args);
+      if (!needsRemove || process.platform === 'linux') {
+        /*
+         * Electron has not implemented app.removeAsDefaultProtocolClient() on Linux so
+         * it always fails; however, for our purposes we return true as we've done all
+         * we can and nothing unexpected has occurred.
+         *
+         * https://github.com/electron/electron/blob/a867503af63bcf24f935ae32fc8d88fe5e7a786a/shell/browser/browser_linux.cc#L118
+         */
+        return true;
+      }
+
+      return app.removeAsDefaultProtocolClient(protocol, path, args);
+    }
+
+    // Add/remove protocol registration
+    type ProtocolFunction = (protocol: string, path: string, args: string[]) => boolean;
+
+    const func: ProtocolFunction = registered ? app.setAsDefaultProtocolClient : normalizedRemove;
+    const verb = registered ? 'set' : 'unset';
+    const scheme = 'flashpoint';
+    const pPath = process.execPath;
+    const pArgs = procDefault ? [path.resolve(process.argv[1])] : [];
+
+    const res = func(scheme, pPath, pArgs);
+    if (res) {
+      console.log('Successfully ' + verb + ' app as protocol handler.');
+    } else {
+      console.warn('Could not ' + verb + ' app as protocol handler.');
+    }
+
+    return res;
   }
 
   function noop() { /* Do nothing. */ }

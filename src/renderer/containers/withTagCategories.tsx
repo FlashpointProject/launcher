@@ -1,4 +1,4 @@
-import { TagCategory } from '@database/entity/TagCategory';
+import { TagCategory } from 'flashpoint-launcher';
 import { connect } from 'react-redux';
 import { bindActionCreators, Dispatch } from 'redux';
 import { ApplicationState } from '../store';

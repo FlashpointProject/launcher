@@ -1,5 +1,5 @@
-import { Game } from '@database/entity/Game';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
+import { Game } from 'flashpoint-launcher';
 
 export const enum ExtensionType {
   System,

@@ -1,4 +1,4 @@
-import { ViewGame } from '@shared/back/types';
+import { ViewGame } from 'flashpoint-launcher';
 
 export type ViewGameSet = Record<number, ViewGame | undefined>
 

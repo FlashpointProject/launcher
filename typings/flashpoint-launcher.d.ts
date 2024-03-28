@@ -1,7 +1,9 @@
-// Type definitions for non-npm package flashpoint-launcher 12
+// Type definitions for non-npm package flashpoint-launcher 12.2
 // Project: Flashpoint Launcher https://github.com/FlashpointProject/launcher
 // Definitions by: Colin Berry <https://github.com/colin969>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
+
+/// <reference types="node" />
 
 /**
  * Based off Microsoft VSCode's extension system (MIT Licensed) https://github.com/Microsoft/vscode
@@ -18,6 +20,8 @@
 // tslint:disable:no-declare-current-package
 
 declare module 'flashpoint-launcher' {
+    import { Readable } from "stream";
+
     /** Version of the Flashpoint Launcher */
     const version: string;
 
@@ -43,8 +47,14 @@ declare module 'flashpoint-launcher' {
         onError?: (error: string) => void,
     ): Promise<AppPreferencesData>;
 
-    /** Unload own extension */
-    function unload(): Promise<void>;
+    /**
+     * Unloads the current extension
+     */    
+    function unloadExtension(): Promise<void>;
+    /**
+     * Reloads the current extension
+     */
+    function reloadExtension(): void;
 
     /**
      * Get a URL for an extensions file
@@ -73,7 +83,7 @@ declare module 'flashpoint-launcher' {
      */
     const onExtConfigChange: Event<{key: string, value: any}>;
     /**
-     * Focusses the Flashpoint Window
+     * Focuses the Flashpoint Window
      */
     function focusWindow(): void;
 
@@ -98,6 +108,14 @@ declare module 'flashpoint-launcher' {
          * @returns Disposable to register to context.subscriptions
          */
         function registerCommand(command: string, callback: (...args: any[]) => any): Disposable;
+        /**
+         * Registers a set of keyboard shortcuts to a command. This may conflict with existing shortcuts, especially those in the Curate page. Be aware that Windows and Mac require different control keys.
+         * See https://github.com/UnicornHeartClub/react-keybind for more details
+         * @param command Name of the command
+         * @param shortcut Keyboard shortcut(s)
+         * @returns Disposable to register to context.subscriptions
+         */
+        function registerShortcut(command: string, shortcut: string[] | string): Disposable;
     }
 
     namespace curations {
@@ -178,7 +196,16 @@ declare module 'flashpoint-launcher' {
     /** Collection of Game related API functions */
     namespace games {
         // Platforms
+        /**
+         * Finds a platform by its alias name
+         * @param name alias of the platform
+         * @returns Platform, or null if none exists
+         */
         function findPlatformByName(name: string): Promise<Platform | null>;
+        /**
+         * Returns a list of all platforms including their aliases
+         */
+        function findPlatforms(): Promise<Platform[]>;
         // Playlist
         /**
          * Finds a playlist given its ID
@@ -244,12 +271,12 @@ declare module 'flashpoint-launcher' {
          * @param opts Filter options
          * @param shallow Whether to return ViewGame or Game objects
          */
-        function findGames<T extends boolean>(opts: FindGamesOpts, shallow: T): Promise<Array<ResponseGameRange<T>>>;
+        // function searchGames(opts: FindGamesOpts): Promise<ResponseGameRange>;
         /**
          * Finds all Games using a Tag
          * @param tag Tag to filter for
          */
-        function findGamesWithTag(tag: Tag): Promise<Game[]>;
+        function findGamesWithTag(tag: string): Promise<Game[]>;
         /**
          * Updates / Creates a Game
          * @param game Game data to save
@@ -259,12 +286,12 @@ declare module 'flashpoint-launcher' {
          * Updates / Creates many Games in a transaction
          * @param games Game data to save
          */
-        function updateGames(games: Game[]): Promise<void>;
+        function updateGames(games: Game[]): Promise<Game[]>;
         /**
          * Removes a Game and all its AddApps
          * @param gameId ID of Game to remove
          */
-        function removeGameAndAddApps(gameId: string): Promise<Game | null>;
+        function removeGameAndAddApps(gameId: string): Promise<void>;
 
         // Misc
         /**
@@ -301,7 +328,7 @@ declare module 'flashpoint-launcher' {
         function findOne(id: number): Promise<GameData | null>;
         function findGameData(gameId: string): Promise<GameData[]>;
         function save(gameData: GameData): Promise<GameData>;
-        function importGameData(gameId: string, filePath: string): Promise<GameData>;
+        // function importGameData(gameId: string, filePath: string): Promise<GameData>;
         function downloadGameData(gameDataId: number): Promise<void>;
         const onDidImportGameData: Event<GameData>;
     }
@@ -337,22 +364,11 @@ declare module 'flashpoint-launcher' {
          */
         function saveTag(tag: Tag): Promise<Tag>;
         /**
-         * Updates a Tag with a new alias
-         * @param tagId Tag to add alias to
-         * @param alias Alias to add to tag
-         */
-        function addAliasToTag(tagId: number, alias: string): Promise<Tag>;
-        /**
          * Removes a Tag (from all Games)
          * @param tagId ID of Tag to remove
          * @param skipWarn If true, warn user before deleting tag from games.
          */
-        function deleteTag(tagId: number, skipWarn?: boolean): Promise<boolean>;
-        /**
-         * Finds all the Tags a Game is tagged with
-         * @param gameId ID of the Game to find
-         */
-        function findGameTags(gameId: string): Promise<Tag[] | undefined>;
+        function deleteTag(tagId: number, skipWarn?: boolean): Promise<void>;
 
         // Tag Categories
         /**
@@ -379,21 +395,21 @@ declare module 'flashpoint-launcher' {
          * Removes a Tag Category. All owned Tags are moved to the first available Tag Category.
          * @param tagCategoryId ID of the Tag Category to remove
          */
-        function deleteTagCategory(tagCategoryId: number): Promise<boolean>;
+        // function deleteTagCategory(tagCategoryId: number): Promise<boolean>;
 
         // Tag Suggestions
         /**
          * Finds a list of Tag Suggestions given a string they start with
          * @param name Partial name that a tag starts with
          */
-        function findTagSuggestions(name: string): Promise<TagSuggestion<Tag>[]>;
+        function findTagSuggestions(name: string): Promise<TagSuggestion[]>;
 
         // Misc
         /**
          * Merges 2 tags into a single tag.
          * @param mergeData Required data to merge.
          */
-        function mergeTags(mergeData: MergeTagData): Promise<Tag | null>;
+        function mergeTags(mergeData: MergeTagData): Promise<Tag>;
     }
 
     /** Collection of Status related API functions */
@@ -450,7 +466,7 @@ declare module 'flashpoint-launcher' {
     }
 
     /** Front facing dialogs */
-    export namespace dialogs {
+    namespace dialogs {
         /**
          * Opens a message box on the client. Buttons can be provided in options. Returns when the dialog closes
          * @param options Message box options
@@ -486,6 +502,51 @@ declare module 'flashpoint-launcher' {
          * @returns Path to file(s) chosen, if any
          */
         function showOpenDialog(options: ShowOpenDialogOptions): Promise<string[] | undefined>;
+        /**
+         * Updates a dialog field's value. Used to update progress bars, set input fields etc.
+         * @param dialogId ID of the Dialog
+         * @param name Name of the field
+         * @param value New value of the field
+         */
+        function updateDialogField(dialogId: string, name: string, value: any): void;
+    }
+
+    namespace middleware {
+        /**
+         * Registers a game middleware to be supported in modifying games and allow in-launcher configuration to appear
+         * @param middleware Middleware to register
+         */
+        function registerMiddleware(middleware: IGameMiddleware): void;
+        /**
+         * Write data to a game file path
+         * @param path Relative path to game file
+         * @param stream Data stream
+         */
+        function writeGameFile(path: string, stream: Readable): Promise<void>;
+        /**
+         * Write data to a game file path, built based on url
+         * @param url Game File URL 
+         * @param stream Data stream
+         */
+        function writeGameFileByUrl(url: string, stream: Readable): Promise<void>;
+        /**
+         * Copy file / directory to a given url
+         * @param url Game File URL
+         * @param path Source file / directory path
+         */
+        function copyGameFilesByUrl(url: string, path: string): Promise<void>;
+        /**
+         * Extract a game file from a gamezip
+         * @param path Relative path to game file
+         * @returns Readabale data stream
+         */
+        function extractGameFile(path: string): Promise<Readable>;
+        /**
+         * Extract a game file from a gamezip, find path via url
+         * @param url Game File URL
+         * @returns Readable data stream
+         */
+        function extractGameFileByUrl(url: string): Promise<Readable>;
     }
 
     // Events
@@ -531,6 +592,14 @@ declare module 'flashpoint-launcher' {
         message?: string;
     };
 
+    type TagSuggestion = {
+        id: number
+        name: string
+        matchedFrom: string
+        gamesCount: number
+        category?: string
+    }
+
     type Game = {
         /** ID of the game (unique identifier) */
         id: string;
@@ -547,31 +616,25 @@ declare module 'flashpoint-launcher' {
         /** Name of the publisher of the game */
         publisher: string;
         /** List of platforms this game uses */
-        platforms: Platform[];
+        platforms: string[];
         /** List of platforms attached to the game in a string format */
-        platformsStr: string;
-        /** Primary platform ID */
-        platformId: number;
+        detailedPlatforms?: Platform[];
         /** Primary platform name (cached) */
-        platformName: string;
+        primaryPlatform: string;
         /** Date-time of when the game was added to collection */
         dateAdded: string;
         /** Date-time of when the game was added to collection */
         dateModified: string;
-        /** If the game is "broken" or not */
-        broken: boolean;
-        /** Game is not suitable for children */
-        extreme: boolean;
         /** If the game is single player or multiplayer, and if the multiplayer is cooperative or not */
         playMode: string;
         /** How playable the game is */
         status: string;
         /** Information that could be useful for the player (of varying importance) */
         notes: string;
-        /** List of tags attached to the game */
-        tags: Tag[];
         /** List of tags attached to the game in a string format */
-        tagsStr: string;
+        tags: string[];
+        /** List of tags attached to the game */
+        detailedTags?: Tag[];
         /** Source if the game files, either full URL or the name of the website */
         source: string;
         /** LEGACY GAMES ONLY - Path to the application that runs the game */
@@ -589,29 +652,28 @@ declare module 'flashpoint-launcher' {
         /** Library this game belongs to */
         library: string;
         /** All attached Additional Apps of a game */
-        addApps: AdditionalApp[];
-        /** Unused */
-        orderTitle: string;
-        /** If the game is a placeholder (and can therefore not be saved) */
-        placeholder: boolean;
+        addApps?: AdditionalApp[];
         /** ID of the active data */
         activeDataId?: number;
         /** Whether the data is present on disk */
         activeDataOnDisk: boolean;
-        data?: GameData[];
+        gameData?: GameData[];
         /** Last Played Date */
-        lastPlayed: string | null;
+        lastPlayed?: string;
         /** Total Playtime (seconds) */
         playtime: number;
         /** Number of plays */
         playCounter: number;
+        /** Active game config id */
+        activeGameConfigId?: number;
+        /** Active game config owner */
+        activeGameConfigOwner?: string;
         /** Archive State
          * 0 = Not Archived
          * 1 = Archived
          * 2 = Available
          */
         archiveState: number;
-        updateTagsStr: () => void;
     };
 
     type GameData = {
@@ -622,7 +684,7 @@ declare module 'flashpoint-launcher' {
         /** Title of this data pack */
         title: string;
         /** Date this data pack was added on */
-        dateAdded: Date;
+        dateAdded: string;
         /** Expected SHA256 hash of this data pack */
         sha256: string;
         /** Expected CRC32 of this data pack */
@@ -658,98 +720,25 @@ declare module 'flashpoint-launcher' {
         name: string;
         /** Wait for this to exit before the Game will launch (if starting before launch) */
         waitForExit: boolean;
-        /** Parent of this add app */
-        parentGame: Game;
         parentGameId: string;
     };
 
-    type Platform = {
-        /** ID of the tag (unique identifier) */
-        id?: number;
-        /** Date when this tag was last modified */
-        dateModified: string;
-        /** ID of Primary Alias */
-        primaryAliasId: number;
-        /** Primary Alias */
-        primaryAlias: PlatformAlias;
-        /** Aliases / Names of the tag */
-        aliases: PlatformAlias[];
-        /** Description of the tag */
-        description?: string;
-        /** Games which are marked with this Tag */
-        gamesUsing?: Game[];
-        /** Number of games this tag belongs to */
-        count?: number;
-    };
-
-    type PlatformAlias = {
-        /** ID of the Platform alias (unique identifier) */
-        id: number;
-        /** Platform this alias belongs to (either ID or Platform will exist) */
-        platformId?: number;
-        /** Platform this alias belongs to (either ID or Platform will exist) */
-        platform?: Platform;
-        /** The name this alias represents */
-        name: string;
-    };
+    type Platform = Tag;
 
     type Tag = {
         /** ID of the tag (unique identifier) */
-        id?: number;
+        id: number;
+        /** Primary Alias */
+        name: string;
+        /** Description of the tag */
+        description: string;
         /** Date when this tag was last modified */
         dateModified: string;
-        /** ID of Primary Alias */
-        primaryAliasId: number;
-        /** Primary Alias */
-        primaryAlias: TagAlias;
         /** Aliases / Names of the tag */
-        aliases: TagAlias[];
-        /** Category this tag is a part of (either ID or TagCategory will exist) */
-        categoryId?: number;
-        /** Category this tag is a part of (either ID or TagCategory will exist) */
-        category?: TagCategory;
-        /** Description of the tag */
-        description?: string;
-        /** Games which are marked with this Tag */
-        gamesUsing?: Game[];
-        /** Number of games this tag belongs to */
-        count?: number;
+        aliases: string[];
+        /** Name of the category */
+        category?: string;
     };
-
-    type TagAlias = {
-        /** ID of the tag alias (unique identifier) */
-        id: number;
-        /** Tag this alias belongs to (either ID or Tag will exist) */
-        tagId?: number;
-        /** Tag this alias belongs to (either ID or Tag will exist) */
-        tag?: Tag;
-        /** The name this alias represents */
-        name: string;
-    };
-
-    type TagSuggestion<T extends ITagObject> = {
-        /** Alias found, only present if not the same as the primary alias */
-        alias?: string;
-        /** Primary alias of the tag suggestion */
-        primaryAlias: string;
-        /** Tag suggested */
-        tag: T;
-    };
-
-    type ITagObject = {
-        id?: number;
-        dateModified: string;
-        primaryAlias: ITagAlias;
-        aliases: ITagAlias[];
-        description?: string;
-        categoryId?: number;
-        count?: number;
-    }
-
-    export type ITagAlias = {
-        id: number;
-        name: string;
-    }
 
     type TagCategory = {
         /** ID of the tag category (unique identifier) */
@@ -760,8 +749,6 @@ declare module 'flashpoint-launcher' {
         color: string;
         /** Description of the Tag Category */
         description?: string;
-        /** Tags using this Tag Category */
-        tags: Tag[];
     };
 
     type Playlist = {
@@ -786,8 +773,6 @@ declare module 'flashpoint-launcher' {
     };
 
     type PlaylistGame = {
-        /** Order priority of the game in the playlist */
-        order: number;
         /** Notes for the game inside the playlist specifically */
         notes: string;
         /** Game this represents */
@@ -798,12 +783,10 @@ declare module 'flashpoint-launcher' {
      * Data passed to merge tags together
      * @param toMerge Tag to merge from
      * @param mergeInto Tag to merge into
-     * @param makeAlias Whether to move all aliases from toMerge into mergeInto as well
      */
     type MergeTagData = {
         toMerge: string;
         mergeInto: string;
-        makeAlias: boolean;
     };
 
     type FindGamesOpts = {
@@ -816,7 +799,7 @@ declare module 'flashpoint-launcher' {
     };
 
     /** Game field to order the results by */
-    type GameOrderBy = keyof Game;
+    type GameOrderBy = 'custom' | 'title' | 'developer' | 'publisher' | 'series' | 'dateAdded' | 'dateModified' | 'releaseDate' | 'lastPlayed' | 'playtime' | 'platform';
     /** Ways to order games */
     type GameOrderReverse = 'ASC'|'DESC';
     /** Direction to return the results in (ascending or descending) */
@@ -873,25 +856,23 @@ declare module 'flashpoint-launcher' {
         value: any;
     };
 
-    type ResponseGameRange<T extends boolean> = {
-        /** Index of the first game. */
+    type ResponseGameRange = {
         start: number;
-        /** Number of games requested. */
-        length?: number;
-        /** Games found within the range. */
-        games: T extends true ? ViewGame[] : Game[];
-    };
+        games: Game[];
+    }
 
     /** Shorten version of {@link Game} returned in searches, makes for better performance. */
-    type ViewGame = {
-        id: string;
-        title: string;
-        platformName: string;
-        platformsStr: string;
-        tagsStr: string;
-        developer: string;
-        publisher: string;
-    };
+    // type ViewGame = {
+    //     id: string;
+    //     title: string;
+    //     platformName: string;
+    //     platformsStr: string;
+    //     tagsStr: string;
+    //     developer: string;
+    //     publisher: string;
+    // };
+
+    type ViewGame = Game;
 
     /** Data contained in the Config file */
     type AppConfigData = {
@@ -920,6 +901,8 @@ declare module 'flashpoint-launcher' {
         gotdUrl: string;
         /** Show GOTD entries later than Today */
         gotdShowAll: boolean;
+        /** Middleware override path */
+        middlewareOverridePath: string;
     };
 
     export type TagFilterGroup = {
@@ -945,6 +928,8 @@ declare module 'flashpoint-launcher' {
      */
     type AppPreferencesData = {
         [key: string]: any; // TODO: Remove this!
+        /** If the launcher should register itself as the default handler for 'flashpoint://' requests. */
+        registerProtocol: boolean;
         /** Path to the image folder (relative to the flashpoint path) */
         imageFolderPath: string;
         /** Path to the logo folder (relative to the flashpoint path) */
@@ -971,6 +956,8 @@ declare module 'flashpoint-launcher' {
         browsePageGameScale: number;
         /** If "Extreme" games should be shown at the BrowsePage. */
         browsePageShowExtreme: boolean;
+        /** If extreme screenshots should be shown */
+        hideExtremeScreenshots: boolean;
         /** If editing games, additional applications and playlists should be allowed. */
         enableEditing: boolean;
         /** Default language used for fallback */
@@ -1061,7 +1048,21 @@ declare module 'flashpoint-launcher' {
         enablePlaytimeTracking: boolean;
         /** Enable Playtime Tracking for Extreme games (last played, playtime, play count) */
         enablePlaytimeTrackingExtreme: boolean;
+        /** Use verbose logging for the rust library */
+        enableVerboseLogging: boolean;
+        /** Screenshot Preview Mode */
+        screenshotPreviewMode: ScreenshotPreviewMode;
+        /** Screenshot Preview Delay in milliseconds */
+        screenshotPreviewDelay: number;
+        /** Search Limit for Browse Page */
+        searchLimit: number;
     };
+
+    enum ScreenshotPreviewMode {
+        OFF = 0,
+        ON = 1,
+        ALWAYS = 2
+    }
 
     type GameDataSource = {
         type: string;
@@ -1202,6 +1203,7 @@ declare module 'flashpoint-launcher' {
     /** Info type passed to onWillLaunch events */
     type GameLaunchInfo = {
         game: Game;
+        activeConfig: GameConfig | null;
         activeData: GameData | null;
         launchInfo: LaunchInfo;
     };
@@ -1210,7 +1212,9 @@ declare module 'flashpoint-launcher' {
         gamePath: string;
         gameArgs: string | string[];
         useWine: boolean;
+        cwd?: string;
         env: ProcessEnv;
+        noshell?: boolean;
     };
 
     /** Options expected for 'browser' mode application return */
@@ -1356,7 +1360,7 @@ declare module 'flashpoint-launcher' {
         expanded: boolean;
         /** File size (if type is file) */
         size?: number;
-        type: 'file' | 'directory';
+        nodeType: 'file' | 'directory' | string;
         /** Immediate items below this node */
         children: ContentTreeNode[];
         /** Number of items below this node */
@@ -1496,5 +1500,108 @@ declare module 'flashpoint-launcher' {
     export type DialogResponse = {
         dialog: DialogState,
         buttonIdx: number
+    }
+
+    export type GameMiddlewareInfo = {
+        middlewareId: string;
+        name: string;
+    }
+    
+    export type GameMiddlewareConfig = {
+        middlewareId: string;
+        name: string;
+        enabled: boolean;
+        version: string;
+        config: any;
+    }
+    
+    export type GameConfig = {
+        id: number;
+        gameId: string;
+        name: string;
+        owner: string;
+        middleware: GameMiddlewareConfig[];
+    }
+
+    export type BaseConfigProp = {
+        title: string;
+        key: string;
+        optional?: boolean;
+        description?: string;
+        children?: ConfigProp[];
+        locked?: boolean;
+    }
+
+    export type StringConfigProp = BaseConfigProp & {
+        type: 'string';
+        options?: string[];
+        default?: string;
+        validate?: (value: string) => boolean;
+    }
+
+    export type NumberConfigProp = BaseConfigProp & {
+        type: 'number';
+        options?: number[];
+        default?: number;
+        integer?: boolean;
+        maximum?: number;
+        minimum?: number;
+        validate?: (value: number) => boolean;
+    }
+
+    export type LabelConfigProp = BaseConfigProp & {
+        type: 'label';
+    }
+
+    export type BooleanConfigProp = BaseConfigProp & {
+        type: 'boolean';
+        default?: boolean;
+    }
+
+    type ConfigProp = StringConfigProp | NumberConfigProp | BooleanConfigProp | LabelConfigProp;
+
+    type ConfigSchema = ConfigProp[];
+
+    type GameMiddlewareDefaultConfig = Omit<GameMiddlewareConfig, 'middlewareId' | 'name' | 'enabled'>;
+
+    export interface IGameMiddleware {
+        // Unique Middleware ID
+        id: string;
+        // Display Name
+        name: string;
+        /**
+         * Decides if this middleware is valid for a given game
+         * @param game Game to validate against
+         */
+        isValid(game: Game): Promise<boolean> | boolean;
+        /**
+         * Decides if the middleware version is valid
+         * @param version Middleware version
+         */
+        isValidVersion(version: string): Promise<boolean> | boolean;
+        /**
+         * Called when middleware is next to run before game launch. Do anything per-game important here.
+         * @param gameLaunchInfo Launch info for the game
+         * @param middlewareConfig Game middleware config specific to this middleware
+         */
+        execute(gameLaunchInfo: GameLaunchInfo, middlewareConfig: GameMiddlewareConfig): Promise<GameLaunchInfo> | GameLaunchInfo;
+        /**
+         * Returns a default config when adding middleware to a new game config
+         * @param game Game selected
+         * @returns Middleware config
+         */
+        getDefaultConfig(game: Game): GameMiddlewareDefaultConfig;
+        /**
+         * Should return a valid config schema for the selected middleware version. Game and current game config given for extra context.
+         * @param version Selected middleware version
+         */
+        getConfigSchema(version: string): ConfigSchema;
+        /**
+         * UNUSED - Called when a game middleware's config is loaded from the database.
+         * Allows modification / upgrading of config values before the user or launcher is able to use / edit it themselves.
+         * @param version Selected middleware version
+         * @param config Current middleware config values
+         */
+        upgradeConfig(version: string, config: any): any;
     }
 }

@@ -1,7 +1,3 @@
-import * as GameDataManager from '@back/game/GameDataManager';
-import * as GameManager from '@back/game/GameManager';
-import { AdditionalApp } from '@database/entity/AdditionalApp';
-import { Game } from '@database/entity/Game';
 import { AppProvider } from '@shared/extensions/interfaces';
 import { ExecMapping, Omit } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
@@ -9,10 +5,10 @@ import { fixSlashes, padStart, stringifyArray } from '@shared/Util';
 import * as Coerce from '@shared/utils/Coerce';
 import { ChildProcess, exec } from 'child_process';
 import { EventEmitter } from 'events';
-import { AppPathOverride, DialogStateTemplate, GameData, ManagedChildProcess, Platform } from 'flashpoint-launcher';
+import { AdditionalApp, AppPathOverride, DialogStateTemplate, Game, GameConfig, GameData, GameLaunchInfo, ManagedChildProcess, Platform } from 'flashpoint-launcher';
 import * as minimist from 'minimist';
 import * as path from 'path';
-import { extractFullPromise } from '.';
+import { extractFullPromise, fpDatabase } from '.';
 import { ApiEmitterFirable } from './extensions/ApiEmitter';
 import { BackState, OpenExternalFunc, ShowMessageBoxFunc } from './types';
 import { getCwd, isBrowserOpts } from './util/misc';
@@ -26,18 +22,13 @@ const { str } = Coerce;
 
 export type LaunchAddAppOpts = LaunchBaseOpts & {
   addApp: AdditionalApp;
+  parentGame: Game;
   native: boolean;
 }
 
 export type LaunchGameOpts = LaunchBaseOpts & {
   game: Game;
   native: boolean;
-}
-
-export type GameLaunchInfo = {
-  game: Game;
-  activeData: GameData | null;
-  launchInfo: LaunchInfo;
 }
 
 export type LaunchInfo = {
@@ -67,23 +58,27 @@ type LaunchBaseOpts = {
   openExternal: OpenExternalFunc;
   runGame: (gameLaunchInfo: GameLaunchInfo) => ManagedChildProcess;
   state: BackState;
+  activeConfig: GameConfig | null;
 }
 
 export namespace GameLauncher {
   const logSource = 'Game Launcher';
 
   export async function launchAdditionalApplication(opts: LaunchAddAppOpts, child: boolean, serverOverride?: string): Promise<void> {
-    await checkAndInstallPlatform(opts.addApp.parentGame.platforms, opts.state, opts.openDialog);
-    // @FIXTHIS It is not possible to open dialog windows from the back process (all electron APIs are undefined).
+    await checkAndInstallPlatform(opts.parentGame.detailedPlatforms!, opts.state, opts.openDialog);
     switch (opts.addApp.applicationPath) {
-      case ':message:':
-        return new Promise((resolve) => {
-          opts.openDialog({
-            largeMessage: true,
-            message: opts.addApp.launchCommand,
-            buttons: ['Ok'],
-          }).finally(() => resolve());
+      case ':message:': {
+        const dialogId = await opts.openDialog({
+          largeMessage: true,
+          message: opts.addApp.launchCommand,
+          buttons: opts.addApp.waitForExit ? ['Ok', 'Cancel'] : ['Ok'],
         });
+        const result = (await awaitDialog(opts.state, dialogId)).buttonIdx;
+        if (result !== 0) {
+          throw 'User aborted game launch (denied message box)';
+        }
+        return;
+      }
       case ':extras:': {
         const folderPath = fixSlashes(path.join(opts.fpPath, path.posix.join('Extras', opts.addApp.launchCommand)));
         return opts.openExternal(folderPath, { activate: true })
@@ -105,9 +100,9 @@ export namespace GameLauncher {
         const appArgs: string = opts.addApp.launchCommand;
         const useWine: boolean = process.platform != 'win32' && appPath.endsWith('.exe');
         const gamePath: string = path.isAbsolute(appPath) ? fixSlashes(appPath) : fixSlashes(path.join(opts.fpPath, appPath));
-        if (opts.addApp.parentGame.activeDataId && !child) {
+        if (opts.parentGame.activeDataId && !child) {
           // If run from a game, game would already have done this!
-          const gameData = await GameDataManager.findOne(opts.addApp.parentGame.activeDataId);
+          const gameData = await fpDatabase.findGameDataById(opts.parentGame.activeDataId);
           await handleGameDataParams(opts, serverOverride, gameData || undefined);
         }
         const launchInfo: LaunchInfo = {
@@ -123,10 +118,14 @@ export namespace GameLauncher {
         logProcessOutput(proc);
         log.info(logSource, `Launch Add-App "${opts.addApp.name}" (PID: ${proc.pid}) [ path: "${opts.addApp.applicationPath}", arg: "${opts.addApp.launchCommand}" ]`);
         return new Promise((resolve, reject) => {
-          if (proc.killed) { resolve(); }
-          else {
-            proc.once('exit', () => { resolve(); });
-            proc.once('error', error => { reject(error); });
+          if (opts.addApp.waitForExit) {
+            resolve();
+          } else {
+            if (proc.killed) { resolve(); }
+            else {
+              proc.once('exit', () => { resolve(); });
+              proc.once('error', error => { reject(error); });
+            }
           }
         });
       }
@@ -142,15 +141,12 @@ export namespace GameLauncher {
    * @param serverOverride Change active server for this game launch only
    */
   export async function launchGame(opts: LaunchGameOpts, onWillEvent: ApiEmitterFirable<GameLaunchInfo>, curation: boolean, serverOverride?: string): Promise<void> {
-    await checkAndInstallPlatform(opts.game.platforms, opts.state, opts.openDialog);
-    // Abort if placeholder (placeholders are not "actual" games)
-    if (opts.game.placeholder) { return; }
+    await checkAndInstallPlatform(opts.game.detailedPlatforms!, opts.state, opts.openDialog);
     // Handle any special game data actions
-    const gameData = !curation ? (opts.game.activeDataId ? await GameDataManager.findOne(opts.game.activeDataId) : null) : null;
-    await handleGameDataParams(opts, serverOverride, gameData || undefined);
+    const gameData = !curation ? (opts.game.activeDataId ? await fpDatabase.findGameDataById(opts.game.activeDataId) : null) : null;
     // Run all provided additional applications with "AutoRunBefore" enabled
     if (opts.game.addApps) {
-      const addAppOpts: Omit<LaunchAddAppOpts, 'addApp'> = {
+      const addAppOpts: Omit<LaunchAddAppOpts, 'addApp' | 'parentGame'> = {
         changeServer: opts.changeServer,
         fpPath: opts.fpPath,
         htdocsPath: opts.htdocsPath,
@@ -168,24 +164,49 @@ export namespace GameLauncher {
         openExternal: opts.openExternal,
         runGame: opts.runGame,
         envPATH: opts.envPATH,
-        state: opts.state
+        state: opts.state,
+        activeConfig: opts.activeConfig,
       };
       for (const addApp of opts.game.addApps) {
         if (addApp.autoRunBefore) {
-          addApp.parentGame = opts.game;
-          const promise = launchAdditionalApplication({ ...addAppOpts, addApp }, curation);
-          if (addApp.waitForExit) { await promise; }
+          await launchAdditionalApplication({ ...addAppOpts, addApp, parentGame: opts.game }, curation);
         }
       }
     }
     // Launch game callback
     const launchCb = async (launchInfo: GameLaunchInfo): Promise<void> =>  {
+      /**
+       * Order
+       * - API listeners
+       * - Middleware
+       * - Handle game data params
+       */
       await onWillEvent.fire(launchInfo)
-      .then(() => {
+      .then(async () => {
+        // Handle middleware
+        if (launchInfo.activeConfig) {
+          log.info(logSource, `Using Game Configuration: ${launchInfo.activeConfig.name}`);
+          console.log(JSON.stringify(launchInfo.activeConfig, undefined, 2));
+          for (const middlewareConfig of launchInfo.activeConfig.middleware) {
+            // Find middleware in registry
+            const middleware = opts.state.registry.middlewares.get(middlewareConfig.middlewareId);
+            if (!middleware) {
+              throw `Middleware not found (${middlewareConfig.middlewareId})`;
+            }
+            try {
+              launchInfo = await Promise.resolve(middleware.execute(launchInfo, middlewareConfig));
+            } catch (err) {
+              throw `Failed to execute middleware (${middlewareConfig.middlewareId}) - ${err}`;
+            }
+            // @TODO - Validate launch info
+          }
+          log.info(logSource, 'Applied Game Configuration Successfully.');
+        }
+        await handleGameDataParams(opts, serverOverride, launchInfo.activeData ? launchInfo.activeData : undefined);
         const command: string = createCommand(launchInfo.launchInfo);
         const managedProc = opts.runGame(launchInfo);
         log.info(logSource,`Launch Game "${opts.game.title}" (PID: ${managedProc.getPid()}) [\n`+
-                    `    applicationPath: "${appPath}",\n`+
+                    `    applicationPath: "${launchInfo.launchInfo.gamePath}",\n`+
                     `    launchCommand:   "${metadataLaunchCommand}",\n`+
                     `    command:         "${command}" ]`);
       })
@@ -236,8 +257,9 @@ export namespace GameLauncher {
               useWine: false,
               env,
               cwd: getCwd(opts.isDev, opts.exePath),
-              noshell: true
-            }
+              noshell: true,
+            },
+            activeConfig: opts.activeConfig,
           };
           await onWillEvent.fire(gameLaunchInfo)
           .then(() => {
@@ -266,7 +288,8 @@ export namespace GameLauncher {
     const useWine: boolean = process.platform != 'win32' && gamePath.endsWith('.exe');
     const env = getEnvironment(opts.fpPath, opts.proxy, opts.envPATH);
     try {
-      await GameManager.findGame(opts.game.id);
+      // Double check game exists? Why are we doing this? TODO
+      await fpDatabase.findGame(opts.game.id);
     } catch (err: any) {
       log.error('Launcher', 'Error Finding Game - ' + err.toString());
     }
@@ -278,7 +301,8 @@ export namespace GameLauncher {
         gameArgs,
         useWine,
         env,
-      }
+      },
+      activeConfig: opts.activeConfig
     };
     await launchCb(gameLaunchInfo);
   }
@@ -560,13 +584,13 @@ async function handleGameDataParams(opts: LaunchBaseOpts, serverOverride?: strin
 export async function checkAndInstallPlatform(platforms: Platform[], state: BackState, openMessageBox: ShowMessageBoxFunc) {
   const compsToInstall: ComponentStatus[] = [];
   for (const platform of platforms) {
-    const compIdx = state.componentStatuses.findIndex(c => c.name.toLowerCase() === platform.primaryAlias.name.toLowerCase());
+    const compIdx = state.componentStatuses.findIndex(c => c.name.toLowerCase() === platform.name.toLowerCase());
     if (compIdx > -1) {
       if (state.componentStatuses[compIdx].state === ComponentState.UNINSTALLED) {
         compsToInstall.push(state.componentStatuses[compIdx]);
       }
     } else {
-      log.warn('Launcher', `No components found for ${platform.primaryAlias.name}, assuming none required.`);
+      log.warn('Launcher', `No components found for ${platform.name}, assuming none required.`);
     }
   }
   if (compsToInstall.length > 0) {
