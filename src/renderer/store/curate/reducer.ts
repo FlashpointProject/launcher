@@ -246,7 +246,7 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
         newPlatforms.push(action.platform);
         if (newPlatforms.length === 1) {
           // Update platform name
-          curation.game.primaryPlatform = action.platform.primaryAlias.name;
+          curation.game.primaryPlatform = action.platform.name;
           if (action.platformAppPaths) {
             // Find best app path
             if (curation.game.primaryPlatform in action.platformAppPaths) {
@@ -294,9 +294,9 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
         const platformIdx = newPlatforms.findIndex(t => t.id === action.platformId);
         if (platformIdx > -1) {
           const platform = newPlatforms.splice(platformIdx, 1);
-          if (platform[0].primaryAlias.name === curation.game.primaryPlatform) {
+          if (platform[0].name === curation.game.primaryPlatform) {
             if (newPlatforms.length > 0) {
-              curation.game.primaryPlatform = newPlatforms[0].primaryAlias.name;
+              curation.game.primaryPlatform = newPlatforms[0].name;
             } else {
               curation.game.primaryPlatform = '';
             }

@@ -11,20 +11,29 @@ import EventEmitter = require('events');
 export async function fpfssLogin(dispatchMain: Dispatch<MainAction>, dialogResEvent: EventEmitter): Promise<FpfssUser | null> {
   const fpfssBaseUrl = window.Shared.preferences.data.fpfssBaseUrl;
   // Get device auth token from FPFSS
-  const tokenUrl = `${fpfssBaseUrl}/auth/token`;
-  const res = await axios.get(tokenUrl);
+  const tokenUrl = `${fpfssBaseUrl}/auth/device`;
+  const data = {
+    'client_id': 'flashpoint-launcher',
+    'scope': 'identity game:read game:edit submission:read submission:read-files',
+  };
+  const formData = new URLSearchParams(data).toString();
+  const res = await axios.post(tokenUrl, formData, {
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    }
+  });
   const token = {
     'device_code': res.data['device_code'],
     'user_code': res.data['user_code'],
     'verification_uri': res.data['verification_uri'],
+    'verification_uri_complete': res.data['verification_uri_complete'],
     'expires_in': res.data['verification_uri'],
     'interval': res.data['interval']
   };
 
-  const verifyUrl = `${token.verification_uri}?code=${token.user_code}`;
-  const pollUrl = `${fpfssBaseUrl}/auth/token?device_code=${token.device_code}`;
+  const pollUrl = `${fpfssBaseUrl}/auth/token`;
   const profileUrl = `${fpfssBaseUrl}/api/profile`;
-  await remote.shell.openExternal(verifyUrl);
+  await remote.shell.openExternal(token.verification_uri_complete);
 
   const dialog: DialogState = {
     largeMessage: true,
@@ -39,9 +48,19 @@ export async function fpfssLogin(dispatchMain: Dispatch<MainAction>, dialogResEv
 
   // Start loop until an end state occurs
   return new Promise<FpfssUser | null>((resolve, reject) => {
+    const pollData = {
+      'device_code': token.device_code,
+      'client_id': 'flashpoint-launcher',
+      'grant_type': 'urn:ietf:params:oauth:grant-type:device_code'
+    };
+    const formData = new URLSearchParams(pollData).toString();
     const interval = setInterval(async () => {
       // Poll server for flow state
-      await axios.post(pollUrl)
+      await axios.post(pollUrl, formData, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        }
+      })
       .then(async (res) => {
         if (res.data['access_token']) {
           // Found token, fetch profile info

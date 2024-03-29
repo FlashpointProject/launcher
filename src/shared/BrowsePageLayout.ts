@@ -6,6 +6,12 @@ export enum BrowsePageLayout {
   grid = 1,
 }
 
+export enum ScreenshotPreviewMode {
+  OFF = 0,
+  ON = 1,
+  ALWAYS = 2
+}
+
 /** BrowsePageLayout in string form */
 export type BrowsePageLayoutString = 'list' | 'grid';
 

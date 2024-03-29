@@ -1,8 +1,3 @@
-import * as GameDataManager from '@back/game/GameDataManager';
-import { AdditionalApp } from '@database/entity/AdditionalApp';
-import { Game } from '@database/entity/Game';
-import { Tag } from '@database/entity/Tag';
-import { TagCategory } from '@database/entity/TagCategory';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertEditToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { CurationIndexImage } from '@shared/curate/OLD_types';
@@ -11,25 +6,22 @@ import { getCurationFolder } from '@shared/curate/util';
 import { TaskProgress } from '@shared/utils/TaskProgress';
 import * as child_process from 'child_process';
 import { execFile } from 'child_process';
-import { Platform, GameLaunchInfo } from 'flashpoint-launcher';
+import { Platform, GameLaunchInfo, Game, TagCategory, AdditionalApp, Tag } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as YAML from 'yaml';
 import { ApiEmitter, ApiEmitterFirable } from './extensions/ApiEmitter';
-import * as GameManager from './game/GameManager';
-import * as TagManager from './game/TagManager';
-import { GameManagerState } from './game/types';
 import { checkAndInstallPlatform, GameLauncher, LaunchAddAppOpts, LaunchGameOpts } from './GameLauncher';
 import { copyFolder } from './rust';
 import { BackState, OpenExternalFunc, ShowMessageBoxFunc } from './types';
 import { awaitDialog } from './util/dialog';
 import { getMklinkBatPath } from './util/elevate';
 import { uuid } from './util/uuid';
-
+import { fpDatabase } from '.';
+import { newGame } from '@shared/utils/misc';
 
 type ImportCurationOpts = {
   curation: LoadedCuration;
-  gameManager: GameManagerState;
   date?: Date;
   saveCuration: boolean;
   fpPath: string;
@@ -65,8 +57,6 @@ export const onWillImportCuration: ApiEmitter<CurationImportState> = new ApiEmit
 export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   if (opts.date === undefined) { opts.date = new Date(); }
   const {
-    dataPacksFolderPath,
-    htdocsFolderPath,
     bluezipPath,
     curation,
     date,
@@ -80,36 +70,37 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
 
   // TODO: Consider moving this check outside importCuration
   // Warn if launch command is already present on another game
-  if (curation.game.launchCommand) {
-    const existingGameData = await GameManager.findGameData({
-      where: {
-        launchCommand: curation.game.launchCommand
-      }
-    });
-    let existingGame: Game | null = null;
-    if (existingGameData) {
-      existingGame = await GameManager.findGame(existingGameData.gameId);
-    } else {
-      existingGame = await GameManager.findGame(undefined, {
-        where: {
-          legacyLaunchCommand: curation.game.launchCommand
-        }
-      });
-    }
-    if (existingGame) {
-      // Warn user of possible duplicate
-      const dialogId = await opts.openDialog({
-        message: 'There is already a game using this launch command. It may be a duplicate.\nContinue importing this curation?\n\n'
-                + `Curation:\n\tTitle: ${curation.game.title}\n\tLaunch Command: ${curation.game.launchCommand}\n\tPlatform: ${curation.game.platforms ? curation.game.platforms.map(p => p.primaryAlias.name).join('; ') : ''}\n\n`
-                + `Existing Game:\n\tID: ${existingGame.id}\n\tTitle: ${existingGame.title}\n\tPlatforms: ${existingGame.platforms.map(p => p.primaryAlias.name).join('; ')}`,
-        buttons: ['Yes', 'No']
-      });
-      const response = (await awaitDialog(opts.state, dialogId)).buttonIdx;
-      if (response === 1) {
-        throw new Error('User Cancelled Import');
-      }
-    }
-  }
+  // if (curation.game.launchCommand) {
+  //   const existingGameData = await GameManager.findGameData({
+  //     where: {
+  //       launchCommand: curation.game.launchCommand
+  //     }
+  //   });
+  //   let existingGame: Game | null = null;
+  //   if (existingGameData) {
+  //     existingGame = await fpDatabase.findGame(existingGameData.gameId);
+  //   }
+  //   // } else {
+  //   //   existingGame = await GameManager.findGame(undefined, {
+  //   //     where: {
+  //   //       legacyLaunchCommand: curation.game.launchCommand
+  //   //     }
+  //   //   });
+  //   // }
+  //   if (existingGame) {
+  //     // Warn user of possible duplicate
+  //     const dialogId = await opts.openDialog({
+  //       message: 'There is already a game using this launch command. It may be a duplicate.\nContinue importing this curation?\n\n'
+  //               + `Curation:\n\tTitle: ${curation.game.title}\n\tLaunch Command: ${curation.game.launchCommand}\n\tPlatform: ${curation.game.platforms ? curation.game.platforms.join('; ') : ''}\n\n`
+  //               + `Existing Game:\n\tID: ${existingGame.id}\n\tTitle: ${existingGame.title}\n\tPlatforms: ${existingGame.platforms.join('; ')}`,
+  //       buttons: ['Yes', 'No']
+  //     });
+  //     const response = (await awaitDialog(opts.state, dialogId)).buttonIdx;
+  //     if (response === 1) {
+  //       throw new Error('User Cancelled Import');
+  //     }
+  //   }
+  // }
   // Build content list
   const contentToMove = [];
   const extrasAddApp = curation.addApps.find(a => a.applicationPath === ':extras:');
@@ -119,21 +110,15 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   }
   // Create and add game and additional applications
   const gameId = curation.uuid;
-  const oldGame = await GameManager.findGame(gameId);
+  const oldGame = await fpDatabase.findGame(gameId);
   if (oldGame) {
-    const existingGameData = await GameManager.findGameData({
-      where: {
-        gameId
-      },
-      order: {
-        dateAdded: 'DESC'
-      }
-    });
+    const existingGameDatas = await fpDatabase.findGameData(gameId);
+    const existingGameData = existingGameDatas.length > 0 ? existingGameDatas[0] : null;
     const launchCommand = existingGameData ? existingGameData.launchCommand : oldGame.legacyLaunchCommand;
     const dialogId = await opts.openDialog({
       message: 'There is already a game using this id. Importing will override it.\nContinue importing this curation?\n\n'
-              + `Curation:\n\tTitle: ${curation.game.title}\n\tLaunch Command: ${curation.game.launchCommand}\n\tPlatform: ${curation.game.platforms ? curation.game.platforms.map(p => p.primaryAlias.name).join('; ') : ''}\n\n`
-              + `Existing Game:\n\tTitle: ${oldGame.title}\n\tLaunch Command: ${launchCommand}\n\tPlatform: ${oldGame.platforms.map(p => p.primaryAlias.name).join('; ')}`,
+              + `Curation:\n\tTitle: ${curation.game.title}\n\tLaunch Command: ${curation.game.launchCommand}\n\tPlatform: ${curation.game.platforms ? curation.game.platforms.join('; ') : ''}\n\n`
+              + `Existing Game:\n\tTitle: ${oldGame.title}\n\tLaunch Command: ${launchCommand}\n\tPlatform: ${oldGame.platforms.join('; ')}`,
       buttons: ['Yes', 'No']
     });
     const response = (await awaitDialog(opts.state, dialogId)).buttonIdx;
@@ -144,7 +129,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
 
   // Add game to database
   let game = await createGameFromCurationMeta(gameId, curation.game, curation.addApps, date);
-  game = await GameManager.save(game);
+  game = await fpDatabase.createGame(game);
 
   // Store curation state for extension use later
   const curationState: CurationImportState = {
@@ -278,7 +263,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
     // Import bluezip
     const filePath = path.join(curationPath, `${curation.folder}.zip`);
     taskProgress.setStageProgress(0.9, 'Importing Zipped File...');
-    await GameDataManager.importGameData(game.id, filePath, dataPacksFolderPath, curation.game.mountParameters);
+    // TODO await GameDataManager.importGameData(game.id, filePath, dataPacksFolderPath, curation.game.applicationPath, curation.game.launchCommand, curation.game.mountParameters);
     await fs.promises.unlink(filePath);
   })
   .catch((error) => {
@@ -288,7 +273,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
 
     if (game.id) {
       // Clean up half imported entries
-      GameManager.removeGameAndAddApps(game.id, dataPacksFolderPath, path.join(fpPath, imagePath), path.join(fpPath, htdocsFolderPath));
+      fpDatabase.deleteGame(game.id);
     }
     // Let it bubble up
     throw error;
@@ -362,7 +347,7 @@ function logMessage(text: string, folder: string): void {
  * @param date Date to mark this game as added on
  */
 async function createGameFromCurationMeta(gameId: string, gameMeta: CurationMeta, addApps : AddAppCuration[], date: Date): Promise<Game> {
-  const game: Game = new Game();
+  const game: Game = newGame();
   Object.assign(game, {
     id:                    gameId, // (Re-use the id of the curation)
     title:                 gameMeta.title               || '',
@@ -371,11 +356,11 @@ async function createGameFromCurationMeta(gameId: string, gameMeta: CurationMeta
     developer:             gameMeta.developer           || '',
     publisher:             gameMeta.publisher           || '',
     platformName:          gameMeta.primaryPlatform     || '',
-    platforms:             gameMeta.platforms           || [],
+    platforms:             gameMeta.platforms?.map(t => t.name)  || [],
     playMode:              gameMeta.playMode            || '',
     status:                gameMeta.status              || '',
     notes:                 gameMeta.notes               || '',
-    tags:                  gameMeta.tags                || [],
+    tags:                  gameMeta.tags?.map(t => t.name)       || [],
     source:                gameMeta.source              || '',
     legacyApplicationPath: gameMeta.applicationPath     || '',
     legacyLaunchCommand:   gameMeta.launchCommand       || '',
@@ -391,13 +376,9 @@ async function createGameFromCurationMeta(gameId: string, gameMeta: CurationMeta
     orderTitle: '', // This will be set when saved
     addApps: [],
     placeholder: false,
-    activeDataOnDisk: false
+    activeDataOnDisk: false,
   });
   game.addApps = addApps.map(addApp => createAddAppFromCurationMeta(addApp, game));
-  game.tagsStr = '';
-  if (game.tags.length > 0) {
-    game.tagsStr = game.tags.map(t => t.primaryAlias.name).join('; ');
-  }
   return game;
 }
 
@@ -409,7 +390,6 @@ function createAddAppFromCurationMeta(addAppMeta: AddAppCuration, game: Game): A
     launchCommand: addAppMeta.launchCommand || '',
     autoRunBefore: false,
     waitForExit: false,
-    parentGame: game,
     parentGameId: game.id,
   };
 }
@@ -486,7 +466,7 @@ function curationLog(content: string): void {
 
 function createPlaceholderGame(platforms: Platform[] = []): Game {
   const id = uuid();
-  const game = new Game();
+  const game = newGame();
   Object.assign(game, {
     id: id,
     parentGameId: id,
@@ -531,10 +511,10 @@ export async function createTagsFromLegacy(tags: string, tagCache: Record<string
       allTags.push(cachedTag);
       continue;
     }
-    let tag = await TagManager.findTag(trimTag);
+    let tag = await fpDatabase.findTag(trimTag);
     if (!tag && trimTag !== '') {
       // Tag doesn't exist, make a new one
-      tag = await TagManager.createTag(trimTag);
+      tag = await fpDatabase.createTag(trimTag);
     }
     if (tag) {
       tagCache[trimTag] = tag;

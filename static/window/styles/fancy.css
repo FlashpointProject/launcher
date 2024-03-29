@@ -59,6 +59,7 @@
   --layout__game-item-background-selected-hover:            #a72aa2;
   --layout__game-item-thumb-image-rendering:                  normal; /* Used to set the "image-rendering" of the thumbnail. */
   --layout__game-grid-icon-shadow:                          black;
+  --layout__tag-editable-hover:                               var(--layout__background-faded);
   /* Browse Sidebar(s) */
   --layout__browse-sidebar-background:               #181819;
   --layout__browse-sidebar-divider-background:       #131313;
@@ -101,7 +102,8 @@
   --layout__log-source-server:              #00ff00;
   --layout__log-source-curation:            #efff00;
   --layout__log-source-log-watcher:         #cf0000;
-  --layout__log-source-extensions:          #209603;
+  --layout__log-source-extensions:          #2ab308;
+  --layout__log-source-main:                #da0000;
   --layout__log-level-TRACE:                #000000;
   --layout__log-level-DEBUG:                #5fa4f3;
   --layout__log-level-INFO:                 var(--layout__primary-background);
@@ -118,6 +120,9 @@
   --layout__credits-tooltip-roles-background: #000000;
   /* Log Page */
   --layout__log-page-bar-background: #222222;
+  --layout__log-text-color:            var(--layout__primary-text-color);
+  --layout__log-even:                  var(--layout__primary-background);
+  --layout__log-odd:                 #202022;
   /* Curate Page */
   --layout__curate-entry-collision-color: #efef98;
   /* Developer Page */
@@ -286,7 +291,14 @@ body {
 }
 /* Log */
 .log {
-  color: var(--layout__highlighted-text-color);
+  font-weight: 275;
+  color: var(--layout__log-text-color);
+}
+.log__even {
+  background-color: var(--layout__log-even);
+}
+.log__odd {
+  background-color: var(--layout__log-odd);
 }
 .log__level-TRACE {
   background-color: var(--layout__log-level-TRACE);
@@ -314,6 +326,7 @@ body {
 .log__source {
   /* Default color of sources, used on the unknown/unspecified sources */
   color: var(--layout__log-source);
+  font-weight: bold;
 }
 .log__source--background-services {
   color: var(--layout__log-source-background-services);
@@ -338,6 +351,9 @@ body {
 }
 .log__source--extensions {
   color: var(--layout__log-source-extensions);
+}
+.log__source--main {
+  color: var(--layout__log-source-main);
 }
 
 /* ------ Image Preview ------ */
@@ -1140,6 +1156,9 @@ body {
 }
 
 /* ----- Tag Related Elements ----- */
+.tag-editable:hover {
+  background-color: var(--layout__tag-editable-hover);
+}
 .tag-static:hover {
   color: var(--layout__browse-right-sidebar-searchable-hover)
 }

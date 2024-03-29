@@ -22,7 +22,7 @@ export type ContentTreeNode = {
   expanded: boolean;
   /** File size (if type is file) */
   size?: number;
-  type: 'file' | 'directory';
+  nodeType: 'file' | 'directory' | string;
   /** Immediate items below this node */
   children: ContentTreeNode[];
   /** Number of items below this node */
@@ -65,9 +65,9 @@ export type AddAppCurationMeta = Partial<{
 
 export type AddAppCuration = {key: string} & AddAppCurationMeta;
 
-export type PlatformAppPathSuggestions = {[platform: string]: PlatformAppPath[]};
+export type PlatformAppPathSuggestions = Record<string, PlatformAppPath[]>;
 
 export type PlatformAppPath = {
   appPath: string;
-  total: number;
+  count: number;
 }

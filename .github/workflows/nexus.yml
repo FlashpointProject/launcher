@@ -10,29 +10,25 @@ on:
 
 jobs:
   build:
-    name: Build
-    runs-on: windows-2019
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+    container:
+      image: electronuserland/builder:18-wine
         
     steps:
     - uses: actions/checkout@v3
-    - name: Checkout submodules
-      shell: bash
-      run: |
-        auth_header="$(git config --local --get http.https://github.com/.extraheader)"
-        git submodule sync --recursive
-        git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
-    - name: Use Node.js 18.x
-      uses: actions/setup-node@v3
       with:
-        node-version: 18
+        submodules: recursive
     - uses: actions/cache@v3
       id: cache
       with:
         path: | 
           **/node_modules
         key: ${{ runner.os }}-${{ hashFiles('package.json') }}
+    - name: Fix git perms issue
+      run: git config --global --add safe.directory /__w/launcher/launcher
     - name: Install Dependencies
-      run: npm install --force
+      run: npm install
       if: steps.cache.outputs.cache-hit != 'true'
       env:
         CI: true
@@ -40,30 +36,18 @@ jobs:
       env:
         NODE_ENV: "production"
         PACK_ARCH: "ia32"
+        PACK_PLATFORM: "win32"
       run: npm run build
+    - name: Create wine prefix folder
+      run: mkdir /__w/launcher/launcher/wine
     - name: Pack
+      env:
+        WINEPREFIX: "/__w/launcher/launcher/wine"
       run: npm run nexusPack
-    - name: Temporarily save zip
-      uses: actions/upload-artifact@v3
-      with:
-        name: zip-artifact
-        path: dist/Flashpoint.zip
-        retention-days: 1
-
-  deploy:
-    name: Deploy
-    runs-on: ubuntu-latest
-    needs: build
-
-    steps:
-    - name: Pass zip to Linux runner
-      uses: actions/download-artifact@v3
-      with:
-        name: zip-artifact
-        path: dist/
     - name: Generate Metadata
       run: |
-        sudo apt install libarchive-zip-perl -y
+        apt-get update
+        apt-get install libarchive-zip-perl p7zip-full jq -y
         jq --null-input \
           --arg name     "Launcher" \
           --arg desc     "Launcher for browsing and running games" \

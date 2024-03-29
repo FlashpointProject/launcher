@@ -1,4 +1,3 @@
-import { TagCategory } from '@database/entity/TagCategory';
 import { LangContainer } from '@shared/lang';
 import * as React from 'react';
 import { ColorResult, SketchPicker } from 'react-color';
@@ -7,6 +6,7 @@ import { LangContext } from '../util/lang';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { InputElement, InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
+import { TagCategory } from 'flashpoint-launcher';
 
 type OwnProps = {
   /** Currently selected tag category (if any) */

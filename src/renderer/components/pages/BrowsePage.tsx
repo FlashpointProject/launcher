@@ -1,4 +1,3 @@
-import { Game } from '@database/entity/Game';
 import * as remote from '@electron/remote';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
 import { BackIn, FetchedGameInfo } from '@shared/back/types';
@@ -10,7 +9,7 @@ import { updatePreferencesData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
 import { Menu, MenuItemConstructorOptions } from 'electron';
-import { Playlist, PlaylistGame } from 'flashpoint-launcher';
+import { Game, Playlist, PlaylistGame } from 'flashpoint-launcher';
 import * as React from 'react';
 import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowseSidebar';
 import { WithPreferencesProps } from '../../containers/withPreferences';
@@ -25,6 +24,8 @@ import { InputElement } from '../InputField';
 import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
 import { Spinner } from '../Spinner';
 import path = require('path');
+import { newGame } from '@shared/utils/misc';
+import { RequestState } from '@renderer/store/main/enums';
 
 type Pick<T, K extends keyof T> = { [P in K]: T[P]; };
 type StateCallback1 = Pick<BrowsePageState, 'currentGameInfo'|'isEditingGame'|'isNewGame'|'currentPlaylistEntry'>;
@@ -44,6 +45,8 @@ type OwnProps = {
   sourceTable: string;
   games: ViewGameSet;
   gamesTotal?: number;
+  metaState?: RequestState;
+  searchStatus: string | null;
   playlists: Playlist[];
   playlistIconCache: Record<string, string>;
   onSaveGame: (info: FetchedGameInfo, playlistEntry?: PlaylistGame) => Promise<FetchedGameInfo | null>;
@@ -180,7 +183,6 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     const strings = this.context;
     const { games, selectedGameId, selectedPlaylistId } = this.props;
     const { draggedGameIndex } = this.state;
-    const gamesTotalNum = this.props.gamesTotal != undefined ? this.props.gamesTotal : -1;
     const extremeTags = this.props.preferencesData.tagFilters.filter(t => !t.enabled && t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
     // Render
     return (
@@ -219,7 +221,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             onExportPlaylist={(playlistId) => this.onExportPlaylist(strings, playlistId)}
             onContextMenu={this.onPlaylistContextMenuMemo(strings, this.state.isEditingPlaylist, this.props.selectedPlaylistId)} />
         </ResizableSidebar>
-        { (gamesTotalNum > -1) ? (
+        { this.props.metaState === RequestState.RECEIVED ? (
           <div
             className='game-browser__center'
             onKeyDown={this.onCenterKeyDown}>
@@ -232,7 +234,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   <GameGrid
                     games={games}
                     updateView={this.props.updateView}
-                    gamesTotal={this.props.gamesTotal}
+                    gamesTotal={this.props.gamesTotal ? this.props.gamesTotal : Object.keys(games).length}
                     selectedGameId={selectedGameId}
                     draggedGameIndex={draggedGameIndex}
                     extremeTags={extremeTags}
@@ -245,6 +247,9 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                     cellWidth={width}
                     cellHeight={height}
                     logoVersion={this.props.logoVersion}
+                    screenshotPreviewMode={this.props.preferencesData.screenshotPreviewMode}
+                    screenshotPreviewDelay={this.props.preferencesData.screenshotPreviewDelay}
+                    hideExtremeScreenshots={this.props.preferencesData.hideExtremeScreenshots}
                     gridRef={this.gameGridOrListRefFunc} />
                 );
               } else {
@@ -253,7 +258,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   <GameList
                     sourceTable={this.props.sourceTable}
                     games={games}
-                    gamesTotal={this.props.gamesTotal}
+                    gamesTotal={this.props.gamesTotal ? this.props.gamesTotal : Object.keys(games).length}
                     insidePlaylist={!!this.props.selectedPlaylistId}
                     selectedGameId={selectedGameId}
                     draggedGameIndex={draggedGameIndex}
@@ -280,11 +285,11 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
               <div className='game-browser__loading'>
                 <FancyAnimation
                   normalRender={(
-                    <div>{strings.misc.searching}</div>
+                    <div>{this.props.searchStatus || strings.misc.searching}</div>
                   )}
                   fancyRender={(
                     <>
-                      <div>{strings.misc.searching}</div>
+                      <div>{this.props.searchStatus || strings.misc.searching}</div>
                       <Spinner/>
                     </>
                   )}/>
@@ -496,12 +501,11 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   onEditGame = (game: Partial<Game>) => {
     log.debug('Launcher', `Editing: ${JSON.stringify(game)}`);
     if (this.state.currentGameInfo) {
-      const newGame = new Game();
-      Object.assign(newGame, {...this.state.currentGameInfo.game, ...game});
-      newGame.updateTagsStr();
+      const ng = newGame();
+      Object.assign(ng, {...this.state.currentGameInfo.game, ...game});
       this.setState({
         currentGameInfo: {
-          game: newGame,
+          game: ng,
           activeConfig: this.state.currentGameInfo.activeConfig,
           configs: this.state.currentGameInfo.configs,
         }
@@ -575,20 +579,20 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
 
   onUpdateActiveGameData = (activeDataOnDisk: boolean, activeDataId?: number): void => {
     if (this.state.currentGameInfo) {
-      const newGame = new Game();
-      Object.assign(newGame, {...this.state.currentGameInfo.game, activeDataOnDisk, activeDataId });
+      const ng = newGame();
+      Object.assign(ng, {...this.state.currentGameInfo.game, activeDataOnDisk, activeDataId });
       const newInfo: FetchedGameInfo = {
-        game: newGame,
+        game: ng,
         activeConfig: this.state.currentGameInfo.activeConfig,
         configs: this.state.currentGameInfo.configs,
       };
       window.Shared.back.request(BackIn.SAVE_GAME, newInfo)
       .then(() => {
         if (this.state.currentGameInfo) {
-          const newGame = new Game();
-          Object.assign(newGame, {...this.state.currentGameInfo.game, activeDataOnDisk, activeDataId });
+          const ng = newGame();
+          Object.assign(ng, {...this.state.currentGameInfo.game, activeDataOnDisk, activeDataId });
           this.setState({ currentGameInfo: {
-            game: newGame,
+            game: ng,
             activeConfig: this.state.currentGameInfo.activeConfig,
             configs: this.state.currentGameInfo.configs,
           } });
@@ -609,8 +613,8 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     const id = uuid();
     // Create a new game if the "New Game" button is pushed
     if (wasNewGameClicked && !prevWasNewGameClicked) {
-      const newGame = new Game();
-      Object.assign(newGame, {
+      const ng = newGame();
+      Object.assign(ng, {
         id: id,
         parentGameId: id,
         title: '',
@@ -642,7 +646,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       });
       cb({
         currentGameInfo: {
-          game: newGame,
+          game: ng,
           activeConfig: null,
           configs: []
         },

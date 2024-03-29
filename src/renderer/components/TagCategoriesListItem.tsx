@@ -1,7 +1,7 @@
-import { TagCategory } from '@database/entity/TagCategory';
 import * as React from 'react';
 import { ListRowProps } from 'react-virtualized';
 import { OpenIcon } from './OpenIcon';
+import { TagCategory } from 'flashpoint-launcher';
 
 export type TagCategoriesListItemProps = ListRowProps & {
   /** Current tag */

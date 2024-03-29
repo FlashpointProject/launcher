@@ -9,8 +9,12 @@ export enum MainActionType {
   SET_VIEW_QUERY = '@@main/SET_VIEW_QUERY',
   /** Set the current "boundries" of a view. These describe the range of currently visible pages. */
   SET_VIEW_BOUNDRIES = '@@main/SET_VIEW_BOUNDRIES',
-  /** Flag the request meta as requested. */
-  REQUEST_VIEW_META = '@@main/SET_VIEW_REQUESTED',
+  /** Set views search status */
+  SET_VIEW_SEARCH_STATUS = '@@main/SET_VIEW_SEARCH_STATUS',
+  /** Flag the first page as requested */
+  REQUEST_VIEW_FIRST_PAGE = '@@main/REQUEST_VIEW_FIRST_PAGE',
+  /** Set the first page of results */
+  SET_VIEW_FIRST_PAGE = '@@main/SET_VIEW_FIRST_PAGE',
   /** Set the meta of a view and flag the meta as received. */
   SET_VIEW_META = '@@main/SET_VIEW_META',
   /** Flag pages of a view as requested. This is to prevent the same pages from being requested multiple times. */

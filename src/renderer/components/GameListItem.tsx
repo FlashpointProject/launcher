@@ -8,7 +8,7 @@ export type GameListItemProps = ListRowProps & {
   id: string;
   title: string;
   platform: string;
-  tagsStr: string;
+  tags: string[];
   developer: string;
   publisher: string;
   extreme: boolean;
@@ -30,7 +30,7 @@ export type GameListItemProps = ListRowProps & {
 };
 
 export function GameListItem(props: GameListItemProps) {
-  const { id, title, platform, tagsStr, developer, publisher, extreme, isDraggable, isSelected, isDragged, extremeIconPath, showExtremeIcon, index, style, onDrop,
+  const { id, title, platform, tags, developer, publisher, extreme, isDraggable, isSelected, isDragged, extremeIconPath, showExtremeIcon, index, style, onDrop,
     onDragOver } = props;
   // Get the platform icon path
   const platformIcon = React.useMemo(() => (
@@ -89,13 +89,13 @@ export function GameListItem(props: GameListItemProps) {
           </div>
           <div
             className='game-list-item__field game-list-item__field--tagsStr'
-            title={tagsStr}>
-            {tagsStr}
+            title={tags.join('; ')}>
+            {tags.join('; ')}
           </div>
         </div>
       </li>
     );
-  }, [style, className, isDraggable, id, tagsStr, title, platformIcon, onDrop, onDragOver]);
+  }, [style, className, isDraggable, id, tags, title, platformIcon, onDrop, onDragOver]);
 }
 
 export namespace GameListItem {

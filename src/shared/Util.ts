@@ -1,7 +1,6 @@
 import * as axiosImport from 'axios';
-import { Game, Tag, TagCategory, TagFilterGroup } from 'flashpoint-launcher';
+import { AdditionalApp, Game, Platform, Tag, TagFilterGroup } from 'flashpoint-launcher';
 import * as fs from 'fs';
-import { camelCase, snakeCase, transform } from 'lodash';
 import * as path from 'path';
 import { DownloadDetails } from './back/types';
 import { AppConfigData } from './config/interfaces';
@@ -149,10 +148,6 @@ function isSpaceOrNewLine(char: string): boolean {
     default:   return false;
   }
 }
-// (Pads the beginning of a string with "0"s until it reaches a specified length)
-function pad(str: string|number, len: number): string {
-  return '0'.repeat(Math.max(0, len - (str+'').length)) + str;
-}
 
 /**
  * Stringify anything to a json string ready to be saved to a file
@@ -198,7 +193,7 @@ export function recursiveReplace<T = any>(target: T, source: any): T {
   // Go through all properties of target
   for (const key in source) {
     // Check if data has a property of the same name
-    if (key in target) {
+    if (key in (target as any)) {
       const val = source[key];
       // If the value is an object
       if (val !== null && typeof val === 'object') {
@@ -310,24 +305,6 @@ function isString(obj: any): boolean {
 }
 
 /**
- * Convert a launcher version number to a human readable string (including error messages).
- *
- * @param version Launcher version number.
- */
-export function versionNumberToText(version: number): string {
-  if (version >= 0) { // (Version number)
-    const d = new Date(version);
-    return `${pad(d.getFullYear(), 4)}-${pad(d.getMonth()+1, 2)}-${pad(d.getDate(), 2)}`;
-  } else { // (Error code)
-    switch (version) {
-      case -1: return 'version not found';
-      case -2: return 'version not loaded';
-      default: return 'unknown version error';
-    }
-  }
-}
-
-/**
  * Create a copy of an array with all the undefined values taken out (shifting everything along to not leave any empty spaces).
  *
  * @param array Array to copy and clear.
@@ -351,7 +328,7 @@ export function parseVarStr(str: string, config?: AppConfigData) {
   return parseVariableString(str, (name) => {
     switch (name) {
       case 'cwd': return fixSlashes(process.cwd());
-      case 'fpPath': return config ? path.resolve(fixSlashes(config.flashpointPath)) : '';
+      case 'fpPath': return config ? fixSlashes(config.flashpointPath) : '';
       default: return '';
     }
   });
@@ -426,14 +403,14 @@ export function getRandomHexColor(): string {
 }
 
 export function tagSort(tagA: Tag, tagB: Tag): number {
-  const catIdA = tagA.category ? tagA.category.id : tagA.categoryId;
-  const catIdB = tagB.category ? tagB.category.id : tagB.categoryId;
+  const catIdA = tagA.category ? tagA.category : tagA.category;
+  const catIdB = tagB.category ? tagB.category : tagB.category;
   if (catIdA && catIdB) {
     if (catIdA > catIdB) { return 1;  }
     if (catIdB > catIdA) { return -1; }
   }
-  if (tagA.primaryAlias.name > tagB.primaryAlias.name) { return 1;  }
-  if (tagB.primaryAlias.name > tagA.primaryAlias.name) { return -1; }
+  if (tagA.name > tagB.name) { return 1;  }
+  if (tagB.name > tagA.name) { return -1; }
   return 0;
 }
 
@@ -495,86 +472,187 @@ export function compare(a: string, b: string): number {
   }
 }
 
-export function mapFpfssGameToLocal(data: any, categories: TagCategory[]): Game {
-  const game = camelify(data) as unknown as Game;
-  // Initialize nil variables which should be arrays
-  if (!game.addApps) { game.addApps = []; }
-  if (!game.data) { game.data = []; }
-  if (!game.platforms) { game.platforms = []; }
-  if (!game.tags) { game.tags = []; }
-  game.legacyApplicationPath = (game as any).applicationPath;
-  game.legacyLaunchCommand = (game as any).launchCommand;
-  // Tags
-  for (const tag of game.tags) {
-    tag.primaryAlias = {
-      id: -1,
-      name: (tag as any).name
-    };
-    const category = categories.find(c => c.name === (tag as any).category);
-    if (!category) {
-      throw 'Tag has invalid category. Desynced from server?';
-    }
-    tag.categoryId = category.id;
-  }
-  // Platforms
-  for (const platform of game.platforms) {
-    platform.primaryAlias = {
-      id: -1,
-      name: (platform as any).name
-    };
-  }
+export type FpfssGame = {
+  id: string;
+  title: string;
+  alternate_titles: string;
+  series: string;
+  developer: string;
+  publisher: string;
+  platform_name: string;
+  platforms_str: string;
+  date_added: string;
+  date_modified: string;
+  play_mode: string;
+  status: string;
+  notes: string;
+  tags_str: string;
+  source: string;
+  application_path: string;
+  launch_command: string;
+  release_date: string;
+  version: string;
+  original_description: string;
+  language: string;
+  library: string;
+  add_apps?: FpfssAddApp[];
+  action: string;
+  reason: string;
+  archive_state: number;
+  Deleted: boolean;
+  UserID: number;
+  tags?: FpfssTag[];
+  platforms?: FpfssPlatform[];
+}
 
+export type FpfssPlatform = {
+  id: number,
+  name: string,
+  description: string,
+  date_modified: string,
+}
+
+export type FpfssTag = {
+  id: number,
+  name: string,
+  category: string,
+  description: string,
+  date_modified: string,
+}
+
+export type FpfssAddApp = {
+  id: string,
+  application_path: string;
+  auto_run_before: boolean;
+  launch_command: string;
+  name: string;
+  wait_for_exit: boolean;
+  parent_game_id: string;
+};
+
+export function mapFpfssGameToLocal(data: any): Game {
+  const fg = data as FpfssGame;
+  const game: Game = {
+    id: fg.id,
+    title: fg.title,
+    alternateTitles: fg.alternate_titles,
+    series: fg.series,
+    developer: fg.developer,
+    publisher: fg.publisher,
+    primaryPlatform: fg.platform_name,
+    platforms: fg.platforms_str.split('; ').map(s => s.trim()),
+    dateAdded: fg.date_added,
+    dateModified: fg.date_modified,
+    playMode: fg.play_mode,
+    status: fg.status,
+    notes: fg.notes,
+    tags: fg.tags_str.split('; ').map(s => s.trim()),
+    source: fg.source,
+    legacyApplicationPath: fg.application_path,
+    legacyLaunchCommand: fg.launch_command,
+    releaseDate: fg.release_date,
+    version: fg.version,
+    originalDescription: fg.original_description,
+    language: fg.language,
+    library: fg.library,
+    archiveState: fg.archive_state,
+    activeDataOnDisk: false,
+    activeDataId: -1,
+    playCounter: 0,
+    playtime: 0,
+    detailedTags: fg.tags?.map<Tag>(t => {
+      return {
+        id: t.id,
+        name: t.name,
+        dateModified: t.date_modified,
+        aliases: [],
+        description: t.description,
+        category: t.category
+      };
+    }) || [],
+    detailedPlatforms: fg.platforms?.map<Platform>(p => {
+      return {
+        id: p.id,
+        name: p.name,
+        dateModified: p.date_modified,
+        aliases: [],
+        description: p.description,
+      };
+    }) || [],
+    addApps: fg.add_apps?.map<AdditionalApp>(a => {
+      return {
+        id: a.id,
+        applicationPath: a.application_path,
+        autoRunBefore: a.auto_run_before,
+        waitForExit: a.wait_for_exit,
+        launchCommand: a.launch_command,
+        name: a.name,
+        parentGameId: a.parent_game_id,
+      };
+    }) || [],
+  };
   return game;
 }
 
-export function mapLocalToFpfssGame(game: Game, categories: TagCategory[], userId: number): Record<string, any> {
-  const newTags: any[] = [];
-  for (const tag of game.tags) {
-    const category = categories.find(c => c.id === tag.categoryId);
-    if (tag.id !== -1) {
-      // Not a new tag, just revalidate some things to make sure we're not making a mistake
-      if (!category) {
-        throw 'Tag has invalid tag category';
-      }
-    }
-    newTags.push({
-      id: tag.id,
-      dateModified: (new Date()).toISOString(),
-      category: category ? category.name : 'default',
-      description: tag.description,
-      name: tag.primaryAlias.name,
-      userId: userId
-    });
-  }
-  const newPlatforms: any[] = [];
-  for (const platform of game.platforms) {
-    newPlatforms.push({
-      id: platform.id,
-      dateModified: (new Date()).toISOString(),
-      description: platform.description,
-      name: platform.primaryAlias.name,
-      userId: userId
-    });
-  }
-  (game as any).launchCommand = game.legacyLaunchCommand;
-  (game as any).applicationPath = game.legacyApplicationPath;
-  return snekify({
-    ...game,
-    tags: newTags,
-    platforms: newPlatforms
-  });
+export function mapLocalToFpfssGame(game: Game): FpfssGame {
+  console.log(game.dateAdded);
+  console.log(game.dateModified);
+  const fg: FpfssGame = {
+    id: game.id,
+    title: game.title,
+    alternate_titles: game.alternateTitles,
+    series: game.series,
+    developer: game.developer,
+    publisher: game.publisher,
+    platform_name: game.primaryPlatform,
+    platforms_str: game.detailedPlatforms?.map(p => p.name).join('; ') || '',
+    date_added: game.dateAdded,
+    date_modified: game.dateModified,
+    play_mode: game.playMode,
+    status: game.status,
+    notes: game.notes,
+    tags_str: game.detailedTags?.map(t => t.name).join('; ') || '',
+    source: game.source,
+    application_path: game.legacyApplicationPath,
+    launch_command: game.legacyLaunchCommand,
+    release_date: game.releaseDate,
+    version: game.version,
+    original_description: game.originalDescription,
+    language: game.language,
+    library: game.library,
+    archive_state: game.archiveState,
+    action: '',
+    reason: '',
+    Deleted: false,
+    UserID: 0,
+    tags: game.detailedTags?.map<FpfssTag>(t => {
+      return {
+        id: t.id,
+        name: t.name,
+        description: t.description,
+        date_modified: (new Date(t.dateModified)).toISOString(),
+        category: t.category || 'default',
+      };
+    }) || [],
+    platforms: game.detailedPlatforms?.map<FpfssPlatform>(p => {
+      return {
+        id: p.id,
+        name: p.name,
+        description: p.description,
+        date_modified: (new Date(p.dateModified)).toISOString(),
+      };
+    }) || [],
+    add_apps: game.addApps?.map<FpfssAddApp>(a => {
+      return {
+        id: a.id,
+        application_path: a.applicationPath,
+        auto_run_before: a.autoRunBefore,
+        wait_for_exit: a.waitForExit,
+        launch_command: a.launchCommand,
+        name: a.name,
+        parent_game_id: a.parentGameId,
+      };
+    }) || [],
+  };
+  return fg;
 }
-
-const snekify = (obj: Record<string, unknown>) => {
-  return transform(obj, (result: Record<string, unknown>, value: unknown, key: string, target) => {
-    const camelKey = Array.isArray(target) ? key : snakeCase(key);
-    result[camelKey] = (value !== null && typeof value === 'object') ? snekify(value as Record<string, unknown>) : value;
-  });
-};
-
-const camelify = (obj: Record<string, unknown>) => {
-  return transform(obj, (result: Record<string, unknown>, value: unknown, key: string, target) => {
-    const camelKey = Array.isArray(target) ? key : camelCase(key);
-    result[camelKey] = (value !== null && typeof value === 'object') ? camelify(value as Record<string, unknown>) : value;
-  });
-};

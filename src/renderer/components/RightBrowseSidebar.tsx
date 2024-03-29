@@ -1,11 +1,7 @@
-import { Game } from '@database/entity/Game';
-import { Tag } from '@database/entity/Tag';
-import { TagCategory } from '@database/entity/TagCategory';
 import * as remote from '@electron/remote';
 import { WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
-import { ArchiveState, BackIn, BackOut, BackOutTemplate, FetchedGameInfo, TagSuggestion } from '@shared/back/types';
+import { ArchiveState, BackIn, BackOut, BackOutTemplate, FetchedGameInfo } from '@shared/back/types';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
-import { wrapSearchTerm } from '@shared/game/GameFilter';
 import { ModelUtils } from '@shared/game/util';
 import { GamePropSuggestions, PickType, ProcessAction } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
@@ -14,13 +10,12 @@ import axios from 'axios';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
 import { clipboard, Menu, MenuItemConstructorOptions } from 'electron';
-import { GameConfig, GameData, Platform, PlaylistGame } from 'flashpoint-launcher';
+import { Game, GameConfig, GameData, Platform, PlaylistGame, Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as React from 'react';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { WithSearchProps } from '../containers/withSearch';
-import { getGameImagePath, getGameImageURL, getPlatformIconURL } from '../Util';
-import { CheckBox } from './CheckBox';
+import { getGameImagePath, getGameImageURL, getPlatformIconURL, wrapSearchTerm } from '../Util';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { DropdownInputField } from './DropdownInputField';
 import { GameDataBrowser } from './GameDataBrowser';
@@ -90,8 +85,8 @@ type RightBrowseSidebarState = {
   thumbnailExists: boolean;
   currentTagInput: string;
   currentPlatformInput: string;
-  tagSuggestions: TagSuggestion<Tag>[];
-  platformSuggestions: TagSuggestion<Platform>[];
+  tagSuggestions: TagSuggestion[];
+  platformSuggestions: TagSuggestion[];
   gameDataBrowserOpen: boolean;
   activeData: GameData | null;
   showExtremeScreenshots: boolean;
@@ -118,10 +113,6 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   onApplicationPathChange     = this.wrapOnTextChange((game, text) => this.props.onEditGame({ legacyApplicationPath: text }));
   onNotesChange               = this.wrapOnTextChange((game, text) => this.props.onEditGame({ notes: text }));
   onOriginalDescriptionChange = this.wrapOnTextChange((game, text) => this.props.onEditGame({ originalDescription: text }));
-  onBrokenChange              = this.wrapOnCheckBoxChange(() => {
-    if (this.props.currentGameInfo) {
-      this.props.onEditGame({ broken: !this.props.currentGameInfo.game.broken });
-    }});
   // Bound "on click" callbacks for game fields
   onDeveloperClick            = this.wrapOnTextClick('developer');
   onSeriesClick               = this.wrapOnTextClick('series');
@@ -213,7 +204,6 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     if (game) {
       const { isEditing, isNewGame, currentPlaylistEntry, preferencesData, suggestions, tagCategories } = this.props;
       const currentAddApps = game.addApps;
-      const isPlaceholder = game.placeholder;
       const editDisabled = !preferencesData.enableEditing;
       const editable = isEditing;
       const screenshotSrc = getGameImageURL(SCREENSHOTS, game.id);
@@ -390,7 +380,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                           </>
                         ) : ( /* While NOT Editing */
                           <>
-                            { this.props.preferencesData.fpfssBaseUrl && !editDisabled && !isPlaceholder && (
+                            { this.props.preferencesData.fpfssBaseUrl && !editDisabled && (
                               <div
                                 className='browse-right-sidebar__title-row__buttons__edit-button'
                                 title={strings.editFpfssGame}
@@ -399,7 +389,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                               </div>
                             ) }
                             {/* "Edit" Button */}
-                            { editDisabled || isPlaceholder ? undefined : (
+                            { editDisabled ? undefined : (
                               <div
                                 className='browse-right-sidebar__title-row__buttons__edit-button'
                                 title={strings.editGame}
@@ -410,7 +400,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                             {/* "Remove From Playlist" Button */}
                             { currentPlaylistEntry ? removeGameFromPlaylistElement : undefined }
                             {/* "Delete Game" Button */}
-                            { (isPlaceholder || isNewGame || currentPlaylistEntry) && !editDisabled ? undefined : (
+                            { (isNewGame || currentPlaylistEntry) && !editDisabled ? undefined : (
                               <ConfirmElement
                                 message={allStrings.dialog.deleteGame}
                                 onConfirm={this.onDeleteGameClick}
@@ -424,21 +414,19 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   </div>
                 </div>
               </div>
-              { isPlaceholder ? undefined : (
-                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                  <p>{strings.by} </p>
-                  <InputField
-                    text={game.developer}
-                    placeholder={strings.noDeveloper}
-                    className='browse-right-sidebar__searchable'
-                    editable={editable}
-                    onChange={this.onDeveloperChange}
-                    onClick={this.onDeveloperClick} />
-                </div>
-              ) }
+              <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                <p>{strings.by} </p>
+                <InputField
+                  text={game.developer}
+                  placeholder={strings.noDeveloper}
+                  className='browse-right-sidebar__searchable'
+                  editable={editable}
+                  onChange={this.onDeveloperChange}
+                  onClick={this.onDeveloperClick} />
+              </div>
             </div>
-            {/* -- Game Configurations */}
-            { !this.props.fpfssEditMode && (
+            {/* -- Game Configurations  DISABLED - TODO: FIX */}
+            { !this.props.fpfssEditMode && false && (
               <div className='browse-right-sidebar__game-config-row'>
                 <div className='browse-right-sidebar__game-config-label'>
                   {'Configuration:'}
@@ -472,7 +460,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
               )}
             </div>
             {/* -- Play Button -- */}
-            { isPlaceholder || this.props.fpfssEditMode ? undefined :
+            { this.props.fpfssEditMode ? undefined :
               (this.props.currentGameInfo && this.props.busyGames.includes(this.props.currentGameInfo.game.id)) ? (
                 <div className='browse-right-sidebar__play-button--busy'>
                   {strings.busy}
@@ -556,7 +544,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   )
             }
             {/** Gameplay Statistics */}
-            { (isPlaceholder || this.props.fpfssEditMode || game.archiveState !== ArchiveState.Available) ? undefined : (
+            { (this.props.fpfssEditMode || game.archiveState !== ArchiveState.Available) ? undefined : (
               <div className='browse-right-sidebar__stats'>
                 <div className='browse-right-sidebar__stats-box'>
                   <div className='browse-right-sidebar__stats-row-top'>
@@ -566,7 +554,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   </div>
                   <div className='browse-right-sidebar__stats-row-bottom'>
                     <div className='browse-right-sidebar__stats-cell'>
-                      {game.lastPlayed ? formatLastPlayed(game.lastPlayed, strings) : strings.never}
+                      {game.lastPlayed ? formatLastPlayed(new Date(game.lastPlayed), strings) : strings.never}
                     </div>
                   </div>
                 </div>
@@ -589,187 +577,169 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
             ref={this.state.middleScrollRef}
             className='browse-right-sidebar__middle simple-scroll'>
             {/* -- Most Fields -- */}
-            { isPlaceholder ? undefined : (
-              <>
-                <div className='browse-right-sidebar__section'>
-                  { editable && (
-                    <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                      <p>{strings.library}: </p>
-                      {/** TODO: Localize library options, make visible once library searching has merged */}
-                      <DropdownInputField
-                        text={game.library}
-                        placeholder={strings.noLibrary}
-                        onChange={this.onLibraryChange}
-                        className='browse-right-sidebar__searchable'
-                        editable={editable}
-                        items={suggestions && filterSuggestions(suggestions.library) || []}
-                        onItemSelect={text => this.props.onEditGame({ library: text })} />
-                    </div>
-                  )}
+            <>
+              <div className='browse-right-sidebar__section'>
+                { editable && (
                   <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                    <p>{strings.alternateTitles}: </p>
-                    <InputField
-                      text={game.alternateTitles}
-                      placeholder={strings.noAlternateTitles}
-                      className='browse-right-sidebar__searchable'
-                      onChange={this.onAlternateTitlesChange}
-                      editable={editable} />
-                  </div>
-                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                    <p>{strings.tags}: </p>
-                    <TagInputField
-                      text={this.state.currentTagInput}
-                      placeholder={strings.enterTag}
-                      className='browse-right-sidebar__searchable'
-                      editable={editable}
-                      onChange={this.onCurrentTagChange}
-                      tags={game.tags}
-                      suggestions={this.state.tagSuggestions}
-                      categories={tagCategories}
-                      onTagSelect={this.onTagSelect}
-                      onTagEditableSelect={this.onRemoveTag}
-                      onTagSuggestionSelect={this.onAddTagSuggestion}
-                      onTagSubmit={this.onAddTagByString} />
-                  </div>
-                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                    <p>{strings.series}: </p>
-                    <InputField
-                      text={game.series}
-                      placeholder={strings.noSeries}
-                      className='browse-right-sidebar__searchable'
-                      onChange={this.onSeriesChange}
-                      editable={editable}
-                      onClick={this.onSeriesClick} />
-                  </div>
-                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                    <p>{strings.publisher}: </p>
-                    <InputField
-                      text={game.publisher}
-                      placeholder={strings.noPublisher}
-                      className='browse-right-sidebar__searchable'
-                      onChange={this.onPublisherChange}
-                      editable={editable}
-                      onClick={this.onPublisherClick} />
-                  </div>
-                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                    <p>{strings.source}: </p>
-                    <InputField
-                      text={game.source}
-                      placeholder={strings.noSource}
-                      onChange={this.onSourceChange}
-                      className='browse-right-sidebar__searchable'
-                      editable={editable}
-                      onClick={this.onSourceClick} />
-                  </div>
-                  { !editable && (
-                    <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                      <p>{strings.platform}: </p>
-                      <TagInputField
-                        text={''}
-                        className='browse-right-sidebar__searchable'
-                        editable={false}
-                        tags={game.platforms.filter(p => p.primaryAlias.name === game.platformName)}
-                        suggestions={[]}
-                        categories={[]}
-                        onTagSelect={this.onPlatformSelect}
-                        renderIcon={this.renderPlatformIcon}
-                        renderIconSugg={this.renderPlatformIconSugg} />
-                    </div>
-                  )}
-                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                    <p>{editable ? allStrings.config.platforms : strings.otherTechnologies}: </p>
-                    <TagInputField
-                      text={this.state.currentPlatformInput}
-                      placeholder={strings.enterTag}
-                      className='browse-right-sidebar__searchable'
-                      editable={editable}
-                      onChange={this.onCurrentPlatformChange}
-                      tags={editable ? game.platforms : game.platforms.filter(p => p.primaryAlias.name !== game.platformName)}
-                      suggestions={this.state.platformSuggestions}
-                      categories={tagCategories}
-                      onTagSelect={this.onPlatformSelect}
-                      onTagEditableSelect={this.onRemovePlatform}
-                      onTagSuggestionSelect={this.onAddPlatformSuggestion}
-                      onTagSubmit={this.onAddPlatformByString}
-                      renderIcon={this.renderPlatformIcon}
-                      renderIconSugg={this.renderPlatformIconSugg}
-                      primaryValue={game.platformName}
-                      selectPrimaryValue={this.promotePlatform} />
-                  </div>
-                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                    <p>{strings.playMode}: </p>
+                    <p>{strings.library}: </p>
+                    {/** TODO: Localize library options, make visible once library searching has merged */}
                     <DropdownInputField
-                      text={game.playMode}
-                      placeholder={strings.noPlayMode}
-                      onChange={this.onPlayModeChange}
+                      text={game.library}
+                      placeholder={strings.noLibrary}
+                      onChange={this.onLibraryChange}
                       className='browse-right-sidebar__searchable'
                       editable={editable}
-                      items={suggestions && filterSuggestions(suggestions.playMode) || []}
-                      onItemSelect={text => this.props.onEditGame({ playMode: text })}
-                      onClick={this.onPlayModeClick} />
+                      items={suggestions && filterSuggestions(suggestions.library) || []}
+                      onItemSelect={text => this.props.onEditGame({ library: text })} />
                   </div>
-                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                    <p>{strings.status}: </p>
-                    <DropdownInputField
-                      text={game.status}
-                      placeholder={strings.noStatus}
-                      onChange={this.onStatusChange}
-                      className='browse-right-sidebar__searchable'
-                      editable={editable}
-                      items={suggestions && filterSuggestions(suggestions.status) || []}
-                      onItemSelect={text => this.props.onEditGame({ status: text })}
-                      onClick={this.onStatusClick} />
-                  </div>
-                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                    <p>{strings.version}: </p>
-                    <InputField
-                      text={game.version}
-                      placeholder={strings.noVersion}
-                      className='browse-right-sidebar__searchable'
-                      onChange={this.onVersionChange}
-                      editable={editable}
-                      onClick={this.onVersionClick} />
-                  </div>
-                  { editable && (
-                    <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                      <p>{strings.releaseDate}: </p>
-                      <InputField
-                        text={game.releaseDate}
-                        placeholder={strings.noReleaseDate}
-                        onChange={this.onReleaseDateChange}
-                        className='browse-right-sidebar__searchable'
-                        editable={editable}/>
-                    </div>
-                  )}
-                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                    <p>{strings.language}: </p>
-                    <InputField
-                      text={game.language}
-                      placeholder={strings.noLanguage}
-                      onChange={this.onLanguageChange}
-                      className='browse-right-sidebar__searchable'
-                      editable={editable}
-                      onClick={this.onLanguageClick} />
-                  </div>
-                  { game.broken || editable ? (
-                    <div className='browse-right-sidebar__row'>
-                      <div
-                        className='browse-right-sidebar__row__check-box-wrapper'
-                        onClick={this.onBrokenChange}>
-                        { editable ? (
-                          <>
-                            <CheckBox
-                              checked={game.broken}
-                              className='browse-right-sidebar__row__check-box' />
-                            <p> {strings.brokenInInfinity}</p>
-                          </>
-                        ) : (<b> {strings.brokenInInfinity}</b>) }
-                      </div>
-                    </div>
-                  ) : undefined }
+                )}
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                  <p>{strings.alternateTitles}: </p>
+                  <InputField
+                    text={game.alternateTitles}
+                    placeholder={strings.noAlternateTitles}
+                    className='browse-right-sidebar__searchable'
+                    onChange={this.onAlternateTitlesChange}
+                    editable={editable} />
                 </div>
-              </>
-            ) }
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                  <p>{strings.tags}: </p>
+                  <TagInputField
+                    text={this.state.currentTagInput}
+                    placeholder={strings.enterTag}
+                    className='browse-right-sidebar__searchable'
+                    editable={editable}
+                    onChange={this.onCurrentTagChange}
+                    tags={game.detailedTags || []}
+                    suggestions={this.state.tagSuggestions}
+                    categories={tagCategories}
+                    onTagSelect={this.onTagSelect}
+                    onTagEditableSelect={this.onRemoveTag}
+                    onTagSuggestionSelect={this.onAddTagSuggestion}
+                    onTagSubmit={this.onAddTagByString} />
+                </div>
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                  <p>{strings.series}: </p>
+                  <InputField
+                    text={game.series}
+                    placeholder={strings.noSeries}
+                    className='browse-right-sidebar__searchable'
+                    onChange={this.onSeriesChange}
+                    editable={editable}
+                    onClick={this.onSeriesClick} />
+                </div>
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                  <p>{strings.publisher}: </p>
+                  <InputField
+                    text={game.publisher}
+                    placeholder={strings.noPublisher}
+                    className='browse-right-sidebar__searchable'
+                    onChange={this.onPublisherChange}
+                    editable={editable}
+                    onClick={this.onPublisherClick} />
+                </div>
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                  <p>{strings.source}: </p>
+                  <InputField
+                    text={game.source}
+                    placeholder={strings.noSource}
+                    onChange={this.onSourceChange}
+                    className='browse-right-sidebar__searchable'
+                    editable={editable}
+                    onClick={this.onSourceClick} />
+                </div>
+                { !editable && (
+                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                    <p>{strings.platform}: </p>
+                    <TagInputField
+                      text={''}
+                      className='browse-right-sidebar__searchable'
+                      editable={false}
+                      tags={game.detailedPlatforms?.filter(p => p.name == game.primaryPlatform) || []}
+                      suggestions={[]}
+                      categories={[]}
+                      onTagSelect={this.onPlatformSelect}
+                      renderIcon={this.renderPlatformIcon}
+                      renderIconSugg={this.renderPlatformIconSugg} />
+                  </div>
+                )}
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                  <p>{editable ? allStrings.config.platforms : strings.otherTechnologies}: </p>
+                  <TagInputField
+                    text={this.state.currentPlatformInput}
+                    placeholder={strings.enterTag}
+                    className='browse-right-sidebar__searchable'
+                    editable={editable}
+                    onChange={this.onCurrentPlatformChange}
+                    tags={editable ? game.detailedPlatforms || [] : game.detailedPlatforms?.filter(p => p.name !== game.primaryPlatform) || []}
+                    suggestions={this.state.platformSuggestions}
+                    categories={tagCategories}
+                    onTagSelect={this.onPlatformSelect}
+                    onTagEditableSelect={this.onRemovePlatform}
+                    onTagSuggestionSelect={this.onAddPlatformSuggestion}
+                    onTagSubmit={this.onAddPlatformByString}
+                    renderIcon={this.renderPlatformIcon}
+                    renderIconSugg={this.renderPlatformIconSugg}
+                    primaryValue={game.primaryPlatform}
+                    selectPrimaryValue={this.promotePlatform} />
+                </div>
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                  <p>{strings.playMode}: </p>
+                  <DropdownInputField
+                    text={game.playMode}
+                    placeholder={strings.noPlayMode}
+                    onChange={this.onPlayModeChange}
+                    className='browse-right-sidebar__searchable'
+                    editable={editable}
+                    items={suggestions && filterSuggestions(suggestions.playMode) || []}
+                    onItemSelect={text => this.props.onEditGame({ playMode: text })}
+                    onClick={this.onPlayModeClick} />
+                </div>
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                  <p>{strings.status}: </p>
+                  <DropdownInputField
+                    text={game.status}
+                    placeholder={strings.noStatus}
+                    onChange={this.onStatusChange}
+                    className='browse-right-sidebar__searchable'
+                    editable={editable}
+                    items={suggestions && filterSuggestions(suggestions.status) || []}
+                    onItemSelect={text => this.props.onEditGame({ status: text })}
+                    onClick={this.onStatusClick} />
+                </div>
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                  <p>{strings.version}: </p>
+                  <InputField
+                    text={game.version}
+                    placeholder={strings.noVersion}
+                    className='browse-right-sidebar__searchable'
+                    onChange={this.onVersionChange}
+                    editable={editable}
+                    onClick={this.onVersionClick} />
+                </div>
+                { editable && (
+                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                    <p>{strings.releaseDate}: </p>
+                    <InputField
+                      text={game.releaseDate}
+                      placeholder={strings.noReleaseDate}
+                      onChange={this.onReleaseDateChange}
+                      className='browse-right-sidebar__searchable'
+                      editable={editable}/>
+                  </div>
+                )}
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                  <p>{strings.language}: </p>
+                  <InputField
+                    text={game.language}
+                    placeholder={strings.noLanguage}
+                    onChange={this.onLanguageChange}
+                    className='browse-right-sidebar__searchable'
+                    editable={editable}
+                    onClick={this.onLanguageClick} />
+                </div>
+              </div>
+            </>
             {/* -- Date Display -- */}
             { !editable && (
               <div className='browse-right-sidebar__section'>
@@ -782,7 +752,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     </div>
                     <div className='browse-right-sidebar__stats-row-bottom'>
                       <div className='browse-right-sidebar__stats-cell'>
-                        {formatSidebarDate(game.dateAdded)}
+                        {formatSidebarDate(new Date(game.dateAdded))}
                       </div>
                     </div>
                   </div>
@@ -794,7 +764,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     </div>
                     <div className='browse-right-sidebar__stats-row-bottom'>
                       <div className='browse-right-sidebar__stats-cell'>
-                        {formatSidebarDate(game.dateModified)}
+                        {formatSidebarDate(new Date(game.dateModified))}
                       </div>
                     </div>
                   </div>
@@ -828,7 +798,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
               </div>
             ) : undefined }
             {/* -- Notes -- */}
-            { ((!editDisabled && editable) || game.notes) && !isPlaceholder ? (
+            { ((!editDisabled && editable) || game.notes) ? (
               <div className='browse-right-sidebar__section'>
                 <div className='browse-right-sidebar__row'>
                   <p>{strings.notes}: </p>
@@ -842,7 +812,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
               </div>
             ) : undefined }
             {/* -- Original Description -- */}
-            { ((!editDisabled && editable) || game.originalDescription) && !isPlaceholder ? (
+            { ((!editDisabled && editable) || game.originalDescription) ? (
               <div className='browse-right-sidebar__section'>
                 <div className='browse-right-sidebar__row'>
                   <p>{strings.originalDescription}: </p>
@@ -879,7 +849,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
               </div>
             ) : undefined }
             {/* -- LEGACY GAMES ONLY - Application Path & Launch Command -- */}
-            { !game.activeDataId && !isPlaceholder ? (
+            { !game.activeDataId ? (
               <div className='browse-right-sidebar__section'>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>{strings.applicationPath}: </p>
@@ -903,7 +873,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
               </div>
             ) : undefined }
             {/* -- Game ID -- */}
-            { editable || isPlaceholder ? (
+            { editable ? (
               <div className='browse-right-sidebar__section'>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>ID: </p>
@@ -1084,11 +1054,11 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
 
   onCurrentTagChange = (event: React.ChangeEvent<InputElement>) => {
     const newTag = event.currentTarget.value;
-    let newSuggestions: TagSuggestion<Tag>[] = this.state.tagSuggestions;
+    let newSuggestions: TagSuggestion[] = this.state.tagSuggestions;
 
     if (newTag !== '' && this.props.currentGameInfo) {
       // Delayed set
-      const existingTags = this.props.currentGameInfo.game.tags.reduce<string[]>((prev, cur) => prev.concat(cur.primaryAlias.name), []);
+      const existingTags = this.props.currentGameInfo.game.tags;
       window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag, this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme)).concat([generateTagFilterGroup(existingTags)]))
       .then(data => {
         if (data) { this.setState({ tagSuggestions: data }); }
@@ -1105,7 +1075,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
 
   onCurrentPlatformChange = (event: React.ChangeEvent<InputElement>) => {
     const newPlatform = event.currentTarget.value;
-    let newSuggestions: TagSuggestion<Platform>[] = this.state.platformSuggestions;
+    let newSuggestions: TagSuggestion[] = this.state.platformSuggestions;
 
     if (newPlatform !== '' && this.props.currentGameInfo) {
       // Delayed set
@@ -1247,7 +1217,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     if (!this.props.currentGameInfo)    { throw new Error('Unable to add a new AddApp. "currentGameInfo" is missing.'); }
     const newAddApp = ModelUtils.createAddApp(this.props.currentGameInfo.game);
     newAddApp.id = uuid();
-    this.props.onEditGame({ addApps: [...this.props.currentGameInfo.game.addApps, ...[newAddApp]] });
+    const existingAddApps = this.props.currentGameInfo.game.addApps || [];
+    this.props.onEditGame({ addApps: [...existingAddApps, ...[newAddApp]] });
   };
 
   onScreenshotClick = (): void => {
@@ -1263,31 +1234,32 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   };
 
   onTagSelect = (tag: Tag): void => {
-    const alias = tag.primaryAlias.name;
+    const alias = tag.name;
     const search = `tag:${wrapSearchTerm(alias)}`;
     this.props.onSearch(search);
   };
 
   onPlatformSelect = (platform: Platform): void => {
-    const alias = platform.primaryAlias.name;
+    const alias = platform.name;
     const search = `platform:${wrapSearchTerm(alias)}`;
     this.props.onSearch(search);
   };
 
-  onAddTagSuggestion = (suggestion: TagSuggestion<Tag>): void => {
-    if (suggestion.tag.id) {
-      window.Shared.back.request(BackIn.GET_TAG_BY_ID, suggestion.tag.id)
-      .then((tag) => {
-        if (tag) {
-          const game = this.props.currentGameInfo?.game;
-          // Ignore dupe tags
-          if (game && game.tags.findIndex(t => t.id == tag.id) == -1) {
-            this.props.onEditGame({ tags: [...game.tags, tag] });
-            console.log('ADDED TAG ' + tag.id);
+  onAddTagSuggestion = (suggestion: TagSuggestion): void => {
+    window.Shared.back.request(BackIn.GET_TAG_BY_ID, suggestion.id)
+    .then((tag) => {
+      if (tag) {
+        const game = this.props.currentGameInfo?.game;
+        // Ignore dupe tags
+        if (game && !game.tags.map(t => t.toLowerCase()).includes(tag.name.toLowerCase())) {
+          if (!game.detailedTags) {
+            game.detailedTags = [];
           }
+          this.props.onEditGame({ tags: [...game.tags, tag.name], detailedTags: [...game.detailedTags, tag]});
+          console.log('ADDED TAG ' + tag.id);
         }
-      });
-    }
+      }
+    });
     // Clear out suggestions box
     this.setState({
       tagSuggestions: [],
@@ -1295,21 +1267,22 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     });
   };
 
-  onAddPlatformSuggestion = (suggestion: TagSuggestion<Platform>): void => {
-    if (suggestion.tag.id) {
-      window.Shared.back.request(BackIn.GET_PLATFORM_BY_ID, suggestion.tag.id)
-      .then((platform) => {
-        if (platform) {
-          const game = this.props.currentGameInfo?.game;
-          // Ignore dupe tags
-          if (game && game.platforms.findIndex(p => p.id == platform.id) == -1) {
-            const primary = game.platforms.length === 0 ? platform.primaryAlias.name : game.platformName;
-            this.props.onEditGame({ platforms: [...game.platforms, platform], platformName: primary });
-            console.log('ADDED PLATFORM ' + platform.id);
+  onAddPlatformSuggestion = (suggestion: TagSuggestion): void => {
+    window.Shared.back.request(BackIn.GET_PLATFORM_BY_ID, suggestion.id)
+    .then((platform) => {
+      if (platform) {
+        const game = this.props.currentGameInfo?.game;
+        // Ignore dupe tags
+        if (game && !game.platforms.map(t => t.toLowerCase()).includes(platform.name.toLowerCase())) {
+          if (!game.detailedPlatforms) {
+            game.detailedPlatforms = [];
           }
+          const primary = game.platforms.length === 0 ? platform.name : game.primaryPlatform;
+          this.props.onEditGame({ platforms: [...game.platforms, platform.name], primaryPlatform: primary, detailedPlatforms: [...game.detailedPlatforms, platform] });
+          console.log('ADDED PLATFORM ' + platform.id);
         }
-      });
-    }
+      }
+    });
     // Clear out suggestions box
     this.setState({
       platformSuggestions: [],
@@ -1329,27 +1302,21 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   onAddTagByString = (text: string): void => {
     if (text !== '') {
       if (this.props.fpfssEditMode) {
+        const newTagText = text.trim();
         const game = this.props.currentGameInfo?.game;
-        if (game) {
+        if (game && !game.tags.map(t => t.toLowerCase()).includes(newTagText.toLowerCase())) {
+          if (!game.detailedTags) {
+            game.detailedTags = [];
+          }
           const tag: Tag = {
             id: -1,
-            primaryAlias: {
-              id: -1,
-              tagId: -1,
-              name: text
-            },
-            aliases: [
-              {
-                id: -1,
-                tagId: -1,
-                name: text
-              }
-            ],
-            primaryAliasId: -1,
-            dateModified: '',
-            categoryId: 0
+            name: newTagText,
+            aliases: [newTagText],
+            description: '',
+            dateModified: (new Date()).toISOString(),
+            category: 'default'
           };
-          this.props.onEditGame({ tags: [...game.tags, tag]});
+          this.props.onEditGame({ tags: [...game.tags, tag.name], detailedTags: [...game.detailedTags, tag]});
         }
       } else {
         window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, text)
@@ -1357,8 +1324,11 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
           if (tag) {
             const game = this.props.currentGameInfo?.game;
             // Ignore dupe tags
-            if (game && game.tags.findIndex(t => t.id == tag.id) == -1) {
-              this.props.onEditGame({ tags: [...game.tags, tag] });
+            if (game && !game.tags.map(t => t.toLowerCase()).includes(tag.name.toLowerCase())) {
+              if (!game.detailedTags) {
+                game.detailedTags = [];
+              }
+              this.props.onEditGame({ tags: [...game.tags, tag.name], detailedTags: [...game.detailedTags, tag]});
             }
           }
         });
@@ -1375,25 +1345,21 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   onAddPlatformByString = (text: string): void => {
     if (text !== '') {
       if (this.props.fpfssEditMode) {
+        const newPlatformText = text.trim();
         const game = this.props.currentGameInfo?.game;
-        if (game) {
+        if (game && !game.platforms.map(t => t.toLowerCase()).includes(newPlatformText.toLowerCase())) {
+          if (!game.detailedPlatforms) {
+            game.detailedPlatforms = [];
+          }
           const platform: Platform = {
             id: -1,
-            primaryAlias: {
-              id: -1,
-              platformId: -1,
-              name: text
-            },
-            aliases: [{
-              id: -1,
-              platformId: -1,
-              name: text
-            }],
-            primaryAliasId: -1,
-            dateModified: ''
+            name: newPlatformText,
+            aliases: [newPlatformText],
+            description: '',
+            dateModified: (new Date()).toISOString()
           };
-          const primary = game.platforms.length === 0 ? platform.primaryAlias.name : game.platformName;
-          this.props.onEditGame({ platforms: [...game.platforms, platform], platformName: primary });
+          const primary = game.platforms.length === 0 ? platform.name : game.primaryPlatform;
+          this.props.onEditGame({ platforms: [...game.platforms, platform.name], primaryPlatform: primary, detailedPlatforms: [...game.detailedPlatforms, platform] });
         }
       } else {
         window.Shared.back.request(BackIn.GET_OR_CREATE_PLATFORM, text)
@@ -1401,8 +1367,12 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
           if (platform) {
             const game = this.props.currentGameInfo?.game;
             // Ignore dupe platforms
-            if (game && game.platforms.findIndex(t => t.id == platform.id) == -1) {
-              this.props.onEditGame({ platforms: [...game.platforms, platform] });
+            if (game && !game.platforms.map(t => t.toLowerCase()).includes(platform.name.toLowerCase())) {
+              if (!game.detailedPlatforms) {
+                game.detailedPlatforms = [];
+              }
+              const primary = game.platforms.length === 0 ? platform.name : game.primaryPlatform;
+              this.props.onEditGame({ platforms: [...game.platforms, platform.name], primaryPlatform: primary, detailedPlatforms: [...game.detailedPlatforms, platform] });
             }
           }
         });
@@ -1416,18 +1386,30 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   onRemoveTag = (tag: Tag, index: number): void => {
     const game = this.props.currentGameInfo?.game;
     if (game) {
+      if (!game.detailedTags) {
+        game.detailedTags = [];
+      }
+      const newDetailedTags = deepCopy(game.detailedTags);
       const newTags = deepCopy(game.tags);
-      newTags.splice(index, 1);
-      this.props.onEditGame({ tags: newTags });
+      const tagsIndex = newTags.findIndex(t => t.toLowerCase() === newDetailedTags[index].name.toLowerCase());
+      newTags.splice(tagsIndex, 1);
+      newDetailedTags.splice(index, 1);
+      this.props.onEditGame({ tags: newTags, detailedTags: newDetailedTags });
     }
   };
 
   onRemovePlatform = (platform: Platform, index: number): void => {
     const game = this.props.currentGameInfo?.game;
     if (game) {
+      if (!game.detailedPlatforms) {
+        game.detailedPlatforms = [];
+      }
+      const newDetailedPlatforms = deepCopy(game.detailedPlatforms);
       const newPlatforms = deepCopy(game.platforms);
-      newPlatforms.splice(index, 1);
-      this.props.onEditGame({ platforms: newPlatforms });
+      const platIndex = newPlatforms.findIndex(p => p.toLowerCase() === newDetailedPlatforms[index].name.toLowerCase());
+      newPlatforms.splice(platIndex, 1);
+      newDetailedPlatforms.splice(index, 1);
+      this.props.onEditGame({ platforms: newPlatforms, detailedPlatforms: newDetailedPlatforms });
     }
   };
 
@@ -1481,7 +1463,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   }
 
   renderPlatformIcon = (platform: Platform): JSX.Element => {
-    const platformIcon = getPlatformIconURL(platform.primaryAlias.name, this.props.logoVersion);
+    const platformIcon = getPlatformIconURL(platform.name, this.props.logoVersion);
     return (
       <div
         className='tag-icon tag-icon-image'
@@ -1489,8 +1471,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     );
   };
 
-  renderPlatformIconSugg = (platformSugg: TagSuggestion<Platform>) => {
-    const iconUrl = getPlatformIconURL(platformSugg.primaryAlias, this.props.logoVersion);
+  renderPlatformIconSugg = (platformSugg: TagSuggestion) => {
+    const iconUrl = getPlatformIconURL(platformSugg.name, this.props.logoVersion);
     return (
       <div
         className='platform-tag__icon'
@@ -1500,9 +1482,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
 
   promotePlatform = (value: string) => {
     console.log(value);
-    const platform = this.props.currentGameInfo?.game.platforms.find(p => p.primaryAlias.name === value);
-    if (platform) {
-      this.props.onEditGame({ platformId: platform.id, platformName: value });
+    if (this.props.currentGameInfo?.game.platforms.includes(value)) {
+      this.props.onEditGame({ primaryPlatform: value });
     }
   };
 
@@ -1544,13 +1525,12 @@ function openContextMenu(template: MenuItemConstructorOptions[]): Menu {
  * @param lastPlayed Last Played Date
  * @param strings localized strings
  */
-function formatLastPlayed(lastPlayed: string, strings: any): string {
+function formatLastPlayed(lastPlayed: Date, strings: any): string {
   const secondsInDay = 60 * 60 * 24;
-  const lpdate = new Date(lastPlayed);
-  const diff = Math.ceil((Date.now() - lpdate.getTime()) / 1000);
+  const diff = Math.ceil((Date.now() - lastPlayed.getTime()) / 1000);
 
   if (diff < (secondsInDay * 2)) {
-    if ((new Date()).getDate() === lpdate.getDate()) {
+    if ((new Date()).getDate() === lastPlayed.getDate()) {
       return strings.today;
     } else {
       return strings.yesterday;
@@ -1560,9 +1540,9 @@ function formatLastPlayed(lastPlayed: string, strings: any): string {
   } else if (diff < (secondsInDay * 7 * 4)) {
     return formatString(strings.weeksAgo, Math.floor(diff / (secondsInDay * 7)).toString()) as string;
   } else {
-    const ordinal = ordinalSuffixOf(lpdate.getDate());
-    const month = lpdate.toLocaleString('default', { month: 'long' });
-    return `${ordinal} ${month} ${lpdate.getFullYear()}`;
+    const ordinal = ordinalSuffixOf(lastPlayed.getDate());
+    const month = lastPlayed.toLocaleString('default', { month: 'long' });
+    return `${ordinal} ${month} ${lastPlayed.getFullYear()}`;
   }
 }
 
@@ -1601,11 +1581,10 @@ function ordinalSuffixOf(i: number) {
   return i + 'th';
 }
 
-function formatSidebarDate(dStr: string): string {
+function formatSidebarDate(d: Date): string {
   try {
-    const d = new Date(dStr);
     return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
   } catch {
-    return 'Invalid Date';
+    return 'Invalid Date ' + typeof d;
   }
 }

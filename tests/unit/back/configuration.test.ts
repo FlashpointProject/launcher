@@ -1,3 +1,4 @@
+import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
 import { AppConfigData } from '@shared/config/interfaces';
 import { getDefaultConfigData, overwriteConfigData } from '@shared/config/util';
 import { defaultPreferencesData, overwritePreferenceData } from '@shared/preferences/util';
@@ -42,6 +43,7 @@ describe('Configuration Files', () => {
   it('overwrite preferences data', () => {
     const data: AppPreferencesData = {
       'onDemandImagesCompressed': false,
+      'registerProtocol': true,
       'imageFolderPath': 'test/Images',
       'logoFolderPath': 'test/Logos',
       'playlistFolderPath': 'test/Playlists',
@@ -175,7 +177,10 @@ describe('Configuration Files', () => {
         }
       ],
       'enablePlaytimeTracking': false,
-      'enablePlaytimeTrackingExtreme': false
+      'enablePlaytimeTrackingExtreme': false,
+      'enableVerboseLogging': true,
+      'screenshotPreviewMode': ScreenshotPreviewMode.ON,
+      'screenshotPreviewDelay': 100,
     };
     const newData = deepCopy(defaultPreferencesData);
     overwritePreferenceData(newData, data);

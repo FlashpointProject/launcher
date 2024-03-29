@@ -1,4 +1,3 @@
-import { Game } from '@database/entity/Game';
 import { rebuildQuery } from '@renderer/Util';
 import { BackIn, BackInit } from '@shared/back/types';
 import { GamePropSuggestions, WindowIPC } from '@shared/interfaces';
@@ -9,6 +8,7 @@ import { ipcRenderer } from 'electron';
 import { EventEmitter } from 'stream';
 import { MainActionType, RequestState } from './enums';
 import { ConnectedMainAction, MainState, View, ViewPageStates } from './types';
+import { newGame } from '@shared/utils/misc';
 
 export const RANDOM_GAME_ROW_COUNT = 6;
 
@@ -26,17 +26,17 @@ export function mainStateReducer(state: MainState = createInitialState(), action
 
       if (!view) { return state; }
 
-      const playlist = (action.playlist !== undefined)
-        ? action.playlist
-        : view.query.filter.playlist;
+      const playlistId = (action.playlist !== undefined)
+        ? action.playlist?.id
+        : view.query.playlistId;
 
-      if (playlist != undefined) {
+      if (playlistId != undefined) {
         action.searchText = '';
       }
 
       return {
         ...state,
-        selectedPlaylistId: playlist?.id,
+        selectedPlaylistId: playlistId,
         views: {
           ...state.views,
           [action.library]: {
@@ -45,13 +45,13 @@ export function mainStateReducer(state: MainState = createInitialState(), action
               text: action.searchText,
               extreme: action.showExtreme,
               library: action.library,
-              searchLimit: action.searchLimit,
+              searchLimit: action.playlist !== null ? 0 : action.searchLimit,
               playlist: action.playlist == null ? undefined : action.playlist,
               order: {
                 orderBy: action.orderBy,
                 orderReverse: action.orderReverse,
               },
-              tagFilters: playlist ? [] : action.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !action.showExtreme))
+              tagFilters: playlistId ? [] : action.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !action.showExtreme))
             }),
             queryId: (view.queryId + 1) % 0x80000000, // 32 bit signed integer
             metaState: RequestState.WAITING,
@@ -62,8 +62,27 @@ export function mainStateReducer(state: MainState = createInitialState(), action
       };
     }
 
+    case MainActionType.SET_VIEW_SEARCH_STATUS: {
+      const view = state.views[action.viewIdentifier];
+
+      if (!view) { return state; }
+
+      const newView: View = {
+        ...view,
+        searchStatus: action.searchStatus
+      };
+
+      return {
+        ...state,
+        views: {
+          ...state.views,
+          [action.viewIdentifier]: newView,
+        },
+      };
+    }
+
     case MainActionType.SET_VIEW_BOUNDRIES: {
-      const view = state.views[action.library];
+      const view = state.views[action.viewIdentifier];
 
       if (!view) { return state; }
 
@@ -99,41 +118,38 @@ export function mainStateReducer(state: MainState = createInitialState(), action
         ...state,
         views: {
           ...state.views,
-          [action.library]: newView,
+          [action.viewIdentifier]: newView,
         },
       };
     }
 
-    case MainActionType.REQUEST_VIEW_META: {
-      const view = state.views[action.library];
+    case MainActionType.REQUEST_VIEW_FIRST_PAGE: {
+      const view = state.views[action.viewIdentifier];
 
       if (!view || action.queryId !== view.queryId) { return state; }
 
       if (view.metaState === RequestState.WAITING) {
-        // Request meta
-        window.Shared.back.request(BackIn.BROWSE_VIEW_KEYSET, action.library, view.query)
+        window.Shared.back.request(BackIn.BROWSE_VIEW_FIRST_PAGE, action.viewIdentifier, view.query)
         .then((data) => {
           if (data) {
             action.asyncDispatch({
-              type: MainActionType.SET_VIEW_META,
-              library: action.library,
+              type: MainActionType.SET_VIEW_FIRST_PAGE,
+              viewIdentifier: action.viewIdentifier,
               queryId: view.queryId,
-              keyset: data.keyset,
-              total: data.total,
+              games: data.games,
             });
           }
         })
         .catch((error) => {
-          log.error('Launcher', `Error getting browse view keyset - ${error}`);
+          log.error('Launcher', `Error getting first browse page - ${error}`);
         });
       }
-
 
       return {
         ...state,
         views: {
           ...state.views,
-          [action.library]: {
+          [action.viewIdentifier]: {
             ...view,
             metaState: RequestState.REQUESTED,
           },
@@ -141,8 +157,48 @@ export function mainStateReducer(state: MainState = createInitialState(), action
       };
     }
 
+    case MainActionType.SET_VIEW_FIRST_PAGE: {
+      const view = state.views[action.viewIdentifier];
+
+      if (!view || action.queryId !== view.queryId) { return state; }
+
+      window.Shared.back.request(BackIn.BROWSE_VIEW_KEYSET, action.viewIdentifier, view.query)
+      .then((data) => {
+        if (data) {
+          action.asyncDispatch({
+            type: MainActionType.SET_VIEW_META,
+            viewIdentifier: action.viewIdentifier,
+            queryId: view.queryId,
+            keyset: data.keyset,
+            total: data.total,
+          });
+        }
+      })
+      .catch((error) => {
+        log.error('Launcher', `Error getting browse view keyset - ${error}`);
+      });
+
+      console.log('FIRST PAGE - ' + action.games.length);
+
+      return {
+        ...state,
+        views: {
+          ...state.views,
+          [action.viewIdentifier]: {
+            ...view,
+            metaState: RequestState.RECEIVED,
+            games: action.games,
+            isDirty: false,
+            pageState: {
+              0: RequestState.RECEIVED
+            },
+          },
+        },
+      };
+    }
+
     case MainActionType.SET_VIEW_META: {
-      const view = state.views[action.library];
+      const view = state.views[action.viewIdentifier];
 
       if (!view || action.queryId !== view.queryId) { return state; }
 
@@ -150,17 +206,15 @@ export function mainStateReducer(state: MainState = createInitialState(), action
         ...state,
         views: {
           ...state.views,
-          [action.library]: {
+          [action.viewIdentifier]: {
             ...view,
             meta: {
               pageKeyset: action.keyset,
               total: action.total,
             },
-            //
-            metaState: RequestState.RECEIVED,
             // Dirty games
-            isDirty: action.total !== 0,
-            games: action.total === 0 ? [] : view.games,
+            isDirty: false,
+            games: view.games,
             lastCount: action.total === 0 ? 0 : view.lastCount,
             pageState: {},
             // Update total (for the first response only)
@@ -173,7 +227,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
     }
 
     case MainActionType.REQUEST_VIEW_PAGES: {
-      const view = state.views[action.library];
+      const view = state.views[action.viewIdentifier];
 
       if (!view || action.queryId !== view.queryId) { return state; }
 
@@ -193,7 +247,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
         ...state,
         views: {
           ...state.views,
-          [action.library]: {
+          [action.viewIdentifier]: {
             ...view,
             pageState: newPageState,
           },
@@ -202,7 +256,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
     }
 
     case MainActionType.ADD_VIEW_PAGES: {
-      const view = state.views[action.library];
+      const view = state.views[action.viewIdentifier];
 
       if (!view || !view.meta || action.queryId !== view.queryId) { return state; }
 
@@ -219,7 +273,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
         ...state,
         views: {
           ...state.views,
-          [action.library]: {
+          [action.viewIdentifier]: {
             ...view,
             games: newGames,
             isDirty: false,
@@ -446,15 +500,15 @@ export function mainStateReducer(state: MainState = createInitialState(), action
       const { gameData } = action;
       if (state.currentGameInfo) {
         if (gameData.gameId === state.currentGameInfo.game.id) {
-          const newGame: Game = new Game();
-          Object.assign(newGame, state.currentGameInfo.game);
-          newGame.activeDataOnDisk = gameData.presentOnDisk;
+          const ng = newGame();
+          Object.assign(ng, state.currentGameInfo.game);
+          ng.activeDataOnDisk = gameData.presentOnDisk;
           return {
             ...state,
             currentGameData: gameData,
             currentGameInfo: {
               ...state.currentGameInfo,
-              game: newGame
+              game: ng
             }
           };
         }
@@ -490,7 +544,6 @@ export function mainStateReducer(state: MainState = createInitialState(), action
         newFpfssState.editingGameInfo.game = {
           ...newFpfssState.editingGameInfo.game,
           ...action.game,
-          updateTagsStr: newFpfssState.editingGameInfo.game.updateTagsStr
         };
       }
 
@@ -527,6 +580,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
           lastStart: 0,
           lastCount: 0,
           tagFilters: [],
+          searchStatus: null,
         };
       }
 
@@ -604,6 +658,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
             lastStart: 0,
             lastCount: 0,
             tagFilters: [],
+            searchStatus: null
           };
         }
       }
@@ -752,8 +807,8 @@ export function mainStateReducer(state: MainState = createInitialState(), action
       const view = state.views[action.index];
       if (view) {
         const newState = {...state};
-        if (view.query.filter.playlist?.id !== newState.selectedPlaylistId) {
-          newState.selectedPlaylistId = view.query.filter.playlist?.id;
+        if (view.query.playlistId !== newState.selectedPlaylistId) {
+          newState.selectedPlaylistId = view.query.playlistId;
           newState.currentPlaylist = undefined;
           newState.currentPlaylistEntry = undefined;
           return newState;

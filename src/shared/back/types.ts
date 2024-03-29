@@ -1,20 +1,17 @@
-import { Game } from '@database/entity/Game';
-import { Tag } from '@database/entity/Tag';
-import { TagCategory } from '@database/entity/TagCategory';
 import { ChangedMeta, MetaEditFlags } from '@shared/MetaEdit';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
 import { AddAppCuration, ContentTree, LoadedCuration, PlatformAppPathSuggestions } from '@shared/curate/types';
 import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/extensions/interfaces';
-import { FilterGameOpts } from '@shared/game/GameFilter';
 import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
 import { SocketTemplate } from '@shared/socket/types';
 import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
-import { AppPreferencesData, ConfigSchema, CurationState, CurationWarnings, DialogState, DialogStateTemplate, GameConfig, GameData, GameDataSource, GameMetadataSource, GameMiddlewareConfig, GameMiddlewareInfo, GameOrderBy, GameOrderReverse, Platform, Playlist, PlaylistGame, TagAlias, TagFilterGroup } from 'flashpoint-launcher';
+import { AppPreferencesData, ConfigSchema, CurationState, CurationWarnings, DialogState, DialogStateTemplate, Game, GameConfig, GameData, GameDataSource, GameMetadataSource, GameMiddlewareConfig, GameMiddlewareInfo, MergeTagData, Platform, Playlist, PlaylistGame, Tag, TagCategory, TagFilterGroup, TagSuggestion } from 'flashpoint-launcher';
 import { ILogEntry, ILogPreEntry, LogLevel } from '../Log/interface';
 import { Theme } from '../ThemeFile';
 import { AppConfigData, AppExtConfigData } from '../config/interfaces';
 import { ExecMapping, GamePropSuggestions, IService, ProcessAction, Task } from '../interfaces';
 import { LangContainer, LangFile } from '../lang';
+import { ViewQuery } from '@shared/library/util';
 
 export enum BackIn {
   UNKNOWN = 1000,
@@ -67,6 +64,9 @@ export enum BackIn {
   LAUNCH_CURATION_ADDAPP,
   QUIT,
 
+  // Web?
+  DOWNLOAD_PLAYLIST,
+
   // Tag funcs
   GET_OR_CREATE_TAG,
   GET_OR_CREATE_PLATFORM,
@@ -77,12 +77,8 @@ export enum BackIn {
   GET_TAGS,
   GET_TAG,
   SAVE_TAG,
-  SAVE_TAG_ALIAS,
   DELETE_TAG,
   MERGE_TAGS,
-  CLEANUP_TAG_ALIASES,
-  CLEANUP_TAGS,
-  FIX_TAG_PRIMARY_ALIASES,
   EXPORT_TAGS,
   EXPORT_DATABASE,
   IMPORT_TAGS,
@@ -95,8 +91,8 @@ export enum BackIn {
 
   /** Get a page of a browse view. */
   BROWSE_VIEW_PAGE,
-  /** Get the index of a specific game (in the results of a given query). */
-  BROWSE_VIEW_INDEX,
+  /** Get the first page of a browse view */
+  BROWSE_VIEW_FIRST_PAGE,
   /** Get the keyset of all pages (in the results of a given query). */
   BROWSE_VIEW_KEYSET,
   /** Get all data needed on init (by the renderer). */
@@ -161,14 +157,15 @@ export enum BackIn {
   OPTIMIZE_DATABASE,
   PRE_UPDATE_INFO,
   CLEAR_PLAYTIME_TRACKING,
+  CLEAR_PLAYTIME_TRACKING_BY_ID,
   KEEP_ALIVE,
-
-  // Developer
-  UPDATE_TAGGED_FIELDS,
 
   // Dialogs
   DIALOG_RESPONSE,
   NEW_DIALOG_RESPONSE,
+
+  // Tests
+  TEST_RECONNECTIONS,
 }
 
 export enum BackOut {
@@ -206,7 +203,6 @@ export enum BackOut {
   SAVE_TAG_CATEGORY,
   DELETE_TAG_CATEGORY,
   TAG_CATEGORIES_CHANGE,
-  FIX_TAG_PRIMARY_ALIASES,
   SYNC_GAME_METADATA,
   QUIT,
   RUN_COMMAND,
@@ -218,6 +214,7 @@ export enum BackOut {
   OPEN_PLACEHOLDER_DOWNLOAD_DIALOG,
   CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG,
   UPDATE_COMPONENT_STATUSES,
+  SET_VIEW_SEARCH_STATUS,
 
   // Metadata Sync
   POST_SYNC_CHANGES,
@@ -232,6 +229,10 @@ export enum BackOut {
   CREATE_TASK,
 
   FOCUS_WINDOW,
+
+  // Shortcuts
+  SHORTCUT_REGISTER_COMMAND,
+  SHORTCUT_UNREGISTER,
 
   // Dialogs
   NEW_DIALOG,
@@ -268,8 +269,8 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.DELETE_GAME_CONFIG]: (id: number) => void;
   [BackIn.SAVE_GAMES]: (data: Game[]) => void;
   [BackIn.GET_GAME]: (id: string) => FetchedGameInfo | null;
-  [BackIn.GET_ALL_GAMES]: (startFrom?: string) => Game[];
-  [BackIn.RANDOM_GAMES]: (data: RandomGamesData) => ViewGame[];
+  [BackIn.GET_ALL_GAMES]: (offsetGameTitle?: string, offsetGameId?: string) => Game[];
+  [BackIn.RANDOM_GAMES]: (data: RandomGamesData) => Game[];
   [BackIn.LAUNCH_GAME]: (id: string) => void;
   [BackIn.DELETE_GAME]: (id: string) => BrowseChangeData;
   [BackIn.DUPLICATE_GAME]: (id: string, dupeImages: boolean) => BrowseChangeData;
@@ -299,22 +300,21 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.LAUNCH_CURATION_ADDAPP]: (data: LaunchCurationAddAppData) => void;
   [BackIn.QUIT]: () => void;
 
+  // Web?
+  [BackIn.DOWNLOAD_PLAYLIST]: (url: string) => Playlist;
+
   // Tag funcs
   [BackIn.GET_OR_CREATE_TAG]: (tagName: string, tagCategory?: string) => Tag | null;
   [BackIn.GET_OR_CREATE_PLATFORM]: (platformName: string) => Platform;
-  [BackIn.GET_TAG_SUGGESTIONS]: (data: string, tagFilters: TagFilterGroup[]) => TagSuggestion<Tag>[];
-  [BackIn.GET_PLATFORM_SUGGESTIONS]: (data: string) => TagSuggestion<Platform>[];
+  [BackIn.GET_TAG_SUGGESTIONS]: (data: string, tagFilters: TagFilterGroup[]) => TagSuggestion[];
+  [BackIn.GET_PLATFORM_SUGGESTIONS]: (data: string) => TagSuggestion[];
   [BackIn.GET_TAG_BY_ID]: (data: number) => Tag | null;
   [BackIn.GET_PLATFORM_BY_ID]: (data: number) => Platform | null;
   [BackIn.GET_TAGS]: (data: string, tagFilters?: TagFilterGroup[]) => Tag[];
   [BackIn.GET_TAG]: (data: string) => Tag | null;
   [BackIn.SAVE_TAG]: (data: Tag) => Tag;
-  [BackIn.SAVE_TAG_ALIAS]: (data: TagAlias) => TagAlias;
-  [BackIn.DELETE_TAG]: (data: number) => TagDeleteResponse;
+  [BackIn.DELETE_TAG]: (name: string) => void;
   [BackIn.MERGE_TAGS]: (data: MergeTagData) => Tag;
-  [BackIn.CLEANUP_TAG_ALIASES]: () => void;
-  [BackIn.CLEANUP_TAGS]: () => void;
-  [BackIn.FIX_TAG_PRIMARY_ALIASES]: (data: null) => number;
   [BackIn.EXPORT_TAGS]: (data: string) => number;
   [BackIn.EXPORT_DATABASE]: (data: string) => string;
   [BackIn.IMPORT_TAGS]: (data: string) => number;
@@ -326,9 +326,8 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.DELETE_TAG_CATEGORY]: (data: number) => boolean;
 
   [BackIn.BROWSE_VIEW_PAGE]: (data: BrowseViewPageData) => BrowseViewPageResponseData;
-  /** @returns Index of the game (equal to or greater than 0 if found, otherwise -1). */
-  [BackIn.BROWSE_VIEW_INDEX]: (gameId: string, query: SearchGamesOpts) => number;
-  [BackIn.BROWSE_VIEW_KEYSET]: (library: string, query: SearchGamesOpts) => BrowseViewKeysetResponse;
+  [BackIn.BROWSE_VIEW_FIRST_PAGE]: (library: string, query: ViewQuery) => BrowseViewFirstPageResponseData;
+  [BackIn.BROWSE_VIEW_KEYSET]: (library: string, query: ViewQuery) => BrowseViewKeysetResponse;
   [BackIn.GET_LOGGER_INIT_DATA]: () => GetLoggerInitDataResponse;
   [BackIn.GET_RENDERER_INIT_DATA]: () => GetRendererInitDataResponse;
   [BackIn.GET_RENDERER_LOADED_DATA]: () => GetRendererLoadedDataResponse;
@@ -382,16 +381,19 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.OPTIMIZE_DATABASE]: () => void;
   [BackIn.PRE_UPDATE_INFO]: (source: GameMetadataSource) => number;
   [BackIn.CLEAR_PLAYTIME_TRACKING]: () => Promise<void>;
+  [BackIn.CLEAR_PLAYTIME_TRACKING_BY_ID]: (gameId: string) => Promise<void>;
   [BackIn.KEEP_ALIVE]: () => void;
 
   // Developer
-  [BackIn.UPDATE_TAGGED_FIELDS]: () => void;
   [BackIn.SYNC_TAGGED]: (source: GameMetadataSource) => void;
   [BackIn.SYNC_ALL]: (source: GameMetadataSource) => boolean;
 
   // Dialogs
   [BackIn.DIALOG_RESPONSE]: (dialog: DialogState, button: number) => void;
   [BackIn.NEW_DIALOG_RESPONSE]: (dialogId: string, responseId: string) => void;
+
+  // Tests
+  [BackIn.TEST_RECONNECTIONS]: () => void;
 }>
 
 export type BackOutTemplate = SocketTemplate<BackOut, {
@@ -417,7 +419,7 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.THEME_CHANGE]: (theme: Theme) => void;
   [BackOut.THEME_LIST_CHANGE]: (themes: Theme[]) => void;
   [BackOut.IMPORT_CURATION_RESPONSE]: () => void;
-  [BackOut.GET_TAG_SUGGESTIONS]: (data: TagSuggestion<Tag>[]) => void;
+  [BackOut.GET_TAG_SUGGESTIONS]: (data: TagSuggestion[]) => void;
   [BackOut.GET_TAG_BY_ID]: (SAVE_TAGdata: Tag | null) => Tag | undefined;
   [BackOut.GET_TAGS]: (data: Tag[]) => void;
   [BackOut.GET_TAG]: (data: Tag | null) => void;
@@ -429,7 +431,6 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.SAVE_TAG_CATEGORY]: (data: TagCategory) => void;
   [BackOut.DELETE_TAG_CATEGORY]: (data: boolean) => void;
   [BackOut.TAG_CATEGORIES_CHANGE]: (cats: TagCategory[]) => void;
-  [BackOut.FIX_TAG_PRIMARY_ALIASES]: (data: number) => void;
   [BackOut.SYNC_GAME_METADATA]: (data: GameMetadataSyncResponse) => void;
   [BackOut.QUIT]: () => void;
   [BackOut.RUN_COMMAND]: (data: RunCommandResponse) => void;
@@ -441,9 +442,10 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG]: () => void;
   [BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG]: () => void;
   [BackOut.UPDATE_COMPONENT_STATUSES]: (componentStatuses: ComponentStatus[]) => void;
+  [BackOut.SET_VIEW_SEARCH_STATUS]: (viewId: string, status: string | null) => void;
 
   // Metadata Sync
-  [BackOut.POST_SYNC_CHANGES]: (libraries: string[], suggestions: GamePropSuggestions, platformAppPaths: PlatformAppPathSuggestions, total: number) => void;
+  [BackOut.POST_SYNC_CHANGES]: (libraries: string[], suggestions: GamePropSuggestions, platformAppPaths: PlatformAppPathSuggestions, cats: TagCategory[], total: number) => void;
 
   // Curate
   [BackOut.CURATE_CONTENTS_CHANGE]: (folder: string, contents: ContentTree) => void;
@@ -456,6 +458,10 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.CREATE_TASK]: (task: Task) => void;
 
   [BackOut.FOCUS_WINDOW]: () => void;
+
+  // Shortcuts
+  [BackOut.SHORTCUT_REGISTER_COMMAND]: (command: string, shortcuts: string[]) => void;
+  [BackOut.SHORTCUT_UNREGISTER]: (shortcuts: string[]) => void;
 
   // Dialogs
   [BackOut.NEW_DIALOG]: (template: DialogStateTemplate, responseId: string) => void;
@@ -540,6 +546,7 @@ export type GetRendererLoadedDataResponse = {
   platformAppPaths: PlatformAppPathSuggestions;
   updateFeedMarkdown: string;
   componentStatuses: ComponentStatus[];
+  shortcuts: Record<string, string[]>;
 }
 
 export type GetRendererInitDataResponse = {
@@ -561,9 +568,7 @@ export type GetSuggestionsResponseData = {
 
 export type RandomGamesData = {
   count: number;
-  broken: boolean;
   excludedLibraries: string[];
-  tagFilters: TagFilterGroup[];
 }
 
 /** Tuple of values from the last game of a previous page (look up "keyset pagination"). */
@@ -577,15 +582,17 @@ export type PageTuple = {
 }
 
 /** A set of page tuples. The keys in the record are page indices. */
-export type PageKeyset = Partial<Record<number, PageTuple>>;
+export type PageKeyset = PageTuple[];
 
 export type BrowseViewKeysetResponse = {
+  /** Keyset */
   keyset: PageKeyset;
+  /** Total results */
   total: number;
 };
 
 export type RequestGameRange = {
-  /** Index of the first game. */
+  /** Start index of the game */
   start: number;
   /** Number of games to request (if undefined, all games until the end of the query will be included). */
   length: number | undefined;
@@ -597,22 +604,18 @@ export type RequestGameRange = {
   index?: PageTuple;
 }
 
-export type ResponseGameRange<T extends boolean> = {
-  /** Index of the first game. */
+export type ResponseGameRange = {
   start: number;
-  /** Number of games requested. */
-  length?: number;
-  /** Games found within the range. */
-  games: T extends true ? ViewGame[] : Game[];
+  games: Game[];
 }
 
 export type BrowseViewPageData = {
-  /** Ranges of games to fetch. */
+  /** Range of games to fetch. */
   ranges: RequestGameRange[];
-  /** Library to filter games by (only games in the library will be queried). */
-  library?: string;
+  /** Identifier of the view the responsed data is for */
+  viewIdentifier: string;
   /** Query to filter games by. */
-  query: SearchGamesOpts;
+  query: ViewQuery;
   /** If a subset of the games should be returned instead of the full game objects. */
   shallow?: boolean;
 }
@@ -620,33 +623,16 @@ export type BrowseViewPageData = {
 /** Note: The generic type should have the same value as "shallow" from the request, or "boolean" if the type is unknown. */
 export type BrowseViewPageResponseData = {
   /** Ranges of games. */
-  ranges: ResponseGameRange<boolean>[];
-  /** Library used in the query. */
-  library?: string;
+  ranges: ResponseGameRange[];
+  /** Identifier of the view this matches to */
+  viewIdentifier: string;
 }
 
-export type SearchGamesOpts = {
-  /** Info to filter the search from */
-  filter: FilterGameOpts;
-  /** The field to order the games by. */
-  orderBy: GameOrderBy;
-  /** The way to order the games. */
-  orderReverse: GameOrderReverse;
-  /** Search Limit (0 if disabled) */
-  searchLimit: number;
-}
-
-/** Shorten version of Game returned in searches, makes for better performance. */
-export type ViewGame = {
-  id: string;
-  title: string;
-  platformsStr: string;
-  platformName: string;
-  // List view only
-  tagsStr: string;
-  developer: string;
-  publisher: string;
-  extreme: boolean;
+export type BrowseViewFirstPageResponseData = {
+  /** Games in the first page */
+  games: Game[];
+  /** Identifier of the view this matches to */
+  viewIdentifier: string;
 }
 
 export type BrowseChangeData = {
@@ -684,43 +670,9 @@ export type LaunchCurationAddAppData = {
   symlinkCurationContent: boolean;
 }
 
-export type ITagObject = {
-  id?: number;
-  dateModified: string;
-  primaryAlias: ITagAlias;
-  aliases: ITagAlias[];
-  description?: string;
-  categoryId?: number;
-  count?: number;
-}
-
-export type ITagAlias = {
-  id: number;
-  name: string;
-}
-
-export type TagSuggestion<TaggedObject> = {
-  alias?: string;
-  primaryAlias: string;
-  tag: TaggedObject;
-}
-
 export type TagDeleteResponse = {
   success: boolean;
   id: number;
-}
-
-/**
- * Data passed to merge tags together
- *
- * @param toMerge Tag to merge from
- * @param mergeInto Tag to merge into
- * @param makeAlias Whether to move all aliases from toMerge into mergeInto as well
- */
-export type MergeTagData = {
-  toMerge: string;
-  mergeInto: string;
-  makeAlias: boolean;
 }
 
 export type GameMetadataSyncResponse = {
