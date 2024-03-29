@@ -535,6 +535,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
             ...process.env,
             'PATH': state.pathVar ?? process.env.PATH,
           }}, configServer);
+          await promiseSleep(1500);
         }
       }
       // If it has GameData, make sure it's present
@@ -2720,6 +2721,7 @@ function changeServerFactory(state: BackState): (server?: string) => Promise<voi
             ...process.env,
             'PATH': state.pathVar ?? process.env.PATH,
           }}, serverInfo);
+          await promiseSleep(1500);
         }
       } else {
         throw new Error(`Server '${server}' not found`);
