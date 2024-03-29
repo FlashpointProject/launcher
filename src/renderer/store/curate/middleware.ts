@@ -84,6 +84,7 @@ export const curationSyncMiddleware: Middleware<{}, ApplicationState> = (store) 
     case CurateActionType.ADD_TAG:
     case CurateActionType.ADD_PLATFORM:
     case CurateActionType.REGEN_UUID:
+    case CurateActionType.CHANGE_GROUP:
     case CurateActionType.REMOVE_PLATFORM:
     case CurateActionType.REMOVE_TAG: {
       next(action);
@@ -121,7 +122,6 @@ export const curationSyncMiddleware: Middleware<{}, ApplicationState> = (store) 
       });
       break;
     }
-    case CurateActionType.CHANGE_GROUP:
     case CurateActionType.SET_WARNINGS: {
       next(action);
       const state: CurateState = store.getState().curate;

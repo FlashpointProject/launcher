@@ -201,6 +201,6 @@ export function createInitialMainState(): MainState {
       ready: false,
       total: 0
     },
-    fpfss: { user: null, editingGame: null },
+    fpfss: { user: null, editingGameInfo: null },
   };
 }

@@ -1,13 +1,12 @@
-import { Game } from '@database/entity/Game';
 import { ITheme } from '@shared/ThemeFile';
-import { ComponentStatus, FpfssUser, GameOfTheDay, ViewGame } from '@shared/back/types';
+import { ComponentStatus, FetchedGameInfo, FpfssUser, GameOfTheDay } from '@shared/back/types';
 import { AppExtConfigData } from '@shared/config/interfaces';
 import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { GamePropSuggestions, IService } from '@shared/interfaces';
 import { LangFile } from '@shared/lang';
 import { Menu } from 'electron';
 import { UpdateInfo } from 'electron-updater';
-import { Playlist, PlaylistGame } from 'flashpoint-launcher';
+import { Playlist, PlaylistGame, ViewGame } from 'flashpoint-launcher';
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
 import { Paths } from './Paths';
@@ -24,6 +23,7 @@ import { ConnectedTagCategoriesPage } from './containers/ConnectedTagCategoriesP
 import { ConnectedTagsPage } from './containers/ConnectedTagsPage';
 import { CreditsData } from './credits/types';
 import { UpdateView, ViewGameSet } from './interfaces';
+import { RequestState } from './store/main/enums';
 
 export type AppRouterProps = {
   fpfssUser: FpfssUser | null;
@@ -38,7 +38,7 @@ export type AppRouterProps = {
   suggestions: Partial<GamePropSuggestions>;
   appPaths: Record<string, string>;
   platforms: string[];
-  onSaveGame: (game: Game, playlistEntry?: PlaylistGame) => Promise<Game | null>;
+  onSaveGame: (info: FetchedGameInfo, playlistEntry?: PlaylistGame) => Promise<FetchedGameInfo | null>;
   onDeleteGame: (gameId: string) => void;
   onLaunchGame: (gameId: string) => void;
   onOpenExportMetaEdit: (gameId: string) => void;
@@ -78,6 +78,9 @@ export type AppRouterProps = {
   manualUrl: string,
   componentStatuses: ComponentStatus[],
   openFlashpointManager: () => void,
+  onMovePlaylistGame: (sourceIdx: number, destIdx: number) => void,
+  searchStatus: string | null,
+  metaState?: RequestState,
 };
 
 export class AppRouter extends React.Component<AppRouterProps> {
@@ -99,6 +102,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       openFlashpointManager: this.props.openFlashpointManager,
     };
     const browseProps: ConnectedBrowsePageProps = {
+      sourceTable: 'browse-page',
       games: this.props.games,
       updateView: this.props.updateView,
       gamesTotal: this.props.viewGamesTotal,
@@ -117,6 +121,9 @@ export class AppRouter extends React.Component<AppRouterProps> {
       gameLibrary: this.props.gameLibrary,
       logoVersion: this.props.logoVersion,
       contextButtons: this.props.contextButtons,
+      onMovePlaylistGame: this.props.onMovePlaylistGame,
+      searchStatus: this.props.searchStatus,
+      metaState: this.props.metaState,
     };
     const configProps: ConnectedConfigPageProps = {
       themeList: this.props.themeList,

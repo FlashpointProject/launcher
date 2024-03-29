@@ -1,5 +1,4 @@
 import { LangContext } from '@renderer/util/lang';
-import { ITagAlias } from '@shared/back/types';
 import { LangContainer } from '@shared/lang';
 import * as React from 'react';
 import { checkIfAncestor } from '../Util';
@@ -13,15 +12,15 @@ type RefFunc<T extends HTMLElement> = (instance: T | null) => void;
 /** Input element types used by this component. */
 type InputElement = HTMLInputElement | HTMLTextAreaElement;
 
-export type TagAliasInputFieldProps<T extends ITagAlias> = InputFieldProps & {
-  /** Id of the primary alias */
-  primaryAliasId?: number;
+export type TagAliasInputFieldProps = InputFieldProps & {
+  /** Primary alias */
+  primaryAlias?: string;
   /** Items to display in the drop-down list. */
-  aliases: T[];
+  aliases: string[];
   /** Called when a tag is selected for primary */
-  onTagAliasSelect?: (tagAlias: T, index: number) => void;
+  onTagAliasSelect?: (tagAlias: string, index: number) => void;
   /** Called when a tag alias is deleted */
-  onTagAliasDelete?: (tagAlias: T, index: number) => void;
+  onTagAliasDelete?: (tagAlias: string, index: number) => void;
   /** Called when the tag input box is submitted */
   onTagAliasSubmit?: (text: string) => void;
   /** Function for getting a reference to the input element. Called whenever the reference could change. */
@@ -33,7 +32,7 @@ type TagAliasInputFieldState = {
 };
 
 /** An input element with a drop-down menu that can list any number of selectable and clickable text elements. */
-export class TagAliasInputField<T extends ITagAlias> extends React.Component<TagAliasInputFieldProps<T>, TagAliasInputFieldState> {
+export class TagAliasInputField extends React.Component<TagAliasInputFieldProps, TagAliasInputFieldState> {
   static contextType = LangContext;
   declare context: React.ContextType<typeof LangContext>;
 
@@ -41,7 +40,7 @@ export class TagAliasInputField<T extends ITagAlias> extends React.Component<Tag
   contentRef: React.RefObject<HTMLDivElement> = React.createRef();
   inputRef: React.RefObject<InputElement> = React.createRef();
 
-  constructor(props: TagAliasInputFieldProps<T>) {
+  constructor(props: TagAliasInputFieldProps) {
     super(props);
     this.state = {};
   }
@@ -92,10 +91,10 @@ export class TagAliasInputField<T extends ITagAlias> extends React.Component<Tag
    *
    * @param items Tag Alias items
    */
-  renderItems = (items: T[]) => {
+  renderItems = (items: string[]) => {
     const baseClassName = this.props.editable ? 'tag-alias-editable ' : '';
     return items.map((tagAlias, index) => {
-      const className = baseClassName + (tagAlias.id == this.props.primaryAliasId ? 'tag-primary' : '');
+      const className = baseClassName + (tagAlias == this.props.primaryAlias ? 'tag-primary' : '');
       return (
         <div className={'tag-alias-wrapper ' + baseClassName}
           key={index}>
@@ -105,18 +104,18 @@ export class TagAliasInputField<T extends ITagAlias> extends React.Component<Tag
           <div className={'tag-alias ' + className} key={index}>
             <label
               className='tag-alias-label'
-              title={tagAlias.name}
+              title={tagAlias}
               key={index * 2 + 1}
               data-dropdown-index={index}
               tabIndex={0}>
-              { tagAlias.name }
+              { tagAlias }
             </label>
-            { tagAlias.id == this.props.primaryAliasId ? (
+            { tagAlias == this.props.primaryAlias ? (
               <p className={'tag-primary__right'} >
                 Primary
               </p>
             ) : undefined }
-            { this.props.editable && tagAlias.id != this.props.primaryAliasId ? (
+            { this.props.editable && tagAlias != this.props.primaryAlias ? (
               <div className='tag-alias__buttons'>
                 <div
                   className='tag-alias__buttons-primary'
@@ -137,13 +136,13 @@ export class TagAliasInputField<T extends ITagAlias> extends React.Component<Tag
     });
   };
 
-  onPrimaryAliasClick = (tagAlias: T, index: number) => {
+  onPrimaryAliasClick = (tagAlias: string, index: number) => {
     if (this.props.onTagAliasSelect) {
       this.props.onTagAliasSelect(tagAlias, index);
     }
   };
 
-  onDeleteAliasClick = (tagAlias: T, index: number) => {
+  onDeleteAliasClick = (tagAlias: string, index: number) => {
     if (this.props.onTagAliasDelete) {
       this.props.onTagAliasDelete(tagAlias, index);
     }

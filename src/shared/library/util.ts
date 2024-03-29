@@ -1,3 +1,4 @@
+import { GameOrderBy, GameOrderReverse } from 'flashpoint-launcher';
 import { LangContainer } from '../lang';
 
 /**
@@ -8,4 +9,17 @@ import { LangContainer } from '../lang';
  */
 export function getLibraryItemTitle(library: string, lang?: LangContainer['libraries']): string {
   return lang && lang[library] || library;
+}
+
+export type ViewQuery = {
+  /** Query string. */
+  text: string;
+  /** The field to order the games by. */
+  orderBy: GameOrderBy;
+  /** The way to order the games. */
+  orderReverse: GameOrderReverse;
+  /** Playlist to search */
+  playlistId?: string;
+  /** If extreme games are included. */
+  extreme: boolean;
 }

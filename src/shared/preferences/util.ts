@@ -4,7 +4,7 @@ import { LogLevel } from '@shared/Log/interface';
 import { delayedThrottle, delayedThrottleAsync } from '@shared/utils/throttle';
 import { AppPathOverride, AppPreferencesData, AppPreferencesDataMainWindow, GameDataSource, GameMetadataSource, MetadataUpdateInfo, TagFilterGroup } from 'flashpoint-launcher';
 import { BackIn } from '../back/types';
-import { BrowsePageLayout } from '../BrowsePageLayout';
+import { BrowsePageLayout, ScreenshotPreviewMode } from '../BrowsePageLayout';
 import { ARCADE } from '../constants';
 import { DeepPartial } from '../interfaces';
 import { gameOrderByOptions, gameOrderReverseOptions } from '../order/util';
@@ -54,6 +54,7 @@ const { num, str } = Coerce;
 
 /** Default Preferences Data used for values that are not found in the file */
 export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freeze<AppPreferencesData>({
+  registerProtocol: true,
   imageFolderPath: 'Data/Images',
   logoFolderPath: 'Data/Logos',
   playlistFolderPath: 'Data/Playlists',
@@ -145,6 +146,9 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   gameMetadataSources: [],
   enablePlaytimeTracking: true,
   enablePlaytimeTrackingExtreme: true,
+  enableVerboseLogging: false,
+  screenshotPreviewMode: ScreenshotPreviewMode.OFF,
+  screenshotPreviewDelay: 250,
 });
 
 /**
@@ -165,6 +169,7 @@ export function overwritePreferenceData(
     onError: onError && (e => onError(`Error while parsing Preferences: ${e.toString()}`)),
   });
   // Parse root object
+  parser.prop('registerProtocol',              v => source.registerProtocol              = !!v, true);
   parser.prop('imageFolderPath',               v => source.imageFolderPath               = parseVarStr(str(v)), true);
   parser.prop('logoFolderPath',                v => source.logoFolderPath                = parseVarStr(str(v)), true);
   parser.prop('playlistFolderPath',            v => source.playlistFolderPath            = parseVarStr(str(v)), true);
@@ -191,7 +196,7 @@ export function overwritePreferenceData(
   parser.prop('showDeveloperTab',              v => source.showDeveloperTab              = !!v, true);
   parser.prop('currentTheme',                  v => source.currentTheme                  = str(v), true);
   parser.prop('lastSelectedLibrary',           v => source.lastSelectedLibrary           = str(v), true);
-  parser.prop('gamesOrderBy',                  v => source.gamesOrderBy                  = strOpt(v, gameOrderByOptions,      'title'    ), true);
+  parser.prop('gamesOrderBy',                  v => source.gamesOrderBy                  = strOpt(v, gameOrderByOptions, 'title'), true);
   parser.prop('gamesOrder',                    v => source.gamesOrder                    = strOpt(v, gameOrderReverseOptions, 'ASC'), true);
   parser.prop('defaultLibrary',                v => source.defaultLibrary                = str(v), true);
   parser.prop('saveImportedCurations',         v => source.saveImportedCurations         = !!v, true);
@@ -217,6 +222,14 @@ export function overwritePreferenceData(
   parser.prop('curateServer',                  v => source.curateServer                  = str(v), true);
   parser.prop('enablePlaytimeTracking',        v => source.enablePlaytimeTracking        = !!v, true);
   parser.prop('enablePlaytimeTrackingExtreme', v => source.enablePlaytimeTrackingExtreme = !!v, true);
+  parser.prop('enableVerboseLogging',          v => source.enableVerboseLogging          = !!v, true);
+  parser.prop('screenshotPreviewMode',         v => source.screenshotPreviewMode         = parseScreenshotPreviewMode(v), true);
+  parser.prop('screenshotPreviewDelay',        v => source.screenshotPreviewDelay        = num(v), true);
+
+  // Can't have a negative delay!
+  if (source.screenshotPreviewDelay < 0) {
+    source.screenshotPreviewDelay = 0;
+  }
 
   // Migrate onDemandBaseUrl from the older FP url
   if (source.onDemandBaseUrl == 'https://infinity.unstable.life/Flashpoint/Data/Images/') {
@@ -259,6 +272,20 @@ export function overwritePreferenceData(
   }
   // Done
   return source;
+}
+
+function parseScreenshotPreviewMode(v: any): ScreenshotPreviewMode {
+  const n = num(v);
+  switch (n) {
+    case 0:
+      return ScreenshotPreviewMode.OFF;
+    case 1:
+      return ScreenshotPreviewMode.ON;
+    case 2:
+      return ScreenshotPreviewMode.ALWAYS;
+    default:
+      return ScreenshotPreviewMode.OFF;
+  }
 }
 
 function parseMainWindow(parser: IObjectParserProp<any>, output: AppPreferencesDataMainWindow): void {

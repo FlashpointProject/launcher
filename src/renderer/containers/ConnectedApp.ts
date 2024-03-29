@@ -8,6 +8,7 @@ import { withPreferences } from './withPreferences';
 import { withTagCategories } from './withTagCategories';
 import { withTasks } from './withTasks';
 import { withCurateState } from './withCurateState';
+import { withShortcut } from 'react-keybind';
 
 const mapStateToProps = ({ search }: ApplicationState) => ({
   search: search.query
@@ -17,7 +18,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => bindActionCreators({
   // ...
 }, dispatch);
 
-export default withCurateState(withTasks(withRouter(withMainState(withTagCategories(withPreferences(connect(
+export default withShortcut(withCurateState(withTasks(withRouter(withMainState(withTagCategories(withPreferences(connect(
   mapStateToProps,
   mapDispatchToProps
-)(App)))))));
+)(App))))))));

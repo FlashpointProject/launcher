@@ -1,6 +1,4 @@
-import { Game } from '@database/entity/Game';
-import { TagCategory } from '@database/entity/TagCategory';
-import { BackInit, ComponentStatus, ViewGame } from '@shared/back/types';
+import { BackInit, ComponentStatus } from '@shared/back/types';
 import { AppConfigData, AppExtConfigData } from '@shared/config/interfaces';
 import { ExecMapping, GamePropSuggestions, IBackProcessInfo, INamedBackProcessInfo } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
@@ -8,14 +6,13 @@ import { ILogEntry } from '@shared/Log/interface';
 import { OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint-launcher';
-import { GameOrderBy, GameOrderReverse } from 'flashpoint-launcher';
+import { Game, GameOrderBy, GameOrderReverse, TagCategory, ViewGame } from 'flashpoint-launcher';
 import { IncomingMessage, ServerResponse } from 'http';
 import * as WebSocket from 'ws';
 import { ApiEmitter } from './extensions/ApiEmitter';
 import { ExtensionService } from './extensions/ExtensionService';
 import { InterceptorState as ModuleInterceptorState } from './extensions/NodeInterceptor';
 import { Registry } from './extensions/types';
-import { GameManagerState } from './game/types';
 import { InstancedAbortController } from './InstancedAbortController';
 import { ManagedChildProcess } from './ManagedChildProcess';
 import { SocketServer } from './SocketServer';
@@ -52,7 +49,6 @@ export type BackState = {
   logFile: LogFile;
   customVersion?: string,
   acceptRemote: boolean;
-  gameManager: GameManagerState;
   messageQueue: WebSocket.MessageEvent[];
   isHandling: boolean;
   init: { [key in BackInit]: boolean; };
@@ -88,6 +84,7 @@ export type BackState = {
   newDialogEvents: EventEmitter;
   resolveDialogEvents: EventEmitter;
   downloadController: InstancedAbortController;
+  shortcuts: Record<string, string[]>;
 }
 
 export type BackQueryChache = {
@@ -152,49 +149,19 @@ export type ThemeListItem = {
   basename: string;
 }
 
-export type BarePlatform = {
-  id: number;
-  description?: string;
-  primaryAlias: string;
-}
-
-export type BareTag = {
-  id: number;
-  categoryId: number;
-  description?: string;
-  primaryAlias: string;
-}
-
-export type ExportRelation = {
-  g: string,
-  v: number
-}
-
-export type BareGame = Omit<flashpoint.Game, 'activeDataOnDisk' | 'updateTagsStr'>;
-
 export type DatabaseExportFile = {
   tags: TagsFile,
-  games: GamesFile
+  games: Game[],
   platforms: PlatformsFile,
-  tagRelations: ExportRelation[],
-  platformRelations: ExportRelation[]
-}
-
-type GamesFile = {
-  addApps: flashpoint.AdditionalApp[];
-  gameData: flashpoint.GameData[];
-  games: BareGame[];
 }
 
 type PlatformsFile = {
-  platforms: BarePlatform[];
-  aliases: flashpoint.PlatformAlias[];
+  platforms: flashpoint.Platform[];
 }
 
 export type TagsFile = {
   categories: TagCategory[];
-  tags: BareTag[];
-  aliases: flashpoint.TagAlias[];
+  tags: flashpoint.Tag[];
 }
 
 export type ShowMessageBoxFunc = (options: flashpoint.DialogStateTemplate) => Promise<string>;

@@ -7,6 +7,7 @@ import { SocketRequestData, SocketResponseData } from '@shared/socket/types';
 import * as ws from 'ws';
 import { genPipelineBackOut, MiddlewareRes, PipelineRes } from './SocketServerMiddleware';
 import { createNewDialog } from './util/dialog';
+import { VERBOSE } from '.';
 
 type BackAPI = SocketAPIData<BackIn, BackInTemplate, MsgEvent>
 type BackClients = SocketServerData<BackOut, BackOutTemplate, ws>
@@ -36,12 +37,18 @@ type Callback<T, U extends (...args: any[]) => any> = (event: T, ...args: Parame
 /** Callback that is registered to all messages. */
 type AnyCallback<T, U extends number> = (event: T, type: U, args: any[]) => void
 
+const MAX_RETRIES = 5;
+
 export class SocketServer {
   api: BackAPI = create_api();
   clients: BackClients = create_server();
 
+  retryCounter = 0;
+
   /** Underlying WebSocket server. */
   server?: ws.Server;
+  /** Chosen host */
+  host: string | undefined = undefined;
   /** Port the server is listening on (-1 if not listening). */
   port = -1;
   /** Secret value used for authentication. */
@@ -64,15 +71,32 @@ export class SocketServer {
    * @param maxPort Maximum port number (tried last).
    * @param host Server host (determines what clients can connect).
    */
-  public listen(minPort: number, maxPort: number, host: string | undefined): Promise<void> {
-    return startServer(minPort, maxPort, host)
-    .then(result => {
-      result.server.on('connection', this.onConnect.bind(this));
-      this.server = result.server;
-      this.port = result.port;
-    });
+  public async listen(minPort: number, maxPort: number, host: string | undefined): Promise<void> {
+    this.host = host;
+    const result = await startServer(this.port !== -1 ? this.port : minPort, this.port !== -1 ? this.port : maxPort, host);
+    result.server.on('connection', this.onConnect.bind(this));
+    this.server = result.server;
+    this.port = result.port;
+    this.retryCounter = 0; // Reset retries on a good connection
+    this.server.on('error', this.onError);
   }
 
+  onError(err: Error) {
+    if (this.retryCounter < MAX_RETRIES) {
+      if (this.server) { // Try and close / remove server first
+        try {
+          this.server.close();
+        } catch {/** Ignore closure errors */} finally {
+          this.server = undefined;
+        }
+      }
+      this.retryCounter++;
+      setTimeout(() => { // Sleep then try and connect again
+        this.listen(0,0, this.host)
+        .catch(this.onError); // If failed to open, keep trying until we get there!
+      }, 1500);
+    }
+  }
   /** Close the server. */
   public close(): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -319,7 +343,12 @@ export class SocketServer {
 
     // Handle
 
+    const start = performance.now();
     const [inc, out] = await api_handle_message(this.api, data, msg_event);
+    const end = performance.now();
+    if (VERBOSE.enabled && 'type' in data && data.type !== BackIn.KEEP_ALIVE) {
+      console.log(`${Math.floor(end - start)}ms - "${BackIn[data.type]}"`);
+    }
 
     if (inc) {
       const sent = client.sent.find(s => s.id === data.id);

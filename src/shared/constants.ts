@@ -12,7 +12,7 @@ export const LOGOS = 'Logos';
 export const SCREENSHOTS = 'Screenshots';
 
 /** Games to fetch in each block */
-export const VIEW_PAGE_SIZE = 200;
+export const VIEW_PAGE_SIZE = 250;
 
 export const CURATIONS_FOLDER = 'Curations'; // @TODO Replace this with a configurable path (in the config, just like the other paths)
 export const CURATIONS_FOLDER_EXTRACTING = path.join(CURATIONS_FOLDER, 'Extracting');

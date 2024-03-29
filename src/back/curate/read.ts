@@ -4,8 +4,8 @@ import { stripBOM } from '@shared/Util';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as YAML from 'yaml';
-import * as TagManager from '../game/TagManager';
 import { parseCurationMetaFile, parseCurationMetaOld, ParsedCurationMeta } from './parse';
+import { fpDatabase } from '..';
 
 export async function readCurationMeta(folderPath: string, appPaths: PlatformAppPathSuggestions): Promise<ParsedCurationMeta | undefined> {
   const defaultMetaData: GameMetaDefaults = {
@@ -87,7 +87,7 @@ type GameMetaDefaults = {
 
 async function setGameMetaDefaults(meta: CurationMeta, defaults?: GameMetaDefaults): Promise<void> {
   if (defaults) {
-    const platformDefault = await TagManager.findPlatform(defaults.platform);
+    const platformDefault = await fpDatabase.findPlatform(defaults.platform);
     // Set default meta values
     if (!meta.language)  { meta.language = defaults.language; }
     if (!meta.playMode)  { meta.playMode = defaults.playMode; }
@@ -98,7 +98,7 @@ async function setGameMetaDefaults(meta: CurationMeta, defaults?: GameMetaDefaul
     if (!meta.applicationPath) {
       meta.applicationPath = '';
       if (defaults && platformDefault) {
-        const platformName = platformDefault.primaryAlias.name;
+        const platformName = platformDefault.name;
         if (platformName in defaults.appPaths) {
           meta.applicationPath = defaults.appPaths[platformName][0].appPath;
         }

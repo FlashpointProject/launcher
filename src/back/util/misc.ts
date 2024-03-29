@@ -4,9 +4,6 @@ import { SERVICES_SOURCE } from '@back/constants';
 import { createTagsFromLegacy } from '@back/importGame';
 import { exitApp } from '@back/responses';
 import { BackState, ShowMessageBoxFunc, ShowOpenDialogFunc, ShowSaveDialogFunc, StatusState } from '@back/types';
-import { AdditionalApp } from '@database/entity/AdditionalApp';
-import { Game } from '@database/entity/Game';
-import { Tag } from '@database/entity/Tag';
 import { deepCopy, recursiveReplace, stringifyArray } from '@shared/Util';
 import { BackOut, ComponentState } from '@shared/back/types';
 import { getCurationFolder } from '@shared/curate/util';
@@ -20,8 +17,10 @@ import * as os from 'os';
 import * as path from 'path';
 import * as psTree from 'ps-tree';
 import { promisify } from 'util';
-import { AppDataSource } from '..';
 import { uuid } from './uuid';
+import { AdditionalApp, Game, Tag } from 'flashpoint-launcher';
+import { newGame } from '@shared/utils/misc';
+import { PlatformAppPath, PlatformAppPathSuggestions } from '@shared/curate/types';
 
 const unlink = promisify(fs.unlink);
 
@@ -163,8 +162,6 @@ export async function exit(state: BackState, beforeProcessExit?: () => void | Pr
       }),
       // Wait for preferences writes to complete
       state.prefsQueue.push(() => {}, true),
-      // Wait for game manager to complete all saves
-      state.gameManager.saveQueue.push(() => {}, true),
       // Abort saving on demand images
       (async () => {
         state.fileServerDownloads.queue.length = 0; // Clear array
@@ -238,8 +235,8 @@ export function createAddAppFromLegacy(addApps: Legacy_IAdditionalApplicationInf
 }
 
 export async function createGameFromLegacy(game: Legacy_IGameInfo, tagCache: Record<string, Tag>): Promise<Game> {
-  const newGame = new Game();
-  Object.assign(newGame, {
+  const nGame = newGame();
+  Object.assign(nGame, {
     id: game.id,
     parentGameId: game.id,
     title: game.title,
@@ -269,7 +266,7 @@ export async function createGameFromLegacy(game: Legacy_IGameInfo, tagCache: Rec
     addApps: [],
     activeDataOnDisk: false
   });
-  return newGame;
+  return nGame;
 }
 
 export function runService(state: BackState, id: string, name: string, basePath: string, opts: ProcessOpts, info: INamedBackProcessInfo | IBackProcessInfo): ManagedChildProcess {
@@ -490,17 +487,35 @@ export function compareSemVerVersions(v1: string, v2: string): number {
   return 0;
 }
 
-export async function optimizeDatabase(state: BackState, dialogId: string) {
-  state.socketServer.broadcast(BackOut.UPDATE_DIALOG_MESSAGE, 'Analyzing...', dialogId);
-  await AppDataSource.query('ANALYZE');
-  state.socketServer.broadcast(BackOut.UPDATE_DIALOG_MESSAGE, 'Reindexing...', dialogId);
-  await AppDataSource.query('REINDEX');
-  state.socketServer.broadcast(BackOut.UPDATE_DIALOG_MESSAGE, 'Vacuuming...', dialogId);
-  await AppDataSource.query('VACUUM');
-}
-
 export async function promiseSleep(ms: number) {
   return new Promise<void>((resolve) => {
     setTimeout(resolve, ms);
   });
+}
+
+export function processPlatformAppPaths(suggs: PlatformAppPathSuggestions): PlatformAppPathSuggestions {
+  const newSuggs: PlatformAppPathSuggestions = {};
+
+  for (const platform of Object.keys(suggs)) {
+    // For each platform group, process and remove duplicates
+    const group: PlatformAppPath[] = [];
+    const exists: string[] = [];
+
+    for (const value of suggs[platform]) {
+      const processedValue = value.appPath
+      .toLowerCase() // Lower case
+      .replace(/\//g, '\\'); // Fix slashes
+
+      if (exists.includes(processedValue)) {
+        continue; // Skip adding to group if processed value already seen
+      }
+
+      exists.push(processedValue);
+      group.push(value);
+    }
+
+    newSuggs[platform] = group;
+  }
+
+  return newSuggs;
 }

@@ -1,6 +1,6 @@
 import { Reducer } from 'redux';
 import { TagCategoriesActions } from './types';
-import { TagCategory } from '@database/entity/TagCategory';
+import { TagCategory } from 'flashpoint-launcher';
 
 const initialState: TagCategory[] = [];
 

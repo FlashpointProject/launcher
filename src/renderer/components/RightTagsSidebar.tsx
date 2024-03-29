@@ -1,8 +1,5 @@
-import { Tag } from '@database/entity/Tag';
-import { TagAlias } from '@database/entity/TagAlias';
-import { TagCategory } from '@database/entity/TagCategory';
 import * as remote from '@electron/remote';
-import { BackIn, TagSuggestion } from '@shared/back/types';
+import { BackIn } from '@shared/back/types';
 import { LangContainer } from '@shared/lang';
 import { deepCopy, generateTagFilterGroup } from '@shared/Util';
 import * as React from 'react';
@@ -16,6 +13,7 @@ import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
 import { TagAliasInputField } from './TagAliasInputField';
 import { TagInputField } from './TagInputField';
+import { Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
 
 type OwnProps = {
   /** Currently selected game (if any) */
@@ -43,7 +41,7 @@ export type RightTagsSidebarProps = OwnProps & WithPreferencesProps;
 type RightTagsSidebarState = {
   currentTagInput: string;
   currentTagMergeInput: string;
-  tagMergeSuggestions: TagSuggestion<Tag>[];
+  tagMergeSuggestions: TagSuggestion[];
   makeAliasWhenMerged: boolean;
 };
 
@@ -80,7 +78,7 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
       const { isEditing, isLocked, preferencesData, tagCategories } = this.props;
       const editDisabled = !preferencesData.enableEditing;
       const editable = !editDisabled && isEditing;
-      const category = tagCategories.find(c => c.id == tag.categoryId);
+      const category = tagCategories.find(c => c.name == tag.category);
       return (
         <div
           className={'browse-right-sidebar ' + (editable ? 'browse-right-sidebar--edit-enabled' : 'browse-right-sidebar--edit-disabled')}
@@ -91,7 +89,7 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
               <div className='browse-right-sidebar__title-row'>
                 <div className='browse-right-sidebar__title-row__title'>
                   <InputField
-                    text={tag.primaryAlias ? tag.primaryAlias.name : 'BROKEN TAG - ID ' + tag.id}
+                    text={tag.name || 'BROKEN TAG - ID ' + tag.id}
                     placeholder={strings.noName} />
                 </div>
                 <div className='browse-right-sidebar__title-row__buttons'>
@@ -139,7 +137,7 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
               <DropdownInputField
                 items={this.props.tagCategories.map(c => c.name)}
                 editable={this.props.isEditing}
-                onItemSelect={this.onSelectCategory}
+                onItemSelect={(_, index) => this.onSelectCategory(index)}
                 text={category ? category.name : ''} />
             </div>
             <div className='browse-right-sidebar__section'>
@@ -160,7 +158,7 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
                   className='browse-right-sidebar__searchable'
                   editable={editable}
                   onChange={this.onCurrentTagChange}
-                  primaryAliasId={tag.primaryAliasId}
+                  primaryAlias={tag.name}
                   aliases={tag.aliases}
                   onTagAliasSelect={this.onTagAliasSelect}
                   onTagAliasDelete={this.onRemoveTagAlias}
@@ -252,11 +250,11 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
 
   onCurrentTagMergeChange = (event: React.ChangeEvent<InputElement>) => {
     const newTag = event.currentTarget.value;
-    let newSuggestions: TagSuggestion<Tag>[] = this.state.tagMergeSuggestions;
+    let newSuggestions: TagSuggestion[] = this.state.tagMergeSuggestions;
 
     if (newTag !== '' && this.props.currentTag) {
       // Delayed set
-      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag, this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme)).concat([generateTagFilterGroup([this.props.currentTag.primaryAlias.name])]))
+      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag, this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme)).concat([generateTagFilterGroup([this.props.currentTag.name])]))
       .then((data) => {
         if (data) {
           this.setState({
@@ -278,9 +276,8 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
     if (this.props.currentTag) {
       this.props.onLockEdit(true);
       window.Shared.back.request(BackIn.MERGE_TAGS, {
-        toMerge: this.props.currentTag.primaryAlias.name,
+        toMerge: this.props.currentTag.name,
         mergeInto: this.state.currentTagMergeInput,
-        makeAlias: this.state.makeAliasWhenMerged
       })
       .then(data => {
         if (data && (!this.props.currentTag || data.id !== this.props.currentTag.id)) {
@@ -292,11 +289,11 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
     }
   };
 
-  onSelectTagMergeSuggestion = (suggestion: TagSuggestion<Tag>): void => {
+  onSelectTagMergeSuggestion = (suggestion: TagSuggestion): void => {
     // Clear out suggestions box
     this.setState({
       tagMergeSuggestions: [],
-      currentTagMergeInput: suggestion.primaryAlias
+      currentTagMergeInput: suggestion.name
     });
   };
 
@@ -309,16 +306,16 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
     // if (event.key === 'Enter') { this.props.onSaveGame(); }
   };
 
-  onTagAliasSelect = (tagAlias: TagAlias): void => {
+  onTagAliasSelect = (tagAlias: string): void => {
     if (!this.props.isLocked) {
-      this.props.onEditTag({ primaryAlias: tagAlias, primaryAliasId: tagAlias.id });
+      this.props.onEditTag({ name: tagAlias });
     }
   };
 
-  onRemoveTagAlias = (tagAlias: TagAlias): void => {
+  onRemoveTagAlias = (tagAlias: string): void => {
     if (this.props.currentTag) {
       const aliases = deepCopy(this.props.currentTag.aliases);
-      const index = aliases.findIndex(ta => ta.id == tagAlias.id);
+      const index = aliases.findIndex(ta => ta == tagAlias);
       if (index > -1) {
         aliases.splice(index, 1);
       }
@@ -332,14 +329,10 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
       .then(async (data) => {
         if (data) {
           // Tag alias exists
-          remote.dialog.showErrorBox('Alias Error!',`Alias already exists on tag '${data.primaryAlias.name}'!`);
+          remote.dialog.showErrorBox('Alias Error!',`Alias already exists on tag '${data.name}'!`);
         } else if (this.props.currentTag && this.props.currentTag.id) {
           // Tag alias doesn't exist
-          let newTagAlias = new TagAlias();
-          newTagAlias.name = text;
-          newTagAlias.tagId = this.props.currentTag.id;
-          newTagAlias = await window.Shared.back.request(BackIn.SAVE_TAG_ALIAS, newTagAlias);
-          this.props.onEditTag({ aliases: [...this.props.currentTag.aliases, newTagAlias] });
+          this.props.onEditTag({ aliases: [...this.props.currentTag.aliases, text] });
         }
       });
     }
@@ -356,8 +349,8 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
     }
   };
 
-  onSelectCategory = (text: string, index: number) => {
+  onSelectCategory = (index: number) => {
     const selected = this.props.tagCategories[index];
-    this.props.onEditTag({ categoryId: selected.id });
+    this.props.onEditTag({ category: selected.name });
   };
 }

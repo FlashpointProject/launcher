@@ -1,5 +1,4 @@
-import { Tag } from '@database/entity/Tag';
-import { Platform } from 'flashpoint-launcher';
+import { Platform, Tag } from 'flashpoint-launcher';
 import { ParsedCurationMeta } from './parse';
 
 /** Data of a curation in the curation importer. */
