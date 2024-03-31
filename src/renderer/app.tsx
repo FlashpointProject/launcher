@@ -241,25 +241,16 @@ export class App extends React.Component<AppProps> {
       for (const index of data.done) {
         switch (+index) { // Conversion to number, type safe bug
           case BackInit.DATABASE: {
-            if (this.props.preferencesData.gameMetadataSources.length > 0) {
-              window.Shared.back.request(BackIn.PRE_UPDATE_INFO, this.props.preferencesData.gameMetadataSources[0])
-              .then((total) => {
-                this.props.dispatchMain({
-                  type: MainActionType.UPDATE_UPDATE_INFO,
-                  total
-                });
-              });
-            }
             window.Shared.back.request(BackIn.GET_PLAYLISTS)
             .then(data => {
               if (data) {
+                this.props.dispatchMain({
+                  type: MainActionType.ADD_LOADED,
+                  loaded: [BackInit.PLAYLISTS],
+                });
                 this.props.setMainState({ playlists: data });
                 this.cachePlaylistIcons(data);
               }
-              this.props.dispatchMain({
-                type: MainActionType.ADD_LOADED,
-                loaded: [BackInit.PLAYLISTS],
-              });
             });
             window.Shared.back.request(BackIn.GET_RENDERER_LOADED_DATA)
             .then(data => {
@@ -290,6 +281,13 @@ export class App extends React.Component<AppProps> {
               });
               this.props.setTagCategories(data.tagCategories);
             })
+            .then(() => {
+              console.log('fired db');
+              this.props.dispatchMain({
+                type: MainActionType.ADD_LOADED,
+                loaded: [index],
+              });
+            })
             .then(async () => {
               const data = await window.Shared.back.request(BackIn.GET_GAMES_TOTAL);
               if (data) {
@@ -300,13 +298,20 @@ export class App extends React.Component<AppProps> {
               }
             })
             .then(() => {
-              if (this.props.main.randomGames.length < RANDOM_GAME_ROW_COUNT) { this.rollRandomGames(true); }
+              if (this.props.main.randomGames.length < RANDOM_GAME_ROW_COUNT) {
+                this.rollRandomGames(true);
+              }
             })
             .then(() => {
-              this.props.dispatchMain({
-                type: MainActionType.ADD_LOADED,
-                loaded: [index],
-              });
+              if (this.props.preferencesData.gameMetadataSources.length > 0) {
+                window.Shared.back.request(BackIn.PRE_UPDATE_INFO, this.props.preferencesData.gameMetadataSources[0])
+                .then((total) => {
+                  this.props.dispatchMain({
+                    type: MainActionType.UPDATE_UPDATE_INFO,
+                    total
+                  });
+                });
+              }
             });
             break;
           }
@@ -591,6 +596,24 @@ export class App extends React.Component<AppProps> {
       this.props.dispatchMain({
         type: MainActionType.CANCEL_DIALOG,
         dialogId
+      });
+    });
+
+    window.Shared.back.register(BackOut.UPDATE_GOTD, (event, gotd) => {
+      this.props.setMainState({
+        gotdList: gotd
+      });
+    });
+
+    window.Shared.back.register(BackOut.UPDATE_FEED, (event, feed) => {
+      this.props.setMainState({
+        updateFeedMarkdown: feed
+      });
+    });
+
+    window.Shared.back.register(BackOut.UPDATE_PLATFORM_APP_PATHS, (event, paths) => {
+      this.props.setMainState({
+        platformAppPaths: paths
       });
     });
 
@@ -1813,8 +1836,9 @@ export class App extends React.Component<AppProps> {
       alert(strings.dialog.unableToDeleteGame + '\n\n' + error);
     });
   };
-  cachePlaylistIcons(playlists: Playlist[]): void {
-    Promise.all(playlists.map(p => (async () => {
+
+  async cachePlaylistIcons(playlists: Playlist[]) {
+    return Promise.all(playlists.map(p => (async () => {
       if (p.icon) { return cacheIcon(p.icon); }
     })()))
     .then(urls => {

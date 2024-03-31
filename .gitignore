@@ -17,6 +17,7 @@ npm-debug.log.*
 
 # Temp
 /temp
+/*.cpuprofile
 
 # Launcher files (created during testing)
 /config.json
