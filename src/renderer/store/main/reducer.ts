@@ -217,10 +217,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
             games: view.games,
             lastCount: action.total === 0 ? 0 : view.lastCount,
             pageState: {},
-            // Update total (for the first response only)
-            total: (view.total === undefined)
-              ? action.total
-              : view.total,
+            total: action.total,
           },
         },
       };
