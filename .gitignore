@@ -5,6 +5,7 @@ npm-debug.log.*
 # Visual Studio Code
 /.vscode
 /.vs
+!/.vscode/launch.json
 
 # JetBrains
 /.idea

@@ -813,6 +813,73 @@ async function initialize() {
 
   console.log('Back - Checked Component Updates');
 
+  // Init services
+  try {
+    state.serviceInfo = await ServicesFile.readFile(
+      path.join(state.config.flashpointPath, state.preferences.jsonFolderPath),
+      state.config,
+      error => { log.info(SERVICES_SOURCE, error.toString()); }
+    );
+  } catch (error) {
+    console.log('Error loading services - ' + error);
+  }
+  if (state.serviceInfo) {
+    // Run start commands
+    for (let i = 0; i < state.serviceInfo.start.length; i++) {
+      await execProcess(state.serviceInfo.start[i]);
+    }
+    // Run processes
+    if (state.serviceInfo.server.length > 0) {
+      let chosenServer = state.serviceInfo.server.find(i => i.name === state.preferences.server);
+      if (!chosenServer) {
+        chosenServer = state.serviceInfo.server[0];
+      }
+      runService(state, 'server', 'Server', state.config.flashpointPath, { detached: !chosenServer.kill, noshell: !!chosenServer.kill }, chosenServer);
+    }
+    // Start daemons
+    for (let i = 0; i < state.serviceInfo.daemon.length; i++) {
+      const service = state.serviceInfo.daemon[i];
+      const id = 'daemon_' + i;
+      runService(state, id, service.name || id, state.config.flashpointPath, { detached: !service.kill, noshell: !!service.kill }, service);
+    }
+    // Start file watchers
+    for (let i = 0; i < state.serviceInfo.watch.length; i++) {
+      const filePath = state.serviceInfo.watch[i];
+      try {
+        // Windows requires fs.watchFile to properly update
+        const tail = new Tail(filePath, { follow: true, useWatchFile: true });
+        tail.on('line', (data) => {
+          log.info('Log Watcher', data);
+        });
+        tail.on('error', (error) => {
+          log.info('Log Watcher', `Error while watching file "${filePath}" - ${error}`);
+        });
+        log.info('Log Watcher', `Watching file "${filePath}"`);
+      } catch (error) {
+        log.info('Log Watcher', `Failed to watch file "${filePath}" - ${error}`);
+      }
+    }
+  }
+  state.init[BackInit.SERVICES] = true;
+  state.initEmitter.emit(BackInit.SERVICES);
+  
+  console.log('Back - Initialized Services');
+  
+  // Load Exec Mappings
+  loadExecMappingsFile(path.join(state.config.flashpointPath, state.preferences.jsonFolderPath), content => log.info('Launcher', content))
+  .then(data => {
+    state.execMappings = data;
+  })
+  .catch(error => {
+    log.info('Launcher', `Failed to load exec mappings file. Ignore if on Windows. - ${error}`);
+  })
+  .finally(() => {
+    state.init[BackInit.EXEC_MAPPINGS] = true;
+    state.initEmitter.emit(BackInit.EXEC_MAPPINGS);
+  });
+  
+  console.log('Back - Loaded Exec Mappings');
+
   state.init[BackInit.DATABASE] = true;
   state.initEmitter.emit(BackInit.DATABASE);
 
@@ -964,71 +1031,6 @@ async function initialize() {
     log.error('Launcher', `Failed to load extensions\n${error.toString()}`);
     exit(state);
   });
-
-  // Init services
-  try {
-    state.serviceInfo = await ServicesFile.readFile(
-      path.join(state.config.flashpointPath, state.preferences.jsonFolderPath),
-      state.config,
-      error => { log.info(SERVICES_SOURCE, error.toString()); }
-    );
-  } catch (error) { /* @TODO Do something about this error */ }
-  if (state.serviceInfo) {
-    // Run start commands
-    for (let i = 0; i < state.serviceInfo.start.length; i++) {
-      await execProcess(state.serviceInfo.start[i]);
-    }
-    // Run processes
-    if (state.serviceInfo.server.length > 0) {
-      let chosenServer = state.serviceInfo.server.find(i => i.name === state.preferences.server);
-      if (!chosenServer) {
-        chosenServer = state.serviceInfo.server[0];
-      }
-      runService(state, 'server', 'Server', state.config.flashpointPath, { detached: !chosenServer.kill, noshell: !!chosenServer.kill }, chosenServer);
-    }
-    // Start daemons
-    for (let i = 0; i < state.serviceInfo.daemon.length; i++) {
-      const service = state.serviceInfo.daemon[i];
-      const id = 'daemon_' + i;
-      runService(state, id, service.name || id, state.config.flashpointPath, { detached: !service.kill, noshell: !!service.kill }, service);
-    }
-    // Start file watchers
-    for (let i = 0; i < state.serviceInfo.watch.length; i++) {
-      const filePath = state.serviceInfo.watch[i];
-      try {
-        // Windows requires fs.watchFile to properly update
-        const tail = new Tail(filePath, { follow: true, useWatchFile: true });
-        tail.on('line', (data) => {
-          log.info('Log Watcher', data);
-        });
-        tail.on('error', (error) => {
-          log.info('Log Watcher', `Error while watching file "${filePath}" - ${error}`);
-        });
-        log.info('Log Watcher', `Watching file "${filePath}"`);
-      } catch (error) {
-        log.info('Log Watcher', `Failed to watch file "${filePath}" - ${error}`);
-      }
-    }
-  }
-  state.init[BackInit.SERVICES] = true;
-  state.initEmitter.emit(BackInit.SERVICES);
-
-  console.log('Back - Initialized Services');
-
-  // Load Exec Mappings
-  loadExecMappingsFile(path.join(state.config.flashpointPath, state.preferences.jsonFolderPath), content => log.info('Launcher', content))
-  .then(data => {
-    state.execMappings = data;
-  })
-  .catch(error => {
-    log.info('Launcher', `Failed to load exec mappings file. Ignore if on Windows. - ${error}`);
-  })
-  .finally(() => {
-    state.init[BackInit.EXEC_MAPPINGS] = true;
-    state.initEmitter.emit(BackInit.EXEC_MAPPINGS);
-  });
-
-  console.log('Back - Loaded Exec Mappings');
 }
 
 function getCurationFilePath(folder: string, relativePath: string) {

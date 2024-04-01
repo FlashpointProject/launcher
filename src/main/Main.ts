@@ -1,21 +1,22 @@
 import * as remoteMain from '@electron/remote/main';
+import { InitRendererChannel, InitRendererData } from '@shared/IPC';
+import { createErrorProxy } from '@shared/Util';
 import { SocketClient } from '@shared/back/SocketClient';
 import { BackIn, BackInitArgs, BackOut } from '@shared/back/types';
 import { AppConfigData } from '@shared/config/interfaces';
 import { APP_TITLE } from '@shared/constants';
 import { CustomIPC, WindowIPC } from '@shared/interfaces';
-import { InitRendererChannel, InitRendererData } from '@shared/IPC';
-import { createErrorProxy } from '@shared/Util';
 import { ChildProcess, fork } from 'child_process';
 import { randomBytes } from 'crypto';
-import { app, BrowserWindow, dialog, ipcMain, IpcMainEvent, session, shell, WebContents } from 'electron';
+import { BrowserWindow, IpcMainEvent, WebContents, app, dialog, ipcMain, session, shell } from 'electron';
+import { REACT_DEVELOPER_TOOLS, installExtension } from 'electron-extension-installer';
 import { AppPreferencesData } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { argv } from 'process';
 import * as WebSocket from 'ws';
-import { Init } from './types';
 import * as Util from './Util';
+import { Init } from './types';
 
 const TIMEOUT_DELAY = 60_000;
 
@@ -282,7 +283,17 @@ export function main(init: Init): void {
     }
   }
 
-  function onAppReady(): void {
+  async function onAppReady() {
+    if (Util.isDev) {
+      installExtension(REACT_DEVELOPER_TOOLS, {
+        loadExtensionOptions: {
+          allowFileAccess: true
+        }
+      })
+      .then((ext) => console.log(`Installed Extension - ${ext}`))
+      .catch((ext) => console.log(`Failed to install Extension - ${ext}`));
+    }
+
     // Send locale code (if it has no been sent already)
     if (process.platform === 'win32' && !state._sentLocaleCode && state.socket.client.socket) {
       state.socket.send(BackIn.SET_LOCALE, app.getLocale().toLowerCase());
@@ -335,7 +346,7 @@ export function main(init: Init): void {
 
       callback({
         ...details,
-        cancel: !allow,
+        cancel: Util.isDev ? false : !allow,
       });
     });
   }
