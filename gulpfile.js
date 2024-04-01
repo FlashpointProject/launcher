@@ -181,7 +181,7 @@ function watchBack(done) {
 
 function watchRenderer(done) {
   const mode = config.isRelease ? "production" : "development";
-  execute(`npx webpack --mode "${mode}" --watch`, done);
+  execute(`npx webpack --mode "${mode}" -d source-map --watch`, done);
 }
 
 function watchStatic() {

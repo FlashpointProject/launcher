@@ -282,7 +282,6 @@ export class App extends React.Component<AppProps> {
               this.props.setTagCategories(data.tagCategories);
             })
             .then(() => {
-              console.log('fired db');
               this.props.dispatchMain({
                 type: MainActionType.ADD_LOADED,
                 loaded: [index],
