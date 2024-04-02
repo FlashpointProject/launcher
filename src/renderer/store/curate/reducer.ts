@@ -249,7 +249,7 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
           curation.game.primaryPlatform = action.platform.name;
           if (action.platformAppPaths) {
             // Find best app path
-            if (curation.game.primaryPlatform in action.platformAppPaths) {
+            if (curation.game.primaryPlatform in action.platformAppPaths && action.platformAppPaths[curation.game.primaryPlatform].length > 0) {
               curation.game.applicationPath = action.platformAppPaths[curation.game.primaryPlatform][0].appPath;
             }
           }
