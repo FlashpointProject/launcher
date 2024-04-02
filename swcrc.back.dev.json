@@ -10,7 +10,7 @@
     "noInterop": true
   },
   "jsc": {
-    "target": "es2018",
+    "target": "esnext",
     "baseUrl": ".",
     "paths": {
       "@shared/*": [ "./build/shared/*" ],

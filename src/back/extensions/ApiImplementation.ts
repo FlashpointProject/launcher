@@ -40,8 +40,8 @@ import { fpDatabase, loadCurationArchive } from '..';
 import { addPlaylistGame, deletePlaylist, deletePlaylistGame, filterPlaylists, findPlaylist, findPlaylistByName, getPlaylistGame, savePlaylistGame, updatePlaylist } from '../playlist';
 import { newExtLog } from './ExtensionUtils';
 import { Command, RegisteredMiddleware } from './types';
-import uuid = require('uuid');
-import stream = require('stream');
+import * as uuid from 'uuid';
+import * as stream from 'stream';
 
 /**
  * Create a Flashpoint API implementation specific to an extension, used during module load interception

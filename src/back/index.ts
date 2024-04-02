@@ -34,13 +34,12 @@ import {
 } from '@shared/constants';
 import axios from 'axios';
 import { FlashpointArchive, enableDebug, loggerSusbcribe } from '@fparchive/flashpoint-archive';
-import { Game, GameData, Playlist, PlaylistGame } from 'flashpoint-launcher';
 import { Tail } from 'tail';
 import { ConfigFile } from './ConfigFile';
 import { loadExecMappingsFile } from './Execs';
 import { ExtConfigFile } from './ExtConfigFile';
 import { InstancedAbortController } from './InstancedAbortController';
-import { ManagedChildProcess, onServiceChange } from './ManagedChildProcess';
+import { ManagedChildProcess } from './ManagedChildProcess';
 import { PlaylistFile } from './PlaylistFile';
 import { ServicesFile } from './ServicesFile';
 import { SocketServer } from './SocketServer';
@@ -59,7 +58,6 @@ import {
   registerInterceptor
 } from './extensions/NodeInterceptor';
 import { Command, RegisteredMiddleware } from './extensions/types';
-import { onWillImportCuration } from './importGame';
 import { SystemEnvMiddleware } from './middleware';
 import { registerRequestCallbacks } from './responses';
 import { genContentTree } from './rust';
@@ -71,15 +69,7 @@ import { LogFile } from './util/LogFile';
 import { logFactory } from './util/logging';
 import { createContainer, exit, getMacPATH, runService } from './util/misc';
 import { uuid } from './util/uuid';
-
-export const onDidInstallGameData = new ApiEmitter<GameData>();
-export const onWillUninstallGameData = new ApiEmitter<GameData>();
-export const onDidUninstallGameData = new ApiEmitter<GameData>();
-export const onDidUpdateGame = new ApiEmitter<{oldGame: Game, newGame: Game}>();
-export const onDidRemoveGame = new ApiEmitter<Game>();
-export const onDidUpdatePlaylist = new ApiEmitter<{oldPlaylist: Playlist, newPlaylist: Playlist}>();
-export const onDidUpdatePlaylistGame = new ApiEmitter<{oldGame: PlaylistGame, newGame: PlaylistGame}>();
-export const onDidRemovePlaylistGame = new ApiEmitter<PlaylistGame>();
+import { onDidInstallGameData, onDidRemoveGame, onDidRemovePlaylistGame, onDidUninstallGameData, onDidUpdateGame, onDidUpdatePlaylist, onDidUpdatePlaylistGame, onServiceChange, onWillImportCuration, onWillUninstallGameData } from './util/events';
 
 export const VERBOSE = {
   enabled: false
@@ -862,9 +852,9 @@ async function initialize() {
   }
   state.init[BackInit.SERVICES] = true;
   state.initEmitter.emit(BackInit.SERVICES);
-  
+
   console.log('Back - Initialized Services');
-  
+
   // Load Exec Mappings
   loadExecMappingsFile(path.join(state.config.flashpointPath, state.preferences.jsonFolderPath), content => log.info('Launcher', content))
   .then(data => {
@@ -877,7 +867,7 @@ async function initialize() {
     state.init[BackInit.EXEC_MAPPINGS] = true;
     state.initEmitter.emit(BackInit.EXEC_MAPPINGS);
   });
-  
+
   console.log('Back - Loaded Exec Mappings');
 
   state.init[BackInit.DATABASE] = true;

@@ -45,7 +45,7 @@ import { saveCuration } from './curate/write';
 import { downloadGameData } from './download';
 import { parseAppVar } from './extensions/util';
 import { importCuration, launchAddAppCuration, launchCuration } from './importGame';
-import { fpDatabase, loadCurationArchive, onDidUninstallGameData, onWillUninstallGameData } from './index';
+import { fpDatabase, loadCurationArchive } from './index';
 import { importGames, importPlatforms, importTagCategories, importTags } from './metadataImport';
 import { addPlaylistGame, deletePlaylist, deletePlaylistGame, duplicatePlaylist, filterPlaylists, getPlaylistGame, importPlaylist, savePlaylistGame, updatePlaylist } from './playlist';
 import { copyFolder, genContentTree } from './rust';
@@ -68,6 +68,7 @@ import {
   runService
 } from './util/misc';
 import { uuid } from './util/uuid';
+import { onDidUninstallGameData, onWillUninstallGameData } from './util/events';
 
 const axios = axiosImport.default;
 

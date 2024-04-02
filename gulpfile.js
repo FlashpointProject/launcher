@@ -176,7 +176,7 @@ function installCrossDeps(done) {
 /* ------ Watch ------ */
 
 function watchBack(done) {
-  execute("npx ttsc --project tsconfig.backend.json --pretty --watch", done);
+  execute("npx swc --strip-leading-paths --no-swcrc --config-file swcrc.back.dev.json --source-maps true -d build src --watch", done);
 }
 
 function watchRenderer(done) {
@@ -191,7 +191,7 @@ function watchStatic() {
 /* ------ Build ------ */
 
 function buildBack(done) {
-  execute("npx ttsc --project tsconfig.backend.json --pretty", done);
+  execute("npx swc --strip-leading-paths --no-swcrc --config-file swcrc.back.prod.json -d build src", done);
 }
 
 function buildRenderer(done) {
