@@ -3,9 +3,10 @@ import * as crypto from 'crypto';
 import { GameData, GameDataSource } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as path from 'path';
-import { fpDatabase, onDidInstallGameData } from '.';
+import { fpDatabase } from '.';
 import { DownloadDetails } from '@shared/back/types';
 import { PartialGameData } from '@fparchive/flashpoint-archive';
+import { onDidInstallGameData } from './util/events';
 
 export async function downloadGameData(gameDataId: number, dataPacksFolderPath: string, sources: GameDataSource[], abortSignal: AbortSignal, onProgress?: (percent: number) => void, onDetails?: (details: DownloadDetails) => void): Promise<void> {
   const gameData = await fpDatabase.findGameDataById(gameDataId);
