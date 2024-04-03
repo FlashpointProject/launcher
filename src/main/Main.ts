@@ -126,6 +126,18 @@ export function main(init: Init): void {
     ipcMain.handle(CustomIPC.REGISTER_PROTOCOL, async (event, register) => {
       return setProtocolRegistrationState(register);
     });
+    ipcMain.handle(CustomIPC.RELOAD_WINDOW, async (event) => {
+      // Tell back to ignore exit call for 1000ms
+      state.socket.request(BackIn.PREP_RELOAD_WINDOW)
+      .then(() => {
+        if (state.window) {
+          state.window.once('closed', () => {
+            state.window = createMainWindow();
+          });
+          state.window.close();
+        }
+      });
+    });
 
     // Add Socket event listener(s)
     state.socket.register(BackOut.QUIT, () => {

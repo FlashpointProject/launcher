@@ -89,6 +89,7 @@ const CONCURRENT_IMAGE_DOWNLOADS = 6;
 
 const state: BackState = {
   readyForInit: false,
+  ignoreQuit: false,
   runInit: false,
   isExit: false,
   isDev: false,

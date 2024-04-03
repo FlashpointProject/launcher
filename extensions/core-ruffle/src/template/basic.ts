@@ -1,7 +1,7 @@
 import * as flashpoint from 'flashpoint-launcher';
 import * as path from 'path';
 import * as fs from 'fs';
-import * as mustache from 'mustache';
+import mustache from 'mustache';
 
 export function buildBasicTemplate(game: flashpoint.Game, sourceUrl: string) {
   const templatesRoot = path.join(flashpoint.extensionPath, 'static', 'templates');

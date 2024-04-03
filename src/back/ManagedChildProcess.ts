@@ -190,6 +190,7 @@ export class ManagedChildProcess extends EventEmitter {
       psTree(PID, async (error, children) => {
         if (error) {
           reject(error);
+          return;
         }
         // Kill each child process.
         await Promise.all(children.map(async (child) => {
@@ -197,6 +198,9 @@ export class ManagedChildProcess extends EventEmitter {
         }));
         resolve();
       });
+    })
+    .catch((error: any) => {
+      log.error('Launcher', `Failed to kill process ${this.name} (${this.info.filename}) - ${error}`);
     });
     // Kill the parent process.
     processKill(PID);

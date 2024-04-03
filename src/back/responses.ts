@@ -81,6 +81,13 @@ const axios = axiosImport.default;
 export function registerRequestCallbacks(state: BackState, init: () => Promise<void>): void {
   state.socketServer.register(BackIn.KEEP_ALIVE, () => {});
 
+  state.socketServer.register(BackIn.PREP_RELOAD_WINDOW, () => {
+    state.ignoreQuit = true;
+    setTimeout(() => {
+      state.ignoreQuit = false;
+    }, 1000);
+  });
+
   state.socketServer.register(BackIn.TEST_RECONNECTIONS, async () => {
     // Close connections, expect them to restart
     state.socketServer.onError(new Error('test'));
@@ -1269,6 +1276,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.GET_PLAYLISTS, async () => {
+    console.log('finding playlists?');
     return filterPlaylists(state.playlists, state.preferences.browsePageShowExtreme);
   });
 
@@ -1840,7 +1848,9 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.QUIT, async () => {
-    return exitApp(state);
+    if (!state.ignoreQuit) {
+      return exitApp(state);
+    }
   });
 
   state.socketServer.register(BackIn.DOWNLOAD_PLAYLIST, async (event, url) => {

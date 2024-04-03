@@ -9,6 +9,7 @@ const { installExtensions, buildExtensions, watchExtensions } = require("./gulpf
 const { execute } = require("./gulpfile.util");
 const { execSync } = require('child_process');
 const { promisify } = require("util");
+const esbuild = require("esbuild");
 
 // Promisify the pipeline function
 const pipeline = promisify(require("stream").pipeline);
@@ -179,9 +180,18 @@ function watchBack(done) {
   execute("npx swc --strip-leading-paths --no-swcrc --config-file swcrc.back.dev.json --source-maps true -d build src --watch", done);
 }
 
-function watchRenderer(done) {
-  const mode = config.isRelease ? "production" : "development";
-  execute(`npx webpack --mode "${mode}" -d source-map --watch`, done);
+async function watchRenderer() {
+  const ctx = await esbuild.context({
+    bundle: true,
+    entryPoints: ['./src/renderer/index.tsx'],
+    outdir: './build/window',
+    minify: true,
+    outExtension: {
+      '.js': '.bundle.js'
+    },
+    external: ['electron', ...require('module').builtinModules],
+  });
+  return ctx.watch();
 }
 
 function watchStatic() {
@@ -194,9 +204,17 @@ function buildBack(done) {
   execute("npx swc --strip-leading-paths --no-swcrc --config-file swcrc.back.prod.json -d build src", done);
 }
 
-function buildRenderer(done) {
-  const mode = config.isRelease ? "production" : "development";
-  execute(`npx webpack --mode "${mode}"`, done);
+async function buildRenderer() {
+  return esbuild.build({
+    bundle: true,
+    entryPoints: ['./src/renderer/index.tsx'],
+    outdir: './build/window',
+    minify: true,
+    outExtension: {
+      '.js': '.bundle.js'
+    },
+    external: ['electron', ...require('module').builtinModules],
+  });
 }
 
 function buildStatic() {
@@ -406,3 +424,5 @@ exports.nexusPack = series(
 );
 
 exports.extInstall = series(installExtensions);
+
+exports.esbuildTest = series(buildRenderer);

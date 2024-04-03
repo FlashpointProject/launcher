@@ -154,7 +154,8 @@ export enum CustomIPC {
   SHOW_MESSAGE_BOX = 'show-message-box',
   SHOW_SAVE_DIALOG = 'show-save-dialog',
   SHOW_OPEN_DIALOG = 'show-open-dialog',
-  REGISTER_PROTOCOL = 'register-protocol'
+  REGISTER_PROTOCOL = 'register-protocol',
+  RELOAD_WINDOW = 'reload-window',
 }
 
 /** IPC channels used to relay game manager events from  */

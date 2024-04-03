@@ -159,6 +159,7 @@ export enum BackIn {
   CLEAR_PLAYTIME_TRACKING,
   CLEAR_PLAYTIME_TRACKING_BY_ID,
   KEEP_ALIVE,
+  PREP_RELOAD_WINDOW,
 
   // Dialogs
   DIALOG_RESPONSE,
@@ -388,6 +389,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.CLEAR_PLAYTIME_TRACKING]: () => Promise<void>;
   [BackIn.CLEAR_PLAYTIME_TRACKING_BY_ID]: (gameId: string) => Promise<void>;
   [BackIn.KEEP_ALIVE]: () => void;
+  [BackIn.PREP_RELOAD_WINDOW]: () => void;
 
   // Developer
   [BackIn.SYNC_TAGGED]: (source: GameMetadataSource) => void;
