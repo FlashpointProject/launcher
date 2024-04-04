@@ -327,6 +327,8 @@ export function clearArray<T>(array: Array<T | undefined>): Array<T> {
 export function parseVarStr(str: string, config?: AppConfigData) {
   return parseVariableString(str, (name) => {
     switch (name) {
+      case 'os': return process.platform;
+      case 'arch': return process.arch;
       case 'cwd': return fixSlashes(process.cwd());
       case 'fpPath': return config ? fixSlashes(config.flashpointPath) : '';
       default: return '';
