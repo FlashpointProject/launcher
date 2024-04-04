@@ -1,24 +1,25 @@
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
-import { convertEditToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { CurationIndexImage } from '@shared/curate/OLD_types';
+import { convertEditToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { AddAppCuration, CurationMeta, LoadedCuration } from '@shared/curate/types';
 import { getCurationFolder } from '@shared/curate/util';
 import { TaskProgress } from '@shared/utils/TaskProgress';
+import { newGame } from '@shared/utils/misc';
 import * as child_process from 'child_process';
 import { execFile } from 'child_process';
-import { Platform, GameLaunchInfo, Game, TagCategory, AdditionalApp, Tag } from 'flashpoint-launcher';
+import { AdditionalApp, Game, GameLaunchInfo, Platform, Tag, TagCategory } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as YAML from 'yaml';
-import { ApiEmitter, ApiEmitterFirable } from './extensions/ApiEmitter';
-import { checkAndInstallPlatform, GameLauncher, LaunchAddAppOpts, LaunchGameOpts } from './GameLauncher';
+import { fpDatabase } from '.';
+import { GameLauncher, LaunchAddAppOpts, LaunchGameOpts, checkAndInstallPlatform } from './GameLauncher';
+import { ApiEmitterFirable } from './extensions/ApiEmitter';
 import { copyFolder } from './rust';
 import { BackState, OpenExternalFunc, ShowMessageBoxFunc } from './types';
 import { awaitDialog } from './util/dialog';
 import { getMklinkBatPath } from './util/elevate';
+import { onWillImportCuration } from './util/events';
 import { uuid } from './util/uuid';
-import { fpDatabase } from '.';
-import { newGame } from '@shared/utils/misc';
 
 type ImportCurationOpts = {
   curation: LoadedCuration;
@@ -45,8 +46,6 @@ export type CurationImportState = {
   /** Path of the curation */
   curationPath: string;
 }
-
-export const onWillImportCuration: ApiEmitter<CurationImportState> = new ApiEmitter<CurationImportState>();
 
 /**
  * Import a curation.

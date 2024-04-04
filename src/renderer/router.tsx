@@ -27,7 +27,7 @@ import { RequestState } from './store/main/enums';
 
 export type AppRouterProps = {
   fpfssUser: FpfssUser | null;
-  gotdList: GameOfTheDay[];
+  gotdList: GameOfTheDay[] | undefined;
   games: ViewGameSet;
   randomGames: ViewGame[];
   rollRandomGames: () => void;

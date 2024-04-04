@@ -119,6 +119,7 @@ function filterDivProps(props: GameItemContainerProps): JSX.IntrinsicElements['d
     onGameDragEnd?: any;
     onGameDrop?: any;
     onGameDragOver?: any;
+    findGameDragEventData?: any;
     findGameId?: any;
   } = Object.assign({}, props);
   delete rest.realRef;
@@ -129,6 +130,7 @@ function filterDivProps(props: GameItemContainerProps): JSX.IntrinsicElements['d
   delete rest.onGameDragEnd;
   delete rest.onGameDrop;
   delete rest.onGameDragOver;
+  delete rest.findGameDragEventData;
   delete rest.findGameId;
   return rest;
 }

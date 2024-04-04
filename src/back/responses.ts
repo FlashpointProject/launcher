@@ -1,7 +1,7 @@
 import { LogLevel } from '@shared/Log/interface';
 import { MetaEditFile, MetaEditMeta } from '@shared/MetaEdit';
 import { deepCopy, downloadFile, padEnd } from '@shared/Util';
-import { BackIn, BackInit, BackOut, ComponentState, CurationImageEnum, DownloadDetails, GetRendererLoadedDataResponse } from '@shared/back/types';
+import { BackIn, BackInit, BackOut, ComponentState, CurationImageEnum, DownloadDetails, GameOfTheDay, GetRendererLoadedDataResponse } from '@shared/back/types';
 import { overwriteConfigData } from '@shared/config/util';
 import { CURATIONS_FOLDER_EXPORTED, CURATIONS_FOLDER_TEMP, CURATIONS_FOLDER_WORKING, LOGOS, SCREENSHOTS, VIEW_PAGE_SIZE } from '@shared/constants';
 import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
@@ -45,7 +45,7 @@ import { saveCuration } from './curate/write';
 import { downloadGameData } from './download';
 import { parseAppVar } from './extensions/util';
 import { importCuration, launchAddAppCuration, launchCuration } from './importGame';
-import { fpDatabase, loadCurationArchive, onDidUninstallGameData, onWillUninstallGameData } from './index';
+import { fpDatabase, loadCurationArchive } from './index';
 import { importGames, importPlatforms, importTagCategories, importTags } from './metadataImport';
 import { addPlaylistGame, deletePlaylist, deletePlaylistGame, duplicatePlaylist, filterPlaylists, getPlaylistGame, importPlaylist, savePlaylistGame, updatePlaylist } from './playlist';
 import { copyFolder, genContentTree } from './rust';
@@ -68,6 +68,7 @@ import {
   runService
 } from './util/misc';
 import { uuid } from './util/uuid';
+import { onDidUninstallGameData, onWillUninstallGameData } from './util/events';
 
 const axios = axiosImport.default;
 
@@ -79,6 +80,13 @@ const axios = axiosImport.default;
  */
 export function registerRequestCallbacks(state: BackState, init: () => Promise<void>): void {
   state.socketServer.register(BackIn.KEEP_ALIVE, () => {});
+
+  state.socketServer.register(BackIn.PREP_RELOAD_WINDOW, () => {
+    state.ignoreQuit = true;
+    setTimeout(() => {
+      state.ignoreQuit = false;
+    }, 1000);
+  });
 
   state.socketServer.register(BackIn.TEST_RECONNECTIONS, async () => {
     // Close connections, expect them to restart
@@ -143,16 +151,14 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   state.socketServer.register(BackIn.GET_RENDERER_LOADED_DATA, async () => {
     const libraries = await fpDatabase.findAllGameLibraries();
 
-    // Fetch update feed
-    let updateFeedMarkdown = '';
+    // Fetch update feed in background
     if (state.preferences.updateFeedUrl) {
-      updateFeedMarkdown = await axios.get(state.preferences.updateFeedUrl, { timeout: 3000 })
+      axios.get(state.preferences.updateFeedUrl, { timeout: 3000 })
       .then((res) => {
-        return res.data;
+        state.socketServer.broadcast(BackOut.UPDATE_FEED, res.data);
       })
       .catch((err) => {
         log.debug('Launcher', `Failed to fetch news feed from ${state.preferences.updateFeedUrl}, ERROR: ${err}`);
-        return '';
       });
     } else {
       log.debug('Launcher', 'No Update Feed URL specified');
@@ -161,7 +167,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     // Fetch GOTD file
     const gotdUrl = state.config.gotdUrl;
     const gotdPath = path.join(state.config.flashpointPath, 'Data', 'gotd.json');
-    await new Promise((resolve, reject) => {
+    const gotdDownload = new Promise((resolve, reject) => {
       const thumbnailWriter = fs.createWriteStream(gotdPath);
       axios.get(gotdUrl, { responseType: 'stream' })
       .then((res) => {
@@ -180,15 +186,51 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       log.error('Launcher', 'Failed to download gotd list from ' + gotdUrl);
     });
 
-    let gotdList = [];
+    let gotdList: GameOfTheDay[] | undefined = undefined;
     try {
+      // Try to load the existing file first
       gotdList = JSON.parse(fs.readFileSync(gotdPath, { encoding: 'utf8' })).games || [];
-      gotdList = gotdList.filter((g: any) => g.id !== '');
+      gotdList = (gotdList as GameOfTheDay[]).filter((g: any) => g.id !== '');
+
+      // Now let the download update in its own time
+      gotdDownload.then(() => {
+        try {
+          gotdList = JSON.parse(fs.readFileSync(gotdPath, { encoding: 'utf8' })).games || [];
+          gotdList = (gotdList as GameOfTheDay[]).filter((g: any) => g.id !== '');
+          state.socketServer.broadcast(BackOut.UPDATE_GOTD, gotdList);
+        } catch {
+          /** Bad download, ignore */
+        }
+      })
+      .catch(() => {
+        /** Bad download, ignore */
+      });
     } catch {
-      /** Ignore */
+      // File doesn't exist, or broken, lets wait for a new one before trying again and returning
+      gotdList = await gotdDownload
+      .then(() => {
+        // Try loading again
+        let list = [];
+        try {
+          list = JSON.parse(fs.readFileSync(gotdPath, { encoding: 'utf8' })).games || [];
+          list = list.filter((g: any) => g.id !== '');
+          return list;
+        } catch {
+          /** Neither local or remote, give up */
+          return [];
+        }
+      })
+      .catch(() => {
+        /** Neither local or remote, give up */
+        return [];
+      });
     }
 
-    state.platformAppPaths = processPlatformAppPaths(await fpDatabase.findPlatformAppPaths());
+    fpDatabase.findPlatformAppPaths().then((paths) => {
+      paths = processPlatformAppPaths(paths);
+      state.platformAppPaths = paths;
+      state.socketServer.broadcast(BackOut.UPDATE_PLATFORM_APP_PATHS, paths);
+    });
 
     const res: GetRendererLoadedDataResponse = {
       gotdList: gotdList,
@@ -199,7 +241,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       suggestions: state.suggestions,
       platformAppPaths: state.platformAppPaths,
       logoSets: Array.from(state.registry.logoSets.values()),
-      updateFeedMarkdown,
       mad4fpEnabled: state.serviceInfo ? (state.serviceInfo.server.findIndex(s => s.mad4fp === true) !== -1) : false,
       componentStatuses: state.componentStatuses,
       shortcuts: state.shortcuts,
@@ -1235,6 +1276,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.GET_PLAYLISTS, async () => {
+    console.log('finding playlists?');
     return filterPlaylists(state.playlists, state.preferences.browsePageShowExtreme);
   });
 
@@ -1806,7 +1848,9 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.QUIT, async () => {
-    return exitApp(state);
+    if (!state.ignoreQuit) {
+      return exitApp(state);
+    }
   });
 
   state.socketServer.register(BackIn.DOWNLOAD_PLAYLIST, async (event, url) => {

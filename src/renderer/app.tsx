@@ -17,7 +17,6 @@ import * as path from 'path';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import { Dispatch } from 'redux';
-import * as which from 'which';
 import { FloatingContainer } from './components/FloatingContainer';
 import { ConnectedFpfssEditGame } from './components/FpfssEditGame';
 import { GameOrderChangeEvent } from './components/GameOrder';
@@ -236,108 +235,129 @@ export class App extends React.Component<AppProps> {
     // }
   }
 
+  onDatabaseLoaded() {
+    console.log('db load');
+    window.Shared.back.request(BackIn.GET_PLAYLISTS)
+    .then(data => {
+      console.log('got playlists');
+      if (data) {
+        this.props.dispatchMain({
+          type: MainActionType.ADD_LOADED,
+          loaded: [BackInit.PLAYLISTS],
+        });
+        this.props.setMainState({ playlists: data });
+        this.cachePlaylistIcons(data);
+      } else {
+        console.error('wtf no get_playlists data');
+      }
+    });
+    window.Shared.back.request(BackIn.GET_RENDERER_LOADED_DATA)
+    .then(data => {
+      for (const entry of Object.entries(data.shortcuts)) {
+        const command = entry[0];
+        const shortcuts = entry[1];
+        const commandName = command.split(':').slice(1).join(':');
+        if (this.props.shortcut && this.props.shortcut.registerShortcut && this.props.shortcut.unregisterShortcut) {
+          try {
+            this.props.shortcut.unregisterShortcut(shortcuts);
+          } catch { /** ignore any errors from unregister check */ }
+          this.props.shortcut.registerShortcut(() => {
+            window.Shared.back.send(BackIn.RUN_COMMAND, commandName, []);
+          }, shortcuts, command, 'Extension Shortcut');
+        } else {
+          log.error('Launcher', `Failed to register shortcut for ${command}, shortcut context missing?`);
+        }
+      }
+      this.props.dispatchMain({
+        type: MainActionType.SET_STATE,
+        payload: {
+          ...data
+        }
+      });
+      this.props.dispatchMain({
+        type: MainActionType.SETUP_VIEWS,
+        preferencesData: { ...this.props.preferencesData }
+      });
+      this.props.setTagCategories(data.tagCategories);
+    })
+    .then(() => {
+      this.props.dispatchMain({
+        type: MainActionType.ADD_LOADED,
+        loaded: [BackInit.DATABASE],
+      });
+    })
+    .then(async () => {
+      const data = await window.Shared.back.request(BackIn.GET_GAMES_TOTAL);
+      if (data) {
+        this.props.dispatchMain({
+          type: MainActionType.SET_GAMES_TOTAL,
+          total: data,
+        });
+      }
+    })
+    .then(() => {
+      if (this.props.main.randomGames.length < RANDOM_GAME_ROW_COUNT) {
+        this.rollRandomGames(true);
+      }
+    })
+    .then(() => {
+      if (this.props.preferencesData.gameMetadataSources.length > 0) {
+        window.Shared.back.request(BackIn.PRE_UPDATE_INFO, this.props.preferencesData.gameMetadataSources[0])
+        .then((total) => {
+          this.props.dispatchMain({
+            type: MainActionType.UPDATE_UPDATE_INFO,
+            total
+          });
+        });
+      }
+    });
+  }
+
+  onCurateLoad() {
+    window.Shared.back.request(BackIn.CURATE_GET_LIST)
+    .then(curations => {
+      (this.props.dispatchMain as any as Dispatch<CurateAction>)({
+        type: CurateActionType.SET_ALL_CURATIONS,
+        curations: curations,
+      });
+      this.props.dispatchMain({
+        type: MainActionType.ADD_LOADED,
+        loaded: [BackInit.CURATE],
+      });
+    });
+  }
+
+  onExtensionsLoad() {
+    window.Shared.back.request(BackIn.GET_RENDERER_EXTENSION_INFO)
+    .then(data => {
+      this.props.dispatchMain({
+        type: MainActionType.SET_STATE,
+        payload: {
+          ...data
+        }
+      });
+      this.props.dispatchMain({
+        type: MainActionType.ADD_LOADED,
+        loaded: [BackInit.EXTENSIONS],
+      });
+    });
+  }
+
   registerWebsocketListeners() {
     window.Shared.back.register(BackOut.INIT_EVENT, (event, data) => {
       for (const index of data.done) {
-        switch (+index) { // Conversion to number, type safe bug
+        console.log('new ' + index);
+        switch (+index) { // DO NOT REMOVE - Fails to convert to enum without explicitint conversion
           case BackInit.DATABASE: {
-            if (this.props.preferencesData.gameMetadataSources.length > 0) {
-              window.Shared.back.request(BackIn.PRE_UPDATE_INFO, this.props.preferencesData.gameMetadataSources[0])
-              .then((total) => {
-                this.props.dispatchMain({
-                  type: MainActionType.UPDATE_UPDATE_INFO,
-                  total
-                });
-              });
-            }
-            window.Shared.back.request(BackIn.GET_PLAYLISTS)
-            .then(data => {
-              if (data) {
-                this.props.setMainState({ playlists: data });
-                this.cachePlaylistIcons(data);
-              }
-              this.props.dispatchMain({
-                type: MainActionType.ADD_LOADED,
-                loaded: [BackInit.PLAYLISTS],
-              });
-            });
-            window.Shared.back.request(BackIn.GET_RENDERER_LOADED_DATA)
-            .then(data => {
-              for (const entry of Object.entries(data.shortcuts)) {
-                const command = entry[0];
-                const shortcuts = entry[1];
-                const commandName = command.split(':').slice(1).join(':');
-                if (this.props.shortcut && this.props.shortcut.registerShortcut && this.props.shortcut.unregisterShortcut) {
-                  try {
-                    this.props.shortcut.unregisterShortcut(shortcuts);
-                  } catch { /** ignore any errors from unregister check */ }
-                  this.props.shortcut.registerShortcut(() => {
-                    window.Shared.back.send(BackIn.RUN_COMMAND, commandName, []);
-                  }, shortcuts, command, 'Extension Shortcut');
-                } else {
-                  log.error('Launcher', `Failed to register shortcut for ${command}, shortcut context missing?`);
-                }
-              }
-              this.props.dispatchMain({
-                type: MainActionType.SET_STATE,
-                payload: {
-                  ...data
-                }
-              });
-              this.props.dispatchMain({
-                type: MainActionType.SETUP_VIEWS,
-                preferencesData: { ...this.props.preferencesData }
-              });
-              this.props.setTagCategories(data.tagCategories);
-            })
-            .then(async () => {
-              const data = await window.Shared.back.request(BackIn.GET_GAMES_TOTAL);
-              if (data) {
-                this.props.dispatchMain({
-                  type: MainActionType.SET_GAMES_TOTAL,
-                  total: data,
-                });
-              }
-            })
-            .then(() => {
-              if (this.props.main.randomGames.length < RANDOM_GAME_ROW_COUNT) { this.rollRandomGames(true); }
-            })
-            .then(() => {
-              this.props.dispatchMain({
-                type: MainActionType.ADD_LOADED,
-                loaded: [index],
-              });
-            });
+            this.onDatabaseLoaded();
             break;
           }
           case BackInit.CURATE: {
-            window.Shared.back.request(BackIn.CURATE_GET_LIST)
-            .then(curations => {
-              (this.props.dispatchMain as any as Dispatch<CurateAction>)({
-                type: CurateActionType.SET_ALL_CURATIONS,
-                curations: curations,
-              });
-              this.props.dispatchMain({
-                type: MainActionType.ADD_LOADED,
-                loaded: [index],
-              });
-            });
+            this.onCurateLoad();
             break;
           }
           case BackInit.EXTENSIONS: {
-            window.Shared.back.request(BackIn.GET_RENDERER_EXTENSION_INFO)
-            .then(data => {
-              this.props.dispatchMain({
-                type: MainActionType.SET_STATE,
-                payload: {
-                  ...data
-                }
-              });
-              this.props.dispatchMain({
-                type: MainActionType.ADD_LOADED,
-                loaded: [index],
-              });
-            });
+            this.onExtensionsLoad();
             break;
           }
           default: {
@@ -594,6 +614,24 @@ export class App extends React.Component<AppProps> {
       });
     });
 
+    window.Shared.back.register(BackOut.UPDATE_GOTD, (event, gotd) => {
+      this.props.setMainState({
+        gotdList: gotd
+      });
+    });
+
+    window.Shared.back.register(BackOut.UPDATE_FEED, (event, feed) => {
+      this.props.setMainState({
+        updateFeedMarkdown: feed
+      });
+    });
+
+    window.Shared.back.register(BackOut.UPDATE_PLATFORM_APP_PATHS, (event, paths) => {
+      this.props.setMainState({
+        platformAppPaths: paths
+      });
+    });
+
     window.Shared.back.register(BackOut.POST_SYNC_CHANGES, (event, libraries, suggestions, platformAppPaths, cats, total) => {
       this.props.dispatchMain({
         type: MainActionType.POST_FPFSS_SYNC,
@@ -631,8 +669,6 @@ export class App extends React.Component<AppProps> {
 
 
   init() {
-    const strings = this.props.main.lang;
-
     window.Shared.back.onStateChange = (state) => {
       this.props.setMainState({
         socketOpen: state
@@ -715,10 +751,29 @@ export class App extends React.Component<AppProps> {
     window.Shared.back.request(BackIn.INIT_LISTEN)
     .then(data => {
       if (!data) { throw new Error('INIT_LISTEN response is missing data.'); }
-      this.props.dispatchMain({
-        type: MainActionType.ADD_LOADED,
-        loaded: data.done,
-      });
+      for (const index of data.done) {
+        console.log('found ' + index);
+        switch (+index) { // DO NOT REMOVE - Fails to convert to enum without explicitint conversion
+          case BackInit.DATABASE: {
+            this.onDatabaseLoaded();
+            break;
+          }
+          case BackInit.CURATE: {
+            this.onCurateLoad();
+            break;
+          }
+          case BackInit.EXTENSIONS: {
+            this.onExtensionsLoad();
+            break;
+          }
+          default: {
+            this.props.dispatchMain({
+              type: MainActionType.ADD_LOADED,
+              loaded: [index],
+            });
+          }
+        }
+      }
     });
 
     // Cache playlist icons (if they are loaded)
@@ -795,21 +850,6 @@ export class App extends React.Component<AppProps> {
       log.warn('Launcher', `Failed to load credits.\n${error}`);
       this.props.dispatchMain({ type: MainActionType.SET_CREDITS });
     });
-
-    // Check for PHP on Linux
-    if (process.platform === 'linux') {
-      which('php', function (err: Error | null) {
-        if (err) {
-          log.warn('Launcher', 'Warning: PHP not found in path, may cause unexpected behaviour.');
-          ipcRenderer.invoke(CustomIPC.SHOW_MESSAGE_BOX, {
-            type: 'error',
-            title: strings.dialog.programNotFound,
-            message: strings.dialog.phpNotFound,
-            buttons: ['Ok']
-          });
-        }
-      });
-    }
 
     // this.props.setTagCategories(window.Shared.initialTagCategories);
   }
@@ -1813,8 +1853,9 @@ export class App extends React.Component<AppProps> {
       alert(strings.dialog.unableToDeleteGame + '\n\n' + error);
     });
   };
-  cachePlaylistIcons(playlists: Playlist[]): void {
-    Promise.all(playlists.map(p => (async () => {
+
+  async cachePlaylistIcons(playlists: Playlist[]) {
+    return Promise.all(playlists.map(p => (async () => {
       if (p.icon) { return cacheIcon(p.icon); }
     })()))
     .then(urls => {

@@ -26,7 +26,7 @@ import { SimpleButton } from '../SimpleButton';
 import { SizeProvider } from '../SizeProvider';
 
 type OwnProps = {
-  gotdList: GameOfTheDay[];
+  gotdList: GameOfTheDay[] | undefined;
   platforms: string[];
   playlists: Playlist[];
   /** Generator for game context menu */
@@ -59,7 +59,7 @@ export function HomePage(props: HomePageProps) {
   const [updating, setUpdating] = React.useState(false);
 
   const parsedGotdList = React.useMemo(() => {
-    return props.gotdList.map(g => {
+    return props.gotdList ? props.gotdList.map(g => {
       const parts = g.date.split('-');
       const year = parseInt(parts[0], 10);
       const month = parseInt(parts[1], 10);
@@ -69,7 +69,7 @@ export function HomePage(props: HomePageProps) {
         ...g,
         date: newDate
       };
-    }).sort((a, b) => { return a.date.getTime() - b.date.getTime(); });
+    }).sort((a, b) => { return a.date.getTime() - b.date.getTime(); }) : [];
   }, [props.gotdList]);
 
   const [selectedGotd, setSelectedGotd] = React.useState(() => {
@@ -286,6 +286,9 @@ export function HomePage(props: HomePageProps) {
   const extremeIconPath = React.useMemo(() => getExtremeIconURL(props.logoVersion), [props.logoVersion]);
 
   const renderedGotd = React.useMemo(() => {
+    if (props.gotdList === undefined) {
+      return <></>; // No GOTD to display yet
+    }
     const extremeTags = props.preferencesData.tagFilters.filter(t => !t.enabled && t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
     return (
       <HomePageBox

@@ -8,9 +8,9 @@ import { PlaylistFile } from './PlaylistFile';
 import { MsgEvent } from './SocketServer';
 import { BackState } from './types';
 import { uuid } from './util/uuid';
-import path = require('path');
+import * as path from 'path';
 import { awaitDialog } from './util/dialog';
-import { onDidUpdatePlaylist } from '.';
+import { onDidUpdatePlaylist } from './util/events';
 
 export function filterPlaylists(playlist: Playlist[], extreme: boolean): Playlist[] {
   return playlist.filter(p => {

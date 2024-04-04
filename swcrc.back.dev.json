@@ -10,14 +10,13 @@
     "noInterop": true
   },
   "jsc": {
-    "target": "es2018",
-    "baseUrl": ".",
+    "target": "esnext",
+    "baseUrl": "./src",
     "paths": {
-      "@shared/*": [ "./build/shared/*" ],
-      "@main/*": [ "./build/main/*" ],
-      "@back/*": [ "./build/back/*" ],
-      "@renderer/*": [ "./build/renderer/*" ],
-      "@tests/*": [ "./tests/*" ]
+      "@shared/*": [ "./shared/*" ],
+      "@main/*": [ "./main/*" ],
+      "@back/*": [ "./back/*" ],
+      "@renderer/*": [ "./renderer/*" ]
     },
     "parser": {
       "syntax": "typescript",

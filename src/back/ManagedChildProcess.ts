@@ -3,15 +3,15 @@ import { IBackProcessInfo, INamedBackProcessInfo, ProcessState } from '@shared/i
 import * as Coerce from '@shared/utils/Coerce';
 import { ChildProcess, spawn } from 'child_process';
 import { EventEmitter } from 'events';
-import * as flashpoint from 'flashpoint-launcher';
 import { kill as processKill } from 'process';
 import * as psTree from 'ps-tree';
 import * as readline from 'readline';
-import { ApiEmitter } from './extensions/ApiEmitter';
 import { Disposable } from './util/lifecycle';
+import { onServiceChange } from './util/events';
 
 const { str } = Coerce;
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export interface ManagedChildProcess {
   /**
    * Fires when any background service prints to std{out,err}. Every line is
@@ -39,9 +39,8 @@ export type ProcessOpts = {
 /** Number of times to auto restart - maximum */
 const MAX_RESTARTS = 5;
 
-export const onServiceChange = new ApiEmitter<flashpoint.ServiceChange>();
-
 /** Manages a single process. Wrapper around node's ChildProcess. */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export class ManagedChildProcess extends EventEmitter {
   // @TODO Add timeouts for restarting and killing the process (it should give up after some time, like 10 seconds) maybe?
 
@@ -191,6 +190,7 @@ export class ManagedChildProcess extends EventEmitter {
       psTree(PID, async (error, children) => {
         if (error) {
           reject(error);
+          return;
         }
         // Kill each child process.
         await Promise.all(children.map(async (child) => {
@@ -198,6 +198,9 @@ export class ManagedChildProcess extends EventEmitter {
         }));
         resolve();
       });
+    })
+    .catch((error: any) => {
+      log.error('Launcher', `Failed to kill process ${this.name} (${this.info.filename}) - ${error}`);
     });
     // Kill the parent process.
     processKill(PID);
