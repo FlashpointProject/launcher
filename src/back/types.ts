@@ -26,6 +26,7 @@ import { PlatformAppPathSuggestions } from '@shared/curate/types';
 export type BackState = {
   // @TODO Write comments for these properties
   readyForInit: boolean;
+  ignoreQuit: boolean; // Ignore quit calls from renderer
   runInit: boolean;
   isExit: boolean;
   isDev: boolean;

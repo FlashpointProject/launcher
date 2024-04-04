@@ -202,16 +202,20 @@ async function getTagsFromStr(tagsStr: string, tagCategoriesStr: string): Promis
     const trimmedName = tagName.trim();
     const category = splitCategories.length > index ? splitCategories[index].trim() : undefined;
     if (trimmedName !== '' && trimmedName !== '[object Object]') {
-      let tag = await fpDatabase.findTag(trimmedName);
-      if (!tag) {
-        // Tag doesn't exist, make a new one
-        tag = await fpDatabase.createTag(trimmedName, category);
-      }
-      if (tag !== null) {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        if (tags.findIndex(t => t.id === tag!.id) === -1) {
-          tags.push(tag);
+      try {
+        let tag = await fpDatabase.findTag(trimmedName);
+        if (!tag) {
+          // Tag doesn't exist, make a new one
+          tag = await fpDatabase.createTag(trimmedName, category);
         }
+        if (tag !== null) {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          if (tags.findIndex(t => t.id === tag!.id) === -1) {
+            tags.push(tag);
+          }
+        }
+      } catch (error) {
+        log.error('Launcher', `Unknown Curation Error loading Tag - ${trimmedName} - ${error}`);
       }
     }
   }

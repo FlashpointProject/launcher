@@ -45,7 +45,7 @@ import { saveCuration } from './curate/write';
 import { downloadGameData } from './download';
 import { parseAppVar } from './extensions/util';
 import { importCuration, launchAddAppCuration, launchCuration } from './importGame';
-import { fpDatabase, loadCurationArchive, onDidUninstallGameData, onWillUninstallGameData } from './index';
+import { fpDatabase, loadCurationArchive } from './index';
 import { importGames, importPlatforms, importTagCategories, importTags } from './metadataImport';
 import { addPlaylistGame, deletePlaylist, deletePlaylistGame, duplicatePlaylist, filterPlaylists, getPlaylistGame, importPlaylist, savePlaylistGame, updatePlaylist } from './playlist';
 import { copyFolder, genContentTree } from './rust';
@@ -68,6 +68,7 @@ import {
   runService
 } from './util/misc';
 import { uuid } from './util/uuid';
+import { onDidUninstallGameData, onWillUninstallGameData } from './util/events';
 
 const axios = axiosImport.default;
 
@@ -79,6 +80,13 @@ const axios = axiosImport.default;
  */
 export function registerRequestCallbacks(state: BackState, init: () => Promise<void>): void {
   state.socketServer.register(BackIn.KEEP_ALIVE, () => {});
+
+  state.socketServer.register(BackIn.PREP_RELOAD_WINDOW, () => {
+    state.ignoreQuit = true;
+    setTimeout(() => {
+      state.ignoreQuit = false;
+    }, 1000);
+  });
 
   state.socketServer.register(BackIn.TEST_RECONNECTIONS, async () => {
     // Close connections, expect them to restart
@@ -1268,6 +1276,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.GET_PLAYLISTS, async () => {
+    console.log('finding playlists?');
     return filterPlaylists(state.playlists, state.preferences.browsePageShowExtreme);
   });
 
@@ -1839,7 +1848,9 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.QUIT, async () => {
-    return exitApp(state);
+    if (!state.ignoreQuit) {
+      return exitApp(state);
+    }
   });
 
   state.socketServer.register(BackIn.DOWNLOAD_PLAYLIST, async (event, url) => {

@@ -15,10 +15,12 @@ import { PreferencesContextProvider } from './context/PreferencesContext';
 import { ProgressContext } from './context/ProgressContext';
 import { MainState, View } from './store/main/types';
 import { logFactory } from './util/logging';
-import { MessageBoxSyncOptions } from 'electron';
+import { MessageBoxSyncOptions, ipcRenderer } from 'electron';
 import { EventEmitter } from 'stream';
+import { CustomIPC } from '@shared/interfaces';
 
 (async () => {
+  // Replace alert function with a dialog
   globalThis.alert = function(str) {
     const options: MessageBoxSyncOptions = {
       type: 'warning',
@@ -41,6 +43,13 @@ import { EventEmitter } from 'stream';
   window.addEventListener('keypress', (event) => {
     if (event.ctrlKey && event.shiftKey && event.code === 'KeyI') {
       window.Shared.toggleDevtools();
+      event.preventDefault();
+    }
+  });
+  // Reload window with CTRL+SHIFT+R
+  window.addEventListener('keypress', (event) => {
+    if (event.ctrlKey && event.shiftKey && event.code === 'KeyR') {
+      ipcRenderer.invoke(CustomIPC.RELOAD_WINDOW);
       event.preventDefault();
     }
   });

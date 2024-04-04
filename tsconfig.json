@@ -4,9 +4,9 @@
     "noImplicitAny": true,
     "sourceMap": true,
     "outDir": "build",
-    "baseUrl": ".",
+    "baseUrl": "./src",
     "target": "esnext",
-    "lib": ["es2020", "dom"],
+    "lib": ["esnext", "dom"],
     "strict": true,
     "jsx": "react-jsx",
     "emitDecoratorMetadata": true,
@@ -14,11 +14,10 @@
     "strictPropertyInitialization": false,
     "strictNullChecks": true,
     "paths": {
-      "@shared/*": ["./src/shared/*"],
-      "@main/*": ["./src/main/*"],
-      "@back/*": ["./src/back/*"],
-      "@renderer/*": ["./src/renderer/*"],
-      "@tests/*": ["./tests/*"]
+      "@shared/*": ["./shared/*"],
+      "@main/*": ["./main/*"],
+      "@back/*": ["./back/*"],
+      "@renderer/*": ["./renderer/*"]
     },
     "plugins": [
       {

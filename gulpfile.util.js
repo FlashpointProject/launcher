@@ -3,8 +3,8 @@ const { exec } = require('child_process');
 
 const execute = (command, callback) => {
   const child = exec(command);
-  child.stderr.on('data', data => { console.log(data); });
-  child.stdout.on('data', data => { console.log(data); });
+  child.stderr.on('data', data => { process.stdout.write(data); });
+  child.stdout.on('data', data => { process.stdout.write(data); });
   if (callback) {
     child.once('exit', () => { callback(); });
   }
