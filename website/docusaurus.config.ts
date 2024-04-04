@@ -12,6 +12,7 @@ const config: Config = {
 
   organizationName: 'FlashpointProject',
   projectName: 'launcher',
+  trailingSlash: false,
 
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
@@ -27,20 +28,22 @@ const config: Config = {
       {
         docs: {
           path: '../docs',
-          routeBasePath: '/',
+          routeBasePath: '/docs',
           showLastUpdateTime: true,
           sidebarPath: './sidebars.ts',
           editUrl:
             'https://github.com/FlashpointProject/launcher/edit/develop/website/',
         },
-        theme: {},
+        theme: {
+          customCss: ['./src/css/core.css']
+        },
       } satisfies Preset.Options,
     ],
   ],
 
   themeConfig: {
     // Replace with your project's social card
-    image: 'img/docusaurus-social-card.jpg',
+    image: 'img/icon.png',
     navbar: {
       title: 'Flashpoint Launcher',
       logo: {
@@ -52,7 +55,7 @@ const config: Config = {
           type: 'docSidebar',
           sidebarId: 'mainSidebar',
           position: 'left',
-          label: 'Main',
+          label: 'Usage Guide',
         },
         {
           href: 'https://github.com/FlashpointProject/launcher',
@@ -68,8 +71,8 @@ const config: Config = {
           title: 'Docs',
           items: [
             {
-              label: 'Main',
-              to: '/docs',
+              label: 'Usage Guide',
+              to: '/docs/overview',
             },
           ],
         },
@@ -92,7 +95,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} Flashpoint Archive. Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} Flashpoint Archive.`,
     },
     prism: {
       theme: prismThemes.github,
