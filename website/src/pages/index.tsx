@@ -19,8 +19,26 @@ function HomepageHeader() {
         <div>
           <Link
             className="button button--secondary button--lg"
-            to="/docs/overview">
-            Main Documentation
+            to="/docs/introduction">
+            Getting Started
+          </Link>
+          <br></br><br></br>
+          <Link
+            className="button button--secondary button--lg"
+            to="/docs/configuration/services">
+            Configuration
+          </Link>
+          <br></br><br></br>
+          <Link
+            className="button button--secondary button--lg"
+            to="/docs/development/communication">
+            Launcher Development
+          </Link>
+          <br></br><br></br>
+          <Link
+            className="button button--secondary button--lg"
+            to="/docs/extensions/overview">
+            Extension Development
           </Link>
         </div>
       </div>
@@ -32,8 +50,8 @@ export default function Home(): JSX.Element {
   const {siteConfig} = useDocusaurusContext();
   return (
     <Layout
-      title={`Hello from ${siteConfig.title}`}
-      description="Description will go into a meta tag in <head />">
+      title={`${siteConfig.title}`}
+      description="Documentation for the Flashpoint Launcher application">
       <HomepageHeader />
       <main>
       </main>

@@ -3,8 +3,8 @@ import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
-  title: 'Flashpoint Launcher',
-  tagline: 'We do the archive stuff',
+  title: 'Flashpoint Launcher Docs',
+  tagline: 'Documentation website for development and configuration',
   favicon: 'img/favicon.svg',
 
   url: 'https://flashpointproject.github.io/',
@@ -43,7 +43,7 @@ const config: Config = {
 
   themeConfig: {
     // Replace with your project's social card
-    image: 'img/icon.png',
+    image: 'img/meta.png',
     navbar: {
       title: 'Flashpoint Launcher',
       logo: {
@@ -53,7 +53,7 @@ const config: Config = {
       items: [
         {
           type: 'docSidebar',
-          sidebarId: 'mainSidebar',
+          sidebarId: 'docs',
           position: 'left',
           label: 'Usage Guide',
         },
@@ -71,9 +71,19 @@ const config: Config = {
           title: 'Docs',
           items: [
             {
-              label: 'Usage Guide',
-              to: '/docs/overview',
+              label: 'Getting Started',
+              to: '/docs/introduction',
             },
+            {
+              label: 'Configuration',
+              to: '/docs/configuration/services'
+            }, {
+              label: 'Launcher Development',
+              to: '/docs/development/communication'
+            }, {
+              label: 'Extension Development',
+              to: '/docs/extensions/overview'
+            }
           ],
         },
         {
