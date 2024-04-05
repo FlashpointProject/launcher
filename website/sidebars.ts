@@ -30,8 +30,17 @@ const sidebars: SidebarsConfig = {
       label: 'Development',
       items: [
         'development/introduction',
-        'development/communication',
-        'development/addingpages',
+        'development/setup',
+        'development/gitworkflow',
+        {
+          type: 'category',
+          label: 'Common Practices',
+          items: [
+            'development/communication',
+            'development/database',
+            'development/addingpages',
+          ]
+        }
       ]
     }, {
       type: 'category',
