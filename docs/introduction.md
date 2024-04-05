@@ -6,7 +6,7 @@ See [Configuration](configuration/services) for a list of different ways you can
 
 ### Want to contribute code?
 
-See [Development](development/communication) to understand the structure of the application, common practices that make up the bulk of the codebase and how to apply them yourself.
+See [Development](development/introduction) to understand the structure of the application, common practices that make up the bulk of the codebase and how to apply them yourself.
 
 ### Want to write an extension?
 

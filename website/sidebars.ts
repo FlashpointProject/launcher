@@ -29,7 +29,9 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'Development',
       items: [
+        'development/introduction',
         'development/communication',
+        'development/addingpages',
       ]
     }, {
       type: 'category',

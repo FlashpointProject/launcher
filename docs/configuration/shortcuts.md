@@ -12,7 +12,7 @@ Actions are defined as `section - action` (e.g. `curate - prev`)
 
 All shortcuts are defined in an array and can accept multiple binds. `ctrl` and `cmd` should both be used to support both Mac and Windows based keyboards.
 
-```json
+```json title="/preferences.json"
 "shortcuts": {
   "curate": {
     "prev": [
@@ -38,9 +38,9 @@ All shortcuts are defined in an array and can accept multiple binds. `ctrl` and 
   - `run` - *Runs the curation*
   - `runMad4fp` - *Runs the curation with a MAD4FP enabled server, if available*
 
-### Default Configuration
+## Default Configuration
 
-```json
+```json title="/preferences.json"
 "shortcuts": {
   "curate": {
     "prev": [

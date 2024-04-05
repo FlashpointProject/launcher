@@ -69,7 +69,7 @@ e.g. `<fpPath>/Server/config.yaml` can be a useful tool when passing a config fi
 
 
 ## Example Configuration
-```json
+```json title="/Data/services.json"
 {
   "watch": [
     "<fpPath>/Server/logs/stripped.log"

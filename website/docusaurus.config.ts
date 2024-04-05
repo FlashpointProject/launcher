@@ -79,7 +79,7 @@ const config: Config = {
               to: '/docs/configuration/services'
             }, {
               label: 'Launcher Development',
-              to: '/docs/development/communication'
+              to: '/docs/development/introduction'
             }, {
               label: 'Extension Development',
               to: '/docs/extensions/overview'

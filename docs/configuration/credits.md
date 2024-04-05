@@ -8,7 +8,7 @@ E.G Profile roles in the order `"Two", "One", "Three"` will match `Two` first.
 
 ### Layout
 
-```json
+```json title="/Data/credits.json"
 {
   "roles": [
     {

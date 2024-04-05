@@ -1,24 +1,24 @@
 # Front / Back Communication
 
-### Overview
+## Overview
 
 FPL has a Nodejs process running as the 'backend' of the application, and an Electron window running as the 'frontend' of the application. The logic for these is seperated between `src/back/` and `src/renderer/`
 
-When the frontend needs something, for example the information for a game associated with an ID, it makes a structured request which the backend will fulfill. All requests are asynchronous.
+When the frontend needs something, for example the information for a game associated with an ID, it makes a structured request which the backend will fulfill. All requests are asynchronous. A list of these request types, their arguments and their return values can be found in ``src/shared/back/types.ts`.
 
 **Note:** For the frontend, the socket client used to send/receive messages is a global object at `window.Shared.back` so can be requested anywhere.
 
-Frontend request example to fetch a game's info: 
-```typescript
+Frontend basic request example to fetch a game's info: 
+```tsx
 const game = await window.Shared.back.request(BackIn.GET_GAME, 'abcd-1234');
 ```
 
-Backend request example to open an alert dialog on all clients:
-```typescript
+Backend basic request example to open an alert dialog on all clients:
+```ts
 state.socketServer.broadcast(BackOut.OPEN_ALERT, 'Hello, I am the backend!');
 ```
 
-### Adding a new type of request
+## Adding a new type of request
 
 Adding a new type of request is fairly straightforward. For this example let's create an event that returns a random number up to a maximum defined by the user
 
@@ -28,7 +28,7 @@ Next, since we're sending a request *in* to the backend, we should find `BackIn`
 
 Then we're going to add a new name for our request type at the bottom, `RANDOM_NUMBER`
 
-```typescript
+```ts title="src/shared/back/types.ts"
 export enum BackIn {
   ...
   RANDOM_NUMBER,
@@ -41,7 +41,7 @@ We want to be able to give a `maxSize` value to decide how big the generated num
 
 **Note:** Since all communication is asynchronous you do not need to wrap the response type in `Promise<>` even if the function that will be responding to it from the backend later is async, as this will be inferred automatically.
 
-```typescript
+```ts title="src/shared/back/types.ts"
 export type BackInTemplate = SocketTemplate<BackIn, {
   ...
   [BackIn.RANDOM_NUMBER]: (maxSize: number) => number;
@@ -50,7 +50,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
 
 With this done, you should be all set to make the request for a random number up to 10 from the frontend like so.
 
-```typescript
+```ts 
 const randomNum = await window.Shared.back.request(BackIn.RANDOM_NUMBER, 10);
 ```
 
@@ -58,7 +58,7 @@ const randomNum = await window.Shared.back.request(BackIn.RANDOM_NUMBER, 10);
 
 Here we'll register a new funtion to respond to this request inside the `registerRequestCallbacks` function. It will automatically infer the argument types and return type.
 
-```typescript
+```ts title="src/back/responses.ts"
 export function registerRequestCallbacks(state: BackState, init: () => Promise<void>): void {
   ...
 
@@ -75,3 +75,41 @@ Now the backend will register this callback at startup, and it will run and retu
 
 The function can be considered `(event, ...args) => ReturnType` where `event` is information about the client that sent it, and the rest is inferred from 
 `event` is always the first argument and contains information about the client that sent it, whilst the rest of the arguments and return type are taken from the `BackInTemplate` entry defined earlier. (In this case, `(maxSize: number) => number`)
+
+## Practical Example
+
+When writing a new page, you may need to request a set of random games to list. You could request these just once when the page appears.
+
+```tsx 
+export function RandomGameNames() {
+  // Have the useState hook to keep the games list stateful
+  const [setGames, games] = React.useState<Game[]>([]);
+  // useEffect runs only once when the page mounts since it has no dependencies `[]`
+  React.useEffect(() => {
+    // Using the defined BackIn.RANDOM_GAMES type, request some games from the backend
+    window.Shared.back.request(BackIn.RANDOM_GAMES, {
+      count: 10,
+      excludedLibraries: ['theatre']
+    })
+    .then(games => {
+      // Use the returned Game[] object
+      setGames(games)
+    });
+  }, [])
+
+  return (
+    <div>
+      {games.map((game, idx) => {
+        /** Render all the games in a row. 
+          * Remember that you must have a unique `key` prop when rendering lists 
+          * We can use the index number here
+          * Sometimes you may want to use something else, like the game ID
+          */
+        return (
+          <div key={idx}>Random Game: {game.title}</div>
+        )
+      })}
+    </div>
+  )
+}
+```

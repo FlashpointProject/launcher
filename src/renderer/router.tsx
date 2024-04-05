@@ -49,7 +49,6 @@ export type AppRouterProps = {
   mad4fpEnabled: boolean;
   localeCode: string;
   devConsole: string;
-
   creditsData?: CreditsData;
   creditsDoneLoading: boolean;
   selectedGameId?: string;
