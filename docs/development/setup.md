@@ -40,6 +40,14 @@ npm run build
 npm run start
 ```
 
+### Watching
+
+During development, you can run `watch` to automatically recompile any saved changes. Any backend changes will require the software to restart, but frontend only changes can use `CTRL + SHIFT + R` to restart the window.
+
+```bash
+npm run watch
+```
+
 ### Debugging
 
 Flashpoint Launcher includes VSCode launch configurations for debugging already, just use the debug tab in the IDE.

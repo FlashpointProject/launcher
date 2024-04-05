@@ -39,6 +39,7 @@ const sidebars: SidebarsConfig = {
             'development/communication',
             'development/database',
             'development/addingpages',
+            'development/lang',
           ]
         }
       ]

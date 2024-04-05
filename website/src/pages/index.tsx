@@ -30,7 +30,7 @@ function HomepageHeader() {
           </Link>
           <br></br><br></br>
           <Link
-            className="button button-->secondary button--lg"
+            className="button button--secondary button--lg"
             to="/docs/development/introduction">
             Launcher Development
           </Link>
