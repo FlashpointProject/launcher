@@ -42,6 +42,9 @@ const config: Config = {
   ],
 
   themeConfig: {
+    colorMode: {
+      defaultMode: 'dark'
+    },
     // Replace with your project's social card
     image: 'img/meta.png',
     navbar: {
@@ -52,10 +55,28 @@ const config: Config = {
       },
       items: [
         {
-          type: 'docSidebar',
-          sidebarId: 'docs',
+          type: 'doc',
+          docId: 'introduction',
           position: 'left',
-          label: 'Usage Guide',
+          label: 'Getting Started',
+        },
+        {
+          type: 'doc',
+          docId: 'configuration/introduction',
+          position: 'left',
+          label: 'Configuration',
+        },
+        {
+          type: 'doc',
+          docId: 'development/introduction',
+          position: 'left',
+          label: 'Development',
+        },
+        {
+          type: 'doc',
+          docId: 'extensions/overview',
+          position: 'left',
+          label: 'Extensions',
         },
         {
           href: 'https://github.com/FlashpointProject/launcher',
@@ -78,10 +99,10 @@ const config: Config = {
               label: 'Configuration',
               to: '/docs/configuration/introduction'
             }, {
-              label: 'Launcher Development',
+              label: 'Development',
               to: '/docs/development/introduction'
             }, {
-              label: 'Extension Development',
+              label: 'Extensions',
               to: '/docs/extensions/overview'
             }
           ],

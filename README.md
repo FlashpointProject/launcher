@@ -11,7 +11,7 @@ The launcher for Flashpoint Archive (the non-profit web preservation project).
 [![Crowdin](https://badges.crowdin.net/flashpoint-launcher/localized.svg)](https://crowdin.com/project/flashpoint-launcher)
 
 ### Links
-* [Documentation](https://flashpointproject.github.io/launcher) - Documentation for Configuation, Launcher Development and Extension Development of the Flashpoint Launcher.
+* [Documentation](https://flashpointproject.github.io/launcher) - Documentation for Configuation, Development and Extensions information of the Flashpoint Launcher.
 * [Flashpoint Archive](https://flashpointarchive.org) - Download Flashpoint here (the launcher is bundled with it)
 * [Donate](https://opencollective.com/flashpointarchive) - Funds go towards the Flashpoint Archive non-profit to sustain archival efforts, not to fund developers of the launcher.
 
