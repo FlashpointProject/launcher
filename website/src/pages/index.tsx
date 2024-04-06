@@ -25,7 +25,7 @@ function HomepageHeader() {
           <br></br><br></br>
           <Link
             className="button button--secondary button--lg"
-            to="/docs/configuration/services">
+            to="/docs/configuration/introduction">
             Configuration
           </Link>
           <br></br><br></br>

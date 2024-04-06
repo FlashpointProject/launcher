@@ -76,7 +76,7 @@ const config: Config = {
             },
             {
               label: 'Configuration',
-              to: '/docs/configuration/services'
+              to: '/docs/configuration/introduction'
             }, {
               label: 'Launcher Development',
               to: '/docs/development/introduction'

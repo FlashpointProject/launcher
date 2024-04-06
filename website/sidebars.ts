@@ -21,6 +21,9 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'Configuration',
       items: [
+        'configuration/introduction',
+        'configuration/config',
+        'configuration/preferences',
         'configuration/services',
         'configuration/shortcuts',
         'configuration/credits',
