@@ -35,6 +35,7 @@ const sidebars: SidebarsConfig = {
         'development/introduction',
         'development/setup',
         'development/gitworkflow',
+        'development/architecture',
         {
           type: 'category',
           label: 'Common Practices',
