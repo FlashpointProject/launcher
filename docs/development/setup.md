@@ -14,6 +14,7 @@ If you've already got a cloned repo that builds and runs, please see [Git Workfl
 ## Required Setup
 
 To work on the launcher, the minimum you'll need is:
+- [Git](https://git-scm.com/downloads)
 - [NodeJS 18 or higher](https://nodejs.org/)
 
 Clone the Launcher repository and its submodules:

@@ -2,7 +2,7 @@
 
 ### Want to configure Flashpoint Launcher for your projects needs?
 
-See [Configuration](configuration/services) for a list of different ways you can configure the behaviour of the launcher for your needs.
+See [Configuration](configuration/introduction) for a list of different ways you can configure the behaviour of the launcher for your needs.
 
 ### Want to contribute code?
 

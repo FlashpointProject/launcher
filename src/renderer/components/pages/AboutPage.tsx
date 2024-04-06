@@ -65,7 +65,7 @@ export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
                     </p>
                     <div className='about-page__section__links'>
                       {link(strings.website, 'http://flashpointarchive.org/')}
-                      {link('Discord', 'https://discord.gg/Nc3DScn')}
+                      {link('Discord', 'https://discordapp.com/invite/qhvAkhWXU5')}
                     </div>
                   </div>
                 </div>
