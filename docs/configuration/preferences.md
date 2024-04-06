@@ -88,6 +88,50 @@ For deployment it is recommended to not ship with a `preferences.json` file, but
 
 `onDemandBaseUrl` - Hidden option. The base URL of the server to download missing thumbnails/screenshots from.
 
-`browserModeProxy` - Configurable via the Config page. Specifies the proxy server to use during Browser Mode.
+`browserModeProxy` - Configurable via the Config page. Specifies the proxy server to use during Browser Mode. Commonly used by some extensions.
 
-// TODO MORE
+`showLogSource` - Configurable via the Logs page. Allows selection of which sources to show or hide in the log.
+
+`showLogLevel` - Configurable via the Logs page. Allows filtering of log messages by their level of importance (e.g., error, warning, info).
+
+`excludedRandomLibraries` - Configurable via the Config page. List of libraries that should be excluded from random games list on the Home page.
+
+`appPathOverrides` - Configurable via the Config page. Specifies application path overrides to modify specific application paths before running a game.
+
+`tagFilters` - Configurable via the Config page. Allows setting up of tag filter groups to filter games from results, or make games and tags as extreme.
+
+`tagFiltersInCurate` - Configurable via the Curate page. Determines whether tag filters should be applied in Curate suggestions.
+
+`nativePlatforms` - Configurable via the Config page. Lists platforms where we want to launch a native application instead of using Wine. Linux / Mac only.
+
+`disableExtremeGames` - Configurable via the Config page. If set, all extreme tag filters will be active and hidden, mainly for parental control purposes.
+
+`showBrokenGames` - **UNUSED**
+
+`shortcuts` - Defines keyboard shortcuts for various actions within the application. See [Shortcuts](shortcuts)
+
+`onlineManual` - Hidden option. URL of the online manual for the help page of the launcher.
+
+`offlineManual` - Hidden option. Relative or Absolute Path to the offline manual for the help page in situations without internet access.
+
+`gameDataSources` - Hidden option. Specifies sources from which game data will be attempted to download from. Can support multiple mirrors.
+
+`gameMetadataSources` - Hidden option. Specifies sources from which game metadata can be synced. (Shown on the home page, only 1 safely supported currently)
+
+`fpfssBaseUrl` - Configurable via the Config page. Base URL for the FPFSS server, used for authoring actions on remote metadata.
+
+`server` - Configurable via the Config page. The name of the server process to run. See [Services](services)
+
+`curateServer` - Configurable via the Config page. The name of the server process to run when running curations on the Curate page. See [Services](services)
+
+`enablePlaytimeTracking` - Configurable via the Config page. Whether to track playtime for games in the database.
+
+`enablePlaytimeTrackingExtreme` - Configurable via the Config page. Whether to track playtime for games matching an extreme Tag filter group.
+
+`enableVerboseLogging` - Configurable via the Config page. If enabled, shows additional logging from the Database API.
+
+`screenshotPreviewMode` - Configurable via the Config page. If `0` (Off), show game logos for game grid thumbnails. If `1` (On) show the game logo until hovered for a certain delay (`screenshotPreviewModeDelay`) then show the game screenshot. If `2` (Always) always show game screenshots. (Unless hidden by extreme screenshot settings)
+
+`screenshotPreviewModeDelay` - Configurable via the Config page. How long to hover a grid game before it's screenshot is shown, if `screenshotPreviewMode` is set to `1` (On)
+
+`searchLimit` - Configurable via the Config page. The maximum number of search results to show on the browse page.
