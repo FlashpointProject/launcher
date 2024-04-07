@@ -11,6 +11,12 @@ Follow the [Required Setup](#required-setup) first, then follow on to [Database 
 
 If you've already got a cloned repo that builds and runs, please see [Git Workflow](gitworkflow) before starting to make commits.
 
+:::tip
+
+Once it's running, you may want to point the Flashpoint Path in Config (or `config.json`) to an existing root folder for your project. For Flashpoint Archive this is the folder where `/Data` is present.
+
+:::
+
 ## Required Setup
 
 To work on the launcher, the minimum you'll need is:
