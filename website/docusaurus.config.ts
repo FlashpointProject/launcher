@@ -65,25 +65,12 @@ const config: Config = {
           type: 'doc',
           docId: 'introduction',
           position: 'left',
-          label: 'Getting Started',
+          label: 'Documentation',
         },
         {
-          type: 'doc',
-          docId: 'configuration/introduction',
-          position: 'left',
-          label: 'Configuration',
-        },
-        {
-          type: 'doc',
-          docId: 'development/introduction',
-          position: 'left',
-          label: 'Development',
-        },
-        {
-          type: 'doc',
-          docId: 'extensions/overview',
-          position: 'left',
-          label: 'Extensions',
+          href: 'https://discordapp.com/invite/qhvAkhWXU5',
+          label: 'Discord',
+          position: 'right'
         },
         {
           href: 'https://github.com/FlashpointProject/launcher',

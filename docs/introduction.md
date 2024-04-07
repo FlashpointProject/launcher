@@ -11,3 +11,11 @@ See [Development](development/introduction) to understand the structure of the a
 ### Want to write an extension?
 
 See [Extensions](extensions/overview) to find out what extensions can do and how you can write your own.
+
+:::note
+
+The documentation is fairly new, if you have any problems or suggestions for improvements please either:
+- Open a [GitHub](https://github.com/FlashpointProject/launcher) issue or
+- Message us in the `#launcher` [Discord](https://discordapp.com/invite/qhvAkhWXU5) channel
+
+:::

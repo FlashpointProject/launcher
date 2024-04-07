@@ -1,5 +1,11 @@
 # Overview
 
+:::warning
+
+This section is under construction
+
+:::
+
 ## Installing
 
 Extensions should be unpacked to `/Data/Extensions` where an example path would be `/Data/Extensions/MyFirstExtension`. 

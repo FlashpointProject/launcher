@@ -44,6 +44,7 @@ const sidebars: SidebarsConfig = {
             'development/database',
             'development/addingpages',
             'development/lang',
+            'development/extapi',
           ]
         }
       ]
