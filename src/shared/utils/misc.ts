@@ -1,4 +1,4 @@
-import { Game } from 'flashpoint-launcher';
+import { Game, GameData } from 'flashpoint-launcher';
 
 export function chunkArray<T>(array: T[], chunkSize: number): T[][] {
   const chunks: T[][] = [];
@@ -47,4 +47,9 @@ export function newGame(): Game {
     gameData: [],
     addApps: []
   };
+}
+
+export function getGameDataFilename(data: GameData) {
+  const cleanDate = data.dateAdded.includes('T') ? data.dateAdded : `${data.dateAdded} +0000 UTC`;
+  return `${data.gameId}-${(new Date(cleanDate)).getTime()}.zip`;
 }

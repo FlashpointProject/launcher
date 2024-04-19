@@ -14,7 +14,7 @@ import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { defaultPreferencesData, overwritePreferenceData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { TaskProgress } from '@shared/utils/TaskProgress';
-import { chunkArray, newGame } from '@shared/utils/misc';
+import { chunkArray, getGameDataFilename, newGame } from '@shared/utils/misc';
 import { sanitizeFilename } from '@shared/utils/sanitizeFilename';
 import { throttle } from '@shared/utils/throttle';
 import * as axiosImport from 'axios';
@@ -584,7 +584,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         log.debug('Launcher', 'Found active game data');
         const gameData = game.gameData?.find(gd => gd.id === game.activeDataId);
         if (gameData && !gameData.presentOnDisk) {
-          log.debug('Game Launcher', 'Downloading Game Data for ' + gameData.path || 'UNKNOWN');
+          log.debug('Game Launcher', 'Downloading Game Data for ' + getGameDataFilename(gameData) || 'UNKNOWN');
           // Download GameData
           try {
             await downloadGameDataRes(state, gameData);
@@ -883,13 +883,19 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   state.socketServer.register(BackIn.GET_GAME_DATA, async (event, id) => {
     const gameData = await fpDatabase.findGameDataById(id);
     // Verify it's still on disk
-    if (gameData && gameData.presentOnDisk && gameData.path) {
+    if (gameData) {
+      const gameDataFilename = getGameDataFilename(gameData);
       try {
-        await fs.promises.access(path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, gameData.path), fs.constants.F_OK);
+        await fs.promises.access(path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, gameDataFilename), fs.constants.F_OK);
+        if (!gameData.presentOnDisk) {
+          gameData.presentOnDisk = true;
+          return fpDatabase.saveGameData(gameData);
+        }
       } catch (err) {
-        gameData.path = undefined;
-        gameData.presentOnDisk = false;
-        return fpDatabase.saveGameData(gameData);
+        if (gameData.presentOnDisk) {
+          gameData.presentOnDisk = false;
+          return fpDatabase.saveGameData(gameData);
+        }
       }
     }
     return gameData;
@@ -916,9 +922,10 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   state.socketServer.register(BackIn.DELETE_GAME_DATA, async (event, gameDataId) => {
     const gameData = await fpDatabase.findGameDataById(gameDataId);
     if (gameData) {
-      if (gameData.presentOnDisk && gameData.path) {
+      if (gameData.presentOnDisk) {
+        const gameDataFilename = getGameDataFilename(gameData);
         await onWillUninstallGameData.fire(gameData);
-        const gameDataPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, gameData.path);
+        const gameDataPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, gameDataFilename);
         await fs.promises.unlink(gameDataPath);
         gameData.path = undefined;
         gameData.presentOnDisk = false;
@@ -953,10 +960,11 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
   state.socketServer.register(BackIn.UNINSTALL_GAME_DATA, async (event, id) => {
     const gameData = await fpDatabase.findGameDataById(id);
-    if (gameData && gameData.path && gameData.presentOnDisk) {
+    if (gameData && gameData.presentOnDisk) {
+      const gameDataFilename = getGameDataFilename(gameData);
       await onWillUninstallGameData.fire(gameData);
       // Delete Game Data
-      const gameDataPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, gameData.path);
+      const gameDataPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, gameDataFilename);
       await fs.promises.unlink(gameDataPath)
       .catch((error) => {
         if (error.code !== 'ENOENT') {
@@ -964,7 +972,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
           throw error;
         }
       });
-      gameData.path = '';
+      gameData.path = undefined;
       gameData.presentOnDisk = false;
       await fpDatabase.saveGameData(gameData);
       onDidUninstallGameData.fire(gameData);
