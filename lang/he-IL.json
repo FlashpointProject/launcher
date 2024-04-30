@@ -49,7 +49,7 @@
     "flashpointHeader": "פלאשפוינט",
     "flashpointPath": "נתיב Flashpoint",
     "flashpointPathDesc": "נתיב לתיקיית Flashpoint (יכול להיות יחסי)",
-    "browse": "דפדף",
+    "browse": "עיון",
     "libraries": "סיפריות",
     "randomLibraries": "ספריות אקראיות",
     "randomLibrariesDesc": "ספריות לשימוש בבחירות אקראיות בעמוד הבית.",
@@ -165,7 +165,7 @@
   },
   "app": {
     "home": "בית",
-    "browse": "דפדף",
+    "browse": "עיון",
     "tags": "Tags",
     "categories": "Categories",
     "logs": "קבצי יומן",
