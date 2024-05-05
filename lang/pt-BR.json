@@ -87,7 +87,7 @@
     "optimizeDatabaseDesc": "Executar tarefas de manutenção para aumentar o desempenho do banco de dados e reduzir o tamanho",
     "showDeveloperTab": "Mostrar Aba de Desenvolvedor",
     "showDeveloperTabDesc": "Mostra a aba de 'Desenvolvedor'. Isto provavelmente só é útil para desenvolvedores e curadores.",
-    "registerProtocol": "Register As Protocol Handler",
+    "registerProtocol": "Registre-se Como um Manipulador de Protocolo",
     "registerProtocolDesc": "Registra o launcher para responder a solicitações de protocolo 'flashpoint://'.",
     "server": "Servidor",
     "serverDesc": "Qual servidor será executado durante os jogos.",
