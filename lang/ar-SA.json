@@ -183,10 +183,10 @@
     "list": "قائمة",
     "grid": "شكل شبكي",
     "searchResults": "نتائج البحث",
-    "manual": "Help",
+    "manual": "يساعد",
     "layout": "Browser Layout",
     "openFlashpointManager": "Open Flashpoint Manager",
-    "fpfssProfile": "Open Profile",
+    "fpfssProfile": "عرض الملف الشخصي",
     "fpfssLogout": "Logout from FPFSS",
     "softwareUpdateRequired": "Software updated required. Do this now?",
     "noLauncherUpdateReady": "Metadata update requires a newer Launcher version, but the software update is not currently available."
