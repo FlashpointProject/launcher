@@ -9,6 +9,7 @@ import { WithTasksProps } from '@renderer/containers/withTasks';
 import { CurateActionType } from '@renderer/store/curate/enums';
 import { CurateGroup } from '@renderer/store/curate/types';
 import { getCurationPostURL, getPlatformIconURL } from '@renderer/Util';
+import { eventResponseDebouncerFactory } from '@shared/eventResponseDebouncer';
 import { LangContext } from '@renderer/util/lang';
 import { BackIn } from '@shared/back/types';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
@@ -42,6 +43,8 @@ export type CuratePageProps = OwnProps & WithPreferencesProps & WithTagCategorie
 export function CuratePage(props: CuratePageProps) {
   const curation: CurationState | undefined = props.curate.curations.find(c => c.folder === props.curate.current);
   const strings = React.useContext(LangContext);
+
+  const suggsDebounce = eventResponseDebouncerFactory<TagSuggestion[]>();
 
   const [tagText, setTagText] = React.useState<string>('');
   const [tagSuggestions, setTagSuggestions] = React.useState<TagSuggestion[]>([]);
@@ -292,9 +295,9 @@ export function CuratePage(props: CuratePageProps) {
     const lastTag = (splitTags.length > 0 ? splitTags.pop() || '' : '').trim();
     setTagText(tagText);
     if (tagText !== '') {
-      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, lastTag, props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !props.preferencesData.browsePageShowExtreme)))
-      .then(setTagSuggestions);
+      suggsDebounce.dispatch(window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, lastTag, props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !props.preferencesData.browsePageShowExtreme))), setTagSuggestions);
     } else {
+      suggsDebounce.invalidate();
       setTagSuggestions([]);
     }
   }, [setTagText, setTagSuggestions]);

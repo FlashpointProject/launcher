@@ -74,7 +74,7 @@
   "devDependencies": {
     "@kayahr/jest-electron-runner": "^29.3.1",
     "@swc/cli": "0.3.12",
-    "@swc/core": "1.4.11",
+    "@swc/core": "1.5.5",
     "@types/follow-redirects": "1.8.0",
     "@types/fs-extra": "8.1.0",
     "@types/jest": "27.5.1",
