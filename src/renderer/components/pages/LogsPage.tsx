@@ -214,9 +214,15 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
   }
 
   onCopyClick = (): void => {
-    if (!navigator.clipboard) { throw new Error('Clipboard API is not available.'); }
-    const logData = this.getLogString();
-    navigator.clipboard.writeText(parseHtmlToText(logData));
+    if (!navigator.clipboard) { 
+      alert("Clipboard not available, failed to copy logs to clipboard");
+    }
+    const logData = window.Shared.log.entries.filter(l => window.Shared.preferences.data.showLogLevel[l.logLevel])
+    .map(formedLog => {
+      return `[${LogLevel[formedLog.logLevel].padEnd(5)}] [${(new Date(formedLog.timestamp)).toLocaleString('en-GB')}]: (${formedLog.source}) - ${formedLog.content}`;
+    })
+    .join('\n');
+    navigator.clipboard.writeText(logData);
   };
 
   onClearClick = (): void => {
