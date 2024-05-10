@@ -219,7 +219,7 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
     }
     const logData = window.Shared.log.entries.filter(l => window.Shared.preferences.data.showLogLevel[l.logLevel])
     .map(formedLog => {
-      return `[${LogLevel[formedLog.logLevel].padEnd(5)}] [${(new Date(formedLog.timestamp)).toLocaleString('en-GB')}]: (${formedLog.source}) - ${formedLog.content}`;
+      return `[${LogLevel[formedLog.logLevel].padEnd(5)}] [${(new Date(formedLog.timestamp)).toLocaleTimeString('en-GB')}]: (${formedLog.source}) - ${formedLog.content}`;
     })
     .join('\n');
     navigator.clipboard.writeText(logData);
