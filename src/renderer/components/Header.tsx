@@ -16,6 +16,7 @@ import { GameOrder, GameOrderChangeEvent } from './GameOrder';
 import { InputElement } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { TagInputField } from './TagInputField';
+import { eventResponseDebouncerFactory } from '@shared/eventResponseDebouncer';
 
 type OwnProps = {
   /** The most recent search query. */
@@ -56,6 +57,8 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
   declare context: React.ContextType<typeof LangContext>;
 
   searchInputRef: React.RefObject<InputElement> = React.createRef();
+
+  suggsDebouncer = eventResponseDebouncerFactory<TagSuggestion[]>();
 
   constructor(props: HeaderProps) {
     super(props);
@@ -256,16 +259,19 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
     const value = event.target.value;
     this.setState({ searchText: value }, () => {
       // Update tag suggestions if currently in `tag:` search
-      const tagRegex = /(#([^\s]+)|tag:([^\s]+))$/;
+      const tagRegex = /(#([^\s]+)|tag[:=]([^\s]+))$/;
       const tagMatch = tagRegex.exec(this.state.searchText);
       if (tagMatch) {
         const tagName = tagMatch[2] || tagMatch[3];
-        window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, tagName, this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme)))
-        .then(data => {
-          if (data) { this.setState({ tagSuggestions: data }); }
-        });
+        this.suggsDebouncer.dispatch(
+          window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, tagName, this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme))),
+          (data) => {
+            if (data) { this.setState({ tagSuggestions: data }); }
+          }
+        );
       } else {
         // Not searching by tag
+        this.suggsDebouncer.invalidate();
         this.setState({ tagSuggestions: [] });
       }
       // Update platform suggestions if currently in `platform:` or `platforms:` or `tech:` search
@@ -295,15 +301,16 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
   };
 
   onTagSuggestionSelect = (suggestion: TagSuggestion): void => {
-    const tagRegex = /((#)([^\s]+)|(tag:)([^\s]+))$/;
+    const tagRegex = /((#)([^\s]+)|(tag[:=])([^\s]+))$/;
     const match = tagRegex.exec(this.state.searchText);
     if (match) {
       console.log(match);
       const quickSearch = match[4] ? false : true;
       console.log(quickSearch);
       const index = match.index + (quickSearch ? 1 : 4);
+      if (index === 0) { return; } // Just to be careful
       this.setState({
-        searchText: this.state.searchText.slice(0, index) + `"${suggestion.name}"`,
+        searchText: this.state.searchText.slice(0, index-1) + `="${suggestion.name}"`,
         tagSuggestions: []
       });
     }
