@@ -1235,13 +1235,13 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
 
   onTagSelect = (tag: Tag): void => {
     const alias = tag.name;
-    const search = `tag:${wrapSearchTerm(alias)}`;
+    const search = `tag=${wrapSearchTerm(alias)}`;
     this.props.onSearch(search);
   };
 
   onPlatformSelect = (platform: Platform): void => {
     const alias = platform.name;
-    const search = `platform:${wrapSearchTerm(alias)}`;
+    const search = `platform=${wrapSearchTerm(alias)}`;
     this.props.onSearch(search);
   };
 
@@ -1427,7 +1427,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
         const value = currentGame[field];
         const search = (value)
           ? `${field}=${wrapSearchTerm(value)}`
-          : `missing:${field}`;
+          : `${field}=""`;
         this.props.onSearch(search);
       }
     };
