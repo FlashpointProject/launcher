@@ -17,6 +17,7 @@ import { BackOut, ComponentState, ComponentStatus } from '@shared/back/types';
 import * as child_process from 'child_process';
 import { awaitDialog, createNewDialog } from './util/dialog';
 import { formatString } from '@shared/utils/StringFormatter';
+import { getGameDataFilename } from '@shared/utils/misc';
 
 const { str } = Coerce;
 
@@ -550,7 +551,7 @@ async function handleGameDataParams(opts: LaunchBaseOpts, serverOverride?: strin
       }
       if (!alreadyExtracted) {
         // Extract game data to htdocs folder
-        const gameDataPath = path.join(opts.fpPath, opts.dataPacksFolderPath, gameData.path || '');
+        const gameDataPath = path.join(opts.fpPath, opts.dataPacksFolderPath, getGameDataFilename(gameData) || '');
         const tempPath = path.join(opts.fpPath, '.temp', 'extract');
         await fs.ensureDir(tempPath);
         const destPath = path.join(opts.fpPath, opts.htdocsPath);

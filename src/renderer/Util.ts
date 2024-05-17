@@ -9,6 +9,7 @@ import { GameDragEventData } from './components/pages/BrowsePage';
 import { GameGridItem } from './components/GameGridItem';
 import { GameListItem } from './components/GameListItem';
 import { ViewQuery } from '@shared/library/util';
+import { getGameDataFilename } from '@shared/utils/misc';
 
 export const gameDragDataType = 'json/game-drag';
 
@@ -122,8 +123,8 @@ export async function getGamePath(game: Game, fpPath: string, htdocsPath: string
   // Check for GameData first
   if (game.activeDataId) {
     const gameData = await window.Shared.back.request(BackIn.GET_GAME_DATA, game.activeDataId);
-    if (gameData && gameData.path) {
-      return path.resolve(fpPath, dataPacksPath, gameData.path);
+    if (gameData) {
+      return path.resolve(fpPath, dataPacksPath, getGameDataFilename(gameData));
     } else {
       return undefined;
     }

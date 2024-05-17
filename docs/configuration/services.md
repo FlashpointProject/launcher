@@ -1,36 +1,13 @@
 # Services
 
-The launcher provides multiple ways to run programs alongside. An example config is provided at the bottom of the page.
+## Overview
 
-`<fpPath>` can be used in any file path. These will be substituted out for the absolute Flashpoint path as defined in Config.
-
-### File Layout
-
-```json
-{
-  "watch": [
-    "logFile", "anotherLogFile"
-  ],
-  "server": [
-    {
-      ...
-    }
-  ],
-  "start": [
-    {
-      ...
-    }
-  ],
-  "stop": [
-    {
-      ...
-    }
-  ],
-  "daemon": [
-
-  ]
-}
-```
+Flashpoint Launcher supports a few methods of running background processes:
+- **Watch** - Starts a watcher for a file and prints the new content to the logs page
+- **Server** - A single server can run at a time, this can be selected on the Config page or forced by a Game's launch parameters
+- **Start** - Runs when the launcher starts
+- **Stop** - Runs when the launcher is about to close
+- **Daemon** - Runs when the launcher starts as a managed process and killed when the launcher is about to close
 
 ### Watch
 
@@ -46,11 +23,11 @@ A server is started alongside the launcher. Multiple servers can be defined but 
 
 **Filename** - Filename relative to the Path to execute.
 
-**Arguments** - A list of arguments to pass to the server on execution.
+**Arguments** - A list of arguments to pass to the process on execution.
 
 **Kill** - Whether to kill the process when the launcher closes or not.
 
-**MAD4FP** - (Optional) - Whether this is a MAD4FP enabled server. If you're unsure what this means, leave as false.
+**MAD4FP** - (Optional) - Whether this is a MAD4FP enabled server. This server will be used when `Run With MAD4FP` is used from the Curate page.
 
 ```json
 {
@@ -81,8 +58,18 @@ Stop / Start processes and Daemon services can be given to run with the launcher
 }
 ```
 
-## Example 
-```json
+### Substitutions
+
+The `path`, `filename` and `arguments` fields of all of these also support a few subtitutions:
+- `<fpPath>` - Flashpoint Path as defined in the Config page
+- `<cwd>` - Working directory of the Launcher executable
+- `<os>` - Operating system of the host (`win32`, `darwin` or `linux`)
+
+e.g. `<fpPath>/Server/config.yaml` can be a useful tool when passing a config file as an argument.
+
+
+## Example Configuration
+```json title="/Data/services.json"
 {
   "watch": [
     "<fpPath>/Server/logs/stripped.log"

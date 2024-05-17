@@ -1,4 +1,4 @@
-# Middleware
+# Middleware (Disabled)
 
 Extensions can provide middleware which a user can choose to apply before a game launches. This can be useful for modifying game files, creating new files or modifying launch options before a game starts.
 
