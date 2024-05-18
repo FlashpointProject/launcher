@@ -9,6 +9,7 @@ import * as child_process from 'child_process';
 import { execFile } from 'child_process';
 import { AdditionalApp, Game, GameLaunchInfo, Platform, Tag, TagCategory } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
+import * as crypto from 'crypto';
 import * as path from 'path';
 import * as YAML from 'yaml';
 import { fpDatabase } from '.';
@@ -18,8 +19,10 @@ import { copyFolder } from './rust';
 import { BackState, OpenExternalFunc, ShowMessageBoxFunc } from './types';
 import { awaitDialog } from './util/dialog';
 import { getMklinkBatPath } from './util/elevate';
-import { onWillImportCuration } from './util/events';
+import { onDidInstallGameData, onWillImportCuration } from './util/events';
 import { uuid } from './util/uuid';
+import { GameData, PartialGameData } from '@fparchive/flashpoint-archive';
+import { ArchiveState } from '@shared/back/types';
 
 type ImportCurationOpts = {
   curation: LoadedCuration;
@@ -62,6 +65,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
     saveCuration,
     fpPath,
     imageFolderPath: imagePath,
+    dataPacksFolderPath,
     taskProgress
   } = opts;
 
@@ -262,7 +266,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
     // Import bluezip
     const filePath = path.join(curationPath, `${curation.folder}.zip`);
     taskProgress.setStageProgress(0.9, 'Importing Zipped File...');
-    // TODO await GameDataManager.importGameData(game.id, filePath, dataPacksFolderPath, curation.game.applicationPath, curation.game.launchCommand, curation.game.mountParameters);
+    await importGameData(game.id, filePath, dataPacksFolderPath, curation.game.applicationPath, curation.game.launchCommand, curation.game.mountParameters);
     await fs.promises.unlink(filePath);
   })
   .catch((error) => {
@@ -276,6 +280,80 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
     }
     // Let it bubble up
     throw error;
+  });
+}
+
+function importGameData(gameId: string, filePath: string, dataPacksFolderPath: string, applicationPath?: string, launchCommand?: string, mountParameters?: string): Promise<GameData> {
+  return new Promise<GameData>((resolve, reject) => {
+    fs.promises.access(filePath, fs.constants.F_OK)
+    .then(async () => {
+      // Gather basic info
+      const stats = await fs.promises.stat(filePath);
+      const hash = crypto.createHash('sha256');
+      hash.setEncoding('hex');
+      const stream = fs.createReadStream(filePath);
+      stream.on('end', async () => {
+        const sha256 = hash.digest('hex').toUpperCase();
+        const gameData = await fpDatabase.findGameData(gameId);
+        const existingGameData = gameData.find(g => g.sha256.toLowerCase() === sha256.toLowerCase());
+        // Copy file
+        const dateAdded = new Date();
+        const cleanDate = existingGameData ? existingGameData.dateAdded.includes('T') ? existingGameData.dateAdded : `${existingGameData.dateAdded} +0000 UTC` : '';
+        const newFilename = existingGameData ? `${gameId}-${new Date(cleanDate).getTime()}.zip` : `${gameId}-${dateAdded.getTime()}.zip`;
+        const newPath = path.join(dataPacksFolderPath, newFilename);
+        await fs.promises.copyFile(filePath, newPath);
+        if (existingGameData) {
+          if (existingGameData.presentOnDisk === false) {
+            // File wasn't on disk before but is now, update GameData info
+            existingGameData.path = newFilename;
+            existingGameData.presentOnDisk = true;
+            fpDatabase.saveGameData(existingGameData)
+            .then(async (gameData) => {
+              await onDidInstallGameData.fire(gameData);
+              resolve(gameData);
+            })
+            .catch(reject);
+          } else {
+            // File exists on disk already
+            resolve(existingGameData);
+          }
+        } else {
+          // SHA256 not matching any existing GameData, create a new one
+          const newGameData: PartialGameData = {
+            title: 'Data Pack',
+            gameId: gameId,
+            size: stats.size,
+            dateAdded: dateAdded.toISOString(),
+            presentOnDisk: true,
+            path: newFilename,
+            sha256: sha256,
+            applicationPath: applicationPath || '',
+            launchCommand: launchCommand || '',
+            parameters: mountParameters,
+            crc32: 0,
+          };
+          fpDatabase.createGameData(newGameData)
+          .then(async (gameData) => {
+            const game = await fpDatabase.findGame(gameId);
+            if (game) {
+              // Remove legacy info when adding game data
+              game.archiveState = ArchiveState.Available;
+              game.legacyApplicationPath = '';
+              game.legacyLaunchCommand = '';
+              game.activeDataId = gameData.id;
+              game.activeDataOnDisk = gameData.presentOnDisk;
+              await fpDatabase.saveGame(game);
+              await onDidInstallGameData.fire(gameData);
+              resolve(gameData);
+            }
+          })
+          .catch(reject);
+        }
+
+      });
+      stream.pipe(hash);
+    })
+    .catch(reject);
   });
 }
 
