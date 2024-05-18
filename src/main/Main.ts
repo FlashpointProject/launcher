@@ -352,7 +352,7 @@ export function main(init: Init): void {
           )
         )
       );
-      if (!allow) {
+      if (!allow && !Util.isDev) {
         console.log(`Request Denied to ${url?.hostname || remoteHostname}`);
       }
 

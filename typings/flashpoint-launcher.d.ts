@@ -922,6 +922,10 @@ declare module 'flashpoint-launcher' {
 
     export type TagFilter = string[];
 
+    type SingleUsePromptPrefs = {
+        badAntiVirus: boolean;
+    }
+
     /**
      * Contains state of all non-config settings the user can change in the application.
      * This is the data contained in the Preferences file.
@@ -1056,6 +1060,8 @@ declare module 'flashpoint-launcher' {
         screenshotPreviewDelay: number;
         /** Search Limit for Browse Page */
         searchLimit: number;
+        /** Flags for whether we've shown a one use prompt */
+        singleUsePrompt: SingleUsePromptPrefs;
     };
 
     enum ScreenshotPreviewMode {

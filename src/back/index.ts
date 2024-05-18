@@ -5,6 +5,7 @@ import {
   removeFileExtension,
   stringifyArray
 } from '@shared/Util';
+import * as os from 'os';
 import { BackIn, BackInit, BackInitArgs, BackOut, BackResParams, ComponentState, ComponentStatus, DownloadDetails } from '@shared/back/types';
 import { LoadedCuration } from '@shared/curate/types';
 import { getContentFolderByKey } from '@shared/curate/util';
@@ -44,7 +45,7 @@ import { PlaylistFile } from './PlaylistFile';
 import { ServicesFile } from './ServicesFile';
 import { SocketServer } from './SocketServer';
 import { newThemeWatcher } from './Themes';
-import { CONFIG_FILENAME, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE } from './constants';
+import { CONFIG_FILENAME, DISCORD_LINK, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE, WIKI_AV_TROUBLESHOOTING } from './constants';
 import { loadCurationIndexImage } from './curate/parse';
 import { readCurationMeta } from './curate/read';
 import { onFileServerRequestCurationFileFactory, onFileServerRequestPostCuration } from './curate/util';
@@ -70,6 +71,9 @@ import { logFactory } from './util/logging';
 import { createContainer, exit, getMacPATH, runService } from './util/misc';
 import { uuid } from './util/uuid';
 import { onDidInstallGameData, onDidRemoveGame, onDidRemovePlaylistGame, onDidUninstallGameData, onDidUpdateGame, onDidUpdatePlaylist, onDidUpdatePlaylistGame, onServiceChange, onWillImportCuration, onWillUninstallGameData } from './util/events';
+import { dispose } from './util/lifecycle';
+import { formatString } from '@shared/utils/StringFormatter';
+import { awaitDialog } from './util/dialog';
 
 export const VERBOSE = {
   enabled: false
@@ -804,57 +808,117 @@ async function initialize() {
 
   console.log('Back - Checked Component Updates');
 
-  // Init services
-  try {
-    state.serviceInfo = await ServicesFile.readFile(
-      path.join(state.config.flashpointPath, state.preferences.jsonFolderPath),
-      state.config,
-      error => { log.info(SERVICES_SOURCE, error.toString()); }
-    );
-  } catch (error) {
-    console.log('Error loading services - ' + error);
-  }
-  if (state.serviceInfo) {
-    // Run start commands
-    for (let i = 0; i < state.serviceInfo.start.length; i++) {
-      await execProcess(state.serviceInfo.start[i]);
+  const loadServices = async () => {
+    // Init services
+    try {
+      state.serviceInfo = await ServicesFile.readFile(
+        path.join(state.config.flashpointPath, state.preferences.jsonFolderPath),
+        state.config,
+        error => { log.info(SERVICES_SOURCE, error.toString()); }
+      );
+    } catch (error) {
+      console.log('Error loading services - ' + error);
     }
-    // Run processes
-    if (state.serviceInfo.server.length > 0) {
-      let chosenServer = state.serviceInfo.server.find(i => i.name === state.preferences.server);
-      if (!chosenServer) {
-        chosenServer = state.serviceInfo.server[0];
+    if (state.serviceInfo) {
+      // Run start commands
+      for (let i = 0; i < state.serviceInfo.start.length; i++) {
+        await execProcess(state.serviceInfo.start[i]);
       }
-      runService(state, 'server', 'Server', state.config.flashpointPath, { detached: !chosenServer.kill, noshell: !!chosenServer.kill }, chosenServer);
-    }
-    // Start daemons
-    for (let i = 0; i < state.serviceInfo.daemon.length; i++) {
-      const service = state.serviceInfo.daemon[i];
-      const id = 'daemon_' + i;
-      runService(state, id, service.name || id, state.config.flashpointPath, { detached: !service.kill, noshell: !!service.kill }, service);
-    }
-    // Start file watchers
-    for (let i = 0; i < state.serviceInfo.watch.length; i++) {
-      const filePath = state.serviceInfo.watch[i];
-      try {
-        // Windows requires fs.watchFile to properly update
-        const tail = new Tail(filePath, { follow: true, useWatchFile: true });
-        tail.on('line', (data) => {
-          log.info('Log Watcher', data);
-        });
-        tail.on('error', (error) => {
-          log.info('Log Watcher', `Error while watching file "${filePath}" - ${error}`);
-        });
-        log.info('Log Watcher', `Watching file "${filePath}"`);
-      } catch (error) {
-        log.info('Log Watcher', `Failed to watch file "${filePath}" - ${error}`);
+      // Run processes
+      if (state.serviceInfo.server.length > 0) {
+        let chosenServer = state.serviceInfo.server.find(i => i.name === state.preferences.server);
+        if (!chosenServer) {
+          chosenServer = state.serviceInfo.server[0];
+        }
+        runService(state, 'server', 'Server', state.config.flashpointPath, { detached: !chosenServer.kill, noshell: !!chosenServer.kill }, chosenServer);
+      }
+      // Start daemons
+      for (let i = 0; i < state.serviceInfo.daemon.length; i++) {
+        const service = state.serviceInfo.daemon[i];
+        const id = 'daemon_' + i;
+        runService(state, id, service.name || id, state.config.flashpointPath, { detached: !service.kill, noshell: !!service.kill }, service);
+      }
+      // Start file watchers
+      for (let i = 0; i < state.serviceInfo.watch.length; i++) {
+        const filePath = state.serviceInfo.watch[i];
+        try {
+          // Windows requires fs.watchFile to properly update
+          const tail = new Tail(filePath, { follow: true, useWatchFile: true });
+          tail.on('line', (data) => {
+            log.info('Log Watcher', data);
+          });
+          tail.on('error', (error) => {
+            log.info('Log Watcher', `Error while watching file "${filePath}" - ${error}`);
+          });
+          log.info('Log Watcher', `Watching file "${filePath}"`);
+        } catch (error) {
+          log.info('Log Watcher', `Failed to watch file "${filePath}" - ${error}`);
+        }
       }
     }
-  }
-  state.init[BackInit.SERVICES] = true;
-  state.initEmitter.emit(BackInit.SERVICES);
+    state.init[BackInit.SERVICES] = true;
+    state.initEmitter.emit(BackInit.SERVICES);
 
-  console.log('Back - Initialized Services');
+    console.log('Back - Initialized Services');
+  };
+
+  // Check if we need to delay service startup because of antivirus
+  let delayServices = false;
+  if (!state.preferences.singleUsePrompt.badAntiVirus && os.platform() === 'win32') {
+    const output = child_process.execSync('powershell.exe -Command "Get-CimInstance -Namespace root/SecurityCenter2 -ClassName AntivirusProduct | Format-Wide -Property displayName"').toString().trim();
+    if (output.toLowerCase().includes('avast antivirus') || output.toLowerCase().includes('avg antivirus')) {
+      console.log('Back - Delaying Services until Antivirus warning resolved');
+      delayServices = true;
+      // Add a listener so we can open the prompt when the user connects
+      const disposable = state.apiEmitters.onDidConnect.event(async () => {
+        // Frontend connected
+        console.log('Back - Opening Antivirus warning on connected client');
+        let stayOpen = true;
+        while (stayOpen) {
+          const msg = formatString(state.languageContainer.dialog.badAntiVirus, output.trim()) as string;
+          const client = state.socketServer.clients.clients[state.socketServer.clients.clients.length - 1]; // Latest client
+          const func = state.socketServer.showMessageBoxBack(state, client);
+          const dialogId = await func({
+            message: msg,
+            largeMessage: true,
+            buttons: [state.languageContainer.dialog.openWiki, state.languageContainer.dialog.openDiscord, state.languageContainer.dialog.doNotShowAgain],
+          });
+          const res = await awaitDialog(state, dialogId);
+          switch (res.buttonIdx) {
+            case 0:
+              // wiki
+              child_process.execSync(`start ${WIKI_AV_TROUBLESHOOTING}`);
+              break;
+            case 1:
+              // discord
+              child_process.execSync(`start ${DISCORD_LINK}`);
+              break;
+            case 2:
+              console.log('Back - Antivirus warning has been resolved, continuing with services loading...');
+              stayOpen = false;
+              state.preferences.singleUsePrompt.badAntiVirus = true;
+              PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
+              state.socketServer.broadcast(BackOut.UPDATE_PREFERENCES_RESPONSE, state.preferences);
+              loadServices();
+              break;
+            default:
+              stayOpen = false;
+              break;
+          }
+        }
+
+        dispose(disposable);
+      });
+    }
+  }
+
+  if (!delayServices) {
+    await loadServices();
+  } else {
+    // Ugly hack to prevent splash screen getting stuck while services is delayed (dialog should prevent issues anyway)
+    state.init[BackInit.SERVICES] = true;
+    state.initEmitter.emit(BackInit.SERVICES);
+  }
 
   // Load Exec Mappings
   loadExecMappingsFile(path.join(state.config.flashpointPath, state.preferences.jsonFolderPath), content => log.info('Launcher', content))

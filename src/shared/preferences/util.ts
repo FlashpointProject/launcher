@@ -2,7 +2,7 @@ import { CurateGroup } from '@renderer/store/curate/types';
 import { autoCode } from '@shared/lang';
 import { LogLevel } from '@shared/Log/interface';
 import { delayedThrottle, delayedThrottleAsync } from '@shared/utils/throttle';
-import { AppPathOverride, AppPreferencesData, AppPreferencesDataMainWindow, GameDataSource, GameMetadataSource, MetadataUpdateInfo, TagFilterGroup } from 'flashpoint-launcher';
+import { AppPathOverride, AppPreferencesData, AppPreferencesDataMainWindow, GameDataSource, GameMetadataSource, MetadataUpdateInfo, SingleUsePromptPrefs, TagFilterGroup } from 'flashpoint-launcher';
 import { BackIn } from '../back/types';
 import { BrowsePageLayout, ScreenshotPreviewMode } from '../BrowsePageLayout';
 import { ARCADE } from '../constants';
@@ -149,6 +149,9 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   enableVerboseLogging: false,
   screenshotPreviewMode: ScreenshotPreviewMode.OFF,
   screenshotPreviewDelay: 250,
+  singleUsePrompt: {
+    badAntiVirus: false,
+  }
 });
 
 /**
@@ -270,6 +273,9 @@ export function overwritePreferenceData(
     parser.prop('gameMetadataSources').array((item, index) => newSources[index] = parseGameMetadataSource(item as IObjectParserProp<GameMetadataSource>));
     source.gameMetadataSources = newSources;
   }
+  if (data.singleUsePrompt) {
+    source.singleUsePrompt = parseSingleUsePrompt(parser.prop('singleUsePrompt') as IObjectParserProp<SingleUsePromptPrefs>);
+  }
   // Done
   return source;
 }
@@ -286,6 +292,16 @@ function parseScreenshotPreviewMode(v: any): ScreenshotPreviewMode {
     default:
       return ScreenshotPreviewMode.OFF;
   }
+}
+
+function parseSingleUsePrompt(parser: IObjectParserProp<SingleUsePromptPrefs>): SingleUsePromptPrefs {
+  const prompts: SingleUsePromptPrefs = {
+    badAntiVirus: false,
+  };
+
+  parser.prop('badAntiVirus', v => prompts.badAntiVirus = !!v, true);
+
+  return prompts;
 }
 
 function parseMainWindow(parser: IObjectParserProp<any>, output: AppPreferencesDataMainWindow): void {

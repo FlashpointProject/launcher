@@ -1,3 +1,4 @@
+import { GameSearch, GameSearchDirection, GameSearchOffset, GameSearchSortable, PartialTagCategory, newSubfilter, parseUserSearchInput } from '@fparchive/flashpoint-archive';
 import { LogLevel } from '@shared/Log/interface';
 import { MetaEditFile, MetaEditMeta } from '@shared/MetaEdit';
 import { deepCopy, downloadFile, padEnd } from '@shared/Util';
@@ -20,7 +21,6 @@ import { throttle } from '@shared/utils/throttle';
 import * as axiosImport from 'axios';
 import * as child_process from 'child_process';
 import { execSync } from 'child_process';
-import { GameSearch, GameSearchDirection, GameSearchOffset, GameSearchSortable, PartialTagCategory, newSubfilter, parseUserSearchInput } from '@fparchive/flashpoint-archive';
 import { ConfigSchema, CurationState, Game, GameConfig, GameData, GameLaunchInfo, GameMetadataSource, GameMiddlewareInfo, RequestGameRange, ResponseGameRange, Tag, TagCategory } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as fs_extra from 'fs-extra';
@@ -54,6 +54,7 @@ import { BackState, MetadataRaw, TagsFile } from './types';
 import { pathToBluezip } from './util/Bluezip';
 import { pathTo7zBack } from './util/SevenZip';
 import { awaitDialog, createNewDialog } from './util/dialog';
+import { onDidUninstallGameData, onWillUninstallGameData } from './util/events';
 import {
   compareSemVerVersions,
   copyError,
@@ -68,7 +69,6 @@ import {
   runService
 } from './util/misc';
 import { uuid } from './util/uuid';
-import { onDidUninstallGameData, onWillUninstallGameData } from './util/events';
 
 const axios = axiosImport.default;
 
@@ -148,7 +148,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     state.downloadController.abort();
   });
 
-  state.socketServer.register(BackIn.GET_RENDERER_LOADED_DATA, async () => {
+  state.socketServer.register(BackIn.GET_RENDERER_LOADED_DATA, async (event) => {
     const libraries = await fpDatabase.findAllGameLibraries();
 
     // Fetch update feed in background
@@ -247,7 +247,9 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     };
 
     // Fire after return has sent
-    setTimeout(() => state.apiEmitters.onDidConnect.fire(), 100);
+    setTimeout(async () => {
+      state.apiEmitters.onDidConnect.fire();
+    }, 100);
 
     return res;
   });
@@ -1798,7 +1800,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     // generics
 
     if (!fs.existsSync(path.join(state.config.flashpointPath, 'Legacy', 'router.php'))) {
-      diagnostics.generics.push('router.php is missing. Possible cause: Anti-Virus software has deleted it.');
+      diagnostics.generics.push('router.php is missing. Possible cause: Antivirus software has deleted it.');
     }
     if (state.log.findIndex(e => e.content.includes('Server exited with code 3221225781')) !== -1) {
       diagnostics.generics.push('Server exited with code 3221225781. Possible cause: .NET Framework or Visual C++ 2015 x86 Redists are not installed.');
@@ -1812,12 +1814,12 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     message = message + padEnd('Architecture:', maxLen) + os.arch() + '\n';
     try {
       const output = execSync('powershell.exe -Command "Get-CimInstance -Namespace root/SecurityCenter2 -ClassName AntivirusProduct | Format-Wide -Property displayName"').toString().trim();
-      if (output.toLowerCase().includes('avast') || output.toLowerCase().includes('avg')) {
-        diagnostics.generics.push('AVG or Avast Anti-Virus is installed. This may cause problems with Flashpoint.');
+      if (output.toLowerCase().includes('avast antivirus') || output.toLowerCase().includes('avg antivirus')) {
+        diagnostics.generics.push('AVG or Avast Antivirus is installed. This may cause problems with Flashpoint.');
       }
-      message = message + padEnd('Anti-Virus:', maxLen) + output + '\n';
+      message = message + padEnd('Antivirus:', maxLen) + output + '\n';
     } catch (err) {
-      message = message + 'Anti-Virus:\tUnknown\n';
+      message = message + 'Antivirus:\tUnknown\n';
     }
     message = message + '\n';
     for (const service of diagnostics.services) {

@@ -181,6 +181,9 @@ describe('Configuration Files', () => {
       'enableVerboseLogging': true,
       'screenshotPreviewMode': ScreenshotPreviewMode.ON,
       'screenshotPreviewDelay': 100,
+      'singleUsePrompt': {
+        'badAntiVirus': true,
+      }
     };
     const newData = deepCopy(defaultPreferencesData);
     overwritePreferenceData(newData, data);
