@@ -621,7 +621,11 @@
     "exportCurationWithWarnings": "Exportálod ezt a Kurációt még úgy is, hogy van Figyelmeztetése?",
     "requiresAdditionalDownload": "Hiányzik neked a {0} támogatási csomag ami kell, hogy elindítsad ezt a választást.\nMost letöltőd?",
     "requiresAdditionalDownloadPlural": "Hiányzik neked {0} támogatási csomag ami kell, hogy elindítsad ezt a választást.\nMost letöltőd?",
-    "confirmClearPlaytime": "Összes játékidő és játékfuttatási előzmények törlése? Ez visszafordíthatlan."
+    "confirmClearPlaytime": "Összes játékidő és játékfuttatási előzmények törlése? Ez visszafordíthatlan.",
+    "badAntiVirus": "You appear to be using '{0}'.\nThis particular Antivirus is known to cause issues, and we recommend adding an exception to the Flashpoint folder.\n\nIf you only see a white screen when running Flash games you may need to reinstall Flashpoint to restore deleted files.\n\nSee the Wiki or Help tab for detailed instructions.",
+    "openWiki": "Open Wiki",
+    "openDiscord": "Join Discord Server",
+    "doNotShowAgain": "Do not show again"
   },
   "libraries": {
     "arcade": "Játékok",
