@@ -621,7 +621,11 @@
     "exportCurationWithWarnings": "Export Curation even though it has Warnings?",
     "requiresAdditionalDownload": "Tá an pacáiste tacaíochta {0} in easnamh ort, atá riachtanach chun an iontráil seo a sheoladh.\nÍoslódáil anois?",
     "requiresAdditionalDownloadPlural": "Tá {0} pacaí tacaíochta in easnamh ort atá riachtanach chun an iontráil seo a sheoladh. \nÍoslódáil anois?",
-    "confirmClearPlaytime": "Glan gach am súgartha cluiche agus sonraí staire súgartha? Tá sé seo do-aisiompaithe."
+    "confirmClearPlaytime": "Glan gach am súgartha cluiche agus sonraí staire súgartha? Tá sé seo do-aisiompaithe.",
+    "badAntiVirus": "You appear to be using '{0}'.\nThis particular Antivirus is known to cause issues, and we recommend adding an exception to the Flashpoint folder.\n\nIf you only see a white screen when running Flash games you may need to reinstall Flashpoint to restore deleted files.\n\nSee the Wiki or Help tab for detailed instructions.",
+    "openWiki": "Open Wiki",
+    "openDiscord": "Join Discord Server",
+    "doNotShowAgain": "Do not show again"
   },
   "libraries": {
     "arcade": "Cluichí",
