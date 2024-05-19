@@ -380,7 +380,8 @@
     "openGameDataBrowser": "Open Game Data Browser",
     "notArchived": "Not Archived",
     "archived": "Archived",
-    "playOnline": "Play Online"
+    "playOnline": "Play Online",
+    "tagFilterIcon": ""
   },
   "tags": {
     "name": "Nombre",
@@ -403,7 +404,8 @@
     "makeAliasWhenMerged": "¿Hacer esto una alias de la etiqueta?",
     "deleteTag": "Eliminar etiqueta",
     "deleteTagCategory": "Eliminar categoría de etiqueta",
-    "locked": "Bloqueado mientras se procesa..."
+    "locked": "Bloqueado mientras se procesa...",
+    "filterIcon": ""
   },
   "curate": {
     "noCurationSelected": "Ninguna curación seleccionada",

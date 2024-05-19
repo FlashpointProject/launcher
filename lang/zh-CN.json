@@ -380,7 +380,8 @@
     "openGameDataBrowser": "打开游戏数据浏览器",
     "notArchived": "未存档",
     "archived": "已存档",
-    "playOnline": "在线播放"
+    "playOnline": "在线播放",
+    "tagFilterIcon": ""
   },
   "tags": {
     "name": "名称",
@@ -403,7 +404,8 @@
     "makeAliasWhenMerged": "设置为标签的别名吗？",
     "deleteTag": "删除标签",
     "deleteTagCategory": "删除标签类别",
-    "locked": "处理过程中暂时锁定..."
+    "locked": "处理过程中暂时锁定...",
+    "filterIcon": ""
   },
   "curate": {
     "noCurationSelected": "未选择展品",

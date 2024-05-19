@@ -460,7 +460,8 @@ export function generateTagFilterGroup(tags?: string[]): TagFilterGroup {
     extreme: false,
     tags: tags || [],
     categories: [],
-    childFilters: []
+    childFilters: [],
+    iconPath: ''
   };
 }
 

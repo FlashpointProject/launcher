@@ -380,7 +380,8 @@
     "openGameDataBrowser": "Open Game Data Browser",
     "notArchived": "Not Archived",
     "archived": "Archived",
-    "playOnline": "Play Online"
+    "playOnline": "Play Online",
+    "tagFilterIcon": ""
   },
   "tags": {
     "name": "名稱",
@@ -403,7 +404,8 @@
     "makeAliasWhenMerged": "將此標籤設為該標籤的別名嗎？",
     "deleteTag": "刪除標籤",
     "deleteTagCategory": "刪除標籤類別",
-    "locked": "系統處理時將鎖定操作..."
+    "locked": "系統處理時將鎖定操作...",
+    "filterIcon": ""
   },
   "curate": {
     "noCurationSelected": "未選取任何典藏作品。",

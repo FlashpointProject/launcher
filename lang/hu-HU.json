@@ -380,7 +380,8 @@
     "openGameDataBrowser": "Játékadat Böngésző Megnyitása",
     "notArchived": "Not Archived",
     "archived": "Archived",
-    "playOnline": "Play Online"
+    "playOnline": "Play Online",
+    "tagFilterIcon": ""
   },
   "tags": {
     "name": "Név",
@@ -403,7 +404,8 @@
     "makeAliasWhenMerged": "Kíván nevet készíteni a címkéből?",
     "deleteTag": "Címke törlése",
     "deleteTagCategory": "Címke kategória törlése",
-    "locked": "Zárolva a feldolgozás alatt.."
+    "locked": "Zárolva a feldolgozás alatt..",
+    "filterIcon": ""
   },
   "curate": {
     "noCurationSelected": "Nincsen kiválasztott Kurátor",

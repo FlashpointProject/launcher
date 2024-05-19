@@ -918,6 +918,8 @@ declare module 'flashpoint-launcher' {
         childFilters: string[];
         /** Are these tags considered Extreme? */
         extreme: boolean;
+        /** Custon icon */
+        iconPath: string;
     }
 
     export type TagFilter = string[];

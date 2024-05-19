@@ -24,6 +24,8 @@ export type GameGridItemProps = Partial<GridCellProps> & {
   isDragged: boolean;
   /** Path to the extreme icon */
   extremeIconPath: string;
+  /** Icon for games in tag categories */
+  tagGroupIconPath: string;
   /** On Drop event */
   onDrop?: (event: React.DragEvent) => void;
   /** Screenshot Preview Mode */
@@ -55,7 +57,7 @@ export function GameGridItem(props: GameGridItemProps) {
     }
   }, [isHovered]);
 
-  const { rowIndex, id, title, platforms, thumbnail, screenshot, extreme, isDraggable, isSelected, isDragged, extremeIconPath, style, onDrop } = props;
+  const { rowIndex, id, title, platforms, thumbnail, screenshot, extreme, tagGroupIconPath, isDraggable, isSelected, isDragged, extremeIconPath, style, onDrop } = props;
   // Get the platform icon path
   const platformIcons = React.useMemo(() =>
     platforms.slice(0, 5).map(p => getPlatformIconURL(p, props.logoVersion))
@@ -93,7 +95,13 @@ export function GameGridItem(props: GameGridItemProps) {
                   className='game-grid-item__thumb__icons__icon'
                   style={{ backgroundImage: `url('${extremeIconPath}')` }} />
               </div>
-            ) : undefined }
+            ) : (tagGroupIconPath ? (
+              <div className='game-grid-item__thumb__icons--upper'>
+                <div
+                  className='game-grid-item__thumb__icons__icon'
+                  style={{ backgroundImage: `url("${tagGroupIconPath}")` }} />
+              </div>
+            ) : undefined )}
             <div className='game-grid-item__thumb__icons'>
               {platformIcons.map(p => (
                 <div

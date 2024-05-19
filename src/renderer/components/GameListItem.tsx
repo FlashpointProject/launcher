@@ -24,13 +24,15 @@ export type GameListItemProps = ListRowProps & {
   isDragged: boolean;
   /** Path to the extreme icon */
   extremeIconPath: string;
+  /** Icon for games in tag categories */
+  tagGroupIconPath: string;
   /** Game drag event */
   onDrop?: (event: React.DragEvent) => void;
   onDragOver?: (event: React.DragEvent) => void;
 };
 
 export function GameListItem(props: GameListItemProps) {
-  const { id, title, platform, tags, developer, publisher, extreme, isDraggable, isSelected, isDragged, extremeIconPath, showExtremeIcon, index, style, onDrop,
+  const { id, title, platform, tags, developer, publisher, extreme, tagGroupIconPath, isDraggable, isSelected, isDragged, extremeIconPath, showExtremeIcon, index, style, onDrop,
     onDragOver } = props;
   // Get the platform icon path
   const platformIcon = React.useMemo(() => (
@@ -64,9 +66,13 @@ export function GameListItem(props: GameListItemProps) {
             <div
               className='game-list-item__icon'
               style={{ backgroundImage: `url("${extremeIconPath}")` }} />
+            ) : (tagGroupIconPath ? (
+              <div
+                className='game-list-item__icon'
+                style={{ backgroundImage: `url("${tagGroupIconPath}")` }} />
           ) : (
             <div className='game-list-item__icon' />
-          ))
+          )))
         }
         <div
           className='game-list-item__icon'

@@ -394,6 +394,7 @@ const langTemplate = {
     'showExtremeScreenshot',
     'busy',
     'openGameDataBrowser',
+    'tagFilterIcon'
   ] as const,
   tags: [
     'name',
@@ -417,6 +418,7 @@ const langTemplate = {
     'deleteTag',
     'deleteTagCategory',
     'locked',
+    'filterIcon',
   ] as const,
   curate: [
     'noCurationSelected',

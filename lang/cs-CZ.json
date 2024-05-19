@@ -380,7 +380,8 @@
     "openGameDataBrowser": "Otevřít prohlížeč herních dat",
     "notArchived": "Nearchivováno",
     "archived": "Archivováno",
-    "playOnline": "Hrát online"
+    "playOnline": "Hrát online",
+    "tagFilterIcon": ""
   },
   "tags": {
     "name": "Název",
@@ -403,7 +404,8 @@
     "makeAliasWhenMerged": "Udělat z tohoto alias Štítku?",
     "deleteTag": "Odstranit Štítek",
     "deleteTagCategory": "Odstranit Kategorii Štítků",
-    "locked": "Uzamčeno během zpracovávání..."
+    "locked": "Uzamčeno během zpracovávání...",
+    "filterIcon": ""
   },
   "curate": {
     "noCurationSelected": "Není vybrána žádná kurace",

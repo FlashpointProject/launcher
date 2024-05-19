@@ -17,6 +17,7 @@ export type TagFilterGroupEditorProps = {
   onChangeName: (name: string) => void;
   onChangeDescription: (description: string) => void;
   onToggleExtreme: (checked: boolean) => void;
+  onChangeIconPath: (iconPath: string) => void;
   closeEditor: () => void;
   showExtreme: boolean;
   tagCategories: TagCategory[];
@@ -138,6 +139,13 @@ export function TagFilterGroupEditor(props: TagFilterGroupEditorProps) {
               onTagSubmit={(tag) => onTagSubmit(tag)} />
           </div>
         </div>
+        <div className='tag-filter-editor__content-header'>
+          {strings.tags.filterIcon}
+        </div>
+        <InputField
+          editable={true}
+          onChange={(event) => props.onChangeIconPath(event.target.value)}
+          text={props.tagFilterGroup.iconPath}/>
       </div>
     );}, [parsedTagsList, editTag, tagSuggestions, props.tagCategories, onAddTag, onRemoveTag, onTagSubmit, updateSuggestions]);
 }

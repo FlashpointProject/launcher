@@ -380,7 +380,8 @@
     "openGameDataBrowser": "ゲームデータブラウザを開く",
     "notArchived": "アーカイブに保存していない",
     "archived": "アーカイブに保存している",
-    "playOnline": "オンラインでプレイ"
+    "playOnline": "オンラインでプレイ",
+    "tagFilterIcon": ""
   },
   "tags": {
     "name": "名前",
@@ -403,7 +404,8 @@
     "makeAliasWhenMerged": "タグのエイリアスにしますか？",
     "deleteTag": "タグを削除",
     "deleteTagCategory": "タグカテゴリを削除",
-    "locked": "処理中にロックしています..."
+    "locked": "処理中にロックしています...",
+    "filterIcon": ""
   },
   "curate": {
     "noCurationSelected": "キュレーションが選択されていません",
