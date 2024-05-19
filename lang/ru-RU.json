@@ -621,7 +621,11 @@
     "exportCurationWithWarnings": "Экспортировать курацию, даже если у неё есть предупреждения?",
     "requiresAdditionalDownload": "У вас отсутствует пакет поддержки {0}, необходимый для запуска этого контента.\nУстановить сейчас?",
     "requiresAdditionalDownloadPlural": "У вас отсутствуют пакеты поддержки {0}, необходимые для запуска этого контента.\nУстановить сейчас?",
-    "confirmClearPlaytime": "Очистить все данные об игровом времени и истории игр? Данное действие необратимо."
+    "confirmClearPlaytime": "Очистить все данные об игровом времени и истории игр? Данное действие необратимо.",
+    "badAntiVirus": "You appear to be using '{0}'.\nThis particular Antivirus is known to cause issues, and we recommend adding an exception to the Flashpoint folder.\n\nIf you only see a white screen when running Flash games you may need to reinstall Flashpoint to restore deleted files.\n\nSee the Wiki or Help tab for detailed instructions.",
+    "openWiki": "Open Wiki",
+    "openDiscord": "Join Discord Server",
+    "doNotShowAgain": "Do not show again"
   },
   "libraries": {
     "arcade": "Игры",
