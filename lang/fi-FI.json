@@ -621,7 +621,11 @@
     "exportCurationWithWarnings": "Vie kuraatio, vaikka siinä on varoituksia?",
     "requiresAdditionalDownload": "Sinulta puuttuu {0} -tukipaketti, jota tarvitaan käynnistämään tämä.\nLadataanko se nyt?",
     "requiresAdditionalDownloadPlural": "Sinulta puuttuu {0} tukipakettia, joita tarvitaan käynnistämään tämä.\nLadataanko nyt?",
-    "confirmClearPlaytime": "Tyhjennetäänkö kaikki peliaika- ja pelihistorian tiedot? Tätä ei voi peruuttaa."
+    "confirmClearPlaytime": "Tyhjennetäänkö kaikki peliaika- ja pelihistorian tiedot? Tätä ei voi peruuttaa.",
+    "badAntiVirus": "You appear to be using '{0}'.\nThis particular Antivirus is known to cause issues, and we recommend adding an exception to the Flashpoint folder.\n\nIf you only see a white screen when running Flash games you may need to reinstall Flashpoint to restore deleted files.\n\nSee the Wiki or Help tab for detailed instructions.",
+    "openWiki": "Open Wiki",
+    "openDiscord": "Join Discord Server",
+    "doNotShowAgain": "Do not show again"
   },
   "libraries": {
     "arcade": "Pelit",
