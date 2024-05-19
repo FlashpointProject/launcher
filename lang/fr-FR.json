@@ -623,9 +623,9 @@
     "requiresAdditionalDownloadPlural": "Il vous manque les packs de support {0}, qui sont requis pour lancer cette entrée.\nTélécharger maintenant ?",
     "confirmClearPlaytime": "Effacer tous les temps de jeu et l'historique ? Ceci est irréversible.",
     "badAntiVirus": "You appear to be using '{0}'.\nThis particular Antivirus is known to cause issues, and we recommend adding an exception to the Flashpoint folder.\n\nIf you only see a white screen when running Flash games you may need to reinstall Flashpoint to restore deleted files.\n\nSee the Wiki or Help tab for detailed instructions.",
-    "openWiki": "Open Wiki",
-    "openDiscord": "Join Discord Server",
-    "doNotShowAgain": "Do not show again"
+    "openWiki": "Ouvrir le Wiki",
+    "openDiscord": "Rejoindre le serveur Discord",
+    "doNotShowAgain": "Ne plus afficher"
   },
   "libraries": {
     "arcade": "Jeux",
