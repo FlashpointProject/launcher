@@ -621,7 +621,11 @@
     "exportCurationWithWarnings": "crwdns5935:0crwdne5935:0",
     "requiresAdditionalDownload": "crwdns6091:0{0}crwdne6091:0",
     "requiresAdditionalDownloadPlural": "crwdns6093:0{0}crwdne6093:0",
-    "confirmClearPlaytime": "crwdns6711:0crwdne6711:0"
+    "confirmClearPlaytime": "crwdns6711:0crwdne6711:0",
+    "badAntiVirus": "crwdns7040:0{0}crwdne7040:0",
+    "openWiki": "crwdns7042:0crwdne7042:0",
+    "openDiscord": "crwdns7044:0crwdne7044:0",
+    "doNotShowAgain": "crwdns7046:0crwdne7046:0"
   },
   "libraries": {
     "arcade": "crwdns5937:0crwdne5937:0",
