@@ -424,15 +424,15 @@ function logMessage(text: string, folder: string): void {
  * @param date Date to mark this game as added on
  */
 async function createGameFromCurationMeta(gameId: string, gameMeta: CurationMeta, addApps : AddAppCuration[], date: Date): Promise<Game> {
-  const game: Game = newGame();
-  Object.assign(game, {
+  const game: Game = {
+    ...newGame(),
     id:                    gameId, // (Re-use the id of the curation)
     title:                 gameMeta.title               || '',
     alternateTitles:       gameMeta.alternateTitles     || '',
     series:                gameMeta.series              || '',
     developer:             gameMeta.developer           || '',
     publisher:             gameMeta.publisher           || '',
-    platformName:          gameMeta.primaryPlatform     || '',
+    primaryPlatform:       gameMeta.primaryPlatform     || '',
     platforms:             gameMeta.platforms?.map(t => t.name)  || [],
     playMode:              gameMeta.playMode            || '',
     status:                gameMeta.status              || '',
@@ -447,15 +447,10 @@ async function createGameFromCurationMeta(gameId: string, gameMeta: CurationMeta
     language:              gameMeta.language            || '',
     dateAdded:             date.toISOString(),
     dateModified:          date.toISOString(),
-    broken:                false,
-    extreme:               false,
     library:               gameMeta.library || '',
-    orderTitle: '', // This will be set when saved
-    addApps: [],
-    placeholder: false,
+    addApps:               addApps.map(addApp => createAddAppFromCurationMeta(addApp, game)),
     activeDataOnDisk: false,
-  });
-  game.addApps = addApps.map(addApp => createAddAppFromCurationMeta(addApp, game));
+  };
   return game;
 }
 
