@@ -865,50 +865,55 @@ async function initialize() {
   // Check if we need to delay service startup because of antivirus
   let delayServices = false;
   if (!state.preferences.singleUsePrompt.badAntiVirus && os.platform() === 'win32') {
-    const output = child_process.execSync('powershell.exe -Command "Get-CimInstance -Namespace root/SecurityCenter2 -ClassName AntivirusProduct | Format-Wide -Property displayName"').toString().trim();
-    if (output.toLowerCase().includes('avast antivirus') || output.toLowerCase().includes('avg antivirus')) {
-      console.log('Back - Delaying Services until Antivirus warning resolved');
-      delayServices = true;
-      // Add a listener so we can open the prompt when the user connects
-      const disposable = state.apiEmitters.onDidConnect.event(async () => {
-        // Frontend connected
-        console.log('Back - Opening Antivirus warning on connected client');
-        let stayOpen = true;
-        while (stayOpen) {
-          const msg = formatString(state.languageContainer.dialog.badAntiVirus, output.trim()) as string;
-          const client = state.socketServer.clients.clients[state.socketServer.clients.clients.length - 1]; // Latest client
-          const func = state.socketServer.showMessageBoxBack(state, client);
-          const dialogId = await func({
-            message: msg,
-            largeMessage: true,
-            buttons: [state.languageContainer.dialog.openWiki, state.languageContainer.dialog.openDiscord, state.languageContainer.dialog.doNotShowAgain],
-          });
-          const res = await awaitDialog(state, dialogId);
-          switch (res.buttonIdx) {
-            case 0:
-              // wiki
-              child_process.execSync(`start ${WIKI_AV_TROUBLESHOOTING}`);
-              break;
-            case 1:
-              // discord
-              child_process.execSync(`start ${DISCORD_LINK}`);
-              break;
-            case 2:
-              console.log('Back - Antivirus warning has been resolved, continuing with services loading...');
-              stayOpen = false;
-              state.preferences.singleUsePrompt.badAntiVirus = true;
-              PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
-              state.socketServer.broadcast(BackOut.UPDATE_PREFERENCES_RESPONSE, state.preferences);
-              loadServices();
-              break;
-            default:
-              stayOpen = false;
-              break;
+    try {
+      const output = child_process.execSync('powershell.exe -Command "Get-CimInstance -Namespace root/SecurityCenter2 -ClassName AntivirusProduct | Format-Wide -Property displayName"').toString().trim();
+      if (output.toLowerCase().includes('avast antivirus') || output.toLowerCase().includes('avg antivirus')) {
+        console.log('Back - Delaying Services until Antivirus warning resolved');
+        delayServices = true;
+        // Add a listener so we can open the prompt when the user connects
+        const disposable = state.apiEmitters.onDidConnect.event(async () => {
+          // Frontend connected
+          console.log('Back - Opening Antivirus warning on connected client');
+          let stayOpen = true;
+          while (stayOpen) {
+            const msg = formatString(state.languageContainer.dialog.badAntiVirus, output.trim()) as string;
+            const client = state.socketServer.clients.clients[state.socketServer.clients.clients.length - 1]; // Latest client
+            const func = state.socketServer.showMessageBoxBack(state, client);
+            const dialogId = await func({
+              message: msg,
+              largeMessage: true,
+              buttons: [state.languageContainer.dialog.openWiki, state.languageContainer.dialog.openDiscord, state.languageContainer.dialog.doNotShowAgain],
+            });
+            const res = await awaitDialog(state, dialogId);
+            switch (res.buttonIdx) {
+              case 0:
+                // wiki
+                child_process.execSync(`start ${WIKI_AV_TROUBLESHOOTING}`);
+                break;
+              case 1:
+                // discord
+                child_process.execSync(`start ${DISCORD_LINK}`);
+                break;
+              case 2:
+                console.log('Back - Antivirus warning has been resolved, continuing with services loading...');
+                stayOpen = false;
+                state.preferences.singleUsePrompt.badAntiVirus = true;
+                PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
+                state.socketServer.broadcast(BackOut.UPDATE_PREFERENCES_RESPONSE, state.preferences);
+                loadServices();
+                break;
+              default:
+                stayOpen = false;
+                break;
+            }
           }
-        }
 
-        dispose(disposable);
-      });
+          dispose(disposable);
+        });
+      }
+    } catch {
+      // Failed to determine AV, ignore
+      delayServices = false;
     }
   }
 
