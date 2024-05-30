@@ -184,6 +184,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     const { games, selectedGameId, selectedPlaylistId } = this.props;
     const { draggedGameIndex } = this.state;
     const extremeTags = this.props.preferencesData.tagFilters.filter(t => !t.enabled && t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
+    const tagGroupIcons = this.props.preferencesData.tagFilters.filter(t => !t.enabled && t.iconBase64 !== '').map(({tags, iconBase64: tagGroupIcon}) => ({tagFilter:tags, iconBase64:tagGroupIcon}));
     // Render
     return (
       <div
@@ -238,6 +239,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                     selectedGameId={selectedGameId}
                     draggedGameIndex={draggedGameIndex}
                     extremeTags={extremeTags}
+                    tagGroupIcons={tagGroupIcons}
                     noRowsRenderer={this.noRowsRendererMemo(strings.browse)}
                     onGameSelect={this.onGameSelect}
                     onGameLaunch={this.onGameLaunch}
@@ -264,6 +266,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                     draggedGameIndex={draggedGameIndex}
                     showExtremeIcon={this.props.preferencesData.browsePageShowExtreme}
                     extremeTags={extremeTags}
+                    tagGroupIcons={tagGroupIcons}
                     noRowsRenderer={this.noRowsRendererMemo(strings.browse)}
                     onGameSelect={this.onGameSelect}
                     onGameLaunch={this.onGameLaunch}

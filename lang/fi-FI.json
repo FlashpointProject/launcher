@@ -380,7 +380,8 @@
     "openGameDataBrowser": "Avaa Pelitietojen Selain",
     "notArchived": "Ei Arkistoitu",
     "archived": "Arkistoitu",
-    "playOnline": "Pelaa verkossa"
+    "playOnline": "Pelaa verkossa",
+    "tagFilterIcon": ""
   },
   "tags": {
     "name": "Nimi",
@@ -403,7 +404,8 @@
     "makeAliasWhenMerged": "Tee tästä tunnisteen alias?",
     "deleteTag": "Poista tunniste",
     "deleteTagCategory": "Poista tunnistekategoria",
-    "locked": "Lukittu käsittelyn aikana..."
+    "locked": "Lukittu käsittelyn aikana...",
+    "filterIcon": ""
   },
   "curate": {
     "noCurationSelected": "Ei Kuraatiota Valittu",
@@ -518,6 +520,7 @@
   "misc": {
     "noBlankFound": "{0} ei löydy",
     "addBlank": "Lisää {0}",
+    "removeBlank": "",
     "deleteAllBlankImages": "Tuhoa kaikki {0} kuvaa tästä pelistä",
     "yes": "Kyllä",
     "no": "Ei",

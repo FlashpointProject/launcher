@@ -380,7 +380,8 @@
     "openGameDataBrowser": "Открыть браузер игровых данных",
     "notArchived": "Не в архиве",
     "archived": "В архиве",
-    "playOnline": "Играть в браузере"
+    "playOnline": "Играть в браузере",
+    "tagFilterIcon": ""
   },
   "tags": {
     "name": "Наименование",
@@ -403,7 +404,8 @@
     "makeAliasWhenMerged": "Сделать это псевдонимомом тега?",
     "deleteTag": "Удалить тег",
     "deleteTagCategory": "Удалить категорию тега",
-    "locked": "Заблокировано во время обработки..."
+    "locked": "Заблокировано во время обработки...",
+    "filterIcon": ""
   },
   "curate": {
     "noCurationSelected": "Кураций не выбрано",
@@ -518,6 +520,7 @@
   "misc": {
     "noBlankFound": "{0} не найден",
     "addBlank": "Добавить {0}",
+    "removeBlank": "",
     "deleteAllBlankImages": "Удалить все изображения {0} для этой игры",
     "yes": "Да",
     "no": "Нет",

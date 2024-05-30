@@ -2943,7 +2943,6 @@ body {
 .tag-filter-editor__content {
   width: 100%;
   display: flex;
-
 }
 
 .tag-filter-editor__content-section {
@@ -2982,6 +2981,12 @@ body {
   text-align: center;
   font-weight: bold;
 }
+
+.tag-filter-editor__icon {
+  display: flex;
+  justify-content: center;
+}
+
 /** Checkboxes */
 .checkbox {
   width: 3rem;

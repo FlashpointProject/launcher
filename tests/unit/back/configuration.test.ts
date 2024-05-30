@@ -115,9 +115,10 @@ describe('Configuration Files', () => {
           'tags': [
             'Action'
           ],
-          'categories': [ 'test' ],
+          'categories': ['test'],
           'childFilters': [],
-          'extreme': false
+          'extreme': false,
+          iconBase64: ''
         }
       ],
       'tagFiltersInCurate': true,
