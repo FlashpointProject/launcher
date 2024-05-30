@@ -622,7 +622,7 @@
     "requiresAdditionalDownload": "Chybí vám podpůrný balíček {0}, který je nutný pro spuštění této položky.\nChcete ho nyní stáhnout?",
     "requiresAdditionalDownloadPlural": "Chybí vám {0} podpůrných balíčků, které jsou nutné pro spuštění této položky.\nChcete ho nyní stáhnout?",
     "confirmClearPlaytime": "Vymazat data o odehraném čase a historii přehrání u všech her? Toto je nevratné.",
-    "badAntiVirus": "You appear to be using '{0}'.\nThis particular Antivirus is known to cause issues, and we recommend adding an exception to the Flashpoint folder.\n\nIf you only see a white screen when running Flash games you may need to reinstall Flashpoint to restore deleted files.\n\nSee the Wiki or Help tab for detailed instructions.",
+    "badAntiVirus": "Zdá se, že používáte '{0}'.\nJe známo, že tento konkrétní antivirus způsobuje problémy, a proto doporučujeme přidat výjimku do složky Flashpoint.\n\nPokud se při spouštění Flash her zobrazuje pouze bílá obrazovka, bude možná nutné obnovit smazané soubory přeinstalováním Flashpointu.\n\nPodrobné pokyny naleznete na kartě Wiki nebo v nápovědě.",
     "openWiki": "Otevřít Wiki",
     "openDiscord": "Připojit se k Discord serveru",
     "doNotShowAgain": "Znovu nezobrazovat"
