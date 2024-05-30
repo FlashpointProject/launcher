@@ -406,7 +406,7 @@
     "deleteTag": "Delete Tag",
     "deleteTagCategory": "Delete Tag Category",
     "locked": "Locked while processing...",
-    "filterIcon": "Icon filename"
+    "filterIcon": "Icon Thumbnail"
   },
   "curate": {
     "noCurationSelected": "No Curation Selected",
