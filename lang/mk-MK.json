@@ -520,6 +520,7 @@
   "misc": {
     "noBlankFound": "Нема {0} пронајдено",
     "addBlank": "Додади {0}",
+    "removeBlank": "",
     "deleteAllBlankImages": "Избриши сите {0} слики од таа игра",
     "yes": "Да",
     "no": "Не",

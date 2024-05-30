@@ -118,7 +118,7 @@ describe('Configuration Files', () => {
           'categories': ['test'],
           'childFilters': [],
           'extreme': false,
-          iconPath: ''
+          iconBase64: ''
         }
       ],
       'tagFiltersInCurate': true,

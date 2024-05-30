@@ -520,6 +520,7 @@
   "misc": {
     "noBlankFound": "{0} Bulunamadı",
     "addBlank": "{0} Ekle",
+    "removeBlank": "",
     "deleteAllBlankImages": "Bu oyun için olan TÜM {0} resimlerini sil",
     "yes": "Evet",
     "no": "Hayır",

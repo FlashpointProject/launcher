@@ -9,7 +9,7 @@ import { autoCode, LangContainer, LangFile } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
 import { updatePreferencesData, updatePreferencesDataAsync } from '@shared/preferences/util';
 import { ITheme } from '@shared/ThemeFile';
-import { deepCopy, getFileServerURL } from '@shared/Util';
+import { deepCopy } from '@shared/Util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { AppPathOverride, TagFilterGroup } from 'flashpoint-launcher';
 import * as React from 'react';
@@ -422,7 +422,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
               onRemoveCategory={(category) => this.onRemoveTagEditorCategoryEvent(this.state.editingTagFilterGroupIdx || -1, category)}
               onChangeName={this.onChangeTagEditorNameEvent}
               onChangeDescription={this.onChangeTagEditorDescriptionEvent}
-              onChangeIconPath={this.onChangeTagEditorIconPathEvent}
+              onChangeIconBase64={this.onChangeTagEditorIconEvent}
               onToggleExtreme={this.onToggleExtremeTagEditorEvent}
               closeEditor={this.onCloseTagFilterGroupEditor}
               showExtreme={this.props.preferencesData.browsePageShowExtreme}
@@ -603,12 +603,12 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   className='config-page__tfg-extreme-logo'
                   title={strings.browse.extreme}
                   style={{ backgroundImage: `url('${getExtremeIconURL(logoVersion)}')` }} />
-              ) : (item.iconPath ? (
+              ) : (item.iconBase64 ? (
                 <div
                   key={index}
                   className='config-page__tfg-extreme-logo'
                   title={strings.browse.tagFilterIcon}
-                  style={{ backgroundImage: `url('${getFileServerURL()}/logos/${item.iconPath}?version=${this.props.logoVersion}}')` }} />
+                  style={{ backgroundImage: `url("${item.iconBase64}")` }} />
               ) :
               (
                 <div
@@ -922,7 +922,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       categories: [],
       childFilters: [],
       extreme: false,
-      iconPath: ''
+      iconBase64: ''
     };
     const newTagFilters = [...this.props.preferencesData.tagFilters];
     newTagFilters.push(tfg);
@@ -994,9 +994,9 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     }
   };
 
-  onChangeTagEditorIconPathEvent = (iconPath: string): void => {
+  onChangeTagEditorIconEvent = (iconBase64: string): void => {
     if (this.state.editingTagFilterGroup) {
-      const newTFG = {...this.state.editingTagFilterGroup, iconPath };
+      const newTFG = {...this.state.editingTagFilterGroup, iconBase64 };
       this.setState({ editingTagFilterGroup: newTFG });
     }
   };

@@ -461,7 +461,7 @@ export function generateTagFilterGroup(tags?: string[]): TagFilterGroup {
     tags: tags || [],
     categories: [],
     childFilters: [],
-    iconPath: ''
+    iconBase64: ''
   };
 }
 

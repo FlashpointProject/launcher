@@ -521,6 +521,7 @@
   "misc": {
     "noBlankFound": "No {0} Found",
     "addBlank": "Add {0}",
+    "removeBlank": "Remove {0}",
     "deleteAllBlankImages": "Delete ALL {0} images for this game",
     "yes": "Yes",
     "no": "No",

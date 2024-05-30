@@ -251,6 +251,8 @@ export function HomePage(props: HomePageProps) {
     );
   }, [strings, props.preferencesData.minimizedHomePageBoxes, toggleMinimizeBox]);
 
+  const tagGroupIcons = props.preferencesData.tagFilters.filter(t => !t.enabled && t.iconBase64 !== '').map(({tags, iconBase64: tagGroupIcon}) => ({tagFilter:tags, iconBase64:tagGroupIcon}));
+
   const renderedRandomGames = React.useMemo(() => (
     <SizeProvider width={width} height={height}>
       <RandomGames
@@ -260,6 +262,7 @@ export function HomePage(props: HomePageProps) {
         onLaunchGame={onLaunchGame}
         onGameSelect={onGameSelect}
         extremeTags={props.preferencesData.tagFilters.filter(tfg => !tfg.enabled && tfg.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), [])}
+        tagGroupIcons={tagGroupIcons}
         logoVersion={props.logoVersion}
         selectedGameId={props.selectedGameId}
         screenshotPreviewMode={props.preferencesData.screenshotPreviewMode}
@@ -313,6 +316,7 @@ export function HomePage(props: HomePageProps) {
                     platforms={loadedGotd.platforms.map(p => p.trim())}
                     extreme={loadedGotd.tags.findIndex(t => extremeTags.includes(t.trim())) !== -1}
                     extremeIconPath={extremeIconPath}
+                    tagGroupIconBase64={tagGroupIcons.find(tg => tg.tagFilter.find(t => loadedGotd?.tags.includes(t)))?.iconBase64 || ''}
                     thumbnail={getGameImageURL(LOGOS, loadedGotd.id)}
                     screenshot={getGameImageURL(SCREENSHOTS, loadedGotd.id)}
                     screenshotPreviewMode={props.preferencesData.screenshotPreviewMode}

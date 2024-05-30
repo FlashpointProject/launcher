@@ -520,6 +520,7 @@
   "misc": {
     "noBlankFound": "{0} ei Leitud",
     "addBlank": "Lisa {0}",
+    "removeBlank": "",
     "deleteAllBlankImages": "Kustuta KÕIK {0} pildid sellel mängul",
     "yes": "Jah",
     "no": "Ei",

@@ -373,7 +373,7 @@ function parseTagFilterGroup(parser: IObjectParserProp<TagFilterGroup>): TagFilt
     categories: [],
     childFilters: [],
     extreme: false,
-    iconPath: ''
+    iconBase64: ''
   };
   parser.prop('name',    v => tfg.name    = str(v));
   parser.prop('description', v => tfg.description = str(v));
@@ -382,7 +382,7 @@ function parseTagFilterGroup(parser: IObjectParserProp<TagFilterGroup>): TagFilt
   parser.prop('categories').arrayRaw((item) => tfg.categories.push(str(item)));
   parser.prop('childFilters').arrayRaw((item) => tfg.childFilters.push(str(item)));
   parser.prop('extreme', v => tfg.extreme = !!v);
-  parser.prop('iconPath', v => tfg.iconPath = str(v));
+  parser.prop('iconBase64', v => tfg.iconBase64 = str(v));
   return tfg;
 }
 

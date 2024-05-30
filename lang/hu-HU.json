@@ -520,6 +520,7 @@
   "misc": {
     "noBlankFound": "Nem Található",
     "addBlank": "Hozzáad",
+    "removeBlank": "",
     "deleteAllBlankImages": "Összes kép törlése ehhez a játékhoz",
     "yes": "Igen",
     "no": "Nem",

@@ -520,6 +520,7 @@
   "misc": {
     "noBlankFound": "無法找到{0} ",
     "addBlank": "新增 {0}",
+    "removeBlank": "",
     "deleteAllBlankImages": "刪除此遊戲共 {0} 張圖片",
     "yes": "是",
     "no": "否",

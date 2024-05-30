@@ -520,6 +520,7 @@
   "misc": {
     "noBlankFound": "Ninguna {0} Encontrada",
     "addBlank": "Añadir {0}",
+    "removeBlank": "Remove {0}",
     "deleteAllBlankImages": "Borrar todas las {0} imágenes para este juego",
     "yes": "Sí",
     "no": "No \t",

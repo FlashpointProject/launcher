@@ -520,6 +520,7 @@
   "misc": {
     "noBlankFound": "无{0}",
     "addBlank": "添加{0}",
+    "removeBlank": "",
     "deleteAllBlankImages": "删除该游戏所有{0}",
     "yes": "是",
     "no": "否",

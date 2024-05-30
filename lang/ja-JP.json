@@ -520,6 +520,7 @@
   "misc": {
     "noBlankFound": "{0} が見つかりませんでした",
     "addBlank": "{0} を追加",
+    "removeBlank": "",
     "deleteAllBlankImages": "このゲームの {0} 枚の画像をすべて削除する",
     "yes": "はい",
     "no": "いいえ",

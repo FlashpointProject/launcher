@@ -520,6 +520,7 @@
   "misc": {
     "noBlankFound": "Nu s-a găsit {0}",
     "addBlank": "Adaugă o imagine...",
+    "removeBlank": "",
     "deleteAllBlankImages": "Șterge toate imaginile pentru acest joc",
     "yes": "Da",
     "no": "Nu",

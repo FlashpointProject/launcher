@@ -10,7 +10,6 @@ import { GameItemContainer } from './GameItemContainer';
 import { GameDragEventData } from './pages/BrowsePage';
 import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
 import { TagFilter } from 'flashpoint-launcher';
-import { getFileServerURL } from '@shared/Util';
 
 const RENDERER_OVERSCAN = 5;
 
@@ -39,7 +38,7 @@ export type GameGridProps = {
   /** List of Extreme tags */
   extremeTags: string[];
   /** Tag Filter icons */
-  tagGroupIcons: { tagFilter: TagFilter; iconPath: string; }[];
+  tagGroupIcons: { tagFilter: TagFilter; iconBase64: string; }[];
   /** Function that renders the elements to show instead of the grid if there are no games (render prop). */
   noRowsRenderer?: () => JSX.Element;
   /** Called when the user attempts to select a game. */
@@ -195,7 +194,7 @@ export class GameGrid extends React.Component<GameGridProps> {
     const index = props.rowIndex * this.columns + props.columnIndex;
     if (index < (gamesTotal || 0)) {
       const game = games[index];
-      const tagGroupIcon = this.props.tagGroupIcons.find(tg => tg.tagFilter.find(t => game?.tags.includes(t)))?.iconPath;
+      const tagGroupIcon = this.props.tagGroupIcons.find(tg => tg.tagFilter.find(t => game?.tags.includes(t)))?.iconBase64;
       return (
         <GameGridItem
           { ...props }
@@ -205,7 +204,7 @@ export class GameGrid extends React.Component<GameGridProps> {
           platforms={game ? [game.primaryPlatform] : []}
           extreme={game ? game.tags.findIndex(t => this.props.extremeTags.includes(t.trim())) !== -1 : false}
           extremeIconPath={extremeIconPath}
-          tagGroupIconPath={tagGroupIcon ? `${getFileServerURL()}/logos/${tagGroupIcon}?version=${this.props.logoVersion}` : '' }
+          tagGroupIconBase64={tagGroupIcon || ''}
           thumbnail={game ? getGameImageURL(LOGOS, game.id) : ''}
           screenshot={game ? getGameImageURL(SCREENSHOTS, game.id) : ''}
           screenshotPreviewMode={this.props.screenshotPreviewMode}

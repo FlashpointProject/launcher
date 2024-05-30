@@ -520,6 +520,7 @@
   "misc": {
     "noBlankFound": "Không tìm thấy {0}",
     "addBlank": "Thêm {0}",
+    "removeBlank": "",
     "deleteAllBlankImages": "Xoá TOÀN BỘ {0} hình của trò chơi này",
     "yes": "Có",
     "no": "Không",

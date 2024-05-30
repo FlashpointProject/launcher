@@ -534,6 +534,7 @@ const langTemplate = {
   misc: [
     'noBlankFound',
     'addBlank',
+    'removeBlank',
     'deleteAllBlankImages',
     'yes',
     'no',
@@ -749,6 +750,7 @@ export function getDefaultLocalization(): LangContainer {
   lang.browse.hours += ' {0}';
   lang.misc.noBlankFound = ' {0} ' + lang.misc.noBlankFound;
   lang.misc.addBlank += ' {0}';
+  lang.misc.removeBlank += ' {0}';
   lang.misc.deleteAllBlankImages += ' {0}';
   lang.dialog.errorImportingCuration += ' {0}';
   lang.dialog.mustBe7zArchiveSkipping += ' {0}';

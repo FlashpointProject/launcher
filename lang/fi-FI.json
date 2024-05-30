@@ -520,6 +520,7 @@
   "misc": {
     "noBlankFound": "{0} ei löydy",
     "addBlank": "Lisää {0}",
+    "removeBlank": "",
     "deleteAllBlankImages": "Tuhoa kaikki {0} kuvaa tästä pelistä",
     "yes": "Kyllä",
     "no": "Ei",

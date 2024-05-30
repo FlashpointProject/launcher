@@ -9,8 +9,8 @@ import { GameItemContainer } from './GameItemContainer';
 import { GameListHeader } from './GameListHeader';
 import { GameListItem } from './GameListItem';
 import { GameDragData, GameDragEventData } from './pages/BrowsePage';
-import { getFileServerURL } from '@shared/Util';
 import { TagFilter } from 'flashpoint-launcher';
+
 /** A function that receives an HTML element. */
 type RefFunc<T extends HTMLElement> = (instance: T | null) => void;
 
@@ -35,7 +35,7 @@ export type OwnProps = {
   /** Extreme Tag Filters */
   extremeTags: string[];
   /** Tag Filter icons */
-  tagGroupIconPath: { tagFilter: TagFilter; iconPath: string; }[];
+  tagGroupIcons: { tagFilter: TagFilter; iconBase64: string; }[];
   /** Function that renders the elements to show instead of the grid if there are no games (render prop). */
   noRowsRenderer?: () => JSX.Element;
   /** Called when the user attempts to select a game. */
@@ -197,7 +197,7 @@ class _GameList extends React.Component<GameListProps> {
     if (!games) { throw new Error('Trying to render a row in game list, but no games are found?'); }
     const game = games[cellProps.index];
     const platform = game?.primaryPlatform;
-    const tagGroupIcon = this.props.tagGroupIconPath.find(tg => tg.tagFilter.find(t => game?.tags.includes(t)))?.iconPath;
+    const tagGroupIcon = this.props.tagGroupIcons.find(tg => tg.tagFilter.find(t => game?.tags.includes(t)))?.iconBase64;
 
     return game ? (
       <GameListItem
@@ -212,7 +212,7 @@ class _GameList extends React.Component<GameListProps> {
         extreme={game.tags.findIndex(t => this.props.extremeTags.includes(t.trim())) !== -1}
         extremeIconPath={extremeIconPath}
         showExtremeIcon={showExtremeIcon}
-        tagGroupIconPath={tagGroupIcon ? `${getFileServerURL()}/logos/${tagGroupIcon}?version=${this.props.logoVersion}` : '' }
+        tagGroupIconBase64={tagGroupIcon || ''}
         logoVersion={this.props.logoVersion}
         isDraggable={true}
         isSelected={game.id === selectedGameId}

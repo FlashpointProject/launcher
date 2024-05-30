@@ -919,7 +919,7 @@ declare module 'flashpoint-launcher' {
         /** Are these tags considered Extreme? */
         extreme: boolean;
         /** Custon icon */
-        iconPath: string;
+        iconBase64: string;
     }
 
     export type TagFilter = string[];
