@@ -2,7 +2,7 @@
   "name": "Русский",
   "config": {
     "configHeader": "Настройки",
-    "configDesc": "(Вы должны нажать 'Сохранить и перезапустить' для того, чтобы изменения вошли в силу)",
+    "configDesc": "(Вы должны нажать «Сохранить и перезапустить» для применения изменений)",
     "preferencesHeader": "Персонализация",
     "extremeGames": "Показать фильтры контента для взрослых",
     "extremeGamesDesc": "Позволяет переключать, создавать и изменять фильтры меток для взрослых для контроля содержимого, непригодного для детей.",
@@ -622,10 +622,10 @@
     "requiresAdditionalDownload": "У вас отсутствует пакет поддержки {0}, необходимый для запуска этого контента.\nУстановить сейчас?",
     "requiresAdditionalDownloadPlural": "У вас отсутствуют пакеты поддержки {0}, необходимые для запуска этого контента.\nУстановить сейчас?",
     "confirmClearPlaytime": "Очистить все данные об игровом времени и истории игр? Данное действие необратимо.",
-    "badAntiVirus": "You appear to be using '{0}'.\nThis particular Antivirus is known to cause issues, and we recommend adding an exception to the Flashpoint folder.\n\nIf you only see a white screen when running Flash games you may need to reinstall Flashpoint to restore deleted files.\n\nSee the Wiki or Help tab for detailed instructions.",
-    "openWiki": "Open Wiki",
-    "openDiscord": "Join Discord Server",
-    "doNotShowAgain": "Do not show again"
+    "badAntiVirus": "Похоже, что вы используете «{0}».\nИзвестно, что именно этот антивирус вызывает проблемы, поэтому мы рекомендуем добавить исключение в папку Flashpoint.\n\nЕсли при запуске флеш-игр вы видите только белый экран, вам может потребоваться переустановить Flashpoint, чтобы восстановить удалённые файлы.\n\nПодробные инструкции см. в Вики или на вкладке помощи.",
+    "openWiki": "Открыть Вики",
+    "openDiscord": "Присоединиться к Discord-серверу",
+    "doNotShowAgain": "Больше не показывать"
   },
   "libraries": {
     "arcade": "Игры",
