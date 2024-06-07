@@ -23,7 +23,7 @@ import { BrowsePageLayout, ScreenshotPreviewMode } from '@shared/BrowsePageLayou
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
 import { BackOut } from '@shared/back/types';
 import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
-import { CurationMeta, LoadedCuration } from '@shared/curate/types';
+import { CurationMeta } from '@shared/curate/types';
 import { getContentFolderByKey } from '@shared/curate/util';
 import { CurationTemplate, IExtensionManifest } from '@shared/extensions/interfaces';
 import { ProcessState, Task } from '@shared/interfaces';
@@ -410,7 +410,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
           status: `Loading ${filePath}`
         });
       }
-      const curState = await loadCurationArchive(filePath)
+      const curState = await loadCurationArchive(filePath, null)
       .catch((error) => {
         log.error('Curate', `Failed to load curation archive! ${error.toString()}`);
         state.socketServer.broadcast(BackOut.OPEN_ALERT, formatString(state.languageContainer['dialog'].failedToLoadCuration, error.toString()) as string);
@@ -517,12 +517,13 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
       const contentFolder = path.join(curPath, 'content');
       await fs.promises.mkdir(contentFolder, { recursive: true });
 
-      const data: LoadedCuration = {
+      const data: flashpoint.LoadedCuration = {
         folder,
         uuid: uuid(),
         group: '',
         game: meta || {},
         addApps: [],
+        fpfssInfo: null,
         thumbnail: await loadCurationIndexImage(path.join(curPath, 'logo.png')),
         screenshot: await loadCurationIndexImage(path.join(curPath, 'ss.png'))
       };

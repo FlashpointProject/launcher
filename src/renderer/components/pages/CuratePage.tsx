@@ -59,6 +59,13 @@ export function CuratePage(props: CuratePageProps) {
   const onSaveImportedCurationChange = onCheckboxChange('saveImportedCurations');
   const onTagFiltersInCurateChange = onCheckboxChange('tagFiltersInCurate');
 
+  const onOpenSubmissionPage = () => {
+    if (curation?.fpfssInfo) {
+      const subPage = `${props.preferencesData.fpfssBaseUrl}/web/submission/${curation.fpfssInfo.id}`;
+      remote.shell.openExternal(subPage);
+    }
+  };
+
   const onDupeCurations = React.useCallback(() => {
     const selected = props.curate.selected;
     props.dispatchCurate({
@@ -772,6 +779,14 @@ export function CuratePage(props: CuratePageProps) {
               onToggle={onSymlinkCurationContentChange}
               checked={props.preferencesData.symlinkCurationContent} />
           </div>
+        </div>
+        <div className='curate-page__right--section'>
+          <div className='curate-page__right--header'>{strings.curate.headerFpfss}</div>
+          <SimpleButton
+            className='curate-page__right--button'
+            disabled={curation ? !curation.fpfssInfo : true}
+            value={strings.curate.fpfssOpenSubmissionPage}
+            onClick={onOpenSubmissionPage}/>
         </div>
         {extButtons}
       </div>

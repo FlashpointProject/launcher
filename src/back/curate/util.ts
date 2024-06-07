@@ -6,12 +6,11 @@ import { uuid } from '@back/util/uuid';
 import { fixSlashes } from '@shared/Util';
 import { BackOut } from '@shared/back/types';
 import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
-import { LoadedCuration } from '@shared/curate/types';
 import { getContentFolderByKey } from '@shared/curate/util';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import axios from 'axios';
-import { AddAppCuration, CurationState, CurationWarnings } from 'flashpoint-launcher';
+import { AddAppCuration, CurationFpfssInfo, CurationState, CurationWarnings, LoadedCuration } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as http from 'http';
 import { Progress } from 'node-7z';
@@ -20,6 +19,7 @@ import { checkAndDownloadGameData, extractFullPromise, fpDatabase } from '..';
 import { loadCurationIndexImage } from './parse';
 import { readCurationMeta } from './read';
 import { saveCuration } from './write';
+import { getCurationFpfssInfo } from './fpfss';
 
 const whitelistedBaseFiles = ['logo.png', 'ss.png'];
 
@@ -30,7 +30,7 @@ export type UpdateCurationFileFunc = (folder: string, relativePath: string, data
 export type RemoveCurationFileFunc = (folder: string, relativePath: string) => Promise<void>;
 
 export const onFileServerRequestPostCuration =
-  async (pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse, tempCurationsPath: string, onNewCuration: (filePath: string, onProgress?: (progress: Progress) => void) => Promise<CurationState>) => {
+  async (pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse, tempCurationsPath: string, onNewCuration: (filePath: string, fpfssInfo: CurationFpfssInfo | null, onProgress?: (progress: Progress) => void) => Promise<CurationState>) => {
     if (req.method === 'POST') {
       const chunks: any[] = [];
       req.on('data', (chunk) => {
@@ -46,7 +46,7 @@ export const onFileServerRequestPostCuration =
         const randomFilePath = path.join(tempCurationsPath, `${uuid()}.7z`);
         await fs.promises.mkdir(path.dirname(randomFilePath), { recursive: true });
         await fs.promises.writeFile(randomFilePath, data);
-        await onNewCuration(randomFilePath)
+        await onNewCuration(randomFilePath, null)
         .then(() => {
           res.writeHead(200);
           res.end();
@@ -213,6 +213,7 @@ export async function loadCurationFolder(rootPath: string, folderName: string, s
       group: parsedMeta.group,
       game: parsedMeta.game,
       addApps: parsedMeta.addApps,
+      fpfssInfo: null,
       thumbnail: await loadCurationIndexImage(path.join(rootPath, folderName, 'logo.png')),
       screenshot: await loadCurationIndexImage(path.join(rootPath, folderName, 'ss.png'))
     };
@@ -222,6 +223,8 @@ export async function loadCurationFolder(rootPath: string, folderName: string, s
       alreadyImported,
       warnings: await genCurationWarnings(loadedCuration, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onWillGenCurationWarnings)
     };
+    // Try and load fpfss data
+    curation.fpfssInfo = await getCurationFpfssInfo(path.join(rootPath, folderName));
     state.loadedCurations.push(curation);
     genContentTree(getContentFolderByKey(folderName, state.config.flashpointPath)).then((contentTree) => {
       const curationIdx = state.loadedCurations.findIndex((c) => c.folder === folderName);
@@ -358,6 +361,7 @@ export async function makeCurationFromGame(state: BackState, gameId: string, ski
       folder,
       uuid: game.id,
       group: '',
+      fpfssInfo: null,
       game: {
         ...game,
         tags: game.detailedTags,

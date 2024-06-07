@@ -423,6 +423,7 @@ const langTemplate = {
     'headerFileOperations',
     'headerEditCuration',
     'headerTest',
+    'headerFpfss',
     'importAll',
     'importAllDesc',
     'deleteAll',
@@ -505,6 +506,7 @@ const langTemplate = {
     'exportDataPacks',
     'exportSelectedDataPacks',
     'shortcuts',
+    'fpfssOpenSubmissionPage',
   ] as const,
   playlist: [
     'enterDescriptionHere',

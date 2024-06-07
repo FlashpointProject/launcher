@@ -11,7 +11,7 @@ import { arrayShallowStrictEquals } from '@shared/utils/compare';
 import { debounce } from '@shared/utils/debounce';
 import axios from 'axios';
 import { clipboard, ipcRenderer, Menu, MenuItemConstructorOptions } from 'electron';
-import { DialogField, DialogState, Game, Playlist, PlaylistGame, RequestGameRange } from 'flashpoint-launcher';
+import { CurationFpfssInfo, DialogField, DialogState, Game, Playlist, PlaylistGame, RequestGameRange } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as React from 'react';
@@ -146,18 +146,23 @@ export class App extends React.Component<AppProps> {
             } else {
               switch (parts[1]) {
                 case 'open_curation': {
-                  this.performFpfssAction(async (user) => {
-                    try {
-                      // Build url
-                      const url = `${this.props.preferencesData.fpfssBaseUrl}/${parts.slice(2).join('/')}`;
-                      // Generate task
-                      const newTask = newCurateTask('Importing FPFSS Submission...', 'Importing...', this.props.addTask);
-                      // Import
-                      await window.Shared.back.request(BackIn.FPFSS_OPEN_CURATION, url, user.accessToken, newTask.id);
-                    } catch (err) {
-                      alert(`Error fetching curation: ${err}`);
-                    }
-                  });
+                  if (parts.length > 4) {
+                    this.performFpfssAction(async (user) => {
+                      try {
+                        const fpfssInfo: CurationFpfssInfo = {
+                          id: parts[4]
+                        };
+                        // Build url
+                        const url = `${this.props.preferencesData.fpfssBaseUrl}/${parts.slice(2).join('/')}`;
+                        // Generate task
+                        const newTask = newCurateTask('Importing FPFSS Submission...', 'Importing...', this.props.addTask);
+                        // Import
+                        await window.Shared.back.request(BackIn.FPFSS_OPEN_CURATION, fpfssInfo, url, user.accessToken, newTask.id);
+                      } catch (err) {
+                        alert(`Error fetching curation: ${err}`);
+                      }
+                    });
+                  }
                   break;
                 }
                 case 'edit_game': {
@@ -2115,7 +2120,29 @@ export class App extends React.Component<AppProps> {
 
     if (user) {
       // User exists, carry on to callback
-      await cb(user);
+      let retries = 0;
+      while (retries <= 1) {
+        retries += 1;
+        try {
+          await cb(user);
+          break;
+        } catch (err) {
+          log.error('Launcher', `[FPFSS] Failed to execute action - ${err}`);
+          if (retries <= 1) {
+            // Reauth if the action failed
+            log.info('Launcher', '[FPFSS] Attempting reauth');
+            user = await fpfssLogin(this.props.dispatchMain, this.props.main.dialogResEvent)
+            .catch((err) => {
+              if (err !== 'User Cancelled') {
+                alert(err);
+              }
+            }) as FpfssUser | null;
+            if (!user) {
+              break;
+            }
+          }
+        }
+      }
     }
   }
 }

@@ -1,11 +1,11 @@
 import { ChangedMeta, MetaEditFlags } from '@shared/MetaEdit';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
-import { AddAppCuration, ContentTree, LoadedCuration, PlatformAppPathSuggestions } from '@shared/curate/types';
+import { AddAppCuration, ContentTree, PlatformAppPathSuggestions } from '@shared/curate/types';
 import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/extensions/interfaces';
 import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
 import { SocketTemplate } from '@shared/socket/types';
 import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
-import { AppPreferencesData, ConfigSchema, CurationState, CurationWarnings, DialogState, DialogStateTemplate, Game, GameConfig, GameData, GameDataSource, GameMetadataSource, GameMiddlewareConfig, GameMiddlewareInfo, MergeTagData, Platform, Playlist, PlaylistGame, Tag, TagCategory, TagFilterGroup, TagSuggestion } from 'flashpoint-launcher';
+import { AppPreferencesData, ConfigSchema, CurationFpfssInfo, CurationState, CurationWarnings, DialogState, DialogStateTemplate, Game, GameConfig, GameData, GameDataSource, GameMetadataSource, GameMiddlewareConfig, GameMiddlewareInfo, LoadedCuration, MergeTagData, Platform, Playlist, PlaylistGame, Tag, TagCategory, TagFilterGroup, TagSuggestion } from 'flashpoint-launcher';
 import { ILogEntry, ILogPreEntry, LogLevel } from '../Log/interface';
 import { Theme } from '../ThemeFile';
 import { AppConfigData, AppExtConfigData } from '../config/interfaces';
@@ -359,7 +359,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.CHECK_MIDDLEWARE_VERSION_VALIDITY]: (middlewareId: string, version: string) => boolean;
 
   // FPFSS
-  [BackIn.FPFSS_OPEN_CURATION]: (url: string, accessToken: string, taskId: string) => void;
+  [BackIn.FPFSS_OPEN_CURATION]: (fpfssInfo: CurationFpfssInfo, url: string, accessToken: string, taskId: string) => void;
 
   // Curate
   [BackIn.CURATE_LOAD_ARCHIVES]: (filePaths: string[], taskId?: string) => void;

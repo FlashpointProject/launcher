@@ -1,13 +1,13 @@
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { CurationIndexImage } from '@shared/curate/OLD_types';
 import { convertEditToCurationMetaFile } from '@shared/curate/metaToMeta';
-import { AddAppCuration, CurationMeta, LoadedCuration } from '@shared/curate/types';
+import { AddAppCuration, CurationMeta } from '@shared/curate/types';
 import { getCurationFolder } from '@shared/curate/util';
 import { TaskProgress } from '@shared/utils/TaskProgress';
 import { newGame } from '@shared/utils/misc';
 import * as child_process from 'child_process';
 import { execFile } from 'child_process';
-import { AdditionalApp, Game, GameLaunchInfo, Platform, Tag, TagCategory } from 'flashpoint-launcher';
+import { AdditionalApp, Game, GameLaunchInfo, LoadedCuration, Platform, Tag, TagCategory } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as crypto from 'crypto';
 import * as path from 'path';
