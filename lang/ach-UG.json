@@ -411,6 +411,7 @@
     "headerFileOperations": "crwdns5555:0crwdne5555:0",
     "headerEditCuration": "crwdns5557:0crwdne5557:0",
     "headerTest": "crwdns5559:0crwdne5559:0",
+    "headerFpfss": "crwdns7048:0crwdne7048:0",
     "importAll": "crwdns5561:0crwdne5561:0",
     "importAllDesc": "crwdns5563:0crwdne5563:0",
     "deleteAll": "crwdns5565:0crwdne5565:0",
@@ -491,7 +492,8 @@
     "contextCopyAsURL": "crwdns5701:0crwdne5701:0",
     "contextShowInExplorer": "crwdns5703:0crwdne5703:0",
     "contextOpenFolderInExplorer": "crwdns5705:0crwdne5705:0",
-    "shortcuts": "crwdns5707:0crwdne5707:0"
+    "shortcuts": "crwdns5707:0crwdne5707:0",
+    "fpfssOpenSubmissionPage": "crwdns7050:0crwdne7050:0"
   },
   "playlist": {
     "enterDescriptionHere": "crwdns5709:0crwdne5709:0",
