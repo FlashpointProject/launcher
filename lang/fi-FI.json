@@ -411,6 +411,7 @@
     "headerFileOperations": "Tiedosto",
     "headerEditCuration": "Muokkaa",
     "headerTest": "Testi",
+    "headerFpfss": "FPFSS",
     "importAll": "Tuo kaikki kuratoinnit",
     "importAllDesc": "Tuo kaikki kuratoinnit jotka on ladattu",
     "deleteAll": "Tuhoa kaikki",
@@ -491,7 +492,8 @@
     "contextCopyAsURL": "Kopioi tiedostopolku URL-osoitteena",
     "contextShowInExplorer": "Näytä tiedosto Explorerissa",
     "contextOpenFolderInExplorer": "Avaa kansio Explorerissa",
-    "shortcuts": "Pikavalinnat"
+    "shortcuts": "Pikavalinnat",
+    "fpfssOpenSubmissionPage": "Open Submission Page"
   },
   "playlist": {
     "enterDescriptionHere": "Kirjoita kuvaus tähän...",
