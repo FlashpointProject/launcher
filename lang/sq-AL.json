@@ -411,6 +411,7 @@
     "headerFileOperations": "File",
     "headerEditCuration": "Edit",
     "headerTest": "Test",
+    "headerFpfss": "FPFSS",
     "importAll": "Import All",
     "importAllDesc": "Import all curations that are currently loaded",
     "deleteAll": "Delete All",
@@ -491,7 +492,8 @@
     "contextCopyAsURL": "Copy File Path as URL",
     "contextShowInExplorer": "Show File in Explorer",
     "contextOpenFolderInExplorer": "Open Folder in Explorer",
-    "shortcuts": "Shortcuts"
+    "shortcuts": "Shortcuts",
+    "fpfssOpenSubmissionPage": "Open Submission Page"
   },
   "playlist": {
     "enterDescriptionHere": "Enter a description here...",
