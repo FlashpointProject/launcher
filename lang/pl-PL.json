@@ -411,6 +411,7 @@
     "headerFileOperations": "Plik",
     "headerEditCuration": "Edytuj",
     "headerTest": "Testuj",
+    "headerFpfss": "FPFSS",
     "importAll": "Importuj wszystko",
     "importAllDesc": "Importuj wszystkie obecnie archiwizowane gry",
     "deleteAll": "Usuń wszystko",
@@ -491,7 +492,8 @@
     "contextCopyAsURL": "Kopiuj ścieżkę pliku jako adres URL",
     "contextShowInExplorer": "Pokaż plik w Eksploratorze",
     "contextOpenFolderInExplorer": "Otwórz folder w Eksploratorze",
-    "shortcuts": "Skróty"
+    "shortcuts": "Skróty",
+    "fpfssOpenSubmissionPage": "Open Submission Page"
   },
   "playlist": {
     "enterDescriptionHere": "Dodaj opis...",
