@@ -411,6 +411,7 @@
     "headerFileOperations": "File",
     "headerEditCuration": "Редагувати",
     "headerTest": "Test",
+    "headerFpfss": "FPFSS",
     "importAll": "Імпортувати всі",
     "importAllDesc": "Імпортувати всі завантажені програми",
     "deleteAll": "Видалити все",
@@ -491,7 +492,8 @@
     "contextCopyAsURL": "Copy File Path as URL",
     "contextShowInExplorer": "Show File in Explorer",
     "contextOpenFolderInExplorer": "Open Folder in Explorer",
-    "shortcuts": "Shortcuts"
+    "shortcuts": "Shortcuts",
+    "fpfssOpenSubmissionPage": "Open Submission Page"
   },
   "playlist": {
     "enterDescriptionHere": "Введіть опис...",
