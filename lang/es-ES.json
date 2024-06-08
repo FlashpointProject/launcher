@@ -411,6 +411,7 @@
     "headerFileOperations": "Archivo",
     "headerEditCuration": "Editar",
     "headerTest": "Probar",
+    "headerFpfss": "FPFSS",
     "importAll": "Importar todo",
     "importAllDesc": "Importar todas las curaciones que están cargadas actualmente",
     "deleteAll": "Borrar todo",
@@ -491,7 +492,8 @@
     "contextCopyAsURL": "Copiar ruta del archivo como URL",
     "contextShowInExplorer": "Mostrar en el explorador de archivos",
     "contextOpenFolderInExplorer": "Abrir carpeta en el Explorador",
-    "shortcuts": "Accesos directos"
+    "shortcuts": "Accesos directos",
+    "fpfssOpenSubmissionPage": "Open Submission Page"
   },
   "playlist": {
     "enterDescriptionHere": "Introduzca una descripción aquí...",
