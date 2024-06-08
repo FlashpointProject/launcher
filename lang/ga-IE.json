@@ -411,6 +411,7 @@
     "headerFileOperations": "Comhartha",
     "headerEditCuration": "Eagar",
     "headerTest": "Tástáil",
+    "headerFpfss": "FPFSS",
     "importAll": "Iompórtáil ar Fad",
     "importAllDesc": "Iompórtáil gach cuireadh atá lódáilte faoi láthair",
     "deleteAll": "Scrios ar Fad",
@@ -491,7 +492,8 @@
     "contextCopyAsURL": "Cóipeáil Cosán an Chomhaid mar URL",
     "contextShowInExplorer": "Taispeáin an Comhad in Eolaire",
     "contextOpenFolderInExplorer": "Oscail an Spás in Eolaire",
-    "shortcuts": "Réiltíní"
+    "shortcuts": "Réiltíní",
+    "fpfssOpenSubmissionPage": "Open Submission Page"
   },
   "playlist": {
     "enterDescriptionHere": "Cuir cur síos anseo...",
