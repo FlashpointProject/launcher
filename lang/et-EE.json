@@ -411,6 +411,7 @@
     "headerFileOperations": "Fail",
     "headerEditCuration": "Muuda",
     "headerTest": "Test",
+    "headerFpfss": "FPFSS",
     "importAll": "Impordi Kõik",
     "importAllDesc": "Impordi kõik laetud kureeringud",
     "deleteAll": "Kustuta Kõik",
@@ -491,7 +492,8 @@
     "contextCopyAsURL": "Kopeeri faili asukoht URL-ina",
     "contextShowInExplorer": "Kuva fail Explorer'is",
     "contextOpenFolderInExplorer": "Ava kaust Explorer'is",
-    "shortcuts": "Otseteed"
+    "shortcuts": "Otseteed",
+    "fpfssOpenSubmissionPage": "Open Submission Page"
   },
   "playlist": {
     "enterDescriptionHere": "Lisa kirjeldus siia...",
