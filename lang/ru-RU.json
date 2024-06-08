@@ -411,6 +411,7 @@
     "headerFileOperations": "Файл",
     "headerEditCuration": "Изменить",
     "headerTest": "Тест",
+    "headerFpfss": "FPFSS",
     "importAll": "Импортировать все",
     "importAllDesc": "Импортировать все загруженные на данный момент правки",
     "deleteAll": "Удалить все",
@@ -491,7 +492,8 @@
     "contextCopyAsURL": "Скопировать путь к файлу как URL",
     "contextShowInExplorer": "Показать файл в проводнике",
     "contextOpenFolderInExplorer": "Открыть папку в проводнике",
-    "shortcuts": "Ярлыки"
+    "shortcuts": "Ярлыки",
+    "fpfssOpenSubmissionPage": "Open Submission Page"
   },
   "playlist": {
     "enterDescriptionHere": "Введите описание сюда...",
