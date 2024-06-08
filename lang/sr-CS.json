@@ -411,6 +411,7 @@
     "headerFileOperations": "Datoteka",
     "headerEditCuration": "Uredi",
     "headerTest": "Testiraj",
+    "headerFpfss": "FPFSS",
     "importAll": "Uvezi sve",
     "importAllDesc": "Uvezi sve galerije koje su trenutno učitane",
     "deleteAll": "Izbriši sve",
@@ -491,7 +492,8 @@
     "contextCopyAsURL": "Copy File Path as URL",
     "contextShowInExplorer": "Show File in Explorer",
     "contextOpenFolderInExplorer": "Open Folder in Explorer",
-    "shortcuts": "Prečice"
+    "shortcuts": "Prečice",
+    "fpfssOpenSubmissionPage": "Open Submission Page"
   },
   "playlist": {
     "enterDescriptionHere": "Unesi opis ovde...",
