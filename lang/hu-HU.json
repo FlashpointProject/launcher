@@ -411,6 +411,7 @@
     "headerFileOperations": "Fájl",
     "headerEditCuration": "Szerkesztés",
     "headerTest": "Teszt",
+    "headerFpfss": "FPFSS",
     "importAll": "Összes importálása",
     "importAllDesc": "A jelenleg betöltött összes kuráció importálása",
     "deleteAll": "Összes törlése",
@@ -491,7 +492,8 @@
     "contextCopyAsURL": "Fájl útvonal megnyitása URL-ként",
     "contextShowInExplorer": "Fájl megnyitása fájlkezelőben",
     "contextOpenFolderInExplorer": "Mappa megnyitása Fájlkezelőben",
-    "shortcuts": "Parancsikonok"
+    "shortcuts": "Parancsikonok",
+    "fpfssOpenSubmissionPage": "Open Submission Page"
   },
   "playlist": {
     "enterDescriptionHere": "Adja meg a leírást itt.....",
