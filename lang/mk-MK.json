@@ -411,6 +411,7 @@
     "headerFileOperations": "Фајл",
     "headerEditCuration": "Уреди",
     "headerTest": "Тест",
+    "headerFpfss": "FPFSS",
     "importAll": "Увози се",
     "importAllDesc": "Увезете ги сите курации што се моментално вчитани",
     "deleteAll": "Избриши сè",
@@ -491,7 +492,8 @@
     "contextCopyAsURL": "Копирај патеката на Фајлот во URL",
     "contextShowInExplorer": "Прикажи го Фајлот во Explorer",
     "contextOpenFolderInExplorer": "Отвори Фолдерот во Explorer",
-    "shortcuts": "Кратенки"
+    "shortcuts": "Кратенки",
+    "fpfssOpenSubmissionPage": "Open Submission Page"
   },
   "playlist": {
     "enterDescriptionHere": "Внеси опис овде...",
