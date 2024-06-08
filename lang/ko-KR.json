@@ -411,6 +411,7 @@
     "headerFileOperations": "File",
     "headerEditCuration": " 수정",
     "headerTest": "Test",
+    "headerFpfss": "FPFSS",
     "importAll": "모두 가져오기",
     "importAllDesc": "현재 로딩된 모든 큐레이션을 가져옵니다",
     "deleteAll": "모두 삭제",
@@ -491,7 +492,8 @@
     "contextCopyAsURL": "Copy File Path as URL",
     "contextShowInExplorer": "Show File in Explorer",
     "contextOpenFolderInExplorer": "Open Folder in Explorer",
-    "shortcuts": "Shortcuts"
+    "shortcuts": "Shortcuts",
+    "fpfssOpenSubmissionPage": "Open Submission Page"
   },
   "playlist": {
     "enterDescriptionHere": "이 곳에 설명을 입력하세요...",
