@@ -411,6 +411,7 @@
     "headerFileOperations": "Fișier",
     "headerEditCuration": "Modificați",
     "headerTest": "Testare",
+    "headerFpfss": "FPFSS",
     "importAll": "Importați tot",
     "importAllDesc": "Importați toate reparațiile încărcate",
     "deleteAll": "Ștergeți tot",
@@ -491,7 +492,8 @@
     "contextCopyAsURL": "Copiați calea ca o legătură",
     "contextShowInExplorer": "Afișați fișierul în Explorer",
     "contextOpenFolderInExplorer": "Deschideți dosarul în Explorer",
-    "shortcuts": "Comenzi rapide"
+    "shortcuts": "Comenzi rapide",
+    "fpfssOpenSubmissionPage": "Open Submission Page"
   },
   "playlist": {
     "enterDescriptionHere": "Iintroduceți descrierea aici...",
