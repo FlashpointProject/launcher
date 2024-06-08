@@ -411,6 +411,7 @@
     "headerFileOperations": "Tập tin",
     "headerEditCuration": "Sửa",
     "headerTest": "Chạy thử",
+    "headerFpfss": "FPFSS",
     "importAll": "Nhập hết",
     "importAllDesc": "Nhập hết các bản đóng góp đã nạp vào chương trình",
     "deleteAll": "Xoá hết",
@@ -491,7 +492,8 @@
     "contextCopyAsURL": "Chép đường dẫn tập tin dưới dạng URL",
     "contextShowInExplorer": "Hiện tập tin trong Explorer",
     "contextOpenFolderInExplorer": "Mở thư mục trong Explorer",
-    "shortcuts": "Phím tắt"
+    "shortcuts": "Phím tắt",
+    "fpfssOpenSubmissionPage": "Open Submission Page"
   },
   "playlist": {
     "enterDescriptionHere": "Hãy điền mô tả vào đây...",
