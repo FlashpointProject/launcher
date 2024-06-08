@@ -411,6 +411,7 @@
     "headerFileOperations": "File",
     "headerEditCuration": "Уреди",
     "headerTest": "Test",
+    "headerFpfss": "FPFSS",
     "importAll": "Увези све",
     "importAllDesc": "Увези све галерије које су тренутно учитане",
     "deleteAll": "Избриши све",
@@ -491,7 +492,8 @@
     "contextCopyAsURL": "Copy File Path as URL",
     "contextShowInExplorer": "Show File in Explorer",
     "contextOpenFolderInExplorer": "Open Folder in Explorer",
-    "shortcuts": "Пречице"
+    "shortcuts": "Пречице",
+    "fpfssOpenSubmissionPage": "Open Submission Page"
   },
   "playlist": {
     "enterDescriptionHere": "Унеси опис овде...",
