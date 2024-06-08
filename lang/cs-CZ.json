@@ -411,6 +411,7 @@
     "headerFileOperations": "Soubor",
     "headerEditCuration": "Upravit",
     "headerTest": "Otestovat",
+    "headerFpfss": "FPFSS",
     "importAll": "Importovat vše",
     "importAllDesc": "Importovat všechny aktuálně načtené kurace",
     "deleteAll": "Smazat vše",
@@ -491,7 +492,8 @@
     "contextCopyAsURL": "Kopírovat cestu k souboru jako URL",
     "contextShowInExplorer": "Zobrazit soubor v průzkumníku",
     "contextOpenFolderInExplorer": "Otevřít složku v průzkumníku",
-    "shortcuts": "Zkratky"
+    "shortcuts": "Zkratky",
+    "fpfssOpenSubmissionPage": "Open Submission Page"
   },
   "playlist": {
     "enterDescriptionHere": "Zadejte popis...",
