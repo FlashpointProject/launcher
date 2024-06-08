@@ -411,6 +411,7 @@
     "headerFileOperations": "File",
     "headerEditCuration": "Επεξεργασία",
     "headerTest": "Test",
+    "headerFpfss": "FPFSS",
     "importAll": "Εισαγωγή Όλων",
     "importAllDesc": "Εισαγωγή όλων των ήδη φορτισμένων επιμελειών",
     "deleteAll": "Διαγραφή Όλων",
@@ -491,7 +492,8 @@
     "contextCopyAsURL": "Copy File Path as URL",
     "contextShowInExplorer": "Show File in Explorer",
     "contextOpenFolderInExplorer": "Open Folder in Explorer",
-    "shortcuts": "Shortcuts"
+    "shortcuts": "Shortcuts",
+    "fpfssOpenSubmissionPage": "Open Submission Page"
   },
   "playlist": {
     "enterDescriptionHere": "Εισάγετε μία περιγραφή εδώ...",
