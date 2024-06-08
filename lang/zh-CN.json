@@ -411,6 +411,7 @@
     "headerFileOperations": "文件",
     "headerEditCuration": "编辑",
     "headerTest": "测试",
+    "headerFpfss": "FPFSS",
     "importAll": "导入全部",
     "importAllDesc": "导入所有当前加载的展品",
     "deleteAll": "删除全部",
@@ -491,7 +492,8 @@
     "contextCopyAsURL": "复制文件路径为 URL",
     "contextShowInExplorer": "在资源管理器中显示文件",
     "contextOpenFolderInExplorer": "在资源管理器中打开文件夹",
-    "shortcuts": "快捷方式"
+    "shortcuts": "快捷方式",
+    "fpfssOpenSubmissionPage": "Open Submission Page"
   },
   "playlist": {
     "enterDescriptionHere": "在此输入描述...",
