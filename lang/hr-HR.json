@@ -411,6 +411,7 @@
     "headerFileOperations": "File",
     "headerEditCuration": "Uredi",
     "headerTest": "Test",
+    "headerFpfss": "FPFSS",
     "importAll": "Uvezi sve",
     "importAllDesc": "Import all curations that are currently loaded",
     "deleteAll": "Izbriši sve",
@@ -491,7 +492,8 @@
     "contextCopyAsURL": "Copy File Path as URL",
     "contextShowInExplorer": "Show File in Explorer",
     "contextOpenFolderInExplorer": "Open Folder in Explorer",
-    "shortcuts": "Shortcuts"
+    "shortcuts": "Shortcuts",
+    "fpfssOpenSubmissionPage": "Open Submission Page"
   },
   "playlist": {
     "enterDescriptionHere": "Dodaj opis ovdje...",
