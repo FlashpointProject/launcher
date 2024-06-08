@@ -2170,9 +2170,10 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       const curPath = path.resolve(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, curation.folder);
       await saveCuration(curPath, curation);
       await new Promise<void>((resolve) => {
-        return add(filePath, curPath, { recursive: true, exlude: [FPFSS_INFO_FILENAME], $bin: pathTo7zBack(state.isDev, state.exePath) })
+        // Cast required until types fixed
+        return (add as any)(filePath, curPath, { recursive: true, exclude: [`!${FPFSS_INFO_FILENAME}`], $bin: pathTo7zBack(state.isDev, state.exePath) })
         .on('end', () => { resolve(); })
-        .on('error', (error) => {
+        .on('error', (error: any) => {
           log.error('Curate', error.message);
           resolve();
         });
