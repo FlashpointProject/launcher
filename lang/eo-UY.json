@@ -411,6 +411,7 @@
     "headerFileOperations": "File",
     "headerEditCuration": "Redakti",
     "headerTest": "Test",
+    "headerFpfss": "FPFSS",
     "importAll": "Importu ĉiujn",
     "importAllDesc": "Importu ĉiujn ŝarĝitajn ŝanĝojn",
     "deleteAll": "Forigi Ĉiujn",
@@ -491,7 +492,8 @@
     "contextCopyAsURL": "Copy File Path as URL",
     "contextShowInExplorer": "Show File in Explorer",
     "contextOpenFolderInExplorer": "Open Folder in Explorer",
-    "shortcuts": "Shortcuts"
+    "shortcuts": "Shortcuts",
+    "fpfssOpenSubmissionPage": "Open Submission Page"
   },
   "playlist": {
     "enterDescriptionHere": "Enigu priskribon ĉi tie...",
