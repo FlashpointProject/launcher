@@ -411,6 +411,7 @@
     "headerFileOperations": "File",
     "headerEditCuration": "Modifica",
     "headerTest": "Collauda",
+    "headerFpfss": "FPFSS",
     "importAll": "Importa Tutti",
     "importAllDesc": "Importa tutti i giochi curati attualmente caricati",
     "deleteAll": "Elimina Tutti",
@@ -491,7 +492,8 @@
     "contextCopyAsURL": "Copia Percorso File come URL",
     "contextShowInExplorer": "Mostra File in Explorer",
     "contextOpenFolderInExplorer": "Apri Cartella in Explorer",
-    "shortcuts": "Scorciatoie"
+    "shortcuts": "Scorciatoie",
+    "fpfssOpenSubmissionPage": "Open Submission Page"
   },
   "playlist": {
     "enterDescriptionHere": "Inserisci qui una descrizione...",
