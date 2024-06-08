@@ -411,6 +411,7 @@
     "headerFileOperations": "Dosya",
     "headerEditCuration": "Düzenle",
     "headerTest": "Deneme",
+    "headerFpfss": "FPFSS",
     "importAll": "Tümünü İçe Aktar",
     "importAllDesc": "Şu an yüklü olan tüm kürasyonları içe aktar",
     "deleteAll": "Hepsini Sil",
@@ -491,7 +492,8 @@
     "contextCopyAsURL": "Dosya Kısayolunu URL Olarak Kopyala",
     "contextShowInExplorer": "Dosyayı Dosya Gezgininde aç",
     "contextOpenFolderInExplorer": "Klasörü Dosya Gezgininde Aç",
-    "shortcuts": "Kısayollar"
+    "shortcuts": "Kısayollar",
+    "fpfssOpenSubmissionPage": "Open Submission Page"
   },
   "playlist": {
     "enterDescriptionHere": "Buraya bir açıklama yazın...",
