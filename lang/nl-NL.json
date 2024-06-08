@@ -411,6 +411,7 @@
     "headerFileOperations": "Bestand",
     "headerEditCuration": "Bewerken",
     "headerTest": "Test",
+    "headerFpfss": "FPFSS",
     "importAll": "Alles importeren",
     "importAllDesc": "Importeer alle curaties die momenteel zijn geladen",
     "deleteAll": "Verwijder alles",
@@ -491,7 +492,8 @@
     "contextCopyAsURL": "Kopieer het bestandspad als URL",
     "contextShowInExplorer": "Bestand weergeven in Verkenner",
     "contextOpenFolderInExplorer": "Open map in Verkenner",
-    "shortcuts": "Snelkoppelingen"
+    "shortcuts": "Snelkoppelingen",
+    "fpfssOpenSubmissionPage": "Open Submission Page"
   },
   "playlist": {
     "enterDescriptionHere": "Voer hier een beschrijving in...",
