@@ -411,6 +411,7 @@
     "headerFileOperations": "檔案",
     "headerEditCuration": "修改",
     "headerTest": "測試",
+    "headerFpfss": "FPFSS",
     "importAll": "全部匯入",
     "importAllDesc": "匯入所有已讀取之上傳內容",
     "deleteAll": "刪除全部",
@@ -491,7 +492,8 @@
     "contextCopyAsURL": "將檔案路徑複製為超連結",
     "contextShowInExplorer": "在檔案總管中顯示檔案",
     "contextOpenFolderInExplorer": "在檔案總管中開啟資料夾",
-    "shortcuts": "捷徑"
+    "shortcuts": "捷徑",
+    "fpfssOpenSubmissionPage": "Open Submission Page"
   },
   "playlist": {
     "enterDescriptionHere": "在此輸入敘述...",
