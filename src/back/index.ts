@@ -7,8 +7,7 @@ import {
 } from '@shared/Util';
 import * as os from 'os';
 import { BackIn, BackInit, BackInitArgs, BackOut, BackResParams, ComponentState, ComponentStatus, DownloadDetails } from '@shared/back/types';
-import { LoadedCuration } from '@shared/curate/types';
-import { getContentFolderByKey } from '@shared/curate/util';
+import { getContentFolderByKey, getCurationFolder } from '@shared/curate/util';
 import { ILogoSet, LogoSet } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
 import { LangFileContent, getDefaultLocalization } from '@shared/lang';
@@ -74,6 +73,7 @@ import { onDidInstallGameData, onDidRemoveGame, onDidRemovePlaylistGame, onDidUn
 import { dispose } from './util/lifecycle';
 import { formatString } from '@shared/utils/StringFormatter';
 import { awaitDialog } from './util/dialog';
+import { saveCurationFpfssInfo } from './curate/fpfss';
 
 export const VERBOSE = {
   enabled: false
@@ -1455,7 +1455,7 @@ async function removeFileServerDownloadItem(item: ImageDownloadItem): Promise<vo
   if (index >= 0) { state.fileServerDownloads.current.splice(index, 1); }
 }
 
-export async function loadCurationArchive(filePath: string, onProgress?: (progress: Progress) => void): Promise<flashpoint.CurationState> {
+export async function loadCurationArchive(filePath: string, fpfssInfo: flashpoint.CurationFpfssInfo | null, onProgress?: (progress: Progress) => void): Promise<flashpoint.CurationState> {
   const key = uuid();
   const extractPath = path.resolve(state.config.flashpointPath, CURATIONS_FOLDER_EXTRACTING, key);
   // Extract to temp folder
@@ -1488,12 +1488,13 @@ export async function loadCurationArchive(filePath: string, onProgress?: (progre
   const parsedMeta = await readCurationMeta(curationPath, state.platformAppPaths);
   if (!parsedMeta) { throw new Error('Fail'); }
 
-  const loadedCuration: LoadedCuration = {
+  const loadedCuration: flashpoint.LoadedCuration = {
     folder: key,
     uuid: parsedMeta.uuid || uuid(),
     group: parsedMeta.group,
     game: parsedMeta.game,
     addApps: parsedMeta.addApps,
+    fpfssInfo,
     thumbnail: await loadCurationIndexImage(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, key, 'logo.png')),
     screenshot: await loadCurationIndexImage(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, key, 'ss.png')),
   };
@@ -1503,6 +1504,9 @@ export async function loadCurationArchive(filePath: string, onProgress?: (progre
     alreadyImported,
     warnings: await genCurationWarnings(loadedCuration, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onWillGenCurationWarnings)
   };
+  if (fpfssInfo) {
+    await saveCurationFpfssInfo(getCurationFolder(curation, state.config.flashpointPath), fpfssInfo);
+  }
 
   genContentTree(getContentFolderByKey(key, state.config.flashpointPath))
   .then((contentTree) => {

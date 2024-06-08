@@ -1,15 +1,4 @@
 import { Platform, Tag } from 'flashpoint-launcher';
-import { CurationIndexImage } from './OLD_types';
-
-export type LoadedCuration = {
-  folder: string;
-  uuid: string;
-  group: string;
-  game: CurationMeta;
-  addApps: AddAppCuration[];
-  thumbnail: CurationIndexImage;
-  screenshot: CurationIndexImage;
-}
 
 export type ContentTree = {
   // Root node - 'content' folder

@@ -1,7 +1,8 @@
-import { LoadedCuration } from '@shared/curate/types';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as YAML from 'yaml';
+import { saveCurationFpfssInfo } from './fpfss';
+import { LoadedCuration } from 'flashpoint-launcher';
 
 type CurationMetaFile = {
   'Application Path'?: string;
@@ -47,9 +48,15 @@ type CurationFormatAddApp = {
 
 
 export async function saveCuration(fullCurationPath: string, curation: LoadedCuration): Promise<void> {
+  // Save Meta
   const metaPath = path.join(fullCurationPath, 'meta.yaml');
   const meta = YAML.stringify(convertEditToCurationMetaFile(curation));
   await fs.promises.writeFile(metaPath, meta);
+
+  // Save FPFSS info
+  if (curation.fpfssInfo) {
+    await saveCurationFpfssInfo(fullCurationPath, curation.fpfssInfo);
+  }
 }
 
 function convertEditToCurationMetaFile(curation: LoadedCuration): CurationMetaFile {

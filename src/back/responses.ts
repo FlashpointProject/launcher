@@ -6,7 +6,6 @@ import { BackIn, BackInit, BackOut, ComponentState, CurationImageEnum, DownloadD
 import { overwriteConfigData } from '@shared/config/util';
 import { CURATIONS_FOLDER_EXPORTED, CURATIONS_FOLDER_TEMP, CURATIONS_FOLDER_WORKING, LOGOS, SCREENSHOTS, VIEW_PAGE_SIZE } from '@shared/constants';
 import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
-import { LoadedCuration } from '@shared/curate/types';
 import { getContentFolderByKey, getCurationFolder } from '@shared/curate/util';
 import { AppProvider, BrowserApplicationOpts } from '@shared/extensions/interfaces';
 import { DeepPartial, GamePropSuggestions, ProcessAction, ProcessState } from '@shared/interfaces';
@@ -21,7 +20,7 @@ import { throttle } from '@shared/utils/throttle';
 import * as axiosImport from 'axios';
 import * as child_process from 'child_process';
 import { execSync } from 'child_process';
-import { ConfigSchema, CurationState, Game, GameConfig, GameData, GameLaunchInfo, GameMetadataSource, GameMiddlewareInfo, RequestGameRange, ResponseGameRange, Tag, TagCategory } from 'flashpoint-launcher';
+import { ConfigSchema, CurationState, Game, GameConfig, GameData, GameLaunchInfo, GameMetadataSource, GameMiddlewareInfo, LoadedCuration, RequestGameRange, ResponseGameRange, Tag, TagCategory } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as fs_extra from 'fs-extra';
 import * as https from 'https';
@@ -69,6 +68,7 @@ import {
   runService
 } from './util/misc';
 import { uuid } from './util/uuid';
+import { FPFSS_INFO_FILENAME } from '@shared/curate/fpfss';
 
 const axios = axiosImport.default;
 
@@ -1977,7 +1977,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     for (const filePath of filePaths) {
       processed = processed + 1;
       taskProgress.setStage(processed, `Loading ${filePath}`);
-      await loadCurationArchive(filePath, throttle((progress: Progress) => {
+      await loadCurationArchive(filePath, null, throttle((progress: Progress) => {
         taskProgress.setStageProgress((progress.percent / 100), `Extracting Files - ${progress.fileCount}`);
       }, 200))
       .catch((error) => {
@@ -2170,9 +2170,10 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       const curPath = path.resolve(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, curation.folder);
       await saveCuration(curPath, curation);
       await new Promise<void>((resolve) => {
-        return add(filePath, curPath, { recursive: true, $bin: pathTo7zBack(state.isDev, state.exePath) })
+        // Cast required until types fixed
+        return (add as any)(filePath, curPath, { recursive: true, exclude: [`!${FPFSS_INFO_FILENAME}`], $bin: pathTo7zBack(state.isDev, state.exePath) })
         .on('end', () => { resolve(); })
-        .on('error', (error) => {
+        .on('error', (error: any) => {
           log.error('Curate', error.message);
           resolve();
         });
@@ -2233,6 +2234,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
           library:  'Arcade'.toLowerCase() // must be lower case
         },
         addApps: [],
+        fpfssInfo: null,
         thumbnail: await loadCurationIndexImage(path.join(curPath, 'logo.png')),
         screenshot: await loadCurationIndexImage(path.join(curPath, 'ss.png'))
       };
@@ -2251,7 +2253,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     }
   });
 
-  state.socketServer.register(BackIn.FPFSS_OPEN_CURATION, async (event, url, accessToken, taskId) => {
+  state.socketServer.register(BackIn.FPFSS_OPEN_CURATION, async (event, fpfssInfo, url, accessToken, taskId) => {
     // Setup task info
     const taskProgress = new TaskProgress(2);
     if (taskId) {
@@ -2283,7 +2285,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
 
     taskProgress.setStage(2, `Loading ${tempFile}`);
-    await loadCurationArchive(tempFile, throttle((progress: Progress) => {
+    await loadCurationArchive(tempFile, fpfssInfo, throttle((progress: Progress) => {
       taskProgress.setStageProgress((progress.percent / 100), `Extracting Files - ${progress.fileCount}`);
     }, 200))
     .catch((error) => {

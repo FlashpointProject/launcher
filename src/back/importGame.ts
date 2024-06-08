@@ -1,13 +1,13 @@
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { CurationIndexImage } from '@shared/curate/OLD_types';
 import { convertEditToCurationMetaFile } from '@shared/curate/metaToMeta';
-import { AddAppCuration, CurationMeta, LoadedCuration } from '@shared/curate/types';
+import { AddAppCuration, CurationMeta } from '@shared/curate/types';
 import { getCurationFolder } from '@shared/curate/util';
 import { TaskProgress } from '@shared/utils/TaskProgress';
 import { newGame } from '@shared/utils/misc';
 import * as child_process from 'child_process';
 import { execFile } from 'child_process';
-import { AdditionalApp, Game, GameLaunchInfo, Platform, Tag, TagCategory } from 'flashpoint-launcher';
+import { AdditionalApp, Game, GameLaunchInfo, LoadedCuration, Platform, Tag, TagCategory } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as crypto from 'crypto';
 import * as path from 'path';
@@ -376,6 +376,7 @@ export async function launchCuration(curation: LoadedCuration, symlinkCurationCo
   if (!skipLink || !symlinkCurationContent) { await linkContentFolder(curation.folder, opts.fpPath, opts.isDev, opts.exePath, opts.htdocsPath, symlinkCurationContent); }
   curationLog(`Launching Curation ${curation.game.title}`);
   const game = await createGameFromCurationMeta(curation.folder, curation.game, [], new Date());
+  clearWininetCache();
   await GameLauncher.launchGame({
     ...opts,
     game: game
@@ -404,11 +405,22 @@ export async function launchAddAppCuration(folder: string, appCuration: AddAppCu
   if (!skipLink || !symlinkCurationContent) { await linkContentFolder(folder, opts.fpPath, opts.isDev, opts.exePath, opts.htdocsPath, symlinkCurationContent); }
   const addApp = createAddAppFromCurationMeta(appCuration, createPlaceholderGame(platforms));
   await onWillEvent.fire(addApp);
+  clearWininetCache();
   await GameLauncher.launchAdditionalApplication({
     ...opts,
     addApp: addApp
   }, true);
   await onDidEvent.fire(addApp);
+}
+
+function clearWininetCache() {
+  if (process.platform === 'win32') {
+    child_process.exec('RunDll32.exe InetCpl.cpl,ClearMyTracksByProcess 8', (err) => {
+      if (err) {
+        log.error('Launcher', `Error clearing WinINet Cache: ${err}`);
+      }
+    });
+  }
 }
 
 function logMessage(text: string, folder: string): void {

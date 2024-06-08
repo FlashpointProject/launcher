@@ -1339,6 +1339,10 @@ declare module 'flashpoint-launcher' {
         logLevel: number;
     }
 
+    type CurationFpfssInfo = {
+        id: string;
+    };
+
     export type LoadedCuration = {
         folder: string;
         uuid: string;
@@ -1347,7 +1351,8 @@ declare module 'flashpoint-launcher' {
         addApps: AddAppCuration[];
         thumbnail: CurationIndexImage;
         screenshot: CurationIndexImage;
-    }
+        fpfssInfo: CurationFpfssInfo | null;
+    }    
 
     export type CurationState = LoadedCuration & {
         alreadyImported: boolean;
