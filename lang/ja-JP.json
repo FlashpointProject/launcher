@@ -411,6 +411,7 @@
     "headerFileOperations": "ファイル",
     "headerEditCuration": "編集",
     "headerTest": "テスト",
+    "headerFpfss": "FPFSS",
     "importAll": "すべてインポート",
     "importAllDesc": "現在読み込まれているすべてのキュレーションをインポート",
     "deleteAll": "すべて削除",
@@ -491,7 +492,8 @@
     "contextCopyAsURL": "URLとしてファイルパスをコピー",
     "contextShowInExplorer": "エクスプローラーでファイルを見る",
     "contextOpenFolderInExplorer": "エキスプローラでフォルダーを開く",
-    "shortcuts": "ショートカット"
+    "shortcuts": "ショートカット",
+    "fpfssOpenSubmissionPage": "Open Submission Page"
   },
   "playlist": {
     "enterDescriptionHere": "ここに説明を入力...",
