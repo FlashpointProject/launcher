@@ -411,6 +411,7 @@
     "headerFileOperations": "ไฟล์",
     "headerEditCuration": "แก้ไข",
     "headerTest": "ทดสอบ",
+    "headerFpfss": "FPFSS",
     "importAll": "นำ​เข้า​ทั้ง​หมด",
     "importAllDesc": "นำเข้ารายการจัดทำที่กำลังใช้อยู่",
     "deleteAll": "ลบทั้งหมด",
@@ -491,7 +492,8 @@
     "contextCopyAsURL": "Copy File Path as URL",
     "contextShowInExplorer": "Show File in Explorer",
     "contextOpenFolderInExplorer": "Open Folder in Explorer",
-    "shortcuts": "Shortcuts"
+    "shortcuts": "Shortcuts",
+    "fpfssOpenSubmissionPage": "Open Submission Page"
   },
   "playlist": {
     "enterDescriptionHere": "ใส่คำบรรยายที่นี่...",
