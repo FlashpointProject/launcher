@@ -148,19 +148,21 @@ export class App extends React.Component<AppProps> {
                 case 'open_curation': {
                   if (parts.length > 4) {
                     this.performFpfssAction(async (user) => {
-                      try {
-                        const fpfssInfo: CurationFpfssInfo = {
-                          id: parts[4]
-                        };
-                        // Build url
-                        const url = `${this.props.preferencesData.fpfssBaseUrl}/${parts.slice(2).join('/')}`;
-                        // Generate task
-                        const newTask = newCurateTask('Importing FPFSS Submission...', 'Importing...', this.props.addTask);
-                        // Import
-                        await window.Shared.back.request(BackIn.FPFSS_OPEN_CURATION, fpfssInfo, url, user.accessToken, newTask.id);
-                      } catch (err) {
-                        alert(`Error fetching curation: ${err}`);
-                      }
+                      const fpfssInfo: CurationFpfssInfo = {
+                        id: parts[4]
+                      };
+                      // Build url
+                      const url = `${this.props.preferencesData.fpfssBaseUrl}/${parts.slice(2).join('/')}`;
+                      // Generate task
+                      const newTask = newCurateTask('Importing FPFSS Submission...', 'Importing...', this.props.addTask);
+                      // Import
+                      await window.Shared.back.request(BackIn.FPFSS_OPEN_CURATION, fpfssInfo, url, user.accessToken, newTask.id)
+                      .catch((err) => {
+                        newTask.error = err;
+                        newTask.finished = true;
+                        this.props.setTask(newTask.id, newTask);
+                        throw err;
+                      });
                     });
                   }
                   break;
