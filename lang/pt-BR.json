@@ -493,7 +493,7 @@
     "contextShowInExplorer": "Mostrar Arquivo no Explorador",
     "contextOpenFolderInExplorer": "Abrir Pasta no Explorador",
     "shortcuts": "Atalhos",
-    "fpfssOpenSubmissionPage": "Open Submission Page"
+    "fpfssOpenSubmissionPage": "Abrir página de envio"
   },
   "playlist": {
     "enterDescriptionHere": "Escreva uma descrição aqui...",
@@ -624,10 +624,10 @@
     "requiresAdditionalDownload": "Está faltando o {0} do pacote de suporte, necessário para iniciar esta entrada.\nBaixar agora?",
     "requiresAdditionalDownloadPlural": "Está faltando o {0} do pacote de suporte, necessário para iniciar esta entrada.\nBaixar agora?",
     "confirmClearPlaytime": "Limpar todo o tempo de jogo e dados de histórico? Isso é irreversível.",
-    "badAntiVirus": "You appear to be using '{0}'.\nThis particular Antivirus is known to cause issues, and we recommend adding an exception to the Flashpoint folder.\n\nIf you only see a white screen when running Flash games you may need to reinstall Flashpoint to restore deleted files.\n\nSee the Wiki or Help tab for detailed instructions.",
-    "openWiki": "Open Wiki",
-    "openDiscord": "Join Discord Server",
-    "doNotShowAgain": "Do not show again"
+    "badAntiVirus": "Parece que você está usando '{0}'.\nEste antivírus em particular é conhecido por causar problemas, e recomendamos adicionar uma exceção à pasta do Flashpoint.\n\nSe você ver apenas uma tela branca quando executar jogos em Flash talvez seja necessário reinstalar o Flashpoint para restaurar os arquivos excluídos.\n\nVeja a Wiki ou aba de Ajuda para instruções detalhadas.",
+    "openWiki": "Abrir Wiki",
+    "openDiscord": "Entrar no servidor do Discord",
+    "doNotShowAgain": "Não exibir novamente"
   },
   "libraries": {
     "arcade": "Jogos",
