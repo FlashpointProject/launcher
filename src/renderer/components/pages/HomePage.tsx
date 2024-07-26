@@ -1,6 +1,5 @@
 import { FancyAnimation } from '@renderer/components/FancyAnimation';
 import { WithMainStateProps } from '@renderer/containers/withMainState';
-import { MainActionType } from '@renderer/store/main/enums';
 import { BackIn, ComponentStatus, GameOfTheDay } from '@shared/back/types';
 import { ARCADE, LOGOS, SCREENSHOTS, THEATRE } from '@shared/constants';
 import { updatePreferencesData } from '@shared/preferences/util';
@@ -13,7 +12,7 @@ import ReactMarkdown from 'react-markdown';
 import { Link } from 'react-router-dom';
 import remarkGfm from 'remark-gfm';
 import { Paths } from '../../Paths';
-import { findGameDragEventDataGrid, getExtremeIconURL, getGameImageURL, getPlatformIconURL, joinLibraryRoute, wrapSearchTerm } from '../../Util';
+import { findGameDragEventDataGrid, getExtremeIconURL, getGameImageURL, getPlatformIconURL, joinLibraryRoute } from '../../Util';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { WithSearchProps } from '../../containers/withSearch';
 import { LangContext } from '../../util/lang';
@@ -24,6 +23,8 @@ import { OpenIcon, OpenIconType } from '../OpenIcon';
 import { RandomGames } from '../RandomGames';
 import { SimpleButton } from '../SimpleButton';
 import { SizeProvider } from '../SizeProvider';
+import { GENERAL_VIEW_ID } from '@renderer/store/search/slice';
+import { idToGame } from '@renderer/util/async';
 
 type OwnProps = {
   gotdList: GameOfTheDay[] | undefined;
@@ -31,12 +32,7 @@ type OwnProps = {
   playlists: Playlist[];
   /** Generator for game context menu */
   onGameContextMenu: (gameId: string) => void;
-  onSelectPlaylist: (library: string, playlistId: string | null) => void;
   onLaunchGame: (gameId: string) => void;
-  onGameSelect: (gameId: string | undefined) => void;
-  /** Clear the current search query (resets the current search filters). */
-  clearSearch: () => void;
-  /** Called when the "download tech" button is clicked. */
   /** Pass to Random Picks */
   randomGames: ViewGame[];
   /** Re-rolls the Random Games */
@@ -111,9 +107,17 @@ export function HomePage(props: HomePageProps) {
     });
   }, [props.preferencesData.minimizedHomePageBoxes]);
 
-  const onGameSelect = React.useCallback((gameId: string | undefined) => {
-    props.onGameSelect(gameId);
-  }, [props.onGameSelect]);
+  const onGameSelect = async (gameId: string | undefined) => {
+    if (gameId) {
+      const game = await window.Shared.back.request(BackIn.GET_GAME, gameId);
+      if (game) {
+        props.searchActions.selectGame({
+          view: GENERAL_VIEW_ID,
+          game
+        });
+      }
+    }
+  };
 
   const onLaunchGame = React.useCallback((gameId: string) => {
     props.onLaunchGame(gameId);
@@ -122,18 +126,16 @@ export function HomePage(props: HomePageProps) {
   const onHallOfFameClick = React.useCallback(() => {
     const playlist = props.playlists.find(p => p.title.toLowerCase().includes('hall of fame'));
     if (playlist) {
-      props.onSelectPlaylist(ARCADE, playlist.id);
-      props.clearSearch();
+      // TODO: Reimplement
     }
-  }, [props.playlists, props.onSelectPlaylist, props.clearSearch]);
+  }, [props.playlists]);
 
   const onFavoriteClick = React.useCallback(() => {
     const playlist = props.playlists.find(p => p.title === ' Favorites' || p.title === '*Favorites*');
     if (playlist) {
-      props.onSelectPlaylist(ARCADE, playlist.id);
-      props.clearSearch();
+      // TODO: Reimplement
     }
-  }, [props.playlists, props.onSelectPlaylist, props.clearSearch]);
+  }, [props.playlists]);
 
   // const onHistoryClick = React.useCallback(() => {
   //   updatePreferencesData({
@@ -145,14 +147,12 @@ export function HomePage(props: HomePageProps) {
   // }, [props.onSelectPlaylist, props.clearSearch]);
 
   const onAllGamesClick = React.useCallback(() => {
-    props.onSelectPlaylist(ARCADE, null);
-    props.clearSearch();
-  }, [props.onSelectPlaylist, props.clearSearch]);
+    // TODO: Reimplement
+  }, []);
 
   const onAllAnimationsClick = React.useCallback(() => {
-    props.onSelectPlaylist(THEATRE, null);
-    props.clearSearch();
-  }, [props.onSelectPlaylist, props.clearSearch]);
+    // TODO: Reimplement
+  }, []);
 
   const platformList = React.useMemo(() => {
     const elements: JSX.Element[] = [];
@@ -164,8 +164,9 @@ export function HomePage(props: HomePageProps) {
             className='home-page__platform-entry'
             to={joinLibraryRoute('arcade')}
             onClick={() => {
-              props.onSearch('!' + wrapSearchTerm(platform));
-              props.onSelectPlaylist('arcade', null);
+              // TODO: Reimplement
+              // props.onSearch('!' + wrapSearchTerm(platform));
+              // props.onSelectPlaylist('arcade', null);
             }}>
             <div
               className='home-page__platform-entry__logo'
@@ -274,14 +275,23 @@ export function HomePage(props: HomePageProps) {
   React.useEffect(() => {
     if (selectedGotd) {
       window.Shared.back.request(BackIn.GET_GAME, selectedGotd.id)
-      .then((fetchedInfo) => {
-        if (fetchedInfo) {
-          const game = fetchedInfo.game;
+      .then((game) => {
+        if (game) {
           setLoadedGotd(game);
         }
       });
     }
   }, [selectedGotd]);
+
+  const onSelectGame = async (gameId: string) => {
+    const game = await idToGame(gameId);
+    if (game) {
+      props.searchActions.selectGame({
+        view: GENERAL_VIEW_ID,
+        game,
+      });
+    }
+  };
 
   const extremeIconPath = React.useMemo(() => getExtremeIconURL(props.logoVersion), [props.logoVersion]);
 
@@ -303,7 +313,7 @@ export function HomePage(props: HomePageProps) {
                 <GameItemContainer
                   className='gotd-container'
                   onGameContextMenu={(event, gameId) => props.onGameContextMenu(gameId)}
-                  onGameSelect={(event, gameId) => props.onGameSelect(gameId)}
+                  onGameSelect={(event, gameId) => gameId && onSelectGame(gameId)}
                   onGameLaunch={(event, gameId) => props.onLaunchGame(gameId)}
                   findGameDragEventData={findGameDragEventDataGrid}>
                   <GameGridItem
@@ -384,10 +394,7 @@ export function HomePage(props: HomePageProps) {
         // Fetch update info
         window.Shared.back.request(BackIn.PRE_UPDATE_INFO, props.preferencesData.gameMetadataSources[0])
         .then((total) => {
-          props.dispatchMain({
-            type: MainActionType.UPDATE_UPDATE_INFO,
-            total
-          });
+          props.mainActions.setUpdateInfo(total);
         })
         .finally(() => {
           setUpdating(false);
@@ -403,14 +410,8 @@ export function HomePage(props: HomePageProps) {
               buttons: [allStrings.misc.ok],
               id: uuid()
             };
-            props.dispatchMain({
-              type: MainActionType.NEW_DIALOG,
-              dialog
-            });
-            props.dispatchMain({
-              type: MainActionType.UPDATE_UPDATE_INFO,
-              total: 0
-            });
+            props.mainActions.createDialog(dialog);
+            props.mainActions.setUpdateInfo(0);
           }
         })
         .catch((err) => {
@@ -421,10 +422,7 @@ export function HomePage(props: HomePageProps) {
             buttons: [allStrings.misc.ok],
             id: uuid()
           };
-          props.dispatchMain({
-            type: MainActionType.NEW_DIALOG,
-            dialog
-          });
+          props.mainActions.createDialog(dialog);
         })
         .finally(() => {
           setUpdating(false);

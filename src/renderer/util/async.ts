@@ -1,3 +1,6 @@
+import { Game } from 'flashpoint-launcher';
+import { BackIn } from '@shared/back/types';
+
 type DoAsyncFunction = (done: () => void) => void;
 
 /**
@@ -22,4 +25,8 @@ export function doAsyncParallel(calls: Array<DoAsyncFunction>): Promise<void> {
       }
     } catch (e) { reject(e); }
   });
+}
+
+export async function idToGame(gameId: string): Promise<Game | null> {
+  return window.Shared.back.request(BackIn.GET_GAME, gameId);
 }

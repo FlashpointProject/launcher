@@ -2,17 +2,17 @@ import { ConfigBox, ConfigBoxProps } from './ConfigBox';
 import { SelectItem } from './ConfigBoxSelect';
 import { Dropdown } from './Dropdown';
 
-export type ConfigBoxMultiSelectProps = ConfigBoxProps & {
+export type ConfigBoxMultiSelectProps<T> = ConfigBoxProps & {
   text: string;
-  onChange: (item: string) => void;
-  items: MultiSelectItem[];
+  onChange: (item: T) => void;
+  items: MultiSelectItem<T>[];
 };
 
-export type MultiSelectItem = SelectItem & {
+export type MultiSelectItem<T> = SelectItem<T> & {
   checked: boolean;
 }
 
-export function ConfigBoxMultiSelect(props: ConfigBoxMultiSelectProps) {
+export function ConfigBoxMultiSelect<T>(props: ConfigBoxMultiSelectProps<T>) {
   return (
     <ConfigBox
       {...props}
@@ -28,7 +28,7 @@ export function ConfigBoxMultiSelect(props: ConfigBoxMultiSelectProps) {
   );
 }
 
-function renderMultiSelectItems(items: MultiSelectItem[], onChange: (item: string) => void): JSX.Element[] {
+function renderMultiSelectItems<T>(items: MultiSelectItem<T>[], onChange: (item: T) => void): JSX.Element[] {
   return items.map((item, idx) => (
     <label
       key={idx}

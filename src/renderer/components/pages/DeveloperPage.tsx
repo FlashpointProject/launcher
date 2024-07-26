@@ -146,10 +146,6 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               title={strings.massImportGameDataDesc}
               onClick={this.onMassImportGameData} />
             <SimpleButton
-              value={strings.migrateExtremeGames}
-              title={strings.migrateExtremeGamesDesc}
-              onClick={this.onMigrateExtremeGamesClick} />
-            <SimpleButton
               value={strings.importMetaEdits}
               title={strings.importMetaEditsDesc}
               onClick={this.onImportMetaEdits} />
@@ -256,10 +252,10 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     setTimeout(async () => {
       exportTags((text) => this.setState({ text: text }))
       .then((count) => {
-        this.setState({ text: `${count} Tags exported!`});
+        this.setState({ text: `${count} Tags exported!` });
       })
       .catch((error) => {
-        this.setState({ text: `Tags Not Exported\nERROR - ${error}`});
+        this.setState({ text: `Tags Not Exported\nERROR - ${error}` });
       });
     });
   };
@@ -268,7 +264,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     setTimeout(async () => {
       exportDatabase((text) => this.setState({ text: text }))
       .catch((error) => {
-        this.setState({ text: `Database Not Exported\nERROR - ${error}`});
+        this.setState({ text: `Database Not Exported\nERROR - ${error}` });
       });
     });
   };
@@ -277,10 +273,10 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     setTimeout(async () => {
       importTags((text) => this.setState({ text: text }))
       .then((count) => {
-        this.setState({ text: `${count} new or changed Tags imported!`});
+        this.setState({ text: `${count} new or changed Tags imported!` });
       })
       .catch((error) => {
-        this.setState({ text: `Tags Not Imported\nERROR - ${error}`});
+        this.setState({ text: `Tags Not Imported\nERROR - ${error}` });
       });
     });
   };
@@ -307,12 +303,12 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
           processed += chunk.length;
           await window.Shared.back.request(BackIn.SAVE_GAMES, buffer);
           buffer.length = 0;
-          this.setState({ text: text + '\n' + createTextBarProgress(processed)});
+          this.setState({ text: text + '\n' + createTextBarProgress(processed) });
         }
         // Fetch next batch of games
         games = await fetchAllGames(games[games.length - 1].id);
       }
-      this.setState({ text: text + '\n' + createTextBarProgress(processed) + '\n' + `Finished, updated ${processed} games.`});
+      this.setState({ text: text + '\n' + createTextBarProgress(processed) + '\n' + `Finished, updated ${processed} games.` });
     });
   };
 
@@ -343,10 +339,10 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
           if (fileName.length >= 39) {
             const uuid = fileName.substring(0, 36);
             if (validateSemiUUID(uuid)) {
-              const fetchedInfo = await window.Shared.back.request(BackIn.GET_GAME, uuid);
-              if (fetchedInfo) {
+              const game = await window.Shared.back.request(BackIn.GET_GAME, uuid);
+              if (game) {
                 // Game exists, import the data
-                await window.Shared.back.request(BackIn.IMPORT_GAME_DATA, fetchedInfo.game.id, filePath)
+                await window.Shared.back.request(BackIn.IMPORT_GAME_DATA, game.id, filePath)
                 .then(() => {
                   this.setState({ text: text + filePath + '\n' +  createTextBarProgress(current, files.length) });
                 })
@@ -362,44 +358,6 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
         this.setState({ text: text + `FINISHED - ${failures} Failures, ${files.length - failures} Successes\n` });
       });
     }
-  };
-
-  onMigrateExtremeGamesClick = (): void => {
-    setTimeout(async () => {
-      const text = 'Migrating Extreme Games...';
-      this.setState({ text });
-      const createTextBarProgress = (current: number, total: number) => {
-        const filledSegments = (current / total) * 30;
-        return `Progress: [${'#'.repeat(filledSegments)}${'-'.repeat(30 - filledSegments)}] (${current}/${total})`;
-      };
-      const extremeTag = await window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, 'LEGACY-Extreme');
-      if (!extremeTag) {
-        this.setState({ text: text + '\nError creating or finding legacy extreme tag'});
-        return;
-      }
-      const games = await fetchAllGames();
-      let processed = 0;
-      let edited = 0;
-      const buffer: Game[] = [];
-      for (const chunk of chunkArray(games, 250)) {
-        for (const game of chunk) {
-          if (game.extreme) {
-            game.extreme = false;
-            if (game.tags.findIndex(t => t.id === extremeTag.id) === -1)
-            {
-              game.tags.push(extremeTag);
-            }
-            buffer.push(game);
-          }
-        }
-        edited += buffer.length;
-        processed += chunk.length;
-        await window.Shared.back.request(BackIn.SAVE_GAMES, buffer);
-        buffer.length = 0;
-        this.setState({ text: text + '\n' + createTextBarProgress(processed, games.length)});
-      }
-      this.setState({ text: text + '\n' + createTextBarProgress(processed, games.length) + '\n' + `Finished, converted ${edited} games. Please restart the Launcher.`});
-    });
   };
 
   onImportMetadata = (): void => {
@@ -777,14 +735,6 @@ async function createMissingFolders(): Promise<string> {
   function logError(error: any): void {
     if (error) { console.warn(error); }
   }
-}
-/**
- * Remove the last "item" in a path ("C:/foo/bar.png" => "C:/foo")
- *
- * @param filePath File path to use
- */
-export function removeLastItemOfPath(filePath: string): string {
-  return filePath.substring(0, Math.max(0, filePath.lastIndexOf('/'), filePath.lastIndexOf('\\')));
 }
 
 function fetchAllGames(startFrom?: string): Promise<Game[]> {

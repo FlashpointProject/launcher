@@ -338,8 +338,8 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
       state.socketServer.broadcast(BackOut.CREATE_TASK, newTask);
       return newTask;
     },
-    setTask: (taskId: string, taskData: Partial<Task>) => {
-      state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, taskData);
+    setTask: (task: Partial<Task>) => {
+      state.socketServer.broadcast(BackOut.UPDATE_TASK, task);
     },
   };
 
@@ -354,7 +354,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     createProcess: (name: string, info: flashpoint.ProcessInfo, opts?: flashpoint.ProcessOpts, basePath?: string) => {
       const id = `${extManifest.name}.${name}`;
       const cwd = path.join(basePath || extPath || state.config.flashpointPath, info.path);
-      const proc = new DisposableChildProcess(id, name, cwd, opts || {}, {aliases: [], name: '', ...info, kill: true});
+      const proc = new DisposableChildProcess(id, name, cwd, opts || {}, { aliases: [], name: '', ...info, kill: true });
       proc.onDispose = () => proc.kill();
       return proc;
     },
@@ -406,7 +406,8 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
   const extCurations: typeof flashpoint.curations = {
     loadCurationArchive: async (filePath: string, taskId?: string) => {
       if (taskId) {
-        state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
+        state.socketServer.broadcast(BackOut.UPDATE_TASK, {
+          id: taskId,
           status: `Loading ${filePath}`
         });
       }
@@ -416,7 +417,8 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
         state.socketServer.broadcast(BackOut.OPEN_ALERT, formatString(state.languageContainer['dialog'].failedToLoadCuration, error.toString()) as string);
       });
       if (taskId) {
-        state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
+        state.socketServer.broadcast(BackOut.UPDATE_TASK, {
+          id: taskId,
           status: '',
           finished: true
         });
@@ -439,7 +441,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     },
     getCuration: (folder: string) => {
       const curation = state.loadedCurations.find(c => c.folder === folder);
-      return curation ? {...curation} : undefined;
+      return curation ? { ...curation } : undefined;
     },
     get onDidCurationListChange() {
       return apiEmitters.curations.onDidCurationListChange.extEvent(extManifest.displayName || extManifest.name);

@@ -5,13 +5,38 @@ import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/e
 import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
 import { SocketTemplate } from '@shared/socket/types';
 import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
-import { AppPreferencesData, ConfigSchema, CurationFpfssInfo, CurationState, CurationWarnings, DialogState, DialogStateTemplate, Game, GameConfig, GameData, GameDataSource, GameMetadataSource, GameMiddlewareConfig, GameMiddlewareInfo, LoadedCuration, MergeTagData, Platform, Playlist, PlaylistGame, Tag, TagCategory, TagFilterGroup, TagSuggestion } from 'flashpoint-launcher';
+import {
+  AppPreferencesData,
+  ConfigSchema,
+  CurationFpfssInfo,
+  CurationState,
+  CurationWarnings,
+  DialogState,
+  DialogStateTemplate,
+  Game,
+  GameConfig,
+  GameData,
+  GameDataSource,
+  GameMetadataSource,
+  GameMiddlewareConfig,
+  GameMiddlewareInfo,
+  LoadedCuration,
+  MergeTagData,
+  Platform,
+  Playlist,
+  PlaylistGame,
+  Tag,
+  TagCategory,
+  TagFilterGroup,
+  TagSuggestion,
+  ViewGame
+} from 'flashpoint-launcher';
 import { ILogEntry, ILogPreEntry, LogLevel } from '../Log/interface';
 import { Theme } from '../ThemeFile';
 import { AppConfigData, AppExtConfigData } from '../config/interfaces';
 import { ExecMapping, GamePropSuggestions, IService, ProcessAction, Task } from '../interfaces';
 import { LangContainer, LangFile } from '../lang';
-import { ViewQuery } from '@shared/library/util';
+import { GameSearchOffset, GameSearch } from '@fparchive/flashpoint-archive';
 
 export enum BackIn {
   UNKNOWN = 1000,
@@ -59,7 +84,6 @@ export enum BackIn {
   DELETE_PLAYLIST_GAME,
   RAISE_PLAYLIST_GAME,
   SAVE_LEGACY_PLATFORM,
-  IMPORT_CURATION,
   LAUNCH_CURATION,
   LAUNCH_CURATION_ADDAPP,
   QUIT,
@@ -137,6 +161,7 @@ export enum BackIn {
   CURATE_SYNC_CURATIONS,
   CURATE_EDIT_REMOVE_IMAGE,
   CURATE_DELETE,
+  CURATE_IMPORT,
   CURATE_CREATE_CURATION,
   CURATE_EXPORT,
   CURATE_EXPORT_DATA_PACK,
@@ -217,6 +242,9 @@ export enum BackOut {
   UPDATE_COMPONENT_STATUSES,
   SET_VIEW_SEARCH_STATUS,
 
+  // Browse
+  BROWSE_VIEW_PAGE,
+
   // Updates?
   UPDATE_GOTD,
   UPDATE_FEED,
@@ -271,10 +299,10 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.GET_GAMES_TOTAL]: () => number;
   [BackIn.SET_LOCALE]: (data: string) => string;
   [BackIn.GET_EXEC]: () => ExecMapping[];
-  [BackIn.SAVE_GAME]: (data: FetchedGameInfo) => BrowseChangeData;
+  [BackIn.SAVE_GAME]: (data: Game) => BrowseChangeData;
   [BackIn.DELETE_GAME_CONFIG]: (id: number) => void;
   [BackIn.SAVE_GAMES]: (data: Game[]) => void;
-  [BackIn.GET_GAME]: (id: string) => FetchedGameInfo | null;
+  [BackIn.GET_GAME]: (id: string) => Game | null;
   [BackIn.GET_ALL_GAMES]: (offsetGameTitle?: string, offsetGameId?: string) => Game[];
   [BackIn.RANDOM_GAMES]: (data: RandomGamesData) => Game[];
   [BackIn.LAUNCH_GAME]: (id: string) => void;
@@ -301,7 +329,6 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.DELETE_PLAYLIST_GAME]: (playlistId: string, gameId: string) => PlaylistGame | null;
   [BackIn.RAISE_PLAYLIST_GAME]: (playlistId: string, sourceIdx: number, destIdx: number) => void;
   [BackIn.SAVE_LEGACY_PLATFORM]: (platform: Legacy_GamePlatform) => void;
-  [BackIn.IMPORT_CURATION]: (data: ImportCurationData) => ImportCurationResponseData;
   [BackIn.LAUNCH_CURATION]: (data: LaunchCurationData) => void;
   [BackIn.LAUNCH_CURATION_ADDAPP]: (data: LaunchCurationAddAppData) => void;
   [BackIn.QUIT]: () => void;
@@ -331,9 +358,9 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.GET_TAG_CATEGORY_BY_ID]: (data: number) => TagCategory | null;
   [BackIn.DELETE_TAG_CATEGORY]: (data: number) => boolean;
 
-  [BackIn.BROWSE_VIEW_PAGE]: (data: BrowseViewPageData) => BrowseViewPageResponseData;
-  [BackIn.BROWSE_VIEW_FIRST_PAGE]: (library: string, query: ViewQuery) => BrowseViewFirstPageResponseData;
-  [BackIn.BROWSE_VIEW_KEYSET]: (library: string, query: ViewQuery) => BrowseViewKeysetResponse;
+  [BackIn.BROWSE_VIEW_PAGE]: (search: SearchQuery) => void;
+  [BackIn.BROWSE_VIEW_FIRST_PAGE]: (search: SearchQuery) => BrowseViewFirstPageResponseData;
+  [BackIn.BROWSE_VIEW_KEYSET]: (search: SearchQuery) => BrowseViewKeysetResponse;
   [BackIn.GET_LOGGER_INIT_DATA]: () => GetLoggerInitDataResponse;
   [BackIn.GET_RENDERER_INIT_DATA]: () => GetRendererInitDataResponse;
   [BackIn.GET_RENDERER_LOADED_DATA]: () => GetRendererLoadedDataResponse;
@@ -367,6 +394,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.CURATE_SYNC_CURATIONS]: (curations: CurationState[]) => void;
   [BackIn.CURATE_EDIT_REMOVE_IMAGE]: (folder: string, type: CurationImageEnum) => void;
   [BackIn.CURATE_DELETE]: (folders: string[], taskId?: string) => void;
+  [BackIn.CURATE_IMPORT]: (data: ImportCurationData) => ImportCurationResponseData;
   [BackIn.CURATE_CREATE_CURATION]: (folder: string, meta?: EditCurationMeta) => void;
   [BackIn.CURATE_EXPORT]: (curations: LoadedCuration[], taskId?: string) => void;
   [BackIn.CURATE_EXPORT_DATA_PACK]: (curations: LoadedCuration[], taskId?: string) => void;
@@ -451,6 +479,9 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.UPDATE_COMPONENT_STATUSES]: (componentStatuses: ComponentStatus[]) => void;
   [BackOut.SET_VIEW_SEARCH_STATUS]: (viewId: string, status: string | null) => void;
 
+  // Browse
+  [BackOut.BROWSE_VIEW_PAGE]: (data: BrowsePageResponseData) => void;
+
   // Updates?
   [BackOut.UPDATE_GOTD]: (gotd: GameOfTheDay[]) => void;
   [BackOut.UPDATE_FEED]: (markdown: string) => void;
@@ -466,7 +497,7 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.CURATE_SELECT_CURATIONS]: (folders: string[]) => void;
 
   // Tasks
-  [BackOut.UPDATE_TASK]: (taskId: string, taskData: Partial<Task>) => void;
+  [BackOut.UPDATE_TASK]: (task: Partial<Task>) => void;
   [BackOut.CREATE_TASK]: (task: Task) => void;
 
   [BackOut.FOCUS_WINDOW]: () => void;
@@ -582,18 +613,8 @@ export type RandomGamesData = {
   excludedLibraries: string[];
 }
 
-/** Tuple of values from the last game of a previous page (look up "keyset pagination"). */
-export type PageTuple = {
-  /** Primary order value. */
-  orderVal: any;
-  /** Title of the game (secondary order value). */
-  title: string;
-  /** ID of the game (unique value). */
-  id: string;
-}
-
 /** A set of page tuples. The keys in the record are page indices. */
-export type PageKeyset = PageTuple[];
+export type PageKeyset = GameSearchOffset[];
 
 export type BrowseViewKeysetResponse = {
   /** Keyset */
@@ -602,55 +623,19 @@ export type BrowseViewKeysetResponse = {
   total: number;
 };
 
-export type RequestGameRange = {
-  /** Start index of the game */
-  start: number;
-  /** Number of games to request (if undefined, all games until the end of the query will be included). */
-  length: number | undefined;
-  /**
-   * Tuple of the last game of the previous page.
-   * If this is set then "start" must be the index of the game after this (since this will be used instead of
-   * "start" when selecting the games).
-   */
-  index?: PageTuple;
-}
-
-export type ResponseGameRange = {
-  start: number;
-  games: Game[];
-}
-
-export type BrowseViewPageData = {
-  /** Range of games to fetch. */
-  ranges: RequestGameRange[];
-  /** Identifier of the view the responsed data is for */
-  viewIdentifier: string;
-  /** Query to filter games by. */
-  query: ViewQuery;
-  /** If a subset of the games should be returned instead of the full game objects. */
-  shallow?: boolean;
-}
-
-/** Note: The generic type should have the same value as "shallow" from the request, or "boolean" if the type is unknown. */
-export type BrowseViewPageResponseData = {
-  /** Ranges of games. */
-  ranges: ResponseGameRange[];
-  /** Identifier of the view this matches to */
-  viewIdentifier: string;
-}
-
 export type BrowseViewFirstPageResponseData = {
   /** Games in the first page */
   games: Game[];
-  /** Identifier of the view this matches to */
-  viewIdentifier: string;
 }
 
-export type BrowseChangeData = {
-  fetchedInfo: FetchedGameInfo | null;
-  library?: string;
-  gamesTotal: number;
+export type BrowsePageResponseData = {
+  viewId: string,
+  searchId: number,
+  page: number,
+  games: ViewGame[]
 }
+
+export type BrowseChangeData = Game | null;
 
 export type ImportCurationData = {
   curations: LoadedCuration[];
@@ -679,11 +664,6 @@ export type LaunchCurationAddAppData = {
   addApp: AddAppCuration;
   platforms?: Platform[];
   symlinkCurationContent: boolean;
-}
-
-export type TagDeleteResponse = {
-  success: boolean;
-  id: number;
 }
 
 export type GameMetadataSyncResponse = {
@@ -747,7 +727,7 @@ export type FpfssUser = {
 
 export type FpfssState = {
   user: FpfssUser | null;
-  editingGameInfo: FetchedGameInfo | null;
+  editingGame: Game | null;
 }
 
 export enum ArchiveState {
@@ -767,4 +747,11 @@ export type MiddlewareSchemasResponse = Record<string, ConfigSchema>;
 export type MiddlewareVersionPair = {
   id: string,
   version: string
-};
+}
+
+export type SearchQuery = GameSearch & {
+  viewId: string;
+  searchId: number;
+  page: number;
+  playlist?: Playlist;
+}

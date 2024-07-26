@@ -4,8 +4,7 @@ import * as path from 'path';
 import { promisify } from 'util';
 import { fixSlashes } from '../Util';
 import { IndexedContent } from './OLD_types';
-import { LoadedCuration } from './types';
-import { Tag } from 'flashpoint-launcher';
+import { LoadedCuration, Tag } from 'flashpoint-launcher';
 
 const access = promisify(fs.access);
 const lstat = promisify(fs.lstat);

@@ -10,14 +10,14 @@ export type GameListHeaderProps = WithPreferencesProps & {
 
 // Header on top of the GameList. It contains the resizable columns that decide how wide each column is.
 export function GameListHeader(props: GameListHeaderProps) {
-  const {gamesOrderBy, gamesOrder} = props.preferencesData;
+  const { gamesOrderBy, gamesOrder } = props.preferencesData;
 
   return useMemo(() => (
     <div className='game-list-header'>
       { props.showExtremeIcon ? (
         <Column modifier='icon' hideDivider={true} />
       ) : undefined}
-      <SortableColumn modifier='icon' hideDivider={true} orderBy='primaryPlatform' preferencesData={props.preferencesData} />
+      <SortableColumn modifier='icon' hideDivider={true} orderBy='platform' preferencesData={props.preferencesData} />
       <div className='game-list-header__right'>
         <SortableColumn
           title='Title'

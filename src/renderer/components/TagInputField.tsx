@@ -155,7 +155,7 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
   /** Renders the list of items in the drop-down menu. */
   renderItems = memoizeOne<(items: Tag[], primaryPlatform?: string) => JSX.Element[]>((items: Tag[], primaryPlatform?: string) => {
     const className = this.props.editable ? 'tag-editable' : 'tag-static';
-    return items
+    return [...items]
     .sort((t1, t2) => `${t1.category}-${t1.name}`.localeCompare(`${t2.category}-${t2.name}`))
     .map((tag, index) => {
       const category = this.props.categories.find(c => c.name == tag.category);

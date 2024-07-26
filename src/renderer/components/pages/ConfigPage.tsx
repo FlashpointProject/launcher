@@ -13,7 +13,7 @@ import { deepCopy } from '@shared/Util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { AppPathOverride, TagFilterGroup } from 'flashpoint-launcher';
 import * as React from 'react';
-import {getExtIconURL, getExtremeIconURL, getPlatformIconURL, isFlashpointValidCheck} from '../../Util';
+import { getExtIconURL, getExtremeIconURL, getPlatformIconURL, isFlashpointValidCheck } from '../../Util';
 import { LangContext } from '../../util/lang';
 import { CheckBox } from '../CheckBox';
 import { ConfigBox, ConfigBoxInner } from '../ConfigBox';
@@ -448,8 +448,8 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
         display: lang.data.name ? `${lang.data.name} (${lang.code})` : lang.code
       };
     });
-    items.push({ value: '<none>', display: 'None'});
-    items.push({ value: autoCode, display: autoString});
+    items.push({ value: '<none>', display: 'None' });
+    items.push({ value: autoCode, display: autoString });
     return items;
   });
 
@@ -515,7 +515,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     ];
   });
 
-  itemizeLibraryOptionsMemo = memoizeOne((libraries: string[], excludedRandomLibraries: string[], libraryStrings: LangContainer['libraries']): MultiSelectItem[] => {
+  itemizeLibraryOptionsMemo = memoizeOne((libraries: string[], excludedRandomLibraries: string[], libraryStrings: LangContainer['libraries']): MultiSelectItem<string>[] => {
     return libraries.map(library => {
       return {
         value: library,
@@ -720,7 +720,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
               <div className='setting__row__title setting__row__title--flex setting__row__title--align-left'>
                 { ext.icon ? (
                   <div
-                    style={{ backgroundImage: `url(${getExtIconURL(ext.id)})`}}
+                    style={{ backgroundImage: `url(${getExtIconURL(ext.id)})` }}
                     className='setting__row__ext-icon' />
                 ): undefined }
                 <div>
@@ -883,7 +883,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   onNewAppPathOverride = (): void => {
     const newPaths = [...this.props.preferencesData.appPathOverrides];
-    newPaths.push({path: '', override: '', enabled: true});
+    newPaths.push({ path: '', override: '', enabled: true });
     updatePreferencesData({ appPathOverrides: newPaths });
   };
 
@@ -966,28 +966,28 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   onChangeTagEditorNameEvent = (name: string): void => {
     if (this.state.editingTagFilterGroup) {
-      const newTFG = {...this.state.editingTagFilterGroup, name };
+      const newTFG = { ...this.state.editingTagFilterGroup, name };
       this.setState({ editingTagFilterGroup: newTFG });
     }
   };
 
   onChangeTagEditorDescriptionEvent = (description: string): void => {
     if (this.state.editingTagFilterGroup) {
-      const newTFG = {...this.state.editingTagFilterGroup, description };
+      const newTFG = { ...this.state.editingTagFilterGroup, description };
       this.setState({ editingTagFilterGroup: newTFG });
     }
   };
 
   onToggleExtremeTagEditorEvent = (checked: boolean): void => {
     if (this.state.editingTagFilterGroup) {
-      const newTFG = {...this.state.editingTagFilterGroup, extreme: checked };
+      const newTFG = { ...this.state.editingTagFilterGroup, extreme: checked };
       this.setState({ editingTagFilterGroup: newTFG });
     }
   };
 
   onDuplicateTagFilterGroup = (index: number): void => {
     const newTagFilters = [...this.props.preferencesData.tagFilters];
-    newTagFilters.push({...newTagFilters[index], name: `${newTagFilters[index].name} - Copy`});
+    newTagFilters.push({ ...newTagFilters[index], name: `${newTagFilters[index].name} - Copy` });
     updatePreferencesData({ tagFilters: newTagFilters });
   };
 

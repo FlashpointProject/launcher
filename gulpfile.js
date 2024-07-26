@@ -1,79 +1,79 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-const fs = require("fs-extra");
-const gulp = require("gulp");
-const builder = require("electron-builder");
-const tar = require("tar-fs");
-const zlib = require("zlib");
-const { parallel, series } = require("gulp");
-const { installExtensions, buildExtensions, watchExtensions } = require("./gulpfile.extensions");
-const { execute } = require("./gulpfile.util");
+const fs = require('fs-extra');
+const gulp = require('gulp');
+const builder = require('electron-builder');
+const tar = require('tar-fs');
+const zlib = require('zlib');
+const { parallel, series } = require('gulp');
+const { installExtensions, buildExtensions, watchExtensions } = require('./gulpfile.extensions');
+const { execute } = require('./gulpfile.util');
 const { execSync } = require('child_process');
-const { promisify } = require("util");
-const esbuild = require("esbuild");
+const { promisify } = require('util');
+const esbuild = require('esbuild');
 
 // Promisify the pipeline function
-const pipeline = promisify(require("stream").pipeline);
+const pipeline = promisify(require('stream').pipeline);
 
-const packageJson = JSON.parse(fs.readFileSync("./package.json", { encoding: 'utf-8' }));
+const packageJson = JSON.parse(fs.readFileSync('./package.json', { encoding: 'utf-8' }));
 const config = {
   buildVersion: Date.now().toString(),
   publish: !!process.env.PUBLISH,
-  isRelease: process.env.NODE_ENV === "production",
+  isRelease: process.env.NODE_ENV === 'production',
   isStaticInstall: packageJson.config.installed,
   static: {
-    src: "./static",
-    dest: "./build",
+    src: './static',
+    dest: './build',
   },
   main: {
-    src: "./src/main",
+    src: './src/main',
   },
-  sevenZip: "./extern/7zip-bin",
+  sevenZip: './extern/7zip-bin',
   back: {
-    src: "./src/back",
+    src: './src/back',
   },
 };
 // Copy extensions after packing
 const extraResources = [
   {
-    from: "./extensions",
-    to: "./extensions",
-    filter: ["!**/node_modules/**", "!**/.git/**"],
+    from: './extensions',
+    to: './extensions',
+    filter: ['!**/node_modules/**', '!**/.git/**'],
   },
 ];
 // Files to copy after packing
 const copyFiles = [
   {
-    from: "./extern/utils",
-    to: "./extern/utils",
-    filter: ["**"],
+    from: './extern/utils',
+    to: './extern/utils',
+    filter: ['**'],
   },
   {
-    from: "./extern/bluezip",
-    to: "./extern/bluezip",
-    filter: ["**"],
+    from: './extern/bluezip',
+    to: './extern/bluezip',
+    filter: ['**'],
   },
   {
     // Only copy 7zip execs for packed platform
-    from: "./extern/7zip-bin",
-    to: "./extern/7zip-bin",
-    filter: ["${os}/**/*"],
+    from: './extern/7zip-bin',
+    to: './extern/7zip-bin',
+    filter: ['${os}/**/*'],
   },
   {
-    from: "./extern/elevate",
-    to: "./extern/elevate",
-    filter: ["**"],
+    from: './extern/elevate',
+    to: './extern/elevate',
+    filter: ['**'],
   },
-  "./lang",
-  "./licenses",
-  "ormconfig.json",
+  './lang',
+  './licenses',
+  'ormconfig.json',
   {
-    from: "./LICENSE",
-    to: "./licenses/LICENSE",
+    from: './LICENSE',
+    to: './licenses/LICENSE',
   },
   {
     // Copy the OS specific upgrade file
-    from: "./upgrade/${os}.json",
-    to: "./upgrade.json",
+    from: './upgrade/${os}.json',
+    to: './upgrade.json',
   },
 ];
 // Options to append when releasing
@@ -81,33 +81,33 @@ const extraOptions = {
   win: {
     target: [
       {
-        target: "nsis-web",
-        arch: ["x64", "ia32"],
+        target: 'nsis-web',
+        arch: ['x64', 'ia32'],
       },
       {
-        target: "7z",
-        arch: ["x64", "ia32"],
+        target: '7z',
+        arch: ['x64', 'ia32'],
       },
     ],
-    icon: "./icons/icon.ico",
+    icon: './icons/icon.ico',
   },
   mac: {
-    target: ["dmg", "7z"],
-    icon: "./icons/icon.icns",
+    target: ['dmg', '7z'],
+    icon: './icons/icon.icns',
     protocols: {
-      name: "flashpoint-protocol",
-      schemes: ["flashpoint"],
+      name: 'flashpoint-protocol',
+      schemes: ['flashpoint'],
     },
   },
   linux: {
-    target: ["deb", "7z"],
-    category: "games",
+    target: ['deb', '7z'],
+    category: 'games',
   },
 };
 // Publish info for electron builder
 const publishInfo = [
   {
-    provider: "github",
+    provider: 'github',
     vPrefixedTagName: false,
   },
 ];
@@ -160,7 +160,7 @@ function installCrossDeps(done) {
   execSync(`npm pack ${packageName}@${fpa.version}`);
   console.log('Unpacking ' + packageFilename);
   // Extract and move all files to new folder
-  extractTarball(packageFilename, "./package-extract")
+  extractTarball(packageFilename, './package-extract')
   .then(() => {
     fs.removeSync(packageFilename);
     fs.mkdirSync(`./node_modules/${packageName}`, { recursive: true });
@@ -177,15 +177,16 @@ function installCrossDeps(done) {
 /* ------ Watch ------ */
 
 function watchBack(done) {
-  execute("npx swc --strip-leading-paths --no-swcrc --config-file swcrc.back.dev.json --source-maps true -d build src --watch", done);
+  execute('npx swc --strip-leading-paths --no-swcrc --config-file swcrc.back.dev.json --source-maps true -d build src --watch', done);
 }
 
 async function watchRenderer() {
   const ctx = await esbuild.context({
     bundle: true,
+    loader: { '.node': 'file' },
     entryPoints: ['./src/renderer/index.tsx'],
     outdir: './build/window',
-    minify: true,
+    minify: false,
     outExtension: {
       '.js': '.bundle.js'
     },
@@ -195,18 +196,19 @@ async function watchRenderer() {
 }
 
 function watchStatic() {
-  gulp.watch(config.static.src + "/**/*", buildStatic);
+  gulp.watch(config.static.src + '/**/*', buildStatic);
 }
 
 /* ------ Build ------ */
 
 function buildBack(done) {
-  execute("npx swc --strip-leading-paths --no-swcrc --config-file swcrc.back.prod.json -d build src", done);
+  execute('npx swc --strip-leading-paths --no-swcrc --config-file swcrc.back.prod.json -d build src', done);
 }
 
 async function buildRenderer() {
   return esbuild.build({
     bundle: true,
+    loader: { '.node': 'file' },
     entryPoints: ['./src/renderer/index.tsx'],
     outdir: './build/window',
     minify: true,
@@ -219,12 +221,12 @@ async function buildRenderer() {
 
 function buildStatic() {
   return gulp
-    .src(config.static.src + "/**/*")
-    .pipe(gulp.dest(config.static.dest));
+  .src(config.static.src + '/**/*')
+  .pipe(gulp.dest(config.static.dest));
 }
 
 function configVersion(done) {
-  fs.writeFile(".version", config.buildVersion, done);
+  fs.writeFile('.version', config.buildVersion, done);
 }
 
 /* ----- Version ---- */
@@ -245,7 +247,7 @@ function createVersionFile(done) {
   // Get Git Commit Hash
   const gitCommitHash = execSync('git rev-parse --short HEAD', { encoding: 'utf-8' }).trim();
 
-  const data = `export const VERSION = '${formattedDate} (${gitCommitHash})';\n`
+  const data = `export const VERSION = '${formattedDate} (${gitCommitHash})';\n`;
 
   // Write to src/shared/version.ts
   fs.writeFile('src/shared/version.ts', data, (err) => {
@@ -261,105 +263,105 @@ function createVersionFile(done) {
 /* ------ Pack ------ */
 
 function nexusPack(done) {
-  const files = ["./build"];
+  const files = ['./build'];
   // Forcefully include ia32 library since nexus builds ia32
   if (process.platform === 'win32') {
     files.push({
       from: '../../node_modules/@fparchive/flashpoint-archive-win32-ia32-msvc',
       to: './node_modules/@fparchive/flashpoint-archive-win32-ia32-msvc',
-      filter: ["**/*"]
+      filter: ['**/*']
     });
   }
   builder
-    .build({
-      targets: builder.Platform.WINDOWS.createTarget(),
-      config: Object.assign(
-        {
-          appId: "com.bluemaxima.flashpoint-launcher",
-          productName: "Flashpoint",
-          directories: {
-            buildResources: "./static/",
-            output: "./dist/",
-          },
-          files: files,
-          extraFiles: copyFiles, // Files to copy to the build folder
-          extraResources: extraResources, // Copy System Extensions
-          compression: "maximum", // Only used if a compressed target (like 7z, nsis, dmg etc.)
-          asar: true,
-          artifactName: "${productName}.${ext}",
-          win: {
-            target: [
-              {
-                target: "zip",
-                arch: "ia32",
-              }
-            ],
-            icon: "./icons/icon.ico",
-          }
+  .build({
+    targets: builder.Platform.WINDOWS.createTarget(),
+    config: Object.assign(
+      {
+        appId: 'com.bluemaxima.flashpoint-launcher',
+        productName: 'Flashpoint',
+        directories: {
+          buildResources: './static/',
+          output: './dist/',
+        },
+        files: files,
+        extraFiles: copyFiles, // Files to copy to the build folder
+        extraResources: extraResources, // Copy System Extensions
+        compression: 'maximum', // Only used if a compressed target (like 7z, nsis, dmg etc.)
+        asar: true,
+        artifactName: '${productName}.${ext}',
+        win: {
+          target: [
+            {
+              target: 'zip',
+              arch: 'ia32',
+            }
+          ],
+          icon: './icons/icon.ico',
         }
-      ),
-    })
-    .then(() => {
-      console.log("Pack - Done!");
-    })
-    .catch((error) => {
-      console.log("Pack - Error!", error);
-    })
-    .finally(done);
+      }
+    ),
+  })
+  .then(() => {
+    console.log('Pack - Done!');
+  })
+  .catch((error) => {
+    console.log('Pack - Error!', error);
+  })
+  .finally(done);
 }
 
 function pack(done) {
   const publish = config.publish ? publishInfo : []; // Uses Git repo for unpublished builds
   const extraOpts = config.publish ? extraOptions : {};
   builder
-    .build({
-      ia32: process.env.PACK_ARCH === "ia32" || undefined,
-      x64: process.env.PACK_ARCH === "x64" || undefined,
-      config: Object.assign(
-        {
-          appId: "com.bluemaxima.flashpoint-launcher",
-          productName: "Flashpoint",
-          directories: {
-            buildResources: "./static/",
-            output: "./dist/",
-          },
-          files: ["./build"],
-          extraFiles: copyFiles, // Files to copy to the build folder
-          extraResources: extraResources, // Copy System Extensions
-          compression: "maximum", // Only used if a compressed target (like 7z, nsis, dmg etc.)
-          target: "dir",
-          asar: true,
-          publish: publish,
-          artifactName: "${productName}-${version}_${os}-${arch}.${ext}",
-          win: {
-            target: "dir",
-            icon: "./icons/icon.ico",
-          },
-          mac: {
-            target: "dir",
-            icon: "./icons/icon.icns",
-          },
-          linux: {
-            target: "dir",
-          },
+  .build({
+    ia32: process.env.PACK_ARCH === 'ia32' || undefined,
+    x64: process.env.PACK_ARCH === 'x64' || undefined,
+    config: Object.assign(
+      {
+        appId: 'com.bluemaxima.flashpoint-launcher',
+        productName: 'Flashpoint',
+        directories: {
+          buildResources: './static/',
+          output: './dist/',
         },
-        extraOpts
-      ),
-    })
-    .then(() => {
-      console.log("Pack - Done!");
-    })
-    .catch((error) => {
-      console.log("Pack - Error!", error);
-    })
-    .finally(done);
+        files: ['./build'],
+        extraFiles: copyFiles, // Files to copy to the build folder
+        extraResources: extraResources, // Copy System Extensions
+        compression: 'maximum', // Only used if a compressed target (like 7z, nsis, dmg etc.)
+        target: 'dir',
+        asar: true,
+        publish: publish,
+        artifactName: '${productName}-${version}_${os}-${arch}.${ext}',
+        win: {
+          target: 'dir',
+          icon: './icons/icon.ico',
+        },
+        mac: {
+          target: 'dir',
+          icon: './icons/icon.icns',
+        },
+        linux: {
+          target: 'dir',
+        },
+      },
+      extraOpts
+    ),
+  })
+  .then(() => {
+    console.log('Pack - Done!');
+  })
+  .catch((error) => {
+    console.log('Pack - Error!', error);
+  })
+  .finally(done);
 }
 
 /* ------ Clean ------ */
 
 function clean(done) {
-  fs.remove("./dist", () => {
-    fs.remove("./build", done);
+  fs.remove('./dist', () => {
+    fs.remove('./build', done);
   });
 }
 
@@ -367,19 +369,19 @@ function clean(done) {
 
 async function extractTarball(inputFilePath, outputDirectory) {
   try {
-      // Create a readable stream from the input file
-      const readStream = fs.createReadStream(inputFilePath);
+    // Create a readable stream from the input file
+    const readStream = fs.createReadStream(inputFilePath);
 
-      // Pipe the readable stream through zlib.createGunzip() and then through tar.extract()
-      await pipeline(
-          readStream,
-          zlib.createGunzip(),
-          tar.extract(outputDirectory)
-      );
+    // Pipe the readable stream through zlib.createGunzip() and then through tar.extract()
+    await pipeline(
+      readStream,
+      zlib.createGunzip(),
+      tar.extract(outputDirectory)
+    );
 
-      console.log('Extraction complete.');
+    console.log('Extraction complete.');
   } catch (error) {
-      console.error('Extraction failed:', error);
+    console.error('Extraction failed:', error);
   }
 }
 

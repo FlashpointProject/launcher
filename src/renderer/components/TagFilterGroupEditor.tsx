@@ -149,7 +149,7 @@ function buildPlaceholderTags(tags: string[]): Tag[] {
       name: t,
       aliases: [],
       description: '',
-      dateModified: new Date(),
+      dateModified: new Date().toISOString(),
       category: 'default',
     };
     return tag;

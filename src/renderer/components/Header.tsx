@@ -1,98 +1,47 @@
 import * as remote from '@electron/remote';
-import { openContextMenu } from '@renderer/app';
+import { openContextMenu } from '@renderer/components/app';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
-import { BackIn, FpfssUser } from '@shared/back/types';
+import { FpfssUser } from '@shared/back/types';
 import { getLibraryItemTitle } from '@shared/library/util';
 import { MenuItemConstructorOptions } from 'electron';
-import { GameOrderBy, GameOrderReverse, TagSuggestion } from 'flashpoint-launcher';
 import * as React from 'react';
 import { Link, RouteComponentProps, useLocation } from 'react-router-dom';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { Paths } from '../Paths';
-import { SearchQuery } from '../store/search';
-import { easterEgg, getPlatformIconURL, joinLibraryRoute } from '../Util';
+import { joinLibraryRoute } from '../Util';
 import { LangContext } from '../util/lang';
-import { GameOrder, GameOrderChangeEvent } from './GameOrder';
-import { InputElement } from './InputField';
 import { OpenIcon } from './OpenIcon';
-import { TagInputField } from './TagInputField';
-import { eventResponseDebouncerFactory } from '@shared/eventResponseDebouncer';
 
 type OwnProps = {
-  /** The most recent search query. */
-  searchQuery: SearchQuery;
-  /** Current value of the "order by" drop down. */
-  orderBy: GameOrderBy;
-  /** Current value of the "order reverse" drop down. */
-  orderReverse: GameOrderReverse;
   /** Array of library routes */
   libraries: string[];
-  /** Called when a search is made. */
-  onSearch: (text: string, redirect: boolean) => void;
-  /** Called when any of the ordering parameters are changed (by the header or a sub-component). */
-  onOrderChange?: (event: GameOrderChangeEvent) => void;
   /** Called when the left sidebar toggle button is clicked. */
   onToggleLeftSidebarClick?: () => void;
   /** Called when the right sidebar toggle button is clicked. */
   onToggleRightSidebarClick?: () => void;
-  logoVersion: number;
   user: FpfssUser | null;
   logoutUser: () => void;
 };
 
 export type HeaderProps = OwnProps & RouteComponentProps & WithPreferencesProps & WithTagCategoriesProps;
 
-type HeaderState = {
-  /** Current text in the search field. */
-  searchText: string;
-  /** Current tag suggestions under the search field */
-  tagSuggestions: TagSuggestion[];
-  /** Current platform suggestions under the search field */
-  platformSuggestions: TagSuggestion[];
-};
+type HeaderState = {};
 
 /** The header that is always visible at the top of the main window (just below the title bar). */
 export class Header extends React.Component<HeaderProps, HeaderState> {
   static contextType = LangContext;
   declare context: React.ContextType<typeof LangContext>;
 
-  searchInputRef: React.RefObject<InputElement> = React.createRef();
-
-  suggsDebouncer = eventResponseDebouncerFactory<TagSuggestion[]>();
-
   constructor(props: HeaderProps) {
     super(props);
-    this.state = {
-      searchText: this.props.searchQuery.text,
-      tagSuggestions: [],
-      platformSuggestions: [],
-    };
-  }
-
-  componentDidMount() {
-    window.addEventListener('keypress', this.onKeypress);
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener('keypress', this.onKeypress);
-  }
-
-  componentDidUpdate(prevProps: HeaderProps, prevState: HeaderState) {
-    // Update the text in the text-box if the search text has changed
-    const text = this.props.searchQuery.text;
-    if (text !== prevProps.searchQuery.text &&
-        text !== prevState.searchText) {
-      this.setState({ searchText: text });
-    }
   }
 
   render() {
     const strings = this.context.app;
     const {
       preferencesData: { browsePageShowLeftSidebar, browsePageShowRightSidebar, enableEditing, showDeveloperTab, onlineManual, offlineManual },
-      onOrderChange, onToggleLeftSidebarClick, onToggleRightSidebarClick, libraries
+      onToggleLeftSidebarClick, onToggleRightSidebarClick, libraries
     } = this.props;
-    const { searchText } = this.state;
 
     // FPFSS user context menu
     const contextButtons: MenuItemConstructorOptions[] = [
@@ -165,40 +114,12 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
             ) : undefined }
           </ul>
         </div>
-        {/* Header Search */}
-        <div className='header__wrap header__wrap--width-restricted header__search__wrap'>
-          <div>
-            <div className='header__search'>
-              <div className='header__search__left'>
-                {this.renderTagInput()}
-              </div>
-              <div
-                className='header__search__right'
-                onClick={ searchText ? this.onClearClick : undefined }>
-                <div className='header__search__right__inner'>
-                  <OpenIcon
-                    className='header__search__icon'
-                    icon={ searchText ? 'circle-x' : 'magnifying-glass' } />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* Header Drop-downs */}
-        <div className='header__wrap'>
-          <div>
-            <GameOrder
-              onChange={onOrderChange}
-              orderBy={this.props.orderBy}
-              orderReverse={this.props.orderReverse} />
-          </div>
-        </div>
         {/* Right-most portion */}
         <div className='header__wrap header__right'>
           {this.props.user && (
             <div className='header-user-box' onClick={() => openContextMenu(contextButtons)}>
               {/* FPFSS user status */}
-              <div className='header-user-icon' style={{backgroundImage: `url(${this.props.user.avatarUrl})`}}></div>
+              <div className='header-user-icon' style={{ backgroundImage: `url(${this.props.user.avatarUrl})` }}></div>
               <div className='header-user-name'>{this.props.user.username}</div>
             </div>
           )}
@@ -222,139 +143,6 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
       </div>
     );
   }
-
-  renderTagInput = () => {
-    const strings = this.context.app;
-
-    // Set the suggestions to the appropriate field being searched for currently
-    let suggestions: TagSuggestion[] = [];
-    let onSuggSubmit: ((tag: TagSuggestion) => void) = (t) => {};
-    let renderIconSugg: ((sugg: TagSuggestion) => JSX.Element) | undefined = undefined;
-    if (this.state.tagSuggestions.length > 0) {
-      suggestions = this.state.tagSuggestions;
-      onSuggSubmit = this.onTagSuggestionSelect;
-    } else if (this.state.platformSuggestions.length > 0) {
-      suggestions = this.state.platformSuggestions;
-      onSuggSubmit = this.onPlatformSuggestionSelect;
-      renderIconSugg = this.renderPlatformIconSugg;
-    }
-
-    return (
-      <TagInputField
-        className='header__search__input'
-        editable={true}
-        text={this.state.searchText}
-        tags={[]} /** We're not using the tag list */
-        suggestions={suggestions}
-        categories={this.props.tagCategories}
-        placeholder={strings.searchPlaceholder}
-        onTagSubmit={this.onSearchSubmit}
-        onTagSuggestionSelect={onSuggSubmit}
-        renderIconSugg={renderIconSugg}
-        onChange={this.onSearchChange} />
-    );
-  };
-
-  onSearchChange = (event: React.ChangeEvent<InputElement>): void => {
-    const value = event.target.value;
-    this.setState({ searchText: value }, () => {
-      // Update tag suggestions if currently in `tag:` search
-      const tagRegex = /(#([^\s]+)|tag[:=]([^\s]+))$/;
-      const tagMatch = tagRegex.exec(this.state.searchText);
-      if (tagMatch) {
-        const tagName = tagMatch[2] || tagMatch[3];
-        this.suggsDebouncer.dispatch(
-          window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, tagName, this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme))),
-          (data) => {
-            if (data) { this.setState({ tagSuggestions: data }); }
-          }
-        );
-      } else {
-        // Not searching by tag
-        this.suggsDebouncer.invalidate();
-        this.setState({ tagSuggestions: [] });
-      }
-      // Update platform suggestions if currently in `platform:` or `platforms:` or `tech:` search
-      const platformRegex = /(#([^\s]+)|platform[s]?:([^\s]+))$/;
-      const techRegex = /(#([^\s]+)|tech[s]?:([^\s]+))$/;
-      const platformMatch = platformRegex.exec(this.state.searchText);
-      const techMatch = techRegex.exec(this.state.searchText);
-      const match = platformMatch || techMatch;
-      if (match) {
-        const platformName = match[2] || match[3];
-        window.Shared.back.request(BackIn.GET_PLATFORM_SUGGESTIONS, platformName)
-        .then(data => {
-          if (data) { this.setState({ platformSuggestions: data }); }
-        });
-      } else {
-        // Not searching by platform
-        this.setState({ platformSuggestions: [] });
-      }
-    });
-    // "Clear" the search when the search field gets empty
-    if (value === '') { this.props.onSearch('', false); }
-  };
-
-  onSearchSubmit = (value: string): void => {
-    this.props.onSearch(value, true);
-    easterEgg(value);
-  };
-
-  onTagSuggestionSelect = (suggestion: TagSuggestion): void => {
-    const tagRegex = /((#)([^\s]+)|(tag[:=])([^\s]+))$/;
-    const match = tagRegex.exec(this.state.searchText);
-    if (match) {
-      console.log(match);
-      const quickSearch = match[4] ? false : true;
-      console.log(quickSearch);
-      const index = match.index + (quickSearch ? 1 : 4);
-      if (index === 0) { return; } // Just to be careful
-      this.setState({
-        searchText: this.state.searchText.slice(0, index-1) + `="${suggestion.name}"`,
-        tagSuggestions: []
-      });
-    }
-  };
-
-
-  onPlatformSuggestionSelect = (suggestion: TagSuggestion): void => {
-    const platformRegex = /((#)([^\s]+)|(platform:)([^\s]+))$/;
-    const match = platformRegex.exec(this.state.searchText);
-    if (match) {
-      console.log(match);
-      const quickSearch = match[4] ? false : true;
-      console.log(quickSearch);
-      const index = match.index + (quickSearch ? 1 : 9);
-      this.setState({
-        searchText: this.state.searchText.slice(0, index) + `"${suggestion.name}"`,
-        platformSuggestions: []
-      });
-    }
-  };
-
-  onKeypress = (event: KeyboardEvent): void => {
-    if (event.ctrlKey && event.code === 'KeyF') {
-      const element = this.searchInputRef.current;
-      if (element) {
-        element.select();
-        event.preventDefault();
-      }
-    }
-  };
-
-  onClearClick = (): void => {
-    this.setState({ searchText: '' });
-    this.props.onSearch('', false);
-  };
-
-  renderPlatformIconSugg = (platformSugg: TagSuggestion) => {
-    const iconUrl = getPlatformIconURL(platformSugg.name, this.props.logoVersion);
-    return (
-      <div
-        className='platform-tag__icon'
-        style={{ backgroundImage: `url(${iconUrl})` }} />
-    );
-  };
 }
 
 type MenuItemProps = {

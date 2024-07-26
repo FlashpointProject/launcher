@@ -1,22 +1,19 @@
-import { ApplicationState } from '@renderer/store';
-import { MainActionType } from '@renderer/store/main/enums';
 import { connect } from 'react-redux';
-import { Dispatch } from 'redux';
-import { MainAction, MainState } from '../store/main/types';
+import { bindActionCreators, Dispatch } from 'redux';
+import { RootState } from '@renderer/store/store';
+import { mainActions, MainState } from '@renderer/store/main/slice';
 
-export type WithMainStateProps = ReturnType<typeof mapStateToProps> & ReturnType<typeof mapDispatchToProps>
+export type WithMainStateProps = ReturnType<typeof mapStateToProps> & ReturnType<typeof mapDispatchToProps>;
 
-const mapStateToProps = (state: ApplicationState) => ({
+const mapStateToProps = (state: RootState) => ({
   main: state.main,
 });
 
-function mapDispatchToProps(dispatch: Dispatch<MainAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
   return {
-    dispatchMain: dispatch,
-    setMainState: <K extends keyof MainState>(state: Pick<MainState, K> | MainState): MainAction => dispatch({
-      type: MainActionType.SET_STATE,
-      payload: state,
-    }),
+    dispatch,
+    setMainState: (state: Partial<MainState>) => dispatch(mainActions.setMainState(state)),
+    mainActions: bindActionCreators(mainActions, dispatch),
   };
 }
 

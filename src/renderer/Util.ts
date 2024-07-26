@@ -10,6 +10,7 @@ import { GameGridItem } from './components/GameGridItem';
 import { GameListItem } from './components/GameListItem';
 import { ViewQuery } from '@shared/library/util';
 import { getGameDataFilename } from '@shared/utils/misc';
+import { GENERAL_VIEW_ID } from '@renderer/store/search/slice';
 
 export const gameDragDataType = 'json/game-drag';
 
@@ -281,17 +282,17 @@ export function rebuildQuery(opts: RebuildQueryOpts): ViewQuery {
 }
 
 /**
- * Get the "library route" of a URL (returns empty string if URL is not a valid "sub-browse path")
+ * Get the "library route" of a URL (returns general string if URL is not a valid "sub-browse path")
  *
  * @param urlPath URL to check
  */
-export function getBrowseSubPath(urlPath: string): string {
+export function getViewName(urlPath: string): string {
   if (urlPath.startsWith(Paths.BROWSE)) {
     let str = urlPath.substring(Paths.BROWSE.length);
     if (str[0] === '/') { str = str.substring(1); }
     return str;
   }
-  return '';
+  return GENERAL_VIEW_ID;
 }
 
 export function findGameDragEventDataGrid(element: EventTarget): GameDragEventData | undefined {

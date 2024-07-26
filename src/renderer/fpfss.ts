@@ -3,12 +3,11 @@ import axios from 'axios';
 import * as remote from '@electron/remote';
 import { uuid } from '@shared/utils/uuid';
 import { DialogState } from 'flashpoint-launcher';
-import { MainActionType } from './store/main/enums';
-import { Dispatch } from 'redux';
-import { MainAction } from './store/main/types';
 import EventEmitter = require('events');
+import * as mainActions from '@renderer/store/main/slice';
+import { dialogResEvent } from '@renderer/store/main/dialog';
 
-export async function fpfssLogin(dispatchMain: Dispatch<MainAction>, dialogResEvent: EventEmitter): Promise<FpfssUser | null> {
+export async function fpfssLogin(createDialog: typeof mainActions.createDialog, cancelDialog: typeof mainActions.cancelDialog): Promise<FpfssUser | null> {
   const fpfssBaseUrl = window.Shared.preferences.data.fpfssBaseUrl;
   // Get device auth token from FPFSS
   const tokenUrl = `${fpfssBaseUrl}/auth/device`;
@@ -41,10 +40,8 @@ export async function fpfssLogin(dispatchMain: Dispatch<MainAction>, dialogResEv
     buttons: ['Cancel'],
     id: uuid()
   };
-  dispatchMain({
-    type: MainActionType.NEW_DIALOG,
-    dialog
-  });
+
+  createDialog(dialog);
 
   // Start loop until an end state occurs
   return new Promise<FpfssUser | null>((resolve, reject) => {
@@ -66,7 +63,7 @@ export async function fpfssLogin(dispatchMain: Dispatch<MainAction>, dialogResEv
           // Found token, fetch profile info
           return axios.get(profileUrl, { headers: {
             'Authorization': `Bearer ${res.data['access_token']}`
-          }})
+          } })
           .then((profileRes) => {
             const user: FpfssUser = {
               username: profileRes.data['Username'],
@@ -80,7 +77,7 @@ export async function fpfssLogin(dispatchMain: Dispatch<MainAction>, dialogResEv
           })
           .catch((err) => {
             clearInterval(interval);
-            reject('Failed to fetch profile info');
+            reject('Failed to fetch profile info - ' + err);
             return;
           });
         }
@@ -113,9 +110,6 @@ export async function fpfssLogin(dispatchMain: Dispatch<MainAction>, dialogResEv
     });
   })
   .finally(() => {
-    dispatchMain({
-      type: MainActionType.CANCEL_DIALOG,
-      dialogId: dialog.id
-    });
+    cancelDialog(dialog.id);
   });
 }

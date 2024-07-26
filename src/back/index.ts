@@ -259,10 +259,10 @@ async function main() {
     BackIn.GET_TAG_CATEGORY_BY_ID,
     BackIn.DELETE_TAG_CATEGORY,
     // Curation
-    BackIn.IMPORT_CURATION,
     BackIn.LAUNCH_CURATION,
     BackIn.LAUNCH_CURATION_ADDAPP,
     BackIn.CURATE_SYNC_CURATIONS,
+    BackIn.CURATE_IMPORT,
     // ?
     BackIn.SYNC_GAME_METADATA,
     BackIn.SYNC_TAGGED,
@@ -326,7 +326,7 @@ async function prepForInit(message: any): Promise<void> {
   } catch (e) {
     console.log(e);
     // Fatal, quit.
-    send({quit: true, errorMessage: 'Invalid config.json!'});
+    send({ quit: true, errorMessage: 'Invalid config.json!' });
     return;
   }
 
@@ -347,7 +347,7 @@ async function prepForInit(message: any): Promise<void> {
         process.once('message', (msg) => {
           resolve(Number(msg));
         });
-        send({preferencesRefresh: true});
+        send({ preferencesRefresh: true });
       });
       console.log('Response - ' + res);
 
@@ -373,7 +373,7 @@ async function prepForInit(message: any): Promise<void> {
           console.log('Copied default preferences');
           return loadPrefs();
         } catch (err) {
-          send({quit: true, errorMessage: 'Failed to save default preferences file? Quitting...'});
+          send({ quit: true, errorMessage: 'Failed to save default preferences file? Quitting...' });
           return;
         }
       }
@@ -383,7 +383,7 @@ async function prepForInit(message: any): Promise<void> {
   try {
     await loadPrefs();
   } catch (err: any) {
-    send({quit: true, errorMessage: err.toString()});
+    send({ quit: true, errorMessage: err.toString() });
     return;
   }
 
@@ -632,7 +632,7 @@ async function prepForInit(message: any): Promise<void> {
   state.readyForInit = true;
 
   // Respond
-  send({port: state.socketServer.port, config: state.config, prefs: state.preferences}, () => {
+  send({ port: state.socketServer.port, config: state.config, prefs: state.preferences }, () => {
     console.log('Back - Ready for Init');
     state.apiEmitters.onDidInit.fire();
   });
@@ -780,7 +780,7 @@ async function initialize() {
                 state
               };
               statuses.push(status);
-              log.debug('Launcher', `Parsed: ${JSON.stringify({...status, state: ComponentState[status.state]})}`);
+              log.debug('Launcher', `Parsed: ${JSON.stringify({ ...status, state: ComponentState[status.state] })}`);
             } catch (err) {
               log.error('Launcher', `Failed to parse component entry: ${line}\nERROR: ${err}`);
             }

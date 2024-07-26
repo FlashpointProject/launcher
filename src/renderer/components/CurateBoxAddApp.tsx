@@ -1,5 +1,3 @@
-import { CurateActionType } from '@renderer/store/curate/enums';
-import { CurateAction } from '@renderer/store/curate/types';
 import { BackIn } from '@shared/back/types';
 import { AddAppCuration, AddAppCurationMeta } from '@shared/curate/types';
 import * as React from 'react';
@@ -9,6 +7,9 @@ import { CurateBoxRow } from './CurateBoxRow';
 import { InputField } from './InputField';
 import { SimpleButton } from './SimpleButton';
 import { Platform } from 'flashpoint-launcher';
+import { useDispatch } from 'react-redux';
+import { Dispatch } from 'redux';
+import { editAddApp, removeAddApp } from '@renderer/store/curate/slice';
 
 export type CurateBoxAddAppProps = {
   /** Folder of the curation the displayed additional application belongs to. */
@@ -17,8 +18,6 @@ export type CurateBoxAddAppProps = {
   addApp: AddAppCuration;
   /** If editing any fields of this should be disabled. */
   disabled?: boolean;
-  /** Dispatcher for the curate page state reducer. */
-  dispatch: React.Dispatch<CurateAction>;
   /** Platform of the game this belongs to. */
   platforms?: Platform[];
   /** Whether to symlink curation content before running */
@@ -31,9 +30,10 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
   // Callbacks for the fields (onChange)
   const folder = props.folder;
   const key = props.addApp.key;
-  const onHeadingChange         = useOnInputChange('heading',         key, folder, props.dispatch);
-  const onApplicationPathChange = useOnInputChange('applicationPath', key, folder, props.dispatch);
-  const onLaunchCommandChange   = useOnInputChange('launchCommand',   key, folder, props.dispatch);
+  const dispatch = useDispatch();
+  const onHeadingChange         = useOnInputChange('heading',         key, folder, dispatch);
+  const onApplicationPathChange = useOnInputChange('applicationPath', key, folder, dispatch);
+  const onLaunchCommandChange   = useOnInputChange('launchCommand',   key, folder, dispatch);
   // Misc.
   const editable = true;
   const disabled = props.disabled;
@@ -55,12 +55,11 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
   }
   // Callback for the "remove" button
   const onRemove = useCallback(() => {
-    props.dispatch({
-      type: CurateActionType.REMOVE_ADDAPP,
-      folder: folder,
-      key: key,
-    });
-  }, [props.folder, props.addApp.key, props.dispatch]);
+    dispatch(removeAddApp({
+      folder,
+      key
+    }));
+  }, [props.folder, props.addApp.key, dispatch]);
   // Callback for the "run" button
   const onRun = useCallback(() => {
     return window.Shared.back.request(BackIn.LAUNCH_CURATION_ADDAPP, {
@@ -137,16 +136,15 @@ type InputElementOnChangeEvent = {
  * @param folder Folder of the curation that owns this add app.
  * @param dispatch Curate action dispatcher.
  */
-function useOnInputChange(property: keyof AddAppCurationMeta, key: string, folder: string, dispatch: React.Dispatch<CurateAction>) {
+function useOnInputChange(property: keyof AddAppCurationMeta, key: string, folder: string, dispatch: Dispatch<any>) {
   return useCallback((event: InputElementOnChangeEvent) => {
     if (key !== undefined) {
-      dispatch({
-        type: CurateActionType.EDIT_ADDAPP,
-        folder: folder,
-        key: key,
-        property: property,
+      dispatch(editAddApp({
+        folder,
+        key,
+        property,
         value: event.currentTarget.value
-      });
+      }));
     }
   }, [dispatch, key]);
 }

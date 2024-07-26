@@ -45,7 +45,7 @@ export type OwnProps = {
   /** Called when the user stops dragging a game (when they release it). */
   onGameDragEnd: (event: React.DragEvent) => void;
   /** Moves a game at the specified index above the other game at the destination index, inside tha playlist */
-  onMovePlaylistGame: (sourceIdx: number, destinationIdx: number) => void;
+  onMovePlaylistGame: (sourceGameId: string, destGameId: string) => void;
   updateView: UpdateView;
   /** Function for getting a reference to grid element. Called whenever the reference could change. */
   listRef?: RefFunc<HTMLDivElement>;
@@ -102,7 +102,7 @@ class _GameList extends React.Component<GameListProps> {
       if (destData) {
         console.log(`dest: ${destData.index}`);
         // Move the dropped game above the target game in the playlist
-        this.props.onMovePlaylistGame(dragData.index, destData.index);
+        this.props.onMovePlaylistGame(dragData.gameId, destData.gameId);
       }
     }
   };
