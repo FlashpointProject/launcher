@@ -19,6 +19,8 @@ const langTemplate = {
     'searchLimitDesc',
     'searchLimitUnlimited',
     'searchLimitValue',
+    'restoreSearchViews',
+    'restoreSearchViewsDesc',
     'enableEditing',
     'enableEditingDesc',
     'symlinkCuration',

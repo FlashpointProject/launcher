@@ -124,6 +124,11 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
           <div className='setting'>
             <p className='setting__title'>{strings.preferencesHeader}</p>
             <div className='setting__body'>
+              <ConfigBoxCheckbox
+                title={strings.restoreSearchViews}
+                description={strings.restoreSearchViewsDesc}
+                checked={this.props.preferencesData.useStoredViews}
+                onToggle={this.onUseStoredViewsChange} />
               {/* Enable Editing */}
               <ConfigBoxCheckbox
                 title={strings.enableEditing}
@@ -815,6 +820,17 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   onClearPlaytimeTracking = (): void => {
     window.Shared.back.request(BackIn.CLEAR_PLAYTIME_TRACKING);
+  };
+
+  onUseStoredViewsChange = (isChecked: boolean): void => {
+    if (isChecked) {
+      updatePreferencesData({ useStoredViews: isChecked });
+    } else {
+      updatePreferencesData({
+        useStoredViews: isChecked,
+        storedViews: []
+      });
+    }
   };
 
   onEnableEditingChange = (isChecked: boolean): void => {

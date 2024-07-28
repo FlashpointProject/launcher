@@ -1,7 +1,18 @@
 import { autoCode } from '@shared/lang';
 import { LogLevel } from '@shared/Log/interface';
 import { delayedThrottle, delayedThrottleAsync } from '@shared/utils/throttle';
-import { AppPathOverride, AppPreferencesData, AppPreferencesDataMainWindow, GameDataSource, GameMetadataSource, MetadataUpdateInfo, SingleUsePromptPrefs, TagFilterGroup } from 'flashpoint-launcher';
+import {
+  AdvancedFilter,
+  AppPathOverride,
+  AppPreferencesData,
+  AppPreferencesDataMainWindow,
+  GameDataSource,
+  GameMetadataSource, GameOrderBy, GameOrderReverse,
+  MetadataUpdateInfo,
+  SingleUsePromptPrefs,
+  StoredView,
+  TagFilterGroup
+} from 'flashpoint-launcher';
 import { BackIn } from '../back/types';
 import { BrowsePageLayout, ScreenshotPreviewMode } from '../BrowsePageLayout';
 import { ARCADE } from '../constants';
@@ -11,6 +22,7 @@ import { deepCopy, parseVarStr } from '../Util';
 import * as Coerce from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
 import { CurateGroup } from '@renderer/store/curate/slice';
+import { getDefaultAdvancedFilter } from '@shared/search/util';
 
 export function updatePreferencesData(data: DeepPartial<AppPreferencesData>, send = true) {
   const preferences = window.Shared.preferences;
@@ -151,7 +163,9 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   screenshotPreviewDelay: 250,
   singleUsePrompt: {
     badAntiVirus: false,
-  }
+  },
+  useStoredViews: true,
+  storedViews: [],
 });
 
 /**
@@ -228,6 +242,7 @@ export function overwritePreferenceData(
   parser.prop('enableVerboseLogging',          v => source.enableVerboseLogging          = !!v, true);
   parser.prop('screenshotPreviewMode',         v => source.screenshotPreviewMode         = parseScreenshotPreviewMode(v), true);
   parser.prop('screenshotPreviewDelay',        v => source.screenshotPreviewDelay        = num(v), true);
+  parser.prop('useStoredViews',                v => source.useStoredViews                                  = !!v, true);
 
   // Can't have a negative delay!
   if (source.screenshotPreviewDelay < 0) {
@@ -275,6 +290,11 @@ export function overwritePreferenceData(
   }
   if (data.singleUsePrompt) {
     source.singleUsePrompt = parseSingleUsePrompt(parser.prop('singleUsePrompt') as IObjectParserProp<SingleUsePromptPrefs>);
+  }
+  if (data.storedViews) {
+    const newStoredViews: StoredView[] = [];
+    parser.prop('storedViews').array((item, index) => newStoredViews[index] = parseStoredView(item as IObjectParserProp<StoredView>));
+    source.storedViews = newStoredViews;
   }
   // Done
   return source;
@@ -358,6 +378,32 @@ function parseGameMetadataSource(parser: IObjectParserProp<GameMetadataSource>):
   return source;
 }
 
+function parseAdvancedFilter(parser: IObjectParserProp<AdvancedFilter>, output: AdvancedFilter) {
+  parser.prop('installed', v => output.installed = v === undefined ? undefined : !!v, true);
+
+  parser.prop('playlistOrder', v => output.playlistOrder = !!v, true);
+}
+
+function parseStoredView(parser: IObjectParserProp<StoredView>): StoredView {
+  const source: StoredView = {
+    view: '',
+    text: '',
+    advancedFilter: getDefaultAdvancedFilter(),
+    orderBy: 'title',
+    orderReverse: 'ASC',
+  };
+
+  parser.prop('view', v => source.view = str(v));
+  parser.prop('text', v => source.text = str(v), true);
+  parseAdvancedFilter(parser.prop('advancedFilter'), source.advancedFilter);
+  parser.prop('orderBy', v => source.orderBy = parseOrderBy(v), true);
+  parser.prop('orderReverse', v => source.orderReverse = parseOrderReverse(v), true);
+  parser.prop('selectedPlaylistId', v => source.selectedPlaylistId = str(v), true);
+  parser.prop('selectedGameId', v => source.selectedGameId = str(v), true);
+
+  return source;
+}
+
 function parseMetadataUpdateInfo(parser: IObjectParserProp<MetadataUpdateInfo>, output: MetadataUpdateInfo) {
   parser.prop('actualUpdateTime', v => output.actualUpdateTime = str(v), true);
   parser.prop('latestUpdateTime', v => output.latestUpdateTime = str(v), true);
@@ -393,6 +439,36 @@ function parseCurateGroup(parser: IObjectParserProp<any>): CurateGroup {
   parser.prop('icon', v => g.icon = str(v));
   return g;
 }
+
+function parseOrderBy(value: string): GameOrderBy {
+  switch (value) {
+    case 'custom':
+    case 'title':
+    case 'developer':
+    case 'publisher':
+    case 'series':
+    case 'platform':
+    case 'dateAdded':
+    case 'dateModified':
+    case 'releaseDate':
+    case 'lastPlayed':
+    case 'playtime':
+      return value;
+    default:
+      return 'title';
+  }
+}
+
+function parseOrderReverse(value: string): GameOrderReverse {
+  switch (value) {
+    case 'ASC':
+    case 'DESC':
+      return value;
+    default:
+      return 'ASC';
+  }
+}
+
 
 /**
  * Coerce a value to a string, then return it if it matches at least on of the options.

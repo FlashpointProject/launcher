@@ -95,9 +95,9 @@ export function createSearchFilter(query: QueryData, preferences: AppPreferences
     search.filter.subfilters.push(filter);
   }
 
-  // // Optional view library filter
+  // Optional view library filter
   // if (!playlist && !search.filter.exactWhitelist.library && view.library) {
-  //   // search.filter.exactWhitelist.library = [view.library];
+  //   search.filter.exactWhitelist.library = [view.library];
   // }
 
   // Playlist filter

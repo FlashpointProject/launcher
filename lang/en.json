@@ -14,6 +14,8 @@
     "searchLimitDesc": "Limit the number of results returned in any search",
     "searchLimitUnlimited": "Unlimited",
     "searchLimitValue": "{0} Results",
+    "restoreSearchViews": "Restore Search Results",
+    "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
     "enableEditing": "Enable Editing",
     "enableEditingDesc": "Enable editing of games and additional applications. Also shows tabs related to editing.",
     "symlinkCuration": "Symlink Curation Content",

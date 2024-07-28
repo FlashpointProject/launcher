@@ -1,12 +1,12 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { deepCopy } from '@shared/Util';
-import { Game, GameOrderBy, GameOrderReverse, Playlist, ViewGame } from 'flashpoint-launcher';
+import { AdvancedFilter, Game, GameOrderBy, GameOrderReverse, Playlist, StoredView, ViewGame } from 'flashpoint-launcher';
 import {
   ElementPosition
 } from '@fparchive/flashpoint-archive';
 import { BackIn, PageKeyset, SearchQuery } from '@shared/back/types';
 import { VIEW_PAGE_SIZE } from '@shared/constants';
-import { getDefaultGameSearch } from '@shared/search/util';
+import { getDefaultAdvancedFilter, getDefaultGameSearch } from '@shared/search/util';
 import { num } from '@shared/utils/Coerce';
 
 export const GENERAL_VIEW_ID = '!general!';
@@ -57,11 +57,6 @@ export type ResultsView = {
   advancedFilter: AdvancedFilter;
   searchFilter: SearchQuery;
   loaded: boolean;
-}
-
-export type AdvancedFilter = {
-  installed?: boolean;
-  playlistOrder: boolean;
 }
 
 type SearchState = {
@@ -118,13 +113,16 @@ export type SearchRequestRange = {
   count: number;
 }
 
+export type SearchCreateViewsAction = {
+  names: string[];
+  storedViews?: StoredView[];
+}
+
 const initialState: SearchState = {
   views: {
     [GENERAL_VIEW_ID]: {
       id: GENERAL_VIEW_ID,
-      advancedFilter: {
-        playlistOrder: true,
-      },
+      advancedFilter: getDefaultAdvancedFilter(),
       data: {
         searchId: 0,
         keyset: [],
@@ -199,16 +197,14 @@ const searchSlice = createSlice({
   name: 'search',
   initialState,
   reducers: {
-    createViews(state: SearchState, { payload }: PayloadAction<string[]>) {
+    createViews(state: SearchState, { payload }: PayloadAction<SearchCreateViewsAction>) {
       console.log(`Creating views for: ${payload}`);
-      for (const view of payload) {
+      for (const view of payload.names) {
         if (!state.views[view]) {
           state.views[view] = {
             id: view,
             library: view,
-            advancedFilter: {
-              playlistOrder: true,
-            },
+            advancedFilter: getDefaultAdvancedFilter(),
             data: {
               searchId: 0,
               keyset: [],
@@ -228,6 +224,18 @@ const searchSlice = createSlice({
             text: '',
             textPositions: [],
           };
+        }
+      }
+
+      if (payload.storedViews) {
+        for (const storedView of payload.storedViews) {
+          const view = state.views[storedView.view];
+          if (view) {
+            view.text = storedView.text;
+            view.advancedFilter = storedView.advancedFilter;
+            view.orderBy = storedView.orderBy;
+            view.orderReverse = storedView.orderReverse;
+          }
         }
       }
     },
@@ -408,6 +416,7 @@ const searchSlice = createSlice({
     }
   },
 });
+
 
 export const { actions: searchActions } = searchSlice;
 export const {

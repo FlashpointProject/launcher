@@ -1,5 +1,5 @@
 import { GameFilter, GameSearch } from '@fparchive/flashpoint-archive';
-import { AdvancedFilter } from '@renderer/store/search/slice';
+import { AdvancedFilter } from 'flashpoint-launcher';
 
 export function getDefaultGameSearch(): GameSearch {
   return {
@@ -19,6 +19,11 @@ export function getDefaultGameSearch(): GameSearch {
   };
 }
 
+export function getDefaultAdvancedFilter(): AdvancedFilter {
+  return {
+    playlistOrder: true,
+  };
+}
 
 export function getDefaultGameFilter(): GameFilter {
   return {

@@ -279,7 +279,16 @@ export class App extends React.Component<AppProps> {
         this.registerShortcut(command, shortcuts);
       }
       this.props.setMainState(data);
-      this.props.searchActions.createViews(data.libraries);
+      if (this.props.preferencesData.useStoredViews) {
+        this.props.searchActions.createViews({
+          names: data.libraries,
+          storedViews: this.props.preferencesData.storedViews
+        });
+      } else {
+        this.props.searchActions.createViews({
+          names: data.libraries,
+        });
+      }
       this.props.setTagCategories(data.tagCategories);
     })
     .then(() => {

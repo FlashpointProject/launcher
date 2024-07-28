@@ -1062,7 +1062,26 @@ declare module 'flashpoint-launcher' {
       searchLimit: number;
       /** Flags for whether we've shown a one use prompt */
       singleUsePrompt: SingleUsePromptPrefs;
+      /** Whether to use stored views or not */
+      useStoredViews: boolean;
+      /** Search info for each view, can be reloaded */
+      storedViews: StoredView[];
     };
+
+    type StoredView = {
+      view: string;
+      text: string;
+      advancedFilter: AdvancedFilter;
+      orderBy: GameOrderBy;
+      orderReverse: GameOrderReverse;
+      selectedPlaylistId?: string;
+      selectedGameId?: string;
+    }
+
+    type AdvancedFilter = {
+      installed?: boolean;
+      playlistOrder: boolean;
+    }
 
     enum ScreenshotPreviewMode {
       OFF = 0,
