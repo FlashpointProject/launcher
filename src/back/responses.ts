@@ -123,6 +123,7 @@ import {
 } from './util/misc';
 import { uuid } from './util/uuid';
 import { FPFSS_INFO_FILENAME } from '@shared/curate/fpfss';
+import { createSearchFilter } from '@back/util/search';
 
 const axios = axiosImport.default;
 
@@ -1060,21 +1061,23 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     };
   });
 
+  state.socketServer.register(BackIn.PARSE_QUERY_DATA, async (event, query) => {
+    return createSearchFilter(query, state.preferences);
+  });
+
   state.socketServer.register(BackIn.BROWSE_VIEW_FIRST_PAGE, async (event, search) => {
     // Sort out playlist ordering for query if requsted
-    if (search.customIdOrder) {
-      if (search.playlist) {
-        await fpDatabase.newCustomIdOrder(search.playlist.games.map(p => p.gameId));
-      } else {
-        // No playlist but custom order selected, just use title
-        search.order.column = GameSearchSortable.TITLE;
-      }
+    if (search.playlist && search.order.column === GameSearchSortable.CUSTOM && search.customIdOrder) {
+      await fpDatabase.newCustomIdOrder(search.playlist.games.map(p => p.gameId));
+    }
+    if (!search.playlist && search.order.column === GameSearchSortable.CUSTOM) {
+      search.order.column = GameSearchSortable.TITLE;
     }
 
     const startTime = Date.now();
     search.slim = true;
 
-    const searchLimit = (!search.playlist && state.preferences.searchLimit) ? state.preferences.searchLimit : 999999999;
+    const searchLimit = state.preferences.searchLimit ? state.preferences.searchLimit : 999999999;
     search.limit = Math.min(VIEW_PAGE_SIZE, searchLimit);
     const results = await fpDatabase.searchGames(search);
 

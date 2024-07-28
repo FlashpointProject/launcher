@@ -1,17 +1,13 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { deepCopy } from '@shared/Util';
-import { AppPreferencesData, Game, GameOrderBy, GameOrderReverse, Playlist, ViewGame } from 'flashpoint-launcher';
+import { Game, GameOrderBy, GameOrderReverse, Playlist, ViewGame } from 'flashpoint-launcher';
 import {
-  ElementPosition,
-  GameSearchDirection,
-  GameSearchSortable,
-  mergeGameFilters,
-  newSubfilter,
-  parseUserSearchInput
+  ElementPosition
 } from '@fparchive/flashpoint-archive';
 import { BackIn, PageKeyset, SearchQuery } from '@shared/back/types';
-import { parseAdvancedFilter } from '@shared/search/util';
 import { VIEW_PAGE_SIZE } from '@shared/constants';
+import { getDefaultGameSearch } from '@shared/search/util';
+import { num } from '@shared/utils/Coerce';
 
 export const GENERAL_VIEW_ID = '!general!';
 
@@ -65,6 +61,7 @@ export type ResultsView = {
 
 export type AdvancedFilter = {
   installed?: boolean;
+  playlistOrder: boolean;
 }
 
 type SearchState = {
@@ -105,6 +102,10 @@ export type SearchViewAction = {
   view: string;
 }
 
+export type SearchFilterAction = {
+  filter: SearchQuery
+};
+
 export type SearchAddDataAction = {
   view: string;
   data: SearchAddDataActionData;
@@ -121,7 +122,9 @@ const initialState: SearchState = {
   views: {
     [GENERAL_VIEW_ID]: {
       id: GENERAL_VIEW_ID,
-      advancedFilter: {},
+      advancedFilter: {
+        playlistOrder: true,
+      },
       data: {
         searchId: 0,
         keyset: [],
@@ -133,7 +136,7 @@ const initialState: SearchState = {
       orderBy: 'title',
       orderReverse: 'ASC',
       searchFilter: {
-        ...parseUserSearchInput('').search,
+        ...getDefaultGameSearch(),
         viewId: GENERAL_VIEW_ID,
         searchId: 0,
         page: 0,
@@ -147,6 +150,10 @@ const initialState: SearchState = {
 export type RequestKeysetAction = {
   view: string;
   searchId: number;
+}
+
+export type ForceSearchAction = {
+  view: string;
 }
 
 export const requestKeyset = createAsyncThunk(
@@ -168,6 +175,26 @@ export const requestKeyset = createAsyncThunk(
   }
 );
 
+export const forceSearch = createAsyncThunk(
+  'search/forceSearch',
+  async (payload: ForceSearchAction, { getState, dispatch }) => {
+    const state = getState() as { search: SearchState };
+    const view = state.search.views[payload.view];
+
+    const filter = await window.Shared.back.request(BackIn.PARSE_QUERY_DATA, {
+      viewId: payload.view,
+      searchId: view.data.searchId + 1,
+      text: view.text,
+      advancedFilter: view.advancedFilter,
+      orderBy: view.orderBy,
+      orderDirection: view.orderReverse,
+      playlist: view.selectedPlaylist
+    });
+
+    dispatch(setFilter({ filter }));
+  }
+);
+
 const searchSlice = createSlice({
   name: 'search',
   initialState,
@@ -179,7 +206,9 @@ const searchSlice = createSlice({
           state.views[view] = {
             id: view,
             library: view,
-            advancedFilter: {},
+            advancedFilter: {
+              playlistOrder: true,
+            },
             data: {
               searchId: 0,
               keyset: [],
@@ -191,7 +220,7 @@ const searchSlice = createSlice({
             orderBy: 'title',
             orderReverse: 'ASC',
             searchFilter: {
-              ...parseUserSearchInput('').search,
+              ...getDefaultGameSearch(),
               viewId: view,
               searchId: 0,
               page: 0,
@@ -205,19 +234,13 @@ const searchSlice = createSlice({
     setSearchText(state: SearchState, { payload }: PayloadAction<SearchSetTextAction>) {
       const view = state.views[payload.view];
       if (view) {
-        const { positions } = parseUserSearchInput(payload.text);
         view.text = payload.text;
-        view.textPositions = positions;
-        console.log('new pos');
-        console.log(positions);
-        // Filter will update on force
       }
     },
     selectPlaylist(state: SearchState, { payload }: PayloadAction<SearchSetPlaylistAction>) {
       const view = state.views[payload.view];
       if (view) {
         view.selectedPlaylist = payload.playlist ? deepCopy(payload.playlist) : undefined;
-        view.searchFilter = createSearchFilter(payload.view, view, window.Shared.preferences.data);
       }
     },
     selectGame(state: SearchState, { payload }: PayloadAction<SearchSetGameAction>) {
@@ -226,31 +249,36 @@ const searchSlice = createSlice({
         view.selectedGame = payload.game ? deepCopy(payload.game) : undefined;
       }
     },
-    forceSearch(state: SearchState, { payload }: PayloadAction<SearchViewAction>) {
-      const view = state.views[payload.view];
+    setFilter(state: SearchState, { payload }: PayloadAction<SearchFilterAction>) {
+      const { filter } = payload;
+      const view = state.views[filter.viewId];
       if (view) {
-        view.searchFilter = createSearchFilter(payload.view, view, window.Shared.preferences.data);
+        if (view.searchFilter.searchId < payload.filter.searchId) {
+          view.searchFilter = payload.filter;
+          view.data.keyset = [];
+          view.data.games = {};
+          view.data.pages = {};
+          view.data.total = undefined;
+          view.data.metaState = RequestState.REQUESTED;
+        }
       }
     },
     setOrderBy(state: SearchState, { payload }: PayloadAction<SearchOrderByAction>) {
       const view = state.views[payload.view];
       if (view) {
         view.orderBy = payload.value;
-        view.searchFilter = createSearchFilter(payload.view, view, window.Shared.preferences.data);
       }
     },
     setOrderReverse(state: SearchState, { payload }: PayloadAction<SearchOrderReverseAction>) {
       const view = state.views[payload.view];
       if (view) {
         view.orderReverse = payload.value;
-        view.searchFilter = createSearchFilter(payload.view, view, window.Shared.preferences.data);
       }
     },
     setAdvancedFilter(state: SearchState, { payload }: PayloadAction<SearchAdvancedFilterAction>) {
       const view = state.views[payload.view];
       if (view) {
         view.advancedFilter = payload.filter;
-        view.searchFilter = createSearchFilter(payload.view, view, window.Shared.preferences.data);
       }
     },
     requestRange(state: SearchState, { payload }: PayloadAction<SearchRequestRange>) {
@@ -288,6 +316,15 @@ const searchSlice = createSlice({
           const replacedGame = view.selectedPlaylist.games[destIdx];
           view.selectedPlaylist.games[destIdx] = view.selectedPlaylist.games[sourceIdx];
           view.selectedPlaylist.games[sourceIdx] = replacedGame;
+
+          // Try and swap them in the current results
+          const games = Object.entries(view.data.games);
+          const sourceGameEntry = games.find((g) => g[1].id === sourceGameId);
+          const destGameEntry = games.find((g) => g[1].id === destGameId);
+          if (sourceGameEntry && destGameEntry) {
+            view.data.games[num(sourceGameEntry[0])] = destGameEntry[1];
+            view.data.games[num(destGameEntry[0])] = sourceGameEntry[1];
+          }
 
           // Update the playlist file
           window.Shared.back.send(BackIn.SAVE_PLAYLIST, view.selectedPlaylist);
@@ -372,126 +409,13 @@ const searchSlice = createSlice({
   },
 });
 
-function createSearchFilter(viewName: string, view: ResultsView, preferences: AppPreferencesData): SearchQuery {
-  // Build filter for this new search
-  const search = parseUserSearchInput(view.text).search;
-
-  view.data.keyset = [];
-  view.data.games = {};
-  view.data.pages = {};
-  view.data.total = undefined;
-  view.data.metaState = RequestState.REQUESTED;
-
-  // Merge advanced filter
-  if (view.advancedFilter.installed === true || view.advancedFilter.installed === false) {
-    const advFilter = parseAdvancedFilter(view.advancedFilter);
-    search.filter = mergeGameFilters(search.filter, advFilter);
-  }
-
-  switch (view.orderReverse) {
-    case 'ASC':
-      search.order.direction = GameSearchDirection.ASC;
-      break;
-    case 'DESC':
-      search.order.direction = GameSearchDirection.DESC;
-      break;
-  }
-
-  switch (view.orderBy) {
-    case 'custom':
-      search.order.column = GameSearchSortable.CUSTOM;
-      break;
-    case 'title':
-      search.order.column = GameSearchSortable.TITLE;
-      break;
-    case 'developer':
-      search.order.column = GameSearchSortable.DEVELOPER;
-      break;
-    case 'publisher':
-      search.order.column = GameSearchSortable.PUBLISHER;
-      break;
-    case 'series':
-      search.order.column = GameSearchSortable.SERIES;
-      break;
-    case 'platform':
-      search.order.column = GameSearchSortable.PLATFORM;
-      break;
-    case 'dateAdded':
-      search.order.column = GameSearchSortable.DATEADDED;
-      break;
-    case 'dateModified':
-      search.order.column = GameSearchSortable.DATEMODIFIED;
-      break;
-    case 'releaseDate':
-      search.order.column = GameSearchSortable.RELEASEDATE;
-      break;
-    case 'lastPlayed':
-      if (!search.filter.higherThan.playcount && search.filter.equalTo.playcount === undefined && search.filter.equalTo.playtime === undefined && !view.selectedPlaylist) {
-        // When searching outside a playlist, treat playtime sorting like a history
-        search.filter.higherThan.playcount = 0;
-      }
-      search.order.column = GameSearchSortable.LASTPLAYED;
-      break;
-    case 'playtime':
-      if (!search.filter.higherThan.playcount && search.filter.equalTo.playcount === undefined && search.filter.equalTo.playtime === undefined && !view.selectedPlaylist) {
-        // When searching outside a playlist, treat playtime sorting like a history
-        search.filter.higherThan.playcount = 0;
-      }
-      search.order.column = GameSearchSortable.PLAYTIME;
-      break;
-    default:
-      search.order.column = GameSearchSortable.TITLE;
-  }
-
-  // Tag filters
-  const filteredTags = preferences.tagFilters
-  .filter(t => t.enabled || (t.extreme && !preferences.browsePageShowExtreme))
-  .map(t => t.tags)
-  .reduce((prev, cur) => prev.concat(cur), []);
-  if (filteredTags.length > 0) {
-    const filter = newSubfilter();
-    filter.exactBlacklist.tags = filteredTags;
-    filter.matchAny = true;
-    search.filter.subfilters.push(filter);
-  }
-
-  // Optional view library filter
-  if (!view.selectedPlaylist && !search.filter.exactWhitelist.library && view.library) {
-    // search.filter.exactWhitelist.library = [view.library];
-  }
-
-  // Playlist filter
-  if (view.selectedPlaylist) {
-    search.customIdOrder = view.selectedPlaylist.games.map(g => g.gameId);
-    search.order.column = GameSearchSortable.CUSTOM;
-    const inner = deepCopy(search.filter);
-    // Cheap, but may be limited by playlist size?
-    const playlistFilter = newSubfilter();
-    playlistFilter.exactWhitelist.id = view.selectedPlaylist.games.map(g => g.gameId);
-    playlistFilter.matchAny = true;
-    const newFilter = newSubfilter();
-    newFilter.matchAny = false;
-    newFilter.subfilters = [inner, playlistFilter];
-    search.filter = newFilter;
-    console.log(JSON.stringify(search, undefined, 2));
-  }
-
-  return {
-    ...search,
-    viewId: viewName,
-    searchId: view.searchFilter.searchId + 1,
-    page: 0,
-    playlist: view.selectedPlaylist
-  };
-}
-
 export const { actions: searchActions } = searchSlice;
 export const {
   createViews,
   setSearchText,
   selectPlaylist,
   selectGame,
-  forceSearch,
+  setFilter,
   setOrderBy,
   setOrderReverse,
   setAdvancedFilter,

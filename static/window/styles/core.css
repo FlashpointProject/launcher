@@ -86,6 +86,14 @@ body {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.search-selector {
+  font-size: 1em;
+  font-weight: 100;
+  border: 1px solid;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 /* Hidden Slider */
 .hidden-slider {
   -webkit-appearance: none;

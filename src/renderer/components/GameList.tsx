@@ -21,7 +21,7 @@ export type OwnProps = {
   /** Total number of games in the results view there are. */
   resultsTotal?: number;
   /** Are we in a playlist view? */
-  insidePlaylist: boolean;
+  insideOrderedPlaylist: boolean;
   /** Currently selected game (if any). */
   selectedGameId?: string;
   /** Currently dragged game index (if any). */
@@ -138,8 +138,8 @@ class _GameList extends React.Component<GameListProps> {
           onGameContextMenu={this.onGameContextMenu}
           onGameDragStart={this.onGameDragStart}
           onGameDragEnd={this.onGameDragEnd}
-          onGameDrop={this.props.insidePlaylist ? this.onGameDrop : undefined}
-          onGameDragOver={this.props.insidePlaylist ? this.onGameDragOver : undefined}
+          onGameDrop={this.props.insideOrderedPlaylist ? this.onGameDrop : undefined}
+          onGameDragOver={this.props.insideOrderedPlaylist ? this.onGameDragOver : undefined}
           findGameDragEventData={this.findGameDragEventData}
           onKeyPress={this.onKeyPress}>
           <AutoSizer>

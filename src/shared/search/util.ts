@@ -1,5 +1,24 @@
-import { GameFilter } from '@fparchive/flashpoint-archive';
+import { GameFilter, GameSearch } from '@fparchive/flashpoint-archive';
 import { AdvancedFilter } from '@renderer/store/search/slice';
+
+export function getDefaultGameSearch(): GameSearch {
+  return {
+    filter: getDefaultGameFilter(),
+    loadRelations: {
+      tags: false,
+      platforms: false,
+      gameData: false,
+      addApps: false,
+    },
+    limit: 999999999,
+    slim: false,
+    order: {
+      column: 0,
+      direction: 0,
+    },
+  };
+}
+
 
 export function getDefaultGameFilter(): GameFilter {
   return {

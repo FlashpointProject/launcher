@@ -191,7 +191,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                     sourceTable={this.props.sourceTable}
                     games={currentView.data.games}
                     resultsTotal={currentView.data.total !== undefined ? currentView.data.total : Object.keys(currentView.data.games).length}
-                    insidePlaylist={!currentView.selectedPlaylist}
+                    insideOrderedPlaylist={currentView.selectedPlaylist !== undefined && currentView.advancedFilter.playlistOrder}
                     selectedGameId={currentView.selectedGame?.id}
                     draggedGameIndex={draggedGameIndex}
                     showExtremeIcon={this.props.preferencesData.browsePageShowExtreme}
@@ -229,7 +229,6 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   private noRowsRenderer = () => {
     const strings = this.context;
     const { currentView } = this.props;
-    console.log(this.props);
     return (
       <div className='game-list__no-games'>
         {currentView.data.total !== undefined ?

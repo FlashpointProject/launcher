@@ -56,6 +56,16 @@ export function SearchBar(props: SearchBarProps) {
     }));
   };
 
+  const onPlaylistOrderChange = (value?: boolean) => {
+    dispatch(setAdvancedFilter({
+      view: view.id,
+      filter: {
+        ...view.advancedFilter,
+        playlistOrder: !!value,
+      }
+    }));
+  };
+
   return (
     <div className={`search-bar-wrapper ${expanded ? 'search-bar-wrapper--expanded-simple' : ''}`}>
       <div className="search-bar">
@@ -64,7 +74,6 @@ export function SearchBar(props: SearchBarProps) {
         </div>
         <input
           onKeyDown={(event) => {
-            console.log(event.key);
             if (event.key === 'Enter') {
               dispatch(forceSearch({
                 view: view.id
@@ -90,6 +99,7 @@ export function SearchBar(props: SearchBarProps) {
             }));
           }}/>
         <SimpleButton
+          style={{ height: '100%' }}
           value={expanded ? 'Hide Filters' : 'Show Filters'}
           onClick={() => setExpanded(!expanded)}/>
       </div>
@@ -100,6 +110,13 @@ export function SearchBar(props: SearchBarProps) {
                title="Installed"
                value={view.advancedFilter.installed}
                onChange={onInstalledChange}/>
+             { view.selectedPlaylist && (
+               <ThreeStateCheckbox
+                 title="Use Playlist Order"
+                 value={view.advancedFilter.playlistOrder}
+                 twoState={true}
+                 onChange={onPlaylistOrderChange}/>
+             )}
            </div>
          )
       }
@@ -110,19 +127,28 @@ export function SearchBar(props: SearchBarProps) {
 type ThreeStateCheckboxProps = {
   value?: boolean;
   title: string;
+  twoState?: boolean;
   onChange: (value?: boolean) => void;
 }
 
 function ThreeStateCheckbox(props: ThreeStateCheckboxProps) {
-  const { value, onChange, title } = props;
+  const { value, onChange, title, twoState } = props;
 
   const handleClick = () => {
-    if (value === true) {
-      onChange(false);
-    } else if (value === false) {
-      onChange(undefined);
+    if (twoState) {
+      if (value === true) {
+        onChange(false);
+      } else if (value === false) {
+        onChange(true);
+      }
     } else {
-      onChange(true);
+      if (value === true) {
+        onChange(false);
+      } else if (value === false) {
+        onChange(undefined);
+      } else {
+        onChange(true);
+      }
     }
   };
 

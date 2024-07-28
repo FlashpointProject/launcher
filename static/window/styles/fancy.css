@@ -203,6 +203,7 @@ body {
   border-color: var(--layout__warning-bright-color);
 }
 /* Simple Selector */
+.search-selector,
 .simple-selector {
   border-color: var(--layout__primary-outline-color);
   /* Pimp */

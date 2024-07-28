@@ -33,7 +33,7 @@
     "@fortawesome/fontawesome-svg-core": "1.2.36",
     "@fortawesome/free-solid-svg-icons": "5.15.4",
     "@fortawesome/react-fontawesome": "0.1.18",
-    "@fparchive/flashpoint-archive": "0.7.13",
+    "@fparchive/flashpoint-archive": "0.8.0",
     "@reduxjs/toolkit": "^2.2.6",
     "@types/node-7z": "2.1.8",
     "@types/react-virtualized": "^9.21.21",

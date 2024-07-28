@@ -19,7 +19,7 @@ import {
   GameDataSource,
   GameMetadataSource,
   GameMiddlewareConfig,
-  GameMiddlewareInfo,
+  GameMiddlewareInfo, GameOrderBy, GameOrderDirection,
   LoadedCuration,
   MergeTagData,
   Platform,
@@ -36,7 +36,8 @@ import { Theme } from '../ThemeFile';
 import { AppConfigData, AppExtConfigData } from '../config/interfaces';
 import { ExecMapping, GamePropSuggestions, IService, ProcessAction, Task } from '../interfaces';
 import { LangContainer, LangFile } from '../lang';
-import { GameSearchOffset, GameSearch } from '@fparchive/flashpoint-archive';
+import { GameSearchOffset, GameSearch, GameSearchOrder } from '@fparchive/flashpoint-archive';
+import { AdvancedFilter } from '@renderer/store/search/slice';
 
 export enum BackIn {
   UNKNOWN = 1000,
@@ -113,6 +114,8 @@ export enum BackIn {
   GET_TAG_CATEGORY_BY_ID,
   DELETE_TAG_CATEGORY,
 
+  /** Returns a query object for the given data */
+  PARSE_QUERY_DATA,
   /** Get a page of a browse view. */
   BROWSE_VIEW_PAGE,
   /** Get the first page of a browse view */
@@ -358,6 +361,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.GET_TAG_CATEGORY_BY_ID]: (data: number) => TagCategory | null;
   [BackIn.DELETE_TAG_CATEGORY]: (data: number) => boolean;
 
+  [BackIn.PARSE_QUERY_DATA]: (query: QueryData) => SearchQuery;
   [BackIn.BROWSE_VIEW_PAGE]: (search: SearchQuery) => void;
   [BackIn.BROWSE_VIEW_FIRST_PAGE]: (search: SearchQuery) => BrowseViewFirstPageResponseData;
   [BackIn.BROWSE_VIEW_KEYSET]: (search: SearchQuery) => BrowseViewKeysetResponse;
@@ -747,6 +751,16 @@ export type MiddlewareSchemasResponse = Record<string, ConfigSchema>;
 export type MiddlewareVersionPair = {
   id: string,
   version: string
+}
+
+export type QueryData = {
+  viewId: string;
+  searchId: number;
+  orderBy: GameOrderBy;
+  orderDirection: GameOrderDirection;
+  text: string;
+  advancedFilter: AdvancedFilter;
+  playlist?: Playlist;
 }
 
 export type SearchQuery = GameSearch & {

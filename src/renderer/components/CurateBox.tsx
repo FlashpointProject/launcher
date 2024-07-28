@@ -158,7 +158,6 @@ export function CurateBox(props: CurateBoxProps) {
   }, [props.onPlatformTextChange]);
 
   const onTagKeyDown = React.useCallback((event: React.KeyboardEvent<InputElement>): void => {
-    console.log(event.key);
     if (event.defaultPrevented) { return; }
 
     if (event.key === 'Enter') {
@@ -172,7 +171,6 @@ export function CurateBox(props: CurateBoxProps) {
   }, []);
 
   const onPlatformKeyDown = React.useCallback((event: React.KeyboardEvent<InputElement>): void => {
-    console.log(event.key);
     if (event.defaultPrevented) { return; }
 
     if (event.key === 'Enter') {

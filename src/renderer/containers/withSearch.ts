@@ -1,7 +1,7 @@
 import { connect } from 'react-redux';
 import { bindActionCreators, Dispatch } from 'redux';
-import { RootState } from '@renderer/store/store';
-import { searchActions } from '@renderer/store/search/slice';
+import { RootState, store } from '@renderer/store/store';
+import { forceSearch, ForceSearchAction, searchActions } from '@renderer/store/search/slice';
 
 const mapStateToProps = (state: RootState) => ({
   search: state.search,
@@ -9,7 +9,10 @@ const mapStateToProps = (state: RootState) => ({
 
 function mapDispatchToProps(dispatch: Dispatch) {
   return {
-    searchActions: bindActionCreators(searchActions, dispatch)
+    searchActions: {
+      ...bindActionCreators(searchActions, dispatch),
+      forceSearch: (action: ForceSearchAction) => { store.dispatch(forceSearch(action)); },
+    }
   };
 }
 
