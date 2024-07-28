@@ -35,9 +35,7 @@ const debounceSearch = debounce((viewName: string, searchFilter: SearchQuery) =>
       view: viewName,
       data: {
         searchId: searchFilter.searchId,
-        pages: {
-          0: RequestState.RECEIVED,
-        },
+        page: 0,
         games: data.games,
       }
     }));

@@ -1457,6 +1457,13 @@ body {
 .tags-browser__center {
   flex: 1 0 auto;
 }
+.game-browser__center {
+  display: flex;
+  flex-direction: column;
+}
+.game-browser__center-results-container {
+  flex-grow: 1;
+}
 .game-browser__center-inner {
   display: flex;
   width: 100%;

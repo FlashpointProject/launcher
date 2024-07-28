@@ -618,17 +618,12 @@ export class App extends React.Component<AppProps> {
 
     window.Shared.back.register(BackOut.BROWSE_VIEW_PAGE, (event, data) => {
       // Dispath addData for the given view
-      const games: Record<number, ViewGame> = {};
-      for (let i = 0; i < data.games.length; i += 1) {
-        games[i + (data.page * VIEW_PAGE_SIZE)] = data.games[i];
-      }
-
       this.props.searchActions.addData({
         view: data.viewId,
         data: {
           searchId: data.searchId,
-          pages: { [data.page]: RequestState.RECEIVED },
-          games,
+          page: data.page,
+          games: data.games,
         }
       });
     });
@@ -1308,7 +1303,6 @@ export class App extends React.Component<AppProps> {
       randomGames: this.props.main.randomGames,
       rollRandomGames: this.rollRandomGames,
       gamesTotal: this.props.main.gamesTotal,
-      viewGamesTotal: currentView.data.total,
       allPlaylists: this.props.main.playlists,
       playlists: playlists,
       suggestions: this.props.main.suggestions,

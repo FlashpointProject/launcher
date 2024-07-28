@@ -24,8 +24,8 @@ export type GameGridProps = {
   onGameLaunch: (gameId: string) => void;
   /** All games that will be shown in the grid (filter it before passing it here). */
   games: ViewGameSet;
-  /** Total number of games there are. */
-  gamesTotal?: number;
+  /** Total number of games in the results view there are. */
+  resultsTotal?: number;
   /** Currently selected game (if any). */
   selectedGameId?: string;
   /** Currently dragged game index (if any). */
@@ -129,7 +129,7 @@ export class GameGrid extends React.Component<GameGridProps> {
         onKeyPress={this.onKeyPress}>
         <AutoSizer>
           {({ width, height }) => {
-            const { columns, rows } = this.calculateSize(this.props.gamesTotal || 0, width);
+            const { columns, rows } = this.calculateSize(this.props.resultsTotal || 0, width);
             this.columns = columns;
             // Calculate column and row of selected item
             let scrollToColumn = -1;
@@ -187,9 +187,9 @@ export class GameGrid extends React.Component<GameGridProps> {
   // Renders a single cell in the game grid.
   cellRenderer = (props: GridCellProps): React.ReactNode => {
     const extremeIconPath = this.extremeIconPathMemo(this.props.logoVersion);
-    const { games, gamesTotal, selectedGameId } = this.props;
+    const { games, resultsTotal, selectedGameId } = this.props;
     const index = props.rowIndex * this.columns + props.columnIndex;
-    if (index < (gamesTotal || 0)) {
+    if (index < (resultsTotal || 0)) {
       const game = games[index];
       return (
         <GameGridItem
@@ -370,16 +370,16 @@ export class GameGrid extends React.Component<GameGridProps> {
     }
   }
 
-  calculateSize(gamesTotal: number, width: number): ColumnsRows {
+  calculateSize(resultsTotal: number, width: number): ColumnsRows {
     // Calculate and set column/row count
     // (16 is the width of a scroll-bar in pixels - at least on windows)
     const cells: ColumnsRows = {
       columns: 0,
       rows: 0,
     };
-    if (gamesTotal > 0) {
+    if (resultsTotal > 0) {
       cells.columns = Math.max(1, ((width - 16) / this.props.cellWidth) | 0); // ("x|0" is the same as Math.floor(x))
-      cells.rows = Math.ceil(gamesTotal / cells.columns);
+      cells.rows = Math.ceil(resultsTotal / cells.columns);
     }
     return cells;
   }

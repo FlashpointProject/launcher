@@ -1005,7 +1005,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.GET_ALL_GAMES, async (event, offsetGameTitle, offsetGameId) => {
-    const search = parseUserSearchInput('');
+    const search = parseUserSearchInput('').search;
     search.limit = 10000;
     if (offsetGameId && offsetGameTitle) {
       search.offset = {
@@ -1018,7 +1018,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.RANDOM_GAMES, async (event, data) => {
-    const search = parseUserSearchInput('');
+    const search = parseUserSearchInput('').search;
     // Add library filters
     search.filter.exactBlacklist.library = data.excludedLibraries;
     // Add tag filters
@@ -1045,7 +1045,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     const countLimit = (!search.playlist && state.preferences.searchLimit) ? state.preferences.searchLimit : 999999999;
     const result = await fpDatabase.searchGamesIndex(search, searchLimit);
     const total = Math.min(await fpDatabase.searchGamesTotal(search), countLimit);
-    log.debug('Launcher', 'Keyset Search Time: ' + (Date.now() - startTime) + 'ms');
+    log.debug('Launcher', `Keyset Search Time: ${Date.now() - startTime}ms - count: ${total}`);
     return {
       // This mapping is dumb, TODO: Fix at source library
       keyset: result.map((value) => {
@@ -1414,7 +1414,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
     // Collect games
 
-    const search = parseUserSearchInput('');
+    const search = parseUserSearchInput('').search;
     search.limit = 5000;
     let games = await fpDatabase.searchGames(search);
     while (games.length > 0) {

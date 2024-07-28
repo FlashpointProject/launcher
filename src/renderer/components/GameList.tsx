@@ -18,8 +18,8 @@ export type OwnProps = {
   sourceTable: string;
   /** All games that will be shown in the list. */
   games?: ViewGameSet;
-  /** Total number of games there are. */
-  gamesTotal?: number;
+  /** Total number of games in the results view there are. */
+  resultsTotal?: number;
   /** Are we in a playlist view? */
   insidePlaylist: boolean;
   /** Currently selected game (if any). */
@@ -155,7 +155,7 @@ class _GameList extends React.Component<GameListProps> {
                   mode='cells'
                   isControlled={true}
                   columnCount={1}
-                  rowCount={this.props.gamesTotal || 0}
+                  rowCount={this.props.resultsTotal || 0}
                   scrollToRow={scrollToIndex}>
                   {({ onSectionRendered, scrollToRow }) => (
                     <List
@@ -165,7 +165,7 @@ class _GameList extends React.Component<GameListProps> {
                       height={height}
                       entries={this.props.games}
                       rowHeight={this.props.rowHeight}
-                      rowCount={this.props.gamesTotal || 0}
+                      rowCount={this.props.resultsTotal || 0}
                       overscanRowCount={RENDERER_OVERSCAN}
                       noRowsRenderer={this.props.noRowsRenderer}
                       rowRenderer={this.rowRenderer}

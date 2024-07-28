@@ -15,7 +15,6 @@ import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowse
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { gameDragDataType, gameScaleSpan } from '../../Util';
 import { LangContext } from '../../util/lang';
-import { FancyAnimation } from '../FancyAnimation';
 import { GameGrid } from '../GameGrid';
 import { GameList } from '../GameList';
 import { InputElement } from '../InputField';
@@ -24,8 +23,9 @@ import { Spinner } from '../Spinner';
 import { RequestState } from '@renderer/store/search/slice';
 import { WithSearchProps } from '@renderer/containers/withSearch';
 import { WithViewProps } from '@renderer/containers/withView';
-import path = require('path');
 import { SearchBar } from '@renderer/components/SearchBar';
+import path = require('path');
+import { delayedThrottle } from '@shared/utils/throttle';
 
 type Pick<T, K extends keyof T> = { [P in K]: T[P]; };
 
@@ -87,12 +87,28 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
 
   constructor(props: BrowsePageProps) {
     super(props);
+    this.loadView();
     // Set initial state (this is set up to remove all "setState" calls)
     this.state = {
       isEditingPlaylist: false,
       isNewPlaylist: false,
       draggedGameIndex: null,
     };
+  }
+
+  componentDidUpdate(prevProps: Readonly<BrowsePageProps>, prevState: Readonly<BrowsePageState>, snapshot?: any) {
+    if (prevProps.currentView.id !== this.props.currentView.id) {
+      this.loadView();
+    }
+  }
+
+  loadView() {
+    // Force the first search if view hasn't been used yet
+    if (this.props.currentView.data.metaState === RequestState.WAITING) {
+      this.props.searchActions.forceSearch({
+        view: this.props.currentView.id
+      });
+    }
   }
 
   render() {
@@ -137,23 +153,23 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             onExportPlaylist={(playlistId) => this.onExportPlaylist(strings, playlistId)}
             onContextMenu={this.onPlaylistContextMenuMemo(strings, this.state.isEditingPlaylist, this.props.currentView.selectedPlaylist?.id)} />
         </ResizableSidebar>
-        { this.props.metaState === RequestState.RECEIVED ? (
-          <div
-            className='game-browser__center'>
-            <SearchBar />
+        <div
+          className='game-browser__center'>
+          <SearchBar />
+          <div className='game-browser__center-results-container'>
             {(() => {
               if (this.props.preferencesData.browsePageLayout === BrowsePageLayout.grid) {
-              // (These are kind of "magic numbers" and the CSS styles are designed to fit with them)
+                // (These are kind of "magic numbers" and the CSS styles are designed to fit with them)
                 const height: number = calcScale(350, this.props.preferencesData.browsePageGameScale);
                 const width: number = (height * 0.666) | 0;
                 return (
                   <GameGrid
                     games={currentView.data.games}
-                    gamesTotal={this.props.gamesTotal ? this.props.gamesTotal : Object.keys(currentView.data.games).length}
+                    resultsTotal={currentView.data.total !== undefined ? currentView.data.total : Object.keys(currentView.data.games).length}
                     selectedGameId={currentView.selectedGame?.id}
                     draggedGameIndex={draggedGameIndex}
                     extremeTags={extremeTags}
-                    noRowsRenderer={this.noRowsRendererMemo(strings.browse)}
+                    noRowsRenderer={this.noRowsRenderer}
                     onGameSelect={this.onGameSelect}
                     onGameLaunch={this.onGameLaunch}
                     onContextMenu={this.props.onGameContextMenu}
@@ -174,13 +190,13 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   <GameList
                     sourceTable={this.props.sourceTable}
                     games={currentView.data.games}
-                    gamesTotal={this.props.gamesTotal ? this.props.gamesTotal : Object.keys(currentView.data.games).length}
+                    resultsTotal={currentView.data.total !== undefined ? currentView.data.total : Object.keys(currentView.data.games).length}
                     insidePlaylist={!currentView.selectedPlaylist}
                     selectedGameId={currentView.selectedGame?.id}
                     draggedGameIndex={draggedGameIndex}
                     showExtremeIcon={this.props.preferencesData.browsePageShowExtreme}
                     extremeTags={extremeTags}
-                    noRowsRenderer={this.noRowsRendererMemo(strings.browse)}
+                    noRowsRenderer={this.noRowsRenderer}
                     onGameSelect={this.onGameSelect}
                     onGameLaunch={this.onGameLaunch}
                     onContextMenu={this.props.onGameContextMenu}
@@ -195,29 +211,12 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
               }
             })()}
           </div>
-        ) : (
-          <div className='game-browser__center'>
-            <div className='game-browser__center-inner'>
-              <div className='game-browser__loading'>
-                <FancyAnimation
-                  normalRender={(
-                    <div>{this.props.searchStatus || strings.misc.searching}</div>
-                  )}
-                  fancyRender={(
-                    <>
-                      <div>{this.props.searchStatus || strings.misc.searching}</div>
-                      <Spinner/>
-                    </>
-                  )}/>
-              </div>
-            </div>
-          </div>
-        )}
+        </div>
       </div>
     );
   }
 
-  updateViewRange = (start: number, count: number) => {
+  updateViewRange = delayedThrottle((start: number, count: number) => {
     const { currentView } = this.props;
     this.props.searchActions.requestRange({
       view: currentView.id,
@@ -225,37 +224,47 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       start,
       count
     });
-  };
+  }, 100);
 
-  private noRowsRendererMemo = memoizeOne((strings: LangContainer['browse']) => {
+  private noRowsRenderer = () => {
+    const strings = this.context;
     const { currentView } = this.props;
-    return () => (
+    console.log(this.props);
+    return (
       <div className='game-list__no-games'>
-        { currentView.selectedPlaylist ? (
+        {currentView.data.total !== undefined ?
+          currentView.selectedPlaylist ? (
           /* Empty Playlist */
-          <>
-            <h2 className='game-list__no-games__title'>{strings.emptyPlaylist}</h2>
-            <br/>
-            <p>{formatString(strings.dropGameOnLeft, <i>{strings.leftSidebar}</i>)}</p>
-          </>
-        ) : this.props.gamesTotal != undefined ? (
-          <>
-            <h1 className='game-list__no-games__title'>{strings.noGamesFound}</h1>
-            <br/>
-            { this.props.gamesTotal > 1 ? (
-              <>
-                {strings.noGameMatchedDesc}
-                <br/>
-                {strings.noGameMatchedSearch}
-              </>
-            ) : (
-              <>{strings.thereAreNoGames}</>
-            ) }
-          </>
-        ) : <h1 className='game-list__no-games__title'>{strings.searching}</h1> }
+            <>
+              <h2 className='game-list__no-games__title'>{strings.browse.emptyPlaylist}</h2>
+              <br/>
+              <p>{formatString(strings.browse.dropGameOnLeft, <i>{strings.browse.leftSidebar}</i>)}</p>
+            </>
+          ) : (
+          /* Empty regular search */
+            <>
+              <h1 className='game-list__no-games__title'>{strings.browse.noGamesFound}</h1>
+              <br/>
+              { this.props.gamesTotal !== undefined && this.props.gamesTotal > 0 ? (
+                <>
+                  {strings.browse.noGameMatchedDesc}
+                  <br/>
+                  {strings.browse.noGameMatchedSearch}
+                </>
+              ) : (
+                <>{strings.browse.thereAreNoGames}</>
+              ) }
+            </>
+          ) : (
+        /* Searching */
+            <div>
+              <h1 className="game-list__no-games__title">{strings.browse.searching}</h1>
+              <Spinner/>
+            </div>
+          )}
       </div>
     );
-  });
+  };
 
   private onPlaylistContextMenuMemo = memoizeOne((strings: LangContainer, isEditing: boolean, selectedPlaylistId?: string) => {
     return (event: React.MouseEvent<HTMLDivElement, MouseEvent>, playlistId: string) => {

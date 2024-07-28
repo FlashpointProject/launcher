@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { deepCopy } from '@shared/Util';
 import { AppPreferencesData, Game, GameOrderBy, GameOrderReverse, Playlist, ViewGame } from 'flashpoint-launcher';
 import {
+  ElementPosition,
   GameSearchDirection,
   GameSearchSortable,
   mergeGameFilters,
@@ -10,6 +11,7 @@ import {
 } from '@fparchive/flashpoint-archive';
 import { BackIn, PageKeyset, SearchQuery } from '@shared/back/types';
 import { parseAdvancedFilter } from '@shared/search/util';
+import { VIEW_PAGE_SIZE } from '@shared/constants';
 
 export const GENERAL_VIEW_ID = '!general!';
 
@@ -39,7 +41,8 @@ export type ResultsViewData = {
 
 export type SearchAddDataActionData = {
   searchId: number;
-  games?: Record<number, ViewGame>;
+  page?: number;
+  games?: ViewGame[];
   total?: number;
   pages?: Record<number, RequestState>;
   keyset?: PageKeyset;
@@ -54,6 +57,7 @@ export type ResultsView = {
   orderBy: GameOrderBy;
   orderReverse: GameOrderReverse;
   text: string;
+  textPositions: ElementPosition[];
   advancedFilter: AdvancedFilter;
   searchFilter: SearchQuery;
   loaded: boolean;
@@ -129,12 +133,13 @@ const initialState: SearchState = {
       orderBy: 'title',
       orderReverse: 'ASC',
       searchFilter: {
-        ...parseUserSearchInput(''),
+        ...parseUserSearchInput('').search,
         viewId: GENERAL_VIEW_ID,
         searchId: 0,
         page: 0,
       },
       text: '',
+      textPositions: [],
     }
   }
 };
@@ -157,9 +162,6 @@ export const requestKeyset = createAsyncThunk(
       dispatch(addData({ view: payload.view, data: {
         searchId: payload.searchId,
         keyset: data.keyset,
-        pages: {
-          0: RequestState.RECEIVED,
-        },
         total: data.total,
       } }));
     }
@@ -189,12 +191,13 @@ const searchSlice = createSlice({
             orderBy: 'title',
             orderReverse: 'ASC',
             searchFilter: {
-              ...parseUserSearchInput(''),
+              ...parseUserSearchInput('').search,
               viewId: view,
               searchId: 0,
               page: 0,
             },
             text: '',
+            textPositions: [],
           };
         }
       }
@@ -202,7 +205,11 @@ const searchSlice = createSlice({
     setSearchText(state: SearchState, { payload }: PayloadAction<SearchSetTextAction>) {
       const view = state.views[payload.view];
       if (view) {
+        const { positions } = parseUserSearchInput(payload.text);
         view.text = payload.text;
+        view.textPositions = positions;
+        console.log('new pos');
+        console.log(positions);
         // Filter will update on force
       }
     },
@@ -249,19 +256,21 @@ const searchSlice = createSlice({
     requestRange(state: SearchState, { payload }: PayloadAction<SearchRequestRange>) {
       const view = state.views[payload.view];
       const { start, count, searchId } = payload;
+      console.log(`Range requested - ${start} - len:${count}`);
       if (view && view.data.searchId === searchId) { // Ignore outdated requests
         // Iterate over requested page numbers
         const end = start + count;
         for (let i = start; i < end; i++) {
           // Make sure page exists and is waiting
-          if (view.data.pages[i] === RequestState.WAITING && view.data.keyset[i]) {
+          if (i > 0 && view.data.pages[i] === RequestState.WAITING && view.data.keyset[i-1]) {
             // Form the new request
             view.data.pages[i] = RequestState.REQUESTED;
             const searchFilter: SearchQuery = {
               ...view.searchFilter,
-              offset: view.data.keyset[i],
+              offset: view.data.keyset[i-1],
               page: i,
             };
+            console.log(`requested page ${i}`);
             // Fire and forget request, registered handler will properly handle response
             window.Shared.back.send(BackIn.BROWSE_VIEW_PAGE, searchFilter);
           }
@@ -296,6 +305,7 @@ const searchSlice = createSlice({
     addData(state: SearchState, { payload }: PayloadAction<SearchAddDataAction>) {
       const startTime = Date.now();
       const data = payload.data;
+      console.log(payload);
       const view = state.views[payload.view];
       if (view) {
         log.debug('Search', `ADD DATA - Cur: ${view.data.searchId} Recv: ${payload.data.searchId}`);
@@ -311,12 +321,13 @@ const searchSlice = createSlice({
             pages: {},
             keyset: [],
             games: {},
-            metaState: RequestState.WAITING,
+            total: undefined,
+            metaState: RequestState.REQUESTED,
           };
         }
 
         // Add data
-        if (data.total) {
+        if (data.total !== undefined) {
           view.data.total = data.total;
         }
 
@@ -340,8 +351,18 @@ const searchSlice = createSlice({
           Object.assign(view.data.pages, data.pages);
         }
 
-        if (data.games) {
-          Object.assign(view.data.games, data.games);
+        if (data.page !== undefined && data.games) {
+          if (data.page === 0 && data.games.length === 0) {
+            // No games in first page, must be empty results
+            console.log('no results');
+            view.data.total = 0;
+          } else {
+            const startIdx = VIEW_PAGE_SIZE * data.page;
+            for (let i = 0; i < data.games.length; i++) {
+              view.data.games[startIdx + i] = data.games[i];
+            }
+            view.data.pages[data.page] = RequestState.RECEIVED;
+          }
           view.data.metaState = RequestState.RECEIVED;
         }
       }
@@ -353,7 +374,13 @@ const searchSlice = createSlice({
 
 function createSearchFilter(viewName: string, view: ResultsView, preferences: AppPreferencesData): SearchQuery {
   // Build filter for this new search
-  const search = parseUserSearchInput(view.text);
+  const search = parseUserSearchInput(view.text).search;
+
+  view.data.keyset = [];
+  view.data.games = {};
+  view.data.pages = {};
+  view.data.total = undefined;
+  view.data.metaState = RequestState.REQUESTED;
 
   // Merge advanced filter
   if (view.advancedFilter.installed === true || view.advancedFilter.installed === false) {
@@ -430,7 +457,7 @@ function createSearchFilter(viewName: string, view: ResultsView, preferences: Ap
 
   // Optional view library filter
   if (!view.selectedPlaylist && !search.filter.exactWhitelist.library && view.library) {
-    search.filter.exactWhitelist.library = [view.library];
+    // search.filter.exactWhitelist.library = [view.library];
   }
 
   // Playlist filter

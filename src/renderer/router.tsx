@@ -30,7 +30,6 @@ export type AppRouterProps = {
   randomGames: ViewGame[];
   rollRandomGames: () => void;
   gamesTotal: number;
-  viewGamesTotal?: number;
   allPlaylists: Playlist[];
   playlists: Playlist[];
   suggestions: Partial<GamePropSuggestions>;
@@ -92,7 +91,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
     };
     const browseProps: ConnectedBrowsePageProps = {
       sourceTable: 'browse-page',
-      gamesTotal: this.props.viewGamesTotal,
+      gamesTotal: this.props.gamesTotal,
       playlists: this.props.playlists,
       playlistIconCache: this.props.playlistIconCache,
       onGameContextMenu: this.props.onGameContextMenu,
