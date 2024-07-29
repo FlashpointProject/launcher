@@ -279,16 +279,37 @@ export class App extends React.Component<AppProps> {
         this.registerShortcut(command, shortcuts);
       }
       this.props.setMainState(data);
-      if (this.props.preferencesData.useStoredViews) {
-        this.props.searchActions.createViews({
-          names: data.libraries,
-          storedViews: this.props.preferencesData.storedViews
-        });
+      if (this.props.preferencesData.useCustomViews) {
+        const customViews = this.props.preferencesData.customViews;
+        if (customViews.length === 0) {
+          customViews.push('Browse');
+          updatePreferencesData({
+            customViews,
+          });
+        }
+        if (this.props.preferencesData.useStoredViews) {
+          this.props.searchActions.createViews({
+            views: customViews,
+            storedViews: this.props.preferencesData.storedViews
+          });
+        } else {
+          this.props.searchActions.createViews({
+            views: customViews,
+          });
+        }
       } else {
-        this.props.searchActions.createViews({
-          names: data.libraries,
-        });
+        if (this.props.preferencesData.useStoredViews) {
+          this.props.searchActions.createViews({
+            views: data.libraries,
+            storedViews: this.props.preferencesData.storedViews
+          });
+        } else {
+          this.props.searchActions.createViews({
+            views: data.libraries,
+          });
+        }
       }
+
       this.props.setTagCategories(data.tagCategories);
     })
     .then(() => {
@@ -1301,7 +1322,7 @@ export class App extends React.Component<AppProps> {
 
   render() {
     const { currentView } = this.props;
-    const playlists = this.filterAndOrderPlaylistsMemo(this.props.main.playlists, currentView.id);
+    const playlists = this.orderPlaylistsMemo(this.props.main.playlists);
     const extremeTags = this.props.preferencesData.tagFilters.filter(t => t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
 
     // Props to set to the router
@@ -1635,12 +1656,10 @@ export class App extends React.Component<AppProps> {
     });
   }
 
-  filterAndOrderPlaylistsMemo = memoizeOne((playlists: Playlist[], library: string) => {
+  orderPlaylistsMemo = memoizeOne((playlists: Playlist[]) => {
     // @FIXTHIS "arcade" should not be hard coded as the "default" library
-    const lowerLibrary = library.toLowerCase();
     return (
-      playlists
-      .filter(p => p.library ? p.library.toLowerCase() === lowerLibrary : (lowerLibrary === '' || lowerLibrary === 'arcade'))
+      [...playlists]
       .sort((a, b) => {
         return a.title.toLowerCase().localeCompare(b.title.toLowerCase());
       })

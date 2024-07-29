@@ -1066,6 +1066,10 @@ declare module 'flashpoint-launcher' {
       useStoredViews: boolean;
       /** Search info for each view, can be reloaded */
       storedViews: StoredView[];
+      /** Whether to use library or custom views */
+      useCustomViews: boolean;
+      /** List of custom views */
+      customViews: string[];
     };
 
     type StoredView = {

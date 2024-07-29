@@ -62,7 +62,7 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps> {
               <OpenIcon icon='eye' />
             </div>
             <div className='playlist-list-fake-item__inner'>
-              <p className='playlist-list-fake-item__inner__title'>{allStrings.libraries[this.props.library + 'Plural'] || 'All ' + this.props.library}</p>
+              <p className='playlist-list-fake-item__inner__title'>{this.props.preferencesData.useCustomViews ? strings.allGenericEntries : allStrings.libraries[this.props.library + 'Plural'] || 'All ' + this.props.library}</p>
             </div>
           </div>
           {/* List all playlists */}

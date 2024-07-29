@@ -28,6 +28,7 @@ export function updatePreferencesData(data: DeepPartial<AppPreferencesData>, sen
   const preferences = window.Shared.preferences;
   // @TODO Figure out the delta change of the object tree, and only send the changes
   preferences.data = overwritePreferenceData(deepCopy(preferences.data), data);
+  console.log(preferences.data);
   if (send) {
     sendPrefs();
   }
@@ -166,6 +167,8 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   },
   useStoredViews: true,
   storedViews: [],
+  useCustomViews: false,
+  customViews: [],
 });
 
 /**
@@ -233,7 +236,7 @@ export function overwritePreferenceData(
   parser.prop('onlineManual',                  v => source.onlineManual                  = str(v), true);
   parser.prop('offlineManual',                 v => source.offlineManual                 = str(v), true);
   parser.prop('fpfssBaseUrl',                  v => source.fpfssBaseUrl                  = str(v), true);
-  parser.prop('fancyAnimations',               v => source.fancyAnimations               = !!v, true);
+  parser.prop('fancyAnimations',               v => source.fancyAnimations                                = !!v, true);
   parser.prop('searchLimit',                   v => source.searchLimit                   = num(v), true);
   parser.prop('server',                        v => source.server                        = str(v), true);
   parser.prop('curateServer',                  v => source.curateServer                  = str(v), true);
@@ -243,6 +246,8 @@ export function overwritePreferenceData(
   parser.prop('screenshotPreviewMode',         v => source.screenshotPreviewMode         = parseScreenshotPreviewMode(v), true);
   parser.prop('screenshotPreviewDelay',        v => source.screenshotPreviewDelay        = num(v), true);
   parser.prop('useStoredViews',                v => source.useStoredViews                                  = !!v, true);
+  parser.prop('useCustomViews',                v => source.useCustomViews                = !!v, true);
+  parser.prop('customViews',                   v => source.customViews          = strArray(v), true);
 
   // Can't have a negative delay!
   if (source.screenshotPreviewDelay < 0) {
@@ -268,9 +273,15 @@ export function overwritePreferenceData(
     source.appPathOverrides = newAppPathOverrides;
   }
   // Parse window object
-  parseMainWindow(parser.prop('mainWindow'), source.mainWindow);
-  parser.prop('showLogSource').mapRaw((item, label) => source.showLogSource[label] = !!item);
-  parser.prop('showLogLevel').mapRaw((item, label) => source.showLogLevel[label as LogLevel] = !!item);
+  if (data.mainWindow) {
+    parseMainWindow(parser.prop('mainWindow'), source.mainWindow,);
+  }
+  if (data.showLogSource) {
+    parser.prop('showLogSource').mapRaw((item, label) => source.showLogSource[label] = !!item);
+  }
+  if (data.showLogLevel) {
+    parser.prop('showLogLevel').mapRaw((item, label) => source.showLogLevel[label as LogLevel] = !!item);
+  }
   parser.prop('currentLogoSet',              v => source.currentLogoSet              = str(v), true);
   if (data.tagFilters) {
     // Why is this or undefined anyway?

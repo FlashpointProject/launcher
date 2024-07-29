@@ -6,6 +6,7 @@ import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
 import { SocketTemplate } from '@shared/socket/types';
 import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
 import {
+  AdvancedFilter,
   AppPreferencesData,
   ConfigSchema,
   CurationFpfssInfo,
@@ -37,7 +38,6 @@ import { AppConfigData, AppExtConfigData } from '../config/interfaces';
 import { ExecMapping, GamePropSuggestions, IService, ProcessAction, Task } from '../interfaces';
 import { LangContainer, LangFile } from '../lang';
 import { GameSearchOffset, GameSearch, GameSearchOrder } from '@fparchive/flashpoint-archive';
-import { AdvancedFilter } from '@renderer/store/search/slice';
 
 export enum BackIn {
   UNKNOWN = 1000,

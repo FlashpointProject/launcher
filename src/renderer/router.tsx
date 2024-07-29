@@ -23,6 +23,7 @@ import { ConnectedTagCategoriesPage } from './containers/ConnectedTagCategoriesP
 import { ConnectedTagsPage } from './containers/ConnectedTagsPage';
 import { CreditsData } from './credits/types';
 import { RequestState } from '@renderer/store/search/slice';
+import { LoadingPage } from './components/pages/LoadingPage';
 
 export type AppRouterProps = {
   fpfssUser: FpfssUser | null;
@@ -137,6 +138,10 @@ export class AppRouter extends React.Component<AppRouterProps> {
     };
     return (
       <Switch>
+        <PropsRoute
+          exact
+          path={Paths.LOADING}
+          component={LoadingPage} />
         <PropsRoute
           exact
           path={Paths.HOME}

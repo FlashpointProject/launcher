@@ -578,6 +578,9 @@ body {
   display: inline-block;
   user-select: none;
 }
+.header__menu__item > .icon {
+  vertical-align: bottom;
+}
 .header__menu__item__link {
   display: inline-block;
   padding: 0.3em 0.7em;
@@ -3161,10 +3164,7 @@ body {
   display: flex;
   flex-direction: row;
   justify-content: space-evenly;
-}
-
-.dialog-buttons-container {
-  margin-top: 0.5rem;
+  margin-top: 0.7rem;
 }
 
 .dialog-buttons-container .simple-button {

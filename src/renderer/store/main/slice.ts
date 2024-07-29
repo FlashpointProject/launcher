@@ -12,7 +12,6 @@ import { AppExtConfigData } from '@shared/config/interfaces';
 import * as axiosImport from 'axios';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { ipcRenderer } from 'electron';
-import { dialogResEvent } from '@renderer/store/main/dialog';
 
 export const RANDOM_GAME_ROW_COUNT = 6;
 
@@ -265,7 +264,7 @@ const mainSlice = createSlice({
       if (dialogIdx > -1) {
         const dialog = state.openDialogs.splice(dialogIdx, 1)[0];
         window.Shared.back.send(BackIn.DIALOG_RESPONSE, dialog, dialog.cancelId || -1);
-        setTimeout(() => dialogResEvent.emit(dialog.id, dialog, dialog.cancelId || -1), 100);
+        setTimeout(() => window.Shared.dialogResEvent.emit(dialog.id, dialog, dialog.cancelId || -1), 100);
       }
     },
     resolveDialog(state: MainState, { payload }: PayloadAction<ResolveDialogActionData>) {
@@ -273,7 +272,7 @@ const mainSlice = createSlice({
       if (dialogIdx > -1) {
         const dialog = state.openDialogs.splice(dialogIdx, 1)[0];
         window.Shared.back.send(BackIn.DIALOG_RESPONSE, dialog, payload.button);
-        setTimeout(() => dialogResEvent.emit(dialog.id, dialog, payload.button), 100);
+        window.Shared.dialogResEvent.emit(dialog.id, dialog, payload.button);
       }
     },
     updateDialog(state: MainState, { payload }: PayloadAction<Partial<DialogState>>) {

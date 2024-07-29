@@ -3,9 +3,7 @@ import axios from 'axios';
 import * as remote from '@electron/remote';
 import { uuid } from '@shared/utils/uuid';
 import { DialogState } from 'flashpoint-launcher';
-import EventEmitter = require('events');
 import * as mainActions from '@renderer/store/main/slice';
-import { dialogResEvent } from '@renderer/store/main/dialog';
 
 export async function fpfssLogin(createDialog: typeof mainActions.createDialog, cancelDialog: typeof mainActions.cancelDialog): Promise<FpfssUser | null> {
   const fpfssBaseUrl = window.Shared.preferences.data.fpfssBaseUrl;
@@ -104,7 +102,7 @@ export async function fpfssLogin(createDialog: typeof mainActions.createDialog, 
       });
     }, token.interval * 1000);
     // Listen for dialog response
-    dialogResEvent.once(dialog.id, (d: DialogState, res: number) => {
+    window.Shared.dialogResEvent.once(dialog.id, (d: DialogState, res: number) => {
       clearInterval(interval);
       reject('User Cancelled');
     });

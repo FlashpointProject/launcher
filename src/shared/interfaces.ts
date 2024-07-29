@@ -5,6 +5,7 @@ import { AppConfigData } from './config/interfaces';
 import { LangContainer, LangFile } from './lang';
 import { ILogEntry } from './Log/interface';
 import { ITheme } from './ThemeFile';
+import { EventEmitter } from 'events';
 
 /** Replacement of "object" type. Note: I'm not sure how effective it is though //obelisk */
 type ObjectLike = Record<string, unknown> | Record<number, unknown>
@@ -93,6 +94,8 @@ export interface IMainWindowExternal {
   initialLangList: LangFile[];
   initialThemes: ITheme[];
   initialLocaleCode: string;
+
+  dialogResEvent: EventEmitter;
 
   /**
    * Wait for the preload to initialize.

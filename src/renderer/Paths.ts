@@ -10,4 +10,5 @@ export enum Paths {
   ABOUT      = '/about',
   CURATE     = '/curate',
   DEVELOPER  = '/developer',
+  LOADING    = '/loading'
 }

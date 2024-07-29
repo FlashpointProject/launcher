@@ -232,29 +232,36 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     return (
       <div className='game-list__no-games'>
         {currentView.data.total !== undefined ?
-          currentView.selectedPlaylist ? (
-          /* Empty Playlist */
-            <>
-              <h2 className='game-list__no-games__title'>{strings.browse.emptyPlaylist}</h2>
-              <br/>
-              <p>{formatString(strings.browse.dropGameOnLeft, <i>{strings.browse.leftSidebar}</i>)}</p>
-            </>
-          ) : (
+          currentView.selectedPlaylist ?
+            currentView.selectedPlaylist.games.length === 0 ?
+            /* Empty Playlist */
+              <>
+                <h2 className='game-list__no-games__title'>{strings.browse.emptyPlaylist}</h2>
+                <br/>
+                <p>{formatString(strings.browse.dropGameOnLeft, <i>{strings.browse.leftSidebar}</i>)}</p>
+              </>
+              :
+              <>
+                <h2 className='game-list__no-games__title'>{strings.browse.noGamesFoundInsidePlaylist}</h2>
+                <br/>
+                <p>{strings.browse.noGameMatchedSearch}</p>
+              </>
+            : (
           /* Empty regular search */
-            <>
-              <h1 className='game-list__no-games__title'>{strings.browse.noGamesFound}</h1>
-              <br/>
-              { this.props.gamesTotal !== undefined && this.props.gamesTotal > 0 ? (
-                <>
-                  {strings.browse.noGameMatchedDesc}
-                  <br/>
-                  {strings.browse.noGameMatchedSearch}
-                </>
-              ) : (
-                <>{strings.browse.thereAreNoGames}</>
-              ) }
-            </>
-          ) : (
+              <>
+                <h1 className='game-list__no-games__title'>{strings.browse.noGamesFound}</h1>
+                <br/>
+                { this.props.gamesTotal !== undefined && this.props.gamesTotal > 0 ? (
+                  <>
+                    {strings.browse.noGameMatchedDesc}
+                    <br/>
+                    {strings.browse.noGameMatchedSearch}
+                  </>
+                ) : (
+                  <>{strings.browse.thereAreNoGames}</>
+                ) }
+              </>
+            ) : (
         /* Searching */
             <div>
               <h1 className="game-list__no-games__title">{strings.browse.searching}</h1>

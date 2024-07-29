@@ -35,6 +35,7 @@ import * as Coerce from '@shared/utils/Coerce';
 import { Spinner } from '../Spinner';
 import { SimpleButton } from '../SimpleButton';
 import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
+import { WithSearchProps } from '@renderer/containers/withSearch';
 
 const { num } = Coerce;
 
@@ -62,7 +63,7 @@ type OwnProps = {
   localeCode: string;
 };
 
-export type ConfigPageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps;
+export type ConfigPageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps & WithSearchProps;
 
 type ConfigPageState = {
   /** If the currently entered Flashpoint path points to a "valid" Flashpoint folder (it exists and "looks" like a Flashpoint folder). */
@@ -96,7 +97,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       flashpointPath: configData.flashpointPath,
       useCustomTitlebar: configData.useCustomTitlebar,
       editorOpen: false,
-      nukeInProgress: false
+      nukeInProgress: false,
     };
   }
 
@@ -129,6 +130,11 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 description={strings.restoreSearchViewsDesc}
                 checked={this.props.preferencesData.useStoredViews}
                 onToggle={this.onUseStoredViewsChange} />
+              <ConfigBoxCheckbox
+                title={strings.useCustomViews}
+                description={strings.useCustomViewsDesc}
+                checked={this.props.preferencesData.useCustomViews}
+                onToggle={this.onUseCustomViews} />
               {/* Enable Editing */}
               <ConfigBoxCheckbox
                 title={strings.enableEditing}
@@ -548,18 +554,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     );
   };
 
-  renderDeleteSource = ({ confirm }: ConfirmElementArgs) => {
-    return (
-      <div
-        onClick={confirm}
-        className='setting__row__content--remove-app-override'>
-        <OpenIcon
-          className='setting__row__content--override-row__delete'
-          icon='delete' />
-      </div>
-    );
-  };
-
   renderAppPathOverridesMemo = memoizeOne((appPathOverrides: AppPathOverride[]) => {
     return appPathOverrides.map((item, index) => {
       return (
@@ -830,6 +824,40 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
         useStoredViews: isChecked,
         storedViews: []
       });
+    }
+  };
+
+  onUseCustomViews = (isChecked: boolean): void => {
+    updatePreferencesData({ useCustomViews: isChecked });
+    if (isChecked) {
+      const customViews = this.props.preferencesData.customViews;
+      if (customViews.length === 0) {
+        customViews.push('Browse');
+        updatePreferencesData({
+          customViews,
+        });
+      }
+      if (this.props.preferencesData.storedViews) {
+        this.props.searchActions.createViews({
+          views: customViews,
+          storedViews: this.props.preferencesData.storedViews
+        });
+      } else {
+        this.props.searchActions.createViews({
+          views: customViews
+        });
+      }
+    } else {
+      if (this.props.preferencesData.storedViews) {
+        this.props.searchActions.createViews({
+          views: this.props.libraries,
+          storedViews: this.props.preferencesData.storedViews
+        });
+      } else {
+        this.props.searchActions.createViews({
+          views: this.props.libraries
+        });
+      }
     }
   };
 

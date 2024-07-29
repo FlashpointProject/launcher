@@ -12,11 +12,19 @@ import {
   setSearchText,
   ResultsView,
   setFilter,
-  SearchFilterAction, selectGame, createViews, SearchCreateViewsAction, GENERAL_VIEW_ID,
+  SearchFilterAction,
+  selectGame,
+  createViews,
+  SearchCreateViewsAction,
+  GENERAL_VIEW_ID,
+  renameView,
+  SearchRenameViewAction,
 } from './slice';
 import store from '../store';
 import { BackIn, SearchQuery } from '@shared/back/types';
 import { updatePreferencesData } from '@shared/preferences/util';
+import { RouteComponentProps } from 'react-router';
+import { getViewName, joinLibraryRoute } from '@renderer/Util';
 
 export function addSearchMiddleware() {
   // Build filter immediately

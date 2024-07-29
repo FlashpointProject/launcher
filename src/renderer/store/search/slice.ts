@@ -8,6 +8,7 @@ import { BackIn, PageKeyset, SearchQuery } from '@shared/back/types';
 import { VIEW_PAGE_SIZE } from '@shared/constants';
 import { getDefaultAdvancedFilter, getDefaultGameSearch } from '@shared/search/util';
 import { num } from '@shared/utils/Coerce';
+import { updatePreferencesData } from '@shared/preferences/util';
 
 export const GENERAL_VIEW_ID = '!general!';
 
@@ -114,33 +115,46 @@ export type SearchRequestRange = {
 }
 
 export type SearchCreateViewsAction = {
-  names: string[];
+  views: string[];
   storedViews?: StoredView[];
 }
+
+export type SearchDeleteViewAction = {
+  view: string;
+}
+
+export type SearchRenameViewAction = {
+  old: string;
+  new: string;
+}
+
+const defaultGeneralState: ResultsView = {
+  id: GENERAL_VIEW_ID,
+  advancedFilter: getDefaultAdvancedFilter(),
+  data: {
+    searchId: 0,
+    keyset: [],
+    games: [],
+    pages: {},
+    metaState: RequestState.WAITING,
+  },
+  loaded: false,
+  orderBy: 'title',
+  orderReverse: 'ASC',
+  searchFilter: {
+    ...getDefaultGameSearch(),
+    viewId: GENERAL_VIEW_ID,
+    searchId: 0,
+    page: 0,
+  },
+  text: '',
+  textPositions: [],
+};
 
 const initialState: SearchState = {
   views: {
     [GENERAL_VIEW_ID]: {
-      id: GENERAL_VIEW_ID,
-      advancedFilter: getDefaultAdvancedFilter(),
-      data: {
-        searchId: 0,
-        keyset: [],
-        games: [],
-        pages: {},
-        metaState: RequestState.WAITING,
-      },
-      loaded: false,
-      orderBy: 'title',
-      orderReverse: 'ASC',
-      searchFilter: {
-        ...getDefaultGameSearch(),
-        viewId: GENERAL_VIEW_ID,
-        searchId: 0,
-        page: 0,
-      },
-      text: '',
-      textPositions: [],
+      ...defaultGeneralState
     }
   }
 };
@@ -197,9 +211,103 @@ const searchSlice = createSlice({
   name: 'search',
   initialState,
   reducers: {
+    addViews(state: SearchState, { payload }: PayloadAction<SearchCreateViewsAction>) {
+      for (const view of payload.views) {
+        if (state.views[view]) {
+          // Exists, skip
+        } else {
+          state.views[view] = {
+            id: view,
+            library: view,
+            advancedFilter: getDefaultAdvancedFilter(),
+            data: {
+              searchId: 0,
+              keyset: [],
+              games: [],
+              pages: {},
+              metaState: RequestState.WAITING,
+            },
+            loaded: false,
+            orderBy: 'title',
+            orderReverse: 'ASC',
+            searchFilter: {
+              ...getDefaultGameSearch(),
+              viewId: view,
+              searchId: 0,
+              page: 0,
+            },
+            text: '',
+            textPositions: [],
+          };
+        }
+      }
+
+      if (payload.storedViews) {
+        for (const storedView of payload.storedViews) {
+          const view = state.views[storedView.view];
+          if (view) {
+            view.text = storedView.text;
+            view.advancedFilter = storedView.advancedFilter;
+            view.orderBy = storedView.orderBy;
+            view.orderReverse = storedView.orderReverse;
+          }
+        }
+      }
+    },
+    deleteView(state: SearchState, { payload }: PayloadAction<SearchDeleteViewAction>) {
+      if (state.views[payload.view]) {
+        delete state.views[payload.view];
+      }
+      const customViews = window.Shared.preferences.data.customViews;
+      if (customViews.filter(c => c !== payload.view).length === 0) {
+        customViews.push('Browse');
+        setTimeout(() => updatePreferencesData({
+          customViews,
+        }), 100);
+      }
+      if (Object.keys(state.views).length === 1) {
+        // If we have no more browse views, add Browse
+        const view = 'Browse';
+        state.views[view] = {
+          id: view,
+          library: view,
+          advancedFilter: getDefaultAdvancedFilter(),
+          data: {
+            searchId: 0,
+            keyset: [],
+            games: [],
+            pages: {},
+            metaState: RequestState.WAITING,
+          },
+          loaded: false,
+          orderBy: 'title',
+          orderReverse: 'ASC',
+          searchFilter: {
+            ...getDefaultGameSearch(),
+            viewId: view,
+            searchId: 0,
+            page: 0,
+          },
+          text: '',
+          textPositions: [],
+        };
+      }
+    },
+    renameView(state: SearchState, { payload }: PayloadAction<SearchRenameViewAction>) {
+      if (state.views[payload.old]) {
+        state.views[payload.new] = state.views[payload.old];
+        state.views[payload.new].id = payload.new;
+        delete state.views[payload.old];
+      }
+    },
     createViews(state: SearchState, { payload }: PayloadAction<SearchCreateViewsAction>) {
       console.log(`Creating views for: ${payload}`);
-      for (const view of payload.names) {
+      const generalState = state.views[GENERAL_VIEW_ID];
+      // Clear existing views except general
+      state.views = {
+        [GENERAL_VIEW_ID]: generalState
+      };
+      for (const view of payload.views) {
         if (!state.views[view]) {
           state.views[view] = {
             id: view,
@@ -420,7 +528,10 @@ const searchSlice = createSlice({
 
 export const { actions: searchActions } = searchSlice;
 export const {
+  addViews,
+  deleteView,
   createViews,
+  renameView,
   setSearchText,
   selectPlaylist,
   selectGame,

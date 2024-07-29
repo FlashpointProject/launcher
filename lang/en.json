@@ -14,6 +14,8 @@
     "searchLimitDesc": "Limit the number of results returned in any search",
     "searchLimitUnlimited": "Unlimited",
     "searchLimitValue": "{0} Results",
+    "useCustomViews": "Use Custom Search Views",
+    "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
     "restoreSearchViews": "Restore Search Results",
     "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
     "enableEditing": "Enable Editing",
@@ -191,7 +193,10 @@
     "fpfssProfile": "Open Profile",
     "fpfssLogout": "Logout from FPFSS",
     "softwareUpdateRequired": "Software updated required. Do this now?",
-    "noLauncherUpdateReady": "Metadata update requires a newer Launcher version, but the software update is not currently available."
+    "noLauncherUpdateReady": "Metadata update requires a newer Launcher version, but the software update is not currently available.",
+    "deleteView": "Delete Search View",
+    "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
+    "createNewView": "Create new search view"
   },
   "filter": {
     "dateAdded": "Date Added",
@@ -364,8 +369,9 @@
     "allGames": "All Games",
     "newPlaylist": "New Playlist",
     "importPlaylist": "Import Playlist",
+    "noGamesFoundInsidePlaylist": "No Results Found in Playlist!",
     "emptyPlaylist": "Empty Playlist",
-    "noGamesFound": "No Games Found!",
+    "noGamesFound": "No Results Found!",
     "dropGameOnLeft": "Drop a game on this playlist in the {0} to add it.",
     "leftSidebar": "left sidebar",
     "setFlashpointPathQuestion": "Have you set the path to the {0} at the {1} page?",
@@ -381,6 +387,7 @@
     "showExtremeScreenshot": "Show Extreme Screenshot",
     "busy": "Please Wait...",
     "openGameDataBrowser": "Open Game Data Browser",
+    "allGenericEntries": "All Entries",
     "notArchived": "Not Archived",
     "archived": "Archived",
     "playOnline": "Play Online"

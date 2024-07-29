@@ -10,6 +10,7 @@ import { OpenDialogOptions } from 'electron';
 import { ipcRenderer } from 'electron/renderer';
 import * as path from 'path';
 import { isDev } from './Util';
+import { EventEmitter } from 'events';
 
 /**
  * Object with functions that bridge between this and the Main processes
@@ -87,6 +88,8 @@ window.Shared = {
   initialLangList: createErrorProxy('initialLangList'),
   initialThemes: createErrorProxy('initialThemes'),
   initialLocaleCode: createErrorProxy('initialLocaleCode'),
+
+  dialogResEvent: new EventEmitter(),
 
   waitUntilInitialized() {
     if (!isInitDone) { return onInit; }

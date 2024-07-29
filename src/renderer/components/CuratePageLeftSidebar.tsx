@@ -11,7 +11,6 @@ import * as curateActions from '@renderer/store/curate/slice';
 import { useAppSelector } from '@renderer/hooks/useAppSelector';
 import { CurateGroup } from '@renderer/store/curate/slice';
 import { createDialog } from '@renderer/store/main/slice';
-import { dialogResEvent } from '@renderer/store/main/dialog';
 
 const index_attr = 'data-index';
 
@@ -222,7 +221,7 @@ function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentPro
     };
     dispatch(createDialog(dialog));
     // Listen for dialog response
-    dialogResEvent.once(dialog.id, (d: DialogState, res: number) => {
+    window.Shared.dialogResEvent.once(dialog.id, (d: DialogState, res: number) => {
       if (res !== d.cancelId) {
         const field = d.fields && d.fields.find(f => f.name === 'groupName');
         if (field) {

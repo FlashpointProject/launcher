@@ -1228,7 +1228,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         state.socketServer.broadcast(BackOut.LANGUAGE_CHANGE, state.languageContainer);
       }
 
-      overwritePreferenceData(state.preferences, dif);
+      overwritePreferenceData(state.preferences, dif, console.error);
       state.prefsQueue.push(() => {
         PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
       });
@@ -2429,7 +2429,10 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     }
     // Save prefs
     state.prefsQueue.push(() => {
-      PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
+      PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state)
+      .catch((err) => {
+        console.error(`Save prefs err: ${err}`);
+      });
     });
   });
 
