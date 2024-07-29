@@ -117,6 +117,7 @@ export type SearchRequestRange = {
 export type SearchCreateViewsAction = {
   views: string[];
   storedViews?: StoredView[];
+  areLibraries: boolean;
 }
 
 export type SearchDeleteViewAction = {
@@ -218,7 +219,6 @@ const searchSlice = createSlice({
         } else {
           state.views[view] = {
             id: view,
-            library: view,
             advancedFilter: getDefaultAdvancedFilter(),
             data: {
               searchId: 0,
@@ -270,7 +270,6 @@ const searchSlice = createSlice({
         const view = 'Browse';
         state.views[view] = {
           id: view,
-          library: view,
           advancedFilter: getDefaultAdvancedFilter(),
           data: {
             searchId: 0,
@@ -311,8 +310,7 @@ const searchSlice = createSlice({
         if (!state.views[view]) {
           state.views[view] = {
             id: view,
-            library: view,
-            advancedFilter: getDefaultAdvancedFilter(),
+            advancedFilter: getDefaultAdvancedFilter(payload.areLibraries ? view : undefined),
             data: {
               searchId: 0,
               keyset: [],

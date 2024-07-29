@@ -6,13 +6,19 @@ import { SimpleButton } from './SimpleButton';
 import { useView } from '@renderer/hooks/search';
 import { forceSearch, setAdvancedFilter, setOrderBy, setOrderReverse, setSearchText } from '@renderer/store/search/slice';
 import { ArrowKeyStepper, AutoSizer, List, ListRowProps } from 'react-virtualized-reactv17';
+import { AdvancedFilter } from 'flashpoint-launcher';
+import { useContext } from 'react';
+import { LangContext } from '@renderer/util/lang';
 
-export type SearchBarProps = {};
+export type SearchBarProps = {
+  libraries: string[];
+};
 
 export function SearchBar(props: SearchBarProps) {
   const view = useView();
   const dispatch = useDispatch();
   const [expanded, setExpanded] = React.useState(true);
+  const strings = useContext(LangContext);
 
   const onTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSearchText({
@@ -66,6 +72,53 @@ export function SearchBar(props: SearchBarProps) {
     }));
   };
 
+  const onToggleFactory = (key: keyof AdvancedFilter) => {
+    return (value: string) => {
+      let newValues = [...(view.advancedFilter[key] as string[])];
+      const idx = newValues.findIndex(s => s === value);
+      if (idx > -1) {
+        newValues.splice(idx, 1);
+      } else {
+        // None is mutually exclusive to every other value
+        if (value === '') {
+          newValues = [value];
+        } else {
+          const noneIdx = newValues.findIndex(s => s === '');
+          if (noneIdx > -1) {
+            newValues.splice(noneIdx, 1);
+          }
+          newValues.push(value);
+        }
+      }
+
+      dispatch(setAdvancedFilter({
+        view: view.id,
+        filter: {
+          ...view.advancedFilter,
+          [key]: newValues,
+        }
+      }));
+    };
+  };
+
+  const onClearFactory = (key: keyof AdvancedFilter) => {
+    return () => {
+      dispatch(setAdvancedFilter({
+        view: view.id,
+        filter: {
+          ...view.advancedFilter,
+          [key]: [],
+        }
+      }));
+    };
+  };
+
+  const onToggleLibrary = onToggleFactory('libraries');
+  const onClearLibraries = onClearFactory('libraries');
+
+  console.log('libraries adv');
+  console.log(view.advancedFilter.libraries);
+
   return (
     <div className={`search-bar-wrapper ${expanded ? 'search-bar-wrapper--expanded-simple' : ''}`}>
       <div className="search-bar">
@@ -106,16 +159,27 @@ export function SearchBar(props: SearchBarProps) {
       { expanded &&
          (
            <div className='search-bar-expansion search-bar-expansion-simple'>
-             <ThreeStateCheckbox
-               title="Installed"
-               value={view.advancedFilter.installed}
-               onChange={onInstalledChange}/>
+             {/* <ThreeStateCheckbox */}
+             {/*   title="Installed" */}
+             {/*   value={view.advancedFilter.installed} */}
+             {/*   onChange={onInstalledChange}/> */}
              { view.selectedPlaylist && (
                <ThreeStateCheckbox
                  title="Use Playlist Order"
                  value={view.advancedFilter.playlistOrder}
                  twoState={true}
                  onChange={onPlaylistOrderChange}/>
+             )}
+             { window.Shared.preferences.data.useCustomViews && (
+               <SearchableSelect
+                 title={'Libraries'}
+                 items={props.libraries}
+                 selected={view.advancedFilter.libraries}
+                 onToggle={onToggleLibrary}
+                 onClear={onClearLibraries}
+                 mapName={(item) => {
+                   return strings.libraries[item] || item;
+                 }}/>
              )}
            </div>
          )
@@ -171,10 +235,11 @@ type SearchableSelectProps = {
   selected: string[];
   onToggle: (item: string) => void;
   onClear: () => void;
+  mapName?: (id: string) => string;
 }
 
 function SearchableSelect(props: SearchableSelectProps) {
-  const { title, items, selected, onToggle, onClear } = props;
+  const { title, items, selected, onToggle, onClear, mapName } = props;
   const [expanded, setExpanded] = React.useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
 
@@ -225,6 +290,7 @@ function SearchableSelect(props: SearchableSelectProps) {
             items={items}
             onToggle={onToggle}
             selected={selected}
+            mapName={mapName}
           />
         )}
       </div>
@@ -235,11 +301,12 @@ function SearchableSelect(props: SearchableSelectProps) {
 type SearchableSelectDropdownProps = {
   items: string[];
   selected: string[];
+  mapName?: (id: string) => string;
   onToggle: (item: string) => void;
 }
 
 function SearchableSelectDropdown(props: SearchableSelectDropdownProps) {
-  const { items, selected, onToggle } = props;
+  const { items, selected, onToggle, mapName } = props;
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   const [search, setSearch] = React.useState('');
@@ -269,12 +336,12 @@ function SearchableSelectDropdown(props: SearchableSelectDropdownProps) {
     return (
       <div
         style={style}
-        title={item ? item : 'None'}
+        title={item ? (mapName ? mapName(item) : item ) : 'None'}
         className={`searchable-select-dropdown-item ${marked && 'searchable-select-dropdown-item--selected'}`}
         onClick={() => onToggle(item)}
         key={item}>
         <div className="searchable-select-dropdown-item-title">
-          {item ? item : <i>None</i>}
+          {item ? (mapName ? mapName(item) : item ) : <i>None</i>}
         </div>
         { marked && (
           <div className="searchable-select-dropdown-item-marked">

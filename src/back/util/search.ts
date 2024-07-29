@@ -6,7 +6,7 @@ import {
   mergeGameFilters, newSubfilter,
   parseUserSearchInput
 } from '@fparchive/flashpoint-archive';
-import { parseAdvancedFilter } from '@shared/search/util';
+import { isAdvFilterEmpty, parseAdvancedFilter } from '@shared/search/util';
 import { deepCopy } from '@shared/Util';
 
 export function createSearchFilter(query: QueryData, preferences: AppPreferencesData): SearchQuery {
@@ -15,7 +15,7 @@ export function createSearchFilter(query: QueryData, preferences: AppPreferences
   const search = parseUserSearchInput(text).search;
 
   // Merge advanced filter
-  if (advancedFilter.installed === true || advancedFilter.installed === false) {
+  if (!isAdvFilterEmpty(advancedFilter)) {
     const advFilter = parseAdvancedFilter(advancedFilter);
     search.filter = mergeGameFilters(search.filter, advFilter);
   }

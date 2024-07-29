@@ -1085,6 +1085,7 @@ declare module 'flashpoint-launcher' {
     type AdvancedFilter = {
       installed?: boolean;
       playlistOrder: boolean;
+      libraries: string[];
     }
 
     enum ScreenshotPreviewMode {

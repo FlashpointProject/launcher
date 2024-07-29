@@ -44,6 +44,7 @@ type OwnProps = {
   sourceTable: string;
   gamesTotal?: number;
   metaState?: RequestState;
+  libraries: string[];
   searchStatus: string | null;
   playlists: Playlist[];
   playlistIconCache: Record<string, string>;
@@ -155,7 +156,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         </ResizableSidebar>
         <div
           className='game-browser__center'>
-          <SearchBar />
+          <SearchBar libraries={this.props.libraries} />
           <div className='game-browser__center-results-container'>
             {(() => {
               if (this.props.preferencesData.browsePageLayout === BrowsePageLayout.grid) {

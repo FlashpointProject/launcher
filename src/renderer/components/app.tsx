@@ -290,22 +290,26 @@ export class App extends React.Component<AppProps> {
         if (this.props.preferencesData.useStoredViews) {
           this.props.searchActions.createViews({
             views: customViews,
-            storedViews: this.props.preferencesData.storedViews
+            storedViews: this.props.preferencesData.storedViews,
+            areLibraries: false,
           });
         } else {
           this.props.searchActions.createViews({
             views: customViews,
+            areLibraries: false,
           });
         }
       } else {
         if (this.props.preferencesData.useStoredViews) {
           this.props.searchActions.createViews({
             views: data.libraries,
-            storedViews: this.props.preferencesData.storedViews
+            storedViews: this.props.preferencesData.storedViews,
+            areLibraries: true,
           });
         } else {
           this.props.searchActions.createViews({
             views: data.libraries,
+            areLibraries: true,
           });
         }
       }

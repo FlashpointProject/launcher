@@ -840,22 +840,26 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       if (this.props.preferencesData.storedViews) {
         this.props.searchActions.createViews({
           views: customViews,
-          storedViews: this.props.preferencesData.storedViews
+          storedViews: this.props.preferencesData.storedViews,
+          areLibraries: false,
         });
       } else {
         this.props.searchActions.createViews({
-          views: customViews
+          views: customViews,
+          areLibraries: false,
         });
       }
     } else {
       if (this.props.preferencesData.storedViews) {
         this.props.searchActions.createViews({
           views: this.props.libraries,
-          storedViews: this.props.preferencesData.storedViews
+          storedViews: this.props.preferencesData.storedViews,
+          areLibraries: true,
         });
       } else {
         this.props.searchActions.createViews({
-          views: this.props.libraries
+          views: this.props.libraries,
+          areLibraries: true,
         });
       }
     }

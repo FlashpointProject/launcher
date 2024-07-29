@@ -94,6 +94,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       sourceTable: 'browse-page',
       gamesTotal: this.props.gamesTotal,
       playlists: this.props.playlists,
+      libraries: this.props.libraries,
       playlistIconCache: this.props.playlistIconCache,
       onGameContextMenu: this.props.onGameContextMenu,
       onUpdatePlaylist: this.props.onUpdatePlaylist,
