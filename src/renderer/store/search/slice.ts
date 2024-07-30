@@ -193,6 +193,7 @@ export const forceSearch = createAsyncThunk(
   async (payload: ForceSearchAction, { getState, dispatch }) => {
     const state = getState() as { search: SearchState };
     const view = state.search.views[payload.view];
+    console.log('forced search');
 
     const filter = await window.Shared.back.request(BackIn.PARSE_QUERY_DATA, {
       viewId: payload.view,

@@ -42,8 +42,15 @@ type TagInputFieldState = {
   expanded: boolean;
 };
 
+function withModifiableTags<T extends TagInputFieldProps>(Component: React.ComponentType<T>) {
+  return function WithModifiableTags(props: T) {
+    const modifiableTags = [...props.tags];
+    return <Component {...props} tags={modifiableTags} />;
+  };
+}
+
 /** An input element with a drop-down menu that can list any number of selectable and clickable text elements. */
-export class TagInputField extends React.Component<TagInputFieldProps, TagInputFieldState> {
+class TagInputFieldRaw extends React.Component<TagInputFieldProps, TagInputFieldState> {
   rootRef: React.RefObject<HTMLDivElement> = React.createRef();
   contentRef: React.RefObject<HTMLDivElement> = React.createRef();
   inputRef: React.RefObject<InputElement> = React.createRef();
@@ -155,7 +162,7 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
   /** Renders the list of items in the drop-down menu. */
   renderItems = memoizeOne<(items: Tag[], primaryPlatform?: string) => JSX.Element[]>((items: Tag[], primaryPlatform?: string) => {
     const className = this.props.editable ? 'tag-editable' : 'tag-static';
-    return [...items]
+    return items
     .sort((t1, t2) => `${t1.category}-${t1.name}`.localeCompare(`${t2.category}-${t2.name}`))
     .map((tag, index) => {
       const category = this.props.categories.find(c => c.name == tag.category);
@@ -356,3 +363,5 @@ function checkIfArraysAreEqual(a: Array<any>, b: Array<any>): boolean {
   }
   return true;
 }
+
+export const TagInputField = withModifiableTags(TagInputFieldRaw);

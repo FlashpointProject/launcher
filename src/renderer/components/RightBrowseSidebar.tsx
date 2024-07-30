@@ -1396,8 +1396,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
         this.props.onDeselectPlaylist();
         const value = this.props.currentGame[field as keyof Game]?.toString();
         const search = (value)
-          ? `${field}=${wrapSearchTerm(value)}`
-          : `${field}=""`;
+          ? `${field}:${wrapSearchTerm(value)}`
+          : `${field}:""`;
         this.props.onSearch(search);
       }
     };

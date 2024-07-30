@@ -1501,12 +1501,7 @@ export class App extends React.Component<AppProps> {
                         suggestions={this.props.main.suggestions}
                         busyGames={this.props.main.busyGames}
                         onFpfssEditGame={this.onFpfssEditGame}
-                        onSearch={(text) => {
-                          this.props.searchActions.setSearchText({
-                            view: this.props.currentView.id,
-                            text,
-                          });
-                        }}/>
+                        onSearch={this.onSearch}/>
                     </ResizableSidebar>
                   )}
                 </div>
@@ -1804,6 +1799,9 @@ export class App extends React.Component<AppProps> {
     this.props.searchActions.setSearchText({
       view: this.props.currentView.id,
       text,
+    });
+    this.props.searchActions.forceSearch({
+      view: this.props.currentView.id,
     });
   };
 
