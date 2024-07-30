@@ -3598,8 +3598,8 @@ body {
 
 .searchable-select-dropdown-results {
   overflow-y: auto;
-  height: 50vh;
-  width: 25vw;
+  height: 45vh;
+  width: 22vw;
 }
 
 .searchable-select-dropdown-item {

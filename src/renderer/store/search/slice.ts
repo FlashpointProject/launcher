@@ -300,7 +300,6 @@ const searchSlice = createSlice({
       }
     },
     createViews(state: SearchState, { payload }: PayloadAction<SearchCreateViewsAction>) {
-      console.log(`Creating views for: ${payload}`);
       const generalState = state.views[GENERAL_VIEW_ID];
       // Clear existing views except general
       state.views = {
@@ -398,7 +397,6 @@ const searchSlice = createSlice({
     requestRange(state: SearchState, { payload }: PayloadAction<SearchRequestRange>) {
       const view = state.views[payload.view];
       const { start, count, searchId } = payload;
-      console.log(`Range requested - ${start} - len:${count}`);
       if (view && view.data.searchId === searchId) { // Ignore outdated requests
         // Iterate over requested page numbers
         const end = start + count;
@@ -412,7 +410,7 @@ const searchSlice = createSlice({
               offset: view.data.keyset[i-1],
               page: i,
             };
-            console.log(`requested page ${i}`);
+            console.log(`Requested page ${i}`);
             // Fire and forget request, registered handler will properly handle response
             window.Shared.back.send(BackIn.BROWSE_VIEW_PAGE, searchFilter);
           }
@@ -531,7 +529,6 @@ const searchSlice = createSlice({
         if (data.page !== undefined && data.games) {
           if (data.page === 0 && data.games.length === 0) {
             // No games in first page, must be empty results
-            console.log('no results');
             view.data.total = 0;
           } else {
             const startIdx = VIEW_PAGE_SIZE * data.page;
@@ -543,8 +540,6 @@ const searchSlice = createSlice({
           view.data.metaState = RequestState.RECEIVED;
         }
       }
-
-      console.log(`PERF - addData - ${Date.now() - startTime}ms`);
     }
   },
 });

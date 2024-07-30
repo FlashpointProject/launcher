@@ -1,6 +1,6 @@
 {
   "name": "flashpoint-launcher",
-  "version": "13.0.2",
+  "version": "13.1.0",
   "description": "A desktop application used to browse, manage and play games from Flashpoint Archive",
   "main": "build/main/index.js",
   "config": {
