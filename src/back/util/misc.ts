@@ -379,7 +379,13 @@ export function getCwd(isDev: boolean, exePath: string) {
 }
 
 export async function getTempFilename(ext = 'tmp') {
-  return path.join(await fs.promises.realpath(os.tmpdir()), uuid() + '.' + ext);
+  let tempDir;
+  try {
+    tempDir = await fs.promises.realpath(os.tmpdir());
+  } catch {
+    tempDir = os.tmpdir();
+  }
+  return path.join(tempDir, uuid() + '.' + ext);
 }
 
 /**
