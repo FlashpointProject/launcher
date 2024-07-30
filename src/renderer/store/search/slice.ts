@@ -21,7 +21,7 @@ export enum RequestState {
   RECEIVED,
 }
 
-export type SwapPlaylistGameData = {
+export type MovePlaylistGameData = {
   view: string;
   sourceGameId: string;
   destGameId: string;
@@ -419,7 +419,7 @@ const searchSlice = createSlice({
         }
       }
     },
-    swapPlaylistGame(state: SearchState, { payload }: PayloadAction<SwapPlaylistGameData>) {
+    movePlaylistGame(state: SearchState, { payload }: PayloadAction<MovePlaylistGameData>) {
       const view = state.views[payload.view];
       const { sourceGameId, destGameId } = payload;
 
@@ -427,18 +427,44 @@ const searchSlice = createSlice({
         const sourceIdx = view.selectedPlaylist.games.findIndex(g => g.gameId === sourceGameId);
         const destIdx = view.selectedPlaylist.games.findIndex(g => g.gameId === destGameId);
         if (sourceIdx > -1 && destIdx > -1) {
-          const replacedGame = view.selectedPlaylist.games[destIdx];
-          view.selectedPlaylist.games[destIdx] = view.selectedPlaylist.games[sourceIdx];
-          view.selectedPlaylist.games[sourceIdx] = replacedGame;
+          // Remove existing source game
+          const sourceGame = view.selectedPlaylist.games.splice(sourceIdx, 1)[0];
+          if (sourceIdx < destIdx) {
+            const destIdx = view.selectedPlaylist.games.findIndex(g => g.gameId === destGameId);
+            if (destIdx < view.selectedPlaylist.games.length) {
+              view.selectedPlaylist.games.splice(destIdx + 1, 0, sourceGame);
+            } else {
+              view.selectedPlaylist.games.push(sourceGame);
+            }
+          } else {
+            const destIdx = view.selectedPlaylist.games.findIndex(g => g.gameId === destGameId);
+            view.selectedPlaylist.games.splice(destIdx, 0, sourceGame);
+          }
 
-          // Try and swap them in the current results
-          const games = Object.entries(view.data.games);
+
+
+          // Try and move them in the results view
+          const games = Object.entries(view.data.games).map<GameRecordsArray>(([key, value]) => [Number(key), value]);
           const sourceGameEntry = games.find((g) => g[1].id === sourceGameId);
           const destGameEntry = games.find((g) => g[1].id === destGameId);
           if (sourceGameEntry && destGameEntry) {
-            view.data.games[num(sourceGameEntry[0])] = destGameEntry[1];
-            view.data.games[num(destGameEntry[0])] = sourceGameEntry[1];
+            const sourceIndex = games.indexOf(sourceGameEntry);
+            const destIndex = games.indexOf(destGameEntry);
+            if (sourceIdx < destIndex) {
+              games[sourceIndex][0] = games[destIndex][0];
+              // Moving down (Shift games between up)
+              for (let i = sourceIdx + 1; i < destIndex + 1; i++) {
+                games[i][0]--;
+              }
+            } else {
+              games[sourceIndex][0] = games[destIndex][0];
+              // Moving up (Shift games between down)
+              for (let i = destIndex; i < sourceIndex; i++) {
+                games[i][0]++;
+              }
+            }
           }
+          view.data.games = Object.fromEntries(games);
 
           // Update the playlist file
           window.Shared.back.send(BackIn.SAVE_PLAYLIST, view.selectedPlaylist);
@@ -523,6 +549,7 @@ const searchSlice = createSlice({
   },
 });
 
+type GameRecordsArray = [number, Game];
 
 export const { actions: searchActions } = searchSlice;
 export const {
@@ -537,7 +564,7 @@ export const {
   setOrderBy,
   setOrderReverse,
   setAdvancedFilter,
-  swapPlaylistGame,
+  movePlaylistGame,
   requestRange,
   updateGame,
   addData } = searchSlice.actions;

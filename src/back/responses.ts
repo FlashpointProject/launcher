@@ -1088,6 +1088,12 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     };
   });
 
+  state.socketServer.register(BackIn.BROWSE_ALL_RESULTS, async (event, search) => {
+    search.limit = 99999999999;
+
+    return await fpDatabase.searchGames(search);
+  });
+
   state.socketServer.register(BackIn.BROWSE_VIEW_PAGE, async (event, search) => {
     search.slim = true;
 

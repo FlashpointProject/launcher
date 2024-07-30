@@ -1312,7 +1312,7 @@ export class App extends React.Component<AppProps> {
     if (this.props.currentView.selectedPlaylist && this.props.currentView.advancedFilter.playlistOrder && (sourceGameId !== destGameId)) {
       // Send swap to backend, reflect on frontend immediately
       const library = getViewName(this.props.location.pathname);
-      this.props.searchActions.swapPlaylistGame({
+      this.props.searchActions.movePlaylistGame({
         view: library,
         sourceGameId,
         destGameId,

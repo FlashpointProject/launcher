@@ -116,6 +116,8 @@ export enum BackIn {
 
   /** Returns a query object for the given data */
   PARSE_QUERY_DATA,
+  /** Returns all results for a search */
+  BROWSE_ALL_RESULTS,
   /** Get a page of a browse view. */
   BROWSE_VIEW_PAGE,
   /** Get the first page of a browse view */
@@ -362,6 +364,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.DELETE_TAG_CATEGORY]: (data: number) => boolean;
 
   [BackIn.PARSE_QUERY_DATA]: (query: QueryData) => SearchQuery;
+  [BackIn.BROWSE_ALL_RESULTS]: (searchQuery: SearchQuery) => Game[];
   [BackIn.BROWSE_VIEW_PAGE]: (search: SearchQuery) => void;
   [BackIn.BROWSE_VIEW_FIRST_PAGE]: (search: SearchQuery) => BrowseViewFirstPageResponseData;
   [BackIn.BROWSE_VIEW_KEYSET]: (search: SearchQuery) => BrowseViewKeysetResponse;

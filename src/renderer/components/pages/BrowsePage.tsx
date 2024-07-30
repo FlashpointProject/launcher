@@ -1,6 +1,6 @@
 import * as remote from '@electron/remote';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
-import { BackIn } from '@shared/back/types';
+import { BackIn, BackOut } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { ExtensionContribution } from '@shared/extensions/interfaces';
 import { LangContainer } from '@shared/lang';
@@ -24,8 +24,8 @@ import { RequestState } from '@renderer/store/search/slice';
 import { WithSearchProps } from '@renderer/containers/withSearch';
 import { WithViewProps } from '@renderer/containers/withView';
 import { SearchBar } from '@renderer/components/SearchBar';
-import path = require('path');
 import { delayedThrottle } from '@shared/utils/throttle';
+import path = require('path');
 
 type Pick<T, K extends keyof T> = { [P in K]: T[P]; };
 
@@ -388,6 +388,10 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     if (this.state.currentPlaylist) {
       window.Shared.back.request(BackIn.SAVE_PLAYLIST, this.state.currentPlaylist)
       .then((data) => {
+        this.props.searchActions.selectPlaylist({
+          view: this.props.currentView.id,
+          playlist: data
+        });
         this.props.onUpdatePlaylist(data);
       });
       this.setState({
@@ -412,24 +416,63 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   };
 
   onCreatePlaylistClick = (): void => {
-    this.setState({
-      currentPlaylist: {
-        filePath: '',
-        id: uuid(),
-        games: [],
-        title: '',
-        description: '',
-        author: '',
-        icon: '',
-        library: this.props.currentView.id,
-        extreme: false
-      },
-      isEditingPlaylist: true,
-      isNewPlaylist: true,
-    });
-    if (this.props.currentView.selectedPlaylist) {
-      this.onSelectPlaylist(null);
-    }
+    const contextButtons: MenuItemConstructorOptions[] = [{
+      label: 'Create Empty Playlist',
+      click: () => {
+        this.setState({
+          currentPlaylist: {
+            filePath: '',
+            id: uuid(),
+            games: [],
+            title: '',
+            description: '',
+            author: '',
+            icon: '',
+            library: this.props.currentView.id,
+            extreme: false
+          },
+          isEditingPlaylist: true,
+          isNewPlaylist: true,
+        });
+        if (this.props.currentView.selectedPlaylist) {
+          this.onSelectPlaylist(null);
+        }
+      }
+    },
+    {
+      label: 'Create From Search Results',
+      click: () => {
+        window.Shared.back.request(BackIn.BROWSE_ALL_RESULTS, {
+          ...this.props.currentView.searchFilter,
+          slim: true,
+        })
+        .then((games) => {
+          this.setState({
+            currentPlaylist: {
+              filePath: '',
+              id: uuid(),
+              games: games.map(g => ({
+                gameId: g.id,
+                notes: '',
+              })),
+              title: '',
+              description: '',
+              author: '',
+              icon: '',
+              library: this.props.currentView.id,
+              extreme: false
+            },
+            isEditingPlaylist: true,
+            isNewPlaylist: true,
+          });
+          if (this.props.currentView.selectedPlaylist) {
+            this.onSelectPlaylist(null);
+          }
+        });
+      }
+    }];
+    const menu = remote.Menu.buildFromTemplate(contextButtons);
+    menu.popup({ window: remote.getCurrentWindow() });
   };
 
   onDiscardPlaylistClick = (): void => {
