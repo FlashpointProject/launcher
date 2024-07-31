@@ -9,16 +9,16 @@ import { ArrowKeyStepper, AutoSizer, List, ListRowProps } from 'react-virtualize
 import { AdvancedFilter } from 'flashpoint-launcher';
 import { useContext } from 'react';
 import { LangContext } from '@renderer/util/lang';
+import { useAppSelector } from '@renderer/hooks/useAppSelector';
 
-export type SearchBarProps = {
-  libraries: string[];
-};
+export type SearchBarProps = {};
 
 export function SearchBar(props: SearchBarProps) {
   const view = useView();
   const dispatch = useDispatch();
   const [expanded, setExpanded] = React.useState(true);
   const strings = useContext(LangContext);
+  const mainState = useAppSelector((state) => state.main);
 
   const onTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSearchText({
@@ -113,8 +113,14 @@ export function SearchBar(props: SearchBarProps) {
     };
   };
 
-  const onToggleLibrary = onToggleFactory('libraries');
-  const onClearLibraries = onClearFactory('libraries');
+  const onToggleLibrary = onToggleFactory('library');
+  const onClearLibraries = onClearFactory('library');
+
+  const onTogglePlayMode = onToggleFactory('playMode');
+  const onClearPlayMode = onClearFactory('playMode');
+
+  const onTogglePlatform = onToggleFactory('platform');
+  const onClearPlatform = onClearFactory('platform');
 
   return (
     <div className={`search-bar-wrapper ${expanded ? 'search-bar-wrapper--expanded-simple' : ''}`}>
@@ -131,7 +137,7 @@ export function SearchBar(props: SearchBarProps) {
             }
           }}
           ref={searchInputRef}
-          placeholder="Search"
+          placeholder={strings.app.searchPlaceholder}
           className="search-bar-text-input"
           value={view.text}
           onChange={onTextChange} />
@@ -157,27 +163,39 @@ export function SearchBar(props: SearchBarProps) {
          (
            <div className='search-bar-expansion search-bar-expansion-simple'>
              <ThreeStateCheckbox
-               title='Installed'
+               title={strings.browse.installed}
                value={view.advancedFilter.installed}
                onChange={onInstalledChange}/>
              { view.selectedPlaylist && (
                <ThreeStateCheckbox
-                 title="Use Playlist Order"
+                 title={strings.browse.usePlaylistOrder}
                  value={view.advancedFilter.playlistOrder}
                  twoState={true}
                  onChange={onPlaylistOrderChange}/>
              )}
              { window.Shared.preferences.data.useCustomViews && (
                <SearchableSelect
-                 title={'Libraries'}
-                 items={props.libraries}
-                 selected={view.advancedFilter.libraries}
+                 title={strings.browse.library}
+                 items={mainState.libraries}
+                 selected={view.advancedFilter.library}
                  onToggle={onToggleLibrary}
                  onClear={onClearLibraries}
                  mapName={(item) => {
                    return strings.libraries[item] || item;
                  }}/>
              )}
+             <SearchableSelect
+               title={strings.browse.playMode}
+               items={mainState.suggestions.playMode}
+               selected={view.advancedFilter.playMode}
+               onToggle={onTogglePlayMode}
+               onClear={onClearPlayMode} />
+             <SearchableSelect
+               title={strings.browse.platform}
+               items={mainState.suggestions.platforms}
+               selected={view.advancedFilter.platform}
+               onToggle={onTogglePlatform}
+               onClear={onClearPlatform} />
            </div>
          )
       }
@@ -284,7 +302,7 @@ function SearchableSelect(props: SearchableSelectProps) {
         </div>
         {expanded && (
           <SearchableSelectDropdown
-            items={items}
+            items={[...items].sort()}
             onToggle={onToggle}
             selected={selected}
             mapName={mapName}

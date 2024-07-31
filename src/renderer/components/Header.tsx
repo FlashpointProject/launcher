@@ -123,7 +123,8 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
             customViews,
           }, true);
           this.props.searchActions.addViews({
-            views: [name]
+            views: [name],
+            areLibraries: false,
           });
           setTimeout(() => {
             this.props.history.push(joinLibraryRoute(name));

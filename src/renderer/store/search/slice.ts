@@ -7,7 +7,6 @@ import {
 import { BackIn, PageKeyset, SearchQuery } from '@shared/back/types';
 import { VIEW_PAGE_SIZE } from '@shared/constants';
 import { getDefaultAdvancedFilter, getDefaultGameSearch } from '@shared/search/util';
-import { num } from '@shared/utils/Coerce';
 import { updatePreferencesData } from '@shared/preferences/util';
 
 export const GENERAL_VIEW_ID = '!general!';
@@ -479,7 +478,6 @@ const searchSlice = createSlice({
       }
     },
     addData(state: SearchState, { payload }: PayloadAction<SearchAddDataAction>) {
-      const startTime = Date.now();
       const data = payload.data;
       console.log(payload);
       const view = state.views[payload.view];

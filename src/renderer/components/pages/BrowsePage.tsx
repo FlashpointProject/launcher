@@ -157,7 +157,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         </ResizableSidebar>
         <div
           className='game-browser__center'>
-          <SearchBar libraries={this.props.libraries} />
+          <SearchBar />
           <div className='game-browser__center-results-container'>
             {(() => {
               if (this.props.preferencesData.browsePageLayout === BrowsePageLayout.grid) {

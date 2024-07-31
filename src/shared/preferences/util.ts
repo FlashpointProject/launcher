@@ -393,7 +393,7 @@ function parseGameMetadataSource(parser: IObjectParserProp<GameMetadataSource>):
 
 function parseAdvancedFilter(parser: IObjectParserProp<AdvancedFilter>, output: AdvancedFilter) {
   parser.prop('installed', v => output.installed = v === undefined ? undefined : !!v, true);
-  parser.prop('libraries').arrayRaw((item, index) => output.libraries[index] = str(item));
+  parser.prop('library').arrayRaw((item, index) => output.library[index] = str(item));
   parser.prop('playlistOrder', v => output.playlistOrder = !!v, true);
 }
 

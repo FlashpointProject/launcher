@@ -405,6 +405,7 @@ const langTemplate = {
     'busy',
     'openGameDataBrowser',
     'allGenericEntries',
+    'usePlaylistOrder',
   ] as const,
   tags: [
     'name',

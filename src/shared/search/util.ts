@@ -1,4 +1,4 @@
-import { GameFilter, GameSearch } from '@fparchive/flashpoint-archive';
+import { FieldFilter, GameFilter, GameSearch } from '@fparchive/flashpoint-archive';
 import { AdvancedFilter } from 'flashpoint-launcher';
 
 export function getDefaultGameSearch(): GameSearch {
@@ -22,7 +22,9 @@ export function getDefaultGameSearch(): GameSearch {
 export function getDefaultAdvancedFilter(library?: string): AdvancedFilter {
   return {
     playlistOrder: true,
-    libraries: library ? [library] : [],
+    library: library ? [library] : [],
+    playMode: [],
+    platform: [],
   };
 }
 
@@ -44,7 +46,9 @@ export function getDefaultGameFilter(): GameFilter {
 export function isAdvFilterEmpty(advFilter: AdvancedFilter): boolean {
   return (
     advFilter.installed === undefined &&
-    advFilter.libraries.length === 0
+    advFilter.library.length === 0 &&
+    advFilter.playMode.length === 0 &&
+    advFilter.platform.length === 0
   );
 }
 
@@ -55,13 +59,36 @@ export function parseAdvancedFilter(advFilter: AdvancedFilter): GameFilter {
     filter.boolComp.installed = advFilter.installed;
   }
 
-  if (advFilter.libraries.length > 0) {
-    console.log(`setting libraries - ${advFilter.libraries.join(' ; ')}`);
-    const newFilter = getDefaultGameFilter();
-    newFilter.matchAny = true;
-    newFilter.exactWhitelist.library = advFilter.libraries;
-    filter.subfilters.push(newFilter);
-  }
+  const exactFunc = (key: keyof AdvancedFilter, fieldKey: keyof FieldFilter) => {
+    const val = advFilter[key] as string[];
+    if (val.length > 0) {
+      const newFilter = getDefaultGameFilter();
+      newFilter.matchAny = true;
+      newFilter.exactWhitelist[fieldKey] = val;
+      filter.subfilters.push(newFilter);
+    }
+  };
+
+  const nonExactFunc = (key: keyof AdvancedFilter, fieldKey: keyof FieldFilter) => {
+    const val = advFilter[key] as string[];
+    if (val.length > 0) {
+      if (val.length === 1 && val[0] === '') {
+        const newFilter = getDefaultGameFilter();
+        newFilter.matchAny = true;
+        newFilter.exactWhitelist[fieldKey] = [''];
+        filter.subfilters.push(newFilter);
+      } else {
+        const newFilter = getDefaultGameFilter();
+        newFilter.matchAny = true;
+        newFilter.whitelist[fieldKey] = val;
+        filter.subfilters.push(newFilter);
+      }
+    }
+  };
+
+  exactFunc('library', 'library');
+  exactFunc('platform', 'platforms');
+  nonExactFunc('playMode', 'playMode');
 
   return filter;
 }
