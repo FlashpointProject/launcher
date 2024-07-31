@@ -23,12 +23,12 @@ import * as Coerce from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
 import { CurateGroup } from '@renderer/store/curate/slice';
 import { getDefaultAdvancedFilter } from '@shared/search/util';
+import { Paths } from '@shared/Paths';
 
 export function updatePreferencesData(data: DeepPartial<AppPreferencesData>, send = true) {
   const preferences = window.Shared.preferences;
   // @TODO Figure out the delta change of the object tree, and only send the changes
   preferences.data = overwritePreferenceData(deepCopy(preferences.data), data);
-  console.log(preferences.data);
   if (send) {
     sendPrefs();
   }
@@ -169,6 +169,7 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   storedViews: [],
   useCustomViews: false,
   customViews: [],
+  defaultOpeningPage: Paths.HOME,
 });
 
 /**
@@ -248,6 +249,7 @@ export function overwritePreferenceData(
   parser.prop('useStoredViews',                v => source.useStoredViews                                  = !!v, true);
   parser.prop('useCustomViews',                v => source.useCustomViews                = !!v, true);
   parser.prop('customViews',                   v => source.customViews          = strArray(v), true);
+  parser.prop('defaultOpeningPage',            v   => source.defaultOpeningPage           = str(v), true);
 
   // Can't have a negative delay!
   if (source.screenshotPreviewDelay < 0) {

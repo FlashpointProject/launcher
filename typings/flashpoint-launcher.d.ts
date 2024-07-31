@@ -1070,6 +1070,8 @@ declare module 'flashpoint-launcher' {
       useCustomViews: boolean;
       /** List of custom views */
       customViews: string[];
+      /** Default Opening Page (Home, Browse pages) */
+      defaultOpeningPage: string;
     };
 
     type StoredView = {

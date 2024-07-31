@@ -4,10 +4,10 @@ import { memoizeOne } from '@shared/memoize';
 import * as React from 'react';
 import { ArrowKeyStepper, AutoSizer, Grid, GridCellProps, ScrollIndices } from 'react-virtualized-reactv17';
 import { UpdateView, ViewGameSet } from '../interfaces';
-import { findElementAncestor, getExtremeIconURL, getGameImageURL } from '../Util';
+import { findElementAncestor, gameDragDataType, getExtremeIconURL, getGameImageURL } from '../Util';
 import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
-import { GameDragEventData } from './pages/BrowsePage';
+import { GameDragData, GameDragEventData } from './pages/BrowsePage';
 import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
 
 const RENDERER_OVERSCAN = 5;
@@ -26,6 +26,8 @@ export type GameGridProps = {
   games: ViewGameSet;
   /** Total number of games in the results view there are. */
   resultsTotal?: number;
+  /** Are we in a playlist view? */
+  insideOrderedPlaylist: boolean;
   /** Currently selected game (if any). */
   selectedGameId?: string;
   /** Currently dragged game index (if any). */
@@ -46,6 +48,8 @@ export type GameGridProps = {
   onGameDragStart?: (event: React.DragEvent, dragEventData: GameDragEventData) => void;
   /** Called when the user stops dragging a game (when they release it). */
   onGameDragEnd?: (event: React.DragEvent) => void;
+  /** Moves a game at the specified index above the other game at the destination index, inside the playlist */
+  onMovePlaylistGame: (sourceGameId: string, destGameId: string) => void;
   updateView: UpdateView;
   /** Function for getting a reference to grid element. Called whenever the reference could change. */
   gridRef?: RefFunc<HTMLDivElement>;
@@ -106,6 +110,29 @@ export class GameGrid extends React.Component<GameGridProps> {
     window.Shared.back.unregisterAny(this.onResponse);
   }
 
+  onGameDrop = (event: React.DragEvent) => {
+    const rawData = event.dataTransfer.getData(gameDragDataType);
+    if (rawData) {
+      const dragData = JSON.parse(rawData) as GameDragData;
+      console.log(`source: ${dragData.index}`);
+      const destData = this.findGameDragEventData(event.target);
+      if (destData) {
+        console.log(`dest: ${destData.index}`);
+        // Move the dropped game above the target game in the playlist
+        this.props.onMovePlaylistGame(dragData.gameId, destData.gameId);
+      }
+    }
+  };
+
+  onGameDragOver = (event: React.DragEvent): void => {
+    const types = event.dataTransfer.types;
+    if (types.length === 1 && types[0] === gameDragDataType) {
+      // Show the "You can drop here" cursor while dragging something droppable over this element
+      event.dataTransfer.dropEffect = 'copy';
+      event.preventDefault();
+    }
+  };
+
   render() {
     const games = this.props.games || [];
     // @HACK: Check if the games array changed
@@ -124,6 +151,8 @@ export class GameGrid extends React.Component<GameGridProps> {
         onGameContextMenu={this.onGameContextMenu}
         onGameDragStart={this.onGameDragStart}
         onGameDragEnd={this.onGameDragEnd}
+        onGameDrop={this.props.insideOrderedPlaylist ? this.onGameDrop : undefined}
+        onGameDragOver={this.props.insideOrderedPlaylist ? this.onGameDragOver : undefined}
         findGameDragEventData={this.findGameDragEventData}
         realRef={this.wrapperRef}
         onKeyPress={this.onKeyPress}>

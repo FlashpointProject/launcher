@@ -9,7 +9,7 @@ import { UpdateInfo } from 'electron-updater';
 import { Playlist, ViewGame } from 'flashpoint-launcher';
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
-import { Paths } from './Paths';
+import { Paths } from '@shared/Paths';
 import { AboutPage, AboutPageProps } from './components/pages/AboutPage';
 import { DeveloperPage, DeveloperPageProps } from './components/pages/DeveloperPage';
 import { IFramePage, IFramePageProps } from './components/pages/IFramePage';

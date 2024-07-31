@@ -13,7 +13,13 @@ import { deepCopy } from '@shared/Util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { AppPathOverride, TagFilterGroup } from 'flashpoint-launcher';
 import * as React from 'react';
-import { getExtIconURL, getExtremeIconURL, getPlatformIconURL, isFlashpointValidCheck } from '../../Util';
+import {
+  getExtIconURL,
+  getExtremeIconURL,
+  getPlatformIconURL,
+  isFlashpointValidCheck,
+  joinLibraryRoute
+} from '../../Util';
 import { LangContext } from '../../util/lang';
 import { CheckBox } from '../CheckBox';
 import { ConfigBox, ConfigBoxInner } from '../ConfigBox';
@@ -36,6 +42,8 @@ import { Spinner } from '../Spinner';
 import { SimpleButton } from '../SimpleButton';
 import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
 import { WithSearchProps } from '@renderer/containers/withSearch';
+import { Paths } from '@shared/Paths';
+import { GENERAL_VIEW_ID } from '@renderer/store/search/slice';
 
 const { num } = Coerce;
 
@@ -110,11 +118,13 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     const serverOptions = this.itemizeServerOptionsMemo(this.props.serverNames);
     const libraryOptions = this.itemizeLibraryOptionsMemo(this.props.libraries, this.props.preferencesData.excludedRandomLibraries, this.context.libraries);
     const platformOptions = this.itemizePlatformOptionsMemo(this.props.platforms, this.props.preferencesData.nativePlatforms);
+    const defaultOpeningPageOptions = this.itemizeDefaultOpeningPageOptionsMemo(Object.keys(this.props.search.views), !this.props.preferencesData.useCustomViews, allStrings['libraries']);
     const appPathOverrides = this.renderAppPathOverridesMemo(this.props.preferencesData.appPathOverrides);
     const tagFilters = this.renderTagFiltersMemo(this.props.preferencesData.tagFilters, this.props.preferencesData.browsePageShowExtreme, this.context, this.props.logoVersion);
     const logoSetPreviewRows = this.renderLogoSetMemo(this.props.platforms, this.props.logoVersion);
     const extensions = this.renderExtensionsMemo(this.props.extensions, strings);
     const extConfigSections = this.renderExtensionConfigs(this.props.extConfigs, this.props.extConfig);
+
     return (
       <div className='config-page simple-scroll'>
         <div className='config-page__inner'>
@@ -135,6 +145,12 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 description={strings.useCustomViewsDesc}
                 checked={this.props.preferencesData.useCustomViews}
                 onToggle={this.onUseCustomViews} />
+              <ConfigBoxSelect
+                title={strings.defaultOpeningPage}
+                description={strings.defaultOpeningPageDesc}
+                value={this.props.preferencesData.defaultOpeningPage}
+                onChange={this.onDefaultOpeningPageSelect}
+                items={defaultOpeningPageOptions} />
               {/* Enable Editing */}
               <ConfigBoxCheckbox
                 title={strings.enableEditing}
@@ -545,6 +561,21 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     });
   });
 
+  itemizeDefaultOpeningPageOptionsMemo = memoizeOne((views: string[], areLibraries: boolean, strings: LangContainer['libraries']): SelectItem<string>[] => {
+    return [
+      {
+        value: Paths.HOME,
+        display: 'Home Page'
+      },
+      ...views.filter((view) => view !== GENERAL_VIEW_ID).map((view) => {
+        return {
+          value: joinLibraryRoute(view),
+          display: areLibraries ? strings[view] || view : view,
+        };
+      })
+    ];
+  });
+
   renderClearPlaytimeButton = ({ confirm, extra }: ConfirmElementArgs<[LangContainer['config']]>) => {
     return (
       <SimpleButton
@@ -828,7 +859,10 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   };
 
   onUseCustomViews = (isChecked: boolean): void => {
-    updatePreferencesData({ useCustomViews: isChecked });
+    updatePreferencesData({
+      useCustomViews: isChecked,
+      defaultOpeningPage: Paths.HOME,
+    });
     if (isChecked) {
       const customViews = this.props.preferencesData.customViews;
       if (customViews.length === 0) {
@@ -907,6 +941,11 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   onFallbackLanguageSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     updatePreferencesData({ fallbackLanguage: event.target.value });
+  };
+
+  onDefaultOpeningPageSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
+    console.log(event.target.value);
+    updatePreferencesData({ defaultOpeningPage: event.target.value });
   };
 
   onExcludedLibraryCheckboxChange = (library: string): void => {

@@ -1,4 +1,4 @@
-import { Paths } from '@renderer/Paths';
+import { Paths } from '@shared/Paths';
 import { Link } from 'react-router-dom';
 
 /** Page shown when the current URL does not point to an existing page. */

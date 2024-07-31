@@ -21,6 +21,8 @@ const langTemplate = {
     'searchLimitValue',
     'useCustomViews',
     'useCustomViewsDesc',
+    'defaultOpeningPage',
+    'defaultOpeningPageDesc',
     'restoreSearchViews',
     'restoreSearchViewsDesc',
     'enableEditing',

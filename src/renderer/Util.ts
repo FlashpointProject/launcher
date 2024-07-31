@@ -4,7 +4,7 @@ import { Game, Playlist, TagFilterGroup } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as path from 'path';
 import { GameOrderChangeEvent } from './components/GameOrder';
-import { Paths } from './Paths';
+import { Paths } from '@shared/Paths';
 import { GameDragEventData } from './components/pages/BrowsePage';
 import { GameGridItem } from './components/GameGridItem';
 import { GameListItem } from './components/GameListItem';

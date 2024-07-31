@@ -7,7 +7,7 @@ import { MenuItemConstructorOptions } from 'electron';
 import * as React from 'react';
 import { Link, RouteComponentProps, useLocation } from 'react-router-dom';
 import { WithPreferencesProps } from '../containers/withPreferences';
-import { Paths } from '../Paths';
+import { Paths } from '@shared/Paths';
 import { joinLibraryRoute } from '../Util';
 import { LangContext } from '../util/lang';
 import { OpenIcon } from './OpenIcon';
@@ -71,6 +71,11 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
             storedViews.push({
               ...existingStoredView,
               view: name
+            });
+          }
+          if (this.props.preferencesData.defaultOpeningPage === joinLibraryRoute(view)) {
+            updatePreferencesData({
+              defaultOpeningPage: joinLibraryRoute(name)
             });
           }
           updatePreferencesData({
@@ -170,6 +175,12 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
       }
       const customViews = this.props.preferencesData.customViews.filter(v => v !== view);
       const storedViews = this.props.preferencesData.storedViews.filter(v => v.view !== view);
+      // Make sure the default page is always valid
+      if (this.props.preferencesData.defaultOpeningPage === joinLibraryRoute(view)) {
+        updatePreferencesData({
+          defaultOpeningPage: Paths.HOME,
+        });
+      }
       updatePreferencesData({
         customViews: customViews,
         storedViews: storedViews,

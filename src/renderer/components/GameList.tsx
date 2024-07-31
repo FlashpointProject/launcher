@@ -44,7 +44,7 @@ export type OwnProps = {
   onGameDragStart: (event: React.DragEvent, dragEventData: GameDragEventData) => void;
   /** Called when the user stops dragging a game (when they release it). */
   onGameDragEnd: (event: React.DragEvent) => void;
-  /** Moves a game at the specified index above the other game at the destination index, inside tha playlist */
+  /** Moves a game at the specified index above the other game at the destination index, inside the playlist */
   onMovePlaylistGame: (sourceGameId: string, destGameId: string) => void;
   updateView: UpdateView;
   /** Function for getting a reference to grid element. Called whenever the reference could change. */

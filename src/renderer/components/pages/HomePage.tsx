@@ -11,7 +11,7 @@ import ReactDatePicker from 'react-datepicker';
 import ReactMarkdown from 'react-markdown';
 import { Link } from 'react-router-dom';
 import remarkGfm from 'remark-gfm';
-import { Paths } from '../../Paths';
+import { Paths } from '@shared/Paths';
 import { findGameDragEventDataGrid, getExtremeIconURL, getGameImageURL, getPlatformIconURL, joinLibraryRoute } from '../../Util';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { WithSearchProps } from '../../containers/withSearch';

@@ -106,6 +106,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   loadView() {
     // Force the first search if view hasn't been used yet
     if (this.props.currentView.data.metaState === RequestState.WAITING) {
+      // console.log('loading view ' + this.props.currentView.id);
       this.props.searchActions.forceSearch({
         view: this.props.currentView.id
       });
@@ -167,6 +168,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   <GameGrid
                     games={currentView.data.games}
                     resultsTotal={currentView.data.total !== undefined ? currentView.data.total : Object.keys(currentView.data.games).length}
+                    insideOrderedPlaylist={currentView.selectedPlaylist !== undefined && currentView.advancedFilter.playlistOrder}
                     selectedGameId={currentView.selectedGame?.id}
                     draggedGameIndex={draggedGameIndex}
                     extremeTags={extremeTags}
@@ -176,6 +178,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                     onContextMenu={this.props.onGameContextMenu}
                     onGameDragStart={this.onGameDragStart}
                     onGameDragEnd={this.onGameDragEnd}
+                    onMovePlaylistGame={this.onMovePlaylistGame}
                     cellWidth={width}
                     cellHeight={height}
                     logoVersion={this.props.logoVersion}

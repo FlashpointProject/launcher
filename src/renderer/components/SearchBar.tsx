@@ -116,9 +116,6 @@ export function SearchBar(props: SearchBarProps) {
   const onToggleLibrary = onToggleFactory('libraries');
   const onClearLibraries = onClearFactory('libraries');
 
-  console.log('libraries adv');
-  console.log(view.advancedFilter.libraries);
-
   return (
     <div className={`search-bar-wrapper ${expanded ? 'search-bar-wrapper--expanded-simple' : ''}`}>
       <div className="search-bar">

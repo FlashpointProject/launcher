@@ -110,7 +110,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   onOriginalDescriptionChange = this.wrapOnTextChange((game, text) => this.props.onEditGame({ originalDescription: text }));
   // Bound "on click" callbacks for game fields
   onDeveloperClick            = this.wrapOnTextClick('developer');
-  onSeriesClick               = this.wrapOnTextClick('series');
+  onSeriesClick               = this.wrapOnExactTextClick('series');
   onSourceClick               = this.wrapOnTextClick('source');
   onPublisherClick            = this.wrapOnTextClick('publisher');
   onPlayModeClick             = this.wrapOnTextClick('playMode');
@@ -1398,6 +1398,25 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
         const search = (value)
           ? `${field}:${wrapSearchTerm(value)}`
           : `${field}:""`;
+        this.props.onSearch(search);
+      }
+    };
+  }
+
+  /**
+ * Create a callback for when a game field is clicked.
+ *
+ * @param field Name of metadata field that was clicked
+ */
+  wrapOnExactTextClick<T extends PickType<Game, string>>(field: T): () => void {
+    return () => {
+      const { isEditing } = this.props;
+      if (!isEditing && this.props.currentGame) {
+        this.props.onDeselectPlaylist();
+        const value = this.props.currentGame[field as keyof Game]?.toString();
+        const search = (value)
+          ? `${field}=${wrapSearchTerm(value)}`
+          : `${field}=""`;
         this.props.onSearch(search);
       }
     };

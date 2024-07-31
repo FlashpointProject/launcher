@@ -43,7 +43,7 @@ import { WithTagCategoriesProps } from '../containers/withTagCategories';
 import { WithTasksProps } from '../containers/withTasks';
 import { CreditsFile } from '../credits/CreditsFile';
 import { fpfssLogin } from '../fpfss';
-import { Paths } from '../Paths';
+import { Paths } from '@shared/Paths';
 import { AppRouter, AppRouterProps } from '../router';
 import { getViewName, getGameImagePath, getGameImageURL, getGamePath, joinLibraryRoute } from '../Util';
 import { LangContext } from '../util/lang';
@@ -298,6 +298,7 @@ export class App extends React.Component<AppProps> {
             views: customViews,
             areLibraries: false,
           });
+
         }
       } else {
         if (this.props.preferencesData.useStoredViews) {
@@ -315,6 +316,8 @@ export class App extends React.Component<AppProps> {
       }
 
       this.props.setTagCategories(data.tagCategories);
+      console.log('navigating to ' + this.props.preferencesData.defaultOpeningPage);
+      this.props.history.push(this.props.preferencesData.defaultOpeningPage);
     })
     .then(() => {
       this.props.mainActions.addLoaded([BackInit.DATABASE]);
@@ -361,7 +364,6 @@ export class App extends React.Component<AppProps> {
   registerWebsocketListeners() {
     window.Shared.back.register(BackOut.INIT_EVENT, (event, data) => {
       for (const index of data.done) {
-        console.log('new ' + index);
         switch (+index) { // DO NOT REMOVE - Fails to convert to enum without explicitint conversion
           case BackInit.DATABASE: {
             this.onDatabaseLoaded();

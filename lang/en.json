@@ -16,6 +16,8 @@
     "searchLimitValue": "{0} Results",
     "useCustomViews": "Use Custom Search Views",
     "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
+    "defaultOpeningPage": "Default Opening Page",
+    "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
     "restoreSearchViews": "Restore Search Results",
     "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
     "enableEditing": "Enable Editing",
