@@ -1524,6 +1524,11 @@ body {
   box-shadow: 0px 2px 4px 0px #09090a;
 }
 
+.search-selector:hover,
+.search-bar-simple-box:hover {
+  background-color: #363638;
+}
+
 .search-bar-simple-box > * {
   filter: unset;
 }
