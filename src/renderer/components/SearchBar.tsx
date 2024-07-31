@@ -159,10 +159,10 @@ export function SearchBar(props: SearchBarProps) {
       { expanded &&
          (
            <div className='search-bar-expansion search-bar-expansion-simple'>
-             {/* <ThreeStateCheckbox */}
-             {/*   title="Installed" */}
-             {/*   value={view.advancedFilter.installed} */}
-             {/*   onChange={onInstalledChange}/> */}
+             <ThreeStateCheckbox
+               title='Installed'
+               value={view.advancedFilter.installed}
+               onChange={onInstalledChange}/>
              { view.selectedPlaylist && (
                <ThreeStateCheckbox
                  title="Use Playlist Order"
