@@ -376,6 +376,12 @@ export namespace GameLauncher {
         ...newEnvVars, 'WINEDEBUG': 'fixme-all',
         ...(proxy !== '' ? {'http_proxy': `http://${proxy}/`, 'HTTP_PROXY': `http://${proxy}/`} : null)
       };
+      // If WINE's bin directory exists in FPSoftware, add it to the PATH
+      if (fs.existsSync(`${fpPath}/FPSoftware/Wine/bin`)) {
+        newEnvVars = {
+          ...newEnvVars, 'PATH': `${fpPath}/FPSoftware/Wine/bin:` + process.env.PATH
+        }
+      }
     }
     return {
       // Copy this processes environment variables
