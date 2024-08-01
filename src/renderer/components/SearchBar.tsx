@@ -7,13 +7,12 @@ import { useView } from '@renderer/hooks/search';
 import { forceSearch, setAdvancedFilter, setOrderBy, setOrderReverse, setSearchText } from '@renderer/store/search/slice';
 import { ArrowKeyStepper, AutoSizer, List, ListRowProps } from 'react-virtualized-reactv17';
 import { AdvancedFilter } from 'flashpoint-launcher';
-import { useContext } from 'react';
+import { useContext, useMemo } from 'react';
 import { LangContext } from '@renderer/util/lang';
 import { useAppSelector } from '@renderer/hooks/useAppSelector';
+import { getPlatformIconURL } from '@renderer/Util';
 
-export type SearchBarProps = {};
-
-export function SearchBar(props: SearchBarProps) {
+export function SearchBar() {
   const view = useView();
   const dispatch = useDispatch();
   const [expanded, setExpanded] = React.useState(true);
@@ -122,6 +121,32 @@ export function SearchBar(props: SearchBarProps) {
   const onTogglePlatform = onToggleFactory('platform');
   const onClearPlatform = onClearFactory('platform');
 
+  const simpleSelectItems = (values: string[]): SearchableSelectItem[] => {
+    return values.map(v => ({
+      value: v,
+      orderVal: v,
+    }));
+  };
+
+  const libraryItems = useMemo(() => simpleSelectItems(mainState.libraries), [mainState.libraries]);
+  const playModeItems = useMemo(() => simpleSelectItems(mainState.suggestions.playMode), [mainState.suggestions.playMode]);
+  const platformItems = useMemo(() => simpleSelectItems(mainState.suggestions.platforms), [mainState.suggestions.platforms]);
+
+  const platformLabelRenderer = (item: SearchableSelectItem) => {
+    const platformIcon = getPlatformIconURL(item.value, mainState.logoVersion);
+
+    return (
+      <div className='platform-label-row'>
+        <div
+          className="dropdown-icon dropdown-icon-image"
+          style={{ backgroundImage: `url('${platformIcon}')` }}/>
+        <div className="searchable-select-dropdown-item-title">
+          {item.value}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className={`search-bar-wrapper ${expanded ? 'search-bar-wrapper--expanded-simple' : ''}`}>
       <div className="search-bar">
@@ -176,7 +201,7 @@ export function SearchBar(props: SearchBarProps) {
              { window.Shared.preferences.data.useCustomViews && (
                <SearchableSelect
                  title={strings.browse.library}
-                 items={mainState.libraries}
+                 items={libraryItems}
                  selected={view.advancedFilter.library}
                  onToggle={onToggleLibrary}
                  onClear={onClearLibraries}
@@ -186,13 +211,14 @@ export function SearchBar(props: SearchBarProps) {
              )}
              <SearchableSelect
                title={strings.browse.playMode}
-               items={mainState.suggestions.playMode}
+               items={playModeItems}
                selected={view.advancedFilter.playMode}
                onToggle={onTogglePlayMode}
                onClear={onClearPlayMode} />
              <SearchableSelect
                title={strings.browse.platform}
-               items={mainState.suggestions.platforms}
+               items={platformItems}
+               labelRenderer={platformLabelRenderer}
                selected={view.advancedFilter.platform}
                onToggle={onTogglePlatform}
                onClear={onClearPlatform} />
@@ -244,17 +270,23 @@ function ThreeStateCheckbox(props: ThreeStateCheckboxProps) {
   );
 }
 
-type SearchableSelectProps = {
+type SearchableSelectProps<T extends SearchableSelectItem> = {
   title: string;
-  items: string[];
+  items: T[];
   selected: string[];
-  onToggle: (item: string) => void;
+  onToggle: (value: string) => void;
   onClear: () => void;
-  mapName?: (id: string) => string;
+  mapName?: (name: string) => string;
+  labelRenderer?: (item: T, selected: boolean) => JSX.Element;
 }
 
-function SearchableSelect(props: SearchableSelectProps) {
-  const { title, items, selected, onToggle, onClear, mapName } = props;
+type SearchableSelectItem = {
+  value: string;
+  orderVal: string;
+}
+
+function SearchableSelect<T extends SearchableSelectItem>(props: SearchableSelectProps<T>) {
+  const { title, items, selected, onToggle, onClear, mapName, labelRenderer } = props;
   const [expanded, setExpanded] = React.useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
 
@@ -302,10 +334,11 @@ function SearchableSelect(props: SearchableSelectProps) {
         </div>
         {expanded && (
           <SearchableSelectDropdown
-            items={[...items].sort()}
+            items={items.sort((a, b) => a.orderVal.localeCompare(b.orderVal))}
             onToggle={onToggle}
             selected={selected}
             mapName={mapName}
+            labelRenderer={labelRenderer}
           />
         )}
       </div>
@@ -313,15 +346,17 @@ function SearchableSelect(props: SearchableSelectProps) {
   );
 }
 
-type SearchableSelectDropdownProps = {
-  items: string[];
+type SearchableSelectDropdownProps<T extends SearchableSelectItem> = {
+  items: T[];
   selected: string[];
+
+  labelRenderer?: (item: T, selected: boolean) => JSX.Element;
   mapName?: (id: string) => string;
   onToggle: (item: string) => void;
 }
 
-function SearchableSelectDropdown(props: SearchableSelectDropdownProps) {
-  const { items, selected, onToggle, mapName } = props;
+function SearchableSelectDropdown<T extends SearchableSelectItem>(props: SearchableSelectDropdownProps<T>) {
+  const { items, selected, onToggle, mapName, labelRenderer } = props;
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   const [search, setSearch] = React.useState('');
@@ -329,9 +364,8 @@ function SearchableSelectDropdown(props: SearchableSelectDropdownProps) {
 
   const filteredItems = React.useMemo(() => {
     const lowerSearch = search.toLowerCase().replace(' ', '');
-    return storedItems.filter((item) => item.toLowerCase().replace(' ', '').includes(lowerSearch));
+    return storedItems.filter((item) => item.orderVal.toLowerCase().replace(' ', '').includes(lowerSearch));
   }, [search, storedItems]);
-  console.log(filteredItems);
 
   // Update the stored items when all selections removed
   // Too difficult to do this any other way
@@ -344,27 +378,46 @@ function SearchableSelectDropdown(props: SearchableSelectDropdownProps) {
   const rowRenderer = (props: ListRowProps) => {
     const { style } = props;
     const item = filteredItems[props.index];
-    console.log(filteredItems[0]);
 
-    const marked = selected.includes(item);
+    const marked = selected.includes(item.value);
 
-    return (
-      <div
-        style={style}
-        title={item ? (mapName ? mapName(item) : item ) : 'None'}
-        className={`searchable-select-dropdown-item ${marked && 'searchable-select-dropdown-item--selected'}`}
-        onClick={() => onToggle(item)}
-        key={item}>
-        <div className="searchable-select-dropdown-item-title">
-          {item ? (mapName ? mapName(item) : item ) : <i>None</i>}
+    if (labelRenderer !== undefined) {
+      return (
+        <div
+          style={style}
+          title={item.orderVal ? (mapName ? mapName(item.orderVal) : item.orderVal ) : 'None'}
+          className={`searchable-select-dropdown-item ${marked && 'searchable-select-dropdown-item--selected'}`}
+          onClick={() => onToggle(item.value)}
+          key={item.value}>
+          {labelRenderer(item, marked)}
+          { marked && (
+            <div className="searchable-select-dropdown-item-marked">
+              <OpenIcon icon='check'/>
+            </div>
+          )}
         </div>
-        { marked && (
-          <div className="searchable-select-dropdown-item-marked">
-            <OpenIcon icon='check'/>
+      );
+    } else {
+      return (
+        <div
+          style={style}
+          title={item.orderVal ? (mapName ? mapName(item.orderVal) : item.orderVal ) : 'None'}
+          className={`searchable-select-dropdown-item ${marked && 'searchable-select-dropdown-item--selected'}`}
+          onClick={() => onToggle(item.value)}
+          key={item.value}>
+          <div className="searchable-select-dropdown-item-title">
+            {item.orderVal ? (mapName ? mapName(item.orderVal) : item.orderVal ) : <i>None</i>}
           </div>
-        )}
-      </div>
-    );
+          { marked && (
+            <div className="searchable-select-dropdown-item-marked">
+              <OpenIcon icon='check'/>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+
   };
 
   React.useEffect(() => {

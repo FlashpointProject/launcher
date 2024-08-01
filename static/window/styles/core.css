@@ -3622,3 +3622,22 @@ body {
   height: 80%;
   margin-right: 0.3rem;
 }
+
+.dropdown-icon {
+  height: 1rem;
+  width: 1rem;
+  flex: none;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.platform-label-row {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+}
+
+.platform-label-row > :not(:first-child) {
+  margin-left: 0.3rem;
+}

@@ -10,6 +10,7 @@ import { WithPreferencesProps } from '../containers/withPreferences';
 import { gameScaleSpan, getViewName } from '../Util';
 import { LangContext } from '../util/lang';
 import { WithViewProps } from '@renderer/containers/withView';
+import { GENERAL_VIEW_ID } from '@renderer/store/search/slice';
 
 export type FooterProps = RouteComponentProps & WithViewProps & WithPreferencesProps & WithMainStateProps;
 
@@ -61,7 +62,7 @@ export class Footer extends React.Component<FooterProps> {
             {/* Game Count */}
             <div className='footer__game-count'>
               <p>{`${strings.total}: ${this.props.main.gamesTotal}`}</p>
-              {currentLabel && strings.searchResults ? (
+              {currentLabel && view.id !== GENERAL_VIEW_ID && strings.searchResults ? (
                 <>
                   <p>|</p>
                   <p>{`${strings.searchResults}: ${gamesTotal > -1 ? gamesTotal : this.context.misc.searching}`}</p>
