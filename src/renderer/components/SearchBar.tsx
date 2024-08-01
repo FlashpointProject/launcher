@@ -179,10 +179,10 @@ export function SearchBar() {
               value: event.orderReverse
             }));
           }}/>
-        <SimpleButton
-          style={{ height: '100%' }}
-          value={expanded ? 'Hide Filters' : 'Show Filters'}
-          onClick={() => setExpanded(!expanded)}/>
+        {/* <SimpleButton */}
+        {/*   style={{ height: '100%' }} */}
+        {/*   value={expanded ? 'Hide Filters' : 'Show Filters'} */}
+        {/*   onClick={() => setExpanded(!expanded)}/> */}
       </div>
       { expanded &&
          (
@@ -362,9 +362,15 @@ function SearchableSelectDropdown<T extends SearchableSelectItem>(props: Searcha
   const [search, setSearch] = React.useState('');
   const [storedItems, setStoredItems] = React.useState(items); // 'cache' the items
 
+  // Split the items into 2 halves - Selected and not selected, then merge
+
   const filteredItems = React.useMemo(() => {
     const lowerSearch = search.toLowerCase().replace(' ', '');
-    return storedItems.filter((item) => item.orderVal.toLowerCase().replace(' ', '').includes(lowerSearch));
+
+    return [
+      ...storedItems.filter((item) => selected.includes(item.value) && item.orderVal.toLowerCase().includes(lowerSearch)),
+      ...storedItems.filter((item) => !selected.includes(item.value) && item.orderVal.toLowerCase().includes(lowerSearch)),
+    ];
   }, [search, storedItems]);
 
   // Update the stored items when all selections removed
