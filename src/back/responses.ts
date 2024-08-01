@@ -1138,10 +1138,9 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     return platform;
   });
 
-  state.socketServer.register(BackIn.GET_TAGS, async (event, name, tagFilters) => {
+  state.socketServer.register(BackIn.GET_TAGS, async (event, tagFilters) => {
     const flatFilters: string[] = tagFilters ? tagFilters.reduce<string[]>((prev, cur) => prev.concat(cur.tags), []) : [];
     const tags = (await fpDatabase.findAllTags()).filter(t => !t.aliases.some(a => flatFilters.includes(a)));
-    state.socketServer.send(event.client, BackOut.GET_TAGS, tags);
     return tags;
   });
 

@@ -479,7 +479,6 @@ const searchSlice = createSlice({
     },
     addData(state: SearchState, { payload }: PayloadAction<SearchAddDataAction>) {
       const data = payload.data;
-      console.log(payload);
       const view = state.views[payload.view];
       if (view) {
         log.debug('Search', `ADD DATA - Cur: ${view.data.searchId} Recv: ${payload.data.searchId}`);

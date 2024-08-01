@@ -1090,6 +1090,7 @@ declare module 'flashpoint-launcher' {
       library: string[];
       playMode: string[];
       platform: string[];
+      tags: string[];
     }
 
     enum ScreenshotPreviewMode {

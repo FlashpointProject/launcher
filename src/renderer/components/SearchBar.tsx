@@ -2,22 +2,29 @@ import * as React from 'react';
 import { useDispatch } from 'react-redux';
 import { GameOrder } from './GameOrder';
 import { OpenIcon } from './OpenIcon';
-import { SimpleButton } from './SimpleButton';
 import { useView } from '@renderer/hooks/search';
 import { forceSearch, setAdvancedFilter, setOrderBy, setOrderReverse, setSearchText } from '@renderer/store/search/slice';
 import { ArrowKeyStepper, AutoSizer, List, ListRowProps } from 'react-virtualized-reactv17';
-import { AdvancedFilter } from 'flashpoint-launcher';
-import { useContext, useMemo } from 'react';
+import { AdvancedFilter, Tag } from 'flashpoint-launcher';
+import { useContext, useMemo, useState } from 'react';
 import { LangContext } from '@renderer/util/lang';
 import { useAppSelector } from '@renderer/hooks/useAppSelector';
 import { getPlatformIconURL } from '@renderer/Util';
+import { BackIn } from '@shared/back/types';
 
 export function SearchBar() {
   const view = useView();
   const dispatch = useDispatch();
-  const [expanded, setExpanded] = React.useState(true);
   const strings = useContext(LangContext);
-  const mainState = useAppSelector((state) => state.main);
+  const { main: mainState, tagCategories } = useAppSelector((state) => state);
+  const [tags, setTags] = useState<Tag[]>([]);
+
+  React.useEffect(() => {
+    window.Shared.back.request(BackIn.GET_TAGS, window.Shared.preferences.data.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !window.Shared.preferences.data.browsePageShowExtreme)))
+    .then((tags) => {
+      setTags(tags);
+    });
+  }, [window.Shared.preferences.data.tagFilters, window.Shared.preferences.data.browsePageShowExtreme]);
 
   const onTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSearchText({
@@ -121,6 +128,9 @@ export function SearchBar() {
   const onTogglePlatform = onToggleFactory('platform');
   const onClearPlatform = onClearFactory('platform');
 
+  const onToggleTag = onToggleFactory('tags');
+  const onClearTags = onClearFactory('tags');
+
   const simpleSelectItems = (values: string[]): SearchableSelectItem[] => {
     return values.map(v => ({
       value: v,
@@ -131,6 +141,13 @@ export function SearchBar() {
   const libraryItems = useMemo(() => simpleSelectItems(mainState.libraries), [mainState.libraries]);
   const playModeItems = useMemo(() => simpleSelectItems(mainState.suggestions.playMode), [mainState.suggestions.playMode]);
   const platformItems = useMemo(() => simpleSelectItems(mainState.suggestions.platforms), [mainState.suggestions.platforms]);
+  const tagItems = useMemo((): TagSelectItem[] => {
+    return tags.map(tag => ({
+      value: tag.name,
+      orderVal: `${tag.category} ${tag.name} ${tag.aliases.join((' '))}`,
+      tag: tag,
+    }));
+  }, [tags]);
 
   const platformLabelRenderer = (item: SearchableSelectItem) => {
     const platformIcon = getPlatformIconURL(item.value, mainState.logoVersion);
@@ -147,8 +164,27 @@ export function SearchBar() {
     );
   };
 
+  const tagLabelRenderer = (item: TagSelectItem) => {
+    const category = tagCategories.find(t => t.name === item.tag.category);
+
+    return (
+      <div className='platform-label-row'>
+        <div
+          className="dropdown-icon dropdown-icon-image">
+          <OpenIcon
+            className='curate-tag__icon'
+            color={category ? category.color : '#FFFFFF'}
+            icon='tag'/>
+        </div>
+        <div className="searchable-select-dropdown-item-title">
+          {item.tag.name}
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className={`search-bar-wrapper ${expanded ? 'search-bar-wrapper--expanded-simple' : ''}`}>
+    <div className='search-bar-wrapper search-bar-wrapper--expanded-simple'>
       <div className="search-bar">
         <div className="search-bar-icon">
           <OpenIcon icon='magnifying-glass'/>
@@ -184,47 +220,50 @@ export function SearchBar() {
         {/*   value={expanded ? 'Hide Filters' : 'Show Filters'} */}
         {/*   onClick={() => setExpanded(!expanded)}/> */}
       </div>
-      { expanded &&
-         (
-           <div className='search-bar-expansion search-bar-expansion-simple'>
-             <ThreeStateCheckbox
-               title={strings.browse.installed}
-               value={view.advancedFilter.installed}
-               onChange={onInstalledChange}/>
-             { view.selectedPlaylist && (
-               <ThreeStateCheckbox
-                 title={strings.browse.usePlaylistOrder}
-                 value={view.advancedFilter.playlistOrder}
-                 twoState={true}
-                 onChange={onPlaylistOrderChange}/>
-             )}
-             { window.Shared.preferences.data.useCustomViews && (
-               <SearchableSelect
-                 title={strings.browse.library}
-                 items={libraryItems}
-                 selected={view.advancedFilter.library}
-                 onToggle={onToggleLibrary}
-                 onClear={onClearLibraries}
-                 mapName={(item) => {
-                   return strings.libraries[item] || item;
-                 }}/>
-             )}
-             <SearchableSelect
-               title={strings.browse.playMode}
-               items={playModeItems}
-               selected={view.advancedFilter.playMode}
-               onToggle={onTogglePlayMode}
-               onClear={onClearPlayMode} />
-             <SearchableSelect
-               title={strings.browse.platform}
-               items={platformItems}
-               labelRenderer={platformLabelRenderer}
-               selected={view.advancedFilter.platform}
-               onToggle={onTogglePlatform}
-               onClear={onClearPlatform} />
-           </div>
-         )
-      }
+      <div className='search-bar-expansion search-bar-expansion-simple'>
+        <ThreeStateCheckbox
+          title={strings.browse.installed}
+          value={view.advancedFilter.installed}
+          onChange={onInstalledChange}/>
+        { view.selectedPlaylist && (
+          <ThreeStateCheckbox
+            title={strings.browse.usePlaylistOrder}
+            value={view.advancedFilter.playlistOrder}
+            twoState={true}
+            onChange={onPlaylistOrderChange}/>
+        )}
+        { window.Shared.preferences.data.useCustomViews && (
+          <SearchableSelect
+            title={strings.browse.library}
+            items={libraryItems}
+            selected={view.advancedFilter.library}
+            onToggle={onToggleLibrary}
+            onClear={onClearLibraries}
+            mapName={(item) => {
+              return strings.libraries[item] || item;
+            }}/>
+        )}
+        <SearchableSelect
+          title={strings.browse.playMode}
+          items={playModeItems}
+          selected={view.advancedFilter.playMode}
+          onToggle={onTogglePlayMode}
+          onClear={onClearPlayMode} />
+        <SearchableSelect
+          title={strings.browse.platform}
+          items={platformItems}
+          labelRenderer={platformLabelRenderer}
+          selected={view.advancedFilter.platform}
+          onToggle={onTogglePlatform}
+          onClear={onClearPlatform} />
+        <SearchableSelect
+          title={strings.browse.tags}
+          items={tagItems}
+          labelRenderer={tagLabelRenderer}
+          selected={view.advancedFilter.tags}
+          onToggle={onToggleTag}
+          onClear={onClearTags} />
+      </div>
     </div>
   );
 }
@@ -284,6 +323,10 @@ type SearchableSelectItem = {
   value: string;
   orderVal: string;
 }
+
+type TagSelectItem = {
+  tag: Tag;
+} & SearchableSelectItem;
 
 function SearchableSelect<T extends SearchableSelectItem>(props: SearchableSelectProps<T>) {
   const { title, items, selected, onToggle, onClear, mapName, labelRenderer } = props;

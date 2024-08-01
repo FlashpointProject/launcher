@@ -25,6 +25,7 @@ export function getDefaultAdvancedFilter(library?: string): AdvancedFilter {
     library: library ? [library] : [],
     playMode: [],
     platform: [],
+    tags: [],
   };
 }
 
@@ -48,7 +49,8 @@ export function isAdvFilterEmpty(advFilter: AdvancedFilter): boolean {
     advFilter.installed === undefined &&
     advFilter.library.length === 0 &&
     advFilter.playMode.length === 0 &&
-    advFilter.platform.length === 0
+    advFilter.platform.length === 0 &&
+    advFilter.tags.length === 0
   );
 }
 
@@ -89,6 +91,7 @@ export function parseAdvancedFilter(advFilter: AdvancedFilter): GameFilter {
   exactFunc('library', 'library');
   exactFunc('platform', 'platforms');
   nonExactFunc('playMode', 'playMode');
+  exactFunc('tags', 'tags');
 
   return filter;
 }

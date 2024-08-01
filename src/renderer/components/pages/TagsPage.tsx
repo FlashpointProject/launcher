@@ -44,7 +44,7 @@ export class TagsPage extends React.Component<TagsPageProps, TagsPageState> {
   }
 
   componentDidMount() {
-    window.Shared.back.request(BackIn.GET_TAGS, '', this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme)))
+    window.Shared.back.request(BackIn.GET_TAGS, this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme)))
     .then((data) => {
       if (data) { this.onTagsChange(data); }
     });
@@ -113,8 +113,8 @@ export class TagsPage extends React.Component<TagsPageProps, TagsPageState> {
 
   onEditTag = (tag: Partial<Tag>) => {
     if (this.state.currentTag) {
-      const newTag = {...deepCopy(this.state.currentTag), ...tag};
-      this.setState({currentTag: newTag});
+      const newTag = { ...deepCopy(this.state.currentTag), ...tag };
+      this.setState({ currentTag: newTag });
     }
   };
 
