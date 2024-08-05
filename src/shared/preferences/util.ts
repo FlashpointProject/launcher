@@ -393,8 +393,12 @@ function parseGameMetadataSource(parser: IObjectParserProp<GameMetadataSource>):
 
 function parseAdvancedFilter(parser: IObjectParserProp<AdvancedFilter>, output: AdvancedFilter) {
   parser.prop('installed', v => output.installed = v === undefined ? undefined : !!v, true);
+  parser.prop('legacy', v => output.legacy = v === undefined ? undefined : !!v, true);
   parser.prop('library').arrayRaw((item, index) => output.library[index] = str(item));
   parser.prop('playlistOrder', v => output.playlistOrder = !!v, true);
+  parser.prop('playMode').arrayRaw((item, index) => output.playMode[index] = str(item));
+  parser.prop('platform').arrayRaw((item, index) => output.platform[index] = str(item));
+  parser.prop('tags').arrayRaw((item, index) => output.tags[index] = str(item));
 }
 
 function parseStoredView(parser: IObjectParserProp<StoredView>): StoredView {

@@ -1086,6 +1086,7 @@ declare module 'flashpoint-launcher' {
 
     type AdvancedFilter = {
       installed?: boolean;
+      legacy?: boolean;
       playlistOrder: boolean;
       library: string[];
       playMode: string[];

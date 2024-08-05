@@ -47,6 +47,7 @@ export function getDefaultGameFilter(): GameFilter {
 export function isAdvFilterEmpty(advFilter: AdvancedFilter): boolean {
   return (
     advFilter.installed === undefined &&
+    advFilter.legacy === undefined &&
     advFilter.library.length === 0 &&
     advFilter.playMode.length === 0 &&
     advFilter.platform.length === 0 &&
@@ -59,6 +60,14 @@ export function parseAdvancedFilter(advFilter: AdvancedFilter): GameFilter {
 
   if (advFilter.installed !== undefined) {
     filter.boolComp.installed = advFilter.installed;
+  }
+
+  if (advFilter.legacy !== undefined) {
+    if (advFilter.legacy) {
+      filter.equalTo.gameData = 0;
+    } else {
+      filter.higherThan.gameData = 0;
+    }
   }
 
   const exactFunc = (key: keyof AdvancedFilter, fieldKey: keyof FieldFilter) => {

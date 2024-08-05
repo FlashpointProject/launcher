@@ -68,6 +68,16 @@ export function SearchBar() {
     }));
   };
 
+  const onLegacyChange = (value?: boolean) => {
+    dispatch(setAdvancedFilter({
+      view: view.id,
+      filter: {
+        ...view.advancedFilter,
+        legacy: value,
+      }
+    }));
+  };
+
   const onPlaylistOrderChange = (value?: boolean) => {
     dispatch(setAdvancedFilter({
       view: view.id,
@@ -225,6 +235,10 @@ export function SearchBar() {
           title={strings.browse.installed}
           value={view.advancedFilter.installed}
           onChange={onInstalledChange}/>
+        <ThreeStateCheckbox
+          title={strings.browse.legacyGame}
+          value={view.advancedFilter.legacy}
+          onChange={onLegacyChange}/>
         { view.selectedPlaylist && (
           <ThreeStateCheckbox
             title={strings.browse.usePlaylistOrder}
