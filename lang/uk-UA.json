@@ -184,9 +184,9 @@
     "grid": "Сітка",
     "searchResults": "Результати пошуку",
     "manual": "Допомога",
-    "layout": "Browser Layout",
-    "openFlashpointManager": "Open Flashpoint Manager",
-    "fpfssProfile": "Open Profile",
+    "layout": "Макет браузера",
+    "openFlashpointManager": "Відкрити Flashpoint Manager",
+    "fpfssProfile": "Відкрити профіль",
     "fpfssLogout": "Logout from FPFSS",
     "softwareUpdateRequired": "Software updated required. Do this now?",
     "noLauncherUpdateReady": "Metadata update requires a newer Launcher version, but the software update is not currently available."
