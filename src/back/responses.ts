@@ -1448,7 +1448,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     const res = 'Exported Database:' +
     `\nTag Categories: ${jsonFile.tags.categories.length.toString().padStart(5, ' ')} ` +
     `\nTags: ${jsonFile.tags.tags.length.toString().padStart(11, ' ')} ` +
-    `\nPlatforms: ${jsonFile.platforms.platforms.length.toString().padStart(9, ' ')} ` +
+    `\nPlatforms: ${jsonFile.platforms.length.toString().padStart(9, ' ')} ` +
     `\nGames: ${jsonFile.games.games.length.toString().padStart(14, ' ')} `;
 
     jsonFile = JSON.stringify(jsonFile, null, 0);
