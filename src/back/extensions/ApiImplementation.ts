@@ -21,7 +21,7 @@ import {
 } from '@back/util/misc';
 import { BrowsePageLayout, ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
-import { BackOut } from '@shared/back/types';
+import { BackOut, FpfssUser } from '@shared/back/types';
 import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
 import { CurationMeta } from '@shared/curate/types';
 import { getContentFolderByKey } from '@shared/curate/util';
@@ -613,7 +613,24 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     },
     extractGameFileByUrl: (url: string) => {
       return '' as any; // UNIMPLEMENTED
-    }
+    },
+  };
+
+  const extFpfss: typeof flashpoint.fpfss = {
+    getAccessToken: (): Promise<string> => {
+      return new Promise((resolve, reject) => {
+        const actionId = uuid();
+        state.pendingFpfssActions.set(actionId, (user: FpfssUser | null) => {
+          if (user) {
+            resolve(user.accessToken);
+          } else {
+            reject(new Error('Failed to get access token or user cancelled.'));
+          }
+        });
+
+        state.socketServer.broadcast(BackOut.FPFSS_ACTION, actionId);
+      });
+    },
   };
 
   // Create API Module to give to caller
@@ -645,6 +662,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     services: extServices,
     dialogs: extDialogs,
     middleware: extMiddlewares,
+    fpfss: extFpfss,
 
     // Events
     onDidInit: apiEmitters.onDidInit.extEvent(extManifest.displayName || extManifest.name),

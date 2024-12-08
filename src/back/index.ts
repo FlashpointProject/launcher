@@ -207,6 +207,7 @@ const state: BackState = {
   resolveDialogEvents: new EventEmitter(),
   downloadController: new InstancedAbortController(),
   shortcuts: {},
+  pendingFpfssActions: new Map<string, (user: flashpoint.FpfssUser | null) => void>(),
 };
 
 main();

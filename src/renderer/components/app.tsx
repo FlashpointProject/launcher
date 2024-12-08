@@ -663,6 +663,12 @@ export class App extends React.Component<AppProps> {
         }
       });
     });
+
+    window.Shared.back.register(BackOut.FPFSS_ACTION, (event, actionId) => {
+      this.performFpfssAction(async (user) => {
+        window.Shared.back.send(BackIn.FPFSS_ACTION_RESPONSE, actionId, user);
+      });
+    });
   }
 
 

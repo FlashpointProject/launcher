@@ -1,4 +1,4 @@
-import { BackInit, ComponentStatus } from '@shared/back/types';
+import { BackInit, ComponentStatus, FpfssUser } from '@shared/back/types';
 import { AppConfigData, AppExtConfigData } from '@shared/config/interfaces';
 import { ExecMapping, GamePropSuggestions, IBackProcessInfo, INamedBackProcessInfo } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
@@ -86,6 +86,7 @@ export type BackState = {
   resolveDialogEvents: EventEmitter;
   downloadController: InstancedAbortController;
   shortcuts: Record<string, string[]>;
+  pendingFpfssActions: Map<string, (user: FpfssUser | null) => void>;
 }
 
 export type BackQueryChache = {
