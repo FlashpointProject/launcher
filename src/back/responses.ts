@@ -124,7 +124,7 @@ import {
 import { uuid } from './util/uuid';
 import { FPFSS_INFO_FILENAME } from '@shared/curate/fpfss';
 import { createSearchFilter } from '@back/util/search';
-import { FpfssUser } from '@back/types';
+import { FpfssUser } from '@shared/back/types';
 
 const axios = axiosImport.default;
 
