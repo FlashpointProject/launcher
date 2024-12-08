@@ -11,7 +11,7 @@ export async function fpfssLogin(createDialog: typeof mainActions.createDialog, 
   const tokenUrl = `${fpfssBaseUrl}/auth/device`;
   const data = {
     'client_id': 'flashpoint-launcher',
-    'scope': 'identity game:read game:edit submission:read submission:read-files',
+    'scope': 'identity game:read game:edit submission:read submission:read-files index:read',
   };
   const formData = new URLSearchParams(data).toString();
   const res = await axios.post(tokenUrl, formData, {
