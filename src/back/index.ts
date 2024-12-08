@@ -207,7 +207,6 @@ const state: BackState = {
   resolveDialogEvents: new EventEmitter(),
   downloadController: new InstancedAbortController(),
   shortcuts: {},
-  pendingFpfssActions: new Map<string, (user: FpfssUser | null) => void>(),
 };
 
 main();

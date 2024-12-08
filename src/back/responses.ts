@@ -2476,14 +2476,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     await fpDatabase.optimizeDatabase();
     state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
   });
-
-  state.socketServer.register(BackIn.FPFSS_ACTION_RESPONSE, (event, actionId: string, user?: FpfssUser) => {
-    const resolve = state.pendingFpfssActions.get(actionId);
-    if (resolve) {
-      resolve(user);
-      state.pendingFpfssActions.delete(actionId);
-    }
-  });
 }
 
 /**

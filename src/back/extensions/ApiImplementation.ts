@@ -617,19 +617,17 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
   };
 
   const extFpfss: typeof flashpoint.fpfss = {
-    getAccessToken: (): Promise<string> => {
-      return new Promise((resolve, reject) => {
-        const actionId = uuid();
-        state.pendingFpfssActions.set(actionId, (user: FpfssUser | null) => {
-          if (user) {
-            resolve(user.accessToken);
-          } else {
-            reject(new Error('Failed to get access token or user cancelled.'));
-          }
-        });
+    getAccessToken: async (): Promise<string> => {
+      if (!state.socketServer.lastClient) {
+        throw new Error('No connected client to handle FPFSS action.');
+      }
 
-        state.socketServer.broadcast(BackOut.FPFSS_ACTION, actionId);
-      });
+      const user = await state.socketServer.request(state.socketServer.lastClient, BackOut.FPFSS_ACTION);
+      if (user && user.accessToken) {
+        return user.accessToken;
+      } else {
+        throw new Error('Failed to get access token or user cancelled.');
+      }
     },
   };
 

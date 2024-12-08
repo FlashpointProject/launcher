@@ -86,7 +86,6 @@ export type BackState = {
   resolveDialogEvents: EventEmitter;
   downloadController: InstancedAbortController;
   shortcuts: Record<string, string[]>;
-  pendingFpfssActions: Map<string, (user: FpfssUser | null) => void>;
 }
 
 export type BackQueryChache = {

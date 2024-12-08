@@ -198,7 +198,6 @@ export enum BackIn {
   // Tests
   TEST_RECONNECTIONS,
 
-  FPFSS_ACTION_RESPONSE,
 }
 
 export enum BackOut {
@@ -441,7 +440,6 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   // Tests
   [BackIn.TEST_RECONNECTIONS]: () => void;
 
-  [BackIn.FPFSS_ACTION_RESPONSE]: (actionId: string, data: FpfssUser) => void;
 }>
 
 export type BackOutTemplate = SocketTemplate<BackOut, {
@@ -525,7 +523,7 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.UPDATE_DIALOG_MESSAGE]: (message: string, dialogId: string) => void;
   [BackOut.UPDATE_DIALOG_FIELD_VALUE]: (dialogId: string, name: string, value: any) => void;
 
-  [BackOut.FPFSS_ACTION]: (actionId: string) => void;
+  [BackOut.FPFSS_ACTION]: () => FpfssUser | undefined;
 }>
 
 export type BackResTemplate = BackOutTemplate & BackInTemplate;

@@ -664,13 +664,31 @@ export class App extends React.Component<AppProps> {
       });
     });
 
-    window.Shared.back.register(BackOut.FPFSS_ACTION, (event, actionId) => {
-      this.performFpfssAction(async (user) => {
-        window.Shared.back.send(BackIn.FPFSS_ACTION_RESPONSE, actionId, user);
+    window.Shared.back.register(BackOut.BROWSE_VIEW_PAGE, (event, data) => {
+      // Dispath addData for the given view
+      this.props.searchActions.addData({
+        view: data.viewId,
+        data: {
+          searchId: data.searchId,
+          page: data.page,
+          games: data.games,
+        }
+      });
+    });
+
+    window.Shared.back.register(BackOut.FPFSS_ACTION, async () => {
+      return new Promise((resolve, reject) => {
+        this.performFpfssAction(async (user) => {
+          try {
+            resolve(user);
+          }
+          catch (error) {
+            reject(error);
+          }
+        });
       });
     });
   }
-
 
   init() {
     window.Shared.back.onStateChange = (state) => {
