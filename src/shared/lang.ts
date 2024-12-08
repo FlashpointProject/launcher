@@ -559,6 +559,7 @@ const langTemplate = {
     'searching',
     'loading',
     'ok',
+    'allow'
   ] as const,
   menu: [
     'viewThumbnailInFolder',
@@ -657,6 +658,12 @@ const langTemplate = {
     'openDiscord',
     'doNotShowAgain',
   ] as const,
+  extensions: [
+    'fpssConsentRevokeTitle',
+    'fpssConsentRevokeDesc',
+    'fpssConsentGrantTitle',
+    'fpssConsentGrantDesc',
+  ]
   // libraries: [], // (This is dynamically populated in run-time)
 } as const;
 

@@ -1,18 +1,26 @@
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
+import { WithSearchProps } from '@renderer/containers/withSearch';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
+import { GENERAL_VIEW_ID } from '@renderer/store/search/slice';
 import { BackIn } from '@shared/back/types';
+import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
 import { AppExtConfigData } from '@shared/config/interfaces';
-import { CustomIPC } from '@shared/interfaces';
-import { ipcRenderer } from 'electron';
 import { ExtConfigurationProp, ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
+import { CustomIPC } from '@shared/interfaces';
 import { autoCode, LangContainer, LangFile } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
+import { Paths } from '@shared/Paths';
 import { updatePreferencesData, updatePreferencesDataAsync } from '@shared/preferences/util';
 import { ITheme } from '@shared/ThemeFile';
 import { deepCopy } from '@shared/Util';
+import * as Coerce from '@shared/utils/Coerce';
 import { formatString } from '@shared/utils/StringFormatter';
+import { ipcRenderer } from 'electron';
 import { AppPathOverride, TagFilterGroup } from 'flashpoint-launcher';
 import * as React from 'react';
+import { clearFpfssConsentExt, getFpfssConsentExt, saveFpfssConsentExt } from '../../fpfss';
 import {
   getExtIconURL,
   getExtremeIconURL,
@@ -34,16 +42,9 @@ import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
 import { FloatingContainer } from '../FloatingContainer';
 import { InputField } from '../InputField';
 import { OpenIcon } from '../OpenIcon';
-import { TagFilterGroupEditor } from '../TagFilterGroupEditor';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
-import * as Coerce from '@shared/utils/Coerce';
-import { Spinner } from '../Spinner';
 import { SimpleButton } from '../SimpleButton';
-import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
-import { WithSearchProps } from '@renderer/containers/withSearch';
-import { Paths } from '@shared/Paths';
-import { GENERAL_VIEW_ID } from '@renderer/store/search/slice';
+import { Spinner } from '../Spinner';
+import { TagFilterGroupEditor } from '../TagFilterGroupEditor';
 
 const { num } = Coerce;
 
@@ -86,6 +87,8 @@ type ConfigPageState = {
   editorOpen: boolean;
   /** Progress for nuking tags */
   nukeInProgress: boolean;
+  /** FPFSS Consents to extensions */
+  fpfssConsentMap: Record<string, boolean | undefined>;
 };
 
 /**
@@ -100,12 +103,19 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   constructor(props: ConfigPageProps) {
     super(props);
     const configData = window.Shared.config.data;
+
+    const fpfssConsentMap = props.extensions.reduce((map, ext) => {
+      map[ext.id] = getFpfssConsentExt(ext.id);
+      return map;
+    }, {} as Record<string, boolean | undefined>);
+
     this.state = {
       isFlashpointPathValid: undefined,
       flashpointPath: configData.flashpointPath,
       useCustomTitlebar: configData.useCustomTitlebar,
       editorOpen: false,
       nukeInProgress: false,
+      fpfssConsentMap: fpfssConsentMap,
     };
   }
 
@@ -122,7 +132,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     const appPathOverrides = this.renderAppPathOverridesMemo(this.props.preferencesData.appPathOverrides);
     const tagFilters = this.renderTagFiltersMemo(this.props.preferencesData.tagFilters, this.props.preferencesData.browsePageShowExtreme, this.context, this.props.logoVersion);
     const logoSetPreviewRows = this.renderLogoSetMemo(this.props.platforms, this.props.logoVersion);
-    const extensions = this.renderExtensionsMemo(this.props.extensions, strings);
+    const extensions = this.renderExtensionsMemo(this.props.extensions, strings, this.state.fpfssConsentMap);
     const extConfigSections = this.renderExtensionConfigs(this.props.extConfigs, this.props.extConfig);
 
     return (
@@ -419,7 +429,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
           {extConfigSections}
 
-          <div className='setting'>
+          <div className='setting extensions'>
             <p className='setting__title'>{strings.extensionsHeader}</p>
             { extensions.length > 0 ? (
               <div className='setting__body'>
@@ -710,8 +720,13 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     return allRows;
   });
 
-  renderExtensionsMemo = memoizeOne((extensions: IExtensionDescription[], strings: LangContainer['config']): JSX.Element[] => {
+  renderExtensionsMemo = memoizeOne((extensions: IExtensionDescription[], strings: LangContainer['config'], fpfssConsents: Record<string, boolean | undefined>): JSX.Element[] => {
+    const allStrings = this.context;
     return extensions.map((ext) => {
+      console.log(fpfssConsents);
+
+      const fpfssConsent = fpfssConsents[ext.id];
+      
       const shortContribs = [];
       if (ext.contributes) {
         if (ext.contributes.devScripts && ext.contributes.devScripts.length > 0) {
@@ -744,8 +759,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
         }
       }
       return (
-        <div key={ext.id}>
-          <div className='setting__row'>
+        <div key={ext.id} className='setting__row'>
             <div className='setting__row__top'>
               <div className='setting__row__title setting__row__title--flex setting__row__title--align-left'>
                 { ext.icon ? (
@@ -762,9 +776,24 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 {shortContribs}
               </div>
             </div>
-            <div className='setting__row__bottom'>
+          <div className='setting__row__bottom setting__row__description'>
               <p>{ext.description}</p>
             </div>
+          <div className='setting__row__content setting__extension__config_row'>
+            {(fpfssConsent === true) ? (
+            <ConfigBoxInnerButton
+              title={allStrings.extensions.fpssConsentRevokeTitle}
+              description={allStrings.extensions.fpssConsentRevokeDesc}
+              value={allStrings.curate.delete}
+              onClick={() => this.onExtFPFSSConsentChange(ext.id, 'revoke')} />
+          ) : undefined }
+          {(fpfssConsent === false) ? (
+            <ConfigBoxInnerButton
+              title={allStrings.extensions.fpssConsentGrantTitle}
+              description={allStrings.extensions.fpssConsentGrantDesc}
+              value={allStrings.misc.allow}
+              onClick={() => this.onExtFPFSSConsentChange(ext.id, 'grant')} />
+          ) : undefined }
           </div>
         </div>
       );
@@ -825,6 +854,19 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
           icon='delete' />
       </div>
     );
+  };
+  
+  onExtFPFSSConsentChange = (extId: string, action: string): void => {
+    const updatedConsent = action === 'grant' ? true : undefined;
+    if (updatedConsent) {
+      saveFpfssConsentExt(extId, true);
+    } else if (action === 'revoke') {
+      clearFpfssConsentExt(extId);
+    }
+
+    const newMap = { ...this.state.fpfssConsentMap };
+    newMap[extId] = updatedConsent;
+    this.setState({ fpfssConsentMap: newMap });
   };
 
   onShowExtremeChange = (isChecked: boolean): void => {

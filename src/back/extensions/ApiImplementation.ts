@@ -621,12 +621,22 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
       if (!state.socketServer.lastClient) {
         throw new Error('No connected client to handle FPFSS action.');
       }
-
-      const user = await state.socketServer.request(state.socketServer.lastClient, BackOut.FPFSS_ACTION);
-      if (user && user.accessToken) {
-        return user.accessToken;
-      } else {
-        throw new Error('Failed to get access token or user cancelled.');
+      try {
+        const user = await state.socketServer.request(state.socketServer.lastClient, BackOut.FPFSS_ACTION, extId);
+        if (user && user.accessToken) {
+          return user.accessToken;
+        } else {
+          throw new Error('Failed to get access token or user cancelled.');
+        }
+      } catch (error) {
+        const client = state.socketServer.lastClient;
+        const openDialog = state.socketServer.showMessageBoxBack(state, client);
+        await openDialog({
+          largeMessage: true,
+          message: (error instanceof Error) ? error.message : String(error),
+          buttons: [state.languageContainer.misc.ok]
+        });
+        throw error;
       }
     },
   };

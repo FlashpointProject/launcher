@@ -545,7 +545,8 @@
     "showImage": "Show Image",
     "searching": "Searching...",
     "loading": "Loading...",
-    "ok": "OK"
+    "ok": "OK",
+    "allow": "Allow"
   },
   "menu": {
     "viewThumbnailInFolder": "View Thumbnail in Folder",
@@ -659,5 +660,11 @@
     "techDesc": "Adds support for all other tech - Shockwave, Unity, Java, HTML5, etc.",
     "screenshots": "Logos & Screenshots",
     "screenshotsDesc": "Adds logos for Grid view and screenshots for all games."
+  },
+  "extensions": {
+    "fpssConsentRevokeTitle": "Revoke access to FPFSS",
+    "fpssConsentRevokeDesc": "Withdraw this extension's access to FPFSS",
+    "fpssConsentGrantTitle": "Allow access to FPFSS",
+    "fpssConsentGrantDesc": "You've blocked this extension from accessing FPFSS. Click to allow extension access to FPFSS"
   }
 }

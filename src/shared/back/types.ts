@@ -523,7 +523,7 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.UPDATE_DIALOG_MESSAGE]: (message: string, dialogId: string) => void;
   [BackOut.UPDATE_DIALOG_FIELD_VALUE]: (dialogId: string, name: string, value: any) => void;
 
-  [BackOut.FPFSS_ACTION]: () => FpfssUser | undefined;
+  [BackOut.FPFSS_ACTION]: (extId: string) => FpfssUser | undefined;
 }>
 
 export type BackResTemplate = BackOutTemplate & BackInTemplate;

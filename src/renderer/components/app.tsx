@@ -1,14 +1,21 @@
 import * as remote from '@electron/remote';
+import { WithCurateProps } from '@renderer/containers/withCurateState';
+import { WithFpfssProps } from '@renderer/containers/withFpfss';
+import { WithSearchProps } from '@renderer/containers/withSearch';
+import { WithViewProps } from '@renderer/containers/withView';
+import { cancelDialog, RANDOM_GAME_ROW_COUNT, resolveDialog, updateDialogField } from '@renderer/store/main/slice';
 import { BackIn, BackInit, BackOut, FpfssUser } from '@shared/back/types';
-import { APP_TITLE, LOGOS, SCREENSHOTS, VIEW_PAGE_SIZE } from '@shared/constants';
+import { APP_TITLE, LOGOS, SCREENSHOTS } from '@shared/constants';
 import { CustomIPC, IService, ProcessState, WindowIPC } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
+import { Paths } from '@shared/Paths';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { setTheme } from '@shared/Theme';
 import { getFileServerURL, mapFpfssGameToLocal, mapLocalToFpfssGame, recursiveReplace, sizeToString } from '@shared/Util';
 import { arrayShallowStrictEquals } from '@shared/utils/compare';
 import { debounce } from '@shared/utils/debounce';
+import { newGame } from '@shared/utils/misc';
 import axios from 'axios';
 import { clipboard, ipcRenderer, Menu, MenuItemConstructorOptions } from 'electron';
 import {
@@ -17,12 +24,27 @@ import {
   DialogState,
   Game,
   Playlist,
-  PlaylistGame, ViewGame
+  PlaylistGame
 } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as React from 'react';
+import { IWithShortcut } from 'react-keybind';
 import { RouteComponentProps } from 'react-router-dom';
+import { ConnectedFooter } from '../containers/ConnectedFooter';
+import { ConnectedRightBrowseSidebar } from '../containers/ConnectedRightBrowseSidebar';
+import Header from '../containers/HeaderContainer';
+import { WithMainStateProps } from '../containers/withMainState';
+import { WithPreferencesProps } from '../containers/withPreferences';
+import { WithTagCategoriesProps } from '../containers/withTagCategories';
+import { WithTasksProps } from '../containers/withTasks';
+import { ProgressData } from '../context/ProgressContext';
+import { CreditsFile } from '../credits/CreditsFile';
+import { fpfssLogin, getFpfssConsentExt, saveFpfssConsentExt } from '../fpfss';
+import { AppRouter, AppRouterProps } from '../router';
+import { getGameImagePath, getGameImageURL, getGamePath, getViewName, joinLibraryRoute } from '../Util';
+import { LangContext } from '../util/lang';
+import { queueOne } from '../util/queue';
 import { FloatingContainer } from './FloatingContainer';
 import { ConnectedFpfssEditGame } from './FpfssEditGame';
 import { InputField } from './InputField';
@@ -34,30 +56,7 @@ import { SimpleButton } from './SimpleButton';
 import { SplashScreen } from './SplashScreen';
 import { TaskBar } from './TaskBar';
 import { TitleBar } from './TitleBar';
-import { ConnectedFooter } from '../containers/ConnectedFooter';
-import { ConnectedRightBrowseSidebar } from '../containers/ConnectedRightBrowseSidebar';
-import Header from '../containers/HeaderContainer';
-import { WithMainStateProps } from '../containers/withMainState';
-import { WithPreferencesProps } from '../containers/withPreferences';
-import { WithTagCategoriesProps } from '../containers/withTagCategories';
-import { WithTasksProps } from '../containers/withTasks';
-import { CreditsFile } from '../credits/CreditsFile';
-import { fpfssLogin } from '../fpfss';
-import { Paths } from '@shared/Paths';
-import { AppRouter, AppRouterProps } from '../router';
-import { getViewName, getGameImagePath, getGameImageURL, getGamePath, joinLibraryRoute } from '../Util';
-import { LangContext } from '../util/lang';
-import { queueOne } from '../util/queue';
 import uuid = require('uuid');
-import { ProgressData } from '../context/ProgressContext';
-import { IWithShortcut } from 'react-keybind';
-import { newGame } from '@shared/utils/misc';
-import { cancelDialog, RANDOM_GAME_ROW_COUNT, resolveDialog, updateDialogField } from '@renderer/store/main/slice';
-import { WithSearchProps } from '@renderer/containers/withSearch';
-import { WithCurateProps } from '@renderer/containers/withCurateState';
-import { WithFpfssProps } from '@renderer/containers/withFpfss';
-import { WithViewProps } from '@renderer/containers/withView';
-import { RequestState } from '@renderer/store/search/slice';
 
 // Hide the right sidebar if the page is inside these paths
 const hiddenRightSidebarPages = [Paths.ABOUT, Paths.CURATE, Paths.CONFIG, Paths.MANUAL, Paths.LOGS, Paths.TAGS, Paths.CATEGORIES];
@@ -68,6 +67,9 @@ export type AppProps = AppOwnProps & RouteComponentProps & WithViewProps & WithF
 
 export class App extends React.Component<AppProps> {
   appRef: React.RefObject<HTMLDivElement>;
+
+  static contextType = LangContext;
+  declare context: React.ContextType<typeof LangContext>;
 
   constructor(props: AppProps) {
     super(props);
@@ -664,28 +666,43 @@ export class App extends React.Component<AppProps> {
       });
     });
 
-    window.Shared.back.register(BackOut.BROWSE_VIEW_PAGE, (event, data) => {
-      // Dispath addData for the given view
-      this.props.searchActions.addData({
-        view: data.viewId,
-        data: {
-          searchId: data.searchId,
-          page: data.page,
-          games: data.games,
-        }
-      });
-    });
-
-    window.Shared.back.register(BackOut.FPFSS_ACTION, async () => {
+    window.Shared.back.register(BackOut.FPFSS_ACTION, async (event, extId: string) => {
       return new Promise((resolve, reject) => {
-        this.performFpfssAction(async (user) => {
-          try {
+        const previousConsent = getFpfssConsentExt(extId);
+        if (previousConsent) {
+          this.performFpfssAction(async (user) => {
             resolve(user);
-          }
-          catch (error) {
-            reject(error);
-          }
-        });
+          });
+        } else if (previousConsent === false) {
+          reject(new Error('Extension is not allowed to access FPFSS token'));
+        } else {
+          remote.dialog.showMessageBox({
+            type: 'question',
+            title: 'FPFSS Extension Access',
+            message: `Extension with ID ${extId} is requesting access to your FPFSS token. Allow?`,
+            buttons: [this.context.misc.yes, this.context.misc.no],
+            defaultId: 1,
+            cancelId: 1,
+          })
+          .then(({ response }) => {
+            if (response === 0) {
+              this.performFpfssAction(async (user) => {
+                if (user) {
+                  saveFpfssConsentExt(extId, true);
+                  resolve(user);
+                } else {
+                  saveFpfssConsentExt(extId, false);
+                  reject(new Error('Launcher was unable to get FPFSS token'));
+                }
+              });
+            } else {
+              saveFpfssConsentExt(extId, false);
+              reject(new Error('User denied access to FPFSS token'));
+            }
+          }).catch((error) => {
+            reject(new Error('Failed to show FPFSS consent dialog: ' + error));
+          });
+        }
       });
     });
   }
