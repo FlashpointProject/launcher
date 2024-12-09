@@ -657,6 +657,7 @@ const langTemplate = {
     'openWiki',
     'openDiscord',
     'doNotShowAgain',
+    'extFpfssConsent',
   ] as const,
   extensions: [
     'fpssConsentRevokeTitle',

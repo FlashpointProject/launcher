@@ -640,7 +640,8 @@
     "badAntiVirus": "You appear to be using '{0}'.\nThis particular Antivirus is known to cause issues, and we recommend adding an exception to the Flashpoint folder.\n\nIf you only see a white screen when running Flash games you may need to reinstall Flashpoint to restore deleted files.\n\nSee the Wiki or Help tab for detailed instructions.",
     "openWiki": "Open Wiki",
     "openDiscord": "Join Discord Server",
-    "doNotShowAgain": "Do not show again"
+    "doNotShowAgain": "Do not show again",
+    "extFpfssConsent": "Extension with ID {0} is requesting access to your FPFSS token. Allow?\nThis means the extension will be able access your FPFSS account and perform actions on your behalf."
   },
   "libraries": {
     "arcade": "Games",
@@ -663,8 +664,6 @@
   },
   "extensions": {
     "fpssConsentRevokeTitle": "Revoke access to FPFSS",
-    "fpssConsentRevokeDesc": "Withdraw this extension's access to FPFSS",
-    "fpssConsentGrantTitle": "Allow access to FPFSS",
-    "fpssConsentGrantDesc": "You've blocked this extension from accessing FPFSS. Click to allow extension access to FPFSS"
+    "fpssConsentRevokeDesc": "Withdraw this extension's access to FPFSS"
   }
 }
