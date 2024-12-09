@@ -16,6 +16,7 @@ import { getFileServerURL, mapFpfssGameToLocal, mapLocalToFpfssGame, recursiveRe
 import { arrayShallowStrictEquals } from '@shared/utils/compare';
 import { debounce } from '@shared/utils/debounce';
 import { newGame } from '@shared/utils/misc';
+import { formatString } from '@shared/utils/StringFormatter';
 import axios from 'axios';
 import { clipboard, ipcRenderer, Menu, MenuItemConstructorOptions } from 'electron';
 import {
@@ -676,13 +677,14 @@ export class App extends React.Component<AppProps> {
         } else if (previousConsent === false) {
           reject(new Error('Extension is not allowed to access FPFSS token'));
         } else {
+          const msg = formatString(this.props.main.lang.dialog.extFpfssConsent, extId) as string;
           remote.dialog.showMessageBox({
             type: 'question',
             title: 'FPFSS Extension Access',
-            message: `Extension with ID ${extId} is requesting access to your FPFSS token. Allow?`,
-            buttons: [this.context.misc.yes, this.context.misc.no],
+            message: msg,
+            buttons: [this.props.main.lang.misc.yes, this.props.main.lang.misc.no],
             defaultId: 1,
-            cancelId: 1,
+            cancelId: 1
           })
           .then(({ response }) => {
             if (response === 0) {
