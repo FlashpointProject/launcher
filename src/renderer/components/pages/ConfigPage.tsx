@@ -787,13 +787,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
               value={allStrings.curate.delete}
               onClick={() => this.onExtFPFSSConsentChange(ext.id, 'revoke')} />
           ) : undefined }
-          {(fpfssConsent === false) ? (
-            <ConfigBoxInnerButton
-              title={allStrings.extensions.fpssConsentGrantTitle}
-              description={allStrings.extensions.fpssConsentGrantDesc}
-              value={allStrings.misc.allow}
-              onClick={() => this.onExtFPFSSConsentChange(ext.id, 'grant')} />
-          ) : undefined }
           </div>
         </div>
       );
