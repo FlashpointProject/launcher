@@ -691,12 +691,10 @@ export class App extends React.Component<AppProps> {
                   saveFpfssConsentExt(extId, true);
                   resolve(user);
                 } else {
-                  saveFpfssConsentExt(extId, false);
                   reject(new Error('Launcher was unable to get FPFSS token'));
                 }
               });
             } else {
-              saveFpfssConsentExt(extId, false);
               reject(new Error('User denied access to FPFSS token'));
             }
           }).catch((error) => {
