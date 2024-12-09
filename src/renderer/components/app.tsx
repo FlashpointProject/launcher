@@ -69,9 +69,6 @@ export type AppProps = AppOwnProps & RouteComponentProps & WithViewProps & WithF
 export class App extends React.Component<AppProps> {
   appRef: React.RefObject<HTMLDivElement>;
 
-  static contextType = LangContext;
-  declare context: React.ContextType<typeof LangContext>;
-
   constructor(props: AppProps) {
     super(props);
 
@@ -1224,7 +1221,7 @@ export class App extends React.Component<AppProps> {
                     buttons: ['Ok'],
                   };
                   if (error.code === 'ENOENT') {
-                    opts.title = this.context.dialog.fileNotFound;
+                    opts.title = this.props.main.lang.dialog.fileNotFound;
                     opts.message = (
                       'Failed to find the game file.\n' +
                         'If you are using Flashpoint Infinity, make sure you download the game first.\n'
