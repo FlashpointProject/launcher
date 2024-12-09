@@ -674,8 +674,6 @@ export class App extends React.Component<AppProps> {
           this.performFpfssAction(async (user) => {
             resolve(user);
           });
-        } else if (previousConsent === false) {
-          reject(new Error('Extension is not allowed to access FPFSS token'));
         } else {
           const msg = formatString(this.props.main.lang.dialog.extFpfssConsent, extId) as string;
           remote.dialog.showMessageBox({
