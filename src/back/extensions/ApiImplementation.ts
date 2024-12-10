@@ -21,7 +21,7 @@ import {
 } from '@back/util/misc';
 import { BrowsePageLayout, ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
-import { BackOut } from '@shared/back/types';
+import { BackOut, FpfssUser } from '@shared/back/types';
 import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
 import { CurationMeta } from '@shared/curate/types';
 import { getContentFolderByKey } from '@shared/curate/util';
@@ -613,7 +613,32 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     },
     extractGameFileByUrl: (url: string) => {
       return '' as any; // UNIMPLEMENTED
-    }
+    },
+  };
+
+  const extFpfss: typeof flashpoint.fpfss = {
+    getAccessToken: async (): Promise<string> => {
+      if (!state.socketServer.lastClient) {
+        throw new Error('No connected client to handle FPFSS action.');
+      }
+      try {
+        const user = await state.socketServer.request(state.socketServer.lastClient, BackOut.FPFSS_ACTION, extId);
+        if (user && user.accessToken) {
+          return user.accessToken;
+        } else {
+          throw new Error('Failed to get access token or user cancelled.');
+        }
+      } catch (error) {
+        const client = state.socketServer.lastClient;
+        const openDialog = state.socketServer.showMessageBoxBack(state, client);
+        await openDialog({
+          largeMessage: true,
+          message: (error instanceof Error) ? error.message : String(error),
+          buttons: [state.languageContainer.misc.ok]
+        });
+        throw error;
+      }
+    },
   };
 
   // Create API Module to give to caller
@@ -645,6 +670,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     services: extServices,
     dialogs: extDialogs,
     middleware: extMiddlewares,
+    fpfss: extFpfss,
 
     // Events
     onDidInit: apiEmitters.onDidInit.extEvent(extManifest.displayName || extManifest.name),

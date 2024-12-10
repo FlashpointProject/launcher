@@ -1645,4 +1645,8 @@ declare module 'flashpoint-launcher' {
          */
       upgradeConfig(version: string, config: any): any;
     }
+
+    namespace fpfss {
+        function getAccessToken(): Promise<string>;
+    }
 }

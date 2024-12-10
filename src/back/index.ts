@@ -6,7 +6,7 @@ import {
   stringifyArray
 } from '@shared/Util';
 import * as os from 'os';
-import { BackIn, BackInit, BackInitArgs, BackOut, BackResParams, ComponentState, ComponentStatus, DownloadDetails } from '@shared/back/types';
+import { BackIn, BackInit, BackInitArgs, BackOut, BackResParams, ComponentState, ComponentStatus, DownloadDetails, FpfssUser } from '@shared/back/types';
 import { getContentFolderByKey, getCurationFolder } from '@shared/curate/util';
 import { ILogoSet, LogoSet } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';

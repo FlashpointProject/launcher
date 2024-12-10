@@ -559,6 +559,7 @@ const langTemplate = {
     'searching',
     'loading',
     'ok',
+    'allow'
   ] as const,
   menu: [
     'viewThumbnailInFolder',
@@ -656,7 +657,14 @@ const langTemplate = {
     'openWiki',
     'openDiscord',
     'doNotShowAgain',
+    'extFpfssConsent',
   ] as const,
+  extensions: [
+    'fpssConsentRevokeTitle',
+    'fpssConsentRevokeDesc',
+    'fpssConsentGrantTitle',
+    'fpssConsentGrantDesc',
+  ]
   // libraries: [], // (This is dynamically populated in run-time)
 } as const;
 

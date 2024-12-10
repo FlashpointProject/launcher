@@ -11,7 +11,7 @@ export async function fpfssLogin(createDialog: typeof mainActions.createDialog, 
   const tokenUrl = `${fpfssBaseUrl}/auth/device`;
   const data = {
     'client_id': 'flashpoint-launcher',
-    'scope': 'identity game:read game:edit submission:read submission:read-files',
+    'scope': 'identity game:read game:edit submission:read submission:read-files index:read',
   };
   const formData = new URLSearchParams(data).toString();
   const res = await axios.post(tokenUrl, formData, {
@@ -110,4 +110,57 @@ export async function fpfssLogin(createDialog: typeof mainActions.createDialog, 
   .finally(() => {
     cancelDialog(dialog.id);
   });
+}
+
+/**
+ * 
+ * @param extId The extension ID
+ * @returns The consent status for the extension
+ */
+
+export function getFpfssConsentExt(extId: string): boolean | undefined {
+  const consentData = localStorage.getItem('fpfss:extension_consent');
+  if (!consentData) {
+      return undefined;
+  }
+
+  try {
+      const consentMap = consentData ? JSON.parse(consentData) : {};
+      return consentMap[extId];
+  } catch (error) {
+      console.error('Failed to parse consent data:', error);
+      return undefined;
+  }
+}
+
+/**
+* 
+* @param extId The extension ID
+* @param status The consent status
+*/
+export function saveFpfssConsentExt(extId: string, status: boolean): void {
+  try {
+    const consentData = localStorage.getItem('fpfss:extension_consent');
+    const consentMap = consentData ? JSON.parse(consentData) : {};
+    consentMap[extId] = status;
+    localStorage.setItem('fpfss:extension_consent', JSON.stringify(consentMap));
+  } catch (error) {
+    console.error('Failed to parse or save consent data:', error);
+  }
+}
+
+/**
+ * @param extId The extension ID
+ */
+export function clearFpfssConsentExt(extId: string): void {
+  const consentData = localStorage.getItem('fpfss:extension_consent');
+  if (!consentData) { return; }
+  
+  try {
+    const consentMap = JSON.parse(consentData);
+    delete consentMap[extId];
+    localStorage.setItem('fpfss:extension_consent', JSON.stringify(consentMap));
+  } catch (error) {
+    console.error('Failed to parse consent data:', error);
+  }
 }
