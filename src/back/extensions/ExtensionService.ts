@@ -94,6 +94,15 @@ export class ExtensionService {
   }
 
   /**
+   * Load all extensions
+   */
+  public async loadAll(): Promise<void | void[]> {
+    return this.installedExtensionsReady.wait().then(() => {
+      return Promise.all(this._extensions.map(ext => this._loadExtension(ext)));
+    });
+  }
+
+  /**
    * Loads an extension (returns immediately if already loaded)
    *
    * @param extId ID of extension to load

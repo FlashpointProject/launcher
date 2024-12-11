@@ -137,8 +137,10 @@ const axios = axiosImport.default;
 export function registerRequestCallbacks(state: BackState, init: () => Promise<void>): void {
   state.socketServer.register(BackIn.KEEP_ALIVE, () => {});
 
-  state.socketServer.register(BackIn.PREP_RELOAD_WINDOW, () => {
+  state.socketServer.register(BackIn.PREP_RELOAD_WINDOW, async () => {
     state.ignoreQuit = true;
+    await state.extensionsService.unloadAll();
+    await state.extensionsService.loadAll();
     setTimeout(() => {
       state.ignoreQuit = false;
     }, 1000);
