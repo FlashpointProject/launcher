@@ -296,21 +296,21 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
                       ];
                       const menu = remote.Menu.buildFromTemplate(contextButtons);
                       menu.popup({ window: remote.getCurrentWindow() });
-                    }}/>
+                    }} />
                 )) :
                 browseViews.map(view => (
                   <MenuItem
                     key={view}
                     title={getLibraryItemTitle(view, this.context.libraries)}
-                    link={joinLibraryRoute(view)}/>
+                    link={joinLibraryRoute(view)} />
                 ))
             }
-            { this.props.preferencesData.useCustomViews && (
+            {this.props.preferencesData.useCustomViews && (
               <li className='header__menu__item' onClick={this.onCreateNewView} title={strings.createNewView}>
-                <OpenIcon icon={'plus'}/>
+                <OpenIcon icon={'plus'} />
               </li>
             )}
-            { enableEditing ? (
+            {enableEditing ? (
               <>
                 <MenuItem
                   title={strings.tags}
@@ -319,14 +319,14 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
                   title={strings.categories}
                   link={Paths.CATEGORIES} />
               </>
-            ) : undefined }
+            ) : undefined}
             <MenuItem
               title={strings.logs}
               link={Paths.LOGS} />
             <MenuItem
               title={strings.config}
               link={Paths.CONFIG} />
-            { (onlineManual || offlineManual) && (
+            {(onlineManual || offlineManual) && (
               <MenuItem
                 title={strings.manual}
                 link={Paths.MANUAL} />
@@ -334,16 +334,21 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
             <MenuItem
               title={strings.about}
               link={Paths.ABOUT} />
-            { enableEditing ? (
-              <MenuItem
-                title={strings.curate}
-                link={Paths.CURATE} />
-            ) : undefined }
-            { showDeveloperTab ? (
+            {enableEditing ? (
+              <>
+                <MenuItem
+                  title={strings.curate}
+                  link={Paths.CURATE} />
+                <MenuItem
+                  title={'Game Data'}
+                  link={Paths.BROWSE_GAME_DATA} />
+              </>
+            ) : undefined}
+            {showDeveloperTab ? (
               <MenuItem
                 title={strings.developer}
                 link={Paths.DEVELOPER} />
-            ) : undefined }
+            ) : undefined}
           </ul>
         </div>
         {/* Right-most portion */}

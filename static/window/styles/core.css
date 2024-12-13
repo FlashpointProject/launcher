@@ -3641,3 +3641,64 @@ body {
 .platform-label-row > :not(:first-child) {
   margin-left: 0.3rem;
 }
+
+.gdb-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
+.gdb-content {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  height: 100%;
+}
+
+.gdb-content-upper {
+  flex-shrink: 1;
+  padding: 1rem;
+  display: flex;
+  flex-direction: row;
+}
+
+.gdb-content-upper > :not(:first-child) {
+  margin-left: 0.5rem;
+}
+
+.gdb-content-main {
+  flex-grow: 1;
+  padding: 1rem;
+}
+
+.gdb-sidebar {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  height: 100%;
+  padding: 1rem;
+}
+
+.gdb-table-container {
+  font-size: 14px;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  height: 100%;
+  width: 100%;
+}
+
+.gdb-table-row {
+  display: flex;
+  width: 100%;
+}
+
+.gdb-table-row-content {
+  flex-grow: 1;
+  display: flex;
+}
+
+.gdb-table-row-icon {
+  height: 100%;
+  width: auto;
+}

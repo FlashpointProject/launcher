@@ -1547,3 +1547,9 @@ body {
 .searchable-select-dropdown-item:hover {
   background-color: var(--layout__header-menu-item-hover-background);
 }
+
+.gdb-table-container {
+  background-color: var(--layout__secondary-background);
+  border: 2px solid var(--layout__primary-outline-color);
+  border-radius: 2px;
+}
