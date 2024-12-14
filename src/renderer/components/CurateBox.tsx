@@ -192,7 +192,7 @@ export function CurateBox(props: CurateBoxProps) {
       }));
     }
     props.onTagTextChange('');
-  }, [props.curation.folder]);
+  }, [props.curation.folder, props.curation.game.tags]);
 
   const onAddPlatform = React.useCallback((platform: Platform) => {
     const platforms = props.curation.game.platforms || [];
@@ -204,14 +204,14 @@ export function CurateBox(props: CurateBoxProps) {
       }));
     }
     props.onPlatformTextChange('');
-  }, [props.curation.folder]);
+  }, [props.curation.folder, props.curation.game.platforms]);
 
   const onRemoveTag = React.useCallback((tagId: number) => {
     dispatch(removeTag({
       folder,
       tagId
     }));
-  }, [props.curation.folder]);
+  }, [props.curation.folder, props.curation.game.tags]);
 
   const onRemovePlatform = React.useCallback((platformId) => {
     dispatch(removePlatform({
@@ -219,7 +219,7 @@ export function CurateBox(props: CurateBoxProps) {
       platformId,
       platformAppPaths: props.platformAppPaths
     }));
-  }, [props.curation.folder]);
+  }, [props.curation.folder, props.curation.game.platforms]);
 
   const onToggleContentNodeView = React.useCallback((tree: string[]) => {
     dispatch(toggleContentNodeView({
