@@ -112,7 +112,6 @@ export function createSearchFilter(query: QueryData, preferences: AppPreferences
     newFilter.matchAny = false;
     newFilter.subfilters = [inner, playlistFilter];
     search.filter = newFilter;
-    console.log(JSON.stringify(search, undefined, 2));
   }
 
   return {
