@@ -152,8 +152,9 @@ export class Footer extends React.Component<FooterProps> {
    */
   setScaleSliderValue(scale: number): void {
     if (this.scaleSliderRef.current) {
-      const value = Math.min(Math.max(0, scale), 1) * Footer.scaleSliderMax;
-      this.scaleSliderRef.current.value = value + '';
+      if (scale < 0) { scale = 0; }
+      else if (scale > 1) { scale = 1; }
+      this.scaleSliderRef.current.value = (Math.min(Math.max(0, scale), 1) * Footer.scaleSliderMax).toFixed(1).toString();
       updatePreferencesData({ browsePageGameScale: scale });
     }
   }
