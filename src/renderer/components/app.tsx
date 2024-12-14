@@ -259,10 +259,8 @@ export class App extends React.Component<AppProps> {
   }
 
   onDatabaseLoaded() {
-    console.log('db load');
     window.Shared.back.request(BackIn.GET_PLAYLISTS)
     .then(data => {
-      console.log('got playlists');
       if (data) {
         this.props.mainActions.addLoaded([BackInit.PLAYLISTS]);
         this.props.setMainState({ playlists: data });
@@ -316,7 +314,6 @@ export class App extends React.Component<AppProps> {
       }
 
       this.props.setTagCategories(data.tagCategories);
-      console.log('navigating to ' + this.props.preferencesData.defaultOpeningPage);
       this.props.history.push(this.props.preferencesData.defaultOpeningPage);
     })
     .then(() => {
