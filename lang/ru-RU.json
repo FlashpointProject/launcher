@@ -14,12 +14,12 @@
     "searchLimitDesc": "Ограничить число результатов при поиске",
     "searchLimitUnlimited": "Без ограничений",
     "searchLimitValue": "{0} результат(ов)",
-    "useCustomViews": "Use Custom Search Views",
-    "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
-    "defaultOpeningPage": "Default Opening Page",
-    "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
-    "restoreSearchViews": "Restore Search Results",
-    "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
+    "useCustomViews": "Использовать пользовательские представления поиска",
+    "useCustomViewsDesc": "Заменяет вкладки поиска в библиотеке на вкладки поиска с собственными именами и добавляет параметр библиотеки в расширенные фильтры.",
+    "defaultOpeningPage": "Первая страница по умолчанию",
+    "defaultOpeningPageDesc": "Страница по умолчанию, на которой будет открываться окно, либо главная страница, либо выбранная страница поиска",
+    "restoreSearchViews": "Восстановить результаты поиска",
+    "restoreSearchViewsDesc": "Сохраняет и восстанавливает копию каждой страницы поиска (текст, фильтры, выбранная игра и плейлист) при каждом открытии приложения.",
     "enableEditing": "Включить редактирование",
     "enableEditingDesc": "Включите редактирование игр и дополнительных приложений. Также показывает вкладки, связанные с редактированием.",
     "symlinkCuration": "Курация символического контента",
@@ -196,9 +196,9 @@
     "fpfssLogout": "Выйти из FPFSS",
     "softwareUpdateRequired": "Требуется обновление ПО. Выполнить сейчас?",
     "noLauncherUpdateReady": "Обновление метаданных требует более новой версии лаунчера, но обновление ПО в настоящее время недоступно.",
-    "deleteView": "Delete Search View",
-    "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
-    "createNewView": "Create new search view"
+    "deleteView": "Удалить вид поиска",
+    "deleteOnlyBrowseView": "Удалить вид поиска (должен иметь другой пользовательский вид)",
+    "createNewView": "Создать новый вид поиска"
   },
   "filter": {
     "dateAdded": "Дата добавления",
@@ -371,9 +371,9 @@
     "allGames": "Все игры",
     "newPlaylist": "Новая Коллекция",
     "importPlaylist": "Импорт плейлиста",
-    "noGamesFoundInsidePlaylist": "No Results Found in Playlist!",
+    "noGamesFoundInsidePlaylist": "В плейлисте не найдено результатов!",
     "emptyPlaylist": "Пустая Коллекция",
-    "noGamesFound": "No Results Found!",
+    "noGamesFound": "Результаты не найдены!",
     "dropGameOnLeft": "Перетащите игру из этой Коллекции в {0}, чтобы добавить её.",
     "leftSidebar": "левую боковую панель",
     "setFlashpointPathQuestion": "Вы точно указали путь к {0} на вкладке {1}?",
@@ -389,8 +389,8 @@
     "showExtremeScreenshot": "Показать скриншоты контента для взрослых",
     "busy": "Пожалуйста, подождите...",
     "openGameDataBrowser": "Открыть браузер игровых данных",
-    "allGenericEntries": "All Entries",
-    "usePlaylistOrder": "Use Playlist Order",
+    "allGenericEntries": "Все записи",
+    "usePlaylistOrder": "Использовать порядок плейлистов",
     "notArchived": "Не в архиве",
     "archived": "В архиве",
     "playOnline": "Играть в браузере"
@@ -505,7 +505,7 @@
     "contextShowInExplorer": "Показать файл в проводнике",
     "contextOpenFolderInExplorer": "Открыть папку в проводнике",
     "shortcuts": "Ярлыки",
-    "fpfssOpenSubmissionPage": "Open Submission Page"
+    "fpfssOpenSubmissionPage": "Открыть страницу отправки"
   },
   "playlist": {
     "enterDescriptionHere": "Введите описание сюда...",
@@ -546,7 +546,7 @@
     "searching": "Поиск...",
     "loading": "Загрузка...",
     "ok": "ОК",
-    "allow": "Allow"
+    "allow": "Разрешить"
   },
   "menu": {
     "viewThumbnailInFolder": "Отображать превью в папке",
@@ -641,9 +641,9 @@
     "openWiki": "Открыть Вики",
     "openDiscord": "Присоединиться к Discord-серверу",
     "doNotShowAgain": "Больше не показывать",
-    "extFpfssConsent": "Extension with ID {0} is requesting access to your FPFSS token. Allow?\nThis means the extension will be able access your FPFSS account and perform actions on your behalf.",
-    "gameDataUpdateReady": "A game data update is ready. Do you want to upgrade now?",
-    "gameDataUpdateReadyLcDifferent": "A game data update is ready. The launch command has changed and this may break existing save files. Do you want to upgrade now?"
+    "extFpfssConsent": "Расширение с идентификатором {0} запрашивает доступ к вашему токену FPFSS. Разрешить?\nЭто означает, что расширение сможет получить доступ к вашему аккаунту FPFSS и выполнять действия от вашего имени.",
+    "gameDataUpdateReady": "Обновление игровых данных готово. Вы хотите обновить игру сейчас?",
+    "gameDataUpdateReadyLcDifferent": "Обновление игровых данных готово. Команда запуска изменилась, и это может привести к поломке существующих файлов сохранений. Вы хотите обновить игру сейчас?"
   },
   "libraries": {
     "arcade": "Игры",
@@ -665,7 +665,7 @@
     "screenshotsDesc": "Добавляет логотипы для сетки и скриншоты для всех игр."
   },
   "extensions": {
-    "fpssConsentRevokeTitle": "Revoke access to FPFSS",
-    "fpssConsentRevokeDesc": "Withdraw this extension's access to FPFSS"
+    "fpssConsentRevokeTitle": "Отменить доступ к FPFSS",
+    "fpssConsentRevokeDesc": "Отозвать доступ этого расширения к FPFSS"
   }
 }
