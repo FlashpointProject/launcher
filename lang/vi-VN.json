@@ -14,6 +14,12 @@
     "searchLimitDesc": "Giới hạn số kết quả trả về mỗi khi tìm kiếm",
     "searchLimitUnlimited": "Không giới hạn",
     "searchLimitValue": "{0} kết quả",
+    "useCustomViews": "Use Custom Search Views",
+    "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
+    "defaultOpeningPage": "Default Opening Page",
+    "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
+    "restoreSearchViews": "Restore Search Results",
+    "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
     "enableEditing": "Bật khả năng chỉnh sửa",
     "enableEditingDesc": "Cho phép sửa trò chơi và phần mềm đi kèm. Cũng hiện thêm các trang liên quan đến việc chỉnh sửa.",
     "symlinkCuration": "Dùng liên kết tượng trưng cho nội dung của bản đóng góp",
@@ -189,7 +195,10 @@
     "fpfssProfile": "Xem trang hồ sơ",
     "fpfssLogout": "Đăng xuất khỏi FPFSS",
     "softwareUpdateRequired": "Cần cập nhật phần mềm. Cập nhật liền nhé?",
-    "noLauncherUpdateReady": "Để cập nhật thông tin của nội dung, cần dùng một bản mới hơn của Trình khởi chạy. Phiên bản này hiện chưa có."
+    "noLauncherUpdateReady": "Để cập nhật thông tin của nội dung, cần dùng một bản mới hơn của Trình khởi chạy. Phiên bản này hiện chưa có.",
+    "deleteView": "Delete Search View",
+    "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
+    "createNewView": "Create new search view"
   },
   "filter": {
     "dateAdded": "Ngày thêm",
@@ -362,8 +371,9 @@
     "allGames": "Toàn bộ trò chơi",
     "newPlaylist": "Danh sách mới",
     "importPlaylist": "Nhập danh sách",
+    "noGamesFoundInsidePlaylist": "No Results Found in Playlist!",
     "emptyPlaylist": "Danh sách trống",
-    "noGamesFound": "Không tìm thấy trò chơi!",
+    "noGamesFound": "No Results Found!",
     "dropGameOnLeft": "Kéo thả trò chơi vào một danh sách ở {0} để thêm vào danh sách đó.",
     "leftSidebar": "thanh bên trái",
     "setFlashpointPathQuestion": "Bạn đã chỉnh đường dẫn sang {0} ở mục {1} chưa?",
@@ -379,6 +389,8 @@
     "showExtremeScreenshot": "Hiện ảnh chụp màn hình phản cảm",
     "busy": "Bạn đợi xíu nhé...",
     "openGameDataBrowser": "Mở trình duyệt dữ liệu trò chơi",
+    "allGenericEntries": "All Entries",
+    "usePlaylistOrder": "Use Playlist Order",
     "notArchived": "Not Archived",
     "archived": "Archived",
     "playOnline": "Chơi trực tuyến"
@@ -533,7 +545,8 @@
     "showImage": "Hiện ảnh",
     "searching": "Đang tìm...",
     "loading": "Đang tải...",
-    "ok": "OK"
+    "ok": "OK",
+    "allow": "Allow"
   },
   "menu": {
     "viewThumbnailInFolder": "Xem biểu trưng trong thư mục",
@@ -627,7 +640,10 @@
     "badAntiVirus": "You appear to be using '{0}'.\nThis particular Antivirus is known to cause issues, and we recommend adding an exception to the Flashpoint folder.\n\nIf you only see a white screen when running Flash games you may need to reinstall Flashpoint to restore deleted files.\n\nSee the Wiki or Help tab for detailed instructions.",
     "openWiki": "Open Wiki",
     "openDiscord": "Join Discord Server",
-    "doNotShowAgain": "Do not show again"
+    "doNotShowAgain": "Do not show again",
+    "extFpfssConsent": "Extension with ID {0} is requesting access to your FPFSS token. Allow?\nThis means the extension will be able access your FPFSS account and perform actions on your behalf.",
+    "gameDataUpdateReady": "A game data update is ready. Do you want to upgrade now?",
+    "gameDataUpdateReadyLcDifferent": "A game data update is ready. The launch command has changed and this may break existing save files. Do you want to upgrade now?"
   },
   "libraries": {
     "arcade": "Trò chơi",
@@ -647,5 +663,9 @@
     "techDesc": "Hỗ trợ các công nghệ khác - Shockwave, Unity, Java, HTML5, v.v.",
     "screenshots": "Biểu trưng & ảnh chụp màn hình",
     "screenshotsDesc": "Thêm biểu trưng ở chế độ xem lưới và ảnh chụp màn hình cho tất cả trò chơi."
+  },
+  "extensions": {
+    "fpssConsentRevokeTitle": "Revoke access to FPFSS",
+    "fpssConsentRevokeDesc": "Withdraw this extension's access to FPFSS"
   }
 }
