@@ -14,6 +14,12 @@
     "searchLimitDesc": "Limitează numărul de rezultate returnate în orice căutare",
     "searchLimitUnlimited": "Fără limită",
     "searchLimitValue": "{0} rezultate",
+    "useCustomViews": "Use Custom Search Views",
+    "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
+    "defaultOpeningPage": "Default Opening Page",
+    "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
+    "restoreSearchViews": "Restore Search Results",
+    "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
     "enableEditing": "Activați editarea",
     "enableEditingDesc": "Activează editarea jocurilor și a aplicațiilor suplimentare. De asemenea, arată categorii legate de editare.",
     "symlinkCuration": "Conținut reparat cu Symlink",
@@ -189,7 +195,10 @@
     "fpfssProfile": "Deschidere profil",
     "fpfssLogout": "Deconectare FPFSS",
     "softwareUpdateRequired": "Actualizarea este necesară. Executați acum?",
-    "noLauncherUpdateReady": "Actualizarea informațiilor necesită o versiune mai nouă, indisponibilă momentan, a lansatorului. Încercați mai târziu."
+    "noLauncherUpdateReady": "Actualizarea informațiilor necesită o versiune mai nouă, indisponibilă momentan, a lansatorului. Încercați mai târziu.",
+    "deleteView": "Delete Search View",
+    "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
+    "createNewView": "Create new search view"
   },
   "filter": {
     "dateAdded": "Data adăugării",
@@ -362,8 +371,9 @@
     "allGames": "toate jocurile",
     "newPlaylist": "Listă de joc nouă",
     "importPlaylist": "Importați lista de joc",
+    "noGamesFoundInsidePlaylist": "No Results Found in Playlist!",
     "emptyPlaylist": "Lista este goală",
-    "noGamesFound": "Niciun joc găsit.",
+    "noGamesFound": "No Results Found!",
     "dropGameOnLeft": "Glisați un joc în {0} pentru a-l adăuga.",
     "leftSidebar": "bara din stânga",
     "setFlashpointPathQuestion": "Sunteți sigur(ă) că ați configurat {0} la pagina de {1}?",
@@ -379,6 +389,8 @@
     "showExtremeScreenshot": "Arată capturile de ecran extreme",
     "busy": "Așteptați…",
     "openGameDataBrowser": "Explorați datele jocului",
+    "allGenericEntries": "All Entries",
+    "usePlaylistOrder": "Use Playlist Order",
     "notArchived": "Not Archived",
     "archived": "Arhivat",
     "playOnline": "Jucați online"
@@ -533,7 +545,8 @@
     "showImage": "Arată imaginea",
     "searching": "Se caută...",
     "loading": "Se încarcă…",
-    "ok": "OK"
+    "ok": "OK",
+    "allow": "Allow"
   },
   "menu": {
     "viewThumbnailInFolder": "Vizualizați imaginea în dosar",
@@ -627,7 +640,10 @@
     "badAntiVirus": "You appear to be using '{0}'.\nThis particular Antivirus is known to cause issues, and we recommend adding an exception to the Flashpoint folder.\n\nIf you only see a white screen when running Flash games you may need to reinstall Flashpoint to restore deleted files.\n\nSee the Wiki or Help tab for detailed instructions.",
     "openWiki": "Open Wiki",
     "openDiscord": "Join Discord Server",
-    "doNotShowAgain": "Nu afișați din nou"
+    "doNotShowAgain": "Nu afișați din nou",
+    "extFpfssConsent": "Extension with ID {0} is requesting access to your FPFSS token. Allow?\nThis means the extension will be able access your FPFSS account and perform actions on your behalf.",
+    "gameDataUpdateReady": "A game data update is ready. Do you want to upgrade now?",
+    "gameDataUpdateReadyLcDifferent": "A game data update is ready. The launch command has changed and this may break existing save files. Do you want to upgrade now?"
   },
   "libraries": {
     "arcade": "Jocuri",
@@ -647,5 +663,9 @@
     "techDesc": "Adăugă suport pentru toate celelalte tehnologii - Shockwave, Unity, Java, HTML5 etc.",
     "screenshots": "Sigle și capturi de ecran",
     "screenshotsDesc": "Adaugă sigle pentru vizualizare tip grilă și capturi de ecran pentru toate jocurile."
+  },
+  "extensions": {
+    "fpssConsentRevokeTitle": "Revoke access to FPFSS",
+    "fpssConsentRevokeDesc": "Withdraw this extension's access to FPFSS"
   }
 }
