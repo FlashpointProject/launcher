@@ -14,6 +14,12 @@
     "searchLimitDesc": "Limituje počet výsledků navrácených jakýmkoliv vyhledáváním",
     "searchLimitUnlimited": "Neomezené",
     "searchLimitValue": "{0} Výsledků",
+    "useCustomViews": "Use Custom Search Views",
+    "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
+    "defaultOpeningPage": "Default Opening Page",
+    "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
+    "restoreSearchViews": "Restore Search Results",
+    "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
     "enableEditing": "Povolit upravování",
     "enableEditingDesc": "Povolit úpravy her a přídavných aplikací. Také zobrazí záložky související s úpravami.",
     "symlinkCuration": "Symbolicky linkovat obsah kurace",
@@ -189,7 +195,10 @@
     "fpfssProfile": "Otevřít profil",
     "fpfssLogout": "Odhlásit se z FPFSS",
     "softwareUpdateRequired": "Je vyžadována aktualizace softwaru. Chcete ji provést nyní?",
-    "noLauncherUpdateReady": "Aktualizace metadat vyžaduje novější verzi launcheru, ale aktualizace softwaru není v současné době k dispozici."
+    "noLauncherUpdateReady": "Aktualizace metadat vyžaduje novější verzi launcheru, ale aktualizace softwaru není v současné době k dispozici.",
+    "deleteView": "Delete Search View",
+    "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
+    "createNewView": "Create new search view"
   },
   "filter": {
     "dateAdded": "Datum přidání",
@@ -362,8 +371,9 @@
     "allGames": "Katalogu her",
     "newPlaylist": "Nový seznam",
     "importPlaylist": "Importovat Seznam",
+    "noGamesFoundInsidePlaylist": "No Results Found in Playlist!",
     "emptyPlaylist": "Prázdný seznam",
-    "noGamesFound": "Nebyly nalezeny žádné hry!",
+    "noGamesFound": "No Results Found!",
     "dropGameOnLeft": "Hru vložíte přetažením do seznamu {0}.",
     "leftSidebar": "levý postranní panel",
     "setFlashpointPathQuestion": "Nastavili jste správně parametr {0} na stránce {1}?",
@@ -379,6 +389,8 @@
     "showExtremeScreenshot": "Zobrazovat snímky obrazovky pro dospělé",
     "busy": "Čekejte prosím...",
     "openGameDataBrowser": "Otevřít prohlížeč herních dat",
+    "allGenericEntries": "All Entries",
+    "usePlaylistOrder": "Use Playlist Order",
     "notArchived": "Nearchivováno",
     "archived": "Archivováno",
     "playOnline": "Hrát online"
@@ -533,7 +545,8 @@
     "showImage": "Zaostřit obrázek",
     "searching": "Vyhledávání...",
     "loading": "Načítání...",
-    "ok": "OK"
+    "ok": "OK",
+    "allow": "Allow"
   },
   "menu": {
     "viewThumbnailInFolder": "Otevřít složku s umístěním miniatury",
@@ -627,7 +640,10 @@
     "badAntiVirus": "Zdá se, že používáte '{0}'.\nJe známo, že tento konkrétní antivirus způsobuje problémy, a proto doporučujeme přidat výjimku do složky Flashpoint.\n\nPokud se při spouštění Flash her zobrazuje pouze bílá obrazovka, bude možná nutné obnovit smazané soubory přeinstalováním Flashpointu.\n\nPodrobné pokyny naleznete na kartě Wiki nebo v nápovědě.",
     "openWiki": "Otevřít Wiki",
     "openDiscord": "Připojit se k Discord serveru",
-    "doNotShowAgain": "Znovu nezobrazovat"
+    "doNotShowAgain": "Znovu nezobrazovat",
+    "extFpfssConsent": "Extension with ID {0} is requesting access to your FPFSS token. Allow?\nThis means the extension will be able access your FPFSS account and perform actions on your behalf.",
+    "gameDataUpdateReady": "A game data update is ready. Do you want to upgrade now?",
+    "gameDataUpdateReadyLcDifferent": "A game data update is ready. The launch command has changed and this may break existing save files. Do you want to upgrade now?"
   },
   "libraries": {
     "arcade": "Hry",
@@ -647,5 +663,9 @@
     "techDesc": "Přidá podporu pro všechny ostatní technologie - Shockwave, Unity, Java, HTML5 atd.",
     "screenshots": "Loga a snímky obrazovky",
     "screenshotsDesc": "Přidá loga do mřížkového zobrazení a snímky obrazovky pro všechny hry."
+  },
+  "extensions": {
+    "fpssConsentRevokeTitle": "Revoke access to FPFSS",
+    "fpssConsentRevokeDesc": "Withdraw this extension's access to FPFSS"
   }
 }
