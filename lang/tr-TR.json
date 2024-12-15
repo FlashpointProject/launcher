@@ -14,6 +14,12 @@
     "searchLimitDesc": "Herhangi bir aramada döndürülen sonuç sayısını sınırlayın",
     "searchLimitUnlimited": "Sınırsız",
     "searchLimitValue": "{0} Sonuçlar",
+    "useCustomViews": "Use Custom Search Views",
+    "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
+    "defaultOpeningPage": "Default Opening Page",
+    "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
+    "restoreSearchViews": "Restore Search Results",
+    "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
     "enableEditing": "Değişikliklere İzin Ver",
     "enableEditingDesc": "Oyunların ve fazladan eklentilerin düzenlenmesine izin verir. Ayrıca düzenlemeye bağlı seçenekleri gösterir.",
     "symlinkCuration": "Kürasyon içeriği için Symlink kullan",
@@ -189,7 +195,10 @@
     "fpfssProfile": "Profili Aç",
     "fpfssLogout": "FPFSS'den çıkış yap",
     "softwareUpdateRequired": "Yazılım güncellemesi gerekli. Şimdi yapılsın mı?",
-    "noLauncherUpdateReady": "Metadata güncellemesi daha yeni bir Launcher sürümü gerektiriyor. Yazılım güncellemesi şu anda mevcut değil."
+    "noLauncherUpdateReady": "Metadata güncellemesi daha yeni bir Launcher sürümü gerektiriyor. Yazılım güncellemesi şu anda mevcut değil.",
+    "deleteView": "Delete Search View",
+    "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
+    "createNewView": "Create new search view"
   },
   "filter": {
     "dateAdded": "Eklenme Tarihi",
@@ -362,8 +371,9 @@
     "allGames": "Tüm Oyunlar",
     "newPlaylist": "Yeni Oynama Listesi",
     "importPlaylist": "Oynama Listesini İçe Aktar",
+    "noGamesFoundInsidePlaylist": "No Results Found in Playlist!",
     "emptyPlaylist": "Boş Oynama Listesi",
-    "noGamesFound": "Oyun Bulunamadı!",
+    "noGamesFound": "No Results Found!",
     "dropGameOnLeft": "Oynama listesinin üzerine {0}'ın içine bir oyun bırakarak ekle.",
     "leftSidebar": "sol kenar çubuğu",
     "setFlashpointPathQuestion": "Yolu {1} sayfasındaki {0}'a mı taşıdınız?",
@@ -379,6 +389,8 @@
     "showExtremeScreenshot": "Ekstrem Ekran Görüntüsünü Göster",
     "busy": "Lütfen Bekleyin...",
     "openGameDataBrowser": "Oyun Verileri Tarayıcısını Aç",
+    "allGenericEntries": "All Entries",
+    "usePlaylistOrder": "Use Playlist Order",
     "notArchived": "Arşivlenmedi",
     "archived": "Arşivlendi",
     "playOnline": "Çevrim içi Oyna"
@@ -533,7 +545,8 @@
     "showImage": "Resmi Göster",
     "searching": "Aranıyor...",
     "loading": "Yükleniyor...",
-    "ok": "Tamam"
+    "ok": "Tamam",
+    "allow": "Allow"
   },
   "menu": {
     "viewThumbnailInFolder": "Klasördeki küçükresmi İncele",
@@ -627,7 +640,10 @@
     "badAntiVirus": "'{0}' kullanıyor gibi görünüyorsunuz.\nBu Antivirüsün sorunlara neden olduğu biliniyor. Flashpoint klasörüne bir istisna eklemenizi öneririz.\n\nFlash oyunları çalıştırırken yalnızca beyaz bir ekran görüyorsanız, silinen dosyaları geri yüklemek için Flashpoint'i yeniden yüklemeniz gerekebilir.\n\nAyrıntılı talimatlar için Wiki veya Yardım sekmesine bakın.",
     "openWiki": "Wiki'yi Aç",
     "openDiscord": "Discord Sunucusuna Katıl",
-    "doNotShowAgain": "Tekrar gösterme"
+    "doNotShowAgain": "Tekrar gösterme",
+    "extFpfssConsent": "Extension with ID {0} is requesting access to your FPFSS token. Allow?\nThis means the extension will be able access your FPFSS account and perform actions on your behalf.",
+    "gameDataUpdateReady": "A game data update is ready. Do you want to upgrade now?",
+    "gameDataUpdateReadyLcDifferent": "A game data update is ready. The launch command has changed and this may break existing save files. Do you want to upgrade now?"
   },
   "libraries": {
     "arcade": "Oyunlar",
@@ -647,5 +663,9 @@
     "techDesc": "Diğer tüm teknolojiler için destek ekler - Shockwave, Unity, Java, HTML5 vs.",
     "screenshots": "Logolar & Ekran Görüntüleri",
     "screenshotsDesc": "Tüm oyunlarda Izgara görünüm ve ekran görüntüsü için logolar ekler."
+  },
+  "extensions": {
+    "fpssConsentRevokeTitle": "Revoke access to FPFSS",
+    "fpssConsentRevokeDesc": "Withdraw this extension's access to FPFSS"
   }
 }
