@@ -14,6 +14,12 @@
     "searchLimitDesc": "Ограничить число результатов при поиске",
     "searchLimitUnlimited": "Без ограничений",
     "searchLimitValue": "{0} результат(ов)",
+    "useCustomViews": "Use Custom Search Views",
+    "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
+    "defaultOpeningPage": "Default Opening Page",
+    "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
+    "restoreSearchViews": "Restore Search Results",
+    "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
     "enableEditing": "Включить редактирование",
     "enableEditingDesc": "Включите редактирование игр и дополнительных приложений. Также показывает вкладки, связанные с редактированием.",
     "symlinkCuration": "Курация символического контента",
@@ -189,7 +195,10 @@
     "fpfssProfile": "Открыть профиль",
     "fpfssLogout": "Выйти из FPFSS",
     "softwareUpdateRequired": "Требуется обновление ПО. Выполнить сейчас?",
-    "noLauncherUpdateReady": "Обновление метаданных требует более новой версии лаунчера, но обновление ПО в настоящее время недоступно."
+    "noLauncherUpdateReady": "Обновление метаданных требует более новой версии лаунчера, но обновление ПО в настоящее время недоступно.",
+    "deleteView": "Delete Search View",
+    "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
+    "createNewView": "Create new search view"
   },
   "filter": {
     "dateAdded": "Дата добавления",
@@ -362,8 +371,9 @@
     "allGames": "Все игры",
     "newPlaylist": "Новая Коллекция",
     "importPlaylist": "Импорт плейлиста",
+    "noGamesFoundInsidePlaylist": "No Results Found in Playlist!",
     "emptyPlaylist": "Пустая Коллекция",
-    "noGamesFound": "Игры не найдены!",
+    "noGamesFound": "No Results Found!",
     "dropGameOnLeft": "Перетащите игру из этой Коллекции в {0}, чтобы добавить её.",
     "leftSidebar": "левую боковую панель",
     "setFlashpointPathQuestion": "Вы точно указали путь к {0} на вкладке {1}?",
@@ -379,6 +389,8 @@
     "showExtremeScreenshot": "Показать скриншоты контента для взрослых",
     "busy": "Пожалуйста, подождите...",
     "openGameDataBrowser": "Открыть браузер игровых данных",
+    "allGenericEntries": "All Entries",
+    "usePlaylistOrder": "Use Playlist Order",
     "notArchived": "Не в архиве",
     "archived": "В архиве",
     "playOnline": "Играть в браузере"
@@ -533,7 +545,8 @@
     "showImage": "Показать изображение",
     "searching": "Поиск...",
     "loading": "Загрузка...",
-    "ok": "ОК"
+    "ok": "ОК",
+    "allow": "Allow"
   },
   "menu": {
     "viewThumbnailInFolder": "Отображать превью в папке",
@@ -627,7 +640,10 @@
     "badAntiVirus": "Похоже, что вы используете «{0}».\nИзвестно, что именно этот антивирус вызывает проблемы, поэтому мы рекомендуем добавить исключение в папку Flashpoint.\n\nЕсли при запуске флеш-игр вы видите только белый экран, вам может потребоваться переустановить Flashpoint, чтобы восстановить удалённые файлы.\n\nПодробные инструкции см. в Вики или на вкладке помощи.",
     "openWiki": "Открыть Вики",
     "openDiscord": "Присоединиться к Discord-серверу",
-    "doNotShowAgain": "Больше не показывать"
+    "doNotShowAgain": "Больше не показывать",
+    "extFpfssConsent": "Extension with ID {0} is requesting access to your FPFSS token. Allow?\nThis means the extension will be able access your FPFSS account and perform actions on your behalf.",
+    "gameDataUpdateReady": "A game data update is ready. Do you want to upgrade now?",
+    "gameDataUpdateReadyLcDifferent": "A game data update is ready. The launch command has changed and this may break existing save files. Do you want to upgrade now?"
   },
   "libraries": {
     "arcade": "Игры",
@@ -647,5 +663,9 @@
     "techDesc": "Добавлена поддержка всех других технологий (и игр вместе с ними) - Shockwave, Unity, Java, HTML5, и другие.",
     "screenshots": "Логотипы и скриншоты",
     "screenshotsDesc": "Добавляет логотипы для сетки и скриншоты для всех игр."
+  },
+  "extensions": {
+    "fpssConsentRevokeTitle": "Revoke access to FPFSS",
+    "fpssConsentRevokeDesc": "Withdraw this extension's access to FPFSS"
   }
 }
