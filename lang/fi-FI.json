@@ -14,6 +14,12 @@
     "searchLimitDesc": "Rajoita minkä tahansa haun tulosten määrää",
     "searchLimitUnlimited": "Rajaton",
     "searchLimitValue": "{0} tulosta",
+    "useCustomViews": "Use Custom Search Views",
+    "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
+    "defaultOpeningPage": "Default Opening Page",
+    "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
+    "restoreSearchViews": "Restore Search Results",
+    "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
     "enableEditing": "Muokkaustila",
     "enableEditingDesc": "Ota käyttöön pelien ja muiden sovellusten muokkaus. Näyttää myös muokkaukseen liittyvät välilehdet.",
     "symlinkCuration": "Symlink kuratointisisältö",
@@ -189,7 +195,10 @@
     "fpfssProfile": "Aukaise profiili",
     "fpfssLogout": "Kirjaudu ulos FPFSS-järjestelmästä",
     "softwareUpdateRequired": "Ohjelmistopäivtys vaaditaan. Päivitetäänkö nyt?",
-    "noLauncherUpdateReady": "Metadatan päivitys vaatii uudemman Launcher-version, mutta ohjelmistopäivitys ei ole tällä hetkellä saatavilla."
+    "noLauncherUpdateReady": "Metadatan päivitys vaatii uudemman Launcher-version, mutta ohjelmistopäivitys ei ole tällä hetkellä saatavilla.",
+    "deleteView": "Delete Search View",
+    "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
+    "createNewView": "Create new search view"
   },
   "filter": {
     "dateAdded": "Lisäyspäivämäärä",
@@ -362,8 +371,9 @@
     "allGames": "Kaikki pelit",
     "newPlaylist": "Uusi soittolista",
     "importPlaylist": "Tuo soittolista",
+    "noGamesFoundInsidePlaylist": "No Results Found in Playlist!",
     "emptyPlaylist": "Tyhjä soittolista",
-    "noGamesFound": "Pelejä ei löydy!",
+    "noGamesFound": "No Results Found!",
     "dropGameOnLeft": "Raahaa peli {0}-listaan lisätäksesi sen.",
     "leftSidebar": "vasen sivupalkki",
     "setFlashpointPathQuestion": "Oletko asettanut {0} oikein {1}-sivulla?",
@@ -379,6 +389,8 @@
     "showExtremeScreenshot": "Näytä Extreme-Kuvakaappaus",
     "busy": "Ole hyvä ja odota...",
     "openGameDataBrowser": "Avaa Pelitietojen Selain",
+    "allGenericEntries": "All Entries",
+    "usePlaylistOrder": "Use Playlist Order",
     "notArchived": "Ei Arkistoitu",
     "archived": "Arkistoitu",
     "playOnline": "Pelaa verkossa"
@@ -533,7 +545,8 @@
     "showImage": "Näytä kuva",
     "searching": "Etsitään...",
     "loading": "Ladataan...",
-    "ok": "OK"
+    "ok": "OK",
+    "allow": "Allow"
   },
   "menu": {
     "viewThumbnailInFolder": "Katso kuvaketta kansiossa",
@@ -627,7 +640,10 @@
     "badAntiVirus": "You appear to be using '{0}'.\nThis particular Antivirus is known to cause issues, and we recommend adding an exception to the Flashpoint folder.\n\nIf you only see a white screen when running Flash games you may need to reinstall Flashpoint to restore deleted files.\n\nSee the Wiki or Help tab for detailed instructions.",
     "openWiki": "Open Wiki",
     "openDiscord": "Join Discord Server",
-    "doNotShowAgain": "Do not show again"
+    "doNotShowAgain": "Do not show again",
+    "extFpfssConsent": "Extension with ID {0} is requesting access to your FPFSS token. Allow?\nThis means the extension will be able access your FPFSS account and perform actions on your behalf.",
+    "gameDataUpdateReady": "A game data update is ready. Do you want to upgrade now?",
+    "gameDataUpdateReadyLcDifferent": "A game data update is ready. The launch command has changed and this may break existing save files. Do you want to upgrade now?"
   },
   "libraries": {
     "arcade": "Pelit",
@@ -647,5 +663,9 @@
     "techDesc": "Lisää tuen muille ohjelmamoottoreille - Shockwave, Unity, Java, HTML5 jne.",
     "screenshots": "Logot ja ruutukaappaukset",
     "screenshotsDesc": "Lisää pelien logot verkkonäkymään ja pelikuvat kaikkiin peleihin."
+  },
+  "extensions": {
+    "fpssConsentRevokeTitle": "Revoke access to FPFSS",
+    "fpssConsentRevokeDesc": "Withdraw this extension's access to FPFSS"
   }
 }
