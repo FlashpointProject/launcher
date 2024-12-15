@@ -14,6 +14,12 @@
     "searchLimitDesc": "Limita il numero di risultati trovati per qualsiasi ricerca",
     "searchLimitUnlimited": "Illimitati",
     "searchLimitValue": "{0} Risultati",
+    "useCustomViews": "Use Custom Search Views",
+    "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
+    "defaultOpeningPage": "Default Opening Page",
+    "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
+    "restoreSearchViews": "Restore Search Results",
+    "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
     "enableEditing": "Abilita Modifica",
     "enableEditingDesc": "Abilita la modifica dei giochi e delle applicazioni aggiuntive. Mostra anche le schede relative alla modifica.",
     "symlinkCuration": "Collegamento simbolico al contenuto curato",
@@ -189,7 +195,10 @@
     "fpfssProfile": "Apri Profilo",
     "fpfssLogout": "Esci da FPFSS",
     "softwareUpdateRequired": "Software aggiornato richiesto. Vuoi farlo ora?",
-    "noLauncherUpdateReady": "L'aggiornamento dei metadati richiede una versione più recente di Launcher, ma l'aggiornamento del software non è attualmente disponibile."
+    "noLauncherUpdateReady": "L'aggiornamento dei metadati richiede una versione più recente di Launcher, ma l'aggiornamento del software non è attualmente disponibile.",
+    "deleteView": "Delete Search View",
+    "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
+    "createNewView": "Create new search view"
   },
   "filter": {
     "dateAdded": "Data di Aggiunta",
@@ -362,8 +371,9 @@
     "allGames": "Tutti i Giochi",
     "newPlaylist": "Crea una Nuova Scaletta",
     "importPlaylist": "Importa una Scaletta",
+    "noGamesFoundInsidePlaylist": "No Results Found in Playlist!",
     "emptyPlaylist": "Scaletta Vuota",
-    "noGamesFound": "Nessun Gioco Trovato!",
+    "noGamesFound": "No Results Found!",
     "dropGameOnLeft": "Trascina un gioco su questa scaletta nella {0} per aggiungerlo.",
     "leftSidebar": "barra laterale sinistra",
     "setFlashpointPathQuestion": "Hai impostato il {0} nella pagina {1}?",
@@ -379,6 +389,8 @@
     "showExtremeScreenshot": "Mostra Schermata Estrema",
     "busy": "Attendere Prego...",
     "openGameDataBrowser": "Apri il browser dei dati di gioco",
+    "allGenericEntries": "All Entries",
+    "usePlaylistOrder": "Use Playlist Order",
     "notArchived": "Non Archiviato",
     "archived": "Archiviato",
     "playOnline": "Gioca in Rete"
@@ -533,7 +545,8 @@
     "showImage": "Mostra Immagine",
     "searching": "Ricerca...",
     "loading": "Caricamento...",
-    "ok": "OK"
+    "ok": "OK",
+    "allow": "Allow"
   },
   "menu": {
     "viewThumbnailInFolder": "Visualizza Anteprima nella Cartella",
@@ -627,7 +640,10 @@
     "badAntiVirus": "Sembra che tu stia usando '{0}'.\nQuesto particolare Antivirus è noto per causare problemi, e si consiglia di aggiungere un'eccezione alla cartella Flashpoint.\n\nSe si vede solo uno schermo bianco quando si eseguono giochi Flash potrebbe essere necessario reinstallare Flashpoint per ripristinare i file eliminati.\n\nVedi la scheda Wiki o Aiuto per istruzioni dettagliate.",
     "openWiki": "Apri Wiki",
     "openDiscord": "Unisciti Al Server Discord",
-    "doNotShowAgain": "Non mostrare più"
+    "doNotShowAgain": "Non mostrare più",
+    "extFpfssConsent": "Extension with ID {0} is requesting access to your FPFSS token. Allow?\nThis means the extension will be able access your FPFSS account and perform actions on your behalf.",
+    "gameDataUpdateReady": "A game data update is ready. Do you want to upgrade now?",
+    "gameDataUpdateReadyLcDifferent": "A game data update is ready. The launch command has changed and this may break existing save files. Do you want to upgrade now?"
   },
   "libraries": {
     "arcade": "Giochi",
@@ -647,5 +663,9 @@
     "techDesc": "Aggiunge supporto per tutte le altre tecnologie - Shockwave, Unity, Java, HTML5, ecc.",
     "screenshots": "Loghi & Schermate",
     "screenshotsDesc": "Aggiunge loghi per la visualizzazione a Griglia e schermate per tutti i giochi."
+  },
+  "extensions": {
+    "fpssConsentRevokeTitle": "Revoke access to FPFSS",
+    "fpssConsentRevokeDesc": "Withdraw this extension's access to FPFSS"
   }
 }
