@@ -14,6 +14,12 @@
     "searchLimitDesc": "Limit the number of results returned in any search",
     "searchLimitUnlimited": "Unlimited",
     "searchLimitValue": "{0} Results",
+    "useCustomViews": "Use Custom Search Views",
+    "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
+    "defaultOpeningPage": "Default Opening Page",
+    "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
+    "restoreSearchViews": "Restore Search Results",
+    "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
     "enableEditing": "Pahintulutan ang Pagbabago",
     "enableEditingDesc": "I-enable ang pag-edit ng mga laro at mga aplikasyon. Pati na rin ang pag-kita ng mga tab na may kaugnay sa pag-edit.",
     "symlinkCuration": "Symlink Curation Content",
@@ -189,7 +195,10 @@
     "fpfssProfile": "Open Profile",
     "fpfssLogout": "Logout from FPFSS",
     "softwareUpdateRequired": "Software updated required. Do this now?",
-    "noLauncherUpdateReady": "Metadata update requires a newer Launcher version, but the software update is not currently available."
+    "noLauncherUpdateReady": "Metadata update requires a newer Launcher version, but the software update is not currently available.",
+    "deleteView": "Delete Search View",
+    "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
+    "createNewView": "Create new search view"
   },
   "filter": {
     "dateAdded": "Petsa kung kailan idinagdag",
@@ -362,8 +371,9 @@
     "allGames": "Lahat ng Laro",
     "newPlaylist": "Bagong Playlist",
     "importPlaylist": "I-import ang Playlist",
+    "noGamesFoundInsidePlaylist": "No Results Found in Playlist!",
     "emptyPlaylist": "Walang laman na Playlist",
-    "noGamesFound": "Walang mahanap na laro!",
+    "noGamesFound": "No Results Found!",
     "dropGameOnLeft": "Ilagay ang laro sa playlist na {0} para madagdag.",
     "leftSidebar": "left sidebar",
     "setFlashpointPathQuestion": "Nai-set mo ba ang path sa {0} mula sa {1} na pahina?",
@@ -379,6 +389,8 @@
     "showExtremeScreenshot": "Show Extreme Screenshot",
     "busy": "Please Wait...",
     "openGameDataBrowser": "Open Game Data Browser",
+    "allGenericEntries": "All Entries",
+    "usePlaylistOrder": "Use Playlist Order",
     "notArchived": "Not Archived",
     "archived": "Archived",
     "playOnline": "Play Online"
@@ -533,7 +545,8 @@
     "showImage": "Show Image",
     "searching": "Hinahanap...",
     "loading": "Loading...",
-    "ok": "OK"
+    "ok": "OK",
+    "allow": "Allow"
   },
   "menu": {
     "viewThumbnailInFolder": "Ipakita ang Thumbnail sa folder",
@@ -627,7 +640,10 @@
     "badAntiVirus": "You appear to be using '{0}'.\nThis particular Antivirus is known to cause issues, and we recommend adding an exception to the Flashpoint folder.\n\nIf you only see a white screen when running Flash games you may need to reinstall Flashpoint to restore deleted files.\n\nSee the Wiki or Help tab for detailed instructions.",
     "openWiki": "Open Wiki",
     "openDiscord": "Join Discord Server",
-    "doNotShowAgain": "Do not show again"
+    "doNotShowAgain": "Do not show again",
+    "extFpfssConsent": "Extension with ID {0} is requesting access to your FPFSS token. Allow?\nThis means the extension will be able access your FPFSS account and perform actions on your behalf.",
+    "gameDataUpdateReady": "A game data update is ready. Do you want to upgrade now?",
+    "gameDataUpdateReadyLcDifferent": "A game data update is ready. The launch command has changed and this may break existing save files. Do you want to upgrade now?"
   },
   "libraries": {
     "arcade": "Laro",
@@ -647,5 +663,9 @@
     "techDesc": "Dagdag ng suporta sa mga ibang teknolohiya - Shockwave, Unity, Java, HTML5, etc.",
     "screenshots": "Logo at Screenshot",
     "screenshotsDesc": "Dagdag ng logo para sa Grid view at screenshot para sa lahat ng laro."
+  },
+  "extensions": {
+    "fpssConsentRevokeTitle": "Revoke access to FPFSS",
+    "fpssConsentRevokeDesc": "Withdraw this extension's access to FPFSS"
   }
 }
