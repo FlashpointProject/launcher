@@ -14,6 +14,12 @@
     "searchLimitDesc": "Limitar o número de resultados retornados em qualquer pesquisa",
     "searchLimitUnlimited": "Ilimitado",
     "searchLimitValue": "{0} Resultados",
+    "useCustomViews": "Use Custom Search Views",
+    "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
+    "defaultOpeningPage": "Default Opening Page",
+    "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
+    "restoreSearchViews": "Restore Search Results",
+    "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
     "enableEditing": "Habilitar Edição",
     "enableEditingDesc": "Habilita a edição de jogos e aplicativos adicionais. Também revela abas relacionadas a edição.",
     "symlinkCuration": "Symlink Curation Content",
@@ -189,7 +195,10 @@
     "fpfssProfile": "Open Profile",
     "fpfssLogout": "Logout from FPFSS",
     "softwareUpdateRequired": "Software updated required. Do this now?",
-    "noLauncherUpdateReady": "Metadata update requires a newer Launcher version, but the software update is not currently available."
+    "noLauncherUpdateReady": "Metadata update requires a newer Launcher version, but the software update is not currently available.",
+    "deleteView": "Delete Search View",
+    "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
+    "createNewView": "Create new search view"
   },
   "filter": {
     "dateAdded": "Data de adição",
@@ -362,8 +371,9 @@
     "allGames": "Todos os Jogos",
     "newPlaylist": "Nova playlist",
     "importPlaylist": "Importar playlist",
+    "noGamesFoundInsidePlaylist": "No Results Found in Playlist!",
     "emptyPlaylist": "Playlist vazia",
-    "noGamesFound": "Nenhum Jogo Encontrado!",
+    "noGamesFound": "No Results Found!",
     "dropGameOnLeft": "Coloque um jogo nesta playlist em {0} para adicioná-lo.",
     "leftSidebar": "barra lateral esquerda",
     "setFlashpointPathQuestion": "Você definiu o caminho para {0} na página {1}?",
@@ -379,6 +389,8 @@
     "showExtremeScreenshot": "Show Extreme Screenshot",
     "busy": "Please Wait...",
     "openGameDataBrowser": "Open Game Data Browser",
+    "allGenericEntries": "All Entries",
+    "usePlaylistOrder": "Use Playlist Order",
     "notArchived": "Not Archived",
     "archived": "Archived",
     "playOnline": "Play Online"
@@ -533,7 +545,8 @@
     "showImage": "Show Image",
     "searching": "Procurando...",
     "loading": "Loading...",
-    "ok": "Ok"
+    "ok": "Ok",
+    "allow": "Allow"
   },
   "menu": {
     "viewThumbnailInFolder": "Visualizar miniatura na pasta",
@@ -627,7 +640,10 @@
     "badAntiVirus": "You appear to be using '{0}'.\nThis particular Antivirus is known to cause issues, and we recommend adding an exception to the Flashpoint folder.\n\nIf you only see a white screen when running Flash games you may need to reinstall Flashpoint to restore deleted files.\n\nSee the Wiki or Help tab for detailed instructions.",
     "openWiki": "Open Wiki",
     "openDiscord": "Join Discord Server",
-    "doNotShowAgain": "Do not show again"
+    "doNotShowAgain": "Do not show again",
+    "extFpfssConsent": "Extension with ID {0} is requesting access to your FPFSS token. Allow?\nThis means the extension will be able access your FPFSS account and perform actions on your behalf.",
+    "gameDataUpdateReady": "A game data update is ready. Do you want to upgrade now?",
+    "gameDataUpdateReadyLcDifferent": "A game data update is ready. The launch command has changed and this may break existing save files. Do you want to upgrade now?"
   },
   "libraries": {
     "arcade": "Jogos",
@@ -647,5 +663,9 @@
     "techDesc": "Adiciona suporte para todas as outras tecnologias - Shockwave, Unity, Java, HTML5, etc.",
     "screenshots": "Logos e capturas de tela",
     "screenshotsDesc": "Adiciona logotipos para exibição em grade e capturas de tela para todos os jogos."
+  },
+  "extensions": {
+    "fpssConsentRevokeTitle": "Revoke access to FPFSS",
+    "fpssConsentRevokeDesc": "Withdraw this extension's access to FPFSS"
   }
 }
