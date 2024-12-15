@@ -14,6 +14,12 @@
     "searchLimitDesc": "Ограничете го бројот на вратени резултати при секое пребарување",
     "searchLimitUnlimited": "Неограничено",
     "searchLimitValue": "{0} Резултати",
+    "useCustomViews": "Use Custom Search Views",
+    "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
+    "defaultOpeningPage": "Default Opening Page",
+    "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
+    "restoreSearchViews": "Restore Search Results",
+    "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
     "enableEditing": "Овозможи Уредувања",
     "enableEditingDesc": "Овозможи уредување на игри и дополнителни апликации. Исто така, покажува јазичиња поврзани со уредување.",
     "symlinkCuration": "Симлинк Курациска Содржина",
@@ -189,7 +195,10 @@
     "fpfssProfile": "Отвори Профил",
     "fpfssLogout": "Одјависе од FPFSS",
     "softwareUpdateRequired": "Потребно е ажурирање. Направиго сега?",
-    "noLauncherUpdateReady": "Ажурирањето на метаподатоци бара понова верзија на Лаунчер, но ажурирањето на софтверот во моментов не е достапно."
+    "noLauncherUpdateReady": "Ажурирањето на метаподатоци бара понова верзија на Лаунчер, но ажурирањето на софтверот во моментов не е достапно.",
+    "deleteView": "Delete Search View",
+    "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
+    "createNewView": "Create new search view"
   },
   "filter": {
     "dateAdded": "Датум Додадено",
@@ -362,8 +371,9 @@
     "allGames": "Сите Игри",
     "newPlaylist": "Нова Плејлиста",
     "importPlaylist": "Увезувај плејлист",
+    "noGamesFoundInsidePlaylist": "No Results Found in Playlist!",
     "emptyPlaylist": "Изведувај плејлист",
-    "noGamesFound": "Нема Игри Пронајдено!",
+    "noGamesFound": "No Results Found!",
     "dropGameOnLeft": "Фрлете игра на оваа плејлиста во {0} за да ја додадете.",
     "leftSidebar": "лева лента",
     "setFlashpointPathQuestion": "Дали сте ја поставиле патеката до {0} на страницата {1}?",
@@ -379,6 +389,8 @@
     "showExtremeScreenshot": "Покажувај Eкстремни Cлики од Eкраноt",
     "busy": "Ве Молиме Да Почекате...",
     "openGameDataBrowser": "Отворете го прелистувачот за податоци за игри",
+    "allGenericEntries": "All Entries",
+    "usePlaylistOrder": "Use Playlist Order",
     "notArchived": "Не е Архивирано",
     "archived": "Архивиран",
     "playOnline": "Играј online"
@@ -533,7 +545,8 @@
     "showImage": "Покажи Слика",
     "searching": "Барај...",
     "loading": "Вчитување...",
-    "ok": "ОК"
+    "ok": "ОК",
+    "allow": "Allow"
   },
   "menu": {
     "viewThumbnailInFolder": "Прегледај лого во папката",
@@ -627,7 +640,10 @@
     "badAntiVirus": "Изгледа дека ти користиш '{0}'.\nОвој Антивирус е познат за предизвикување проблеми, ве молиме да напривите исклучок во Flashpoint фолдерот.\nАко гледате бел екран додека играте Flash игри морате да реинсталирате Flashpoint за да дојдат избришаните фајлови.\n\nГледајте го наиот Вики или Помош таб за подетални инструкции.",
     "openWiki": "Отвори вики",
     "openDiscord": "Приклучете се на нашиот Discord сервер",
-    "doNotShowAgain": "Не прикажувај повторно"
+    "doNotShowAgain": "Не прикажувај повторно",
+    "extFpfssConsent": "Extension with ID {0} is requesting access to your FPFSS token. Allow?\nThis means the extension will be able access your FPFSS account and perform actions on your behalf.",
+    "gameDataUpdateReady": "A game data update is ready. Do you want to upgrade now?",
+    "gameDataUpdateReadyLcDifferent": "A game data update is ready. The launch command has changed and this may break existing save files. Do you want to upgrade now?"
   },
   "libraries": {
     "arcade": "Игри",
@@ -647,5 +663,9 @@
     "techDesc": "Додава поддршка за сите други технологии - Shockwave, Unity, Java, HTML5, etc.",
     "screenshots": "Логоа и слики од екранот",
     "screenshotsDesc": "Додава логоа за преглед на мрежата и слики од екранот за сите игри."
+  },
+  "extensions": {
+    "fpssConsentRevokeTitle": "Revoke access to FPFSS",
+    "fpssConsentRevokeDesc": "Withdraw this extension's access to FPFSS"
   }
 }
