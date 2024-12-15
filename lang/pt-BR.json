@@ -14,6 +14,12 @@
     "searchLimitDesc": "Limitar o número de resultados retornados em qualquer busca",
     "searchLimitUnlimited": "Ilimitado",
     "searchLimitValue": "{0} Resultados",
+    "useCustomViews": "Use Custom Search Views",
+    "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
+    "defaultOpeningPage": "Default Opening Page",
+    "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
+    "restoreSearchViews": "Restore Search Results",
+    "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
     "enableEditing": "Habilitar Edição",
     "enableEditingDesc": "Habilita a edição de jogos e aplicativos adicionais. Também revela abas relacionadas a edição.",
     "symlinkCuration": "Conteúdo de Curação Symlink",
@@ -189,7 +195,10 @@
     "fpfssProfile": "Abrir Perfil",
     "fpfssLogout": "Sair do FPFSS",
     "softwareUpdateRequired": "Programa atualizado necessário. Fazer isto agora?",
-    "noLauncherUpdateReady": "A atualização de metadados requer uma versão mais nova do Launcher, mas a atualização do software não está disponível no momento."
+    "noLauncherUpdateReady": "A atualização de metadados requer uma versão mais nova do Launcher, mas a atualização do software não está disponível no momento.",
+    "deleteView": "Delete Search View",
+    "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
+    "createNewView": "Create new search view"
   },
   "filter": {
     "dateAdded": "Data de Adição",
@@ -362,8 +371,9 @@
     "allGames": "Todos os Jogos",
     "newPlaylist": "Nova Playlist",
     "importPlaylist": "Importar Playlist",
+    "noGamesFoundInsidePlaylist": "No Results Found in Playlist!",
     "emptyPlaylist": "Playlist Vazia",
-    "noGamesFound": "Nenhum Jogo Encontrado!",
+    "noGamesFound": "No Results Found!",
     "dropGameOnLeft": "Largue um jogo nesta playlist na {0} para adicioná-lo.",
     "leftSidebar": "barra lateral da esquerda",
     "setFlashpointPathQuestion": "Você inseriu o caminho para o {0} na página das {1}?",
@@ -379,6 +389,8 @@
     "showExtremeScreenshot": "Mostrar Captura de Tela Extrema",
     "busy": "Por favor, aguarde...",
     "openGameDataBrowser": "Abrir Navegador de Dados de Jogo",
+    "allGenericEntries": "All Entries",
+    "usePlaylistOrder": "Use Playlist Order",
     "notArchived": "Não Arquivado",
     "archived": "Arquivado",
     "playOnline": "Jogar Online"
@@ -533,7 +545,8 @@
     "showImage": "Mostrar Imagem",
     "searching": "Pesquisando...",
     "loading": "Carregando...",
-    "ok": "OK"
+    "ok": "OK",
+    "allow": "Allow"
   },
   "menu": {
     "viewThumbnailInFolder": "Ver Miniatura na Pasta",
@@ -627,7 +640,10 @@
     "badAntiVirus": "Parece que você está usando '{0}'.\nEste antivírus em particular é conhecido por causar problemas, e recomendamos adicionar uma exceção à pasta do Flashpoint.\n\nSe você ver apenas uma tela branca quando executar jogos em Flash talvez seja necessário reinstalar o Flashpoint para restaurar os arquivos excluídos.\n\nVeja a Wiki ou aba de Ajuda para instruções detalhadas.",
     "openWiki": "Abrir Wiki",
     "openDiscord": "Entrar no servidor do Discord",
-    "doNotShowAgain": "Não exibir novamente"
+    "doNotShowAgain": "Não exibir novamente",
+    "extFpfssConsent": "Extension with ID {0} is requesting access to your FPFSS token. Allow?\nThis means the extension will be able access your FPFSS account and perform actions on your behalf.",
+    "gameDataUpdateReady": "A game data update is ready. Do you want to upgrade now?",
+    "gameDataUpdateReadyLcDifferent": "A game data update is ready. The launch command has changed and this may break existing save files. Do you want to upgrade now?"
   },
   "libraries": {
     "arcade": "Jogos",
@@ -647,5 +663,9 @@
     "techDesc": "Adiciona suporte para todas as outras tecnologias - Shockwave, Unity, Java, HTML5, etc.",
     "screenshots": "Logotipos & Capturas de Tela",
     "screenshotsDesc": "Adiciona logotipos para exibição em grade e capturas de tela para todos os jogos."
+  },
+  "extensions": {
+    "fpssConsentRevokeTitle": "Revoke access to FPFSS",
+    "fpssConsentRevokeDesc": "Withdraw this extension's access to FPFSS"
   }
 }
