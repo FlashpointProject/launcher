@@ -14,6 +14,12 @@
     "searchLimitDesc": "Limit the number of results returned in any search",
     "searchLimitUnlimited": "Unlimited",
     "searchLimitValue": "{0} Results",
+    "useCustomViews": "Use Custom Search Views",
+    "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
+    "defaultOpeningPage": "Default Opening Page",
+    "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
+    "restoreSearchViews": "Restore Search Results",
+    "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
     "enableEditing": "편집 허용하기",
     "enableEditingDesc": "Enable editing of games and additional applications. Also shows tabs related to editing.",
     "symlinkCuration": "Symlink Curation Content",
@@ -189,7 +195,10 @@
     "fpfssProfile": "Open Profile",
     "fpfssLogout": "Logout from FPFSS",
     "softwareUpdateRequired": "Software updated required. Do this now?",
-    "noLauncherUpdateReady": "Metadata update requires a newer Launcher version, but the software update is not currently available."
+    "noLauncherUpdateReady": "Metadata update requires a newer Launcher version, but the software update is not currently available.",
+    "deleteView": "Delete Search View",
+    "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
+    "createNewView": "Create new search view"
   },
   "filter": {
     "dateAdded": "추가된 날짜",
@@ -362,8 +371,9 @@
     "allGames": "모든 게임",
     "newPlaylist": "새 플레이리스트",
     "importPlaylist": "재생목록 가져오기",
+    "noGamesFoundInsidePlaylist": "No Results Found in Playlist!",
     "emptyPlaylist": "빈 플레이리스트",
-    "noGamesFound": "게임을 찾을 수 없습니다!",
+    "noGamesFound": "No Results Found!",
     "dropGameOnLeft": "게임을 이 플레이리스트에 더하려면 {0} 에 게임을 끌어 넣으세요.",
     "leftSidebar": "좌측 사이드바",
     "setFlashpointPathQuestion": "{0} 로의 경로를 {1} 페이지에서 지정하셨나요?",
@@ -379,6 +389,8 @@
     "showExtremeScreenshot": "Show Extreme Screenshot",
     "busy": "Please Wait...",
     "openGameDataBrowser": "Open Game Data Browser",
+    "allGenericEntries": "All Entries",
+    "usePlaylistOrder": "Use Playlist Order",
     "notArchived": "Not Archived",
     "archived": "Archived",
     "playOnline": "Play Online"
@@ -533,7 +545,8 @@
     "showImage": "Show Image",
     "searching": "검색 중...",
     "loading": "Loading...",
-    "ok": "OK"
+    "ok": "OK",
+    "allow": "Allow"
   },
   "menu": {
     "viewThumbnailInFolder": "폴더에 있는 썸네일 보기",
@@ -627,7 +640,10 @@
     "badAntiVirus": "You appear to be using '{0}'.\nThis particular Antivirus is known to cause issues, and we recommend adding an exception to the Flashpoint folder.\n\nIf you only see a white screen when running Flash games you may need to reinstall Flashpoint to restore deleted files.\n\nSee the Wiki or Help tab for detailed instructions.",
     "openWiki": "Open Wiki",
     "openDiscord": "Join Discord Server",
-    "doNotShowAgain": "Do not show again"
+    "doNotShowAgain": "Do not show again",
+    "extFpfssConsent": "Extension with ID {0} is requesting access to your FPFSS token. Allow?\nThis means the extension will be able access your FPFSS account and perform actions on your behalf.",
+    "gameDataUpdateReady": "A game data update is ready. Do you want to upgrade now?",
+    "gameDataUpdateReadyLcDifferent": "A game data update is ready. The launch command has changed and this may break existing save files. Do you want to upgrade now?"
   },
   "libraries": {
     "arcade": "게임",
@@ -647,5 +663,9 @@
     "techDesc": "다른 플랫폼들을 모두 추가합니다 - 쇼크웨이브, 유니티, 자바, HTML5 등",
     "screenshots": "로고 & 스크인샷",
     "screenshotsDesc": "그리드뷰 로고들과 게임 스크린샷들을 더합니다."
+  },
+  "extensions": {
+    "fpssConsentRevokeTitle": "Revoke access to FPFSS",
+    "fpssConsentRevokeDesc": "Withdraw this extension's access to FPFSS"
   }
 }
