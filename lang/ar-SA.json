@@ -14,6 +14,12 @@
     "searchLimitDesc": "الحد من عدد النتائج عند البحث",
     "searchLimitUnlimited": "غير محدود",
     "searchLimitValue": "{0} نتيجة",
+    "useCustomViews": "Use Custom Search Views",
+    "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
+    "defaultOpeningPage": "Default Opening Page",
+    "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
+    "restoreSearchViews": "Restore Search Results",
+    "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
     "enableEditing": "تمكين التعديل",
     "enableEditingDesc": "تمكين تعديل الألعاب والتطبيقات الإضافية. تُظهِر أيضًا علامات تبويب مُتعلّقة بالتعديل.",
     "symlinkCuration": "Symlink Curation Content",
@@ -189,7 +195,10 @@
     "fpfssProfile": "عرض الملف الشخصي",
     "fpfssLogout": "Logout from FPFSS",
     "softwareUpdateRequired": "Software updated required. Do this now?",
-    "noLauncherUpdateReady": "Metadata update requires a newer Launcher version, but the software update is not currently available."
+    "noLauncherUpdateReady": "Metadata update requires a newer Launcher version, but the software update is not currently available.",
+    "deleteView": "Delete Search View",
+    "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
+    "createNewView": "Create new search view"
   },
   "filter": {
     "dateAdded": "تاريخ الإضافة",
@@ -362,8 +371,9 @@
     "allGames": "جميع الألعاب",
     "newPlaylist": "قائمة لعب جديدة",
     "importPlaylist": "أدخِل قائمة لعب خارجية",
+    "noGamesFoundInsidePlaylist": "No Results Found in Playlist!",
     "emptyPlaylist": "قائمة لعب فارغة",
-    "noGamesFound": "لم يتم العثور على اي ألعاب!",
+    "noGamesFound": "No Results Found!",
     "dropGameOnLeft": "اسحب لعبة واسقطها على قائمة اللعب هذه في {0} لإضافتها.",
     "leftSidebar": "الشريط الجانبي الأيسر",
     "setFlashpointPathQuestion": "هل قمت بتعيين المسار إلى {0} في صفحة {1}؟",
@@ -379,6 +389,8 @@
     "showExtremeScreenshot": "أظهر لقطة الشاشة المُتطرّفة",
     "busy": "الرجاء الانتظار...",
     "openGameDataBrowser": "Open Game Data Browser",
+    "allGenericEntries": "All Entries",
+    "usePlaylistOrder": "Use Playlist Order",
     "notArchived": "Not Archived",
     "archived": "Archived",
     "playOnline": "Play Online"
@@ -533,7 +545,8 @@
     "showImage": "اظهِر الصورة",
     "searching": "يتم البحث...",
     "loading": "Loading...",
-    "ok": "OK"
+    "ok": "OK",
+    "allow": "Allow"
   },
   "menu": {
     "viewThumbnailInFolder": "عرض الصورة المصغرة في المجلد",
@@ -627,7 +640,10 @@
     "badAntiVirus": "You appear to be using '{0}'.\nThis particular Antivirus is known to cause issues, and we recommend adding an exception to the Flashpoint folder.\n\nIf you only see a white screen when running Flash games you may need to reinstall Flashpoint to restore deleted files.\n\nSee the Wiki or Help tab for detailed instructions.",
     "openWiki": "Open Wiki",
     "openDiscord": "Join Discord Server",
-    "doNotShowAgain": "Do not show again"
+    "doNotShowAgain": "Do not show again",
+    "extFpfssConsent": "Extension with ID {0} is requesting access to your FPFSS token. Allow?\nThis means the extension will be able access your FPFSS account and perform actions on your behalf.",
+    "gameDataUpdateReady": "A game data update is ready. Do you want to upgrade now?",
+    "gameDataUpdateReadyLcDifferent": "A game data update is ready. The launch command has changed and this may break existing save files. Do you want to upgrade now?"
   },
   "libraries": {
     "arcade": "الألعاب",
@@ -647,5 +663,9 @@
     "techDesc": "Adds support for all other tech - Shockwave, Unity, Java, HTML5, etc.",
     "screenshots": "Logos & Screenshots",
     "screenshotsDesc": "Adds logos for Grid view and screenshots for all games."
+  },
+  "extensions": {
+    "fpssConsentRevokeTitle": "Revoke access to FPFSS",
+    "fpssConsentRevokeDesc": "Withdraw this extension's access to FPFSS"
   }
 }
