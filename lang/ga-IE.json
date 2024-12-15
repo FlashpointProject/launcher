@@ -14,6 +14,12 @@
     "searchLimitDesc": "Teorainn ar an líon torthaí a fhaightear in aon chuardach ar bith",
     "searchLimitUnlimited": "Gan Teorainn",
     "searchLimitValue": "{0} Torthaí",
+    "useCustomViews": "Use Custom Search Views",
+    "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
+    "defaultOpeningPage": "Default Opening Page",
+    "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
+    "restoreSearchViews": "Restore Search Results",
+    "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
     "enableEditing": "Cumasaigh Eagrán",
     "enableEditingDesc": "Cumasaíonn sé eagarthóireacht ar chluichí agus feidhmeanna breise. Léiríonn sé cnaipí a bhaineann le hathrú.",
     "symlinkCuration": "Ábhar Cúramail Symlink",
@@ -189,7 +195,10 @@
     "fpfssProfile": "Oscail Profíl",
     "fpfssLogout": "Logáil Amach ó FPFSS",
     "softwareUpdateRequired": "Nuashonrú bogearraí de dhíth. An ndéanfaidh tú é seo anois?",
-    "noLauncherUpdateReady": "Tá nuashonrú sonraí ag teastáil le leagan níos nua den Luchtaithe, ach tá an nuashonrú bogearraí faoi láthair ar fáil."
+    "noLauncherUpdateReady": "Tá nuashonrú sonraí ag teastáil le leagan níos nua den Luchtaithe, ach tá an nuashonrú bogearraí faoi láthair ar fáil.",
+    "deleteView": "Delete Search View",
+    "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
+    "createNewView": "Create new search view"
   },
   "filter": {
     "dateAdded": "Dáta Breise",
@@ -362,8 +371,9 @@
     "allGames": "Gach Cluichí",
     "newPlaylist": "Liosta Nua",
     "importPlaylist": "Iompórtáil Liosta Imeartha",
+    "noGamesFoundInsidePlaylist": "No Results Found in Playlist!",
     "emptyPlaylist": "Liosta Imeartha Folamh",
-    "noGamesFound": "Níor Aimseoidh Cluichí ar Bith!",
+    "noGamesFound": "No Results Found!",
     "dropGameOnLeft": "Léim cluiche ar an liosta seo sa {0} chun é a chur leis.",
     "leftSidebar": "an taobh clé",
     "setFlashpointPathQuestion": "An bhfuil an bealach go dtí an {0} curtha agat ag {1} leathanach?",
@@ -379,6 +389,8 @@
     "showExtremeScreenshot": "Taispeáin Síniú Míchuibheasach",
     "busy": "Fan go bhfuil tú, le do thoil...",
     "openGameDataBrowser": "Oscail Bhrabhsálaí Sonraí na Cluichí",
+    "allGenericEntries": "All Entries",
+    "usePlaylistOrder": "Use Playlist Order",
     "notArchived": "Níor Achríonn",
     "archived": "Achríonn",
     "playOnline": "Imir ar Líne"
@@ -533,7 +545,8 @@
     "showImage": "Taispeáin íomhá",
     "searching": "Ag Cuardach...",
     "loading": "Ag Lódáil...",
-    "ok": "OK"
+    "ok": "OK",
+    "allow": "Allow"
   },
   "menu": {
     "viewThumbnailInFolder": "Féach ar an Mionsamhail sa Chartlann",
@@ -627,7 +640,10 @@
     "badAntiVirus": "You appear to be using '{0}'.\nThis particular Antivirus is known to cause issues, and we recommend adding an exception to the Flashpoint folder.\n\nIf you only see a white screen when running Flash games you may need to reinstall Flashpoint to restore deleted files.\n\nSee the Wiki or Help tab for detailed instructions.",
     "openWiki": "Open Wiki",
     "openDiscord": "Join Discord Server",
-    "doNotShowAgain": "Do not show again"
+    "doNotShowAgain": "Do not show again",
+    "extFpfssConsent": "Extension with ID {0} is requesting access to your FPFSS token. Allow?\nThis means the extension will be able access your FPFSS account and perform actions on your behalf.",
+    "gameDataUpdateReady": "A game data update is ready. Do you want to upgrade now?",
+    "gameDataUpdateReadyLcDifferent": "A game data update is ready. The launch command has changed and this may break existing save files. Do you want to upgrade now?"
   },
   "libraries": {
     "arcade": "Cluichí",
@@ -647,5 +663,9 @@
     "techDesc": "Cuirtear tacaíocht le gach teic - Shockwave, Unity, Java, HTML5, srl.",
     "screenshots": "Logaí & Snáitheanna Scáileáin",
     "screenshotsDesc": "Cuirtear logaí le haghaidh an deiscleár gréasáin agus snáitheanna scáileáin le haghaidh gach cluiche."
+  },
+  "extensions": {
+    "fpssConsentRevokeTitle": "Revoke access to FPFSS",
+    "fpssConsentRevokeDesc": "Withdraw this extension's access to FPFSS"
   }
 }
