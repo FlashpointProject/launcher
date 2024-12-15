@@ -1064,18 +1064,19 @@ export class App extends React.Component<AppProps> {
     }
   };
 
-  onUpdateActiveGameData = (activeDataOnDisk: boolean, activeDataId?: number): void => {
+  onUpdateActiveGameData = async (activeDataOnDisk: boolean, activeDataId?: number): Promise<void> => {
     if (this.props.currentView.selectedGame) {
-      const ng = newGame();
-      Object.assign(newGame, { ...this.props.currentView.selectedGame, activeDataOnDisk, activeDataId });
-      window.Shared.back.request(BackIn.SAVE_GAME, ng)
-      .then(() => {
-        if (this.props.currentView.selectedGame) {
-          const ng = newGame();
-          Object.assign(ng, { ...this.props.currentView.selectedGame, activeDataOnDisk, activeDataId });
-          this.props.searchActions.updateGame(ng);
-        }
-      });
+      const game = await window.Shared.back.request(BackIn.GET_GAME, this.props.currentView.selectedGame.id);
+      if (game) {
+        game.activeDataOnDisk = activeDataOnDisk;
+        game.activeDataId = activeDataId;
+        window.Shared.back.request(BackIn.SAVE_GAME, game)
+        .then(() => {
+          if (this.props.currentView.selectedGame) {
+            this.props.searchActions.updateGame(game);
+          }
+        });
+      }
     }
   };
 

@@ -658,6 +658,8 @@ const langTemplate = {
     'openDiscord',
     'doNotShowAgain',
     'extFpfssConsent',
+    'gameDataUpdateReady',
+    'gameDataUpdateReadyLcDifferent',
   ] as const,
   extensions: [
     'fpssConsentRevokeTitle',
