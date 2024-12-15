@@ -14,6 +14,12 @@
     "searchLimitDesc": "Περιορισμός του αριθμού των αποτελεσμάτων που επιστρέφονται σε οποιαδήποτε αναζήτηση",
     "searchLimitUnlimited": "Απεριόριστα",
     "searchLimitValue": "{0} Αποτελέσματα",
+    "useCustomViews": "Use Custom Search Views",
+    "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
+    "defaultOpeningPage": "Default Opening Page",
+    "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
+    "restoreSearchViews": "Restore Search Results",
+    "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
     "enableEditing": "Ενεργοποίηση Επεξεργασίας",
     "enableEditingDesc": "Ενεργοποίηση επεξεργασίας παιχνιδιών και επιπλέον εφαρμογών. Επίσης εμφανίζει καρτέλες που σχετίζονται με την επεξεργασία.",
     "symlinkCuration": "Περιεχόμενο Αρχειοθέτησης Συντόμευσης",
@@ -189,7 +195,10 @@
     "fpfssProfile": "Άνοιγμα Προφίλ",
     "fpfssLogout": "Αποσύνδεση από το FPFSS",
     "softwareUpdateRequired": "Το ενημέρωση λογισμικού απαιτείται. Να γίνει τώρα;",
-    "noLauncherUpdateReady": "Η ενημέρωση μεταδεδομένων απαιτεί μια νεότερη έκδοση Launcher, αλλά η ενημέρωση λογισμικού δεν είναι διαθέσιμη αυτή τη στιγμή."
+    "noLauncherUpdateReady": "Η ενημέρωση μεταδεδομένων απαιτεί μια νεότερη έκδοση Launcher, αλλά η ενημέρωση λογισμικού δεν είναι διαθέσιμη αυτή τη στιγμή.",
+    "deleteView": "Delete Search View",
+    "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
+    "createNewView": "Create new search view"
   },
   "filter": {
     "dateAdded": "Ημερομηνία Προσθήκης",
@@ -362,8 +371,9 @@
     "allGames": "Όλα Τα Παιχνίδια",
     "newPlaylist": "Νέα Λίστα Αναπαραγωγής",
     "importPlaylist": "Εισαγωγή Λίστας Αναπαραγωγής",
+    "noGamesFoundInsidePlaylist": "No Results Found in Playlist!",
     "emptyPlaylist": "Άδειο playlist",
-    "noGamesFound": "Δεν βρέθηκαν παιχνίδια!",
+    "noGamesFound": "No Results Found!",
     "dropGameOnLeft": "Αφήστε ένα παιχνίδι σε αυτή την λίστα αναπαραγωγής στο {0} για να το προσθέσετε.",
     "leftSidebar": "αριστερή πλευρική στήλη",
     "setFlashpointPathQuestion": "Έχετε θέσει τη διαδρομή στο {0} στην σελίδα {1};",
@@ -379,6 +389,8 @@
     "showExtremeScreenshot": "Απόκρυψη Ακραίων Στιγμιοτύπων",
     "busy": "Παρακαλώ περιμένετε...",
     "openGameDataBrowser": "Άνοιγμα Περιηγητή Δεδομένων Παιχνιδιού",
+    "allGenericEntries": "All Entries",
+    "usePlaylistOrder": "Use Playlist Order",
     "notArchived": "Μη Αρχειοθετημένο",
     "archived": "Αρχειοθετημένα",
     "playOnline": "Παίξε Διαδικτυακά"
@@ -533,7 +545,8 @@
     "showImage": "Εμφάνιση Εικόνας",
     "searching": "Αναζήτηση...",
     "loading": "Φόρτωση...",
-    "ok": "ΟΚ"
+    "ok": "ΟΚ",
+    "allow": "Allow"
   },
   "menu": {
     "viewThumbnailInFolder": "Προβολή Μικρογραφίας στον Φάκελο",
@@ -627,7 +640,10 @@
     "badAntiVirus": "Φαίνεται ότι χρησιμοποιείτε το '{0}'.\nΑυτό το συγκεκριμένο Antivirus είναι γνωστό ότι προκαλεί προβλήματα και σας συνιστούμε να προσθέσετε μια εξαίρεση για το φάκελο Flashpoint.\n\nΕάν βλέπετε μια λευκή οθόνη μόνο όταν εκτελείτε παιχνίδια Flash μπορεί να χρειαστεί να εγκαταστήσετε ξανά το σημείο Flashpoint για να επαναφέρετε τα διαγραμμένα αρχεία.\n\nΔείτε το Wiki ή την καρτέλα Βοήθεια για λεπτομερείς οδηγίες.",
     "openWiki": "Άνοιγμα Wiki",
     "openDiscord": "Συμμετοχή Σε Διακομιστή Discord",
-    "doNotShowAgain": "Να μην εμφανιστεί ξανά"
+    "doNotShowAgain": "Να μην εμφανιστεί ξανά",
+    "extFpfssConsent": "Extension with ID {0} is requesting access to your FPFSS token. Allow?\nThis means the extension will be able access your FPFSS account and perform actions on your behalf.",
+    "gameDataUpdateReady": "A game data update is ready. Do you want to upgrade now?",
+    "gameDataUpdateReadyLcDifferent": "A game data update is ready. The launch command has changed and this may break existing save files. Do you want to upgrade now?"
   },
   "libraries": {
     "arcade": "Παιχνίδια",
@@ -647,5 +663,9 @@
     "techDesc": "Προσθέτει υποστήριξη για όλες τις άλλες τεχνολογίες - Σόκγουεϊβ, Γιούνιτυ, Τζάβα, Γλώσσα Σήμανσης Υπερκειμένου 5 κ. ά.",
     "screenshots": "Λογότυπα και Στιγμιότυπα",
     "screenshotsDesc": "Προσθήκη λογοτύπων για πλεγματοειδή προβολή και στιγμιότυπα για όλα τα παιχνίδια."
+  },
+  "extensions": {
+    "fpssConsentRevokeTitle": "Revoke access to FPFSS",
+    "fpssConsentRevokeDesc": "Withdraw this extension's access to FPFSS"
   }
 }
