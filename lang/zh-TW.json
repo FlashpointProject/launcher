@@ -14,6 +14,12 @@
     "searchLimitDesc": "限制搜索返回的結果數量",
     "searchLimitUnlimited": "無限制",
     "searchLimitValue": "{0} 個結果",
+    "useCustomViews": "Use Custom Search Views",
+    "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
+    "defaultOpeningPage": "Default Opening Page",
+    "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
+    "restoreSearchViews": "Restore Search Results",
+    "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
     "enableEditing": "允許修改",
     "enableEditingDesc": "開啟修改遊戲與額外應用程式的功能，同時顯示其他修改相關之頁籤",
     "symlinkCuration": "設定符號連結至上傳內容",
@@ -189,7 +195,10 @@
     "fpfssProfile": "開啟個人檔案",
     "fpfssLogout": "登出 FPFSS",
     "softwareUpdateRequired": "需要更新軟體。立即更新？",
-    "noLauncherUpdateReady": "Metadata update requires a newer Launcher version, but the software update is not currently available."
+    "noLauncherUpdateReady": "Metadata update requires a newer Launcher version, but the software update is not currently available.",
+    "deleteView": "Delete Search View",
+    "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
+    "createNewView": "Create new search view"
   },
   "filter": {
     "dateAdded": "新增日期",
@@ -362,8 +371,9 @@
     "allGames": "所有遊戲",
     "newPlaylist": "新增播放清單",
     "importPlaylist": "匯入播放清單",
+    "noGamesFoundInsidePlaylist": "No Results Found in Playlist!",
     "emptyPlaylist": "播放清單是空的",
-    "noGamesFound": "未找到任何遊戲！",
+    "noGamesFound": "No Results Found!",
     "dropGameOnLeft": "將遊戲拖曳至播放清單的 {0} 以新增之",
     "leftSidebar": "左側列表",
     "setFlashpointPathQuestion": "您有在 {1} 頁面設置指向 {0} 的路徑了嗎？",
@@ -379,6 +389,8 @@
     "showExtremeScreenshot": "顯示成人截圖",
     "busy": "請稍候...",
     "openGameDataBrowser": "Open Game Data Browser",
+    "allGenericEntries": "All Entries",
+    "usePlaylistOrder": "Use Playlist Order",
     "notArchived": "Not Archived",
     "archived": "Archived",
     "playOnline": "Play Online"
@@ -533,7 +545,8 @@
     "showImage": "顯示圖片",
     "searching": "正在搜尋...",
     "loading": "載入中...",
-    "ok": "確定"
+    "ok": "確定",
+    "allow": "Allow"
   },
   "menu": {
     "viewThumbnailInFolder": "於資料夾中查看縮圖",
@@ -627,7 +640,10 @@
     "badAntiVirus": "You appear to be using '{0}'.\nThis particular Antivirus is known to cause issues, and we recommend adding an exception to the Flashpoint folder.\n\nIf you only see a white screen when running Flash games you may need to reinstall Flashpoint to restore deleted files.\n\nSee the Wiki or Help tab for detailed instructions.",
     "openWiki": "Open Wiki",
     "openDiscord": "Join Discord Server",
-    "doNotShowAgain": "Do not show again"
+    "doNotShowAgain": "Do not show again",
+    "extFpfssConsent": "Extension with ID {0} is requesting access to your FPFSS token. Allow?\nThis means the extension will be able access your FPFSS account and perform actions on your behalf.",
+    "gameDataUpdateReady": "A game data update is ready. Do you want to upgrade now?",
+    "gameDataUpdateReadyLcDifferent": "A game data update is ready. The launch command has changed and this may break existing save files. Do you want to upgrade now?"
   },
   "libraries": {
     "arcade": "遊戲",
@@ -647,5 +663,9 @@
     "techDesc": "新增不同遊戲引擎的支援（Shockwave、Unity、Java、HTML5等）",
     "screenshots": "縮圖與截圖",
     "screenshotsDesc": "新增格狀顯示的縮圖與遊戲截圖"
+  },
+  "extensions": {
+    "fpssConsentRevokeTitle": "Revoke access to FPFSS",
+    "fpssConsentRevokeDesc": "Withdraw this extension's access to FPFSS"
   }
 }
