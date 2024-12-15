@@ -14,6 +14,12 @@
     "searchLimitDesc": "Ограничи број резултата који се враћају у било којој претрази",
     "searchLimitUnlimited": "Неограничено",
     "searchLimitValue": "{0} резултата",
+    "useCustomViews": "Use Custom Search Views",
+    "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
+    "defaultOpeningPage": "Default Opening Page",
+    "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
+    "restoreSearchViews": "Restore Search Results",
+    "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
     "enableEditing": "Укључи уређивање",
     "enableEditingDesc": "Омогућава уређивање игара и додатних апликација. Такође приказује картице везане за уређивање.",
     "symlinkCuration": "Symlink Curation Content",
@@ -189,7 +195,10 @@
     "fpfssProfile": "Open Profile",
     "fpfssLogout": "Logout from FPFSS",
     "softwareUpdateRequired": "Software updated required. Do this now?",
-    "noLauncherUpdateReady": "Metadata update requires a newer Launcher version, but the software update is not currently available."
+    "noLauncherUpdateReady": "Metadata update requires a newer Launcher version, but the software update is not currently available.",
+    "deleteView": "Delete Search View",
+    "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
+    "createNewView": "Create new search view"
   },
   "filter": {
     "dateAdded": "Датум додавања",
@@ -362,8 +371,9 @@
     "allGames": "Све игре",
     "newPlaylist": "Нова плејлиста",
     "importPlaylist": "Увези плејлисту",
+    "noGamesFoundInsidePlaylist": "No Results Found in Playlist!",
     "emptyPlaylist": "Празна плејлиста",
-    "noGamesFound": "Ниједна игра није пронађена!",
+    "noGamesFound": "No Results Found!",
     "dropGameOnLeft": "Довуци игру на овој плејлисти у {0} да би је додао.",
     "leftSidebar": "леву траку",
     "setFlashpointPathQuestion": "Јеси ли подесио путању ка {0} на страници {1}?",
@@ -379,6 +389,8 @@
     "showExtremeScreenshot": "Show Extreme Screenshot",
     "busy": "Please Wait...",
     "openGameDataBrowser": "Open Game Data Browser",
+    "allGenericEntries": "All Entries",
+    "usePlaylistOrder": "Use Playlist Order",
     "notArchived": "Није архивирано",
     "archived": "Архивирано",
     "playOnline": "Play Online"
@@ -533,7 +545,8 @@
     "showImage": "Прикажи слику",
     "searching": "Тражим...",
     "loading": "Loading...",
-    "ok": "OK"
+    "ok": "OK",
+    "allow": "Allow"
   },
   "menu": {
     "viewThumbnailInFolder": "Прегледај симболичну слику у фасцикли",
@@ -627,7 +640,10 @@
     "badAntiVirus": "You appear to be using '{0}'.\nThis particular Antivirus is known to cause issues, and we recommend adding an exception to the Flashpoint folder.\n\nIf you only see a white screen when running Flash games you may need to reinstall Flashpoint to restore deleted files.\n\nSee the Wiki or Help tab for detailed instructions.",
     "openWiki": "Open Wiki",
     "openDiscord": "Join Discord Server",
-    "doNotShowAgain": "Do not show again"
+    "doNotShowAgain": "Do not show again",
+    "extFpfssConsent": "Extension with ID {0} is requesting access to your FPFSS token. Allow?\nThis means the extension will be able access your FPFSS account and perform actions on your behalf.",
+    "gameDataUpdateReady": "A game data update is ready. Do you want to upgrade now?",
+    "gameDataUpdateReadyLcDifferent": "A game data update is ready. The launch command has changed and this may break existing save files. Do you want to upgrade now?"
   },
   "libraries": {
     "arcade": "Игре",
@@ -647,5 +663,9 @@
     "techDesc": "Додаје подршку за остале технологије - Shockwave, Unity, Java, HTML5, итд.",
     "screenshots": "Логотипи и слике екрана",
     "screenshotsDesc": "Додаје логотип за преглед у решетки и слике екрана за све игре."
+  },
+  "extensions": {
+    "fpssConsentRevokeTitle": "Revoke access to FPFSS",
+    "fpssConsentRevokeDesc": "Withdraw this extension's access to FPFSS"
   }
 }
