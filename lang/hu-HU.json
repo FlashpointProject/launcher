@@ -14,6 +14,12 @@
     "searchLimitDesc": "A visszaadott keresési találatok korlátozása bármelyik keresésnél",
     "searchLimitUnlimited": "Korlátlan",
     "searchLimitValue": "{0} eredmény",
+    "useCustomViews": "Use Custom Search Views",
+    "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
+    "defaultOpeningPage": "Default Opening Page",
+    "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
+    "restoreSearchViews": "Restore Search Results",
+    "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
     "enableEditing": "Szerkesztés engedélyezése",
     "enableEditingDesc": "Játékok és további alkalmazások módosítását engedélyezi, valamint a szerkesztéshez kapcsolódó lapokat is mutatja.",
     "symlinkCuration": "Symlink Kurációs Tartalom",
@@ -189,7 +195,10 @@
     "fpfssProfile": "Profil megnyitása",
     "fpfssLogout": "Kijelentkezés az FPSS-ből",
     "softwareUpdateRequired": "Szoftverfrissítés szükséges. Most kívánja végrehajtani?",
-    "noLauncherUpdateReady": "Metadata update requires a newer Launcher version, but the software update is not currently available."
+    "noLauncherUpdateReady": "Metadata update requires a newer Launcher version, but the software update is not currently available.",
+    "deleteView": "Delete Search View",
+    "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
+    "createNewView": "Create new search view"
   },
   "filter": {
     "dateAdded": "Hozzáadás dátuma",
@@ -362,8 +371,9 @@
     "allGames": "Összes játék",
     "newPlaylist": "Új lejátszólista",
     "importPlaylist": "Lejátszólista importálása",
+    "noGamesFoundInsidePlaylist": "No Results Found in Playlist!",
     "emptyPlaylist": "Üres lejátszólista",
-    "noGamesFound": "Nem található játék!",
+    "noGamesFound": "No Results Found!",
     "dropGameOnLeft": "Húzzon egy játékot a lejátszólistára hogy hozzáadja.",
     "leftSidebar": "bal panel",
     "setFlashpointPathQuestion": "Beállította az útvonalat a -hoz a oldalon?",
@@ -379,6 +389,8 @@
     "showExtremeScreenshot": "Extrém képernyőmentések mutatása",
     "busy": "Kérem várjon...",
     "openGameDataBrowser": "Játékadat Böngésző Megnyitása",
+    "allGenericEntries": "All Entries",
+    "usePlaylistOrder": "Use Playlist Order",
     "notArchived": "Not Archived",
     "archived": "Archived",
     "playOnline": "Play Online"
@@ -533,7 +545,8 @@
     "showImage": "Kép mutatása",
     "searching": "Keresés...",
     "loading": "Töltés...",
-    "ok": "OK"
+    "ok": "OK",
+    "allow": "Allow"
   },
   "menu": {
     "viewThumbnailInFolder": "Előnézeti kép megtekintése mappában",
@@ -627,7 +640,10 @@
     "badAntiVirus": "You appear to be using '{0}'.\nThis particular Antivirus is known to cause issues, and we recommend adding an exception to the Flashpoint folder.\n\nIf you only see a white screen when running Flash games you may need to reinstall Flashpoint to restore deleted files.\n\nSee the Wiki or Help tab for detailed instructions.",
     "openWiki": "Open Wiki",
     "openDiscord": "Join Discord Server",
-    "doNotShowAgain": "Do not show again"
+    "doNotShowAgain": "Do not show again",
+    "extFpfssConsent": "Extension with ID {0} is requesting access to your FPFSS token. Allow?\nThis means the extension will be able access your FPFSS account and perform actions on your behalf.",
+    "gameDataUpdateReady": "A game data update is ready. Do you want to upgrade now?",
+    "gameDataUpdateReadyLcDifferent": "A game data update is ready. The launch command has changed and this may break existing save files. Do you want to upgrade now?"
   },
   "libraries": {
     "arcade": "Játékok",
@@ -647,5 +663,9 @@
     "techDesc": "Támogatás hozzáadása a többi technológiához - Shockwawe, Unity, Java, HTML5, stb.",
     "screenshots": "Logók és Képernyőmentések",
     "screenshotsDesc": "Logók hozzáadása a rácsos megjelenítéshez és képernyőmentések az összes játékhoz."
+  },
+  "extensions": {
+    "fpssConsentRevokeTitle": "Revoke access to FPFSS",
+    "fpssConsentRevokeDesc": "Withdraw this extension's access to FPFSS"
   }
 }
