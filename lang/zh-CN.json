@@ -14,6 +14,12 @@
     "searchLimitDesc": "限制搜索返回的结果数量",
     "searchLimitUnlimited": "无限制",
     "searchLimitValue": "{0} 个结果",
+    "useCustomViews": "Use Custom Search Views",
+    "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
+    "defaultOpeningPage": "Default Opening Page",
+    "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
+    "restoreSearchViews": "Restore Search Results",
+    "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
     "enableEditing": "启用编辑",
     "enableEditingDesc": "启用对游戏与附加应用的编辑。也显示与编辑有关的标签页。",
     "symlinkCuration": "创建展品内容软链接",
@@ -189,7 +195,10 @@
     "fpfssProfile": "打开个人资料",
     "fpfssLogout": "登出 FPFSS",
     "softwareUpdateRequired": "需要软件更新。要现在更新吗？",
-    "noLauncherUpdateReady": "元数据更新需要新的启动器版本，但软件更新目前不可用。"
+    "noLauncherUpdateReady": "元数据更新需要新的启动器版本，但软件更新目前不可用。",
+    "deleteView": "Delete Search View",
+    "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
+    "createNewView": "Create new search view"
   },
   "filter": {
     "dateAdded": "添加日期",
@@ -362,8 +371,9 @@
     "allGames": "所有游戏",
     "newPlaylist": "新播放列表",
     "importPlaylist": "导入播放列表",
+    "noGamesFoundInsidePlaylist": "No Results Found in Playlist!",
     "emptyPlaylist": "空播放列表",
-    "noGamesFound": "未找到游戏！",
+    "noGamesFound": "No Results Found!",
     "dropGameOnLeft": "拖动游戏到{0}中的播放列表以添加。",
     "leftSidebar": "左边栏",
     "setFlashpointPathQuestion": "您是否在{1}页面上设置了 '{0}' 的路径？",
@@ -379,6 +389,8 @@
     "showExtremeScreenshot": "显示成人截图",
     "busy": "请稍候…",
     "openGameDataBrowser": "打开游戏数据浏览器",
+    "allGenericEntries": "All Entries",
+    "usePlaylistOrder": "Use Playlist Order",
     "notArchived": "未存档",
     "archived": "已存档",
     "playOnline": "在线播放"
@@ -533,7 +545,8 @@
     "showImage": "显示图像",
     "searching": "正在搜索...",
     "loading": "正在加载…",
-    "ok": "确定"
+    "ok": "确定",
+    "allow": "Allow"
   },
   "menu": {
     "viewThumbnailInFolder": "在文件夹中查看缩略图",
@@ -627,7 +640,10 @@
     "badAntiVirus": "您似乎正在使用“{0}”。\n已知这个反病毒软件会造成问题，我们建议将 Flashpoint 文件夹添加到例外排除项中。\n\n如果您在运行 Flash 游戏时只看到白屏，则可能需要重新安装 Flashpoint 以恢复被删除的文件。\n\n请查看 Wiki 或帮助页面了解详情。",
     "openWiki": "打开 Wiki",
     "openDiscord": "加入 Discord 服务器",
-    "doNotShowAgain": "不再显示"
+    "doNotShowAgain": "不再显示",
+    "extFpfssConsent": "Extension with ID {0} is requesting access to your FPFSS token. Allow?\nThis means the extension will be able access your FPFSS account and perform actions on your behalf.",
+    "gameDataUpdateReady": "A game data update is ready. Do you want to upgrade now?",
+    "gameDataUpdateReadyLcDifferent": "A game data update is ready. The launch command has changed and this may break existing save files. Do you want to upgrade now?"
   },
   "libraries": {
     "arcade": "游戏",
@@ -647,5 +663,9 @@
     "techDesc": "添加对其他技术的支持，如 Shockwave、Unity、Java、HTML5 等。",
     "screenshots": "图标与屏幕截图",
     "screenshotsDesc": "为所有游戏添加网格视图图标与屏幕截图。"
+  },
+  "extensions": {
+    "fpssConsentRevokeTitle": "Revoke access to FPFSS",
+    "fpssConsentRevokeDesc": "Withdraw this extension's access to FPFSS"
   }
 }
