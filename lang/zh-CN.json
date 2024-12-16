@@ -14,12 +14,12 @@
     "searchLimitDesc": "限制搜索返回的结果数量",
     "searchLimitUnlimited": "无限制",
     "searchLimitValue": "{0} 个结果",
-    "useCustomViews": "Use Custom Search Views",
-    "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
-    "defaultOpeningPage": "Default Opening Page",
-    "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
-    "restoreSearchViews": "Restore Search Results",
-    "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
+    "useCustomViews": "使用自定义搜索视图",
+    "useCustomViewsDesc": "将展馆搜索标签页替换为自定义命名的搜索标签页，并向高级筛选器中添加一个展馆选项。",
+    "defaultOpeningPage": "默认打开页面",
+    "defaultOpeningPageDesc": "默认打开的页面，可以是主页或手动选择的搜索页面",
+    "restoreSearchViews": "恢复搜索结果",
+    "restoreSearchViewsDesc": "每次打开应用时保存与恢复每个搜索页面的备份（文本、筛选器、选中的游戏和播放列表）。",
     "enableEditing": "启用编辑",
     "enableEditingDesc": "启用对游戏与附加应用的编辑。也显示与编辑有关的标签页。",
     "symlinkCuration": "创建展品内容软链接",
@@ -196,9 +196,9 @@
     "fpfssLogout": "登出 FPFSS",
     "softwareUpdateRequired": "需要软件更新。要现在更新吗？",
     "noLauncherUpdateReady": "元数据更新需要新的启动器版本，但软件更新目前不可用。",
-    "deleteView": "Delete Search View",
-    "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
-    "createNewView": "Create new search view"
+    "deleteView": "删除搜索视图",
+    "deleteOnlyBrowseView": "删除搜索视图（必须有另一个自定义视图）",
+    "createNewView": "创建新搜索视图"
   },
   "filter": {
     "dateAdded": "添加日期",
@@ -371,9 +371,9 @@
     "allGames": "所有游戏",
     "newPlaylist": "新播放列表",
     "importPlaylist": "导入播放列表",
-    "noGamesFoundInsidePlaylist": "No Results Found in Playlist!",
+    "noGamesFoundInsidePlaylist": "未在播放列表中找到结果！",
     "emptyPlaylist": "空播放列表",
-    "noGamesFound": "No Results Found!",
+    "noGamesFound": "未找到结果！",
     "dropGameOnLeft": "拖动游戏到{0}中的播放列表以添加。",
     "leftSidebar": "左边栏",
     "setFlashpointPathQuestion": "您是否在{1}页面上设置了 '{0}' 的路径？",
@@ -389,8 +389,8 @@
     "showExtremeScreenshot": "显示成人截图",
     "busy": "请稍候…",
     "openGameDataBrowser": "打开游戏数据浏览器",
-    "allGenericEntries": "All Entries",
-    "usePlaylistOrder": "Use Playlist Order",
+    "allGenericEntries": "所有条目",
+    "usePlaylistOrder": "使用播放列表顺序",
     "notArchived": "未存档",
     "archived": "已存档",
     "playOnline": "在线播放"
@@ -546,7 +546,7 @@
     "searching": "正在搜索...",
     "loading": "正在加载…",
     "ok": "确定",
-    "allow": "Allow"
+    "allow": "允许"
   },
   "menu": {
     "viewThumbnailInFolder": "在文件夹中查看缩略图",
@@ -641,9 +641,9 @@
     "openWiki": "打开 Wiki",
     "openDiscord": "加入 Discord 服务器",
     "doNotShowAgain": "不再显示",
-    "extFpfssConsent": "Extension with ID {0} is requesting access to your FPFSS token. Allow?\nThis means the extension will be able access your FPFSS account and perform actions on your behalf.",
-    "gameDataUpdateReady": "A game data update is ready. Do you want to upgrade now?",
-    "gameDataUpdateReadyLcDifferent": "A game data update is ready. The launch command has changed and this may break existing save files. Do you want to upgrade now?"
+    "extFpfssConsent": "ID 为 {0} 的扩展正在请求访问您的 FPFSS 令牌。是否允许？\n这意味着该扩展将能够访问您的 FPFSS 账户并以您的身份执行操作。",
+    "gameDataUpdateReady": "游戏数据更新已就绪。您想要立即升级吗？",
+    "gameDataUpdateReadyLcDifferent": "游戏数据更新已就绪。启动命令已更改，这可能会破坏现有的存档文件。您想要立即升级吗？"
   },
   "libraries": {
     "arcade": "游戏",
@@ -665,7 +665,7 @@
     "screenshotsDesc": "为所有游戏添加网格视图图标与屏幕截图。"
   },
   "extensions": {
-    "fpssConsentRevokeTitle": "Revoke access to FPFSS",
-    "fpssConsentRevokeDesc": "Withdraw this extension's access to FPFSS"
+    "fpssConsentRevokeTitle": "撤销 FPFSS 访问权限",
+    "fpssConsentRevokeDesc": "收回此扩展对 FPFSS 的访问权限"
   }
 }
