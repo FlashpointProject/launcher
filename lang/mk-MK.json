@@ -14,12 +14,12 @@
     "searchLimitDesc": "Ограничете го бројот на вратени резултати при секое пребарување",
     "searchLimitUnlimited": "Неограничено",
     "searchLimitValue": "{0} Резултати",
-    "useCustomViews": "Use Custom Search Views",
-    "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
-    "defaultOpeningPage": "Default Opening Page",
-    "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
-    "restoreSearchViews": "Restore Search Results",
-    "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
+    "useCustomViews": "Користи Самостоен Пребарувач",
+    "useCustomViewsDesc": "Изменува пребарувања на библиотеката со самостојни табови за пребарувач и додава Library опција за напредни филтери.",
+    "defaultOpeningPage": "Стандардна Отворена Страна",
+    "defaultOpeningPageDesc": "Стандардна страна да отвараш, или Home страната или Search страната",
+    "restoreSearchViews": "Врати ги резулатите на пребарувачот",
+    "restoreSearchViewsDesc": "Зачува и враќа копии од секоја страна на пребарувачот (текст, филтри, избрана игра и плејлиста) секојпат кога ја отвараш апликацијата.",
     "enableEditing": "Овозможи Уредувања",
     "enableEditingDesc": "Овозможи уредување на игри и дополнителни апликации. Исто така, покажува јазичиња поврзани со уредување.",
     "symlinkCuration": "Симлинк Курациска Содржина",
@@ -196,9 +196,9 @@
     "fpfssLogout": "Одјависе од FPFSS",
     "softwareUpdateRequired": "Потребно е ажурирање. Направиго сега?",
     "noLauncherUpdateReady": "Ажурирањето на метаподатоци бара понова верзија на Лаунчер, но ажурирањето на софтверот во моментов не е достапно.",
-    "deleteView": "Delete Search View",
-    "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
-    "createNewView": "Create new search view"
+    "deleteView": "Избриши го Самостојниот Пребарувач",
+    "deleteOnlyBrowseView": "Избриши го Самостојниот Пребарувач (мора да има уште еден пребарувач)",
+    "createNewView": "Направи нов Самостоен Пребарувач"
   },
   "filter": {
     "dateAdded": "Датум Додадено",
@@ -371,9 +371,9 @@
     "allGames": "Сите Игри",
     "newPlaylist": "Нова Плејлиста",
     "importPlaylist": "Увезувај плејлист",
-    "noGamesFoundInsidePlaylist": "No Results Found in Playlist!",
+    "noGamesFoundInsidePlaylist": "Нема резултати во твојата Плејлиста!",
     "emptyPlaylist": "Изведувај плејлист",
-    "noGamesFound": "No Results Found!",
+    "noGamesFound": "Нема Резултати Пронајдени!",
     "dropGameOnLeft": "Фрлете игра на оваа плејлиста во {0} за да ја додадете.",
     "leftSidebar": "лева лента",
     "setFlashpointPathQuestion": "Дали сте ја поставиле патеката до {0} на страницата {1}?",
@@ -389,8 +389,8 @@
     "showExtremeScreenshot": "Покажувај Eкстремни Cлики од Eкраноt",
     "busy": "Ве Молиме Да Почекате...",
     "openGameDataBrowser": "Отворете го прелистувачот за податоци за игри",
-    "allGenericEntries": "All Entries",
-    "usePlaylistOrder": "Use Playlist Order",
+    "allGenericEntries": "Сите Записи",
+    "usePlaylistOrder": "Користи Уредивач на Плејлист",
     "notArchived": "Не е Архивирано",
     "archived": "Архивиран",
     "playOnline": "Играј online"
@@ -546,7 +546,7 @@
     "searching": "Барај...",
     "loading": "Вчитување...",
     "ok": "ОК",
-    "allow": "Allow"
+    "allow": "Дозволи"
   },
   "menu": {
     "viewThumbnailInFolder": "Прегледај лого во папката",
@@ -641,9 +641,9 @@
     "openWiki": "Отвори вики",
     "openDiscord": "Приклучете се на нашиот Discord сервер",
     "doNotShowAgain": "Не прикажувај повторно",
-    "extFpfssConsent": "Extension with ID {0} is requesting access to your FPFSS token. Allow?\nThis means the extension will be able access your FPFSS account and perform actions on your behalf.",
-    "gameDataUpdateReady": "A game data update is ready. Do you want to upgrade now?",
-    "gameDataUpdateReadyLcDifferent": "A game data update is ready. The launch command has changed and this may break existing save files. Do you want to upgrade now?"
+    "extFpfssConsent": "Екстензија со ID {0} ве бара дозвола за вашиот FPFSS токен. Дозволи?\nТоа значи дека екстензијата гарантира дозвола за твојот FPFSS акаунт и прави акции на твојот дел.",
+    "gameDataUpdateReady": "Ажурирањето на датата за играта е спремна. Дали саката да ажурирате сега?",
+    "gameDataUpdateReadyLcDifferent": "Ажурирањето на датата за играта е спремна. Лаунч командот е сменет и тоа може да направи твојте зачувани фајлови да не работат. Дали сакате да ажурирате сега?"
   },
   "libraries": {
     "arcade": "Игри",
@@ -665,7 +665,7 @@
     "screenshotsDesc": "Додава логоа за преглед на мрежата и слики од екранот за сите игри."
   },
   "extensions": {
-    "fpssConsentRevokeTitle": "Revoke access to FPFSS",
-    "fpssConsentRevokeDesc": "Withdraw this extension's access to FPFSS"
+    "fpssConsentRevokeTitle": "Не дозволувај достапност кон FPFSS",
+    "fpssConsentRevokeDesc": "Извлекувајте се од достапноста на екстензијата на FPFSS"
   }
 }
