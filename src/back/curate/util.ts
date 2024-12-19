@@ -9,7 +9,7 @@ import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
 import { getContentFolderByKey } from '@shared/curate/util';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
-import axios from 'axios';
+import axiosInstance from '@back/Axios';
 import { AddAppCuration, CurationFpfssInfo, CurationState, CurationWarnings, LoadedCuration } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as http from 'http';
@@ -298,7 +298,7 @@ export async function makeCurationFromGame(state: BackState, gameId: string, ski
       const destPath = path.join(curPath, 'logo.png');
       const url = new URL(logoRelPath, state.preferences.onDemandBaseUrl);
       const writer = fs.createWriteStream(destPath);
-      await axios.get(url.href, {
+      await axiosInstance.get(url.href, {
         responseType: 'stream',
       }).then((response) => {
         return new Promise<void>((resolve, reject) => {
@@ -321,7 +321,7 @@ export async function makeCurationFromGame(state: BackState, gameId: string, ski
       const destPath = path.join(curPath, 'ss.png');
       const url = new URL(screenshotRelPath, state.preferences.onDemandBaseUrl);
       const writer = fs.createWriteStream(destPath);
-      await axios.get(url.href, {
+      await axiosInstance.get(url.href, {
         responseType: 'stream',
       }).then((response) => {
         return new Promise<void>((resolve, reject) => {

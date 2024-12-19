@@ -32,7 +32,7 @@ import {
   CURATIONS_FOLDER_TEMP,
   CURATIONS_FOLDER_WORKING, CURATION_META_FILENAMES
 } from '@shared/constants';
-import axios from 'axios';
+import axiosInstance from './Axios';
 import { FlashpointArchive, enableDebug, loggerSusbcribe } from '@fparchive/flashpoint-archive';
 import { Tail } from 'tail';
 import { ConfigFile } from './ConfigFile';
@@ -1423,7 +1423,7 @@ async function updateFileServerDownloadQueue() {
       url += '?type=jpg';
     }
     // Use arraybuffer since it's small memory footprint anyway
-    await axios.get(url, { responseType: 'arraybuffer' })
+    await axiosInstance.get(url, { responseType: 'arraybuffer' })
     .then(async (res) => {
       // Save response to image file
       const imageData = res.data;

@@ -1,5 +1,5 @@
 import { GameRedirect, RemoteCategory, RemoteDeletedGamesRes, RemoteGamesRes, RemotePlatform, RemoteTag } from '@fparchive/flashpoint-archive';
-import axios from 'axios';
+import axiosInstance from './Axios';
 import { GameMetadataSource } from 'flashpoint-launcher';
 import { camelCase, transform } from 'lodash';
 import { fpDatabase } from '.';
@@ -8,7 +8,7 @@ export async function syncTags(source: GameMetadataSource): Promise<Date> {
   const tagsUrl = `${source.baseUrl}/api/tags?after=${source.tags.latestUpdateTime}`;
   const nextLatestDate = source.tags.latestUpdateTime;
 
-  const res = await axios.get(tagsUrl)
+  const res = await axiosInstance.get(tagsUrl)
   .catch((err) => {
     throw 'Failed to search tags';
   });
@@ -44,7 +44,7 @@ export async function syncTags(source: GameMetadataSource): Promise<Date> {
 export async function syncPlatforms(source: GameMetadataSource): Promise<Date> {
   const platformsUrl = `${source.baseUrl}/api/platforms?after=${source.tags.latestUpdateTime}`;
 
-  const res = await axios.get(platformsUrl)
+  const res = await axiosInstance.get(platformsUrl)
   .catch((err) => {
     throw 'Failed to search platforms';
   });
@@ -87,7 +87,7 @@ export async function syncGames(source: GameMetadataSource, dataPacksFolder: str
   while (true) {
     const reqUrl = `${gamesUrl}?after=${source.games.latestUpdateTime}&before=${capUpdateTime.toISOString()}&broad=true&afterId=${nextId}`;
     console.log(reqUrl);
-    const res = await axios.get(reqUrl)
+    const res = await axiosInstance.get(reqUrl)
     .catch((err) => {
       throw 'Failed to search games';
     });
@@ -120,7 +120,7 @@ export async function syncGames(source: GameMetadataSource, dataPacksFolder: str
 
   // -- Deleted Games -- //
   const reqUrl = `${deletedUrl}`;
-  const res = await axios.get(reqUrl)
+  const res = await axiosInstance.get(reqUrl)
   .catch((err) => {
     throw 'Failed to search deleted games';
   });
@@ -134,7 +134,7 @@ export async function syncGames(source: GameMetadataSource, dataPacksFolder: str
 
 export async function syncRedirects(source: GameMetadataSource): Promise<void> {
   const gamesUrl = `${source.baseUrl}/api/game-redirects`;
-  const res = await axios.get(gamesUrl)
+  const res = await axiosInstance.get(gamesUrl)
   .catch((err) => {
     throw 'Failed to search game redirects';
   });
@@ -155,7 +155,7 @@ export async function getMetaUpdateInfo(source: GameMetadataSource, accurate?: b
   }
   const countUrl = `${source.baseUrl}/api/games/updates?after=${fromScratch ? '1970-01-01' : d.toISOString()}`;
   try {
-    const res = await axios.get(countUrl);
+    const res = await axiosInstance.get(countUrl);
     return res.data.total;
   } catch (err) {
     log.error('Launcher', 'Error fetching update info for ' + countUrl + ' - ' + err);

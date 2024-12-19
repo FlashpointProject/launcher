@@ -38,7 +38,7 @@ import { TaskProgress } from '@shared/utils/TaskProgress';
 import { chunkArray, getGameDataFilename, newGame } from '@shared/utils/misc';
 import { sanitizeFilename } from '@shared/utils/sanitizeFilename';
 import { throttle } from '@shared/utils/throttle';
-import * as axiosImport from 'axios';
+import axiosInstance from './Axios';
 import * as child_process from 'child_process';
 import { execSync } from 'child_process';
 import {
@@ -124,9 +124,6 @@ import {
 import { uuid } from './util/uuid';
 import { FPFSS_INFO_FILENAME } from '@shared/curate/fpfss';
 import { createSearchFilter } from '@back/util/search';
-import { FpfssUser } from '@shared/back/types';
-
-const axios = axiosImport.default;
 
 /**
  * Register all request callbacks to the socket server.
@@ -211,7 +208,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
     // Fetch update feed in background
     if (state.preferences.updateFeedUrl) {
-      axios.get(state.preferences.updateFeedUrl, { timeout: 3000 })
+      axiosInstance.get(state.preferences.updateFeedUrl, { timeout: 3000 })
       .then((res) => {
         state.socketServer.broadcast(BackOut.UPDATE_FEED, res.data);
       })
@@ -227,7 +224,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     const gotdPath = path.join(state.config.flashpointPath, 'Data', 'gotd.json');
     const gotdDownload = new Promise((resolve, reject) => {
       const thumbnailWriter = fs.createWriteStream(gotdPath);
-      axios.get(gotdUrl, { responseType: 'stream' })
+      axiosInstance.get(gotdUrl, { responseType: 'stream' })
       .then((res) => {
         res.data.pipe(thumbnailWriter);
         thumbnailWriter.on('close', resolve);
@@ -383,7 +380,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       const updatesReady = state.componentStatuses.filter(c => c.id === 'core-launcher' && c.state === ComponentState.NEEDS_UPDATE).length > 0;
       const version = state.version;
       const versionUrl = `${source.baseUrl}/api/min-launcher`;
-      const res = await axios.get(versionUrl)
+      const res = await axiosInstance.get(versionUrl)
       .catch((err) => { throw `Failed to find minimum launcher version requirement from metadata server.\n${err}`; });
       if (compareSemVerVersions(version, res.data['min-version'] || '9999999999999') < 0) {
         if (!updatesReady) {
@@ -1840,7 +1837,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     // Upload to log server
     const postUrl = url.resolve(state.config.logsBaseUrl, 'logdata');
     // Server responds with log id e.g ABC123
-    const res = await axios.post(postUrl, { entries: entries });
+    const res = await axiosInstance.post(postUrl, { entries: entries });
     const id = res.data;
     // Form into GET URL
     let getUrl: string | undefined;
@@ -1942,7 +1939,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   state.socketServer.register(BackIn.DOWNLOAD_PLAYLIST, async (event, url) => {
     // Attempt download
     console.log(url);
-    const res = await axios.get(url);
+    const res = await axiosInstance.get(url);
     if (res.status == 200) {
       // Load as json
       const json = res.data;

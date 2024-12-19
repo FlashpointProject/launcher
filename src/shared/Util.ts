@@ -6,6 +6,7 @@ import { DownloadDetails } from './back/types';
 import { AppConfigData } from './config/interfaces';
 import { parseVariableString } from './utils/VariableString';
 import { throttle } from './utils/throttle';
+import { VERSION } from './version';
 
 const axios = axiosImport.default;
 
@@ -418,6 +419,9 @@ export function tagSort(tagA: Tag, tagB: Tag): number {
 
 export async function downloadFile(url: string, filePath: string, abortSignal?: AbortSignal, onProgress?: (percent: number) => void, onDetails?: (details: DownloadDetails) => void, options?: axiosImport.AxiosRequestConfig): Promise<number> {
   try {
+    options = options || {};
+    options.headers = options.headers || {};
+    options.headers['User-Agent'] = UserAgent;
     const res = await axios.get(url, {
       ...options,
       responseType: 'stream',
@@ -658,3 +662,5 @@ export function mapLocalToFpfssGame(game: Game): FpfssGame {
   };
   return fg;
 }
+
+export const UserAgent = `Flashpoint Launcher/${VERSION}`;
