@@ -1,6 +1,6 @@
 import * as remoteMain from '@electron/remote/main';
 import { InitRendererChannel, InitRendererData } from '@shared/IPC';
-import { createErrorProxy } from '@shared/Util';
+import { createErrorProxy, UserAgent } from '@shared/Util';
 import { SocketClient } from '@shared/back/SocketClient';
 import { BackIn, BackInitArgs, BackOut } from '@shared/back/types';
 import { AppConfigData } from '@shared/config/interfaces';
@@ -311,6 +311,11 @@ export function main(init: Init): void {
       state.socket.send(BackIn.SET_LOCALE, app.getLocale().toLowerCase());
       state._sentLocaleCode = true;
     }
+    // Set user agent for all requests
+    session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
+      details.requestHeaders['User-Agent'] = UserAgent;
+      callback({ cancel: false, requestHeaders: details.requestHeaders });
+    });
     // Reject all permission requests since we don't need any permissions.
     session.defaultSession.setPermissionRequestHandler(
       (webContents, permission, callback) => callback(false)
