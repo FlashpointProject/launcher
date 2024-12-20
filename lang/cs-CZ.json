@@ -14,12 +14,12 @@
     "searchLimitDesc": "Limituje počet výsledků navrácených jakýmkoliv vyhledáváním",
     "searchLimitUnlimited": "Neomezené",
     "searchLimitValue": "{0} Výsledků",
-    "useCustomViews": "Use Custom Search Views",
-    "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
-    "defaultOpeningPage": "Default Opening Page",
-    "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
-    "restoreSearchViews": "Restore Search Results",
-    "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
+    "useCustomViews": "Použít vlastní vyhledávací okna",
+    "useCustomViewsDesc": "Nahradí vyhledávací karty Knihovny vlastními vyhledávacími kartami a přidá možnost Knihovna do pokročilých filtrů.",
+    "defaultOpeningPage": "Výchozí úvodní stránka",
+    "defaultOpeningPageDesc": "Výchozí stránka, která se otevře, buď domovská stránka, nebo vybraná vyhledávací stránka",
+    "restoreSearchViews": "Obnovit výsledky vyhledávání",
+    "restoreSearchViewsDesc": "Při každém otevření aplikace uloží a obnoví kopii každé vyhledávací stránky (text, filtry, vybraná hra a seznam).",
     "enableEditing": "Povolit upravování",
     "enableEditingDesc": "Povolit úpravy her a přídavných aplikací. Také zobrazí záložky související s úpravami.",
     "symlinkCuration": "Symbolicky linkovat obsah kurace",
@@ -196,9 +196,9 @@
     "fpfssLogout": "Odhlásit se z FPFSS",
     "softwareUpdateRequired": "Je vyžadována aktualizace softwaru. Chcete ji provést nyní?",
     "noLauncherUpdateReady": "Aktualizace metadat vyžaduje novější verzi launcheru, ale aktualizace softwaru není v současné době k dispozici.",
-    "deleteView": "Delete Search View",
-    "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
-    "createNewView": "Create new search view"
+    "deleteView": "Odstranit vyhledávací okno",
+    "deleteOnlyBrowseView": "Odstranit vyhledávací okno (Musí existovat další vlastní okno)",
+    "createNewView": "Vytvořit nové vyhledávací okno"
   },
   "filter": {
     "dateAdded": "Datum přidání",
@@ -371,9 +371,9 @@
     "allGames": "Katalogu her",
     "newPlaylist": "Nový seznam",
     "importPlaylist": "Importovat Seznam",
-    "noGamesFoundInsidePlaylist": "No Results Found in Playlist!",
+    "noGamesFoundInsidePlaylist": "V seznamu nebyly nalezeny žádné výsledky!",
     "emptyPlaylist": "Prázdný seznam",
-    "noGamesFound": "No Results Found!",
+    "noGamesFound": "Nebyly nalezeny žádné výsledky!",
     "dropGameOnLeft": "Hru vložíte přetažením do seznamu {0}.",
     "leftSidebar": "levý postranní panel",
     "setFlashpointPathQuestion": "Nastavili jste správně parametr {0} na stránce {1}?",
@@ -389,8 +389,8 @@
     "showExtremeScreenshot": "Zobrazovat snímky obrazovky pro dospělé",
     "busy": "Čekejte prosím...",
     "openGameDataBrowser": "Otevřít prohlížeč herních dat",
-    "allGenericEntries": "All Entries",
-    "usePlaylistOrder": "Use Playlist Order",
+    "allGenericEntries": "Všechny záznamy",
+    "usePlaylistOrder": "Použít pořadí seznamu",
     "notArchived": "Nearchivováno",
     "archived": "Archivováno",
     "playOnline": "Hrát online"
@@ -546,7 +546,7 @@
     "searching": "Vyhledávání...",
     "loading": "Načítání...",
     "ok": "OK",
-    "allow": "Allow"
+    "allow": "Povolit"
   },
   "menu": {
     "viewThumbnailInFolder": "Otevřít složku s umístěním miniatury",
@@ -641,9 +641,9 @@
     "openWiki": "Otevřít Wiki",
     "openDiscord": "Připojit se k Discord serveru",
     "doNotShowAgain": "Znovu nezobrazovat",
-    "extFpfssConsent": "Extension with ID {0} is requesting access to your FPFSS token. Allow?\nThis means the extension will be able access your FPFSS account and perform actions on your behalf.",
-    "gameDataUpdateReady": "A game data update is ready. Do you want to upgrade now?",
-    "gameDataUpdateReadyLcDifferent": "A game data update is ready. The launch command has changed and this may break existing save files. Do you want to upgrade now?"
+    "extFpfssConsent": "Rozšíření s ID {0} žádá o přístup k vašemu FPFSS tokenu. Povolit?\nTo znamená, že rozšíření bude moci přistupovat k vašemu FPFSS účtu a provádět akce vaším jménem.",
+    "gameDataUpdateReady": "Aktualizace herních dat je připravena. Chcete provést aktualizaci nyní?",
+    "gameDataUpdateReadyLcDifferent": "Aktualizace herních dat je připravena. Příkaz ke spuštění se změnil, což může poškodit stávající ukládací soubory. Chcete provést aktualizaci nyní?"
   },
   "libraries": {
     "arcade": "Hry",
@@ -665,7 +665,7 @@
     "screenshotsDesc": "Přidá loga do mřížkového zobrazení a snímky obrazovky pro všechny hry."
   },
   "extensions": {
-    "fpssConsentRevokeTitle": "Revoke access to FPFSS",
-    "fpssConsentRevokeDesc": "Withdraw this extension's access to FPFSS"
+    "fpssConsentRevokeTitle": "Zrušit přístup do FPFSS",
+    "fpssConsentRevokeDesc": "Odebrat tomuto rozšíření přístup do FPFSS"
   }
 }
