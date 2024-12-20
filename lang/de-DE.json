@@ -373,7 +373,7 @@
     "importPlaylist": "Playlist importieren",
     "noGamesFoundInsidePlaylist": "No Results Found in Playlist!",
     "emptyPlaylist": "Leere Playlist",
-    "noGamesFound": "No Results Found!",
+    "noGamesFound": "Keine Ergebnisse gefunden!",
     "dropGameOnLeft": "Ziehe ein Spiel auf diese Playlist in der {0} um es hinzuzufügen.",
     "leftSidebar": "linke Seitenleiste",
     "setFlashpointPathQuestion": "Hast du den Pfad zum {0} auf der {1} -Seite gesetzt?",
@@ -389,7 +389,7 @@
     "showExtremeScreenshot": "Extremen Screenshot anzeigen",
     "busy": "Bitte warten...",
     "openGameDataBrowser": "Spieldaten-Browser öffnen",
-    "allGenericEntries": "All Entries",
+    "allGenericEntries": "Alle Einträge",
     "usePlaylistOrder": "Use Playlist Order",
     "notArchived": "Nicht archiviert",
     "archived": "Archiviert",
@@ -546,7 +546,7 @@
     "searching": "Suche...",
     "loading": "Lade...",
     "ok": "OK",
-    "allow": "Allow"
+    "allow": "Erlauben"
   },
   "menu": {
     "viewThumbnailInFolder": "Miniaturansicht im Ordner anzeigen",
@@ -641,7 +641,7 @@
     "openWiki": "Wiki öffnen",
     "openDiscord": "Discord Server beitreten",
     "doNotShowAgain": "Nicht erneut anzeigen",
-    "extFpfssConsent": "Extension with ID {0} is requesting access to your FPFSS token. Allow?\nThis means the extension will be able access your FPFSS account and perform actions on your behalf.",
+    "extFpfssConsent": "Erweiterung mit der ID {0} fordert Zugriff auf Ihr FPFSS-Token an. Erlauben?\nDas bedeutet, dass die Erweiterung auf Ihr FPFSS-Konto zugreifen und Aktionen in Ihrem Namen durchführen kann.",
     "gameDataUpdateReady": "A game data update is ready. Do you want to upgrade now?",
     "gameDataUpdateReadyLcDifferent": "A game data update is ready. The launch command has changed and this may break existing save files. Do you want to upgrade now?"
   },
@@ -665,7 +665,7 @@
     "screenshotsDesc": "Fügt Logos für die Rasteransicht und Screenshots für alle Spiele hinzu."
   },
   "extensions": {
-    "fpssConsentRevokeTitle": "Revoke access to FPFSS",
-    "fpssConsentRevokeDesc": "Withdraw this extension's access to FPFSS"
+    "fpssConsentRevokeTitle": "Zugriff auf FPFSS widerrufen",
+    "fpssConsentRevokeDesc": "Zugriff dieser Erweiterung auf FPFSS widerrufen"
   }
 }
