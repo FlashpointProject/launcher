@@ -852,6 +852,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     text={game.legacyApplicationPath}
                     placeholder={strings.noApplicationPath}
                     onChange={this.onApplicationPathChange}
+                    onExpand={this.onApplicationPathExpand}
                     editable={editable}
                     items={suggestions && filterSuggestions(suggestions.applicationPath) || []}
                     onItemSelect={text => this.props.onEditGame({ legacyApplicationPath: text })} />
@@ -966,6 +967,15 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
           <p>{strings.clickToSelectGame}</p>
         </div>
       );
+    }
+  }
+
+  onApplicationPathExpand = () => {
+    if (this.state.middleScrollRef.current) {
+      this.state.middleScrollRef.current.scrollTo({
+        top: this.state.middleScrollRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
     }
   }
 
