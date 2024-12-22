@@ -206,6 +206,7 @@ const langTemplate = {
     'deleteView',
     'deleteOnlyBrowseView',
     'createNewView',
+    'errorLoadingServices',
   ] as const,
   filter: [
     'dateAdded',

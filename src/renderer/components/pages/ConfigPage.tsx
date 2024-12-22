@@ -723,8 +723,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   renderExtensionsMemo = memoizeOne((extensions: IExtensionDescription[], strings: LangContainer['config'], fpfssConsents: Record<string, boolean | undefined>): JSX.Element[] => {
     const allStrings = this.context;
     return extensions.map((ext) => {
-      console.log(fpfssConsents);
-
       const fpfssConsent = fpfssConsents[ext.id];
       
       const shortContribs = [];

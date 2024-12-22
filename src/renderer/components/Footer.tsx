@@ -132,13 +132,13 @@ export class Footer extends React.Component<FooterProps> {
   onGlobalKeydown = (event: KeyboardEvent): void => {
     const scaleDif = 0.1; // How much the scale should change per increase/decrease
     // Increase Game Scale (CTRL PLUS)
-    if (event.ctrlKey && event.key === '+') {
+    if (event.ctrlKey && (event.keyCode === 187 || event.keyCode === 61 || event.keyCode === 171)) {
       const scale = this.props.preferencesData.browsePageGameScale;
       this.setScaleSliderValue(scale + scaleDif);
       event.preventDefault();
     }
     // Decrease Game Scale (CTRL MINUS)
-    else if (event.ctrlKey && event.key === '-') {
+    else if (event.ctrlKey && (event.keyCode === 189 || event.keyCode === 173)) {
       const scale = this.props.preferencesData.browsePageGameScale;
       this.setScaleSliderValue(scale - scaleDif);
       event.preventDefault();
@@ -152,8 +152,9 @@ export class Footer extends React.Component<FooterProps> {
    */
   setScaleSliderValue(scale: number): void {
     if (this.scaleSliderRef.current) {
-      const value = Math.min(Math.max(0, scale), 1) * Footer.scaleSliderMax;
-      this.scaleSliderRef.current.value = value + '';
+      if (scale < 0) { scale = 0; }
+      else if (scale > 1) { scale = 1; }
+      this.scaleSliderRef.current.value = (Math.min(Math.max(0, scale), 1) * Footer.scaleSliderMax).toFixed(1).toString();
       updatePreferencesData({ browsePageGameScale: scale });
     }
   }

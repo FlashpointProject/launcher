@@ -187,7 +187,6 @@ export namespace GameLauncher {
         // Handle middleware
         if (launchInfo.activeConfig) {
           log.info(logSource, `Using Game Configuration: ${launchInfo.activeConfig.name}`);
-          console.log(JSON.stringify(launchInfo.activeConfig, undefined, 2));
           for (const middlewareConfig of launchInfo.activeConfig.middleware) {
             // Find middleware in registry
             const middleware = opts.state.registry.middlewares.get(middlewareConfig.middlewareId);

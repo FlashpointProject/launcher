@@ -16,6 +16,8 @@ export type DropdownInputFieldProps = InputFieldProps & {
   onItemSelect?: (text: string, index: number) => void;
   /** Function for getting a reference to the input element. Called whenever the reference could change. */
   inputRef?: RefFunc<InputElement>;
+  /** Called when the drop-down content is expanded or collapsed. */
+  onExpand?: (expanded: boolean) => void;
 };
 
 type DropdownInputFieldState = {
@@ -204,7 +206,12 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
 
   onExpandButtonMouseDown = (): void => {
     if (!this.props.disabled) {
-      this.setState({ expanded: !this.state.expanded });
+      const newExpandedState = !this.state.expanded;
+      this.setState({ expanded: newExpandedState }, () => {
+        if (this.props.onExpand) {
+          this.props.onExpand(newExpandedState);
+        }
+      });
     }
   };
 

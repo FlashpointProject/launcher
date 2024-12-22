@@ -1359,7 +1359,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.GET_PLAYLISTS, async () => {
-    console.log('finding playlists?');
     return filterPlaylists(state.playlists, state.preferences.browsePageShowExtreme);
   });
 

@@ -816,8 +816,9 @@ async function initialize() {
         state.config,
         error => { log.info(SERVICES_SOURCE, error.toString()); }
       );
-    } catch (error) {
-      console.log('Error loading services - ' + error);
+    } catch (error: any) {
+      log.error('Back', 'Error loading services - ' + error.toString());
+      state.socketServer.broadcast(BackOut.OPEN_ALERT, state.languageContainer.app.errorLoadingServices);
     }
     if (state.serviceInfo) {
       // Run start commands

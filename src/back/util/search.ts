@@ -29,7 +29,6 @@ export function createSearchFilter(query: QueryData, preferences: AppPreferences
       break;
   }
 
-  console.log(`Order by: ${orderBy}`);
   if (advancedFilter.playlistOrder && playlist !== undefined) {
     search.order.column = GameSearchSortable.CUSTOM;
   } else {
@@ -112,7 +111,6 @@ export function createSearchFilter(query: QueryData, preferences: AppPreferences
     newFilter.matchAny = false;
     newFilter.subfilters = [inner, playlistFilter];
     search.filter = newFilter;
-    console.log(JSON.stringify(search, undefined, 2));
   }
 
   return {
