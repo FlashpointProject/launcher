@@ -14,10 +14,10 @@
     "searchLimitDesc": "Piira tulemuste arvu otsingus",
     "searchLimitUnlimited": "Piiramatu",
     "searchLimitValue": "{0} Tulemust",
-    "useCustomViews": "Use Custom Search Views",
-    "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
-    "defaultOpeningPage": "Default Opening Page",
-    "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
+    "useCustomViews": "Kasuta Kohandatud Otsingu Vaateid",
+    "useCustomViewsDesc": "Asendab Meedia Kausta otsingu vahekaardid kohandatud nimega otsingu vahekaartidega ja lisab Meedia Kausta valiku kõrgema astme filtritesse.",
+    "defaultOpeningPage": "Vaikimisi Avatav Aken",
+    "defaultOpeningPageDesc": "Vaikimisi avatav aken, kas avaleht või valitud otsinguleht",
     "restoreSearchViews": "Restore Search Results",
     "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
     "enableEditing": "Luba Kohaldada",
@@ -82,12 +82,12 @@
     "noLogoSet": "Pole Logo Komplekti",
     "logoSetDesc": "Kasutatava logo komplekti ID.",
     "screenshotPreviewMode": "Ekraanipildi Eelvaade",
-    "screenshotPreviewModeDesc": "Preview the screenshot of a Game in Grid mode",
+    "screenshotPreviewModeDesc": "Eelvaadake Mängu ekraanipilti Ruudustiku režiimis",
     "screenshotPreviewModeOff": "Väljas",
-    "screenshotPreviewModeOn": "On (When Hovering)",
+    "screenshotPreviewModeOn": "Sees (Hiirega Üle Hõljudes)",
     "screenshotPreviewModeAlways": "Alati",
-    "screenshotPreviewDelay": "Screenshot Preview Delay",
-    "screenshotPreviewDelayDesc": "Delay (in milliseconds) before showing the screenshot, when Screenshot Preview is set to on. (when hovering)",
+    "screenshotPreviewDelay": "Ekraanipildi Eelvaate Viivitus",
+    "screenshotPreviewDelayDesc": "Viivitus (millisekundites) enne Ekraanipildi kuvamist, kui Ekraanipildi Eelvaade on sisse lülitatud. (hiirega üle hõljudes)",
     "advancedHeader": "Täpsemad seaded",
     "optimizeDatabase": "Optimeeri Andmebaasi",
     "optimizeDatabaseDesc": "Käivita hooldustoiminguid, et suurendada andmebaasi jõudlust ja vähendada suurust",
@@ -371,7 +371,7 @@
     "allGames": "Kõiki Mänge",
     "newPlaylist": "Uus Esitlusloend",
     "importPlaylist": "Impordi Esitlusloend",
-    "noGamesFoundInsidePlaylist": "No Results Found in Playlist!",
+    "noGamesFoundInsidePlaylist": "Esitusloendist ei leitud ühtegi tulemust!",
     "emptyPlaylist": "Tühi Esitlusloend",
     "noGamesFound": "Ei leitud ühtegi tulemust!",
     "dropGameOnLeft": "Kukuta mäng sellesse esitlusloendisse {0}, et seda lisada.",
@@ -642,8 +642,8 @@
     "openDiscord": "Liidu Discordi Serveriga",
     "doNotShowAgain": "Ära uuesti näita",
     "extFpfssConsent": "Extension with ID {0} is requesting access to your FPFSS token. Allow?\nThis means the extension will be able access your FPFSS account and perform actions on your behalf.",
-    "gameDataUpdateReady": "A game data update is ready. Do you want to upgrade now?",
-    "gameDataUpdateReadyLcDifferent": "A game data update is ready. The launch command has changed and this may break existing save files. Do you want to upgrade now?"
+    "gameDataUpdateReady": "Mängude andmete värskendus on valmis. Kas soovite nüüd uuendada?",
+    "gameDataUpdateReadyLcDifferent": "Mängude andmete värskendus on valmis. Käivituskäsk on muutunud ja see võib olemasolevaid salvestusfaile rikkuda. Kas soovite nüüd uuendada?"
   },
   "libraries": {
     "arcade": "Mängud",
@@ -665,7 +665,7 @@
     "screenshotsDesc": "Annab logod ruudustikvaates ja ekraanipildid kõikidele mängudele."
   },
   "extensions": {
-    "fpssConsentRevokeTitle": "Revoke access to FPFSS",
-    "fpssConsentRevokeDesc": "Withdraw this extension's access to FPFSS"
+    "fpssConsentRevokeTitle": "Võta tagasi juurdepääs FPFSS-ile",
+    "fpssConsentRevokeDesc": "Tühistage selle laienduse juurdepääs FPFSS-ile"
   }
 }
