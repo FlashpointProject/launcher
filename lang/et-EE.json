@@ -18,8 +18,8 @@
     "useCustomViewsDesc": "Asendab Meedia Kausta otsingu vahekaardid kohandatud nimega otsingu vahekaartidega ja lisab Meedia Kausta valiku kõrgema astme filtritesse.",
     "defaultOpeningPage": "Vaikimisi Avatav Aken",
     "defaultOpeningPageDesc": "Vaikimisi avatav aken, kas avaleht või valitud otsinguleht",
-    "restoreSearchViews": "Restore Search Results",
-    "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
+    "restoreSearchViews": "Taasta Otsingutulemused",
+    "restoreSearchViewsDesc": "Salvestab ja taastab iga otsingulehe koopia (tekst, filtrid, valitud mäng ja esitusloend), kui avate rakenduse.",
     "enableEditing": "Luba Kohaldada",
     "enableEditingDesc": "Luba kohaldamist mängudele ja lisarakendustele. Avab ka sellega seotud lehed.",
     "symlinkCuration": "Symlink Kureeringu Sisu",
@@ -38,10 +38,10 @@
     "enablePlaytimeTrackingDesc": "Lubab jälgida kuupäeva, millal mängu viimati mängiti, selle mänguaega ja mängukordade arvu.",
     "enablePlaytimeTrackingExtreme": "Jälgi Ekstreemsete Mängude Mänguaega",
     "enablePlaytimeTrackingExtremeDesc": "Lubab jälgida kuupäeva, millal ekstreemset mängu viimati mängiti, selle mänguaega ja mängukordade arvu.",
-    "enableTagFilterIndex": "Tag Filter Index",
-    "enableTagFilterIndexDesc": "Enable use of the Tag Filter Index to speed up lots of queries",
-    "enableVerboseLogging": "Verbose Logging",
-    "enableVerboseLoggingDesc": "Enables verbose logging for external libraries.",
+    "enableTagFilterIndex": "Märksõna Filtri Indeks",
+    "enableTagFilterIndexDesc": "Lubage kasutada märksõna filtri indeksit paljude päringute kiirendamiseks",
+    "enableVerboseLogging": "Üksikasjalik logimine",
+    "enableVerboseLoggingDesc": "Lubab välistele meedia kaustade üksikasjaliku logimise.",
     "clearPlaytimeTracking": "Kustuta Mänguaja Andmed",
     "clearPlaytimeTrackingDesc": "Kustutab andmed kuupäeva kohta, millal mängu viimati mängiti, selle mänguaja ja mängukordade arvu. Pöördumatu.",
     "clearData": "Tühjenda Andmed",
@@ -196,9 +196,9 @@
     "fpfssLogout": "Logi Välja FPFSS'ist",
     "softwareUpdateRequired": "Tarkvara on vaja uuendada. Kas teha seda kohe?",
     "noLauncherUpdateReady": "Metaandmete värskendus nõuab Rakenduse uuemat versiooni, kuid tarkvaravärskendus pole praegu saadaval.",
-    "deleteView": "Delete Search View",
-    "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
-    "createNewView": "Create new search view"
+    "deleteView": "Kustuta otsingu Vaade",
+    "deleteOnlyBrowseView": "Kustuta Otsingu Vaade (Peab olemas olema mõni muu kohandatud vaade)",
+    "createNewView": "Loo uus otsingu vaade"
   },
   "filter": {
     "dateAdded": "Kuupäev Lisatud",
@@ -390,7 +390,7 @@
     "busy": "Palun Oota...",
     "openGameDataBrowser": "Ava Mängu Andmete Brauser",
     "allGenericEntries": "Kõik sissekanded",
-    "usePlaylistOrder": "Use Playlist Order",
+    "usePlaylistOrder": "Kasuta Esitusloendi Järjestust",
     "notArchived": "Pole Arhiveeritud",
     "archived": "Arhiveeritud",
     "playOnline": "Mängi võrgus"
@@ -505,7 +505,7 @@
     "contextShowInExplorer": "Kuva fail Explorer'is",
     "contextOpenFolderInExplorer": "Ava kaust Explorer'is",
     "shortcuts": "Otseteed",
-    "fpfssOpenSubmissionPage": "Open Submission Page"
+    "fpfssOpenSubmissionPage": "Ava Esitamisleht"
   },
   "playlist": {
     "enterDescriptionHere": "Lisa kirjeldus siia...",
@@ -637,11 +637,11 @@
     "requiresAdditionalDownload": "Teil on puudu {0} tugipakett, mis on vajalik selle mängu käivitamiseks.\nLae alla nüüd?",
     "requiresAdditionalDownloadPlural": "Teil on puudu {0} tugipaketid, mis on vajalikud selle mängu käivitamiseks.\nLae alla nüüd?",
     "confirmClearPlaytime": "Kas kustutada mänguaja ajalugu? See tegevus on pöördumatu.",
-    "badAntiVirus": "You appear to be using '{0}'.\nThis particular Antivirus is known to cause issues, and we recommend adding an exception to the Flashpoint folder.\n\nIf you only see a white screen when running Flash games you may need to reinstall Flashpoint to restore deleted files.\n\nSee the Wiki or Help tab for detailed instructions.",
+    "badAntiVirus": "Näib, et kasutate '{0}'.\nSee konkreetne Antiviirus põhjustab teadaolevaid probleeme ning soovitame lisada Flashpointi kausta jaoks erandi.\n\nKui näete Flashi mänge mängides vaid valget ekraani, peab kustutatud failide taastamiseks Flashpointi uuesti installima.\n\nTäpsemate juhiste jaoks vaadake Viki või Abi vahekaarti.",
     "openWiki": "Ava Viki",
     "openDiscord": "Liidu Discordi Serveriga",
     "doNotShowAgain": "Ära uuesti näita",
-    "extFpfssConsent": "Extension with ID {0} is requesting access to your FPFSS token. Allow?\nThis means the extension will be able access your FPFSS account and perform actions on your behalf.",
+    "extFpfssConsent": "Laiendus ID-ga {0} küsib juurdepääsu Teie FPFSS märgile. Kas lubada?\nSee tähendab, et laiendusel on lubatud juurdepääs Teie FPFSS-i kontole ja Teie nimel toiminguid teha.",
     "gameDataUpdateReady": "Mängude andmete värskendus on valmis. Kas soovite nüüd uuendada?",
     "gameDataUpdateReadyLcDifferent": "Mängude andmete värskendus on valmis. Käivituskäsk on muutunud ja see võib olemasolevaid salvestusfaile rikkuda. Kas soovite nüüd uuendada?"
   },
