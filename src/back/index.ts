@@ -14,7 +14,7 @@ import { LangFileContent, getDefaultLocalization } from '@shared/lang';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { defaultPreferencesData } from '@shared/preferences/util';
 import { validateSemiUUID } from '@shared/utils/uuid';
-import { VERSION } from '@shared/version';
+import { FPA_VERSION, VERSION } from '@shared/version';
 import * as child_process from 'child_process';
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint-launcher';
@@ -303,6 +303,7 @@ async function prepForInit(message: any): Promise<void> {
   };
 
   log.info('Launcher', `Build Version: ${VERSION}`);
+  log.info('Launcher', `FPA Version: ${FPA_VERSION}`);
 
   state.socketServer.secret = content.secret;
 

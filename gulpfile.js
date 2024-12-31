@@ -15,6 +15,7 @@ const esbuild = require('esbuild');
 const pipeline = promisify(require('stream').pipeline);
 
 const packageJson = JSON.parse(fs.readFileSync('./package.json', { encoding: 'utf-8' }));
+
 const config = {
   buildVersion: Date.now().toString(),
   publish: !!process.env.PUBLISH,
@@ -247,7 +248,12 @@ function createVersionFile(done) {
   // Get Git Commit Hash
   const gitCommitHash = execSync('git rev-parse --short HEAD', { encoding: 'utf-8' }).trim();
 
-  const data = `export const VERSION = '${formattedDate} (${gitCommitHash})';\n`;
+  const packageLockJson = JSON.parse(fs.readFileSync('./package-lock.json', { encoding: 'utf-8' }));
+  const fpaVersion = packageLockJson['packages']['node_modules/@fparchive/flashpoint-archive']['version'];
+
+  const data = `export const VERSION = '${formattedDate} (${gitCommitHash})';
+export const FPA_VERSION = '${fpaVersion}';
+`;
 
   // Write to src/shared/version.ts
   fs.writeFile('src/shared/version.ts', data, (err) => {
