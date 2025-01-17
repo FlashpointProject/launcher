@@ -710,27 +710,32 @@ export class App extends React.Component<AppProps> {
     (() => {
       const userBase64 = localStorage.getItem('fpfss_user');
       if (userBase64) {
-        const user = JSON.parse(Buffer.from(userBase64, 'base64').toString('utf-8')) as FpfssUser;
-        // Test profile uri
-        const profileUrl = `${window.Shared.preferences.data.fpfssBaseUrl}/api/profile`;
-        axios.get(profileUrl, {
-          headers: {
-            'Authorization': `Bearer ${user.accessToken}`
-          }
-        })
-        .then((res) => {
-          // Success, use most recent info and save to storage and state
-          user.username = res.data['Username'];
-          user.avatarUrl = res.data['AvatarURL'];
-          user.roles = res.data['Roles'];
-          const newUserBase64 = Buffer.from(JSON.stringify(user, null, 0)).toString('base64');
-          localStorage.setItem('fpfss_user', newUserBase64);
-          this.props.fpfssActions.setUser(user);
-        })
-        .catch(() => {
-          // Failed auth
+        try {
+          const user = JSON.parse(Buffer.from(userBase64, 'base64').toString('utf-8')) as FpfssUser;
+          // Test profile uri
+          const profileUrl = `${window.Shared.preferences.data.fpfssBaseUrl}/api/profile`;
+          axios.get(profileUrl, {
+            headers: {
+              'Authorization': `Bearer ${user.accessToken}`
+            }
+          })
+          .then((res) => {
+            // Success, use most recent info and save to storage and state
+            user.username = res.data['Username'];
+            user.avatarUrl = res.data['AvatarURL'];
+            user.roles = res.data['Roles'];
+            const newUserBase64 = Buffer.from(JSON.stringify(user, null, 0)).toString('base64');
+            localStorage.setItem('fpfss_user', newUserBase64);
+            this.props.fpfssActions.setUser(user);
+          })
+          .catch(() => {
+            // Failed auth
+            localStorage.removeItem('fpfss_user');
+          });
+        } catch (err) {
+          log.error('Launcher', 'Fpfss saved auth was invalid, clearing...');
           localStorage.removeItem('fpfss_user');
-        });
+        }
       }
     })();
 
@@ -1760,18 +1765,14 @@ export class App extends React.Component<AppProps> {
   };
 
   fetchFpfssGame = async (url: string) => {
-    try {
-      const res = await axios.get(url, {
-        headers: {
-          Authorization: `Bearer ${this.props.fpfss.user?.accessToken}`
-        }
-      });
-      const game = mapFpfssGameToLocal(res.data);
-      console.log(game);
-      this.props.fpfssActions.setGame(game);
-    } catch (err) {
-      alert(`Error loading FPFSS game: ${err}`);
-    }
+    const res = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${this.props.fpfss.user?.accessToken}`
+      }
+    });
+    const game = mapFpfssGameToLocal(res.data);
+    console.log(game);
+    this.props.fpfssActions.setGame(game);
   };
 
   openFpfssEditGame = (url: string) => {
@@ -1784,12 +1785,12 @@ export class App extends React.Component<AppProps> {
     window.Shared.back.request(BackIn.SYNC_TAGGED, source)
     .then(() => {
       // Edit game in-launcher then send it back to server
-      this.performFpfssAction((user) => {
+      this.performFpfssAction(async (user) => {
         if (this.props.fpfss.editingGame) {
           alert('Game edit already open');
         } else {
           // Download Game metadata and add to state
-          this.fetchFpfssGame(url);
+          return this.fetchFpfssGame(url);
         }
       });
     })
@@ -1851,50 +1852,62 @@ export class App extends React.Component<AppProps> {
     });
   }
 
+  async doFpfssAuth(): Promise<FpfssUser | null> {
+    const user = await fpfssLogin(this.props.mainActions.createDialog, this.props.mainActions.cancelDialog)
+    .catch((err) => {
+      if (err !== 'User Cancelled') {
+        alert(err);
+      }
+    }) as FpfssUser | null; // Weird void from inferred typing?
+    if (user) {
+      // Store in fpfss state
+      this.props.fpfssActions.setUser(user);
+      // Store in localstorage
+      const userBase64 = Buffer.from(JSON.stringify(user, null, 0)).toString('base64');
+      localStorage.setItem('fpfss_user', userBase64);
+    }
+    return user;
+  }
+
+  async _performFpfssAction(user: FpfssUser, cb: (user: FpfssUser) => any) {
+    try {
+      await cb(user);
+    } catch (err) {
+      // Check if the error is an axios error, so we can handle lack of auth
+      if (axios.isAxiosError(err)) {
+        // Axios being dumb as bricks here
+        let jsonErr = JSON.parse(JSON.stringify(err));
+        if (jsonErr.status === 401) {
+          // Must reauth
+          this.props.fpfssActions.setUser(null);
+          localStorage.removeItem('fpfss_user');
+          const newUser = await this.doFpfssAuth();
+          if (newUser) {
+            this._performFpfssAction(newUser, cb);
+          }
+          return;
+        }
+      }
+      log.error('Launcher', `[FPFSS] Failed to execute action - ${err}`);
+      alert(`[FPFSS] Failed to execute action - ${err}`);
+    }
+  }
+
+  /**
+   * Performs a callback with the active FPFSS user.
+   * If the callback throws an axios 401 error, it will automatically try to reauth and retry.
+   * 
+   * @param cb Callback to perform with user
+   */
   async performFpfssAction(cb: (user: FpfssUser) => any) {
     let user = this.props.fpfss.user;
     if (!user) {
-      // Logged out, try login
-      user = await fpfssLogin(this.props.mainActions.createDialog, this.props.mainActions.cancelDialog)
-      .catch((err) => {
-        if (err !== 'User Cancelled') {
-          alert(err);
-        }
-      }) as FpfssUser | null; // Weird void from inferred typing?
-      if (user) {
-        // Store in fpfss state
-        this.props.fpfssActions.setUser(user);
-        // Store in localstorage
-        const userBase64 = Buffer.from(JSON.stringify(user, null, 0)).toString('base64');
-        localStorage.setItem('fpfss_user', userBase64);
-      }
+      user = await this.doFpfssAuth();
     }
 
     if (user) {
       // User exists, carry on to callback
-      let retries = 0;
-      while (retries <= 1) {
-        retries += 1;
-        try {
-          await cb(user);
-          break;
-        } catch (err) {
-          log.error('Launcher', `[FPFSS] Failed to execute action - ${err}`);
-          if (retries <= 1) {
-            // Reauth if the action failed
-            log.info('Launcher', '[FPFSS] Attempting reauth');
-            user = await fpfssLogin(this.props.mainActions.createDialog, this.props.mainActions.cancelDialog)
-            .catch((err) => {
-              if (err !== 'User Cancelled') {
-                alert(err);
-              }
-            }) as FpfssUser | null;
-            if (!user) {
-              break;
-            }
-          }
-        }
-      }
+      this._performFpfssAction(user, cb);
     }
   }
 }
