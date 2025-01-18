@@ -21,7 +21,7 @@ import * as flashpoint from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as http from 'http';
 import * as mime from 'mime';
-import { Progress, extractFull } from 'node-7z';
+import { Progress, add, extractFull } from 'node-7z';
 import * as path from 'path';
 import 'reflect-metadata';
 import { genCurationWarnings, loadCurationFolder } from './curate/util';
@@ -1561,6 +1561,18 @@ function endsWithList(str: string, list: string[]): boolean {
 export function extractFullPromise(args: Parameters<typeof extractFull>) : Promise<void> {
   return new Promise<void>((resolve, reject) => {
     extractFull(...args)
+    .once(('end'), () => {
+      resolve();
+    })
+    .once(('error'), (error) => {
+      reject(error);
+    });
+  });
+}
+
+export function addPromise(...args: Parameters<typeof add>): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    add(...args)
     .once(('end'), () => {
       resolve();
     })

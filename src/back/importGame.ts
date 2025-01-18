@@ -1,4 +1,6 @@
-import { LOGOS, SCREENSHOTS } from '@shared/constants';
+import { GameData, PartialGameData } from '@fparchive/flashpoint-archive';
+import { ArchiveState } from '@shared/back/types';
+import { CURATIONS_FOLDER_TEMP, CURATIONS_FOLDER_WORKING, LOGOS, SCREENSHOTS } from '@shared/constants';
 import { CurationIndexImage } from '@shared/curate/OLD_types';
 import { convertEditToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { AddAppCuration, CurationMeta } from '@shared/curate/types';
@@ -7,12 +9,12 @@ import { TaskProgress } from '@shared/utils/TaskProgress';
 import { newGame } from '@shared/utils/misc';
 import * as child_process from 'child_process';
 import { execFile } from 'child_process';
+import * as crypto from 'crypto';
 import { AdditionalApp, Game, GameLaunchInfo, LoadedCuration, Platform, Tag, TagCategory } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
-import * as crypto from 'crypto';
 import * as path from 'path';
 import * as YAML from 'yaml';
-import { fpDatabase } from '.';
+import { addPromise, fpDatabase } from '.';
 import { GameLauncher, LaunchAddAppOpts, LaunchGameOpts, checkAndInstallPlatform } from './GameLauncher';
 import { ApiEmitterFirable } from './extensions/ApiEmitter';
 import { copyFolder } from './rust';
@@ -21,8 +23,6 @@ import { awaitDialog } from './util/dialog';
 import { getMklinkBatPath } from './util/elevate';
 import { onDidInstallGameData, onWillImportCuration } from './util/events';
 import { uuid } from './util/uuid';
-import { GameData, PartialGameData } from '@fparchive/flashpoint-archive';
-import { ArchiveState } from '@shared/back/types';
 
 type ImportCurationOpts = {
   curation: LoadedCuration;
@@ -31,7 +31,6 @@ type ImportCurationOpts = {
   fpPath: string;
   dataPacksFolderPath: string;
   htdocsFolderPath: string;
-  bluezipPath: string;
   imageFolderPath: string;
   openDialog: ShowMessageBoxFunc;
   openExternal: OpenExternalFunc;
@@ -59,7 +58,6 @@ export type CurationImportState = {
 export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   if (opts.date === undefined) { opts.date = new Date(); }
   const {
-    bluezipPath,
     curation,
     date,
     saveCuration,
@@ -236,38 +234,28 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
     taskProgress.setStageProgress(0.75, 'Packing Game Zip...');
 
     const curationPath = path.resolve(getCurationFolder(curation, fpPath));
-    // const zipPath = path.join(fpPath, CURATIONS_FOLDER_TEMP, `${uuid()}.zip`);
-    // const zip = add(zipPath, curationPath + '/*ontent/*', { $bin: sevenZipPath, recursive: true });
-    // await new Promise<void>((resolve, reject) => {
-    //   zip.on('end', () => resolve());
-    //   zip.on('error', reject);
-    // });
 
-    // Build bluezip
-    const bluezipProc = child_process.spawn('bluezip', [curationPath, '-no', curationPath], {cwd: path.dirname(bluezipPath)});
-    await new Promise<void>((resolve, reject) => {
-      bluezipProc.stdout.on('data', (data: any) => {
-        log.debug('Curate', `Bluezip output: ${data}`);
-      });
-      bluezipProc.stderr.on('data', (data: any) => {
-        log.debug('Curate', `Bluezip error: ${data}`);
-      });
-      bluezipProc.on('close', (code: any) => {
-
-        if (code) {
-          log.error('Curate', `Bluezip exited with code: ${code}`);
-          reject();
-        } else {
-          log.debug('Curate', 'Bluezip exited successfully.');
-          resolve();
-        }
-      });
-    });
-    // Import bluezip
-    const filePath = path.join(curationPath, `${curation.folder}.zip`);
+    const tempDir = path.join(fpPath, CURATIONS_FOLDER_TEMP, `${curation.folder}-pack`);
+    fs.ensureDirSync(tempDir);
+    const zipPath = path.join(tempDir, `${curation.folder}.zip`);
+    // Create content.json just for safety / compat
+    const contentJson = {
+      "version": 1,
+      "uniqueId": gameId,
+      "platform": curation.game.primaryPlatform
+    };
+    const contentJsonPath = path.join(tempDir, 'content.json');
+    await fs.promises.writeFile(contentJsonPath, JSON.stringify(contentJson, undefined, 2));
+    // Build zip to import
+    const contentPath = path.join(curationPath, 'content');
+    await addPromise(zipPath, [
+      contentPath,
+      contentJsonPath
+    ], { $bin: opts.sevenZipPath, recursive: true });
+    
     taskProgress.setStageProgress(0.9, 'Importing Zipped File...');
-    await importGameData(game.id, filePath, dataPacksFolderPath, curation.game.applicationPath, curation.game.launchCommand, curation.game.mountParameters);
-    await fs.promises.unlink(filePath);
+    await importGameData(game.id, zipPath, dataPacksFolderPath, curation.game.applicationPath, curation.game.launchCommand, curation.game.mountParameters);
+    await fs.promises.unlink(zipPath);
   })
   .catch((error) => {
     curationLog(error ? error.message : 'Unknown');

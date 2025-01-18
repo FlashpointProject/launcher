@@ -49,11 +49,6 @@ const copyFiles = [
     filter: ['**'],
   },
   {
-    from: './extern/bluezip',
-    to: './extern/bluezip',
-    filter: ['**'],
-  },
-  {
     // Only copy 7zip execs for packed platform
     from: './extern/7zip-bin',
     to: './extern/7zip-bin',

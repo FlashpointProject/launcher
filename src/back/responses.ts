@@ -1,3 +1,4 @@
+import { createSearchFilter } from '@back/util/search';
 import {
   GameSearchOffset,
   GameSearchSortable,
@@ -27,6 +28,7 @@ import {
   SCREENSHOTS,
   VIEW_PAGE_SIZE
 } from '@shared/constants';
+import { FPFSS_INFO_FILENAME } from '@shared/curate/fpfss';
 import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { getContentFolderByKey, getCurationFolder } from '@shared/curate/util';
 import { AppProvider, BrowserApplicationOpts } from '@shared/extensions/interfaces';
@@ -98,7 +100,6 @@ import {
 import { copyFolder, genContentTree } from './rust';
 import { getMetaUpdateInfo, syncGames, syncPlatforms, syncRedirects, syncTags } from './sync';
 import { BackState, MetadataRaw, TagsFile } from './types';
-import { pathToBluezip } from './util/Bluezip';
 import { pathTo7zBack } from './util/SevenZip';
 import { awaitDialog, createNewDialog } from './util/dialog';
 import { onDidUninstallGameData, onWillUninstallGameData } from './util/events';
@@ -122,9 +123,6 @@ import {
   runService
 } from './util/misc';
 import { uuid } from './util/uuid';
-import { FPFSS_INFO_FILENAME } from '@shared/curate/fpfss';
-import { createSearchFilter } from '@back/util/search';
-import { FpfssUser } from '@shared/back/types';
 
 const axios = axiosImport.default;
 
@@ -1661,7 +1659,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
           saveCuration: saveCuration,
           fpPath: state.config.flashpointPath,
           dataPacksFolderPath: path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath),
-          bluezipPath: pathToBluezip(state.isDev, state.exePath),
           imageFolderPath: state.preferences.imageFolderPath,
           openDialog: state.socketServer.showMessageBoxBack(state, event.client),
           openExternal: state.socketServer.openExternal(event.client),
@@ -2157,66 +2154,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.CURATE_EXPORT_DATA_PACK, async (event, curations, taskId) => {
-    const bluezipPath = pathToBluezip(state.isDev, state.exePath);
-    const dataPackFolder = path.resolve(state.config.flashpointPath, CURATIONS_FOLDER_EXPORTED, 'Data Packs');
-    await fs.ensureDir(dataPackFolder);
-    let processed = 0;
-
-    try {
-      for (const curation of curations) {
-        if (taskId) {
-          state.socketServer.broadcast(BackOut.UPDATE_TASK, {
-            id: taskId,
-            status: `Exporting Data Pack for ${curation.game.title || curation.folder}`,
-            progress: processed / curations.length,
-          });
-        }
-        processed += 1;
-        const fpPath = state.config.flashpointPath;
-        const curationPath = path.resolve(getCurationFolder(curation, fpPath));
-        // Make a temp copy
-        const tempFolder = uuid();
-        const copyPath = path.resolve(fpPath, CURATIONS_FOLDER_TEMP, tempFolder);
-        await copyFolder(curationPath, copyPath);
-        const bluezipProc = child_process.spawn('bluezip', [copyPath, '-no', copyPath], { cwd: path.dirname(bluezipPath) });
-        await new Promise<void>((resolve, reject) => {
-          bluezipProc.stdout.on('data', (data: any) => {
-            log.debug('Curate', `Bluezip output: ${data}`);
-          });
-          bluezipProc.stderr.on('data', (data: any) => {
-            log.debug('Curate', `Bluezip error: ${data}`);
-          });
-          bluezipProc.on('close', (code: any) => {
-
-            if (code) {
-              log.error('Curate', `Bluezip exited with code: ${code}`);
-              reject();
-            } else {
-              log.debug('Curate', 'Bluezip exited successfully.');
-              resolve();
-            }
-          });
-        });
-        // Import bluezip
-        const filePath = path.join(copyPath, `${tempFolder}.zip`);
-        await fs.move(filePath, path.join(dataPackFolder, `${curation.uuid} - ${sanitizeFilename(curation.game.title || curation.folder)}.zip`), { overwrite: true });
-      }
-      if (taskId) {
-        state.socketServer.broadcast(BackOut.UPDATE_TASK, {
-          id: taskId,
-          status: '',
-          finished: true
-        });
-      }
-    } catch (e: any) {
-      if (taskId) {
-        state.socketServer.broadcast(BackOut.UPDATE_TASK, {
-          id: taskId,
-          finished: true,
-          error: e ? e.toString() : 'Undefined error',
-        });
-      }
-    }
+    // Obselete
   });
 
   state.socketServer.register(BackIn.CURATE_EXPORT, async (event, curations, taskId) => {
