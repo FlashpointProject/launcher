@@ -44,6 +44,11 @@ jobs:
       env:
         WINEPREFIX: "/__w/launcher/launcher/wine"
       run: npm run nexusPack
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Flashpoint-Launcher
+        path: dist/Flashpoint.zip
     - name: Generate Metadata
       run: |
         apt-get update
