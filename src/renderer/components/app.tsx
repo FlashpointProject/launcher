@@ -1022,9 +1022,7 @@ export class App extends React.Component<AppProps> {
     if (this.props.currentView.selectedGame) {
       const ng = newGame();
       Object.assign(ng, { ...this.props.currentView.selectedGame, ...game });
-      this.props.setMainState({
-        currentGame: ng
-      });
+      this.props.searchActions.updateGame(ng);
     }
   };
 
@@ -1720,7 +1718,6 @@ export class App extends React.Component<AppProps> {
   };
 
   private checkGameRunningMemo = memoizeOne((gameId: string | undefined, services: IService[]) => {
-    console.log('checking if running:' + gameId);
     return gameId ? !!services.find(s => s.id === `game.${gameId}`) : false;
   });
 

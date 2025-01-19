@@ -674,6 +674,8 @@ declare module 'flashpoint-launcher' {
          * 2 = Available
          */
       archiveState: number;
+      /** Ruffle support for flash entries */
+      ruffleSupport: 'None' | 'Standalone' | 'Webhosted';
     };
 
     type GameData = {

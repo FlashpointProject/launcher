@@ -858,6 +858,9 @@ body {
 .browse-right-sidebar__game-config-dropdown-none {
   font-style: italic;
 }
+.browse-right-sidebar-floating-icon .icon__use {
+  fill: var(--layout__confirm-color);
+}
 
 /* GameImageSplit */
 .game-image-split {

@@ -266,14 +266,16 @@ However, Applications can also provide `url` or `command` instead. The full deta
     {
       "title": "Test Extension",
       "properties": {
-        "title": "Test Select",
-        "type": "string",
-        "enum": [
-          "string1",
-          "string2"
-        ],
-        "default": "string1",
-        "description": "Example of an extension config prop",
+        "key": {
+          "title": "Test Select",
+          "type": "string",
+          "enum": [
+            "string1",
+            "string2"
+          ],
+          "default": "string1",
+          "description": "Example of an extension config prop"
+        }
       }
     }
   ]

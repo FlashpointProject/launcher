@@ -117,6 +117,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   onStatusClick               = this.wrapOnTextClick('status');
   onVersionClick              = this.wrapOnTextClick('version');
   onLanguageClick             = this.wrapOnTextClick('language');
+  onRuffleSupportClick        = this.wrapOnTextClick('ruffleSupport');
 
   launchCommandRef: React.RefObject<HTMLInputElement> = React.createRef();
 
@@ -732,6 +733,27 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     className='browse-right-sidebar__searchable'
                     editable={editable}
                     onClick={this.onLanguageClick} />
+                </div>
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                  <p>Ruffle Support: </p>
+                  <DropdownInputField
+                    text={game.ruffleSupport}
+                    placeholder={'None'}
+                    className='browse-right-sidebar__searchable'
+                    editable={editable}
+                    items={['None', 'Standalone']}
+                    onItemSelect={text => {
+                      console.log('selecting ' + text);
+                      if (['None', 'Standalone'].includes(text)) {
+                        this.props.onEditGame({ ruffleSupport: text as any }) 
+                      }
+                    }}
+                    onClick={this.onRuffleSupportClick} />
+                  { !editable && game.ruffleSupport !== 'None' ? (
+                    <div className='browse-right-sidebar-floating-icon'>
+                      <OpenIcon icon='check'/>
+                    </div>
+                  ) : undefined }
                 </div>
               </div>
             </>

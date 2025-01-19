@@ -1607,6 +1607,9 @@ body {
 .browse-right-sidebar__bottom > .browse-right-sidebar__section > .browse-right-sidebar__row__screenshot-container > .browse-right-sidebar__row__screenshot> img {
   height: 100%;
 }
+.browse-right-sidebar-floating-icon {
+  margin-left: 0.4rem;
+}
 
 /* Browse game stats */
 .browse-right-sidebar__stats {

@@ -19,6 +19,75 @@ export async function activate(context: flashpoint.ExtensionContext): Promise<vo
   const webEmbedMiddleware = new RuffleWebEmbedMiddleware(path.join(baseDataPath, 'webhosted'));
   flashpoint.middleware.registerMiddleware(webEmbedMiddleware);
 
+  const firstLaunch = !flashpoint.getExtConfigValue('com.ruffle.first-launch-complete');
+  if (firstLaunch) {
+    flashpoint.onDidConnect(async () => {
+      const handle = await flashpoint.dialogs.showMessageBoxWithHandle({
+        message: 'Do you want to enable Ruffle for supported Flash games?\nRuffle is a modern Flash emulator.\nThis may cause performance issues on weaker machines.',
+        largeMessage: true,
+        buttons: ['Yes', 'No'],
+        cancelId: 1
+      });
+      const res = await flashpoint.dialogs.awaitDialog(handle);
+      if (res.buttonIdx === 0) {
+        flashpoint.setExtConfigValue('com.ruffle.enabled', true);
+      }
+      flashpoint.setExtConfigValue('com.ruffle.first-launch-complete', true);
+    });
+  }
+
+  flashpoint.games.onWillLaunchGame((launchInfo) => {
+    const supportedEnabled = flashpoint.getExtConfigValue('com.ruffle.enabled');
+    const unsupportedEnabled = flashpoint.getExtConfigValue('com.ruffle.enabled-all');
+
+    if (supportedEnabled) {
+      if (launchInfo.game.ruffleSupport === 'Standalone') {
+        flashpoint.log.info('Using Standalone Ruffle for supported game...');
+        const defaultConfig = standaloneMiddleware.getDefaultConfig(launchInfo.game);
+        standaloneMiddleware.execute(launchInfo, {
+          middlewareId: '',
+          name: '',
+          enabled: true,
+          version: defaultConfig.version,
+          config: defaultConfig.config,
+        });
+      } else if (launchInfo.game.ruffleSupport === 'Webhosted') {
+        flashpoint.log.info('Using Web Embed Ruffle for supported game...');
+        const defaultConfig = webEmbedMiddleware.getDefaultConfig(launchInfo.game);
+        webEmbedMiddleware.execute(launchInfo, {
+          middlewareId: '',
+          name: '',
+          enabled: true,
+          version: defaultConfig.version,
+          config: defaultConfig.config,
+        });
+      }
+    } else if (unsupportedEnabled) {
+      // Get last launch arg to check if swf
+      let isFlash = false;
+      if (typeof launchInfo.launchInfo.gameArgs === 'string') {
+        isFlash = launchInfo.launchInfo.gameArgs.toLowerCase().endsWith('.swf');
+      } else if (launchInfo.launchInfo.gameArgs.length > 0) {
+        const gameArg = launchInfo.launchInfo.gameArgs.at(-1);
+        if (gameArg) {
+          isFlash = gameArg.toLowerCase().endsWith('.swf');
+        }
+      }
+
+      if (isFlash) {
+        flashpoint.log.info('Using Standalone Ruffle for unsupported game...');
+        const defaultConfig = standaloneMiddleware.getDefaultConfig(launchInfo.game);
+        standaloneMiddleware.execute(launchInfo, {
+          middlewareId: '',
+          name: '',
+          enabled: true,
+          version: defaultConfig.version,
+          config: defaultConfig.config,
+        });
+      }
+    }
+  });
+
   // Check for Standalone updates
   const logVoid = () => {};
   const standaloneAssetFile = await getGithubAsset(getPlatformRegex(), logVoid);
