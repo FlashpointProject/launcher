@@ -6,21 +6,21 @@ import { exitApp } from '@back/responses';
 import { BackState, ShowMessageBoxFunc, ShowOpenDialogFunc, ShowSaveDialogFunc, StatusState } from '@back/types';
 import { deepCopy, recursiveReplace, stringifyArray } from '@shared/Util';
 import { BackOut, ComponentState } from '@shared/back/types';
+import { PlatformAppPath, PlatformAppPathSuggestions } from '@shared/curate/types';
 import { getCurationFolder } from '@shared/curate/util';
 import { BrowserApplicationOpts } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, INamedBackProcessInfo, IService, ProcessState } from '@shared/interfaces';
 import { LangContainer, LangFile, autoCode, getDefaultLocalization } from '@shared/lang';
 import { Legacy_IAdditionalApplicationInfo, Legacy_IGameInfo } from '@shared/legacy/interfaces';
+import { newGame } from '@shared/utils/misc';
 import * as child_process from 'child_process';
+import { AdditionalApp, Game, Tag } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as os from 'os';
 import * as path from 'path';
-import * as psTree from 'ps-tree';
+import * as kill from 'tree-kill';
 import { promisify } from 'util';
 import { uuid } from './uuid';
-import { AdditionalApp, Game, Tag } from 'flashpoint-launcher';
-import { newGame } from '@shared/utils/misc';
-import { PlatformAppPath, PlatformAppPathSuggestions } from '@shared/curate/types';
 
 const unlink = promisify(fs.unlink);
 
@@ -190,15 +190,12 @@ export async function exit(state: BackState, beforeProcessExit?: () => void | Pr
       .catch(e => { console.error(e); });
 
       await new Promise<void>((resolve, reject) => {
-        psTree(process.pid, async (error, children) => {
+        kill(process.pid, (error) => {
           if (error) {
             reject(error);
+          } else {
+            resolve();
           }
-          // Kill each child process.
-          for (const child of children) {
-            process.kill(Number(child.PID));
-          }
-          resolve();
         });
       });
       // Kill the parent process.

@@ -1393,9 +1393,9 @@ export class App extends React.Component<AppProps> {
       devConsole: this.props.main.devConsole,
       creditsData: this.props.main.creditsData,
       creditsDoneLoading: this.props.main.creditsDoneLoading,
-      selectedGameId: this.props.main.selectedGameId,
-      gameRunning: this.checkGameRunningMemo(this.props.main.selectedGameId, this.props.main.services),
-      selectedPlaylistId: this.props.main.selectedPlaylistId,
+      selectedGameId: currentView.selectedGame?.id,
+      gameRunning: this.checkGameRunningMemo(currentView.selectedGame?.id, this.props.main.services),
+      selectedPlaylistId: currentView.selectedPlaylist?.id,
       onDeletePlaylist: this.onPlaylistDelete,
       onUpdatePlaylist: this.onUpdatePlaylist,
       wasNewGameClicked: this.props.main.wasNewGameClicked,
@@ -1720,6 +1720,7 @@ export class App extends React.Component<AppProps> {
   };
 
   private checkGameRunningMemo = memoizeOne((gameId: string | undefined, services: IService[]) => {
+    console.log('checking if running:' + gameId);
     return gameId ? !!services.find(s => s.id === `game.${gameId}`) : false;
   });
 
