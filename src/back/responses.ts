@@ -1667,12 +1667,13 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
           sevenZipPath: state.sevenZipPath,
           state,
         })
-        .then(() => {
+        .then(async () => {
           // Delete curation after
-          deleteCuration(state, curation.folder);
+          await deleteCuration(state, curation.folder);
           state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, undefined, [curation.folder]);
         })
-        .catch(() => {
+        .catch((err) => {
+          log.debug('Import', 'Import error: ' + err);
           state.socketServer.broadcast(BackOut.CURATE_SELECT_LOCK, curation.folder, false);
           const alertString = formatString(state.languageContainer.dialog.errorImportingCuration, curation.folder) as string;
           state.socketServer.broadcast(BackOut.OPEN_ALERT, alertString);

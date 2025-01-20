@@ -56,6 +56,7 @@ export type CurationImportState = {
  * @returns A promise that resolves when the import is complete.
  */
 export async function importCuration(opts: ImportCurationOpts): Promise<void> {
+  log.debug('Import', 'Importing game...');
   if (opts.date === undefined) { opts.date = new Date(); }
   const {
     curation,
@@ -129,8 +130,16 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   }
 
   // Add game to database
+  log.debug('Import', 'Creating game');
   let game = await createGameFromCurationMeta(gameId, curation.game, curation.addApps, date);
+  const addApps = game.addApps;
   game = await fpDatabase.createGame(game);
+  if (addApps && addApps.length > 0) {
+    for (const addApp of addApps) {
+      await fpDatabase.createAddApp(addApp);
+    }
+  }
+  log.debug('Import', 'Created game entry');
 
   // Store curation state for extension use later
   const curationState: CurationImportState = {
@@ -253,11 +262,13 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
       contentJsonPath
     ], { $bin: opts.sevenZipPath, recursive: true });
     
+    log.debug('Import', 'Importing game data...');
     taskProgress.setStageProgress(0.9, 'Importing Zipped File...');
     await importGameData(game.id, zipPath, dataPacksFolderPath, curation.game.applicationPath, curation.game.launchCommand, curation.game.mountParameters);
     await fs.promises.unlink(zipPath);
   })
   .catch((error) => {
+    log.error('Import', 'ERROR: ' + (error ? error.message : 'Unknown'));
     curationLog(error ? error.message : 'Unknown');
     console.warn(error ? error.message : 'Unknown');
     taskProgress.setStageProgress(1, error ? error.message : 'Unknown');
@@ -448,10 +459,11 @@ async function createGameFromCurationMeta(gameId: string, gameMeta: CurationMeta
     dateAdded:             date.toISOString(),
     dateModified:          date.toISOString(),
     library:               gameMeta.library || '',
-    addApps:               addApps.map(addApp => createAddAppFromCurationMeta(addApp, game)),
+    addApps:               [],
     activeDataOnDisk: false,
     ruffleSupport:         gameMeta.ruffleSupport       || '',
   };
+  game.addApps = addApps.map(addApp => createAddAppFromCurationMeta(addApp, game))
   return game;
 }
 
