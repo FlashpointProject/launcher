@@ -38,6 +38,7 @@ import {
   removeTag,
   setPrimaryPlatform, toggleContentNodeView
 } from '@renderer/store/curate/slice';
+import { mapRuffleSupportString } from '@shared/utils/misc';
 
 export type CurateBoxProps = {
   curation: CurationState;
@@ -604,6 +605,20 @@ export function CurateBox(props: CurateBoxProps) {
                 placeholder={strings.browse.noMountParameters}
                 warned={props.curation.warnings.fieldWarnings.includes('mountParameters')}
                 property='mountParameters'
+                { ...shared } />
+              {/* @TODO Replace this with a Dropdown menu that does NOT allow selection of the text or typing into it. */}
+              <CurateBoxDropdownInputRow
+                title={strings.browse.ruffleSupport}
+                text={mapRuffleSupportString(props.curation.game.ruffleSupport || '')}
+                items={[{
+                  key: '',
+                  value: 'None'
+                }, {
+                  key: 'standalone',
+                  value: 'Standalone'
+                }]}
+                warned={false}
+                property='ruffleSupport'
                 { ...shared } />
               <CurateBoxInputRow
                 title={strings.browse.notes}

@@ -450,6 +450,7 @@ async function createGameFromCurationMeta(gameId: string, gameMeta: CurationMeta
     library:               gameMeta.library || '',
     addApps:               addApps.map(addApp => createAddAppFromCurationMeta(addApp, game)),
     activeDataOnDisk: false,
+    ruffleSupport:         gameMeta.ruffleSupport       || '',
   };
   return game;
 }

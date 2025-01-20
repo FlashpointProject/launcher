@@ -505,6 +505,7 @@ export type FpfssGame = {
   UserID: number;
   tags?: FpfssTag[];
   platforms?: FpfssPlatform[];
+  ruffle_support?: string;
 }
 
 export type FpfssPlatform = {
@@ -592,6 +593,7 @@ export function mapFpfssGameToLocal(data: any): Game {
         parentGameId: a.parent_game_id,
       };
     }) || [],
+    ruffleSupport: fg.ruffle_support || '',
   };
   return game;
 }
@@ -655,6 +657,7 @@ export function mapLocalToFpfssGame(game: Game): FpfssGame {
         parent_game_id: a.parentGameId,
       };
     }) || [],
+    ruffle_support: game.ruffleSupport,
   };
   return fg;
 }

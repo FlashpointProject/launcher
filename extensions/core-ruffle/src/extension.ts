@@ -36,12 +36,12 @@ export async function activate(context: flashpoint.ExtensionContext): Promise<vo
     });
   }
 
-  flashpoint.games.onWillLaunchGame((launchInfo) => {
+  const handleGameLaunch = (launchInfo: flashpoint.GameLaunchInfo, curation: boolean) => {
     const supportedEnabled = flashpoint.getExtConfigValue('com.ruffle.enabled');
     const unsupportedEnabled = flashpoint.getExtConfigValue('com.ruffle.enabled-all');
 
     if (supportedEnabled) {
-      if (launchInfo.game.ruffleSupport === 'Standalone') {
+      if (launchInfo.game.ruffleSupport.toLowerCase() === 'standalone') {
         flashpoint.log.info('Using Standalone Ruffle for supported game...');
         const defaultConfig = standaloneMiddleware.getDefaultConfig(launchInfo.game);
         standaloneMiddleware.execute(launchInfo, {
@@ -51,7 +51,8 @@ export async function activate(context: flashpoint.ExtensionContext): Promise<vo
           version: defaultConfig.version,
           config: defaultConfig.config,
         });
-      } else if (launchInfo.game.ruffleSupport === 'Webhosted') {
+        return;
+      } else if (launchInfo.game.ruffleSupport.toLowerCase() === 'webhosted') {
         flashpoint.log.info('Using Web Embed Ruffle for supported game...');
         const defaultConfig = webEmbedMiddleware.getDefaultConfig(launchInfo.game);
         webEmbedMiddleware.execute(launchInfo, {
@@ -61,8 +62,11 @@ export async function activate(context: flashpoint.ExtensionContext): Promise<vo
           version: defaultConfig.version,
           config: defaultConfig.config,
         });
+        return;
       }
-    } else if (unsupportedEnabled) {
+    }
+    
+    if (unsupportedEnabled && !curation) {
       // Get last launch arg to check if swf
       let isFlash = false;
       if (typeof launchInfo.launchInfo.gameArgs === 'string') {
@@ -86,7 +90,10 @@ export async function activate(context: flashpoint.ExtensionContext): Promise<vo
         });
       }
     }
-  });
+  }
+
+  flashpoint.games.onWillLaunchCurationGame((l) => handleGameLaunch(l, true));
+  flashpoint.games.onWillLaunchGame((l) => handleGameLaunch(l, false));
 
   // Check for Standalone updates
   const logVoid = () => {};

@@ -15,7 +15,7 @@ import * as React from 'react';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { getGameImagePath, getGameImageURL, getPlatformIconURL, wrapSearchTerm } from '../Util';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
-import { DropdownInputField } from './DropdownInputField';
+import { DropdownInputField, DropdownInputFieldMapped } from './DropdownInputField';
 import { GameDataBrowser } from './GameDataBrowser';
 import { GameImageSplit } from './GameImageSplit';
 import { ImagePreview } from './ImagePreview';
@@ -25,6 +25,7 @@ import { RightBrowseSidebarAddApp } from './RightBrowseSidebarAddApp';
 import { SimpleButton } from './SimpleButton';
 import { TagInputField } from './TagInputField';
 import { LangContext } from '@renderer/util/lang';
+import { mapRuffleSupportString } from '@shared/utils/misc';
 
 type OwnProps = {
   logoVersion: number;
@@ -735,21 +736,24 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     onClick={this.onLanguageClick} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                  <p>Ruffle Support: </p>
-                  <DropdownInputField
-                    text={game.ruffleSupport}
+                  <p>{strings.ruffleSupport}: </p>
+                  <DropdownInputFieldMapped
+                    text={mapRuffleSupportString(game.ruffleSupport)}
                     placeholder={'None'}
                     className='browse-right-sidebar__searchable'
                     editable={editable}
-                    items={['None', 'Standalone']}
-                    onItemSelect={text => {
-                      console.log('selecting ' + text);
-                      if (['None', 'Standalone'].includes(text)) {
-                        this.props.onEditGame({ ruffleSupport: text as any }) 
-                      }
+                    items={[{
+                      key: '',
+                      value: 'None'
+                    }, {
+                      key: 'standalone',
+                      value: 'Standalone'
+                    }]}
+                    onChange={(key) => {
+                      this.props.onEditGame({ ruffleSupport: key });
                     }}
                     onClick={this.onRuffleSupportClick} />
-                  { !editable && game.ruffleSupport !== 'None' ? (
+                  { !editable && game.ruffleSupport !== '' ? (
                     <div className='browse-right-sidebar-floating-icon'>
                       <OpenIcon icon='check'/>
                     </div>

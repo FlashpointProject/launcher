@@ -95,6 +95,7 @@ export async function parseCurationMetaFile(data: any, onError?: (error: string)
   parser.prop('group',                v => parsed.group                    = str(v), true);
   parser.prop('primary platform',     v => parsed.game.primaryPlatform     = str(v), true);
   parser.prop('mount parameters',     v => parsed.game.mountParameters     = str(v), true);
+  parser.prop('ruffle support',       v => parsed.game.ruffleSupport       = str(v), true);
   if (lowerCaseData.genre)      { parsed.game.tags = await getTagsFromStr(arrayStr(lowerCaseData.genre), str(lowerCaseData['tag categories']));  }
   if (lowerCaseData.genres)     { parsed.game.tags = await getTagsFromStr(arrayStr(lowerCaseData.genres), str(lowerCaseData['tag categories'])); }
   if (lowerCaseData.tags)       { parsed.game.tags = await getTagsFromStr(arrayStr(lowerCaseData.tags), str(lowerCaseData['tag categories']));   }

@@ -402,6 +402,7 @@ const langTemplate = {
     'uninstallGame',
     'mountParameters',
     'noMountParameters',
+    'ruffleSupport',
     'showExtremeScreenshot',
     'busy',
     'openGameDataBrowser',
