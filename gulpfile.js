@@ -10,6 +10,7 @@ const { execute } = require('./gulpfile.util');
 const { execSync } = require('child_process');
 const { promisify } = require('util');
 const esbuild = require('esbuild');
+const { createRsbuild, loadConfig } = require('@rsbuild/core');
 
 // Promisify the pipeline function
 const pipeline = promisify(require('stream').pipeline);
@@ -202,17 +203,21 @@ function buildBack(done) {
 }
 
 async function buildRenderer() {
-  return esbuild.build({
-    bundle: true,
-    loader: { '.node': 'file' },
-    entryPoints: ['./src/renderer/index.tsx'],
-    outdir: './build/window',
-    minify: true,
-    outExtension: {
-      '.js': '.bundle.js'
-    },
-    external: ['electron', ...require('module').builtinModules],
+  const config = await loadConfig();
+  const rsbuild = await createRsbuild({
+    rsbuildConfig: config.content
   });
+  return rsbuild.build();
+  // return esbuild.build({
+  //   bundle: true,
+  //   entryPoints: ['./src/renderer/index.tsx'],
+  //   outdir: './build/window',
+  //   minify: true,
+  //   outExtension: {
+  //     '.js': '.bundle.js'
+  //   },
+  //   external: ['electron', ...require('module').builtinModules],
+  // });
 }
 
 function buildStatic() {
@@ -394,9 +399,9 @@ exports.build = series(
   clean,
   createVersionFile,
   installCrossDeps,
+  buildRenderer,
   parallel(
     buildBack,
-    buildRenderer,
     buildExtensions,
     buildStatic,
     configVersion

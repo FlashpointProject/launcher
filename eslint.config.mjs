@@ -5,6 +5,7 @@ import tseslint from 'typescript-eslint';
 import react from 'eslint-plugin-react';
 import stylistic from '@stylistic/eslint-plugin';
 import globals from 'globals';
+import reactCompiler from 'eslint-plugin-react-compiler';
 
 export default tseslint.config(
     eslint.configs.recommended,
@@ -15,6 +16,12 @@ export default tseslint.config(
         plugins: {
             react,
             '@stylistic': stylistic,
+            'react-compiler': reactCompiler,
+        },
+        settings: {
+            react: {
+                version: 'detect'
+            }
         },
         languageOptions: {
             parserOptions: {
@@ -27,6 +34,7 @@ export default tseslint.config(
             },
         },
         rules: {
+            'react-compiler/react-compiler': 'error',
             "@stylistic/object-curly-spacing": ["warn", "always"],
             "@typescript-eslint/adjacent-overload-signatures": "off",
             "@typescript-eslint/ban-types": ["error", {
@@ -45,7 +53,7 @@ export default tseslint.config(
             "@typescript-eslint/no-explicit-any": "off",
             "@typescript-eslint/no-invalid-void-type": ["error", { "allowInGenericTypeArguments": true }],
             "@typescript-eslint/no-namespace": "off",
-            "@typescript-eslint/no-unused-vars": ["error", {
+            "@typescript-eslint/no-unused-vars": ["warn", {
                 "vars": "all",
                 "args": "none"
             }],
