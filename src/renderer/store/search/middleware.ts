@@ -1,30 +1,27 @@
-import { PayloadAction, isAnyOf } from '@reduxjs/toolkit';
-import { debounce } from '@shared/utils/debounce';
-import { startAppListening } from '../listenerMiddleware';
-import {
-  SearchViewAction,
-  selectPlaylist,
-  setAdvancedFilter,
-  setOrderBy,
-  setOrderReverse,
-  addData,
-  requestKeyset,
-  setSearchText,
-  ResultsView,
-  setFilter,
-  SearchFilterAction,
-  selectGame,
-  createViews,
-  SearchCreateViewsAction,
-  GENERAL_VIEW_ID,
-  renameView,
-  SearchRenameViewAction,
-} from './slice';
-import store from '../store';
+import { isAnyOf, PayloadAction } from '@reduxjs/toolkit';
 import { BackIn, SearchQuery } from '@shared/back/types';
 import { updatePreferencesData } from '@shared/preferences/util';
-import { RouteComponentProps } from 'react-router';
-import { getViewName, joinLibraryRoute } from '@renderer/Util';
+import { debounce } from '@shared/utils/debounce';
+import { startAppListening } from '../listenerMiddleware';
+import store from '../store';
+import {
+  addData,
+  createViews,
+  GENERAL_VIEW_ID,
+  requestKeyset,
+  ResultsView,
+  SearchCreateViewsAction,
+  SearchFilterAction,
+  SearchViewAction,
+  selectGame,
+  selectPlaylist,
+  setAdvancedFilter,
+  setExpanded,
+  setFilter,
+  setOrderBy,
+  setOrderReverse,
+  setSearchText
+} from './slice';
 
 export function addSearchMiddleware() {
   // Build filter immediately
@@ -82,7 +79,7 @@ export function addSearchMiddleware() {
 
   // Save stored view
   startAppListening({
-    matcher: isAnyOf(setSearchText, selectGame, selectPlaylist, setAdvancedFilter, setOrderBy, setOrderReverse),
+    matcher: isAnyOf(setSearchText, selectGame, selectPlaylist, setAdvancedFilter, setOrderBy, setOrderReverse, setExpanded),
     effect: async(action: PayloadAction<SearchViewAction>, listenerApi) => {
       const state = listenerApi.getState();
       const view = state.search.views[action.payload.view];
@@ -97,6 +94,7 @@ export function addSearchMiddleware() {
           existingStoredView.orderReverse = view.orderReverse;
           existingStoredView.selectedPlaylistId = view.selectedPlaylist ? view.selectedPlaylist.id : undefined;
           existingStoredView.selectedGameId = view.selectedGame ? view.selectedGame.id : undefined;
+          existingStoredView.expanded = view.expanded;
         } else {
           newStoredViews.push({
             view: action.payload.view,
@@ -106,6 +104,7 @@ export function addSearchMiddleware() {
             orderReverse: view.orderReverse,
             selectedPlaylistId: view.selectedPlaylist ? view.selectedPlaylist.id : undefined,
             selectedGameId: view.selectedGame ? view.selectedGame.id : undefined,
+            expanded: view.expanded,
           });
         }
         updatePreferencesData({

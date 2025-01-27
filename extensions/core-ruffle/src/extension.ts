@@ -40,7 +40,7 @@ export async function activate(context: flashpoint.ExtensionContext): Promise<vo
     const supportedEnabled = flashpoint.getExtConfigValue('com.ruffle.enabled');
     const unsupportedEnabled = flashpoint.getExtConfigValue('com.ruffle.enabled-all');
 
-    if (supportedEnabled) {
+    if (supportedEnabled || curation) {
       if (launchInfo.game.ruffleSupport.toLowerCase() === 'standalone') {
         flashpoint.log.info('Using Standalone Ruffle for supported game...');
         const defaultConfig = standaloneMiddleware.getDefaultConfig(launchInfo.game);

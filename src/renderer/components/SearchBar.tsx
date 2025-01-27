@@ -3,7 +3,7 @@ import { useDispatch } from 'react-redux';
 import { GameOrder } from './GameOrder';
 import { OpenIcon } from './OpenIcon';
 import { useView } from '@renderer/hooks/search';
-import { forceSearch, setAdvancedFilter, setOrderBy, setOrderReverse, setSearchText } from '@renderer/store/search/slice';
+import { forceSearch, setAdvancedFilter, setExpanded, setOrderBy, setOrderReverse, setSearchText } from '@renderer/store/search/slice';
 import { ArrowKeyStepper, AutoSizer, List, ListRowProps } from 'react-virtualized-reactv17';
 import { AdvancedFilter, Tag } from 'flashpoint-launcher';
 import { useContext, useMemo, useState } from 'react';
@@ -11,6 +11,7 @@ import { LangContext } from '@renderer/util/lang';
 import { useAppSelector } from '@renderer/hooks/useAppSelector';
 import { getPlatformIconURL } from '@renderer/Util';
 import { BackIn } from '@shared/back/types';
+import { SimpleButton } from './SimpleButton';
 
 export function SearchBar() {
   const view = useView();
@@ -21,9 +22,9 @@ export function SearchBar() {
 
   React.useEffect(() => {
     window.Shared.back.request(BackIn.GET_TAGS, window.Shared.preferences.data.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !window.Shared.preferences.data.browsePageShowExtreme)))
-    .then((tags) => {
-      setTags(tags);
-    });
+      .then((tags) => {
+        setTags(tags);
+      });
   }, [window.Shared.preferences.data.tagFilters, window.Shared.preferences.data.browsePageShowExtreme]);
 
   const onTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,6 +58,13 @@ export function SearchBar() {
       window.removeEventListener('keypress', onKeypress);
     };
   }, []);
+
+  const onToggleExpanded = (value: boolean) => {
+    dispatch(setExpanded({
+      view: view.id,
+      expanded: value
+    }));
+  }
 
   const onInstalledChange = (value?: boolean) => {
     dispatch(setAdvancedFilter({
@@ -166,7 +174,7 @@ export function SearchBar() {
       <div className='platform-label-row'>
         <div
           className="dropdown-icon dropdown-icon-image"
-          style={{ backgroundImage: `url('${platformIcon}')` }}/>
+          style={{ backgroundImage: `url('${platformIcon}')` }} />
         <div className="searchable-select-dropdown-item-title">
           {item.value}
         </div>
@@ -184,7 +192,7 @@ export function SearchBar() {
           <OpenIcon
             className='curate-tag__icon'
             color={category ? category.color : '#FFFFFF'}
-            icon='tag'/>
+            icon='tag' />
         </div>
         <div className="searchable-select-dropdown-item-title">
           {item.tag.name}
@@ -197,7 +205,7 @@ export function SearchBar() {
     <div className='search-bar-wrapper search-bar-wrapper--expanded-simple'>
       <div className="search-bar">
         <div className="search-bar-icon">
-          <OpenIcon icon='magnifying-glass'/>
+          <OpenIcon icon='magnifying-glass' />
         </div>
         <input
           onKeyDown={(event) => {
@@ -224,60 +232,62 @@ export function SearchBar() {
               view: view.id,
               value: event.orderReverse
             }));
-          }}/>
-        {/* <SimpleButton */}
-        {/*   style={{ height: '100%' }} */}
-        {/*   value={expanded ? 'Hide Filters' : 'Show Filters'} */}
-        {/*   onClick={() => setExpanded(!expanded)}/> */}
+          }} />
+        <SimpleButton
+          style={{ height: '100%' }}
+          value={view.expanded ? strings.browse.hideFilters : strings.browse.showFilters }
+          onClick={() => onToggleExpanded(!view.expanded)} />
       </div>
-      <div className='search-bar-expansion search-bar-expansion-simple'>
-        <ThreeStateCheckbox
-          title={strings.browse.installed}
-          value={view.advancedFilter.installed}
-          onChange={onInstalledChange}/>
-        <ThreeStateCheckbox
-          title={strings.browse.legacyGame}
-          value={view.advancedFilter.legacy}
-          onChange={onLegacyChange}/>
-        { view.selectedPlaylist && (
+      {view.expanded && (
+        <div className='search-bar-expansion search-bar-expansion-simple'>
           <ThreeStateCheckbox
-            title={strings.browse.usePlaylistOrder}
-            value={view.advancedFilter.playlistOrder}
-            twoState={true}
-            onChange={onPlaylistOrderChange}/>
-        )}
-        { window.Shared.preferences.data.useCustomViews && (
+            title={strings.browse.installed}
+            value={view.advancedFilter.installed}
+            onChange={onInstalledChange} />
+          <ThreeStateCheckbox
+            title={strings.browse.legacyGame}
+            value={view.advancedFilter.legacy}
+            onChange={onLegacyChange} />
+          {view.selectedPlaylist && (
+            <ThreeStateCheckbox
+              title={strings.browse.usePlaylistOrder}
+              value={view.advancedFilter.playlistOrder}
+              twoState={true}
+              onChange={onPlaylistOrderChange} />
+          )}
+          {window.Shared.preferences.data.useCustomViews && (
+            <SearchableSelect
+              title={strings.browse.library}
+              items={libraryItems}
+              selected={view.advancedFilter.library}
+              onToggle={onToggleLibrary}
+              onClear={onClearLibraries}
+              mapName={(item) => {
+                return strings.libraries[item] || item;
+              }} />
+          )}
           <SearchableSelect
-            title={strings.browse.library}
-            items={libraryItems}
-            selected={view.advancedFilter.library}
-            onToggle={onToggleLibrary}
-            onClear={onClearLibraries}
-            mapName={(item) => {
-              return strings.libraries[item] || item;
-            }}/>
-        )}
-        <SearchableSelect
-          title={strings.browse.playMode}
-          items={playModeItems}
-          selected={view.advancedFilter.playMode}
-          onToggle={onTogglePlayMode}
-          onClear={onClearPlayMode} />
-        <SearchableSelect
-          title={strings.browse.platform}
-          items={platformItems}
-          labelRenderer={platformLabelRenderer}
-          selected={view.advancedFilter.platform}
-          onToggle={onTogglePlatform}
-          onClear={onClearPlatform} />
-        <SearchableSelect
-          title={strings.browse.tags}
-          items={tagItems}
-          labelRenderer={tagLabelRenderer}
-          selected={view.advancedFilter.tags}
-          onToggle={onToggleTag}
-          onClear={onClearTags} />
-      </div>
+            title={strings.browse.playMode}
+            items={playModeItems}
+            selected={view.advancedFilter.playMode}
+            onToggle={onTogglePlayMode}
+            onClear={onClearPlayMode} />
+          <SearchableSelect
+            title={strings.browse.platform}
+            items={platformItems}
+            labelRenderer={platformLabelRenderer}
+            selected={view.advancedFilter.platform}
+            onToggle={onTogglePlatform}
+            onClear={onClearPlatform} />
+          <SearchableSelect
+            title={strings.browse.tags}
+            items={tagItems}
+            labelRenderer={tagLabelRenderer}
+            selected={view.advancedFilter.tags}
+            onToggle={onToggleTag}
+            onClear={onClearTags} />
+        </div>
+      )}
     </div>
   );
 }
@@ -315,8 +325,8 @@ function ThreeStateCheckbox(props: ThreeStateCheckboxProps) {
     <div className='search-bar-simple-box' onClick={handleClick}>
       <b>{title}</b>
       <div className='three-state-checkbox' onContextMenu={() => onChange(undefined)}>
-        {value === true && <OpenIcon icon='check'/>}
-        {value === false && <OpenIcon icon='x'/>}
+        {value === true && <OpenIcon icon='check' />}
+        {value === false && <OpenIcon icon='x' />}
         {value === undefined && <div></div>}
       </div>
     </div>
@@ -378,14 +388,14 @@ function SearchableSelect<T extends SearchableSelectItem>(props: SearchableSelec
         ref={dropdownRef}>
         <div className="searchable-select-header">
           <div className="searchable-select-title">{title}</div>
-          { selected.length > 0 && (
+          {selected.length > 0 && (
             <div className="searchable-select-number">{selected.length}</div>
           )}
           <div className="searchable-select-chevron">
-            { expanded ? (
-              <OpenIcon icon='chevron-top'/>
+            {expanded ? (
+              <OpenIcon icon='chevron-top' />
             ) : (
-              <OpenIcon icon='chevron-bottom'/>
+              <OpenIcon icon='chevron-bottom' />
             )}
           </div>
         </div>
@@ -448,14 +458,14 @@ function SearchableSelectDropdown<T extends SearchableSelectItem>(props: Searcha
       return (
         <div
           style={style}
-          title={item.orderVal ? (mapName ? mapName(item.orderVal) : item.orderVal ) : 'None'}
+          title={item.orderVal ? (mapName ? mapName(item.orderVal) : item.orderVal) : 'None'}
           className={`searchable-select-dropdown-item ${marked && 'searchable-select-dropdown-item--selected'}`}
           onClick={() => onToggle(item.value)}
           key={item.value}>
           {labelRenderer(item, marked)}
-          { marked && (
+          {marked && (
             <div className="searchable-select-dropdown-item-marked">
-              <OpenIcon icon='check'/>
+              <OpenIcon icon='check' />
             </div>
           )}
         </div>
@@ -464,16 +474,16 @@ function SearchableSelectDropdown<T extends SearchableSelectItem>(props: Searcha
       return (
         <div
           style={style}
-          title={item.orderVal ? (mapName ? mapName(item.orderVal) : item.orderVal ) : 'None'}
+          title={item.orderVal ? (mapName ? mapName(item.orderVal) : item.orderVal) : 'None'}
           className={`searchable-select-dropdown-item ${marked && 'searchable-select-dropdown-item--selected'}`}
           onClick={() => onToggle(item.value)}
           key={item.value}>
           <div className="searchable-select-dropdown-item-title">
-            {item.orderVal ? (mapName ? mapName(item.orderVal) : item.orderVal ) : <i>None</i>}
+            {item.orderVal ? (mapName ? mapName(item.orderVal) : item.orderVal) : <i>None</i>}
           </div>
-          { marked && (
+          {marked && (
             <div className="searchable-select-dropdown-item-marked">
-              <OpenIcon icon='check'/>
+              <OpenIcon icon='check' />
             </div>
           )}
         </div>
@@ -503,8 +513,8 @@ function SearchableSelectDropdown<T extends SearchableSelectItem>(props: Searcha
         className="searchable-select-dropdown-search-bar"
         value={search}
         placeholder="Search"
-        onChange={(event) => setSearch(event.currentTarget.value)}/>
-      <div className="searchable-select-dropdown-results">
+        onChange={(event) => setSearch(event.currentTarget.value)} />
+      <div className="searchable-select-dropdown-results simple-scroll">
         <AutoSizer>
           {({ width, height }) => {
             return (

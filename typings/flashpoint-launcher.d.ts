@@ -1086,6 +1086,7 @@ declare module 'flashpoint-launcher' {
       orderReverse: GameOrderReverse;
       selectedPlaylistId?: string;
       selectedGameId?: string;
+      expanded: boolean;
     }
 
     type AdvancedFilter = {

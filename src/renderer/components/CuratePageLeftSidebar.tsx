@@ -227,6 +227,7 @@ function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentPro
         if (field) {
           const exists = curate.groups.findIndex(g => g.name === field.value) > -1;
           if (!exists) {
+            console.log('creating group...');
             dispatch(curateActions.createGroup({
               name: field.value as string,
               icon: '',

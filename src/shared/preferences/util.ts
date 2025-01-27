@@ -408,6 +408,7 @@ function parseStoredView(parser: IObjectParserProp<StoredView>): StoredView {
     advancedFilter: getDefaultAdvancedFilter(),
     orderBy: 'title',
     orderReverse: 'ASC',
+    expanded: true,
   };
 
   parser.prop('view', v => source.view = str(v));
@@ -417,6 +418,7 @@ function parseStoredView(parser: IObjectParserProp<StoredView>): StoredView {
   parser.prop('orderReverse', v => source.orderReverse = parseOrderReverse(v), true);
   parser.prop('selectedPlaylistId', v => source.selectedPlaylistId = str(v), true);
   parser.prop('selectedGameId', v => source.selectedGameId = str(v), true);
+  parser.prop('expanded', v => source.expanded = !!v, true);
 
   return source;
 }

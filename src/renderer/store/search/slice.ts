@@ -57,6 +57,7 @@ export type ResultsView = {
   advancedFilter: AdvancedFilter;
   searchFilter: SearchQuery;
   loaded: boolean;
+  expanded: boolean;
 }
 
 type SearchState = {
@@ -106,6 +107,11 @@ export type SearchAddDataAction = {
   data: SearchAddDataActionData;
 }
 
+export type SearchSetExpandedAction = {
+  view: string;
+  expanded: boolean;
+}
+
 export type SearchRequestRange = {
   view: string;
   searchId: number;
@@ -149,6 +155,7 @@ const defaultGeneralState: ResultsView = {
   },
   text: '',
   textPositions: [],
+  expanded: true,
 };
 
 const initialState: SearchState = {
@@ -228,6 +235,7 @@ const searchSlice = createSlice({
               metaState: RequestState.WAITING,
             },
             loaded: false,
+            expanded: true,
             orderBy: 'title',
             orderReverse: 'ASC',
             searchFilter: {
@@ -279,6 +287,7 @@ const searchSlice = createSlice({
             metaState: RequestState.WAITING,
           },
           loaded: false,
+          expanded: true,
           orderBy: 'title',
           orderReverse: 'ASC',
           searchFilter: {
@@ -318,6 +327,7 @@ const searchSlice = createSlice({
               metaState: RequestState.WAITING,
             },
             loaded: false,
+            expanded: true,
             orderBy: 'title',
             orderReverse: 'ASC',
             searchFilter: {
@@ -340,6 +350,7 @@ const searchSlice = createSlice({
             view.advancedFilter = storedView.advancedFilter;
             view.orderBy = storedView.orderBy;
             view.orderReverse = storedView.orderReverse;
+            view.expanded = storedView.expanded;
           }
         }
       }
@@ -477,6 +488,12 @@ const searchSlice = createSlice({
         }
       }
     },
+    setExpanded(state: SearchState, { payload }: PayloadAction<SearchSetExpandedAction>) {
+      const view = state.views[payload.view];
+      if (view) {
+        view.expanded = payload.expanded;
+      }
+    },
     addData(state: SearchState, { payload }: PayloadAction<SearchAddDataAction>) {
       const data = payload.data;
       const view = state.views[payload.view];
@@ -560,5 +577,6 @@ export const {
   movePlaylistGame,
   requestRange,
   updateGame,
+  setExpanded,
   addData } = searchSlice.actions;
 export default searchSlice.reducer;

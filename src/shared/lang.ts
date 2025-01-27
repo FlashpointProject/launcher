@@ -408,6 +408,8 @@ const langTemplate = {
     'openGameDataBrowser',
     'allGenericEntries',
     'usePlaylistOrder',
+    'hideFilters',
+    'showFilters',
   ] as const,
   tags: [
     'name',

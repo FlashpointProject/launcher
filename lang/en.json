@@ -393,6 +393,8 @@
     "openGameDataBrowser": "Open Game Data Browser",
     "allGenericEntries": "All Entries",
     "usePlaylistOrder": "Use Playlist Order",
+    "hideFilters": "Hide Filters",
+    "showFilters": "Show Filters",
     "notArchived": "Not Archived",
     "archived": "Archived",
     "playOnline": "Play Online"
