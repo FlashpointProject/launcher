@@ -460,6 +460,7 @@ export function openFlashpointManager(state: BackState): void {
     const args = updatesReady ? ['/update', '/launcher'] : ['/launcher'];
     const child = child_process.spawn(fpmPath, args, { detached: true, cwd, stdio: ['ignore', 'ignore', 'ignore'] });
     child.unref();
+    await promiseSleep(2500);
   });
 }
 
