@@ -10,7 +10,7 @@ import { createLangContainer, LangContainer, LangFile } from '@shared/lang';
 import { UpdateInfo } from 'electron-updater';
 import { AppExtConfigData } from '@shared/config/interfaces';
 import * as axiosImport from 'axios';
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { ipcRenderer } from 'electron';
 
 export const RANDOM_GAME_ROW_COUNT = 6;
@@ -121,6 +121,8 @@ export type MainState = {
   quitting: boolean;
   /** Open Dialog States */
   openDialogs: DialogState[];
+  /** Last resolved dialog (mostly to handle side effects) */
+  lastResolvedDialog?: DialogState;
 }
 
 const initialState: MainState = {
@@ -194,6 +196,20 @@ const initialState: MainState = {
   quitting: false,
   openDialogs: [],
 };
+
+export const requestKeyset = createAsyncThunk(
+  'search/requestKeyset',
+  async (payload: ResolveDialogActionData, { getState, dispatch }) => {
+    
+    const state = getState() as { main: MainState };
+    const dialogIdx = state.main.openDialogs.findIndex(d => d.id === payload.id);
+    if (dialogIdx > -1) {
+      const dialog = state.main.openDialogs.splice(dialogIdx, 1)[0];
+      window.Shared.back.send(BackIn.DIALOG_RESPONSE, dialog, payload.button);
+      window.Shared.dialogResEvent.emit(dialog.id, dialog, payload.button);
+    }
+  }
+);
 
 const mainSlice = createSlice({
   name: 'main',
@@ -271,8 +287,7 @@ const mainSlice = createSlice({
       const dialogIdx = state.openDialogs.findIndex(d => d.id === payload.id);
       if (dialogIdx > -1) {
         const dialog = state.openDialogs.splice(dialogIdx, 1)[0];
-        window.Shared.back.send(BackIn.DIALOG_RESPONSE, dialog, payload.button);
-        window.Shared.dialogResEvent.emit(dialog.id, dialog, payload.button);
+        state.lastResolvedDialog = dialog;
       }
     },
     updateDialog(state: MainState, { payload }: PayloadAction<Partial<DialogState>>) {

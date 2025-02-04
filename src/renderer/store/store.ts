@@ -10,12 +10,14 @@ import curateReducer from './curate/slice';
 import { addCurationMiddleware } from './curate/middleware';
 import { createMemoryHistory } from 'history';
 import { connectRouter, routerMiddleware } from 'connected-react-router';
+import { addMainMiddleware } from './main/middleware';
 
 export const history = createMemoryHistory();
 
 // Initialize all store middleware
 addSearchMiddleware();
 addCurationMiddleware();
+addMainMiddleware();
 
 // Create store
 export const store = configureStore({

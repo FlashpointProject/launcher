@@ -459,7 +459,7 @@ const curateSlice = createSlice({
     },
     toggleGroupPin(state: CurateState, { payload }: PayloadAction<CurateGroup>) {
       const groupIdx = state.groups.findIndex(g => g.name === payload.name);
-      if (groupIdx > -1) {
+      if (groupIdx === -1) {
         state.groups.push(payload);
       } else {
         state.groups.splice(groupIdx, 1);
