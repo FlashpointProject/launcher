@@ -21,10 +21,32 @@ export async function activate(context: flashpoint.ExtensionContext): Promise<vo
 
   const firstLaunch = !flashpoint.getExtConfigValue('com.ruffle.first-launch-complete');
   if (firstLaunch) {
+    const firstRunDialog = 
+`
+<div style={{ textAlign: 'center' }}>
+  <img 
+    src="${flashpoint.getExtensionFileURL('logo.svg')}" 
+    alt="Ruffle logo" 
+    style={{ 
+      maxWidth: '200px', 
+      maxHeight: '200px', 
+      marginBottom: '10px' 
+    }} 
+  />
+</div>
+
+<div style={{ fontSize: '1.5em' }}>
+  Do you want to use Ruffle on supported Flash games?
+
+  This may cause performance issues on weaker machines.
+
+  If you are unsure, select **No**.
+</div>
+`;
     flashpoint.onDidConnect(async () => {
       const handle = await flashpoint.dialogs.showMessageBoxWithHandle({
-        message: 'Do you want to enable Ruffle for supported Flash games?\nRuffle is a modern Flash emulator.\nThis may cause performance issues on weaker machines.',
-        largeMessage: true,
+        message: firstRunDialog,
+        mdx: true,
         buttons: ['Yes', 'No'],
         cancelId: 1
       });

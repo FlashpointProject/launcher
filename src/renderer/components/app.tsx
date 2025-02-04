@@ -18,6 +18,7 @@ import { debounce } from '@shared/utils/debounce';
 import { newGame } from '@shared/utils/misc';
 import { formatString } from '@shared/utils/StringFormatter';
 import axios from 'axios';
+import * as runtime from 'react/jsx-runtime'
 import { clipboard, ipcRenderer, Menu, MenuItemConstructorOptions } from 'electron';
 import {
   CurationFpfssInfo,
@@ -58,6 +59,8 @@ import { SplashScreen } from './SplashScreen';
 import { TaskBar } from './TaskBar';
 import { TitleBar } from './TitleBar';
 import uuid = require('uuid');
+import { compile, compileSync, runSync } from '@mdx-js/mdx';
+import { Dialog } from './Dialog';
 
 // Hide the right sidebar if the page is inside these paths
 const hiddenRightSidebarPages = [Paths.ABOUT, Paths.CURATE, Paths.CONFIG, Paths.MANUAL, Paths.LOGS, Paths.TAGS, Paths.CATEGORIES];
@@ -1451,7 +1454,11 @@ export class App extends React.Component<AppProps> {
             )}
             {/* First Open Dialog */}
             {this.props.main.openDialogs.length > 0 && (
-              renderDialogMemo(this.props.main.openDialogs[0], this.props.mainActions.cancelDialog, this.props.mainActions.resolveDialog, this.props.mainActions.updateDialogField)
+              <Dialog
+                dialog={this.props.main.openDialogs[0]}
+                closeDialog={this.props.mainActions.cancelDialog}
+                finishDialog={this.props.mainActions.resolveDialog}
+                updateField={this.props.mainActions.updateDialogField} />
             )}
             {/** Fancy FPFSS edit */}
             {this.props.fpfss.editingGame && (
@@ -1957,86 +1964,4 @@ function UniquePlaylistMenuFactory(playlists: Playlist[], strings: LangContainer
     }
   }
   return grouped;
-}
-
-function renderDialogMemo(dialog: DialogState, closeDialog: typeof cancelDialog, finishDialog: typeof resolveDialog, updateField: typeof updateDialogField): JSX.Element {
-  return (
-    <FloatingContainer>
-      <>
-        {dialog.userCanCancel && (
-          <div className='dialog-cancel-button' onClick={() => {
-            closeDialog(dialog.id);
-          }}>
-            <OpenIcon icon='x' />
-          </div>
-        )}
-        <div className={`dialog-message ${dialog.largeMessage ? 'dialog-message--large' : ''}`}>{dialog.message}</div>
-        {dialog.fields?.map(f => {
-          return (
-            <div key={f.name} className='dialog-field'>
-              {f.message && (<div className='dialog-field-message'>{f.message}</div>)}
-              <div className='dialog-field-input'>{renderDialogField(dialog.id, f, updateField)}</div>
-            </div>
-          );
-        })}
-        <div className='dialog-buttons-container'>
-          {dialog.buttons.map((b, idx) => {
-            return (
-              <SimpleButton
-                key={b}
-                onClick={() => {
-                  finishDialog({
-                    id: dialog.id,
-                    button: idx
-                  });
-                }}
-                value={b} />
-            );
-          })}
-        </div>
-      </>
-    </FloatingContainer>
-  );
-}
-
-function renderDialogField(dialogId: string, field: DialogField, updateField: typeof updateDialogField): JSX.Element {
-  switch (field.type) {
-    case 'string': {
-      return (
-        <InputField
-          onChange={(event) => {
-            updateField({
-              id: dialogId,
-              field: {
-                name: field.name,
-                value: event.currentTarget.value
-              }
-            });
-          }}
-          text={field.value}
-          editable={!field.locked}
-          placeholder={field.placeholder} />
-      );
-    }
-    case 'progress': {
-      // Wrap in progress data
-      const data: ProgressData = {
-        key: '',
-        itemCount: 0,
-        totalItems: 0,
-        percentDone: field.value,
-        usePercentDone: true,
-        isDone: false
-      };
-      return (
-        <ProgressBar
-          progressData={data} />
-      );
-    }
-    default: {
-      return (
-        <div>Unsupported Field Type</div>
-      );
-    }
-  }
 }
