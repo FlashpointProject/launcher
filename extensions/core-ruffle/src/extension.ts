@@ -36,24 +36,23 @@ export async function activate(context: flashpoint.ExtensionContext): Promise<vo
 </div>
 
 <div style={{ fontSize: '1.5em' }}>
-  Do you want to use Ruffle on supported Flash games?
+  Ruffle is supported in Flashpoint.
 
-  This may cause performance issues on weaker machines.
+  something something description
 
-  If you are unsure, select **No**.
+  Ruffle can be enabled for Supported Games on the **Config Page**
+
+  Maybe a nice picture of the toggle here? Who knows.
 </div>
 `;
     flashpoint.onDidConnect(async () => {
       const handle = await flashpoint.dialogs.showMessageBoxWithHandle({
         message: firstRunDialog,
         mdx: true,
-        buttons: ['Yes', 'No'],
+        buttons: ['Okay'],
         cancelId: 1
       });
-      const res = await flashpoint.dialogs.awaitDialog(handle);
-      if (res.buttonIdx === 0) {
-        flashpoint.setExtConfigValue('com.ruffle.enabled', true);
-      }
+      await flashpoint.dialogs.awaitDialog(handle);
       flashpoint.setExtConfigValue('com.ruffle.first-launch-complete', true);
     });
   }

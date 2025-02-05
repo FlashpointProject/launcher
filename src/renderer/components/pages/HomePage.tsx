@@ -25,6 +25,7 @@ import { SimpleButton } from '../SimpleButton';
 import { SizeProvider } from '../SizeProvider';
 import { GENERAL_VIEW_ID } from '@renderer/store/search/slice';
 import { idToGame } from '@renderer/util/async';
+import { useView } from '@renderer/hooks/search';
 
 type OwnProps = {
   gotdList: GameOfTheDay[] | undefined;
@@ -154,19 +155,35 @@ export function HomePage(props: HomePageProps) {
     // TODO: Reimplement
   }, []);
 
+  const currentView = useView();
+
   const platformList = React.useMemo(() => {
     const elements: JSX.Element[] = [];
+    const views = Object.keys(props.search.views);
+    let viewName = '';
+    for (const view of views) {
+      if (view !== GENERAL_VIEW_ID) {
+        viewName = view;
+        break;
+      }
+    }
     elements.push(
       <div className='home-page__platform-box'>
         {props.platforms.map((platform, idx) => (
           <Link
             key={idx}
             className='home-page__platform-entry'
-            to={joinLibraryRoute('arcade')}
+            to={joinLibraryRoute(viewName)}
             onClick={() => {
-              // TODO: Reimplement
-              // props.onSearch('!' + wrapSearchTerm(platform));
-              // props.onSelectPlaylist('arcade', null);
+              props.searchActions.setSearchText({
+                view: viewName,
+                text: `platform:"${platform}"`
+              });
+              setTimeout(() => {
+                props.searchActions.forceSearch({
+                  view: viewName
+                });
+              }, 100);
             }}>
             <div
               className='home-page__platform-entry__logo'
@@ -178,7 +195,7 @@ export function HomePage(props: HomePageProps) {
       </div>
     );
     return elements;
-  }, [props.platforms]);
+  }, [props.platforms, props.search.views]);
 
   // (These are kind of "magic numbers" and the CSS styles are designed to fit with them)
   const height = 140;
