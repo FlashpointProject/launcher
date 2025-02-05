@@ -440,20 +440,20 @@ const curateSlice = createSlice({
       });
     },
     toggleGroupCollapse(state: CurateState, { payload }: PayloadAction<string>) {
-      const group = state.groups.find(g => g.name === payload);
-      if (group) {
-        const collapsedIdx = state.collapsedGroups.findIndex(g => g === group.name);
-        if (collapsedIdx > -1) {
-          // Uncollapse
-          state.collapsedGroups.splice(collapsedIdx, 1);
-        } else {
-          // Collapse
-          state.collapsedGroups.push(group.name);
+      console.log('collapsing');
+      console.log(payload);
+      console.log(JSON.stringify(state.groups, undefined, 2));
+      const collapsedIdx = state.collapsedGroups.findIndex(g => g === payload);
+      if (collapsedIdx > -1) {
+        // Uncollapse
+        state.collapsedGroups.splice(collapsedIdx, 1);
+      } else {
+        // Collapse
+        state.collapsedGroups.push(payload);
 
-          // Unselect all games inside
-          for (const cur of state.curations.filter(cur => cur.group === group.name)) {
-            unselectCuration(state, cur.folder);
-          }
+        // Unselect all games inside
+        for (const cur of state.curations.filter(cur => cur.group === payload)) {
+          unselectCuration(state, cur.folder);
         }
       }
     },
