@@ -46,6 +46,15 @@ export class TagsPage extends React.Component<TagsPageProps, TagsPageState> {
   componentDidMount() {
     window.Shared.back.request(BackIn.GET_TAGS, this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme)))
     .then((data) => {
+      data.sort((a, b) => {
+        if (a.category === 'default' && b.category !== 'default') {
+          return -1;
+        }
+        if (a.category !== 'default' && b.category === 'default') {
+          return 1;
+        }
+        return a.name.toLowerCase().localeCompare(b.category?.toLowerCase() || '')
+      })
       if (data) { this.onTagsChange(data); }
     });
   }
