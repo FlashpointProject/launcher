@@ -167,9 +167,10 @@ export function HomePage(props: HomePageProps) {
         break;
       }
     }
+    const sortedPlatforms = [...props.platforms].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
     elements.push(
       <div className='home-page__platform-box'>
-        {props.platforms.map((platform, idx) => (
+        {sortedPlatforms.map((platform, idx) => (
           <Link
             key={idx}
             className='home-page__platform-entry'
