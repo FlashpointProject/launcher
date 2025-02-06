@@ -10,7 +10,7 @@ import axios from 'axios';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
 import { clipboard, Menu, MenuItemConstructorOptions } from 'electron';
-import { Game, GameData, Platform, PlaylistGame, Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
+import { AdditionalApp, Game, GameData, Platform, PlaylistGame, Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
 import * as React from 'react';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { getGameImagePath, getGameImageURL, getPlatformIconURL, wrapSearchTerm } from '../Util';
@@ -190,6 +190,17 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       if (this.props.currentGame && this.props.currentGame.activeDataId) {
         window.Shared.back.request(BackIn.GET_GAME_DATA, this.props.currentGame.activeDataId)
         .then((gameData) => this.setState({ activeData: gameData }));
+      }
+    }
+  }
+
+  onEditAddApp(game: Game, addApp: AdditionalApp) {
+    if (game !== undefined && game.addApps !== undefined) {
+      const addApps = deepCopy(game.addApps);
+      const addAppIdx = addApps.findIndex(aa => aa.id === addApp.id);
+      if (addAppIdx > -1) {
+        addApps[addAppIdx] = addApp;
+        this.props.onEditGame({ addApps });
       }
     }
   }
@@ -864,6 +875,9 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     key={addApp.id}
                     addApp={addApp}
                     editDisabled={!editable}
+                    onEdit={(aa) => {
+                      this.onEditAddApp(game, aa);
+                    }}
                     onLaunch={this.onAddAppLaunch}
                     onDelete={this.onAddAppDelete} />
                 )) }
