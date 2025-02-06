@@ -1,5 +1,17 @@
 import { FieldFilter, GameFilter, GameSearch } from '@fparchive/flashpoint-archive';
-import { AdvancedFilter } from 'flashpoint-launcher';
+import { AdvancedFilter, AdvancedFilterToggle } from 'flashpoint-launcher';
+
+function getWhitelistedKeys(record: Record<string, AdvancedFilterToggle>): string[] {
+  return Object.entries(record)
+    .filter(e => e[1] === 'whitelist')
+    .map(e => e[0]);
+}
+
+function getBlacklistedKeys(record: Record<string, AdvancedFilterToggle>): string[] {
+  return Object.entries(record)
+    .filter(e => e[1] === 'blacklist')
+    .map(e => e[0]);
+}
 
 export function getDefaultGameSearch(): GameSearch {
   return {
@@ -22,10 +34,10 @@ export function getDefaultGameSearch(): GameSearch {
 export function getDefaultAdvancedFilter(library?: string): AdvancedFilter {
   return {
     playlistOrder: true,
-    library: library ? [library] : [],
-    playMode: [],
-    platform: [],
-    tags: [],
+    library: library ? {[library]: 'whitelist'} : {},
+    playMode: {},
+    platform: {},
+    tags: {},
   };
 }
 
@@ -48,10 +60,10 @@ export function isAdvFilterEmpty(advFilter: AdvancedFilter): boolean {
   return (
     advFilter.installed === undefined &&
     advFilter.legacy === undefined &&
-    advFilter.library.length === 0 &&
-    advFilter.playMode.length === 0 &&
-    advFilter.platform.length === 0 &&
-    advFilter.tags.length === 0
+    Object.keys(advFilter.library).length === 0 &&
+    Object.keys(advFilter.playMode).length === 0 &&
+    Object.keys(advFilter.platform).length === 0 &&
+    Object.keys(advFilter.tags).length === 0
   );
 }
 
@@ -70,8 +82,9 @@ export function parseAdvancedFilter(advFilter: AdvancedFilter): GameFilter {
     }
   }
 
-  const exactFunc = (key: keyof AdvancedFilter, fieldKey: keyof FieldFilter) => {
-    const val = advFilter[key] as string[];
+  const exactWhitelistFunc = (key: keyof AdvancedFilter, fieldKey: keyof FieldFilter) => {
+    const record = advFilter[key] as Record<string, AdvancedFilterToggle>;
+    const val = getWhitelistedKeys(record);
     if (val.length > 0) {
       const newFilter = getDefaultGameFilter();
       newFilter.matchAny = true;
@@ -80,8 +93,9 @@ export function parseAdvancedFilter(advFilter: AdvancedFilter): GameFilter {
     }
   };
 
-  const nonExactFunc = (key: keyof AdvancedFilter, fieldKey: keyof FieldFilter) => {
-    const val = advFilter[key] as string[];
+  const nonExactWhitelistFunc = (key: keyof AdvancedFilter, fieldKey: keyof FieldFilter) => {
+    const record = advFilter[key] as Record<string, AdvancedFilterToggle>;
+    const val = getWhitelistedKeys(record);
     if (val.length > 0) {
       if (val.length === 1 && val[0] === '') {
         const newFilter = getDefaultGameFilter();
@@ -97,10 +111,44 @@ export function parseAdvancedFilter(advFilter: AdvancedFilter): GameFilter {
     }
   };
 
-  exactFunc('library', 'library');
-  exactFunc('platform', 'platforms');
-  nonExactFunc('playMode', 'playMode');
-  exactFunc('tags', 'tags');
+  const exactBlacklistFunc = (key: keyof AdvancedFilter, fieldKey: keyof FieldFilter) => {
+    const record = advFilter[key] as Record<string, AdvancedFilterToggle>;
+    const val = getBlacklistedKeys(record);
+    if (val.length > 0) {
+      const newFilter = getDefaultGameFilter();
+      newFilter.matchAny = true;
+      newFilter.exactBlacklist[fieldKey] = val;
+      filter.subfilters.push(newFilter);
+    }
+  };
+
+  const nonExactBlacklistFunc = (key: keyof AdvancedFilter, fieldKey: keyof FieldFilter) => {
+    const record = advFilter[key] as Record<string, AdvancedFilterToggle>;
+    const val = getBlacklistedKeys(record);
+    if (val.length > 0) {
+      if (val.length === 1 && val[0] === '') {
+        const newFilter = getDefaultGameFilter();
+        newFilter.matchAny = true;
+        newFilter.exactBlacklist[fieldKey] = [''];
+        filter.subfilters.push(newFilter);
+      } else {
+        const newFilter = getDefaultGameFilter();
+        newFilter.matchAny = true;
+        newFilter.blacklist[fieldKey] = val;
+        filter.subfilters.push(newFilter);
+      }
+    }
+  };
+
+  exactWhitelistFunc('library', 'library');
+  exactWhitelistFunc('platform', 'platforms');
+  nonExactWhitelistFunc('playMode', 'playMode');
+  exactWhitelistFunc('tags', 'tags');
+
+  exactBlacklistFunc('library', 'library');
+  exactBlacklistFunc('platform', 'platforms');
+  nonExactBlacklistFunc('playMode', 'playMode');
+  exactBlacklistFunc('tags', 'tags');
 
   return filter;
 }

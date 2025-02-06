@@ -5,7 +5,7 @@ import { OpenIcon } from './OpenIcon';
 import { useView } from '@renderer/hooks/search';
 import { forceSearch, setAdvancedFilter, setExpanded, setOrderBy, setOrderReverse, setSearchText } from '@renderer/store/search/slice';
 import { ArrowKeyStepper, AutoSizer, List, ListRowProps } from 'react-virtualized-reactv17';
-import { AdvancedFilter, Tag } from 'flashpoint-launcher';
+import { AdvancedFilter, AdvancedFilterToggle, Tag } from 'flashpoint-launcher';
 import { useContext, useMemo, useState } from 'react';
 import { LangContext } from '@renderer/util/lang';
 import { useAppSelector } from '@renderer/hooks/useAppSelector';
@@ -96,23 +96,46 @@ export function SearchBar() {
     }));
   };
 
-  const onToggleFactory = (key: keyof AdvancedFilter) => {
+  const onWhitelistFactory = (key: keyof AdvancedFilter) => {
     return (value: string) => {
-      let newValues = [...(view.advancedFilter[key] as string[])];
-      const idx = newValues.findIndex(s => s === value);
-      if (idx > -1) {
-        newValues.splice(idx, 1);
-      } else {
-        // None is mutually exclusive to every other value
-        if (value === '') {
-          newValues = [value];
+      const existingFilter = view.advancedFilter[key] as Record<string, AdvancedFilterToggle>;
+      let newValues = {
+        ...existingFilter
+      };
+      if (value in newValues) {
+        if (newValues[value] === 'blacklist') {
+          newValues[value] = 'whitelist';
         } else {
-          const noneIdx = newValues.findIndex(s => s === '');
-          if (noneIdx > -1) {
-            newValues.splice(noneIdx, 1);
-          }
-          newValues.push(value);
+          delete newValues[value];
         }
+      } else {
+        newValues[value] = 'whitelist';
+      }
+
+      dispatch(setAdvancedFilter({
+        view: view.id,
+        filter: {
+          ...view.advancedFilter,
+          [key]: newValues,
+        }
+      }));
+    };
+  };
+
+  const onBlacklistFactory = (key: keyof AdvancedFilter) => {
+    return (value: string) => {
+      const existingFilter = view.advancedFilter[key] as Record<string, AdvancedFilterToggle>;
+      let newValues = {
+        ...existingFilter
+      };
+      if (value in newValues) {
+        if (newValues[value] === 'whitelist') {
+          newValues[value] = 'blacklist';
+        } else {
+          delete newValues[value];
+        }
+      } else {
+        newValues[value] = 'blacklist';
       }
 
       dispatch(setAdvancedFilter({
@@ -137,16 +160,20 @@ export function SearchBar() {
     };
   };
 
-  const onToggleLibrary = onToggleFactory('library');
+  const onWhitelistLibrary = onWhitelistFactory('library');
+  const onBlacklistLibrary = onBlacklistFactory('library');
   const onClearLibraries = onClearFactory('library');
 
-  const onTogglePlayMode = onToggleFactory('playMode');
+  const onWhitelistPlayMode = onWhitelistFactory('playMode');
+  const onBlacklistPlayMode = onBlacklistFactory('playMode');
   const onClearPlayMode = onClearFactory('playMode');
 
-  const onTogglePlatform = onToggleFactory('platform');
-  const onClearPlatform = onClearFactory('platform');
+  const onWhitelistPlatform = onWhitelistFactory('platform');
+  const onBlacklistPlatform = onBlacklistFactory('platform');
+  const onClearPlatforms = onClearFactory('platform');
 
-  const onToggleTag = onToggleFactory('tags');
+  const onWhitelistTag = onWhitelistFactory('tags');
+  const onBlacklistTag = onBlacklistFactory('tags');
   const onClearTags = onClearFactory('tags');
 
   const simpleSelectItems = (values: string[]): SearchableSelectItem[] => {
@@ -260,7 +287,8 @@ export function SearchBar() {
               title={strings.browse.library}
               items={libraryItems}
               selected={view.advancedFilter.library}
-              onToggle={onToggleLibrary}
+              onWhitelist={onWhitelistLibrary}
+              onBlacklist={onBlacklistLibrary}
               onClear={onClearLibraries}
               mapName={(item) => {
                 return strings.libraries[item] || item;
@@ -270,21 +298,24 @@ export function SearchBar() {
             title={strings.browse.playMode}
             items={playModeItems}
             selected={view.advancedFilter.playMode}
-            onToggle={onTogglePlayMode}
+            onWhitelist={onWhitelistPlayMode}
+            onBlacklist={onBlacklistPlayMode}
             onClear={onClearPlayMode} />
           <SearchableSelect
             title={strings.browse.platform}
             items={platformItems}
             labelRenderer={platformLabelRenderer}
             selected={view.advancedFilter.platform}
-            onToggle={onTogglePlatform}
-            onClear={onClearPlatform} />
+            onWhitelist={onWhitelistPlatform}
+            onBlacklist={onBlacklistPlatform}
+            onClear={onClearPlatforms} />
           <SearchableSelect
             title={strings.browse.tags}
             items={tagItems}
             labelRenderer={tagLabelRenderer}
             selected={view.advancedFilter.tags}
-            onToggle={onToggleTag}
+            onWhitelist={onWhitelistTag}
+            onBlacklist={onBlacklistTag}
             onClear={onClearTags} />
         </div>
       )}
@@ -336,8 +367,9 @@ function ThreeStateCheckbox(props: ThreeStateCheckboxProps) {
 type SearchableSelectProps<T extends SearchableSelectItem> = {
   title: string;
   items: T[];
-  selected: string[];
-  onToggle: (value: string) => void;
+  selected: Record<string, AdvancedFilterToggle>;
+  onWhitelist: (value: string) => void;
+  onBlacklist: (value: string) => void;
   onClear: () => void;
   mapName?: (name: string) => string;
   labelRenderer?: (item: T, selected: boolean) => JSX.Element;
@@ -353,7 +385,7 @@ type TagSelectItem = {
 } & SearchableSelectItem;
 
 function SearchableSelect<T extends SearchableSelectItem>(props: SearchableSelectProps<T>) {
-  const { title, items, selected, onToggle, onClear, mapName, labelRenderer } = props;
+  const { title, items, selected, onWhitelist, onBlacklist, onClear, mapName, labelRenderer } = props;
   const [expanded, setExpanded] = React.useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
 
@@ -381,15 +413,14 @@ function SearchableSelect<T extends SearchableSelectItem>(props: SearchableSelec
   return (
     <div
       className='search-bar-simple-box'
-      onClick={onToggleExpanded}
-      onContextMenu={onClear}>
+      onClick={onToggleExpanded}>
       <div
         className="searchable-select"
         ref={dropdownRef}>
         <div className="searchable-select-header">
           <div className="searchable-select-title">{title}</div>
-          {selected.length > 0 && (
-            <div className="searchable-select-number">{selected.length}</div>
+          {Object.keys(selected).length > 0 && (
+            <div className="searchable-select-number">{Object.keys(selected).length}</div>
           )}
           <div className="searchable-select-chevron">
             {expanded ? (
@@ -402,7 +433,8 @@ function SearchableSelect<T extends SearchableSelectItem>(props: SearchableSelec
         {expanded && (
           <SearchableSelectDropdown
             items={items.sort((a, b) => a.orderVal.localeCompare(b.orderVal))}
-            onToggle={onToggle}
+            onWhitelist={onWhitelist}
+            onBlacklist={onBlacklist}
             selected={selected}
             mapName={mapName}
             labelRenderer={labelRenderer}
@@ -415,15 +447,15 @@ function SearchableSelect<T extends SearchableSelectItem>(props: SearchableSelec
 
 type SearchableSelectDropdownProps<T extends SearchableSelectItem> = {
   items: T[];
-  selected: string[];
-
+  selected: Record<string, AdvancedFilterToggle>;
   labelRenderer?: (item: T, selected: boolean) => JSX.Element;
   mapName?: (id: string) => string;
-  onToggle: (item: string) => void;
+  onWhitelist: (item: string) => void;
+  onBlacklist: (item: string) => void;
 }
 
 function SearchableSelectDropdown<T extends SearchableSelectItem>(props: SearchableSelectDropdownProps<T>) {
-  const { items, selected, onToggle, mapName, labelRenderer } = props;
+  const { items, selected, onWhitelist, onBlacklist, mapName, labelRenderer } = props;
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   const [search, setSearch] = React.useState('');
@@ -435,15 +467,15 @@ function SearchableSelectDropdown<T extends SearchableSelectItem>(props: Searcha
     const lowerSearch = search.toLowerCase().replace(' ', '');
 
     return [
-      ...storedItems.filter((item) => selected.includes(item.value) && item.orderVal.toLowerCase().includes(lowerSearch)),
-      ...storedItems.filter((item) => !selected.includes(item.value) && item.orderVal.toLowerCase().includes(lowerSearch)),
+      ...storedItems.filter((item) => item.value in selected && item.orderVal.toLowerCase().includes(lowerSearch)),
+      ...storedItems.filter((item) => !(item.value in selected) && item.orderVal.toLowerCase().includes(lowerSearch)),
     ];
   }, [search, storedItems]);
 
   // Update the stored items when all selections removed
   // Too difficult to do this any other way
   React.useEffect(() => {
-    if (selected.length === 0) {
+    if (Object.keys(selected).length === 0) {
       setStoredItems(items);
     }
   }, [items]);
@@ -452,7 +484,7 @@ function SearchableSelectDropdown<T extends SearchableSelectItem>(props: Searcha
     const { style } = props;
     const item = filteredItems[props.index];
 
-    const marked = selected.includes(item.value);
+    const marked = item.value in selected;
 
     if (labelRenderer !== undefined) {
       return (
@@ -460,12 +492,17 @@ function SearchableSelectDropdown<T extends SearchableSelectItem>(props: Searcha
           style={style}
           title={item.orderVal ? (mapName ? mapName(item.orderVal) : item.orderVal) : 'None'}
           className={`searchable-select-dropdown-item ${marked && 'searchable-select-dropdown-item--selected'}`}
-          onClick={() => onToggle(item.value)}
+          onClick={() => onWhitelist(item.value)}
+          onContextMenu={() => onBlacklist(item.value)}
           key={item.value}>
           {labelRenderer(item, marked)}
           {marked && (
             <div className="searchable-select-dropdown-item-marked">
-              <OpenIcon icon='check' />
+              { selected[item.value] === 'whitelist' ? (
+                <OpenIcon icon='check' />
+              ) : (
+                <OpenIcon icon='x' />
+              )}
             </div>
           )}
         </div>
@@ -476,14 +513,18 @@ function SearchableSelectDropdown<T extends SearchableSelectItem>(props: Searcha
           style={style}
           title={item.orderVal ? (mapName ? mapName(item.orderVal) : item.orderVal) : 'None'}
           className={`searchable-select-dropdown-item ${marked && 'searchable-select-dropdown-item--selected'}`}
-          onClick={() => onToggle(item.value)}
+          onClick={() => onWhitelist(item.value)}
           key={item.value}>
           <div className="searchable-select-dropdown-item-title">
             {item.orderVal ? (mapName ? mapName(item.orderVal) : item.orderVal) : <i>None</i>}
           </div>
           {marked && (
             <div className="searchable-select-dropdown-item-marked">
-              <OpenIcon icon='check' />
+              { selected[item.value] === 'whitelist' ? (
+                <OpenIcon icon='check' />
+              ) : (
+                <OpenIcon icon='x' />
+              )}
             </div>
           )}
         </div>

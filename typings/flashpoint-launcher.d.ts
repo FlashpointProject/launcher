@@ -1093,11 +1093,13 @@ declare module 'flashpoint-launcher' {
       installed?: boolean;
       legacy?: boolean;
       playlistOrder: boolean;
-      library: string[];
-      playMode: string[];
-      platform: string[];
-      tags: string[];
+      library: Record<string, AdvancedFilterToggle>;
+      playMode: Record<string, AdvancedFilterToggle>;
+      platform: Record<string, AdvancedFilterToggle>;
+      tags: Record<string, AdvancedFilterToggle>;
     }
+
+    type AdvancedFilterToggle = 'whitelist' | 'blacklist';
 
     enum ScreenshotPreviewMode {
       OFF = 0,
