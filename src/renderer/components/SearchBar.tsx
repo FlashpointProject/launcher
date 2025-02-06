@@ -98,6 +98,7 @@ export function SearchBar() {
 
   const onWhitelistFactory = (key: keyof AdvancedFilter) => {
     return (value: string) => {
+      console.log(`${key}: ${value} - whitelist`);
       const existingFilter = view.advancedFilter[key] as Record<string, AdvancedFilterToggle>;
       let newValues = {
         ...existingFilter
@@ -124,6 +125,7 @@ export function SearchBar() {
 
   const onBlacklistFactory = (key: keyof AdvancedFilter) => {
     return (value: string) => {
+      console.log(`${key}: ${value} - blacklist`);
       const existingFilter = view.advancedFilter[key] as Record<string, AdvancedFilterToggle>;
       let newValues = {
         ...existingFilter
@@ -514,6 +516,7 @@ function SearchableSelectDropdown<T extends SearchableSelectItem>(props: Searcha
           title={item.orderVal ? (mapName ? mapName(item.orderVal) : item.orderVal) : 'None'}
           className={`searchable-select-dropdown-item ${marked && 'searchable-select-dropdown-item--selected'}`}
           onClick={() => onWhitelist(item.value)}
+          onContextMenu={() => onBlacklist(item.value)}
           key={item.value}>
           <div className="searchable-select-dropdown-item-title">
             {item.orderVal ? (mapName ? mapName(item.orderVal) : item.orderVal) : <i>None</i>}
