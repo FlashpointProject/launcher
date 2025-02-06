@@ -22,7 +22,6 @@ import {
 import { overwriteConfigData } from '@shared/config/util';
 import {
   CURATIONS_FOLDER_EXPORTED,
-  CURATIONS_FOLDER_TEMP,
   CURATIONS_FOLDER_WORKING,
   LOGOS,
   SCREENSHOTS,
@@ -30,7 +29,7 @@ import {
 } from '@shared/constants';
 import { FPFSS_INFO_FILENAME } from '@shared/curate/fpfss';
 import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
-import { getContentFolderByKey, getCurationFolder } from '@shared/curate/util';
+import { getContentFolderByKey } from '@shared/curate/util';
 import { AppProvider, BrowserApplicationOpts } from '@shared/extensions/interfaces';
 import { DeepPartial, GamePropSuggestions, ProcessAction, ProcessState } from '@shared/interfaces';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
@@ -41,7 +40,6 @@ import { chunkArray, getGameDataFilename, newGame } from '@shared/utils/misc';
 import { sanitizeFilename } from '@shared/utils/sanitizeFilename';
 import { throttle } from '@shared/utils/throttle';
 import * as axiosImport from 'axios';
-import * as child_process from 'child_process';
 import { execSync } from 'child_process';
 import {
   ConfigSchema,
@@ -51,6 +49,7 @@ import {
   GameLaunchInfo,
   GameMetadataSource,
   GameMiddlewareInfo,
+  LaunchInfo,
   LoadedCuration,
   Tag,
   TagCategory
@@ -97,7 +96,7 @@ import {
   savePlaylistGame,
   updatePlaylist
 } from './playlist';
-import { copyFolder, genContentTree } from './rust';
+import { genContentTree } from './rust';
 import { getMetaUpdateInfo, syncGames, syncPlatforms, syncRedirects, syncTags } from './sync';
 import { BackState, MetadataRaw, TagsFile } from './types';
 import { pathTo7zBack } from './util/SevenZip';
@@ -614,6 +613,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         activeConfig,
         state,
         parentGame,
+        runAddApp: runAddAppFactory(state),
       }, false);
       state.apiEmitters.games.onDidLaunchAddApp.fireAlert(state, addApp, event.client, 'Error during post add app launch api event');
     }
@@ -740,6 +740,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         openDialog: state.socketServer.showMessageBoxBack(state, event.client),
         openExternal: state.socketServer.openExternal(event.client),
         runGame: runGameFactory(state),
+        runAddApp: runAddAppFactory(state),
         envPATH: state.pathVar,
         changeServer: changeServerFactory(state),
         activeConfig: activeConfig ? activeConfig : null,
@@ -1745,6 +1746,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         openDialog: state.socketServer.showMessageBoxBack(state, event.client),
         openExternal: state.socketServer.openExternal(event.client),
         runGame: runGameFactory(state),
+        runAddApp: runAddAppFactory(state),
         envPATH: state.pathVar,
         changeServer: changeServerFactory(state),
         activeConfig: null,
@@ -1779,6 +1781,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         openDialog: state.socketServer.showMessageBoxBack(state, event.client),
         openExternal: state.socketServer.openExternal(event.client),
         runGame: runGameFactory(state),
+        runAddApp: runAddAppFactory(state),
         changeServer: changeServerFactory(state),
         envPATH: state.pathVar,
         activeConfig: null,
@@ -2536,6 +2539,50 @@ function difObjects<T>(template: T, a: T, b: DeepPartial<T>): DeepPartial<T> | u
   return dif;
 }
 
+function runGameService(state: BackState, launchInfo: LaunchInfo, id: string, name: string): ManagedChildProcess {
+  const dirname = path.dirname(launchInfo.gamePath);
+  // Keep file path relative to cwd
+  const proc = runService(
+    state,
+    id,
+    name,
+    '',
+    {
+      detached: false,
+      cwd: launchInfo.cwd,
+      noshell: !!launchInfo.noshell,
+      env: launchInfo.env
+    },
+    {
+      path: dirname,
+      filename: createCommand(launchInfo.gamePath, launchInfo.useWine, !!launchInfo.noshell),
+      // Don't escape args if we're not using a shell.
+      arguments: launchInfo.noshell
+        ? typeof launchInfo.gameArgs == 'string'
+          ? [launchInfo.gameArgs]
+          : launchInfo.gameArgs
+        : escapeArgsForShell(launchInfo.gameArgs),
+      kill: true
+    }
+  );
+
+  // Remove game service when it exits
+  proc.on('change', () => {
+    if (proc.getState() === ProcessState.STOPPED) {
+      removeService(state, proc.id);
+    }
+  });
+
+  return proc;
+}
+
+function runAddAppFactory(state: BackState) {
+  return (launchInfo: LaunchInfo): ManagedChildProcess => {
+    const id = uuid();
+    return runGameService(state, launchInfo, `add-app.${id}`, `Add App ${id}`);
+  };
+}
+
 /**
  * Creates a function that will run any game launch info given to it and register it as a service
  *
@@ -2544,35 +2591,12 @@ function difObjects<T>(template: T, a: T, b: DeepPartial<T>): DeepPartial<T> | u
 function runGameFactory(state: BackState) {
   return (gameLaunchInfo: GameLaunchInfo): ManagedChildProcess => {
     // Run game as a service and register it
-    const dirname = path.dirname(gameLaunchInfo.launchInfo.gamePath);
-    // Keep file path relative to cwd
-    const proc = runService(
-      state,
-      `game.${gameLaunchInfo.game.id}`,
-      gameLaunchInfo.game.title,
-      '',
-      {
-        detached: false,
-        cwd: gameLaunchInfo.launchInfo.cwd,
-        noshell: !!gameLaunchInfo.launchInfo.noshell,
-        env: gameLaunchInfo.launchInfo.env
-      },
-      {
-        path: dirname,
-        filename: createCommand(gameLaunchInfo.launchInfo.gamePath, gameLaunchInfo.launchInfo.useWine, !!gameLaunchInfo.launchInfo.noshell),
-        // Don't escape args if we're not using a shell.
-        arguments: gameLaunchInfo.launchInfo.noshell
-          ? typeof gameLaunchInfo.launchInfo.gameArgs == 'string'
-            ? [gameLaunchInfo.launchInfo.gameArgs]
-            : gameLaunchInfo.launchInfo.gameArgs
-          : escapeArgsForShell(gameLaunchInfo.launchInfo.gameArgs),
-        kill: true
-      }
-    );
-    // Remove game service when it exits
+    const id = `game.${gameLaunchInfo.game.id}`;
+    const proc = runGameService(state, gameLaunchInfo.launchInfo, id, gameLaunchInfo.game.title);
+
     proc.on('change', () => {
       if (proc.getState() === ProcessState.STOPPED) {
-        // Update game playtime counter
+        // Update game playtime counter when process exits
         if (state.preferences.enablePlaytimeTracking) {
           const secondsPlayed = (Date.now() - proc.getStartTime()) / 1000;
           if (!state.preferences.enablePlaytimeTrackingExtreme) {
@@ -2591,7 +2615,6 @@ function runGameFactory(state: BackState) {
             });
           }
         }
-        removeService(state, proc.id);
       }
     });
 

@@ -1,23 +1,23 @@
+import { BackOut, ComponentState, ComponentStatus } from '@shared/back/types';
 import { AppProvider } from '@shared/extensions/interfaces';
-import { ExecMapping, Omit } from '@shared/interfaces';
+import { ExecMapping, Omit, ProcessState } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { fixSlashes, padStart, stringifyArray } from '@shared/Util';
 import * as Coerce from '@shared/utils/Coerce';
-import { ChildProcess, exec } from 'child_process';
+import { getGameDataFilename } from '@shared/utils/misc';
+import { formatString } from '@shared/utils/StringFormatter';
+import * as child_process from 'child_process';
+import { ChildProcess } from 'child_process';
 import { EventEmitter } from 'events';
 import { AdditionalApp, AppPathOverride, DialogStateTemplate, Game, GameConfig, GameData, GameLaunchInfo, ManagedChildProcess, Platform } from 'flashpoint-launcher';
+import * as fs from 'fs-extra';
 import * as minimist from 'minimist';
 import * as path from 'path';
 import { extractFullPromise, fpDatabase } from '.';
 import { ApiEmitterFirable } from './extensions/ApiEmitter';
 import { BackState, OpenExternalFunc, ShowMessageBoxFunc } from './types';
-import { getCwd, isBrowserOpts } from './util/misc';
-import * as fs from 'fs-extra';
-import { BackOut, ComponentState, ComponentStatus } from '@shared/back/types';
-import * as child_process from 'child_process';
 import { awaitDialog, createNewDialog } from './util/dialog';
-import { formatString } from '@shared/utils/StringFormatter';
-import { getGameDataFilename } from '@shared/utils/misc';
+import { getCwd, isBrowserOpts } from './util/misc';
 
 const { str } = Coerce;
 
@@ -58,6 +58,7 @@ type LaunchBaseOpts = {
   openDialog: ShowMessageBoxFunc;
   openExternal: OpenExternalFunc;
   runGame: (gameLaunchInfo: GameLaunchInfo) => ManagedChildProcess;
+  runAddApp: (launchInfo: LaunchInfo) => ManagedChildProcess;
   state: BackState;
   activeConfig: GameConfig | null;
 }
@@ -112,20 +113,17 @@ export namespace GameLauncher {
           useWine,
           env: getEnvironment(opts.fpPath, opts.proxy, opts.envPATH),
         };
-        const proc = exec(
-          createCommand(launchInfo),
-          { env: launchInfo.env }
-        );
-        logProcessOutput(proc);
-        log.info(logSource, `Launch Add-App "${opts.addApp.name}" (PID: ${proc.pid}) [ path: "${opts.addApp.applicationPath}", arg: "${opts.addApp.launchCommand}" ]`);
+        const managedProc = opts.runAddApp(launchInfo);
+        log.info(logSource, `Launch ${managedProc.name} (PID: ${managedProc.getPid()}) [\n`+
+        `    applicationPath: "${opts.addApp.applicationPath}",\n`+
+        `    launchCommand:   "${opts.addApp.launchCommand}" ]`);
         return new Promise((resolve, reject) => {
           if (opts.addApp.waitForExit) {
             resolve();
           } else {
-            if (proc.killed) { resolve(); }
+            if (managedProc.getState() !== ProcessState.RUNNING) { resolve(); }
             else {
-              proc.once('exit', () => { resolve(); });
-              proc.once('error', error => { reject(error); });
+              managedProc.on('exit', () => { resolve(); });
             }
           }
         });
@@ -164,6 +162,7 @@ export namespace GameLauncher {
         openDialog: opts.openDialog,
         openExternal: opts.openExternal,
         runGame: opts.runGame,
+        runAddApp: opts.runAddApp,
         envPATH: opts.envPATH,
         state: opts.state,
         activeConfig: opts.activeConfig,
