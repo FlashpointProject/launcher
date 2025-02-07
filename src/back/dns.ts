@@ -60,7 +60,6 @@ const lookup = (
     response.on('data', (d) => {
       const result = dnsPacket.decode(d);
       if (result.answers && result.answers.length > 0) {
-        console.log('ip results: ' + result.answers.length);
         const answer: any = result.answers[0];
         dnsCache.set(hostname, {
           address: answer.data,
