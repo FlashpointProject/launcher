@@ -9,7 +9,6 @@ import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
 import { getContentFolderByKey } from '@shared/curate/util';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
-import axios from 'axios';
 import { AddAppCuration, CurationFpfssInfo, CurationState, CurationWarnings, LoadedCuration } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as http from 'http';
@@ -20,6 +19,7 @@ import { loadCurationIndexImage } from './parse';
 import { readCurationMeta } from './read';
 import { saveCuration } from './write';
 import { getCurationFpfssInfo } from './fpfss';
+import { axios } from '@back/dns';
 
 const whitelistedBaseFiles = ['logo.png', 'ss.png'];
 

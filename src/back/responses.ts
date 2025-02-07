@@ -39,7 +39,6 @@ import { TaskProgress } from '@shared/utils/TaskProgress';
 import { chunkArray, getGameDataFilename, newGame } from '@shared/utils/misc';
 import { sanitizeFilename } from '@shared/utils/sanitizeFilename';
 import { throttle } from '@shared/utils/throttle';
-import * as axiosImport from 'axios';
 import { execSync } from 'child_process';
 import {
   ConfigSchema,
@@ -122,8 +121,7 @@ import {
   runService
 } from './util/misc';
 import { uuid } from './util/uuid';
-
-const axios = axiosImport.default;
+import { axios } from './dns';
 
 /**
  * Register all request callbacks to the socket server.
@@ -224,6 +222,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     const gotdPath = path.join(state.config.flashpointPath, 'Data', 'gotd.json');
     const gotdDownload = new Promise((resolve, reject) => {
       const thumbnailWriter = fs.createWriteStream(gotdPath);
+      console.log('downloading gotd');
       axios.get(gotdUrl, { responseType: 'stream' })
       .then((res) => {
         res.data.pipe(thumbnailWriter);
@@ -234,6 +233,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         });
       })
       .catch((err) => {
+        console.log(err);
         reject(err);
       });
     })

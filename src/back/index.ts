@@ -32,7 +32,6 @@ import {
   CURATIONS_FOLDER_TEMP,
   CURATIONS_FOLDER_WORKING, CURATION_META_FILENAMES
 } from '@shared/constants';
-import axios from 'axios';
 import { FlashpointArchive, enableDebug, loggerSusbcribe } from '@fparchive/flashpoint-archive';
 import { Tail } from 'tail';
 import { ConfigFile } from './ConfigFile';
@@ -74,6 +73,7 @@ import { dispose } from './util/lifecycle';
 import { formatString } from '@shared/utils/StringFormatter';
 import { awaitDialog } from './util/dialog';
 import { saveCurationFpfssInfo } from './curate/fpfss';
+import { axios } from './dns';
 
 export const VERBOSE = {
   enabled: false

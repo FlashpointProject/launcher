@@ -1,9 +1,8 @@
 import { GameRedirect, RemoteCategory, RemoteDeletedGamesRes, RemoteGamesRes, RemotePlatform, RemoteTag } from '@fparchive/flashpoint-archive';
-import axios from 'axios';
 import { GameMetadataSource } from 'flashpoint-launcher';
 import { camelCase, transform } from 'lodash';
 import { fpDatabase } from '.';
-import { object } from 'zod';
+import { axios } from './dns';
 
 export async function syncTags(source: GameMetadataSource): Promise<Date> {
   const tagsUrl = `${source.baseUrl}/api/tags?after=${source.tags.latestUpdateTime}`;
