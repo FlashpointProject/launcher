@@ -8,6 +8,7 @@ import { DownloadDetails } from '@shared/back/types';
 import { PartialGameData } from '@fparchive/flashpoint-archive';
 import { onDidInstallGameData } from './util/events';
 import { getGameDataFilename } from '@shared/utils/misc';
+import { axios } from './dns';
 
 export async function downloadGameData(gameDataId: number, dataPacksFolderPath: string, sources: GameDataSource[], abortSignal: AbortSignal, onProgress?: (percent: number) => void, onDetails?: (details: DownloadDetails) => void): Promise<void> {
   const gameData = await fpDatabase.findGameDataById(gameDataId);
@@ -20,7 +21,7 @@ export async function downloadGameData(gameDataId: number, dataPacksFolderPath: 
       const fullUrl = new URL(filename, source.arguments[0]).href;
       try {
         const tempPath = path.join(dataPacksFolderPath, `${filename}.temp`);
-        await downloadFile(fullUrl, tempPath, abortSignal, onProgress, onDetails);
+        await downloadFile(axios, fullUrl, tempPath, abortSignal, onProgress, onDetails);
         // Check hash of download
         const hash = crypto.createHash('sha256');
         hash.setEncoding('hex');

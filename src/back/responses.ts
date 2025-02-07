@@ -2299,7 +2299,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     try {
       taskProgress.setStage(1, `Downloading ${url}`);
       tempFile = await getTempFilename('.7z');
-      await downloadFile(url, tempFile, undefined, undefined, undefined, { headers: { 'Authorization': `Bearer ${accessToken}` } });
+      await downloadFile(axios, url, tempFile, undefined, undefined, undefined, { headers: { 'Authorization': `Bearer ${accessToken}` } });
       taskProgress.setStageProgress(1, 'Downloaded');
     } catch (err) {
       throw 'Error downloading curation file';

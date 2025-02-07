@@ -7,8 +7,6 @@ import { AppConfigData } from './config/interfaces';
 import { parseVariableString } from './utils/VariableString';
 import { throttle } from './utils/throttle';
 
-const axios = axiosImport.default;
-
 export function getFileServerURL() {
   return `http://${window.Shared.backUrl.hostname}:${window.Shared.fileServerPort}`;
 }
@@ -416,7 +414,7 @@ export function tagSort(tagA: Tag, tagB: Tag): number {
   return 0;
 }
 
-export async function downloadFile(url: string, filePath: string, abortSignal?: AbortSignal, onProgress?: (percent: number) => void, onDetails?: (details: DownloadDetails) => void, options?: axiosImport.AxiosRequestConfig): Promise<number> {
+export async function downloadFile(axios: axiosImport.AxiosInstance, url: string, filePath: string, abortSignal?: AbortSignal, onProgress?: (percent: number) => void, onDetails?: (details: DownloadDetails) => void, options?: axiosImport.AxiosRequestConfig): Promise<number> {
   try {
     const res = await axios.get(url, {
       ...options,
