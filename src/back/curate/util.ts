@@ -149,6 +149,20 @@ export async function genCurationWarnings(curation: LoadedCuration, fpPath: stri
   if (!curation.game.platforms || curation.game.platforms.length == 0) { warns.writtenWarnings.push('noPlatforms'); }
   if (launchCommand === '') { warns.writtenWarnings.push('noLaunchCommand'); }
   if (!curation.game.source) { warns.writtenWarnings.push('noSource'); }
+  if (curation.game.launchCommand) {
+    const launchWarns = invalidLaunchCommandWarnings(getContentFolderByKey(curation.folder, fpPath), curation.game.launchCommand);
+    for (const w of launchWarns) {
+      warns.writtenWarnings.push(w);
+      warns.fieldWarnings.push('launchCommand');
+    }
+  }
+  // Warn of no notes of Hacked and Partial
+  if (curation.game.status && !curation.game.notes) {
+    if (curation.game.status.includes('Hacked') || curation.game.status.includes('Partial')) {
+      warns.writtenWarnings.push('documentStatus');
+      warns.fieldWarnings.push('notes');
+    }
+  }
   // Validate release date
   if (curation.game.releaseDate && !isValidDate(curation.game.releaseDate)) { warns.writtenWarnings.push('releaseDateInvalid'); }
   // Check for unused values (with suggestions)
@@ -186,12 +200,15 @@ export async function genCurationWarnings(curation: LoadedCuration, fpPath: stri
         return 'applicationPath';
       case 'nonExistingLibrary':
         return 'library';
-      case 'noLaunchCommand':
+      case 'ilc_nonExistant':
         return 'launchCommand';
+      case 'ilc_notHttp':
+          return 'launchCommand';
       default:
-        return '';
+        return s;
     }
   });
+  console.log(mutable.warnings);
   // Let extensions make changes
   await onWillGenCurationWarnings.fire(mutable);
 
@@ -203,6 +220,37 @@ export async function genCurationWarnings(curation: LoadedCuration, fpPath: stri
 
   return setWarnings;
 }
+
+function invalidLaunchCommandWarnings(folderPath: string, launchCommand: string): string[] {
+	// Keep list of warns for end
+	const warns: string[] = [];
+	// Extract first string from launch command via regex
+	const match = launchCommand.match(/[^\s"']+|"([^"]*)"|'([^']*)'/);
+	if (match) {
+	  // Match 1 - Inside quotes, Match 0 - No Quotes Found
+	  let lc = match[1] || match[0];
+	  // Extract protocol from potential URL
+	  const protocol = lc.match(/(.+?):\/\//);
+	  if (protocol) {
+		// Protocol found, must be URL
+		if (protocol[1] !== 'http') {
+		  // Not using HTTP
+		  warns.push('ilc_notHttp');
+		}
+		const ending = lc.split('/').pop();
+		// If the string ends in file, cut off parameters
+		if (ending && ending.includes('.')) {
+		  lc = lc.split('?')[0];
+		}
+		const filePath = path.join(folderPath, unescape(lc).replace(/(^\w+:|^)\/\//, ''));
+		// Push a game to the list if its launch command file is missing
+		if (!fs.existsSync(filePath)) {
+		  warns.push('ilc_nonExistant');
+		}
+	  }
+	}
+	return warns;
+  }
 
 export async function loadCurationFolder(rootPath: string, folderName: string, state: BackState) {
   const parsedMeta = await readCurationMeta(path.join(rootPath, folderName), state.platformAppPaths);

@@ -21,6 +21,7 @@ export function addCurationMiddleware() {
       const { curate } = listenerApi.getState();
       const curation = curate.curations.find(c => c.folder === action.payload.folder);
       if (curation) {
+        console.log(curation.folder);
         window.Shared.back.request(BackIn.CURATE_GEN_WARNINGS, {
           ...curation,
           contents: undefined, // Strip content tree since it's unused and huge
