@@ -111,9 +111,11 @@ const publishInfo = [
 /* - Cross Arch Deps - */
 
 function installCrossDeps(done) {
+  const crossCompiling = (process.env.PACK_ARCH !== '' && process.env.PACK_ARCH !== process.arch)
+    || (process.env.PACK_PLATFORM !== '' && process.env.PACK_PLATFORM != process.platform);
   // If the flashpoint-archive package has node_modules, it's probably NPM linked
   const linkedDev = fs.existsSync('./node_modules/@fparchive/flashpoint-archive/node_modules');
-  if (linkedDev) {
+  if (linkedDev && !crossCompiling) {
     console.log('In development mode, updating local versions...');
     // We're in dev, copy the built files from there each run instead
     for (const file of fs.readdirSync('./node_modules/@fparchive/flashpoint-archive/')) {
