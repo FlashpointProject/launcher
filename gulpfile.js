@@ -111,6 +111,27 @@ const publishInfo = [
 /* - Cross Arch Deps - */
 
 function installCrossDeps(done) {
+  // If the flashpoint-archive package has node_modules, it's probably NPM linked
+  const linkedDev = fs.existsSync('./node_modules/@fparchive/flashpoint-archive/node_modules');
+  if (linkedDev) {
+    console.log('In development mode, updating local versions...');
+    // We're in dev, copy the built files from there each run instead
+    for (const file of fs.readdirSync('./node_modules/@fparchive/flashpoint-archive/')) {
+      if (file.endsWith('.node')) {
+        const splitFile = file.split('.');
+        const directory = splitFile.slice(0, splitFile.length - 1).join('-');
+        fs.ensureDirSync(`./node_modules/@fparchive/${directory}`);
+        fs.copyFileSync(
+          `./node_modules/@fparchive/flashpoint-archive/${file}`,
+          `./node_modules/@fparchive/${directory}/${file}`
+        );
+        console.log(`Updated: ${file}`);
+      }
+    }
+    done();
+    return;
+  }
+
   console.log('Checking for installed cross-platform packages...');
   // Get existing version of FP Archive
   const packageLock = JSON.parse(fs.readFileSync('./package-lock.json', { encoding: 'utf-8' }));
@@ -149,7 +170,7 @@ function installCrossDeps(done) {
       fs.removeSync(packageLocation);
     }
   } catch {
-    // Pacakge not installed, carry on
+    // Package not installed, carry on
   }
 
   const packageFilename = `fparchive-${packageName.split('/')[1]}-${fpa.version}.tgz`;
