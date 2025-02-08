@@ -467,9 +467,19 @@ function SearchableSelectDropdown<T extends SearchableSelectItem>(props: Searcha
 
   const filteredItems = React.useMemo(() => {
     const lowerSearch = search.toLowerCase().replace(' ', '');
+    const selectedItems = storedItems.filter((item) => item.value in selected && item.orderVal.toLowerCase().includes(lowerSearch));
+    selectedItems.sort((a, b) => {
+      if (selected[a.value] === 'whitelist' && selected[b.value] === 'blacklist') {
+        return 1;
+      }
+      if (selected[b.value] === 'whitelist' && selected[a.value] === 'blacklist') {
+        return -1;
+      }
+      return a.value.toLowerCase().localeCompare(b.value.toLowerCase());
+    })
 
     return [
-      ...storedItems.filter((item) => item.value in selected && item.orderVal.toLowerCase().includes(lowerSearch)),
+      ...selectedItems,
       ...storedItems.filter((item) => !(item.value in selected) && item.orderVal.toLowerCase().includes(lowerSearch)),
     ];
   }, [search, storedItems]);
