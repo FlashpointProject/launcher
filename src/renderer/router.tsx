@@ -24,6 +24,7 @@ import { ConnectedTagsPage } from './containers/ConnectedTagsPage';
 import { CreditsData } from './credits/types';
 import { RequestState } from '@renderer/store/search/slice';
 import { LoadingPage } from './components/pages/LoadingPage';
+import { GameDataPage, GameDataPageProps } from './components/pages/GameDataPage';
 
 export type AppRouterProps = {
   fpfssUser: FpfssUser | null;
@@ -72,6 +73,7 @@ export type AppRouterProps = {
   onMovePlaylistGame: (sourceGameId: string, destGameId: string) => void,
   searchStatus: string | null,
   metaState?: RequestState,
+  performFpfssAction: (cb: (user: FpfssUser) => any) => void,
 };
 
 export class AppRouter extends React.Component<AppRouterProps> {
@@ -128,6 +130,9 @@ export class AppRouter extends React.Component<AppRouterProps> {
       mad4fpEnabled: this.props.mad4fpEnabled,
       logoVersion: this.props.logoVersion,
     };
+    const gameDataProps: GameDataPageProps = {
+      performFpfssAction: this.props.performFpfssAction,
+    }
     const developerProps: DeveloperPageProps = {
       devConsole: this.props.devConsole,
       devScripts: this.props.devScripts,
@@ -177,6 +182,10 @@ export class AppRouter extends React.Component<AppRouterProps> {
           path={Paths.CURATE}
           component={ConnectedCuratePage}
           { ...curateProps } />
+        <PropsRoute
+          path={Paths.BROWSE_GAME_DATA}
+          component={GameDataPage}
+          { ...gameDataProps } />
         <PropsRoute
           path={Paths.DEVELOPER}
           component={DeveloperPage}

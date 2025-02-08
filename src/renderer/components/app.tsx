@@ -1418,6 +1418,7 @@ export class App extends React.Component<AppProps> {
       componentStatuses: this.props.main.componentStatuses,
       openFlashpointManager: this.openFlashpointManager,
       metaState: this.props.currentView.data.metaState,
+      performFpfssAction: (cb) => this.performFpfssAction(cb),
       searchStatus: null, // TODO: remove
     };
 

@@ -9,6 +9,7 @@ export enum Paths {
   CONFIG     = '/config',
   ABOUT      = '/about',
   CURATE     = '/curate',
+  BROWSE_GAME_DATA = '/gamedata',
   DEVELOPER  = '/developer',
-  LOADING    = '/loading'
+  LOADING    = '/loading',
 }
