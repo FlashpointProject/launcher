@@ -306,7 +306,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
                 ))
             }
             { this.props.preferencesData.useCustomViews && (
-              <li className='header__menu__item' onClick={this.onCreateNewView} title={strings.createNewView}>
+              <li className='header__menu__item header__menu__item__icon' onClick={this.onCreateNewView} title={strings.createNewView}>
                 <OpenIcon icon={'plus'}/>
               </li>
             )}

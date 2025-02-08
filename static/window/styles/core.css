@@ -578,8 +578,14 @@ body {
   display: inline-block;
   user-select: none;
 }
+.header__menu__item__icon {
+  margin-left: 2px;
+  margin-right: 2px;
+}
 .header__menu__item > .icon {
   vertical-align: bottom;
+  padding-top: 1px;
+  padding-bottom: 1px;
 }
 .header__menu__item__link {
   display: inline-block;
