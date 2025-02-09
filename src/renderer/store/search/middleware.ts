@@ -9,6 +9,7 @@ import {
   createViews,
   GENERAL_VIEW_ID,
   requestKeyset,
+  resetDropdownData,
   ResultsView,
   SearchCreateViewsAction,
   SearchFilterAction,
@@ -16,6 +17,7 @@ import {
   selectGame,
   selectPlaylist,
   setAdvancedFilter,
+  setDropdownData,
   setExpanded,
   setFilter,
   setOrderBy,
@@ -37,6 +39,44 @@ export function addSearchMiddleware() {
       }
     }
   });
+
+    // Build filter immediately
+    startAppListening({
+      matcher: isAnyOf(resetDropdownData),
+      effect: async(action: PayloadAction<string>, listenerApi) => {
+        const state = listenerApi.getOriginalState();
+        if (state.search.dropdowns.key !== action.payload) {
+          // Key has changed, fire off the updates
+          const tfgs = window.Shared.preferences.data.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !window.Shared.preferences.data.browsePageShowExtreme));
+          const startTime = Date.now();
+          const key = action.payload;
+
+          window.Shared.back.request(BackIn.GET_TAGS, tfgs)
+            .then((data) => {
+              console.log(`Found ${data.length} tags in ${Date.now() - startTime}ms`);
+              store.dispatch(setDropdownData({ tags: data, key }));
+            });
+
+          window.Shared.back.request(BackIn.GET_DISTINCT_DEVELOPERS, tfgs)
+            .then((data) => {
+              console.log(`Found ${data.length} developers in ${Date.now() - startTime}ms`);
+              store.dispatch(setDropdownData({ developers: data, key }));
+            });
+
+          window.Shared.back.request(BackIn.GET_DISTINCT_PUBLISHERS, tfgs)
+            .then((data) => {
+              console.log(`Found ${data.length} publishers in ${Date.now() - startTime}ms`);
+              store.dispatch(setDropdownData({ publishers: data, key }));
+            });
+
+          window.Shared.back.request(BackIn.GET_DISTINCT_SERIES, tfgs)
+            .then((data) => {
+              console.log(`Found ${data.length} series in ${Date.now() - startTime}ms`);
+              store.dispatch(setDropdownData({ series: data, key }));
+            });
+        }
+      }
+    });
 
   // Restore games and playlists in restored views
   startAppListening({

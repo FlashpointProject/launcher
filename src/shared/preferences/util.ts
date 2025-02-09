@@ -3,6 +3,7 @@ import { LogLevel } from '@shared/Log/interface';
 import { delayedThrottle, delayedThrottleAsync } from '@shared/utils/throttle';
 import {
   AdvancedFilter,
+  AdvancedFilterToggle,
   AppPathOverride,
   AppPreferencesData,
   AppPreferencesDataMainWindow,
@@ -391,14 +392,24 @@ function parseGameMetadataSource(parser: IObjectParserProp<GameMetadataSource>):
   return source;
 }
 
+function parseAdvancedFilterToggle(toggle: string): AdvancedFilterToggle {
+  if (toggle !== 'whitelist' && toggle !== 'blacklist') {
+    return 'whitelist';
+  }
+  return toggle;
+}
+
 function parseAdvancedFilter(parser: IObjectParserProp<AdvancedFilter>, output: AdvancedFilter) {
   parser.prop('installed', v => output.installed = v === undefined ? undefined : !!v, true);
   parser.prop('legacy', v => output.legacy = v === undefined ? undefined : !!v, true);
-  parser.prop('library').arrayRaw((item, index) => output.library[index] = str(item));
+  parser.prop('library', true).mapRaw((item, index) => output.library[index] = parseAdvancedFilterToggle(str(item)));
   parser.prop('playlistOrder', v => output.playlistOrder = !!v, true);
-  parser.prop('playMode').arrayRaw((item, index) => output.playMode[index] = str(item));
-  parser.prop('platform').arrayRaw((item, index) => output.platform[index] = str(item));
-  parser.prop('tags').arrayRaw((item, index) => output.tags[index] = str(item));
+  parser.prop('playMode', true).mapRaw((item, index) => output.playMode[index] = parseAdvancedFilterToggle(str(item)));
+  parser.prop('platform', true).mapRaw((item, index) => output.platform[index] = parseAdvancedFilterToggle(str(item)));
+  parser.prop('tags', true).mapRaw((item, index) => output.tags[index] = parseAdvancedFilterToggle(str(item)));
+  parser.prop('developer', true).mapRaw((item, index) => output.developer[index] = parseAdvancedFilterToggle(str(item)));
+  parser.prop('publisher', true).mapRaw((item, index) => output.publisher[index] = parseAdvancedFilterToggle(str(item)));
+  parser.prop('series', true).mapRaw((item, index) => output.series[index] = parseAdvancedFilterToggle(str(item)));
 }
 
 function parseStoredView(parser: IObjectParserProp<StoredView>): StoredView {

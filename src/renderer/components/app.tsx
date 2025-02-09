@@ -888,6 +888,9 @@ export class App extends React.Component<AppProps> {
   componentDidMount() {
     // Call first batch of random games
     // if (this.props.main.randomGames.length < RANDOM_GAME_ROW_COUNT) { this.rollRandomGames(true); }
+    // Get first set of dropdown values
+    const tagsKey = JSON.stringify(this.props.preferencesData.tagFilters);
+    this.props.searchActions.resetDropdownData(tagsKey);
   }
 
   componentDidUpdate(prevProps: AppProps) {
@@ -916,6 +919,14 @@ export class App extends React.Component<AppProps> {
             .catch(console.error);
           }
         });
+      }
+
+      if (
+        this.props.preferencesData.browsePageShowExtreme !== prevProps.preferencesData.browsePageShowExtreme ||
+        JSON.stringify(prevProps.preferencesData.tagFilters) !== JSON.stringify(this.props.preferencesData.tagFilters)) 
+      {
+        const tagsKey = JSON.stringify(this.props.preferencesData.tagFilters);
+        this.props.searchActions.resetDropdownData(tagsKey);
       }
 
       // Reset random games if the filters change

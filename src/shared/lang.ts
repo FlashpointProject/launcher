@@ -187,6 +187,7 @@ const langTemplate = {
     'curate',
     'developer',
     'searchPlaceholder',
+    'searchPlaceholderCountable',
     'hideRightSidebar',
     'showRightSidebar',
     'hideLeftSidebar',
@@ -753,6 +754,7 @@ export function getDefaultLocalization(): LangContainer {
   // Get the base language container
   const lang: LangContainer = createLangContainer();
   // Make some changes
+  lang.app.searchPlaceholderCountable += ' {0}';
   lang.config.searchLimitValue += ' {0}';
   lang.config.noExtensionsLoaded += ' {0}';
   lang.config.auto += ' ({0})';

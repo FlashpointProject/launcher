@@ -12,33 +12,13 @@ import { useAppSelector } from '@renderer/hooks/useAppSelector';
 import { getPlatformIconURL } from '@renderer/Util';
 import { BackIn } from '@shared/back/types';
 import { SimpleButton } from './SimpleButton';
+import { formatString } from '@shared/utils/StringFormatter';
 
 export function SearchBar() {
   const view = useView();
   const dispatch = useDispatch();
   const strings = useContext(LangContext);
-  const { main: mainState, tagCategories } = useAppSelector((state) => state);
-  const [tags, setTags] = useState<Tag[]>([]);
-
-  React.useEffect(() => {
-    const startTime = Date.now();
-    window.Shared.back.request(BackIn.GET_TAGS, window.Shared.preferences.data.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !window.Shared.preferences.data.browsePageShowExtreme)))
-      .then((data) => {
-        console.log(`Found ${data.length} tags in ${Date.now() - startTime}ms`);
-        setTags(data);
-      });
-  }, [window.Shared.preferences.data.tagFilters, window.Shared.preferences.data.browsePageShowExtreme]);
-
-  const [developers, setDevelopers] = useState<string[]>([]);
-
-  React.useEffect(() => {
-    const startTime = Date.now();
-    window.Shared.back.request(BackIn.GET_DISTINCT_DEVELOPERS, window.Shared.preferences.data.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !window.Shared.preferences.data.browsePageShowExtreme)))
-      .then((data) => {
-        console.log(`Found ${data.length} developers in ${Date.now() - startTime}ms`);
-        setDevelopers(data);
-      });
-  }, [window.Shared.preferences.data.tagFilters, window.Shared.preferences.data.browsePageShowExtreme]);
+  const { main: mainState, tagCategories, search } = useAppSelector((state) => state);
 
   const onTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSearchText({
@@ -182,6 +162,18 @@ export function SearchBar() {
   const onWhitelistPlayMode = onWhitelistFactory('playMode');
   const onBlacklistPlayMode = onBlacklistFactory('playMode');
   const onClearPlayMode = onClearFactory('playMode');
+  
+  const onWhitelistDeveloper = onWhitelistFactory('developer');
+  const onBlacklistDeveloper = onBlacklistFactory('developer');
+  const onClearDeveloper = onClearFactory('developer');
+  
+  const onWhitelistPublisher = onWhitelistFactory('publisher');
+  const onBlacklistPublisher = onBlacklistFactory('publisher');
+  const onClearPublisher = onClearFactory('publisher');
+
+  const onWhitelistSeries = onWhitelistFactory('series');
+  const onBlacklistSeries = onBlacklistFactory('series');
+  const onClearSeries = onClearFactory('series');
 
   const onWhitelistPlatform = onWhitelistFactory('platform');
   const onBlacklistPlatform = onBlacklistFactory('platform');
@@ -191,23 +183,30 @@ export function SearchBar() {
   const onBlacklistTag = onBlacklistFactory('tags');
   const onClearTags = onClearFactory('tags');
 
-  const simpleSelectItems = (values: string[]): SearchableSelectItem[] => {
-    return values.map(v => ({
+  const simpleSelectItems = (values: string[] | null): SearchableSelectItem[] => {
+    return values ? values.map(v => ({
       value: v,
       orderVal: v,
-    }));
+    })) : [];
   };
 
   const libraryItems = useMemo(() => simpleSelectItems(mainState.libraries), [mainState.libraries]);
   const playModeItems = useMemo(() => simpleSelectItems(mainState.suggestions.playMode), [mainState.suggestions.playMode]);
   const platformItems = useMemo(() => simpleSelectItems(mainState.suggestions.platforms), [mainState.suggestions.platforms]);
+  const developerItems = useMemo(() => simpleSelectItems(search.dropdowns.developers), [search.dropdowns.developers]);
+  const publisherItems = useMemo(() => simpleSelectItems(search.dropdowns.publishers), [search.dropdowns.publishers]);
+  const seriesItems = useMemo(() => simpleSelectItems(search.dropdowns.series), [search.dropdowns.series]);
   const tagItems = useMemo((): TagSelectItem[] => {
-    return tags.map(tag => ({
-      value: tag.name,
-      orderVal: `${tag.category} ${tag.name} ${tag.aliases.join((' '))}`,
-      tag: tag,
-    }));
-  }, [tags]);
+    if (search.dropdowns.tags) {
+      return search.dropdowns.tags.map(tag => ({
+        value: tag.name,
+        orderVal: `${tag.category} ${tag.name} ${tag.aliases.join((' '))}`,
+        tag: tag,
+      }));
+    } else {
+      return [];
+    }
+  }, [search.dropdowns.tags]);
 
   const platformLabelRenderer = (item: SearchableSelectItem) => {
     const platformIcon = getPlatformIconURL(item.value, mainState.logoVersion);
@@ -309,6 +308,27 @@ export function SearchBar() {
                 return strings.libraries[item] || item;
               }} />
           )}
+          <SearchableSelect
+            title={strings.app.developer}
+            items={developerItems}
+            selected={view.advancedFilter.developer}
+            onWhitelist={onWhitelistDeveloper}
+            onBlacklist={onBlacklistDeveloper}
+            onClear={onClearDeveloper} />
+          <SearchableSelect
+            title={strings.browse.publisher}
+            items={publisherItems}
+            selected={view.advancedFilter.publisher}
+            onWhitelist={onWhitelistPublisher}
+            onBlacklist={onBlacklistPublisher}
+            onClear={onClearPublisher} />
+          <SearchableSelect
+            title={strings.browse.series}
+            items={seriesItems}
+            selected={view.advancedFilter.series}
+            onWhitelist={onWhitelistSeries}
+            onBlacklist={onBlacklistSeries}
+            onClear={onClearSeries} />
           <SearchableSelect
             title={strings.browse.playMode}
             items={playModeItems}
@@ -470,6 +490,7 @@ type SearchableSelectDropdownProps<T extends SearchableSelectItem> = {
 }
 
 function SearchableSelectDropdown<T extends SearchableSelectItem>(props: SearchableSelectDropdownProps<T>) {
+  const strings = useContext(LangContext);
   const { items, selected, onWhitelist, onBlacklist, mapName, labelRenderer } = props;
   const inputRef = React.useRef<HTMLInputElement>(null);
 
@@ -566,6 +587,8 @@ function SearchableSelectDropdown<T extends SearchableSelectItem>(props: Searcha
     }
   }, []);
 
+  const searchPlaceholder = formatString(strings.app.searchPlaceholderCountable, props.items.length.toLocaleString()) as string;
+
   return (
     <div
       onClick={(event) => {
@@ -579,7 +602,7 @@ function SearchableSelectDropdown<T extends SearchableSelectItem>(props: Searcha
         ref={inputRef}
         className="searchable-select-dropdown-search-bar"
         value={search}
-        placeholder="Search"
+        placeholder={searchPlaceholder}
         onChange={(event) => setSearch(event.currentTarget.value)} />
       <div className="searchable-select-dropdown-results simple-scroll">
         <AutoSizer>

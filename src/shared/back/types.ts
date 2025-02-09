@@ -117,6 +117,7 @@ export enum BackIn {
   // Unique Searches
   GET_DISTINCT_DEVELOPERS,
   GET_DISTINCT_PUBLISHERS,
+  GET_DISTINCT_SERIES,
 
   /** Returns a query object for the given data */
   PARSE_QUERY_DATA,
@@ -373,6 +374,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   // Unique Searches
   [BackIn.GET_DISTINCT_DEVELOPERS]: (tagFilters?: TagFilterGroup[]) => string[];
   [BackIn.GET_DISTINCT_PUBLISHERS]: (tagFilters?: TagFilterGroup[]) => string[];
+  [BackIn.GET_DISTINCT_SERIES]: (tagFilters?: TagFilterGroup[]) => string[];
 
   [BackIn.PARSE_QUERY_DATA]: (query: QueryData) => SearchQuery;
   [BackIn.BROWSE_ALL_RESULTS]: (searchQuery: SearchQuery) => Game[];

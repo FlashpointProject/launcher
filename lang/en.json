@@ -180,6 +180,7 @@
     "curate": "Curate",
     "developer": "Developer",
     "searchPlaceholder": "Search...",
+    "searchPlaceholderCountable": "Search... ({0} items)",
     "hideRightSidebar": "Hide right sidebar",
     "showRightSidebar": "Show right sidebar",
     "hideLeftSidebar": "Hide left sidebar",

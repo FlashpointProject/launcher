@@ -1473,7 +1473,6 @@ body {
   height: 100%;
 }
 /* Center */
-.game-browser__center,
 .tags-browser__center {
   flex: 1 0 auto;
 }

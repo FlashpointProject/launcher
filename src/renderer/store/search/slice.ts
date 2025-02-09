@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { deepCopy } from '@shared/Util';
-import { AdvancedFilter, Game, GameOrderBy, GameOrderReverse, Playlist, StoredView, ViewGame } from 'flashpoint-launcher';
+import { AdvancedFilter, Game, GameOrderBy, GameOrderReverse, Playlist, StoredView, Tag, ViewGame } from 'flashpoint-launcher';
 import {
   ElementPosition
 } from '@fparchive/flashpoint-archive';
@@ -60,8 +60,17 @@ export type ResultsView = {
   expanded: boolean;
 }
 
+type SearchDropdownDataSet = {
+  key: string;
+  tags: Tag[] | null;
+  developers: string[] | null;
+  publishers: string[] | null;
+  series: string[]| null;
+}
+
 type SearchState = {
-  views: Record<string, ResultsView>,
+  views: Record<string, ResultsView>;
+  dropdowns: SearchDropdownDataSet;
 }
 
 export type SearchSetTextAction = {
@@ -163,6 +172,13 @@ const initialState: SearchState = {
     [GENERAL_VIEW_ID]: {
       ...defaultGeneralState
     }
+  },
+  dropdowns: {
+    key: '',
+    tags: null,
+    developers: null,
+    publishers: null,
+    series: null,
   }
 };
 
@@ -494,6 +510,27 @@ const searchSlice = createSlice({
         view.expanded = payload.expanded;
       }
     },
+    resetDropdownData(state: SearchState, { payload }: PayloadAction<string>) {
+      // Only reset if the unique key changes
+      if (payload !== state.dropdowns.key) {
+        state.dropdowns = {
+          key: payload,
+          tags: null,
+          developers: null,
+          publishers: null,
+          series: null,
+        };
+      }
+    },
+    setDropdownData(state: SearchState, { payload }: PayloadAction<Partial<SearchDropdownDataSet>>) {
+      // Only apply change if key is the same, prevents quick calls breaking things
+      if (payload.key === state.dropdowns.key) {
+        state.dropdowns = {
+          ...state.dropdowns,
+          ...payload
+        };
+      }
+    },
     addData(state: SearchState, { payload }: PayloadAction<SearchAddDataAction>) {
       const data = payload.data;
       const view = state.views[payload.view];
@@ -578,5 +615,7 @@ export const {
   requestRange,
   updateGame,
   setExpanded,
+  resetDropdownData,
+  setDropdownData,
   addData } = searchSlice.actions;
 export default searchSlice.reducer;

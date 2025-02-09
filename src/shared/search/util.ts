@@ -38,6 +38,9 @@ export function getDefaultAdvancedFilter(library?: string): AdvancedFilter {
     playMode: {},
     platform: {},
     tags: {},
+    developer: {},
+    publisher: {},
+    series: {},
   };
 }
 
@@ -63,7 +66,10 @@ export function isAdvFilterEmpty(advFilter: AdvancedFilter): boolean {
     Object.keys(advFilter.library).length === 0 &&
     Object.keys(advFilter.playMode).length === 0 &&
     Object.keys(advFilter.platform).length === 0 &&
-    Object.keys(advFilter.tags).length === 0
+    Object.keys(advFilter.tags).length === 0 &&
+    Object.keys(advFilter.developer).length === 0 &&
+    Object.keys(advFilter.publisher).length === 0 &&
+    Object.keys(advFilter.series).length === 0
   );
 }
 
@@ -143,11 +149,17 @@ export function parseAdvancedFilter(advFilter: AdvancedFilter): GameFilter {
   exactWhitelistFunc('library', 'library');
   exactWhitelistFunc('platform', 'platforms');
   nonExactWhitelistFunc('playMode', 'playMode');
+  nonExactWhitelistFunc('developer', 'developer');
+  nonExactWhitelistFunc('publisher', 'publisher');
+  exactWhitelistFunc('series', 'series');
   exactWhitelistFunc('tags', 'tags');
 
   exactBlacklistFunc('library', 'library');
   exactBlacklistFunc('platform', 'platforms');
   nonExactBlacklistFunc('playMode', 'playMode');
+  nonExactBlacklistFunc('developer', 'developer');
+  nonExactBlacklistFunc('publisher', 'publisher');
+  exactBlacklistFunc('series', 'series');
   exactBlacklistFunc('tags', 'tags');
 
   return filter;

@@ -1188,6 +1188,11 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     return fpDatabase.findAllGamePublishers(search);
   });
 
+  state.socketServer.register(BackIn.GET_DISTINCT_SERIES, async (event, tagFilters) => {
+    const search = getTaggedSearch(tagFilters);
+    return fpDatabase.findAllGameSeries(search);
+  });
+
   state.socketServer.register(BackIn.GET_TAG_CATEGORY_BY_ID, async (event, data) => {
     const result = await fpDatabase.findTagCategoryById(data);
     state.socketServer.send(event.client, BackOut.GET_TAG_CATEGORY_BY_ID, result);

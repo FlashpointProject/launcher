@@ -1097,6 +1097,9 @@ declare module 'flashpoint-launcher' {
       playMode: Record<string, AdvancedFilterToggle>;
       platform: Record<string, AdvancedFilterToggle>;
       tags: Record<string, AdvancedFilterToggle>;
+      developer: Record<string, AdvancedFilterToggle>;
+      publisher: Record<string, AdvancedFilterToggle>;
+      series: Record<string, AdvancedFilterToggle>;
     }
 
     type AdvancedFilterToggle = 'whitelist' | 'blacklist';
