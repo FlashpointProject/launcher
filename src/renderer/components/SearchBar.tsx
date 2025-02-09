@@ -450,7 +450,8 @@ function SearchableSelect<T extends SearchableSelectItem>(props: SearchableSelec
   return (
     <div
       className='search-bar-simple-box'
-      onClick={onToggleExpanded}>
+      onClick={onToggleExpanded}
+      onContextMenu={onClear}>
       <div
         className="searchable-select"
         ref={dropdownRef}>
@@ -541,7 +542,10 @@ function SearchableSelectDropdown<T extends SearchableSelectItem>(props: Searcha
           title={item.orderVal ? (mapName ? mapName(item.orderVal) : item.orderVal) : 'None'}
           className={`searchable-select-dropdown-item ${marked && 'searchable-select-dropdown-item--selected'}`}
           onClick={() => onWhitelist(item.value)}
-          onContextMenu={() => onBlacklist(item.value)}
+          onContextMenu={(event) => {
+            event.stopPropagation();
+            onBlacklist(item.value);
+          }}
           key={item.value}>
           {labelRenderer(item, marked)}
           {marked && (
@@ -562,7 +566,10 @@ function SearchableSelectDropdown<T extends SearchableSelectItem>(props: Searcha
           title={item.orderVal ? (mapName ? mapName(item.orderVal) : item.orderVal) : 'None'}
           className={`searchable-select-dropdown-item ${marked && 'searchable-select-dropdown-item--selected'}`}
           onClick={() => onWhitelist(item.value)}
-          onContextMenu={() => onBlacklist(item.value)}
+          onContextMenu={(event) => {
+            event.stopPropagation();
+            onBlacklist(item.value);
+          }}
           key={item.value}>
           <div className="searchable-select-dropdown-item-title">
             {item.orderVal ? (mapName ? mapName(item.orderVal) : item.orderVal) : <i>None</i>}
