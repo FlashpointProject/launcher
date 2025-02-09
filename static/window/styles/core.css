@@ -1479,6 +1479,7 @@ body {
 .game-browser__center {
   display: flex;
   flex-direction: column;
+  flex-grow: 1;
 }
 .game-browser__center-results-container {
   flex-grow: 1;
