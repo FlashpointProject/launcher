@@ -492,6 +492,8 @@ type SearchableSelectDropdownProps<T extends SearchableSelectItem> = {
   onBlacklist: (item: string) => void;
 }
 
+const reservedKeys = ["Shift", "Control", "Escape", "Alt", "AltGraph", "Super", "Hyper"];
+
 function SearchableSelectDropdown<T extends SearchableSelectItem>(props: SearchableSelectDropdownProps<T>) {
   const strings = useContext(LangContext);
   const { items, selected, onWhitelist, onBlacklist, mapName, labelRenderer } = props;
@@ -499,6 +501,7 @@ function SearchableSelectDropdown<T extends SearchableSelectItem>(props: Searcha
 
   const [search, setSearch] = React.useState('');
   const [storedItems, setStoredItems] = React.useState(items); // 'cache' the items
+  const [selectedIndex, setSelectedIndex] = React.useState(-1); // Track the selected index
 
   // Split the items into 2 halves - Selected and not selected, then merge
 
@@ -521,6 +524,45 @@ function SearchableSelectDropdown<T extends SearchableSelectItem>(props: Searcha
     ];
   }, [search, storedItems]);
 
+  // Handle arrow key navigation when the input field is focused
+  const handleInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'ArrowDown' || (event.key === 'Tab' && !event.shiftKey)) {
+      // Move selection down
+      setSelectedIndex((prevIndex) => {
+        let newIndex = prevIndex + 1;
+        if (newIndex > filteredItems.length - 1) {
+          newIndex = 0;
+        }
+        return newIndex;
+      });
+      event.preventDefault(); // Prevent default input behavior
+    } else if (event.key === 'ArrowUp' || (event.key === 'Tab' && event.shiftKey)) {
+      // Move selection up
+      setSelectedIndex((prevIndex) => {
+        let newIndex = prevIndex - 1;
+        if (newIndex < 0) {
+          newIndex = filteredItems.length - 1;
+        }
+        return newIndex;
+      });
+      event.preventDefault(); // Prevent default input behavior
+    } else if (event.key === 'Enter') {
+      // Select the currently highlighted item
+      const item = filteredItems[selectedIndex];
+      if (item) {
+        if (item.value in selected) {
+          onBlacklist(item.value); // This will cycle from white -> black and black -> none
+        } else {
+          onWhitelist(item.value);
+        }
+      }
+      event.preventDefault(); // Prevent form submission or other default behavior
+    } else if (!reservedKeys.includes(event.key)) {
+      // Search has changed, clear
+      setSelectedIndex(-1);
+    }
+  };
+
   // Update the stored items when all selections removed
   // Too difficult to do this any other way
   React.useEffect(() => {
@@ -529,23 +571,38 @@ function SearchableSelectDropdown<T extends SearchableSelectItem>(props: Searcha
     }
   }, [items]);
 
+  const handleItemClick = (itemValue: string, index: number) => {
+    onWhitelist(itemValue); 
+    // Always make sure the input is focused
+    inputRef.current?.focus();
+    // Update the selected index
+    setSelectedIndex(index);
+  };
+
+  const handleItemContextMenu = (event: React.MouseEvent, itemValue: string, index: number) => {
+    event.stopPropagation(); // Prevent onClear getting hit above
+    onBlacklist(itemValue); 
+    // Always make sure the input is focused
+    inputRef.current?.focus();
+    // Update the selected index
+    setSelectedIndex(index);
+  };
+
   const rowRenderer = (props: ListRowProps) => {
-    const { style } = props;
+    const { style, index } = props;
     const item = filteredItems[props.index];
 
     const marked = item.value in selected;
+    const isSelected = index === selectedIndex;
 
     if (labelRenderer !== undefined) {
       return (
         <div
           style={style}
           title={item.orderVal ? (mapName ? mapName(item.orderVal) : item.orderVal) : 'None'}
-          className={`searchable-select-dropdown-item ${marked && 'searchable-select-dropdown-item--selected'}`}
-          onClick={() => onWhitelist(item.value)}
-          onContextMenu={(event) => {
-            event.stopPropagation();
-            onBlacklist(item.value);
-          }}
+          className={`searchable-select-dropdown-item ${marked && 'searchable-select-dropdown-item--selected'} ${isSelected && 'searchable-select-dropdown-item--highlighted'}`}
+          onClick={() => handleItemClick(item.value, index)}
+          onContextMenu={(e) => handleItemContextMenu(e, item.value, index)}
           key={item.value}>
           {labelRenderer(item, marked)}
           {marked && (
@@ -564,12 +621,9 @@ function SearchableSelectDropdown<T extends SearchableSelectItem>(props: Searcha
         <div
           style={style}
           title={item.orderVal ? (mapName ? mapName(item.orderVal) : item.orderVal) : 'None'}
-          className={`searchable-select-dropdown-item ${marked && 'searchable-select-dropdown-item--selected'}`}
-          onClick={() => onWhitelist(item.value)}
-          onContextMenu={(event) => {
-            event.stopPropagation();
-            onBlacklist(item.value);
-          }}
+          className={`searchable-select-dropdown-item ${marked && 'searchable-select-dropdown-item--selected'} ${isSelected && 'searchable-select-dropdown-item--highlighted'}`}
+          onClick={() => handleItemClick(item.value, index)}
+          onContextMenu={(e) => handleItemContextMenu(e, item.value, index)}
           key={item.value}>
           <div className="searchable-select-dropdown-item-title">
             {item.orderVal ? (mapName ? mapName(item.orderVal) : item.orderVal) : <i>None</i>}
@@ -606,6 +660,7 @@ function SearchableSelectDropdown<T extends SearchableSelectItem>(props: Searcha
         event.preventDefault();
         return -1;
       }}
+      onKeyDown={handleInputKeyDown}
       className="searchable-select-dropdown">
       <input
         ref={inputRef}
@@ -617,27 +672,16 @@ function SearchableSelectDropdown<T extends SearchableSelectItem>(props: Searcha
         <AutoSizer>
           {({ width, height }) => {
             return (
-              <ArrowKeyStepper
-                mode="cells"
-                isControlled={true}
-                columnCount={1}
+              <List
+                className="simple-scroll"
+                width={width}
+                height={height}
+                overscanRowCount={20}
                 rowCount={filteredItems.length}
-              >
-                {({
-                  onSectionRendered
-                }) => (
-                  <List
-                    className="simple-scroll"
-                    width={width}
-                    height={height}
-                    overscanRowCount={20}
-                    rowCount={filteredItems.length}
-                    rowHeight={30}
-                    rowRenderer={rowRenderer}
-                    onSectionRendered={onSectionRendered}
-                  />
-                )}
-              </ArrowKeyStepper>
+                rowHeight={30}
+                rowRenderer={rowRenderer}
+                scrollToIndex={selectedIndex}
+              />
             );
           }}
         </AutoSizer>

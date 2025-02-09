@@ -1547,6 +1547,7 @@ body {
   border-bottom: 1px solid var(--layout__primary-outline-color);
 }
 
+.searchable-select-dropdown-item--highlighted,
 .searchable-select-dropdown-item:hover {
   background-color: var(--layout__header-menu-item-hover-background);
 }
