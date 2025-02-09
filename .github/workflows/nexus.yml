@@ -112,9 +112,4 @@ jobs:
         coordinates: directory=/
         assets: filename=components.xml
         filename: ./nexus/components.xml
-    - name: Invoke Deployment Webhook
-      uses: distributhor/workflow-webhook@v3
-      with:
-        webhook_type: 'json-extended'
-        webhook_url: ${{ secrets.WEBHOOK_URL }}
 
