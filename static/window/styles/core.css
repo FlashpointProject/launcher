@@ -3525,8 +3525,8 @@ body {
 .search-bar-simple-box {
   cursor: pointer;
   user-select: none;
-  margin-left: 0.4rem;
-  margin-bottom: 0.4rem;
+  margin-left: 0.3rem;
+  margin-bottom: 0.3rem;
   align-items: center;
   padding: 0.3rem;
   font-size: 0.9em;
@@ -3542,8 +3542,8 @@ body {
   cursor: pointer;
   display: inline-flex;
   padding: 0.1rem;
-  width: 1.1rem;
-  height: 1.1rem;
+  width: 1rem;
+  height: 1rem;
   border: 1px solid #ccc;
   border-radius: 4px;
 }
@@ -3583,8 +3583,9 @@ body {
 }
 
 .searchable-select-chevron {
-  width: 1rem;
-  height: 1rem;
+  width: 0.9rem;
+  height: 0.9rem;
+  align-self: center;
 }
 
 .searchable-select-dropdown-item-marked > .icon {
