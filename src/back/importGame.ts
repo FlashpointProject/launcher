@@ -412,8 +412,9 @@ export async function launchAddAppCuration(folder: string, appCuration: AddAppCu
   await onDidEvent.fire(addApp);
 }
 
-function clearWininetCache() {
+export function clearWininetCache() {
   if (process.platform === 'win32') {
+    log.debug('Launcher', 'Clearing WinInet Cache');
     child_process.exec('RunDll32.exe InetCpl.cpl,ClearMyTracksByProcess 8', (err) => {
       if (err) {
         log.error('Launcher', `Error clearing WinINet Cache: ${err}`);

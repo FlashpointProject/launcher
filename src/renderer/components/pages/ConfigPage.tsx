@@ -227,6 +227,12 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 description={strings.fancyAnimationsDesc}
                 checked={this.props.preferencesData.fancyAnimations}
                 onToggle={this.onFancyAnimationsChange} />
+              {/* Hide New View Button */}
+              <ConfigBoxCheckbox
+                title={strings.hideNewViewButton}
+                description={strings.hideNewViewButtonDesc}
+                checked={this.props.preferencesData.hideNewViewButton}
+                onToggle={this.onHideNewViewButtonChange} />
               {/* Short Search */}
               <ConfigBoxSelect
                 title={strings.searchLimit}
@@ -382,6 +388,14 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
           <div className='setting'>
             <p className='setting__title'>{strings.advancedHeader}</p>
             <div className='setting__body'>
+              {/* Clear WinINet Cache */}
+              {process.platform === 'win32' && (
+                <ConfigBoxButton
+                  title={strings.clearWininetCache}
+                  description={strings.clearWininetCacheDesc}
+                  value={allStrings.curate.run}
+                  onClick={this.onClearWininetCache}/>
+              )}
               {/* Optimize Database */}
               <ConfigBoxButton
                 title={strings.optimizeDatabase}
@@ -960,6 +974,10 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     updatePreferencesData({ fancyAnimations: isChecked });
   };
 
+  onHideNewViewButtonChange = (isChecked: boolean): void => {
+    updatePreferencesData({ hideNewViewButton: isChecked });
+  };
+
   onVerboseLoggingToggle = (isChecked: boolean): void => {
     updatePreferencesData({ enableVerboseLogging: isChecked });
   };
@@ -1285,6 +1303,16 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       alert('Error: ' + err);
     });
   };
+
+  onClearWininetCache = () => {
+    window.Shared.back.request(BackIn.CLEAR_WININET_CACHE)
+    .then(() => {
+      alert('Cleared cache');
+    })
+    .catch((err) => {
+      alert('Error: ' + err);
+    });
+  }
 
 }
 

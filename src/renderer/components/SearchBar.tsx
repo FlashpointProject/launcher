@@ -285,10 +285,12 @@ export function SearchBar() {
             title={strings.browse.installed}
             value={view.advancedFilter.installed}
             onChange={onInstalledChange} />
-          <ThreeStateCheckbox
-            title={strings.browse.legacyGame}
-            value={view.advancedFilter.legacy}
-            onChange={onLegacyChange} />
+          {window.Shared.preferences.data.enableEditing && (
+            <ThreeStateCheckbox
+              title={strings.browse.legacyGame}
+              value={view.advancedFilter.legacy}
+              onChange={onLegacyChange} />
+          )}
           {view.selectedPlaylist && (
             <ThreeStateCheckbox
               title={strings.browse.usePlaylistOrder}

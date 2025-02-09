@@ -190,6 +190,7 @@ export enum BackIn {
   CANCEL_DOWNLOAD,
   DELETE_ALL_IMAGES,
   OPTIMIZE_DATABASE,
+  CLEAR_WININET_CACHE,
   PRE_UPDATE_INFO,
   CLEAR_PLAYTIME_TRACKING,
   CLEAR_PLAYTIME_TRACKING_BY_ID,
@@ -433,6 +434,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.CANCEL_DOWNLOAD]: () => void;
   [BackIn.DELETE_ALL_IMAGES]: () => void;
   [BackIn.OPTIMIZE_DATABASE]: () => void;
+  [BackIn.CLEAR_WININET_CACHE]: () => void;
   [BackIn.PRE_UPDATE_INFO]: (source: GameMetadataSource) => number;
   [BackIn.CLEAR_PLAYTIME_TRACKING]: () => Promise<void>;
   [BackIn.CLEAR_PLAYTIME_TRACKING_BY_ID]: (gameId: string) => Promise<void>;

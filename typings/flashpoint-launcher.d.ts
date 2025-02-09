@@ -1078,6 +1078,8 @@ declare module 'flashpoint-launcher' {
       customViews: string[];
       /** Default Opening Page (Home, Browse pages) */
       defaultOpeningPage: string;
+      /** Hide new view button (moves it to context menu) */
+      hideNewViewButton: boolean;
     };
 
     type StoredView = {

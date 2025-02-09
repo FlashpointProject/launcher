@@ -294,6 +294,12 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
                           click: () => this.onRenameView(view),
                         },
                       ];
+                      if (this.props.preferencesData.hideNewViewButton) {
+                        contextButtons.push({
+                          label: strings.createNewView,
+                          click: this.onCreateNewView,
+                        });
+                      }
                       const menu = remote.Menu.buildFromTemplate(contextButtons);
                       menu.popup({ window: remote.getCurrentWindow() });
                     }}/>
@@ -305,7 +311,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
                     link={joinLibraryRoute(view)}/>
                 ))
             }
-            { this.props.preferencesData.useCustomViews && (
+            { this.props.preferencesData.useCustomViews && !this.props.preferencesData.hideNewViewButton && (
               <li className='header__menu__item header__menu__item__icon' onClick={this.onCreateNewView} title={strings.createNewView}>
                 <OpenIcon icon={'plus'}/>
               </li>

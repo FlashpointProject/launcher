@@ -81,7 +81,7 @@ import {
 import { saveCuration } from './curate/write';
 import { downloadGameData } from './download';
 import { parseAppVar } from './extensions/util';
-import { importCuration, launchAddAppCuration, launchCuration } from './importGame';
+import { clearWininetCache, importCuration, launchAddAppCuration, launchCuration } from './importGame';
 import { fpDatabase, loadCurationArchive } from './index';
 import { importGames, importPlatforms, importTagCategories, importTags } from './metadataImport';
 import {
@@ -2475,6 +2475,10 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       default:
         throw 'Unsupported type';
     }
+  });
+
+  state.socketServer.register(BackIn.CLEAR_WININET_CACHE, async (event) => {
+    clearWininetCache();
   });
 
   state.socketServer.register(BackIn.OPTIMIZE_DATABASE, async (event) => {
