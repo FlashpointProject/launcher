@@ -1,6 +1,7 @@
-import { AppPreferencesData } from 'flashpoint-launcher';
+import { AppPreferencesData, TagFilterGroup } from 'flashpoint-launcher';
 import { QueryData, SearchQuery } from '@shared/back/types';
 import {
+  GameSearch,
   GameSearchDirection,
   GameSearchSortable,
   mergeGameFilters, newSubfilter,
@@ -8,6 +9,20 @@ import {
 } from '@fparchive/flashpoint-archive';
 import { isAdvFilterEmpty, parseAdvancedFilter } from '@shared/search/util';
 import { deepCopy } from '@shared/Util';
+
+export function getTaggedSearch(tagFilters?: TagFilterGroup[]): GameSearch {
+  const search = parseUserSearchInput('').search;
+
+  if (tagFilters && tagFilters.length > 0) {
+    const flatFilters: string[] = tagFilters ? tagFilters.reduce<string[]>((prev, cur) => prev.concat(cur.tags), []) : [];
+    const filter = newSubfilter();
+    filter.exactBlacklist.tags = flatFilters;
+    filter.matchAny = true;
+    search.filter.subfilters.push(filter);  
+  }
+
+  return search;
+}
 
 export function createSearchFilter(query: QueryData, preferences: AppPreferencesData): SearchQuery {
   // Build filter for this new search

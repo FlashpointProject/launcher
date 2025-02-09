@@ -1,4 +1,4 @@
-import { createSearchFilter } from '@back/util/search';
+import { createSearchFilter, getTaggedSearch } from '@back/util/search';
 import {
   GameSearchOffset,
   GameSearchSortable,
@@ -1177,6 +1177,16 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   //   state.socketServer.broadcast(BackOut.TAG_CATEGORIES_CHANGE, await fpDatabase.findAllTagCategories());
   //   return result;
   // });
+
+  state.socketServer.register(BackIn.GET_DISTINCT_DEVELOPERS, async (event, tagFilters) => {
+    const search = getTaggedSearch(tagFilters);
+    return fpDatabase.findAllGameDevelopers(search);
+  });
+
+  state.socketServer.register(BackIn.GET_DISTINCT_PUBLISHERS, async (event, tagFilters) => {
+    const search = getTaggedSearch(tagFilters);
+    return fpDatabase.findAllGamePublishers(search);
+  });
 
   state.socketServer.register(BackIn.GET_TAG_CATEGORY_BY_ID, async (event, data) => {
     const result = await fpDatabase.findTagCategoryById(data);

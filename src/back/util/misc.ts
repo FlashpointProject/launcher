@@ -21,6 +21,7 @@ import * as path from 'path';
 import * as kill from 'tree-kill';
 import { promisify } from 'util';
 import { uuid } from './uuid';
+import { GameSearch, parseUserSearchInput } from '@fparchive/flashpoint-archive';
 
 const unlink = promisify(fs.unlink);
 

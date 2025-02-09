@@ -114,6 +114,10 @@ export enum BackIn {
   GET_TAG_CATEGORY_BY_ID,
   DELETE_TAG_CATEGORY,
 
+  // Unique Searches
+  GET_DISTINCT_DEVELOPERS,
+  GET_DISTINCT_PUBLISHERS,
+
   /** Returns a query object for the given data */
   PARSE_QUERY_DATA,
   /** Returns all results for a search */
@@ -365,6 +369,10 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.SAVE_TAG_CATEGORY]: (data: TagCategory) => TagCategory;
   [BackIn.GET_TAG_CATEGORY_BY_ID]: (data: number) => TagCategory | null;
   [BackIn.DELETE_TAG_CATEGORY]: (data: number) => boolean;
+
+  // Unique Searches
+  [BackIn.GET_DISTINCT_DEVELOPERS]: (tagFilters?: TagFilterGroup[]) => string[];
+  [BackIn.GET_DISTINCT_PUBLISHERS]: (tagFilters?: TagFilterGroup[]) => string[];
 
   [BackIn.PARSE_QUERY_DATA]: (query: QueryData) => SearchQuery;
   [BackIn.BROWSE_ALL_RESULTS]: (searchQuery: SearchQuery) => Game[];

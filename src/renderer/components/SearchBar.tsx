@@ -21,9 +21,22 @@ export function SearchBar() {
   const [tags, setTags] = useState<Tag[]>([]);
 
   React.useEffect(() => {
+    const startTime = Date.now();
     window.Shared.back.request(BackIn.GET_TAGS, window.Shared.preferences.data.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !window.Shared.preferences.data.browsePageShowExtreme)))
-      .then((tags) => {
-        setTags(tags);
+      .then((data) => {
+        console.log(`Found ${data.length} tags in ${Date.now() - startTime}ms`);
+        setTags(data);
+      });
+  }, [window.Shared.preferences.data.tagFilters, window.Shared.preferences.data.browsePageShowExtreme]);
+
+  const [developers, setDevelopers] = useState<string[]>([]);
+
+  React.useEffect(() => {
+    const startTime = Date.now();
+    window.Shared.back.request(BackIn.GET_DISTINCT_DEVELOPERS, window.Shared.preferences.data.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !window.Shared.preferences.data.browsePageShowExtreme)))
+      .then((data) => {
+        console.log(`Found ${data.length} developers in ${Date.now() - startTime}ms`);
+        setDevelopers(data);
       });
   }, [window.Shared.preferences.data.tagFilters, window.Shared.preferences.data.browsePageShowExtreme]);
 
