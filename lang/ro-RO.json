@@ -380,7 +380,8 @@
     "openGameDataBrowser": "Explorați datele jocului",
     "notArchived": "Not Archived",
     "archived": "Arhivat",
-    "playOnline": "Jucați online"
+    "playOnline": "Jucați online",
+    "tagFilterIcon": ""
   },
   "tags": {
     "name": "Nume",
@@ -403,7 +404,8 @@
     "makeAliasWhenMerged": "Sigur doriți să stabiliți acest pseudonim ca numele etichetei?",
     "deleteTag": "Ştergeți eticheta",
     "deleteTagCategory": "Ștergeți categoria de etichete",
-    "locked": "Blocate în timpul procesării..."
+    "locked": "Blocate în timpul procesării...",
+    "filterIcon": ""
   },
   "curate": {
     "noCurationSelected": "Nicio reparație selectată",
@@ -518,6 +520,7 @@
   "misc": {
     "noBlankFound": "Nu s-a găsit {0}",
     "addBlank": "Adaugă o imagine...",
+    "removeBlank": "",
     "deleteAllBlankImages": "Șterge toate imaginile pentru acest joc",
     "yes": "Da",
     "no": "Nu",

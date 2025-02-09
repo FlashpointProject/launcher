@@ -459,6 +459,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
               onRemoveCategory={(category) => this.onRemoveTagEditorCategoryEvent(this.state.editingTagFilterGroupIdx || -1, category)}
               onChangeName={this.onChangeTagEditorNameEvent}
               onChangeDescription={this.onChangeTagEditorDescriptionEvent}
+              onChangeIconBase64={this.onChangeTagEditorIconEvent}
               onToggleExtreme={this.onToggleExtremeTagEditorEvent}
               closeEditor={this.onCloseTagFilterGroupEditor}
               showExtreme={this.props.preferencesData.browsePageShowExtreme}
@@ -642,11 +643,18 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   className='config-page__tfg-extreme-logo'
                   title={strings.browse.extreme}
                   style={{ backgroundImage: `url('${getExtremeIconURL(logoVersion)}')` }} />
-              ) : (
+              ) : (item.iconBase64 ? (
+                <div
+                  key={index}
+                  className='config-page__tfg-extreme-logo'
+                  title={strings.browse.tagFilterIcon}
+                  style={{ backgroundImage: `url("${item.iconBase64}")` }} />
+              ) :
+              (
                 <div
                   key={index}
                   className='config-page__tfg-extreme-logo' />
-              ))
+              )))
             }
             <div
               title={item.enabled ? 'Hidden' : 'Visible'}
@@ -1033,7 +1041,8 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       tags: [],
       categories: [],
       childFilters: [],
-      extreme: false
+      extreme: false,
+      iconBase64: ''
     };
     const newTagFilters = [...this.props.preferencesData.tagFilters];
     newTagFilters.push(tfg);
@@ -1101,6 +1110,13 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   onToggleExtremeTagEditorEvent = (checked: boolean): void => {
     if (this.state.editingTagFilterGroup) {
       const newTFG = { ...this.state.editingTagFilterGroup, extreme: checked };
+      this.setState({ editingTagFilterGroup: newTFG });
+    }
+  };
+
+  onChangeTagEditorIconEvent = (iconBase64: string): void => {
+    if (this.state.editingTagFilterGroup) {
+      const newTFG = {...this.state.editingTagFilterGroup, iconBase64 };
       this.setState({ editingTagFilterGroup: newTFG });
     }
   };

@@ -380,7 +380,8 @@
     "openGameDataBrowser": "Mở trình duyệt dữ liệu trò chơi",
     "notArchived": "Not Archived",
     "archived": "Archived",
-    "playOnline": "Chơi trực tuyến"
+    "playOnline": "Chơi trực tuyến",
+    "tagFilterIcon": ""
   },
   "tags": {
     "name": "Tên",
@@ -403,7 +404,8 @@
     "makeAliasWhenMerged": "Đặt làm tên khác của nhãn?",
     "deleteTag": "Xoá nhãn",
     "deleteTagCategory": "Xoá danh mục nhãn",
-    "locked": "Bị khoá khi đang xử lí..."
+    "locked": "Bị khoá khi đang xử lí...",
+    "filterIcon": ""
   },
   "curate": {
     "noCurationSelected": "Chưa có bản đóng góp nào",
@@ -518,6 +520,7 @@
   "misc": {
     "noBlankFound": "Không tìm thấy {0}",
     "addBlank": "Thêm {0}",
+    "removeBlank": "",
     "deleteAllBlankImages": "Xoá TOÀN BỘ {0} hình của trò chơi này",
     "yes": "Có",
     "no": "Không",

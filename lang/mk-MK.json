@@ -380,7 +380,8 @@
     "openGameDataBrowser": "Отворете го прелистувачот за податоци за игри",
     "notArchived": "Не е Архивирано",
     "archived": "Архивиран",
-    "playOnline": "Играј online"
+    "playOnline": "Играј online",
+    "tagFilterIcon": ""
   },
   "tags": {
     "name": "Име",
@@ -403,7 +404,8 @@
     "makeAliasWhenMerged": "Направи алијас од ознаката?",
     "deleteTag": "Избриши ознака",
     "deleteTagCategory": "Избриши ја Категоријата на Ознаката",
-    "locked": "Заклучено додека се обработува..."
+    "locked": "Заклучено додека се обработува...",
+    "filterIcon": ""
   },
   "curate": {
     "noCurationSelected": "Никаква Курација Селектирана",
@@ -518,6 +520,7 @@
   "misc": {
     "noBlankFound": "Нема {0} пронајдено",
     "addBlank": "Додади {0}",
+    "removeBlank": "",
     "deleteAllBlankImages": "Избриши сите {0} слики од таа игра",
     "yes": "Да",
     "no": "Не",

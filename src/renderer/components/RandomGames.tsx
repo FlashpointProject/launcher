@@ -7,7 +7,7 @@ import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
 import { HomePageBox } from './HomePageBox';
 import { SimpleButton } from './SimpleButton';
-import { ViewGame } from 'flashpoint-launcher';
+import { Game, TagFilter, ViewGame } from 'flashpoint-launcher';
 import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
 
 type RandomGamesProps = {
@@ -19,6 +19,8 @@ type RandomGamesProps = {
   onGameSelect: (gameId: string | undefined) => void;
   rollRandomGames: () => void;
   extremeTags: string[];
+  /** Tag Filter icons */
+  tagGroupIcons: { tagFilter: TagFilter; iconBase64: string; }[];
   /** Update to clear platform icon cache */
   logoVersion: number;
   minimized: boolean;
@@ -58,6 +60,7 @@ export function RandomGames(props: RandomGamesProps) {
           platforms={game.platforms.map(p => p.trim())}
           extreme={game ? game.tags.findIndex(t => props.extremeTags.includes(t.trim())) !== -1 : false}
           extremeIconPath={getExtremeIconURL(props.logoVersion)}
+          tagGroupIconBase64={props.tagGroupIcons.find(tg => tg.tagFilter.find(t => game?.tags.includes(t)))?.iconBase64 || ''}
           thumbnail={getGameImageURL(LOGOS, game.id)}
           screenshot={getGameImageURL(SCREENSHOTS, game.id)}
           screenshotPreviewMode={props.screenshotPreviewMode}

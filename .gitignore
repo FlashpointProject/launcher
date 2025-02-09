@@ -34,7 +34,7 @@ npm-debug.log.*
 /flashpoint.sqlite
 /extensions/test
 /src/shared/version.ts
-Data/flashpoint.sqlite
+Data
 
 # Jest related files
 /.coveralls.yml

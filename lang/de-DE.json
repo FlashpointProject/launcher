@@ -380,7 +380,8 @@
     "openGameDataBrowser": "Spieldaten-Browser öffnen",
     "notArchived": "Nicht archiviert",
     "archived": "Archiviert",
-    "playOnline": "Online spielen"
+    "playOnline": "Online spielen",
+    "tagFilterIcon": ""
   },
   "tags": {
     "name": "Name",
@@ -403,7 +404,8 @@
     "makeAliasWhenMerged": "Dies zum Alias des Tags machen?",
     "deleteTag": "Tag löschen",
     "deleteTagCategory": "Tag-Kategorie löschen",
-    "locked": "Während der Verarbeitung gesperrt..."
+    "locked": "Während der Verarbeitung gesperrt...",
+    "filterIcon": ""
   },
   "curate": {
     "noCurationSelected": "Keine Kuration ausgewählt",
@@ -518,6 +520,7 @@
   "misc": {
     "noBlankFound": "Kein {0} gefunden",
     "addBlank": "{0} hinzufügen",
+    "removeBlank": "",
     "deleteAllBlankImages": "Lösche ALLE {0} Bilder für dieses Spiel",
     "yes": "Ja",
     "no": "Nein",

@@ -380,7 +380,8 @@
     "openGameDataBrowser": "Oyun Verileri Tarayıcısını Aç",
     "notArchived": "Arşivlenmedi",
     "archived": "Arşivlendi",
-    "playOnline": "Çevrim içi Oyna"
+    "playOnline": "Çevrim içi Oyna",
+    "tagFilterIcon": ""
   },
   "tags": {
     "name": "Adı",
@@ -403,7 +404,8 @@
     "makeAliasWhenMerged": "Bunu etiketin takma bir ismi yap?",
     "deleteTag": "Etiketi Sil",
     "deleteTagCategory": "Etiket Kategorisini Sil",
-    "locked": "İşlenirken kilitlendi..."
+    "locked": "İşlenirken kilitlendi...",
+    "filterIcon": ""
   },
   "curate": {
     "noCurationSelected": "Küratör Seçilmedi",
@@ -518,6 +520,7 @@
   "misc": {
     "noBlankFound": "{0} Bulunamadı",
     "addBlank": "{0} Ekle",
+    "removeBlank": "",
     "deleteAllBlankImages": "Bu oyun için olan TÜM {0} resimlerini sil",
     "yes": "Evet",
     "no": "Hayır",
