@@ -10,6 +10,8 @@
     "hideExtremeScreenshotsDesc": "隐藏成人内容的截图，点击图像框即可取消隐藏。",
     "fancyAnimations": "动画效果",
     "fancyAnimationsDesc": "在启动器中启用动画效果。",
+    "hideNewViewButton": "Hide New View Button",
+    "hideNewViewButtonDesc": "When using custom views, hide the new view (+) button. You can instead press 'Create New View' under the context menu for tabs.",
     "searchLimit": "搜索限制",
     "searchLimitDesc": "限制搜索返回的结果数量",
     "searchLimitUnlimited": "无限制",
@@ -89,8 +91,10 @@
     "screenshotPreviewDelay": "屏幕截图预览延迟",
     "screenshotPreviewDelayDesc": "屏幕截图预览设置为开启时，（在悬停时）显示屏幕截图前的延时（毫秒）。",
     "advancedHeader": "高级",
+    "clearWininetCache": "Clear WinINet Cache",
+    "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "优化数据库",
-    "optimizeDatabaseDesc": "运行维护任务以增强数据库性能并减小文件大小",
+    "optimizeDatabaseDesc": "Run maintenance tasks to increase database performance and reduce size.",
     "showDeveloperTab": "显示开发者标签页",
     "showDeveloperTabDesc": "显示 '开发者' 标签页，通常只对开发者与策展员有用。",
     "registerProtocol": "注册为协议处理程序",
@@ -180,6 +184,7 @@
     "curate": "策展",
     "developer": "开发者",
     "searchPlaceholder": "搜索...",
+    "searchPlaceholderCountable": "Search... ({0} items)",
     "hideRightSidebar": "隐藏右边栏",
     "showRightSidebar": "显示右边栏",
     "hideLeftSidebar": "隐藏左边栏",
@@ -198,7 +203,8 @@
     "noLauncherUpdateReady": "元数据更新需要新的启动器版本，但软件更新目前不可用。",
     "deleteView": "删除搜索视图",
     "deleteOnlyBrowseView": "删除搜索视图（必须有另一个自定义视图）",
-    "createNewView": "创建新搜索视图"
+    "createNewView": "创建新搜索视图",
+    "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
     "dateAdded": "添加日期",
@@ -386,14 +392,18 @@
     "noGameMatchedSearch": "请尝试用更宽泛的关键词搜索。",
     "mountParameters": "挂载参数",
     "noMountParameters": "无挂载参数",
+    "ruffleSupport": "Ruffle Support",
     "showExtremeScreenshot": "显示成人截图",
     "busy": "请稍候…",
     "openGameDataBrowser": "打开游戏数据浏览器",
     "allGenericEntries": "所有条目",
     "usePlaylistOrder": "使用播放列表顺序",
+    "hideFilters": "Hide Filters",
+    "showFilters": "Show Filters",
     "notArchived": "未存档",
     "archived": "已存档",
-    "playOnline": "在线播放"
+    "playOnline": "在线播放",
+    "tagFilterIcon": "Tag Filter Icon"
   },
   "tags": {
     "name": "名称",
@@ -416,7 +426,8 @@
     "makeAliasWhenMerged": "设置为标签的别名吗？",
     "deleteTag": "删除标签",
     "deleteTagCategory": "删除标签类别",
-    "locked": "处理过程中暂时锁定..."
+    "locked": "处理过程中暂时锁定...",
+    "filterIcon": "Icon Thumbnail"
   },
   "curate": {
     "noCurationSelected": "未选择展品",
@@ -533,6 +544,7 @@
   "misc": {
     "noBlankFound": "无{0}",
     "addBlank": "添加{0}",
+    "removeBlank": "Remove {0}",
     "deleteAllBlankImages": "删除该游戏所有{0}",
     "yes": "是",
     "no": "否",
