@@ -10,6 +10,8 @@
     "hideExtremeScreenshotsDesc": "Skrývá snímky obrazovky u her s označením \"Pro Dospělé\", může být odkryto kliknutím na rozostřený obrázek.",
     "fancyAnimations": "Hezčí Animace",
     "fancyAnimationsDesc": "Povolí ve spouštěči hezčí animace.",
+    "hideNewViewButton": "Hide New View Button",
+    "hideNewViewButtonDesc": "When using custom views, hide the new view (+) button. You can instead press 'Create New View' under the context menu for tabs.",
     "searchLimit": "Limit výsledků vyhledávání",
     "searchLimitDesc": "Limituje počet výsledků navrácených jakýmkoliv vyhledáváním",
     "searchLimitUnlimited": "Neomezené",
@@ -89,8 +91,10 @@
     "screenshotPreviewDelay": "Prodleva zobrazení snímku obrazovky",
     "screenshotPreviewDelayDesc": "Prodleva (v milisekundách) před zobrazením snímku obrazovky, pokud je náhled snímku obrazovky nastaven na 'zapnuto'. (při najetí myší)",
     "advancedHeader": "Pokročilé",
+    "clearWininetCache": "Clear WinINet Cache",
+    "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "Optimalizovat databázi",
-    "optimizeDatabaseDesc": "Spusit úlohy údržby pro zvýšení výkonu databáze a snížení její velikosti",
+    "optimizeDatabaseDesc": "Run maintenance tasks to increase database performance and reduce size.",
     "showDeveloperTab": "Zobrazit záložku pro vývojáře",
     "showDeveloperTabDesc": "Zobrazí záložku \"Vývojář\". Toto je obvykle užitečné pouze pro vývojáře a kurátory.",
     "registerProtocol": "Registrovat jako správce protokolů",
@@ -180,6 +184,7 @@
     "curate": "Kurátor",
     "developer": "Vývojář",
     "searchPlaceholder": "Hledat...",
+    "searchPlaceholderCountable": "Search... ({0} items)",
     "hideRightSidebar": "Skrýt pravý postranní panel",
     "showRightSidebar": "Zobrazit pravý postranní panel",
     "hideLeftSidebar": "Skrýt levý postranní panel",
@@ -198,7 +203,8 @@
     "noLauncherUpdateReady": "Aktualizace metadat vyžaduje novější verzi launcheru, ale aktualizace softwaru není v současné době k dispozici.",
     "deleteView": "Odstranit vyhledávací okno",
     "deleteOnlyBrowseView": "Odstranit vyhledávací okno (Musí existovat další vlastní okno)",
-    "createNewView": "Vytvořit nové vyhledávací okno"
+    "createNewView": "Vytvořit nové vyhledávací okno",
+    "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
     "dateAdded": "Datum přidání",
@@ -386,14 +392,18 @@
     "noGameMatchedSearch": "Zkuste méně omezit výběr hledání.",
     "mountParameters": "Zavádějící parametry",
     "noMountParameters": "Žádné zavádějící parametry",
+    "ruffleSupport": "Ruffle Support",
     "showExtremeScreenshot": "Zobrazovat snímky obrazovky pro dospělé",
     "busy": "Čekejte prosím...",
     "openGameDataBrowser": "Otevřít prohlížeč herních dat",
     "allGenericEntries": "Všechny záznamy",
     "usePlaylistOrder": "Použít pořadí seznamu",
+    "hideFilters": "Hide Filters",
+    "showFilters": "Show Filters",
     "notArchived": "Nearchivováno",
     "archived": "Archivováno",
-    "playOnline": "Hrát online"
+    "playOnline": "Hrát online",
+    "tagFilterIcon": "Tag Filter Icon"
   },
   "tags": {
     "name": "Název",
@@ -416,7 +426,8 @@
     "makeAliasWhenMerged": "Udělat z tohoto alias Štítku?",
     "deleteTag": "Odstranit Štítek",
     "deleteTagCategory": "Odstranit Kategorii Štítků",
-    "locked": "Uzamčeno během zpracovávání..."
+    "locked": "Uzamčeno během zpracovávání...",
+    "filterIcon": "Icon Thumbnail"
   },
   "curate": {
     "noCurationSelected": "Není vybrána žádná kurace",
@@ -533,6 +544,7 @@
   "misc": {
     "noBlankFound": "Žádn(ý/á) {0} nenalezen(a)",
     "addBlank": "Přidat {0}",
+    "removeBlank": "Remove {0}",
     "deleteAllBlankImages": "Odstranit VŠECHNY {0} k této hře",
     "yes": "Ano",
     "no": "Ne",
