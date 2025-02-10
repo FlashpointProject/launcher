@@ -10,6 +10,8 @@
     "hideExtremeScreenshotsDesc": "Peidab ekstreemsete mängude ekraanipilte. Neid saab avada klikkides pildi kastile.",
     "fancyAnimations": "Uhked Animatsioonid",
     "fancyAnimationsDesc": "Luba uhked animatsioonid pealehel.",
+    "hideNewViewButton": "Hide New View Button",
+    "hideNewViewButtonDesc": "When using custom views, hide the new view (+) button. You can instead press 'Create New View' under the context menu for tabs.",
     "searchLimit": "Otsingu Limiit",
     "searchLimitDesc": "Piira tulemuste arvu otsingus",
     "searchLimitUnlimited": "Piiramatu",
@@ -89,8 +91,10 @@
     "screenshotPreviewDelay": "Ekraanipildi Eelvaate Viivitus",
     "screenshotPreviewDelayDesc": "Viivitus (millisekundites) enne Ekraanipildi kuvamist, kui Ekraanipildi Eelvaade on sisse lülitatud. (hiirega üle hõljudes)",
     "advancedHeader": "Täpsemad seaded",
+    "clearWininetCache": "Clear WinINet Cache",
+    "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "Optimeeri Andmebaasi",
-    "optimizeDatabaseDesc": "Käivita hooldustoiminguid, et suurendada andmebaasi jõudlust ja vähendada suurust",
+    "optimizeDatabaseDesc": "Run maintenance tasks to increase database performance and reduce size.",
     "showDeveloperTab": "Näita Arendaja Akent",
     "showDeveloperTabDesc": "Näita 'Arendaja' akent. See on enamasti kasulik vaid arendajatele ja kuraatoritele.",
     "registerProtocol": "Register As Protocol Handler",
@@ -180,6 +184,7 @@
     "curate": "Kureeri",
     "developer": "Arendaja",
     "searchPlaceholder": "Otsi...",
+    "searchPlaceholderCountable": "Search... ({0} items)",
     "hideRightSidebar": "Peida parem külgriba",
     "showRightSidebar": "Näita paremat külgriba",
     "hideLeftSidebar": "Peida vasak külgriba",
@@ -198,7 +203,8 @@
     "noLauncherUpdateReady": "Metaandmete värskendus nõuab Rakenduse uuemat versiooni, kuid tarkvaravärskendus pole praegu saadaval.",
     "deleteView": "Kustuta otsingu Vaade",
     "deleteOnlyBrowseView": "Kustuta Otsingu Vaade (Peab olemas olema mõni muu kohandatud vaade)",
-    "createNewView": "Loo uus otsingu vaade"
+    "createNewView": "Loo uus otsingu vaade",
+    "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
     "dateAdded": "Kuupäev Lisatud",
@@ -386,14 +392,18 @@
     "noGameMatchedSearch": "Proovi otsida midagi vähem piiravamat.",
     "mountParameters": "Rakendusparameetrid",
     "noMountParameters": "Pole Rakendusparameetreid",
+    "ruffleSupport": "Ruffle Support",
     "showExtremeScreenshot": "Näita Ekstreemset Ekraanipilti",
     "busy": "Palun Oota...",
     "openGameDataBrowser": "Ava Mängu Andmete Brauser",
     "allGenericEntries": "Kõik sissekanded",
     "usePlaylistOrder": "Kasuta Esitusloendi Järjestust",
+    "hideFilters": "Hide Filters",
+    "showFilters": "Show Filters",
     "notArchived": "Pole Arhiveeritud",
     "archived": "Arhiveeritud",
-    "playOnline": "Mängi võrgus"
+    "playOnline": "Mängi võrgus",
+    "tagFilterIcon": "Tag Filter Icon"
   },
   "tags": {
     "name": "Nimi",
@@ -416,7 +426,8 @@
     "makeAliasWhenMerged": "Kas muuta see uueks märksõna alternatiiviks?",
     "deleteTag": "Kustuta Märksõna",
     "deleteTagCategory": "Kustuta Märksõna Kategooria",
-    "locked": "Lukus protsessi ajal..."
+    "locked": "Lukus protsessi ajal...",
+    "filterIcon": "Icon Thumbnail"
   },
   "curate": {
     "noCurationSelected": "Ühtegi Kureeringut Pole Valitud",
@@ -533,6 +544,7 @@
   "misc": {
     "noBlankFound": "{0} ei Leitud",
     "addBlank": "Lisa {0}",
+    "removeBlank": "Remove {0}",
     "deleteAllBlankImages": "Kustuta KÕIK {0} pildid sellel mängul",
     "yes": "Jah",
     "no": "Ei",
