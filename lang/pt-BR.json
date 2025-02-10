@@ -10,6 +10,8 @@
     "hideExtremeScreenshotsDesc": "Oculta capturas de tela de conteúdo com tags Extremas, podem ser reveladas com um clique na caixa de imagem.",
     "fancyAnimations": "Animações Bonitas",
     "fancyAnimationsDesc": "Habilitar animações bonitas no launcher.",
+    "hideNewViewButton": "Hide New View Button",
+    "hideNewViewButtonDesc": "When using custom views, hide the new view (+) button. You can instead press 'Create New View' under the context menu for tabs.",
     "searchLimit": "Limite de busca",
     "searchLimitDesc": "Limitar o número de resultados retornados em qualquer busca",
     "searchLimitUnlimited": "Ilimitado",
@@ -89,8 +91,10 @@
     "screenshotPreviewDelay": "Delay da Pré-visualização da Captura de Tela",
     "screenshotPreviewDelayDesc": "Delay (em milissegundos) antes de mostrar a captura de tela, quando a Pré-visualização da Captura de Tela estiver habilitada. (quando suspensa)",
     "advancedHeader": "Avançado",
+    "clearWininetCache": "Clear WinINet Cache",
+    "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "Otimizar Base de Dados",
-    "optimizeDatabaseDesc": "Executar tarefas de manutenção para aumentar o desempenho do banco de dados e reduzir o tamanho",
+    "optimizeDatabaseDesc": "Run maintenance tasks to increase database performance and reduce size.",
     "showDeveloperTab": "Mostrar Aba de Desenvolvedor",
     "showDeveloperTabDesc": "Mostra a aba de 'Desenvolvedor'. Isto provavelmente só é útil para desenvolvedores e curadores.",
     "registerProtocol": "Registre-se Como um Manipulador de Protocolo",
@@ -180,6 +184,7 @@
     "curate": "Curar",
     "developer": "Desenvolvedor",
     "searchPlaceholder": "Pesquisar...",
+    "searchPlaceholderCountable": "Search... ({0} items)",
     "hideRightSidebar": "Ocultar barra lateral direita",
     "showRightSidebar": "Mostrar barra lateral direita",
     "hideLeftSidebar": "Ocultar barra lateral esquerda",
@@ -198,7 +203,8 @@
     "noLauncherUpdateReady": "A atualização de metadados requer uma versão mais nova do Launcher, mas a atualização do software não está disponível no momento.",
     "deleteView": "Delete Search View",
     "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
-    "createNewView": "Create new search view"
+    "createNewView": "Create new search view",
+    "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
     "dateAdded": "Data de Adição",
@@ -386,14 +392,18 @@
     "noGameMatchedSearch": "Tente pesquisar por algo menos restritivo.",
     "mountParameters": "Parâmetros de Mount",
     "noMountParameters": "Sem Parâmetros de Mount",
+    "ruffleSupport": "Ruffle Support",
     "showExtremeScreenshot": "Mostrar Captura de Tela Extrema",
     "busy": "Por favor, aguarde...",
     "openGameDataBrowser": "Abrir Navegador de Dados de Jogo",
     "allGenericEntries": "All Entries",
     "usePlaylistOrder": "Use Playlist Order",
+    "hideFilters": "Hide Filters",
+    "showFilters": "Show Filters",
     "notArchived": "Não Arquivado",
     "archived": "Arquivado",
-    "playOnline": "Jogar Online"
+    "playOnline": "Jogar Online",
+    "tagFilterIcon": "Tag Filter Icon"
   },
   "tags": {
     "name": "Nome",
@@ -416,7 +426,8 @@
     "makeAliasWhenMerged": "Tornar isso um apelido da tag?",
     "deleteTag": "Deletar Tag",
     "deleteTagCategory": "Deletar Categoria de Tag",
-    "locked": "Bloqueado durante o processamento..."
+    "locked": "Bloqueado durante o processamento...",
+    "filterIcon": "Icon Thumbnail"
   },
   "curate": {
     "noCurationSelected": "Nenhuma Curação Selecionada",
@@ -533,6 +544,7 @@
   "misc": {
     "noBlankFound": "Nenhuma {0} Encontrada",
     "addBlank": "Adicionar {0}",
+    "removeBlank": "Remove {0}",
     "deleteAllBlankImages": "Deletar TODAS as {0} imagens para este jogo",
     "yes": "Sim",
     "no": "Não",
