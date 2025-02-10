@@ -10,6 +10,8 @@
     "hideExtremeScreenshotsDesc": "Elrejti az extrém-ként taggelt játékok képernyőmentéseit, előhozható a képdobozra kattintással.",
     "fancyAnimations": "Szép animációk",
     "fancyAnimationsDesc": "Látványos animációk engedélyezése a launcherben.",
+    "hideNewViewButton": "Hide New View Button",
+    "hideNewViewButtonDesc": "When using custom views, hide the new view (+) button. You can instead press 'Create New View' under the context menu for tabs.",
     "searchLimit": "Keresés korlátozása",
     "searchLimitDesc": "A visszaadott keresési találatok korlátozása bármelyik keresésnél",
     "searchLimitUnlimited": "Korlátlan",
@@ -89,8 +91,10 @@
     "screenshotPreviewDelay": "Screenshot Preview Delay",
     "screenshotPreviewDelayDesc": "Delay (in milliseconds) before showing the screenshot, when Screenshot Preview is set to on. (when hovering)",
     "advancedHeader": "Haladó",
+    "clearWininetCache": "Clear WinINet Cache",
+    "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "Adatbázis optimalizálása",
-    "optimizeDatabaseDesc": "Karbantartási feladatok futtatása az adatbázis teljesítményének növeléséhez és az adatbázis méretének csökkentéséhez",
+    "optimizeDatabaseDesc": "Run maintenance tasks to increase database performance and reduce size.",
     "showDeveloperTab": "Fejlesztői lap megjelenítése",
     "showDeveloperTabDesc": "Ez lehet csak fejlesztők és kurátorok számára hasznos.",
     "registerProtocol": "Register As Protocol Handler",
@@ -180,6 +184,7 @@
     "curate": "Kurátor",
     "developer": "Fejlesztő",
     "searchPlaceholder": "Keresés...",
+    "searchPlaceholderCountable": "Search... ({0} items)",
     "hideRightSidebar": "Jobb oldalsáv elrejtése",
     "showRightSidebar": "Jobb oldalsáv megjelenítése",
     "hideLeftSidebar": "Bal oldalsáv elrejtése",
@@ -198,7 +203,8 @@
     "noLauncherUpdateReady": "Metadata update requires a newer Launcher version, but the software update is not currently available.",
     "deleteView": "Delete Search View",
     "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
-    "createNewView": "Create new search view"
+    "createNewView": "Create new search view",
+    "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
     "dateAdded": "Hozzáadás dátuma",
@@ -386,14 +392,18 @@
     "noGameMatchedSearch": "Próbáljon meg szélesebb körben keresni.",
     "mountParameters": "Mount paraméterek",
     "noMountParameters": "Nincsen mount paraméter(ek)",
+    "ruffleSupport": "Ruffle Support",
     "showExtremeScreenshot": "Extrém képernyőmentések mutatása",
     "busy": "Kérem várjon...",
     "openGameDataBrowser": "Játékadat Böngésző Megnyitása",
     "allGenericEntries": "All Entries",
     "usePlaylistOrder": "Use Playlist Order",
+    "hideFilters": "Hide Filters",
+    "showFilters": "Show Filters",
     "notArchived": "Not Archived",
     "archived": "Archived",
-    "playOnline": "Play Online"
+    "playOnline": "Play Online",
+    "tagFilterIcon": "Tag Filter Icon"
   },
   "tags": {
     "name": "Név",
@@ -416,7 +426,8 @@
     "makeAliasWhenMerged": "Kíván nevet készíteni a címkéből?",
     "deleteTag": "Címke törlése",
     "deleteTagCategory": "Címke kategória törlése",
-    "locked": "Zárolva a feldolgozás alatt.."
+    "locked": "Zárolva a feldolgozás alatt..",
+    "filterIcon": "Icon Thumbnail"
   },
   "curate": {
     "noCurationSelected": "Nincsen kiválasztott Kurátor",
@@ -533,6 +544,7 @@
   "misc": {
     "noBlankFound": "Nem Található",
     "addBlank": "Hozzáad",
+    "removeBlank": "Remove {0}",
     "deleteAllBlankImages": "Összes kép törlése ehhez a játékhoz",
     "yes": "Igen",
     "no": "Nem",
