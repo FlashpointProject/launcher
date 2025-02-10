@@ -10,6 +10,8 @@
     "hideExtremeScreenshotsDesc": "Скрывает скриншоты содержимого для взрослых, можно вернуть нажатием на окно изображения.",
     "fancyAnimations": "Плавные анимации",
     "fancyAnimationsDesc": "Включить плавные анимации в программе запуска.",
+    "hideNewViewButton": "Hide New View Button",
+    "hideNewViewButtonDesc": "When using custom views, hide the new view (+) button. You can instead press 'Create New View' under the context menu for tabs.",
     "searchLimit": "Поисковый лимит",
     "searchLimitDesc": "Ограничить число результатов при поиске",
     "searchLimitUnlimited": "Без ограничений",
@@ -89,8 +91,10 @@
     "screenshotPreviewDelay": "Задержка предпросмотра скриншота",
     "screenshotPreviewDelayDesc": "Задержка (в миллисекундах) перед показом скриншота, если для параметра предпросмотра скриншота установлено значение «Вкл. (при наведении)»",
     "advancedHeader": "Дополнительно",
+    "clearWininetCache": "Clear WinINet Cache",
+    "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "Оптимизировать базу данных",
-    "optimizeDatabaseDesc": "Выполняйте задачи по обслуживанию для повышения производительности базы данных и уменьшения её размера",
+    "optimizeDatabaseDesc": "Run maintenance tasks to increase database performance and reduce size.",
     "showDeveloperTab": "Показать вкладку разработчика",
     "showDeveloperTabDesc": "Показывает вкладку «Разработчикам». Она полезна в большинстве случаев только для разработчиков и кураторов.",
     "registerProtocol": "Зарегистрировать как обработчик протокола",
@@ -180,6 +184,7 @@
     "curate": "Кураторам",
     "developer": "Разработчикам",
     "searchPlaceholder": "Поиск...",
+    "searchPlaceholderCountable": "Search... ({0} items)",
     "hideRightSidebar": "Скрыть правую боковую панель",
     "showRightSidebar": "Показать правую боковую панель",
     "hideLeftSidebar": "Скрыть левую боковую панель",
@@ -198,7 +203,8 @@
     "noLauncherUpdateReady": "Обновление метаданных требует более новой версии лаунчера, но обновление ПО в настоящее время недоступно.",
     "deleteView": "Удалить вид поиска",
     "deleteOnlyBrowseView": "Удалить вид поиска (должен иметь другой пользовательский вид)",
-    "createNewView": "Создать новый вид поиска"
+    "createNewView": "Создать новый вид поиска",
+    "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
     "dateAdded": "Дата добавления",
@@ -386,14 +392,18 @@
     "noGameMatchedSearch": "Попробуйте изменить запрос на менее конкретный.",
     "mountParameters": "Параметры монтирования",
     "noMountParameters": "Нет параметров шейдера",
+    "ruffleSupport": "Ruffle Support",
     "showExtremeScreenshot": "Показать скриншоты контента для взрослых",
     "busy": "Пожалуйста, подождите...",
     "openGameDataBrowser": "Открыть браузер игровых данных",
     "allGenericEntries": "Все записи",
     "usePlaylistOrder": "Использовать порядок плейлистов",
+    "hideFilters": "Hide Filters",
+    "showFilters": "Show Filters",
     "notArchived": "Не в архиве",
     "archived": "В архиве",
-    "playOnline": "Играть в браузере"
+    "playOnline": "Играть в браузере",
+    "tagFilterIcon": "Tag Filter Icon"
   },
   "tags": {
     "name": "Наименование",
@@ -416,7 +426,8 @@
     "makeAliasWhenMerged": "Сделать это псевдонимомом метки?",
     "deleteTag": "Удалить метку",
     "deleteTagCategory": "Удалить категорию метки",
-    "locked": "Заблокировано во время обработки..."
+    "locked": "Заблокировано во время обработки...",
+    "filterIcon": "Icon Thumbnail"
   },
   "curate": {
     "noCurationSelected": "Кураций не выбрано",
@@ -533,6 +544,7 @@
   "misc": {
     "noBlankFound": "{0} не найден",
     "addBlank": "Добавить {0}",
+    "removeBlank": "Remove {0}",
     "deleteAllBlankImages": "Удалить все изображения {0} для этой игры",
     "yes": "Да",
     "no": "Нет",
