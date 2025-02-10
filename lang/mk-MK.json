@@ -10,6 +10,8 @@
     "hideExtremeScreenshotsDesc": "Сокрива слики од екранот на екстремно обележана содржина, може да се покажува со клик на полето за слики.",
     "fancyAnimations": "Фенси Анимации",
     "fancyAnimationsDesc": "Овозможи фенси анимации во лаунчерот.",
+    "hideNewViewButton": "Hide New View Button",
+    "hideNewViewButtonDesc": "When using custom views, hide the new view (+) button. You can instead press 'Create New View' under the context menu for tabs.",
     "searchLimit": "Ограничи Пребарување",
     "searchLimitDesc": "Ограничете го бројот на вратени резултати при секое пребарување",
     "searchLimitUnlimited": "Неограничено",
@@ -89,8 +91,10 @@
     "screenshotPreviewDelay": "Одложувај преглед на слика",
     "screenshotPreviewDelayDesc": "Одложи (во милисекунди) пред прикажување на сликата од екран, кога прегледот на сликата на екран е поставен on. (преку опцијата со твојот маус)",
     "advancedHeader": "Напредно",
+    "clearWininetCache": "Clear WinINet Cache",
+    "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "Оптимизирај ја Базата на податоци",
-    "optimizeDatabaseDesc": "Извршете задачи за одржување за да ги зголемите перформансите на базата на податоци и да ја намалите големината",
+    "optimizeDatabaseDesc": "Run maintenance tasks to increase database performance and reduce size.",
     "showDeveloperTab": "Покажи карта за програмери",
     "showDeveloperTabDesc": "Покажи ја картичката за „Програмер“. Ова е најверојатно корисно само за програмери и куратори.",
     "registerProtocol": "Регистрирај се како Управувач со Протоколи",
@@ -180,6 +184,7 @@
     "curate": "Курате",
     "developer": "Програмер",
     "searchPlaceholder": "Барај...",
+    "searchPlaceholderCountable": "Search... ({0} items)",
     "hideRightSidebar": "Скриј ја десната лента",
     "showRightSidebar": "Покажи ја десната лента",
     "hideLeftSidebar": "Скриј ја левата лента",
@@ -198,7 +203,8 @@
     "noLauncherUpdateReady": "Ажурирањето на метаподатоци бара понова верзија на Лаунчер, но ажурирањето на софтверот во моментов не е достапно.",
     "deleteView": "Избриши го Самостојниот Пребарувач",
     "deleteOnlyBrowseView": "Избриши го Самостојниот Пребарувач (мора да има уште еден пребарувач)",
-    "createNewView": "Направи нов Самостоен Пребарувач"
+    "createNewView": "Направи нов Самостоен Пребарувач",
+    "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
     "dateAdded": "Датум Додадено",
@@ -386,14 +392,18 @@
     "noGameMatchedSearch": "Обидете се да побарате нешто помалку ограничувачко.",
     "mountParameters": "Моунт Параметри",
     "noMountParameters": "Нема Моунт Параметри",
+    "ruffleSupport": "Ruffle Support",
     "showExtremeScreenshot": "Покажувај Eкстремни Cлики од Eкраноt",
     "busy": "Ве Молиме Да Почекате...",
     "openGameDataBrowser": "Отворете го прелистувачот за податоци за игри",
     "allGenericEntries": "Сите Записи",
     "usePlaylistOrder": "Користи Уредивач на Плејлист",
+    "hideFilters": "Hide Filters",
+    "showFilters": "Show Filters",
     "notArchived": "Не е Архивирано",
     "archived": "Архивиран",
-    "playOnline": "Играј online"
+    "playOnline": "Играј online",
+    "tagFilterIcon": "Tag Filter Icon"
   },
   "tags": {
     "name": "Име",
@@ -416,7 +426,8 @@
     "makeAliasWhenMerged": "Направи алијас од ознаката?",
     "deleteTag": "Избриши ознака",
     "deleteTagCategory": "Избриши ја Категоријата на Ознаката",
-    "locked": "Заклучено додека се обработува..."
+    "locked": "Заклучено додека се обработува...",
+    "filterIcon": "Icon Thumbnail"
   },
   "curate": {
     "noCurationSelected": "Никаква Курација Селектирана",
@@ -533,6 +544,7 @@
   "misc": {
     "noBlankFound": "Нема {0} пронајдено",
     "addBlank": "Додади {0}",
+    "removeBlank": "Remove {0}",
     "deleteAllBlankImages": "Избриши сите {0} слики од таа игра",
     "yes": "Да",
     "no": "Не",
