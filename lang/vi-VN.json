@@ -10,6 +10,8 @@
     "hideExtremeScreenshotsDesc": "Ẩn ảnh chụp màn hình của nội dung có nhãn Phản cảm. Nhấp chuột lên khung ảnh để hiện ảnh.",
     "fancyAnimations": "Hiệu ứng động bắt mắt",
     "fancyAnimationsDesc": "Xem hiệu ứng động bắt mắt trong trình khởi chạy.",
+    "hideNewViewButton": "Hide New View Button",
+    "hideNewViewButtonDesc": "When using custom views, hide the new view (+) button. You can instead press 'Create New View' under the context menu for tabs.",
     "searchLimit": "Giới hạn kết quả",
     "searchLimitDesc": "Giới hạn số kết quả trả về mỗi khi tìm kiếm",
     "searchLimitUnlimited": "Không giới hạn",
@@ -89,8 +91,10 @@
     "screenshotPreviewDelay": "Screenshot Preview Delay",
     "screenshotPreviewDelayDesc": "Delay (in milliseconds) before showing the screenshot, when Screenshot Preview is set to on. (when hovering)",
     "advancedHeader": "Nâng cao",
+    "clearWininetCache": "Clear WinINet Cache",
+    "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "Tối ưu CSDL",
-    "optimizeDatabaseDesc": "Thực hiện tác vụ bảo trì để tăng hiệu suất và giảm kích cỡ của cơ sở dữ liệu",
+    "optimizeDatabaseDesc": "Run maintenance tasks to increase database performance and reduce size.",
     "showDeveloperTab": "Hiện trang Nhà phát triển",
     "showDeveloperTabDesc": "Hiện trang \"Nhà phát triển\". Hữu dụng nhất cho lập trình viên và người đóng góp.",
     "registerProtocol": "Register As Protocol Handler",
@@ -180,6 +184,7 @@
     "curate": "Đóng góp",
     "developer": "Nhà phát triển",
     "searchPlaceholder": "Tìm...",
+    "searchPlaceholderCountable": "Search... ({0} items)",
     "hideRightSidebar": "Ẩn thanh bên phải",
     "showRightSidebar": "Hiện thanh bên phải",
     "hideLeftSidebar": "Ẩn thanh bên trái",
@@ -198,7 +203,8 @@
     "noLauncherUpdateReady": "Để cập nhật thông tin của nội dung, cần dùng một bản mới hơn của Trình khởi chạy. Phiên bản này hiện chưa có.",
     "deleteView": "Delete Search View",
     "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
-    "createNewView": "Create new search view"
+    "createNewView": "Create new search view",
+    "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
     "dateAdded": "Ngày thêm",
@@ -386,14 +392,18 @@
     "noGameMatchedSearch": "Hãy tìm từ khoá chung chung hơn.",
     "mountParameters": "Tham Số Khởi Động Trò Chơi",
     "noMountParameters": "Không có",
+    "ruffleSupport": "Ruffle Support",
     "showExtremeScreenshot": "Hiện ảnh chụp màn hình phản cảm",
     "busy": "Bạn đợi xíu nhé...",
     "openGameDataBrowser": "Mở trình duyệt dữ liệu trò chơi",
     "allGenericEntries": "All Entries",
     "usePlaylistOrder": "Use Playlist Order",
+    "hideFilters": "Hide Filters",
+    "showFilters": "Show Filters",
     "notArchived": "Not Archived",
     "archived": "Archived",
-    "playOnline": "Chơi trực tuyến"
+    "playOnline": "Chơi trực tuyến",
+    "tagFilterIcon": "Tag Filter Icon"
   },
   "tags": {
     "name": "Tên",
@@ -416,7 +426,8 @@
     "makeAliasWhenMerged": "Đặt làm tên khác của nhãn?",
     "deleteTag": "Xoá nhãn",
     "deleteTagCategory": "Xoá danh mục nhãn",
-    "locked": "Bị khoá khi đang xử lí..."
+    "locked": "Bị khoá khi đang xử lí...",
+    "filterIcon": "Icon Thumbnail"
   },
   "curate": {
     "noCurationSelected": "Chưa có bản đóng góp nào",
@@ -533,6 +544,7 @@
   "misc": {
     "noBlankFound": "Không tìm thấy {0}",
     "addBlank": "Thêm {0}",
+    "removeBlank": "Remove {0}",
     "deleteAllBlankImages": "Xoá TOÀN BỘ {0} hình của trò chơi này",
     "yes": "Có",
     "no": "Không",
