@@ -10,6 +10,8 @@
     "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
     "fancyAnimations": "Swashbucklin' Scenes",
     "fancyAnimationsDesc": "Enable fancy animations in the launcher.",
+    "hideNewViewButton": "Hide New View Button",
+    "hideNewViewButtonDesc": "When using custom views, hide the new view (+) button. You can instead press 'Create New View' under the context menu for tabs.",
     "searchLimit": "Swabbie Scuttle",
     "searchLimitDesc": "Limit the number of results returned in any search",
     "searchLimitUnlimited": "Unlimited",
@@ -89,8 +91,10 @@
     "screenshotPreviewDelay": "Screenshot Preview Delay",
     "screenshotPreviewDelayDesc": "Delay (in milliseconds) before showing the screenshot, when Screenshot Preview is set to on. (when hovering)",
     "advancedHeader": "Advanced",
+    "clearWininetCache": "Clear WinINet Cache",
+    "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "Optimize Database",
-    "optimizeDatabaseDesc": "Run maintenance tasks to increase database performance and reduce size",
+    "optimizeDatabaseDesc": "Run maintenance tasks to increase database performance and reduce size.",
     "showDeveloperTab": "Show Developer Tab",
     "showDeveloperTabDesc": "Show thar 'Developer' tab. Dis be most likely only useful fer developers n' curators.",
     "registerProtocol": "Register As Protocol Handler",
@@ -180,6 +184,7 @@
     "curate": "Curate",
     "developer": "Carpenter",
     "searchPlaceholder": "Search...",
+    "searchPlaceholderCountable": "Search... ({0} items)",
     "hideRightSidebar": "Hide right sidebar",
     "showRightSidebar": "Show right sidebar",
     "hideLeftSidebar": "Hide left sidebar",
@@ -198,7 +203,8 @@
     "noLauncherUpdateReady": "Metadata update requires a newer Launcher version, but the software update is not currently available.",
     "deleteView": "Delete Search View",
     "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
-    "createNewView": "Create new search view"
+    "createNewView": "Create new search view",
+    "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
     "dateAdded": "Date Added",
@@ -386,14 +392,18 @@
     "noGameMatchedSearch": "Try searching for something less restrictive.",
     "mountParameters": "Mount Parameters",
     "noMountParameters": "No Mount Parameters",
+    "ruffleSupport": "Ruffle Support",
     "showExtremeScreenshot": "Show eye-catchin' photos",
     "busy": "Please Wait...",
     "openGameDataBrowser": "Open Game Data Browser",
     "allGenericEntries": "All Entries",
     "usePlaylistOrder": "Use Playlist Order",
+    "hideFilters": "Hide Filters",
+    "showFilters": "Show Filters",
     "notArchived": "Not Archived",
     "archived": "Archived",
-    "playOnline": "Play Online"
+    "playOnline": "Play Online",
+    "tagFilterIcon": "Tag Filter Icon"
   },
   "tags": {
     "name": "Name",
@@ -416,7 +426,8 @@
     "makeAliasWhenMerged": "Make this an alias of the tag?",
     "deleteTag": "Delete Tag",
     "deleteTagCategory": "Delete Tag Category",
-    "locked": "Locked while processing..."
+    "locked": "Locked while processing...",
+    "filterIcon": "Icon Thumbnail"
   },
   "curate": {
     "noCurationSelected": "No Curation Selected",
@@ -533,6 +544,7 @@
   "misc": {
     "noBlankFound": "No {0} Found",
     "addBlank": "Add {0}",
+    "removeBlank": "Remove {0}",
     "deleteAllBlankImages": "Delete ALL {0} images for this game",
     "yes": "Yes",
     "no": "No",
