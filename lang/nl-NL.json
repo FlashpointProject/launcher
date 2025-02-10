@@ -10,6 +10,8 @@
     "hideExtremeScreenshotsDesc": "Verbergt screenshots van Extreme-gelabelde inhoud, kan niet worden verborgen met een klik op de afbeeldingsbox.",
     "fancyAnimations": "Mooie Animaties",
     "fancyAnimationsDesc": "Inschakelen van mooie animaties in de launcher.",
+    "hideNewViewButton": "Hide New View Button",
+    "hideNewViewButtonDesc": "When using custom views, hide the new view (+) button. You can instead press 'Create New View' under the context menu for tabs.",
     "searchLimit": "Zoek Limiet",
     "searchLimitDesc": "Beperk het aantal resultaten dat bij elke zoekopdracht wordt verkregen",
     "searchLimitUnlimited": "Onbeperkt",
@@ -89,8 +91,10 @@
     "screenshotPreviewDelay": "Screenshot voorvertoning vertraging",
     "screenshotPreviewDelayDesc": "Vertraging (in milliseconden) voor het tonen van de schermafdruk, wanneer voorvertoning van schermafbeelding is ingesteld op aan. (bij zweven)",
     "advancedHeader": "Geavanceerd",
+    "clearWininetCache": "Clear WinINet Cache",
+    "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "Optimaliseer Database",
-    "optimizeDatabaseDesc": "Voer onderhoudstaken uit om de database prestaties te verbeteren en de grootte te verminderen",
+    "optimizeDatabaseDesc": "Run maintenance tasks to increase database performance and reduce size.",
     "showDeveloperTab": "Toon Ontwikkelaar Tabblad",
     "showDeveloperTabDesc": "Toon de 'Ontwikkelaars' tab. Dit is waarschijnlijk alleen handig voor ontwikkelaars en curatoren.",
     "registerProtocol": "Registreren als Protocol Handler",
@@ -180,6 +184,7 @@
     "curate": "Cureren",
     "developer": "Ontwikkelaar",
     "searchPlaceholder": "Zoeken...",
+    "searchPlaceholderCountable": "Search... ({0} items)",
     "hideRightSidebar": "Verberg rechter zijbalk",
     "showRightSidebar": "Rechter zijbalk tonen",
     "hideLeftSidebar": "Verberg linker zijbalk",
@@ -198,7 +203,8 @@
     "noLauncherUpdateReady": "Metagegevens update vereist een nieuwere Launcher-versie, maar de software-update is momenteel niet beschikbaar.",
     "deleteView": "Delete Search View",
     "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
-    "createNewView": "Create new search view"
+    "createNewView": "Create new search view",
+    "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
     "dateAdded": "Datum toegevoegd",
@@ -386,14 +392,18 @@
     "noGameMatchedSearch": "Probeer naar iets gemakkelijker te zoeken.",
     "mountParameters": "Koppel Parameters",
     "noMountParameters": "Geen Koppel Parameters",
+    "ruffleSupport": "Ruffle Support",
     "showExtremeScreenshot": "Extreme Schermafbeelding Weergeven",
     "busy": "Even geduld aub...",
     "openGameDataBrowser": "Open spelgegevensbrowser",
     "allGenericEntries": "All Entries",
     "usePlaylistOrder": "Use Playlist Order",
+    "hideFilters": "Hide Filters",
+    "showFilters": "Show Filters",
     "notArchived": "Niet gearchiveerd",
     "archived": "Gearchiveerd",
-    "playOnline": "Online spelen"
+    "playOnline": "Online spelen",
+    "tagFilterIcon": "Tag Filter Icon"
   },
   "tags": {
     "name": "Naam",
@@ -416,7 +426,8 @@
     "makeAliasWhenMerged": "Maak dit een label-alias?",
     "deleteTag": "Label verwijderen",
     "deleteTagCategory": "Verwijder label-categorie",
-    "locked": "Vergrendeld tijdens verwerking..."
+    "locked": "Vergrendeld tijdens verwerking...",
+    "filterIcon": "Icon Thumbnail"
   },
   "curate": {
     "noCurationSelected": "Geen curatie geselecteerd",
@@ -533,6 +544,7 @@
   "misc": {
     "noBlankFound": "Geen {0} gevonden",
     "addBlank": "{0} Toevoegen",
+    "removeBlank": "Remove {0}",
     "deleteAllBlankImages": "Verwijder ALLE {0} afbeeldingen voor dit spel",
     "yes": "Ja",
     "no": "Nee",
