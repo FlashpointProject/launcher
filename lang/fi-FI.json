@@ -10,6 +10,8 @@
     "hideExtremeScreenshotsDesc": "Piilottaa Extreme-tunnisteella merkityn sisällön, sen saa esille klikkaamalla kuvaa.",
     "fancyAnimations": "Hienot animaatiot",
     "fancyAnimationsDesc": "Ota hienot animaatiot käyttöön launcherissa.",
+    "hideNewViewButton": "Hide New View Button",
+    "hideNewViewButtonDesc": "When using custom views, hide the new view (+) button. You can instead press 'Create New View' under the context menu for tabs.",
     "searchLimit": "Hakuraja",
     "searchLimitDesc": "Rajoita minkä tahansa haun tulosten määrää",
     "searchLimitUnlimited": "Rajaton",
@@ -89,8 +91,10 @@
     "screenshotPreviewDelay": "Kuvakaappauksen esikatselun viive",
     "screenshotPreviewDelayDesc": "Viive (millisekunneissa) ennen kuvakaappauksen näyttämistä, kun kuvakaappauksen esikatselu on asetettu päälle. (Hiirellä osoitettaessa)",
     "advancedHeader": "Edistyneet valinnat",
+    "clearWininetCache": "Clear WinINet Cache",
+    "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "Optimoi tietokanta",
-    "optimizeDatabaseDesc": "Suorita huoltotehtäviä tietokannan suorituskyvyn lisäämiseksi ja koon pienentämiseksi",
+    "optimizeDatabaseDesc": "Run maintenance tasks to increase database performance and reduce size.",
     "showDeveloperTab": "Näytä 'Kehittäjä'-välilehti",
     "showDeveloperTabDesc": "Näytä 'kehittäjä'-välilehti. Tämä välilehti on hyödyllinen kehittäjille ja kuratoijille.",
     "registerProtocol": "Rekisteröi Yhteyskäytännön Käsittelijäksi",
@@ -180,6 +184,7 @@
     "curate": "Kuratoi",
     "developer": "Kehittäjä",
     "searchPlaceholder": "Haku...",
+    "searchPlaceholderCountable": "Search... ({0} items)",
     "hideRightSidebar": "Piilota oikea sivupalkki",
     "showRightSidebar": "Näytä oikea sivupalkki",
     "hideLeftSidebar": "Piilota vasen sivupalkki",
@@ -198,7 +203,8 @@
     "noLauncherUpdateReady": "Metadatan päivitys vaatii uudemman Launcher-version, mutta ohjelmistopäivitys ei ole tällä hetkellä saatavilla.",
     "deleteView": "Delete Search View",
     "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
-    "createNewView": "Create new search view"
+    "createNewView": "Create new search view",
+    "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
     "dateAdded": "Lisäyspäivämäärä",
@@ -386,14 +392,18 @@
     "noGameMatchedSearch": "Yritä etsiä yleisemmillä hakusanoilla.",
     "mountParameters": "Liitä parametrit",
     "noMountParameters": "Ei Liittämisparametrejä",
+    "ruffleSupport": "Ruffle Support",
     "showExtremeScreenshot": "Näytä Extreme-Kuvakaappaus",
     "busy": "Ole hyvä ja odota...",
     "openGameDataBrowser": "Avaa Pelitietojen Selain",
     "allGenericEntries": "All Entries",
     "usePlaylistOrder": "Use Playlist Order",
+    "hideFilters": "Hide Filters",
+    "showFilters": "Show Filters",
     "notArchived": "Ei Arkistoitu",
     "archived": "Arkistoitu",
-    "playOnline": "Pelaa verkossa"
+    "playOnline": "Pelaa verkossa",
+    "tagFilterIcon": "Tag Filter Icon"
   },
   "tags": {
     "name": "Nimi",
@@ -416,7 +426,8 @@
     "makeAliasWhenMerged": "Tee tästä tunnisteen alias?",
     "deleteTag": "Poista tunniste",
     "deleteTagCategory": "Poista tunnistekategoria",
-    "locked": "Lukittu käsittelyn aikana..."
+    "locked": "Lukittu käsittelyn aikana...",
+    "filterIcon": "Icon Thumbnail"
   },
   "curate": {
     "noCurationSelected": "Ei Kuraatiota Valittu",
@@ -533,6 +544,7 @@
   "misc": {
     "noBlankFound": "{0} ei löydy",
     "addBlank": "Lisää {0}",
+    "removeBlank": "Remove {0}",
     "deleteAllBlankImages": "Tuhoa kaikki {0} kuvaa tästä pelistä",
     "yes": "Kyllä",
     "no": "Ei",
