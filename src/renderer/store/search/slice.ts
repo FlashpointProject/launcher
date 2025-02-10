@@ -8,6 +8,7 @@ import { BackIn, PageKeyset, SearchQuery } from '@shared/back/types';
 import { VIEW_PAGE_SIZE } from '@shared/constants';
 import { getDefaultAdvancedFilter, getDefaultGameSearch } from '@shared/search/util';
 import { updatePreferencesData } from '@shared/preferences/util';
+import { number } from 'zod';
 
 export const GENERAL_VIEW_ID = '!general!';
 
@@ -136,6 +137,11 @@ export type SearchCreateViewsAction = {
 
 export type SearchDeleteViewAction = {
   view: string;
+}
+
+export type SearchSetIdAction = {
+  view: string;
+  searchId: number;
 }
 
 export type SearchRenameViewAction = {
@@ -403,6 +409,21 @@ const searchSlice = createSlice({
         }
       }
     },
+    setSearchId(state: SearchState, { payload }: PayloadAction<SearchSetIdAction>) {
+      const view = state.views[payload.view];
+      if (view) {
+        if (view.data.searchId < payload.searchId) {
+          view.data = {
+            searchId: payload.searchId,
+            pages: {},
+            keyset: [],
+            games: {},
+            total: undefined,
+            metaState: RequestState.REQUESTED,
+          };
+        }
+      }
+    },
     setOrderBy(state: SearchState, { payload }: PayloadAction<SearchOrderByAction>) {
       const view = state.views[payload.view];
       if (view) {
@@ -608,6 +629,7 @@ export const {
   selectPlaylist,
   selectGame,
   setFilter,
+  setSearchId,
   setOrderBy,
   setOrderReverse,
   setAdvancedFilter,

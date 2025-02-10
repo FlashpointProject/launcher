@@ -22,6 +22,7 @@ import {
   setFilter,
   setOrderBy,
   setOrderReverse,
+  setSearchId,
   setSearchText
 } from './slice';
 
@@ -34,8 +35,22 @@ export function addSearchMiddleware() {
       const view = state.search.views[action.payload.view];
 
       if (view) {
-        // Debounce building search text
-        debounceBuildQuery(view);
+        // Immediately update search id
+        const newSearchId = view.data.searchId + 1;
+        store.dispatch(setSearchId({ view: view.id, searchId: newSearchId }));
+
+        // Get processed query
+        const filter = await window.Shared.back.request(BackIn.PARSE_QUERY_DATA, {
+          viewId: view.id,
+          searchId: newSearchId,
+          text: view.text,
+          advancedFilter: view.advancedFilter,
+          orderBy: view.orderBy,
+          orderDirection: view.orderReverse,
+          playlist: view.selectedPlaylist
+        });
+
+        store.dispatch(setFilter({ filter }));
       }
     }
   });
@@ -162,45 +177,26 @@ export function addSearchMiddleware() {
       const view = state.search.views[action.payload.filter.viewId];
 
       if (view) {
-        // Debounce building search text
-        debounceSearch(view.id, view.searchFilter);
+        log.info('Launcher', 'Performing search...');
+        // Request first page
+        window.Shared.back.request(BackIn.BROWSE_VIEW_FIRST_PAGE, view.searchFilter)
+        .then((data) => {
+          store.dispatch(addData({
+            view: view.id,
+            data: {
+              searchId: view.searchFilter.searchId,
+              page: 0,
+              games: data.games,
+            }
+          }));
+      
+          // Request keyset
+          store.dispatch(requestKeyset({
+            view: view.id,
+            searchId: view.searchFilter.searchId,
+          }));
+        });
       }
     }
   });
 }
-
-const debounceBuildQuery = debounce(async (view: ResultsView) => {
-  const filter = await window.Shared.back.request(BackIn.PARSE_QUERY_DATA, {
-    viewId: view.id,
-    searchId: view.data.searchId + 1,
-    text: view.text,
-    advancedFilter: view.advancedFilter,
-    orderBy: view.orderBy,
-    orderDirection: view.orderReverse,
-    playlist: view.selectedPlaylist
-  });
-
-  store.dispatch(setFilter({ filter }));
-}, 125);
-
-const debounceSearch = debounce((viewName: string, searchFilter: SearchQuery) => {
-  log.info('Launcher', 'Performing search...');
-  // Request first page
-  window.Shared.back.request(BackIn.BROWSE_VIEW_FIRST_PAGE, searchFilter)
-  .then((data) => {
-    store.dispatch(addData({
-      view: viewName,
-      data: {
-        searchId: searchFilter.searchId,
-        page: 0,
-        games: data.games,
-      }
-    }));
-
-    // Request keyset
-    store.dispatch(requestKeyset({
-      view: viewName,
-      searchId: searchFilter.searchId,
-    }));
-  });
-}, 50);
