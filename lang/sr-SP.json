@@ -10,6 +10,8 @@
     "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
     "fancyAnimations": "Fancy Animations",
     "fancyAnimationsDesc": "Enable fancy animations in the launcher.",
+    "hideNewViewButton": "Hide New View Button",
+    "hideNewViewButtonDesc": "When using custom views, hide the new view (+) button. You can instead press 'Create New View' under the context menu for tabs.",
     "searchLimit": "Ограничење претраге",
     "searchLimitDesc": "Ограничи број резултата који се враћају у било којој претрази",
     "searchLimitUnlimited": "Неограничено",
@@ -89,8 +91,10 @@
     "screenshotPreviewDelay": "Screenshot Preview Delay",
     "screenshotPreviewDelayDesc": "Delay (in milliseconds) before showing the screenshot, when Screenshot Preview is set to on. (when hovering)",
     "advancedHeader": "Напредно",
+    "clearWininetCache": "Clear WinINet Cache",
+    "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "Optimize Database",
-    "optimizeDatabaseDesc": "Run maintenance tasks to increase database performance and reduce size",
+    "optimizeDatabaseDesc": "Run maintenance tasks to increase database performance and reduce size.",
     "showDeveloperTab": "Прикажи картицу Програмер",
     "showDeveloperTabDesc": "Прикажи картицу 'Програмер'. Ово је највероватније једино корисно за програмере и кустосе.",
     "registerProtocol": "Register As Protocol Handler",
@@ -180,6 +184,7 @@
     "curate": "Галерије",
     "developer": "Програмер",
     "searchPlaceholder": "Претражи...",
+    "searchPlaceholderCountable": "Search... ({0} items)",
     "hideRightSidebar": "Сакриј десну траку",
     "showRightSidebar": "Прикажи десну траку",
     "hideLeftSidebar": "Сакриј леву траку",
@@ -198,7 +203,8 @@
     "noLauncherUpdateReady": "Metadata update requires a newer Launcher version, but the software update is not currently available.",
     "deleteView": "Delete Search View",
     "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
-    "createNewView": "Create new search view"
+    "createNewView": "Create new search view",
+    "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
     "dateAdded": "Датум додавања",
@@ -386,14 +392,18 @@
     "noGameMatchedSearch": "Покушај да тражиш нешто мање рестриктивно.",
     "mountParameters": "Mount Parameters",
     "noMountParameters": "No Mount Parameters",
+    "ruffleSupport": "Ruffle Support",
     "showExtremeScreenshot": "Show Extreme Screenshot",
     "busy": "Please Wait...",
     "openGameDataBrowser": "Open Game Data Browser",
     "allGenericEntries": "All Entries",
     "usePlaylistOrder": "Use Playlist Order",
+    "hideFilters": "Hide Filters",
+    "showFilters": "Show Filters",
     "notArchived": "Није архивирано",
     "archived": "Архивирано",
-    "playOnline": "Play Online"
+    "playOnline": "Play Online",
+    "tagFilterIcon": "Tag Filter Icon"
   },
   "tags": {
     "name": "Име",
@@ -416,7 +426,8 @@
     "makeAliasWhenMerged": "Направи ово алиас таг-а?",
     "deleteTag": "Обриши таг",
     "deleteTagCategory": "Обриши таг категорију",
-    "locked": "Закључан док се обрађује..."
+    "locked": "Закључан док се обрађује...",
+    "filterIcon": "Icon Thumbnail"
   },
   "curate": {
     "noCurationSelected": "No Curation Selected",
@@ -533,6 +544,7 @@
   "misc": {
     "noBlankFound": "{0} није пронађена",
     "addBlank": "Додај {0}",
+    "removeBlank": "Remove {0}",
     "deleteAllBlankImages": "Избриши све {0} слике за ову игру",
     "yes": "Да",
     "no": "Не",
