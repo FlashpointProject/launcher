@@ -10,6 +10,8 @@
     "hideExtremeScreenshotsDesc": "Döljer skärmdumpar av extrem-taggat innehåll, kan bli visat genom att klicka på bildrutan.",
     "fancyAnimations": "Snygga animationer",
     "fancyAnimationsDesc": "Aktivera snygga animationer i launchern.",
+    "hideNewViewButton": "Hide New View Button",
+    "hideNewViewButtonDesc": "When using custom views, hide the new view (+) button. You can instead press 'Create New View' under the context menu for tabs.",
     "searchLimit": "Sökgräns",
     "searchLimitDesc": "Begränsa antalet resultat i alla sökfält",
     "searchLimitUnlimited": "Obegränsat",
@@ -89,8 +91,10 @@
     "screenshotPreviewDelay": "Screenshot Preview Delay",
     "screenshotPreviewDelayDesc": "Delay (in milliseconds) before showing the screenshot, when Screenshot Preview is set to on. (when hovering)",
     "advancedHeader": "Avancerat",
+    "clearWininetCache": "Clear WinINet Cache",
+    "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "Optimize Database",
-    "optimizeDatabaseDesc": "Run maintenance tasks to increase database performance and reduce size",
+    "optimizeDatabaseDesc": "Run maintenance tasks to increase database performance and reduce size.",
     "showDeveloperTab": "Visa flik för utvecklare",
     "showDeveloperTabDesc": "Visa fliken \"Utvecklare\". Det är med största sannolikhet bara utvecklare och kuratorer som har användning för detta.",
     "registerProtocol": "Register As Protocol Handler",
@@ -180,6 +184,7 @@
     "curate": "Kuratera",
     "developer": "Utvecklare",
     "searchPlaceholder": "Sök...",
+    "searchPlaceholderCountable": "Search... ({0} items)",
     "hideRightSidebar": "Dölj höger sidofält",
     "showRightSidebar": "Visa höger sidofält",
     "hideLeftSidebar": "Dölj vänster sidofält",
@@ -198,7 +203,8 @@
     "noLauncherUpdateReady": "Metadata update requires a newer Launcher version, but the software update is not currently available.",
     "deleteView": "Delete Search View",
     "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
-    "createNewView": "Create new search view"
+    "createNewView": "Create new search view",
+    "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
     "dateAdded": "Tilläggningsdatum",
@@ -386,14 +392,18 @@
     "noGameMatchedSearch": "Pröva att söka efter någonting mindre specifikt.",
     "mountParameters": "Monteringsparametrar",
     "noMountParameters": "Inga monteringsparametrar",
+    "ruffleSupport": "Ruffle Support",
     "showExtremeScreenshot": "Visa extrem Skärmdump",
     "busy": "Vänligen vänta...",
     "openGameDataBrowser": "Open Game Data Browser",
     "allGenericEntries": "All Entries",
     "usePlaylistOrder": "Use Playlist Order",
+    "hideFilters": "Hide Filters",
+    "showFilters": "Show Filters",
     "notArchived": "Not Archived",
     "archived": "Archived",
-    "playOnline": "Play Online"
+    "playOnline": "Play Online",
+    "tagFilterIcon": "Tag Filter Icon"
   },
   "tags": {
     "name": "Namn",
@@ -416,7 +426,8 @@
     "makeAliasWhenMerged": "Gör detta till ett alias för taggen?",
     "deleteTag": "Ta bort tagg",
     "deleteTagCategory": "Ta bort taggkategori",
-    "locked": "Låst under bearbetning..."
+    "locked": "Låst under bearbetning...",
+    "filterIcon": "Icon Thumbnail"
   },
   "curate": {
     "noCurationSelected": "No Curation Selected",
@@ -533,6 +544,7 @@
   "misc": {
     "noBlankFound": "Ingen {0} hittades",
     "addBlank": "Lägg till {0}",
+    "removeBlank": "Remove {0}",
     "deleteAllBlankImages": "Radera ALLA {0}-bilder för det här spelet",
     "yes": "Ja",
     "no": "Nej",
