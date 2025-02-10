@@ -10,6 +10,8 @@
     "hideExtremeScreenshotsDesc": "「成人向け」とタグされたコンテンツのスクリーンショットを隠す。イメージをクリックすると見えるようになる。",
     "fancyAnimations": "特別なアニメーション",
     "fancyAnimationsDesc": "ランチャーアプリで特別なアニメーション効果を有効にします。",
+    "hideNewViewButton": "Hide New View Button",
+    "hideNewViewButtonDesc": "When using custom views, hide the new view (+) button. You can instead press 'Create New View' under the context menu for tabs.",
     "searchLimit": "検索の結果制限",
     "searchLimitDesc": "検索の結果の数を制限する",
     "searchLimitUnlimited": "無制限",
@@ -89,8 +91,10 @@
     "screenshotPreviewDelay": "Screenshot Preview Delay",
     "screenshotPreviewDelayDesc": "Delay (in milliseconds) before showing the screenshot, when Screenshot Preview is set to on. (when hovering)",
     "advancedHeader": "上位設定",
+    "clearWininetCache": "Clear WinINet Cache",
+    "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "データベースを最適化",
-    "optimizeDatabaseDesc": "メンテナンスタスクを実行してデータベースのパフォーマンスを向上させ、サイズを小さくします",
+    "optimizeDatabaseDesc": "Run maintenance tasks to increase database performance and reduce size.",
     "showDeveloperTab": "開発者タブを表示する",
     "showDeveloperTabDesc": "'開発者'タブを表示します。これはおそらく、開発者とキュレーターのみに役立ちます。",
     "registerProtocol": "Register As Protocol Handler",
@@ -180,6 +184,7 @@
     "curate": "キュレート",
     "developer": "開発者",
     "searchPlaceholder": "検索...",
+    "searchPlaceholderCountable": "Search... ({0} items)",
     "hideRightSidebar": "右側のサイドバーを隠す",
     "showRightSidebar": "右側のサイドバーを表示する",
     "hideLeftSidebar": "左側のサイドバーを隠す",
@@ -198,7 +203,8 @@
     "noLauncherUpdateReady": "メタデータの更新にはより新しいランチャーのバージョンが必要ですが、現在はソフトウェアの更新はまだ公開していません。",
     "deleteView": "Delete Search View",
     "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
-    "createNewView": "Create new search view"
+    "createNewView": "Create new search view",
+    "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
     "dateAdded": "追加日時",
@@ -386,14 +392,18 @@
     "noGameMatchedSearch": "制限の少ないものを探してみてください。",
     "mountParameters": "パラメーターをマウントする",
     "noMountParameters": "マウントパラメーターがありません",
+    "ruffleSupport": "Ruffle Support",
     "showExtremeScreenshot": "成人向けのゲームのスクリーンショットを表示",
     "busy": "しばらくお待ちください...",
     "openGameDataBrowser": "ゲームデータブラウザを開く",
     "allGenericEntries": "All Entries",
     "usePlaylistOrder": "Use Playlist Order",
+    "hideFilters": "Hide Filters",
+    "showFilters": "Show Filters",
     "notArchived": "アーカイブに保存していない",
     "archived": "アーカイブに保存している",
-    "playOnline": "オンラインでプレイ"
+    "playOnline": "オンラインでプレイ",
+    "tagFilterIcon": "Tag Filter Icon"
   },
   "tags": {
     "name": "名前",
@@ -416,7 +426,8 @@
     "makeAliasWhenMerged": "タグのエイリアスにしますか？",
     "deleteTag": "タグを削除",
     "deleteTagCategory": "タグカテゴリを削除",
-    "locked": "処理中にロックしています..."
+    "locked": "処理中にロックしています...",
+    "filterIcon": "Icon Thumbnail"
   },
   "curate": {
     "noCurationSelected": "キュレーションが選択されていません",
@@ -533,6 +544,7 @@
   "misc": {
     "noBlankFound": "{0} が見つかりませんでした",
     "addBlank": "{0} を追加",
+    "removeBlank": "Remove {0}",
     "deleteAllBlankImages": "このゲームの {0} 枚の画像をすべて削除する",
     "yes": "はい",
     "no": "いいえ",
