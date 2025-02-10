@@ -10,6 +10,8 @@
     "hideExtremeScreenshotsDesc": "Ekstrem olarak belirtilmiş içeriğin ekran görüntüleri gizlenir, fotoğrafa tıklanınca gizlenme kaldırılır.",
     "fancyAnimations": "Süslü Animasyonlar",
     "fancyAnimationsDesc": "Başlatıcıda süslü animasyonları etkinleştirin.",
+    "hideNewViewButton": "Hide New View Button",
+    "hideNewViewButtonDesc": "When using custom views, hide the new view (+) button. You can instead press 'Create New View' under the context menu for tabs.",
     "searchLimit": "Arama Limiti",
     "searchLimitDesc": "Herhangi bir aramada döndürülen sonuç sayısını sınırlayın",
     "searchLimitUnlimited": "Sınırsız",
@@ -89,8 +91,10 @@
     "screenshotPreviewDelay": "Ekran Görüntüsü Önizleme Gecikmesi",
     "screenshotPreviewDelayDesc": "Ekran Görüntüsü Önizlemesi açıkken, ekran görüntüsünü göstermeden önceki gecikme (milisaniye cinsinden). (üzerine gelindiğinde)",
     "advancedHeader": "Gelişmiş",
+    "clearWininetCache": "Clear WinINet Cache",
+    "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "Veritabanını Optimize Et",
-    "optimizeDatabaseDesc": "Veritabanı performansını artırmak ve boyutunu küçültmek için bakım işlemleri gerçekleştirin",
+    "optimizeDatabaseDesc": "Run maintenance tasks to increase database performance and reduce size.",
     "showDeveloperTab": "Geliştirici Panelini Göster",
     "showDeveloperTabDesc": "'Geliştirici' panelini göster. Bu daha çok geliştiriciler ve küratörler için kullanışlıdır.",
     "registerProtocol": "Register As Protocol Handler",
@@ -180,6 +184,7 @@
     "curate": "Yarat",
     "developer": "Geliştirici",
     "searchPlaceholder": "Ara...",
+    "searchPlaceholderCountable": "Search... ({0} items)",
     "hideRightSidebar": "Sağ kenar çubuğunu gizle",
     "showRightSidebar": "Sağ kenar çubuğunu göster",
     "hideLeftSidebar": "Sol kenar çubuğunu gizle",
@@ -198,7 +203,8 @@
     "noLauncherUpdateReady": "Metadata güncellemesi daha yeni bir Launcher sürümü gerektiriyor. Yazılım güncellemesi şu anda mevcut değil.",
     "deleteView": "Delete Search View",
     "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
-    "createNewView": "Create new search view"
+    "createNewView": "Create new search view",
+    "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
     "dateAdded": "Eklenme Tarihi",
@@ -386,14 +392,18 @@
     "noGameMatchedSearch": "Daha az kısıtlayıcı bir şey aramayı deneyin.",
     "mountParameters": "Bağlama Parametresi",
     "noMountParameters": "Bağlama Parametresi yok",
+    "ruffleSupport": "Ruffle Support",
     "showExtremeScreenshot": "Ekstrem Ekran Görüntüsünü Göster",
     "busy": "Lütfen Bekleyin...",
     "openGameDataBrowser": "Oyun Verileri Tarayıcısını Aç",
     "allGenericEntries": "All Entries",
     "usePlaylistOrder": "Use Playlist Order",
+    "hideFilters": "Hide Filters",
+    "showFilters": "Show Filters",
     "notArchived": "Arşivlenmedi",
     "archived": "Arşivlendi",
-    "playOnline": "Çevrim içi Oyna"
+    "playOnline": "Çevrim içi Oyna",
+    "tagFilterIcon": "Tag Filter Icon"
   },
   "tags": {
     "name": "Adı",
@@ -416,7 +426,8 @@
     "makeAliasWhenMerged": "Bunu etiketin takma bir ismi yap?",
     "deleteTag": "Etiketi Sil",
     "deleteTagCategory": "Etiket Kategorisini Sil",
-    "locked": "İşlenirken kilitlendi..."
+    "locked": "İşlenirken kilitlendi...",
+    "filterIcon": "Icon Thumbnail"
   },
   "curate": {
     "noCurationSelected": "Küratör Seçilmedi",
@@ -533,6 +544,7 @@
   "misc": {
     "noBlankFound": "{0} Bulunamadı",
     "addBlank": "{0} Ekle",
+    "removeBlank": "Remove {0}",
     "deleteAllBlankImages": "Bu oyun için olan TÜM {0} resimlerini sil",
     "yes": "Evet",
     "no": "Hayır",
