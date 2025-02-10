@@ -10,6 +10,8 @@
     "hideExtremeScreenshotsDesc": "Folaigh léaráidí scaipthe d'ábhar marcáilte mar 'Éagsúil', is féidir iad a chur ar fáil arís le cliceáil ar an bosca íomhá.",
     "fancyAnimations": "Animáidí Éadroime",
     "fancyAnimationsDesc": "Cumasaigh animáidí éadroime sa luchtú.",
+    "hideNewViewButton": "Hide New View Button",
+    "hideNewViewButtonDesc": "When using custom views, hide the new view (+) button. You can instead press 'Create New View' under the context menu for tabs.",
     "searchLimit": "Teorainn Cuardach",
     "searchLimitDesc": "Teorainn ar an líon torthaí a fhaightear in aon chuardach ar bith",
     "searchLimitUnlimited": "Gan Teorainn",
@@ -89,8 +91,10 @@
     "screenshotPreviewDelay": "Gealltanas Réamhfhéachaint Léaráidí Scaipthe",
     "screenshotPreviewDelayDesc": "Gealltanas (i milleán) sula dtaispeántar an léaráid, nuair a bhíonn Réamhfhéachaint Léaráidí Scaipthe ar siúl. (ag spréachadh)",
     "advancedHeader": "Cliste",
+    "clearWininetCache": "Clear WinINet Cache",
+    "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "Feabhsaigh Bunachar Sonraí",
-    "optimizeDatabaseDesc": "Déan cúraimí cothaithe chun feidhmíocht an bhunachair sonraí a mhéadú agus a méid a laghdú",
+    "optimizeDatabaseDesc": "Run maintenance tasks to increase database performance and reduce size.",
     "showDeveloperTab": "Taispeáin Cnaipe Forbróra",
     "showDeveloperTabDesc": "Taispeáin an tábla 'Forbróir'. Is dóigh nach mbeidh sé úsáideach ach do fhorbróirí agus cúraiteoirí.",
     "registerProtocol": "Cláraigh Mar Sheoltaí Íomhá",
@@ -180,6 +184,7 @@
     "curate": "Coiméád",
     "developer": "Réalóir",
     "searchPlaceholder": "Cuardach...",
+    "searchPlaceholderCountable": "Search... ({0} items)",
     "hideRightSidebar": "Folaigh an taobh clé",
     "showRightSidebar": "Taispeáin an taobh clé",
     "hideLeftSidebar": "Folaigh an taobh clé",
@@ -198,7 +203,8 @@
     "noLauncherUpdateReady": "Tá nuashonrú sonraí ag teastáil le leagan níos nua den Luchtaithe, ach tá an nuashonrú bogearraí faoi láthair ar fáil.",
     "deleteView": "Delete Search View",
     "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
-    "createNewView": "Create new search view"
+    "createNewView": "Create new search view",
+    "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
     "dateAdded": "Dáta Breise",
@@ -386,14 +392,18 @@
     "noGameMatchedSearch": "Déan iarracht cuardach a dhéanamh ar rud níos lú teoranta.",
     "mountParameters": "Paraiméadair Mór",
     "noMountParameters": "Gan Paraiméadair Mór",
+    "ruffleSupport": "Ruffle Support",
     "showExtremeScreenshot": "Taispeáin Síniú Míchuibheasach",
     "busy": "Fan go bhfuil tú, le do thoil...",
     "openGameDataBrowser": "Oscail Bhrabhsálaí Sonraí na Cluichí",
     "allGenericEntries": "All Entries",
     "usePlaylistOrder": "Use Playlist Order",
+    "hideFilters": "Hide Filters",
+    "showFilters": "Show Filters",
     "notArchived": "Níor Achríonn",
     "archived": "Achríonn",
-    "playOnline": "Imir ar Líne"
+    "playOnline": "Imir ar Líne",
+    "tagFilterIcon": "Tag Filter Icon"
   },
   "tags": {
     "name": "Ainm",
@@ -416,7 +426,8 @@
     "makeAliasWhenMerged": "An ndéanfaidh tú seo a chur mar ailias ar an gclib?",
     "deleteTag": "Scrios Clib",
     "deleteTagCategory": "Scrios Catagóir an Chlib",
-    "locked": "Ceangailte agus ag próiseáil..."
+    "locked": "Ceangailte agus ag próiseáil...",
+    "filterIcon": "Icon Thumbnail"
   },
   "curate": {
     "noCurationSelected": "Níl Cuir-Meisce Roghnaithe",
@@ -533,6 +544,7 @@
   "misc": {
     "noBlankFound": "Níor Aimsíodh Aon {0}",
     "addBlank": "Cuir {0}",
+    "removeBlank": "Remove {0}",
     "deleteAllBlankImages": "Scrios GACH {0} íomhá don chluiche seo",
     "yes": "Tá",
     "no": "Ní",
