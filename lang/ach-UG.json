@@ -10,6 +10,8 @@
     "hideExtremeScreenshotsDesc": "crwdns4935:0crwdne4935:0",
     "fancyAnimations": "crwdns4937:0crwdne4937:0",
     "fancyAnimationsDesc": "crwdns4939:0crwdne4939:0",
+    "hideNewViewButton": "crwdns7090:0crwdne7090:0",
+    "hideNewViewButtonDesc": "crwdns7092:0crwdne7092:0",
     "searchLimit": "crwdns4941:0crwdne4941:0",
     "searchLimitDesc": "crwdns4943:0crwdne4943:0",
     "searchLimitUnlimited": "crwdns4945:0crwdne4945:0",
@@ -89,8 +91,10 @@
     "screenshotPreviewDelay": "crwdns7022:0crwdne7022:0",
     "screenshotPreviewDelayDesc": "crwdns7024:0crwdne7024:0",
     "advancedHeader": "crwdns5029:0crwdne5029:0",
+    "clearWininetCache": "crwdns7094:0crwdne7094:0",
+    "clearWininetCacheDesc": "crwdns7096:0crwdne7096:0",
     "optimizeDatabase": "crwdns6015:0crwdne6015:0",
-    "optimizeDatabaseDesc": "crwdns6017:0crwdne6017:0",
+    "optimizeDatabaseDesc": "crwdns7098:0crwdne7098:0",
     "showDeveloperTab": "crwdns5031:0crwdne5031:0",
     "showDeveloperTabDesc": "crwdns5033:0crwdne5033:0",
     "registerProtocol": "crwdns7026:0crwdne7026:0",
@@ -180,6 +184,7 @@
     "curate": "crwdns5165:0crwdne5165:0",
     "developer": "crwdns5167:0crwdne5167:0",
     "searchPlaceholder": "crwdns5169:0crwdne5169:0",
+    "searchPlaceholderCountable": "crwdns7100:0{0}crwdne7100:0",
     "hideRightSidebar": "crwdns5171:0crwdne5171:0",
     "showRightSidebar": "crwdns5173:0crwdne5173:0",
     "hideLeftSidebar": "crwdns5175:0crwdne5175:0",
@@ -198,7 +203,8 @@
     "noLauncherUpdateReady": "crwdns6053:0crwdne6053:0",
     "deleteView": "crwdns7064:0crwdne7064:0",
     "deleteOnlyBrowseView": "crwdns7066:0crwdne7066:0",
-    "createNewView": "crwdns7068:0crwdne7068:0"
+    "createNewView": "crwdns7068:0crwdne7068:0",
+    "errorLoadingServices": "crwdns7102:0crwdne7102:0"
   },
   "filter": {
     "dateAdded": "crwdns5191:0crwdne5191:0",
@@ -386,14 +392,18 @@
     "noGameMatchedSearch": "crwdns5501:0crwdne5501:0",
     "mountParameters": "crwdns5503:0crwdne5503:0",
     "noMountParameters": "crwdns5505:0crwdne5505:0",
+    "ruffleSupport": "crwdns7104:0crwdne7104:0",
     "showExtremeScreenshot": "crwdns5507:0crwdne5507:0",
     "busy": "crwdns5509:0crwdne5509:0",
     "openGameDataBrowser": "crwdns6709:0crwdne6709:0",
     "allGenericEntries": "crwdns7074:0crwdne7074:0",
     "usePlaylistOrder": "crwdns7076:0crwdne7076:0",
+    "hideFilters": "crwdns7106:0crwdne7106:0",
+    "showFilters": "crwdns7108:0crwdne7108:0",
     "notArchived": "crwdns6998:0crwdne6998:0",
     "archived": "crwdns7000:0crwdne7000:0",
-    "playOnline": "crwdns7002:0crwdne7002:0"
+    "playOnline": "crwdns7002:0crwdne7002:0",
+    "tagFilterIcon": "crwdns7110:0crwdne7110:0"
   },
   "tags": {
     "name": "crwdns5511:0crwdne5511:0",
@@ -416,7 +426,8 @@
     "makeAliasWhenMerged": "crwdns5545:0crwdne5545:0",
     "deleteTag": "crwdns5547:0crwdne5547:0",
     "deleteTagCategory": "crwdns5549:0crwdne5549:0",
-    "locked": "crwdns5551:0crwdne5551:0"
+    "locked": "crwdns5551:0crwdne5551:0",
+    "filterIcon": "crwdns7112:0crwdne7112:0"
   },
   "curate": {
     "noCurationSelected": "crwdns5553:0crwdne5553:0",
@@ -533,6 +544,7 @@
   "misc": {
     "noBlankFound": "crwdns5751:0{0}crwdne5751:0",
     "addBlank": "crwdns5753:0{0}crwdne5753:0",
+    "removeBlank": "crwdns7114:0{0}crwdne7114:0",
     "deleteAllBlankImages": "crwdns5755:0{0}crwdne5755:0",
     "yes": "crwdns5757:0crwdne5757:0",
     "no": "crwdns5759:0crwdne5759:0",
