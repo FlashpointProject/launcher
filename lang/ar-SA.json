@@ -10,6 +10,8 @@
     "hideExtremeScreenshotsDesc": "إخفاء لقطات الشاشة للمحتوى المصنف كـ متطرف, يُمكِن إظهارهم عند الضغط على الصورة.",
     "fancyAnimations": "رسوم فاخرة",
     "fancyAnimationsDesc": "تفعيل الرسوم الفاخرة في المشغّل.",
+    "hideNewViewButton": "Hide New View Button",
+    "hideNewViewButtonDesc": "When using custom views, hide the new view (+) button. You can instead press 'Create New View' under the context menu for tabs.",
     "searchLimit": "حد البحث",
     "searchLimitDesc": "الحد من عدد النتائج عند البحث",
     "searchLimitUnlimited": "غير محدود",
@@ -89,8 +91,10 @@
     "screenshotPreviewDelay": "Screenshot Preview Delay",
     "screenshotPreviewDelayDesc": "Delay (in milliseconds) before showing the screenshot, when Screenshot Preview is set to on. (when hovering)",
     "advancedHeader": "إعدادات متقدمة",
+    "clearWininetCache": "Clear WinINet Cache",
+    "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "Optimize Database",
-    "optimizeDatabaseDesc": "Run maintenance tasks to increase database performance and reduce size",
+    "optimizeDatabaseDesc": "Run maintenance tasks to increase database performance and reduce size.",
     "showDeveloperTab": "أظهر علامة تبويب المطور",
     "showDeveloperTabDesc": "أظهر علامة تبويب الـ 'المطور'. غالبًا مفيدة فقط للمطورين والمعالجين.",
     "registerProtocol": "Register As Protocol Handler",
@@ -180,6 +184,7 @@
     "curate": "معالجة",
     "developer": "المطور",
     "searchPlaceholder": "بحث...",
+    "searchPlaceholderCountable": "Search... ({0} items)",
     "hideRightSidebar": "أخفي الشريط الجانبي الأيمن",
     "showRightSidebar": "أظهر الشريط الجانبي الأيمن",
     "hideLeftSidebar": "أخفي الشريط الجانبي الأيسر",
@@ -198,7 +203,8 @@
     "noLauncherUpdateReady": "Metadata update requires a newer Launcher version, but the software update is not currently available.",
     "deleteView": "Delete Search View",
     "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
-    "createNewView": "Create new search view"
+    "createNewView": "Create new search view",
+    "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
     "dateAdded": "تاريخ الإضافة",
@@ -386,14 +392,18 @@
     "noGameMatchedSearch": "حاول أن تبحث عن شيء أقلّ تفصيلًا.",
     "mountParameters": "Mount Parameters",
     "noMountParameters": "No Mount Parameters",
+    "ruffleSupport": "Ruffle Support",
     "showExtremeScreenshot": "أظهر لقطة الشاشة المُتطرّفة",
     "busy": "الرجاء الانتظار...",
     "openGameDataBrowser": "Open Game Data Browser",
     "allGenericEntries": "All Entries",
     "usePlaylistOrder": "Use Playlist Order",
+    "hideFilters": "Hide Filters",
+    "showFilters": "Show Filters",
     "notArchived": "Not Archived",
     "archived": "Archived",
-    "playOnline": "Play Online"
+    "playOnline": "Play Online",
+    "tagFilterIcon": "Tag Filter Icon"
   },
   "tags": {
     "name": "الاسم",
@@ -416,7 +426,8 @@
     "makeAliasWhenMerged": "Make this an alias of the tag?",
     "deleteTag": "حذف العلامة",
     "deleteTagCategory": "حذف تصنيف العلامة",
-    "locked": "مقفل أثناء المعالجة..."
+    "locked": "مقفل أثناء المعالجة...",
+    "filterIcon": "Icon Thumbnail"
   },
   "curate": {
     "noCurationSelected": "No Curation Selected",
@@ -533,6 +544,7 @@
   "misc": {
     "noBlankFound": "لم يتم العثور على {0}",
     "addBlank": "أضِف {0}",
+    "removeBlank": "Remove {0}",
     "deleteAllBlankImages": "Delete ALL {0} images for this game",
     "yes": "نعم",
     "no": "لا",
