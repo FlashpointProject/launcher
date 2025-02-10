@@ -10,6 +10,8 @@
     "hideExtremeScreenshotsDesc": "Cache les captures d'écran de contenu taguées Extrême, peuvent être réaffichées en cliquant sur la zone de l'image.",
     "fancyAnimations": "Animations de qualité supérieure",
     "fancyAnimationsDesc": "Active les animations de qualité supérieure dans le lanceur.",
+    "hideNewViewButton": "Hide New View Button",
+    "hideNewViewButtonDesc": "When using custom views, hide the new view (+) button. You can instead press 'Create New View' under the context menu for tabs.",
     "searchLimit": "Limite de recherche",
     "searchLimitDesc": "Limite le nombre de résultats retournés dans toutes les recherches",
     "searchLimitUnlimited": "Illimitée",
@@ -89,8 +91,10 @@
     "screenshotPreviewDelay": "Délai avant la prévisualisation de la capture d'écran",
     "screenshotPreviewDelayDesc": "Délai (en millisecondes) avant d'afficher la capture d'écran, lorsque la prévisualisation de la capture d'écran est activée en mode survol.",
     "advancedHeader": "Avancé",
+    "clearWininetCache": "Clear WinINet Cache",
+    "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "Optimiser la base de données",
-    "optimizeDatabaseDesc": "Exécute des tâches de maintenance pour augmenter la performance de la base de données et en réduire la taille",
+    "optimizeDatabaseDesc": "Run maintenance tasks to increase database performance and reduce size.",
     "showDeveloperTab": "Afficher l'onglet Développeur",
     "showDeveloperTabDesc": "Affiche l'onglet 'Développeur'. Ceci n'est probablement utile que pour les développeurs et les conservateurs.",
     "registerProtocol": "Enregistrer comme gestionnaire de protocole",
@@ -180,6 +184,7 @@
     "curate": "Préserver",
     "developer": "Développeur",
     "searchPlaceholder": "Rechercher...",
+    "searchPlaceholderCountable": "Search... ({0} items)",
     "hideRightSidebar": "Cacher la barre latérale droite",
     "showRightSidebar": "Afficher la barre latérale droite",
     "hideLeftSidebar": "Cacher la barre latérale gauche",
@@ -198,7 +203,8 @@
     "noLauncherUpdateReady": "La mise à jour des métadonnées requiert une version plus récente, mais la mise à jour du logiciel n'est pas disponible actuellement.",
     "deleteView": "Delete Search View",
     "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
-    "createNewView": "Create new search view"
+    "createNewView": "Create new search view",
+    "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
     "dateAdded": "Date d'ajout",
@@ -386,14 +392,18 @@
     "noGameMatchedSearch": "Essayez de chercher quelque chose moins restrictivement.",
     "mountParameters": "Paramètres de montage",
     "noMountParameters": "Aucun paramètre de montage",
+    "ruffleSupport": "Ruffle Support",
     "showExtremeScreenshot": "Afficher la capture d'écran extrême",
     "busy": "Veuillez patienter...",
     "openGameDataBrowser": "Ouvrir le navigateur de données du jeu",
     "allGenericEntries": "All Entries",
     "usePlaylistOrder": "Use Playlist Order",
+    "hideFilters": "Hide Filters",
+    "showFilters": "Show Filters",
     "notArchived": "Non archivé",
     "archived": "Archivé",
-    "playOnline": "Jouer en ligne"
+    "playOnline": "Jouer en ligne",
+    "tagFilterIcon": "Tag Filter Icon"
   },
   "tags": {
     "name": "Nom",
@@ -416,7 +426,8 @@
     "makeAliasWhenMerged": "Faire un alias de ce tag ?",
     "deleteTag": "Supprimer le tag",
     "deleteTagCategory": "Supprimer la catégorie tag",
-    "locked": "Protégé pendant le traitement..."
+    "locked": "Protégé pendant le traitement...",
+    "filterIcon": "Icon Thumbnail"
   },
   "curate": {
     "noCurationSelected": "Aucune conservation sélectionnée",
@@ -533,6 +544,7 @@
   "misc": {
     "noBlankFound": "Aucune {0} trouvée",
     "addBlank": "Ajouter une {0}",
+    "removeBlank": "Remove {0}",
     "deleteAllBlankImages": "Supprimer TOUTES les {0} pour ce jeu",
     "yes": "Oui",
     "no": "Non",
