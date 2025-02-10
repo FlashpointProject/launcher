@@ -10,6 +10,8 @@
     "hideExtremeScreenshotsDesc": "Oculta capturas de pantalla de contenido con la etiqueta Extremo. Pueden ser mostradas nuevamente cliqueando en la imagen.",
     "fancyAnimations": "Animaciones Elegantes",
     "fancyAnimationsDesc": "Activa las animaciones de alta calidad en el menú.",
+    "hideNewViewButton": "Hide New View Button",
+    "hideNewViewButtonDesc": "When using custom views, hide the new view (+) button. You can instead press 'Create New View' under the context menu for tabs.",
     "searchLimit": "Límite de Búsqueda",
     "searchLimitDesc": "Limita el número de resultados que se muestran en cualquier búsqueda",
     "searchLimitUnlimited": "Ilimitado",
@@ -89,8 +91,10 @@
     "screenshotPreviewDelay": "Retraso al mostrar la captura de pantalla",
     "screenshotPreviewDelayDesc": "Retraso (en milisegundos) antes de mostrar la captura de pantalla, cuando la vista previa de la captura de pantalla esté encendida. (al pasar el mouse)",
     "advancedHeader": "Avanzado",
+    "clearWininetCache": "Clear WinINet Cache",
+    "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "Optimizar Base de Datos",
-    "optimizeDatabaseDesc": "Iniciar tareas de mantenimiento para aumentar el rendimiento de la base de datos y reducir el tamaño",
+    "optimizeDatabaseDesc": "Run maintenance tasks to increase database performance and reduce size.",
     "showDeveloperTab": "Mostrar la pestaña Desarrollador",
     "showDeveloperTabDesc": "Mostrar la pestaña 'Desarrollador'. Esta es muy probable que sólo sea útil para desarrolladores y curadores.",
     "registerProtocol": "Registrar como Manejador de Protocolo",
@@ -180,6 +184,7 @@
     "curate": "Curar",
     "developer": "Desarrollador",
     "searchPlaceholder": "Buscar...",
+    "searchPlaceholderCountable": "Search... ({0} items)",
     "hideRightSidebar": "Ocultar barra lateral derecha",
     "showRightSidebar": "Mostrar barra lateral derecha",
     "hideLeftSidebar": "Ocultar barra lateral izquierda",
@@ -198,7 +203,8 @@
     "noLauncherUpdateReady": "La actualización de la metadata requiere una nueva versión del Ejecutable, pero no hay una actualización de programa disponible en este momento.",
     "deleteView": "Borrar Vista de Búsqueda",
     "deleteOnlyBrowseView": "Borrar Vista de Búsqueda (Debe tener seleccionada otra Vista Personalizada)",
-    "createNewView": "Crear nueva vista de búsqueda"
+    "createNewView": "Crear nueva vista de búsqueda",
+    "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
     "dateAdded": "Fecha de adición",
@@ -386,14 +392,18 @@
     "noGameMatchedSearch": "Intenta buscar algo menos restrictivo.",
     "mountParameters": "Montar Parámetros",
     "noMountParameters": "No montar parámetros",
+    "ruffleSupport": "Ruffle Support",
     "showExtremeScreenshot": "Mostrar capturas de Pantalla Extremas",
     "busy": "Por favor, espera...",
     "openGameDataBrowser": "Abrir navegador de datos de juego",
     "allGenericEntries": "Todas las Entradas",
     "usePlaylistOrder": "Usar el Orden de la Lista de Reproducción",
+    "hideFilters": "Hide Filters",
+    "showFilters": "Show Filters",
     "notArchived": "No archivado",
     "archived": "Archivado",
-    "playOnline": "Jugar en línea"
+    "playOnline": "Jugar en línea",
+    "tagFilterIcon": "Tag Filter Icon"
   },
   "tags": {
     "name": "Nombre",
@@ -416,7 +426,8 @@
     "makeAliasWhenMerged": "¿Hacer esto una alias de la etiqueta?",
     "deleteTag": "Eliminar etiqueta",
     "deleteTagCategory": "Eliminar categoría de etiqueta",
-    "locked": "Bloqueado mientras se procesa..."
+    "locked": "Bloqueado mientras se procesa...",
+    "filterIcon": "Icon Thumbnail"
   },
   "curate": {
     "noCurationSelected": "Ninguna Curación Seleccionada",
@@ -533,6 +544,7 @@
   "misc": {
     "noBlankFound": "Ninguna {0} Encontrada",
     "addBlank": "Añadir {0}",
+    "removeBlank": "Remove {0}",
     "deleteAllBlankImages": "Borrar todas las {0} imágenes para este juego",
     "yes": "Sí",
     "no": "No \t",
