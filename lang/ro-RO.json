@@ -10,6 +10,8 @@
     "hideExtremeScreenshotsDesc": "Ascunde capturile de ecran ale jocurilor etichetate ca mature. Acestea pot fi afișate apăsând pe cadranul imaginii.",
     "fancyAnimations": "Animații detaliate",
     "fancyAnimationsDesc": "Activează animațiile detaliate în lansator.",
+    "hideNewViewButton": "Hide New View Button",
+    "hideNewViewButtonDesc": "When using custom views, hide the new view (+) button. You can instead press 'Create New View' under the context menu for tabs.",
     "searchLimit": "Limită de căutare",
     "searchLimitDesc": "Limitează numărul de rezultate returnate în orice căutare",
     "searchLimitUnlimited": "Fără limită",
@@ -89,8 +91,10 @@
     "screenshotPreviewDelay": "Întârziați previzualizarea cu",
     "screenshotPreviewDelayDesc": "Durata (în milisecunde) de întârziere a previzualizării capturii de ecran,\ndacă aceasta se afișează la evidențierea cu cursorul",
     "advancedHeader": "Avansat",
+    "clearWininetCache": "Clear WinINet Cache",
+    "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "Optimizați baza de date",
-    "optimizeDatabaseDesc": "Execută sarcini de întreținere pentru eficientizarea bazei de date",
+    "optimizeDatabaseDesc": "Run maintenance tasks to increase database performance and reduce size.",
     "showDeveloperTab": "Arătați fila „Dezvoltator“",
     "showDeveloperTabDesc": "Se va arăta fila „Dezvoltator“. Folositoare pentru dezvoltatori și reparatori.",
     "registerProtocol": "Register As Protocol Handler",
@@ -180,6 +184,7 @@
     "curate": "Repară",
     "developer": "Dezvoltator",
     "searchPlaceholder": "Căutare...",
+    "searchPlaceholderCountable": "Search... ({0} items)",
     "hideRightSidebar": "Ascundeți bara din dreapta",
     "showRightSidebar": "Arătați bara din dreapta",
     "hideLeftSidebar": "Ascundeți bara din stânga",
@@ -198,7 +203,8 @@
     "noLauncherUpdateReady": "Actualizarea informațiilor necesită o versiune mai nouă, indisponibilă momentan, a lansatorului. Încercați mai târziu.",
     "deleteView": "Delete Search View",
     "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
-    "createNewView": "Create new search view"
+    "createNewView": "Create new search view",
+    "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
     "dateAdded": "Data adăugării",
@@ -386,14 +392,18 @@
     "noGameMatchedSearch": "Încercați alte cuvinte cheie.",
     "mountParameters": "Parametri de montare",
     "noMountParameters": "Fără parametri de montare",
+    "ruffleSupport": "Ruffle Support",
     "showExtremeScreenshot": "Arată capturile de ecran mature",
     "busy": "Așteptați…",
     "openGameDataBrowser": "Explorați datele jocului",
     "allGenericEntries": "All Entries",
     "usePlaylistOrder": "Use Playlist Order",
+    "hideFilters": "Hide Filters",
+    "showFilters": "Show Filters",
     "notArchived": "Not Archived",
     "archived": "Arhivat",
-    "playOnline": "Jucați online"
+    "playOnline": "Jucați online",
+    "tagFilterIcon": "Tag Filter Icon"
   },
   "tags": {
     "name": "Nume",
@@ -416,7 +426,8 @@
     "makeAliasWhenMerged": "Sigur doriți să stabiliți acest pseudonim ca numele etichetei?",
     "deleteTag": "Ştergeți eticheta",
     "deleteTagCategory": "Ștergeți categoria de etichete",
-    "locked": "Blocate în timpul procesării..."
+    "locked": "Blocate în timpul procesării...",
+    "filterIcon": "Icon Thumbnail"
   },
   "curate": {
     "noCurationSelected": "Nicio reparație selectată",
@@ -533,6 +544,7 @@
   "misc": {
     "noBlankFound": "Nu s-a găsit {0}",
     "addBlank": "Adaugă o imagine...",
+    "removeBlank": "Remove {0}",
     "deleteAllBlankImages": "Șterge toate imaginile pentru acest joc",
     "yes": "Da",
     "no": "Nu",
