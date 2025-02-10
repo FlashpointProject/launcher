@@ -10,6 +10,8 @@
     "hideExtremeScreenshotsDesc": "Κρύβει τα στιγμιότυπα οθόνης του ακραίου περιεχομένου με ετικέτες, μπορεί να αναιρεθεί με ένα κλικ στο πλαίσιο της εικόνας.",
     "fancyAnimations": "Εντυπωσιακά Κινούμενα Σχέδια",
     "fancyAnimationsDesc": "Ενεργοποίηση εντυπωσιακών κινουμένων σχεδίων στον εκτελεστή.",
+    "hideNewViewButton": "Hide New View Button",
+    "hideNewViewButtonDesc": "When using custom views, hide the new view (+) button. You can instead press 'Create New View' under the context menu for tabs.",
     "searchLimit": "Όριο Αναζήτησης",
     "searchLimitDesc": "Περιορισμός του αριθμού των αποτελεσμάτων που επιστρέφονται σε οποιαδήποτε αναζήτηση",
     "searchLimitUnlimited": "Απεριόριστα",
@@ -89,8 +91,10 @@
     "screenshotPreviewDelay": "Καθυστέρηση Προεπισκόπησης Στιγμιότυπου",
     "screenshotPreviewDelayDesc": "Καθυστέρηση (σε χιλιοστά του δευτερολέπτου) πριν την προβολή του στιγμιότυπου οθόνης, όταν είναι ενεργοποιημένη η προεπισκόπηση στιγμιότυπου οθόνης (όταν αιωρείσαι από πάνω).",
     "advancedHeader": "Για προχωρημένους",
+    "clearWininetCache": "Clear WinINet Cache",
+    "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "Βελτίωση βάσης δεδομένων",
-    "optimizeDatabaseDesc": "Εκτέλεση εργασιών συντήρησης για αύξηση της απόδοσης της βάσης δεδομένων και μείωση του μεγέθους",
+    "optimizeDatabaseDesc": "Run maintenance tasks to increase database performance and reduce size.",
     "showDeveloperTab": "Προβολή Καρτέλας Προγραμματιστών",
     "showDeveloperTabDesc": "Προβολή καρτέλας «Για Προγραμματιστές». Πιθανόν να είναι πιο χρήσιμο αυτό για προγραμματιστές και επιμελητές.",
     "registerProtocol": "Μητρώο Ως Διαχειριστής Πρωτοκόλλου",
@@ -180,6 +184,7 @@
     "curate": "Επιμελητής",
     "developer": "Προγραμματιστής",
     "searchPlaceholder": "Αναζήτηση...",
+    "searchPlaceholderCountable": "Search... ({0} items)",
     "hideRightSidebar": "Απόκρυψη δεξιάς πλευρικής στήλης",
     "showRightSidebar": "Προβολή δεξιάς πλευρικής στήλης",
     "hideLeftSidebar": "Απόκρυψη αριστερής πλευρικής στήλης",
@@ -198,7 +203,8 @@
     "noLauncherUpdateReady": "Η ενημέρωση μεταδεδομένων απαιτεί μια νεότερη έκδοση Launcher, αλλά η ενημέρωση λογισμικού δεν είναι διαθέσιμη αυτή τη στιγμή.",
     "deleteView": "Delete Search View",
     "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
-    "createNewView": "Create new search view"
+    "createNewView": "Create new search view",
+    "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
     "dateAdded": "Ημερομηνία Προσθήκης",
@@ -386,14 +392,18 @@
     "noGameMatchedSearch": "Προσπαθήστε να αναζητήσετε κάτι λιγότερο περιοριστικό.",
     "mountParameters": "Παράμετροι Προσάρτησης",
     "noMountParameters": "Χωρίς Παραμέτρους Προσάρτησης",
+    "ruffleSupport": "Ruffle Support",
     "showExtremeScreenshot": "Απόκρυψη Ακραίων Στιγμιοτύπων",
     "busy": "Παρακαλώ περιμένετε...",
     "openGameDataBrowser": "Άνοιγμα Περιηγητή Δεδομένων Παιχνιδιού",
     "allGenericEntries": "All Entries",
     "usePlaylistOrder": "Use Playlist Order",
+    "hideFilters": "Hide Filters",
+    "showFilters": "Show Filters",
     "notArchived": "Μη Αρχειοθετημένο",
     "archived": "Αρχειοθετημένα",
-    "playOnline": "Παίξε Διαδικτυακά"
+    "playOnline": "Παίξε Διαδικτυακά",
+    "tagFilterIcon": "Tag Filter Icon"
   },
   "tags": {
     "name": "Όνομα",
@@ -416,7 +426,8 @@
     "makeAliasWhenMerged": "Θέλετε να ορίσετε αυτό ως ψευδώνυμο της ετικέτας;",
     "deleteTag": "Διαγραφή Ετικέτας",
     "deleteTagCategory": "Διαγραφή Κατηγορίας Ετικέτας",
-    "locked": "Κλειδωμένο κατά την επεξεργασία..."
+    "locked": "Κλειδωμένο κατά την επεξεργασία...",
+    "filterIcon": "Icon Thumbnail"
   },
   "curate": {
     "noCurationSelected": "Καμία Σημείωση Επιμέλειας",
@@ -533,6 +544,7 @@
   "misc": {
     "noBlankFound": "Δε βρέθηκαν καθόλου {0}",
     "addBlank": "Προσθήκη {0}",
+    "removeBlank": "Remove {0}",
     "deleteAllBlankImages": "Διαγραφή ΟΛΩΝ των {0} εικονών για αυτό το παιχνίδι",
     "yes": "Ναι",
     "no": "Όχι",
