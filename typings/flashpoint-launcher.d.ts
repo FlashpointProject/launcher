@@ -1528,6 +1528,7 @@ declare module 'flashpoint-launcher' {
     export type DialogState = {
       id: string;
       mdx?: boolean;
+      textAlign?: 'left' | 'center' | 'right'; 
       largeMessage?: boolean;
       userCanCancel?: boolean;
       message: string;

@@ -6,13 +6,18 @@ import { LangContext } from '../../util/lang';
 import { CreditsIcon } from '../CreditsProfile';
 import { CreditsTooltip } from '../CreditsTooltip';
 import * as remote from '@electron/remote';
+import { CHANGELOG } from '@renderer/changelog';
+import { withMainState, WithMainStateProps } from '@renderer/containers/withMainState';
+import { uuid } from '@shared/utils/uuid';
 
-export type AboutPageProps = {
+type OwnProps = {
   /** Credits data (if any). */
   creditsData?: CreditsData;
   /** If the credits data is done loading (even if it was unsuccessful). */
   creditsDoneLoading: boolean;
 };
+
+export type AboutPageProps = OwnProps & WithMainStateProps;
 
 export type AboutPageState = {
   /** Currently "targeted" profile (the profile that the cursor is hovering over, if any). */
@@ -21,8 +26,7 @@ export type AboutPageState = {
   profileY: number;
 };
 
-/** Page displaying information about this launcher, Flashpoint Archive and its contributors. */
-export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
+class _AboutPage extends React.Component<AboutPageProps, AboutPageState> {
   static contextType = LangContext;
   declare context: React.ContextType<typeof LangContext>;
 
@@ -42,6 +46,30 @@ export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
     const profileElements = creditsDoneLoading
       ? this.renderProfileElements(this.context, creditsData)
       : '...';
+
+    const changelog = Object.entries(CHANGELOG);
+    changelog.sort((a, b) => a[0].localeCompare(b[0]));
+    changelog.reverse();
+
+    const changelogPreviews: JSX.Element[] = changelog.map(([date, data], idx) => {
+      return (
+        <div
+          key={idx}
+          onClick={() => {
+            this.props.mainActions.createDialog({
+              id: uuid(),
+              mdx: true,
+              textAlign: 'left',
+              message: data.message,
+              buttons: ['Close']
+            })
+          }}
+          className='about-page__section__changelog-preview simple-button'>
+          <div><b>Date:</b> {(new Date(date)).toLocaleDateString()}</div>
+          <div><b>{data.title}</b></div>
+        </div>
+      )
+    })
 
     return (
       <div className='about-page simple-scroll'>
@@ -88,6 +116,11 @@ export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
                     <p className='about-page__bottom__quote'>"It's not up to us to decide what the future finds interesting"</p>
                     <p className='about-page__bottom__author'>-Jason Scott</p>
                   </div>
+                </div>
+                {/* Changelog */}
+                <div className='about-page__section'>
+                  <p className='about-page__section__title'>{'Changelog'}</p>
+                  {changelogPreviews}
                 </div>
               </div>
               {/* Right Column */}
@@ -223,3 +256,5 @@ function link(title: string, url: string): JSX.Element {
     </a>
   );
 }
+
+export const AboutPage = withMainState(_AboutPage);

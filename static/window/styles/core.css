@@ -44,6 +44,9 @@ body {
 *, ::before, ::after {
   box-sizing: inherit;
 }
+ul > li {
+  margin-left: 10px;
+}
 
 
 /* ------ Icons ------ */
@@ -1076,7 +1079,13 @@ body {
 .about-page__credits__tooltip__roles p {
   text-indent: -0.375em;
 }
-
+.about-page__section__changelog-preview {
+  height: unset !important;
+  padding: 0.4rem !important;
+  width: 100%;
+  margin-top: 0.4rem;
+  font-size: 1.1em !important;
+}
 
 /* ------ Curate ------ */
 .curate-page {
@@ -2891,6 +2900,7 @@ body {
 }
 
 .floating-container {
+  list-style-position: inside;
   text-align: center;
   padding: 1rem;
   border: 1px solid;

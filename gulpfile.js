@@ -270,6 +270,7 @@ function createVersionFile(done) {
   const fpaVersion = packageLockJson['packages']['node_modules/@fparchive/flashpoint-archive']['version'];
 
   const data = `export const VERSION = '${formattedDate} (${gitCommitHash})';
+export const VERSION_EPOCH = ${Date.now()};
 export const FPA_VERSION = '${fpaVersion}';
 `;
 

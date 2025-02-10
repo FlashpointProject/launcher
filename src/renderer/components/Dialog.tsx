@@ -38,9 +38,11 @@ export function Dialog(props: DialogProps) {
     }
   }, [dialog.message, dialog.mdx]);
 
+  const alignment = dialog.textAlign || 'center';
+
   return (
     <FloatingContainer>
-      <>
+      <div style={{textAlign: alignment}}>
         {dialog.userCanCancel && (
           <div className='dialog-cancel-button' onClick={() => {
             closeDialog(dialog.id);
@@ -72,7 +74,7 @@ export function Dialog(props: DialogProps) {
             );
           })}
         </div>
-      </>
+      </div>
     </FloatingContainer>
   );
 }
