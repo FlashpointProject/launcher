@@ -10,6 +10,8 @@
     "hideExtremeScreenshotsDesc": "Приховує скріншоти контенту, позначеного як екстремальним, можна розкрити натиснувши на вікно із зображенням.",
     "fancyAnimations": "Красиві анімації",
     "fancyAnimationsDesc": "Увімкнути красиві анімації в лаунчері.",
+    "hideNewViewButton": "Hide New View Button",
+    "hideNewViewButtonDesc": "When using custom views, hide the new view (+) button. You can instead press 'Create New View' under the context menu for tabs.",
     "searchLimit": "Ліміт пошуку",
     "searchLimitDesc": "Обмежити кількість результатів, які отримуються при будь-якому пошуку",
     "searchLimitUnlimited": "Без обмежень",
@@ -89,8 +91,10 @@
     "screenshotPreviewDelay": "Затримка попереднього перегляду скріншотом",
     "screenshotPreviewDelayDesc": "Затримка (у мілісекундах) перед зображенням скріншоту, коли параметр для попереднього перегляду скріншотом встановлений як \"Увімкнено (при наведенні)\"",
     "advancedHeader": "Додатково",
+    "clearWininetCache": "Clear WinINet Cache",
+    "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "Оптимізувати базу даних",
-    "optimizeDatabaseDesc": "Запуск задач обслуговування для підвищення продуктивності бази даних та зменшення розміну",
+    "optimizeDatabaseDesc": "Run maintenance tasks to increase database performance and reduce size.",
     "showDeveloperTab": "Показати вкладку розробника",
     "showDeveloperTabDesc": "Показати вкладку \"Розробник\". Скоріше за все, це корисно тільки для розробників та кураторів.",
     "registerProtocol": "Зареєструвати як дескриптор протоколу",
@@ -180,6 +184,7 @@
     "curate": "Курація",
     "developer": "Розробник",
     "searchPlaceholder": "Пошук...",
+    "searchPlaceholderCountable": "Search... ({0} items)",
     "hideRightSidebar": "Приховати праву бічну панель",
     "showRightSidebar": "Показати праву бічну панель",
     "hideLeftSidebar": "Приховати ліву бічну панель",
@@ -198,7 +203,8 @@
     "noLauncherUpdateReady": "Оновлення метаданих вимагає новішу версію лаунчера, але програмне оновлення наразі недоступне.",
     "deleteView": "Delete Search View",
     "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
-    "createNewView": "Create new search view"
+    "createNewView": "Create new search view",
+    "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
     "dateAdded": "Дата додавання",
@@ -386,14 +392,18 @@
     "noGameMatchedSearch": "Спробуйте пошукати менше обмежуючих.",
     "mountParameters": "Mount Parameters",
     "noMountParameters": "No Mount Parameters",
+    "ruffleSupport": "Ruffle Support",
     "showExtremeScreenshot": "Show Extreme Screenshot",
     "busy": "Please Wait...",
     "openGameDataBrowser": "Open Game Data Browser",
     "allGenericEntries": "All Entries",
     "usePlaylistOrder": "Use Playlist Order",
+    "hideFilters": "Hide Filters",
+    "showFilters": "Show Filters",
     "notArchived": "Not Archived",
     "archived": "Archived",
-    "playOnline": "Play Online"
+    "playOnline": "Play Online",
+    "tagFilterIcon": "Tag Filter Icon"
   },
   "tags": {
     "name": "Ім'я",
@@ -416,7 +426,8 @@
     "makeAliasWhenMerged": "Зробити цей псевдонім тегу?",
     "deleteTag": "Видалити мітку",
     "deleteTagCategory": "Видалити категорію тегів",
-    "locked": "Заблоковано під час обробки..."
+    "locked": "Заблоковано під час обробки...",
+    "filterIcon": "Icon Thumbnail"
   },
   "curate": {
     "noCurationSelected": "No Curation Selected",
@@ -533,6 +544,7 @@
   "misc": {
     "noBlankFound": "Не знайдено {0}",
     "addBlank": "Додати {0}",
+    "removeBlank": "Remove {0}",
     "deleteAllBlankImages": "Видалити всі {0} зображень для цієї гри",
     "yes": "Так",
     "no": "Ні",
