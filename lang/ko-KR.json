@@ -10,6 +10,8 @@
     "hideExtremeScreenshotsDesc": "Hides screenshots of Extreme tagged content, can be unhidden with a click on the image box.",
     "fancyAnimations": "멋진 애니메이션",
     "fancyAnimationsDesc": "Enable fancy animations in the launcher.",
+    "hideNewViewButton": "Hide New View Button",
+    "hideNewViewButtonDesc": "When using custom views, hide the new view (+) button. You can instead press 'Create New View' under the context menu for tabs.",
     "searchLimit": "Search Limit",
     "searchLimitDesc": "Limit the number of results returned in any search",
     "searchLimitUnlimited": "Unlimited",
@@ -89,8 +91,10 @@
     "screenshotPreviewDelay": "Screenshot Preview Delay",
     "screenshotPreviewDelayDesc": "Delay (in milliseconds) before showing the screenshot, when Screenshot Preview is set to on. (when hovering)",
     "advancedHeader": "고급 설정",
+    "clearWininetCache": "Clear WinINet Cache",
+    "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "Optimize Database",
-    "optimizeDatabaseDesc": "Run maintenance tasks to increase database performance and reduce size",
+    "optimizeDatabaseDesc": "Run maintenance tasks to increase database performance and reduce size.",
     "showDeveloperTab": "개발자 탭 표시",
     "showDeveloperTabDesc": "'개발자' 탭을 표시합니다. 아마도 이건 개발자와 큐레이터에게만 유용할 겁니다.",
     "registerProtocol": "Register As Protocol Handler",
@@ -180,6 +184,7 @@
     "curate": "큐레이트",
     "developer": "개발자",
     "searchPlaceholder": "검색하기...",
+    "searchPlaceholderCountable": "Search... ({0} items)",
     "hideRightSidebar": "우측 사이드바 숨김",
     "showRightSidebar": "우측 사이드바 표시",
     "hideLeftSidebar": "좌측 사이드바 숨김",
@@ -198,7 +203,8 @@
     "noLauncherUpdateReady": "Metadata update requires a newer Launcher version, but the software update is not currently available.",
     "deleteView": "Delete Search View",
     "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
-    "createNewView": "Create new search view"
+    "createNewView": "Create new search view",
+    "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
     "dateAdded": "추가된 날짜",
@@ -386,14 +392,18 @@
     "noGameMatchedSearch": "좀 더 넓은 범위의 조건을 사용해 검색해보세요.",
     "mountParameters": "Mount Parameters",
     "noMountParameters": "No Mount Parameters",
+    "ruffleSupport": "Ruffle Support",
     "showExtremeScreenshot": "Show Extreme Screenshot",
     "busy": "Please Wait...",
     "openGameDataBrowser": "Open Game Data Browser",
     "allGenericEntries": "All Entries",
     "usePlaylistOrder": "Use Playlist Order",
+    "hideFilters": "Hide Filters",
+    "showFilters": "Show Filters",
     "notArchived": "Not Archived",
     "archived": "Archived",
-    "playOnline": "Play Online"
+    "playOnline": "Play Online",
+    "tagFilterIcon": "Tag Filter Icon"
   },
   "tags": {
     "name": "이름",
@@ -416,7 +426,8 @@
     "makeAliasWhenMerged": "Make this an alias of the tag?",
     "deleteTag": "태그 삭제",
     "deleteTagCategory": "분류 삭제",
-    "locked": "Locked while processing..."
+    "locked": "Locked while processing...",
+    "filterIcon": "Icon Thumbnail"
   },
   "curate": {
     "noCurationSelected": "No Curation Selected",
@@ -533,6 +544,7 @@
   "misc": {
     "noBlankFound": "{0} 을 찾을 수 없습니다",
     "addBlank": "{0} 을 추가합니다",
+    "removeBlank": "Remove {0}",
     "deleteAllBlankImages": "이 게임의 모든 {0} 이미지를 삭제합니다",
     "yes": "네",
     "no": "아니오",
