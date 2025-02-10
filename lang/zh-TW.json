@@ -10,6 +10,8 @@
     "hideExtremeScreenshotsDesc": "隱藏成人內容的截圖，點擊圖像框即可取消隱藏。",
     "fancyAnimations": "動畫效果",
     "fancyAnimationsDesc": "在啟動器中啟用動畫效果。",
+    "hideNewViewButton": "Hide New View Button",
+    "hideNewViewButtonDesc": "When using custom views, hide the new view (+) button. You can instead press 'Create New View' under the context menu for tabs.",
     "searchLimit": "搜尋限制",
     "searchLimitDesc": "限制搜索返回的結果數量",
     "searchLimitUnlimited": "無限制",
@@ -89,8 +91,10 @@
     "screenshotPreviewDelay": "Screenshot Preview Delay",
     "screenshotPreviewDelayDesc": "Delay (in milliseconds) before showing the screenshot, when Screenshot Preview is set to on. (when hovering)",
     "advancedHeader": "進階設定",
+    "clearWininetCache": "Clear WinINet Cache",
+    "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "最佳化資料庫",
-    "optimizeDatabaseDesc": "執行資料庫維護工作以提升效能並減少占用空間",
+    "optimizeDatabaseDesc": "Run maintenance tasks to increase database performance and reduce size.",
     "showDeveloperTab": "顯示開發者頁籤",
     "showDeveloperTabDesc": "顯示「開發者」頁籤，提供開發者與上傳人員一些實用的工具",
     "registerProtocol": "Register As Protocol Handler",
@@ -180,6 +184,7 @@
     "curate": "上傳",
     "developer": "開發者",
     "searchPlaceholder": "搜尋...",
+    "searchPlaceholderCountable": "Search... ({0} items)",
     "hideRightSidebar": "隱藏右側列表",
     "showRightSidebar": "顯示右側列表",
     "hideLeftSidebar": "隱藏左側列表",
@@ -198,7 +203,8 @@
     "noLauncherUpdateReady": "Metadata update requires a newer Launcher version, but the software update is not currently available.",
     "deleteView": "Delete Search View",
     "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
-    "createNewView": "Create new search view"
+    "createNewView": "Create new search view",
+    "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
     "dateAdded": "新增日期",
@@ -386,14 +392,18 @@
     "noGameMatchedSearch": "嘗試以較為寬鬆的關鍵字進行搜尋",
     "mountParameters": "掛載參數",
     "noMountParameters": "無掛載參數",
+    "ruffleSupport": "Ruffle Support",
     "showExtremeScreenshot": "顯示成人截圖",
     "busy": "請稍候...",
     "openGameDataBrowser": "Open Game Data Browser",
     "allGenericEntries": "All Entries",
     "usePlaylistOrder": "Use Playlist Order",
+    "hideFilters": "Hide Filters",
+    "showFilters": "Show Filters",
     "notArchived": "Not Archived",
     "archived": "Archived",
-    "playOnline": "Play Online"
+    "playOnline": "Play Online",
+    "tagFilterIcon": "Tag Filter Icon"
   },
   "tags": {
     "name": "名稱",
@@ -416,7 +426,8 @@
     "makeAliasWhenMerged": "將此標籤設為該標籤的別名嗎？",
     "deleteTag": "刪除標籤",
     "deleteTagCategory": "刪除標籤類別",
-    "locked": "系統處理時將鎖定操作..."
+    "locked": "系統處理時將鎖定操作...",
+    "filterIcon": "Icon Thumbnail"
   },
   "curate": {
     "noCurationSelected": "未選取任何典藏作品。",
@@ -533,6 +544,7 @@
   "misc": {
     "noBlankFound": "無法找到{0} ",
     "addBlank": "新增 {0}",
+    "removeBlank": "Remove {0}",
     "deleteAllBlankImages": "刪除此遊戲共 {0} 張圖片",
     "yes": "是",
     "no": "否",
