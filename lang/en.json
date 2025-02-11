@@ -558,7 +558,9 @@
     "searching": "Searching...",
     "loading": "Loading...",
     "ok": "OK",
-    "allow": "Allow"
+    "allow": "Allow",
+    "orCapitals": "OR",
+    "andCapitals": "AND"
   },
   "menu": {
     "viewThumbnailInFolder": "View Thumbnail in Folder",

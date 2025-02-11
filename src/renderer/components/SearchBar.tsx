@@ -5,13 +5,14 @@ import { OpenIcon } from './OpenIcon';
 import { useView } from '@renderer/hooks/search';
 import { forceSearch, setAdvancedFilter, setExpanded, setOrderBy, setOrderReverse, setSearchText } from '@renderer/store/search/slice';
 import { AutoSizer, List, ListRowProps } from 'react-virtualized-reactv17';
-import { AdvancedFilter, AdvancedFilterToggle, Tag } from 'flashpoint-launcher';
+import { AdvancedFilter, AdvancedFilterAndToggles, AdvancedFilterToggle, Tag } from 'flashpoint-launcher';
 import { useContext, useMemo, useState } from 'react';
 import { LangContext } from '@renderer/util/lang';
 import { useAppSelector } from '@renderer/hooks/useAppSelector';
 import { getPlatformIconURL } from '@renderer/Util';
 import { SimpleButton } from './SimpleButton';
 import { formatString } from '@shared/utils/StringFormatter';
+import { string } from 'zod';
 
 const categoryOrder = [
   'genre',
@@ -164,33 +165,55 @@ export function SearchBar() {
     };
   };
 
+  const onSetAndToggleFactory = (key: keyof AdvancedFilter) => {
+    return (value: boolean) => {
+      dispatch(setAdvancedFilter({
+        view: view.id,
+        filter: {
+          ...view.advancedFilter,
+          andToggles: {
+            ...view.advancedFilter.andToggles,
+            [key as keyof AdvancedFilterAndToggles]: value
+          }
+        }
+      }));
+    };
+  }
+
   const onWhitelistLibrary = onWhitelistFactory('library');
   const onBlacklistLibrary = onBlacklistFactory('library');
   const onClearLibraries = onClearFactory('library');
+  const onSetAndToggleLibrary = onSetAndToggleFactory('library');
 
   const onWhitelistPlayMode = onWhitelistFactory('playMode');
   const onBlacklistPlayMode = onBlacklistFactory('playMode');
   const onClearPlayMode = onClearFactory('playMode');
+  const onSetAndTogglePlayMode = onSetAndToggleFactory('playMode');
   
   const onWhitelistDeveloper = onWhitelistFactory('developer');
   const onBlacklistDeveloper = onBlacklistFactory('developer');
   const onClearDeveloper = onClearFactory('developer');
+  const onSetAndToggleDeveloper = onSetAndToggleFactory('developer');
   
   const onWhitelistPublisher = onWhitelistFactory('publisher');
   const onBlacklistPublisher = onBlacklistFactory('publisher');
   const onClearPublisher = onClearFactory('publisher');
+  const onSetAndTogglePublisher = onSetAndToggleFactory('publisher');
 
   const onWhitelistSeries = onWhitelistFactory('series');
   const onBlacklistSeries = onBlacklistFactory('series');
   const onClearSeries = onClearFactory('series');
+  const onSetAndToggleSeries = onSetAndToggleFactory('series');
 
   const onWhitelistPlatform = onWhitelistFactory('platform');
   const onBlacklistPlatform = onBlacklistFactory('platform');
   const onClearPlatforms = onClearFactory('platform');
+  const onSetAndTogglePlatform = onSetAndToggleFactory('platform');
 
   const onWhitelistTag = onWhitelistFactory('tags');
   const onBlacklistTag = onBlacklistFactory('tags');
   const onClearTags = onClearFactory('tags');
+  const onSetAndToggleTags = onSetAndToggleFactory('tags');
 
   const simpleSelectItems = (values: string[] | null): SearchableSelectItem[] => {
     return values ? values.map(v => ({
@@ -314,10 +337,12 @@ export function SearchBar() {
             <SearchableSelect
               title={strings.browse.library}
               items={libraryItems}
+              andToggle={view.advancedFilter.andToggles.library}
               selected={view.advancedFilter.library}
               onWhitelist={onWhitelistLibrary}
               onBlacklist={onBlacklistLibrary}
               onClear={onClearLibraries}
+              onSetAndToggle={onSetAndToggleLibrary}
               mapName={(item) => {
                 return strings.libraries[item] || item;
               }} />
@@ -325,47 +350,59 @@ export function SearchBar() {
           <SearchableSelect
             title={strings.app.developer}
             items={developerItems}
+            andToggle={view.advancedFilter.andToggles.developer}
             selected={view.advancedFilter.developer}
             onWhitelist={onWhitelistDeveloper}
             onBlacklist={onBlacklistDeveloper}
-            onClear={onClearDeveloper} />
+            onClear={onClearDeveloper}
+            onSetAndToggle={onSetAndToggleDeveloper} />
           <SearchableSelect
             title={strings.browse.publisher}
             items={publisherItems}
+            andToggle={view.advancedFilter.andToggles.publisher}
             selected={view.advancedFilter.publisher}
             onWhitelist={onWhitelistPublisher}
             onBlacklist={onBlacklistPublisher}
-            onClear={onClearPublisher} />
+            onClear={onClearPublisher}
+            onSetAndToggle={onSetAndTogglePublisher} />
           <SearchableSelect
             title={strings.browse.series}
             items={seriesItems}
+            andToggle={view.advancedFilter.andToggles.series}
             selected={view.advancedFilter.series}
             onWhitelist={onWhitelistSeries}
             onBlacklist={onBlacklistSeries}
-            onClear={onClearSeries} />
+            onClear={onClearSeries}
+            onSetAndToggle={onSetAndToggleSeries} />
           <SearchableSelect
             title={strings.browse.playMode}
             items={playModeItems}
+            andToggle={view.advancedFilter.andToggles.playMode}
             selected={view.advancedFilter.playMode}
             onWhitelist={onWhitelistPlayMode}
             onBlacklist={onBlacklistPlayMode}
-            onClear={onClearPlayMode} />
+            onClear={onClearPlayMode}
+            onSetAndToggle={onSetAndTogglePlayMode} />
           <SearchableSelect
             title={strings.browse.platform}
             items={platformItems}
+            andToggle={view.advancedFilter.andToggles.platform}
             labelRenderer={platformLabelRenderer}
             selected={view.advancedFilter.platform}
             onWhitelist={onWhitelistPlatform}
             onBlacklist={onBlacklistPlatform}
-            onClear={onClearPlatforms} />
+            onClear={onClearPlatforms}
+            onSetAndToggle={onSetAndTogglePlatform} />
           <SearchableSelect
             title={strings.browse.tags}
             items={tagItems}
+            andToggle={view.advancedFilter.andToggles.tags}
             labelRenderer={tagLabelRenderer}
             selected={view.advancedFilter.tags}
             onWhitelist={onWhitelistTag}
             onBlacklist={onBlacklistTag}
-            onClear={onClearTags} />
+            onClear={onClearTags}
+            onSetAndToggle={onSetAndToggleTags} />
         </div>
       )}
     </div>
@@ -416,10 +453,12 @@ function ThreeStateCheckbox(props: ThreeStateCheckboxProps) {
 type SearchableSelectProps<T extends SearchableSelectItem> = {
   title: string;
   items: T[];
+  andToggle: boolean;
   selected: Record<string, AdvancedFilterToggle>;
   onWhitelist: (value: string) => void;
   onBlacklist: (value: string) => void;
   onClear: () => void;
+  onSetAndToggle: (value: boolean) => void;
   mapName?: (name: string) => string;
   labelRenderer?: (item: T, selected: boolean) => JSX.Element;
 }
@@ -434,7 +473,7 @@ type TagSelectItem = {
 } & SearchableSelectItem;
 
 function SearchableSelect<T extends SearchableSelectItem>(props: SearchableSelectProps<T>) {
-  const { title, items, selected, onWhitelist, onBlacklist, onClear, mapName, labelRenderer } = props;
+  const { title, items, selected, andToggle, onWhitelist, onBlacklist, onClear, onSetAndToggle, mapName, labelRenderer } = props;
   const [expanded, setExpanded] = React.useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
 
@@ -483,10 +522,12 @@ function SearchableSelect<T extends SearchableSelectItem>(props: SearchableSelec
         {expanded && (
           <SearchableSelectDropdown
             items={items.sort((a, b) => a.orderVal.localeCompare(b.orderVal))}
+            andToggle={andToggle}
             onWhitelist={onWhitelist}
             onBlacklist={onBlacklist}
             selected={selected}
             mapName={mapName}
+            onSetAndToggle={onSetAndToggle}
             labelRenderer={labelRenderer}
           />
         )}
@@ -497,11 +538,13 @@ function SearchableSelect<T extends SearchableSelectItem>(props: SearchableSelec
 
 type SearchableSelectDropdownProps<T extends SearchableSelectItem> = {
   items: T[];
+  andToggle: boolean;
   selected: Record<string, AdvancedFilterToggle>;
   labelRenderer?: (item: T, selected: boolean) => JSX.Element;
   mapName?: (id: string) => string;
   onWhitelist: (item: string) => void;
   onBlacklist: (item: string) => void;
+  onSetAndToggle: (value: boolean) => void;
 }
 
 const reservedKeys = ["Shift", "Control", "Escape", "Alt", "AltGraph", "Super", "Hyper"];
@@ -519,7 +562,7 @@ function SearchableSelectDropdown<T extends SearchableSelectItem>(props: Searcha
 
   const filteredItems = React.useMemo(() => {
     const lowerSearch = search.toLowerCase().replace(' ', '');
-    const selectedItems = storedItems.filter((item) => item.value in selected && item.orderVal.toLowerCase().includes(lowerSearch));
+    const selectedItems = storedItems.filter((item) => item.value in selected);
     selectedItems.sort((a, b) => {
       if (selected[a.value] === 'whitelist' && selected[b.value] === 'blacklist') {
         return 1;
@@ -669,17 +712,25 @@ function SearchableSelectDropdown<T extends SearchableSelectItem>(props: Searcha
       onClick={(event) => {
         // Prevent bubble up
         event.stopPropagation();
-        event.preventDefault();
-        return -1;
+      }}
+      onContextMenu={(event) => {
+        // Prevent bubble up
+        event.stopPropagation();
       }}
       onKeyDown={handleInputKeyDown}
       className="searchable-select-dropdown">
-      <input
-        ref={inputRef}
-        className="searchable-select-dropdown-search-bar"
-        value={search}
-        placeholder={searchPlaceholder}
-        onChange={(event) => setSearch(event.currentTarget.value)} />
+      <div className='searchable-select-dropdown-upper'>
+        <input
+          ref={inputRef}
+          className="searchable-select-dropdown-search-bar"
+          value={search}
+          placeholder={searchPlaceholder}
+          onChange={(event) => setSearch(event.currentTarget.value)} />
+        <SimpleButton
+          className='searchable-select-dropdown-toggle'
+          onClick={() => props.onSetAndToggle(!props.andToggle)}
+          value={props.andToggle ? strings.misc.andCapitals : strings.misc.orCapitals } />
+      </div>
       <div className="searchable-select-dropdown-results simple-scroll">
         <AutoSizer>
           {({ width, height }) => {

@@ -3,6 +3,7 @@ import { LogLevel } from '@shared/Log/interface';
 import { delayedThrottle, delayedThrottleAsync } from '@shared/utils/throttle';
 import {
   AdvancedFilter,
+  AdvancedFilterAndToggles,
   AdvancedFilterToggle,
   AppPathOverride,
   AppPreferencesData,
@@ -401,6 +402,16 @@ function parseAdvancedFilterToggle(toggle: string): AdvancedFilterToggle {
   return toggle;
 }
 
+function parseAdvancedFilterAndToggles(parser: IObjectParserProp<AdvancedFilterAndToggles>, output: AdvancedFilterAndToggles) {
+  parser.prop('library', v => output.library = !!v, true);
+  parser.prop('playMode', v => output.playMode = !!v, true);
+  parser.prop('platform', v => output.platform = !!v, true);
+  parser.prop('tags', v => output.tags = !!v, true);
+  parser.prop('developer', v => output.developer = !!v, true);
+  parser.prop('publisher', v => output.publisher = !!v, true)
+  parser.prop('series', v => output.series = !!v, true);
+}
+
 function parseAdvancedFilter(parser: IObjectParserProp<AdvancedFilter>, output: AdvancedFilter) {
   parser.prop('installed', v => output.installed = v === undefined ? undefined : !!v, true);
   parser.prop('legacy', v => output.legacy = v === undefined ? undefined : !!v, true);
@@ -412,6 +423,7 @@ function parseAdvancedFilter(parser: IObjectParserProp<AdvancedFilter>, output: 
   parser.prop('developer', true).mapRaw((item, index) => output.developer[index] = parseAdvancedFilterToggle(str(item)));
   parser.prop('publisher', true).mapRaw((item, index) => output.publisher[index] = parseAdvancedFilterToggle(str(item)));
   parser.prop('series', true).mapRaw((item, index) => output.series[index] = parseAdvancedFilterToggle(str(item)));
+  parseAdvancedFilterAndToggles(parser.prop('andToggles'), output.andToggles);
 }
 
 function parseStoredView(parser: IObjectParserProp<StoredView>): StoredView {

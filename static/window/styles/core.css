@@ -3621,6 +3621,19 @@ ul > li {
   padding: 0.3rem;
 }
 
+.searchable-select-dropdown-upper {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 0.3rem;
+}
+
+.searchable-select-dropdown-toggle {
+  margin-left: 0.3rem;
+  width: 3.5em;
+  height: unset !important;
+  font-weight: bold;
+}
+
 .searchable-select-dropdown-item--selected {
   font-weight: bold;
 }

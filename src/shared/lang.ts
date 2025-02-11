@@ -571,7 +571,9 @@ const langTemplate = {
     'searching',
     'loading',
     'ok',
-    'allow'
+    'allow',
+    'andCapitals',
+    'orCapitals',
   ] as const,
   menu: [
     'viewThumbnailInFolder',

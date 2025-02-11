@@ -1,5 +1,5 @@
 import { FieldFilter, GameFilter, GameSearch } from '@fparchive/flashpoint-archive';
-import { AdvancedFilter, AdvancedFilterToggle } from 'flashpoint-launcher';
+import { AdvancedFilter, AdvancedFilterAndToggles, AdvancedFilterToggle } from 'flashpoint-launcher';
 
 function getWhitelistedKeys(record: Record<string, AdvancedFilterToggle>): string[] {
   return Object.entries(record)
@@ -41,6 +41,15 @@ export function getDefaultAdvancedFilter(library?: string): AdvancedFilter {
     developer: {},
     publisher: {},
     series: {},
+    andToggles: {
+      library: false,
+      playMode: false,
+      platform: false,
+      tags: false,
+      developer: false,
+      publisher: false,
+      series: false,
+    }
   };
 }
 
@@ -90,10 +99,13 @@ export function parseAdvancedFilter(advFilter: AdvancedFilter): GameFilter {
 
   const exactWhitelistFunc = (key: keyof AdvancedFilter, fieldKey: keyof FieldFilter) => {
     const record = advFilter[key] as Record<string, AdvancedFilterToggle>;
+    const andToggle = advFilter.andToggles[key as keyof AdvancedFilterAndToggles];
     const val = getWhitelistedKeys(record);
     if (val.length > 0) {
       const newFilter = getDefaultGameFilter();
-      newFilter.matchAny = true;
+      if (!andToggle) {
+        newFilter.matchAny = true;
+      }
       newFilter.exactWhitelist[fieldKey] = val;
       filter.subfilters.push(newFilter);
     }
@@ -101,16 +113,21 @@ export function parseAdvancedFilter(advFilter: AdvancedFilter): GameFilter {
 
   const nonExactWhitelistFunc = (key: keyof AdvancedFilter, fieldKey: keyof FieldFilter) => {
     const record = advFilter[key] as Record<string, AdvancedFilterToggle>;
+    const andToggle = advFilter.andToggles[key as keyof AdvancedFilterAndToggles];
     const val = getWhitelistedKeys(record);
     if (val.length > 0) {
       if (val.length === 1 && val[0] === '') {
         const newFilter = getDefaultGameFilter();
-        newFilter.matchAny = true;
+        if (!andToggle) {
+          newFilter.matchAny = true;
+        }
         newFilter.exactWhitelist[fieldKey] = [''];
         filter.subfilters.push(newFilter);
       } else {
         const newFilter = getDefaultGameFilter();
-        newFilter.matchAny = true;
+        if (!andToggle) {
+          newFilter.matchAny = true;
+        }
         newFilter.whitelist[fieldKey] = val;
         filter.subfilters.push(newFilter);
       }

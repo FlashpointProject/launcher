@@ -1093,6 +1093,16 @@ declare module 'flashpoint-launcher' {
       expanded: boolean;
     }
 
+    type AdvancedFilterAndToggles = {
+      library: boolean;
+      playMode: boolean;
+      platform: boolean;
+      tags: boolean;
+      developer: boolean;
+      publisher: boolean;
+      series: boolean;
+    }
+
     type AdvancedFilter = {
       installed?: boolean;
       legacy?: boolean;
@@ -1104,6 +1114,7 @@ declare module 'flashpoint-launcher' {
       developer: Record<string, AdvancedFilterToggle>;
       publisher: Record<string, AdvancedFilterToggle>;
       series: Record<string, AdvancedFilterToggle>;
+      andToggles: AdvancedFilterAndToggles;
     }
 
     type AdvancedFilterToggle = 'whitelist' | 'blacklist';
