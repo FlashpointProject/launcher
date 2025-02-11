@@ -235,7 +235,7 @@ export const forceSearch = createAsyncThunk(
       viewId: payload.view,
       searchId: view.data.searchId + 1,
       text: view.text,
-      advancedFilter: view.advancedFilter,
+      advancedFilter: advFilter,
       orderBy: view.orderBy,
       orderDirection: view.orderReverse,
       playlist: view.selectedPlaylist
