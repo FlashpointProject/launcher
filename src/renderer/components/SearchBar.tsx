@@ -4,15 +4,24 @@ import { GameOrder } from './GameOrder';
 import { OpenIcon } from './OpenIcon';
 import { useView } from '@renderer/hooks/search';
 import { forceSearch, setAdvancedFilter, setExpanded, setOrderBy, setOrderReverse, setSearchText } from '@renderer/store/search/slice';
-import { ArrowKeyStepper, AutoSizer, List, ListRowProps } from 'react-virtualized-reactv17';
+import { AutoSizer, List, ListRowProps } from 'react-virtualized-reactv17';
 import { AdvancedFilter, AdvancedFilterToggle, Tag } from 'flashpoint-launcher';
 import { useContext, useMemo, useState } from 'react';
 import { LangContext } from '@renderer/util/lang';
 import { useAppSelector } from '@renderer/hooks/useAppSelector';
 import { getPlatformIconURL } from '@renderer/Util';
-import { BackIn } from '@shared/back/types';
 import { SimpleButton } from './SimpleButton';
 import { formatString } from '@shared/utils/StringFormatter';
+
+const categoryOrder = [
+  'genre',
+  'theme',
+  'meta',
+  'presence',
+  'warning',
+  'copyright',
+  'default',
+];
 
 export function SearchBar() {
   const view = useView();
@@ -198,11 +207,14 @@ export function SearchBar() {
   const seriesItems = useMemo(() => simpleSelectItems(search.dropdowns.series), [search.dropdowns.series]);
   const tagItems = useMemo((): TagSelectItem[] => {
     if (search.dropdowns.tags) {
-      return search.dropdowns.tags.map(tag => ({
-        value: tag.name,
-        orderVal: `${tag.category} ${tag.name} ${tag.aliases.join((' '))}`,
-        tag: tag,
-      }));
+      return search.dropdowns.tags.map(tag => {
+        const categoryId = tag.category ? categoryOrder.indexOf(tag.category) : 99999;
+        return {
+          value: tag.name,
+          orderVal: `${categoryId} ${tag.name} ${tag.aliases.join((' '))}`,
+          tag: tag,
+        }
+      });
     } else {
       return [];
     }
