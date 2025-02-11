@@ -25,6 +25,7 @@ import {
   setSearchId,
   setSearchText
 } from './slice';
+import { deepCopy } from '@shared/Util';
 
 export function addSearchMiddleware() {
   // Build filter immediately
@@ -39,12 +40,18 @@ export function addSearchMiddleware() {
         const newSearchId = view.data.searchId + 1;
         store.dispatch(setSearchId({ view: view.id, searchId: newSearchId }));
 
+        const advFilter = deepCopy(view.advancedFilter);
         // Get processed query
+        if (!window.Shared.preferences.data.useCustomViews) {
+          advFilter.library = {
+            [view.id]: 'whitelist'
+          };
+        }
         const filter = await window.Shared.back.request(BackIn.PARSE_QUERY_DATA, {
           viewId: view.id,
           searchId: newSearchId,
           text: view.text,
-          advancedFilter: view.advancedFilter,
+          advancedFilter: advFilter,
           orderBy: view.orderBy,
           orderDirection: view.orderReverse,
           playlist: view.selectedPlaylist

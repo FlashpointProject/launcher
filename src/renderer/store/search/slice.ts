@@ -223,6 +223,14 @@ export const forceSearch = createAsyncThunk(
     const view = state.search.views[payload.view];
     console.log('forced search');
 
+    const advFilter = deepCopy(view.advancedFilter);
+    // Get processed query
+    if (!window.Shared.preferences.data.useCustomViews) {
+      advFilter.library = {
+        [view.id]: 'whitelist'
+      };
+    }
+
     const filter = await window.Shared.back.request(BackIn.PARSE_QUERY_DATA, {
       viewId: payload.view,
       searchId: view.data.searchId + 1,

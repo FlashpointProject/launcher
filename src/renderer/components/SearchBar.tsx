@@ -277,6 +277,13 @@ export function SearchBar() {
     );
   };
 
+  // Force focus search when coming into view
+  React.useEffect(() => {
+    if (searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [view.id]);
+
   return (
     <div className='search-bar-wrapper search-bar-wrapper--expanded-simple'>
       <div className="search-bar">
