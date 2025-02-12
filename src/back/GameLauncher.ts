@@ -61,6 +61,7 @@ type LaunchBaseOpts = {
   runAddApp: (launchInfo: LaunchInfo) => ManagedChildProcess;
   state: BackState;
   activeConfig: GameConfig | null;
+  autoClearWininetCache: boolean;
 }
 
 export namespace GameLauncher {
@@ -166,6 +167,7 @@ export namespace GameLauncher {
         envPATH: opts.envPATH,
         state: opts.state,
         activeConfig: opts.activeConfig,
+        autoClearWininetCache: opts.autoClearWininetCache,
       };
       for (const addApp of opts.game.addApps) {
         if (addApp.autoRunBefore) {

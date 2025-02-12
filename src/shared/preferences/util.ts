@@ -173,6 +173,7 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   customViews: [],
   defaultOpeningPage: Paths.HOME,
   hideNewViewButton: false,
+  autoClearWininetCache: false,
 });
 
 /**
@@ -254,6 +255,7 @@ export function overwritePreferenceData(
   parser.prop('customViews',                   v => source.customViews                   = strArray(v), true);
   parser.prop('defaultOpeningPage',            v => source.defaultOpeningPage            = str(v), true);
   parser.prop('hideNewViewButton',             v => source.hideNewViewButton             = !!v, true);
+  parser.prop('autoClearWininetCache',         v => source.autoClearWininetCache         = !!v, true);
 
   // Can't have a negative delay!
   if (source.screenshotPreviewDelay < 0) {

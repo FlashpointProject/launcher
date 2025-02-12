@@ -97,6 +97,8 @@ const langTemplate = {
     'screenshotPreviewDelay',
     'screenshotPreviewDelayDesc',
     'advancedHeader',
+    'autoClearWininetCache',
+    'autoClearWininetCacheDesc',
     'clearWininetCache',
     'clearWininetCacheDesc',
     'optimizeDatabase',

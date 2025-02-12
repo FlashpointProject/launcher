@@ -614,6 +614,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         state,
         parentGame,
         runAddApp: runAddAppFactory(state),
+        autoClearWininetCache: state.preferences.autoClearWininetCache
       }, false);
       state.apiEmitters.games.onDidLaunchAddApp.fireAlert(state, addApp, event.client, 'Error during post add app launch api event');
     }
@@ -745,6 +746,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         changeServer: changeServerFactory(state),
         activeConfig: activeConfig ? activeConfig : null,
         state,
+        autoClearWininetCache: state.preferences.autoClearWininetCache,
       },
       state.apiEmitters.games.onWillLaunchGame.fireableFactory(state, event.client, 'Error during game launch api event'), false);
       await state.apiEmitters.games.onDidLaunchGame.fireAlert(state, game, event.client, 'Error from post game launch api event');
@@ -1766,6 +1768,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         changeServer: changeServerFactory(state),
         activeConfig: null,
         state,
+        autoClearWininetCache: state.preferences.autoClearWininetCache,
       },
       state.apiEmitters.games.onWillLaunchCurationGame.fireableFactory(state, event.client, 'Error during curate game launch api event'),
       state.apiEmitters.games.onDidLaunchCurationGame.fireableFactory(state, event.client, 'Error during curate post game launch api event'),
@@ -1802,6 +1805,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         activeConfig: null,
         state,
         parentGame: newGame(),
+        autoClearWininetCache: state.preferences.autoClearWininetCache,
       },
       state.apiEmitters.games.onWillLaunchCurationAddApp.fireableFactory(state, event.client, 'Error during curate add app launch api event'),
       state.apiEmitters.games.onDidLaunchCurationAddApp.fireableFactory(state, event.client, 'Error during curate post add app launch api event'));

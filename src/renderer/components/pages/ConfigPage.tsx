@@ -388,6 +388,14 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
           <div className='setting'>
             <p className='setting__title'>{strings.advancedHeader}</p>
             <div className='setting__body'>
+              {/* Auto-Clear WinINet Cache */}
+              {process.platform === 'win32' && (
+                <ConfigBoxCheckbox
+                  title={strings.autoClearWininetCache}
+                  description={strings.autoClearWininetCacheDesc}
+                  value={allStrings.curate.run}
+                  onToggle={this.onChangeAutoClearWininetCache}/>
+              )}
               {/* Clear WinINet Cache */}
               {process.platform === 'win32' && (
                 <ConfigBoxButton
@@ -1303,6 +1311,10 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       alert('Error: ' + err);
     });
   };
+
+  onChangeAutoClearWininetCache = (checked: boolean) => {
+    updatePreferencesData({ autoClearWininetCache: checked });
+  }
 
   onClearWininetCache = () => {
     window.Shared.back.request(BackIn.CLEAR_WININET_CACHE)

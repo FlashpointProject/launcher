@@ -375,7 +375,9 @@ export async function launchCuration(curation: LoadedCuration, symlinkCurationCo
   if (!skipLink || !symlinkCurationContent) { await linkContentFolder(curation.folder, opts.fpPath, opts.isDev, opts.exePath, opts.htdocsPath, symlinkCurationContent); }
   curationLog(`Launching Curation ${curation.game.title}`);
   const game = await createGameFromCurationMeta(curation.folder, curation.game, [], new Date());
-  clearWininetCache();
+  if (opts.autoClearWininetCache) {
+    clearWininetCache();
+  }
   await GameLauncher.launchGame({
     ...opts,
     game: game
@@ -404,7 +406,9 @@ export async function launchAddAppCuration(folder: string, appCuration: AddAppCu
   if (!skipLink || !symlinkCurationContent) { await linkContentFolder(folder, opts.fpPath, opts.isDev, opts.exePath, opts.htdocsPath, symlinkCurationContent); }
   const addApp = createAddAppFromCurationMeta(appCuration, createPlaceholderGame(platforms));
   await onWillEvent.fire(addApp);
-  clearWininetCache();
+  if (opts.autoClearWininetCache) {
+    clearWininetCache();
+  }
   await GameLauncher.launchAdditionalApplication({
     ...opts,
     addApp: addApp
@@ -414,7 +418,7 @@ export async function launchAddAppCuration(folder: string, appCuration: AddAppCu
 
 export function clearWininetCache() {
   if (process.platform === 'win32') {
-    log.debug('Launcher', 'Clearing WinInet Cache');
+    log.debug('Launcher', 'Clearing WinINet Cache');
     child_process.exec('RunDll32.exe InetCpl.cpl,ClearMyTracksByProcess 8', (err) => {
       if (err) {
         log.error('Launcher', `Error clearing WinINet Cache: ${err}`);

@@ -1080,6 +1080,8 @@ declare module 'flashpoint-launcher' {
       defaultOpeningPage: string;
       /** Hide new view button (moves it to context menu) */
       hideNewViewButton: boolean;
+      /** Whether to auto-clear wininet cache when curation runs */
+      autoClearWininetCache: boolean;
     };
 
     type StoredView = {
