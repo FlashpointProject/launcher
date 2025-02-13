@@ -12,6 +12,8 @@ import { useAppSelector } from '@renderer/hooks/useAppSelector';
 import { getPlatformIconURL } from '@renderer/Util';
 import { SimpleButton } from './SimpleButton';
 import { formatString } from '@shared/utils/StringFormatter';
+import { useShortcut } from 'react-keybind';
+import { usePreferences } from '@renderer/hooks/usePreferences';
 
 export const categoryOrder = [
   'genre',
@@ -44,12 +46,23 @@ export function SearchBar() {
   const searchInputRef = React.useRef<HTMLInputElement>(null);
 
   const onKeypress = (event: KeyboardEvent) => {
-    if (event.ctrlKey && event.code === 'KeyF') {
+    if ((event.ctrlKey || event.metaKey) && event.code === 'KeyF') {
       const element = searchInputRef.current;
       if (element) {
         element.select();
         event.preventDefault();
       }
+    }
+
+    if ((event.ctrlKey || event.metaKey) && event.code === 'KeyD') {
+      event.preventDefault();
+      dispatch(setSearchText({
+        view: view.id,
+        text: ''
+      }));
+      dispatch(forceSearch({
+        view: view.id
+      }));
     }
   };
 

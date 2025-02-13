@@ -19,7 +19,6 @@ import { ipcRenderer } from 'electron';
 import { AppPreferencesData, CurationState, TagSuggestion } from 'flashpoint-launcher';
 import * as path from 'path';
 import * as React from 'react';
-import { IWithShortcut } from 'react-keybind';
 import { CheckBox } from '../CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
 import { CuratePageLeftSidebar } from '../CuratePageLeftSidebar';
@@ -30,6 +29,7 @@ import { useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useDispatch } from 'react-redux';
 import * as curateActions from '@renderer/store/curate/slice';
 import { setTask } from '@renderer/store/tasks/slice';
+import { WithShortcutProps } from '@renderer/store/reactKeybindCompat';
 
 type OwnProps = {
   extCurationTemplates: ExtensionContribution<'curationTemplates'>[];
@@ -38,7 +38,7 @@ type OwnProps = {
   logoVersion: number;
 }
 
-export type CuratePageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps & WithMainStateProps & WithConfirmDialogProps & WithTasksProps & IWithShortcut;
+export type CuratePageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps & WithMainStateProps & WithConfirmDialogProps & WithTasksProps & WithShortcutProps;
 
 export function CuratePage(props: CuratePageProps) {
   const strings = React.useContext(LangContext);

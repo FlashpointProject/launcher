@@ -28,7 +28,6 @@ import {
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as React from 'react';
-import { IWithShortcut } from 'react-keybind';
 import { RouteComponentProps } from 'react-router-dom';
 import { ConnectedFooter } from '../containers/ConnectedFooter';
 import { ConnectedRightBrowseSidebar } from '../containers/ConnectedRightBrowseSidebar';
@@ -55,13 +54,14 @@ import { TaskBar } from './TaskBar';
 import { TitleBar } from './TitleBar';
 import uuid = require('uuid');
 import { isAxiosError } from 'axios';
+import { WithShortcutProps } from '@renderer/store/reactKeybindCompat';
 
 // Hide the right sidebar if the page is inside these paths
 const hiddenRightSidebarPages = [Paths.ABOUT, Paths.CURATE, Paths.CONFIG, Paths.MANUAL, Paths.LOGS, Paths.TAGS, Paths.CATEGORIES];
 
 type AppOwnProps = {};
 
-export type AppProps = AppOwnProps & RouteComponentProps & WithViewProps & WithFpfssProps & WithPreferencesProps & WithSearchProps & WithTagCategoriesProps & WithMainStateProps & WithTasksProps & WithCurateProps & IWithShortcut;
+export type AppProps = AppOwnProps & RouteComponentProps & WithViewProps & WithFpfssProps & WithPreferencesProps & WithSearchProps & WithTagCategoriesProps & WithMainStateProps & WithTasksProps & WithCurateProps & WithShortcutProps;
 
 export class App extends React.Component<AppProps> {
   appRef: React.RefObject<HTMLDivElement>;
