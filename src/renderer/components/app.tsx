@@ -54,6 +54,7 @@ import { SplashScreen } from './SplashScreen';
 import { TaskBar } from './TaskBar';
 import { TitleBar } from './TitleBar';
 import uuid = require('uuid');
+import { isAxiosError } from 'axios';
 
 // Hide the right sidebar if the page is inside these paths
 const hiddenRightSidebarPages = [Paths.ABOUT, Paths.CURATE, Paths.CONFIG, Paths.MANUAL, Paths.LOGS, Paths.TAGS, Paths.CATEGORIES];
@@ -1883,7 +1884,7 @@ export class App extends React.Component<AppProps> {
       await cb(user);
     } catch (err) {
       // Check if the error is an axios error, so we can handle lack of auth
-      if (axios.isAxiosError(err)) {
+      if (isAxiosError(err)) {
         // Axios being dumb as bricks here
         let jsonErr = JSON.parse(JSON.stringify(err));
         if (jsonErr.status === 401) {
