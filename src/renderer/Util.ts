@@ -11,6 +11,7 @@ import { GameListItem } from './components/GameListItem';
 import { ViewQuery } from '@shared/library/util';
 import { getGameDataFilename } from '@shared/utils/misc';
 import { GENERAL_VIEW_ID } from '@renderer/store/search/slice';
+import _axios from 'axios';
 
 export const gameDragDataType = 'json/game-drag';
 
@@ -310,3 +311,9 @@ export function wrapSearchTerm(text: string): string {
     ? `"${text}"`
     : text;
 }
+
+export const axios = _axios.create({
+  headers: {
+    'User-Agent': 'Flashpoint Launcher'
+  }
+});

@@ -7,7 +7,7 @@ import {
   DropdownItem
 } from '@renderer/components/CurateBoxInputRow';
 import { GameImageSplit } from '@renderer/components/GameImageSplit';
-import { getCurationURL, getPlatformIconURL } from '@renderer/Util';
+import { axios, getCurationURL, getPlatformIconURL } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
 import { BackIn, CurationImageEnum } from '@shared/back/types';
 import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
@@ -15,7 +15,6 @@ import { ContentTreeNode, PlatformAppPathSuggestions } from '@shared/curate/type
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { sizeToString } from '@shared/Util';
-import axios from 'axios';
 import { clipboard, MenuItemConstructorOptions } from 'electron';
 import { CurationState, LoadedCuration, Platform, Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
 import * as path from 'path';

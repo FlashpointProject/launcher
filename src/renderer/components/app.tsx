@@ -3,7 +3,7 @@ import { WithCurateProps } from '@renderer/containers/withCurateState';
 import { WithFpfssProps } from '@renderer/containers/withFpfss';
 import { WithSearchProps } from '@renderer/containers/withSearch';
 import { WithViewProps } from '@renderer/containers/withView';
-import { cancelDialog, RANDOM_GAME_ROW_COUNT, resolveDialog, updateDialogField } from '@renderer/store/main/slice';
+import { RANDOM_GAME_ROW_COUNT } from '@renderer/store/main/slice';
 import { BackIn, BackInit, BackOut, FpfssUser } from '@shared/back/types';
 import { APP_TITLE, LOGOS, SCREENSHOTS } from '@shared/constants';
 import { CustomIPC, IService, ProcessState, WindowIPC } from '@shared/interfaces';
@@ -17,12 +17,9 @@ import { arrayShallowStrictEquals } from '@shared/utils/compare';
 import { debounce } from '@shared/utils/debounce';
 import { newGame } from '@shared/utils/misc';
 import { formatString } from '@shared/utils/StringFormatter';
-import axios from 'axios';
-import * as runtime from 'react/jsx-runtime'
 import { clipboard, ipcRenderer, Menu, MenuItemConstructorOptions } from 'electron';
 import {
   CurationFpfssInfo,
-  DialogField,
   DialogState,
   Game,
   Playlist,
@@ -40,17 +37,15 @@ import { WithMainStateProps } from '../containers/withMainState';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { WithTagCategoriesProps } from '../containers/withTagCategories';
 import { WithTasksProps } from '../containers/withTasks';
-import { ProgressData } from '../context/ProgressContext';
 import { CreditsFile } from '../credits/CreditsFile';
 import { fpfssLogin, getFpfssConsentExt, saveFpfssConsentExt } from '../fpfss';
 import { AppRouter, AppRouterProps } from '../router';
-import { getGameImagePath, getGameImageURL, getGamePath, getViewName, joinLibraryRoute } from '../Util';
+import { axios, getGameImagePath, getGameImageURL, getGamePath, getViewName, joinLibraryRoute } from '../Util';
 import { LangContext } from '../util/lang';
 import { queueOne } from '../util/queue';
+import { Dialog } from './Dialog';
 import { FloatingContainer } from './FloatingContainer';
 import { ConnectedFpfssEditGame } from './FpfssEditGame';
-import { InputField } from './InputField';
-import { OpenIcon } from './OpenIcon';
 import { newCurateTask } from './pages/CuratePage';
 import { placeholderProgressData, ProgressBar } from './ProgressComponents';
 import { ResizableSidebar, SidebarResizeEvent } from './ResizableSidebar';
@@ -59,8 +54,6 @@ import { SplashScreen } from './SplashScreen';
 import { TaskBar } from './TaskBar';
 import { TitleBar } from './TitleBar';
 import uuid = require('uuid');
-import { compile, compileSync, runSync } from '@mdx-js/mdx';
-import { Dialog } from './Dialog';
 
 // Hide the right sidebar if the page is inside these paths
 const hiddenRightSidebarPages = [Paths.ABOUT, Paths.CURATE, Paths.CONFIG, Paths.MANUAL, Paths.LOGS, Paths.TAGS, Paths.CATEGORIES];

@@ -1,9 +1,9 @@
 import { FpfssUser } from '@shared/back/types';
-import axios from 'axios';
 import * as remote from '@electron/remote';
 import { uuid } from '@shared/utils/uuid';
 import { DialogState } from 'flashpoint-launcher';
 import * as mainActions from '@renderer/store/main/slice';
+import { axios } from './Util';
 
 export async function fpfssLogin(createDialog: typeof mainActions.createDialog, cancelDialog: typeof mainActions.cancelDialog): Promise<FpfssUser | null> {
   const fpfssBaseUrl = window.Shared.preferences.data.fpfssBaseUrl;
