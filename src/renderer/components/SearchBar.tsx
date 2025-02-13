@@ -12,9 +12,8 @@ import { useAppSelector } from '@renderer/hooks/useAppSelector';
 import { getPlatformIconURL } from '@renderer/Util';
 import { SimpleButton } from './SimpleButton';
 import { formatString } from '@shared/utils/StringFormatter';
-import { string } from 'zod';
 
-const categoryOrder = [
+export const categoryOrder = [
   'genre',
   'theme',
   'meta',

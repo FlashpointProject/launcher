@@ -8,6 +8,7 @@ import * as React from 'react';
 import { ResizableSidebar } from '../ResizableSidebar';
 import { TagList } from '../TagList';
 import { Tag } from 'flashpoint-launcher';
+import { categoryOrder } from '../SearchBar';
 
 type OwnProps = {
 }
@@ -47,13 +48,14 @@ export class TagsPage extends React.Component<TagsPageProps, TagsPageState> {
     window.Shared.back.request(BackIn.GET_TAGS, this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme)))
     .then((data) => {
       data.sort((a, b) => {
-        if (a.category === 'default' && b.category !== 'default') {
-          return -1;
+        const aCatOrder = a.category ? categoryOrder.indexOf(a.category) : 99999;
+        const bCatOrder = b.category ? categoryOrder.indexOf(b.category) : 99999;
+        
+        if (aCatOrder === bCatOrder) {
+          return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+        } else {
+          return aCatOrder - bCatOrder;
         }
-        if (a.category !== 'default' && b.category === 'default') {
-          return 1;
-        }
-        return a.name.toLowerCase().localeCompare(b.category?.toLowerCase() || '')
       })
       if (data) { this.onTagsChange(data); }
     });
