@@ -9,9 +9,9 @@ type ChangelogEntry = {
 
 export const CHANGELOG: Changelog = {
   "2025-02-10": {
-    title: 'Flashpoint Launcher 13.1.0',
+    title: 'Flashpoint Launcher 14.0.0',
     message: `
-# Flashpoint Launcher 13.1.0
+# Flashpoint Launcher 14.0.0
 
 ## New
 - Game Data:
