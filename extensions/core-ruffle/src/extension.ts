@@ -23,9 +23,13 @@ export async function activate(context: flashpoint.ExtensionContext): Promise<vo
   if (firstLaunch) {
     const firstRunDialog = 
 `
-<div style={{ textAlign: 'center' }}>
+
+<div style={{ textAlign: 'center', cursor: 'pointer' }} onClick={e => {
+    const remote = require('@electron/remote');
+    remote.shell.openExternal('https://ruffle.rs');
+  }}>
   <img 
-    src="${flashpoint.getExtensionFileURL('logo.svg')}" 
+    src="${flashpoint.getExtensionFileURL('logo.svg')}"
     alt="Ruffle logo" 
     style={{ 
       maxWidth: '200px', 
@@ -36,13 +40,14 @@ export async function activate(context: flashpoint.ExtensionContext): Promise<vo
 </div>
 
 <div style={{ fontSize: '1.5em' }}>
-  Ruffle is supported in Flashpoint.
+  ### Ruffle is now supported in Flashpoint.
 
-  something something description
+  <br/>
+  <p>Ruffle is a modern Flash emulator which can replace Flash Player in some supported games.</p>
+  To learn more, click the logo above.
+  <br/>
 
-  Ruffle can be enabled for Supported Games on the **Config Page**
-
-  Maybe a nice picture of the toggle here? Who knows.
+  To enable this, please see **Enabled (Supported Games)** near the bottom of the **Config Page**.
 </div>
 `;
     flashpoint.onDidConnect(async () => {
