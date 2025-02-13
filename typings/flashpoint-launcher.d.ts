@@ -1074,6 +1074,8 @@ declare module 'flashpoint-launcher' {
       storedViews: StoredView[];
       /** Whether to use library or custom views */
       useCustomViews: boolean;
+      /** Whether to load the text in views when restarting the launcher*/
+      loadViewsText: boolean;
       /** List of custom views */
       customViews: string[];
       /** Default Opening Page (Home, Browse pages) */

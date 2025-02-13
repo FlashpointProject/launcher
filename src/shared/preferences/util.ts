@@ -170,6 +170,7 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   useStoredViews: true,
   storedViews: [],
   useCustomViews: false,
+  loadViewsText: true,
   customViews: [],
   defaultOpeningPage: Paths.HOME,
   hideNewViewButton: false,
@@ -252,6 +253,7 @@ export function overwritePreferenceData(
   parser.prop('screenshotPreviewDelay',        v => source.screenshotPreviewDelay        = num(v), true);
   parser.prop('useStoredViews',                v => source.useStoredViews                = !!v, true);
   parser.prop('useCustomViews',                v => source.useCustomViews                = !!v, true);
+  parser.prop('loadViewsText',                 v => source.loadViewsText                 = !!v, true);
   parser.prop('customViews',                   v => source.customViews                   = strArray(v), true);
   parser.prop('defaultOpeningPage',            v => source.defaultOpeningPage            = str(v), true);
   parser.prop('hideNewViewButton',             v => source.hideNewViewButton             = !!v, true);

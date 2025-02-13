@@ -23,6 +23,8 @@ const langTemplate = {
     'searchLimitValue',
     'useCustomViews',
     'useCustomViewsDesc',
+    'loadViewsText',
+    'loadViewsTextDesc',
     'defaultOpeningPage',
     'defaultOpeningPageDesc',
     'restoreSearchViews',

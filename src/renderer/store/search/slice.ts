@@ -284,7 +284,9 @@ const searchSlice = createSlice({
         for (const storedView of payload.storedViews) {
           const view = state.views[storedView.view];
           if (view) {
-            view.text = storedView.text;
+            if (window.Shared.preferences.data.loadViewsText) {
+              view.text = storedView.text;
+            }
             view.advancedFilter = storedView.advancedFilter;
             view.orderBy = storedView.orderBy;
             view.orderReverse = storedView.orderReverse;
@@ -376,7 +378,9 @@ const searchSlice = createSlice({
         for (const storedView of payload.storedViews) {
           const view = state.views[storedView.view];
           if (view) {
-            view.text = storedView.text;
+            if (window.Shared.preferences.data.loadViewsText) {
+              view.text = storedView.text;
+            }
             view.advancedFilter = storedView.advancedFilter;
             view.orderBy = storedView.orderBy;
             view.orderReverse = storedView.orderReverse;

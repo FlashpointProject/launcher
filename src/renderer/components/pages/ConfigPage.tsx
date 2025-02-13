@@ -154,7 +154,12 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 title={strings.useCustomViews}
                 description={strings.useCustomViewsDesc}
                 checked={this.props.preferencesData.useCustomViews}
-                onToggle={this.onUseCustomViews} />
+                onToggle={this.onToggleUseCustomViews} />
+              <ConfigBoxCheckbox
+                title={strings.loadViewsText}
+                description={strings.loadViewsTextDesc}
+                checked={this.props.preferencesData.loadViewsText}
+                onToggle={this.onToggleLoadViewsText} />
               <ConfigBoxSelect
                 title={strings.defaultOpeningPage}
                 description={strings.defaultOpeningPageDesc}
@@ -921,7 +926,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     }
   };
 
-  onUseCustomViews = (isChecked: boolean): void => {
+  onToggleUseCustomViews = (isChecked: boolean): void => {
     updatePreferencesData({
       useCustomViews: isChecked,
       defaultOpeningPage: Paths.HOME,
@@ -961,6 +966,12 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       }
     }
   };
+
+  onToggleLoadViewsText = (isChecked: boolean): void => {
+    updatePreferencesData({
+      loadViewsText: isChecked
+    });
+  }
 
   onEnableEditingChange = (isChecked: boolean): void => {
     updatePreferencesData({ enableEditing: isChecked });
