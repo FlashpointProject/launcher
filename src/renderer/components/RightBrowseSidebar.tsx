@@ -214,6 +214,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       const editDisabled = !preferencesData.enableEditing;
       const editable = isEditing;
       const screenshotSrc = getGameImageURL(SCREENSHOTS, game.id);
+      const anyActiveDataDownloaded = game.gameData !== undefined && game.gameData.findIndex((gd) => gd.presentOnDisk) !== -1;
 
       const removeGameFromPlaylistElement =
         <ConfirmElement
@@ -458,7 +459,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                 { this.props.fpfssEditMode ? strings.fpfssGame :
                   game.archiveState === 0 ? strings.notArchived :
                     game.archiveState === 1 ? strings.archived :
-                      this.state.activeData ? (this.state.activeData.presentOnDisk ? strings.installed : strings.notInstalled): strings.legacyGame}
+                      this.state.activeData ? (anyActiveDataDownloaded ? strings.installed : strings.notInstalled): strings.legacyGame}
               </div>
               { game.archiveState === 2 && this.state.activeData && (
                 <div className='browse-right-sidebar__mini-download-info__size'>
@@ -506,7 +507,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     }}>
                     {strings.playOnline}
                   </div>
-                ) : (this.state.activeData && !this.state.activeData.presentOnDisk) ? (
+                ) : (this.state.activeData && !anyActiveDataDownloaded) ? (
                   <div
                     className='browse-right-sidebar__play-button--download'
                     onClick={() => {
@@ -515,8 +516,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     }}>
                     {strings.download}
                   </div>
-                )
-                  : (
+                ) : (
                     <div className='browse-right-sidebar__play-button' >
                       <div className='browse-right-sidebar__play-button--text'
                         onClick={() => this.props.currentGame && this.props.onGameLaunch(this.props.currentGame.id)} >

@@ -653,6 +653,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
               if (lcDifferent) {
                 const strings = state.languageContainer;
                 const dialogId = await state.socketServer.showMessageBoxBack(state, event.client)({
+                  largeMessage: true,
                   message: `${strings.dialog.gameDataUpdateReadyLcDifferent}`,
                   buttons: [strings.misc.yes, strings.misc.no],
                   cancelId: 1,
@@ -671,6 +672,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
               } else {
                 const strings = state.languageContainer;
                 const dialogId = await state.socketServer.showMessageBoxBack(state, event.client)({
+                  largeMessage: true,
                   message: `${strings.dialog.gameDataUpdateReady}`,
                   buttons: [strings.misc.yes, strings.misc.no],
                   cancelId: 1,
@@ -687,6 +689,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
                   log.info('Game Launcher', 'Upgrading from old game data (lc same)...');
                 }
               }
+              break;
             }
           }
           if (!gameData.presentOnDisk) {
