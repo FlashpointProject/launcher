@@ -39,26 +39,32 @@ export type GameGridItemProps = Partial<GridCellProps> & {
 // Displays a single game. Meant to be rendered inside a grid.
 export function GameGridItem(props: GameGridItemProps) {
   const [isHovered, setIsHovered] = React.useState(false);
-  const [showScreenshot, setShowScreenshot] = React.useState(props.screenshotPreviewMode === ScreenshotPreviewMode.ALWAYS && (!props.extreme || !props.hideExtremeScreenshots));
+  const [showScreenshot, setShowScreenshot] = React.useState(false);
 
   React.useEffect(() => {
-    if (props.screenshotPreviewMode === ScreenshotPreviewMode.ON && (!props.extreme || !props.hideExtremeScreenshots)) {
-      let timeoutId: any; // It's a timeout
-      if (isHovered) {
-        timeoutId = setTimeout(() => {
-          setShowScreenshot(true);
-          console.log('screenshot on');
-        }, props.screenshotPreviewDelay); // Delay in milliseconds
-      } else {
-        setShowScreenshot(false);
-        console.log('screenshot off');
-      }
-      return () => clearTimeout(timeoutId); // Cleanup timeout on component unmount or if hover state changes
+    let timeoutId: any; // It's a timeout
+    if (isHovered) {
+      timeoutId = setTimeout(() => {
+        setShowScreenshot(true);
+      }, props.screenshotPreviewDelay); // Delay in milliseconds
+    } else {
+      setShowScreenshot(false);
     }
+    return () => clearTimeout(timeoutId); // Cleanup timeout on component unmount or if hover state changes
   }, [isHovered]);
 
   const { rowIndex, id, title, platforms, thumbnail, screenshot, extreme, tagGroupIconBase64, isDraggable, isSelected, isDragged, extremeIconPath, style, onDrop } = props;
   // Get the platform icon path
+  let willShowScreenshot = false;
+  if (props.screenshotPreviewMode === ScreenshotPreviewMode.ALWAYS) {
+    if (!props.hideExtremeScreenshots || !props.extreme) {
+      willShowScreenshot = true;
+    }
+  } else if (props.screenshotPreviewMode === ScreenshotPreviewMode.ON && showScreenshot) {
+    if (!props.hideExtremeScreenshots || !props.extreme) {
+      willShowScreenshot = true;
+    }
+  }
   const platformIcons = React.useMemo(() =>
     platforms.slice(0, 5).map(p => getPlatformIconURL(p, props.logoVersion))
   , [platforms, props.logoVersion]);
@@ -88,7 +94,7 @@ export function GameGridItem(props: GameGridItemProps) {
         <div className='game-grid-item__thumb'>
           <div
             className='game-grid-item__thumb__image'
-            style={{ backgroundImage: `url('${ showScreenshot ? screenshot : thumbnail }')` }}>
+            style={{ backgroundImage: `url('${ willShowScreenshot ? screenshot : thumbnail }')` }}>
             {(extreme) ? (
               <div className='game-grid-item__thumb__icons--upper'>
                 <div
