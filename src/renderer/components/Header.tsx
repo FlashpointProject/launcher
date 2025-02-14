@@ -62,7 +62,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
           continue;
         } else {
           const customViews = [...this.props.preferencesData.customViews];
-          const customViewsIdx = this.props.preferencesData.customViews.findIndex(v => v === view);
+          const customViewsIdx = this.props.preferencesData.customViews.findIndex(v => v === name);
           if (customViewsIdx > -1) {
             customViews[customViewsIdx] = name;
           } else {

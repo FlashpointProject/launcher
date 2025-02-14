@@ -66,7 +66,8 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
       folder: props.folder,
       addApp: props.addApp,
       platforms: props.platforms,
-      symlinkCurationContent: props.symlinkCurationContent
+      symlinkCurationContent: props.symlinkCurationContent,
+      override: null,
     });
   }, [props.addApp && props.folder, props.symlinkCurationContent, props.platforms]);
   // Render

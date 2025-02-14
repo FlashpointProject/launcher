@@ -16,7 +16,7 @@ import { updatePreferencesData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
 import { ipcRenderer } from 'electron';
-import { AppPreferencesData, CurationState, TagSuggestion } from 'flashpoint-launcher';
+import { AppPreferencesData, CurationState, GameLaunchOverride, TagSuggestion } from 'flashpoint-launcher';
 import * as path from 'path';
 import * as React from 'react';
 import { CheckBox } from '../CheckBox';
@@ -269,7 +269,8 @@ export function CuratePage(props: CuratePageProps) {
           window.Shared.back.request(BackIn.LAUNCH_CURATION, {
             curation,
             mad4fp: false,
-            symlinkCurationContent: props.preferencesData.symlinkCurationContent
+            symlinkCurationContent: props.preferencesData.symlinkCurationContent,
+            override: null,
           });
         }
       }, props.preferencesData.shortcuts.curate.run, 'curate:Test', 'Run Active Curation');
@@ -278,7 +279,8 @@ export function CuratePage(props: CuratePageProps) {
           window.Shared.back.request(BackIn.LAUNCH_CURATION, {
             curation,
             mad4fp: true,
-            symlinkCurationContent: props.preferencesData.symlinkCurationContent
+            symlinkCurationContent: props.preferencesData.symlinkCurationContent,
+            override: null,
           });
         }
       }, props.preferencesData.shortcuts.curate.runMad4fp, 'curate:Test MAD4FP', 'Run Active Curation with MAD4FP');
@@ -377,12 +379,24 @@ export function CuratePage(props: CuratePageProps) {
     }
   }, [curate.selected]);
 
+  const onRunCurationOverride = React.useCallback(async (override: GameLaunchOverride) => {
+    if (curation) {
+      window.Shared.back.send(BackIn.LAUNCH_CURATION, {
+        curation,
+        mad4fp: false,
+        symlinkCurationContent: props.preferencesData.symlinkCurationContent,
+        override,
+      });
+    }
+  }, [curation]);
+
   const onRunCuration = React.useCallback(async () => {
     if (curation) {
       window.Shared.back.send(BackIn.LAUNCH_CURATION, {
         curation,
         mad4fp: false,
-        symlinkCurationContent: props.preferencesData.symlinkCurationContent
+        symlinkCurationContent: props.preferencesData.symlinkCurationContent,
+        override: null,
       });
     }
   }, [curation]);
@@ -392,7 +406,8 @@ export function CuratePage(props: CuratePageProps) {
       window.Shared.back.send(BackIn.LAUNCH_CURATION, {
         curation,
         mad4fp: true,
-        symlinkCurationContent: props.preferencesData.symlinkCurationContent
+        symlinkCurationContent: props.preferencesData.symlinkCurationContent,
+        override: null,
       });
     }
   }, [curation]);
@@ -529,6 +544,8 @@ export function CuratePage(props: CuratePageProps) {
       };
     }
   }, [curate.selected]);
+
+  console.log('ruffle: ' + curation?.game.ruffleSupport);
 
   return (
     <div className='curate-page'>
@@ -698,6 +715,16 @@ export function CuratePage(props: CuratePageProps) {
               value={strings.curate.runWithMAD4FP}
               onClick={onRunMAD4FPCuration}/>
           )}
+          <SimpleButton
+            className='curate-page__right--button'
+            disabled={disabled || !curation.game.launchCommand?.endsWith('.swf')}
+            value={strings.browse.runWithFlashPlayer}
+            onClick={() => onRunCurationOverride('flash')}/>
+          <SimpleButton
+            className='curate-page__right--button'
+            disabled={disabled || (!curation.game.launchCommand?.endsWith('.swf') && !curation.game.ruffleSupport)}
+            value={(!!(curation?.game.ruffleSupport)) ? strings.browse.runWithRuffle : strings.browse.runWithRuffleUnsupported}
+            onClick={() => onRunCurationOverride('ruffle')}/>
           <div className='curate-page__right--checkbox'>
             <div>{strings.curate.symlinkCurationContent}</div>
             <CheckBox
