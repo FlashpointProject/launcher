@@ -44,10 +44,6 @@ body {
 *, ::before, ::after {
   box-sizing: inherit;
 }
-ul > li {
-  margin-left: 10px;
-}
-
 
 /* ------ Icons ------ */
 .icon {
@@ -2907,6 +2903,10 @@ ul > li {
   overflow: auto;
   max-height: 90%;
   max-width: 90%;
+}
+
+.floating-container li {
+  margin-left: 10px;
 }
 
 .page-wrap {
