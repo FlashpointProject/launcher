@@ -29,6 +29,8 @@ const langTemplate = {
     'defaultOpeningPageDesc',
     'restoreSearchViews',
     'restoreSearchViewsDesc',
+    'useSelectedGameScroll',
+    'useSelectedGameScrollDesc',
     'enableEditing',
     'enableEditingDesc',
     'symlinkCuration',

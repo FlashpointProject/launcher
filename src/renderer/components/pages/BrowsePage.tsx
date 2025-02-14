@@ -26,6 +26,7 @@ import { WithViewProps } from '@renderer/containers/withView';
 import { SearchBar } from '@renderer/components/SearchBar';
 import { delayedThrottle } from '@shared/utils/throttle';
 import path = require('path');
+import { ScrollIndices } from 'react-virtualized-reactv17';
 
 type Pick<T, K extends keyof T> = { [P in K]: T[P]; };
 
@@ -113,6 +114,29 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     }
   }
 
+  onGridScrollChange = (scrollTop: number) => {
+    this.props.searchActions.setGridScrollTop({
+      view: this.props.currentView.id,
+      scrollTop
+    });
+  }
+
+  onGridScrollToChange = (params: ScrollIndices, columns: number) => {
+    const game = this.props.currentView.data.games[params.scrollToRow * columns + params.scrollToColumn];
+    if (game) { 
+      this.onGridGameSelect(game.id, params.scrollToColumn, params.scrollToRow);
+    }
+  }
+
+  onListScrollToChange = (row: number) => {
+    console.log(row);
+    const game = this.props.currentView.data.games[row];
+    if (game) {
+      console.log(game.id);
+      this.onListGameSelect(game.id, row);
+    }
+  }
+
   render() {
     const strings = this.context;
     const { currentView } = this.props;
@@ -165,6 +189,19 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                 // (These are kind of "magic numbers" and the CSS styles are designed to fit with them)
                 const height: number = calcScale(350, this.props.preferencesData.browsePageGameScale);
                 const width: number = (height * 0.666) | 0;
+                // const gameGridProps = this.props.preferencesData.useSelectedGameScroll ? {
+                //   scrollCol: currentView.gridScrollCol,
+                //   scrollRow: currentView.gridScrollRow,
+                //   onScrollToChange: this.onGridScrollToChange
+                // } : {
+                //   scrollTop: currentView.gridScrollTop,
+                //   onScrollChange: this.onGridScrollChange
+                // }
+                const gameGridProps = {
+                  scrollCol: currentView.gridScrollCol,
+                  scrollRow: currentView.gridScrollRow,
+                  onScrollToChange: this.onGridScrollToChange
+                };
                 return (
                   <GameGrid
                     games={currentView.data.games}
@@ -175,7 +212,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                     extremeTags={extremeTags}
                     noRowsRenderer={this.noRowsRenderer}
                     tagGroupIcons={tagGroupIcons}
-                    onGameSelect={this.onGameSelect}
+                    onGameSelect={this.onGridGameSelect}
                     onGameLaunch={this.onGameLaunch}
                     onContextMenu={this.props.onGameContextMenu}
                     onGameDragStart={this.onGameDragStart}
@@ -188,7 +225,9 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                     screenshotPreviewDelay={this.props.preferencesData.screenshotPreviewDelay}
                     hideExtremeScreenshots={this.props.preferencesData.hideExtremeScreenshots}
                     gridRef={this.gameGridOrListRefFunc}
-                    updateView={this.updateViewRange}/>
+                    updateView={this.updateViewRange}
+                    viewId={this.props.currentView.id}
+                    { ...gameGridProps } />
                 );
               } else {
                 const height: number = calcScale(30, this.props.preferencesData.browsePageGameScale);
@@ -204,7 +243,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                     extremeTags={extremeTags}
                     noRowsRenderer={this.noRowsRenderer}
                     tagGroupIcons={tagGroupIcons}
-                    onGameSelect={this.onGameSelect}
+                    onGameSelect={this.onListGameSelect}
                     onGameLaunch={this.onGameLaunch}
                     onContextMenu={this.props.onGameContextMenu}
                     onGameDragStart={this.onGameDragStart}
@@ -213,7 +252,10 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                     rowHeight={height}
                     logoVersion={this.props.logoVersion}
                     listRef={this.gameGridOrListRefFunc}
-                    updateView={this.updateViewRange}/>
+                    updateView={this.updateViewRange}
+                    scrollRow={currentView.listScrollRow}
+                    onScrollToChange={this.onListScrollToChange}
+                    viewId={this.props.currentView.id} />
                 );
               }
             })()}
@@ -352,11 +394,38 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     return parseInt(document.defaultView.getComputedStyle(this.gameBrowserRef.current).width || '', 10);
   }
 
-  onGameSelect = async (gameId?: string): Promise<void> => {
+  onGridGameSelect = async (gameId?: string, col?: number, row?: number): Promise<void> => {
     const { currentView } = this.props;
     if (currentView.selectedGame?.id !== gameId && gameId) {
       const game = await window.Shared.back.request(BackIn.GET_GAME, gameId);
       if (game) {
+        if (col !== undefined && row !== undefined) {
+          this.props.searchActions.setGridScroll({
+            view: currentView.id,
+            col,
+            row
+          });
+        }
+        this.props.searchActions.selectGame({
+          view: currentView.id,
+          game,
+        });
+      }
+    }
+  }
+
+
+  onListGameSelect = async (gameId?: string, row?: number): Promise<void> => {
+    const { currentView } = this.props;
+    if (currentView.selectedGame?.id !== gameId && gameId) {
+      const game = await window.Shared.back.request(BackIn.GET_GAME, gameId);
+      if (game) {
+        if (row !== undefined) {
+          this.props.searchActions.setListScroll({
+            view: currentView.id,
+            row
+          });
+        }
         this.props.searchActions.selectGame({
           view: currentView.id,
           game,

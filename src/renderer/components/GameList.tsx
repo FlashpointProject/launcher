@@ -39,7 +39,7 @@ export type OwnProps = {
   /** Function that renders the elements to show instead of the grid if there are no games (render prop). */
   noRowsRenderer?: () => JSX.Element;
   /** Called when the user attempts to select a game. */
-  onGameSelect: (gameId?: string) => void;
+  onGameSelect: (gameId?: string, row?: number) => void;
   /** Called when the user attempts to launch a game. */
   onGameLaunch: (gameId: string) => void;
   /** Called when the user attempts to open a context menu (at a game). */
@@ -55,6 +55,11 @@ export type OwnProps = {
   listRef?: RefFunc<HTMLDivElement>;
   /** Updates to clear platform icon cache */
   logoVersion: number;
+  /** View id */
+  viewId?: string;
+  /** Scroll position */
+  scrollRow?: number;
+  onScrollToChange?: (row: number) => void;
 };
 
 type RowsRenderedInfo = {
@@ -122,6 +127,7 @@ class _GameList extends React.Component<GameListProps> {
 
   render() {
     const games = this.props.games || [];
+    console.log('render ' + this.props.scrollRow + ' ' + this.props.selectedGameId);
     // @HACK: Check if the games array changed
     // (This will cause the re-rendering of all cells any time the games prop uses a different reference)
     const gamesChanged = games !== this.currentGames;
@@ -148,11 +154,6 @@ class _GameList extends React.Component<GameListProps> {
           onKeyPress={this.onKeyPress}>
           <AutoSizer>
             {({ width, height }) => {
-              // Calculate column and row of selected item
-              let scrollToIndex = -1;
-              if (this.props.selectedGameId) {
-                scrollToIndex = findGameIndex(games, this.props.selectedGameId);
-              }
               return (
                 <ArrowKeyStepper
                   onScrollToChange={this.onScrollToChange}
@@ -160,8 +161,8 @@ class _GameList extends React.Component<GameListProps> {
                   isControlled={true}
                   columnCount={1}
                   rowCount={this.props.resultsTotal || 0}
-                  scrollToRow={scrollToIndex}>
-                  {({ onSectionRendered, scrollToRow }) => (
+                  scrollToRow={this.props.scrollRow}>
+                  {({ onSectionRendered }) => (
                     <List
                       className='game-list simple-scroll'
                       ref={this.list}
@@ -174,9 +175,11 @@ class _GameList extends React.Component<GameListProps> {
                       noRowsRenderer={this.props.noRowsRenderer}
                       rowRenderer={this.rowRenderer}
                       // ArrowKeyStepper props
-                      scrollToIndex={scrollToRow}
+                      scrollToIndex={this.props.scrollRow}
                       onRowsRendered={this.onRowsRendered}
                       onSectionRendered={onSectionRendered}
+                      pass_gameId={this.props.selectedGameId}
+                      pass_viewId={this.props.viewId}
                       // Pass-through props (they have no direct effect on the list)
                       // (If any property is changed the list is re-rendered, even these)
                       pass_gamesChanged={gamesChanged} />
@@ -240,7 +243,8 @@ class _GameList extends React.Component<GameListProps> {
    * @param gameId ID of pressed Game
    */
   onGameSelect = (event: React.MouseEvent, gameId: string | undefined): void => {
-    this.props.onGameSelect(gameId);
+    const row = findGameIndex(this.props.games, gameId);
+    this.props.onGameSelect(gameId, row);
   };
 
   /**
@@ -288,12 +292,9 @@ class _GameList extends React.Component<GameListProps> {
    * @param params Position params to scroll to
    */
   onScrollToChange = (params: ScrollIndices): void => {
-    if (!this.props.games) { throw new Error('Games array is missing.'); }
-    if (params.scrollToRow === -1) {
-      this.props.onGameSelect(undefined);
-    } else {
-      const game = this.props.games[params.scrollToRow];
-      if (game) { this.props.onGameSelect(game.id); }
+    if (this.props.onScrollToChange) {
+      this.props.onScrollToChange(params.scrollToRow);
+
     }
   };
 

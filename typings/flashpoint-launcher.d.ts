@@ -1084,6 +1084,8 @@ declare module 'flashpoint-launcher' {
       hideNewViewButton: boolean;
       /** Whether to auto-clear wininet cache when curation runs */
       autoClearWininetCache: boolean;
+      /** Use selected index instead of scroll pos */
+      useSelectedGameScroll: boolean;
     };
 
     type StoredView = {

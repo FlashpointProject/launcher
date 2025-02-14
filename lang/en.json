@@ -24,6 +24,8 @@
     "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
     "restoreSearchViews": "Restore Search Results",
     "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
+    "useSelectedGameScroll": "Enable Game Selection Keyboard Controls",
+    "useSelectedGameScrollDesc": "Enables use of arrow keys to select games on Game Grids / Lists. NOTE: This will replace saved scroll position with saved selected game position.",
     "enableEditing": "Enable Editing",
     "enableEditingDesc": "Enable editing of games and additional applications. Also shows tabs related to editing.",
     "symlinkCuration": "Symlink Curation Content",

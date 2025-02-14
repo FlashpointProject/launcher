@@ -60,6 +60,10 @@ export type ResultsView = {
   searchFilter: SearchQuery;
   loaded: boolean;
   expanded: boolean;
+  gridScrollCol?: number;
+  gridScrollRow?: number;
+  gridScrollTop?: number;
+  listScrollRow?: number;
 }
 
 type SearchDropdownDataSet = {
@@ -68,6 +72,22 @@ type SearchDropdownDataSet = {
   developers: string[] | null;
   publishers: string[] | null;
   series: string[]| null;
+}
+
+type SearchGridScrollAction = {
+  view: string;
+  col: number;
+  row: number;
+}
+
+type SearchListScrollAction = {
+  view: string;
+  row: number;
+}
+
+type SearchScrollTopAction = {
+  view: string;
+  scrollTop: number;
 }
 
 type SearchState = {
@@ -585,6 +605,25 @@ const searchSlice = createSlice({
         };
       }
     },
+    setGridScroll(state: SearchState, { payload }: PayloadAction<SearchGridScrollAction>) {
+      const view = state.views[payload.view];
+      if (view) {
+        view.gridScrollCol = payload.col;
+        view.gridScrollRow = payload.row;
+      }
+    },
+    setGridScrollTop(state: SearchState, { payload }: PayloadAction<SearchScrollTopAction>) {
+      const view = state.views[payload.view];
+      if (view) {
+        view.gridScrollTop = payload.scrollTop;
+      }
+    },
+    setListScroll(state: SearchState, { payload }: PayloadAction<SearchListScrollAction>) {
+      const view = state.views[payload.view];
+      if (view) {
+        view.listScrollRow = payload.row;
+      }
+    },
     addData(state: SearchState, { payload }: PayloadAction<SearchAddDataAction>) {
       const data = payload.data;
       const view = state.views[payload.view];
@@ -610,6 +649,9 @@ const searchSlice = createSlice({
         // Add data
         if (data.total !== undefined) {
           view.data.total = data.total;
+          view.gridScrollCol = undefined;
+          view.gridScrollRow = undefined;
+          view.listScrollRow = undefined;
         }
 
         // Replace keyset and set up page records
@@ -673,5 +715,7 @@ export const {
   setExpanded,
   resetDropdownData,
   setDropdownData,
+  setGridScroll,
+  setListScroll,
   addData } = searchSlice.actions;
 export default searchSlice.reducer;

@@ -145,27 +145,37 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
           <div className='setting'>
             <p className='setting__title'>{strings.preferencesHeader}</p>
             <div className='setting__body'>
+              {/* Restore Search Views */}
               <ConfigBoxCheckbox
                 title={strings.restoreSearchViews}
                 description={strings.restoreSearchViewsDesc}
                 checked={this.props.preferencesData.useStoredViews}
                 onToggle={this.onUseStoredViewsChange} />
+              {/* Use Custom Search Views */}
               <ConfigBoxCheckbox
                 title={strings.useCustomViews}
                 description={strings.useCustomViewsDesc}
                 checked={this.props.preferencesData.useCustomViews}
                 onToggle={this.onToggleUseCustomViews} />
+              {/* Load Views Text on restart */}
               <ConfigBoxCheckbox
                 title={strings.loadViewsText}
                 description={strings.loadViewsTextDesc}
                 checked={this.props.preferencesData.loadViewsText}
                 onToggle={this.onToggleLoadViewsText} />
+              {/* Default opening page */}
               <ConfigBoxSelect
                 title={strings.defaultOpeningPage}
                 description={strings.defaultOpeningPageDesc}
                 value={this.props.preferencesData.defaultOpeningPage}
                 onChange={this.onDefaultOpeningPageSelect}
                 items={defaultOpeningPageOptions} />
+              {/* Use selected game scroll instead of scroll top pos */}
+              {/* <ConfigBoxCheckbox
+                title={strings.useSelectedGameScroll}
+                description={strings.useSelectedGameScrollDesc}
+                checked={this.props.preferencesData.useSelectedGameScroll}
+                onToggle={this.onToggleUseSelectedGameScroll} /> */}
               {/* Enable Editing */}
               <ConfigBoxCheckbox
                 title={strings.enableEditing}
@@ -1026,6 +1036,10 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     updatePreferencesData({ defaultOpeningPage: event.target.value });
   };
 
+  onToggleUseSelectedGameScroll = (isChecked: boolean) => {
+    updatePreferencesData({ useSelectedGameScroll: isChecked });
+  }
+
   onExcludedLibraryCheckboxChange = (library: string): void => {
     const excludedRandomLibraries = [ ...this.props.preferencesData.excludedRandomLibraries ];
 
@@ -1323,8 +1337,8 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     });
   };
 
-  onChangeAutoClearWininetCache = (checked: boolean) => {
-    updatePreferencesData({ autoClearWininetCache: checked });
+  onChangeAutoClearWininetCache = (isChecked: boolean) => {
+    updatePreferencesData({ autoClearWininetCache: isChecked });
   }
 
   onClearWininetCache = () => {
