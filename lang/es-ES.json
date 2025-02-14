@@ -10,8 +10,8 @@
     "hideExtremeScreenshotsDesc": "Oculta capturas de pantalla de contenido con la etiqueta Extremo. Pueden ser mostradas nuevamente cliqueando en la imagen.",
     "fancyAnimations": "Animaciones Elegantes",
     "fancyAnimationsDesc": "Activa las animaciones de alta calidad en el menú.",
-    "hideNewViewButton": "Hide New View Button",
-    "hideNewViewButtonDesc": "When using custom views, hide the new view (+) button. You can instead press 'Create New View' under the context menu for tabs.",
+    "hideNewViewButton": "Ocultar Botón de Vista Nueva",
+    "hideNewViewButtonDesc": "Cuando se usen Vistas Personalizadas, ocultar el botón de Nueva Vista (+). Puede en su lugar presionar 'Crear Nueva Vista' bajo el menú contextual para pestañas.",
     "searchLimit": "Límite de Búsqueda",
     "searchLimitDesc": "Limita el número de resultados que se muestran en cualquier búsqueda",
     "searchLimitUnlimited": "Ilimitado",
@@ -203,7 +203,7 @@
     "noLauncherUpdateReady": "La actualización de la metadata requiere una nueva versión del Ejecutable, pero no hay una actualización de programa disponible en este momento.",
     "deleteView": "Borrar Vista de Búsqueda",
     "deleteOnlyBrowseView": "Borrar Vista de Búsqueda (Debe tener seleccionada otra Vista Personalizada)",
-    "createNewView": "Crear nueva vista de búsqueda",
+    "createNewView": "Crear Nueva Vista de búsqueda",
     "errorLoadingServices": "Un error ha ocurrido mientras se cargaban los servicios. Por favor revise los registros para más detalles."
   },
   "filter": {
@@ -392,18 +392,18 @@
     "noGameMatchedSearch": "Intenta buscar algo menos restrictivo.",
     "mountParameters": "Montar Parámetros",
     "noMountParameters": "No montar parámetros",
-    "ruffleSupport": "Ruffle Support",
+    "ruffleSupport": "Soporte para Ruffle",
     "showExtremeScreenshot": "Mostrar capturas de Pantalla Extremas",
     "busy": "Por favor, espera...",
-    "openGameDataBrowser": "Abrir navegador de datos de juego",
+    "openGameDataBrowser": "Abrir Navegador de Datos de Juego",
     "allGenericEntries": "Todas las Entradas",
     "usePlaylistOrder": "Usar el Orden de la Lista de Reproducción",
-    "hideFilters": "Hide Filters",
-    "showFilters": "Show Filters",
+    "hideFilters": "Ocultar Filtros",
+    "showFilters": "Mostrar Filtros",
     "notArchived": "No archivado",
     "archived": "Archivado",
     "playOnline": "Jugar en línea",
-    "tagFilterIcon": "Tag Filter Icon"
+    "tagFilterIcon": "Icono de Filtro de Etiquetado"
   },
   "tags": {
     "name": "Nombre",
@@ -427,7 +427,7 @@
     "deleteTag": "Eliminar etiqueta",
     "deleteTagCategory": "Eliminar categoría de etiqueta",
     "locked": "Bloqueado mientras se procesa...",
-    "filterIcon": "Icon Thumbnail"
+    "filterIcon": "Miniatura de Icono"
   },
   "curate": {
     "noCurationSelected": "Ninguna Curación Seleccionada",
@@ -544,7 +544,7 @@
   "misc": {
     "noBlankFound": "Ninguna {0} Encontrada",
     "addBlank": "Añadir {0}",
-    "removeBlank": "Remove {0}",
+    "removeBlank": "Remover {0}",
     "deleteAllBlankImages": "Borrar todas las {0} imágenes para este juego",
     "yes": "Sí",
     "no": "No \t",
