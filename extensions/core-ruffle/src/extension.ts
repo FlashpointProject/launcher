@@ -123,6 +123,10 @@ export async function activate(context: flashpoint.ExtensionContext): Promise<vo
 
   // Check for Standalone updates
   const logVoid = () => {};
+  const logDev = (message: string) => {
+    flashpoint.log.debug(message);
+  };
+  logDev('Checking for Ruffle Standalone update...');
   const standaloneAssetFile = await getGithubAsset(getPlatformRegex(), logVoid);
   if (standaloneAssetFile) {
     const standalonePublishedAt = Date.parse(standaloneAssetFile.publishedAt);
@@ -133,12 +137,15 @@ export async function activate(context: flashpoint.ExtensionContext): Promise<vo
       downloadRuffleStandalone(ruffleStandaloneLatestDir, standaloneAssetFile, logVoid)
       .then(() => flashpoint.log.info('Ruffle Standalone Update Downloaded!'))
       .catch((err) => flashpoint.log.error(`Error updating Ruffle Standalone: ${err}`));
+    } else {
+      flashpoint.log.info('Ruffle Standalone already up to date.');
     }
   } else {
     flashpoint.log.info('No Ruffle Standalone Assets found?');
   }
 
   // Check for Web updates
+  logDev('Checking for Ruffle Web update...');
   const webAssetFile = await getGithubAsset(/.*selfhosted\.zip/, logVoid);
   if (webAssetFile) {
     const webPublishedAt = Date.parse(webAssetFile.publishedAt);
@@ -149,6 +156,8 @@ export async function activate(context: flashpoint.ExtensionContext): Promise<vo
       downloadRuffleWeb(ruffleWebLatestDir, webAssetFile, logVoid)
       .then(() => flashpoint.log.info('Ruffle Web Update Downloaded!'))
       .catch((err) => flashpoint.log.error(`Error updating Ruffle Web: ${err}`));
+    } else {
+      flashpoint.log.info('Ruffle Web already up to date.');
     }
   } else {
     flashpoint.log.info('No Ruffle Web Assets found?');

@@ -185,7 +185,6 @@ export function addSearchMiddleware() {
       const view = state.search.views[action.payload.filter.viewId];
 
       if (view) {
-        log.info('Launcher', 'Performing search...');
         // Request first page
         window.Shared.back.request(BackIn.BROWSE_VIEW_FIRST_PAGE, view.searchFilter)
         .then((data) => {

@@ -228,7 +228,6 @@ export const requestKeyset = createAsyncThunk(
   async (payload: RequestKeysetAction, { getState, dispatch }) => {
     const state = getState() as { search: SearchState };
     const view = state.search.views[payload.view];
-    log.debug('Search', `KEYSET - Cur: ${view.data.searchId} Recv: ${payload.searchId}`);
 
     if (view && payload.searchId === view.data.searchId) {
       const data = await window.Shared.back.request(BackIn.BROWSE_VIEW_KEYSET, view.searchFilter);
@@ -628,7 +627,6 @@ const searchSlice = createSlice({
       const data = payload.data;
       const view = state.views[payload.view];
       if (view) {
-        log.debug('Search', `ADD DATA - Cur: ${view.data.searchId} Recv: ${payload.data.searchId}`);
         // If data has lower id, search results are outdated, discard
         if (view.data.searchId > data.searchId) {
           return;
