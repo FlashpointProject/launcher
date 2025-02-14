@@ -9,7 +9,7 @@ import { formatString } from '@shared/utils/StringFormatter';
 import * as child_process from 'child_process';
 import { ChildProcess } from 'child_process';
 import { EventEmitter } from 'events';
-import { AdditionalApp, AppPathOverride, DialogStateTemplate, Game, GameConfig, GameData, GameLaunchInfo, ManagedChildProcess, Platform } from 'flashpoint-launcher';
+import { AdditionalApp, AppPathOverride, DialogStateTemplate, Game, GameConfig, GameData, GameLaunchInfo, GameLaunchOverride, LaunchInfo, ManagedChildProcess, Platform } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as minimist from 'minimist';
 import * as path from 'path';
@@ -30,15 +30,6 @@ export type LaunchAddAppOpts = LaunchBaseOpts & {
 export type LaunchGameOpts = LaunchBaseOpts & {
   game: Game;
   native: boolean;
-}
-
-export type LaunchInfo = {
-  gamePath: string;
-  gameArgs: string | string[];
-  useWine: boolean;
-  env: NodeJS.ProcessEnv;
-  cwd?: string;
-  noshell?: boolean;
 }
 
 type LaunchBaseOpts = {
@@ -62,6 +53,7 @@ type LaunchBaseOpts = {
   state: BackState;
   activeConfig: GameConfig | null;
   autoClearWininetCache: boolean;
+  override: GameLaunchOverride;
 }
 
 export namespace GameLauncher {
@@ -109,6 +101,7 @@ export namespace GameLauncher {
           await handleGameDataParams(opts, serverOverride, gameData || undefined);
         }
         const launchInfo: LaunchInfo = {
+          override: opts.override,
           gamePath: gamePath,
           gameArgs: appArgs,
           useWine,
@@ -168,6 +161,7 @@ export namespace GameLauncher {
         state: opts.state,
         activeConfig: opts.activeConfig,
         autoClearWininetCache: opts.autoClearWininetCache,
+        override: opts.override,
       };
       for (const addApp of opts.game.addApps) {
         if (addApp.autoRunBefore) {
@@ -253,6 +247,7 @@ export namespace GameLauncher {
             game: opts.game,
             activeData: gameData,
             launchInfo: {
+              override: opts.override,
               gamePath: process.execPath,
               gameArgs: browserLaunchArgs,
               useWine: false,
@@ -298,6 +293,7 @@ export namespace GameLauncher {
       game: opts.game,
       activeData: gameData,
       launchInfo: {
+        override: opts.override,
         gamePath,
         gameArgs,
         useWine,

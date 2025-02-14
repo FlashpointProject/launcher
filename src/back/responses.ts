@@ -559,7 +559,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     return state.execMappings;
   });
 
-  state.socketServer.register(BackIn.LAUNCH_ADDAPP, async (event, id) => {
+  state.socketServer.register(BackIn.LAUNCH_ADDAPP, async (event, id, override) => {
     const addApp = await fpDatabase.findAddAppById(id);
     if (addApp) {
       // Force load relation
@@ -614,14 +614,16 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         state,
         parentGame,
         runAddApp: runAddAppFactory(state),
-        autoClearWininetCache: state.preferences.autoClearWininetCache
+        autoClearWininetCache: state.preferences.autoClearWininetCache,
+        override,
       }, false);
       state.apiEmitters.games.onDidLaunchAddApp.fireAlert(state, addApp, event.client, 'Error during post add app launch api event');
     }
   });
 
-  state.socketServer.register(BackIn.LAUNCH_GAME, async (event, id) => {
+  state.socketServer.register(BackIn.LAUNCH_GAME, async (event, id, override) => {
     const game = await fpDatabase.findGame(id);
+    console.log('override: ' + override);
 
     if (game) {
       // Make sure Server is set to configured server - Curations may have changed it
@@ -750,6 +752,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         activeConfig: activeConfig ? activeConfig : null,
         state,
         autoClearWininetCache: state.preferences.autoClearWininetCache,
+        override,
       },
       state.apiEmitters.games.onWillLaunchGame.fireableFactory(state, event.client, 'Error during game launch api event'), false);
       await state.apiEmitters.games.onDidLaunchGame.fireAlert(state, game, event.client, 'Error from post game launch api event');
@@ -1772,6 +1775,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         activeConfig: null,
         state,
         autoClearWininetCache: state.preferences.autoClearWininetCache,
+        override: data.override,
       },
       state.apiEmitters.games.onWillLaunchCurationGame.fireableFactory(state, event.client, 'Error during curate game launch api event'),
       state.apiEmitters.games.onDidLaunchCurationGame.fireableFactory(state, event.client, 'Error during curate post game launch api event'),
@@ -1809,6 +1813,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         state,
         parentGame: newGame(),
         autoClearWininetCache: state.preferences.autoClearWininetCache,
+        override: data.override,
       },
       state.apiEmitters.games.onWillLaunchCurationAddApp.fireableFactory(state, event.client, 'Error during curate add app launch api event'),
       state.apiEmitters.games.onDidLaunchCurationAddApp.fireableFactory(state, event.client, 'Error during curate post add app launch api event'));

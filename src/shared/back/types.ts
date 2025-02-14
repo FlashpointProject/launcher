@@ -18,6 +18,7 @@ import {
   GameConfig,
   GameData,
   GameDataSource,
+  GameLaunchOverride,
   GameMetadataSource,
   GameMiddlewareConfig,
   GameMiddlewareInfo, GameOrderBy, GameOrderDirection,
@@ -319,12 +320,12 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.GET_GAME]: (id: string) => Game | null;
   [BackIn.GET_ALL_GAMES]: (offsetGameTitle?: string, offsetGameId?: string) => Game[];
   [BackIn.RANDOM_GAMES]: (data: RandomGamesData) => Game[];
-  [BackIn.LAUNCH_GAME]: (id: string) => void;
+  [BackIn.LAUNCH_GAME]: (id: string, override: GameLaunchOverride) => void;
   [BackIn.DELETE_GAME]: (id: string) => BrowseChangeData;
   [BackIn.DUPLICATE_GAME]: (id: string, dupeImages: boolean) => BrowseChangeData;
   [BackIn.EXPORT_GAME]: (id: string, location: string, metaOnly: boolean) => void;
   [BackIn.GET_VALID_MIDDLEWARE]: (game: Game) => GameMiddlewareInfo[];
-  [BackIn.LAUNCH_ADDAPP]: (id: string) => void;
+  [BackIn.LAUNCH_ADDAPP]: (id: string, override: GameLaunchOverride) => void;
   [BackIn.SAVE_IMAGE]: (folder: string, id: string, content: string) => void;
   [BackIn.DELETE_IMAGE]: (folder: string, id: string) => void;
   [BackIn.ADD_LOG]: (data: ILogPreEntry & { logLevel: LogLevel }) => void;
@@ -682,6 +683,7 @@ export type LaunchCurationData = {
   curation: LoadedCuration;
   mad4fp: boolean;
   symlinkCurationContent: boolean;
+  override: GameLaunchOverride;
 }
 
 export type LaunchCurationAddAppData = {
@@ -689,6 +691,7 @@ export type LaunchCurationAddAppData = {
   addApp: AddAppCuration;
   platforms?: Platform[];
   symlinkCurationContent: boolean;
+  override: GameLaunchOverride;
 }
 
 export type GameMetadataSyncResponse = {

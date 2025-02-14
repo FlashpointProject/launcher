@@ -10,14 +10,14 @@ import { CHANGELOG } from '@renderer/changelog';
 import { withMainState, WithMainStateProps } from '@renderer/containers/withMainState';
 import { uuid } from '@shared/utils/uuid';
 
-type OwnProps = {
+export type AboutPageProps = {
   /** Credits data (if any). */
   creditsData?: CreditsData;
   /** If the credits data is done loading (even if it was unsuccessful). */
   creditsDoneLoading: boolean;
 };
 
-export type AboutPageProps = OwnProps & WithMainStateProps;
+type _AboutPageProps = AboutPageProps & WithMainStateProps;
 
 export type AboutPageState = {
   /** Currently "targeted" profile (the profile that the cursor is hovering over, if any). */
@@ -26,11 +26,11 @@ export type AboutPageState = {
   profileY: number;
 };
 
-class _AboutPage extends React.Component<AboutPageProps, AboutPageState> {
+class _AboutPage extends React.Component<_AboutPageProps, AboutPageState> {
   static contextType = LangContext;
   declare context: React.ContextType<typeof LangContext>;
 
-  constructor(props: AboutPageProps) {
+  constructor(props: _AboutPageProps) {
     super(props);
     this.state = {
       profileX: 0,

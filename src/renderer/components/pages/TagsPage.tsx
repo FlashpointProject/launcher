@@ -8,7 +8,16 @@ import * as React from 'react';
 import { ResizableSidebar } from '../ResizableSidebar';
 import { TagList } from '../TagList';
 import { Tag } from 'flashpoint-launcher';
-import { categoryOrder } from '../SearchBar';
+
+const categoryOrder = [
+  'default',
+  'genre',
+  'theme',
+  'meta',
+  'presence',
+  'warning',
+  'copyright',
+];
 
 type OwnProps = {
 }

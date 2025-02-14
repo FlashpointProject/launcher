@@ -1267,6 +1267,8 @@ declare module 'flashpoint-launcher' {
       KILLING = 2,
     }
 
+    type GameLaunchOverride = 'ruffle' | 'flash' | null;
+
     /** Info type passed to onWillLaunch events */
     type GameLaunchInfo = {
       game: Game;
@@ -1276,6 +1278,7 @@ declare module 'flashpoint-launcher' {
     };
 
     type LaunchInfo = {
+      override: GameLaunchOverride;
       gamePath: string;
       gameArgs: string | string[];
       useWine: boolean;

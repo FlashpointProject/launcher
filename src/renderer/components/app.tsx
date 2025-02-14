@@ -22,6 +22,7 @@ import {
   CurationFpfssInfo,
   DialogState,
   Game,
+  GameLaunchOverride,
   Playlist,
   PlaylistGame
 } from 'flashpoint-launcher';
@@ -131,7 +132,7 @@ export class App extends React.Component<AppProps> {
                     });
                   }
                   // Launch game
-                  await this.onGameLaunch(game.id);
+                  await this.onGameLaunch(game.id, null);
                 } else { log.error('Launcher', `Failed to get game. Game is undefined (GameID: "${parts[1]}").`); }
               });
             }
@@ -1001,10 +1002,10 @@ export class App extends React.Component<AppProps> {
     });
   };
 
-  onGameLaunch = async (gameId: string): Promise<void> => {
+  onGameLaunch = async (gameId: string, override: GameLaunchOverride): Promise<void> => {
     log.debug('Launcher', 'Launching Game - ' + gameId);
     this.props.mainActions.markGameBusy(gameId);
-    await window.Shared.back.request(BackIn.LAUNCH_GAME, gameId)
+    await window.Shared.back.request(BackIn.LAUNCH_GAME, gameId, override)
     .catch((error) => {
       log.error('Launcher', `Failed to launch game - ${gameId} - ERROR: ${error}`);
     })

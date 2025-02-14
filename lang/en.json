@@ -211,7 +211,7 @@
     "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
     "renameView": "Rename Search View",
     "duplicateView": "Duplicate Search View",
-    "createNewView": "Create New Search view",
+    "createNewView": "Create New Search View",
     "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
@@ -362,6 +362,7 @@
     "noLaunchCommand": "No Launch Command",
     "searching": "Searching...",
     "library": "Library",
+    "noLibrary": "No Library",
     "defaultLibrary": "Default Library",
     "fpfssGame": "FPFSS Game",
     "uninstallGame": "Uninstall Game",
@@ -411,7 +412,10 @@
     "notArchived": "Not Archived",
     "archived": "Archived",
     "playOnline": "Play Online",
-    "tagFilterIcon": "Tag Filter Icon"
+    "tagFilterIcon": "Tag Filter Icon",
+    "runWithFlashPlayer": "Run with Flash Player",
+    "runWithRuffle": "Run with Ruffle",
+    "runWithRuffleUnsupported": "Run with Ruffle (Unsupported)"
   },
   "tags": {
     "name": "Name",

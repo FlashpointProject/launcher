@@ -9,7 +9,7 @@ import { updatePreferencesData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
 import { Menu, MenuItemConstructorOptions } from 'electron';
-import { Playlist } from 'flashpoint-launcher';
+import { GameLaunchOverride, Playlist } from 'flashpoint-launcher';
 import * as React from 'react';
 import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowseSidebar';
 import { WithPreferencesProps } from '../../containers/withPreferences';
@@ -434,8 +434,8 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     }
   };
 
-  onGameLaunch = async (gameId: string): Promise<void> => {
-    await window.Shared.back.request(BackIn.LAUNCH_GAME, gameId);
+  onGameLaunch = async (gameId: string, override: GameLaunchOverride): Promise<void> => {
+    await window.Shared.back.request(BackIn.LAUNCH_GAME, gameId, override);
   };
 
   onGameDragStart = (event: React.DragEvent, dragEventData: GameDragEventData): void => {

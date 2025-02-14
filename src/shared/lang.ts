@@ -371,6 +371,7 @@ const langTemplate = {
     'launchCommand',
     'noLaunchCommand',
     'library',
+    'noLibrary',
     'defaultLibrary',
     'thumbnail',
     'screenshot',
@@ -424,6 +425,9 @@ const langTemplate = {
     'hideFilters',
     'showFilters',
     'tagFilterIcon',
+    'runWithFlashPlayer',
+    'runWithRuffle',
+    'runWithRuffleUnsupported',
   ] as const,
   tags: [
     'name',

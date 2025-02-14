@@ -9,7 +9,7 @@ import { GameItemContainer } from './GameItemContainer';
 import { GameListHeader } from './GameListHeader';
 import { GameListItem } from './GameListItem';
 import { GameDragData, GameDragEventData } from './pages/BrowsePage';
-import { TagFilter } from 'flashpoint-launcher';
+import { GameLaunchOverride, TagFilter } from 'flashpoint-launcher';
 
 /** A function that receives an HTML element. */
 type RefFunc<T extends HTMLElement> = (instance: T | null) => void;
@@ -41,7 +41,7 @@ export type OwnProps = {
   /** Called when the user attempts to select a game. */
   onGameSelect: (gameId?: string, row?: number) => void;
   /** Called when the user attempts to launch a game. */
-  onGameLaunch: (gameId: string) => void;
+  onGameLaunch: (gameId: string, override: GameLaunchOverride) => void;
   /** Called when the user attempts to open a context menu (at a game). */
   onContextMenu: (gameId: string) => void;
   /** Called when the user starts to drag a game. */
@@ -231,7 +231,7 @@ class _GameList extends React.Component<GameListProps> {
   onKeyPress = (event: React.KeyboardEvent): void => {
     if (event.key === 'Enter') {
       if (this.props.selectedGameId) {
-        this.props.onGameLaunch(this.props.selectedGameId);
+        this.props.onGameLaunch(this.props.selectedGameId, null);
       }
     }
   };
@@ -254,7 +254,7 @@ class _GameList extends React.Component<GameListProps> {
    * @param gameId ID of Game to launch
    */
   onGameLaunch = (event: React.MouseEvent, gameId: string): void => {
-    this.props.onGameLaunch(gameId);
+    this.props.onGameLaunch(gameId, null);
   };
 
   /**

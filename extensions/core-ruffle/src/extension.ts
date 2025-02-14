@@ -66,6 +66,23 @@ export async function activate(context: flashpoint.ExtensionContext): Promise<vo
     const supportedEnabled = flashpoint.getExtConfigValue('com.ruffle.enabled');
     const unsupportedEnabled = flashpoint.getExtConfigValue('com.ruffle.enabled-all');
 
+    if (launchInfo.launchInfo.override === 'flash') {
+      return;
+    }
+
+    if (launchInfo.launchInfo.override === 'ruffle') {
+      flashpoint.log.info('Using Standalone Ruffle for overriden game...');
+        const defaultConfig = standaloneMiddleware.getDefaultConfig(launchInfo.game);
+        standaloneMiddleware.execute(launchInfo, {
+          middlewareId: '',
+          name: '',
+          enabled: true,
+          version: defaultConfig.version,
+          config: defaultConfig.config,
+        });
+        return;
+    }
+
     if (supportedEnabled || curation) {
       if (launchInfo.game.ruffleSupport.toLowerCase() === 'standalone') {
         flashpoint.log.info('Using Standalone Ruffle for supported game...');

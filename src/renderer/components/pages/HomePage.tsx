@@ -5,7 +5,7 @@ import { ARCADE, LOGOS, SCREENSHOTS, THEATRE } from '@shared/constants';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
-import { DialogState, Game, Playlist, ViewGame } from 'flashpoint-launcher';
+import { DialogState, Game, GameLaunchOverride, Playlist, ViewGame } from 'flashpoint-launcher';
 import * as React from 'react';
 import ReactDatePicker from 'react-datepicker';
 import ReactMarkdown from 'react-markdown';
@@ -33,7 +33,7 @@ type OwnProps = {
   playlists: Playlist[];
   /** Generator for game context menu */
   onGameContextMenu: (gameId: string) => void;
-  onLaunchGame: (gameId: string) => void;
+  onLaunchGame: (gameId: string, override: GameLaunchOverride) => void;
   /** Pass to Random Picks */
   randomGames: ViewGame[];
   /** Re-rolls the Random Games */
@@ -121,7 +121,7 @@ export function HomePage(props: HomePageProps) {
   };
 
   const onLaunchGame = React.useCallback((gameId: string) => {
-    props.onLaunchGame(gameId);
+    props.onLaunchGame(gameId, null);
   }, [props.onLaunchGame]);
 
   const onHallOfFameClick = React.useCallback(() => {
@@ -335,7 +335,7 @@ export function HomePage(props: HomePageProps) {
                   className='gotd-container'
                   onGameContextMenu={(event, gameId) => props.onGameContextMenu(gameId)}
                   onGameSelect={(event, gameId) => gameId && onSelectGame(gameId)}
-                  onGameLaunch={(event, gameId) => props.onLaunchGame(gameId)}
+                  onGameLaunch={(event, gameId) => props.onLaunchGame(gameId, null)}
                   findGameDragEventData={findGameDragEventDataGrid}>
                   <GameGridItem
                     key={loadedGotd.id}

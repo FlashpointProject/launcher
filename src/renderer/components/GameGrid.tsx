@@ -9,7 +9,7 @@ import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
 import { GameDragData, GameDragEventData } from './pages/BrowsePage';
 import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
-import { TagFilter } from 'flashpoint-launcher';
+import { GameLaunchOverride, TagFilter } from 'flashpoint-launcher';
 
 const RENDERER_OVERSCAN = 5;
 
@@ -22,7 +22,7 @@ type ColumnsRows = {
 };
 
 export type GameGridProps = {
-  onGameLaunch: (gameId: string) => void;
+  onGameLaunch: (gameId: string, override: GameLaunchOverride) => void;
   /** All games that will be shown in the grid (filter it before passing it here). */
   games: ViewGameSet;
   /** Total number of games in the results view there are. */
@@ -319,7 +319,7 @@ export class GameGrid extends React.Component<GameGridProps, GameGridState> {
   onKeyPress = (event: React.KeyboardEvent): void => {
     if (event.key === 'Enter') {
       if (this.props.selectedGameId) {
-        this.props.onGameLaunch(this.props.selectedGameId);
+        this.props.onGameLaunch(this.props.selectedGameId, null);
       }
     }
   };
@@ -346,7 +346,7 @@ export class GameGrid extends React.Component<GameGridProps, GameGridState> {
    * @param gameId ID of Game to launch
    */
   onGameLaunch = (event: React.MouseEvent, gameId: string): void => {
-    this.props.onGameLaunch(gameId);
+    this.props.onGameLaunch(gameId, null);
   };
 
   /**

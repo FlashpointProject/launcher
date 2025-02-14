@@ -6,7 +6,7 @@ import { GamePropSuggestions, IService } from '@shared/interfaces';
 import { LangFile } from '@shared/lang';
 import { Menu } from 'electron';
 import { UpdateInfo } from 'electron-updater';
-import { Playlist, ViewGame } from 'flashpoint-launcher';
+import { GameLaunchOverride, Playlist, ViewGame } from 'flashpoint-launcher';
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
 import { Paths } from '@shared/Paths';
@@ -36,7 +36,7 @@ export type AppRouterProps = {
   suggestions: Partial<GamePropSuggestions>;
   appPaths: Record<string, string>;
   platforms: string[];
-  onLaunchGame: (gameId: string) => void;
+  onLaunchGame: (gameId: string, override: GameLaunchOverride) => void;
   playlistIconCache: Record<string, string>;
   libraries: string[];
   serverNames: string[];

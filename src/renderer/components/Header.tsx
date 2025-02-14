@@ -332,6 +332,10 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
                     onContextMenu={() => {
                       const contextButtons: MenuItemConstructorOptions[] = [
                         {
+                          label: strings.createNewView,
+                          click: this.onCreateNewView,
+                        },
+                        {
                           label: strings.renameView,
                           click: () => this.onRenameView(view),
                         },
@@ -345,12 +349,6 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
                           click: () => this.onDeleteView(view),
                         },
                       ];
-                      if (this.props.preferencesData.hideNewViewButton) {
-                        contextButtons.push({
-                          label: strings.createNewView,
-                          click: this.onCreateNewView,
-                        });
-                      }
                       const menu = remote.Menu.buildFromTemplate(contextButtons);
                       menu.popup({ window: remote.getCurrentWindow() });
                     }}/>

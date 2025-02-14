@@ -9,7 +9,7 @@ import { deepCopy, generateTagFilterGroup, sizeToString } from '@shared/Util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
 import { clipboard, Menu, MenuItemConstructorOptions } from 'electron';
-import { AdditionalApp, Game, GameData, Platform, PlaylistGame, Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
+import { AdditionalApp, Game, GameData, GameLaunchOverride, Platform, PlaylistGame, Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
 import * as React from 'react';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { axios, getGameImagePath, getGameImageURL, getPlatformIconURL, wrapSearchTerm } from '../Util';
@@ -39,7 +39,7 @@ type OwnProps = {
   /** Currently selected game entry (if any) */
   currentPlaylistEntry?: PlaylistGame;
   /** Called when the play button is pressed */
-  onGameLaunch: (gameId: string) => Promise<void>;
+  onGameLaunch: (gameId: string, override: GameLaunchOverride) => Promise<void>;
   /** Called when the selected game is deleted by this */
   onDeleteSelectedGame: () => void;
   /** Called when the selected game is removed from the selected by this */
@@ -91,6 +91,7 @@ type RightBrowseSidebarState = {
 
 /** Sidebar on the right side of BrowsePage. */
 export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps, RightBrowseSidebarState> {
+  static contextType = LangContext;
   // Bound "on change" callbacks for game fields
   onLibraryChange             = this.wrapOnTextChange((game, text) => this.props.onEditGame({ library: text }));
   onTitleChange               = this.wrapOnTextChange((game, text) => this.props.onEditGame({ title: text }));
@@ -205,7 +206,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   }
 
   render() {
-    const allStrings = this.context;
+    const allStrings = this.context as LangContainer;
     const strings = allStrings.browse;
     const game: Game | undefined = this.props.currentGame;
     if (game) {
@@ -215,6 +216,56 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       const editable = isEditing;
       const screenshotSrc = getGameImageURL(SCREENSHOTS, game.id);
       const anyActiveDataDownloaded = game.gameData !== undefined && game.gameData.findIndex((gd) => gd.presentOnDisk) !== -1;
+
+      const contextMenu: MenuItemConstructorOptions[] = [];
+      if (game.ruffleSupport !== '' || this.state.activeData?.launchCommand.endsWith('.swf')) {
+        contextMenu.push({
+          label: strings.runWithFlashPlayer,
+          click: () => {
+            this.props.onGameLaunch(game.id, 'flash');
+          }
+        });
+        contextMenu.push({
+          label: game.ruffleSupport !== '' ? strings.runWithRuffle : strings.runWithRuffleUnsupported,
+          click: () => {
+            this.props.onGameLaunch(game.id, 'ruffle');
+          }
+        });
+      }
+      if (anyActiveDataDownloaded) {
+        contextMenu.push({
+          label: strings.uninstallGame,
+          click: async () => {
+            if (this.state.activeData) {
+              let dataId = this.state.activeData.id;
+              if (!this.state.activeData.presentOnDisk) {
+                if (game.gameData) {
+                  const gameData = game.gameData.find((gd) => gd.presentOnDisk);
+                  if (gameData !== undefined) {
+                    dataId = gameData.id;
+                  } else {
+                    alert("Broken uninstall logic, heckin confused");
+                    return;
+                  }
+                } else {
+                  alert("Broken uninstall logic, heckin confused");
+                  return;
+                }
+              }
+              const res = await this.props.openConfirmDialog(allStrings.dialog.uninstallGame, [allStrings.misc.yes, allStrings.misc.no], 1);
+              if (res === 0) {
+                window.Shared.back.request(BackIn.UNINSTALL_GAME_DATA, this.state.activeData.id)
+                .then(() => {
+                  this.onForceUpdateGameData();
+                })
+                .catch(() => {
+                  alert(allStrings.dialog.unableToUninstallGameData);
+                });
+              }
+            }
+          }
+        });
+      }
 
       const removeGameFromPlaylistElement =
         <ConfirmElement
@@ -333,6 +384,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       //
       // const activeConfig = this.props.currentGame?.activeConfig;
       // const configNamePrefix = activeConfig && activeConfig.gameId === 'template' ? '(Template) ' : '';
+
+      const isDownloadState = this.state.activeData && !anyActiveDataDownloaded;
 
       return (
         <div
@@ -507,46 +560,34 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     }}>
                     {strings.playOnline}
                   </div>
-                ) : (this.state.activeData && !anyActiveDataDownloaded) ? (
-                  <div
-                    className='browse-right-sidebar__play-button--download'
-                    onClick={() => {
-                      this.props.currentGame && this.props.onGameLaunch(this.props.currentGame.id)
-                      .then(this.onForceUpdateGameData);
-                    }}>
-                    {strings.download}
-                  </div>
                 ) : (
-                    <div className='browse-right-sidebar__play-button' >
-                      <div className='browse-right-sidebar__play-button--text'
-                        onClick={() => this.props.currentGame && this.props.onGameLaunch(this.props.currentGame.id)} >
-                        {strings.play}
-                      </div>
-                      { this.state.activeData ? (
-                        <div className='browse-right-sidebar__play-button--dropdown'
-                          onClick={() =>
-                            openContextMenu([{
-                              label: strings.uninstallGame,
-                              click: async () => {
-                                if (this.state.activeData) {
-                                  const res = await this.props.openConfirmDialog(allStrings.dialog.uninstallGame, [allStrings.misc.yes, allStrings.misc.no], 1);
-                                  if (res === 0) {
-                                    window.Shared.back.request(BackIn.UNINSTALL_GAME_DATA, this.state.activeData.id)
-                                    .then(() => {
-                                      this.onForceUpdateGameData();
-                                    })
-                                    .catch(() => {
-                                      alert(allStrings.dialog.unableToUninstallGameData);
-                                    });
-                                  }
-                                }
-                              }
-                            }])
-                          }>
+                    <div className={`browse-right-sidebar__play-button ${isDownloadState ? 'browse-right-sidebar__play-button--download' : ''}`}>
+                      {isDownloadState ? (
+                        <div
+                          className='browse-right-sidebar__play-button--text browse-right-sidebar__play-button--download-text'
+                          onClick={() => {
+                            this.props.currentGame && this.props.onGameLaunch(this.props.currentGame.id, null)
+                            .then(this.onForceUpdateGameData);
+                          }}>
+                          {strings.download}
+                        </div>
+                      ) : (
+                        <div 
+                          className='browse-right-sidebar__play-button--text browse-right-sidebar__play-button--play-text'
+                          onClick={() => {
+                            this.props.currentGame && this.props.onGameLaunch(this.props.currentGame.id, null)
+                          }}>
+                          {strings.play}
+                        </div>
+                      )}
+                      { contextMenu.length > 0 ? (
+                        <div className={`browse-right-sidebar__play-button--dropdown ${isDownloadState ? 'browse-right-sidebar__play-button--download-dropdown' : 'browse-right-sidebar__play-button--play-dropdown'}`}
+                          onClick={() => {
+                            openContextMenu(contextMenu);
+                          }}>
                           <OpenIcon icon='chevron-bottom'/>
                         </div>
                       ) : undefined }
-
                     </div>
                   )
             }
@@ -1219,7 +1260,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   };
 
   onAddAppLaunch(addAppId: string): void {
-    window.Shared.back.send(BackIn.LAUNCH_ADDAPP, addAppId);
+    window.Shared.back.send(BackIn.LAUNCH_ADDAPP, addAppId, null);
   }
 
   onAddAppDelete = (addAppId: string): void => {
@@ -1509,8 +1550,6 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       this.props.onEditGame({ primaryPlatform: value });
     }
   };
-
-  static contextType = LangContext;
 }
 
 function filterSuggestions(suggestions?: string[]): string[] {

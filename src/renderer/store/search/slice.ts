@@ -369,6 +369,7 @@ const searchSlice = createSlice({
       if ((payload.oldView in state.views) && !(payload.view in state.views)) {
         state.views[payload.view] = {
           ...state.views[payload.oldView],
+          id: payload.view,
           loaded: false,
           data: {
             searchId: 0,

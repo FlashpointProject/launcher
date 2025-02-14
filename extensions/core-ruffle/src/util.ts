@@ -93,6 +93,7 @@ export async function getGithubAsset(nameRegex: RegExp, logDev: (text: string) =
     logDev(`No binaries found for this system, checking older releases...`);
   }
   logDev(`No binaries found in 7 releases, stopping...`);
+  return null;
 }
 
 export function getPlatformRegex(): RegExp {
