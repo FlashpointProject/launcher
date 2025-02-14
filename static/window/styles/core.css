@@ -3516,9 +3516,31 @@ ul > li {
   height: 100%;
 }
 
+.search-bar-text-input-wrapper {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: row;
+}
+
 .search-bar-text-input {
   flex-grow: 1;
   font-size: medium;
+}
+
+.search-bar-text-input-icon {
+  filter: brightness(90%);
+  padding-top: 0.2rem;
+  padding-right: 0.3rem;
+  padding-bottom: 0.3rem;
+  flex-grow: 0;
+  cursor: pointer;
+}
+
+
+
+.search-bar-text-input-icon .icon {
+  width: unset;
+  height: 100%;
 }
 
 .search-bar-expansion {

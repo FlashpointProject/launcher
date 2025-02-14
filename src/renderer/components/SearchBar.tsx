@@ -1,19 +1,18 @@
+import { useView } from '@renderer/hooks/search';
+import { useAppSelector } from '@renderer/hooks/useAppSelector';
+import { forceSearch, setAdvancedFilter, setExpanded, setOrderBy, setOrderReverse, setSearchText } from '@renderer/store/search/slice';
+import { getPlatformIconURL } from '@renderer/Util';
+import { LangContext } from '@renderer/util/lang';
+import { getDefaultAdvancedFilter } from '@shared/search/util';
+import { formatString } from '@shared/utils/StringFormatter';
+import { AdvancedFilter, AdvancedFilterAndToggles, AdvancedFilterToggle, Tag } from 'flashpoint-launcher';
 import * as React from 'react';
+import { useContext, useMemo } from 'react';
 import { useDispatch } from 'react-redux';
+import { AutoSizer, List, ListRowProps } from 'react-virtualized-reactv17';
 import { GameOrder } from './GameOrder';
 import { OpenIcon } from './OpenIcon';
-import { useView } from '@renderer/hooks/search';
-import { forceSearch, setAdvancedFilter, setExpanded, setOrderBy, setOrderReverse, setSearchText } from '@renderer/store/search/slice';
-import { AutoSizer, List, ListRowProps } from 'react-virtualized-reactv17';
-import { AdvancedFilter, AdvancedFilterAndToggles, AdvancedFilterToggle, Tag } from 'flashpoint-launcher';
-import { useContext, useMemo, useState } from 'react';
-import { LangContext } from '@renderer/util/lang';
-import { useAppSelector } from '@renderer/hooks/useAppSelector';
-import { getPlatformIconURL } from '@renderer/Util';
 import { SimpleButton } from './SimpleButton';
-import { formatString } from '@shared/utils/StringFormatter';
-import { useShortcut } from 'react-keybind';
-import { usePreferences } from '@renderer/hooks/usePreferences';
 
 export const categoryOrder = [
   'genre',
@@ -56,6 +55,12 @@ export function SearchBar() {
 
     if ((event.ctrlKey || event.metaKey) && event.code === 'KeyD') {
       event.preventDefault();
+      if (event.shiftKey) {
+        dispatch(setAdvancedFilter({
+          view: view.id,
+          filter: getDefaultAdvancedFilter(),
+        }));
+      }
       dispatch(setSearchText({
         view: view.id,
         text: ''
@@ -63,6 +68,10 @@ export function SearchBar() {
       dispatch(forceSearch({
         view: view.id
       }));
+      const element = searchInputRef.current;
+      if (element) {
+        element.select();
+      }
     }
   };
 
@@ -289,6 +298,16 @@ export function SearchBar() {
     );
   };
 
+  const onClearSearch = () => {
+    dispatch(setSearchText({
+      view: view.id,
+      text: ''
+    }));
+    dispatch(forceSearch({
+      view: view.id
+    }));
+  };
+
   // Force focus search when coming into view
   React.useEffect(() => {
     if (searchInputRef.current) {
@@ -302,19 +321,26 @@ export function SearchBar() {
         <div className="search-bar-icon">
           <OpenIcon icon='magnifying-glass' />
         </div>
-        <input
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') {
-              dispatch(forceSearch({
-                view: view.id
-              }));
-            }
-          }}
-          ref={searchInputRef}
-          placeholder={strings.app.searchPlaceholder}
-          className="search-bar-text-input"
-          value={view.text}
-          onChange={onTextChange} />
+        <div className='search-bar-text-input-wrapper'>
+          <input
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                dispatch(forceSearch({
+                  view: view.id
+                }));
+              }
+            }}
+            ref={searchInputRef}
+            placeholder={strings.app.searchPlaceholder}
+            className='search-bar-text-input'
+            value={view.text}
+            onChange={onTextChange} />
+            <div 
+              className="search-bar-text-input-icon"
+              onClick={onClearSearch}>
+              <OpenIcon icon='circle-x'/>
+            </div>
+        </div>
         <GameOrder
           orderBy={view.orderBy}
           orderReverse={view.orderReverse}

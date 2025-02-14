@@ -1506,16 +1506,22 @@ body {
 }
 
 /** --- Search bar --- */
-.searchable-select-dropdown-search-bar,
+.searchable-select-dropdown-search-bar {
+  padding: 0.3rem;
+  color: white;
+}
+
 .search-bar-text-input {
   padding: 0.3rem;
   color: white;
+  background: transparent;
+  border: none;
 }
 
 .searchable-select-dropdown-search-bar,
 .searchable-select-dropdown,
 .search-bar-order-dropdown,
-.search-bar-text-input,
+.search-bar-text-input-wrapper,
 .search-bar-simple-box {
   background-color: var(--layout__quaternary-background);
   border: 1px solid var(--layout__primary-outline-color);
