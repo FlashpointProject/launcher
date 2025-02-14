@@ -9,6 +9,7 @@ import { VIEW_PAGE_SIZE } from '@shared/constants';
 import { getDefaultAdvancedFilter, getDefaultGameSearch } from '@shared/search/util';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { number } from 'zod';
+import { stat } from 'fs';
 
 export const GENERAL_VIEW_ID = '!general!';
 
@@ -147,6 +148,11 @@ export type SearchSetIdAction = {
 export type SearchRenameViewAction = {
   old: string;
   new: string;
+}
+
+export type SearchDuplicateViewAction = {
+  oldView: string;
+  view: string;
 }
 
 const defaultGeneralState: ResultsView = {
@@ -338,6 +344,21 @@ const searchSlice = createSlice({
         state.views[payload.new] = state.views[payload.old];
         state.views[payload.new].id = payload.new;
         delete state.views[payload.old];
+      }
+    },
+    duplicateView(state: SearchState, { payload }: PayloadAction<SearchDuplicateViewAction>) {
+      if ((payload.oldView in state.views) && !(payload.view in state.views)) {
+        state.views[payload.view] = {
+          ...state.views[payload.oldView],
+          loaded: false,
+          data: {
+            searchId: 0,
+            keyset: [],
+            games: [],
+            pages: {},
+            metaState: RequestState.WAITING,
+          },
+        };
       }
     },
     createViews(state: SearchState, { payload }: PayloadAction<SearchCreateViewsAction>) {
@@ -637,6 +658,7 @@ export const {
   deleteView,
   createViews,
   renameView,
+  duplicateView,
   setSearchText,
   selectPlaylist,
   selectGame,

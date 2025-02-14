@@ -214,6 +214,8 @@ const langTemplate = {
     'noLauncherUpdateReady',
     'deleteView',
     'deleteOnlyBrowseView',
+    'renameView',
+    'duplicateView',
     'createNewView',
     'errorLoadingServices',
   ] as const,

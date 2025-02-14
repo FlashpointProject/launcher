@@ -7,6 +7,7 @@ import store from '../store';
 import {
   addData,
   createViews,
+  duplicateView,
   GENERAL_VIEW_ID,
   requestKeyset,
   resetDropdownData,
@@ -141,7 +142,7 @@ export function addSearchMiddleware() {
 
   // Save stored view
   startAppListening({
-    matcher: isAnyOf(setSearchText, selectGame, selectPlaylist, setAdvancedFilter, setOrderBy, setOrderReverse, setExpanded),
+    matcher: isAnyOf(setSearchText, selectGame, selectPlaylist, setAdvancedFilter, setOrderBy, setOrderReverse, setExpanded, duplicateView),
     effect: async(action: PayloadAction<SearchViewAction>, listenerApi) => {
       const state = listenerApi.getState();
       const view = state.search.views[action.payload.view];

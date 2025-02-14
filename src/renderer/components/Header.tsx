@@ -46,12 +46,56 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
     super(props);
   }
 
-  onRenameView = async (view: string) => {
+  onDuplicateView = async (view: string) => {
     let warning: string | undefined;
     while (true) {
-      const name = await this.getUserInput('Enter View Name', warning);
+      const name = await this.getUserInput('Enter Duplicate View Name', warning);
 
       if (name !== '') {
+        if (name === view) {
+          // Same name, just return and ignore user
+          return;
+        }
+        const views = Object.keys(this.props.search.views);
+        if (views.includes(name)) {
+          warning = 'Name already in use';
+          continue;
+        } else {
+          const customViews = [...this.props.preferencesData.customViews];
+          const customViewsIdx = this.props.preferencesData.customViews.findIndex(v => v === view);
+          if (customViewsIdx > -1) {
+            customViews[customViewsIdx] = name;
+          } else {
+            customViews.push(name);
+          }
+          updatePreferencesData({
+            customViews
+          });
+          this.props.searchActions.duplicateView({
+            oldView: view,
+            view: name
+          });
+          setTimeout(() => {
+            const route = joinLibraryRoute(name);
+            this.props.history.push(route);
+          }, 50);
+          return;
+        }
+      }
+    }
+  }
+
+  onRenameView = async (view: string) => {
+    let warning: string | undefined;
+    let name = view;
+    while (true) {
+      name = await this.getUserInput('Enter View Name', warning, name);
+
+      if (name !== '') {
+        if (name === view) {
+          // Same name, just return and ignore user
+          return;
+        }
         const views = Object.keys(this.props.search.views);
         if (views.includes(name)) {
           warning = 'Name already in use';
@@ -272,7 +316,10 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
         {/* Header Menu */}
         <div className='header__wrap'>
           <ul className='header__menu'>
-            <MenuItem title={strings.home} link={Paths.HOME} />
+            <MenuItem
+              id={'header__home'}
+              title={strings.home}
+              link={Paths.HOME} />
             {
               this.props.preferencesData.useCustomViews ?
                 browseViews.map(view => (
@@ -285,13 +332,17 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
                     onContextMenu={() => {
                       const contextButtons: MenuItemConstructorOptions[] = [
                         {
+                          label: strings.renameView,
+                          click: () => this.onRenameView(view),
+                        },
+                        {
+                          label: strings.duplicateView,
+                          click: () => this.onDuplicateView(view),
+                        },
+                        {
                           label: browseViews.length > 1 || view !== 'Browse' ? strings.deleteView : strings.deleteOnlyBrowseView,
                           enabled: browseViews.length > 1 ? true : view !== 'Browse',
                           click: () => this.onDeleteView(view),
-                        },
-                        {
-                          label: 'Rename View',
-                          click: () => this.onRenameView(view),
                         },
                       ];
                       if (this.props.preferencesData.hideNewViewButton) {
@@ -319,34 +370,42 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
             { enableEditing ? (
               <>
                 <MenuItem
+                  id={'header__tags'}
                   title={strings.tags}
                   link={Paths.TAGS} />
                 <MenuItem
+                  id={'header__categories'}
                   title={strings.categories}
                   link={Paths.CATEGORIES} />
               </>
             ) : undefined }
             <MenuItem
+              id={'header__logs'}
               title={strings.logs}
               link={Paths.LOGS} />
             <MenuItem
+              id={'header__config'}
               title={strings.config}
               link={Paths.CONFIG} />
             { (onlineManual || offlineManual) && (
               <MenuItem
+                id={'header__manual'}
                 title={strings.manual}
                 link={Paths.MANUAL} />
             )}
             <MenuItem
+              id={'header__about'}
               title={strings.about}
               link={Paths.ABOUT} />
             { enableEditing ? (
               <MenuItem
+                id={'header__curate'}
                 title={strings.curate}
                 link={Paths.CURATE} />
             ) : undefined }
             { showDeveloperTab ? (
               <MenuItem
+                id={'header__developer'}
                 title={strings.developer}
                 link={Paths.DEVELOPER} />
             ) : undefined }
@@ -384,6 +443,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
 }
 
 type MenuItemProps = {
+  id?: string;
   title: string;
   link: string;
   onDragStart?: (event: React.DragEvent<HTMLLIElement>) => void;
@@ -392,9 +452,9 @@ type MenuItemProps = {
 };
 
 // An item in the header menu. Used as buttons to switch between tabs/pages.
-function MenuItem({ title, link, onContextMenu, onDragStart, onDrop }: MenuItemProps) {
+function MenuItem({ id, title, link, onContextMenu, onDragStart, onDrop }: MenuItemProps) {
   const location = useLocation();
-  const selected = link === '/' ? location.pathname === link : location.pathname.startsWith(link);
+  const selected = location.pathname.split('?')[0] === link;
   const onDragOver = (event: React.DragEvent<HTMLLIElement>) => {
     event.preventDefault();
   };
@@ -403,6 +463,7 @@ function MenuItem({ title, link, onContextMenu, onDragStart, onDrop }: MenuItemP
   };
   return (
     <li
+      id={id}
       className='header__menu__item'
       onContextMenu={onContextMenu}
       draggable={onDragStart !== undefined}
