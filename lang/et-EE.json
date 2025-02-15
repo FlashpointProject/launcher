@@ -18,10 +18,14 @@
     "searchLimitValue": "{0} Tulemust",
     "useCustomViews": "Kasuta Kohandatud Otsingu Vaateid",
     "useCustomViewsDesc": "Asendab Meedia Kausta otsingu vahekaardid kohandatud nimega otsingu vahekaartidega ja lisab Meedia Kausta valiku kõrgema astme filtritesse.",
+    "loadViewsText": "Restore Search View Text",
+    "loadViewsTextDesc": "Whether to restore the text field of a search view when restarting the launcher.",
     "defaultOpeningPage": "Vaikimisi Avatav Aken",
     "defaultOpeningPageDesc": "Vaikimisi avatav aken, näiteks avaleht või valitud otsinguleht",
     "restoreSearchViews": "Taasta Otsingutulemused",
     "restoreSearchViewsDesc": "Salvestab ja taastab iga otsingulehe koopia (tekst, filtrid, valitud mäng ja esitusloend), kui avate rakenduse.",
+    "useSelectedGameScroll": "Enable Game Selection Keyboard Controls",
+    "useSelectedGameScrollDesc": "Enables use of arrow keys to select games on Game Grids / Lists. NOTE: This will replace saved scroll position with saved selected game position.",
     "enableEditing": "Luba Kohaldada",
     "enableEditingDesc": "Luba kohaldamist mängudele ja lisarakendustele. Avab ka sellega seotud lehed.",
     "symlinkCuration": "Symlink Kureeringu Sisu",
@@ -91,6 +95,8 @@
     "screenshotPreviewDelay": "Ekraanipildi Eelvaate Viivitus",
     "screenshotPreviewDelayDesc": "Viivitus (millisekundites) enne Ekraanipildi kuvamist, kui Ekraanipildi Eelvaade on sisse lülitatud. (hiirega üle hõljudes)",
     "advancedHeader": "Täpsemad seaded",
+    "autoClearWininetCache": "Auto-Clear WinINet Cache",
+    "autoClearWininetCacheDesc": "Whether to automatically clear the Windows web cache when running a curation from the Curate tab",
     "clearWininetCache": "Tühjenda WinINEti Vahemälu",
     "clearWininetCacheDesc": "Tühjendab Windowsi veebivahemälu, mis võib aidata lahendada laadimisprobleeme kureeringutel või muudel harvadel juhtudel.",
     "optimizeDatabase": "Optimeeri Andmebaasi",
@@ -203,7 +209,9 @@
     "noLauncherUpdateReady": "Metaandmete värskendus nõuab Rakenduse uuemat versiooni, kuid tarkvaravärskendus pole praegu saadaval.",
     "deleteView": "Kustuta otsingu Vaade",
     "deleteOnlyBrowseView": "Kustuta Otsingu Vaade (Peab olemas olema mõni muu kohandatud vaade)",
-    "createNewView": "Loo uus otsingu vaade",
+    "renameView": "Rename Search View",
+    "duplicateView": "Duplicate Search View",
+    "createNewView": "Create New Search View",
     "errorLoadingServices": "Teenuste laadimisel ilmnes viga. Täpsema teabe saamiseks kontrollige logisid."
   },
   "filter": {
@@ -354,6 +362,7 @@
     "noLaunchCommand": "Pole Käivituskäsku",
     "searching": "Otsin...",
     "library": "Meedia Kaust",
+    "noLibrary": "No Library",
     "defaultLibrary": "Vaikimisi Kaust",
     "fpfssGame": "FPFSS Mäng",
     "uninstallGame": "Deinstalli Mäng",
@@ -403,7 +412,10 @@
     "notArchived": "Pole Arhiveeritud",
     "archived": "Arhiveeritud",
     "playOnline": "Mängi võrgus",
-    "tagFilterIcon": "Märksõna Filtri Ikoon"
+    "tagFilterIcon": "Märksõna Filtri Ikoon",
+    "runWithFlashPlayer": "Run with Flash Player",
+    "runWithRuffle": "Run with Ruffle",
+    "runWithRuffleUnsupported": "Run with Ruffle (Unsupported)"
   },
   "tags": {
     "name": "Nimi",
@@ -558,7 +570,9 @@
     "searching": "Otsin...",
     "loading": "Laen...",
     "ok": "OK",
-    "allow": "Luba"
+    "allow": "Luba",
+    "orCapitals": "OR",
+    "andCapitals": "AND"
   },
   "menu": {
     "viewThumbnailInFolder": "Vaata Logo Kaustas",
