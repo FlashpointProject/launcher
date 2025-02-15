@@ -18,10 +18,14 @@
     "searchLimitValue": "{0} Sonuçlar",
     "useCustomViews": "Use Custom Search Views",
     "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
+    "loadViewsText": "Restore Search View Text",
+    "loadViewsTextDesc": "Whether to restore the text field of a search view when restarting the launcher.",
     "defaultOpeningPage": "Default Opening Page",
     "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
     "restoreSearchViews": "Restore Search Results",
     "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
+    "useSelectedGameScroll": "Enable Game Selection Keyboard Controls",
+    "useSelectedGameScrollDesc": "Enables use of arrow keys to select games on Game Grids / Lists. NOTE: This will replace saved scroll position with saved selected game position.",
     "enableEditing": "Değişikliklere İzin Ver",
     "enableEditingDesc": "Oyunların ve fazladan eklentilerin düzenlenmesine izin verir. Ayrıca düzenlemeye bağlı seçenekleri gösterir.",
     "symlinkCuration": "Kürasyon içeriği için Symlink kullan",
@@ -91,6 +95,8 @@
     "screenshotPreviewDelay": "Ekran Görüntüsü Önizleme Gecikmesi",
     "screenshotPreviewDelayDesc": "Ekran Görüntüsü Önizlemesi açıkken, ekran görüntüsünü göstermeden önceki gecikme (milisaniye cinsinden). (üzerine gelindiğinde)",
     "advancedHeader": "Gelişmiş",
+    "autoClearWininetCache": "Auto-Clear WinINet Cache",
+    "autoClearWininetCacheDesc": "Whether to automatically clear the Windows web cache when running a curation from the Curate tab",
     "clearWininetCache": "Clear WinINet Cache",
     "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "Veritabanını Optimize Et",
@@ -203,7 +209,9 @@
     "noLauncherUpdateReady": "Metadata güncellemesi daha yeni bir Launcher sürümü gerektiriyor. Yazılım güncellemesi şu anda mevcut değil.",
     "deleteView": "Delete Search View",
     "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
-    "createNewView": "Create new search view",
+    "renameView": "Rename Search View",
+    "duplicateView": "Duplicate Search View",
+    "createNewView": "Create New Search View",
     "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
@@ -354,6 +362,7 @@
     "noLaunchCommand": "Çalışma Komudu Yok",
     "searching": "Aranıyor...",
     "library": "Arşiv",
+    "noLibrary": "No Library",
     "defaultLibrary": "Varsayılan Arşiv",
     "fpfssGame": "FPFSS Oyunu",
     "uninstallGame": "Oyunu Kaldır",
@@ -403,7 +412,10 @@
     "notArchived": "Arşivlenmedi",
     "archived": "Arşivlendi",
     "playOnline": "Çevrim içi Oyna",
-    "tagFilterIcon": "Tag Filter Icon"
+    "tagFilterIcon": "Tag Filter Icon",
+    "runWithFlashPlayer": "Run with Flash Player",
+    "runWithRuffle": "Run with Ruffle",
+    "runWithRuffleUnsupported": "Run with Ruffle (Unsupported)"
   },
   "tags": {
     "name": "Adı",
@@ -558,7 +570,9 @@
     "searching": "Aranıyor...",
     "loading": "Yükleniyor...",
     "ok": "Tamam",
-    "allow": "Allow"
+    "allow": "Allow",
+    "orCapitals": "OR",
+    "andCapitals": "AND"
   },
   "menu": {
     "viewThumbnailInFolder": "Klasördeki küçükresmi İncele",
