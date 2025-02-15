@@ -18,10 +18,14 @@
     "searchLimitValue": "{0} Risultati",
     "useCustomViews": "Usa Viste Di Ricerca Personalizzate",
     "useCustomViewsDesc": "Sostituisce le schede di ricerca Libreria con schede di ricerca personalizzate con nome e aggiunge un'opzione Libreria ai filtri avanzati.",
+    "loadViewsText": "Restore Search View Text",
+    "loadViewsTextDesc": "Whether to restore the text field of a search view when restarting the launcher.",
     "defaultOpeningPage": "Pagina Iniziale Predefinita",
     "defaultOpeningPageDesc": "Pagina Iniziale a cui aprire, sia la Pagina Principale che una Pagina di Ricerca scelta",
     "restoreSearchViews": "Ripristina Risultati Di Ricerca",
     "restoreSearchViewsDesc": "Salva e ripristina una copia di ogni pagina di ricerca (testo, filtri, gioco selezionato e playlist) ogni volta che apri l'applicazione.",
+    "useSelectedGameScroll": "Enable Game Selection Keyboard Controls",
+    "useSelectedGameScrollDesc": "Enables use of arrow keys to select games on Game Grids / Lists. NOTE: This will replace saved scroll position with saved selected game position.",
     "enableEditing": "Abilita Modifica",
     "enableEditingDesc": "Abilita la modifica dei giochi e delle applicazioni aggiuntive. Mostra anche le schede relative alla modifica.",
     "symlinkCuration": "Collegamento simbolico al contenuto curato",
@@ -91,6 +95,8 @@
     "screenshotPreviewDelay": "Ritardo Anteprima Screenshot",
     "screenshotPreviewDelayDesc": "Ritardo (in millisecondi) prima di mostrare lo screenshot, quando l'anteprima dello screenshot è impostata su. (al passaggio)",
     "advancedHeader": "Avanzate",
+    "autoClearWininetCache": "Auto-Clear WinINet Cache",
+    "autoClearWininetCacheDesc": "Whether to automatically clear the Windows web cache when running a curation from the Curate tab",
     "clearWininetCache": "Cancella Cache WinINet",
     "clearWininetCacheDesc": "Cancella la cache web di Windows, che può aiutare a risolvere i problemi di caricamento in curazioni e altri rari casi.",
     "optimizeDatabase": "Ottimizza Database",
@@ -203,7 +209,9 @@
     "noLauncherUpdateReady": "L'aggiornamento dei metadati richiede una versione più recente di Launcher, ma l'aggiornamento del software non è attualmente disponibile.",
     "deleteView": "Elimina Vista Ricerca",
     "deleteOnlyBrowseView": "Elimina vista di ricerca (Deve avere un'altra vista personalizzata)",
-    "createNewView": "Crea una nuova vista di ricerca",
+    "renameView": "Rename Search View",
+    "duplicateView": "Duplicate Search View",
+    "createNewView": "Create New Search View",
     "errorLoadingServices": "Si è verificato un errore durante il caricamento dei servizi. Controlla i log per maggiori dettagli."
   },
   "filter": {
@@ -354,6 +362,7 @@
     "noLaunchCommand": "Nessun Comando di Avvio",
     "searching": "Ricerca...",
     "library": "Libreria",
+    "noLibrary": "No Library",
     "defaultLibrary": "Libreria Predefinita",
     "fpfssGame": "Partita FPFSS",
     "uninstallGame": "Disinstalla Gioco",
@@ -403,7 +412,10 @@
     "notArchived": "Non Archiviato",
     "archived": "Archiviato",
     "playOnline": "Gioca in Rete",
-    "tagFilterIcon": "Icona Filtro Etichette"
+    "tagFilterIcon": "Icona Filtro Etichette",
+    "runWithFlashPlayer": "Run with Flash Player",
+    "runWithRuffle": "Run with Ruffle",
+    "runWithRuffleUnsupported": "Run with Ruffle (Unsupported)"
   },
   "tags": {
     "name": "Nome",
@@ -558,7 +570,9 @@
     "searching": "Ricerca...",
     "loading": "Caricamento...",
     "ok": "OK",
-    "allow": "Consenti"
+    "allow": "Consenti",
+    "orCapitals": "OR",
+    "andCapitals": "AND"
   },
   "menu": {
     "viewThumbnailInFolder": "Visualizza Anteprima nella Cartella",
