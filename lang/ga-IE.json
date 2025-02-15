@@ -18,10 +18,14 @@
     "searchLimitValue": "{0} Torthaí",
     "useCustomViews": "Use Custom Search Views",
     "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
+    "loadViewsText": "Restore Search View Text",
+    "loadViewsTextDesc": "Whether to restore the text field of a search view when restarting the launcher.",
     "defaultOpeningPage": "Default Opening Page",
     "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
     "restoreSearchViews": "Restore Search Results",
     "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
+    "useSelectedGameScroll": "Enable Game Selection Keyboard Controls",
+    "useSelectedGameScrollDesc": "Enables use of arrow keys to select games on Game Grids / Lists. NOTE: This will replace saved scroll position with saved selected game position.",
     "enableEditing": "Cumasaigh Eagrán",
     "enableEditingDesc": "Cumasaíonn sé eagarthóireacht ar chluichí agus feidhmeanna breise. Léiríonn sé cnaipí a bhaineann le hathrú.",
     "symlinkCuration": "Ábhar Cúramail Symlink",
@@ -91,6 +95,8 @@
     "screenshotPreviewDelay": "Gealltanas Réamhfhéachaint Léaráidí Scaipthe",
     "screenshotPreviewDelayDesc": "Gealltanas (i milleán) sula dtaispeántar an léaráid, nuair a bhíonn Réamhfhéachaint Léaráidí Scaipthe ar siúl. (ag spréachadh)",
     "advancedHeader": "Cliste",
+    "autoClearWininetCache": "Auto-Clear WinINet Cache",
+    "autoClearWininetCacheDesc": "Whether to automatically clear the Windows web cache when running a curation from the Curate tab",
     "clearWininetCache": "Clear WinINet Cache",
     "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "Feabhsaigh Bunachar Sonraí",
@@ -203,7 +209,9 @@
     "noLauncherUpdateReady": "Tá nuashonrú sonraí ag teastáil le leagan níos nua den Luchtaithe, ach tá an nuashonrú bogearraí faoi láthair ar fáil.",
     "deleteView": "Delete Search View",
     "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
-    "createNewView": "Create new search view",
+    "renameView": "Rename Search View",
+    "duplicateView": "Duplicate Search View",
+    "createNewView": "Create New Search View",
     "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
@@ -354,6 +362,7 @@
     "noLaunchCommand": "Gan Orduithe Tosaithe",
     "searching": "Ag Cuardach...",
     "library": "Leabharlann",
+    "noLibrary": "No Library",
     "defaultLibrary": "Leabharlann Réamhshocraithe",
     "fpfssGame": "Cluiche FPFSS",
     "uninstallGame": "Íoslódáil Cluiche",
@@ -403,7 +412,10 @@
     "notArchived": "Níor Achríonn",
     "archived": "Achríonn",
     "playOnline": "Imir ar Líne",
-    "tagFilterIcon": "Tag Filter Icon"
+    "tagFilterIcon": "Tag Filter Icon",
+    "runWithFlashPlayer": "Run with Flash Player",
+    "runWithRuffle": "Run with Ruffle",
+    "runWithRuffleUnsupported": "Run with Ruffle (Unsupported)"
   },
   "tags": {
     "name": "Ainm",
@@ -558,7 +570,9 @@
     "searching": "Ag Cuardach...",
     "loading": "Ag Lódáil...",
     "ok": "OK",
-    "allow": "Allow"
+    "allow": "Allow",
+    "orCapitals": "OR",
+    "andCapitals": "AND"
   },
   "menu": {
     "viewThumbnailInFolder": "Féach ar an Mionsamhail sa Chartlann",
