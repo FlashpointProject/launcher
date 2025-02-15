@@ -18,10 +18,14 @@
     "searchLimitValue": "{0} Resultaten",
     "useCustomViews": "Use Custom Search Views",
     "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
+    "loadViewsText": "Restore Search View Text",
+    "loadViewsTextDesc": "Whether to restore the text field of a search view when restarting the launcher.",
     "defaultOpeningPage": "Default Opening Page",
     "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
     "restoreSearchViews": "Restore Search Results",
     "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
+    "useSelectedGameScroll": "Enable Game Selection Keyboard Controls",
+    "useSelectedGameScrollDesc": "Enables use of arrow keys to select games on Game Grids / Lists. NOTE: This will replace saved scroll position with saved selected game position.",
     "enableEditing": "Bewerken inschakelen",
     "enableEditingDesc": "Bewerken inschakelen voor spellen en extra applicaties. Toont ook de gerelateerde tabbladen voor het bewerken.",
     "symlinkCuration": "Symlink curatie inhoud",
@@ -91,6 +95,8 @@
     "screenshotPreviewDelay": "Screenshot voorvertoning vertraging",
     "screenshotPreviewDelayDesc": "Vertraging (in milliseconden) voor het tonen van de schermafdruk, wanneer voorvertoning van schermafbeelding is ingesteld op aan. (bij zweven)",
     "advancedHeader": "Geavanceerd",
+    "autoClearWininetCache": "Auto-Clear WinINet Cache",
+    "autoClearWininetCacheDesc": "Whether to automatically clear the Windows web cache when running a curation from the Curate tab",
     "clearWininetCache": "Clear WinINet Cache",
     "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "Optimaliseer Database",
@@ -203,7 +209,9 @@
     "noLauncherUpdateReady": "Metagegevens update vereist een nieuwere Launcher-versie, maar de software-update is momenteel niet beschikbaar.",
     "deleteView": "Delete Search View",
     "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
-    "createNewView": "Create new search view",
+    "renameView": "Rename Search View",
+    "duplicateView": "Duplicate Search View",
+    "createNewView": "Create New Search View",
     "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
@@ -354,6 +362,7 @@
     "noLaunchCommand": "Geen opdracht starten",
     "searching": "Bezig met zoeken...",
     "library": "Bibliotheek",
+    "noLibrary": "No Library",
     "defaultLibrary": "Standaard bibliotheek",
     "fpfssGame": "FPFSS spel",
     "uninstallGame": "Verwijder spel",
@@ -403,7 +412,10 @@
     "notArchived": "Niet gearchiveerd",
     "archived": "Gearchiveerd",
     "playOnline": "Online spelen",
-    "tagFilterIcon": "Tag Filter Icon"
+    "tagFilterIcon": "Tag Filter Icon",
+    "runWithFlashPlayer": "Run with Flash Player",
+    "runWithRuffle": "Run with Ruffle",
+    "runWithRuffleUnsupported": "Run with Ruffle (Unsupported)"
   },
   "tags": {
     "name": "Naam",
@@ -558,7 +570,9 @@
     "searching": "Bezig met zoeken...",
     "loading": "Bezig met laden...",
     "ok": "OK",
-    "allow": "Allow"
+    "allow": "Allow",
+    "orCapitals": "OR",
+    "andCapitals": "AND"
   },
   "menu": {
     "viewThumbnailInFolder": "Miniatuur in map bekijken",
