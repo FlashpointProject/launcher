@@ -18,10 +18,14 @@
     "searchLimitValue": "{0} Výsledků",
     "useCustomViews": "Použít vlastní vyhledávací okna",
     "useCustomViewsDesc": "Nahradí vyhledávací karty Knihovny vlastními vyhledávacími kartami a přidá možnost Knihovna do pokročilých filtrů.",
+    "loadViewsText": "Restore Search View Text",
+    "loadViewsTextDesc": "Whether to restore the text field of a search view when restarting the launcher.",
     "defaultOpeningPage": "Výchozí úvodní stránka",
     "defaultOpeningPageDesc": "Výchozí stránka, která se otevře, buď domovská stránka, nebo vybraná vyhledávací stránka",
     "restoreSearchViews": "Obnovit výsledky vyhledávání",
     "restoreSearchViewsDesc": "Při každém otevření aplikace uloží a obnoví kopii každé vyhledávací stránky (text, filtry, vybraná hra a seznam).",
+    "useSelectedGameScroll": "Enable Game Selection Keyboard Controls",
+    "useSelectedGameScrollDesc": "Enables use of arrow keys to select games on Game Grids / Lists. NOTE: This will replace saved scroll position with saved selected game position.",
     "enableEditing": "Povolit upravování",
     "enableEditingDesc": "Povolit úpravy her a přídavných aplikací. Také zobrazí záložky související s úpravami.",
     "symlinkCuration": "Symbolicky linkovat obsah kurace",
@@ -91,6 +95,8 @@
     "screenshotPreviewDelay": "Prodleva zobrazení snímku obrazovky",
     "screenshotPreviewDelayDesc": "Prodleva (v milisekundách) před zobrazením snímku obrazovky, pokud je náhled snímku obrazovky nastaven na 'zapnuto'. (při najetí myší)",
     "advancedHeader": "Pokročilé",
+    "autoClearWininetCache": "Auto-Clear WinINet Cache",
+    "autoClearWininetCacheDesc": "Whether to automatically clear the Windows web cache when running a curation from the Curate tab",
     "clearWininetCache": "Clear WinINet Cache",
     "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "Optimalizovat databázi",
@@ -203,7 +209,9 @@
     "noLauncherUpdateReady": "Aktualizace metadat vyžaduje novější verzi launcheru, ale aktualizace softwaru není v současné době k dispozici.",
     "deleteView": "Odstranit vyhledávací okno",
     "deleteOnlyBrowseView": "Odstranit vyhledávací okno (Musí existovat další vlastní okno)",
-    "createNewView": "Vytvořit nové vyhledávací okno",
+    "renameView": "Rename Search View",
+    "duplicateView": "Duplicate Search View",
+    "createNewView": "Create New Search View",
     "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
@@ -354,6 +362,7 @@
     "noLaunchCommand": "Žádný spouštěcí příkaz",
     "searching": "Vyhledávání...",
     "library": "Knihovna",
+    "noLibrary": "No Library",
     "defaultLibrary": "Výchozí knihovna",
     "fpfssGame": "Hra FPFSS",
     "uninstallGame": "Odinstalovat Hru",
@@ -403,7 +412,10 @@
     "notArchived": "Nearchivováno",
     "archived": "Archivováno",
     "playOnline": "Hrát online",
-    "tagFilterIcon": "Tag Filter Icon"
+    "tagFilterIcon": "Tag Filter Icon",
+    "runWithFlashPlayer": "Run with Flash Player",
+    "runWithRuffle": "Run with Ruffle",
+    "runWithRuffleUnsupported": "Run with Ruffle (Unsupported)"
   },
   "tags": {
     "name": "Název",
@@ -558,7 +570,9 @@
     "searching": "Vyhledávání...",
     "loading": "Načítání...",
     "ok": "OK",
-    "allow": "Povolit"
+    "allow": "Povolit",
+    "orCapitals": "OR",
+    "andCapitals": "AND"
   },
   "menu": {
     "viewThumbnailInFolder": "Otevřít složku s umístěním miniatury",
