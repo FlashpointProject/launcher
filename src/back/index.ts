@@ -286,6 +286,7 @@ async function prepForInit(message: any): Promise<void> {
   state.localeCode = content.localeCode;
   state.exePath = content.exePath;
   state.version = content.version;
+  console.log(`Version: ${state.version}`);
   state.versionStr = `${content.version} ${content.isDev ? 'DEV' : ''}`;
   state.acceptRemote = content.acceptRemote;
   state.logFile = new LogFile(
