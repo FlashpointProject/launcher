@@ -18,10 +18,14 @@
     "searchLimitValue": "{0} Резултати",
     "useCustomViews": "Користи Самостоен Пребарувач",
     "useCustomViewsDesc": "Изменува пребарувања на библиотеката со самостојни табови за пребарувач и додава Library опција за напредни филтери.",
+    "loadViewsText": "Restore Search View Text",
+    "loadViewsTextDesc": "Whether to restore the text field of a search view when restarting the launcher.",
     "defaultOpeningPage": "Стандардна Отворена Страна",
     "defaultOpeningPageDesc": "Стандардна страна да отвараш, или Home страната или Search страната",
     "restoreSearchViews": "Врати ги резулатите на пребарувачот",
     "restoreSearchViewsDesc": "Зачува и враќа копии од секоја страна на пребарувачот (текст, филтри, избрана игра и плејлиста) секојпат кога ја отвараш апликацијата.",
+    "useSelectedGameScroll": "Enable Game Selection Keyboard Controls",
+    "useSelectedGameScrollDesc": "Enables use of arrow keys to select games on Game Grids / Lists. NOTE: This will replace saved scroll position with saved selected game position.",
     "enableEditing": "Овозможи Уредувања",
     "enableEditingDesc": "Овозможи уредување на игри и дополнителни апликации. Исто така, покажува јазичиња поврзани со уредување.",
     "symlinkCuration": "Симлинк Курациска Содржина",
@@ -91,6 +95,8 @@
     "screenshotPreviewDelay": "Одложувај преглед на слика",
     "screenshotPreviewDelayDesc": "Одложи (во милисекунди) пред прикажување на сликата од екран, кога прегледот на сликата на екран е поставен on. (преку опцијата со твојот маус)",
     "advancedHeader": "Напредно",
+    "autoClearWininetCache": "Auto-Clear WinINet Cache",
+    "autoClearWininetCacheDesc": "Whether to automatically clear the Windows web cache when running a curation from the Curate tab",
     "clearWininetCache": "Clear WinINet Cache",
     "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "Оптимизирај ја Базата на податоци",
@@ -203,7 +209,9 @@
     "noLauncherUpdateReady": "Ажурирањето на метаподатоци бара понова верзија на Лаунчер, но ажурирањето на софтверот во моментов не е достапно.",
     "deleteView": "Избриши го Самостојниот Пребарувач",
     "deleteOnlyBrowseView": "Избриши го Самостојниот Пребарувач (мора да има уште еден пребарувач)",
-    "createNewView": "Направи нов Самостоен Пребарувач",
+    "renameView": "Rename Search View",
+    "duplicateView": "Duplicate Search View",
+    "createNewView": "Create New Search View",
     "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
@@ -354,6 +362,7 @@
     "noLaunchCommand": "Нема Лаунч Команд",
     "searching": "Барај...",
     "library": "Библиотека",
+    "noLibrary": "No Library",
     "defaultLibrary": "Стандардна Библиотека",
     "fpfssGame": "FPFSS Игра",
     "uninstallGame": "Деинсталирај Игра",
@@ -403,7 +412,10 @@
     "notArchived": "Не е Архивирано",
     "archived": "Архивиран",
     "playOnline": "Играј online",
-    "tagFilterIcon": "Tag Filter Icon"
+    "tagFilterIcon": "Tag Filter Icon",
+    "runWithFlashPlayer": "Run with Flash Player",
+    "runWithRuffle": "Run with Ruffle",
+    "runWithRuffleUnsupported": "Run with Ruffle (Unsupported)"
   },
   "tags": {
     "name": "Име",
@@ -558,7 +570,9 @@
     "searching": "Барај...",
     "loading": "Вчитување...",
     "ok": "ОК",
-    "allow": "Дозволи"
+    "allow": "Дозволи",
+    "orCapitals": "OR",
+    "andCapitals": "AND"
   },
   "menu": {
     "viewThumbnailInFolder": "Прегледај лого во папката",
