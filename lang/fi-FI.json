@@ -18,10 +18,14 @@
     "searchLimitValue": "{0} tulosta",
     "useCustomViews": "Use Custom Search Views",
     "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
+    "loadViewsText": "Restore Search View Text",
+    "loadViewsTextDesc": "Whether to restore the text field of a search view when restarting the launcher.",
     "defaultOpeningPage": "Default Opening Page",
     "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
     "restoreSearchViews": "Restore Search Results",
     "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
+    "useSelectedGameScroll": "Enable Game Selection Keyboard Controls",
+    "useSelectedGameScrollDesc": "Enables use of arrow keys to select games on Game Grids / Lists. NOTE: This will replace saved scroll position with saved selected game position.",
     "enableEditing": "Muokkaustila",
     "enableEditingDesc": "Ota käyttöön pelien ja muiden sovellusten muokkaus. Näyttää myös muokkaukseen liittyvät välilehdet.",
     "symlinkCuration": "Symlink kuratointisisältö",
@@ -91,6 +95,8 @@
     "screenshotPreviewDelay": "Kuvakaappauksen esikatselun viive",
     "screenshotPreviewDelayDesc": "Viive (millisekunneissa) ennen kuvakaappauksen näyttämistä, kun kuvakaappauksen esikatselu on asetettu päälle. (Hiirellä osoitettaessa)",
     "advancedHeader": "Edistyneet valinnat",
+    "autoClearWininetCache": "Auto-Clear WinINet Cache",
+    "autoClearWininetCacheDesc": "Whether to automatically clear the Windows web cache when running a curation from the Curate tab",
     "clearWininetCache": "Clear WinINet Cache",
     "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "Optimoi tietokanta",
@@ -203,7 +209,9 @@
     "noLauncherUpdateReady": "Metadatan päivitys vaatii uudemman Launcher-version, mutta ohjelmistopäivitys ei ole tällä hetkellä saatavilla.",
     "deleteView": "Delete Search View",
     "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
-    "createNewView": "Create new search view",
+    "renameView": "Rename Search View",
+    "duplicateView": "Duplicate Search View",
+    "createNewView": "Create New Search View",
     "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
@@ -354,6 +362,7 @@
     "noLaunchCommand": "Ei laukaisukomentoa",
     "searching": "Etsitään...",
     "library": "Kirjasto",
+    "noLibrary": "No Library",
     "defaultLibrary": "Oletuskirjasto",
     "fpfssGame": "FPFSS Peli",
     "uninstallGame": "Poista Peli",
@@ -403,7 +412,10 @@
     "notArchived": "Ei Arkistoitu",
     "archived": "Arkistoitu",
     "playOnline": "Pelaa verkossa",
-    "tagFilterIcon": "Tag Filter Icon"
+    "tagFilterIcon": "Tag Filter Icon",
+    "runWithFlashPlayer": "Run with Flash Player",
+    "runWithRuffle": "Run with Ruffle",
+    "runWithRuffleUnsupported": "Run with Ruffle (Unsupported)"
   },
   "tags": {
     "name": "Nimi",
@@ -558,7 +570,9 @@
     "searching": "Etsitään...",
     "loading": "Ladataan...",
     "ok": "OK",
-    "allow": "Allow"
+    "allow": "Allow",
+    "orCapitals": "OR",
+    "andCapitals": "AND"
   },
   "menu": {
     "viewThumbnailInFolder": "Katso kuvaketta kansiossa",
