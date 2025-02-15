@@ -18,10 +18,14 @@
     "searchLimitValue": "{0} rezultate",
     "useCustomViews": "Use Custom Search Views",
     "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
+    "loadViewsText": "Restore Search View Text",
+    "loadViewsTextDesc": "Whether to restore the text field of a search view when restarting the launcher.",
     "defaultOpeningPage": "Default Opening Page",
     "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
     "restoreSearchViews": "Restore Search Results",
     "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
+    "useSelectedGameScroll": "Enable Game Selection Keyboard Controls",
+    "useSelectedGameScrollDesc": "Enables use of arrow keys to select games on Game Grids / Lists. NOTE: This will replace saved scroll position with saved selected game position.",
     "enableEditing": "Activați editarea",
     "enableEditingDesc": "Activează editarea jocurilor și a aplicațiilor suplimentare. De asemenea, arată categorii legate de editare.",
     "symlinkCuration": "Conținut reparat cu Symlink",
@@ -91,6 +95,8 @@
     "screenshotPreviewDelay": "Întârziați previzualizarea cu",
     "screenshotPreviewDelayDesc": "Durata (în milisecunde) de întârziere a previzualizării capturii de ecran,\ndacă aceasta se afișează la evidențierea cu cursorul",
     "advancedHeader": "Avansat",
+    "autoClearWininetCache": "Auto-Clear WinINet Cache",
+    "autoClearWininetCacheDesc": "Whether to automatically clear the Windows web cache when running a curation from the Curate tab",
     "clearWininetCache": "Clear WinINet Cache",
     "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "Optimizați baza de date",
@@ -203,7 +209,9 @@
     "noLauncherUpdateReady": "Actualizarea informațiilor necesită o versiune mai nouă, indisponibilă momentan, a lansatorului. Încercați mai târziu.",
     "deleteView": "Delete Search View",
     "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
-    "createNewView": "Create new search view",
+    "renameView": "Rename Search View",
+    "duplicateView": "Duplicate Search View",
+    "createNewView": "Create New Search View",
     "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
@@ -354,6 +362,7 @@
     "noLaunchCommand": "Indisponibil",
     "searching": "Se caută...",
     "library": "Categorie",
+    "noLibrary": "No Library",
     "defaultLibrary": "Categoria implicită",
     "fpfssGame": "Joc FPFSS",
     "uninstallGame": "Dezinstalare joc",
@@ -403,7 +412,10 @@
     "notArchived": "Not Archived",
     "archived": "Arhivat",
     "playOnline": "Jucați online",
-    "tagFilterIcon": "Tag Filter Icon"
+    "tagFilterIcon": "Tag Filter Icon",
+    "runWithFlashPlayer": "Run with Flash Player",
+    "runWithRuffle": "Run with Ruffle",
+    "runWithRuffleUnsupported": "Run with Ruffle (Unsupported)"
   },
   "tags": {
     "name": "Nume",
@@ -558,7 +570,9 @@
     "searching": "Se caută...",
     "loading": "Se încarcă…",
     "ok": "OK",
-    "allow": "Allow"
+    "allow": "Allow",
+    "orCapitals": "OR",
+    "andCapitals": "AND"
   },
   "menu": {
     "viewThumbnailInFolder": "Vizualizați imaginea în dosar",
