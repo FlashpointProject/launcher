@@ -13,69 +13,69 @@ export const CHANGELOG: Changelog = {
     message: `
 # Flashpoint Launcher 14.0.0
 
-## New
-- Game Data:
+# New
+- **Games:**
   - When launching a game, if there is existing game data and there has been new game data added via a metadata update, then the user is asked whether it should update to the new game data or stay on the existing one
     - If the launch command has changed in the new game data, the user is warned that updating could cause existing save data to break
-- Playlists:
+  - Play / Download button now additional dropdown options for Flash games which will override Ruffle settings:
+    - \`Run with Flash Player\` - Force the game to use the default launch command
+    - \`Run with Ruffle\` - Force the game to use Ruffle. This will change to tell you if the game is not marked as Supported by Flashpoint.
+- **Playlists:**
   - Playlists can now utilize all search features
   - Playlist ordering can disabled to use the traditional ordering dropdowns inside them
-  - You can now create Playlists from the current Search Results
-- Search Pages:
+  - You can now create Playlists from the current Search Results. (Very large results views will cause significant lag when being created or viewed)
+- **Search:**
   - Checkbox selections for - \`Installed\`, \`Legacy Game\`, \`Use Playlist Order\`
   - Dropdowns selections for - \`Library\`, \`Developer\`, \`Publisher\`, \`Series\`, \`Play Mode\`, \`Platform\` and \`Tags\`
-  - Config option - \`Restore Search Results\` (default: **on**) - Automatically saves each Search Page and restores them when the launcher opens. (text, advanced filters, selected playlist and selected game)
-  - Config option - \`Use Custom Search Views\` (default: **off**) - Enables the use of Custom Search Views. These will replace the Library search page tabs and instead give you a Library filter option on the Custom Search pages. You can create (plus icon), delete, rename (right click them) and drag to change the order of them in the Header.
-  - \`Ctrl + F\` will now focus the Search Bar when on a Search Page
-- Extensions:
-   - \`getAccessToken()\` - Returns the FPFSS access token for the logged in user to allow extensions to perform actions on their behalf. User will be prompted to allow or deny when called. (#444)
-   - \`DialogState\` now contains an \`mdx\` boolean field. Setting this to true will compile and run the message as MDX. (Markdown + JSX)
-- Ruffle:
-  - Config option - \`Enabled (Supported Games)\` (default: **off**) - Enables games marked with the \`Ruffle Support\` metadata field to use the Ruffle emulator instead of Flash Player.
-  - Config option - \`Enabled (Unsupported Games)\` (default: **off**) - Enables games to use the Ruffle emulator instead of Flash Player, no matter the support indicated in the games metadata.
+    - Dropdown selections can include or exclude individual items, as well as toggle between \`AND\` / \`OR\` search operations
+  - New keybinds:
+    - \`Ctrl+F\` - Focus the search bar
+    - \`Ctrl+D\` - Clear the search text
+    - \`Ctrl+Shift+D\` - Clear the search text and filters
+- **Extensions:**
+   - \`getAccessToken()\` - Returns the FPFSS access token for the logged in user to allow extensions to perform actions on their behalf. User will be prompted to allow or deny when called. (@dot-mike)
+   - \`DialogState\` now contains an \`mdx\` boolean field and \`textAlign\` string field. Setting this to true will compile and run the message as MDX. (Markdown + JSX)
+- **Misc:**
+  - About Page now has viewable launcher changelogs
+  - DNS over HTTPS via Cloudflare is now supported for all Launcher web requests. This should fix some connectivity issues in countries with overly aggressive censorship such as the Philippines.
+- **Config Options:**
+  - \`Restore Search Results\` - (default: **on**) - Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.
+  - \`Restore Search View Text\` - (default: **on**) - Restores the text field of a search view when restarting the launcher.
+  - \`Enable Custom Search Views\` - (default: **off**) - Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.
+  - \`Default Opening Page\` - (default: **Home**) - Default page to open to, either the Home Page or a chosen Search Page
+  - \`Hide New View Button\` - (default: **off**) - When using custom views, hide the new view (+) button in the header. You can instead press 'Create New Search View' under the context menu for tabs.
+  - \`Auto-Clear WinINet Cache\` - (default: **off**) - Automatically clear the Windows web cache when running a curation from the Curate tab.
+  - \`Clear WinINet Cache\` - (button) - Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.
+  - Ruffle - \`Enable (Supported Games)\` - (default: **off**) - Enable Ruffle for games that have been marked as properly supported.
+  - Ruffle - \`Enable (Unsupported Games)\` - (default: **off**) - Enable Ruffle Standalone for all games regardless of whether they have been checked as supported. Results my vary.
 
-## Changed
-- Search Bar has been moved from the Header to the Browse page
-- \`Ctrl+Shift+R\` to reload the window will now also reload all extensions (#445)
+# Changed
+- Search Bar has been moved from the Header to the Browse page (Search Views)
+- Clear Search Button can now clear both text and filters if Shift is held while clicking it.
+- \`Ctrl+Shift+R\` to reload the window will now also reload all extensions (@dot-mike)
 - Linux:
-  - Wine installations bundled inside FPSoftware are now automatically added to PATH for launched games (#430)
+  - Wine installations bundled inside FPSoftware are now automatically added to PATH for launched games (@Maoijoon)
 - Importing games in the Curate tab now uses 7zip instead of Bluezip
+- Tags page now follows a custom sort order, starting with default.
+- All web request from the launcher use a consistent user agent (@dot-mike)
 
-## Fixed
+# Fixed
 - Non-unicode characters inside preferences no longer prevent the Preferences file from saving
 - Search results are now correctly ordered with case insensitivity
 - Existing path values are no longer wiped from existing Game Data when a Game has a metadata update
 - Launching a game can now recover the path value when it is missing, preventing a launch error
 - 401 errors from Fpfss functions should now properly get the user to re-authenticate instead of throwing an error
-- Closing processes will work again on new Windows distributions without WMIC installed
+- Closing processes will work on new Windows distributions without WMIC installed
 - New platforms now correctly sort alphabetically on the Extras box of the Home page
 - Multiple blacklist conditions now properly use AND comparisons
 - Additional Apps now use the same proc launch function as Game with a randomized ID instead
 - Joint clauses (Application Path + Launch Command) now properly use inner ORs for blacklist conditions
-- \`Open Flashpoint Manager\` will now wait 2.5 seconds to fully open FPM before exiting the main process. Cheap, but effective
+- \`Open Flashpoint Manager\` will now wait 2.5 seconds to fully open FPM before exiting the main process. Cheap, but effective.
 
 # Removed
+- Search bar no longer has \`tag:\` autocomplete. This may return in the future, the tags filter dropdown should be a reasonable replacement.
 - Playlists can no longer have multiple copies of the same game.
 - Bluezip is no longer included as an external tool
-`
-  },
-  "2024-04-04": {
-    title: 'Flashpoint Launcher 13.0.1',
-    message: `
-# Flashpoint Laucnher 13.0.1
-
-## New
-- Ctrl+Shift+R will now restart the renderer, without restarting the backend. Good for local dev.
-
-## Changed
-- Tags and Platforms blacklists are treated as an OR despite the rest of the query being treated as an AND. This should make it easier to exclude several tags at once
-
-## Fixed
-- Primary platform not causing a meta.yaml update
-- Starting a search by clicking on a right sidebar field incorrectly retains the search result count of the previous query
-- Race condition causing service info to not be synced correctly introduced in the last update
-- Tags / platforms not being added to a curation when entering their alias
-- Platforms not being added to a curation where the platform exists but has zero associated game entries
 `
   },
   "2024-03-29": {
