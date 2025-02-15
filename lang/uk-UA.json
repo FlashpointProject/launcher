@@ -18,10 +18,14 @@
     "searchLimitValue": "{0} результатів",
     "useCustomViews": "Use Custom Search Views",
     "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
+    "loadViewsText": "Restore Search View Text",
+    "loadViewsTextDesc": "Whether to restore the text field of a search view when restarting the launcher.",
     "defaultOpeningPage": "Default Opening Page",
     "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
     "restoreSearchViews": "Restore Search Results",
     "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
+    "useSelectedGameScroll": "Enable Game Selection Keyboard Controls",
+    "useSelectedGameScrollDesc": "Enables use of arrow keys to select games on Game Grids / Lists. NOTE: This will replace saved scroll position with saved selected game position.",
     "enableEditing": "Увімкнути редагування",
     "enableEditingDesc": "Увімкнути редагування ігор та додаткових програм. Також показує вкладки, пов'язані з редагуванням.",
     "symlinkCuration": "Курація контенту символьними посиланнями",
@@ -91,6 +95,8 @@
     "screenshotPreviewDelay": "Затримка попереднього перегляду скріншотом",
     "screenshotPreviewDelayDesc": "Затримка (у мілісекундах) перед зображенням скріншоту, коли параметр для попереднього перегляду скріншотом встановлений як \"Увімкнено (при наведенні)\"",
     "advancedHeader": "Додатково",
+    "autoClearWininetCache": "Auto-Clear WinINet Cache",
+    "autoClearWininetCacheDesc": "Whether to automatically clear the Windows web cache when running a curation from the Curate tab",
     "clearWininetCache": "Clear WinINet Cache",
     "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "Оптимізувати базу даних",
@@ -203,7 +209,9 @@
     "noLauncherUpdateReady": "Оновлення метаданих вимагає новішу версію лаунчера, але програмне оновлення наразі недоступне.",
     "deleteView": "Delete Search View",
     "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
-    "createNewView": "Create new search view",
+    "renameView": "Rename Search View",
+    "duplicateView": "Duplicate Search View",
+    "createNewView": "Create New Search View",
     "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
@@ -354,6 +362,7 @@
     "noLaunchCommand": "Не команд запуску",
     "searching": "Пошук...",
     "library": "Бібліотека",
+    "noLibrary": "No Library",
     "defaultLibrary": "Типова бібліотека",
     "fpfssGame": "FPFSS Game",
     "uninstallGame": "Видалити гру",
@@ -403,7 +412,10 @@
     "notArchived": "Not Archived",
     "archived": "Archived",
     "playOnline": "Play Online",
-    "tagFilterIcon": "Tag Filter Icon"
+    "tagFilterIcon": "Tag Filter Icon",
+    "runWithFlashPlayer": "Run with Flash Player",
+    "runWithRuffle": "Run with Ruffle",
+    "runWithRuffleUnsupported": "Run with Ruffle (Unsupported)"
   },
   "tags": {
     "name": "Ім'я",
@@ -558,7 +570,9 @@
     "searching": "Пошук...",
     "loading": "Loading...",
     "ok": "OK",
-    "allow": "Allow"
+    "allow": "Allow",
+    "orCapitals": "OR",
+    "andCapitals": "AND"
   },
   "menu": {
     "viewThumbnailInFolder": "Переглянути мініатюру в папці",
