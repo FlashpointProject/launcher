@@ -10,10 +10,18 @@
     "hideExtremeScreenshotsDesc": "隐藏成人内容的截图，点击图像框即可取消隐藏。",
     "fancyAnimations": "动画效果",
     "fancyAnimationsDesc": "在启动器中启用动画效果。",
+    "hideNewViewButton": "隐藏新视图按钮",
+    "hideNewViewButtonDesc": "当使用自定义视图时，隐藏新视图（+）按钮。作为替代，您可以在标签页右键菜单下点击“创建新视图”。",
     "searchLimit": "搜索限制",
     "searchLimitDesc": "限制搜索返回的结果数量",
     "searchLimitUnlimited": "无限制",
     "searchLimitValue": "{0} 个结果",
+    "useCustomViews": "使用自定义搜索视图",
+    "useCustomViewsDesc": "将展馆搜索标签页替换为自定义命名的搜索标签页，并向高级筛选器中添加一个展馆选项。",
+    "defaultOpeningPage": "默认打开页面",
+    "defaultOpeningPageDesc": "默认打开的页面，可以是主页或手动选择的搜索页面",
+    "restoreSearchViews": "恢复搜索结果",
+    "restoreSearchViewsDesc": "每次打开应用时保存与恢复每个搜索页面的备份（文本、筛选器、选中的游戏和播放列表）。",
     "enableEditing": "启用编辑",
     "enableEditingDesc": "启用对游戏与附加应用的编辑。也显示与编辑有关的标签页。",
     "symlinkCuration": "创建展品内容软链接",
@@ -83,8 +91,10 @@
     "screenshotPreviewDelay": "屏幕截图预览延迟",
     "screenshotPreviewDelayDesc": "屏幕截图预览设置为开启时，（在悬停时）显示屏幕截图前的延时（毫秒）。",
     "advancedHeader": "高级",
+    "clearWininetCache": "清除 WinINet 缓存",
+    "clearWininetCacheDesc": "清除 Windows Web 缓存，这可能有助于解决展品及一些罕见情况下的加载问题。",
     "optimizeDatabase": "优化数据库",
-    "optimizeDatabaseDesc": "运行维护任务以增强数据库性能并减小文件大小",
+    "optimizeDatabaseDesc": "运行维护任务以增强数据库性能并减小文件大小。",
     "showDeveloperTab": "显示开发者标签页",
     "showDeveloperTabDesc": "显示 '开发者' 标签页，通常只对开发者与策展员有用。",
     "registerProtocol": "注册为协议处理程序",
@@ -136,12 +146,13 @@
     "updatedGamesReady": "{0} 个游戏信息更新已就绪",
     "checkingUpgradeState": "检查更新状态...",
     "extrasHeader": "额外内容",
+    "playHistory": "游玩历史",
     "favoritesPlaylist": "播放列表收藏",
     "tagList": "标签列表",
     "filterByPlatform": "按平台筛选",
     "plannedFeatures": "查看我们计划更新的功能！",
     "notesHeader": "备注",
-    "notes": "遇到任何问题，不要忘记先阅读手册。",
+    "notes": "遇到任何问题，不要忘记先阅读帮助页面或手册。",
     "linuxSupport": "在 Linux 上遇到问题？{0}",
     "linuxSupportLinkText": "阅读常见问题",
     "randomPicks": "随便看看",
@@ -173,6 +184,7 @@
     "curate": "策展",
     "developer": "开发者",
     "searchPlaceholder": "搜索...",
+    "searchPlaceholderCountable": "搜索…（{0} 项目）",
     "hideRightSidebar": "隐藏右边栏",
     "showRightSidebar": "显示右边栏",
     "hideLeftSidebar": "隐藏左边栏",
@@ -188,7 +200,11 @@
     "fpfssProfile": "打开个人资料",
     "fpfssLogout": "登出 FPFSS",
     "softwareUpdateRequired": "需要软件更新。要现在更新吗？",
-    "noLauncherUpdateReady": "元数据更新需要新的启动器版本，但软件更新目前不可用。"
+    "noLauncherUpdateReady": "元数据更新需要新的启动器版本，但软件更新目前不可用。",
+    "deleteView": "删除搜索视图",
+    "deleteOnlyBrowseView": "删除搜索视图（必须有另一个自定义视图）",
+    "createNewView": "创建新搜索视图",
+    "errorLoadingServices": "加载服务时发生了错误。请查看日志了解详情。"
   },
   "filter": {
     "dateAdded": "添加日期",
@@ -361,8 +377,9 @@
     "allGames": "所有游戏",
     "newPlaylist": "新播放列表",
     "importPlaylist": "导入播放列表",
+    "noGamesFoundInsidePlaylist": "未在播放列表中找到结果！",
     "emptyPlaylist": "空播放列表",
-    "noGamesFound": "未找到游戏！",
+    "noGamesFound": "未找到结果！",
     "dropGameOnLeft": "拖动游戏到{0}中的播放列表以添加。",
     "leftSidebar": "左边栏",
     "setFlashpointPathQuestion": "您是否在{1}页面上设置了 '{0}' 的路径？",
@@ -375,13 +392,18 @@
     "noGameMatchedSearch": "请尝试用更宽泛的关键词搜索。",
     "mountParameters": "挂载参数",
     "noMountParameters": "无挂载参数",
+    "ruffleSupport": "Ruffle 支持",
     "showExtremeScreenshot": "显示成人截图",
     "busy": "请稍候…",
     "openGameDataBrowser": "打开游戏数据浏览器",
+    "allGenericEntries": "所有条目",
+    "usePlaylistOrder": "使用播放列表顺序",
+    "hideFilters": "隐藏筛选器",
+    "showFilters": "显示筛选器",
     "notArchived": "未存档",
     "archived": "已存档",
     "playOnline": "在线播放",
-    "tagFilterIcon": ""
+    "tagFilterIcon": "标签筛选器图标"
   },
   "tags": {
     "name": "名称",
@@ -405,13 +427,14 @@
     "deleteTag": "删除标签",
     "deleteTagCategory": "删除标签类别",
     "locked": "处理过程中暂时锁定...",
-    "filterIcon": ""
+    "filterIcon": "图标缩略图"
   },
   "curate": {
     "noCurationSelected": "未选择展品",
     "headerFileOperations": "文件",
     "headerEditCuration": "编辑",
     "headerTest": "测试",
+    "headerFpfss": "FPFSS",
     "importAll": "导入全部",
     "importAllDesc": "导入所有当前加载的展品",
     "deleteAll": "删除全部",
@@ -492,7 +515,8 @@
     "contextCopyAsURL": "复制文件路径为 URL",
     "contextShowInExplorer": "在资源管理器中显示文件",
     "contextOpenFolderInExplorer": "在资源管理器中打开文件夹",
-    "shortcuts": "快捷方式"
+    "shortcuts": "快捷方式",
+    "fpfssOpenSubmissionPage": "打开提交页面"
   },
   "playlist": {
     "enterDescriptionHere": "在此输入描述...",
@@ -520,7 +544,7 @@
   "misc": {
     "noBlankFound": "无{0}",
     "addBlank": "添加{0}",
-    "removeBlank": "",
+    "removeBlank": "删除 {0}",
     "deleteAllBlankImages": "删除该游戏所有{0}",
     "yes": "是",
     "no": "否",
@@ -533,7 +557,8 @@
     "showImage": "显示图像",
     "searching": "正在搜索...",
     "loading": "正在加载…",
-    "ok": "确定"
+    "ok": "确定",
+    "allow": "允许"
   },
   "menu": {
     "viewThumbnailInFolder": "在文件夹中查看缩略图",
@@ -623,7 +648,14 @@
     "exportCurationWithWarnings": "即使有警告也导出展品吗？",
     "requiresAdditionalDownload": "您缺少运行此条目所需的 {0} 支持包。\n要现在下载吗？",
     "requiresAdditionalDownloadPlural": "您缺少运行此条目所需的 {0} 个支持包。\n要现在下载吗？",
-    "confirmClearPlaytime": "要清除所有游戏的游玩时间和游玩历史数据吗？此操作无法被撤销。"
+    "confirmClearPlaytime": "要清除所有游戏的游玩时间和游玩历史数据吗？此操作无法被撤销。",
+    "badAntiVirus": "您似乎正在使用“{0}”。\n已知这个反病毒软件会造成问题，我们建议将 Flashpoint 文件夹添加到例外排除项中。\n\n如果您在运行 Flash 游戏时只看到白屏，则可能需要重新安装 Flashpoint 以恢复被删除的文件。\n\n请查看 Wiki 或帮助页面了解详情。",
+    "openWiki": "打开 Wiki",
+    "openDiscord": "加入 Discord 服务器",
+    "doNotShowAgain": "不再显示",
+    "extFpfssConsent": "ID 为 {0} 的扩展正在请求访问您的 FPFSS 令牌。是否允许？\n这意味着该扩展将能够访问您的 FPFSS 账户并以您的身份执行操作。",
+    "gameDataUpdateReady": "游戏数据更新已就绪。您想要立即升级吗？",
+    "gameDataUpdateReadyLcDifferent": "游戏数据更新已就绪。启动命令已更改，这可能会破坏现有的存档文件。您想要立即升级吗？"
   },
   "libraries": {
     "arcade": "游戏",
@@ -643,5 +675,9 @@
     "techDesc": "添加对其他技术的支持，如 Shockwave、Unity、Java、HTML5 等。",
     "screenshots": "图标与屏幕截图",
     "screenshotsDesc": "为所有游戏添加网格视图图标与屏幕截图。"
+  },
+  "extensions": {
+    "fpssConsentRevokeTitle": "撤销 FPFSS 访问权限",
+    "fpssConsentRevokeDesc": "收回此扩展对 FPFSS 的访问权限"
   }
 }
