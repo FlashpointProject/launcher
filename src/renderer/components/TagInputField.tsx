@@ -42,8 +42,15 @@ type TagInputFieldState = {
   expanded: boolean;
 };
 
+function withModifiableTags<T extends TagInputFieldProps>(Component: React.ComponentType<T>) {
+  return function WithModifiableTags(props: T) {
+    const modifiableTags = [...props.tags];
+    return <Component {...props} tags={modifiableTags} />;
+  };
+}
+
 /** An input element with a drop-down menu that can list any number of selectable and clickable text elements. */
-export class TagInputField extends React.Component<TagInputFieldProps, TagInputFieldState> {
+class TagInputFieldRaw extends React.Component<TagInputFieldProps, TagInputFieldState> {
   rootRef: React.RefObject<HTMLDivElement> = React.createRef();
   contentRef: React.RefObject<HTMLDivElement> = React.createRef();
   inputRef: React.RefObject<InputElement> = React.createRef();
@@ -356,3 +363,5 @@ function checkIfArraysAreEqual(a: Array<any>, b: Array<any>): boolean {
   }
   return true;
 }
+
+export const TagInputField = withModifiableTags(TagInputFieldRaw);

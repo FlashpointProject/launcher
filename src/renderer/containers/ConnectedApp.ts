@@ -1,24 +1,13 @@
-import { connect } from 'react-redux';
+import { withCurate } from '@renderer/containers/withCurateState';
+import { withFpfss } from '@renderer/containers/withFpfss';
+import { withSearch } from '@renderer/containers/withSearch';
+import { withView } from '@renderer/containers/withView';
+import { withShortcut } from '@renderer/store/reactKeybindCompat';
 import { withRouter } from 'react-router';
-import { bindActionCreators, Dispatch } from 'redux';
-import { App } from '../app';
-import { ApplicationState } from '../store';
+import { App } from '../components/app';
 import { withMainState } from './withMainState';
 import { withPreferences } from './withPreferences';
 import { withTagCategories } from './withTagCategories';
 import { withTasks } from './withTasks';
-import { withCurateState } from './withCurateState';
-import { withShortcut } from 'react-keybind';
 
-const mapStateToProps = ({ search }: ApplicationState) => ({
-  search: search.query
-});
-
-const mapDispatchToProps = (dispatch: Dispatch) => bindActionCreators({
-  // ...
-}, dispatch);
-
-export default withShortcut(withCurateState(withTasks(withRouter(withMainState(withTagCategories(withPreferences(connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(App))))))));
+export default withView(withFpfss(withSearch(withShortcut(withCurate(withTasks(withRouter(withMainState(withTagCategories(withPreferences(App))))))))));

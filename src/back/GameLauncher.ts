@@ -1,23 +1,23 @@
+import { BackOut, ComponentState, ComponentStatus } from '@shared/back/types';
 import { AppProvider } from '@shared/extensions/interfaces';
-import { ExecMapping, Omit } from '@shared/interfaces';
+import { ExecMapping, Omit, ProcessState } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { fixSlashes, padStart, stringifyArray } from '@shared/Util';
 import * as Coerce from '@shared/utils/Coerce';
-import { ChildProcess, exec } from 'child_process';
+import { getGameDataFilename } from '@shared/utils/misc';
+import { formatString } from '@shared/utils/StringFormatter';
+import * as child_process from 'child_process';
+import { ChildProcess } from 'child_process';
 import { EventEmitter } from 'events';
-import { AdditionalApp, AppPathOverride, DialogStateTemplate, Game, GameConfig, GameData, GameLaunchInfo, ManagedChildProcess, Platform } from 'flashpoint-launcher';
+import { AdditionalApp, AppPathOverride, DialogStateTemplate, Game, GameConfig, GameData, GameLaunchInfo, GameLaunchOverride, LaunchInfo, ManagedChildProcess, Platform } from 'flashpoint-launcher';
+import * as fs from 'fs-extra';
 import * as minimist from 'minimist';
 import * as path from 'path';
 import { extractFullPromise, fpDatabase } from '.';
 import { ApiEmitterFirable } from './extensions/ApiEmitter';
 import { BackState, OpenExternalFunc, ShowMessageBoxFunc } from './types';
-import { getCwd, isBrowserOpts } from './util/misc';
-import * as fs from 'fs-extra';
-import { BackOut, ComponentState, ComponentStatus } from '@shared/back/types';
-import * as child_process from 'child_process';
 import { awaitDialog, createNewDialog } from './util/dialog';
-import { formatString } from '@shared/utils/StringFormatter';
-import { getGameDataFilename } from '@shared/utils/misc';
+import { getCwd, isBrowserOpts } from './util/misc';
 
 const { str } = Coerce;
 
@@ -30,15 +30,6 @@ export type LaunchAddAppOpts = LaunchBaseOpts & {
 export type LaunchGameOpts = LaunchBaseOpts & {
   game: Game;
   native: boolean;
-}
-
-export type LaunchInfo = {
-  gamePath: string;
-  gameArgs: string | string[];
-  useWine: boolean;
-  env: NodeJS.ProcessEnv;
-  cwd?: string;
-  noshell?: boolean;
 }
 
 type LaunchBaseOpts = {
@@ -58,8 +49,11 @@ type LaunchBaseOpts = {
   openDialog: ShowMessageBoxFunc;
   openExternal: OpenExternalFunc;
   runGame: (gameLaunchInfo: GameLaunchInfo) => ManagedChildProcess;
+  runAddApp: (launchInfo: LaunchInfo) => ManagedChildProcess;
   state: BackState;
   activeConfig: GameConfig | null;
+  autoClearWininetCache: boolean;
+  override: GameLaunchOverride;
 }
 
 export namespace GameLauncher {
@@ -107,25 +101,23 @@ export namespace GameLauncher {
           await handleGameDataParams(opts, serverOverride, gameData || undefined);
         }
         const launchInfo: LaunchInfo = {
+          override: opts.override,
           gamePath: gamePath,
           gameArgs: appArgs,
           useWine,
           env: getEnvironment(opts.fpPath, opts.proxy, opts.envPATH),
         };
-        const proc = exec(
-          createCommand(launchInfo),
-          { env: launchInfo.env }
-        );
-        logProcessOutput(proc);
-        log.info(logSource, `Launch Add-App "${opts.addApp.name}" (PID: ${proc.pid}) [ path: "${opts.addApp.applicationPath}", arg: "${opts.addApp.launchCommand}" ]`);
+        const managedProc = opts.runAddApp(launchInfo);
+        log.info(logSource, `Launch ${managedProc.name} (PID: ${managedProc.getPid()}) [\n`+
+        `    applicationPath: "${opts.addApp.applicationPath}",\n`+
+        `    launchCommand:   "${opts.addApp.launchCommand}" ]`);
         return new Promise((resolve, reject) => {
           if (opts.addApp.waitForExit) {
             resolve();
           } else {
-            if (proc.killed) { resolve(); }
+            if (managedProc.getState() !== ProcessState.RUNNING) { resolve(); }
             else {
-              proc.once('exit', () => { resolve(); });
-              proc.once('error', error => { reject(error); });
+              managedProc.on('exit', () => { resolve(); });
             }
           }
         });
@@ -164,9 +156,12 @@ export namespace GameLauncher {
         openDialog: opts.openDialog,
         openExternal: opts.openExternal,
         runGame: opts.runGame,
+        runAddApp: opts.runAddApp,
         envPATH: opts.envPATH,
         state: opts.state,
         activeConfig: opts.activeConfig,
+        autoClearWininetCache: opts.autoClearWininetCache,
+        override: opts.override,
       };
       for (const addApp of opts.game.addApps) {
         if (addApp.autoRunBefore) {
@@ -187,7 +182,6 @@ export namespace GameLauncher {
         // Handle middleware
         if (launchInfo.activeConfig) {
           log.info(logSource, `Using Game Configuration: ${launchInfo.activeConfig.name}`);
-          console.log(JSON.stringify(launchInfo.activeConfig, undefined, 2));
           for (const middlewareConfig of launchInfo.activeConfig.middleware) {
             // Find middleware in registry
             const middleware = opts.state.registry.middlewares.get(middlewareConfig.middlewareId);
@@ -253,6 +247,7 @@ export namespace GameLauncher {
             game: opts.game,
             activeData: gameData,
             launchInfo: {
+              override: opts.override,
               gamePath: process.execPath,
               gameArgs: browserLaunchArgs,
               useWine: false,
@@ -298,6 +293,7 @@ export namespace GameLauncher {
       game: opts.game,
       activeData: gameData,
       launchInfo: {
+        override: opts.override,
         gamePath,
         gameArgs,
         useWine,
@@ -376,6 +372,12 @@ export namespace GameLauncher {
         ...newEnvVars, 'WINEDEBUG': 'fixme-all',
         ...(proxy !== '' ? {'http_proxy': `http://${proxy}/`, 'HTTP_PROXY': `http://${proxy}/`} : null)
       };
+      // If WINE's bin directory exists in FPSoftware, add it to the PATH
+      if (fs.existsSync(`${fpPath}/FPSoftware/Wine/bin`)) {
+        newEnvVars = {
+          ...newEnvVars, 'PATH': `${fpPath}/FPSoftware/Wine/bin:` + process.env.PATH
+        }
+      }
     }
     return {
       // Copy this processes environment variables

@@ -1,8 +1,20 @@
-import { CurateGroup } from '@renderer/store/curate/types';
 import { autoCode } from '@shared/lang';
 import { LogLevel } from '@shared/Log/interface';
 import { delayedThrottle, delayedThrottleAsync } from '@shared/utils/throttle';
-import { AppPathOverride, AppPreferencesData, AppPreferencesDataMainWindow, GameDataSource, GameMetadataSource, MetadataUpdateInfo, SingleUsePromptPrefs, TagFilterGroup } from 'flashpoint-launcher';
+import {
+  AdvancedFilter,
+  AdvancedFilterAndToggles,
+  AdvancedFilterToggle,
+  AppPathOverride,
+  AppPreferencesData,
+  AppPreferencesDataMainWindow,
+  GameDataSource,
+  GameMetadataSource, GameOrderBy, GameOrderReverse,
+  MetadataUpdateInfo,
+  SingleUsePromptPrefs,
+  StoredView,
+  TagFilterGroup
+} from 'flashpoint-launcher';
 import { BackIn } from '../back/types';
 import { BrowsePageLayout, ScreenshotPreviewMode } from '../BrowsePageLayout';
 import { ARCADE } from '../constants';
@@ -11,6 +23,9 @@ import { gameOrderByOptions, gameOrderReverseOptions } from '../order/util';
 import { deepCopy, parseVarStr } from '../Util';
 import * as Coerce from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
+import { CurateGroup } from '@renderer/store/curate/slice';
+import { getDefaultAdvancedFilter } from '@shared/search/util';
+import { Paths } from '@shared/Paths';
 
 export function updatePreferencesData(data: DeepPartial<AppPreferencesData>, send = true) {
   const preferences = window.Shared.preferences;
@@ -151,7 +166,16 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   screenshotPreviewDelay: 250,
   singleUsePrompt: {
     badAntiVirus: false,
-  }
+  },
+  useStoredViews: true,
+  storedViews: [],
+  useCustomViews: false,
+  loadViewsText: true,
+  customViews: [],
+  defaultOpeningPage: Paths.HOME,
+  hideNewViewButton: false,
+  autoClearWininetCache: false,
+  useSelectedGameScroll: false,
 });
 
 /**
@@ -228,6 +252,14 @@ export function overwritePreferenceData(
   parser.prop('enableVerboseLogging',          v => source.enableVerboseLogging          = !!v, true);
   parser.prop('screenshotPreviewMode',         v => source.screenshotPreviewMode         = parseScreenshotPreviewMode(v), true);
   parser.prop('screenshotPreviewDelay',        v => source.screenshotPreviewDelay        = num(v), true);
+  parser.prop('useStoredViews',                v => source.useStoredViews                = !!v, true);
+  parser.prop('useCustomViews',                v => source.useCustomViews                = !!v, true);
+  parser.prop('loadViewsText',                 v => source.loadViewsText                 = !!v, true);
+  parser.prop('customViews',                   v => source.customViews                   = strArray(v), true);
+  parser.prop('defaultOpeningPage',            v => source.defaultOpeningPage            = str(v), true);
+  parser.prop('hideNewViewButton',             v => source.hideNewViewButton             = !!v, true);
+  parser.prop('autoClearWininetCache',         v => source.autoClearWininetCache         = !!v, true);
+  parser.prop('useSelectedGameScroll',         v => source.useSelectedGameScroll         = !!v, true);
 
   // Can't have a negative delay!
   if (source.screenshotPreviewDelay < 0) {
@@ -253,9 +285,15 @@ export function overwritePreferenceData(
     source.appPathOverrides = newAppPathOverrides;
   }
   // Parse window object
-  parseMainWindow(parser.prop('mainWindow'), source.mainWindow);
-  parser.prop('showLogSource').mapRaw((item, label) => source.showLogSource[label] = !!item);
-  parser.prop('showLogLevel').mapRaw((item, label) => source.showLogLevel[label as LogLevel] = !!item);
+  if (data.mainWindow) {
+    parseMainWindow(parser.prop('mainWindow'), source.mainWindow,);
+  }
+  if (data.showLogSource) {
+    parser.prop('showLogSource').mapRaw((item, label) => source.showLogSource[label] = !!item);
+  }
+  if (data.showLogLevel) {
+    parser.prop('showLogLevel').mapRaw((item, label) => source.showLogLevel[label as LogLevel] = !!item);
+  }
   parser.prop('currentLogoSet',              v => source.currentLogoSet              = str(v), true);
   if (data.tagFilters) {
     // Why is this or undefined anyway?
@@ -275,6 +313,11 @@ export function overwritePreferenceData(
   }
   if (data.singleUsePrompt) {
     source.singleUsePrompt = parseSingleUsePrompt(parser.prop('singleUsePrompt') as IObjectParserProp<SingleUsePromptPrefs>);
+  }
+  if (data.storedViews) {
+    const newStoredViews: StoredView[] = [];
+    parser.prop('storedViews').array((item, index) => newStoredViews[index] = parseStoredView(item as IObjectParserProp<StoredView>));
+    source.storedViews = newStoredViews;
   }
   // Done
   return source;
@@ -358,6 +401,59 @@ function parseGameMetadataSource(parser: IObjectParserProp<GameMetadataSource>):
   return source;
 }
 
+function parseAdvancedFilterToggle(toggle: string): AdvancedFilterToggle {
+  if (toggle !== 'whitelist' && toggle !== 'blacklist') {
+    return 'whitelist';
+  }
+  return toggle;
+}
+
+function parseAdvancedFilterAndToggles(parser: IObjectParserProp<AdvancedFilterAndToggles>, output: AdvancedFilterAndToggles) {
+  parser.prop('library', v => output.library = !!v, true);
+  parser.prop('playMode', v => output.playMode = !!v, true);
+  parser.prop('platform', v => output.platform = !!v, true);
+  parser.prop('tags', v => output.tags = !!v, true);
+  parser.prop('developer', v => output.developer = !!v, true);
+  parser.prop('publisher', v => output.publisher = !!v, true)
+  parser.prop('series', v => output.series = !!v, true);
+}
+
+function parseAdvancedFilter(parser: IObjectParserProp<AdvancedFilter>, output: AdvancedFilter) {
+  parser.prop('installed', v => output.installed = v === undefined ? undefined : !!v, true);
+  parser.prop('legacy', v => output.legacy = v === undefined ? undefined : !!v, true);
+  parser.prop('library', true).mapRaw((item, index) => output.library[index] = parseAdvancedFilterToggle(str(item)));
+  parser.prop('playlistOrder', v => output.playlistOrder = !!v, true);
+  parser.prop('playMode', true).mapRaw((item, index) => output.playMode[index] = parseAdvancedFilterToggle(str(item)));
+  parser.prop('platform', true).mapRaw((item, index) => output.platform[index] = parseAdvancedFilterToggle(str(item)));
+  parser.prop('tags', true).mapRaw((item, index) => output.tags[index] = parseAdvancedFilterToggle(str(item)));
+  parser.prop('developer', true).mapRaw((item, index) => output.developer[index] = parseAdvancedFilterToggle(str(item)));
+  parser.prop('publisher', true).mapRaw((item, index) => output.publisher[index] = parseAdvancedFilterToggle(str(item)));
+  parser.prop('series', true).mapRaw((item, index) => output.series[index] = parseAdvancedFilterToggle(str(item)));
+  parseAdvancedFilterAndToggles(parser.prop('andToggles'), output.andToggles);
+}
+
+function parseStoredView(parser: IObjectParserProp<StoredView>): StoredView {
+  const source: StoredView = {
+    view: '',
+    text: '',
+    advancedFilter: getDefaultAdvancedFilter(),
+    orderBy: 'title',
+    orderReverse: 'ASC',
+    expanded: true,
+  };
+
+  parser.prop('view', v => source.view = str(v));
+  parser.prop('text', v => source.text = str(v), true);
+  parseAdvancedFilter(parser.prop('advancedFilter'), source.advancedFilter);
+  parser.prop('orderBy', v => source.orderBy = parseOrderBy(v), true);
+  parser.prop('orderReverse', v => source.orderReverse = parseOrderReverse(v), true);
+  parser.prop('selectedPlaylistId', v => source.selectedPlaylistId = str(v), true);
+  parser.prop('selectedGameId', v => source.selectedGameId = str(v), true);
+  parser.prop('expanded', v => source.expanded = !!v, true);
+
+  return source;
+}
+
 function parseMetadataUpdateInfo(parser: IObjectParserProp<MetadataUpdateInfo>, output: MetadataUpdateInfo) {
   parser.prop('actualUpdateTime', v => output.actualUpdateTime = str(v), true);
   parser.prop('latestUpdateTime', v => output.latestUpdateTime = str(v), true);
@@ -372,7 +468,8 @@ function parseTagFilterGroup(parser: IObjectParserProp<TagFilterGroup>): TagFilt
     tags: [],
     categories: [],
     childFilters: [],
-    extreme: false
+    extreme: false,
+    iconBase64: ''
   };
   parser.prop('name',    v => tfg.name    = str(v));
   parser.prop('description', v => tfg.description = str(v));
@@ -381,6 +478,7 @@ function parseTagFilterGroup(parser: IObjectParserProp<TagFilterGroup>): TagFilt
   parser.prop('categories').arrayRaw((item) => tfg.categories.push(str(item)));
   parser.prop('childFilters').arrayRaw((item) => tfg.childFilters.push(str(item)));
   parser.prop('extreme', v => tfg.extreme = !!v);
+  parser.prop('iconBase64', v => tfg.iconBase64 = str(v));
   return tfg;
 }
 
@@ -393,6 +491,36 @@ function parseCurateGroup(parser: IObjectParserProp<any>): CurateGroup {
   parser.prop('icon', v => g.icon = str(v));
   return g;
 }
+
+function parseOrderBy(value: string): GameOrderBy {
+  switch (value) {
+    case 'custom':
+    case 'title':
+    case 'developer':
+    case 'publisher':
+    case 'series':
+    case 'platform':
+    case 'dateAdded':
+    case 'dateModified':
+    case 'releaseDate':
+    case 'lastPlayed':
+    case 'playtime':
+      return value;
+    default:
+      return 'title';
+  }
+}
+
+function parseOrderReverse(value: string): GameOrderReverse {
+  switch (value) {
+    case 'ASC':
+    case 'DESC':
+      return value;
+    default:
+      return 'ASC';
+  }
+}
+
 
 /**
  * Coerce a value to a string, then return it if it matches at least on of the options.

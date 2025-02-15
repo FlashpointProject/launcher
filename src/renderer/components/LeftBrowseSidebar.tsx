@@ -13,7 +13,7 @@ type OwnProps = {
   library: string;
   playlists: Playlist[];
   /** ID of the playlist that is selected (empty string if none). */
-  selectedPlaylistID: string;
+  selectedPlaylistID?: string;
   isEditing: boolean;
   isNewPlaylist: boolean;
   currentPlaylist?: Playlist;
@@ -48,7 +48,7 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps> {
   render() {
     const allStrings = this.context;
     const strings = this.context.browse;
-    const { currentPlaylist, isEditing, isNewPlaylist: isEditingNew, onShowAllClick, playlistIconCache, playlists, selectedPlaylistID, preferencesData} = this.props;
+    const { currentPlaylist, isEditing, isNewPlaylist: isEditingNew, onShowAllClick, playlistIconCache, playlists, selectedPlaylistID, preferencesData } = this.props;
     const editingDisabled = false; // Left-over from when "Enable Editing" was required to edit playlists
     const editingExtremeDisabled = !preferencesData.browsePageShowExtreme;
     return (
@@ -62,11 +62,11 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps> {
               <OpenIcon icon='eye' />
             </div>
             <div className='playlist-list-fake-item__inner'>
-              <p className='playlist-list-fake-item__inner__title'>{allStrings.libraries[this.props.library + 'Plural'] || 'All ' + this.props.library}</p>
+              <p className='playlist-list-fake-item__inner__title'>{this.props.preferencesData.useCustomViews ? strings.allGenericEntries : allStrings.libraries[this.props.library + 'Plural'] || 'All ' + this.props.library}</p>
             </div>
           </div>
           {/* List all playlists */}
-          {this.renderPlaylistsMemo(playlists, playlistIconCache, currentPlaylist, selectedPlaylistID, editingDisabled, editingExtremeDisabled, isEditing, isEditingNew)}
+          {this.renderPlaylistsMemo(playlists, playlistIconCache, currentPlaylist, editingDisabled, editingExtremeDisabled, isEditing, isEditingNew, selectedPlaylistID)}
           {/* Create New Playlist */}
           { editingDisabled ? undefined : (
             <div
@@ -100,11 +100,11 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps> {
     playlists: Playlist[],
     playlistIconCache: Record<string, string>,
     currentPlaylist: Playlist | undefined,
-    selectedPlaylistID: string,
     editingDisabled: boolean,
     editingExtremeDisabled: boolean,
     isEditing: boolean,
     isEditingNew: boolean,
+    selectedPlaylistID?: string,
   ) => {
     const renderItem = (playlist: Playlist, isNew: boolean): void => {
       const isSelected = isNew || playlist.id === selectedPlaylistID;

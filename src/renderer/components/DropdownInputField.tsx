@@ -2,6 +2,7 @@ import * as React from 'react';
 import { memoizeOne } from '@shared/memoize';
 import { checkIfAncestor } from '../Util';
 import { InputField, InputFieldProps } from './InputField';
+import { DropdownItem } from './CurateBoxInputRow';
 
 /** A function that receives a HTML element (or null). */
 type RefFunc<T extends HTMLElement> = (instance: T | null) => void;
@@ -16,12 +17,54 @@ export type DropdownInputFieldProps = InputFieldProps & {
   onItemSelect?: (text: string, index: number) => void;
   /** Function for getting a reference to the input element. Called whenever the reference could change. */
   inputRef?: RefFunc<InputElement>;
+  /** Called when the drop-down content is expanded or collapsed. */
+  onExpand?: (expanded: boolean) => void;
 };
 
 type DropdownInputFieldState = {
   /** If the drop-down content is "expanded" (visible). */
   expanded: boolean;
 };
+
+export type DropdownInputFieldMappedProps = Omit<DropdownInputFieldProps, 'items' | 'onChange' | 'onItemSelect'> & {
+  items: DropdownItem[];
+  onChange: (key: string) => void;
+}
+
+type InputElementOnChangeEvent = {
+  currentTarget: {
+    value: React.ChangeEvent<InputElement>['currentTarget']['value']
+  }
+}
+
+function useTransformOnItemSelect(callback: (event: InputElementOnChangeEvent) => void) {
+  return React.useCallback((text: string) => {
+    callback({ currentTarget: { value: text } });
+  }, [callback]);
+}
+
+// Variant of DropdownInputField which uses key + value mapped items instead and maps item selects to onChange
+export function DropdownInputFieldMapped(props: DropdownInputFieldMappedProps) {
+  const onChange = (event: InputElementOnChangeEvent) => {
+    const item = props.items.find(i => i.value === event.currentTarget.value);
+    if (props.onChange && item) {
+      props.onChange(item.key);
+    }
+  }
+
+  return (
+    <DropdownInputField
+      className={(props.className ? props.className + ' ' : '')}
+      items={props.items.map(i => i.value) || []}
+      text={props.text || ''}
+      placeholder={props.placeholder}
+      onItemSelect={useTransformOnItemSelect(onChange)}
+      onChange={onChange}
+      disabled={props.disabled}
+      multiline={props.multiline}
+      editable={props.editable} />
+  )
+}
 
 /** An input element with a drop-down menu that can list any number of selectable and clickable text elements. */
 export class DropdownInputField extends React.Component<DropdownInputFieldProps, DropdownInputFieldState> {
@@ -204,7 +247,12 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
 
   onExpandButtonMouseDown = (): void => {
     if (!this.props.disabled) {
-      this.setState({ expanded: !this.state.expanded });
+      const newExpandedState = !this.state.expanded;
+      this.setState({ expanded: newExpandedState }, () => {
+        if (this.props.onExpand) {
+          this.props.onExpand(newExpandedState);
+        }
+      });
     }
   };
 

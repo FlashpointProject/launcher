@@ -11,7 +11,7 @@ export type RightBrowseSidebarAddAppProps = {
   /** Additional Application to show and edit */
   addApp: AdditionalApp;
   /** Called when a field is edited */
-  onEdit?: () => void;
+  onEdit?: (addApp: AdditionalApp) => void;
   /** Called when a field is edited */
   onDelete?: (addAppId: string) => void;
   /** Called when the launch button is clicked */
@@ -25,11 +25,11 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
   static contextType = LangContext;
   declare context: React.ContextType<typeof LangContext>;
 
-  onNameEditDone            = this.wrapOnTextChange((addApp, text) => { addApp.name = text; });
-  onApplicationPathEditDone = this.wrapOnTextChange((addApp, text) => { addApp.applicationPath = text; });
-  onLaunchCommandEditDone   = this.wrapOnTextChange((addApp, text) => { addApp.launchCommand = text; });
-  onAutoRunBeforeChange     = this.wrapOnCheckBoxChange((addApp) => { addApp.autoRunBefore = !addApp.autoRunBefore; });
-  onWaitForExitChange       = this.wrapOnCheckBoxChange((addApp) => { addApp.waitForExit = !addApp.waitForExit; });
+  onNameEditDone            = this.wrapOnTextChange((addApp, text) => { this.props.onEdit && this.props.onEdit({ ...addApp, name: text}) });
+  onApplicationPathEditDone = this.wrapOnTextChange((addApp, text) => { this.props.onEdit && this.props.onEdit({ ...addApp, applicationPath: text}) });
+  onLaunchCommandEditDone   = this.wrapOnTextChange((addApp, text) => { this.props.onEdit && this.props.onEdit({ ...addApp, launchCommand: text}) });
+  onAutoRunBeforeChange     = this.wrapOnCheckBoxChange((addApp) => { this.props.onEdit && this.props.onEdit({ ...addApp, autoRunBefore: !addApp.autoRunBefore}) });
+  onWaitForExitChange       = this.wrapOnCheckBoxChange((addApp) => { this.props.onEdit && this.props.onEdit({ ...addApp, waitForExit: !addApp.waitForExit}) });
 
   render() {
     const allStrings = this.context;
@@ -130,12 +130,6 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
     }
   };
 
-  onEdit(): void {
-    if (this.props.onEdit) {
-      this.props.onEdit();
-    }
-  }
-
   /**
    * Create a wrapper for a EditableTextWrap's onEditDone callback (this is to reduce redundancy).
    *
@@ -160,7 +154,6 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
     return () => {
       if (!this.props.editDisabled) {
         func(this.props.addApp);
-        this.onEdit();
         this.forceUpdate();
       }
     };

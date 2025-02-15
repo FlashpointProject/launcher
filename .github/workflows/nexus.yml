@@ -44,6 +44,11 @@ jobs:
       env:
         WINEPREFIX: "/__w/launcher/launcher/wine"
       run: npm run nexusPack
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Flashpoint-Launcher
+        path: dist/Flashpoint.zip
     - name: Generate Metadata
       run: |
         apt-get update
@@ -107,4 +112,12 @@ jobs:
         coordinates: directory=/
         assets: filename=components.xml
         filename: ./nexus/components.xml
+    - name: Discord Webhook Action
+      uses: tsickert/discord-webhook@v6.0.0
+      with:
+        webhook-url: ${{ secrets.WEBHOOK_URL }}
+        embed-title: Launcher Dev build deployed
+        embed-url: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        embed-description: "${{ github.event.head_commit.message }}"
+        embed-thumbnail-url: "https://github.com/FlashpointProject/launcher/blob/master/icons/icon.png?raw=true"
 

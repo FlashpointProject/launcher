@@ -1,20 +1,17 @@
 import { FpfssUser } from '@shared/back/types';
-import axios from 'axios';
 import * as remote from '@electron/remote';
 import { uuid } from '@shared/utils/uuid';
 import { DialogState } from 'flashpoint-launcher';
-import { MainActionType } from './store/main/enums';
-import { Dispatch } from 'redux';
-import { MainAction } from './store/main/types';
-import EventEmitter = require('events');
+import * as mainActions from '@renderer/store/main/slice';
+import { axios } from './Util';
 
-export async function fpfssLogin(dispatchMain: Dispatch<MainAction>, dialogResEvent: EventEmitter): Promise<FpfssUser | null> {
+export async function fpfssLogin(createDialog: typeof mainActions.createDialog, cancelDialog: typeof mainActions.cancelDialog): Promise<FpfssUser | null> {
   const fpfssBaseUrl = window.Shared.preferences.data.fpfssBaseUrl;
   // Get device auth token from FPFSS
   const tokenUrl = `${fpfssBaseUrl}/auth/device`;
   const data = {
     'client_id': 'flashpoint-launcher',
-    'scope': 'identity game:read game:edit submission:read submission:read-files',
+    'scope': 'identity game:read game:edit submission:read submission:read-files index:read',
   };
   const formData = new URLSearchParams(data).toString();
   const res = await axios.post(tokenUrl, formData, {
@@ -41,10 +38,8 @@ export async function fpfssLogin(dispatchMain: Dispatch<MainAction>, dialogResEv
     buttons: ['Cancel'],
     id: uuid()
   };
-  dispatchMain({
-    type: MainActionType.NEW_DIALOG,
-    dialog
-  });
+
+  createDialog(dialog);
 
   // Start loop until an end state occurs
   return new Promise<FpfssUser | null>((resolve, reject) => {
@@ -66,7 +61,7 @@ export async function fpfssLogin(dispatchMain: Dispatch<MainAction>, dialogResEv
           // Found token, fetch profile info
           return axios.get(profileUrl, { headers: {
             'Authorization': `Bearer ${res.data['access_token']}`
-          }})
+          } })
           .then((profileRes) => {
             const user: FpfssUser = {
               username: profileRes.data['Username'],
@@ -80,7 +75,7 @@ export async function fpfssLogin(dispatchMain: Dispatch<MainAction>, dialogResEv
           })
           .catch((err) => {
             clearInterval(interval);
-            reject('Failed to fetch profile info');
+            reject('Failed to fetch profile info - ' + err);
             return;
           });
         }
@@ -107,15 +102,65 @@ export async function fpfssLogin(dispatchMain: Dispatch<MainAction>, dialogResEv
       });
     }, token.interval * 1000);
     // Listen for dialog response
-    dialogResEvent.once(dialog.id, (d: DialogState, res: number) => {
+    window.Shared.dialogResEvent.once(dialog.id, (d: DialogState, res: number) => {
       clearInterval(interval);
       reject('User Cancelled');
     });
   })
   .finally(() => {
-    dispatchMain({
-      type: MainActionType.CANCEL_DIALOG,
-      dialogId: dialog.id
-    });
+    cancelDialog(dialog.id);
   });
+}
+
+/**
+ * 
+ * @param extId The extension ID
+ * @returns The consent status for the extension
+ */
+
+export function getFpfssConsentExt(extId: string): boolean | undefined {
+  const consentData = localStorage.getItem('fpfss:extension_consent');
+  if (!consentData) {
+      return undefined;
+  }
+
+  try {
+      const consentMap = consentData ? JSON.parse(consentData) : {};
+      return consentMap[extId];
+  } catch (error) {
+      console.error('Failed to parse consent data:', error);
+      return undefined;
+  }
+}
+
+/**
+* 
+* @param extId The extension ID
+* @param status The consent status
+*/
+export function saveFpfssConsentExt(extId: string, status: boolean): void {
+  try {
+    const consentData = localStorage.getItem('fpfss:extension_consent');
+    const consentMap = consentData ? JSON.parse(consentData) : {};
+    consentMap[extId] = status;
+    localStorage.setItem('fpfss:extension_consent', JSON.stringify(consentMap));
+  } catch (error) {
+    console.error('Failed to parse or save consent data:', error);
+  }
+}
+
+/**
+ * @param extId The extension ID
+ */
+export function clearFpfssConsentExt(extId: string): void {
+  const consentData = localStorage.getItem('fpfss:extension_consent');
+  if (!consentData) { return; }
+  
+  try {
+    const consentMap = JSON.parse(consentData);
+    delete consentMap[extId];
+    localStorage.setItem('fpfss:extension_consent', JSON.stringify(consentMap));
+  } catch (error) {
+    console.error('Failed to parse consent data:', error);
+  }
 }

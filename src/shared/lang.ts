@@ -15,10 +15,22 @@ const langTemplate = {
     'hideExtremeScreenshotsDesc',
     'fancyAnimations',
     'fancyAnimationsDesc',
+    'hideNewViewButton',
+    'hideNewViewButtonDesc',
     'searchLimit',
     'searchLimitDesc',
     'searchLimitUnlimited',
     'searchLimitValue',
+    'useCustomViews',
+    'useCustomViewsDesc',
+    'loadViewsText',
+    'loadViewsTextDesc',
+    'defaultOpeningPage',
+    'defaultOpeningPageDesc',
+    'restoreSearchViews',
+    'restoreSearchViewsDesc',
+    'useSelectedGameScroll',
+    'useSelectedGameScrollDesc',
     'enableEditing',
     'enableEditingDesc',
     'symlinkCuration',
@@ -89,6 +101,10 @@ const langTemplate = {
     'screenshotPreviewDelay',
     'screenshotPreviewDelayDesc',
     'advancedHeader',
+    'autoClearWininetCache',
+    'autoClearWininetCacheDesc',
+    'clearWininetCache',
+    'clearWininetCacheDesc',
     'optimizeDatabase',
     'optimizeDatabaseDesc',
     'showDeveloperTab',
@@ -181,6 +197,7 @@ const langTemplate = {
     'curate',
     'developer',
     'searchPlaceholder',
+    'searchPlaceholderCountable',
     'hideRightSidebar',
     'showRightSidebar',
     'hideLeftSidebar',
@@ -197,6 +214,12 @@ const langTemplate = {
     'fpfssLogout',
     'softwareUpdateRequired',
     'noLauncherUpdateReady',
+    'deleteView',
+    'deleteOnlyBrowseView',
+    'renameView',
+    'duplicateView',
+    'createNewView',
+    'errorLoadingServices',
   ] as const,
   filter: [
     'dateAdded',
@@ -348,6 +371,7 @@ const langTemplate = {
     'launchCommand',
     'noLaunchCommand',
     'library',
+    'noLibrary',
     'defaultLibrary',
     'thumbnail',
     'screenshot',
@@ -365,6 +389,7 @@ const langTemplate = {
     'allGames',
     'newPlaylist',
     'importPlaylist',
+    'noGamesFoundInsidePlaylist',
     'emptyPlaylist',
     'noGamesFound',
     'dropGameOnLeft',
@@ -391,9 +416,18 @@ const langTemplate = {
     'uninstallGame',
     'mountParameters',
     'noMountParameters',
+    'ruffleSupport',
     'showExtremeScreenshot',
     'busy',
     'openGameDataBrowser',
+    'allGenericEntries',
+    'usePlaylistOrder',
+    'hideFilters',
+    'showFilters',
+    'tagFilterIcon',
+    'runWithFlashPlayer',
+    'runWithRuffle',
+    'runWithRuffleUnsupported',
   ] as const,
   tags: [
     'name',
@@ -417,6 +451,7 @@ const langTemplate = {
     'deleteTag',
     'deleteTagCategory',
     'locked',
+    'filterIcon',
   ] as const,
   curate: [
     'noCurationSelected',
@@ -534,6 +569,7 @@ const langTemplate = {
   misc: [
     'noBlankFound',
     'addBlank',
+    'removeBlank',
     'deleteAllBlankImages',
     'yes',
     'no',
@@ -547,6 +583,9 @@ const langTemplate = {
     'searching',
     'loading',
     'ok',
+    'allow',
+    'andCapitals',
+    'orCapitals',
   ] as const,
   menu: [
     'viewThumbnailInFolder',
@@ -644,7 +683,16 @@ const langTemplate = {
     'openWiki',
     'openDiscord',
     'doNotShowAgain',
+    'extFpfssConsent',
+    'gameDataUpdateReady',
+    'gameDataUpdateReadyLcDifferent',
   ] as const,
+  extensions: [
+    'fpssConsentRevokeTitle',
+    'fpssConsentRevokeDesc',
+    'fpssConsentGrantTitle',
+    'fpssConsentGrantDesc',
+  ]
   // libraries: [], // (This is dynamically populated in run-time)
 } as const;
 
@@ -727,6 +775,7 @@ export function getDefaultLocalization(): LangContainer {
   // Get the base language container
   const lang: LangContainer = createLangContainer();
   // Make some changes
+  lang.app.searchPlaceholderCountable += ' {0}';
   lang.config.searchLimitValue += ' {0}';
   lang.config.noExtensionsLoaded += ' {0}';
   lang.config.auto += ' ({0})';
@@ -749,6 +798,7 @@ export function getDefaultLocalization(): LangContainer {
   lang.browse.hours += ' {0}';
   lang.misc.noBlankFound = ' {0} ' + lang.misc.noBlankFound;
   lang.misc.addBlank += ' {0}';
+  lang.misc.removeBlank += ' {0}';
   lang.misc.deleteAllBlankImages += ' {0}';
   lang.dialog.errorImportingCuration += ' {0}';
   lang.dialog.mustBe7zArchiveSkipping += ' {0}';

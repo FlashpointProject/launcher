@@ -4,7 +4,27 @@
   "description": "Required for Ruffle playback of Flash games",
   "version": "1.0.0",
   "main": "./dist/extension.js",
-  "contributes": {},
+  "contributes": {
+    "configuration": [
+      {
+        "title": "Ruffle",
+        "properties": {
+          "com.ruffle.enabled": {
+            "title": "Enabled (Supported Games)",
+            "type": "boolean",
+            "default": false,
+            "description": "Enables Ruffle for games that have been marked as properly supported."
+          },
+          "com.ruffle.enabled-all": {
+            "title": "Enabled (Unsupported Games)",
+            "type": "boolean",
+            "default": false,
+            "description": "Enables Ruffle Standalone for all games regardless of whether they have been checked as supported. Results my vary."
+          }
+        }
+      }
+    ]
+  },
   "scripts": {
     "build": "gulp build --color",
     "watch": "gulp watch --color",

@@ -1,8 +1,8 @@
 import { GameRedirect, RemoteCategory, RemoteDeletedGamesRes, RemoteGamesRes, RemotePlatform, RemoteTag } from '@fparchive/flashpoint-archive';
-import axios from 'axios';
 import { GameMetadataSource } from 'flashpoint-launcher';
 import { camelCase, transform } from 'lodash';
 import { fpDatabase } from '.';
+import { axios } from './dns';
 
 export async function syncTags(source: GameMetadataSource): Promise<Date> {
   const tagsUrl = `${source.baseUrl}/api/tags?after=${source.tags.latestUpdateTime}`;
@@ -92,6 +92,13 @@ export async function syncGames(source: GameMetadataSource, dataPacksFolder: str
       throw 'Failed to search games';
     });
     const data = camelify(res.data) as any as RemoteGamesRes;
+
+    // TODO: Maybe remove, cheap and dirty way of letting metadata updates still work on older fpfss version
+    for (const game of data.games) {
+      if (!Object.hasOwn(game, 'ruffleSupport')) {
+        game.ruffleSupport = '';
+      }
+    }
 
     if (data.games.length === 0) {
       break;

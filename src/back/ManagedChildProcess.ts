@@ -3,11 +3,10 @@ import { IBackProcessInfo, INamedBackProcessInfo, ProcessState } from '@shared/i
 import * as Coerce from '@shared/utils/Coerce';
 import { ChildProcess, spawn } from 'child_process';
 import { EventEmitter } from 'events';
-import { kill as processKill } from 'process';
-import * as psTree from 'ps-tree';
 import * as readline from 'readline';
-import { Disposable } from './util/lifecycle';
+import * as kill from 'tree-kill';
 import { onServiceChange } from './util/events';
+import { Disposable } from './util/lifecycle';
 
 const { str } = Coerce;
 
@@ -183,27 +182,18 @@ export class ManagedChildProcess extends EventEmitter {
   }
 
   private treeKill = async (PID: number): Promise<void> => {
-    // This is a re-implementation of *just* the parts of tmbr that we need.
-    // Did this because tmbr wasn't working, not sure why.
-    // psTree takes a callback, so we wrap it in a promise.
     await new Promise<void>((resolve, reject) => {
-      psTree(PID, async (error, children) => {
+      kill(PID, (error) => {
         if (error) {
           reject(error);
-          return;
+        } else {
+          resolve();
         }
-        // Kill each child process.
-        await Promise.all(children.map(async (child) => {
-          processKill(Number(child.PID));
-        }));
-        resolve();
       });
     })
     .catch((error: any) => {
       log.error('Launcher', `Failed to kill process ${this.name} (${this.info.filename}) - ${error}`);
     });
-    // Kill the parent process.
-    processKill(PID);
   };
   /**
    * Set the state of the process.

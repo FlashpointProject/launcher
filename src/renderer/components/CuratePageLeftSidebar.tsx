@@ -1,38 +1,33 @@
 import { OpenIcon } from '@renderer/components/OpenIcon';
 import { withMainState, WithMainStateProps } from '@renderer/containers/withMainState';
 import { useMouse } from '@renderer/hooks/useMouse';
-import { CurateGroup, CurateState } from '@renderer/store/curate/types';
-import { MainActionType } from '@renderer/store/main/enums';
 import { findElementAncestor, getPlatformIconURL } from '@renderer/Util';
-import { Subtract } from '@shared/interfaces';
 import { compare } from '@shared/Util';
 import { uuid } from '@shared/utils/uuid';
 import { CurationState, DialogState } from 'flashpoint-launcher';
 import * as React from 'react';
+import { useDispatch } from 'react-redux';
+import * as curateActions from '@renderer/store/curate/slice';
+import { useAppSelector } from '@renderer/hooks/useAppSelector';
+import { CurateGroup } from '@renderer/store/curate/slice';
+import { createDialog } from '@renderer/store/main/slice';
 
 const index_attr = 'data-index';
 
 type OwnProps = {
-  curate: CurateState;
   logoVersion: number;
-  onCurationSelect: (folder: string, ctrl?: boolean, shift?: boolean) => void;
   onCurationDrop: (event: React.DragEvent) => void;
-  onToggleGroupCollapse: (group: string) => void;
-  onToggleGroupPin: (group: CurateGroup) => void;
-  onSelectGroup: (group: string) => void;
-  createNewGroup: (group: string) => void;
-  moveCurationToGroup: (folder: string, group: string) => void;
 }
 
 type CuratePageLeftSidebarComponentProps = OwnProps & WithMainStateProps;
-
-export type CuratePageLeftSidebarProps = Subtract<CuratePageLeftSidebarComponentProps, WithMainStateProps>;
 
 function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentProps) {
   const [isHovering, setIsHovering] = React.useState(false);
   const [groupName, setGroupName] = React.useState('');
   const [draggedCuration, setDraggedCuration] = React.useState('');
   const [dragGroupTarget, setDragGroupTarget] = React.useState<string | undefined>(undefined);
+  const curate = useAppSelector((state) => state.curate);
+  const dispatch = useDispatch();
 
   const [onListMouseDown, onListMouseUp] = useMouse<string>(() => ({
     chain_delay: 500,
@@ -44,10 +39,14 @@ function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentPro
     },
     on_click: (event, folder, clicks) => {
       if (event.button === 0 && clicks === 1) { // Single left click
-        props.onCurationSelect(folder, event.ctrlKey, event.shiftKey);
+        dispatch(curateActions.setCurrentCuration({
+          folder,
+          ctrl: event.ctrlKey,
+          shift: event.shiftKey
+        }));
       }
     },
-  }), [props.onCurationSelect]);
+  }), [dispatch]);
 
   const onDragOver = (event: React.DragEvent): void => {
     const types = event.dataTransfer.types;
@@ -68,7 +67,7 @@ function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentPro
   };
 
   const sortedCurations = React.useMemo(() => {
-    return props.curate.curations.sort((a, b) => {
+    return [...curate.curations].sort((a, b) => {
       const groupCompare = compare(a.group, b.group);
       if (groupCompare == 0) {
         return compare(a.game.title || ('zzzzzzzz' + a.folder), b.game.title || ('zzzzzzzz' + a.folder));
@@ -76,13 +75,13 @@ function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentPro
         return groupCompare;
       }
     });
-  }, [props.curate.curations]);
+  }, [curate.curations]);
 
   const renderCuration = React.useCallback((curation: CurationState) => {
     let className = '';
     const firstPlatform = (curation.game.platforms && curation.game.platforms.length > 0) ? curation.game.platforms[0].name : '';
-    if (props.curate.selected.includes(curation.folder)) { className = 'curate-list-item--selected--secondary'; }
-    if (props.curate.current === curation.folder)        { className = 'curate-list-item--selected';            }
+    if (curate.selected.includes(curation.folder)) { className = 'curate-list-item--selected--secondary'; }
+    if (curate.current === curation.folder)        { className = 'curate-list-item--selected';            }
     return (
       <div
         className={`curate-list-item ${className}`}
@@ -91,7 +90,7 @@ function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentPro
         onDragStart={() => setDraggedCuration(curation.folder)}
         onDragEnd={onCurationDragDrop}
         { ...{ [index_attr]: curation.folder } }>
-        { props.curate.current === curation.folder && (
+        { curate.current === curation.folder && (
           <div className='curate-list-item__icon'>
             <OpenIcon icon='chevron-right' />
           </div>
@@ -114,19 +113,22 @@ function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentPro
         )}
       </div>
     );
-  }, [props.curate, draggedCuration, dragGroupTarget]);
+  }, [curate, draggedCuration, dragGroupTarget]);
 
   const onCurationDragDrop = React.useCallback(() => {
     if (draggedCuration !== '' && dragGroupTarget !== undefined) {
-      props.moveCurationToGroup(draggedCuration, dragGroupTarget);
+      dispatch(curateActions.changeGroup({
+        folder: draggedCuration,
+        group: dragGroupTarget
+      }));
     }
     setDraggedCuration('');
     setDragGroupTarget(undefined);
   }, [draggedCuration, dragGroupTarget]);
 
   const renderCurationGroup = React.useCallback((group: CurateGroup, elems: JSX.Element[]) => {
-    const collapsed = props.curate.collapsedGroups.includes(group.name);
-    const pinned = props.curate.groups.findIndex(g => g.name === group.name) !== -1;
+    const collapsed = curate.collapsedGroups.includes(group.name);
+    const pinned = curate.groups.findIndex(g => g.name === group.name) !== -1;
     return (
       <div
         key={group.name || 'No Group'}
@@ -134,20 +136,22 @@ function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentPro
         className={`curate-list-group ${group.name === dragGroupTarget ? 'curate-list-group__hovered-curation' : ''}`}>
         <div
           className={'curate-list-group__header'}
-          onDoubleClick={() => props.onSelectGroup(group.name)} >
+          onDoubleClick={() => {
+            dispatch(curateActions.setCurrentCurationGroup(group.name));
+          }} >
           <div className={'curate-list-group__header-text'}>
             <div className={'curate-list-group__header-text--name'}>{group.name || 'No Group'}</div>
             <div className={'curate-list-group__header-text--counter'}>{`(${elems.length})`}</div>
           </div>
           { group.name !== '' && (
             <div
-              onClick={() => props.onToggleGroupPin(group)}
+              onClick={() => dispatch(curateActions.toggleGroupPin(group))}
               className={`curate-list-group__header-pin ${pinned ? 'curate-list-group__header-pinned' : 'curate-list-group__header-unpinned'}`}>
               <OpenIcon icon={'pin'}/>
             </div>
           )}
           <div
-            onClick={() => props.onToggleGroupCollapse(group.name)}
+            onClick={() => dispatch(curateActions.toggleGroupCollapse(group.name))}
             className={'curate-list-group__header-caret'}>
             <OpenIcon icon={collapsed ? 'caret-bottom' : 'caret-top'}/>
           </div>
@@ -155,14 +159,14 @@ function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentPro
         {!collapsed && elems}
       </div>
     );
-  }, [props.curate.collapsedGroups, props.curate.groups, props.onToggleGroupCollapse, dragGroupTarget]);
+  }, [curate.collapsedGroups, curate.groups, dispatch, dragGroupTarget]);
 
   const curationsRender = React.useMemo(() => {
     if (sortedCurations.length === 0) {
       return [];
     }
     const matchGroup = (name: string) => {
-      return props.curate.groups.find(g => g.name === name) || {
+      return curate.groups.find(g => g.name === name) || {
         name: name,
         icon: ''
       };
@@ -185,7 +189,7 @@ function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentPro
       groupRenders.set(stagingGroup.name, renderCurationGroup(stagingGroup, stagingElems));
     }
     // Find any persistant groups that are missing and make renders
-    for (const g of props.curate.groups) {
+    for (const g of curate.groups) {
       if (!groupRenders.has(g.name)) {
         groupRenders.set(g.name, renderCurationGroup(g, []));
       }
@@ -199,7 +203,7 @@ function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentPro
       }
       return compare(a[0], b[0]);
     }).reduce<JSX.Element[]>((prev, cur) => prev.concat([cur[1]]), []);
-  }, [props.curate, props.curate.groups, draggedCuration, dragGroupTarget]);
+  }, [curate, curate.groups, draggedCuration, dragGroupTarget]);
 
   const createNewGroup = React.useCallback(() => {
     // Open new group dialog
@@ -215,23 +219,24 @@ function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentPro
       }],
       id: uuid()
     };
-    props.dispatchMain({
-      type: MainActionType.NEW_DIALOG,
-      dialog
-    });
+    dispatch(createDialog(dialog));
     // Listen for dialog response
-    props.main.dialogResEvent.once(dialog.id, (d: DialogState, res: number) => {
+    window.Shared.dialogResEvent.once(dialog.id, (d: DialogState, res: number) => {
       if (res !== d.cancelId) {
         const field = d.fields && d.fields.find(f => f.name === 'groupName');
         if (field) {
-          const exists = props.curate.groups.findIndex(g => g.name === field.value) > -1;
+          const exists = curate.groups.findIndex(g => g.name === field.value) > -1;
           if (!exists) {
-            props.createNewGroup(field.value as string);
+            console.log('creating group...');
+            dispatch(curateActions.createGroup({
+              name: field.value as string,
+              icon: '',
+            }));
           }
         }
       }
     });
-  }, [props.createNewGroup, props.curate.groups, setGroupName, groupName]);
+  }, [dispatch, curate.groups, setGroupName, groupName]);
 
   return (
     <div
@@ -263,9 +268,9 @@ function findAncestorRowIndex(element: Element): string | undefined {
   if (!ancestor) { return undefined; }
 
   const index = ancestor.getAttribute(index_attr);
-  if (typeof index !== 'string') { throw new Error('Failed to get attribute from ancestor!'); }
+  if (index === null) { throw new Error('Failed to get attribute from ancestor!'); }
 
-  return (index as any) + '';
+  return index;
 }
 
 export const CuratePageLeftSidebar = withMainState(CuratePageLeftSidebarComponent);

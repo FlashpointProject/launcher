@@ -75,7 +75,7 @@ export namespace PreferencesFile {
     try {
       const overridePath = path.join(fpPath, '.preferences.defaults.json');
       console.log('Checking for prefs override at ' + overridePath);
-      const overrideJson = JSON.parse(fs.readFileSync(overridePath, { encoding: 'utf8' }));
+      const overrideJson = JSON.parse(fs.readFileSync(overridePath, { encoding: 'utf-8' }));
       defaultPrefs = overwritePreferenceData(defaultPrefs, overrideJson, (e) => {
         throw 'Bad parse: ' + e;
       });
@@ -93,11 +93,12 @@ export namespace PreferencesFile {
       return;
     }
     const temp = await getTempFilename();
-    await fs.promises.writeFile(temp, json);
+    const encoded = new TextEncoder().encode(json);
+    await fs.promises.writeFile(temp, encoded);
     // Check: was it written correctly?
     let stat = await fs.promises.stat(temp);
     let count = 0;
-    while (stat.size !== json.length) {
+    while (stat.size !== encoded.length) {
       if (count > 3) {
         log.error('PreferencesFile', 'Repeated failure to write preferences.');
         return fs.promises.unlink(temp);

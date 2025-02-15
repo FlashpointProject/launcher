@@ -1,15 +1,15 @@
 import { ITheme } from '@shared/ThemeFile';
-import { ComponentStatus, FetchedGameInfo, FpfssUser, GameOfTheDay } from '@shared/back/types';
+import { ComponentStatus, FpfssUser, GameOfTheDay } from '@shared/back/types';
 import { AppExtConfigData } from '@shared/config/interfaces';
 import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { GamePropSuggestions, IService } from '@shared/interfaces';
 import { LangFile } from '@shared/lang';
 import { Menu } from 'electron';
 import { UpdateInfo } from 'electron-updater';
-import { Playlist, PlaylistGame, ViewGame } from 'flashpoint-launcher';
+import { GameLaunchOverride, Playlist, ViewGame } from 'flashpoint-launcher';
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
-import { Paths } from './Paths';
+import { Paths } from '@shared/Paths';
 import { AboutPage, AboutPageProps } from './components/pages/AboutPage';
 import { DeveloperPage, DeveloperPageProps } from './components/pages/DeveloperPage';
 import { IFramePage, IFramePageProps } from './components/pages/IFramePage';
@@ -17,32 +17,26 @@ import { NotFoundPage } from './components/pages/NotFoundPage';
 import ConnectedBrowsePage, { ConnectedBrowsePageProps } from './containers/ConnectedBrowsePage';
 import { ConnectedConfigPage, ConnectedConfigPageProps } from './containers/ConnectedConfigPage';
 import { ConnectedCuratePage, ConnectedCuratePageProps } from './containers/ConnectedCuratePage';
-import { ConnectedHomePage, ConnectedHomePageProps } from './containers/ConnectedHomePage';
+import ConnectedHomePage, { ConnectedHomePageProps } from './containers/ConnectedHomePage';
 import { ConnectedLogsPage } from './containers/ConnectedLogsPage';
 import { ConnectedTagCategoriesPage } from './containers/ConnectedTagCategoriesPage';
 import { ConnectedTagsPage } from './containers/ConnectedTagsPage';
 import { CreditsData } from './credits/types';
-import { UpdateView, ViewGameSet } from './interfaces';
-import { RequestState } from './store/main/enums';
+import { RequestState } from '@renderer/store/search/slice';
+import { LoadingPage } from './components/pages/LoadingPage';
 
 export type AppRouterProps = {
   fpfssUser: FpfssUser | null;
   gotdList: GameOfTheDay[] | undefined;
-  games: ViewGameSet;
   randomGames: ViewGame[];
   rollRandomGames: () => void;
   gamesTotal: number;
-  viewGamesTotal?: number;
   allPlaylists: Playlist[];
   playlists: Playlist[];
   suggestions: Partial<GamePropSuggestions>;
   appPaths: Record<string, string>;
   platforms: string[];
-  onSaveGame: (info: FetchedGameInfo, playlistEntry?: PlaylistGame) => Promise<FetchedGameInfo | null>;
-  onDeleteGame: (gameId: string) => void;
-  onLaunchGame: (gameId: string) => void;
-  onOpenExportMetaEdit: (gameId: string) => void;
-  updateView: UpdateView;
+  onLaunchGame: (gameId: string, override: GameLaunchOverride) => void;
   playlistIconCache: Record<string, string>;
   libraries: string[];
   serverNames: string[];
@@ -55,10 +49,8 @@ export type AppRouterProps = {
   gameRunning: boolean;
   selectedPlaylistId?: string;
   onGameContextMenu: (gameId: string) => Menu;
-  onSelectGame: (gameId?: string) => void;
   onUpdatePlaylist: (playlist: Playlist) => void;
   onDeletePlaylist: (playlist: Playlist) => void;
-  onSelectPlaylist: (library: string, playlistId: string | null) => void;
   wasNewGameClicked: boolean;
   gameLibrary: string;
   themeList: ITheme[];
@@ -77,7 +69,7 @@ export type AppRouterProps = {
   manualUrl: string,
   componentStatuses: ComponentStatus[],
   openFlashpointManager: () => void,
-  onMovePlaylistGame: (sourceIdx: number, destIdx: number) => void,
+  onMovePlaylistGame: (sourceGameId: string, destGameId: string) => void,
   searchStatus: string | null,
   metaState?: RequestState,
 };
@@ -89,9 +81,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       platforms: this.props.platforms,
       playlists: this.props.allPlaylists,
       onGameContextMenu: this.props.onGameContextMenu,
-      onSelectPlaylist: this.props.onSelectPlaylist,
       onLaunchGame: this.props.onLaunchGame,
-      onGameSelect: this.props.onSelectGame,
       randomGames: this.props.randomGames,
       rollRandomGames: this.props.rollRandomGames,
       logoVersion: this.props.logoVersion,
@@ -102,22 +92,13 @@ export class AppRouter extends React.Component<AppRouterProps> {
     };
     const browseProps: ConnectedBrowsePageProps = {
       sourceTable: 'browse-page',
-      games: this.props.games,
-      updateView: this.props.updateView,
-      gamesTotal: this.props.viewGamesTotal,
+      gamesTotal: this.props.gamesTotal,
       playlists: this.props.playlists,
+      libraries: this.props.libraries,
       playlistIconCache: this.props.playlistIconCache,
       onGameContextMenu: this.props.onGameContextMenu,
-      onSaveGame: this.props.onSaveGame,
-      onDeleteGame: this.props.onDeleteGame,
-      selectedGameId: this.props.selectedGameId,
-      selectedPlaylistId: this.props.selectedPlaylistId,
-      onSelectGame: this.props.onSelectGame,
       onUpdatePlaylist: this.props.onUpdatePlaylist,
       onDeletePlaylist: this.props.onDeletePlaylist,
-      onSelectPlaylist: this.props.onSelectPlaylist,
-      wasNewGameClicked: this.props.wasNewGameClicked,
-      gameLibrary: this.props.gameLibrary,
       logoVersion: this.props.logoVersion,
       contextButtons: this.props.contextButtons,
       onMovePlaylistGame: this.props.onMovePlaylistGame,
@@ -158,6 +139,10 @@ export class AppRouter extends React.Component<AppRouterProps> {
     };
     return (
       <Switch>
+        <PropsRoute
+          exact
+          path={Paths.LOADING}
+          component={LoadingPage} />
         <PropsRoute
           exact
           path={Paths.HOME}

@@ -1,19 +1,33 @@
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
+import { WithSearchProps } from '@renderer/containers/withSearch';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
+import { GENERAL_VIEW_ID } from '@renderer/store/search/slice';
 import { BackIn } from '@shared/back/types';
+import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
 import { AppExtConfigData } from '@shared/config/interfaces';
-import { CustomIPC } from '@shared/interfaces';
-import { ipcRenderer } from 'electron';
 import { ExtConfigurationProp, ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
+import { CustomIPC } from '@shared/interfaces';
 import { autoCode, LangContainer, LangFile } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
+import { Paths } from '@shared/Paths';
 import { updatePreferencesData, updatePreferencesDataAsync } from '@shared/preferences/util';
 import { ITheme } from '@shared/ThemeFile';
 import { deepCopy } from '@shared/Util';
+import * as Coerce from '@shared/utils/Coerce';
 import { formatString } from '@shared/utils/StringFormatter';
+import { ipcRenderer } from 'electron';
 import { AppPathOverride, TagFilterGroup } from 'flashpoint-launcher';
 import * as React from 'react';
-import {getExtIconURL, getExtremeIconURL, getPlatformIconURL, isFlashpointValidCheck} from '../../Util';
+import { clearFpfssConsentExt, getFpfssConsentExt, saveFpfssConsentExt } from '../../fpfss';
+import {
+  getExtIconURL,
+  getExtremeIconURL,
+  getPlatformIconURL,
+  isFlashpointValidCheck,
+  joinLibraryRoute
+} from '../../Util';
 import { LangContext } from '../../util/lang';
 import { CheckBox } from '../CheckBox';
 import { ConfigBox, ConfigBoxInner } from '../ConfigBox';
@@ -28,13 +42,9 @@ import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
 import { FloatingContainer } from '../FloatingContainer';
 import { InputField } from '../InputField';
 import { OpenIcon } from '../OpenIcon';
-import { TagFilterGroupEditor } from '../TagFilterGroupEditor';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
-import * as Coerce from '@shared/utils/Coerce';
-import { Spinner } from '../Spinner';
 import { SimpleButton } from '../SimpleButton';
-import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
+import { Spinner } from '../Spinner';
+import { TagFilterGroupEditor } from '../TagFilterGroupEditor';
 
 const { num } = Coerce;
 
@@ -62,7 +72,7 @@ type OwnProps = {
   localeCode: string;
 };
 
-export type ConfigPageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps;
+export type ConfigPageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps & WithSearchProps;
 
 type ConfigPageState = {
   /** If the currently entered Flashpoint path points to a "valid" Flashpoint folder (it exists and "looks" like a Flashpoint folder). */
@@ -77,6 +87,8 @@ type ConfigPageState = {
   editorOpen: boolean;
   /** Progress for nuking tags */
   nukeInProgress: boolean;
+  /** FPFSS Consents to extensions */
+  fpfssConsentMap: Record<string, boolean | undefined>;
 };
 
 /**
@@ -91,12 +103,19 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   constructor(props: ConfigPageProps) {
     super(props);
     const configData = window.Shared.config.data;
+
+    const fpfssConsentMap = props.extensions.reduce((map, ext) => {
+      map[ext.id] = getFpfssConsentExt(ext.id);
+      return map;
+    }, {} as Record<string, boolean | undefined>);
+
     this.state = {
       isFlashpointPathValid: undefined,
       flashpointPath: configData.flashpointPath,
       useCustomTitlebar: configData.useCustomTitlebar,
       editorOpen: false,
-      nukeInProgress: false
+      nukeInProgress: false,
+      fpfssConsentMap: fpfssConsentMap,
     };
   }
 
@@ -109,11 +128,13 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     const serverOptions = this.itemizeServerOptionsMemo(this.props.serverNames);
     const libraryOptions = this.itemizeLibraryOptionsMemo(this.props.libraries, this.props.preferencesData.excludedRandomLibraries, this.context.libraries);
     const platformOptions = this.itemizePlatformOptionsMemo(this.props.platforms, this.props.preferencesData.nativePlatforms);
+    const defaultOpeningPageOptions = this.itemizeDefaultOpeningPageOptionsMemo(Object.keys(this.props.search.views), !this.props.preferencesData.useCustomViews, allStrings['libraries']);
     const appPathOverrides = this.renderAppPathOverridesMemo(this.props.preferencesData.appPathOverrides);
     const tagFilters = this.renderTagFiltersMemo(this.props.preferencesData.tagFilters, this.props.preferencesData.browsePageShowExtreme, this.context, this.props.logoVersion);
     const logoSetPreviewRows = this.renderLogoSetMemo(this.props.platforms, this.props.logoVersion);
-    const extensions = this.renderExtensionsMemo(this.props.extensions, strings);
+    const extensions = this.renderExtensionsMemo(this.props.extensions, strings, this.state.fpfssConsentMap);
     const extConfigSections = this.renderExtensionConfigs(this.props.extConfigs, this.props.extConfig);
+
     return (
       <div className='config-page simple-scroll'>
         <div className='config-page__inner'>
@@ -124,6 +145,37 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
           <div className='setting'>
             <p className='setting__title'>{strings.preferencesHeader}</p>
             <div className='setting__body'>
+              {/* Restore Search Views */}
+              <ConfigBoxCheckbox
+                title={strings.restoreSearchViews}
+                description={strings.restoreSearchViewsDesc}
+                checked={this.props.preferencesData.useStoredViews}
+                onToggle={this.onUseStoredViewsChange} />
+              {/* Use Custom Search Views */}
+              <ConfigBoxCheckbox
+                title={strings.useCustomViews}
+                description={strings.useCustomViewsDesc}
+                checked={this.props.preferencesData.useCustomViews}
+                onToggle={this.onToggleUseCustomViews} />
+              {/* Load Views Text on restart */}
+              <ConfigBoxCheckbox
+                title={strings.loadViewsText}
+                description={strings.loadViewsTextDesc}
+                checked={this.props.preferencesData.loadViewsText}
+                onToggle={this.onToggleLoadViewsText} />
+              {/* Default opening page */}
+              <ConfigBoxSelect
+                title={strings.defaultOpeningPage}
+                description={strings.defaultOpeningPageDesc}
+                value={this.props.preferencesData.defaultOpeningPage}
+                onChange={this.onDefaultOpeningPageSelect}
+                items={defaultOpeningPageOptions} />
+              {/* Use selected game scroll instead of scroll top pos */}
+              {/* <ConfigBoxCheckbox
+                title={strings.useSelectedGameScroll}
+                description={strings.useSelectedGameScrollDesc}
+                checked={this.props.preferencesData.useSelectedGameScroll}
+                onToggle={this.onToggleUseSelectedGameScroll} /> */}
               {/* Enable Editing */}
               <ConfigBoxCheckbox
                 title={strings.enableEditing}
@@ -190,6 +242,12 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 description={strings.fancyAnimationsDesc}
                 checked={this.props.preferencesData.fancyAnimations}
                 onToggle={this.onFancyAnimationsChange} />
+              {/* Hide New View Button */}
+              <ConfigBoxCheckbox
+                title={strings.hideNewViewButton}
+                description={strings.hideNewViewButtonDesc}
+                checked={this.props.preferencesData.hideNewViewButton}
+                onToggle={this.onHideNewViewButtonChange} />
               {/* Short Search */}
               <ConfigBoxSelect
                 title={strings.searchLimit}
@@ -345,6 +403,22 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
           <div className='setting'>
             <p className='setting__title'>{strings.advancedHeader}</p>
             <div className='setting__body'>
+              {/* Auto-Clear WinINet Cache */}
+              {process.platform === 'win32' && (
+                <ConfigBoxCheckbox
+                  title={strings.autoClearWininetCache}
+                  description={strings.autoClearWininetCacheDesc}
+                  value={allStrings.curate.run}
+                  onToggle={this.onChangeAutoClearWininetCache}/>
+              )}
+              {/* Clear WinINet Cache */}
+              {process.platform === 'win32' && (
+                <ConfigBoxButton
+                  title={strings.clearWininetCache}
+                  description={strings.clearWininetCacheDesc}
+                  value={allStrings.curate.run}
+                  onClick={this.onClearWininetCache}/>
+              )}
               {/* Optimize Database */}
               <ConfigBoxButton
                 title={strings.optimizeDatabase}
@@ -392,7 +466,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
           {extConfigSections}
 
-          <div className='setting'>
+          <div className='setting extensions'>
             <p className='setting__title'>{strings.extensionsHeader}</p>
             { extensions.length > 0 ? (
               <div className='setting__body'>
@@ -422,6 +496,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
               onRemoveCategory={(category) => this.onRemoveTagEditorCategoryEvent(this.state.editingTagFilterGroupIdx || -1, category)}
               onChangeName={this.onChangeTagEditorNameEvent}
               onChangeDescription={this.onChangeTagEditorDescriptionEvent}
+              onChangeIconBase64={this.onChangeTagEditorIconEvent}
               onToggleExtreme={this.onToggleExtremeTagEditorEvent}
               closeEditor={this.onCloseTagFilterGroupEditor}
               showExtreme={this.props.preferencesData.browsePageShowExtreme}
@@ -448,8 +523,8 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
         display: lang.data.name ? `${lang.data.name} (${lang.code})` : lang.code
       };
     });
-    items.push({ value: '<none>', display: 'None'});
-    items.push({ value: autoCode, display: autoString});
+    items.push({ value: '<none>', display: 'None' });
+    items.push({ value: autoCode, display: autoString });
     return items;
   });
 
@@ -515,7 +590,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     ];
   });
 
-  itemizeLibraryOptionsMemo = memoizeOne((libraries: string[], excludedRandomLibraries: string[], libraryStrings: LangContainer['libraries']): MultiSelectItem[] => {
+  itemizeLibraryOptionsMemo = memoizeOne((libraries: string[], excludedRandomLibraries: string[], libraryStrings: LangContainer['libraries']): MultiSelectItem<string>[] => {
     return libraries.map(library => {
       return {
         value: library,
@@ -534,24 +609,27 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     });
   });
 
+  itemizeDefaultOpeningPageOptionsMemo = memoizeOne((views: string[], areLibraries: boolean, strings: LangContainer['libraries']): SelectItem<string>[] => {
+    return [
+      {
+        value: Paths.HOME,
+        display: 'Home Page'
+      },
+      ...views.filter((view) => view !== GENERAL_VIEW_ID).map((view) => {
+        return {
+          value: joinLibraryRoute(view),
+          display: areLibraries ? strings[view] || view : view,
+        };
+      })
+    ];
+  });
+
   renderClearPlaytimeButton = ({ confirm, extra }: ConfirmElementArgs<[LangContainer['config']]>) => {
     return (
       <SimpleButton
         className='setting__row__button'
         value={extra[0].clearData}
         onClick={confirm}/>
-    );
-  };
-
-  renderDeleteSource = ({ confirm }: ConfirmElementArgs) => {
-    return (
-      <div
-        onClick={confirm}
-        className='setting__row__content--remove-app-override'>
-        <OpenIcon
-          className='setting__row__content--override-row__delete'
-          icon='delete' />
-      </div>
     );
   };
 
@@ -602,11 +680,18 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   className='config-page__tfg-extreme-logo'
                   title={strings.browse.extreme}
                   style={{ backgroundImage: `url('${getExtremeIconURL(logoVersion)}')` }} />
-              ) : (
+              ) : (item.iconBase64 ? (
+                <div
+                  key={index}
+                  className='config-page__tfg-extreme-logo'
+                  title={strings.browse.tagFilterIcon}
+                  style={{ backgroundImage: `url("${item.iconBase64}")` }} />
+              ) :
+              (
                 <div
                   key={index}
                   className='config-page__tfg-extreme-logo' />
-              ))
+              )))
             }
             <div
               title={item.enabled ? 'Hidden' : 'Visible'}
@@ -680,8 +765,11 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     return allRows;
   });
 
-  renderExtensionsMemo = memoizeOne((extensions: IExtensionDescription[], strings: LangContainer['config']): JSX.Element[] => {
+  renderExtensionsMemo = memoizeOne((extensions: IExtensionDescription[], strings: LangContainer['config'], fpfssConsents: Record<string, boolean | undefined>): JSX.Element[] => {
+    const allStrings = this.context;
     return extensions.map((ext) => {
+      const fpfssConsent = fpfssConsents[ext.id];
+      
       const shortContribs = [];
       if (ext.contributes) {
         if (ext.contributes.devScripts && ext.contributes.devScripts.length > 0) {
@@ -714,13 +802,12 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
         }
       }
       return (
-        <div key={ext.id}>
-          <div className='setting__row'>
+        <div key={ext.id} className='setting__row'>
             <div className='setting__row__top'>
               <div className='setting__row__title setting__row__title--flex setting__row__title--align-left'>
                 { ext.icon ? (
                   <div
-                    style={{ backgroundImage: `url(${getExtIconURL(ext.id)})`}}
+                    style={{ backgroundImage: `url(${getExtIconURL(ext.id)})` }}
                     className='setting__row__ext-icon' />
                 ): undefined }
                 <div>
@@ -732,9 +819,17 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 {shortContribs}
               </div>
             </div>
-            <div className='setting__row__bottom'>
+          <div className='setting__row__bottom setting__row__description'>
               <p>{ext.description}</p>
             </div>
+          <div className='setting__row__content setting__extension__config_row'>
+            {(fpfssConsent === true) ? (
+            <ConfigBoxInnerButton
+              title={allStrings.extensions.fpssConsentRevokeTitle}
+              description={allStrings.extensions.fpssConsentRevokeDesc}
+              value={allStrings.curate.delete}
+              onClick={() => this.onExtFPFSSConsentChange(ext.id, 'revoke')} />
+          ) : undefined }
           </div>
         </div>
       );
@@ -796,6 +891,19 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       </div>
     );
   };
+  
+  onExtFPFSSConsentChange = (extId: string, action: string): void => {
+    const updatedConsent = action === 'grant' ? true : undefined;
+    if (updatedConsent) {
+      saveFpfssConsentExt(extId, true);
+    } else if (action === 'revoke') {
+      clearFpfssConsentExt(extId);
+    }
+
+    const newMap = { ...this.state.fpfssConsentMap };
+    newMap[extId] = updatedConsent;
+    this.setState({ fpfssConsentMap: newMap });
+  };
 
   onShowExtremeChange = (isChecked: boolean): void => {
     updatePreferencesData({ browsePageShowExtreme: isChecked });
@@ -817,6 +925,64 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     window.Shared.back.request(BackIn.CLEAR_PLAYTIME_TRACKING);
   };
 
+  onUseStoredViewsChange = (isChecked: boolean): void => {
+    if (isChecked) {
+      updatePreferencesData({ useStoredViews: isChecked });
+    } else {
+      updatePreferencesData({
+        useStoredViews: isChecked,
+        storedViews: []
+      });
+    }
+  };
+
+  onToggleUseCustomViews = (isChecked: boolean): void => {
+    updatePreferencesData({
+      useCustomViews: isChecked,
+      defaultOpeningPage: Paths.HOME,
+    });
+    if (isChecked) {
+      const customViews = this.props.preferencesData.customViews;
+      if (customViews.length === 0) {
+        customViews.push('Browse');
+        updatePreferencesData({
+          customViews,
+        });
+      }
+      if (this.props.preferencesData.storedViews) {
+        this.props.searchActions.createViews({
+          views: customViews,
+          storedViews: this.props.preferencesData.storedViews,
+          areLibraries: false,
+        });
+      } else {
+        this.props.searchActions.createViews({
+          views: customViews,
+          areLibraries: false,
+        });
+      }
+    } else {
+      if (this.props.preferencesData.storedViews) {
+        this.props.searchActions.createViews({
+          views: this.props.libraries,
+          storedViews: this.props.preferencesData.storedViews,
+          areLibraries: true,
+        });
+      } else {
+        this.props.searchActions.createViews({
+          views: this.props.libraries,
+          areLibraries: true,
+        });
+      }
+    }
+  };
+
+  onToggleLoadViewsText = (isChecked: boolean): void => {
+    updatePreferencesData({
+      loadViewsText: isChecked
+    });
+  }
+
   onEnableEditingChange = (isChecked: boolean): void => {
     updatePreferencesData({ enableEditing: isChecked });
   };
@@ -835,6 +1001,10 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   onFancyAnimationsChange = (isChecked: boolean): void => {
     updatePreferencesData({ fancyAnimations: isChecked });
+  };
+
+  onHideNewViewButtonChange = (isChecked: boolean): void => {
+    updatePreferencesData({ hideNewViewButton: isChecked });
   };
 
   onVerboseLoggingToggle = (isChecked: boolean): void => {
@@ -861,6 +1031,15 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     updatePreferencesData({ fallbackLanguage: event.target.value });
   };
 
+  onDefaultOpeningPageSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
+    console.log(event.target.value);
+    updatePreferencesData({ defaultOpeningPage: event.target.value });
+  };
+
+  onToggleUseSelectedGameScroll = (isChecked: boolean) => {
+    updatePreferencesData({ useSelectedGameScroll: isChecked });
+  }
+
   onExcludedLibraryCheckboxChange = (library: string): void => {
     const excludedRandomLibraries = [ ...this.props.preferencesData.excludedRandomLibraries ];
 
@@ -883,7 +1062,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   onNewAppPathOverride = (): void => {
     const newPaths = [...this.props.preferencesData.appPathOverrides];
-    newPaths.push({path: '', override: '', enabled: true});
+    newPaths.push({ path: '', override: '', enabled: true });
     updatePreferencesData({ appPathOverrides: newPaths });
   };
 
@@ -913,7 +1092,8 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       tags: [],
       categories: [],
       childFilters: [],
-      extreme: false
+      extreme: false,
+      iconBase64: ''
     };
     const newTagFilters = [...this.props.preferencesData.tagFilters];
     newTagFilters.push(tfg);
@@ -966,28 +1146,35 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   onChangeTagEditorNameEvent = (name: string): void => {
     if (this.state.editingTagFilterGroup) {
-      const newTFG = {...this.state.editingTagFilterGroup, name };
+      const newTFG = { ...this.state.editingTagFilterGroup, name };
       this.setState({ editingTagFilterGroup: newTFG });
     }
   };
 
   onChangeTagEditorDescriptionEvent = (description: string): void => {
     if (this.state.editingTagFilterGroup) {
-      const newTFG = {...this.state.editingTagFilterGroup, description };
+      const newTFG = { ...this.state.editingTagFilterGroup, description };
       this.setState({ editingTagFilterGroup: newTFG });
     }
   };
 
   onToggleExtremeTagEditorEvent = (checked: boolean): void => {
     if (this.state.editingTagFilterGroup) {
-      const newTFG = {...this.state.editingTagFilterGroup, extreme: checked };
+      const newTFG = { ...this.state.editingTagFilterGroup, extreme: checked };
+      this.setState({ editingTagFilterGroup: newTFG });
+    }
+  };
+
+  onChangeTagEditorIconEvent = (iconBase64: string): void => {
+    if (this.state.editingTagFilterGroup) {
+      const newTFG = {...this.state.editingTagFilterGroup, iconBase64 };
       this.setState({ editingTagFilterGroup: newTFG });
     }
   };
 
   onDuplicateTagFilterGroup = (index: number): void => {
     const newTagFilters = [...this.props.preferencesData.tagFilters];
-    newTagFilters.push({...newTagFilters[index], name: `${newTagFilters[index].name} - Copy`});
+    newTagFilters.push({ ...newTagFilters[index], name: `${newTagFilters[index].name} - Copy` });
     updatePreferencesData({ tagFilters: newTagFilters });
   };
 
@@ -1149,6 +1336,20 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       alert('Error: ' + err);
     });
   };
+
+  onChangeAutoClearWininetCache = (isChecked: boolean) => {
+    updatePreferencesData({ autoClearWininetCache: isChecked });
+  }
+
+  onClearWininetCache = () => {
+    window.Shared.back.request(BackIn.CLEAR_WININET_CACHE)
+    .then(() => {
+      alert('Cleared cache');
+    })
+    .catch((err) => {
+      alert('Error: ' + err);
+    });
+  }
 
 }
 

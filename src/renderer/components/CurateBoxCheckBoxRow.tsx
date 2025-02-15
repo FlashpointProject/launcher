@@ -1,10 +1,10 @@
 import { CheckBox } from '@renderer/components/CheckBox';
 import { CurateBoxRow } from '@renderer/components/CurateBoxRow';
-import { CurateActionType } from '@renderer/store/curate/enums';
-import { CurateAction } from '@renderer/store/curate/types';
 import { CurationMeta } from '@shared/curate/types';
 import * as React from 'react';
 import { Dispatch } from 'redux';
+import { useDispatch } from 'react-redux';
+import { editCurationMeta } from '@renderer/store/curate/slice';
 
 export type CurateBoxCheckBoxProps = {
   title: string;
@@ -12,11 +12,11 @@ export type CurateBoxCheckBoxProps = {
   property: keyof CurationMeta;
   curationFolder: string;
   disabled: boolean;
-  dispatch: Dispatch<CurateAction>;
 }
 
 export function CurateBoxCheckBox(props: CurateBoxCheckBoxProps) {
-  const onChange = useOnCheckboxToggle(props.property, props.curationFolder, props.dispatch);
+  const dispatch = useDispatch();
+  const onChange = useOnCheckboxToggle(props.property, props.curationFolder, dispatch);
 
   return (
     <CurateBoxRow title={props.title}>
@@ -28,15 +28,14 @@ export function CurateBoxCheckBox(props: CurateBoxCheckBoxProps) {
   );
 }
 
-function useOnCheckboxToggle(property: keyof CurationMeta, folder: string | undefined, dispatch: Dispatch<CurateAction>) {
+function useOnCheckboxToggle(property: keyof CurationMeta, folder: string | undefined, dispatch: Dispatch) {
   return React.useCallback((checked: boolean) => {
     if (folder !== undefined) {
-      dispatch({
-        type: CurateActionType.EDIT_CURATION_META,
-        folder: folder,
-        property: property,
+      dispatch(editCurationMeta({
+        folder,
+        property,
         value: checked,
-      });
+      }));
     }
   }, [dispatch, folder]);
 }

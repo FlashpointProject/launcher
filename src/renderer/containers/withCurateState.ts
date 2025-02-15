@@ -1,23 +1,23 @@
-import { ApplicationState } from '@renderer/store';
-import { CurateAction } from '@renderer/store/curate/types';
 import { connect } from 'react-redux';
-import { Dispatch } from 'redux';
+import { bindActionCreators, Dispatch } from 'redux';
+import { RootState } from '@renderer/store/store';
+import { curateActions } from '@renderer/store/curate/slice';
 
-export type WithCurateStateProps = ReturnType<typeof mapStateToProps> & ReturnType<typeof mapDispatchToProps>
-
-const mapStateToProps = (state: ApplicationState) => ({
+const mapStateToProps = (state: RootState) => ({
   curate: state.curate,
 });
 
-function mapDispatchToProps(dispatch: Dispatch<CurateAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
   return {
-    dispatchCurate: dispatch,
+    curateActions: bindActionCreators(curateActions, dispatch)
   };
 }
 
-export const withCurateState = connect(
+export type WithCurateProps = ReturnType<typeof mapStateToProps> & ReturnType<typeof mapDispatchToProps>;
+
+export const withCurate = connect(
   mapStateToProps,
   mapDispatchToProps,
   null,
-  { getDisplayName: name => 'withCurateState('+name+')' }
+  { getDisplayName: name => 'withCurate('+name+')' }
 );

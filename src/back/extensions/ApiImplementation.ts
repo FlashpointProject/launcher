@@ -21,7 +21,7 @@ import {
 } from '@back/util/misc';
 import { BrowsePageLayout, ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
-import { BackOut } from '@shared/back/types';
+import { BackOut, FpfssUser } from '@shared/back/types';
 import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
 import { CurationMeta } from '@shared/curate/types';
 import { getContentFolderByKey } from '@shared/curate/util';
@@ -338,8 +338,8 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
       state.socketServer.broadcast(BackOut.CREATE_TASK, newTask);
       return newTask;
     },
-    setTask: (taskId: string, taskData: Partial<Task>) => {
-      state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, taskData);
+    setTask: (task: Partial<Task>) => {
+      state.socketServer.broadcast(BackOut.UPDATE_TASK, task);
     },
   };
 
@@ -354,7 +354,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     createProcess: (name: string, info: flashpoint.ProcessInfo, opts?: flashpoint.ProcessOpts, basePath?: string) => {
       const id = `${extManifest.name}.${name}`;
       const cwd = path.join(basePath || extPath || state.config.flashpointPath, info.path);
-      const proc = new DisposableChildProcess(id, name, cwd, opts || {}, {aliases: [], name: '', ...info, kill: true});
+      const proc = new DisposableChildProcess(id, name, cwd, opts || {}, { aliases: [], name: '', ...info, kill: true });
       proc.onDispose = () => proc.kill();
       return proc;
     },
@@ -406,7 +406,8 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
   const extCurations: typeof flashpoint.curations = {
     loadCurationArchive: async (filePath: string, taskId?: string) => {
       if (taskId) {
-        state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
+        state.socketServer.broadcast(BackOut.UPDATE_TASK, {
+          id: taskId,
           status: `Loading ${filePath}`
         });
       }
@@ -416,7 +417,8 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
         state.socketServer.broadcast(BackOut.OPEN_ALERT, formatString(state.languageContainer['dialog'].failedToLoadCuration, error.toString()) as string);
       });
       if (taskId) {
-        state.socketServer.broadcast(BackOut.UPDATE_TASK, taskId, {
+        state.socketServer.broadcast(BackOut.UPDATE_TASK, {
+          id: taskId,
           status: '',
           finished: true
         });
@@ -439,7 +441,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     },
     getCuration: (folder: string) => {
       const curation = state.loadedCurations.find(c => c.folder === folder);
-      return curation ? {...curation} : undefined;
+      return curation ? { ...curation } : undefined;
     },
     get onDidCurationListChange() {
       return apiEmitters.curations.onDidCurationListChange.extEvent(extManifest.displayName || extManifest.name);
@@ -611,7 +613,32 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     },
     extractGameFileByUrl: (url: string) => {
       return '' as any; // UNIMPLEMENTED
-    }
+    },
+  };
+
+  const extFpfss: typeof flashpoint.fpfss = {
+    getAccessToken: async (): Promise<string> => {
+      if (!state.socketServer.lastClient) {
+        throw new Error('No connected client to handle FPFSS action.');
+      }
+      try {
+        const user = await state.socketServer.request(state.socketServer.lastClient, BackOut.FPFSS_ACTION, extId);
+        if (user && user.accessToken) {
+          return user.accessToken;
+        } else {
+          throw new Error('Failed to get access token or user cancelled.');
+        }
+      } catch (error) {
+        const client = state.socketServer.lastClient;
+        const openDialog = state.socketServer.showMessageBoxBack(state, client);
+        await openDialog({
+          largeMessage: true,
+          message: (error instanceof Error) ? error.message : String(error),
+          buttons: [state.languageContainer.misc.ok]
+        });
+        throw error;
+      }
+    },
   };
 
   // Create API Module to give to caller
@@ -643,6 +670,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     services: extServices,
     dialogs: extDialogs,
     middleware: extMiddlewares,
+    fpfss: extFpfss,
 
     // Events
     onDidInit: apiEmitters.onDidInit.extEvent(extManifest.displayName || extManifest.name),

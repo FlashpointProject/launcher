@@ -296,6 +296,12 @@ export function main(init: Init): void {
   }
 
   async function onAppReady() {
+    // Enable DoH
+    app.configureHostResolver({
+      secureDnsMode: 'secure',
+      secureDnsServers: ['https://cloudflare-dns.com/dns-query', 'https://dns.google/dns-query']
+    });
+
     if (Util.isDev) {
       installExtension(REACT_DEVELOPER_TOOLS, {
         loadExtensionOptions: {

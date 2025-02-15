@@ -10,10 +10,18 @@
     "hideExtremeScreenshotsDesc": "Versteckt Screenshots von als Extrem markierten Inhalten. Mit einem Klick auf das Bildfeld können sie wieder angezeigt werden.",
     "fancyAnimations": "Schicke Animationen",
     "fancyAnimationsDesc": "Aktiviere schicke Animationen im Launcher.",
+    "hideNewViewButton": "Hide New View Button",
+    "hideNewViewButtonDesc": "When using custom views, hide the new view (+) button. You can instead press 'Create New View' under the context menu for tabs.",
     "searchLimit": "Suchbegrenzung",
     "searchLimitDesc": "Begrenze die Anzahl an angezeigten Suchergebnissen",
     "searchLimitUnlimited": "Unbegrenzt",
     "searchLimitValue": "{0} Ergebnis(se)",
+    "useCustomViews": "Use Custom Search Views",
+    "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
+    "defaultOpeningPage": "Default Opening Page",
+    "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
+    "restoreSearchViews": "Restore Search Results",
+    "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
     "enableEditing": "Bearbeiten Erlauben",
     "enableEditingDesc": "Aktiviere Bearbeitung von Spielen und zusätzlichen Anwendungen. Zeigt auch Tabs im Zusammenhang mit der Bearbeitung.",
     "symlinkCuration": "Kurationsinhalt via Symlink",
@@ -83,8 +91,10 @@
     "screenshotPreviewDelay": "Screenshot Preview Delay",
     "screenshotPreviewDelayDesc": "Delay (in milliseconds) before showing the screenshot, when Screenshot Preview is set to on. (when hovering)",
     "advancedHeader": "Erweitert",
+    "clearWininetCache": "Clear WinINet Cache",
+    "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "Datenbank optimieren",
-    "optimizeDatabaseDesc": "Wartungsarbeiten durchführen, um die Leistung der Datenbank zu verbessern und ihre Größe zu verringern",
+    "optimizeDatabaseDesc": "Run maintenance tasks to increase database performance and reduce size.",
     "showDeveloperTab": "Entwicklerkarte zeigen",
     "showDeveloperTabDesc": "Zeige die Karte \"Entwickler\". Diese ist wahrscheinlich nur für Entwickler und Kuratoren nützlich.",
     "registerProtocol": "Register As Protocol Handler",
@@ -136,12 +146,13 @@
     "updatedGamesReady": "{0} Spielinformations-Updates bereit",
     "checkingUpgradeState": "Upgrade-Status wird überprüft...",
     "extrasHeader": "Extras",
+    "playHistory": "Play History",
     "favoritesPlaylist": "Favoriten-Playlist",
     "tagList": "Tag-Liste",
     "filterByPlatform": "Nach Plattform filtern",
     "plannedFeatures": "Sieh dir unsere geplanten Features an!",
     "notesHeader": "Anmerkungen",
-    "notes": "Vergiss nicht, das Benutzerhandbuch zu lesen, wenn du Probleme hast.",
+    "notes": "Don't forget to read the help page or manual if you're having issues.",
     "linuxSupport": "Probleme auf Linux? {0}",
     "linuxSupportLinkText": "FAQ öffnen",
     "randomPicks": "Zufällige Auswahl",
@@ -173,6 +184,7 @@
     "curate": "Kuratieren",
     "developer": "Entwickler",
     "searchPlaceholder": "Suche...",
+    "searchPlaceholderCountable": "Suche... ({0} Elemente)",
     "hideRightSidebar": "Rechte Seitenleiste verstecken",
     "showRightSidebar": "Rechte Seitenleiste zeigen",
     "hideLeftSidebar": "Linke Seitenleiste verstecken",
@@ -188,7 +200,11 @@
     "fpfssProfile": "Profil öffnen",
     "fpfssLogout": "Von FPFSS abmelden",
     "softwareUpdateRequired": "Softwareupdate erforderlich. Jetzt durchführen?",
-    "noLauncherUpdateReady": "Metadaten-Update erfordert eine neuere Launcher-Version, aber das Software-Update ist derzeit nicht verfügbar."
+    "noLauncherUpdateReady": "Metadaten-Update erfordert eine neuere Launcher-Version, aber das Software-Update ist derzeit nicht verfügbar.",
+    "deleteView": "Delete Search View",
+    "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
+    "createNewView": "Create new search view",
+    "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
     "dateAdded": "Hinzugefügt am",
@@ -361,8 +377,9 @@
     "allGames": "Alle Spiele",
     "newPlaylist": "Neue Playlist",
     "importPlaylist": "Playlist importieren",
+    "noGamesFoundInsidePlaylist": "No Results Found in Playlist!",
     "emptyPlaylist": "Leere Playlist",
-    "noGamesFound": "Keine Spiele gefunden!",
+    "noGamesFound": "Keine Ergebnisse gefunden!",
     "dropGameOnLeft": "Ziehe ein Spiel auf diese Playlist in der {0} um es hinzuzufügen.",
     "leftSidebar": "linke Seitenleiste",
     "setFlashpointPathQuestion": "Hast du den Pfad zum {0} auf der {1} -Seite gesetzt?",
@@ -375,12 +392,18 @@
     "noGameMatchedSearch": "Versuche, nach etwas weniger Restriktivem zu suchen.",
     "mountParameters": "Mount-Parameter",
     "noMountParameters": "Keine Mount-Parameter",
+    "ruffleSupport": "Ruffle-Unterstützung",
     "showExtremeScreenshot": "Extremen Screenshot anzeigen",
     "busy": "Bitte warten...",
     "openGameDataBrowser": "Spieldaten-Browser öffnen",
+    "allGenericEntries": "Alle Einträge",
+    "usePlaylistOrder": "Use Playlist Order",
+    "hideFilters": "Filter ausblenden",
+    "showFilters": "Filter anzeigen",
     "notArchived": "Nicht archiviert",
     "archived": "Archiviert",
-    "playOnline": "Online spielen"
+    "playOnline": "Online spielen",
+    "tagFilterIcon": "Tag Filter Icon"
   },
   "tags": {
     "name": "Name",
@@ -403,13 +426,15 @@
     "makeAliasWhenMerged": "Dies zum Alias des Tags machen?",
     "deleteTag": "Tag löschen",
     "deleteTagCategory": "Tag-Kategorie löschen",
-    "locked": "Während der Verarbeitung gesperrt..."
+    "locked": "Während der Verarbeitung gesperrt...",
+    "filterIcon": "Icon Thumbnail"
   },
   "curate": {
     "noCurationSelected": "Keine Kuration ausgewählt",
     "headerFileOperations": "Datei",
     "headerEditCuration": "Bearbeiten",
     "headerTest": "Testen",
+    "headerFpfss": "FPFSS",
     "importAll": "Alle importieren",
     "importAllDesc": "Alle aktuell geladenen Kurationen importieren",
     "deleteAll": "Alle löschen",
@@ -490,7 +515,8 @@
     "contextCopyAsURL": "Dateipfad als URL kopieren",
     "contextShowInExplorer": "Datei im Explorer anzeigen",
     "contextOpenFolderInExplorer": "Ordner im Explorer öffnen",
-    "shortcuts": "Verknüpfungen"
+    "shortcuts": "Verknüpfungen",
+    "fpfssOpenSubmissionPage": "Open Submission Page"
   },
   "playlist": {
     "enterDescriptionHere": "Beschreibung hier eingeben...",
@@ -518,6 +544,7 @@
   "misc": {
     "noBlankFound": "Kein {0} gefunden",
     "addBlank": "{0} hinzufügen",
+    "removeBlank": "{0} entfernen",
     "deleteAllBlankImages": "Lösche ALLE {0} Bilder für dieses Spiel",
     "yes": "Ja",
     "no": "Nein",
@@ -530,7 +557,8 @@
     "showImage": "Bild anzeigen",
     "searching": "Suche...",
     "loading": "Lade...",
-    "ok": "OK"
+    "ok": "OK",
+    "allow": "Erlauben"
   },
   "menu": {
     "viewThumbnailInFolder": "Miniaturansicht im Ordner anzeigen",
@@ -620,7 +648,14 @@
     "exportCurationWithWarnings": "Kuration exportieren, obwohl Warnungen vorhanden sind?",
     "requiresAdditionalDownload": "Es fehlt das {0} Support-Paket, das benötigt wird, um diesen Eintrag zu starten.\nJetzt herunterladen?",
     "requiresAdditionalDownloadPlural": "Es fehlen die {0} Support-Pakete, die benötigt werden, um diesen Eintrag zu starten.\nJetzt herunterladen?",
-    "confirmClearPlaytime": "Alle Spielzeit- und Spielverlauf-Daten löschen? Dies ist unumkehrbar."
+    "confirmClearPlaytime": "Alle Spielzeit- und Spielverlauf-Daten löschen? Dies ist unumkehrbar.",
+    "badAntiVirus": "Sie scheinen '{0}' zu verwenden.\nDieses Antivirusprogramm ist bekannt dafür, Probleme zu verursachen. Wir empfehlen, für den Flashpoint-Ordner eine Ausnahme hinzuzufügen.\n\nWenn Sie beim Ausführen von Flash-Spielen nur einen weißen Bildschirm sehen, müssen Sie Flashpoint eventuell neu installieren, um gelöschte Dateien wiederherzustellen.\n\nSehen Sie für detaillierte Anweisungen im Wiki oder dem Hilfe-Menü nach.",
+    "openWiki": "Wiki öffnen",
+    "openDiscord": "Discord Server beitreten",
+    "doNotShowAgain": "Nicht erneut anzeigen",
+    "extFpfssConsent": "Erweiterung mit der ID {0} fordert Zugriff auf Ihr FPFSS-Token an. Erlauben?\nDas bedeutet, dass die Erweiterung auf Ihr FPFSS-Konto zugreifen und Aktionen in Ihrem Namen durchführen kann.",
+    "gameDataUpdateReady": "A game data update is ready. Do you want to upgrade now?",
+    "gameDataUpdateReadyLcDifferent": "A game data update is ready. The launch command has changed and this may break existing save files. Do you want to upgrade now?"
   },
   "libraries": {
     "arcade": "Spiele",
@@ -640,5 +675,9 @@
     "techDesc": "Fügt Unterstützung für alle anderen Technologien hinzu - Shockwave, Unity, Java, HTML5, etc.",
     "screenshots": "Logos & Screenshots",
     "screenshotsDesc": "Fügt Logos für die Rasteransicht und Screenshots für alle Spiele hinzu."
+  },
+  "extensions": {
+    "fpssConsentRevokeTitle": "Zugriff auf FPFSS widerrufen",
+    "fpssConsentRevokeDesc": "Zugriff dieser Erweiterung auf FPFSS widerrufen"
   }
 }

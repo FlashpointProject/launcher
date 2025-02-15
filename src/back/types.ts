@@ -1,4 +1,4 @@
-import { BackInit, ComponentStatus } from '@shared/back/types';
+import { BackInit, ComponentStatus, FpfssUser } from '@shared/back/types';
 import { AppConfigData, AppExtConfigData } from '@shared/config/interfaces';
 import { ExecMapping, GamePropSuggestions, IBackProcessInfo, INamedBackProcessInfo } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
@@ -166,7 +166,7 @@ export type TagsFile = {
 }
 
 export type ShowMessageBoxFunc = (options: flashpoint.DialogStateTemplate) => Promise<string>;
-export type ShowMessageBoxBroadcastFunc = (options: flashpoint.DialogStateTemplate) => Promise<void>;
+export type ShowMessageBoxBroadcastFunc = (options: flashpoint.DialogStateTemplate) => void;
 export type ShowSaveDialogFunc = (options: SaveDialogOptions) => Promise<string | undefined>;
 export type ShowOpenDialogFunc = (options: OpenDialogOptions) => Promise<string[] | undefined>;
 export type OpenExternalFunc = (url: string, options?: OpenExternalOptions) => Promise<void>;
@@ -189,10 +189,10 @@ export type ApiEmittersState = Readonly<{
     onDidLaunchAddApp: ApiEmitter<flashpoint.AdditionalApp>;
     onDidLaunchCurationGame: ApiEmitter<flashpoint.Game>;
     onDidLaunchCurationAddApp: ApiEmitter<flashpoint.AdditionalApp>;
-    onDidUpdateGame: ApiEmitter<{oldGame: flashpoint.Game, newGame: flashpoint.Game}>;
+    onDidUpdateGame: ApiEmitter<{ oldGame: flashpoint.Game, newGame: flashpoint.Game }>;
     onDidRemoveGame: ApiEmitter<flashpoint.Game>;
-    onDidUpdatePlaylist: ApiEmitter<{oldPlaylist: flashpoint.Playlist, newPlaylist: flashpoint.Playlist}>;
-    onDidUpdatePlaylistGame: ApiEmitter<{oldGame: flashpoint.PlaylistGame, newGame: flashpoint.PlaylistGame}>;
+    onDidUpdatePlaylist: ApiEmitter<{ oldPlaylist: flashpoint.Playlist, newPlaylist: flashpoint.Playlist }>;
+    onDidUpdatePlaylistGame: ApiEmitter<{ oldGame: flashpoint.PlaylistGame, newGame: flashpoint.PlaylistGame }>;
     onDidRemovePlaylistGame: ApiEmitter<flashpoint.PlaylistGame>;
     onDidInstallGameData: ApiEmitter<flashpoint.GameData>;
     onDidUninstallGameData: ApiEmitter<flashpoint.GameData>;
@@ -215,7 +215,7 @@ export type ApiEmittersState = Readonly<{
     onServiceChange: ApiEmitter<flashpoint.ServiceChange>;
   }>,
   ext: Readonly<{
-    onExtConfigChange: ApiEmitter<{key: string, value: any}>;
+    onExtConfigChange: ApiEmitter<{ key: string, value: any }>;
   }>,
 }>
 

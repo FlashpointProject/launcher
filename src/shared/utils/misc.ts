@@ -45,11 +45,23 @@ export function newGame(): Game {
     activeGameConfigOwner: '',
     archiveState: 0,
     gameData: [],
-    addApps: []
+    addApps: [],
+    ruffleSupport: '',
   };
 }
 
 export function getGameDataFilename(data: GameData) {
   const cleanDate = data.dateAdded.includes('T') ? data.dateAdded : `${data.dateAdded} +0000 UTC`;
   return `${data.gameId}-${(new Date(cleanDate)).getTime()}.zip`;
+}
+
+export function mapRuffleSupportString(rs: string) {
+  switch (rs) {
+    case '':
+      return 'None';
+    case 'standalone':
+      return 'Standalone';
+    default:
+      return 'Broken Value';
+  }
 }

@@ -1,29 +1,21 @@
-import { Task } from '@shared/interfaces';
 import { connect } from 'react-redux';
-import { bindActionCreators, Dispatch } from 'redux';
-import { ApplicationState } from '../store';
-import * as tasksActions from '../store/tasks/actions';
+import { Dispatch } from 'redux';
+import { RootState } from '@renderer/store/store';
+import { addTask, setTask } from '@renderer/store/tasks/slice';
+import { Task } from '@shared/interfaces';
 
-type StateToProps = {
-  readonly tasks: Task[];
-};
-
-type DispatchToProps = {
-  /** Called when the Tasks change */
-  addTask: (task: Task) => void;
-  setTask: (taskId: string, task: Partial<Task>) => void;
-};
-
-export type WithTasksProps = StateToProps & DispatchToProps;
-
-const mapStateToProps = ({ tasks }: ApplicationState): StateToProps => ({
-  tasks: tasks,
+const mapStateToProps = (state: RootState) => ({
+  tasks: state.tasks,
 });
 
-const mapDispatchToProps = (dispatch: Dispatch) => bindActionCreators({
-  addTask: (task: Task) => tasksActions.addTask(task),
-  setTask: (taskId: string, taskData: Partial<Task>) => tasksActions.setTask(taskId, taskData),
-}, dispatch);
+function mapDispatchToProps(dispatch: Dispatch) {
+  return {
+    addTask: (task: Task) => dispatch(addTask(task)),
+    setTask: (task: Partial<Task>) => dispatch(setTask(task)),
+  };
+}
+
+export type WithTasksProps = ReturnType<typeof mapStateToProps> & ReturnType<typeof mapDispatchToProps>;
 
 export const withTasks = connect(
   mapStateToProps,

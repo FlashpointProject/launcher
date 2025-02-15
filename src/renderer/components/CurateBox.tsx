@@ -7,9 +7,7 @@ import {
   DropdownItem
 } from '@renderer/components/CurateBoxInputRow';
 import { GameImageSplit } from '@renderer/components/GameImageSplit';
-import { CurateActionType } from '@renderer/store/curate/enums';
-import { AddAppType, CurateAction } from '@renderer/store/curate/types';
-import { getCurationURL, getPlatformIconURL } from '@renderer/Util';
+import { axios, getCurationURL, getPlatformIconURL } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
 import { BackIn, CurationImageEnum } from '@shared/back/types';
 import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
@@ -17,7 +15,6 @@ import { ContentTreeNode, PlatformAppPathSuggestions } from '@shared/curate/type
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { sizeToString } from '@shared/Util';
-import axios from 'axios';
 import { clipboard, MenuItemConstructorOptions } from 'electron';
 import { CurationState, LoadedCuration, Platform, Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
 import * as path from 'path';
@@ -30,6 +27,17 @@ import { CurateBoxWarnings } from './CurateBoxWarnings';
 import { InputElement, InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
+import { useDispatch } from 'react-redux';
+import {
+  AddAppType,
+  addPlatform,
+  addTag, createAddApp,
+  editCurationMeta,
+  removePlatform,
+  removeTag,
+  setPrimaryPlatform, toggleContentNodeView
+} from '@renderer/store/curate/slice';
+import { mapRuffleSupportString } from '@shared/utils/misc';
 
 export type CurateBoxProps = {
   curation: CurationState;
@@ -42,7 +50,6 @@ export type CurateBoxProps = {
   platformText: string;
   onTagTextChange: (tagText: string) => void;
   onPlatformTextChange: (platformText: string) => void;
-  dispatch: Dispatch<CurateAction>;
   symlinkCurationContent: boolean;
   logoVersion: number;
 }
@@ -50,6 +57,8 @@ export type CurateBoxProps = {
 export function CurateBox(props: CurateBoxProps) {
   const strings = React.useContext(LangContext);
   const disabled = !!props.curation.locked;
+  const dispatch = useDispatch();
+  const folder = props.curation.folder;
 
   const splitStatus = React.useMemo(() => props.curation.game.status ? props.curation.game.status.split(';').map(s => s.trim()).sort() : [], [props.curation.game.status]);
   const splitPlayMode = React.useMemo(() => props.curation.game.playMode ? props.curation.game.playMode.split(';').map(s => s.trim()).sort() : [], [props.curation.game.playMode]);
@@ -57,7 +66,7 @@ export function CurateBox(props: CurateBoxProps) {
   const sortedTags = React.useMemo(() => {
     const tags = props.curation.game.tags;
     if (tags) {
-      return tags.sort((a, b) => {
+      return [...tags].sort((a, b) => {
         // Sort by category, then name secondarily
         if (a.category !== b.category) {
           const categoryA: TagCategory | undefined = props.tagCategories.find(c => c.name === a.category);
@@ -82,8 +91,8 @@ export function CurateBox(props: CurateBoxProps) {
 
   const onSetThumbnail  = useAddImageCallback(CurationImageEnum.THUMBNAIL, props.curation);
   const onSetScreenshot = useAddImageCallback(CurationImageEnum.SCREENSHOT, props.curation);
-  const onRemoveThumbnailClick  = useRemoveImageCallback(CurationImageEnum.THUMBNAIL, props.curation, props.dispatch);
-  const onRemoveScreenshotClick = useRemoveImageCallback(CurationImageEnum.SCREENSHOT,  props.curation, props.dispatch);
+  const onRemoveThumbnailClick  = useRemoveImageCallback(CurationImageEnum.THUMBNAIL, props.curation);
+  const onRemoveScreenshotClick = useRemoveImageCallback(CurationImageEnum.SCREENSHOT,  props.curation);
   const onDropThumbnail  = useDropImageCallback('logo.png', props.curation, strings.dialog);
   const onDropScreenshot = useDropImageCallback('ss.png',   props.curation, strings.dialog);
 
@@ -94,55 +103,51 @@ export function CurateBox(props: CurateBoxProps) {
     return props.curation.screenshot.exists ? `${getCurationURL(props.curation.folder)}/ss.png?v` + props.curation.screenshot.version : undefined;
   }, [props.curation.screenshot]);
 
-  const onNewAddApp  = useCreateAddAppCallback('normal',  props.curation.folder, props.dispatch);
-  const onAddExtras  = useCreateAddAppCallback('extras',  props.curation.folder, props.dispatch);
-  const onAddMessage = useCreateAddAppCallback('message', props.curation.folder, props.dispatch);
+  const onNewAddApp  = useCreateAddAppCallback('normal',  props.curation.folder, dispatch);
+  const onAddExtras  = useCreateAddAppCallback('extras',  props.curation.folder, dispatch);
+  const onAddMessage = useCreateAddAppCallback('message', props.curation.folder, dispatch);
 
   const onAddStatus = React.useCallback((value: string) => {
     const newSplits = [ ...splitStatus ];
     newSplits.push(value);
-    props.dispatch({
-      type: CurateActionType.EDIT_CURATION_META,
-      folder: props.curation.folder,
+    dispatch(editCurationMeta({
+      folder,
       property: 'status',
       value: Array.from(new Set(newSplits.sort())).join('; ')
-    });
-  }, [props.curation.folder, splitStatus, props.dispatch]);
+    }));
+  }, [props.curation.folder, splitStatus, dispatch]);
 
   const onRemoveStatus = React.useCallback((index: number) => {
     const newSplits = [ ...splitStatus ];
     newSplits.splice(index, 1);
     const newStatus = newSplits.join('; ');
-    props.dispatch({
-      type: CurateActionType.EDIT_CURATION_META,
-      folder: props.curation.folder,
+    dispatch(editCurationMeta({
+      folder,
       property: 'status',
       value: newStatus
-    });
-  }, [props.curation.folder, props.curation.game.status, splitStatus, props.dispatch]);
+    }));
+  }, [props.curation.folder, props.curation.game.status, splitStatus, dispatch]);
 
   const onAddPlayMode = React.useCallback((value: string) => {
     const newSplits = [ ...splitPlayMode ];
     newSplits.push(value);
-    props.dispatch({
-      type: CurateActionType.EDIT_CURATION_META,
-      folder: props.curation.folder,
+    dispatch(editCurationMeta({
+      folder,
       property: 'playMode',
       value: Array.from(new Set(newSplits.sort())).join('; ')
-    });
-  }, [props.curation.folder, props.curation.game.playMode, splitPlayMode, props.dispatch]);
+    }));
+  }, [props.curation.folder, props.curation.game.playMode, splitPlayMode, dispatch]);
 
   const onRemovePlayMode = React.useCallback((index: number) => {
     const newSplits = [ ...splitPlayMode ];
     newSplits.splice(index, 1);
     const newPlayMode = newSplits.join('; ');
-    props.dispatch({
-      type: CurateActionType.EDIT_CURATION_META,
-      folder: props.curation.folder,
+    dispatch(editCurationMeta({
+      folder,
       property: 'playMode',
       value: newPlayMode
-    });
-  }, [props.curation.folder, props.curation.game.playMode, splitPlayMode, props.dispatch]);
+    }));
+  }, [props.curation.folder, props.curation.game.playMode, splitPlayMode, dispatch]);
 
   const onTagChange = React.useCallback((event: React.ChangeEvent<InputElement>): void => {
     props.onTagTextChange(event.currentTarget.value);
@@ -153,7 +158,6 @@ export function CurateBox(props: CurateBoxProps) {
   }, [props.onPlatformTextChange]);
 
   const onTagKeyDown = React.useCallback((event: React.KeyboardEvent<InputElement>): void => {
-    console.log(event.key);
     if (event.defaultPrevented) { return; }
 
     if (event.key === 'Enter') {
@@ -167,7 +171,6 @@ export function CurateBox(props: CurateBoxProps) {
   }, []);
 
   const onPlatformKeyDown = React.useCallback((event: React.KeyboardEvent<InputElement>): void => {
-    console.log(event.key);
     if (event.defaultPrevented) { return; }
 
     if (event.key === 'Enter') {
@@ -183,51 +186,46 @@ export function CurateBox(props: CurateBoxProps) {
   const onAddTag = React.useCallback((tag: Tag) => {
     const tags = props.curation.game.tags || [];
     if (!tags.find(t => t.id === tag.id)) {
-      props.dispatch({
-        type: CurateActionType.ADD_TAG,
-        folder: props.curation.folder,
-        tag: tag
-      });
+      dispatch(addTag({
+        folder,
+        tag
+      }));
     }
     props.onTagTextChange('');
-  }, [props.curation.folder]);
+  }, [props.curation.folder, props.curation.game.tags]);
 
   const onAddPlatform = React.useCallback((platform: Platform) => {
     const platforms = props.curation.game.platforms || [];
     if (!platforms.find(p => p.id === platform.id)) {
-      props.dispatch({
-        type: CurateActionType.ADD_PLATFORM,
-        folder: props.curation.folder,
+      dispatch(addPlatform({
+        folder,
         platform,
-        platformAppPaths: props.platformAppPaths,
-      });
+        platformAppPaths: props.platformAppPaths
+      }));
     }
     props.onPlatformTextChange('');
-  }, [props.curation.folder]);
+  }, [props.curation.folder, props.curation.game.platforms]);
 
   const onRemoveTag = React.useCallback((tagId: number) => {
-    props.dispatch({
-      type: CurateActionType.REMOVE_TAG,
-      folder: props.curation.folder,
-      tagId,
-    });
-  }, [props.curation.folder]);
+    dispatch(removeTag({
+      folder,
+      tagId
+    }));
+  }, [props.curation.folder, props.curation.game.tags]);
 
   const onRemovePlatform = React.useCallback((platformId) => {
-    props.dispatch({
-      type: CurateActionType.REMOVE_PLATFORM,
-      folder: props.curation.folder,
+    dispatch(removePlatform({
+      folder,
       platformId,
-      platformAppPaths: props.platformAppPaths,
-    });
-  }, [props.curation.folder]);
+      platformAppPaths: props.platformAppPaths
+    }));
+  }, [props.curation.folder, props.curation.game.platforms]);
 
-  const toggleContentNodeView = React.useCallback((tree: string[]) => {
-    props.dispatch({
-      type: CurateActionType.TOGGLE_CONTENT_NODE_VIEW,
-      folder: props.curation.folder,
+  const onToggleContentNodeView = React.useCallback((tree: string[]) => {
+    dispatch(toggleContentNodeView({
+      folder,
       tree
-    });
+    }));
   }, [props.curation.folder, props.curation.contents]);
 
   const onContentTreeNodeMenuFactory = (node: ContentTreeNode, tree: string[]) => () => {
@@ -280,7 +278,7 @@ export function CurateBox(props: CurateBoxProps) {
                 depthDivs
               )}
               <div className='curate-box-content__entry-icon curate-box-content__entry-icon--collapse'
-                onClick={() => toggleContentNodeView(tree)} >
+                onClick={() => onToggleContentNodeView(tree)} >
                 <OpenIcon className={isLaunchPath ? 'curate-box-content__entry-icon--launch-path' : ''} icon={node.expanded ? 'chevron-bottom': 'chevron-right' }/>
               </div>
               <div>{node.name}</div>
@@ -376,12 +374,11 @@ export function CurateBox(props: CurateBoxProps) {
   }, []);
 
   const onChangePrimaryPlatform = React.useCallback((newPrimary: string) => {
-    props.dispatch({
-      type: CurateActionType.SET_PRIMARY_PLATFORM,
-      folder: props.curation.folder,
+    dispatch(setPrimaryPlatform({
+      folder,
       value: newPrimary,
-      platformAppPaths: props.platformAppPaths,
-    });
+      platformAppPaths: props.platformAppPaths
+    }));
   }, [props.curation.folder]);
 
   const addAppBoxes = (
@@ -394,7 +391,6 @@ export function CurateBox(props: CurateBoxProps) {
             platforms={props.curation.game.platforms}
             folder={props.curation.folder}
             addApp={addApp}
-            dispatch={props.dispatch}
             symlinkCurationContent={props.symlinkCurationContent} />
         ))}
       </tbody>
@@ -404,7 +400,7 @@ export function CurateBox(props: CurateBoxProps) {
   const shared = {
     curationFolder: props.curation.folder,
     disabled: disabled,
-    dispatch: props.dispatch,
+    dispatch: dispatch,
   } as const;
 
   return (
@@ -609,6 +605,20 @@ export function CurateBox(props: CurateBoxProps) {
                 warned={props.curation.warnings.fieldWarnings.includes('mountParameters')}
                 property='mountParameters'
                 { ...shared } />
+              {/* @TODO Replace this with a Dropdown menu that does NOT allow selection of the text or typing into it. */}
+              <CurateBoxDropdownInputRow
+                title={strings.browse.ruffleSupport}
+                text={mapRuffleSupportString(props.curation.game.ruffleSupport || '')}
+                items={[{
+                  key: '',
+                  value: 'None'
+                }, {
+                  key: 'standalone',
+                  value: 'Standalone'
+                }]}
+                warned={false}
+                property='ruffleSupport'
+                { ...shared } />
               <CurateBoxInputRow
                 title={strings.browse.notes}
                 text={props.curation.game.notes}
@@ -714,9 +724,8 @@ function useAddImageCallback(type: CurationImageEnum, curation: LoadedCuration |
  *
  * @param type Enum (Logo or Screenshot)
  * @param curation Curation to delete it from.
- * @param dispatch Curate Action Dispatch Func
  */
-function useRemoveImageCallback(type: CurationImageEnum, curation: LoadedCuration | undefined, dispatch: Dispatch<CurateAction>): () => Promise<void> {
+function useRemoveImageCallback(type: CurationImageEnum, curation: LoadedCuration | undefined): () => Promise<void> {
   return React.useCallback(async () => {
     if (curation) {
       return window.Shared.back.request(BackIn.CURATE_EDIT_REMOVE_IMAGE, curation.folder, type);
@@ -738,13 +747,12 @@ function useDropImageCallback(filename: 'logo.png' | 'ss.png', curation: Curatio
   }, [curation && curation.folder, strings]);
 }
 
-function useCreateAddAppCallback(type: AddAppType, folder: string, dispatch: Dispatch<CurateAction>) {
+function useCreateAddAppCallback(type: AddAppType, folder: string, dispatch: Dispatch) {
   return React.useCallback(() => {
-    dispatch({
-      type: CurateActionType.NEW_ADDAPP,
-      folder: folder,
-      addAppType: type,
-    });
+    dispatch(createAddApp({
+      folder,
+      addAppType: type
+    }));
   }, [dispatch, folder]);
 }
 

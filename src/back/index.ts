@@ -6,7 +6,7 @@ import {
   stringifyArray
 } from '@shared/Util';
 import * as os from 'os';
-import { BackIn, BackInit, BackInitArgs, BackOut, BackResParams, ComponentState, ComponentStatus, DownloadDetails } from '@shared/back/types';
+import { BackIn, BackInit, BackInitArgs, BackOut, BackResParams, ComponentState, ComponentStatus, DownloadDetails, FpfssUser } from '@shared/back/types';
 import { getContentFolderByKey, getCurationFolder } from '@shared/curate/util';
 import { ILogoSet, LogoSet } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
@@ -14,14 +14,14 @@ import { LangFileContent, getDefaultLocalization } from '@shared/lang';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { defaultPreferencesData } from '@shared/preferences/util';
 import { validateSemiUUID } from '@shared/utils/uuid';
-import { VERSION } from '@shared/version';
+import { FPA_VERSION, VERSION } from '@shared/version';
 import * as child_process from 'child_process';
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as http from 'http';
 import * as mime from 'mime';
-import { Progress, extractFull } from 'node-7z';
+import { Progress, add, extractFull } from 'node-7z';
 import * as path from 'path';
 import 'reflect-metadata';
 import { genCurationWarnings, loadCurationFolder } from './curate/util';
@@ -32,7 +32,6 @@ import {
   CURATIONS_FOLDER_TEMP,
   CURATIONS_FOLDER_WORKING, CURATION_META_FILENAMES
 } from '@shared/constants';
-import axios from 'axios';
 import { FlashpointArchive, enableDebug, loggerSusbcribe } from '@fparchive/flashpoint-archive';
 import { Tail } from 'tail';
 import { ConfigFile } from './ConfigFile';
@@ -74,6 +73,7 @@ import { dispose } from './util/lifecycle';
 import { formatString } from '@shared/utils/StringFormatter';
 import { awaitDialog } from './util/dialog';
 import { saveCurationFpfssInfo } from './curate/fpfss';
+import { axios } from './dns';
 
 export const VERBOSE = {
   enabled: false
@@ -259,10 +259,10 @@ async function main() {
     BackIn.GET_TAG_CATEGORY_BY_ID,
     BackIn.DELETE_TAG_CATEGORY,
     // Curation
-    BackIn.IMPORT_CURATION,
     BackIn.LAUNCH_CURATION,
     BackIn.LAUNCH_CURATION_ADDAPP,
     BackIn.CURATE_SYNC_CURATIONS,
+    BackIn.CURATE_IMPORT,
     // ?
     BackIn.SYNC_GAME_METADATA,
     BackIn.SYNC_TAGGED,
@@ -286,6 +286,7 @@ async function prepForInit(message: any): Promise<void> {
   state.localeCode = content.localeCode;
   state.exePath = content.exePath;
   state.version = content.version;
+  console.log(`Version: ${state.version}`);
   state.versionStr = `${content.version} ${content.isDev ? 'DEV' : ''}`;
   state.acceptRemote = content.acceptRemote;
   state.logFile = new LogFile(
@@ -303,6 +304,7 @@ async function prepForInit(message: any): Promise<void> {
   };
 
   log.info('Launcher', `Build Version: ${VERSION}`);
+  log.info('Launcher', `FPA Version: ${FPA_VERSION}`);
 
   state.socketServer.secret = content.secret;
 
@@ -326,7 +328,7 @@ async function prepForInit(message: any): Promise<void> {
   } catch (e) {
     console.log(e);
     // Fatal, quit.
-    send({quit: true, errorMessage: 'Invalid config.json!'});
+    send({ quit: true, errorMessage: 'Invalid config.json!' });
     return;
   }
 
@@ -347,7 +349,7 @@ async function prepForInit(message: any): Promise<void> {
         process.once('message', (msg) => {
           resolve(Number(msg));
         });
-        send({preferencesRefresh: true});
+        send({ preferencesRefresh: true });
       });
       console.log('Response - ' + res);
 
@@ -373,7 +375,7 @@ async function prepForInit(message: any): Promise<void> {
           console.log('Copied default preferences');
           return loadPrefs();
         } catch (err) {
-          send({quit: true, errorMessage: 'Failed to save default preferences file? Quitting...'});
+          send({ quit: true, errorMessage: 'Failed to save default preferences file? Quitting...' });
           return;
         }
       }
@@ -383,7 +385,7 @@ async function prepForInit(message: any): Promise<void> {
   try {
     await loadPrefs();
   } catch (err: any) {
-    send({quit: true, errorMessage: err.toString()});
+    send({ quit: true, errorMessage: err.toString() });
     return;
   }
 
@@ -632,7 +634,7 @@ async function prepForInit(message: any): Promise<void> {
   state.readyForInit = true;
 
   // Respond
-  send({port: state.socketServer.port, config: state.config, prefs: state.preferences}, () => {
+  send({ port: state.socketServer.port, config: state.config, prefs: state.preferences }, () => {
     console.log('Back - Ready for Init');
     state.apiEmitters.onDidInit.fire();
   });
@@ -780,7 +782,7 @@ async function initialize() {
                 state
               };
               statuses.push(status);
-              log.debug('Launcher', `Parsed: ${JSON.stringify({...status, state: ComponentState[status.state]})}`);
+              log.debug('Launcher', `Parsed: ${JSON.stringify({ ...status, state: ComponentState[status.state] })}`);
             } catch (err) {
               log.error('Launcher', `Failed to parse component entry: ${line}\nERROR: ${err}`);
             }
@@ -816,8 +818,9 @@ async function initialize() {
         state.config,
         error => { log.info(SERVICES_SOURCE, error.toString()); }
       );
-    } catch (error) {
-      console.log('Error loading services - ' + error);
+    } catch (error: any) {
+      log.error('Back', 'Error loading services - ' + error.toString());
+      state.socketServer.broadcast(BackOut.OPEN_ALERT, state.languageContainer.app.errorLoadingServices);
     }
     if (state.serviceInfo) {
       // Run start commands
@@ -1559,6 +1562,18 @@ function endsWithList(str: string, list: string[]): boolean {
 export function extractFullPromise(args: Parameters<typeof extractFull>) : Promise<void> {
   return new Promise<void>((resolve, reject) => {
     extractFull(...args)
+    .once(('end'), () => {
+      resolve();
+    })
+    .once(('error'), (error) => {
+      reject(error);
+    });
+  });
+}
+
+export function addPromise(...args: Parameters<typeof add>): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    add(...args)
     .once(('end'), () => {
       resolve();
     })

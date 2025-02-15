@@ -1,23 +1,20 @@
 import * as remote from '@electron/remote';
 import { WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
-import { ArchiveState, BackIn, BackOut, BackOutTemplate, FetchedGameInfo } from '@shared/back/types';
+import { ArchiveState, BackIn, BackOut, BackOutTemplate } from '@shared/back/types';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { ModelUtils } from '@shared/game/util';
 import { GamePropSuggestions, PickType, ProcessAction } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { deepCopy, generateTagFilterGroup, sizeToString } from '@shared/Util';
-import axios from 'axios';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
 import { clipboard, Menu, MenuItemConstructorOptions } from 'electron';
-import { Game, GameConfig, GameData, Platform, PlaylistGame, Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
-import * as fs from 'fs';
+import { AdditionalApp, Game, GameData, GameLaunchOverride, Platform, PlaylistGame, Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
 import * as React from 'react';
 import { WithPreferencesProps } from '../containers/withPreferences';
-import { WithSearchProps } from '../containers/withSearch';
-import { getGameImagePath, getGameImageURL, getPlatformIconURL, wrapSearchTerm } from '../Util';
+import { axios, getGameImagePath, getGameImageURL, getPlatformIconURL, wrapSearchTerm } from '../Util';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
-import { DropdownInputField } from './DropdownInputField';
+import { DropdownInputField, DropdownInputFieldMapped } from './DropdownInputField';
 import { GameDataBrowser } from './GameDataBrowser';
 import { GameImageSplit } from './GameImageSplit';
 import { ImagePreview } from './ImagePreview';
@@ -27,13 +24,12 @@ import { RightBrowseSidebarAddApp } from './RightBrowseSidebarAddApp';
 import { SimpleButton } from './SimpleButton';
 import { TagInputField } from './TagInputField';
 import { LangContext } from '@renderer/util/lang';
-import { Dropdown } from './Dropdown';
-import { GameConfigDialog } from './GameConfigDialog';
+import { mapRuffleSupportString } from '@shared/utils/misc';
 
 type OwnProps = {
   logoVersion: number;
   /** Currently selected game (if any) */
-  currentGameInfo?: FetchedGameInfo;
+  currentGame?: Game;
   /** Whether the current game is extreme */
   isExtreme: boolean;
   /** Is the current game running? */
@@ -43,7 +39,7 @@ type OwnProps = {
   /** Currently selected game entry (if any) */
   currentPlaylistEntry?: PlaylistGame;
   /** Called when the play button is pressed */
-  onGameLaunch: (gameId: string) => Promise<void>;
+  onGameLaunch: (gameId: string, override: GameLaunchOverride) => Promise<void>;
   /** Called when the selected game is deleted by this */
   onDeleteSelectedGame: () => void;
   /** Called when the selected game is removed from the selected by this */
@@ -63,11 +59,10 @@ type OwnProps = {
   /** List of busy games */
   busyGames: string[];
 
+  onSearch: (text: string) => void;
   onEditClick: () => void;
   onDiscardClick: () => void;
   onSaveGame: () => void;
-  onForceSaveGame: (gameInfo: FetchedGameInfo) => Promise<void>;
-  onOpenExportMetaEdit: (gameId: string) => void;
 
   onFpfssEditGame: (gameId: string) => void;
   onEditGame: (game: Partial<Game>) => void;
@@ -76,7 +71,7 @@ type OwnProps = {
   fpfssEditMode?: boolean;
 };
 
-export type RightBrowseSidebarProps = OwnProps & WithPreferencesProps & WithSearchProps & WithConfirmDialogProps;
+export type RightBrowseSidebarProps = OwnProps & WithPreferencesProps & WithConfirmDialogProps;
 
 type RightBrowseSidebarState = {
   /** If a preview of the current game's screenshot should be shown. */
@@ -96,6 +91,7 @@ type RightBrowseSidebarState = {
 
 /** Sidebar on the right side of BrowsePage. */
 export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps, RightBrowseSidebarState> {
+  static contextType = LangContext;
   // Bound "on change" callbacks for game fields
   onLibraryChange             = this.wrapOnTextChange((game, text) => this.props.onEditGame({ library: text }));
   onTitleChange               = this.wrapOnTextChange((game, text) => this.props.onEditGame({ title: text }));
@@ -115,13 +111,14 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   onOriginalDescriptionChange = this.wrapOnTextChange((game, text) => this.props.onEditGame({ originalDescription: text }));
   // Bound "on click" callbacks for game fields
   onDeveloperClick            = this.wrapOnTextClick('developer');
-  onSeriesClick               = this.wrapOnTextClick('series');
+  onSeriesClick               = this.wrapOnExactTextClick('series');
   onSourceClick               = this.wrapOnTextClick('source');
   onPublisherClick            = this.wrapOnTextClick('publisher');
   onPlayModeClick             = this.wrapOnTextClick('playMode');
   onStatusClick               = this.wrapOnTextClick('status');
   onVersionClick              = this.wrapOnTextClick('version');
   onLanguageClick             = this.wrapOnTextClick('language');
+  onRuffleSupportClick        = this.wrapOnTextClick('ruffleSupport');
 
   launchCommandRef: React.RefObject<HTMLInputElement> = React.createRef();
 
@@ -147,8 +144,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     window.Shared.back.registerAny(this.onResponse);
     window.addEventListener('keydown', this.onGlobalKeyDown);
 
-    if (this.props.currentGameInfo && this.props.currentGameInfo.game.activeDataId) {
-      window.Shared.back.request(BackIn.GET_GAME_DATA, this.props.currentGameInfo.game.activeDataId)
+    if (this.props.currentGame && this.props.currentGame.activeDataId) {
+      window.Shared.back.request(BackIn.GET_GAME_DATA, this.props.currentGame.activeDataId)
       .then((data) => {
         if (data) {
           this.setState({
@@ -166,9 +163,9 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
 
   componentDidUpdate(prevProps: RightBrowseSidebarProps): void {
     if (this.props.isEditing && !prevProps.isEditing) {
-      if (this.props.currentGameInfo) {
-        this.checkImageExistance(SCREENSHOTS, this.props.currentGameInfo.game.id);
-        this.checkImageExistance(LOGOS, this.props.currentGameInfo.game.id);
+      if (this.props.currentGame) {
+        this.checkImageExistance(SCREENSHOTS, this.props.currentGame.id);
+        this.checkImageExistance(LOGOS, this.props.currentGame.id);
       } else {
         this.setState({
           screenshotExists: false,
@@ -176,7 +173,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
         });
       }
     }
-    if (this.props.currentGameInfo && this.props.currentGameInfo.game.id !== (prevProps.currentGameInfo && prevProps.currentGameInfo.game.id)) {
+    if (this.props.currentGame && this.props.currentGame.id !== (prevProps.currentGame && prevProps.currentGame.id)) {
       // Hide again when changing games
       this.setState({ showExtremeScreenshots: false });
       // Move scroll bar of middle section back to the top
@@ -184,29 +181,91 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
         this.state.middleScrollRef.current.scrollTo(0,0);
       }
     }
-    if (prevProps.currentGameInfo && prevProps.currentGameInfo.game.activeDataId && (!this.props.currentGameInfo || !this.props.currentGameInfo.game.activeDataId)) {
+    if (prevProps.currentGame && prevProps.currentGame.activeDataId && (!this.props.currentGame || !this.props.currentGame.activeDataId)) {
       /** No game data, clear */
       this.setState({ activeData: null });
     }
-    if ((prevProps.currentGameInfo && prevProps.currentGameInfo.game.activeDataId) !== (this.props.currentGameInfo && this.props.currentGameInfo.game.activeDataId)) {
+    if ((prevProps.currentGame && prevProps.currentGame.activeDataId) !== (this.props.currentGame && this.props.currentGame.activeDataId)) {
       /** Game Data changed */
-      if (this.props.currentGameInfo && this.props.currentGameInfo.game.activeDataId) {
-        window.Shared.back.request(BackIn.GET_GAME_DATA, this.props.currentGameInfo.game.activeDataId)
+      if (this.props.currentGame && this.props.currentGame.activeDataId) {
+        window.Shared.back.request(BackIn.GET_GAME_DATA, this.props.currentGame.activeDataId)
         .then((gameData) => this.setState({ activeData: gameData }));
       }
     }
   }
 
+  onEditAddApp(game: Game, addApp: AdditionalApp) {
+    if (game !== undefined && game.addApps !== undefined) {
+      const addApps = deepCopy(game.addApps);
+      const addAppIdx = addApps.findIndex(aa => aa.id === addApp.id);
+      if (addAppIdx > -1) {
+        addApps[addAppIdx] = addApp;
+        this.props.onEditGame({ addApps });
+      }
+    }
+  }
+
   render() {
-    const allStrings = this.context;
+    const allStrings = this.context as LangContainer;
     const strings = allStrings.browse;
-    const game: Game | undefined = this.props.currentGameInfo?.game;
+    const game: Game | undefined = this.props.currentGame;
     if (game) {
       const { isEditing, isNewGame, currentPlaylistEntry, preferencesData, suggestions, tagCategories } = this.props;
       const currentAddApps = game.addApps;
       const editDisabled = !preferencesData.enableEditing;
       const editable = isEditing;
       const screenshotSrc = getGameImageURL(SCREENSHOTS, game.id);
+      const anyActiveDataDownloaded = game.gameData !== undefined && game.gameData.findIndex((gd) => gd.presentOnDisk) !== -1;
+
+      const contextMenu: MenuItemConstructorOptions[] = [];
+      if (game.ruffleSupport !== '' || this.state.activeData?.launchCommand.endsWith('.swf')) {
+        contextMenu.push({
+          label: strings.runWithFlashPlayer,
+          click: () => {
+            this.props.onGameLaunch(game.id, 'flash');
+          }
+        });
+        contextMenu.push({
+          label: game.ruffleSupport !== '' ? strings.runWithRuffle : strings.runWithRuffleUnsupported,
+          click: () => {
+            this.props.onGameLaunch(game.id, 'ruffle');
+          }
+        });
+      }
+      if (anyActiveDataDownloaded) {
+        contextMenu.push({
+          label: strings.uninstallGame,
+          click: async () => {
+            if (this.state.activeData) {
+              let dataId = this.state.activeData.id;
+              if (!this.state.activeData.presentOnDisk) {
+                if (game.gameData) {
+                  const gameData = game.gameData.find((gd) => gd.presentOnDisk);
+                  if (gameData !== undefined) {
+                    dataId = gameData.id;
+                  } else {
+                    alert("Broken uninstall logic, heckin confused");
+                    return;
+                  }
+                } else {
+                  alert("Broken uninstall logic, heckin confused");
+                  return;
+                }
+              }
+              const res = await this.props.openConfirmDialog(allStrings.dialog.uninstallGame, [allStrings.misc.yes, allStrings.misc.no], 1);
+              if (res === 0) {
+                window.Shared.back.request(BackIn.UNINSTALL_GAME_DATA, this.state.activeData.id)
+                .then(() => {
+                  this.onForceUpdateGameData();
+                })
+                .catch(() => {
+                  alert(allStrings.dialog.unableToUninstallGameData);
+                });
+              }
+            }
+          }
+        });
+      }
 
       const removeGameFromPlaylistElement =
         <ConfirmElement
@@ -215,132 +274,134 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
           render={this.renderRemoveFromPlaylistButton}
           extra={strings} />;
 
-      const gameConfigDropdown = this.props.currentGameInfo ? this.props.currentGameInfo.configs.map((val, idx) => {
-        const prefix = val.gameId === 'template' ? '(Template) ' : '';
-        return <label
-          className='curate-page__right-dropdown-content simple-dropdown-button'
-          key={idx}
-          onClick={() => {
-            // Set as active game configuration
-            if (this.props.currentGameInfo) {
-              const newActiveConfig = this.props.currentGameInfo.configs.find(c => c.id === val.id);
-              if (newActiveConfig) {
-                this.props.onForceSaveGame({
-                  ...this.props.currentGameInfo,
-                  activeConfig: newActiveConfig
-                });
-              }
-            }
-          }}>
-          <div>
-            {prefix + val.name}
-          </div>
-        </label>;
-      }): [];
-      // Add 'none' option
-      gameConfigDropdown.unshift(
-        <label
-          className='curate-page__right-dropdown-content simple-dropdown-button'
-          key={'none'}
-          style={{ fontStyle: 'italic'}}
-          onClick={() => {
-            // Set as active game configuration
-            if (this.props.currentGameInfo) {
-              this.props.onForceSaveGame({
-                ...this.props.currentGameInfo,
-                activeConfig: null
-              });
-            }
-          }}>
-          <div>
-            {'No Configuration'}
-          </div>
-        </label>
-      );
+      // const gameConfigDropdown = this.props.currentGame ? this.props.currentGame.configs.map((val, idx) => {
+      //   const prefix = val.gameId === 'template' ? '(Template) ' : '';
+      //   return <label
+      //     className='curate-page__right-dropdown-content simple-dropdown-button'
+      //     key={idx}
+      //     onClick={() => {
+      //       // Set as active game configuration
+      //       if (this.props.currentGame) {
+      //         const newActiveConfig = this.props.currentGame.configs.find(c => c.id === val.id);
+      //         if (newActiveConfig) {
+      //           this.props.onForceSaveGame({
+      //             ...this.props.currentGame,
+      //             activeConfig: newActiveConfig
+      //           });
+      //         }
+      //       }
+      //     }}>
+      //     <div>
+      //       {prefix + val.name}
+      //     </div>
+      //   </label>;
+      // }): [];
+      // // Add 'none' option
+      // gameConfigDropdown.unshift(
+      //   <label
+      //     className='curate-page__right-dropdown-content simple-dropdown-button'
+      //     key={'none'}
+      //     style={{ fontStyle: 'italic' }}
+      //     onClick={() => {
+      //       // Set as active game configuration
+      //       if (this.props.currentGame) {
+      //         this.props.onForceSaveGame({
+      //           ...this.props.currentGame,
+      //           activeConfig: null
+      //         });
+      //       }
+      //     }}>
+      //     <div>
+      //       {'No Configuration'}
+      //     </div>
+      //   </label>
+      // );
 
-      const saveGameConfig = async (config: GameConfig, idx: number) => {
-        // Update config in loaded game copy
-        if (this.props.currentGameInfo) {
-          const newInfo = deepCopy(this.props.currentGameInfo);
-          if (idx >= newInfo.configs.length) {
-            // New config, add to list
-            newInfo.configs.push(config);
-          } else {
-            newInfo.configs[idx] = config;
-          }
-          this.props.onForceSaveGame(newInfo);
-        }
-      };
+      // const saveGameConfig = async (config: GameConfig, idx: number) => {
+      //   // Update config in loaded game copy
+      //   if (this.props.currentGame) {
+      //     const newInfo = deepCopy(this.props.currentGame);
+      //     if (idx >= newInfo.configs.length) {
+      //       // New config, add to list
+      //       newInfo.configs.push(config);
+      //     } else {
+      //       newInfo.configs[idx] = config;
+      //     }
+      //     this.props.onForceSaveGame(newInfo);
+      //   }
+      // };
+      //
+      // const deleteGameConfig = async (idx: number) => {
+      //   if (this.props.currentGame) {
+      //     const newInfo = deepCopy(this.props.currentGame);
+      //     if (idx > -1 && idx < newInfo.configs.length) {
+      //       const removed = newInfo.configs.splice(idx, 1)[0];
+      //       // Templates need to be forcefully removed
+      //       if (removed.gameId === 'template') {
+      //         await window.Shared.back.request(BackIn.DELETE_GAME_CONFIG, removed.id);
+      //       }
+      //       if (newInfo.game.activeGameConfigId === removed.id) {
+      //         newInfo.activeConfig = null;
+      //       }
+      //     }
+      //     this.props.onForceSaveGame(newInfo);
+      //   }
+      // };
+      //
+      // const duplicateGameConfig = async (idx: number) => {
+      //   if (this.props.currentGame) {
+      //     const newCopy: GameConfig = {
+      //       ...this.props.currentGame.configs[idx]
+      //     };
+      //     // Hack to get a new ID when it next saves
+      //     (newCopy as any).id = null;
+      //     newCopy.gameId = this.props.currentGame.id;
+      //     newCopy.name = 'Copy - ' + newCopy.name;
+      //     newCopy.owner = 'local';
+      //
+      //     // Add it to game config list to force the template to save
+      //     const newInfo = deepCopy(this.props.currentGame);
+      //     newInfo.configs.push(newCopy);
+      //     this.props.onForceSaveGame(newInfo);
+      //   }
+      // };
+      //
+      // const makeTemplateGameConfig = async (idx: number) => {
+      //   if (this.props.currentGame) {
+      //     const template: GameConfig = {
+      //       ...this.props.currentGame.configs[idx]
+      //     };
+      //     // Hack to get a new ID when it next saves
+      //     (template as any).id = null;
+      //     template.gameId = 'template';
+      //
+      //     // Add it to game config list to force the template to save
+      //     const newInfo = deepCopy(this.props.currentGame);
+      //     newInfo.configs.unshift(template);
+      //     this.props.onForceSaveGame(newInfo);
+      //   }
+      // };
+      //
+      // const activeConfig = this.props.currentGame?.activeConfig;
+      // const configNamePrefix = activeConfig && activeConfig.gameId === 'template' ? '(Template) ' : '';
 
-      const deleteGameConfig = async (idx: number) => {
-        if (this.props.currentGameInfo) {
-          const newInfo = deepCopy(this.props.currentGameInfo);
-          if (idx > -1 && idx < newInfo.configs.length) {
-            const removed = newInfo.configs.splice(idx, 1)[0];
-            // Templates need to be forcefully removed
-            if (removed.gameId === 'template') {
-              await window.Shared.back.request(BackIn.DELETE_GAME_CONFIG, removed.id);
-            }
-            if (newInfo.game.activeGameConfigId === removed.id) {
-              newInfo.activeConfig = null;
-            }
-          }
-          this.props.onForceSaveGame(newInfo);
-        }
-      };
-
-      const duplicateGameConfig = async (idx: number) => {
-        if (this.props.currentGameInfo) {
-          const newCopy: GameConfig = {
-            ...this.props.currentGameInfo.configs[idx]
-          };
-          // Hack to get a new ID when it next saves
-          (newCopy as any).id = null;
-          newCopy.gameId = this.props.currentGameInfo.game.id;
-          newCopy.name = 'Copy - ' + newCopy.name;
-          newCopy.owner = 'local';
-
-          // Add it to game config list to force the template to save
-          const newInfo = deepCopy(this.props.currentGameInfo);
-          newInfo.configs.push(newCopy);
-          this.props.onForceSaveGame(newInfo);
-        }
-      };
-
-      const makeTemplateGameConfig = async (idx: number) => {
-        if (this.props.currentGameInfo) {
-          const template: GameConfig = {
-            ...this.props.currentGameInfo.configs[idx]
-          };
-          // Hack to get a new ID when it next saves
-          (template as any).id = null;
-          template.gameId = 'template';
-
-          // Add it to game config list to force the template to save
-          const newInfo = deepCopy(this.props.currentGameInfo);
-          newInfo.configs.unshift(template);
-          this.props.onForceSaveGame(newInfo);
-        }
-      };
-
-      const activeConfig = this.props.currentGameInfo?.activeConfig;
-      const configNamePrefix = activeConfig && activeConfig.gameId === 'template' ? '(Template) ' : '';
+      const isDownloadState = this.state.activeData && !anyActiveDataDownloaded;
 
       return (
         <div
           className={'browse-right-sidebar ' + (editable ? 'browse-right-sidebar--edit-enabled' : 'browse-right-sidebar--edit-disabled')}
           onKeyDown={this.onLocalKeyDown}>
           {/** Game Config Dialog */}
-          { this.state.gameConfigDialogOpen && this.props.currentGameInfo && (
-            <GameConfigDialog
-              saveConfig={saveGameConfig}
-              deleteConfig={deleteGameConfig}
-              makeTemplateConfig={makeTemplateGameConfig}
-              duplicateConfig={duplicateGameConfig}
-              info={this.props.currentGameInfo}
-              close={this.closeGameConfigDialog}
-            />
-          )}
+          {/* { this.state.gameConfigDialogOpen && this.props.currentGame && ( */}
+          {/*   <GameConfigDialog */}
+          {/*     saveConfig={saveGameConfig} */}
+          {/*     deleteConfig={deleteGameConfig} */}
+          {/*     makeTemplateConfig={makeTemplateGameConfig} */}
+          {/*     duplicateConfig={duplicateGameConfig} */}
+          {/*     info={this.props.currentGame} */}
+          {/*     close={this.closeGameConfigDialog} */}
+          {/*   /> */}
+          {/* )} */}
           <div className='browse-right-sidebar__top'>
             {/* -- Title & Developer(s) -- */}
             <div className='browse-right-sidebar__section'>
@@ -426,32 +487,32 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
               </div>
             </div>
             {/* -- Game Configurations  DISABLED - TODO: FIX */}
-            { !this.props.fpfssEditMode && false && (
-              <div className='browse-right-sidebar__game-config-row'>
-                <div className='browse-right-sidebar__game-config-label'>
-                  {'Configuration:'}
-                </div>
-                <Dropdown
-                  className={`browse-right-sidebar__game-config-dropdown ${this.props.currentGameInfo?.activeConfig ? '' : 'browse-right-sidebar__game-config-dropdown-none'}`}
-                  text={activeConfig ? `${configNamePrefix}${activeConfig.name}` : 'No Configuration'}>
-                  {gameConfigDropdown}
-                </Dropdown>
-                <div
-                  onClick={() => {
-                    this.openGameConfigDialog();
-                  }}
-                  className='browse-right-sidebar__game-config-cog browse-right-sidebar__title-row__buttons__save-button'>
-                  <OpenIcon icon={'cog'}/>
-                </div>
-              </div>
-            )}
+            {/* { !this.props.fpfssEditMode && false && ( */}
+            {/*   <div className='browse-right-sidebar__game-config-row'> */}
+            {/*     <div className='browse-right-sidebar__game-config-label'> */}
+            {/*       {'Configuration:'} */}
+            {/*     </div> */}
+            {/*     <Dropdown */}
+            {/*       className={`browse-right-sidebar__game-config-dropdown ${this.props.currentGame?.activeConfig ? '' : 'browse-right-sidebar__game-config-dropdown-none'}`} */}
+            {/*       text={activeConfig ? `${configNamePrefix}${activeConfig.name}` : 'No Configuration'}> */}
+            {/*       {gameConfigDropdown} */}
+            {/*     </Dropdown> */}
+            {/*     <div */}
+            {/*       onClick={() => { */}
+            {/*         this.openGameConfigDialog(); */}
+            {/*       }} */}
+            {/*       className='browse-right-sidebar__game-config-cog browse-right-sidebar__title-row__buttons__save-button'> */}
+            {/*       <OpenIcon icon={'cog'}/> */}
+            {/*     </div> */}
+            {/*   </div> */}
+            {/* )} */}
             {/** Mini download info */}
             <div className='browse-right-sidebar__mini-download-info'>
               <div className='browse-right-sidebar__mini-download-info__state'>
                 { this.props.fpfssEditMode ? strings.fpfssGame :
                   game.archiveState === 0 ? strings.notArchived :
                     game.archiveState === 1 ? strings.archived :
-                      this.state.activeData ? (this.state.activeData.presentOnDisk ? strings.installed : strings.notInstalled): strings.legacyGame}
+                      this.state.activeData ? (anyActiveDataDownloaded ? strings.installed : strings.notInstalled): strings.legacyGame}
               </div>
               { game.archiveState === 2 && this.state.activeData && (
                 <div className='browse-right-sidebar__mini-download-info__size'>
@@ -461,7 +522,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
             </div>
             {/* -- Play Button -- */}
             { this.props.fpfssEditMode ? undefined :
-              (this.props.currentGameInfo && this.props.busyGames.includes(this.props.currentGameInfo.game.id)) ? (
+              (this.props.currentGame && this.props.busyGames.includes(this.props.currentGame.id)) ? (
                 <div className='browse-right-sidebar__play-button--busy'>
                   {strings.busy}
                 </div>
@@ -470,23 +531,23 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   <div
                     className='browse-right-sidebar__play-button--running'
                     onClick={() => {
-                      if (this.props.currentGameInfo) {
-                        window.Shared.back.send(BackIn.SERVICE_ACTION, ProcessAction.STOP, `game.${this.props.currentGameInfo.game.id}`);
+                      if (this.props.currentGame) {
+                        window.Shared.back.send(BackIn.SERVICE_ACTION, ProcessAction.STOP, `game.${this.props.currentGame.id}`);
                       }
                     }}>
                     {strings.stop}
                   </div>
-                ) : (this.props.currentGameInfo?.game.archiveState == 0) ? (
+                ) : (this.props.currentGame?.archiveState == 0) ? (
                   <div
                     className='browse-right-sidebar__play-button--busy'>
                     {strings.notArchived}
                   </div>
-                ) : (this.props.currentGameInfo?.game.archiveState == 1) ? (
+                ) : (this.props.currentGame?.archiveState == 1) ? (
                   <div
                     className='browse-right-sidebar__play-button--download'
                     onClick={() => {
-                      if (this.props.currentGameInfo) {
-                        let url = this.props.currentGameInfo.game.source;
+                      if (this.props.currentGame) {
+                        let url = this.props.currentGame.source;
                         if (!url.startsWith('http://') && !url.startsWith('https://')) {
                           alert('Cannot open, not a valid source url.');
                         }
@@ -499,47 +560,34 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     }}>
                     {strings.playOnline}
                   </div>
-                ) : (this.state.activeData && !this.state.activeData.presentOnDisk) ? (
-                  <div
-                    className='browse-right-sidebar__play-button--download'
-                    onClick={() => {
-                      this.props.currentGameInfo && this.props.onGameLaunch(this.props.currentGameInfo.game.id)
-                      .then(this.onForceUpdateGameData);
-                    }}>
-                    {strings.download}
-                  </div>
-                )
-                  : (
-                    <div className='browse-right-sidebar__play-button' >
-                      <div className='browse-right-sidebar__play-button--text'
-                        onClick={() => this.props.currentGameInfo && this.props.onGameLaunch(this.props.currentGameInfo.game.id)} >
-                        {strings.play}
-                      </div>
-                      { this.state.activeData ? (
-                        <div className='browse-right-sidebar__play-button--dropdown'
-                          onClick={() =>
-                            openContextMenu([{
-                              label: strings.uninstallGame,
-                              click: async () => {
-                                if (this.state.activeData) {
-                                  const res = await this.props.openConfirmDialog(allStrings.dialog.uninstallGame, [allStrings.misc.yes, allStrings.misc.no], 1);
-                                  if (res === 0) {
-                                    window.Shared.back.request(BackIn.UNINSTALL_GAME_DATA, this.state.activeData.id)
-                                    .then(() => {
-                                      this.onForceUpdateGameData();
-                                    })
-                                    .catch(() => {
-                                      alert(allStrings.dialog.unableToUninstallGameData);
-                                    });
-                                  }
-                                }
-                              }
-                            }])
-                          }>
+                ) : (
+                    <div className={`browse-right-sidebar__play-button ${isDownloadState ? 'browse-right-sidebar__play-button--download' : ''}`}>
+                      {isDownloadState ? (
+                        <div
+                          className='browse-right-sidebar__play-button--text browse-right-sidebar__play-button--download-text'
+                          onClick={() => {
+                            this.props.currentGame && this.props.onGameLaunch(this.props.currentGame.id, null)
+                            .then(this.onForceUpdateGameData);
+                          }}>
+                          {strings.download}
+                        </div>
+                      ) : (
+                        <div 
+                          className='browse-right-sidebar__play-button--text browse-right-sidebar__play-button--play-text'
+                          onClick={() => {
+                            this.props.currentGame && this.props.onGameLaunch(this.props.currentGame.id, null)
+                          }}>
+                          {strings.play}
+                        </div>
+                      )}
+                      { contextMenu.length > 0 ? (
+                        <div className={`browse-right-sidebar__play-button--dropdown ${isDownloadState ? 'browse-right-sidebar__play-button--download-dropdown' : 'browse-right-sidebar__play-button--play-dropdown'}`}
+                          onClick={() => {
+                            openContextMenu(contextMenu);
+                          }}>
                           <OpenIcon icon='chevron-bottom'/>
                         </div>
                       ) : undefined }
-
                     </div>
                   )
             }
@@ -738,6 +786,30 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     editable={editable}
                     onClick={this.onLanguageClick} />
                 </div>
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                  <p>{strings.ruffleSupport}: </p>
+                  <DropdownInputFieldMapped
+                    text={mapRuffleSupportString(game.ruffleSupport)}
+                    placeholder={'None'}
+                    className='browse-right-sidebar__searchable'
+                    editable={editable}
+                    items={[{
+                      key: '',
+                      value: 'None'
+                    }, {
+                      key: 'standalone',
+                      value: 'Standalone'
+                    }]}
+                    onChange={(key) => {
+                      this.props.onEditGame({ ruffleSupport: key });
+                    }}
+                    onClick={this.onRuffleSupportClick} />
+                  { !editable && game.ruffleSupport !== '' ? (
+                    <div className='browse-right-sidebar-floating-icon'>
+                      <OpenIcon icon='check'/>
+                    </div>
+                  ) : undefined }
+                </div>
               </div>
             </>
             {/* -- Date Display -- */}
@@ -843,6 +915,9 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     key={addApp.id}
                     addApp={addApp}
                     editDisabled={!editable}
+                    onEdit={(aa) => {
+                      this.onEditAddApp(game, aa);
+                    }}
                     onLaunch={this.onAddAppLaunch}
                     onDelete={this.onAddAppDelete} />
                 )) }
@@ -857,6 +932,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     text={game.legacyApplicationPath}
                     placeholder={strings.noApplicationPath}
                     onChange={this.onApplicationPathChange}
+                    onExpand={this.onApplicationPathExpand}
                     editable={editable}
                     items={suggestions && filterSuggestions(suggestions.applicationPath) || []}
                     onItemSelect={text => this.props.onEditGame({ legacyApplicationPath: text })} />
@@ -949,12 +1025,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
               { this.props.preferencesData.enableEditing && !this.props.isEditing && (
                 <>
                   <SimpleButton
-                    value={allStrings.misc.exportMetaEditTitle}
-                    title={allStrings.misc.exportMetaEditDesc}
-                    onClick={() => this.props.currentGameInfo && this.props.onOpenExportMetaEdit(this.props.currentGameInfo.game.id)} />
-                  <SimpleButton
                     value={allStrings.menu.copyGameUUID}
-                    onClick={() => this.props.currentGameInfo && clipboard.writeText(this.props.currentGameInfo.game.id)} />
+                    onClick={() => this.props.currentGame && clipboard.writeText(this.props.currentGame.id)} />
                 </>
               )}
               { this.state.gameDataBrowserOpen && (
@@ -975,6 +1047,15 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
           <p>{strings.clickToSelectGame}</p>
         </div>
       );
+    }
+  }
+
+  onApplicationPathExpand = () => {
+    if (this.state.middleScrollRef.current) {
+      this.state.middleScrollRef.current.scrollTo({
+        top: this.state.middleScrollRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
     }
   }
 
@@ -1005,11 +1086,11 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       const [ folder, id ] = args as Parameters<BackOutTemplate[typeof type]>;
 
       // Refresh image if it was replaced or removed
-      if (this.props.isEditing && this.props.currentGameInfo && this.props.currentGameInfo.game.id === id) {
+      if (this.props.isEditing && this.props.currentGame && this.props.currentGame.id === id) {
         if (folder === LOGOS) {
-          this.checkImageExistance(LOGOS, this.props.currentGameInfo.game.id);
+          this.checkImageExistance(LOGOS, this.props.currentGame.id);
         } else if (folder === SCREENSHOTS) {
-          this.checkImageExistance(SCREENSHOTS, this.props.currentGameInfo.game.id);
+          this.checkImageExistance(SCREENSHOTS, this.props.currentGame.id);
         }
       }
     }
@@ -1036,7 +1117,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   onGlobalKeyDown = (event: KeyboardEvent) => {
     // Start editing
     if (event.ctrlKey && event.code === 'KeyE' && // (CTRL + E ...
-        !this.props.isEditing && this.props.currentGameInfo) { // ... while not editing, and a game is selected)
+        !this.props.isEditing && this.props.currentGame) { // ... while not editing, and a game is selected)
       this.props.onEditClick();
       if (this.launchCommandRef.current) { this.launchCommandRef.current.focus(); }
       event.preventDefault();
@@ -1046,7 +1127,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   onLocalKeyDown = (event: React.KeyboardEvent) => {
     // Save changes
     if (event.ctrlKey && event.key === 's' && // (CTRL + S ...
-        this.props.isEditing && this.props.currentGameInfo) { // ... while editing, and a game is selected)
+        this.props.isEditing && this.props.currentGame) { // ... while editing, and a game is selected)
       this.props.onSaveGame();
       event.preventDefault();
     }
@@ -1056,9 +1137,9 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     const newTag = event.currentTarget.value;
     let newSuggestions: TagSuggestion[] = this.state.tagSuggestions;
 
-    if (newTag !== '' && this.props.currentGameInfo) {
+    if (newTag !== '' && this.props.currentGame) {
       // Delayed set
-      const existingTags = this.props.currentGameInfo.game.tags;
+      const existingTags = this.props.currentGame.tags;
       window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag, this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme)).concat([generateTagFilterGroup(existingTags)]))
       .then(data => {
         if (data) { this.setState({ tagSuggestions: data }); }
@@ -1077,7 +1158,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     const newPlatform = event.currentTarget.value;
     let newSuggestions: TagSuggestion[] = this.state.platformSuggestions;
 
-    if (newPlatform !== '' && this.props.currentGameInfo) {
+    if (newPlatform !== '' && this.props.currentGame) {
       // Delayed set
       window.Shared.back.request(BackIn.GET_PLATFORM_SUGGESTIONS, newPlatform)
       .then(data => {
@@ -1094,7 +1175,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   };
 
   onScreenshotContextMenu = (event: React.MouseEvent) => {
-    const currentGame = this.props.currentGameInfo?.game;
+    const currentGame = this.props.currentGame;
     const template: MenuItemConstructorOptions[] = [];
     if (currentGame) {
       template.push({
@@ -1115,8 +1196,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   };
 
   setImageFactory = (folder: typeof LOGOS | typeof SCREENSHOTS) => async (data: ArrayBuffer) => {
-    if (this.props.currentGameInfo) {
-      const res = await axios.post(`${getGameImageURL(folder, this.props.currentGameInfo.game.id)}`, data);
+    if (this.props.currentGame) {
+      const res = await axios.post(`${getGameImageURL(folder, this.props.currentGame.id)}`, data);
       if (res.status !== 200) {
         alert(`ERROR: Server Returned ${res.status} - ${res.statusText}`);
       }
@@ -1126,32 +1207,12 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   onSetThumbnail = this.setImageFactory(LOGOS);
   onSetScreenshot = this.setImageFactory(SCREENSHOTS);
 
-  addImageDialog(folder: typeof LOGOS | typeof SCREENSHOTS) {
-    return () => {
-      const currentGame = this.props.currentGameInfo?.game;
-      if (!currentGame) { throw new Error('Failed to add image file. The currently selected game could not be found.'); }
-      // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
-      const filePaths = window.Shared.showOpenDialogSync({
-        title: this.context.dialog.selectScreenshot,
-        properties: ['openFile']
-      });
-      if (filePaths && filePaths[0]) {
-        fs.readFile(filePaths[0], (error, data) => {
-          if (error) { console.error(error); }
-          else {
-            window.Shared.back.send(BackIn.SAVE_IMAGE, folder, currentGame.id, data.toString('base64'));
-          }
-        });
-      }
-    };
-  }
-
   onRemoveScreenshotClick = this.removeImage.bind(this, SCREENSHOTS);
   onRemoveThumbnailClick = this.removeImage.bind(this, LOGOS);
 
   removeImage(folder: string): void {
-    if (this.props.currentGameInfo) {
-      window.Shared.back.send(BackIn.DELETE_IMAGE, folder, this.props.currentGameInfo.game.id);
+    if (this.props.currentGame) {
+      window.Shared.back.send(BackIn.DELETE_IMAGE, folder, this.props.currentGame.id);
     }
   }
 
@@ -1166,7 +1227,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     return event => {
       event.preventDefault();
       const files = copyArrayLike(event.dataTransfer.files);
-      const currentGame = this.props.currentGameInfo?.game;
+      const currentGame = this.props.currentGame;
       if (!currentGame) { throw new Error('Can not add a new image, "currentGame" is missing.'); }
       if (files.length > 1) { // (Multiple files)
         saveImage(files[0], LOGOS, currentGame.id);
@@ -1199,12 +1260,12 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   };
 
   onAddAppLaunch(addAppId: string): void {
-    window.Shared.back.send(BackIn.LAUNCH_ADDAPP, addAppId);
+    window.Shared.back.send(BackIn.LAUNCH_ADDAPP, addAppId, null);
   }
 
   onAddAppDelete = (addAppId: string): void => {
-    if (this.props.currentGameInfo) {
-      const newAddApps = deepCopy(this.props.currentGameInfo.game.addApps);
+    if (this.props.currentGame) {
+      const newAddApps = deepCopy(this.props.currentGame.addApps);
       if (!newAddApps) { throw new Error('editAddApps is missing.'); }
       const index = newAddApps.findIndex(addApp => addApp.id === addAppId);
       if (index === -1) { throw new Error('Cant remove additional application because it was not found.'); }
@@ -1214,10 +1275,10 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   };
 
   onNewAddAppClick = (): void => {
-    if (!this.props.currentGameInfo)    { throw new Error('Unable to add a new AddApp. "currentGameInfo" is missing.'); }
-    const newAddApp = ModelUtils.createAddApp(this.props.currentGameInfo.game);
+    if (!this.props.currentGame)    { throw new Error('Unable to add a new AddApp. "currentGame" is missing.'); }
+    const newAddApp = ModelUtils.createAddApp(this.props.currentGame);
     newAddApp.id = uuid();
-    const existingAddApps = this.props.currentGameInfo.game.addApps || [];
+    const existingAddApps = this.props.currentGame.addApps || [];
     this.props.onEditGame({ addApps: [...existingAddApps, ...[newAddApp]] });
   };
 
@@ -1249,13 +1310,13 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     window.Shared.back.request(BackIn.GET_TAG_BY_ID, suggestion.id)
     .then((tag) => {
       if (tag) {
-        const game = this.props.currentGameInfo?.game;
+        const game = this.props.currentGame;
         // Ignore dupe tags
         if (game && !game.tags.map(t => t.toLowerCase()).includes(tag.name.toLowerCase())) {
           if (!game.detailedTags) {
             game.detailedTags = [];
           }
-          this.props.onEditGame({ tags: [...game.tags, tag.name], detailedTags: [...game.detailedTags, tag]});
+          this.props.onEditGame({ tags: [...game.tags, tag.name], detailedTags: [...game.detailedTags, tag] });
           console.log('ADDED TAG ' + tag.id);
         }
       }
@@ -1271,7 +1332,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     window.Shared.back.request(BackIn.GET_PLATFORM_BY_ID, suggestion.id)
     .then((platform) => {
       if (platform) {
-        const game = this.props.currentGameInfo?.game;
+        const game = this.props.currentGame;
         // Ignore dupe tags
         if (game && !game.platforms.map(t => t.toLowerCase()).includes(platform.name.toLowerCase())) {
           if (!game.detailedPlatforms) {
@@ -1291,8 +1352,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   };
 
   onForceUpdateGameData = (): void => {
-    if (this.props.currentGameInfo && this.props.currentGameInfo.game.activeDataId) {
-      window.Shared.back.request(BackIn.GET_GAME_DATA, this.props.currentGameInfo.game.activeDataId)
+    if (this.props.currentGame && this.props.currentGame.activeDataId) {
+      window.Shared.back.request(BackIn.GET_GAME_DATA, this.props.currentGame.activeDataId)
       .then((gameData) => {
         this.setState({ activeData: gameData });
       });
@@ -1303,7 +1364,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     if (text !== '') {
       if (this.props.fpfssEditMode) {
         const newTagText = text.trim();
-        const game = this.props.currentGameInfo?.game;
+        const game = this.props.currentGame;
         if (game && !game.tags.map(t => t.toLowerCase()).includes(newTagText.toLowerCase())) {
           if (!game.detailedTags) {
             game.detailedTags = [];
@@ -1316,19 +1377,19 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
             dateModified: (new Date()).toISOString(),
             category: 'default'
           };
-          this.props.onEditGame({ tags: [...game.tags, tag.name], detailedTags: [...game.detailedTags, tag]});
+          this.props.onEditGame({ tags: [...game.tags, tag.name], detailedTags: [...game.detailedTags, tag] });
         }
       } else {
         window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, text)
         .then((tag) => {
           if (tag) {
-            const game = this.props.currentGameInfo?.game;
+            const game = this.props.currentGame;
             // Ignore dupe tags
             if (game && !game.tags.map(t => t.toLowerCase()).includes(tag.name.toLowerCase())) {
               if (!game.detailedTags) {
                 game.detailedTags = [];
               }
-              this.props.onEditGame({ tags: [...game.tags, tag.name], detailedTags: [...game.detailedTags, tag]});
+              this.props.onEditGame({ tags: [...game.tags, tag.name], detailedTags: [...game.detailedTags, tag] });
             }
           }
         });
@@ -1346,7 +1407,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     if (text !== '') {
       if (this.props.fpfssEditMode) {
         const newPlatformText = text.trim();
-        const game = this.props.currentGameInfo?.game;
+        const game = this.props.currentGame;
         if (game && !game.platforms.map(t => t.toLowerCase()).includes(newPlatformText.toLowerCase())) {
           if (!game.detailedPlatforms) {
             game.detailedPlatforms = [];
@@ -1365,7 +1426,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
         window.Shared.back.request(BackIn.GET_OR_CREATE_PLATFORM, text)
         .then((platform) => {
           if (platform) {
-            const game = this.props.currentGameInfo?.game;
+            const game = this.props.currentGame;
             // Ignore dupe platforms
             if (game && !game.platforms.map(t => t.toLowerCase()).includes(platform.name.toLowerCase())) {
               if (!game.detailedPlatforms) {
@@ -1384,7 +1445,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   };
 
   onRemoveTag = (tag: Tag, index: number): void => {
-    const game = this.props.currentGameInfo?.game;
+    const game = this.props.currentGame;
     if (game) {
       if (!game.detailedTags) {
         game.detailedTags = [];
@@ -1399,7 +1460,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   };
 
   onRemovePlatform = (platform: Platform, index: number): void => {
-    const game = this.props.currentGameInfo?.game;
+    const game = this.props.currentGame;
     if (game) {
       if (!game.detailedPlatforms) {
         game.detailedPlatforms = [];
@@ -1420,11 +1481,29 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
    */
   wrapOnTextClick<T extends PickType<Game, string>>(field: T): () => void {
     return () => {
-      const { currentGameInfo, isEditing } = this.props;
-      const currentGame = currentGameInfo?.game;
-      if (!isEditing && currentGame) {
+      const { isEditing } = this.props;
+      if (!isEditing && this.props.currentGame) {
         this.props.onDeselectPlaylist();
-        const value = currentGame[field];
+        const value = this.props.currentGame[field as keyof Game]?.toString();
+        const search = (value)
+          ? `${field}:${wrapSearchTerm(value)}`
+          : `${field}:""`;
+        this.props.onSearch(search);
+      }
+    };
+  }
+
+  /**
+ * Create a callback for when a game field is clicked.
+ *
+ * @param field Name of metadata field that was clicked
+ */
+  wrapOnExactTextClick<T extends PickType<Game, string>>(field: T): () => void {
+    return () => {
+      const { isEditing } = this.props;
+      if (!isEditing && this.props.currentGame) {
+        this.props.onDeselectPlaylist();
+        const value = this.props.currentGame[field as keyof Game]?.toString();
         const search = (value)
           ? `${field}=${wrapSearchTerm(value)}`
           : `${field}=""`;
@@ -1440,24 +1519,9 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
    */
   wrapOnTextChange(func: (game: Game, text: string) => void): (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void {
     return (event) => {
-      const game = this.props.currentGameInfo?.game;
+      const game = this.props.currentGame;
       if (game) {
         func(game, event.currentTarget.value);
-      }
-    };
-  }
-
-  /**
-   * Create a wrapper for a CheckBox's onChange callback (this is to reduce redundancy).
-   *
-   * @param func Function to wrap
-   */
-  wrapOnCheckBoxChange(func: (game: Game) => void): () => void {
-    return () => {
-      const game = this.props.currentGameInfo?.game;
-      const editable = this.props.preferencesData.enableEditing && this.props.isEditing;
-      if (game && editable) {
-        func(game);
       }
     };
   }
@@ -1482,24 +1546,10 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
 
   promotePlatform = (value: string) => {
     console.log(value);
-    if (this.props.currentGameInfo?.game.platforms.includes(value)) {
+    if (this.props.currentGame?.platforms.includes(value)) {
       this.props.onEditGame({ primaryPlatform: value });
     }
   };
-
-  closeGameConfigDialog = () => {
-    this.setState({
-      gameConfigDialogOpen: false
-    });
-  };
-
-  openGameConfigDialog = () => {
-    this.setState({
-      gameConfigDialogOpen: true
-    });
-  };
-
-  static contextType = LangContext;
 }
 
 function filterSuggestions(suggestions?: string[]): string[] {

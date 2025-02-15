@@ -4,12 +4,11 @@ import { ConnectedRouter } from 'connected-react-router';
 import { createMemoryHistory } from 'history';
 import * as ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
-import { createInitialMainState } from '.';
-import configureStore from './configureStore';
 import { ConnectedLogsPage } from './containers/ConnectedLogsPage';
 import { PreferencesContextProvider } from './context/PreferencesContext';
 import { LangContext } from './util/lang';
 import { logFactory } from './util/logging';
+import store from '@renderer/store/store';
 
 (async () => {
   window.log = {
@@ -32,11 +31,6 @@ import { logFactory } from './util/logging';
 
   // Create history
   const history = createMemoryHistory();
-
-  // Create Redux store
-  const store = configureStore(history, {
-    main: createInitialMainState(),
-  });
 
   // Connect to backend
   window.Shared.back.register(BackOut.LOG_ENTRY_ADDED, (event, entry, index) => {

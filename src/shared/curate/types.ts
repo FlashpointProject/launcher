@@ -42,6 +42,7 @@ export type CurationMeta = Partial<{
   originalDescription: string;
   language: string;
   mountParameters: string;
+  ruffleSupport: string;
 }>
 
 

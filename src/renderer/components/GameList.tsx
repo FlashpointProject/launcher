@@ -9,6 +9,8 @@ import { GameItemContainer } from './GameItemContainer';
 import { GameListHeader } from './GameListHeader';
 import { GameListItem } from './GameListItem';
 import { GameDragData, GameDragEventData } from './pages/BrowsePage';
+import { GameLaunchOverride, TagFilter } from 'flashpoint-launcher';
+
 /** A function that receives an HTML element. */
 type RefFunc<T extends HTMLElement> = (instance: T | null) => void;
 
@@ -18,10 +20,10 @@ export type OwnProps = {
   sourceTable: string;
   /** All games that will be shown in the list. */
   games?: ViewGameSet;
-  /** Total number of games there are. */
-  gamesTotal?: number;
+  /** Total number of games in the results view there are. */
+  resultsTotal?: number;
   /** Are we in a playlist view? */
-  insidePlaylist: boolean;
+  insideOrderedPlaylist: boolean;
   /** Currently selected game (if any). */
   selectedGameId?: string;
   /** Currently dragged game index (if any). */
@@ -32,25 +34,32 @@ export type OwnProps = {
   showExtremeIcon: boolean;
   /** Extreme Tag Filters */
   extremeTags: string[];
+  /** Tag Filter icons */
+  tagGroupIcons: { tagFilter: TagFilter; iconBase64: string; }[];
   /** Function that renders the elements to show instead of the grid if there are no games (render prop). */
   noRowsRenderer?: () => JSX.Element;
   /** Called when the user attempts to select a game. */
-  onGameSelect: (gameId?: string) => void;
+  onGameSelect: (gameId?: string, row?: number) => void;
   /** Called when the user attempts to launch a game. */
-  onGameLaunch: (gameId: string) => void;
+  onGameLaunch: (gameId: string, override: GameLaunchOverride) => void;
   /** Called when the user attempts to open a context menu (at a game). */
   onContextMenu: (gameId: string) => void;
   /** Called when the user starts to drag a game. */
   onGameDragStart: (event: React.DragEvent, dragEventData: GameDragEventData) => void;
   /** Called when the user stops dragging a game (when they release it). */
   onGameDragEnd: (event: React.DragEvent) => void;
-  /** Moves a game at the specified index above the other game at the destination index, inside tha playlist */
-  onMovePlaylistGame: (sourceIdx: number, destinationIdx: number) => void;
+  /** Moves a game at the specified index above the other game at the destination index, inside the playlist */
+  onMovePlaylistGame: (sourceGameId: string, destGameId: string) => void;
   updateView: UpdateView;
   /** Function for getting a reference to grid element. Called whenever the reference could change. */
   listRef?: RefFunc<HTMLDivElement>;
   /** Updates to clear platform icon cache */
   logoVersion: number;
+  /** View id */
+  viewId?: string;
+  /** Scroll position */
+  scrollRow?: number;
+  onScrollToChange?: (row: number) => void;
 };
 
 type RowsRenderedInfo = {
@@ -102,7 +111,7 @@ class _GameList extends React.Component<GameListProps> {
       if (destData) {
         console.log(`dest: ${destData.index}`);
         // Move the dropped game above the target game in the playlist
-        this.props.onMovePlaylistGame(dragData.index, destData.index);
+        this.props.onMovePlaylistGame(dragData.gameId, destData.gameId);
       }
     }
   };
@@ -118,6 +127,7 @@ class _GameList extends React.Component<GameListProps> {
 
   render() {
     const games = this.props.games || [];
+    console.log('render ' + this.props.scrollRow + ' ' + this.props.selectedGameId);
     // @HACK: Check if the games array changed
     // (This will cause the re-rendering of all cells any time the games prop uses a different reference)
     const gamesChanged = games !== this.currentGames;
@@ -138,26 +148,21 @@ class _GameList extends React.Component<GameListProps> {
           onGameContextMenu={this.onGameContextMenu}
           onGameDragStart={this.onGameDragStart}
           onGameDragEnd={this.onGameDragEnd}
-          onGameDrop={this.props.insidePlaylist ? this.onGameDrop : undefined}
-          onGameDragOver={this.props.insidePlaylist ? this.onGameDragOver : undefined}
+          onGameDrop={this.props.insideOrderedPlaylist ? this.onGameDrop : undefined}
+          onGameDragOver={this.props.insideOrderedPlaylist ? this.onGameDragOver : undefined}
           findGameDragEventData={this.findGameDragEventData}
           onKeyPress={this.onKeyPress}>
           <AutoSizer>
             {({ width, height }) => {
-              // Calculate column and row of selected item
-              let scrollToIndex = -1;
-              if (this.props.selectedGameId) {
-                scrollToIndex = findGameIndex(games, this.props.selectedGameId);
-              }
               return (
                 <ArrowKeyStepper
                   onScrollToChange={this.onScrollToChange}
                   mode='cells'
                   isControlled={true}
                   columnCount={1}
-                  rowCount={this.props.gamesTotal || 0}
-                  scrollToRow={scrollToIndex}>
-                  {({ onSectionRendered, scrollToRow }) => (
+                  rowCount={this.props.resultsTotal || 0}
+                  scrollToRow={this.props.scrollRow}>
+                  {({ onSectionRendered }) => (
                     <List
                       className='game-list simple-scroll'
                       ref={this.list}
@@ -165,14 +170,16 @@ class _GameList extends React.Component<GameListProps> {
                       height={height}
                       entries={this.props.games}
                       rowHeight={this.props.rowHeight}
-                      rowCount={this.props.gamesTotal || 0}
+                      rowCount={this.props.resultsTotal || 0}
                       overscanRowCount={RENDERER_OVERSCAN}
                       noRowsRenderer={this.props.noRowsRenderer}
                       rowRenderer={this.rowRenderer}
                       // ArrowKeyStepper props
-                      scrollToIndex={scrollToRow}
+                      scrollToIndex={this.props.scrollRow}
                       onRowsRendered={this.onRowsRendered}
                       onSectionRendered={onSectionRendered}
+                      pass_gameId={this.props.selectedGameId}
+                      pass_viewId={this.props.viewId}
                       // Pass-through props (they have no direct effect on the list)
                       // (If any property is changed the list is re-rendered, even these)
                       pass_gamesChanged={gamesChanged} />
@@ -193,6 +200,7 @@ class _GameList extends React.Component<GameListProps> {
     if (!games) { throw new Error('Trying to render a row in game list, but no games are found?'); }
     const game = games[cellProps.index];
     const platform = game?.primaryPlatform;
+    const tagGroupIcon = this.props.tagGroupIcons.find(tg => tg.tagFilter.find(t => game?.tags.includes(t)))?.iconBase64;
 
     return game ? (
       <GameListItem
@@ -207,6 +215,7 @@ class _GameList extends React.Component<GameListProps> {
         extreme={game.tags.findIndex(t => this.props.extremeTags.includes(t.trim())) !== -1}
         extremeIconPath={extremeIconPath}
         showExtremeIcon={showExtremeIcon}
+        tagGroupIconBase64={tagGroupIcon || ''}
         logoVersion={this.props.logoVersion}
         isDraggable={true}
         isSelected={game.id === selectedGameId}
@@ -222,7 +231,7 @@ class _GameList extends React.Component<GameListProps> {
   onKeyPress = (event: React.KeyboardEvent): void => {
     if (event.key === 'Enter') {
       if (this.props.selectedGameId) {
-        this.props.onGameLaunch(this.props.selectedGameId);
+        this.props.onGameLaunch(this.props.selectedGameId, null);
       }
     }
   };
@@ -234,7 +243,8 @@ class _GameList extends React.Component<GameListProps> {
    * @param gameId ID of pressed Game
    */
   onGameSelect = (event: React.MouseEvent, gameId: string | undefined): void => {
-    this.props.onGameSelect(gameId);
+    const row = findGameIndex(this.props.games, gameId);
+    this.props.onGameSelect(gameId, row);
   };
 
   /**
@@ -244,7 +254,7 @@ class _GameList extends React.Component<GameListProps> {
    * @param gameId ID of Game to launch
    */
   onGameLaunch = (event: React.MouseEvent, gameId: string): void => {
-    this.props.onGameLaunch(gameId);
+    this.props.onGameLaunch(gameId, null);
   };
 
   /**
@@ -282,12 +292,9 @@ class _GameList extends React.Component<GameListProps> {
    * @param params Position params to scroll to
    */
   onScrollToChange = (params: ScrollIndices): void => {
-    if (!this.props.games) { throw new Error('Games array is missing.'); }
-    if (params.scrollToRow === -1) {
-      this.props.onGameSelect(undefined);
-    } else {
-      const game = this.props.games[params.scrollToRow];
-      if (game) { this.props.onGameSelect(game.id); }
+    if (this.props.onScrollToChange) {
+      this.props.onScrollToChange(params.scrollToRow);
+
     }
   };
 

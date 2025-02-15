@@ -9,6 +9,16 @@ import { ResizableSidebar } from '../ResizableSidebar';
 import { TagList } from '../TagList';
 import { Tag } from 'flashpoint-launcher';
 
+const categoryOrder = [
+  'default',
+  'genre',
+  'theme',
+  'meta',
+  'presence',
+  'warning',
+  'copyright',
+];
+
 type OwnProps = {
 }
 
@@ -44,8 +54,18 @@ export class TagsPage extends React.Component<TagsPageProps, TagsPageState> {
   }
 
   componentDidMount() {
-    window.Shared.back.request(BackIn.GET_TAGS, '', this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme)))
+    window.Shared.back.request(BackIn.GET_TAGS, this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme)))
     .then((data) => {
+      data.sort((a, b) => {
+        const aCatOrder = a.category ? categoryOrder.indexOf(a.category) : 99999;
+        const bCatOrder = b.category ? categoryOrder.indexOf(b.category) : 99999;
+        
+        if (aCatOrder === bCatOrder) {
+          return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+        } else {
+          return aCatOrder - bCatOrder;
+        }
+      })
       if (data) { this.onTagsChange(data); }
     });
   }
@@ -113,8 +133,8 @@ export class TagsPage extends React.Component<TagsPageProps, TagsPageState> {
 
   onEditTag = (tag: Partial<Tag>) => {
     if (this.state.currentTag) {
-      const newTag = {...deepCopy(this.state.currentTag), ...tag};
-      this.setState({currentTag: newTag});
+      const newTag = { ...deepCopy(this.state.currentTag), ...tag };
+      this.setState({ currentTag: newTag });
     }
   };
 

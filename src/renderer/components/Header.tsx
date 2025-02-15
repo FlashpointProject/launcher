@@ -1,98 +1,288 @@
 import * as remote from '@electron/remote';
-import { openContextMenu } from '@renderer/app';
+import { openContextMenu } from '@renderer/components/app';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
-import { BackIn, FpfssUser } from '@shared/back/types';
+import { FpfssUser } from '@shared/back/types';
 import { getLibraryItemTitle } from '@shared/library/util';
 import { MenuItemConstructorOptions } from 'electron';
-import { GameOrderBy, GameOrderReverse, TagSuggestion } from 'flashpoint-launcher';
 import * as React from 'react';
 import { Link, RouteComponentProps, useLocation } from 'react-router-dom';
 import { WithPreferencesProps } from '../containers/withPreferences';
-import { Paths } from '../Paths';
-import { SearchQuery } from '../store/search';
-import { easterEgg, getPlatformIconURL, joinLibraryRoute } from '../Util';
+import { Paths } from '@shared/Paths';
+import { joinLibraryRoute } from '../Util';
 import { LangContext } from '../util/lang';
-import { GameOrder, GameOrderChangeEvent } from './GameOrder';
-import { InputElement } from './InputField';
 import { OpenIcon } from './OpenIcon';
-import { TagInputField } from './TagInputField';
-import { eventResponseDebouncerFactory } from '@shared/eventResponseDebouncer';
+import { WithSearchProps } from '@renderer/containers/withSearch';
+import { GENERAL_VIEW_ID } from '@renderer/store/search/slice';
+import { updatePreferencesData } from '@shared/preferences/util';
+import { WithViewProps } from '@renderer/containers/withView';
+import { WithMainStateProps } from '@renderer/containers/withMainState';
+import { DialogField, DialogState } from 'flashpoint-launcher';
+import { uuid } from '@shared/utils/uuid';
+import { WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
+
+const viewDragType = 'text/plain';
 
 type OwnProps = {
-  /** The most recent search query. */
-  searchQuery: SearchQuery;
-  /** Current value of the "order by" drop down. */
-  orderBy: GameOrderBy;
-  /** Current value of the "order reverse" drop down. */
-  orderReverse: GameOrderReverse;
   /** Array of library routes */
   libraries: string[];
-  /** Called when a search is made. */
-  onSearch: (text: string, redirect: boolean) => void;
-  /** Called when any of the ordering parameters are changed (by the header or a sub-component). */
-  onOrderChange?: (event: GameOrderChangeEvent) => void;
   /** Called when the left sidebar toggle button is clicked. */
   onToggleLeftSidebarClick?: () => void;
   /** Called when the right sidebar toggle button is clicked. */
   onToggleRightSidebarClick?: () => void;
-  logoVersion: number;
   user: FpfssUser | null;
   logoutUser: () => void;
 };
 
-export type HeaderProps = OwnProps & RouteComponentProps & WithPreferencesProps & WithTagCategoriesProps;
+export type HeaderProps = OwnProps & RouteComponentProps & WithMainStateProps & WithConfirmDialogProps & WithPreferencesProps & WithTagCategoriesProps & WithSearchProps & WithViewProps;
 
-type HeaderState = {
-  /** Current text in the search field. */
-  searchText: string;
-  /** Current tag suggestions under the search field */
-  tagSuggestions: TagSuggestion[];
-  /** Current platform suggestions under the search field */
-  platformSuggestions: TagSuggestion[];
-};
+type HeaderState = {};
 
 /** The header that is always visible at the top of the main window (just below the title bar). */
 export class Header extends React.Component<HeaderProps, HeaderState> {
   static contextType = LangContext;
   declare context: React.ContextType<typeof LangContext>;
 
-  searchInputRef: React.RefObject<InputElement> = React.createRef();
-
-  suggsDebouncer = eventResponseDebouncerFactory<TagSuggestion[]>();
-
   constructor(props: HeaderProps) {
     super(props);
-    this.state = {
-      searchText: this.props.searchQuery.text,
-      tagSuggestions: [],
-      platformSuggestions: [],
-    };
   }
 
-  componentDidMount() {
-    window.addEventListener('keypress', this.onKeypress);
-  }
+  onDuplicateView = async (view: string) => {
+    let warning: string | undefined;
+    while (true) {
+      const name = await this.getUserInput('Enter Duplicate View Name', warning);
 
-  componentWillUnmount() {
-    window.removeEventListener('keypress', this.onKeypress);
-  }
-
-  componentDidUpdate(prevProps: HeaderProps, prevState: HeaderState) {
-    // Update the text in the text-box if the search text has changed
-    const text = this.props.searchQuery.text;
-    if (text !== prevProps.searchQuery.text &&
-        text !== prevState.searchText) {
-      this.setState({ searchText: text });
+      if (name !== '') {
+        if (name === view) {
+          // Same name, just return and ignore user
+          return;
+        }
+        const views = Object.keys(this.props.search.views);
+        if (views.includes(name)) {
+          warning = 'Name already in use';
+          continue;
+        } else {
+          const customViews = [...this.props.preferencesData.customViews];
+          const customViewsIdx = this.props.preferencesData.customViews.findIndex(v => v === name);
+          if (customViewsIdx > -1) {
+            customViews[customViewsIdx] = name;
+          } else {
+            customViews.push(name);
+          }
+          updatePreferencesData({
+            customViews
+          });
+          this.props.searchActions.duplicateView({
+            oldView: view,
+            view: name
+          });
+          setTimeout(() => {
+            const route = joinLibraryRoute(name);
+            this.props.history.push(route);
+          }, 50);
+          return;
+        }
+      }
     }
   }
+
+  onRenameView = async (view: string) => {
+    let warning: string | undefined;
+    let name = view;
+    while (true) {
+      name = await this.getUserInput('Enter View Name', warning, name);
+
+      if (name !== '') {
+        if (name === view) {
+          // Same name, just return and ignore user
+          return;
+        }
+        const views = Object.keys(this.props.search.views);
+        if (views.includes(name)) {
+          warning = 'Name already in use';
+          continue;
+        } else {
+          // Change prefs
+          const customViews = [...this.props.preferencesData.customViews];
+          const customViewsIdx = this.props.preferencesData.customViews.findIndex(v => v === view);
+          if (customViewsIdx > -1) {
+            customViews[customViewsIdx] = name;
+          } else {
+            customViews.push(name);
+          }
+          const storedViews = [...this.props.preferencesData.storedViews.filter(s => s.view !== view)];
+          const existingStoredView = this.props.preferencesData.storedViews.find(s => s.view === view);
+          if (existingStoredView) {
+            storedViews.push({
+              ...existingStoredView,
+              view: name
+            });
+          }
+          if (this.props.preferencesData.defaultOpeningPage === joinLibraryRoute(view)) {
+            updatePreferencesData({
+              defaultOpeningPage: joinLibraryRoute(name)
+            });
+          }
+          updatePreferencesData({
+            customViews,
+            storedViews,
+          }, true);
+          if (this.props.currentView.id === view) {
+            // Move to LOADING page during change over
+            this.props.history.push(Paths.LOADING);
+            // Let the search action do the data swap
+            this.props.searchActions.renameView({
+              old: view,
+              new: name,
+            });
+            setTimeout(() => {
+              this.props.history.push(joinLibraryRoute(name));
+            }, 200);
+          } else {
+            this.props.searchActions.renameView({
+              old: view,
+              new: name,
+            });
+          }
+        }
+      }
+
+      break;
+    }
+  };
+
+  onCreateNewView = async () => {
+    let warning: string | undefined;
+    while (true) {
+      const name = await this.getUserInput('Enter View Name', warning);
+
+      if (name !== '') {
+        const views = Object.keys(this.props.search.views);
+        if (views.includes(name)) {
+          warning = 'Name already in use';
+          continue;
+        } else {
+          // Add new view
+          const customViews = [...this.props.preferencesData.customViews, name];
+          updatePreferencesData({
+            customViews,
+          }, true);
+          this.props.searchActions.addViews({
+            views: [name],
+            areLibraries: false,
+          });
+          setTimeout(() => {
+            this.props.history.push(joinLibraryRoute(name));
+          }, 200);
+        }
+      }
+
+      break;
+    }
+  };
+
+  onDragStart = (event: React.DragEvent<HTMLLIElement>, view: string) => {
+    console.log(`dragged: ${view}`);
+    event.dataTransfer.dropEffect = 'move';
+    event.dataTransfer.setData(viewDragType, view);
+  };
+
+  onDrop = (event: React.DragEvent<HTMLLIElement>, newView: string) => {
+    const view = event.dataTransfer.getData(viewDragType);
+    if (view) {
+      console.log(`dropped: ${view}`);
+      // Swap views
+      const customViews = [...this.props.preferencesData.customViews];
+      const oldIdx = customViews.findIndex(v => v === view);
+      const newIdx = customViews.findIndex(v => v === newView);
+      if (oldIdx > -1 && newIdx > -1) {
+        customViews[oldIdx] = newView;
+        customViews[newIdx] = view;
+      }
+      updatePreferencesData({
+        customViews,
+      });
+    }
+  };
+
+  onDeleteView = async (view: string) => {
+    const strings = this.context;
+    // Confirm first
+    const confirmation = await this.props.openConfirmDialog(
+      strings.dialog.areYouSure,
+      [strings.dialog.cancel, strings.misc.yes],
+      0,
+      1,
+    );
+    if (confirmation === 1) {
+      if (this.props.currentView.id === view) {
+        // Must move to the home tab first!
+        this.props.history.push(Paths.HOME);
+      }
+      const customViews = this.props.preferencesData.customViews.filter(v => v !== view);
+      const storedViews = this.props.preferencesData.storedViews.filter(v => v.view !== view);
+      // Make sure the default page is always valid
+      if (this.props.preferencesData.defaultOpeningPage === joinLibraryRoute(view)) {
+        updatePreferencesData({
+          defaultOpeningPage: Paths.HOME,
+        });
+      }
+      updatePreferencesData({
+        customViews: customViews,
+        storedViews: storedViews,
+      }, true);
+      this.props.searchActions.deleteView({
+        view: view
+      });
+    }
+  };
+
+  getUserInput = async (message: string, warning?: string, placeholder?: string): Promise<string> => {
+    return new Promise<string>((resolve) => {
+      const fields: DialogField[] = [];
+      fields.push({
+        type: 'string',
+        name: 'name',
+        value: placeholder || '',
+      });
+      if (warning) {
+        fields.push({
+          type: 'string',
+          name: 'warning',
+          locked: true,
+          value: warning,
+        });
+      }
+      const dialog: DialogState = {
+        id: uuid(),
+        largeMessage: true,
+        userCanCancel: false,
+        message: message,
+        cancelId: 0,
+        fields,
+        buttons: ['Cancel', 'Confirm'],
+      };
+      this.props.mainActions.createDialog(dialog);
+      window.Shared.dialogResEvent.once(dialog.id, (d: DialogState, value: number) => {
+        if (value === 1 && d.fields) {
+          const field = d.fields.find(f => f.name === 'name');
+          if (field) {
+            resolve(field.value as string);
+          } else {
+            resolve('');
+          }
+        } else {
+          resolve('');
+        }
+      });
+    });
+  };
 
   render() {
     const strings = this.context.app;
     const {
       preferencesData: { browsePageShowLeftSidebar, browsePageShowRightSidebar, enableEditing, showDeveloperTab, onlineManual, offlineManual },
-      onOrderChange, onToggleLeftSidebarClick, onToggleRightSidebarClick, libraries
+      onToggleLeftSidebarClick, onToggleRightSidebarClick
     } = this.props;
-    const { searchText } = this.state;
 
     // FPFSS user context menu
     const contextButtons: MenuItemConstructorOptions[] = [
@@ -111,94 +301,120 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
         }
       }
     ];
+    const browseViews = this.props.preferencesData.useCustomViews ?
+      Object.keys(this.props.search.views).filter(k => k !== GENERAL_VIEW_ID) :
+      this.props.libraries;
+    if (this.props.preferencesData.useCustomViews) {
+      browseViews.sort((a, b) => {
+        const aIdx = this.props.preferencesData.customViews.findIndex(v => v === a);
+        const bIdx = this.props.preferencesData.customViews.findIndex(v => v === b);
+        return aIdx - bIdx;
+      });
+    }
     return (
       <div className='header'>
         {/* Header Menu */}
         <div className='header__wrap'>
           <ul className='header__menu'>
-            <MenuItem title={strings.home} link={Paths.HOME} />
-            { libraries.length > 0 ? (
-              libraries.map(library => (
-                <MenuItem
-                  key={library}
-                  title={getLibraryItemTitle(library, this.context.libraries)}
-                  link={joinLibraryRoute(library)} />
-              ))
-            ) : (
-              <MenuItem
-                title={strings.browse}
-                link={Paths.BROWSE} />
-            ) }
+            <MenuItem
+              id={'header__home'}
+              title={strings.home}
+              link={Paths.HOME} />
+            {
+              this.props.preferencesData.useCustomViews ?
+                browseViews.map(view => (
+                  <MenuItem
+                    key={view}
+                    title={view}
+                    onDragStart={(event) => this.onDragStart(event, view)}
+                    onDrop={(event) => this.onDrop(event, view)}
+                    link={joinLibraryRoute(view)}
+                    onContextMenu={() => {
+                      const contextButtons: MenuItemConstructorOptions[] = [
+                        {
+                          label: strings.createNewView,
+                          click: this.onCreateNewView,
+                        },
+                        {
+                          label: strings.renameView,
+                          click: () => this.onRenameView(view),
+                        },
+                        {
+                          label: strings.duplicateView,
+                          click: () => this.onDuplicateView(view),
+                        },
+                        {
+                          label: browseViews.length > 1 || view !== 'Browse' ? strings.deleteView : strings.deleteOnlyBrowseView,
+                          enabled: browseViews.length > 1 ? true : view !== 'Browse',
+                          click: () => this.onDeleteView(view),
+                        },
+                      ];
+                      const menu = remote.Menu.buildFromTemplate(contextButtons);
+                      menu.popup({ window: remote.getCurrentWindow() });
+                    }}/>
+                )) :
+                browseViews.map(view => (
+                  <MenuItem
+                    key={view}
+                    title={getLibraryItemTitle(view, this.context.libraries)}
+                    link={joinLibraryRoute(view)}/>
+                ))
+            }
+            { this.props.preferencesData.useCustomViews && !this.props.preferencesData.hideNewViewButton && (
+              <li className='header__menu__item header__menu__item__icon' onClick={this.onCreateNewView} title={strings.createNewView}>
+                <OpenIcon icon={'plus'}/>
+              </li>
+            )}
             { enableEditing ? (
               <>
                 <MenuItem
+                  id={'header__tags'}
                   title={strings.tags}
                   link={Paths.TAGS} />
                 <MenuItem
+                  id={'header__categories'}
                   title={strings.categories}
                   link={Paths.CATEGORIES} />
               </>
             ) : undefined }
             <MenuItem
+              id={'header__logs'}
               title={strings.logs}
               link={Paths.LOGS} />
             <MenuItem
+              id={'header__config'}
               title={strings.config}
               link={Paths.CONFIG} />
             { (onlineManual || offlineManual) && (
               <MenuItem
+                id={'header__manual'}
                 title={strings.manual}
                 link={Paths.MANUAL} />
             )}
             <MenuItem
+              id={'header__about'}
               title={strings.about}
               link={Paths.ABOUT} />
             { enableEditing ? (
               <MenuItem
+                id={'header__curate'}
                 title={strings.curate}
                 link={Paths.CURATE} />
             ) : undefined }
             { showDeveloperTab ? (
               <MenuItem
+                id={'header__developer'}
                 title={strings.developer}
                 link={Paths.DEVELOPER} />
             ) : undefined }
           </ul>
-        </div>
-        {/* Header Search */}
-        <div className='header__wrap header__wrap--width-restricted header__search__wrap'>
-          <div>
-            <div className='header__search'>
-              <div className='header__search__left'>
-                {this.renderTagInput()}
-              </div>
-              <div
-                className='header__search__right'
-                onClick={ searchText ? this.onClearClick : undefined }>
-                <div className='header__search__right__inner'>
-                  <OpenIcon
-                    className='header__search__icon'
-                    icon={ searchText ? 'circle-x' : 'magnifying-glass' } />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* Header Drop-downs */}
-        <div className='header__wrap'>
-          <div>
-            <GameOrder
-              onChange={onOrderChange}
-              orderBy={this.props.orderBy}
-              orderReverse={this.props.orderReverse} />
-          </div>
         </div>
         {/* Right-most portion */}
         <div className='header__wrap header__right'>
           {this.props.user && (
             <div className='header-user-box' onClick={() => openContextMenu(contextButtons)}>
               {/* FPFSS user status */}
-              <div className='header-user-icon' style={{backgroundImage: `url(${this.props.user.avatarUrl})`}}></div>
+              <div className='header-user-icon' style={{ backgroundImage: `url(${this.props.user.avatarUrl})` }}></div>
               <div className='header-user-name'>{this.props.user.username}</div>
             </div>
           )}
@@ -222,152 +438,37 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
       </div>
     );
   }
-
-  renderTagInput = () => {
-    const strings = this.context.app;
-
-    // Set the suggestions to the appropriate field being searched for currently
-    let suggestions: TagSuggestion[] = [];
-    let onSuggSubmit: ((tag: TagSuggestion) => void) = (t) => {};
-    let renderIconSugg: ((sugg: TagSuggestion) => JSX.Element) | undefined = undefined;
-    if (this.state.tagSuggestions.length > 0) {
-      suggestions = this.state.tagSuggestions;
-      onSuggSubmit = this.onTagSuggestionSelect;
-    } else if (this.state.platformSuggestions.length > 0) {
-      suggestions = this.state.platformSuggestions;
-      onSuggSubmit = this.onPlatformSuggestionSelect;
-      renderIconSugg = this.renderPlatformIconSugg;
-    }
-
-    return (
-      <TagInputField
-        className='header__search__input'
-        editable={true}
-        text={this.state.searchText}
-        tags={[]} /** We're not using the tag list */
-        suggestions={suggestions}
-        categories={this.props.tagCategories}
-        placeholder={strings.searchPlaceholder}
-        onTagSubmit={this.onSearchSubmit}
-        onTagSuggestionSelect={onSuggSubmit}
-        renderIconSugg={renderIconSugg}
-        onChange={this.onSearchChange} />
-    );
-  };
-
-  onSearchChange = (event: React.ChangeEvent<InputElement>): void => {
-    const value = event.target.value;
-    this.setState({ searchText: value }, () => {
-      // Update tag suggestions if currently in `tag:` search
-      const tagRegex = /(#([^\s]+)|tag[:=]([^\s]+))$/;
-      const tagMatch = tagRegex.exec(this.state.searchText);
-      if (tagMatch) {
-        const tagName = tagMatch[2] || tagMatch[3];
-        this.suggsDebouncer.dispatch(
-          window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, tagName, this.props.preferencesData.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme))),
-          (data) => {
-            if (data) { this.setState({ tagSuggestions: data }); }
-          }
-        );
-      } else {
-        // Not searching by tag
-        this.suggsDebouncer.invalidate();
-        this.setState({ tagSuggestions: [] });
-      }
-      // Update platform suggestions if currently in `platform:` or `platforms:` or `tech:` search
-      const platformRegex = /(#([^\s]+)|platform[s]?:([^\s]+))$/;
-      const techRegex = /(#([^\s]+)|tech[s]?:([^\s]+))$/;
-      const platformMatch = platformRegex.exec(this.state.searchText);
-      const techMatch = techRegex.exec(this.state.searchText);
-      const match = platformMatch || techMatch;
-      if (match) {
-        const platformName = match[2] || match[3];
-        window.Shared.back.request(BackIn.GET_PLATFORM_SUGGESTIONS, platformName)
-        .then(data => {
-          if (data) { this.setState({ platformSuggestions: data }); }
-        });
-      } else {
-        // Not searching by platform
-        this.setState({ platformSuggestions: [] });
-      }
-    });
-    // "Clear" the search when the search field gets empty
-    if (value === '') { this.props.onSearch('', false); }
-  };
-
-  onSearchSubmit = (value: string): void => {
-    this.props.onSearch(value, true);
-    easterEgg(value);
-  };
-
-  onTagSuggestionSelect = (suggestion: TagSuggestion): void => {
-    const tagRegex = /((#)([^\s]+)|(tag[:=])([^\s]+))$/;
-    const match = tagRegex.exec(this.state.searchText);
-    if (match) {
-      console.log(match);
-      const quickSearch = match[4] ? false : true;
-      console.log(quickSearch);
-      const index = match.index + (quickSearch ? 1 : 4);
-      if (index === 0) { return; } // Just to be careful
-      this.setState({
-        searchText: this.state.searchText.slice(0, index-1) + `="${suggestion.name}"`,
-        tagSuggestions: []
-      });
-    }
-  };
-
-
-  onPlatformSuggestionSelect = (suggestion: TagSuggestion): void => {
-    const platformRegex = /((#)([^\s]+)|(platform:)([^\s]+))$/;
-    const match = platformRegex.exec(this.state.searchText);
-    if (match) {
-      console.log(match);
-      const quickSearch = match[4] ? false : true;
-      console.log(quickSearch);
-      const index = match.index + (quickSearch ? 1 : 9);
-      this.setState({
-        searchText: this.state.searchText.slice(0, index) + `"${suggestion.name}"`,
-        platformSuggestions: []
-      });
-    }
-  };
-
-  onKeypress = (event: KeyboardEvent): void => {
-    if (event.ctrlKey && event.code === 'KeyF') {
-      const element = this.searchInputRef.current;
-      if (element) {
-        element.select();
-        event.preventDefault();
-      }
-    }
-  };
-
-  onClearClick = (): void => {
-    this.setState({ searchText: '' });
-    this.props.onSearch('', false);
-  };
-
-  renderPlatformIconSugg = (platformSugg: TagSuggestion) => {
-    const iconUrl = getPlatformIconURL(platformSugg.name, this.props.logoVersion);
-    return (
-      <div
-        className='platform-tag__icon'
-        style={{ backgroundImage: `url(${iconUrl})` }} />
-    );
-  };
 }
 
 type MenuItemProps = {
+  id?: string;
   title: string;
   link: string;
+  onDragStart?: (event: React.DragEvent<HTMLLIElement>) => void;
+  onDrop?: (event: React.DragEvent<HTMLLIElement>) => void;
+  onContextMenu?: () => void;
 };
 
 // An item in the header menu. Used as buttons to switch between tabs/pages.
-function MenuItem({ title, link }: MenuItemProps) {
+function MenuItem({ id, title, link, onContextMenu, onDragStart, onDrop }: MenuItemProps) {
   const location = useLocation();
-  const selected = link === '/' ? location.pathname === link : location.pathname.startsWith(link);
+  const selected = location.pathname.split('?')[0] === link;
+  const onDragOver = (event: React.DragEvent<HTMLLIElement>) => {
+    event.preventDefault();
+  };
+  const onDragLeave = (event: React.DragEvent<HTMLLIElement>) => {
+    event.preventDefault();
+  };
   return (
-    <li className='header__menu__item'>
+    <li
+      id={id}
+      className='header__menu__item'
+      onContextMenu={onContextMenu}
+      draggable={onDragStart !== undefined}
+      onDragStart={onDragStart}
+      onDragOver={onDragStart !== undefined ? onDragOver : undefined}
+      onDragLeave={onDragStart !== undefined ? onDragLeave : undefined}
+      onDrop={onDrop}>
       <Link to={link} className={`header__menu__item__link ${selected ? 'header__menu__item__link-selected' : ''}`}>{title}</Link>
     </li>
   );

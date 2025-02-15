@@ -1,10 +1,10 @@
 /* ====== FANCY ======
- * 
+ *
  * Contains all styles that enhance the visuals of the application.
  * This includes things like text/background/border colors, fonts etc.
  *
  * This style-sheet should be completely optional.
- * 
+ *
  */
 
 /* ------ General ------ */
@@ -203,6 +203,7 @@ body {
   border-color: var(--layout__warning-bright-color);
 }
 /* Simple Selector */
+.search-selector,
 .simple-selector {
   border-color: var(--layout__primary-outline-color);
   /* Pimp */
@@ -415,6 +416,9 @@ body {
 .header {
   background-color: var(--layout__secondary-background);
 }
+.header__menu__item:hover .icon__use {
+  fill: var(--layout__icon-button-hover-fill);
+}
 .header__menu__item__link {
   cursor: pointer;
   text-decoration: none;
@@ -430,7 +434,7 @@ body {
 }
 .header__search {
   border: 1px solid var(--layout__primary-outline-color);
-  background-color: var(--layout__primary-background); 
+  background-color: var(--layout__primary-background);
 }
 .header__search__input {
   color: var(--layout__primary-text-color);
@@ -757,15 +761,21 @@ body {
   border-left: solid 2px;
   border-color: var(--layout__primary-outline-color);
 }
+.browse-right-sidebar__play-button--play-dropdown {
+  background-color: var(--layout__play-button);
+}
+.browse-right-sidebar__play-button--download-dropdown {
+  background-color: var(--layout__play-button--download);
+}
 .browse-right-sidebar__play-button {
   background-color: var(--layout__play-button);
 }
-.browse-right-sidebar__play-button--text:hover,
-.browse-right-sidebar__play-button--dropdown:hover {
+.browse-right-sidebar__play-button--play-text:hover,
+.browse-right-sidebar__play-button--play-dropdown:hover {
   background-color: var(--layout__play-button--hover);
 }
-.browse-right-sidebar__play-button--text:active
-.browse-right-sidebar__play-button--dropdown:active {
+.browse-right-sidebar__play-button--play-text:active
+.browse-right-sidebar__play-button--play-dropdown:active {
   background-color: var(--layout__play-button--active);
 }
 .browse-right-sidebar__play-button--running {
@@ -777,13 +787,15 @@ body {
 .browse-right-sidebar__play-button--running:active {
   background-color: var(--layout__play-button--running--active);
 }
-.browse-right-sidebar__play-button--download {
+.browse-right-sidebar__play-button--download-text {
   background-color: var(--layout__play-button--download);
 }
-.browse-right-sidebar__play-button--download:hover {
+.browse-right-sidebar__play-button--download-text:hover,
+.browse-right-sidebar__play-button--download-dropdown:hover {
   background-color: var(--layout__play-button--download--hover);
 }
-.browse-right-sidebar__play-button--download:active {
+.browse-right-sidebar__play-button--download-text:active,
+.browse-right-sidebar__play-button--download-dropdown:hover {
   background-color: var(--layout__play-button--download--active);
 }
 .browse-right-sidebar__play-button--busy {
@@ -794,7 +806,7 @@ body {
 .browse-right-sidebar__title-row__buttons .icon__use {
   fill: var(--layout__primary-text-color);
 }
-.browse-right-sidebar__title-row__buttons :hover .icon__use {
+.browse-right-sidebar__title-row__buttons:hover .icon__use {
   fill: var(--layout__icon-button-hover-fill);
 }
 /* BrowseSidebar Title-Row Delete-Game */
@@ -853,6 +865,9 @@ body {
 }
 .browse-right-sidebar__game-config-dropdown-none {
   font-style: italic;
+}
+.browse-right-sidebar-floating-icon .icon__use {
+  fill: var(--layout__confirm-color);
 }
 
 /* GameImageSplit */
@@ -1258,7 +1273,7 @@ body {
 }
 
 .tag-filter-editor__header {
-  font-style: italic;  
+  font-style: italic;
 }
 
 /** Checkboxes */
@@ -1496,4 +1511,53 @@ body {
   background-color: var(--layout__primary-background);
   color: var(--layout__primary-text-color);
   border-color: var(--layout__primary-outline-color);
+}
+
+/** --- Search bar --- */
+.searchable-select-dropdown-search-bar {
+  padding: 0.3rem;
+  color: white;
+}
+
+.search-bar-text-input {
+  padding: 0.3rem;
+  color: white;
+  background: transparent;
+  border: none;
+}
+
+.searchable-select-dropdown-search-bar,
+.searchable-select-dropdown,
+.search-bar-order-dropdown,
+.search-bar-text-input-wrapper,
+.search-bar-simple-box {
+  background-color: var(--layout__quaternary-background);
+  border: 1px solid var(--layout__primary-outline-color);
+  border-radius: 2px;
+  box-shadow: 0px 2px 4px 0px #09090a;
+}
+
+.search-selector:hover,
+.search-bar-simple-box:hover {
+  background-color: #363638;
+}
+
+.search-bar-simple-box > * {
+  filter: unset;
+}
+
+
+/** --- Searchable select -- */
+.searchable-select-number {
+  color: black;
+  background-color: var(--layout__game-item-color-selected);
+}
+
+.searchable-select-dropdown-item {
+  border-bottom: 1px solid var(--layout__primary-outline-color);
+}
+
+.searchable-select-dropdown-item--highlighted,
+.searchable-select-dropdown-item:hover {
+  background-color: var(--layout__header-menu-item-hover-background);
 }

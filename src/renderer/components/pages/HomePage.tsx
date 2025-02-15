@@ -1,19 +1,18 @@
 import { FancyAnimation } from '@renderer/components/FancyAnimation';
 import { WithMainStateProps } from '@renderer/containers/withMainState';
-import { MainActionType } from '@renderer/store/main/enums';
 import { BackIn, ComponentStatus, GameOfTheDay } from '@shared/back/types';
 import { ARCADE, LOGOS, SCREENSHOTS, THEATRE } from '@shared/constants';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
-import { DialogState, Game, Playlist, ViewGame } from 'flashpoint-launcher';
+import { DialogState, Game, GameLaunchOverride, Playlist, ViewGame } from 'flashpoint-launcher';
 import * as React from 'react';
 import ReactDatePicker from 'react-datepicker';
 import ReactMarkdown from 'react-markdown';
 import { Link } from 'react-router-dom';
 import remarkGfm from 'remark-gfm';
-import { Paths } from '../../Paths';
-import { findGameDragEventDataGrid, getExtremeIconURL, getGameImageURL, getPlatformIconURL, joinLibraryRoute, wrapSearchTerm } from '../../Util';
+import { Paths } from '@shared/Paths';
+import { findGameDragEventDataGrid, getExtremeIconURL, getGameImageURL, getPlatformIconURL, joinLibraryRoute } from '../../Util';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { WithSearchProps } from '../../containers/withSearch';
 import { LangContext } from '../../util/lang';
@@ -24,6 +23,9 @@ import { OpenIcon, OpenIconType } from '../OpenIcon';
 import { RandomGames } from '../RandomGames';
 import { SimpleButton } from '../SimpleButton';
 import { SizeProvider } from '../SizeProvider';
+import { GENERAL_VIEW_ID } from '@renderer/store/search/slice';
+import { idToGame } from '@renderer/util/async';
+import { useView } from '@renderer/hooks/search';
 
 type OwnProps = {
   gotdList: GameOfTheDay[] | undefined;
@@ -31,12 +33,7 @@ type OwnProps = {
   playlists: Playlist[];
   /** Generator for game context menu */
   onGameContextMenu: (gameId: string) => void;
-  onSelectPlaylist: (library: string, playlistId: string | null) => void;
-  onLaunchGame: (gameId: string) => void;
-  onGameSelect: (gameId: string | undefined) => void;
-  /** Clear the current search query (resets the current search filters). */
-  clearSearch: () => void;
-  /** Called when the "download tech" button is clicked. */
+  onLaunchGame: (gameId: string, override: GameLaunchOverride) => void;
   /** Pass to Random Picks */
   randomGames: ViewGame[];
   /** Re-rolls the Random Games */
@@ -111,29 +108,35 @@ export function HomePage(props: HomePageProps) {
     });
   }, [props.preferencesData.minimizedHomePageBoxes]);
 
-  const onGameSelect = React.useCallback((gameId: string | undefined) => {
-    props.onGameSelect(gameId);
-  }, [props.onGameSelect]);
+  const onGameSelect = async (gameId: string | undefined) => {
+    if (gameId) {
+      const game = await window.Shared.back.request(BackIn.GET_GAME, gameId);
+      if (game) {
+        props.searchActions.selectGame({
+          view: GENERAL_VIEW_ID,
+          game
+        });
+      }
+    }
+  };
 
   const onLaunchGame = React.useCallback((gameId: string) => {
-    props.onLaunchGame(gameId);
+    props.onLaunchGame(gameId, null);
   }, [props.onLaunchGame]);
 
   const onHallOfFameClick = React.useCallback(() => {
     const playlist = props.playlists.find(p => p.title.toLowerCase().includes('hall of fame'));
     if (playlist) {
-      props.onSelectPlaylist(ARCADE, playlist.id);
-      props.clearSearch();
+      // TODO: Reimplement
     }
-  }, [props.playlists, props.onSelectPlaylist, props.clearSearch]);
+  }, [props.playlists]);
 
   const onFavoriteClick = React.useCallback(() => {
     const playlist = props.playlists.find(p => p.title === ' Favorites' || p.title === '*Favorites*');
     if (playlist) {
-      props.onSelectPlaylist(ARCADE, playlist.id);
-      props.clearSearch();
+      // TODO: Reimplement
     }
-  }, [props.playlists, props.onSelectPlaylist, props.clearSearch]);
+  }, [props.playlists]);
 
   // const onHistoryClick = React.useCallback(() => {
   //   updatePreferencesData({
@@ -145,27 +148,43 @@ export function HomePage(props: HomePageProps) {
   // }, [props.onSelectPlaylist, props.clearSearch]);
 
   const onAllGamesClick = React.useCallback(() => {
-    props.onSelectPlaylist(ARCADE, null);
-    props.clearSearch();
-  }, [props.onSelectPlaylist, props.clearSearch]);
+    // TODO: Reimplement
+  }, []);
 
   const onAllAnimationsClick = React.useCallback(() => {
-    props.onSelectPlaylist(THEATRE, null);
-    props.clearSearch();
-  }, [props.onSelectPlaylist, props.clearSearch]);
+    // TODO: Reimplement
+  }, []);
+
+  const currentView = useView();
 
   const platformList = React.useMemo(() => {
     const elements: JSX.Element[] = [];
+    const views = Object.keys(props.search.views);
+    let viewName = '';
+    for (const view of views) {
+      if (view !== GENERAL_VIEW_ID) {
+        viewName = view;
+        break;
+      }
+    }
+    const sortedPlatforms = [...props.platforms].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
     elements.push(
       <div className='home-page__platform-box'>
-        {props.platforms.map((platform, idx) => (
+        {sortedPlatforms.map((platform, idx) => (
           <Link
             key={idx}
             className='home-page__platform-entry'
-            to={joinLibraryRoute('arcade')}
+            to={joinLibraryRoute(viewName)}
             onClick={() => {
-              props.onSearch('!' + wrapSearchTerm(platform));
-              props.onSelectPlaylist('arcade', null);
+              props.searchActions.setSearchText({
+                view: viewName,
+                text: `platform:"${platform}"`
+              });
+              setTimeout(() => {
+                props.searchActions.forceSearch({
+                  view: viewName
+                });
+              }, 100);
             }}>
             <div
               className='home-page__platform-entry__logo'
@@ -177,7 +196,7 @@ export function HomePage(props: HomePageProps) {
       </div>
     );
     return elements;
-  }, [props.platforms]);
+  }, [props.platforms, props.search.views]);
 
   // (These are kind of "magic numbers" and the CSS styles are designed to fit with them)
   const height = 140;
@@ -251,6 +270,8 @@ export function HomePage(props: HomePageProps) {
     );
   }, [strings, props.preferencesData.minimizedHomePageBoxes, toggleMinimizeBox]);
 
+  const tagGroupIcons = props.preferencesData.tagFilters.filter(t => !t.enabled && t.iconBase64 !== '').map(({tags, iconBase64: tagGroupIcon}) => ({tagFilter:tags, iconBase64:tagGroupIcon}));
+
   const renderedRandomGames = React.useMemo(() => (
     <SizeProvider width={width} height={height}>
       <RandomGames
@@ -260,6 +281,7 @@ export function HomePage(props: HomePageProps) {
         onLaunchGame={onLaunchGame}
         onGameSelect={onGameSelect}
         extremeTags={props.preferencesData.tagFilters.filter(tfg => !tfg.enabled && tfg.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), [])}
+        tagGroupIcons={tagGroupIcons}
         logoVersion={props.logoVersion}
         selectedGameId={props.selectedGameId}
         screenshotPreviewMode={props.preferencesData.screenshotPreviewMode}
@@ -274,14 +296,23 @@ export function HomePage(props: HomePageProps) {
   React.useEffect(() => {
     if (selectedGotd) {
       window.Shared.back.request(BackIn.GET_GAME, selectedGotd.id)
-      .then((fetchedInfo) => {
-        if (fetchedInfo) {
-          const game = fetchedInfo.game;
+      .then((game) => {
+        if (game) {
           setLoadedGotd(game);
         }
       });
     }
   }, [selectedGotd]);
+
+  const onSelectGame = async (gameId: string) => {
+    const game = await idToGame(gameId);
+    if (game) {
+      props.searchActions.selectGame({
+        view: GENERAL_VIEW_ID,
+        game,
+      });
+    }
+  };
 
   const extremeIconPath = React.useMemo(() => getExtremeIconURL(props.logoVersion), [props.logoVersion]);
 
@@ -303,8 +334,8 @@ export function HomePage(props: HomePageProps) {
                 <GameItemContainer
                   className='gotd-container'
                   onGameContextMenu={(event, gameId) => props.onGameContextMenu(gameId)}
-                  onGameSelect={(event, gameId) => props.onGameSelect(gameId)}
-                  onGameLaunch={(event, gameId) => props.onLaunchGame(gameId)}
+                  onGameSelect={(event, gameId) => gameId && onSelectGame(gameId)}
+                  onGameLaunch={(event, gameId) => props.onLaunchGame(gameId, null)}
                   findGameDragEventData={findGameDragEventDataGrid}>
                   <GameGridItem
                     key={loadedGotd.id}
@@ -313,6 +344,7 @@ export function HomePage(props: HomePageProps) {
                     platforms={loadedGotd.platforms.map(p => p.trim())}
                     extreme={loadedGotd.tags.findIndex(t => extremeTags.includes(t.trim())) !== -1}
                     extremeIconPath={extremeIconPath}
+                    tagGroupIconBase64={tagGroupIcons.find(tg => tg.tagFilter.find(t => loadedGotd?.tags.includes(t)))?.iconBase64 || ''}
                     thumbnail={getGameImageURL(LOGOS, loadedGotd.id)}
                     screenshot={getGameImageURL(SCREENSHOTS, loadedGotd.id)}
                     screenshotPreviewMode={props.preferencesData.screenshotPreviewMode}
@@ -384,10 +416,7 @@ export function HomePage(props: HomePageProps) {
         // Fetch update info
         window.Shared.back.request(BackIn.PRE_UPDATE_INFO, props.preferencesData.gameMetadataSources[0])
         .then((total) => {
-          props.dispatchMain({
-            type: MainActionType.UPDATE_UPDATE_INFO,
-            total
-          });
+          props.mainActions.setUpdateInfo(total);
         })
         .finally(() => {
           setUpdating(false);
@@ -403,14 +432,8 @@ export function HomePage(props: HomePageProps) {
               buttons: [allStrings.misc.ok],
               id: uuid()
             };
-            props.dispatchMain({
-              type: MainActionType.NEW_DIALOG,
-              dialog
-            });
-            props.dispatchMain({
-              type: MainActionType.UPDATE_UPDATE_INFO,
-              total: 0
-            });
+            props.mainActions.createDialog(dialog);
+            props.mainActions.setUpdateInfo(0);
           }
         })
         .catch((err) => {
@@ -421,10 +444,7 @@ export function HomePage(props: HomePageProps) {
             buttons: [allStrings.misc.ok],
             id: uuid()
           };
-          props.dispatchMain({
-            type: MainActionType.NEW_DIALOG,
-            dialog
-          });
+          props.mainActions.createDialog(dialog);
         })
         .finally(() => {
           setUpdating(false);

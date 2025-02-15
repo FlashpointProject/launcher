@@ -10,10 +10,18 @@
     "hideExtremeScreenshotsDesc": "Nasconde le schermate dei contenuti etichettati estremi, possono essere mostrate cliccando sul riquadro immagine.",
     "fancyAnimations": "Animazioni Estrose",
     "fancyAnimationsDesc": "Abilita le animazioni estrose nel launcher.",
+    "hideNewViewButton": "Nascondi Nuovo Pulsante Di Visualizzazione",
+    "hideNewViewButtonDesc": "Quando si utilizzano viste personalizzate, nascondere il pulsante della nuova vista (+). È invece possibile premere 'Crea nuova vista' nel menu contestuale per le schede.",
     "searchLimit": "Limite di Ricerca",
     "searchLimitDesc": "Limita il numero di risultati trovati per qualsiasi ricerca",
     "searchLimitUnlimited": "Illimitati",
     "searchLimitValue": "{0} Risultati",
+    "useCustomViews": "Usa Viste Di Ricerca Personalizzate",
+    "useCustomViewsDesc": "Sostituisce le schede di ricerca Libreria con schede di ricerca personalizzate con nome e aggiunge un'opzione Libreria ai filtri avanzati.",
+    "defaultOpeningPage": "Pagina Iniziale Predefinita",
+    "defaultOpeningPageDesc": "Pagina Iniziale a cui aprire, sia la Pagina Principale che una Pagina di Ricerca scelta",
+    "restoreSearchViews": "Ripristina Risultati Di Ricerca",
+    "restoreSearchViewsDesc": "Salva e ripristina una copia di ogni pagina di ricerca (testo, filtri, gioco selezionato e playlist) ogni volta che apri l'applicazione.",
     "enableEditing": "Abilita Modifica",
     "enableEditingDesc": "Abilita la modifica dei giochi e delle applicazioni aggiuntive. Mostra anche le schede relative alla modifica.",
     "symlinkCuration": "Collegamento simbolico al contenuto curato",
@@ -83,8 +91,10 @@
     "screenshotPreviewDelay": "Ritardo Anteprima Screenshot",
     "screenshotPreviewDelayDesc": "Ritardo (in millisecondi) prima di mostrare lo screenshot, quando l'anteprima dello screenshot è impostata su. (al passaggio)",
     "advancedHeader": "Avanzate",
+    "clearWininetCache": "Cancella Cache WinINet",
+    "clearWininetCacheDesc": "Cancella la cache web di Windows, che può aiutare a risolvere i problemi di caricamento in curazioni e altri rari casi.",
     "optimizeDatabase": "Ottimizza Database",
-    "optimizeDatabaseDesc": "Esegui attività di manutenzione per aumentare le prestazioni del database e ridurre le dimensioni",
+    "optimizeDatabaseDesc": "Esegui attività di manutenzione per aumentare le prestazioni del database e ridurre le dimensioni.",
     "showDeveloperTab": "Mostra Scheda Sviluppatore",
     "showDeveloperTabDesc": "Mostra la scheda 'Sviluppatore'. Molto probabilmente utile solo per sviluppatori e curatori.",
     "registerProtocol": "Registra Come Gestore Protocollo",
@@ -136,12 +146,13 @@
     "updatedGamesReady": "{0} Aggiornamenti Info Gioco Pronto",
     "checkingUpgradeState": "Controllo Stato Aggiornamenti...",
     "extrasHeader": "Extra",
+    "playHistory": "Cronologia Partite",
     "favoritesPlaylist": "Scaletta dei Preferiti",
     "tagList": "Elenco Etichette",
     "filterByPlatform": "Filtra per piattaforma",
     "plannedFeatures": "Scopri le funzioni su cui stiamo lavorando!",
     "notesHeader": "Note",
-    "notes": "Non dimenticare di leggere il manuale se riscontri dei problemi.",
+    "notes": "Non dimenticare di leggere la pagina di aiuto o il manuale se hai problemi.",
     "linuxSupport": "Problemi su Linux? {0}",
     "linuxSupportLinkText": "Apri FAQ",
     "randomPicks": "Scelta Casuale",
@@ -173,6 +184,7 @@
     "curate": "Curatore",
     "developer": "Sviluppatore",
     "searchPlaceholder": "Cerca...",
+    "searchPlaceholderCountable": "Cerca... ({0} elementi)",
     "hideRightSidebar": "Nascondi barra laterale destra",
     "showRightSidebar": "Mostra barra laterale destra",
     "hideLeftSidebar": "Nascondi barra laterale sinistra",
@@ -188,7 +200,11 @@
     "fpfssProfile": "Apri Profilo",
     "fpfssLogout": "Esci da FPFSS",
     "softwareUpdateRequired": "Software aggiornato richiesto. Vuoi farlo ora?",
-    "noLauncherUpdateReady": "L'aggiornamento dei metadati richiede una versione più recente di Launcher, ma l'aggiornamento del software non è attualmente disponibile."
+    "noLauncherUpdateReady": "L'aggiornamento dei metadati richiede una versione più recente di Launcher, ma l'aggiornamento del software non è attualmente disponibile.",
+    "deleteView": "Elimina Vista Ricerca",
+    "deleteOnlyBrowseView": "Elimina vista di ricerca (Deve avere un'altra vista personalizzata)",
+    "createNewView": "Crea una nuova vista di ricerca",
+    "errorLoadingServices": "Si è verificato un errore durante il caricamento dei servizi. Controlla i log per maggiori dettagli."
   },
   "filter": {
     "dateAdded": "Data di Aggiunta",
@@ -361,8 +377,9 @@
     "allGames": "Tutti i Giochi",
     "newPlaylist": "Crea una Nuova Scaletta",
     "importPlaylist": "Importa una Scaletta",
+    "noGamesFoundInsidePlaylist": "Nessun risultato trovato nella playlist!",
     "emptyPlaylist": "Scaletta Vuota",
-    "noGamesFound": "Nessun Gioco Trovato!",
+    "noGamesFound": "Nessun Risultato Trovato!",
     "dropGameOnLeft": "Trascina un gioco su questa scaletta nella {0} per aggiungerlo.",
     "leftSidebar": "barra laterale sinistra",
     "setFlashpointPathQuestion": "Hai impostato il {0} nella pagina {1}?",
@@ -375,12 +392,18 @@
     "noGameMatchedSearch": "Prova a cercare qualcosa di meno specifico.",
     "mountParameters": "Parametri di Montaggio",
     "noMountParameters": "Nessun Parametro di Montaggio",
+    "ruffleSupport": "Supporto Ruffle",
     "showExtremeScreenshot": "Mostra Schermata Estrema",
     "busy": "Attendere Prego...",
     "openGameDataBrowser": "Apri il browser dei dati di gioco",
+    "allGenericEntries": "Tutte le Voci",
+    "usePlaylistOrder": "Usa Ordine Playlist",
+    "hideFilters": "Nascondi filtri",
+    "showFilters": "Mostra filtri",
     "notArchived": "Non Archiviato",
     "archived": "Archiviato",
-    "playOnline": "Gioca in Rete"
+    "playOnline": "Gioca in Rete",
+    "tagFilterIcon": "Icona Filtro Etichette"
   },
   "tags": {
     "name": "Nome",
@@ -403,13 +426,15 @@
     "makeAliasWhenMerged": "Imposta come alias dell'etichetta?",
     "deleteTag": "Elimina l'Etichetta",
     "deleteTagCategory": "Elimina la Categoria Etichette",
-    "locked": "Bloccato durante l'elaborazione..."
+    "locked": "Bloccato durante l'elaborazione...",
+    "filterIcon": "Icon Thumbnail"
   },
   "curate": {
     "noCurationSelected": "Nessun Contenuto Curato Selezionato",
     "headerFileOperations": "File",
     "headerEditCuration": "Modifica",
     "headerTest": "Collauda",
+    "headerFpfss": "FPFSS",
     "importAll": "Importa Tutti",
     "importAllDesc": "Importa tutti i giochi curati attualmente caricati",
     "deleteAll": "Elimina Tutti",
@@ -490,7 +515,8 @@
     "contextCopyAsURL": "Copia Percorso File come URL",
     "contextShowInExplorer": "Mostra File in Explorer",
     "contextOpenFolderInExplorer": "Apri Cartella in Explorer",
-    "shortcuts": "Scorciatoie"
+    "shortcuts": "Scorciatoie",
+    "fpfssOpenSubmissionPage": "Apri Pagina D'Invio"
   },
   "playlist": {
     "enterDescriptionHere": "Inserisci qui una descrizione...",
@@ -518,6 +544,7 @@
   "misc": {
     "noBlankFound": "Nessuna {0} Trovata",
     "addBlank": "Aggiungi {0}",
+    "removeBlank": "Rimuovi {0}",
     "deleteAllBlankImages": "Elimina TUTTE le immagini {0} per questo gioco",
     "yes": "Sì",
     "no": "No",
@@ -530,7 +557,8 @@
     "showImage": "Mostra Immagine",
     "searching": "Ricerca...",
     "loading": "Caricamento...",
-    "ok": "OK"
+    "ok": "OK",
+    "allow": "Consenti"
   },
   "menu": {
     "viewThumbnailInFolder": "Visualizza Anteprima nella Cartella",
@@ -620,7 +648,14 @@
     "exportCurationWithWarnings": "Esportare il contenuto curato anche se ha avvertimenti?",
     "requiresAdditionalDownload": "Ti manca il pacchetto di supporto {0}, necessario per lanciare questa voce.\nScarica ora?",
     "requiresAdditionalDownloadPlural": "Ti mancano {0} pacchetti di supporto che sono necessari per avviare questa voce.\nScarica ora?",
-    "confirmClearPlaytime": "Cancella tutto il tempo di gioco e lo storico? Questa operazione è irreversibile."
+    "confirmClearPlaytime": "Cancella tutto il tempo di gioco e lo storico? Questa operazione è irreversibile.",
+    "badAntiVirus": "Sembra che tu stia usando '{0}'.\nQuesto particolare Antivirus è noto per causare problemi, e si consiglia di aggiungere un'eccezione alla cartella Flashpoint.\n\nSe si vede solo uno schermo bianco quando si eseguono giochi Flash potrebbe essere necessario reinstallare Flashpoint per ripristinare i file eliminati.\n\nVedi la scheda Wiki o Aiuto per istruzioni dettagliate.",
+    "openWiki": "Apri Wiki",
+    "openDiscord": "Unisciti Al Server Discord",
+    "doNotShowAgain": "Non mostrare più",
+    "extFpfssConsent": "L'estensione con ID {0} richiede l'accesso al tuo token FPFSS. Consenti?\nCiò significa che l'estensione sarà in grado di accedere al tuo account FPFSS ed eseguire azioni per tuo conto.",
+    "gameDataUpdateReady": "Un aggiornamento dei dati di gioco è pronto. Vuoi aggiornare ora?",
+    "gameDataUpdateReadyLcDifferent": "Un aggiornamento dei dati di gioco è pronto. Il comando di avvio è cambiato e questo potrebbe rompere i file di salvataggio esistenti. Vuoi aggiornare ora?"
   },
   "libraries": {
     "arcade": "Giochi",
@@ -640,5 +675,9 @@
     "techDesc": "Aggiunge supporto per tutte le altre tecnologie - Shockwave, Unity, Java, HTML5, ecc.",
     "screenshots": "Loghi & Schermate",
     "screenshotsDesc": "Aggiunge loghi per la visualizzazione a Griglia e schermate per tutti i giochi."
+  },
+  "extensions": {
+    "fpssConsentRevokeTitle": "Revocare l'accesso a FPFSS",
+    "fpssConsentRevokeDesc": "Preleva l'accesso di questa estensione al FPFSS"
   }
 }

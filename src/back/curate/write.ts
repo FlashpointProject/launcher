@@ -31,6 +31,7 @@ type CurationMetaFile = {
   'UUID'?: string;
   'Group'?: string;
   'Mount Parameters'?: string;
+  'Ruffle Support'?: string;
 };
 
 type CurationFormatAddApps = {
@@ -90,6 +91,7 @@ function convertEditToCurationMetaFile(curation: LoadedCuration): CurationMetaFi
   parsed['UUID']                 = curation.uuid;
   parsed['Mount Parameters']     = curation.game.mountParameters;
   parsed['Group']                = curation.group;
+  parsed['Ruffle Support']       = curation.game.ruffleSupport;
   // Add-apps meta
   const parsedAddApps: CurationFormatAddApps = {};
   const addApps = curation.addApps;

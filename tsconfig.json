@@ -8,6 +8,7 @@
     "target": "esnext",
     "lib": ["esnext", "dom"],
     "strict": true,
+    "skipLibCheck": true,
     "jsx": "react-jsx",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,

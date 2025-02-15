@@ -4,11 +4,12 @@ import { memoizeOne } from '@shared/memoize';
 import * as React from 'react';
 import { ArrowKeyStepper, AutoSizer, Grid, GridCellProps, ScrollIndices } from 'react-virtualized-reactv17';
 import { UpdateView, ViewGameSet } from '../interfaces';
-import { findElementAncestor, getExtremeIconURL, getGameImageURL } from '../Util';
+import { findElementAncestor, gameDragDataType, getExtremeIconURL, getGameImageURL } from '../Util';
 import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
-import { GameDragEventData } from './pages/BrowsePage';
+import { GameDragData, GameDragEventData } from './pages/BrowsePage';
 import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
+import { GameLaunchOverride, TagFilter } from 'flashpoint-launcher';
 
 const RENDERER_OVERSCAN = 5;
 
@@ -21,11 +22,13 @@ type ColumnsRows = {
 };
 
 export type GameGridProps = {
-  onGameLaunch: (gameId: string) => void;
+  onGameLaunch: (gameId: string, override: GameLaunchOverride) => void;
   /** All games that will be shown in the grid (filter it before passing it here). */
   games: ViewGameSet;
-  /** Total number of games there are. */
-  gamesTotal?: number;
+  /** Total number of games in the results view there are. */
+  resultsTotal?: number;
+  /** Are we in a playlist view? */
+  insideOrderedPlaylist: boolean;
   /** Currently selected game (if any). */
   selectedGameId?: string;
   /** Currently dragged game index (if any). */
@@ -36,16 +39,20 @@ export type GameGridProps = {
   cellHeight: number;
   /** List of Extreme tags */
   extremeTags: string[];
+  /** Tag Filter icons */
+  tagGroupIcons: { tagFilter: TagFilter; iconBase64: string; }[];
   /** Function that renders the elements to show instead of the grid if there are no games (render prop). */
   noRowsRenderer?: () => JSX.Element;
   /** Called when the user attempts to select a game. */
-  onGameSelect: (gameId?: string) => void;
+  onGameSelect: (gameId?: string, col?: number, row?: number) => void;
   /** Called when the user attempts to open a context menu (at a game). */
   onContextMenu?: (gameId: string) => void;
   /** Called when the user starts to drag a game. */
   onGameDragStart?: (event: React.DragEvent, dragEventData: GameDragEventData) => void;
   /** Called when the user stops dragging a game (when they release it). */
   onGameDragEnd?: (event: React.DragEvent) => void;
+  /** Moves a game at the specified index above the other game at the destination index, inside the playlist */
+  onMovePlaylistGame: (sourceGameId: string, destGameId: string) => void;
   updateView: UpdateView;
   /** Function for getting a reference to grid element. Called whenever the reference could change. */
   gridRef?: RefFunc<HTMLDivElement>;
@@ -57,10 +64,23 @@ export type GameGridProps = {
   screenshotPreviewDelay: number;
   /** Hide extreme screenshots */
   hideExtremeScreenshots: boolean;
+  /** View id */
+  viewId?: string;
+  /** Scroll position */
+  scrollCol?: number;
+  scrollRow?: number;
+  scrollTop?: number;
+  onScrollChange?: (scrollTop: number) => void;
+  onScrollToChange?: (params: ScrollIndices, columns: number) => void;
 };
 
+type GameGridState = {
+  forceScrollTop?: number;
+  scrollTop?: number;
+}
+
 /** A grid of cells, where each cell displays a game. */
-export class GameGrid extends React.Component<GameGridProps> {
+export class GameGrid extends React.Component<GameGridProps, GameGridState> {
   wrapperRef: React.RefObject<HTMLDivElement> = React.createRef();
   /** Most recently reference passed to the "gridRef" callback prop. */
   prevWrapperRef: HTMLDivElement | null = null;
@@ -76,15 +96,34 @@ export class GameGrid extends React.Component<GameGridProps> {
   // Used for the "view update hack"
   grid: React.RefObject<Grid> = React.createRef();
 
+  constructor(props: GameGridProps) {
+    super(props);
+    this.state = {
+      forceScrollTop: props.scrollTop,
+    };
+  }
+
   componentDidMount(): void {
     window.Shared.back.registerAny(this.onResponse);
     this.updateCssVars();
     this.updatePropRefs();
   }
 
-  componentDidUpdate(): void {
+  componentDidUpdate(prevProps: GameGridProps): void {
+    if (this.props.viewId !== prevProps.viewId) {
+      this.setState({
+        forceScrollTop: this.props.scrollTop,
+      });
+    }
     this.updateCssVars();
     this.updatePropRefs();
+
+    // Clear forced scrollTop after use
+    if (this.state.forceScrollTop !== undefined) {
+      this.setState({
+        forceScrollTop: undefined
+      });
+    }
 
     // @HACK: Update the view in cases where the "onSectionRendered" callback is not called _EVEN THOUGH_ the cells have been re-rendered
     //        (Such as when changing library without making it scroll)
@@ -103,8 +142,34 @@ export class GameGrid extends React.Component<GameGridProps> {
   }
 
   componentWillUnmount(): void {
+    if (this.props.onScrollChange && this.state.scrollTop !== undefined) {
+      this.props.onScrollChange(this.state.scrollTop);
+    }
     window.Shared.back.unregisterAny(this.onResponse);
   }
+
+  onGameDrop = (event: React.DragEvent) => {
+    const rawData = event.dataTransfer.getData(gameDragDataType);
+    if (rawData) {
+      const dragData = JSON.parse(rawData) as GameDragData;
+      console.log(`source: ${dragData.index}`);
+      const destData = this.findGameDragEventData(event.target);
+      if (destData) {
+        console.log(`dest: ${destData.index}`);
+        // Move the dropped game above the target game in the playlist
+        this.props.onMovePlaylistGame(dragData.gameId, destData.gameId);
+      }
+    }
+  };
+
+  onGameDragOver = (event: React.DragEvent): void => {
+    const types = event.dataTransfer.types;
+    if (types.length === 1 && types[0] === gameDragDataType) {
+      // Show the "You can drop here" cursor while dragging something droppable over this element
+      event.dataTransfer.dropEffect = 'copy';
+      event.preventDefault();
+    }
+  };
 
   render() {
     const games = this.props.games || [];
@@ -124,23 +189,15 @@ export class GameGrid extends React.Component<GameGridProps> {
         onGameContextMenu={this.onGameContextMenu}
         onGameDragStart={this.onGameDragStart}
         onGameDragEnd={this.onGameDragEnd}
+        onGameDrop={this.props.insideOrderedPlaylist ? this.onGameDrop : undefined}
+        onGameDragOver={this.props.insideOrderedPlaylist ? this.onGameDragOver : undefined}
         findGameDragEventData={this.findGameDragEventData}
         realRef={this.wrapperRef}
         onKeyPress={this.onKeyPress}>
         <AutoSizer>
           {({ width, height }) => {
-            const { columns, rows } = this.calculateSize(this.props.gamesTotal || 0, width);
+            const { columns, rows } = this.calculateSize(this.props.resultsTotal || 0, width);
             this.columns = columns;
-            // Calculate column and row of selected item
-            let scrollToColumn = -1;
-            let scrollToRow = -1;
-            if (this.props.selectedGameId) {
-              const index: number = findGameIndex(this.props.games, this.props.selectedGameId);
-              if (index >= 0) {
-                scrollToColumn = index % this.columns;
-                scrollToRow = (index / this.columns) | 0;
-              }
-            }
             // Render
             return (
               <ArrowKeyStepper
@@ -149,9 +206,9 @@ export class GameGrid extends React.Component<GameGridProps> {
                 isControlled={true}
                 columnCount={columns}
                 rowCount={rows}
-                scrollToColumn={scrollToColumn}
-                scrollToRow={scrollToRow}>
-                {({ onSectionRendered, scrollToColumn, scrollToRow }) => {
+                scrollToColumn={this.props.scrollCol}
+                scrollToRow={this.props.scrollRow}>
+                {({ onSectionRendered }) => {
                   return (
                     <Grid
                       className='game-grid simple-scroll'
@@ -168,12 +225,19 @@ export class GameGrid extends React.Component<GameGridProps> {
                       cellRenderer={this.cellRenderer}
                       noContentRenderer={this.props.noRowsRenderer}
                       // ArrowKeyStepper props
-                      scrollToColumn={scrollToColumn}
-                      scrollToRow={scrollToRow}
+                      scrollToColumn={this.props.scrollCol}
+                      scrollToRow={this.props.scrollRow}
+                      scrollTop={this.state.forceScrollTop}
+                      onScroll={(params) => {
+                        this.setState({
+                          scrollTop: params.scrollTop
+                        })
+                      }}
                       onSectionRendered={(params) => this.onSectionRendered(params, columns, onSectionRendered)}
                       // Pass-through props (they have no direct effect on the grid)
                       // (If any property is changed the grid is re-rendered, even these)
-                      pass_currentGamesCount={this.currentGamesCount} />
+                      pass_currentGamesCount={this.currentGamesCount}
+                      pass_viewId={this.props.viewId} />
                   );
                 }}
               </ArrowKeyStepper>
@@ -187,10 +251,11 @@ export class GameGrid extends React.Component<GameGridProps> {
   // Renders a single cell in the game grid.
   cellRenderer = (props: GridCellProps): React.ReactNode => {
     const extremeIconPath = this.extremeIconPathMemo(this.props.logoVersion);
-    const { games, gamesTotal, selectedGameId } = this.props;
+    const { games, resultsTotal, selectedGameId } = this.props;
     const index = props.rowIndex * this.columns + props.columnIndex;
-    if (index < (gamesTotal || 0)) {
+    if (index < (resultsTotal || 0)) {
       const game = games[index];
+      const tagGroupIcon = this.props.tagGroupIcons.find(tg => tg.tagFilter.find(t => game?.tags.includes(t)))?.iconBase64;
       return (
         <GameGridItem
           { ...props }
@@ -200,6 +265,7 @@ export class GameGrid extends React.Component<GameGridProps> {
           platforms={game ? [game.primaryPlatform] : []}
           extreme={game ? game.tags.findIndex(t => this.props.extremeTags.includes(t.trim())) !== -1 : false}
           extremeIconPath={extremeIconPath}
+          tagGroupIconBase64={tagGroupIcon || ''}
           thumbnail={game ? getGameImageURL(LOGOS, game.id) : ''}
           screenshot={game ? getGameImageURL(SCREENSHOTS, game.id) : ''}
           screenshotPreviewMode={this.props.screenshotPreviewMode}
@@ -253,7 +319,7 @@ export class GameGrid extends React.Component<GameGridProps> {
   onKeyPress = (event: React.KeyboardEvent): void => {
     if (event.key === 'Enter') {
       if (this.props.selectedGameId) {
-        this.props.onGameLaunch(this.props.selectedGameId);
+        this.props.onGameLaunch(this.props.selectedGameId, null);
       }
     }
   };
@@ -265,7 +331,12 @@ export class GameGrid extends React.Component<GameGridProps> {
    * @param gameId ID of pressed Game
    */
   onGameSelect = (event: React.MouseEvent, gameId: string | undefined): void => {
-    this.props.onGameSelect(gameId);
+    const index: number = findGameIndex(this.props.games, gameId);
+    if (index >= 0) {
+      const col = index % this.columns;
+      const row = (index / this.columns) | 0;
+      this.props.onGameSelect(gameId, col, row);
+    }
   };
 
   /**
@@ -275,7 +346,7 @@ export class GameGrid extends React.Component<GameGridProps> {
    * @param gameId ID of Game to launch
    */
   onGameLaunch = (event: React.MouseEvent, gameId: string): void => {
-    this.props.onGameLaunch(gameId);
+    this.props.onGameLaunch(gameId, null);
   };
 
   /**
@@ -319,12 +390,8 @@ export class GameGrid extends React.Component<GameGridProps> {
    * @param params Position params to scroll to
    */
   onScrollToChange = (params: ScrollIndices): void => {
-    if (!this.props.games) { throw new Error('Games array is missing.'); }
-    if (params.scrollToColumn === -1 || params.scrollToRow === -1) {
-      this.props.onGameSelect(undefined);
-    } else {
-      const game = this.props.games[params.scrollToRow * this.columns + params.scrollToColumn];
-      if (game) { this.props.onGameSelect(game.id); }
+    if (this.props.onScrollToChange) {
+      this.props.onScrollToChange(params, this.columns);
     }
   };
 
@@ -370,16 +437,16 @@ export class GameGrid extends React.Component<GameGridProps> {
     }
   }
 
-  calculateSize(gamesTotal: number, width: number): ColumnsRows {
+  calculateSize(resultsTotal: number, width: number): ColumnsRows {
     // Calculate and set column/row count
     // (16 is the width of a scroll-bar in pixels - at least on windows)
     const cells: ColumnsRows = {
       columns: 0,
       rows: 0,
     };
-    if (gamesTotal > 0) {
+    if (resultsTotal > 0) {
       cells.columns = Math.max(1, ((width - 16) / this.props.cellWidth) | 0); // ("x|0" is the same as Math.floor(x))
-      cells.rows = Math.ceil(gamesTotal / cells.columns);
+      cells.rows = Math.ceil(resultsTotal / cells.columns);
     }
     return cells;
   }

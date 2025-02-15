@@ -1,5 +1,4 @@
 import { WithMainStateProps } from '@renderer/containers/withMainState';
-import { MainActionType } from '@renderer/store/main/enums';
 import { BackIn, ComponentState } from '@shared/back/types';
 import { parseBrowsePageLayout, stringifyBrowsePageLayout } from '@shared/BrowsePageLayout';
 import { getLibraryItemTitle } from '@shared/library/util';
@@ -8,10 +7,12 @@ import { formatString } from '@shared/utils/StringFormatter';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import { WithPreferencesProps } from '../containers/withPreferences';
-import { gameScaleSpan, getBrowseSubPath } from '../Util';
+import { gameScaleSpan, getViewName } from '../Util';
 import { LangContext } from '../util/lang';
+import { WithViewProps } from '@renderer/containers/withView';
+import { GENERAL_VIEW_ID } from '@renderer/store/search/slice';
 
-export type FooterProps = RouteComponentProps & WithPreferencesProps & WithMainStateProps;
+export type FooterProps = RouteComponentProps & WithViewProps & WithPreferencesProps & WithMainStateProps;
 
 /** The footer that is always visible at the bottom of the main window. */
 export class Footer extends React.Component<FooterProps> {
@@ -33,10 +34,10 @@ export class Footer extends React.Component<FooterProps> {
   render() {
     const strings = this.context.app;
     const scale = Math.min(Math.max(0, this.props.preferencesData.browsePageGameScale), 1);
-    const libraryPath = getBrowseSubPath(this.props.location.pathname);
+    const libraryPath = getViewName(this.props.location.pathname);
     const currentLabel = libraryPath && getLibraryItemTitle(libraryPath, this.props.main.lang.libraries);
-    const view = this.props.main.views[libraryPath];
-    const gamesTotal = (view && view.total != undefined) ? view.total : -1;
+    const view = this.props.currentView;
+    const gamesTotal = (view && view.data.total != undefined) ? view.data.total : -1;
     const fpmAvailable = this.props.main.componentStatuses.length > 0;
     const updatesReady = this.props.main.componentStatuses.filter(c => c.state === ComponentState.NEEDS_UPDATE).length;
 
@@ -61,7 +62,7 @@ export class Footer extends React.Component<FooterProps> {
             {/* Game Count */}
             <div className='footer__game-count'>
               <p>{`${strings.total}: ${this.props.main.gamesTotal}`}</p>
-              {currentLabel && strings.searchResults ? (
+              {currentLabel && view.id !== GENERAL_VIEW_ID && strings.searchResults ? (
                 <>
                   <p>|</p>
                   <p>{`${strings.searchResults}: ${gamesTotal > -1 ? gamesTotal : this.context.misc.searching}`}</p>
@@ -118,11 +119,6 @@ export class Footer extends React.Component<FooterProps> {
     );
   }
 
-  onNewGameClick = () => {
-    // @TODO Replace this with a proper action (it should both change the location and state of the current or most recent view)
-    this.props.dispatchMain({ type: MainActionType.CLICK_NEW_GAME });
-  };
-
   onScaleSliderChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     updatePreferencesData({ browsePageGameScale: +event.currentTarget.value / Footer.scaleSliderMax });
   };
@@ -136,13 +132,13 @@ export class Footer extends React.Component<FooterProps> {
   onGlobalKeydown = (event: KeyboardEvent): void => {
     const scaleDif = 0.1; // How much the scale should change per increase/decrease
     // Increase Game Scale (CTRL PLUS)
-    if (event.ctrlKey && event.key === '+') {
+    if (event.ctrlKey && (event.keyCode === 187 || event.keyCode === 61 || event.keyCode === 171)) {
       const scale = this.props.preferencesData.browsePageGameScale;
       this.setScaleSliderValue(scale + scaleDif);
       event.preventDefault();
     }
     // Decrease Game Scale (CTRL MINUS)
-    else if (event.ctrlKey && event.key === '-') {
+    else if (event.ctrlKey && (event.keyCode === 189 || event.keyCode === 173)) {
       const scale = this.props.preferencesData.browsePageGameScale;
       this.setScaleSliderValue(scale - scaleDif);
       event.preventDefault();
@@ -156,8 +152,9 @@ export class Footer extends React.Component<FooterProps> {
    */
   setScaleSliderValue(scale: number): void {
     if (this.scaleSliderRef.current) {
-      const value = Math.min(Math.max(0, scale), 1) * Footer.scaleSliderMax;
-      this.scaleSliderRef.current.value = value + '';
+      if (scale < 0) { scale = 0; }
+      else if (scale > 1) { scale = 1; }
+      this.scaleSliderRef.current.value = (Math.min(Math.max(0, scale), 1) * Footer.scaleSliderMax).toFixed(1).toString();
       updatePreferencesData({ browsePageGameScale: scale });
     }
   }

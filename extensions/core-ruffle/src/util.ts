@@ -69,23 +69,30 @@ export async function getGithubAsset(nameRegex: RegExp, logDev: (text: string) =
   if (releasesJson.length === 0) {
     throw new Error('Repo has no releases.');
   }
-  const latestRelease = releasesJson[0];
-  logDev(`Found Release\n  ID: ${latestRelease['id']}\n  Name: ${latestRelease['name']}\n  Published: ${latestRelease['published_at']}`);
-  const assetsUrl = latestRelease['assets_url'];
-  logDev(`Fetching Assets from ${assetsUrl}`);
-  const assetsJson = await downloadJson(assetsUrl);
-  const assets: AssetFile[] = assetsJson.map((asset: any) => {
-    return {
-      name: asset['name'],
-      url: asset['browser_download_url'],
-      publishedAt: latestRelease['published_at']
-    };
-  });
-  for (const asset of assets) {
-    if (nameRegex.test(asset.name)) {
-      return asset;
+  const numReleasesToCheck = Math.min(7, releasesJson.length);
+  for (let i = 0; i < numReleasesToCheck; i++) {
+    const release = releasesJson[i];
+    logDev(`Found Release ${release['name']}`);
+    const assetsUrl = release['assets_url'];
+    logDev(`Fetching Assets from ${assetsUrl}`);
+
+    const assetsJson = await downloadJson(assetsUrl);
+    const assets: AssetFile[] = assetsJson.map((asset: any) => {
+      return {
+        name: asset['name'],
+        url: asset['browser_download_url'],
+        publishedAt: release['published_at']
+      };
+    });
+    for (const asset of assets) {
+      if (nameRegex.test(asset.name)) {
+        logDev('Found compatible asset...');
+        return asset;
+      }
     }
+    logDev(`No binaries found for this system, checking older releases...`);
   }
+  logDev(`No binaries found in 7 releases, stopping...`);
   return null;
 }
 

@@ -80,7 +80,7 @@ exports.activate = activate;
 
 If you're using TypeScript then make sure that TypeScript is installed as a dev dependency with `npm install --save-dev typescript` as well. An example tsconfig.json is provided below to build from `./src` into `./dist` (E.G `./src/extension.ts` to `./dist/extension.js`)
 
-You should also install the `@types/flashpoint-launcher` package so TypeScript can detect the proper API typings.
+You should grab or directly reference the `typings/flashpoint-launcher.d.ts` file from the launcher repo.
 
 Example tsconfig.json
 
@@ -266,14 +266,16 @@ However, Applications can also provide `url` or `command` instead. The full deta
     {
       "title": "Test Extension",
       "properties": {
-        "title": "Test Select",
-        "type": "string",
-        "enum": [
-          "string1",
-          "string2"
-        ],
-        "default": "string1",
-        "description": "Example of an extension config prop",
+        "key": {
+          "title": "Test Select",
+          "type": "string",
+          "enum": [
+            "string1",
+            "string2"
+          ],
+          "default": "string1",
+          "description": "Example of an extension config prop"
+        }
       }
     }
   ]

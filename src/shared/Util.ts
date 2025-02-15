@@ -7,8 +7,6 @@ import { AppConfigData } from './config/interfaces';
 import { parseVariableString } from './utils/VariableString';
 import { throttle } from './utils/throttle';
 
-const axios = axiosImport.default;
-
 export function getFileServerURL() {
   return `http://${window.Shared.backUrl.hostname}:${window.Shared.fileServerPort}`;
 }
@@ -416,7 +414,7 @@ export function tagSort(tagA: Tag, tagB: Tag): number {
   return 0;
 }
 
-export async function downloadFile(url: string, filePath: string, abortSignal?: AbortSignal, onProgress?: (percent: number) => void, onDetails?: (details: DownloadDetails) => void, options?: axiosImport.AxiosRequestConfig): Promise<number> {
+export async function downloadFile(axios: axiosImport.AxiosInstance, url: string, filePath: string, abortSignal?: AbortSignal, onProgress?: (percent: number) => void, onDetails?: (details: DownloadDetails) => void, options?: axiosImport.AxiosRequestConfig): Promise<number> {
   try {
     const res = await axios.get(url, {
       ...options,
@@ -460,7 +458,8 @@ export function generateTagFilterGroup(tags?: string[]): TagFilterGroup {
     extreme: false,
     tags: tags || [],
     categories: [],
-    childFilters: []
+    childFilters: [],
+    iconBase64: ''
   };
 }
 
@@ -505,6 +504,7 @@ export type FpfssGame = {
   UserID: number;
   tags?: FpfssTag[];
   platforms?: FpfssPlatform[];
+  ruffle_support?: string;
 }
 
 export type FpfssPlatform = {
@@ -592,6 +592,7 @@ export function mapFpfssGameToLocal(data: any): Game {
         parentGameId: a.parent_game_id,
       };
     }) || [],
+    ruffleSupport: fg.ruffle_support || '',
   };
   return game;
 }
@@ -655,6 +656,7 @@ export function mapLocalToFpfssGame(game: Game): FpfssGame {
         parent_game_id: a.parentGameId,
       };
     }) || [],
+    ruffle_support: game.ruffleSupport,
   };
   return fg;
 }

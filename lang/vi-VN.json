@@ -10,10 +10,18 @@
     "hideExtremeScreenshotsDesc": "Ẩn ảnh chụp màn hình của nội dung có nhãn Phản cảm. Nhấp chuột lên khung ảnh để hiện ảnh.",
     "fancyAnimations": "Hiệu ứng động bắt mắt",
     "fancyAnimationsDesc": "Xem hiệu ứng động bắt mắt trong trình khởi chạy.",
+    "hideNewViewButton": "Hide New View Button",
+    "hideNewViewButtonDesc": "When using custom views, hide the new view (+) button. You can instead press 'Create New View' under the context menu for tabs.",
     "searchLimit": "Giới hạn kết quả",
     "searchLimitDesc": "Giới hạn số kết quả trả về mỗi khi tìm kiếm",
     "searchLimitUnlimited": "Không giới hạn",
     "searchLimitValue": "{0} kết quả",
+    "useCustomViews": "Use Custom Search Views",
+    "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
+    "defaultOpeningPage": "Default Opening Page",
+    "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
+    "restoreSearchViews": "Restore Search Results",
+    "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
     "enableEditing": "Bật khả năng chỉnh sửa",
     "enableEditingDesc": "Cho phép sửa trò chơi và phần mềm đi kèm. Cũng hiện thêm các trang liên quan đến việc chỉnh sửa.",
     "symlinkCuration": "Dùng liên kết tượng trưng cho nội dung của bản đóng góp",
@@ -41,7 +49,7 @@
     "clearData": "Xóa dữ liệu",
     "currentLanguage": "Ngôn ngữ",
     "currentLanguageDesc": "Ngôn ngữ chính mà trình khởi chạy sẽ dùng.",
-    "fallbackLanguage": "Ngôn ngữ nền",
+    "fallbackLanguage": "Ngôn ngữ thế chỗ",
     "fallbackLanguageDesc": "Ngôn ngữ được sử dụng để thay thế cho ngôn ngữ chưa dịch xong.",
     "auto": "Tự động ({0})",
     "none": "Không có",
@@ -83,8 +91,10 @@
     "screenshotPreviewDelay": "Screenshot Preview Delay",
     "screenshotPreviewDelayDesc": "Delay (in milliseconds) before showing the screenshot, when Screenshot Preview is set to on. (when hovering)",
     "advancedHeader": "Nâng cao",
+    "clearWininetCache": "Clear WinINet Cache",
+    "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "Tối ưu CSDL",
-    "optimizeDatabaseDesc": "Thực hiện tác vụ bảo trì để tăng hiệu suất và giảm kích cỡ của cơ sở dữ liệu",
+    "optimizeDatabaseDesc": "Run maintenance tasks to increase database performance and reduce size.",
     "showDeveloperTab": "Hiện trang Nhà phát triển",
     "showDeveloperTabDesc": "Hiện trang \"Nhà phát triển\". Hữu dụng nhất cho lập trình viên và người đóng góp.",
     "registerProtocol": "Register As Protocol Handler",
@@ -136,12 +146,13 @@
     "updatedGamesReady": "Có thể cập nhật thông tin của {0} trò chơi",
     "checkingUpgradeState": "Kiểm tra tình trạng nâng cấp...",
     "extrasHeader": "Phụ mục",
+    "playHistory": "Lịch sử chơi",
     "favoritesPlaylist": "Danh sách yêu thích",
     "tagList": "Danh sách nhãn",
     "filterByPlatform": "Lọc theo nền tảng",
     "plannedFeatures": "Xem qua các tính năng đã được lên kế hoạch!",
     "notesHeader": "Ghi chú",
-    "notes": "Đừng quên đọc hướng dẫn nếu bạn gặp vấn đề.",
+    "notes": "Đừng quên đọc trang trợ giúp hoặc hướng dẫn nếu bạn gặp vấn đề.",
     "linuxSupport": "Gặp vấn đề trên Linux? {0}",
     "linuxSupportLinkText": "Mở câu hỏi thường gặp",
     "randomPicks": "Ngẫu nhiên",
@@ -173,6 +184,7 @@
     "curate": "Đóng góp",
     "developer": "Nhà phát triển",
     "searchPlaceholder": "Tìm...",
+    "searchPlaceholderCountable": "Search... ({0} items)",
     "hideRightSidebar": "Ẩn thanh bên phải",
     "showRightSidebar": "Hiện thanh bên phải",
     "hideLeftSidebar": "Ẩn thanh bên trái",
@@ -188,7 +200,11 @@
     "fpfssProfile": "Xem trang hồ sơ",
     "fpfssLogout": "Đăng xuất khỏi FPFSS",
     "softwareUpdateRequired": "Cần cập nhật phần mềm. Cập nhật liền nhé?",
-    "noLauncherUpdateReady": "Để cập nhật thông tin của nội dung, cần dùng một bản mới hơn của Trình khởi chạy. Phiên bản này hiện chưa có."
+    "noLauncherUpdateReady": "Để cập nhật thông tin của nội dung, cần dùng một bản mới hơn của Trình khởi chạy. Phiên bản này hiện chưa có.",
+    "deleteView": "Delete Search View",
+    "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
+    "createNewView": "Create new search view",
+    "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
     "dateAdded": "Ngày thêm",
@@ -361,8 +377,9 @@
     "allGames": "Toàn bộ trò chơi",
     "newPlaylist": "Danh sách mới",
     "importPlaylist": "Nhập danh sách",
+    "noGamesFoundInsidePlaylist": "No Results Found in Playlist!",
     "emptyPlaylist": "Danh sách trống",
-    "noGamesFound": "Không tìm thấy trò chơi!",
+    "noGamesFound": "No Results Found!",
     "dropGameOnLeft": "Kéo thả trò chơi vào một danh sách ở {0} để thêm vào danh sách đó.",
     "leftSidebar": "thanh bên trái",
     "setFlashpointPathQuestion": "Bạn đã chỉnh đường dẫn sang {0} ở mục {1} chưa?",
@@ -375,12 +392,18 @@
     "noGameMatchedSearch": "Hãy tìm từ khoá chung chung hơn.",
     "mountParameters": "Tham Số Khởi Động Trò Chơi",
     "noMountParameters": "Không có",
+    "ruffleSupport": "Ruffle Support",
     "showExtremeScreenshot": "Hiện ảnh chụp màn hình phản cảm",
     "busy": "Bạn đợi xíu nhé...",
     "openGameDataBrowser": "Mở trình duyệt dữ liệu trò chơi",
+    "allGenericEntries": "All Entries",
+    "usePlaylistOrder": "Use Playlist Order",
+    "hideFilters": "Hide Filters",
+    "showFilters": "Show Filters",
     "notArchived": "Not Archived",
     "archived": "Archived",
-    "playOnline": "Chơi trực tuyến"
+    "playOnline": "Chơi trực tuyến",
+    "tagFilterIcon": "Tag Filter Icon"
   },
   "tags": {
     "name": "Tên",
@@ -403,13 +426,15 @@
     "makeAliasWhenMerged": "Đặt làm tên khác của nhãn?",
     "deleteTag": "Xoá nhãn",
     "deleteTagCategory": "Xoá danh mục nhãn",
-    "locked": "Bị khoá khi đang xử lí..."
+    "locked": "Bị khoá khi đang xử lí...",
+    "filterIcon": "Icon Thumbnail"
   },
   "curate": {
     "noCurationSelected": "Chưa có bản đóng góp nào",
     "headerFileOperations": "Tập tin",
     "headerEditCuration": "Sửa",
     "headerTest": "Chạy thử",
+    "headerFpfss": "FPFSS",
     "importAll": "Nhập hết",
     "importAllDesc": "Nhập hết các bản đóng góp đã nạp vào chương trình",
     "deleteAll": "Xoá hết",
@@ -490,7 +515,8 @@
     "contextCopyAsURL": "Chép đường dẫn tập tin dưới dạng URL",
     "contextShowInExplorer": "Hiện tập tin trong Explorer",
     "contextOpenFolderInExplorer": "Mở thư mục trong Explorer",
-    "shortcuts": "Phím tắt"
+    "shortcuts": "Phím tắt",
+    "fpfssOpenSubmissionPage": "Open Submission Page"
   },
   "playlist": {
     "enterDescriptionHere": "Hãy điền mô tả vào đây...",
@@ -518,6 +544,7 @@
   "misc": {
     "noBlankFound": "Không tìm thấy {0}",
     "addBlank": "Thêm {0}",
+    "removeBlank": "Remove {0}",
     "deleteAllBlankImages": "Xoá TOÀN BỘ {0} hình của trò chơi này",
     "yes": "Có",
     "no": "Không",
@@ -530,7 +557,8 @@
     "showImage": "Hiện ảnh",
     "searching": "Đang tìm...",
     "loading": "Đang tải...",
-    "ok": "OK"
+    "ok": "OK",
+    "allow": "Allow"
   },
   "menu": {
     "viewThumbnailInFolder": "Xem biểu trưng trong thư mục",
@@ -620,7 +648,14 @@
     "exportCurationWithWarnings": "Xuất bản đóng góp này dù vẫn còn cảnh báo?",
     "requiresAdditionalDownload": "Chưa thể mở mục này vì bạn còn thiếu gói hỗ trợ {0}.\nTải về ngay?",
     "requiresAdditionalDownloadPlural": "Chưa thể mở mục này vì bạn còn thiếu {0} gói hỗ trợ.\nTải về ngay?",
-    "confirmClearPlaytime": "Xóa hết thời gian chơi và lịch sử chơi? Không thể hoàn tác đâu."
+    "confirmClearPlaytime": "Xóa hết thời gian chơi và lịch sử chơi? Không thể hoàn tác đâu.",
+    "badAntiVirus": "You appear to be using '{0}'.\nThis particular Antivirus is known to cause issues, and we recommend adding an exception to the Flashpoint folder.\n\nIf you only see a white screen when running Flash games you may need to reinstall Flashpoint to restore deleted files.\n\nSee the Wiki or Help tab for detailed instructions.",
+    "openWiki": "Open Wiki",
+    "openDiscord": "Join Discord Server",
+    "doNotShowAgain": "Do not show again",
+    "extFpfssConsent": "Extension with ID {0} is requesting access to your FPFSS token. Allow?\nThis means the extension will be able access your FPFSS account and perform actions on your behalf.",
+    "gameDataUpdateReady": "A game data update is ready. Do you want to upgrade now?",
+    "gameDataUpdateReadyLcDifferent": "A game data update is ready. The launch command has changed and this may break existing save files. Do you want to upgrade now?"
   },
   "libraries": {
     "arcade": "Trò chơi",
@@ -640,5 +675,9 @@
     "techDesc": "Hỗ trợ các công nghệ khác - Shockwave, Unity, Java, HTML5, v.v.",
     "screenshots": "Biểu trưng & ảnh chụp màn hình",
     "screenshotsDesc": "Thêm biểu trưng ở chế độ xem lưới và ảnh chụp màn hình cho tất cả trò chơi."
+  },
+  "extensions": {
+    "fpssConsentRevokeTitle": "Revoke access to FPFSS",
+    "fpssConsentRevokeDesc": "Withdraw this extension's access to FPFSS"
   }
 }

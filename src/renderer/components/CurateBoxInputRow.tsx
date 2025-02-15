@@ -1,7 +1,5 @@
 import { CurateBoxRow } from '@renderer/components/CurateBoxRow';
 import { InputElement, InputField, InputFieldEntry } from '@renderer/components/InputField';
-import { CurateActionType } from '@renderer/store/curate/enums';
-import { CurateAction } from '@renderer/store/curate/types';
 import { LangContext } from '@renderer/util/lang';
 import { CurationMeta } from '@shared/curate/types';
 import { Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
@@ -9,6 +7,8 @@ import * as React from 'react';
 import { Dispatch } from 'redux';
 import { DropdownInputField } from './DropdownInputField';
 import { TagInputField } from './TagInputField';
+import { useDispatch } from 'react-redux';
+import { editCurationMeta } from '@renderer/store/curate/slice';
 
 // TODO: Figure out why these type members are reading as unused props
 /* eslint-disable react/no-unused-prop-types */
@@ -21,7 +21,6 @@ export type CurateBoxInputRowProps = {
   curationFolder: string;
   disabled: boolean;
   warned: boolean;
-  dispatch: Dispatch<CurateAction>;
 }
 
 export type CurateBoxInputEntryRowProps = {
@@ -50,7 +49,8 @@ export function CurateBoxInputEntryRow(props: CurateBoxInputEntryRowProps) {
 }
 
 export function CurateBoxInputRow(props: CurateBoxInputRowProps) {
-  const onChange = useOnInputChange(props.property, props.curationFolder, props.dispatch);
+  const dispatch = useDispatch();
+  const onChange = useOnInputChange(props.property, props.curationFolder, dispatch);
 
   return (
     <CurateBoxRow title={props.title}>
@@ -78,16 +78,16 @@ export type CurateBoxDropdownInputRowProps = CurateBoxInputRowProps & {
 }
 
 export function CurateBoxDropdownInputRow(props: CurateBoxDropdownInputRowProps) {
-  const { curationFolder, property, dispatch } = props;
+  const dispatch = useDispatch();
+  const { curationFolder, property } = props;
   const onChange = React.useCallback((event: InputElementOnChangeEvent) => {
     const item = props.items.find(i => i.value === event.currentTarget.value);
     if (curationFolder !== undefined && (item || props.allowNonMatching)) {
-      dispatch({
-        type: CurateActionType.EDIT_CURATION_META,
+      dispatch(editCurationMeta({
         folder: curationFolder,
-        property: property,
+        property,
         value: item ? item.key : event.currentTarget.value,
-      });
+      }));
     }
   }, [dispatch, curationFolder]);
   const onItemSelect = useTransformOnItemSelect(onChange);
@@ -168,15 +168,14 @@ type InputElementOnChangeEvent = {
   }
 }
 
-function useOnInputChange(property: keyof CurationMeta, folder: string | undefined, dispatch: Dispatch<CurateAction>) {
+function useOnInputChange(property: keyof CurationMeta, folder: string | undefined, dispatch: Dispatch) {
   return React.useCallback((event: InputElementOnChangeEvent) => {
     if (folder !== undefined) {
-      dispatch({
-        type: CurateActionType.EDIT_CURATION_META,
-        folder: folder,
-        property: property,
+      dispatch(editCurationMeta({
+        folder,
+        property,
         value: event.currentTarget.value,
-      });
+      }));
     }
   }, [dispatch, folder]);
 }
