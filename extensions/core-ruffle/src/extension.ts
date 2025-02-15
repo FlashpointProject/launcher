@@ -47,7 +47,7 @@ export async function activate(context: flashpoint.ExtensionContext): Promise<vo
   To learn more, click the logo above.
   <br/>
 
-  To enable this, please see **Enabled (Supported Games)** near the bottom of the **Config Page**.
+  To enable this, please see **Enabled (Supported Games)** near the bottom of the **Config Page**, or use the Play button dropdown on individual games.
 </div>
 `;
     flashpoint.onDidConnect(async () => {

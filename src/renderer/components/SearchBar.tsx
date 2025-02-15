@@ -7,7 +7,7 @@ import { getDefaultAdvancedFilter } from '@shared/search/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { AdvancedFilter, AdvancedFilterAndToggles, AdvancedFilterToggle, Tag } from 'flashpoint-launcher';
 import * as React from 'react';
-import { useContext, useMemo } from 'react';
+import { useContext, useMemo, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { AutoSizer, List, ListRowProps } from 'react-virtualized-reactv17';
 import { GameOrder } from './GameOrder';
@@ -29,6 +29,7 @@ export function SearchBar() {
   const dispatch = useDispatch();
   const strings = useContext(LangContext);
   const { main: mainState, tagCategories, search } = useAppSelector((state) => state);
+  const [shiftHeld, setShiftHeld] = useState(false);
 
   const onTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSearchText({
@@ -298,7 +299,13 @@ export function SearchBar() {
     );
   };
 
-  const onClearSearch = () => {
+  const onClearSearch = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    if (event.shiftKey) {
+      dispatch(setAdvancedFilter({
+        view: view.id,
+        filter: getDefaultAdvancedFilter(),
+      }));
+    }
     dispatch(setSearchText({
       view: view.id,
       text: ''
