@@ -212,7 +212,7 @@
     "renameView": "Rename Search View",
     "duplicateView": "Duplicate Search View",
     "createNewView": "Create New Search View",
-    "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
+    "errorLoadingServices": "Une erreur est survenue lors du chargement des services. Merci de vérifier les logs pour plus de détails."
   },
   "filter": {
     "dateAdded": "Date d'ajout",
@@ -362,7 +362,7 @@
     "noLaunchCommand": "Aucune commande de lancement",
     "searching": "Recherche en cours...",
     "library": "Bibliothèque",
-    "noLibrary": "No Library",
+    "noLibrary": "Aucune librairie",
     "defaultLibrary": "Bibliothèque par défaut",
     "fpfssGame": "Jeu FPFSS",
     "uninstallGame": "Désinstaller le jeu",
@@ -386,9 +386,9 @@
     "allGames": "Tous les jeux",
     "newPlaylist": "Nouvelle playlist",
     "importPlaylist": "Importer playlist",
-    "noGamesFoundInsidePlaylist": "No Results Found in Playlist!",
+    "noGamesFoundInsidePlaylist": "Aucuns résultats trouvés dans la playlist !",
     "emptyPlaylist": "Playlist vide",
-    "noGamesFound": "No Results Found!",
+    "noGamesFound": "Aucuns résultats trouvés !",
     "dropGameOnLeft": "Déposer un jeu sur cette playlist dans la {0} pour l'ajouter.",
     "leftSidebar": "barre latérale gauche",
     "setFlashpointPathQuestion": "Avez-vous défini le chemin vers le {0} à la page {1}?",
@@ -401,7 +401,7 @@
     "noGameMatchedSearch": "Essayez de chercher quelque chose moins restrictivement.",
     "mountParameters": "Paramètres de montage",
     "noMountParameters": "Aucun paramètre de montage",
-    "ruffleSupport": "Ruffle Support",
+    "ruffleSupport": "Support Ruffle",
     "showExtremeScreenshot": "Afficher la capture d'écran extrême",
     "busy": "Veuillez patienter...",
     "openGameDataBrowser": "Ouvrir le navigateur de données du jeu",
@@ -414,8 +414,8 @@
     "playOnline": "Jouer en ligne",
     "tagFilterIcon": "Tag Filter Icon",
     "runWithFlashPlayer": "Run with Flash Player",
-    "runWithRuffle": "Run with Ruffle",
-    "runWithRuffleUnsupported": "Run with Ruffle (Unsupported)"
+    "runWithRuffle": "Exécuter avec Ruffle",
+    "runWithRuffleUnsupported": "Exécuter avec Ruffle (non pris en charge)"
   },
   "tags": {
     "name": "Nom",
