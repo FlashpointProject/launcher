@@ -18,10 +18,14 @@
     "searchLimitValue": "{0} результат(ов)",
     "useCustomViews": "Использовать пользовательские представления поиска",
     "useCustomViewsDesc": "Заменяет вкладки поиска в библиотеке на вкладки поиска с собственными именами и добавляет параметр библиотеки в расширенные фильтры.",
+    "loadViewsText": "Restore Search View Text",
+    "loadViewsTextDesc": "Whether to restore the text field of a search view when restarting the launcher.",
     "defaultOpeningPage": "Первая страница по умолчанию",
     "defaultOpeningPageDesc": "Страница по умолчанию, на которой будет открываться окно, либо главная страница, либо выбранная страница поиска",
     "restoreSearchViews": "Восстановить результаты поиска",
     "restoreSearchViewsDesc": "Сохраняет и восстанавливает копию каждой страницы поиска (текст, фильтры, выбранная игра и плейлист) при каждом открытии приложения.",
+    "useSelectedGameScroll": "Enable Game Selection Keyboard Controls",
+    "useSelectedGameScrollDesc": "Enables use of arrow keys to select games on Game Grids / Lists. NOTE: This will replace saved scroll position with saved selected game position.",
     "enableEditing": "Включить редактирование",
     "enableEditingDesc": "Включите редактирование игр и дополнительных приложений. Также показывает вкладки, связанные с редактированием.",
     "symlinkCuration": "Курация символического контента",
@@ -91,6 +95,8 @@
     "screenshotPreviewDelay": "Задержка предпросмотра скриншота",
     "screenshotPreviewDelayDesc": "Задержка (в миллисекундах) перед показом скриншота, если для параметра предпросмотра скриншота установлено значение «Вкл. (при наведении)»",
     "advancedHeader": "Дополнительно",
+    "autoClearWininetCache": "Auto-Clear WinINet Cache",
+    "autoClearWininetCacheDesc": "Whether to automatically clear the Windows web cache when running a curation from the Curate tab",
     "clearWininetCache": "Clear WinINet Cache",
     "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "Оптимизировать базу данных",
@@ -203,7 +209,9 @@
     "noLauncherUpdateReady": "Обновление метаданных требует более новой версии лаунчера, но обновление ПО в настоящее время недоступно.",
     "deleteView": "Удалить вид поиска",
     "deleteOnlyBrowseView": "Удалить вид поиска (должен иметь другой пользовательский вид)",
-    "createNewView": "Создать новый вид поиска",
+    "renameView": "Rename Search View",
+    "duplicateView": "Duplicate Search View",
+    "createNewView": "Create New Search View",
     "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
@@ -354,6 +362,7 @@
     "noLaunchCommand": "Нет команды для запуска",
     "searching": "Поиск...",
     "library": "Библиотека",
+    "noLibrary": "No Library",
     "defaultLibrary": "Библиотека по умолчанию",
     "fpfssGame": "Игра FPFSS",
     "uninstallGame": "Удалить игру",
@@ -403,7 +412,10 @@
     "notArchived": "Не в архиве",
     "archived": "В архиве",
     "playOnline": "Играть в браузере",
-    "tagFilterIcon": "Tag Filter Icon"
+    "tagFilterIcon": "Tag Filter Icon",
+    "runWithFlashPlayer": "Run with Flash Player",
+    "runWithRuffle": "Run with Ruffle",
+    "runWithRuffleUnsupported": "Run with Ruffle (Unsupported)"
   },
   "tags": {
     "name": "Наименование",
@@ -558,7 +570,9 @@
     "searching": "Поиск...",
     "loading": "Загрузка...",
     "ok": "ОК",
-    "allow": "Разрешить"
+    "allow": "Разрешить",
+    "orCapitals": "OR",
+    "andCapitals": "AND"
   },
   "menu": {
     "viewThumbnailInFolder": "Отображать превью в папке",
