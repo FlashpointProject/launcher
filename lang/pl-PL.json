@@ -18,10 +18,14 @@
     "searchLimitValue": "{0} Wyników",
     "useCustomViews": "Use Custom Search Views",
     "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
+    "loadViewsText": "Restore Search View Text",
+    "loadViewsTextDesc": "Whether to restore the text field of a search view when restarting the launcher.",
     "defaultOpeningPage": "Domyślna strona po uruchomieniu",
     "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
     "restoreSearchViews": "Przywróć wyniki wyszukiwania",
     "restoreSearchViewsDesc": "Zapisuje i przywraca kopię każdej strony wyszukiwania (tekst, filtry, wybrana gra oraz lista gier) za każdym razem, gdy uruchomisz aplikację.",
+    "useSelectedGameScroll": "Enable Game Selection Keyboard Controls",
+    "useSelectedGameScrollDesc": "Enables use of arrow keys to select games on Game Grids / Lists. NOTE: This will replace saved scroll position with saved selected game position.",
     "enableEditing": "Uruchom tryb edycji",
     "enableEditingDesc": "Pozwala na edytowanie gier oraz dodatkowych aplikacji. Pokazuje także zakładkę \"Dodaj do Flashpointa\".",
     "symlinkCuration": "Zawartość kuracji Symlink",
@@ -91,6 +95,8 @@
     "screenshotPreviewDelay": "Opóźnienie podglądu zrzutu ekranu",
     "screenshotPreviewDelayDesc": "Opóźnienie (w milisekundach) przed pokazaniem zrzutu ekranu, gdy podgląd zrzutu ekranu jest włączony. (po najechaniu myszą)",
     "advancedHeader": "Zaawansowane",
+    "autoClearWininetCache": "Auto-Clear WinINet Cache",
+    "autoClearWininetCacheDesc": "Whether to automatically clear the Windows web cache when running a curation from the Curate tab",
     "clearWininetCache": "Clear WinINet Cache",
     "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
     "optimizeDatabase": "Optymalizuj bazę danych",
@@ -203,7 +209,9 @@
     "noLauncherUpdateReady": "Aktualizacja metadanych wymaga nowszej wersji Launchera, ale aktualizacja oprogramowania nie jest obecnie dostępna.",
     "deleteView": "Delete Search View",
     "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
-    "createNewView": "Create new search view",
+    "renameView": "Rename Search View",
+    "duplicateView": "Duplicate Search View",
+    "createNewView": "Create New Search View",
     "errorLoadingServices": "An error occurred while loading services. Please check the logs for more details."
   },
   "filter": {
@@ -354,6 +362,7 @@
     "noLaunchCommand": "Brak komendy ładującej",
     "searching": "Wyszukiwanie...",
     "library": "Biblioteka",
+    "noLibrary": "No Library",
     "defaultLibrary": "Domyślna biblioteka",
     "fpfssGame": "Gra FPFSS",
     "uninstallGame": "Odinstaluj grę",
@@ -403,7 +412,10 @@
     "notArchived": "Nie zarchiwizowano",
     "archived": "Zarchiwizowano",
     "playOnline": "Zagraj online",
-    "tagFilterIcon": "Tag Filter Icon"
+    "tagFilterIcon": "Tag Filter Icon",
+    "runWithFlashPlayer": "Run with Flash Player",
+    "runWithRuffle": "Run with Ruffle",
+    "runWithRuffleUnsupported": "Run with Ruffle (Unsupported)"
   },
   "tags": {
     "name": "Nazwa",
@@ -558,7 +570,9 @@
     "searching": "Wyszukiwanie...",
     "loading": "Ładowanie...",
     "ok": "OK",
-    "allow": "Zezwól"
+    "allow": "Zezwól",
+    "orCapitals": "OR",
+    "andCapitals": "AND"
   },
   "menu": {
     "viewThumbnailInFolder": "Zobacz miniaturki w folderze",
