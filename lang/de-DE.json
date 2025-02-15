@@ -413,9 +413,9 @@
     "archived": "Archiviert",
     "playOnline": "Online spielen",
     "tagFilterIcon": "Tag Filter Icon",
-    "runWithFlashPlayer": "Run with Flash Player",
-    "runWithRuffle": "Run with Ruffle",
-    "runWithRuffleUnsupported": "Run with Ruffle (Unsupported)"
+    "runWithFlashPlayer": "Mit Flash Player ausführen",
+    "runWithRuffle": "Mit Ruffle ausführen",
+    "runWithRuffleUnsupported": "Mit Ruffle ausführen (Nicht unterstützt)"
   },
   "tags": {
     "name": "Name",
@@ -571,8 +571,8 @@
     "loading": "Lade...",
     "ok": "OK",
     "allow": "Erlauben",
-    "orCapitals": "OR",
-    "andCapitals": "AND"
+    "orCapitals": "ODER",
+    "andCapitals": "UND"
   },
   "menu": {
     "viewThumbnailInFolder": "Miniaturansicht im Ordner anzeigen",
