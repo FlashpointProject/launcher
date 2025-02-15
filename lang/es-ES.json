@@ -18,10 +18,14 @@
     "searchLimitValue": "{0} resultados",
     "useCustomViews": "Usar Vista de Búsqueda Personalizada",
     "useCustomViewsDesc": "Reemplaza las pestañas de búsqueda de la Biblioteca con pestañas personalizadas y añade una opción de Biblioteca a los filtros avanzados.",
+    "loadViewsText": "Restore Search View Text",
+    "loadViewsTextDesc": "Whether to restore the text field of a search view when restarting the launcher.",
     "defaultOpeningPage": "Página de Inicio Predeterminada",
     "defaultOpeningPageDesc": "Predeterminar la página a abrir, a la Página de Inicio, o a una Página de Búsqueda de preferencia",
     "restoreSearchViews": "Restaurar Resultados de Búsqueda",
     "restoreSearchViewsDesc": "Guarda y restaura una copia de cada página de búsqueda (texto, filtros, juego seleccionado y lista de reproducción) cada vez que se abre la aplicación.",
+    "useSelectedGameScroll": "Enable Game Selection Keyboard Controls",
+    "useSelectedGameScrollDesc": "Enables use of arrow keys to select games on Game Grids / Lists. NOTE: This will replace saved scroll position with saved selected game position.",
     "enableEditing": "Habilitar la edición",
     "enableEditingDesc": "Hablitar la edición de juegos y aplicaciones adicionales. También muestra pestañas relacionadas con la edición.",
     "symlinkCuration": "Enlazar Simbólicamente (Symlink) Contenido de Curación",
@@ -91,6 +95,8 @@
     "screenshotPreviewDelay": "Retraso al mostrar la captura de pantalla",
     "screenshotPreviewDelayDesc": "Retraso (en milisegundos) antes de mostrar la captura de pantalla, cuando la vista previa de la captura de pantalla esté encendida. (al pasar el mouse)",
     "advancedHeader": "Avanzado",
+    "autoClearWininetCache": "Auto-Clear WinINet Cache",
+    "autoClearWininetCacheDesc": "Whether to automatically clear the Windows web cache when running a curation from the Curate tab",
     "clearWininetCache": "Borrar Caché de WinINet",
     "clearWininetCacheDesc": "Borrar caché web de Windows, lo cual puede ayudar a resolver problemas de carga en Curaciones y otros casos.",
     "optimizeDatabase": "Optimizar Base de Datos",
@@ -203,7 +209,9 @@
     "noLauncherUpdateReady": "La actualización de la metadata requiere una nueva versión del Ejecutable, pero no hay una actualización de programa disponible en este momento.",
     "deleteView": "Borrar Vista de Búsqueda",
     "deleteOnlyBrowseView": "Borrar Vista de Búsqueda (Debe tener seleccionada otra Vista Personalizada)",
-    "createNewView": "Crear Nueva Vista de búsqueda",
+    "renameView": "Rename Search View",
+    "duplicateView": "Duplicate Search View",
+    "createNewView": "Create New Search View",
     "errorLoadingServices": "Un error ha ocurrido mientras se cargaban los servicios. Por favor revise los registros para más detalles."
   },
   "filter": {
@@ -354,6 +362,7 @@
     "noLaunchCommand": "Sin comando de lanzamiento",
     "searching": "Buscando...",
     "library": "Biblioteca",
+    "noLibrary": "No Library",
     "defaultLibrary": "Biblioteca predeterminada",
     "fpfssGame": "Juego FPFSS ",
     "uninstallGame": "Desinstalar juego",
@@ -403,7 +412,10 @@
     "notArchived": "No archivado",
     "archived": "Archivado",
     "playOnline": "Jugar en línea",
-    "tagFilterIcon": "Icono de Filtro de Etiquetado"
+    "tagFilterIcon": "Icono de Filtro de Etiquetado",
+    "runWithFlashPlayer": "Run with Flash Player",
+    "runWithRuffle": "Run with Ruffle",
+    "runWithRuffleUnsupported": "Run with Ruffle (Unsupported)"
   },
   "tags": {
     "name": "Nombre",
@@ -558,7 +570,9 @@
     "searching": "Buscando...",
     "loading": "Cargando...",
     "ok": "Aceptar",
-    "allow": "Permitir"
+    "allow": "Permitir",
+    "orCapitals": "OR",
+    "andCapitals": "AND"
   },
   "menu": {
     "viewThumbnailInFolder": "Ver miniatura en la carpeta",
