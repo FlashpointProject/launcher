@@ -1,5 +1,6 @@
 import { createSearchFilter, getTaggedSearch } from '@back/util/search';
 import {
+  FlashpointArchive,
   GameSearchOffset,
   GameSearchSortable,
   newSubfilter,
@@ -82,7 +83,7 @@ import { saveCuration } from './curate/write';
 import { downloadGameData } from './download';
 import { parseAppVar } from './extensions/util';
 import { clearWininetCache, importCuration, launchAddAppCuration, launchCuration } from './importGame';
-import { fpDatabase, loadCurationArchive } from './index';
+import { databaseReady, fpDatabase, loadCurationArchive } from './index';
 import { importGames, importPlatforms, importTagCategories, importTags } from './metadataImport';
 import {
   addPlaylistGame,
@@ -1188,17 +1189,26 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
   state.socketServer.register(BackIn.GET_DISTINCT_DEVELOPERS, async (event, tagFilters) => {
     const search = getTaggedSearch(tagFilters);
-    return fpDatabase.findAllGameDevelopers(search);
+    return databaseReady()
+    .then((db) => {
+      return db.findAllGameDevelopers(search);
+    });
   });
 
   state.socketServer.register(BackIn.GET_DISTINCT_PUBLISHERS, async (event, tagFilters) => {
     const search = getTaggedSearch(tagFilters);
-    return fpDatabase.findAllGamePublishers(search);
+    return databaseReady()
+    .then((db) => {
+      return db.findAllGamePublishers(search);
+    });
   });
 
   state.socketServer.register(BackIn.GET_DISTINCT_SERIES, async (event, tagFilters) => {
     const search = getTaggedSearch(tagFilters);
-    return fpDatabase.findAllGameSeries(search);
+    return databaseReady()
+    .then((db) => {
+      return db.findAllGameSeries(search);
+    });
   });
 
   state.socketServer.register(BackIn.GET_TAG_CATEGORY_BY_ID, async (event, data) => {
@@ -1227,8 +1237,11 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
   state.socketServer.register(BackIn.GET_TAGS, async (event, tagFilters) => {
     const flatFilters: string[] = tagFilters ? tagFilters.reduce<string[]>((prev, cur) => prev.concat(cur.tags), []) : [];
-    const tags = (await fpDatabase.findAllTags()).filter(t => !t.aliases.some(a => flatFilters.includes(a)));
-    return tags;
+    return databaseReady()
+    .then(async (db) => {
+      const tags = (await db.findAllTags()).filter(t => !t.aliases.some(a => flatFilters.includes(a)));
+      return tags;
+    });
   });
 
   state.socketServer.register(BackIn.MERGE_TAGS, async (event, data) => {
@@ -2816,4 +2829,3 @@ const downloadJsonDataToBuffer = async (url: string): Promise<Buffer> => {
     });
   });
 };
-
