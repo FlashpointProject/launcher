@@ -10,6 +10,7 @@ import { getDefaultAdvancedFilter, getDefaultGameSearch } from '@shared/search/u
 import { updatePreferencesData } from '@shared/preferences/util';
 import { number } from 'zod';
 import { stat } from 'fs';
+import { RootState } from '../store';
 
 export const GENERAL_VIEW_ID = '!general!';
 
@@ -244,8 +245,8 @@ export const requestKeyset = createAsyncThunk(
 export const forceSearch = createAsyncThunk(
   'search/forceSearch',
   async (payload: ForceSearchAction, { getState, dispatch }) => {
-    const state = getState() as { search: SearchState };
-    const view = state.search.views[payload.view];
+    const { search, main } = getState() as RootState;
+    const view = search.views[payload.view];
     console.log('forced search');
 
     const advFilter = deepCopy(view.advancedFilter);

@@ -25,29 +25,26 @@ import { SimpleButton } from './SimpleButton';
 import { TagInputField } from './TagInputField';
 import { LangContext } from '@renderer/util/lang';
 import { mapRuffleSupportString } from '@shared/utils/misc';
+import { Playlist } from 'flashpoint-launcher';
 
 type OwnProps = {
   logoVersion: number;
   /** Currently selected game (if any) */
   currentGame?: Game;
+  /** Currently selected playlist (if any) */
+  currentPlaylist?: Playlist;
   /** Whether the current game is extreme */
   isExtreme: boolean;
   /** Is the current game running? */
   gameRunning: boolean;
   /* Current Library */
   currentLibrary: string;
-  /** Currently selected game entry (if any) */
-  currentPlaylistEntry?: PlaylistGame;
   /** Called when the play button is pressed */
   onGameLaunch: (gameId: string, override: GameLaunchOverride) => Promise<void>;
   /** Called when the selected game is deleted by this */
   onDeleteSelectedGame: () => void;
-  /** Called when the selected game is removed from the selected by this */
-  onRemoveSelectedGameFromPlaylist?: () => void;
   /** Called when a playlist is deselected (searching game fields) */
   onDeselectPlaylist: () => void;
-  /** Called when the playlist notes for the selected game has been changed */
-  onEditPlaylistNotes: (text: string) => void;
   /** If the "edit mode" is currently enabled */
   isEditing: boolean;
   /** If the selected game is a new game being created */
@@ -59,6 +56,7 @@ type OwnProps = {
   /** List of busy games */
   busyGames: string[];
 
+  onRemovePlaylistGame: (playlistGame: PlaylistGame) => void;
   onSearch: (text: string) => void;
   onEditClick: () => void;
   onDiscardClick: () => void;
@@ -87,6 +85,7 @@ type RightBrowseSidebarState = {
   showExtremeScreenshots: boolean;
   middleScrollRef: React.RefObject<HTMLDivElement>;
   gameConfigDialogOpen: boolean;
+  playlistGame: PlaylistGame | null;
 };
 
 /** Sidebar on the right side of BrowsePage. */
@@ -137,6 +136,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       activeData: null,
       middleScrollRef: React.createRef(),
       gameConfigDialogOpen: false,
+      playlistGame: null,
     };
   }
 
@@ -151,6 +151,21 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
           this.setState({
             activeData: data
           });
+        }
+      });
+    }
+
+    if (this.props.currentGame && this.props.currentPlaylist) {
+      const gameId = this.props.currentGame.id;
+      const playlistId = this.props.currentPlaylist.id;
+      window.Shared.back.request(BackIn.GET_PLAYLIST_GAME, this.props.currentPlaylist.id, this.props.currentGame.id)
+      .then((pg) => {
+        if (pg) {
+          if (this.props.currentPlaylist?.id === playlistId && gameId === this.props.currentGame?.id) {
+            this.setState({ playlistGame: pg });
+          } else {
+            console.log('outdated');
+          }
         }
       });
     }
@@ -173,6 +188,31 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
         });
       }
     }
+
+    if ((this.props.currentGame?.id !== prevProps.currentGame?.id) 
+      || (this.props.currentPlaylist?.id !== prevProps.currentPlaylist?.id)) {
+      // Playlist or game has changed, update PlaylistGame
+      console.log('change');
+      if (this.props.currentGame && this.props.currentPlaylist) {
+        console.log('safe change');
+        const gameId = this.props.currentGame.id;
+        const playlistId = this.props.currentPlaylist.id;
+        this.setState({ playlistGame: null });
+        window.Shared.back.request(BackIn.GET_PLAYLIST_GAME, this.props.currentPlaylist.id, this.props.currentGame.id)
+        .then((pg) => {
+          // Make sure the incoming data is still the same pair of playlist and game
+          if (this.props.currentPlaylist?.id === playlistId && gameId === this.props.currentGame?.id) {
+            this.setState({ playlistGame: pg });
+          } else {
+            console.log('outdated');
+          }
+        });
+      } else {
+        console.log('bad change');
+        this.setState({ playlistGame: null });
+      }
+    }
+
     if (this.props.currentGame && this.props.currentGame.id !== (prevProps.currentGame && prevProps.currentGame.id)) {
       // Hide again when changing games
       this.setState({ showExtremeScreenshots: false });
@@ -205,12 +245,20 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     }
   }
 
+  onSaveGame = () => {
+    if (this.state.playlistGame && this.props.currentPlaylist) {
+      window.Shared.back.send(BackIn.SAVE_PLAYLIST_GAME, this.props.currentPlaylist.id, this.state.playlistGame);
+    }
+    this.props.onSaveGame();
+  }
+
   render() {
     const allStrings = this.context as LangContainer;
     const strings = allStrings.browse;
+    const { playlistGame } = this.state;
     const game: Game | undefined = this.props.currentGame;
     if (game) {
-      const { isEditing, isNewGame, currentPlaylistEntry, preferencesData, suggestions, tagCategories } = this.props;
+      const { isEditing, isNewGame, preferencesData, suggestions, tagCategories } = this.props;
       const currentAddApps = game.addApps;
       const editDisabled = !preferencesData.enableEditing;
       const editable = isEditing;
@@ -272,7 +320,11 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       const removeGameFromPlaylistElement =
         <ConfirmElement
           message={allStrings.dialog.removePlaylistGame}
-          onConfirm={this.props.onRemoveSelectedGameFromPlaylist}
+          onConfirm={() => {
+            if (this.state.playlistGame) {
+              this.props.onRemovePlaylistGame(this.state.playlistGame);
+            }
+          }}
           render={this.renderRemoveFromPlaylistButton}
           extra={strings} />;
 
@@ -420,7 +472,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     { editDisabled ? (
                       <>
                         {/* "Remove From Playlist" Button */}
-                        { currentPlaylistEntry ? removeGameFromPlaylistElement : undefined }
+                        { playlistGame ? removeGameFromPlaylistElement : undefined }
                       </>
                     ) : (
                       <>
@@ -430,7 +482,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                             <div
                               className='browse-right-sidebar__title-row__buttons__save-button'
                               title={strings.saveChanges}
-                              onClick={this.props.onSaveGame}>
+                              onClick={this.onSaveGame}>
                               <OpenIcon icon='check' />
                             </div>
                             {/* "Discard" Button */}
@@ -461,9 +513,9 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                               </div>
                             ) }
                             {/* "Remove From Playlist" Button */}
-                            { currentPlaylistEntry ? removeGameFromPlaylistElement : undefined }
+                            { playlistGame ? removeGameFromPlaylistElement : undefined }
                             {/* "Delete Game" Button */}
-                            { (isNewGame || currentPlaylistEntry) && !editDisabled ? undefined : (
+                            { (isNewGame || playlistGame) && !editDisabled ? undefined : (
                               <ConfirmElement
                                 message={allStrings.dialog.deleteGame}
                                 onConfirm={this.onDeleteGameClick}
@@ -858,12 +910,12 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
               </div>
             )}
             {/* -- Playlist Game Entry Notes -- */}
-            { currentPlaylistEntry ? (
+            { playlistGame ? (
               <div className='browse-right-sidebar__section'>
                 <div className='browse-right-sidebar__row'>
                   <p>{strings.playlistNotes}: </p>
                   <InputField
-                    text={currentPlaylistEntry.notes}
+                    text={playlistGame.notes}
                     placeholder={strings.noPlaylistNotes}
                     onChange={this.onEditPlaylistNotes}
                     editable={editable}
@@ -1293,7 +1345,14 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   };
 
   onEditPlaylistNotes = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
-    this.props.onEditPlaylistNotes(event.currentTarget.value);
+    if (this.state.playlistGame) {
+      this.setState({
+        playlistGame: {
+          ...this.state.playlistGame,
+          notes: event.currentTarget.value
+        }
+      });
+    }
   };
 
   onTagSelect = (tag: Tag): void => {

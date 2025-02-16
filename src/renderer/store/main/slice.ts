@@ -20,6 +20,11 @@ export type MetaUpdateState = {
   total: number;
 }
 
+export type RemovePlaylistGameAction = {
+  playlistId: string;
+  gameId: string;
+}
+
 export type UpdateDialogFieldActionData = {
   id: string;
   field: Partial<DialogField>;
@@ -142,6 +147,7 @@ const initialState: MainState = {
   },
   appPaths: {},
   loaded: {
+    [BackInit.DATABASE_READY]: false,
     [BackInit.SERVICES]: false,
     [BackInit.DATABASE]: false,
     [BackInit.PLAYLISTS]: false,
@@ -303,6 +309,15 @@ const mainSlice = createSlice({
         };
       }
     },
+    removePlaylistGame(state: MainState, { payload }: PayloadAction<RemovePlaylistGameAction>) {
+      const playlist = state.playlists.find(p => p.id === payload.playlistId);
+      if (playlist) {
+        const gameIdx = playlist.games.findIndex(g => g.gameId === payload.gameId);
+        if (gameIdx !== -1) {
+          playlist.games.splice(gameIdx, 1);
+        }
+      }
+    },
     updateDialogField(state: MainState, { payload }: PayloadAction<UpdateDialogFieldActionData>) {
       const dialog = state.openDialogs.find(d => d.id === payload.id);
       if (dialog && dialog.fields) {
@@ -339,6 +354,7 @@ export const { setMainState,
   resolveDialog,
   updateDialog,
   updateDialogField,
+  removePlaylistGame,
   setUpdateInfo } = mainSlice.actions;
 export default mainSlice.reducer;
 
