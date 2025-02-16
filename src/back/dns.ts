@@ -89,7 +89,5 @@ const agent = new Agent({
 export const axios = _axios.create({
   headers: {
     'User-Agent': 'Flashpoint Launcher'
-  },
-  httpAgent: agent,
-  httpsAgent: agent
+  }
 })
