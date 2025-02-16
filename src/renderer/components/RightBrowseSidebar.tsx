@@ -218,7 +218,9 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       const anyActiveDataDownloaded = game.gameData !== undefined && game.gameData.findIndex((gd) => gd.presentOnDisk) !== -1;
 
       const contextMenu: MenuItemConstructorOptions[] = [];
-      if (game.ruffleSupport !== '' || this.state.activeData?.launchCommand.endsWith('.swf')) {
+      if (game.ruffleSupport !== '' || (
+        this.state.activeData ? this.state.activeData.launchCommand.endsWith('.swf') : game.legacyLaunchCommand.endsWith('.swf')
+      )) {
         contextMenu.push({
           label: strings.runWithFlashPlayer,
           click: () => {

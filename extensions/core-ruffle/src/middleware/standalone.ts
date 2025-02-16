@@ -179,6 +179,9 @@ export class RuffleStandaloneMiddleware implements IGameMiddleware {
   }
 
   async execute(gameLaunchInfo: GameLaunchInfo, middlewareConfig: GameMiddlewareConfig): Promise<GameLaunchInfo> {
+    // We always use a native executable
+    gameLaunchInfo.launchInfo.useWine = false;
+
     // Cast our config values to the correct type
     const config = {
       ...DEFAULT_CONFIG,

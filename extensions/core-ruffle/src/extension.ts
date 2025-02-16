@@ -73,6 +73,7 @@ export async function activate(context: flashpoint.ExtensionContext): Promise<vo
     if (launchInfo.launchInfo.override === 'ruffle') {
       flashpoint.log.info('Using Standalone Ruffle for overriden game...');
         const defaultConfig = standaloneMiddleware.getDefaultConfig(launchInfo.game);
+        defaultConfig.config.graphics = flashpoint.getExtConfigValue('com.ruffle.graphics-mode');
         standaloneMiddleware.execute(launchInfo, {
           middlewareId: '',
           name: '',
