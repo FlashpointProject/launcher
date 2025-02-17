@@ -237,6 +237,11 @@ export function SearchBar() {
   const onClearTags = onClearFactory('tags');
   const onSetAndToggleTags = onSetAndToggleFactory('tags');
 
+  const onWhitelistRuffleSupport = onWhitelistFactory('ruffleSupport');
+  const onBlacklistRuffleSupport = onBlacklistFactory('ruffleSupport');
+  const onClearRuffleSupport = onClearFactory('ruffleSupport');
+  const onSetAndToggleRuffleSupport = onSetAndToggleFactory('ruffleSupport');
+
   const simpleSelectItems = (values: string[] | null): SearchableSelectItem[] => {
     return values ? values.map(v => ({
       value: v,
@@ -250,6 +255,13 @@ export function SearchBar() {
   const developerItems = useMemo(() => simpleSelectItems(search.dropdowns.developers), [search.dropdowns.developers]);
   const publisherItems = useMemo(() => simpleSelectItems(search.dropdowns.publishers), [search.dropdowns.publishers]);
   const seriesItems = useMemo(() => simpleSelectItems(search.dropdowns.series), [search.dropdowns.series]);
+  const ruffleSupportItems: SearchableSelectItem[] = [{
+    value: '',
+    orderVal: ''
+  }, {
+    value: 'standalone',
+    orderVal: 'Standalone'
+  }];
   const tagItems = useMemo((): TagSelectItem[] => {
     if (search.dropdowns.tags) {
       return search.dropdowns.tags.map(tag => {
@@ -422,6 +434,16 @@ export function SearchBar() {
                 return strings.libraries[item] || item;
               }} />
           )}
+          <SearchableSelect
+            title={strings.browse.ruffleSupport}
+            items={ruffleSupportItems}
+            andToggle={view.advancedFilter.andToggles.ruffleSupport}
+            selected={view.advancedFilter.ruffleSupport}
+            generateItem={genSelectItem}
+            onWhitelist={onWhitelistRuffleSupport}
+            onBlacklist={onBlacklistRuffleSupport}
+            onClear={onClearRuffleSupport}
+            onSetAndToggle={onSetAndToggleRuffleSupport} />
           <SearchableSelect
             title={strings.app.developer}
             items={developerItems}

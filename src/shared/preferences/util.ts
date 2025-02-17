@@ -416,6 +416,7 @@ function parseAdvancedFilterAndToggles(parser: IObjectParserProp<AdvancedFilterA
   parser.prop('developer', v => output.developer = !!v, true);
   parser.prop('publisher', v => output.publisher = !!v, true)
   parser.prop('series', v => output.series = !!v, true);
+  parser.prop('ruffleSupport', v => output.ruffleSupport = !!v, true);
 }
 
 function parseAdvancedFilter(parser: IObjectParserProp<AdvancedFilter>, output: AdvancedFilter) {
@@ -429,6 +430,7 @@ function parseAdvancedFilter(parser: IObjectParserProp<AdvancedFilter>, output: 
   parser.prop('developer', true).mapRaw((item, index) => output.developer[index] = parseAdvancedFilterToggle(str(item)));
   parser.prop('publisher', true).mapRaw((item, index) => output.publisher[index] = parseAdvancedFilterToggle(str(item)));
   parser.prop('series', true).mapRaw((item, index) => output.series[index] = parseAdvancedFilterToggle(str(item)));
+  parser.prop('ruffleSupport', true).mapRaw((item, index) => output.ruffleSupport[index] = parseAdvancedFilterToggle(str(item)));
   parseAdvancedFilterAndToggles(parser.prop('andToggles'), output.andToggles);
 }
 
