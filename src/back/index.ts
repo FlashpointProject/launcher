@@ -121,11 +121,12 @@ const state: BackState = {
   isHandling: false,
   init: {
     [BackInit.SERVICES]: false,
+    [BackInit.DATABASE_READY]: false,
     [BackInit.DATABASE]: false,
     [BackInit.PLAYLISTS]: false,
     [BackInit.CURATE]: false,
     [BackInit.EXEC_MAPPINGS]: false,
-    [BackInit.EXTENSIONS]: false
+    [BackInit.EXTENSIONS]: false,
   },
   initEmitter: new EventEmitter() as any,
   queries: {},
@@ -731,6 +732,9 @@ async function initialize() {
   } catch (e) {
     state.socketServer.broadcast(BackOut.OPEN_ALERT, 'Failed to open database: ' + e);
   }
+
+  state.init[BackInit.DATABASE_READY] = true;
+  state.initEmitter.emit(BackInit.DATABASE_READY);
 
   // Populate unique values
   state.suggestions = {
@@ -1609,4 +1613,19 @@ export async function checkAndDownloadGameData(activeDataId: number) {
       return;
     }
   }
+}
+
+export async function databaseReady(): Promise<FlashpointArchive> {
+  return new Promise<FlashpointArchive>((resolve) => {
+    const waitForDb = () => {
+      if (state.init[BackInit.DATABASE_READY]) {
+        resolve(fpDatabase);
+      } else {
+        state.initEmitter.once(BackInit.DATABASE_READY, () => {
+          resolve(fpDatabase);
+        });
+      }
+    };
+    waitForDb();
+  });
 }

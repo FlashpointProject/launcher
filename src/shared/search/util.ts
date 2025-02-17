@@ -41,6 +41,7 @@ export function getDefaultAdvancedFilter(library?: string): AdvancedFilter {
     developer: {},
     publisher: {},
     series: {},
+    ruffleSupport: {},
     andToggles: {
       library: false,
       playMode: false,
@@ -49,6 +50,7 @@ export function getDefaultAdvancedFilter(library?: string): AdvancedFilter {
       developer: false,
       publisher: false,
       series: false,
+      ruffleSupport: false,
     }
   };
 }
@@ -78,7 +80,8 @@ export function isAdvFilterEmpty(advFilter: AdvancedFilter): boolean {
     Object.keys(advFilter.tags).length === 0 &&
     Object.keys(advFilter.developer).length === 0 &&
     Object.keys(advFilter.publisher).length === 0 &&
-    Object.keys(advFilter.series).length === 0
+    Object.keys(advFilter.series).length === 0 &&
+    Object.keys(advFilter.ruffleSupport).length === 0
   );
 }
 
@@ -170,6 +173,7 @@ export function parseAdvancedFilter(advFilter: AdvancedFilter): GameFilter {
   nonExactWhitelistFunc('publisher', 'publisher');
   exactWhitelistFunc('series', 'series');
   exactWhitelistFunc('tags', 'tags');
+  exactWhitelistFunc('ruffleSupport', 'ruffleSupport');
 
   exactBlacklistFunc('library', 'library');
   exactBlacklistFunc('platform', 'platforms');
@@ -178,6 +182,7 @@ export function parseAdvancedFilter(advFilter: AdvancedFilter): GameFilter {
   nonExactBlacklistFunc('publisher', 'publisher');
   exactBlacklistFunc('series', 'series');
   exactBlacklistFunc('tags', 'tags');
+  exactBlacklistFunc('ruffleSupport', 'ruffleSupport');
 
   return filter;
 }

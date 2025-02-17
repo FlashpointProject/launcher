@@ -1089,30 +1089,24 @@ export class App extends React.Component<AppProps> {
     }
   };
 
-  onRemoveSelectedGameFromPlaylist = async (): Promise<void> => {
+  onRemovePlaylistGame = async (playlistGame: PlaylistGame): Promise<void> => {
     // Remove game from playlist
-    if (this.props.currentView.selectedGame) {
-      if (this.props.main.selectedPlaylistId) {
-        await window.Shared.back.request(BackIn.DELETE_PLAYLIST_GAME, this.props.main.selectedPlaylistId, this.props.currentView.selectedGame.id);
-      } else { logError('No playlist is selected'); }
-    } else { logError('No game is selected'); }
+    if (this.props.currentView.selectedPlaylist) {
+      await window.Shared.back.request(BackIn.DELETE_PLAYLIST_GAME, this.props.currentView.selectedPlaylist.id, playlistGame.gameId);
+      // Remove from playlist on frontend
+      this.props.mainActions.removePlaylistGame({
+        playlistId: this.props.currentView.selectedPlaylist.id,
+        gameId: playlistGame.gameId
+      });
+    } else { 
+      logError('No playlist is selected?');
+      return;
+    }
 
-    // Deselect the game
-    this.props.searchActions.selectGame({
-      view: this.props.currentView.id,
-      game: undefined,
-    });
-
-    // Reset the state related to the selected game
+    // Reset the state related to the editing
     this.props.setMainState({
-      currentGame: undefined,
-      currentPlaylistEntry: undefined,
       isEditingGame: false
     });
-
-    if (this.props.main.selectedPlaylistId) {
-      this.onUpdatePlaylistById(this.props.main.selectedPlaylistId);
-    }
 
     function logError(text: string) {
       console.error('Unable to remove game from selected playlist - ' + text);
@@ -1477,7 +1471,6 @@ export class App extends React.Component<AppProps> {
                   onGameLaunch={async () => alert('Cannot launch game during FPFSS edit')}
                   onDeleteSelectedGame={() => {/** unused */ }}
                   onDeselectPlaylist={() => {/** unused */ }}
-                  onEditPlaylistNotes={() => {/** unused */ }}
                   isEditing={true}
                   isExtreme={false}
                   isNewGame={false}
@@ -1485,6 +1478,7 @@ export class App extends React.Component<AppProps> {
                   tagCategories={this.props.tagCategories}
                   busyGames={[]}
                   onEditClick={() => {/** unused */ }}
+                  onRemovePlaylistGame={() => {/** unused */}}
                   onDiscardClick={this.onCancelFpfssEditGame}
                   onSaveGame={this.onSaveFpfssEditGame}
                   onEditGame={this.onApplyFpfssEditGame}
@@ -1533,15 +1527,14 @@ export class App extends React.Component<AppProps> {
                       <ConnectedRightBrowseSidebar
                         logoVersion={this.props.main.logoVersion}
                         currentGame={currentView.selectedGame}
+                        currentPlaylist={currentView.selectedPlaylist}
                         isExtreme={currentView.selectedGame ? currentView.selectedGame.tags.reduce<boolean>((prev, next) => extremeTags.includes(next) || prev, false) : false}
                         gameRunning={routerProps.gameRunning}
-                        currentPlaylistEntry={this.props.main.currentPlaylistEntry}
                         currentLibrary={routerProps.gameLibrary}
                         onGameLaunch={this.onGameLaunch}
                         onDeleteSelectedGame={this.onDeleteSelectedGame}
-                        onRemoveSelectedGameFromPlaylist={this.onRemoveSelectedGameFromPlaylist}
+                        onRemovePlaylistGame={this.onRemovePlaylistGame}
                         onDeselectPlaylist={this.onRightSidebarDeselectPlaylist}
-                        onEditPlaylistNotes={this.onEditPlaylistNotes}
                         isEditing={this.props.main.isEditingGame && this.props.preferencesData.enableEditing}
                         isNewGame={false} /* Deprecated */
                         onEditGame={this.onEditGame}

@@ -1107,6 +1107,7 @@ declare module 'flashpoint-launcher' {
       developer: boolean;
       publisher: boolean;
       series: boolean;
+      ruffleSupport: boolean;
     }
 
     type AdvancedFilter = {
@@ -1120,6 +1121,7 @@ declare module 'flashpoint-launcher' {
       developer: Record<string, AdvancedFilterToggle>;
       publisher: Record<string, AdvancedFilterToggle>;
       series: Record<string, AdvancedFilterToggle>;
+      ruffleSupport: Record<string, AdvancedFilterToggle>;
       andToggles: AdvancedFilterAndToggles;
     }
 

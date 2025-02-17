@@ -237,6 +237,11 @@ export function SearchBar() {
   const onClearTags = onClearFactory('tags');
   const onSetAndToggleTags = onSetAndToggleFactory('tags');
 
+  const onWhitelistRuffleSupport = onWhitelistFactory('ruffleSupport');
+  const onBlacklistRuffleSupport = onBlacklistFactory('ruffleSupport');
+  const onClearRuffleSupport = onClearFactory('ruffleSupport');
+  const onSetAndToggleRuffleSupport = onSetAndToggleFactory('ruffleSupport');
+
   const simpleSelectItems = (values: string[] | null): SearchableSelectItem[] => {
     return values ? values.map(v => ({
       value: v,
@@ -250,6 +255,13 @@ export function SearchBar() {
   const developerItems = useMemo(() => simpleSelectItems(search.dropdowns.developers), [search.dropdowns.developers]);
   const publisherItems = useMemo(() => simpleSelectItems(search.dropdowns.publishers), [search.dropdowns.publishers]);
   const seriesItems = useMemo(() => simpleSelectItems(search.dropdowns.series), [search.dropdowns.series]);
+  const ruffleSupportItems: SearchableSelectItem[] = [{
+    value: '',
+    orderVal: ''
+  }, {
+    value: 'standalone',
+    orderVal: 'Standalone'
+  }];
   const tagItems = useMemo((): TagSelectItem[] => {
     if (search.dropdowns.tags) {
       return search.dropdowns.tags.map(tag => {
@@ -264,6 +276,28 @@ export function SearchBar() {
       return [];
     }
   }, [search.dropdowns.tags]);
+
+  const genSelectItem = (missing: string): SearchableSelectItem => {
+    return {
+      value: missing,
+      orderVal: `zzzzzzz${missing}`,
+    };
+  }
+
+  const genTagItem = (missing: string): TagSelectItem => {
+    return {
+      tag: {
+        id: -1,
+        name: missing,
+        category: 'default',
+        dateModified: '',
+        aliases: [missing],
+        description: '',
+      },
+      orderVal: `zzzzzzz${missing}`,
+      value: missing,
+    };
+  }
 
   const platformLabelRenderer = (item: SearchableSelectItem) => {
     const platformIcon = getPlatformIconURL(item.value, mainState.logoVersion);
@@ -391,6 +425,7 @@ export function SearchBar() {
               items={libraryItems}
               andToggle={view.advancedFilter.andToggles.library}
               selected={view.advancedFilter.library}
+              generateItem={genSelectItem}
               onWhitelist={onWhitelistLibrary}
               onBlacklist={onBlacklistLibrary}
               onClear={onClearLibraries}
@@ -400,10 +435,21 @@ export function SearchBar() {
               }} />
           )}
           <SearchableSelect
+            title={strings.browse.ruffleSupport}
+            items={ruffleSupportItems}
+            andToggle={view.advancedFilter.andToggles.ruffleSupport}
+            selected={view.advancedFilter.ruffleSupport}
+            generateItem={genSelectItem}
+            onWhitelist={onWhitelistRuffleSupport}
+            onBlacklist={onBlacklistRuffleSupport}
+            onClear={onClearRuffleSupport}
+            onSetAndToggle={onSetAndToggleRuffleSupport} />
+          <SearchableSelect
             title={strings.app.developer}
             items={developerItems}
             andToggle={view.advancedFilter.andToggles.developer}
             selected={view.advancedFilter.developer}
+            generateItem={genSelectItem}
             onWhitelist={onWhitelistDeveloper}
             onBlacklist={onBlacklistDeveloper}
             onClear={onClearDeveloper}
@@ -413,6 +459,7 @@ export function SearchBar() {
             items={publisherItems}
             andToggle={view.advancedFilter.andToggles.publisher}
             selected={view.advancedFilter.publisher}
+            generateItem={genSelectItem}
             onWhitelist={onWhitelistPublisher}
             onBlacklist={onBlacklistPublisher}
             onClear={onClearPublisher}
@@ -422,6 +469,7 @@ export function SearchBar() {
             items={seriesItems}
             andToggle={view.advancedFilter.andToggles.series}
             selected={view.advancedFilter.series}
+            generateItem={genSelectItem}
             onWhitelist={onWhitelistSeries}
             onBlacklist={onBlacklistSeries}
             onClear={onClearSeries}
@@ -431,6 +479,7 @@ export function SearchBar() {
             items={playModeItems}
             andToggle={view.advancedFilter.andToggles.playMode}
             selected={view.advancedFilter.playMode}
+            generateItem={genSelectItem}
             onWhitelist={onWhitelistPlayMode}
             onBlacklist={onBlacklistPlayMode}
             onClear={onClearPlayMode}
@@ -441,6 +490,7 @@ export function SearchBar() {
             andToggle={view.advancedFilter.andToggles.platform}
             labelRenderer={platformLabelRenderer}
             selected={view.advancedFilter.platform}
+            generateItem={genSelectItem}
             onWhitelist={onWhitelistPlatform}
             onBlacklist={onBlacklistPlatform}
             onClear={onClearPlatforms}
@@ -451,6 +501,7 @@ export function SearchBar() {
             andToggle={view.advancedFilter.andToggles.tags}
             labelRenderer={tagLabelRenderer}
             selected={view.advancedFilter.tags}
+            generateItem={genTagItem}
             onWhitelist={onWhitelistTag}
             onBlacklist={onBlacklistTag}
             onClear={onClearTags}
@@ -513,6 +564,7 @@ type SearchableSelectProps<T extends SearchableSelectItem> = {
   onSetAndToggle: (value: boolean) => void;
   mapName?: (name: string) => string;
   labelRenderer?: (item: T, selected: boolean) => JSX.Element;
+  generateItem: (missing: string) => T;
 }
 
 type SearchableSelectItem = {
@@ -539,6 +591,20 @@ function SearchableSelect<T extends SearchableSelectItem>(props: SearchableSelec
       setExpanded(false);
     }
   };
+
+  const orderedItems = useMemo(() => {
+    const newItems = [...items];
+    const missingItems = { ...selected };
+    for (const item of newItems) {
+      if (item.value in missingItems) {
+        delete missingItems[item.value];
+      }
+    }
+    for (const missingItem of Object.keys(missingItems)) {
+      newItems.push(props.generateItem(missingItem));
+    }
+    return newItems.sort((a, b) => a.orderVal.localeCompare(b.orderVal));
+  }, [items, selected]);
 
   React.useEffect(() => {
     // Add event listener to handle clicks outside the dropdown
@@ -573,7 +639,7 @@ function SearchableSelect<T extends SearchableSelectItem>(props: SearchableSelec
         </div>
         {expanded && (
           <SearchableSelectDropdown
-            items={items.sort((a, b) => a.orderVal.localeCompare(b.orderVal))}
+            items={orderedItems}
             andToggle={andToggle}
             onWhitelist={onWhitelist}
             onBlacklist={onBlacklist}

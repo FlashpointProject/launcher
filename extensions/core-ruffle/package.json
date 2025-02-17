@@ -20,6 +20,19 @@
             "type": "boolean",
             "default": false,
             "description": "Enables Ruffle Standalone for all games regardless of whether they have been checked as supported. Results my vary."
+          },
+          "com.ruffle.graphics-mode": {
+            "title": "Graphics Mode",
+            "type": "string",
+            "enum": [
+              "default",
+              "vulkan",
+              "metal",
+              "dx12",
+              "gl"
+            ],
+            "default": "default",
+            "description": "Switches the graphics mode used when running games in Ruffle."
           }
         }
       }

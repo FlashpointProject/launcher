@@ -560,6 +560,7 @@ export type BackInitArgs = {
 
 export enum BackInit {
   SERVICES,
+  DATABASE_READY,
   DATABASE,
   PLAYLISTS,
   EXTENSIONS,
