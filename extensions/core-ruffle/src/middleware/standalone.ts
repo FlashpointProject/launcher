@@ -220,6 +220,8 @@ export class RuffleStandaloneMiddleware implements IGameMiddleware {
         throw `Error downloading Ruffle version "${middlewareConfig.version}": ${e}`;
       }
     }
+    // Make standalone ruffle executable if not Windows
+    if (executable === 'ruffle') { await fs.promises.chmod(execPath, 0o775); }
 
     // Add any configured ruffle params to the launch args
     const launchArgs = coerceToStringArray(gameLaunchInfo.launchInfo.gameArgs);
