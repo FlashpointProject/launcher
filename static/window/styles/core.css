@@ -3661,9 +3661,9 @@ body {
 }
 
 .searchable-select-dropdown-results {
-  overflow-y: auto;
   height: 45vh;
   width: 22vw;
+  overflow: hidden;
 }
 
 .searchable-select-dropdown-item {
