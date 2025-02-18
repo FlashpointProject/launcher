@@ -1513,9 +1513,14 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       }
       const newDetailedTags = deepCopy(game.detailedTags);
       const newTags = deepCopy(game.tags);
-      const tagsIndex = newTags.findIndex(t => t.toLowerCase() === newDetailedTags[index].name.toLowerCase());
-      newTags.splice(tagsIndex, 1);
-      newDetailedTags.splice(index, 1);
+      const tagsIndex = newTags.findIndex(t => t.toLowerCase() === tag.name.toLowerCase());
+      if (tagsIndex > -1) {
+        newTags.splice(tagsIndex, 1);
+      }
+      const detailedTagsIndex = newDetailedTags.findIndex(t => t.name.toLowerCase() === tag.name.toLowerCase());
+      if (detailedTagsIndex > -1) {
+        newDetailedTags.splice(detailedTagsIndex, 1);
+      }
       this.props.onEditGame({ tags: newTags, detailedTags: newDetailedTags });
     }
   };
