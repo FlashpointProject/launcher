@@ -31,10 +31,11 @@ export async function fpfssLogin(createDialog: typeof mainActions.createDialog, 
   const pollUrl = `${fpfssBaseUrl}/auth/token`;
   const profileUrl = `${fpfssBaseUrl}/api/profile`;
   await remote.shell.openExternal(token.verification_uri_complete);
+  remote.clipboard.writeText(token.verification_uri_complete);
 
   const dialog: DialogState = {
     largeMessage: true,
-    message: 'Please login in your browser to continue',
+    message: 'Please login in your browser to continue. If the link does not automatically open in your browser, paste it from your clipboard.',
     buttons: ['Cancel'],
     id: uuid()
   };
