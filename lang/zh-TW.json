@@ -364,7 +364,7 @@
     "library": "收藏庫",
     "noLibrary": "No Library",
     "defaultLibrary": "初始收藏庫",
-    "fpfssGame": "FPFSS Game",
+    "fpfssGame": "FPFSS 遊戲",
     "uninstallGame": "解除安裝遊戲",
     "installed": "已安裝",
     "notInstalled": "未安裝",
@@ -380,7 +380,7 @@
     "removeGameFromPlaylist": "將此遊戲自播放清單移除",
     "saveChanges": "儲存變更",
     "discardChanges": "取消變更",
-    "editFpfssGame": "Edit Game (FPFSS)",
+    "editFpfssGame": "編輯遊戲 (FPFSS)",
     "showOnFpfss": "Show Game on FPFSS",
     "editGame": "修改遊戲",
     "allGames": "所有遊戲",
@@ -388,7 +388,7 @@
     "importPlaylist": "匯入播放清單",
     "noGamesFoundInsidePlaylist": "No Results Found in Playlist!",
     "emptyPlaylist": "播放清單是空的",
-    "noGamesFound": "No Results Found!",
+    "noGamesFound": "沒有找到結果！",
     "dropGameOnLeft": "將遊戲拖曳至播放清單的 {0} 以新增之",
     "leftSidebar": "左側列表",
     "setFlashpointPathQuestion": "您有在 {1} 頁面設置指向 {0} 的路徑了嗎？",
@@ -401,7 +401,7 @@
     "noGameMatchedSearch": "嘗試以較為寬鬆的關鍵字進行搜尋",
     "mountParameters": "掛載參數",
     "noMountParameters": "無掛載參數",
-    "ruffleSupport": "Ruffle Support",
+    "ruffleSupport": "Ruffle支援",
     "showExtremeScreenshot": "顯示成人截圖",
     "busy": "請稍候...",
     "openGameDataBrowser": "Open Game Data Browser",
@@ -413,9 +413,9 @@
     "archived": "Archived",
     "playOnline": "Play Online",
     "tagFilterIcon": "Tag Filter Icon",
-    "runWithFlashPlayer": "Run with Flash Player",
-    "runWithRuffle": "Run with Ruffle",
-    "runWithRuffleUnsupported": "Run with Ruffle (Unsupported)"
+    "runWithFlashPlayer": "使用 Flash Player 執行",
+    "runWithRuffle": "使用 Ruffle 執行",
+    "runWithRuffleUnsupported": "使用 Ruffle 執行 (不支援)"
   },
   "tags": {
     "name": "名稱",
@@ -439,7 +439,7 @@
     "deleteTag": "刪除標籤",
     "deleteTagCategory": "刪除標籤類別",
     "locked": "系統處理時將鎖定操作...",
-    "filterIcon": "Icon Thumbnail"
+    "filterIcon": "圖示縮圖"
   },
   "curate": {
     "noCurationSelected": "未選取任何典藏作品。",
@@ -664,9 +664,9 @@
     "requiresAdditionalDownloadPlural": "You are missing {0} support packs which are required to launch this entry.\nDownload now?",
     "confirmClearPlaytime": "清除所有遊戲的遊玩時數及遊玩紀錄資料？此動作無法復原。",
     "badAntiVirus": "You appear to be using '{0}'.\nThis particular Antivirus is known to cause issues, and we recommend adding an exception to the Flashpoint folder.\n\nIf you only see a white screen when running Flash games you may need to reinstall Flashpoint to restore deleted files.\n\nSee the Wiki or Help tab for detailed instructions.",
-    "openWiki": "Open Wiki",
-    "openDiscord": "Join Discord Server",
-    "doNotShowAgain": "Do not show again",
+    "openWiki": "打開Wiki",
+    "openDiscord": "加入Discord伺服器",
+    "doNotShowAgain": "不要再顯示",
     "extFpfssConsent": "Extension with ID {0} is requesting access to your FPFSS token. Allow?\nThis means the extension will be able access your FPFSS account and perform actions on your behalf.",
     "gameDataUpdateReady": "A game data update is ready. Do you want to upgrade now?",
     "gameDataUpdateReadyLcDifferent": "A game data update is ready. The launch command has changed and this may break existing save files. Do you want to upgrade now?"
