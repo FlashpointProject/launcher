@@ -100,7 +100,7 @@
     "clearWininetCache": "Vymazat WinINet mezipaměť",
     "clearWininetCacheDesc": "Vymaže webovou mezipaměť Windows, což může pomoci vyřešit problémy s načítáním v kuracích a v dalších vzácných případech.",
     "optimizeDatabase": "Optimalizovat databázi",
-    "optimizeDatabaseDesc": "Run maintenance tasks to increase database performance and reduce size.",
+    "optimizeDatabaseDesc": "Spustit úlohy údržby pro zvýšení výkonu databáze a snížení její velikosti.",
     "showDeveloperTab": "Zobrazit záložku pro vývojáře",
     "showDeveloperTabDesc": "Zobrazí záložku \"Vývojář\". Toto je obvykle užitečné pouze pro vývojáře a kurátory.",
     "registerProtocol": "Registrovat jako správce protokolů",
@@ -408,14 +408,14 @@
     "allGenericEntries": "Všechny záznamy",
     "usePlaylistOrder": "Použít pořadí seznamu",
     "hideFilters": "Skrýt filtry",
-    "showFilters": "Show Filters",
+    "showFilters": "Zobrazit filtry",
     "notArchived": "Nearchivováno",
     "archived": "Archivováno",
     "playOnline": "Hrát online",
-    "tagFilterIcon": "Tag Filter Icon",
-    "runWithFlashPlayer": "Run with Flash Player",
-    "runWithRuffle": "Run with Ruffle",
-    "runWithRuffleUnsupported": "Run with Ruffle (Unsupported)"
+    "tagFilterIcon": "Ikona filtrů štítků",
+    "runWithFlashPlayer": "Spustit přes Flash Player",
+    "runWithRuffle": "Spustit přes Ruffle",
+    "runWithRuffleUnsupported": "Spustit přes Ruffle (Nepodporované)"
   },
   "tags": {
     "name": "Název",
@@ -439,7 +439,7 @@
     "deleteTag": "Odstranit Štítek",
     "deleteTagCategory": "Odstranit Kategorii Štítků",
     "locked": "Uzamčeno během zpracovávání...",
-    "filterIcon": "Icon Thumbnail"
+    "filterIcon": "Ikona miniatury"
   },
   "curate": {
     "noCurationSelected": "Není vybrána žádná kurace",
@@ -556,7 +556,7 @@
   "misc": {
     "noBlankFound": "Žádn(ý/á) {0} nenalezen(a)",
     "addBlank": "Přidat {0}",
-    "removeBlank": "Remove {0}",
+    "removeBlank": "Odstranit {0}",
     "deleteAllBlankImages": "Odstranit VŠECHNY {0} k této hře",
     "yes": "Ano",
     "no": "Ne",
@@ -571,8 +571,8 @@
     "loading": "Načítání...",
     "ok": "OK",
     "allow": "Povolit",
-    "orCapitals": "OR",
-    "andCapitals": "AND"
+    "orCapitals": "NEBO",
+    "andCapitals": "A"
   },
   "menu": {
     "viewThumbnailInFolder": "Otevřít složku s umístěním miniatury",
