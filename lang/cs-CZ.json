@@ -591,7 +591,8 @@
     "duplicatePlaylist": "Duplikovat seznam",
     "exportPlaylist": "Exportovat seznam",
     "makeCurationFromGame": "Vytvořit kuraci ze hry",
-    "copyShortcutURL": "Zkopírovat adresu URL zkratky"
+    "copyShortcutURL": "Zkopírovat adresu URL zkratky",
+    "downloadPlaylistContent": "Download Playlist Entries"
   },
   "dialog": {
     "programNotFound": "Program nebyl nalezen!",
