@@ -591,7 +591,8 @@
     "duplicatePlaylist": "Kopii Ludliston",
     "exportPlaylist": "Eksportu Ludliston",
     "makeCurationFromGame": "Make Curation from Game",
-    "copyShortcutURL": "Copy Shortcut URL"
+    "copyShortcutURL": "Copy Shortcut URL",
+    "downloadPlaylistContent": "Download Playlist Entries"
   },
   "dialog": {
     "programNotFound": "Programo ne trovita!",
