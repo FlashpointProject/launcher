@@ -591,7 +591,8 @@
     "duplicatePlaylist": "Tạo bản sao của danh sách",
     "exportPlaylist": "Xuất danh sách",
     "makeCurationFromGame": "Tạo bản đóng góp từ trò chơi",
-    "copyShortcutURL": "Chép URL của lối tắt"
+    "copyShortcutURL": "Chép URL của lối tắt",
+    "downloadPlaylistContent": "Download Playlist Entries"
   },
   "dialog": {
     "programNotFound": "Không tìm thấy chương trình!",
