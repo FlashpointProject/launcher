@@ -591,7 +591,8 @@
     "duplicatePlaylist": "재생목록 복제",
     "exportPlaylist": "재생목록 가져오기",
     "makeCurationFromGame": "Make Curation from Game",
-    "copyShortcutURL": "Copy Shortcut URL"
+    "copyShortcutURL": "Copy Shortcut URL",
+    "downloadPlaylistContent": "Download Playlist Entries"
   },
   "dialog": {
     "programNotFound": "프로그램을 찾을 수 없습니다!",
