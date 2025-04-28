@@ -591,7 +591,8 @@
     "duplicatePlaylist": "Kopya ng Playlist",
     "exportPlaylist": "I-export ang Playlist",
     "makeCurationFromGame": "Make Curation from Game",
-    "copyShortcutURL": "Copy Shortcut URL"
+    "copyShortcutURL": "Copy Shortcut URL",
+    "downloadPlaylistContent": "Download Playlist Entries"
   },
   "dialog": {
     "programNotFound": "Hindi nahanap ang program!",
