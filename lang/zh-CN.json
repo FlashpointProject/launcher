@@ -591,7 +591,8 @@
     "duplicatePlaylist": "创建播放列表副本",
     "exportPlaylist": "导出播放列表",
     "makeCurationFromGame": "从游戏创建展品",
-    "copyShortcutURL": "复制快捷方式 URL"
+    "copyShortcutURL": "复制快捷方式 URL",
+    "downloadPlaylistContent": "Download Playlist Entries"
   },
   "dialog": {
     "programNotFound": "未找到程序！",
