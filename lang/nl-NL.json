@@ -591,7 +591,8 @@
     "duplicatePlaylist": "Afspeellijst dupliceren",
     "exportPlaylist": "Exporteer afspeellijst",
     "makeCurationFromGame": "Maak Curatie van het Spel",
-    "copyShortcutURL": "Kopieer snelkoppelings-URL"
+    "copyShortcutURL": "Kopieer snelkoppelings-URL",
+    "downloadPlaylistContent": "Download Playlist Entries"
   },
   "dialog": {
     "programNotFound": "Programma niet gevonden!",
