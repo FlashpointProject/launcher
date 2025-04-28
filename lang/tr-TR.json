@@ -591,7 +591,8 @@
     "duplicatePlaylist": "Oynama Listesini Kopyala",
     "exportPlaylist": "Oynama Listesini Dışa Aktar",
     "makeCurationFromGame": "Oyundan Küratörlük Yap",
-    "copyShortcutURL": "Kısayol URL'sini Kopyala"
+    "copyShortcutURL": "Kısayol URL'sini Kopyala",
+    "downloadPlaylistContent": "Download Playlist Entries"
   },
   "dialog": {
     "programNotFound": "Program bulunamadı!",
