@@ -591,7 +591,8 @@
     "duplicatePlaylist": "プレイリストを複製する",
     "exportPlaylist": "プレイリストをエクスポート",
     "makeCurationFromGame": "ゲームからキュレーションを作成",
-    "copyShortcutURL": "ショートカットURLをコピー"
+    "copyShortcutURL": "ショートカットURLをコピー",
+    "downloadPlaylistContent": "Download Playlist Entries"
   },
   "dialog": {
     "programNotFound": "プログラムが見つかりません。",
