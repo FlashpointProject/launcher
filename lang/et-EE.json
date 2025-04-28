@@ -591,7 +591,8 @@
     "duplicatePlaylist": "Dubleeri Esitlusloend",
     "exportPlaylist": "Ekspordi Esitlusloend",
     "makeCurationFromGame": "Loo Kureering Mängust",
-    "copyShortcutURL": "Kopeeri Otsetee URL"
+    "copyShortcutURL": "Kopeeri Otsetee URL",
+    "downloadPlaylistContent": "Download Playlist Entries"
   },
   "dialog": {
     "programNotFound": "Programmi ei Leitud!",
