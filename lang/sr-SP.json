@@ -591,7 +591,8 @@
     "duplicatePlaylist": "Дуплирај плејлисту",
     "exportPlaylist": "Изнеси плејлисту",
     "makeCurationFromGame": "Make Curation from Game",
-    "copyShortcutURL": "Copy Shortcut URL"
+    "copyShortcutURL": "Copy Shortcut URL",
+    "downloadPlaylistContent": "Download Playlist Entries"
   },
   "dialog": {
     "programNotFound": "Програм није пронађен!",
