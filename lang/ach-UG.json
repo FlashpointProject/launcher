@@ -591,7 +591,8 @@
     "duplicatePlaylist": "crwdns5801:0crwdne5801:0",
     "exportPlaylist": "crwdns5803:0crwdne5803:0",
     "makeCurationFromGame": "crwdns5805:0crwdne5805:0",
-    "copyShortcutURL": "crwdns6087:0crwdne6087:0"
+    "copyShortcutURL": "crwdns6087:0crwdne6087:0",
+    "downloadPlaylistContent": "crwdns7146:0crwdne7146:0"
   },
   "dialog": {
     "programNotFound": "crwdns5807:0crwdne5807:0",
