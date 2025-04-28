@@ -591,7 +591,8 @@
     "duplicatePlaylist": "Duplicate Playlist",
     "exportPlaylist": "Export Playlist",
     "makeCurationFromGame": "Make Curation from Game",
-    "copyShortcutURL": "Copy Shortcut URL"
+    "copyShortcutURL": "Copy Shortcut URL",
+    "downloadPlaylistContent": "Download Playlist Entries"
   },
   "dialog": {
     "programNotFound": "Program not found!",
