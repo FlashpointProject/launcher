@@ -591,7 +591,8 @@
     "duplicatePlaylist": "Lejátszólista duplikálása",
     "exportPlaylist": "Lejátszólista exportálása",
     "makeCurationFromGame": "Kuráció készítése a játékból",
-    "copyShortcutURL": "Hivatkozás másolása"
+    "copyShortcutURL": "Hivatkozás másolása",
+    "downloadPlaylistContent": "Download Playlist Entries"
   },
   "dialog": {
     "programNotFound": "Program nem található!",
