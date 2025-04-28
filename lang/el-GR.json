@@ -591,7 +591,8 @@
     "duplicatePlaylist": "Αντιγραφή Λίστας Αναπαραγωγής",
     "exportPlaylist": "Εξαγωγή Λίστας Αναπαραγωγής",
     "makeCurationFromGame": "Κάντε Αρχειοθέτηση από παιχνίδι",
-    "copyShortcutURL": "Αντιγραφή URL Συντόμευσης"
+    "copyShortcutURL": "Αντιγραφή URL Συντόμευσης",
+    "downloadPlaylistContent": "Download Playlist Entries"
   },
   "dialog": {
     "programNotFound": "Το πρόγραμμα δεν βρέθηκε!",
