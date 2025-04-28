@@ -591,7 +591,8 @@
     "duplicatePlaylist": "Duplicar lista de reproducción",
     "exportPlaylist": "Exportar lista de reproducción",
     "makeCurationFromGame": "Crear Curación desde Juego",
-    "copyShortcutURL": "Copiar URL de acceso directo"
+    "copyShortcutURL": "Copiar URL de acceso directo",
+    "downloadPlaylistContent": "Download Playlist Entries"
   },
   "dialog": {
     "programNotFound": "¡Programa no encontrado!",
