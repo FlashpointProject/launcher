@@ -591,7 +591,8 @@
     "duplicatePlaylist": "Monista Soittolista",
     "exportPlaylist": "Vie Soittolista",
     "makeCurationFromGame": "Tee kuraatio pelistä",
-    "copyShortcutURL": "Kopioi Pikakuvakkeen URL"
+    "copyShortcutURL": "Kopioi Pikakuvakkeen URL",
+    "downloadPlaylistContent": "Download Playlist Entries"
   },
   "dialog": {
     "programNotFound": "Ohjelmaa ei löydy!",
