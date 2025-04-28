@@ -591,7 +591,8 @@
     "duplicatePlaylist": "Duplicera spellista",
     "exportPlaylist": "Exportera spellista",
     "makeCurationFromGame": "Make Curation from Game",
-    "copyShortcutURL": "Copy Shortcut URL"
+    "copyShortcutURL": "Copy Shortcut URL",
+    "downloadPlaylistContent": "Download Playlist Entries"
   },
   "dialog": {
     "programNotFound": "Programmet hittades inte!",
