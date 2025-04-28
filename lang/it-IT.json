@@ -591,7 +591,8 @@
     "duplicatePlaylist": "Duplica questa scaletta",
     "exportPlaylist": "Esporta questa Scaletta",
     "makeCurationFromGame": "Crea Contenuto Curato da Gioco",
-    "copyShortcutURL": "Copia URL scorciatoia"
+    "copyShortcutURL": "Copia URL scorciatoia",
+    "downloadPlaylistContent": "Download Playlist Entries"
   },
   "dialog": {
     "programNotFound": "Programma non trovato!",
