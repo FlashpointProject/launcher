@@ -591,7 +591,8 @@
     "duplicatePlaylist": "Cóip-phláil-seo",
     "exportPlaylist": "Easpórtáil an Liosta Cluichí",
     "makeCurationFromGame": "Déan Curating ón gCluiche",
-    "copyShortcutURL": "Cóip URL an gCiorclán"
+    "copyShortcutURL": "Cóip URL an gCiorclán",
+    "downloadPlaylistContent": "Download Playlist Entries"
   },
   "dialog": {
     "programNotFound": "Clár gan aimsithe!",
