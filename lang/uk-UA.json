@@ -591,7 +591,8 @@
     "duplicatePlaylist": "Дублювати список відтворення",
     "exportPlaylist": "Експортувати список відтворення",
     "makeCurationFromGame": "Make Curation from Game",
-    "copyShortcutURL": "Copy Shortcut URL"
+    "copyShortcutURL": "Copy Shortcut URL",
+    "downloadPlaylistContent": "Download Playlist Entries"
   },
   "dialog": {
     "programNotFound": "Програма не знайдена!",
