@@ -570,9 +570,9 @@
     "searching": "Recherche en cours...",
     "loading": "Chargement...",
     "ok": "Ok",
-    "allow": "Allow",
-    "orCapitals": "OR",
-    "andCapitals": "AND"
+    "allow": "Autoriser",
+    "orCapitals": "OU",
+    "andCapitals": "ET"
   },
   "menu": {
     "viewThumbnailInFolder": "Voir la miniature dans le dossier",
