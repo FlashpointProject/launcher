@@ -592,7 +592,7 @@
     "exportPlaylist": "Экспорт плейлиста",
     "makeCurationFromGame": "Сделать курацию из игры",
     "copyShortcutURL": "Копировать адрес ссылки",
-    "downloadPlaylistContent": "Download Playlist Entries"
+    "downloadPlaylistContent": "Скачать содержимое плейлиста"
   },
   "dialog": {
     "programNotFound": "Программа не найдена!",
