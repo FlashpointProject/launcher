@@ -571,8 +571,8 @@
     "loading": "Yükleniyor...",
     "ok": "Tamam",
     "allow": "Allow",
-    "orCapitals": "OR",
-    "andCapitals": "AND"
+    "orCapitals": "VEYA",
+    "andCapitals": "VE"
   },
   "menu": {
     "viewThumbnailInFolder": "Klasördeki küçükresmi İncele",
