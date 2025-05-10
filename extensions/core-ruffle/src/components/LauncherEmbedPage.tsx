@@ -1,7 +1,8 @@
 import { GameLaunchInfo } from 'flashpoint-launcher';
-import React from 'react';
+import React, { useState } from 'react';
 
 export default function LauncherEmbedPage(props: GameLaunchInfo) {
+  const [rufflePlayer, setRufflePlayer] = useState<any | undefined>(); 
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const navigate = window.ext.hooks.useNavigate();
   const ruffleJsUrl = React.useMemo(() => `${window.ext.utils.getFileServerURL()}/ruffle/webhosted/latest/ruffle.js`, []);
@@ -32,9 +33,10 @@ export default function LauncherEmbedPage(props: GameLaunchInfo) {
           try {
             const ruffle = (window as any).RufflePlayer.newest();
             const player = ruffle.createPlayer();
+            player.id = 'ruffle-player';
             containerRef.current.appendChild(player);
-
             player.load(lc);
+            setRufflePlayer(player);
             console.log('Ruffle player created and loaded with:', lc);
           } catch (err) {
             console.error('Failed to create Ruffle player:', err);
@@ -52,14 +54,16 @@ export default function LauncherEmbedPage(props: GameLaunchInfo) {
 
         const ruffle = (window as any).RufflePlayer.newest();
         const player = ruffle.createPlayer();
+        player.id = 'ruffle-player';
         containerRef.current.appendChild(player);
         player.load(lc);
+        setRufflePlayer(player);
         console.log('Ruffle player created and loaded with:', lc);
       } catch (err) {
         console.error('Failed to create Ruffle player:', err);
       }
     }
-  });
+  }, []);
 
   const onBack = () => {
     navigate(-1);
@@ -70,6 +74,6 @@ export default function LauncherEmbedPage(props: GameLaunchInfo) {
       <div className='ruffle-title'>{props.game.title}</div>
       <div className='ruffle-container' style={{ width, height }} ref={containerRef}></div>
     </div>
-    <button className='simple-button' onClick={onBack}>Back</button>
+    <button className='simple-button ruffle-back-button' onClick={onBack}>Back</button>
   </div>;
 }
