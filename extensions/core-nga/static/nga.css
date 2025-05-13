@@ -42,3 +42,32 @@
 .nga-credit-icon {
   margin: 0.1em 0.3em 0em 0em;
 }
+
+
+.ng-trophies {
+  display: flex;
+  flex-direction: column;
+}
+
+.ng-trophies__header {
+  font-weight: bold;
+}
+
+.ng-trophy {
+  display: flex;
+  flex-direction: row;
+}
+
+.ng-trophy__icon {
+  align-self: center;
+  margin-right: 0.5rem;
+}
+
+.ng-trophy__info {
+  display: flex;
+  flex-direction: column;
+}
+
+.ng-trophy__name {
+  font-weight: bold;
+}

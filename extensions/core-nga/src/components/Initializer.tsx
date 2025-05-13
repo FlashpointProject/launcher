@@ -10,6 +10,7 @@ export default function Initializer() {
       'nga/NgScore',
       'nga/NgFaves',
       'nga/NgCredits',
+      'nga/NgTrophies',
     ];
 
     // Insert below alt titles
