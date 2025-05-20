@@ -709,14 +709,14 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       onItemSelect={text => this.props.onEditGame({ library: text })} />
                   </div>
                 )}
-                { window.displaySettings.gameSidebar.middle.map(key =>
+                {window.displaySettings.gameSidebar.middle.map(key =>
                   <DynamicComponent
                     name={key}
                     props={gameComponentProps} />
                 )}
               </div>
             </>
-            { window.displaySettings.gameSidebar.bottom.map(key =>
+            {window.displaySettings.gameSidebar.bottom.map(key =>
               <DynamicComponent
                 name={key}
                 props={gameComponentProps} />
@@ -734,60 +734,65 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
           {!this.props.fpfssEditMode && (
             <div className='browse-right-sidebar__bottom'>
               {/* -- Screenshot -- */}
-              <div className='browse-right-sidebar__section browse-right-sidebar__section--below-gap'>
-                <div className='browse-right-sidebar__row browse-right-sidebar__row__spacer' />
-                <div className='browse-right-sidebar__row browse-right-sidebar__row__screenshot-container'>
-                  <div
-                    className='browse-right-sidebar__row__screenshot'
-                    onContextMenu={this.onScreenshotContextMenu}>
-                    {isEditing ? (
-                      <div className='browse-right-sidebar__row__screenshot__placeholder'>
-                        <div className='browse-right-sidebar__row__screenshot__placeholder__back'>
-                          <GameImageSplit
-                            text={strings.thumbnail}
-                            imgSrc={this.state.thumbnailExists ? getGameImageURL(game.logoPath) : undefined}
-                            showHeaders={true}
-                            onSetImage={this.onSetThumbnail}
-                            onRemoveClick={this.onRemoveThumbnailClick}
-                            onDrop={this.onThumbnailDrop} />
-                          <GameImageSplit
-                            text={strings.screenshot}
-                            imgSrc={this.state.screenshotExists ? screenshotSrc : undefined}
-                            showHeaders={true}
-                            onSetImage={this.onSetScreenshot}
-                            onRemoveClick={this.onRemoveScreenshotClick}
-                            onDrop={this.onScreenshotDrop} />
-                        </div>
-                        <div className='browse-right-sidebar__row__screenshot__placeholder__front'>
-                          <p>{strings.dropImageHere}</p>
-                        </div>
-                      </div>
-                    ) :
-                      (this.props.isExtreme && this.props.preferencesData.hideExtremeScreenshots && !this.state.showExtremeScreenshots) ? (
-                        <div
-                          className='browse-right-sidebar__row__screenshot-image--hidden'
-                          onClick={this.onShowExtremeScreenshots}>
-                          <div className='browse-right-sidebar__row__screenshot-image--hidden-text'>
-                            {strings.showExtremeScreenshot}
+              {!this.props.preferencesData.hideScreenshotSidebar && (
+                <>
+                  <div className='browse-right-sidebar__section browse-right-sidebar__section--below-gap'>
+                    <div className='browse-right-sidebar__row browse-right-sidebar__row__spacer' />
+                    <div className='browse-right-sidebar__row browse-right-sidebar__row__screenshot-container'>
+                      <div
+                        className='browse-right-sidebar__row__screenshot'
+                        onContextMenu={this.onScreenshotContextMenu}>
+                        {isEditing ? (
+                          <div className='browse-right-sidebar__row__screenshot__placeholder'>
+                            <div className='browse-right-sidebar__row__screenshot__placeholder__back'>
+                              <GameImageSplit
+                                text={strings.thumbnail}
+                                imgSrc={this.state.thumbnailExists ? getGameImageURL(game.logoPath) : undefined}
+                                showHeaders={true}
+                                onSetImage={this.onSetThumbnail}
+                                onRemoveClick={this.onRemoveThumbnailClick}
+                                onDrop={this.onThumbnailDrop} />
+                              <GameImageSplit
+                                text={strings.screenshot}
+                                imgSrc={this.state.screenshotExists ? screenshotSrc : undefined}
+                                showHeaders={true}
+                                onSetImage={this.onSetScreenshot}
+                                onRemoveClick={this.onRemoveScreenshotClick}
+                                onDrop={this.onScreenshotDrop} />
+                            </div>
+                            <div className='browse-right-sidebar__row__screenshot__placeholder__front'>
+                              <p>{strings.dropImageHere}</p>
+                            </div>
                           </div>
-                        </div>
-                      ) : (
-                        <img
-                          className='browse-right-sidebar__row__screenshot-image'
-                          alt='' // Hide the broken link image if source is not found
-                          src={screenshotSrc}
-                          onClick={this.onScreenshotClick} />
-                      )
-                    }
+                        ) :
+                          (this.props.isExtreme && this.props.preferencesData.hideExtremeScreenshots && !this.state.showExtremeScreenshots) ? (
+                            <div
+                              className='browse-right-sidebar__row__screenshot-image--hidden'
+                              onClick={this.onShowExtremeScreenshots}>
+                              <div className='browse-right-sidebar__row__screenshot-image--hidden-text'>
+                                {strings.showExtremeScreenshot}
+                              </div>
+                            </div>
+                          ) : (
+                            <img
+                              className='browse-right-sidebar__row__screenshot-image'
+                              alt='' // Hide the broken link image if source is not found
+                              src={screenshotSrc}
+                              onClick={this.onScreenshotClick} />
+                          )
+                        }
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-              {/* -- Screenshot Preview -- */}
-              {this.state.showPreview ? (
-                <ImagePreview
-                  src={screenshotSrc}
-                  onCancel={this.onScreenshotPreviewClick} />
-              ) : undefined}
+                  {/* -- Screenshot Preview -- */}
+                  {this.state.showPreview ? (
+                    <ImagePreview
+                      src={screenshotSrc}
+                      onCancel={this.onScreenshotPreviewClick} />
+                  ) : undefined}
+                </>
+              )}
+
             </div>
           )}
           {!this.props.fpfssEditMode && (

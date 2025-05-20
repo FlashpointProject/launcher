@@ -1133,6 +1133,8 @@ declare module 'flashpoint-launcher' {
       autoClearWininetCache: boolean;
       /** Use selected index instead of scroll pos */
       useSelectedGameScroll: boolean;
+      /** Hides the screenshot in the sidebar */
+      hideScreenshotSidebar: boolean;
     };
 
     type StoredView = {
