@@ -1168,18 +1168,32 @@ function onFileServerRequestExtData(pathname: string, url: URL, req: http.Incomi
   const splitPath = pathname.split('/');
   const extId = splitPath.length > 0 ? splitPath[0] : '';
   const relativePath = splitPath.length > 1 ? splitPath.slice(1).join('/') : '';
+  console.log('ext id: ' + extId);
+  console.log('rel path: ' + relativePath);
   state.extensionsService.getExtension(extId)
   .then(ext => {
     if (ext) {
       // Only serve from <extPath>/static/
       const staticPath = path.join(ext.extensionPath, 'static');
       const filePath = path.join(staticPath, relativePath);
+      console.log(filePath);
       if (filePath.startsWith(staticPath)) {
         serveFile(req, res, filePath);
       } else {
+        res.writeHead(403);
+        res.end();
         log.warn('Launcher', `Illegal file request: "${filePath}"`);
       }
+    } else {
+      log.warn('Launcher', `No extension found with id: "${extId}"`);
+      res.writeHead(404);
+      res.end();
     }
+  })
+  .catch(() => {
+    log.warn('Launcher', `Error finding extension with id: "${extId}"`);
+    res.writeHead(404);
+    res.end();
   });
 }
 
@@ -1191,6 +1205,8 @@ function onFileServerRequestExtIcons(pathname: string, url: URL, req: http.Incom
       if (filePath.startsWith(ext.extensionPath)) {
         serveFile(req, res, filePath);
       } else {
+        res.writeHead(403);
+        res.end();
         log.warn('Launcher', `Illegal file request: "${filePath}"`);
       }
     }
@@ -1210,6 +1226,8 @@ function onFileServerRequestThemes(pathname: string, url: URL, req: http.Incomin
     if (relative && !relative.startsWith('..') && !path.isAbsolute(relative)) {
       serveFile(req, res, filePath);
     } else {
+      res.writeHead(403);
+      res.end();
       log.warn('Launcher', `Illegal file request: "${filePath}"`);
     }
   }

@@ -5,6 +5,31 @@ export async function activate(context: flashpoint.ExtensionContext): Promise<vo
     id: 'nga',
     searchables: [
       {
+        key: 'trophy_count',
+        searchKey: 'trophies',
+        valueType: flashpoint.ExtSearchableType.Number,
+      },
+      {
+        key: 'trophy_frontpaged',
+        searchKey: 'frontpage',
+        valueType: flashpoint.ExtSearchableType.String,
+      },
+      {
+        key: 'trophy_daily',
+        searchKey: 'daily',
+        valueType: flashpoint.ExtSearchableType.String,
+      },
+      {
+        key: 'trophy_monthly',
+        searchKey: 'monthly',
+        valueType: flashpoint.ExtSearchableType.String,
+      },
+      {
+        key: 'trophy_review',
+        searchKey: 'review',
+        valueType: flashpoint.ExtSearchableType.String,
+      },
+      {
         key: 'rating',
         searchKey: 'rating',
         valueType: flashpoint.ExtSearchableType.String
