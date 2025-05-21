@@ -17,6 +17,8 @@ import { CurationContext } from './context/CurationContext';
 import { PreferencesContextProvider } from './context/PreferencesContext';
 import { ProgressContext } from './context/ProgressContext';
 import { logFactory } from './util/logging';
+import { MDXProvider } from '@mdx-js/react';
+import { MergeComponents } from '@mdx-js/react/lib';
 
 (async () => {
   init({
@@ -93,19 +95,30 @@ import { logFactory } from './util/logging';
   const container = document.getElementById('root')!;
   const root = createRoot(container);
 
+  const components: MergeComponents = (cur) => {
+    return {
+      ...cur,
+      a({ href }) {
+        return <a href={href} target='_blank'/>;
+      }
+    };
+  };
+
   // Render the application
   root.render(
     <Provider store={store}>
       <HashRouter>
-        <ShortcutProvider>
-          <PreferencesContextProvider>
-            <ContextReducerProvider context={CurationContext}>
-              <ContextReducerProvider context={ProgressContext}>
-                <ConnectedApp />
+        <MDXProvider components={components}>
+          <ShortcutProvider>
+            <PreferencesContextProvider>
+              <ContextReducerProvider context={CurationContext}>
+                <ContextReducerProvider context={ProgressContext}>
+                  <ConnectedApp />
+                </ContextReducerProvider>
               </ContextReducerProvider>
-            </ContextReducerProvider>
-          </PreferencesContextProvider>
-        </ShortcutProvider>
+            </PreferencesContextProvider>
+          </ShortcutProvider>
+        </MDXProvider>
       </HashRouter>
     </Provider>
   );

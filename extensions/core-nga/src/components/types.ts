@@ -10,6 +10,7 @@ export type ExtData = {
   rating?: string;
   views?: number;
   faves?: number;
+  author_comments?: string;
   credits?: Credit[];
   trophies?: Trophy[];
 }

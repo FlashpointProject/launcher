@@ -11,7 +11,36 @@ export default function Initializer() {
       'nga/NgFaves',
       'nga/NgCredits',
       'nga/NgTrophies',
+      'nga/NgAuthorComments',
     ];
+
+    // Remove the unused fields
+    const unusedFields = [
+      'game_alternateTitles',
+      'game_playMode',
+      'game_status',
+      'game_version',
+      'game_platforms',
+      'game_publisher',
+      'game_series',
+      'game_language',
+      'game_addApps',
+      'game_notes',
+    ];
+
+    for (const field of unusedFields) {
+      const idx = window.displaySettings.gameSidebar.middle.findIndex(f => f === field);
+      if (idx > -1) {
+        window.displaySettings.gameSidebar.middle.splice(idx, 1);
+      }
+    }
+
+    for (const field of unusedFields) {
+      const idx = window.displaySettings.gameSidebar.bottom.findIndex(f => f === field);
+      if (idx > -1) {
+        window.displaySettings.gameSidebar.bottom.splice(idx, 1);
+      }
+    }
 
     // Insert below alt titles
     const sidebarMiddle = [...window.displaySettings.gameSidebar.middle];

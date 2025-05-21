@@ -107,7 +107,7 @@ export function main(init: Init): void {
     app.once('ready', onAppReady);
     app.once('window-all-closed', onAppWindowAllClosed);
     app.once('will-quit', onAppWillQuit);
-    app.once('web-contents-created', onAppWebContentsCreated);
+    app.on('web-contents-created', onAppWebContentsCreated);
     app.on('activate', onAppActivate);
     app.on('second-instance', onAppSecondInstance);
     app.on('open-url', onAppOpenUrl);
@@ -384,10 +384,12 @@ export function main(init: Init): void {
     // Open links to web pages in the OS-es default browser
     // (instead of navigating to it with the electron window that opened it)
     webContents.on('will-navigate', (event, url) => {
+      console.log('NAV');
       event.preventDefault();
       onNewPage(url);
     });
     webContents.setWindowOpenHandler((details) => {
+      console.log('OPEN');
       onNewPage(details.url);
       return {
         action: 'deny'
@@ -481,7 +483,8 @@ export function main(init: Init): void {
       webPreferences: {
         preload: path.resolve(__dirname, './MainWindowPreload.js'),
         nodeIntegration: true,
-        contextIsolation: false
+        contextIsolation: false,
+        
       },
     });
     remoteMain.enable(window.webContents);

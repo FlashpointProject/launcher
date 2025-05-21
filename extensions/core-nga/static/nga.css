@@ -71,3 +71,8 @@
 .ng-trophy__name {
   font-weight: bold;
 }
+
+.ng-author-comments {
+  margin-left: 0.5rem;
+  display: grid;
+}

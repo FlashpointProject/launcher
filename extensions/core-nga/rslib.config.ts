@@ -26,6 +26,7 @@ export default defineConfig({
         './NgViews': './src/components/NgViews.tsx',
         './NgRatingSearchableSelect': './src/components/NgRatingSearchableSelect.tsx',
         './NgTrophies': './src/components/NgTrophies.tsx',
+        './NgAuthorComments': './src/components/NgAuthorComments.tsx'
       },
       shared: {
         react: { singleton: true, requiredVersion: dependencies.react },
