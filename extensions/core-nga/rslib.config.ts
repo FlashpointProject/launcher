@@ -21,9 +21,12 @@ export default defineConfig({
         './NgFaves': './src/components/NgFaves.tsx',
         './NgRating': './src/components/NgRating.tsx',
         './NgRatingGridIcon': './src/components/NgRatingGridIcon.tsx',
-        './NgRatingListIcon': './src/components/NgRatingListIcon.tsx',
+        './NgRatingListIconHeader': './src/components/NgRatingListIconHeader.tsx',
+        './NgRatingListIconRow': './src/components/NgRatingListIconRow.tsx',
         './NgScore': './src/components/NgScore.tsx',
         './NgViews': './src/components/NgViews.tsx',
+        './NgViewsListHeader': './src/components/NgViewsListHeader.tsx',
+        './NgViewsListRow': './src/components/NgViewsListRow.tsx',
         './NgRatingSearchableSelect': './src/components/NgRatingSearchableSelect.tsx',
         './NgTrophies': './src/components/NgTrophies.tsx',
         './NgAuthorComments': './src/components/NgAuthorComments.tsx'

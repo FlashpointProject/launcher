@@ -196,6 +196,7 @@ class _GameList extends React.Component<GameListProps> {
     const game = games[cellProps.index];
     const platform = game?.primaryPlatform;
     const tagGroupIcon = this.props.tagGroupIcons.find(tg => tg.tagFilter.find(t => game?.tags.includes(t)))?.iconBase64;
+    const totalWeight = window.displaySettings.gameList.columns.reduce((prev, cur) => cur.type === 'normal' ? prev + cur.weight : prev, 0);
 
     return game ? (
       <GameListItem
@@ -215,6 +216,7 @@ class _GameList extends React.Component<GameListProps> {
         logoVersion={this.props.logoVersion}
         isDraggable={true}
         isSelected={game.id === selectedGameId}
+        totalWeight={totalWeight}
         isDragged={false} /> // Bugged render update
     ) : <div key={cellProps.key} style={cellProps.style} />;
   };

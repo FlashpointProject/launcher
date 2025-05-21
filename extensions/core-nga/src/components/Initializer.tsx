@@ -59,14 +59,35 @@ export default function Initializer() {
 
     // Add role icon
     window.displaySettings.gameGrid.upper.unshift('nga/NgRatingGridIcon');
-    window.displaySettings.gameList.icons.unshift('nga/NgRatingListIcon');
+    window.displaySettings.gameList.columns.push({
+      headerComponent: 'nga/NgRatingListIconHeader',
+      rowComponent: 'nga/NgRatingListIconRow',
+      type: 'icon'
+    });
+    window.displaySettings.gameList.columns.push({
+      headerComponent: 'nga/NgViewsListHeader',
+      rowComponent: 'nga/NgViewsListRow',
+      type: 'normal',
+      weight: 0.65
+    });
+
+    // Remove publisher col
+    const pubIdx = window.displaySettings.gameList.columns.findIndex(c => c.headerComponent === 'gameCol_header_publisher');
+    if (pubIdx > -1) {
+      window.displaySettings.gameList.columns.splice(pubIdx, 1);
+    }
+    // Remove platform col
+    const platIdx = window.displaySettings.gameList.columns.findIndex(c => c.headerComponent === 'gameCol_header_platform');
+    if (platIdx > -1) {
+      window.displaySettings.gameList.columns.splice(platIdx, 1);
+    }
 
     window.displaySettings.searchComponents.push('nga/NgRatingSearchableSelect');
     window.ext.orderables.push({
       title: 'NG Ratings',
       extId: 'nga',
       key: 'rating',
-      default: 'e'
+      default: 'u'
     });
     window.ext.orderables.push({
       title: 'NG Views',

@@ -2496,7 +2496,7 @@ declare module 'flashpoint-launcher' {
 }
 
 declare module 'flashpoint-launcher-renderer' {
-  import { Game, ViewGame, ExtOrder, PlaylistGame, TagCategory, AppPreferencesData, AdvancedFilter } from 'flashpoint-launcher';
+  import { GameOrderBy, GameOrderReverse, Game, ViewGame, ExtOrder, PlaylistGame, TagCategory, AppPreferencesData, AdvancedFilter } from 'flashpoint-launcher';
   import { LangContainer } from 'flashpoint-launcher';
 
   /** Game properties that will have suggestions gathered and displayed. */
@@ -2561,10 +2561,38 @@ declare module 'flashpoint-launcher-renderer' {
   }
 
   type GameListComponentProps = {
-    game?: ViewGame;
+    game: ViewGame;
     isSelected: boolean;
     isDragged: boolean;
+    logoVersion: number;
   }
+
+  type GameOrderChangeEvent = {
+    orderBy: GameOrderBy;
+    orderReverse: GameOrderReverse;
+    extOrder: ExtOrder;
+  };
+
+  type GameListHeaderComponentProps = {
+    insidePlaylist: boolean;
+    orderBy: GameOrderBy;
+    orderReverse: GameOrderReverse;
+    extOrder: ExtOrder;
+    onChangeOrder: (event: GameOrderChangeEvent) => void;
+  }
+
+  type SortableColumnProps = {
+    insidePlaylist: boolean;
+    orderReverse: GameOrderDirection;
+    orderBy: GameOrderBy;
+    extOrder: ExtOrder;
+    orderKey?: GameOrderBy;
+    extOrderKey?: ExtOrder;
+    title?: string;
+    modifier: 'icon' | string;
+    showDivider?: boolean;
+    onChangeOrder: (event: GameOrderChangeEvent) => void;
+  };
 
   type GameGridComponentProps = {
     game?: ViewGame;
@@ -2591,6 +2619,7 @@ declare module 'flashpoint-launcher-renderer' {
       GameComponentInputField: React.ComponentType<GameComponentInputFieldProps>,
       GameComponentDropdownSelectField: React.ComponentType<GameComponentDropdownSelectFieldProps>,
       SearchableSelect: React.ComponentType<SearchableSelectProps<any>>,
+      SortableColumn: React.ComponentType<SortableColumnProps>,
     },
     hooks: {
       useNavigate: () => NavigateFunction
@@ -2598,6 +2627,20 @@ declare module 'flashpoint-launcher-renderer' {
     orderables: ExtOrderable[],
   }
 
+  type GameListColumnInfoIcon = {
+    headerComponent: string;
+    rowComponent: string;
+    type: 'icon';
+  }
+
+  type GameListColumnInfoNormal = {
+    headerComponent: string;
+    rowComponent: string;
+    weight: number;
+    type: 'normal'
+  }
+
+  type GameListColumnInfo = GameListColumnInfoIcon | GameListColumnInfoNormal
 
   type DisplaySettings = {
     gameSidebar: {
@@ -2609,6 +2652,7 @@ declare module 'flashpoint-launcher-renderer' {
     },
     gameList: {
       icons: string[],
+      columns: GameListColumnInfo[],
     },
     searchComponents: string[],
   }

@@ -67,6 +67,7 @@ import { SimpleButton } from './SimpleButton';
 import { SplashScreen } from './SplashScreen';
 import { TaskBar } from './TaskBar';
 import { TitleBar } from './TitleBar';
+import { SortableColumn } from './GameListHeader';
 
 // Hide the right sidebar if the page is inside these paths
 const hiddenRightSidebarPages = [Paths.ABOUT, Paths.CURATE, Paths.CONFIG, Paths.MANUAL, Paths.LOGS, Paths.TAGS, Paths.CATEGORIES, Paths.DOWNLOADS];
@@ -101,7 +102,32 @@ const DEFAULT_DISPLAYS: DisplaySettings = {
     upper: []
   },
   gameList: {
-    icons: []
+    icons: [],
+    columns: [
+      {
+        headerComponent: 'gameCol_header_platform',
+        rowComponent: 'gameCol_row_platform',
+        type: 'icon'
+      },
+      {
+        headerComponent: 'gameCol_header_title',
+        rowComponent: 'gameCol_row_title',
+        type: 'normal',
+        weight: 1.3
+      },
+      {
+        headerComponent: 'gameCol_header_developer',
+        rowComponent: 'gameCol_row_developer',
+        type: 'normal',
+        weight: 1
+      },
+      {
+        headerComponent: 'gameCol_header_publisher',
+        rowComponent: 'gameCol_row_publisher',
+        type: 'normal',
+        weight: 1
+      }
+    ]
   },
   searchComponents: [],
 };
@@ -134,6 +160,7 @@ export class App extends React.Component<AppProps> {
         GameComponentInputField: GameComponentInputField,
         GameComponentDropdownSelectField: GameComponentDropdownSelectField,
         SearchableSelect: SearchableSelect,
+        SortableColumn: SortableColumn,
       },
       hooks: {
         useNavigate: () => useNavigate(),

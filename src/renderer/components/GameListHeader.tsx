@@ -1,8 +1,10 @@
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { useView } from '@renderer/hooks/search';
 import { useAppDispatch } from '@renderer/hooks/useAppSelector';
-import { searchActions } from '@renderer/store/search/slice';
-import { GameOrderBy, GameOrderDirection } from 'flashpoint-launcher';
+import { setExtOrder, setOrderBy, setOrderReverse } from '@renderer/store/search/slice';
+import { GameListHeaderComponentProps, SortableColumnProps } from 'flashpoint-launcher-renderer';
+import { DynamicComponent } from './DynamicComponent';
+import { GameOrderChangeEvent } from './GameOrder';
 import { OpenIcon } from './OpenIcon';
 
 export type GameListHeaderProps = WithPreferencesProps & {
@@ -14,81 +16,45 @@ export function GameListHeader(props: GameListHeaderProps) {
   const currentView = useView();
   const dispatch = useAppDispatch();
 
-  const onToggleSort = (key: GameOrderBy) => {
-    if (currentView.orderBy === key) {
-      const newDirection = currentView.orderReverse === 'ASC' ? 'DESC' : 'ASC';
-      dispatch(searchActions.setOrderReverse({
-        view: currentView.id,
-        value: newDirection,
-      }));
-    } else {
-      dispatch(searchActions.setOrderBy({
-        view: currentView.id,
-        value: key,
-      }));
-      dispatch(searchActions.setOrderReverse({
-        view: currentView.id,
-        value: 'ASC',
-      }));
-    }
-    if (currentView.selectedPlaylist !== undefined && currentView.advancedFilter.playlistOrder) {
-      dispatch(searchActions.setAdvancedFilter({
-        view: currentView.id,
-        filter: {
-          ...currentView.advancedFilter,
-          playlistOrder: false,
-        },
-      }));
-    }
+  const totalWeight = window.displaySettings.gameList.columns.reduce((prev, cur) => cur.type === 'normal' ? prev + cur.weight : prev, 0);
+
+  const onChangeOrder = (event: GameOrderChangeEvent) => {
+    dispatch(setOrderBy({
+      view: currentView.id,
+      value: event.orderBy
+    }));
+    dispatch(setOrderReverse({
+      view: currentView.id,
+      value: event.orderReverse
+    }));
+    dispatch(setExtOrder({
+      view: currentView.id,
+      value: event.extOrder
+    }));
   };
 
-  const curOrderBy = (currentView.selectedPlaylist !== undefined && currentView.advancedFilter.playlistOrder) ?
-    undefined :
-    currentView.orderBy;
+  const gameListHeaderProps: GameListHeaderComponentProps = {
+    insidePlaylist: currentView.selectedPlaylist !== undefined,
+    orderBy: currentView.orderBy,
+    orderReverse: currentView.orderReverse,
+    extOrder: currentView.extOrder,
+    onChangeOrder,
+  };
 
   return (
     <div className='game-list-header'>
       { props.showExtremeIcon ? (
         <Column modifier='icon' hideDivider={true} />
       ) : undefined}
-      { window.displaySettings.gameList.icons.map(() => {
-        return (
-          <Column modifier='icon' hideDivider={true} />
-        );
-      }) }
-      <SortableColumn
-        modifier='icon'
-        hideDivider={true}
-        orderBy='platform'
-        onToggleSort={onToggleSort}
-        direction={currentView.orderReverse}
-        value={curOrderBy} />
+      { window.displaySettings.gameList.columns.filter(c => c.type === 'icon').map(col => {
+        return <DynamicComponent props={gameListHeaderProps} name={col.headerComponent} />;
+      })}
       <div className='game-list-header__right'>
-        <SortableColumn
-          title='Title'
-          modifier='title'
-          hideDivider={true}
-          orderBy='title'
-          onToggleSort={onToggleSort}
-          direction={currentView.orderReverse}
-          value={curOrderBy} />
-        <SortableColumn
-          title='Developer'
-          modifier='developer'
-          hideDivider={true}
-          orderBy='developer'
-          onToggleSort={onToggleSort}
-          direction={currentView.orderReverse}
-          value={curOrderBy} />
-        <SortableColumn
-          title='Publisher'
-          modifier='publisher'
-          hideDivider={true}
-          orderBy='publisher'
-          onToggleSort={onToggleSort}
-          direction={currentView.orderReverse}
-          value={curOrderBy} />
-        {/* <Column title='Tags'      modifier='tagsStr'                      /> */}
+        { window.displaySettings.gameList.columns.filter(c => c.type === 'normal').map(col => {
+          return <div style={{ width: `${(col.weight / totalWeight) * 100}%` }}>
+            <DynamicComponent props={gameListHeaderProps} name={col.headerComponent} />
+          </div>;
+        })}
       </div>
       <div className='game-list-header__scroll-fill' />
     </div>
@@ -118,26 +84,41 @@ function Column(props: ColumnProps) {
   );
 }
 
-type SortableColumnProps = ColumnProps & {
-  /** GameOrderBy key */
-  orderBy: GameOrderBy;
-  /** Currently selected value */
-  value?: GameOrderBy;
-  /** Current selected direction */
-  direction: GameOrderDirection;
-  /** When toggled */
-  onToggleSort: (key: GameOrderBy) => void;
-};
-
-function SortableColumn(props: SortableColumnProps) {
-  const { orderBy, value, direction, onToggleSort } = props;
+export function SortableColumn(props: SortableColumnProps) {
+  const { insidePlaylist, orderBy, orderReverse, extOrder, orderKey, extOrderKey, onChangeOrder } = props;
   const className = 'game-list-header-column';
-  const active = orderBy === value;
-  const showDivider = !props.hideDivider;
+  const isExt = extOrderKey !== undefined;
+  const active = !insidePlaylist &&
+    (extOrder.extId !== '' ?
+      (isExt ? (extOrderKey.extId === extOrder.extId && extOrderKey.key === extOrder.key) : false)
+      : orderBy === orderKey
+    );
+
+  const onToggle = () => {
+    const direction = active ? (orderReverse === 'ASC' ? 'DESC' : 'ASC'): 'ASC';
+    if (isExt) {
+      onChangeOrder({
+        orderBy: orderBy,
+        orderReverse: direction,
+        extOrder: extOrderKey,
+      });
+    } else if (orderKey) {
+      onChangeOrder({
+        orderBy: orderKey,
+        orderReverse: direction,
+        extOrder: {
+          extId: '',
+          key: '',
+          default: ''
+        },
+      });
+    }
+  };
+
   // Render
   return (
-    <div className={`${className} ${className}--${props.modifier} ${className}--sortable`} onClick={() => onToggleSort(orderBy)}>
-      { showDivider ? (
+    <div className={`${className} ${className}--${props.modifier} ${className}--sortable`} onClick={onToggle}>
+      { props.showDivider ? (
         <div className='game-list-header-column__divider' />
       ) : undefined }
       <div className='game-list-header-column__title'>
@@ -145,7 +126,7 @@ function SortableColumn(props: SortableColumnProps) {
         { active ? (
           <div className='game-list-header-column__sort-icon-wrapper'>
             <OpenIcon
-              icon={direction === 'DESC'? 'chevron-top' : 'chevron-bottom'}
+              icon={orderReverse === 'DESC'? 'chevron-top' : 'chevron-bottom'}
               className='game-list-header-column__sort-icon'/>
           </div>
         ): undefined }

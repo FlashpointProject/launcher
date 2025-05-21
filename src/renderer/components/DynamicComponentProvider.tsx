@@ -2,6 +2,7 @@ import { loadRemote, preloadRemote, registerRemotes } from '@module-federation/e
 import { ComponentType, createContext, lazy, ReactNode, useEffect, useState } from 'react';
 import { DynamicComponent } from './DynamicComponent';
 import { GameComponentAddApps, GameComponentAlternateTitles, GameComponentDates, GameComponentLanguage, GameComponentLegacyData, GameComponentNotes, GameComponentOriginalDescription, GameComponentPlatforms, GameComponentPlaylistNotes, GameComponentPlayMode, GameComponentPublisher, GameComponentRuffleSupport, GameComponentSeries, GameComponentSource, GameComponentStatus, GameComponentTags, GameComponentVersion } from './GameComponents';
+import { GameListHeaderDeveloper, GameListHeaderPlatform, GameListHeaderPublisher, GameListHeaderTitle, GameListRowDeveloper, GameListRowPlatform, GameListRowPublisher, GameListRowTitle } from './GameListComponents';
 
 export type RemoteModule = {
   scope: string,
@@ -38,6 +39,14 @@ const DEFAULT_COMPONENT_MAP: ComponentMap = {
   'game_notes': GameComponentNotes,
   'game_playlistNotes': GameComponentPlaylistNotes,
   'game_ruffleSupport': GameComponentRuffleSupport,
+  'gameCol_header_platform': GameListHeaderPlatform,
+  'gameCol_header_title': GameListHeaderTitle,
+  'gameCol_header_developer': GameListHeaderDeveloper,
+  'gameCol_header_publisher': GameListHeaderPublisher,
+  'gameCol_row_platform': GameListRowPlatform,
+  'gameCol_row_title': GameListRowTitle,
+  'gameCol_row_developer': GameListRowDeveloper,
+  'gameCol_row_publisher': GameListRowPublisher,
 };
 
 const initProps = {

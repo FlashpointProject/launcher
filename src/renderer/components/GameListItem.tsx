@@ -3,7 +3,6 @@ import { Game } from 'flashpoint-launcher';
 import { GameListComponentProps } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
 import { ListRowProps } from 'react-virtualized';
-import { getPlatformIconURL } from '../Util';
 import { DynamicComponent } from './DynamicComponent';
 import { GameDragEventData } from './pages/BrowsePage';
 
@@ -33,13 +32,13 @@ export type GameListItemProps = ListRowProps & {
   /** Game drag event */
   onDrop?: (event: React.DragEvent) => void;
   onDragOver?: (event: React.DragEvent) => void;
+  totalWeight: number;
 };
 
 export function GameListItem(props: GameListItemProps) {
-  const { id, title, platform, tags, developer, publisher, extreme, tagGroupIconBase64, isDraggable, isSelected, isDragged, extremeIconPath, showExtremeIcon, index, style, onDrop,
+  const { id, extreme, tagGroupIconBase64, isDraggable, isSelected, isDragged, extremeIconPath, showExtremeIcon, index, style, onDrop,
     onDragOver } = props;
-  // Get the platform icon path
-  const platformIcon = getPlatformIconURL(platform, props.logoVersion);
+  const game = props.game!;
   // Pick class names
   let className = 'game-list-item';
   if (index % 2 === 0) { className += ' game-list-item--even';     }
@@ -55,7 +54,8 @@ export function GameListItem(props: GameListItemProps) {
   const gameListComponentProps: GameListComponentProps = {
     isSelected,
     isDragged,
-    game: props.game
+    game,
+    logoVersion: props.logoVersion,
   };
 
   // Render
@@ -67,10 +67,8 @@ export function GameListItem(props: GameListItemProps) {
       onDrop={onDrop}
       onDragOver={onDragOver}
       { ...attributes }>
-      { window.displaySettings.gameList.icons.map((name) => {
-        return (
-          <DynamicComponent name={name} props={gameListComponentProps}/>
-        );
+      { window.displaySettings.gameList.columns.filter(col => col.type === 'icon').map(col => {
+        return <DynamicComponent props={gameListComponentProps} name={col.rowComponent} />;
       })}
       { showExtremeIcon &&
           (extreme ? (
@@ -85,30 +83,12 @@ export function GameListItem(props: GameListItemProps) {
             <div className='game-list-item__icon' />
           )))
       }
-      <div
-        className='game-list-item__icon'
-        style={{ backgroundImage: `url("${platformIcon}")` }} />
       <div className='game-list-item__right'>
-        <div
-          className='game-list-item__field game-list-item__field--title'
-          title={title}>
-          {title}
-        </div>
-        <div
-          className='game-list-item__field game-list-item__field--developer'
-          title={developer}>
-          {developer}
-        </div>
-        <div
-          className='game-list-item__field game-list-item__field--publisher'
-          title={publisher}>
-          {publisher}
-        </div>
-        <div
-          className='game-list-item__field game-list-item__field--tagsStr'
-          title={tags.join('; ')}>
-          {tags.join('; ')}
-        </div>
+        { window.displaySettings.gameList.columns.filter(col => col.type === 'normal').map(col => {
+          return <div style={{ width: `${(col.weight / props.totalWeight) * 100}%` }}>
+            <DynamicComponent props={gameListComponentProps} name={col.rowComponent} />
+          </div>;
+        })}
       </div>
     </li>
   );

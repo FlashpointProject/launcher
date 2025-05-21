@@ -1700,9 +1700,14 @@ body {
 .browse-right-sidebar__row:last-child {
   margin-bottom: 0;
 }
+.browse-right-sidebar__row > :first-child:is(p) {
+  font-weight: 500;
+  font-size: 1.05em;
+}
 .browse-right-sidebar__row p {
   display: inline;
   cursor: default;
+  align-self: baseline;
 }
 .browse-right-sidebar--edit-enabled {
   user-select: none; /* Can not select text while editing is enabled */
@@ -1972,10 +1977,15 @@ body {
   height: calc(0.8px * var(--height));
   margin: calc(0.09px * var(--height)) calc(0.2px * var(--height)) 0 calc(0.1px * var(--height));
 }
+.game-list-item__right {
+  display: flex;
+}
+.tag-list-item__right {
+  display: block;
+}
 .game-list-item__right,
 .tag-list-item__right {
   flex: 1;
-  display: block;
   width: 100%;
   overflow: hidden;
 }
@@ -2053,18 +2063,6 @@ body {
 .tag-list-header-column--icon {
   flex: 1 0 auto;
   width: calc(1px * var(--height));
-}
-.game-list-header-column--title,
-.game-list-item__field--title {
-  max-width: 40%;
-}
-.game-list-header-column--developer,
-.game-list-item__field--developer {
-  max-width: 30%;
-}
-.game-list-header-column--publisher,
-.game-list-item__field--publisher {
-  max-width: 30%;
 }
 /*.game-list-header-column--tagsStr,
 .game-list-item__field--tagsStr {
