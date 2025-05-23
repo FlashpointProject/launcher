@@ -260,7 +260,6 @@ export function SearchBar() {
   const onSetAndToggleRuffleSupport = onSetAndToggleFactory('ruffleSupport');
 
   const simpleSelectItems = (values: string[] | null): SearchableSelectItem[] => {
-    console.log(values);
     return values ? values.map(v => ({
       value: v,
       orderVal: v,

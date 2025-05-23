@@ -97,6 +97,7 @@ export function createSearchFilter(query: QueryData, preferences: AppPreferences
   }
 
   if (query.extOrder.extId !== '') {
+    search.order.column = GameSearchSortable.TITLE;
     search.extOrder = query.extOrder;
   }
 

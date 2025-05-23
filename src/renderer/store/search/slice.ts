@@ -240,7 +240,11 @@ export const requestKeyset = createAsyncThunk(
     const view = state.search.views[payload.view];
 
     if (view && payload.searchId === view.data.searchId) {
-      const data = await window.Shared.back.request(BackIn.BROWSE_VIEW_KEYSET, view.searchFilter);
+      const data = await window.Shared.back.request(BackIn.BROWSE_VIEW_KEYSET, view.searchFilter)
+      .catch((err) => {
+        console.log(err);
+        throw err;
+      });
       // Dispatch an action to handle the keyset data
       dispatch(addData({ view: payload.view, data: {
         searchId: payload.searchId,

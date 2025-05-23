@@ -1701,7 +1701,7 @@ body {
   margin-bottom: 0;
 }
 .browse-right-sidebar__row > :first-child:is(p) {
-  font-weight: 500;
+  font-weight: bold;
   font-size: 1.05em;
 }
 .browse-right-sidebar__row p {
