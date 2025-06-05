@@ -10,6 +10,8 @@ function mapNgRatingString(s: string) {
       return 'Mature';
     case 'a':
       return 'Adult';
+    case 'u':
+      return 'Unknown';
     default:
       return s;
   }
@@ -56,6 +58,9 @@ export default function NgRatingSearchableSelect(props: SearchComponentProps) {
     }, {
       value: 'a',
       orderVal: '4'
+    }, {
+      value: 'u',
+      orderVal: '5'
     }
   ];
 
@@ -85,6 +90,7 @@ export default function NgRatingSearchableSelect(props: SearchComponentProps) {
           case 't': return 'Teen';
           case 'm': return 'Mature';
           case 'a': return 'Adult';
+          case 'u': return 'Unknown';
           default: return '';
         }
       }}/>

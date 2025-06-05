@@ -22,6 +22,9 @@ export default function NgRating(props: GameComponentProps) {
   }, {
     key: 'a',
     value: 'Adult'
+  }, {
+    key: 'u',
+    value: 'Unknown'
   }];
 
   return editable ? (

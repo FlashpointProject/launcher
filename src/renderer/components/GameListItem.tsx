@@ -1,12 +1,13 @@
 import { num } from '@shared/utils/Coerce';
 import { Game } from 'flashpoint-launcher';
-import { GameListComponentProps } from 'flashpoint-launcher-renderer';
+import { DisplaySettings, GameListComponentProps } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
 import { ListRowProps } from 'react-virtualized';
 import { DynamicComponent } from './DynamicComponent';
 import { GameDragEventData } from './pages/BrowsePage';
 
 export type GameListItemProps = ListRowProps & {
+  displaySettings: DisplaySettings;
   game?: Game;
   id: string;
   title: string;
@@ -67,7 +68,7 @@ export function GameListItem(props: GameListItemProps) {
       onDrop={onDrop}
       onDragOver={onDragOver}
       { ...attributes }>
-      { window.displaySettings.gameList.columns.filter(col => col.type === 'icon').map(col => {
+      { props.displaySettings.gameList.columns.filter(col => col.type === 'icon').map(col => {
         return <DynamicComponent props={gameListComponentProps} name={col.rowComponent} />;
       })}
       { showExtremeIcon &&
@@ -84,7 +85,7 @@ export function GameListItem(props: GameListItemProps) {
           )))
       }
       <div className='game-list-item__right'>
-        { window.displaySettings.gameList.columns.filter(col => col.type === 'normal').map(col => {
+        { props.displaySettings.gameList.columns.filter(col => col.type === 'normal').map(col => {
           return <div style={{ width: `${(col.weight / props.totalWeight) * 100}%` }}>
             <DynamicComponent props={gameListComponentProps} name={col.rowComponent} />
           </div>;

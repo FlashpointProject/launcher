@@ -7,8 +7,10 @@ import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
 import { HomePageBox } from './HomePageBox';
 import { SimpleButton } from './SimpleButton';
+import { DisplaySettings } from 'flashpoint-launcher-renderer';
 
 type RandomGamesProps = {
+  displaySettings: DisplaySettings;
   games: ViewGame[];
   selectedGameId?: string;
   /** Generator for game context menu */
@@ -49,6 +51,7 @@ export function RandomGames(props: RandomGamesProps) {
 
   const gameItems = props.games.slice(0, 6).map(game => (
     <GameGridItem
+      displaySettings={props.displaySettings}
       game={game}
       key={game.id}
       id={game.id}

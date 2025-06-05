@@ -9,12 +9,17 @@ import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/
 import { GamePropSuggestions, IService, WindowIPC } from '@shared/interfaces';
 import { createLangContainer, LangFile } from '@shared/lang';
 import { ITheme } from '@shared/ThemeFile';
+import { deepCopy } from '@shared/Util';
 import * as axiosImport from 'axios';
 import { ipcRenderer } from 'electron';
 import { UpdateInfo } from 'electron-updater';
 import { DialogField, DialogState, DownloaderState, DownloaderStatus, DownloadTask, DownloadWorkerState, Game, GameData, LangContainer, Playlist, PlaylistGame, ViewGame } from 'flashpoint-launcher';
+import { DisplaySettings, ExtOrderable } from 'flashpoint-launcher-renderer';
 
 export const RANDOM_GAME_ROW_COUNT = 6;
+
+type DisplaySettingsCallback = (prev: DisplaySettings) => DisplaySettings;
+type ExtOrderablesCallback = (prev: ExtOrderable[]) => ExtOrderable[];
 
 export type MetaUpdateState = {
   ready: boolean;
@@ -139,7 +144,67 @@ export type MainState = {
   lastResolvedDialog?: DialogState;
   /** Dynamic page contents */
   dynamicPage?: DynamicPageProps;
+  displaySettings: DisplaySettings;
+  extOrderables: ExtOrderable[];
 }
+
+const DEFAULT_DISPLAYS: DisplaySettings = {
+  gameSidebar: {
+    middle: [
+      'game_alternateTitles',
+      'game_tags',
+      'game_series',
+      'game_publisher',
+      'game_source',
+      'game_platforms',
+      'game_playMode',
+      'game_status',
+      'game_version',
+      'game_language',
+      'game_ruffleSupport',
+    ],
+    bottom: [
+      'game_dates',
+      'game_playlistNotes',
+      'game_notes',
+      'game_originalDescription',
+      'game_addApps',
+      'game_legacyData'
+    ],
+  },
+  gameGrid: {
+    upper: []
+  },
+  gameList: {
+    icons: [],
+    columns: [
+      {
+        headerComponent: 'gameCol_header_platform',
+        rowComponent: 'gameCol_row_platform',
+        type: 'icon'
+      },
+      {
+        headerComponent: 'gameCol_header_title',
+        rowComponent: 'gameCol_row_title',
+        type: 'normal',
+        weight: 1.3
+      },
+      {
+        headerComponent: 'gameCol_header_developer',
+        rowComponent: 'gameCol_row_developer',
+        type: 'normal',
+        weight: 1
+      },
+      {
+        headerComponent: 'gameCol_header_publisher',
+        rowComponent: 'gameCol_row_publisher',
+        type: 'normal',
+        weight: 1
+      }
+    ]
+  },
+  searchComponents: [],
+};
 
 const initialState: MainState = {
   gotdList: [],
@@ -217,6 +282,8 @@ const initialState: MainState = {
   componentStatuses: [],
   quitting: false,
   openDialogs: [],
+  displaySettings: deepCopy(DEFAULT_DISPLAYS),
+  extOrderables: [],
 };
 
 export const requestKeyset = createAsyncThunk(
@@ -362,6 +429,22 @@ const mainSlice = createSlice({
     openDynamicPage(state: MainState, { payload }: PayloadAction<DynamicPageProps>) {
       state.dynamicPage = payload;
     },
+    setDisplaySettingsFromCallback(state: MainState, { payload }: PayloadAction<DisplaySettingsCallback>) {
+      try {
+        state.displaySettings = payload(state.displaySettings);
+      } catch (err) {
+        log.error('Launcher', `Error setting display settings from extension callback: ${err}`);
+        alert(`Error setting display settings from extension callback: ${err}`);
+      }
+    },
+    setExtOrderablesFromCallback(state: MainState, { payload }: PayloadAction<ExtOrderablesCallback>) {
+      try {
+        state.extOrderables = payload(state.extOrderables);
+      } catch (err) {
+        log.error('Launcher', `Error setting extension orderables from extension callback: ${err}`);
+        alert(`Error setting extension orderables from extension callback: ${err}`);
+      }
+    },
     setUpdateInfo(state: MainState, { payload }: PayloadAction<number>) {
       state.metadataUpdate = {
         ready: true,
@@ -391,6 +474,8 @@ export const { setMainState,
   updateDownloaderStatus,
   updateDownloaderWorker,
   openDynamicPage,
+  setDisplaySettingsFromCallback,
+  setExtOrderablesFromCallback,
   setUpdateInfo } = mainSlice.actions;
 export default mainSlice.reducer;
 

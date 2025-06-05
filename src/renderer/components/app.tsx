@@ -34,7 +34,6 @@ import {
   Playlist,
   PlaylistGame
 } from 'flashpoint-launcher';
-import { DisplaySettings } from 'flashpoint-launcher-renderer';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as React from 'react';
@@ -59,6 +58,7 @@ import { DynamicComponentProvider, RemoteModule } from './DynamicComponentProvid
 import { DynamicThemeProvider } from './DynamicThemeProvider';
 import { FloatingContainer } from './FloatingContainer';
 import { ConnectedFpfssEditGame } from './FpfssEditGame';
+import { SortableColumn } from './GameListHeader';
 import { newCurateTask } from './pages/CuratePage';
 import { placeholderProgressData, ProgressBar } from './ProgressComponents';
 import { ResizableSidebar, SidebarResizeEvent } from './ResizableSidebar';
@@ -67,70 +67,11 @@ import { SimpleButton } from './SimpleButton';
 import { SplashScreen } from './SplashScreen';
 import { TaskBar } from './TaskBar';
 import { TitleBar } from './TitleBar';
-import { SortableColumn } from './GameListHeader';
 
 // Hide the right sidebar if the page is inside these paths
 const hiddenRightSidebarPages = [Paths.ABOUT, Paths.CURATE, Paths.CONFIG, Paths.MANUAL, Paths.LOGS, Paths.TAGS, Paths.CATEGORIES, Paths.DOWNLOADS];
 
 type AppOwnProps = Record<string, never>;
-
-const DEFAULT_DISPLAYS: DisplaySettings = {
-  gameSidebar: {
-    middle: [
-      'game_alternateTitles',
-      'game_tags',
-      'game_series',
-      'game_publisher',
-      'game_source',
-      'game_platforms',
-      'game_playMode',
-      'game_status',
-      'game_version',
-      'game_language',
-      'game_ruffleSupport',
-    ],
-    bottom: [
-      'game_dates',
-      'game_playlistNotes',
-      'game_notes',
-      'game_originalDescription',
-      'game_addApps',
-      'game_legacyData'
-    ],
-  },
-  gameGrid: {
-    upper: []
-  },
-  gameList: {
-    icons: [],
-    columns: [
-      {
-        headerComponent: 'gameCol_header_platform',
-        rowComponent: 'gameCol_row_platform',
-        type: 'icon'
-      },
-      {
-        headerComponent: 'gameCol_header_title',
-        rowComponent: 'gameCol_row_title',
-        type: 'normal',
-        weight: 1.3
-      },
-      {
-        headerComponent: 'gameCol_header_developer',
-        rowComponent: 'gameCol_row_developer',
-        type: 'normal',
-        weight: 1
-      },
-      {
-        headerComponent: 'gameCol_header_publisher',
-        rowComponent: 'gameCol_row_publisher',
-        type: 'normal',
-        weight: 1
-      }
-    ]
-  },
-  searchComponents: [],
-};
 
 export type AppProps = AppOwnProps & WithLogsProps & WithViewProps & WithFpfssProps & WithPreferencesProps & WithSearchProps & WithTagCategoriesProps & WithMainStateProps & WithTasksProps & WithCurateProps & WithShortcutProps & WithNavigationProps;
 
@@ -165,9 +106,13 @@ export class App extends React.Component<AppProps> {
       hooks: {
         useNavigate: () => useNavigate(),
       },
-      orderables: [],
     };
-    window.displaySettings = DEFAULT_DISPLAYS;
+    window.setDisplaySettings = ((cb) => {
+      this.props.mainActions.setDisplaySettingsFromCallback(cb);
+    });
+    window.setExtOrderables = ((cb) => {
+      this.props.mainActions.setExtOrderablesFromCallback(cb);
+    });
 
     // Dispatch the initial state info
     props.setMainState({

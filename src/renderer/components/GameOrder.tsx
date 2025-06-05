@@ -2,6 +2,7 @@ import { ExtOrder, GameOrderBy, GameOrderReverse } from 'flashpoint-launcher';
 import * as React from 'react';
 import { LangContext } from '../util/lang';
 import { useContext } from 'react';
+import { useAppSelector } from '@renderer/hooks/useAppSelector';
 
 export type GameOrderProps = {
   /** Called when the either the property to order by, or what way to order in, is changed. */
@@ -27,13 +28,14 @@ export type GameOrderChangeEvent = {
  */
 export function GameOrder(props: GameOrderProps) {
   const allStrings = useContext(LangContext);
+  const orderables = useAppSelector(state => state.main.extOrderables);
   const strings = allStrings.filter;
 
   const onOrderByChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const orderBy = event.target.value as GameOrderBy;
     const extId = event.target.selectedOptions[0].getAttribute('ext-id');
     const extKey = event.target.selectedOptions[0].getAttribute('ext-key');
-    const extOrderable = window.ext.orderables.find(e => e.extId === extId && e.key === extKey);
+    const extOrderable = orderables.find(e => e.extId === extId && e.key === extKey);
     console.log(`selected ${extId} ${extKey}`);
     if (extOrderable) {
       updateOrder({ orderBy }, extOrderable);
@@ -65,7 +67,7 @@ export function GameOrder(props: GameOrderProps) {
   };
 
   // Only apply ext selection if it exists
-  const extOrderables = window.ext.orderables.map(e => `ext_${e.extId}_${e.key}`);
+  const extOrderables = orderables.map(e => `ext_${e.extId}_${e.key}`);
   let selected: string = props.orderBy;
   if (props.extOrder) {
     const extOrderKey = `ext_${props.extOrder.extId}_${props.extOrder.key}`;
@@ -91,7 +93,7 @@ export function GameOrder(props: GameOrderProps) {
         <option value='dateModified'>{strings.dateModified}</option>
         <option value='lastPlayed'>{allStrings.browse.lastPlayed}</option>
         <option value='playtime'>{allStrings.browse.playtime}</option>
-        { window.ext.orderables.map((orderable) => {
+        { orderables.map((orderable) => {
           return (
             <option
               ext-id={orderable.extId}

@@ -6,9 +6,10 @@ import { GameDragEventData } from './pages/BrowsePage';
 import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
 import { ViewGame } from 'flashpoint-launcher';
 import { DynamicComponent } from './DynamicComponent';
-import { GameGridComponentProps } from 'flashpoint-launcher-renderer';
+import { DisplaySettings, GameGridComponentProps } from 'flashpoint-launcher-renderer';
 
 export type GameGridItemProps = Partial<GridCellProps> & {
+  displaySettings: DisplaySettings;
   game?: ViewGame;
   id: string;
   title: string;
@@ -103,7 +104,7 @@ export function GameGridItem(props: GameGridItemProps) {
           className='game-grid-item__thumb__image'
           style={{ backgroundImage: `url('${ willShowScreenshot ? screenshot : thumbnail }')` }}>
           <div className='game-grid-item__thumb__icons--upper'>
-            { window.displaySettings.gameGrid.upper.map((name) => {
+            { props.displaySettings.gameGrid.upper.map((name) => {
               return (
                 <DynamicComponent name={name} props={gameGridComponentProps}/>
               );

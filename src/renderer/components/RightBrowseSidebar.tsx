@@ -21,6 +21,7 @@ import { ImagePreview } from './ImagePreview';
 import { InputElement, InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
+import { WithMainStateProps } from '@renderer/containers/withMainState';
 
 type OwnProps = {
   logoVersion: number;
@@ -64,7 +65,7 @@ type OwnProps = {
   fpfssEditMode?: boolean;
 };
 
-export type RightBrowseSidebarProps = OwnProps & WithPreferencesProps & WithConfirmDialogProps;
+export type RightBrowseSidebarProps = OwnProps & WithPreferencesProps & WithConfirmDialogProps & WithMainStateProps;
 
 type RightBrowseSidebarState = {
   /** If a preview of the current game's screenshot should be shown. */
@@ -709,14 +710,14 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       onItemSelect={text => this.props.onEditGame({ library: text })} />
                   </div>
                 )}
-                {window.displaySettings.gameSidebar.middle.map(key =>
+                {this.props.main.displaySettings.gameSidebar.middle.map(key =>
                   <DynamicComponent
                     name={key}
                     props={gameComponentProps} />
                 )}
               </div>
             </>
-            {window.displaySettings.gameSidebar.bottom.map(key =>
+            {this.props.main.displaySettings.gameSidebar.bottom.map(key =>
               <DynamicComponent
                 name={key}
                 props={gameComponentProps} />

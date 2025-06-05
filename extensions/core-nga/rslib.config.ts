@@ -24,6 +24,8 @@ export default defineConfig({
         './NgRatingListIconHeader': './src/components/NgRatingListIconHeader.tsx',
         './NgRatingListIconRow': './src/components/NgRatingListIconRow.tsx',
         './NgScore': './src/components/NgScore.tsx',
+        './NgScoreListHeader': './src/components/NgScoreListHeader.tsx',
+        './NgScoreListRow': './src/components/NgScoreListRow.tsx',
         './NgViews': './src/components/NgViews.tsx',
         './NgViewsListHeader': './src/components/NgViewsListHeader.tsx',
         './NgViewsListRow': './src/components/NgViewsListRow.tsx',

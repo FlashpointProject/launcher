@@ -28,7 +28,7 @@ export default function NgScore(props: GameComponentProps) {
         <p>None</p>
       ) : (
         <div className={'ng-score-sidebar'}>
-          <div className='ng-score-value'>{score}</div>
+          <div className='ng-score-value'>{score.toFixed(2)}</div>
           <div className='ng-score-stars'>
             <div className='ng-score-stars-filled' style={{ clipPath: `inset(0 ${(1 - (score / 5)) * 100}% 0 0)` }}></div>
           </div>

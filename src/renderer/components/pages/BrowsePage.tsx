@@ -4,7 +4,7 @@ import { WithSearchProps } from '@renderer/containers/withSearch';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
 import { WithViewProps } from '@renderer/containers/withView';
 import { useView } from '@renderer/hooks/search';
-import { useAppDispatch } from '@renderer/hooks/useAppSelector';
+import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { usePreferences } from '@renderer/hooks/usePreferences';
 import { forceSearch, requestRange, RequestState, selectGame, selectPlaylist, setGridScroll, setListScroll } from '@renderer/store/search/slice';
 import { BackIn } from '@shared/back/types';
@@ -85,6 +85,7 @@ export function BrowsePage(props: OwnProps) {
   const [currentPlaylist, setCurrentPlaylist] = useState<Playlist | null>(null);
   const gameBrowserRef: RefObject<HTMLDivElement | null> = useRef(null);
   const dispatch = useAppDispatch();
+  const { displaySettings } = useAppSelector(state => state.main);
   const strings = React.useContext(LangContext);
   const { tagFilters, screenshotPreviewMode, screenshotPreviewDelay, hideExtremeScreenshots, browsePageShowExtreme, browsePageLayout, browsePageGameScale, browsePageShowLeftSidebar, browsePageLeftSidebarWidth, browsePageRightSidebarWidth } = usePreferences();
   const currentView = useView();
@@ -603,6 +604,7 @@ export function BrowsePage(props: OwnProps) {
               };
               return (
                 <GameGrid
+                  displaySettings={displaySettings}
                   games={currentView.data.games}
                   resultsTotal={currentView.data.total !== undefined ? currentView.data.total : Object.keys(currentView.data.games).length}
                   insideOrderedPlaylist={currentView.selectedPlaylist !== undefined && currentView.advancedFilter.playlistOrder}
@@ -631,6 +633,7 @@ export function BrowsePage(props: OwnProps) {
               const height: number = calcScale(30, browsePageGameScale);
               return (
                 <GameList
+                  displaySettings={displaySettings}
                   sourceTable={sourceTable}
                   games={currentView.data.games}
                   resultsTotal={currentView.data.total !== undefined ? currentView.data.total : Object.keys(currentView.data.games).length}

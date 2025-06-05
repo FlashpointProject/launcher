@@ -258,7 +258,7 @@ export const requestKeyset = createAsyncThunk(
 export const forceSearch = createAsyncThunk(
   'search/forceSearch',
   async (payload: ForceSearchAction, { getState, dispatch }) => {
-    const { search } = getState() as RootState;
+    const { search, main } = getState() as RootState;
     const view = search.views[payload.view];
     console.log('forced search');
 
@@ -274,7 +274,7 @@ export const forceSearch = createAsyncThunk(
     let extOrderExists = true;
     if (view.extOrder) {
       const extOrderKey = `ext_${view.extOrder.extId}_${view.extOrder.key}`;
-      const extOrders = window.ext.orderables.map(e => `ext_${e.extId}_${e.key}`);
+      const extOrders = main.extOrderables.map(e => `ext_${e.extId}_${e.key}`);
       if (!extOrders.includes(extOrderKey)) {
         extOrderExists = false;
       }
@@ -471,6 +471,7 @@ const searchSlice = createSlice({
             view.orderBy = storedView.orderBy;
             view.orderReverse = storedView.orderReverse;
             view.expanded = storedView.expanded;
+            view.extOrder = storedView.extOrder;
           }
         }
       }

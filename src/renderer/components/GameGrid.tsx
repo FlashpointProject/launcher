@@ -10,6 +10,7 @@ import { findElementAncestor, gameDragDataType, getExtremeIconURL, getGameImageU
 import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
 import { GameDragData, GameDragEventData } from './pages/BrowsePage';
+import { DisplaySettings } from 'flashpoint-launcher-renderer';
 
 const RENDERER_OVERSCAN = 5;
 
@@ -19,6 +20,7 @@ type ColumnsRows = {
 };
 
 export type GameGridProps = {
+  displaySettings: DisplaySettings;
   onGameLaunch: (gameId: string, override: GameLaunchOverride) => void;
   /** All games that will be shown in the grid (filter it before passing it here). */
   games: ViewGameSet;
@@ -252,6 +254,7 @@ export class GameGrid extends React.Component<GameGridProps, GameGridState> {
       return (
         <GameGridItem
           { ...props }
+          displaySettings={this.props.displaySettings}
           key={props.key}
           game={game}
           id={game ? game.id : ''}

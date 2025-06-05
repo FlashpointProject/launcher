@@ -2624,7 +2624,6 @@ declare module 'flashpoint-launcher-renderer' {
     hooks: {
       useNavigate: () => NavigateFunction
     },
-    orderables: ExtOrderable[],
   }
 
   type GameListColumnInfoIcon = {
@@ -2688,7 +2687,8 @@ declare module 'flashpoint-launcher-renderer' {
   declare global {
     interface Window {
       ext: IExtensionWindow,
-      displaySettings: DisplaySettings,
+      setDisplaySettings: (cb: (prev: DisplaySettings) => DisplaySettings) => void,
+      setExtOrderables: (cb: (prev: ExtOrderable[]) => ExtOrderable[]) => void,
     }
   }
 }

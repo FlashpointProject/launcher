@@ -2,21 +2,23 @@ import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { useView } from '@renderer/hooks/search';
 import { useAppDispatch } from '@renderer/hooks/useAppSelector';
 import { setExtOrder, setOrderBy, setOrderReverse } from '@renderer/store/search/slice';
-import { GameListHeaderComponentProps, SortableColumnProps } from 'flashpoint-launcher-renderer';
+import { DisplaySettings, GameListHeaderComponentProps, SortableColumnProps } from 'flashpoint-launcher-renderer';
 import { DynamicComponent } from './DynamicComponent';
 import { GameOrderChangeEvent } from './GameOrder';
 import { OpenIcon } from './OpenIcon';
 
 export type GameListHeaderProps = WithPreferencesProps & {
   showExtremeIcon: boolean;
+  displaySettings: DisplaySettings;
 };
 
 // Header on top of the GameList. It contains the resizable columns that decide how wide each column is.
 export function GameListHeader(props: GameListHeaderProps) {
   const currentView = useView();
+  const displaySettings = props.displaySettings;
   const dispatch = useAppDispatch();
 
-  const totalWeight = window.displaySettings.gameList.columns.reduce((prev, cur) => cur.type === 'normal' ? prev + cur.weight : prev, 0);
+  const totalWeight = displaySettings.gameList.columns.reduce((prev, cur) => cur.type === 'normal' ? prev + cur.weight : prev, 0);
 
   const onChangeOrder = (event: GameOrderChangeEvent) => {
     dispatch(setOrderBy({
@@ -46,11 +48,11 @@ export function GameListHeader(props: GameListHeaderProps) {
       { props.showExtremeIcon ? (
         <Column modifier='icon' hideDivider={true} />
       ) : undefined}
-      { window.displaySettings.gameList.columns.filter(c => c.type === 'icon').map(col => {
+      { displaySettings.gameList.columns.filter(c => c.type === 'icon').map(col => {
         return <DynamicComponent props={gameListHeaderProps} name={col.headerComponent} />;
       })}
       <div className='game-list-header__right'>
-        { window.displaySettings.gameList.columns.filter(c => c.type === 'normal').map(col => {
+        { displaySettings.gameList.columns.filter(c => c.type === 'normal').map(col => {
           return <div style={{ width: `${(col.weight / totalWeight) * 100}%` }}>
             <DynamicComponent props={gameListHeaderProps} name={col.headerComponent} />
           </div>;

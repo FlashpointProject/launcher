@@ -16,20 +16,6 @@ import { SimpleButton } from './SimpleButton';
 import { DynamicComponent } from './DynamicComponent';
 import { SearchComponentProps } from 'flashpoint-launcher-renderer';
 
-function TestComponent2() {
-  const onClearFactory = (key: string) => {
-    return () => {
-      console.log('made clear ' + key);
-    };
-  };
-  const onClear = onClearFactory('test');
-
-  return (
-    <div onClick={onClear}>
-    </div>
-  );
-}
-
 export const categoryOrder = [
   'genre',
   'theme',
@@ -480,7 +466,6 @@ export function SearchBar() {
             onBlacklist={onBlacklistDeveloper}
             onClear={onClearDeveloper}
             onSetAndToggle={onSetAndToggleDeveloper} />
-          <TestComponent2/>
           <SearchableSelect
             title={strings.browse.publisher}
             items={publisherItems}
@@ -533,7 +518,7 @@ export function SearchBar() {
             onBlacklist={onBlacklistTag}
             onClear={onClearTags}
             onSetAndToggle={onSetAndToggleTags} />
-          { window.displaySettings.searchComponents.map((name) => {
+          { mainState.displaySettings.searchComponents.map((name) => {
             return (
               <DynamicComponent name={name} props={searchComponentProps}/>
             );

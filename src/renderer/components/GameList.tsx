@@ -10,10 +10,12 @@ import { GameListHeader } from './GameListHeader';
 import { GameListItem } from './GameListItem';
 import { GameDragData, GameDragEventData } from './pages/BrowsePage';
 import { GameLaunchOverride, TagFilter } from 'flashpoint-launcher';
+import { DisplaySettings } from 'flashpoint-launcher-renderer';
 
 const RENDERER_OVERSCAN = 15;
 
 export type OwnProps = {
+  displaySettings: DisplaySettings;
   sourceTable: string;
   /** All games that will be shown in the list. */
   games?: ViewGameSet;
@@ -134,6 +136,7 @@ class _GameList extends React.Component<GameListProps> {
         className='game-list-wrapper'
         ref={this._wrapper}>
         <GameListHeader
+          displaySettings={this.props.displaySettings}
           showExtremeIcon={this.props.showExtremeIcon}
           preferencesData={this.props.preferencesData}  />
         <GameItemContainer
@@ -196,11 +199,12 @@ class _GameList extends React.Component<GameListProps> {
     const game = games[cellProps.index];
     const platform = game?.primaryPlatform;
     const tagGroupIcon = this.props.tagGroupIcons.find(tg => tg.tagFilter.find(t => game?.tags.includes(t)))?.iconBase64;
-    const totalWeight = window.displaySettings.gameList.columns.reduce((prev, cur) => cur.type === 'normal' ? prev + cur.weight : prev, 0);
+    const totalWeight = this.props.displaySettings.gameList.columns.reduce((prev, cur) => cur.type === 'normal' ? prev + cur.weight : prev, 0);
 
     return game ? (
       <GameListItem
         { ...cellProps }
+        displaySettings={this.props.displaySettings}
         game={game}
         key={cellProps.key}
         id={game.id}

@@ -17,6 +17,9 @@
 .ng-image-rating_a {
   background-image: url("assets/rating_adult.png");
 }
+.ng-image-rating_u {
+  background-image: url("assets/rating_unknown.png");
+}
 
 .ng-score-stars {
   background: url("assets/score.webp") left top repeat-x;

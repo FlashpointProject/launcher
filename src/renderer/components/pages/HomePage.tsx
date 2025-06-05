@@ -25,6 +25,7 @@ import { OpenIcon, OpenIconType } from '../OpenIcon';
 import { RandomGames } from '../RandomGames';
 import { SimpleButton } from '../SimpleButton';
 import { SizeProvider } from '../SizeProvider';
+import { useAppSelector } from '@renderer/hooks/useAppSelector';
 
 type OwnProps = {
   gotdList: GameOfTheDay[] | undefined;
@@ -47,6 +48,7 @@ type OwnProps = {
 export type HomePageProps = OwnProps & WithPreferencesProps & WithSearchProps & WithMainStateProps;
 
 export function HomePage(props: HomePageProps) {
+  const { displaySettings } = useAppSelector(state => state.main);
   const { onLaunchGame: onLaunchGameProp, platforms, search, searchActions, logoVersion } = props;
   /** Offset of the starting point in the animated logo's animation (sync it with time of the machine). */
   const logoDelay = (Date.now() * -0.001) + 's';
@@ -330,6 +332,7 @@ export function HomePage(props: HomePageProps) {
                       onGameLaunch={(event, gameId) => props.onLaunchGame(gameId, null)}
                       findGameDragEventData={findGameDragEventDataGrid}>
                       <GameGridItem
+                        displaySettings={displaySettings}
                         game={loadedGotd}
                         key={loadedGotd.id}
                         id={loadedGotd.id}
@@ -410,6 +413,7 @@ export function HomePage(props: HomePageProps) {
         {/* Random Games */}
         <SizeProvider width={width} height={height}>
           <RandomGames
+            displaySettings={displaySettings}
             games={props.randomGames}
             rollRandomGames={props.rollRandomGames}
             onGameContextMenu={props.onGameContextMenu}
