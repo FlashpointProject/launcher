@@ -123,6 +123,7 @@ import {
 import { uuid } from './util/uuid';
 import { axios } from './dns';
 import { Downloader } from './Downloader';
+import { getTags } from './DatabaseCache';
 
 /**
  * Register all request callbacks to the socket server.
@@ -1325,12 +1326,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.GET_TAGS, async (event, tagFilters) => {
-    const flatFilters: string[] = tagFilters ? tagFilters.reduce<string[]>((prev, cur) => prev.concat(cur.tags), []) : [];
-    return databaseReady()
-    .then(async (db) => {
-      const tags = (await db.findAllTags()).filter(t => !t.aliases.some(a => flatFilters.includes(a)));
-      return tags;
-    });
+    return getTags(state, tagFilters || []);
   });
 
   state.socketServer.register(BackIn.MERGE_TAGS, async (event, data) => {
