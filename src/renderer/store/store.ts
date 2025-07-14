@@ -1,6 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { addCurationMiddleware } from './curate/middleware';
 import curateReducer from './curate/slice';
+import downloadsReducer from './downloads/slice';
 import fpfssReducer from './fpfss/slice';
 import { listenerMiddleware } from './listenerMiddleware';
 import logsReducer from './logs/slice';
@@ -26,6 +27,7 @@ export const store = configureStore({
     tagCategories: tagCategoriesReducer,
     tasks: tasksReducer,
     logs: logsReducer,
+    downloads: downloadsReducer,
   },
   middleware: (getDefaultMiddleware) => {
     const middleware = getDefaultMiddleware({

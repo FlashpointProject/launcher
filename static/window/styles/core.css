@@ -2732,14 +2732,15 @@ body {
 }
 /* Progress Bar */
 .progress-bar__top-text {
+  text-overflow: ellipsis;
   text-align: center;
   font-weight: bold;
-  font-size: 2em;
+  font-size: 1.8em;
 }
 .progress-bar__bottom-text {
   text-align: center;
   font-weight: bold;
-  font-size: 1.5em;
+  font-size: 1.2em;
 }
 .progress-bar__bar {
   align-self: center;
@@ -3711,6 +3712,18 @@ body {
   margin: 1rem;
   font-size: 1.5rem;
   font-weight: bold;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.downloads-page__upper-right {
+  display: flex;
+  flex-direction: column;
+}
+
+.downloads-page__upper-right > :not(:first-child) {
+  margin-top: 0.5rem;
 }
 
 .downloads-page__workers {
@@ -3718,6 +3731,20 @@ body {
   margin-right: 1rem;
 }
 
-.downloads-page__workers-worker {
+.downloads-page__workers-row {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
 
+.downloads-page__workers-row > :not(:first-child) {
+  margin-left: 1rem;
+}
+
+.downloads-page__workers-worker {
+  flex: 1;
+}
+
+.downloads-page__workers-spacer {
+  flex: 0.5;
 }

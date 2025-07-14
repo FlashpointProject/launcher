@@ -67,13 +67,14 @@ import { SimpleButton } from './SimpleButton';
 import { SplashScreen } from './SplashScreen';
 import { TaskBar } from './TaskBar';
 import { TitleBar } from './TitleBar';
+import { WithDownloadsProps } from '@renderer/containers/withDownloads';
 
 // Hide the right sidebar if the page is inside these paths
 const hiddenRightSidebarPages = [Paths.ABOUT, Paths.CURATE, Paths.CONFIG, Paths.MANUAL, Paths.LOGS, Paths.TAGS, Paths.CATEGORIES, Paths.DOWNLOADS];
 
 type AppOwnProps = Record<string, never>;
 
-export type AppProps = AppOwnProps & WithLogsProps & WithViewProps & WithFpfssProps & WithPreferencesProps & WithSearchProps & WithTagCategoriesProps & WithMainStateProps & WithTasksProps & WithCurateProps & WithShortcutProps & WithNavigationProps;
+export type AppProps = AppOwnProps & WithDownloadsProps & WithLogsProps & WithViewProps & WithFpfssProps & WithPreferencesProps & WithSearchProps & WithTagCategoriesProps & WithMainStateProps & WithTasksProps & WithCurateProps & WithShortcutProps & WithNavigationProps;
 
 export class App extends React.Component<AppProps> {
   appRef: React.RefObject<HTMLDivElement | null>;
@@ -745,15 +746,19 @@ export class App extends React.Component<AppProps> {
     });
 
     window.Shared.back.register(BackOut.UPDATE_DOWNLOADER_TASK, async (event, task) => {
-      this.props.mainActions.updateDownloaderTask(task);
+      this.props.downloadsActions.updateDownloaderTask(task);
+    });
+
+    window.Shared.back.register(BackOut.UPDATE_DOWNLOADER_TASKS, async (event, tasks) => {
+      this.props.downloadsActions.updateDownloaderTasks(tasks);
     });
 
     window.Shared.back.register(BackOut.UPDATE_DOWNLOADER_STATUS, async (event, status) => {
-      this.props.mainActions.updateDownloaderStatus(status);
+      this.props.downloadsActions.updateDownloaderStatus(status);
     });
 
     window.Shared.back.register(BackOut.UPDATE_DOWNLOADER_STATE_WORKER, async (event, workerState) => {
-      this.props.mainActions.updateDownloaderWorker(workerState);
+      this.props.downloadsActions.updateDownloaderWorker(workerState);
     });
 
     window.Shared.back.register(BackOut.OPEN_DYNAMIC_PAGE, async (event, name, props) => {

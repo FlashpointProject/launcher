@@ -13,7 +13,7 @@ import { deepCopy } from '@shared/Util';
 import * as axiosImport from 'axios';
 import { ipcRenderer } from 'electron';
 import { UpdateInfo } from 'electron-updater';
-import { DialogField, DialogState, DownloaderState, DownloaderStatus, DownloadTask, DownloadWorkerState, Game, GameData, LangContainer, Playlist, PlaylistGame, ViewGame } from 'flashpoint-launcher';
+import { DialogField, DialogState, Game, GameData, LangContainer, Playlist, PlaylistGame, ViewGame } from 'flashpoint-launcher';
 import { DisplaySettings, ExtOrderable } from 'flashpoint-launcher-renderer';
 
 export const RANDOM_GAME_ROW_COUNT = 6;
@@ -37,11 +37,7 @@ export type UpdateDialogFieldActionData = {
   field: Partial<DialogField>;
 }
 
-export type UpdateDownloaderTaskAction = DownloadTask;
 
-export type UpdateDownloaderStateAction = DownloaderStatus;
-
-export type UpdateDownloadWorkerAction = DownloadWorkerState;
 
 export type ResolveDialogActionData = {
   id: string;
@@ -111,7 +107,6 @@ export type MainState = {
   extConfig: AppExtConfigData;
   /** Services */
   services: IService[];
-  downloaderState: DownloaderState;
   /** PLACEHOLDER - Download percent of Game */
   downloadPercent: number;
   downloadSize: number;
@@ -260,11 +255,6 @@ const initialState: MainState = {
   contextButtons: [],
   curationTemplates: [],
   services: [],
-  downloaderState: {
-    state: 'running',
-    workers: [],
-    tasks: {}
-  },
   downloadOpen: false,
   downloadPercent: 0,
   downloadSize: 0,
@@ -412,20 +402,7 @@ const mainSlice = createSlice({
         }
       }
     },
-    updateDownloaderTask(state: MainState, { payload }: PayloadAction<UpdateDownloaderTaskAction>) {
-      state.downloaderState.tasks[payload.game.id] = payload;
-    },
-    updateDownloaderStatus(state: MainState, { payload }: PayloadAction<UpdateDownloaderStateAction>) {
-      state.downloaderState.state = payload;
-    },
-    updateDownloaderWorker(state: MainState, { payload }: PayloadAction<UpdateDownloadWorkerAction>) {
-      const workerIdx = state.downloaderState.workers.findIndex(w => w.id === payload.id);
-      if (workerIdx > -1) {
-        state.downloaderState.workers[workerIdx] = payload;
-      } else {
-        state.downloaderState.workers.push(payload);
-      }
-    },
+
     openDynamicPage(state: MainState, { payload }: PayloadAction<DynamicPageProps>) {
       state.dynamicPage = payload;
     },
@@ -470,9 +447,6 @@ export const { setMainState,
   updateDialog,
   updateDialogField,
   removePlaylistGame,
-  updateDownloaderTask,
-  updateDownloaderStatus,
-  updateDownloaderWorker,
   openDynamicPage,
   setDisplaySettingsFromCallback,
   setExtOrderablesFromCallback,

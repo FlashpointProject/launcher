@@ -2,7 +2,6 @@ import { Game } from '@fparchive/flashpoint-archive';
 import { downloadGameData } from './download';
 import { fpDatabase } from '.';
 import * as fs from 'fs-extra';
-import * as crypto from 'crypto';
 import * as path from 'path';
 import { DownloaderStatus, DownloadTask, DownloadTaskStatus, DownloadWorkerState, GameDataSource } from 'flashpoint-launcher';
 import { axios } from './dns';
@@ -11,6 +10,7 @@ import { BackOut } from '@shared/back/types';
 import { promiseSleep } from './util/misc';
 import { WrappedEventEmitter } from './util/WrappedEventEmitter';
 import { EventQueue } from './util/EventQueue';
+import { AxiosError } from 'axios';
 
 export interface Downloader {
   on  (event: string, listener: (...args: any[]) => void): this;
@@ -31,7 +31,7 @@ export class Downloader extends WrappedEventEmitter {
   private tasks: Record<string, DownloadTask> = {}; // Queue of tasks to be executed
   private workers: DownloadWorker[] = []; // Array of workers
   private idleWorkers: DownloadWorker[] = []; // Array of idle workers
-  public databaseQueue: EventQueue = new EventQueue
+  public databaseQueue: EventQueue = new EventQueue;
   public status: DownloaderStatus;
 
   constructor(
@@ -50,7 +50,7 @@ export class Downloader extends WrappedEventEmitter {
       this.workers.push(worker);
       this.idleWorkers.push(worker);
     }
-    this.status = 'running';
+    this.status = 'stopped';
   }
 
   public start() {
@@ -98,6 +98,40 @@ export class Downloader extends WrappedEventEmitter {
     return this.tasks;
   }
 
+  public addTasks(games: Game[]) {
+    // Bulk send updates in sets of up to 2500
+    let updateQueue: DownloadTask[] = [];
+    for (const game of games) {
+      if (!this.tasks[game.id]) {
+        const newTask: DownloadTask = {
+          status: 'waiting',
+          game,
+          errors: [],
+        };
+        updateQueue.push(newTask);
+      }
+
+      if (updateQueue.length >= 2500) {
+        this.state.socketServer.broadcast(BackOut.UPDATE_DOWNLOADER_TASKS, updateQueue);
+        for (const task of updateQueue) {
+          this.tasks[task.game.id] = task;
+          this.assignTaskToIdleWorker(task);
+          this.emit('taskChange', task);
+        }
+        updateQueue = [];
+      }
+    }
+
+    if (updateQueue.length > 0) {
+      this.state.socketServer.broadcast(BackOut.UPDATE_DOWNLOADER_TASKS, updateQueue);
+      for (const task of updateQueue) {
+        this.tasks[task.game.id] = task;
+        this.assignTaskToIdleWorker(task);
+        this.emit('taskChange', task);
+      }
+    }
+  }
+
   public addTask(game: Game): boolean {
     if (!this.tasks[game.id]) {
       const newTask: DownloadTask = {
@@ -132,8 +166,6 @@ export class Downloader extends WrappedEventEmitter {
         this.state.socketServer.broadcast(BackOut.UPDATE_DOWNLOADER_TASK, task);
         worker.assignTask(task);
       }
-    } else {
-      log.debug('Downloads', 'Not running');
     }
   }
 
@@ -146,6 +178,10 @@ export class Downloader extends WrappedEventEmitter {
       log.info('Downloader', `Task: ${gameId} - Status: ${status}`);
       this.state.socketServer.broadcast(BackOut.UPDATE_DOWNLOADER_TASK, this.tasks[gameId]);
       this.emit('taskChange', this.tasks[gameId]);
+    }
+
+    if (status === 'failure') {
+      log.error('Downloader', `Download failure for ${gameId}: ${errors}`);
     }
 
     const nextTask = this.getNextTask();
@@ -166,6 +202,7 @@ class DownloadWorker {
   private step = 1;
   private totalSteps = 3;
   private stepProgress = 0.0;
+  private taskText = '';
   private statusText = '';
 
   constructor(
@@ -179,8 +216,9 @@ class DownloadWorker {
       step: this.step,
       totalSteps: this.totalSteps,
       stepProgress: this.stepProgress,
+      taskText: this.taskText,
       text: this.statusText,
-    }
+    };
   }
 
   // Start the worker to begin processing URLs
@@ -191,6 +229,7 @@ class DownloadWorker {
   }
 
   private async execute(signal: AbortSignal, task: DownloadTask): Promise<void> {
+    this.taskText = `Downloading '${task.game.title}'...`;
     this.step = 1;
     this.stepProgress = 0;
     this.statusText = 'Downloading logo...';
@@ -200,17 +239,15 @@ class DownloadWorker {
     const errors: string[] = [];
 
     // Download game images
-    const logoSubPath = `Logos/${gameId.substring(0, 2)}/${gameId.substring(2, 4)}/${gameId}.png`;
-    const ssSubPath = `Screenshots/${gameId.substring(0, 2)}/${gameId.substring(2, 4)}/${gameId}.png`
-    const logoPath = path.join(this.downloader.flashpointPath, this.downloader.imageFolderPath, logoSubPath);
-    const ssPath = path.join(this.downloader.flashpointPath, this.downloader.imageFolderPath, ssSubPath);
+    const logoPath = path.join(this.downloader.flashpointPath, this.downloader.imageFolderPath, game.logoPath);
+    const ssPath = path.join(this.downloader.flashpointPath, this.downloader.imageFolderPath, game.screenshotPath);
 
     if (!fs.existsSync(logoPath)) {
       try {
-        await this.downloadImage(logoSubPath, signal);
+        await this.downloadImage(game.logoPath, signal);
       } catch (e) {
         this.downloader.signalStatus(this, gameId, 'failure', errors);
-        errors.push(`${e}`);
+        errors.push(`Failed downloading game logo: ${e}`);
       }
     }
 
@@ -225,9 +262,9 @@ class DownloadWorker {
 
     if (!fs.existsSync(ssPath)) {
       try {
-        await this.downloadImage(ssSubPath, signal);
+        await this.downloadImage(game.screenshotPath, signal);
       } catch (e) {
-        errors.push(`${e}`);
+        errors.push(`Failed downloading game screenshot: ${e}`);
       }
     }
 
@@ -260,8 +297,8 @@ class DownloadWorker {
                 } catch (err) {
                   reject(err);
                 }
-              })
-            })
+              });
+            });
           }
           continue;
         }
@@ -273,7 +310,7 @@ class DownloadWorker {
             this.downloader.onWorkerUpdate(this);
           }, () => {}, this.downloader.databaseQueue);
         } catch (e) {
-          errors.push(`${e}`);
+          errors.push(`Failed downloading game data: ${e}`);
         }
 
         this.statusText = 'Done';
@@ -295,7 +332,8 @@ class DownloadWorker {
   }
 
   private async downloadImage(subPath: string, signal: AbortSignal) {
-    let url = this.downloader.onDemandBaseUrl + (this.downloader.onDemandBaseUrl.endsWith('/') ? '' : '/') + subPath;
+    const url = this.downloader.onDemandBaseUrl + (this.downloader.onDemandBaseUrl.endsWith('/') ? '' : '/') + subPath;
+    console.log(url);
     await axios.get(url, { responseType: 'arraybuffer', signal })
     .then(async (res) => {
       // Save response to image file
@@ -306,17 +344,11 @@ class DownloadWorker {
 
       await fs.ensureDir(path.dirname(filePath));
       await fs.promises.writeFile(filePath, imageData, 'binary');
-    });
-  }
-
-  private async calculateFileHash(filePath: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const hash = crypto.createHash('sha256');
-      const stream = fs.createReadStream(filePath);
-
-      stream.on('data', (chunk) => hash.update(chunk));
-      stream.on('end', () => resolve(hash.digest('hex')));
-      stream.on('error', (error) => reject(error));
+    })
+    .catch((err: AxiosError) => {
+      if (err.response?.status !== 404) {
+        throw err;
+      }
     });
   }
 

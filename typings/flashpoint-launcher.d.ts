@@ -1292,6 +1292,7 @@ declare module 'flashpoint-launcher' {
       step: number;
       totalSteps: number;
       stepProgress: number;
+      taskText: string;
       text: string;
     }
 

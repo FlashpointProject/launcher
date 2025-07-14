@@ -378,10 +378,10 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
                   link={Paths.CATEGORIES} />
               </>
             ) : undefined }
-            {/* <MenuItem
+            <MenuItem
               id={'header__downloads'}
               title={'Downloads'}
-              link={Paths.DOWNLOADS} /> */}
+              link={Paths.DOWNLOADS} />
             <MenuItem
               id={'header__logs'}
               title={strings.logs}

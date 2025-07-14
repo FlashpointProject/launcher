@@ -178,7 +178,6 @@ export function SearchBar() {
   };
 
   const onClearFactory = (key: keyof AdvancedFilter) => {
-    console.log('made clear ' + key);
     return () => {
       dispatch(setAdvancedFilter({
         view: view.id,

@@ -7,7 +7,7 @@ import {
 } from '@fparchive/flashpoint-archive';
 import { LogLevel } from '@shared/Log/interface';
 import { MetaEditFile, MetaEditMeta } from '@shared/MetaEdit';
-import { deepCopy, downloadFile, padEnd } from '@shared/Util';
+import { deepCopy, downloadFile, padEnd, sizeToString } from '@shared/Util';
 import {
   BackIn,
   BackInit,
@@ -42,7 +42,6 @@ import { execSync } from 'child_process';
 import {
   ConfigSchema,
   CurationState,
-  DownloadTask,
   Game,
   GameData,
   GameLaunchInfo,
@@ -122,7 +121,6 @@ import {
 } from './util/misc';
 import { uuid } from './util/uuid';
 import { axios } from './dns';
-import { Downloader } from './Downloader';
 import { getTags } from './DatabaseCache';
 
 /**
@@ -197,6 +195,32 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         };
       }),
     };
+  });
+
+  state.socketServer.register(BackIn.DOWNLOADER_SET_STATUS, async (event, status) => {
+    if (status === 'running') {
+      state.downloader.start();
+    } else {
+      state.downloader.stop();
+    }
+  });
+
+  state.socketServer.register(BackIn.DOWNLOADER_ADD_MISSING_CONTENT, async (event) => {
+    const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
+    const dialogId = await openDialog({
+      largeMessage: true,
+      message: 'Finding missing content...',
+      buttons: []
+    });
+
+    const search = fpDatabase.parseUserSearchInput('').search;
+    search.limit = 9999999999;
+    search.filter.boolComp.installed = false;
+    search.slim = true;
+    const games = await fpDatabase.searchGames(search);
+    state.downloader.addTasks(games);
+
+    state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
   });
 
   state.socketServer.register(BackIn.CANCEL_DOWNLOAD, async () => {
@@ -866,36 +890,43 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   state.socketServer.register(BackIn.DOWNLOAD_PLAYLIST_CONTENTS, async (event, playlistId) => {
     const playlist = state.playlists.find(p => p.id === playlistId);
     if (playlist) {
-      // Create a downloader for it
-      const downloader = new Downloader(
-        state.config.flashpointPath,
-        state.preferences.dataPacksFolderPath,
-        state.preferences.imageFolderPath,
-        state.preferences.onDemandBaseUrl,
-        state.preferences.gameDataSources,
-        state,
-        4
-      );
-      log.info('Downloads', 'Adding playlist to downloader with ' + playlist.games.length + ' games');
-      const taskId = uuid();
-      await state.socketServer.request(event.client, BackOut.CREATE_TASK, {
-        id: taskId,
-        name: `Downloading Playlist ${playlist.title}`,
-        progress: 0,
-        status: 'Creating Downloader...',
-        finished: false,
-      });
+      // Find a size estimate before initiating download
+      let totalSize = 0;
+      for (const pg of playlist.games) {
+        const gameData = await fpDatabase.findGameData(pg.gameId);
+        for (const gd of gameData) {
+          if (!gd.presentOnDisk) {
+            totalSize += gd.size;
+          }
+        }
+      }
 
-      downloader.stop();
-      let total = 0;
+      if (totalSize > 0) {
+        // Estimated size larger than 0B, ask the user before downloading
+        const humanReadableSize = sizeToString(totalSize);
+
+        const dialogId = await state.socketServer.showMessageBoxBack(state, event.client)({
+          message: `Downloading this playlist requires approximately ${humanReadableSize} of additional space. Continue?`,
+          buttons: [state.languageContainer.misc.yes, state.languageContainer.misc.no],
+          cancelId: 1,
+          largeMessage: true,
+        });
+        const result = (await awaitDialog(state, dialogId)).buttonIdx;
+
+        if (result === 1) {
+          log.debug('Downloads', 'User aborted playlist download at size prompt');
+          return;
+        }
+      }
+
+      log.info('Downloads', 'Adding playlist to downloader with ' + playlist.games.length + ' games');
+
       for (const { gameId } of playlist.games) {
         try {
           const game = await fpDatabase.findGame(gameId);
           if (game) {
             log.info('Downloads', 'Adding game ' + game.id);
-            if (downloader.addTask(game)) {
-              total += 1;
-            }
+            state.downloader.addTask(game);
           }
         } catch (e) {
           console.error('bad game get');
@@ -903,48 +934,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         }
       }
 
-      state.socketServer.broadcast(BackOut.UPDATE_TASK, {
-        id: taskId,
-        status: `Completed: ${0} / ${total}`,
-      });
-      let completed = 0;
-      let errors: string[] = [];
-      const watcherCb = (task: DownloadTask) => {
-        if (task.status !== 'waiting' && task.status !== 'in_progress') {
-          completed += 1;
-          if (task.status === 'failure') {
-            log.error('Downloader', `Game download failed (${task.game.title}): ${task.errors.join('\n')}`);
-            errors = errors.concat(task.errors);
-          }
-        }
-        state.socketServer.broadcast(BackOut.UPDATE_TASK, {
-          id: taskId,
-          status: `Completed: ${completed} / ${total}`,
-          progress: completed / total,
-        });
-        if (completed === total) {
-          // Finished, unregister itself
-          if (errors.length > 0) {
-            state.socketServer.broadcast(BackOut.UPDATE_TASK, {
-              id: taskId,
-              finished: true,
-              status: `Completed with ${errors.length} errors.`,
-              error: errors.join('\n'),
-            });
-          } else {
-            state.socketServer.broadcast(BackOut.UPDATE_TASK, {
-              id: taskId,
-              finished: true,
-              status: 'Done',
-            });
-          }
-
-          downloader.off('taskChange', watcherCb);
-          downloader.clear(); // Downloader should discard itself after this loop anyway? Not sure honestly
-        }
-      };
-      downloader.on('taskChange', watcherCb);
-      downloader.start();
+      state.downloader.start();
     } else {
       log.error('Downloads', 'Could not find playlist with id ' + playlistId);
     }

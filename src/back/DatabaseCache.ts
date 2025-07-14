@@ -33,7 +33,7 @@ async function loadTagCache(cachePath: string): Promise<void> {
     if (err.code !== 'ENOENT') {
       log.error('Cache', `Tag cache data failed to load, ignoring...: ${err}`);
     } else {
-      log.info('Cache', 'No tag cache found');
+      log.info('Cache', 'No tag cache data found');
     }
 
     // Set empty cache
@@ -67,8 +67,6 @@ export async function getTags(state: BackState, tagFilters: TagFilterGroup[]): P
     log.info('Cache', 'Tag filter key: ' + flatKey);
     if (tagCache!.tagCount === tagCount && tagCache!.filterKey === flatKey) {
       // Same tag count and filter key, pretty accurate cache
-      console.log('Cache hit');
-      console.log(tagCache);
       return tagCache!.tags;
     }
     const tags = (await db.findAllTags()).filter(t => !t.aliases.some(a => flatTagFilter.includes(a)));

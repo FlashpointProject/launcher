@@ -208,6 +208,10 @@ export enum BackIn {
   DIALOG_RESPONSE,
   NEW_DIALOG_RESPONSE,
 
+  // Downloader
+  DOWNLOADER_SET_STATUS,
+  DOWNLOADER_ADD_MISSING_CONTENT,
+
   // Tests
   TEST_RECONNECTIONS,
 
@@ -282,6 +286,7 @@ export enum BackOut {
   CREATE_TASK,
 
   UPDATE_DOWNLOADER_TASK,
+  UPDATE_DOWNLOADER_TASKS,
   UPDATE_DOWNLOADER_STATUS,
   UPDATE_DOWNLOADER_STATE_WORKER,
 
@@ -455,6 +460,10 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.KEEP_ALIVE]: () => void;
   [BackIn.PREP_RELOAD_WINDOW]: () => void;
 
+  // Downloader
+  [BackIn.DOWNLOADER_SET_STATUS]: (status: DownloaderStatus) => void;
+  [BackIn.DOWNLOADER_ADD_MISSING_CONTENT]: () => void;
+
   // Developer
   [BackIn.SYNC_TAGGED]: (source: GameMetadataSource) => void;
   [BackIn.SYNC_ALL]: (source: GameMetadataSource) => boolean;
@@ -538,6 +547,7 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.CREATE_TASK]: (task: Task) => void;
 
   [BackOut.UPDATE_DOWNLOADER_TASK]: (task: DownloadTask) => void;
+  [BackOut.UPDATE_DOWNLOADER_TASKS]: (tasks: DownloadTask[]) => void;
   [BackOut.UPDATE_DOWNLOADER_STATUS]: (state: DownloaderStatus) => void;
   [BackOut.UPDATE_DOWNLOADER_STATE_WORKER]: (worker: DownloadWorkerState) => void;
 
