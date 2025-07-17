@@ -990,7 +990,11 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.GET_GAME, async (event, id) => {
-    return await fpDatabase.findGame(id);
+    const game = await fpDatabase.findGame(id);
+    if (game) {
+      await state.apiEmitters.games.onInterceptGetGame.fire(game);
+    }
+    return game;
     // TODO: Reimplement game configs
   });
 

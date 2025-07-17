@@ -172,6 +172,7 @@ const state: BackState = {
       onDidInstallGameData: onDidInstallGameData,
       onDidUninstallGameData: onDidUninstallGameData,
       onWillImportCuration: onWillImportCuration,
+      onInterceptGetGame: new ApiEmitter<flashpoint.Game>(),
     },
     curations: {
       onDidCurationListChange: new ApiEmitter(),

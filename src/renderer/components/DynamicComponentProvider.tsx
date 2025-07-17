@@ -3,6 +3,7 @@ import { ComponentType, createContext, lazy, ReactNode, useEffect, useState } fr
 import { DynamicComponent } from './DynamicComponent';
 import { GameComponentAddApps, GameComponentAlternateTitles, GameComponentDates, GameComponentLanguage, GameComponentLegacyData, GameComponentNotes, GameComponentOriginalDescription, GameComponentPlatforms, GameComponentPlaylistNotes, GameComponentPlayMode, GameComponentPublisher, GameComponentRuffleSupport, GameComponentSeries, GameComponentSource, GameComponentStatus, GameComponentTags, GameComponentVersion } from './GameComponents';
 import { GameListHeaderDeveloper, GameListHeaderPlatform, GameListHeaderPublisher, GameListHeaderTitle, GameListRowDeveloper, GameListRowPlatform, GameListRowPublisher, GameListRowTitle } from './GameListComponents';
+import { HomePageComponentExtras, HomePageComponentGotd, HomePageComponentNotes, HomePageComponentQuickStart, HomePageComponentRandomGames, HomePageComponentUpdateFeed } from './HomePageComponents';
 
 export type RemoteModule = {
   scope: string,
@@ -47,6 +48,12 @@ const DEFAULT_COMPONENT_MAP: ComponentMap = {
   'gameCol_row_title': GameListRowTitle,
   'gameCol_row_developer': GameListRowDeveloper,
   'gameCol_row_publisher': GameListRowPublisher,
+  'homePage_newsFeed': HomePageComponentUpdateFeed,
+  'homePage_gotd': HomePageComponentGotd,
+  'homePage_quickStart': HomePageComponentQuickStart,
+  'homePage_notes': HomePageComponentNotes,
+  'homePage_randomGames': HomePageComponentRandomGames,
+  'homePage_extras': HomePageComponentExtras,
 };
 
 const initProps = {

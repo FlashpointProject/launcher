@@ -21,6 +21,7 @@
 
 declare module 'flashpoint-launcher' {
   import { Readable } from 'stream';
+  import { GameSearch } from '@fparchive/flashpoint-archive';
 
   /** Version of the Flashpoint Launcher */
   const version: string;
@@ -362,6 +363,8 @@ declare module 'flashpoint-launcher' {
     const onDidRemovePlaylistGame: Event<PlaylistGame>;
 
     const onWillImportGame: Event<CurationImportState>;
+
+    const onInterceptGetGame: Event<Game>;
   }
 
   /** Collection of Game Data related API functions */
@@ -1778,6 +1781,63 @@ declare module 'flashpoint-launcher' {
       function getAccessToken(): Promise<string>;
     }
 
+    type SearchState = {
+      views: Record<string, ResultsView>;
+      dropdowns: SearchDropdownDataSet;
+    }
+
+    type SearchDropdownDataSet = {
+      key: string;
+      tags: Tag[] | null;
+      developers: string[] | null;
+      publishers: string[] | null;
+      series: string[] | null;
+    }
+
+    type ResultsView = {
+      id: string;
+      library?: string;
+      selectedGame?: Game,
+      selectedPlaylist?: Playlist,
+      data: ResultsViewData;
+      orderBy: GameOrderBy;
+      orderReverse: GameOrderReverse;
+      extOrder: ExtOrder;
+      text: string;
+      textPositions: ElementPosition[];
+      advancedFilter: AdvancedFilter;
+      searchFilter: SearchQuery;
+      loaded: boolean;
+      expanded: boolean;
+      gridScrollCol?: number;
+      gridScrollRow?: number;
+      gridScrollTop?: number;
+      listScrollRow?: number;
+    }
+
+    type ResultsViewData = {
+      searchId: number;
+      games: Record<number, ViewGame>;
+      total?: number;
+      pages: Record<number, RequestState>;
+      keyset: PageKeyset;
+      metaState: RequestState;
+    }
+
+    interface ElementPosition {
+      element: ElementType
+      value: string
+      start: number
+      end: number
+    }
+
+    type SearchQuery = GameSearch & {
+      viewId: string;
+      searchId: number;
+      page: number;
+      playlist?: Playlist;
+    }
+
     const langTemplate = {
       config: [
         'configHeader',
@@ -2497,8 +2557,7 @@ declare module 'flashpoint-launcher' {
 }
 
 declare module 'flashpoint-launcher-renderer' {
-  import { GameOrderBy, GameOrderReverse, Game, ViewGame, ExtOrder, PlaylistGame, TagCategory, AppPreferencesData, AdvancedFilter } from 'flashpoint-launcher';
-  import { LangContainer } from 'flashpoint-launcher';
+  import { LangContainer, Playlist, GameOrderBy, GameOrderReverse, Game, ViewGame, ExtOrder, PlaylistGame, TagCategory, AppPreferencesData, AdvancedFilter } from 'flashpoint-launcher';
 
   /** Game properties that will have suggestions gathered and displayed. */
   type SuggestionProps = (
@@ -2566,6 +2625,21 @@ declare module 'flashpoint-launcher-renderer' {
     isSelected: boolean;
     isDragged: boolean;
     logoVersion: number;
+  }
+
+  type HomePageComponentProps = {
+    playlists: Playlist[];
+    randomGames: Game[];
+    rollRandomGames: () => void;
+    onGameContextMenu(gameId: string, logoPath: string, screenshotPath: string): void;
+    onLaunchGame(gameId: string): void;
+    selectedGameId?: string;
+    platforms: string[];
+    logoVersion: number;
+    preferencesData: AppPreferencesData;
+    gotdList: GameOfTheDay[] | undefined;
+    updateFeedMarkdown: string;
+    toggleMinimizeBox: (cssKey: string) => void;
   }
 
   type GameOrderChangeEvent = {
@@ -2654,6 +2728,7 @@ declare module 'flashpoint-launcher-renderer' {
       icons: string[],
       columns: GameListColumnInfo[],
     },
+    homePage: string[],
     searchComponents: string[],
   }
 

@@ -198,6 +198,14 @@ const DEFAULT_DISPLAYS: DisplaySettings = {
       }
     ]
   },
+  homePage: [
+    'homePage_newsFeed',
+    'homePage_gotd',
+    'homePage_quickStart',
+    'homePage_notes',
+    'homePage_randomGames',
+    'homePage_extras'
+  ],
   searchComponents: [],
 };
 

@@ -1,0 +1,56 @@
+{
+    "name": "core-controller",
+    "displayName": "Controller Support",
+    "description": "Enables individual game mapping of controller to keyboard inputs",
+    "version": "1.0.0",
+    "main": "./dist/extension.js",
+    "contributes": {
+        "moduleFederation": [
+            {
+                "scope": "core_controller",
+                "path": "mf-manifest.json"
+            }
+        ],
+        "themeFiles": [
+            "core-controller.css"
+        ],
+        "contextButtons": [
+            {
+                "context": "game",
+                "name": "Edit Controller Config",
+                "command": "core-controller.edit-config"
+            }
+        ]
+    },
+    "scripts": {
+        "build": "gulp build --color",
+        "watch": "gulp watch --color",
+        "package": "gulp package --color",
+        "lint": "eslint src --ext ts"
+    },
+    "dependencies": {
+        "@mdx-js/mdx": "3.1.0",
+        "@mdx-js/react": "3.1.0",
+        "fast-xml-parser": "^5.2.5",
+        "mdast-util-mdx-jsx": "^3.2.0",
+        "react": "19.1.0",
+        "react-dom": "19.1.0",
+        "react-error-boundary": "^6.0.0",
+        "react-icons": "4.10.1",
+        "react-markdown": "7.0.1",
+        "remark-gfm": "^4.0.1"
+    },
+    "devDependencies": {
+        "@module-federation/rsbuild-plugin": "^0.13.1",
+        "@rsbuild/plugin-react": "1.3.0",
+        "@rslib/core": "^0.6.8",
+        "@types/node": "18.x",
+        "babel-plugin-react-compiler": "19.1.0-rc.1",
+        "glob": "^11.0.2",
+        "gulp": "^4.0.2",
+        "gulp-zip": "^5.0.2",
+        "merge-stream": "^2.0.0",
+        "rslib": "^0.0.10",
+        "typescript": "^5.8.3"
+    }
+}

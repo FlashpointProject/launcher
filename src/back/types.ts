@@ -199,6 +199,7 @@ export type ApiEmittersState = Readonly<{
     onDidInstallGameData: ApiEmitter<flashpoint.GameData>;
     onDidUninstallGameData: ApiEmitter<flashpoint.GameData>;
     onWillImportCuration: ApiEmitter<flashpoint.CurationImportState>;
+    onInterceptGetGame: ApiEmitter<flashpoint.Game>;
   }>,
   curations: Readonly <{
     onDidCurationListChange: ApiEmitter<{ added?: flashpoint.CurationState[], removed?: string[] }>;

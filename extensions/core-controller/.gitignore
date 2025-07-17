@@ -1,0 +1,4 @@
+dist/
+static/*.js
+static/mf*.json
+static/*mf-types*

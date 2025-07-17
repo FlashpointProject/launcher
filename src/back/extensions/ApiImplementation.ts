@@ -281,6 +281,9 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     },
     get onWillUninstallGameData() {
       return apiEmitters.games.onWillUninstallGameData.extEvent(extManifest.displayName || extManifest.name);
+    },
+    get onInterceptGetGame() {
+      return apiEmitters.games.onInterceptGetGame.extEvent(extManifest.displayName || extManifest.name);
     }
   };
 

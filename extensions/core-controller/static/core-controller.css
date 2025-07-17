@@ -1,0 +1,17 @@
+.controller-config-subheader {
+  font-weight: bold;
+}
+
+.controller-config-button {
+  display: flex;
+}
+
+.controller-config-button--input {
+  margin-right: 0.3rem;
+  font-weight: bold;
+}
+
+.controller-config-inner,
+.controller-config-subsection {
+  margin-left: 1rem;
+}
