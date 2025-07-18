@@ -48,7 +48,7 @@ const DEFAULT_COMPONENT_MAP: ComponentMap = {
   'gameCol_row_title': GameListRowTitle,
   'gameCol_row_developer': GameListRowDeveloper,
   'gameCol_row_publisher': GameListRowPublisher,
-  'homePage_newsFeed': HomePageComponentUpdateFeed,
+  'homePage_updateFeed': HomePageComponentUpdateFeed,
   'homePage_gotd': HomePageComponentGotd,
   'homePage_quickStart': HomePageComponentQuickStart,
   'homePage_notes': HomePageComponentNotes,

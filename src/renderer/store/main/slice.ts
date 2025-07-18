@@ -199,7 +199,7 @@ const DEFAULT_DISPLAYS: DisplaySettings = {
     ]
   },
   homePage: [
-    'homePage_newsFeed',
+    'homePage_updateFeed',
     'homePage_gotd',
     'homePage_quickStart',
     'homePage_notes',
