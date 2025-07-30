@@ -592,6 +592,7 @@
     "exportPlaylist": "Exportar lista de reproducción",
     "makeCurationFromGame": "Crear Curación desde Juego",
     "copyShortcutURL": "Copiar URL de acceso directo",
+    "downloadGame": "Download Game",
     "downloadPlaylistContent": "Descargar Entradas de la Lista de Reproducción"
   },
   "dialog": {
