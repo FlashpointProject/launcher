@@ -592,6 +592,7 @@
     "exportPlaylist": "Exporter la playlist",
     "makeCurationFromGame": "Faire une curation à partir d'un jeu",
     "copyShortcutURL": "Copier Raccourci",
+    "downloadGame": "Download Game",
     "downloadPlaylistContent": "Download Playlist Entries"
   },
   "dialog": {
