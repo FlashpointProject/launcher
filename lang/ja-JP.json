@@ -592,6 +592,7 @@
     "exportPlaylist": "プレイリストをエクスポート",
     "makeCurationFromGame": "ゲームからキュレーションを作成",
     "copyShortcutURL": "ショートカットURLをコピー",
+    "downloadGame": "Download Game",
     "downloadPlaylistContent": "Download Playlist Entries"
   },
   "dialog": {
