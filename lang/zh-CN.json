@@ -592,6 +592,7 @@
     "exportPlaylist": "导出播放列表",
     "makeCurationFromGame": "从游戏创建展品",
     "copyShortcutURL": "复制快捷方式 URL",
+    "downloadGame": "Download Game",
     "downloadPlaylistContent": "下载播放列表条目"
   },
   "dialog": {
