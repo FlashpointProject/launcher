@@ -592,6 +592,7 @@
     "exportPlaylist": "Экспорт плейлиста",
     "makeCurationFromGame": "Сделать курацию из игры",
     "copyShortcutURL": "Копировать адрес ссылки",
+    "downloadGame": "Download Game",
     "downloadPlaylistContent": "Скачать содержимое плейлиста"
   },
   "dialog": {
