@@ -302,7 +302,7 @@
   "browse": {
     "noTitle": "Нема Наслов",
     "by": "од",
-    "play": "Плеј",
+    "play": "Играј",
     "lastPlayed": "Последно Играно",
     "playtime": "Време на игра",
     "playCount": "Број на Играње пати",
@@ -592,7 +592,7 @@
     "exportPlaylist": "Изведувај плејлист",
     "makeCurationFromGame": "Направи Курација од Играта",
     "copyShortcutURL": "Копирај Shortcut УРЛ",
-    "downloadGame": "Download Game",
+    "downloadGame": "Инстралирај Игра",
     "downloadPlaylistContent": "Превземи Плејлист"
   },
   "dialog": {
