@@ -1,13 +1,10 @@
-import {
-  ElementPosition
-} from '@fparchive/flashpoint-archive';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { BackIn, PageKeyset, SearchQuery } from '@shared/back/types';
 import { VIEW_PAGE_SIZE } from '@shared/constants';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { getDefaultAdvancedFilter, getDefaultGameSearch } from '@shared/search/util';
 import { deepCopy } from '@shared/Util';
-import { AdvancedFilter, ExtOrder, Game, GameOrderBy, GameOrderReverse, Playlist, StoredView, Tag, ViewGame } from 'flashpoint-launcher';
+import { AdvancedFilter, ExtOrder, Game, GameOrderBy, GameOrderReverse, Playlist, ResultsView, StoredView, Tag, ViewGame } from 'flashpoint-launcher';
 import { RootState } from '../store';
 
 export const GENERAL_VIEW_ID = '!general!';
@@ -45,27 +42,6 @@ export type SearchAddDataActionData = {
   keyset?: PageKeyset;
 }
 
-export type ResultsView = {
-  id: string;
-  library?: string;
-  selectedGame?: Game,
-  selectedPlaylist?: Playlist,
-  data: ResultsViewData;
-  orderBy: GameOrderBy;
-  orderReverse: GameOrderReverse;
-  extOrder: ExtOrder;
-  text: string;
-  textPositions: ElementPosition[];
-  advancedFilter: AdvancedFilter;
-  searchFilter: SearchQuery;
-  loaded: boolean;
-  expanded: boolean;
-  gridScrollCol?: number;
-  gridScrollRow?: number;
-  gridScrollTop?: number;
-  listScrollRow?: number;
-}
-
 type SearchDropdownDataSet = {
   key: string;
   tags: Tag[] | null;
@@ -91,7 +67,7 @@ type SearchScrollTopAction = {
 }
 
 type SearchState = {
-  views: Record<string, ResultsView>;
+  views: Record<string, ResultsView<any>>;
   dropdowns: SearchDropdownDataSet;
 }
 
@@ -180,13 +156,13 @@ export type SearchDuplicateViewAction = {
   view: string;
 }
 
-const defaultGeneralState: ResultsView = {
+const defaultGeneralState: ResultsView<any> = {
   id: GENERAL_VIEW_ID,
   advancedFilter: getDefaultAdvancedFilter(),
   data: {
     searchId: 0,
     keyset: [],
-    games: [],
+    content: [],
     pages: {},
     metaState: RequestState.WAITING,
   },
@@ -314,7 +290,7 @@ const searchSlice = createSlice({
             data: {
               searchId: 0,
               keyset: [],
-              games: [],
+              content: [],
               pages: {},
               metaState: RequestState.WAITING,
             },
@@ -374,7 +350,7 @@ const searchSlice = createSlice({
           data: {
             searchId: 0,
             keyset: [],
-            games: [],
+            content: [],
             pages: {},
             metaState: RequestState.WAITING,
           },
@@ -414,7 +390,7 @@ const searchSlice = createSlice({
           data: {
             searchId: 0,
             keyset: [],
-            games: [],
+            content: [],
             pages: {},
             metaState: RequestState.WAITING,
           },
@@ -435,7 +411,7 @@ const searchSlice = createSlice({
             data: {
               searchId: 0,
               keyset: [],
-              games: [],
+              content: [],
               pages: {},
               metaState: RequestState.WAITING,
             },
@@ -501,7 +477,7 @@ const searchSlice = createSlice({
         if (view.searchFilter.searchId < payload.filter.searchId) {
           view.searchFilter = payload.filter;
           view.data.keyset = [];
-          view.data.games = {};
+          view.data.content = {};
           view.data.pages = {};
           view.data.total = undefined;
           view.data.metaState = RequestState.REQUESTED;
@@ -516,7 +492,7 @@ const searchSlice = createSlice({
             searchId: payload.searchId,
             pages: {},
             keyset: [],
-            games: {},
+            content: {},
             total: undefined,
             metaState: RequestState.REQUESTED,
           };
@@ -595,7 +571,7 @@ const searchSlice = createSlice({
 
 
           // Try and move them in the results view
-          const games = Object.entries(view.data.games).map<GameRecordsArray>(([key, value]) => [Number(key), value]);
+          const games = Object.entries(view.data.content).map<GameRecordsArray>(([key, value]) => [Number(key), value]);
           const sourceGameEntry = games.find((g) => g[1].id === sourceGameId);
           const destGameEntry = games.find((g) => g[1].id === destGameId);
           if (sourceGameEntry && destGameEntry) {
@@ -615,7 +591,7 @@ const searchSlice = createSlice({
               }
             }
           }
-          view.data.games = Object.fromEntries(games);
+          view.data.content = Object.fromEntries(games);
 
           // Update the playlist file
           window.Shared.back.send(BackIn.SAVE_PLAYLIST, view.selectedPlaylist);
@@ -691,7 +667,7 @@ const searchSlice = createSlice({
             searchId: data.searchId,
             pages: {},
             keyset: [],
-            games: {},
+            content: {},
             total: undefined,
             metaState: RequestState.REQUESTED,
           };
@@ -732,7 +708,7 @@ const searchSlice = createSlice({
           } else {
             const startIdx = VIEW_PAGE_SIZE * data.page;
             for (let i = 0; i < data.games.length; i++) {
-              view.data.games[startIdx + i] = data.games[i];
+              view.data.content[startIdx + i] = data.games[i];
             }
             view.data.pages[data.page] = RequestState.RECEIVED;
           }

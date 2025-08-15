@@ -7,8 +7,8 @@ type HTMLDivProps = React.HTMLAttributes<HTMLDivElement>;
 export type GameItemContainerProps = HTMLDivProps & {
   /** Reference to the underlying DIV element. */
   realRef?: React.JSX.IntrinsicElements['div']['ref'];
-  onGameSelect?:      (event: React.MouseEvent<HTMLDivElement>, gameId: string | undefined) => void;
-  onGameLaunch?:      (event: React.MouseEvent<HTMLDivElement>, gameId: string) => void;
+  onContentSelect?:      (event: React.MouseEvent<HTMLDivElement>, gameId: string | undefined) => void;
+  onContentLaunch?:      (event: React.MouseEvent<HTMLDivElement>, gameId: string) => void;
   onGameContextMenu?: (event: React.MouseEvent<HTMLDivElement>, gameId: string, logoPath: string, screenshotPath: string) => void;
   onGameDragStart?:   (event: React.DragEvent<HTMLDivElement>,  dragEventData: GameDragEventData) => void;
   onGameDragEnd?:     (event: React.DragEvent<HTMLDivElement>) => void;
@@ -66,16 +66,16 @@ export class GameItemContainer extends React.Component<GameItemContainerProps> {
 
   onClick = (event: React.MouseEvent<HTMLDivElement>) => {
     if (this.props.onClick) { this.props.onClick(event); }
-    if (this.props.onGameSelect) {
-      this.props.onGameSelect(event, this.findGameDragEventData(event.target)?.gameId);
+    if (this.props.onContentSelect) {
+      this.props.onContentSelect(event, this.findGameDragEventData(event.target)?.gameId);
     }
   };
 
   onDoubleClick = (event: React.MouseEvent<HTMLDivElement>) => {
     if (this.props.onDoubleClick) { this.props.onDoubleClick(event); }
-    if (this.props.onGameLaunch) {
+    if (this.props.onContentLaunch) {
       const gameId = this.findGameDragEventData(event.target)?.gameId;
-      if (gameId !== undefined) { this.props.onGameLaunch(event, gameId); }
+      if (gameId !== undefined) { this.props.onContentLaunch(event, gameId); }
     }
   };
 
@@ -112,8 +112,8 @@ function filterDivProps(props: GameItemContainerProps): React.JSX.IntrinsicEleme
   const rest: HTMLDivProps & {
     // These need to be explicitly specified: the compiler doesn't infer them correctly.
     realRef?: any;
-    onGameSelect?: any;
-    onGameLaunch?: any;
+    onContentSelect?: any;
+    onContentLaunch?: any;
     onGameContextMenu?: any;
     onGameDragStart?: any;
     onGameDragEnd?: any;
@@ -123,8 +123,8 @@ function filterDivProps(props: GameItemContainerProps): React.JSX.IntrinsicEleme
     findGameId?: any;
   } = Object.assign({}, props);
   delete rest.realRef;
-  delete rest.onGameSelect;
-  delete rest.onGameLaunch;
+  delete rest.onContentSelect;
+  delete rest.onContentLaunch;
   delete rest.onGameContextMenu;
   delete rest.onGameDragStart;
   delete rest.onGameDragEnd;

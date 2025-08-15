@@ -1,26 +1,27 @@
-import { HomePageComponentProps } from 'flashpoint-launcher-renderer';
-import { HomePageBox } from './HomePageBox';
-import { OpenIcon, OpenIconType } from './OpenIcon';
-import { forceSearch, GENERAL_VIEW_ID, searchActions, selectGame } from '@renderer/store/search/slice';
-import { joinLibraryRoute, getPlatformIconURL, findGameDragEventDataGrid, getGameImageURL, getExtremeIconURL } from '@renderer/Util';
-import { Link } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
-import { LangContext } from '@renderer/util/lang';
-import React from 'react';
-import remarkGfm from 'remark-gfm';
-import ReactMarkdown from 'react-markdown';
-import ReactDatePicker from 'react-datepicker';
-import { GameGridItem } from './GameGridItem';
-import { GameItemContainer } from './GameItemContainer';
-import { SimpleButton } from './SimpleButton';
-import { SizeProvider } from './SizeProvider';
-import { Game } from 'flashpoint-launcher';
-import { BackIn } from '@shared/back/types';
+import { forceSearch, GENERAL_VIEW_ID, searchActions, selectGame } from '@renderer/store/search/slice';
+import { findGameDragEventDataGrid, getExtremeIconURL, getGameImageURL, getPlatformIconURL, joinLibraryRoute } from '@renderer/Util';
 import { idToGame } from '@renderer/util/async';
-import { formatString } from '@shared/utils/StringFormatter';
+import { LangContext } from '@renderer/util/lang';
+import { BackIn } from '@shared/back/types';
 import { ARCADE, THEATRE } from '@shared/constants';
 import { Paths } from '@shared/Paths';
+import { formatString } from '@shared/utils/StringFormatter';
+import { Content, Game } from 'flashpoint-launcher';
+import { HomePageComponentProps } from 'flashpoint-launcher-renderer';
+import React from 'react';
+import ReactDatePicker from 'react-datepicker';
+import ReactMarkdown from 'react-markdown';
+import { Link } from 'react-router-dom';
+import remarkGfm from 'remark-gfm';
+import { GameGridItem } from './GameGridItem';
+import { GameItemContainer } from './GameItemContainer';
+import { HomePageBox } from './HomePageBox';
+import { OpenIcon, OpenIconType } from './OpenIcon';
 import { RandomGames } from './RandomGames';
+import { SimpleButton } from './SimpleButton';
+import { SizeProvider } from './SizeProvider';
+import { isGame } from '@shared/utils/misc';
 
 export function HomePageComponentUpdateFeed(props: HomePageComponentProps) {
   const { toggleMinimizeBox, updateFeedMarkdown } = props;
@@ -50,15 +51,14 @@ const width: number = (height * 0.666) | 0;
 
 export function HomePageComponentGotd(props: HomePageComponentProps) {
   const { preferencesData, logoVersion, gotdList, toggleMinimizeBox } = props;
-  const { displaySettings } = useAppSelector(state => state.main);
   const dispatch = useAppDispatch();
   const allStrings = React.useContext(LangContext);
   const strings = allStrings.home;
-
-  const tagGroupIcons = preferencesData.tagFilters.filter(t => !t.enabled && t.iconBase64 !== '').map(({ tags, iconBase64: tagGroupIcon }) => ({ tagFilter:tags, iconBase64:tagGroupIcon }));
-
-  const extremeIconPath = getExtremeIconURL(logoVersion);
   const extremeTags = preferencesData.tagFilters.filter(t => !t.enabled && t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
+
+  const getContentIcons = (game: Content | Game) => {
+    return isGame(game) ? game.platforms.slice(0, 5).map(p => getPlatformIconURL(p, props.logoVersion)) : [];
+  };
 
   const onSelectGame = async (gameId: string) => {
     const game = await idToGame(gameId);
@@ -117,6 +117,8 @@ export function HomePageComponentGotd(props: HomePageComponentProps) {
     }
   }, [selectedGotd]);
 
+  const extreme = loadedGotd?.tags.findIndex(t => extremeTags.includes(t.trim())) !== -1;
+
   if (gotdList) {
     <HomePageBox
       minimized={props.preferencesData.minimizedHomePageBoxes.includes('gotd')}
@@ -130,19 +132,17 @@ export function HomePageComponentGotd(props: HomePageComponentProps) {
               <GameItemContainer
                 className='gotd-container'
                 onGameContextMenu={(event, gameId, logoPath, screenshotPath) => props.onGameContextMenu(gameId, logoPath, screenshotPath)}
-                onGameSelect={(event, gameId) => gameId && onSelectGame(gameId)}
-                onGameLaunch={(event, gameId) => props.onLaunchGame(gameId)}
+                onContentSelect={(event, gameId) => gameId && onSelectGame(gameId)}
+                onContentLaunch={(event, gameId) => props.onLaunchGame(gameId)}
                 findGameDragEventData={findGameDragEventDataGrid}>
                 <GameGridItem
-                  displaySettings={displaySettings}
                   game={loadedGotd}
                   key={loadedGotd.id}
                   id={loadedGotd.id}
                   title={loadedGotd.title}
-                  platforms={loadedGotd.platforms.map(p => p.trim())}
-                  extreme={loadedGotd.tags.findIndex(t => extremeTags.includes(t.trim())) !== -1}
-                  extremeIconPath={extremeIconPath}
-                  tagGroupIconBase64={tagGroupIcons.find(tg => tg.tagFilter.find(t => loadedGotd?.tags.includes(t)))?.iconBase64 || ''}
+                  upperIcons={extreme ? [getExtremeIconURL(logoVersion)] : []}
+                  lowerIcons={getContentIcons(loadedGotd)}
+                  extreme={extreme}
                   thumbnail={getGameImageURL(loadedGotd.logoPath)}
                   screenshot={getGameImageURL(loadedGotd.screenshotPath)}
                   screenshotPreviewMode={props.preferencesData.screenshotPreviewMode}
@@ -250,9 +250,6 @@ export function HomePageComponentNotes(props: HomePageComponentProps) {
 export function HomePageComponentRandomGames(props: HomePageComponentProps) {
   const { onLaunchGame, toggleMinimizeBox, onGameContextMenu, randomGames, rollRandomGames } = props;
   const dispatch = useAppDispatch();
-  const { displaySettings } = useAppSelector(state => state.main);
-
-  const tagGroupIcons = props.preferencesData.tagFilters.filter(t => !t.enabled && t.iconBase64 !== '').map(({ tags, iconBase64: tagGroupIcon }) => ({ tagFilter:tags, iconBase64:tagGroupIcon }));
 
   const onSelectGame = async (gameId?: string) => {
     if (!gameId) { return; }
@@ -268,14 +265,12 @@ export function HomePageComponentRandomGames(props: HomePageComponentProps) {
   return (
     <SizeProvider width={width} height={height}>
       <RandomGames
-        displaySettings={displaySettings}
         games={randomGames}
         rollRandomGames={rollRandomGames}
         onGameContextMenu={onGameContextMenu}
         onLaunchGame={onLaunchGame}
         onGameSelect={onSelectGame}
         extremeTags={props.preferencesData.tagFilters.filter(tfg => !tfg.enabled && tfg.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), [])}
-        tagGroupIcons={tagGroupIcons}
         logoVersion={props.logoVersion}
         selectedGameId={props.selectedGameId}
         screenshotPreviewMode={props.preferencesData.screenshotPreviewMode}

@@ -121,7 +121,7 @@ export async function syncGames(source: GameMetadataSource, dataPacksFolder: str
 
     console.log(`${lastDate} - ${nextId}`);
     console.log('applying game update batch');
-    await fpDatabase.updateApplyGames(data);
+    await fpDatabase.updateApplyGames(data, source.id);
     console.log('batch complete, looping');
   }
 

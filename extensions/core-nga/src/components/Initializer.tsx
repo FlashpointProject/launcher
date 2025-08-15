@@ -59,7 +59,7 @@ export default function Initializer() {
       }
 
       // Add role icon
-      displaySettings.gameGrid.upper.unshift('nga/NgRatingGridIcon');
+      // displaySettings.gameGrid.upper.unshift('nga/NgRatingGridIcon');
       displaySettings.gameList.columns.push({
         headerComponent: 'nga/NgRatingListIconHeader',
         rowComponent: 'nga/NgRatingListIconRow',

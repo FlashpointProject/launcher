@@ -152,8 +152,6 @@ export enum BackIn {
   UPDATE_PREFERENCES,
 
   // API
-  SYNC_GAME_METADATA,
-  SYNC_METADATA_SERVER,
   IMPORT_METADATA,
   SYNC_TAGGED,
   SYNC_ALL,
@@ -252,7 +250,6 @@ export enum BackOut {
   SAVE_TAG_CATEGORY,
   DELETE_TAG_CATEGORY,
   TAG_CATEGORIES_CHANGE,
-  SYNC_GAME_METADATA,
   QUIT,
   RUN_COMMAND,
   UPLOAD_LOG,
@@ -337,7 +334,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.GET_GAME]: (id: string) => Game | null;
   [BackIn.GET_ALL_GAMES]: (offsetGameTitle?: string, offsetGameId?: string) => Game[];
   [BackIn.RANDOM_GAMES]: (data: RandomGamesData) => Game[];
-  [BackIn.LAUNCH_GAME]: (id: string, override: GameLaunchOverride) => void;
+  [BackIn.LAUNCH_GAME]: (id: string, provider: string, opts?: any) => void;
   [BackIn.DELETE_GAME]: (id: string) => BrowseChangeData;
   [BackIn.DUPLICATE_GAME]: (id: string, dupeImages: boolean) => BrowseChangeData;
   [BackIn.EXPORT_GAME]: (id: string, location: string, metaOnly: boolean) => void;
@@ -410,8 +407,6 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.UPDATE_PREFERENCES]: (data: AppPreferencesData, refresh: boolean) => void;
 
   // API
-  [BackIn.SYNC_GAME_METADATA]: () => GameMetadataSyncResponse;
-  [BackIn.SYNC_METADATA_SERVER]: (serverInfo: MetadataServerInfo) => void;
   [BackIn.IMPORT_METADATA]: (metadata: any) => void;
 
   // Meta edits
@@ -512,7 +507,6 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.SAVE_TAG_CATEGORY]: (data: TagCategory) => void;
   [BackOut.DELETE_TAG_CATEGORY]: (data: boolean) => void;
   [BackOut.TAG_CATEGORIES_CHANGE]: (cats: TagCategory[]) => void;
-  [BackOut.SYNC_GAME_METADATA]: (data: GameMetadataSyncResponse) => void;
   [BackOut.QUIT]: () => void;
   [BackOut.RUN_COMMAND]: (data: RunCommandResponse) => void;
   [BackOut.UPLOAD_LOG]: (getUrl: string | undefined) => void;

@@ -1,4 +1,4 @@
-import { Game, GameData } from 'flashpoint-launcher';
+import { Content, Game, GameData } from 'flashpoint-launcher';
 
 export function chunkArray<T>(array: T[], chunkSize: number): T[][] {
   const chunks: T[][] = [];
@@ -13,6 +13,7 @@ export function chunkArray<T>(array: T[], chunkSize: number): T[][] {
 export function newGame(): Game {
   return {
     id: '',
+    owner: 'flashpoint-archive',
     library: '',
     title: '',
     alternateTitles: '',
@@ -66,4 +67,8 @@ export function mapRuffleSupportString(rs: string) {
     default:
       return 'Broken Value';
   }
+}
+
+export function isGame(content?: Content | Game): content is Game {
+  return content !== undefined && 'legacyApplicationPath' in content;
 }

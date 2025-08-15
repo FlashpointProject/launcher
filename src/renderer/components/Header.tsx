@@ -34,7 +34,7 @@ type OwnProps = {
   logoutUser: () => void;
 };
 
-export type HeaderProps = OwnProps & WithMainStateProps & WithConfirmDialogProps & WithPreferencesProps & WithTagCategoriesProps & WithSearchProps & WithViewProps & WithNavigationProps;
+export type HeaderProps = OwnProps & WithMainStateProps & WithConfirmDialogProps & WithPreferencesProps & WithTagCategoriesProps & WithSearchProps & WithViewProps<any> & WithNavigationProps;
 
 type HeaderState = Record<string, never>;
 

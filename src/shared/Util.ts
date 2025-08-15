@@ -505,6 +505,8 @@ export type FpfssGame = {
   tags?: FpfssTag[];
   platforms?: FpfssPlatform[];
   ruffle_support?: string;
+  logo_path?: string;
+  screenshot_path?: string;
 }
 
 export type FpfssPlatform = {
@@ -593,6 +595,9 @@ export function mapFpfssGameToLocal(data: any): Game {
       };
     }) || [],
     ruffleSupport: fg.ruffle_support || '',
+    logoPath: fg.logo_path || '',
+    screenshotPath: fg.application_path || '',
+    owner: '',
   };
   return game;
 }
@@ -657,6 +662,8 @@ export function mapLocalToFpfssGame(game: Game): FpfssGame {
       };
     }) || [],
     ruffle_support: game.ruffleSupport,
+    logo_path: game.logoPath,
+    screenshot_path: game.screenshotPath,
   };
   return fg;
 }

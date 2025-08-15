@@ -1,4 +1,3 @@
-import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { useView } from '@renderer/hooks/search';
 import { useAppDispatch } from '@renderer/hooks/useAppSelector';
 import { setExtOrder, setOrderBy, setOrderReverse } from '@renderer/store/search/slice';
@@ -7,7 +6,7 @@ import { DynamicComponent } from './DynamicComponent';
 import { GameOrderChangeEvent } from './GameOrder';
 import { OpenIcon } from './OpenIcon';
 
-export type GameListHeaderProps = WithPreferencesProps & {
+export type GameListHeaderProps = {
   showExtremeIcon: boolean;
   displaySettings: DisplaySettings;
 };

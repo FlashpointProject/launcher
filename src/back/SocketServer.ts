@@ -119,7 +119,10 @@ export class SocketServer {
    * @param state Back State
    * @param client Client to open a message box on.
    */
-  public showMessageBoxBack(state: BackState, client: BackClient): ShowMessageBoxFunc {
+  public showMessageBoxBack(state: BackState, client?: BackClient): ShowMessageBoxFunc {
+    if (client === undefined) {
+      client = state.socketServer.lastClient;
+    }
     return (options) => {
       return createNewDialog(state, options, client);
     };
@@ -163,9 +166,16 @@ export class SocketServer {
    *
    * @param client Client to open an external path at.
    */
-  public openExternal(client: BackClient): OpenExternalFunc {
+  public openExternal(client?: BackClient): OpenExternalFunc {
+    if (client === undefined) {
+      client = this.lastClient;
+    }
     return (url, options) => {
-      return this.request(client, BackOut.OPEN_EXTERNAL, url, options);
+      if (client) {
+        return this.request(client, BackOut.OPEN_EXTERNAL, url, options);
+      } else {
+        throw 'No client to send to';
+      }
     };
   }
 

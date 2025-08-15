@@ -1,19 +1,16 @@
+import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
 import { num } from '@shared/utils/Coerce';
+import { Content } from 'flashpoint-launcher';
 import * as React from 'react';
 import { GridCellProps } from 'react-virtualized';
-import { getPlatformIconURL } from '../Util';
 import { GameDragEventData } from './pages/BrowsePage';
-import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
-import { ViewGame } from 'flashpoint-launcher';
-import { DynamicComponent } from './DynamicComponent';
-import { DisplaySettings, GameGridComponentProps } from 'flashpoint-launcher-renderer';
 
-export type GameGridItemProps = Partial<GridCellProps> & {
-  displaySettings: DisplaySettings;
-  game?: ViewGame;
+export type GameGridItemProps<T extends Content> = Partial<GridCellProps> & {
+  game?: T | Content;
   id: string;
   title: string;
-  platforms: string[];
+  upperIcons: string[];
+  lowerIcons: string[];
   extreme: boolean;
   /** Updates to clear platform icon cache */
   logoVersion: number;
@@ -27,10 +24,6 @@ export type GameGridItemProps = Partial<GridCellProps> & {
   isSelected: boolean;
   /** If the cell is being dragged. */
   isDragged: boolean;
-  /** Path to the extreme icon */
-  extremeIconPath: string;
-  /** Icon for games in tag categories */
-  tagGroupIconBase64: string;
   /** On Drop event */
   onDrop?: (event: React.DragEvent) => void;
   /** Screenshot Preview Mode */
@@ -42,7 +35,7 @@ export type GameGridItemProps = Partial<GridCellProps> & {
 };
 
 // Displays a single game. Meant to be rendered inside a grid.
-export function GameGridItem(props: GameGridItemProps) {
+export function GameGridItem<T extends Content>(props: GameGridItemProps<T>) {
   const [isHovered, setIsHovered] = React.useState(false);
   const [showScreenshot, setShowScreenshot] = React.useState(false);
   const { screenshotPreviewDelay } = props;
@@ -59,19 +52,18 @@ export function GameGridItem(props: GameGridItemProps) {
     return () => clearTimeout(timeoutId); // Cleanup timeout on component unmount or if hover state changes
   }, [isHovered, screenshotPreviewDelay]);
 
-  const { rowIndex, id, title, platforms, thumbnail, screenshot, extreme, tagGroupIconBase64, isDraggable, isSelected, isDragged, extremeIconPath, style, onDrop } = props;
+  const { rowIndex, id, title, lowerIcons, upperIcons, thumbnail, screenshot, extreme, isDraggable, isSelected, isDragged, style, onDrop } = props;
   // Get the platform icon path
   let willShowScreenshot = false;
   if (props.screenshotPreviewMode === ScreenshotPreviewMode.ALWAYS) {
-    if (!props.hideExtremeScreenshots || !props.extreme) {
+    if (!props.hideExtremeScreenshots || !extreme) {
       willShowScreenshot = true;
     }
   } else if (props.screenshotPreviewMode === ScreenshotPreviewMode.ON && showScreenshot) {
-    if (!props.hideExtremeScreenshots || !props.extreme) {
+    if (!props.hideExtremeScreenshots || !extreme) {
       willShowScreenshot = true;
     }
   }
-  const platformIcons = platforms.slice(0, 5).map(p => getPlatformIconURL(p, props.logoVersion));
   // Pick class names
   let className = 'game-grid-item';
   if (isSelected) { className += ' game-grid-item--selected'; }
@@ -82,12 +74,6 @@ export function GameGridItem(props: GameGridItemProps) {
   attributes[GameGridItem.indexAttribute] = rowIndex;
   attributes[GameGridItem.logoPathAttribute] = props.game?.logoPath;
   attributes[GameGridItem.screenshotPathAttribute] = props.game?.screenshotPath;
-
-  const gameGridComponentProps: GameGridComponentProps = {
-    isSelected,
-    isDragged,
-    game: props.game
-  };
 
   // Memoize render
   return (
@@ -104,23 +90,15 @@ export function GameGridItem(props: GameGridItemProps) {
           className='game-grid-item__thumb__image'
           style={{ backgroundImage: `url('${ willShowScreenshot ? screenshot : thumbnail }')` }}>
           <div className='game-grid-item__thumb__icons--upper'>
-            { props.displaySettings.gameGrid.upper.map((name) => {
-              return (
-                <DynamicComponent name={name} props={gameGridComponentProps}/>
-              );
-            })}
-            {(extreme) ? (
+            {upperIcons.map(p => (
               <div
+                key={p}
                 className='game-grid-item__thumb__icons__icon'
-                style={{ backgroundImage: `url('${extremeIconPath}')` }} />
-            ) : (
-              <div
-                className='game-grid-item__thumb__icons__icon'
-                style={{ backgroundImage: `url("${tagGroupIconBase64}")` }} />
-            )}
+                style={{ backgroundImage: `url('${p}')` }} />
+            ))}
           </div>
           <div className='game-grid-item__thumb__icons'>
-            {platformIcons.map(p => (
+            {lowerIcons.map(p => (
               <div
                 key={p}
                 className='game-grid-item__thumb__icons__icon'

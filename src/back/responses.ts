@@ -54,7 +54,6 @@ import {
 } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as fs_extra from 'fs-extra';
-import * as https from 'https';
 import { snakeCase, transform } from 'lodash';
 import { add, Progress } from 'node-7z';
 import * as os from 'os';
@@ -63,6 +62,7 @@ import * as url from 'url';
 import * as util from 'util';
 import * as YAML from 'yaml';
 import { ConfigFile } from './ConfigFile';
+import { getTags } from './DatabaseCache';
 import { ExtConfigFile } from './ExtConfigFile';
 import { escapeArgsForShell, GameLauncher } from './GameLauncher';
 import { ManagedChildProcess } from './ManagedChildProcess';
@@ -78,11 +78,11 @@ import {
   refreshCurationContent
 } from './curate/util';
 import { saveCuration } from './curate/write';
+import { axios } from './dns';
 import { downloadGameData } from './download';
 import { parseAppVar } from './extensions/util';
 import { clearWininetCache, importCuration, launchAddAppCuration, launchCuration } from './importGame';
 import { databaseReady, fpDatabase, loadCurationArchive } from './index';
-import { importGames, importPlatforms, importTagCategories, importTags } from './metadataImport';
 import {
   addPlaylistGame,
   deletePlaylist,
@@ -96,7 +96,7 @@ import {
 } from './playlist';
 import { genContentTree } from './rust';
 import { getMetaUpdateInfo, syncGames, syncPlatforms, syncRedirects, syncTags } from './sync';
-import { BackState, MetadataRaw, TagsFile } from './types';
+import { BackState, TagsFile } from './types';
 import { pathTo7zBack } from './util/SevenZip';
 import { awaitDialog, createNewDialog } from './util/dialog';
 import { onDidUninstallGameData, onWillUninstallGameData } from './util/events';
@@ -120,8 +120,6 @@ import {
   runService
 } from './util/misc';
 import { uuid } from './util/uuid';
-import { axios } from './dns';
-import { getTags } from './DatabaseCache';
 
 /**
  * Register all request callbacks to the socket server.
@@ -647,142 +645,152 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     }
   });
 
-  state.socketServer.register(BackIn.LAUNCH_GAME, async (event, id, override) => {
-    const game = await fpDatabase.findGame(id);
-    console.log('override: ' + override);
-
-    if (game) {
-      // Make sure Server is set to configured server - Curations may have changed it
-      const configServer = state.serviceInfo ? state.serviceInfo.server.find(s => s.name === state.preferences.server) : undefined;
-      if (configServer) {
-        const server = state.services.get('server');
-        if (!server || !('name' in server.info) || server.info.name !== configServer.name) {
-          // Server is different, change now
-          if (server) { await removeService(state, 'server'); }
-          runService(state, 'server', 'Server', state.config.flashpointPath, { env: {
-            ...process.env,
-            'PATH': state.pathVar ?? process.env.PATH,
-          } }, configServer);
-          await promiseSleep(1500);
-        }
+  state.socketServer.register(BackIn.LAUNCH_GAME, async (event, id, provider, override) => {
+    // TODO: Check provider for content runner
+    const contentRunner = state.registry.contentRunners.get('cr-webgames');
+    if (contentRunner) {
+      const game = await fpDatabase.findGame(id);
+      if (game) {
+        await contentRunner.runContent(game);
       }
-
-      // If it has GameData, make sure it's present
-      if (game.activeDataId && game.gameData) {
-        log.debug('Launcher', 'Found active game data');
-        let gameData = game.gameData.find(gd => gd.id === game.activeDataId);
-        if (gameData && !gameData.presentOnDisk) {
-          // Game data is not downloaded, check if an old one was being used before
-          const orderedGameData = [...game.gameData].sort((a, b) => a.dateAdded.localeCompare(b.dateAdded)).reverse();
-          for (const oldGd of orderedGameData) {
-            if (oldGd.presentOnDisk) {
-              // Found existing game data, verify with the user that we should upgrade it
-              const lcDifferent = oldGd.launchCommand !== gameData.launchCommand;
-              if (lcDifferent) {
-                const strings = state.languageContainer;
-                const dialogId = await state.socketServer.showMessageBoxBack(state, event.client)({
-                  largeMessage: true,
-                  message: `${strings.dialog.gameDataUpdateReadyLcDifferent}`,
-                  buttons: [strings.misc.yes, strings.misc.no],
-                  cancelId: 1,
-                });
-                const result = (await awaitDialog(state, dialogId)).buttonIdx;
-                if (result === 1) {
-                  log.info('Game Launcher', 'User chose to keep using old game data');
-                  // Mark this as the new active game data
-                  game.activeDataId = oldGd.id;
-                  game.activeDataOnDisk = oldGd.presentOnDisk;
-                  await fpDatabase.saveGame(game);
-                  gameData = oldGd;
-                } else {
-                  log.info('Game Launcher', 'Upgrading from old game data (lc changed)...');
-                }
-              } else {
-                const strings = state.languageContainer;
-                const dialogId = await state.socketServer.showMessageBoxBack(state, event.client)({
-                  largeMessage: true,
-                  message: `${strings.dialog.gameDataUpdateReady}`,
-                  buttons: [strings.misc.yes, strings.misc.no],
-                  cancelId: 1,
-                });
-                const result = (await awaitDialog(state, dialogId)).buttonIdx;
-                if (result === 1) {
-                  log.info('Game Launcher', 'User chose to keep using old game data');
-                  // Mark this as the new active game data
-                  game.activeDataId = oldGd.id;
-                  game.activeDataOnDisk = oldGd.presentOnDisk;
-                  await fpDatabase.saveGame(game);
-                  gameData = oldGd;
-                } else {
-                  log.info('Game Launcher', 'Upgrading from old game data (lc same)...');
-                }
-              }
-              break;
-            }
-          }
-          if (!gameData.presentOnDisk) {
-            // Make sure we didn't choose to swap game data during the user dialog above
-            log.debug('Game Launcher', 'Downloading Game Data for ' + getGameDataFilename(gameData) || 'UNKNOWN');
-            // Download GameData
-            try {
-              await downloadGameDataRes(state, gameData);
-              gameData = (await fpDatabase.findGameDataById(gameData.id)) as GameData;
-            } catch (error: any) {
-              state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
-              log.info('Game Launcher', `Game Launch Aborted: ${error}`);
-              return;
-            }
-          }
-        }
-
-        // Make sure it has a path set, check the default location if it does not then save it back
-        if (gameData && !gameData.path) {
-          const realPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, `${gameData.gameId}-${(new Date(gameData.dateAdded)).getTime()}.zip`);
-          if (fs.existsSync(realPath)) {
-            gameData.path = realPath;
-            gameData.presentOnDisk = true;
-            game.activeDataOnDisk = true;
-            await fpDatabase.saveGameData(gameData);
-            await fpDatabase.saveGame(game);
-          }
-        }
-      }
-      // Game config
-      // const configs = await GameManager.findGameConfigs(game.id, state.registry.middlewares);
-      // const activeConfig = configs.find(c => c.id === game.activeGameConfigId);
-      // if (game.activeGameConfigId && activeConfig === undefined) {
-      //   throw 'Could not load game config despite one being selected?';
-      // }
-      const activeConfig = null;
-      // Launch game
-      await GameLauncher.launchGame({
-        game,
-        fpPath: path.resolve(state.config.flashpointPath),
-        htdocsPath: state.preferences.htdocsFolderPath,
-        dataPacksFolderPath: state.preferences.dataPacksFolderPath,
-        sevenZipPath: state.sevenZipPath,
-        native: state.preferences.nativePlatforms.some(p => game.platforms.includes(p)),
-        execMappings: state.execMappings,
-        lang: state.languageContainer,
-        isDev: state.isDev,
-        exePath: state.exePath,
-        appPathOverrides: state.preferences.appPathOverrides,
-        providers: await getProviders(state),
-        proxy: state.preferences.browserModeProxy,
-        openDialog: state.socketServer.showMessageBoxBack(state, event.client),
-        openExternal: state.socketServer.openExternal(event.client),
-        runGame: runGameFactory(state),
-        runAddApp: runAddAppFactory(state),
-        envPATH: state.pathVar,
-        changeServer: changeServerFactory(state),
-        activeConfig: activeConfig ? activeConfig : null,
-        state,
-        autoClearWininetCache: state.preferences.autoClearWininetCache,
-        override,
-      },
-      state.apiEmitters.games.onWillLaunchGame.fireableFactory(state, event.client, 'Error during game launch api event'), false);
-      await state.apiEmitters.games.onDidLaunchGame.fireAlert(state, game, event.client, 'Error from post game launch api event');
+      return;
     }
+
+    // const game = await fpDatabase.findGame(id);
+    // console.log('override: ' + override);
+
+    // if (game) {
+    //   // Make sure Server is set to configured server - Curations may have changed it
+    //   const configServer = state.serviceInfo ? state.serviceInfo.server.find(s => s.name === state.preferences.server) : undefined;
+    //   if (configServer) {
+    //     const server = state.services.get('server');
+    //     if (!server || !('name' in server.info) || server.info.name !== configServer.name) {
+    //       // Server is different, change now
+    //       if (server) { await removeService(state, 'server'); }
+    //       runService(state, 'server', 'Server', state.config.flashpointPath, { env: {
+    //         ...process.env,
+    //         'PATH': state.pathVar ?? process.env.PATH,
+    //       } }, configServer);
+    //       await promiseSleep(1500);
+    //     }
+    //   }
+
+    //   // If it has GameData, make sure it's present
+    //   if (game.activeDataId && game.gameData) {
+    //     log.debug('Launcher', 'Found active game data');
+    //     let gameData = game.gameData.find(gd => gd.id === game.activeDataId);
+    //     if (gameData && !gameData.presentOnDisk) {
+    //       // Game data is not downloaded, check if an old one was being used before
+    //       const orderedGameData = [...game.gameData].sort((a, b) => a.dateAdded.localeCompare(b.dateAdded)).reverse();
+    //       for (const oldGd of orderedGameData) {
+    //         if (oldGd.presentOnDisk) {
+    //           // Found existing game data, verify with the user that we should upgrade it
+    //           const lcDifferent = oldGd.launchCommand !== gameData.launchCommand;
+    //           if (lcDifferent) {
+    //             const strings = state.languageContainer;
+    //             const dialogId = await state.socketServer.showMessageBoxBack(state, event.client)({
+    //               largeMessage: true,
+    //               message: `${strings.dialog.gameDataUpdateReadyLcDifferent}`,
+    //               buttons: [strings.misc.yes, strings.misc.no],
+    //               cancelId: 1,
+    //             });
+    //             const result = (await awaitDialog(state, dialogId)).buttonIdx;
+    //             if (result === 1) {
+    //               log.info('Game Launcher', 'User chose to keep using old game data');
+    //               // Mark this as the new active game data
+    //               game.activeDataId = oldGd.id;
+    //               game.activeDataOnDisk = oldGd.presentOnDisk;
+    //               await fpDatabase.saveGame(game);
+    //               gameData = oldGd;
+    //             } else {
+    //               log.info('Game Launcher', 'Upgrading from old game data (lc changed)...');
+    //             }
+    //           } else {
+    //             const strings = state.languageContainer;
+    //             const dialogId = await state.socketServer.showMessageBoxBack(state, event.client)({
+    //               largeMessage: true,
+    //               message: `${strings.dialog.gameDataUpdateReady}`,
+    //               buttons: [strings.misc.yes, strings.misc.no],
+    //               cancelId: 1,
+    //             });
+    //             const result = (await awaitDialog(state, dialogId)).buttonIdx;
+    //             if (result === 1) {
+    //               log.info('Game Launcher', 'User chose to keep using old game data');
+    //               // Mark this as the new active game data
+    //               game.activeDataId = oldGd.id;
+    //               game.activeDataOnDisk = oldGd.presentOnDisk;
+    //               await fpDatabase.saveGame(game);
+    //               gameData = oldGd;
+    //             } else {
+    //               log.info('Game Launcher', 'Upgrading from old game data (lc same)...');
+    //             }
+    //           }
+    //           break;
+    //         }
+    //       }
+    //       if (!gameData.presentOnDisk) {
+    //         // Make sure we didn't choose to swap game data during the user dialog above
+    //         log.debug('Game Launcher', 'Downloading Game Data for ' + getGameDataFilename(gameData) || 'UNKNOWN');
+    //         // Download GameData
+    //         try {
+    //           await downloadGameDataRes(state, gameData);
+    //           gameData = (await fpDatabase.findGameDataById(gameData.id)) as GameData;
+    //         } catch (error: any) {
+    //           state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
+    //           log.info('Game Launcher', `Game Launch Aborted: ${error}`);
+    //           return;
+    //         }
+    //       }
+    //     }
+
+    //     // Make sure it has a path set, check the default location if it does not then save it back
+    //     if (gameData && !gameData.path) {
+    //       const realPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, `${gameData.gameId}-${(new Date(gameData.dateAdded)).getTime()}.zip`);
+    //       if (fs.existsSync(realPath)) {
+    //         gameData.path = realPath;
+    //         gameData.presentOnDisk = true;
+    //         game.activeDataOnDisk = true;
+    //         await fpDatabase.saveGameData(gameData);
+    //         await fpDatabase.saveGame(game);
+    //       }
+    //     }
+    //   }
+    //   // Game config
+    //   // const configs = await GameManager.findGameConfigs(game.id, state.registry.middlewares);
+    //   // const activeConfig = configs.find(c => c.id === game.activeGameConfigId);
+    //   // if (game.activeGameConfigId && activeConfig === undefined) {
+    //   //   throw 'Could not load game config despite one being selected?';
+    //   // }
+    //   const activeConfig = null;
+    //   // Launch game
+    //   await GameLauncher.launchGame({
+    //     game,
+    //     fpPath: path.resolve(state.config.flashpointPath),
+    //     htdocsPath: state.preferences.htdocsFolderPath,
+    //     dataPacksFolderPath: state.preferences.dataPacksFolderPath,
+    //     sevenZipPath: state.sevenZipPath,
+    //     native: state.preferences.nativePlatforms.some(p => game.platforms.includes(p)),
+    //     execMappings: state.execMappings,
+    //     lang: state.languageContainer,
+    //     isDev: state.isDev,
+    //     exePath: state.exePath,
+    //     appPathOverrides: state.preferences.appPathOverrides,
+    //     providers: await getProviders(state),
+    //     proxy: state.preferences.browserModeProxy,
+    //     openDialog: state.socketServer.showMessageBoxBack(state, event.client),
+    //     openExternal: state.socketServer.openExternal(event.client),
+    //     runGame: runGameFactory(state),
+    //     runAddApp: runAddAppFactory(state),
+    //     envPATH: state.pathVar,
+    //     changeServer: changeServerFactory(state),
+    //     activeConfig: activeConfig ? activeConfig : null,
+    //     state,
+    //     autoClearWininetCache: state.preferences.autoClearWininetCache,
+    //     override,
+    //   },
+    //   state.apiEmitters.games.onWillLaunchGame.fireableFactory(state, event.client, 'Error during game launch api event'), false);
+    //   await state.apiEmitters.games.onDidLaunchGame.fireAlert(state, game, event.client, 'Error from post game launch api event');
+    // }
   });
 
   state.socketServer.register(BackIn.SAVE_GAMES, async (event, data) => {
@@ -2514,73 +2522,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     }
   });
 
-  state.socketServer.register(BackIn.IMPORT_METADATA, async (event, data) => {
-    console.log('importing platforms');
-    // Import platforms
-    await importPlatforms(data.platforms);
-    console.log('importing tag cats');
-    // Import tag cats
-    await importTagCategories(data.categories);
-    console.log('importing tags');
-    // Import tags
-    await importTags(data.tags);
-    console.log('importing games');
-    // Import games
-    await importGames(data.games);
-    // Check for extras
-    if (data.gameDataSources) {
-      // Add any extra sources
-      for (const source of data.gameDataSources) {
-        const existingSourceIdx = state.preferences.gameDataSources.findIndex(s => s.name === source.name);
-        if (existingSourceIdx > -1) {
-          state.preferences.gameDataSources[existingSourceIdx] = source;
-        } else {
-          state.preferences.gameDataSources.push(source);
-        }
-      }
-    }
-    if (data.tagFilters) {
-      // Add any extra filters
-      for (const tfg of data.tagFilters) {
-        const existingTfgIdx = state.preferences.tagFilters.findIndex(tfg => tfg.name === tfg.name);
-        if (existingTfgIdx > -1) {
-          state.preferences.tagFilters[existingTfgIdx] = tfg;
-        } else {
-          state.preferences.tagFilters.push(tfg);
-        }
-      }
-    }
-    // Save prefs
-    state.prefsQueue.push(() => {
-      PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state)
-      .catch((err) => {
-        console.error(`Save prefs err: ${err}`);
-      });
-    });
-  });
-
-  state.socketServer.register(BackIn.SYNC_METADATA_SERVER, async (event, serverInfo) => {
-    // OUTDATED CODE
-    switch (serverInfo.type) {
-      case 'raw': {
-        // Download file
-        const data: MetadataRaw = unsafeParseJsonBuffer(await downloadJsonDataToBuffer(serverInfo.host));
-        // Import platforms
-        await importPlatforms(data.platforms);
-        // Import tags
-        await importTags(data.tags);
-        // Import games
-        await importGames(data.games);
-        break;
-      }
-      case 'python': {
-        break;
-      }
-      default:
-        throw 'Unsupported type';
-    }
-  });
-
   state.socketServer.register(BackIn.CLEAR_WININET_CACHE, async (event) => {
     clearWininetCache();
   });
@@ -2699,7 +2640,7 @@ function runGameService(state: BackState, launchInfo: LaunchInfo, id: string, na
   return proc;
 }
 
-function runAddAppFactory(state: BackState) {
+export function runAddAppFactory(state: BackState) {
   return (launchInfo: LaunchInfo): ManagedChildProcess => {
     const id = uuid();
     return runGameService(state, launchInfo, `add-app.${id}`, `Add App ${id}`);
@@ -2711,7 +2652,7 @@ function runAddAppFactory(state: BackState) {
  *
  * @param state Current back state
  */
-function runGameFactory(state: BackState) {
+export function runGameFactory(state: BackState) {
   return (gameLaunchInfo: GameLaunchInfo): ManagedChildProcess => {
     // Run game as a service and register it
     const id = `game.${gameLaunchInfo.game.id}`;
@@ -2791,7 +2732,7 @@ async function runCommand(state: BackState, command: string, args: any[] = []): 
  *
  * @param state Current back state
  */
-async function getProviders(state: BackState): Promise<AppProvider[]> {
+export async function getProviders(state: BackState): Promise<AppProvider[]> {
   return state.extensionsService.getContributions('applications')
   .then(contributions => {
     return contributions.map(c => {
@@ -2824,7 +2765,7 @@ async function getProviders(state: BackState): Promise<AppProvider[]> {
   );
 }
 
-function changeServerFactory(state: BackState): (server?: string) => Promise<void> {
+export function changeServerFactory(state: BackState): (server?: string) => Promise<void> {
   return async (server?: string) => {
     if (state.serviceInfo) {
       if (!server) {
@@ -2885,26 +2826,3 @@ async function downloadGameDataRes(state: BackState, gameData: GameData) {
     }, 250);
   }
 }
-
-const unsafeParseJsonBuffer = <T>(buffer: Buffer): T => {
-  const data = buffer.toString();
-  return JSON.parse(data) as T;
-};
-
-// Download the JSON file from a URL and save it to a buffer
-const downloadJsonDataToBuffer = async (url: string): Promise<Buffer> => {
-  return new Promise((resolve, reject) => {
-    https.get(url, (response) => {
-      const data: Buffer[] = [];
-      response.on('data', (chunk) => {
-        data.push(chunk);
-      });
-      response.on('end', () => {
-        const buffer = Buffer.concat(data);
-        resolve(buffer);
-      });
-    }).on('error', (error) => {
-      reject(error);
-    });
-  });
-};

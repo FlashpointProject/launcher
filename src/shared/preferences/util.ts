@@ -384,6 +384,7 @@ function parseGameDataSource(parser: IObjectParserProp<GameDataSource>): GameDat
 
 function parseGameMetadataSource(parser: IObjectParserProp<GameMetadataSource>): GameMetadataSource {
   const source: GameMetadataSource = {
+    id: 'flashpoint-archive',
     name: '',
     baseUrl: '',
     games: {
@@ -397,6 +398,7 @@ function parseGameMetadataSource(parser: IObjectParserProp<GameMetadataSource>):
       latestUpdateTime: '1970-01-01'
     },
   };
+  parser.prop('id',               v => source.id               = str(v), true);
   parser.prop('name',             v => source.name             = str(v));
   parser.prop('baseUrl',          v => source.baseUrl          = str(v));
   parseMetadataUpdateInfo(parser.prop('games'), source.games);

@@ -37,8 +37,6 @@ export type UpdateDialogFieldActionData = {
   field: Partial<DialogField>;
 }
 
-
-
 export type ResolveDialogActionData = {
   id: string;
   button: number;
@@ -167,9 +165,6 @@ const DEFAULT_DISPLAYS: DisplaySettings = {
       'game_legacyData'
     ],
   },
-  gameGrid: {
-    upper: []
-  },
   gameList: {
     icons: [],
     columns: [
@@ -207,6 +202,7 @@ const DEFAULT_DISPLAYS: DisplaySettings = {
     'homePage_extras'
   ],
   searchComponents: [],
+  browseDisplays: {}
 };
 
 const initialState: MainState = {

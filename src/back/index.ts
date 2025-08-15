@@ -12,7 +12,6 @@ import {
   removeFileExtension,
   stringifyArray
 } from '@shared/Util';
-import { validateSemiUUID } from '@shared/utils/uuid';
 import { FPA_VERSION, VERSION } from '@shared/version';
 import * as child_process from 'child_process';
 import { EventEmitter } from 'events';
@@ -75,6 +74,7 @@ import { LogFile } from './util/LogFile';
 import { logFactory } from './util/logging';
 import { createContainer, exit, getMacPATH, promiseSleep, runService } from './util/misc';
 import { uuid } from './util/uuid';
+import { webgameContentRunenr } from './flashpoint/WebgameContentRunner';
 
 export const VERBOSE = {
   enabled: false
@@ -92,7 +92,7 @@ const send: Required<typeof process.send> = process.send
 
 const CONCURRENT_IMAGE_DOWNLOADS = 6;
 
-const state: BackState = {
+export const state: BackState = {
   readyForInit: false,
   ignoreQuit: false,
   runInit: false,
@@ -199,6 +199,7 @@ const state: BackState = {
     logoSets: new Map<string, LogoSet>(),
     themes: new Map<string, Theme>(),
     middlewares: new Map<string, RegisteredMiddleware>(),
+    contentRunners: new Map<string, flashpoint.ContentRunner>(),
   },
   extensionsService: createErrorProxy('extensionsService'),
   sevenZipPath: '',
@@ -269,7 +270,6 @@ async function main() {
     BackIn.CURATE_SYNC_CURATIONS,
     BackIn.CURATE_IMPORT,
     // ?
-    BackIn.SYNC_GAME_METADATA,
     BackIn.SYNC_TAGGED,
     // Meta Edits
     BackIn.EXPORT_META_EDIT,
@@ -988,6 +988,9 @@ async function initialize() {
     log.error('Launcher', `Failed to load curations\n${error.toString()}`);
     exit(state);
   });
+
+  // Add built in providers
+  state.registry.contentRunners.set(webgameContentRunenr.id, webgameContentRunenr);
 
   // Init extensions
   const addExtLogFactory = (extId: string) => (entry: ILogEntry) => {

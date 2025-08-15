@@ -18,7 +18,7 @@ import { setTheme } from '@shared/Theme';
 import { getFileServerURL, mapFpfssGameToLocal, mapLocalToFpfssGame, recursiveReplace, sizeToString } from '@shared/Util';
 import { arrayShallowStrictEquals } from '@shared/utils/compare';
 import { debounce } from '@shared/utils/debounce';
-import { newGame } from '@shared/utils/misc';
+import { isGame, newGame } from '@shared/utils/misc';
 import { formatString } from '@shared/utils/StringFormatter';
 import { batchProcessor } from '@shared/utils/throttle';
 import { uuid } from '@shared/utils/uuid';
@@ -74,7 +74,7 @@ const hiddenRightSidebarPages = [Paths.ABOUT, Paths.CURATE, Paths.CONFIG, Paths.
 
 type AppOwnProps = Record<string, never>;
 
-export type AppProps = AppOwnProps & WithDownloadsProps & WithLogsProps & WithViewProps & WithFpfssProps & WithPreferencesProps & WithSearchProps & WithTagCategoriesProps & WithMainStateProps & WithTasksProps & WithCurateProps & WithShortcutProps & WithNavigationProps;
+export type AppProps = AppOwnProps & WithDownloadsProps & WithLogsProps & WithViewProps<any> & WithFpfssProps & WithPreferencesProps & WithSearchProps & WithTagCategoriesProps & WithMainStateProps & WithTasksProps & WithCurateProps & WithShortcutProps & WithNavigationProps;
 
 export class App extends React.Component<AppProps> {
   appRef: React.RefObject<HTMLDivElement | null>;
@@ -1078,7 +1078,7 @@ export class App extends React.Component<AppProps> {
   onGameLaunch = async (gameId: string, override: GameLaunchOverride): Promise<void> => {
     log.debug('Launcher', 'Launching Game - ' + gameId);
     this.props.mainActions.markGameBusy(gameId);
-    await window.Shared.back.request(BackIn.LAUNCH_GAME, gameId, override)
+    await window.Shared.back.request(BackIn.LAUNCH_GAME, gameId, 'flashpoint-archive')
     .catch((error) => {
       log.error('Launcher', `Failed to launch game - ${gameId} - ERROR: ${error}`);
     })
@@ -1628,7 +1628,7 @@ export class App extends React.Component<AppProps> {
                             logoVersion={this.props.main.logoVersion}
                             currentGame={currentView.selectedGame}
                             currentPlaylist={currentView.selectedPlaylist}
-                            isExtreme={currentView.selectedGame ? currentView.selectedGame.tags.reduce<boolean>((prev, next) => extremeTags.includes(next) || prev, false) : false}
+                            isExtreme={isGame(currentView.selectedGame) ? currentView.selectedGame.tags.reduce<boolean>((prev, next) => extremeTags.includes(next) || prev, false) : false}
                             gameRunning={routerProps.gameRunning}
                             currentLibrary={routerProps.gameLibrary}
                             onGameLaunch={this.onGameLaunch}

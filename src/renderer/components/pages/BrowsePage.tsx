@@ -4,31 +4,27 @@ import { WithSearchProps } from '@renderer/containers/withSearch';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
 import { WithViewProps } from '@renderer/containers/withView';
 import { useView } from '@renderer/hooks/search';
-import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
+import { useAppDispatch } from '@renderer/hooks/useAppSelector';
 import { usePreferences } from '@renderer/hooks/usePreferences';
-import { forceSearch, requestRange, RequestState, selectGame, selectPlaylist, setGridScroll, setListScroll } from '@renderer/store/search/slice';
+import { forceSearch, RequestState, selectPlaylist } from '@renderer/store/search/slice';
 import { BackIn } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { ExtensionContribution } from '@shared/extensions/interfaces';
 import { updatePreferencesData } from '@shared/preferences/util';
-import { formatString } from '@shared/utils/StringFormatter';
-import { delayedThrottle } from '@shared/utils/throttle';
 import { uuid } from '@shared/utils/uuid';
 import { Menu, MenuItemConstructorOptions } from 'electron';
-import { GameLaunchOverride, LangContainer, Playlist } from 'flashpoint-launcher';
+import { LangContainer, Playlist } from 'flashpoint-launcher';
+import { BrowsePageDisplayProps } from 'flashpoint-launcher-renderer';
 import * as path from 'path';
 import * as React from 'react';
 import { RefObject, useRef, useState } from 'react';
-import { ScrollIndices } from 'react-virtualized';
 import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowseSidebar';
 import { WithPreferencesProps } from '../../containers/withPreferences';
-import { gameDragDataType, gameScaleSpan } from '../../Util';
+import { gameDragDataType } from '../../Util';
 import { LangContext } from '../../util/lang';
-import { GameGrid } from '../GameGrid';
-import { GameList } from '../GameList';
+import { WebgameBrowsePageDisplayGrid, WebgameBrowsePageDisplayList } from '../BrowsePageDisplay';
 import { InputElement } from '../InputField';
 import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
-import { Spinner } from '../Spinner';
 
 export type GameDragEventData = {
   gameId: string;
@@ -65,7 +61,7 @@ type OwnProps = {
   contextButtons: ExtensionContribution<'contextButtons'>[];
 };
 
-export type BrowsePageProps = OwnProps & WithViewProps & WithPreferencesProps & WithTagCategoriesProps & WithSearchProps;
+export type BrowsePageProps = OwnProps & WithViewProps<any> & WithPreferencesProps & WithTagCategoriesProps & WithSearchProps;
 
 export type BrowsePageState = {
   /** Currently dragged game (if any). */
@@ -77,20 +73,17 @@ export type BrowsePageState = {
   isNewPlaylist: boolean;
 };
 
-export function BrowsePage(props: OwnProps) {
-  const { sourceTable, onUpdatePlaylist, playlists } = props;
-  const [draggedGameIndex, setDraggedGameIndex] = useState<number | null>(null);
+export function BrowsePage(props: BrowsePageProps) {
+  const { onUpdatePlaylist, playlists } = props;
   const [isEditingPlaylist, setIsEditingPlaylist] = useState(false);
   const [isNewPlaylist, setIsNewPlaylist] = useState(false);
   const [currentPlaylist, setCurrentPlaylist] = useState<Playlist | null>(null);
   const gameBrowserRef: RefObject<HTMLDivElement | null> = useRef(null);
   const dispatch = useAppDispatch();
-  const { displaySettings } = useAppSelector(state => state.main);
   const strings = React.useContext(LangContext);
-  const { tagFilters, screenshotPreviewMode, screenshotPreviewDelay, hideExtremeScreenshots, browsePageShowExtreme, browsePageLayout, browsePageGameScale, browsePageShowLeftSidebar, browsePageLeftSidebarWidth, browsePageRightSidebarWidth } = usePreferences();
+  const { tagFilters, browsePageLayout, browsePageShowLeftSidebar, browsePageLeftSidebarWidth, browsePageRightSidebarWidth } = usePreferences();
   const currentView = useView();
   const extremeTags = tagFilters.filter(t => !t.enabled && t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
-  const tagGroupIcons = tagFilters.filter(t => !t.enabled && t.iconBase64 !== '').map(({ tags, iconBase64: tagGroupIcon }) => ({ tagFilter: tags, iconBase64: tagGroupIcon }));
 
   React.useEffect(() => {
     // Force the first search if view hasn't been used yet
@@ -103,31 +96,6 @@ export function BrowsePage(props: OwnProps) {
   });
 
   // Callbacks
-
-  const updateViewRange = delayedThrottle((start: number, count: number) => {
-    dispatch(requestRange({
-      view: currentView.id,
-      searchId: currentView.data.searchId,
-      start,
-      count
-    }));
-  }, 100);
-
-  const onGridScrollToChange = (params: ScrollIndices, columns: number) => {
-    const game = currentView.data.games[params.scrollToRow * columns + params.scrollToColumn];
-    if (game) {
-      onGridGameSelect(game.id, params.scrollToColumn, params.scrollToRow);
-    }
-  };
-
-  const onListScrollToChange = (row: number) => {
-    console.log(row);
-    const game = currentView.data.games[row];
-    if (game) {
-      console.log(game.id);
-      onListGameSelect(game.id, row);
-    }
-  };
 
   const onSelectPlaylist = (playlistId: string | null) => {
     if (playlistId) {
@@ -158,67 +126,6 @@ export function BrowsePage(props: OwnProps) {
     if (!document.defaultView) { throw new Error('"document.defaultView" missing.'); }
     if (!gameBrowserRef.current) { throw new Error('"game-browser" div is missing.'); }
     return parseInt(document.defaultView.getComputedStyle(gameBrowserRef.current).width || '', 10);
-  };
-
-  const onGridGameSelect = async (gameId?: string, col?: number, row?: number): Promise<void> => {
-    if (currentView.selectedGame?.id !== gameId && gameId) {
-      const game = await window.Shared.back.request(BackIn.GET_GAME, gameId);
-      if (game) {
-        if (col !== undefined && row !== undefined) {
-          dispatch(setGridScroll({
-            view: currentView.id,
-            col,
-            row
-          }));
-        }
-        dispatch(selectGame({
-          view: currentView.id,
-          game,
-        }));
-      }
-    }
-  };
-
-
-  const onListGameSelect = async (gameId?: string, row?: number): Promise<void> => {
-    if (currentView.selectedGame?.id !== gameId && gameId) {
-      const game = await window.Shared.back.request(BackIn.GET_GAME, gameId);
-      if (game) {
-        if (row !== undefined) {
-          dispatch(setListScroll({
-            view: currentView.id,
-            row
-          }));
-        }
-        dispatch(selectGame({
-          view: currentView.id,
-          game,
-        }));
-      }
-    }
-  };
-
-  const onGameLaunch = async (gameId: string, override: GameLaunchOverride): Promise<void> => {
-    await window.Shared.back.request(BackIn.LAUNCH_GAME, gameId, override);
-  };
-
-  const onGameDragStart = (event: React.DragEvent, dragEventData: GameDragEventData): void => {
-    const data: GameDragData = {
-      ...dragEventData,
-      sourceTable: sourceTable
-    };
-    console.log(data);
-    setDraggedGameIndex(dragEventData.index);
-    event.dataTransfer.setData(gameDragDataType, JSON.stringify(data));
-  };
-
-  const onGameDragEnd = (event: React.DragEvent): void => {
-    setDraggedGameIndex(null);
-    event.dataTransfer.clearData(gameDragDataType);
-  };
-
-  const onMovePlaylistGame = async (sourceGameId: string, destGameId: string): Promise<void> => {
-    props.onMovePlaylistGame(sourceGameId, destGameId);
   };
 
   // -- Left Sidebar --
@@ -462,49 +369,7 @@ export function BrowsePage(props: OwnProps) {
     if (filePath) { window.Shared.back.send(BackIn.EXPORT_PLAYLIST, playlistId, filePath); }
   };
 
-  const noRowsRenderer = () => {
-    return (
-      <div className='game-list__no-games'>
-        {currentView.data.total !== undefined ?
-          currentView.selectedPlaylist ?
-            currentView.selectedPlaylist.games.length === 0 ?
-              /* Empty Playlist */
-              <>
-                <h2 className='game-list__no-games__title'>{strings.browse.emptyPlaylist}</h2>
-                <br />
-                <p>{formatString(strings.browse.dropGameOnLeft, <i>{strings.browse.leftSidebar}</i>)}</p>
-              </>
-              :
-              <>
-                <h2 className='game-list__no-games__title'>{strings.browse.noGamesFoundInsidePlaylist}</h2>
-                <br />
-                <p>{strings.browse.noGameMatchedSearch}</p>
-              </>
-            : (
-              /* Empty regular search */
-              <>
-                <h1 className='game-list__no-games__title'>{strings.browse.noGamesFound}</h1>
-                <br />
-                {props.gamesTotal !== undefined && props.gamesTotal > 0 ? (
-                  <>
-                    {strings.browse.noGameMatchedDesc}
-                    <br />
-                    {strings.browse.noGameMatchedSearch}
-                  </>
-                ) : (
-                  <>{strings.browse.thereAreNoGames}</>
-                )}
-              </>
-            ) : (
-            /* Searching */
-            <div>
-              <h1 className="game-list__no-games__title">{strings.browse.searching}</h1>
-              <Spinner />
-            </div>
-          )}
-      </div>
-    );
-  };
+
 
   const onPlaylistContextMenu = (event: React.MouseEvent<HTMLDivElement, MouseEvent>, playlistId: string) => {
     if (!isEditingPlaylist || currentView.selectedPlaylist?.id != playlistId) { // Don't export a playlist in the back while it's being edited in the front
@@ -593,69 +458,22 @@ export function BrowsePage(props: OwnProps) {
         <SearchBar />
         <div className='game-browser__center-results-container'>
           {(() => {
+            const displayProps: BrowsePageDisplayProps<any> = {
+              view: currentView,
+              logoVersion: props.logoVersion,
+              extremeTags,
+              onMovePlaylistEntry: props.onMovePlaylistGame,
+            };
+
             if (browsePageLayout === BrowsePageLayout.grid) {
-              // (These are kind of "magic numbers" and the CSS styles are designed to fit with them)
-              const height: number = calcScale(350, browsePageGameScale);
-              const width: number = (height * 0.666) | 0;
-              const gameGridProps = {
-                scrollCol: currentView.gridScrollCol,
-                scrollRow: currentView.gridScrollRow,
-                onScrollToChange: onGridScrollToChange
-              };
               return (
-                <GameGrid
-                  displaySettings={displaySettings}
-                  games={currentView.data.games}
-                  resultsTotal={currentView.data.total !== undefined ? currentView.data.total : Object.keys(currentView.data.games).length}
-                  insideOrderedPlaylist={currentView.selectedPlaylist !== undefined && currentView.advancedFilter.playlistOrder}
-                  selectedGameId={currentView.selectedGame?.id}
-                  draggedGameIndex={draggedGameIndex}
-                  extremeTags={extremeTags}
-                  noRowsRenderer={noRowsRenderer}
-                  tagGroupIcons={tagGroupIcons}
-                  onGameSelect={onGridGameSelect}
-                  onGameLaunch={onGameLaunch}
-                  onContextMenu={props.onGameContextMenu}
-                  onGameDragStart={onGameDragStart}
-                  onGameDragEnd={onGameDragEnd}
-                  onMovePlaylistGame={onMovePlaylistGame}
-                  cellWidth={width}
-                  cellHeight={height}
-                  logoVersion={props.logoVersion}
-                  screenshotPreviewMode={screenshotPreviewMode}
-                  screenshotPreviewDelay={screenshotPreviewDelay}
-                  hideExtremeScreenshots={hideExtremeScreenshots}
-                  updateView={updateViewRange}
-                  viewId={currentView.id}
-                  {...gameGridProps} />
+                <WebgameBrowsePageDisplayGrid
+                  {...displayProps} />
               );
             } else {
-              const height: number = calcScale(30, browsePageGameScale);
               return (
-                <GameList
-                  displaySettings={displaySettings}
-                  sourceTable={sourceTable}
-                  games={currentView.data.games}
-                  resultsTotal={currentView.data.total !== undefined ? currentView.data.total : Object.keys(currentView.data.games).length}
-                  insideOrderedPlaylist={currentView.selectedPlaylist !== undefined && currentView.advancedFilter.playlistOrder}
-                  selectedGameId={currentView.selectedGame?.id}
-                  draggedGameIndex={draggedGameIndex}
-                  showExtremeIcon={browsePageShowExtreme}
-                  extremeTags={extremeTags}
-                  noRowsRenderer={noRowsRenderer}
-                  tagGroupIcons={tagGroupIcons}
-                  onGameSelect={onListGameSelect}
-                  onGameLaunch={onGameLaunch}
-                  onContextMenu={props.onGameContextMenu}
-                  onGameDragStart={onGameDragStart}
-                  onGameDragEnd={onGameDragEnd}
-                  onMovePlaylistGame={onMovePlaylistGame}
-                  rowHeight={height}
-                  logoVersion={props.logoVersion}
-                  updateView={updateViewRange}
-                  scrollRow={currentView.listScrollRow}
-                  onScrollToChange={onListScrollToChange}
-                  viewId={currentView.id} />
+                <WebgameBrowsePageDisplayList
+                  {...displayProps} />
               );
             }
           })()}
@@ -663,10 +481,6 @@ export function BrowsePage(props: OwnProps) {
       </div>
     </div>
   );
-}
-
-function calcScale(defHeight: number, scale: number): number {
-  return (defHeight + (scale - 0.5) * 2 * defHeight * gameScaleSpan) | 0;
 }
 
 function openContextMenu(template: MenuItemConstructorOptions[]): Menu {

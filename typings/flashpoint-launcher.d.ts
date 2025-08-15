@@ -644,13 +644,35 @@ declare module 'flashpoint-launcher' {
       category?: string
     }
 
-    type Game = {
-      /** ID of the game (unique identifier) */
+    interface ContentRunner {
+      /** Unique ID of the runner */
       id: string;
+      /** Display name of the runner */
+      name: string;
+      /** Handler for running content
+       * @param content Content (must be coerced safely first)
+       *
+       * @returns Whether we ran the content or not
+       */
+      runContent<T extends Content>(content: T | Content): Promise<boolean>;
+    }
+
+    interface Content {
+      /** ID of the content (unique identifier) */
+      id: string;
+      /** Display title of the content */
+      title: string;
+      /** Relative logo image path given to the logo file handler */
+      logoPath: string;
+      /** Relative screenshot image path given to the screenshot file handler */
+      screenshotPath: string;
+      /** Priority handler when requesting logo or screenshots from file server */
+      imageFileProvider?: string;
+    }
+
+    interface Game extends Content {
       /** ID of the game which owns this game */
       parentGameId?: string;
-      /** Full title of the game */
-      title: string;
       /** Any alternate titles to match against search */
       alternateTitles: string;
       /** Game series the game belongs to (empty string if none) */
@@ -718,17 +740,15 @@ declare module 'flashpoint-launcher' {
          * 2 = Available
          */
       archiveState: number;
-      /** Relative path to the logo file from the logos directory */
-      logoPath: string;
-      /** Relative path to the screenshot file from the screenshots directory */
-      screenshotPath: string;
       /** Ruffle support for flash entries
        * Valid values: 'standalone', '' (none)
        */
       ruffleSupport: string;
+      /** Metadata Owner (local / remote-name) */
+      owner: string;
       /** Extension data (key is ext id) */
       extData?: Record<string, any>;
-    };
+    }
 
     type GameData = {
       id: number;
@@ -1205,6 +1225,7 @@ declare module 'flashpoint-launcher' {
     }
 
     type GameMetadataSource = {
+      id: string;
       name: string;
       baseUrl: string;
       tags: MetadataUpdateInfo;
@@ -1794,12 +1815,12 @@ declare module 'flashpoint-launcher' {
       series: string[] | null;
     }
 
-    type ResultsView = {
+    type ResultsView<T extends Content> = {
       id: string;
       library?: string;
-      selectedGame?: Game,
+      selectedGame?: T | Content,
       selectedPlaylist?: Playlist,
-      data: ResultsViewData;
+      data: ResultsViewData<T>;
       orderBy: GameOrderBy;
       orderReverse: GameOrderReverse;
       extOrder: ExtOrder;
@@ -1815,14 +1836,16 @@ declare module 'flashpoint-launcher' {
       listScrollRow?: number;
     }
 
-    type ResultsViewData = {
+    type ResultsViewData<T extends Content> = {
       searchId: number;
-      games: Record<number, ViewGame>;
+      content: ViewContentSet<T>;
       total?: number;
       pages: Record<number, RequestState>;
       keyset: PageKeyset;
       metaState: RequestState;
     }
+
+    type ViewContentSet<T extends Content> = Record<number, T | Content>;
 
     interface ElementPosition {
       element: ElementType
@@ -2557,7 +2580,7 @@ declare module 'flashpoint-launcher' {
 }
 
 declare module 'flashpoint-launcher-renderer' {
-  import { LangContainer, Playlist, GameOrderBy, GameOrderReverse, Game, ViewGame, ExtOrder, PlaylistGame, TagCategory, AppPreferencesData, AdvancedFilter } from 'flashpoint-launcher';
+  import { ResultsView, LangContainer, Playlist, GameOrderBy, GameOrderReverse, Game, ViewGame, ExtOrder, PlaylistGame, TagCategory, AppPreferencesData, AdvancedFilter } from 'flashpoint-launcher';
 
   /** Game properties that will have suggestions gathered and displayed. */
   type SuggestionProps = (
@@ -2669,8 +2692,8 @@ declare module 'flashpoint-launcher-renderer' {
     onChangeOrder: (event: GameOrderChangeEvent) => void;
   };
 
-  type GameGridComponentProps = {
-    game?: ViewGame;
+  type GameGridComponentProps<T extends Content> = {
+    game?: T | Content;
     isSelected: boolean;
     isDragged: boolean;
   }
@@ -2721,15 +2744,15 @@ declare module 'flashpoint-launcher-renderer' {
       middle: string[],
       bottom: string[],
     },
-    gameGrid: {
-      upper: string[],
-    },
     gameList: {
       icons: string[],
       columns: GameListColumnInfo[],
     },
     homePage: string[],
     searchComponents: string[],
+    browseDisplays: {
+      [k: string]: any
+    },
   }
 
   type SearchableSelectItem = {
@@ -2760,9 +2783,28 @@ declare module 'flashpoint-launcher-renderer' {
     title: string;
   };
 
+  type BrowsePageDisplayProps<T extends Content> = {
+    view: ResultsView<T>;
+    logoVersion: number;
+    extremeTags: string[];
+    onMovePlaylistEntry: (sourceGameId: string, destGameId: string) => void;
+  }
+
+  type BrowsePageDisplayGridProps<T extends Content> = BrowsePageDisplayProps<T> & {
+    onContentRun: (content: Content | T) => Promise<void>;
+    getContentIcons: (content: Content | T) => string[];
+  };
+
+  type BrowsePageDisplayListProps<T extends Content> = BrowsePageDisplayProps<T> & {
+    onContentRun: (content: Content | T) => Promise<void>;
+  };
+
   declare global {
     interface Window {
       ext: IExtensionWindow,
+      components: {
+        BrowsePageDisplayGrid: React.ComponentType<BrowsePageDisplayGridProps>,
+      },
       setDisplaySettings: (cb: (prev: DisplaySettings) => DisplaySettings) => void,
       setExtOrderables: (cb: (prev: ExtOrderable[]) => ExtOrderable[]) => void,
     }
