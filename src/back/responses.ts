@@ -9,7 +9,7 @@ import {
 } from '@fparchive/flashpoint-archive';
 import { LogLevel } from '@shared/Log/interface';
 import { MetaEditFile, MetaEditMeta } from '@shared/MetaEdit';
-import { deepCopy, downloadFile, padEnd } from '@shared/Util';
+import { deepCopy, downloadFile, fixSlashes, padEnd } from '@shared/Util';
 import {
   BackIn,
   BackInit,
@@ -1062,15 +1062,21 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     // Verify it's still on disk
     if (gameData) {
       const gameDataFilename = getGameDataFilename(gameData);
+      const filePath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, gameDataFilename);
       try {
-        await fs.promises.access(path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, gameDataFilename), fs.constants.F_OK);
+        await fs.promises.access(filePath, fs.constants.F_OK);
         if (!gameData.presentOnDisk) {
           gameData.presentOnDisk = true;
           return fpDatabase.saveGameData(gameData);
         }
       } catch (err) {
-        if (gameData.presentOnDisk) {
+        // No file found, check archive data
+        const ultPath = fixSlashes(path.join('Flashpoint Ultimate', path.relative(state.config.flashpointPath, filePath)));
+        if (gameData.presentOnDisk && state.archiveData.getZipDataOffset(ultPath) === null) {
           gameData.presentOnDisk = false;
+          return fpDatabase.saveGameData(gameData);
+        } else if (!gameData.presentOnDisk) {
+          gameData.presentOnDisk = true;
           return fpDatabase.saveGameData(gameData);
         }
       }
