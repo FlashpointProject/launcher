@@ -2,6 +2,7 @@ import { ILogEntry, LogLevel } from '@shared/Log/interface';
 import { Theme } from '@shared/ThemeFile';
 import {
   createErrorProxy, deepCopy,
+  fixSlashes,
   removeFileExtension,
   stringifyArray
 } from '@shared/Util';
@@ -75,6 +76,7 @@ import { awaitDialog } from './util/dialog';
 import { saveCurationFpfssInfo } from './curate/fpfss';
 import { axios } from './dns';
 import { Downloader } from './Downloader';
+import { MultiZipReader } from '@fparchive/multi-zip-reader';
 
 export const VERBOSE = {
   enabled: false
@@ -210,6 +212,7 @@ const state: BackState = {
   resolveDialogEvents: new EventEmitter(),
   downloadController: new InstancedAbortController(),
   shortcuts: {},
+  archiveData: new MultiZipReader(),
 };
 
 main();
@@ -395,6 +398,21 @@ async function prepForInit(message: any): Promise<void> {
   VERBOSE.enabled = state.preferences.enableVerboseLogging;
 
   console.log('Back - Loaded Preferences');
+
+  // Load archive data
+  console.log('Back - Indexing Archive Data');
+  const startTimeArchivedData = performance.now();
+  const archiveDataPath = path.join(state.config.flashpointPath, 'Data', 'ArchiveData');
+  state.archiveData = new MultiZipReader();
+  await state.archiveData.loadDirectory(archiveDataPath);
+  const endTimeArchivedData = performance.now();
+
+  let indexTotal = 0;
+  for (const source of state.archiveData.sources) {
+    indexTotal += Object.keys(source.data).length;
+  }
+
+  log.debug('Launcher', `Indexed ${indexTotal.toLocaleString()} Archived Data Files in ${Math.floor(endTimeArchivedData - startTimeArchivedData)}ms`);
 
   // Hook into stdout for logging
   const realWrite = process.stdout.write.bind(process.stdout);
@@ -1277,7 +1295,33 @@ async function onFileServerRequestImages(pathname: string, url: URL, req: http.I
           res.writeHead(404);
           res.end();
         } else {
-          // File missing
+          // File missing, try archive next
+          const ultPath = fixSlashes(path.join('Flashpoint Ultimate', path.relative(state.config.flashpointPath, filePath)));
+          console.log(ultPath);
+          try {
+            const stream = await state.archiveData.readFileStream(ultPath);
+            if (stream !== null) {
+              stream.on('error', error => {
+                console.warn(`File server failed to stream archived data file. ${error}`);
+                stream.destroy(); // Calling "destroy" inside the "error" event seems like it could case an endless loop (although it hasn't thus far)
+                if (!res.writableEnded) { res.end(); }
+              });
+              stream.pipe(res);
+              return;
+            } else {
+              res.writeHead(204);
+              res.end();
+              return;
+            }
+          } catch (e: any) {
+            if (e.code !== 'ENOENT') {
+              log.error('Launcher', `Error reading file from archive data: ${e}`);
+              res.writeHead(500);
+              res.end();
+              return;
+            }
+          }
+
           if (!state.preferences.onDemandImages) {
             // Not downloading new files
             res.writeHead(404);

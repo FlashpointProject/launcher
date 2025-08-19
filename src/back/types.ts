@@ -22,6 +22,7 @@ import { FolderWatcher } from './util/FolderWatcher';
 import { LogFile } from './util/LogFile';
 import { PlatformAppPathSuggestions } from '@shared/curate/types';
 import { Downloader } from './Downloader';
+import { MultiZipReader } from '@fparchive/multi-zip-reader';
 
 /** Contains most state for the back process. */
 export type BackState = {
@@ -88,6 +89,7 @@ export type BackState = {
   resolveDialogEvents: EventEmitter;
   downloadController: InstancedAbortController;
   shortcuts: Record<string, string[]>;
+  archiveData: MultiZipReader;
 }
 
 export type BackQueryChache = {
