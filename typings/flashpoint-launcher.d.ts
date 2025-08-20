@@ -21,6 +21,7 @@
 
 declare module 'flashpoint-launcher' {
   import { Readable } from 'stream';
+  import { ReadStream } from 'fs';
 
   /** Version of the Flashpoint Launcher */
   const version: string;
@@ -191,6 +192,21 @@ declare module 'flashpoint-launcher' {
       curation: LoadedCuration,
       warnings: CurationWarnings
     }>;
+  }
+
+  namespace archiveData {
+    function readFile(filePath: string): Promise<Buffer | null>;
+    function readFileStream(filePath: string): Promise<ReadStream | null>;
+    function getZipDataOffset(filePath: string): Promise<ZipDataOffset | null>;
+  }
+
+  type ZipDataOffset = {
+    filePath: string;
+    crc32: number;
+    offset: number;
+    compressionMethod: number; // 0 = Store, 8 = Deflate
+    compressedLength: number;
+    length: number;
   }
 
   /** Collection of Game related API functions */
@@ -1232,7 +1248,7 @@ declare module 'flashpoint-launcher' {
       stepProgress: number;
       text: string;
     }
-    
+
     type DownloadTask = {
       status: DownloadTaskStatus;
       game: Game;
@@ -1574,7 +1590,7 @@ declare module 'flashpoint-launcher' {
     export type DialogState = {
       id: string;
       mdx?: boolean;
-      textAlign?: 'left' | 'center' | 'right'; 
+      textAlign?: 'left' | 'center' | 'right';
       largeMessage?: boolean;
       userCanCancel?: boolean;
       message: string;
