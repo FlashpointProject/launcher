@@ -381,10 +381,15 @@ export class App extends React.Component<AppProps> {
     })
     .then(() => {
       if (this.props.preferencesData.gameMetadataSources.length > 0) {
-        window.Shared.back.request(BackIn.PRE_UPDATE_INFO, this.props.preferencesData.gameMetadataSources[0])
-        .then((total) => {
-          this.props.mainActions.setUpdateInfo(total);
-        });
+        for (const source of this.props.preferencesData.gameMetadataSources) {
+          window.Shared.back.request(BackIn.PRE_UPDATE_INFO, source)
+          .then((total) => {
+            this.props.mainActions.setUpdateInfo({
+              id: source.id,
+              total
+            });
+          });
+        }
       }
     });
   }

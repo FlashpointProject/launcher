@@ -4,7 +4,7 @@ import { BackIn, GameOfTheDay } from '@shared/back/types';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
-import { DialogState, GameLaunchOverride, Playlist, ViewGame } from 'flashpoint-launcher';
+import { DialogState, GameLaunchOverride, GameMetadataSource, Playlist, ViewGame } from 'flashpoint-launcher';
 import { HomePageComponentProps } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
 import { WithPreferencesProps } from '../../containers/withPreferences';
@@ -53,24 +53,29 @@ export function HomePage(props: HomePageProps) {
     });
   };
 
-  const onPressUpdate = () => {
+  const onPressUpdate = (source: GameMetadataSource) => {
     if (updating) {
       return;
     }
     setUpdating(true);
 
-    if (props.main.metadataUpdate.total <= 0) {
+    const preUpdateInfo = props.main.metadataUpdate[source.id];
+
+    if (preUpdateInfo.total <= 0) {
       // Fetch update info
-      window.Shared.back.request(BackIn.PRE_UPDATE_INFO, props.preferencesData.gameMetadataSources[0])
+      window.Shared.back.request(BackIn.PRE_UPDATE_INFO, source)
       .then((total) => {
-        props.mainActions.setUpdateInfo(total);
+        props.mainActions.setUpdateInfo({
+          id: source.id,
+          total
+        });
       })
       .finally(() => {
         setUpdating(false);
       });
     } else {
       // Do update
-      window.Shared.back.request(BackIn.SYNC_ALL, props.preferencesData.gameMetadataSources[0])
+      return window.Shared.back.request(BackIn.SYNC_ALL, source)
       .then((success) => {
         if (success) {
           const dialog: DialogState = {
@@ -80,7 +85,10 @@ export function HomePage(props: HomePageProps) {
             id: uuid()
           };
           props.mainActions.createDialog(dialog);
-          props.mainActions.setUpdateInfo(0);
+          props.mainActions.setUpdateInfo({
+            id: source.id,
+            total: 0
+          });
         }
       })
       .catch((err) => {
@@ -98,10 +106,6 @@ export function HomePage(props: HomePageProps) {
       });
     }
   };
-  const updateText = props.main.metadataUpdate.ready ? (
-    props.main.metadataUpdate.total > 0 ? strings.update :
-      props.main.metadataUpdate.total === -1 ? strings.error : strings.checkForUpdates
-  ) : strings.checkingUpdate;
 
   const homePageComponentProps: HomePageComponentProps = {
     playlists: props.playlists,
@@ -118,14 +122,92 @@ export function HomePage(props: HomePageProps) {
     toggleMinimizeBox,
   };
 
+  const UpdateComponent = () => {
+    if (props.preferencesData.gameMetadataSources.length === 0) {
+      return <></>;
+    }
+
+    let updateReady = false;
+    for (const info of Object.values(props.main.metadataUpdate)) {
+      if (info.ready) {
+        updateReady = true;
+        break;
+      }
+    }
+
+    // Collect individual blocks
+    const updateBlocks: React.JSX.Element[] = props.preferencesData.gameMetadataSources.map(source => {
+      let preUpdateInfo = props.main.metadataUpdate[source.id];
+      if (preUpdateInfo === undefined) {
+        preUpdateInfo = {
+          ready: false,
+          total: 0
+        };
+      }
+      let button = <></>;
+      const updateText = preUpdateInfo.ready ? (
+        preUpdateInfo.total > 0 ? strings.update :
+          preUpdateInfo.total === -1 ? strings.error : strings.checkForUpdates
+      ) : strings.checkingUpdate;
+
+      if (preUpdateInfo === undefined) {
+        button = <SimpleButton disabled={true} value={updateText}/>;
+      } else if (preUpdateInfo.ready && preUpdateInfo.total > 0) {
+        button = <SimpleButton value={updateText} onClick={() => onPressUpdate(source)}/>;
+      }
+
+      return (
+        <div>
+          <div className='update-metadata-name'>
+            {source.name}
+          </div>
+          { preUpdateInfo.ready && preUpdateInfo.total > 0 && (
+            <div className='update-metadata-last'>
+              {formatString(strings.updatedGamesReady, (preUpdateInfo.total + 1).toString())}
+            </div>
+          )}
+          <div className='update-metadata-last'>
+            {`${strings.lastUpdated}: ${(new Date(source.games.actualUpdateTime)).toLocaleString()}`}
+          </div>
+          {button}
+        </div>
+      );
+    });
+
+    if (updateReady) {
+      updateBlocks.unshift(
+        <div className='update-metadata-button'>
+          <SimpleButton
+            className='update-metadata-button-inner'
+            value={strings.update}
+            disabled={updating}
+            onClick={async () => {
+              for (const info of Object.entries(props.main.metadataUpdate)) {
+                if (info[1].ready && info[1].total > 0) {
+                  const source = props.preferencesData.gameMetadataSources.find(s => s.id === info[0]);
+                  if (source) {
+                    await onPressUpdate(source);
+                  }
+                }
+              }
+            }} />
+        </div>
+      );
+    }
+
+    return <div className='update-metadata-box'>
+      {updateBlocks}
+    </div>;
+  };
+
   // Render
   return (
     <div className='home-page simple-scroll'>
       <div className='home-page__inner'>
         {/* Logo */}
         <div className='home-page__logo fp-logo-box'>
-          {/* Metadata Update */}
-          { props.preferencesData.gameMetadataSources.length > 0 && (
+          <UpdateComponent/>
+          {/* { props.preferencesData.gameMetadataSources.length > 0 && (
             <div className='update-metadata-box'>
               <div className='update-metadata-button'>
                 <SimpleButton
@@ -146,7 +228,7 @@ export function HomePage(props: HomePageProps) {
                 {`${strings.lastUpdated}: ${(new Date(props.preferencesData.gameMetadataSources[0].games.actualUpdateTime)).toLocaleString()}`}
               </div>
             </div>
-          ) }
+          ) } */}
           <FancyAnimation
             fancyRender={() => (
               <div

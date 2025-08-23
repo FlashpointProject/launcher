@@ -21,8 +21,13 @@ export const RANDOM_GAME_ROW_COUNT = 6;
 type DisplaySettingsCallback = (prev: DisplaySettings) => DisplaySettings;
 type ExtOrderablesCallback = (prev: ExtOrderable[]) => ExtOrderable[];
 
-export type MetaUpdateState = {
+export type MetaUpdateState = Record<string, {
   ready: boolean;
+  total: number;
+}>;
+
+export type MetaUpdateAction = {
+  id: string;
   total: number;
 }
 
@@ -267,10 +272,7 @@ const initialState: MainState = {
   taskBarOpen: false,
   isEditingGame: false,
   updateFeedMarkdown: '',
-  metadataUpdate: {
-    ready: false,
-    total: 0
-  },
+  metadataUpdate: {},
   busyGames: [],
   platformAppPaths: {},
   componentStatuses: [],
@@ -426,10 +428,10 @@ const mainSlice = createSlice({
         alert(`Error setting extension orderables from extension callback: ${err}`);
       }
     },
-    setUpdateInfo(state: MainState, { payload }: PayloadAction<number>) {
-      state.metadataUpdate = {
+    setUpdateInfo(state: MainState, { payload }: PayloadAction<MetaUpdateAction>) {
+      state.metadataUpdate[payload.id] = {
         ready: true,
-        total: payload,
+        total: payload.total,
       };
     }
   },
