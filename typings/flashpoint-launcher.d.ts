@@ -128,6 +128,13 @@ declare module 'flashpoint-launcher' {
     order: string[];
   };
 
+  namespace sources {
+    /**
+     * Registers a Data Provider to use when trying to download games
+     */
+    function registerDataProvider(provider: GameDataProvider): void;
+  }
+
   namespace dataExtensions {
     /**
      * Installs a data extension
@@ -1222,6 +1229,7 @@ declare module 'flashpoint-launcher' {
       type: string;
       name: string;
       arguments: string[];
+      data: any;
     }
 
     type GameMetadataSource = {
@@ -2576,6 +2584,12 @@ declare module 'flashpoint-launcher' {
     type LangContainer = BaseLangContainer & {
       libraries: DynamicLangCategory;
       upgrades: DynamicLangCategory;
+    }
+
+    type GameDataProvider = {
+      id: string;
+      name: string;
+      downloadGame(source: GameDataSource, gameData: GameData, dataPacksFolderPath: string, abortSignal: AbortSignal, onProgress?: (percent: number) => void, onDetails?: (details: DownloadDetails) => void): Promise<boolean>;
     }
 }
 

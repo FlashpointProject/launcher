@@ -75,6 +75,7 @@ import { logFactory } from './util/logging';
 import { createContainer, exit, getMacPATH, promiseSleep, runService } from './util/misc';
 import { uuid } from './util/uuid';
 import { webgameContentRunenr } from './flashpoint/WebgameContentRunner';
+import { GameDataProviderRaw } from './GameDataProvider';
 
 export const VERBOSE = {
   enabled: false
@@ -200,6 +201,7 @@ export const state: BackState = {
     themes: new Map<string, Theme>(),
     middlewares: new Map<string, RegisteredMiddleware>(),
     contentRunners: new Map<string, flashpoint.ContentRunner>(),
+    dataSources: new Map<string, flashpoint.GameDataProvider>,
   },
   extensionsService: createErrorProxy('extensionsService'),
   sevenZipPath: '',
@@ -544,6 +546,10 @@ async function prepForInit(message: any): Promise<void> {
     }
   }
   console.log('Back - Parsed Playlists');
+
+  // Register sources
+
+  state.registry.dataSources.set(GameDataProviderRaw.id, GameDataProviderRaw);
 
   // Load Extensions
 

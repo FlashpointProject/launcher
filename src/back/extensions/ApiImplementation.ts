@@ -106,6 +106,10 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     });
   };
 
+  const registerDataProvider = (provider: flashpoint.GameDataProvider): void => {
+    state.registry.dataSources.set(provider.id, provider);
+  };
+
   const registerDataExtension = (extension: flashpoint.DataExtensionInfo): void => {
     // Silly enum won't convert
     fpDatabase.registerExtension({
@@ -128,6 +132,11 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
   const focusWindow = () => {
     state.socketServer.broadcast(BackOut.FOCUS_WINDOW);
   };
+
+  // Sources namespace
+  const extSources: typeof flashpoint.sources = {
+    registerDataProvider: registerDataProvider,
+  }
 
   // Data extensions Namespace
   const extDataExtensions: typeof flashpoint.dataExtensions = {
@@ -689,6 +698,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     langTemplate: langTemplate,
 
     // Namespaces
+    sources: extSources,
     dataExtensions: extDataExtensions,
     log: extLog,
     commands: extCommands,

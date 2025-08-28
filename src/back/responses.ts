@@ -79,7 +79,6 @@ import {
 } from './curate/util';
 import { saveCuration } from './curate/write';
 import { axios } from './dns';
-import { downloadGameData } from './download';
 import { parseAppVar } from './extensions/util';
 import { clearWininetCache, importCuration, launchAddAppCuration, launchCuration } from './importGame';
 import { databaseReady, fpDatabase, loadCurationArchive } from './index';
@@ -1118,10 +1117,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       await fpDatabase.deleteGameData(gameDataId);
     }
   });
-
-  // state.socketServer.register(BackIn.IMPORT_GAME_DATA, async (event, gameId, filePath) => {
-  //   return GameDataManager.importGameData(gameId, filePath, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath));
-  // });
 
   state.socketServer.register(BackIn.DOWNLOAD_GAME_DATA, async (event, gameDataId) => {
     const gameData = await fpDatabase.findGameDataById(gameDataId);
@@ -2818,7 +2813,23 @@ async function downloadGameDataRes(state: BackState, gameData: GameData) {
   };
   state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
   try {
-    await downloadGameData(gameData.id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), state.preferences.gameDataSources, state.downloadController.signal(), onProgress, onDetails);
+    for (const source of state.preferences.gameDataSources) {
+      let success = false;
+      for (const provider of state.registry.dataSources.values()) {
+        try {
+          success = await provider.downloadGame(source, gameData, state.preferences.dataPacksFolderPath, state.downloadController.signal(), onProgress, onDetails);
+          if (success) {
+            break;
+          }
+        } catch (err) {
+          log.error('Launcher', `Error from source ${provider.name} (${provider.id}) - ${err}`);
+          success = false;
+        }
+      }
+      if (success) {
+        break;
+      }
+    }
   } finally {
     // Close PLACEHOLDER download dialog on client, cosmetic delay to look nice
     setTimeout(() => {

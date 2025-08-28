@@ -374,11 +374,13 @@ function parseGameDataSource(parser: IObjectParserProp<GameDataSource>): GameDat
   const source: GameDataSource = {
     type: 'raw',
     name: '',
-    arguments: []
+    arguments: [],
+    data: undefined
   };
   parser.prop('type', v => source.type = str(v));
   parser.prop('name', v => source.name = str(v));
   parser.prop('arguments').arrayRaw((item, index) => source.arguments.push(item));
+  parser.prop('data', v => source.data = v, true);
   return source;
 }
 
