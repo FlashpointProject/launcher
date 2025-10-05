@@ -10,7 +10,7 @@
     "hideExtremeScreenshotsDesc": "Cache les captures d'écran de contenu taguées Extrême, peuvent être réaffichées en cliquant sur la zone de l'image.",
     "fancyAnimations": "Animations de qualité supérieure",
     "fancyAnimationsDesc": "Active les animations de qualité supérieure dans le lanceur.",
-    "hideNewViewButton": "Hide New View Button",
+    "hideNewViewButton": "Masquer le bouton \"Nouvelle vue\"",
     "hideNewViewButtonDesc": "When using custom views, hide the new view (+) button. You can instead press 'Create New View' under the context menu for tabs.",
     "searchLimit": "Limite de recherche",
     "searchLimitDesc": "Limite le nombre de résultats retournés dans toutes les recherches",
@@ -20,9 +20,9 @@
     "useCustomViewsDesc": "Replaces the Library search tabs with custom named search tabs and adds a Library option to the advanced filters.",
     "loadViewsText": "Restore Search View Text",
     "loadViewsTextDesc": "Whether to restore the text field of a search view when restarting the launcher.",
-    "defaultOpeningPage": "Default Opening Page",
+    "defaultOpeningPage": "Page d'ouverture par défaut",
     "defaultOpeningPageDesc": "Default page to open to, either the Home Page or a chosen Search Page",
-    "restoreSearchViews": "Restore Search Results",
+    "restoreSearchViews": "Restaurer les résultats de recherche",
     "restoreSearchViewsDesc": "Saves and restore a copy of each search page (text, filters, selected game and playlist) whenever you open the application.",
     "useSelectedGameScroll": "Enable Game Selection Keyboard Controls",
     "useSelectedGameScrollDesc": "Enables use of arrow keys to select games on Game Grids / Lists. NOTE: This will replace saved scroll position with saved selected game position.",
@@ -96,9 +96,9 @@
     "screenshotPreviewDelayDesc": "Délai (en millisecondes) avant d'afficher la capture d'écran, lorsque la prévisualisation de la capture d'écran est activée en mode survol.",
     "advancedHeader": "Avancé",
     "autoClearWininetCache": "Effacer automatiquement le cache WinINet",
-    "autoClearWininetCacheDesc": "Whether to automatically clear the Windows web cache when running a curation from the Curate tab",
+    "autoClearWininetCacheDesc": "Si le nettoyage du cache web Windows se fait automatiquement lors de l'exécution d'une entrée depuis l'onglet \"Conserver\"",
     "clearWininetCache": "Effacer le cache WinINet",
-    "clearWininetCacheDesc": "Clears Windows web cache, which may help resolve loading issues in curations and other rare cases.",
+    "clearWininetCacheDesc": "Nettoie le cache web Windows, ce qui peut potentiellement aider à résoudre des problèmes de chargement des conservations et autres cas similaires.",
     "optimizeDatabase": "Optimiser la base de données",
     "optimizeDatabaseDesc": "Exécute des tâches de maintenance pour augmenter les performances de la base de données et en réduire la taille.",
     "showDeveloperTab": "Afficher l'onglet Développeur",
@@ -210,7 +210,7 @@
     "deleteView": "Delete Search View",
     "deleteOnlyBrowseView": "Delete Search View (Must have another custom view)",
     "renameView": "Rename Search View",
-    "duplicateView": "Duplicate Search View",
+    "duplicateView": "Dupliquer la vue",
     "createNewView": "Create New Search View",
     "errorLoadingServices": "Une erreur est survenue lors du chargement des services. Merci de vérifier les logs pour plus de détails."
   },
@@ -405,7 +405,7 @@
     "showExtremeScreenshot": "Afficher la capture d'écran extrême",
     "busy": "Veuillez patienter...",
     "openGameDataBrowser": "Ouvrir le navigateur de données du jeu",
-    "allGenericEntries": "All Entries",
+    "allGenericEntries": "Toutes les entrées",
     "usePlaylistOrder": "Use Playlist Order",
     "hideFilters": "Masquer les filtres",
     "showFilters": "Afficher les filtres",
@@ -528,7 +528,7 @@
     "contextShowInExplorer": "Afficher le fichier dans l'explorateur",
     "contextOpenFolderInExplorer": "Ouvrir le dossier dans l'explorateur",
     "shortcuts": "Raccourcis",
-    "fpfssOpenSubmissionPage": "Open Submission Page"
+    "fpfssOpenSubmissionPage": "Ouvrir la page de la soumission"
   },
   "playlist": {
     "enterDescriptionHere": "Entrer une description ici...",
@@ -593,7 +593,7 @@
     "makeCurationFromGame": "Faire une curation à partir d'un jeu",
     "copyShortcutURL": "Copier Raccourci",
     "downloadGame": "Download Game",
-    "downloadPlaylistContent": "Download Playlist Entries"
+    "downloadPlaylistContent": "Télécharger les entrées de la playlist"
   },
   "dialog": {
     "programNotFound": "Programme non trouvé !",
@@ -669,7 +669,7 @@
     "openWiki": "Ouvrir le Wiki",
     "openDiscord": "Rejoindre le serveur Discord",
     "doNotShowAgain": "Ne plus afficher",
-    "extFpfssConsent": "Extension with ID {0} is requesting access to your FPFSS token. Allow?\nThis means the extension will be able access your FPFSS account and perform actions on your behalf.",
+    "extFpfssConsent": "L'extension d'id {0} demande l'accès à votre jeton FPFSS. Autoriser ? Cela veut dire que l'extension pourra avoir accès à votre compte FPFSS et effectuer des actions de son côté.",
     "gameDataUpdateReady": "A game data update is ready. Do you want to upgrade now?",
     "gameDataUpdateReadyLcDifferent": "A game data update is ready. The launch command has changed and this may break existing save files. Do you want to upgrade now?"
   },
@@ -693,7 +693,7 @@
     "screenshotsDesc": "Ajoute des logos pour la vue en grille et des captures d'écran pour tous les jeux."
   },
   "extensions": {
-    "fpssConsentRevokeTitle": "Revoke access to FPFSS",
-    "fpssConsentRevokeDesc": "Withdraw this extension's access to FPFSS"
+    "fpssConsentRevokeTitle": "Révoquer l'accès à FPFSS",
+    "fpssConsentRevokeDesc": "Retirer le droit d'accès de l'extension à FPFSS"
   }
 }
