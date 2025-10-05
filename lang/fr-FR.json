@@ -68,7 +68,7 @@
     "updateSource": "Actualiser la source",
     "platforms": "Plateformes",
     "nativePlatforms": "Plateformes natives",
-    "nativePlatformsDesc": "Utilise des versions natives de ces plateformes. (Si non disponibles, Wine sera utilisé)",
+    "nativePlatformsDesc": "Utilise des versions natives de ces plateformes. (Si indisponibles, Wine sera utilisé)",
     "tagFilterGroups": "Groupes de filtres de tags",
     "tagFilterGroupsDesc": "Ces groupes filtreront les suggestions et les jeux des résultats de recherche",
     "editTagFilter": "Éditer le groupe de filtres de tags",
@@ -187,7 +187,7 @@
     "logs": "Logs",
     "config": "Paramètres",
     "about": "À propos",
-    "curate": "Préserver",
+    "curate": "Archiver",
     "developer": "Développeur",
     "searchPlaceholder": "Rechercher...",
     "searchPlaceholderCountable": "Search... ({0} items)",
@@ -249,7 +249,7 @@
     "createMissingFolders": "Créer les dossiers manquants",
     "createMissingFoldersDesc": "Trouve tous les dossiers manquants dans la structure du dossier de Flashpoint et les crée",
     "importLegacyPlatforms": "Importer les vieilles plateformes",
-    "importLegacyPlatformsDesc": "Importe les anciennes plateformes de 'Data/Platforms/' - ATTENTION : Ceci va écraser les jeux en conflit",
+    "importLegacyPlatformsDesc": "Importe les anciennes plateformes de 'Data/Platforms/' - ATTENTION : Cela va écraser les jeux en conflit",
     "importLegacyPlaylists": "Importer les anciennes playlists",
     "importLegacyPlaylistsDesc": "Importe les anciennes playlists de '/Data/Playlist'",
     "deleteAllPlaylists": "Supprimer toutes les playlists",
@@ -413,7 +413,7 @@
     "archived": "Archivé",
     "playOnline": "Jouer en ligne",
     "tagFilterIcon": "Tag Filter Icon",
-    "runWithFlashPlayer": "Run with Flash Player",
+    "runWithFlashPlayer": "Exécuter avec Flash Player",
     "runWithRuffle": "Exécuter avec Ruffle",
     "runWithRuffleUnsupported": "Exécuter avec Ruffle (non pris en charge)"
   },
@@ -439,7 +439,7 @@
     "deleteTag": "Supprimer le tag",
     "deleteTagCategory": "Supprimer la catégorie tag",
     "locked": "Protégé pendant le traitement...",
-    "filterIcon": "Icon Thumbnail"
+    "filterIcon": "Icône de la miniature"
   },
   "curate": {
     "noCurationSelected": "Aucune conservation sélectionnée",
@@ -665,7 +665,7 @@
     "requiresAdditionalDownload": "Il vous manque le pack de support {0} , qui est requis pour lancer cette entrée.\nTélécharger maintenant ?",
     "requiresAdditionalDownloadPlural": "Il vous manque les packs de support {0}, qui sont requis pour lancer cette entrée.\nTélécharger maintenant ?",
     "confirmClearPlaytime": "Effacer tous les temps de jeu et l'historique ? Ceci est irréversible.",
-    "badAntiVirus": "You appear to be using '{0}'.\nThis particular Antivirus is known to cause issues, and we recommend adding an exception to the Flashpoint folder.\n\nIf you only see a white screen when running Flash games you may need to reinstall Flashpoint to restore deleted files.\n\nSee the Wiki or Help tab for detailed instructions.",
+    "badAntiVirus": "Il semble que vous utilisez '{0}'.\nCet Antivirus en particulier est connu pour causer des problèmes, nous recommandons donc d'ajouter le dossier Flashpoint en exception.\n\nSi un écran blanc s'affiche lors de l'exécution de jeux Flash, il se pourrait que vous deviez réinstaller Flashpoint pour restaurer les fichiers supprimés.\n\nVoir la page Wiki ou Aide pour des instructions plus détaillées.",
     "openWiki": "Ouvrir le Wiki",
     "openDiscord": "Rejoindre le serveur Discord",
     "doNotShowAgain": "Ne plus afficher",
@@ -688,7 +688,7 @@
     "infinity": "Flashpoint Infinity",
     "infinityDesc": "Fichiers requis. Ajoute la prise en charge des jeux Flash.",
     "tech": "Autres technologies",
-    "techDesc": "Ajoute la prise en charge de toutes les autres technologies - Shockwave, Unity, Java, HTML5, etc.",
+    "techDesc": "Ajoute la prise en charge de toutes les autres technologies : Shockwave, Unity, Java, HTML5, etc...",
     "screenshots": "Logos et captures d'écran",
     "screenshotsDesc": "Ajoute des logos pour la vue en grille et des captures d'écran pour tous les jeux."
   },
