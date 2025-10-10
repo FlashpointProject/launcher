@@ -107,6 +107,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
   };
 
   const registerDataProvider = (provider: flashpoint.GameDataProvider): void => {
+    console.log(`Registered ${provider.id}`);
     state.registry.dataSources.set(provider.id, provider);
   };
 
@@ -136,7 +137,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
   // Sources namespace
   const extSources: typeof flashpoint.sources = {
     registerDataProvider: registerDataProvider,
-  }
+  };
 
   // Data extensions Namespace
   const extDataExtensions: typeof flashpoint.dataExtensions = {

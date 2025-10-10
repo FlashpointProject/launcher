@@ -1,5 +1,5 @@
 import { loadRemote, preloadRemote, registerRemotes } from '@module-federation/enhanced/runtime';
-import { ComponentType, createContext, lazy, ReactNode, useEffect, useState } from 'react';
+import { ComponentType, createContext, lazy, ReactNode, useState } from 'react';
 import { DynamicComponent } from './DynamicComponent';
 import { GameComponentAddApps, GameComponentAlternateTitles, GameComponentDates, GameComponentLanguage, GameComponentLegacyData, GameComponentNotes, GameComponentOriginalDescription, GameComponentPlatforms, GameComponentPlaylistNotes, GameComponentPlayMode, GameComponentPublisher, GameComponentRuffleSupport, GameComponentSeries, GameComponentSource, GameComponentStatus, GameComponentTags, GameComponentVersion } from './GameComponents';
 import { GameListHeaderDeveloper, GameListHeaderPlatform, GameListHeaderPublisher, GameListHeaderTitle, GameListRowDeveloper, GameListRowPlatform, GameListRowPublisher, GameListRowTitle } from './GameListComponents';
@@ -60,39 +60,37 @@ const initProps = {
   'init': true
 };
 
+async function loadManifests(manifests: RemoteModule[]) {
+  for (const manifest of manifests) {
+    try {
+      // Register with module federation
+      registerRemotes([{
+        name: manifest.scope,
+        entry: manifest.url,
+      }]);
+      preloadRemote([{
+        nameOrAlias: manifest.scope,
+        resourceCategory: 'all',
+      }]);
+      console.log(`Registered MF Provider with name '${manifest.scope}' to '${manifest.url}'`);
+      log.debug('Extensions', `Registered MF Provider with name '${manifest.scope}' to '${manifest.url}'`);
+    } catch (err) {
+      log.error('Extensions', `Failed to register MF Provider with name '${manifest.scope}' to '${manifest.url}': ${err}`);
+    }
+  }
+}
+
 export function DynamicComponentProvider({ manifests, children }: DynamicComponentProviderProps) {
   const [components] = useState<ComponentMap>(DEFAULT_COMPONENT_MAP);
   const [lazyComponents, setLazyComponents] = useState<Record<string, React.LazyExoticComponent<any>>>({});
   const [loadedManifests, setLoadedManifests] = useState<string[]>([]);
 
-  useEffect(() => {
-    const newManifests = manifests.filter(f => !loadedManifests.includes(f.url));
-
-    if (newManifests.length > 0) {
-      const loadManifests = async (manifests: RemoteModule[]) => {
-        for (const manifest of manifests) {
-          try {
-            // Register with module federation
-            registerRemotes([{
-              name: manifest.scope,
-              entry: manifest.url,
-            }]);
-            preloadRemote([{
-              nameOrAlias: manifest.scope,
-              resourceCategory: 'all',
-            }]);
-            console.log(`Registered MF Provider with name '${manifest.scope}' to '${manifest.url}'`);
-            log.debug('Extensions', `Registered MF Providern with name '${manifest.scope}' to '${manifest.url}'`);
-          } catch (err) {
-            log.error('Extensions', `Failed to register MF Provider with name '${manifest.scope}' to '${manifest.url}': ${err}`);
-          }
-        }
-      };
-
-      setLoadedManifests(prev => [...prev, ...(newManifests.map(m => m.url))]);
-      loadManifests(newManifests);
-    }
-  }, [manifests]);
+  // Load any newly added manifests
+  const newManifests = manifests.filter(f => !loadedManifests.includes(f.url));
+  if (newManifests.length > 0) {
+    setLoadedManifests(prev => [...prev, ...(newManifests.map(m => m.url))]);
+    loadManifests(newManifests);
+  }
 
   const getComponent = (name: string) => {
     // Check if it's cached

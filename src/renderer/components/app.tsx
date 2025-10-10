@@ -1558,7 +1558,7 @@ export class App extends React.Component<AppProps> {
                   </FloatingContainer>
                 )}
                 {/* First Open Dialog */}
-                {this.props.main.openDialogs.length > 0 && (
+                {this.props.main.openDialogs.length > 0 && this.props.main.socketOpen && (
                   <Dialog
                     dialog={this.props.main.openDialogs[0]}
                     closeDialog={this.props.mainActions.cancelDialog}

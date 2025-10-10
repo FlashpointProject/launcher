@@ -74,7 +74,7 @@ import { LogFile } from './util/LogFile';
 import { logFactory } from './util/logging';
 import { createContainer, exit, getMacPATH, promiseSleep, runService } from './util/misc';
 import { uuid } from './util/uuid';
-import { webgameContentRunenr } from './flashpoint/WebgameContentRunner';
+import { webgameContentRunner } from './flashpoint/WebgameContentRunner';
 import { GameDataProviderRaw } from './GameDataProvider';
 
 export const VERBOSE = {
@@ -996,7 +996,7 @@ async function initialize() {
   });
 
   // Add built in providers
-  state.registry.contentRunners.set(webgameContentRunenr.id, webgameContentRunenr);
+  state.registry.contentRunners.set(webgameContentRunner.id, webgameContentRunner);
 
   // Init extensions
   const addExtLogFactory = (extId: string) => (entry: ILogEntry) => {
@@ -1676,7 +1676,7 @@ export async function checkAndDownloadGameData(activeDataId: number) {
     };
     state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
     try {
-      await downloadGameData(gameData.id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), state.preferences.gameDataSources, state.downloadController.signal(), onProgress, onDetails)
+      await downloadGameData(gameData.id, state, state.downloadController.signal(), onProgress, onDetails)
       .finally(() => {
         // Close PLACEHOLDER download dialog on client, cosmetic delay to look nice
         setTimeout(() => {

@@ -423,7 +423,9 @@ export async function downloadFile(axios: axiosImport.AxiosInstance, url: string
     });
     let progress = 0;
     const contentLength = res.headers['content-length'];
-    onDetails && onDetails({ downloadSize: contentLength });
+    if (onDetails !== undefined) {
+      onDetails({ downloadSize: contentLength });
+    }
     const progressThrottle = onProgress && throttle(onProgress, 200);
     const fileStream = fs.createWriteStream(filePath);
     return new Promise<number>((resolve, reject) => {
@@ -432,11 +434,15 @@ export async function downloadFile(axios: axiosImport.AxiosInstance, url: string
       });
       res.data.on('end', () => {
         fileStream.close();
-        onProgress && onProgress(100);
+        if (onProgress !== undefined) {
+          onProgress(100);
+        }
       });
       res.data.on('data', (chunk: any) => {
         progress = progress + chunk.length;
-        progressThrottle && progressThrottle((progress / contentLength) * 100);
+        if (progressThrottle !== undefined) {
+          progressThrottle((progress / contentLength) * 100);
+        }
         fileStream.write(chunk);
       });
       res.data.on('error', async () => {

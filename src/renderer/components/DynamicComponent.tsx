@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/static-components */
 import { Suspense, useContext } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { DynamicComponentContext } from './DynamicComponentProvider';

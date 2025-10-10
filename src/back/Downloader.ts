@@ -40,7 +40,7 @@ export class Downloader extends WrappedEventEmitter {
     public readonly imageFolderPath: string,
     public readonly onDemandBaseUrl: string,
     public readonly sources: GameDataSource[],
-    private state: BackState,
+    public state: BackState,
     workerCount: number
   ) {
     super();
@@ -305,10 +305,10 @@ class DownloadWorker {
 
         // Did not find matching file, try and download
         try {
-          await downloadGameData(gameData.id, path.join(this.downloader.flashpointPath, this.downloader.dataPacksFolderPath), this.downloader.sources, signal, (progress) => {
+          await downloadGameData(gameData.id, this.downloader.state, signal, (progress) => {
             this.stepProgress = progress;
             this.downloader.onWorkerUpdate(this);
-          }, () => {}, this.downloader.databaseQueue);
+          }, () => {});
         } catch (e) {
           errors.push(`Failed downloading game data: ${e}`);
         }

@@ -3,18 +3,19 @@ import { awaitDialog } from '@back/util/dialog';
 import { promiseSleep, removeService, runService } from '@back/util/misc';
 import { BackOut, DownloadDetails } from '@shared/back/types';
 import { getGameDataFilename, isGame } from '@shared/utils/misc';
-import { Content, ContentRunner, Game, GameData } from 'flashpoint-launcher';
+import { Content, ContentRunner, Game, GameData, BackState } from 'flashpoint-launcher';
 import * as path from 'path';
 import * as fs from 'fs';
-import { fpDatabase, state } from '..';
+import { fpDatabase } from '..';
 import { changeServerFactory, getProviders, runAddAppFactory, runGameFactory } from '@back/responses';
-import { BackState } from '@back/types';
 import { downloadGameData } from '@back/download';
 
-export const webgameContentRunenr: ContentRunner = {
+export const webgameContentRunner: ContentRunner = {
   id: 'cr-webgames',
   name: 'Webgames Content Runner',
-  runContent: async (game: Game | Content, opts?: any) => {
+  runContent: async (state: BackState, game: Game | Content, opts?: any) => {
+    log.debug('Launcher', 'webgame runner');
+    log.debug('Launcher', JSON.stringify(state.preferences, undefined, 2));
     // Check for Flashpoint specific field
     if (isGame(game)) {
       // Make sure Server is set to configured server - Curations may have changed it
@@ -147,14 +148,13 @@ export const webgameContentRunenr: ContentRunner = {
       },
       state.apiEmitters.games.onWillLaunchGame.fireableFactory(state, undefined, 'Error during game launch api event'), false);
       await state.apiEmitters.games.onDidLaunchGame.fireAlert(state, game, undefined, 'Error from post game launch api event');
-
     }
 
     return false;
   }
 };
 
-async function downloadGameDataRes(state: BackState, gameData: GameData) {
+export async function downloadGameDataRes(state: BackState, gameData: GameData) {
   const onDetails = (details: DownloadDetails) => {
     state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_DETAILS, details);
   };
@@ -163,8 +163,9 @@ async function downloadGameDataRes(state: BackState, gameData: GameData) {
     state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT, percent);
   };
   state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
+  log.debug('Launcher', 'download res');
   try {
-    await downloadGameData(gameData.id, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), state.preferences.gameDataSources, state.downloadController.signal(), onProgress, onDetails);
+    await downloadGameData(gameData.id, state, state.downloadController.signal(), onProgress, onDetails);
   } finally {
     // Close PLACEHOLDER download dialog on client, cosmetic delay to look nice
     setTimeout(() => {

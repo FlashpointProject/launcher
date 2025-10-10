@@ -9,7 +9,6 @@ import { CustomIPC, WindowIPC } from '@shared/interfaces';
 import { ChildProcess, fork } from 'child_process';
 import { randomBytes } from 'crypto';
 import { BrowserWindow, IpcMainEvent, app, dialog, ipcMain, session, shell } from 'electron';
-import { REACT_DEVELOPER_TOOLS, installExtension } from 'electron-extension-installer';
 import { AppPreferencesData } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as path from 'path';
@@ -17,6 +16,7 @@ import { argv } from 'process';
 import * as WebSocket from 'ws';
 import * as Util from './Util';
 import { Init } from './types';
+import installExtension, { REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS } from 'electron-devtools-installer';
 
 const TIMEOUT_DELAY = 60_000;
 
@@ -90,6 +90,21 @@ export function main(init: Init): void {
     state.socket.disconnect();
     app.quit();
   });
+
+  // Needed for modern Electron?
+  // This is a workaround to ensure that the extension background workers are started
+  // If you are updating Electron, confirm if this is still needed
+  // https://github.com/electron/electron/issues/41613
+  // function launchExtensionBackgroundWorkers( appSession = session.defaultSession ) {
+  //   return Promise.all(
+  //     appSession.getAllExtensions().map( async ( extension ) => {
+  //       const manifest = extension.manifest;
+  //       if ( manifest.manifest_version === 3 && manifest?.background?.service_worker ) {
+  //         await appSession.serviceWorkers.startWorkerForScope( extension.url );
+  //       }
+  //     } )
+  //   );
+  // }
 
   // -- Functions --
 
@@ -303,13 +318,8 @@ export function main(init: Init): void {
     // });
 
     if (Util.isDev) {
-      installExtension(REACT_DEVELOPER_TOOLS, {
-        loadExtensionOptions: {
-          allowFileAccess: true
-        }
-      })
-      .then((ext) => console.log(`Installed Extension - ${ext}`))
-      .catch((ext) => console.log(`Failed to install Extension - ${ext}`));
+      await installExtension( REACT_DEVELOPER_TOOLS );
+      await installExtension( REDUX_DEVTOOLS );
     }
 
     // Send locale code (if it has no been sent already)
@@ -484,7 +494,6 @@ export function main(init: Init): void {
         preload: path.resolve(__dirname, './MainWindowPreload.js'),
         nodeIntegration: true,
         contextIsolation: false,
-        
       },
     });
     remoteMain.enable(window.webContents);

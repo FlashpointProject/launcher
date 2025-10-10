@@ -14,7 +14,6 @@ import {
   BackOut,
   ComponentState,
   CurationImageEnum,
-  DownloadDetails,
   GameOfTheDay,
   GetRendererLoadedDataResponse
 } from '@shared/back/types';
@@ -119,6 +118,7 @@ import {
   runService
 } from './util/misc';
 import { uuid } from './util/uuid';
+import { downloadGameDataRes } from './flashpoint/WebgameContentRunner';
 
 /**
  * Register all request callbacks to the socket server.
@@ -650,7 +650,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     if (contentRunner) {
       const game = await fpDatabase.findGame(id);
       if (game) {
-        await contentRunner.runContent(game);
+        await contentRunner.runContent(state, game);
       }
       return;
     }
@@ -2803,37 +2803,3 @@ export async function exitApp(state: BackState, beforeProcessExit?: () => void |
   return exit(state, beforeProcessExit);
 }
 
-async function downloadGameDataRes(state: BackState, gameData: GameData) {
-  const onDetails = (details: DownloadDetails) => {
-    state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_DETAILS, details);
-  };
-  const onProgress = (percent: number) => {
-    // Sent to PLACEHOLDER download dialog on client
-    state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT, percent);
-  };
-  state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
-  try {
-    for (const source of state.preferences.gameDataSources) {
-      let success = false;
-      for (const provider of state.registry.dataSources.values()) {
-        try {
-          success = await provider.downloadGame(source, gameData, state.preferences.dataPacksFolderPath, state.downloadController.signal(), onProgress, onDetails);
-          if (success) {
-            break;
-          }
-        } catch (err) {
-          log.error('Launcher', `Error from source ${provider.name} (${provider.id}) - ${err}`);
-          success = false;
-        }
-      }
-      if (success) {
-        break;
-      }
-    }
-  } finally {
-    // Close PLACEHOLDER download dialog on client, cosmetic delay to look nice
-    setTimeout(() => {
-      state.socketServer.broadcast(BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG);
-    }, 250);
-  }
-}

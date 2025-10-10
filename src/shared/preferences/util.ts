@@ -304,7 +304,7 @@ export function overwritePreferenceData(
     parser.prop('tagFilters').array((item, index) => newTagFilters[index] = parseTagFilterGroup(item as IObjectParserProp<TagFilterGroup>));
     source.tagFilters = newTagFilters;
   }
-  if (data.gameDataSources) {
+  if (data.gameDataSources !== undefined) {
     const newSources: GameDataSource[] = [];
     parser.prop('gameDataSources').array((item, index) => newSources[index] = parseGameDataSource(item as IObjectParserProp<GameDataSource>));
     source.gameDataSources = newSources;

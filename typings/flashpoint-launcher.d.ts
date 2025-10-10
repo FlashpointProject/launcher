@@ -661,7 +661,7 @@ declare module 'flashpoint-launcher' {
        *
        * @returns Whether we ran the content or not
        */
-      runContent<T extends Content>(content: T | Content): Promise<boolean>;
+      runContent<T extends Content>(state: BackState, content: T | Content): Promise<boolean>;
     }
 
     interface Content {
@@ -756,6 +756,8 @@ declare module 'flashpoint-launcher' {
       /** Extension data (key is ext id) */
       extData?: Record<string, any>;
     }
+
+    type BackState = any;
 
     type GameData = {
       id: number;
