@@ -274,6 +274,7 @@ export enum BackOut {
   POST_SYNC_CHANGES,
 
   // Curate
+  CURATE_LOADED,
   CURATE_CONTENTS_CHANGE,
   CURATE_LIST_CHANGE,
   CURATE_SELECT_LOCK,
@@ -531,6 +532,7 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.POST_SYNC_CHANGES]: (libraries: string[], suggestions: GamePropSuggestions, platformAppPaths: PlatformAppPathSuggestions, cats: TagCategory[], total: number) => void;
 
   // Curate
+  [BackOut.CURATE_LOADED]: () => void;
   [BackOut.CURATE_CONTENTS_CHANGE]: (folder: string, contents: ContentTree) => void;
   [BackOut.CURATE_LIST_CHANGE]: (added?: CurationState[], removed?: string[]) => void; // "removed" is the folder names of the removed curations
   [BackOut.CURATE_SELECT_LOCK]: (folder: string, locked: boolean) => void;
@@ -588,7 +590,6 @@ export enum BackInit {
   PLAYLISTS,
   EXTENSIONS,
   EXEC_MAPPINGS,
-  CURATE,
 }
 
 export type InitEventData = {

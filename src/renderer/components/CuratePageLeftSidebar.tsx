@@ -26,7 +26,6 @@ function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentPro
   const [dragGroupTarget, setDragGroupTarget] = React.useState<string | undefined>(undefined);
   const curate = useAppSelector((state) => state.curate);
   const dispatch = useAppDispatch();
-  console.log('left list render items: ' + curate.curations.length);
 
   const [onListMouseDown, onListMouseUp] = useMouse<string>(() => ({
     chain_delay: 500,
@@ -73,8 +72,6 @@ function CuratePageLeftSidebarComponent(props: CuratePageLeftSidebarComponentPro
       return groupCompare;
     }
   });
-
-  console.log('left list render sorted items: ' + sortedCurations.length);
 
   const renderCuration = (curation: CurationState) => {
     let className = '';

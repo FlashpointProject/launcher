@@ -398,7 +398,7 @@ export class App extends React.Component<AppProps> {
     window.Shared.back.request(BackIn.CURATE_GET_LIST)
     .then(curations => {
       this.props.curateActions.replaceCurations(curations);
-      this.props.mainActions.addLoaded([BackInit.CURATE]);
+      this.props.curateActions.setLoaded();
     });
   }
 
@@ -416,10 +416,6 @@ export class App extends React.Component<AppProps> {
         switch (+index) { // DO NOT REMOVE - Fails to convert to enum without explicitint conversion
           case BackInit.DATABASE: {
             this.onDatabaseLoaded();
-            break;
-          }
-          case BackInit.CURATE: {
-            this.onCurateLoad();
             break;
           }
           case BackInit.EXTENSIONS: {
@@ -580,6 +576,10 @@ export class App extends React.Component<AppProps> {
 
     window.Shared.back.register(BackOut.CLOSE_PLACEHOLDER_DOWNLOAD_DIALOG, () => {
       this.props.setMainState({ downloadOpen: false, downloadPercent: 0 });
+    });
+
+    window.Shared.back.register(BackOut.CURATE_LOADED, (event) => {
+      this.onCurateLoad();
     });
 
     window.Shared.back.register(BackOut.CURATE_CONTENTS_CHANGE, (event, folder, contents) => {
@@ -861,10 +861,6 @@ export class App extends React.Component<AppProps> {
         switch (+index) { // DO NOT REMOVE - Fails to convert to enum without explicitint conversion
           case BackInit.DATABASE: {
             this.onDatabaseLoaded();
-            break;
-          }
-          case BackInit.CURATE: {
-            this.onCurateLoad();
             break;
           }
           case BackInit.EXTENSIONS: {

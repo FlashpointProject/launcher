@@ -531,7 +531,7 @@ export function CuratePage(props: CuratePageProps) {
 
   console.log('ruffle: ' + curation?.game.ruffleSupport);
 
-  return (
+  return curate.loaded ? (
     <div className='curate-page'>
       {leftSidebar}
       <div className='curate-page__center simple-scroll'>
@@ -728,6 +728,8 @@ export function CuratePage(props: CuratePageProps) {
         {extButtons}
       </div>
     </div>
+  ) : (
+    <div>Loading</div>
   );
 }
 

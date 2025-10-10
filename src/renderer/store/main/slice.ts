@@ -231,7 +231,6 @@ const initialState: MainState = {
     [BackInit.SERVICES]: false,
     [BackInit.DATABASE]: false,
     [BackInit.PLAYLISTS]: false,
-    [BackInit.CURATE]: false,
     [BackInit.EXEC_MAPPINGS]: false,
     [BackInit.EXTENSIONS]: false
   },

@@ -11,6 +11,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { BackIn } from '@shared/back/types';
 import { AddAppCuration, PlatformAppPathSuggestions } from '@shared/curate/types';
 import { updatePreferencesData } from '@shared/preferences/util';
+import { uuid } from '@shared/utils/uuid';
 
 export type CurateGroup = {
   name: string;
@@ -18,6 +19,8 @@ export type CurateGroup = {
 }
 
 export type CurateState = {
+  /** First load complete */
+  loaded: boolean;
   /** Persistant Group Names */
   groups: CurateGroup[];
   /** Collapsed curation groups */
@@ -124,6 +127,7 @@ export type CurateTaskAction = {
 }
 
 const initialState: CurateState = {
+  loaded: false,
   groups: [],
   collapsedGroups: [],
   curations: [],
@@ -136,6 +140,9 @@ const curateSlice = createSlice({
   name: 'curate',
   initialState,
   reducers: {
+    setLoaded(state: CurateState) {
+      state.loaded = true;
+    },
     createCuration(_: CurateState, { payload }: PayloadAction<NewCurateAction>) {
       window.Shared.back.send(BackIn.CURATE_CREATE_CURATION, payload.folder, payload.meta);
     },

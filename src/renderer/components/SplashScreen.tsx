@@ -30,11 +30,6 @@ export function SplashScreen(props: SplashScreenProps) {
             Playlists
           </div>
         ) : undefined }
-        { !props.loaded[BackInit.CURATE] ? (
-          <div className='splash-screen__status'>
-            Curations
-          </div>
-        ) : undefined }
         { !props.loaded[BackInit.SERVICES] ? (
           <div className='splash-screen__status'>
             Services

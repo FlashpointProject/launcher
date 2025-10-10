@@ -127,7 +127,6 @@ export const state: BackState = {
     [BackInit.DATABASE_READY]: false,
     [BackInit.DATABASE]: false,
     [BackInit.PLAYLISTS]: false,
-    [BackInit.CURATE]: false,
     [BackInit.EXEC_MAPPINGS]: false,
     [BackInit.EXTENSIONS]: false,
   },
@@ -975,9 +974,8 @@ async function initialize() {
 
   console.log('Back - Initialized Database');
 
-  // Load curations
+  // Load curations asynchronously
 
-  // Go through all curation folders
   const rootPath = path.resolve(state.config.flashpointPath, CURATIONS_FOLDER_WORKING);
   fs.promises.readdir(rootPath)
   .then(async (folders) => {
@@ -987,8 +985,7 @@ async function initialize() {
   })
   .then(() => {
     console.log('Back - Initialized Curations');
-    state.init[BackInit.CURATE] = true;
-    state.initEmitter.emit(BackInit.CURATE);
+    state.socketServer.broadcast(BackOut.CURATE_LOADED);
   })
   .catch((error: any) => {
     log.error('Launcher', `Failed to load curations\n${error.toString()}`);
