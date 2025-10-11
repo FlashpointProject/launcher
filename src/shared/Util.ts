@@ -1,11 +1,37 @@
 import * as axiosImport from 'axios';
-import { AdditionalApp, Game, Platform, Tag, TagFilterGroup } from 'flashpoint-launcher';
+import { AdditionalApp, ContentTree, ContentTreeNode, FlatContentTree, Game, Platform, Tag, TagFilterGroup } from 'flashpoint-launcher';
 import * as fs from 'fs';
 import * as path from 'path';
 import { DownloadDetails } from './back/types';
 import { AppConfigData } from './config/interfaces';
 import { parseVariableString } from './utils/VariableString';
 import { throttle } from './utils/throttle';
+
+export function genFlatContentTree(contentTree: ContentTree): FlatContentTree {
+  const flatContentTree: FlatContentTree = [];
+
+  // Navigate down tree in render order
+  const addNode = (depth: number, node: ContentTreeNode, tree: string[]) => {
+    const newTree = tree.concat([node.name]);
+    flatContentTree.push({
+      ...node,
+      depth: depth,
+      tree: newTree
+    });
+
+    if (node.nodeType === 'directory' && node.expanded) {
+      for (const child of node.children) {
+        addNode(depth + 1, child, newTree);
+      }
+    }
+  };
+
+  for (const node of contentTree.root.children) {
+    addNode(0, node, []);
+  }
+
+  return flatContentTree;
+}
 
 export function getFileServerURL() {
   return `http://${window.Shared.backUrl.hostname}:${window.Shared.fileServerPort}`;

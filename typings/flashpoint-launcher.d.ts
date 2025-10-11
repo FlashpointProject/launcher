@@ -1543,7 +1543,14 @@ declare module 'flashpoint-launcher' {
       fpfssInfo: CurationFpfssInfo | null;
     }
 
+    type FlatContentTreeNode = ContentTreeNode & {
+      depth: number;
+      tree: string[];
+    };
+    type FlatContentTree = Array<FlatContentTreeNode>;
+
     export type CurationState = LoadedCuration & {
+      contentRequested: boolean;
       alreadyImported: boolean;
       warnings: CurationWarnings;
       locked?: boolean;

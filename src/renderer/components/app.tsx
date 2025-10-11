@@ -1,5 +1,6 @@
 import * as remote from '@electron/remote';
 import { WithCurateProps } from '@renderer/containers/withCurateState';
+import { WithDownloadsProps } from '@renderer/containers/withDownloads';
 import { WithFpfssProps } from '@renderer/containers/withFpfss';
 import { WithLogsProps } from '@renderer/containers/withLogs';
 import { WithNavigationProps } from '@renderer/containers/withNavigation';
@@ -67,7 +68,6 @@ import { SimpleButton } from './SimpleButton';
 import { SplashScreen } from './SplashScreen';
 import { TaskBar } from './TaskBar';
 import { TitleBar } from './TitleBar';
-import { WithDownloadsProps } from '@renderer/containers/withDownloads';
 
 // Hide the right sidebar if the page is inside these paths
 const hiddenRightSidebarPages = [Paths.ABOUT, Paths.CURATE, Paths.CONFIG, Paths.MANUAL, Paths.LOGS, Paths.TAGS, Paths.CATEGORIES, Paths.DOWNLOADS];

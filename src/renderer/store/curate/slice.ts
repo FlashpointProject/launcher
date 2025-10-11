@@ -1,3 +1,8 @@
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { BackIn } from '@shared/back/types';
+import { AddAppCuration, PlatformAppPathSuggestions } from '@shared/curate/types';
+import { updatePreferencesData } from '@shared/preferences/util';
+import { uuid } from '@shared/utils/uuid';
 import {
   AddAppCurationMeta,
   ContentTree,
@@ -7,11 +12,6 @@ import {
   Platform,
   Tag
 } from 'flashpoint-launcher';
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { BackIn } from '@shared/back/types';
-import { AddAppCuration, PlatformAppPathSuggestions } from '@shared/curate/types';
-import { updatePreferencesData } from '@shared/preferences/util';
-import { uuid } from '@shared/utils/uuid';
 
 export type CurateGroup = {
   name: string;
@@ -182,6 +182,12 @@ const curateSlice = createSlice({
       state.selected = payload;
       state.current = payload[0];
       state.lastSelected = payload[0];
+      const currentCuration = state.curations.find(c => c.folder === state.current);
+      if (currentCuration && !currentCuration.contentRequested) {
+        currentCuration.contentRequested = true;
+        // Request the content tree now it's visible
+        window.Shared.back.send(BackIn.CURATE_REQUEST_CONTENT, state.current);
+      }
     },
     setCurrentCurationGroup(state: CurateState, { payload }: PayloadAction<string>) {
       const curations = state.curations.filter(c => c.group === payload);

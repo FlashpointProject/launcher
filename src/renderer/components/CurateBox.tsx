@@ -1,4 +1,3 @@
-import * as remote from '@electron/remote';
 import {
   CurateBoxDropdownInputRow,
   CurateBoxInputEntryRow,
@@ -7,25 +6,7 @@ import {
   DropdownItem
 } from '@renderer/components/CurateBoxInputRow';
 import { GameImageSplit } from '@renderer/components/GameImageSplit';
-import { axios, getCurationURL, getPlatformIconURL } from '@renderer/Util';
-import { LangContext } from '@renderer/util/lang';
-import { BackIn, CurationImageEnum } from '@shared/back/types';
-import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
-import { ContentTreeNode, PlatformAppPathSuggestions } from '@shared/curate/types';
-import { GamePropSuggestions } from '@shared/interfaces';
-import { sizeToString } from '@shared/Util';
-import { clipboard, MenuItemConstructorOptions } from 'electron';
-import { CurationState, LangContainer, LoadedCuration, Platform, Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
-import * as path from 'path';
-import * as React from 'react';
-import { Dispatch } from 'redux';
-import { BoxList } from './BoxList';
-import { CurateBoxAddApp } from './CurateBoxAddApp';
-import { CurateBoxRow } from './CurateBoxRow';
-import { CurateBoxWarnings } from './CurateBoxWarnings';
-import { InputElement, InputField } from './InputField';
-import { OpenIcon } from './OpenIcon';
-import { SimpleButton } from './SimpleButton';
+import { useAppDispatch } from '@renderer/hooks/useAppSelector';
 import {
   AddAppType,
   addPlatform,
@@ -33,10 +14,25 @@ import {
   editCurationMeta,
   removePlatform,
   removeTag,
-  setPrimaryPlatform, toggleContentNodeView
+  setPrimaryPlatform
 } from '@renderer/store/curate/slice';
+import { axios, getCurationURL, getPlatformIconURL } from '@renderer/Util';
+import { LangContext } from '@renderer/util/lang';
+import { BackIn, CurationImageEnum } from '@shared/back/types';
+import { PlatformAppPathSuggestions } from '@shared/curate/types';
+import { GamePropSuggestions } from '@shared/interfaces';
 import { mapRuffleSupportString } from '@shared/utils/misc';
-import { useAppDispatch } from '@renderer/hooks/useAppSelector';
+import { CurationState, LangContainer, LoadedCuration, Platform, Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
+import * as React from 'react';
+import { Dispatch } from 'redux';
+import { BoxList } from './BoxList';
+import { CurateBoxAddApp } from './CurateBoxAddApp';
+import { CurateBoxContentTree } from './CurateBoxContentTree';
+import { CurateBoxRow } from './CurateBoxRow';
+import { CurateBoxWarnings } from './CurateBoxWarnings';
+import { InputElement, InputField } from './InputField';
+import { OpenIcon } from './OpenIcon';
+import { SimpleButton } from './SimpleButton';
 
 export type CurateBoxProps = {
   curation: CurationState;
@@ -212,89 +208,6 @@ export function CurateBox(props: CurateBoxProps) {
     }));
   };
 
-  const onToggleContentNodeView = (tree: string[]) => {
-    dispatch(toggleContentNodeView({
-      folder,
-      tree
-    }));
-  };
-
-  const onContentTreeNodeMenuFactory = (node: ContentTreeNode, tree: string[]) => () => {
-    const contextButtons: MenuItemConstructorOptions[] = [{
-      label: strings.curate.contextCopyName,
-      click: () => clipboard.writeText(node.name)
-    }, {
-      label: strings.curate.contextCopyPath,
-      click: () => clipboard.writeText(tree.join(path.sep))
-    }, {
-      label: strings.curate.contextCopyAsURL,
-      click: () => clipboard.writeText(encodeURI(`http://${tree.join('/')}`))
-    }, {
-      type: 'separator'
-    }];
-    if (node.nodeType === 'file') {
-      contextButtons.push({
-        label: strings.curate.contextShowInExplorer,
-        click: () => remote.shell.showItemInFolder(path.join(window.Shared.config.fullFlashpointPath, CURATIONS_FOLDER_WORKING, props.curation.folder, 'content', tree.join(path.sep)))
-      });
-    } else if (node.nodeType === 'directory') {
-      contextButtons.push({
-        label: strings.curate.contextOpenFolderInExplorer,
-        click: () => remote.shell.openExternal(path.join(window.Shared.config.fullFlashpointPath, CURATIONS_FOLDER_WORKING, props.curation.folder, 'content', tree.join(path.sep)))
-      });
-    }
-    const menu = remote.Menu.buildFromTemplate(contextButtons);
-    menu.popup({ window: remote.getCurrentWindow() });
-    return menu;
-  };
-
-  function renderContentNode(depth: number, node: ContentTreeNode, key: number, tree: string[] = [], launchPath?: string): React.JSX.Element | React.JSX.Element[] {
-    const filePath = tree.join('/');
-    const isLaunchPath = filePath === launchPath;
-    const depthDivs = [];
-    for (let i = 0; i < depth; i++) {
-      depthDivs.push(<div className='curate-box-content__depth' key={`${i}`} style={{ width: '1rem' }}/>);
-    }
-    switch (node.nodeType) {
-      case 'directory': {
-        const children = node.expanded ? node.children.map((node, index) => renderContentNode(depth + 1, node, index, tree.concat([node.name]), launchPath))
-        .reduce<React.JSX.Element[]>((prev, next) => Array.isArray(next) ? prev.concat(next) : [...prev, next], []) : [];
-        return [
-          (
-            <div
-              key={`${tree.join('_')}_${key}`}
-              onContextMenu={onContentTreeNodeMenuFactory(node, tree)}
-              className='curate-box-content__entry'>
-              { depth > 0 && (
-                depthDivs
-              )}
-              <div className='curate-box-content__entry-icon curate-box-content__entry-icon--collapse'
-                onClick={() => onToggleContentNodeView(tree)} >
-                <OpenIcon className={isLaunchPath ? 'curate-box-content__entry-icon--launch-path' : ''} icon={node.expanded ? 'chevron-bottom': 'chevron-right' }/>
-              </div>
-              <div>{node.name}</div>
-            </div>
-          ),
-          ...children
-        ];
-      }
-      case 'file':
-        return (
-          <div
-            key={`${tree.join('_')}_${key}`}
-            onContextMenu={onContentTreeNodeMenuFactory(node, tree)}
-            className='curate-box-content__entry'>
-            { depth > 0 && (
-              depthDivs
-            )}
-            <OpenIcon className={`curate-box-content__entry-icon ${isLaunchPath ? 'curate-box-content__entry-icon--launch-path' : ''}`} icon='file'/>
-            <div>{node.name} ({sizeToString(node.size || 0)})</div>
-          </div>
-        );
-      default: return <></>;
-    }
-  }
-
   const renderContentTree = () => {
     // Extract first string from launch command via regex
     let launchPath: string | undefined = undefined;
@@ -318,22 +231,15 @@ export function CurateBox(props: CurateBoxProps) {
         launchPath = lc;
       }
     }
-    const render = props.curation.contents ?
-      props.curation.contents.root.count <= 4000 ? (
-        props.curation.contents.root.children.map((node, index) => {
-          return renderContentNode(0, node, index, [node.name], launchPath);
-        })
-      ) : (
-        <p>{`Too large to render (4000 files max) - ${props.curation.contents.root.count} files in content folder.`}</p>
-      )
+    return props.curation.contents ?
+      <CurateBoxContentTree
+        contentTree={props.curation.contents}
+        launchPath={launchPath}
+        folder={folder}
+      />
       : (
         <p>{strings.misc.loading}</p>
       );
-    return (
-      <div className='curate-box-content simple-scroll'>
-        {render}
-      </div>
-    );
   };
 
   const renderTagIcon = (tag: Tag) => {

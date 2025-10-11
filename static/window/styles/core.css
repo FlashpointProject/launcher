@@ -1214,7 +1214,8 @@ body {
   display: flex;
 }
 .curate-box-content__entry-icon {
-  height: 1em;
+  height: 100%;
+  padding: 1px;
 }
 .curate-box-content__entry-icon--collapse {
   cursor: pointer;
@@ -1288,9 +1289,9 @@ body {
   user-select: none;
 }
 .curate-box-files__body {
-  min-height: 10rem;
+  min-height: 15rem;
   max-height: 40rem;
-  overflow: auto;
+  display: block;
 }
 /* Curate Box Warnings */
 .curate-box-warnings {

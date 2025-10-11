@@ -1,5 +1,5 @@
 import { BackIn, BackInit, BackInitArgs, BackOut, BackResParams, ComponentState, ComponentStatus, DownloadDetails } from '@shared/back/types';
-import { getContentFolderByKey, getCurationFolder } from '@shared/curate/util';
+import { getCurationFolder } from '@shared/curate/util';
 import { ILogoSet, LogoSet } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
 import { LangFileContent, getDefaultLocalization } from '@shared/lang';
@@ -54,12 +54,13 @@ import {
   registerInterceptor
 } from './extensions/NodeInterceptor';
 import { Command, RegisteredMiddleware } from './extensions/types';
+import { webgameContentRunner } from './flashpoint/WebgameContentRunner';
+import { GameDataProviderRaw } from './GameDataProvider';
 import { InstancedAbortController } from './InstancedAbortController';
 import { ManagedChildProcess } from './ManagedChildProcess';
 import { SystemEnvMiddleware } from './middleware';
 import { PlaylistFile } from './PlaylistFile';
 import { registerRequestCallbacks } from './responses';
-import { genContentTree } from './rust';
 import { ServicesFile } from './ServicesFile';
 import { SocketServer } from './SocketServer';
 import { newThemeWatcher } from './Themes';
@@ -74,8 +75,6 @@ import { LogFile } from './util/LogFile';
 import { logFactory } from './util/logging';
 import { createContainer, exit, getMacPATH, promiseSleep, runService } from './util/misc';
 import { uuid } from './util/uuid';
-import { webgameContentRunner } from './flashpoint/WebgameContentRunner';
-import { GameDataProviderRaw } from './GameDataProvider';
 
 export const VERBOSE = {
   enabled: false
@@ -1581,21 +1580,13 @@ export async function loadCurationArchive(filePath: string, fpfssInfo: flashpoin
   const alreadyImported = await fpDatabase.findGame(loadedCuration.uuid) !== null;
   const curation: flashpoint.CurationState = {
     ...loadedCuration,
+    contentRequested: false,
     alreadyImported,
     warnings: await genCurationWarnings(loadedCuration, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onWillGenCurationWarnings)
   };
   if (fpfssInfo) {
     await saveCurationFpfssInfo(getCurationFolder(curation, state.config.flashpointPath), fpfssInfo);
   }
-
-  genContentTree(getContentFolderByKey(key, state.config.flashpointPath))
-  .then((contentTree) => {
-    const curationIdx = state.loadedCurations.findIndex((c) => c.folder === key);
-    if (curationIdx >= 0) {
-      state.loadedCurations[curationIdx].contents = contentTree;
-      state.socketServer.broadcast(BackOut.CURATE_CONTENTS_CHANGE, key, contentTree);
-    }
-  });
 
   state.loadedCurations.push({
     ...curation,

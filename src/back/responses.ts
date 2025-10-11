@@ -79,6 +79,7 @@ import {
 import { saveCuration } from './curate/write';
 import { axios } from './dns';
 import { parseAppVar } from './extensions/util';
+import { downloadGameDataRes } from './flashpoint/WebgameContentRunner';
 import { clearWininetCache, importCuration, launchAddAppCuration, launchCuration } from './importGame';
 import { databaseReady, fpDatabase, loadCurationArchive } from './index';
 import {
@@ -118,7 +119,6 @@ import {
   runService
 } from './util/misc';
 import { uuid } from './util/uuid';
-import { downloadGameDataRes } from './flashpoint/WebgameContentRunner';
 
 /**
  * Register all request callbacks to the socket server.
@@ -2202,13 +2202,29 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       if (idx > -1) {
         state.loadedCurations[idx] = {
           ...curation,
-          contents: curation.contents ? curation.contents : state.loadedCurations[idx].contents
+          contents: curation.contents ? curation.contents : state.loadedCurations[idx].contents,
         };
         state.apiEmitters.curations.onDidCurationChange.fire(state.loadedCurations[idx]);
         // Save curation
         saveCuration(path.join(state.config.flashpointPath, CURATIONS_FOLDER_WORKING, curation.folder), curation)
         .then(() => state.apiEmitters.curations.onDidCurationChange.fire(state.loadedCurations[idx]));
       }
+    }
+  });
+
+  state.socketServer.register(BackIn.CURATE_REQUEST_CONTENT, async (event, key) => {
+    const curation = state.loadedCurations.find((c) => c.folder === key);
+    if (curation?.contentRequested === false) {
+      curation.contentRequested = true;
+
+      return genContentTree(getContentFolderByKey(key, state.config.flashpointPath))
+      .then((contentTree) => {
+        const curationIdx = state.loadedCurations.findIndex((c) => c.folder === key);
+        if (curationIdx >= 0) {
+          state.loadedCurations[curationIdx].contents = contentTree;
+          state.socketServer.broadcast(BackOut.CURATE_CONTENTS_CHANGE, key, contentTree);
+        }
+      });
     }
   });
 
@@ -2383,11 +2399,13 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       if (data.game.primaryPlatform && data.game.primaryPlatform in state.platformAppPaths) {
         data.game.applicationPath = state.platformAppPaths[data.game.primaryPlatform][0].appPath;
       }
+      const contentTree = await genContentTree(getContentFolderByKey(folder, state.config.flashpointPath));
       const curation: CurationState = {
         ...data,
+        contentRequested: false,
         alreadyImported: false,
         warnings: await genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onWillGenCurationWarnings),
-        contents: await genContentTree(getContentFolderByKey(folder, state.config.flashpointPath))
+        contents: contentTree,
       };
       await saveCuration(curPath, curation);
       state.loadedCurations.push(curation);

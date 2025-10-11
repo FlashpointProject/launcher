@@ -174,6 +174,7 @@ export enum BackIn {
   CURATE_LOAD_ARCHIVES,
   CURATE_GET_LIST,
   CURATE_SYNC_CURATIONS,
+  CURATE_REQUEST_CONTENT,
   CURATE_EDIT_REMOVE_IMAGE,
   CURATE_DELETE,
   CURATE_IMPORT,
@@ -428,6 +429,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.CURATE_LOAD_ARCHIVES]: (filePaths: string[], taskId?: string) => void;
   [BackIn.CURATE_GET_LIST]: () => CurationState[];
   [BackIn.CURATE_SYNC_CURATIONS]: (curations: CurationState[]) => void;
+  [BackIn.CURATE_REQUEST_CONTENT]: (folder: string) => void;
   [BackIn.CURATE_EDIT_REMOVE_IMAGE]: (folder: string, type: CurationImageEnum) => void;
   [BackIn.CURATE_DELETE]: (folders: string[], taskId?: string) => void;
   [BackIn.CURATE_IMPORT]: (data: ImportCurationData) => ImportCurationResponseData;

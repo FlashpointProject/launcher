@@ -28,6 +28,7 @@ import { CurationMeta } from '@shared/curate/types';
 import { getContentFolderByKey } from '@shared/curate/util';
 import { CurationTemplate, IExtensionManifest } from '@shared/extensions/interfaces';
 import { ProcessState, Task } from '@shared/interfaces';
+import { langTemplate } from '@shared/lang';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { overwritePreferenceData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
@@ -43,7 +44,6 @@ import { fpDatabase, loadCurationArchive } from '..';
 import { addPlaylistGame, deletePlaylist, deletePlaylistGame, filterPlaylists, findPlaylist, findPlaylistByName, getPlaylistGame, savePlaylistGame, updatePlaylist } from '../playlist';
 import { newExtLog } from './ExtensionUtils';
 import { Command, RegisteredMiddleware } from './types';
-import { langTemplate } from '@shared/lang';
 
 enum ExtSearchableType {
   String = 0,
@@ -308,7 +308,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
         state.socketServer.broadcast(BackOut.SET_PLACEHOLDER_DOWNLOAD_PERCENT, percent);
       };
       state.socketServer.broadcast(BackOut.OPEN_PLACEHOLDER_DOWNLOAD_DIALOG);
-      await downloadGameData(gameDataId, path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath), state.preferences.gameDataSources, state.downloadController.signal(), onProgress)
+      await downloadGameData(gameDataId, state, state.downloadController.signal(), onProgress)
       .catch((error) => {
         state.socketServer.broadcast(BackOut.OPEN_ALERT, error);
       })
@@ -567,11 +567,13 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
         thumbnail: await loadCurationIndexImage(path.join(curPath, 'logo.png')),
         screenshot: await loadCurationIndexImage(path.join(curPath, 'ss.png'))
       };
+      const contentTree = await genContentTree(getContentFolderByKey(folder, state.config.flashpointPath));
       const curation: flashpoint.CurationState = {
         ...data,
+        contentRequested: false,
         alreadyImported: false,
         warnings: await genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onWillGenCurationWarnings),
-        contents: await genContentTree(getContentFolderByKey(folder, state.config.flashpointPath))
+        contents: contentTree,
       };
       await saveCuration(curPath, curation);
       state.loadedCurations.push(curation);
