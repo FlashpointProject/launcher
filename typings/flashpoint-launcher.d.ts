@@ -2825,14 +2825,26 @@ declare module 'flashpoint-launcher-renderer' {
     onContentRun: (content: Content | T) => Promise<void>;
   };
 
+  type LogFunc = (source: string, message: string) => ILogEntry;
+
+  type LogFuncs = {
+    trace: LogFunc;
+    debug: LogFunc;
+    info:  LogFunc;
+    warn:  LogFunc;
+    error: LogFunc;
+  }
+
   declare global {
     interface Window {
       ext: IExtensionWindow,
       components: {
         BrowsePageDisplayGrid: React.ComponentType<BrowsePageDisplayGridProps>,
       },
+      log: LogFuncs;
       setDisplaySettings: (cb: (prev: DisplaySettings) => DisplaySettings) => void,
       setExtOrderables: (cb: (prev: ExtOrderable[]) => ExtOrderable[]) => void,
     }
+    let log: LogFuncs;
   }
 }
