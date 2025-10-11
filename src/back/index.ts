@@ -1103,7 +1103,7 @@ async function initialize() {
       });
 
       await ExtConfigFile.saveFile(path.join(state.config.flashpointPath, EXT_CONFIG_FILENAME), state.extConfig);
-      exts.forEach(ext => {
+      exts.filter(ext => !state.preferences.disabledExtensions.includes(ext.id)).forEach(ext => {
         state.extensionsService.loadExtension(ext.id)
         .catch((error: any) => {
           log.error('Extensions', `[${ext.manifest.displayName || ext.manifest.name}] Error loading extension\n${error}`);

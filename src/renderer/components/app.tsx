@@ -1445,7 +1445,9 @@ export class App extends React.Component<AppProps> {
     const { currentView } = this.props;
     const playlists = this.orderPlaylistsMemo(this.props.main.playlists);
     const extremeTags = this.props.preferencesData.tagFilters.filter(t => t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
-    const remoteModules = this.props.main.extensions.reduce<RemoteModule[]>((prev, cur) => {
+    const remoteModules = this.props.main.extensions
+    .filter(ext => !this.props.preferencesData.disabledExtensions.includes(ext.id))
+    .reduce<RemoteModule[]>((prev, cur) => {
       if (cur.contributes?.moduleFederation) {
         const remoteModules: RemoteModule[] = cur.contributes.moduleFederation.map(mc => {
           return {

@@ -150,6 +150,8 @@ export enum BackIn {
   UPDATE_CONFIG,
   /** Update any number of preferences. */
   UPDATE_PREFERENCES,
+  /** Turn an extension on and off */
+  SET_EXTENSION_ENABLED,
 
   // API
   IMPORT_METADATA,
@@ -407,6 +409,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.GET_MAIN_INIT_DATA]: () => GetMainInitDataResponse;
   [BackIn.UPDATE_CONFIG]: (data: Partial<AppConfigData>) => void;
   [BackIn.UPDATE_PREFERENCES]: (data: AppPreferencesData, refresh: boolean) => void;
+  [BackIn.SET_EXTENSION_ENABLED]: (extId: string, enabled: boolean) => void;
 
   // API
   [BackIn.IMPORT_METADATA]: (metadata: any) => void;

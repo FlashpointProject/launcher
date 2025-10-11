@@ -178,6 +178,7 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   autoClearWininetCache: false,
   useSelectedGameScroll: false,
   hideScreenshotSidebar: false,
+  disabledExtensions: [],
 });
 
 /**
@@ -263,6 +264,8 @@ export function overwritePreferenceData(
   parser.prop('autoClearWininetCache',         v => source.autoClearWininetCache         = !!v, true);
   parser.prop('useSelectedGameScroll',         v => source.useSelectedGameScroll         = !!v, true);
   parser.prop('hideScreenshotSidebar',         v => source.hideScreenshotSidebar         = !!v, true);
+  parser.prop('disabledExtensions',            v => source.disabledExtensions            = strArray(v), true);
+
 
   // Can't have a negative delay!
   if (source.screenshotPreviewDelay < 0) {

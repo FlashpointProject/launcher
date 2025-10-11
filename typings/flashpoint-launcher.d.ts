@@ -1167,6 +1167,8 @@ declare module 'flashpoint-launcher' {
       useSelectedGameScroll: boolean;
       /** Hides the screenshot in the sidebar */
       hideScreenshotSidebar: boolean;
+      /** List of disabled extensions */
+      disabledExtensions: string[];
     };
 
     type StoredView = {
@@ -2001,6 +2003,7 @@ declare module 'flashpoint-launcher' {
         'saveAndClose',
         'browse',
         'tagFilterGroupEditor',
+        'enabled'
       ] as const,
       home: [
         'gotdHeader',

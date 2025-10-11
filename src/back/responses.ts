@@ -132,7 +132,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   state.socketServer.register(BackIn.PREP_RELOAD_WINDOW, async () => {
     state.ignoreQuit = true;
     await state.extensionsService.unloadAll();
-    await state.extensionsService.loadAll();
+    await state.extensionsService.loadAll(state.preferences.disabledExtensions);
     setTimeout(() => {
       state.ignoreQuit = false;
     }, 1000);
@@ -1399,6 +1399,24 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
     try { await ConfigFile.saveFile(path.join(state.configFolder, CONFIG_FILENAME), newConfig); }
     catch (error: any) { log.error('Launcher', error); }
+  });
+
+  state.socketServer.register(BackIn.SET_EXTENSION_ENABLED, async (event, extId, newState) => {
+    const isEnabled = !state.preferences.disabledExtensions.includes(extId);
+    if (newState !== isEnabled) {
+      if (newState) {
+        // Enable ext
+        state.preferences.disabledExtensions = state.preferences.disabledExtensions.filter(c => c !== extId);
+        await state.extensionsService.unloadExtension(extId);
+      } else {
+        // Disable ext
+        state.preferences.disabledExtensions.push(extId);
+        await state.extensionsService.loadExtension(extId);
+      }
+      state.prefsQueue.push(() => {
+        PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
+      });
+    }
   });
 
   state.socketServer.register(BackIn.UPDATE_PREFERENCES, async (event, data, refresh) => {

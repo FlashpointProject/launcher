@@ -132,7 +132,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     const appPathOverrides = this.renderAppPathOverridesMemo(this.props.preferencesData.appPathOverrides);
     const tagFilters = this.renderTagFiltersMemo(this.props.preferencesData.tagFilters, this.props.preferencesData.browsePageShowExtreme, this.context, this.props.logoVersion);
     const logoSetPreviewRows = this.renderLogoSetMemo(this.props.platforms, this.props.logoVersion);
-    const extensions = this.renderExtensionsMemo(this.props.extensions, strings, this.state.fpfssConsentMap);
+    const extensions = this.renderExtensionsMemo(this.props.extensions, strings, this.state.fpfssConsentMap, this.props.preferencesData.disabledExtensions);
     const extConfigSections = this.renderExtensionConfigs(this.props.extConfigs, this.props.extConfig);
 
     return (
@@ -763,10 +763,11 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     return allRows;
   });
 
-  renderExtensionsMemo = memoizeOne((extensions: IExtensionDescription[], strings: LangContainer['config'], fpfssConsents: Record<string, boolean | undefined>): React.JSX.Element[] => {
-    const allStrings = this.context;
+  renderExtensionsMemo = memoizeOne((extensions: IExtensionDescription[], strings: LangContainer['config'], fpfssConsents: Record<string, boolean | undefined>, disabledExts: string[]): React.JSX.Element[] => {
     return extensions.map((ext) => {
+      const allStrings = this.context;
       const fpfssConsent = fpfssConsents[ext.id];
+      const enabled = !disabledExts.includes(ext.id);
 
       const shortContribs = [];
       if (ext.contributes) {
@@ -819,6 +820,24 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
           </div>
           <div className='setting__row__bottom setting__row__description'>
             <p>{ext.description}</p>
+          </div>
+          <div className='setting__row__content setting__row__content--right-align'>
+            <CheckBox
+              onToggle={(isChecked) => {
+                window.Shared.back.request(BackIn.SET_EXTENSION_ENABLED, ext.id, isChecked)
+                .then(() => {
+                  if (enabled) {
+                    updatePreferencesData({
+                      disabledExtensions: disabledExts.concat([ext.id])
+                    });
+                  } else {
+                    updatePreferencesData({
+                      disabledExtensions: disabledExts.filter(c => c !== ext.id)
+                    });
+                  }
+                });
+              }}
+              checked={enabled}/>
           </div>
           <div className='setting__row__content setting__extension__config_row'>
             {(fpfssConsent === true) ? (

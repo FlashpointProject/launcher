@@ -119,7 +119,8 @@
     "extApplications": "Application(s)",
     "saveAndRestart": "Save and Restart",
     "saveAndClose": "Save and Close",
-    "tagFilterGroupEditor": "Tag Filter Group Editor"
+    "tagFilterGroupEditor": "Tag Filter Group Editor",
+    "enabled": "Enabled"
   },
   "home": {
     "gotdHeader": "Game of the Day",

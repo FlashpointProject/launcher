@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
 import { Barrier } from '@back/util/async';
 import { Disposable, dispose, newDisposable } from '@back/util/lifecycle';
 import { TernarySearchTree } from '@back/util/map';
@@ -96,9 +95,10 @@ export class ExtensionService {
   /**
    * Load all extensions
    */
-  public async loadAll(): Promise<void | void[]> {
+  // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+  public async loadAll(disabledExtensions: string[]): Promise<void | void[]> {
     return this.installedExtensionsReady.wait().then(() => {
-      return Promise.all(this._extensions.map(ext => this._loadExtension(ext)));
+      return Promise.all(this._extensions.filter(ext => disabledExtensions.includes(ext.id)).map(ext => this._loadExtension(ext)));
     });
   }
 
