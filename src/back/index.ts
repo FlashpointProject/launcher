@@ -3,7 +3,7 @@ import { getCurationFolder } from '@shared/curate/util';
 import { ILogoSet, LogoSet } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
 import { LangFileContent, getDefaultLocalization } from '@shared/lang';
-import { ILogEntry, LogLevel } from '@shared/Log/interface';
+import { LogLevel } from '@shared/Log/interface';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { defaultPreferencesData } from '@shared/preferences/util';
 import { Theme } from '@shared/ThemeFile';
@@ -299,7 +299,7 @@ async function prepForInit(message: any): Promise<void> {
       path.join(process.cwd(), 'launcher.log')
       : path.join(process.platform == 'darwin' ? state.configFolder : path.dirname(content.exePath), 'launcher.log'));
 
-  const addLog = (entry: ILogEntry): number => { return state.log.push(entry) - 1; };
+  const addLog = (entry: flashpoint.ILogEntry): number => { return state.log.push(entry) - 1; };
   global.log = {
     trace: logFactory(LogLevel.TRACE, state.socketServer, addLog, state.logFile, state.verbose, state.apiEmitters.onLog),
     debug: logFactory(LogLevel.DEBUG, state.socketServer, addLog, state.logFile, state.verbose, state.apiEmitters.onLog),
@@ -995,7 +995,7 @@ async function initialize() {
   state.registry.contentRunners.set(webgameContentRunner.id, webgameContentRunner);
 
   // Init extensions
-  const addExtLogFactory = (extId: string) => (entry: ILogEntry) => {
+  const addExtLogFactory = (extId: string) => (entry: flashpoint.ILogEntry) => {
     state.extensionsService.logExtension(extId, entry);
   };
 

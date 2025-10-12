@@ -2,7 +2,6 @@ import { BackInit, ComponentStatus } from '@shared/back/types';
 import { AppConfigData, AppExtConfigData } from '@shared/config/interfaces';
 import { ExecMapping, GamePropSuggestions, IBackProcessInfo, INamedBackProcessInfo } from '@shared/interfaces';
 import { LangFile } from '@shared/lang';
-import { ILogEntry } from '@shared/Log/interface';
 import { OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint-launcher';
@@ -57,7 +56,7 @@ export type BackState = {
   init: { [key in BackInit]: boolean; };
   initEmitter: InitEmitter;
   queries: Record<string, BackQueryChache>;
-  log: ILogEntry[];
+  log: flashpoint.ILogEntry[];
   serviceInfo?: ServiceFileData;
   services: Map<string, ManagedChildProcess>;
   languageWatcher: FolderWatcher;

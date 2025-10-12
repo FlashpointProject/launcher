@@ -1,8 +1,7 @@
 import { Disposable } from '@back/util/lifecycle';
-import { ILogEntry } from '@shared/Log/interface';
 import { Theme } from '@shared/ThemeFile';
 import { LogoSet } from '@shared/extensions/interfaces';
-import { ContentRunner, GameDataProvider, IGameMiddleware } from 'flashpoint-launcher';
+import { ContentRunner, GameDataProvider, IGameMiddleware, ILogEntry } from 'flashpoint-launcher';
 
 export type ExtensionData = {
   extId: string;

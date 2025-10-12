@@ -2,12 +2,12 @@ import { Barrier } from '@back/util/async';
 import { Disposable, dispose, newDisposable } from '@back/util/lifecycle';
 import { TernarySearchTree } from '@back/util/map';
 import { AppConfigData } from '@shared/config/interfaces';
-import { ILogEntry } from '@shared/Log/interface';
 import { Contributions, ExtensionContribution, IExtension } from '../../shared/extensions/interfaces';
 import { scanExtensions, scanSystemExtensions } from './ExtensionsScanner';
 import { getExtensionEntry, newExtLog } from './ExtensionUtils';
 import { ExtensionContext, ExtensionData, ExtensionModule } from './types';
 import * as path from 'path';
+import { ILogEntry } from 'flashpoint-launcher';
 
 export class ExtensionService {
   /** Stores unchanging Extension data */

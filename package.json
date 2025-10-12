@@ -65,6 +65,7 @@
     "react-router-dom": "7.5.3",
     "react-toastify": "^11.0.5",
     "react-virtualized": "9.22.6",
+    "react-window": "^2.2.0",
     "redux": "5.0.1",
     "reflect-metadata": "0.1.10",
     "remark-gfm": "2.0.0",

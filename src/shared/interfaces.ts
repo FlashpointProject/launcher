@@ -1,11 +1,10 @@
 import { SocketClient } from '@shared/back/SocketClient';
 import { OpenDialogOptions } from 'electron';
-import { AppPreferencesData, LangContainer } from 'flashpoint-launcher';
+import { EventEmitter } from 'events';
+import { AppPreferencesData, ILogEntry, LangContainer } from 'flashpoint-launcher';
 import { AppConfigData } from './config/interfaces';
 import { LangFile } from './lang';
-import { ILogEntry } from './Log/interface';
 import { ITheme } from './ThemeFile';
-import { EventEmitter } from 'events';
 
 /** Replacement of "object" type. Note: I'm not sure how effective it is though //obelisk */
 type ObjectLike = Record<string, unknown> | Record<number, unknown>

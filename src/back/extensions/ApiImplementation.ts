@@ -21,7 +21,7 @@ import {
 } from '@back/util/misc';
 import { ExtSearchable } from '@fparchive/flashpoint-archive';
 import { BrowsePageLayout, ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
-import { ILogEntry, LogLevel } from '@shared/Log/interface';
+import { LogLevel } from '@shared/Log/interface';
 import { BackOut } from '@shared/back/types';
 import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
 import { CurationMeta } from '@shared/curate/types';
@@ -39,7 +39,7 @@ import * as fsExtra from 'fs-extra';
 import { extractFull } from 'node-7z';
 import * as path from 'path';
 import * as stream from 'stream';
-import * as uuid from 'uuid';
+import uuid from 'uuid';
 import { fpDatabase, loadCurationArchive } from '..';
 import { addPlaylistGame, deletePlaylist, deletePlaylistGame, filterPlaylists, findPlaylist, findPlaylistByName, getPlaylistGame, savePlaylistGame, updatePlaylist } from '../playlist';
 import { newExtLog } from './ExtensionUtils';
@@ -62,7 +62,7 @@ enum ExtSearchableType {
  * @param extPath Folder Path to the Extension
  * @returns API Implementation specific to the caller
  */
-export function createApiFactory(extId: string, extManifest: IExtensionManifest, addExtLog: (log: ILogEntry) => void, version: string, state: BackState, extPath?: string): typeof flashpoint {
+export function createApiFactory(extId: string, extManifest: IExtensionManifest, addExtLog: (log: flashpoint.ILogEntry) => void, version: string, state: BackState, extPath?: string): typeof flashpoint {
   const { registry, apiEmitters } = state;
 
   const getPreferences = () => state.preferences;

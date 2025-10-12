@@ -124,6 +124,7 @@ export const langTemplate = {
     'saveAndClose',
     'browse',
     'tagFilterGroupEditor',
+    'enabled',
   ] as const,
   home: [
     'gotdHeader',

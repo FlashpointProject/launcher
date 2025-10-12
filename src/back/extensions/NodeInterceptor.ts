@@ -4,7 +4,6 @@ import { BackState } from '@back/types';
 import { nullExtensionDescription } from '@back/util/extensions';
 import { TernarySearchTree } from '@back/util/map';
 import { IExtension, IExtensionManifest } from '@shared/extensions/interfaces';
-import { ILogEntry } from '@shared/Log/interface';
 import * as flashpoint from 'flashpoint-launcher';
 import { createApiFactory } from './ApiImplementation';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -75,7 +74,7 @@ export async function installNodeInterceptor(state: InterceptorState): Promise<v
 }
 
 interface IExtensionApiFactory {
-  (id: string, ext: IExtensionManifest, addExtLog: (entry: ILogEntry) => void, version: string, state: BackState, extPath?: string): typeof flashpoint;
+  (id: string, ext: IExtensionManifest, addExtLog: (entry: flashpoint.ILogEntry) => void, version: string, state: BackState, extPath?: string): typeof flashpoint;
 }
 
 /** Module interceptor for the Flashpoint API 'flashpoint-launcher' module */

@@ -1,8 +1,8 @@
-import { ILogPreEntry } from '@shared/Log/interface';
 import { IBackProcessInfo, INamedBackProcessInfo, ProcessState } from '@shared/interfaces';
 import * as Coerce from '@shared/utils/Coerce';
 import { ChildProcess, spawn } from 'child_process';
 import { EventEmitter } from 'events';
+import { ILogPreEntry } from 'flashpoint-launcher';
 import * as readline from 'readline';
 import * as kill from 'tree-kill';
 import { onServiceChange } from './util/events';

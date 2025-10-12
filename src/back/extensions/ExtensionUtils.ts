@@ -1,6 +1,6 @@
 import { IExtension, IExtensionManifest } from '@shared/extensions/interfaces';
 import { LogFunc } from '@shared/interfaces';
-import { ILogEntry } from '@shared/Log/interface';
+import { ILogEntry } from 'flashpoint-launcher';
 import * as path from 'path';
 import { ExtensionLogFunc } from './types';
 

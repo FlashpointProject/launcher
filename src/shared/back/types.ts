@@ -27,6 +27,8 @@ import {
   GameMetadataSource,
   GameMiddlewareConfig,
   GameMiddlewareInfo, GameOrderBy, GameOrderDirection,
+  ILogEntry,
+  ILogPreEntry,
   LangContainer,
   LoadedCuration,
   MergeTagData,
@@ -39,7 +41,7 @@ import {
   TagSuggestion,
   ViewGame
 } from 'flashpoint-launcher';
-import { ILogEntry, ILogPreEntry, LogLevel } from '../Log/interface';
+import { LogLevel } from '../Log/interface';
 import { Theme } from '../ThemeFile';
 import { AppConfigData, AppExtConfigData } from '../config/interfaces';
 import { ExecMapping, GamePropSuggestions, IService, ProcessAction, Task } from '../interfaces';

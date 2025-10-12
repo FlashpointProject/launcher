@@ -1528,6 +1528,8 @@ declare module 'flashpoint-launcher' {
       timestamp: number;
       /** Level of the log, 0-5, Trace, Info, Warn, Error, Fatal, Silent */
       logLevel: number;
+      /** Number of rendered lines of content */
+      lineCount: number;
     }
 
     type CurationFpfssInfo = {
