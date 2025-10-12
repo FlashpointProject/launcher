@@ -87,7 +87,7 @@ export class FPLNodeModuleFactory implements INodeModuleFactory {
 
   constructor(
     protected readonly _extensionPaths: TernarySearchTree<string, IExtension>,
-    private readonly _addExtLogFactory: (extId: string) => (entry: ILogEntry) => void,
+    private readonly _addExtLogFactory: (extId: string) => (entry: flashpoint.ILogEntry) => void,
     private readonly _version: string,
     private readonly _state: BackState
   ) {

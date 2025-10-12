@@ -1,16 +1,17 @@
 import * as remote from '@electron/remote';
+import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
+import { clearLogs } from '@renderer/store/logs/slice';
 import { BackIn } from '@shared/back/types';
 import { LogLevel } from '@shared/Log/interface';
-import { stringifyLogEntries } from '@shared/Log/LogCommon';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { clipboard } from 'electron';
 import { useContext, useState } from 'react';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { LangContext } from '../../util/lang';
 import { Dropdown } from '../Dropdown';
+import { LogBox } from '../LogBox';
+import { stringifyLogEntries } from '@shared/Log/LogCommon';
 import { LogData } from '../LogData';
-import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
-import { clearLogs } from '@renderer/store/logs/slice';
 
 export type LogsPageProps = WithPreferencesProps;
 
@@ -49,10 +50,8 @@ export function LogsPage(props: LogsPageProps) {
   const allStrings = useContext(LangContext);
   const strings = allStrings.logs;
   const { showLogSource, showLogLevel } = props.preferencesData;
-  const logs = useAppSelector(state => state.logs);
+  const logsState = useAppSelector(state => state.logs);
   const dispatch = useAppDispatch();
-
-  const logData = stringifyLogEntries(logs.entries, showLogSource, showLogLevel);
 
   const onSourceCheckboxClick = (index: number) => {
     const label = sourceLabels[index];
@@ -77,7 +76,7 @@ export function LogsPage(props: LogsPageProps) {
     if (!navigator.clipboard) {
       alert('Clipboard not available, failed to copy logs to clipboard');
     }
-    const logData = logs.entries.filter(l => showLogLevel[l.logLevel as LogLevel])
+    const logData = logsState.entries.filter(l => showLogLevel[l.logLevel as LogLevel])
     .map(formedLog => {
       return `[${LogLevel[formedLog.logLevel].padEnd(5)}] [${(new Date(formedLog.timestamp)).toLocaleTimeString('en-GB')}]: (${formedLog.source}) - ${formedLog.content}`;
     })
@@ -92,7 +91,7 @@ export function LogsPage(props: LogsPageProps) {
   const onCopy404Click = () => {
     // Store found URLs
     const urls: string[] = [];
-    for (const entry of logs.entries) {
+    for (const entry of logsState.entries) {
       // All 404 entries start with 404
       if (entry && entry.content.startsWith('404')) {
         // Extract URL with regex
@@ -250,10 +249,9 @@ export function LogsPage(props: LogsPageProps) {
         </div>
       </div>
       {/* Content */}
-      <LogData
-        className='log-page__content'
-        logData={logData}
-        isLogDataHTML={true} />
+      <LogBox
+        logs={logsState.entries}
+        longestSource={logsState.longestSource} />
     </div>
   );
 }
