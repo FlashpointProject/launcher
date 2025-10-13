@@ -600,7 +600,7 @@ type TagSelectItem = {
 } & SearchableSelectItem;
 
 export function SearchableSelect<T extends SearchableSelectItem>(props: SearchableSelectProps<T>) {
-  const { title, items, selected, andToggle, onWhitelist, onBlacklist, onClear, onSetAndToggle, mapName, labelRenderer } = props;
+  const { title, items, selected, andToggle, generateItem, onWhitelist, onBlacklist, onClear, onSetAndToggle, mapName, labelRenderer } = props;
   const [expanded, setExpanded] = React.useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
 
@@ -614,22 +614,6 @@ export function SearchableSelect<T extends SearchableSelectItem>(props: Searchab
       setExpanded(false);
     }
   };
-
-  const getOrderedItems = () => {
-    const newItems = [...items];
-    const missingItems = { ...selected };
-    for (const item of newItems) {
-      if (item.value in missingItems) {
-        delete missingItems[item.value];
-      }
-    }
-    for (const missingItem of Object.keys(missingItems)) {
-      newItems.push(props.generateItem(missingItem));
-    }
-    return newItems.sort((a, b) => a.orderVal.localeCompare(b.orderVal));
-  };
-
-  const orderedItems = getOrderedItems();
 
   React.useEffect(() => {
     // Add event listener to handle clicks outside the dropdown
@@ -664,7 +648,8 @@ export function SearchableSelect<T extends SearchableSelectItem>(props: Searchab
         </div>
         {expanded && (
           <SearchableSelectDropdown
-            items={orderedItems}
+            items={items}
+            generateItem={generateItem}
             andToggle={andToggle}
             onWhitelist={onWhitelist}
             onBlacklist={onBlacklist}
@@ -681,6 +666,7 @@ export function SearchableSelect<T extends SearchableSelectItem>(props: Searchab
 
 type SearchableSelectDropdownProps<T extends SearchableSelectItem> = {
   items: T[];
+  generateItem: (missing: string) => T;
   andToggle: boolean;
   selected: Record<string, AdvancedFilterToggle>;
   labelRenderer?: (item: T, selected: boolean) => React.JSX.Element;
@@ -694,12 +680,28 @@ const reservedKeys = ['Shift', 'Control', 'Escape', 'Alt', 'AltGraph', 'Super', 
 
 function SearchableSelectDropdown<T extends SearchableSelectItem>(props: SearchableSelectDropdownProps<T>) {
   const strings = useContext(LangContext);
-  const { items, selected, onWhitelist, onBlacklist, mapName, labelRenderer } = props;
+  const { items: rawItems, selected, generateItem, onWhitelist, onBlacklist, mapName, labelRenderer } = props;
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   const [search, setSearch] = React.useState('');
-  const [storedItems, setStoredItems] = React.useState(items); // 'cache' the items
   const [selectedIndex, setSelectedIndex] = React.useState(-1); // Track the selected index
+
+  const getOrderedItems = (items: T[]) => {
+    const newItems = [...items];
+    const missingItems = { ...selected };
+    for (const item of newItems) {
+      if (item.value in missingItems) {
+        delete missingItems[item.value];
+      }
+    }
+    for (const missingItem of Object.keys(missingItems)) {
+      newItems.push(generateItem(missingItem));
+    }
+    return newItems.sort((a, b) => a.orderVal.localeCompare(b.orderVal));
+  };
+
+  const items = getOrderedItems(rawItems);
+  const [storedItems, setStoredItems] = React.useState(items); // 'cache' the items
 
   // Split the items into 2 halves - Selected and not selected, then merge
 
