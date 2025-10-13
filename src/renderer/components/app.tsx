@@ -38,6 +38,7 @@ import {
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as React from 'react';
+import { Activity } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import { ConnectedFooter } from '../containers/ConnectedFooter';
@@ -1518,6 +1519,8 @@ export class App extends React.Component<AppProps> {
       searchStatus: null, // TODO: remove
     };
 
+    const showRightSidebar = currentView.selectedGame !== undefined && !hiddenRightSidebarPages.reduce((prev, cur) => prev || this.props.location.pathname.startsWith(cur), false);
+
     // Render
     return (
       <DynamicThemeProvider fileList={dynamicThemeFileList} >
@@ -1623,7 +1626,7 @@ export class App extends React.Component<AppProps> {
                           This website requires JavaScript to be enabled.
                         </div>
                       </noscript>
-                      {currentView.selectedGame && !hiddenRightSidebarPages.reduce((prev, cur) => prev || this.props.location.pathname.startsWith(cur), false) && (
+                      <Activity mode={showRightSidebar ? 'visible' : 'hidden'}>
                         <ResizableSidebar
                           show={this.props.preferencesData.browsePageShowRightSidebar}
                           divider='before'
@@ -1653,7 +1656,7 @@ export class App extends React.Component<AppProps> {
                             onFpfssEditGame={this.onFpfssEditGame}
                             onSearch={this.onSearch} />
                         </ResizableSidebar>
-                      )}
+                      </Activity>
                     </div>
                     {/* Tasks - @TODO Find a better way to hide it than behind enableEditing */}
                     {this.props.preferencesData.enableEditing && this.props.tasks.length > 0 && (

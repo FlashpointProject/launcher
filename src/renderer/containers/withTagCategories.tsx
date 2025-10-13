@@ -6,7 +6,7 @@ import { useDispatch } from 'react-redux';
 import { Dispatch } from 'redux';
 
 type TagCategoriesStateProps = {
-  tagsCategories: TagCategory[]
+  tagCategories: TagCategory[]
 };
 
 export type WithTagCategoriesProps = TagCategoriesStateProps & ReturnType<typeof mapDispatchToProps>;
@@ -20,7 +20,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
 export function withTagCategories<P>(Component: React.ComponentType<P>) {
   return (props: Subtract<P, WithTagCategoriesProps>) => {
     const stateProps: TagCategoriesStateProps = useAppSelector(state => ({
-      tagsCategories: state.tagCategories
+      tagCategories: state.tagCategories
     }));
     const dispatch = useDispatch();
     const dispatchProps = mapDispatchToProps(dispatch);

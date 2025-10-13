@@ -63,8 +63,6 @@ export async function getTags(state: BackState, tagFilters: TagFilterGroup[]): P
   return databaseReady()
   .then(async (db) => {
     const tagCount = await db.countTags();
-    log.info('Cache', 'Tag count: ' + tagCount);
-    log.info('Cache', 'Tag filter key: ' + flatKey);
     if (tagCache!.tagCount === tagCount && tagCache!.filterKey === flatKey) {
       // Same tag count and filter key, pretty accurate cache
       return tagCache!.tags;
