@@ -5,6 +5,7 @@ import { List, RowComponentProps } from 'react-window';
 
 const timestampLength = '[HH:MM:SS] '.length;
 const logLevelLength = 5;
+const logFontSize = 14;
 
 export type LogBoxProps = {
   logs: ILogEntry[];
@@ -17,7 +18,7 @@ type RowProps = {
 }
 
 function rowHeight(index: number, { logs }: RowProps) {
-  return 16 * logs[index].lineCount;
+  return (logFontSize + 2) * logs[index].lineCount;
 }
 
 function LogRow({ index, style, logs, longestSource }: RowComponentProps<RowProps>) {
@@ -30,7 +31,6 @@ function LogRow({ index, style, logs, longestSource }: RowComponentProps<RowProp
   ) : (
     <span className={`log__source log__source--${getClassModifier(log.source)}`}>{log.source.padStart(longestSource)}:</span>
   );
-  console.log(longestSource);
 
   return (
     <pre
@@ -49,6 +49,7 @@ export function LogBox(props: LogBoxProps) {
   return (
     <List<RowProps>
       className='log simple-scroll'
+      style={{ fontSize: `${logFontSize}px`, lineHeight: `${logFontSize + 2}px` }}
       rowComponent={LogRow}
       rowProps={{
         logs: props.logs,
@@ -76,5 +77,5 @@ function getClassModifier(source: string): string {
 }
 
 function getLevelText(logLevel: LogLevel) {
-  return LogLevel[logLevel].padEnd(5) || '?????';
+  return LogLevel[logLevel].padEnd(5);
 }

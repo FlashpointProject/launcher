@@ -318,11 +318,6 @@ body {
   margin-right: 0.5rem;
 }
 
-/* Log */
-.log {
-  font-size: 13px;
-  line-height: 16px; /** Changing this will cause errors on multiple line content */
-}
 /* Simple Columns */
 .simple-columns {
   /*--columns: <Number of columns>;*/

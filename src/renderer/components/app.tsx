@@ -1461,7 +1461,9 @@ export class App extends React.Component<AppProps> {
       }
     }, []);
 
-    const dynamicThemeFileList = this.props.main.extensions.reduce<string[]>((prev, cur) => prev.concat(cur.contributes?.themeFiles.map(file => {
+    const dynamicThemeFileList = this.props.main.extensions
+    .filter(ext => !this.props.preferencesData.disabledExtensions.includes(ext.id))
+    .reduce<string[]>((prev, cur) => prev.concat(cur.contributes?.themeFiles.map(file => {
       return `${getFileServerURL()}/extdata/${cur.id}/${file}`;
     }) || []), []);
 
