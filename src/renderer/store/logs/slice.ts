@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { ILogEntry } from 'flashpoint-launcher';
 
-type LogsState = {
+export type LogsState = {
   offset: number;
   longestSource: number;
   entries: ILogEntry[];

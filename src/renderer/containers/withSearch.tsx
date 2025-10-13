@@ -1,15 +1,16 @@
 import { useAppSelector } from '@renderer/hooks/useAppSelector';
 import { forceSearch, ForceSearchAction, searchActions } from '@renderer/store/search/slice';
-import { RootState, store } from '@renderer/store/store';
+import { store } from '@renderer/store/store';
 import { Subtract } from '@shared/interfaces';
+import { SearchState } from 'flashpoint-launcher';
 import { useDispatch } from 'react-redux';
 import { bindActionCreators, Dispatch } from 'redux';
 
-export type WithSearchProps = ReturnType<typeof mapStateToProps> & ReturnType<typeof mapDispatchToProps>;
+type SearchStateProps = {
+  search: SearchState
+};
 
-const mapStateToProps = (state: RootState) => ({
-  search: state.search,
-});
+export type WithSearchProps = SearchStateProps & ReturnType<typeof mapDispatchToProps>;
 
 function mapDispatchToProps(dispatch: Dispatch) {
   return {
@@ -22,9 +23,10 @@ function mapDispatchToProps(dispatch: Dispatch) {
 
 export function withSearch<P>(Component: React.ComponentType<P>) {
   return (props: Subtract<P, WithSearchProps>) => {
-    const state = useAppSelector(state => state);
+    const stateProps: SearchStateProps = useAppSelector(state => ({
+      search: state.search
+    }));
     const dispatch = useDispatch();
-    const stateProps = mapStateToProps(state);
     const dispatchProps = mapDispatchToProps(dispatch);
     return <Component
       {...stateProps}

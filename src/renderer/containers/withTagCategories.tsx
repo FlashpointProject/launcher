@@ -1,16 +1,15 @@
 import { useAppSelector } from '@renderer/hooks/useAppSelector';
-import { RootState } from '@renderer/store/store';
 import { setTagCategories } from '@renderer/store/tagCategories/slice';
 import { Subtract } from '@shared/interfaces';
 import { TagCategory } from 'flashpoint-launcher';
 import { useDispatch } from 'react-redux';
 import { Dispatch } from 'redux';
 
-export type WithTagCategoriesProps = ReturnType<typeof mapStateToProps> & ReturnType<typeof mapDispatchToProps>;
+type TagCategoriesStateProps = {
+  tagsCategories: TagCategory[]
+};
 
-const mapStateToProps = (state: RootState) => ({
-  tagCategories: state.tagCategories,
-});
+export type WithTagCategoriesProps = TagCategoriesStateProps & ReturnType<typeof mapDispatchToProps>;
 
 function mapDispatchToProps(dispatch: Dispatch) {
   return {
@@ -20,9 +19,10 @@ function mapDispatchToProps(dispatch: Dispatch) {
 
 export function withTagCategories<P>(Component: React.ComponentType<P>) {
   return (props: Subtract<P, WithTagCategoriesProps>) => {
-    const state = useAppSelector(state => state);
+    const stateProps: TagCategoriesStateProps = useAppSelector(state => ({
+      tagsCategories: state.tagCategories
+    }));
     const dispatch = useDispatch();
-    const stateProps = mapStateToProps(state);
     const dispatchProps = mapDispatchToProps(dispatch);
     return <Component
       {...stateProps}

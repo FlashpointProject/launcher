@@ -140,7 +140,7 @@ export function BrowsePageDisplayGrid<T extends Content>(props: BrowsePageDispla
 }
 
 export function BrowsePageDisplayList<T extends Content>(props: BrowsePageDisplayListProps<T>) {
-  const { displaySettings } = useAppSelector(state => state.main);
+  const displaySettings = useAppSelector(state => state.main.displaySettings);
   const { tagFilters, browsePageGameScale, browsePageShowExtreme } = usePreferences();
   const dispatch = useAppDispatch();
   const { view, onContentRun, extremeTags, onMovePlaylistEntry } = props;

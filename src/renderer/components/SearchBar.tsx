@@ -30,7 +30,14 @@ export function SearchBar() {
   const view = useView();
   const dispatch = useAppDispatch();
   const strings = useContext(LangContext);
-  const { main: mainState, tagCategories, search } = useAppSelector((state) => state);
+  const { displaySettings, libraries, logoVersion, suggestions, searchDropdowns, tagCategories } = useAppSelector((state) => ({
+    displaySettings: state.main.displaySettings,
+    libraries: state.main.libraries,
+    logoVersion: state.main.logoVersion,
+    suggestions: state.main.suggestions,
+    searchDropdowns: state.search.dropdowns,
+    tagCategories: state.tagCategories
+  }));
   const { enableEditing, useCustomViews } = usePreferences();
 
   const onTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -251,12 +258,12 @@ export function SearchBar() {
     })) : [];
   };
 
-  const libraryItems = simpleSelectItems(mainState.libraries);
-  const playModeItems = simpleSelectItems(mainState.suggestions.playMode);
-  const platformItems = simpleSelectItems(mainState.suggestions.platforms);
-  const developerItems = simpleSelectItems(search.dropdowns.developers);
-  const publisherItems = simpleSelectItems(search.dropdowns.publishers);
-  const seriesItems = simpleSelectItems(search.dropdowns.series);
+  const libraryItems = simpleSelectItems(libraries);
+  const playModeItems = simpleSelectItems(suggestions.playMode);
+  const platformItems = simpleSelectItems(suggestions.platforms);
+  const developerItems = simpleSelectItems(searchDropdowns.developers);
+  const publisherItems = simpleSelectItems(searchDropdowns.publishers);
+  const seriesItems = simpleSelectItems(searchDropdowns.series);
   const ruffleSupportItems: SearchableSelectItem[] = [{
     value: '',
     orderVal: ''
@@ -264,7 +271,7 @@ export function SearchBar() {
     value: 'standalone',
     orderVal: 'Standalone'
   }];
-  const tagItems = search.dropdowns.tags ? search.dropdowns.tags.map(tag => {
+  const tagItems = searchDropdowns.tags ? searchDropdowns.tags.map(tag => {
     const categoryId = tag.category ? categoryOrder.indexOf(tag.category) : 99999;
     return {
       value: tag.name,
@@ -296,7 +303,7 @@ export function SearchBar() {
   };
 
   const platformLabelRenderer = (item: SearchableSelectItem) => {
-    const platformIcon = getPlatformIconURL(item.value, mainState.logoVersion);
+    const platformIcon = getPlatformIconURL(item.value, logoVersion);
 
     return (
       <div className='platform-label-row'>
@@ -517,7 +524,7 @@ export function SearchBar() {
             onBlacklist={onBlacklistTag}
             onClear={onClearTags}
             onSetAndToggle={onSetAndToggleTags} />
-          { mainState.displaySettings.searchComponents.map((name) => {
+          { displaySettings.searchComponents.map((name) => {
             return (
               <DynamicComponent name={name} props={searchComponentProps}/>
             );

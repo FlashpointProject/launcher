@@ -1,15 +1,15 @@
 import { useAppSelector } from '@renderer/hooks/useAppSelector';
 import { downloadsActions } from '@renderer/store/downloads/slice';
-import { RootState } from '@renderer/store/store';
 import { Subtract } from '@shared/interfaces';
+import { DownloaderState } from 'flashpoint-launcher';
 import { useDispatch } from 'react-redux';
 import { bindActionCreators, Dispatch } from 'redux';
 
-export type WithDownloadsProps = ReturnType<typeof mapStateToProps> & ReturnType<typeof mapDispatchToProps>;
+type DownloadStateProps = {
+  downloads: DownloaderState
+};
 
-const mapStateToProps = (state: RootState) => ({
-  downloads: state.downloads,
-});
+export type WithDownloadsProps = DownloadStateProps & ReturnType<typeof mapDispatchToProps>;
 
 function mapDispatchToProps(dispatch: Dispatch) {
   return {
@@ -19,9 +19,10 @@ function mapDispatchToProps(dispatch: Dispatch) {
 
 export function withDownloads<P>(Component: React.ComponentType<P>) {
   return (props: Subtract<P, WithDownloadsProps>) => {
-    const state = useAppSelector(state => state);
     const dispatch = useDispatch();
-    const stateProps = mapStateToProps(state);
+    const stateProps: DownloadStateProps = useAppSelector(state => ({
+      downloads: state.downloads
+    }));
     const dispatchProps = mapDispatchToProps(dispatch);
     return <Component
       {...stateProps}

@@ -1,15 +1,15 @@
 import { useAppSelector } from '@renderer/hooks/useAppSelector';
 import { mainActions, MainState } from '@renderer/store/main/slice';
-import { RootState } from '@renderer/store/store';
 import { Subtract } from '@shared/interfaces';
 import { useDispatch } from 'react-redux';
 import { bindActionCreators, Dispatch } from 'redux';
 
-export type WithMainStateProps = ReturnType<typeof mapStateToProps> & ReturnType<typeof mapDispatchToProps>;
+type MainStateProps = {
+  main: MainState
+};
 
-const mapStateToProps = (state: RootState) => ({
-  main: state.main,
-});
+export type WithMainStateProps = MainStateProps & ReturnType<typeof mapDispatchToProps>;
+
 
 function mapDispatchToProps(dispatch: Dispatch) {
   return {
@@ -21,9 +21,10 @@ function mapDispatchToProps(dispatch: Dispatch) {
 
 export function withMainState<P>(Component: React.ComponentType<P>) {
   return (props: Subtract<P, WithMainStateProps>) => {
-    const state = useAppSelector(state => state);
+    const stateProps: MainStateProps = useAppSelector(state => ({
+      main: state.main
+    }));
     const dispatch = useDispatch();
-    const stateProps = mapStateToProps(state);
     const dispatchProps = mapDispatchToProps(dispatch);
     return <Component
       {...stateProps}

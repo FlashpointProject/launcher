@@ -20,20 +20,32 @@ export function Footer() {
   const scaleSliderRef = useRef<HTMLInputElement | null>(null);
   const strings = useContext(LangContext);
   const dispatch = useAppDispatch();
-  const main = useAppSelector(state => state.main);
+  const { allGamesTotal, componentStatuses } = useAppSelector(state => ({
+    allGamesTotal: state.main.gamesTotal,
+    componentStatuses: state.main.componentStatuses
+  }));
   const location = useLocation();
   const libraryPath = getViewName(location.pathname);
   const { browsePageLayout, browsePageGameScale } = usePreferences();
   const view = useView();
 
   const currentLabel = libraryPath && getLibraryItemTitle(libraryPath, strings.libraries);
-  const fpmAvailable = main.componentStatuses.length > 0;
-  const updatesReady = main.componentStatuses.filter(c => c.state === ComponentState.NEEDS_UPDATE).length;
+  const fpmAvailable = componentStatuses.length > 0;
+  const updatesReady = componentStatuses.filter(c => c.state === ComponentState.NEEDS_UPDATE).length;
   const gamesTotal = (view && view.data.total != undefined) ? view.data.total : -1;
   const scale = Math.min(Math.max(0, browsePageGameScale), 1);
 
   const onScaleSliderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     updatePreferencesData({ browsePageGameScale: +event.currentTarget.value / scaleSliderMax });
+  };
+
+  const setScaleSliderValue = (scale: number) => {
+    if (scaleSliderRef.current) {
+      if (scale < 0) { scale = 0; }
+      else if (scale > 1) { scale = 1; }
+      scaleSliderRef.current.value = (Math.min(Math.max(0, scale), 1) * scaleSliderMax).toFixed(1).toString();
+      updatePreferencesData({ browsePageGameScale: scale });
+    }
   };
 
   // Allow ctrl + and ctrl - to change scale
@@ -67,15 +79,6 @@ export function Footer() {
     updatePreferencesData({ browsePageLayout: value });
   };
 
-  const setScaleSliderValue = (scale: number) => {
-    if (scaleSliderRef.current) {
-      if (scale < 0) { scale = 0; }
-      else if (scale > 1) { scale = 1; }
-      scaleSliderRef.current.value = (Math.min(Math.max(0, scale), 1) * scaleSliderMax).toFixed(1).toString();
-      updatePreferencesData({ browsePageGameScale: scale });
-    }
-  };
-
   return (
     <div className='footer'>
       {/* Left Side */}
@@ -96,7 +99,7 @@ export function Footer() {
           )}
           {/* Game Count */}
           <div className='footer__game-count'>
-            <p>{`${strings.app.total}: ${main.gamesTotal}`}</p>
+            <p>{`${strings.app.total}: ${allGamesTotal}`}</p>
             {currentLabel && view.id !== GENERAL_VIEW_ID && strings.app.searchResults ? (
               <>
                 <p>|</p>

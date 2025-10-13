@@ -9,7 +9,7 @@ import { Paths } from '@shared/Paths';
 import { formatString } from '@shared/utils/StringFormatter';
 import { Content, Game } from 'flashpoint-launcher';
 import { HomePageComponentProps } from 'flashpoint-launcher-renderer';
-import React from 'react';
+import React, { useMemo } from 'react';
 import ReactDatePicker from 'react-datepicker';
 import ReactMarkdown from 'react-markdown';
 import { Link } from 'react-router-dom';
@@ -118,6 +118,9 @@ export function HomePageComponentGotd(props: HomePageComponentProps) {
   }, [selectedGotd]);
 
   const extreme = loadedGotd?.tags.findIndex(t => extremeTags.includes(t.trim())) !== -1;
+  // eslint-disable-next-line react-hooks/purity
+  const currentDate = useMemo(() => Date.now(), []);
+  const includedPickerDates = parsedGotdList.filter(g => window.Shared.config.data.gotdShowAll || g.date.getTime() < currentDate).map(g => new Date(g.date));
 
   if (gotdList) {
     <HomePageBox
@@ -164,7 +167,7 @@ export function HomePageComponentGotd(props: HomePageComponentProps) {
               <ReactDatePicker
                 dateFormat="yyyy-MM-dd"
                 selected={new Date(selectedGotd.date)}
-                includeDates={parsedGotdList.filter(g => window.Shared.config.data.gotdShowAll || g.date.getTime() < Date.now()).map(g => new Date(g.date))}
+                includeDates={includedPickerDates}
                 onChange={(date) => {
                   if (date) {
                     const newGotd = parsedGotdList.find(g => g.date.toDateString() === date.toDateString());
@@ -284,13 +287,13 @@ export function HomePageComponentRandomGames(props: HomePageComponentProps) {
 
 export function HomePageComponentExtras(props: HomePageComponentProps) {
   const { platforms, logoVersion, toggleMinimizeBox } = props;
-  const search = useAppSelector((state) => state.search);
+  const viewObj = useAppSelector((state) => state.search.views);
   const dispatch = useAppDispatch();
   const allStrings = React.useContext(LangContext);
   const strings = allStrings.home;
 
   const platformList: React.JSX.Element[] = [];
-  const views = Object.keys(search.views);
+  const views = Object.keys(viewObj);
   let viewName = '';
   for (const view of views) {
     if (view !== GENERAL_VIEW_ID) {

@@ -1,15 +1,14 @@
 import { useAppSelector } from '@renderer/hooks/useAppSelector';
-import { logsActions } from '@renderer/store/logs/slice';
-import { RootState } from '@renderer/store/store';
+import { logsActions, LogsState } from '@renderer/store/logs/slice';
 import { Subtract } from '@shared/interfaces';
 import { useDispatch } from 'react-redux';
 import { bindActionCreators, Dispatch } from 'redux';
 
-export type WithLogsProps = ReturnType<typeof mapStateToProps> & ReturnType<typeof mapDispatchToProps>;
+type LogsStateProps = {
+  logs: LogsState
+};
 
-const mapStateToProps = (state: RootState) => ({
-  logs: state.logs,
-});
+export type WithLogsProps = LogsStateProps & ReturnType<typeof mapDispatchToProps>;
 
 function mapDispatchToProps(dispatch: Dispatch) {
   return {
@@ -19,9 +18,10 @@ function mapDispatchToProps(dispatch: Dispatch) {
 
 export function withLogs<P>(Component: React.ComponentType<P>) {
   return (props: Subtract<P, WithLogsProps>) => {
-    const state = useAppSelector(state => state);
+    const stateProps: LogsStateProps = useAppSelector(state => ({
+      logs: state.logs
+    }));
     const dispatch = useDispatch();
-    const stateProps = mapStateToProps(state);
     const dispatchProps = mapDispatchToProps(dispatch);
     return <Component
       {...stateProps}

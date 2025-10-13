@@ -1,15 +1,15 @@
 import { useAppSelector } from '@renderer/hooks/useAppSelector';
 import { fpfssActions } from '@renderer/store/fpfss/slice';
-import { RootState } from '@renderer/store/store';
+import { FpfssState } from '@shared/back/types';
 import { Subtract } from '@shared/interfaces';
 import { useDispatch } from 'react-redux';
 import { bindActionCreators, Dispatch } from 'redux';
 
-export type WithFpfssProps = ReturnType<typeof mapStateToProps> & ReturnType<typeof mapDispatchToProps>;
+type FpfssStateProps = {
+  fpfss: FpfssState
+};
 
-const mapStateToProps = (state: RootState) => ({
-  fpfss: state.fpfss,
-});
+export type WithFpfssProps = FpfssStateProps & ReturnType<typeof mapDispatchToProps>;
 
 function mapDispatchToProps(dispatch: Dispatch) {
   return {
@@ -19,9 +19,10 @@ function mapDispatchToProps(dispatch: Dispatch) {
 
 export function withFpfss<P>(Component: React.ComponentType<P>) {
   return (props: Subtract<P, WithFpfssProps>) => {
-    const state = useAppSelector(state => state);
     const dispatch = useDispatch();
-    const stateProps = mapStateToProps(state);
+    const stateProps: FpfssStateProps = useAppSelector(state => ({
+      fpfss: state.fpfss
+    }));
     const dispatchProps = mapDispatchToProps(dispatch);
     return <Component
       {...stateProps}
