@@ -1,9 +1,8 @@
-import * as React from 'react';
-import { ListRowProps } from 'react-virtualized';
-import { OpenIcon } from './OpenIcon';
 import { TagCategory } from 'flashpoint-launcher';
+import { RowComponentProps } from 'react-window';
+import { OpenIcon } from './OpenIcon';
 
-export type TagCategoriesListItemProps = ListRowProps & {
+export type TagCategoriesListItemProps = RowComponentProps & {
   /** Current tag */
   category: TagCategory;
   /** If the row is selected. */

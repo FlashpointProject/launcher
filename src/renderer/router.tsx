@@ -21,8 +21,8 @@ import { IFramePage, IFramePageProps } from './components/pages/IFramePage';
 import { LoadingPage } from './components/pages/LoadingPage';
 import { LogsPage } from './components/pages/LogsPage';
 import { NotFoundPage } from './components/pages/NotFoundPage';
+import { TagCategoriesPage } from './components/pages/TagCategoriesPage';
 import { ConnectedConfigPage, ConnectedConfigPageProps } from './containers/ConnectedConfigPage';
-import { ConnectedTagCategoriesPage } from './containers/ConnectedTagCategoriesPage';
 import { ConnectedTagsPage } from './containers/ConnectedTagsPage';
 import { CreditsData } from './credits/types';
 
@@ -152,7 +152,7 @@ export function AppRouter(props: AppRouterProps) {
         element={<ConnectedTagsPage/>}/>
       <Route
         path={Paths.CATEGORIES}
-        element={<ConnectedTagCategoriesPage/>}/>
+        element={<TagCategoriesPage/>}/>
       <Route
         path={Paths.DOWNLOADS}
         element={<DownloadsPage/>}/>

@@ -1,128 +1,64 @@
 import { ConnectedRightTagCategoriesSidebar } from '@renderer/containers/ConnectedRightTagsCategoriesSidebar';
-import { WithPreferencesProps } from '@renderer/containers/withPreferences';
-import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
+import { useAppSelector } from '@renderer/hooks/useAppSelector';
+import { usePreferences } from '@renderer/hooks/usePreferences';
 import { gameScaleSpan } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
 import { BackIn } from '@shared/back/types';
 import { deepCopy, getRandomHexColor } from '@shared/Util';
-import * as React from 'react';
+import { TagCategory } from 'flashpoint-launcher';
+import { useContext, useState } from 'react';
 import { ResizableSidebar } from '../ResizableSidebar';
 import { SimpleButton } from '../SimpleButton';
 import { TagCategoriesList } from '../TagCategoriesList';
-import { TagCategory } from 'flashpoint-launcher';
 
-type OwnProps = Record<string, never>;
+export function TagCategoriesPage() {
+  const allStrings = useContext(LangContext);
+  const strings = allStrings.tags;
+  const preferences = usePreferences();
+  const tagCategories = useAppSelector((state) => state.tagCategories);
+  const [isEditing, setIsEditing] = useState(false);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number>();
+  const [currentCategory, setCurrentCategory] = useState<TagCategory>();
+  const [originalCategory, setOriginalCategory] = useState<TagCategory>();
 
-export type TagCategoriesPageProps = OwnProps & WithTagCategoriesProps & WithPreferencesProps;
+  const onEditClick = () => {
+    setIsEditing(!isEditing);
+  };
 
-export type TagCategoriesPageState = {
-  /** Copy of working category */
-  currentCategory?: TagCategory;
-  /** Original copy of working category */
-  originalCategory?: TagCategory;
-  /** Currently selected tag ID */
-  selectedCategoryId?: number;
-  /** Whether we're editing a tag or not */
-  isEditing: boolean;
-}
+  const onDiscardClick = () => {
+    setCurrentCategory(deepCopy(originalCategory));
+    setIsEditing(false);
+  };
 
-export class TagCategoriesPage extends React.Component<TagCategoriesPageProps, TagCategoriesPageState> {
-  static contextType = LangContext;
-  declare context: React.ContextType<typeof LangContext>;
-
-  constructor(props: TagCategoriesPageProps) {
-    super(props);
-    this.state = {
-      isEditing: false
-    };
-  }
-
-  render() {
-    const rowHeight = calcScale(40, this.props.preferencesData.browsePageGameScale);
-    const strings = this.context.tags;
-
-    return (
-      <div className='tags-page'>
-        <div className='tags-page__browser'>
-          <div className='tags-browser__center'>
-            <TagCategoriesList
-              categories={this.props.tagCategories}
-              categoriesTotal={this.props.tagCategories.length}
-              rowHeight={rowHeight}
-              onCategorySelect={this.onCategorySelect}
-              selectedCategoryId={this.state.selectedCategoryId} />
-            <SimpleButton
-              className='tag-category__new-button'
-              onClick={this.createNewCategory}
-              value={strings.newCategory}/>
-          </div>
-          <ResizableSidebar
-            show={!!this.state.currentCategory}
-            divider='after'
-            width={this.props.preferencesData.browsePageLeftSidebarWidth} >
-            <ConnectedRightTagCategoriesSidebar
-              currentCategory={this.state.currentCategory}
-              isEditing={this.state.isEditing}
-              onEditCategory={this.onEditCategory}
-              onEditClick={this.onEditClick}
-              onDiscardClick={this.onDiscardClick}
-              onDeleteCategory={this.deleteCurrentCategory}
-              onSaveCategory={this.onSaveCategory} />
-          </ResizableSidebar>
-        </div>
-      </div>
-    );
-  }
-
-  onCategorySelect = (categoryId: number | undefined) => {
-    this.setState({ selectedCategoryId: categoryId });
-    if (categoryId) {
-      this.updateCurrentCategory(categoryId);
+  const onEditCategory = (category: Partial<TagCategory>) => {
+    if (currentCategory) {
+      const newCategory = { ...deepCopy(currentCategory), ...category };
+      setCurrentCategory(newCategory);
     }
   };
 
-  onEditClick = () => {
-    this.setState({ isEditing: !this.state.isEditing });
-  };
-
-  onDiscardClick = () => {
-    this.setState({
-      currentCategory: deepCopy(this.state.originalCategory),
-      isEditing: false
-    });
-  };
-
-  onEditCategory = (category: Partial<TagCategory>) => {
-    if (this.state.currentCategory) {
-      const newCategory = { ...deepCopy(this.state.currentCategory), ...category };
-      this.setState({ currentCategory: newCategory });
-    }
-  };
-
-  onSaveCategory = async () => {
-    this.setState({
-      isEditing: false,
-      originalCategory: deepCopy(this.state.currentCategory)
-    });
-    if (this.state.currentCategory) {
+  const onSaveCategory = async () => {
+    setIsEditing(false);
+    setOriginalCategory(deepCopy(currentCategory));
+    if (currentCategory !== undefined) {
       // Update tag
-      window.Shared.back.request(BackIn.SAVE_TAG_CATEGORY, this.state.currentCategory)
+      window.Shared.back.request(BackIn.SAVE_TAG_CATEGORY, currentCategory)
       .then(data => {
         if (data) {
-          this.setState({ currentCategory: data });
+          setCurrentCategory(data);
         }
       });
     }
   };
 
-  createNewCategory = () => {
-    const name = 'New Category ' + this.props.tagCategories.reduce((big, cur) => {
+  const createNewCategory = () => {
+    const name = 'New Category ' + tagCategories.reduce((big, cur) => {
       if (cur.id > big.id) {
         return cur;
       }
       return big;
     }).id;
-    if (this.props.tagCategories.findIndex(t => t.name == name) == -1) {
+    if (tagCategories.findIndex(t => t.name == name) == -1) {
       // Tag category shouldn't exist, safe to call
       const newCat: TagCategory = {
         id: -1,
@@ -133,29 +69,64 @@ export class TagCategoriesPage extends React.Component<TagCategoriesPageProps, T
     }
   };
 
-  updateCurrentCategory = (categoryId: number) => {
-    window.Shared.back.request(BackIn.GET_TAG_CATEGORY_BY_ID, categoryId)
-    .then((data) => {
-      if (data) {
-        this.setState({
-          currentCategory: data,
-          originalCategory: deepCopy(data)
-        });
-      }
-    });
-  };
-
-  deleteCurrentCategory = () => {
-    if (this.state.selectedCategoryId) {
-      console.log('DELETING');
-      window.Shared.back.request(BackIn.DELETE_TAG_CATEGORY, this.state.selectedCategoryId)
-      .then(success => {
-        if (success) {
-          this.setState({ selectedCategoryId: undefined, currentCategory: undefined });
+  const onCategorySelect = (categoryId: number | undefined) => {
+    setSelectedCategoryId(categoryId);
+    if (categoryId) {
+      window.Shared.back.request(BackIn.GET_TAG_CATEGORY_BY_ID, categoryId)
+      .then((data) => {
+        if (data) {
+          setCurrentCategory(data);
+          setOriginalCategory(deepCopy(data));
         }
       });
     }
   };
+
+  const deleteCurrentCategory = () => {
+    if (selectedCategoryId) {
+      console.log('DELETING');
+      window.Shared.back.request(BackIn.DELETE_TAG_CATEGORY, selectedCategoryId)
+      .then(success => {
+        if (success) {
+          setSelectedCategoryId(undefined);
+          setCurrentCategory(undefined);
+        }
+      });
+    }
+  };
+
+  const rowHeight = calcScale(40, preferences.browsePageGameScale);
+
+  return (
+    <div className='tags-page'>
+      <div className='tags-page__browser'>
+        <div className='tags-browser__center'>
+          <TagCategoriesList
+            categories={tagCategories}
+            rowHeight={rowHeight}
+            onCategorySelect={onCategorySelect}
+            selectedCategoryId={selectedCategoryId} />
+          <SimpleButton
+            className='tag-category__new-button'
+            onClick={createNewCategory}
+            value={strings.newCategory}/>
+        </div>
+        <ResizableSidebar
+          show={currentCategory !== undefined}
+          divider='after'
+          width={preferences.browsePageLeftSidebarWidth} >
+          <ConnectedRightTagCategoriesSidebar
+            currentCategory={currentCategory}
+            isEditing={isEditing}
+            onEditCategory={onEditCategory}
+            onEditClick={onEditClick}
+            onDiscardClick={onDiscardClick}
+            onDeleteCategory={deleteCurrentCategory}
+            onSaveCategory={onSaveCategory} />
+        </ResizableSidebar>
+      </div>
+    </div>
+  );
 }
 
 function calcScale(defHeight: number, scale: number): number {

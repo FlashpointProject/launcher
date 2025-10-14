@@ -5,9 +5,9 @@ export type SizeProviderProps = {
   /** Children of the wrapping <div> element. */
   children?: React.ReactNode;
   /** Value to set the "--width" CSS variable to. */
-  width: string | number;
+  width?: string | number;
   /** Value to set the "--height" CSS variable to. */
-  height: string | number;
+  height?: string | number;
 };
 
 // Sets and updates the "--width" and "--height" CSS variables to match the prop values.
@@ -15,15 +15,19 @@ export function SizeProvider(props: SizeProviderProps) {
   const ref = useRef(null);
   // Update "--width"
   useEffect(() => {
-    updateStyle(ref.current, '--width', props.width);
+    if (props.width) {
+      updateStyle(ref.current, '--width', props.width);
+    }
   }, [props.width]);
   // Update "--height"
   useEffect(() => {
-    updateStyle(ref.current, '--height', props.height);
+    if (props.height) {
+      updateStyle(ref.current, '--height', props.height);
+    }
   }, [props.height]);
   // Render
   return (
-    <div ref={ref}>
+    <div ref={ref} style={{ display: 'contents' }}>
       {props.children}
     </div>
   );
