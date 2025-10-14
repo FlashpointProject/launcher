@@ -20,9 +20,9 @@ function mapDispatchToProps(dispatch: Dispatch) {
 export function withFpfss<P>(Component: React.ComponentType<P>) {
   return (props: Subtract<P, WithFpfssProps>) => {
     const dispatch = useDispatch();
-    const stateProps: FpfssStateProps = useAppSelector(state => ({
-      fpfss: state.fpfss
-    }));
+    const stateProps: FpfssStateProps = {
+      fpfss: useAppSelector(state => state.fpfss)
+    };
     const dispatchProps = mapDispatchToProps(dispatch);
     return <Component
       {...stateProps}

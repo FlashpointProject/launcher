@@ -931,7 +931,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       for (const { gameId } of playlist.games) {
         try {
           const game = await fpDatabase.findGame(gameId);
-          if (game) {
+          if (game && game.activeDataId !== undefined) {
             log.info('Downloads', 'Adding game ' + game.id);
             state.downloader.addTask(game);
           }
@@ -1202,9 +1202,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
     const searchLimit = (!search.playlist && state.preferences.searchLimit) ? state.preferences.searchLimit : undefined;
     const countLimit = (!search.playlist && state.preferences.searchLimit) ? state.preferences.searchLimit : 999999999;
-    log.debug('Launcher', 'Doing index');
     const result = await fpDatabase.searchGamesIndex(search, searchLimit);
-    log.debug('Launcher', 'Doing count');
     const total = Math.min(await fpDatabase.searchGamesTotal(search), countLimit);
     log.debug('Launcher', `Keyset Search Time: ${Date.now() - startTime}ms - count: ${total}`);
     return {

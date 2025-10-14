@@ -18,9 +18,9 @@ function mapDispatchToProps(dispatch: Dispatch) {
 
 export function withLogs<P>(Component: React.ComponentType<P>) {
   return (props: Subtract<P, WithLogsProps>) => {
-    const stateProps: LogsStateProps = useAppSelector(state => ({
-      logs: state.logs
-    }));
+    const stateProps: LogsStateProps = {
+      logs: useAppSelector(state => state.logs)
+    };
     const dispatch = useDispatch();
     const dispatchProps = mapDispatchToProps(dispatch);
     return <Component

@@ -23,9 +23,9 @@ function mapDispatchToProps(dispatch: Dispatch) {
 
 export function withSearch<P>(Component: React.ComponentType<P>) {
   return (props: Subtract<P, WithSearchProps>) => {
-    const stateProps: SearchStateProps = useAppSelector(state => ({
-      search: state.search
-    }));
+    const stateProps: SearchStateProps = {
+      search: useAppSelector(state => state.search)
+    };
     const dispatch = useDispatch();
     const dispatchProps = mapDispatchToProps(dispatch);
     return <Component

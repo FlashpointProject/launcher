@@ -20,9 +20,9 @@ function mapDispatchToProps(dispatch: Dispatch) {
 export function withDownloads<P>(Component: React.ComponentType<P>) {
   return (props: Subtract<P, WithDownloadsProps>) => {
     const dispatch = useDispatch();
-    const stateProps: DownloadStateProps = useAppSelector(state => ({
-      downloads: state.downloads
-    }));
+    const stateProps: DownloadStateProps = {
+      downloads: useAppSelector(state => state.downloads)
+    };
     const dispatchProps = mapDispatchToProps(dispatch);
     return <Component
       {...stateProps}

@@ -21,9 +21,9 @@ function mapDispatchToProps(dispatch: Dispatch) {
 
 export function withMainState<P>(Component: React.ComponentType<P>) {
   return (props: Subtract<P, WithMainStateProps>) => {
-    const stateProps: MainStateProps = useAppSelector(state => ({
-      main: state.main
-    }));
+    const stateProps: MainStateProps = {
+      main: useAppSelector(state => state.main)
+    };
     const dispatch = useDispatch();
     const dispatchProps = mapDispatchToProps(dispatch);
     return <Component

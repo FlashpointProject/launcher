@@ -19,9 +19,9 @@ function mapDispatchToProps(dispatch: Dispatch) {
 
 export function withTasks<P>(Component: React.ComponentType<P>) {
   return (props: Subtract<P, WithTasksProps>) => {
-    const stateProps: TasksStateProps = useAppSelector(state => ({
-      tasks: state.tasks
-    }));
+    const stateProps: TasksStateProps = {
+      tasks: useAppSelector(state => state.tasks)
+    };
     const dispatch = useDispatch();
     const dispatchProps = mapDispatchToProps(dispatch);
     return <Component

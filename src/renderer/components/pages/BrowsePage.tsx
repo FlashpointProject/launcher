@@ -428,7 +428,6 @@ export function BrowsePage(props: BrowsePageProps) {
         <ConnectedLeftBrowseSidebar
           library={currentView.id}
           playlists={props.playlists}
-          selectedPlaylistID={currentView.selectedPlaylist?.id}
           isEditing={isEditingPlaylist}
           isNewPlaylist={isNewPlaylist}
           currentPlaylist={currentPlaylist}

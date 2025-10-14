@@ -37,7 +37,7 @@ jobs:
         NODE_ENV: "production"
         PACK_ARCH: "ia32"
         PACK_PLATFORM: "win32"
-      run: npm run build
+      run: npm run build:prod
     - name: Create wine prefix folder
       run: mkdir /__w/launcher/launcher/wine
     - name: Pack

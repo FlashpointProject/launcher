@@ -30,14 +30,12 @@ export function SearchBar() {
   const view = useView();
   const dispatch = useAppDispatch();
   const strings = useContext(LangContext);
-  const { displaySettings, libraries, logoVersion, suggestions, searchDropdowns, tagCategories } = useAppSelector((state) => ({
-    displaySettings: state.main.displaySettings,
-    libraries: state.main.libraries,
-    logoVersion: state.main.logoVersion,
-    suggestions: state.main.suggestions,
-    searchDropdowns: state.search.dropdowns,
-    tagCategories: state.tagCategories
-  }));
+  const displaySettings = useAppSelector(state => state.main.displaySettings);
+  const libraries = useAppSelector(state => state.main.libraries);
+  const logoVersion = useAppSelector(state => state.main.logoVersion);
+  const suggestions = useAppSelector(state => state.main.suggestions);
+  const searchDropdowns = useAppSelector(state => state.search.dropdowns);
+  const tagCategories = useAppSelector(state => state.tagCategories);
   const { enableEditing, useCustomViews } = usePreferences();
 
   const onTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {

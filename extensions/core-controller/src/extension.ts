@@ -68,9 +68,16 @@ export async function activate(context: flashpoint.ExtensionContext): Promise<vo
 
     const configFilePath = path.join(configPath, `${game.id}.gamecontroller.amgp`);
 
-    game.extData!.controller = {
-      config: readConfigFile(configFilePath)
-    };
+    try {
+      const config = readConfigFile(configFilePath);
+      game.extData!.controller = {
+        config,
+      };
+    } catch (err: any) {
+      if (err.code !== 'ENOENT') {
+        flashpoint.log.error(`${err}`);
+      }
+    }
   });
 
   flashpoint.commands.registerCommand('core-controller.edit-config', async (game: flashpoint.Game) => {

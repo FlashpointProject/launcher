@@ -19,9 +19,9 @@ function mapDispatchToProps(dispatch: Dispatch) {
 
 export function withTagCategories<P>(Component: React.ComponentType<P>) {
   return (props: Subtract<P, WithTagCategoriesProps>) => {
-    const stateProps: TagCategoriesStateProps = useAppSelector(state => ({
-      tagCategories: state.tagCategories
-    }));
+    const stateProps: TagCategoriesStateProps = {
+      tagCategories: useAppSelector(state => state.tagCategories)
+    };
     const dispatch = useDispatch();
     const dispatchProps = mapDispatchToProps(dispatch);
     return <Component

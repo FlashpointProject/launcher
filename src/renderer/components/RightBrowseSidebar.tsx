@@ -176,9 +176,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     if ((this.props.currentGame?.id !== prevProps.currentGame?.id)
       || (this.props.currentPlaylist?.id !== prevProps.currentPlaylist?.id)) {
       // Playlist or game has changed, update PlaylistGame
-      console.log('change');
       if (this.props.currentGame && this.props.currentPlaylist) {
-        console.log('safe change');
         const gameId = this.props.currentGame.id;
         const playlistId = this.props.currentPlaylist.id;
         this.setState({ playlistGame: null });

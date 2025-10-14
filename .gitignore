@@ -1,6 +1,8 @@
 # Node/NPM
 node_modules
 npm-debug.log.*
+.dev-server
+.dev-server.zip
 
 # Visual Studio Code
 /.vscode

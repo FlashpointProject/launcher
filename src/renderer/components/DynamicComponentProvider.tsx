@@ -1,4 +1,4 @@
-import { loadRemote, preloadRemote, registerRemotes } from '@module-federation/enhanced/runtime';
+import { loadRemote, registerRemotes } from '@module-federation/enhanced/runtime';
 import { ComponentType, createContext, lazy, ReactNode, useState } from 'react';
 import { DynamicComponent } from './DynamicComponent';
 import { GameComponentAddApps, GameComponentAlternateTitles, GameComponentDates, GameComponentLanguage, GameComponentLegacyData, GameComponentNotes, GameComponentOriginalDescription, GameComponentPlatforms, GameComponentPlaylistNotes, GameComponentPlayMode, GameComponentPublisher, GameComponentRuffleSupport, GameComponentSeries, GameComponentSource, GameComponentStatus, GameComponentTags, GameComponentVersion } from './GameComponents';
@@ -67,10 +67,6 @@ async function loadManifests(manifests: RemoteModule[]) {
       registerRemotes([{
         name: manifest.scope,
         entry: manifest.url,
-      }]);
-      preloadRemote([{
-        nameOrAlias: manifest.scope,
-        resourceCategory: 'all',
       }]);
       console.log(`Registered MF Provider with name '${manifest.scope}' to '${manifest.url}'`);
       log.debug('Extensions', `Registered MF Provider with name '${manifest.scope}' to '${manifest.url}'`);

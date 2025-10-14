@@ -126,12 +126,10 @@ export class ExtensionService {
       log.debug('Extensions', `Attempted load of already loaded extension? (${ext.id})`);
       return;
     }
-    console.log(`loading ext ${ext.id}`);
 
     try {
       // Import extension as module
       const entryPath = getExtensionEntry(ext);
-      console.log(entryPath);
       // Build context
       const context: ExtensionContext = {
         subscriptions: extData.subscriptions
@@ -143,7 +141,6 @@ export class ExtensionService {
         }
         // Activate extension
         try {
-          console.log(`activating ${ext.id}`);
           await extModule.activate.apply(global, [context]);
         } catch (err: any) {
           throw new Error(`Error during extension activation: ${err}`);
