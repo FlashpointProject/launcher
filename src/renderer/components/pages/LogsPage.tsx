@@ -6,14 +6,12 @@ import { LogLevel } from '@shared/Log/interface';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { clipboard } from 'electron';
 import { useContext, useState } from 'react';
-import { WithPreferencesProps } from '../../containers/withPreferences';
 import { LangContext } from '../../util/lang';
 import { Dropdown } from '../Dropdown';
 import { LogBox } from '../LogBox';
-import { stringifyLogEntries } from '@shared/Log/LogCommon';
-import { LogData } from '../LogData';
+import { usePreferences } from '@renderer/hooks/usePreferences';
 
-export type LogsPageProps = WithPreferencesProps;
+export type LogsPageProps = any;
 
 const urlRegex = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=+$,\w]+@)?[A-Za-z0-9.-]+|(?:www\.|[-;:&=+$,\w]+@)[A-Za-z0-9.-]+)((?:\/[+~%/.\w\-_]*)?\??(?:[-+=&;%@.\w_]*)#?(?:[.!/\\\w]*))?)/;
 const sourceLabels = [
@@ -49,7 +47,7 @@ export function LogsPage(props: LogsPageProps) {
   const [fetchedDiagnostics, setFetchedDiagnostics] = useState(false);
   const allStrings = useContext(LangContext);
   const strings = allStrings.logs;
-  const { showLogSource, showLogLevel } = props.preferencesData;
+  const { showLogSource, showLogLevel } = usePreferences();
   const logsState = useAppSelector(state => state.logs);
   const dispatch = useAppDispatch();
 

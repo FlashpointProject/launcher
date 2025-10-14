@@ -1,8 +1,5 @@
 import * as remote from '@electron/remote';
 import { SearchBar } from '@renderer/components/SearchBar';
-import { WithSearchProps } from '@renderer/containers/withSearch';
-import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
-import { WithViewProps } from '@renderer/containers/withView';
 import { useView } from '@renderer/hooks/search';
 import { useAppDispatch } from '@renderer/hooks/useAppSelector';
 import { usePreferences } from '@renderer/hooks/usePreferences';
@@ -18,12 +15,11 @@ import { BrowsePageDisplayProps } from 'flashpoint-launcher-renderer';
 import * as path from 'path';
 import * as React from 'react';
 import { RefObject, useRef, useState } from 'react';
-import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowseSidebar';
-import { WithPreferencesProps } from '../../containers/withPreferences';
 import { gameDragDataType } from '../../Util';
 import { LangContext } from '../../util/lang';
 import { WebgameBrowsePageDisplayGrid, WebgameBrowsePageDisplayList } from '../BrowsePageDisplay';
 import { InputElement } from '../InputField';
+import { LeftBrowseSidebar } from '../LeftBrowseSidebar';
 import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
 
 export type GameDragEventData = {
@@ -39,7 +35,7 @@ export type GameDragData = {
   index: number;
 }
 
-type OwnProps = {
+export type BrowsePageProps = {
   sourceTable: string;
   gamesTotal?: number;
   metaState?: RequestState;
@@ -60,8 +56,6 @@ type OwnProps = {
   /** Context menu additions */
   contextButtons: ExtensionContribution<'contextButtons'>[];
 };
-
-export type BrowsePageProps = OwnProps & WithViewProps<any> & WithPreferencesProps & WithTagCategoriesProps & WithSearchProps;
 
 export type BrowsePageState = {
   /** Currently dragged game (if any). */
@@ -94,6 +88,10 @@ export function BrowsePage(props: BrowsePageProps) {
       }));
     }
   });
+
+  React.useEffect(() => {
+    setCurrentPlaylist(currentView.selectedPlaylist || null);
+  }, [currentView.selectedPlaylist]);
 
   // Callbacks
 
@@ -425,7 +423,7 @@ export function BrowsePage(props: BrowsePageProps) {
         divider='after'
         width={browsePageLeftSidebarWidth}
         onResize={onLeftSidebarResize}>
-        <ConnectedLeftBrowseSidebar
+        <LeftBrowseSidebar
           library={currentView.id}
           playlists={props.playlists}
           isEditing={isEditingPlaylist}

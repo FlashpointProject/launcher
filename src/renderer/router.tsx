@@ -1,3 +1,5 @@
+import { RequestState } from '@renderer/store/search/slice';
+import { Paths } from '@shared/Paths';
 import { ITheme } from '@shared/ThemeFile';
 import { ComponentStatus, FpfssUser, GameOfTheDay } from '@shared/back/types';
 import { AppExtConfigData } from '@shared/config/interfaces';
@@ -7,25 +9,22 @@ import { LangFile } from '@shared/lang';
 import { Menu } from 'electron';
 import { UpdateInfo } from 'electron-updater';
 import { GameLaunchOverride, Playlist, ViewGame } from 'flashpoint-launcher';
-import * as React from 'react';
 import { Route, Routes } from 'react-router-dom';
-import { Paths } from '@shared/Paths';
 import { AboutPage, AboutPageProps } from './components/pages/AboutPage';
+import { BrowsePage, BrowsePageProps } from './components/pages/BrowsePage';
 import { DeveloperPage, DeveloperPageProps } from './components/pages/DeveloperPage';
+import { DownloadsPage } from './components/pages/Downloads';
+import { DynamicPage, DynamicPageProps } from './components/pages/DynamicPage';
 import { IFramePage, IFramePageProps } from './components/pages/IFramePage';
+import { LoadingPage } from './components/pages/LoadingPage';
+import { LogsPage } from './components/pages/LogsPage';
 import { NotFoundPage } from './components/pages/NotFoundPage';
-import ConnectedBrowsePage, { ConnectedBrowsePageProps } from './containers/ConnectedBrowsePage';
 import { ConnectedConfigPage, ConnectedConfigPageProps } from './containers/ConnectedConfigPage';
 import { ConnectedCuratePage, ConnectedCuratePageProps } from './containers/ConnectedCuratePage';
 import ConnectedHomePage, { ConnectedHomePageProps } from './containers/ConnectedHomePage';
-import { ConnectedLogsPage } from './containers/ConnectedLogsPage';
 import { ConnectedTagCategoriesPage } from './containers/ConnectedTagCategoriesPage';
 import { ConnectedTagsPage } from './containers/ConnectedTagsPage';
 import { CreditsData } from './credits/types';
-import { RequestState } from '@renderer/store/search/slice';
-import { LoadingPage } from './components/pages/LoadingPage';
-import { DownloadsPage } from './components/pages/Downloads';
-import { DynamicPage, DynamicPageProps } from './components/pages/DynamicPage';
 
 export type AppRouterProps = {
   fpfssUser: FpfssUser | null;
@@ -90,7 +89,7 @@ export function AppRouter(props: AppRouterProps) {
     updateFeedMarkdown: props.updateFeedMarkdown,
     selectedGameId: props.selectedGameId,
   };
-  const browseProps: ConnectedBrowsePageProps = {
+  const browseProps: BrowsePageProps = {
     sourceTable: 'browse-page',
     gamesTotal: props.gamesTotal,
     playlists: props.playlists,
@@ -147,7 +146,7 @@ export function AppRouter(props: AppRouterProps) {
         element={<ConnectedHomePage {...homeProps}/>}/>
       <Route
         path={Paths.BROWSE}
-        element={<ConnectedBrowsePage {...browseProps}/>}/>
+        element={<BrowsePage {...browseProps}/>}/>
       <Route
         path={Paths.TAGS}
         element={<ConnectedTagsPage/>}/>
@@ -159,7 +158,7 @@ export function AppRouter(props: AppRouterProps) {
         element={<DownloadsPage/>}/>
       <Route
         path={Paths.LOGS}
-        element={<ConnectedLogsPage/>}/>
+        element={<LogsPage/>}/>
       <Route
         path={Paths.CONFIG}
         element={<ConnectedConfigPage {...configProps}/>}/>
