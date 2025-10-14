@@ -1143,6 +1143,7 @@ body {
   width: 2rem;
   height: 2rem;
   padding: 0.5rem;
+  z-index: 10;
 }
 .curate-page-keybinds:hover .curate-page-keybinds-box {
   display: initial;

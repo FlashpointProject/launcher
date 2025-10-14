@@ -12,16 +12,16 @@ import { GameLaunchOverride, Playlist, ViewGame } from 'flashpoint-launcher';
 import { Route, Routes } from 'react-router-dom';
 import { AboutPage, AboutPageProps } from './components/pages/AboutPage';
 import { BrowsePage, BrowsePageProps } from './components/pages/BrowsePage';
+import { CuratePage, CuratePageProps } from './components/pages/CuratePage';
 import { DeveloperPage, DeveloperPageProps } from './components/pages/DeveloperPage';
 import { DownloadsPage } from './components/pages/Downloads';
 import { DynamicPage, DynamicPageProps } from './components/pages/DynamicPage';
+import { HomePage, HomePageProps } from './components/pages/HomePage';
 import { IFramePage, IFramePageProps } from './components/pages/IFramePage';
 import { LoadingPage } from './components/pages/LoadingPage';
 import { LogsPage } from './components/pages/LogsPage';
 import { NotFoundPage } from './components/pages/NotFoundPage';
 import { ConnectedConfigPage, ConnectedConfigPageProps } from './containers/ConnectedConfigPage';
-import { ConnectedCuratePage, ConnectedCuratePageProps } from './containers/ConnectedCuratePage';
-import ConnectedHomePage, { ConnectedHomePageProps } from './containers/ConnectedHomePage';
 import { ConnectedTagCategoriesPage } from './containers/ConnectedTagCategoriesPage';
 import { ConnectedTagsPage } from './containers/ConnectedTagsPage';
 import { CreditsData } from './credits/types';
@@ -77,7 +77,7 @@ export type AppRouterProps = {
 };
 
 export function AppRouter(props: AppRouterProps) {
-  const homeProps: ConnectedHomePageProps = {
+  const homeProps: HomePageProps = {
     gotdList: props.gotdList,
     platforms: props.platforms,
     playlists: props.allPlaylists,
@@ -121,7 +121,7 @@ export function AppRouter(props: AppRouterProps) {
     creditsData: props.creditsData,
     creditsDoneLoading: props.creditsDoneLoading
   };
-  const curateProps: ConnectedCuratePageProps = {
+  const curateProps: CuratePageProps = {
     extCurationTemplates: props.curationTemplates,
     extContextButtons: props.contextButtons,
     mad4fpEnabled: props.mad4fpEnabled,
@@ -143,7 +143,7 @@ export function AppRouter(props: AppRouterProps) {
         element={<LoadingPage/>}/>
       <Route
         path={Paths.HOME}
-        element={<ConnectedHomePage {...homeProps}/>}/>
+        element={<HomePage {...homeProps}/>}/>
       <Route
         path={Paths.BROWSE}
         element={<BrowsePage {...browseProps}/>}/>
@@ -170,7 +170,7 @@ export function AppRouter(props: AppRouterProps) {
         element={<AboutPage {...aboutProps}/>}/>
       <Route
         path={Paths.CURATE}
-        element={<ConnectedCuratePage {...curateProps} />}/>
+        element={<CuratePage {...curateProps} />}/>
       <Route
         path={Paths.DEVELOPER}
         element={<DeveloperPage {...developerProps}/>}/>

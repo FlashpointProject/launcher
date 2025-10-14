@@ -41,7 +41,6 @@ import * as React from 'react';
 import { Activity } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
-import { ConnectedFooter } from '../containers/ConnectedFooter';
 import { ConnectedRightBrowseSidebar } from '../containers/ConnectedRightBrowseSidebar';
 import HeaderContainer from '../containers/HeaderContainer';
 import { WithMainStateProps } from '../containers/withMainState';
@@ -59,6 +58,7 @@ import { GameComponentDropdownSelectField, GameComponentInputField } from './Dis
 import { DynamicComponentProvider, RemoteModule } from './DynamicComponentProvider';
 import { DynamicThemeProvider } from './DynamicThemeProvider';
 import { FloatingContainer } from './FloatingContainer';
+import { Footer } from './Footer';
 import { ConnectedFpfssEditGame } from './FpfssEditGame';
 import { SortableColumn } from './GameListHeader';
 import { newCurateTask } from './pages/CuratePage';
@@ -203,7 +203,8 @@ export class App extends React.Component<AppProps> {
                       // Build url
                       const url = `${this.props.preferencesData.fpfssBaseUrl}/${parts.slice(2).join('/')}`;
                       // Generate task
-                      const newTask = newCurateTask('Importing FPFSS Submission...', 'Importing...', this.props.addTask);
+                      const newTask = newCurateTask('Importing FPFSS Submission...', 'Importing...');
+                      this.props.addTask(newTask);
                       // Import
                       await window.Shared.back.request(BackIn.FPFSS_OPEN_CURATION, fpfssInfo, url, user.accessToken, newTask.id)
                       .catch((err) => {
@@ -1665,7 +1666,7 @@ export class App extends React.Component<AppProps> {
                         onToggleOpen={this.onToggleTaskBarOpen} />
                     )}
                     {/* Footer */}
-                    <ConnectedFooter />
+                    <Footer />
                     {/* Meta Edit Popup */}
                   </>
                 ) : undefined}

@@ -1,5 +1,4 @@
 import { FancyAnimation } from '@renderer/components/FancyAnimation';
-import { WithMainStateProps } from '@renderer/containers/withMainState';
 import { BackIn, GameOfTheDay } from '@shared/back/types';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
@@ -7,13 +6,14 @@ import { uuid } from '@shared/utils/uuid';
 import { DialogState, GameLaunchOverride, GameMetadataSource, Playlist, ViewGame } from 'flashpoint-launcher';
 import { HomePageComponentProps } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
-import { WithPreferencesProps } from '../../containers/withPreferences';
-import { WithSearchProps } from '../../containers/withSearch';
 import { LangContext } from '../../util/lang';
 import { DynamicComponent } from '../DynamicComponent';
 import { SimpleButton } from '../SimpleButton';
+import { usePreferences } from '@renderer/hooks/usePreferences';
+import { createDialog, setUpdateInfo } from '@renderer/store/main/slice';
+import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 
-type OwnProps = {
+export type HomePageProps = {
   gotdList: GameOfTheDay[] | undefined;
   platforms: string[];
   playlists: Playlist[];
@@ -31,17 +31,20 @@ type OwnProps = {
   selectedGameId?: string;
 };
 
-export type HomePageProps = OwnProps & WithPreferencesProps & WithSearchProps & WithMainStateProps;
-
 export function HomePage(props: HomePageProps) {
   /** Offset of the starting point in the animated logo's animation (sync it with time of the machine). */
-  const logoDelay = (Date.now() * -0.001) + 's';
+  // eslint-disable-next-line react-hooks/purity
+  const logoDelay = React.useRef((Date.now() * -0.001) + 's').current;
   const [updating, setUpdating] = React.useState(false);
   const allStrings = React.useContext(LangContext);
+  const preferences = usePreferences();
+  const dispatch = useAppDispatch();
+  const metadataUpdate = useAppSelector(state => state.main.metadataUpdate);
+  const displaySettings = useAppSelector(state => state.main.displaySettings);
   const strings = allStrings.home;
 
   const toggleMinimizeBox = (cssKey: string) => {
-    const newBoxes = [...props.preferencesData.minimizedHomePageBoxes];
+    const newBoxes = [...preferences.minimizedHomePageBoxes];
     const idx = newBoxes.findIndex(s => s === cssKey);
     if (idx === -1) {
       newBoxes.push(cssKey);
@@ -59,16 +62,16 @@ export function HomePage(props: HomePageProps) {
     }
     setUpdating(true);
 
-    const preUpdateInfo = props.main.metadataUpdate[source.id];
+    const preUpdateInfo = metadataUpdate[source.id];
 
     if (preUpdateInfo.total <= 0) {
       // Fetch update info
       window.Shared.back.request(BackIn.PRE_UPDATE_INFO, source)
       .then((total) => {
-        props.mainActions.setUpdateInfo({
+        dispatch(setUpdateInfo({
           id: source.id,
           total
-        });
+        }));
       })
       .finally(() => {
         setUpdating(false);
@@ -84,11 +87,11 @@ export function HomePage(props: HomePageProps) {
             buttons: [allStrings.misc.ok],
             id: uuid()
           };
-          props.mainActions.createDialog(dialog);
-          props.mainActions.setUpdateInfo({
+          dispatch(createDialog(dialog));
+          dispatch(setUpdateInfo({
             id: source.id,
             total: 0
-          });
+          }));
         }
       })
       .catch((err) => {
@@ -99,7 +102,7 @@ export function HomePage(props: HomePageProps) {
           buttons: [allStrings.misc.ok],
           id: uuid()
         };
-        props.mainActions.createDialog(dialog);
+        dispatch(createDialog(dialog));
       })
       .finally(() => {
         setUpdating(false);
@@ -116,19 +119,19 @@ export function HomePage(props: HomePageProps) {
     selectedGameId: props.selectedGameId,
     platforms: props.platforms,
     logoVersion: props.logoVersion,
-    preferencesData: props.preferencesData,
+    preferencesData: preferences,
     gotdList: props.gotdList,
     updateFeedMarkdown: props.updateFeedMarkdown,
     toggleMinimizeBox,
   };
 
   const UpdateComponent = () => {
-    if (props.preferencesData.gameMetadataSources.length === 0) {
+    if (preferences.gameMetadataSources.length === 0) {
       return <></>;
     }
 
     let updateReady = false;
-    for (const info of Object.values(props.main.metadataUpdate)) {
+    for (const info of Object.values(metadataUpdate)) {
       if (info.ready) {
         updateReady = true;
         break;
@@ -136,8 +139,8 @@ export function HomePage(props: HomePageProps) {
     }
 
     // Collect individual blocks
-    const updateBlocks: React.JSX.Element[] = props.preferencesData.gameMetadataSources.map(source => {
-      let preUpdateInfo = props.main.metadataUpdate[source.id];
+    const updateBlocks: React.JSX.Element[] = preferences.gameMetadataSources.map(source => {
+      let preUpdateInfo = metadataUpdate[source.id];
       if (preUpdateInfo === undefined) {
         preUpdateInfo = {
           ready: false,
@@ -182,9 +185,9 @@ export function HomePage(props: HomePageProps) {
             value={strings.update}
             disabled={updating}
             onClick={async () => {
-              for (const info of Object.entries(props.main.metadataUpdate)) {
+              for (const info of Object.entries(metadataUpdate)) {
                 if (info[1].ready && info[1].total > 0) {
-                  const source = props.preferencesData.gameMetadataSources.find(s => s.id === info[0]);
+                  const source = preferences.gameMetadataSources.find(s => s.id === info[0]);
                   if (source) {
                     await onPressUpdate(source);
                   }
@@ -207,28 +210,6 @@ export function HomePage(props: HomePageProps) {
         {/* Logo */}
         <div className='home-page__logo fp-logo-box'>
           <UpdateComponent/>
-          {/* { props.preferencesData.gameMetadataSources.length > 0 && (
-            <div className='update-metadata-box'>
-              <div className='update-metadata-button'>
-                <SimpleButton
-                  className='update-metadata-button-inner'
-                  value={updateText}
-                  disabled={updating}
-                  onClick={onPressUpdate} />
-              </div>
-              <div className='update-metadata-name'>
-                {props.preferencesData.gameMetadataSources[0].name}
-              </div>
-              { props.main.metadataUpdate.ready && props.main.metadataUpdate.total > 0 && (
-                <div className='update-metadata-last'>
-                  {formatString(strings.updatedGamesReady, (props.main.metadataUpdate.total + 1).toString())}
-                </div>
-              )}
-              <div className='update-metadata-last'>
-                {`${strings.lastUpdated}: ${(new Date(props.preferencesData.gameMetadataSources[0].games.actualUpdateTime)).toLocaleString()}`}
-              </div>
-            </div>
-          ) } */}
           <FancyAnimation
             fancyRender={() => (
               <div
@@ -239,7 +220,7 @@ export function HomePage(props: HomePageProps) {
               <div className='fp-logo'/>
             )}/>
         </div>
-        {props.main.displaySettings.homePage.map(key =>
+        {displaySettings.homePage.map(key =>
           <DynamicComponent
             name={key}
             props={homePageComponentProps} />
