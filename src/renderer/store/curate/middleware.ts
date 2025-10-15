@@ -1,23 +1,28 @@
-import { BackIn } from '@shared/back/types';
-import { startAppListening } from '@renderer/store/listenerMiddleware';
+import { isAnyOf, PayloadAction } from '@reduxjs/toolkit';
 import {
   addPlatform,
   addTag, BaseCurateAction, changeGroup, createAddApp,
+  createGroup,
+  CreateGroupAction,
+  CurateGroup,
   editAddApp,
   editCurationMeta, regenUuid,
   removeAddApp,
   removePlatform,
-  removeTag, setPrimaryPlatform, setWarnings
+  removeTag, setPrimaryPlatform, setWarnings,
+  toggleGroupPin
 } from '@renderer/store/curate/slice';
-import { isAnyOf, PayloadAction } from '@reduxjs/toolkit';
+import { startAppListening } from '@renderer/store/listenerMiddleware';
 import store from '@renderer/store/store';
+import { BackIn } from '@shared/back/types';
+import { updatePreferences } from '../preferences/slice';
 
 export function addCurationMiddleware() {
   // Update warnings when curation changes
   startAppListening({
     matcher: isAnyOf(editAddApp, createAddApp, removeAddApp, editCurationMeta, addTag,
       removeTag, addPlatform, removePlatform, setPrimaryPlatform, regenUuid, changeGroup),
-    effect: async(action: PayloadAction<BaseCurateAction>, listenerApi)=> {
+    effect: async (action: PayloadAction<BaseCurateAction>, listenerApi) => {
       const { curate } = listenerApi.getState();
       const curation = curate.curations.find(c => c.folder === action.payload.folder);
       if (curation) {
@@ -34,6 +39,28 @@ export function addCurationMiddleware() {
           }));
         });
       }
+    }
+  });
+
+  startAppListening({
+    matcher: isAnyOf(createGroup),
+    effect: async (action: PayloadAction<CreateGroupAction>, listenerApi) => {
+      const { curate } = listenerApi.getState();
+
+      store.dispatch(updatePreferences({
+        groups: curate.groups
+      }));
+    }
+  });
+
+  startAppListening({
+    matcher: isAnyOf(toggleGroupPin),
+    effect: async (action: PayloadAction<CurateGroup>, listenerApi) => {
+      const { curate } = listenerApi.getState();
+
+      store.dispatch(updatePreferences({
+        groups: curate.groups
+      }));
     }
   });
 }

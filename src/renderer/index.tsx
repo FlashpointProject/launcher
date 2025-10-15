@@ -1,4 +1,6 @@
 import * as remote from '@electron/remote';
+import { MDXProvider } from '@mdx-js/react';
+import { MergeComponents } from '@mdx-js/react/lib';
 import { init } from '@module-federation/enhanced/runtime';
 import store from '@renderer/store/store';
 import { BackIn } from '@shared/back/types';
@@ -13,12 +15,9 @@ import { Provider } from 'react-redux';
 import { HashRouter } from 'react-router-dom';
 import ConnectedApp from './containers/ConnectedApp';
 import { ContextReducerProvider } from './context-reducer/ContextReducerProvider';
-import { CurationContext } from './context/CurationContext';
-import { PreferencesContextProvider } from './context/PreferencesContext';
 import { ProgressContext } from './context/ProgressContext';
+import { updatePreferences } from './store/preferences/slice';
 import { logFactory } from './util/logging';
-import { MDXProvider } from '@mdx-js/react';
-import { MergeComponents } from '@mdx-js/react/lib';
 
 (async () => {
   init({
@@ -83,6 +82,8 @@ import { MergeComponents } from '@mdx-js/react/lib';
   // Wait for the preferences and config to initialize
   await window.Shared.waitUntilInitialized();
 
+  store.dispatch(updatePreferences(window.Shared.initialPreferences));
+
   // Start keepalive routine
   setInterval(async () => {
     try {
@@ -110,13 +111,9 @@ import { MergeComponents } from '@mdx-js/react/lib';
       <HashRouter>
         <MDXProvider components={components}>
           <ShortcutProvider>
-            <PreferencesContextProvider>
-              <ContextReducerProvider context={CurationContext}>
-                <ContextReducerProvider context={ProgressContext}>
-                  <ConnectedApp />
-                </ContextReducerProvider>
-              </ContextReducerProvider>
-            </PreferencesContextProvider>
+            <ContextReducerProvider context={ProgressContext}>
+              <ConnectedApp />
+            </ContextReducerProvider>
           </ShortcutProvider>
         </MDXProvider>
       </HashRouter>

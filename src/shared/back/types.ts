@@ -410,7 +410,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.GET_RENDERER_EXTENSION_INFO]: () => GetRendererExtDataResponse;
   [BackIn.GET_MAIN_INIT_DATA]: () => GetMainInitDataResponse;
   [BackIn.UPDATE_CONFIG]: (data: Partial<AppConfigData>) => void;
-  [BackIn.UPDATE_PREFERENCES]: (data: AppPreferencesData, refresh: boolean) => void;
+  [BackIn.UPDATE_PREFERENCES]: (data: AppPreferencesData) => void;
   [BackIn.SET_EXTENSION_ENABLED]: (extId: string, enabled: boolean) => void;
 
   // API
@@ -703,7 +703,6 @@ export type ImportCurationData = {
    * Wrapping it new a new date object seems to work ("new Date(date)").
    */
   date?: Date;
-  saveCuration: boolean;
   taskId?: string;
 }
 

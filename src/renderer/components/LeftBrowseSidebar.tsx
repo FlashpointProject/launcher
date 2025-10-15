@@ -1,11 +1,11 @@
 import { gameDragDataType } from '@renderer/Util';
-import { usePreferences } from '@renderer/hooks/usePreferences';
 import { Playlist } from 'flashpoint-launcher';
 import * as React from 'react';
 import { LangContext } from '../util/lang';
 import { InputElement } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { PlaylistItem } from './PlaylistItem';
+import { useAppSelector } from '@renderer/hooks/useAppSelector';
 
 export type LeftBrowseSidebarProps = {
   library: string;
@@ -39,7 +39,8 @@ export type LeftBrowseSidebarProps = {
 export function LeftBrowseSidebar(props: LeftBrowseSidebarProps) {
   const allStrings = React.useContext(LangContext);
   const strings = allStrings.browse;
-  const preferences = usePreferences();
+  const browsePageShowExtreme = useAppSelector((state) => state.preferences.browsePageShowExtreme);
+  const useCustomViews = useAppSelector((state) => state.preferences.useCustomViews);
   const { onShowAllClick, onDescriptionChange, onExtremeToggle, onKeyDown, onSave, onDiscard,
     onCreate, onImport, onEditClick, onDelete, onDownloadPlaylistContents, onDuplicatePlaylist,
     onExportPlaylist, onDrop, onItemClick, onSetIcon, onTitleChange, onAuthorChange, onContextMenu,
@@ -55,7 +56,7 @@ export function LeftBrowseSidebar(props: LeftBrowseSidebarProps) {
   };
 
   const playlistRows = playlists
-  .filter(p => preferences.browsePageShowExtreme || !p.extreme)
+  .filter(p => browsePageShowExtreme || !p.extreme)
   .map(p => {
     const isSelected = currentPlaylist?.id === p.id;
     return (
@@ -124,7 +125,7 @@ export function LeftBrowseSidebar(props: LeftBrowseSidebarProps) {
             <OpenIcon icon='eye' />
           </div>
           <div className='playlist-list-fake-item__inner'>
-            <p className='playlist-list-fake-item__inner__title'>{preferences.useCustomViews ? strings.allGenericEntries : allStrings.libraries[library + 'Plural'] || 'All ' + library}</p>
+            <p className='playlist-list-fake-item__inner__title'>{useCustomViews ? strings.allGenericEntries : allStrings.libraries[library + 'Plural'] || 'All ' + library}</p>
           </div>
         </div>
         {/* List all playlists */}

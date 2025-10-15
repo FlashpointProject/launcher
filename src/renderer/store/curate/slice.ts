@@ -1,7 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { BackIn } from '@shared/back/types';
 import { AddAppCuration, PlatformAppPathSuggestions } from '@shared/curate/types';
-import { updatePreferencesData } from '@shared/preferences/util';
 import { uuid } from '@shared/utils/uuid';
 import {
   AddAppCurationMeta,
@@ -160,7 +159,6 @@ const curateSlice = createSlice({
       }
       window.Shared.back.send(BackIn.CURATE_IMPORT, {
         curations,
-        saveCuration: window.Shared.preferences.data.saveImportedCurations,
         taskId: payload.taskId,
       });
     },
@@ -446,10 +444,6 @@ const curateSlice = createSlice({
           icon: payload.icon,
         });
       }
-
-      updatePreferencesData({
-        groups: state.groups
-      });
     },
     toggleGroupCollapse(state: CurateState, { payload }: PayloadAction<string>) {
       console.log('collapsing');
@@ -476,10 +470,6 @@ const curateSlice = createSlice({
       } else {
         state.groups.splice(groupIdx, 1);
       }
-
-      updatePreferencesData({
-        groups: state.groups
-      });
     },
     changeGroup: lockedFunc((state: CurateState, { payload }: PayloadAction<ChangeGroupAction>)=> {
       const curation = state.curations.find(c => c.folder === payload.folder);

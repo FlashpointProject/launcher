@@ -29,9 +29,8 @@ import { FPFSS_INFO_FILENAME } from '@shared/curate/fpfss';
 import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { getContentFolderByKey } from '@shared/curate/util';
 import { AppProvider, BrowserApplicationOpts } from '@shared/extensions/interfaces';
-import { DeepPartial, GamePropSuggestions, ProcessAction, ProcessState } from '@shared/interfaces';
+import { GamePropSuggestions, ProcessAction, ProcessState } from '@shared/interfaces';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
-import { defaultPreferencesData, overwritePreferenceData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { TaskProgress } from '@shared/utils/TaskProgress';
 import { chunkArray, getGameDataFilename, newGame } from '@shared/utils/misc';
@@ -1417,28 +1416,24 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     }
   });
 
-  state.socketServer.register(BackIn.UPDATE_PREFERENCES, async (event, data, refresh) => {
-    const dif = difObjects(defaultPreferencesData, state.preferences, data);
-    if (dif) {
-      if ((typeof dif.currentLanguage  !== 'undefined' && dif.currentLanguage  !== state.preferences.currentLanguage) ||
-          (typeof dif.fallbackLanguage !== 'undefined' && dif.fallbackLanguage !== state.preferences.fallbackLanguage)) {
-        state.languageContainer = createContainer(
-          state.languages,
-          (typeof dif.currentLanguage !== 'undefined') ? dif.currentLanguage : state.preferences.currentLanguage,
-          state.localeCode,
-          (typeof dif.fallbackLanguage !== 'undefined') ? dif.fallbackLanguage : state.preferences.fallbackLanguage
-        );
-        state.socketServer.broadcast(BackOut.LANGUAGE_CHANGE, state.languageContainer);
-      }
+  state.socketServer.register(BackIn.UPDATE_PREFERENCES, async (event, data) => {
+    if ((data.currentLanguage  !== undefined && data.currentLanguage  !== state.preferences.currentLanguage) ||
+        (data.fallbackLanguage !== undefined && data.fallbackLanguage !== state.preferences.fallbackLanguage)) {
+      state.languageContainer = createContainer(
+        state.languages,
+        data.currentLanguage !== undefined ? data.currentLanguage : state.preferences.currentLanguage,
+        state.localeCode,
+        data.fallbackLanguage !== undefined ? data.fallbackLanguage : state.preferences.fallbackLanguage
+      );
+      state.socketServer.broadcast(BackOut.LANGUAGE_CHANGE, state.languageContainer);
+    }
 
-      overwritePreferenceData(state.preferences, dif, console.error);
-      state.prefsQueue.push(() => {
-        PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
-      });
-    }
-    if (refresh) {
-      state.socketServer.send(event.client, BackOut.UPDATE_PREFERENCES_RESPONSE, state.preferences);
-    }
+    state.preferences = data;
+    state.prefsQueue.push(() => {
+      PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
+    });
+
+    // TODO: Broadcast to all other users
   });
 
   state.socketServer.register(BackIn.SERVICE_ACTION, async (event, action, id) => {
@@ -1504,7 +1499,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.GET_PLAYLIST_GAME, async (event, playlistId, gameId) => {
-    return getPlaylistGame(state, playlistId, gameId);
+    return getPlaylistGame(state, playlistId, gameId)
+    .catch((err) => null);
   });
 
   state.socketServer.register(BackIn.ADD_PLAYLIST_GAME, async (event, playlistId, gameId) => {
@@ -1760,7 +1756,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.CURATE_IMPORT, async (event, data) => {
-    const { taskId, saveCuration, date, curations } = data;
+    const { taskId, date, curations } = data;
+    const saveCuration = state.preferences.saveImportedCurations;
     let error: any | undefined;
     let processed = 0;
     const taskProgress = new TaskProgress(curations.length);
@@ -2567,69 +2564,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     await fpDatabase.optimizeDatabase();
     state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
   });
-}
-
-/**
- * Recursively iterate over all properties of the template object and compare the values of the same
- * properties in object A and B. All properties that are not equal will be added to the returned object.
- * Missing properties, or those with the value undefined, in B will be ignored.
- * If all property values are equal undefined is returned.
- *
- * __Note:__ Arrays work differently in order to preserve the types and indices.
- * If the length of the arrays are not equal, or if not all items in the array are strictly equal (to the items of the other array),
- * then the whole array will be added to the return object.
- *
- * @param template Template object. Iteration will be done over this object.
- * @param a Compared to B.
- * @param b Compared to A. Values in the returned object is copied from this.
- */
-function difObjects<T>(template: T, a: T, b: DeepPartial<T>): DeepPartial<T> | undefined {
-  let dif: DeepPartial<T> | undefined;
-
-  for (const key in template) {
-    const tVal = template[key];
-    const aVal = a[key];
-    const bVal = b[key];
-
-    if (aVal !== bVal && bVal !== undefined) {
-      // Array
-      if (Array.isArray(tVal) && Array.isArray(aVal) && Array.isArray(bVal)) {
-        let notEqual = false;
-
-        if (aVal.length === bVal.length) {
-          for (let i = 0; i < aVal.length; i++) {
-            if (aVal[i] !== bVal[i]) {
-              notEqual = true;
-              break;
-            }
-          }
-        } else {
-          notEqual = true;
-        }
-
-        if (notEqual) {
-          if (!dif) { dif = {}; }
-          dif[key] = [ ...bVal ] as any;
-        }
-      }
-      // Object
-      else if (typeof tVal === 'object' && typeof aVal === 'object' && typeof bVal === 'object') {
-        const subDif = difObjects(tVal, aVal, bVal as any);
-        if (subDif) {
-          if (!dif) { dif = {}; }
-          dif[key] = subDif as any;
-        }
-      }
-      // Other
-      else {
-        if (!dif) { dif = {}; }
-        // Works, but type checker complains
-        dif[key] = bVal as any;
-      }
-    }
-  }
-
-  return dif;
 }
 
 function runGameService(state: BackState, launchInfo: LaunchInfo, id: string, name: string): ManagedChildProcess {

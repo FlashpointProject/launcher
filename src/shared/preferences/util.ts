@@ -1,6 +1,9 @@
+import { CurateGroup } from '@renderer/store/curate/slice';
 import { autoCode } from '@shared/lang';
 import { LogLevel } from '@shared/Log/interface';
-import { delayedThrottle, delayedThrottleAsync } from '@shared/utils/throttle';
+import { Paths } from '@shared/Paths';
+import { getDefaultAdvancedFilter } from '@shared/search/util';
+import * as Coerce from '@shared/utils/Coerce';
 import {
   AdvancedFilter,
   AdvancedFilterAndToggles,
@@ -12,59 +15,17 @@ import {
   GameDataSource,
   GameMetadataSource, GameOrderBy, GameOrderReverse,
   MetadataUpdateInfo,
+  ScaleValues,
   SingleUsePromptPrefs,
   StoredView,
   TagFilterGroup
 } from 'flashpoint-launcher';
-import { BackIn } from '../back/types';
 import { BrowsePageLayout, ScreenshotPreviewMode } from '../BrowsePageLayout';
 import { ARCADE } from '../constants';
 import { DeepPartial } from '../interfaces';
 import { gameOrderByOptions, gameOrderReverseOptions } from '../order/util';
-import { deepCopy, parseVarStr } from '../Util';
-import * as Coerce from '@shared/utils/Coerce';
+import { parseVarStr } from '../Util';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
-import { CurateGroup } from '@renderer/store/curate/slice';
-import { getDefaultAdvancedFilter } from '@shared/search/util';
-import { Paths } from '@shared/Paths';
-
-export function updatePreferencesData(data: DeepPartial<AppPreferencesData>, send = true) {
-  const preferences = window.Shared.preferences;
-  // @TODO Figure out the delta change of the object tree, and only send the changes
-  preferences.data = overwritePreferenceData(deepCopy(preferences.data), data);
-  if (send) {
-    sendPrefs();
-  }
-  if (preferences.onUpdate) { preferences.onUpdate(); }
-}
-
-export async function updatePreferencesDataAsync(data: DeepPartial<AppPreferencesData>, send = true) {
-  const preferences = window.Shared.preferences;
-  // @TODO Figure out the delta change of the object tree, and only send the changes
-  preferences.data = overwritePreferenceData(deepCopy(preferences.data), data);
-  if (send) {
-    await sendPrefsAsync();
-  }
-  if (preferences.onUpdate) { preferences.onUpdate(); }
-}
-
-const sendPrefs = delayedThrottle(() => {
-  const preferences = window.Shared.preferences;
-  window.Shared.back.send(
-    BackIn.UPDATE_PREFERENCES,
-    preferences.data,
-    false
-  );
-}, 200);
-
-const sendPrefsAsync = delayedThrottleAsync(async () => {
-  const preferences = window.Shared.preferences;
-  await window.Shared.back.request(
-    BackIn.UPDATE_PREFERENCES,
-    preferences.data,
-    false
-  );
-}, 200);
 
 const { num, str } = Coerce;
 
@@ -179,6 +140,10 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   useSelectedGameScroll: false,
   hideScreenshotSidebar: false,
   disabledExtensions: [],
+  scaleValues: {
+    browse: 0.5,
+    logs: 0.5,
+  },
 });
 
 /**
@@ -266,7 +231,6 @@ export function overwritePreferenceData(
   parser.prop('hideScreenshotSidebar',         v => source.hideScreenshotSidebar         = !!v, true);
   parser.prop('disabledExtensions',            v => source.disabledExtensions            = strArray(v), true);
 
-
   // Can't have a negative delay!
   if (source.screenshotPreviewDelay < 0) {
     source.screenshotPreviewDelay = 0;
@@ -299,6 +263,9 @@ export function overwritePreferenceData(
   }
   if (data.showLogLevel) {
     parser.prop('showLogLevel').mapRaw((item, label) => source.showLogLevel[label as LogLevel] = !!item);
+  }
+  if (data.scaleValues) {
+    source.scaleValues = parseScaleValues(parser.prop('scaleValues') as IObjectParserProp<ScaleValues>);
   }
   parser.prop('currentLogoSet',              v => source.currentLogoSet              = str(v), true);
   if (data.tagFilters) {
@@ -341,6 +308,19 @@ function parseScreenshotPreviewMode(v: any): ScreenshotPreviewMode {
     default:
       return ScreenshotPreviewMode.OFF;
   }
+}
+
+function parseScaleValues(parser: IObjectParserProp<ScaleValues>): ScaleValues {
+  const defaultScale = 0.087;
+  const scales: ScaleValues = {
+    browse: defaultScale,
+    logs: defaultScale
+  };
+
+  parser.prop('browse', v => scales.browse = num(v), true);
+  parser.prop('logs', v => scales.logs = num(v), true);
+
+  return scales;
 }
 
 function parseSingleUsePrompt(parser: IObjectParserProp<SingleUsePromptPrefs>): SingleUsePromptPrefs {

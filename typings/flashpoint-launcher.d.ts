@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
 // Type definitions for non-npm package flashpoint-launcher 12.2
 // Project: Flashpoint Launcher https://github.com/FlashpointProject/launcher
 // Definitions by: Colin Berry <https://github.com/colin969>
@@ -1011,6 +1012,11 @@ declare module 'flashpoint-launcher' {
       badAntiVirus: boolean;
     }
 
+    type ScaleValues = {
+      browse: number;
+      logs: number;
+    }
+
     /**
      * Contains state of all non-config settings the user can change in the application.
      * This is the data contained in the Preferences file.
@@ -1169,6 +1175,8 @@ declare module 'flashpoint-launcher' {
       hideScreenshotSidebar: boolean;
       /** List of disabled extensions */
       disabledExtensions: string[];
+      /** Scale values by key */
+      scaleValues: ScaleValues;
     };
 
     type StoredView = {
@@ -1855,6 +1863,7 @@ declare module 'flashpoint-launcher' {
       gridScrollRow?: number;
       gridScrollTop?: number;
       listScrollRow?: number;
+      isCustom: boolean;
     }
 
     type ResultsViewData<T extends Content> = {

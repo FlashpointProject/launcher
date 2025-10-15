@@ -15,9 +15,6 @@ import _axios from 'axios';
 
 export const gameDragDataType = 'json/game-drag';
 
-/** How much the maximum/minimum game scale will scale the games up/down */
-export const gameScaleSpan = 0.6;
-
 export function easterEgg(search: string) {
   if (search === '\x44\x61\x72\x6b\x4d\x6f\x65') {
     // spell-checker: disable
@@ -111,10 +108,10 @@ export function getCurationPostURL(): string {
   return `${getFileServerURL()}/curation`;
 }
 
-export function getGameImagePath(logoPath: string): string {
+export function getGameImagePath(logoPath: string, imageFolderPath: string): string {
   return path.join(
     window.Shared.config.fullFlashpointPath,
-    window.Shared.preferences.data.imageFolderPath,
+    imageFolderPath,
     logoPath
   );
 }

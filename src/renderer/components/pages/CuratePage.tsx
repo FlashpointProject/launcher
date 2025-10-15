@@ -2,6 +2,7 @@ import * as remote from '@electron/remote';
 import { CurateBox } from '@renderer/components/CurateBox';
 import { useAppSelector } from '@renderer/hooks/useAppSelector';
 import * as curateActions from '@renderer/store/curate/slice';
+import { updatePreferences } from '@renderer/store/preferences/slice';
 import { addTask, setTask } from '@renderer/store/tasks/slice';
 import { axios, getCurationPostURL, getPlatformIconURL } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
@@ -10,13 +11,13 @@ import { EditCurationMeta } from '@shared/curate/OLD_types';
 import { eventResponseDebouncerFactory } from '@shared/eventResponseDebouncer';
 import { ExtensionContribution } from '@shared/extensions/interfaces';
 import { CustomIPC, Task } from '@shared/interfaces';
-import { updatePreferencesData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
 import { ipcRenderer } from 'electron';
 import { AppPreferencesData, CurationState, GameLaunchOverride, TagSuggestion } from 'flashpoint-launcher';
 import * as path from 'path';
 import * as React from 'react';
+import { useShortcut } from 'react-keybind';
 import { useDispatch } from 'react-redux';
 import { CheckBox } from '../CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
@@ -24,8 +25,6 @@ import { CuratePageLeftSidebar } from '../CuratePageLeftSidebar';
 import { Dropdown } from '../Dropdown';
 import { OpenIcon } from '../OpenIcon';
 import { SimpleButton, SimpleButtonProps } from '../SimpleButton';
-import { usePreferences } from '@renderer/hooks/usePreferences';
-import { useShortcut } from 'react-keybind';
 
 export type CuratePageProps = {
   extCurationTemplates: ExtensionContribution<'curationTemplates'>[];
@@ -43,8 +42,14 @@ export function CuratePage(props: CuratePageProps) {
   const tagCategories = useAppSelector((state) => state.tagCategories);
   const suggestions = useAppSelector((state) => state.main.suggestions);
   const platformAppPaths = useAppSelector((state) => state.main.platformAppPaths);
+  const tagFiltersInCurate = useAppSelector(state => state.preferences.tagFiltersInCurate);
+  const saveImportedCurations = useAppSelector(state => state.preferences.saveImportedCurations);
+  const tagFilters = useAppSelector(state => state.preferences.tagFilters);
+  const browsePageShowExtreme = useAppSelector(state => state.preferences.browsePageShowExtreme);
+  const shortcutPrefs = useAppSelector(state => state.preferences.shortcuts);
+  const symlinkCurationContent = useAppSelector(state => state.preferences.symlinkCurationContent);
+  const fpfssBaseUrl = useAppSelector(state => state.preferences.fpfssBaseUrl);
   const shortcut = useShortcut();
-  const preferences = usePreferences();
   const dispatch = useDispatch();
   const curation: CurationState | undefined = curate.curations.find(c => c.folder === currentCuration);
 
@@ -55,7 +60,7 @@ export function CuratePage(props: CuratePageProps) {
   const [platformText, setPlatformText] = React.useState<string>('');
   const [platformSuggestions, setPlatformSuggestions] = React.useState<TagSuggestion[]>([]);
 
-  const onCheckboxChange = (key: keyof AppPreferencesData) => (checked: boolean) => updatePreferencesData({ [key]: checked });
+  const onCheckboxChange = (key: keyof AppPreferencesData) => (checked: boolean) => dispatch(updatePreferences({ [key]: checked }));
 
   const onSymlinkCurationContentChange = onCheckboxChange('symlinkCurationContent');
   const onSaveImportedCurationChange = onCheckboxChange('saveImportedCurations');
@@ -63,7 +68,7 @@ export function CuratePage(props: CuratePageProps) {
 
   const onOpenSubmissionPage = () => {
     if (curation?.fpfssInfo) {
-      const subPage = `${preferences.fpfssBaseUrl}/web/submission/${curation.fpfssInfo.id}`;
+      const subPage = `${fpfssBaseUrl}/web/submission/${curation.fpfssInfo.id}`;
       remote.shell.openExternal(subPage);
     }
   };
@@ -120,7 +125,7 @@ export function CuratePage(props: CuratePageProps) {
   // Keybinds
 
   React.useEffect(() => {
-    const keybinds = preferences.shortcuts.curate;
+    const keybinds = shortcutPrefs.curate;
     if (shortcut && shortcut.registerShortcut) {
       shortcut.registerShortcut(() => {
         if (currentCuration) {
@@ -145,7 +150,7 @@ export function CuratePage(props: CuratePageProps) {
             }));
           }
         }
-      }, preferences.shortcuts.curate.prev, 'Prev', 'Previous Curation');
+      }, shortcutPrefs.curate.prev, 'Prev', 'Previous Curation');
 
       shortcut.registerShortcut(() => {
         if (currentCuration) {
@@ -171,23 +176,23 @@ export function CuratePage(props: CuratePageProps) {
             }));
           }
         }
-      }, preferences.shortcuts.curate.next, 'curate:Next', 'Next Curation');
+      }, shortcutPrefs.curate.next, 'curate:Next', 'Next Curation');
 
       shortcut.registerShortcut(() => {
         dispatch(curateActions.createCuration({
           folder: uuid()
         }));
-      }, preferences.shortcuts.curate.newCur, 'curate:New', 'New Curation');
+      }, shortcutPrefs.curate.newCur, 'curate:New', 'New Curation');
 
       shortcut.registerShortcut(() => {
         onLoadCuration();
-      }, preferences.shortcuts.curate.load, 'curate:Load Archives', 'Load Curation Archives');
+      }, shortcutPrefs.curate.load, 'curate:Load Archives', 'Load Curation Archives');
 
       shortcut.registerShortcut(() => {
         if (currentCuration) {
           window.Shared.back.request(BackIn.CURATE_REFRESH_CONTENT, currentCuration);
         }
-      }, preferences.shortcuts.curate.refresh, 'curate:Refresh', 'Refresh Active Curation + Content Tree');
+      }, shortcutPrefs.curate.refresh, 'curate:Refresh', 'Refresh Active Curation + Content Tree');
 
       shortcut.registerShortcut(() => {
         if (curate.selected.length > 0) {
@@ -197,7 +202,7 @@ export function CuratePage(props: CuratePageProps) {
             taskId: newTask.id
           }));
         }
-      }, preferences.shortcuts.curate.exportCurs, 'curate:Export', 'Export Selected Curations');
+      }, shortcutPrefs.curate.exportCurs, 'curate:Export', 'Export Selected Curations');
 
       shortcut.registerShortcut(() => {
         if (curate.selected.length > 0) {
@@ -207,29 +212,29 @@ export function CuratePage(props: CuratePageProps) {
             taskId: newTask.id
           }));
         }
-      }, preferences.shortcuts.curate.exportDataPacks, 'curate:Export Data Packs', 'Export Data Packs for Selected Curations');
+      }, shortcutPrefs.curate.exportDataPacks, 'curate:Export Data Packs', 'Export Data Packs for Selected Curations');
 
       shortcut.registerShortcut(() => {
         if (curation) {
           window.Shared.back.request(BackIn.LAUNCH_CURATION, {
             curation,
             mad4fp: false,
-            symlinkCurationContent: preferences.symlinkCurationContent,
+            symlinkCurationContent,
             override: null,
           });
         }
-      }, preferences.shortcuts.curate.run, 'curate:Test', 'Run Active Curation');
+      }, shortcutPrefs.curate.run, 'curate:Test', 'Run Active Curation');
 
       shortcut.registerShortcut(() => {
-        if (curation && preferences.symlinkCurationContent) {
+        if (curation && symlinkCurationContent) {
           window.Shared.back.request(BackIn.LAUNCH_CURATION, {
             curation,
             mad4fp: true,
-            symlinkCurationContent: preferences.symlinkCurationContent,
+            symlinkCurationContent,
             override: null,
           });
         }
-      }, preferences.shortcuts.curate.runMad4fp, 'curate:Test MAD4FP', 'Run Active Curation with MAD4FP');
+      }, shortcutPrefs.curate.runMad4fp, 'curate:Test MAD4FP', 'Run Active Curation with MAD4FP');
     }
     return () => {
       if (shortcut && shortcut.unregisterShortcut) {
@@ -246,7 +251,7 @@ export function CuratePage(props: CuratePageProps) {
     const lastTag = (splitTags.length > 0 ? splitTags.pop() || '' : '').trim();
     setTagText(tagText);
     if (tagText !== '') {
-      suggsDebounce.dispatch(window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, lastTag, preferences.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !preferences.browsePageShowExtreme))), setTagSuggestions);
+      suggsDebounce.dispatch(window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, lastTag, tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !browsePageShowExtreme))), setTagSuggestions);
     } else {
       suggsDebounce.invalidate();
       setTagSuggestions([]);
@@ -336,7 +341,7 @@ export function CuratePage(props: CuratePageProps) {
       window.Shared.back.send(BackIn.LAUNCH_CURATION, {
         curation,
         mad4fp: false,
-        symlinkCurationContent: preferences.symlinkCurationContent,
+        symlinkCurationContent,
         override,
       });
     }
@@ -347,7 +352,7 @@ export function CuratePage(props: CuratePageProps) {
       window.Shared.back.send(BackIn.LAUNCH_CURATION, {
         curation,
         mad4fp: false,
-        symlinkCurationContent: preferences.symlinkCurationContent,
+        symlinkCurationContent,
         override: null,
       });
     }
@@ -358,7 +363,7 @@ export function CuratePage(props: CuratePageProps) {
       window.Shared.back.send(BackIn.LAUNCH_CURATION, {
         curation,
         mad4fp: true,
-        symlinkCurationContent: preferences.symlinkCurationContent,
+        symlinkCurationContent,
         override: null,
       });
     }
@@ -510,7 +515,7 @@ export function CuratePage(props: CuratePageProps) {
             tagSuggestions={tagSuggestions}
             platformSuggestions={platformSuggestions}
             logoVersion={props.logoVersion}
-            symlinkCurationContent={preferences.symlinkCurationContent} />
+            symlinkCurationContent={symlinkCurationContent} />
         ) : (
           <div className='curate-page__header-text'>
             {strings.curate.noCurationSelected}
@@ -633,14 +638,14 @@ export function CuratePage(props: CuratePageProps) {
             <CheckBox
               className='browse-right-sidebar__row__check-box'
               onToggle={onTagFiltersInCurateChange}
-              checked={preferences.tagFiltersInCurate} />
+              checked={tagFiltersInCurate} />
           </div>
           <div className='curate-page__right--checkbox'>
             <div>{strings.curate.saveImportedCurations}</div>
             <CheckBox
               className='browse-right-sidebar__row__check-box'
               onToggle={onSaveImportedCurationChange}
-              checked={preferences.saveImportedCurations} />
+              checked={saveImportedCurations} />
           </div>
         </div>
         <div className='curate-page__right--section'>
@@ -653,7 +658,7 @@ export function CuratePage(props: CuratePageProps) {
           { props.mad4fpEnabled && (
             <SimpleButton
               className='curate-page__right--button'
-              disabled={disabled || !preferences.symlinkCurationContent}
+              disabled={disabled || !symlinkCurationContent}
               value={strings.curate.runWithMAD4FP}
               onClick={onRunMAD4FPCuration}/>
           )}
@@ -672,7 +677,7 @@ export function CuratePage(props: CuratePageProps) {
             <CheckBox
               className='browse-right-sidebar__row__check-box'
               onToggle={onSymlinkCurationContentChange}
-              checked={preferences.symlinkCurationContent} />
+              checked={symlinkCurationContent} />
           </div>
         </div>
         <div className='curate-page__right--section'>

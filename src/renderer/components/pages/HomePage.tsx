@@ -1,6 +1,8 @@
 import { FancyAnimation } from '@renderer/components/FancyAnimation';
+import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
+import { createDialog, setUpdateInfo } from '@renderer/store/main/slice';
+import { updatePreferences } from '@renderer/store/preferences/slice';
 import { BackIn, GameOfTheDay } from '@shared/back/types';
-import { updatePreferencesData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
 import { DialogState, GameLaunchOverride, GameMetadataSource, Playlist, ViewGame } from 'flashpoint-launcher';
@@ -9,9 +11,6 @@ import * as React from 'react';
 import { LangContext } from '../../util/lang';
 import { DynamicComponent } from '../DynamicComponent';
 import { SimpleButton } from '../SimpleButton';
-import { usePreferences } from '@renderer/hooks/usePreferences';
-import { createDialog, setUpdateInfo } from '@renderer/store/main/slice';
-import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 
 export type HomePageProps = {
   gotdList: GameOfTheDay[] | undefined;
@@ -37,10 +36,10 @@ export function HomePage(props: HomePageProps) {
   const logoDelay = React.useRef((Date.now() * -0.001) + 's').current;
   const [updating, setUpdating] = React.useState(false);
   const allStrings = React.useContext(LangContext);
-  const preferences = usePreferences();
   const dispatch = useAppDispatch();
   const metadataUpdate = useAppSelector(state => state.main.metadataUpdate);
   const displaySettings = useAppSelector(state => state.main.displaySettings);
+  const preferences = useAppSelector(state => state.preferences);
   const strings = allStrings.home;
 
   const toggleMinimizeBox = (cssKey: string) => {
@@ -51,9 +50,9 @@ export function HomePage(props: HomePageProps) {
     } else {
       newBoxes.splice(idx, 1);
     }
-    updatePreferencesData({
+    dispatch(updatePreferences({
       minimizedHomePageBoxes: newBoxes
-    });
+    }));
   };
 
   const onPressUpdate = (source: GameMetadataSource) => {

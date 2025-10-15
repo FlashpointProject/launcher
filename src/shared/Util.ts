@@ -7,6 +7,11 @@ import { AppConfigData } from './config/interfaces';
 import { parseVariableString } from './utils/VariableString';
 import { throttle } from './utils/throttle';
 
+export function calcScale(min: number, max: number, scale: number): number {
+  if (min >= max) { return min; }
+  return min + ((max - min) * scale);
+}
+
 export function genFlatContentTree(contentTree: ContentTree): FlatContentTree {
   const flatContentTree: FlatContentTree = [];
 

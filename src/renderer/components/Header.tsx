@@ -13,7 +13,6 @@ import { LangContext } from '../util/lang';
 import { OpenIcon } from './OpenIcon';
 import { WithSearchProps } from '@renderer/containers/withSearch';
 import { GENERAL_VIEW_ID } from '@renderer/store/search/slice';
-import { updatePreferencesData } from '@shared/preferences/util';
 import { WithViewProps } from '@renderer/containers/withView';
 import { WithMainStateProps } from '@renderer/containers/withMainState';
 import { DialogField, DialogState } from 'flashpoint-launcher';
@@ -69,7 +68,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
           } else {
             customViews.push(name);
           }
-          updatePreferencesData({
+          this.props.updatePreferences({
             customViews
           });
           this.props.searchActions.duplicateView({
@@ -119,14 +118,14 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
             });
           }
           if (this.props.preferencesData.defaultOpeningPage === joinLibraryRoute(view)) {
-            updatePreferencesData({
+            this.props.updatePreferences({
               defaultOpeningPage: joinLibraryRoute(name)
             });
           }
-          updatePreferencesData({
+          this.props.updatePreferences({
             customViews,
             storedViews,
-          }, true);
+          });
           if (this.props.currentView.id === view) {
             // Move to LOADING page during change over
             this.props.navigate(Paths.LOADING);
@@ -164,12 +163,13 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
         } else {
           // Add new view
           const customViews = [...this.props.preferencesData.customViews, name];
-          updatePreferencesData({
+          this.props.updatePreferences({
             customViews,
-          }, true);
+          });
           this.props.searchActions.addViews({
             views: [name],
             areLibraries: false,
+            loadViewsText: this.props.preferencesData.loadViewsText,
           });
           setTimeout(() => {
             this.props.navigate(joinLibraryRoute(name));
@@ -199,7 +199,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
         customViews[oldIdx] = newView;
         customViews[newIdx] = view;
       }
-      updatePreferencesData({
+      this.props.updatePreferences({
         customViews,
       });
     }
@@ -223,17 +223,24 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
       const storedViews = this.props.preferencesData.storedViews.filter(v => v.view !== view);
       // Make sure the default page is always valid
       if (this.props.preferencesData.defaultOpeningPage === joinLibraryRoute(view)) {
-        updatePreferencesData({
+        this.props.updatePreferences({
           defaultOpeningPage: Paths.HOME,
         });
       }
-      updatePreferencesData({
+      this.props.updatePreferences({
         customViews: customViews,
         storedViews: storedViews,
-      }, true);
+      });
       this.props.searchActions.deleteView({
         view: view
       });
+      // Also make sure there's always one custom view in prefs
+      if (customViews.length === 0) {
+        customViews.push('Browse');
+        this.props.updatePreferences({
+          customViews
+        });
+      }
     }
   };
 

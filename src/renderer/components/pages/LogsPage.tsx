@@ -3,13 +3,12 @@ import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { clearLogs } from '@renderer/store/logs/slice';
 import { BackIn } from '@shared/back/types';
 import { LogLevel } from '@shared/Log/interface';
-import { updatePreferencesData } from '@shared/preferences/util';
 import { clipboard } from 'electron';
 import { useContext, useState } from 'react';
 import { LangContext } from '../../util/lang';
 import { Dropdown } from '../Dropdown';
 import { LogBox } from '../LogBox';
-import { usePreferences } from '@renderer/hooks/usePreferences';
+import { updatePreferences } from '@renderer/store/preferences/slice';
 
 export type LogsPageProps = any;
 
@@ -47,27 +46,28 @@ export function LogsPage(props: LogsPageProps) {
   const [fetchedDiagnostics, setFetchedDiagnostics] = useState(false);
   const allStrings = useContext(LangContext);
   const strings = allStrings.logs;
-  const { showLogSource, showLogLevel } = usePreferences();
+  const showLogSource = useAppSelector(state => state.preferences.showLogSource);
+  const showLogLevel = useAppSelector(state => state.preferences.showLogLevel);
   const logsState = useAppSelector(state => state.logs);
   const dispatch = useAppDispatch();
 
   const onSourceCheckboxClick = (index: number) => {
     const label = sourceLabels[index];
-    updatePreferencesData({
+    dispatch(updatePreferences({
       showLogSource: {
         ...showLogSource,
         [label]: !getBoolean(showLogSource[label]),
       },
-    });
+    }));
   };
 
   const onLevelCheckboxClick = (index: number) => {
-    updatePreferencesData({
+    dispatch(updatePreferences({
       showLogLevel: {
         ...showLogLevel,
         [index]: !getBoolean(showLogLevel[index as LogLevel]),
       },
-    });
+    }));
   };
 
   const onCopyClick = () => {

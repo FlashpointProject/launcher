@@ -1,13 +1,11 @@
 import * as remote from '@electron/remote';
 import { SearchBar } from '@renderer/components/SearchBar';
 import { useView } from '@renderer/hooks/search';
-import { useAppDispatch } from '@renderer/hooks/useAppSelector';
-import { usePreferences } from '@renderer/hooks/usePreferences';
+import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { forceSearch, RequestState, selectPlaylist } from '@renderer/store/search/slice';
 import { BackIn } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { ExtensionContribution } from '@shared/extensions/interfaces';
-import { updatePreferencesData } from '@shared/preferences/util';
 import { uuid } from '@shared/utils/uuid';
 import { Menu, MenuItemConstructorOptions } from 'electron';
 import { LangContainer, Playlist } from 'flashpoint-launcher';
@@ -21,6 +19,7 @@ import { WebgameBrowsePageDisplayGrid, WebgameBrowsePageDisplayList } from '../B
 import { InputElement } from '../InputField';
 import { LeftBrowseSidebar } from '../LeftBrowseSidebar';
 import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
+import { updatePreferences } from '@renderer/store/preferences/slice';
 
 export type GameDragEventData = {
   gameId: string;
@@ -75,7 +74,12 @@ export function BrowsePage(props: BrowsePageProps) {
   const gameBrowserRef: RefObject<HTMLDivElement | null> = useRef(null);
   const dispatch = useAppDispatch();
   const strings = React.useContext(LangContext);
-  const { tagFilters, browsePageLayout, browsePageShowLeftSidebar, browsePageLeftSidebarWidth, browsePageRightSidebarWidth } = usePreferences();
+  const useCustomViews = useAppSelector(state => state.preferences.useCustomViews);
+  const tagFilters = useAppSelector(state => state.preferences.tagFilters);
+  const browsePageLayout = useAppSelector(state => state.preferences.browsePageLayout);
+  const browsePageShowLeftSidebar = useAppSelector(state => state.preferences.browsePageShowLeftSidebar);
+  const browsePageLeftSidebarWidth = useAppSelector(state => state.preferences.browsePageLeftSidebarWidth);
+  const browsePageRightSidebarWidth = useAppSelector(state => state.preferences.browsePageRightSidebarWidth);
   const currentView = useView();
   const extremeTags = tagFilters.filter(t => !t.enabled && t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
 
@@ -84,7 +88,8 @@ export function BrowsePage(props: BrowsePageProps) {
     if (currentView.data.metaState === RequestState.WAITING) {
       // console.log('loading view ' + this.props.currentView.id);
       dispatch(forceSearch({
-        view: currentView.id
+        view: currentView.id,
+        useCustomViews: useCustomViews,
       }));
     }
   });
@@ -115,9 +120,9 @@ export function BrowsePage(props: BrowsePageProps) {
   const onLeftSidebarResize = (event: SidebarResizeEvent): void => {
     const maxWidth = (getGameBrowserDivWidth() - browsePageRightSidebarWidth) - 5;
     const targetWidth = event.startWidth + event.event.clientX - event.startX;
-    updatePreferencesData({
+    dispatch(updatePreferences({
       browsePageLeftSidebarWidth: Math.min(targetWidth, maxWidth)
-    });
+    }));
   };
 
   const getGameBrowserDivWidth = () => {

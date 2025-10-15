@@ -1,6 +1,5 @@
 import { useView } from '@renderer/hooks/search';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
-import { usePreferences } from '@renderer/hooks/usePreferences';
 import { forceSearch, setAdvancedFilter, setExpanded, setExtOrder, setOrderBy, setOrderReverse, setSearchText } from '@renderer/store/search/slice';
 import { getPlatformIconURL } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
@@ -36,7 +35,8 @@ export function SearchBar() {
   const suggestions = useAppSelector(state => state.main.suggestions);
   const searchDropdowns = useAppSelector(state => state.search.dropdowns);
   const tagCategories = useAppSelector(state => state.tagCategories);
-  const { enableEditing, useCustomViews } = usePreferences();
+  const enableEditing = useAppSelector(state => state.preferences.enableEditing);
+  const useCustomViews = useAppSelector(state => state.preferences.useCustomViews);
 
   const onTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSearchText({
@@ -45,7 +45,8 @@ export function SearchBar() {
     }));
     if (event.target.value === '') {
       dispatch(forceSearch({
-        view: view.id
+        view: view.id,
+        useCustomViews,
       }));
     }
   };
@@ -74,7 +75,8 @@ export function SearchBar() {
         text: ''
       }));
       dispatch(forceSearch({
-        view: view.id
+        view: view.id,
+        useCustomViews,
       }));
       const element = searchInputRef.current;
       if (element) {
@@ -346,7 +348,8 @@ export function SearchBar() {
       text: ''
     }));
     dispatch(forceSearch({
-      view: view.id
+      view: view.id,
+      useCustomViews,
     }));
   };
 
@@ -378,7 +381,8 @@ export function SearchBar() {
             onKeyDown={(event) => {
               if (event.key === 'Enter') {
                 dispatch(forceSearch({
-                  view: view.id
+                  view: view.id,
+                  useCustomViews,
                 }));
               }
             }}

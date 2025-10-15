@@ -1,11 +1,12 @@
+import { useAppSelector } from '@renderer/hooks/useAppSelector';
 import { LogLevel } from '@shared/Log/interface';
 import { formatTime, padLines } from '@shared/Log/LogCommon';
+import { calcScale } from '@shared/Util';
 import { ILogEntry } from 'flashpoint-launcher';
 import { List, RowComponentProps } from 'react-window';
 
 const timestampLength = '[HH:MM:SS] '.length;
 const logLevelLength = 5;
-const logFontSize = 14;
 
 export type LogBoxProps = {
   logs: ILogEntry[];
@@ -15,10 +16,6 @@ export type LogBoxProps = {
 type RowProps = {
   logs: ILogEntry[];
   longestSource: number;
-}
-
-function rowHeight(index: number, { logs }: RowProps) {
-  return (logFontSize + 2) * logs[index].lineCount;
 }
 
 function LogRow({ index, style, logs, longestSource }: RowComponentProps<RowProps>) {
@@ -46,10 +43,17 @@ function LogRow({ index, style, logs, longestSource }: RowComponentProps<RowProp
 }
 
 export function LogBox(props: LogBoxProps) {
+  const scale = useAppSelector(state => state.preferences.scaleValues.logs);
+  const fontSize = Math.floor(calcScale(8, 24, scale));
+
+  const rowHeight = (index: number, { logs }: RowProps) => {
+    return (fontSize + 2) * logs[index].lineCount;
+  };
+
   return (
     <List<RowProps>
       className='log simple-scroll'
-      style={{ fontSize: `${logFontSize}px`, lineHeight: `${logFontSize + 2}px` }}
+      style={{ fontSize: `${fontSize}px`, lineHeight: `${fontSize + 2}px` }}
       rowComponent={LogRow}
       rowProps={{
         logs: props.logs,

@@ -1,10 +1,8 @@
 import { ConnectedRightTagCategoriesSidebar } from '@renderer/containers/ConnectedRightTagsCategoriesSidebar';
 import { useAppSelector } from '@renderer/hooks/useAppSelector';
-import { usePreferences } from '@renderer/hooks/usePreferences';
-import { gameScaleSpan } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
 import { BackIn } from '@shared/back/types';
-import { deepCopy, getRandomHexColor } from '@shared/Util';
+import { calcScale, deepCopy, getRandomHexColor } from '@shared/Util';
 import { TagCategory } from 'flashpoint-launcher';
 import { useContext, useState } from 'react';
 import { ResizableSidebar } from '../ResizableSidebar';
@@ -14,8 +12,9 @@ import { TagCategoriesList } from '../TagCategoriesList';
 export function TagCategoriesPage() {
   const allStrings = useContext(LangContext);
   const strings = allStrings.tags;
-  const preferences = usePreferences();
   const tagCategories = useAppSelector((state) => state.tagCategories);
+  const scale = useAppSelector(state => state.preferences.scaleValues.browse);
+  const browsePageLeftSidebarWidth = useAppSelector(state => state.preferences.browsePageLeftSidebarWidth);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number>();
   const [currentCategory, setCurrentCategory] = useState<TagCategory>();
@@ -95,7 +94,7 @@ export function TagCategoriesPage() {
     }
   };
 
-  const rowHeight = calcScale(40, preferences.browsePageGameScale);
+  const rowHeight = calcScale(20, 40, scale);
 
   return (
     <div className='tags-page'>
@@ -114,7 +113,7 @@ export function TagCategoriesPage() {
         <ResizableSidebar
           show={currentCategory !== undefined}
           divider='after'
-          width={preferences.browsePageLeftSidebarWidth} >
+          width={browsePageLeftSidebarWidth} >
           <ConnectedRightTagCategoriesSidebar
             currentCategory={currentCategory}
             isEditing={isEditing}
@@ -127,8 +126,4 @@ export function TagCategoriesPage() {
       </div>
     </div>
   );
-}
-
-function calcScale(defHeight: number, scale: number): number {
-  return (defHeight + (scale - 0.5) * 2 * defHeight * gameScaleSpan) | 0;
 }

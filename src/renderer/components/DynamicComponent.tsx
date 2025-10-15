@@ -12,7 +12,8 @@ type DynamicComponentProps = {
 export function DynamicComponent({ name, props }: DynamicComponentProps) {
   const { getComponent } = useContext(DynamicComponentContext);
   const themeList = useAppSelector((state) => state.main.themeList);
-  const currentTheme = themeList.find(t => t.id ===  window.Shared.preferences.data.currentTheme);
+  const currentThemeId = useAppSelector(state => state.preferences.currentTheme);
+  const currentTheme = themeList.find(t => t.id === currentThemeId);
   let renderName = name;
 
   // Apply theme overrides

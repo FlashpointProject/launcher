@@ -704,6 +704,10 @@ body {
   flex: 1 1 auto;
   min-width: 10rem;
 }
+.footer__scale-slider__wrapper {
+  display: flex;
+  flex-direction: row;
+}
 .footer__scale-slider__inner {
   --slider-size: 1em;
   display: inline-block;

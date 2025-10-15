@@ -139,7 +139,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       });
     }
 
-    if (this.props.currentGame && this.props.currentPlaylist) {
+    if (this.props.currentGame !== undefined && this.props.currentPlaylist !== undefined) {
       const gameId = this.props.currentGame.id;
       const playlistId = this.props.currentPlaylist.id;
       window.Shared.back.request(BackIn.GET_PLAYLIST_GAME, this.props.currentPlaylist.id, this.props.currentGame.id)
@@ -957,12 +957,12 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     if (currentGame) {
       template.push({
         label: (this.context as LangContainer).menu.viewThumbnailInFolder,
-        click: () => { remote.shell.showItemInFolder(getGameImagePath(currentGame.logoPath).replace(/\//g, '\\')); },
+        click: () => { remote.shell.showItemInFolder(getGameImagePath(currentGame.logoPath, this.props.preferencesData.imageFolderPath).replace(/\//g, '\\')); },
         enabled: true
       });
       template.push({
         label: (this.context as LangContainer).menu.viewScreenshotInFolder,
-        click: () => { remote.shell.showItemInFolder(getGameImagePath(currentGame.screenshotPath).replace(/\//g, '\\')); },
+        click: () => { remote.shell.showItemInFolder(getGameImagePath(currentGame.screenshotPath, this.props.preferencesData.imageFolderPath).replace(/\//g, '\\')); },
         enabled: true
       });
     }

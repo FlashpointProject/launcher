@@ -48,12 +48,7 @@ export interface IMainWindowExternal {
   /** Open/Close the DevTools for this window */
   toggleDevtools(): void;
 
-  preferences: {
-    /** Current preferences. */
-    data: AppPreferencesData;
-    /** Emitter for preference related events. */
-    onUpdate?: () => void;
-  };
+  initialPreferences: AppPreferencesData;
 
   /** Renderers interface for the Config data */
   config: {

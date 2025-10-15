@@ -1,6 +1,5 @@
 import { isAnyOf, PayloadAction } from '@reduxjs/toolkit';
 import { BackIn } from '@shared/back/types';
-import { updatePreferencesData } from '@shared/preferences/util';
 import { deepCopy } from '@shared/Util';
 import { startAppListening } from '../listenerMiddleware';
 import store from '../store';
@@ -26,6 +25,7 @@ import {
   setSearchId,
   setSearchText
 } from './slice';
+import { updatePreferences } from '../preferences/slice';
 
 export function addSearchMiddleware() {
   // Build filter immediately
@@ -42,7 +42,7 @@ export function addSearchMiddleware() {
 
         const advFilter = deepCopy(view.advancedFilter);
         // Get processed query
-        if (!window.Shared.preferences.data.useCustomViews) {
+        if (!view.isCustom) {
           advFilter.library = {
             [view.id]: 'whitelist'
           };
@@ -70,7 +70,7 @@ export function addSearchMiddleware() {
       const state = listenerApi.getOriginalState();
       if (state.search.dropdowns.key !== action.payload) {
         // Key has changed, fire off the updates
-        const tfgs = window.Shared.preferences.data.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !window.Shared.preferences.data.browsePageShowExtreme));
+        const tfgs = state.preferences.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !state.preferences.browsePageShowExtreme));
         const startTime = Date.now();
         const key = action.payload;
 
@@ -148,9 +148,9 @@ export function addSearchMiddleware() {
       const view = state.search.views[action.payload.view];
 
       if (view && view.id !== GENERAL_VIEW_ID) {
-        const newStoredViews = [...window.Shared.preferences.data.storedViews];
+        const newStoredViews = deepCopy(state.preferences.storedViews);
         const existingStoredView = newStoredViews.find(s => s.view === action.payload.view);
-        if (existingStoredView) {
+        if (existingStoredView !== undefined) {
           existingStoredView.text = view.text;
           existingStoredView.advancedFilter = view.advancedFilter;
           existingStoredView.orderBy = view.orderBy;
@@ -172,9 +172,9 @@ export function addSearchMiddleware() {
             expanded: view.expanded,
           });
         }
-        updatePreferencesData({
+        store.dispatch(updatePreferences({
           storedViews: newStoredViews
-        });
+        }));
       }
     }
   });

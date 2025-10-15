@@ -1,9 +1,8 @@
 import { ConnectedRightTagsSidebar } from '@renderer/containers/ConnectedRightTagsSidebar';
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
-import { gameScaleSpan } from '@renderer/Util';
 import { BackIn } from '@shared/back/types';
-import { deepCopy } from '@shared/Util';
+import { calcScale, deepCopy } from '@shared/Util';
 import * as React from 'react';
 import { ResizableSidebar } from '../ResizableSidebar';
 import { TagList } from '../TagList';
@@ -70,7 +69,7 @@ export class TagsPage extends React.Component<TagsPageProps, TagsPageState> {
   }
 
   render() {
-    const rowHeight = calcScale(40, this.props.preferencesData.browsePageGameScale);
+    const rowHeight = calcScale(20, 40, this.props.preferencesData.scaleValues.browse);
 
     return (
       <div className='tags-page'>
@@ -215,8 +214,4 @@ export class TagsPage extends React.Component<TagsPageProps, TagsPageState> {
       });
     }
   };
-}
-
-function calcScale(defHeight: number, scale: number): number {
-  return (defHeight + (scale - 0.5) * 2 * defHeight * gameScaleSpan) | 0;
 }

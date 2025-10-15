@@ -7,6 +7,8 @@ import { listenerMiddleware } from './listenerMiddleware';
 import logsReducer from './logs/slice';
 import { addMainMiddleware } from './main/middleware';
 import mainReducer from './main/slice';
+import { addPreferencesMiddleware } from './preferences/middleware';
+import prefsReducer from './preferences/slice';
 import { addSearchMiddleware } from './search/middleware';
 import searchReducer from './search/slice';
 import tagCategoriesReducer from './tagCategories/slice';
@@ -16,6 +18,7 @@ import tasksReducer from './tasks/slice';
 addSearchMiddleware();
 addCurationMiddleware();
 addMainMiddleware();
+addPreferencesMiddleware();
 
 // Create store
 export const store = configureStore({
@@ -28,6 +31,7 @@ export const store = configureStore({
     tasks: tasksReducer,
     logs: logsReducer,
     downloads: downloadsReducer,
+    preferences: prefsReducer,
   },
   middleware: (getDefaultMiddleware) => {
     const middleware = getDefaultMiddleware({

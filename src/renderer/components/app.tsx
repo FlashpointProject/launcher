@@ -14,7 +14,6 @@ import { APP_TITLE } from '@shared/constants';
 import { CustomIPC, IService, ProcessState, WindowIPC } from '@shared/interfaces';
 import { memoizeOne } from '@shared/memoize';
 import { Paths } from '@shared/Paths';
-import { updatePreferencesData } from '@shared/preferences/util';
 import { setTheme } from '@shared/Theme';
 import { getFileServerURL, mapFpfssGameToLocal, mapLocalToFpfssGame, recursiveReplace, sizeToString } from '@shared/Util';
 import { arrayShallowStrictEquals } from '@shared/utils/compare';
@@ -260,7 +259,7 @@ export class App extends React.Component<AppProps> {
     // Listen for the window to move or resize (and update the preferences when it does)
     ipcRenderer.on(WindowIPC.WINDOW_MOVE, debounce((sender, x: number, y: number, isMaximized: boolean) => {
       if (!isMaximized) {
-        updatePreferencesData({ mainWindow: { x: x | 0, y: y | 0 } });
+        this.props.updatePreferences({ mainWindow: { x: x | 0, y: y | 0 } });
       }
     }, 100));
     ipcRenderer.on(WindowIPC.WINDOW_RESIZE, debounce((sender, width: number, height: number, isMaximized: boolean) => {
@@ -272,11 +271,11 @@ export class App extends React.Component<AppProps> {
         if (height < 200) {
           height = 200;
         }
-        updatePreferencesData({ mainWindow: { width: width | 0, height: height | 0 } });
+        this.props.updatePreferences({ mainWindow: { width: width | 0, height: height | 0 } });
       }
     }, 100));
     ipcRenderer.on(WindowIPC.WINDOW_MAXIMIZE, (sender, isMaximized: boolean) => {
-      updatePreferencesData({ mainWindow: { maximized: isMaximized } });
+      this.props.updatePreferences({ mainWindow: { maximized: isMaximized } });
     });
     ipcRenderer.on(WindowIPC.PROTOCOL, (sender, url: string) => {
       handleProtocol(url);
@@ -330,7 +329,7 @@ export class App extends React.Component<AppProps> {
         const customViews = this.props.preferencesData.customViews;
         if (customViews.length === 0) {
           customViews.push('Browse');
-          updatePreferencesData({
+          this.props.updatePreferences({
             customViews,
           });
         }
@@ -339,11 +338,13 @@ export class App extends React.Component<AppProps> {
             views: customViews,
             storedViews: this.props.preferencesData.storedViews,
             areLibraries: false,
+            loadViewsText: this.props.preferencesData.loadViewsText,
           });
         } else {
           this.props.searchActions.createViews({
             views: customViews,
             areLibraries: false,
+            loadViewsText: this.props.preferencesData.loadViewsText,
           });
 
         }
@@ -353,11 +354,13 @@ export class App extends React.Component<AppProps> {
             views: data.libraries,
             storedViews: this.props.preferencesData.storedViews,
             areLibraries: true,
+            loadViewsText: this.props.preferencesData.loadViewsText,
           });
         } else {
           this.props.searchActions.createViews({
             views: data.libraries,
             areLibraries: true,
+            loadViewsText: this.props.preferencesData.loadViewsText,
           });
         }
       }
@@ -537,10 +540,7 @@ export class App extends React.Component<AppProps> {
     });
 
     window.Shared.back.register(BackOut.UPDATE_PREFERENCES_RESPONSE, (event, data) => {
-      window.Shared.preferences.data = data;
-      if (window.Shared.preferences.onUpdate) {
-        window.Shared.preferences.onUpdate();
-      }
+      this.props.setPreferences(data);
     });
 
     window.Shared.back.register(BackOut.UPDATE_EXT_CONFIG_DATA, (event, data) => {
@@ -787,7 +787,7 @@ export class App extends React.Component<AppProps> {
         try {
           const user = JSON.parse(Buffer.from(userBase64, 'base64').toString('utf-8')) as FpfssUser;
           // Test profile uri
-          const profileUrl = `${window.Shared.preferences.data.fpfssBaseUrl}/api/profile`;
+          const profileUrl = `${this.props.preferencesData.fpfssBaseUrl}/api/profile`;
           axios.get(profileUrl, {
             headers: {
               'Authorization': `Bearer ${user.accessToken}`
@@ -1033,7 +1033,7 @@ export class App extends React.Component<AppProps> {
       const gameLibrary = getViewName(this.props.location.pathname);
       if (this.props.location.pathname.startsWith(Paths.BROWSE) &&
         preferencesData.lastSelectedLibrary !== gameLibrary) {
-        updatePreferencesData({ lastSelectedLibrary: gameLibrary });
+        this.props.updatePreferences({ lastSelectedLibrary: gameLibrary });
       }
 
       // Create a new game
@@ -1073,7 +1073,7 @@ export class App extends React.Component<AppProps> {
   onRightSidebarResize = (event: SidebarResizeEvent): void => {
     const maxWidth = (this.getGameBrowserDivWidth() - this.props.preferencesData.browsePageLeftSidebarWidth) - 5;
     const targetWidth = event.startWidth + event.startX - event.event.clientX;
-    updatePreferencesData({
+    this.props.updatePreferences({
       browsePageRightSidebarWidth: Math.min(targetWidth, maxWidth)
     });
   };
@@ -1281,7 +1281,7 @@ export class App extends React.Component<AppProps> {
             window.Shared.back.request(BackIn.GET_GAME, gameId)
             .then(async (game) => {
               if (game) {
-                const gamePath = await getGamePath(game, window.Shared.config.fullFlashpointPath, window.Shared.preferences.data.htdocsFolderPath, window.Shared.preferences.data.dataPacksFolderPath);
+                const gamePath = await getGamePath(game, window.Shared.config.fullFlashpointPath, this.props.preferencesData.htdocsFolderPath, this.props.preferencesData.dataPacksFolderPath);
                 try {
                   if (gamePath) {
                     await fs.promises.stat(gamePath);
@@ -1327,7 +1327,7 @@ export class App extends React.Component<AppProps> {
           label: strings.menu.openLogoLocation,
           enabled: !window.Shared.isBackRemote, // (Local "back" only)
           click: () => {
-            const fullLogoPath = getGameImagePath(logoPath);
+            const fullLogoPath = getGameImagePath(logoPath, this.props.preferencesData.imageFolderPath);
             fs.promises.access(fullLogoPath, fs.constants.R_OK)
             .then(() => {
               /* Downloaded, open */
@@ -1346,7 +1346,7 @@ export class App extends React.Component<AppProps> {
           label: strings.menu.openScreenshotLocation,
           enabled: !window.Shared.isBackRemote, // (Local "back" only)
           click: () => {
-            const fullScreenshotPath = getGameImagePath(screenshotPath);
+            const fullScreenshotPath = getGameImagePath(screenshotPath, this.props.preferencesData.imageFolderPath);
             fs.promises.access(fullScreenshotPath, fs.constants.R_OK)
             .then(() => {
               /* Downloaded, open */
@@ -1712,11 +1712,11 @@ export class App extends React.Component<AppProps> {
   }
 
   private onToggleLeftSidebarClick = (): void => {
-    updatePreferencesData({ browsePageShowLeftSidebar: !this.props.preferencesData.browsePageShowLeftSidebar });
+    this.props.updatePreferences({ browsePageShowLeftSidebar: !this.props.preferencesData.browsePageShowLeftSidebar });
   };
 
   private onToggleRightSidebarClick = (): void => {
-    updatePreferencesData({ browsePageShowRightSidebar: !this.props.preferencesData.browsePageShowRightSidebar });
+    this.props.updatePreferences({ browsePageShowRightSidebar: !this.props.preferencesData.browsePageShowRightSidebar });
   };
 
   private onPlaylistDelete = (playlist: Playlist) => {
@@ -1954,6 +1954,7 @@ export class App extends React.Component<AppProps> {
     });
     this.props.searchActions.forceSearch({
       view: this.props.currentView.id,
+      useCustomViews: this.props.preferencesData.useCustomViews
     });
   };
 
@@ -1968,7 +1969,7 @@ export class App extends React.Component<AppProps> {
   }
 
   async doFpfssAuth(): Promise<FpfssUser | null> {
-    const user = await fpfssLogin(this.props.mainActions.createDialog, this.props.mainActions.cancelDialog)
+    const user = await fpfssLogin(this.props.mainActions.createDialog, this.props.mainActions.cancelDialog, this.props.preferencesData.fpfssBaseUrl)
     .catch((err) => {
       if (err !== 'User Cancelled') {
         alert(err);

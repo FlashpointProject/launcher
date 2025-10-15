@@ -12,7 +12,6 @@ import { CustomIPC } from '@shared/interfaces';
 import { autoCode, LangFile } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
 import { Paths } from '@shared/Paths';
-import { updatePreferencesData, updatePreferencesDataAsync } from '@shared/preferences/util';
 import { ITheme } from '@shared/ThemeFile';
 import { deepCopy } from '@shared/Util';
 import * as Coerce from '@shared/utils/Coerce';
@@ -827,11 +826,11 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 window.Shared.back.request(BackIn.SET_EXTENSION_ENABLED, ext.id, isChecked)
                 .then(() => {
                   if (enabled) {
-                    updatePreferencesData({
+                    this.props.updatePreferences({
                       disabledExtensions: disabledExts.concat([ext.id])
                     });
                   } else {
-                    updatePreferencesData({
+                    this.props.updatePreferences({
                       disabledExtensions: disabledExts.filter(c => c !== ext.id)
                     });
                   }
@@ -923,19 +922,19 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   };
 
   onShowExtremeChange = (isChecked: boolean): void => {
-    updatePreferencesData({ browsePageShowExtreme: isChecked });
+    this.props.updatePreferences({ browsePageShowExtreme: isChecked });
   };
 
   onToggleHideExtremeScreenshots = (isChecked: boolean): void => {
-    updatePreferencesData({ hideExtremeScreenshots: isChecked });
+    this.props.updatePreferences({ hideExtremeScreenshots: isChecked });
   };
 
   onToggleEnablePlaytimeTracking = (isChecked: boolean): void => {
-    updatePreferencesData({ enablePlaytimeTracking: isChecked });
+    this.props.updatePreferences({ enablePlaytimeTracking: isChecked });
   };
 
   onToggleEnablePlaytimeTrackingExtreme = (isChecked: boolean): void => {
-    updatePreferencesData({ enablePlaytimeTrackingExtreme: isChecked });
+    this.props.updatePreferences({ enablePlaytimeTrackingExtreme: isChecked });
   };
 
   onClearPlaytimeTracking = (): void => {
@@ -944,9 +943,9 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   onUseStoredViewsChange = (isChecked: boolean): void => {
     if (isChecked) {
-      updatePreferencesData({ useStoredViews: isChecked });
+      this.props.updatePreferences({ useStoredViews: isChecked });
     } else {
-      updatePreferencesData({
+      this.props.updatePreferences({
         useStoredViews: isChecked,
         storedViews: []
       });
@@ -954,7 +953,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   };
 
   onToggleUseCustomViews = (isChecked: boolean): void => {
-    updatePreferencesData({
+    this.props.updatePreferences({
       useCustomViews: isChecked,
       defaultOpeningPage: Paths.HOME,
     });
@@ -962,7 +961,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       const customViews = this.props.preferencesData.customViews;
       if (customViews.length === 0) {
         customViews.push('Browse');
-        updatePreferencesData({
+        this.props.updatePreferences({
           customViews,
         });
       }
@@ -971,11 +970,13 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
           views: customViews,
           storedViews: this.props.preferencesData.storedViews,
           areLibraries: false,
+          loadViewsText: this.props.preferencesData.loadViewsText,
         });
       } else {
         this.props.searchActions.createViews({
           views: customViews,
           areLibraries: false,
+          loadViewsText: this.props.preferencesData.loadViewsText,
         });
       }
     } else {
@@ -984,77 +985,79 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
           views: this.props.libraries,
           storedViews: this.props.preferencesData.storedViews,
           areLibraries: true,
+          loadViewsText: this.props.preferencesData.loadViewsText,
         });
       } else {
         this.props.searchActions.createViews({
           views: this.props.libraries,
           areLibraries: true,
+          loadViewsText: this.props.preferencesData.loadViewsText,
         });
       }
     }
   };
 
   onToggleLoadViewsText = (isChecked: boolean): void => {
-    updatePreferencesData({
+    this.props.updatePreferences({
       loadViewsText: isChecked
     });
   };
 
   onEnableEditingChange = (isChecked: boolean): void => {
-    updatePreferencesData({ enableEditing: isChecked });
+    this.props.updatePreferences({ enableEditing: isChecked });
   };
 
   onSymlinkCurationContentChange = (isChecked: boolean): void => {
-    updatePreferencesData({ symlinkCurationContent: isChecked });
+    this.props.updatePreferences({ symlinkCurationContent: isChecked });
   };
 
   onOnDemandImagesChange = (isChecked: boolean): void => {
-    updatePreferencesData({ onDemandImages: isChecked });
+    this.props.updatePreferences({ onDemandImages: isChecked });
   };
 
   onDemandImagesCompressedChange = (isChecked: boolean): void => {
-    updatePreferencesData({ onDemandImagesCompressed: isChecked });
+    this.props.updatePreferences({ onDemandImagesCompressed: isChecked });
   };
 
   onFancyAnimationsChange = (isChecked: boolean): void => {
-    updatePreferencesData({ fancyAnimations: isChecked });
+    this.props.updatePreferences({ fancyAnimations: isChecked });
   };
 
   onHideNewViewButtonChange = (isChecked: boolean): void => {
-    updatePreferencesData({ hideNewViewButton: isChecked });
+    this.props.updatePreferences({ hideNewViewButton: isChecked });
   };
 
   onVerboseLoggingToggle = (isChecked: boolean): void => {
-    updatePreferencesData({ enableVerboseLogging: isChecked });
+    this.props.updatePreferences({ enableVerboseLogging: isChecked });
   };
 
   onSearchLimitChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    updatePreferencesData({ searchLimit: num(event.target.value) });
+    this.props.updatePreferences({ searchLimit: num(event.target.value) });
   };
 
   onCurrentLanguageSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    updatePreferencesData({ currentLanguage: event.target.value });
+    this.props.updatePreferences({ currentLanguage: event.target.value });
   };
 
   onServerSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    updatePreferencesData({ server: event.target.value });
+    this.props.updatePreferences({ server: event.target.value });
   };
 
   onCurateServerSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    updatePreferencesData({ curateServer: event.target.value });
+    this.props.updatePreferences({ curateServer: event.target.value });
   };
 
   onFallbackLanguageSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    updatePreferencesData({ fallbackLanguage: event.target.value });
+    this.props.updatePreferences({ fallbackLanguage: event.target.value });
   };
 
   onDefaultOpeningPageSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     console.log(event.target.value);
-    updatePreferencesData({ defaultOpeningPage: event.target.value });
+    this.props.updatePreferences({ defaultOpeningPage: event.target.value });
   };
 
   onToggleUseSelectedGameScroll = (isChecked: boolean) => {
-    updatePreferencesData({ useSelectedGameScroll: isChecked });
+    this.props.updatePreferences({ useSelectedGameScroll: isChecked });
   };
 
   onExcludedLibraryCheckboxChange = (library: string): void => {
@@ -1067,38 +1070,38 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       excludedRandomLibraries.push(library);
     }
 
-    updatePreferencesData({ excludedRandomLibraries });
+    this.props.updatePreferences({ excludedRandomLibraries });
   };
 
   onRemoveAppPathOverride = (index: number): void => {
     const newPaths = [...this.props.preferencesData.appPathOverrides];
     newPaths.splice(index, 1);
     console.log('SPLICED');
-    updatePreferencesData({ appPathOverrides: newPaths });
+    this.props.updatePreferences({ appPathOverrides: newPaths });
   };
 
   onNewAppPathOverride = (): void => {
     const newPaths = [...this.props.preferencesData.appPathOverrides];
     newPaths.push({ path: '', override: '', enabled: true });
-    updatePreferencesData({ appPathOverrides: newPaths });
+    this.props.updatePreferences({ appPathOverrides: newPaths });
   };
 
   onAppPathOverridePathChange = (index: number, newPath: string): void => {
     const newPaths = [...this.props.preferencesData.appPathOverrides];
     newPaths[index] = { ...newPaths[index], path: newPath };
-    updatePreferencesData({ appPathOverrides: newPaths });
+    this.props.updatePreferences({ appPathOverrides: newPaths });
   };
 
   onAppPathOverrideOverrideChange = (index: number, newOverride: string): void => {
     const newPaths = [...this.props.preferencesData.appPathOverrides];
     newPaths[index] = { ...newPaths[index], override: newOverride };
-    updatePreferencesData({ appPathOverrides: newPaths });
+    this.props.updatePreferences({ appPathOverrides: newPaths });
   };
 
   onAppPathOverrideEnabledToggle = (index: number, checked: boolean): void => {
     const newPaths = [...this.props.preferencesData.appPathOverrides];
     newPaths[index] = { ...newPaths[index], enabled: checked };
-    updatePreferencesData({ appPathOverrides: newPaths });
+    this.props.updatePreferences({ appPathOverrides: newPaths });
   };
 
   onNewTagFilterGroup = (): void => {
@@ -1114,13 +1117,13 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     };
     const newTagFilters = [...this.props.preferencesData.tagFilters];
     newTagFilters.push(tfg);
-    updatePreferencesData({ tagFilters: newTagFilters });
+    this.props.updatePreferences({ tagFilters: newTagFilters });
   };
 
   onTagFilterGroupEnabledToggle = (index: number, checked: boolean): void => {
     const newTagFilters = [...this.props.preferencesData.tagFilters];
     newTagFilters[index] = { ...newTagFilters[index], enabled: checked };
-    updatePreferencesData({ tagFilters: newTagFilters });
+    this.props.updatePreferences({ tagFilters: newTagFilters });
   };
 
   onAddTagEditorTagEvent = (index: number, tag: string): void => {
@@ -1192,7 +1195,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   onDuplicateTagFilterGroup = (index: number): void => {
     const newTagFilters = [...this.props.preferencesData.tagFilters];
     newTagFilters.push({ ...newTagFilters[index], name: `${newTagFilters[index].name} - Copy` });
-    updatePreferencesData({ tagFilters: newTagFilters });
+    this.props.updatePreferences({ tagFilters: newTagFilters });
   };
 
   onEditTagFilterGroup = (index: number): void => {
@@ -1212,7 +1215,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       newPlatforms.push(platform);
     }
 
-    updatePreferencesData({ nativePlatforms: newPlatforms });
+    this.props.updatePreferences({ nativePlatforms: newPlatforms });
   };
 
   /**
@@ -1232,11 +1235,11 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   };
 
   onShowDeveloperTab = (isChecked: boolean): void => {
-    updatePreferencesData({ showDeveloperTab: isChecked });
+    this.props.updatePreferences({ showDeveloperTab: isChecked });
   };
 
   onRegisterProtocol = (isChecked: boolean): void => {
-    updatePreferencesData({ registerProtocol: isChecked });
+    this.props.updatePreferences({ registerProtocol: isChecked });
     ipcRenderer.invoke(CustomIPC.REGISTER_PROTOCOL, isChecked)
     .then((success) => {
       if (!success) {
@@ -1251,12 +1254,12 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     if (selectedTheme) {
       const suggestedLogoSet = this.props.logoSets.find(ls => ls.id === selectedTheme.logoSet);
       const logoSetId = suggestedLogoSet ? suggestedLogoSet.id : this.props.preferencesData.currentLogoSet;
-      updatePreferencesData({ currentTheme: selectedTheme.id, currentLogoSet: logoSetId });
+      this.props.updatePreferences({ currentTheme: selectedTheme.id, currentLogoSet: logoSetId });
     }
   };
 
   onCurrentLogoSetChange = (value: string): void => {
-    updatePreferencesDataAsync({ currentLogoSet: value });
+    this.props.updatePreferences({ currentLogoSet: value });
   };
 
   onCurrentThemeItemSelect = (value: string, index: number): void => {
@@ -1268,7 +1271,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     } else { theme = undefined; } // (Deselect the current theme)
     const suggestedLogoSet = this.props.logoSets.find(ls => ls.id === (theme ? theme.logoSet : undefined));
     const logoSetId = suggestedLogoSet ? suggestedLogoSet.id : this.props.preferencesData.currentLogoSet;
-    updatePreferencesData({ currentTheme: theme ? theme.id : '', currentLogoSet: logoSetId });
+    this.props.updatePreferences({ currentTheme: theme ? theme.id : '', currentLogoSet: logoSetId });
   };
 
   onCurrentLogoSetSelect = (value: string, index: number): void => {
@@ -1278,15 +1281,15 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     if (index < this.props.logoSets.length) { // (Select a Logo Set)
       logoSet = this.props.logoSets[index];
     } else { logoSet = undefined; } // (Deselect the current logo set)
-    updatePreferencesDataAsync({ currentLogoSet: logoSet ? logoSet.id : undefined });
+    this.props.updatePreferences({ currentLogoSet: logoSet ? logoSet.id : undefined });
   };
 
   onScreenshotPreviewModeChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    updatePreferencesData({ screenshotPreviewMode: num(event.target.value) });
+    this.props.updatePreferences({ screenshotPreviewMode: num(event.target.value) });
   };
 
   onScreenshotPreviewDelayChange = (value: string): void => {
-    updatePreferencesData({ screenshotPreviewDelay: num(value) });
+    this.props.updatePreferences({ screenshotPreviewDelay: num(value) });
   };
 
   getThemeName(id: string) {
@@ -1303,7 +1306,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     if (this.state.editingTagFilterGroup && this.state.editingTagFilterGroupIdx != undefined) {
       const newTagFilters = [...this.props.preferencesData.tagFilters];
       newTagFilters[this.state.editingTagFilterGroupIdx] = this.state.editingTagFilterGroup;
-      updatePreferencesData({ tagFilters: newTagFilters });
+      this.props.updatePreferences({ tagFilters: newTagFilters });
       this.setState({ editingTagFilterGroup: undefined, editingTagFilterGroupIdx: undefined, editorOpen: false });
     }
   };
@@ -1315,7 +1318,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     .then(() => {
       const newTagFilters = [...this.props.preferencesData.tagFilters];
       newTagFilters.splice(index, 1);
-      updatePreferencesData({ tagFilters: newTagFilters });
+      this.props.updatePreferences({ tagFilters: newTagFilters });
     })
     .catch((error) => {
       alert('Failed to nuke tags: ' + error);
@@ -1328,7 +1331,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   onTagFilterGroupDelete = async (index: number) => {
     const newTagFilters = [...this.props.preferencesData.tagFilters];
     newTagFilters.splice(index, 1);
-    updatePreferencesData({ tagFilters: newTagFilters });
+    this.props.updatePreferences({ tagFilters: newTagFilters });
   };
 
   /** When the "Save & Restart" button is clicked. */
@@ -1355,7 +1358,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   };
 
   onChangeAutoClearWininetCache = (isChecked: boolean) => {
-    updatePreferencesData({ autoClearWininetCache: isChecked });
+    this.props.updatePreferences({ autoClearWininetCache: isChecked });
   };
 
   onClearWininetCache = () => {

@@ -5,8 +5,7 @@ import { DialogState } from 'flashpoint-launcher';
 import * as mainActions from '@renderer/store/main/slice';
 import { axios } from './Util';
 
-export async function fpfssLogin(createDialog: typeof mainActions.createDialog, cancelDialog: typeof mainActions.cancelDialog): Promise<FpfssUser | null> {
-  const fpfssBaseUrl = window.Shared.preferences.data.fpfssBaseUrl;
+export async function fpfssLogin(createDialog: typeof mainActions.createDialog, cancelDialog: typeof mainActions.cancelDialog, fpfssBaseUrl: string): Promise<FpfssUser | null> {
   // Get device auth token from FPFSS
   const tokenUrl = `${fpfssBaseUrl}/auth/device`;
   const data = {

@@ -1,8 +1,7 @@
 
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
-import { usePreferences } from '@renderer/hooks/usePreferences';
 import { requestRange, selectGame, setGridScroll, setListScroll } from '@renderer/store/search/slice';
-import { gameDragDataType, gameScaleSpan, getPlatformIconURL } from '@renderer/Util';
+import { gameDragDataType, getPlatformIconURL } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
 import { BackIn } from '@shared/back/types';
 import { isGame } from '@shared/utils/misc';
@@ -13,9 +12,10 @@ import { BrowsePageDisplayGridProps, BrowsePageDisplayListProps, BrowsePageDispl
 import React, { useContext, useState } from 'react';
 import { ScrollIndices } from 'react-virtualized';
 import { GameGrid } from './GameGrid';
+import { GameList } from './GameList';
 import { GameDragData, GameDragEventData } from './pages/BrowsePage';
 import { Spinner } from './Spinner';
-import { GameList } from './GameList';
+import { calcScale } from '@shared/Util';
 
 export function WebgameBrowsePageDisplayGrid(props: BrowsePageDisplayProps<Game>) {
   const getContentIcons = (game: Content | Game) => {
@@ -47,7 +47,10 @@ export function WebgameBrowsePageDisplayList(props: BrowsePageDisplayProps<Game>
 }
 
 export function BrowsePageDisplayGrid<T extends Content>(props: BrowsePageDisplayGridProps<T>) {
-  const { browsePageGameScale, screenshotPreviewDelay, screenshotPreviewMode, hideExtremeScreenshots } = usePreferences();
+  const scale = useAppSelector(state => state.preferences.scaleValues.browse);
+  const screenshotPreviewDelay = useAppSelector(state => state.preferences.screenshotPreviewDelay);
+  const screenshotPreviewMode = useAppSelector(state => state.preferences.screenshotPreviewMode);
+  const hideExtremeScreenshots = useAppSelector(state => state.preferences.hideExtremeScreenshots);
   const dispatch = useAppDispatch();
   const { view, getContentIcons, onContentRun, logoVersion, extremeTags, onMovePlaylistEntry } = props;
   const [draggedContentIndex, setDraggedContentIndex] = useState<number | null>(null);
@@ -102,7 +105,7 @@ export function BrowsePageDisplayGrid<T extends Content>(props: BrowsePageDispla
     }
   };
 
-  const height: number = calcScale(350, browsePageGameScale);
+  const height: number = calcScale(210, 390, scale);
   const width: number = (height * 0.666) | 0;
   const gameGridProps = {
     scrollCol: view.gridScrollCol,
@@ -141,7 +144,9 @@ export function BrowsePageDisplayGrid<T extends Content>(props: BrowsePageDispla
 
 export function BrowsePageDisplayList<T extends Content>(props: BrowsePageDisplayListProps<T>) {
   const displaySettings = useAppSelector(state => state.main.displaySettings);
-  const { tagFilters, browsePageGameScale, browsePageShowExtreme } = usePreferences();
+  const scale = useAppSelector(state => state.preferences.scaleValues.browse);
+  const tagFilters = useAppSelector(state => state.preferences.tagFilters);
+  const browsePageShowExtreme = useAppSelector(state => state.preferences.browsePageShowExtreme);
   const dispatch = useAppDispatch();
   const { view, onContentRun, extremeTags, onMovePlaylistEntry } = props;
   const [draggedContentIndex, setDraggedContentIndex] = useState<number | null>(null);
@@ -197,7 +202,7 @@ export function BrowsePageDisplayList<T extends Content>(props: BrowsePageDispla
     }
   };
 
-  const height: number = calcScale(30, browsePageGameScale);
+  const height: number = calcScale(20, 40, scale);
 
   return (
     <GameList
@@ -227,10 +232,6 @@ export function BrowsePageDisplayList<T extends Content>(props: BrowsePageDispla
       onScrollToChange={onListScrollToChange}
       viewId={view.id} />
   );
-}
-
-export function calcScale(defHeight: number, scale: number): number {
-  return (defHeight + (scale - 0.5) * 2 * defHeight * gameScaleSpan) | 0;
 }
 
 type BasicNoRowRendererProps = {

@@ -1,7 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { BackIn, PageKeyset, SearchQuery } from '@shared/back/types';
 import { VIEW_PAGE_SIZE } from '@shared/constants';
-import { updatePreferencesData } from '@shared/preferences/util';
 import { getDefaultAdvancedFilter, getDefaultGameSearch } from '@shared/search/util';
 import { deepCopy } from '@shared/Util';
 import { AdvancedFilter, ExtOrder, Game, GameOrderBy, GameOrderReverse, Playlist, ResultsView, StoredView, Tag, ViewGame } from 'flashpoint-launcher';
@@ -135,6 +134,7 @@ export type SearchCreateViewsAction = {
   views: string[];
   storedViews?: StoredView[];
   areLibraries: boolean;
+  loadViewsText: boolean;
 }
 
 export type SearchDeleteViewAction = {
@@ -183,6 +183,7 @@ const defaultGeneralState: ResultsView<any> = {
   text: '',
   textPositions: [],
   expanded: true,
+  isCustom: false,
 };
 
 const initialState: SearchState = {
@@ -207,6 +208,7 @@ export type RequestKeysetAction = {
 
 export type ForceSearchAction = {
   view: string;
+  useCustomViews: boolean;
 }
 
 export const requestKeyset = createAsyncThunk(
@@ -240,7 +242,7 @@ export const forceSearch = createAsyncThunk(
 
     const advFilter = deepCopy(view.advancedFilter);
     // Get processed query
-    if (!window.Shared.preferences.data.useCustomViews) {
+    if (!payload.useCustomViews) {
       advFilter.library = {
         [view.id]: 'whitelist'
       };
@@ -311,6 +313,7 @@ const searchSlice = createSlice({
             },
             text: '',
             textPositions: [],
+            isCustom: true,
           };
         }
       }
@@ -319,7 +322,7 @@ const searchSlice = createSlice({
         for (const storedView of payload.storedViews) {
           const view = state.views[storedView.view];
           if (view) {
-            if (window.Shared.preferences.data.loadViewsText) {
+            if (payload.loadViewsText) {
               view.text = storedView.text;
             }
             view.advancedFilter = storedView.advancedFilter;
@@ -333,13 +336,6 @@ const searchSlice = createSlice({
     deleteView(state: SearchState, { payload }: PayloadAction<SearchDeleteViewAction>) {
       if (state.views[payload.view]) {
         delete state.views[payload.view];
-      }
-      const customViews = window.Shared.preferences.data.customViews;
-      if (customViews.filter(c => c !== payload.view).length === 0) {
-        customViews.push('Browse');
-        setTimeout(() => updatePreferencesData({
-          customViews,
-        }), 100);
       }
       if (Object.keys(state.views).length === 1) {
         // If we have no more browse views, add Browse
@@ -371,6 +367,7 @@ const searchSlice = createSlice({
           },
           text: '',
           textPositions: [],
+          isCustom: true
         };
       }
     },
@@ -432,6 +429,7 @@ const searchSlice = createSlice({
             },
             text: '',
             textPositions: [],
+            isCustom: !payload.areLibraries
           };
         }
       }
@@ -440,7 +438,7 @@ const searchSlice = createSlice({
         for (const storedView of payload.storedViews) {
           const view = state.views[storedView.view];
           if (view) {
-            if (window.Shared.preferences.data.loadViewsText) {
+            if (payload.loadViewsText) {
               view.text = storedView.text;
             }
             view.advancedFilter = storedView.advancedFilter;

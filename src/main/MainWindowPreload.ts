@@ -57,10 +57,7 @@ window.Shared = {
     remote.getCurrentWindow().webContents.toggleDevTools();
   },
 
-  preferences: {
-    data: createErrorProxy('preferences.data'),
-    onUpdate: undefined,
-  },
+  initialPreferences: createErrorProxy('initialPreferences'),
 
   config: createErrorProxy('config'),
 
@@ -119,7 +116,7 @@ const onInit = (async () => {
   window.Shared.back.request(BackIn.GET_RENDERER_INIT_DATA)
   .then(data => {
     if (data) {
-      window.Shared.preferences.data = data.preferences;
+      window.Shared.initialPreferences = data.preferences;
       window.Shared.config = {
         data: data.config,
         // @FIXTHIS This should take if this is installed into account
@@ -149,8 +146,8 @@ const onInit = (async () => {
       // window.Shared.initialExtConfig = data.extConfig;
       // window.Shared.initialUpdateFeedMarkdown = data.updateFeedMarkdown;
       // window.Shared.initialCurations = data.curations;
-      if (window.Shared.preferences.data.currentTheme) {
-        const theme = window.Shared.initialThemes.find(t => t.id === window.Shared.preferences.data.currentTheme);
+      if (window.Shared.initialPreferences.currentTheme) {
+        const theme = window.Shared.initialThemes.find(t => t.id === window.Shared.initialPreferences.currentTheme);
         if (theme) { setTheme(theme); }
       }
       resolve();
@@ -160,10 +157,6 @@ const onInit = (async () => {
 .then(() => { isInitDone = true; });
 
 function registerHandlers(): void {
-  window.Shared.back.register(BackOut.UPDATE_PREFERENCES_RESPONSE, (event, data) => {
-    window.Shared.preferences.data = data;
-  });
-
   window.Shared.back.register(BackOut.OPEN_MESSAGE_BOX, async (event, data) => {
     const result = await ipcRenderer.invoke(CustomIPC.SHOW_MESSAGE_BOX, data);
     return result.response;
