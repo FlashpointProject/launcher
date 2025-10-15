@@ -77,21 +77,19 @@ export function TagsPage() {
     setIsEditing(false);
     setOriginalTag(deepCopy(currentTag));
     if (currentTag) {
+      // Update frontend early then send a request out to save to database
+      const newTags = deepCopy(tags);
+      const tagIdx = newTags.findIndex(t => t.id === currentTag.id);
+      const oldTag = newTags[tagIdx];
+      newTags[tagIdx] = currentTag;
+      setTags(newTags);
+
       // Update tag
       window.Shared.back.request(BackIn.SAVE_TAG, currentTag)
-      .then((data) => {
-        if (data) {
-          const newTags = deepCopy(tags);
-          for (const key in newTags) {
-            const oldTag = newTags[key];
-            if (oldTag && oldTag.id == data.id) {
-              newTags[key] = data;
-              break;
-            }
-          }
-          setTags(newTags);
-          setCurrentTag(data);
-        }
+      .catch((error) => {
+        // Restore old tag if theres a failure
+        newTags[tagIdx] = oldTag;
+        setTags(newTags);
       });
     }
   };
