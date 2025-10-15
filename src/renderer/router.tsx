@@ -22,8 +22,8 @@ import { LoadingPage } from './components/pages/LoadingPage';
 import { LogsPage } from './components/pages/LogsPage';
 import { NotFoundPage } from './components/pages/NotFoundPage';
 import { TagCategoriesPage } from './components/pages/TagCategoriesPage';
+import { TagsPage } from './components/pages/TagsPage';
 import { ConnectedConfigPage, ConnectedConfigPageProps } from './containers/ConnectedConfigPage';
-import { ConnectedTagsPage } from './containers/ConnectedTagsPage';
 import { CreditsData } from './credits/types';
 
 export type AppRouterProps = {
@@ -149,7 +149,7 @@ export function AppRouter(props: AppRouterProps) {
         element={<BrowsePage {...browseProps}/>}/>
       <Route
         path={Paths.TAGS}
-        element={<ConnectedTagsPage/>}/>
+        element={<TagsPage/>}/>
       <Route
         path={Paths.CATEGORIES}
         element={<TagCategoriesPage/>}/>

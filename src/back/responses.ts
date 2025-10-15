@@ -1325,7 +1325,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
   state.socketServer.register(BackIn.MERGE_TAGS, async (event, data) => {
     const newTag = await fpDatabase.mergeTags(data.toMerge, data.mergeInto);
-    state.socketServer.send(event.client, BackOut.MERGE_TAGS, newTag);
     return newTag;
   });
 

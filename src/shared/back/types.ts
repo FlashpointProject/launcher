@@ -248,7 +248,6 @@ export enum BackOut {
   GET_TAGS,
   GET_TAG,
   SAVE_TAG,
-  MERGE_TAGS,
   EXPORT_TAGS,
   IMPORT_TAGS,
   GET_TAG_CATEGORY_BY_ID,
@@ -508,7 +507,6 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.GET_TAGS]: (data: Tag[]) => void;
   [BackOut.GET_TAG]: (data: Tag | null) => void;
   [BackOut.SAVE_TAG]: (data: Tag) => void;
-  [BackOut.MERGE_TAGS]: (newTag: Tag) => void;
   [BackOut.EXPORT_TAGS]: (data: number) => void;
   [BackOut.IMPORT_TAGS]: (data: number) => void;
   [BackOut.GET_TAG_CATEGORY_BY_ID]: (data: TagCategory | null) => void;

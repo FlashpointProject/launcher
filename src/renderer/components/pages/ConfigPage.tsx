@@ -118,6 +118,14 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     };
   }
 
+  componentDidMount(): void {
+    const configData = window.Shared.config.data;
+    isFlashpointValidCheck(configData.flashpointPath)
+    .then((isValid) => {
+      this.setState({ isFlashpointPathValid: isValid });
+    });
+  }
+
   render() {
     const allStrings = this.context;
     const strings = this.context.config;
