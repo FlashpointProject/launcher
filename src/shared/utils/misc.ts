@@ -47,6 +47,8 @@ export function newGame(): Game {
     gameData: [],
     addApps: [],
     ruffleSupport: '',
+    logoPath: '',
+    screenshotPath: '',
   };
 }
 

@@ -4,8 +4,9 @@ import { WithFpfssProps } from '@renderer/containers/withFpfss';
 import { WithSearchProps } from '@renderer/containers/withSearch';
 import { WithViewProps } from '@renderer/containers/withView';
 import { RANDOM_GAME_ROW_COUNT } from '@renderer/store/main/slice';
+import { WithShortcutProps } from '@renderer/store/reactKeybindCompat';
 import { BackIn, BackInit, BackOut, FpfssUser } from '@shared/back/types';
-import { APP_TITLE, LOGOS, SCREENSHOTS } from '@shared/constants';
+import { APP_TITLE } from '@shared/constants';
 import { CustomIPC, IService, ProcessState, WindowIPC } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
@@ -17,6 +18,7 @@ import { arrayShallowStrictEquals } from '@shared/utils/compare';
 import { debounce } from '@shared/utils/debounce';
 import { newGame } from '@shared/utils/misc';
 import { formatString } from '@shared/utils/StringFormatter';
+import { isAxiosError } from 'axios';
 import { clipboard, ipcRenderer, Menu, MenuItemConstructorOptions } from 'electron';
 import {
   CurationFpfssInfo,
@@ -54,8 +56,6 @@ import { SplashScreen } from './SplashScreen';
 import { TaskBar } from './TaskBar';
 import { TitleBar } from './TitleBar';
 import uuid = require('uuid');
-import { isAxiosError } from 'axios';
-import { WithShortcutProps } from '@renderer/store/reactKeybindCompat';
 
 // Hide the right sidebar if the page is inside these paths
 const hiddenRightSidebarPages = [Paths.ABOUT, Paths.CURATE, Paths.CONFIG, Paths.MANUAL, Paths.LOGS, Paths.TAGS, Paths.CATEGORIES, Paths.DOWNLOADS];
@@ -1156,7 +1156,7 @@ export class App extends React.Component<AppProps> {
   });
 
   private onGameContextMenuMemo = memoizeOne((playlists: Playlist[], strings: LangContainer, selectedPlaylistId?: string) => {
-    return (gameId: string) => {
+    return (gameId: string, logoPath: string, screenshotPath: string) => {
       const fpfssButtons: MenuItemConstructorOptions[] = this.props.preferencesData.fpfssBaseUrl ? [
         {
           /* Edit via FPFSS */
@@ -1262,16 +1262,16 @@ export class App extends React.Component<AppProps> {
           label: strings.menu.openLogoLocation,
           enabled: !window.Shared.isBackRemote, // (Local "back" only)
           click: () => {
-            const logoPath = getGameImagePath(LOGOS, gameId);
-            fs.promises.access(logoPath, fs.constants.R_OK)
+            const fullLogoPath = getGameImagePath(logoPath);
+            fs.promises.access(fullLogoPath, fs.constants.R_OK)
             .then(() => {
               /* Downloaded, open */
-              remote.shell.showItemInFolder(logoPath);
+              remote.shell.showItemInFolder(fullLogoPath);
             }).catch(() => {
               /* Not downloaded, try and force it */
-              fetch(getGameImageURL(LOGOS, gameId))
+              fetch(getGameImageURL(logoPath))
               .then(() => {
-                remote.shell.showItemInFolder(logoPath);
+                remote.shell.showItemInFolder(fullLogoPath);
               });
             });
           }
@@ -1281,16 +1281,16 @@ export class App extends React.Component<AppProps> {
           label: strings.menu.openScreenshotLocation,
           enabled: !window.Shared.isBackRemote, // (Local "back" only)
           click: () => {
-            const logoPath = getGameImagePath(SCREENSHOTS, gameId);
-            fs.promises.access(logoPath, fs.constants.R_OK)
+            const fullScreenshotPath = getGameImagePath(screenshotPath);
+            fs.promises.access(fullScreenshotPath, fs.constants.R_OK)
             .then(() => {
               /* Downloaded, open */
-              remote.shell.showItemInFolder(logoPath);
+              remote.shell.showItemInFolder(fullScreenshotPath);
             }).catch(() => {
               /* Not downloaded, try and force it */
-              fetch(getGameImageURL(SCREENSHOTS, gameId))
+              fetch(getGameImageURL(screenshotPath))
               .then(() => {
-                remote.shell.showItemInFolder(logoPath);
+                remote.shell.showItemInFolder(fullScreenshotPath);
               });
             });
           }

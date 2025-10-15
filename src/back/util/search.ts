@@ -5,13 +5,13 @@ import {
   GameSearchDirection,
   GameSearchSortable,
   mergeGameFilters, newSubfilter,
-  parseUserSearchInput
 } from '@fparchive/flashpoint-archive';
 import { isAdvFilterEmpty, parseAdvancedFilter } from '@shared/search/util';
 import { deepCopy } from '@shared/Util';
+import { fpDatabase } from '..';
 
 export function getTaggedSearch(tagFilters?: TagFilterGroup[]): GameSearch {
-  const search = parseUserSearchInput('').search;
+  const search = fpDatabase.parseUserSearchInput('').search;
 
   if (tagFilters && tagFilters.length > 0) {
     const flatFilters: string[] = tagFilters ? tagFilters.reduce<string[]>((prev, cur) => prev.concat(cur.tags), []) : [];
@@ -27,7 +27,7 @@ export function getTaggedSearch(tagFilters?: TagFilterGroup[]): GameSearch {
 export function createSearchFilter(query: QueryData, preferences: AppPreferencesData): SearchQuery {
   // Build filter for this new search
   const { viewId, searchId, text, advancedFilter, orderBy, orderDirection, playlist } = query;
-  const search = parseUserSearchInput(text).search;
+  const search = fpDatabase.parseUserSearchInput(text).search;
 
   // Merge advanced filter
   if (!isAdvFilterEmpty(advancedFilter)) {

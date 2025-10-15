@@ -1,16 +1,22 @@
 import * as remote from '@electron/remote';
+import { SearchBar } from '@renderer/components/SearchBar';
+import { WithSearchProps } from '@renderer/containers/withSearch';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
-import { BackIn, BackOut } from '@shared/back/types';
+import { WithViewProps } from '@renderer/containers/withView';
+import { RequestState } from '@renderer/store/search/slice';
+import { BackIn } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { ExtensionContribution } from '@shared/extensions/interfaces';
 import { LangContainer } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
+import { delayedThrottle } from '@shared/utils/throttle';
 import { uuid } from '@shared/utils/uuid';
 import { Menu, MenuItemConstructorOptions } from 'electron';
 import { GameLaunchOverride, Playlist } from 'flashpoint-launcher';
 import * as React from 'react';
+import { ScrollIndices } from 'react-virtualized-reactv17';
 import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowseSidebar';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { gameDragDataType, gameScaleSpan } from '../../Util';
@@ -20,19 +26,15 @@ import { GameList } from '../GameList';
 import { InputElement } from '../InputField';
 import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
 import { Spinner } from '../Spinner';
-import { RequestState } from '@renderer/store/search/slice';
-import { WithSearchProps } from '@renderer/containers/withSearch';
-import { WithViewProps } from '@renderer/containers/withView';
-import { SearchBar } from '@renderer/components/SearchBar';
-import { delayedThrottle } from '@shared/utils/throttle';
 import path = require('path');
-import { ScrollIndices } from 'react-virtualized-reactv17';
 
 type Pick<T, K extends keyof T> = { [P in K]: T[P]; };
 
 export type GameDragEventData = {
   gameId: string;
   index: number;
+  logoPath: string;
+  screenshotPath: string;
 }
 
 export type GameDragData = {
@@ -52,7 +54,7 @@ type OwnProps = {
   onMovePlaylistGame: (sourceGameId: string, destGameId: string) => void;
 
   /** Generator for game context menu */
-  onGameContextMenu: (gameId: string) => void;
+  onGameContextMenu: (gameId: string, logoPath: string, screenshotPath: string) => void;
   /** Called when a playlist is updated */
   onUpdatePlaylist: (playlist: Playlist) => void;
   /** Called when a playlist is deleted */

@@ -87,8 +87,8 @@ export function checkIfAncestor(start: Element | null, target: Element | null): 
   return false;
 }
 
-export function getGameImageURL(folderName: string, gameId: string): string {
-  return `${getFileServerURL()}/images/${folderName}/${gameId.substring(0, 2)}/${gameId.substring(2, 4)}/${gameId}.png`;
+export function getGameImageURL(logoPath: string): string {
+  return `${getFileServerURL()}/images/${logoPath}`;
 }
 
 export function getPlatformIconURL(platform: string, version: number): string {
@@ -111,12 +111,11 @@ export function getCurationPostURL(): string {
   return `${getFileServerURL()}/curation`;
 }
 
-export function getGameImagePath(folderName: string, gameId: string): string {
+export function getGameImagePath(logoPath: string): string {
   return path.join(
     window.Shared.config.fullFlashpointPath,
     window.Shared.preferences.data.imageFolderPath,
-    folderName,
-    `${gameId.substring(0, 2)}/${gameId.substring(2, 4)}/${gameId}.png`
+    logoPath
   );
 }
 

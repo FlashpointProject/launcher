@@ -1,10 +1,8 @@
 import { createSearchFilter, getTaggedSearch } from '@back/util/search';
 import {
-  FlashpointArchive,
   GameSearchOffset,
   GameSearchSortable,
   newSubfilter,
-  parseUserSearchInput,
   PartialTagCategory
 } from '@fparchive/flashpoint-archive';
 import { LogLevel } from '@shared/Log/interface';
@@ -1168,7 +1166,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.GET_ALL_GAMES, async (event, offsetGameTitle, offsetGameId) => {
-    const search = parseUserSearchInput('').search;
+    const search = fpDatabase.parseUserSearchInput('').search;
     search.limit = 10000;
     if (offsetGameId && offsetGameTitle) {
       search.offset = {
@@ -1181,7 +1179,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.RANDOM_GAMES, async (event, data) => {
-    const search = parseUserSearchInput('').search;
+    const search = fpDatabase.parseUserSearchInput('').search;
     // Add library filters
     search.filter.exactBlacklist.library = data.excludedLibraries;
     // Add tag filters
@@ -1610,7 +1608,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
     // Collect games
 
-    const search = parseUserSearchInput('').search;
+    const search = fpDatabase.parseUserSearchInput('').search;
     search.limit = 5000;
     let games = await fpDatabase.searchGames(search);
     while (games.length > 0) {

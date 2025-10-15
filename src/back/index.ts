@@ -1214,34 +1214,29 @@ function onFileServerRequestThemes(pathname: string, url: URL, req: http.Incomin
 
 async function onFileServerRequestImages(pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
   const splitPath = pathname.split('/');
-  const folder = splitPath.length > 0 ? splitPath[0] : '';
   const imageFolder = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
   const filePath = path.join(imageFolder, pathname);
   if (filePath.startsWith(imageFolder)) {
     if (req.method === 'POST') {
       const fileName = path.basename(pathname);
       if (fileName.length >= 39 && fileName.endsWith('.png') && splitPath.length === 4) {
-        const gameId = fileName.substring(0,36);
-        if (validateSemiUUID(gameId) && splitPath[1] === gameId.substring(0,2) && splitPath[2] === gameId.substring(2,4)) {
-          await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
-          const chunks: any[] = [];
-          req.on('data', (chunk) => {
-            chunks.push(chunk);
-          })
-          .on('end', async () => {
-            const data = Buffer.concat(chunks);
-            await fs.promises.writeFile(filePath, data);
-            state.socketServer.broadcast(BackOut.IMAGE_CHANGE, folder, gameId);
-            res.writeHead(200);
-            res.end();
-          })
-          .on('error', async (err) => {
-            log.error('Launcher', `Error writing Game image - ${err}`);
-            res.writeHead(500);
-            res.end();
-          });
-          return;
-        }
+        await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
+        const chunks: any[] = [];
+        req.on('data', (chunk) => {
+          chunks.push(chunk);
+        })
+        .on('end', async () => {
+          const data = Buffer.concat(chunks);
+          await fs.promises.writeFile(filePath, data);
+          res.writeHead(200);
+          res.end();
+        })
+        .on('error', async (err) => {
+          log.error('Launcher', `Error writing Game image - ${err}`);
+          res.writeHead(500);
+          res.end();
+        });
+        return;
       }
       res.writeHead(400);
       res.end();

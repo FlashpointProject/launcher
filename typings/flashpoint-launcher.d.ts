@@ -674,6 +674,10 @@ declare module 'flashpoint-launcher' {
          * 2 = Available
          */
       archiveState: number;
+      /** Relative path to the logo file from the logos directory */
+      logoPath: string;
+      /** Relative path to the screenshot file from the screenshots directory */
+      screenshotPath: string;
       /** Ruffle support for flash entries
        * Valid values: 'standalone', '' (none)
        */
