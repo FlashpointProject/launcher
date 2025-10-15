@@ -2,6 +2,7 @@ import { BackOut, BackOutTemplate } from '@shared/back/types';
 import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
 import { LOGOS, VIEW_PAGE_SIZE } from '@shared/constants';
 import { memoizeOne } from '@shared/memoize';
+import { isGame } from '@shared/utils/misc';
 import { Content, ViewContentSet } from 'flashpoint-launcher';
 import { BrowsePageDisplayProps } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
@@ -11,7 +12,6 @@ import { findElementAncestor, gameDragDataType, getExtremeIconURL, getGameImageU
 import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
 import { GameDragData, GameDragEventData } from './pages/BrowsePage';
-import { isGame } from '@shared/utils/misc';
 
 const RENDERER_OVERSCAN = 5;
 
@@ -269,7 +269,7 @@ export class GameGrid<T extends Content> extends React.Component<GameGridProps<T
           lowerIcons={game ? getContentIcons(game) : []}
           extreme={extreme}
           thumbnail={game ? getGameImageURL(game.logoPath) : ''}
-          screenshot={game ? getGameImageURL(game.logoPath) : ''}
+          screenshot={game ? getGameImageURL(game.screenshotPath) : ''}
           screenshotPreviewMode={this.props.screenshotPreviewMode}
           screenshotPreviewDelay={this.props.screenshotPreviewDelay}
           logoVersion={this.props.logoVersion}

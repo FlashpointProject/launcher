@@ -2,6 +2,7 @@ import * as remote from '@electron/remote';
 import { SearchBar } from '@renderer/components/SearchBar';
 import { useView } from '@renderer/hooks/search';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
+import { updatePreferences } from '@renderer/store/preferences/slice';
 import { forceSearch, RequestState, selectPlaylist } from '@renderer/store/search/slice';
 import { BackIn } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
@@ -19,7 +20,6 @@ import { WebgameBrowsePageDisplayGrid, WebgameBrowsePageDisplayList } from '../B
 import { InputElement } from '../InputField';
 import { LeftBrowseSidebar } from '../LeftBrowseSidebar';
 import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
-import { updatePreferences } from '@renderer/store/preferences/slice';
 
 export type GameDragEventData = {
   gameId: string;

@@ -466,6 +466,8 @@ async function createGameFromCurationMeta(gameId: string, gameMeta: CurationMeta
     library:               gameMeta.library || '',
     addApps:               [],
     activeDataOnDisk: false,
+    logoPath:              `Logos/${gameId.substring(0,2)}/${gameId.substring(2,4)}/${gameId}.png`,
+    screenshotPath:        `Screenshots/${gameId.substring(0,2)}/${gameId.substring(2,4)}/${gameId}.png`,
     ruffleSupport:         gameMeta.ruffleSupport       || '',
   };
   game.addApps = addApps.map(addApp => createAddAppFromCurationMeta(addApp, game));

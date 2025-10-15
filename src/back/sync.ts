@@ -78,7 +78,7 @@ export async function syncGames(source: GameMetadataSource, dataPacksFolder: str
   const capUpdateTime = new Date();
   const gamesUrl = `${source.baseUrl}/api/games`;
   const deletedUrl = `${source.baseUrl}/api/games/deleted`;
-
+  const cleanSourceName = source.name.toLowerCase().replace(' ', '-');
   // -- New and Updated Games -- //
 
   // Fetch until none remain
@@ -121,7 +121,7 @@ export async function syncGames(source: GameMetadataSource, dataPacksFolder: str
 
     console.log(`${lastDate} - ${nextId}`);
     console.log('applying game update batch');
-    await fpDatabase.updateApplyGames(data, source.id);
+    await fpDatabase.updateApplyGames(data, cleanSourceName);
     console.log('batch complete, looping');
   }
 

@@ -2769,4 +2769,3 @@ export function changeServerFactory(state: BackState): (server?: string) => Prom
 export async function exitApp(state: BackState, beforeProcessExit?: () => void | Promise<void>) {
   return exit(state, beforeProcessExit);
 }
-
