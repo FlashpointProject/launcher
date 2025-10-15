@@ -15,6 +15,7 @@ export default defineConfig({
     }),
     pluginModuleFederation({
       name: 'ruffle',
+      dts: false,
       exposes: {
         './Initializer': './src/components/Initializer.tsx',
         './LauncherEmbedPage': './src/components/LauncherEmbedPage.tsx',

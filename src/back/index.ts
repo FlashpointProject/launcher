@@ -807,7 +807,6 @@ async function initialize() {
                 state
               };
               statuses.push(status);
-              log.debug('Launcher', `Parsed: ${JSON.stringify({ ...status, state: ComponentState[status.state] })}`);
             } catch (err) {
               log.error('Launcher', `Failed to parse component entry: ${line}\nERROR: ${err}`);
             }
@@ -1061,7 +1060,6 @@ async function initialize() {
                   fullPath: realPath,
                   files: files
                 });
-                log.debug('Extensions', `[SYSTEM] Registered Logo Set "${logoSet.id}"`);
               } catch (error) {
                 log.error('Extensions', `[SYSTEM] Error loading logo set "${logoSet.id}"\n${error}`);
               }

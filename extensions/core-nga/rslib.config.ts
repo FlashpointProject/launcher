@@ -15,6 +15,7 @@ export default defineConfig({
     }),
     pluginModuleFederation({
       name: 'nga',
+      dts: false,
       exposes: {
         './Initializer': './src/components/Initializer.tsx',
         './NgCredits': './src/components/NgCredits.tsx',

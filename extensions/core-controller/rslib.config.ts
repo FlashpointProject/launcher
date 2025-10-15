@@ -15,6 +15,7 @@ export default defineConfig({
     }),
     pluginModuleFederation({
       name: 'core_controller',
+      dts: false,
       exposes: {
         './Initializer': './src/components/Initializer.tsx',
         './ControllerSupport': './src/components/ControllerSupport.tsx',
