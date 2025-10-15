@@ -979,12 +979,14 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
           storedViews: this.props.preferencesData.storedViews,
           areLibraries: false,
           loadViewsText: this.props.preferencesData.loadViewsText,
+          playlists: [],
         });
       } else {
         this.props.searchActions.createViews({
           views: customViews,
           areLibraries: false,
           loadViewsText: this.props.preferencesData.loadViewsText,
+          playlists: [],
         });
       }
     } else {
@@ -994,12 +996,14 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
           storedViews: this.props.preferencesData.storedViews,
           areLibraries: true,
           loadViewsText: this.props.preferencesData.loadViewsText,
+          playlists: [],
         });
       } else {
         this.props.searchActions.createViews({
           views: this.props.libraries,
           areLibraries: true,
           loadViewsText: this.props.preferencesData.loadViewsText,
+          playlists: [],
         });
       }
     }

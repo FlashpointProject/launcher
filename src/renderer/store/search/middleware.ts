@@ -2,6 +2,7 @@ import { isAnyOf, PayloadAction } from '@reduxjs/toolkit';
 import { BackIn } from '@shared/back/types';
 import { deepCopy } from '@shared/Util';
 import { startAppListening } from '../listenerMiddleware';
+import { updatePreferences } from '../preferences/slice';
 import store from '../store';
 import {
   addData,
@@ -9,6 +10,7 @@ import {
   duplicateView,
   GENERAL_VIEW_ID,
   requestKeyset,
+  RequestState,
   resetDropdownData,
   SearchCreateViewsAction,
   SearchFilterAction,
@@ -25,7 +27,6 @@ import {
   setSearchId,
   setSearchText
 } from './slice';
-import { updatePreferences } from '../preferences/slice';
 
 export function addSearchMiddleware() {
   // Build filter immediately
@@ -35,7 +36,7 @@ export function addSearchMiddleware() {
       const state = listenerApi.getState();
       const view = state.search.views[action.payload.view];
 
-      if (view) {
+      if (view && view.data.metaState !== RequestState.WAITING) {
         // Immediately update search id
         const newSearchId = view.data.searchId + 1;
         store.dispatch(setSearchId({ view: view.id, searchId: newSearchId }));
@@ -107,8 +108,6 @@ export function addSearchMiddleware() {
     effect: async(action: PayloadAction<SearchCreateViewsAction>, listenerApi) => {
       const state = listenerApi.getState();
       if (action.payload.storedViews && action.payload.storedViews.length > 0) {
-        const playlists = await window.Shared.back.request(BackIn.GET_PLAYLISTS);
-
         for (const storedView of action.payload.storedViews) {
           const view = state.search.views[storedView.view];
           if (view && view.id !== GENERAL_VIEW_ID) {
@@ -123,16 +122,6 @@ export function addSearchMiddleware() {
                   }));
                 }
               });
-            }
-            if (storedView.selectedPlaylistId) {
-              // Attempt to restore playlist
-              const matchedPlaylist = playlists.find((p) => p.id === storedView.selectedPlaylistId);
-              if (matchedPlaylist) {
-                store.dispatch(selectPlaylist({
-                  view: storedView.view,
-                  playlist: matchedPlaylist
-                }));
-              }
             }
           }
         }

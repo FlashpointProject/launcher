@@ -1,11 +1,12 @@
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
-import { forceSearch, GENERAL_VIEW_ID, searchActions, selectGame } from '@renderer/store/search/slice';
+import { GENERAL_VIEW_ID, searchActions, selectGame } from '@renderer/store/search/slice';
 import { findGameDragEventDataGrid, getExtremeIconURL, getGameImageURL, getPlatformIconURL, joinLibraryRoute } from '@renderer/Util';
 import { idToGame } from '@renderer/util/async';
 import { LangContext } from '@renderer/util/lang';
 import { BackIn } from '@shared/back/types';
 import { ARCADE, THEATRE } from '@shared/constants';
 import { Paths } from '@shared/Paths';
+import { isGame } from '@shared/utils/misc';
 import { formatString } from '@shared/utils/StringFormatter';
 import { Content, Game } from 'flashpoint-launcher';
 import { HomePageComponentProps } from 'flashpoint-launcher-renderer';
@@ -21,7 +22,6 @@ import { OpenIcon, OpenIconType } from './OpenIcon';
 import { RandomGames } from './RandomGames';
 import { SimpleButton } from './SimpleButton';
 import { SizeProvider } from './SizeProvider';
-import { isGame } from '@shared/utils/misc';
 
 export function HomePageComponentUpdateFeed(props: HomePageComponentProps) {
   const { toggleMinimizeBox, updateFeedMarkdown } = props;
@@ -288,7 +288,6 @@ export function HomePageComponentRandomGames(props: HomePageComponentProps) {
 export function HomePageComponentExtras(props: HomePageComponentProps) {
   const { platforms, logoVersion, toggleMinimizeBox } = props;
   const viewObj = useAppSelector((state) => state.search.views);
-  const dispatch = useAppDispatch();
   const allStrings = React.useContext(LangContext);
   const strings = allStrings.home;
 
@@ -315,11 +314,6 @@ export function HomePageComponentExtras(props: HomePageComponentProps) {
               view: viewName,
               text: `platform:"${platform}"`
             });
-            setTimeout(() => {
-              dispatch(forceSearch({
-                view: viewName
-              }));
-            }, 100);
           }}>
           <div
             className='home-page__platform-entry__logo'

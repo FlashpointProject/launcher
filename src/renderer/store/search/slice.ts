@@ -135,6 +135,7 @@ export type SearchCreateViewsAction = {
   storedViews?: StoredView[];
   areLibraries: boolean;
   loadViewsText: boolean;
+  playlists: Playlist[];
 }
 
 export type SearchDeleteViewAction = {
@@ -238,7 +239,6 @@ export const forceSearch = createAsyncThunk(
   async (payload: ForceSearchAction, { getState, dispatch }) => {
     const { search, main } = getState() as RootState;
     const view = search.views[payload.view];
-    console.log('forced search');
 
     const advFilter = deepCopy(view.advancedFilter);
     // Get processed query
@@ -429,7 +429,7 @@ const searchSlice = createSlice({
             },
             text: '',
             textPositions: [],
-            isCustom: !payload.areLibraries
+            isCustom: !payload.areLibraries,
           };
         }
       }
@@ -438,6 +438,10 @@ const searchSlice = createSlice({
         for (const storedView of payload.storedViews) {
           const view = state.views[storedView.view];
           if (view) {
+            const playlist = payload.playlists.find(p => p.id === storedView.selectedPlaylistId);
+            if (playlist) {
+              view.selectedPlaylist = playlist;
+            }
             if (payload.loadViewsText) {
               view.text = storedView.text;
             }

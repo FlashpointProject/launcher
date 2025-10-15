@@ -308,94 +308,99 @@ export class App extends React.Component<AppProps> {
 
   onDatabaseLoaded() {
     window.Shared.back.request(BackIn.GET_PLAYLISTS)
-    .then(data => {
-      if (data) {
+    .then(playlists => {
+      if (playlists) {
         this.props.mainActions.addLoaded([BackInit.PLAYLISTS]);
-        this.props.setMainState({ playlists: data });
-        this.cachePlaylistIcons(data);
+        this.props.setMainState({ playlists });
+        this.cachePlaylistIcons(playlists);
       } else {
         console.error('no get_playlists data?');
       }
-    });
-    window.Shared.back.request(BackIn.GET_RENDERER_LOADED_DATA)
-    .then(data => {
-      for (const entry of Object.entries(data.shortcuts)) {
-        const command = entry[0];
-        const shortcuts = entry[1];
-        this.registerShortcut(command, shortcuts);
-      }
-      this.props.setMainState(data);
-      if (this.props.preferencesData.useCustomViews) {
-        const customViews = this.props.preferencesData.customViews;
-        if (customViews.length === 0) {
-          customViews.push('Browse');
-          this.props.updatePreferences({
-            customViews,
-          });
-        }
-        if (this.props.preferencesData.useStoredViews) {
-          this.props.searchActions.createViews({
-            views: customViews,
-            storedViews: this.props.preferencesData.storedViews,
-            areLibraries: false,
-            loadViewsText: this.props.preferencesData.loadViewsText,
-          });
-        } else {
-          this.props.searchActions.createViews({
-            views: customViews,
-            areLibraries: false,
-            loadViewsText: this.props.preferencesData.loadViewsText,
-          });
 
+      window.Shared.back.request(BackIn.GET_RENDERER_LOADED_DATA)
+      .then(data => {
+        for (const entry of Object.entries(data.shortcuts)) {
+          const command = entry[0];
+          const shortcuts = entry[1];
+          this.registerShortcut(command, shortcuts);
         }
-      } else {
-        if (this.props.preferencesData.useStoredViews) {
-          this.props.searchActions.createViews({
-            views: data.libraries,
-            storedViews: this.props.preferencesData.storedViews,
-            areLibraries: true,
-            loadViewsText: this.props.preferencesData.loadViewsText,
-          });
-        } else {
-          this.props.searchActions.createViews({
-            views: data.libraries,
-            areLibraries: true,
-            loadViewsText: this.props.preferencesData.loadViewsText,
-          });
-        }
-      }
-
-      this.props.setTagCategories(data.tagCategories);
-      this.props.navigate(this.props.preferencesData.defaultOpeningPage);
-    })
-    .then(() => {
-      this.props.mainActions.addLoaded([BackInit.DATABASE]);
-    })
-    .then(async () => {
-      const data = await window.Shared.back.request(BackIn.GET_GAMES_TOTAL);
-      if (data) {
-        this.props.setMainState({
-          gamesTotal: data
-        });
-      }
-    })
-    .then(() => {
-      if (this.props.main.randomGames.length < RANDOM_GAME_ROW_COUNT) {
-        this.rollRandomGames(true);
-      }
-    })
-    .then(() => {
-      if (this.props.preferencesData.gameMetadataSources.length > 0) {
-        for (const source of this.props.preferencesData.gameMetadataSources) {
-          window.Shared.back.request(BackIn.PRE_UPDATE_INFO, source)
-          .then((total) => {
-            this.props.mainActions.setUpdateInfo({
-              id: source.id,
-              total
+        this.props.setMainState(data);
+        if (this.props.preferencesData.useCustomViews) {
+          const customViews = this.props.preferencesData.customViews;
+          if (customViews.length === 0) {
+            customViews.push('Browse');
+            this.props.updatePreferences({
+              customViews,
             });
+          }
+          if (this.props.preferencesData.useStoredViews) {
+            this.props.searchActions.createViews({
+              views: customViews,
+              storedViews: this.props.preferencesData.storedViews,
+              areLibraries: false,
+              loadViewsText: this.props.preferencesData.loadViewsText,
+              playlists,
+            });
+          } else {
+            this.props.searchActions.createViews({
+              views: customViews,
+              areLibraries: false,
+              loadViewsText: this.props.preferencesData.loadViewsText,
+              playlists,
+            });
+
+          }
+        } else {
+          if (this.props.preferencesData.useStoredViews) {
+            this.props.searchActions.createViews({
+              views: data.libraries,
+              storedViews: this.props.preferencesData.storedViews,
+              areLibraries: true,
+              loadViewsText: this.props.preferencesData.loadViewsText,
+              playlists,
+            });
+          } else {
+            this.props.searchActions.createViews({
+              views: data.libraries,
+              areLibraries: true,
+              loadViewsText: this.props.preferencesData.loadViewsText,
+              playlists,
+            });
+          }
+        }
+
+        this.props.setTagCategories(data.tagCategories);
+        this.props.navigate(this.props.preferencesData.defaultOpeningPage);
+      })
+      .then(() => {
+        this.props.mainActions.addLoaded([BackInit.DATABASE]);
+      })
+      .then(async () => {
+        const data = await window.Shared.back.request(BackIn.GET_GAMES_TOTAL);
+        if (data) {
+          this.props.setMainState({
+            gamesTotal: data
           });
         }
-      }
+      })
+      .then(() => {
+        if (this.props.main.randomGames.length < RANDOM_GAME_ROW_COUNT) {
+          this.rollRandomGames(true);
+        }
+      })
+      .then(() => {
+        if (this.props.preferencesData.gameMetadataSources.length > 0) {
+          for (const source of this.props.preferencesData.gameMetadataSources) {
+            window.Shared.back.request(BackIn.PRE_UPDATE_INFO, source)
+            .then((total) => {
+              this.props.mainActions.setUpdateInfo({
+                id: source.id,
+                total
+              });
+            });
+          }
+        }
+      });
     });
   }
 
@@ -1116,9 +1121,9 @@ export class App extends React.Component<AppProps> {
       console.error('Can\'t save game. "currentGame" is missing.');
       return;
     }
-    const game = await this.onSaveGame(this.props.currentView.selectedGame, this.props.main.currentPlaylistEntry);
+    await this.onSaveGame(this.props.currentView.selectedGame, this.props.main.currentPlaylistEntry);
     this.props.setMainState({
-      currentGame: game == null ? undefined : game,
+      currentGame: this.props.currentView.selectedGame == null ? undefined : this.props.currentView.selectedGame,
       isEditingGame: false
     });
     // this.focusGameGridOrList();
@@ -1155,12 +1160,10 @@ export class App extends React.Component<AppProps> {
       if (game) {
         game.activeDataOnDisk = activeDataOnDisk;
         game.activeDataId = activeDataId;
-        window.Shared.back.request(BackIn.SAVE_GAME, game)
-        .then(() => {
-          if (this.props.currentView.selectedGame) {
-            this.props.searchActions.updateGame(game);
-          }
-        });
+        if (this.props.currentView.selectedGame) {
+          this.props.searchActions.updateGame(game);
+        }
+        window.Shared.back.request(BackIn.SAVE_GAME, game);
       }
     }
   };
@@ -1780,12 +1783,11 @@ export class App extends React.Component<AppProps> {
     }); // (This is very annoying to make typesafe)
   };
 
-  onSaveGame = async (game: Game, playlistEntry?: PlaylistGame): Promise<Game | null> => {
-    const data = await window.Shared.back.request(BackIn.SAVE_GAME, game);
+  onSaveGame = async (game: Game, playlistEntry?: PlaylistGame): Promise<void> => {
+    await window.Shared.back.request(BackIn.SAVE_GAME, game);
     if (playlistEntry) {
       window.Shared.back.send(BackIn.SAVE_PLAYLIST_GAME, this.props.main.selectedPlaylistId || '', playlistEntry);
     }
-    return data;
   };
 
   onDeleteGame = (gameId: string): void => {
