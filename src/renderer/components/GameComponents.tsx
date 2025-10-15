@@ -377,10 +377,7 @@ export function GameComponentTags(props: GameComponentProps) {
 
   const onRemoveTag = (tag: Tag, index: number): void => {
     if (game) {
-      if (!game.detailedTags) {
-        game.detailedTags = [];
-      }
-      const newDetailedTags = deepCopy(game.detailedTags);
+      const newDetailedTags = deepCopy(!game.detailedTags ? [] : game.detailedTags);
       const newTags = deepCopy(game.tags);
       const tagsIndex = newTags.findIndex(t => t.toLowerCase() === tag.name.toLowerCase());
       if (tagsIndex > -1) {
@@ -418,9 +415,7 @@ export function GameComponentTags(props: GameComponentProps) {
       if (fpfssEditMode) {
         const newTagText = text.trim();
         if (game && !game.tags.map(t => t.toLowerCase()).includes(newTagText.toLowerCase())) {
-          if (!game.detailedTags) {
-            game.detailedTags = [];
-          }
+
           const tag: Tag = {
             id: -1,
             name: newTagText,
@@ -429,7 +424,7 @@ export function GameComponentTags(props: GameComponentProps) {
             dateModified: (new Date()).toISOString(),
             category: 'default'
           };
-          updateGame({ tags: [...game.tags, tag.name], detailedTags: [...game.detailedTags, tag] });
+          updateGame({ tags: [...game.tags, tag.name], detailedTags: [...(!game.detailedTags ? [] : game.detailedTags), tag] });
         }
       } else {
         window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, text)
@@ -516,10 +511,7 @@ export function GameComponentPlatforms(props: GameComponentProps) {
 
   const onRemovePlatform = (platform: Platform, index: number) => {
     if (game) {
-      if (!game.detailedPlatforms) {
-        game.detailedPlatforms = [];
-      }
-      const newDetailedPlatforms = deepCopy(game.detailedPlatforms);
+      const newDetailedPlatforms = deepCopy(!game.detailedPlatforms ? [] : game.detailedPlatforms);
       const newPlatforms = deepCopy(game.platforms);
       const platIndex = newPlatforms.findIndex(p => p.toLowerCase() === newDetailedPlatforms[index].name.toLowerCase());
       newPlatforms.splice(platIndex, 1);
@@ -559,9 +551,6 @@ export function GameComponentPlatforms(props: GameComponentProps) {
       if (fpfssEditMode) {
         const newPlatformText = text.trim();
         if (game && !game.platforms.map(t => t.toLowerCase()).includes(newPlatformText.toLowerCase())) {
-          if (!game.detailedPlatforms) {
-            game.detailedPlatforms = [];
-          }
           const platform: Platform = {
             id: -1,
             name: newPlatformText,
@@ -570,7 +559,7 @@ export function GameComponentPlatforms(props: GameComponentProps) {
             dateModified: (new Date()).toISOString()
           };
           const primary = game.platforms.length === 0 ? platform.name : game.primaryPlatform;
-          updateGame({ platforms: [...game.platforms, platform.name], primaryPlatform: primary, detailedPlatforms: [...game.detailedPlatforms, platform] });
+          updateGame({ platforms: [...game.platforms, platform.name], primaryPlatform: primary, detailedPlatforms: [...(!game.detailedPlatforms ? [] : game.detailedPlatforms), platform] });
         }
       } else {
         window.Shared.back.request(BackIn.GET_OR_CREATE_PLATFORM, text)

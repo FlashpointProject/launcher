@@ -19,142 +19,124 @@ export type RightBrowseSidebarAddAppProps = {
   editDisabled?: boolean;
 };
 
-/** Displays an additional application for a game in the right sidebar of BrowsePage. */
-export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebarAddAppProps> {
-  static contextType = LangContext;
-  declare context: React.ContextType<typeof LangContext>;
+function DeleteButton({ confirm, extra }: ConfirmElementArgs<LangContainer['browse']>): React.JSX.Element {
+  const className = 'browse-right-sidebar__additional-application__delete-button';
+  return (
+    <div
+      className={className}
+      title={extra.deleteAdditionalApplication}
+      onClick={confirm} >
+      <OpenIcon icon='trash' />
+    </div>
+  );
+}
 
-  onNameEditDone            = this.wrapOnTextChange((addApp, text) => { if (this.props.onEdit) { this.props.onEdit({ ...addApp, name: text }); }});
-  onApplicationPathEditDone = this.wrapOnTextChange((addApp, text) => { if (this.props.onEdit) { this.props.onEdit({ ...addApp, applicationPath: text }); }});
-  onLaunchCommandEditDone   = this.wrapOnTextChange((addApp, text) => { if (this.props.onEdit) { this.props.onEdit({ ...addApp, launchCommand: text }); }});
-  onAutoRunBeforeChange     = this.wrapOnCheckBoxChange((addApp) => { if (this.props.onEdit) { this.props.onEdit({ ...addApp, autoRunBefore: !addApp.autoRunBefore }); }});
-  onWaitForExitChange       = this.wrapOnCheckBoxChange((addApp) => { if (this.props.onEdit) { this.props.onEdit({ ...addApp, waitForExit: !addApp.waitForExit });  }});
+export function RightBrowseSidebarAddApp(props: RightBrowseSidebarAddAppProps) {
+  const { addApp, editDisabled, onDelete, onLaunch, onEdit } = props;
+  const allStrings = React.useContext(LangContext);
+  const strings = allStrings.browse;
 
-  render() {
-    const allStrings = this.context;
-    const strings = allStrings.browse;
-    const { addApp, editDisabled } = this.props;
-    return (
-      <div className='browse-right-sidebar__additional-application'>
-        {/* Title & Launch Button */}
-        <div className='browse-right-sidebar__row browse-right-sidebar__row--additional-applications-name'>
-          <InputField
-            text={addApp.name}
-            placeholder={strings.noName}
-            onChange={this.onNameEditDone}
-            editable={!editDisabled} />
-          <input
-            type='button'
-            className='simple-button'
-            value={strings.launch}
-            onClick={this.onLaunchClick}/>
-        </div>
-        { editDisabled ? undefined : (
-          <>
-            {/* Application Path */}
-            <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-              <p>{strings.applicationPath}: </p>
-              <InputField
-                text={addApp.applicationPath}
-                placeholder={strings.noApplicationPath}
-                onChange={this.onApplicationPathEditDone}
-                editable={!editDisabled} />
-            </div>
-            {/* Launch Command */}
-            <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-              <p>{strings.launchCommand}: </p>
-              <InputField
-                text={addApp.launchCommand}
-                placeholder={strings.noLaunchCommand}
-                onChange={this.onLaunchCommandEditDone}
-                editable={!editDisabled} />
-            </div>
-            {/* Auto Run Before */}
-            <div className='browse-right-sidebar__row'>
-              <div
-                className='browse-right-sidebar__row__check-box-wrapper'
-                onClick={this.onAutoRunBeforeChange}>
-                <CheckBox
-                  className='browse-right-sidebar__row__check-box'
-                  checked={addApp.autoRunBefore} />
-                <p> {strings.autoRunBefore}</p>
-              </div>
-            </div>
-            {/* Wait for Exit */}
-            <div className='browse-right-sidebar__row'>
-              <div
-                className='browse-right-sidebar__row__check-box-wrapper'
-                onClick={this.onWaitForExitChange}>
-                <CheckBox
-                  className='browse-right-sidebar__row__check-box'
-                  checked={addApp.waitForExit} />
-                <p> {strings.waitForExit}</p>
-              </div>
-              {/* Delete Button */}
-              { !editDisabled ? (
-                <ConfirmElement
-                  message={allStrings.dialog.deleteAddApp}
-                  onConfirm={this.onDeleteClick}
-                  render={this.renderDeleteButton}
-                  extra={strings} />
-              ) : undefined}
-            </div>
-          </>
-        ) }
-      </div>
-    );
-  }
-
-  renderDeleteButton({ confirm, extra }: ConfirmElementArgs<LangContainer['browse']>): React.JSX.Element {
-    const className = 'browse-right-sidebar__additional-application__delete-button';
-    return (
-      <div
-        className={className}
-        title={extra.deleteAdditionalApplication}
-        onClick={confirm} >
-        <OpenIcon icon='trash' />
-      </div>
-    );
-  }
-
-  onLaunchClick = (): void => {
-    if (this.props.onLaunch) {
-      this.props.onLaunch(this.props.addApp.id);
-    }
-  };
-
-  onDeleteClick = (): void => {
-    if (this.props.onDelete) {
-      this.props.onDelete(this.props.addApp.id);
-    }
-  };
-
-  /**
-   * Create a wrapper for a EditableTextWrap's onEditDone callback (this is to reduce redundancy).
-   *
-   * @param func Function to wrap
-   */
-  wrapOnTextChange(func: (addApp: AdditionalApp, text: string) => void): (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>) => void {
-    return (event) => {
-      const addApp = this.props.addApp;
+  const wrapOnTextChange = (func: (addApp: AdditionalApp, text: string) => void) => {
+    return (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>) => {
       if (addApp) {
         func(addApp, event.currentTarget.value);
-        this.forceUpdate();
       }
     };
-  }
+  };
 
-  /**
-   * Create a wrapper for a CheckBox's onChange callback (this is to reduce redundancy).
-   *
-   * @param func Function to wrap
-   */
-  wrapOnCheckBoxChange(func: (addApp: AdditionalApp) => void) {
+  const wrapOnCheckBoxChange = (func: (addApp: AdditionalApp) => void) => {
     return () => {
-      if (!this.props.editDisabled) {
-        func(this.props.addApp);
-        this.forceUpdate();
+      if (!editDisabled) {
+        func(addApp);
       }
     };
-  }
+  };
+
+  const onNameEditDone            = wrapOnTextChange((addApp, text) => { if (onEdit) { onEdit({ ...addApp, name: text }); }});
+  const onApplicationPathEditDone = wrapOnTextChange((addApp, text) => { if (onEdit) { onEdit({ ...addApp, applicationPath: text }); }});
+  const onLaunchCommandEditDone   = wrapOnTextChange((addApp, text) => { if (onEdit) { onEdit({ ...addApp, launchCommand: text }); }});
+  const onAutoRunBeforeChange     = wrapOnCheckBoxChange((addApp) => { if (onEdit) { onEdit({ ...addApp, autoRunBefore: !addApp.autoRunBefore }); }});
+  const onWaitForExitChange       = wrapOnCheckBoxChange((addApp) => { if (onEdit) { onEdit({ ...addApp, waitForExit: !addApp.waitForExit });  }});
+
+  const onLaunchClick = (): void => {
+    if (onLaunch) {
+      onLaunch(addApp.id);
+    }
+  };
+
+  const onDeleteClick = (): void => {
+    if (onDelete) {
+      onDelete(addApp.id);
+    }
+  };
+
+  return (
+    <div className='browse-right-sidebar__additional-application'>
+      {/* Title & Launch Button */}
+      <div className='browse-right-sidebar__row browse-right-sidebar__row--additional-applications-name'>
+        <InputField
+          text={addApp.name}
+          placeholder={strings.noName}
+          onChange={onNameEditDone}
+          editable={!editDisabled} />
+        <input
+          type='button'
+          className='simple-button'
+          value={strings.launch}
+          onClick={onLaunchClick}/>
+      </div>
+      { editDisabled ? undefined : (
+        <>
+          {/* Application Path */}
+          <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+            <p>{strings.applicationPath}: </p>
+            <InputField
+              text={addApp.applicationPath}
+              placeholder={strings.noApplicationPath}
+              onChange={onApplicationPathEditDone}
+              editable={!editDisabled} />
+          </div>
+          {/* Launch Command */}
+          <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+            <p>{strings.launchCommand}: </p>
+            <InputField
+              text={addApp.launchCommand}
+              placeholder={strings.noLaunchCommand}
+              onChange={onLaunchCommandEditDone}
+              editable={!editDisabled} />
+          </div>
+          {/* Auto Run Before */}
+          <div className='browse-right-sidebar__row'>
+            <div
+              className='browse-right-sidebar__row__check-box-wrapper'
+              onClick={onAutoRunBeforeChange}>
+              <CheckBox
+                className='browse-right-sidebar__row__check-box'
+                checked={addApp.autoRunBefore} />
+              <p> {strings.autoRunBefore}</p>
+            </div>
+          </div>
+          {/* Wait for Exit */}
+          <div className='browse-right-sidebar__row'>
+            <div
+              className='browse-right-sidebar__row__check-box-wrapper'
+              onClick={onWaitForExitChange}>
+              <CheckBox
+                className='browse-right-sidebar__row__check-box'
+                checked={addApp.waitForExit} />
+              <p> {strings.waitForExit}</p>
+            </div>
+            {/* Delete Button */}
+            { !editDisabled ? (
+              <ConfirmElement
+                message={allStrings.dialog.deleteAddApp}
+                onConfirm={onDeleteClick}
+                render={DeleteButton}
+                extra={strings} />
+            ) : undefined}
+          </div>
+        </>
+      ) }
+    </div>
+  );
 }
