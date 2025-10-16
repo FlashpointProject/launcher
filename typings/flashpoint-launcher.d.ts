@@ -2828,6 +2828,7 @@ declare module 'flashpoint-launcher-renderer' {
     view: ResultsView<T>;
     logoVersion: number;
     extremeTags: string[];
+    onContextMenu: (gameId: string, logoPath: string, screenshotPath: string) => void;
     onMovePlaylistEntry: (sourceGameId: string, destGameId: string) => void;
   }
 

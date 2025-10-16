@@ -1286,7 +1286,7 @@ export class App extends React.Component<AppProps> {
                 try {
                   if (gamePath) {
                     await fs.promises.stat(gamePath);
-                    remote.shell.showItemInFolder(gamePath);
+                    window.electronAPI?.showItemInFolder(gamePath);
                   } else {
                     const opts: Electron.MessageBoxOptions = {
                       type: 'warning',
@@ -1332,12 +1332,12 @@ export class App extends React.Component<AppProps> {
             fs.promises.access(fullLogoPath, fs.constants.R_OK)
             .then(() => {
               /* Downloaded, open */
-              remote.shell.showItemInFolder(fullLogoPath);
+              window.electronAPI?.showItemInFolder(fullLogoPath);
             }).catch(() => {
               /* Not downloaded, try and force it */
               fetch(getGameImageURL(logoPath))
               .then(() => {
-                remote.shell.showItemInFolder(fullLogoPath);
+                window.electronAPI?.showItemInFolder(fullLogoPath);
               });
             });
           }
@@ -1351,12 +1351,12 @@ export class App extends React.Component<AppProps> {
             fs.promises.access(fullScreenshotPath, fs.constants.R_OK)
             .then(() => {
               /* Downloaded, open */
-              remote.shell.showItemInFolder(fullScreenshotPath);
+              window.electronAPI?.showItemInFolder(fullScreenshotPath);
             }).catch(() => {
               /* Not downloaded, try and force it */
               fetch(getGameImageURL(screenshotPath))
               .then(() => {
-                remote.shell.showItemInFolder(fullScreenshotPath);
+                window.electronAPI?.showItemInFolder(fullScreenshotPath);
               });
             });
           }

@@ -315,11 +315,35 @@ export const axios = _axios.create({
 });
 
 export function openUrlInWindow(url: string) {
-  if (typeof window !== 'undefined' && window.electronAPI) {
+  if (window.electronAPI !== undefined) {
     // Electron
     window.electronAPI.openExternal(url);
   } else {
     // Browser
     window.open(url, '_blank');
   }
+}
+
+export function createDataDownloadJson(data: any, name: string) {
+  const jsonString = JSON.stringify(data, null, 2);
+  const blob = new Blob([jsonString], { type: 'application/json' });
+  createDataDownload(blob, name);
+}
+
+export function createDataDownload(blob: Blob, name: string) {
+// Create download URL
+  const url = URL.createObjectURL(blob);
+
+  // Create temporary download link
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = name;
+
+  // Trigger download
+  document.body.appendChild(link);
+  link.click();
+
+  // Cleanup
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }

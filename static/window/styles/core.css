@@ -3752,6 +3752,7 @@ body {
 
 /* --- Menu --- */
 .context-menu {
+  z-index: 999999;
   position: absolute;
   max-width: 20vw;
   padding-top: 4px;

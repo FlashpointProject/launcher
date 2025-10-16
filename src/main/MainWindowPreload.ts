@@ -27,6 +27,9 @@ navigator.clipboard.writeText = async (text: string) => {
 window.electronAPI = {
   openExternal: (url: string, opts?: Electron.OpenExternalOptions) => {
     remote.shell.openExternal(url, opts);
+  },
+  showItemInFolder: (path: string) => {
+    remote.shell.showItemInFolder(path);
   }
 };
 
@@ -185,6 +188,6 @@ function registerHandlers(): void {
   });
 
   window.Shared.back.register(BackOut.OPEN_EXTERNAL, async (event, url, options) => {
-    window.electronAPI.openExternal(url, options);
+    window.electronAPI?.openExternal(url, options);
   });
 }

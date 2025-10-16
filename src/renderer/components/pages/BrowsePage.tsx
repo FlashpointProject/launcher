@@ -1,24 +1,27 @@
 import * as remote from '@electron/remote';
 import { SearchBar } from '@renderer/components/SearchBar';
+import { getPointer } from '@renderer/context/MenuContext';
 import { useView } from '@renderer/hooks/search';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
+import { useContextMenu } from '@renderer/hooks/useContextMenu';
 import { updatePreferences } from '@renderer/store/preferences/slice';
 import { forceSearch, RequestState, selectPlaylist } from '@renderer/store/search/slice';
 import { BackIn } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { ExtensionContribution } from '@shared/extensions/interfaces';
+import { sanitizeFilename } from '@shared/utils/sanitizeFilename';
 import { uuid } from '@shared/utils/uuid';
-import { Menu, MenuItemConstructorOptions } from 'electron';
+import { MenuItemConstructorOptions } from 'electron';
 import { LangContainer, Playlist } from 'flashpoint-launcher';
 import { BrowsePageDisplayProps } from 'flashpoint-launcher-renderer';
-import * as path from 'path';
 import * as React from 'react';
 import { RefObject, useRef, useState } from 'react';
-import { gameDragDataType } from '../../Util';
+import { createDataDownloadJson, gameDragDataType } from '../../Util';
 import { LangContext } from '../../util/lang';
 import { WebgameBrowsePageDisplayGrid, WebgameBrowsePageDisplayList } from '../BrowsePageDisplay';
 import { InputElement } from '../InputField';
 import { LeftBrowseSidebar } from '../LeftBrowseSidebar';
+import { MenuItemProps } from '../Menu';
 import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
 
 export type GameDragEventData = {
@@ -56,16 +59,6 @@ export type BrowsePageProps = {
   contextButtons: ExtensionContribution<'contextButtons'>[];
 };
 
-export type BrowsePageState = {
-  /** Currently dragged game (if any). */
-  draggedGameIndex: number | null;
-
-  /** Buffer for the selected playlist (all changes are made to this until saved). */
-  currentPlaylist?: Playlist;
-  isEditingPlaylist: boolean;
-  isNewPlaylist: boolean;
-};
-
 export function BrowsePage(props: BrowsePageProps) {
   const { onUpdatePlaylist, playlists } = props;
   const [isEditingPlaylist, setIsEditingPlaylist] = useState(false);
@@ -82,6 +75,7 @@ export function BrowsePage(props: BrowsePageProps) {
   const browsePageRightSidebarWidth = useAppSelector(state => state.preferences.browsePageRightSidebarWidth);
   const currentView = useView();
   const extremeTags = tagFilters.filter(t => !t.enabled && t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
+  const { openMenu } = useContextMenu();
 
   React.useEffect(() => {
     // Force the first search if view hasn't been used yet
@@ -359,39 +353,38 @@ export function BrowsePage(props: BrowsePageProps) {
     window.Shared.back.send(BackIn.DOWNLOAD_PLAYLIST_CONTENTS, playlistId);
   };
 
-  const onExportPlaylist = (strings: LangContainer, playlistId: string): void => {
+  const onExportPlaylist = (playlistId: string): void => {
     const playlist = playlists.find(p => p.id === playlistId);
-    const filePath = remote.dialog.showSaveDialogSync({
-      title: strings.dialog.selectFileToExportPlaylist,
-      defaultPath: playlist ? path.basename(playlist.filePath) : 'playlist.json',
-      filters: [{
-        name: 'Playlist file',
-        extensions: ['json'],
-      }]
-    });
-    if (filePath) { window.Shared.back.send(BackIn.EXPORT_PLAYLIST, playlistId, filePath); }
+    if (playlist) {
+      let cleanName = sanitizeFilename(playlist.title);
+      if (cleanName.length === 0) {
+        cleanName = 'playlist';
+      }
+      createDataDownloadJson(playlist, `${cleanName}.json`);
+    }
   };
-
-
 
   const onPlaylistContextMenu = (event: React.MouseEvent<HTMLDivElement, MouseEvent>, playlistId: string) => {
     if (!isEditingPlaylist || currentView.selectedPlaylist?.id != playlistId) { // Don't export a playlist in the back while it's being edited in the front
-      const contextButtons: MenuItemConstructorOptions[] = [{
+      const contextButtons: MenuItemProps[] = [{
+        type: 'button',
         label: strings.menu.duplicatePlaylist,
-        click: () => {
+        onClick: () => {
           onDuplicatePlaylist(playlistId);
         }
       },
       {
+        type: 'button',
         label: strings.menu.exportPlaylist,
         enabled: !window.Shared.isBackRemote, // (Local "back" only)
-        click: () => {
-          onExportPlaylist(strings, playlistId);
+        onClick: () => {
+          onExportPlaylist(playlistId);
         },
       }, {
+        type: 'button',
         label: strings.menu.downloadPlaylistContent,
         enabled: true,
-        click: () => {
+        onClick: () => {
           onDownloadPlaylistContents(playlistId);
         }
       }];
@@ -401,8 +394,9 @@ export function BrowsePage(props: BrowsePageProps) {
         for (const contextButton of contribution.value) {
           if (contextButton.context === 'playlist') {
             contextButtons.push({
+              type: 'button',
               label: contextButton.name,
-              click: () => {
+              onClick: () => {
                 window.Shared.back.request(BackIn.GET_PLAYLIST, playlistId)
                 .then(playlist => {
                   window.Shared.back.send(BackIn.RUN_COMMAND, contextButton.command, [playlist]);
@@ -413,9 +407,7 @@ export function BrowsePage(props: BrowsePageProps) {
         }
       }
 
-      return (
-        openContextMenu(contextButtons)
-      );
+      openMenu({ items: contextButtons }, getPointer(event));
     }
   };
 
@@ -452,7 +444,7 @@ export function BrowsePage(props: BrowsePageProps) {
           onShowAllClick={onLeftSidebarShowAllClick}
           onDownloadPlaylistContents={onDownloadPlaylistContents}
           onDuplicatePlaylist={onDuplicatePlaylist}
-          onExportPlaylist={(playlistId) => onExportPlaylist(strings, playlistId)}
+          onExportPlaylist={(playlistId) => onExportPlaylist(playlistId)}
           onContextMenu={onPlaylistContextMenu} />
       </ResizableSidebar>
       <div
@@ -464,6 +456,7 @@ export function BrowsePage(props: BrowsePageProps) {
               view: currentView,
               logoVersion: props.logoVersion,
               extremeTags,
+              onContextMenu: props.onGameContextMenu,
               onMovePlaylistEntry: props.onMovePlaylistGame,
             };
 
@@ -483,12 +476,6 @@ export function BrowsePage(props: BrowsePageProps) {
       </div>
     </div>
   );
-}
-
-function openContextMenu(template: MenuItemConstructorOptions[]): Menu {
-  const menu = remote.Menu.buildFromTemplate(template);
-  menu.popup({ window: remote.getCurrentWindow() });
-  return menu;
 }
 
 type FileReaderResult = typeof FileReader['prototype']['result'];

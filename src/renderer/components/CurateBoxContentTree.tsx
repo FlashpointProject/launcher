@@ -41,16 +41,18 @@ export function CurateBoxContentTree(props: CurateBoxContentTreeProps) {
     }];
     const fullPath = path.join(window.Shared.config.fullFlashpointPath, CURATIONS_FOLDER_WORKING, folder, 'content', node.tree.join(path.sep));
     console.log(fullPath);
-    if (node.nodeType === 'file') {
-      contextButtons.push({
-        label: strings.curate.contextShowInExplorer,
-        click: () => remote.shell.showItemInFolder(fullPath)
-      });
-    } else if (node.nodeType === 'directory') {
-      contextButtons.push({
-        label: strings.curate.contextOpenFolderInExplorer,
-        click: () => remote.shell.openExternal(fullPath)
-      });
+    if (window.electronAPI !== undefined) {
+      if (node.nodeType === 'file') {
+        contextButtons.push({
+          label: strings.curate.contextShowInExplorer,
+          click: () => window.electronAPI?.showItemInFolder(fullPath)
+        });
+      } else if (node.nodeType === 'directory') {
+        contextButtons.push({
+          label: strings.curate.contextOpenFolderInExplorer,
+          click: () => window.electronAPI?.openExternal(fullPath)
+        });
+      }
     }
     const menu = remote.Menu.buildFromTemplate(contextButtons);
     menu.popup({ window: remote.getCurrentWindow() });

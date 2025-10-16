@@ -1,24 +1,24 @@
 import React from 'react';
 
 export type MenuProps = {
-  items: MenuItemProps[],
+  items: MenuItemProps[];
 };
 
-type MenuItemProps = MenuItemSeperator | MenuItemButton | MenuItemSubmenu;
+export type MenuItemProps = MenuItemSeperator | MenuItemButton | MenuItemSubmenu;
 
-type MenuItemSeperator = {
-  type: 'seperator'
+export type MenuItemSeperator = {
+  type: 'seperator';
 };
 
-type MenuItemButton = {
-  type: 'button',
+export type MenuItemButton = {
+  type: 'button';
   label: string;
   enabled?: boolean;
   onClick: () => void;
 }
 
-type MenuItemSubmenu = {
-  type: 'submenu',
+export type MenuItemSubmenu = {
+  type: 'submenu';
   items: MenuItemProps[];
 }
 

@@ -4,7 +4,7 @@ import { useAppSelector } from '@renderer/hooks/useAppSelector';
 import * as curateActions from '@renderer/store/curate/slice';
 import { updatePreferences } from '@renderer/store/preferences/slice';
 import { addTask, setTask } from '@renderer/store/tasks/slice';
-import { axios, getCurationPostURL, getPlatformIconURL } from '@renderer/Util';
+import { axios, getCurationPostURL, getPlatformIconURL, openUrlInWindow } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
 import { BackIn } from '@shared/back/types';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
@@ -69,7 +69,7 @@ export function CuratePage(props: CuratePageProps) {
   const onOpenSubmissionPage = () => {
     if (curation?.fpfssInfo) {
       const subPage = `${fpfssBaseUrl}/web/submission/${curation.fpfssInfo.id}`;
-      remote.shell.openExternal(subPage);
+      openUrlInWindow(subPage);
     }
   };
 

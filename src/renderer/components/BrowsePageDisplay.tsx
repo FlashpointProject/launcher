@@ -52,7 +52,7 @@ export function BrowsePageDisplayGrid<T extends Content>(props: BrowsePageDispla
   const screenshotPreviewMode = useAppSelector(state => state.preferences.screenshotPreviewMode);
   const hideExtremeScreenshots = useAppSelector(state => state.preferences.hideExtremeScreenshots);
   const dispatch = useAppDispatch();
-  const { view, getContentIcons, onContentRun, logoVersion, extremeTags, onMovePlaylistEntry } = props;
+  const { view, onContextMenu, getContentIcons, onContentRun, logoVersion, extremeTags, onMovePlaylistEntry } = props;
   const [draggedContentIndex, setDraggedContentIndex] = useState<number | null>(null);
 
   const updateViewRange = delayedThrottle((start: number, count: number) => {
@@ -126,7 +126,7 @@ export function BrowsePageDisplayGrid<T extends Content>(props: BrowsePageDispla
         gamesTotal={1} />}
       onContentSelect={onContentCellSelect}
       onContentRun={onContentRun}
-      onContextMenu={() => {}}
+      onContextMenu={onContextMenu}
       onContentDragStart={onContentDragStart}
       onContentDragEnd={onContentDragEnd}
       onMovePlaylistEntry={onMovePlaylistEntry}
@@ -148,7 +148,7 @@ export function BrowsePageDisplayList<T extends Content>(props: BrowsePageDispla
   const tagFilters = useAppSelector(state => state.preferences.tagFilters);
   const browsePageShowExtreme = useAppSelector(state => state.preferences.browsePageShowExtreme);
   const dispatch = useAppDispatch();
-  const { view, onContentRun, extremeTags, onMovePlaylistEntry } = props;
+  const { view, onContextMenu, onContentRun, extremeTags, onMovePlaylistEntry } = props;
   const [draggedContentIndex, setDraggedContentIndex] = useState<number | null>(null);
   const tagGroupIcons = tagFilters.filter(t => !t.enabled && t.iconBase64 !== '').map(({ tags, iconBase64: tagGroupIcon }) => ({ tagFilter: tags, iconBase64: tagGroupIcon }));
 
@@ -221,7 +221,7 @@ export function BrowsePageDisplayList<T extends Content>(props: BrowsePageDispla
       tagGroupIcons={tagGroupIcons}
       onContentSelect={onContentCellSelect}
       onContentLaunch={onContentRun}
-      onContextMenu={() => {}}
+      onContextMenu={onContextMenu}
       onGameDragStart={onContentDragStart}
       onGameDragEnd={onContentDragEnd}
       onMovePlaylistEntry={onMovePlaylistEntry}
