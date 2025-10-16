@@ -143,6 +143,7 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   scaleValues: {
     browse: 0.5,
     logs: 0.5,
+    menuItem: 0.5,
   },
 });
 
@@ -311,14 +312,16 @@ function parseScreenshotPreviewMode(v: any): ScreenshotPreviewMode {
 }
 
 function parseScaleValues(parser: IObjectParserProp<ScaleValues>): ScaleValues {
-  const defaultScale = 0.087;
+  const defaultScale = 0.5;
   const scales: ScaleValues = {
     browse: defaultScale,
-    logs: defaultScale
+    logs: defaultScale,
+    menuItem: defaultScale,
   };
 
   parser.prop('browse', v => scales.browse = num(v), true);
   parser.prop('logs', v => scales.logs = num(v), true);
+  parser.prop('menuItem', v => scales.menuItem = num(v), true);
 
   return scales;
 }

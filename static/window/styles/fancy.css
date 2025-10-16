@@ -1589,5 +1589,8 @@ body {
 }
 
 .menu-separator {
-  border-color: var(--layout__menu-seperator);
+  height: 100%;
+  width: 100%;
+  border: 0;
+  border-top: 2px solid var(--layout__menu-seperator);
 }

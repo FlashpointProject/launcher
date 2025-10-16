@@ -9,7 +9,6 @@ export enum Paths {
   CONFIG     = '/config',
   ABOUT      = '/about',
   CURATE     = '/curate',
-  DEVELOPER  = '/developer',
   LOADING    = '/loading',
   DOWNLOADS  = '/downloads',
   DYNAMIC    = '/dynamic',

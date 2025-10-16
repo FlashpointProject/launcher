@@ -3754,16 +3754,30 @@ body {
 .context-menu {
   z-index: 999999;
   position: absolute;
-  max-width: 20vw;
+  min-width: 15vw;
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
 .menu-item {
-  font-size: 1.15rem;
-  padding: 0.2rem 0.7rem 0.2rem 0.7rem;
+  display: flex;
+  align-items: center;
+  height: calc(1px * var(--height));
+  padding-left: 0.7rem;
+  padding-right: 0.7rem;
+}
+
+.menu-item-label {
+  font-size: calc(0.6px * var(--height));
+}
+
+.menu-seperator-wrapper {
+  display: flex;
+  justify-items: center;
 }
 
 .menu-separator {
-  margin: 0.05rem 0.55rem 0.05rem 0.55rem;
+  height: calc(0.5px * var(--height));
+  margin-left: 0.55rem;
+  margin-right: 0.55rem;
 }

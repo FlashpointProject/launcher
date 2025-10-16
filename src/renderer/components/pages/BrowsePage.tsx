@@ -11,7 +11,6 @@ import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { ExtensionContribution } from '@shared/extensions/interfaces';
 import { sanitizeFilename } from '@shared/utils/sanitizeFilename';
 import { uuid } from '@shared/utils/uuid';
-import { MenuItemConstructorOptions } from 'electron';
 import { LangContainer, Playlist } from 'flashpoint-launcher';
 import { BrowsePageDisplayProps } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
@@ -21,7 +20,7 @@ import { LangContext } from '../../util/lang';
 import { WebgameBrowsePageDisplayGrid, WebgameBrowsePageDisplayList } from '../BrowsePageDisplay';
 import { InputElement } from '../InputField';
 import { LeftBrowseSidebar } from '../LeftBrowseSidebar';
-import { MenuItemProps } from '../Menu';
+import { MenuItemType } from '../Menu';
 import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
 
 export type GameDragEventData = {
@@ -156,10 +155,11 @@ export function BrowsePage(props: BrowsePageProps) {
     }
   };
 
-  const onCreatePlaylistClick = (): void => {
-    const contextButtons: MenuItemConstructorOptions[] = [{
+  const onCreatePlaylistClick = (event: React.MouseEvent): void => {
+    const contextButtons: MenuItemType[] = [{
+      type: 'button',
       label: 'Create Empty Playlist',
-      click: () => {
+      onClick: () => {
         setCurrentPlaylist({
           filePath: '',
           id: uuid(),
@@ -179,8 +179,9 @@ export function BrowsePage(props: BrowsePageProps) {
       }
     },
     {
+      type: 'button',
       label: 'Create From Search Results',
-      click: () => {
+      onClick: () => {
         window.Shared.back.request(BackIn.BROWSE_ALL_RESULTS, {
           ...currentView.searchFilter,
           slim: true,
@@ -208,8 +209,8 @@ export function BrowsePage(props: BrowsePageProps) {
         });
       }
     }];
-    const menu = remote.Menu.buildFromTemplate(contextButtons);
-    menu.popup({ window: remote.getCurrentWindow() });
+
+    openMenu({ items: contextButtons }, getPointer(event));
   };
 
   const onDiscardPlaylistClick = (): void => {
@@ -366,7 +367,7 @@ export function BrowsePage(props: BrowsePageProps) {
 
   const onPlaylistContextMenu = (event: React.MouseEvent<HTMLDivElement, MouseEvent>, playlistId: string) => {
     if (!isEditingPlaylist || currentView.selectedPlaylist?.id != playlistId) { // Don't export a playlist in the back while it's being edited in the front
-      const contextButtons: MenuItemProps[] = [{
+      const contextButtons: MenuItemType[] = [{
         type: 'button',
         label: strings.menu.duplicatePlaylist,
         onClick: () => {

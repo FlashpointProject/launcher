@@ -1,4 +1,6 @@
 import { Menu, MenuProps } from '@renderer/components/Menu';
+import { useAppSelector } from '@renderer/hooks/useAppSelector';
+import { calcScale } from '@shared/Util';
 import React, { createContext, useEffect, useRef, useState } from 'react';
 
 type MenuContextStateProps = {
@@ -23,17 +25,40 @@ export const MenuContext = createContext<MenuContextStateProps>({
 
 export function MenuProvider({ children }: MenuContextProps) {
   const [menu, setMenu] = useState<MenuProps>();
-  const [pointer, setPointer] = useState<Pointer>();
+  const [style, setStyle] = useState<React.CSSProperties>();
   const menuRef = useRef<HTMLDivElement>(null);
+  const scale = useAppSelector(state => state.preferences.scaleValues.menuItem);
+  const menuItemSize = Math.floor(calcScale(12, 36, scale));
 
-  const openMenu = (newMenu: MenuProps, newPointer: Pointer) => {
+  const openMenu = (newMenu: MenuProps, pointer: Pointer) => {
+    // const availWidth = document.documentElement.clientWidth;
+    const availHeight = document.documentElement.clientHeight;
+
+    const menuHeight = Math.floor(newMenu.items.reduce((prev, cur) => {
+      if (cur.type !== 'seperator') {
+        return prev + menuItemSize;
+      } else {
+        return prev + (menuItemSize * 0.5);
+      }
+    }, 0));
+
+    console.log(pointer.y + menuHeight);
+    console.log(availHeight);
+
+    const style: React.CSSProperties = {};
+    if (pointer.y + menuHeight > availHeight) {
+      style.top = pointer.y - menuHeight;
+    } else {
+      style.top = pointer.y;
+    }
+    style.left = pointer.x;
+
+    setStyle(style);
     setMenu(newMenu);
-    setPointer(newPointer);
   };
 
   const closeMenu = () => {
     setMenu(undefined);
-    setPointer(undefined);
   };
 
   useEffect(() => {
@@ -62,11 +87,11 @@ export function MenuProvider({ children }: MenuContextProps) {
       closeMenu,
     }}>
       {children}
-      { menu !== undefined && pointer !== undefined && (
+      { menu !== undefined && (
         <div
           className='context-menu'
           ref={menuRef}
-          style={{ top: pointer.y, left: pointer.x }}
+          style={style}
           onClick={closeMenu}
           tabIndex={-1}>
           <Menu {...menu} />

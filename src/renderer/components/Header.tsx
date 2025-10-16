@@ -452,7 +452,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
   }
 }
 
-type MenuItemProps = {
+type MenuItemType = {
   id?: string;
   title: string;
   link: string;
@@ -462,7 +462,7 @@ type MenuItemProps = {
 };
 
 // An item in the header menu. Used as buttons to switch between tabs/pages.
-function MenuItem({ id, title, link, onContextMenu, onDragStart, onDrop }: MenuItemProps) {
+function MenuItem({ id, title, link, onContextMenu, onDragStart, onDrop }: MenuItemType) {
   const location = useLocation();
   const selected = location.pathname.split('?')[0] === link;
   const onDragOver = (event: React.DragEvent<HTMLLIElement>) => {

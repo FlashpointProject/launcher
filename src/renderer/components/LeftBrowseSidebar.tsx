@@ -17,7 +17,7 @@ export type LeftBrowseSidebarProps = {
   playlistIconCache: Record<string, string>;
   onDelete: () => void;
   onSave: () => void;
-  onCreate: () => void;
+  onCreate: (event: React.MouseEvent) => void;
   onImport: () => void;
   onDiscard: () => void;
   onEditClick: () => void;

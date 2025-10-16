@@ -1,10 +1,13 @@
+import { useAppSelector } from '@renderer/hooks/useAppSelector';
+import { calcScale } from '@shared/Util';
 import React from 'react';
+import { SizeProvider } from './SizeProvider';
 
 export type MenuProps = {
-  items: MenuItemProps[];
+  items: MenuItemType[];
 };
 
-export type MenuItemProps = MenuItemSeperator | MenuItemButton | MenuItemSubmenu;
+export type MenuItemType = MenuItemSeperator | MenuItemButton | MenuItemSubmenu;
 
 export type MenuItemSeperator = {
   type: 'seperator';
@@ -19,10 +22,10 @@ export type MenuItemButton = {
 
 export type MenuItemSubmenu = {
   type: 'submenu';
-  items: MenuItemProps[];
+  items: MenuItemType[];
 }
 
-export function MenuItem(props: MenuItemProps) {
+export function MenuItem(props: MenuItemType) {
   const stopMenuClosure = (event: React.MouseEvent) => {
     event.stopPropagation();
   };
@@ -40,13 +43,17 @@ export function MenuItem(props: MenuItemProps) {
               stopMenuClosure(e);
             }
           }}>
-          {props.label}
+          <div className='menu-item-label'>
+            {props.label}
+          </div>
         </div>
       );
     }
     case 'seperator': {
       return (
-        <hr onClick={stopMenuClosure} className="menu-separator" />
+        <div className='menu-seperator-wrapper'>
+          <hr onClick={stopMenuClosure} className="menu-separator" />
+        </div>
       );
     }
     case 'submenu': {
@@ -63,9 +70,14 @@ export function MenuItem(props: MenuItemProps) {
 }
 
 export function Menu(props: MenuProps) {
+  const scale = useAppSelector(state => state.preferences.scaleValues.menuItem);
+  const menuItemSize = Math.floor(calcScale(12, 36, scale));
+
   return (
-    <div className='menu'>
-      {props.items.map(MenuItem)}
-    </div>
+    <SizeProvider height={menuItemSize}>
+      <div className='menu'>
+        {props.items.map(MenuItem)}
+      </div>
+    </SizeProvider>
   );
 }

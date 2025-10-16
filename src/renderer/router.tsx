@@ -13,7 +13,6 @@ import { Route, Routes } from 'react-router-dom';
 import { AboutPage, AboutPageProps } from './components/pages/AboutPage';
 import { BrowsePage, BrowsePageProps } from './components/pages/BrowsePage';
 import { CuratePage, CuratePageProps } from './components/pages/CuratePage';
-import { DeveloperPage, DeveloperPageProps } from './components/pages/DeveloperPage';
 import { DownloadsPage } from './components/pages/Downloads';
 import { DynamicPage, DynamicPageProps } from './components/pages/DynamicPage';
 import { HomePage, HomePageProps } from './components/pages/HomePage';
@@ -127,12 +126,6 @@ export function AppRouter(props: AppRouterProps) {
     mad4fpEnabled: props.mad4fpEnabled,
     logoVersion: props.logoVersion,
   };
-  const developerProps: DeveloperPageProps = {
-    devConsole: props.devConsole,
-    devScripts: props.devScripts,
-    services: props.services,
-    totalGames: props.gamesTotal || 1,
-  };
   const iframePageProps: IFramePageProps = {
     url: props.manualUrl
   };
@@ -171,9 +164,6 @@ export function AppRouter(props: AppRouterProps) {
       <Route
         path={Paths.CURATE}
         element={<CuratePage {...curateProps} />}/>
-      <Route
-        path={Paths.DEVELOPER}
-        element={<DeveloperPage {...developerProps}/>}/>
       <Route
         path={Paths.DYNAMIC}
         element={<DynamicPage name={props.dynamicPageProps?.name || ''} props={props.dynamicPageProps?.props}/>}/>

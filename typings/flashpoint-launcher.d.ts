@@ -1019,6 +1019,7 @@ declare module 'flashpoint-launcher' {
     type ScaleValues = {
       browse: number;
       logs: number;
+      menuItem: number;
     }
 
     /**
