@@ -18,6 +18,7 @@ import { ContextReducerProvider } from './context-reducer/ContextReducerProvider
 import { ProgressContext } from './context/ProgressContext';
 import { updatePreferences } from './store/preferences/slice';
 import { logFactory } from './util/logging';
+import { MenuProvider } from './context/MenuContext';
 
 (async () => {
   init({
@@ -112,7 +113,9 @@ import { logFactory } from './util/logging';
         <MDXProvider components={components}>
           <ShortcutProvider>
             <ContextReducerProvider context={ProgressContext}>
-              <ConnectedApp />
+              <MenuProvider>
+                <ConnectedApp />
+              </MenuProvider>
             </ContextReducerProvider>
           </ShortcutProvider>
         </MDXProvider>

@@ -154,6 +154,10 @@
   --layout__icon-button-hover-fill:                #b1b1b1; /* Color of "icon buttons" while the cursor is hovering over them. */
   --layout__toggle-sidebar-fill:                   #cccccc;
   --layout__drop-down-content-background-selected: #1e90ff;
+  /* Menu */
+  --layout__menu-background:     var(--layout__primary-background);
+  --layout__menu-item-hover:     var(--layout__game-item-background-hover);
+  --layout__menu-seperator:      var(--layout__home-page-box-border);
   /* Flashpoint */
   --layout__flashpoint-red: #DD0428;
   --layout__flashpoint-light-red: #E85971;
@@ -1560,4 +1564,30 @@ body {
 .searchable-select-dropdown-item--highlighted,
 .searchable-select-dropdown-item:hover {
   background-color: var(--layout__header-menu-item-hover-background);
+}
+
+/* --- Menu --- */
+.context-menu {
+  background-color: var(--layout__menu-background);
+  border: 1px transparent;
+  border-radius: 4px;
+  box-shadow: 0px 2px 4px 0px #09090a;
+}
+
+.menu {
+  background-color: var(--layout__menu-background);
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-item:not(.menu-item--disabled):hover {
+  background-color: var(--layout__menu-item-hover);
+}
+
+.menu-item--disabled {
+  color: var(--layout__disabled-text-color);
+}
+
+.menu-separator {
+  border-color: var(--layout__menu-seperator);
 }

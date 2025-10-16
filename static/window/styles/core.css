@@ -3749,3 +3749,20 @@ body {
 .downloads-page__workers-spacer {
   flex: 0.5;
 }
+
+/* --- Menu --- */
+.context-menu {
+  position: absolute;
+  max-width: 20vw;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.menu-item {
+  font-size: 1.15rem;
+  padding: 0.2rem 0.7rem 0.2rem 0.7rem;
+}
+
+.menu-separator {
+  margin: 0.05rem 0.55rem 0.05rem 0.55rem;
+}

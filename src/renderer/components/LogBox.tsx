@@ -1,9 +1,12 @@
+import { getPointer } from '@renderer/context/MenuContext';
 import { useAppSelector } from '@renderer/hooks/useAppSelector';
+import { useContextMenu } from '@renderer/hooks/useContextMenu';
 import { LogLevel } from '@shared/Log/interface';
 import { formatTime, padLines } from '@shared/Log/LogCommon';
 import { calcScale } from '@shared/Util';
 import { ILogEntry } from 'flashpoint-launcher';
 import { List, RowComponentProps } from 'react-window';
+import { MenuProps } from './Menu';
 
 const timestampLength = '[HH:MM:SS] '.length;
 const logLevelLength = 5;
@@ -45,6 +48,21 @@ function LogRow({ index, style, logs, longestSource }: RowComponentProps<RowProp
 export function LogBox(props: LogBoxProps) {
   const scale = useAppSelector(state => state.preferences.scaleValues.logs);
   const fontSize = Math.floor(calcScale(8, 24, scale));
+  const { openMenu } = useContextMenu();
+  const logMenu: MenuProps = {
+    items: [{
+      type: 'button',
+      label: 'test button',
+      onClick: () => {}
+    }, {
+      type: 'seperator'
+    }, {
+      type: 'button',
+      label: 'test button disabled',
+      enabled: false,
+      onClick: () => {}
+    }]
+  };
 
   const rowHeight = (index: number, { logs }: RowProps) => {
     return (fontSize + 2) * logs[index].lineCount;
@@ -52,6 +70,7 @@ export function LogBox(props: LogBoxProps) {
 
   return (
     <List<RowProps>
+      onContextMenu={(e) => openMenu(logMenu, getPointer(e))}
       className='log simple-scroll'
       style={{ fontSize: `${fontSize}px`, lineHeight: `${fontSize + 2}px` }}
       rowComponent={LogRow}
