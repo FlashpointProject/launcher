@@ -313,3 +313,13 @@ export const axios = _axios.create({
     'User-Agent': 'Flashpoint Launcher'
   }
 });
+
+export function openUrlInWindow(url: string) {
+  if (typeof window !== 'undefined' && window.electronAPI) {
+    // Electron
+    window.electronAPI.openExternal(url);
+  } else {
+    // Browser
+    window.open(url, '_blank');
+  }
+}

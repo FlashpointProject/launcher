@@ -18,6 +18,18 @@ import { EventEmitter } from 'events';
  *        It might be a good idea to move this to the Renderer?)
  */
 
+// Fill unavailable web apis
+navigator.clipboard.writeText = async (text: string) => {
+  electron.clipboard.writeText(text);
+};
+
+// Register Electron API functions we might need later
+window.electronAPI = {
+  openExternal: (url: string, opts?: Electron.OpenExternalOptions) => {
+    remote.shell.openExternal(url, opts);
+  }
+};
+
 window.Shared = {
   version: createErrorProxy('version'),
 
@@ -173,6 +185,6 @@ function registerHandlers(): void {
   });
 
   window.Shared.back.register(BackOut.OPEN_EXTERNAL, async (event, url, options) => {
-    await remote.shell.openExternal(url, options);
+    window.electronAPI.openExternal(url, options);
   });
 }

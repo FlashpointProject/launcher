@@ -1,17 +1,18 @@
 import * as remote from '@electron/remote';
 import { WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
+import { WithMainStateProps } from '@renderer/containers/withMainState';
 import { LangContext } from '@renderer/util/lang';
 import { ArchiveState, BackIn } from '@shared/back/types';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { GamePropSuggestions, PickType, ProcessAction } from '@shared/interfaces';
 import { generateTagFilterGroup, sizeToString } from '@shared/Util';
 import { formatString } from '@shared/utils/StringFormatter';
-import { clipboard, Menu, MenuItemConstructorOptions } from 'electron';
+import { Menu, MenuItemConstructorOptions } from 'electron';
 import { Game, GameData, GameLaunchOverride, LangContainer, Platform, Playlist, PlaylistGame, Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
 import { GameComponentProps } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
 import { WithPreferencesProps } from '../containers/withPreferences';
-import { axios, getGameImagePath, getGameImageURL, wrapSearchTerm } from '../Util';
+import { axios, getGameImagePath, getGameImageURL, openUrlInWindow, wrapSearchTerm } from '../Util';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { DropdownInputField } from './DropdownInputField';
 import { DynamicComponent } from './DynamicComponent';
@@ -21,7 +22,6 @@ import { ImagePreview } from './ImagePreview';
 import { InputElement, InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
-import { WithMainStateProps } from '@renderer/containers/withMainState';
 
 type OwnProps = {
   logoVersion: number;
@@ -618,7 +618,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                           // Cut off after space
                           url = url.split(' ')[0];
                         }
-                        remote.shell.openExternal(url);
+                        openUrlInWindow(url);
                       }
                     }}>
                     {strings.playOnline}
@@ -803,7 +803,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                 <>
                   <SimpleButton
                     value={allStrings.menu.copyGameUUID}
-                    onClick={() => this.props.currentGame && clipboard.writeText(this.props.currentGame.id)} />
+                    onClick={() => this.props.currentGame && navigator.clipboard.writeText(this.props.currentGame.id)} />
                 </>
               )}
               {this.state.gameDataBrowserOpen && (

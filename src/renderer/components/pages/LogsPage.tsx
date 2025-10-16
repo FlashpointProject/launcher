@@ -1,14 +1,13 @@
-import * as remote from '@electron/remote';
+import { resolveNewDialog } from '@renderer/dialog';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { clearLogs } from '@renderer/store/logs/slice';
+import { updatePreferences } from '@renderer/store/preferences/slice';
 import { BackIn } from '@shared/back/types';
 import { LogLevel } from '@shared/Log/interface';
-import { clipboard } from 'electron';
 import { useContext, useState } from 'react';
 import { LangContext } from '../../util/lang';
 import { Dropdown } from '../Dropdown';
 import { LogBox } from '../LogBox';
-import { updatePreferences } from '@renderer/store/preferences/slice';
 
 export type LogsPageProps = any;
 
@@ -100,27 +99,27 @@ export function LogsPage(props: LogsPageProps) {
       }
     }
     // Copy with each URL on a new line
-    clipboard.writeText(urls.join('\n'));
+    navigator.clipboard.writeText(urls.join('\n'));
   };
 
   const onCopyDiagnosticsClick = async () => {
     window.Shared.back.request(BackIn.FETCH_DIAGNOSTICS)
     .then((diagnostics) => {
       setFetchedDiagnostics(true);
-      clipboard.writeText(diagnostics);
+      navigator.clipboard.writeText(diagnostics);
     });
   };
 
   const onUploadClick = async (): Promise<void> => {
     setUploading(true);
     // IMPORTANT - Make sure they want to *publicly* post their info
-    const res = await remote.dialog.showMessageBox({
-      title: allStrings.dialog.areYouSure,
+    const { button } = await resolveNewDialog(dispatch, {
       message: allStrings.dialog.uploadPrivacyWarning,
       cancelId: 1,
       buttons: [allStrings.misc.yes, allStrings.misc.no]
     });
-    if (res.response === 0) {
+
+    if (button === 0) {
       // Ask backend to upload logs, sends back a log URL
       window.Shared.back.request(BackIn.UPLOAD_LOG)
       .then((data) => {
@@ -128,7 +127,7 @@ export function LogsPage(props: LogsPageProps) {
         setUploaded(true);
         if (data) {
           // Write log URL to clipboard
-          clipboard.writeText(data);
+          navigator.clipboard.writeText(data);
         }
       });
     } else {

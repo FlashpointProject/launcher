@@ -8,7 +8,7 @@ import * as React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { Paths } from '@shared/Paths';
-import { joinLibraryRoute } from '../Util';
+import { joinLibraryRoute, openUrlInWindow } from '../Util';
 import { LangContext } from '../util/lang';
 import { OpenIcon } from './OpenIcon';
 import { WithSearchProps } from '@renderer/containers/withSearch';
@@ -298,7 +298,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
         label: strings.fpfssProfile,
         enabled: true,
         click: () => {
-          remote.shell.openExternal(`${this.props.preferencesData.fpfssBaseUrl}/web/profile`);
+          openUrlInWindow(`${this.props.preferencesData.fpfssBaseUrl}/web/profile`);
         }
       },
       {

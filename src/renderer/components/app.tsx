@@ -6,6 +6,7 @@ import { WithLogsProps } from '@renderer/containers/withLogs';
 import { WithNavigationProps } from '@renderer/containers/withNavigation';
 import { WithSearchProps } from '@renderer/containers/withSearch';
 import { WithViewProps } from '@renderer/containers/withView';
+import { resolveNewDialog } from '@renderer/dialog';
 import { RANDOM_GAME_ROW_COUNT } from '@renderer/store/main/slice';
 import { WithShortcutProps } from '@renderer/store/reactKeybindCompat';
 import * as extUtils from '@renderer/util/ext';
@@ -23,7 +24,7 @@ import { formatString } from '@shared/utils/StringFormatter';
 import { batchProcessor } from '@shared/utils/throttle';
 import { uuid } from '@shared/utils/uuid';
 import { isAxiosError } from 'axios';
-import { clipboard, ipcRenderer, Menu, MenuItemConstructorOptions } from 'electron';
+import { ipcRenderer, Menu, MenuItemConstructorOptions } from 'electron';
 import {
   CurationFpfssInfo,
   DialogState,
@@ -49,7 +50,7 @@ import { WithTasksProps } from '../containers/withTasks';
 import { CreditsFile } from '../credits/CreditsFile';
 import { fpfssLogin, getFpfssConsentExt, saveFpfssConsentExt } from '../fpfss';
 import { AppRouter, AppRouterProps } from '../router';
-import { axios, getGameImagePath, getGameImageURL, getGamePath, getViewName, joinLibraryRoute } from '../Util';
+import { axios, getGameImagePath, getGameImageURL, getGamePath, getViewName, joinLibraryRoute, openUrlInWindow } from '../Util';
 import { LangContext } from '../util/lang';
 import { queueOne } from '../util/queue';
 import { Dialog } from './Dialog';
@@ -729,16 +730,13 @@ export class App extends React.Component<AppProps> {
           });
         } else {
           const msg = formatString(this.props.main.lang.dialog.extFpfssConsent, extId) as string;
-          remote.dialog.showMessageBox({
-            type: 'question',
-            title: 'FPFSS Extension Access',
+          resolveNewDialog(this.props.dispatch, {
             message: msg,
             buttons: [this.props.main.lang.misc.yes, this.props.main.lang.misc.no],
-            defaultId: 1,
             cancelId: 1
           })
-          .then(({ response }) => {
-            if (response === 0) {
+          .then(({ button }) => {
+            if (button === 0) {
               this.performFpfssAction(async (user) => {
                 if (user) {
                   saveFpfssConsentExt(extId, true);
@@ -820,7 +818,7 @@ export class App extends React.Component<AppProps> {
 
     // Warn the user when closing the launcher WHILE downloading or installing an upgrade
     (() => {
-      let askBeforeClosing = true;
+      const askBeforeClosing = true;
       window.onbeforeunload = (event: BeforeUnloadEvent) => {
         if (this.props.main.quitting) {
           return;
@@ -836,21 +834,21 @@ export class App extends React.Component<AppProps> {
         }
         if (askBeforeClosing && stillDownloading) {
           event.returnValue = 1; // (Prevent closing the window)
-          remote.dialog.showMessageBox({
-            type: 'warning',
-            title: 'Exit Launcher?',
-            message: 'All progress on downloading or installing the upgrade will be lost.\n' +
-              'Are you sure you want to exit?',
-            buttons: ['Yes', 'No'],
-            defaultId: 1,
-            cancelId: 1,
-          })
-          .then(({ response }) => {
-            if (response === 0) {
-              askBeforeClosing = false;
-              this.unmountBeforeClose();
-            }
-          });
+          // remote.dialog.showMessageBox({
+          //   type: 'warning',
+          //   title: 'Exit Launcher?',
+          //   message: 'All progress on downloading or installing the upgrade will be lost.\n' +
+          //     'Are you sure you want to exit?',
+          //   buttons: ['Yes', 'No'],
+          //   defaultId: 1,
+          //   cancelId: 1,
+          // })
+          // .then(({ response }) => {
+          //   if (response === 0) {
+          //     askBeforeClosing = false;
+          //     this.unmountBeforeClose();
+          //   }
+          // });
         } else {
           this.unmountBeforeClose();
         }
@@ -1239,7 +1237,7 @@ export class App extends React.Component<AppProps> {
           label: strings.browse.showOnFpfss,
           enabled: this.props.preferencesData.enableEditing,
           click: () => {
-            remote.shell.openExternal(`${this.props.preferencesData.fpfssBaseUrl}/web/game/${gameId}`);
+            openUrlInWindow(`${this.props.preferencesData.fpfssBaseUrl}/web/game/${gameId}`);
           }
         }
       ] : [];
@@ -1266,7 +1264,7 @@ export class App extends React.Component<AppProps> {
           label: strings.menu.copyShortcutURL,
           enabled: true,
           click: () => {
-            clipboard.writeText(`flashpoint://run/${gameId}`);
+            navigator.clipboard.writeText(`flashpoint://run/${gameId}`);
           }
         },
         {
@@ -1274,7 +1272,7 @@ export class App extends React.Component<AppProps> {
           label: strings.menu.copyGameUUID,
           enabled: true,
           click: () => {
-            clipboard.writeText(gameId);
+            navigator.clipboard.writeText(gameId);
           }
         }, { type: 'separator' }, {
           /* File Location */
@@ -1443,7 +1441,7 @@ export class App extends React.Component<AppProps> {
   };
 
   copyCrashLog = () => {
-    clipboard.writeText(this.props.main.mainOutput || '');
+    navigator.clipboard.writeText(this.props.main.mainOutput || '');
   };
 
   render() {

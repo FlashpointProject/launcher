@@ -4,7 +4,7 @@ import { toggleContentNodeView } from '@renderer/store/curate/slice';
 import { LangContext } from '@renderer/util/lang';
 import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
 import { genFlatContentTree, sizeToString } from '@shared/Util';
-import { clipboard, MenuItemConstructorOptions } from 'electron';
+import { MenuItemConstructorOptions } from 'electron';
 import { ContentTree, FlatContentTreeNode } from 'flashpoint-launcher';
 import * as path from 'path';
 import { useContext } from 'react';
@@ -29,13 +29,13 @@ export function CurateBoxContentTree(props: CurateBoxContentTreeProps) {
     console.log(node);
     const contextButtons: MenuItemConstructorOptions[] = [{
       label: strings.curate.contextCopyName,
-      click: () => clipboard.writeText(node.name)
+      click: () => navigator.clipboard.writeText(node.name)
     }, {
       label: strings.curate.contextCopyPath,
-      click: () => clipboard.writeText(node.tree.join(path.sep))
+      click: () => navigator.clipboard.writeText(node.tree.join(path.sep))
     }, {
       label: strings.curate.contextCopyAsURL,
-      click: () => clipboard.writeText(encodeURI(`http://${node.tree.join('/')}`))
+      click: () => navigator.clipboard.writeText(encodeURI(`http://${node.tree.join('/')}`))
     }, {
       type: 'separator'
     }];

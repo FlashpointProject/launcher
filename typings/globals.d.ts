@@ -1,23 +1,14 @@
-import { LogFunc, IMainWindowExternal } from '../src/shared/interfaces';
+import { IMainWindowExternal } from '../src/shared/interfaces';
 
 /** Custom modifications made by this project */
 
-
 declare global {
+  type ElectronAPI = {
+    openExternal: (url: string, opts?: Electron.OpenExternalOptions) => void;
+  };
+
   interface Window {
     Shared: IMainWindowExternal;
+    electronAPI: ElectronAPI;
   }
-}
-
-/** Add missing declarations ("polyfill" type information) */
-declare global {
-  interface Clipboard {
-    writeText(newClipText: string): Promise<void>;
-    // Add any other methods you need here.
-  }
-  interface NavigatorClipboard {
-    // Only available in a secure context.
-    readonly clipboard?: Clipboard;
-  }
-  interface Navigator extends NavigatorClipboard {}
 }

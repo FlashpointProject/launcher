@@ -9,7 +9,7 @@ export function addMainMiddleware() {
   // Send dialog state to event handlers after reducer has finished
   startAppListening({
     matcher: isAnyOf(resolveDialog),
-    effect: async(action: PayloadAction<ResolveDialogActionData>, listenerApi)=> {
+    effect: async (action: PayloadAction<ResolveDialogActionData>, listenerApi) => {
       const { main } = listenerApi.getState();
       if (main.lastResolvedDialog) {
         const dialog = main.lastResolvedDialog;
@@ -21,7 +21,7 @@ export function addMainMiddleware() {
 
   startAppListening({
     matcher: isAnyOf(removePlaylistGame),
-    effect: async(action: PayloadAction<RemovePlaylistGameAction>, listenerApi)=> {
+    effect: async (action: PayloadAction<RemovePlaylistGameAction>, listenerApi) => {
       const { main } = listenerApi.getState();
       const playlist = main.playlists.find(p => p.id === action.payload.playlistId);
       if (playlist) {

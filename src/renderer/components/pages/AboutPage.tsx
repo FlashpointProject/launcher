@@ -1,14 +1,14 @@
+import { CHANGELOG } from '@renderer/changelog';
+import { withMainState, WithMainStateProps } from '@renderer/containers/withMainState';
+import { openUrlInWindow } from '@renderer/Util';
 import { memoizeOne } from '@shared/memoize';
+import { uuid } from '@shared/utils/uuid';
+import { LangContainer } from 'flashpoint-launcher';
 import * as React from 'react';
 import { CreditsBlock, CreditsData, CreditsDataProfile, CreditsDataRole } from '../../credits/types';
 import { LangContext } from '../../util/lang';
 import { CreditsIcon } from '../CreditsProfile';
 import { CreditsTooltip } from '../CreditsTooltip';
-import * as remote from '@electron/remote';
-import { CHANGELOG } from '@renderer/changelog';
-import { withMainState, WithMainStateProps } from '@renderer/containers/withMainState';
-import { uuid } from '@shared/utils/uuid';
-import { LangContainer } from 'flashpoint-launcher';
 
 export type AboutPageProps = {
   /** Credits data (if any). */
@@ -250,7 +250,7 @@ function link(title: string, url: string): React.JSX.Element {
   return (
     <a
       style={{ cursor: 'pointer', textDecorationLine: 'underline' }}
-      onClick={() => remote.shell.openExternal(url)}
+      onClick={() => openUrlInWindow(url)}
       title={url}>
       {title}
     </a>
