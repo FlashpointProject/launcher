@@ -20,6 +20,14 @@ export namespace PlaylistFile {
     });
   }
 
+  export function readJson(jsonString: string, onError?: (error: string) => void): Playlist {
+    const playlist = parse(jsonString, onError);
+    // Remove any broken game entries
+    playlist.games = playlist.games.filter(game => !!game.gameId && game.gameId !== 'null'); // String of 'null' seems to have wormed in somehow in the past?
+    playlist.filePath = '';
+    return playlist;
+  }
+
   export function readFileSync(filePath: string, onError?: (error: string) => void): Playlist {
     const playlist = parse(readJsonFileSync(filePath), onError);
     playlist.filePath = filePath;

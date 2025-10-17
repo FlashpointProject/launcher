@@ -108,9 +108,8 @@ export async function deletePlaylistGame(state: BackState, playlistId: string, g
   }
 }
 
-export async function importPlaylist(state: BackState, filePath: string, library?: string, event?: MsgEvent) {
+export async function importPlaylist(state: BackState, newPlaylist: Playlist, library?: string, event?: MsgEvent) {
   try {
-    const newPlaylist = await PlaylistFile.readFile(filePath);
     newPlaylist.filePath = path.join(state.config.flashpointPath, state.preferences.playlistFolderPath, `${sanitizeFilename(newPlaylist.title)} - ${(new Date()).getTime()}.json`);
     const existingPlaylist = state.playlists.find(p => p.title === newPlaylist.title || p.id === newPlaylist.id);
     if (existingPlaylist) {

@@ -946,8 +946,9 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     }
   });
 
-  state.socketServer.register(BackIn.IMPORT_PLAYLIST, async (event, filePath, library) => {
-    return importPlaylist(state, filePath, library, event);
+  state.socketServer.register(BackIn.IMPORT_PLAYLIST, async (event, jsonString, library) => {
+    const playlist = PlaylistFile.readJson(JSON.parse(jsonString));
+    return importPlaylist(state, playlist, library, event);
   });
 
   state.socketServer.register(BackIn.EXPORT_GAME, async (event, id, location, metaOnly) => {

@@ -1,4 +1,3 @@
-import * as remote from '@electron/remote';
 import { SearchBar } from '@renderer/components/SearchBar';
 import { getPointer } from '@renderer/context/MenuContext';
 import { useView } from '@renderer/hooks/search';
@@ -18,6 +17,7 @@ import { RefObject, useRef, useState } from 'react';
 import { createDataDownloadJson, gameDragDataType } from '../../Util';
 import { LangContext } from '../../util/lang';
 import { WebgameBrowsePageDisplayGrid, WebgameBrowsePageDisplayList } from '../BrowsePageDisplay';
+import { useFileLoader } from '../FileLoader';
 import { InputElement } from '../InputField';
 import { LeftBrowseSidebar } from '../LeftBrowseSidebar';
 import { MenuItemType } from '../Menu';
@@ -73,6 +73,7 @@ export function BrowsePage(props: BrowsePageProps) {
   const browsePageLeftSidebarWidth = useAppSelector(state => state.preferences.browsePageLeftSidebarWidth);
   const browsePageRightSidebarWidth = useAppSelector(state => state.preferences.browsePageRightSidebarWidth);
   const currentView = useView();
+  const { fileLoader, openFileSelect } = useFileLoader();
   const extremeTags = tagFilters.filter(t => !t.enabled && t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
   const { openMenu } = useContextMenu();
 
@@ -142,17 +143,24 @@ export function BrowsePage(props: BrowsePageProps) {
   };
 
   const onImportPlaylistClick = (strings: LangContainer): void => {
-    const filePath = remote.dialog.showOpenDialogSync({
-      title: strings.dialog.selectPlaylistToImport,
-      defaultPath: 'playlists',
-      filters: [{
-        name: 'Playlist file',
-        extensions: ['json'],
-      }]
+    openFileSelect((file) => {
+      if (file) {
+        if (!file.name.toLowerCase().endsWith('.json')) {
+          alert('Not a JSON file, ignoring...');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => {
+          window.Shared.back.send(BackIn.IMPORT_PLAYLIST, reader.result as string, currentView.id);
+        };
+        reader.onerror = () => {
+          alert('Error reading the file. Please try again.');
+        };
+        reader.readAsText(file);
+      }
+    }, {
+      accept: '.json'
     });
-    if (filePath) {
-      window.Shared.back.send(BackIn.IMPORT_PLAYLIST, filePath[0], currentView.id);
-    }
   };
 
   const onCreatePlaylistClick = (event: React.MouseEvent): void => {
@@ -416,6 +424,7 @@ export function BrowsePage(props: BrowsePageProps) {
     <div
       className='game-browser'
       ref={gameBrowserRef}>
+      {fileLoader}
       <ResizableSidebar
         show={browsePageShowLeftSidebar}
         divider='after'
