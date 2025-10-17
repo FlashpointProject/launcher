@@ -1743,13 +1743,15 @@ export class App extends React.Component<AppProps> {
   private unmountBeforeClose = (): void => {
     setTimeout(() => {
       window.Shared.back.allowDeath();
-      this.props.setMainState({
-        quitting: true
-      });
-      window.Shared.back.request(BackIn.QUIT)
-      .finally(() => {
-        window.close();
-      });
+      if (window.electronAPI !== undefined) {
+        this.props.setMainState({
+          quitting: true
+        });
+        window.Shared.back.request(BackIn.QUIT)
+        .finally(() => {
+          window.close();
+        });
+      }
     }, 100);
   };
 

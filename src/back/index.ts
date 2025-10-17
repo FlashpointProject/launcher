@@ -114,8 +114,6 @@ export const state: BackState = {
   configFolder: createErrorProxy('configFolder'),
   exePath: createErrorProxy('exePath'),
   localeCode: createErrorProxy('countryCode'),
-  version: createErrorProxy('version'),
-  versionStr: createErrorProxy('versionStr'),
   suggestions: createErrorProxy('suggestions'),
   acceptRemote: createErrorProxy('acceptRemote'),
   customVersion: undefined,
@@ -290,9 +288,6 @@ async function prepForInit(message: any): Promise<void> {
   state.configFolder = content.configFolder;
   state.localeCode = content.localeCode;
   state.exePath = content.exePath;
-  state.version = content.version;
-  console.log(`Version: ${state.version}`);
-  state.versionStr = `${content.version} ${content.isDev ? 'DEV' : ''}`;
   state.acceptRemote = content.acceptRemote;
   state.logFile = new LogFile(
     state.isDev ?
@@ -311,9 +306,9 @@ async function prepForInit(message: any): Promise<void> {
   log.info('Launcher', `Build Version: ${VERSION}`);
   log.info('Launcher', `FPA Version: ${FPA_VERSION}`);
 
-  state.socketServer.secret = content.secret;
+  state.socketServer.secret = 'flashpoint-launcher';
 
-  log.info('Launcher', `Starting Flashpoint Launcher ${state.versionStr}`);
+  log.info('Launcher', 'Starting Flashpoint Launcher');
 
   // Set SevenZip binary path
   {
@@ -1002,7 +997,7 @@ async function initialize() {
   registerInterceptor(new FPLNodeModuleFactory(
     await state.extensionsService.getExtensionPathIndex(),
     addExtLogFactory,
-    state.versionStr,
+    '',
     state,
   ),
   state.moduleInterceptor);

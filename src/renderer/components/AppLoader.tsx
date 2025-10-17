@@ -18,14 +18,13 @@ type AppLoaderProps = {
 
 const onInit = async (data: InitRendererData) => {
   // Store value(s)
-  window.Shared.version = data.version;
   window.Shared.isBackRemote = data.isBackRemote;
   window.Shared.backUrl = new URL(data.host);
   window.Shared.url = data.url;
   // Connect to the back
-  const socket = await SocketClient.connect(WebSocket, data.host, data.secret);
+  const socket = await SocketClient.connect(WebSocket, data.host, 'flashpoint-launcher');
   window.Shared.back.url = data.host;
-  window.Shared.back.secret = data.secret;
+  window.Shared.back.secret = 'flashpoint-launcher';
   window.Shared.back.setSocket(socket);
   registerHandlers();
 
@@ -121,8 +120,6 @@ export function AppLoader(props: AppLoaderProps) {
     // Set up window Shared struct
 
     window.Shared = {
-      version: createErrorProxy('version'),
-
       initialPreferences: createErrorProxy('initialPreferences'),
 
       config: createErrorProxy('config'),

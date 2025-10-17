@@ -45,8 +45,6 @@ export type BackState = {
   configFolder: string;
   exePath: string;
   localeCode: string;
-  version: string;
-  versionStr: string;
   suggestions: GamePropSuggestions;
   logFile: LogFile;
   customVersion?: string,

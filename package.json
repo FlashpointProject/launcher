@@ -10,11 +10,12 @@
   },
   "scripts": {
     "start": "electron ./build/main/index.js",
-    "start-logger": "electron ./build/main/index.js logger=true",
+    "start:web": "rsbuild dev",
     "build": "cross-env NODE_ENV=development gulp build",
     "build:prod": "gulp build",
     "watch": "cross-env NODE_ENV=development gulp watch",
     "watch:prod": "gulp watch",
+    "watch:web": "gulp watchStatic",
     "pack": "gulp pack",
     "snapshot": "cross-env-shell PACK_PLATFORM=win32 PACK_ARCH=x64 NODE_ENV=production \"npm run build && npm run pack\"",
     "test": "jest",

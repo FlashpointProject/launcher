@@ -43,6 +43,8 @@ export class FileServer {
     const region = parts.length > 1 ? parts[1].toLowerCase() : '';
     const pathname = decodeURIComponent(parts.length > 2 ? parts.slice(2).join('/') : '');
 
+    res.setHeader('Access-Control-Allow-Origin', '*');
+
     // Immediately slap on error handlers, see if we can find any disconnected errors
     req.on('error', (err) => {
       log.error('Launcher', `Generic fileserver request error: ${err}`);
@@ -68,11 +70,14 @@ export class FileServer {
 }
 
 export function serveFile(req: http.IncomingMessage, res: http.ServerResponse, filePath: string): void {
+  res.setHeader('Access-Control-Allow-Origin', '*');
   if (req.method === 'GET' || req.method === 'HEAD') {
-    req.on('error', (err) => {
+    req.on('error', (err: any) => {
       log.error('Launcher', `Error serving file - ${err}`);
-      res.writeHead(500);
-      res.end();
+      if (err.code !== 'ECONNRESET') {
+        res.writeHead(500);
+        res.end();
+      }
     });
     fs.stat(filePath, (error, stats) => {
       if (error || stats && !stats.isFile()) {

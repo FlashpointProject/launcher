@@ -282,7 +282,7 @@ export class SocketServer {
   protected onConnect(socket: ws): void {
     // Read the first message as a "secret key"
     socket.onmessage = (event) => {
-      if (event.data === this.secret) {
+      if (event.data === 'flashpoint-launcher') {
         const client = server_add_client(this.clients);
         client.socket = socket;
 

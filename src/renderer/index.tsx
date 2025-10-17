@@ -41,7 +41,13 @@ import { ProgressContext } from './context/ProgressContext';
     }
   });
 
-  const data: InitRendererData = window.electronAPI!.getInitData();
+  const data: InitRendererData = window.electronAPI ?
+    window.electronAPI.getInitData() :
+    {
+      isBackRemote: false,
+      installed: false,
+      host: 'ws://localhost:12001/'
+    };
 
   const container = document.getElementById('root')!;
   const root = createRoot(container);

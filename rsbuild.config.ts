@@ -19,6 +19,14 @@ export default defineConfig({
   dev: {
     assetPrefix: 'auto'
   },
+  server: {
+    base: '/flashpoint',
+    publicDir: {
+      name: './build/window',
+      copyOnBuild: false,
+      watch: true
+    }
+  },
   output: {
     target: 'web',
     assetPrefix: 'auto',

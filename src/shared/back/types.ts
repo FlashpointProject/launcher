@@ -578,16 +578,12 @@ export type BackResReturnTypes<T extends BackRes> = ReturnType<BackResTemplate[T
 export type BackInitArgs = {
   /** Path to the folder containing the preferences and config files. */
   configFolder: string;
-  /** Secret string used for authentication. */
-  secret: string;
   isDev: boolean;
   verbose: boolean;
   localeCode: string;
   exePath: string;
   /** If the back should accept remote clients to connect (renderers from different machines). */
   acceptRemote: boolean;
-  /** Semver of the launcher. */
-  version: string;
 }
 
 export enum BackInit {

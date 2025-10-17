@@ -20,9 +20,6 @@ export type DeepPartial<T> = {
 export type Subtract<T, U extends ObjectLike> = Pick<T, Exclude<keyof T, keyof U>>;
 
 export interface IMainWindowExternal {
-  /** Version of the current launcher build. */
-  version: number;
-
   /** URL the program was run with */
   url?: string;
 

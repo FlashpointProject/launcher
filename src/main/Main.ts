@@ -5,7 +5,6 @@ import { BackIn, BackInitArgs, BackOut } from '@shared/back/types';
 import { AppConfigData } from '@shared/config/interfaces';
 import { APP_TITLE } from '@shared/constants';
 import { ChildProcess, fork } from 'child_process';
-import { randomBytes } from 'crypto';
 import { BrowserWindow, IpcMainEvent, app, dialog, ipcMain, session, shell } from 'electron';
 import installExtension, { REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS } from 'electron-devtools-installer';
 import { AppPreferencesData } from 'flashpoint-launcher';
@@ -39,7 +38,6 @@ type MainState = {
   window?: BrowserWindow;
   _installed?: boolean;
   backHost: URL;
-  _secret: string;
   /** Version of the launcher (timestamp of when it was built). Negative value if not found or not yet loaded. */
   _version: number;
   preferences?: AppPreferencesData;
@@ -60,7 +58,6 @@ export function main(init: Init): void {
     window: undefined,
     _installed: undefined,
     backHost: init.args['connect-remote'] ? new URL('ws://'+init.args['connect-remote']) : new URL('ws://localhost'),
-    _secret: '',
     /** Version of the launcher (timestamp of when it was built). Negative value if not found or not yet loaded. */
     _version: -2,
     preferences: undefined,
@@ -217,19 +214,6 @@ export function main(init: Init): void {
     })
     .catch(() => { /** No file, ignore */ });
 
-    // Load or generate secret
-    const secretFilePath = path.join(state.mainFolderPath, 'secret.dat');
-    try {
-      state._secret = await fs.readFile(secretFilePath, { encoding: 'utf8' });
-    } catch (e) {
-      state._secret = randomBytes(2048).toString('hex');
-      try {
-        await fs.writeFile(secretFilePath, state._secret, { encoding: 'utf8' });
-      } catch (e) {
-        console.warn(`Failed to save new secret to disk.\n${e}`);
-      }
-    }
-
     // Start backend
     if (opts.backend) {
       await new Promise<void>((resolve, reject) => {
@@ -304,14 +288,12 @@ export function main(init: Init): void {
         // Send prep message
         const msg: BackInitArgs = {
           configFolder: state.mainFolderPath,
-          secret: state._secret,
           isDev: Util.isDev,
           verbose: !!init.args['verbose'],
           // On windows you have to wait for app to be ready before you call app.getLocale() (so it will be sent later)
           localeCode: localeCode,
           exePath: app.getPath('exe'),
           acceptRemote: !!init.args['host-remote'],
-          version: app.getVersion(), // @TODO Manually load this from the package.json file while in a dev environment (so it doesn't use Electron's version)
         };
         state.backProc.send(JSON.stringify(msg));
       })
@@ -333,7 +315,7 @@ export function main(init: Init): void {
           sock.onerror = noop;
           resolve(sock);
         };
-        sock.send(state._secret);
+        sock.send('flashpoint-launcher');
       };
     }), TIMEOUT_DELAY);
     state.socket.setSocket(ws);
@@ -503,9 +485,7 @@ export function main(init: Init): void {
     const data: InitRendererData = {
       isBackRemote: !!init.args['connect-remote'],
       installed: !!state._installed,
-      version: state._version,
       host: state.backHost.href,
-      secret: state._secret,
       url
     };
     event.returnValue = data;

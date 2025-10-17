@@ -430,6 +430,8 @@ exports.watch = series(
   )
 );
 
+exports.watchStatic = watchStatic;
+
 exports.pack = series(
   pack
 );
