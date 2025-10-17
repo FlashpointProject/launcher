@@ -155,7 +155,7 @@
   --layout__toggle-sidebar-fill:                   #cccccc;
   --layout__drop-down-content-background-selected: #1e90ff;
   /* Menu */
-  --layout__menu-background:     var(--layout__home-page-box-background);
+  --layout__menu-background:     var(--layout__secondary-background);
   --layout__menu-item-hover:     var(--layout__game-item-background-hover);
   --layout__menu-separator:      var(--layout__home-page-box-border);
   /* Flashpoint */

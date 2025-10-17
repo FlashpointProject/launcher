@@ -3,7 +3,7 @@ import { useAppSelector } from '@renderer/hooks/useAppSelector';
 import { calcScale } from '@shared/Util';
 import React, { createContext, useEffect, useRef, useState } from 'react';
 
-export const defaultMenuWidth = 220;
+export const defaultMenuWidth = 230;
 export const menuHeightMin = 14;
 export const menuHeightMax = 38;
 
