@@ -9,7 +9,7 @@ import * as child_process from 'child_process';
 import { AdditionalApp, AppPathOverride, DialogStateTemplate, Game, GameConfig, GameData, GameLaunchInfo, GameLaunchOverride, LangContainer, LaunchInfo, ManagedChildProcess, Platform } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as minimist from 'minimist';
-import * as path from 'path';
+import * as path from 'node:path';
 import { extractFullPromise, fpDatabase } from '.';
 import { ApiEmitterFirable } from './extensions/ApiEmitter';
 import { BackState, OpenExternalFunc, ShowMessageBoxFunc } from './types';

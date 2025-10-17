@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 import axios from 'axios';
 import arch from 'arch';
 import { AssetFile } from './types';

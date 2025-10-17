@@ -5,8 +5,7 @@
 //
 // See
 //  https://github.com/kelektiv/node-uuid/issues/189
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const guid = require('uuid/v4') as (options?: { random?: Buffer }) => string;
+import * as guid from 'uuid/v4';
 
 /**
  * Fills a buffer with the required number of random bytes.
@@ -33,7 +32,7 @@ function getRandomBytes(count: number): Buffer {
  * Node.JS.
  */
 export function uuid() {
-  return guid({ random: getRandomBytes(16) });
+  return (guid as any as (options?: { random?: Buffer }) => string)({ random: getRandomBytes(16) });
 }
 
 /**

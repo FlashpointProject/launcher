@@ -1,7 +1,7 @@
 import { BackOut } from '@shared/back/types';
 import { parseThemeMetaData, Theme, themeEntryFilename, ThemeMeta } from '@shared/ThemeFile';
 import * as fs from 'fs-extra';
-import * as path from 'path';
+import * as path from 'node:path';
 import { Registry } from './extensions/types';
 import { SocketServer } from './SocketServer';
 import { ThemeState } from './types';

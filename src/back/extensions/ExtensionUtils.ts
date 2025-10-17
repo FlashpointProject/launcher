@@ -1,7 +1,7 @@
 import { IExtension, IExtensionManifest } from '@shared/extensions/interfaces';
 import { LogFunc } from '@shared/interfaces';
 import { ILogEntry } from 'flashpoint-launcher';
-import * as path from 'path';
+import * as path from 'node:path';
 import { ExtensionLogFunc } from './types';
 
 export function extensionString(ext: IExtension): string {

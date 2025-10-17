@@ -55,7 +55,7 @@ import * as fs_extra from 'fs-extra';
 import { snakeCase, transform } from 'lodash';
 import { add, Progress } from 'node-7z';
 import * as os from 'os';
-import * as path from 'path';
+import * as path from 'node:path';
 import * as url from 'url';
 import * as util from 'util';
 import * as YAML from 'yaml';
@@ -361,6 +361,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     return {
       preferences: state.preferences,
       config: state.config,
+      fullFlashpointPath: path.resolve(state.config.flashpointPath),
       fileServerPort: state.fileServerPort,
       log: state.log,
       customVersion: state.customVersion,

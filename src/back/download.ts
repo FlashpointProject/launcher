@@ -1,8 +1,8 @@
 import { PartialGameData } from '@fparchive/flashpoint-archive';
 import { DownloadDetails } from '@shared/back/types';
 import { GameData } from 'flashpoint-launcher';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { fpDatabase } from '.';
 import { BackState } from './types';
 import { EventQueue } from './util/EventQueue';

@@ -4,17 +4,17 @@ import { SocketClient } from '@shared/back/SocketClient';
 import { BackIn, BackInitArgs, BackOut } from '@shared/back/types';
 import { AppConfigData } from '@shared/config/interfaces';
 import { APP_TITLE } from '@shared/constants';
-import { CustomIPC, WindowIPC } from '@shared/interfaces';
 import { ChildProcess, fork } from 'child_process';
 import { randomBytes } from 'crypto';
 import { BrowserWindow, IpcMainEvent, app, dialog, ipcMain, session, shell } from 'electron';
 import installExtension, { REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS } from 'electron-devtools-installer';
 import { AppPreferencesData } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
-import * as path from 'path';
+import * as path from 'node:path';
 import { argv } from 'process';
 import * as WebSocket from 'ws';
 import * as Util from './Util';
+import { CustomIPC, WindowIPC } from './constants';
 import { Init } from './types';
 
 const TIMEOUT_DELAY = 60_000;
@@ -143,8 +143,8 @@ export function main(init: Init): void {
     ipcMain.on(CustomIPC.OPEN_EXTERNAL, (event, url, opts) => {
       shell.openExternal(url, opts);
     });
-    ipcMain.on(CustomIPC.SHOW_FILE_IN_FOLDER, (event, path) => {
-      shell.showItemInFolder(path);
+    ipcMain.on(CustomIPC.SHOW_FILE_IN_FOLDER, (event, filePath) => {
+      shell.showItemInFolder(path.normalize(filePath));
     });
     ipcMain.handle(CustomIPC.SELECT_FOLDER, (event, opts) => {
       return dialog.showOpenDialogSync(opts);
@@ -534,8 +534,8 @@ export function main(init: Init): void {
       icon: path.join(__dirname, '../window/images/icon.png'),
       webPreferences: {
         preload: path.resolve(__dirname, './MainWindowPreload.js'),
-        nodeIntegration: true,
-        contextIsolation: false,
+        nodeIntegration: false,
+        contextIsolation: true,
       },
     });
     // Enable crash reporter

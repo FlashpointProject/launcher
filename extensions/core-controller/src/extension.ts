@@ -1,6 +1,6 @@
 import * as flashpoint from 'flashpoint-launcher';
-import * as path from 'path';
-import * as fs from 'fs';
+import * as path from 'node:path';
+import * as fs from 'node:fs';
 import { XMLParser } from 'fast-xml-parser';
 import { ControllerSet, ControllerStick, ControllerTrigger, readableInputs } from './shared';
 import { isArray } from 'lodash';

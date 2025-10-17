@@ -1,8 +1,8 @@
 import { CURATION_META_FILENAMES } from '@shared/constants';
 import { CurationMeta, PlatformAppPathSuggestions } from '@shared/curate/types';
 import { stripBOM } from '@shared/Util';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import * as YAML from 'yaml';
 import { parseCurationMetaFile, parseCurationMetaOld, ParsedCurationMeta } from './parse';
 import { fpDatabase } from '..';

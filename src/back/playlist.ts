@@ -3,12 +3,12 @@ import { deepCopy } from '@shared/Util';
 import { sanitizeFilename } from '@shared/utils/sanitizeFilename';
 import { formatString } from '@shared/utils/StringFormatter';
 import { Playlist, PlaylistGame } from 'flashpoint-launcher';
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 import { PlaylistFile } from './PlaylistFile';
 import { MsgEvent } from './SocketServer';
 import { BackState } from './types';
 import { uuid } from './util/uuid';
-import * as path from 'path';
+import * as path from 'node:path';
 import { awaitDialog } from './util/dialog';
 import { onDidUpdatePlaylist } from './util/events';
 

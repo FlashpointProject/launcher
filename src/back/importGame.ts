@@ -12,7 +12,7 @@ import { execFile } from 'child_process';
 import * as crypto from 'crypto';
 import { AdditionalApp, Game, GameLaunchInfo, LoadedCuration, Platform, Tag, TagCategory } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
-import * as path from 'path';
+import * as path from 'node:path';
 import * as YAML from 'yaml';
 import { addPromise, fpDatabase } from '.';
 import { GameLauncher, LaunchAddAppOpts, LaunchGameOpts, checkAndInstallPlatform } from './GameLauncher';

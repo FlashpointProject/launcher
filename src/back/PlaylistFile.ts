@@ -1,7 +1,7 @@
 import { deepCopy, readJsonFile, readJsonFileSync, stringifyJsonDataFile } from '@shared/Util';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import { Playlist, PlaylistGame } from 'flashpoint-launcher';
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 import { uuid } from './util/uuid';
 import { str } from '@shared/utils/Coerce';
 

@@ -17,7 +17,7 @@ import * as child_process from 'child_process';
 import { AdditionalApp, Game, LangContainer, Tag } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as os from 'os';
-import * as path from 'path';
+import * as path from 'node:path';
 import * as kill from 'tree-kill';
 import { promisify } from 'util';
 import { uuid } from './uuid';

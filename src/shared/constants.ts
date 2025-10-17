@@ -1,4 +1,4 @@
-import * as path from 'path';
+import * as path from 'node:path';
 
 /** Title of the main window. */
 export const APP_TITLE = 'Flashpoint Launcher';

@@ -6,7 +6,7 @@ import { Contributions, ExtensionContribution, IExtension } from '../../shared/e
 import { scanExtensions, scanSystemExtensions } from './ExtensionsScanner';
 import { getExtensionEntry, newExtLog } from './ExtensionUtils';
 import { ExtensionContext, ExtensionData, ExtensionModule } from './types';
-import * as path from 'path';
+import * as path from 'node:path';
 import { ILogEntry } from 'flashpoint-launcher';
 
 export class ExtensionService {

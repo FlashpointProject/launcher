@@ -6,7 +6,7 @@ import { getFileServerURL } from '@shared/Util';
 import { getGameDataFilename } from '@shared/utils/misc';
 import _axios from 'axios';
 import { Game, Playlist, TagFilterGroup } from 'flashpoint-launcher';
-import * as path from 'path';
+import * as path from 'node:path';
 import { GameGridItem } from './components/GameGridItem';
 import { GameListItem } from './components/GameListItem';
 import { GameOrderChangeEvent } from './components/GameOrder';

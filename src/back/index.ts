@@ -21,7 +21,7 @@ import * as http from 'http';
 import * as mime from 'mime';
 import { Progress, add, extractFull } from 'node-7z';
 import * as os from 'os';
-import * as path from 'path';
+import * as path from 'node:path';
 import 'reflect-metadata';
 import { genCurationWarnings, loadCurationFolder } from './curate/util';
 // Required for the DB Models to function

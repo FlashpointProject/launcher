@@ -1,7 +1,7 @@
 import { copyFolder as cf, genContentTree as gct } from '@fparchive/flashpoint-archive';
 import { ContentTree } from '@shared/curate/types';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 export async function genContentTree(folder: string): Promise<ContentTree> {
   try {

@@ -2,7 +2,7 @@ import { Game } from '@fparchive/flashpoint-archive';
 import { downloadGameData } from './download';
 import { fpDatabase } from '.';
 import * as fs from 'fs-extra';
-import * as path from 'path';
+import * as path from 'node:path';
 import { DownloaderStatus, DownloadTask, DownloadTaskStatus, DownloadWorkerState, GameDataSource } from 'flashpoint-launcher';
 import { axios } from './dns';
 import { BackState } from './types';

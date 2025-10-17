@@ -522,6 +522,7 @@ body {
   font-size: 0.75em;
   padding: var(--header-padding);
   padding-bottom: 0.4em;
+  width: 100%;
 }
 .header__wrap {
   min-height: 2rem;

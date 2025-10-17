@@ -1,7 +1,7 @@
 import * as http from 'http';
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 import * as mime from 'mime';
-import * as path from 'path';
+import * as path from 'node:path';
 import { Socket } from 'net';
 
 type HandlerFunc = (relativePathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse) => any;

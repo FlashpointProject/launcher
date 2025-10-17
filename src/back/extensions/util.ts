@@ -1,7 +1,7 @@
 import { BackState } from '@back/types';
 import { fixSlashes } from '@shared/Util';
 import { parseVariableString } from '@shared/utils/VariableString';
-import * as path from 'path';
+import * as path from 'node:path';
 
 export async function parseAppVar(extId: string, appPath: string, launchCommand: string, state: BackState) {
   const ext = await state.extensionsService.getExtension(extId);

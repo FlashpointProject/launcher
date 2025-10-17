@@ -1,7 +1,7 @@
 import { Tag, TagFilterGroup } from 'flashpoint-launcher';
 import { databaseReady } from '.';
 import { BackState } from './types';
-import * as path from 'path';
+import * as path from 'node:path';
 import * as fs from 'fs-extra';
 import { readJsonFile } from '@shared/Util';
 

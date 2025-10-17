@@ -2,9 +2,9 @@ import { DownloadDetails } from '@shared/back/types';
 import { downloadFile } from '@shared/Util';
 import { getGameDataFilename } from '@shared/utils/misc';
 import { GameData, GameDataProvider, GameDataSource } from 'flashpoint-launcher';
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 import * as crypto from 'node:crypto';
-import * as path from 'path';
+import * as path from 'node:path';
 import { axios } from './dns';
 import { importGameDataSkipHash } from './download';
 

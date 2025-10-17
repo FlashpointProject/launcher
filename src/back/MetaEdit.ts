@@ -3,8 +3,8 @@ import { ChangedMeta, MetaChange, MetaChangeBase, MetaEditFile, MetaEditMeta, Me
 import { readJsonFile, shallowStrictEquals } from '@shared/Util';
 import * as Coerce from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { BackState, ShowMessageBoxFunc } from './types';
 import { awaitDialog } from './util/dialog';
 import { copyError } from './util/misc';

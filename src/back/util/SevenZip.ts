@@ -1,4 +1,4 @@
-import * as path from 'path';
+import * as path from 'node:path';
 
 function get7zExec(isDev: boolean, exePath: string): string {
   const basePath = isDev ? process.cwd() : path.dirname(exePath);

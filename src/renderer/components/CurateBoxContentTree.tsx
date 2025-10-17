@@ -6,7 +6,7 @@ import { LangContext } from '@renderer/util/lang';
 import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
 import { genFlatContentTree, sizeToString } from '@shared/Util';
 import { ContentTree, FlatContentTreeNode } from 'flashpoint-launcher';
-import * as path from 'path';
+import * as path from 'node:path';
 import React, { useContext } from 'react';
 import { AutoSizer, List, ListRowProps } from 'react-virtualized';
 import { MenuItemType } from './Menu';
@@ -45,7 +45,6 @@ export function CurateBoxContentTree(props: CurateBoxContentTreeProps) {
       type: 'separator'
     }];
     const fullPath = path.join(window.Shared.config.fullFlashpointPath, CURATIONS_FOLDER_WORKING, folder, 'content', node.tree.join(path.sep));
-    console.log(fullPath);
     if (window.electronAPI !== undefined) {
       if (node.nodeType === 'file') {
         contextButtons.push({

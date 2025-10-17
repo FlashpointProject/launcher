@@ -8,11 +8,10 @@ import { WithViewProps } from '@renderer/containers/withView';
 import { getPointer, MenuContextStateProps } from '@renderer/context/MenuContext';
 import { createNewDialog, resolveNewDialog } from '@renderer/dialog';
 import { RANDOM_GAME_ROW_COUNT } from '@renderer/store/main/slice';
-import { WithShortcutProps } from '@renderer/store/reactKeybindCompat';
 import * as extUtils from '@renderer/util/ext';
 import { BackIn, BackInit, BackOut, FpfssUser } from '@shared/back/types';
 import { APP_TITLE } from '@shared/constants';
-import { IService, ProcessState, WindowIPC } from '@shared/interfaces';
+import { IService, ProcessState } from '@shared/interfaces';
 import { memoizeOne } from '@shared/memoize';
 import { Paths } from '@shared/Paths';
 import { setTheme } from '@shared/Theme';
@@ -35,7 +34,7 @@ import {
   Playlist,
   PlaylistGame
 } from 'flashpoint-launcher';
-import * as path from 'path';
+import * as path from 'node:path';
 import * as React from 'react';
 import { Activity } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -69,6 +68,7 @@ import { SimpleButton } from './SimpleButton';
 import { SplashScreen } from './SplashScreen';
 import { TaskBar } from './TaskBar';
 import { TitleBar } from './TitleBar';
+import { WithShortcutProps } from '@renderer/store/reactKeybindCompat';
 
 // Hide the right sidebar if the page is inside these paths
 const hiddenRightSidebarPages = [Paths.ABOUT, Paths.CURATE, Paths.CONFIG, Paths.MANUAL, Paths.LOGS, Paths.TAGS, Paths.CATEGORIES, Paths.DOWNLOADS];
@@ -262,36 +262,36 @@ export class App extends React.Component<AppProps> {
       }
     };
     if (window.electronAPI !== undefined) {
-      // Listen for the window to move or resize (and update the preferences when it does)
-      window.electronAPI.ipcRenderer.on(WindowIPC.WINDOW_MOVE, debounce((sender, x: number, y: number, isMaximized: boolean) => {
-        if (!isMaximized) {
-          this.props.updatePreferences({ mainWindow: { x: x | 0, y: y | 0 } });
-        }
-      }, 100));
-      window.electronAPI.ipcRenderer.on(WindowIPC.WINDOW_RESIZE, debounce((sender, width: number, height: number, isMaximized: boolean) => {
-        if (!isMaximized) {
-          // Cap minimum size
-          if (width < 200) {
-            width = 200;
-          }
-          if (height < 200) {
-            height = 200;
-          }
-          this.props.updatePreferences({ mainWindow: { width: width | 0, height: height | 0 } });
-        }
-      }, 100));
-      window.electronAPI.ipcRenderer.on(WindowIPC.WINDOW_MAXIMIZE, (sender, isMaximized: boolean) => {
-        this.props.updatePreferences({ mainWindow: { maximized: isMaximized } });
-      });
-      window.electronAPI.ipcRenderer.on(WindowIPC.PROTOCOL, (sender, url: string) => {
-        handleProtocol(url);
-      });
-      // Displays main proc output
-      window.electronAPI.ipcRenderer.on(WindowIPC.MAIN_OUTPUT, (sender, output: string) => {
-        this.props.setMainState({
-          mainOutput: output
-        });
-      });
+      // // Listen for the window to move or resize (and update the preferences when it does)
+      // window.electronAPI.ipcRenderer.on('window-move', debounce((sender, x: number, y: number, isMaximized: boolean) => {
+      //   if (!isMaximized) {
+      //     this.props.updatePreferences({ mainWindow: { x: x | 0, y: y | 0 } });
+      //   }
+      // }, 100));
+      // window.electronAPI.ipcRenderer.on('window-resize', debounce((sender, width: number, height: number, isMaximized: boolean) => {
+      //   if (!isMaximized) {
+      //     // Cap minimum size
+      //     if (width < 200) {
+      //       width = 200;
+      //     }
+      //     if (height < 200) {
+      //       height = 200;
+      //     }
+      //     this.props.updatePreferences({ mainWindow: { width: width | 0, height: height | 0 } });
+      //   }
+      // }, 100));
+      // window.electronAPI.ipcRenderer.on('window-maximize', (sender, isMaximized: boolean) => {
+      //   this.props.updatePreferences({ mainWindow: { maximized: isMaximized } });
+      // });
+      // window.electronAPI.ipcRenderer.on('protocol', (sender, url: string) => {
+      //   handleProtocol(url);
+      // });
+      // // Displays main proc output
+      // window.electronAPI.ipcRenderer.on('main-output', (sender, output: string) => {
+      //   this.props.setMainState({
+      //     mainOutput: output
+      //   });
+      // });
     }
 
     // if (window.Shared.url) {
@@ -326,11 +326,11 @@ export class App extends React.Component<AppProps> {
 
       window.Shared.back.request(BackIn.GET_RENDERER_LOADED_DATA)
       .then(data => {
-        for (const entry of Object.entries(data.shortcuts)) {
-          const command = entry[0];
-          const shortcuts = entry[1];
-          this.registerShortcut(command, shortcuts);
-        }
+        // for (const entry of Object.entries(data.shortcuts)) {
+        //   const command = entry[0];
+        //   const shortcuts = entry[1];
+        //   this.registerShortcut(command, shortcuts);
+        // }
         this.props.setMainState(data);
         if (this.props.preferencesData.useCustomViews) {
           const customViews = this.props.preferencesData.customViews;

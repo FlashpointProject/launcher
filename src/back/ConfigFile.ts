@@ -1,7 +1,7 @@
 import { AppConfigData } from '@shared/config/interfaces';
 import { getDefaultConfigData, overwriteConfigData } from '@shared/config/util';
 import { deepCopy, readJsonFile, readJsonFileSync, stringifyJsonDataFile } from '@shared/Util';
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 
 export namespace ConfigFile {
   export function readFile(filePath: string, onError?: (error: string) => void): Promise<AppConfigData> {

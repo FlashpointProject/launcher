@@ -6,7 +6,7 @@ import { deepCopy } from '@shared/Util';
 import { AppPreferencesData } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as os from 'os';
-import * as path from 'path';
+import * as path from 'node:path';
 import uuid = require('uuid');
 
 const testFolder = path.join(os.tmpdir(), 'fp-tests-' + uuid());

@@ -2,8 +2,8 @@ import { FPFSS_INFO_FILENAME } from '@shared/curate/fpfss';
 import { str } from '@shared/utils/Coerce';
 import { ObjectParser } from '@shared/utils/ObjectParser';
 import { CurationFpfssInfo } from 'flashpoint-launcher';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 export async function getCurationFpfssInfo(folder: string): Promise<CurationFpfssInfo | null> {
   return fs.promises.readFile(path.join(folder, FPFSS_INFO_FILENAME), { encoding: 'utf-8' })

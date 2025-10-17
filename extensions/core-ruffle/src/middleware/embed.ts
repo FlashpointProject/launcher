@@ -3,7 +3,7 @@ import * as flashpoint from 'flashpoint-launcher';
 import { ConfigSchema, Game, GameLaunchInfo, GameMiddlewareConfig, GameMiddlewareDefaultConfig, IGameMiddleware } from 'flashpoint-launcher';
 import { Readable } from 'stream';
 import { buildBasicTemplate } from '../template/basic';
-import * as path from 'path';
+import * as path from 'node:path';
 
 // Config Schema used to configure the middleware per game
 const schema: ConfigSchema = [

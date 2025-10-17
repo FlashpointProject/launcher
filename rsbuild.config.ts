@@ -1,14 +1,11 @@
 import { defineConfig } from '@rsbuild/core';
 import { pluginReact } from '@rsbuild/plugin-react';
 import { pluginBabel } from '@rsbuild/plugin-babel';
-import { builtinModules } from 'node:module';
+import { pluginNodePolyfill } from '@rsbuild/plugin-node-polyfill';
 
 const externals = {
   'electron': 'commonjs electron'
 };
-for (const module of builtinModules) {
-  externals[module] = 'commonjs ' + module;
-}
 
 export default defineConfig({
   source: {
@@ -36,6 +33,7 @@ export default defineConfig({
   },
   plugins: [
     pluginReact(),
+    pluginNodePolyfill(),
     pluginBabel({
       include: /\.(?:jsx|tsx)$/,
       babelLoaderOptions(opts) {

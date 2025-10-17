@@ -9,11 +9,11 @@ import { BackIn } from '@shared/back/types';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
 import { eventResponseDebouncerFactory } from '@shared/eventResponseDebouncer';
 import { ExtensionContribution } from '@shared/extensions/interfaces';
-import { CustomIPC, Task } from '@shared/interfaces';
+import { Task } from '@shared/interfaces';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
 import { AppPreferencesData, CurationState, GameLaunchOverride, TagSuggestion } from 'flashpoint-launcher';
-import * as path from 'path';
+import * as path from 'node:path';
 import * as React from 'react';
 import { useShortcut } from 'react-keybind';
 import { useDispatch } from 'react-redux';
@@ -100,18 +100,18 @@ export function CuratePage(props: CuratePageProps) {
   const onLoadCuration = React.useCallback(() => {
     // Generate task
     if (window.electronAPI !== undefined) {
-      window.Electron.ipcRenderer.invoke(CustomIPC.SHOW_OPEN_DIALOG, {
-        title: strings.dialog.selectCurationArchive,
-        properties: [ 'multiSelections' ],
-      })
-      .then(value => {
-        const filePaths = value.filePaths;
-        if (filePaths.length > 0) {
-          const newTask = newCurateTask(`Loading ${filePaths.length} Archives`, 'Loading...');
-          dispatch(addTask(newTask));
-          window.Shared.back.send(BackIn.CURATE_LOAD_ARCHIVES, filePaths, newTask.id);
-        }
-      });
+      // window.Electron.ipcRenderer.invoke('show-open-dialog', {
+      //   title: strings.dialog.selectCurationArchive,
+      //   properties: [ 'multiSelections' ],
+      // })
+      // .then(value => {
+      //   const filePaths = value.filePaths;
+      //   if (filePaths.length > 0) {
+      //     const newTask = newCurateTask(`Loading ${filePaths.length} Archives`, 'Loading...');
+      //     dispatch(addTask(newTask));
+      //     window.Shared.back.send(BackIn.CURATE_LOAD_ARCHIVES, filePaths, newTask.id);
+      //   }
+      // });
     }
 
   }, [dispatch, strings.dialog.selectCurationArchive]);

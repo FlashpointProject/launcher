@@ -651,6 +651,7 @@ export type GetRendererLoadedDataResponse = {
 
 export type GetRendererInitDataResponse = {
   config: AppConfigData;
+  fullFlashpointPath: string;
   preferences: AppPreferencesData;
   fileServerPort: number;
   log: ILogEntry[];

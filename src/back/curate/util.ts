@@ -13,7 +13,7 @@ import { AddAppCuration, CurationFpfssInfo, CurationState, CurationWarnings, Lan
 import * as fs from 'fs-extra';
 import * as http from 'http';
 import { Progress } from 'node-7z';
-import * as path from 'path';
+import * as path from 'node:path';
 import { checkAndDownloadGameData, extractFullPromise, fpDatabase } from '..';
 import { getCurationFpfssInfo } from './fpfss';
 import { loadCurationIndexImage } from './parse';

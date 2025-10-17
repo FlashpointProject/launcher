@@ -1,6 +1,6 @@
 import * as flashpoint from 'flashpoint-launcher';
-import * as path from 'path';
-import * as fs from 'fs';
+import * as path from 'node:path';
+import * as fs from 'node:fs';
 import { downloadFile, getGithubAsset, getPlatformRegex } from './util';
 import { AssetFile } from './types';
 import { RuffleStandaloneMiddleware } from './middleware/standalone';
