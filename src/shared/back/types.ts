@@ -206,6 +206,7 @@ export enum BackIn {
   CLEAR_PLAYTIME_TRACKING_BY_ID,
   KEEP_ALIVE,
   PREP_RELOAD_WINDOW,
+  IS_FLASHPOINT_PATH_VALID,
 
   // Dialogs
   DIALOG_RESPONSE,
@@ -461,6 +462,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.CLEAR_PLAYTIME_TRACKING_BY_ID]: (gameId: string) => Promise<void>;
   [BackIn.KEEP_ALIVE]: () => void;
   [BackIn.PREP_RELOAD_WINDOW]: () => void;
+  [BackIn.IS_FLASHPOINT_PATH_VALID]: (path: string) => boolean;
 
   // Downloader
   [BackIn.DOWNLOADER_SET_STATUS]: (status: DownloaderStatus) => void;

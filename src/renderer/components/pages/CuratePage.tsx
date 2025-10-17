@@ -12,7 +12,6 @@ import { ExtensionContribution } from '@shared/extensions/interfaces';
 import { CustomIPC, Task } from '@shared/interfaces';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
-import { ipcRenderer } from 'electron';
 import { AppPreferencesData, CurationState, GameLaunchOverride, TagSuggestion } from 'flashpoint-launcher';
 import * as path from 'path';
 import * as React from 'react';
@@ -100,18 +99,21 @@ export function CuratePage(props: CuratePageProps) {
 
   const onLoadCuration = React.useCallback(() => {
     // Generate task
-    ipcRenderer.invoke(CustomIPC.SHOW_OPEN_DIALOG, {
-      title: strings.dialog.selectCurationArchive,
-      properties: [ 'multiSelections' ],
-    })
-    .then(value => {
-      const filePaths = value.filePaths;
-      if (filePaths.length > 0) {
-        const newTask = newCurateTask(`Loading ${filePaths.length} Archives`, 'Loading...');
-        dispatch(addTask(newTask));
-        window.Shared.back.send(BackIn.CURATE_LOAD_ARCHIVES, filePaths, newTask.id);
-      }
-    });
+    if (window.electronAPI !== undefined) {
+      window.Electron.ipcRenderer.invoke(CustomIPC.SHOW_OPEN_DIALOG, {
+        title: strings.dialog.selectCurationArchive,
+        properties: [ 'multiSelections' ],
+      })
+      .then(value => {
+        const filePaths = value.filePaths;
+        if (filePaths.length > 0) {
+          const newTask = newCurateTask(`Loading ${filePaths.length} Archives`, 'Loading...');
+          dispatch(addTask(newTask));
+          window.Shared.back.send(BackIn.CURATE_LOAD_ARCHIVES, filePaths, newTask.id);
+        }
+      });
+    }
+
   }, [dispatch, strings.dialog.selectCurationArchive]);
 
   const onNewCuration = (meta?: EditCurationMeta) => {

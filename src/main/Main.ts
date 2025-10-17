@@ -1,4 +1,3 @@
-import * as remoteMain from '@electron/remote/main';
 import { InitRendererChannel, InitRendererData } from '@shared/IPC';
 import { createErrorProxy } from '@shared/Util';
 import { SocketClient } from '@shared/back/SocketClient';
@@ -9,6 +8,7 @@ import { CustomIPC, WindowIPC } from '@shared/interfaces';
 import { ChildProcess, fork } from 'child_process';
 import { randomBytes } from 'crypto';
 import { BrowserWindow, IpcMainEvent, app, dialog, ipcMain, session, shell } from 'electron';
+import installExtension, { REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS } from 'electron-devtools-installer';
 import { AppPreferencesData } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as path from 'path';
@@ -16,7 +16,6 @@ import { argv } from 'process';
 import * as WebSocket from 'ws';
 import * as Util from './Util';
 import { Init } from './types';
-import installExtension, { REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS } from 'electron-devtools-installer';
 
 const TIMEOUT_DELAY = 60_000;
 
@@ -138,10 +137,47 @@ export function main(init: Init): void {
     ipcMain.handle(CustomIPC.SHOW_SAVE_DIALOG, async (event, opts) => {
       return dialog.showSaveDialog(opts);
     });
+    ipcMain.handle(CustomIPC.FILE_EXISTS, async (event, path) => {
+      return fs.existsSync(path);
+    });
+    ipcMain.on(CustomIPC.OPEN_EXTERNAL, (event, url, opts) => {
+      shell.openExternal(url, opts);
+    });
+    ipcMain.on(CustomIPC.SHOW_FILE_IN_FOLDER, (event, path) => {
+      shell.showItemInFolder(path);
+    });
+    ipcMain.handle(CustomIPC.SELECT_FOLDER, (event, opts) => {
+      return dialog.showOpenDialogSync(opts);
+    });
+    ipcMain.on(CustomIPC.TOGGLE_DEVTOOLS, (event) => {
+      if (state.window) {
+        state.window.webContents.toggleDevTools();
+      }
+    });
+    ipcMain.on(WindowIPC.WINDOW_MINIMIZE, () => {
+      if (state.window) {
+        state.window.minimize();
+      }
+    });
+    ipcMain.on(WindowIPC.WINDOW_MAXIMIZE, () => {
+      if (state.window) {
+        if (state.window.isMaximized()) {
+          state.window.unmaximize();
+        } else {
+          state.window.maximize();
+        }
+      }
+    });
+    ipcMain.on(WindowIPC.WINDOW_CLOSE, () => {
+      if (state.window) {
+        state.window.webContents.closeDevTools();
+        state.window.close();
+      }
+    });
     ipcMain.handle(CustomIPC.REGISTER_PROTOCOL, async (event, register) => {
       return setProtocolRegistrationState(register);
     });
-    ipcMain.handle(CustomIPC.RELOAD_WINDOW, async (event) => {
+    ipcMain.on(CustomIPC.RELOAD_WINDOW, async (event) => {
       // Tell back to ignore exit call for 1000ms
       state.socket.request(BackIn.PREP_RELOAD_WINDOW)
       .then(() => {
@@ -152,6 +188,12 @@ export function main(init: Init): void {
           state.window.close();
         }
       });
+    });
+    ipcMain.on(WindowIPC.PROTOCOL, async (event) => {
+      const url = argv.find((arg) => arg.startsWith('flashpoint://'));
+      if (state.window?.webContents) {
+        state.window.webContents.send(WindowIPC.PROTOCOL, url);
+      }
     });
 
     // Add Socket event listener(s)
@@ -496,7 +538,6 @@ export function main(init: Init): void {
         contextIsolation: false,
       },
     });
-    remoteMain.enable(window.webContents);
     // Enable crash reporter
     ipcMain.on(WindowIPC.MAIN_OUTPUT, () => {
       window.webContents.send(WindowIPC.MAIN_OUTPUT, state.output);

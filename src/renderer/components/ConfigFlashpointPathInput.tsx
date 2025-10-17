@@ -28,9 +28,9 @@ export function ConfigFlashpointPathInput(props: ConfigFlashpointPathInputProps)
     }
   };
 
-  const onBrowseClick = () => {
+  const onBrowseClick = async () => {
     // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
-    const filePaths = window.Shared.showOpenDialogSync({
+    const filePaths = await window.electronAPI?.showOpenDialog({
       title: 'Select the FlashPoint root directory',
       properties: ['openDirectory'],
     });

@@ -1,21 +1,10 @@
-import * as remoteMain from '@electron/remote/main';
 import * as Coerce from '@shared/utils/Coerce';
-import { startBrowserMode } from './BrowserMode';
-import { startLogger } from './LogsWindow';
 import { main } from './Main';
 import { Init } from './types';
 
-remoteMain.initialize();
-
 const init = getArgs();
 
-if (init.args['logger']) {
-  startLogger(init);
-} else if (init.args['browser_mode']) {
-  startBrowserMode(init);
-} else {
-  main(init);
-}
+main(init);
 
 function getArgs(): Init {
   const init: Init = {

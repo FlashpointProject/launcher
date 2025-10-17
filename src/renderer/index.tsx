@@ -1,12 +1,9 @@
-import * as remote from '@electron/remote';
 import { MDXProvider } from '@mdx-js/react';
 import { MergeComponents } from '@mdx-js/react/lib';
 import { init } from '@module-federation/enhanced/runtime';
 import store from '@renderer/store/store';
 import { BackIn } from '@shared/back/types';
-import { CustomIPC } from '@shared/interfaces';
 import { LogLevel } from '@shared/Log/interface';
-import { MessageBoxSyncOptions, ipcRenderer } from 'electron';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { createRoot } from 'react-dom/client';
@@ -15,10 +12,10 @@ import { Provider } from 'react-redux';
 import { HashRouter } from 'react-router-dom';
 import ConnectedApp from './containers/ConnectedApp';
 import { ContextReducerProvider } from './context-reducer/ContextReducerProvider';
+import { MenuProvider } from './context/MenuContext';
 import { ProgressContext } from './context/ProgressContext';
 import { updatePreferences } from './store/preferences/slice';
 import { logFactory } from './util/logging';
-import { MenuProvider } from './context/MenuContext';
 
 (async () => {
   init({
@@ -46,18 +43,6 @@ import { MenuProvider } from './context/MenuContext';
     }
   });
 
-  // Replace alert function with a dialog
-  globalThis.alert = function (str) {
-    const options: MessageBoxSyncOptions = {
-      type: 'warning',
-      buttons: ['Ok'],
-      defaultId: 0,
-      cancelId: 0,
-      detail: str,
-      message: ''
-    };
-    remote.dialog.showMessageBoxSync(options);
-  };
   window.log = {
     trace: logFactory(LogLevel.TRACE, window.Shared.back),
     debug: logFactory(LogLevel.DEBUG, window.Shared.back),
@@ -65,20 +50,22 @@ import { MenuProvider } from './context/MenuContext';
     warn: logFactory(LogLevel.WARN, window.Shared.back),
     error: logFactory(LogLevel.ERROR, window.Shared.back)
   };
-  // Toggle DevTools when CTRL+SHIFT+I is pressed
-  window.addEventListener('keypress', (event) => {
-    if (event.ctrlKey && event.shiftKey && event.code === 'KeyI') {
-      window.Shared.toggleDevtools();
-      event.preventDefault();
-    }
-  });
-  // Reload window with CTRL+SHIFT+R
-  window.addEventListener('keypress', (event) => {
-    if (event.ctrlKey && event.shiftKey && event.code === 'KeyR') {
-      ipcRenderer.invoke(CustomIPC.RELOAD_WINDOW);
-      event.preventDefault();
-    }
-  });
+  if (window.electronAPI !== undefined) {
+    // Toggle DevTools when CTRL+SHIFT+I is pressed
+    window.addEventListener('keypress', (event) => {
+      if (event.ctrlKey && event.shiftKey && event.code === 'KeyI') {
+        window.electronAPI?.toggleDevTools();
+        event.preventDefault();
+      }
+    });
+    // Reload window with CTRL+SHIFT+R
+    window.addEventListener('keypress', (event) => {
+      if (event.ctrlKey && event.shiftKey && event.code === 'KeyR') {
+        window.electronAPI?.restart();
+        event.preventDefault();
+      }
+    });
+  }
 
   // Wait for the preferences and config to initialize
   await window.Shared.waitUntilInitialized();

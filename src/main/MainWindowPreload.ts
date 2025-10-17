@@ -1,4 +1,3 @@
-import * as remote from '@electron/remote';
 import { SocketClient } from '@shared/back/SocketClient';
 import { BackIn, BackOut } from '@shared/back/types';
 import { CustomIPC, WindowIPC } from '@shared/interfaces';
@@ -8,9 +7,9 @@ import { createErrorProxy } from '@shared/Util';
 import * as electron from 'electron';
 import { OpenDialogOptions } from 'electron';
 import { ipcRenderer } from 'electron/renderer';
+import { EventEmitter } from 'events';
 import * as path from 'path';
 import { isDev } from './Util';
-import { EventEmitter } from 'events';
 
 /**
  * Object with functions that bridge between this and the Main processes
@@ -25,52 +24,48 @@ navigator.clipboard.writeText = async (text: string) => {
 
 // Register Electron API functions we might need later
 window.electronAPI = {
+  fileExists: (path: string) => {
+    return ipcRenderer.invoke(CustomIPC.FILE_EXISTS, path);
+  },
   openExternal: (url: string, opts?: Electron.OpenExternalOptions) => {
-    remote.shell.openExternal(url, opts);
+    ipcRenderer.send(CustomIPC.OPEN_EXTERNAL, url, opts);
   },
   showItemInFolder: (path: string) => {
-    remote.shell.showItemInFolder(path);
+    ipcRenderer.send(CustomIPC.SHOW_FILE_IN_FOLDER, path);
   },
+  showOpenDialog: (opts: OpenDialogOptions) => {
+    return ipcRenderer.invoke(CustomIPC.SELECT_FOLDER, opts) as Promise<string[] | undefined>;
+  },
+  restart: () => {
+    ipcRenderer.send(CustomIPC.RELOAD_WINDOW);
+  },
+  protocolReady: () => {
+    ipcRenderer.send(WindowIPC.PROTOCOL);
+  },
+  registerProtocol: async (enabled: boolean) => {
+    const success = await ipcRenderer.invoke(CustomIPC.REGISTER_PROTOCOL, enabled);
+    if (!success) {
+      const regVerb = enabled ? 'add' : 'remove';
+      alert('Failed to ' + regVerb + ' protocol registration');
+    }
+  },
+  toggleDevTools: () => {
+    ipcRenderer.send(CustomIPC.TOGGLE_DEVTOOLS);
+  },
+  minimize() {
+    ipcRenderer.send(WindowIPC.WINDOW_MINIMIZE);
+  },
+  maximize() {
+    ipcRenderer.send(WindowIPC.WINDOW_MAXIMIZE);
+  },
+  close() {
+    ipcRenderer.send(WindowIPC.WINDOW_CLOSE);
+  },
+  ipcRenderer,
 };
 
 window.Shared = {
   version: createErrorProxy('version'),
-
-  platform: remote.process.platform + '' as NodeJS.Platform, // (Coerce to string to make sure its not a remote object)
-
-  minimize() {
-    const currentWindow = remote.getCurrentWindow();
-    currentWindow.minimize();
-  },
-
-  maximize() {
-    const currentWindow = remote.getCurrentWindow();
-    if (currentWindow.isMaximized()) {
-      currentWindow.unmaximize();
-    } else {
-      currentWindow.maximize();
-    }
-  },
-
-  close() {
-    const currentWindow = remote.getCurrentWindow();
-    currentWindow.webContents.closeDevTools();
-    currentWindow.close();
-  },
-
-  restart() {
-    remote.app.relaunch();
-    remote.app.quit();
-  },
-
-  showOpenDialogSync(options: OpenDialogOptions): string[] | undefined {
-    // @HACK: Electron set the incorrect return type for "showOpenDialogSync".
-    return remote.dialog.showOpenDialogSync(options) as any;
-  },
-
-  toggleDevtools(): void {
-    remote.getCurrentWindow().webContents.toggleDevTools();
-  },
 
   initialPreferences: createErrorProxy('initialPreferences'),
 

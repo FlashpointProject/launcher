@@ -242,6 +242,13 @@ const curateSlice = createSlice({
           state.current = '';
         }
       }
+
+      const currentCuration = state.curations.find(c => c.folder === state.current);
+      if (currentCuration && !currentCuration.contentRequested) {
+        currentCuration.contentRequested = true;
+        // Request the content tree now it's visible
+        window.Shared.back.send(BackIn.CURATE_REQUEST_CONTENT, state.current);
+      }
     },
     createAddApp: lockedFunc((state: CurateState, { payload }: PayloadAction<CreateAddAppAction>) => {
       const curation = state.curations.find(c => c.folder === payload.folder);
@@ -446,9 +453,6 @@ const curateSlice = createSlice({
       }
     },
     toggleGroupCollapse(state: CurateState, { payload }: PayloadAction<string>) {
-      console.log('collapsing');
-      console.log(payload);
-      console.log(JSON.stringify(state.groups, undefined, 2));
       const collapsedIdx = state.collapsedGroups.findIndex(g => g === payload);
       if (collapsedIdx > -1) {
         // Uncollapse

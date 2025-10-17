@@ -1,11 +1,12 @@
-import React, { useCallback, useRef, useImperativeHandle, forwardRef, useState } from 'react';
+import React, { useCallback, useRef, useImperativeHandle, forwardRef, useState, DetailedHTMLProps, InputHTMLAttributes } from 'react';
 
 type FileLoaderOpts = {
+  directory?: boolean;
   accept?: string;
 }
 
 type FileLoaderProps = {
-  onFileSelect?: (file?: File) => void;
+  onFileSelect?: (fileList: FileList | null) => void;
   opts?: FileLoaderOpts;
 }
 
@@ -17,9 +18,8 @@ export const FileLoader = forwardRef<FileLoaderRef, FileLoaderProps>(({ onFileSe
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
     if (onFileSelect) {
-      onFileSelect(file);
+      onFileSelect(event.target.files);
     }
   };
 
@@ -31,21 +31,24 @@ export const FileLoader = forwardRef<FileLoaderRef, FileLoaderProps>(({ onFileSe
     openFileSelect
   }));
 
+  const inputProps: DetailedHTMLProps<InputHTMLAttributes<HTMLInputElement>, HTMLInputElement> = {
+    ref: fileInputRef,
+    type: 'file',
+    accept: opts?.accept,
+    onChange: handleFileChange,
+    style: { display: 'none' },
+    webkitdirectory: opts?.directory ? '' : undefined,
+    directory: opts?.directory ? '' : undefined,
+  };
+
   return (
-    <input
-      ref={fileInputRef}
-      type="file"
-      name="file"
-      accept={opts?.accept}
-      onChange={handleFileChange}
-      style={{ display: 'none' }}
-    />
+    <input {...inputProps} />
   );
 });
 
 type FileLoaderState = {
   fileLoader: React.ReactNode;
-  openFileSelect: (callback: (file?: File) => void, opts?: FileLoaderOpts) => void;
+  openFileSelect: (callback: (fileList: FileList | null) => void, opts?: FileLoaderOpts) => void;
 }
 
 export function useFileLoader(): FileLoaderState {
@@ -54,7 +57,7 @@ export function useFileLoader(): FileLoaderState {
 
   const fileLoader = <FileLoader ref={fileLoaderRef} {...fileLoaderProps} />;
 
-  const openFileSelect = useCallback((cb: (file?: File) => void, opts?: FileLoaderOpts) => {
+  const openFileSelect = useCallback((cb: (fileList: FileList | null) => void, opts?: FileLoaderOpts) => {
     setFileLoaderProps({
       onFileSelect: cb,
       opts,

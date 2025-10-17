@@ -1,4 +1,3 @@
-import * as remote from '@electron/remote';
 import { WithCurateProps } from '@renderer/containers/withCurateState';
 import { WithDownloadsProps } from '@renderer/containers/withDownloads';
 import { WithFpfssProps } from '@renderer/containers/withFpfss';
@@ -6,13 +5,14 @@ import { WithLogsProps } from '@renderer/containers/withLogs';
 import { WithNavigationProps } from '@renderer/containers/withNavigation';
 import { WithSearchProps } from '@renderer/containers/withSearch';
 import { WithViewProps } from '@renderer/containers/withView';
-import { resolveNewDialog } from '@renderer/dialog';
+import { getPointer, MenuContextStateProps } from '@renderer/context/MenuContext';
+import { createNewDialog, resolveNewDialog } from '@renderer/dialog';
 import { RANDOM_GAME_ROW_COUNT } from '@renderer/store/main/slice';
 import { WithShortcutProps } from '@renderer/store/reactKeybindCompat';
 import * as extUtils from '@renderer/util/ext';
 import { BackIn, BackInit, BackOut, FpfssUser } from '@shared/back/types';
 import { APP_TITLE } from '@shared/constants';
-import { CustomIPC, IService, ProcessState, WindowIPC } from '@shared/interfaces';
+import { IService, ProcessState, WindowIPC } from '@shared/interfaces';
 import { memoizeOne } from '@shared/memoize';
 import { Paths } from '@shared/Paths';
 import { setTheme } from '@shared/Theme';
@@ -24,10 +24,10 @@ import { formatString } from '@shared/utils/StringFormatter';
 import { batchProcessor } from '@shared/utils/throttle';
 import { uuid } from '@shared/utils/uuid';
 import { isAxiosError } from 'axios';
-import { ipcRenderer } from 'electron';
 import {
   CurationFpfssInfo,
   DialogState,
+  DialogStateTemplate,
   Game,
   GameLaunchOverride,
   ILogEntry,
@@ -35,7 +35,6 @@ import {
   Playlist,
   PlaylistGame
 } from 'flashpoint-launcher';
-import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as React from 'react';
 import { Activity } from 'react';
@@ -70,7 +69,6 @@ import { SimpleButton } from './SimpleButton';
 import { SplashScreen } from './SplashScreen';
 import { TaskBar } from './TaskBar';
 import { TitleBar } from './TitleBar';
-import { getPointer, MenuContextStateProps } from '@renderer/context/MenuContext';
 
 // Hide the right sidebar if the page is inside these paths
 const hiddenRightSidebarPages = [Paths.ABOUT, Paths.CURATE, Paths.CONFIG, Paths.MANUAL, Paths.LOGS, Paths.TAGS, Paths.CATEGORIES, Paths.DOWNLOADS];
@@ -254,41 +252,47 @@ export class App extends React.Component<AppProps> {
             break;
           }
           default:
-            ipcRenderer.invoke(CustomIPC.SHOW_MESSAGE_BOX, { title: 'Protocol Error', message: `Unsupported action "${parts[0]}"` });
+            createNewDialog(this.props.dispatch, {
+              largeMessage: true,
+              message: `Protocol error: Unsupported action "${parts[0]}"`,
+              buttons: ['Ok']
+            });
             break;
         }
       }
     };
-    // Listen for the window to move or resize (and update the preferences when it does)
-    ipcRenderer.on(WindowIPC.WINDOW_MOVE, debounce((sender, x: number, y: number, isMaximized: boolean) => {
-      if (!isMaximized) {
-        this.props.updatePreferences({ mainWindow: { x: x | 0, y: y | 0 } });
-      }
-    }, 100));
-    ipcRenderer.on(WindowIPC.WINDOW_RESIZE, debounce((sender, width: number, height: number, isMaximized: boolean) => {
-      if (!isMaximized) {
-        // Cap minimum size
-        if (width < 200) {
-          width = 200;
+    if (window.electronAPI !== undefined) {
+      // Listen for the window to move or resize (and update the preferences when it does)
+      window.electronAPI.ipcRenderer.on(WindowIPC.WINDOW_MOVE, debounce((sender, x: number, y: number, isMaximized: boolean) => {
+        if (!isMaximized) {
+          this.props.updatePreferences({ mainWindow: { x: x | 0, y: y | 0 } });
         }
-        if (height < 200) {
-          height = 200;
+      }, 100));
+      window.electronAPI.ipcRenderer.on(WindowIPC.WINDOW_RESIZE, debounce((sender, width: number, height: number, isMaximized: boolean) => {
+        if (!isMaximized) {
+          // Cap minimum size
+          if (width < 200) {
+            width = 200;
+          }
+          if (height < 200) {
+            height = 200;
+          }
+          this.props.updatePreferences({ mainWindow: { width: width | 0, height: height | 0 } });
         }
-        this.props.updatePreferences({ mainWindow: { width: width | 0, height: height | 0 } });
-      }
-    }, 100));
-    ipcRenderer.on(WindowIPC.WINDOW_MAXIMIZE, (sender, isMaximized: boolean) => {
-      this.props.updatePreferences({ mainWindow: { maximized: isMaximized } });
-    });
-    ipcRenderer.on(WindowIPC.PROTOCOL, (sender, url: string) => {
-      handleProtocol(url);
-    });
-    // Displays main proc output
-    ipcRenderer.on(WindowIPC.MAIN_OUTPUT, (sender, output: string) => {
-      this.props.setMainState({
-        mainOutput: output
+      }, 100));
+      window.electronAPI.ipcRenderer.on(WindowIPC.WINDOW_MAXIMIZE, (sender, isMaximized: boolean) => {
+        this.props.updatePreferences({ mainWindow: { maximized: isMaximized } });
       });
-    });
+      window.electronAPI.ipcRenderer.on(WindowIPC.PROTOCOL, (sender, url: string) => {
+        handleProtocol(url);
+      });
+      // Displays main proc output
+      window.electronAPI.ipcRenderer.on(WindowIPC.MAIN_OUTPUT, (sender, output: string) => {
+        this.props.setMainState({
+          mainOutput: output
+        });
+      });
+    }
 
     // if (window.Shared.url) {
     //   handleProtocol(window.Shared.url);
@@ -818,7 +822,7 @@ export class App extends React.Component<AppProps> {
       }
     })();
 
-    // Warn the user when closing the launcher WHILE downloading or installing an upgrade
+    // Old code from upgrades, not sure if removing breaks something
     (() => {
       const askBeforeClosing = true;
       window.onbeforeunload = (event: BeforeUnloadEvent) => {
@@ -836,21 +840,6 @@ export class App extends React.Component<AppProps> {
         }
         if (askBeforeClosing && stillDownloading) {
           event.returnValue = 1; // (Prevent closing the window)
-          // remote.dialog.showMessageBox({
-          //   type: 'warning',
-          //   title: 'Exit Launcher?',
-          //   message: 'All progress on downloading or installing the upgrade will be lost.\n' +
-          //     'Are you sure you want to exit?',
-          //   buttons: ['Yes', 'No'],
-          //   defaultId: 1,
-          //   cancelId: 1,
-          // })
-          // .then(({ response }) => {
-          //   if (response === 0) {
-          //     askBeforeClosing = false;
-          //     this.unmountBeforeClose();
-          //   }
-          // });
         } else {
           this.unmountBeforeClose();
         }
@@ -883,63 +872,6 @@ export class App extends React.Component<AppProps> {
 
     // Cache playlist icons (if they are loaded)
     // if (this.props.main.playlists.length > 0) { this.cachePlaylistIcons(this.props.main.playlists); }
-
-    // -- Stuff that should probably be moved to the back --
-
-    // Load Upgrades
-    // const folderPath = window.Shared.isDev
-    //   ? process.cwd()
-    //   : path.dirname(remote.app.getPath('exe'));
-    // const upgradeCatch = (error: Error) => { console.warn(error); };
-    // const launcherLogFunc = (message: string) => {
-    //   log.warn('Launcher', message);
-    // };
-    // Promise.all([UpgradeFile.readFile(folderPath, launcherLogFunc), UpgradeFile.readFile(fullJsonFolderPath, launcherLogFunc)].map(p => p.catch(upgradeCatch)))
-    // .then(async (fileData) => {
-    //   // Combine all file data
-    //   let allData: UpgradeStage[] = [];
-    //   for (const data of fileData) {
-    //     if (data) {
-    //       allData = allData.concat(data);
-    //     }
-    //   }
-    //   this.props.dispatchMain({
-    //     type: MainActionType.SET_UPGRADES,
-    //     upgrades: allData,
-    //   });
-    //   const isValid = await isFlashpointValidCheck(window.Shared.config.data.flashpointPath);
-    //   // Notify of downloading initial data (if available)
-    //   if (!isValid && allData.length > 0) {
-    //     remote.dialog.showMessageBox({
-    //       type: 'info',
-    //       title: strings.dialog.dataRequired,
-    //       message: strings.dialog.dataRequiredDesc,
-    //       buttons: [strings.misc.yes, strings.misc.no]
-    //     })
-    //     .then((res) => {
-    //       if (res.response === 0) {
-    //         this.onDownloadUpgradeClick(allData[0], strings);
-    //       }
-    //     });
-    //   }
-    //   // Do existance checks on all upgrades
-    //   await Promise.all(allData.map(async upgrade => {
-    //     const baseFolder = fullFlashpointPath;
-    //     // Perform install checks
-    //     const installed = await checkUpgradeStateInstalled(upgrade, baseFolder);
-    //     this.setUpgradeStageState(upgrade.id, {
-    //       alreadyInstalled: installed,
-    //       checksDone: true
-    //     });
-    //     // If installed, check for updates
-    //     if (installed) {
-    //       const upToDate = await checkUpgradeStateUpdated(upgrade, baseFolder);
-    //       this.setUpgradeStageState(upgrade.id, {
-    //         upToDate: upToDate
-    //       });
-    //     }
-    //   }));
-    // });
 
     // Load Credits
     fetch(`${getFileServerURL()}/credits.json`)
@@ -1289,41 +1221,19 @@ export class App extends React.Component<AppProps> {
             .then(async (game) => {
               if (game) {
                 const gamePath = await getGamePath(game, window.Shared.config.fullFlashpointPath, this.props.preferencesData.htdocsFolderPath, this.props.preferencesData.dataPacksFolderPath);
-                try {
-                  if (gamePath) {
-                    await fs.promises.stat(gamePath);
+                if (gamePath) {
+                  const fileExists = await window.electronAPI?.fileExists(gamePath);
+                  if (fileExists) {
                     window.electronAPI?.showItemInFolder(gamePath);
                   } else {
-                    const opts: Electron.MessageBoxOptions = {
-                      type: 'warning',
+                    const template: DialogStateTemplate = {
+                      largeMessage: true,
                       message: 'GameData has not been downloaded yet, cannot open the file location!',
                       buttons: ['Ok'],
                     };
-                    ipcRenderer.invoke(CustomIPC.SHOW_MESSAGE_BOX, opts);
+                    createNewDialog(this.props.dispatch, template);
                     return;
                   }
-                } catch (error: any) {
-                  const opts: Electron.MessageBoxOptions = {
-                    type: 'warning',
-                    message: '',
-                    buttons: ['Ok'],
-                  };
-                  if (error.code === 'ENOENT') {
-                    opts.title = this.props.main.lang.dialog.fileNotFound;
-                    opts.message = (
-                      'Failed to find the game file.\n' +
-                        'If you are using Flashpoint Infinity, make sure you download the game first.\n'
-                    );
-                  } else {
-                    opts.title = 'Unexpected error';
-                    opts.message = (
-                      'Failed to check the game file.\n' +
-                        'If you see this, please report it back to us (a screenshot would be great)!\n\n' +
-                        `Error: ${error}\n`
-                    );
-                  }
-                  opts.message += `Path: "${gamePath}"\n\nNote: If the path is too long, some portion will be replaced with three dots ("...").`;
-                  ipcRenderer.invoke(CustomIPC.SHOW_MESSAGE_BOX, opts);
                 }
               }
             });
@@ -1334,19 +1244,17 @@ export class App extends React.Component<AppProps> {
           type: 'button',
           label: strings.menu.openLogoLocation,
           enabled: !window.Shared.isBackRemote, // (Local "back" only)
-          onClick: () => {
+          onClick: async () => {
             const fullLogoPath = getGameImagePath(logoPath, this.props.preferencesData.imageFolderPath);
-            fs.promises.access(fullLogoPath, fs.constants.R_OK)
-            .then(() => {
-              /* Downloaded, open */
+            const fileExists = await window.electronAPI?.fileExists(fullLogoPath);
+            if (fileExists) {
               window.electronAPI?.showItemInFolder(fullLogoPath);
-            }).catch(() => {
-              /* Not downloaded, try and force it */
+            } else {
               fetch(getGameImageURL(logoPath))
               .then(() => {
                 window.electronAPI?.showItemInFolder(fullLogoPath);
               });
-            });
+            }
           }
         },
         {
@@ -1354,19 +1262,17 @@ export class App extends React.Component<AppProps> {
           type: 'button',
           label: strings.menu.openScreenshotLocation,
           enabled: !window.Shared.isBackRemote, // (Local "back" only)
-          onClick: () => {
+          onClick: async () => {
             const fullScreenshotPath = getGameImagePath(screenshotPath, this.props.preferencesData.imageFolderPath);
-            fs.promises.access(fullScreenshotPath, fs.constants.R_OK)
-            .then(() => {
-              /* Downloaded, open */
+            const fileExists = await window.electronAPI?.fileExists(fullScreenshotPath);
+            if (fileExists) {
               window.electronAPI?.showItemInFolder(fullScreenshotPath);
-            }).catch(() => {
-              /* Not downloaded, try and force it */
-              fetch(getGameImageURL(screenshotPath))
+            } else {
+              fetch(getGameImageURL(logoPath))
               .then(() => {
                 window.electronAPI?.showItemInFolder(fullScreenshotPath);
               });
-            });
+            }
           }
         }, { type: 'separator' }, {
           /* Clear Playtime Tracking */
@@ -1397,16 +1303,18 @@ export class App extends React.Component<AppProps> {
                   // Redirect to Curate once it's been made
                   this.props.navigate(Paths.CURATE);
                 } else {
-                  ipcRenderer.invoke(CustomIPC.SHOW_MESSAGE_BOX, {
-                    title: 'Failed to create curation',
-                    message: 'Failed to create curation from this game. No error provided.'
+                  createNewDialog(this.props.dispatch, {
+                    message: 'Failed to create curation from this game. No error provided.',
+                    largeMessage: true,
+                    buttons: ['Ok']
                   });
                 }
               })
               .catch((err: any) => {
-                ipcRenderer.invoke(CustomIPC.SHOW_MESSAGE_BOX, {
-                  title: 'Failed to create curation',
-                  message: `Failed to create curation from this game.\nError: ${err.toString()}`
+                createNewDialog(this.props.dispatch, {
+                  message: `Failed to create curation from this game.\nError: ${err.toString()}`,
+                  largeMessage: true,
+                  buttons: ['Ok']
                 });
               });
             }
@@ -1560,14 +1468,16 @@ export class App extends React.Component<AppProps> {
                       <SimpleButton
                         value={'Copy Crash Log'}
                         onClick={this.copyCrashLog} />
-                      <SimpleButton
-                        value={'Restart Launcher'}
-                        onClick={() => {
-                          this.props.setMainState({
-                            quitting: true
-                          });
-                          window.Shared.restart();
-                        }} />
+                      { window.electronAPI !== undefined && (
+                        <SimpleButton
+                          value={'Restart Launcher'}
+                          onClick={() => {
+                            this.props.setMainState({
+                              quitting: true
+                            });
+                            window.electronAPI?.restart();
+                          }} />
+                      )}
                     </div>
                   </FloatingContainer>
                 )}
@@ -1616,7 +1526,7 @@ export class App extends React.Component<AppProps> {
                   window.Shared.customVersion ? (
                     <TitleBar title={window.Shared.customVersion} />
                   ) : (
-                    <TitleBar title={`${APP_TITLE} (${remote.app.getVersion()})`} />
+                    <TitleBar title={`${APP_TITLE} ${window.Shared.isDev ? '(Dev Mode)' : ''}`} />
                   ) : undefined}
                 {/* "Content" */}
                 {this.props.main.loadedAll ? (

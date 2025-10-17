@@ -1,3 +1,4 @@
+import { axios } from '@back/dns';
 import { ApiEmitter } from '@back/extensions/ApiEmitter';
 import { genContentTree } from '@back/rust';
 import { BackState } from '@back/types';
@@ -14,11 +15,10 @@ import * as http from 'http';
 import { Progress } from 'node-7z';
 import * as path from 'path';
 import { checkAndDownloadGameData, extractFullPromise, fpDatabase } from '..';
+import { getCurationFpfssInfo } from './fpfss';
 import { loadCurationIndexImage } from './parse';
 import { readCurationMeta } from './read';
 import { saveCuration } from './write';
-import { getCurationFpfssInfo } from './fpfss';
-import { axios } from '@back/dns';
 
 const whitelistedBaseFiles = ['logo.png', 'ss.png'];
 
@@ -266,19 +266,13 @@ export async function loadCurationFolder(rootPath: string, folderName: string, s
     const alreadyImported = (await fpDatabase.findGame(loadedCuration.uuid)) !== null;
     const curation: CurationState = {
       ...loadedCuration,
+      contentRequested: false,
       alreadyImported,
       warnings: await genCurationWarnings(loadedCuration, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onWillGenCurationWarnings)
     };
     // Try and load fpfss data
     curation.fpfssInfo = await getCurationFpfssInfo(path.join(rootPath, folderName));
     state.loadedCurations.push(curation);
-    genContentTree(getContentFolderByKey(folderName, state.config.flashpointPath)).then((contentTree) => {
-      const curationIdx = state.loadedCurations.findIndex((c) => c.folder === folderName);
-      if (curationIdx >= 0) {
-        state.loadedCurations[curationIdx].contents = contentTree;
-        state.socketServer.broadcast(BackOut.CURATE_CONTENTS_CHANGE, folderName, contentTree);
-      }
-    });
   }
 }
 
@@ -424,21 +418,12 @@ export async function makeCurationFromGame(state: BackState, gameId: string, ski
     };
     const curation: CurationState = {
       ...data,
+      contentRequested: false,
       alreadyImported: true,
       warnings: await genCurationWarnings(data, state.config.flashpointPath, state.suggestions, state.languageContainer.curate, state.apiEmitters.curations.onWillGenCurationWarnings),
     };
     await saveCuration(curPath, curation);
     state.loadedCurations.push(curation);
-
-    // Let contents update without blocking
-    genContentTree(getContentFolderByKey(folder, state.config.flashpointPath))
-    .then((contentTree) => {
-      const idx = state.loadedCurations.findIndex(c => c.folder === folder);
-      if (idx > -1) {
-        state.loadedCurations[idx].contents = contentTree;
-        state.socketServer.broadcast(BackOut.CURATE_CONTENTS_CHANGE, folder, contentTree);
-      }
-    });
 
     // Send back responses
     state.socketServer.broadcast(BackOut.CURATE_LIST_CHANGE, [curation]);

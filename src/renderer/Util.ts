@@ -1,17 +1,16 @@
+import { GENERAL_VIEW_ID } from '@renderer/store/search/slice';
 import { BackIn } from '@shared/back/types';
-import { getFileServerURL } from '@shared/Util';
-import { Game, Playlist, TagFilterGroup } from 'flashpoint-launcher';
-import * as fs from 'fs';
-import * as path from 'path';
-import { GameOrderChangeEvent } from './components/GameOrder';
+import { ViewQuery } from '@shared/library/util';
 import { Paths } from '@shared/Paths';
-import { GameDragEventData } from './components/pages/BrowsePage';
+import { getFileServerURL } from '@shared/Util';
+import { getGameDataFilename } from '@shared/utils/misc';
+import _axios from 'axios';
+import { Game, Playlist, TagFilterGroup } from 'flashpoint-launcher';
+import * as path from 'path';
 import { GameGridItem } from './components/GameGridItem';
 import { GameListItem } from './components/GameListItem';
-import { ViewQuery } from '@shared/library/util';
-import { getGameDataFilename } from '@shared/utils/misc';
-import { GENERAL_VIEW_ID } from '@renderer/store/search/slice';
-import _axios from 'axios';
+import { GameOrderChangeEvent } from './components/GameOrder';
+import { GameDragEventData } from './components/pages/BrowsePage';
 
 export const gameDragDataType = 'json/game-drag';
 
@@ -255,7 +254,7 @@ export function toURL(str: string): URL | undefined {
 
 // @TODO Move this to the back process
 export function isFlashpointValidCheck(flashpointPath: string): Promise<boolean> {
-  return new Promise(resolve => fs.stat(path.join(flashpointPath, 'FPSoftware'), error => resolve(!error)));
+  return window.Shared.back.request(BackIn.IS_FLASHPOINT_PATH_VALID, flashpointPath);
 }
 
 type RebuildQueryOpts = {

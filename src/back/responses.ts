@@ -137,6 +137,13 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     }, 1000);
   });
 
+  state.socketServer.register(BackIn.IS_FLASHPOINT_PATH_VALID, async (event, flashpointPath) => {
+    const fpsoftwarePath = path.join(flashpointPath, 'FPSoftware');
+    return fs.access(fpsoftwarePath, fs.constants.R_OK)
+    .then(() => true)
+    .catch(() => false);
+  });
+
   state.socketServer.register(BackIn.TEST_RECONNECTIONS, async () => {
     // Close connections, expect them to restart
     state.socketServer.onError(new Error('test'));

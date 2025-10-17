@@ -8,7 +8,6 @@ import { BackIn } from '@shared/back/types';
 import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
 import { AppExtConfigData } from '@shared/config/interfaces';
 import { ExtConfigurationProp, ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
-import { CustomIPC } from '@shared/interfaces';
 import { autoCode, LangFile } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
 import { Paths } from '@shared/Paths';
@@ -16,7 +15,6 @@ import { ITheme } from '@shared/ThemeFile';
 import { deepCopy } from '@shared/Util';
 import * as Coerce from '@shared/utils/Coerce';
 import { formatString } from '@shared/utils/StringFormatter';
-import { ipcRenderer } from 'electron';
 import { AppPathOverride, LangContainer, TagFilterGroup } from 'flashpoint-launcher';
 import * as React from 'react';
 import { clearFpfssConsentExt, getFpfssConsentExt, saveFpfssConsentExt } from '../../fpfss';
@@ -433,11 +431,13 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 value={allStrings.curate.run}
                 onClick={this.onOptimizeDatabase}/>
               {/* Register As Protocol Handler */}
-              <ConfigBoxCheckbox
-                title={strings.registerProtocol}
-                description={strings.registerProtocolDesc}
-                checked={this.props.preferencesData.registerProtocol}
-                onToggle={this.onRegisterProtocol} />
+              { window.electronAPI !== undefined && (
+                <ConfigBoxCheckbox
+                  title={strings.registerProtocol}
+                  description={strings.registerProtocolDesc}
+                  checked={this.props.preferencesData.registerProtocol}
+                  onToggle={this.onRegisterProtocol} />
+              )}
               {/* Server */}
               <ConfigBoxSelect
                 title={strings.server}
@@ -1242,13 +1242,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   onRegisterProtocol = (isChecked: boolean): void => {
     this.props.updatePreferences({ registerProtocol: isChecked });
-    ipcRenderer.invoke(CustomIPC.REGISTER_PROTOCOL, isChecked)
-    .then((success) => {
-      if (!success) {
-        const regVerb = isChecked ? 'add' : 'remove';
-        alert('Failed to ' + regVerb + ' protocol registration');
-      }
-    });
+    window.electronAPI?.registerProtocol(isChecked);
   };
 
   onCurrentThemeChange = (value: string): void => {
@@ -1342,7 +1336,13 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     window.Shared.back.request(BackIn.UPDATE_CONFIG, {
       flashpointPath: this.state.flashpointPath,
       useCustomTitlebar: this.state.useCustomTitlebar,
-    }).then(() => { window.Shared.restart(); });
+    }).then(() => {
+      if (window.electronAPI !== undefined) {
+        window.electronAPI.restart();
+      } else {
+        window.location.reload();
+      }
+    });
   };
 
   onDeleteImages = () => {

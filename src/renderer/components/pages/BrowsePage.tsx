@@ -143,8 +143,9 @@ export function BrowsePage(props: BrowsePageProps) {
   };
 
   const onImportPlaylistClick = (strings: LangContainer): void => {
-    openFileSelect((file) => {
-      if (file) {
+    openFileSelect((fileList) => {
+      if (fileList && fileList.length > 0) {
+        const file = fileList[0];
         if (!file.name.toLowerCase().endsWith('.json')) {
           alert('Not a JSON file, ignoring...');
           return;
@@ -273,10 +274,10 @@ export function BrowsePage(props: BrowsePageProps) {
     }
   };
 
-  const onPlaylistSetIcon = () => {
+  const onPlaylistSetIcon = async () => {
     if (currentPlaylist && isEditingPlaylist) {
       // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
-      const filePaths = window.Shared.showOpenDialogSync({
+      const filePaths = await window.electronAPI?.showOpenDialog({
         title: 'Select a file to use as the icon',
         properties: ['openFile'],
         filters: [

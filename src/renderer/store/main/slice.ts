@@ -6,12 +6,11 @@ import { BackIn, BackInit, ComponentStatus, GameOfTheDay } from '@shared/back/ty
 import { AppExtConfigData } from '@shared/config/interfaces';
 import { PlatformAppPathSuggestions } from '@shared/curate/types';
 import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
-import { GamePropSuggestions, IService, WindowIPC } from '@shared/interfaces';
+import { GamePropSuggestions, IService } from '@shared/interfaces';
 import { createLangContainer, LangFile } from '@shared/lang';
 import { ITheme } from '@shared/ThemeFile';
 import { deepCopy } from '@shared/Util';
 import * as axiosImport from 'axios';
-import { ipcRenderer } from 'electron';
 import { UpdateInfo } from 'electron-updater';
 import { DialogField, DialogState, Game, GameData, LangContainer, Playlist, PlaylistGame, ViewGame } from 'flashpoint-launcher';
 import { DisplaySettings, ExtOrderable } from 'flashpoint-launcher-renderer';
@@ -310,7 +309,7 @@ const mainSlice = createSlice({
       if (values.length === values.reduce((prev, cur) => prev + (cur ? 1 : 0), 0)) {
         state.loadedAll = true;
         // Ready to accept protocol, if available
-        ipcRenderer.send(WindowIPC.PROTOCOL);
+        window.electronAPI?.protocolReady();
       }
     },
     setCredits(state: MainState, { payload }: PayloadAction<CreditsData>) {

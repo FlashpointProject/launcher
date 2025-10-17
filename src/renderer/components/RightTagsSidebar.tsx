@@ -1,6 +1,6 @@
-import * as remote from '@electron/remote';
 import { BackIn } from '@shared/back/types';
 import { deepCopy, generateTagFilterGroup } from '@shared/Util';
+import { LangContainer, Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
 import * as React from 'react';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { LangContext } from '../util/lang';
@@ -12,7 +12,6 @@ import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
 import { TagAliasInputField } from './TagAliasInputField';
 import { TagInputField } from './TagInputField';
-import { LangContainer, Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
 
 type OwnProps = {
   /** Currently selected game (if any) */
@@ -328,7 +327,7 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
       .then(async (data) => {
         if (data) {
           // Tag alias exists
-          remote.dialog.showErrorBox('Alias Error!',`Alias already exists on tag '${data.name}'!`);
+          alert(`Alias already exists on tag '${data.name}'!`);
         } else if (this.props.currentTag && this.props.currentTag.id) {
           // Tag alias doesn't exist
           this.props.onEditTag({ aliases: [...this.props.currentTag.aliases, text] });

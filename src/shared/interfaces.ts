@@ -1,5 +1,4 @@
 import { SocketClient } from '@shared/back/SocketClient';
-import { OpenDialogOptions } from 'electron';
 import { EventEmitter } from 'events';
 import { AppPreferencesData, ILogEntry, LangContainer } from 'flashpoint-launcher';
 import { AppConfigData } from './config/interfaces';
@@ -24,29 +23,8 @@ export interface IMainWindowExternal {
   /** Version of the current launcher build. */
   version: number;
 
-  /** The type of OS this is running on. */
-  platform: NodeJS.Platform;
-
   /** URL the program was run with */
   url?: string;
-
-  /** Minimize the window */
-  minimize(): void;
-
-  /** Maximize the window (or un-maximize if already maximized) */
-  maximize(): void;
-
-  /** Close the window */
-  close(): void;
-
-  /** Restart the application (closes all windows) */
-  restart(): void;
-
-  /** Wrapper for Electron's function with the same name. */
-  showOpenDialogSync(options: OpenDialogOptions): string[] | undefined;
-
-  /** Open/Close the DevTools for this window */
-  toggleDevtools(): void;
 
   initialPreferences: AppPreferencesData;
 
@@ -134,12 +112,11 @@ export type TestType = {
 
 /** IPC channels used to relay window events from main to renderer. */
 export enum WindowIPC {
-  /** Sent whenever the windows "maximize" status changes. (main -> renderer). */
+  WINDOW_MINIMIZE = 'window-minimize',
   WINDOW_MAXIMIZE = 'window-maximize',
-  /** Sent whenever the windows position changes. (main -> renderer). */
   WINDOW_MOVE     = 'window-move',
-  /** Sent whenever the windows size changes. (main -> renderer). */
   WINDOW_RESIZE   = 'window-resize',
+  WINDOW_CLOSE    = 'window-close',
   /** Sent whenever a flashpoint:// protocol is run */
   PROTOCOL        = 'protocol',
   /** Sends Main Process output to renderer */
@@ -154,6 +131,11 @@ export enum CustomIPC {
   SHOW_OPEN_DIALOG = 'show-open-dialog',
   REGISTER_PROTOCOL = 'register-protocol',
   RELOAD_WINDOW = 'reload-window',
+  OPEN_EXTERNAL = 'open-external',
+  SHOW_FILE_IN_FOLDER = 'show-file-in-folder',
+  TOGGLE_DEVTOOLS = 'toggle-devtools',
+  SELECT_FOLDER = 'select-folder',
+  FILE_EXISTS = 'file-exists',
 }
 
 /** IPC channels used to relay game manager events from  */
