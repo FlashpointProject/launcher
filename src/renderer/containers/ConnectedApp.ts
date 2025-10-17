@@ -11,5 +11,6 @@ import { withNavigation } from './withNavigation';
 import { withPreferences } from './withPreferences';
 import { withTagCategories } from './withTagCategories';
 import { withTasks } from './withTasks';
+import { withContextMenu } from './withContextMenu';
 
-export default withDownloads(withLogs(withView(withFpfss(withSearch(withShortcut(withNavigation(withCurate(withTasks(withMainState(withTagCategories(withPreferences(App))))))))))));
+export default withDownloads(withLogs(withView(withFpfss(withSearch(withShortcut(withNavigation(withCurate(withTasks(withMainState(withTagCategories(withContextMenu(withPreferences(App)))))))))))));

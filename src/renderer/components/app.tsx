@@ -24,7 +24,7 @@ import { formatString } from '@shared/utils/StringFormatter';
 import { batchProcessor } from '@shared/utils/throttle';
 import { uuid } from '@shared/utils/uuid';
 import { isAxiosError } from 'axios';
-import { ipcRenderer, Menu, MenuItemConstructorOptions } from 'electron';
+import { ipcRenderer } from 'electron';
 import {
   CurationFpfssInfo,
   DialogState,
@@ -61,6 +61,7 @@ import { FloatingContainer } from './FloatingContainer';
 import { Footer } from './Footer';
 import { ConnectedFpfssEditGame } from './FpfssEditGame';
 import { SortableColumn } from './GameListHeader';
+import { MenuItemType } from './Menu';
 import { newCurateTask } from './pages/CuratePage';
 import { placeholderProgressData, ProgressBar } from './ProgressComponents';
 import { ResizableSidebar, SidebarResizeEvent } from './ResizableSidebar';
@@ -69,13 +70,14 @@ import { SimpleButton } from './SimpleButton';
 import { SplashScreen } from './SplashScreen';
 import { TaskBar } from './TaskBar';
 import { TitleBar } from './TitleBar';
+import { getPointer, MenuContextStateProps } from '@renderer/context/MenuContext';
 
 // Hide the right sidebar if the page is inside these paths
 const hiddenRightSidebarPages = [Paths.ABOUT, Paths.CURATE, Paths.CONFIG, Paths.MANUAL, Paths.LOGS, Paths.TAGS, Paths.CATEGORIES, Paths.DOWNLOADS];
 
 type AppOwnProps = Record<string, never>;
 
-export type AppProps = AppOwnProps & WithDownloadsProps & WithLogsProps & WithViewProps<any> & WithFpfssProps & WithPreferencesProps & WithSearchProps & WithTagCategoriesProps & WithMainStateProps & WithTasksProps & WithCurateProps & WithShortcutProps & WithNavigationProps;
+export type AppProps = AppOwnProps & MenuContextStateProps & WithDownloadsProps & WithLogsProps & WithViewProps<any> & WithFpfssProps & WithPreferencesProps & WithSearchProps & WithTagCategoriesProps & WithMainStateProps & WithTasksProps & WithCurateProps & WithShortcutProps & WithNavigationProps;
 
 export class App extends React.Component<AppProps> {
   appRef: React.RefObject<HTMLDivElement | null>;
@@ -1222,31 +1224,34 @@ export class App extends React.Component<AppProps> {
   });
 
   private onGameContextMenuMemo = memoizeOne((playlists: Playlist[], strings: LangContainer, selectedPlaylistId?: string) => {
-    return (gameId: string, logoPath: string, screenshotPath: string) => {
-      const fpfssButtons: MenuItemConstructorOptions[] = this.props.preferencesData.fpfssBaseUrl ? [
+    return (event: React.MouseEvent, gameId: string, logoPath: string, screenshotPath: string) => {
+      const fpfssButtons: MenuItemType[] = this.props.preferencesData.fpfssBaseUrl ? [
         {
           /* Edit via FPFSS */
+          type: 'button',
           label: strings.browse.editFpfssGame,
           enabled: this.props.preferencesData.enableEditing,
-          click: () => {
+          onClick: () => {
             this.onFpfssEditGame(gameId);
           }
         },
         {
           /* Show on FPFSS */
+          type: 'button',
           label: strings.browse.showOnFpfss,
           enabled: this.props.preferencesData.enableEditing,
-          click: () => {
+          onClick: () => {
             openUrlInWindow(`${this.props.preferencesData.fpfssBaseUrl}/web/game/${gameId}`);
           }
         }
       ] : [];
 
-      let contextButtons: MenuItemConstructorOptions[] = [
+      let contextButtons: MenuItemType[] = [
         {
+          type: 'button',
           label: strings.menu.addToFavorites,
           enabled: playlists.filter(p => p.title.includes('Favorites')).length > 0,
-          click: () => {
+          onClick: () => {
             const playlistId = playlists.filter(p => p.title.includes('Favorites'))[0].id;
             window.Shared.back.send(BackIn.ADD_PLAYLIST_GAME, playlistId, gameId);
           }
@@ -1261,24 +1266,25 @@ export class App extends React.Component<AppProps> {
             selectedPlaylistId)
         }, {
           /* Copy Shortcut URL */
+          type: 'button',
           label: strings.menu.copyShortcutURL,
-          enabled: true,
-          click: () => {
+          onClick: () => {
             navigator.clipboard.writeText(`flashpoint://run/${gameId}`);
           }
         },
         {
           /* Copy Game UUID */
+          type: 'button',
           label: strings.menu.copyGameUUID,
-          enabled: true,
-          click: () => {
+          onClick: () => {
             navigator.clipboard.writeText(gameId);
           }
         }, { type: 'separator' }, {
           /* File Location */
+          type: 'button',
           label: strings.menu.openFileLocation,
           enabled: !window.Shared.isBackRemote, // (Local "back" only)
-          click: () => {
+          onClick: () => {
             window.Shared.back.request(BackIn.GET_GAME, gameId)
             .then(async (game) => {
               if (game) {
@@ -1325,9 +1331,10 @@ export class App extends React.Component<AppProps> {
         },
         {
           /* Logo Location */
+          type: 'button',
           label: strings.menu.openLogoLocation,
           enabled: !window.Shared.isBackRemote, // (Local "back" only)
-          click: () => {
+          onClick: () => {
             const fullLogoPath = getGameImagePath(logoPath, this.props.preferencesData.imageFolderPath);
             fs.promises.access(fullLogoPath, fs.constants.R_OK)
             .then(() => {
@@ -1344,9 +1351,10 @@ export class App extends React.Component<AppProps> {
         },
         {
           /* Screenshot Location */
+          type: 'button',
           label: strings.menu.openScreenshotLocation,
           enabled: !window.Shared.isBackRemote, // (Local "back" only)
-          click: () => {
+          onClick: () => {
             const fullScreenshotPath = getGameImagePath(screenshotPath, this.props.preferencesData.imageFolderPath);
             fs.promises.access(fullScreenshotPath, fs.constants.R_OK)
             .then(() => {
@@ -1362,21 +1370,23 @@ export class App extends React.Component<AppProps> {
           }
         }, { type: 'separator' }, {
           /* Clear Playtime Tracking */
+          type: 'button',
           label: strings.config.clearPlaytimeTracking,
           enabled: !window.Shared.isBackRemote, // (Local "back" only)
-          click: () => {
+          onClick: () => {
             window.Shared.back.send(BackIn.CLEAR_PLAYTIME_TRACKING_BY_ID, gameId);
           }
         }];
 
       // Add editing mode fields
       if (this.props.preferencesData.enableEditing) {
-        const editingButtons: MenuItemConstructorOptions[] = [
+        const editingButtons: MenuItemType[] = [
           {
             /* Load as a curation */
+            type: 'button',
             label: strings.menu.makeCurationFromGame,
             enabled: this.props.preferencesData.enableEditing,
-            click: () => {
+            onClick: () => {
               window.Shared.back.request(BackIn.CURATE_FROM_GAME, gameId)
               .then((folder) => {
                 if (folder) {
@@ -1410,8 +1420,9 @@ export class App extends React.Component<AppProps> {
         for (const contextButton of contribution.value) {
           if (contextButton.context === 'game') {
             contextButtons.push({
+              type: 'button',
               label: contextButton.name,
-              click: () => {
+              onClick: () => {
                 window.Shared.back.request(BackIn.GET_GAME, gameId)
                 .then((game) => {
                   window.Shared.back.request(BackIn.RUN_COMMAND, contextButton.command, [game]);
@@ -1422,9 +1433,7 @@ export class App extends React.Component<AppProps> {
         }
       }
 
-      return (
-        openContextMenu(contextButtons)
-      );
+      this.props.openMenu({ items: contextButtons }, getPointer(event));
     };
   });
 
@@ -2034,13 +2043,7 @@ async function cacheIcon(icon: string): Promise<string> {
   return `url(${URL.createObjectURL(blob)})`;
 }
 
-export function openContextMenu(template: MenuItemConstructorOptions[]): Menu {
-  const menu = remote.Menu.buildFromTemplate(template);
-  menu.popup({ window: remote.getCurrentWindow() });
-  return menu;
-}
-
-type MenuItemLibrary = MenuItemConstructorOptions & {
+type MenuItemLibrary = MenuItemType & {
   library: string;
 }
 
@@ -2052,7 +2055,7 @@ function pathToFileUrl(p: string) {
   }
 }
 
-function UniquePlaylistMenuFactory(playlists: Playlist[], strings: LangContainer, onClick: (playlistId: string) => any, selectedPlaylistId?: string): MenuItemConstructorOptions[] {
+function UniquePlaylistMenuFactory(playlists: Playlist[], strings: LangContainer, onClick: (playlistId: string) => any, selectedPlaylistId?: string): MenuItemType[] {
   const grouped: Array<MenuItemLibrary> = [];
   for (const p of playlists.filter(p => p.id != selectedPlaylistId)) {
     let group = grouped.find(g => g.library === p.library);
@@ -2066,11 +2069,12 @@ function UniquePlaylistMenuFactory(playlists: Playlist[], strings: LangContainer
       };
       grouped.push(group);
     }
-    if (group.submenu && Array.isArray(group.submenu)) {
+    if (group.type === 'submenu' && group.submenu && Array.isArray(group.submenu)) {
       group.submenu.push({
+        type: 'button',
         label: p.title || 'No Title',
         enabled: true,
-        click: () => onClick(p.id)
+        onClick: () => onClick(p.id)
       });
     }
   }

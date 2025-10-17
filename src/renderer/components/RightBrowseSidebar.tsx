@@ -1,13 +1,12 @@
-import * as remote from '@electron/remote';
 import { WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
 import { WithMainStateProps } from '@renderer/containers/withMainState';
+import { getPointer, MenuContextStateProps } from '@renderer/context/MenuContext';
 import { LangContext } from '@renderer/util/lang';
 import { ArchiveState, BackIn } from '@shared/back/types';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { GamePropSuggestions, PickType, ProcessAction } from '@shared/interfaces';
 import { generateTagFilterGroup, sizeToString } from '@shared/Util';
 import { formatString } from '@shared/utils/StringFormatter';
-import { Menu, MenuItemConstructorOptions } from 'electron';
 import { Game, GameData, GameLaunchOverride, LangContainer, Platform, Playlist, PlaylistGame, Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
 import { GameComponentProps } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
@@ -20,6 +19,7 @@ import { GameDataBrowser } from './GameDataBrowser';
 import { GameImageSplit } from './GameImageSplit';
 import { ImagePreview } from './ImagePreview';
 import { InputElement, InputField } from './InputField';
+import { MenuItemType } from './Menu';
 import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
 
@@ -65,7 +65,7 @@ type OwnProps = {
   fpfssEditMode?: boolean;
 };
 
-export type RightBrowseSidebarProps = OwnProps & WithPreferencesProps & WithConfirmDialogProps & WithMainStateProps;
+export type RightBrowseSidebarProps = OwnProps & MenuContextStateProps & WithPreferencesProps & WithConfirmDialogProps & WithMainStateProps;
 
 type RightBrowseSidebarState = {
   /** If a preview of the current game's screenshot should be shown. */
@@ -235,27 +235,30 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       const screenshotSrc = getGameImageURL(game.screenshotPath);
       const anyActiveDataDownloaded = game.gameData !== undefined && game.gameData.findIndex((gd) => gd.presentOnDisk) !== -1;
 
-      const contextMenu: MenuItemConstructorOptions[] = [];
+      const contextMenu: MenuItemType[] = [];
       if (game.ruffleSupport !== '' || (
         this.state.activeData ? this.state.activeData.launchCommand.endsWith('.swf') : game.legacyLaunchCommand.endsWith('.swf')
       )) {
         contextMenu.push({
+          type: 'button',
           label: strings.runWithFlashPlayer,
-          click: () => {
+          onClick: () => {
             this.props.onGameLaunch(game.id, 'flash');
           }
         });
         contextMenu.push({
+          type: 'button',
           label: game.ruffleSupport !== '' ? strings.runWithRuffle : strings.runWithRuffleUnsupported,
-          click: () => {
+          onClick: () => {
             this.props.onGameLaunch(game.id, 'ruffle');
           }
         });
       }
       if (anyActiveDataDownloaded) {
         contextMenu.push({
+          type: 'button',
           label: strings.uninstallGame,
-          click: async () => {
+          onClick: async () => {
             if (this.state.activeData) {
               if (!this.state.activeData.presentOnDisk) {
                 if (game.gameData) {
@@ -649,8 +652,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     )}
                     {contextMenu.length > 0 ? (
                       <div className={`browse-right-sidebar__play-button--dropdown ${isDownloadState ? 'browse-right-sidebar__play-button--download-dropdown' : 'browse-right-sidebar__play-button--play-dropdown'}`}
-                        onClick={() => {
-                          openContextMenu(contextMenu);
+                        onClick={(event) => {
+                          this.props.openMenu({ items: contextMenu }, getPointer(event));
                         }}>
                         <OpenIcon icon='chevron-bottom' />
                       </div>
@@ -952,23 +955,25 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   };
 
   onScreenshotContextMenu = (event: React.MouseEvent) => {
-    const currentGame = this.props.currentGame;
-    const template: MenuItemConstructorOptions[] = [];
-    if (currentGame) {
-      template.push({
-        label: (this.context as LangContainer).menu.viewThumbnailInFolder,
-        click: () => { remote.shell.showItemInFolder(getGameImagePath(currentGame.logoPath, this.props.preferencesData.imageFolderPath).replace(/\//g, '\\')); },
-        enabled: true
-      });
-      template.push({
-        label: (this.context as LangContainer).menu.viewScreenshotInFolder,
-        click: () => { remote.shell.showItemInFolder(getGameImagePath(currentGame.screenshotPath, this.props.preferencesData.imageFolderPath).replace(/\//g, '\\')); },
-        enabled: true
-      });
-    }
-    if (template.length > 0) {
-      event.preventDefault();
-      openContextMenu(template);
+    if (window.electronAPI !== undefined) {
+      const currentGame = this.props.currentGame;
+      const template: MenuItemType[] = [];
+      if (currentGame) {
+        template.push({
+          type: 'button',
+          label: (this.context as LangContainer).menu.viewThumbnailInFolder,
+          onClick: () => { window.electronAPI?.showItemInFolder(getGameImagePath(currentGame.logoPath, this.props.preferencesData.imageFolderPath).replace(/\//g, '\\')); },
+        });
+        template.push({
+          type: 'button',
+          label: (this.context as LangContainer).menu.viewScreenshotInFolder,
+          onClick: () => { window.electronAPI?.showItemInFolder(getGameImagePath(currentGame.screenshotPath, this.props.preferencesData.imageFolderPath).replace(/\//g, '\\')); },
+        });
+      }
+      if (template.length > 0) {
+        event.preventDefault();
+        this.props.openMenu({ items: template }, getPointer(event));
+      }
     }
   };
 
@@ -1127,17 +1132,6 @@ function filterSuggestions(suggestions?: string[]): string[] {
   if (!suggestions) { return []; }
   // if (suggestions.length > 25) { return suggestions.slice(0, 25); }
   return suggestions;
-}
-
-/**
- * Open a context menu, built from the specified template.
- *
- * @param template Template list of Menu Items to use in Context Menu
- */
-function openContextMenu(template: MenuItemConstructorOptions[]): Menu {
-  const menu = remote.Menu.buildFromTemplate(template);
-  menu.popup({ window: remote.getCurrentWindow() });
-  return menu;
 }
 
 /**

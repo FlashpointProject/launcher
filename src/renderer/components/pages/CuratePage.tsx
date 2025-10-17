@@ -1,4 +1,3 @@
-import * as remote from '@electron/remote';
 import { CurateBox } from '@renderer/components/CurateBox';
 import { useAppSelector } from '@renderer/hooks/useAppSelector';
 import * as curateActions from '@renderer/store/curate/slice';
@@ -275,13 +274,13 @@ export function CuratePage(props: CuratePageProps) {
     setPlatformText(platformText);
   };
 
-  const onOpenCurationsFolder = async () => {
-    await remote.shell.openExternal(path.join(window.Shared.config.fullFlashpointPath, 'Curations'));
+  const onOpenCurationsFolder = () => {
+    window.electronAPI?.openExternal(path.join(window.Shared.config.fullFlashpointPath, 'Curations'));
   };
 
-  const onOpenCurationFolder = async () => {
+  const onOpenCurationFolder = () => {
     if (curation) {
-      await remote.shell.openExternal(path.join(window.Shared.config.fullFlashpointPath, 'Curations', 'Working', curation.folder));
+      window.electronAPI?.openExternal(path.join(window.Shared.config.fullFlashpointPath, 'Curations', 'Working', curation.folder));
     }
   };
 
@@ -550,19 +549,23 @@ export function CuratePage(props: CuratePageProps) {
             className='curate-page__right--button'
             onClick={onScanForNewCurations}
             value={strings.curate.scanNewCurationFolders}/>
-          <SimpleButton
-            className='curate-page__right--button'
-            onClick={onOpenCurationsFolder}
-            value={strings.curate.openCurationsFolder}
-            title={strings.curate.openCurationsFolderDesc}/>
+          { window.electronAPI !== undefined && (
+            <SimpleButton
+              className='curate-page__right--button'
+              onClick={onOpenCurationsFolder}
+              value={strings.curate.openCurationsFolder}
+              title={strings.curate.openCurationsFolderDesc}/>
+          )}
         </div>
         <div className='curate-page__right--section'>
           <div className='curate-page__right--header'>{strings.curate.headerEditCuration}</div>
-          <SimpleButton
-            className='curate-page__right--button'
-            onClick={onOpenCurationFolder}
-            disabled={disabled}
-            value={strings.curate.openFolder}/>
+          { window.electronAPI !== undefined && (
+            <SimpleButton
+              className='curate-page__right--button'
+              onClick={onOpenCurationFolder}
+              disabled={disabled}
+              value={strings.curate.openFolder}/>
+          )}
           <ConfirmElement
             render={renderConfirmButton}
             message={strings.dialog.deleteCuration}

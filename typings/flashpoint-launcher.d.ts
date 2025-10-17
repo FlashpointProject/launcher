@@ -2696,7 +2696,7 @@ declare module 'flashpoint-launcher-renderer' {
     playlists: Playlist[];
     randomGames: Game[];
     rollRandomGames: () => void;
-    onGameContextMenu(gameId: string, logoPath: string, screenshotPath: string): void;
+    onGameContextMenu(event: React.MouseEvent, gameId: string, logoPath: string, screenshotPath: string): void;
     onLaunchGame(gameId: string): void;
     selectedGameId?: string;
     platforms: string[];
@@ -2829,7 +2829,7 @@ declare module 'flashpoint-launcher-renderer' {
     view: ResultsView<T>;
     logoVersion: number;
     extremeTags: string[];
-    onContextMenu: (gameId: string, logoPath: string, screenshotPath: string) => void;
+    onContextMenu: (event: React.MouseEvent, gameId: string, logoPath: string, screenshotPath: string) => void;
     onMovePlaylistEntry: (sourceGameId: string, destGameId: string) => void;
   }
 

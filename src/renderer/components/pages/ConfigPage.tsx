@@ -432,12 +432,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 description={strings.optimizeDatabaseDesc}
                 value={allStrings.curate.run}
                 onClick={this.onOptimizeDatabase}/>
-              {/* Show Developer Tab */}
-              <ConfigBoxCheckbox
-                title={strings.showDeveloperTab}
-                description={strings.showDeveloperTabDesc}
-                checked={this.props.preferencesData.showDeveloperTab}
-                onToggle={this.onShowDeveloperTab} />
               {/* Register As Protocol Handler */}
               <ConfigBoxCheckbox
                 title={strings.registerProtocol}
@@ -652,7 +646,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
             onChange={(event) => this.onAppPathOverridePathChange(index, event.target.value)}
             text={item.path} />
           <div
-            className='setting__row__content--override-row__seperator'>
+            className='setting__row__content--override-row__separator'>
             {'->'}
           </div>
           <InputField
@@ -1244,10 +1238,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   onUseCustomTitlebarChange = (isChecked: boolean): void => {
     this.setState({ useCustomTitlebar: isChecked });
-  };
-
-  onShowDeveloperTab = (isChecked: boolean): void => {
-    this.props.updatePreferences({ showDeveloperTab: isChecked });
   };
 
   onRegisterProtocol = (isChecked: boolean): void => {

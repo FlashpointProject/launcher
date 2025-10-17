@@ -6,5 +6,6 @@ import { Header } from '../components/Header';
 import { withNavigation } from './withNavigation';
 import { withPreferences } from './withPreferences';
 import { withTagCategories } from './withTagCategories';
+import { withContextMenu } from './withContextMenu';
 
-export default withConfirmDialog(withMainState(withView(withNavigation(withSearch(withTagCategories(withPreferences(Header)))))));
+export default withContextMenu(withConfirmDialog(withMainState(withView(withNavigation(withSearch(withTagCategories(withPreferences(Header))))))));

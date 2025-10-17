@@ -134,7 +134,7 @@ export function HomePageComponentGotd(props: HomePageComponentProps) {
             { loadedGotd ? (
               <GameItemContainer
                 className='gotd-container'
-                onGameContextMenu={(event, gameId, logoPath, screenshotPath) => props.onGameContextMenu(gameId, logoPath, screenshotPath)}
+                onGameContextMenu={props.onGameContextMenu}
                 onContentSelect={(event, gameId) => gameId && onSelectGame(gameId)}
                 onContentLaunch={(event, gameId) => props.onLaunchGame(gameId)}
                 findGameDragEventData={findGameDragEventDataGrid}>

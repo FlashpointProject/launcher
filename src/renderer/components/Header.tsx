@@ -1,24 +1,23 @@
-import * as remote from '@electron/remote';
-import { openContextMenu } from '@renderer/components/app';
+import { WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
+import { WithMainStateProps } from '@renderer/containers/withMainState';
+import { WithNavigationProps } from '@renderer/containers/withNavigation';
+import { WithSearchProps } from '@renderer/containers/withSearch';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
+import { WithViewProps } from '@renderer/containers/withView';
+import { getPointer, MenuContextStateProps } from '@renderer/context/MenuContext';
+import { GENERAL_VIEW_ID } from '@renderer/store/search/slice';
 import { FpfssUser } from '@shared/back/types';
 import { getLibraryItemTitle } from '@shared/library/util';
-import { MenuItemConstructorOptions } from 'electron';
+import { Paths } from '@shared/Paths';
+import { uuid } from '@shared/utils/uuid';
+import { DialogField, DialogState } from 'flashpoint-launcher';
 import * as React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { WithPreferencesProps } from '../containers/withPreferences';
-import { Paths } from '@shared/Paths';
 import { joinLibraryRoute, openUrlInWindow } from '../Util';
 import { LangContext } from '../util/lang';
+import { MenuItemType } from './Menu';
 import { OpenIcon } from './OpenIcon';
-import { WithSearchProps } from '@renderer/containers/withSearch';
-import { GENERAL_VIEW_ID } from '@renderer/store/search/slice';
-import { WithViewProps } from '@renderer/containers/withView';
-import { WithMainStateProps } from '@renderer/containers/withMainState';
-import { DialogField, DialogState } from 'flashpoint-launcher';
-import { uuid } from '@shared/utils/uuid';
-import { WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
-import { WithNavigationProps } from '@renderer/containers/withNavigation';
 
 const viewDragType = 'text/plain';
 
@@ -33,7 +32,7 @@ type OwnProps = {
   logoutUser: () => void;
 };
 
-export type HeaderProps = OwnProps & WithMainStateProps & WithConfirmDialogProps & WithPreferencesProps & WithTagCategoriesProps & WithSearchProps & WithViewProps<any> & WithNavigationProps;
+export type HeaderProps = OwnProps & MenuContextStateProps & WithMainStateProps & WithConfirmDialogProps & WithPreferencesProps & WithTagCategoriesProps & WithSearchProps & WithViewProps<any> & WithNavigationProps;
 
 type HeaderState = Record<string, never>;
 
@@ -170,6 +169,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
             views: [name],
             areLibraries: false,
             loadViewsText: this.props.preferencesData.loadViewsText,
+            playlists: this.props.main.playlists,
           });
           setTimeout(() => {
             this.props.navigate(joinLibraryRoute(name));
@@ -288,23 +288,25 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
   render() {
     const strings = this.context.app;
     const {
-      preferencesData: { browsePageShowLeftSidebar, browsePageShowRightSidebar, enableEditing, showDeveloperTab, onlineManual, offlineManual },
+      preferencesData: { browsePageShowLeftSidebar, browsePageShowRightSidebar, enableEditing, onlineManual, offlineManual },
       onToggleLeftSidebarClick, onToggleRightSidebarClick
     } = this.props;
 
     // FPFSS user context menu
-    const contextButtons: MenuItemConstructorOptions[] = [
+    const contextButtons: MenuItemType[] = [
       {
+        type: 'button',
         label: strings.fpfssProfile,
         enabled: true,
-        click: () => {
+        onClick: () => {
           openUrlInWindow(`${this.props.preferencesData.fpfssBaseUrl}/web/profile`);
         }
       },
       {
+        type: 'button',
         label: strings.fpfssLogout,
         enabled: true,
-        click: () => {
+        onClick: () => {
           this.props.logoutUser();
         }
       }
@@ -324,45 +326,48 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
         {/* Header Menu */}
         <div className='header__wrap'>
           <ul className='header__menu'>
-            <MenuItem
+            <HeaderMenuItem
               id={'header__home'}
               title={strings.home}
               link={Paths.HOME} />
             {
               this.props.preferencesData.useCustomViews ?
                 browseViews.map(view => (
-                  <MenuItem
+                  <HeaderMenuItem
                     key={view}
                     title={view}
                     onDragStart={(event) => this.onDragStart(event, view)}
                     onDrop={(event) => this.onDrop(event, view)}
                     link={joinLibraryRoute(view)}
-                    onContextMenu={() => {
-                      const contextButtons: MenuItemConstructorOptions[] = [
+                    onContextMenu={(event) => {
+                      const contextButtons: MenuItemType[] = [
                         {
+                          type: 'button',
                           label: strings.createNewView,
-                          click: this.onCreateNewView,
+                          onClick: this.onCreateNewView,
                         },
                         {
+                          type: 'button',
                           label: strings.renameView,
-                          click: () => this.onRenameView(view),
+                          onClick: () => this.onRenameView(view),
                         },
                         {
+                          type: 'button',
                           label: strings.duplicateView,
-                          click: () => this.onDuplicateView(view),
+                          onClick: () => this.onDuplicateView(view),
                         },
                         {
+                          type: 'button',
                           label: browseViews.length > 1 || view !== 'Browse' ? strings.deleteView : strings.deleteOnlyBrowseView,
                           enabled: browseViews.length > 1 ? true : view !== 'Browse',
-                          click: () => this.onDeleteView(view),
+                          onClick: () => this.onDeleteView(view),
                         },
                       ];
-                      const menu = remote.Menu.buildFromTemplate(contextButtons);
-                      menu.popup({ window: remote.getCurrentWindow() });
+                      this.props.openMenu({ items: contextButtons }, getPointer(event));
                     }}/>
                 )) :
                 browseViews.map(view => (
-                  <MenuItem
+                  <HeaderMenuItem
                     key={view}
                     title={getLibraryItemTitle(view, this.context.libraries)}
                     link={joinLibraryRoute(view)}/>
@@ -375,56 +380,52 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
             )}
             { enableEditing ? (
               <>
-                <MenuItem
+                <HeaderMenuItem
                   id={'header__tags'}
                   title={strings.tags}
                   link={Paths.TAGS} />
-                <MenuItem
+                <HeaderMenuItem
                   id={'header__categories'}
                   title={strings.categories}
                   link={Paths.CATEGORIES} />
               </>
             ) : undefined }
-            <MenuItem
+            <HeaderMenuItem
               id={'header__downloads'}
               title={'Downloads'}
               link={Paths.DOWNLOADS} />
-            <MenuItem
+            <HeaderMenuItem
               id={'header__logs'}
               title={strings.logs}
               link={Paths.LOGS} />
-            <MenuItem
+            <HeaderMenuItem
               id={'header__config'}
               title={strings.config}
               link={Paths.CONFIG} />
             { (onlineManual || offlineManual) && (
-              <MenuItem
+              <HeaderMenuItem
                 id={'header__manual'}
                 title={strings.manual}
                 link={Paths.MANUAL} />
             )}
-            <MenuItem
+            <HeaderMenuItem
               id={'header__about'}
               title={strings.about}
               link={Paths.ABOUT} />
             { enableEditing ? (
-              <MenuItem
+              <HeaderMenuItem
                 id={'header__curate'}
                 title={strings.curate}
                 link={Paths.CURATE} />
-            ) : undefined }
-            { showDeveloperTab ? (
-              <MenuItem
-                id={'header__developer'}
-                title={strings.developer}
-                link={Paths.DEVELOPER} />
             ) : undefined }
           </ul>
         </div>
         {/* Right-most portion */}
         <div className='header__wrap header__right'>
           {this.props.user && (
-            <div className='header-user-box' onClick={() => openContextMenu(contextButtons)}>
+            <div className='header-user-box' onClick={(event) => {
+              this.props.openMenu({ items: contextButtons }, getPointer(event));
+            }}>
               {/* FPFSS user status */}
               <div className='header-user-icon' style={{ backgroundImage: `url(${this.props.user.avatarUrl})` }}></div>
               <div className='header-user-name'>{this.props.user.username}</div>
@@ -452,17 +453,17 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
   }
 }
 
-type MenuItemType = {
+type HeaderMenuItemType = {
   id?: string;
   title: string;
   link: string;
   onDragStart?: (event: React.DragEvent<HTMLLIElement>) => void;
   onDrop?: (event: React.DragEvent<HTMLLIElement>) => void;
-  onContextMenu?: () => void;
+  onContextMenu?: (event: React.MouseEvent) => void;
 };
 
 // An item in the header menu. Used as buttons to switch between tabs/pages.
-function MenuItem({ id, title, link, onContextMenu, onDragStart, onDrop }: MenuItemType) {
+function HeaderMenuItem({ id, title, link, onContextMenu, onDragStart, onDrop }: HeaderMenuItemType) {
   const location = useLocation();
   const selected = location.pathname.split('?')[0] === link;
   const onDragOver = (event: React.DragEvent<HTMLLIElement>) => {

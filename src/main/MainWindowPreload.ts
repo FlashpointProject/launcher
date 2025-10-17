@@ -30,7 +30,7 @@ window.electronAPI = {
   },
   showItemInFolder: (path: string) => {
     remote.shell.showItemInFolder(path);
-  }
+  },
 };
 
 window.Shared = {

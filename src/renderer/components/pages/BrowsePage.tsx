@@ -47,7 +47,7 @@ export type BrowsePageProps = {
   onMovePlaylistGame: (sourceGameId: string, destGameId: string) => void;
 
   /** Generator for game context menu */
-  onGameContextMenu: (gameId: string, logoPath: string, screenshotPath: string) => void;
+  onGameContextMenu: (event: React.MouseEvent, gameId: string, logoPath: string, screenshotPath: string) => void;
   /** Called when a playlist is updated */
   onUpdatePlaylist: (playlist: Playlist) => void;
   /** Called when a playlist is deleted */

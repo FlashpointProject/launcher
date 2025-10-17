@@ -2639,7 +2639,7 @@ body {
   flex: auto;
   align-items: center;
 }
-.setting__row__content--override-row__seperator {
+.setting__row__content--override-row__separator {
   margin-left: 0.3rem;
   margin-right: 0.3rem;
   font-weight: bold;
@@ -3754,9 +3754,12 @@ body {
 .context-menu {
   z-index: 999999;
   position: absolute;
-  min-width: 15vw;
   padding-top: 4px;
   padding-bottom: 4px;
+}
+
+.menu {
+  width: calc(1px * var(--width));
 }
 
 .menu-item {
@@ -3771,13 +3774,14 @@ body {
   font-size: calc(0.6px * var(--height));
 }
 
-.menu-seperator-wrapper {
+.menu-separator-wrapper {
+  height: calc(0.5px * var(--height));
   display: flex;
-  justify-items: center;
+  align-items: center;
 }
 
 .menu-separator {
-  height: calc(0.5px * var(--height));
+  height: 1px;
   margin-left: 0.55rem;
   margin-right: 0.55rem;
 }

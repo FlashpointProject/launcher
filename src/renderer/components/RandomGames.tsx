@@ -13,7 +13,7 @@ type RandomGamesProps = {
   games: ViewGame[];
   selectedGameId?: string;
   /** Generator for game context menu */
-  onGameContextMenu: (gameId: string, logoPath: string, screenshotPath: string) => void;
+  onGameContextMenu: (event: React.MouseEvent, gameId: string, logoPath: string, screenshotPath: string) => void;
   onLaunchGame: (gameId: string) => void;
   onGameSelect: (gameId: string | undefined) => void;
   rollRandomGames: () => void;
@@ -74,7 +74,7 @@ export function RandomGames(props: RandomGamesProps) {
   });
 
   const onGameContextMenu = (event: React.MouseEvent<HTMLDivElement, MouseEvent>, gameId: string, logoPath: string, screenshotPath: string) => {
-    return props.onGameContextMenu(gameId, logoPath, screenshotPath);
+    return props.onGameContextMenu(event, gameId, logoPath, screenshotPath);
   };
 
   const render = (

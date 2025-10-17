@@ -17,7 +17,7 @@ export type HomePageProps = {
   platforms: string[];
   playlists: Playlist[];
   /** Generator for game context menu */
-  onGameContextMenu: (gameId: string, logoPath: string, screenshotPath: string) => void;
+  onGameContextMenu: (event: React.MouseEvent, gameId: string, logoPath: string, screenshotPath: string) => void;
   onLaunchGame: (gameId: string, override: GameLaunchOverride) => void;
   /** Pass to Random Picks */
   randomGames: ViewGame[];

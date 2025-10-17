@@ -6,7 +6,6 @@ import { AppExtConfigData } from '@shared/config/interfaces';
 import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { GamePropSuggestions, IService } from '@shared/interfaces';
 import { LangFile } from '@shared/lang';
-import { Menu } from 'electron';
 import { UpdateInfo } from 'electron-updater';
 import { GameLaunchOverride, Playlist, ViewGame } from 'flashpoint-launcher';
 import { Route, Routes } from 'react-router-dom';
@@ -48,7 +47,7 @@ export type AppRouterProps = {
   selectedGameId?: string;
   gameRunning: boolean;
   selectedPlaylistId?: string;
-  onGameContextMenu: (gameId: string, logoPath: string, screenshotPath: string) => Menu;
+  onGameContextMenu: (event: React.MouseEvent, gameId: string, logoPath: string, screenshotPath: string) => void;
   onUpdatePlaylist: (playlist: Playlist) => void;
   onDeletePlaylist: (playlist: Playlist) => void;
   wasNewGameClicked: boolean;

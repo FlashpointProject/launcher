@@ -3,7 +3,11 @@ import { useAppSelector } from '@renderer/hooks/useAppSelector';
 import { calcScale } from '@shared/Util';
 import React, { createContext, useEffect, useRef, useState } from 'react';
 
-type MenuContextStateProps = {
+export const defaultMenuWidth = 220;
+export const menuHeightMin = 14;
+export const menuHeightMax = 38;
+
+export type MenuContextStateProps = {
   menu?: MenuProps;
   openMenu: (menu: MenuProps, pointer: Pointer) => void;
   closeMenu: () => void;
@@ -28,30 +32,34 @@ export function MenuProvider({ children }: MenuContextProps) {
   const [style, setStyle] = useState<React.CSSProperties>();
   const menuRef = useRef<HTMLDivElement>(null);
   const scale = useAppSelector(state => state.preferences.scaleValues.menuItem);
-  const menuItemSize = Math.floor(calcScale(12, 36, scale));
+  const menuItemHeight = Math.floor(calcScale(menuHeightMin, menuHeightMax, scale));
 
   const openMenu = (newMenu: MenuProps, pointer: Pointer) => {
-    // const availWidth = document.documentElement.clientWidth;
+    const availWidth = document.documentElement.clientWidth;
     const availHeight = document.documentElement.clientHeight;
+    const menuWidth = newMenu.width ? newMenu.width * (scale + 0.5) : defaultMenuWidth * (scale + 0.5);
 
+    // Calculate (ignoring rounding errors) pixel height of menu
     const menuHeight = Math.floor(newMenu.items.reduce((prev, cur) => {
-      if (cur.type !== 'seperator') {
-        return prev + menuItemSize;
+      if (cur.type !== 'separator') {
+        return prev + menuItemHeight;
       } else {
-        return prev + (menuItemSize * 0.5);
+        return prev + (menuItemHeight * 0.5);
       }
     }, 0));
 
-    console.log(pointer.y + menuHeight);
-    console.log(availHeight);
-
     const style: React.CSSProperties = {};
+    // If there's not enough room, render above the cursor instead of below
     if (pointer.y + menuHeight > availHeight) {
       style.top = pointer.y - menuHeight;
     } else {
       style.top = pointer.y;
     }
-    style.left = pointer.x;
+    if (pointer.x + menuWidth > availWidth) {
+      style.left = pointer.x - menuWidth;
+    } else {
+      style.left = pointer.x;
+    }
 
     setStyle(style);
     setMenu(newMenu);

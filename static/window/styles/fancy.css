@@ -155,9 +155,9 @@
   --layout__toggle-sidebar-fill:                   #cccccc;
   --layout__drop-down-content-background-selected: #1e90ff;
   /* Menu */
-  --layout__menu-background:     var(--layout__primary-background);
+  --layout__menu-background:     var(--layout__home-page-box-background);
   --layout__menu-item-hover:     var(--layout__game-item-background-hover);
-  --layout__menu-seperator:      var(--layout__home-page-box-border);
+  --layout__menu-separator:      var(--layout__home-page-box-border);
   /* Flashpoint */
   --layout__flashpoint-red: #DD0428;
   --layout__flashpoint-light-red: #E85971;
@@ -1589,8 +1589,7 @@ body {
 }
 
 .menu-separator {
-  height: 100%;
   width: 100%;
   border: 0;
-  border-top: 2px solid var(--layout__menu-seperator);
+  border-top: 2px solid var(--layout__menu-separator);
 }

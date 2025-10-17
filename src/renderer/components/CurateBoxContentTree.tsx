@@ -1,14 +1,15 @@
-import * as remote from '@electron/remote';
+import { getPointer } from '@renderer/context/MenuContext';
 import { useAppDispatch } from '@renderer/hooks/useAppSelector';
+import { useContextMenu } from '@renderer/hooks/useContextMenu';
 import { toggleContentNodeView } from '@renderer/store/curate/slice';
 import { LangContext } from '@renderer/util/lang';
 import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
 import { genFlatContentTree, sizeToString } from '@shared/Util';
-import { MenuItemConstructorOptions } from 'electron';
 import { ContentTree, FlatContentTreeNode } from 'flashpoint-launcher';
 import * as path from 'path';
-import { useContext } from 'react';
+import React, { useContext } from 'react';
 import { AutoSizer, List, ListRowProps } from 'react-virtualized';
+import { MenuItemType } from './Menu';
 import { OpenIcon } from './OpenIcon';
 
 const RENDERER_OVERSCAN = 50;
@@ -24,18 +25,22 @@ export function CurateBoxContentTree(props: CurateBoxContentTreeProps) {
   const dispatch = useAppDispatch();
   const strings = useContext(LangContext);
   const flatTree = genFlatContentTree(contentTree);
+  const { openMenu } = useContextMenu();
 
-  const onContentTreeNodeMenuFactory = (node: FlatContentTreeNode) => () => {
+  const onContentTreeNodeMenuFactory = (node: FlatContentTreeNode) => (event: React.MouseEvent) => {
     console.log(node);
-    const contextButtons: MenuItemConstructorOptions[] = [{
+    const contextButtons: MenuItemType[] = [{
+      type: 'button',
       label: strings.curate.contextCopyName,
-      click: () => navigator.clipboard.writeText(node.name)
+      onClick: () => navigator.clipboard.writeText(node.name)
     }, {
+      type: 'button',
       label: strings.curate.contextCopyPath,
-      click: () => navigator.clipboard.writeText(node.tree.join(path.sep))
+      onClick: () => navigator.clipboard.writeText(node.tree.join(path.sep))
     }, {
+      type: 'button',
       label: strings.curate.contextCopyAsURL,
-      click: () => navigator.clipboard.writeText(encodeURI(`http://${node.tree.join('/')}`))
+      onClick: () => navigator.clipboard.writeText(encodeURI(`http://${node.tree.join('/')}`))
     }, {
       type: 'separator'
     }];
@@ -44,19 +49,19 @@ export function CurateBoxContentTree(props: CurateBoxContentTreeProps) {
     if (window.electronAPI !== undefined) {
       if (node.nodeType === 'file') {
         contextButtons.push({
+          type: 'button',
           label: strings.curate.contextShowInExplorer,
-          click: () => window.electronAPI?.showItemInFolder(fullPath)
+          onClick: () => window.electronAPI?.showItemInFolder(fullPath)
         });
       } else if (node.nodeType === 'directory') {
         contextButtons.push({
+          type: 'button',
           label: strings.curate.contextOpenFolderInExplorer,
-          click: () => window.electronAPI?.openExternal(fullPath)
+          onClick: () => window.electronAPI?.openExternal(fullPath)
         });
       }
     }
-    const menu = remote.Menu.buildFromTemplate(contextButtons);
-    menu.popup({ window: remote.getCurrentWindow() });
-    return menu;
+    openMenu({ items: contextButtons }, getPointer(event));
   };
 
   const onToggleContentNodeView = (tree: string[]) => {
