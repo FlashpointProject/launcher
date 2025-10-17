@@ -1570,7 +1570,7 @@ body {
 .context-menu {
   background-color: var(--layout__menu-background);
   border: 1px transparent;
-  border-radius: 4px;
+  border-radius: 5px;
   box-shadow: 0px 2px 4px 0px #09090a;
 }
 

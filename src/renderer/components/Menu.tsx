@@ -1,6 +1,6 @@
 import { useAppSelector } from '@renderer/hooks/useAppSelector';
 import { calcScale } from '@shared/Util';
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { SizeProvider } from './SizeProvider';
 import { defaultMenuWidth, menuHeightMax, menuHeightMin } from '@renderer/context/MenuContext';
 
@@ -23,17 +23,69 @@ export type MenuItemButton = {
 }
 
 export type MenuItemSubmenu = {
+  // eslint-disable-next-line react/no-unused-prop-types
   type: 'submenu';
   label: string;
   enabled?: boolean;
   submenu: MenuItemType[];
 }
 
-export function MenuItem(props: MenuItemType) {
-  const stopMenuClosure = (event: React.MouseEvent) => {
-    event.stopPropagation();
+function stopMenuClosure(event: React.MouseEvent) {
+  event.stopPropagation();
+}
+
+export function MenuItemSubmenuComponent(props: MenuItemSubmenu) {
+  const [isSubmenuOpen, setIsSubmenuOpen] = useState(false);
+  const submenuRef = useRef<HTMLDivElement>(null);
+  const timeoutRef = useRef<NodeJS.Timeout>(null);
+
+  const handleMouseEnter = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    setIsSubmenuOpen(true);
   };
 
+  const handleMouseLeave = () => {
+    timeoutRef.current = setTimeout(() => {
+      setIsSubmenuOpen(false);
+    }, 150); // Small delay to prevent flickering
+  };
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  return (
+    <div
+      className={`menu-item menu-submenu ${props.enabled === false ? 'menu-item--disabled menu-submenu--disabled' : ''}`}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onClick={stopMenuClosure}
+    >
+      <div className='menu-item-label'>
+        {props.label}
+      </div>
+      <div className='menu-submenu-arrow'>▶</div>
+      {isSubmenuOpen && props.enabled !== false && (
+        <div
+          ref={submenuRef}
+          className='menu-submenu-container'
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
+          <Menu items={props.submenu} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function MenuItem(props: MenuItemType) {
   switch (props.type) {
     case 'button': {
       return (
@@ -62,7 +114,8 @@ export function MenuItem(props: MenuItemType) {
     }
     case 'submenu': {
       return (
-        <div onClick={stopMenuClosure}>Unsupported Type</div>
+        <></>
+        // <MenuItemSubmenuComponent {...props}/>
       );
     }
     default: {

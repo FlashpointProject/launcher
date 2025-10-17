@@ -3754,8 +3754,8 @@ body {
 .context-menu {
   z-index: 999999;
   position: absolute;
-  padding-top: 4px;
-  padding-bottom: 4px;
+  padding-top: 5px;
+  padding-bottom: 5px;
 }
 
 .menu {
@@ -3772,6 +3772,11 @@ body {
 
 .menu-item-label {
   font-size: calc(0.6px * var(--height));
+}
+
+.menu-submenu {
+  display: flex;
+  justify-content: space-between;
 }
 
 .menu-separator-wrapper {

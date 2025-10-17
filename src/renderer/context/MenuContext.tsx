@@ -40,12 +40,14 @@ export function MenuProvider({ children }: MenuContextProps) {
     const menuWidth = newMenu.width ? newMenu.width * (scale + 0.5) : defaultMenuWidth * (scale + 0.5);
 
     // Calculate (ignoring rounding errors) pixel height of menu
-    const menuHeight = Math.floor(newMenu.items.reduce((prev, cur) => {
+    const menuHeight = 10 + Math.floor(newMenu.items.reduce((prev, cur) => {
+      if (cur.type === 'submenu') {
+        return prev;
+      }
       if (cur.type !== 'separator') {
         return prev + menuItemHeight;
-      } else {
-        return prev + (menuItemHeight * 0.5);
       }
+      return prev + (menuItemHeight * 0.5);
     }, 0));
 
     const style: React.CSSProperties = {};
