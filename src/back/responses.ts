@@ -408,11 +408,10 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     if (!state.isDev) {
       // Make sure we meet minimum verison requirements
       const updatesReady = state.componentStatuses.filter(c => c.id === 'core-launcher' && c.state === ComponentState.NEEDS_UPDATE).length > 0;
-      const version = state.version;
       const versionUrl = `${source.baseUrl}/api/min-launcher`;
       const res = await axios.get(versionUrl)
       .catch((err) => { throw `Failed to find minimum launcher version requirement from metadata server.\n${err}`; });
-      if (compareSemVerVersions(version, res.data['min-version'] || '9999999999999') < 0) {
+      if (compareSemVerVersions('', res.data['min-version'] || '9999999999999') < 0) {
         if (!updatesReady) {
           // No software update ready but metadata server requires it
           const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
@@ -2128,7 +2127,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
       const output: MetaEditFile = {
         metas: [meta],
-        launcherVersion: state.version,
+        launcherVersion: '',
       };
 
       const folderPath = path.join(state.config.flashpointPath, state.preferences.metaEditsFolderPath);

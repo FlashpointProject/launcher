@@ -39,7 +39,6 @@ import * as React from 'react';
 import { Activity } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
-import { ConnectedRightBrowseSidebar } from '../containers/ConnectedRightBrowseSidebar';
 import { WithMainStateProps } from '../containers/withMainState';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { WithTagCategoriesProps } from '../containers/withTagCategories';
@@ -56,13 +55,14 @@ import { DynamicComponentProvider, RemoteModule } from './DynamicComponentProvid
 import { DynamicThemeProvider } from './DynamicThemeProvider';
 import { FloatingContainer } from './FloatingContainer';
 import { Footer } from './Footer';
-import { ConnectedFpfssEditGame } from './FpfssEditGame';
+import { FpfssEditGame } from './FpfssEditGame';
 import { SortableColumn } from './GameListHeader';
 import { Header } from './Header';
 import { MenuItemType } from './Menu';
 import { newCurateTask } from './pages/CuratePage';
 import { placeholderProgressData, ProgressBar } from './ProgressComponents';
 import { ResizableSidebar, SidebarResizeEvent } from './ResizableSidebar';
+import { RightBrowseSidebar } from './RightBrowseSidebar';
 import { SearchableSelect } from './SearchBar';
 import { SimpleButton } from './SimpleButton';
 import { SplashScreen } from './SplashScreen';
@@ -1492,27 +1492,20 @@ export class App extends React.Component<AppProps> {
                 {/** Fancy FPFSS edit */}
                 {this.props.fpfss.editingGame && (
                   <FloatingContainer floatingClassName='fpfss-edit-container'>
-                    <ConnectedFpfssEditGame
-                      logoVersion={this.props.main.logoVersion}
+                    <FpfssEditGame
                       gameRunning={false}
-                      currentGame={this.props.fpfss.editingGame}
-                      currentLibrary={this.props.fpfss.editingGame.library}
+                      game={this.props.fpfss.editingGame}
+                      library={this.props.fpfss.editingGame.library}
                       onGameLaunch={async () => alert('Cannot launch game during FPFSS edit')}
                       onDeleteSelectedGame={() => {/** unused */ }}
                       onDeselectPlaylist={() => {/** unused */ }}
-                      isEditing={true}
                       isExtreme={false}
-                      isNewGame={false}
-                      suggestions={this.props.main.suggestions}
-                      tagCategories={this.props.tagCategories}
-                      busyGames={[]}
                       onEditClick={() => {/** unused */ }}
                       onRemovePlaylistGame={() => {/** unused */ }}
                       onDiscardClick={this.onCancelFpfssEditGame}
                       onSaveGame={this.onSaveFpfssEditGame}
                       onEditGame={this.onApplyFpfssEditGame}
                       onFpfssEditGame={this.onFpfssEditGame}
-                      onSearch={this.onSearch}
                       onUpdateActiveGameData={(disk, id) => id && this.onApplyFpfssEditGameData(id)} />
                   </FloatingContainer>
                 )}
@@ -1551,29 +1544,22 @@ export class App extends React.Component<AppProps> {
                           divider='before'
                           width={this.props.preferencesData.browsePageRightSidebarWidth}
                           onResize={this.onRightSidebarResize}>
-                          <ConnectedRightBrowseSidebar
-                            logoVersion={this.props.main.logoVersion}
-                            currentGame={currentView.selectedGame}
-                            currentPlaylist={currentView.selectedPlaylist}
+                          <RightBrowseSidebar
+                            game={currentView.selectedGame}
+                            playlist={currentView.selectedPlaylist}
                             isExtreme={isGame(currentView.selectedGame) ? currentView.selectedGame.tags.reduce<boolean>((prev, next) => extremeTags.includes(next) || prev, false) : false}
                             gameRunning={routerProps.gameRunning}
-                            currentLibrary={routerProps.gameLibrary}
+                            library={routerProps.gameLibrary}
                             onGameLaunch={this.onGameLaunch}
                             onDeleteSelectedGame={this.onDeleteSelectedGame}
                             onRemovePlaylistGame={this.onRemovePlaylistGame}
                             onDeselectPlaylist={this.onRightSidebarDeselectPlaylist}
-                            isEditing={this.props.main.isEditingGame && this.props.preferencesData.enableEditing}
-                            isNewGame={false} /* Deprecated */
                             onEditGame={this.onEditGame}
                             onUpdateActiveGameData={this.onUpdateActiveGameData}
                             onEditClick={this.onStartEditClick}
                             onDiscardClick={this.onDiscardEditClick}
                             onSaveGame={this.onSaveEditClick}
-                            tagCategories={this.props.tagCategories}
-                            suggestions={this.props.main.suggestions}
-                            busyGames={this.props.main.busyGames}
-                            onFpfssEditGame={this.onFpfssEditGame}
-                            onSearch={this.onSearch} />
+                            onFpfssEditGame={this.onFpfssEditGame} />
                         </ResizableSidebar>
                       </Activity>
                     </div>
