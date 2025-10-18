@@ -8,7 +8,6 @@ export const menuHeightMin = 14;
 export const menuHeightMax = 38;
 
 export type MenuContextStateProps = {
-  menu?: MenuProps;
   openMenu: (menu: MenuProps, pointer: Pointer) => void;
   closeMenu: () => void;
 };
@@ -92,7 +91,6 @@ export function MenuProvider({ children }: MenuContextProps) {
 
   return (
     <MenuContext.Provider value={{
-      menu,
       openMenu,
       closeMenu,
     }}>

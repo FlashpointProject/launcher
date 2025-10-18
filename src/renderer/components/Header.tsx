@@ -1,19 +1,16 @@
-import { WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
-import { WithMainStateProps } from '@renderer/containers/withMainState';
-import { WithNavigationProps } from '@renderer/containers/withNavigation';
-import { WithSearchProps } from '@renderer/containers/withSearch';
-import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
-import { WithViewProps } from '@renderer/containers/withView';
-import { getPointer, MenuContextStateProps } from '@renderer/context/MenuContext';
-import { GENERAL_VIEW_ID } from '@renderer/store/search/slice';
-import { FpfssUser } from '@shared/back/types';
+import { getPointer } from '@renderer/context/MenuContext';
+import { createNewDialog } from '@renderer/dialog';
+import { useView } from '@renderer/hooks/search';
+import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
+import { useConfirmDialog } from '@renderer/hooks/useConfirmDialog';
+import { useContextMenu } from '@renderer/hooks/useContextMenu';
+import { updatePreferences } from '@renderer/store/preferences/slice';
+import { addViews, deleteView, duplicateView, GENERAL_VIEW_ID, renameView } from '@renderer/store/search/slice';
 import { getLibraryItemTitle } from '@shared/library/util';
 import { Paths } from '@shared/Paths';
-import { uuid } from '@shared/utils/uuid';
-import { DialogField, DialogState } from 'flashpoint-launcher';
-import * as React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { WithPreferencesProps } from '../containers/withPreferences';
+import { DialogField, DialogState, DialogStateTemplate } from 'flashpoint-launcher';
+import { useContext } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { joinLibraryRoute, openUrlInWindow } from '../Util';
 import { LangContext } from '../util/lang';
 import { MenuItemType } from './Menu';
@@ -21,230 +18,45 @@ import { OpenIcon } from './OpenIcon';
 
 const viewDragType = 'text/plain';
 
-type OwnProps = {
-  /** Array of library routes */
-  libraries: string[];
+type HeaderProps = {
   /** Called when the left sidebar toggle button is clicked. */
   onToggleLeftSidebarClick?: () => void;
   /** Called when the right sidebar toggle button is clicked. */
   onToggleRightSidebarClick?: () => void;
-  user: FpfssUser | null;
   logoutUser: () => void;
 };
 
-export type HeaderProps = OwnProps & MenuContextStateProps & WithMainStateProps & WithConfirmDialogProps & WithPreferencesProps & WithTagCategoriesProps & WithSearchProps & WithViewProps<any> & WithNavigationProps;
+export function Header(props: HeaderProps) {
+  console.log('header render');
+  const browsePageShowRightSidebar = useAppSelector(state => state.preferences.browsePageShowRightSidebar);
+  const browsePageShowLeftSidebar = useAppSelector(state => state.preferences.browsePageShowLeftSidebar);
+  const useCustomViews = useAppSelector(state => state.preferences.useCustomViews);
+  const customViews = useAppSelector(state => state.preferences.customViews);
+  const storedViews = useAppSelector(state => state.preferences.storedViews);
+  const defaultOpeningPage = useAppSelector(state => state.preferences.defaultOpeningPage);
+  const loadViewsText = useAppSelector(state => state.preferences.loadViewsText);
+  const hideNewViewButton = useAppSelector(state => state.preferences.hideNewViewButton);
+  const enableEditing = useAppSelector(state => state.preferences.enableEditing);
+  const fpfssBaseUrl = useAppSelector(state => state.preferences.fpfssBaseUrl);
+  const onlineManual = useAppSelector(state => state.preferences.onlineManual);
+  const offlineManual = useAppSelector(state => state.preferences.offlineManual);
+  const fpfssUser = useAppSelector(state => state.fpfss.user);
+  const playlists = useAppSelector(state => state.main.playlists);
+  const libraries = useAppSelector(state => state.main.libraries);
+  const { openMenu } = useContextMenu();
+  const currentView = useView();
+  const allStrings = useContext(LangContext);
+  const strings = allStrings.app;
+  const views = useAppSelector(state => state.search.views);
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const { confirmDialog, openConfirmDialog } = useConfirmDialog();
 
-type HeaderState = Record<string, never>;
+  const viewNames = useCustomViews ?
+    Object.keys(views).filter(k => k !== GENERAL_VIEW_ID) :
+    libraries;
 
-/** The header that is always visible at the top of the main window (just below the title bar). */
-export class Header extends React.Component<HeaderProps, HeaderState> {
-  static contextType = LangContext;
-  declare context: React.ContextType<typeof LangContext>;
-
-  constructor(props: HeaderProps) {
-    super(props);
-  }
-
-  onDuplicateView = async (view: string) => {
-    let warning: string | undefined;
-    while (true) {
-      const name = await this.getUserInput('Enter Duplicate View Name', warning);
-
-      if (name !== '') {
-        if (name === view) {
-          // Same name, just return and ignore user
-          return;
-        }
-        const views = Object.keys(this.props.search.views);
-        if (views.includes(name)) {
-          warning = 'Name already in use';
-          continue;
-        } else {
-          const customViews = [...this.props.preferencesData.customViews];
-          const customViewsIdx = this.props.preferencesData.customViews.findIndex(v => v === name);
-          if (customViewsIdx > -1) {
-            customViews[customViewsIdx] = name;
-          } else {
-            customViews.push(name);
-          }
-          this.props.updatePreferences({
-            customViews
-          });
-          this.props.searchActions.duplicateView({
-            oldView: view,
-            view: name
-          });
-          setTimeout(() => {
-            const route = joinLibraryRoute(name);
-            this.props.navigate(route);
-          }, 50);
-          return;
-        }
-      }
-    }
-  };
-
-  onRenameView = async (view: string) => {
-    let warning: string | undefined;
-    let name = view;
-    while (true) {
-      name = await this.getUserInput('Enter View Name', warning, name);
-
-      if (name !== '') {
-        if (name === view) {
-          // Same name, just return and ignore user
-          return;
-        }
-        const views = Object.keys(this.props.search.views);
-        if (views.includes(name)) {
-          warning = 'Name already in use';
-          continue;
-        } else {
-          // Change prefs
-          const customViews = [...this.props.preferencesData.customViews];
-          const customViewsIdx = this.props.preferencesData.customViews.findIndex(v => v === view);
-          if (customViewsIdx > -1) {
-            customViews[customViewsIdx] = name;
-          } else {
-            customViews.push(name);
-          }
-          const storedViews = [...this.props.preferencesData.storedViews.filter(s => s.view !== view)];
-          const existingStoredView = this.props.preferencesData.storedViews.find(s => s.view === view);
-          if (existingStoredView) {
-            storedViews.push({
-              ...existingStoredView,
-              view: name
-            });
-          }
-          if (this.props.preferencesData.defaultOpeningPage === joinLibraryRoute(view)) {
-            this.props.updatePreferences({
-              defaultOpeningPage: joinLibraryRoute(name)
-            });
-          }
-          this.props.updatePreferences({
-            customViews,
-            storedViews,
-          });
-          if (this.props.currentView.id === view) {
-            // Move to LOADING page during change over
-            this.props.navigate(Paths.LOADING);
-            // Let the search action do the data swap
-            this.props.searchActions.renameView({
-              old: view,
-              new: name,
-            });
-            setTimeout(() => {
-              this.props.navigate(joinLibraryRoute(name));
-            }, 200);
-          } else {
-            this.props.searchActions.renameView({
-              old: view,
-              new: name,
-            });
-          }
-        }
-      }
-
-      break;
-    }
-  };
-
-  onCreateNewView = async () => {
-    let warning: string | undefined;
-    while (true) {
-      const name = await this.getUserInput('Enter View Name', warning);
-
-      if (name !== '') {
-        const views = Object.keys(this.props.search.views);
-        if (views.includes(name)) {
-          warning = 'Name already in use';
-          continue;
-        } else {
-          // Add new view
-          const customViews = [...this.props.preferencesData.customViews, name];
-          this.props.updatePreferences({
-            customViews,
-          });
-          this.props.searchActions.addViews({
-            views: [name],
-            areLibraries: false,
-            loadViewsText: this.props.preferencesData.loadViewsText,
-            playlists: this.props.main.playlists,
-          });
-          setTimeout(() => {
-            this.props.navigate(joinLibraryRoute(name));
-          }, 200);
-        }
-      }
-
-      break;
-    }
-  };
-
-  onDragStart = (event: React.DragEvent<HTMLLIElement>, view: string) => {
-    console.log(`dragged: ${view}`);
-    event.dataTransfer.dropEffect = 'move';
-    event.dataTransfer.setData(viewDragType, view);
-  };
-
-  onDrop = (event: React.DragEvent<HTMLLIElement>, newView: string) => {
-    const view = event.dataTransfer.getData(viewDragType);
-    if (view) {
-      console.log(`dropped: ${view}`);
-      // Swap views
-      const customViews = [...this.props.preferencesData.customViews];
-      const oldIdx = customViews.findIndex(v => v === view);
-      const newIdx = customViews.findIndex(v => v === newView);
-      if (oldIdx > -1 && newIdx > -1) {
-        customViews[oldIdx] = newView;
-        customViews[newIdx] = view;
-      }
-      this.props.updatePreferences({
-        customViews,
-      });
-    }
-  };
-
-  onDeleteView = async (view: string) => {
-    const strings = this.context;
-    // Confirm first
-    const confirmation = await this.props.openConfirmDialog(
-      strings.dialog.areYouSure,
-      [strings.misc.yes, strings.dialog.cancel],
-      1,
-      1,
-    );
-    if (confirmation === 0) {
-      if (this.props.currentView.id === view) {
-        // Must move to the home tab first!
-        this.props.navigate(Paths.HOME);
-      }
-      const customViews = this.props.preferencesData.customViews.filter(v => v !== view);
-      const storedViews = this.props.preferencesData.storedViews.filter(v => v.view !== view);
-      // Make sure the default page is always valid
-      if (this.props.preferencesData.defaultOpeningPage === joinLibraryRoute(view)) {
-        this.props.updatePreferences({
-          defaultOpeningPage: Paths.HOME,
-        });
-      }
-      this.props.updatePreferences({
-        customViews: customViews,
-        storedViews: storedViews,
-      });
-      this.props.searchActions.deleteView({
-        view: view
-      });
-      // Also make sure there's always one custom view in prefs
-      if (customViews.length === 0) {
-        customViews.push('Browse');
-        this.props.updatePreferences({
-          customViews
-        });
-      }
-    }
-  };
-
-  getUserInput = async (message: string, warning?: string, placeholder?: string): Promise<string> => {
+  const getUserInput = async (message: string, warning?: string, placeholder?: string): Promise<string> => {
     return new Promise<string>((resolve) => {
       const fields: DialogField[] = [];
       fields.push({
@@ -260,8 +72,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
           value: warning,
         });
       }
-      const dialog: DialogState = {
-        id: uuid(),
+      const dialog: DialogStateTemplate = {
         largeMessage: true,
         userCanCancel: false,
         message: message,
@@ -269,8 +80,8 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
         fields,
         buttons: ['Confirm', 'Cancel'],
       };
-      this.props.mainActions.createDialog(dialog);
-      window.Shared.dialogResEvent.once(dialog.id, (d: DialogState, value: number) => {
+      const dialogId = createNewDialog(dispatch, dialog);
+      window.Shared.dialogResEvent.once(dialogId, (d: DialogState, value: number) => {
         if (value === 0 && d.fields) {
           const field = d.fields.find(f => f.name === 'name');
           if (field) {
@@ -285,172 +96,350 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
     });
   };
 
-  render() {
-    const strings = this.context.app;
-    const {
-      preferencesData: { browsePageShowLeftSidebar, browsePageShowRightSidebar, enableEditing, onlineManual, offlineManual },
-      onToggleLeftSidebarClick, onToggleRightSidebarClick
-    } = this.props;
+  const onDuplicateView = async (view: string) => {
+    let warning: string | undefined;
+    while (true) {
+      const name = await getUserInput('Enter Duplicate View Name', warning);
 
-    // FPFSS user context menu
-    const contextButtons: MenuItemType[] = [
-      {
-        type: 'button',
-        label: strings.fpfssProfile,
-        enabled: true,
-        onClick: () => {
-          openUrlInWindow(`${this.props.preferencesData.fpfssBaseUrl}/web/profile`);
+      if (name !== '') {
+        if (name === view) {
+          // Same name, just return and ignore user
+          return;
         }
-      },
-      {
-        type: 'button',
-        label: strings.fpfssLogout,
-        enabled: true,
-        onClick: () => {
-          this.props.logoutUser();
+        if (viewNames.includes(name)) {
+          warning = 'Name already in use';
+          continue;
+        } else {
+          const newCustomViews = [...customViews];
+          const customViewsIdx = newCustomViews.findIndex(v => v === name);
+          if (customViewsIdx > -1) {
+            newCustomViews[customViewsIdx] = name;
+          } else {
+            newCustomViews.push(name);
+          }
+          dispatch(updatePreferences({
+            customViews: newCustomViews
+          }));
+          dispatch(duplicateView({
+            oldView: view,
+            view: name
+          }));
+          setTimeout(() => {
+            const route = joinLibraryRoute(name);
+            navigate(route);
+          }, 50);
+          return;
         }
       }
-    ];
-    const browseViews = this.props.preferencesData.useCustomViews ?
-      Object.keys(this.props.search.views).filter(k => k !== GENERAL_VIEW_ID) :
-      this.props.libraries;
-    if (this.props.preferencesData.useCustomViews) {
-      browseViews.sort((a, b) => {
-        const aIdx = this.props.preferencesData.customViews.findIndex(v => v === a);
-        const bIdx = this.props.preferencesData.customViews.findIndex(v => v === b);
-        return aIdx - bIdx;
-      });
     }
-    return (
-      <div className='header'>
-        {/* Header Menu */}
-        <div className='header__wrap'>
-          <ul className='header__menu'>
-            <HeaderMenuItem
-              id={'header__home'}
-              title={strings.home}
-              link={Paths.HOME} />
-            {
-              this.props.preferencesData.useCustomViews ?
-                browseViews.map(view => (
-                  <HeaderMenuItem
-                    key={view}
-                    title={view}
-                    onDragStart={(event) => this.onDragStart(event, view)}
-                    onDrop={(event) => this.onDrop(event, view)}
-                    link={joinLibraryRoute(view)}
-                    onContextMenu={(event) => {
-                      const contextButtons: MenuItemType[] = [
-                        {
-                          type: 'button',
-                          label: strings.createNewView,
-                          onClick: this.onCreateNewView,
-                        },
-                        {
-                          type: 'button',
-                          label: strings.renameView,
-                          onClick: () => this.onRenameView(view),
-                        },
-                        {
-                          type: 'button',
-                          label: strings.duplicateView,
-                          onClick: () => this.onDuplicateView(view),
-                        },
-                        {
-                          type: 'button',
-                          label: browseViews.length > 1 || view !== 'Browse' ? strings.deleteView : strings.deleteOnlyBrowseView,
-                          enabled: browseViews.length > 1 ? true : view !== 'Browse',
-                          onClick: () => this.onDeleteView(view),
-                        },
-                      ];
-                      this.props.openMenu({ items: contextButtons }, getPointer(event));
-                    }}/>
-                )) :
-                browseViews.map(view => (
-                  <HeaderMenuItem
-                    key={view}
-                    title={getLibraryItemTitle(view, this.context.libraries)}
-                    link={joinLibraryRoute(view)}/>
-                ))
-            }
-            { this.props.preferencesData.useCustomViews && !this.props.preferencesData.hideNewViewButton && (
-              <li className='header__menu__item header__menu__item__icon' onClick={this.onCreateNewView} title={strings.createNewView}>
-                <OpenIcon icon={'plus'}/>
-              </li>
-            )}
-            { enableEditing ? (
-              <>
+  };
+
+  const onRenameView = async (view: string) => {
+    let warning: string | undefined;
+    let name = view;
+    while (true) {
+      name = await getUserInput('Enter View Name', warning, name);
+
+      if (name !== '') {
+        if (name === view) {
+          // Same name, just return and ignore user
+          return;
+        }
+        if (viewNames.includes(name)) {
+          warning = 'Name already in use';
+          continue;
+        } else {
+          // Change prefs
+          const newCustomViews = [...customViews];
+          const customViewsIdx = customViews.findIndex(v => v === view);
+          if (customViewsIdx > -1) {
+            newCustomViews[customViewsIdx] = name;
+          } else {
+            newCustomViews.push(name);
+          }
+          const newStoredViews = [...storedViews.filter(s => s.view !== view)];
+          const existingStoredView = newStoredViews.find(s => s.view === view);
+          if (existingStoredView) {
+            newStoredViews.push({
+              ...existingStoredView,
+              view: name
+            });
+          }
+          if (defaultOpeningPage === joinLibraryRoute(view)) {
+            dispatch(updatePreferences({
+              defaultOpeningPage: joinLibraryRoute(name)
+            }));
+          }
+          dispatch(updatePreferences({
+            customViews: newCustomViews,
+            storedViews: newStoredViews
+          }));
+          if (currentView.id === view) {
+            // Move to LOADING page during change over
+            navigate(Paths.LOADING);
+            // Let the search action do the data swap
+            dispatch(renameView({
+              old: view,
+              new: name
+            }));
+            setTimeout(() => {
+              navigate(joinLibraryRoute(name));
+            }, 200);
+          } else {
+            dispatch(renameView({
+              old: view,
+              new: name
+            }));
+          }
+        }
+      }
+
+      break;
+    }
+  };
+
+  const onCreateNewView = async () => {
+    let warning: string | undefined;
+    while (true) {
+      const name = await getUserInput('Enter View Name', warning);
+
+      if (name !== '') {
+        if (viewNames.includes(name)) {
+          warning = 'Name already in use';
+          continue;
+        } else {
+          // Add new view
+          const newCustomViews = [...customViews, name];
+          dispatch(updatePreferences({
+            customViews: newCustomViews
+          }));
+          dispatch(addViews({
+            views: [name],
+            areLibraries: false,
+            loadViewsText,
+            playlists,
+          }));
+          setTimeout(() => {
+            navigate(joinLibraryRoute(name));
+          }, 200);
+        }
+      }
+
+      break;
+    }
+  };
+
+  const onDeleteView = async (view: string) => {
+    // Confirm first
+    const confirmation = await openConfirmDialog(
+      {
+        message: allStrings.dialog.areYouSure,
+        buttons: [allStrings.misc.yes, allStrings.dialog.cancel],
+        cancelId: 1,
+      }
+    );
+    if (confirmation === 0) {
+      if (currentView.id === view) {
+        // Must move to the home tab first!
+        navigate(Paths.HOME);
+      }
+      const newCustomViews = customViews.filter(v => v !== view);
+      const newStoredViews = storedViews.filter(v => v.view !== view);
+      // Make sure the default page is always valid
+      if (defaultOpeningPage === joinLibraryRoute(view)) {
+        dispatch(updatePreferences({
+          defaultOpeningPage: Paths.HOME,
+        }));
+      }
+      dispatch(updatePreferences({
+        customViews: newCustomViews,
+        storedViews: newStoredViews
+      }));
+      dispatch(deleteView({
+        view
+      }));
+      // Also make sure there's always one custom view in prefs
+      if (customViews.length === 0) {
+        dispatch(updatePreferences({
+          customViews: ['Browse']
+        }));
+      }
+    }
+  };
+
+  const onDragStart = (event: React.DragEvent<HTMLLIElement>, view: string) => {
+    console.log(`dragged: ${view}`);
+    event.dataTransfer.dropEffect = 'move';
+    event.dataTransfer.setData(viewDragType, view);
+  };
+
+  const onDrop = (event: React.DragEvent<HTMLLIElement>, newView: string) => {
+    const view = event.dataTransfer.getData(viewDragType);
+    if (view) {
+      console.log(`dropped: ${view}`);
+      // Swap views
+      const newCustomViews = [...customViews];
+      const oldIdx = newCustomViews.findIndex(v => v === view);
+      const newIdx = newCustomViews.findIndex(v => v === newView);
+      if (oldIdx > -1 && newIdx > -1) {
+        newCustomViews[oldIdx] = newView;
+        newCustomViews[newIdx] = view;
+      }
+      dispatch(updatePreferences({
+        customViews: newCustomViews
+      }));
+    }
+  };
+
+  const fpfssContextMenu: MenuItemType[] = [
+    {
+      type: 'button',
+      label: strings.fpfssProfile,
+      enabled: true,
+      onClick: () => {
+        openUrlInWindow(`${fpfssBaseUrl}/web/profile`);
+      }
+    },
+    {
+      type: 'button',
+      label: strings.fpfssLogout,
+      enabled: true,
+      onClick: () => {
+        props.logoutUser();
+      }
+    }
+  ];
+
+  return (
+    <div className='header'>
+      {confirmDialog}
+      {/* Header Menu */}
+      <div className='header__wrap'>
+        <ul className='header__menu'>
+          <HeaderMenuItem
+            id={'header__home'}
+            title={strings.home}
+            link={Paths.HOME} />
+          {
+            useCustomViews ?
+              viewNames.map(view => (
                 <HeaderMenuItem
-                  id={'header__tags'}
-                  title={strings.tags}
-                  link={Paths.TAGS} />
+                  key={view}
+                  title={view}
+                  onDragStart={(event) => onDragStart(event, view)}
+                  onDrop={(event) => onDrop(event, view)}
+                  link={joinLibraryRoute(view)}
+                  onContextMenu={(event) => {
+                    const contextButtons: MenuItemType[] = [
+                      {
+                        type: 'button',
+                        label: strings.createNewView,
+                        onClick: onCreateNewView,
+                      },
+                      {
+                        type: 'button',
+                        label: strings.renameView,
+                        onClick: () => onRenameView(view),
+                      },
+                      {
+                        type: 'button',
+                        label: strings.duplicateView,
+                        onClick: () => onDuplicateView(view),
+                      },
+                      {
+                        type: 'button',
+                        label: viewNames.length > 1 || view !== 'Browse' ? strings.deleteView : strings.deleteOnlyBrowseView,
+                        enabled: viewNames.length > 1 ? true : view !== 'Browse',
+                        onClick: () => onDeleteView(view),
+                      },
+                    ];
+                    openMenu({ items: contextButtons }, getPointer(event));
+                  }}/>
+              )) :
+              viewNames.map(view => (
                 <HeaderMenuItem
-                  id={'header__categories'}
-                  title={strings.categories}
-                  link={Paths.CATEGORIES} />
-              </>
-            ) : undefined }
-            <HeaderMenuItem
-              id={'header__downloads'}
-              title={'Downloads'}
-              link={Paths.DOWNLOADS} />
-            <HeaderMenuItem
-              id={'header__logs'}
-              title={strings.logs}
-              link={Paths.LOGS} />
-            <HeaderMenuItem
-              id={'header__config'}
-              title={strings.config}
-              link={Paths.CONFIG} />
-            { (onlineManual || offlineManual) && (
-              <HeaderMenuItem
-                id={'header__manual'}
-                title={strings.manual}
-                link={Paths.MANUAL} />
-            )}
-            <HeaderMenuItem
-              id={'header__about'}
-              title={strings.about}
-              link={Paths.ABOUT} />
-            { enableEditing ? (
-              <HeaderMenuItem
-                id={'header__curate'}
-                title={strings.curate}
-                link={Paths.CURATE} />
-            ) : undefined }
-          </ul>
-        </div>
-        {/* Right-most portion */}
-        <div className='header__wrap header__right'>
-          {this.props.user && (
-            <div className='header-user-box' onClick={(event) => {
-              this.props.openMenu({ items: contextButtons }, getPointer(event));
-            }}>
-              {/* FPFSS user status */}
-              <div className='header-user-icon' style={{ backgroundImage: `url(${this.props.user.avatarUrl})` }}></div>
-              <div className='header-user-name'>{this.props.user.username}</div>
-            </div>
+                  key={view}
+                  title={getLibraryItemTitle(view, allStrings.libraries)}
+                  link={joinLibraryRoute(view)}/>
+              ))
+          }
+          { useCustomViews && !hideNewViewButton && (
+            <li className='header__menu__item header__menu__item__icon' onClick={onCreateNewView} title={strings.createNewView}>
+              <OpenIcon icon={'plus'}/>
+            </li>
           )}
-          <div>
-            {/* Toggle Right Sidebar */}
-            <div
-              className='header__toggle-sidebar'
-              title={browsePageShowRightSidebar ? strings.hideRightSidebar : strings.showRightSidebar}
-              onClick={onToggleRightSidebarClick}>
-              <OpenIcon icon={browsePageShowRightSidebar ? 'collapse-right' : 'expand-right'} />
-            </div>
-            {/* Toggle Left Sidebar */}
-            <div
-              className='header__toggle-sidebar'
-              title={browsePageShowLeftSidebar ? strings.hideLeftSidebar : strings.showLeftSidebar}
-              onClick={onToggleLeftSidebarClick}>
-              <OpenIcon icon={browsePageShowLeftSidebar ? 'collapse-left' : 'expand-left'} />
-            </div>
+          { enableEditing ? (
+            <>
+              <HeaderMenuItem
+                id={'header__tags'}
+                title={strings.tags}
+                link={Paths.TAGS} />
+              <HeaderMenuItem
+                id={'header__categories'}
+                title={strings.categories}
+                link={Paths.CATEGORIES} />
+            </>
+          ) : undefined }
+          <HeaderMenuItem
+            id={'header__downloads'}
+            title={'Downloads'}
+            link={Paths.DOWNLOADS} />
+          <HeaderMenuItem
+            id={'header__logs'}
+            title={strings.logs}
+            link={Paths.LOGS} />
+          <HeaderMenuItem
+            id={'header__config'}
+            title={strings.config}
+            link={Paths.CONFIG} />
+          { (onlineManual || offlineManual) && (
+            <HeaderMenuItem
+              id={'header__manual'}
+              title={strings.manual}
+              link={Paths.MANUAL} />
+          )}
+          <HeaderMenuItem
+            id={'header__about'}
+            title={strings.about}
+            link={Paths.ABOUT} />
+          { enableEditing ? (
+            <HeaderMenuItem
+              id={'header__curate'}
+              title={strings.curate}
+              link={Paths.CURATE} />
+          ) : undefined }
+        </ul>
+      </div>
+      {/* Right-most portion */}
+      <div className='header__wrap header__right'>
+        {fpfssUser && (
+          <div className='header-user-box' onClick={(event) => {
+            openMenu({ items: fpfssContextMenu }, getPointer(event));
+          }}>
+            {/* FPFSS user status */}
+            <div className='header-user-icon' style={{ backgroundImage: `url(${fpfssUser.avatarUrl})` }}></div>
+            <div className='header-user-name'>{fpfssUser.username}</div>
+          </div>
+        )}
+        <div>
+          {/* Toggle Right Sidebar */}
+          <div
+            className='header__toggle-sidebar'
+            title={browsePageShowRightSidebar ? strings.hideRightSidebar : strings.showRightSidebar}
+            onClick={props.onToggleRightSidebarClick}>
+            <OpenIcon icon={browsePageShowRightSidebar ? 'collapse-right' : 'expand-right'} />
+          </div>
+          {/* Toggle Left Sidebar */}
+          <div
+            className='header__toggle-sidebar'
+            title={browsePageShowLeftSidebar ? strings.hideLeftSidebar : strings.showLeftSidebar}
+            onClick={props.onToggleLeftSidebarClick}>
+            <OpenIcon icon={browsePageShowLeftSidebar ? 'collapse-left' : 'expand-left'} />
           </div>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
 }
 
 type HeaderMenuItemType = {

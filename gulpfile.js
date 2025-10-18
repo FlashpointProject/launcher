@@ -430,7 +430,17 @@ exports.watch = series(
   )
 );
 
-exports.watchStatic = watchStatic;
+exports.watchStatic = series(
+  clean,
+  createVersionFile,
+  installCrossDeps,
+  buildStatic,
+  parallel(
+    watchBack,
+    watchExtensions,
+    watchStatic,
+  )
+);
 
 exports.pack = series(
   pack

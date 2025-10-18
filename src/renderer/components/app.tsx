@@ -8,6 +8,7 @@ import { WithViewProps } from '@renderer/containers/withView';
 import { getPointer, MenuContextStateProps } from '@renderer/context/MenuContext';
 import { createNewDialog, resolveNewDialog } from '@renderer/dialog';
 import { RANDOM_GAME_ROW_COUNT } from '@renderer/store/main/slice';
+import { WithShortcutProps } from '@renderer/store/reactKeybindCompat';
 import * as extUtils from '@renderer/util/ext';
 import { BackIn, BackInit, BackOut, FpfssUser } from '@shared/back/types';
 import { APP_TITLE } from '@shared/constants';
@@ -17,7 +18,6 @@ import { Paths } from '@shared/Paths';
 import { setTheme } from '@shared/Theme';
 import { getFileServerURL, mapFpfssGameToLocal, mapLocalToFpfssGame, recursiveReplace, sizeToString } from '@shared/Util';
 import { arrayShallowStrictEquals } from '@shared/utils/compare';
-import { debounce } from '@shared/utils/debounce';
 import { isGame, newGame } from '@shared/utils/misc';
 import { formatString } from '@shared/utils/StringFormatter';
 import { batchProcessor } from '@shared/utils/throttle';
@@ -40,7 +40,6 @@ import { Activity } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import { ConnectedRightBrowseSidebar } from '../containers/ConnectedRightBrowseSidebar';
-import HeaderContainer from '../containers/HeaderContainer';
 import { WithMainStateProps } from '../containers/withMainState';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { WithTagCategoriesProps } from '../containers/withTagCategories';
@@ -59,6 +58,7 @@ import { FloatingContainer } from './FloatingContainer';
 import { Footer } from './Footer';
 import { ConnectedFpfssEditGame } from './FpfssEditGame';
 import { SortableColumn } from './GameListHeader';
+import { Header } from './Header';
 import { MenuItemType } from './Menu';
 import { newCurateTask } from './pages/CuratePage';
 import { placeholderProgressData, ProgressBar } from './ProgressComponents';
@@ -68,7 +68,6 @@ import { SimpleButton } from './SimpleButton';
 import { SplashScreen } from './SplashScreen';
 import { TaskBar } from './TaskBar';
 import { TitleBar } from './TitleBar';
-import { WithShortcutProps } from '@renderer/store/reactKeybindCompat';
 
 // Hide the right sidebar if the page is inside these paths
 const hiddenRightSidebarPages = [Paths.ABOUT, Paths.CURATE, Paths.CONFIG, Paths.MANUAL, Paths.LOGS, Paths.TAGS, Paths.CATEGORIES, Paths.DOWNLOADS];
@@ -135,6 +134,7 @@ export class App extends React.Component<AppProps> {
   }, 500);
 
   registerIpcListeners() {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handleProtocol = (url: string) => {
       const { currentView } = this.props;
       const parts = url.split('/');
@@ -1532,10 +1532,8 @@ export class App extends React.Component<AppProps> {
                 {this.props.main.loadedAll ? (
                   <>
                     {/* Header */}
-                    <HeaderContainer
+                    <Header
                       logoutUser={this.logoutUser}
-                      user={this.props.fpfss.user}
-                      libraries={this.props.main.libraries}
                       onToggleLeftSidebarClick={this.onToggleLeftSidebarClick}
                       onToggleRightSidebarClick={this.onToggleRightSidebarClick} />
                     {/* Main */}
