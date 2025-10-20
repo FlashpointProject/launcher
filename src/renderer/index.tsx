@@ -9,7 +9,7 @@ import { createRoot } from 'react-dom/client';
 import { ShortcutProvider } from 'react-keybind';
 import { Provider } from 'react-redux';
 import { HashRouter } from 'react-router-dom';
-import { App } from './components/App';
+import { App } from './components/app';
 import { AppLoader } from './components/AppLoader';
 import { ContextReducerProvider } from './context-reducer/ContextReducerProvider';
 import { MenuProvider } from './context/MenuContext';
