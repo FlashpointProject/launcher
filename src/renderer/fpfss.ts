@@ -1,7 +1,10 @@
 import * as mainActions from '@renderer/store/main/slice';
 import { FpfssUser } from '@shared/back/types';
 import { uuid } from '@shared/utils/uuid';
+import { isAxiosError } from 'axios';
 import { DialogState } from 'flashpoint-launcher';
+import { setUser } from './store/fpfss/slice';
+import { AppDispatch } from './store/store';
 import { axios, openUrlInWindow } from './Util';
 
 export async function fpfssLogin(createDialog: typeof mainActions.createDialog, cancelDialog: typeof mainActions.cancelDialog, fpfssBaseUrl: string): Promise<FpfssUser | null> {
@@ -161,5 +164,46 @@ export function clearFpfssConsentExt(extId: string): void {
     localStorage.setItem('fpfss:extension_consent', JSON.stringify(consentMap));
   } catch (error) {
     console.error('Failed to parse consent data:', error);
+  }
+}
+
+// async function doFpfssAuth(dispatch: AppDispatch): Promise<FpfssUser | null> {
+//   const user = await fpfssLogin(this.props.mainActions.createDialog, this.props.mainActions.cancelDialog, this.props.preferencesData.fpfssBaseUrl)
+//   .catch((err) => {
+//     if (err !== 'User Cancelled') {
+//       alert(err);
+//     }
+//   }) as FpfssUser | null; // Weird void from inferred typing?
+//   if (user) {
+//     // Store in fpfss state
+//     dispatch(setUser(user));
+//     // Store in localstorage
+//     const userBase64 = Buffer.from(JSON.stringify(user, null, 0)).toString('base64');
+//     localStorage.setItem('fpfss_user', userBase64);
+//   }
+//   return user;
+// }
+
+export async function performFpfssAction(dispatch: AppDispatch, user: FpfssUser, cb: (user: FpfssUser) => any) {
+  try {
+    await cb(user);
+  } catch (err) {
+    // Check if the error is an axios error, so we can handle lack of auth
+    if (isAxiosError(err)) {
+      // Axios being dumb as bricks here
+      const jsonErr = JSON.parse(JSON.stringify(err));
+      if (jsonErr.status === 401) {
+        // Must reauth
+        dispatch(setUser(null));
+        localStorage.removeItem('fpfss_user');
+        const newUser = await this.doFpfssAuth();
+        if (newUser) {
+          this._performFpfssAction(newUser, cb);
+        }
+        return;
+      }
+    }
+    log.error('Launcher', `[FPFSS] Failed to execute action - ${err}`);
+    alert(`[FPFSS] Failed to execute action - ${err}`);
   }
 }

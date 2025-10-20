@@ -1,13 +1,14 @@
+import { createSelector } from '@reduxjs/toolkit';
 import { SearchBar } from '@renderer/components/SearchBar';
 import { getPointer } from '@renderer/context/MenuContext';
-import { useView } from '@renderer/hooks/search';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useContextMenu } from '@renderer/hooks/useContextMenu';
+import { setMainState, updatePlaylist } from '@renderer/store/main/slice';
 import { updatePreferences } from '@renderer/store/preferences/slice';
-import { forceSearch, RequestState, selectPlaylist } from '@renderer/store/search/slice';
+import { forceSearch, movePlaylistGame, RequestState, selectPlaylist } from '@renderer/store/search/slice';
+import { RootState } from '@renderer/store/store';
 import { BackIn } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
-import { ExtensionContribution } from '@shared/extensions/interfaces';
 import { sanitizeFilename } from '@shared/utils/sanitizeFilename';
 import { uuid } from '@shared/utils/uuid';
 import { LangContainer, Playlist } from 'flashpoint-launcher';
@@ -37,29 +38,23 @@ export type GameDragData = {
 }
 
 export type BrowsePageProps = {
+  viewName: string;
   sourceTable: string;
-  gamesTotal?: number;
-  metaState?: RequestState;
-  libraries: string[];
-  searchStatus: string | null;
-  playlists: Playlist[];
-  playlistIconCache: Record<string, string>;
-  onMovePlaylistGame: (sourceGameId: string, destGameId: string) => void;
-
   /** Generator for game context menu */
   onGameContextMenu: (event: React.MouseEvent, gameId: string, logoPath: string, screenshotPath: string) => void;
-  /** Called when a playlist is updated */
-  onUpdatePlaylist: (playlist: Playlist) => void;
-  /** Called when a playlist is deleted */
-  onDeletePlaylist: (playlist: Playlist) => void;
-  /** Updates to clear platform icon cache */
-  logoVersion: number;
-  /** Context menu additions */
-  contextButtons: ExtensionContribution<'contextButtons'>[];
 };
 
+const selectPlaylists = createSelector(
+  [(state: RootState) => state.main.playlists],
+  (playlists) => {
+    return [...playlists].sort((a, b) => {
+      return a.title.toLowerCase().localeCompare(b.title.toLowerCase());
+    });
+  }
+);
+
 export function BrowsePage(props: BrowsePageProps) {
-  const { onUpdatePlaylist, playlists } = props;
+  const { viewName } = props;
   const [isEditingPlaylist, setIsEditingPlaylist] = useState(false);
   const [isNewPlaylist, setIsNewPlaylist] = useState(false);
   const [currentPlaylist, setCurrentPlaylist] = useState<Playlist | null>(null);
@@ -72,25 +67,46 @@ export function BrowsePage(props: BrowsePageProps) {
   const browsePageShowLeftSidebar = useAppSelector(state => state.preferences.browsePageShowLeftSidebar);
   const browsePageLeftSidebarWidth = useAppSelector(state => state.preferences.browsePageLeftSidebarWidth);
   const browsePageRightSidebarWidth = useAppSelector(state => state.preferences.browsePageRightSidebarWidth);
-  const currentView = useView();
+  const extContextButtons = useAppSelector(state => state.main.contextButtons);
+  const logoVersion = useAppSelector(state => state.main.logoVersion);
+  const playlists = useAppSelector(selectPlaylists);
+  const playlistIconCache = useAppSelector(state => state.main.playlistIconCache);
   const { fileLoader, openFileSelect } = useFileLoader();
   const extremeTags = tagFilters.filter(t => !t.enabled && t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
   const { openMenu } = useContextMenu();
 
+  const selectedContentId = useAppSelector(state => state.search.views[viewName].selectedGame?.id);
+  const selectedPlaylist = useAppSelector(state => state.search.views[viewName].selectedPlaylist);
+  const usingPlaylistOrder = useAppSelector(state => state.search.views[viewName].advancedFilter.playlistOrder);
+  const searchMetaState = useAppSelector(state => state.search.views[viewName].data.metaState);
+  const searchFilter = useAppSelector(state => state.search.views[viewName].searchFilter);
+  const content = useAppSelector(state => state.search.views[viewName].data.content);
+  const contentTotal = useAppSelector(state => state.search.views[viewName].data.total);
+  const searchId = useAppSelector(state => state.search.views[viewName].data.searchId);
+
+  const onMovePlaylistGame = (sourceGameId: string, destGameId: string) => {
+    if (selectedPlaylist && usingPlaylistOrder && (sourceGameId !== destGameId)) {
+      dispatch(movePlaylistGame({
+        view: viewName,
+        sourceGameId,
+        destGameId,
+      }));
+    }
+  };
+
   React.useEffect(() => {
     // Force the first search if view hasn't been used yet
-    if (currentView.data.metaState === RequestState.WAITING) {
-      // console.log('loading view ' + this.props.currentView.id);
+    if (searchMetaState === RequestState.WAITING) {
       dispatch(forceSearch({
-        view: currentView.id,
+        view: viewName,
         useCustomViews: useCustomViews,
       }));
     }
   });
 
   React.useEffect(() => {
-    setCurrentPlaylist(currentView.selectedPlaylist || null);
-  }, [currentView.selectedPlaylist]);
+    setCurrentPlaylist(selectedPlaylist || null);
+  }, [selectedPlaylist]);
 
   // Callbacks
 
@@ -99,13 +115,13 @@ export function BrowsePage(props: BrowsePageProps) {
       window.Shared.back.request(BackIn.GET_PLAYLIST, playlistId)
       .then((playlist) => {
         dispatch(selectPlaylist({
-          view: currentView.id,
+          view: viewName,
           playlist
         }));
       });
     } else {
       dispatch(selectPlaylist({
-        view: currentView.id,
+        view: viewName,
         playlist: undefined
       }));
     }
@@ -129,14 +145,8 @@ export function BrowsePage(props: BrowsePageProps) {
 
   const onSavePlaylist = (): void => {
     if (currentPlaylist) {
-      window.Shared.back.request(BackIn.SAVE_PLAYLIST, currentPlaylist)
-      .then((data) => {
-        dispatch(selectPlaylist({
-          view: currentView.id,
-          playlist: data
-        }));
-        onUpdatePlaylist(data);
-      });
+      dispatch(updatePlaylist(currentPlaylist));
+      window.Shared.back.send(BackIn.SAVE_PLAYLIST, currentPlaylist);
       setIsEditingPlaylist(false);
       setIsNewPlaylist(false);
     }
@@ -152,7 +162,7 @@ export function BrowsePage(props: BrowsePageProps) {
         }
         const reader = new FileReader();
         reader.onload = () => {
-          window.Shared.back.send(BackIn.IMPORT_PLAYLIST, reader.result as string, currentView.id);
+          window.Shared.back.send(BackIn.IMPORT_PLAYLIST, reader.result as string, viewName);
         };
         reader.onerror = () => {
           alert('Error reading the file. Please try again.');
@@ -177,12 +187,12 @@ export function BrowsePage(props: BrowsePageProps) {
           description: '',
           author: '',
           icon: '',
-          library: currentView.id,
+          library: viewName,
           extreme: false
         });
         setIsEditingPlaylist(true);
         setIsNewPlaylist(true);
-        if (currentView.selectedPlaylist) {
+        if (selectedPlaylist) {
           onSelectPlaylist(null);
         }
       }
@@ -192,7 +202,7 @@ export function BrowsePage(props: BrowsePageProps) {
       label: 'Create From Search Results',
       onClick: () => {
         window.Shared.back.request(BackIn.BROWSE_ALL_RESULTS, {
-          ...currentView.searchFilter,
+          ...searchFilter,
           slim: true,
         })
         .then((games) => {
@@ -207,12 +217,12 @@ export function BrowsePage(props: BrowsePageProps) {
             description: '',
             author: '',
             icon: '',
-            library: currentView.id,
+            library: viewName,
             extreme: false
           });
           setIsEditingPlaylist(true);
           setIsNewPlaylist(true);
-          if (currentView.selectedPlaylist) {
+          if (selectedPlaylist) {
             onSelectPlaylist(null);
           }
         });
@@ -234,12 +244,22 @@ export function BrowsePage(props: BrowsePageProps) {
     if (currentPlaylist) {
       const playlistId = currentPlaylist.id;
       window.Shared.back.request(BackIn.DELETE_PLAYLIST, playlistId)
-      .then((data) => {
+      .then(() => {
         onSelectPlaylist(null);
-        if (data) {
-          // DB wipes it, need it to remove it locally
-          data.id = playlistId;
-          props.onDeletePlaylist(data);
+        // DB wipes it, need it to remove it locally
+        const index = playlists.findIndex(p => p.id === playlistId);
+        if (index >= 0) {
+          const newPlaylists = [...playlists];
+          newPlaylists.splice(index, 1);
+
+          const cache: Record<string, string> = { ...playlistIconCache };
+          const id = newPlaylists[index].id;
+          if (id in cache) { delete cache[id]; }
+
+          dispatch(setMainState({
+            playlists: playlists,
+            playlistIconCache: cache
+          }));
         }
       });
     }
@@ -375,7 +395,7 @@ export function BrowsePage(props: BrowsePageProps) {
   };
 
   const onPlaylistContextMenu = (event: React.MouseEvent<HTMLDivElement, MouseEvent>, playlistId: string) => {
-    if (!isEditingPlaylist || currentView.selectedPlaylist?.id != playlistId) { // Don't export a playlist in the back while it's being edited in the front
+    if (!isEditingPlaylist || selectedPlaylist?.id != playlistId) { // Don't export a playlist in the back while it's being edited in the front
       const contextButtons: MenuItemType[] = [{
         type: 'button',
         label: strings.menu.duplicatePlaylist,
@@ -400,7 +420,7 @@ export function BrowsePage(props: BrowsePageProps) {
       }];
 
       // Add extension contexts
-      for (const contribution of props.contextButtons) {
+      for (const contribution of extContextButtons) {
         for (const contextButton of contribution.value) {
           if (contextButton.context === 'playlist') {
             contextButtons.push({
@@ -432,12 +452,12 @@ export function BrowsePage(props: BrowsePageProps) {
         width={browsePageLeftSidebarWidth}
         onResize={onLeftSidebarResize}>
         <LeftBrowseSidebar
-          library={currentView.id}
-          playlists={props.playlists}
+          library={viewName}
+          playlists={playlists}
           isEditing={isEditingPlaylist}
           isNewPlaylist={isNewPlaylist}
           currentPlaylist={currentPlaylist}
-          playlistIconCache={props.playlistIconCache}
+          playlistIconCache={playlistIconCache}
           onDelete={onDeletePlaylist}
           onSave={onSavePlaylist}
           onCreate={onCreatePlaylistClick}
@@ -464,11 +484,17 @@ export function BrowsePage(props: BrowsePageProps) {
         <div className='game-browser__center-results-container'>
           {(() => {
             const displayProps: BrowsePageDisplayProps<any> = {
-              view: currentView,
-              logoVersion: props.logoVersion,
+              viewId: viewName,
+              searchId,
+              content,
+              contentTotal,
+              selectedContentId: selectedContentId,
+              selectedPlaylist: selectedPlaylist,
+              playlistOrder: usingPlaylistOrder,
+              logoVersion,
               extremeTags,
               onContextMenu: props.onGameContextMenu,
-              onMovePlaylistEntry: props.onMovePlaylistGame,
+              onMovePlaylistEntry: onMovePlaylistGame,
             };
 
             if (browsePageLayout === BrowsePageLayout.grid) {

@@ -4,10 +4,11 @@ import { requestRange, selectGame, setGridScroll, setListScroll } from '@rendere
 import { gameDragDataType, getPlatformIconURL } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
 import { BackIn } from '@shared/back/types';
+import { calcScale } from '@shared/Util';
 import { isGame } from '@shared/utils/misc';
 import { formatString } from '@shared/utils/StringFormatter';
 import { delayedThrottle } from '@shared/utils/throttle';
-import { Content, Game, ResultsView } from 'flashpoint-launcher';
+import { Content, Game, Playlist } from 'flashpoint-launcher';
 import { BrowsePageDisplayGridProps, BrowsePageDisplayListProps, BrowsePageDisplayProps } from 'flashpoint-launcher-renderer';
 import React, { useContext, useState } from 'react';
 import { ScrollIndices } from 'react-virtualized';
@@ -15,7 +16,6 @@ import { GameGrid } from './GameGrid';
 import { GameList } from './GameList';
 import { GameDragData, GameDragEventData } from './pages/BrowsePage';
 import { Spinner } from './Spinner';
-import { calcScale } from '@shared/Util';
 
 export function WebgameBrowsePageDisplayGrid(props: BrowsePageDisplayProps<Game>) {
   const getContentIcons = (game: Content | Game) => {
@@ -52,22 +52,25 @@ export function BrowsePageDisplayGrid<T extends Content>(props: BrowsePageDispla
   const screenshotPreviewMode = useAppSelector(state => state.preferences.screenshotPreviewMode);
   const hideExtremeScreenshots = useAppSelector(state => state.preferences.hideExtremeScreenshots);
   const dispatch = useAppDispatch();
-  const { view, onContextMenu, getContentIcons, onContentRun, logoVersion, extremeTags, onMovePlaylistEntry } = props;
+  const { viewId, searchId, content, contentTotal, selectedContentId, selectedPlaylist, playlistOrder,
+    onContextMenu, getContentIcons, onContentRun, logoVersion, extremeTags, onMovePlaylistEntry } = props;
   const [draggedContentIndex, setDraggedContentIndex] = useState<number | null>(null);
+  const gridScrollCol = useAppSelector(state => state.search.views[viewId].gridScrollCol);
+  const gridScrollRow = useAppSelector(state => state.search.views[viewId].gridScrollRow);
 
   const updateViewRange = delayedThrottle((start: number, count: number) => {
     dispatch(requestRange({
-      view: view.id,
-      searchId: view.data.searchId,
+      view: viewId,
+      searchId,
       start,
       count
     }));
   }, 100);
 
   const onGridScrollToChange = (params: ScrollIndices, columns: number) => {
-    const content = view.data.content[params.scrollToRow * columns + params.scrollToColumn];
-    if (content) {
-      onContentCellSelect(content.id, params.scrollToColumn, params.scrollToRow);
+    const foundContent = content[params.scrollToRow * columns + params.scrollToColumn];
+    if (foundContent) {
+      onContentCellSelect(foundContent.id, params.scrollToColumn, params.scrollToRow);
     }
   };
 
@@ -87,18 +90,18 @@ export function BrowsePageDisplayGrid<T extends Content>(props: BrowsePageDispla
   };
 
   const onContentCellSelect = async (contentId?: string, col?: number, row?: number): Promise<void> => {
-    if (view.selectedGame?.id !== contentId && contentId) {
+    if (selectedContentId !== contentId && contentId) {
       const game = await window.Shared.back.request(BackIn.GET_GAME, contentId);
       if (game) {
         if (col !== undefined && row !== undefined) {
           dispatch(setGridScroll({
-            view: view.id,
+            view: viewId,
             col,
             row
           }));
         }
         dispatch(selectGame({
-          view: view.id,
+          view: viewId,
           game,
         }));
       }
@@ -108,22 +111,24 @@ export function BrowsePageDisplayGrid<T extends Content>(props: BrowsePageDispla
   const height: number = calcScale(210, 390, scale);
   const width: number = (height * 0.666) | 0;
   const gameGridProps = {
-    scrollCol: view.gridScrollCol,
-    scrollRow: view.gridScrollRow,
+    scrollCol: gridScrollCol,
+    scrollRow: gridScrollRow,
     onScrollToChange: onGridScrollToChange
   };
 
   return (
     <GameGrid
-      view={view}
-      resultsTotal={view.data.total !== undefined ? view.data.total : Object.keys(view.data.content).length}
-      insideOrderedPlaylist={view.selectedPlaylist !== undefined && view.advancedFilter.playlistOrder}
-      selectedContent={view.selectedGame}
+      viewId={viewId}
+      searchId={searchId}
+      content={content}
+      playlistOrder={playlistOrder}
+      resultsTotal={contentTotal !== undefined ? contentTotal : Object.keys(content).length}
+      insideOrderedPlaylist={selectedPlaylist !== undefined && playlistOrder}
+      selectedContentId={selectedContentId}
+      selectedPlaylist={selectedPlaylist}
       draggedContentIndex={draggedContentIndex}
       extremeTags={extremeTags}
-      noRowsRenderer={() => <BasicNoRowsRenderer
-        view={view}
-        gamesTotal={1} />}
+      noRowsRenderer={() => <BasicNoRowsRenderer contentTotal={contentTotal} selectedPlaylist={selectedPlaylist} />}
       onContentSelect={onContentCellSelect}
       onContentRun={onContentRun}
       onContextMenu={onContextMenu}
@@ -148,14 +153,16 @@ export function BrowsePageDisplayList<T extends Content>(props: BrowsePageDispla
   const tagFilters = useAppSelector(state => state.preferences.tagFilters);
   const browsePageShowExtreme = useAppSelector(state => state.preferences.browsePageShowExtreme);
   const dispatch = useAppDispatch();
-  const { view, onContextMenu, onContentRun, extremeTags, onMovePlaylistEntry } = props;
+  const { viewId, searchId, content, contentTotal, selectedContentId, selectedPlaylist, playlistOrder,
+    onContextMenu, onContentRun, extremeTags, onMovePlaylistEntry } = props;
   const [draggedContentIndex, setDraggedContentIndex] = useState<number | null>(null);
   const tagGroupIcons = tagFilters.filter(t => !t.enabled && t.iconBase64 !== '').map(({ tags, iconBase64: tagGroupIcon }) => ({ tagFilter: tags, iconBase64: tagGroupIcon }));
+  const listScrollRow = useAppSelector(state => state.search.views[viewId].listScrollRow);
 
   const updateViewRange = delayedThrottle((start: number, count: number) => {
     dispatch(requestRange({
-      view: view.id,
-      searchId: view.data.searchId,
+      view: viewId,
+      searchId,
       start,
       count
     }));
@@ -177,17 +184,17 @@ export function BrowsePageDisplayList<T extends Content>(props: BrowsePageDispla
   };
 
   const onContentCellSelect = async (contentId?: string, row?: number): Promise<void> => {
-    if (view.selectedGame?.id !== contentId && contentId) {
+    if (selectedContentId !== contentId && contentId) {
       const game = await window.Shared.back.request(BackIn.GET_GAME, contentId);
       if (game) {
         if (row !== undefined) {
           dispatch(setListScroll({
-            view: view.id,
+            view: viewId,
             row
           }));
         }
         dispatch(selectGame({
-          view: view.id,
+          view: viewId,
           game,
         }));
       }
@@ -195,10 +202,9 @@ export function BrowsePageDisplayList<T extends Content>(props: BrowsePageDispla
   };
 
   const onListScrollToChange = (row: number) => {
-    const content = view.data.content[row];
-    if (content) {
-      console.log(content.id);
-      onContentCellSelect(content.id, row);
+    const foundContent = content[row];
+    if (foundContent) {
+      onContentCellSelect(foundContent.id, row);
     }
   };
 
@@ -206,18 +212,20 @@ export function BrowsePageDisplayList<T extends Content>(props: BrowsePageDispla
 
   return (
     <GameList
-      view={view}
+      viewId={viewId}
+      searchId={searchId}
+      content={content}
+      playlistOrder={playlistOrder}
       displaySettings={displaySettings}
       sourceTable={'browse-page'}
-      resultsTotal={view.data.total !== undefined ? view.data.total : Object.keys(view.data.content).length}
-      insideOrderedPlaylist={view.selectedPlaylist !== undefined && view.advancedFilter.playlistOrder}
-      selectedGameId={view.selectedGame?.id}
+      resultsTotal={contentTotal !== undefined ? contentTotal : Object.keys(content).length}
+      insideOrderedPlaylist={selectedPlaylist !== undefined && playlistOrder}
+      selectedContentId={selectedContentId}
+      selectedPlaylist={selectedPlaylist}
       draggedGameIndex={draggedContentIndex}
       showExtremeIcon={browsePageShowExtreme}
       extremeTags={extremeTags}
-      noRowsRenderer={() => <BasicNoRowsRenderer
-        view={view}
-        gamesTotal={1} />}
+      noRowsRenderer={() => <BasicNoRowsRenderer contentTotal={contentTotal} selectedPlaylist={selectedPlaylist} />}
       tagGroupIcons={tagGroupIcons}
       onContentSelect={onContentCellSelect}
       onContentLaunch={onContentRun}
@@ -228,26 +236,25 @@ export function BrowsePageDisplayList<T extends Content>(props: BrowsePageDispla
       rowHeight={height}
       logoVersion={props.logoVersion}
       updateView={updateViewRange}
-      scrollRow={view.listScrollRow}
-      onScrollToChange={onListScrollToChange}
-      viewId={view.id} />
+      scrollRow={listScrollRow}
+      onScrollToChange={onListScrollToChange} />
   );
 }
 
 type BasicNoRowRendererProps = {
-  view: ResultsView<Content>;
-  gamesTotal: number;
+  selectedPlaylist?: Playlist;
+  contentTotal?: number;
 }
 
 export function BasicNoRowsRenderer(props: BasicNoRowRendererProps) {
   const strings = useContext(LangContext);
-  const { view, gamesTotal } = props;
+  const { contentTotal, selectedPlaylist } = props;
 
   return (
     <div className='game-list__no-games'>
-      {view.data.total !== undefined ?
-        view.selectedPlaylist ?
-          view.selectedPlaylist.games.length === 0 ?
+      {contentTotal !== undefined ?
+        selectedPlaylist ?
+          selectedPlaylist.games.length === 0 ?
           /* Empty Playlist */
             <>
               <h2 className='game-list__no-games__title'>{strings.browse.emptyPlaylist}</h2>
@@ -265,7 +272,7 @@ export function BasicNoRowsRenderer(props: BasicNoRowRendererProps) {
             <>
               <h1 className='game-list__no-games__title'>{strings.browse.noGamesFound}</h1>
               <br />
-              {gamesTotal !== undefined && gamesTotal > 0 ? (
+              {contentTotal !== undefined && contentTotal > 0 ? (
                 <>
                   {strings.browse.noGameMatchedDesc}
                   <br />

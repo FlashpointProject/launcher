@@ -21,8 +21,6 @@ export type GameListProps<T extends Content> = BrowsePageDisplayProps<T> & {
   resultsTotal?: number;
   /** Are we in a playlist view? */
   insideOrderedPlaylist: boolean;
-  /** Currently selected game (if any). */
-  selectedGameId?: string;
   /** Currently dragged game index (if any). */
   draggedGameIndex: number | null;
   /** Height of each row in the list (in pixels). */
@@ -63,7 +61,6 @@ type RowsRenderedInfo = {
   startIndex: number;
   stopIndex: number;
 }
-
 
 /** A list of rows, where each rows displays a game. */
 export class GameList<T extends Content> extends React.Component<GameListProps<T>> {
@@ -122,7 +119,7 @@ export class GameList<T extends Content> extends React.Component<GameListProps<T
   };
 
   render() {
-    const content = this.props.view.data.content || [];
+    const content = this.props.content;
     // @HACK: Check if the games array changed
     // (This will cause the re-rendering of all cells any time the games prop uses a different reference)
     if (content !== this.currentContent) {
@@ -135,9 +132,7 @@ export class GameList<T extends Content> extends React.Component<GameListProps<T
       <div
         className='game-list-wrapper'
         ref={this._wrapper}>
-        <GameListHeader
-          displaySettings={this.props.displaySettings}
-          showExtremeIcon={this.props.showExtremeIcon} />
+        <GameListHeader showExtremeIcon={this.props.showExtremeIcon} />
         <GameItemContainer
           className='game-browser__center-inner'
           onContentSelect={this.onContentSelect}
@@ -176,9 +171,9 @@ export class GameList<T extends Content> extends React.Component<GameListProps<T
                       onSectionRendered={onSectionRendered}
                       // Pass-through props (they have no direct effect on the list)
                       // (If any property is changed the list is re-rendered, even these)
-                      pass_gameId={this.props.selectedGameId}
+                      pass_gameId={this.props.selectedContentId}
                       pass_currentGamesCount={this.currentContentCount}
-                      pass_viewId={this.props.view.id} />
+                      pass_viewId={this.props.viewId} />
                   )}
                 </ArrowKeyStepper>
               );
@@ -191,9 +186,9 @@ export class GameList<T extends Content> extends React.Component<GameListProps<T
 
   // Renders a single row in the game list.
   rowRenderer = (props: ListRowProps): React.ReactNode => {
-    const games = this.props.view.data.content;
+    const games = this.props.content;
     const extremeIconPath = this.extremeIconPathMemo(this.props.logoVersion);
-    const { selectedGameId, showExtremeIcon } = this.props;
+    const { selectedContentId, showExtremeIcon } = this.props;
     const index = props.index;
     const game = games[index];
     if (!isGame(game)) {
@@ -222,7 +217,7 @@ export class GameList<T extends Content> extends React.Component<GameListProps<T
         tagGroupIconBase64={tagGroupIcon || ''}
         logoVersion={this.props.logoVersion}
         isDraggable={true}
-        isSelected={game.id === selectedGameId}
+        isSelected={game.id === selectedContentId}
         totalWeight={totalWeight}
         isDragged={false} /> // Bugged render update
     );
@@ -235,8 +230,8 @@ export class GameList<T extends Content> extends React.Component<GameListProps<T
   // When a key is pressed (while the list, or one of its children, is selected).
   onKeyPress = (event: React.KeyboardEvent): void => {
     if (event.key === 'Enter') {
-      if (this.props.selectedGameId) {
-        this.props.onContentLaunch(this.props.selectedGameId, null);
+      if (this.props.selectedContentId) {
+        this.props.onContentLaunch(this.props.selectedContentId, null);
       }
     }
   };
@@ -248,7 +243,7 @@ export class GameList<T extends Content> extends React.Component<GameListProps<T
    * @param gameId ID of pressed Game
    */
   onContentSelect = (event: React.MouseEvent, gameId: string | undefined): void => {
-    const row = findContentIndex(this.props.view.data.content, gameId);
+    const row = findContentIndex(this.props.content, gameId);
     this.props.onContentSelect(gameId, row);
   };
 

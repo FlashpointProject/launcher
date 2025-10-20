@@ -9,8 +9,8 @@ import { createRoot } from 'react-dom/client';
 import { ShortcutProvider } from 'react-keybind';
 import { Provider } from 'react-redux';
 import { HashRouter } from 'react-router-dom';
+import { App } from './components/App';
 import { AppLoader } from './components/AppLoader';
-import ConnectedApp from './containers/ConnectedApp';
 import { ContextReducerProvider } from './context-reducer/ContextReducerProvider';
 import { MenuProvider } from './context/MenuContext';
 import { ProgressContext } from './context/ProgressContext';
@@ -70,7 +70,7 @@ import { ProgressContext } from './context/ProgressContext';
             <ShortcutProvider>
               <ContextReducerProvider context={ProgressContext}>
                 <MenuProvider>
-                  <ConnectedApp />
+                  <App />
                 </MenuProvider>
               </ContextReducerProvider>
             </ShortcutProvider>

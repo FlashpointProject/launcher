@@ -32,6 +32,7 @@ export type BackState = {
   isDev: boolean;
   verbose: boolean;
   socketServer: SocketServer;
+  curationsReady: boolean;
   downloader: Downloader;
   fileServer: FileServer;
   fileServerPort: number;
@@ -199,6 +200,7 @@ export type ApiEmittersState = Readonly<{
     onInterceptGetGame: ApiEmitter<flashpoint.Game>;
   }>,
   curations: Readonly <{
+    onCurationsReady: ApiEmitter<void>,
     onDidCurationListChange: ApiEmitter<{ added?: flashpoint.CurationState[], removed?: string[] }>;
     onDidCurationChange: ApiEmitter<flashpoint.CurationState>;
     onWillGenCurationWarnings: ApiEmitter<{

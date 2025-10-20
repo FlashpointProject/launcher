@@ -8,7 +8,6 @@ import { LangContext } from '@renderer/util/lang';
 import { BackIn } from '@shared/back/types';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
 import { eventResponseDebouncerFactory } from '@shared/eventResponseDebouncer';
-import { ExtensionContribution } from '@shared/extensions/interfaces';
 import { Task } from '@shared/interfaces';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
@@ -24,14 +23,7 @@ import { Dropdown } from '../Dropdown';
 import { OpenIcon } from '../OpenIcon';
 import { SimpleButton, SimpleButtonProps } from '../SimpleButton';
 
-export type CuratePageProps = {
-  extCurationTemplates: ExtensionContribution<'curationTemplates'>[];
-  extContextButtons: ExtensionContribution<'contextButtons'>[];
-  mad4fpEnabled: boolean;
-  logoVersion: number;
-}
-
-export function CuratePage(props: CuratePageProps) {
+export function CuratePage() {
   const strings = React.useContext(LangContext);
   const curate = useAppSelector((state) => state.curate);
   const currentCuration = curate.current;
@@ -47,6 +39,9 @@ export function CuratePage(props: CuratePageProps) {
   const shortcutPrefs = useAppSelector(state => state.preferences.shortcuts);
   const symlinkCurationContent = useAppSelector(state => state.preferences.symlinkCurationContent);
   const fpfssBaseUrl = useAppSelector(state => state.preferences.fpfssBaseUrl);
+  const curationTemplates = useAppSelector(state => state.main.curationTemplates);
+  const extContextButtons = useAppSelector(state => state.main.contextButtons);
+  const mad4fpEnabled = useAppSelector(state => state.main.mad4fpEnabled);
   const shortcut = useShortcut();
   const dispatch = useDispatch();
   const curation: CurationState | undefined = curate.curations.find(c => c.folder === currentCuration);
@@ -97,24 +92,26 @@ export function CuratePage(props: CuratePageProps) {
     window.Shared.back.send(BackIn.CURATE_SCAN_NEW_CURATIONS);
   };
 
-  const onLoadCuration = React.useCallback(() => {
-    // Generate task
-    if (window.electronAPI !== undefined) {
-      // window.Electron.ipcRenderer.invoke('show-open-dialog', {
-      //   title: strings.dialog.selectCurationArchive,
-      //   properties: [ 'multiSelections' ],
-      // })
-      // .then(value => {
-      //   const filePaths = value.filePaths;
-      //   if (filePaths.length > 0) {
-      //     const newTask = newCurateTask(`Loading ${filePaths.length} Archives`, 'Loading...');
-      //     dispatch(addTask(newTask));
-      //     window.Shared.back.send(BackIn.CURATE_LOAD_ARCHIVES, filePaths, newTask.id);
-      //   }
-      // });
-    }
+  const onLoadCuration = () => {};
 
-  }, [dispatch, strings.dialog.selectCurationArchive]);
+  // const onLoadCuration = React.useCallback(() => {
+  //   // Generate task
+  //   if (window.electronAPI !== undefined) {
+  //     // window.Electron.ipcRenderer.invoke('show-open-dialog', {
+  //     //   title: strings.dialog.selectCurationArchive,
+  //     //   properties: [ 'multiSelections' ],
+  //     // })
+  //     // .then(value => {
+  //     //   const filePaths = value.filePaths;
+  //     //   if (filePaths.length > 0) {
+  //     //     const newTask = newCurateTask(`Loading ${filePaths.length} Archives`, 'Loading...');
+  //     //     dispatch(addTask(newTask));
+  //     //     window.Shared.back.send(BackIn.CURATE_LOAD_ARCHIVES, filePaths, newTask.id);
+  //     //   }
+  //     // });
+  //   }
+
+  // }, [dispatch, strings.dialog.selectCurationArchive]);
 
   const onNewCuration = (meta?: EditCurationMeta) => {
     dispatch(curateActions.createCuration({
@@ -378,7 +375,7 @@ export function CuratePage(props: CuratePageProps) {
   };
 
   // Gen extension buttons
-  const extButtons = props.extContextButtons.map((c, index) => {
+  const extButtons = extContextButtons.map((c, index) => {
     const ext = extensions.find(e => e.id === c.extId);
     const buttons = c.value.filter(c => c.context === 'curation').map((contextButton, index) => (
       <SimpleButton
@@ -400,7 +397,7 @@ export function CuratePage(props: CuratePageProps) {
     }
   });
 
-  const curationTemplateButtons = props.extCurationTemplates.map(c => {
+  const curationTemplateButtons = curationTemplates.map(c => {
     return c.value.map((template, index) => {
       return (
         <label
@@ -515,7 +512,7 @@ export function CuratePage(props: CuratePageProps) {
             onTagTextChange={onTagTextChange}
             tagSuggestions={tagSuggestions}
             platformSuggestions={platformSuggestions}
-            logoVersion={props.logoVersion}
+            logoVersion={logoVersion}
             symlinkCurationContent={symlinkCurationContent} />
         ) : (
           <div className='curate-page__header-text'>
@@ -660,7 +657,7 @@ export function CuratePage(props: CuratePageProps) {
             disabled={disabled}
             value={strings.curate.run}
             onClick={onRunCuration}/>
-          { props.mad4fpEnabled && (
+          { mad4fpEnabled && (
             <SimpleButton
               className='curate-page__right--button'
               disabled={disabled || !symlinkCurationContent}

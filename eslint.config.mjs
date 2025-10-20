@@ -9,7 +9,6 @@ import reactHooks from 'eslint-plugin-react-hooks';
 
 export default tseslint.config(
     eslint.configs.recommended,
-    reactHooks.configs['recommended-latest'],
     ...tseslint.configs.recommended,
     {
         ignores: ['**/*.js']
@@ -68,8 +67,6 @@ export default tseslint.config(
                 }]}],
             "react/no-unused-prop-types": "error",
             "react/no-unused-state": "error",
-            "react/react-in-jsx-scope": "off",
-            "react/display-name": "off",
             "curly": ["error", "all"],
             "eol-last": "error",
             "for-direction": "error",
@@ -127,5 +124,6 @@ export default tseslint.config(
             "wrap-iife": "error",
             "yoda": "error",
         }
-    }
+    },
+    reactHooks.configs.flat['recommended-latest'],
 );

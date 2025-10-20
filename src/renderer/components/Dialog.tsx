@@ -2,7 +2,7 @@ import { compileSync, runSync } from '@mdx-js/mdx';
 import { ProgressData } from '@renderer/context/ProgressContext';
 import { cancelDialog, resolveDialog, updateDialogField } from '@renderer/store/main/slice';
 import { getFileServerURL } from '@shared/Util';
-import { DialogField, DialogState } from 'flashpoint-launcher';
+import { DialogFieldProps, DialogState } from 'flashpoint-launcher';
 import { ErrorBoundary } from 'react-error-boundary';
 import * as runtime from 'react/jsx-runtime';
 import { FloatingContainer } from './FloatingContainer';
@@ -10,12 +10,10 @@ import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { ProgressBar } from './ProgressComponents';
 import { SimpleButton } from './SimpleButton';
+import { useAppDispatch } from '@renderer/hooks/useAppSelector';
 
 export type DialogProps = {
-  dialog: DialogState,
-  closeDialog: typeof cancelDialog,
-  finishDialog: typeof resolveDialog,
-  updateField: typeof updateDialogField
+  dialog: DialogState
 }
 
 function renderMessage(dialog: DialogState) {
@@ -36,7 +34,8 @@ function renderMessage(dialog: DialogState) {
 }
 
 export function Dialog(props: DialogProps) {
-  const { dialog, closeDialog, finishDialog, updateField } = props;
+  const { dialog } = props;
+  const dispatch = useAppDispatch();
   const message = renderMessage(dialog);
 
   const alignment = dialog.textAlign || 'center';
@@ -46,17 +45,19 @@ export function Dialog(props: DialogProps) {
       <div style={{ textAlign: alignment }}>
         {dialog.userCanCancel && (
           <div className='dialog-cancel-button' onClick={() => {
-            closeDialog(dialog.id);
+            dispatch(cancelDialog(dialog.id));
           }}>
             <OpenIcon icon='x' />
           </div>
         )}
         {message}
-        {dialog.fields?.map(f => {
+        {dialog.fields?.map(field => {
           return (
-            <div key={f.name} className='dialog-field'>
-              {f.message && (<div className='dialog-field-message'>{f.message}</div>)}
-              <div className='dialog-field-input'>{renderDialogField(dialog.id, f, updateField)}</div>
+            <div key={field.name} className='dialog-field'>
+              {field.message && (<div className='dialog-field-message'>{field.message}</div>)}
+              <div className='dialog-field-input'>
+                <DialogField dialogId={dialog.id} field={field} />
+              </div>
             </div>
           );
         })}
@@ -66,10 +67,10 @@ export function Dialog(props: DialogProps) {
               <SimpleButton
                 key={b}
                 onClick={() => {
-                  finishDialog({
+                  dispatch(resolveDialog({
                     id: dialog.id,
                     button: idx
-                  });
+                  }));
                 }}
                 value={b} />
             );
@@ -80,19 +81,26 @@ export function Dialog(props: DialogProps) {
   );
 }
 
-function renderDialogField(dialogId: string, field: DialogField, updateField: typeof updateDialogField): React.JSX.Element {
+type DialogFieldWrapperProps = {
+  dialogId: string,
+  field: DialogFieldProps,
+}
+
+function DialogField({ dialogId, field }: DialogFieldWrapperProps) {
+  const dispatch = useAppDispatch();
+
   switch (field.type) {
     case 'string': {
       return (
         <InputField
           onChange={(event) => {
-            updateField({
+            dispatch(updateDialogField({
               id: dialogId,
               field: {
                 name: field.name,
                 value: event.currentTarget.value
               }
-            });
+            }));
           }}
           text={field.value}
           editable={!field.locked}

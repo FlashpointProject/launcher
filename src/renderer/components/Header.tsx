@@ -1,14 +1,17 @@
+import { createSelector } from '@reduxjs/toolkit';
 import { getPointer } from '@renderer/context/MenuContext';
 import { createNewDialog } from '@renderer/dialog';
-import { useView } from '@renderer/hooks/search';
+import { useViewName } from '@renderer/hooks/search';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useConfirmDialog } from '@renderer/hooks/useConfirmDialog';
 import { useContextMenu } from '@renderer/hooks/useContextMenu';
+import { setUser } from '@renderer/store/fpfss/slice';
 import { updatePreferences } from '@renderer/store/preferences/slice';
 import { addViews, deleteView, duplicateView, GENERAL_VIEW_ID, renameView } from '@renderer/store/search/slice';
+import { RootState } from '@renderer/store/store';
 import { getLibraryItemTitle } from '@shared/library/util';
 import { Paths } from '@shared/Paths';
-import { DialogField, DialogState, DialogStateTemplate } from 'flashpoint-launcher';
+import { DialogFieldProps, DialogState, DialogStateTemplate } from 'flashpoint-launcher';
 import { useContext } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { joinLibraryRoute, openUrlInWindow } from '../Util';
@@ -18,16 +21,18 @@ import { OpenIcon } from './OpenIcon';
 
 const viewDragType = 'text/plain';
 
-type HeaderProps = {
-  /** Called when the left sidebar toggle button is clicked. */
-  onToggleLeftSidebarClick?: () => void;
-  /** Called when the right sidebar toggle button is clicked. */
-  onToggleRightSidebarClick?: () => void;
-  logoutUser: () => void;
-};
+const selectViewNames = createSelector(
+  [
+    (state: RootState) => state.preferences.useCustomViews,
+    (state: RootState) => state.search.views,
+    (state: RootState) => state.main.libraries,
+  ],
+  (useCustomViews, views, libraries) => useCustomViews ?
+    Object.keys(views).filter(k => k !== GENERAL_VIEW_ID) :
+    libraries
+);
 
-export function Header(props: HeaderProps) {
-  console.log('header render');
+export function Header() {
   const browsePageShowRightSidebar = useAppSelector(state => state.preferences.browsePageShowRightSidebar);
   const browsePageShowLeftSidebar = useAppSelector(state => state.preferences.browsePageShowLeftSidebar);
   const useCustomViews = useAppSelector(state => state.preferences.useCustomViews);
@@ -42,23 +47,36 @@ export function Header(props: HeaderProps) {
   const offlineManual = useAppSelector(state => state.preferences.offlineManual);
   const fpfssUser = useAppSelector(state => state.fpfss.user);
   const playlists = useAppSelector(state => state.main.playlists);
-  const libraries = useAppSelector(state => state.main.libraries);
   const { openMenu } = useContextMenu();
-  const currentView = useView();
+  const viewName = useViewName();
   const allStrings = useContext(LangContext);
   const strings = allStrings.app;
-  const views = useAppSelector(state => state.search.views);
+  const viewNames = useAppSelector(selectViewNames);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { confirmDialog, openConfirmDialog } = useConfirmDialog();
 
-  const viewNames = useCustomViews ?
-    Object.keys(views).filter(k => k !== GENERAL_VIEW_ID) :
-    libraries;
+  const onToggleLeftSidebarClick = () => {
+    dispatch(updatePreferences({
+      browsePageShowLeftSidebar: !browsePageShowLeftSidebar
+    }));
+  };
+
+  const onToggleRightSidebarClick = () => {
+    dispatch(updatePreferences({
+      browsePageShowRightSidebar: !browsePageShowRightSidebar
+    }));
+  };
+
+  const logoutUser = () => {
+    // @TODO actually logout to invalid server side
+    dispatch(setUser(null));
+    localStorage.removeItem('fpfss_user');
+  };
 
   const getUserInput = async (message: string, warning?: string, placeholder?: string): Promise<string> => {
     return new Promise<string>((resolve) => {
-      const fields: DialogField[] = [];
+      const fields: DialogFieldProps[] = [];
       fields.push({
         type: 'string',
         name: 'name',
@@ -174,7 +192,7 @@ export function Header(props: HeaderProps) {
             customViews: newCustomViews,
             storedViews: newStoredViews
           }));
-          if (currentView.id === view) {
+          if (viewName === view) {
             // Move to LOADING page during change over
             navigate(Paths.LOADING);
             // Let the search action do the data swap
@@ -239,7 +257,7 @@ export function Header(props: HeaderProps) {
       }
     );
     if (confirmation === 0) {
-      if (currentView.id === view) {
+      if (viewName === view) {
         // Must move to the home tab first!
         navigate(Paths.HOME);
       }
@@ -304,11 +322,51 @@ export function Header(props: HeaderProps) {
       type: 'button',
       label: strings.fpfssLogout,
       enabled: true,
-      onClick: () => {
-        props.logoutUser();
-      }
+      onClick: logoutUser
     }
   ];
+
+  const browseButtons = useCustomViews ?
+    viewNames.map(view => (
+      <HeaderMenuItem
+        key={view}
+        title={view}
+        onDragStart={(event) => onDragStart(event, view)}
+        onDrop={(event) => onDrop(event, view)}
+        link={joinLibraryRoute(view)}
+        onContextMenu={(event) => {
+          const contextButtons: MenuItemType[] = [
+            {
+              type: 'button',
+              label: strings.createNewView,
+              onClick: onCreateNewView,
+            },
+            {
+              type: 'button',
+              label: strings.renameView,
+              onClick: () => onRenameView(view),
+            },
+            {
+              type: 'button',
+              label: strings.duplicateView,
+              onClick: () => onDuplicateView(view),
+            },
+            {
+              type: 'button',
+              label: viewNames.length > 1 || view !== 'Browse' ? strings.deleteView : strings.deleteOnlyBrowseView,
+              enabled: viewNames.length > 1 ? true : view !== 'Browse',
+              onClick: () => onDeleteView(view),
+            },
+          ];
+          openMenu({ items: contextButtons }, getPointer(event));
+        }}/>
+    )) :
+    viewNames.map(view => (
+      <HeaderMenuItem
+        key={view}
+        title={getLibraryItemTitle(view, allStrings.libraries)}
+        link={joinLibraryRoute(view)}/>
+    ));
 
   return (
     <div className='header'>
@@ -320,49 +378,7 @@ export function Header(props: HeaderProps) {
             id={'header__home'}
             title={strings.home}
             link={Paths.HOME} />
-          {
-            useCustomViews ?
-              viewNames.map(view => (
-                <HeaderMenuItem
-                  key={view}
-                  title={view}
-                  onDragStart={(event) => onDragStart(event, view)}
-                  onDrop={(event) => onDrop(event, view)}
-                  link={joinLibraryRoute(view)}
-                  onContextMenu={(event) => {
-                    const contextButtons: MenuItemType[] = [
-                      {
-                        type: 'button',
-                        label: strings.createNewView,
-                        onClick: onCreateNewView,
-                      },
-                      {
-                        type: 'button',
-                        label: strings.renameView,
-                        onClick: () => onRenameView(view),
-                      },
-                      {
-                        type: 'button',
-                        label: strings.duplicateView,
-                        onClick: () => onDuplicateView(view),
-                      },
-                      {
-                        type: 'button',
-                        label: viewNames.length > 1 || view !== 'Browse' ? strings.deleteView : strings.deleteOnlyBrowseView,
-                        enabled: viewNames.length > 1 ? true : view !== 'Browse',
-                        onClick: () => onDeleteView(view),
-                      },
-                    ];
-                    openMenu({ items: contextButtons }, getPointer(event));
-                  }}/>
-              )) :
-              viewNames.map(view => (
-                <HeaderMenuItem
-                  key={view}
-                  title={getLibraryItemTitle(view, allStrings.libraries)}
-                  link={joinLibraryRoute(view)}/>
-              ))
-          }
+          {browseButtons}
           { useCustomViews && !hideNewViewButton && (
             <li className='header__menu__item header__menu__item__icon' onClick={onCreateNewView} title={strings.createNewView}>
               <OpenIcon icon={'plus'}/>
@@ -402,12 +418,18 @@ export function Header(props: HeaderProps) {
             id={'header__about'}
             title={strings.about}
             link={Paths.ABOUT} />
-          { enableEditing ? (
+          { enableEditing && (
             <HeaderMenuItem
               id={'header__curate'}
               title={strings.curate}
               link={Paths.CURATE} />
-          ) : undefined }
+          )}
+          { enableEditing && (fpfssBaseUrl !== undefined) && (
+            <HeaderMenuItem
+              id={'header__fpfss'}
+              title={'FPFSS'}
+              link={Paths.FPFSS} />
+          )}
         </ul>
       </div>
       {/* Right-most portion */}
@@ -426,14 +448,14 @@ export function Header(props: HeaderProps) {
           <div
             className='header__toggle-sidebar'
             title={browsePageShowRightSidebar ? strings.hideRightSidebar : strings.showRightSidebar}
-            onClick={props.onToggleRightSidebarClick}>
+            onClick={onToggleRightSidebarClick}>
             <OpenIcon icon={browsePageShowRightSidebar ? 'collapse-right' : 'expand-right'} />
           </div>
           {/* Toggle Left Sidebar */}
           <div
             className='header__toggle-sidebar'
             title={browsePageShowLeftSidebar ? strings.hideLeftSidebar : strings.showLeftSidebar}
-            onClick={props.onToggleLeftSidebarClick}>
+            onClick={onToggleLeftSidebarClick}>
             <OpenIcon icon={browsePageShowLeftSidebar ? 'collapse-left' : 'expand-left'} />
           </div>
         </div>
@@ -461,6 +483,7 @@ function HeaderMenuItem({ id, title, link, onContextMenu, onDragStart, onDrop }:
   const onDragLeave = (event: React.DragEvent<HTMLLIElement>) => {
     event.preventDefault();
   };
+
   return (
     <li
       id={id}

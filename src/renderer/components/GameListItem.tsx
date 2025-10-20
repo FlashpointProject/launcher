@@ -85,9 +85,9 @@ export function GameListItem(props: GameListItemProps) {
           )))
       }
       <div className='game-list-item__right'>
-        { props.displaySettings.gameList.columns.filter(col => col.type === 'normal').map(col => {
+        { props.displaySettings.gameList.columns.filter(col => col.type === 'normal').map((col, idx) => {
           return <div style={{ width: `${(col.weight / props.totalWeight) * 100}%` }}>
-            <DynamicComponent props={gameListComponentProps} name={col.rowComponent} />
+            <DynamicComponent key={idx} props={gameListComponentProps} name={col.rowComponent} />
           </div>;
         })}
       </div>

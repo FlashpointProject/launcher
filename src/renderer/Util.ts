@@ -5,12 +5,14 @@ import { Paths } from '@shared/Paths';
 import { getFileServerURL } from '@shared/Util';
 import { getGameDataFilename } from '@shared/utils/misc';
 import _axios from 'axios';
-import { Game, Playlist, TagFilterGroup } from 'flashpoint-launcher';
+import { Game, GameLaunchOverride, Playlist, TagFilterGroup } from 'flashpoint-launcher';
 import * as path from 'node:path';
 import { GameGridItem } from './components/GameGridItem';
 import { GameListItem } from './components/GameListItem';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { GameDragEventData } from './components/pages/BrowsePage';
+import { markGameBusy, unmarkGameBusy } from './store/main/slice';
+import { AppDispatch } from './store/store';
 
 export const gameDragDataType = 'json/game-drag';
 
@@ -345,4 +347,16 @@ export function createDataDownload(blob: Blob, name: string) {
   // Cleanup
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
+}
+
+export async function launchGame(dispatch: AppDispatch, gameId: string, override: GameLaunchOverride) {
+  log.debug('Launcher', 'Launching Game - ' + gameId);
+  dispatch(markGameBusy(gameId));
+  await window.Shared.back.request(BackIn.LAUNCH_GAME, gameId, 'flashpoint-archive')
+  .catch((error) => {
+    log.error('Launcher', `Failed to launch game - ${gameId} - ERROR: ${error}`);
+  })
+  .finally(() => {
+    dispatch(unmarkGameBusy(gameId));
+  });
 }

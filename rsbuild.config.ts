@@ -14,6 +14,7 @@ export default defineConfig({
     }
   },
   html: {
+    title: 'Flashpoint Launcher',
     template: './templates/index.html'
   },
   dev: {

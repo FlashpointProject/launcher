@@ -7,3 +7,8 @@ export function useView() {
   const viewName = getViewName(location.pathname);
   return useAppSelector((state) => state.search.views[viewName]);
 }
+
+export function useViewName() {
+  const location = useLocation();
+  return getViewName(location.pathname);
+}

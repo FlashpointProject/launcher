@@ -139,7 +139,7 @@ const curateSlice = createSlice({
   name: 'curate',
   initialState,
   reducers: {
-    setLoaded(state: CurateState) {
+    setCurateLoaded(state: CurateState) {
       state.loaded = true;
     },
     createCuration(_: CurateState, { payload }: PayloadAction<NewCurateAction>) {
@@ -177,14 +177,18 @@ const curateSlice = createSlice({
       window.Shared.back.send(BackIn.CURATE_EXPORT, curations, payload.taskId);
     },
     setSelectedCurations(state: CurateState, { payload }: PayloadAction<string[]>) {
-      state.selected = payload;
-      state.current = payload[0];
-      state.lastSelected = payload[0];
-      const currentCuration = state.curations.find(c => c.folder === state.current);
-      if (currentCuration && !currentCuration.contentRequested) {
-        currentCuration.contentRequested = true;
-        // Request the content tree now it's visible
-        window.Shared.back.send(BackIn.CURATE_REQUEST_CONTENT, state.current);
+      const curationFolders = state.curations.map(c => c.folder);
+      const selectable = payload.filter(p => curationFolders.includes(p));
+      if (selectable.length > 0) {
+        state.selected = selectable;
+        state.current = selectable[0];
+        state.lastSelected = selectable[0];
+        const currentCuration = state.curations.find(c => c.folder === state.current);
+        if (currentCuration && !currentCuration.contentRequested) {
+          currentCuration.contentRequested = true;
+          // Request the content tree now it's visible
+          window.Shared.back.send(BackIn.CURATE_REQUEST_CONTENT, state.current);
+        }
       }
     },
     setCurrentCurationGroup(state: CurateState, { payload }: PayloadAction<string>) {
@@ -558,5 +562,6 @@ export const { createCuration,
   toggleGroupCollapse,
   toggleGroupPin,
   changeGroup,
+  setCurateLoaded,
   setLock } = curateSlice.actions;
 export default curateSlice.reducer;

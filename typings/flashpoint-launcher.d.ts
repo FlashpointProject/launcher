@@ -966,8 +966,6 @@ declare module 'flashpoint-launcher' {
     type AppConfigData = {
       /** Path to the FlashPoint root folder (relative or absolute) */
       flashpointPath: string;
-      /** If the custom title bar should be used in MainWindow */
-      useCustomTitlebar: boolean;
       /**
          * If the Server should be started, and closed, together with this application.
          * The "server" is defined in "services.json".
@@ -1128,6 +1126,8 @@ declare module 'flashpoint-launcher' {
       disableExtremeGames: boolean;
       /** If games flagged as "broken" should be hidden */
       showBrokenGames: boolean;
+      /** Minimized home page boxes */
+      minimizedHomePageBoxes: string[];
       /** Pair of key combos to shortcuts */
       shortcuts: Shortcuts;
       /** Online manual website */
@@ -1182,6 +1182,10 @@ declare module 'flashpoint-launcher' {
       disabledExtensions: string[];
       /** Scale values by key */
       scaleValues: ScaleValues;
+      /** Whether to use fancy animations */
+      fancyAnimations: boolean;
+      /** If the custom title bar should be used in MainWindow */
+      useCustomTitlebar: boolean;
     };
 
     type StoredView = {
@@ -1701,7 +1705,7 @@ declare module 'flashpoint-launcher' {
       largeMessage?: boolean;
       userCanCancel?: boolean;
       message: string;
-      fields?: DialogField[];
+      fields?: DialogFieldProps[];
       cancelId?: number;
       buttons: string[];
     }
@@ -1722,7 +1726,7 @@ declare module 'flashpoint-launcher' {
       value: number;
     }
 
-    export type DialogField = DialogFieldString | DialogFieldProgress;
+    export type DialogFieldProps = DialogFieldString | DialogFieldProgress;
 
     export type DialogResponse = {
       dialog: DialogState,
@@ -1853,6 +1857,8 @@ declare module 'flashpoint-launcher' {
       id: string;
       library?: string;
       selectedGame?: T | Content,
+      isEditing: boolean;
+      editingGame?: T | Content
       selectedPlaylist?: Playlist,
       data: ResultsViewData<T>;
       orderBy: GameOrderBy;
@@ -2622,7 +2628,8 @@ declare module 'flashpoint-launcher' {
 }
 
 declare module 'flashpoint-launcher-renderer' {
-  import { ResultsView, LangContainer, Playlist, GameOrderBy, GameOrderReverse, Game, ViewGame, ExtOrder, PlaylistGame, TagCategory, AppPreferencesData, AdvancedFilter } from 'flashpoint-launcher';
+  import { GameOrderBy, GameOrderReverse, Game, ViewGame, ExtOrder, PlaylistGame, AdvancedFilter } from 'flashpoint-launcher';
+  import { useAppSelectorType, useAppDispatchType } from '@renderer/hooks/useAppSelector';
 
   /** Game properties that will have suggestions gathered and displayed. */
   type SuggestionProps = (
@@ -2640,11 +2647,8 @@ declare module 'flashpoint-launcher-renderer' {
   }
 
   type GameComponentProps = {
-    lang: LangContainer;
-    logoVersion: number;
-    preferences: AppPreferencesData;
-    game: Game;
-    tagCategories: TagCategory[];
+    viewId: string;
+    gameId: string;
     playlistGame: PlaylistGame | null;
     fpfssEditMode: boolean;
     editable: boolean;
@@ -2687,24 +2691,14 @@ declare module 'flashpoint-launcher-renderer' {
 
   type GameListComponentProps = {
     game: ViewGame;
-    isSelected: boolean;
     isDragged: boolean;
     logoVersion: number;
   }
 
   type HomePageComponentProps = {
-    playlists: Playlist[];
-    randomGames: Game[];
-    rollRandomGames: () => void;
     onGameContextMenu(event: React.MouseEvent, gameId: string, logoPath: string, screenshotPath: string): void;
     onLaunchGame(gameId: string): void;
-    selectedGameId?: string;
-    platforms: string[];
-    logoVersion: number;
-    preferencesData: AppPreferencesData;
-    gotdList: GameOfTheDay[] | undefined;
-    updateFeedMarkdown: string;
-    toggleMinimizeBox: (cssKey: string) => void;
+    toggleMinimizeBox: (box: string, open: boolean) => void;
   }
 
   type GameOrderChangeEvent = {
@@ -2762,7 +2756,9 @@ declare module 'flashpoint-launcher-renderer' {
       SortableColumn: React.ComponentType<SortableColumnProps>,
     },
     hooks: {
-      useNavigate: () => NavigateFunction
+      useNavigate: () => NavigateFunction,
+      useAppDispatch: useAppDispatchType,
+      useAppSelector: useAppSelectorType,
     },
   }
 
@@ -2826,7 +2822,13 @@ declare module 'flashpoint-launcher-renderer' {
   };
 
   type BrowsePageDisplayProps<T extends Content> = {
-    view: ResultsView<T>;
+    viewId: string,
+    searchId: number,
+    content: Record<number, T>,
+    contentTotal?: number,
+    selectedContentId: string,
+    selectedPlaylist?: Playlist;
+    playlistOrder: boolean;
     logoVersion: number;
     extremeTags: string[];
     onContextMenu: (event: React.MouseEvent, gameId: string, logoPath: string, screenshotPath: string) => void;
@@ -2834,12 +2836,12 @@ declare module 'flashpoint-launcher-renderer' {
   }
 
   type BrowsePageDisplayGridProps<T extends Content> = BrowsePageDisplayProps<T> & {
-    onContentRun: (content: Content | T) => Promise<void>;
+    onContentRun: (contentId: string) => Promise<void>;
     getContentIcons: (content: Content | T) => string[];
   };
 
   type BrowsePageDisplayListProps<T extends Content> = BrowsePageDisplayProps<T> & {
-    onContentRun: (content: Content | T) => Promise<void>;
+    onContentRun: (contentId: string) => Promise<void>;
   };
 
   type LogFunc = (source: string, message: string) => ILogEntry;

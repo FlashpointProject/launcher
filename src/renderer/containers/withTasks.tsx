@@ -5,7 +5,8 @@ import { useDispatch } from 'react-redux';
 import { Dispatch } from 'redux';
 
 type TasksStateProps = {
-  tasks: Task[]
+  tasks: Task[],
+  taskBarOpen: boolean;
 };
 
 export type WithTasksProps = TasksStateProps & ReturnType<typeof mapDispatchToProps>;
@@ -20,7 +21,8 @@ function mapDispatchToProps(dispatch: Dispatch) {
 export function withTasks<P>(Component: React.ComponentType<P>) {
   return (props: Subtract<P, WithTasksProps>) => {
     const stateProps: TasksStateProps = {
-      tasks: useAppSelector(state => state.tasks)
+      tasks: useAppSelector(state => state.tasks.tasks),
+      taskBarOpen: useAppSelector(state => state.tasks.taskBarOpen)
     };
     const dispatch = useDispatch();
     const dispatchProps = mapDispatchToProps(dispatch);

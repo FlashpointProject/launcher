@@ -37,10 +37,10 @@ export namespace ModelUtils {
     return game;
   }
 
-  export function createAddApp(game: Game): AdditionalApp {
+  export function createAddApp(gameId: string): AdditionalApp {
     return {
       id: '',
-      parentGameId: game.id,
+      parentGameId: gameId,
       applicationPath: '',
       autoRunBefore: false,
       launchCommand: '',

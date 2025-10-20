@@ -1,22 +1,22 @@
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { WithPreferencesProps } from '@renderer/containers/withPreferences';
-import { WithSearchProps } from '@renderer/containers/withSearch';
-import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
+import { createNewDialog } from '@renderer/dialog';
+import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
+import { cancelDialog, incrementLogoVersion } from '@renderer/store/main/slice';
+import { newAppPathOverride, newTagFilterGroup, removeAppPathOverride, removeTagFilterGroup, setUseCustomViews, setUseStoredViews, toggleExcludedLibrary, toggleNativePlatform, updateAppPathOverride, updatePreferences, updateTagFilterGroup } from '@renderer/store/preferences/slice';
 import { GENERAL_VIEW_ID } from '@renderer/store/search/slice';
 import { BackIn } from '@shared/back/types';
 import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
-import { AppExtConfigData } from '@shared/config/interfaces';
-import { ExtConfigurationProp, ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
-import { autoCode, LangFile } from '@shared/lang';
-import { memoizeOne } from '@shared/memoize';
+import { ExtConfigurationProp, ILogoSet } from '@shared/extensions/interfaces';
+import { autoCode } from '@shared/lang';
 import { Paths } from '@shared/Paths';
 import { ITheme } from '@shared/ThemeFile';
 import { deepCopy } from '@shared/Util';
 import * as Coerce from '@shared/utils/Coerce';
 import { formatString } from '@shared/utils/StringFormatter';
-import { AppPathOverride, LangContainer, TagFilterGroup } from 'flashpoint-launcher';
-import * as React from 'react';
+import { AppPreferencesData, LangContainer, TagFilterGroup } from 'flashpoint-launcher';
+import { useContext, useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
 import { clearFpfssConsentExt, getFpfssConsentExt, saveFpfssConsentExt } from '../../fpfss';
 import {
   getExtIconURL,
@@ -31,7 +31,7 @@ import { ConfigBox, ConfigBoxInner } from '../ConfigBox';
 import { ConfigBoxButton, ConfigBoxInnerButton } from '../ConfigBoxButton';
 import { ConfigBoxCheckbox, ConfigBoxInnerCheckbox } from '../ConfigBoxCheckbox';
 import { ConfigBoxInput } from '../ConfigBoxInput';
-import { ConfigBoxMultiSelect, MultiSelectItem } from '../ConfigBoxMultiSelect';
+import { ConfigBoxMultiSelect } from '../ConfigBoxMultiSelect';
 import { ConfigBoxSelect, SelectItem } from '../ConfigBoxSelect';
 import { ConfigBoxSelectInput } from '../ConfigBoxSelectInput';
 import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
@@ -40,590 +40,274 @@ import { FloatingContainer } from '../FloatingContainer';
 import { InputField } from '../InputField';
 import { OpenIcon } from '../OpenIcon';
 import { SimpleButton } from '../SimpleButton';
-import { Spinner } from '../Spinner';
 import { TagFilterGroupEditor } from '../TagFilterGroupEditor';
+import { setTheme } from '@shared/Theme';
 
 const { num } = Coerce;
 
-type OwnProps = {
-  /** List of all game libraries */
-  libraries: string[];
-  /** List of all platforms */
-  platforms: string[];
-  /** List of all available themes */
-  themeList: ITheme[];
-  /** List of all available logo sets */
-  logoSets: ILogoSet[];
-  /** Version of logos to render */
-  logoVersion: number;
-  /** List of available languages. */
-  availableLangs: LangFile[];
-  /** List of available server names. */
-  serverNames: string[];
-  /** All available extensions */
-  extensions: IExtensionDescription[];
-  /** All available extension configurations */
-  extConfigs: ExtensionContribution<'configuration'>[];
-  /** Current extension config data */
-  extConfig: AppExtConfigData;
-  localeCode: string;
-};
+export function ConfigPage() {
+  const allStrings = useContext(LangContext);
+  const strings = allStrings.config;
+  const preferences = useAppSelector(state => state.preferences);
+  const views = useAppSelector(state => Object.keys(state.search.views));
+  const langList = useAppSelector(state => state.main.langList);
+  const logoVersion = useAppSelector(state => state.main.logoVersion);
+  const serverNames = useAppSelector(state => state.main.serverNames);
+  const themeList = useAppSelector(state => state.main.themeList);
+  const logoSets = useAppSelector(state => state.main.logoSets);
+  const platforms = useAppSelector(state => state.main.suggestions.platforms);
+  const libraries = useAppSelector(state => state.main.libraries);
+  const extensions = useAppSelector(state => state.main.extensions);
+  const extConfig = useAppSelector(state => state.main.extConfig);
+  const extConfigs = useAppSelector(state => state.main.extConfigs);
+  const tagCategories = useAppSelector(state => state.tagCategories);
+  const dispatch = useAppDispatch();
+  const [editingTagFilterGroupIdx, setEditingTagFilterGroupIdx] = useState<number>();
+  const [editingTagFilterGroup, setEditingTagFilterGroup] = useState<TagFilterGroup>();
+  const [flashpointPath, setFlashpointPath] = useState(window.Shared.config.fullFlashpointPath);
+  const [isFlashpointPathValid, setIsFlashpointPathValid] = useState<boolean>();
 
-export type ConfigPageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps & WithSearchProps;
+  useEffect(() => {
+    (async () => {
+      const isValid = await isFlashpointValidCheck(flashpointPath);
+      setIsFlashpointPathValid(isValid);
+    })();
+  }, [flashpointPath]);
 
-type ConfigPageState = {
-  /** If the currently entered Flashpoint path points to a "valid" Flashpoint folder (it exists and "looks" like a Flashpoint folder). */
-  isFlashpointPathValid?: boolean;
-  /** Currently entered Flashpoint path. */
-  flashpointPath: string;
-  /** If the "use custom title bar" checkbox is checked. */
-  useCustomTitlebar: boolean;
-  /** Currently editable Tag Filter Group */
-  editingTagFilterGroupIdx?: number;
-  editingTagFilterGroup?: TagFilterGroup;
-  editorOpen: boolean;
-  /** Progress for nuking tags */
-  nukeInProgress: boolean;
-  /** FPFSS Consents to extensions */
-  fpfssConsentMap: Record<string, boolean | undefined>;
-};
+  const [fpfssConsents, setFpfssConsents] = useState(extensions.reduce((map, ext) => {
+    map[ext.id] = getFpfssConsentExt(ext.id);
+    return map;
+  }, {} as Record<string, boolean | undefined>));
 
-/**
- * A page displaying some of the current "configs" / "preferences", as well as a way of changing them.
- * All changed "configs" (settings stored in "config.json") require you to "Save & Restart" to take effect.
- * The changed "preferences" (settings stored in "preferences.json") do not require a restart, and are updated directly.
- */
-export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState> {
-  static contextType = LangContext;
-  declare context: React.ContextType<typeof LangContext>;
+  const getThemeName = (id: string) => {
+    const theme = themeList.find(t => t.id === id);
+    if (theme) { return theme.meta.name || theme.id; }
+  };
 
-  constructor(props: ConfigPageProps) {
-    super(props);
-    const configData = window.Shared.config.data;
+  const getLogoSetName = (id: string) => {
+    const logoSet = logoSets.find(ls => ls.id === id);
+    if (logoSet) { return logoSet.name; }
+  };
 
-    const fpfssConsentMap = props.extensions.reduce((map, ext) => {
-      map[ext.id] = getFpfssConsentExt(ext.id);
-      return map;
-    }, {} as Record<string, boolean | undefined>);
+  const onSetPreferenceFactory = <K extends keyof AppPreferencesData>(key: K) => (value: AppPreferencesData[K]) => {
+    dispatch(updatePreferences({
+      [key]: value
+    }));
+  };
 
-    this.state = {
-      isFlashpointPathValid: undefined,
-      flashpointPath: configData.flashpointPath,
-      useCustomTitlebar: configData.useCustomTitlebar,
-      editorOpen: false,
-      nukeInProgress: false,
-      fpfssConsentMap: fpfssConsentMap,
-    };
-  }
+  const onSetPreferenceEventFactory = <K extends keyof AppPreferencesData>(key: K) => (event: React.ChangeEvent<any>) => {
+    dispatch(updatePreferences({
+      [key]: event.target.value
+    }));
+  };
 
-  componentDidMount(): void {
-    const configData = window.Shared.config.data;
-    isFlashpointValidCheck(configData.flashpointPath)
-    .then((isValid) => {
-      this.setState({ isFlashpointPathValid: isValid });
-    });
-  }
+  const onScreenshotPreviewDelayChange = (value: string) => {
+    dispatch(updatePreferences({
+      screenshotPreviewDelay: num(value)
+    }));
+  };
 
-  render() {
-    const allStrings = this.context;
-    const strings = this.context.config;
-    const autoString = formatString(strings.auto, this.props.localeCode);
-    const searchLimitOptions = this.itemizeSearchLimitOptionsMemo(this.context.config);
-    const langOptions = this.itemizeLangOptionsMemo(this.props.availableLangs, autoString as string);
-    const serverOptions = this.itemizeServerOptionsMemo(this.props.serverNames);
-    const libraryOptions = this.itemizeLibraryOptionsMemo(this.props.libraries, this.props.preferencesData.excludedRandomLibraries, this.context.libraries);
-    const platformOptions = this.itemizePlatformOptionsMemo(this.props.platforms, this.props.preferencesData.nativePlatforms);
-    const defaultOpeningPageOptions = this.itemizeDefaultOpeningPageOptionsMemo(Object.keys(this.props.search.views), !this.props.preferencesData.useCustomViews, allStrings['libraries']);
-    const appPathOverrides = this.renderAppPathOverridesMemo(this.props.preferencesData.appPathOverrides);
-    const tagFilters = this.renderTagFiltersMemo(this.props.preferencesData.tagFilters, this.props.preferencesData.browsePageShowExtreme, this.context, this.props.logoVersion);
-    const logoSetPreviewRows = this.renderLogoSetMemo(this.props.platforms, this.props.logoVersion);
-    const extensions = this.renderExtensionsMemo(this.props.extensions, strings, this.state.fpfssConsentMap, this.props.preferencesData.disabledExtensions);
-    const extConfigSections = this.renderExtensionConfigs(this.props.extConfigs, this.props.extConfig);
+  const onSearchLimitChange = (value: string) => {
+    dispatch(updatePreferences({
+      searchLimit: num(value)
+    }));
+  };
 
-    return (
-      <div className='config-page simple-scroll'>
-        <div className='config-page__inner'>
-          <h1 className='config-page__title'>{strings.configHeader}</h1>
-          <p className='config-page__description'>{strings.configDesc}</p>
+  const defaultOpeningPageOptions = [
+    {
+      value: Paths.HOME,
+      display: 'Home Page'
+    },
+    ...views.filter((view) => view !== GENERAL_VIEW_ID).map((view) => {
+      return {
+        value: joinLibraryRoute(view),
+        display: !preferences.useCustomViews ? allStrings.libraries[view] || view : view,
+      };
+    })
+  ];
 
-          {/* -- Preferences -- */}
-          <div className='setting'>
-            <p className='setting__title'>{strings.preferencesHeader}</p>
-            <div className='setting__body'>
-              {/* Restore Search Views */}
-              <ConfigBoxCheckbox
-                title={strings.restoreSearchViews}
-                description={strings.restoreSearchViewsDesc}
-                checked={this.props.preferencesData.useStoredViews}
-                onToggle={this.onUseStoredViewsChange} />
-              {/* Use Custom Search Views */}
-              <ConfigBoxCheckbox
-                title={strings.useCustomViews}
-                description={strings.useCustomViewsDesc}
-                checked={this.props.preferencesData.useCustomViews}
-                onToggle={this.onToggleUseCustomViews} />
-              {/* Load Views Text on restart */}
-              <ConfigBoxCheckbox
-                title={strings.loadViewsText}
-                description={strings.loadViewsTextDesc}
-                checked={this.props.preferencesData.loadViewsText}
-                onToggle={this.onToggleLoadViewsText} />
-              {/* Default opening page */}
-              <ConfigBoxSelect
-                title={strings.defaultOpeningPage}
-                description={strings.defaultOpeningPageDesc}
-                value={this.props.preferencesData.defaultOpeningPage}
-                onChange={this.onDefaultOpeningPageSelect}
-                items={defaultOpeningPageOptions} />
-              {/* Use selected game scroll instead of scroll top pos */}
-              {/* <ConfigBoxCheckbox
-                title={strings.useSelectedGameScroll}
-                description={strings.useSelectedGameScrollDesc}
-                checked={this.props.preferencesData.useSelectedGameScroll}
-                onToggle={this.onToggleUseSelectedGameScroll} /> */}
-              {/* Enable Editing */}
-              <ConfigBoxCheckbox
-                title={strings.enableEditing}
-                description={strings.enableEditingDesc}
-                checked={this.props.preferencesData.enableEditing}
-                onToggle={this.onEnableEditingChange} />
-              {/** Symlink Curation Content */}
-              { this.props.preferencesData.enableEditing && (
-                <ConfigBoxCheckbox
-                  title={strings.symlinkCuration}
-                  description={strings.symlinkCurationDesc}
-                  checked={this.props.preferencesData.symlinkCurationContent}
-                  onToggle={this.onSymlinkCurationContentChange}/>
-              )}
-              {/* On Demand Images */}
-              <ConfigBox
-                title={strings.onDemandImages}
-                description={strings.onDemandImagesDesc}
-                swapChildren={true} >
-                <ConfigBoxInnerCheckbox
-                  title={strings.onDemandImagesEnabled}
-                  description={strings.onDemandImagesEnabledDesc}
-                  checked={this.props.preferencesData.onDemandImages}
-                  onToggle={this.onOnDemandImagesChange} />
-                <ConfigBoxInnerCheckbox
-                  title={strings.onDemandImagesCompressed}
-                  description={strings.onDemandImagesCompressedDesc}
-                  checked={this.props.preferencesData.onDemandImagesCompressed}
-                  onToggle={this.onDemandImagesCompressedChange} />
-                <ConfigBoxInnerButton
-                  title={strings.onDemandImagesDelete}
-                  description={strings.onDemandImagesDeleteDesc}
-                  value={allStrings.curate.delete}
-                  onClick={this.onDeleteImages} />
-              </ConfigBox>
-              {/* Playtime Tracking */}
-              <ConfigBox
-                title={strings.playtimeTracking}
-                description={strings.playtimeTrackingDesc}
-                swapChildren={true}>
-                <ConfigBoxInnerCheckbox
-                  title={strings.enablePlaytimeTracking}
-                  description={strings.enablePlaytimeTrackingDesc}
-                  checked={this.props.preferencesData.enablePlaytimeTracking}
-                  onToggle={this.onToggleEnablePlaytimeTracking} />
-                <ConfigBoxInnerCheckbox
-                  title={strings.enablePlaytimeTrackingExtreme}
-                  description={strings.enablePlaytimeTrackingExtremeDesc}
-                  checked={this.props.preferencesData.enablePlaytimeTrackingExtreme}
-                  onToggle={this.onToggleEnablePlaytimeTrackingExtreme} />
-                <ConfigBoxInner
-                  title={strings.clearPlaytimeTracking}
-                  description={strings.clearPlaytimeTrackingDesc}>
-                  <ConfirmElement
-                    render={this.renderClearPlaytimeButton}
-                    onConfirm={this.onClearPlaytimeTracking}
-                    message={allStrings.dialog.confirmClearPlaytime}
-                    extra={[strings]}/>
-                </ConfigBoxInner>
-              </ConfigBox>
-              {/* Fancy Animations */}
-              <ConfigBoxCheckbox
-                title={strings.fancyAnimations}
-                description={strings.fancyAnimationsDesc}
-                checked={this.props.preferencesData.fancyAnimations}
-                onToggle={this.onFancyAnimationsChange} />
-              {/* Hide New View Button */}
-              <ConfigBoxCheckbox
-                title={strings.hideNewViewButton}
-                description={strings.hideNewViewButtonDesc}
-                checked={this.props.preferencesData.hideNewViewButton}
-                onToggle={this.onHideNewViewButtonChange} />
-              {/* Short Search */}
-              <ConfigBoxSelect
-                title={strings.searchLimit}
-                description={strings.searchLimitDesc}
-                value={this.props.preferencesData.searchLimit.toString()}
-                onChange={this.onSearchLimitChange}
-                items={searchLimitOptions}/>
-              {/* Current Language */}
-              <ConfigBoxSelect
-                title={strings.currentLanguage}
-                description={strings.currentLanguageDesc}
-                value={this.props.preferencesData.currentLanguage || ''}
-                onChange={this.onCurrentLanguageSelect}
-                items={langOptions} />
-              {/* Screenshot Preview Mode */}
-              <ConfigBoxSelect
-                title={strings.screenshotPreviewMode}
-                description={strings.screenshotPreviewModeDesc}
-                value={this.props.preferencesData.screenshotPreviewMode}
-                items={this.itemizeScreenshotPreviewModes(strings)}
-                onChange={this.onScreenshotPreviewModeChange}
-              />
-              <ConfigBoxSelectInput
-                title={strings.screenshotPreviewDelay}
-                description={strings.screenshotPreviewDelayDesc}
-                editable={true}
-                text={this.props.preferencesData.screenshotPreviewDelay.toString()}
-                placeholder='250'
-                onChange={this.onScreenshotPreviewDelayChange}
-                onItemSelect={this.onScreenshotPreviewDelayChange}
-                items={['0', '150', '250', '350', '500', '750', '1000']}/>
-            </div>
-          </div>
-          {/* -- Content Filters -- */}
-          <div className='setting'>
-            <p className='setting__title'>{strings.contentFiltersHeader}</p>
-            <div className='setting__body'>
-              {/* Show Extreme Games */}
-              {((!this.props.preferencesData.disableExtremeGames)) ? (
-                <ConfigBoxCheckbox
-                  title={strings.extremeGames}
-                  description={strings.extremeGamesDesc}
-                  checked={this.props.preferencesData.browsePageShowExtreme}
-                  onToggle={this.onShowExtremeChange} />
-              ) : undefined }
-              {this.props.preferencesData.browsePageShowExtreme && (
-                <ConfigBoxCheckbox
-                  title={strings.hideExtremeScreenshots}
-                  description={strings.hideExtremeScreenshotsDesc}
-                  checked={this.props.preferencesData.hideExtremeScreenshots}
-                  onToggle={this.onToggleHideExtremeScreenshots} />
-              )}
-              {/* Tag Filter Groups */}
-              <ConfigBox
-                title={strings.tagFilterGroups}
-                description={strings.tagFilterGroupsDesc}
-                swapChildren={true}>
-                {tagFilters}
-                <div
-                  onClick={this.onNewTagFilterGroup}
-                  className='setting__row__content--override-row__new'>
-                  <OpenIcon
-                    icon='plus' />
-                </div>
-              </ConfigBox>
-              {/* Random Libraries */}
-              <ConfigBoxMultiSelect
-                title={strings.randomLibraries}
-                description={strings.randomLibrariesDesc}
-                text={strings.libraries}
-                onChange={this.onExcludedLibraryCheckboxChange}
-                items={libraryOptions} />
-            </div>
-          </div>
-          {/* -- Flashpoint -- */}
-          <div className='setting'>
-            <p className='setting__title'>{strings.flashpointHeader}</p>
-            <div className='setting__body'>
-              {/* Flashpoint Path */}
-              <ConfigBox
-                title={strings.flashpointPath}
-                description={strings.flashpointPathDesc}
-                contentClassName='setting__row__content--filepath-path'>
-                <ConfigFlashpointPathInput
-                  input={this.state.flashpointPath}
-                  buttonText={strings.browse}
-                  onInputChange={this.onFlashpointPathChange}
-                  isValid={this.state.isFlashpointPathValid} />
-              </ConfigBox>
-              {/* Native Platforms */}
-              <ConfigBoxMultiSelect
-                title={strings.nativePlatforms}
-                description={strings.nativePlatformsDesc}
-                text={strings.platforms}
-                onChange={this.onNativeCheckboxChange}
-                items={platformOptions} />
-              {/* App Path Overrides */}
-              <ConfigBox
-                title={strings.appPathOverrides}
-                description={strings.appPathOverridesDesc}
-                swapChildren={true} >
-                {appPathOverrides}
-                <div
-                  onClick={this.onNewAppPathOverride}
-                  className='setting__row__content--override-row__new'>
-                  <OpenIcon
-                    icon='plus' />
-                </div>
-              </ConfigBox>
-              {/* Verbose Logging */}
-              <ConfigBoxCheckbox
-                title={strings.enableVerboseLogging}
-                description={strings.enableVerboseLoggingDesc}
-                checked={this.props.preferencesData.enableVerboseLogging}
-                onToggle={this.onVerboseLoggingToggle} />
-            </div>
-          </div>
+  const searchLimitOptions =  [
+    {
+      value: '0',
+      display: strings.searchLimitUnlimited
+    },
+    {
+      value: '50',
+      display: formatString(strings.searchLimitValue, '50') as string
+    },
+    {
+      value: '100',
+      display: formatString(strings.searchLimitValue, '100') as string
+    },
+    {
+      value: '250',
+      display: formatString(strings.searchLimitValue, '250') as string
+    },
+    {
+      value: '500',
+      display: formatString(strings.searchLimitValue, '500') as string
+    },
+    {
+      value: '1000',
+      display: formatString(strings.searchLimitValue, '1000') as string
+    },
+    {
+      value: '2500',
+      display: formatString(strings.searchLimitValue, '2500') as string
+    },
+    {
+      value: '5000',
+      display: formatString(strings.searchLimitValue, '5000') as string
+    }
+  ];
 
-          {/* -- Visuals -- */}
-          <div className='setting'>
-            <p className='setting__title'>{strings.visualsHeader}</p>
-            <div className='setting__body'>
-              <ConfigBoxCheckbox
-                title={strings.useCustomTitleBar}
-                description={strings.useCustomTitleBarDesc}
-                checked={this.state.useCustomTitlebar}
-                onToggle={this.onUseCustomTitlebarChange}/>
-              {/* Theme */}
-              <ConfigBoxSelectInput
-                title={strings.theme}
-                description={strings.themeDesc}
-                text={this.getThemeName(this.props.preferencesData.currentTheme || '') || ''}
-                placeholder={strings.noTheme}
-                editable={true}
-                items={[ ...this.props.themeList.map(formatThemeItemName), 'No Theme' ]}
-                onChange={this.onCurrentThemeChange}
-                onItemSelect={this.onCurrentThemeItemSelect}/>
-              {/* Logo Set */}
-              <ConfigBoxSelectInput
-                title={strings.logoSet}
-                description={strings.logoSetDesc}
-                text={this.getLogoSetName(this.props.preferencesData.currentLogoSet || '') || ''}
-                placeholder={strings.noLogoSet}
-                editable={true}
-                items={[ ...this.props.logoSets.map(formatLogoSetName), 'No Logo Set' ]}
-                onChange={this.onCurrentLogoSetChange}
-                onItemSelect={this.onCurrentLogoSetSelect}
-                bottomChildren={logoSetPreviewRows}/>
-            </div>
-          </div>
-
-          {/* -- Advanced -- */}
-          <div className='setting'>
-            <p className='setting__title'>{strings.advancedHeader}</p>
-            <div className='setting__body'>
-              {/* Auto-Clear WinINet Cache */}
-              {process.platform === 'win32' && (
-                <ConfigBoxCheckbox
-                  title={strings.autoClearWininetCache}
-                  description={strings.autoClearWininetCacheDesc}
-                  value={allStrings.curate.run}
-                  onToggle={this.onChangeAutoClearWininetCache}/>
-              )}
-              {/* Clear WinINet Cache */}
-              {process.platform === 'win32' && (
-                <ConfigBoxButton
-                  title={strings.clearWininetCache}
-                  description={strings.clearWininetCacheDesc}
-                  value={allStrings.curate.run}
-                  onClick={this.onClearWininetCache}/>
-              )}
-              {/* Optimize Database */}
-              <ConfigBoxButton
-                title={strings.optimizeDatabase}
-                description={strings.optimizeDatabaseDesc}
-                value={allStrings.curate.run}
-                onClick={this.onOptimizeDatabase}/>
-              {/* Register As Protocol Handler */}
-              { window.electronAPI !== undefined && (
-                <ConfigBoxCheckbox
-                  title={strings.registerProtocol}
-                  description={strings.registerProtocolDesc}
-                  checked={this.props.preferencesData.registerProtocol}
-                  onToggle={this.onRegisterProtocol} />
-              )}
-              {/* Server */}
-              <ConfigBoxSelect
-                title={strings.server}
-                description={strings.serverDesc}
-                value={this.props.preferencesData.server}
-                onChange={this.onServerSelect}
-                items={serverOptions} />
-              {this.props.preferencesData.enableEditing && (
-                <ConfigBoxSelect
-                  title={strings.curateServer}
-                  description={strings.curateServerDesc}
-                  value={this.props.preferencesData.curateServer}
-                  onChange={this.onCurateServerSelect}
-                  items={serverOptions} />
-              )}
-              {/* Fallback Language */}
-              <ConfigBoxSelect
-                title={strings.fallbackLanguage}
-                description={strings.fallbackLanguageDesc}
-                value={this.props.preferencesData.fallbackLanguage || ''}
-                onChange={this.onFallbackLanguageSelect}
-                items={langOptions} />
-            </div>
-          </div>
-
-          {/* -- Advanced -- */}
-
-          {extConfigSections}
-
-          <div className='setting extensions'>
-            <p className='setting__title'>{strings.extensionsHeader}</p>
-            { extensions.length > 0 ? (
-              <div className='setting__body'>
-                {extensions}
-              </div>
-            ) : <div>{formatString(strings.noExtensionsLoaded, this.props.preferencesData.extensionsPath)}</div>}
-          </div>
-
-          {/* -- Save & Restart -- */}
-          <div className='setting'>
-            <div className='setting__row'>
-              <input
-                type='button'
-                value={strings.saveAndRestart}
-                className='simple-button save-and-restart'
-                onClick={this.onSaveAndRestartClick} />
-            </div>
-          </div>
-        </div>
-        { this.state.editorOpen && this.state.editingTagFilterGroup && (
-          <FloatingContainer>
-            <TagFilterGroupEditor
-              tagFilterGroup={this.state.editingTagFilterGroup}
-              onAddTag={(tag) => this.onAddTagEditorTagEvent(this.state.editingTagFilterGroupIdx || -1, tag)}
-              onRemoveTag={(tag) => this.onRemoveTagEditorTagEvent(this.state.editingTagFilterGroupIdx || -1, tag)}
-              onChangeName={this.onChangeTagEditorNameEvent}
-              onChangeDescription={this.onChangeTagEditorDescriptionEvent}
-              onChangeIconBase64={this.onChangeTagEditorIconEvent}
-              onToggleExtreme={this.onToggleExtremeTagEditorEvent}
-              closeEditor={this.onCloseTagFilterGroupEditor}
-              showExtreme={this.props.preferencesData.browsePageShowExtreme}
-              tagCategories={this.props.tagCategories}
-              activeTagFilterGroups={this.props.preferencesData.tagFilters.filter((tfg, index) => (tfg.enabled || (tfg.extreme && !this.props.preferencesData.browsePageShowExtreme)) && index != this.state.editingTagFilterGroupIdx)} />
-          </FloatingContainer>
-        )}
-        { this.state.nukeInProgress && (
-          <FloatingContainer>
-            <div className='tag-nuke-box'>
-              <div>{strings.nukeInProgress}</div>
-              <Spinner/>
-            </div>
-          </FloatingContainer>
-        )}
-      </div>
-    );
-  }
-
-  itemizeLangOptionsMemo = memoizeOne((langs: LangFile[], autoString: string): SelectItem<string>[] => {
-    const items: SelectItem<string>[] = langs.map((lang) => {
+  const autoString = formatString(strings.auto, window.Shared.initialLocaleCode) as string;
+  const langOptions: SelectItem<string>[] = [
+    ...langList.map((lang) => {
       return {
         value: lang.code,
         display: lang.data.name ? `${lang.data.name} (${lang.code})` : lang.code
       };
-    });
-    items.push({ value: '<none>', display: 'None' });
-    items.push({ value: autoCode, display: autoString });
-    return items;
-  });
+    }),
+    { value: '<none>', display: 'None' },
+    { value: autoCode, display: autoString }
+  ];
 
-  itemizeServerOptionsMemo = memoizeOne((serverNames: string[]): SelectItem<string>[] =>
-    serverNames.map((name) => {
-      return {
-        value: name
-      };
+  const renderTagFilterGroupNuke = ({ confirm }: ConfirmElementArgs) => {
+    return (
+      <div
+        className={'browse-right-sidebar__title-row__buttons__discard-button'}
+        title={strings.nukeTagFilter}
+        onClick={confirm} >
+        <OpenIcon
+          className='setting__row__content--override-row__delete'
+          icon='trash' />
+      </div>
+    );
+  };
+
+  const renderTagFilterGroupDelete = ({ confirm }: ConfirmElementArgs) => {
+    return (
+      <div
+        className={'browse-right-sidebar__title-row__buttons__discard-button'}
+        title={strings.deleteTagFilter}
+        onClick={confirm} >
+        <OpenIcon
+          className='setting__row__content--override-row__delete'
+          icon='delete' />
+      </div>
+    );
+  };
+
+  const onStartEditingTagFilterGroup = (index: number) => {
+    const tfg = preferences.tagFilters[index];
+    if (tfg !== undefined) {
+      setEditingTagFilterGroupIdx(index);
+      setEditingTagFilterGroup(deepCopy(tfg));
+    }
+  };
+
+  const onTagFilterGroupNuke = async (index: number) => {
+    // Nuke all the tags
+    const dialogId = createNewDialog(dispatch, {
+      largeMessage: true,
+      message: strings.nukeInProgress,
+      buttons: [],
+    });
+    window.Shared.back.request(BackIn.NUKE_TAGS, preferences.tagFilters[index].tags)
+    .then(() => {
+      dispatch(removeTagFilterGroup(index));
     })
-  );
-
-  itemizeSearchLimitOptionsMemo = memoizeOne( (strings: LangContainer['config']): SelectItem<string>[] => {
-    return [
-      {
-        value: '0',
-        display: strings.searchLimitUnlimited
-      },
-      {
-        value: '50',
-        display: formatString(strings.searchLimitValue, '50') as string
-      },
-      {
-        value: '100',
-        display: formatString(strings.searchLimitValue, '100') as string
-      },
-      {
-        value: '250',
-        display: formatString(strings.searchLimitValue, '250') as string
-      },
-      {
-        value: '500',
-        display: formatString(strings.searchLimitValue, '500') as string
-      },
-      {
-        value: '1000',
-        display: formatString(strings.searchLimitValue, '1000') as string
-      },
-      {
-        value: '2500',
-        display: formatString(strings.searchLimitValue, '2500') as string
-      },
-      {
-        value: '5000',
-        display: formatString(strings.searchLimitValue, '5000') as string
-      }
-    ];
-  });
-
-  itemizeScreenshotPreviewModes = memoizeOne( (strings: LangContainer['config']): SelectItem<number>[] => {
-    return [
-      {
-        value: ScreenshotPreviewMode.OFF,
-        display: strings.screenshotPreviewModeOff
-      },
-      {
-        value: ScreenshotPreviewMode.ON,
-        display: strings.screenshotPreviewModeOn
-      },
-      {
-        value: ScreenshotPreviewMode.ALWAYS,
-        display: strings.screenshotPreviewModeAlways
-      }
-    ];
-  });
-
-  itemizeLibraryOptionsMemo = memoizeOne((libraries: string[], excludedRandomLibraries: string[], libraryStrings: LangContainer['libraries']): MultiSelectItem<string>[] => {
-    return libraries.map(library => {
-      return {
-        value: library,
-        display: libraryStrings[library] || library,
-        checked: !excludedRandomLibraries.includes(library)
-      };
+    .catch((error) => {
+      alert('Failed to nuke tags: ' + error);
+    })
+    .finally(() => {
+      dispatch(cancelDialog(dialogId));
     });
+  };
+
+  const tagFilterElements = preferences.tagFilters.map((item, index) => {
+    if (preferences.browsePageShowExtreme ? true : !item.extreme) {
+      return (
+        <div
+          className='setting__row__content--override-row'
+          key={index}>
+          { preferences.browsePageShowExtreme &&
+            (item.extreme ? (
+              <div
+                key={index}
+                className='config-page__tfg-extreme-logo'
+                title={allStrings.browse.extreme}
+                style={{ backgroundImage: `url('${getExtremeIconURL(logoVersion)}')` }} />
+            ) : (item.iconBase64 ? (
+              <div
+                key={index}
+                className='config-page__tfg-extreme-logo'
+                title={allStrings.browse.tagFilterIcon}
+                style={{ backgroundImage: `url("${item.iconBase64}")` }} />
+            ) :
+              (
+                <div
+                  key={index}
+                  className='config-page__tfg-extreme-logo' />
+              )))
+          }
+          <div
+            title={item.enabled ? 'Hidden' : 'Visible'}
+            className={`setting__row__content--tag-filter-eye setting__row__content--tag-filter-eye--${item.enabled ? 'hidden' : 'visible'}`}
+            onClick={() => {
+              dispatch(updateTagFilterGroup({
+                index,
+                data: {
+                  enabled: !item.enabled
+                }
+              }));
+            }}>
+            <FontAwesomeIcon icon={item.enabled ? faEyeSlash : faEye} />
+          </div>
+          <div className='setting__row__content--tag-filter-text'>
+            <InputField
+              className='setting__row__content--tag-filter-title'
+              text={item.name} />
+            {item.description && (
+              <InputField
+                className='setting__row__content--tag-filter-description'
+                text={item.description} />
+            )}
+          </div>
+          <i className='setting__row__content--tag-filter-count'>
+            {`${item.tags.length} Tags`}
+          </i>
+          <div
+            onClick={() => onStartEditingTagFilterGroup(index)}
+            title={strings.editTagFilter}
+            className='browse-right-sidebar__title-row__buttons__edit-button'>
+            <OpenIcon
+              className='setting__row__content--override-row__edit'
+              icon='pencil' />
+          </div>
+          <div
+            onClick={() => dispatch(newTagFilterGroup(deepCopy(preferences.tagFilters[index])))}
+            title={strings.duplicateTagFilter}
+            className='browse-right-sidebar__title-row__buttons__edit-button'>
+            <OpenIcon
+              className='setting__row__content--override-row__edit'
+              icon='layers' />
+          </div>
+          <ConfirmElement
+            message={allStrings.dialog.nukeTagFilterGroup}
+            onConfirm={() => onTagFilterGroupNuke(index)}
+            render={renderTagFilterGroupNuke} />
+          <ConfirmElement
+            message={allStrings.dialog.deleteTagFilterGroup}
+            onConfirm={() => dispatch(removeTagFilterGroup(index))}
+            render={renderTagFilterGroupDelete} />
+        </div>
+      );
+    }
   });
 
-  itemizePlatformOptionsMemo = memoizeOne((platforms: string[], nativePlatforms: string[]) => {
-    return platforms.map(platform => {
-      return {
-        value: platform,
-        checked: nativePlatforms.includes(platform)
-      };
-    });
-  });
-
-  itemizeDefaultOpeningPageOptionsMemo = memoizeOne((views: string[], areLibraries: boolean, strings: LangContainer['libraries']): SelectItem<string>[] => {
-    return [
-      {
-        value: Paths.HOME,
-        display: 'Home Page'
-      },
-      ...views.filter((view) => view !== GENERAL_VIEW_ID).map((view) => {
-        return {
-          value: joinLibraryRoute(view),
-          display: areLibraries ? strings[view] || view : view,
-        };
-      })
-    ];
-  });
-
-  renderClearPlaytimeButton = ({ confirm, extra }: ConfirmElementArgs<[LangContainer['config']]>) => {
+  const renderClearPlaytimeButton = ({ confirm, extra }: ConfirmElementArgs<[LangContainer['config']]>) => {
     return (
       <SimpleButton
         className='setting__row__button'
@@ -632,116 +316,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     );
   };
 
-  renderAppPathOverridesMemo = memoizeOne((appPathOverrides: AppPathOverride[]) => {
-    return appPathOverrides.map((item, index) => {
-      return (
-        <div
-          className='setting__row__content--override-row'
-          key={index}>
-          <CheckBox
-            checked={item.enabled}
-            onToggle={(checked) => this.onAppPathOverrideEnabledToggle(index, checked)}/>
-          <InputField
-            editable={true}
-            onChange={(event) => this.onAppPathOverridePathChange(index, event.target.value)}
-            text={item.path} />
-          <div
-            className='setting__row__content--override-row__separator'>
-            {'->'}
-          </div>
-          <InputField
-            editable={true}
-            onChange={(event) => this.onAppPathOverrideOverrideChange(index, event.target.value)}
-            text={item.override} />
-          <div
-            onClick={() => this.onRemoveAppPathOverride(index)}
-            className='setting__row__content--remove-app-override'>
-            <OpenIcon
-              className='setting__row__content--override-row__delete'
-              icon='delete' />
-          </div>
-        </div>
-      );
-    });
-  });
-
-  renderTagFiltersMemo = memoizeOne((tagFilters: TagFilterGroup[], showExtreme: boolean, strings: LangContainer, logoVersion: number) => {
-    return tagFilters.map((item, index) => {
-      if (showExtreme ? true : !item.extreme) {
-        return (
-          <div
-            className='setting__row__content--override-row'
-            key={index}>
-            { showExtreme &&
-              (item.extreme ? (
-                <div
-                  key={index}
-                  className='config-page__tfg-extreme-logo'
-                  title={strings.browse.extreme}
-                  style={{ backgroundImage: `url('${getExtremeIconURL(logoVersion)}')` }} />
-              ) : (item.iconBase64 ? (
-                <div
-                  key={index}
-                  className='config-page__tfg-extreme-logo'
-                  title={strings.browse.tagFilterIcon}
-                  style={{ backgroundImage: `url("${item.iconBase64}")` }} />
-              ) :
-                (
-                  <div
-                    key={index}
-                    className='config-page__tfg-extreme-logo' />
-                )))
-            }
-            <div
-              title={item.enabled ? 'Hidden' : 'Visible'}
-              className={`setting__row__content--tag-filter-eye setting__row__content--tag-filter-eye--${item.enabled ? 'hidden' : 'visible'}`}
-              onClick={() => this.onTagFilterGroupEnabledToggle(index, !item.enabled)}>
-              <FontAwesomeIcon icon={item.enabled ? faEyeSlash : faEye} />
-            </div>
-            <div className='setting__row__content--tag-filter-text'>
-              <InputField
-                className='setting__row__content--tag-filter-title'
-                text={item.name} />
-              {item.description && (
-                <InputField
-                  className='setting__row__content--tag-filter-description'
-                  text={item.description} />
-              )}
-            </div>
-            <i className='setting__row__content--tag-filter-count'>
-              {`${item.tags.length} Tags`}
-            </i>
-            <div
-              onClick={() => this.onEditTagFilterGroup(index)}
-              title={strings.config.editTagFilter}
-              className='browse-right-sidebar__title-row__buttons__edit-button'>
-              <OpenIcon
-                className='setting__row__content--override-row__edit'
-                icon='pencil' />
-            </div>
-            <div
-              onClick={() => this.onDuplicateTagFilterGroup(index)}
-              title={strings.config.duplicateTagFilter}
-              className='browse-right-sidebar__title-row__buttons__edit-button'>
-              <OpenIcon
-                className='setting__row__content--override-row__edit'
-                icon='layers' />
-            </div>
-            <ConfirmElement
-              message={strings.dialog.nukeTagFilterGroup}
-              onConfirm={() => this.onTagFilterGroupNuke(index)}
-              render={this.renderTagFilterGroupNuke} />
-            <ConfirmElement
-              message={strings.dialog.deleteTagFilterGroup}
-              onConfirm={() => this.onTagFilterGroupDelete(index)}
-              render={this.renderTagFilterGroupDelete} />
-          </div>
-        );
-      }
-    });
-  });
-
-  renderLogoSetMemo = memoizeOne((platforms: string[], logoVersion: number) => {
+  const getLogoSetPreviews = () => {
     const allRows: React.JSX.Element[] = [];
     const toRender = [...platforms, 'Extreme'];
     // Render 16 logos per row, vertically stacked
@@ -762,155 +337,173 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       );
     }
     return allRows;
+  };
+
+  const serverOptions = serverNames.map((name) => {
+    return {
+      value: name
+    };
   });
 
-  renderExtensionsMemo = memoizeOne((extensions: IExtensionDescription[], strings: LangContainer['config'], fpfssConsents: Record<string, boolean | undefined>, disabledExts: string[]): React.JSX.Element[] => {
-    return extensions.map((ext) => {
-      const allStrings = this.context;
-      const fpfssConsent = fpfssConsents[ext.id];
-      const enabled = !disabledExts.includes(ext.id);
+  const onOptimizeDatabase = () => {
+    window.Shared.back.request(BackIn.OPTIMIZE_DATABASE)
+    .catch((err) => {
+      alert('Error: ' + err);
+    });
+  };
 
-      const shortContribs = [];
-      if (ext.contributes) {
-        if (ext.contributes.devScripts && ext.contributes.devScripts.length > 0) {
-          shortContribs.push(
-            <div key='devScripts'>
-              {`${ext.contributes.devScripts.length} ${strings.extDevScripts}`}
-            </div>
-          );
-        }
-        if (ext.contributes.themes && ext.contributes.themes.length > 0) {
-          shortContribs.push(
-            <div key='themes'>
-              {`${ext.contributes.themes.length} ${strings.extThemes}`}
-            </div>
-          );
-        }
-        if (ext.contributes.logoSets && ext.contributes.logoSets.length > 0) {
-          shortContribs.push(
-            <div key='logoSets'>
-              {`${ext.contributes.logoSets.length} ${strings.extLogoSets}`}
-            </div>
-          );
-        }
-        if (ext.contributes.applications && ext.contributes.applications.length > 0) {
-          shortContribs.push(
-            <div key='applications'>
-              {`${ext.contributes.applications.length} ${strings.extApplications}`}
-            </div>
-          );
-        }
-      }
-      return (
-        <div key={ext.id} className='setting__row'>
-          <div className='setting__row__top'>
-            <div className='setting__row__title setting__row__title--flex setting__row__title--align-left'>
-              { ext.icon ? (
-                <div
-                  style={{ backgroundImage: `url(${getExtIconURL(ext.id)})` }}
-                  className='setting__row__ext-icon' />
-              ): undefined }
-              <div>
-                <div>{ext.displayName || ext.name}</div>
-                <div>{ext.author}</div>
-              </div>
-            </div>
-            <div className='setting__row__content setting__row__content--right-align'>
-              {shortContribs}
-            </div>
-          </div>
-          <div className='setting__row__bottom setting__row__description'>
-            <p>{ext.description}</p>
-          </div>
-          <div className='setting__row__content setting__row__content--right-align'>
-            <CheckBox
-              onToggle={(isChecked) => {
-                window.Shared.back.request(BackIn.SET_EXTENSION_ENABLED, ext.id, isChecked)
-                .then(() => {
-                  if (enabled) {
-                    this.props.updatePreferences({
-                      disabledExtensions: disabledExts.concat([ext.id])
-                    });
-                  } else {
-                    this.props.updatePreferences({
-                      disabledExtensions: disabledExts.filter(c => c !== ext.id)
-                    });
-                  }
-                });
-              }}
-              checked={enabled}/>
-          </div>
-          <div className='setting__row__content setting__extension__config_row'>
-            {(fpfssConsent === true) ? (
-              <ConfigBoxInnerButton
-                title={allStrings.extensions.fpssConsentRevokeTitle}
-                description={allStrings.extensions.fpssConsentRevokeDesc}
-                value={allStrings.curate.delete}
-                onClick={() => this.onExtFPFSSConsentChange(ext.id, 'revoke')} />
-            ) : undefined }
-          </div>
+  const onRegisterProtocol = (isChecked: boolean): void => {
+    dispatch(updatePreferences({
+      registerProtocol: isChecked
+    }));
+    window.electronAPI?.registerProtocol(isChecked);
+  };
+
+  const onCurrentThemeChange = (value: string): void => {
+    const selectedTheme = themeList.find(t => t.id === value);
+    if (selectedTheme) {
+      const suggestedLogoSet = logoSets.find(ls => ls.id === selectedTheme.logoSet);
+      const logoSetId = suggestedLogoSet ? suggestedLogoSet.id : preferences.currentLogoSet;
+      dispatch(updatePreferences({
+        currentTheme: selectedTheme.id,
+        currentLogoSet: logoSetId
+      }));
+      setTheme(selectedTheme);
+    }
+  };
+
+  const onCurrentThemeItemSelect = (value: string, index: number): void => {
+    // Note: Suggestions with index 0 to "length - 1" registered themes.
+    //       Directly after that comes the "No Theme" suggestion.
+    let theme: ITheme | undefined;
+    if (index < themeList.length) { // (Select a Theme)
+      theme = themeList[index];
+    } else { theme = undefined; } // (Deselect the current theme)
+    onCurrentThemeChange(theme?.id || '');
+  };
+
+  const onCurrentLogoSetSelect = (value: string, index: number): void => {
+    // Note: Suggestions with index 0 to "length - 1" registered logo sets.
+    //       Directly after that comes the "No Theme" suggestion.
+    let logoSet: ILogoSet | undefined;
+    if (index < logoSets.length) { // (Select a Logo Set)
+      logoSet = logoSets[index];
+    } else { logoSet = undefined; } // (Deselect the current logo set)
+    dispatch(updatePreferences({
+      currentLogoSet: logoSet?.id,
+    }));
+    dispatch(incrementLogoVersion());
+  };
+
+  const onClearPlaytimeTracking = () => {
+    window.Shared.back.request(BackIn.CLEAR_PLAYTIME_TRACKING);
+  };
+
+  const screenshotPreviewModes = [
+    {
+      value: ScreenshotPreviewMode.OFF,
+      display: strings.screenshotPreviewModeOff
+    },
+    {
+      value: ScreenshotPreviewMode.ON,
+      display: strings.screenshotPreviewModeOn
+    },
+    {
+      value: ScreenshotPreviewMode.ALWAYS,
+      display: strings.screenshotPreviewModeAlways
+    }
+  ];
+
+  const libraryOptions = libraries.map(library => {
+    return {
+      value: library,
+      display: allStrings.libraries[library] || library,
+      checked: !preferences.excludedRandomLibraries.includes(library)
+    };
+  });
+
+  const platformOptions = platforms.map(platform => {
+    return {
+      value: platform,
+      checked: preferences.nativePlatforms.includes(platform)
+    };
+  });
+
+  const appPathOverridesRows = preferences.appPathOverrides.map((item, index) => {
+    return (
+      <div
+        className='setting__row__content--override-row'
+        key={index}>
+        <CheckBox
+          checked={item.enabled}
+          onToggle={(checked) => {
+            dispatch(updateAppPathOverride({
+              index,
+              data: {
+                enabled: checked
+              }
+            }));
+          }}/>
+        <InputField
+          editable={true}
+          onChange={(event) => {
+            dispatch(updateAppPathOverride({
+              index,
+              data: {
+                path: event.target.value
+              }
+            }));
+          }}
+          text={item.path} />
+        <div
+          className='setting__row__content--override-row__separator'>
+          {'->'}
         </div>
-      );
-    });
+        <InputField
+          editable={true}
+          onChange={(event) => {
+            dispatch(updateAppPathOverride({
+              index,
+              data: {
+                override: event.target.value
+              }
+            }));
+          }}
+          text={item.override} />
+        <div
+          onClick={() => dispatch(removeAppPathOverride(index))}
+          className='setting__row__content--remove-app-override'>
+          <OpenIcon
+            className='setting__row__content--override-row__delete'
+            icon='delete' />
+        </div>
+      </div>
+    );
   });
 
-  renderExtensionConfigs = memoizeOne((extConfigs: ExtensionContribution<'configuration'>[], extConfig: AppExtConfigData) => {
-    let sections: React.JSX.Element[] = [];
-
-    extConfigs.forEach((contrib, idx) => {
-      sections = sections.concat(contrib.value.map((config, configIdx) => {
-        const propBoxes = [];
-        for (const key in config.properties) {
-          const configRender = renderExtConfigProp(key, config.properties[key], extConfig[key]);
-          if (configRender) { propBoxes.push(renderExtConfigProp(key, config.properties[key], extConfig[key])); }
-        }
-        if (propBoxes.length > 0) {
-          return (
-            <div
-              className='setting'
-              key={`${idx}_${configIdx}`}>
-              <p className='setting__title'>{config.title}</p>
-              <div className='setting__body'>
-                {propBoxes}
-              </div>
+  const extensionConfigBoxes = extConfigs.map((contrib, idx) => {
+    return contrib.value.map((config, configIdx) => {
+      const propBoxes = [];
+      for (const key in config.properties) {
+        const configRender = renderExtConfigProp(key, config.properties[key], extConfig[key]);
+        if (configRender) { propBoxes.push(renderExtConfigProp(key, config.properties[key], extConfig[key])); }
+      }
+      if (propBoxes.length > 0) {
+        return (
+          <div
+            className='setting'
+            key={`${idx}_${configIdx}`}>
+            <p className='setting__title'>{config.title}</p>
+            <div className='setting__body'>
+              {propBoxes}
             </div>
-          );
-        }
-      }).filter(p => !!p) as React.JSX.Element[]);
-    });
-
-    return sections;
+          </div>
+        );
+      }
+    }).filter(p => !!p) as React.JSX.Element[];
   });
 
-  renderTagFilterGroupNuke = ({ confirm }: ConfirmElementArgs) => {
-    const strings = this.context.config;
-    return (
-      <div
-        className={'browse-right-sidebar__title-row__buttons__discard-button'}
-        title={strings.nukeTagFilter}
-        onClick={confirm} >
-        <OpenIcon
-          className='setting__row__content--override-row__delete'
-          icon='trash' />
-      </div>
-    );
-  };
-
-  renderTagFilterGroupDelete = ({ confirm }: ConfirmElementArgs) => {
-    const strings = this.context.config;
-    return (
-      <div
-        className={'browse-right-sidebar__title-row__buttons__discard-button'}
-        title={strings.deleteTagFilter}
-        onClick={confirm} >
-        <OpenIcon
-          className='setting__row__content--override-row__delete'
-          icon='delete' />
-      </div>
-    );
-  };
-
-  onExtFPFSSConsentChange = (extId: string, action: string): void => {
+  const onExtFPFSSConsentChange = (extId: string, action: string): void => {
     const updatedConsent = action === 'grant' ? true : undefined;
     if (updatedConsent) {
       saveFpfssConsentExt(extId, true);
@@ -918,424 +511,127 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       clearFpfssConsentExt(extId);
     }
 
-    const newMap = { ...this.state.fpfssConsentMap };
+    const newMap = { ...fpfssConsents };
     newMap[extId] = updatedConsent;
-    this.setState({ fpfssConsentMap: newMap });
+    setFpfssConsents(newMap);
   };
 
-  onShowExtremeChange = (isChecked: boolean): void => {
-    this.props.updatePreferences({ browsePageShowExtreme: isChecked });
-  };
+  const extensionRows = extensions.map((ext) => {
+    const fpfssConsent = fpfssConsents[ext.id];
+    const enabled = !preferences.disabledExtensions.includes(ext.id);
 
-  onToggleHideExtremeScreenshots = (isChecked: boolean): void => {
-    this.props.updatePreferences({ hideExtremeScreenshots: isChecked });
-  };
+    const shortContribs = [];
+    if (ext.contributes) {
+      if (ext.contributes.devScripts && ext.contributes.devScripts.length > 0) {
+        shortContribs.push(
+          <div key='devScripts'>
+            {`${ext.contributes.devScripts.length} ${strings.extDevScripts}`}
+          </div>
+        );
+      }
+      if (ext.contributes.themes && ext.contributes.themes.length > 0) {
+        shortContribs.push(
+          <div key='themes'>
+            {`${ext.contributes.themes.length} ${strings.extThemes}`}
+          </div>
+        );
+      }
+      if (ext.contributes.logoSets && ext.contributes.logoSets.length > 0) {
+        shortContribs.push(
+          <div key='logoSets'>
+            {`${ext.contributes.logoSets.length} ${strings.extLogoSets}`}
+          </div>
+        );
+      }
+      if (ext.contributes.applications && ext.contributes.applications.length > 0) {
+        shortContribs.push(
+          <div key='applications'>
+            {`${ext.contributes.applications.length} ${strings.extApplications}`}
+          </div>
+        );
+      }
+    }
+    return (
+      <div key={ext.id} className='setting__row'>
+        <div className='setting__row__top'>
+          <div className='setting__row__title setting__row__title--flex setting__row__title--align-left'>
+            { ext.icon ? (
+              <div
+                style={{ backgroundImage: `url(${getExtIconURL(ext.id)})` }}
+                className='setting__row__ext-icon' />
+            ): undefined }
+            <div>
+              <div>{ext.displayName || ext.name}</div>
+              <div>{ext.author}</div>
+            </div>
+          </div>
+          <div className='setting__row__content setting__row__content--right-align'>
+            {shortContribs}
+          </div>
+        </div>
+        <div className='setting__row__bottom setting__row__description'>
+          <p>{ext.description}</p>
+        </div>
+        <div className='setting__row__content setting__row__content--right-align'>
+          <CheckBox
+            onToggle={(isChecked) => {
+              window.Shared.back.request(BackIn.SET_EXTENSION_ENABLED, ext.id, isChecked)
+              .then(() => {
+                if (enabled) {
+                  dispatch(updatePreferences({
+                    disabledExtensions: preferences.disabledExtensions.concat([ext.id])
+                  }));
+                } else {
+                  dispatch(updatePreferences({
+                    disabledExtensions: preferences.disabledExtensions.filter(c => c !== ext.id)
+                  }));
+                }
+              });
+            }}
+            checked={enabled}/>
+        </div>
+        <div className='setting__row__content setting__extension__config_row'>
+          {(fpfssConsent === true) ? (
+            <ConfigBoxInnerButton
+              title={allStrings.extensions.fpssConsentRevokeTitle}
+              description={allStrings.extensions.fpssConsentRevokeDesc}
+              value={allStrings.curate.delete}
+              onClick={() => onExtFPFSSConsentChange(ext.id, 'revoke')} />
+          ) : undefined }
+        </div>
+      </div>
+    );
+  });
 
-  onToggleEnablePlaytimeTracking = (isChecked: boolean): void => {
-    this.props.updatePreferences({ enablePlaytimeTracking: isChecked });
-  };
-
-  onToggleEnablePlaytimeTrackingExtreme = (isChecked: boolean): void => {
-    this.props.updatePreferences({ enablePlaytimeTrackingExtreme: isChecked });
-  };
-
-  onClearPlaytimeTracking = (): void => {
-    window.Shared.back.request(BackIn.CLEAR_PLAYTIME_TRACKING);
-  };
-
-  onUseStoredViewsChange = (isChecked: boolean): void => {
-    if (isChecked) {
-      this.props.updatePreferences({ useStoredViews: isChecked });
-    } else {
-      this.props.updatePreferences({
-        useStoredViews: isChecked,
-        storedViews: []
-      });
+  const onEditTagFilterGroup = <K extends keyof TagFilterGroup>(key: K) => (value: TagFilterGroup[K]) => {
+    if (editingTagFilterGroup) {
+      editingTagFilterGroup[key] = value;
     }
   };
 
-  onToggleUseCustomViews = (isChecked: boolean): void => {
-    this.props.updatePreferences({
-      useCustomViews: isChecked,
-      defaultOpeningPage: Paths.HOME,
-    });
-    if (isChecked) {
-      const customViews = this.props.preferencesData.customViews;
-      if (customViews.length === 0) {
-        customViews.push('Browse');
-        this.props.updatePreferences({
-          customViews,
-        });
-      }
-      if (this.props.preferencesData.storedViews) {
-        this.props.searchActions.createViews({
-          views: customViews,
-          storedViews: this.props.preferencesData.storedViews,
-          areLibraries: false,
-          loadViewsText: this.props.preferencesData.loadViewsText,
-          playlists: [],
-        });
-      } else {
-        this.props.searchActions.createViews({
-          views: customViews,
-          areLibraries: false,
-          loadViewsText: this.props.preferencesData.loadViewsText,
-          playlists: [],
-        });
-      }
-    } else {
-      if (this.props.preferencesData.storedViews) {
-        this.props.searchActions.createViews({
-          views: this.props.libraries,
-          storedViews: this.props.preferencesData.storedViews,
-          areLibraries: true,
-          loadViewsText: this.props.preferencesData.loadViewsText,
-          playlists: [],
-        });
-      } else {
-        this.props.searchActions.createViews({
-          views: this.props.libraries,
-          areLibraries: true,
-          loadViewsText: this.props.preferencesData.loadViewsText,
-          playlists: [],
-        });
-      }
-    }
-  };
-
-  onToggleLoadViewsText = (isChecked: boolean): void => {
-    this.props.updatePreferences({
-      loadViewsText: isChecked
-    });
-  };
-
-  onEnableEditingChange = (isChecked: boolean): void => {
-    this.props.updatePreferences({ enableEditing: isChecked });
-  };
-
-  onSymlinkCurationContentChange = (isChecked: boolean): void => {
-    this.props.updatePreferences({ symlinkCurationContent: isChecked });
-  };
-
-  onOnDemandImagesChange = (isChecked: boolean): void => {
-    this.props.updatePreferences({ onDemandImages: isChecked });
-  };
-
-  onDemandImagesCompressedChange = (isChecked: boolean): void => {
-    this.props.updatePreferences({ onDemandImagesCompressed: isChecked });
-  };
-
-  onFancyAnimationsChange = (isChecked: boolean): void => {
-    this.props.updatePreferences({ fancyAnimations: isChecked });
-  };
-
-  onHideNewViewButtonChange = (isChecked: boolean): void => {
-    this.props.updatePreferences({ hideNewViewButton: isChecked });
-  };
-
-  onVerboseLoggingToggle = (isChecked: boolean): void => {
-    this.props.updatePreferences({ enableVerboseLogging: isChecked });
-  };
-
-  onSearchLimitChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    this.props.updatePreferences({ searchLimit: num(event.target.value) });
-  };
-
-  onCurrentLanguageSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    this.props.updatePreferences({ currentLanguage: event.target.value });
-  };
-
-  onServerSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    this.props.updatePreferences({ server: event.target.value });
-  };
-
-  onCurateServerSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    this.props.updatePreferences({ curateServer: event.target.value });
-  };
-
-  onFallbackLanguageSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    this.props.updatePreferences({ fallbackLanguage: event.target.value });
-  };
-
-  onDefaultOpeningPageSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    console.log(event.target.value);
-    this.props.updatePreferences({ defaultOpeningPage: event.target.value });
-  };
-
-  onToggleUseSelectedGameScroll = (isChecked: boolean) => {
-    this.props.updatePreferences({ useSelectedGameScroll: isChecked });
-  };
-
-  onExcludedLibraryCheckboxChange = (library: string): void => {
-    const excludedRandomLibraries = [ ...this.props.preferencesData.excludedRandomLibraries ];
-
-    const index = excludedRandomLibraries.findIndex(item => item === library);
-    if (index !== -1) {
-      excludedRandomLibraries.splice(index, 1);
-    } else {
-      excludedRandomLibraries.push(library);
-    }
-
-    this.props.updatePreferences({ excludedRandomLibraries });
-  };
-
-  onRemoveAppPathOverride = (index: number): void => {
-    const newPaths = [...this.props.preferencesData.appPathOverrides];
-    newPaths.splice(index, 1);
-    console.log('SPLICED');
-    this.props.updatePreferences({ appPathOverrides: newPaths });
-  };
-
-  onNewAppPathOverride = (): void => {
-    const newPaths = [...this.props.preferencesData.appPathOverrides];
-    newPaths.push({ path: '', override: '', enabled: true });
-    this.props.updatePreferences({ appPathOverrides: newPaths });
-  };
-
-  onAppPathOverridePathChange = (index: number, newPath: string): void => {
-    const newPaths = [...this.props.preferencesData.appPathOverrides];
-    newPaths[index] = { ...newPaths[index], path: newPath };
-    this.props.updatePreferences({ appPathOverrides: newPaths });
-  };
-
-  onAppPathOverrideOverrideChange = (index: number, newOverride: string): void => {
-    const newPaths = [...this.props.preferencesData.appPathOverrides];
-    newPaths[index] = { ...newPaths[index], override: newOverride };
-    this.props.updatePreferences({ appPathOverrides: newPaths });
-  };
-
-  onAppPathOverrideEnabledToggle = (index: number, checked: boolean): void => {
-    const newPaths = [...this.props.preferencesData.appPathOverrides];
-    newPaths[index] = { ...newPaths[index], enabled: checked };
-    this.props.updatePreferences({ appPathOverrides: newPaths });
-  };
-
-  onNewTagFilterGroup = (): void => {
-    const tfg: TagFilterGroup = {
-      name: 'New Group',
-      description: '',
-      enabled: true,
-      tags: [],
-      categories: [],
-      childFilters: [],
-      extreme: false,
-      iconBase64: ''
-    };
-    const newTagFilters = [...this.props.preferencesData.tagFilters];
-    newTagFilters.push(tfg);
-    this.props.updatePreferences({ tagFilters: newTagFilters });
-  };
-
-  onTagFilterGroupEnabledToggle = (index: number, checked: boolean): void => {
-    const newTagFilters = [...this.props.preferencesData.tagFilters];
-    newTagFilters[index] = { ...newTagFilters[index], enabled: checked };
-    this.props.updatePreferences({ tagFilters: newTagFilters });
-  };
-
-  onAddTagEditorTagEvent = (index: number, tag: string): void => {
-    if (this.state.editingTagFilterGroup) {
-      const newTFG = deepCopy(this.state.editingTagFilterGroup);
+  const onAddTagEditorTagEvent = (tag: string): void => {
+    if (editingTagFilterGroup) {
+      const newTFG = deepCopy(editingTagFilterGroup);
       newTFG.tags.push(tag);
-      this.setState({ editingTagFilterGroup: newTFG });
+      setEditingTagFilterGroup(newTFG);
     }
   };
 
-  onAddTagEditorCategoryEvent = (index: number, category: string): void => {
-    if (this.state.editingTagFilterGroup) {
-      const newTFG = deepCopy(this.state.editingTagFilterGroup);
-      newTFG.categories.push(category);
-      this.setState({ editingTagFilterGroup: newTFG });
-    }
-  };
-
-  onRemoveTagEditorTagEvent = (index: number, tag: string): void => {
-    if (this.state.editingTagFilterGroup) {
-      const newTFG = deepCopy(this.state.editingTagFilterGroup);
+  const onRemoveTagEditorTagEvent = (tag: string): void => {
+    if (editingTagFilterGroup) {
+      const newTFG = deepCopy(editingTagFilterGroup);
       const idx = newTFG.tags.findIndex(t => t === tag);
       if (idx > -1) {
         newTFG.tags.splice(idx, 1);
       }
-      this.setState({ editingTagFilterGroup: newTFG });
+      setEditingTagFilterGroup(newTFG);
     }
   };
 
-  onRemoveTagEditorCategoryEvent = (index: number, category: string): void => {
-    if (this.state.editingTagFilterGroup) {
-      const newTFG = deepCopy(this.state.editingTagFilterGroup);
-      const idx = newTFG.categories.findIndex(c => c === category);
-      if (idx > -1) {
-        newTFG.categories.splice(idx, 1);
-      }
-      this.setState({ editingTagFilterGroup: newTFG });
-    }
-  };
-
-  onChangeTagEditorNameEvent = (name: string): void => {
-    if (this.state.editingTagFilterGroup) {
-      const newTFG = { ...this.state.editingTagFilterGroup, name };
-      this.setState({ editingTagFilterGroup: newTFG });
-    }
-  };
-
-  onChangeTagEditorDescriptionEvent = (description: string): void => {
-    if (this.state.editingTagFilterGroup) {
-      const newTFG = { ...this.state.editingTagFilterGroup, description };
-      this.setState({ editingTagFilterGroup: newTFG });
-    }
-  };
-
-  onToggleExtremeTagEditorEvent = (checked: boolean): void => {
-    if (this.state.editingTagFilterGroup) {
-      const newTFG = { ...this.state.editingTagFilterGroup, extreme: checked };
-      this.setState({ editingTagFilterGroup: newTFG });
-    }
-  };
-
-  onChangeTagEditorIconEvent = (iconBase64: string): void => {
-    if (this.state.editingTagFilterGroup) {
-      const newTFG = { ...this.state.editingTagFilterGroup, iconBase64 };
-      this.setState({ editingTagFilterGroup: newTFG });
-    }
-  };
-
-  onDuplicateTagFilterGroup = (index: number): void => {
-    const newTagFilters = [...this.props.preferencesData.tagFilters];
-    newTagFilters.push({ ...newTagFilters[index], name: `${newTagFilters[index].name} - Copy` });
-    this.props.updatePreferences({ tagFilters: newTagFilters });
-  };
-
-  onEditTagFilterGroup = (index: number): void => {
-    const tagFilter = this.props.preferencesData.tagFilters[index];
-    this.setState({ editingTagFilterGroup: tagFilter, editingTagFilterGroupIdx: index, editorOpen: true });
-  };
-
-  onNativeCheckboxChange = (platform: string): void => {
-    const newPlatforms = [...this.props.preferencesData.nativePlatforms];
-    const index = newPlatforms.findIndex(item => item === platform);
-
-    if (index !== -1) {
-      log.info('launcher', `WE CHANGED ${platform} TO false`);
-      newPlatforms.splice(index, 1);
-    } else {
-      log.info('launcher', `WE CHANGED ${platform} TO true`);
-      newPlatforms.push(platform);
-    }
-
-    this.props.updatePreferences({ nativePlatforms: newPlatforms });
-  };
-
-  /**
-   * When the "Flashpoint Data Folder Path" input text is changed.
-   *
-   * @param filePath Changed file path
-   */
-  onFlashpointPathChange = async (filePath: string): Promise<void> => {
-    this.setState({ flashpointPath: filePath });
-    // Check if the file-path points at a valid FlashPoint folder
-    const isValid = await isFlashpointValidCheck(filePath);
-    this.setState({ isFlashpointPathValid: isValid });
-  };
-
-  onUseCustomTitlebarChange = (isChecked: boolean): void => {
-    this.setState({ useCustomTitlebar: isChecked });
-  };
-
-  onRegisterProtocol = (isChecked: boolean): void => {
-    this.props.updatePreferences({ registerProtocol: isChecked });
-    window.electronAPI?.registerProtocol(isChecked);
-  };
-
-  onCurrentThemeChange = (value: string): void => {
-    const selectedTheme = this.props.themeList.find(t => t.id === value);
-    if (selectedTheme) {
-      const suggestedLogoSet = this.props.logoSets.find(ls => ls.id === selectedTheme.logoSet);
-      const logoSetId = suggestedLogoSet ? suggestedLogoSet.id : this.props.preferencesData.currentLogoSet;
-      this.props.updatePreferences({ currentTheme: selectedTheme.id, currentLogoSet: logoSetId });
-    }
-  };
-
-  onCurrentLogoSetChange = (value: string): void => {
-    this.props.updatePreferences({ currentLogoSet: value });
-  };
-
-  onCurrentThemeItemSelect = (value: string, index: number): void => {
-    // Note: Suggestions with index 0 to "length - 1" registered themes.
-    //       Directly after that comes the "No Theme" suggestion.
-    let theme: ITheme | undefined;
-    if (index < this.props.themeList.length) { // (Select a Theme)
-      theme = this.props.themeList[index];
-    } else { theme = undefined; } // (Deselect the current theme)
-    const suggestedLogoSet = this.props.logoSets.find(ls => ls.id === (theme ? theme.logoSet : undefined));
-    const logoSetId = suggestedLogoSet ? suggestedLogoSet.id : this.props.preferencesData.currentLogoSet;
-    this.props.updatePreferences({ currentTheme: theme ? theme.id : '', currentLogoSet: logoSetId });
-  };
-
-  onCurrentLogoSetSelect = (value: string, index: number): void => {
-    // Note: Suggestions with index 0 to "length - 1" registered logo sets.
-    //       Directly after that comes the "No Theme" suggestion.
-    let logoSet: ILogoSet | undefined;
-    if (index < this.props.logoSets.length) { // (Select a Logo Set)
-      logoSet = this.props.logoSets[index];
-    } else { logoSet = undefined; } // (Deselect the current logo set)
-    this.props.updatePreferences({ currentLogoSet: logoSet ? logoSet.id : undefined });
-  };
-
-  onScreenshotPreviewModeChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    this.props.updatePreferences({ screenshotPreviewMode: num(event.target.value) });
-  };
-
-  onScreenshotPreviewDelayChange = (value: string): void => {
-    this.props.updatePreferences({ screenshotPreviewDelay: num(value) });
-  };
-
-  getThemeName(id: string) {
-    const theme = this.props.themeList.find(t => t.id === id);
-    if (theme) { return theme.meta.name || theme.id; }
-  }
-
-  getLogoSetName(id: string) {
-    const logoSet = this.props.logoSets.find(ls => ls.id === id);
-    if (logoSet) { return logoSet.name; }
-  }
-
-  onCloseTagFilterGroupEditor = () => {
-    if (this.state.editingTagFilterGroup && this.state.editingTagFilterGroupIdx != undefined) {
-      const newTagFilters = [...this.props.preferencesData.tagFilters];
-      newTagFilters[this.state.editingTagFilterGroupIdx] = this.state.editingTagFilterGroup;
-      this.props.updatePreferences({ tagFilters: newTagFilters });
-      this.setState({ editingTagFilterGroup: undefined, editingTagFilterGroupIdx: undefined, editorOpen: false });
-    }
-  };
-
-  onTagFilterGroupNuke = async (index: number) => {
-    // Nuke all the tags
-    this.setState({ nukeInProgress: true });
-    window.Shared.back.request(BackIn.NUKE_TAGS, this.props.preferencesData.tagFilters[index].tags)
-    .then(() => {
-      const newTagFilters = [...this.props.preferencesData.tagFilters];
-      newTagFilters.splice(index, 1);
-      this.props.updatePreferences({ tagFilters: newTagFilters });
-    })
-    .catch((error) => {
-      alert('Failed to nuke tags: ' + error);
-    })
-    .finally(() => {
-      this.setState({ nukeInProgress: false });
-    });
-  };
-
-  onTagFilterGroupDelete = async (index: number) => {
-    const newTagFilters = [...this.props.preferencesData.tagFilters];
-    newTagFilters.splice(index, 1);
-    this.props.updatePreferences({ tagFilters: newTagFilters });
-  };
-
-  /** When the "Save & Restart" button is clicked. */
-  onSaveAndRestartClick = () => {
+  const onSaveAndRestartClick = () => {
     // Save new config to file, then restart the app
     window.Shared.back.request(BackIn.UPDATE_CONFIG, {
-      flashpointPath: this.state.flashpointPath,
-      useCustomTitlebar: this.state.useCustomTitlebar,
+      flashpointPath,
     }).then(() => {
       if (window.electronAPI !== undefined) {
         window.electronAPI.restart();
@@ -1345,34 +641,383 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     });
   };
 
-  onDeleteImages = () => {
-    window.Shared.back.request(BackIn.DELETE_ALL_IMAGES)
-    .catch((err) => {
-      alert('Error: ' + err);
-    });
-  };
 
-  onOptimizeDatabase = () => {
-    window.Shared.back.request(BackIn.OPTIMIZE_DATABASE)
-    .catch((err) => {
-      alert('Error: ' + err);
-    });
-  };
+  return (
+    <div className='config-page simple-scroll'>
+      <div className='config-page__inner'>
+        <h1 className='config-page__title'>{strings.configHeader}</h1>
+        <p className='config-page__description'>{strings.configDesc}</p>
 
-  onChangeAutoClearWininetCache = (isChecked: boolean) => {
-    this.props.updatePreferences({ autoClearWininetCache: isChecked });
-  };
+        {/* -- Preferences -- */}
+        <div className='setting'>
+          <p className='setting__title'>{strings.preferencesHeader}</p>
+          <div className='setting__body'>
+            {/* Restore Search Views */}
+            <ConfigBoxCheckbox
+              title={strings.restoreSearchViews}
+              description={strings.restoreSearchViewsDesc}
+              checked={preferences.useStoredViews}
+              onToggle={(value) => dispatch(setUseStoredViews(value))} />
+            {/* Use Custom Search Views */}
+            <ConfigBoxCheckbox
+              title={strings.useCustomViews}
+              description={strings.useCustomViewsDesc}
+              checked={preferences.useCustomViews}
+              onToggle={(value) => dispatch(setUseCustomViews(value))} />
+            {/* Load Views Text on restart */}
+            <ConfigBoxCheckbox
+              title={strings.loadViewsText}
+              description={strings.loadViewsTextDesc}
+              checked={preferences.loadViewsText}
+              onToggle={onSetPreferenceFactory('loadViewsText')} />
+            {/* Default opening page */}
+            <ConfigBoxSelect
+              title={strings.defaultOpeningPage}
+              description={strings.defaultOpeningPageDesc}
+              value={preferences.defaultOpeningPage}
+              onChange={onSetPreferenceEventFactory('defaultOpeningPage')}
+              items={defaultOpeningPageOptions} />
+            {/* Use selected game scroll instead of scroll top pos */}
+            {/* <ConfigBoxCheckbox
+              title={strings.useSelectedGameScroll}
+              description={strings.useSelectedGameScrollDesc}
+              checked={this.props.preferencesData.useSelectedGameScroll}
+              onToggle={this.onToggleUseSelectedGameScroll} /> */}
+            {/* Enable Editing */}
+            <ConfigBoxCheckbox
+              title={strings.enableEditing}
+              description={strings.enableEditingDesc}
+              checked={preferences.enableEditing}
+              onToggle={onSetPreferenceFactory('enableEditing')} />
+            {/** Symlink Curation Content */}
+            { preferences.enableEditing && (
+              <ConfigBoxCheckbox
+                title={strings.symlinkCuration}
+                description={strings.symlinkCurationDesc}
+                checked={preferences.symlinkCurationContent}
+                onToggle={onSetPreferenceFactory('symlinkCuration')}/>
+            )}
+            {/* On Demand Images */}
+            <ConfigBox
+              title={strings.onDemandImages}
+              description={strings.onDemandImagesDesc}
+              swapChildren={true} >
+              <ConfigBoxInnerCheckbox
+                title={strings.onDemandImagesEnabled}
+                description={strings.onDemandImagesEnabledDesc}
+                checked={preferences.onDemandImages}
+                onToggle={onSetPreferenceFactory('onDemandImages')} />
+              <ConfigBoxInnerCheckbox
+                title={strings.onDemandImagesCompressed}
+                description={strings.onDemandImagesCompressedDesc}
+                checked={preferences.onDemandImagesCompressed}
+                onToggle={onSetPreferenceFactory('onDemandImagesCompressed')} />
+              <ConfigBoxInnerButton
+                title={strings.onDemandImagesDelete}
+                description={strings.onDemandImagesDeleteDesc}
+                value={allStrings.curate.delete}
+                onClick={() => {
+                  window.Shared.back.request(BackIn.DELETE_ALL_IMAGES)
+                  .then(() => {
+                    toast('Images Deleted');
+                  })
+                  .catch((err) => {
+                    alert('Error: ' + err);
+                  });
+                }}/>
+            </ConfigBox>
+            {/* Playtime Tracking */}
+            <ConfigBox
+              title={strings.playtimeTracking}
+              description={strings.playtimeTrackingDesc}
+              swapChildren={true}>
+              <ConfigBoxInnerCheckbox
+                title={strings.enablePlaytimeTracking}
+                description={strings.enablePlaytimeTrackingDesc}
+                checked={preferences.enablePlaytimeTracking}
+                onToggle={onSetPreferenceFactory('enablePlaytimeTracking')} />
+              <ConfigBoxInnerCheckbox
+                title={strings.enablePlaytimeTrackingExtreme}
+                description={strings.enablePlaytimeTrackingExtremeDesc}
+                checked={preferences.enablePlaytimeTrackingExtreme}
+                onToggle={onSetPreferenceFactory('enablePlaytimeTrackingExtreme')} />
+              <ConfigBoxInner
+                title={strings.clearPlaytimeTracking}
+                description={strings.clearPlaytimeTrackingDesc}>
+                <ConfirmElement
+                  render={renderClearPlaytimeButton}
+                  onConfirm={onClearPlaytimeTracking}
+                  message={allStrings.dialog.confirmClearPlaytime}
+                  extra={[strings]}/>
+              </ConfigBoxInner>
+            </ConfigBox>
+            {/* Fancy Animations */}
+            <ConfigBoxCheckbox
+              title={strings.fancyAnimations}
+              description={strings.fancyAnimationsDesc}
+              checked={preferences.fancyAnimations}
+              onToggle={onSetPreferenceFactory('fancyAnimations')} />
+            {/* Hide New View Button */}
+            <ConfigBoxCheckbox
+              title={strings.hideNewViewButton}
+              description={strings.hideNewViewButtonDesc}
+              checked={preferences.hideNewViewButton}
+              onToggle={onSetPreferenceFactory('hideNewViewButton')} />
+            {/* Short Search */}
+            <ConfigBoxSelect
+              title={strings.searchLimit}
+              description={strings.searchLimitDesc}
+              value={preferences.searchLimit.toString()}
+              onChange={(event) => onSearchLimitChange(event.target.value)}
+              items={searchLimitOptions}/>
+            {/* Current Language */}
+            <ConfigBoxSelect
+              title={strings.currentLanguage}
+              description={strings.currentLanguageDesc}
+              value={preferences.currentLanguage || ''}
+              onChange={onSetPreferenceEventFactory('currentLanguage')}
+              items={langOptions} />
+            {/* Screenshot Preview Mode */}
+            <ConfigBoxSelect
+              title={strings.screenshotPreviewMode}
+              description={strings.screenshotPreviewModeDesc}
+              value={preferences.screenshotPreviewMode}
+              items={screenshotPreviewModes}
+              onChange={onSetPreferenceEventFactory('defaultOpeningPage')}
+            />
+            <ConfigBoxSelectInput
+              title={strings.screenshotPreviewDelay}
+              description={strings.screenshotPreviewDelayDesc}
+              editable={true}
+              text={preferences.screenshotPreviewDelay.toString()}
+              placeholder='250'
+              onChange={onScreenshotPreviewDelayChange}
+              onItemSelect={onScreenshotPreviewDelayChange}
+              items={['0', '150', '250', '350', '500', '750', '1000']}/>
+          </div>
+        </div>
+        {/* -- Content Filters -- */}
+        <div className='setting'>
+          <p className='setting__title'>{strings.contentFiltersHeader}</p>
+          <div className='setting__body'>
+            {/* Show Extreme Games */}
+            {((!preferences.disableExtremeGames)) ? (
+              <ConfigBoxCheckbox
+                title={strings.extremeGames}
+                description={strings.extremeGamesDesc}
+                checked={preferences.browsePageShowExtreme}
+                onToggle={onSetPreferenceFactory('browsePageShowExtreme')} />
+            ) : undefined }
+            {preferences.browsePageShowExtreme && (
+              <ConfigBoxCheckbox
+                title={strings.hideExtremeScreenshots}
+                description={strings.hideExtremeScreenshotsDesc}
+                checked={preferences.hideExtremeScreenshots}
+                onToggle={onSetPreferenceFactory('hideExtremeScreenshots')} />
+            )}
+            {/* Tag Filter Groups */}
+            <ConfigBox
+              title={strings.tagFilterGroups}
+              description={strings.tagFilterGroupsDesc}
+              swapChildren={true}>
+              {tagFilterElements}
+              <div
+                onClick={() => dispatch(newTagFilterGroup())}
+                className='setting__row__content--override-row__new'>
+                <OpenIcon
+                  icon='plus' />
+              </div>
+            </ConfigBox>
+            {/* Random Libraries */}
+            <ConfigBoxMultiSelect
+              title={strings.randomLibraries}
+              description={strings.randomLibrariesDesc}
+              text={strings.libraries}
+              onChange={(item) => dispatch(toggleExcludedLibrary(item))}
+              items={libraryOptions} />
+          </div>
+        </div>
+        {/* -- Flashpoint -- */}
+        <div className='setting'>
+          <p className='setting__title'>{strings.flashpointHeader}</p>
+          <div className='setting__body'>
+            {/* Flashpoint Path */}
+            <ConfigBox
+              title={strings.flashpointPath}
+              description={strings.flashpointPathDesc}
+              contentClassName='setting__row__content--filepath-path'>
+              <ConfigFlashpointPathInput
+                input={flashpointPath}
+                buttonText={strings.browse}
+                onInputChange={setFlashpointPath}
+                isValid={isFlashpointPathValid} />
+            </ConfigBox>
+            {/* Native Platforms */}
+            <ConfigBoxMultiSelect
+              title={strings.nativePlatforms}
+              description={strings.nativePlatformsDesc}
+              text={strings.platforms}
+              onChange={(item) => dispatch(toggleNativePlatform(item))}
+              items={platformOptions} />
+            {/* App Path Overrides */}
+            <ConfigBox
+              title={strings.appPathOverrides}
+              description={strings.appPathOverridesDesc}
+              swapChildren={true} >
+              {appPathOverridesRows}
+              <div
+                onClick={() => dispatch(newAppPathOverride())}
+                className='setting__row__content--override-row__new'>
+                <OpenIcon
+                  icon='plus' />
+              </div>
+            </ConfigBox>
+            {/* Verbose Logging */}
+            <ConfigBoxCheckbox
+              title={strings.enableVerboseLogging}
+              description={strings.enableVerboseLoggingDesc}
+              checked={preferences.enableVerboseLogging}
+              onToggle={onSetPreferenceFactory('enableVerboseLogging')} />
+          </div>
+        </div>
 
-  onClearWininetCache = () => {
-    window.Shared.back.request(BackIn.CLEAR_WININET_CACHE)
-    .then(() => {
-      alert('Cleared cache');
-    })
-    .catch((err) => {
-      alert('Error: ' + err);
-    });
-  };
+        {/* -- Visuals -- */}
+        <div className='setting'>
+          <p className='setting__title'>{strings.visualsHeader}</p>
+          <div className='setting__body'>
+            <ConfigBoxCheckbox
+              title={strings.useCustomTitleBar}
+              description={strings.useCustomTitleBarDesc}
+              checked={preferences.useCustomTitlebar}
+              onToggle={onSetPreferenceFactory('useCustomTitlebar')}/>
+            {/* Theme */}
+            <ConfigBoxSelectInput
+              title={strings.theme}
+              description={strings.themeDesc}
+              text={getThemeName(preferences.currentTheme || '') || ''}
+              placeholder={strings.noTheme}
+              editable={true}
+              items={[ ...themeList.map(formatThemeItemName), 'No Theme' ]}
+              onChange={onCurrentThemeChange}
+              onItemSelect={onCurrentThemeItemSelect}/>
+            {/* Logo Set */}
+            <ConfigBoxSelectInput
+              title={strings.logoSet}
+              description={strings.logoSetDesc}
+              text={getLogoSetName(preferences.currentLogoSet || '') || ''}
+              placeholder={strings.noLogoSet}
+              editable={true}
+              items={[ ...logoSets.map(formatLogoSetName), 'No Logo Set' ]}
+              onChange={onSetPreferenceFactory('currentLogoSet')}
+              onItemSelect={onCurrentLogoSetSelect}
+              bottomChildren={getLogoSetPreviews()}/>
+          </div>
+        </div>
 
+        {/* -- Advanced -- */}
+        <div className='setting'>
+          <p className='setting__title'>{strings.advancedHeader}</p>
+          <div className='setting__body'>
+            {/* Auto-Clear WinINet Cache */}
+            {/* {process.platform === 'win32' && (
+              <ConfigBoxCheckbox
+                title={strings.autoClearWininetCache}
+                description={strings.autoClearWininetCacheDesc}
+                value={allStrings.curate.run}
+                onToggle={this.onChangeAutoClearWininetCache}/>
+            )} */}
+            {/* Clear WinINet Cache */}
+            {/* {process.platform === 'win32' && (
+              <ConfigBoxButton
+                title={strings.clearWininetCache}
+                description={strings.clearWininetCacheDesc}
+                value={allStrings.curate.run}
+                onClick={this.onClearWininetCache}/>
+            )} */}
+            {/* Optimize Database */}
+            <ConfigBoxButton
+              title={strings.optimizeDatabase}
+              description={strings.optimizeDatabaseDesc}
+              value={allStrings.curate.run}
+              onClick={onOptimizeDatabase}/>
+            {/* Register As Protocol Handler */}
+            { window.electronAPI !== undefined && (
+              <ConfigBoxCheckbox
+                title={strings.registerProtocol}
+                description={strings.registerProtocolDesc}
+                checked={preferences.registerProtocol}
+                onToggle={onRegisterProtocol} />
+            )}
+            {/* Server */}
+            <ConfigBoxSelect
+              title={strings.server}
+              description={strings.serverDesc}
+              value={preferences.server}
+              onChange={onSetPreferenceEventFactory('server')}
+              items={serverOptions} />
+            {preferences.enableEditing && (
+              <ConfigBoxSelect
+                title={strings.curateServer}
+                description={strings.curateServerDesc}
+                value={preferences.curateServer}
+                onChange={onSetPreferenceEventFactory('curateServer')}
+                items={serverOptions} />
+            )}
+            {/* Fallback Language */}
+            <ConfigBoxSelect
+              title={strings.fallbackLanguage}
+              description={strings.fallbackLanguageDesc}
+              value={preferences.fallbackLanguage || ''}
+              onChange={onSetPreferenceEventFactory('fallbackLanguage')}
+              items={langOptions} />
+          </div>
+        </div>
+
+        {/* -- Advanced -- */}
+
+        {extensionConfigBoxes}
+
+        <div className='setting extensions'>
+          <p className='setting__title'>{strings.extensionsHeader}</p>
+          { extensions.length > 0 ? (
+            <div className='setting__body'>
+              {extensionRows}
+            </div>
+          ) : <div>{formatString(strings.noExtensionsLoaded, preferences.extensionsPath)}</div>}
+        </div>
+
+        {/* -- Save & Restart -- */}
+        <div className='setting'>
+          <div className='setting__row'>
+            <input
+              type='button'
+              value={strings.saveAndRestart}
+              className='simple-button save-and-restart'
+              onClick={onSaveAndRestartClick} />
+          </div>
+        </div>
+      </div>
+      { editingTagFilterGroup !== undefined && editingTagFilterGroupIdx !== undefined && (
+        <FloatingContainer>
+          <TagFilterGroupEditor
+            tagFilterGroup={editingTagFilterGroup}
+            onAddTag={(tag) => onAddTagEditorTagEvent(tag)}
+            onRemoveTag={(tag) => onRemoveTagEditorTagEvent(tag)}
+            onChangeName={onEditTagFilterGroup('name')}
+            onChangeDescription={onEditTagFilterGroup('description')}
+            onChangeIconBase64={onEditTagFilterGroup('iconBase64')}
+            onToggleExtreme={onEditTagFilterGroup('extreme')}
+            closeEditor={() => {
+              setEditingTagFilterGroup(undefined);
+              setEditingTagFilterGroupIdx(undefined);
+            }}
+            showExtreme={preferences.browsePageShowExtreme}
+            tagCategories={tagCategories}
+            activeTagFilterGroups={preferences.tagFilters.filter((tfg, index) => (tfg.enabled || (tfg.extreme && !preferences.browsePageShowExtreme)) && index != editingTagFilterGroupIdx)} />
+        </FloatingContainer>
+      )}
+    </div>
+  );
 }
 
 function setExtConfigValue(key: string, value: any): void {

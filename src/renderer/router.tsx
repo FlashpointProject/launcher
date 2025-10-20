@@ -11,7 +11,7 @@ import { GameLaunchOverride, Playlist, ViewGame } from 'flashpoint-launcher';
 import { Route, Routes } from 'react-router-dom';
 import { AboutPage, AboutPageProps } from './components/pages/AboutPage';
 import { BrowsePage, BrowsePageProps } from './components/pages/BrowsePage';
-import { CuratePage, CuratePageProps } from './components/pages/CuratePage';
+import { CuratePage } from './components/pages/CuratePage';
 import { DownloadsPage } from './components/pages/Downloads';
 import { DynamicPage, DynamicPageProps } from './components/pages/DynamicPage';
 import { HomePage, HomePageProps } from './components/pages/HomePage';
@@ -78,12 +78,10 @@ export function AppRouter(props: AppRouterProps) {
   const homeProps: HomePageProps = {
     gotdList: props.gotdList,
     platforms: props.platforms,
-    playlists: props.allPlaylists,
     onGameContextMenu: props.onGameContextMenu,
     onLaunchGame: props.onLaunchGame,
     randomGames: props.randomGames,
     rollRandomGames: props.rollRandomGames,
-    logoVersion: props.logoVersion,
     updateFeedMarkdown: props.updateFeedMarkdown,
     selectedGameId: props.selectedGameId,
   };

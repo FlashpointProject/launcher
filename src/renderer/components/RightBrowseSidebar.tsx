@@ -1,31 +1,34 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable react-hooks/set-state-in-effect */
 import { getPointer } from '@renderer/context/MenuContext';
 import { useView } from '@renderer/hooks/search';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useConfirmDialog } from '@renderer/hooks/useConfirmDialog';
 import { useContextMenu } from '@renderer/hooks/useContextMenu';
-import { forceSearch, setSearchText } from '@renderer/store/search/slice';
+import { removePlaylistGame, setMainState } from '@renderer/store/main/slice';
+import { forceSearch, selectGame, selectPlaylist, setEditing, setSearchText, updateEditGame, updateGame } from '@renderer/store/search/slice';
 import { LangContext } from '@renderer/util/lang';
 import { ArchiveState, BackIn } from '@shared/back/types';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { PickType, ProcessAction } from '@shared/interfaces';
+import { Paths } from '@shared/Paths';
 import { sizeToString } from '@shared/Util';
+import { isGame } from '@shared/utils/misc';
 import { formatString } from '@shared/utils/StringFormatter';
-import { Game, GameData, GameLaunchOverride, LangContainer, Playlist, PlaylistGame } from 'flashpoint-launcher';
+import { Game, GameData, GameLaunchOverride, LangContainer, Playlist, PlaylistGame, ResultsView } from 'flashpoint-launcher';
 import { GameComponentProps } from 'flashpoint-launcher-renderer';
-import { useContext, useEffect, useEffectEvent, useState } from 'react';
-import { axios, getGameImagePath, getGameImageURL, openUrlInWindow, wrapSearchTerm } from '../Util';
+import { useContext, useEffect, useEffectEvent, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { axios, getGameImagePath, getGameImageURL, launchGame, openUrlInWindow, wrapSearchTerm } from '../Util';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { DropdownInputField } from './DropdownInputField';
 import { DynamicComponent } from './DynamicComponent';
 import { GameDataBrowser } from './GameDataBrowser';
 import { GameImageSplit } from './GameImageSplit';
 import { ImagePreview } from './ImagePreview';
-import { InputField } from './InputField';
+import { InputElement, InputField } from './InputField';
 import { MenuItemType } from './Menu';
 import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
+import { selectGameField } from './GameComponents';
 
 export type RightBrowseSidebarProps = {
   /** Currently selected game (if any) */
@@ -79,23 +82,172 @@ function RemoveFromPlaylistButton({ confirm, extra }: ConfirmElementArgs<LangCon
   );
 }
 
+type RightBrowseSidebarViewProps = {
+  view: ResultsView<any>;
+}
+
+const hiddenRightSidebarPages = [Paths.ABOUT, Paths.CURATE, Paths.CONFIG, Paths.MANUAL, Paths.LOGS, Paths.TAGS, Paths.CATEGORIES, Paths.DOWNLOADS];
+
+
+export function RightBrowseSidebarView({ view }: RightBrowseSidebarViewProps) {
+  const location = useLocation();
+  const dispatch = useAppDispatch();
+  const tagFilters = useAppSelector(state => state.preferences.tagFilters);
+  const playlistEntry = useAppSelector(state => state.main.currentPlaylistEntry);
+  const selectedPlaylistId = useAppSelector(state => state.main.selectedPlaylistId);
+  const strings = useContext(LangContext);
+  const gameRunning = useAppSelector(state => {
+    if (view.selectedGame) {
+      return state.main.services.findIndex(s => s.id === `game.${view.selectedGame.id}`) > -1;
+    } else {
+      return false;
+    }
+  });
+  const extremeTags = tagFilters.filter(t => t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
+  const hiddenPage = hiddenRightSidebarPages.reduce((prev, cur) => prev || location.pathname.startsWith(cur), false);
+
+  // Hide if nothing to show
+  if (hiddenPage || !view.selectedGame) {
+    return <></>;
+  }
+
+  const onGameLaunch = async (gameId: string, override: GameLaunchOverride) => {
+    launchGame(dispatch, gameId, override);
+  };
+
+  const onDeleteSelectedGame = async () => {
+    dispatch(selectGame({
+      view: view.id,
+      game: undefined
+    }));
+    window.Shared.back.request(BackIn.DELETE_GAME, view.selectedGame.id)
+    .catch((error) => {
+      log.error('Launcher', `Error deleting game: ${error}`);
+      alert(strings.dialog.unableToDeleteGame + '\n\n' + error);
+    });
+  };
+
+  const onDeselectPlaylist = () => {
+    dispatch(selectPlaylist({
+      view: view.id,
+      playlist: undefined
+    }));
+  };
+
+  const onRemovePlaylistGame = async (playlistGame: PlaylistGame) => {
+    // Remove game from playlist
+    if (view.selectedPlaylist) {
+      await window.Shared.back.request(BackIn.DELETE_PLAYLIST_GAME, view.selectedPlaylist.id, playlistGame.gameId);
+      // Remove from playlist on frontend
+      dispatch(removePlaylistGame({
+        viewId: view.id,
+        playlistId: view.selectedPlaylist.id,
+        gameId: playlistGame.gameId
+      }));
+    } else {
+      console.error('Unable to remove game from selected playlist - No playlist is selected?');
+      return;
+    }
+
+    dispatch(setMainState({
+      isEditingGame: false
+    }));
+  };
+
+  const onEditClick = () => {
+    dispatch(setEditing({
+      view: view.id,
+      editing: true
+    }));
+  };
+
+  const onDiscardClick = () => {
+    dispatch(setEditing({
+      view: view.id,
+      editing: false
+    }));
+  };
+
+  const onSaveGame = async () => {
+    if (view.editingGame) {
+      window.Shared.back.request(BackIn.SAVE_GAME, view.editingGame)
+      .then(() => {
+        // Exit editing mode
+        if (selectedPlaylistId && playlistEntry) {
+          window.Shared.back.send(BackIn.SAVE_PLAYLIST_GAME, selectedPlaylistId, playlistEntry);
+        }
+      });
+    }
+    // Push update to all views
+    dispatch(updateGame(view.editingGame));
+    // Exit editing mode
+    dispatch(setEditing({
+      view: view.id,
+      editing: false
+    }));
+  };
+
+  // const onFpfssEditGame = (gameId: string) => {
+  //  // if (gameM)
+  // }
+
+  const onEditGame = (game: Partial<Game>) => {
+    game.id = view.editingGame?.id;
+    dispatch(updateEditGame({
+      view: view.id,
+      game
+    }));
+  };
+
+  const onUpdateActiveGameData = async (onDisk: boolean, dataId?: number) => {
+    const game = await window.Shared.back.request(BackIn.GET_GAME, view.selectedGame.id);
+    if (game) {
+      game.activeDataOnDisk = onDisk;
+      game.activeDataId = dataId;
+      if (view.selectedGame.id === game.id) {
+        dispatch(updateGame(game));
+      }
+      window.Shared.back.request(BackIn.SAVE_GAME, game);
+    }
+  };
+
+  return (
+    <RightBrowseSidebar
+      game={view.selectedGame}
+      playlist={view.selectedPlaylist}
+      isExtreme={isGame(view.selectedGame) ? view.selectedGame.tags.reduce<boolean>((prev, next) => extremeTags.includes(next) || prev, false) : false}
+      gameRunning={gameRunning}
+      library={view.id}
+      onGameLaunch={onGameLaunch}
+      onDeleteSelectedGame={onDeleteSelectedGame}
+      onDeselectPlaylist={onDeselectPlaylist}
+      onRemovePlaylistGame={onRemovePlaylistGame}
+      onEditClick={onEditClick}
+      onDiscardClick={onDiscardClick}
+      onSaveGame={onSaveGame}
+      onFpfssEditGame={function (gameId: string): void {
+        throw new Error('Function not implemented.');
+      } }
+      onEditGame={onEditGame}
+      onUpdateActiveGameData={onUpdateActiveGameData}
+    />
+  );
+}
+
 export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
   const allStrings = useContext(LangContext);
-  const editingDisabled = useAppSelector(state => !state.preferences.editingEnabled);
+  const editingDisabled = useAppSelector(state => state.preferences.editingEnabled);
   const fpfssBaseUrl = useAppSelector(state => state.preferences.fpfssBaseUrl);
   const hideScreenshotSidebar = useAppSelector(state => state.preferences.hideScreenshotSidebar);
   const hideExtremeScreenshots = useAppSelector(state => state.preferences.hideExtremeScreenshots);
-  const logoVersion = useAppSelector(state => state.preferences.logoVersion);
   const useCustomViews = useAppSelector(state => state.preferences.useCustomViews);
   const imageFolderPath = useAppSelector(state => state.preferences.imageFolderPath);
   const gameSidebarMiddle = useAppSelector(state => state.main.displaySettings.gameSidebar.middle);
   const gameSidebarBottom = useAppSelector(state => state.main.displaySettings.gameSidebar.bottom);
-  const isEditing = useAppSelector(state => state.main.isEditingGame && state.preferences.enableEditing);
   const suggestions = useAppSelector(state => state.main.suggestions);
   const busyGames = useAppSelector(state => state.main.busyGames);
-  const tagCategories = useAppSelector(state => state.tagCategories);
-  const preferences = useAppSelector(state => state.preferences);
   const currentView = useView();
+  const { isEditing } = currentView;
   const dispatch = useAppDispatch();
   const { openMenu } = useContextMenu();
   const { openConfirmDialog } = useConfirmDialog();
@@ -105,12 +257,19 @@ export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
     onDiscardClick, onFpfssEditGame, onSaveGame, onEditClick, onDeleteSelectedGame,
     onRemovePlaylistGame,
   } = props;
-
   const [activeData, setActiveData] = useState<GameData | null>(null);
   const [playlistGame, setPlaylistGame] = useState<PlaylistGame | null>(null);
   const [gameDataBrowserOpen, setGameDataBrowserOpen] = useState(false);
   const [showExtremeScreenshot, setShowExtremeScreenshot] = useState(!hideExtremeScreenshots);
   const [showPreview, setShowPreview] = useState(false);
+
+  const gameTitle = useAppSelector(selectGameField(currentView.id, 'title'));
+  const gameDeveloper = useAppSelector(selectGameField(currentView.id, 'developer'));
+  const gameLibrary = useAppSelector(selectGameField(currentView.id, 'library'));
+
+  const lastGameId = useRef(game?.id);
+  const lastGameActiveDataId = useRef(game?.activeDataId);
+  const lastPlaylistId = useRef(playlist?.id);
 
   // useEffectEvent makes sure the props are always up to date once the response arrives
   const setActiveDataResponse = useEffectEvent((gameId: string, newActiveData: GameData | null) => {
@@ -127,39 +286,109 @@ export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
     setPlaylistGame(newPlaylistGame);
   });
 
-  // Update the playlist game and active data when the game id or playlist id changes
   useEffect(() => {
-    if (game && game.activeDataId !== undefined) {
-      window.Shared.back.request(BackIn.GET_GAME_DATA, game.activeDataId)
-      .then((data) => {
-        setActiveDataResponse(game.id, data);
-      });
-    } else {
-      setActiveData(null);
+    let playlistChanged = false;
+    let gameChanged = false;
+    let gameActiveDataIdChanged = false;
+
+    if (playlist?.id !== lastPlaylistId.current) {
+      playlistChanged = true;
+      lastPlaylistId.current = playlist?.id;
     }
 
-    if (game && playlist) {
-      window.Shared.back.request(BackIn.GET_PLAYLIST_GAME, playlist.id, game.id)
-      .then((pg) => {
-        if (pg) {
-          setPlaylistGameResponse(game.id, playlist.id, pg);
-        }
-      });
-    } else {
-      setPlaylistGame(null);
+    if (game?.id !== lastGameId.current) {
+      gameChanged = true;
+      lastGameId.current = game?.id;
     }
-  }, [game?.id, game?.activeDataId, playlist?.id]);
 
-  useEffect(() => {
-    setShowExtremeScreenshot(!hideExtremeScreenshots);
-  }, [game?.id]);
+    if (game?.activeDataId !== lastGameActiveDataId.current) {
+      gameActiveDataIdChanged = true;
+      lastGameActiveDataId.current = game?.activeDataId;
+    }
 
-  const wrapOnTextChange = (func: (game: Game, text: string) => void) => {
-    return (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      if (game) {
-        func(game, event.currentTarget.value);
+    if (playlistChanged || gameChanged) {
+      // Game or playlist changed, update playlist game
+      // TODO: Move this to view probably
+      if (game && playlist) {
+        window.Shared.back.request(BackIn.GET_PLAYLIST_GAME, playlist.id, game.id)
+        .then((pg) => {
+          if (pg) {
+            setPlaylistGameResponse(game.id, playlist.id, pg);
+          }
+        });
+      } else {
+        (async () => {
+          setPlaylistGame(null);
+        })();
       }
-    };
+    }
+
+    if (gameChanged) {
+      // Game changed, hide any new extreme screenshots
+      (async () => {
+        setShowExtremeScreenshot(!hideExtremeScreenshots);
+      })();
+    }
+
+    if (gameActiveDataIdChanged) {
+      // Data id changed, reload active data
+      if (game && game.activeDataId !== undefined) {
+        window.Shared.back.request(BackIn.GET_GAME_DATA, game.activeDataId)
+        .then((data) => {
+          setActiveDataResponse(game.id, data);
+        });
+      } else {
+        (async () => {
+          setActiveData(null);
+        })();
+      }
+    }
+  });
+
+  const onSearch = (text: string) => {
+    dispatch(setSearchText({
+      view: currentView.id,
+      text
+    }));
+    dispatch(forceSearch({
+      view: currentView.id,
+      useCustomViews,
+    }));
+  };
+
+  const gameComponentProps: GameComponentProps = {
+    viewId: currentView.id,
+    gameId: game ? game.id : '',
+    editable: isEditing,
+    playlistGame,
+    suggestions: suggestions,
+    fpfssEditMode: fpfssEditMode || false,
+    doSearch: onSearch,
+    launchGame: (gameId) => {
+      onGameLaunch(gameId, null);
+    },
+    launchAddApp: (addAppId) => window.Shared.back.send(BackIn.LAUNCH_ADDAPP, addAppId, null),
+    updateGame: onEditGame,
+    updatePlaylistNotes: (notes) => {
+      if (playlistGame) {
+        setPlaylistGame({
+          ...playlistGame,
+          notes
+        });
+      }
+    },
+    updateGameExtData: (extId, key, value) => {
+      // const extData = game?.extData ? game.extData : {};
+      // onEditGame({
+      //   extData: {
+      //     ...extData,
+      //     [extId]: {
+      //       ...(extData[extId] ? extData[extId] : {}),
+      //       [key]: value
+      //     }
+      //   }
+      // });
+    }
   };
 
   const wrapOnTextClick = <T extends PickType<Game, string>>(field: T, exact?: boolean) =>{
@@ -182,23 +411,18 @@ export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
     };
   };
 
+  const onEditFactory = <K extends keyof Game>(key: K) => (event: React.ChangeEvent<InputElement>) => {
+    onEditGame({
+      [key]: event.target.value
+    });
+  };
+
   // Bound "on change" callbacks for game fields
-  const onLibraryChange = wrapOnTextChange((game, text) => onEditGame({ library: text }));
-  const onTitleChange = wrapOnTextChange((game, text) => onEditGame({ title: text }));
-  const onDeveloperChange = wrapOnTextChange((game, text) => onEditGame({ developer: text }));
+  const onLibraryChange = onEditFactory('library');
+  const onTitleChange = onEditFactory('title');
+  const onDeveloperChange = onEditFactory('developer');
   // Bound "on click" callbacks for game fields
   const onDeveloperClick = wrapOnTextClick('developer');
-
-  const onSearch = (text: string) => {
-    dispatch(setSearchText({
-      view: currentView.id,
-      text
-    }));
-    dispatch(forceSearch({
-      view: currentView.id,
-      useCustomViews,
-    }));
-  };
 
   if (game == undefined) {
     return (
@@ -264,44 +488,6 @@ export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
       }
     });
   }
-
-  const gameComponentProps: GameComponentProps = {
-    lang: allStrings,
-    logoVersion: logoVersion,
-    preferences: preferences,
-    tagCategories: tagCategories,
-    editable: !editingDisabled,
-    game,
-    playlistGame,
-    suggestions: suggestions,
-    fpfssEditMode: fpfssEditMode || false,
-    doSearch: onSearch,
-    launchGame: (gameId) => {
-      onGameLaunch(gameId, null);
-    },
-    launchAddApp: (addAppId) => window.Shared.back.send(BackIn.LAUNCH_ADDAPP, addAppId, null),
-    updateGame: onEditGame,
-    updatePlaylistNotes: (notes) => {
-      if (playlistGame) {
-        setPlaylistGame({
-          ...playlistGame,
-          notes
-        });
-      }
-    },
-    updateGameExtData: (extId, key, value) => {
-      const extData = game.extData ? game.extData : {};
-      onEditGame({
-        extData: {
-          ...extData,
-          [extId]: {
-            ...(extData[extId] ? extData[extId] : {}),
-            [key]: value
-          }
-        }
-      });
-    }
-  };
 
   const onScreenshotContextMenu = (event: React.MouseEvent) => {
     if (window.electronAPI !== undefined) {
@@ -416,7 +602,7 @@ export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
             <div className='browse-right-sidebar__title-row'>
               <div className='browse-right-sidebar__title-row__title'>
                 <InputField
-                  text={game.title}
+                  text={gameTitle}
                   placeholder={strings.noTitle}
                   editable={isEditing}
                   onChange={onTitleChange} />
@@ -485,7 +671,7 @@ export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
           <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
             <p>{strings.by} </p>
             <InputField
-              text={game.developer}
+              text={gameDeveloper}
               placeholder={strings.noDeveloper}
               className='browse-right-sidebar__searchable'
               editable={isEditing}
@@ -514,21 +700,25 @@ export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
         {/*   </div> */}
         {/* )} */}
         {/** Mini download info */}
-        <div className='browse-right-sidebar__mini-download-info'>
-          <div className='browse-right-sidebar__mini-download-info__state'>
-            {fpfssEditMode ? strings.fpfssGame :
-              game.archiveState === 0 ? strings.notArchived :
-                game.archiveState === 1 ? strings.archived :
-                  activeData ? (anyActiveDataDownloaded ? strings.installed : strings.notInstalled) : strings.legacyGame}
-          </div>
-          {game.archiveState === 2 && activeData && (
-            <div className='browse-right-sidebar__mini-download-info__size'>
-              {`${sizeToString(activeData.size)}`}
+        {isEditing ? <div className='browse-right-sidebar__mini-download-info__size'></div> : (
+          <div className='browse-right-sidebar__mini-download-info'>
+            <div className='browse-right-sidebar__mini-download-info__state'>
+              {
+                fpfssEditMode ? strings.fpfssGame :
+                  game.archiveState === 0 ? strings.notArchived :
+                    game.archiveState === 1 ? strings.archived :
+                      activeData ? (anyActiveDataDownloaded ? strings.installed : strings.notInstalled) : strings.legacyGame
+              }
             </div>
-          )}
-        </div>
+            {game.archiveState === 2 && activeData && (
+              <div className='browse-right-sidebar__mini-download-info__size'>
+                {`${sizeToString(activeData.size)}`}
+              </div>
+            )}
+          </div>
+        )}
         {/* -- Play Button -- */}
-        {fpfssEditMode ? undefined :
+        {isEditing ? undefined :
           busyGames.includes(game.id) ? (
             <div className='browse-right-sidebar__play-button--busy'>
               {strings.busy}
@@ -596,7 +786,7 @@ export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
             )
         }
         {/** Gameplay Statistics */}
-        {(fpfssEditMode || game.archiveState !== ArchiveState.Available) ? undefined : (
+        {(isEditing || game.archiveState !== ArchiveState.Available) ? undefined : (
           <div className='browse-right-sidebar__stats'>
             <div className='browse-right-sidebar__stats-box'>
               <div className='browse-right-sidebar__stats-row-top'>
@@ -635,7 +825,7 @@ export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
                 <p>{strings.library}: </p>
                 {/** TODO: Localize library options, make visible once library searching has merged */}
                 <DropdownInputField
-                  text={game.library}
+                  text={gameLibrary}
                   placeholder={strings.noLibrary}
                   onChange={onLibraryChange}
                   className='browse-right-sidebar__searchable'
@@ -646,6 +836,7 @@ export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
             )}
             {gameSidebarMiddle.map(key =>
               <DynamicComponent
+                key={key}
                 name={key}
                 props={gameComponentProps} />
             )}
@@ -653,6 +844,7 @@ export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
         </>
         {gameSidebarBottom.map(key =>
           <DynamicComponent
+            key={key}
             name={key}
             props={gameComponentProps} />
         )}
@@ -730,7 +922,7 @@ export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
 
         </div>
       )}
-      {!fpfssEditMode && (
+      {!isEditing && (
         <div className='browse-right-sidebar__super-bottom'>
           <SimpleButton
             value={strings.openGameDataBrowser}

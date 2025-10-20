@@ -9,7 +9,7 @@ import { setTheme } from '@shared/Theme';
 import { createErrorProxy } from '@shared/Util';
 import EventEmitter from 'node:events';
 import * as path from 'node:path';
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useState } from 'react';
 
 type AppLoaderProps = {
   children: ReactNode,
@@ -113,56 +113,54 @@ function registerHandlers(): void {
   });
 }
 
+window.Shared = {
+  initialPreferences: createErrorProxy('initialPreferences'),
+
+  config: createErrorProxy('config'),
+
+  log: {
+    entries: [],
+    offset: 0,
+  },
+
+  isDev: true, // TODO: fix
+
+  isBackRemote: createErrorProxy('isBackRemote'),
+
+  back: new SocketClient(WebSocket, () => {
+    // Ask to send output to renderer if backend crashes
+    if (window.electronAPI !== undefined) {
+      window.electronAPI.enableMainOutput();
+    }
+  }),
+
+  fileServerPort: -1,
+
+  backUrl: createErrorProxy('backUrl'),
+
+  customVersion: undefined,
+
+  initialLogEntries: createErrorProxy('initialLogEntries'),
+  initialLang: createErrorProxy('initialLang'),
+  initialLangList: createErrorProxy('initialLangList'),
+  initialThemes: createErrorProxy('initialThemes'),
+  initialLocaleCode: createErrorProxy('initialLocaleCode'),
+
+  dialogResEvent: new EventEmitter(),
+};
+
 export function AppLoader(props: AppLoaderProps) {
+  const [loaderInit, setLoaderInit] = useState(false);
   const [isInitDone, setIsInitDone] = useState(false);
 
-  useEffect(() => {
-    // Set up window Shared struct
-
-    window.Shared = {
-      initialPreferences: createErrorProxy('initialPreferences'),
-
-      config: createErrorProxy('config'),
-
-      log: {
-        entries: [],
-        offset: 0,
-      },
-
-      isDev: true, // TODO: fix
-
-      isBackRemote: createErrorProxy('isBackRemote'),
-
-      back: new SocketClient(WebSocket, () => {
-        // Ask to send output to renderer if backend crashes
-        if (window.electronAPI !== undefined) {
-          window.electronAPI.enableMainOutput();
-        }
-      }),
-
-      fileServerPort: -1,
-
-      backUrl: createErrorProxy('backUrl'),
-
-      customVersion: undefined,
-
-      initialLogEntries: createErrorProxy('initialLogEntries'),
-      initialLang: createErrorProxy('initialLang'),
-      initialLangList: createErrorProxy('initialLangList'),
-      initialThemes: createErrorProxy('initialThemes'),
-      initialLocaleCode: createErrorProxy('initialLocaleCode'),
-
-      dialogResEvent: new EventEmitter(),
-    };
-
+  if (!loaderInit) {
+    setLoaderInit(true);
     // Run initialization script
     onInit(props.data)
     .then(() => {
       setIsInitDone(true);
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
+  }
 
   if (!isInitDone) {
     return (<div></div>);

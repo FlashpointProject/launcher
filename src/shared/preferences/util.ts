@@ -145,6 +145,7 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
     logs: 0.5,
     menuItem: 0.5,
   },
+  useCustomTitlebar: true,
 });
 
 /**
@@ -213,6 +214,7 @@ export function overwritePreferenceData(
   parser.prop('offlineManual',                 v => source.offlineManual                 = str(v), true);
   parser.prop('fpfssBaseUrl',                  v => source.fpfssBaseUrl                  = str(v), true);
   parser.prop('fancyAnimations',               v => source.fancyAnimations               = !!v, true);
+  parser.prop('useCustomTitlebar',             v => source.useCustomTitlebar             = !!v, true);
   parser.prop('searchLimit',                   v => source.searchLimit                   = num(v), true);
   parser.prop('server',                        v => source.server                        = str(v), true);
   parser.prop('curateServer',                  v => source.curateServer                  = str(v), true);

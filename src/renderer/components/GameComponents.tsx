@@ -1,94 +1,127 @@
 import { ModelUtils } from '@shared/game/util';
 import { deepCopy, generateTagFilterGroup } from '@shared/Util';
-import { AdditionalApp, Platform, Tag, TagSuggestion } from 'flashpoint-launcher';
+import { AdditionalApp, Game, Platform, Tag, TagSuggestion } from 'flashpoint-launcher';
 import { GameComponentProps } from 'flashpoint-launcher-renderer';
 import { GameComponentInputField } from './DisplayComponent';
 import { DropdownInputField, DropdownInputFieldMapped } from './DropdownInputField';
 import { RightBrowseSidebarAddApp } from './RightBrowseSidebarAddApp';
 import { OpenIcon } from './OpenIcon';
-import { mapRuffleSupportString } from '@shared/utils/misc';
+import { isGame, mapRuffleSupportString } from '@shared/utils/misc';
 import { TagInputField } from './TagInputField';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { InputElement } from './InputField';
 import { BackIn } from '@shared/back/types';
 import { getPlatformIconURL } from '@renderer/Util';
 import { uuid } from '@shared/utils/uuid';
+import { LangContext } from '@renderer/util/lang';
+import { RootState } from '@renderer/store/store';
+import { createSelector } from '@reduxjs/toolkit';
+
+export const selectGameField = <K extends keyof Game>(viewId: string, key: K) => createSelector(
+  [
+    (state: RootState) => state.search.views[viewId].isEditing,
+    (state: RootState) => isGame(state.search.views[viewId].selectedGame) ? state.search.views[viewId].selectedGame[key] : undefined,
+    (state: RootState) => isGame(state.search.views[viewId].editingGame) ? state.search.views[viewId].editingGame[key] : undefined
+  ],
+  (isEditing, selectedGameValue, editingGameValue) => (isEditing ? editingGameValue : selectedGameValue) as Game[K]
+);
 
 export function GameComponentAlternateTitles(props: GameComponentProps) {
-  const { lang, game, updateGame } = props;
+  const { viewId, updateGame } = props;
+  const alternateTitles = window.ext.hooks.useAppSelector(selectGameField(viewId, 'alternateTitles'));
+  const lang = useContext(LangContext);
+
   return <GameComponentInputField
     header={lang.browse.alternateTitles}
-    text={game.alternateTitles}
+    text={alternateTitles}
     placeholder={lang.browse.noAlternateTitles}
     onChange={(value) => updateGame({ alternateTitles: value })}
     {...props} />;
 }
 
 export function GameComponentSeries(props: GameComponentProps) {
-  const { editable, lang, game, updateGame, doSearch } = props;
+  const { viewId, editable, updateGame, doSearch } = props;
+  const series = window.ext.hooks.useAppSelector(selectGameField(viewId, 'series'));
+  const lang = useContext(LangContext);
+
   return <GameComponentInputField
     header={lang.browse.series}
-    text={game.series}
+    text={series}
     placeholder={lang.browse.noSeries}
-    onClick={() => { if (!editable) { doSearch(`series=${game.series}`); }}}
+    onClick={() => { if (!editable) { doSearch(`series=${series}`); }}}
     onChange={(value) => updateGame({ series: value })}
     {...props} />;
 }
 
 export function GameComponentPublisher(props: GameComponentProps) {
-  const { editable, lang, game, updateGame, doSearch } = props;
+  const { viewId, editable, updateGame, doSearch } = props;
+  const publisher = window.ext.hooks.useAppSelector(selectGameField(viewId, 'publisher'));
+  const lang = useContext(LangContext);
+
   return <GameComponentInputField
     header={lang.browse.publisher}
-    text={game.publisher}
+    text={publisher}
     placeholder={lang.browse.noPublisher}
-    onClick={() => { if (!editable) { doSearch(`publisher=${game.publisher}`); }}}
+    onClick={() => { if (!editable) { doSearch(`publisher=${publisher}`); }}}
     onChange={(value) => updateGame({ publisher: value })}
     {...props} />;
 }
 
 export function GameComponentSource(props: GameComponentProps) {
-  const { lang, game, updateGame } = props;
+  const { viewId, updateGame } = props;
+  const source = window.ext.hooks.useAppSelector(selectGameField(viewId, 'source'));
+  const lang = useContext(LangContext);
+
   return <GameComponentInputField
     header={lang.browse.source}
-    text={game.source}
+    text={source}
     placeholder={lang.browse.noSource}
     onChange={(value) => updateGame({ source: value })}
     {...props} />;
 }
 
 export function GameComponentVersion(props: GameComponentProps) {
-  const { lang, game, updateGame } = props;
+  const { viewId, updateGame } = props;
+  const version = window.ext.hooks.useAppSelector(selectGameField(viewId, 'version'));
+  const lang = useContext(LangContext);
+
   return <GameComponentInputField
     header={lang.browse.version}
-    text={game.version}
+    text={version}
     placeholder={lang.browse.noVersion}
     onChange={(value) => updateGame({ version: value })}
     {...props} />;
 }
 
 export function GameComponentLanguage(props: GameComponentProps) {
-  const { editable, lang, game, updateGame, doSearch } = props;
+  const { viewId, editable, updateGame, doSearch } = props;
+  const language = window.ext.hooks.useAppSelector(selectGameField(viewId, 'language'));
+  const lang = useContext(LangContext);
+
   return <GameComponentInputField
     header={lang.browse.language}
-    text={game.language}
+    text={language}
     placeholder={lang.browse.noLanguage}
-    onClick={() => { if (!editable) { doSearch(`language=${game.publisher}`); }}}
+    onClick={() => { if (!editable) { doSearch(`language=${language}`); }}}
     onChange={(value) => updateGame({ language: value })}
     {...props} />;
 }
 
 export function GameComponentPlayMode(props: GameComponentProps) {
-  const { editable, suggestions, lang, game, updateGame, doSearch } = props;
+  const { viewId, editable, suggestions, updateGame, doSearch } = props;
+  const playMode = window.ext.hooks.useAppSelector(selectGameField(viewId, 'playMode'));
+  const lang = useContext(LangContext);
+
   return (
     <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
       <p>{lang.browse.playMode}: </p>
       <DropdownInputField
-        text={game.playMode}
+        text={playMode}
         placeholder={lang.browse.noPlayMode}
         onChange={(event) => updateGame({ playMode: event.currentTarget.value })}
         className='browse-right-sidebar__searchable'
         editable={editable}
-        onClick={() => { if (!editable) { doSearch(`playMode=${game.playMode}`); }}}
+        onClick={() => { if (!editable) { doSearch(`playMode=${playMode}`); }}}
         items={suggestions && filterSuggestions(suggestions.playMode) || []}
         onItemSelect={text => updateGame({ playMode: text })} />
     </div>
@@ -96,17 +129,20 @@ export function GameComponentPlayMode(props: GameComponentProps) {
 }
 
 export function GameComponentStatus(props: GameComponentProps) {
-  const { editable, suggestions, lang, game, updateGame, doSearch } = props;
+  const { viewId, editable, suggestions, updateGame, doSearch } = props;
+  const status = window.ext.hooks.useAppSelector(selectGameField(viewId, 'playMode'));
+  const lang = useContext(LangContext);
+
   return (
     <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
       <p>{lang.browse.status}: </p>
       <DropdownInputField
-        text={game.status}
+        text={status}
         placeholder={lang.browse.noStatus}
         onChange={(event) => updateGame({ status: event.currentTarget.value })}
         className='browse-right-sidebar__searchable'
         editable={editable}
-        onClick={() => { if (!editable) { doSearch(`status=${game.status}`); }}}
+        onClick={() => { if (!editable) { doSearch(`status=${status}`); }}}
         items={suggestions && filterSuggestions(suggestions.status) || []}
         onItemSelect={text => updateGame({ status: text })} />
     </div>
@@ -123,13 +159,17 @@ function formatSidebarDate(date: string): string {
 }
 
 export function GameComponentDates(props: GameComponentProps) {
-  const { editable, lang, game, updateGame } = props;
+  const { viewId, editable, updateGame } = props;
+  const dateAdded = window.ext.hooks.useAppSelector(selectGameField(viewId, 'dateAdded'));
+  const dateModified = window.ext.hooks.useAppSelector(selectGameField(viewId, 'dateModified'));
+  const releaseDate = window.ext.hooks.useAppSelector(selectGameField(viewId, 'releaseDate'));
+  const lang = useContext(LangContext);
 
   if (editable) {
     return (
       <GameComponentInputField
         header={lang.browse.releaseDate}
-        text={game.releaseDate}
+        text={releaseDate}
         placeholder={lang.browse.noReleaseDate}
         onChange={(value) => updateGame({ releaseDate: value })}
         {...props} />
@@ -146,7 +186,7 @@ export function GameComponentDates(props: GameComponentProps) {
             </div>
             <div className='browse-right-sidebar__stats-row-bottom'>
               <div className='browse-right-sidebar__stats-cell'>
-                {formatSidebarDate(game.dateAdded)}
+                {formatSidebarDate(dateAdded)}
               </div>
             </div>
           </div>
@@ -158,7 +198,7 @@ export function GameComponentDates(props: GameComponentProps) {
             </div>
             <div className='browse-right-sidebar__stats-row-bottom'>
               <div className='browse-right-sidebar__stats-cell'>
-                {formatSidebarDate(game.dateModified)}
+                {formatSidebarDate(dateModified)}
               </div>
             </div>
           </div>
@@ -169,8 +209,8 @@ export function GameComponentDates(props: GameComponentProps) {
               </div>
             </div>
             <div className='browse-right-sidebar__stats-row-bottom'>
-              <div className={`browse-right-sidebar__stats-cell ${game.releaseDate ? '' : 'browse-right-sidebar__stats-cell-placeholder simple-disabled-text'}`}>
-                {game.releaseDate ? formatSidebarDate(game.releaseDate) : lang.browse.noneFound}
+              <div className={`browse-right-sidebar__stats-cell ${releaseDate ? '' : 'browse-right-sidebar__stats-cell-placeholder simple-disabled-text'}`}>
+                {releaseDate ? formatSidebarDate(releaseDate) : lang.browse.noneFound}
               </div>
             </div>
           </div>
@@ -181,12 +221,14 @@ export function GameComponentDates(props: GameComponentProps) {
 }
 
 export function GameComponentOriginalDescription(props: GameComponentProps) {
-  const { lang, game, updateGame } = props;
+  const { viewId, updateGame } = props;
+  const originalDescription = window.ext.hooks.useAppSelector(selectGameField(viewId, 'originalDescription'));
+  const lang = useContext(LangContext);
 
   return (
     <GameComponentInputField
       header={lang.browse.originalDescription}
-      text={game.originalDescription}
+      text={originalDescription}
       placeholder={lang.browse.noOriginalDescription}
       multiline={true}
       onChange={(value) => updateGame({ originalDescription: value })}
@@ -195,15 +237,19 @@ export function GameComponentOriginalDescription(props: GameComponentProps) {
 }
 
 export function GameComponentLegacyData(props: GameComponentProps) {
-  const { lang, game, editable, suggestions, updateGame } = props;
+  const { viewId, editable, suggestions, updateGame } = props;
+  const legacyApplicationPath = window.ext.hooks.useAppSelector(selectGameField(viewId, 'legacyApplicationPath'));
+  const legacyLaunchCommand = window.ext.hooks.useAppSelector(selectGameField(viewId, 'legacyLaunchCommand'));
+  const activeDataId = window.ext.hooks.useAppSelector(selectGameField(viewId, 'activeDataId'));
+  const lang = useContext(LangContext);
 
-  if (!game.activeDataId) {
+  if (!activeDataId) {
     return (
       <div className='browse-right-sidebar__section'>
         <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
           <p>{lang.browse.applicationPath}: </p>
           <DropdownInputField
-            text={game.legacyApplicationPath}
+            text={legacyApplicationPath}
             placeholder={lang.browse.noApplicationPath}
             onChange={(event) => updateGame({ legacyApplicationPath: event.currentTarget.value })}
             editable={editable}
@@ -212,7 +258,7 @@ export function GameComponentLegacyData(props: GameComponentProps) {
         </div>
         <GameComponentInputField
           header={lang.browse.launchCommand}
-          text={game.legacyLaunchCommand}
+          text={legacyLaunchCommand}
           placeholder={lang.browse.noLaunchCommand}
           onChange={(value) => updateGame({ legacyLaunchCommand: value })}
           {...props} />
@@ -224,31 +270,31 @@ export function GameComponentLegacyData(props: GameComponentProps) {
 }
 
 export function GameComponentAddApps(props: GameComponentProps) {
-  const { editable, game, lang, updateGame, launchAddApp } = props;
+  const { viewId, gameId, editable, updateGame, launchAddApp } = props;
+  const addApps = window.ext.hooks.useAppSelector(selectGameField(viewId, 'addApps'));
+  const lang = useContext(LangContext);
 
   const onNewAddAppClick = () => {
-    if (game) {
-      const newAddApp = ModelUtils.createAddApp(game);
-      newAddApp.id = uuid();
-      const existingAddApps = game.addApps || [];
-      updateGame({ addApps: [...existingAddApps, ...[newAddApp]] });
-    }
+    const newAddApp = ModelUtils.createAddApp(gameId);
+    newAddApp.id = uuid();
+    const existingAddApps = addApps || [];
+    updateGame({ addApps: [...existingAddApps, ...[newAddApp]] });
   };
 
   const onEditAddApp = (addApp: AdditionalApp) => {
-    if (game.addApps !== undefined) {
-      const addApps = deepCopy(game.addApps);
-      const addAppIdx = addApps.findIndex(aa => aa.id === addApp.id);
+    if (addApps !== undefined) {
+      const newAddApps = deepCopy(addApps);
+      const addAppIdx = newAddApps.findIndex(addApp => addApp.id === addApp.id);
       if (addAppIdx > -1) {
-        addApps[addAppIdx] = addApp;
-        updateGame({ addApps });
+        newAddApps[addAppIdx] = addApp;
+        updateGame({ addApps: newAddApps });
       }
     }
   };
 
   const onAddAppDelete = (addAppId: string): void => {
-    if (game.addApps !== undefined) {
-      const newAddApps = deepCopy(game.addApps);
+    if (addApps !== undefined) {
+      const newAddApps = deepCopy(addApps);
       const index = newAddApps.findIndex(addApp => addApp.id === addAppId);
       if (index === -1) { throw new Error('Cant remove additional application because it was not found.'); }
       newAddApps.splice(index, 1);
@@ -256,7 +302,7 @@ export function GameComponentAddApps(props: GameComponentProps) {
     }
   };
 
-  if (editable || (game.addApps && game.addApps.length > 0)) {
+  if (editable || (addApps && addApps.length > 0)) {
     return (
       <div className='browse-right-sidebar__section'>
         <div className='browse-right-sidebar__row browse-right-sidebar__row--additional-applications-header'>
@@ -269,7 +315,7 @@ export function GameComponentAddApps(props: GameComponentProps) {
               onClick={onNewAddAppClick} />
           ) : undefined}
         </div>
-        {game.addApps && game.addApps.map((addApp) => (
+        {addApps && addApps.map((addApp) => (
           <RightBrowseSidebarAddApp
             key={addApp.id}
             addApp={addApp}
@@ -286,7 +332,8 @@ export function GameComponentAddApps(props: GameComponentProps) {
 }
 
 export function GameComponentPlaylistNotes(props: GameComponentProps) {
-  const { playlistGame, lang, updatePlaylistNotes } = props;
+  const { playlistGame, updatePlaylistNotes } = props;
+  const lang = useContext(LangContext);
 
   if (playlistGame) {
     return (
@@ -304,12 +351,14 @@ export function GameComponentPlaylistNotes(props: GameComponentProps) {
 }
 
 export function GameComponentNotes(props: GameComponentProps) {
-  const { lang, game, updateGame } = props;
+  const { viewId, updateGame } = props;
+  const notes = window.ext.hooks.useAppSelector(selectGameField(viewId, 'notes'));
+  const lang = useContext(LangContext);
 
   return (
     <GameComponentInputField
       header={lang.browse.notes}
-      text={game.notes}
+      text={notes}
       placeholder={lang.browse.noNotes}
       multiline={true}
       onChange={(value) => updateGame({ notes: value })}
@@ -318,13 +367,15 @@ export function GameComponentNotes(props: GameComponentProps) {
 }
 
 export function GameComponentRuffleSupport(props: GameComponentProps) {
-  const { editable, lang, game, updateGame, doSearch } = props;
+  const { viewId, editable, updateGame, doSearch } = props;
+  const ruffleSupport = window.ext.hooks.useAppSelector(selectGameField(viewId, 'ruffleSupport'));
+  const lang = useContext(LangContext);
 
   return (
     <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
       <p>{lang.browse.ruffleSupport}: </p>
       <DropdownInputFieldMapped
-        text={mapRuffleSupportString(game.ruffleSupport)}
+        text={mapRuffleSupportString(ruffleSupport)}
         placeholder={'None'}
         className='browse-right-sidebar__searchable'
         editable={editable}
@@ -338,11 +389,11 @@ export function GameComponentRuffleSupport(props: GameComponentProps) {
           key: 'launcher',
           value: 'Launcher Embed'
         }]}
-        onClick={() => { if (!editable) { doSearch(`ruffle=${game.ruffleSupport}`); }}}
+        onClick={() => { if (!editable) { doSearch(`ruffle=${ruffleSupport}`); }}}
         onChange={(key) => {
           updateGame({ ruffleSupport: key });
         }} />
-      {!editable && game.ruffleSupport !== '' ? (
+      {!editable && ruffleSupport !== '' ? (
         <div className='browse-right-sidebar-floating-icon'>
           <OpenIcon icon='check' />
         </div>
@@ -352,9 +403,15 @@ export function GameComponentRuffleSupport(props: GameComponentProps) {
 }
 
 export function GameComponentTags(props: GameComponentProps) {
-  const { editable, lang, game, tagCategories, fpfssEditMode, preferences, updateGame, doSearch } = props;
+  const { viewId, editable, fpfssEditMode, updateGame, doSearch } = props;
+  const detailedTags = window.ext.hooks.useAppSelector(selectGameField(viewId, 'detailedTags'));
+  const tags = window.ext.hooks.useAppSelector(selectGameField(viewId, 'tags'));
+  const lang = useContext(LangContext);
   const [currentTagInput, setCurrentTagInput] = useState('');
   const [tagSuggestions, setTagSuggestions] = useState<TagSuggestion[]>([]);
+  const tagFilters = window.ext.hooks.useAppSelector(state => state.preferences.tagFilters);
+  const browsePageShowExtreme = window.ext.hooks.useAppSelector(state => state.preferences.browsePageShowExtreme);
+  const tagCategories = window.ext.hooks.useAppSelector(state => state.tagCategories);
 
   const onCurrentTagChange = (event: React.ChangeEvent<InputElement>) => {
     const newTag = event.currentTarget.value;
@@ -362,8 +419,7 @@ export function GameComponentTags(props: GameComponentProps) {
 
     if (newTag !== '') {
       // Delayed set
-      const existingTags = game.tags;
-      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag, preferences.tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !preferences.browsePageShowExtreme)).concat([generateTagFilterGroup(existingTags)]))
+      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag, tagFilters.filter(tfg => tfg.enabled || (tfg.extreme && !browsePageShowExtreme)).concat([generateTagFilterGroup(tags)]))
       .then(data => {
         if (data) { setTagSuggestions(data); }
       });
@@ -376,19 +432,17 @@ export function GameComponentTags(props: GameComponentProps) {
   };
 
   const onRemoveTag = (tag: Tag, index: number): void => {
-    if (game) {
-      const newDetailedTags = deepCopy(!game.detailedTags ? [] : game.detailedTags);
-      const newTags = deepCopy(game.tags);
-      const tagsIndex = newTags.findIndex(t => t.toLowerCase() === tag.name.toLowerCase());
-      if (tagsIndex > -1) {
-        newTags.splice(tagsIndex, 1);
-      }
-      const detailedTagsIndex = newDetailedTags.findIndex(t => t.name.toLowerCase() === tag.name.toLowerCase());
-      if (detailedTagsIndex > -1) {
-        newDetailedTags.splice(detailedTagsIndex, 1);
-      }
-      updateGame({ tags: newTags, detailedTags: newDetailedTags });
+    const newDetailedTags = deepCopy(!detailedTags ? [] : detailedTags);
+    const newTags = deepCopy(tags);
+    const tagsIndex = newTags.findIndex(t => t.toLowerCase() === tag.name.toLowerCase());
+    if (tagsIndex > -1) {
+      newTags.splice(tagsIndex, 1);
     }
+    const detailedTagsIndex = newDetailedTags.findIndex(t => t.name.toLowerCase() === tag.name.toLowerCase());
+    if (detailedTagsIndex > -1) {
+      newDetailedTags.splice(detailedTagsIndex, 1);
+    }
+    updateGame({ tags: newTags, detailedTags: newDetailedTags });
   };
 
   const onAddTagSuggestion = (suggestion: TagSuggestion) => {
@@ -396,11 +450,9 @@ export function GameComponentTags(props: GameComponentProps) {
     .then((tag) => {
       if (tag) {
         // Ignore dupe tags
-        if (game && !game.tags.map(t => t.toLowerCase()).includes(tag.name.toLowerCase())) {
-          if (!game.detailedTags) {
-            game.detailedTags = [];
-          }
-          updateGame({ tags: [...game.tags, tag.name], detailedTags: [...game.detailedTags, tag] });
+        if (!tags.map(t => t.toLowerCase()).includes(tag.name.toLowerCase())) {
+          const newDetailedTags = detailedTags ? detailedTags : [];
+          updateGame({ tags: [...tags, tag.name], detailedTags: [...newDetailedTags, tag] });
         }
       }
     });
@@ -414,7 +466,7 @@ export function GameComponentTags(props: GameComponentProps) {
     if (text !== '') {
       if (fpfssEditMode) {
         const newTagText = text.trim();
-        if (game && !game.tags.map(t => t.toLowerCase()).includes(newTagText.toLowerCase())) {
+        if (!tags.map(t => t.toLowerCase()).includes(newTagText.toLowerCase())) {
 
           const tag: Tag = {
             id: -1,
@@ -424,18 +476,16 @@ export function GameComponentTags(props: GameComponentProps) {
             dateModified: (new Date()).toISOString(),
             category: 'default'
           };
-          updateGame({ tags: [...game.tags, tag.name], detailedTags: [...(!game.detailedTags ? [] : game.detailedTags), tag] });
+          updateGame({ tags: [...tags, tag.name], detailedTags: [...(!detailedTags ? [] : detailedTags), tag] });
         }
       } else {
         window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, text)
         .then((tag) => {
           if (tag) {
             // Ignore dupe tags
-            if (game && !game.tags.map(t => t.toLowerCase()).includes(tag.name.toLowerCase())) {
-              if (!game.detailedTags) {
-                game.detailedTags = [];
-              }
-              updateGame({ tags: [...game.tags, tag.name], detailedTags: [...game.detailedTags, tag] });
+            if (!tags.map(t => t.toLowerCase()).includes(tag.name.toLowerCase())) {
+              const newDetailedTags = detailedTags ? detailedTags : [];
+              updateGame({ tags: [...tags, tag.name], detailedTags: [...newDetailedTags, tag] });
             }
           }
         });
@@ -456,7 +506,7 @@ export function GameComponentTags(props: GameComponentProps) {
         className='browse-right-sidebar__searchable'
         editable={editable}
         onChange={onCurrentTagChange}
-        tags={game.detailedTags || []}
+        tags={detailedTags || []}
         suggestions={tagSuggestions}
         categories={tagCategories}
         onTagSelect={(tag) => { if (!editable) { doSearch(`tag="${tag.name}"`); }}}
@@ -468,7 +518,13 @@ export function GameComponentTags(props: GameComponentProps) {
 }
 
 export function GameComponentPlatforms(props: GameComponentProps) {
-  const { editable, lang, game, tagCategories, fpfssEditMode, logoVersion, updateGame, doSearch } = props;
+  const { viewId, editable, fpfssEditMode, updateGame, doSearch } = props;
+  const platforms = window.ext.hooks.useAppSelector(selectGameField(viewId, 'platforms'));
+  const detailedPlatforms = window.ext.hooks.useAppSelector(selectGameField(viewId, 'detailedPlatforms'));
+  const primaryPlatform = window.ext.hooks.useAppSelector(selectGameField(viewId, 'primaryPlatform'));
+  const lang = useContext(LangContext);
+  const logoVersion = window.ext.hooks.useAppSelector(state => state.main.logoVersion);
+  const tagCategories = window.ext.hooks.useAppSelector(state => state.tagCategories);
 
   const [currentPlatformInput, setCurrentPlatformInput] = useState('');
   const [platformSuggestions, setPlatformSuggestions] = useState<TagSuggestion[]>([]);
@@ -510,14 +566,12 @@ export function GameComponentPlatforms(props: GameComponentProps) {
   };
 
   const onRemovePlatform = (platform: Platform, index: number) => {
-    if (game) {
-      const newDetailedPlatforms = deepCopy(!game.detailedPlatforms ? [] : game.detailedPlatforms);
-      const newPlatforms = deepCopy(game.platforms);
-      const platIndex = newPlatforms.findIndex(p => p.toLowerCase() === newDetailedPlatforms[index].name.toLowerCase());
-      newPlatforms.splice(platIndex, 1);
-      newDetailedPlatforms.splice(index, 1);
-      updateGame({ platforms: newPlatforms, detailedPlatforms: newDetailedPlatforms });
-    }
+    const newDetailedPlatforms = deepCopy(!detailedPlatforms ? [] : detailedPlatforms);
+    const newPlatforms = deepCopy(platforms);
+    const platIndex = newPlatforms.findIndex(p => p.toLowerCase() === newDetailedPlatforms[index].name.toLowerCase());
+    newPlatforms.splice(platIndex, 1);
+    newDetailedPlatforms.splice(index, 1);
+    updateGame({ platforms: newPlatforms, detailedPlatforms: newDetailedPlatforms });
   };
 
   const onAddPlatformSuggestion = (suggestion: TagSuggestion) => {
@@ -525,12 +579,10 @@ export function GameComponentPlatforms(props: GameComponentProps) {
     .then((platform) => {
       if (platform) {
         // Ignore dupe tags
-        if (game && !game.platforms.map(t => t.toLowerCase()).includes(platform.name.toLowerCase())) {
-          if (!game.detailedPlatforms) {
-            game.detailedPlatforms = [];
-          }
-          const primary = game.platforms.length === 0 ? platform.name : game.primaryPlatform;
-          updateGame({ platforms: [...game.platforms, platform.name], primaryPlatform: primary, detailedPlatforms: [...game.detailedPlatforms, platform] });
+        if (!platforms.map(t => t.toLowerCase()).includes(platform.name.toLowerCase())) {
+          const newDetailedPlatforms = detailedPlatforms ? detailedPlatforms : [];
+          const primary = platforms.length === 0 ? platform.name : primaryPlatform;
+          updateGame({ platforms: [...platforms, platform.name], primaryPlatform: primary, detailedPlatforms: [...newDetailedPlatforms, platform] });
         }
       }
     });
@@ -541,7 +593,7 @@ export function GameComponentPlatforms(props: GameComponentProps) {
   };
 
   const promotePlatform = (value: string) => {
-    if (game?.platforms.includes(value)) {
+    if (platforms.includes(value)) {
       updateGame({ primaryPlatform: value });
     }
   };
@@ -550,7 +602,7 @@ export function GameComponentPlatforms(props: GameComponentProps) {
     if (text !== '') {
       if (fpfssEditMode) {
         const newPlatformText = text.trim();
-        if (game && !game.platforms.map(t => t.toLowerCase()).includes(newPlatformText.toLowerCase())) {
+        if (!platforms.map(t => t.toLowerCase()).includes(newPlatformText.toLowerCase())) {
           const platform: Platform = {
             id: -1,
             name: newPlatformText,
@@ -558,20 +610,18 @@ export function GameComponentPlatforms(props: GameComponentProps) {
             description: '',
             dateModified: (new Date()).toISOString()
           };
-          const primary = game.platforms.length === 0 ? platform.name : game.primaryPlatform;
-          updateGame({ platforms: [...game.platforms, platform.name], primaryPlatform: primary, detailedPlatforms: [...(!game.detailedPlatforms ? [] : game.detailedPlatforms), platform] });
+          const primary = platforms.length === 0 ? platform.name : primaryPlatform;
+          updateGame({ platforms: [...platforms, platform.name], primaryPlatform: primary, detailedPlatforms: [...(!detailedPlatforms ? [] : detailedPlatforms), platform] });
         }
       } else {
         window.Shared.back.request(BackIn.GET_OR_CREATE_PLATFORM, text)
         .then((platform) => {
           if (platform) {
             // Ignore dupe platforms
-            if (game && !game.platforms.map(t => t.toLowerCase()).includes(platform.name.toLowerCase())) {
-              if (!game.detailedPlatforms) {
-                game.detailedPlatforms = [];
-              }
-              const primary = game.platforms.length === 0 ? platform.name : game.primaryPlatform;
-              updateGame({ platforms: [...game.platforms, platform.name], primaryPlatform: primary, detailedPlatforms: [...game.detailedPlatforms, platform] });
+            if (!platforms.map(t => t.toLowerCase()).includes(platform.name.toLowerCase())) {
+              const newDetailedPlatforms = detailedPlatforms ? detailedPlatforms : [];
+              const primary = platforms.length === 0 ? platform.name : primaryPlatform;
+              updateGame({ platforms: [...platforms, platform.name], primaryPlatform: primary, detailedPlatforms: [...newDetailedPlatforms, platform] });
             }
           }
         });
@@ -592,7 +642,7 @@ export function GameComponentPlatforms(props: GameComponentProps) {
             text={''}
             className='browse-right-sidebar__searchable'
             editable={false}
-            tags={game.detailedPlatforms?.filter(p => p.name == game.primaryPlatform) || []}
+            tags={detailedPlatforms?.filter(p => p.name == primaryPlatform) || []}
             suggestions={[]}
             categories={[]}
             onTagSelect={(tag) => { if (!editable) { doSearch(`platform="${tag.name}"`); }}}
@@ -608,7 +658,7 @@ export function GameComponentPlatforms(props: GameComponentProps) {
           className='browse-right-sidebar__searchable'
           editable={editable}
           onChange={onCurrentPlatformChange}
-          tags={editable ? game.detailedPlatforms || [] : game.detailedPlatforms?.filter(p => p.name !== game.primaryPlatform) || []}
+          tags={editable ? detailedPlatforms || [] : detailedPlatforms?.filter(p => p.name !== primaryPlatform) || []}
           suggestions={platformSuggestions}
           categories={tagCategories}
           onTagEditableSelect={onRemovePlatform}
@@ -616,7 +666,7 @@ export function GameComponentPlatforms(props: GameComponentProps) {
           onTagSubmit={onAddPlatformByString}
           renderIcon={renderPlatformIcon}
           renderIconSugg={renderPlatformIconSugg}
-          primaryValue={game.primaryPlatform}
+          primaryValue={primaryPlatform}
           selectPrimaryValue={promotePlatform} />
       </div>
     </>

@@ -2,12 +2,12 @@ import { LangContext } from '@renderer/util/lang';
 import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
 import { isGame } from '@shared/utils/misc';
 import { Content, Game, ViewGame } from 'flashpoint-launcher';
-import * as React from 'react';
 import { findGameDragEventDataGrid, getExtremeIconURL, getGameImageURL, getPlatformIconURL } from '../Util';
 import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
 import { HomePageBox } from './HomePageBox';
 import { SimpleButton } from './SimpleButton';
+import { useContext, useState } from 'react';
 
 type RandomGamesProps = {
   games: ViewGame[];
@@ -32,7 +32,15 @@ type RandomGamesProps = {
 
 // A small "grid" of randomly selected games.
 export function RandomGames(props: RandomGamesProps) {
-  const strings = React.useContext(LangContext);
+  const strings = useContext(LangContext);
+  const [firstLoad, setFirstLoad] = useState(false);
+
+  if (!firstLoad) {
+    setFirstLoad(true);
+    if (props.games.length === 0) {
+      props.rollRandomGames();
+    }
+  }
 
   const onGameSelect = (event: React.MouseEvent, gameId: string | undefined) => {
     props.onGameSelect(gameId);

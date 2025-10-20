@@ -20,7 +20,12 @@ export function setTheme(theme: ITheme | undefined): void {
     element.setAttribute(globalThemeAttribute, 'true');
     if (document.head) { document.head.appendChild(element); }
   }
-  if (theme) { element.setAttribute('href', `${getFileServerURL()}/Themes/${theme.id}/${theme.entryPath}`); }
+  if (theme) {
+    const url = `${getFileServerURL()}/Themes/${theme.id}/${theme.entryPath}`;
+    if (element.getAttribute('href') !== url) {
+      element.setAttribute('href', url);
+    }
+  }
   else { element.removeAttribute('href'); }
 }
 

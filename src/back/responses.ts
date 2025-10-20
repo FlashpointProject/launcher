@@ -118,6 +118,7 @@ import {
   runService
 } from './util/misc';
 import { uuid } from './util/uuid';
+import { dispose } from './util/lifecycle';
 
 /**
  * Register all request callbacks to the socket server.
@@ -2207,7 +2208,16 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.CURATE_GET_LIST, async () => {
-    return state.loadedCurations;
+    if (state.curationsReady) {
+      return state.loadedCurations;
+    } else {
+      return new Promise<CurationState[]>((resolve) => {
+        const disposable = state.apiEmitters.curations.onCurationsReady.event(() => {
+          resolve(state.loadedCurations);
+          dispose(disposable);
+        });
+      });
+    }
   });
 
   state.socketServer.register(BackIn.CURATE_DUPLICATE, async (event, folders) => {

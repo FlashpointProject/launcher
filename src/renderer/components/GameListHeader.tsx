@@ -1,44 +1,46 @@
-import { useView } from '@renderer/hooks/search';
-import { useAppDispatch } from '@renderer/hooks/useAppSelector';
+import { useViewName } from '@renderer/hooks/search';
+import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { setExtOrder, setOrderBy, setOrderReverse } from '@renderer/store/search/slice';
-import { DisplaySettings, GameListHeaderComponentProps, SortableColumnProps } from 'flashpoint-launcher-renderer';
+import { GameListHeaderComponentProps, SortableColumnProps } from 'flashpoint-launcher-renderer';
 import { DynamicComponent } from './DynamicComponent';
 import { GameOrderChangeEvent } from './GameOrder';
 import { OpenIcon } from './OpenIcon';
 
 export type GameListHeaderProps = {
   showExtremeIcon: boolean;
-  displaySettings: DisplaySettings;
 };
 
 // Header on top of the GameList. It contains the resizable columns that decide how wide each column is.
 export function GameListHeader(props: GameListHeaderProps) {
-  const currentView = useView();
-  const displaySettings = props.displaySettings;
   const dispatch = useAppDispatch();
-
-  const totalWeight = displaySettings.gameList.columns.reduce((prev, cur) => cur.type === 'normal' ? prev + cur.weight : prev, 0);
+  const viewName = useViewName();
+  const insidePlaylist = useAppSelector(state => state.search.views[viewName].selectedPlaylist !== undefined);
+  const extOrder = useAppSelector(state => state.search.views[viewName].extOrder);
+  const orderBy = useAppSelector(state => state.search.views[viewName].orderBy);
+  const orderReverse = useAppSelector(state => state.search.views[viewName].orderReverse);
+  const gameListDisplaySettings = useAppSelector(state => state.main.displaySettings.gameList);
+  const totalWeight = gameListDisplaySettings.columns.reduce((prev, cur) => cur.type === 'normal' ? prev + cur.weight : prev, 0);
 
   const onChangeOrder = (event: GameOrderChangeEvent) => {
     dispatch(setOrderBy({
-      view: currentView.id,
+      view: viewName,
       value: event.orderBy
     }));
     dispatch(setOrderReverse({
-      view: currentView.id,
+      view: viewName,
       value: event.orderReverse
     }));
     dispatch(setExtOrder({
-      view: currentView.id,
+      view: viewName,
       value: event.extOrder
     }));
   };
 
   const gameListHeaderProps: GameListHeaderComponentProps = {
-    insidePlaylist: currentView.selectedPlaylist !== undefined,
-    orderBy: currentView.orderBy,
-    orderReverse: currentView.orderReverse,
-    extOrder: currentView.extOrder,
+    insidePlaylist,
+    orderBy,
+    orderReverse,
+    extOrder,
     onChangeOrder,
   };
 
@@ -47,13 +49,13 @@ export function GameListHeader(props: GameListHeaderProps) {
       { props.showExtremeIcon ? (
         <Column modifier='icon' hideDivider={true} />
       ) : undefined}
-      { displaySettings.gameList.columns.filter(c => c.type === 'icon').map(col => {
+      { gameListDisplaySettings.columns.filter(c => c.type === 'icon').map(col => {
         return <DynamicComponent props={gameListHeaderProps} name={col.headerComponent} />;
       })}
       <div className='game-list-header__right'>
-        { displaySettings.gameList.columns.filter(c => c.type === 'normal').map(col => {
+        { gameListDisplaySettings.columns.filter(c => c.type === 'normal').map((col, idx) => {
           return <div style={{ width: `${(col.weight / totalWeight) * 100}%` }}>
-            <DynamicComponent props={gameListHeaderProps} name={col.headerComponent} />
+            <DynamicComponent key={idx} props={gameListHeaderProps} name={col.headerComponent} />
           </div>;
         })}
       </div>

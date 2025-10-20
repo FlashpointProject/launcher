@@ -6,13 +6,13 @@ import { BackIn, BackInit, ComponentStatus, GameOfTheDay } from '@shared/back/ty
 import { AppExtConfigData } from '@shared/config/interfaces';
 import { PlatformAppPathSuggestions } from '@shared/curate/types';
 import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
-import { GamePropSuggestions, IService } from '@shared/interfaces';
+import { GamePropSuggestions, IService, ProcessState } from '@shared/interfaces';
 import { createLangContainer, LangFile } from '@shared/lang';
 import { ITheme } from '@shared/ThemeFile';
-import { deepCopy } from '@shared/Util';
+import { deepCopy, recursiveReplace } from '@shared/Util';
 import * as axiosImport from 'axios';
 import { UpdateInfo } from 'electron-updater';
-import { DialogField, DialogState, Game, GameData, LangContainer, Playlist, PlaylistGame, ViewGame } from 'flashpoint-launcher';
+import { DialogFieldProps, DialogState, Game, GameData, LangContainer, Playlist, PlaylistGame, ViewGame } from 'flashpoint-launcher';
 import { DisplaySettings, ExtOrderable } from 'flashpoint-launcher-renderer';
 
 export const RANDOM_GAME_ROW_COUNT = 6;
@@ -38,7 +38,7 @@ export type RemovePlaylistGameAction = {
 
 export type UpdateDialogFieldActionData = {
   id: string;
-  field: Partial<DialogField>;
+  field: Partial<DialogFieldProps>;
 }
 
 export type ResolveDialogActionData = {
@@ -115,7 +115,6 @@ export type MainState = {
   downloadOpen: boolean;
   cancelToken?: axiosImport.CancelToken;
   downloadVerifying: boolean;
-  taskBarOpen: boolean;
   selectedGameId?: string;
   selectedPlaylistId?: string;
   currentGame?: Game;
@@ -267,7 +266,6 @@ const initialState: MainState = {
   downloadSize: 0,
   downloadVerifying: false,
   socketOpen: true,
-  taskBarOpen: false,
   isEditingGame: false,
   updateFeedMarkdown: '',
   metadataUpdate: {},
@@ -402,13 +400,39 @@ const mainSlice = createSlice({
           dialog.fields[fieldIdx] = {
             ...dialog.fields[fieldIdx],
             ...payload.field
-          } as DialogField; // Stupid type fix
+          } as DialogFieldProps; // Stupid type fix
         }
       }
     },
-
     openDynamicPage(state: MainState, { payload }: PayloadAction<DynamicPageProps>) {
       state.dynamicPage = payload;
+    },
+    changeService(state: MainState, { payload }: PayloadAction<IService>) {
+      const service = state.services.find(s => s.id === payload.id);
+      // Replace or insert new service
+      if (service) {
+        recursiveReplace(service, payload);
+      } else {
+        state.services.push(recursiveReplace({
+          id: 'invalid',
+          name: 'Invalid',
+          state: ProcessState.STOPPED,
+          pid: -1,
+          startTime: 0,
+          info: {
+            path: '',
+            filename: '',
+            arguments: [],
+            kill: false,
+          },
+        }, payload));
+      }
+    },
+    removeService(state: MainState, { payload }: PayloadAction<string>) {
+      const serviceIdx = state.services.findIndex(s => s.id === payload);
+      if (serviceIdx > -1) {
+        state.services.splice(serviceIdx, 1);
+      }
     },
     setDisplaySettingsFromCallback(state: MainState, { payload }: PayloadAction<DisplaySettingsCallback>) {
       try {
@@ -431,6 +455,12 @@ const mainSlice = createSlice({
         ready: true,
         total: payload.total,
       };
+    },
+    updatePlaylist(state: MainState, { payload }: PayloadAction<Playlist>) {
+      const playlistIdx = state.playlists.findIndex(p => p.id === payload.id);
+      if (playlistIdx > -1) {
+        state.playlists[playlistIdx] = payload;
+      }
     }
   },
 });
@@ -452,8 +482,11 @@ export const { setMainState,
   updateDialogField,
   removePlaylistGame,
   openDynamicPage,
+  changeService,
+  removeService,
   setDisplaySettingsFromCallback,
   setExtOrderablesFromCallback,
-  setUpdateInfo } = mainSlice.actions;
+  setUpdateInfo,
+  updatePlaylist } = mainSlice.actions;
 export default mainSlice.reducer;
 

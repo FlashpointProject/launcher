@@ -1,13 +1,12 @@
+import { useAppSelector } from '@renderer/hooks/useAppSelector';
 import { BackInit } from '@shared/back/types';
 
-export type SplashScreenProps = {
-  quitting: boolean,
-  loadedAll: boolean;
-  loaded: { [key in BackInit]: boolean; };
-}
+export function SplashScreen() {
+  const quitting = useAppSelector(state => state.main.quitting);
+  const loadedAll = useAppSelector(state => state.main.loadedAll);
+  const loaded = useAppSelector(state => state.main.loaded);
 
-export function SplashScreen(props: SplashScreenProps) {
-  const extraClass = (props.loadedAll && !props.quitting)
+  const extraClass = (loadedAll && !quitting)
     ? ' splash-screen--fade-out'
     : '';
 
@@ -18,29 +17,29 @@ export function SplashScreen(props: SplashScreenProps) {
       </div>
       <div className='splash-screen__status-block'>
         <div className='splash-screen__status-header'>
-          { props.quitting ? 'Closing Down' : 'Loading' }
+          { quitting ? 'Closing Down' : 'Loading' }
         </div>
-        { !props.loaded[BackInit.DATABASE] ? (
+        { !loaded[BackInit.DATABASE] ? (
           <div className='splash-screen__status'>
             Database
           </div>
         ) : undefined }
-        { !props.loaded[BackInit.PLAYLISTS] ? (
+        { !loaded[BackInit.PLAYLISTS] ? (
           <div className='splash-screen__status'>
             Playlists
           </div>
         ) : undefined }
-        { !props.loaded[BackInit.SERVICES] ? (
+        { !loaded[BackInit.SERVICES] ? (
           <div className='splash-screen__status'>
             Services
           </div>
         ) : undefined }
-        { !props.loaded[BackInit.EXTENSIONS] ? (
+        { !loaded[BackInit.EXTENSIONS] ? (
           <div className='splash-screen__status'>
             Extensions
           </div>
         ) : undefined }
-        { !props.loaded[BackInit.EXEC_MAPPINGS] ? (
+        { !loaded[BackInit.EXEC_MAPPINGS] ? (
           <div className='splash-screen__status'>
             Exec Mappings
           </div>

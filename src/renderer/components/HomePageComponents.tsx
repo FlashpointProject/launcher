@@ -1,5 +1,8 @@
-import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
+import { createSelector } from '@reduxjs/toolkit';
+import { useView } from '@renderer/hooks/search';
+import { addRandomGames, RANDOM_GAME_ROW_COUNT, setMainState } from '@renderer/store/main/slice';
 import { GENERAL_VIEW_ID, searchActions, selectGame } from '@renderer/store/search/slice';
+import { RootState } from '@renderer/store/store';
 import { findGameDragEventDataGrid, getExtremeIconURL, getGameImageURL, getPlatformIconURL, joinLibraryRoute } from '@renderer/Util';
 import { idToGame } from '@renderer/util/async';
 import { LangContext } from '@renderer/util/lang';
@@ -10,7 +13,7 @@ import { isGame } from '@shared/utils/misc';
 import { formatString } from '@shared/utils/StringFormatter';
 import { Content, Game } from 'flashpoint-launcher';
 import { HomePageComponentProps } from 'flashpoint-launcher-renderer';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import ReactDatePicker from 'react-datepicker';
 import ReactMarkdown from 'react-markdown';
 import { Link } from 'react-router-dom';
@@ -23,18 +26,29 @@ import { RandomGames } from './RandomGames';
 import { SimpleButton } from './SimpleButton';
 import { SizeProvider } from './SizeProvider';
 
+const selectMinimizedFactory = (boxKey: string) => {
+  return createSelector(
+    [(state: RootState) => state.preferences.minimizedHomePageBoxes],
+    (boxes) => boxes.includes(boxKey)
+  );
+};
+
+const selectUpdateFeedMinimized = selectMinimizedFactory('updateFeed');
+
 export function HomePageComponentUpdateFeed(props: HomePageComponentProps) {
-  const { toggleMinimizeBox, updateFeedMarkdown } = props;
+  const { toggleMinimizeBox } = props;
+  const minimized = window.ext.hooks.useAppSelector(selectUpdateFeedMinimized);
+  const updateFeedMarkdown = window.ext.hooks.useAppSelector(state => state.main.updateFeedMarkdown);
   const allStrings = React.useContext(LangContext);
   const strings = allStrings.home;
 
   if (updateFeedMarkdown) {
     return (
       <HomePageBox
-        minimized={props.preferencesData.minimizedHomePageBoxes.includes('updateFeed')}
+        minimized={minimized}
         title={strings.updateFeedHeader}
         cssKey='updateFeed'
-        onToggleMinimize={() => toggleMinimizeBox('updateFeed')}>
+        onToggleMinimize={() => toggleMinimizeBox('updateFeed', minimized)}>
         <ReactMarkdown remarkPlugins={[remarkGfm]} linkTarget={'_blank'}>
           {updateFeedMarkdown}
         </ReactMarkdown>
@@ -50,14 +64,22 @@ const height = 140;
 const width: number = (height * 0.666) | 0;
 
 export function HomePageComponentGotd(props: HomePageComponentProps) {
-  const { preferencesData, logoVersion, gotdList, toggleMinimizeBox } = props;
-  const dispatch = useAppDispatch();
+  const { toggleMinimizeBox } = props;
+  const gotdList = window.ext.hooks.useAppSelector(state => state.main.gotdList);
+  const logoVersion = window.ext.hooks.useAppSelector(state => state.preferences.logoVersion);
+  const tagFilters = window.ext.hooks.useAppSelector(state => state.preferences.tagFilters);
+  const minimized = window.ext.hooks.useAppSelector(state => state.preferences.minimizedHomePageBoxes.includes('gotd'));
+  const screenshotPreviewMode = window.ext.hooks.useAppSelector(state => state.preferences.screenshotPreviewMode);
+  const screenshotPreviewDelay = window.ext.hooks.useAppSelector(state => state.preferences.screenshotPreviewDelay);
+  const hideExtremeScreenshots = window.ext.hooks.useAppSelector(state => state.preferences.hideExtremeScreenshots);
+  const view = useView();
+  const dispatch = window.ext.hooks.useAppDispatch();
   const allStrings = React.useContext(LangContext);
   const strings = allStrings.home;
-  const extremeTags = preferencesData.tagFilters.filter(t => !t.enabled && t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
+  const extremeTags = tagFilters.filter(t => !t.enabled && t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
 
   const getContentIcons = (game: Content | Game) => {
-    return isGame(game) ? game.platforms.slice(0, 5).map(p => getPlatformIconURL(p, props.logoVersion)) : [];
+    return isGame(game) ? game.platforms.slice(0, 5).map(p => getPlatformIconURL(p, logoVersion)) : [];
   };
 
   const onSelectGame = async (gameId: string) => {
@@ -124,10 +146,10 @@ export function HomePageComponentGotd(props: HomePageComponentProps) {
 
   if (gotdList) {
     <HomePageBox
-      minimized={props.preferencesData.minimizedHomePageBoxes.includes('gotd')}
+      minimized={minimized}
       title={strings.gotdHeader}
       cssKey='gotd'
-      onToggleMinimize={() => toggleMinimizeBox('gotd')}>
+      onToggleMinimize={() => toggleMinimizeBox('gotd', minimized)}>
       <SizeProvider width={width} height={height}>
         { selectedGotd ? <div className='home-page__box-item--gotd'>
           <div className='home-page__box-item--gotd-left'>
@@ -148,12 +170,12 @@ export function HomePageComponentGotd(props: HomePageComponentProps) {
                   extreme={extreme}
                   thumbnail={getGameImageURL(loadedGotd.logoPath)}
                   screenshot={getGameImageURL(loadedGotd.screenshotPath)}
-                  screenshotPreviewMode={props.preferencesData.screenshotPreviewMode}
-                  screenshotPreviewDelay={props.preferencesData.screenshotPreviewDelay}
-                  hideExtremeScreenshots={props.preferencesData.hideExtremeScreenshots}
-                  logoVersion={props.logoVersion}
+                  screenshotPreviewMode={screenshotPreviewMode}
+                  screenshotPreviewDelay={screenshotPreviewDelay}
+                  hideExtremeScreenshots={hideExtremeScreenshots}
+                  logoVersion={logoVersion}
                   isDraggable={true}
-                  isSelected={loadedGotd.id === props.selectedGameId}
+                  isSelected={loadedGotd.id === view.selectedGame?.id}
                   isDragged={false} />
               </GameItemContainer>
             ) : (
@@ -191,7 +213,9 @@ export function HomePageComponentGotd(props: HomePageComponentProps) {
 }
 
 export function HomePageComponentQuickStart(props: HomePageComponentProps) {
-  const { toggleMinimizeBox, playlists } = props;
+  const { toggleMinimizeBox } = props;
+  const playlists = window.ext.hooks.useAppSelector(state => state.main.playlists);
+  const minimized = window.ext.hooks.useAppSelector(state => state.preferences.minimizedHomePageBoxes.includes('quickStart'));
   const allStrings = React.useContext(LangContext);
   const strings = allStrings.home;
 
@@ -212,10 +236,10 @@ export function HomePageComponentQuickStart(props: HomePageComponentProps) {
 
   return (
     <HomePageBox
-      minimized={props.preferencesData.minimizedHomePageBoxes.includes('quickStart')}
+      minimized={minimized}
       cssKey={'quickStart'}
       title={strings.quickStartHeader}
-      onToggleMinimize={() => toggleMinimizeBox('quickStart')}>
+      onToggleMinimize={() => toggleMinimizeBox('quickStart', minimized)}>
       <QuickStartItem icon='badge'>
         {formatString(strings.hallOfFameInfo, <Link to={joinLibraryRoute(ARCADE)} onClick={onHallOfFameClick}>{strings.hallOfFame}</Link>)}
       </QuickStartItem><QuickStartItem icon='play-circle'>
@@ -236,13 +260,54 @@ export function HomePageComponentNotes(props: HomePageComponentProps) {
   const { toggleMinimizeBox } = props;
   const allStrings = React.useContext(LangContext);
   const strings = allStrings.home;
+  const minimized = window.ext.hooks.useAppSelector(state => state.preferences.minimizedHomePageBoxes.includes('notes'));
+
+  const propsRef = useRef(props);
+  const toggleMinimizeBoxRef = useRef(toggleMinimizeBox);
+  const allStringsRef = useRef(allStrings);
+  const stringsRef = useRef(strings);
+  const minimizedRef = useRef(minimized);
+
+  // Effect to compare and log changes
+  useEffect(() => {
+    const changes = [];
+
+    if (propsRef.current !== props) {
+      changes.push('props');
+      propsRef.current = props;
+    }
+
+    if (toggleMinimizeBoxRef.current !== toggleMinimizeBox) {
+      changes.push('toggleMinimizeBox function');
+      toggleMinimizeBoxRef.current = toggleMinimizeBox;
+    }
+
+    if (allStringsRef.current !== allStrings) {
+      changes.push('allStrings (LangContext)');
+      allStringsRef.current = allStrings;
+    }
+
+    if (stringsRef.current !== strings) {
+      changes.push('strings.home');
+      stringsRef.current = strings;
+    }
+
+    if (minimizedRef.current !== minimized) {
+      changes.push(`minimized (${minimizedRef.current} -> ${minimized})`);
+      minimizedRef.current = minimized;
+    }
+
+    if (changes.length > 0) {
+      console.log('HomePageComponentNotes re-render caused by:', changes.join(', '));
+    }
+  });
 
   return (
     <HomePageBox
-      minimized={props.preferencesData.minimizedHomePageBoxes.includes('notes')}
+      minimized={minimized}
       title={strings.notesHeader}
       cssKey='notes'
-      onToggleMinimize={() => toggleMinimizeBox('notes')}>
+      onToggleMinimize={() => toggleMinimizeBox('notes', minimized)}>
       <QuickStartItem>
         {strings.notes}
       </QuickStartItem>
@@ -251,8 +316,35 @@ export function HomePageComponentNotes(props: HomePageComponentProps) {
 }
 
 export function HomePageComponentRandomGames(props: HomePageComponentProps) {
-  const { onLaunchGame, toggleMinimizeBox, onGameContextMenu, randomGames, rollRandomGames } = props;
-  const dispatch = useAppDispatch();
+  const { onLaunchGame, toggleMinimizeBox, onGameContextMenu } = props;
+  const minimized = window.ext.hooks.useAppSelector(state => state.preferences.minimizedHomePageBoxes.includes('random-games'));
+  const logoVersion = window.ext.hooks.useAppSelector(state => state.preferences.logoVersion);
+  const tagFilters = window.ext.hooks.useAppSelector(state => state.preferences.tagFilters);
+  const screenshotPreviewMode = window.ext.hooks.useAppSelector(state => state.preferences.screenshotPreviewMode);
+  const screenshotPreviewDelay = window.ext.hooks.useAppSelector(state => state.preferences.screenshotPreviewDelay);
+  const hideExtremeScreenshots = window.ext.hooks.useAppSelector(state => state.preferences.hideExtremeScreenshots);
+  const randomGames = window.ext.hooks.useAppSelector(state => state.main.randomGames);
+  const requestingRandomGames = window.ext.hooks.useAppSelector(state => state.main.requestingRandomGames);
+  const excludedRandomLibraries = window.ext.hooks.useAppSelector(state => state.preferences.excludedRandomLibraries);
+  const view = useView();
+  const dispatch = window.ext.hooks.useAppDispatch();
+
+  const rollRandomGames = () => {
+    // Request more games to the queue
+    if (randomGames.length <= (RANDOM_GAME_ROW_COUNT * 5) && !requestingRandomGames) {
+      dispatch(setMainState({
+        requestingRandomGames: true
+      }));
+
+      window.Shared.back.request(BackIn.RANDOM_GAMES, {
+        count: RANDOM_GAME_ROW_COUNT * 10,
+        excludedLibraries: excludedRandomLibraries,
+      })
+      .then((data) => {
+        dispatch(addRandomGames(data));
+      });
+    }
+  };
 
   const onSelectGame = async (gameId?: string) => {
     if (!gameId) { return; }
@@ -273,21 +365,24 @@ export function HomePageComponentRandomGames(props: HomePageComponentProps) {
         onGameContextMenu={onGameContextMenu}
         onLaunchGame={onLaunchGame}
         onGameSelect={onSelectGame}
-        extremeTags={props.preferencesData.tagFilters.filter(tfg => !tfg.enabled && tfg.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), [])}
-        logoVersion={props.logoVersion}
-        selectedGameId={props.selectedGameId}
-        screenshotPreviewMode={props.preferencesData.screenshotPreviewMode}
-        screenshotPreviewDelay={props.preferencesData.screenshotPreviewDelay}
-        hideExtremeScreenshots={props.preferencesData.hideExtremeScreenshots}
-        minimized={props.preferencesData.minimizedHomePageBoxes.includes('random-games')}
-        onToggleMinimize={() => toggleMinimizeBox('random-games')} />
+        extremeTags={tagFilters.filter(tfg => !tfg.enabled && tfg.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), [])}
+        logoVersion={logoVersion}
+        selectedGameId={view.selectedGame?.id}
+        screenshotPreviewMode={screenshotPreviewMode}
+        screenshotPreviewDelay={screenshotPreviewDelay}
+        hideExtremeScreenshots={hideExtremeScreenshots}
+        minimized={minimized}
+        onToggleMinimize={() => toggleMinimizeBox('random-games', minimized)} />
     </SizeProvider>
   );
 }
 
 export function HomePageComponentExtras(props: HomePageComponentProps) {
-  const { platforms, logoVersion, toggleMinimizeBox } = props;
-  const viewObj = useAppSelector((state) => state.search.views);
+  const { toggleMinimizeBox } = props;
+  const minimized = window.ext.hooks.useAppSelector(state => state.preferences.minimizedHomePageBoxes.includes('extras'));
+  const logoVersion = window.ext.hooks.useAppSelector(state => state.preferences.logoVersion);
+  const viewObj = window.ext.hooks.useAppSelector((state) => state.search.views);
+  const platforms = window.ext.hooks.useAppSelector(state => state.main.suggestions.platforms);
   const allStrings = React.useContext(LangContext);
   const strings = allStrings.home;
 
@@ -327,10 +422,10 @@ export function HomePageComponentExtras(props: HomePageComponentProps) {
 
   return (
     <HomePageBox
-      minimized={props.preferencesData.minimizedHomePageBoxes.includes('extras')}
+      minimized={minimized}
       cssKey={'extras'}
       title={strings.extrasHeader}
-      onToggleMinimize={() => toggleMinimizeBox('extras')}>
+      onToggleMinimize={() => toggleMinimizeBox('extras', minimized)}>
       <QuickStartItem icon='puzzle-piece'>
         {strings.filterByPlatform}:
       </QuickStartItem>

@@ -33,6 +33,7 @@ export const store = configureStore({
     downloads: downloadsReducer,
     preferences: prefsReducer,
   },
+  devTools: true,
   middleware: (getDefaultMiddleware) => {
     const middleware = getDefaultMiddleware({
       serializableCheck: {

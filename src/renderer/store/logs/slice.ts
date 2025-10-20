@@ -49,6 +49,8 @@ const logsSlice = createSlice({
 
 export const { actions: logsActions } = logsSlice;
 export const {
-  clearLogs
+  clearLogs,
+  setEntries,
+  addLogEntries,
 } = logsSlice.actions;
 export default logsSlice.reducer;

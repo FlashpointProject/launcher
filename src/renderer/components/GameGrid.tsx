@@ -22,13 +22,11 @@ type ColumnsRows = {
 
 export type GameGridProps<T extends Content> = BrowsePageDisplayProps<T> & {
   getContentIcons: (content: T | Content) => string[];
-  onContentRun: (content: T | Content) => void;
+  onContentRun: (contentId: string) => void;
   /** Total number of content in the results view there are. */
   resultsTotal?: number;
   /** Are we in a playlist view? */
   insideOrderedPlaylist: boolean;
-  /** Currently selected content (if any) */
-  selectedContent?: T | Content;
   /** Currently dragged content index (if any). */
   draggedContentIndex: number | null;
   /** Width of each cell in the grid (in pixels). */
@@ -101,7 +99,7 @@ export class GameGrid<T extends Content> extends React.Component<GameGridProps<T
   }
 
   componentDidUpdate(prevProps: GameGridProps<T>): void {
-    if (this.props.view.id !== prevProps.view.id) {
+    if (this.props.viewId !== prevProps.viewId) {
       this.setState({
         forceScrollTop: this.props.scrollTop,
       });
@@ -165,7 +163,7 @@ export class GameGrid<T extends Content> extends React.Component<GameGridProps<T
     if (this.currentContent) {
       for (const index in this.currentContent) {
         if (this.currentContent[index].id === contentId) {
-          this.props.onContentRun(this.currentContent[index]);
+          this.props.onContentRun(this.currentContent[index].id);
         }
       }
 
@@ -173,7 +171,7 @@ export class GameGrid<T extends Content> extends React.Component<GameGridProps<T
   };
 
   render() {
-    const content = this.props.view.data.content || [];
+    const content = this.props.content || [];
     // @HACK: Check if the games array changed
     // (This will cause the re-rendering of all cells any time the games prop uses a different reference)
     if (content !== this.currentContent) {
@@ -238,7 +236,7 @@ export class GameGrid<T extends Content> extends React.Component<GameGridProps<T
                       // Pass-through props (they have no direct effect on the grid)
                       // (If any property is changed the grid is re-rendered, even these)
                       pass_currentGamesCount={this.currentContentCount}
-                      pass_viewId={this.props.view.id} />
+                      pass_viewId={this.props.viewId} />
                   );
                 }}
               </ArrowKeyStepper>
@@ -252,8 +250,8 @@ export class GameGrid<T extends Content> extends React.Component<GameGridProps<T
   // Renders a single cell in the game grid.
   cellRenderer = (props: GridCellProps): React.ReactNode => {
     const extremeIconPath = this.extremeIconPathMemo(this.props.logoVersion);
-    const { resultsTotal, selectedContent, getContentIcons } = this.props;
-    const games = this.props.view.data.content;
+    const { resultsTotal, selectedContentId, getContentIcons } = this.props;
+    const games = this.props.content;
     const index = props.rowIndex * this.columns + props.columnIndex;
     if (index < (resultsTotal || 0)) {
       const game = games[index];
@@ -275,7 +273,7 @@ export class GameGrid<T extends Content> extends React.Component<GameGridProps<T
           logoVersion={this.props.logoVersion}
           hideExtremeScreenshots={this.props.hideExtremeScreenshots}
           isDraggable={true}
-          isSelected={game ? game.id === selectedContent?.id : false}
+          isSelected={game ? game.id === selectedContentId : false}
           isDragged={false} /> // Bugged render update
       );
     } else {
@@ -320,8 +318,8 @@ export class GameGrid<T extends Content> extends React.Component<GameGridProps<T
   // When a key is pressed (while the grid, or one of its children, is selected).
   onKeyPress = (event: React.KeyboardEvent): void => {
     if (event.key === 'Enter') {
-      if (this.props.selectedContent !== undefined) {
-        this.props.onContentRun(this.props.selectedContent);
+      if (this.props.selectedContentId !== undefined) {
+        this.props.onContentRun(this.props.selectedContentId);
       }
     }
   };
@@ -333,7 +331,7 @@ export class GameGrid<T extends Content> extends React.Component<GameGridProps<T
    * @param gameId ID of pressed Game
    */
   onContentSelect = (event: React.MouseEvent, gameId: string | undefined): void => {
-    const index: number = findContentIndex(this.props.view.data.content, gameId);
+    const index: number = findContentIndex(this.props.content, gameId);
     if (index >= 0) {
       const col = index % this.columns;
       const row = (index / this.columns) | 0;

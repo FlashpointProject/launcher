@@ -184,6 +184,7 @@ const defaultGeneralState: ResultsView<any> = {
   text: '',
   textPositions: [],
   expanded: true,
+  isEditing: false,
   isCustom: false,
 };
 
@@ -210,6 +211,16 @@ export type RequestKeysetAction = {
 export type ForceSearchAction = {
   view: string;
   useCustomViews: boolean;
+}
+
+export type SetEditingAction = {
+  view: string;
+  editing: boolean
+}
+
+export type UpdateEditGameAction = {
+  view: string;
+  game: Partial<Game>,
 }
 
 export const requestKeyset = createAsyncThunk(
@@ -313,6 +324,7 @@ const searchSlice = createSlice({
             },
             text: '',
             textPositions: [],
+            isEditing: false,
             isCustom: true,
           };
         }
@@ -367,6 +379,7 @@ const searchSlice = createSlice({
           },
           text: '',
           textPositions: [],
+          isEditing: false,
           isCustom: true
         };
       }
@@ -429,6 +442,7 @@ const searchSlice = createSlice({
             },
             text: '',
             textPositions: [],
+            isEditing: false,
             isCustom: !payload.areLibraries,
           };
         }
@@ -600,11 +614,42 @@ const searchSlice = createSlice({
         }
       }
     },
+    setEditing(state: SearchState, { payload }: PayloadAction<SetEditingAction>) {
+      const view = state.views[payload.view];
+      if (view) {
+        if (view.isEditing && !payload.editing) {
+          view.editingGame = undefined;
+          view.isEditing = false;
+        }
+
+        if (!view.isEditing && payload.editing && view.selectedGame !== undefined) {
+          view.editingGame = deepCopy(view.selectedGame);
+          view.isEditing = true;
+        }
+      }
+    },
+    updateEditGame(state: SearchState, { payload }: PayloadAction<UpdateEditGameAction>) {
+      const view = state.views[payload.view];
+      if (view && view.editingGame) {
+        view.editingGame = {
+          ...view.editingGame,
+          ...payload.game
+        };
+      }
+    },
     updateGame(state: SearchState, { payload }: PayloadAction<Game>) {
       for (const viewName of Object.keys(state.views)) {
         const view = state.views[viewName];
-        if (view.selectedGame && view.selectedGame.id === payload.id) {
+        // Update in selection
+        if (view.selectedGame?.id === payload.id) {
           view.selectedGame = payload;
+        }
+        // Update in search results
+        for (const [idx, game] of Object.entries(view.data.content)) {
+          if (game?.id === payload.id) {
+            view.data.content[Number(idx)] = payload;
+            break;
+          }
         }
       }
     },
@@ -741,6 +786,8 @@ export const {
   setAdvancedFilter,
   movePlaylistGame,
   requestRange,
+  setEditing,
+  updateEditGame,
   updateGame,
   setExpanded,
   resetDropdownData,

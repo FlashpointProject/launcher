@@ -1,4 +1,4 @@
-import { useView } from '@renderer/hooks/search';
+import { useViewName } from '@renderer/hooks/search';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { forceSearch, setAdvancedFilter, setExpanded, setExtOrder, setOrderBy, setOrderReverse, setSearchText } from '@renderer/store/search/slice';
 import { getPlatformIconURL } from '@renderer/Util';
@@ -6,14 +6,14 @@ import { LangContext } from '@renderer/util/lang';
 import { getDefaultAdvancedFilter } from '@shared/search/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { AdvancedFilter, AdvancedFilterToggle, Tag } from 'flashpoint-launcher';
+import { SearchComponentProps } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
 import { useContext } from 'react';
 import { AutoSizer, List, ListRowProps } from 'react-virtualized';
+import { DynamicComponent } from './DynamicComponent';
 import { GameOrder } from './GameOrder';
 import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
-import { DynamicComponent } from './DynamicComponent';
-import { SearchComponentProps } from 'flashpoint-launcher-renderer';
 
 export const categoryOrder = [
   'genre',
@@ -26,9 +26,16 @@ export const categoryOrder = [
 ];
 
 export function SearchBar() {
-  const view = useView();
   const dispatch = useAppDispatch();
   const strings = useContext(LangContext);
+  const viewName = useViewName();
+  const advancedFilter = useAppSelector(state => state.search.views[viewName].advancedFilter);
+  const insidePlaylist = useAppSelector(state => state.search.views[viewName].selectedPlaylist !== undefined);
+  const extOrder = useAppSelector(state => state.search.views[viewName].extOrder);
+  const filtersExpanded = useAppSelector(state => state.search.views[viewName].expanded);
+  const searchText = useAppSelector(state => state.search.views[viewName].text);
+  const orderBy = useAppSelector(state => state.search.views[viewName].orderBy);
+  const orderReverse = useAppSelector(state => state.search.views[viewName].orderReverse);
   const displaySettings = useAppSelector(state => state.main.displaySettings);
   const libraries = useAppSelector(state => state.main.libraries);
   const logoVersion = useAppSelector(state => state.main.logoVersion);
@@ -40,12 +47,12 @@ export function SearchBar() {
 
   const onTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSearchText({
-      view: view.id,
+      view: viewName,
       text: event.target.value
     }));
     if (event.target.value === '') {
       dispatch(forceSearch({
-        view: view.id,
+        view: viewName,
         useCustomViews,
       }));
     }
@@ -66,16 +73,16 @@ export function SearchBar() {
       event.preventDefault();
       if (event.shiftKey) {
         dispatch(setAdvancedFilter({
-          view: view.id,
+          view: viewName,
           filter: getDefaultAdvancedFilter(),
         }));
       }
       dispatch(setSearchText({
-        view: view.id,
+        view: viewName,
         text: ''
       }));
       dispatch(forceSearch({
-        view: view.id,
+        view: viewName,
         useCustomViews,
       }));
       const element = searchInputRef.current;
@@ -95,16 +102,16 @@ export function SearchBar() {
 
   const onToggleExpanded = (value: boolean) => {
     dispatch(setExpanded({
-      view: view.id,
+      view: viewName,
       expanded: value
     }));
   };
 
   const onInstalledChange = (value?: boolean) => {
     dispatch(setAdvancedFilter({
-      view: view.id,
+      view: viewName,
       filter: {
-        ...view.advancedFilter,
+        ...advancedFilter,
         installed: value,
       }
     }));
@@ -112,9 +119,9 @@ export function SearchBar() {
 
   const onLegacyChange = (value?: boolean) => {
     dispatch(setAdvancedFilter({
-      view: view.id,
+      view: viewName,
       filter: {
-        ...view.advancedFilter,
+        ...advancedFilter,
         legacy: value,
       }
     }));
@@ -122,9 +129,9 @@ export function SearchBar() {
 
   const onPlaylistOrderChange = (value?: boolean) => {
     dispatch(setAdvancedFilter({
-      view: view.id,
+      view: viewName,
       filter: {
-        ...view.advancedFilter,
+        ...advancedFilter,
         playlistOrder: !!value,
       }
     }));
@@ -133,7 +140,7 @@ export function SearchBar() {
   const onWhitelistFactory = (key: keyof AdvancedFilter) => {
     return (value: string) => {
       console.log(`${key}: ${value} - whitelist`);
-      const existingFilter = view.advancedFilter[key] as Record<string, AdvancedFilterToggle>;
+      const existingFilter = advancedFilter[key] as Record<string, AdvancedFilterToggle>;
       const newValues = {
         ...existingFilter
       };
@@ -148,9 +155,9 @@ export function SearchBar() {
       }
 
       dispatch(setAdvancedFilter({
-        view: view.id,
+        view: viewName,
         filter: {
-          ...view.advancedFilter,
+          ...advancedFilter,
           [key]: newValues,
         }
       }));
@@ -160,7 +167,7 @@ export function SearchBar() {
   const onBlacklistFactory = (key: keyof AdvancedFilter) => {
     return (value: string) => {
       console.log(`${key}: ${value} - blacklist`);
-      const existingFilter = view.advancedFilter[key] as Record<string, AdvancedFilterToggle>;
+      const existingFilter = advancedFilter[key] as Record<string, AdvancedFilterToggle>;
       const newValues = {
         ...existingFilter
       };
@@ -175,9 +182,9 @@ export function SearchBar() {
       }
 
       dispatch(setAdvancedFilter({
-        view: view.id,
+        view: viewName,
         filter: {
-          ...view.advancedFilter,
+          ...advancedFilter,
           [key]: newValues,
         }
       }));
@@ -187,9 +194,9 @@ export function SearchBar() {
   const onClearFactory = (key: keyof AdvancedFilter) => {
     return () => {
       dispatch(setAdvancedFilter({
-        view: view.id,
+        view: viewName,
         filter: {
-          ...view.advancedFilter,
+          ...advancedFilter,
           [key]: [],
         }
       }));
@@ -199,11 +206,11 @@ export function SearchBar() {
   const onSetAndToggleFactory = (key: keyof AdvancedFilter) => {
     return (value: boolean) => {
       dispatch(setAdvancedFilter({
-        view: view.id,
+        view: viewName,
         filter: {
-          ...view.advancedFilter,
+          ...advancedFilter,
           andToggles: {
-            ...view.advancedFilter.andToggles,
+            ...advancedFilter.andToggles,
             [key]: value
           }
         }
@@ -339,16 +346,16 @@ export function SearchBar() {
   const onClearSearch = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     if (event.shiftKey) {
       dispatch(setAdvancedFilter({
-        view: view.id,
+        view: viewName,
         filter: getDefaultAdvancedFilter(),
       }));
     }
     dispatch(setSearchText({
-      view: view.id,
+      view: viewName,
       text: ''
     }));
     dispatch(forceSearch({
-      view: view.id,
+      view: viewName,
       useCustomViews,
     }));
   };
@@ -358,13 +365,13 @@ export function SearchBar() {
     if (searchInputRef.current) {
       searchInputRef.current.focus();
     }
-  }, [view.id]);
+  }, [viewName]);
 
   const searchComponentProps: SearchComponentProps = {
-    advancedFilter: view.advancedFilter,
+    advancedFilter: advancedFilter,
     setAdvancedFilter: (advFilter) => {
       dispatch(setAdvancedFilter({
-        view: view.id,
+        view: viewName,
         filter: advFilter,
       }));
     }
@@ -381,7 +388,7 @@ export function SearchBar() {
             onKeyDown={(event) => {
               if (event.key === 'Enter') {
                 dispatch(forceSearch({
-                  view: view.id,
+                  view: viewName,
                   useCustomViews,
                 }));
               }
@@ -389,7 +396,7 @@ export function SearchBar() {
             ref={searchInputRef}
             placeholder={strings.app.searchPlaceholder}
             className='search-bar-text-input'
-            value={view.text}
+            value={searchText}
             onChange={onTextChange} />
           <div
             className="search-bar-text-input-icon"
@@ -398,44 +405,44 @@ export function SearchBar() {
           </div>
         </div>
         <GameOrder
-          orderBy={view.orderBy}
-          orderReverse={view.orderReverse}
-          extOrder={view.extOrder}
+          orderBy={orderBy}
+          orderReverse={orderReverse}
+          extOrder={extOrder}
           onChange={(event) => {
             dispatch(setOrderBy({
-              view: view.id,
+              view: viewName,
               value: event.orderBy
             }));
             dispatch(setOrderReverse({
-              view: view.id,
+              view: viewName,
               value: event.orderReverse
             }));
             dispatch(setExtOrder({
-              view: view.id,
+              view: viewName,
               value: event.extOrder
             }));
           }} />
         <SimpleButton
           style={{ height: '100%' }}
-          value={view.expanded ? strings.browse.hideFilters : strings.browse.showFilters }
-          onClick={() => onToggleExpanded(!view.expanded)} />
+          value={filtersExpanded ? strings.browse.hideFilters : strings.browse.showFilters }
+          onClick={() => onToggleExpanded(!filtersExpanded)} />
       </div>
-      {view.expanded && (
+      {filtersExpanded && (
         <div className='search-bar-expansion search-bar-expansion-simple'>
           <ThreeStateCheckbox
             title={strings.browse.installed}
-            value={view.advancedFilter.installed}
+            value={advancedFilter.installed}
             onChange={onInstalledChange} />
           {enableEditing && (
             <ThreeStateCheckbox
               title={strings.browse.legacyGame}
-              value={view.advancedFilter.legacy}
+              value={advancedFilter.legacy}
               onChange={onLegacyChange} />
           )}
-          {view.selectedPlaylist && (
+          {insidePlaylist && (
             <ThreeStateCheckbox
               title={strings.browse.usePlaylistOrder}
-              value={view.advancedFilter.playlistOrder}
+              value={advancedFilter.playlistOrder}
               twoState={true}
               onChange={onPlaylistOrderChange} />
           )}
@@ -443,8 +450,8 @@ export function SearchBar() {
             <SearchableSelect
               title={strings.browse.library}
               items={libraryItems}
-              andToggle={view.advancedFilter.andToggles.library}
-              selected={view.advancedFilter.library}
+              andToggle={advancedFilter.andToggles.library}
+              selected={advancedFilter.library}
               generateItem={genSelectItem}
               onWhitelist={onWhitelistLibrary}
               onBlacklist={onBlacklistLibrary}
@@ -457,8 +464,8 @@ export function SearchBar() {
           <SearchableSelect
             title={strings.browse.ruffleSupport}
             items={ruffleSupportItems}
-            andToggle={view.advancedFilter.andToggles.ruffleSupport}
-            selected={view.advancedFilter.ruffleSupport}
+            andToggle={advancedFilter.andToggles.ruffleSupport}
+            selected={advancedFilter.ruffleSupport}
             generateItem={genSelectItem}
             onWhitelist={onWhitelistRuffleSupport}
             onBlacklist={onBlacklistRuffleSupport}
@@ -467,8 +474,8 @@ export function SearchBar() {
           <SearchableSelect
             title={strings.app.developer}
             items={developerItems}
-            andToggle={view.advancedFilter.andToggles.developer}
-            selected={view.advancedFilter.developer}
+            andToggle={advancedFilter.andToggles.developer}
+            selected={advancedFilter.developer}
             generateItem={genSelectItem}
             onWhitelist={onWhitelistDeveloper}
             onBlacklist={onBlacklistDeveloper}
@@ -477,8 +484,8 @@ export function SearchBar() {
           <SearchableSelect
             title={strings.browse.publisher}
             items={publisherItems}
-            andToggle={view.advancedFilter.andToggles.publisher}
-            selected={view.advancedFilter.publisher}
+            andToggle={advancedFilter.andToggles.publisher}
+            selected={advancedFilter.publisher}
             generateItem={genSelectItem}
             onWhitelist={onWhitelistPublisher}
             onBlacklist={onBlacklistPublisher}
@@ -487,8 +494,8 @@ export function SearchBar() {
           <SearchableSelect
             title={strings.browse.series}
             items={seriesItems}
-            andToggle={view.advancedFilter.andToggles.series}
-            selected={view.advancedFilter.series}
+            andToggle={advancedFilter.andToggles.series}
+            selected={advancedFilter.series}
             generateItem={genSelectItem}
             onWhitelist={onWhitelistSeries}
             onBlacklist={onBlacklistSeries}
@@ -497,8 +504,8 @@ export function SearchBar() {
           <SearchableSelect
             title={strings.browse.playMode}
             items={playModeItems}
-            andToggle={view.advancedFilter.andToggles.playMode}
-            selected={view.advancedFilter.playMode}
+            andToggle={advancedFilter.andToggles.playMode}
+            selected={advancedFilter.playMode}
             generateItem={genSelectItem}
             onWhitelist={onWhitelistPlayMode}
             onBlacklist={onBlacklistPlayMode}
@@ -507,9 +514,9 @@ export function SearchBar() {
           <SearchableSelect
             title={strings.browse.platform}
             items={platformItems}
-            andToggle={view.advancedFilter.andToggles.platform}
+            andToggle={advancedFilter.andToggles.platform}
             labelRenderer={platformLabelRenderer}
-            selected={view.advancedFilter.platform}
+            selected={advancedFilter.platform}
             generateItem={genSelectItem}
             onWhitelist={onWhitelistPlatform}
             onBlacklist={onBlacklistPlatform}
@@ -518,9 +525,9 @@ export function SearchBar() {
           <SearchableSelect
             title={strings.browse.tags}
             items={tagItems}
-            andToggle={view.advancedFilter.andToggles.tags}
+            andToggle={advancedFilter.andToggles.tags}
             labelRenderer={tagLabelRenderer}
-            selected={view.advancedFilter.tags}
+            selected={advancedFilter.tags}
             generateItem={genTagItem}
             onWhitelist={onWhitelistTag}
             onBlacklist={onBlacklistTag}
@@ -528,7 +535,7 @@ export function SearchBar() {
             onSetAndToggle={onSetAndToggleTags} />
           { displaySettings.searchComponents.map((name) => {
             return (
-              <DynamicComponent name={name} props={searchComponentProps}/>
+              <DynamicComponent key={name} name={name} props={searchComponentProps}/>
             );
           }) }
         </div>

@@ -101,6 +101,7 @@ export const state: BackState = {
   verbose: false,
   logFile: createErrorProxy('logFile'),
   socketServer: new SocketServer(),
+  curationsReady: false,
   fileServer: new FileServer(),
   fileServerPort: -1,
   fileServerDownloads: {
@@ -172,6 +173,7 @@ export const state: BackState = {
       onInterceptGetGame: new ApiEmitter<flashpoint.Game>(),
     },
     curations: {
+      onCurationsReady: new ApiEmitter(),
       onDidCurationListChange: new ApiEmitter(),
       onDidCurationChange: new ApiEmitter(),
       onWillGenCurationWarnings: new ApiEmitter()
@@ -978,6 +980,8 @@ async function initialize() {
   })
   .then(() => {
     console.log('Back - Initialized Curations');
+    state.curationsReady = true;
+    state.apiEmitters.curations.onCurationsReady.fire();
     state.socketServer.broadcast(BackOut.CURATE_LOADED);
   })
   .catch((error: any) => {
