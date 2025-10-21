@@ -3,6 +3,7 @@ import { LogLevel } from '@shared/Log/interface';
 import { formatTime, padLines } from '@shared/Log/LogCommon';
 import { calcScale } from '@shared/Util';
 import { ILogEntry } from 'flashpoint-launcher';
+import AutoSizer from 'react-virtualized-auto-sizer';
 import { List, RowComponentProps } from 'react-window';
 
 const timestampLength = '[HH:MM:SS] '.length;
@@ -55,17 +56,21 @@ export function LogBox(props: LogBoxProps) {
   };
 
   return (
-    <List<RowProps>
-      className='log simple-scroll'
-      style={{ fontSize: `${fontSize}px`, lineHeight: `${fontSize + 2}px` }}
-      rowComponent={LogRow}
-      rowProps={{
-        logs: props.logs,
-        longestSource: props.longestSource
+    <AutoSizer disableWidth>
+      {({ height }) => {
+        return <List<RowProps>
+          className='log simple-scroll'
+          style={{ fontSize: `${fontSize}px`, lineHeight: `${fontSize + 2}px`, height, maxHeight: undefined }}
+          rowComponent={LogRow}
+          rowProps={{
+            logs: props.logs,
+            longestSource: props.longestSource
+          }}
+          rowCount={props.logs.length}
+          rowHeight={rowHeight}
+          overscanCount={25} />;
       }}
-      rowCount={props.logs.length}
-      rowHeight={rowHeight}
-      overscanCount={25} />
+    </AutoSizer>
   );
 }
 

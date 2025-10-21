@@ -1,14 +1,29 @@
 import { useAppSelector } from '@renderer/hooks/useAppSelector';
 import { BackInit } from '@shared/back/types';
+import { useEffect, useState } from 'react';
 
 export function SplashScreen() {
   const quitting = useAppSelector(state => state.main.quitting);
   const loadedAll = useAppSelector(state => state.main.loadedAll);
   const loaded = useAppSelector(state => state.main.loaded);
+  const [finished, setFinished] = useState(false);
+
+  useEffect(() => {
+    if (loadedAll && !quitting) {
+      // Give time for anim to happen, then stop rendering entire component
+      setTimeout(() => {
+        setFinished(true);
+      }, 2000);
+    }
+  }, [loadedAll, quitting]);
 
   const extraClass = (loadedAll && !quitting)
     ? ' splash-screen--fade-out'
     : '';
+
+  if (finished && loadedAll && !quitting) {
+    return (<></>);
+  }
 
   return (
     <div className={'splash-screen' + extraClass}>

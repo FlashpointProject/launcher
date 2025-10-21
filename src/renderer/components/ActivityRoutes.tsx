@@ -1,15 +1,10 @@
 import { Paths } from '@shared/Paths';
 import { Activity, ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
-import { AboutPage } from './pages/AboutPage';
-import { ConfigPage } from './pages/ConfigPage';
 import { CuratePage } from './pages/CuratePage';
-import { DownloadsPage } from './pages/Downloads';
 import { HomePage } from './pages/HomePage';
 import { IFramePage } from './pages/IFramePage';
-import { LoadingPage } from './pages/LoadingPage';
 import { LogsPage } from './pages/LogsPage';
-import { TagCategoriesPage } from './pages/TagCategoriesPage';
 import { TagsPage } from './pages/TagsPage';
 
 export type ActivityRoutesProps = {
@@ -20,20 +15,11 @@ export type ActivityRoutesProps = {
 export function ActivityRoutes({ onGameContextMenu, manualUrl }: ActivityRoutesProps) {
   return (
     <>
-      <ActivityRoute path={Paths.LOADING}>
-        <LoadingPage/>
-      </ActivityRoute>
       <ActivityRoute path={Paths.HOME} exact>
         <HomePage onGameContextMenu={onGameContextMenu}/>
       </ActivityRoute>
       <ActivityRoute path={Paths.TAGS}>
         <TagsPage/>
-      </ActivityRoute>
-      <ActivityRoute path={Paths.CATEGORIES}>
-        <TagCategoriesPage/>
-      </ActivityRoute>
-      <ActivityRoute path={Paths.DOWNLOADS}>
-        <DownloadsPage/>
       </ActivityRoute>
       <ActivityRoute path={Paths.LOGS}>
         <LogsPage/>
@@ -43,12 +29,6 @@ export function ActivityRoutes({ onGameContextMenu, manualUrl }: ActivityRoutesP
       </ActivityRoute>
       <ActivityRoute path={Paths.CURATE}>
         <CuratePage/>
-      </ActivityRoute>
-      <ActivityRoute path={Paths.CONFIG}>
-        <ConfigPage/>
-      </ActivityRoute>
-      <ActivityRoute path={Paths.ABOUT}>
-        <AboutPage/>
       </ActivityRoute>
     </>
   );

@@ -556,8 +556,6 @@ export function CuratePage() {
     exportDataPack: strings.curate.exportDataPacks
   };
 
-  console.log('ruffle: ' + curation?.game.ruffleSupport);
-
   return curate.loaded ? (
     <div className='curate-page'>
       {fileLoader}

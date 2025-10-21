@@ -465,7 +465,7 @@ export function App() {
                     <Routes>
                       <Route
                         path={Paths.LOADING}
-                        element={useActivityRoutes ? <></> : <LoadingPage/>}/>
+                        element={<LoadingPage/>}/>
                       <Route
                         path={Paths.HOME}
                         element={useActivityRoutes ? <></> : <HomePage onGameContextMenu={onGameContextMenu} />}/>
@@ -477,22 +477,22 @@ export function App() {
                         element={useActivityRoutes ? <></> : <TagsPage/>}/>
                       <Route
                         path={Paths.CATEGORIES}
-                        element={useActivityRoutes ? <></> : <TagCategoriesPage/>}/>
+                        element={<TagCategoriesPage/>}/>
                       <Route
                         path={Paths.DOWNLOADS}
-                        element={useActivityRoutes ? <></> : <DownloadsPage/>}/>
+                        element={<DownloadsPage/>}/>
                       <Route
                         path={Paths.LOGS}
                         element={useActivityRoutes ? <></> : <LogsPage/>}/>
                       <Route
                         path={Paths.CONFIG}
-                        element={useActivityRoutes ? <></> : <ConfigPage/>}/>
+                        element={<ConfigPage/>}/>
                       <Route
                         path={Paths.MANUAL}
                         element={useActivityRoutes ? <></> : <IFramePage url={manualUrl} />}/>
                       <Route
                         path={Paths.ABOUT}
-                        element={useActivityRoutes ? <></> : <AboutPage/>}/>
+                        element={<AboutPage/>}/>
                       <Route
                         path={Paths.CURATE}
                         element={useActivityRoutes ? <></> : <CuratePage/>}/>

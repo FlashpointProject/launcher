@@ -246,9 +246,11 @@ export function LogsPage(props: LogsPageProps) {
         </div>
       </div>
       {/* Content */}
-      <LogBox
-        logs={logsState.entries}
-        longestSource={logsState.longestSource} />
+      <div className='virtualized-fill'>
+        <LogBox
+          logs={logsState.entries}
+          longestSource={logsState.longestSource} />
+      </div>
     </div>
   );
 }

@@ -167,7 +167,7 @@ export function AppLoader(props: AppLoaderProps) {
   }
 
   return (
-    <div style={{ width: '100%', height: '100%' }}>
+    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
       {props.children}
     </div>
   );
