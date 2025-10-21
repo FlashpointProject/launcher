@@ -30,6 +30,7 @@ export type RemoveCurationFileFunc = (folder: string, relativePath: string) => P
 
 export const onFileServerRequestPostCuration =
   async (pathname: string, url: URL, req: http.IncomingMessage, res: http.ServerResponse, tempCurationsPath: string, onNewCuration: (filePath: string, fpfssInfo: CurationFpfssInfo | null, onProgress?: (progress: Progress) => void) => Promise<CurationState>) => {
+    console.log(pathname);
     if (req.method === 'POST') {
       const chunks: any[] = [];
       req.on('data', (chunk) => {

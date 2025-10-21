@@ -424,12 +424,6 @@ export function Header() {
               title={strings.curate}
               link={Paths.CURATE} />
           )}
-          { enableEditing && (fpfssBaseUrl !== undefined) && (
-            <HeaderMenuItem
-              id={'header__fpfss'}
-              title={'FPFSS'}
-              link={Paths.FPFSS} />
-          )}
         </ul>
       </div>
       {/* Right-most portion */}

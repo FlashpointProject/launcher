@@ -1,17 +1,16 @@
 import { Paths } from '@shared/Paths';
 import { Activity, ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
-import { HomePage } from './pages/HomePage';
-import { LoadingPage } from './pages/LoadingPage';
-import { TagsPage } from './pages/TagsPage';
-import { TagCategoriesPage } from './pages/TagCategoriesPage';
-import { DownloadsPage } from './pages/Downloads';
-import { LogsPage } from './pages/LogsPage';
-import { CuratePage } from './pages/CuratePage';
-import { IFramePage } from './pages/IFramePage';
 import { AboutPage } from './pages/AboutPage';
-import { useAppSelector } from '@renderer/hooks/useAppSelector';
 import { ConfigPage } from './pages/ConfigPage';
+import { CuratePage } from './pages/CuratePage';
+import { DownloadsPage } from './pages/Downloads';
+import { HomePage } from './pages/HomePage';
+import { IFramePage } from './pages/IFramePage';
+import { LoadingPage } from './pages/LoadingPage';
+import { LogsPage } from './pages/LogsPage';
+import { TagCategoriesPage } from './pages/TagCategoriesPage';
+import { TagsPage } from './pages/TagsPage';
 
 export type ActivityRoutesProps = {
   onGameContextMenu: (event: React.MouseEvent, gameId: string, logoPath: string, screenshotPath: string) => void;
@@ -19,8 +18,6 @@ export type ActivityRoutesProps = {
 }
 
 export function ActivityRoutes({ onGameContextMenu, manualUrl }: ActivityRoutesProps) {
-  const fpfssBaseUrl = useAppSelector(state => state.preferences.fpfssBaseUrl);
-
   return (
     <>
       <ActivityRoute path={Paths.LOADING}>
@@ -52,9 +49,6 @@ export function ActivityRoutes({ onGameContextMenu, manualUrl }: ActivityRoutesP
       </ActivityRoute>
       <ActivityRoute path={Paths.ABOUT}>
         <AboutPage/>
-      </ActivityRoute>
-      <ActivityRoute path={Paths.FPFSS}>
-        <IFramePage url={fpfssBaseUrl}/>
       </ActivityRoute>
     </>
   );

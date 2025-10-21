@@ -22,6 +22,9 @@ import { CuratePageLeftSidebar } from '../CuratePageLeftSidebar';
 import { Dropdown } from '../Dropdown';
 import { OpenIcon } from '../OpenIcon';
 import { SimpleButton, SimpleButtonProps } from '../SimpleButton';
+import { useFileLoader } from '../FileLoader';
+import { getFileServerURL } from '@shared/Util';
+import { toast } from 'react-toastify';
 
 export function CuratePage() {
   const strings = React.useContext(LangContext);
@@ -42,6 +45,7 @@ export function CuratePage() {
   const curationTemplates = useAppSelector(state => state.main.curationTemplates);
   const extContextButtons = useAppSelector(state => state.main.contextButtons);
   const mad4fpEnabled = useAppSelector(state => state.main.mad4fpEnabled);
+  const { fileLoader, openFileSelect } = useFileLoader();
   const shortcut = useShortcut();
   const dispatch = useDispatch();
   const curation: CurationState | undefined = curate.curations.find(c => c.folder === currentCuration);
@@ -92,7 +96,69 @@ export function CuratePage() {
     window.Shared.back.send(BackIn.CURATE_SCAN_NEW_CURATIONS);
   };
 
-  const onLoadCuration = () => {};
+  const onLoadCuration = async () => {
+    if (window.electronAPI !== undefined) {
+      window.electronAPI.showOpenDialog({
+        title: strings.dialog.selectCurationArchive,
+        properties: [ 'multiSelections' ]
+      })
+      .then((filePaths) => {
+        if (filePaths !== undefined && filePaths.length > 0) {
+          const newTask = newCurateTask(`Loading ${filePaths.length} Archives`, 'Loading...');
+          dispatch(addTask(newTask));
+          window.Shared.back.send(BackIn.CURATE_LOAD_ARCHIVES, filePaths, newTask.id);
+        }
+      });
+    } else {
+      openFileSelect(async (fileList) => {
+        if (fileList) {
+          if (fileList.length > 0) {
+            const newText = (index: number) => `Uploading Curations (${index} of ${fileList.length})`;
+            const toastId = toast(newText(0), {
+              type: 'info',
+              autoClose: false,
+              closeButton: false,
+            });
+            const url = `${getFileServerURL()}/curation`;
+            for (let i = 0; i < fileList.length; i++) {
+              const file = fileList[i];
+              const res = await fetch(url, {
+                method: 'POST',
+                body: await file.arrayBuffer(),
+              });
+              if (!res.ok) {
+                toast.update(toastId, {
+                  render: () =><div>Upload Failure ({file.name}): {res.statusText}</div>,
+                  type: 'error',
+                  closeOnClick: true,
+                  closeButton: true
+                });
+                return;
+              }
+
+              if (i < fileList.length - 1) {
+
+                // Not last one, update text before loop starts
+                toast.update(toastId, {
+                  render: () => <div>{newText(i+1)}</div>
+                });
+              }
+            }
+
+            toast.update(toastId, {
+              render: () =><div>Curation Upload Complete!</div>,
+              type: 'success',
+              closeOnClick: true,
+              closeButton: true
+            });
+          }
+        }
+      }, {
+        accept: '.7z',
+        multiple: true,
+      });
+    }
+  };
 
   // const onLoadCuration = React.useCallback(() => {
   //   // Generate task
@@ -494,6 +560,7 @@ export function CuratePage() {
 
   return curate.loaded ? (
     <div className='curate-page'>
+      {fileLoader}
       {leftSidebar}
       <div className='curate-page__center simple-scroll'>
         <div className='curate-page-keybinds'>

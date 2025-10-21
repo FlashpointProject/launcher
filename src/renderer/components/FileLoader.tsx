@@ -3,6 +3,7 @@ import React, { useCallback, useRef, useImperativeHandle, forwardRef, useState, 
 type FileLoaderOpts = {
   directory?: boolean;
   accept?: string;
+  multiple?: boolean;
 }
 
 type FileLoaderProps = {
@@ -37,6 +38,7 @@ export const FileLoader = forwardRef<FileLoaderRef, FileLoaderProps>(({ onFileSe
     accept: opts?.accept,
     onChange: handleFileChange,
     style: { display: 'none' },
+    multiple: opts?.multiple,
     webkitdirectory: opts?.directory ? '' : undefined,
     directory: opts?.directory ? '' : undefined,
   };

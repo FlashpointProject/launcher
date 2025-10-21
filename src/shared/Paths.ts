@@ -12,5 +12,4 @@ export enum Paths {
   LOADING    = '/loading',
   DOWNLOADS  = '/downloads',
   DYNAMIC    = '/dynamic',
-  FPFSS      = '/fpfss',
 }

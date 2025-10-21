@@ -2,14 +2,15 @@ import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { createNewDialog } from '@renderer/dialog';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
-import { cancelDialog, incrementLogoVersion } from '@renderer/store/main/slice';
-import { newAppPathOverride, newTagFilterGroup, removeAppPathOverride, removeTagFilterGroup, setUseCustomViews, setUseStoredViews, toggleExcludedLibrary, toggleNativePlatform, updateAppPathOverride, updatePreferences, updateTagFilterGroup } from '@renderer/store/preferences/slice';
+import { cancelDialog } from '@renderer/store/main/slice';
+import { newAppPathOverride, newTagFilterGroup, removeAppPathOverride, removeTagFilterGroup, setLogoSet, setUseCustomViews, setUseStoredViews, toggleExcludedLibrary, toggleNativePlatform, updateAppPathOverride, updatePreferences, updateTagFilterGroup } from '@renderer/store/preferences/slice';
 import { GENERAL_VIEW_ID } from '@renderer/store/search/slice';
 import { BackIn } from '@shared/back/types';
 import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
 import { ExtConfigurationProp, ILogoSet } from '@shared/extensions/interfaces';
 import { autoCode } from '@shared/lang';
 import { Paths } from '@shared/Paths';
+import { setTheme } from '@shared/Theme';
 import { ITheme } from '@shared/ThemeFile';
 import { deepCopy } from '@shared/Util';
 import * as Coerce from '@shared/utils/Coerce';
@@ -41,7 +42,6 @@ import { InputField } from '../InputField';
 import { OpenIcon } from '../OpenIcon';
 import { SimpleButton } from '../SimpleButton';
 import { TagFilterGroupEditor } from '../TagFilterGroupEditor';
-import { setTheme } from '@shared/Theme';
 
 const { num } = Coerce;
 
@@ -389,10 +389,7 @@ export function ConfigPage() {
     if (index < logoSets.length) { // (Select a Logo Set)
       logoSet = logoSets[index];
     } else { logoSet = undefined; } // (Deselect the current logo set)
-    dispatch(updatePreferences({
-      currentLogoSet: logoSet?.id,
-    }));
-    dispatch(incrementLogoVersion());
+    dispatch(setLogoSet(logoSet?.id));
   };
 
   const onClearPlaytimeTracking = () => {

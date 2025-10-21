@@ -3,8 +3,9 @@ import { BackIn } from '@shared/back/types';
 import { debounce } from '@shared/utils/debounce';
 import { startAppListening } from '../listenerMiddleware';
 import store from '../store';
-import { newAppPathOverride, newTagFilterGroup, removeAppPathOverride, removeTagFilterGroup, setHomePageBoxOpen, setUseCustomViews, setUseStoredViews, toggleExcludedLibrary, toggleNativePlatform, updateAppPathOverride, updatePreferences, updateTagFilterGroup } from './slice';
+import { newAppPathOverride, newTagFilterGroup, removeAppPathOverride, removeTagFilterGroup, setHomePageBoxOpen, setLogoSet, setUseCustomViews, setUseStoredViews, toggleExcludedLibrary, toggleNativePlatform, updateAppPathOverride, updatePreferences, updateTagFilterGroup } from './slice';
 import { createViews } from '../search/slice';
+import { incrementLogoVersion } from '../main/slice';
 
 export function addPreferencesMiddleware() {
   startAppListening({
@@ -30,7 +31,23 @@ export function addPreferencesMiddleware() {
       }));
     }
   });
+
+  startAppListening({
+    matcher: isAnyOf(setLogoSet),
+    effect: async (action: PayloadAction<string | undefined>, listenerApi) => {
+      await syncPrefs();
+      listenerApi.dispatch(incrementLogoVersion());
+    }
+  });
 }
+
+const syncPrefs = async () => {
+  return window.Shared.back.request(
+    BackIn.UPDATE_PREFERENCES,
+    store.getState().preferences,
+  );
+};
+
 
 const sendPrefs = debounce(() => {
   window.Shared.back.send(

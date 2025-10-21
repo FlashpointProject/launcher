@@ -128,6 +128,9 @@ const prefsSlice = createSlice({
         state.excludedRandomLibraries.push(payload);
       }
     },
+    setLogoSet(state: AppPreferencesData, { payload }: PayloadAction<string | undefined>) {
+      state.currentLogoSet = payload;
+    }
   }
 });
 
@@ -146,5 +149,6 @@ export const {
   updateTagFilterGroup,
   toggleNativePlatform,
   toggleExcludedLibrary,
+  setLogoSet,
 } = prefsSlice.actions;
 export default prefsSlice.reducer;
