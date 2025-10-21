@@ -123,6 +123,8 @@
   --layout__log-text-color:            var(--layout__primary-text-color);
   --layout__log-even:                  var(--layout__primary-background);
   --layout__log-odd:                 #202022;
+  --layout__log-404-even:              var(--layout__game-item-background-selected);
+  --layout__log-404-odd:               var(--layout__game-item-background-selected-secondary);
   /* Curate Page */
   --layout__curate-entry-collision-color: #efef98;
   /* Developer Page */
@@ -304,6 +306,12 @@ body {
 }
 .log__odd {
   background-color: var(--layout__log-odd);
+}
+.log__404-even {
+  background-color: var(--layout__log-404-even);
+}
+.log__404-odd {
+  background-color: var(--layout__log-404-odd);
 }
 .log__level-TRACE {
   background-color: var(--layout__log-level-TRACE);

@@ -28,12 +28,16 @@ function LogRow({ index, style, logs, longestSource }: RowComponentProps<RowProp
   ) : (
     <span className={`log__source log__source--${getClassModifier(log.source)}`}>{log.source.padStart(longestSource)}:</span>
   );
+  const is404 = log.content.startsWith('404');
+  const class404 = is404 ?
+    (index % 2 ? 'log__404 log__404__even' : 'log__404 log__404__odd')
+    : '';
 
   return (
     <pre
       key={index}
       style={style}
-      className={`${stripeClass}`}>
+      className={`${stripeClass} ${class404}`}>
       <span className={`log__level-${LogLevel[log.logLevel]}`}>{getLevelText(log.logLevel)}</span>
       <span className='log__time-stamp'>[{formatTime(new Date(log.timestamp))}]</span>
       {sourceSpan}
