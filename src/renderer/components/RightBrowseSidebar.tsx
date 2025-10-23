@@ -107,28 +107,34 @@ export function RightBrowseSidebarFpfss({ view }: RightBrowseSidebarFpfssProps) 
   };
 
   const onSaveGame = () => {
-    dispatch(saveFpfssEdit(view.id)).unwrap()
+    dispatch(getLastValidPage()).unwrap()
     .then((validLoc?: Location) => {
       if (validLoc !== undefined) {
-        navigate(validLoc);
+        navigate(validLoc.pathname);
       } else {
         navigate(Paths.HOME);
       }
-      toast('Fpfss Game Edit Successful', {
-        type: 'success'
-      });
+    })
+    .then(() => {
+      setTimeout(() => {
+        dispatch(saveFpfssEdit(view.id));
+      }, 200);
     });
   };
 
   const onDiscardGame = () => {
-    dispatch(deleteView({ view: view.id }));
     dispatch(getLastValidPage()).unwrap()
     .then((validLoc?: Location) => {
       if (validLoc !== undefined) {
-        navigate(validLoc);
+        navigate(validLoc.pathname);
       } else {
         navigate(Paths.HOME);
       }
+    })
+    .then(() => {
+      setTimeout(() => {
+        dispatch(deleteView({ view: view.id }));
+      }, 200);
     });
   };
 

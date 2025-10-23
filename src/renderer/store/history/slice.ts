@@ -1,8 +1,8 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Location } from 'react-router-dom';
-import { RootState } from '../store';
 import { getViewName } from '@renderer/Util';
 import { Paths } from '@shared/Paths';
+import { Location } from 'react-router-dom';
+import { RootState } from '../store';
 
 export type HistoryState = {
   history: Location[];
