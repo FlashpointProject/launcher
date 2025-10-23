@@ -65,6 +65,7 @@ import { SplashScreen } from './SplashScreen';
 import { TaskBar } from './TaskBar';
 import { TitleBar } from './TitleBar';
 import { setFpfssUser } from '@renderer/store/fpfss/slice';
+import { pushHistory } from '@renderer/store/history/slice';
 
 const selectDynamicThemes = createSelector(
   [
@@ -108,6 +109,7 @@ const hiddenRightSidebarPages = [Paths.ABOUT, Paths.CURATE, Paths.CONFIG, Paths.
 
 export function App() {
   const location = useLocation();
+  const lastLoc = React.useRef<string>(null);
   const contentRef = React.useRef(null);
   const dispatch = useAppDispatch();
   const enableEditing = useAppSelector(state => state.preferences.enableEditing);
@@ -143,9 +145,12 @@ export function App() {
   const navigate = useNavigate();
   const { openMenu } = useContextMenu();
 
-  if (currentView === undefined && window?.history.length && window?.history.length > 1) {
-    navigate(-1);
-  }
+  React.useEffect(() => {
+    if (lastLoc.current !== location.pathname) {
+      dispatch(pushHistory(location));
+      lastLoc.current = location.pathname;
+    }
+  });
 
   const useActivityRoutes = true;
 
@@ -153,12 +158,16 @@ export function App() {
 
   const [lastBrowsePage, setLastBrowsePage] = useState(currentView ? currentView.id : undefined);
 
-  if (currentView && currentView.id !== GENERAL_VIEW_ID && currentView.id !== lastBrowsePage) {
+  if (currentView && currentView.id !== GENERAL_VIEW_ID && currentView.id !== lastBrowsePage
+    && !currentView.id.startsWith('!fpfss')
+  ) {
     setLastBrowsePage(currentView.id);
     console.log('saved browse page name - ' + currentView.id);
   }
 
-  if (currentView && currentView.id === GENERAL_VIEW_ID && lastBrowsePage === GENERAL_VIEW_ID && firstBrowsePageViewName !== undefined) {
+  if (currentView && currentView.id === GENERAL_VIEW_ID && lastBrowsePage === GENERAL_VIEW_ID
+    && firstBrowsePageViewName !== undefined && !firstBrowsePageViewName.startsWith('!fpfss')
+  ) {
     setLastBrowsePage(firstBrowsePageViewName);
     console.log('saved browse page name - ' + firstBrowsePageViewName);
   }

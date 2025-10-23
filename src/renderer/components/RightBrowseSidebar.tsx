@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useConfirmDialog } from '@renderer/hooks/useConfirmDialog';
 import { useContextMenu } from '@renderer/hooks/useContextMenu';
 import { createFpfssEditGame, saveFpfssEdit } from '@renderer/store/fpfss/slice';
+import { getLastValidPage } from '@renderer/store/history/slice';
 import { removePlaylistGame, setMainState } from '@renderer/store/main/slice';
 import { deleteView, forceSearch, selectGame, selectPlaylist, setEditing, setSearchText, updateEditGame, updateGame } from '@renderer/store/search/slice';
 import { LangContext } from '@renderer/util/lang';
@@ -17,7 +18,7 @@ import { formatString } from '@shared/utils/StringFormatter';
 import { Game, GameData, GameLaunchOverride, LangContainer, Playlist, PlaylistGame, ResultsView } from 'flashpoint-launcher';
 import { GameComponentProps } from 'flashpoint-launcher-renderer';
 import { useContext, useEffect, useEffectEvent, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Location, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { axios, getGameImagePath, getGameImageURL, launchGame, openUrlInWindow, wrapSearchTerm } from '../Util';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
@@ -94,6 +95,7 @@ type RightBrowseSidebarFpfssProps = {
 
 export function RightBrowseSidebarFpfss({ view }: RightBrowseSidebarFpfssProps) {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const tagFilters = useAppSelector(state => state.preferences.tagFilters);
   const extremeTags = tagFilters.filter(t => t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
 
@@ -106,7 +108,12 @@ export function RightBrowseSidebarFpfss({ view }: RightBrowseSidebarFpfssProps) 
 
   const onSaveGame = () => {
     dispatch(saveFpfssEdit(view.id)).unwrap()
-    .then(() => {
+    .then((validLoc?: Location) => {
+      if (validLoc !== undefined) {
+        navigate(validLoc);
+      } else {
+        navigate(Paths.HOME);
+      }
       toast('Fpfss Game Edit Successful', {
         type: 'success'
       });
@@ -115,6 +122,14 @@ export function RightBrowseSidebarFpfss({ view }: RightBrowseSidebarFpfssProps) 
 
   const onDiscardGame = () => {
     dispatch(deleteView({ view: view.id }));
+    dispatch(getLastValidPage()).unwrap()
+    .then((validLoc?: Location) => {
+      if (validLoc !== undefined) {
+        navigate(validLoc);
+      } else {
+        navigate(Paths.HOME);
+      }
+    });
   };
 
   return (

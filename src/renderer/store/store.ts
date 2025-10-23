@@ -13,6 +13,7 @@ import { addSearchMiddleware } from './search/middleware';
 import searchReducer from './search/slice';
 import tagCategoriesReducer from './tagCategories/slice';
 import tasksReducer from './tasks/slice';
+import historyReducer from './history/slice';
 
 // Initialize all store middleware
 addSearchMiddleware();
@@ -32,6 +33,7 @@ export const store = configureStore({
     logs: logsReducer,
     downloads: downloadsReducer,
     preferences: prefsReducer,
+    history: historyReducer,
   },
   devTools: true,
   middleware: (getDefaultMiddleware) => {

@@ -1,12 +1,14 @@
-import { BackIn, FpfssState, FpfssUser } from '@shared/back/types';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Game, ResultsView } from 'flashpoint-launcher';
-import { AppDispatch, RootState } from '../store';
-import { axios } from '@renderer/Util';
-import { mapFpfssGameToLocal, mapLocalToFpfssGame } from '@shared/Util';
-import { addFpfssView, deleteView, RequestState, updateGame } from '../search/slice';
-import { getDefaultAdvancedFilter, getDefaultGameSearch } from '@shared/search/util';
 import { fpfssLogin } from '@renderer/fpfss';
+import { axios, getViewName } from '@renderer/Util';
+import { BackIn, FpfssState, FpfssUser } from '@shared/back/types';
+import { Paths } from '@shared/Paths';
+import { getDefaultAdvancedFilter, getDefaultGameSearch } from '@shared/search/util';
+import { mapFpfssGameToLocal, mapLocalToFpfssGame } from '@shared/Util';
+import { Game, ResultsView } from 'flashpoint-launcher';
+import { Location } from 'react-router-dom';
+import { addFpfssView, deleteView, RequestState, updateGame } from '../search/slice';
+import { AppDispatch, RootState } from '../store';
 
 const initialState: FpfssState = {
   user: null,
@@ -61,8 +63,27 @@ export const saveFpfssEdit = createAsyncThunk(
           }
         })).unwrap();
 
+        // Find last valid page to navigate away to
+        let validLoc: Location | undefined = undefined;
+        for (let i = state.history.history.length - 2; i >= 0; i--) {
+          const loc = state.history.history[i];
+          if (loc.pathname.startsWith(Paths.FPFSS)) {
+            // Make sure it's still a valid view
+            const view = getViewName(loc.pathname);
+            if (!view.endsWith(game.id)) {
+              validLoc = loc;
+              break;
+            }
+          } else {
+            validLoc = loc;
+            break;
+          }
+        }
+
         dispatch(updateGame(game));
         dispatch(deleteView({ view: viewName }));
+
+        return validLoc;
       } catch (error) {
         rejectWithValue(`FPFSS Game Save Failure - ${error}`);
       }
