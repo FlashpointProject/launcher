@@ -3,8 +3,9 @@ import { useView } from '@renderer/hooks/search';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useConfirmDialog } from '@renderer/hooks/useConfirmDialog';
 import { useContextMenu } from '@renderer/hooks/useContextMenu';
+import { createFpfssEditGame, saveFpfssEdit } from '@renderer/store/fpfss/slice';
 import { removePlaylistGame, setMainState } from '@renderer/store/main/slice';
-import { forceSearch, selectGame, selectPlaylist, setEditing, setSearchText, updateEditGame, updateGame } from '@renderer/store/search/slice';
+import { deleteView, forceSearch, selectGame, selectPlaylist, setEditing, setSearchText, updateEditGame, updateGame } from '@renderer/store/search/slice';
 import { LangContext } from '@renderer/util/lang';
 import { ArchiveState, BackIn } from '@shared/back/types';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
@@ -16,11 +17,13 @@ import { formatString } from '@shared/utils/StringFormatter';
 import { Game, GameData, GameLaunchOverride, LangContainer, Playlist, PlaylistGame, ResultsView } from 'flashpoint-launcher';
 import { GameComponentProps } from 'flashpoint-launcher-renderer';
 import { useContext, useEffect, useEffectEvent, useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { axios, getGameImagePath, getGameImageURL, launchGame, openUrlInWindow, wrapSearchTerm } from '../Util';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { DropdownInputField } from './DropdownInputField';
 import { DynamicComponent } from './DynamicComponent';
+import { selectGameField } from './GameComponents';
 import { GameDataBrowser } from './GameDataBrowser';
 import { GameImageSplit } from './GameImageSplit';
 import { ImagePreview } from './ImagePreview';
@@ -28,7 +31,6 @@ import { InputElement, InputField } from './InputField';
 import { MenuItemType } from './Menu';
 import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
-import { selectGameField } from './GameComponents';
 
 export type RightBrowseSidebarProps = {
   /** Currently selected game (if any) */
@@ -86,11 +88,58 @@ type RightBrowseSidebarViewProps = {
   view: ResultsView<any>;
 }
 
-const hiddenRightSidebarPages = [Paths.ABOUT, Paths.CURATE, Paths.CONFIG, Paths.MANUAL, Paths.LOGS, Paths.TAGS, Paths.CATEGORIES, Paths.DOWNLOADS];
+type RightBrowseSidebarFpfssProps = {
+  view: ResultsView<Game>;
+}
 
+export function RightBrowseSidebarFpfss({ view }: RightBrowseSidebarFpfssProps) {
+  const dispatch = useAppDispatch();
+  const tagFilters = useAppSelector(state => state.preferences.tagFilters);
+  const extremeTags = tagFilters.filter(t => t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
+
+  const onEditGame = (game: Partial<Game>) => {
+    dispatch(updateEditGame({
+      view: view.id,
+      game
+    }));
+  };
+
+  const onSaveGame = () => {
+    dispatch(saveFpfssEdit(view.id)).unwrap()
+    .then(() => {
+      toast('Fpfss Game Edit Successful', {
+        type: 'success'
+      });
+    });
+  };
+
+  const onDiscardGame = () => {
+    dispatch(deleteView({ view: view.id }));
+  };
+
+  return (
+    <RightBrowseSidebar
+      game={view.selectedGame as Game}
+      playlist={view.selectedPlaylist}
+      isExtreme={isGame(view.selectedGame) ? view.selectedGame.tags.reduce<boolean>((prev, next) => extremeTags.includes(next) || prev, false) : false}
+      gameRunning={false}
+      library={view.id}
+      onGameLaunch={async () => {}}
+      onDeleteSelectedGame={() => {}}
+      onDeselectPlaylist={() => {}}
+      onRemovePlaylistGame={() => {}}
+      onEditClick={() => {}}
+      onDiscardClick={onDiscardGame}
+      onSaveGame={onSaveGame}
+      onFpfssEditGame={() => {}}
+      onEditGame={onEditGame}
+      onUpdateActiveGameData={() => {}}
+    />
+  );
+}
 
 export function RightBrowseSidebarView({ view }: RightBrowseSidebarViewProps) {
-  const location = useLocation();
+  const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const tagFilters = useAppSelector(state => state.preferences.tagFilters);
   const playlistEntry = useAppSelector(state => state.main.currentPlaylistEntry);
@@ -104,10 +153,9 @@ export function RightBrowseSidebarView({ view }: RightBrowseSidebarViewProps) {
     }
   });
   const extremeTags = tagFilters.filter(t => t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
-  const hiddenPage = hiddenRightSidebarPages.reduce((prev, cur) => prev || location.pathname.startsWith(cur), false);
 
   // Hide if nothing to show
-  if (hiddenPage || !view.selectedGame) {
+  if (!view.selectedGame) {
     return <></>;
   }
 
@@ -187,9 +235,19 @@ export function RightBrowseSidebarView({ view }: RightBrowseSidebarViewProps) {
     }));
   };
 
-  // const onFpfssEditGame = (gameId: string) => {
-  //  // if (gameM)
-  // }
+  const onFpfssEditGame = async (gameId: string) => {
+    dispatch(createFpfssEditGame(gameId)).unwrap()
+    .then(() => {
+      navigate(Paths.FPFSS + '/' + gameId);
+    })
+    .catch((error) => {
+      log.error('FPFSS', error.message);
+      toast(error.message, {
+        type: 'error',
+        autoClose: false
+      });
+    });
+  };
 
   const onEditGame = (game: Partial<Game>) => {
     game.id = view.editingGame?.id;
@@ -225,9 +283,7 @@ export function RightBrowseSidebarView({ view }: RightBrowseSidebarViewProps) {
       onEditClick={onEditClick}
       onDiscardClick={onDiscardClick}
       onSaveGame={onSaveGame}
-      onFpfssEditGame={function (gameId: string): void {
-        throw new Error('Function not implemented.');
-      } }
+      onFpfssEditGame={onFpfssEditGame}
       onEditGame={onEditGame}
       onUpdateActiveGameData={onUpdateActiveGameData}
     />

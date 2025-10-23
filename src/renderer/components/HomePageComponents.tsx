@@ -396,6 +396,13 @@ export function HomePageComponentExtras(props: HomePageComponentProps) {
     }
   }
 
+  const onSearchPlatform = (platform: string) => {
+    searchActions.setSearchText({
+      view: viewName,
+      text: `platform:"${platform}"`
+    });
+  };
+
   const sortedPlatforms = [...platforms].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
   platformList.push(
     <div className='home-page__platform-box'>
@@ -404,12 +411,7 @@ export function HomePageComponentExtras(props: HomePageComponentProps) {
           key={idx}
           className='home-page__platform-entry'
           to={joinLibraryRoute(viewName)}
-          onClick={() => {
-            searchActions.setSearchText({
-              view: viewName,
-              text: `platform:"${platform}"`
-            });
-          }}>
+          onClick={() => onSearchPlatform(platform)}>
           <div
             className='home-page__platform-entry__logo'
             style={{ backgroundImage: `url("${getPlatformIconURL(platform, logoVersion)}")` }}/>

@@ -1,13 +1,11 @@
-import * as mainActions from '@renderer/store/main/slice';
 import { FpfssUser } from '@shared/back/types';
-import { uuid } from '@shared/utils/uuid';
-import { isAxiosError } from 'axios';
-import { DialogState } from 'flashpoint-launcher';
-import { setUser } from './store/fpfss/slice';
+import { DialogState, DialogStateTemplate } from 'flashpoint-launcher';
+import { createNewDialog } from './dialog';
+import { cancelDialog } from './store/main/slice';
 import { AppDispatch } from './store/store';
 import { axios, openUrlInWindow } from './Util';
 
-export async function fpfssLogin(createDialog: typeof mainActions.createDialog, cancelDialog: typeof mainActions.cancelDialog, fpfssBaseUrl: string): Promise<FpfssUser | null> {
+export async function fpfssLogin(dispatch: AppDispatch, fpfssBaseUrl: string): Promise<FpfssUser> {
   // Get device auth token from FPFSS
   const tokenUrl = `${fpfssBaseUrl}/auth/device`;
   const data = {
@@ -34,17 +32,16 @@ export async function fpfssLogin(createDialog: typeof mainActions.createDialog, 
   openUrlInWindow(token.verification_uri_complete);
   navigator.clipboard.writeText(token.verification_uri_complete);
 
-  const dialog: DialogState = {
+  const dialog: DialogStateTemplate = {
     largeMessage: true,
     message: 'Please login in your browser to continue. If the link does not automatically open in your browser, paste it from your clipboard.',
     buttons: ['Cancel'],
-    id: uuid()
   };
 
-  createDialog(dialog);
+  const dialogId = createNewDialog(dispatch, dialog);
 
   // Start loop until an end state occurs
-  return new Promise<FpfssUser | null>((resolve, reject) => {
+  return new Promise<FpfssUser>((resolve, reject) => {
     const pollData = {
       'device_code': token.device_code,
       'client_id': 'flashpoint-launcher',
@@ -88,11 +85,11 @@ export async function fpfssLogin(createDialog: typeof mainActions.createDialog, 
               break;
             case 'access_denied':
               clearInterval(interval);
-              resolve(null);
+              reject('Access Denied');
               break;
             case 'expired_token':
               clearInterval(interval);
-              resolve(null);
+              reject('Expired Token');
               break;
           }
         }
@@ -104,13 +101,13 @@ export async function fpfssLogin(createDialog: typeof mainActions.createDialog, 
       });
     }, token.interval * 1000);
     // Listen for dialog response
-    window.Shared.dialogResEvent.once(dialog.id, (d: DialogState, res: number) => {
+    window.Shared.dialogResEvent.once(dialogId, (d: DialogState, res: number) => {
       clearInterval(interval);
       reject('User Cancelled');
     });
   })
   .finally(() => {
-    cancelDialog(dialog.id);
+    dispatch(cancelDialog(dialogId));
   });
 }
 
@@ -183,27 +180,3 @@ export function clearFpfssConsentExt(extId: string): void {
 //   }
 //   return user;
 // }
-
-export async function performFpfssAction(dispatch: AppDispatch, user: FpfssUser, cb: (user: FpfssUser) => any) {
-  try {
-    await cb(user);
-  } catch (err) {
-    // Check if the error is an axios error, so we can handle lack of auth
-    if (isAxiosError(err)) {
-      // Axios being dumb as bricks here
-      const jsonErr = JSON.parse(JSON.stringify(err));
-      if (jsonErr.status === 401) {
-        // Must reauth
-        dispatch(setUser(null));
-        localStorage.removeItem('fpfss_user');
-        const newUser = await this.doFpfssAuth();
-        if (newUser) {
-          this._performFpfssAction(newUser, cb);
-        }
-        return;
-      }
-    }
-    log.error('Launcher', `[FPFSS] Failed to execute action - ${err}`);
-    alert(`[FPFSS] Failed to execute action - ${err}`);
-  }
-}

@@ -285,6 +285,11 @@ export function rebuildQuery(opts: RebuildQueryOpts): ViewQuery {
  * @param urlPath URL to check
  */
 export function getViewName(urlPath: string): string {
+  if (urlPath.startsWith(Paths.FPFSS)) {
+    const pathSegments = urlPath.split('/').filter(v => !!v);
+    const gameId = pathSegments[pathSegments.length - 1];
+    return '!fpfss-' + gameId;
+  }
   if (urlPath.startsWith(Paths.BROWSE)) {
     let str = urlPath.substring(Paths.BROWSE.length);
     if (str[0] === '/') { str = str.substring(1); }

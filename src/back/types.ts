@@ -165,7 +165,7 @@ export type TagsFile = {
   tags: flashpoint.Tag[];
 }
 
-export type ShowMessageBoxFunc = (options: flashpoint.DialogStateTemplate) => Promise<string>;
+export type ShowMessageBoxFunc = (options: flashpoint.DialogStateTemplate) => string;
 export type ShowMessageBoxBroadcastFunc = (options: flashpoint.DialogStateTemplate) => void;
 export type ShowSaveDialogFunc = (options: SaveDialogOptions) => Promise<string | undefined>;
 export type ShowOpenDialogFunc = (options: OpenDialogOptions) => Promise<string[] | undefined>;

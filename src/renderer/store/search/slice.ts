@@ -345,6 +345,9 @@ const searchSlice = createSlice({
         }
       }
     },
+    addFpfssView(state: SearchState, { payload }: PayloadAction<ResultsView<Game>>) {
+      state.views[payload.id] = payload;
+    },
     deleteView(state: SearchState, { payload }: PayloadAction<SearchDeleteViewAction>) {
       if (state.views[payload.view]) {
         delete state.views[payload.view];
@@ -408,11 +411,13 @@ const searchSlice = createSlice({
       }
     },
     createViews(state: SearchState, { payload }: PayloadAction<SearchCreateViewsAction>) {
-      const generalState = state.views[GENERAL_VIEW_ID];
-      // Clear existing views except general
-      state.views = {
-        [GENERAL_VIEW_ID]: generalState
-      };
+      // Clear existing views except general and FPFSS views
+      const keptKeys = Object.keys(state.views).filter(key => key === GENERAL_VIEW_ID || key.startsWith('!fpfss-'));
+      const newViews: typeof state.views = {};
+      for (const key of keptKeys) {
+        newViews[key] = state.views[key];
+      }
+      state.views = newViews;
       for (const view of payload.views) {
         if (!state.views[view]) {
           state.views[view] = {
@@ -795,5 +800,6 @@ export const {
   setGridScroll,
   setGridScrollTop,
   setListScroll,
+  addFpfssView,
   addData } = searchSlice.actions;
 export default searchSlice.reducer;

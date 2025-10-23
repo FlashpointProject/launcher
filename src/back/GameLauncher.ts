@@ -594,7 +594,7 @@ export async function checkAndInstallPlatform(platforms: Platform[], state: Back
         message: 'Downloading Required Components...',
         buttons: []
       };
-      const dialogId = await createNewDialog(state, template);
+      const dialogId = createNewDialog(state, template);
       // Run process to download components
       await new Promise<void>((resolve, reject) => {
         const cwd = path.join(state.config.flashpointPath, 'Manager');

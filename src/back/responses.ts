@@ -375,8 +375,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.SYNC_TAGGED, async (event, source) => {
-    const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
-    const dialogId = await openDialog({
+    const dialogId = createNewDialog(state, {
       largeMessage: true,
       message: `Updating tags from ${source.name}...`,
       buttons: []
@@ -2537,10 +2536,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     state.socketServer.send(event.client, BackOut.UPDATE_EXT_CONFIG_DATA, state.extConfig);
   });
 
-  state.socketServer.register(BackIn.NEW_DIALOG_RESPONSE, (event, dialogId, code) => {
-    state.newDialogEvents.emit(code, dialogId);
-  });
-
   state.socketServer.register(BackIn.DIALOG_RESPONSE, (event, dialog, buttonIdx) => {
     state.resolveDialogEvents.emit(dialog.id, dialog, buttonIdx);
   });
@@ -2570,7 +2565,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.OPTIMIZE_DATABASE, async (event) => {
-    const dialogId = await createNewDialog(state, {
+    const dialogId = createNewDialog(state, {
       largeMessage: true,
       message: 'Optimizing Database...',
       buttons: []

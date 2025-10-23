@@ -1589,7 +1589,7 @@ body {
   overflow-x: hidden;
   display: flex;
   flex-grow: 1;
-  min-height: 40%;
+  min-height: 30%;
   flex-direction: column;
   padding: 0 0.8rem;
 }

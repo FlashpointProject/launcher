@@ -5,8 +5,7 @@ import { useViewName } from '@renderer/hooks/search';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useConfirmDialog } from '@renderer/hooks/useConfirmDialog';
 import { useContextMenu } from '@renderer/hooks/useContextMenu';
-import { setUser } from '@renderer/store/fpfss/slice';
-import { updatePreferences } from '@renderer/store/preferences/slice';
+import { deleteStoredView, renameStoredView, updatePreferences } from '@renderer/store/preferences/slice';
 import { addViews, deleteView, duplicateView, GENERAL_VIEW_ID, renameView } from '@renderer/store/search/slice';
 import { RootState } from '@renderer/store/store';
 import { getLibraryItemTitle } from '@shared/library/util';
@@ -18,6 +17,8 @@ import { joinLibraryRoute, openUrlInWindow } from '../Util';
 import { LangContext } from '../util/lang';
 import { MenuItemType } from './Menu';
 import { OpenIcon } from './OpenIcon';
+import { logoutFpfss } from '@renderer/store/fpfss/slice';
+import { toast } from 'react-toastify';
 
 const viewDragType = 'text/plain';
 
@@ -37,7 +38,6 @@ export function Header() {
   const browsePageShowLeftSidebar = useAppSelector(state => state.preferences.browsePageShowLeftSidebar);
   const useCustomViews = useAppSelector(state => state.preferences.useCustomViews);
   const customViews = useAppSelector(state => state.preferences.customViews);
-  const storedViews = useAppSelector(state => state.preferences.storedViews);
   const defaultOpeningPage = useAppSelector(state => state.preferences.defaultOpeningPage);
   const loadViewsText = useAppSelector(state => state.preferences.loadViewsText);
   const hideNewViewButton = useAppSelector(state => state.preferences.hideNewViewButton);
@@ -46,6 +46,7 @@ export function Header() {
   const onlineManual = useAppSelector(state => state.preferences.onlineManual);
   const offlineManual = useAppSelector(state => state.preferences.offlineManual);
   const fpfssUser = useAppSelector(state => state.fpfss.user);
+  const fpfssEditsOpen = useAppSelector(state => Object.keys(state.search.views).filter(k => k.startsWith('!fpfss-')).length > 0);
   const playlists = useAppSelector(state => state.main.playlists);
   const { openMenu } = useContextMenu();
   const viewName = useViewName();
@@ -66,12 +67,6 @@ export function Header() {
     dispatch(updatePreferences({
       browsePageShowRightSidebar: !browsePageShowRightSidebar
     }));
-  };
-
-  const logoutUser = () => {
-    // @TODO actually logout to invalid server side
-    dispatch(setUser(null));
-    localStorage.removeItem('fpfss_user');
   };
 
   const getUserInput = async (message: string, warning?: string, placeholder?: string): Promise<string> => {
@@ -175,14 +170,7 @@ export function Header() {
           } else {
             newCustomViews.push(name);
           }
-          const newStoredViews = [...storedViews.filter(s => s.view !== view)];
-          const existingStoredView = newStoredViews.find(s => s.view === view);
-          if (existingStoredView) {
-            newStoredViews.push({
-              ...existingStoredView,
-              view: name
-            });
-          }
+          dispatch(renameStoredView({ old: view, new: name }));
           if (defaultOpeningPage === joinLibraryRoute(view)) {
             dispatch(updatePreferences({
               defaultOpeningPage: joinLibraryRoute(name)
@@ -190,7 +178,6 @@ export function Header() {
           }
           dispatch(updatePreferences({
             customViews: newCustomViews,
-            storedViews: newStoredViews
           }));
           if (viewName === view) {
             // Move to LOADING page during change over
@@ -262,16 +249,15 @@ export function Header() {
         navigate(Paths.HOME);
       }
       const newCustomViews = customViews.filter(v => v !== view);
-      const newStoredViews = storedViews.filter(v => v.view !== view);
       // Make sure the default page is always valid
       if (defaultOpeningPage === joinLibraryRoute(view)) {
         dispatch(updatePreferences({
           defaultOpeningPage: Paths.HOME,
         }));
       }
+      dispatch(deleteStoredView(view));
       dispatch(updatePreferences({
         customViews: newCustomViews,
-        storedViews: newStoredViews
       }));
       dispatch(deleteView({
         view
@@ -313,7 +299,6 @@ export function Header() {
     {
       type: 'button',
       label: strings.fpfssProfile,
-      enabled: true,
       onClick: () => {
         openUrlInWindow(`${fpfssBaseUrl}/web/profile`);
       }
@@ -321,8 +306,20 @@ export function Header() {
     {
       type: 'button',
       label: strings.fpfssLogout,
-      enabled: true,
-      onClick: logoutUser
+      onClick: () => {
+        dispatch(logoutFpfss())
+        .then(() => {
+          toast('Logged out of FPFSS', {
+            type: 'success'
+          });
+        })
+        .catch((err) => {
+          toast(err, {
+            type: 'error',
+            autoClose: false,
+          });
+        });
+      }
     }
   ];
 
@@ -423,6 +420,12 @@ export function Header() {
               id={'header__curate'}
               title={strings.curate}
               link={Paths.CURATE} />
+          )}
+          { fpfssEditsOpen && (
+            <HeaderMenuItem
+              id={'header__fpfss'}
+              title={'FPFSS'}
+              link={Paths.FPFSS} />
           )}
         </ul>
       </div>

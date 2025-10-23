@@ -7,21 +7,19 @@ import { useContextMenu } from '@renderer/hooks/useContextMenu';
 import { modifyCurations, replaceCurations, setContentTree, setCurateLoaded, setCurrentCuration, setLock, setSelectedCurations } from '@renderer/store/curate/slice';
 import { updateDownloaderStatus, updateDownloaderTask, updateDownloaderTasks, updateDownloaderWorker } from '@renderer/store/downloads/slice';
 import { addLogEntries, setEntries } from '@renderer/store/logs/slice';
-import { addLoaded, cancelDialog, changeService, openDynamicPage, removeService, setDisplaySettingsFromCallback, setExtOrderablesFromCallback, setMainState, setUpdateInfo, updateDialog, updateDialogField } from '@renderer/store/main/slice';
+import { addLoaded, cancelDialog, changeService, createDialog, openDynamicPage, removeService, setDisplaySettingsFromCallback, setExtOrderablesFromCallback, setMainState, setUpdateInfo, updateDialog, updateDialogField } from '@renderer/store/main/slice';
 import { setPreferences, updatePreferences } from '@renderer/store/preferences/slice';
 import { addData, createViews, GENERAL_VIEW_ID } from '@renderer/store/search/slice';
 import store, { AppDispatch, RootState } from '@renderer/store/store';
 import { setTagCategories } from '@renderer/store/tagCategories/slice';
 import { addTask, setTask, setTaskBarOpen } from '@renderer/store/tasks/slice';
 import * as extUtils from '@renderer/util/ext';
-import { BackIn, BackInit, BackOut } from '@shared/back/types';
+import { BackIn, BackInit, BackOut, FpfssUser } from '@shared/back/types';
 import { APP_TITLE } from '@shared/constants';
 import { Paths } from '@shared/Paths';
 import { setTheme } from '@shared/Theme';
 import { getFileServerURL, sizeToString } from '@shared/Util';
-import { uuid } from '@shared/utils/uuid';
 import {
-  DialogState,
   DialogStateTemplate,
   LangContainer,
   Playlist
@@ -31,7 +29,7 @@ import * as React from 'react';
 import { Activity, useState } from 'react';
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
-import { getGameImagePath, getGameImageURL, getGamePath, openUrlInWindow } from '../Util';
+import { axios, getGameImagePath, getGameImageURL, getGamePath, openUrlInWindow } from '../Util';
 import { LangContext } from '../util/lang';
 import { ActivityRoutes } from './ActivityRoutes';
 import { Dialog } from './Dialog';
@@ -40,7 +38,6 @@ import { DynamicComponentProvider, RemoteModule } from './DynamicComponentProvid
 import { DynamicThemeProvider } from './DynamicThemeProvider';
 import { FloatingContainer } from './FloatingContainer';
 import { Footer } from './Footer';
-import { FpfssEditGame } from './FpfssEditGame';
 import { SortableColumn } from './GameListHeader';
 import { Header } from './Header';
 import { MenuItemType } from './Menu';
@@ -50,6 +47,7 @@ import { ConfigPage } from './pages/ConfigPage';
 import { CuratePage } from './pages/CuratePage';
 import { DownloadsPage } from './pages/Downloads';
 import { DynamicPage } from './pages/DynamicPage';
+import { FpfssPage } from './pages/FpfssPage';
 import { HomePage } from './pages/HomePage';
 import { IFramePage } from './pages/IFramePage';
 import { LoadingPage } from './pages/LoadingPage';
@@ -66,6 +64,7 @@ import { SimpleButton } from './SimpleButton';
 import { SplashScreen } from './SplashScreen';
 import { TaskBar } from './TaskBar';
 import { TitleBar } from './TitleBar';
+import { setFpfssUser } from '@renderer/store/fpfss/slice';
 
 const selectDynamicThemes = createSelector(
   [
@@ -105,6 +104,8 @@ const selectRemoteModules = createSelector(
   }
 );
 
+const hiddenRightSidebarPages = [Paths.ABOUT, Paths.CURATE, Paths.CONFIG, Paths.MANUAL, Paths.LOGS, Paths.TAGS, Paths.CATEGORIES, Paths.DOWNLOADS, Paths.FPFSS];
+
 export function App() {
   const location = useLocation();
   const contentRef = React.useRef(null);
@@ -133,15 +134,18 @@ export function App() {
   const selectedPlaylistId = useAppSelector(state => state.main.selectedPlaylistId);
   const dynamicPage = useAppSelector(state => state.main.dynamicPage);
   const fpfssBaseUrl = useAppSelector(state => state.preferences.fpfssBaseUrl);
-  const fpfssGameOpen = useAppSelector(state => state.fpfss.editingGame !== null);
   const manualUrl = useAppSelector(state => state.preferences.onlineManual || pathToFileUrl(path.join(window.Shared.config.fullFlashpointPath, state.preferences.offlineManual)));
   const dynamicThemeFileList = useAppSelector(selectDynamicThemes);
   const remoteModules = useAppSelector(selectRemoteModules);
   const currentView = useView();
   const firstBrowsePageViewName = useAppSelector(state => Object.keys(state.search.views).find(v => v !== GENERAL_VIEW_ID));
-  const showRightSidebar = currentView?.selectedGame !== undefined && browsePageShowRightSidebar;
+  const showRightSidebar = currentView?.selectedGame !== undefined && browsePageShowRightSidebar && !hiddenRightSidebarPages.reduce((prev, cur) => prev || location.pathname.startsWith(cur), false);
   const navigate = useNavigate();
   const { openMenu } = useContextMenu();
+
+  if (currentView === undefined && window?.history.length && window?.history.length > 1) {
+    navigate(-1);
+  }
 
   const useActivityRoutes = true;
 
@@ -165,8 +169,6 @@ export function App() {
         currentView.id :
         lastBrowsePage
       : lastBrowsePage;
-
-  console.log(browsePageViewName);
 
   React.useEffect(() => {
     setPageTitle(location.pathname);
@@ -435,12 +437,6 @@ export function App() {
               {openDialogs.length > 0 && socketOpen && (
                 <Dialog dialog={openDialogs[0]} />
               )}
-              {/** Fancy FPFSS edit */}
-              {fpfssGameOpen && (
-                <FloatingContainer floatingClassName='fpfss-edit-container'>
-                  <FpfssEditGame />
-                </FloatingContainer>
-              )}
               {/* Splash screen */}
               <SplashScreen />
               {/* Title-bar (if enabled) */}
@@ -457,72 +453,79 @@ export function App() {
                   <Header />
                   {/* Main */}
                   <div className='main' ref={contentRef} >
-                    { useActivityRoutes && (
-                      <ActivityRoutes
-                        manualUrl={manualUrl}
-                        onGameContextMenu={onGameContextMenu}/>
-                    )}
-                    <Routes>
-                      <Route
-                        path={Paths.LOADING}
-                        element={<LoadingPage/>}/>
-                      <Route
-                        path={Paths.HOME}
-                        element={useActivityRoutes ? <></> : <HomePage onGameContextMenu={onGameContextMenu} />}/>
-                      <Route
-                        path={Paths.BROWSE}
-                        element={<></>}/>
-                      <Route
-                        path={Paths.TAGS}
-                        element={useActivityRoutes ? <></> : <TagsPage/>}/>
-                      <Route
-                        path={Paths.CATEGORIES}
-                        element={<TagCategoriesPage/>}/>
-                      <Route
-                        path={Paths.DOWNLOADS}
-                        element={<DownloadsPage/>}/>
-                      <Route
-                        path={Paths.LOGS}
-                        element={useActivityRoutes ? <></> : <LogsPage/>}/>
-                      <Route
-                        path={Paths.CONFIG}
-                        element={<ConfigPage/>}/>
-                      <Route
-                        path={Paths.MANUAL}
-                        element={useActivityRoutes ? <></> : <IFramePage url={manualUrl} />}/>
-                      <Route
-                        path={Paths.ABOUT}
-                        element={<AboutPage/>}/>
-                      <Route
-                        path={Paths.CURATE}
-                        element={useActivityRoutes ? <></> : <CuratePage/>}/>
-                      <Route
-                        path={Paths.DYNAMIC}
-                        element={<DynamicPage name={dynamicPage?.name || ''} props={dynamicPage?.props}/>}/>
-                      <Route element={<NotFoundPage/>}/>
-                    </Routes>
-                    <Activity mode={isBrowsePage ? 'visible' : 'hidden'}>
-                      {browsePageViewName !== undefined && (
-                        <BrowsePage
-                          viewName={browsePageViewName}
-                          onGameContextMenu={onGameContextMenu}
-                          sourceTable='browse-page'/>
-                      )}
-                    </Activity>
+                    { currentView !== undefined ? (
+                      <>
+                        { useActivityRoutes && (
+                          <ActivityRoutes
+                            manualUrl={manualUrl}
+                            onGameContextMenu={onGameContextMenu}/>
+                        )}
+                        <Routes>
+                          <Route
+                            path={Paths.LOADING}
+                            element={<LoadingPage/>}/>
+                          <Route
+                            path={Paths.HOME}
+                            element={useActivityRoutes ? <></> : <HomePage onGameContextMenu={onGameContextMenu} />}/>
+                          <Route
+                            path={Paths.BROWSE}
+                            element={<></>}/>
+                          <Route
+                            path={Paths.TAGS}
+                            element={useActivityRoutes ? <></> : <TagsPage/>}/>
+                          <Route
+                            path={Paths.CATEGORIES}
+                            element={<TagCategoriesPage/>}/>
+                          <Route
+                            path={Paths.DOWNLOADS}
+                            element={<DownloadsPage/>}/>
+                          <Route
+                            path={Paths.LOGS}
+                            element={useActivityRoutes ? <></> : <LogsPage/>}/>
+                          <Route
+                            path={Paths.CONFIG}
+                            element={<ConfigPage/>}/>
+                          <Route
+                            path={Paths.MANUAL}
+                            element={useActivityRoutes ? <></> : <IFramePage url={manualUrl} />}/>
+                          <Route
+                            path={Paths.ABOUT}
+                            element={<AboutPage/>}/>
+                          <Route
+                            path={Paths.CURATE}
+                            element={useActivityRoutes ? <></> : <CuratePage/>}/>
+                          <Route
+                            path={Paths.FPFSS}
+                            element={useActivityRoutes ? <></> : <FpfssPage/>}/>
+                          <Route
+                            path={Paths.DYNAMIC}
+                            element={<DynamicPage name={dynamicPage?.name || ''} props={dynamicPage?.props}/>}/>
+                          <Route element={<NotFoundPage/>}/>
+                        </Routes>
+                        <Activity mode={isBrowsePage ? 'visible' : 'hidden'}>
+                          {browsePageViewName !== undefined && (
+                            <BrowsePage
+                              viewName={browsePageViewName}
+                              onGameContextMenu={onGameContextMenu}
+                              sourceTable='browse-page'/>
+                          )}
+                        </Activity>
+                        <Activity mode={showRightSidebar ? 'visible' : 'hidden'}>
+                          <ResizableSidebar
+                            show={browsePageShowRightSidebar}
+                            divider='before'
+                            width={browsePageRightSidebarWidth}
+                            onResize={onRightSidebarResize}>
+                            <RightBrowseSidebarView view={currentView}/>
+                          </ResizableSidebar>
+                        </Activity>
+                      </>
+                    ) : <NotFoundPage/> }
                     <noscript className='nojs'>
                       <div style={{ textAlign: 'center' }}>
                         This website requires JavaScript to be enabled.
                       </div>
                     </noscript>
-                    <Activity mode={showRightSidebar ? 'visible' : 'hidden'}>
-                      <ResizableSidebar
-                        show={browsePageShowRightSidebar}
-                        divider='before'
-                        width={browsePageRightSidebarWidth}
-                        onResize={onRightSidebarResize}>
-                        <RightBrowseSidebarView view={currentView}/>
-                      </ResizableSidebar>
-                    </Activity>
                   </div>
                   {/* Tasks - @TODO Find a better way to hide it than behind enableEditing */}
                   {enableEditing && tasks.length > 0 && (
@@ -624,6 +627,37 @@ function initApp(dispatch: AppDispatch) {
       socketOpen: state
     }));
   };
+
+  // Load FPFSS user info and check that profile works
+  (() => {
+    const userBase64 = localStorage.getItem('fpfss_user');
+    if (userBase64) {
+      try {
+        const user = JSON.parse(Buffer.from(userBase64, 'base64').toString('utf-8')) as FpfssUser;
+        // Test profile uri
+        const profileUrl = `${window.Shared.initialPreferences.fpfssBaseUrl}/api/profile`;
+        axios.get(profileUrl, {
+          headers: {
+            'Authorization': `Bearer ${user.accessToken}`
+          }
+        })
+        .then((res) => {
+          // Success, use most recent info and save to storage and state
+          user.username = res.data['Username'];
+          user.avatarUrl = res.data['AvatarURL'];
+          user.roles = res.data['Roles'];
+          dispatch(setFpfssUser(user));
+        })
+        .catch(() => {
+          // Failed auth
+          localStorage.removeItem('fpfss_user');
+        });
+      } catch (err) {
+        log.error('Launcher', 'Fpfss saved auth was invalid, clearing...');
+        localStorage.removeItem('fpfss_user');
+      }
+    }
+  })();
 
   registerWebsocketListeners(dispatch);
 }
@@ -872,13 +906,8 @@ function registerWebsocketListeners(dispatch: AppDispatch) {
     window.focus();
   });
 
-  window.Shared.back.register(BackOut.NEW_DIALOG, (event, dialog, code) => {
-    const template: DialogState = {
-      ...dialog,
-      id: uuid()
-    };
-    const id = createNewDialog(dispatch, template);
-    window.Shared.back.send(BackIn.NEW_DIALOG_RESPONSE, id, code);
+  window.Shared.back.register(BackOut.NEW_DIALOG, (event, dialog) => {
+    dispatch(createDialog(dialog));
   });
 
   window.Shared.back.register(BackOut.UPDATE_DIALOG_MESSAGE, (event, message, dialogId) => {

@@ -14,7 +14,6 @@ import {
   CurationState,
   CurationWarnings,
   DialogState,
-  DialogStateTemplate,
   DownloaderStatus,
   DownloadTask,
   DownloadWorkerState,
@@ -210,7 +209,6 @@ export enum BackIn {
 
   // Dialogs
   DIALOG_RESPONSE,
-  NEW_DIALOG_RESPONSE,
 
   // Downloader
   DOWNLOADER_SET_STATUS,
@@ -474,7 +472,6 @@ export type BackInTemplate = SocketTemplate<BackIn, {
 
   // Dialogs
   [BackIn.DIALOG_RESPONSE]: (dialog: DialogState, button: number) => void;
-  [BackIn.NEW_DIALOG_RESPONSE]: (dialogId: string, responseId: string) => void;
 
   // Tests
   [BackIn.TEST_RECONNECTIONS]: () => void;
@@ -561,7 +558,7 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.SHORTCUT_UNREGISTER]: (shortcuts: string[]) => void;
 
   // Dialogs
-  [BackOut.NEW_DIALOG]: (template: DialogStateTemplate, responseId: string) => void;
+  [BackOut.NEW_DIALOG]: (dialog: DialogState) => void;
   [BackOut.CANCEL_DIALOG]: (dialogId: string) => void;
   [BackOut.UPDATE_DIALOG_MESSAGE]: (message: string, dialogId: string) => void;
   [BackOut.UPDATE_DIALOG_FIELD_VALUE]: (dialogId: string, name: string, value: any) => void;
@@ -783,7 +780,7 @@ export type FpfssUser = {
 
 export type FpfssState = {
   user: FpfssUser | null;
-  editingGame: Game | null;
+  tagsSynced: boolean;
 }
 
 export enum ArchiveState {

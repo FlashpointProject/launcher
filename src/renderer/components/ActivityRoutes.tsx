@@ -6,6 +6,7 @@ import { HomePage } from './pages/HomePage';
 import { IFramePage } from './pages/IFramePage';
 import { LogsPage } from './pages/LogsPage';
 import { TagsPage } from './pages/TagsPage';
+import { FpfssPage } from './pages/FpfssPage';
 
 export type ActivityRoutesProps = {
   onGameContextMenu: (event: React.MouseEvent, gameId: string, logoPath: string, screenshotPath: string) => void;
@@ -29,6 +30,9 @@ export function ActivityRoutes({ onGameContextMenu, manualUrl }: ActivityRoutesP
       </ActivityRoute>
       <ActivityRoute path={Paths.CURATE}>
         <CuratePage/>
+      </ActivityRoute>
+      <ActivityRoute path={Paths.FPFSS}>
+        <FpfssPage/>
       </ActivityRoute>
     </>
   );

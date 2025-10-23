@@ -27,6 +27,11 @@ export type TagFilterEnabledAction = {
   enabled: boolean;
 }
 
+export type RenameStoredViewAction = {
+  old: string;
+  new: string;
+}
+
 const prefsSlice = createSlice({
   name: 'preferences',
   initialState,
@@ -130,6 +135,23 @@ const prefsSlice = createSlice({
     },
     setLogoSet(state: AppPreferencesData, { payload }: PayloadAction<string | undefined>) {
       state.currentLogoSet = payload;
+    },
+    renameStoredView(state: AppPreferencesData, { payload }: PayloadAction<RenameStoredViewAction>) {
+      const oldIdx = state.storedViews.findIndex(v => v.view === payload.old);
+      const existing = state.storedViews.findIndex(v => v.view === payload.new);
+      if (!oldIdx) {
+        throw 'Could not find old view to rename - ' + payload.old;
+      }
+      if (existing) {
+        throw 'Cannot override existing view during a rename - ' + payload.old + ' to ' + payload.new;
+      }
+      state.storedViews[oldIdx].view = payload.new;
+    },
+    deleteStoredView(state: AppPreferencesData, { payload }: PayloadAction<string>) {
+      const idx = state.storedViews.findIndex(v => v.view === payload);
+      if (idx > -1) {
+        state.storedViews.splice(idx, 1);
+      }
     }
   }
 });
@@ -150,5 +172,7 @@ export const {
   toggleNativePlatform,
   toggleExcludedLibrary,
   setLogoSet,
+  renameStoredView,
+  deleteStoredView,
 } = prefsSlice.actions;
 export default prefsSlice.reducer;
