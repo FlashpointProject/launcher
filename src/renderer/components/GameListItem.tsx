@@ -53,7 +53,6 @@ export function GameListItem(props: GameListItemProps) {
   attributes[GameListItem.screenshotPathAttribute] = props.game?.screenshotPath;
 
   const gameListComponentProps: GameListComponentProps = {
-    isSelected,
     isDragged,
     game,
     logoVersion: props.logoVersion,

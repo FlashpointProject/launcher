@@ -1351,8 +1351,13 @@ declare module 'flashpoint-launcher' {
 
     type DownloadTask = {
       status: DownloadTaskStatus;
-      game: Game;
+      game: DownloadGameInfo;
       errors: string[];
+    }
+
+    type DownloadGameInfo = {
+      id: string;
+      title: string;
     }
 
     type DownloaderState = {

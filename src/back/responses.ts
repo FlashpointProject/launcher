@@ -201,6 +201,14 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     };
   });
 
+  state.socketServer.register(BackIn.DOWNLOADER_GET_STATE, async (event) => {
+    return {
+      state: state.downloader.status,
+      tasks: state.downloader.getTasks(),
+      workers: state.downloader.getWorkerStates(),
+    };
+  });
+
   state.socketServer.register(BackIn.DOWNLOADER_SET_STATUS, async (event, status) => {
     if (status === 'running') {
       state.downloader.start();
@@ -928,7 +936,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
         if (result === 1) {
           log.debug('Downloads', 'User aborted playlist download at size prompt');
-          return;
+          return false;
         }
       }
 
@@ -948,8 +956,10 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       }
 
       state.downloader.start();
+      return true;
     } else {
       log.error('Downloads', 'Could not find playlist with id ' + playlistId);
+      return false;
     }
   });
 

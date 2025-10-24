@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
 import { Game } from '@fparchive/flashpoint-archive';
 import { downloadGameData } from './download';
 import { fpDatabase } from '.';
@@ -98,6 +99,10 @@ export class Downloader extends WrappedEventEmitter {
     return this.tasks;
   }
 
+  public getWorkerStates(): DownloadWorkerState[] {
+    return this.workers.map(worker => worker.getState());
+  }
+
   public addTasks(games: Game[]) {
     // Bulk send updates in sets of up to 2500
     let updateQueue: DownloadTask[] = [];
@@ -105,7 +110,10 @@ export class Downloader extends WrappedEventEmitter {
       if (!this.tasks[game.id]) {
         const newTask: DownloadTask = {
           status: 'waiting',
-          game,
+          game: {
+            id: game.id,
+            title: game.title,
+          },
           errors: [],
         };
         updateQueue.push(newTask);
@@ -136,7 +144,10 @@ export class Downloader extends WrappedEventEmitter {
     if (!this.tasks[game.id]) {
       const newTask: DownloadTask = {
         status: 'waiting',
-        game,
+        game: {
+          id: game.id,
+          title: game.title,
+        },
         errors: [],
       };
       this.tasks[game.id] = newTask;
@@ -173,14 +184,21 @@ export class Downloader extends WrappedEventEmitter {
   public signalStatus(worker: DownloadWorker, gameId: string, status: DownloadTaskStatus, errors: string[]): void {
     this.idleWorkers.push(worker);
     if (this.tasks[gameId]) {
-      this.tasks[gameId].status = status;
-      this.tasks[gameId].errors = errors;
-      log.info('Downloader', `Task: ${gameId} - Status: ${status}`);
-      this.state.socketServer.broadcast(BackOut.UPDATE_DOWNLOADER_TASK, this.tasks[gameId]);
-      this.emit('taskChange', this.tasks[gameId]);
+      if (this.status === 'running') {
+        this.tasks[gameId].status = status;
+        this.tasks[gameId].errors = errors;
+        log.info('Downloader', `Task: ${gameId} - Status: ${status}`);
+        this.state.socketServer.broadcast(BackOut.UPDATE_DOWNLOADER_TASK, this.tasks[gameId]);
+        this.emit('taskChange', this.tasks[gameId]);
+      } else {
+        this.tasks[gameId].status = 'waiting';
+        log.info('Downloader', `Task: ${gameId} - Status: waiting`);
+        this.state.socketServer.broadcast(BackOut.UPDATE_DOWNLOADER_TASK, this.tasks[gameId]);
+        this.emit('taskChange', this.tasks[gameId]);
+      }
     }
 
-    if (status === 'failure') {
+    if (status === 'failure' && this.status === 'running') {
       log.error('Downloader', `Download failure for ${gameId}: ${errors}`);
     }
 
@@ -234,9 +252,16 @@ class DownloadWorker {
     this.stepProgress = 0;
     this.statusText = 'Downloading logo...';
     this.downloader.onWorkerUpdate(this);
-    const { game } = task;
-    const gameId = game.id;
+    const gameInfo = task.game;
+    const gameId = gameInfo.id;
     const errors: string[] = [];
+
+    const game = await fpDatabase.findGame(gameId);
+    if (!game) {
+      errors.push(`Failed to find game with id ${gameId}`);
+      this.downloader.signalStatus(this, gameId, 'failure', errors);
+      return;
+    }
 
     // Download game images
     const logoPath = path.join(this.downloader.flashpointPath, this.downloader.imageFolderPath, game.logoPath);
@@ -277,22 +302,31 @@ class DownloadWorker {
     this.statusText = 'Downloading game data...';
     this.step = 3;
 
+    const foundGameData = await fpDatabase.findGameData(game.id);
+
     // Download game data
-    if (game.gameData) {
+    if (foundGameData) {
       this.stepProgress = 0;
-      for (const gameData of game.gameData) {
+      for (const gameData of foundGameData) {
         // Calc the path on disk and check if the file already matches
         const realPath = path.join(this.downloader.flashpointPath, this.downloader.dataPacksFolderPath, `${gameData.gameId}-${(new Date(gameData.dateAdded)).getTime()}.zip`);
         if (fs.existsSync(realPath)) {
           if (gameData.path !== realPath || gameData.presentOnDisk === false) {
             gameData.path = realPath;
             gameData.presentOnDisk = true;
-            game.activeDataOnDisk = true;
             await new Promise<void>((resolve, reject) => {
               this.downloader.databaseQueue.push(async () => {
                 try {
-                  await fpDatabase.saveGameData(gameData);
-                  await fpDatabase.saveGame(game);
+                  await fpDatabase.saveGameData({
+                    id: gameData.id,
+                    gameId: gameId,
+                    path: realPath,
+                    presentOnDisk: true,
+                  });
+                  await fpDatabase.saveGame({
+                    id: gameId,
+                    activeDataOnDisk: true
+                  });
                   resolve();
                 } catch (err) {
                   reject(err);

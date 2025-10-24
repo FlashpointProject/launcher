@@ -3731,28 +3731,18 @@ body {
   margin-top: 0.5rem;
 }
 
-.downloads-page__workers {
-  margin-left: 1rem;
-  margin-right: 1rem;
-}
-
-.downloads-page__workers-row {
+.downloads-page__data {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
+  height: 100%;
   width: 100%;
 }
 
-.downloads-page__workers-row > :not(:first-child) {
-  margin-left: 1rem;
+.downloads-page__data-content {
+  flex-grow: 1;
+  width: 100%;
 }
 
-.downloads-page__workers-worker {
-  flex: 1;
-}
-
-.downloads-page__workers-spacer {
-  flex: 0.5;
-}
 
 /* --- Menu --- */
 .context-menu {

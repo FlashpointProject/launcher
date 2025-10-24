@@ -39,6 +39,9 @@ const downloadsSlice = createSlice({
         state.workers.push(payload);
       }
     },
+    setDownloaderState(state: DownloadsState, { payload }: PayloadAction<DownloadsState>) {
+      return payload;
+    },
     setStatus(state: DownloadsState, { payload }: PayloadAction<DownloaderStatus>) {
       window.Shared.back.send(BackIn.DOWNLOADER_SET_STATUS, payload);
     }
@@ -51,6 +54,7 @@ export const {
   updateDownloaderTask,
   updateDownloaderTasks,
   updateDownloaderWorker,
+  setDownloaderState,
   setStatus
 } = downloadsActions;
 export default downloadsSlice.reducer;

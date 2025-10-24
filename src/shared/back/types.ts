@@ -14,6 +14,7 @@ import {
   CurationState,
   CurationWarnings,
   DialogState,
+  DownloaderState,
   DownloaderStatus,
   DownloadTask,
   DownloadWorkerState,
@@ -211,6 +212,7 @@ export enum BackIn {
   DIALOG_RESPONSE,
 
   // Downloader
+  DOWNLOADER_GET_STATE,
   DOWNLOADER_SET_STATUS,
   DOWNLOADER_ADD_MISSING_CONTENT,
 
@@ -351,7 +353,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.DUPLICATE_PLAYLIST]: (data: string) => void;
   [BackIn.IMPORT_PLAYLIST]: (jsonString: string, library?: string) => void;
   [BackIn.EXPORT_PLAYLIST]: (id: string, location: string) => void;
-  [BackIn.DOWNLOAD_PLAYLIST_CONTENTS]: (playlistId: string) => void;
+  [BackIn.DOWNLOAD_PLAYLIST_CONTENTS]: (playlistId: string) => boolean;
   [BackIn.GET_PLAYLISTS]: () => Playlist[];
   [BackIn.GET_PLAYLIST]: (playlistId: string) => Playlist | undefined;
   [BackIn.SAVE_PLAYLIST]: (playlist: Playlist) => Playlist;
@@ -463,6 +465,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.IS_FLASHPOINT_PATH_VALID]: (path: string) => boolean;
 
   // Downloader
+  [BackIn.DOWNLOADER_GET_STATE]: () => DownloaderState;
   [BackIn.DOWNLOADER_SET_STATUS]: (status: DownloaderStatus) => void;
   [BackIn.DOWNLOADER_ADD_MISSING_CONTENT]: () => void;
 

@@ -5,7 +5,7 @@ import { useView } from '@renderer/hooks/search';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useContextMenu } from '@renderer/hooks/useContextMenu';
 import { modifyCurations, replaceCurations, setContentTree, setCurateLoaded, setCurrentCuration, setLock, setSelectedCurations } from '@renderer/store/curate/slice';
-import { updateDownloaderStatus, updateDownloaderTask, updateDownloaderTasks, updateDownloaderWorker } from '@renderer/store/downloads/slice';
+import { setDownloaderState, updateDownloaderStatus, updateDownloaderTask, updateDownloaderTasks, updateDownloaderWorker } from '@renderer/store/downloads/slice';
 import { addLogEntries, setEntries } from '@renderer/store/logs/slice';
 import { addLoaded, cancelDialog, changeService, createDialog, openDynamicPage, removeService, setDisplaySettingsFromCallback, setExtOrderablesFromCallback, setMainState, setUpdateInfo, updateDialog, updateDialogField } from '@renderer/store/main/slice';
 import { setPreferences, updatePreferences } from '@renderer/store/preferences/slice';
@@ -725,6 +725,11 @@ function registerWebsocketListeners(dispatch: AppDispatch) {
         });
       }
     }
+
+    window.Shared.back.request(BackIn.DOWNLOADER_GET_STATE)
+    .then((downloaderState) => {
+      dispatch(setDownloaderState(downloaderState));
+    });
 
     // this.props.navigate(this.props.preferencesData.defaultOpeningPage);
   };

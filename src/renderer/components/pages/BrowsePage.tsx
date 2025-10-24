@@ -23,6 +23,8 @@ import { InputElement } from '../InputField';
 import { LeftBrowseSidebar } from '../LeftBrowseSidebar';
 import { MenuItemType } from '../Menu';
 import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
+import { Paths } from '@shared/Paths';
+import { useNavigate } from 'react-router-dom';
 
 export type GameDragEventData = {
   gameId: string;
@@ -55,6 +57,7 @@ const selectPlaylists = createSelector(
 
 export function BrowsePage(props: BrowsePageProps) {
   const { viewName } = props;
+  const navigate = useNavigate();
   const [isEditingPlaylist, setIsEditingPlaylist] = useState(false);
   const [isNewPlaylist, setIsNewPlaylist] = useState(false);
   const [currentPlaylist, setCurrentPlaylist] = useState<Playlist | null>(null);
@@ -380,7 +383,12 @@ export function BrowsePage(props: BrowsePageProps) {
   };
 
   const onDownloadPlaylistContents = (playlistId: string): void => {
-    window.Shared.back.send(BackIn.DOWNLOAD_PLAYLIST_CONTENTS, playlistId);
+    window.Shared.back.request(BackIn.DOWNLOAD_PLAYLIST_CONTENTS, playlistId)
+    .then((started) => {
+      if (started) {
+        navigate(Paths.DOWNLOADS);
+      }
+    });
   };
 
   const onExportPlaylist = (playlistId: string): void => {

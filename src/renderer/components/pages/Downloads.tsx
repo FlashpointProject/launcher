@@ -1,17 +1,34 @@
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
-import { ProgressBar } from '../ProgressComponents';
-import { SimpleButton } from '../SimpleButton';
-import { DownloaderStatus } from 'flashpoint-launcher';
 import { setStatus } from '@renderer/store/downloads/slice';
 import { BackIn } from '@shared/back/types';
+import { calcScale } from '@shared/Util';
+import { DownloaderStatus, DownloadTask } from 'flashpoint-launcher';
+import AutoSizer from 'react-virtualized-auto-sizer';
+import { List, RowComponentProps } from 'react-window';
+import { SimpleButton } from '../SimpleButton';
+import { SizeProvider } from '../SizeProvider';
+
+type RowProps = {
+  tasks: DownloadTask[]
+};
+
+function DownloadRow({ tasks, index, style }: RowComponentProps<RowProps>) {
+  console.log(tasks);
+  const task = tasks[index];
+  return (
+    <div className='game-list-item' style={style}>
+      <div className='game-list-item__field'>{task.game.title}</div>
+    </div>
+  );
+}
 
 export function DownloadsPage() {
   const dispatch = useAppDispatch();
   const downloaderState = useAppSelector((state) => state.downloads);
+  const scale = useAppSelector(state => state.preferences.scaleValues.browse);
   const tasks = Object.values(downloaderState.tasks);
-  const workersPerRow = Math.ceil(downloaderState.workers.length / 2);
-  const topWorkers = downloaderState.workers.slice(0, workersPerRow);
-  const bottomWorkers = downloaderState.workers.length > 1 ? downloaderState.workers.slice(workersPerRow) : [];
+  const rowHeight: number = calcScale(20, 40, scale);
+  console.log(tasks);
 
   const onToggleState = () => {
     const newState: DownloaderStatus = downloaderState.state === 'running' ? 'stopped' : 'running';
@@ -46,60 +63,29 @@ export function DownloadsPage() {
             onClick={onAddMissingContent}/>
         </div>
       </div>
-      <div className='downloads-page__workers'>
-        { topWorkers.length > 0 && (
-          <div className='downloads-page__workers-row'>
-            { topWorkers.map((worker, idx) => {
-              const progressPercent = ((worker.step - 1) / worker.totalSteps) + worker.stepProgress;
-              const isDone = worker.text === 'Done';
-              return (
-                <div className='downloads-page__workers-worker'>
-                  <ProgressBar
-                    progressData={{
-                      key: `downloads-worker-top-${idx}`,
-                      usePercentDone: true,
-                      percentDone: progressPercent,
-                      itemCount: 0,
-                      totalItems: 0,
-                      isDone,
-                      text: worker.taskText,
-                      secondaryText: worker.text,
-                    }} />
-                </div>
-              );
-            })}
+      <SizeProvider height={rowHeight}>
+        <div className='downloads-page__data'>
+          <div className='game-list-header'>
+            <div className='game-list-header-column'>Downloads</div>
           </div>
-        )}
-        { bottomWorkers.length > 0 && (
-          <div className='downloads-page__workers-row'>
-            { bottomWorkers.length !== topWorkers.length && (
-              <div className='downloads-page__workers-spacer'/>
-            )}
-            { bottomWorkers.map((worker, idx) => {
-              const progressPercent = ((worker.step - 1) / worker.totalSteps) + worker.stepProgress;
-              const isDone = worker.text === 'Done';
-              return (
-                <div className='downloads-page__workers-worker'>
-                  <ProgressBar
-                    progressData={{
-                      key: `downloads-worker-bottom-${idx}`,
-                      usePercentDone: true,
-                      percentDone: progressPercent,
-                      itemCount: 0,
-                      totalItems: 0,
-                      isDone,
-                      text: worker.taskText,
-                      secondaryText: worker.text,
-                    }} />
-                </div>
-              );
-            })}
-            { bottomWorkers.length !== topWorkers.length && (
-              <div className='downloads-page__workers-spacer'/>
-            )}
+          <div className='downloads-page__data-content'>
+            <AutoSizer disableWidth>
+              {({ height }) => {
+                return <List<RowProps>
+                  className='game-list simple-scroll'
+                  style={{ height, maxHeight: undefined }}
+                  rowHeight={rowHeight}
+                  rowComponent={DownloadRow}
+                  rowProps={{
+                    tasks,
+                  }}
+                  rowCount={tasks.length}
+                  overscanCount={15}/>;
+              }}
+            </AutoSizer>
           </div>
-        )}
-      </div>
+        </div>
+      </SizeProvider>
     </div>
   );
 }
