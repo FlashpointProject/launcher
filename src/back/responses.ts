@@ -219,7 +219,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
   state.socketServer.register(BackIn.DOWNLOADER_ADD_MISSING_CONTENT, async (event) => {
     const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
-    const dialogId = await openDialog({
+    const dialogId = openDialog({
       largeMessage: true,
       message: 'Finding missing content...',
       buttons: []
@@ -230,6 +230,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     search.filter.boolComp.installed = false;
     search.slim = true;
     const games = await fpDatabase.searchGames(search);
+    console.log('Found ' + games.length + ' games');
     state.downloader.addTasks(games);
 
     state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);

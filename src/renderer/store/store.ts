@@ -39,7 +39,7 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) => {
     const middleware = getDefaultMiddleware({
       serializableCheck: {
-        ignoredPaths: ['search'] // Big performance drop in dev with this on search views
+        ignoredPaths: ['search', 'downloads'] // Big performance drop in dev with this on search views
       },
     });
     middleware.push(listenerMiddleware.middleware);

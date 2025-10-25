@@ -546,6 +546,7 @@ body {
   margin-right: 0.75rem;
 }
 .header-user-box {
+  cursor: pointer;
   display: flex;
   flex-direction: row;
   margin-right: 0.2rem;
@@ -2203,7 +2204,6 @@ body {
   padding-left: 0.3rem;
   cursor: pointer;
   overflow: hidden;
-  flex-wrap: wrap;
 }
 .playlist-list-item--editing .playlist-list-item__head {
   cursor: default;
@@ -2231,7 +2231,7 @@ body {
   height: 100%;
 }
 .playlist-list-item__title {
-  flex: 0 1 auto;
+  flex-shrink: 0;
   min-width: 0;
   font-weight: bold;
   padding-left: 0.5rem;
@@ -2244,7 +2244,7 @@ body {
 .playlist-list-item__author {
   flex: 0 1 auto;
   min-width: 0;
-  font-size: 0.9em;
+  font-size: 0.85em;
   font-style: italic;
 }
 .playlist-list-item__author > p {

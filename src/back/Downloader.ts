@@ -367,7 +367,6 @@ class DownloadWorker {
 
   private async downloadImage(subPath: string, signal: AbortSignal) {
     const url = this.downloader.onDemandBaseUrl + (this.downloader.onDemandBaseUrl.endsWith('/') ? '' : '/') + subPath;
-    console.log(url);
     await axios.get(url, { responseType: 'arraybuffer', signal })
     .then(async (res) => {
       // Save response to image file
