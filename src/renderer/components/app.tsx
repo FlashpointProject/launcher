@@ -11,7 +11,7 @@ import { pushHistory } from '@renderer/store/history/slice';
 import { addLogEntries, setEntries } from '@renderer/store/logs/slice';
 import { addLoaded, cancelDialog, changeService, createDialog, openDynamicPage, removeService, setDisplaySettingsFromCallback, setExtOrderablesFromCallback, setMainState, setUpdateInfo, updateDialog, updateDialogField } from '@renderer/store/main/slice';
 import { setPreferences, updatePreferences } from '@renderer/store/preferences/slice';
-import { addData, createViews, GENERAL_VIEW_ID } from '@renderer/store/search/slice';
+import { addData, createViews, GENERAL_VIEW_ID, resetDropdownData } from '@renderer/store/search/slice';
 import store, { AppDispatch, RootState } from '@renderer/store/store';
 import { setTagCategories } from '@renderer/store/tagCategories/slice';
 import { addTask, setTask, setTaskBarOpen } from '@renderer/store/tasks/slice';
@@ -135,6 +135,9 @@ export function App() {
   const selectedPlaylistId = useAppSelector(state => state.main.selectedPlaylistId);
   const dynamicPage = useAppSelector(state => state.main.dynamicPage);
   const fpfssBaseUrl = useAppSelector(state => state.preferences.fpfssBaseUrl);
+  const showExtreme = useAppSelector(state => state.preferences.browsePageShowExtreme);
+  const tagFilters = useAppSelector(state => state.preferences.tagFilters);
+  const searchDropdownKey = useAppSelector(state => state.search.dropdowns.key);
   const manualUrl = useAppSelector(state => state.preferences.onlineManual || pathToFileUrl(path.join(window.Shared.config.fullFlashpointPath, state.preferences.offlineManual)));
   const dynamicThemeFileList = useAppSelector(selectDynamicThemes);
   const remoteModules = useAppSelector(selectRemoteModules);
@@ -143,6 +146,13 @@ export function App() {
   const showRightSidebar = currentView?.selectedGame !== undefined && browsePageShowRightSidebar && !hiddenRightSidebarPages.reduce((prev, cur) => prev || location.pathname.startsWith(cur), false);
   const navigate = useNavigate();
   const { openMenu } = useContextMenu();
+
+  const activeTagFilters = tagFilters.filter(t => t.enabled && (!t.extreme || showExtreme));
+  const tagsKey = JSON.stringify(activeTagFilters);
+
+  if (tagsKey !== searchDropdownKey) {
+    dispatch(resetDropdownData(tagsKey));
+  }
 
   React.useEffect(() => {
     if (lastLoc.current !== location.pathname) {

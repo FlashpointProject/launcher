@@ -751,9 +751,6 @@ async function initialize() {
     state.socketServer.broadcast(BackOut.OPEN_ALERT, 'Failed to open database: ' + e);
   }
 
-  state.init[BackInit.DATABASE_READY] = true;
-  state.initEmitter.emit(BackInit.DATABASE_READY);
-
   // Populate unique values
   state.suggestions = {
     tags: [],
@@ -763,6 +760,9 @@ async function initialize() {
     applicationPath: await fpDatabase.findAllGameApplicationPaths(),
     library: await fpDatabase.findAllGameLibraries(),
   };
+
+  state.init[BackInit.DATABASE_READY] = true;
+  state.initEmitter.emit(BackInit.DATABASE_READY);
 
   // Check for Flashpoint Manager Updates
 
