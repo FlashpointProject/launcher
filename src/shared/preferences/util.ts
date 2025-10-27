@@ -101,7 +101,7 @@ export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freez
   onlineManual: 'https://flashpointproject.github.io/manual/',
   offlineManual: '',
   fpfssBaseUrl: 'https://fpfss.unstable.life',
-  groups: [],
+  curateGroups: [],
   server: 'Apache Webserver',
   curateServer: 'Apache Webserver',
   shortcuts: {
@@ -247,10 +247,10 @@ export function overwritePreferenceData(
     // @TODO Validate
     source.shortcuts = Object.assign(source.shortcuts, data.shortcuts);
   }
-  if (data.groups) {
+  if (data.curateGroups) {
     const newGroups: CurateGroup[] = [];
-    parser.prop('groups').array((item, index) => newGroups[index] = parseCurateGroup(item));
-    source.groups = newGroups;
+    parser.prop('curateGroups').array((item, index) => newGroups[index] = parseCurateGroup(item));
+    source.curateGroups = newGroups;
   }
   if (data.appPathOverrides) {
     const newAppPathOverrides: AppPathOverride[] = [];

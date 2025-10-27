@@ -66,7 +66,7 @@ const width: number = (height * 0.666) | 0;
 export function HomePageComponentGotd(props: HomePageComponentProps) {
   const { toggleMinimizeBox } = props;
   const gotdList = window.ext.hooks.useAppSelector(state => state.main.gotdList);
-  const logoVersion = window.ext.hooks.useAppSelector(state => state.preferences.logoVersion);
+  const logoVersion = window.ext.hooks.useAppSelector(state => state.main.logoVersion);
   const tagFilters = window.ext.hooks.useAppSelector(state => state.preferences.tagFilters);
   const minimized = window.ext.hooks.useAppSelector(state => state.preferences.minimizedHomePageBoxes.includes('gotd'));
   const screenshotPreviewMode = window.ext.hooks.useAppSelector(state => state.preferences.screenshotPreviewMode);
@@ -318,7 +318,7 @@ export function HomePageComponentNotes(props: HomePageComponentProps) {
 export function HomePageComponentRandomGames(props: HomePageComponentProps) {
   const { onLaunchGame, toggleMinimizeBox, onGameContextMenu } = props;
   const minimized = window.ext.hooks.useAppSelector(state => state.preferences.minimizedHomePageBoxes.includes('random-games'));
-  const logoVersion = window.ext.hooks.useAppSelector(state => state.preferences.logoVersion);
+  const logoVersion = window.ext.hooks.useAppSelector(state => state.main.logoVersion);
   const tagFilters = window.ext.hooks.useAppSelector(state => state.preferences.tagFilters);
   const screenshotPreviewMode = window.ext.hooks.useAppSelector(state => state.preferences.screenshotPreviewMode);
   const screenshotPreviewDelay = window.ext.hooks.useAppSelector(state => state.preferences.screenshotPreviewDelay);
@@ -380,7 +380,7 @@ export function HomePageComponentRandomGames(props: HomePageComponentProps) {
 export function HomePageComponentExtras(props: HomePageComponentProps) {
   const { toggleMinimizeBox } = props;
   const minimized = window.ext.hooks.useAppSelector(state => state.preferences.minimizedHomePageBoxes.includes('extras'));
-  const logoVersion = window.ext.hooks.useAppSelector(state => state.preferences.logoVersion);
+  const logoVersion = window.ext.hooks.useAppSelector(state => state.main.logoVersion);
   const viewObj = window.ext.hooks.useAppSelector((state) => state.search.views);
   const platforms = window.ext.hooks.useAppSelector(state => state.main.suggestions.platforms);
   const allStrings = React.useContext(LangContext);

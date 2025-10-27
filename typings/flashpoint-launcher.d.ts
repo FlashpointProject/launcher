@@ -1025,7 +1025,6 @@ declare module 'flashpoint-launcher' {
      * This is the data contained in the Preferences file.
      */
     type AppPreferencesData = {
-      [key: string]: any; // TODO: Remove this!
       /** If the launcher should register itself as the default handler for 'flashpoint://' requests. */
       registerProtocol: boolean;
       /** Path to the image folder (relative to the flashpoint path) */
@@ -1186,7 +1185,16 @@ declare module 'flashpoint-launcher' {
       fancyAnimations: boolean;
       /** If the custom title bar should be used in MainWindow */
       useCustomTitlebar: boolean;
+      /** Update feed (home page) URL to fetch */
+      updateFeedUrl: string;
+      /** Curate page pinned groups */
+      curateGroups: CurateGroup[];
     };
+
+    type CurateGroup = {
+      name: string;
+      icon: string;
+    }
 
     type StoredView = {
       view: string;

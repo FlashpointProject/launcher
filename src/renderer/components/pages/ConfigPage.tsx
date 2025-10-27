@@ -692,7 +692,7 @@ export function ConfigPage() {
                 title={strings.symlinkCuration}
                 description={strings.symlinkCurationDesc}
                 checked={preferences.symlinkCurationContent}
-                onToggle={onSetPreferenceFactory('symlinkCuration')}/>
+                onToggle={onSetPreferenceFactory('symlinkCurationContent')}/>
             )}
             {/* On Demand Images */}
             <ConfigBox

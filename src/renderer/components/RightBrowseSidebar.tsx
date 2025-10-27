@@ -313,7 +313,7 @@ export function RightBrowseSidebarView({ view }: RightBrowseSidebarViewProps) {
 
 export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
   const allStrings = useContext(LangContext);
-  const editingDisabled = useAppSelector(state => state.preferences.editingEnabled);
+  const editingDisabled = useAppSelector(state => !state.preferences.enableEditing);
   const fpfssBaseUrl = useAppSelector(state => state.preferences.fpfssBaseUrl);
   const hideScreenshotSidebar = useAppSelector(state => state.preferences.hideScreenshotSidebar);
   const hideExtremeScreenshots = useAppSelector(state => state.preferences.hideExtremeScreenshots);
