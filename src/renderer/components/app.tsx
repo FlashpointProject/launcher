@@ -5,7 +5,9 @@ import { useView } from '@renderer/hooks/search';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useContextMenu } from '@renderer/hooks/useContextMenu';
 import { modifyCurations, replaceCurations, setContentTree, setCurateLoaded, setCurrentCuration, setLock, setSelectedCurations } from '@renderer/store/curate/slice';
-import { setDownloaderState, updateDownloaderStatus, updateDownloaderTask, updateDownloaderTasks, updateDownloaderWorker } from '@renderer/store/downloads/slice';
+import { setDownloaderState, updateDownloaderStatus, updateDownloaderTask, updateDownloaderTasks } from '@renderer/store/downloads/slice';
+import { setFpfssUser } from '@renderer/store/fpfss/slice';
+import { pushHistory } from '@renderer/store/history/slice';
 import { addLogEntries, setEntries } from '@renderer/store/logs/slice';
 import { addLoaded, cancelDialog, changeService, createDialog, openDynamicPage, removeService, setDisplaySettingsFromCallback, setExtOrderablesFromCallback, setMainState, setUpdateInfo, updateDialog, updateDialogField } from '@renderer/store/main/slice';
 import { setPreferences, updatePreferences } from '@renderer/store/preferences/slice';
@@ -45,7 +47,6 @@ import { AboutPage } from './pages/AboutPage';
 import { BrowsePage } from './pages/BrowsePage';
 import { ConfigPage } from './pages/ConfigPage';
 import { CuratePage } from './pages/CuratePage';
-import { DownloadsPage } from './pages/Downloads';
 import { DynamicPage } from './pages/DynamicPage';
 import { FpfssPage } from './pages/FpfssPage';
 import { HomePage } from './pages/HomePage';
@@ -64,8 +65,6 @@ import { SimpleButton } from './SimpleButton';
 import { SplashScreen } from './SplashScreen';
 import { TaskBar } from './TaskBar';
 import { TitleBar } from './TitleBar';
-import { setFpfssUser } from '@renderer/store/fpfss/slice';
-import { pushHistory } from '@renderer/store/history/slice';
 
 const selectDynamicThemes = createSelector(
   [
@@ -485,9 +484,9 @@ export function App() {
                           <Route
                             path={Paths.CATEGORIES}
                             element={<TagCategoriesPage/>}/>
-                          <Route
+                          {/* <Route
                             path={Paths.DOWNLOADS}
-                            element={<DownloadsPage/>}/>
+                            element={<DownloadsPage/>}/> */}
                           <Route
                             path={Paths.LOGS}
                             element={useActivityRoutes ? <></> : <LogsPage/>}/>
@@ -1032,6 +1031,10 @@ function registerWebsocketListeners(dispatch: AppDispatch) {
     // });
   });
 
+  window.Shared.back.register(BackOut.UPDATE_DOWNLOADER_WHOLE_STATE, async (event, state) => {
+    dispatch(setDownloaderState(state));
+  });
+
   window.Shared.back.register(BackOut.UPDATE_DOWNLOADER_TASK, async (event, task) => {
     dispatch(updateDownloaderTask(task));
   });
@@ -1045,7 +1048,7 @@ function registerWebsocketListeners(dispatch: AppDispatch) {
   });
 
   window.Shared.back.register(BackOut.UPDATE_DOWNLOADER_STATE_WORKER, async (event, workerState) => {
-    dispatch(updateDownloaderWorker(workerState));
+    // dispatch(updateDownloaderWorker(workerState));
   });
 
   window.Shared.back.register(BackOut.OPEN_DYNAMIC_PAGE, async (event, name, props) => {

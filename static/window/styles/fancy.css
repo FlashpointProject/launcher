@@ -163,6 +163,9 @@
   /* Flashpoint */
   --layout__flashpoint-red: #DD0428;
   --layout__flashpoint-light-red: #E85971;
+  --toastify-color-progress-light: var(--layout__flashpoint-light-red);
+  --toastify-color-progress-dark: var(--layout__flashpoint-red);
+  --toastify-color-progress-bgo: 0.9;
 }
 
 body {

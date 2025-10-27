@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
-import { Game } from '@fparchive/flashpoint-archive';
 import { downloadGameData } from './download';
 import { fpDatabase } from '.';
 import * as fs from 'fs-extra';
 import * as path from 'node:path';
-import { DownloaderStatus, DownloadTask, DownloadTaskStatus, DownloadWorkerState, GameDataSource } from 'flashpoint-launcher';
+import { DownloaderStatus, DownloadTask, DownloadTaskStatus, DownloadWorkerState, Game, GameDataSource } from 'flashpoint-launcher';
 import { axios } from './dns';
 import { BackState } from './types';
 import { BackOut } from '@shared/back/types';
@@ -89,6 +88,11 @@ export class Downloader extends WrappedEventEmitter {
     await promiseSleep(1000);
     this.tasks = {};
     this.status = 'running';
+    this.state.socketServer.broadcast(BackOut.UPDATE_DOWNLOADER_WHOLE_STATE, {
+      state: this.status,
+      tasks: this.getTasks(),
+      workers: this.getWorkerStates(),
+    });
   }
 
   public getTotal(): number {
@@ -205,6 +209,9 @@ export class Downloader extends WrappedEventEmitter {
     const nextTask = this.getNextTask();
     if (nextTask) {
       this.assignTaskToIdleWorker(nextTask);
+    } else if (this.idleWorkers.length === this.workers.length) {
+      // No tasks remaining, all workers idle, stop
+      this.stop();
     }
   }
 

@@ -1,6 +1,7 @@
 import { createSelector } from '@reduxjs/toolkit';
 import { SearchBar } from '@renderer/components/SearchBar';
 import { getPointer } from '@renderer/context/MenuContext';
+import { createNewDialog } from '@renderer/dialog';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useContextMenu } from '@renderer/hooks/useContextMenu';
 import { setMainState, updatePlaylist } from '@renderer/store/main/slice';
@@ -23,8 +24,6 @@ import { InputElement } from '../InputField';
 import { LeftBrowseSidebar } from '../LeftBrowseSidebar';
 import { MenuItemType } from '../Menu';
 import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
-import { Paths } from '@shared/Paths';
-import { useNavigate } from 'react-router-dom';
 
 export type GameDragEventData = {
   gameId: string;
@@ -57,7 +56,6 @@ const selectPlaylists = createSelector(
 
 export function BrowsePage(props: BrowsePageProps) {
   const { viewName } = props;
-  const navigate = useNavigate();
   const [isEditingPlaylist, setIsEditingPlaylist] = useState(false);
   const [isNewPlaylist, setIsNewPlaylist] = useState(false);
   const [currentPlaylist, setCurrentPlaylist] = useState<Playlist | null>(null);
@@ -384,10 +382,12 @@ export function BrowsePage(props: BrowsePageProps) {
 
   const onDownloadPlaylistContents = (playlistId: string): void => {
     window.Shared.back.request(BackIn.DOWNLOAD_PLAYLIST_CONTENTS, playlistId)
-    .then((started) => {
-      if (started) {
-        navigate(Paths.DOWNLOADS);
-      }
+    .catch((error) => {
+      createNewDialog(dispatch, {
+        largeMessage: true,
+        message: `Failed to download playlist - ${error}`,
+        buttons: ['Ok']
+      });
     });
   };
 

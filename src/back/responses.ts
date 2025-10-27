@@ -54,8 +54,8 @@ import * as fs from 'fs-extra';
 import * as fs_extra from 'fs-extra';
 import { snakeCase, transform } from 'lodash';
 import { add, Progress } from 'node-7z';
-import * as os from 'os';
 import * as path from 'node:path';
+import * as os from 'os';
 import * as url from 'url';
 import * as util from 'util';
 import * as YAML from 'yaml';
@@ -98,6 +98,7 @@ import { BackState, TagsFile } from './types';
 import { pathTo7zBack } from './util/SevenZip';
 import { awaitDialog, createNewDialog } from './util/dialog';
 import { onDidUninstallGameData, onWillUninstallGameData } from './util/events';
+import { dispose } from './util/lifecycle';
 import {
   compareSemVerVersions,
   copyError,
@@ -118,7 +119,6 @@ import {
   runService
 } from './util/misc';
 import { uuid } from './util/uuid';
-import { dispose } from './util/lifecycle';
 
 /**
  * Register all request callbacks to the socket server.
@@ -910,6 +910,11 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.DOWNLOAD_PLAYLIST_CONTENTS, async (event, playlistId) => {
+    if (state.downloader.status === 'running' && state.downloader) {
+      throw 'Downloader already busy, please wait until it has finished its current job';
+    }
+    state.downloader.clear();
+    state.downloader.start();
     const playlist = state.playlists.find(p => p.id === playlistId);
     if (playlist) {
       // Find a size estimate before initiating download
@@ -936,6 +941,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         const result = (await awaitDialog(state, dialogId)).buttonIdx;
 
         if (result === 1) {
+          state.downloader.stop();
           log.debug('Downloads', 'User aborted playlist download at size prompt');
           return false;
         }
@@ -943,22 +949,24 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
       log.info('Downloads', 'Adding playlist to downloader with ' + playlist.games.length + ' games');
 
+      const games: Game[] = [];
       for (const { gameId } of playlist.games) {
         try {
           const game = await fpDatabase.findGame(gameId);
           if (game && game.activeDataId !== undefined) {
             log.info('Downloads', 'Adding game ' + game.id);
-            state.downloader.addTask(game);
+            games.push(game);
           }
         } catch (e) {
           console.error('bad game get');
           console.error(e);
         }
       }
+      state.downloader.addTasks(games);
 
-      state.downloader.start();
       return true;
     } else {
+      state.downloader.stop();
       log.error('Downloads', 'Could not find playlist with id ' + playlistId);
       return false;
     }
