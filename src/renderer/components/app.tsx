@@ -4,7 +4,7 @@ import { createNewDialog } from '@renderer/dialog';
 import { useView } from '@renderer/hooks/search';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useContextMenu } from '@renderer/hooks/useContextMenu';
-import { modifyCurations, replaceCurations, setContentTree, setCurateLoaded, setCurrentCuration, setLock, setSelectedCurations } from '@renderer/store/curate/slice';
+import { createGroup, modifyCurations, replaceCurations, setContentTree, setCurateLoaded, setCurrentCuration, setLock, setSelectedCurations } from '@renderer/store/curate/slice';
 import { setDownloaderState, updateDownloaderStatus, updateDownloaderTask, updateDownloaderTasks } from '@renderer/store/downloads/slice';
 import { setFpfssUser } from '@renderer/store/fpfss/slice';
 import { pushHistory } from '@renderer/store/history/slice';
@@ -878,6 +878,9 @@ function registerWebsocketListeners(dispatch: AppDispatch) {
 
   window.Shared.back.request(BackIn.CURATE_GET_LIST)
   .then(curations => {
+    for (const pinnedGroup of window.Shared.initialPreferences.curateGroups) {
+      dispatch(createGroup(pinnedGroup));
+    }
     dispatch(replaceCurations(curations));
     dispatch(setCurateLoaded());
   });

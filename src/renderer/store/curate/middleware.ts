@@ -48,7 +48,7 @@ export function addCurationMiddleware() {
       const { curate } = listenerApi.getState();
 
       store.dispatch(updatePreferences({
-        groups: curate.groups
+        curateGroups: curate.groups
       }));
     }
   });
@@ -59,7 +59,7 @@ export function addCurationMiddleware() {
       const { curate } = listenerApi.getState();
 
       store.dispatch(updatePreferences({
-        groups: curate.groups
+        curateGroups: curate.groups
       }));
     }
   });
