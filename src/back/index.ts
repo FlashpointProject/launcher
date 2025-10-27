@@ -99,6 +99,7 @@ export const state: BackState = {
   isExit: false,
   isDev: false,
   verbose: false,
+  updateInProgress: false,
   logFile: createErrorProxy('logFile'),
   socketServer: new SocketServer(),
   curationsReady: false,

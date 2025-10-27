@@ -30,7 +30,7 @@ import * as path from 'node:path';
 import * as React from 'react';
 import { Activity, useState } from 'react';
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { ToastContainer } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 import { axios, getGameImagePath, getGameImageURL, getGamePath, openUrlInWindow } from '../Util';
 import { LangContext } from '../util/lang';
 import { ActivityRoutes } from './ActivityRoutes';
@@ -750,6 +750,29 @@ function registerWebsocketListeners(dispatch: AppDispatch) {
       dispatch(addLoaded([BackInit.EXTENSIONS]));
     });
   };
+
+  window.Shared.back.register(BackOut.TOAST, (event, toastId, content, data) => {
+    if (!toastId) {
+      throw 'Toast ID required.';
+    }
+    if (toast.isActive(toastId)) {
+      toast.update(toastId, {
+        ...data,
+        render: <div>{content}</div>
+      });
+    } else {
+      toast(content, {
+        ...data,
+        toastId,
+      } as any);
+    }
+  });
+
+  window.Shared.back.register(BackOut.CANCEL_TOAST, (event, toastId) => {
+    if (toast.isActive(toastId)) {
+      toast.dismiss(toastId);
+    }
+  });
 
   window.Shared.back.register(BackOut.INIT_EVENT, (event, data) => {
     for (const index of data.done) {

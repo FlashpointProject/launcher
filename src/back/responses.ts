@@ -414,6 +414,15 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.SYNC_ALL, async (event, source) => {
+    if (state.updateInProgress) {
+      const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
+      openDialog({
+        largeMessage: true,
+        message: 'Update already in progress.',
+        buttons: ['Ok']
+      });
+      return false;
+    }
     if (!state.isDev) {
       // Make sure we meet minimum verison requirements
       const updatesReady = state.componentStatuses.filter(c => c.id === 'core-launcher' && c.state === ComponentState.NEEDS_UPDATE).length > 0;
@@ -424,7 +433,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         if (!updatesReady) {
           // No software update ready but metadata server requires it
           const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
-          await openDialog({
+          openDialog({
             largeMessage: true,
             message: state.languageContainer.app.noLauncherUpdateReady,
             buttons: [state.languageContainer.misc.ok]
@@ -433,7 +442,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         }
         // Too old to sync metadata, prompt a software update
         const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
-        const dialogId = await openDialog({
+        const dialogId = openDialog({
           largeMessage: true,
           message: state.languageContainer.app.softwareUpdateRequired,
           buttons: [state.languageContainer.misc.yes, state.languageContainer.misc.no],
@@ -449,6 +458,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         }
       }
     }
+
+    state.updateInProgress = true;
 
     let totalGames = 0;
     try {
@@ -468,31 +479,27 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       };
     }
 
+    const updateToast = (content: string) => {
+      state.socketServer.broadcast(BackOut.TOAST, 'sync', content, {
+        autoClose: false,
+        closeButton: false,
+      });
+    };
+
     // Fetch pre-update info to estimate progress bar size
-    const total = await getMetaUpdateInfo(source, true, totalGames === 0);
-    const chunks = Math.ceil(total / 2500);
-
-    const openDialog = state.socketServer.showMessageBoxBack(state, event.client);
-    const dialogId = await openDialog({
-      largeMessage: true,
-      message: `Syncing metadata from ${source.name}...`,
-      buttons: [],
-      fields: [
-        {
-          type: 'progress',
-          name: 'progress',
-          message: `${total} Updates...`,
-          value: 0
-        }
-      ]
-    });
-
     try {
+      updateToast('Getting Update Info...');
+      const totalUpdateGames = await getMetaUpdateInfo(source, true, totalGames === 0);
+      const chunks = Math.ceil(totalUpdateGames / 2500);
+
       // Tags and platforms
       const newDate = new Date();
       let lastDate = new Date();
+      updateToast('Updating Platforms...');
       const lastDatePlats = await syncPlatforms(source);
+      updateToast('Updating Tags...');
       const lastDateTags = await syncTags(source);
+
       if (lastDatePlats > lastDateTags) {
         lastDate = lastDatePlats;
       } else {
@@ -510,11 +517,12 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       console.log('games');
       const dataPacksFolder = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath);
       let chunk = 0;
+      updateToast('Updating Games...');
       lastDate = await syncGames(source, dataPacksFolder, () => {
         chunk = chunk + 1;
-        const progress = chunk / chunks;
-        state.socketServer.broadcast(BackOut.UPDATE_DIALOG_FIELD_VALUE, dialogId, 'progress', progress * 100);
+        updateToast(`Updating Games... (Batch ${chunk} of ${chunks})`);
       });
+      updateToast('Updating Game Redirects...');
       await syncRedirects(source);
       if (sourceIdx !== -1) {
         state.preferences.gameMetadataSources[sourceIdx].games.latestUpdateTime = lastDate.toISOString();
@@ -525,6 +533,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         state.socketServer.broadcast(BackOut.UPDATE_PREFERENCES_RESPONSE, state.preferences);
       }
 
+      updateToast('Updating Search Suggestions...');
       // Send out new suggestions and library lists
       state.suggestions = {
         tags: [],
@@ -538,9 +547,21 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       const total = await fpDatabase.countGames();
       const cats = await fpDatabase.findAllTagCategories();
       state.socketServer.broadcast(BackOut.POST_SYNC_CHANGES, state.suggestions.library, state.suggestions, state.platformAppPaths, cats, total);
+      state.socketServer.broadcast(BackOut.TOAST, 'sync', 'Update Complete', {
+        type: 'success',
+        autoClose: false,
+        closeButton: true,
+      });
       return true;
+    } catch (err: any) {
+      state.socketServer.broadcast(BackOut.TOAST, 'sync', `Update Failure - ${err.message}`, {
+        type: 'error',
+        autoClose: false,
+        closeButton: true,
+      });
+      return false;
     } finally {
-      state.socketServer.broadcast(BackOut.CANCEL_DIALOG, dialogId);
+      state.updateInProgress = false;
     }
   });
 

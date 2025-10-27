@@ -1,18 +1,17 @@
 import { FancyAnimation } from '@renderer/components/FancyAnimation';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
-import { createDialog, setUpdateInfo } from '@renderer/store/main/slice';
+import { setUpdateInfo } from '@renderer/store/main/slice';
 import { setHomePageBoxOpen } from '@renderer/store/preferences/slice';
 import { launchGame } from '@renderer/Util';
 import { BackIn } from '@shared/back/types';
 import { formatString } from '@shared/utils/StringFormatter';
-import { uuid } from '@shared/utils/uuid';
-import { DialogState, GameLaunchOverride, GameMetadataSource } from 'flashpoint-launcher';
+import { GameLaunchOverride, GameMetadataSource } from 'flashpoint-launcher';
 import { HomePageComponentProps } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { LangContext } from '../../util/lang';
 import { DynamicComponent } from '../DynamicComponent';
 import { SimpleButton } from '../SimpleButton';
-import { useContext, useEffect, useRef, useState } from 'react';
 
 export type HomePageProps = {
   /** Generator for game context menu */
@@ -132,30 +131,8 @@ function UpdateComponent() {
     } else {
       // Do update
       return window.Shared.back.request(BackIn.SYNC_ALL, source)
-      .then((success) => {
-        if (success) {
-          const dialog: DialogState = {
-            largeMessage: true,
-            message: strings.updateComplete,
-            buttons: [allStrings.misc.ok],
-            id: uuid()
-          };
-          dispatch(createDialog(dialog));
-          dispatch(setUpdateInfo({
-            id: source.id,
-            total: 0
-          }));
-        }
-      })
       .catch((err) => {
         log.error('Launcher', `Error updating metadata: ${err}`);
-        const dialog: DialogState = {
-          largeMessage: true,
-          message: `ERROR: ${err}`,
-          buttons: [allStrings.misc.ok],
-          id: uuid()
-        };
-        dispatch(createDialog(dialog));
       })
       .finally(() => {
         setUpdating(false);

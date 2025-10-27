@@ -46,6 +46,7 @@ import { Theme } from '../ThemeFile';
 import { AppConfigData, AppExtConfigData } from '../config/interfaces';
 import { ExecMapping, GamePropSuggestions, IService, ProcessAction, Task } from '../interfaces';
 import { LangFile } from '../lang';
+import { UpdateOptions } from 'react-toastify';
 
 export enum BackIn {
   UNKNOWN = 1000,
@@ -305,6 +306,8 @@ export enum BackOut {
   CANCEL_DIALOG,
   UPDATE_DIALOG_MESSAGE,
   UPDATE_DIALOG_FIELD_VALUE,
+  TOAST,
+  CANCEL_TOAST,
 
   OPEN_DYNAMIC_PAGE,
 
@@ -567,6 +570,8 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.CANCEL_DIALOG]: (dialogId: string) => void;
   [BackOut.UPDATE_DIALOG_MESSAGE]: (message: string, dialogId: string) => void;
   [BackOut.UPDATE_DIALOG_FIELD_VALUE]: (dialogId: string, name: string, value: any) => void;
+  [BackOut.TOAST]: (toastId: string, content: string, opts?: UpdateOptions<unknown>) => void;
+  [BackOut.CANCEL_TOAST]: (toastId: string) => void;
 
   [BackOut.OPEN_DYNAMIC_PAGE]: (componentName: string, props: any) => void;
 
