@@ -192,6 +192,7 @@ const fpfssSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addCase(logoutFpfss.fulfilled, (state) => {
+      console.log('mark logged out');
       state.user = null;
     });
     builder.addCase(createFpfssEditGame.fulfilled, (state) => {

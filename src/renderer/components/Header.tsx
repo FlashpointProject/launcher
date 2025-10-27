@@ -307,14 +307,14 @@ export function Header() {
       type: 'button',
       label: strings.fpfssLogout,
       onClick: () => {
-        dispatch(logoutFpfss())
+        dispatch(logoutFpfss()).unwrap()
         .then(() => {
           toast('Logged out of FPFSS', {
             type: 'success'
           });
         })
         .catch((err) => {
-          toast(err, {
+          toast(`Failed to log out - ${err.message}`, {
             type: 'error',
             autoClose: false,
           });
