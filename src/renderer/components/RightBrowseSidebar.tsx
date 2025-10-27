@@ -179,8 +179,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   componentDidUpdate(prevProps: RightBrowseSidebarProps): void {
     if (this.props.isEditing && !prevProps.isEditing) {
       if (this.props.currentGame) {
-        this.checkImageExistance(SCREENSHOTS, this.props.currentGame.id);
-        this.checkImageExistance(LOGOS, this.props.currentGame.id);
+        this.checkImageExistance(SCREENSHOTS, this.props.currentGame.screenshotPath);
+        this.checkImageExistance(LOGOS, this.props.currentGame.logoPath);
       } else {
         this.setState({
           screenshotExists: false,
@@ -262,7 +262,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       const currentAddApps = game.addApps;
       const editDisabled = !preferencesData.enableEditing;
       const editable = isEditing;
-      const screenshotSrc = getGameImageURL(SCREENSHOTS, game.id);
+      const screenshotSrc = getGameImageURL(game.screenshotPath);
       const anyActiveDataDownloaded = game.gameData !== undefined && game.gameData.findIndex((gd) => gd.presentOnDisk) !== -1;
 
       const contextMenu: MenuItemConstructorOptions[] = [];
@@ -1026,7 +1026,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                         <div className='browse-right-sidebar__row__screenshot__placeholder__back'>
                           <GameImageSplit
                             text={strings.thumbnail}
-                            imgSrc={this.state.thumbnailExists ? getGameImageURL(LOGOS, game.id) : undefined}
+                            imgSrc={this.state.thumbnailExists ? getGameImageURL(game.logoPath) : undefined}
                             showHeaders={true}
                             onSetImage={this.onSetThumbnail}
                             onRemoveClick={this.onRemoveThumbnailClick}
@@ -1150,8 +1150,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     }
   };
 
-  checkImageExistance(folder: typeof LOGOS | typeof SCREENSHOTS, id: string) {
-    fetch(getGameImageURL(folder, id))
+  checkImageExistance(folder: typeof LOGOS | typeof SCREENSHOTS, imagePath: string) {
+    fetch(getGameImageURL(imagePath))
     .then(res => {
       const target = (folder === LOGOS) ? 'thumbnailExists' : 'screenshotExists';
       const exists = (res.status >= 200 && res.status < 300);
