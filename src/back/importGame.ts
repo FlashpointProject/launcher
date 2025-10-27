@@ -494,7 +494,7 @@ async function importGameImage(image: CurationIndexImage, gameId: string, folder
       // Check if the image is its own file
       if (image.filePath !== undefined) {
         await fs.promises.mkdir(path.dirname(imagePath), { recursive: true });
-        await fs.promises.access(image.filePath, fs.constants.R_OK).then(() => log.debug('TEST', 'CAN READ')).catch(() => log.debug('TEST', 'CAN NOT READ'));
+        await fs.promises.access(image.filePath, fs.constants.R_OK);
         await fs.promises.copyFile(image.filePath, imagePath);
       }
       // Check if the image is extracted

@@ -49,7 +49,11 @@ function LogRow({ index, style, logs, longestSource }: RowComponentProps<RowProp
 
 export function LogBox(props: LogBoxProps) {
   const scale = useAppSelector(state => state.preferences.scaleValues.logs);
+  const levelFilters = useAppSelector(state => state.preferences.showLogLevel);
+  const sourceFilters = useAppSelector(state => state.preferences.showLogSource);
   const fontSize = Math.floor(calcScale(8, 24, scale));
+
+  const filteredLogs = props.logs.filter(l => levelFilters[l.logLevel as LogLevel]).filter(l => sourceFilters[l.source] !== false);
 
   const rowHeight = (index: number, { logs }: RowProps) => {
     return (fontSize + 2) * logs[index].lineCount;
@@ -63,10 +67,10 @@ export function LogBox(props: LogBoxProps) {
           style={{ fontSize: `${fontSize}px`, lineHeight: `${fontSize + 2}px`, height, maxHeight: undefined }}
           rowComponent={LogRow}
           rowProps={{
-            logs: props.logs,
+            logs: filteredLogs,
             longestSource: props.longestSource
           }}
-          rowCount={props.logs.length}
+          rowCount={filteredLogs.length}
           rowHeight={rowHeight}
           overscanCount={25} />;
       }}
