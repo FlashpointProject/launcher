@@ -546,7 +546,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       state.platformAppPaths = processPlatformAppPaths(await fpDatabase.findPlatformAppPaths()); // Update cache
       const total = await fpDatabase.countGames();
       const cats = await fpDatabase.findAllTagCategories();
-      state.socketServer.broadcast(BackOut.POST_SYNC_CHANGES, state.suggestions.library, state.suggestions, state.platformAppPaths, cats, total);
+      state.socketServer.broadcast(BackOut.POST_SYNC_CHANGES, state.suggestions.library, state.suggestions, state.platformAppPaths, cats, total, state.preferences.gameMetadataSources[sourceIdx]);
       state.socketServer.broadcast(BackOut.TOAST, 'sync', 'Update Complete', {
         type: 'success',
         autoClose: false,

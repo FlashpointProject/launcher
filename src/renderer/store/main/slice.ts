@@ -12,7 +12,7 @@ import { ITheme } from '@shared/ThemeFile';
 import { deepCopy, recursiveReplace } from '@shared/Util';
 import * as axiosImport from 'axios';
 import { UpdateInfo } from 'electron-updater';
-import { DialogFieldProps, DialogState, Game, GameData, LangContainer, Playlist, PlaylistGame, ViewGame } from 'flashpoint-launcher';
+import { DialogFieldProps, DialogState, Game, GameData, GameMetadataSource, LangContainer, Playlist, PlaylistGame, ViewGame } from 'flashpoint-launcher';
 import { DisplaySettings, ExtOrderable } from 'flashpoint-launcher-renderer';
 
 export const RANDOM_GAME_ROW_COUNT = 6;
@@ -461,6 +461,15 @@ const mainSlice = createSlice({
       if (playlistIdx > -1) {
         state.playlists[playlistIdx] = payload;
       }
+    },
+    updateMetadataSource(state: MainState, { payload }: PayloadAction<GameMetadataSource>) {
+      // TODO: Make metadata update info stored per source
+      if (payload.id in state.metadataUpdate) {
+        state.metadataUpdate[payload.id] = {
+          ready: true,
+          total: 0
+        };
+      }
     }
   },
 });
@@ -487,6 +496,8 @@ export const { setMainState,
   setDisplaySettingsFromCallback,
   setExtOrderablesFromCallback,
   setUpdateInfo,
-  updatePlaylist } = mainSlice.actions;
+  updatePlaylist,
+  updateMetadataSource,
+} = mainSlice.actions;
 export default mainSlice.reducer;
 

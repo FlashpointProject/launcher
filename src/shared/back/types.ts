@@ -540,7 +540,9 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.UPDATE_PLATFORM_APP_PATHS]: (paths: PlatformAppPathSuggestions) => void;
 
   // Metadata Sync
-  [BackOut.POST_SYNC_CHANGES]: (libraries: string[], suggestions: GamePropSuggestions, platformAppPaths: PlatformAppPathSuggestions, cats: TagCategory[], total: number) => void;
+  [BackOut.POST_SYNC_CHANGES]: (libraries: string[], suggestions: GamePropSuggestions, platformAppPaths: PlatformAppPathSuggestions, cats: TagCategory[],
+    total: number, updatedSource: GameMetadataSource
+  ) => void;
 
   // Curate
   [BackOut.CURATE_LOADED]: () => void;
