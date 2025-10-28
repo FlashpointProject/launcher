@@ -686,7 +686,11 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     if (contentRunner) {
       const game = await fpDatabase.findGame(id);
       if (game) {
-        await contentRunner.runContent(state, game);
+        try {
+          await contentRunner.runContent(state, game);
+        } catch (error: any) {
+          console.log(error.message);
+        }
       }
       return;
     }

@@ -18,6 +18,7 @@ export const GameDataProviderRaw: GameDataProvider = {
 
     const filename = getGameDataFilename(gameData);
     const fullUrl = new URL(filename, source.arguments[0]).href;
+    console.log(fullUrl);
     const tempPath = path.join(dataPacksFolderPath, `${filename}.temp`);
     await downloadFile(axios, fullUrl, tempPath, abortSignal, onProgress, onDetails);
     // Check hash of download

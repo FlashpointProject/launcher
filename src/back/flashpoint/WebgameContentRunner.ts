@@ -15,7 +15,6 @@ export const webgameContentRunner: ContentRunner = {
   name: 'Webgames Content Runner',
   runContent: async (state: BackState, game: Game | Content, opts?: any) => {
     log.debug('Launcher', 'webgame runner');
-    log.debug('Launcher', JSON.stringify(state.preferences, undefined, 2));
     // Check for Flashpoint specific field
     if (isGame(game)) {
       // Make sure Server is set to configured server - Curations may have changed it
@@ -103,7 +102,7 @@ export const webgameContentRunner: ContentRunner = {
 
         // Make sure it has a path set, check the default location if it does not then save it back
         if (gameData && !gameData.path) {
-          const realPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, `${gameData.gameId}-${(new Date(gameData.dateAdded)).getTime()}.zip`);
+          const realPath = path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, getGameDataFilename(gameData));
           if (fs.existsSync(realPath)) {
             gameData.path = realPath;
             gameData.presentOnDisk = true;

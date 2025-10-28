@@ -386,7 +386,6 @@ export function HomePageComponentExtras(props: HomePageComponentProps) {
   const allStrings = React.useContext(LangContext);
   const strings = allStrings.home;
 
-  const platformList: React.JSX.Element[] = [];
   const views = Object.keys(viewObj);
   let viewName = '';
   for (const view of views) {
@@ -404,23 +403,6 @@ export function HomePageComponentExtras(props: HomePageComponentProps) {
   };
 
   const sortedPlatforms = [...platforms].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
-  platformList.push(
-    <div className='home-page__platform-box'>
-      {sortedPlatforms.map((platform, idx) => (
-        <Link
-          key={idx}
-          className='home-page__platform-entry'
-          to={joinLibraryRoute(viewName)}
-          onClick={() => onSearchPlatform(platform)}>
-          <div
-            className='home-page__platform-entry__logo'
-            style={{ backgroundImage: `url("${getPlatformIconURL(platform, logoVersion)}")` }}/>
-          <div className='home-page__platform-entry__text'>{platform}</div>
-        </Link>
-      )
-      )}
-    </div>
-  );
 
   return (
     <HomePageBox
@@ -432,7 +414,21 @@ export function HomePageComponentExtras(props: HomePageComponentProps) {
         {strings.filterByPlatform}:
       </QuickStartItem>
       <QuickStartItem className='home-page__box-item--platforms'>
-        {platformList}
+        <div className='home-page__platform-box'>
+          {sortedPlatforms.map((platform, idx) => (
+            <Link
+              key={idx}
+              className='home-page__platform-entry'
+              to={joinLibraryRoute(viewName)}
+              onClick={() => onSearchPlatform(platform)}>
+              <div
+                className='home-page__platform-entry__logo'
+                style={{ backgroundImage: `url("${getPlatformIconURL(platform, logoVersion)}")` }}/>
+              <div className='home-page__platform-entry__text'>{platform}</div>
+            </Link>
+          )
+          )}
+        </div>
       </QuickStartItem><br />
     </HomePageBox>
   );

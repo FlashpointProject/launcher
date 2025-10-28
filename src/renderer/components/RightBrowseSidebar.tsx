@@ -15,7 +15,7 @@ import { Paths } from '@shared/Paths';
 import { sizeToString } from '@shared/Util';
 import { isGame } from '@shared/utils/misc';
 import { formatString } from '@shared/utils/StringFormatter';
-import { Game, GameData, GameLaunchOverride, LangContainer, Playlist, PlaylistGame, ResultsView } from 'flashpoint-launcher';
+import { Game, GameLaunchOverride, LangContainer, Playlist, PlaylistGame, ResultsView } from 'flashpoint-launcher';
 import { GameComponentProps } from 'flashpoint-launcher-renderer';
 import { useContext, useEffect, useEffectEvent, useRef, useState } from 'react';
 import { Location, useNavigate } from 'react-router-dom';
@@ -334,7 +334,6 @@ export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
     onDiscardClick, onFpfssEditGame, onSaveGame, onEditClick, onDeleteSelectedGame,
     onRemovePlaylistGame,
   } = props;
-  const [activeData, setActiveData] = useState<GameData | null>(null);
   const [playlistGame, setPlaylistGame] = useState<PlaylistGame | null>(null);
   const [gameDataBrowserOpen, setGameDataBrowserOpen] = useState(false);
   const [showExtremeScreenshot, setShowExtremeScreenshot] = useState(!hideExtremeScreenshots);
@@ -345,16 +344,9 @@ export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
   const gameLibrary = useAppSelector(selectGameField(currentView.id, 'library'));
 
   const lastGameId = useRef(game?.id);
-  const lastGameActiveDataId = useRef(game?.activeDataId);
   const lastPlaylistId = useRef(playlist?.id);
 
-  // useEffectEvent makes sure the props are always up to date once the response arrives
-  const setActiveDataResponse = useEffectEvent((gameId: string, newActiveData: GameData | null) => {
-    if (gameId !== game?.id) {
-      return;
-    }
-    setActiveData(newActiveData);
-  });
+  const activeData = game?.gameData?.find(d => d.id === game?.activeDataId);
 
   const setPlaylistGameResponse = useEffectEvent((gameId: string, playlistId: string, newPlaylistGame: PlaylistGame | null) => {
     if (gameId !== game?.id || playlistId !== playlist?.id) {
@@ -366,7 +358,6 @@ export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
   useEffect(() => {
     let playlistChanged = false;
     let gameChanged = false;
-    let gameActiveDataIdChanged = false;
 
     if (playlist?.id !== lastPlaylistId.current) {
       playlistChanged = true;
@@ -376,11 +367,6 @@ export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
     if (game?.id !== lastGameId.current) {
       gameChanged = true;
       lastGameId.current = game?.id;
-    }
-
-    if (game?.activeDataId !== lastGameActiveDataId.current) {
-      gameActiveDataIdChanged = true;
-      lastGameActiveDataId.current = game?.activeDataId;
     }
 
     if (playlistChanged || gameChanged) {
@@ -405,20 +391,6 @@ export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
       (async () => {
         setShowExtremeScreenshot(!hideExtremeScreenshots);
       })();
-    }
-
-    if (gameActiveDataIdChanged) {
-      // Data id changed, reload active data
-      if (game && game.activeDataId !== undefined) {
-        window.Shared.back.request(BackIn.GET_GAME_DATA, game.activeDataId)
-        .then((data) => {
-          setActiveDataResponse(game.id, data);
-        });
-      } else {
-        (async () => {
-          setActiveData(null);
-        })();
-      }
     }
   });
 

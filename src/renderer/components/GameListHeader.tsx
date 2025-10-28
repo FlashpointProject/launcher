@@ -49,13 +49,13 @@ export function GameListHeader(props: GameListHeaderProps) {
       { props.showExtremeIcon ? (
         <Column modifier='icon' hideDivider={true} />
       ) : undefined}
-      { gameListDisplaySettings.columns.filter(c => c.type === 'icon').map(col => {
-        return <DynamicComponent props={gameListHeaderProps} name={col.headerComponent} />;
+      { gameListDisplaySettings.columns.filter(c => c.type === 'icon').map((col, idx) => {
+        return <DynamicComponent key={idx} props={gameListHeaderProps} name={col.headerComponent} />;
       })}
       <div className='game-list-header__right'>
         { gameListDisplaySettings.columns.filter(c => c.type === 'normal').map((col, idx) => {
-          return <div style={{ width: `${(col.weight / totalWeight) * 100}%` }}>
-            <DynamicComponent key={idx} props={gameListHeaderProps} name={col.headerComponent} />
+          return <div key={idx} style={{ width: `${(col.weight / totalWeight) * 100}%` }}>
+            <DynamicComponent props={gameListHeaderProps} name={col.headerComponent} />
           </div>;
         })}
       </div>

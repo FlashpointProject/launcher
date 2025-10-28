@@ -174,7 +174,7 @@ function UpdateComponent() {
     }
 
     return (
-      <div>
+      <div key={source.id}>
         <div className='update-metadata-name'>
           {source.name}
         </div>
@@ -193,7 +193,7 @@ function UpdateComponent() {
 
   if (updateReady) {
     updateBlocks.unshift(
-      <div className='update-metadata-button'>
+      <div key={'meta-block'} className='update-metadata-button'>
         <SimpleButton
           className='update-metadata-button-inner'
           value={strings.update}

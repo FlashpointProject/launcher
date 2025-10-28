@@ -11,6 +11,7 @@ import { promiseSleep } from './util/misc';
 import { WrappedEventEmitter } from './util/WrappedEventEmitter';
 import { EventQueue } from './util/EventQueue';
 import { AxiosError } from 'axios';
+import { getGameDataFilename } from '@shared/utils/misc';
 
 export interface Downloader {
   on  (event: string, listener: (...args: any[]) => void): this;
@@ -316,7 +317,7 @@ class DownloadWorker {
       this.stepProgress = 0;
       for (const gameData of foundGameData) {
         // Calc the path on disk and check if the file already matches
-        const realPath = path.join(this.downloader.flashpointPath, this.downloader.dataPacksFolderPath, `${gameData.gameId}-${(new Date(gameData.dateAdded)).getTime()}.zip`);
+        const realPath = path.join(this.downloader.flashpointPath, this.downloader.dataPacksFolderPath, getGameDataFilename(gameData));
         if (fs.existsSync(realPath)) {
           if (gameData.path !== realPath || gameData.presentOnDisk === false) {
             gameData.path = realPath;
