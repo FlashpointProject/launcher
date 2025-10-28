@@ -1050,6 +1050,22 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   state.socketServer.register(BackIn.GET_GAME, async (event, id) => {
     const game = await fpDatabase.findGame(id);
     if (game) {
+      const gameData = game.gameData?.find(d => d.id === game.activeDataId);
+      if (gameData) {
+        const gameDataFilename = getGameDataFilename(gameData);
+        try {
+          await fs.promises.access(path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, gameDataFilename), fs.constants.F_OK);
+          if (!gameData.presentOnDisk) {
+            gameData.presentOnDisk = true;
+            fpDatabase.saveGameData(gameData);
+          }
+        } catch (err) {
+          if (gameData.presentOnDisk) {
+            gameData.presentOnDisk = false;
+            fpDatabase.saveGameData(gameData);
+          }
+        }
+      }
       await state.apiEmitters.games.onInterceptGetGame.fire(game);
     }
     return game;
