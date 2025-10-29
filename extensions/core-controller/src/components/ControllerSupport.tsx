@@ -1,9 +1,25 @@
 import { GameComponentProps } from 'flashpoint-launcher-renderer';
 import { ControllerSet, getFormattedMappedName } from '../shared';
+import { createSelector } from '@reduxjs/toolkit';
 import React from 'react';
+import { Content, Game } from 'flashpoint-launcher';
+
+function isGame(content?: Content | Game): content is Game {
+  return content !== undefined && 'legacyApplicationPath' in content;
+}
+
+export const selectGameField = <K extends keyof Game>(viewId: string, key: K) => createSelector(
+  [
+    (state) => state.search.views[viewId].isEditing,
+    (state) => isGame(state.search.views[viewId].selectedGame) ? state.search.views[viewId].selectedGame[key] : undefined,
+    (state) => isGame(state.search.views[viewId].editingGame) ? state.search.views[viewId].editingGame[key] : undefined
+  ],
+  (isEditing, selectedGameValue, editingGameValue) => (isEditing ? editingGameValue : selectedGameValue) as Game[K]
+);
 
 export default function ControllerSupport(props: GameComponentProps) {
-  const controllerConfig: ControllerSet | undefined = props.game.extData?.controller?.config;
+  const extData = window.ext.hooks.useAppSelector(selectGameField(props.viewId, 'extData'));
+  const controllerConfig: ControllerSet | undefined = extData?.controller?.config;
 
   const mappedTable = React.useMemo(() => {
     if (!controllerConfig) {

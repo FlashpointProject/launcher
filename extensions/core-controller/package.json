@@ -38,7 +38,8 @@
         "react-error-boundary": "^6.0.0",
         "react-icons": "4.10.1",
         "react-markdown": "7.0.1",
-        "remark-gfm": "^4.0.1"
+        "remark-gfm": "^4.0.1",
+        "@reduxjs/toolkit": "2.7.0"
     },
     "devDependencies": {
         "@module-federation/rsbuild-plugin": "^0.13.1",

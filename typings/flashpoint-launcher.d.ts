@@ -2642,7 +2642,9 @@ declare module 'flashpoint-launcher' {
 
 declare module 'flashpoint-launcher-renderer' {
   import { GameOrderBy, GameOrderReverse, Game, ViewGame, ExtOrder, PlaylistGame, AdvancedFilter } from 'flashpoint-launcher';
-  import { useAppSelectorType, useAppDispatchType } from '@renderer/hooks/useAppSelector';
+  import { useAppDispatchType } from '@renderer/hooks/useAppSelector';
+  import type { RootState } from '@renderer/store/store';
+  import { TypedUseSelectorHook } from 'react-redux';
 
   /** Game properties that will have suggestions gathered and displayed. */
   type SuggestionProps = (
@@ -2771,7 +2773,7 @@ declare module 'flashpoint-launcher-renderer' {
     hooks: {
       useNavigate: () => NavigateFunction,
       useAppDispatch: useAppDispatchType,
-      useAppSelector: useAppSelectorType,
+      useAppSelector: TypedUseSelectorHook<RootState>,
     },
   }
 
