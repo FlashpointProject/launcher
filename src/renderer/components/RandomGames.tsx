@@ -1,20 +1,19 @@
 /* eslint-disable @typescript-eslint/indent */
 import { LangContext } from '@renderer/util/lang';
-import { LOGOS, SCREENSHOTS } from '@shared/constants';
+import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
+import { TagFilter, ViewGame } from 'flashpoint-launcher';
 import * as React from 'react';
 import { findGameDragEventDataGrid, getExtremeIconURL, getGameImageURL } from '../Util';
 import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
 import { HomePageBox } from './HomePageBox';
 import { SimpleButton } from './SimpleButton';
-import { Game, TagFilter, ViewGame } from 'flashpoint-launcher';
-import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
 
 type RandomGamesProps = {
   games: ViewGame[];
   selectedGameId?: string;
   /** Generator for game context menu */
-  onGameContextMenu: (gameId: string) => void;
+  onGameContextMenu: (gameId: string, logoPath: string, screenshotPath: string) => void;
   onLaunchGame: (gameId: string) => void;
   onGameSelect: (gameId: string | undefined) => void;
   rollRandomGames: () => void;
@@ -61,8 +60,8 @@ export function RandomGames(props: RandomGamesProps) {
           extreme={game ? game.tags.findIndex(t => props.extremeTags.includes(t.trim())) !== -1 : false}
           extremeIconPath={getExtremeIconURL(props.logoVersion)}
           tagGroupIconBase64={props.tagGroupIcons.find(tg => tg.tagFilter.find(t => game?.tags.includes(t)))?.iconBase64 || ''}
-          thumbnail={getGameImageURL(LOGOS, game.id)}
-          screenshot={getGameImageURL(SCREENSHOTS, game.id)}
+          thumbnail={getGameImageURL(game.logoPath)}
+          screenshot={getGameImageURL(game.screenshotPath)}
           screenshotPreviewMode={props.screenshotPreviewMode}
           screenshotPreviewDelay={props.screenshotPreviewDelay}
           hideExtremeScreenshots={props.hideExtremeScreenshots}
@@ -73,8 +72,8 @@ export function RandomGames(props: RandomGamesProps) {
     );
   }, [props.games, props.selectedGameId, props.logoVersion, props.extremeTags]);
 
-  const onGameContextMenu = (event: React.MouseEvent<HTMLDivElement, MouseEvent>, gameId: string) => {
-    return props.onGameContextMenu(gameId);
+  const onGameContextMenu = (event: React.MouseEvent<HTMLDivElement, MouseEvent>, gameId: string, logoPath: string, screenshotPath: string) => {
+    return props.onGameContextMenu(gameId, logoPath, screenshotPath);
   };
 
   const render = (

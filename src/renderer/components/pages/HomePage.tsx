@@ -1,7 +1,11 @@
 import { FancyAnimation } from '@renderer/components/FancyAnimation';
 import { WithMainStateProps } from '@renderer/containers/withMainState';
+import { useView } from '@renderer/hooks/search';
+import { GENERAL_VIEW_ID } from '@renderer/store/search/slice';
+import { idToGame } from '@renderer/util/async';
+import { Paths } from '@shared/Paths';
 import { BackIn, ComponentStatus, GameOfTheDay } from '@shared/back/types';
-import { ARCADE, LOGOS, SCREENSHOTS, THEATRE } from '@shared/constants';
+import { ARCADE, THEATRE } from '@shared/constants';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
@@ -11,7 +15,6 @@ import ReactDatePicker from 'react-datepicker';
 import ReactMarkdown from 'react-markdown';
 import { Link } from 'react-router-dom';
 import remarkGfm from 'remark-gfm';
-import { Paths } from '@shared/Paths';
 import { findGameDragEventDataGrid, getExtremeIconURL, getGameImageURL, getPlatformIconURL, joinLibraryRoute } from '../../Util';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { WithSearchProps } from '../../containers/withSearch';
@@ -23,16 +26,13 @@ import { OpenIcon, OpenIconType } from '../OpenIcon';
 import { RandomGames } from '../RandomGames';
 import { SimpleButton } from '../SimpleButton';
 import { SizeProvider } from '../SizeProvider';
-import { GENERAL_VIEW_ID } from '@renderer/store/search/slice';
-import { idToGame } from '@renderer/util/async';
-import { useView } from '@renderer/hooks/search';
 
 type OwnProps = {
   gotdList: GameOfTheDay[] | undefined;
   platforms: string[];
   playlists: Playlist[];
   /** Generator for game context menu */
-  onGameContextMenu: (gameId: string) => void;
+  onGameContextMenu: (gameId: string, logoPath: string, screenshotPath: string) => void;
   onLaunchGame: (gameId: string, override: GameLaunchOverride) => void;
   /** Pass to Random Picks */
   randomGames: ViewGame[];
@@ -333,7 +333,7 @@ export function HomePage(props: HomePageProps) {
               { loadedGotd ? (
                 <GameItemContainer
                   className='gotd-container'
-                  onGameContextMenu={(event, gameId) => props.onGameContextMenu(gameId)}
+                  onGameContextMenu={(event, gameId, logoPath, screenshotPath) => props.onGameContextMenu(gameId, logoPath, screenshotPath)}
                   onGameSelect={(event, gameId) => gameId && onSelectGame(gameId)}
                   onGameLaunch={(event, gameId) => props.onLaunchGame(gameId, null)}
                   findGameDragEventData={findGameDragEventDataGrid}>
@@ -345,8 +345,8 @@ export function HomePage(props: HomePageProps) {
                     extreme={loadedGotd.tags.findIndex(t => extremeTags.includes(t.trim())) !== -1}
                     extremeIconPath={extremeIconPath}
                     tagGroupIconBase64={tagGroupIcons.find(tg => tg.tagFilter.find(t => loadedGotd?.tags.includes(t)))?.iconBase64 || ''}
-                    thumbnail={getGameImageURL(LOGOS, loadedGotd.id)}
-                    screenshot={getGameImageURL(SCREENSHOTS, loadedGotd.id)}
+                    thumbnail={getGameImageURL(loadedGotd.logoPath)}
+                    screenshot={getGameImageURL(loadedGotd.screenshotPath)}
                     screenshotPreviewMode={props.preferencesData.screenshotPreviewMode}
                     screenshotPreviewDelay={props.preferencesData.screenshotPreviewDelay}
                     hideExtremeScreenshots={props.preferencesData.hideExtremeScreenshots}

@@ -200,14 +200,12 @@ class DownloadWorker {
     const errors: string[] = [];
 
     // Download game images
-    const logoSubPath = `Logos/${gameId.substring(0, 2)}/${gameId.substring(2, 4)}/${gameId}.png`;
-    const ssSubPath = `Screenshots/${gameId.substring(0, 2)}/${gameId.substring(2, 4)}/${gameId}.png`
-    const logoPath = path.join(this.downloader.flashpointPath, this.downloader.imageFolderPath, logoSubPath);
-    const ssPath = path.join(this.downloader.flashpointPath, this.downloader.imageFolderPath, ssSubPath);
+    const logoPath = path.join(this.downloader.flashpointPath, this.downloader.imageFolderPath, game.logoPath);
+    const ssPath = path.join(this.downloader.flashpointPath, this.downloader.imageFolderPath, game.screenshotPath);
 
     if (!fs.existsSync(logoPath)) {
       try {
-        await this.downloadImage(logoSubPath, signal);
+        await this.downloadImage(game.logoPath, signal);
       } catch (e) {
         this.downloader.signalStatus(this, gameId, 'failure', errors);
         errors.push(`${e}`);
@@ -225,7 +223,7 @@ class DownloadWorker {
 
     if (!fs.existsSync(ssPath)) {
       try {
-        await this.downloadImage(ssSubPath, signal);
+        await this.downloadImage(game.screenshotPath, signal);
       } catch (e) {
         errors.push(`${e}`);
       }

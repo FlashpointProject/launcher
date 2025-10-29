@@ -350,8 +350,7 @@ export async function makeCurationFromGame(state: BackState, gameId: string, ski
 
     const imagesRoot = path.join(state.config.flashpointPath, state.preferences.imageFolderPath);
     // Copy images (download from remote if does not exist)
-    const logoRelPath = path.join('Logos', gameId.substring(0, 2), gameId.substring(2, 4), `${gameId}.png`);
-    const logoPath = path.join(imagesRoot, logoRelPath);
+    const logoPath = path.join(imagesRoot, game.logoPath);
     await fs.access(logoPath, fs.constants.F_OK)
     .then(() => {
       // Copy existing image
@@ -360,7 +359,7 @@ export async function makeCurationFromGame(state: BackState, gameId: string, ski
     .catch(async () => {
       // Download fresh image
       const destPath = path.join(curPath, 'logo.png');
-      const url = new URL(logoRelPath, state.preferences.onDemandBaseUrl);
+      const url = new URL(game.logoPath, state.preferences.onDemandBaseUrl);
       const writer = fs.createWriteStream(destPath);
       await axios.get(url.href, {
         responseType: 'stream',
@@ -373,8 +372,7 @@ export async function makeCurationFromGame(state: BackState, gameId: string, ski
       });
     });
 
-    const screenshotRelPath = path.join('Screenshots', gameId.substring(0, 2), gameId.substring(2, 4), `${gameId}.png`);
-    const screenshotPath = path.join(imagesRoot, screenshotRelPath);
+    const screenshotPath = path.join(imagesRoot, game.screenshotPath);
     await fs.access(screenshotPath, fs.constants.F_OK)
     .then(() => {
       // Copy existing image
@@ -383,7 +381,7 @@ export async function makeCurationFromGame(state: BackState, gameId: string, ski
     .catch(async () => {
       // Download fresh image
       const destPath = path.join(curPath, 'ss.png');
-      const url = new URL(screenshotRelPath, state.preferences.onDemandBaseUrl);
+      const url = new URL(game.screenshotPath, state.preferences.onDemandBaseUrl);
       const writer = fs.createWriteStream(destPath);
       await axios.get(url.href, {
         responseType: 'stream',

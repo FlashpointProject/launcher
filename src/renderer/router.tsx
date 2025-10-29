@@ -49,7 +49,7 @@ export type AppRouterProps = {
   selectedGameId?: string;
   gameRunning: boolean;
   selectedPlaylistId?: string;
-  onGameContextMenu: (gameId: string) => Menu;
+  onGameContextMenu: (gameId: string, logoPath: string, screenshotPath: string) => Menu;
   onUpdatePlaylist: (playlist: Playlist) => void;
   onDeletePlaylist: (playlist: Playlist) => void;
   wasNewGameClicked: boolean;

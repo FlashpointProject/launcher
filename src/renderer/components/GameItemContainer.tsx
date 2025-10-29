@@ -9,7 +9,7 @@ export type GameItemContainerProps = HTMLDivProps & {
   realRef?: JSX.IntrinsicElements['div']['ref'];
   onGameSelect?:      (event: React.MouseEvent<HTMLDivElement>, gameId: string | undefined) => void;
   onGameLaunch?:      (event: React.MouseEvent<HTMLDivElement>, gameId: string) => void;
-  onGameContextMenu?: (event: React.MouseEvent<HTMLDivElement>, gameId: string) => void;
+  onGameContextMenu?: (event: React.MouseEvent<HTMLDivElement>, gameId: string, logoPath: string, screenshotPath: string) => void;
   onGameDragStart?:   (event: React.DragEvent<HTMLDivElement>,  dragEventData: GameDragEventData) => void;
   onGameDragEnd?:     (event: React.DragEvent<HTMLDivElement>) => void;
   onGameDrop?:        (event: React.DragEvent) => void;
@@ -82,8 +82,8 @@ export class GameItemContainer extends React.Component<GameItemContainerProps> {
   onContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
     if (this.props.onContextMenu) { this.props.onContextMenu(event); }
     if (this.props.onGameContextMenu) {
-      const gameId = this.findGameDragEventData(event.target)?.gameId;
-      if (gameId !== undefined) { this.props.onGameContextMenu(event, gameId); }
+      const dragData = this.findGameDragEventData(event.target);
+      if (dragData?.gameId !== undefined) { this.props.onGameContextMenu(event, dragData?.gameId, dragData?.logoPath, dragData?.screenshotPath); }
     }
   };
 

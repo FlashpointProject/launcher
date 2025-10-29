@@ -1,6 +1,8 @@
 import { BackOut, BackOutTemplate } from '@shared/back/types';
-import { LOGOS, SCREENSHOTS, VIEW_PAGE_SIZE } from '@shared/constants';
+import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
+import { LOGOS, VIEW_PAGE_SIZE } from '@shared/constants';
 import { memoizeOne } from '@shared/memoize';
+import { GameLaunchOverride, TagFilter } from 'flashpoint-launcher';
 import * as React from 'react';
 import { ArrowKeyStepper, AutoSizer, Grid, GridCellProps, ScrollIndices } from 'react-virtualized-reactv17';
 import { UpdateView, ViewGameSet } from '../interfaces';
@@ -8,8 +10,6 @@ import { findElementAncestor, gameDragDataType, getExtremeIconURL, getGameImageU
 import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
 import { GameDragData, GameDragEventData } from './pages/BrowsePage';
-import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
-import { GameLaunchOverride, TagFilter } from 'flashpoint-launcher';
 
 const RENDERER_OVERSCAN = 5;
 
@@ -46,7 +46,7 @@ export type GameGridProps = {
   /** Called when the user attempts to select a game. */
   onGameSelect: (gameId?: string, col?: number, row?: number) => void;
   /** Called when the user attempts to open a context menu (at a game). */
-  onContextMenu?: (gameId: string) => void;
+  onContextMenu?: (gameId: string, logoPath: string, screenshotPath: string) => void;
   /** Called when the user starts to drag a game. */
   onGameDragStart?: (event: React.DragEvent, dragEventData: GameDragEventData) => void;
   /** Called when the user stops dragging a game (when they release it). */
@@ -266,8 +266,8 @@ export class GameGrid extends React.Component<GameGridProps, GameGridState> {
           extreme={game ? game.tags.findIndex(t => this.props.extremeTags.includes(t.trim())) !== -1 : false}
           extremeIconPath={extremeIconPath}
           tagGroupIconBase64={tagGroupIcon || ''}
-          thumbnail={game ? getGameImageURL(LOGOS, game.id) : ''}
-          screenshot={game ? getGameImageURL(SCREENSHOTS, game.id) : ''}
+          thumbnail={game ? getGameImageURL(game.logoPath) : ''}
+          screenshot={game ? getGameImageURL(game.screenshotPath) : ''}
           screenshotPreviewMode={this.props.screenshotPreviewMode}
           screenshotPreviewDelay={this.props.screenshotPreviewDelay}
           logoVersion={this.props.logoVersion}
@@ -287,7 +287,7 @@ export class GameGrid extends React.Component<GameGridProps, GameGridState> {
 
       // Update the image in the browsers cache
       if (folder === LOGOS) {
-        fetch(getGameImageURL(folder, id))
+        fetch(getGameImageURL(id))
         .then(() => {
           // Refresh the image for the game(s) that uses it
           const elements = document.getElementsByClassName('game-grid-item');
@@ -355,9 +355,9 @@ export class GameGrid extends React.Component<GameGridProps, GameGridState> {
    * @param event React event
    * @param gameId ID of Game to open context menu for
    */
-  onGameContextMenu = (event: React.MouseEvent<HTMLDivElement>, gameId: string | undefined): void => {
+  onGameContextMenu = (event: React.MouseEvent<HTMLDivElement>, gameId: string | undefined, logoPath: string, screenshotPath: string): void => {
     if (this.props.onContextMenu) {
-      if (gameId) { this.props.onContextMenu(gameId); }
+      if (gameId) { this.props.onContextMenu(gameId, logoPath, screenshotPath); }
     }
   };
 
