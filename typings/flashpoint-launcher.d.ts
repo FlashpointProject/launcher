@@ -2694,6 +2694,7 @@ declare module 'flashpoint-launcher-renderer' {
     onClick?: () => void;
     /** Called whenever the text input changes (must update text value yourself, usually with updateGame) */
     onChange: (value: string) => void;
+    HeaderComponent?: (props: GameComponentInputFieldProps) => React.ReactNode;
   };
 
   type GameComponentDropdownSelectFieldProps = GameComponentProps & {

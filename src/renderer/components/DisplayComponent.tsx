@@ -2,10 +2,14 @@ import { GameComponentDropdownSelectFieldProps, GameComponentInputFieldProps } f
 import { InputField } from './InputField';
 import { DropdownInputFieldMapped } from './DropdownInputField';
 
-export function GameComponentInputField({ header, onClick, multiline, text, placeholder, onChange, editable }: GameComponentInputFieldProps) {
+export function GameComponentInputField(props: GameComponentInputFieldProps) {
+  const { header, onClick, multiline, text, placeholder, onChange, editable, HeaderComponent } = props;
+  const headerRender = HeaderComponent ? <HeaderComponent {...props}/> : <p className='browse-right-sidebar__row-header-text'>{header}: </p>;
   return (
     <div className={`browse-right-sidebar__row ${!multiline ? 'browse-right-sidebar__row--one-line' : ''}`}>
-      <p>{header}: </p>
+      <div className='browse-right-sidebar__row-header'>
+        {headerRender}
+      </div>
       <InputField
         text={text}
         placeholder={placeholder}

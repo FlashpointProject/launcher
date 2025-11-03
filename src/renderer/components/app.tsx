@@ -647,35 +647,47 @@ function initApp(dispatch: AppDispatch) {
   };
 
   // Load FPFSS user info and check that profile works
-  (() => {
-    const userBase64 = localStorage.getItem('fpfss_user');
-    if (userBase64) {
-      try {
-        const user = JSON.parse(Buffer.from(userBase64, 'base64').toString('utf-8')) as FpfssUser;
-        // Test profile uri
-        const profileUrl = `${window.Shared.initialPreferences.fpfssBaseUrl}/api/profile`;
-        axios.get(profileUrl, {
-          headers: {
-            'Authorization': `Bearer ${user.accessToken}`
-          }
-        })
-        .then((res) => {
-          // Success, use most recent info and save to storage and state
-          user.username = res.data['Username'];
-          user.avatarUrl = res.data['AvatarURL'];
-          user.roles = res.data['Roles'];
-          dispatch(setFpfssUser(user));
-        })
-        .catch(() => {
-          // Failed auth
-          localStorage.removeItem('fpfss_user');
-        });
-      } catch (err) {
-        log.error('Launcher', 'Fpfss saved auth was invalid, clearing...');
+  const userBase64 = localStorage.getItem('fpfss_user');
+  if (userBase64) {
+    try {
+      const user = JSON.parse(Buffer.from(userBase64, 'base64').toString('utf-8')) as FpfssUser;
+      // Test profile uri
+      const profileUrl = `${window.Shared.initialPreferences.fpfssBaseUrl}/api/profile`;
+      axios.get(profileUrl, {
+        headers: {
+          'Authorization': `Bearer ${user.accessToken}`
+        }
+      })
+      .then((res) => {
+        // Success, use most recent info and save to storage and state
+        user.username = res.data['Username'];
+        user.avatarUrl = res.data['AvatarURL'];
+        user.roles = res.data['Roles'];
+        dispatch(setFpfssUser(user));
+      })
+      .catch(() => {
+        // Failed auth
         localStorage.removeItem('fpfss_user');
-      }
+      });
+    } catch (err) {
+      log.error('Launcher', 'Fpfss saved auth was invalid, clearing...');
+      localStorage.removeItem('fpfss_user');
     }
-  })();
+  }
+
+  if (window.electronAPI !== undefined) {
+    // Only exit after window closure if we're running under Electron
+    window.onbeforeunload = (event: BeforeUnloadEvent) => {
+      event.stopPropagation();
+      setTimeout(() => {
+        window.Shared.back.allowDeath();
+        window.Shared.back.request(BackIn.QUIT)
+        .finally(() => {
+          window.close();
+        });
+      }, 100);
+    };
+  }
 
   registerWebsocketListeners(dispatch);
 }

@@ -1707,10 +1707,17 @@ body {
   font-weight: bold;
   font-size: 1.05em;
 }
-.browse-right-sidebar__row p {
+.browse-right-sidebar__row-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.browse-right-sidebar__row-header-text {
   display: inline;
   cursor: default;
   align-self: baseline;
+  font-weight: bold;
+  font-size: 1.05em;
 }
 .browse-right-sidebar--edit-enabled {
   user-select: none; /* Can not select text while editing is enabled */

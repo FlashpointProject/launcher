@@ -1,7 +1,7 @@
 import { ModelUtils } from '@shared/game/util';
 import { deepCopy, generateTagFilterGroup } from '@shared/Util';
 import { AdditionalApp, Game, Platform, Tag, TagSuggestion } from 'flashpoint-launcher';
-import { GameComponentProps } from 'flashpoint-launcher-renderer';
+import { GameComponentInputFieldProps, GameComponentProps } from 'flashpoint-launcher-renderer';
 import { GameComponentInputField } from './DisplayComponent';
 import { DropdownInputField, DropdownInputFieldMapped } from './DropdownInputField';
 import { RightBrowseSidebarAddApp } from './RightBrowseSidebarAddApp';
@@ -333,7 +333,26 @@ export function GameComponentAddApps(props: GameComponentProps) {
 
 export function GameComponentPlaylistNotes(props: GameComponentProps) {
   const { playlistGame, updatePlaylistNotes } = props;
+  const upperEditable = props.editable;
   const lang = useContext(LangContext);
+  const [editableOverride, setEditableOverride] = useState(false);
+  const editable = editableOverride || upperEditable;
+  console.log(upperEditable);
+
+  const HeaderComponent = (props: GameComponentInputFieldProps) => {
+    return (
+      <>
+        <p className='browse-right-sidebar__row-header-text'>{props.header}: </p>
+        {!upperEditable && (
+          <>
+            <div onClick={() => setEditableOverride(!editableOverride)}>
+              <OpenIcon icon={editable ? 'check' : 'pencil'}/>
+            </div>
+          </>
+        )}
+      </>
+    );
+  };
 
   if (playlistGame) {
     return (
@@ -343,7 +362,9 @@ export function GameComponentPlaylistNotes(props: GameComponentProps) {
         placeholder={lang.browse.noPlaylistNotes}
         multiline={true}
         onChange={(value) => updatePlaylistNotes(value)}
-        {...props} />
+        {...props}
+        editable={editable}
+        HeaderComponent={HeaderComponent} />
     );
   } else {
     return (<></>);
