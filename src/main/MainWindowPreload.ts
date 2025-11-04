@@ -10,12 +10,14 @@ electron.contextBridge.exposeInMainWorld('electronAPI', {
     return ipcRenderer.sendSync('renderer-init');
   },
   fileExists: (path: string) => {
+    path = fixPath(path);
     return ipcRenderer.invoke(CustomIPC.FILE_EXISTS, path);
   },
   openExternal: (url: string, opts?: Electron.OpenExternalOptions) => {
     ipcRenderer.send(CustomIPC.OPEN_EXTERNAL, url, opts);
   },
   showItemInFolder: (path: string) => {
+    path = fixPath(path);
     ipcRenderer.send(CustomIPC.SHOW_FILE_IN_FOLDER, path);
   },
   showOpenDialog: (opts: OpenDialogOptions) => {
@@ -83,4 +85,14 @@ enum CustomIPC {
   SELECT_FOLDER = 'select-folder',
   FILE_EXISTS = 'file-exists',
   WRITE_CLIPBOARD = 'write-clipboard',
+}
+
+function fixPath(path: string) {
+  if (path.length >= 3) {
+    if (path[0] === '/' && path[2] === ':') {
+      path = path.substring(1);
+    }
+  }
+
+  return path;
 }

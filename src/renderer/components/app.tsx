@@ -284,6 +284,7 @@ export function App() {
           .then(async (game) => {
             if (game) {
               const gamePath = await getGamePath(game, window.Shared.config.fullFlashpointPath, htdocsFolderPath, dataPacksFolderPath);
+              console.log(gamePath);
               if (gamePath) {
                 const fileExists = await window.electronAPI?.fileExists(gamePath);
                 if (fileExists) {
