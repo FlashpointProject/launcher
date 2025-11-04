@@ -17,11 +17,11 @@ export function TitleBar(props: TitleBarProps) {
             <>
               <div
                 className='title-bar__button-bar__min'
-                onClick={window.electronAPI?.minimize} /><div
+                onClick={() => window.electronAPI?.minimize()} /><div
                 className='title-bar__button-bar__max'
-                onClick={window.electronAPI?.maximize} /><div
+                onClick={() => window.electronAPI?.maximize()} /><div
                 className='title-bar__button-bar__cross'
-                onClick={window.electronAPI?.close} />
+                onClick={() => window.electronAPI?.close()} />
             </>
           )}
         </div>
