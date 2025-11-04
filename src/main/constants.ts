@@ -25,4 +25,5 @@ export enum CustomIPC {
   TOGGLE_DEVTOOLS = 'toggle-devtools',
   SELECT_FOLDER = 'select-folder',
   FILE_EXISTS = 'file-exists',
+  WRITE_CLIPBOARD = 'write-clipboard',
 }

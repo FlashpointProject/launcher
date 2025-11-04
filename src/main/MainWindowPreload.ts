@@ -22,7 +22,7 @@ electron.contextBridge.exposeInMainWorld('electronAPI', {
     return ipcRenderer.invoke(CustomIPC.SELECT_FOLDER, opts) as Promise<string[] | undefined>;
   },
   writeClipboardText: (text: string) => {
-    electron.clipboard.writeText(text);
+    ipcRenderer.send(CustomIPC.WRITE_CLIPBOARD, text);
   },
   restart: () => {
     ipcRenderer.send(CustomIPC.RELOAD_WINDOW);
@@ -82,4 +82,5 @@ enum CustomIPC {
   TOGGLE_DEVTOOLS = 'toggle-devtools',
   SELECT_FOLDER = 'select-folder',
   FILE_EXISTS = 'file-exists',
+  WRITE_CLIPBOARD = 'write-clipboard',
 }

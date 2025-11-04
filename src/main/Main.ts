@@ -15,6 +15,7 @@ import * as WebSocket from 'ws';
 import * as Util from './Util';
 import { CustomIPC, WindowIPC } from './constants';
 import { Init } from './types';
+import * as electron from 'electron';
 
 const TIMEOUT_DELAY = 60_000;
 
@@ -136,6 +137,9 @@ export function main(init: Init): void {
     });
     ipcMain.handle(CustomIPC.FILE_EXISTS, async (event, path) => {
       return fs.existsSync(path);
+    });
+    ipcMain.on(CustomIPC.WRITE_CLIPBOARD, async (event, text) => {
+      electron.clipboard.writeText(text);
     });
     ipcMain.on(CustomIPC.OPEN_EXTERNAL, (event, url, opts) => {
       shell.openExternal(url, opts);
