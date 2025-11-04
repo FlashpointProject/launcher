@@ -1,10 +1,10 @@
-const { series } = require('gulp');
-const fs = require('fs');
-const gulp = require('gulp');
-const zip = require('gulp-zip');
-const merge = require('merge-stream');
-const esbuild = require('esbuild');
-const { build: rslibBuild, loadConfig } = require('@rslib/core');
+import { series } from 'gulp';
+import fs from 'fs';
+import gulp from 'gulp';
+import zip from 'gulp-zip';
+import merge from 'merge-stream';
+import esbuild from 'esbuild';
+import { build as rslibBuild, loadConfig } from '@rslib/core';
 
 const filesToCopy = [
     'extension.js',
@@ -76,10 +76,10 @@ function stage() {
     ]);
 }
 
-function package() {
+function packageExt() {
     return gulp.src('package/**/*').pipe(zip('core-nga.fplx')).pipe(gulp.dest('.'));
 }
 
 exports.build = series(build);
 exports.watch = series(watch);
-exports.package = series(clean, stage, package);
+exports.package = series(clean, stage, packageExt);
