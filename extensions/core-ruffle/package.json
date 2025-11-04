@@ -73,10 +73,9 @@
     "@types/node": "18.x",
     "eslint": "^8.14.0",
     "babel-plugin-react-compiler": "19.1.0-rc.1",
-    "gulp": "^4.0.2",
+    "gulp": "5.0.1",
     "gulp-zip": "^5.0.2",
     "merge-stream": "^2.0.0",
-    "rslib": "0.0.10",
     "typescript": "^5.8.3"
   }
 }

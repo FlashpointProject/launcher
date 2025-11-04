@@ -14,7 +14,7 @@ const filesToCopy = [
     'README.md'
 ];
 
-async function build(done) {
+async function buildTask(done) {
     // Build main extension (Node.js)
     const nodeBuild = esbuild.build({
         bundle: true,
@@ -34,7 +34,7 @@ async function build(done) {
     .finally(done);
 }
 
-async function watch(done) {
+async function watchTask(done) {
     const ctx = await esbuild.context({
         bundle: true,
         entryPoints: ['./src/extension.ts'],
@@ -76,10 +76,10 @@ function stage() {
     ]);
 }
 
-function packageExt() {
+function packageExtTask() {
     return gulp.src('package/**/*').pipe(zip('core-ruffle.fplx')).pipe(gulp.dest('.'));
 }
 
-exports.build = series(build);
-exports.watch = series(watch);
-exports.package = series(clean, stage, packageExt);
+export const build = series(buildTask);
+export const watch = series(watchTask);
+export const packageExt = series(clean, stage, packageExtTask);
