@@ -130,7 +130,7 @@ export function GameComponentPlayMode(props: GameComponentProps) {
 
 export function GameComponentStatus(props: GameComponentProps) {
   const { viewId, editable, suggestions, updateGame, doSearch } = props;
-  const status = window.ext.hooks.useAppSelector(selectGameField(viewId, 'playMode'));
+  const status = window.ext.hooks.useAppSelector(selectGameField(viewId, 'status'));
   const lang = useContext(LangContext);
 
   return (
@@ -345,7 +345,7 @@ export function GameComponentPlaylistNotes(props: GameComponentProps) {
         <p className='browse-right-sidebar__row-header-text'>{props.header}: </p>
         {!upperEditable && (
           <>
-            <div onClick={() => setEditableOverride(!editableOverride)}>
+            <div className='browse-right-sidebar__title-row__buttons__edit-button' onClick={() => setEditableOverride(!editableOverride)}>
               <OpenIcon icon={editable ? 'check' : 'pencil'}/>
             </div>
           </>

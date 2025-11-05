@@ -1719,6 +1719,12 @@ body {
   font-weight: bold;
   font-size: 1.05em;
 }
+.browse-right-sidebar__title-row__buttons__edit-button {
+  cursor: pointer;
+}
+.browse-right-sidebar__title-row__buttons__remove-from-playlist {
+  cursor: pointer;
+}
 .browse-right-sidebar--edit-enabled {
   user-select: none; /* Can not select text while editing is enabled */
 }
@@ -3764,6 +3770,7 @@ body {
 }
 
 .menu-item {
+  cursor: pointer;
   display: flex;
   align-items: center;
   height: calc(1px * var(--height));
