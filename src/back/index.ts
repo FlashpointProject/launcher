@@ -50,7 +50,6 @@ import { ExtensionService } from './extensions/ExtensionService';
 import {
   FPLNodeModuleFactory,
   INodeModuleFactory,
-  installNodeInterceptor,
   registerInterceptor
 } from './extensions/NodeInterceptor';
 import { Command, RegisteredMiddleware } from './extensions/types';
@@ -1006,7 +1005,7 @@ async function initialize() {
     state,
   ),
   state.moduleInterceptor);
-  installNodeInterceptor(state.moduleInterceptor)
+  state.extensionsService.installInterceptor(state.moduleInterceptor)
   .then(async () => {
     // Load each extension
     await state.extensionsService.getExtensions()

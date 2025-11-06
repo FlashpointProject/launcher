@@ -3,10 +3,6 @@ import { pluginReact } from '@rsbuild/plugin-react';
 import { pluginBabel } from '@rsbuild/plugin-babel';
 import { pluginNodePolyfill } from '@rsbuild/plugin-node-polyfill';
 
-const externals = {
-  'electron': 'commonjs electron'
-};
-
 export default defineConfig({
   source: {
     entry: {
@@ -38,7 +34,6 @@ export default defineConfig({
     cleanDistPath: {
       keep: [/styles*/, /images*/, /svg*/],
     },
-    externals,
   },
   plugins: [
     pluginReact(),

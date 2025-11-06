@@ -1,12 +1,10 @@
 /* eslint-disable prefer-rest-params */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { BackState } from '@back/types';
 import { nullExtensionDescription } from '@back/util/extensions';
 import { TernarySearchTree } from '@back/util/map';
 import { IExtension, IExtensionManifest } from '@shared/extensions/interfaces';
 import * as flashpoint from 'flashpoint-launcher';
 import { createApiFactory } from './ApiImplementation';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 
 type LoadFunction = {
   (request: string): any;
@@ -50,9 +48,11 @@ export function registerInterceptor(interceptor: INodeModuleFactory, state: Inte
  *
  * @param state State object holding all interceptor data
  */
-export async function installNodeInterceptor(state: InterceptorState): Promise<void> {
+export async function installNodeInterceptor(state: InterceptorState, node_module?: any): Promise<void> {
   const { alternatives, factories } = state;
-  const node_module: any = await import('module');
+  if (!node_module) {
+    node_module = await import('module');
+  }
   const original = node_module._load;
   node_module._load = function load(request: string, parent: { path: string, filename: string; }, isMain: any) {
     for (const alternativeModuleName of alternatives) {

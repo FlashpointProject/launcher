@@ -1,18 +1,19 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-const fs = require('fs-extra');
-const gulp = require('gulp');
-const builder = require('electron-builder');
-const tar = require('tar-fs');
-const zlib = require('zlib');
-const { parallel, series } = require('gulp');
-const { installExtensions, buildExtensions, watchExtensions } = require('./gulpfile.extensions');
-const { execute } = require('./gulpfile.util');
-const { execSync } = require('child_process');
-const { promisify } = require('util');
-const { createRsbuild, loadConfig } = require('@rsbuild/core');
+/* eslint-disable no-undef */
+import fs from 'fs-extra';
+import gulp from 'gulp';
+import builder from 'electron-builder';
+import tar from 'tar-fs';
+import zlib from 'zlib';
+import { parallel, series } from 'gulp';
+import { installExtensions, buildExtensions, watchExtensions } from './gulpfile.extensions.js';
+import { execSync } from 'child_process';
+import { promisify } from 'util';
+import { createRsbuild, loadConfig } from '@rsbuild/core';
+import { pipeline } from 'stream';
+import path from 'path';
 
 // Promisify the pipeline function
-const pipeline = promisify(require('stream').pipeline);
+const pipelineAsync = promisify(pipeline);
 
 const packageJson = JSON.parse(fs.readFileSync('./package.json', { encoding: 'utf-8' }));
 
@@ -61,15 +62,9 @@ const copyFiles = [
   },
   './lang',
   './licenses',
-  'ormconfig.json',
   {
     from: './LICENSE',
     to: './licenses/LICENSE',
-  },
-  {
-    // Copy the OS specific upgrade file
-    from: './upgrade/${os}.json',
-    to: './upgrade.json',
   },
 ];
 // Options to append when releasing
@@ -194,8 +189,53 @@ function installCrossDeps(done) {
 
 /* ------ Watch ------ */
 
-function watchBack(done) {
-  execute('npx swc --strip-leading-paths --no-swcrc --config-file swcrc.back.dev.json --source-maps true -d build src --watch', done);
+async function watchElectron() {
+  const config = await loadConfig({ path: 'rsbuild-electron.config.ts'});
+  const rsbuild = await createRsbuild({
+    rsbuildConfig: {
+      ...config.content
+    }
+  });
+  await rsbuild.build({
+    watch: true
+  });
+}
+
+async function watchElectronPreload() {
+  const config = await loadConfig({ path: 'rsbuild-preload.config.ts'});
+  const rsbuild = await createRsbuild({
+    rsbuildConfig: {
+      ...config.content
+    }
+  });
+  await rsbuild.build({
+    watch: true
+  });
+}
+
+async function watchNodeMain() {
+  const config = await loadConfig({ path: 'rsbuild-node.config.ts'});
+  const rsbuild = await createRsbuild({
+    rsbuildConfig: {
+      ...config.content
+    }
+  });
+  await rsbuild.build({
+    watch: true
+  });
+}
+
+async function watchBackend() {
+  await copyNativeModule();
+  const config = await loadConfig({ path: 'rsbuild-back.config.ts'});
+  const rsbuild = await createRsbuild({
+    rsbuildConfig: {
+      ...config.content
+    }
+  });
+  await rsbuild.build({
+    watch: true
+  });
 }
 
 async function watchRenderer() {
@@ -210,14 +250,56 @@ async function watchRenderer() {
   });
 }
 
-function watchStatic() {
+function watchStaticTask() {
   gulp.watch(config.static.src + '/**/*', buildStatic);
 }
 
 /* ------ Build ------ */
 
-function buildBack(done) {
-  execute('npx swc --strip-leading-paths --no-swcrc --config-file swcrc.back.prod.json -d build src', done);
+async function buildNodeMain() {
+  const config = await loadConfig({ path: 'rsbuild-node.config.ts'});
+  const rsbuild = await createRsbuild({
+    rsbuildConfig: config.content
+  });
+  return rsbuild.build();
+}
+
+async function buildElectron() {
+  const config = await loadConfig({ path: 'rsbuild-electron.config.ts'});
+  const rsbuild = await createRsbuild({
+    rsbuildConfig: config.content
+  });
+  return rsbuild.build();
+}
+
+async function buildElectronPreload() {
+  const config = await loadConfig({ path: 'rsbuild-preload.config.ts'});
+  const rsbuild = await createRsbuild({
+    rsbuildConfig: config.content
+  });
+  return rsbuild.build();
+}
+
+async function copyNativeModule() {
+  for (const dir of fs.readdirSync(path.resolve('node_modules/@fparchive'), { withFileTypes: true }).filter(f => f.isDirectory())) {
+    for (const f of fs.readdirSync(path.resolve('node_modules/@fparchive', dir.name))) {
+      if (f.endsWith('.node')) {
+        const fullPath = path.resolve('node_modules/@fparchive/', dir.name, f);
+        const destPath = path.resolve('build/back', f);
+        fs.copyFileSync(fullPath, destPath);
+        console.log('Copied native module ' + f);
+      }
+    }
+  }
+}
+
+async function buildBackend() {
+  const config = await loadConfig({ path: 'rsbuild-back.config.ts'});
+  const rsbuild = await createRsbuild({
+    rsbuildConfig: config.content
+  });
+  await rsbuild.build();
+  return copyNativeModule();
 }
 
 async function buildRenderer() {
@@ -277,55 +359,33 @@ export const FPA_VERSION = '${fpaVersion}';
 
 /* ------ Pack ------ */
 
-function nexusPack(done) {
-  const files = ['./build'];
-  // Forcefully include ia32 library since nexus builds ia32
-  if (process.platform === 'win32') {
-    files.push({
-      from: '../../node_modules/@fparchive/flashpoint-archive-win32-ia32-msvc',
-      to: './node_modules/@fparchive/flashpoint-archive-win32-ia32-msvc',
-      filter: ['**/*']
-    });
-  }
-  builder
-  .build({
+async function nexusPackTask() {
+  await builder.build({
     targets: builder.Platform.WINDOWS.createTarget(),
-    config: Object.assign(
-      {
-        appId: 'com.bluemaxima.flashpoint-launcher',
-        productName: 'Flashpoint',
-        directories: {
-          buildResources: './static/',
-          output: './dist/',
-        },
-        files: files,
-        extraFiles: copyFiles, // Files to copy to the build folder
-        extraResources: extraResources, // Copy System Extensions
-        compression: 'maximum', // Only used if a compressed target (like 7z, nsis, dmg etc.)
-        asar: true,
-        artifactName: '${productName}.${ext}',
-        win: {
-          target: [
-            {
-              target: 'zip',
-              arch: 'ia32',
-            }
-          ],
-          icon: './icons/icon.ico',
-        }
+    config: {
+      appId: 'com.bluemaxima.flashpoint-launcher',
+      productName: 'Flashpoint',
+      directories: {
+        output: './dist/',
+      },
+      files: ['./build'],
+      extraFiles: copyFiles, // 7zip, Elevate.exe, licenses etc
+      extraResources: extraResources, // System Extensions
+      artifactName: '${productName}.${ext}',
+      win: {
+        target: [
+          {
+            target: 'zip',
+            arch: 'ia32',
+          }
+        ],
+        icon: './icons/icon.ico',
       }
-    ),
-  })
-  .then(() => {
-    console.log('Pack - Done!');
-  })
-  .catch((error) => {
-    console.log('Pack - Error!', error);
-  })
-  .finally(done);
+    },
+  });
 }
 
-function pack(done) {
+function packTask(done) {
   const publish = config.publish ? publishInfo : []; // Uses Git repo for unpublished builds
   const extraOpts = config.publish ? extraOptions : {};
   builder
@@ -374,7 +434,7 @@ function pack(done) {
 
 /* ------ Clean ------ */
 
-function clean(done) {
+function cleanTask(done) {
   fs.remove('./dist', () => {
     fs.remove('./build', done);
   });
@@ -388,7 +448,7 @@ async function extractTarball(inputFilePath, outputDirectory) {
     const readStream = fs.createReadStream(inputFilePath);
 
     // Pipe the readable stream through zlib.createGunzip() and then through tar.extract()
-    await pipeline(
+    await pipelineAsync(
       readStream,
       zlib.createGunzip(),
       tar.extract(outputDirectory)
@@ -402,54 +462,52 @@ async function extractTarball(inputFilePath, outputDirectory) {
 
 /* ------ Meta Tasks ------*/
 
-exports.clean = series(clean);
-
-exports.build = series(
-  clean,
+export const clean = series(cleanTask);
+export const build = series(
+  cleanTask,
   createVersionFile,
   installCrossDeps,
   buildStatic,
   parallel(
-    buildBack,
+    buildNodeMain,
+    buildElectron,
+    buildElectronPreload,
+    buildBackend,
     buildRenderer,
     buildExtensions,
     configVersion
   )
 );
-
-exports.watch = series(
-  clean,
+export const watch = series(
+  cleanTask,
   createVersionFile,
   installCrossDeps,
   buildStatic,
   parallel(
-    watchBack,
+    watchBackend,
+    watchElectron,
+    watchElectronPreload,
     watchRenderer,
     watchExtensions,
-    watchStatic
+    watchStaticTask,
   )
 );
-
-exports.watchStatic = series(
-  clean,
+export const watchStatic = series(
+  cleanTask,
   createVersionFile,
   installCrossDeps,
   buildStatic,
   parallel(
-    watchBack,
+    watchNodeMain,
+    watchBackend,
     watchExtensions,
-    watchStatic,
+    watchStaticTask,
   )
 );
-
-exports.pack = series(
-  pack
-);
-
-exports.nexusPack = series(
+export const pack = series(packTask);
+export const nexusPack = series(
   installExtensions,
   buildExtensions,
-  nexusPack
+  nexusPackTask
 );
-
-exports.extInstall = series(installExtensions);
+export const extInstall = series(installExtensions)

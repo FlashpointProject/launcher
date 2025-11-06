@@ -46,7 +46,7 @@ export class SocketServer {
   retryCounter = 0;
 
   /** Underlying WebSocket server. */
-  server?: ws.Server;
+  server?: ws.WebSocketServer;
   /** Chosen host */
   host: string | undefined = undefined;
   /** Port the server is listening on (-1 if not listening). */
@@ -393,7 +393,7 @@ export class SocketServer {
 
 type StartServerResult = {
   /** WebSocket server (undefined if it failed to listen). */
-  server: ws.Server;
+  server: ws.WebSocketServer;
   /** Port it is listening on (-1 if it failed to listen). */
   port: number;
 }
@@ -408,7 +408,7 @@ type StartServerResult = {
 function startServer(minPort: number, maxPort: number, host: string | undefined): Promise<StartServerResult> {
   return new Promise((resolve, reject) => {
     let port: number = minPort - 1;
-    let server: ws.Server | undefined;
+    let server: ws.WebSocketServer | undefined;
     tryListen();
 
     // --- Functions ---
@@ -419,7 +419,7 @@ function startServer(minPort: number, maxPort: number, host: string | undefined)
       }
 
       if (port++ < maxPort) {
-        server = new ws.Server({ host, port });
+        server = new ws.WebSocketServer({ host, port });
         server.on('error', onError);
         server.on('listening', onListening);
       } else {

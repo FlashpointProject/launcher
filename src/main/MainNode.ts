@@ -18,7 +18,7 @@ async function main() {
 
   // Increase memory limit in dev instance
   const env = Object.assign({ 'NODE_OPTIONS' : '--max-old-space-size=6144' }, process.env );
-  const backProc = fork(path.join(__dirname, '../back/index.js'), [], { detached: true, env, stdio: 'pipe' });
+  const backProc = fork(path.join(__dirname, '../back/backend.js'), [], { detached: true, env, stdio: 'pipe' });
 
   backProc.on('exit', (code) => {
     if (!code || code === 0) {

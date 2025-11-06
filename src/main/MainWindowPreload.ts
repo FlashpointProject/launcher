@@ -1,11 +1,9 @@
-import * as electron from 'electron';
-import { OpenDialogOptions } from 'electron';
-import { ipcRenderer } from 'electron/renderer';
+import { contextBridge, OpenDialogOptions, ipcRenderer } from 'electron';
 
 console.log('preloading');
 
 // Register Electron API functions we might need later
-electron.contextBridge.exposeInMainWorld('electronAPI', {
+contextBridge.exposeInMainWorld('electronAPI', {
   getInitData: () => {
     return ipcRenderer.sendSync('renderer-init');
   },

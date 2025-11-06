@@ -7,8 +7,8 @@
   "contributes": {
     "moduleFederation": [
       {
-          "scope": "ruffle",
-          "path": "mf-manifest.json"
+        "scope": "ruffle",
+        "path": "mf-manifest.json"
       }
     ],
     "themeFiles": [
@@ -71,8 +71,9 @@
     "@rslib/core": "0.6.8",
     "@types/mustache": "^4.2.3",
     "@types/node": "18.x",
-    "eslint": "^8.14.0",
     "babel-plugin-react-compiler": "19.1.0-rc.1",
+    "esbuild": "^0.25.12",
+    "eslint": "^8.14.0",
     "gulp": "5.0.1",
     "gulp-zip": "^5.0.2",
     "merge-stream": "^2.0.0",

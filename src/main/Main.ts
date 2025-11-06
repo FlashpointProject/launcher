@@ -11,7 +11,7 @@ import { AppPreferencesData } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as path from 'node:path';
 import { argv } from 'process';
-import * as WebSocket from 'ws';
+import { WebSocket } from 'ws';
 import * as Util from './Util';
 import { CustomIPC, WindowIPC } from './constants';
 import { Init } from './types';
@@ -224,7 +224,7 @@ export function main(init: Init): void {
         // Fork backend, init.rest will contain possible flashpoint:// message
         // Increase memory limit in dev instance (mostly for developer page functions)
         const env = Util.isDev ? Object.assign({ 'NODE_OPTIONS' : '--max-old-space-size=6144' }, process.env ) : process.env;
-        state.backProc = fork(path.join(__dirname, '../back/index.js'), [init.rest], { detached: true, env, stdio: 'pipe' });
+        state.backProc = fork(path.join(__dirname, '../back/backend.js'), [init.rest], { detached: true, env, stdio: 'pipe' });
         state.backProc.on('exit', (code) => {
           if (!code || code === 0) {
             console.log('Back proc exited cleanly, killing self.');
@@ -502,7 +502,7 @@ export function main(init: Init): void {
     // Create the browser window.
     let width:  number = mw.width  ? mw.width  : 1000;
     let height: number = mw.height ? mw.height :  650;
-    if (mw.width && mw.height && !state.config.useCustomTitlebar) {
+    if (mw.width && mw.height && !state.preferences.useCustomTitlebar) {
       width  += 8; // Add the width of the window-grab-things,
       height += 8; // they are 4 pixels wide each (at least for me @TBubba)
     }
@@ -514,10 +514,10 @@ export function main(init: Init): void {
       height: height,
       minWidth: 200,
       minHeight: 200,
-      frame: !state.config.useCustomTitlebar,
+      frame: !state.preferences.useCustomTitlebar,
       icon: path.join(__dirname, '../window/images/icon.png'),
       webPreferences: {
-        preload: path.resolve(__dirname, './MainWindowPreload.js'),
+        preload: path.resolve(__dirname, 'preload.js'),
         nodeIntegration: false,
         contextIsolation: true,
       },

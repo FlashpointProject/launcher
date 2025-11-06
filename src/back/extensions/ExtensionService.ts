@@ -8,6 +8,7 @@ import { getExtensionEntry, newExtLog } from './ExtensionUtils';
 import { ExtensionContext, ExtensionData, ExtensionModule } from './types';
 import * as path from 'node:path';
 import { ILogEntry } from 'flashpoint-launcher';
+import { installNodeInterceptor, InterceptorState } from './NodeInterceptor';
 
 export class ExtensionService {
   /** Stores unchanging Extension data */
@@ -19,6 +20,9 @@ export class ExtensionService {
 
   /** Opens when _extensions is ready to be read from */
   public readonly installedExtensionsReady: Barrier;
+
+  /** We register the module interceptor to a custom require when loading extension, prevents conflicts with bundler */
+  private require: NodeJS.Require;
 
   constructor(
     protected readonly _configData: AppConfigData,
@@ -41,6 +45,13 @@ export class ExtensionService {
     const exts = await scanExtensions(this._configData, this._extensionPath);
     exts.forEach(e => this._extensions.push(e));
     this.installedExtensionsReady.open();
+  }
+
+  async installInterceptor(state: InterceptorState) {
+    // Eval prevents bundler from intercepting this load. Unsure why it gets upset.
+    const node_module = eval('require')('module');
+    await installNodeInterceptor(state, node_module);
+    this.require = node_module.createRequire(path.resolve(__dirname));
   }
 
   getExtensions(): Promise<IExtension[]> {
@@ -127,6 +138,10 @@ export class ExtensionService {
       return;
     }
 
+    if (!this.require) {
+      throw 'Interceptor has not been registered, cannot load extension yet';
+    }
+
     try {
       // Import extension as module
       const entryPath = getExtensionEntry(ext);
@@ -135,7 +150,7 @@ export class ExtensionService {
         subscriptions: extData.subscriptions
       };
       if (entryPath) {
-        const extModule: ExtensionModule = await import(entryPath);
+        const extModule: ExtensionModule = this.require(entryPath);
         if (!extModule.activate) {
           throw new Error('No "activate" export found in extension module!');
         }
