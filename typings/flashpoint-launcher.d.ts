@@ -3161,8 +3161,6 @@ declare module 'flashpoint-launcher-renderer' {
     lang: LangContainer;
     /** Current list of available language files. */
     langList: LangFile[];
-    /** Info of the update, if one was found */
-    updateInfo: UpdateInfo | undefined;
     /** If the "Meta Edit Popup" is open. */
     metaEditExporterOpen: boolean;
     /** ID of the game used in the "Meta Edit Popup". */

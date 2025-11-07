@@ -5,7 +5,6 @@ import { GamePropSuggestions } from '@shared/interfaces';
 import { createLangContainer } from '@shared/lang';
 import { deepCopy, recursiveReplace } from '@shared/Util';
 import * as axiosImport from 'axios';
-import { UpdateInfo } from 'electron-updater';
 import { AppExtConfigData, ComponentStatus, CreditsData, DialogFieldProps, DialogState, ExtensionContribution, Game, GameData, GameMetadataSource, GameOfTheDay, IExtensionDescription, ILogoSet, IService, ITheme, LangContainer, LangFile, MetaUpdateState, PlatformAppPathSuggestions, Playlist, PlaylistGame, ViewGame } from 'flashpoint-launcher';
 import { DisplaySettings, DynamicPageProps, ExtOrderable } from 'flashpoint-launcher-renderer';
 
@@ -80,8 +79,6 @@ export type MainState = {
   lang: LangContainer;
   /** Current list of available language files. */
   langList: LangFile[];
-  /** Info of the update, if one was found */
-  updateInfo: UpdateInfo | undefined;
   /** If the "Meta Edit Popup" is open. */
   metaEditExporterOpen: boolean;
   /** ID of the game used in the "Meta Edit Popup". */
@@ -240,7 +237,6 @@ const initialState: MainState = {
   lang: createLangContainer(),
   langList: [],
   wasNewGameClicked: false,
-  updateInfo: undefined,
   metaEditExporterOpen: false,
   metaEditExporterGameId: '',
   extensions: [],
