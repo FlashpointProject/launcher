@@ -12,7 +12,7 @@ import { isGame } from '@shared/utils/misc';
 import { formatString } from '@shared/utils/StringFormatter';
 import { Content, Game } from 'flashpoint-launcher';
 import { HomePageComponentProps, RootState } from 'flashpoint-launcher-renderer';
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useContext, useEffect, useMemo, useRef } from 'react';
 import ReactDatePicker from 'react-datepicker';
 import ReactMarkdown from 'react-markdown';
 import { Link } from 'react-router-dom';
@@ -316,12 +316,8 @@ export function HomePageComponentNotes(props: HomePageComponentProps) {
 
 export function HomePageComponentRandomGames(props: HomePageComponentProps) {
   const { onLaunchGame, toggleMinimizeBox, onGameContextMenu } = props;
+  const strings = useContext(LangContext);
   const minimized = window.ext.hooks.useAppSelector(state => state.preferences.minimizedHomePageBoxes.includes('random-games'));
-  const logoVersion = window.ext.hooks.useAppSelector(state => state.main.logoVersion);
-  const tagFilters = window.ext.hooks.useAppSelector(state => state.preferences.tagFilters);
-  const screenshotPreviewMode = window.ext.hooks.useAppSelector(state => state.preferences.screenshotPreviewMode);
-  const screenshotPreviewDelay = window.ext.hooks.useAppSelector(state => state.preferences.screenshotPreviewDelay);
-  const hideExtremeScreenshots = window.ext.hooks.useAppSelector(state => state.preferences.hideExtremeScreenshots);
   const randomGames = window.ext.hooks.useAppSelector(state => state.main.randomGames);
   const requestingRandomGames = window.ext.hooks.useAppSelector(state => state.main.requestingRandomGames);
   const excludedRandomLibraries = window.ext.hooks.useAppSelector(state => state.preferences.excludedRandomLibraries);
@@ -357,22 +353,21 @@ export function HomePageComponentRandomGames(props: HomePageComponentProps) {
   };
 
   return (
-    <SizeProvider width={width} height={height}>
-      <RandomGames
-        games={randomGames}
-        rollRandomGames={rollRandomGames}
-        onGameContextMenu={onGameContextMenu}
-        onLaunchGame={onLaunchGame}
-        onGameSelect={onSelectGame}
-        extremeTags={tagFilters.filter(tfg => !tfg.enabled && tfg.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), [])}
-        logoVersion={logoVersion}
-        selectedGameId={view.selectedGame?.id}
-        screenshotPreviewMode={screenshotPreviewMode}
-        screenshotPreviewDelay={screenshotPreviewDelay}
-        hideExtremeScreenshots={hideExtremeScreenshots}
-        minimized={minimized}
-        onToggleMinimize={() => toggleMinimizeBox('random-games', minimized)} />
-    </SizeProvider>
+    <HomePageBox
+      minimized={minimized}
+      title={strings.home.randomPicks}
+      cssKey='random-games'
+      onToggleMinimize={() => toggleMinimizeBox('random-games', minimized)}>
+      <SizeProvider width={width} height={height}>
+        <RandomGames
+          games={randomGames}
+          rollRandomGames={rollRandomGames}
+          onGameContextMenu={onGameContextMenu}
+          onLaunchGame={onLaunchGame}
+          onGameSelect={onSelectGame}
+          selectedGameId={view.selectedGame?.id} />
+      </SizeProvider>
+    </HomePageBox>
   );
 }
 

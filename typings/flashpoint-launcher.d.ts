@@ -22,7 +22,7 @@
 
 declare module 'flashpoint-launcher' {
   import { Readable } from 'stream';
-  import { GameSearch } from '@fparchive/flashpoint-archive';
+  import { FlashpointArchive, GameSearch } from '@fparchive/flashpoint-archive';
 
   /** Version of the Flashpoint Launcher */
   const version: string;
@@ -35,6 +35,9 @@ declare module 'flashpoint-launcher' {
 
   /** Config Data */
   const config: AppConfigData;
+
+  /** Open database connection, useful for searching or other advanced functions */
+  const database: FlashpointArchive;
 
   /** Returns most up to date Preferences Data */
   function getPreferences(): AppPreferencesData;
@@ -3225,6 +3228,25 @@ declare module 'flashpoint-launcher-renderer' {
     history: HistoryState;
   }
 
+  type HomePageBoxProps = {
+    /** Show or hide box contents */
+    minimized: boolean;
+    /** Custom css key for theming (e.g 'notes', 'gotd') */
+    cssKey: string;
+    /** Title of the box */
+    title: string;
+    /** Callback to open or close the box */
+    onToggleMinimize: () => void;
+  }
+
+  type SizeProviderProps = {
+    children?: React.ReactNode;
+    /** Value to set the "--width" CSS variable to. */
+    width?: string | number;
+    /** Value to set the "--height" CSS variable to. */
+    height?: string | number;
+  };
+
   interface IExtensionWindow {
     utils: {
       getExtensionFileURL: (extId: string, filePath: string) => string;
@@ -3241,6 +3263,8 @@ declare module 'flashpoint-launcher-renderer' {
       GameComponentDropdownSelectField: React.ComponentType<GameComponentDropdownSelectFieldProps>,
       SearchableSelect: React.ComponentType<SearchableSelectProps<any>>,
       SortableColumn: React.ComponentType<SortableColumnProps>,
+      HomePageBox: React.ComponentType<HomePageBoxProps>,
+      SizeProvider: React.ComponentType<SizeProviderProps>,
     },
     hooks: {
       useNavigate: () => NavigateFunction,

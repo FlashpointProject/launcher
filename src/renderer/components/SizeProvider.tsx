@@ -1,14 +1,6 @@
+import { SizeProviderProps } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
 import { useEffect, useRef } from 'react';
-
-export type SizeProviderProps = {
-  /** Children of the wrapping <div> element. */
-  children?: React.ReactNode;
-  /** Value to set the "--width" CSS variable to. */
-  width?: string | number;
-  /** Value to set the "--height" CSS variable to. */
-  height?: string | number;
-};
 
 // Sets and updates the "--width" and "--height" CSS variables to match the prop values.
 export function SizeProvider(props: SizeProviderProps) {

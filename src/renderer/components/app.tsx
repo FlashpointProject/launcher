@@ -65,6 +65,8 @@ import { SimpleButton } from './SimpleButton';
 import { SplashScreen } from './SplashScreen';
 import { TaskBar } from './TaskBar';
 import { TitleBar } from './TitleBar';
+import { HomePageBox } from './HomePageBox';
+import { SizeProvider } from './SizeProvider';
 
 const selectDynamicThemes = createSelector(
   [
@@ -614,10 +616,12 @@ function initApp(dispatch: AppDispatch) {
       }
     },
     components: {
-      GameComponentInputField: GameComponentInputField,
-      GameComponentDropdownSelectField: GameComponentDropdownSelectField,
-      SearchableSelect: SearchableSelect,
-      SortableColumn: SortableColumn,
+      GameComponentInputField,
+      GameComponentDropdownSelectField,
+      SearchableSelect,
+      SortableColumn,
+      HomePageBox,
+      SizeProvider,
     },
     hooks: {
       useNavigate: () => useNavigate(),
