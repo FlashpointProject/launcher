@@ -1,4 +1,3 @@
-import { CurateGroup } from '@renderer/store/curate/slice';
 import { autoCode } from '@shared/lang';
 import { LogLevel } from '@shared/Log/interface';
 import { Paths } from '@shared/Paths';
@@ -11,6 +10,7 @@ import {
   AppPathOverride,
   AppPreferencesData,
   AppPreferencesDataMainWindow,
+  CurateGroup,
   ExtOrder,
   GameDataSource,
   GameMetadataSource, GameOrderBy, GameOrderReverse,

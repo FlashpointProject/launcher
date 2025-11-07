@@ -415,7 +415,7 @@ function GameConfigEditorDialog(props: GameConfigEditorDialogProps) {
 }
 
 function renderMiddlewareInput(inputProps: ConfigProp, config: any, saveConfig: (config: any) => void) {
-  let input: JSX.Element = <></>;
+  let input: React.JSX.Element = <></>;
   const value = inputProps.type !== 'label' ? (inputProps.key in config ? config[inputProps.key] :
     inputProps.default ? inputProps.default : null) : null;
 

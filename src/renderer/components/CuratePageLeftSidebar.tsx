@@ -3,12 +3,11 @@ import { withMainState, WithMainStateProps } from '@renderer/containers/withMain
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useMouse } from '@renderer/hooks/useMouse';
 import * as curateActions from '@renderer/store/curate/slice';
-import { CurateGroup } from '@renderer/store/curate/slice';
 import { createDialog } from '@renderer/store/main/slice';
 import { findElementAncestor, getPlatformIconURL } from '@renderer/Util';
 import { compare } from '@shared/Util';
 import { uuid } from '@shared/utils/uuid';
-import { CurationState, DialogState } from 'flashpoint-launcher';
+import { CurateGroup, CurationState, DialogState } from 'flashpoint-launcher';
 import * as React from 'react';
 
 const index_attr = 'data-index';

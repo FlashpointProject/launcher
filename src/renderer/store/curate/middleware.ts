@@ -4,7 +4,6 @@ import {
   addTag, BaseCurateAction, changeGroup, createAddApp,
   createGroup,
   CreateGroupAction,
-  CurateGroup,
   editAddApp,
   editCurationMeta, regenUuid,
   removeAddApp,
@@ -16,6 +15,7 @@ import { startAppListening } from '@renderer/store/listenerMiddleware';
 import store from '@renderer/store/store';
 import { BackIn } from '@shared/back/types';
 import { updatePreferences } from '../preferences/slice';
+import { CurateGroup } from 'flashpoint-launcher';
 
 export function addCurationMiddleware() {
   // Update warnings when curation changes

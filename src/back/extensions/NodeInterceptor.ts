@@ -2,9 +2,10 @@
 import { BackState } from '@back/types';
 import { nullExtensionDescription } from '@back/util/extensions';
 import { TernarySearchTree } from '@back/util/map';
-import { IExtension, IExtensionManifest } from '@shared/extensions/interfaces';
+import { IExtension } from '@shared/extensions/interfaces';
 import * as flashpoint from 'flashpoint-launcher';
 import { createApiFactory } from './ApiImplementation';
+import { IExtensionManifest } from 'flashpoint-launcher';
 
 type LoadFunction = {
   (request: string): any;
