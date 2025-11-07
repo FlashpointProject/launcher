@@ -1,12 +1,13 @@
-import { IBackProcessInfo, INamedBackProcessInfo, ProcessState } from '@shared/interfaces';
+import { INamedBackProcessInfo } from '@shared/interfaces';
 import * as Coerce from '@shared/utils/Coerce';
 import { ChildProcess, spawn } from 'child_process';
 import { EventEmitter } from 'events';
-import { ILogPreEntry } from 'flashpoint-launcher';
+import { IBackProcessInfo, ILogPreEntry } from 'flashpoint-launcher';
 import * as readline from 'readline';
 import * as kill from 'tree-kill';
 import { onServiceChange } from './util/events';
 import { Disposable } from './util/lifecycle';
+import { ProcessState } from 'flashpoint-launcher';
 
 const { str } = Coerce;
 
@@ -66,7 +67,7 @@ export class ManagedChildProcess extends EventEmitter {
   /** A timestamp of when the process was started. */
   private startTime = 0;
   /** State of the process. */
-  private state: ProcessState = ProcessState.STOPPED;
+  private state: ProcessState = 0;
 
   constructor(id: string, name: string, cwd: string, opts: ProcessOpts, info: INamedBackProcessInfo | IBackProcessInfo) {
     super();
@@ -84,7 +85,7 @@ export class ManagedChildProcess extends EventEmitter {
 
   /** Get the process ID (or -1 if the process is not running). */
   public getPid(): number {
-    return this.process ? this.process.pid : -1;
+    return this.process && (this.process.pid !== undefined) ? this.process.pid : -1;
   }
 
   /** Get the state of the process. */
@@ -125,15 +126,15 @@ export class ManagedChildProcess extends EventEmitter {
         stderr.on('line', this.logContentAny);
       }
       // Update state
-      this.setState(ProcessState.RUNNING);
+      this.setState(1);
       // Register child process listeners
       this.process.on('exit', (code, signal) => {
         if (code) { this.logContent(`${this.name} exited with code ${code}`);     }
         else      { this.logContent(`${this.name} exited with signal ${signal}`); }
-        const wasRunning = (this.state === ProcessState.RUNNING);
+        const wasRunning = (this.state === 1);
         this.process = undefined;
         this.emit('exit', code, signal);
-        this.setState(ProcessState.STOPPED);
+        this.setState(0);
         if (this.autoRestart && wasRunning && code) {
           if (this.autoRestartCount < MAX_RESTARTS) {
             this.autoRestartCount++;
@@ -145,7 +146,7 @@ export class ManagedChildProcess extends EventEmitter {
       })
       .on('error', error => {
         this.logContent(`${this.name} failed to start - ${error.message}`);
-        this.setState(ProcessState.STOPPED);
+        this.setState(0);
         this.process = undefined;
       });
     }
@@ -153,16 +154,16 @@ export class ManagedChildProcess extends EventEmitter {
 
   /** Politely ask the child process to exit (if it is running). */
   public async kill(): Promise<void> {
-    if (this.process) {
-      this.setState(ProcessState.KILLING);
+    if (this.process && (this.process.pid !== undefined)) {
+      this.setState(2);
       await this.treeKill(this.process.pid);
     }
   }
 
   /** Restart the managed child process (by killing the current, and spawning a new). */
   public async restart(): Promise<void> {
-    if (this.process && !this._isRestarting) {
-      this.setState(ProcessState.KILLING);
+    if (this.process && this.process.pid !== undefined && !this._isRestarting) {
+      this.setState(2);
       this._isRestarting = true;
       this.logContent(`Restarting ${this.name} process`);
       // Replace all listeners with a single listener waiting for the process to exit

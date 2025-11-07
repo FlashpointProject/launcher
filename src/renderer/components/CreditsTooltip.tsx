@@ -1,5 +1,5 @@
+import { CreditsDataProfile, CreditsDataRole } from 'flashpoint-launcher';
 import { useEffect, useRef } from 'react';
-import { CreditsDataProfile, CreditsDataRole } from '../credits/types';
 
 export type CreditsTooltipProps = {
   /** Roles to grab color info from */

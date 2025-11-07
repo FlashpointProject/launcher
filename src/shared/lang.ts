@@ -1,5 +1,4 @@
 import { BaseLangContainer, LangCategory, LangContainer, LangTemplate } from 'flashpoint-launcher';
-import { RecursivePartial } from './interfaces';
 
 export const langTemplate = {
   config: [
@@ -725,22 +724,6 @@ export function createLangContainer(): LangContainer {
     libraries: {},
     upgrades: {},
   };
-}
-
-/** Contents of a language file. */
-export type LangFile = {
-  /** Kept for the watcher to keep track of ownership. */
-  filename: string;
-  /** 2 letter language code. */
-  code: string;
-  /** Contents of the language file. */
-  data: RecursivePartial<LangFileContent>;
-}
-
-/** Contents of a language file. */
-export type LangFileContent = LangContainer & {
-  /** Name of the language (this will be displayed in the drop-down). */
-  name: string;
 }
 
 /** Magic string used to reference "automatic language selection". */

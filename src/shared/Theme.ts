@@ -1,4 +1,4 @@
-import { ITheme } from './ThemeFile';
+import { ITheme } from 'flashpoint-launcher';
 import { getFileServerURL } from './Util';
 
 /**

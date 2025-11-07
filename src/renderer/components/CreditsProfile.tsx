@@ -1,6 +1,6 @@
+import { CreditsDataProfile } from 'flashpoint-launcher';
 import * as React from 'react';
 import { useEffect, useRef } from 'react';
-import { CreditsDataProfile } from '../credits/types';
 
 export type CreditsIconProps = {
   /** Credits profile of the person to display. */

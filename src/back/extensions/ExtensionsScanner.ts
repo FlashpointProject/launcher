@@ -1,11 +1,11 @@
-import { AppConfigData } from '@shared/config/interfaces';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
 import { readJsonFile } from '@shared/Util';
 import * as Coerce from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { Application, ButtonContext, ContextButton, Contributions, CurationTemplate, DevScript, ExtConfiguration, ExtConfigurationProp, ExtensionType, ExtTheme, IExtension, IExtensionManifest, ILogoSet, ModuleContribution } from '@shared/extensions/interfaces';
+import { ExtensionType, IExtension } from '@shared/extensions/interfaces';
+import { AppConfigData, Application, ButtonContext, ContextButton, Contributions, CurationTemplate, DevScript, ExtConfiguration, ExtConfigurationProp, ExtTheme, IExtensionManifest, ILogoSet, ModuleContribution } from 'flashpoint-launcher';
 
 const { str, num } = Coerce;
 const fsPromises = fs.promises;

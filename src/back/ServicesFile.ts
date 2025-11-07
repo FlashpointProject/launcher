@@ -1,10 +1,10 @@
-import { AppConfigData } from '@shared/config/interfaces';
-import { IBackProcessInfo, INamedBackProcessInfo } from '@shared/interfaces';
+import { INamedBackProcessInfo } from '@shared/interfaces';
 import { parseVarStr, readJsonFile } from '@shared/Util';
 import * as Coerce from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import * as path from 'node:path';
 import { ServiceFileData } from './types';
+import { AppConfigData, IBackProcessInfo } from 'flashpoint-launcher';
 
 const { str } = Coerce;
 

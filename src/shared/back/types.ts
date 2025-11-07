@@ -1,14 +1,17 @@
 import { GameSearch, GameSearchOffset } from '@fparchive/flashpoint-archive';
 import { ChangedMeta, MetaEditFlags } from '@shared/MetaEdit';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
-import { AddAppCuration, ContentTree, PlatformAppPathSuggestions } from '@shared/curate/types';
-import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/extensions/interfaces';
+import { AddAppCuration, ContentTree } from '@shared/curate/types';
+import { LogoSet } from '@shared/extensions/interfaces';
 import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
 import { SocketTemplate } from '@shared/socket/types';
 import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
 import {
   AdvancedFilter,
+  AppConfigData,
+  AppExtConfigData,
   AppPreferencesData,
+  ComponentStatus,
   ConfigSchema,
   CurationFpfssInfo,
   CurationState,
@@ -18,6 +21,7 @@ import {
   DownloaderStatus,
   DownloadTask,
   DownloadWorkerState,
+  ExtensionContribution,
   ExtOrder,
   Game,
   GameConfig,
@@ -26,13 +30,17 @@ import {
   GameLaunchOverride,
   GameMetadataSource,
   GameMiddlewareConfig,
-  GameMiddlewareInfo, GameOrderBy, GameOrderDirection,
+  GameMiddlewareInfo, GameOfTheDay, GameOrderBy, GameOrderDirection,
+  IExtensionDescription,
   ILogEntry,
   ILogPreEntry,
+  IService,
   LangContainer,
+  LangFile,
   LoadedCuration,
   MergeTagData,
   Platform,
+  PlatformAppPathSuggestions,
   Playlist,
   PlaylistGame,
   Tag,
@@ -43,9 +51,7 @@ import {
 } from 'flashpoint-launcher';
 import { LogLevel } from '../Log/interface';
 import { Theme } from '../ThemeFile';
-import { AppConfigData, AppExtConfigData } from '../config/interfaces';
-import { ExecMapping, GamePropSuggestions, IService, ProcessAction, Task } from '../interfaces';
-import { LangFile } from '../lang';
+import { ExecMapping, GamePropSuggestions, ProcessAction, Task } from '../interfaces';
 import { UpdateOptions } from 'react-toastify';
 
 export enum BackIn {
@@ -633,13 +639,6 @@ export type GameMiddlewareNewConfig = {
   schema: ConfigSchema,
 }
 
-export type GameOfTheDay = {
-  id: string;
-  author?: string;
-  description: string;
-  date: string;
-}
-
 export type GetRendererLoadedDataResponse = {
   gotdList: GameOfTheDay[] | undefined,
   services: IService[];
@@ -768,12 +767,6 @@ export enum ComponentState {
   UNINSTALLED,
   UP_TO_DATE,
   NEEDS_UPDATE,
-}
-
-export type ComponentStatus = {
-  id: string;
-  name: string;
-  state: ComponentState
 }
 
 export type MetadataServerInfo = {

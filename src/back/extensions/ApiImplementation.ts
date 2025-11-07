@@ -26,14 +26,13 @@ import { BackOut } from '@shared/back/types';
 import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
 import { CurationMeta } from '@shared/curate/types';
 import { getContentFolderByKey } from '@shared/curate/util';
-import { CurationTemplate, IExtensionManifest } from '@shared/extensions/interfaces';
-import { ProcessState, Task } from '@shared/interfaces';
+import { Task } from '@shared/interfaces';
 import { langTemplate } from '@shared/lang';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { overwritePreferenceData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import * as flashpoint from 'flashpoint-launcher';
-import { Game } from 'flashpoint-launcher';
+import { CurationTemplate, Game, IExtensionManifest } from 'flashpoint-launcher';
 import * as fs from 'node:fs';
 import * as fsExtra from 'fs-extra';
 import { extractFull } from 'node-7z';
@@ -724,7 +723,11 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     ManagedChildProcess: ManagedChildProcess,
 
     // Enums
-    ProcessState: ProcessState,
+    ProcessState: {
+      STOPPED: 0,
+      RUNNING: 1,
+      KILLING: 2
+    },
     BrowsePageLayout: BrowsePageLayout,
     LogLevel: LogLevel,
     ScreenshotPreviewMode: ScreenshotPreviewMode,

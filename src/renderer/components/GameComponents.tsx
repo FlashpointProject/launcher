@@ -1,7 +1,7 @@
 import { ModelUtils } from '@shared/game/util';
 import { deepCopy, generateTagFilterGroup } from '@shared/Util';
 import { AdditionalApp, Game, Platform, Tag, TagSuggestion } from 'flashpoint-launcher';
-import { GameComponentInputFieldProps, GameComponentProps } from 'flashpoint-launcher-renderer';
+import { GameComponentInputFieldProps, GameComponentProps, RootState } from 'flashpoint-launcher-renderer';
 import { GameComponentInputField } from './DisplayComponent';
 import { DropdownInputField, DropdownInputFieldMapped } from './DropdownInputField';
 import { RightBrowseSidebarAddApp } from './RightBrowseSidebarAddApp';
@@ -14,7 +14,6 @@ import { BackIn } from '@shared/back/types';
 import { getPlatformIconURL } from '@renderer/Util';
 import { uuid } from '@shared/utils/uuid';
 import { LangContext } from '@renderer/util/lang';
-import { RootState } from '@renderer/store/store';
 import { createSelector } from '@reduxjs/toolkit';
 
 export const selectGameField = <K extends keyof Game>(viewId: string, key: K) => createSelector(
@@ -337,7 +336,6 @@ export function GameComponentPlaylistNotes(props: GameComponentProps) {
   const lang = useContext(LangContext);
   const [editableOverride, setEditableOverride] = useState(false);
   const editable = editableOverride || upperEditable;
-  console.log(upperEditable);
 
   const HeaderComponent = (props: GameComponentInputFieldProps) => {
     return (

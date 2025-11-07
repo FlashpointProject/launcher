@@ -6,15 +6,14 @@ import { exitApp } from '@back/responses';
 import { BackState, ShowMessageBoxFunc, ShowOpenDialogFunc, ShowSaveDialogFunc, StatusState } from '@back/types';
 import { deepCopy, recursiveReplace, stringifyArray } from '@shared/Util';
 import { BackOut, ComponentState } from '@shared/back/types';
-import { PlatformAppPath, PlatformAppPathSuggestions } from '@shared/curate/types';
 import { getCurationFolder } from '@shared/curate/util';
 import { BrowserApplicationOpts } from '@shared/extensions/interfaces';
-import { IBackProcessInfo, INamedBackProcessInfo, IService, ProcessState } from '@shared/interfaces';
-import { LangFile, autoCode, getDefaultLocalization } from '@shared/lang';
+import { INamedBackProcessInfo } from '@shared/interfaces';
+import { autoCode, getDefaultLocalization } from '@shared/lang';
 import { Legacy_IAdditionalApplicationInfo, Legacy_IGameInfo } from '@shared/legacy/interfaces';
 import { newGame } from '@shared/utils/misc';
 import * as child_process from 'child_process';
-import { AdditionalApp, Game, LangContainer, Tag } from 'flashpoint-launcher';
+import { AdditionalApp, Game, IBackProcessInfo, IService, LangContainer, LangFile, PlatformAppPath, PlatformAppPathSuggestions, Tag } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as os from 'os';
 import * as path from 'node:path';
@@ -304,13 +303,13 @@ export async function removeService(state: BackState, processId: string): Promis
 }
 
 export async function waitForServiceDeath(service: ManagedChildProcess) : Promise<void> {
-  if (service.getState() !== ProcessState.STOPPED) {
+  if (service.getState() !== 0) {
     return new Promise((resolve) => {
       service.on('change', onChange);
       service.kill();
 
       function onChange() {
-        if (service.getState() === ProcessState.STOPPED) {
+        if (service.getState() === 0) {
           service.off('change', onChange);
           resolve();
         }

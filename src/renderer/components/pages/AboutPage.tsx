@@ -6,10 +6,10 @@ import { useAppDispatch } from '@renderer/hooks/useAppSelector';
 import { openUrlInWindow } from '@renderer/Util';
 import { getFileServerURL } from '@shared/Util';
 import { Fragment, useContext, useState } from 'react';
-import { CreditsBlock, CreditsData, CreditsDataProfile, CreditsDataRole } from '../../credits/types';
 import { LangContext } from '../../util/lang';
 import { CreditsIcon } from '../CreditsProfile';
 import { CreditsTooltip } from '../CreditsTooltip';
+import { CreditsBlock, CreditsData, CreditsDataProfile, CreditsDataRole } from 'flashpoint-launcher';
 
 export function AboutPage() {
   const dispatch = useAppDispatch();

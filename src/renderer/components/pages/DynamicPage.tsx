@@ -1,9 +1,5 @@
+import { DynamicPageProps } from 'flashpoint-launcher-renderer';
 import { DynamicComponent } from '../DynamicComponent';
-
-export type DynamicPageProps = {
-  name: string;
-  props: any;
-}
 
 export function DynamicPage(props: DynamicPageProps) {
   if (props.name) {

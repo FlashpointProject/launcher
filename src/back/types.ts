@@ -1,11 +1,9 @@
-import { BackInit, ComponentStatus } from '@shared/back/types';
-import { AppConfigData, AppExtConfigData } from '@shared/config/interfaces';
-import { ExecMapping, GamePropSuggestions, IBackProcessInfo, INamedBackProcessInfo } from '@shared/interfaces';
-import { LangFile } from '@shared/lang';
+import { BackInit } from '@shared/back/types';
+import { ExecMapping, GamePropSuggestions, INamedBackProcessInfo } from '@shared/interfaces';
 import { OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint-launcher';
-import { Game, GameOrderBy, GameOrderReverse, TagCategory, ViewGame } from 'flashpoint-launcher';
+import { AppConfigData, AppExtConfigData, ComponentStatus, Game, GameOrderBy, GameOrderReverse, IBackProcessInfo, LangFile, PlatformAppPathSuggestions, TagCategory, ViewGame } from 'flashpoint-launcher';
 import { IncomingMessage, ServerResponse } from 'http';
 import * as WebSocket from 'ws';
 import { ApiEmitter } from './extensions/ApiEmitter';
@@ -19,7 +17,6 @@ import { EventQueue } from './util/EventQueue';
 import { FileServer } from './util/FileServer';
 import { FolderWatcher } from './util/FolderWatcher';
 import { LogFile } from './util/LogFile';
-import { PlatformAppPathSuggestions } from '@shared/curate/types';
 import { Downloader } from './Downloader';
 
 /** Contains most state for the back process. */

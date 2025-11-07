@@ -1,29 +1,18 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { DynamicPageProps } from '@renderer/components/pages/DynamicPage';
-import { CreditsData } from '@renderer/credits/types';
 import { UpgradeStage } from '@renderer/upgrade/types';
-import { BackIn, BackInit, ComponentStatus, GameOfTheDay } from '@shared/back/types';
-import { AppExtConfigData } from '@shared/config/interfaces';
-import { PlatformAppPathSuggestions } from '@shared/curate/types';
-import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
-import { GamePropSuggestions, IService, ProcessState } from '@shared/interfaces';
-import { createLangContainer, LangFile } from '@shared/lang';
-import { ITheme } from '@shared/ThemeFile';
+import { BackIn, BackInit } from '@shared/back/types';
+import { GamePropSuggestions } from '@shared/interfaces';
+import { createLangContainer } from '@shared/lang';
 import { deepCopy, recursiveReplace } from '@shared/Util';
 import * as axiosImport from 'axios';
 import { UpdateInfo } from 'electron-updater';
-import { DialogFieldProps, DialogState, Game, GameData, GameMetadataSource, LangContainer, Playlist, PlaylistGame, ViewGame } from 'flashpoint-launcher';
-import { DisplaySettings, ExtOrderable } from 'flashpoint-launcher-renderer';
+import { AppExtConfigData, ComponentStatus, CreditsData, DialogFieldProps, DialogState, ExtensionContribution, Game, GameData, GameMetadataSource, GameOfTheDay, IExtensionDescription, ILogoSet, IService, ITheme, LangContainer, LangFile, MetaUpdateState, PlatformAppPathSuggestions, Playlist, PlaylistGame, ViewGame } from 'flashpoint-launcher';
+import { DisplaySettings, DynamicPageProps, ExtOrderable } from 'flashpoint-launcher-renderer';
 
 export const RANDOM_GAME_ROW_COUNT = 6;
 
 type DisplaySettingsCallback = (prev: DisplaySettings) => DisplaySettings;
 type ExtOrderablesCallback = (prev: ExtOrderable[]) => ExtOrderable[];
-
-export type MetaUpdateState = Record<string, {
-  ready: boolean;
-  total: number;
-}>;
 
 export type MetaUpdateAction = {
   id: string;
@@ -416,7 +405,7 @@ const mainSlice = createSlice({
         state.services.push(recursiveReplace({
           id: 'invalid',
           name: 'Invalid',
-          state: ProcessState.STOPPED,
+          state: 0,
           pid: -1,
           startTime: 0,
           info: {

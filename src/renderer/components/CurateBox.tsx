@@ -19,10 +19,9 @@ import {
 import { axios, getCurationURL, getPlatformIconURL } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
 import { BackIn, CurationImageEnum } from '@shared/back/types';
-import { PlatformAppPathSuggestions } from '@shared/curate/types';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { mapRuffleSupportString } from '@shared/utils/misc';
-import { CurationState, LangContainer, LoadedCuration, Platform, Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
+import { CurationState, LangContainer, LoadedCuration, Platform, PlatformAppPathSuggestions, Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
 import * as React from 'react';
 import { Dispatch } from 'redux';
 import { BoxList } from './BoxList';

@@ -1413,14 +1413,13 @@ declare module 'flashpoint-launcher' {
     }
 
     /** State of a managed process. */
-    enum ProcessState {
+    type ProcessState =
       /** The process is not running. */
-      STOPPED = 0,
+      | 0
       /** The process is running. */
-      RUNNING = 1,
+      | 1
       /** The process is being killed (it has been requested to terminate, but it hasn't been terminated yet). */
-      KILLING = 2,
-    }
+      | 2;
 
     type GameLaunchOverride = 'ruffle' | 'flash' | null;
 
@@ -1851,19 +1850,6 @@ declare module 'flashpoint-launcher' {
 
     namespace fpfss {
       function getAccessToken(): Promise<string>;
-    }
-
-    type SearchState = {
-      views: Record<string, ResultsView>;
-      dropdowns: SearchDropdownDataSet;
-    }
-
-    type SearchDropdownDataSet = {
-      key: string;
-      tags: Tag[] | null;
-      developers: string[] | null;
-      publishers: string[] | null;
-      series: string[] | null;
     }
 
     type ResultsView<T extends Content> = {
@@ -2638,13 +2624,251 @@ declare module 'flashpoint-launcher' {
       name: string;
       downloadGame(source: GameDataSource, gameData: GameData, dataPacksFolderPath: string, abortSignal: AbortSignal, onProgress?: (percent: number) => void, onDetails?: (details: DownloadDetails) => void): Promise<boolean>;
     }
+
+    type GameOfTheDay = {
+      id: string;
+      author?: string;
+      description: string;
+      date: string;
+    }
+
+    type ComponentStatus = {
+      id: string;
+      name: string;
+      state: ComponentState
+    }
+
+    type MetaUpdateState = Record<string, {
+      ready: boolean;
+      total: number;
+    }>
+
+    enum ProcessState {
+      /** The process is not running. */
+      STOPPED = 0,
+      /** The process is running. */
+      RUNNING = 1,
+      /** The process is being killed (it has been requested to terminate, but it hasn't been terminated yet). */
+      KILLING = 2
+    }
+
+    type IBackProcessInfo = {
+      /** Path of the file (relative to the Flashpoint root) */
+      path: string;
+      /** Name of the file to execute */
+      filename: string;
+      /** Arguments to pass to the process */
+      arguments: string[];
+      /**
+       * If the process should be "killed" when shutting down
+       * (This does not do anything for "start" and "stop" processes)
+       */
+      kill: boolean;
+    };
+
+    type IService = {
+      id: string;
+      name: string;
+      state: ProcessState;
+      pid: number;
+      startTime: number;
+      info: IBackProcessInfo;
+    }
+
+    type AppExtConfigData = {
+      [key: string]: any;
+    }
+
+    type RecursivePartial<T> = {
+      [key in keyof T]?: RecursivePartial<T[key]>;
+    }
+
+    type LangFileContent = LangContainer & {
+      /** Name of the language (this will be displayed in the drop-down). */
+      name: string;
+    }
+
+    type LangFile = {
+      /** Kept for the watcher to keep track of ownership. */
+      filename: string;
+      /** 2 letter language code. */
+      code: string;
+      /** Contents of the language file. */
+      data: RecursivePartial<LangFileContent>;
+    }
+
+    /** Data contained inside the Credits file. */
+    type CreditsData = {
+      /** Order for roles to appear in */
+      roles: CreditsDataRole[];
+      /** Profiles of each person in the credits. */
+      profiles: CreditsDataProfile[];
+    }
+
+    type CreditsBlock = {
+      role: CreditsDataRole;
+      profiles: CreditsDataProfile[];
+    }
+
+    type CreditsDataRole = {
+      /** Role name */
+      name: string;
+      /** Hex color code of Role */
+      color?: string;
+      /** Description of role */
+      description?: string;
+      /** Do not categorize this role */
+      noCategory?: boolean;
+    }
+
+    type CreditsDataProfile = {
+      /** Title of the profile (their displayed name). */
+      title: string;
+      /** Roles of the profile (in the Discord server). */
+      roles: string[];
+      /** Note about the profile (additional text to display). */
+      note?: string;
+      /** Icon of the profile (Base64 encoded image). */
+      icon?: string;
+      /** Role name to use as a category (override) */
+      topRole?: string;
+    }
+
+    type ThemeMeta = Partial<{
+      name: string;
+      version: string;
+      description: string;
+      author: string;
+      launcherVersion: string;
+      componentOverrides: Record<string, string>;
+    }>;
+
+    interface ITheme {
+      /** Unique ID */
+      id: string;
+      /** Path to the theme folder */
+      themePath: string;
+      /** Path of the theme's entry file (the css file that should be applied). */
+      entryPath: string;
+      /** Meta data of the theme. */
+      meta: ThemeMeta;
+      /** List of files this theme has */
+      files: string[];
+      /** Suggested logo set */
+      logoSet?: string;
+    }
+
+    interface ILogoSet {
+      /** Id of the logo set */
+      id: string;
+      /** Name of the logo set */
+      name: string;
+      /** Path relative to extension path */
+      path: string;
+    }
+
+    type PlatformAppPath = {
+      appPath: string;
+      count: number;
+    }
+
+    type PlatformAppPathSuggestions = Record<string, PlatformAppPath[]>;
+
+    interface IExtensionManifest {
+      name: string;
+      displayName?: string;
+      author: string;
+      version: string;
+      launcherVersion: string;
+      description?: string;
+      icon?: string;
+      main?: string;
+      contributes?: Contributions;
+    }
+
+    interface IExtensionDescription extends IExtensionManifest {
+      id: string;
+    }
+
+    type ExtTheme = {
+      id: string;
+      path: string;
+      logoSet?: string;
+    }
+
+    type DevScript = {
+      name: string;
+      description: string;
+      command: string;
+    }
+
+    type ButtonContext = 'game' | 'playlist' | 'curation';
+
+    type ContextButton = {
+      context: ButtonContext;
+      name: string;
+      command: string;
+      runWithNoCuration?: boolean;
+    }
+
+    type Application = {
+      provides: string[];
+      name: string;
+      command?: string;
+      arguments: string[];
+      path?: string;
+      url?: string;
+    }
+
+    type ExtConfigurationProp = {
+      type: 'string' | 'object' | 'boolean' | 'button';
+      default: any;
+      enum: any[];
+      title: string;
+      description: string;
+      command?: string;
+    }
+
+    type ExtConfiguration = {
+      title: string;
+      properties: {
+        [key: string]: ExtConfigurationProp
+      };
+    }
+
+    type ModuleContribution = {
+      scope: string;
+      path: string;
+    }
+
+    type Contributions = {
+      logoSets: ILogoSet[];
+      themes: ExtTheme[];
+      devScripts: DevScript[];
+      contextButtons: ContextButton[];
+      applications: Application[];
+      configuration: ExtConfiguration[];
+      curationTemplates: CurationTemplate[];
+      moduleFederation: ModuleContribution[];
+      themeFiles: string[];
+    }
+
+    type ExtensionContribution<T extends keyof Contributions> = {
+      key: T;
+      extId: string;
+      value: Contributions[T];
+    }
 }
 
 declare module 'flashpoint-launcher-renderer' {
-  import { GameOrderBy, GameOrderReverse, Game, ViewGame, ExtOrder, PlaylistGame, AdvancedFilter } from 'flashpoint-launcher';
-  import { useAppDispatchType } from '@renderer/hooks/useAppSelector';
-  import type { RootState } from '@renderer/store/store';
+  import { AppPreferencesData, GameOrderBy, GameOrderReverse, Game, Tag, ViewGame,
+    ExtOrder, PlaylistGame, AdvancedFilter, ResultsView, CurationState, CurateGroup,
+    GameOfTheDay, GameData, Playlist, DialogState, ComponentStatus, MetaUpdateState,
+    IService, AppExtConfigData, LangContainer, LangFile, CreditsData, ITheme,
+    ILogoSet, PlatformAppPathSuggestions, IExtensionDescription,
+    ExtensionContribution } from 'flashpoint-launcher';
   import { TypedUseSelectorHook } from 'react-redux';
+  import { CancelToken } from 'axios';
 
   /** Game properties that will have suggestions gathered and displayed. */
   type SuggestionProps = (
@@ -2754,30 +2978,6 @@ declare module 'flashpoint-launcher-renderer' {
     (delta: number): void | Promise<void>;
   }
 
-  interface IExtensionWindow {
-    utils: {
-      getExtensionFileURL: (extId: string, filePath: string) => string;
-      getFileServerURL: () => string;
-      search: {
-        onWhitelistFactory: (extId: string, key: string, filter: AdvancedFilter, setAdvancedFilter: (advFilter: AdvancedFilter) => void) => (value: string) => void,
-        onBlacklistFactory: (extId: string, key: string, filter: AdvancedFilter, setAdvancedFilter: (advFilter: AdvancedFilter) => void) => (value: string) => void,
-        onClearFactory: (extId: string, key: string, filter: AdvancedFilter, setAdvancedFilter: (advFilter: AdvancedFilter) => void) => () => void,
-        onSetAndToggleFactory: (extId: string, key: string, filter: AdvancedFilter, setAdvancedFilter: (advFilter: AdvancedFilter) => void) => (value: boolean) => void
-      }
-    },
-    components: {
-      GameComponentInputField: React.ComponentType<GameComponentInputFieldProps>,
-      GameComponentDropdownSelectField: React.ComponentType<GameComponentDropdownSelectFieldProps>,
-      SearchableSelect: React.ComponentType<SearchableSelectProps<any>>,
-      SortableColumn: React.ComponentType<SortableColumnProps>,
-    },
-    hooks: {
-      useNavigate: () => NavigateFunction,
-      useAppDispatch: useAppDispatchType,
-      useAppSelector: TypedUseSelectorHook<RootState>,
-    },
-  }
-
   type GameListColumnInfoIcon = {
     headerComponent: string;
     rowComponent: string;
@@ -2868,6 +3068,187 @@ declare module 'flashpoint-launcher-renderer' {
     info:  LogFunc;
     warn:  LogFunc;
     error: LogFunc;
+  }
+
+  type Location = {
+    pathname: string;
+    search: string;
+    hash: string;
+  }
+
+  type HistoryState = {
+    history: Location[];
+    maxHistorySize: number;
+  }
+
+  type SearchDropdownDataSet = {
+    key: string;
+    tags: Tag[] | null;
+    developers: string[] | null;
+    publishers: string[] | null;
+    series: string[] | null;
+  }
+
+  type SearchState = {
+    views: Record<string, ResultsView<any>>;
+    dropdowns: SearchDropdownDataSet;
+  }
+
+  type CurateState = {
+    /** First load complete */
+    loaded: boolean;
+    /** Persistant Group Names */
+    groups: CurateGroup[];
+    /** Collapsed curation groups */
+    collapsedGroups: string[];
+    /** Loaded curations. */
+    curations: CurationState[];
+    /** Folder of the currently selected curation (-1 if none). */
+    current: string;
+    /** List of curations that are selected */
+    selected: string[];
+    /** Last curation that was clicked */
+    lastSelected: string;
+  }
+
+  type DynamicPageProps = {
+    name: string;
+    props: any;
+  }
+
+  type MainState = {
+    gotdList: GameOfTheDay[] | undefined;
+    libraries: string[];
+    serverNames: string[];
+    mad4fpEnabled: boolean;
+    platformAppPaths: PlatformAppPathSuggestions;
+    playlists: Playlist[];
+    playlistIconCache: Record<string, string>; // [PLAYLIST_ID] = ICON_BLOB_URL
+    suggestions: GamePropSuggestions;
+    appPaths: Record<string, string>;
+    loaded: { [key in BackInit]: boolean; };
+    loadedAll: boolean;
+    extensions: IExtensionDescription[];
+    themeList: ITheme[];
+    logoSets: ILogoSet[];
+    logoVersion: number; // Increase to force cache clear
+    gamesTotal: number;
+    localeCode: string;
+    /** Text to display on the dev console */
+    devConsole: string;
+
+    /** Random games for the Home page box */
+    randomGames: ViewGame[];
+    /** Whether we're currently requesting random games */
+    requestingRandomGames: boolean;
+    /** If the random games should be shifted when the request is complete. */
+    shiftRandomGames: boolean;
+
+    /** Data and state used for the upgrade system (optional install-able downloads from the HomePage). */
+    upgrades: UpgradeStage[];
+    /** If the Random games have loaded - Masked as 'Games' */
+    gamesDoneLoading: boolean;
+    /** If upgrades files have loaded */
+    upgradesDoneLoading: boolean;
+    /** Stop rendering to force component unmounts */
+    stopRender: boolean;
+    /** Credits data (if any). */
+    creditsData?: CreditsData;
+    creditsDoneLoading: boolean;
+    /** If the "New Game" button was clicked (silly way of passing the event from the footer to the browse page). */
+    wasNewGameClicked: boolean;
+    /** Current language container. */
+    lang: LangContainer;
+    /** Current list of available language files. */
+    langList: LangFile[];
+    /** Info of the update, if one was found */
+    updateInfo: UpdateInfo | undefined;
+    /** If the "Meta Edit Popup" is open. */
+    metaEditExporterOpen: boolean;
+    /** ID of the game used in the "Meta Edit Popup". */
+    metaEditExporterGameId: string;
+    /** Scripts for the Developer Page */
+    devScripts: ExtensionContribution<'devScripts'>[];
+    /** Context buttons added by extensions */
+    contextButtons: ExtensionContribution<'contextButtons'>[];
+    /** Curation Templates added by extensions */
+    curationTemplates: ExtensionContribution<'curationTemplates'>[];
+    /** Extension config options */
+    extConfigs: ExtensionContribution<'configuration'>[];
+    /** Current extension config data */
+    extConfig: AppExtConfigData;
+    /** Services */
+    services: IService[];
+    /** PLACEHOLDER - Download percent of Game */
+    downloadPercent: number;
+    downloadSize: number;
+    downloadOpen: boolean;
+    cancelToken?: CancelToken;
+    downloadVerifying: boolean;
+    selectedGameId?: string;
+    selectedPlaylistId?: string;
+    currentGame?: Game;
+    currentGameData?: GameData;
+    currentPlaylist?: Playlist;
+    currentPlaylistEntry?: PlaylistGame;
+    isEditingGame: boolean;
+    updateFeedMarkdown: string;
+    metadataUpdate: MetaUpdateState;
+    /** Games which are in the middle of a busy operation */
+    busyGames: string[];
+    /** State of the Socket connection */
+    socketOpen: boolean;
+    /** Main Proc output (when requested) */
+    mainOutput?: string;
+    /** List of components from FPM */
+    componentStatuses: ComponentStatus[];
+    /** In the process of quitting, suspend all action */
+    quitting: boolean;
+    /** Open Dialog States */
+    openDialogs: DialogState[];
+    /** Last resolved dialog (mostly to handle side effects) */
+    lastResolvedDialog?: DialogState;
+    /** Dynamic page contents */
+    dynamicPage?: DynamicPageProps;
+    displaySettings: DisplaySettings;
+    extOrderables: ExtOrderable[];
+  }
+
+  type RootState = {
+    curate: CurateState;
+    fpfss: any;
+    main: MainState;
+    search: SearchState;
+    tagCategories: TagCategory[];
+    tasks: any;
+    logs: any;
+    downloads: any;
+    preferences: AppPreferencesData;
+    history: HistoryState;
+  }
+
+  interface IExtensionWindow {
+    utils: {
+      getExtensionFileURL: (extId: string, filePath: string) => string;
+      getFileServerURL: () => string;
+      search: {
+        onWhitelistFactory: (extId: string, key: string, filter: AdvancedFilter, setAdvancedFilter: (advFilter: AdvancedFilter) => void) => (value: string) => void,
+        onBlacklistFactory: (extId: string, key: string, filter: AdvancedFilter, setAdvancedFilter: (advFilter: AdvancedFilter) => void) => (value: string) => void,
+        onClearFactory: (extId: string, key: string, filter: AdvancedFilter, setAdvancedFilter: (advFilter: AdvancedFilter) => void) => () => void,
+        onSetAndToggleFactory: (extId: string, key: string, filter: AdvancedFilter, setAdvancedFilter: (advFilter: AdvancedFilter) => void) => (value: boolean) => void
+      }
+    },
+    components: {
+      GameComponentInputField: React.ComponentType<GameComponentInputFieldProps>,
+      GameComponentDropdownSelectField: React.ComponentType<GameComponentDropdownSelectFieldProps>,
+      SearchableSelect: React.ComponentType<SearchableSelectProps<any>>,
+      SortableColumn: React.ComponentType<SortableColumnProps>,
+    },
+    hooks: {
+      useNavigate: () => NavigateFunction,
+      useAppDispatch: useAppDispatchType,
+      useAppSelector: TypedUseSelectorHook<RootState>,
+    },
   }
 
   declare global {

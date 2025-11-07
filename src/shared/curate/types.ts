@@ -53,11 +53,4 @@ export type AddAppCurationMeta = Partial<{
   launchCommand: string;
 }>
 
-export type AddAppCuration = {key: string} & AddAppCurationMeta;
-
-export type PlatformAppPathSuggestions = Record<string, PlatformAppPath[]>;
-
-export type PlatformAppPath = {
-  appPath: string;
-  count: number;
-}
+export type AddAppCuration = { key: string } & AddAppCurationMeta;

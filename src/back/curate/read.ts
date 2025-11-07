@@ -1,11 +1,12 @@
 import { CURATION_META_FILENAMES } from '@shared/constants';
-import { CurationMeta, PlatformAppPathSuggestions } from '@shared/curate/types';
+import { CurationMeta } from '@shared/curate/types';
 import { stripBOM } from '@shared/Util';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as YAML from 'yaml';
 import { parseCurationMetaFile, parseCurationMetaOld, ParsedCurationMeta } from './parse';
 import { fpDatabase } from '..';
+import { PlatformAppPathSuggestions } from 'flashpoint-launcher';
 
 export async function readCurationMeta(folderPath: string, appPaths: PlatformAppPathSuggestions): Promise<ParsedCurationMeta | undefined> {
   const defaultMetaData: GameMetaDefaults = {

@@ -14,7 +14,6 @@ import {
   BackOut,
   ComponentState,
   CurationImageEnum,
-  GameOfTheDay,
   GetRendererLoadedDataResponse
 } from '@shared/back/types';
 import { overwriteConfigData } from '@shared/config/util';
@@ -29,7 +28,7 @@ import { FPFSS_INFO_FILENAME } from '@shared/curate/fpfss';
 import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { getContentFolderByKey } from '@shared/curate/util';
 import { AppProvider, BrowserApplicationOpts } from '@shared/extensions/interfaces';
-import { GamePropSuggestions, ProcessAction, ProcessState } from '@shared/interfaces';
+import { GamePropSuggestions, ProcessAction } from '@shared/interfaces';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { formatString } from '@shared/utils/StringFormatter';
 import { TaskProgress } from '@shared/utils/TaskProgress';
@@ -45,8 +44,10 @@ import {
   GameLaunchInfo,
   GameMetadataSource,
   GameMiddlewareInfo,
+  GameOfTheDay,
   LaunchInfo,
   LoadedCuration,
+  ProcessState,
   Tag,
   TagCategory
 } from 'flashpoint-launcher';
@@ -2025,7 +2026,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       );
     } else {
       const loggerService = state.services.get('logger_window');
-      if (loggerService && loggerService.getState() !== ProcessState.RUNNING) {
+      if (loggerService && loggerService.getState() !== 1) {
         loggerService.restart();
       }
     }
@@ -2101,7 +2102,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     }
     message = message + '\n';
     for (const service of diagnostics.services) {
-      message = message + `${ProcessState[service.state]}:\t${service.name}\n`;
+      message = message + `${service.state}:\t${service.name}\n`;
     }
     if (diagnostics.generics.length > 0) {
       message = message + '\n';
@@ -2667,7 +2668,7 @@ function runGameService(state: BackState, launchInfo: LaunchInfo, id: string, na
 
   // Remove game service when it exits
   proc.on('change', () => {
-    if (proc.getState() === ProcessState.STOPPED) {
+    if (proc.getState() === 0) {
       removeService(state, proc.id);
     }
   });
@@ -2694,7 +2695,7 @@ export function runGameFactory(state: BackState) {
     const proc = runGameService(state, gameLaunchInfo.launchInfo, id, gameLaunchInfo.game.title);
 
     proc.on('change', () => {
-      if (proc.getState() === ProcessState.STOPPED) {
+      if (proc.getState() === 0) {
         // Update game playtime counter when process exits
         if (state.preferences.enablePlaytimeTracking) {
           const secondsPlayed = (Date.now() - proc.getStartTime()) / 1000;

@@ -1,9 +1,6 @@
 import { SocketClient } from '@shared/back/SocketClient';
 import { EventEmitter } from 'events';
-import { AppPreferencesData, ILogEntry, LangContainer } from 'flashpoint-launcher';
-import { AppConfigData } from './config/interfaces';
-import { LangFile } from './lang';
-import { ITheme } from './ThemeFile';
+import { AppConfigData, AppPreferencesData, IBackProcessInfo, ILogEntry, ITheme, LangContainer, LangFile } from 'flashpoint-launcher';
 
 /** Replacement of "object" type. Note: I'm not sure how effective it is though //obelisk */
 type ObjectLike = Record<string, unknown> | Record<number, unknown>
@@ -111,30 +108,6 @@ export type INamedBackProcessInfo = IBackProcessInfo & {
   aliases: string[];
 }
 
-export type IBackProcessInfo = {
-  /** Path of the file (relative to the Flashpoint root) */
-  path: string;
-  /** Name of the file to execute */
-  filename: string;
-  /** Arguments to pass to the process */
-  arguments: string[];
-  /**
-   * If the process should be "killed" when shutting down
-   * (This does not do anything for "start" and "stop" processes)
-   */
-  kill: boolean;
-};
-
-/** State of a managed process. */
-export enum ProcessState {
-  /** The process is not running. */
-  STOPPED = 0,
-  /** The process is running. */
-  RUNNING = 1,
-  /** The process is being killed (it has been requested to terminate, but it hasn't been terminated yet). */
-  KILLING = 2
-}
-
 /** Actions that can be performed on a service. */
 export enum ProcessAction {
   /** Start the process if it is stopped */
@@ -143,16 +116,6 @@ export enum ProcessAction {
   STOP,
   /** Stop the process if it is running, then start the process */
   RESTART
-}
-
-/** Object describing the state of a service. */
-export type IService = {
-  id: string;
-  name: string;
-  state: ProcessState;
-  pid: number;
-  startTime: number;
-  info: IBackProcessInfo;
 }
 
 export type ExecMapping = {

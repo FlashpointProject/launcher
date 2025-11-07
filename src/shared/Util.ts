@@ -1,9 +1,8 @@
 import * as axiosImport from 'axios';
-import { AdditionalApp, ContentTree, ContentTreeNode, FlatContentTree, Game, Platform, Tag, TagFilterGroup } from 'flashpoint-launcher';
+import { AdditionalApp, AppConfigData, ContentTree, ContentTreeNode, FlatContentTree, Game, Platform, Tag, TagFilterGroup } from 'flashpoint-launcher';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { DownloadDetails } from './back/types';
-import { AppConfigData } from './config/interfaces';
 import { parseVariableString } from './utils/VariableString';
 import { throttle } from './utils/throttle';
 

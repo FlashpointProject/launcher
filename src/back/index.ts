@@ -1,8 +1,7 @@
-import { BackIn, BackInit, BackInitArgs, BackOut, BackResParams, ComponentState, ComponentStatus, DownloadDetails } from '@shared/back/types';
+import { BackIn, BackInit, BackInitArgs, BackOut, BackResParams, ComponentState, DownloadDetails } from '@shared/back/types';
 import { getCurationFolder } from '@shared/curate/util';
-import { ILogoSet, LogoSet } from '@shared/extensions/interfaces';
-import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
-import { LangFileContent, getDefaultLocalization } from '@shared/lang';
+import { LogoSet } from '@shared/extensions/interfaces';
+import { getDefaultLocalization } from '@shared/lang';
 import { LogLevel } from '@shared/Log/interface';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { defaultPreferencesData } from '@shared/preferences/util';
@@ -74,6 +73,7 @@ import { LogFile } from './util/LogFile';
 import { logFactory } from './util/logging';
 import { createContainer, exit, getMacPATH, promiseSleep, runService } from './util/misc';
 import { uuid } from './util/uuid';
+import { ComponentStatus, IBackProcessInfo, ILogoSet, LangFileContent, RecursivePartial } from 'flashpoint-launcher';
 
 export const VERBOSE = {
   enabled: false

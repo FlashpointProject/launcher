@@ -1,6 +1,6 @@
-import { AppExtConfigData } from '@shared/config/interfaces';
 import { overwriteExtConfigData } from '@shared/config/util';
 import { readJsonFile, stringifyJsonDataFile } from '@shared/Util';
+import { AppExtConfigData } from 'flashpoint-launcher';
 import * as fs from 'node:fs';
 
 export namespace ExtConfigFile {

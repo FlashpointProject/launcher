@@ -1,7 +1,8 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { TagCategory } from 'flashpoint-launcher';
+import { RootState } from 'flashpoint-launcher-renderer';
 
-const initialState: TagCategory[] = [];
+const initialState: RootState['tagCategories'] = [];
 
 const tagCategoriesSlice = createSlice({
   name: 'tagCategories',

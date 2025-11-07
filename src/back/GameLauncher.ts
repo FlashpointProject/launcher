@@ -1,14 +1,14 @@
-import { BackOut, ComponentState, ComponentStatus } from '@shared/back/types';
+import { BackOut, ComponentState } from '@shared/back/types';
 import { AppProvider } from '@shared/extensions/interfaces';
-import { ExecMapping, Omit, ProcessState } from '@shared/interfaces';
+import { ExecMapping, Omit } from '@shared/interfaces';
 import { fixSlashes } from '@shared/Util';
 import * as Coerce from '@shared/utils/Coerce';
 import { getGameDataFilename } from '@shared/utils/misc';
 import { formatString } from '@shared/utils/StringFormatter';
 import * as child_process from 'child_process';
-import { AdditionalApp, AppPathOverride, DialogStateTemplate, Game, GameConfig, GameData, GameLaunchInfo, GameLaunchOverride, LangContainer, LaunchInfo, ManagedChildProcess, Platform } from 'flashpoint-launcher';
+import { AdditionalApp, AppPathOverride, ComponentStatus, DialogStateTemplate, Game, GameConfig, GameData, GameLaunchInfo, GameLaunchOverride, LangContainer, LaunchInfo, ManagedChildProcess, Platform } from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
-import * as minimist from 'minimist';
+import minimist from 'minimist';
 import * as path from 'node:path';
 import { extractFullPromise, fpDatabase } from '.';
 import { ApiEmitterFirable } from './extensions/ApiEmitter';
@@ -112,7 +112,7 @@ export namespace GameLauncher {
           if (opts.addApp.waitForExit) {
             resolve();
           } else {
-            if (managedProc.getState() !== ProcessState.RUNNING) { resolve(); }
+            if (managedProc.getState() !== 1) { resolve(); }
             else {
               managedProc.on('exit', () => { resolve(); });
             }

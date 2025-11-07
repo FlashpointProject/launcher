@@ -7,15 +7,13 @@ import { newAppPathOverride, newTagFilterGroup, removeAppPathOverride, removeTag
 import { GENERAL_VIEW_ID } from '@renderer/store/search/slice';
 import { BackIn } from '@shared/back/types';
 import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
-import { ExtConfigurationProp, ILogoSet } from '@shared/extensions/interfaces';
 import { autoCode } from '@shared/lang';
 import { Paths } from '@shared/Paths';
 import { setTheme } from '@shared/Theme';
-import { ITheme } from '@shared/ThemeFile';
 import { deepCopy } from '@shared/Util';
 import * as Coerce from '@shared/utils/Coerce';
 import { formatString } from '@shared/utils/StringFormatter';
-import { AppPreferencesData, LangContainer, TagFilterGroup } from 'flashpoint-launcher';
+import { AppPreferencesData, ExtConfigurationProp, ILogoSet, ITheme, LangContainer, TagFilterGroup } from 'flashpoint-launcher';
 import { useContext, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { clearFpfssConsentExt, getFpfssConsentExt, saveFpfssConsentExt } from '../../fpfss';

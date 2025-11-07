@@ -1,4 +1,4 @@
-import { GameComponentProps } from 'flashpoint-launcher-renderer';
+import { GameComponentProps, RootState } from 'flashpoint-launcher-renderer';
 import { ControllerSet, getFormattedMappedName } from '../shared';
 import { createSelector } from '@reduxjs/toolkit';
 import React from 'react';
@@ -10,9 +10,9 @@ function isGame(content?: Content | Game): content is Game {
 
 export const selectGameField = <K extends keyof Game>(viewId: string, key: K) => createSelector(
   [
-    (state) => state.search.views[viewId].isEditing,
-    (state) => isGame(state.search.views[viewId].selectedGame) ? state.search.views[viewId].selectedGame[key] : undefined,
-    (state) => isGame(state.search.views[viewId].editingGame) ? state.search.views[viewId].editingGame[key] : undefined
+    (state: RootState) => state.search.views[viewId].isEditing,
+    (state: RootState) => isGame(state.search.views[viewId].selectedGame) ? state.search.views[viewId].selectedGame[key] : undefined,
+    (state: RootState) => isGame(state.search.views[viewId].editingGame) ? state.search.views[viewId].editingGame[key] : undefined
   ],
   (isEditing, selectedGameValue, editingGameValue) => (isEditing ? editingGameValue : selectedGameValue) as Game[K]
 );

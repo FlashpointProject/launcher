@@ -1,38 +1,19 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { BackIn } from '@shared/back/types';
-import { AddAppCuration, PlatformAppPathSuggestions } from '@shared/curate/types';
+import { AddAppCuration } from '@shared/curate/types';
 import { uuid } from '@shared/utils/uuid';
 import {
   AddAppCurationMeta,
   ContentTree,
+  CurateGroup,
   CurationMeta,
   CurationState, CurationWarnings,
   EditCurationMeta,
   Platform,
+  PlatformAppPathSuggestions,
   Tag
 } from 'flashpoint-launcher';
-
-export type CurateGroup = {
-  name: string;
-  icon: string;
-}
-
-export type CurateState = {
-  /** First load complete */
-  loaded: boolean;
-  /** Persistant Group Names */
-  groups: CurateGroup[];
-  /** Collapsed curation groups */
-  collapsedGroups: string[];
-  /** Loaded curations. */
-  curations: CurationState[];
-  /** Folder of the currently selected curation (-1 if none). */
-  current: string;
-  /** List of curations that are selected */
-  selected: string[];
-  /** Last curation that was clicked */
-  lastSelected: string;
-}
+import { CurateState } from 'flashpoint-launcher-renderer';
 
 export type AddAppType = 'normal' | 'extras' | 'message';
 
