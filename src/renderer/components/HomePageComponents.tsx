@@ -1,10 +1,10 @@
 import { createSelector } from '@reduxjs/toolkit';
 import { useView } from '@renderer/hooks/search';
+import { useLocalization } from '@renderer/hooks/useLocalization';
 import { addRandomGames, RANDOM_GAME_ROW_COUNT, setMainState } from '@renderer/store/main/slice';
 import { GENERAL_VIEW_ID, searchActions, selectGame } from '@renderer/store/search/slice';
 import { findGameDragEventDataGrid, getExtremeIconURL, getGameImageURL, getPlatformIconURL, joinLibraryRoute } from '@renderer/Util';
 import { idToGame } from '@renderer/util/async';
-import { LangContext } from '@renderer/util/lang';
 import { BackIn } from '@shared/back/types';
 import { ARCADE, THEATRE } from '@shared/constants';
 import { Paths } from '@shared/Paths';
@@ -12,7 +12,7 @@ import { isGame } from '@shared/utils/misc';
 import { formatString } from '@shared/utils/StringFormatter';
 import { Content, Game } from 'flashpoint-launcher';
 import { HomePageComponentProps, RootState } from 'flashpoint-launcher-renderer';
-import React, { useContext, useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import ReactDatePicker from 'react-datepicker';
 import ReactMarkdown from 'react-markdown';
 import { Link } from 'react-router-dom';
@@ -38,7 +38,7 @@ export function HomePageComponentUpdateFeed(props: HomePageComponentProps) {
   const { toggleMinimizeBox } = props;
   const minimized = window.ext.hooks.useAppSelector(selectUpdateFeedMinimized);
   const updateFeedMarkdown = window.ext.hooks.useAppSelector(state => state.main.updateFeedMarkdown);
-  const allStrings = React.useContext(LangContext);
+  const allStrings = useLocalization();
   const strings = allStrings.home;
 
   if (updateFeedMarkdown) {
@@ -73,7 +73,7 @@ export function HomePageComponentGotd(props: HomePageComponentProps) {
   const hideExtremeScreenshots = window.ext.hooks.useAppSelector(state => state.preferences.hideExtremeScreenshots);
   const view = useView();
   const dispatch = window.ext.hooks.useAppDispatch();
-  const allStrings = React.useContext(LangContext);
+  const allStrings = useLocalization();
   const strings = allStrings.home;
   const extremeTags = tagFilters.filter(t => !t.enabled && t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
 
@@ -155,7 +155,6 @@ export function HomePageComponentGotd(props: HomePageComponentProps) {
             { loadedGotd ? (
               <GameItemContainer
                 className='gotd-container'
-                onGameContextMenu={props.onGameContextMenu}
                 onContentSelect={(event, gameId) => gameId && onSelectGame(gameId)}
                 onContentLaunch={(event, gameId) => props.onLaunchGame(gameId)}
                 findGameDragEventData={findGameDragEventDataGrid}>
@@ -215,7 +214,7 @@ export function HomePageComponentQuickStart(props: HomePageComponentProps) {
   const { toggleMinimizeBox } = props;
   const playlists = window.ext.hooks.useAppSelector(state => state.main.playlists);
   const minimized = window.ext.hooks.useAppSelector(state => state.preferences.minimizedHomePageBoxes.includes('quickStart'));
-  const allStrings = React.useContext(LangContext);
+  const allStrings = useLocalization();
   const strings = allStrings.home;
 
   const onHallOfFameClick = React.useCallback(() => {
@@ -257,7 +256,7 @@ export function HomePageComponentQuickStart(props: HomePageComponentProps) {
 
 export function HomePageComponentNotes(props: HomePageComponentProps) {
   const { toggleMinimizeBox } = props;
-  const allStrings = React.useContext(LangContext);
+  const allStrings = useLocalization();
   const strings = allStrings.home;
   const minimized = window.ext.hooks.useAppSelector(state => state.preferences.minimizedHomePageBoxes.includes('notes'));
 
@@ -315,8 +314,8 @@ export function HomePageComponentNotes(props: HomePageComponentProps) {
 }
 
 export function HomePageComponentRandomGames(props: HomePageComponentProps) {
-  const { onLaunchGame, toggleMinimizeBox, onGameContextMenu } = props;
-  const strings = useContext(LangContext);
+  const { onLaunchGame, toggleMinimizeBox } = props;
+  const strings = useLocalization();
   const minimized = window.ext.hooks.useAppSelector(state => state.preferences.minimizedHomePageBoxes.includes('random-games'));
   const randomGames = window.ext.hooks.useAppSelector(state => state.main.randomGames);
   const requestingRandomGames = window.ext.hooks.useAppSelector(state => state.main.requestingRandomGames);
@@ -362,7 +361,6 @@ export function HomePageComponentRandomGames(props: HomePageComponentProps) {
         <RandomGames
           games={randomGames}
           rollRandomGames={rollRandomGames}
-          onGameContextMenu={onGameContextMenu}
           onLaunchGame={onLaunchGame}
           onGameSelect={onSelectGame}
           selectedGameId={view.selectedGame?.id} />
@@ -377,7 +375,7 @@ export function HomePageComponentExtras(props: HomePageComponentProps) {
   const logoVersion = window.ext.hooks.useAppSelector(state => state.main.logoVersion);
   const viewObj = window.ext.hooks.useAppSelector((state) => state.search.views);
   const platforms = window.ext.hooks.useAppSelector(state => state.main.suggestions.platforms);
-  const allStrings = React.useContext(LangContext);
+  const allStrings = useLocalization();
   const strings = allStrings.home;
 
   const views = Object.keys(viewObj);

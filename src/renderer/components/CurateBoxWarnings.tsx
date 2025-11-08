@@ -1,6 +1,5 @@
+import { useLocalization } from '@renderer/hooks/useLocalization';
 import { CurationWarnings, LangContainer } from 'flashpoint-launcher';
-import * as React from 'react';
-import { LangContext } from '../util/lang';
 
 export type CurateBoxWarningsProps = {
   /** Warnings to display. */
@@ -9,7 +8,7 @@ export type CurateBoxWarningsProps = {
 
 // The part of a Curation Box that displays all the warnings (if any).
 export function CurateBoxWarnings(props: CurateBoxWarningsProps) {
-  const strings = React.useContext(LangContext).curate;
+  const strings = useLocalization().curate;
   const { warnings } = props;
   // Count the number of warnings
   const warningCount = props.warnings.writtenWarnings.length;

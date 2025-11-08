@@ -1,25 +1,19 @@
-import { LangContext } from '@renderer/util/lang';
+import { getPointer } from '@renderer/context/MenuContext';
+import { useContextMenu } from '@renderer/hooks/useContextMenu';
+import { useLocalization } from '@renderer/hooks/useLocalization';
 import { isGame } from '@shared/utils/misc';
-import { Content, Game, ViewGame } from 'flashpoint-launcher';
-import { useContext, useState } from 'react';
+import { Content, Game } from 'flashpoint-launcher';
+import { RandomGamesProps } from 'flashpoint-launcher-renderer';
+import { useState } from 'react';
 import { findGameDragEventDataGrid, getExtremeIconURL, getGameImageURL, getPlatformIconURL } from '../Util';
 import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
 import { SimpleButton } from './SimpleButton';
 
-type RandomGamesProps = {
-  games: ViewGame[];
-  selectedGameId?: string;
-  /** Generator for game context menu */
-  onGameContextMenu: (event: React.MouseEvent, gameId: string, logoPath: string, screenshotPath: string) => void;
-  onLaunchGame: (gameId: string) => void;
-  onGameSelect: (gameId: string | undefined) => void;
-  rollRandomGames: () => void;
-};
-
 // A small "grid" of randomly selected games.
 export function RandomGames(props: RandomGamesProps) {
-  const strings = useContext(LangContext);
+  const strings = useLocalization();
+  const { openGameContextMenu } = useContextMenu();
   const logoVersion = window.ext.hooks.useAppSelector(state => state.main.logoVersion);
   const screenshotPreviewMode = window.ext.hooks.useAppSelector(state => state.preferences.screenshotPreviewMode);
   const screenshotPreviewDelay = window.ext.hooks.useAppSelector(state => state.preferences.screenshotPreviewDelay);
@@ -34,6 +28,11 @@ export function RandomGames(props: RandomGamesProps) {
       props.rollRandomGames();
     }
   }
+
+  const onGameContextMenu = (event: React.MouseEvent, gameId: string, logoPath: string, screenshotPath: string) => {
+    openGameContextMenu(gameId, logoPath, screenshotPath, getPointer(event));
+  };
+
 
   const onGameSelect = (event: React.MouseEvent, gameId: string | undefined) => {
     props.onGameSelect(gameId);
@@ -73,10 +72,6 @@ export function RandomGames(props: RandomGamesProps) {
         isDragged={false} />
     );
   });
-
-  const onGameContextMenu = (event: React.MouseEvent<HTMLDivElement, MouseEvent>, gameId: string, logoPath: string, screenshotPath: string) => {
-    return props.onGameContextMenu(event, gameId, logoPath, screenshotPath);
-  };
 
   return (
     <>

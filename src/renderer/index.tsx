@@ -12,7 +12,6 @@ import { HashRouter } from 'react-router-dom';
 import { App } from './components/app';
 import { AppLoader } from './components/AppLoader';
 import { ContextReducerProvider } from './context-reducer/ContextReducerProvider';
-import { MenuProvider } from './context/MenuContext';
 import { ProgressContext } from './context/ProgressContext';
 
 (async () => {
@@ -69,9 +68,7 @@ import { ProgressContext } from './context/ProgressContext';
           <AppLoader data={data}>
             <ShortcutProvider>
               <ContextReducerProvider context={ProgressContext}>
-                <MenuProvider>
-                  <App />
-                </MenuProvider>
+                <App />
               </ContextReducerProvider>
             </ShortcutProvider>
           </AppLoader>

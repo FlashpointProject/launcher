@@ -1,10 +1,10 @@
 import { createSelector } from '@reduxjs/toolkit';
-import { getPointer } from '@renderer/context/MenuContext';
-import { createNewDialog } from '@renderer/dialog';
+import { getPointer, MenuProvider } from '@renderer/context/MenuContext';
 import { useView } from '@renderer/hooks/search';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useContextMenu } from '@renderer/hooks/useContextMenu';
-import { createGroup, modifyCurations, replaceCurations, setContentTree, setCurateLoaded, setCurrentCuration, setLock, setSelectedCurations } from '@renderer/store/curate/slice';
+import { useLocalization } from '@renderer/hooks/useLocalization';
+import { createGroup, modifyCurations, replaceCurations, setContentTree, setCurateLoaded, setLock, setSelectedCurations } from '@renderer/store/curate/slice';
 import { setDownloaderState, updateDownloaderStatus, updateDownloaderTask, updateDownloaderTasks } from '@renderer/store/downloads/slice';
 import { setFpfssUser } from '@renderer/store/fpfss/slice';
 import { pushHistory } from '@renderer/store/history/slice';
@@ -22,8 +22,6 @@ import { Paths } from '@shared/Paths';
 import { setTheme } from '@shared/Theme';
 import { getFileServerURL, sizeToString } from '@shared/Util';
 import {
-  DialogStateTemplate,
-  LangContainer,
   Playlist
 } from 'flashpoint-launcher';
 import * as path from 'node:path';
@@ -31,7 +29,7 @@ import * as React from 'react';
 import { Activity, useState } from 'react';
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
-import { axios, getGameImagePath, getGameImageURL, getGamePath, openUrlInWindow } from '../Util';
+import { axios } from '../Util';
 import { LangContext } from '../util/lang';
 import { ActivityRoutes } from './ActivityRoutes';
 import { Dialog } from './Dialog';
@@ -42,7 +40,7 @@ import { FloatingContainer } from './FloatingContainer';
 import { Footer } from './Footer';
 import { SortableColumn } from './GameListHeader';
 import { Header } from './Header';
-import { MenuItemType } from './Menu';
+import { HomePageBox } from './HomePageBox';
 import { AboutPage } from './pages/AboutPage';
 import { BrowsePage } from './pages/BrowsePage';
 import { ConfigPage } from './pages/ConfigPage';
@@ -58,15 +56,15 @@ import { TagCategoriesPage } from './pages/TagCategoriesPage';
 import { TagsPage } from './pages/TagsPage';
 import { setPageTitle } from './PageTitle';
 import { placeholderProgressData, ProgressBar } from './ProgressComponents';
+import { RandomGames } from './RandomGames';
 import { ResizableSidebar, SidebarResizeEvent } from './ResizableSidebar';
 import { RightBrowseSidebarView } from './RightBrowseSidebar';
 import { SearchableSelect } from './SearchBar';
 import { SimpleButton } from './SimpleButton';
+import { SizeProvider } from './SizeProvider';
 import { SplashScreen } from './SplashScreen';
 import { TaskBar } from './TaskBar';
 import { TitleBar } from './TitleBar';
-import { HomePageBox } from './HomePageBox';
-import { SizeProvider } from './SizeProvider';
 
 const selectDynamicThemes = createSelector(
   [
@@ -128,15 +126,8 @@ export function App() {
   const downloadPercent = useAppSelector(state => state.main.downloadPercent);
   const taskBarOpen = useAppSelector(state => state.tasks.taskBarOpen);
   const tasks = useAppSelector(state => state.tasks.tasks);
-  const dataPacksFolderPath = useAppSelector(state => state.preferences.dataPacksFolderPath);
-  const htdocsFolderPath = useAppSelector(state => state.preferences.htdocsFolderPath);
-  const imageFolderPath = useAppSelector(state => state.preferences.imageFolderPath);
   const useCustomTitleBar = useAppSelector(state => state.preferences.useCustomTitlebar);
-  const extContextButtons = useAppSelector(state => state.main.contextButtons);
-  const playlists = useAppSelector(state => state.main.playlists);
-  const selectedPlaylistId = useAppSelector(state => state.main.selectedPlaylistId);
   const dynamicPage = useAppSelector(state => state.main.dynamicPage);
-  const fpfssBaseUrl = useAppSelector(state => state.preferences.fpfssBaseUrl);
   const showExtreme = useAppSelector(state => state.preferences.browsePageShowExtreme);
   const tagFilters = useAppSelector(state => state.preferences.tagFilters);
   const searchDropdownKey = useAppSelector(state => state.search.dropdowns.key);
@@ -146,8 +137,6 @@ export function App() {
   const currentView = useView();
   const firstBrowsePageViewName = useAppSelector(state => Object.keys(state.search.views).find(v => v !== GENERAL_VIEW_ID));
   const showRightSidebar = currentView?.selectedGame !== undefined && browsePageShowRightSidebar && !hiddenRightSidebarPages.reduce((prev, cur) => prev || location.pathname.startsWith(cur), false);
-  const navigate = useNavigate();
-  const { openMenu } = useContextMenu();
 
   const activeTagFilters = tagFilters.filter(t => t.enabled && (!t.extreme || showExtreme));
   const tagsKey = JSON.stringify(activeTagFilters);
@@ -221,382 +210,194 @@ export function App() {
     dispatch(setTaskBarOpen(!taskBarOpen));
   };
 
-  const onGameContextMenu = (event: React.MouseEvent, gameId: string, logoPath: string, screenshotPath: string) => {
-    const fpfssButtons: MenuItemType[] = fpfssBaseUrl ? [
-      {
-        /* Edit via FPFSS */
-        type: 'button',
-        label: strings.browse.editFpfssGame,
-        enabled: enableEditing,
-        onClick: () => {
-          // this.onFpfssEditGame(gameId);
-        }
-      },
-      {
-        /* Show on FPFSS */
-        type: 'button',
-        label: strings.browse.showOnFpfss,
-        enabled: enableEditing,
-        onClick: () => {
-          openUrlInWindow(`${fpfssBaseUrl}/web/game/${gameId}`);
-        }
-      }
-    ] : [];
-
-    let contextButtons: MenuItemType[] = [
-      {
-        type: 'button',
-        label: strings.menu.addToFavorites,
-        enabled: playlists.filter(p => p.title.includes('Favorites')).length > 0,
-        onClick: () => {
-          const playlistId = playlists.filter(p => p.title.includes('Favorites'))[0].id;
-          window.Shared.back.send(BackIn.ADD_PLAYLIST_GAME, playlistId, gameId);
-        }
-      },
-      {
-        type: 'submenu',
-        label: strings.menu.addToPlaylist,
-        enabled: playlists.length > 0,
-        submenu: UniquePlaylistMenuFactory(playlists,
-          strings,
-          (playlistId) => window.Shared.back.send(BackIn.ADD_PLAYLIST_GAME, playlistId, gameId),
-          selectedPlaylistId)
-      }, {
-        /* Copy Shortcut URL */
-        type: 'button',
-        label: strings.menu.copyShortcutURL,
-        onClick: () => {
-          navigator.clipboard.writeText(`flashpoint://run/${gameId}`);
-        }
-      },
-      {
-        /* Copy Game UUID */
-        type: 'button',
-        label: strings.menu.copyGameUUID,
-        onClick: () => {
-          navigator.clipboard.writeText(gameId);
-        }
-      }, { type: 'separator' }, {
-        /* File Location */
-        type: 'button',
-        label: strings.menu.openFileLocation,
-        enabled: !window.Shared.isBackRemote, // (Local "back" only)
-        onClick: () => {
-          window.Shared.back.request(BackIn.GET_GAME, gameId)
-          .then(async (game) => {
-            if (game) {
-              const gamePath = await getGamePath(game, window.Shared.config.fullFlashpointPath, htdocsFolderPath, dataPacksFolderPath);
-              console.log(gamePath);
-              if (gamePath) {
-                const fileExists = await window.electronAPI?.fileExists(gamePath);
-                if (fileExists) {
-                  window.electronAPI?.showItemInFolder(gamePath);
-                } else {
-                  const template: DialogStateTemplate = {
-                    largeMessage: true,
-                    message: 'GameData has not been downloaded yet, cannot open the file location!',
-                    buttons: ['Ok'],
-                  };
-                  createNewDialog(dispatch, template);
-                  return;
-                }
-              }
-            }
-          });
-        },
-      },
-      {
-        /* Logo Location */
-        type: 'button',
-        label: strings.menu.openLogoLocation,
-        enabled: !window.Shared.isBackRemote, // (Local "back" only)
-        onClick: async () => {
-          const fullLogoPath = getGameImagePath(logoPath, imageFolderPath);
-          const fileExists = await window.electronAPI?.fileExists(fullLogoPath);
-          if (fileExists) {
-            window.electronAPI?.showItemInFolder(fullLogoPath);
-          } else {
-            fetch(getGameImageURL(logoPath))
-            .then(() => {
-              window.electronAPI?.showItemInFolder(fullLogoPath);
-            });
-          }
-        }
-      },
-      {
-        /* Screenshot Location */
-        type: 'button',
-        label: strings.menu.openScreenshotLocation,
-        enabled: !window.Shared.isBackRemote, // (Local "back" only)
-        onClick: async () => {
-          const fullScreenshotPath = getGameImagePath(screenshotPath, imageFolderPath);
-          const fileExists = await window.electronAPI?.fileExists(fullScreenshotPath);
-          if (fileExists) {
-            window.electronAPI?.showItemInFolder(fullScreenshotPath);
-          } else {
-            fetch(getGameImageURL(logoPath))
-            .then(() => {
-              window.electronAPI?.showItemInFolder(fullScreenshotPath);
-            });
-          }
-        }
-      }, { type: 'separator' }, {
-        /* Clear Playtime Tracking */
-        type: 'button',
-        label: strings.config.clearPlaytimeTracking,
-        enabled: !window.Shared.isBackRemote, // (Local "back" only)
-        onClick: () => {
-          window.Shared.back.send(BackIn.CLEAR_PLAYTIME_TRACKING_BY_ID, gameId);
-        }
-      }];
-
-    // Add editing mode fields
-    if (enableEditing) {
-      const editingButtons: MenuItemType[] = [
-        {
-          /* Load as a curation */
-          type: 'button',
-          label: strings.menu.makeCurationFromGame,
-          enabled: enableEditing,
-          onClick: () => {
-            window.Shared.back.request(BackIn.CURATE_FROM_GAME, gameId)
-            .then((folder) => {
-              if (folder) {
-                // Select the new curation
-                dispatch(setCurrentCuration({
-                  folder
-                }));
-                // Redirect to Curate once it's been made
-                navigate(Paths.CURATE);
-              } else {
-                createNewDialog(dispatch, {
-                  message: 'Failed to create curation from this game. No error provided.',
-                  largeMessage: true,
-                  buttons: ['Ok']
-                });
-              }
-            })
-            .catch((err: any) => {
-              createNewDialog(dispatch, {
-                message: `Failed to create curation from this game.\nError: ${err.toString()}`,
-                largeMessage: true,
-                buttons: ['Ok']
-              });
-            });
-          }
-        }, ...fpfssButtons, { type: 'separator' }
-      ];
-      contextButtons = contextButtons.concat(editingButtons);
-    }
-
-    // Add extension contexts
-    for (const contribution of extContextButtons) {
-      for (const contextButton of contribution.value) {
-        if (contextButton.context === 'game') {
-          contextButtons.push({
-            type: 'button',
-            label: contextButton.name,
-            onClick: () => {
-              window.Shared.back.request(BackIn.GET_GAME, gameId)
-              .then((game) => {
-                window.Shared.back.request(BackIn.RUN_COMMAND, contextButton.command, [game]);
-              });
-            }
-          });
-        }
-      }
-    }
-
-    openMenu({ items: contextButtons }, getPointer(event));
-  };
-
   const customVersion = window.Shared.customVersion;
 
   const isBrowsePage = location.pathname.startsWith(Paths.BROWSE);
 
   return (
-    <DynamicThemeProvider fileList={dynamicThemeFileList} >
-      <DynamicComponentProvider manifests={remoteModules}>
-        <LangContext.Provider value={strings}>
-          <ToastContainer
-            theme='dark'
-            className='toast-container'
-            progressClassName='toast-container-progress'
-            hideProgressBar={true}
-            position='bottom-center'/>
-          {!stopRender ? (
-            <>
-              {/* Backend Crash Log and Report */}
-              {!socketOpen && !mainOutput && (
-                <FloatingContainer>
-                  <div className='main-output-header'>Disconnected from Backend</div>
-                  <div>Reconnecting...</div>
-                </FloatingContainer>
-              )}
-              {mainOutput && (
-                <FloatingContainer>
-                  <div className='main-output-header'>Backend Crash Log</div>
-                  <div className='main-output-content'>{mainOutput}</div>
-                  <div className='main-output-buttons'>
-                    <SimpleButton
-                      value={'Copy Crash Log'}
-                      onClick={copyCrashLog} />
-                    { window.electronAPI !== undefined && (
+    <LangContext.Provider value={strings}>
+      <DynamicThemeProvider fileList={dynamicThemeFileList} >
+        <DynamicComponentProvider manifests={remoteModules}>
+          <MenuProvider>
+
+            <ToastContainer
+              theme='dark'
+              className='toast-container'
+              progressClassName='toast-container-progress'
+              hideProgressBar={true}
+              position='bottom-center'/>
+            {!stopRender ? (
+              <>
+                {/* Backend Crash Log and Report */}
+                {!socketOpen && !mainOutput && (
+                  <FloatingContainer>
+                    <div className='main-output-header'>Disconnected from Backend</div>
+                    <div>Reconnecting...</div>
+                  </FloatingContainer>
+                )}
+                {mainOutput && (
+                  <FloatingContainer>
+                    <div className='main-output-header'>Backend Crash Log</div>
+                    <div className='main-output-content'>{mainOutput}</div>
+                    <div className='main-output-buttons'>
                       <SimpleButton
-                        value={'Restart Launcher'}
-                        onClick={() => {
-                          dispatch(setMainState({
-                            quitting: true
-                          }));
-                          window.electronAPI?.restart();
-                        }} />
-                    )}
-                  </div>
-                </FloatingContainer>
-              )}
-              {/* First Open Dialog */}
-              {openDialogs.length > 0 && socketOpen && (
-                <Dialog dialog={openDialogs[0]} />
-              )}
-              {/* Splash screen */}
-              <SplashScreen />
-              {/* Title-bar (if enabled) */}
-              {useCustomTitleBar ?
-                customVersion ? (
-                  <TitleBar title={customVersion} />
-                ) : (
-                  <TitleBar title={`${APP_TITLE} ${window.Shared.isDev ? '(Dev Mode)' : ''}`} />
-                ) : undefined}
-              {/* "Content" */}
-              {loadedAll ? (
-                <>
-                  {/* Header */}
-                  <Header />
-                  {/* Main */}
-                  <div className='main' ref={contentRef} >
-                    { currentView !== undefined ? (
-                      <>
-                        { useActivityRoutes && (
-                          <ActivityRoutes
-                            manualUrl={manualUrl}
-                            onGameContextMenu={onGameContextMenu}/>
-                        )}
-                        <Routes>
-                          <Route
-                            path={Paths.LOADING}
-                            element={<LoadingPage/>}/>
-                          <Route
-                            path={Paths.HOME}
-                            element={useActivityRoutes ? <></> : <HomePage onGameContextMenu={onGameContextMenu} />}/>
-                          <Route
-                            path={Paths.BROWSE}
-                            element={<></>}/>
-                          <Route
-                            path={Paths.TAGS}
-                            element={useActivityRoutes ? <></> : <TagsPage/>}/>
-                          <Route
-                            path={Paths.CATEGORIES}
-                            element={<TagCategoriesPage/>}/>
-                          {/* <Route
+                        value={'Copy Crash Log'}
+                        onClick={copyCrashLog} />
+                      { window.electronAPI !== undefined && (
+                        <SimpleButton
+                          value={'Restart Launcher'}
+                          onClick={() => {
+                            dispatch(setMainState({
+                              quitting: true
+                            }));
+                            window.electronAPI?.restart();
+                          }} />
+                      )}
+                    </div>
+                  </FloatingContainer>
+                )}
+                {/* First Open Dialog */}
+                {openDialogs.length > 0 && socketOpen && (
+                  <Dialog dialog={openDialogs[0]} />
+                )}
+                {/* Splash screen */}
+                <SplashScreen />
+                {/* Title-bar (if enabled) */}
+                {useCustomTitleBar ?
+                  customVersion ? (
+                    <TitleBar title={customVersion} />
+                  ) : (
+                    <TitleBar title={`${APP_TITLE} ${window.Shared.isDev ? '(Dev Mode)' : ''}`} />
+                  ) : undefined}
+                {/* "Content" */}
+                {loadedAll ? (
+                  <>
+                    {/* Header */}
+                    <Header />
+                    {/* Main */}
+                    <div className='main' ref={contentRef} >
+                      { currentView !== undefined ? (
+                        <>
+                          { useActivityRoutes && (
+                            <ActivityRoutes
+                              manualUrl={manualUrl} />
+                          )}
+                          <Routes>
+                            <Route
+                              path={Paths.LOADING}
+                              element={<LoadingPage/>}/>
+                            <Route
+                              path={Paths.HOME}
+                              element={useActivityRoutes ? <></> : <HomePage/>}/>
+                            <Route
+                              path={Paths.BROWSE}
+                              element={<></>}/>
+                            <Route
+                              path={Paths.TAGS}
+                              element={useActivityRoutes ? <></> : <TagsPage/>}/>
+                            <Route
+                              path={Paths.CATEGORIES}
+                              element={<TagCategoriesPage/>}/>
+                            {/* <Route
                             path={Paths.DOWNLOADS}
                             element={<DownloadsPage/>}/> */}
-                          <Route
-                            path={Paths.LOGS}
-                            element={useActivityRoutes ? <></> : <LogsPage/>}/>
-                          <Route
-                            path={Paths.CONFIG}
-                            element={<ConfigPage/>}/>
-                          <Route
-                            path={Paths.MANUAL}
-                            element={useActivityRoutes ? <></> : <IFramePage url={manualUrl} />}/>
-                          <Route
-                            path={Paths.ABOUT}
-                            element={<AboutPage/>}/>
-                          <Route
-                            path={Paths.CURATE}
-                            element={useActivityRoutes ? <></> : <CuratePage/>}/>
-                          <Route
-                            path={Paths.FPFSS}
-                            element={useActivityRoutes ? <></> : <FpfssPage/>}/>
-                          <Route
-                            path={Paths.DYNAMIC}
-                            element={<DynamicPage name={dynamicPage?.name || ''} props={dynamicPage?.props}/>}/>
-                          <Route element={<NotFoundPage/>}/>
-                        </Routes>
-                        <Activity mode={isBrowsePage ? 'visible' : 'hidden'}>
-                          {browsePageViewName !== undefined && (
-                            <BrowsePage
-                              viewName={browsePageViewName}
-                              onGameContextMenu={onGameContextMenu}
-                              sourceTable='browse-page'/>
-                          )}
-                        </Activity>
-                        <Activity mode={showRightSidebar ? 'visible' : 'hidden'}>
-                          <ResizableSidebar
-                            show={browsePageShowRightSidebar}
-                            divider='before'
-                            width={browsePageRightSidebarWidth}
-                            onResize={onRightSidebarResize}>
-                            <RightBrowseSidebarView view={currentView}/>
-                          </ResizableSidebar>
-                        </Activity>
-                      </>
-                    ) : <NotFoundPage/> }
-                    <noscript className='nojs'>
-                      <div style={{ textAlign: 'center' }}>
-                        This website requires JavaScript to be enabled.
-                      </div>
-                    </noscript>
-                  </div>
-                  {/* Tasks - @TODO Find a better way to hide it than behind enableEditing */}
-                  {enableEditing && tasks.length > 0 && (
-                    <TaskBar
-                      open={taskBarOpen}
-                      onToggleOpen={onToggleTaskBarOpen} />
-                  )}
-                  {/* Footer */}
-                  <Footer />
-                  {/* Meta Edit Popup */}
-                </>
-              ) : undefined}
-            </>
-          ) : undefined}
-          {downloadOpen && (
-            <FloatingContainer>
-              {downloadVerifying ? (
-                <>
-                  <div className='placeholder-download-bar--title'>
-                    {strings.dialog.verifyingGame}
-                  </div>
-                  <div>{strings.dialog.aFewMinutes}</div>
-                </>
-              ) : (
-                <>
-                  <div className='placeholder-download-bar--title'>
-                    {strings.dialog.downloadingGame}
-                  </div>
-                  <div>{`${sizeToString(downloadSize * (downloadPercent / 100))} / ${sizeToString(downloadSize)}`}</div>
-                </>
-              )}
-              {downloadVerifying ? <></> : (
-                <ProgressBar
-                  wrapperClass='placeholder-download-bar__wrapper'
-                  progressData={{
-                    ...placeholderProgressData,
-                    percentDone: downloadPercent,
-                    usePercentDone: true
-                  }}
-                />
-              )}
-              <SimpleButton
-                className='cancel-download-button'
-                value={strings.dialog.cancel}
-                onClick={() => window.Shared.back.send(BackIn.CANCEL_DOWNLOAD)} />
-            </FloatingContainer>
-          )}
-        </LangContext.Provider>
-      </DynamicComponentProvider>
-    </DynamicThemeProvider>
+                            <Route
+                              path={Paths.LOGS}
+                              element={useActivityRoutes ? <></> : <LogsPage/>}/>
+                            <Route
+                              path={Paths.CONFIG}
+                              element={<ConfigPage/>}/>
+                            <Route
+                              path={Paths.MANUAL}
+                              element={useActivityRoutes ? <></> : <IFramePage url={manualUrl} />}/>
+                            <Route
+                              path={Paths.ABOUT}
+                              element={<AboutPage/>}/>
+                            <Route
+                              path={Paths.CURATE}
+                              element={useActivityRoutes ? <></> : <CuratePage/>}/>
+                            <Route
+                              path={Paths.FPFSS}
+                              element={useActivityRoutes ? <></> : <FpfssPage/>}/>
+                            <Route
+                              path={Paths.DYNAMIC}
+                              element={<DynamicPage name={dynamicPage?.name || ''} props={dynamicPage?.props}/>}/>
+                            <Route element={<NotFoundPage/>}/>
+                          </Routes>
+                          <Activity mode={isBrowsePage ? 'visible' : 'hidden'}>
+                            {browsePageViewName !== undefined && (
+                              <BrowsePage
+                                viewName={browsePageViewName}
+                                sourceTable='browse-page'/>
+                            )}
+                          </Activity>
+                          <Activity mode={showRightSidebar ? 'visible' : 'hidden'}>
+                            <ResizableSidebar
+                              show={browsePageShowRightSidebar}
+                              divider='before'
+                              width={browsePageRightSidebarWidth}
+                              onResize={onRightSidebarResize}>
+                              <RightBrowseSidebarView view={currentView}/>
+                            </ResizableSidebar>
+                          </Activity>
+                        </>
+                      ) : <NotFoundPage/> }
+                      <noscript className='nojs'>
+                        <div style={{ textAlign: 'center' }}>
+                          This website requires JavaScript to be enabled.
+                        </div>
+                      </noscript>
+                    </div>
+                    {/* Tasks - @TODO Find a better way to hide it than behind enableEditing */}
+                    {enableEditing && tasks.length > 0 && (
+                      <TaskBar
+                        open={taskBarOpen}
+                        onToggleOpen={onToggleTaskBarOpen} />
+                    )}
+                    {/* Footer */}
+                    <Footer />
+                    {/* Meta Edit Popup */}
+                  </>
+                ) : undefined}
+              </>
+            ) : undefined}
+            {downloadOpen && (
+              <FloatingContainer>
+                {downloadVerifying ? (
+                  <>
+                    <div className='placeholder-download-bar--title'>
+                      {strings.dialog.verifyingGame}
+                    </div>
+                    <div>{strings.dialog.aFewMinutes}</div>
+                  </>
+                ) : (
+                  <>
+                    <div className='placeholder-download-bar--title'>
+                      {strings.dialog.downloadingGame}
+                    </div>
+                    <div>{`${sizeToString(downloadSize * (downloadPercent / 100))} / ${sizeToString(downloadSize)}`}</div>
+                  </>
+                )}
+                {downloadVerifying ? <></> : (
+                  <ProgressBar
+                    wrapperClass='placeholder-download-bar__wrapper'
+                    progressData={{
+                      ...placeholderProgressData,
+                      percentDone: downloadPercent,
+                      usePercentDone: true
+                    }}
+                  />
+                )}
+                <SimpleButton
+                  className='cancel-download-button'
+                  value={strings.dialog.cancel}
+                  onClick={() => window.Shared.back.send(BackIn.CANCEL_DOWNLOAD)} />
+              </FloatingContainer>
+            )}
+          </MenuProvider>
+        </DynamicComponentProvider>
+      </DynamicThemeProvider>
+    </LangContext.Provider>
   );
 }
 
@@ -604,6 +405,7 @@ function initApp(dispatch: AppDispatch) {
   // Set up renderer ext model
   window.ext = {
     utils: {
+      getPointer,
       getFileServerURL: getFileServerURL,
       getExtensionFileURL: (extId, filePath) => {
         return `${getFileServerURL()}/extdata/${extId}/${filePath}`;
@@ -622,11 +424,14 @@ function initApp(dispatch: AppDispatch) {
       SortableColumn,
       HomePageBox,
       SizeProvider,
+      RandomGames,
     },
     hooks: {
       useNavigate: () => useNavigate(),
-      useAppDispatch: useAppDispatch,
-      useAppSelector: useAppSelector,
+      useAppDispatch,
+      useAppSelector,
+      useContextMenu,
+      useLocalization,
     },
   };
   window.setDisplaySettings = ((cb) => {
@@ -3004,40 +2809,10 @@ async function cacheIcon(icon: string): Promise<string> {
   return `url(${URL.createObjectURL(blob)})`;
 }
 
-type MenuItemLibrary = MenuItemType & {
-  library: string;
-}
-
 function pathToFileUrl(p: string) {
   try {
     return `file:///${path.resolve(p)}`;
   } catch {
     return '';
   }
-}
-
-function UniquePlaylistMenuFactory(playlists: Playlist[], strings: LangContainer, onClick: (playlistId: string) => any, selectedPlaylistId?: string): MenuItemType[] {
-  const grouped: Array<MenuItemLibrary> = [];
-  for (const p of playlists.filter(p => p.id != selectedPlaylistId)) {
-    let group = grouped.find(g => g.library === p.library);
-    if (!group) {
-      group = {
-        type: 'submenu',
-        library: p.library,
-        enabled: true,
-        label: strings.libraries[p.library] || p.library,
-        submenu: []
-      };
-      grouped.push(group);
-    }
-    if (group.type === 'submenu' && group.submenu && Array.isArray(group.submenu)) {
-      group.submenu.push({
-        type: 'button',
-        label: p.title || 'No Title',
-        enabled: true,
-        onClick: () => onClick(p.id)
-      });
-    }
-  }
-  return grouped;
 }

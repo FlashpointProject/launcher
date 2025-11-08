@@ -1,6 +1,6 @@
+import { useLocalization } from '@renderer/hooks/useLocalization';
 import * as React from 'react';
 import { ProgressData } from '../context/ProgressContext';
-import { LangContext } from '../util/lang';
 
 export type ProgressComponentProps = {
   /** Data to read from. */
@@ -46,7 +46,7 @@ export function StatusBar(props: ProgressComponentProps) {
 
 // Large top text `Percent% Complete`, medium progress bar, small underneath primary text.
 export function ProgressBar(props: ProgressComponentProps) {
-  const strings = React.useContext(LangContext);
+  const strings = useLocalization();
   const percentDone = props.progressData.isDone ? 100 : Math.round(props.progressData.percentDone);
   const barCssProps: React.CSSProperties = {
     width: `${percentDone}%`

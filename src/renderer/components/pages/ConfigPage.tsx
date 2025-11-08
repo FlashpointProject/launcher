@@ -2,6 +2,7 @@ import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { createNewDialog } from '@renderer/dialog';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
+import { useLocalization } from '@renderer/hooks/useLocalization';
 import { cancelDialog } from '@renderer/store/main/slice';
 import { newAppPathOverride, newTagFilterGroup, removeAppPathOverride, removeTagFilterGroup, setLogoSet, setUseCustomViews, setUseStoredViews, toggleExcludedLibrary, toggleNativePlatform, updateAppPathOverride, updatePreferences, updateTagFilterGroup } from '@renderer/store/preferences/slice';
 import { GENERAL_VIEW_ID } from '@renderer/store/search/slice';
@@ -14,7 +15,7 @@ import { deepCopy } from '@shared/Util';
 import * as Coerce from '@shared/utils/Coerce';
 import { formatString } from '@shared/utils/StringFormatter';
 import { AppPreferencesData, ExtConfigurationProp, ILogoSet, ITheme, LangContainer, TagFilterGroup } from 'flashpoint-launcher';
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { clearFpfssConsentExt, getFpfssConsentExt, saveFpfssConsentExt } from '../../fpfss';
 import {
@@ -24,7 +25,6 @@ import {
   isFlashpointValidCheck,
   joinLibraryRoute
 } from '../../Util';
-import { LangContext } from '../../util/lang';
 import { CheckBox } from '../CheckBox';
 import { ConfigBox, ConfigBoxInner } from '../ConfigBox';
 import { ConfigBoxButton, ConfigBoxInnerButton } from '../ConfigBoxButton';
@@ -44,7 +44,7 @@ import { TagFilterGroupEditor } from '../TagFilterGroupEditor';
 const { num } = Coerce;
 
 export function ConfigPage() {
-  const allStrings = useContext(LangContext);
+  const allStrings = useLocalization();
   const strings = allStrings.config;
   const preferences = useAppSelector(state => state.preferences);
   const views = useAppSelector(state => Object.keys(state.search.views));

@@ -3,32 +3,12 @@ import { calcScale } from '@shared/Util';
 import React, { useEffect, useRef, useState } from 'react';
 import { SizeProvider } from './SizeProvider';
 import { defaultMenuWidth, menuHeightMax, menuHeightMin } from '@renderer/context/MenuContext';
+import { MenuItemSubmenu, MenuItemType } from 'flashpoint-launcher-renderer';
 
 export type MenuProps = {
   items: MenuItemType[];
   width?: number;
 };
-
-export type MenuItemType = MenuItemseparator | MenuItemButton | MenuItemSubmenu;
-
-export type MenuItemseparator = {
-  type: 'separator';
-};
-
-export type MenuItemButton = {
-  type: 'button';
-  label: string;
-  enabled?: boolean;
-  onClick: () => void;
-}
-
-export type MenuItemSubmenu = {
-  // eslint-disable-next-line react/no-unused-prop-types
-  type: 'submenu';
-  label: string;
-  enabled?: boolean;
-  submenu: MenuItemType[];
-}
 
 function stopMenuClosure(event: React.MouseEvent) {
   event.stopPropagation();

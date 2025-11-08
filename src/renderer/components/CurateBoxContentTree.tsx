@@ -1,15 +1,15 @@
 import { getPointer } from '@renderer/context/MenuContext';
 import { useAppDispatch } from '@renderer/hooks/useAppSelector';
 import { useContextMenu } from '@renderer/hooks/useContextMenu';
+import { useLocalization } from '@renderer/hooks/useLocalization';
 import { toggleContentNodeView } from '@renderer/store/curate/slice';
-import { LangContext } from '@renderer/util/lang';
 import { CURATIONS_FOLDER_WORKING } from '@shared/constants';
 import { genFlatContentTree, sizeToString } from '@shared/Util';
 import { ContentTree, FlatContentTreeNode } from 'flashpoint-launcher';
+import { MenuItemType } from 'flashpoint-launcher-renderer';
 import * as path from 'node:path';
-import React, { useContext } from 'react';
+import React from 'react';
 import { AutoSizer, List, ListRowProps } from 'react-virtualized';
-import { MenuItemType } from './Menu';
 import { OpenIcon } from './OpenIcon';
 
 const RENDERER_OVERSCAN = 50;
@@ -23,7 +23,7 @@ export type CurateBoxContentTreeProps = {
 export function CurateBoxContentTree(props: CurateBoxContentTreeProps) {
   const { folder, launchPath, contentTree } = props;
   const dispatch = useAppDispatch();
-  const strings = useContext(LangContext);
+  const strings = useLocalization();
   const flatTree = genFlatContentTree(contentTree);
   const { openMenu } = useContextMenu();
 

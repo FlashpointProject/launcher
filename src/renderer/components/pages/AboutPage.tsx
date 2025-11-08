@@ -3,17 +3,17 @@ import { Pointer } from '@renderer/context/MenuContext';
 import { CreditsFile } from '@renderer/credits/CreditsFile';
 import { createNewDialog } from '@renderer/dialog';
 import { useAppDispatch } from '@renderer/hooks/useAppSelector';
+import { useLocalization } from '@renderer/hooks/useLocalization';
 import { openUrlInWindow } from '@renderer/Util';
 import { getFileServerURL } from '@shared/Util';
-import { Fragment, useContext, useState } from 'react';
-import { LangContext } from '../../util/lang';
+import { CreditsBlock, CreditsData, CreditsDataProfile, CreditsDataRole } from 'flashpoint-launcher';
+import { Fragment, useState } from 'react';
 import { CreditsIcon } from '../CreditsProfile';
 import { CreditsTooltip } from '../CreditsTooltip';
-import { CreditsBlock, CreditsData, CreditsDataProfile, CreditsDataRole } from 'flashpoint-launcher';
 
 export function AboutPage() {
   const dispatch = useAppDispatch();
-  const allStrings = useContext(LangContext);
+  const allStrings = useLocalization();
   const strings = allStrings.about;
   const [creditsData, setCreditsData] = useState<CreditsData>();
   const [hasFetched, setHasFetched] = useState(false);

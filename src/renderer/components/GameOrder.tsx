@@ -1,8 +1,7 @@
+import { useAppSelector } from '@renderer/hooks/useAppSelector';
+import { useLocalization } from '@renderer/hooks/useLocalization';
 import { ExtOrder, GameOrderBy, GameOrderReverse } from 'flashpoint-launcher';
 import * as React from 'react';
-import { LangContext } from '../util/lang';
-import { useContext } from 'react';
-import { useAppSelector } from '@renderer/hooks/useAppSelector';
 
 export type GameOrderProps = {
   /** Called when the either the property to order by, or what way to order in, is changed. */
@@ -27,7 +26,7 @@ export type GameOrderChangeEvent = {
  * the second for selecting what way to order the games in.
  */
 export function GameOrder(props: GameOrderProps) {
-  const allStrings = useContext(LangContext);
+  const allStrings = useLocalization();
   const orderables = useAppSelector(state => state.main.extOrderables);
   const strings = allStrings.filter;
 

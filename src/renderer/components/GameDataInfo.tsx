@@ -1,8 +1,7 @@
-import { LangContext } from '@renderer/util/lang';
+import { useLocalization } from '@renderer/hooks/useLocalization';
 import { BackIn } from '@shared/back/types';
 import { sizeToString } from '@shared/Util';
 import { GameData } from 'flashpoint-launcher';
-import * as React from 'react';
 import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { CurateBoxRow } from './CurateBoxRow';
@@ -24,7 +23,7 @@ export type GameDataInfoProps = {
 
 export function GameDataInfo(props: GameDataInfoProps) {
   const { data } = props;
-  const strings = React.useContext(LangContext);
+  const strings = useLocalization();
 
   const renderUninstallButton = ({ confirm }: ConfirmElementArgs) => {
     return (

@@ -1,6 +1,6 @@
+import { useLocalization } from '@renderer/hooks/useLocalization';
 import { LangContainer, Playlist } from 'flashpoint-launcher';
 import * as React from 'react';
-import { LangContext } from '../util/lang';
 import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { InputElement, InputField } from './InputField';
@@ -25,7 +25,7 @@ export type PlaylistItemContentProps = {
 }
 
 export function PlaylistItemContent(props: PlaylistItemContentProps) {
-  const allStrings = React.useContext(LangContext);
+  const allStrings = useLocalization();
   const strings = allStrings.playlist;
 
   let className = 'playlist-list-content';

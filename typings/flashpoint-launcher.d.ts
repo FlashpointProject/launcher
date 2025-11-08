@@ -2939,7 +2939,6 @@ declare module 'flashpoint-launcher-renderer' {
   }
 
   type HomePageComponentProps = {
-    onGameContextMenu(event: React.MouseEvent, gameId: string, logoPath: string, screenshotPath: string): void;
     onLaunchGame(gameId: string): void;
     toggleMinimizeBox: (box: string, open: boolean) => void;
   }
@@ -3247,10 +3246,55 @@ declare module 'flashpoint-launcher-renderer' {
     height?: string | number;
   };
 
+  export type MenuItemType = MenuItemseparator | MenuItemButton | MenuItemSubmenu;
+
+  export type MenuItemseparator = {
+    type: 'separator';
+  };
+
+  export type MenuItemButton = {
+    type: 'button';
+    label: string;
+    enabled?: boolean;
+    onClick: () => void;
+  }
+
+  export type MenuItemSubmenu = {
+    type: 'submenu';
+    label: string;
+    enabled?: boolean;
+    submenu: MenuItemType[];
+  }
+
+  type MenuProps = {
+    items: MenuItemType[];
+    width?: number;
+  };
+
+  type Pointer = {
+    x: number;
+    y: number;
+  }
+
+  type MenuContextStateProps = {
+    openMenu: (menu: MenuProps, pointer: Pointer) => void;
+    openGameContextMenu: (gameId: string, logoPath: string, screenshotPath: string, pointer: Pointer) => void;
+    closeMenu: () => void;
+  };
+
+  type RandomGamesProps = {
+    games: ViewGame[];
+    selectedGameId?: string;
+    onLaunchGame: (gameId: string) => void;
+    onGameSelect: (gameId: string | undefined) => void;
+    rollRandomGames: () => void;
+  };
+
   interface IExtensionWindow {
     utils: {
       getExtensionFileURL: (extId: string, filePath: string) => string;
       getFileServerURL: () => string;
+      getPointer: (event: React.MouseEvent<any>) => Pointer;
       search: {
         onWhitelistFactory: (extId: string, key: string, filter: AdvancedFilter, setAdvancedFilter: (advFilter: AdvancedFilter) => void) => (value: string) => void,
         onBlacklistFactory: (extId: string, key: string, filter: AdvancedFilter, setAdvancedFilter: (advFilter: AdvancedFilter) => void) => (value: string) => void,
@@ -3265,11 +3309,14 @@ declare module 'flashpoint-launcher-renderer' {
       SortableColumn: React.ComponentType<SortableColumnProps>,
       HomePageBox: React.ComponentType<HomePageBoxProps>,
       SizeProvider: React.ComponentType<SizeProviderProps>,
+      RandomGames: React.ComponentType<RandomGamesProps>,
     },
     hooks: {
       useNavigate: () => NavigateFunction,
       useAppDispatch: useAppDispatchType,
       useAppSelector: TypedUseSelectorHook<RootState>,
+      useContextMenu: () => MenuContextStateProps,
+      useLocalization:() => LangContainer,
     },
   }
 

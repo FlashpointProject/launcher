@@ -5,20 +5,19 @@ import { useViewName } from '@renderer/hooks/search';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useConfirmDialog } from '@renderer/hooks/useConfirmDialog';
 import { useContextMenu } from '@renderer/hooks/useContextMenu';
+import { useLocalization } from '@renderer/hooks/useLocalization';
+import { logoutFpfss } from '@renderer/store/fpfss/slice';
 import { deleteStoredView, renameStoredView, updatePreferences } from '@renderer/store/preferences/slice';
 import { addViews, deleteView, duplicateView, GENERAL_VIEW_ID, renameView } from '@renderer/store/search/slice';
 import { RootState } from '@renderer/store/store';
 import { getLibraryItemTitle } from '@shared/library/util';
 import { Paths } from '@shared/Paths';
 import { DialogFieldProps, DialogState, DialogStateTemplate } from 'flashpoint-launcher';
-import { useContext } from 'react';
+import { MenuItemType } from 'flashpoint-launcher-renderer';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { joinLibraryRoute, openUrlInWindow } from '../Util';
-import { LangContext } from '../util/lang';
-import { MenuItemType } from './Menu';
-import { OpenIcon } from './OpenIcon';
-import { logoutFpfss } from '@renderer/store/fpfss/slice';
 import { toast } from 'react-toastify';
+import { joinLibraryRoute, openUrlInWindow } from '../Util';
+import { OpenIcon } from './OpenIcon';
 
 const viewDragType = 'text/plain';
 
@@ -50,7 +49,7 @@ export function Header() {
   const playlists = useAppSelector(state => state.main.playlists);
   const { openMenu } = useContextMenu();
   const viewName = useViewName();
-  const allStrings = useContext(LangContext);
+  const allStrings = useLocalization();
   const strings = allStrings.app;
   const viewNames = useAppSelector(selectViewNames);
   const dispatch = useAppDispatch();

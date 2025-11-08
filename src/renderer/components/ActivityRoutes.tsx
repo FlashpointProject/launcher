@@ -9,15 +9,14 @@ import { TagsPage } from './pages/TagsPage';
 import { FpfssPage } from './pages/FpfssPage';
 
 export type ActivityRoutesProps = {
-  onGameContextMenu: (event: React.MouseEvent, gameId: string, logoPath: string, screenshotPath: string) => void;
   manualUrl: string;
 }
 
-export function ActivityRoutes({ onGameContextMenu, manualUrl }: ActivityRoutesProps) {
+export function ActivityRoutes({ manualUrl }: ActivityRoutesProps) {
   return (
     <>
       <ActivityRoute path={Paths.HOME} exact>
-        <HomePage onGameContextMenu={onGameContextMenu}/>
+        <HomePage/>
       </ActivityRoute>
       <ActivityRoute path={Paths.TAGS}>
         <TagsPage/>

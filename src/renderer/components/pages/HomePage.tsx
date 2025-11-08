@@ -1,5 +1,6 @@
 import { FancyAnimation } from '@renderer/components/FancyAnimation';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
+import { useLocalization } from '@renderer/hooks/useLocalization';
 import { setUpdateInfo } from '@renderer/store/main/slice';
 import { setHomePageBoxOpen } from '@renderer/store/preferences/slice';
 import { launchGame } from '@renderer/Util';
@@ -8,17 +9,11 @@ import { formatString } from '@shared/utils/StringFormatter';
 import { GameLaunchOverride, GameMetadataSource } from 'flashpoint-launcher';
 import { HomePageComponentProps } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
-import { useContext, useEffect, useRef, useState } from 'react';
-import { LangContext } from '../../util/lang';
+import { useState } from 'react';
 import { DynamicComponent } from '../DynamicComponent';
 import { SimpleButton } from '../SimpleButton';
 
-export type HomePageProps = {
-  /** Generator for game context menu */
-  onGameContextMenu: (event: React.MouseEvent, gameId: string, logoPath: string, screenshotPath: string) => void;
-};
-
-export function HomePage(props: HomePageProps) {
+export function HomePage() {
   /** Offset of the starting point in the animated logo's animation (sync it with time of the machine). */
   // eslint-disable-next-line react-hooks/purity
   const logoDelay = React.useRef((Date.now() * -0.001) + 's').current;
@@ -37,40 +32,9 @@ export function HomePage(props: HomePageProps) {
   };
 
   const homePageComponentProps: HomePageComponentProps = {
-    onGameContextMenu: props.onGameContextMenu,
     onLaunchGame: (gameId) => onLaunchGame(gameId, null),
     toggleMinimizeBox,
   };
-
-  // Refs to track previous values
-  const propsOnGameContextMenuRef = useRef(props.onGameContextMenu);
-  const onLaunchGameRef = useRef(homePageComponentProps.onLaunchGame);
-  const toggleMinimizeBoxRef = useRef(toggleMinimizeBox);
-
-  // Effect to compare and log changes
-  useEffect(() => {
-    const changes = [];
-
-    if (propsOnGameContextMenuRef.current !== props.onGameContextMenu) {
-      changes.push('props.onGameContextMenu');
-      propsOnGameContextMenuRef.current = props.onGameContextMenu;
-    }
-
-    if (onLaunchGameRef.current !== homePageComponentProps.onLaunchGame) {
-      changes.push('onLaunchGame function (always new)');
-      onLaunchGameRef.current = homePageComponentProps.onLaunchGame;
-    }
-
-    if (toggleMinimizeBoxRef.current !== toggleMinimizeBox) {
-      changes.push('toggleMinimizeBox');
-      toggleMinimizeBoxRef.current = toggleMinimizeBox;
-    }
-
-    if (changes.length > 0) {
-      console.log('HomePage props changes:', changes.join(', '));
-    }
-  });
-
 
   // Render
   return (
@@ -103,7 +67,7 @@ export function HomePage(props: HomePageProps) {
 function UpdateComponent() {
   const gameMetadataSources = useAppSelector(state => state.preferences.gameMetadataSources);
   const metadataUpdate = useAppSelector(state => state.main.metadataUpdate);
-  const allStrings = useContext(LangContext);
+  const allStrings = useLocalization();
   const dispatch = useAppDispatch();
   const [updating, setUpdating] = useState(false);
   const strings = allStrings.home;

@@ -1,5 +1,6 @@
 import { useViewName } from '@renderer/hooks/search';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
+import { useLocalization } from '@renderer/hooks/useLocalization';
 import { setMainState } from '@renderer/store/main/slice';
 import { updatePreferences } from '@renderer/store/preferences/slice';
 import { GENERAL_VIEW_ID } from '@renderer/store/search/slice';
@@ -9,14 +10,12 @@ import { getLibraryItemTitle } from '@shared/library/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { ScaleValues } from 'flashpoint-launcher';
 import * as React from 'react';
-import { useContext } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getViewName } from '../Util';
-import { LangContext } from '../util/lang';
 import { FooterScaler } from './FooterScaler';
 
 export function Footer() {
-  const strings = useContext(LangContext);
+  const strings = useLocalization();
   const dispatch = useAppDispatch();
   const allGamesTotal = useAppSelector(state => state.main.gamesTotal);
   const componentStatuses = useAppSelector(state => state.main.componentStatuses);

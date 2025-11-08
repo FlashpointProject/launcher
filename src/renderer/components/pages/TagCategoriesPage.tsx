@@ -1,16 +1,16 @@
 import { ConnectedRightTagCategoriesSidebar } from '@renderer/containers/ConnectedRightTagsCategoriesSidebar';
 import { useAppSelector } from '@renderer/hooks/useAppSelector';
-import { LangContext } from '@renderer/util/lang';
+import { useLocalization } from '@renderer/hooks/useLocalization';
 import { BackIn } from '@shared/back/types';
 import { calcScale, deepCopy, getRandomHexColor } from '@shared/Util';
 import { TagCategory } from 'flashpoint-launcher';
-import { useContext, useState } from 'react';
+import { useState } from 'react';
 import { ResizableSidebar } from '../ResizableSidebar';
 import { SimpleButton } from '../SimpleButton';
 import { TagCategoriesList } from '../TagCategoriesList';
 
 export function TagCategoriesPage() {
-  const allStrings = useContext(LangContext);
+  const allStrings = useLocalization();
   const strings = allStrings.tags;
   const tagCategories = useAppSelector((state) => state.tagCategories);
   const scale = useAppSelector(state => state.preferences.scaleValues.browse);

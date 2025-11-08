@@ -1,6 +1,6 @@
+import { useLocalization } from '@renderer/hooks/useLocalization';
 import { Playlist } from 'flashpoint-launcher';
 import * as React from 'react';
-import { LangContext } from '../util/lang';
 import { InputElement, InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { PlaylistItemContent } from './PlaylistContent';
@@ -30,7 +30,7 @@ export type PlaylistItemProps = {
 }
 
 export function PlaylistItem(props: PlaylistItemProps) {
-  const strings = React.useContext(LangContext).playlist;
+  const strings = useLocalization().playlist;
 
   const [dragOver, setDragOver] = React.useState(false);
 

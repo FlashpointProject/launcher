@@ -1,11 +1,11 @@
+import { useAppSelector } from '@renderer/hooks/useAppSelector';
+import { useLocalization } from '@renderer/hooks/useLocalization';
 import { gameDragDataType } from '@renderer/Util';
 import { Playlist } from 'flashpoint-launcher';
 import * as React from 'react';
-import { LangContext } from '../util/lang';
 import { InputElement } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { PlaylistItem } from './PlaylistItem';
-import { useAppSelector } from '@renderer/hooks/useAppSelector';
 
 export type LeftBrowseSidebarProps = {
   library: string;
@@ -37,7 +37,7 @@ export type LeftBrowseSidebarProps = {
 };
 
 export function LeftBrowseSidebar(props: LeftBrowseSidebarProps) {
-  const allStrings = React.useContext(LangContext);
+  const allStrings = useLocalization();
   const strings = allStrings.browse;
   const browsePageShowExtreme = useAppSelector((state) => state.preferences.browsePageShowExtreme);
   const useCustomViews = useAppSelector((state) => state.preferences.useCustomViews);

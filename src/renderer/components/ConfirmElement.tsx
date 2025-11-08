@@ -1,5 +1,5 @@
 import { withConfirmDialog, WithConfirmDialogProps } from '@renderer/containers/withConfirmDialog';
-import { LangContext } from '@renderer/util/lang';
+import { useLocalization } from '@renderer/hooks/useLocalization';
 import { Subtract } from '@shared/interfaces';
 import * as React from 'react';
 
@@ -28,7 +28,7 @@ type ConfirmElementComponentProps<T = undefined> = {
 // Wrapper component around the "useConfirm" hook.
 function ConfirmElementComponent<T = undefined>(props: ConfirmElementComponentProps<T>) {
   const { onConfirm, message, render, extra } = props;
-  const strings = React.useContext(LangContext);
+  const strings = useLocalization();
   const confirm = async () => {
     if (onConfirm) {
       const res = await props.openConfirmDialog(message, [strings.misc.yes, strings.misc.no], 1, 0);

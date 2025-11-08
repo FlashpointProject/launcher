@@ -1,5 +1,4 @@
-import { LangContext } from '@renderer/util/lang';
-import * as React from 'react';
+import { useLocalization } from '@renderer/hooks/useLocalization';
 
 export type TagCategoriesListHeaderProps = Record<string, never>;
 
@@ -8,7 +7,7 @@ export type TagCategoriesListHeaderProps = Record<string, never>;
  * It contains the resizable columns that decide how wide each column is.
  */
 export function TagCategoriesListHeader() {
-  const strings = React.useContext(LangContext);
+  const strings = useLocalization();
   return (
     <div className='tag-list-header'>
       <Column modifier='icon' hideDivider={true} />

@@ -1,14 +1,15 @@
 import { CurateBox } from '@renderer/components/CurateBox';
 import { useAppSelector } from '@renderer/hooks/useAppSelector';
+import { useLocalization } from '@renderer/hooks/useLocalization';
 import * as curateActions from '@renderer/store/curate/slice';
 import { updatePreferences } from '@renderer/store/preferences/slice';
 import { addTask, setTask } from '@renderer/store/tasks/slice';
 import { axios, getCurationPostURL, getPlatformIconURL, openUrlInWindow } from '@renderer/Util';
-import { LangContext } from '@renderer/util/lang';
 import { BackIn } from '@shared/back/types';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
 import { eventResponseDebouncerFactory } from '@shared/eventResponseDebouncer';
 import { Task } from '@shared/interfaces';
+import { getFileServerURL } from '@shared/Util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
 import { AppPreferencesData, CurationState, GameLaunchOverride, TagSuggestion } from 'flashpoint-launcher';
@@ -16,18 +17,19 @@ import * as path from 'node:path';
 import * as React from 'react';
 import { useShortcut } from 'react-keybind';
 import { useDispatch } from 'react-redux';
+import { toast } from 'react-toastify';
 import { CheckBox } from '../CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
 import { CuratePageLeftSidebar } from '../CuratePageLeftSidebar';
 import { Dropdown } from '../Dropdown';
+import { useFileLoader } from '../FileLoader';
 import { OpenIcon } from '../OpenIcon';
 import { SimpleButton, SimpleButtonProps } from '../SimpleButton';
-import { useFileLoader } from '../FileLoader';
-import { getFileServerURL } from '@shared/Util';
-import { toast } from 'react-toastify';
 
+// ERROR: Failed to compile the file. Please check the file content. Legacy octal literals are not allowed in strict mode. (1:9)
+// False error from the marker extension, this is still memomized
 export function CuratePage() {
-  const strings = React.useContext(LangContext);
+  const strings = useLocalization();
   const curate = useAppSelector((state) => state.curate);
   const currentCuration = curate.current;
   const extensions = useAppSelector((state) => state.main.extensions);
@@ -159,25 +161,6 @@ export function CuratePage() {
       });
     }
   };
-
-  // const onLoadCuration = React.useCallback(() => {
-  //   // Generate task
-  //   if (window.electronAPI !== undefined) {
-  //     // window.Electron.ipcRenderer.invoke('show-open-dialog', {
-  //     //   title: strings.dialog.selectCurationArchive,
-  //     //   properties: [ 'multiSelections' ],
-  //     // })
-  //     // .then(value => {
-  //     //   const filePaths = value.filePaths;
-  //     //   if (filePaths.length > 0) {
-  //     //     const newTask = newCurateTask(`Loading ${filePaths.length} Archives`, 'Loading...');
-  //     //     dispatch(addTask(newTask));
-  //     //     window.Shared.back.send(BackIn.CURATE_LOAD_ARCHIVES, filePaths, newTask.id);
-  //     //   }
-  //     // });
-  //   }
-
-  // }, [dispatch, strings.dialog.selectCurationArchive]);
 
   const onNewCuration = (meta?: EditCurationMeta) => {
     dispatch(curateActions.createCuration({

@@ -1,8 +1,8 @@
 
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
+import { useLocalization } from '@renderer/hooks/useLocalization';
 import { requestRange, selectGame, setGridScroll, setListScroll } from '@renderer/store/search/slice';
 import { gameDragDataType, getPlatformIconURL } from '@renderer/Util';
-import { LangContext } from '@renderer/util/lang';
 import { BackIn } from '@shared/back/types';
 import { calcScale } from '@shared/Util';
 import { isGame } from '@shared/utils/misc';
@@ -10,7 +10,7 @@ import { formatString } from '@shared/utils/StringFormatter';
 import { delayedThrottle } from '@shared/utils/throttle';
 import { Content, Game, Playlist } from 'flashpoint-launcher';
 import { BrowsePageDisplayGridProps, BrowsePageDisplayListProps, BrowsePageDisplayProps } from 'flashpoint-launcher-renderer';
-import React, { useContext, useState } from 'react';
+import React, { useState } from 'react';
 import { ScrollIndices } from 'react-virtualized';
 import { GameGrid } from './GameGrid';
 import { GameList } from './GameList';
@@ -247,7 +247,7 @@ type BasicNoRowRendererProps = {
 }
 
 export function BasicNoRowsRenderer(props: BasicNoRowRendererProps) {
-  const strings = useContext(LangContext);
+  const strings = useLocalization();
   const { contentTotal, selectedPlaylist } = props;
 
   return (

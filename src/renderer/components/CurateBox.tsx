@@ -7,6 +7,7 @@ import {
 } from '@renderer/components/CurateBoxInputRow';
 import { GameImageSplit } from '@renderer/components/GameImageSplit';
 import { useAppDispatch } from '@renderer/hooks/useAppSelector';
+import { useLocalization } from '@renderer/hooks/useLocalization';
 import {
   AddAppType,
   addPlatform,
@@ -17,7 +18,6 @@ import {
   setPrimaryPlatform
 } from '@renderer/store/curate/slice';
 import { axios, getCurationURL, getPlatformIconURL } from '@renderer/Util';
-import { LangContext } from '@renderer/util/lang';
 import { BackIn, CurationImageEnum } from '@shared/back/types';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { mapRuffleSupportString } from '@shared/utils/misc';
@@ -49,7 +49,7 @@ export type CurateBoxProps = {
 }
 
 export function CurateBox(props: CurateBoxProps) {
-  const strings = React.useContext(LangContext);
+  const strings = useLocalization();
   const disabled = !!props.curation.locked;
   const dispatch = useAppDispatch();
   const folder = props.curation.folder;

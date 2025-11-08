@@ -1,11 +1,11 @@
 import { useAppDispatch } from '@renderer/hooks/useAppSelector';
+import { useLocalization } from '@renderer/hooks/useLocalization';
 import { editAddApp, removeAddApp } from '@renderer/store/curate/slice';
 import { BackIn } from '@shared/back/types';
 import { AddAppCuration, AddAppCurationMeta } from '@shared/curate/types';
 import { Platform } from 'flashpoint-launcher';
 import * as React from 'react';
 import { Dispatch } from 'redux';
-import { LangContext } from '../util/lang';
 import { CurateBoxRow } from './CurateBoxRow';
 import { InputField } from './InputField';
 import { SimpleButton } from './SimpleButton';
@@ -37,7 +37,7 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
   const editable = true;
   const disabled = props.disabled;
   // Localized strings
-  const strings = React.useContext(LangContext);
+  const strings = useLocalization();
   const specialType = props.addApp.applicationPath === ':extras:' || props.addApp.applicationPath === ':message:';
   let lcString = strings.browse.launchCommand;
   let lcPlaceholderString = strings.browse.noLaunchCommand;

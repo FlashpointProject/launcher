@@ -4,6 +4,7 @@ import { getPointer } from '@renderer/context/MenuContext';
 import { createNewDialog } from '@renderer/dialog';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useContextMenu } from '@renderer/hooks/useContextMenu';
+import { useLocalization } from '@renderer/hooks/useLocalization';
 import { setMainState, updatePlaylist } from '@renderer/store/main/slice';
 import { updatePreferences } from '@renderer/store/preferences/slice';
 import { forceSearch, movePlaylistGame, RequestState, selectPlaylist } from '@renderer/store/search/slice';
@@ -13,16 +14,14 @@ import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { sanitizeFilename } from '@shared/utils/sanitizeFilename';
 import { uuid } from '@shared/utils/uuid';
 import { LangContainer, Playlist } from 'flashpoint-launcher';
-import { BrowsePageDisplayProps } from 'flashpoint-launcher-renderer';
+import { BrowsePageDisplayProps, MenuItemType } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
 import { RefObject, useRef, useState } from 'react';
 import { createDataDownloadJson, gameDragDataType } from '../../Util';
-import { LangContext } from '../../util/lang';
 import { WebgameBrowsePageDisplayGrid, WebgameBrowsePageDisplayList } from '../BrowsePageDisplay';
 import { useFileLoader } from '../FileLoader';
 import { InputElement } from '../InputField';
 import { LeftBrowseSidebar } from '../LeftBrowseSidebar';
-import { MenuItemType } from '../Menu';
 import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
 
 export type GameDragEventData = {
@@ -41,8 +40,6 @@ export type GameDragData = {
 export type BrowsePageProps = {
   viewName: string;
   sourceTable: string;
-  /** Generator for game context menu */
-  onGameContextMenu: (event: React.MouseEvent, gameId: string, logoPath: string, screenshotPath: string) => void;
 };
 
 const selectPlaylists = createSelector(
@@ -61,7 +58,7 @@ export function BrowsePage(props: BrowsePageProps) {
   const [currentPlaylist, setCurrentPlaylist] = useState<Playlist | null>(null);
   const gameBrowserRef: RefObject<HTMLDivElement | null> = useRef(null);
   const dispatch = useAppDispatch();
-  const strings = React.useContext(LangContext);
+  const strings = useLocalization();
   const useCustomViews = useAppSelector(state => state.preferences.useCustomViews);
   const tagFilters = useAppSelector(state => state.preferences.tagFilters);
   const browsePageLayout = useAppSelector(state => state.preferences.browsePageLayout);
@@ -74,7 +71,7 @@ export function BrowsePage(props: BrowsePageProps) {
   const playlistIconCache = useAppSelector(state => state.main.playlistIconCache);
   const { fileLoader, openFileSelect } = useFileLoader();
   const extremeTags = tagFilters.filter(t => !t.enabled && t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
-  const { openMenu } = useContextMenu();
+  const { openMenu, openGameContextMenu } = useContextMenu();
 
   const selectedContentId = useAppSelector(state => state.search.views[viewName].selectedGame?.id);
   const selectedPlaylist = useAppSelector(state => state.search.views[viewName].selectedPlaylist);
@@ -84,6 +81,10 @@ export function BrowsePage(props: BrowsePageProps) {
   const content = useAppSelector(state => state.search.views[viewName].data.content);
   const contentTotal = useAppSelector(state => state.search.views[viewName].data.total);
   const searchId = useAppSelector(state => state.search.views[viewName].data.searchId);
+
+  const onGameContextMenu = (event: React.MouseEvent, gameId: string, logoPath: string, screenshotPath: string) => {
+    openGameContextMenu(gameId, logoPath, screenshotPath, getPointer(event));
+  };
 
   const onMovePlaylistGame = (sourceGameId: string, destGameId: string) => {
     if (selectedPlaylist && usingPlaylistOrder && (sourceGameId !== destGameId)) {
@@ -501,7 +502,7 @@ export function BrowsePage(props: BrowsePageProps) {
               playlistOrder: usingPlaylistOrder,
               logoVersion,
               extremeTags,
-              onContextMenu: props.onGameContextMenu,
+              onContextMenu: onGameContextMenu,
               onMovePlaylistEntry: onMovePlaylistGame,
             };
 

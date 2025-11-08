@@ -1,14 +1,14 @@
-import { LangContext } from '@renderer/util/lang';
+import { useLocalization } from '@renderer/hooks/useLocalization';
 import { BackIn } from '@shared/back/types';
 import { generateTagFilterGroup, tagSort } from '@shared/Util';
+import { formatString } from '@shared/utils/StringFormatter';
 import { Tag, TagCategory, TagFilterGroup, TagSuggestion } from 'flashpoint-launcher';
 import * as React from 'react';
 import { CheckBox } from './CheckBox';
 import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
-import { TagInputField } from './TagInputField';
 import { SimpleButton } from './SimpleButton';
-import { formatString } from '@shared/utils/StringFormatter';
+import { TagInputField } from './TagInputField';
 
 export type TagFilterGroupEditorProps = {
   tagFilterGroup: TagFilterGroup;
@@ -25,7 +25,7 @@ export type TagFilterGroupEditorProps = {
 }
 
 export function TagFilterGroupEditor(props: TagFilterGroupEditorProps) {
-  const strings = React.useContext(LangContext);
+  const strings = useLocalization();
   const [editTag, setEditTag] = React.useState('');
   // const [editCategory, setEditCategory] = React.useState('');
   const [tagSuggestions, setTagSuggestions] = React.useState<TagSuggestion[]>([]);

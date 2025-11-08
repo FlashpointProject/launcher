@@ -1,14 +1,13 @@
 import { useViewName } from '@renderer/hooks/search';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
+import { useLocalization } from '@renderer/hooks/useLocalization';
 import { forceSearch, setAdvancedFilter, setExpanded, setExtOrder, setOrderBy, setOrderReverse, setSearchText } from '@renderer/store/search/slice';
 import { getPlatformIconURL } from '@renderer/Util';
-import { LangContext } from '@renderer/util/lang';
 import { getDefaultAdvancedFilter } from '@shared/search/util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { AdvancedFilter, AdvancedFilterToggle, Tag } from 'flashpoint-launcher';
 import { SearchComponentProps } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
-import { useContext } from 'react';
 import { AutoSizer, List, ListRowProps } from 'react-virtualized';
 import { DynamicComponent } from './DynamicComponent';
 import { GameOrder } from './GameOrder';
@@ -27,7 +26,7 @@ export const categoryOrder = [
 
 export function SearchBar() {
   const dispatch = useAppDispatch();
-  const strings = useContext(LangContext);
+  const strings = useLocalization();
   const viewName = useViewName();
   const advancedFilter = useAppSelector(state => state.search.views[viewName].advancedFilter);
   const insidePlaylist = useAppSelector(state => state.search.views[viewName].selectedPlaylist !== undefined);
@@ -688,7 +687,7 @@ type SearchableSelectDropdownProps<T extends SearchableSelectItem> = {
 const reservedKeys = ['Shift', 'Control', 'Escape', 'Alt', 'AltGraph', 'Super', 'Hyper'];
 
 function SearchableSelectDropdown<T extends SearchableSelectItem>(props: SearchableSelectDropdownProps<T>) {
-  const strings = useContext(LangContext);
+  const strings = useLocalization();
   const { items: rawItems, selected, generateItem, onWhitelist, onBlacklist, mapName, labelRenderer } = props;
   const inputRef = React.useRef<HTMLInputElement>(null);
 

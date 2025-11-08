@@ -1,11 +1,11 @@
 import { resolveNewDialog } from '@renderer/dialog';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
+import { useLocalization } from '@renderer/hooks/useLocalization';
 import { clearLogs } from '@renderer/store/logs/slice';
 import { updatePreferences } from '@renderer/store/preferences/slice';
 import { BackIn } from '@shared/back/types';
 import { LogLevel } from '@shared/Log/interface';
-import { useContext, useState } from 'react';
-import { LangContext } from '../../util/lang';
+import { useState } from 'react';
 import { Dropdown } from '../Dropdown';
 import { LogBox } from '../LogBox';
 
@@ -43,7 +43,7 @@ export function LogsPage(props: LogsPageProps) {
   const [uploaded, setUploaded] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [fetchedDiagnostics, setFetchedDiagnostics] = useState(false);
-  const allStrings = useContext(LangContext);
+  const allStrings = useLocalization();
   const strings = allStrings.logs;
   const showLogSource = useAppSelector(state => state.preferences.showLogSource);
   const showLogLevel = useAppSelector(state => state.preferences.showLogLevel);

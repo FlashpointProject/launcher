@@ -1,8 +1,8 @@
 import { CurateBoxRow } from '@renderer/components/CurateBoxRow';
 import { InputElement, InputField, InputFieldEntry } from '@renderer/components/InputField';
 import { useAppDispatch } from '@renderer/hooks/useAppSelector';
+import { useLocalization } from '@renderer/hooks/useLocalization';
 import { editCurationMeta } from '@renderer/store/curate/slice';
-import { LangContext } from '@renderer/util/lang';
 import { CurationMeta } from '@shared/curate/types';
 import { Tag, TagCategory, TagSuggestion } from 'flashpoint-launcher';
 import * as React from 'react';
@@ -120,7 +120,7 @@ export type CurateBoxTagDropdownInputRowProps = CurateBoxInputRowProps & {
 }
 
 export function CurateBoxTagDropdownInputRow(props: CurateBoxTagDropdownInputRowProps) {
-  const strings = React.useContext(LangContext);
+  const strings = useLocalization();
 
   const onSubmitTag = (text: string) => {
     const tags = text.split(';');

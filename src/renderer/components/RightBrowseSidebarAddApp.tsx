@@ -1,10 +1,10 @@
+import { useLocalization } from '@renderer/hooks/useLocalization';
+import { AdditionalApp, LangContainer } from 'flashpoint-launcher';
 import * as React from 'react';
-import { LangContext } from '../util/lang';
 import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
-import { AdditionalApp, LangContainer } from 'flashpoint-launcher';
 
 export type RightBrowseSidebarAddAppProps = {
   /** Additional Application to show and edit */
@@ -33,7 +33,7 @@ function DeleteButton({ confirm, extra }: ConfirmElementArgs<LangContainer['brow
 
 export function RightBrowseSidebarAddApp(props: RightBrowseSidebarAddAppProps) {
   const { addApp, editDisabled, onDelete, onLaunch, onEdit } = props;
-  const allStrings = React.useContext(LangContext);
+  const allStrings = useLocalization();
   const strings = allStrings.browse;
 
   const wrapOnTextChange = (func: (addApp: AdditionalApp, text: string) => void) => {

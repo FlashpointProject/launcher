@@ -3,11 +3,11 @@ import { useView } from '@renderer/hooks/search';
 import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useConfirmDialog } from '@renderer/hooks/useConfirmDialog';
 import { useContextMenu } from '@renderer/hooks/useContextMenu';
+import { useLocalization } from '@renderer/hooks/useLocalization';
 import { createFpfssEditGame, saveFpfssEdit } from '@renderer/store/fpfss/slice';
 import { getLastValidPage } from '@renderer/store/history/slice';
 import { removePlaylistGame, setMainState } from '@renderer/store/main/slice';
 import { deleteView, forceSearch, selectGame, selectPlaylist, setEditing, setSearchText, updateEditGame, updateGame } from '@renderer/store/search/slice';
-import { LangContext } from '@renderer/util/lang';
 import { ArchiveState, BackIn } from '@shared/back/types';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { PickType, ProcessAction } from '@shared/interfaces';
@@ -16,8 +16,8 @@ import { sizeToString } from '@shared/Util';
 import { isGame } from '@shared/utils/misc';
 import { formatString } from '@shared/utils/StringFormatter';
 import { Game, GameLaunchOverride, LangContainer, Playlist, PlaylistGame, ResultsView } from 'flashpoint-launcher';
-import { GameComponentProps } from 'flashpoint-launcher-renderer';
-import { useContext, useEffect, useEffectEvent, useRef, useState } from 'react';
+import { GameComponentProps, MenuItemType } from 'flashpoint-launcher-renderer';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { Location, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { axios, getGameImagePath, getGameImageURL, launchGame, openUrlInWindow, wrapSearchTerm } from '../Util';
@@ -29,7 +29,6 @@ import { GameDataBrowser } from './GameDataBrowser';
 import { GameImageSplit } from './GameImageSplit';
 import { ImagePreview } from './ImagePreview';
 import { InputElement, InputField } from './InputField';
-import { MenuItemType } from './Menu';
 import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
 
@@ -165,7 +164,7 @@ export function RightBrowseSidebarView({ view }: RightBrowseSidebarViewProps) {
   const tagFilters = useAppSelector(state => state.preferences.tagFilters);
   const playlistEntry = useAppSelector(state => state.main.currentPlaylistEntry);
   const selectedPlaylistId = useAppSelector(state => state.main.selectedPlaylistId);
-  const strings = useContext(LangContext);
+  const strings = useLocalization();
   const gameRunning = useAppSelector(state => {
     if (view.selectedGame) {
       return state.main.services.findIndex(s => s.id === `game.${view.selectedGame.id}`) > -1;
@@ -312,7 +311,7 @@ export function RightBrowseSidebarView({ view }: RightBrowseSidebarViewProps) {
 }
 
 export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
-  const allStrings = useContext(LangContext);
+  const allStrings = useLocalization();
   const editingDisabled = useAppSelector(state => !state.preferences.enableEditing);
   const fpfssBaseUrl = useAppSelector(state => state.preferences.fpfssBaseUrl);
   const hideScreenshotSidebar = useAppSelector(state => state.preferences.hideScreenshotSidebar);
