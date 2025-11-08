@@ -6,7 +6,7 @@ import { createLangContainer } from '@shared/lang';
 import { deepCopy, recursiveReplace } from '@shared/Util';
 import * as axiosImport from 'axios';
 import { AppExtConfigData, ComponentStatus, CreditsData, DialogFieldProps, DialogState, ExtensionContribution, Game, GameData, GameMetadataSource, GameOfTheDay, IExtensionDescription, ILogoSet, IService, ITheme, LangContainer, LangFile, MetaUpdateState, PlatformAppPathSuggestions, Playlist, PlaylistGame, ViewGame } from 'flashpoint-launcher';
-import { DisplaySettings, DynamicPageProps, ExtOrderable } from 'flashpoint-launcher-renderer';
+import { CustomRoute, DisplaySettings, DynamicPageProps, ExtOrderable } from 'flashpoint-launcher-renderer';
 
 export const RANDOM_GAME_ROW_COUNT = 6;
 
@@ -191,7 +191,8 @@ const DEFAULT_DISPLAYS: DisplaySettings = {
     'homePage_extras'
   ],
   searchComponents: [],
-  browseDisplays: {}
+  browseDisplays: {},
+  customRoutes: [],
 };
 
 const initialState: MainState = {
@@ -419,6 +420,12 @@ const mainSlice = createSlice({
         state.services.splice(serviceIdx, 1);
       }
     },
+    dsAddCustomRoute(state: MainState, { payload }: PayloadAction<CustomRoute>) {
+      const existingIdx = state.displaySettings.customRoutes.findIndex(r => r.path === payload.path);
+      if (existingIdx === -1) {
+        state.displaySettings.customRoutes.push(payload);
+      }
+    },
     setDisplaySettingsFromCallback(state: MainState, { payload }: PayloadAction<DisplaySettingsCallback>) {
       try {
         state.displaySettings = payload(state.displaySettings);
@@ -478,6 +485,7 @@ export const { setMainState,
   openDynamicPage,
   changeService,
   removeService,
+  dsAddCustomRoute,
   setDisplaySettingsFromCallback,
   setExtOrderablesFromCallback,
   setUpdateInfo,

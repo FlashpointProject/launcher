@@ -9,12 +9,13 @@ import { setDownloaderState, updateDownloaderStatus, updateDownloaderTask, updat
 import { setFpfssUser } from '@renderer/store/fpfss/slice';
 import { pushHistory } from '@renderer/store/history/slice';
 import { addLogEntries, setEntries } from '@renderer/store/logs/slice';
-import { addLoaded, cancelDialog, changeService, createDialog, openDynamicPage, removeService, setDisplaySettingsFromCallback, setExtOrderablesFromCallback, setMainState, setUpdateInfo, updateDialog, updateDialogField, updateMetadataSource } from '@renderer/store/main/slice';
+import { addLoaded, cancelDialog, changeService, createDialog, dsAddCustomRoute, openDynamicPage, removeService, setDisplaySettingsFromCallback, setExtOrderablesFromCallback, setMainState, setUpdateInfo, updateDialog, updateDialogField, updateMetadataSource } from '@renderer/store/main/slice';
 import { setPreferences, updatePreferences } from '@renderer/store/preferences/slice';
 import { addData, createViews, GENERAL_VIEW_ID, resetDropdownData } from '@renderer/store/search/slice';
 import store, { AppDispatch, RootState } from '@renderer/store/store';
 import { setTagCategories } from '@renderer/store/tagCategories/slice';
 import { addTask, setTask, setTaskBarOpen } from '@renderer/store/tasks/slice';
+import { idToGame } from '@renderer/util/async';
 import * as extUtils from '@renderer/util/ext';
 import { BackIn, BackInit, BackOut, FpfssUser } from '@shared/back/types';
 import { APP_TITLE } from '@shared/constants';
@@ -34,6 +35,7 @@ import { LangContext } from '../util/lang';
 import { ActivityRoutes } from './ActivityRoutes';
 import { Dialog } from './Dialog';
 import { GameComponentDropdownSelectField, GameComponentInputField } from './DisplayComponent';
+import { DynamicComponent } from './DynamicComponent';
 import { DynamicComponentProvider, RemoteModule } from './DynamicComponentProvider';
 import { DynamicThemeProvider } from './DynamicThemeProvider';
 import { FloatingContainer } from './FloatingContainer';
@@ -134,6 +136,7 @@ export function App() {
   const manualUrl = useAppSelector(state => state.preferences.onlineManual || pathToFileUrl(path.join(window.Shared.config.fullFlashpointPath, state.preferences.offlineManual)));
   const dynamicThemeFileList = useAppSelector(selectDynamicThemes);
   const remoteModules = useAppSelector(selectRemoteModules);
+  const customRoutes = useAppSelector(state => state.main.displaySettings.customRoutes);
   const currentView = useView();
   const firstBrowsePageViewName = useAppSelector(state => Object.keys(state.search.views).find(v => v !== GENERAL_VIEW_ID));
   const showRightSidebar = currentView?.selectedGame !== undefined && browsePageShowRightSidebar && !hiddenRightSidebarPages.reduce((prev, cur) => prev || location.pathname.startsWith(cur), false);
@@ -219,12 +222,10 @@ export function App() {
       <DynamicThemeProvider fileList={dynamicThemeFileList} >
         <DynamicComponentProvider manifests={remoteModules}>
           <MenuProvider>
-
             <ToastContainer
               theme='dark'
               className='toast-container'
               progressClassName='toast-container-progress'
-              hideProgressBar={true}
               position='bottom-center'/>
             {!stopRender ? (
               <>
@@ -280,7 +281,8 @@ export function App() {
                         <>
                           { useActivityRoutes && (
                             <ActivityRoutes
-                              manualUrl={manualUrl} />
+                              manualUrl={manualUrl}
+                              customRoutes={customRoutes} />
                           )}
                           <Routes>
                             <Route
@@ -322,6 +324,12 @@ export function App() {
                             <Route
                               path={Paths.DYNAMIC}
                               element={<DynamicPage name={dynamicPage?.name || ''} props={dynamicPage?.props}/>}/>
+                            { customRoutes.map(route =>
+                              <Route
+                                key={route.path}
+                                path={route.path}
+                                element={useActivityRoutes ? <></> : <DynamicComponent name={route.component} props={{}}/>}/>
+                            )}
                             <Route element={<NotFoundPage/>}/>
                           </Routes>
                           <Activity mode={isBrowsePage ? 'visible' : 'hidden'}>
@@ -406,9 +414,13 @@ function initApp(dispatch: AppDispatch) {
   window.ext = {
     utils: {
       getPointer,
-      getFileServerURL: getFileServerURL,
+      getFileServerURL,
       getExtensionFileURL: (extId, filePath) => {
         return `${getFileServerURL()}/extdata/${extId}/${filePath}`;
+      },
+      idToGame,
+      runCommand: (command, args) => {
+        return window.Shared.back.request(BackIn.RUN_COMMAND, command, args);
       },
       search: {
         onWhitelistFactory: extUtils.onWhitelistFactory,
@@ -427,12 +439,17 @@ function initApp(dispatch: AppDispatch) {
       RandomGames,
     },
     hooks: {
-      useNavigate: () => useNavigate(),
+      useNavigate,
       useAppDispatch,
       useAppSelector,
       useContextMenu,
       useLocalization,
     },
+    actions: {
+      main: {
+        dsAddCustomRoute,
+      }
+    }
   };
   window.setDisplaySettings = ((cb) => {
     dispatch(setDisplaySettingsFromCallback(cb));

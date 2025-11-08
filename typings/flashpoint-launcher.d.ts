@@ -21,8 +21,8 @@
 // tslint:disable:no-declare-current-package
 
 declare module 'flashpoint-launcher' {
-  import { Readable } from 'stream';
   import { FlashpointArchive, GameSearch } from '@fparchive/flashpoint-archive';
+  import { Readable } from 'stream';
 
   /** Version of the Flashpoint Launcher */
   const version: string;
@@ -2864,14 +2864,36 @@ declare module 'flashpoint-launcher' {
 }
 
 declare module 'flashpoint-launcher-renderer' {
-  import { AppPreferencesData, GameOrderBy, GameOrderReverse, Game, Tag, ViewGame,
-    ExtOrder, PlaylistGame, AdvancedFilter, ResultsView, CurationState, CurateGroup,
-    GameOfTheDay, GameData, Playlist, DialogState, ComponentStatus, MetaUpdateState,
-    IService, AppExtConfigData, LangContainer, LangFile, CreditsData, ITheme,
-    ILogoSet, PlatformAppPathSuggestions, IExtensionDescription,
-    ExtensionContribution } from 'flashpoint-launcher';
-  import { TypedUseSelectorHook } from 'react-redux';
+  import { ActionCreatorWithPayload } from '@reduxjs/toolkit';
   import { CancelToken } from 'axios';
+  import {
+    AdvancedFilter,
+    AppExtConfigData,
+    AppPreferencesData,
+    ComponentStatus,
+    CreditsData,
+    CurateGroup,
+    CurationState,
+    DialogState,
+    ExtensionContribution,
+    ExtOrder,
+    Game,
+    GameData,
+    GameOfTheDay,
+    GameOrderBy, GameOrderReverse,
+    IExtensionDescription,
+    ILogoSet,
+    IService,
+    ITheme,
+    LangContainer, LangFile,
+    MetaUpdateState,
+    PlatformAppPathSuggestions,
+    Playlist,
+    PlaylistGame,
+    ResultsView,
+    Tag, ViewGame
+  } from 'flashpoint-launcher';
+  import { TypedUseSelectorHook } from 'react-redux';
 
   /** Game properties that will have suggestions gathered and displayed. */
   type SuggestionProps = (
@@ -2995,6 +3017,23 @@ declare module 'flashpoint-launcher-renderer' {
 
   type GameListColumnInfo = GameListColumnInfoIcon | GameListColumnInfoNormal
 
+  type CustomHeaderItemProps = {
+    id?: string;
+    title: string;
+    link: string;
+  }
+
+  type CustomRoute = {
+    headerItem?: {
+      id: string;
+      title: string;
+      component?: string,
+    };
+    path: string;
+    keepLoaded?: boolean;
+    component: string;
+  }
+
   type DisplaySettings = {
     gameSidebar: {
       middle: string[],
@@ -3009,6 +3048,7 @@ declare module 'flashpoint-launcher-renderer' {
     browseDisplays: {
       [k: string]: any
     },
+    customRoutes: CustomRoute[],
   }
 
   type SearchableSelectItem = {
@@ -3290,11 +3330,18 @@ declare module 'flashpoint-launcher-renderer' {
     rollRandomGames: () => void;
   };
 
+  type RunCommandResponse = {
+    success: boolean;
+    res: any;
+  }
+
   interface IExtensionWindow {
     utils: {
       getExtensionFileURL: (extId: string, filePath: string) => string;
       getFileServerURL: () => string;
       getPointer: (event: React.MouseEvent<any>) => Pointer;
+      idToGame: (gameId: string) => Promise<Game | null>;
+      runCommand: (command: string, args?: any[]) => Promise<RunCommandResponse>;
       search: {
         onWhitelistFactory: (extId: string, key: string, filter: AdvancedFilter, setAdvancedFilter: (advFilter: AdvancedFilter) => void) => (value: string) => void,
         onBlacklistFactory: (extId: string, key: string, filter: AdvancedFilter, setAdvancedFilter: (advFilter: AdvancedFilter) => void) => (value: string) => void,
@@ -3318,6 +3365,11 @@ declare module 'flashpoint-launcher-renderer' {
       useContextMenu: () => MenuContextStateProps,
       useLocalization:() => LangContainer,
     },
+    actions: {
+      main: {
+        dsAddCustomRoute: ActionCreatorWithPayload<CustomRoute>
+      }
+    }
   }
 
   declare global {

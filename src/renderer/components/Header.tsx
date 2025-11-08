@@ -13,10 +13,11 @@ import { RootState } from '@renderer/store/store';
 import { getLibraryItemTitle } from '@shared/library/util';
 import { Paths } from '@shared/Paths';
 import { DialogFieldProps, DialogState, DialogStateTemplate } from 'flashpoint-launcher';
-import { MenuItemType } from 'flashpoint-launcher-renderer';
+import { CustomHeaderItemProps, MenuItemType } from 'flashpoint-launcher-renderer';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { joinLibraryRoute, openUrlInWindow } from '../Util';
+import { DynamicComponent } from './DynamicComponent';
 import { OpenIcon } from './OpenIcon';
 
 const viewDragType = 'text/plain';
@@ -47,6 +48,7 @@ export function Header() {
   const fpfssUser = useAppSelector(state => state.fpfss.user);
   const fpfssEditsOpen = useAppSelector(state => Object.keys(state.search.views).filter(k => k.startsWith('!fpfss-')).length > 0);
   const playlists = useAppSelector(state => state.main.playlists);
+  const customRoutes = useAppSelector(state => state.main.displaySettings.customRoutes);
   const { openMenu } = useContextMenu();
   const viewName = useViewName();
   const allStrings = useLocalization();
@@ -426,6 +428,22 @@ export function Header() {
               title={'FPFSS'}
               link={Paths.FPFSS} />
           )}
+          { customRoutes.filter(r => r.headerItem !== undefined).map(route => {
+            if (route.headerItem && route.headerItem.component !== undefined) {
+              const routeProps: CustomHeaderItemProps = {
+                id: route.headerItem.id,
+                title: route.headerItem.title,
+                link: route.path
+              };
+              return <DynamicComponent name={route.headerItem.component} props={routeProps} />;
+            } else {
+              return <HeaderMenuItem
+                key={route.path}
+                id={'header__' + route.headerItem!.id}
+                link={route.path}
+                title={route.headerItem!.title}/>;
+            }
+          })}
         </ul>
       </div>
       {/* Right-most portion */}

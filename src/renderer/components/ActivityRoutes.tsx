@@ -1,18 +1,21 @@
 import { Paths } from '@shared/Paths';
+import { CustomRoute } from 'flashpoint-launcher-renderer';
 import { Activity, ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
+import { DynamicComponent } from './DynamicComponent';
 import { CuratePage } from './pages/CuratePage';
+import { FpfssPage } from './pages/FpfssPage';
 import { HomePage } from './pages/HomePage';
 import { IFramePage } from './pages/IFramePage';
 import { LogsPage } from './pages/LogsPage';
 import { TagsPage } from './pages/TagsPage';
-import { FpfssPage } from './pages/FpfssPage';
 
 export type ActivityRoutesProps = {
   manualUrl: string;
+  customRoutes: CustomRoute[];
 }
 
-export function ActivityRoutes({ manualUrl }: ActivityRoutesProps) {
+export function ActivityRoutes({ manualUrl, customRoutes }: ActivityRoutesProps) {
   return (
     <>
       <ActivityRoute path={Paths.HOME} exact>
@@ -33,6 +36,11 @@ export function ActivityRoutes({ manualUrl }: ActivityRoutesProps) {
       <ActivityRoute path={Paths.FPFSS}>
         <FpfssPage/>
       </ActivityRoute>
+      { customRoutes.filter(r => r.keepLoaded).map(route =>
+        <ActivityRoute key={route.path} path={route.path}>
+          <DynamicComponent name={route.component} props={{}}/>
+        </ActivityRoute>
+      )}
     </>
   );
 }
