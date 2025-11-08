@@ -1,8 +1,9 @@
-import { GameComponentProps, RootState } from 'flashpoint-launcher-renderer';
-import { ControllerSet, getFormattedMappedName } from '../shared';
 import { createSelector } from '@reduxjs/toolkit';
-import React from 'react';
 import { Content, Game } from 'flashpoint-launcher';
+import { GameComponentProps, RootState } from 'flashpoint-launcher-renderer';
+import { useAppSelector } from 'flashpoint-launcher-renderer-ext/hooks';
+import React from 'react';
+import { ControllerSet, getFormattedMappedName } from '../shared';
 
 function isGame(content?: Content | Game): content is Game {
   return content !== undefined && 'legacyApplicationPath' in content;
@@ -18,7 +19,7 @@ export const selectGameField = <K extends keyof Game>(viewId: string, key: K) =>
 );
 
 export default function ControllerSupport(props: GameComponentProps) {
-  const extData = window.ext.hooks.useAppSelector(selectGameField(props.viewId, 'extData'));
+  const extData = useAppSelector(selectGameField(props.viewId, 'extData'));
   const controllerConfig: ControllerSet | undefined = extData?.controller?.config;
 
   const mappedTable = React.useMemo(() => {
@@ -53,19 +54,19 @@ export default function ControllerSupport(props: GameComponentProps) {
 
     if (controllerConfig.dpad) {
       list.push(
-        <div className='controller-config-subheader'>{isDpadSameAsLeftStick ? 'Dpad / Left Stick' : 'Dpad'}</div>
+        <div key='dpad-header' className='controller-config-subheader'>{isDpadSameAsLeftStick ? 'Dpad / Left Stick' : 'Dpad'}</div>
       );
       const inner = [];
       for (const button of controllerConfig.dpad.dpadbutton) {
         inner.push(
-          <div className='controller-config-button'>
+          <div key={button.name} className='controller-config-button'>
             <div className='controller-config-button--input'>{button.name}:</div>
             <div className='controller-config-button--output'>{getFormattedMappedName(button.slots.slot, button.actionName)}</div>
           </div>
         );
       }
       list.push(
-        <div className='controller-config-subsection'>
+        <div key='dpad-subsection' className='controller-config-subsection'>
           {inner}
         </div>
       );
@@ -73,19 +74,19 @@ export default function ControllerSupport(props: GameComponentProps) {
 
     if (controllerConfig.button) {
       list.push(
-        <div className='controller-config-subheader'>Buttons</div>
+        <div key='buttons-header' className='controller-config-subheader'>Buttons</div>
       );
       const inner = [];
       for (const button of controllerConfig.button) {
         inner.push(
-          <div className='controller-config-button'>
+          <div key={button.name} className='controller-config-button'>
             <div className='controller-config-button--input'>{button.name}:</div>
             <div className='controller-config-button--output'>{getFormattedMappedName(button.slots.slot, button.actionName)}</div>
           </div>
         );
       }
       list.push(
-        <div className='controller-config-subsection'>
+        <div key='buttons-subsection' className='controller-config-subsection'>
           {inner}
         </div>
       );
@@ -101,7 +102,7 @@ export default function ControllerSupport(props: GameComponentProps) {
       }
 
       list.push(
-        <div className='controller-config-subheader'>{leftStick.name}</div>
+        <div key='left-stick-header' className='controller-config-subheader'>{leftStick.name}</div>
       );
       const inner = [];
       // If all inputs are mouse movements, display a simpler input

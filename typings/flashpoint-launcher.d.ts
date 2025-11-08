@@ -4,6 +4,7 @@
 // Definitions by: Colin Berry <https://github.com/colin969>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 
+
 // / <reference types="node" />
 
 /**
@@ -2864,7 +2865,6 @@ declare module 'flashpoint-launcher' {
 }
 
 declare module 'flashpoint-launcher-renderer' {
-  import { ActionCreatorWithPayload } from '@reduxjs/toolkit';
   import { CancelToken } from 'axios';
   import {
     AdvancedFilter,
@@ -2893,7 +2893,6 @@ declare module 'flashpoint-launcher-renderer' {
     ResultsView,
     Tag, ViewGame
   } from 'flashpoint-launcher';
-  import { TypedUseSelectorHook } from 'react-redux';
 
   /** Game properties that will have suggestions gathered and displayed. */
   type SuggestionProps = (
@@ -3034,11 +3033,13 @@ declare module 'flashpoint-launcher-renderer' {
     component: string;
   }
 
+  type DisplaySettingsGameSidebar = {
+    middle: string[];
+    bottom: string[];
+  }
+
   type DisplaySettings = {
-    gameSidebar: {
-      middle: string[],
-      bottom: string[],
-    },
+    gameSidebar: DisplaySettingsGameSidebar,
     gameList: {
       icons: string[],
       columns: GameListColumnInfo[],
@@ -3330,58 +3331,91 @@ declare module 'flashpoint-launcher-renderer' {
     rollRandomGames: () => void;
   };
 
+  type DisplaySettingsGameSidebarAction = {
+    section: keyof DisplaySettingsGameSidebar;
+    name: string;
+  }
+
   type RunCommandResponse = {
     success: boolean;
     res: any;
   }
 
-  interface IExtensionWindow {
-    utils: {
-      getExtensionFileURL: (extId: string, filePath: string) => string;
-      getFileServerURL: () => string;
-      getPointer: (event: React.MouseEvent<any>) => Pointer;
-      idToGame: (gameId: string) => Promise<Game | null>;
-      runCommand: (command: string, args?: any[]) => Promise<RunCommandResponse>;
-      search: {
-        onWhitelistFactory: (extId: string, key: string, filter: AdvancedFilter, setAdvancedFilter: (advFilter: AdvancedFilter) => void) => (value: string) => void,
-        onBlacklistFactory: (extId: string, key: string, filter: AdvancedFilter, setAdvancedFilter: (advFilter: AdvancedFilter) => void) => (value: string) => void,
-        onClearFactory: (extId: string, key: string, filter: AdvancedFilter, setAdvancedFilter: (advFilter: AdvancedFilter) => void) => () => void,
-        onSetAndToggleFactory: (extId: string, key: string, filter: AdvancedFilter, setAdvancedFilter: (advFilter: AdvancedFilter) => void) => (value: boolean) => void
-      }
-    },
-    components: {
-      GameComponentInputField: React.ComponentType<GameComponentInputFieldProps>,
-      GameComponentDropdownSelectField: React.ComponentType<GameComponentDropdownSelectFieldProps>,
-      SearchableSelect: React.ComponentType<SearchableSelectProps<any>>,
-      SortableColumn: React.ComponentType<SortableColumnProps>,
-      HomePageBox: React.ComponentType<HomePageBoxProps>,
-      SizeProvider: React.ComponentType<SizeProviderProps>,
-      RandomGames: React.ComponentType<RandomGamesProps>,
-    },
-    hooks: {
-      useNavigate: () => NavigateFunction,
-      useAppDispatch: useAppDispatchType,
-      useAppSelector: TypedUseSelectorHook<RootState>,
-      useContextMenu: () => MenuContextStateProps,
-      useLocalization:() => LangContainer,
-    },
-    actions: {
-      main: {
-        dsAddCustomRoute: ActionCreatorWithPayload<CustomRoute>
-      }
-    }
-  }
-
   declare global {
     interface Window {
-      ext: IExtensionWindow,
-      components: {
-        BrowsePageDisplayGrid: React.ComponentType<BrowsePageDisplayGridProps>,
-      },
       log: LogFuncs;
-      setDisplaySettings: (cb: (prev: DisplaySettings) => DisplaySettings) => void,
       setExtOrderables: (cb: (prev: ExtOrderable[]) => ExtOrderable[]) => void,
     }
     let log: LogFuncs;
   }
+}
+
+declare module 'flashpoint-launcher-renderer-ext/utils' {
+  import { Game } from 'flashpoint-launcher';
+  import { RunCommandResponse } from 'flashpoint-launcher-renderer';
+  import { React } from 'react';
+
+  const getExtensionFileURL: (extId: string, filePath: string) => string;
+  const getFileServerURL: () => string;
+  const getPointer: (event: React.MouseEvent<any>) => Pointer;
+  const idToGame: (gameId: string) => Promise<Game | null>;
+  const runCommand: (command: string, args?: any[]) => Promise<RunCommandResponse>;
+}
+
+declare module 'flashpoint-launcher-renderer-ext/search' {
+  import { AdvancedFilter } from 'flashpoint-launcher';
+
+  const onExtWhitelistFactory: (extId: string, key: string, filter: AdvancedFilter, setAdvancedFilter: (advFilter: AdvancedFilter) => void) => (value: string) => void;
+  const onExtBlacklistFactory: (extId: string, key: string, filter: AdvancedFilter, setAdvancedFilter: (advFilter: AdvancedFilter) => void) => (value: string) => void;
+  const onExtClearFactory: (extId: string, key: string, filter: AdvancedFilter, setAdvancedFilter: (advFilter: AdvancedFilter) => void) => () => void;
+  const onExtSetAndToggleFactory: (extId: string, key: string, filter: AdvancedFilter, setAdvancedFilter: (advFilter: AdvancedFilter) => void) => (value: boolean) => void;
+}
+
+declare module 'flashpoint-launcher-renderer-ext/components' {
+  import {
+    BrowsePageDisplayGridProps,
+    GameComponentDropdownSelectFieldProps,
+    GameComponentInputFieldProps,
+    HomePageBoxProps,
+    RandomGamesProps,
+    SearchableSelectProps,
+    SizeProviderProps,
+    SortableColumnProps
+  } from 'flashpoint-launcher-renderer';
+  import { React } from 'react';
+
+  const GameComponentInputField: React.ComponentType<GameComponentInputFieldProps>;
+  const GameComponentDropdownSelectField: React.ComponentType<GameComponentDropdownSelectFieldProps>;
+  const SearchableSelect: React.ComponentType<SearchableSelectProps<any>>;
+  const SortableColumn: React.ComponentType<SortableColumnProps>;
+  const HomePageBox: React.ComponentType<HomePageBoxProps>;
+  const SizeProvider: React.ComponentType<SizeProviderProps>;
+  const RandomGames: React.ComponentType<RandomGamesProps>;
+  const BrowsePageDisplayGrid: React.ComponentType<BrowsePageDisplayGridProps>;
+}
+
+declare module 'flashpoint-launcher-renderer-ext/hooks' {
+  import { ThunkDispatch } from '@reduxjs/toolkit';
+  import { LangContainer } from 'flashpoint-launcher';
+  import { MenuContextStateProps, NavigateFunction, RootState } from 'flashpoint-launcher-renderer';
+  import { TypedUseSelectorHook, } from 'react-redux';
+
+  const useNavigate: () => NavigateFunction;
+  const useAppDispatch: () => ThunkDispatch;
+  const useAppSelector: TypedUseSelectorHook<RootState>;
+  const useContextMenu: () => MenuContextStateProps;
+  const useLocalization:() => LangContainer;
+}
+
+
+declare module 'flashpoint-launcher-renderer-ext/actions/main' {
+  import { ActionCreatorWithPayload } from '@reduxjs/toolkit';
+  import {
+    CustomRoute,
+    DisplaySettingsGameSidebarAction
+  } from 'flashpoint-launcher-renderer';
+
+  const AddCustomRoute: ActionCreatorWithPayload<CustomRoute>;
+  const AddGameSidebarComponent: ActionCreatorWithPayload<DisplaySettingsGameSidebarAction>;
+  const RemoveGameSidebarComponent: ActionCreatorWithPayload<DisplaySettingsGameSidebarAction>;
 }

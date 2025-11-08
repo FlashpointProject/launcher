@@ -1,5 +1,6 @@
 import { createSelector } from '@reduxjs/toolkit';
 import { useView } from '@renderer/hooks/search';
+import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useLocalization } from '@renderer/hooks/useLocalization';
 import { addRandomGames, RANDOM_GAME_ROW_COUNT, setMainState } from '@renderer/store/main/slice';
 import { GENERAL_VIEW_ID, searchActions, selectGame } from '@renderer/store/search/slice';
@@ -36,8 +37,8 @@ const selectUpdateFeedMinimized = selectMinimizedFactory('updateFeed');
 
 export function HomePageComponentUpdateFeed(props: HomePageComponentProps) {
   const { toggleMinimizeBox } = props;
-  const minimized = window.ext.hooks.useAppSelector(selectUpdateFeedMinimized);
-  const updateFeedMarkdown = window.ext.hooks.useAppSelector(state => state.main.updateFeedMarkdown);
+  const minimized = useAppSelector(selectUpdateFeedMinimized);
+  const updateFeedMarkdown = useAppSelector(state => state.main.updateFeedMarkdown);
   const allStrings = useLocalization();
   const strings = allStrings.home;
 
@@ -64,15 +65,15 @@ const width: number = (height * 0.666) | 0;
 
 export function HomePageComponentGotd(props: HomePageComponentProps) {
   const { toggleMinimizeBox } = props;
-  const gotdList = window.ext.hooks.useAppSelector(state => state.main.gotdList);
-  const logoVersion = window.ext.hooks.useAppSelector(state => state.main.logoVersion);
-  const tagFilters = window.ext.hooks.useAppSelector(state => state.preferences.tagFilters);
-  const minimized = window.ext.hooks.useAppSelector(state => state.preferences.minimizedHomePageBoxes.includes('gotd'));
-  const screenshotPreviewMode = window.ext.hooks.useAppSelector(state => state.preferences.screenshotPreviewMode);
-  const screenshotPreviewDelay = window.ext.hooks.useAppSelector(state => state.preferences.screenshotPreviewDelay);
-  const hideExtremeScreenshots = window.ext.hooks.useAppSelector(state => state.preferences.hideExtremeScreenshots);
+  const gotdList = useAppSelector(state => state.main.gotdList);
+  const logoVersion = useAppSelector(state => state.main.logoVersion);
+  const tagFilters = useAppSelector(state => state.preferences.tagFilters);
+  const minimized = useAppSelector(state => state.preferences.minimizedHomePageBoxes.includes('gotd'));
+  const screenshotPreviewMode = useAppSelector(state => state.preferences.screenshotPreviewMode);
+  const screenshotPreviewDelay = useAppSelector(state => state.preferences.screenshotPreviewDelay);
+  const hideExtremeScreenshots = useAppSelector(state => state.preferences.hideExtremeScreenshots);
   const view = useView();
-  const dispatch = window.ext.hooks.useAppDispatch();
+  const dispatch = useAppDispatch();
   const allStrings = useLocalization();
   const strings = allStrings.home;
   const extremeTags = tagFilters.filter(t => !t.enabled && t.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
@@ -212,8 +213,8 @@ export function HomePageComponentGotd(props: HomePageComponentProps) {
 
 export function HomePageComponentQuickStart(props: HomePageComponentProps) {
   const { toggleMinimizeBox } = props;
-  const playlists = window.ext.hooks.useAppSelector(state => state.main.playlists);
-  const minimized = window.ext.hooks.useAppSelector(state => state.preferences.minimizedHomePageBoxes.includes('quickStart'));
+  const playlists = useAppSelector(state => state.main.playlists);
+  const minimized = useAppSelector(state => state.preferences.minimizedHomePageBoxes.includes('quickStart'));
   const allStrings = useLocalization();
   const strings = allStrings.home;
 
@@ -258,7 +259,7 @@ export function HomePageComponentNotes(props: HomePageComponentProps) {
   const { toggleMinimizeBox } = props;
   const allStrings = useLocalization();
   const strings = allStrings.home;
-  const minimized = window.ext.hooks.useAppSelector(state => state.preferences.minimizedHomePageBoxes.includes('notes'));
+  const minimized = useAppSelector(state => state.preferences.minimizedHomePageBoxes.includes('notes'));
 
   const propsRef = useRef(props);
   const toggleMinimizeBoxRef = useRef(toggleMinimizeBox);
@@ -316,12 +317,12 @@ export function HomePageComponentNotes(props: HomePageComponentProps) {
 export function HomePageComponentRandomGames(props: HomePageComponentProps) {
   const { onLaunchGame, toggleMinimizeBox } = props;
   const strings = useLocalization();
-  const minimized = window.ext.hooks.useAppSelector(state => state.preferences.minimizedHomePageBoxes.includes('random-games'));
-  const randomGames = window.ext.hooks.useAppSelector(state => state.main.randomGames);
-  const requestingRandomGames = window.ext.hooks.useAppSelector(state => state.main.requestingRandomGames);
-  const excludedRandomLibraries = window.ext.hooks.useAppSelector(state => state.preferences.excludedRandomLibraries);
+  const minimized = useAppSelector(state => state.preferences.minimizedHomePageBoxes.includes('random-games'));
+  const randomGames = useAppSelector(state => state.main.randomGames);
+  const requestingRandomGames = useAppSelector(state => state.main.requestingRandomGames);
+  const excludedRandomLibraries = useAppSelector(state => state.preferences.excludedRandomLibraries);
   const view = useView();
-  const dispatch = window.ext.hooks.useAppDispatch();
+  const dispatch = useAppDispatch();
 
   const rollRandomGames = () => {
     // Request more games to the queue
@@ -371,10 +372,10 @@ export function HomePageComponentRandomGames(props: HomePageComponentProps) {
 
 export function HomePageComponentExtras(props: HomePageComponentProps) {
   const { toggleMinimizeBox } = props;
-  const minimized = window.ext.hooks.useAppSelector(state => state.preferences.minimizedHomePageBoxes.includes('extras'));
-  const logoVersion = window.ext.hooks.useAppSelector(state => state.main.logoVersion);
-  const viewObj = window.ext.hooks.useAppSelector((state) => state.search.views);
-  const platforms = window.ext.hooks.useAppSelector(state => state.main.suggestions.platforms);
+  const minimized = useAppSelector(state => state.preferences.minimizedHomePageBoxes.includes('extras'));
+  const logoVersion = useAppSelector(state => state.main.logoVersion);
+  const viewObj = useAppSelector((state) => state.search.views);
+  const platforms = useAppSelector(state => state.main.suggestions.platforms);
   const allStrings = useLocalization();
   const strings = allStrings.home;
 

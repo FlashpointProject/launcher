@@ -68,19 +68,21 @@ export function GameListItem(props: GameListItemProps) {
       onDragOver={onDragOver}
       { ...attributes }>
       { props.displaySettings.gameList.columns.filter(col => col.type === 'icon').map(col => {
-        return <DynamicComponent props={gameListComponentProps} name={col.rowComponent} />;
+        return <DynamicComponent key={col.rowComponent} props={gameListComponentProps} name={col.rowComponent} />;
       })}
       { showExtremeIcon &&
           (extreme ? (
             <div
+              key='extreme-icon'
               className='game-list-item__icon'
               style={{ backgroundImage: `url("${extremeIconPath}")` }} />
           ) : (tagGroupIconBase64 ? (
             <div
+              key='tag-group-icon'
               className='game-list-item__icon'
               style={{ backgroundImage: `url("${tagGroupIconBase64}")` }} />
           ) : (
-            <div className='game-list-item__icon' />
+            <div key='tag-group-icon-empty' className='game-list-item__icon' />
           )))
       }
       <div className='game-list-item__right'>

@@ -9,7 +9,7 @@ import { setDownloaderState, updateDownloaderStatus, updateDownloaderTask, updat
 import { setFpfssUser } from '@renderer/store/fpfss/slice';
 import { pushHistory } from '@renderer/store/history/slice';
 import { addLogEntries, setEntries } from '@renderer/store/logs/slice';
-import { addLoaded, cancelDialog, changeService, createDialog, dsAddCustomRoute, openDynamicPage, removeService, setDisplaySettingsFromCallback, setExtOrderablesFromCallback, setMainState, setUpdateInfo, updateDialog, updateDialogField, updateMetadataSource } from '@renderer/store/main/slice';
+import { AddCustomRoute, AddGameSidebarComponent, addLoaded, cancelDialog, changeService, createDialog, openDynamicPage, RemoveGameSidebarComponent, removeService, setExtOrderablesFromCallback, setMainState, setUpdateInfo, updateDialog, updateDialogField, updateMetadataSource } from '@renderer/store/main/slice';
 import { setPreferences, updatePreferences } from '@renderer/store/preferences/slice';
 import { addData, createViews, GENERAL_VIEW_ID, resetDropdownData } from '@renderer/store/search/slice';
 import store, { AppDispatch, RootState } from '@renderer/store/store';
@@ -33,6 +33,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import { axios } from '../Util';
 import { LangContext } from '../util/lang';
 import { ActivityRoutes } from './ActivityRoutes';
+import { BrowsePageDisplayGrid } from './BrowsePageDisplay';
 import { Dialog } from './Dialog';
 import { GameComponentDropdownSelectField, GameComponentInputField } from './DisplayComponent';
 import { DynamicComponent } from './DynamicComponent';
@@ -409,51 +410,55 @@ export function App() {
   );
 }
 
+function addExtIntercepts() {
+  (window as any)['flashpoint-launcher-renderer-ext/utils'] = {
+    getPointer,
+    getFileServerURL,
+    getExtensionFileURL: (extId, filePath) => {
+      return `${getFileServerURL()}/extdata/${extId}/${filePath}`;
+    },
+    idToGame,
+    runCommand: (command, args) => {
+      return window.Shared.back.request(BackIn.RUN_COMMAND, command, args);
+    },
+  } satisfies typeof import('flashpoint-launcher-renderer-ext/utils');
+
+  (window as any)['flashpoint-launcher-renderer-ext/search'] = {
+    onExtWhitelistFactory: extUtils.onWhitelistFactory,
+    onExtBlacklistFactory: extUtils.onBlacklistFactory,
+    onExtClearFactory: extUtils.onClearFactory,
+    onExtSetAndToggleFactory: extUtils.onSetAndToggleFactory,
+  } satisfies typeof import('flashpoint-launcher-renderer-ext/search');
+
+  (window as any)['flashpoint-launcher-renderer-ext/components'] = {
+    GameComponentInputField,
+    GameComponentDropdownSelectField,
+    SearchableSelect,
+    SortableColumn,
+    HomePageBox,
+    SizeProvider,
+    RandomGames,
+    BrowsePageDisplayGrid,
+  } satisfies typeof import('flashpoint-launcher-renderer-ext/components');
+
+  (window as any)['flashpoint-launcher-renderer-ext/hooks'] = {
+    useNavigate,
+    useAppDispatch,
+    useAppSelector,
+    useContextMenu,
+    useLocalization,
+  } satisfies typeof import('flashpoint-launcher-renderer-ext/hooks');
+
+  (window as any)['flashpoint-launcher-renderer-ext/actions/main'] = {
+    AddCustomRoute,
+    AddGameSidebarComponent,
+    RemoveGameSidebarComponent,
+  } satisfies typeof import('flashpoint-launcher-renderer-ext/actions/main');
+}
+
 function initApp(dispatch: AppDispatch) {
-  // Set up renderer ext model
-  window.ext = {
-    utils: {
-      getPointer,
-      getFileServerURL,
-      getExtensionFileURL: (extId, filePath) => {
-        return `${getFileServerURL()}/extdata/${extId}/${filePath}`;
-      },
-      idToGame,
-      runCommand: (command, args) => {
-        return window.Shared.back.request(BackIn.RUN_COMMAND, command, args);
-      },
-      search: {
-        onWhitelistFactory: extUtils.onWhitelistFactory,
-        onBlacklistFactory: extUtils.onBlacklistFactory,
-        onClearFactory: extUtils.onClearFactory,
-        onSetAndToggleFactory: extUtils.onSetAndToggleFactory,
-      }
-    },
-    components: {
-      GameComponentInputField,
-      GameComponentDropdownSelectField,
-      SearchableSelect,
-      SortableColumn,
-      HomePageBox,
-      SizeProvider,
-      RandomGames,
-    },
-    hooks: {
-      useNavigate,
-      useAppDispatch,
-      useAppSelector,
-      useContextMenu,
-      useLocalization,
-    },
-    actions: {
-      main: {
-        dsAddCustomRoute,
-      }
-    }
-  };
-  window.setDisplaySettings = ((cb) => {
-    dispatch(setDisplaySettingsFromCallback(cb));
-  });
+  addExtIntercepts();
+
   window.setExtOrderables = ((cb) => {
     dispatch(setExtOrderablesFromCallback(cb));
   });

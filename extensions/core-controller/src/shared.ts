@@ -44,7 +44,6 @@ type MappedName = {
 }
 
 export function getFormattedMappedName({ code, mode }: Slot, name?: string): string {
-  console.log(`${code} - ${mode} - ${name}`);
   const mappedName = getMappedName({ code, mode }, name);
   if (mappedName.name !== undefined) {
     return `${mappedName.name} - (${mappedName.output})`;

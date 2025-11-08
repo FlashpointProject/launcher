@@ -50,4 +50,18 @@ export default defineConfig({
   output: {
     target: 'web'
   },
+  server: {
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': '*',
+      'Access-Control-Allow-Methods': '*'
+    }
+  },
+  tools: {
+    rspack: {
+      externals: [
+        /^flashpoint-launcher-renderer-ext.+/
+      ]
+    }
+  }
 });

@@ -1,4 +1,5 @@
 import { createSelector } from '@reduxjs/toolkit';
+import { useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useLocalization } from '@renderer/hooks/useLocalization';
 import { getPlatformIconURL } from '@renderer/Util';
 import { BackIn } from '@shared/back/types';
@@ -27,7 +28,7 @@ export const selectGameField = <K extends keyof Game>(viewId: string, key: K) =>
 
 export function GameComponentAlternateTitles(props: GameComponentProps) {
   const { viewId, updateGame } = props;
-  const alternateTitles = window.ext.hooks.useAppSelector(selectGameField(viewId, 'alternateTitles'));
+  const alternateTitles = useAppSelector(selectGameField(viewId, 'alternateTitles'));
   const lang = useLocalization();
 
   return <GameComponentInputField
@@ -40,7 +41,7 @@ export function GameComponentAlternateTitles(props: GameComponentProps) {
 
 export function GameComponentSeries(props: GameComponentProps) {
   const { viewId, editable, updateGame, doSearch } = props;
-  const series = window.ext.hooks.useAppSelector(selectGameField(viewId, 'series'));
+  const series = useAppSelector(selectGameField(viewId, 'series'));
   const lang = useLocalization();
 
   return <GameComponentInputField
@@ -54,7 +55,7 @@ export function GameComponentSeries(props: GameComponentProps) {
 
 export function GameComponentPublisher(props: GameComponentProps) {
   const { viewId, editable, updateGame, doSearch } = props;
-  const publisher = window.ext.hooks.useAppSelector(selectGameField(viewId, 'publisher'));
+  const publisher = useAppSelector(selectGameField(viewId, 'publisher'));
   const lang = useLocalization();
 
   return <GameComponentInputField
@@ -68,7 +69,7 @@ export function GameComponentPublisher(props: GameComponentProps) {
 
 export function GameComponentSource(props: GameComponentProps) {
   const { viewId, updateGame } = props;
-  const source = window.ext.hooks.useAppSelector(selectGameField(viewId, 'source'));
+  const source = useAppSelector(selectGameField(viewId, 'source'));
   const lang = useLocalization();
 
   return <GameComponentInputField
@@ -81,7 +82,7 @@ export function GameComponentSource(props: GameComponentProps) {
 
 export function GameComponentVersion(props: GameComponentProps) {
   const { viewId, updateGame } = props;
-  const version = window.ext.hooks.useAppSelector(selectGameField(viewId, 'version'));
+  const version = useAppSelector(selectGameField(viewId, 'version'));
   const lang = useLocalization();
 
   return <GameComponentInputField
@@ -94,7 +95,7 @@ export function GameComponentVersion(props: GameComponentProps) {
 
 export function GameComponentLanguage(props: GameComponentProps) {
   const { viewId, editable, updateGame, doSearch } = props;
-  const language = window.ext.hooks.useAppSelector(selectGameField(viewId, 'language'));
+  const language = useAppSelector(selectGameField(viewId, 'language'));
   const lang = useLocalization();
 
   return <GameComponentInputField
@@ -108,7 +109,7 @@ export function GameComponentLanguage(props: GameComponentProps) {
 
 export function GameComponentPlayMode(props: GameComponentProps) {
   const { viewId, editable, suggestions, updateGame, doSearch } = props;
-  const playMode = window.ext.hooks.useAppSelector(selectGameField(viewId, 'playMode'));
+  const playMode = useAppSelector(selectGameField(viewId, 'playMode'));
   const lang = useLocalization();
 
   return (
@@ -129,7 +130,7 @@ export function GameComponentPlayMode(props: GameComponentProps) {
 
 export function GameComponentStatus(props: GameComponentProps) {
   const { viewId, editable, suggestions, updateGame, doSearch } = props;
-  const status = window.ext.hooks.useAppSelector(selectGameField(viewId, 'status'));
+  const status = useAppSelector(selectGameField(viewId, 'status'));
   const lang = useLocalization();
 
   return (
@@ -159,9 +160,9 @@ function formatSidebarDate(date: string): string {
 
 export function GameComponentDates(props: GameComponentProps) {
   const { viewId, editable, updateGame } = props;
-  const dateAdded = window.ext.hooks.useAppSelector(selectGameField(viewId, 'dateAdded'));
-  const dateModified = window.ext.hooks.useAppSelector(selectGameField(viewId, 'dateModified'));
-  const releaseDate = window.ext.hooks.useAppSelector(selectGameField(viewId, 'releaseDate'));
+  const dateAdded = useAppSelector(selectGameField(viewId, 'dateAdded'));
+  const dateModified = useAppSelector(selectGameField(viewId, 'dateModified'));
+  const releaseDate = useAppSelector(selectGameField(viewId, 'releaseDate'));
   const lang = useLocalization();
 
   if (editable) {
@@ -221,7 +222,7 @@ export function GameComponentDates(props: GameComponentProps) {
 
 export function GameComponentOriginalDescription(props: GameComponentProps) {
   const { viewId, updateGame } = props;
-  const originalDescription = window.ext.hooks.useAppSelector(selectGameField(viewId, 'originalDescription'));
+  const originalDescription = useAppSelector(selectGameField(viewId, 'originalDescription'));
   const lang = useLocalization();
 
   return (
@@ -237,9 +238,9 @@ export function GameComponentOriginalDescription(props: GameComponentProps) {
 
 export function GameComponentLegacyData(props: GameComponentProps) {
   const { viewId, editable, suggestions, updateGame } = props;
-  const legacyApplicationPath = window.ext.hooks.useAppSelector(selectGameField(viewId, 'legacyApplicationPath'));
-  const legacyLaunchCommand = window.ext.hooks.useAppSelector(selectGameField(viewId, 'legacyLaunchCommand'));
-  const activeDataId = window.ext.hooks.useAppSelector(selectGameField(viewId, 'activeDataId'));
+  const legacyApplicationPath = useAppSelector(selectGameField(viewId, 'legacyApplicationPath'));
+  const legacyLaunchCommand = useAppSelector(selectGameField(viewId, 'legacyLaunchCommand'));
+  const activeDataId = useAppSelector(selectGameField(viewId, 'activeDataId'));
   const lang = useLocalization();
 
   if (!activeDataId) {
@@ -270,7 +271,7 @@ export function GameComponentLegacyData(props: GameComponentProps) {
 
 export function GameComponentAddApps(props: GameComponentProps) {
   const { viewId, gameId, editable, updateGame, launchAddApp } = props;
-  const addApps = window.ext.hooks.useAppSelector(selectGameField(viewId, 'addApps'));
+  const addApps = useAppSelector(selectGameField(viewId, 'addApps'));
   const lang = useLocalization();
 
   const onNewAddAppClick = () => {
@@ -371,7 +372,7 @@ export function GameComponentPlaylistNotes(props: GameComponentProps) {
 
 export function GameComponentNotes(props: GameComponentProps) {
   const { viewId, updateGame } = props;
-  const notes = window.ext.hooks.useAppSelector(selectGameField(viewId, 'notes'));
+  const notes = useAppSelector(selectGameField(viewId, 'notes'));
   const lang = useLocalization();
 
   return (
@@ -387,7 +388,7 @@ export function GameComponentNotes(props: GameComponentProps) {
 
 export function GameComponentRuffleSupport(props: GameComponentProps) {
   const { viewId, editable, updateGame, doSearch } = props;
-  const ruffleSupport = window.ext.hooks.useAppSelector(selectGameField(viewId, 'ruffleSupport'));
+  const ruffleSupport = useAppSelector(selectGameField(viewId, 'ruffleSupport'));
   const lang = useLocalization();
 
   return (
@@ -423,14 +424,14 @@ export function GameComponentRuffleSupport(props: GameComponentProps) {
 
 export function GameComponentTags(props: GameComponentProps) {
   const { viewId, editable, fpfssEditMode, updateGame, doSearch } = props;
-  const detailedTags = window.ext.hooks.useAppSelector(selectGameField(viewId, 'detailedTags'));
-  const tags = window.ext.hooks.useAppSelector(selectGameField(viewId, 'tags'));
+  const detailedTags = useAppSelector(selectGameField(viewId, 'detailedTags'));
+  const tags = useAppSelector(selectGameField(viewId, 'tags'));
   const lang = useLocalization();
   const [currentTagInput, setCurrentTagInput] = useState('');
   const [tagSuggestions, setTagSuggestions] = useState<TagSuggestion[]>([]);
-  const tagFilters = window.ext.hooks.useAppSelector(state => state.preferences.tagFilters);
-  const browsePageShowExtreme = window.ext.hooks.useAppSelector(state => state.preferences.browsePageShowExtreme);
-  const tagCategories = window.ext.hooks.useAppSelector(state => state.tagCategories);
+  const tagFilters = useAppSelector(state => state.preferences.tagFilters);
+  const browsePageShowExtreme = useAppSelector(state => state.preferences.browsePageShowExtreme);
+  const tagCategories = useAppSelector(state => state.tagCategories);
 
   const onCurrentTagChange = (event: React.ChangeEvent<InputElement>) => {
     const newTag = event.currentTarget.value;
@@ -538,12 +539,12 @@ export function GameComponentTags(props: GameComponentProps) {
 
 export function GameComponentPlatforms(props: GameComponentProps) {
   const { viewId, editable, fpfssEditMode, updateGame, doSearch } = props;
-  const platforms = window.ext.hooks.useAppSelector(selectGameField(viewId, 'platforms'));
-  const detailedPlatforms = window.ext.hooks.useAppSelector(selectGameField(viewId, 'detailedPlatforms'));
-  const primaryPlatform = window.ext.hooks.useAppSelector(selectGameField(viewId, 'primaryPlatform'));
+  const platforms = useAppSelector(selectGameField(viewId, 'platforms'));
+  const detailedPlatforms = useAppSelector(selectGameField(viewId, 'detailedPlatforms'));
+  const primaryPlatform = useAppSelector(selectGameField(viewId, 'primaryPlatform'));
   const lang = useLocalization();
-  const logoVersion = window.ext.hooks.useAppSelector(state => state.main.logoVersion);
-  const tagCategories = window.ext.hooks.useAppSelector(state => state.tagCategories);
+  const logoVersion = useAppSelector(state => state.main.logoVersion);
+  const tagCategories = useAppSelector(state => state.tagCategories);
 
   const [currentPlatformInput, setCurrentPlatformInput] = useState('');
   const [platformSuggestions, setPlatformSuggestions] = useState<TagSuggestion[]>([]);

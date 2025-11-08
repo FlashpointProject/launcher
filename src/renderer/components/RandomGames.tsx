@@ -1,4 +1,5 @@
 import { getPointer } from '@renderer/context/MenuContext';
+import { useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useContextMenu } from '@renderer/hooks/useContextMenu';
 import { useLocalization } from '@renderer/hooks/useLocalization';
 import { isGame } from '@shared/utils/misc';
@@ -14,11 +15,11 @@ import { SimpleButton } from './SimpleButton';
 export function RandomGames(props: RandomGamesProps) {
   const strings = useLocalization();
   const { openGameContextMenu } = useContextMenu();
-  const logoVersion = window.ext.hooks.useAppSelector(state => state.main.logoVersion);
-  const screenshotPreviewMode = window.ext.hooks.useAppSelector(state => state.preferences.screenshotPreviewMode);
-  const screenshotPreviewDelay = window.ext.hooks.useAppSelector(state => state.preferences.screenshotPreviewDelay);
-  const hideExtremeScreenshots = window.ext.hooks.useAppSelector(state => state.preferences.hideExtremeScreenshots);
-  const tagFilters = window.ext.hooks.useAppSelector(state => state.preferences.tagFilters);
+  const logoVersion = useAppSelector(state => state.main.logoVersion);
+  const screenshotPreviewMode = useAppSelector(state => state.preferences.screenshotPreviewMode);
+  const screenshotPreviewDelay = useAppSelector(state => state.preferences.screenshotPreviewDelay);
+  const hideExtremeScreenshots = useAppSelector(state => state.preferences.hideExtremeScreenshots);
+  const tagFilters = useAppSelector(state => state.preferences.tagFilters);
   const extremeTags = tagFilters.filter(tfg => !tfg.enabled && tfg.extreme).reduce<string[]>((prev, cur) => prev.concat(cur.tags), []);
   const [firstLoad, setFirstLoad] = useState(false);
 

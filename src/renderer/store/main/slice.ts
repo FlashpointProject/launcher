@@ -6,7 +6,7 @@ import { createLangContainer } from '@shared/lang';
 import { deepCopy, recursiveReplace } from '@shared/Util';
 import * as axiosImport from 'axios';
 import { AppExtConfigData, ComponentStatus, CreditsData, DialogFieldProps, DialogState, ExtensionContribution, Game, GameData, GameMetadataSource, GameOfTheDay, IExtensionDescription, ILogoSet, IService, ITheme, LangContainer, LangFile, MetaUpdateState, PlatformAppPathSuggestions, Playlist, PlaylistGame, ViewGame } from 'flashpoint-launcher';
-import { CustomRoute, DisplaySettings, DynamicPageProps, ExtOrderable } from 'flashpoint-launcher-renderer';
+import { CustomRoute, DisplaySettings, DisplaySettingsGameSidebarAction, DynamicPageProps, ExtOrderable } from 'flashpoint-launcher-renderer';
 
 export const RANDOM_GAME_ROW_COUNT = 6;
 
@@ -420,10 +420,24 @@ const mainSlice = createSlice({
         state.services.splice(serviceIdx, 1);
       }
     },
-    dsAddCustomRoute(state: MainState, { payload }: PayloadAction<CustomRoute>) {
+    AddCustomRoute(state: MainState, { payload }: PayloadAction<CustomRoute>) {
       const existingIdx = state.displaySettings.customRoutes.findIndex(r => r.path === payload.path);
       if (existingIdx === -1) {
         state.displaySettings.customRoutes.push(payload);
+      }
+    },
+    AddGameSidebarComponent(state: MainState, { payload }: PayloadAction<DisplaySettingsGameSidebarAction>) {
+      const section = state.displaySettings.gameSidebar[payload.section];
+      const existingIdx = section.findIndex(r => r === payload.name);
+      if (existingIdx === -1) {
+        section.push(payload.name);
+      }
+    },
+    RemoveGameSidebarComponent(state: MainState, { payload }: PayloadAction<DisplaySettingsGameSidebarAction>) {
+      const section = state.displaySettings.gameSidebar[payload.section];
+      const existingIdx = section.findIndex(r => r === payload.name);
+      if (existingIdx !== -1) {
+        section.splice(existingIdx, 1);
       }
     },
     setDisplaySettingsFromCallback(state: MainState, { payload }: PayloadAction<DisplaySettingsCallback>) {
@@ -485,7 +499,9 @@ export const { setMainState,
   openDynamicPage,
   changeService,
   removeService,
-  dsAddCustomRoute,
+  AddCustomRoute,
+  AddGameSidebarComponent,
+  RemoveGameSidebarComponent,
   setDisplaySettingsFromCallback,
   setExtOrderablesFromCallback,
   setUpdateInfo,
