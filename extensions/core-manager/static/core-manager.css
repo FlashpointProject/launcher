@@ -1,0 +1,69 @@
+.manager-page {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
+.manager-page-sidebar {
+  background-color: var(--layout__primary-background);
+  height: 100%;
+  width: 15rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.manager-page-subsection-header,
+.manager-page-sidebar-header {
+  font-weight: 400;
+  font-size: 1.2em;
+  align-self: center;
+  margin-top: 0.2rem;
+  margin-bottom: 0.2rem;
+}
+
+.manager-page-sidebar-list {
+  flex-grow: 1;
+}
+
+.manager-page-subsection-wrapper {
+  flex-grow: 1;
+}
+
+.manager-page-subsection {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem
+}
+
+.manager-page-subsection-list {
+  flex-grow: 1;
+}
+
+.manager-extension-row {
+  padding: 0.5rem;
+  color: var(--layout__game-item-color);
+  background-color: var(--layout__primary-background);
+}
+
+.manager-extension-row-top {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.manager-extension-row--even {
+  background-color: var(--layout__game-list-item-background-even);
+}
+
+.manager-extension-row-title {
+  font-size: 1.2em;
+  font-weight: 400;
+}
+
+.manager-extension-row-inner {
+  padding: 0.2rem
+}

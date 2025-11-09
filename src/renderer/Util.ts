@@ -365,3 +365,7 @@ export async function launchGame(dispatch: AppDispatch, gameId: string, override
     dispatch(unmarkGameBusy(gameId));
   });
 }
+
+export function setExtensionEnabled(extId: string, enabled: boolean) {
+  window.Shared.back.send(BackIn.SET_EXTENSION_ENABLED, extId, enabled);
+}

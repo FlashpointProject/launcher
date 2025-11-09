@@ -420,20 +420,26 @@ const mainSlice = createSlice({
         state.services.splice(serviceIdx, 1);
       }
     },
-    AddCustomRoute(state: MainState, { payload }: PayloadAction<CustomRoute>) {
+    addCustomRoute(state: MainState, { payload }: PayloadAction<CustomRoute>) {
       const existingIdx = state.displaySettings.customRoutes.findIndex(r => r.path === payload.path);
       if (existingIdx === -1) {
         state.displaySettings.customRoutes.push(payload);
       }
     },
-    AddGameSidebarComponent(state: MainState, { payload }: PayloadAction<DisplaySettingsGameSidebarAction>) {
+    removeCustomRoute(state: MainState, { payload }: PayloadAction<CustomRoute>) {
+      const existingIdx = state.displaySettings.customRoutes.findIndex(r => r.path === payload.path);
+      if (existingIdx >= 0) {
+        state.displaySettings.customRoutes.splice(existingIdx);
+      }
+    },
+    addGameSidebarComponent(state: MainState, { payload }: PayloadAction<DisplaySettingsGameSidebarAction>) {
       const section = state.displaySettings.gameSidebar[payload.section];
       const existingIdx = section.findIndex(r => r === payload.name);
       if (existingIdx === -1) {
         section.push(payload.name);
       }
     },
-    RemoveGameSidebarComponent(state: MainState, { payload }: PayloadAction<DisplaySettingsGameSidebarAction>) {
+    removeGameSidebarComponent(state: MainState, { payload }: PayloadAction<DisplaySettingsGameSidebarAction>) {
       const section = state.displaySettings.gameSidebar[payload.section];
       const existingIdx = section.findIndex(r => r === payload.name);
       if (existingIdx !== -1) {
@@ -499,9 +505,10 @@ export const { setMainState,
   openDynamicPage,
   changeService,
   removeService,
-  AddCustomRoute,
-  AddGameSidebarComponent,
-  RemoveGameSidebarComponent,
+  addCustomRoute,
+  removeCustomRoute,
+  addGameSidebarComponent,
+  removeGameSidebarComponent,
   setDisplaySettingsFromCallback,
   setExtOrderablesFromCallback,
   setUpdateInfo,

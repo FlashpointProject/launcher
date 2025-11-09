@@ -32,6 +32,11 @@ export type RenameStoredViewAction = {
   new: string;
 }
 
+type ExtStateAction = {
+  extId: string;
+  enabled: boolean
+};
+
 const prefsSlice = createSlice({
   name: 'preferences',
   initialState,
@@ -152,6 +157,14 @@ const prefsSlice = createSlice({
       if (idx > -1) {
         state.storedViews.splice(idx, 1);
       }
+    },
+    setExtState(state: AppPreferencesData, { payload }: PayloadAction<ExtStateAction>) {
+      const disabledIdx = state.disabledExtensions.findIndex(e => e === payload.extId);
+      if (payload.enabled && disabledIdx >= 0) {
+        state.disabledExtensions.splice(disabledIdx);
+      } else if (!payload.enabled && disabledIdx === -1) {
+        state.disabledExtensions.push(payload.extId);
+      }
     }
   }
 });
@@ -174,5 +187,6 @@ export const {
   setLogoSet,
   renameStoredView,
   deleteStoredView,
+  setExtState,
 } = prefsSlice.actions;
 export default prefsSlice.reducer;

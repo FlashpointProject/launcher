@@ -1482,6 +1482,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         PreferencesFile.saveFile(path.join(state.config.flashpointPath, PREFERENCES_FILENAME), state.preferences, state);
       });
     }
+    state.socketServer.broadcast(BackOut.UPDATE_EXTENSION_STATE, extId, newState);
   });
 
   state.socketServer.register(BackIn.UPDATE_PREFERENCES, async (event, data) => {

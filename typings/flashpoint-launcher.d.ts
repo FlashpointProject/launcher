@@ -3384,6 +3384,15 @@ declare module 'flashpoint-launcher-renderer' {
     children: ReactNode;
   }
 
+  type InputProps = React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>;
+
+  type SimpleButtonProps = Omit<InputProps, 'type'>;
+
+  type CheckBoxProps = Omit<InputProps, 'type' | 'onToggle'> & {
+    /** Called when the checkbox becomes checked or unchecked. This is called right after "onChange". */
+    onToggle?: (isChecked: boolean) => void;
+  };
+
   declare global {
     interface Window {
       log: LogFuncs;
@@ -3403,6 +3412,7 @@ declare module 'flashpoint-launcher-renderer-ext/utils' {
   const getPointer: (event: React.MouseEvent<any>) => Pointer;
   const idToGame: (gameId: string) => Promise<Game | null>;
   const runCommand: (command: string, args?: any[]) => Promise<RunCommandResponse>;
+  const setExtensionEnabled: (extId: string, enabled: boolean) => void;
 }
 
 declare module 'flashpoint-launcher-renderer-ext/search' {
@@ -3418,12 +3428,14 @@ declare module 'flashpoint-launcher-renderer-ext/components' {
   import {
     BrowsePageDisplayGridProps,
     BrowsePageDisplayListProps,
+    CheckBoxProps,
     GameComponentDropdownSelectFieldProps,
     GameComponentInputFieldProps,
     HomePageBoxProps,
     LeftSidebarProps,
     RandomGamesProps,
     SearchableSelectProps,
+    SimpleButtonProps,
     SizeProviderProps,
     SortableColumnProps,
     StateWrapperProps,
@@ -3444,6 +3456,8 @@ declare module 'flashpoint-launcher-renderer-ext/components' {
   const LeftSidebar: ComponentType<LeftSidebarProps>;
   /** Like React Activity, hides the component instead of unmounting it to keep its state, however it does not preload the component */
   const StateWrapper: ComponentType<StateWrapperProps>;
+  const SimpleButton: ComponentType<SimpleButtonProps>;
+  const CheckBox: ComponentType<CheckBoxProps>;
 }
 
 declare module 'flashpoint-launcher-renderer-ext/hooks' {
@@ -3466,10 +3480,11 @@ declare module 'flashpoint-launcher-renderer-ext/actions/main' {
   import { ActionCreatorWithPayload } from '@reduxjs/toolkit';
   import {
     CustomRoute,
-    DisplaySettingsGameSidebarAction
+    DisplaySettingsGameSidebarAction,
   } from 'flashpoint-launcher-renderer';
 
-  const AddCustomRoute: ActionCreatorWithPayload<CustomRoute>;
-  const AddGameSidebarComponent: ActionCreatorWithPayload<DisplaySettingsGameSidebarAction>;
-  const RemoveGameSidebarComponent: ActionCreatorWithPayload<DisplaySettingsGameSidebarAction>;
+  const addCustomRoute: ActionCreatorWithPayload<CustomRoute>;
+  const removeCustomRoute: ActionCreatorWithPayload<CustomRoute>;
+  const addGameSidebarComponent: ActionCreatorWithPayload<DisplaySettingsGameSidebarAction>;
+  const removeGameSidebarComponent: ActionCreatorWithPayload<DisplaySettingsGameSidebarAction>;
 }

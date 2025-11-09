@@ -9,8 +9,8 @@ import { setDownloaderState, updateDownloaderStatus, updateDownloaderTask, updat
 import { setFpfssUser } from '@renderer/store/fpfss/slice';
 import { pushHistory } from '@renderer/store/history/slice';
 import { addLogEntries, setEntries } from '@renderer/store/logs/slice';
-import { AddCustomRoute, AddGameSidebarComponent, addLoaded, cancelDialog, changeService, createDialog, openDynamicPage, RemoveGameSidebarComponent, removeService, setExtOrderablesFromCallback, setMainState, setUpdateInfo, updateDialog, updateDialogField, updateMetadataSource } from '@renderer/store/main/slice';
-import { setPreferences, updatePreferences } from '@renderer/store/preferences/slice';
+import { addCustomRoute, addGameSidebarComponent, addLoaded, cancelDialog, changeService, createDialog, openDynamicPage, removeCustomRoute, removeGameSidebarComponent, removeService, setExtOrderablesFromCallback, setMainState, setUpdateInfo, updateDialog, updateDialogField, updateMetadataSource } from '@renderer/store/main/slice';
+import { setExtState, setPreferences, updatePreferences } from '@renderer/store/preferences/slice';
 import { addData, createViews, GENERAL_VIEW_ID, resetDropdownData } from '@renderer/store/search/slice';
 import store, { AppDispatch, RootState } from '@renderer/store/store';
 import { setTagCategories } from '@renderer/store/tagCategories/slice';
@@ -30,10 +30,11 @@ import * as React from 'react';
 import { Activity, useState } from 'react';
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
-import { axios } from '../Util';
+import { axios, setExtensionEnabled } from '../Util';
 import { LangContext } from '../util/lang';
 import { ActivityRoutes, StateWrapper } from './ActivityRoutes';
 import { BrowsePageDisplayGrid, BrowsePageDisplayList } from './BrowsePageDisplay';
+import { CheckBox } from './CheckBox';
 import { Dialog } from './Dialog';
 import { GameComponentDropdownSelectField, GameComponentInputField } from './DisplayComponent';
 import { DynamicComponent } from './DynamicComponent';
@@ -422,6 +423,7 @@ function addExtIntercepts() {
     runCommand: (command, args) => {
       return window.Shared.back.request(BackIn.RUN_COMMAND, command, args);
     },
+    setExtensionEnabled,
   } satisfies typeof import('flashpoint-launcher-renderer-ext/utils');
 
   (window as any)['flashpoint-launcher-renderer-ext/search'] = {
@@ -443,6 +445,8 @@ function addExtIntercepts() {
     BrowsePageDisplayList,
     LeftSidebar,
     StateWrapper,
+    SimpleButton,
+    CheckBox,
   } satisfies typeof import('flashpoint-launcher-renderer-ext/components');
 
   (window as any)['flashpoint-launcher-renderer-ext/hooks'] = {
@@ -455,9 +459,10 @@ function addExtIntercepts() {
   } satisfies typeof import('flashpoint-launcher-renderer-ext/hooks');
 
   (window as any)['flashpoint-launcher-renderer-ext/actions/main'] = {
-    AddCustomRoute,
-    AddGameSidebarComponent,
-    RemoveGameSidebarComponent,
+    addCustomRoute,
+    removeCustomRoute,
+    addGameSidebarComponent,
+    removeGameSidebarComponent,
   } satisfies typeof import('flashpoint-launcher-renderer-ext/actions/main');
 }
 
@@ -939,6 +944,13 @@ function registerWebsocketListeners(dispatch: AppDispatch) {
 
   window.Shared.back.register(BackOut.OPEN_DYNAMIC_PAGE, async (event, name, props) => {
     dispatch(openDynamicPage({ name, props }));
+  });
+
+  window.Shared.back.register(BackOut.UPDATE_EXTENSION_STATE, async (event, extId, enabled) => {
+    dispatch(setExtState({
+      extId,
+      enabled
+    }));
   });
 
   window.Shared.back.request(BackIn.INIT_LISTEN)

@@ -47,12 +47,13 @@ import {
   TagCategory,
   TagFilterGroup,
   TagSuggestion,
+  Task,
   ViewGame
 } from 'flashpoint-launcher';
+import { UpdateOptions } from 'react-toastify';
 import { LogLevel } from '../Log/interface';
 import { Theme } from '../ThemeFile';
-import { ExecMapping, GamePropSuggestions, ProcessAction, Task } from '../interfaces';
-import { UpdateOptions } from 'react-toastify';
+import { ExecMapping, GamePropSuggestions, ProcessAction } from '../interfaces';
 
 export enum BackIn {
   UNKNOWN = 1000,
@@ -316,6 +317,8 @@ export enum BackOut {
   CANCEL_TOAST,
 
   OPEN_DYNAMIC_PAGE,
+
+  UPDATE_EXTENSION_STATE,
 
   FPFSS_ACTION
 }
@@ -582,6 +585,8 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.CANCEL_TOAST]: (toastId: string) => void;
 
   [BackOut.OPEN_DYNAMIC_PAGE]: (componentName: string, props: any) => void;
+
+  [BackOut.UPDATE_EXTENSION_STATE]: (extId: string, enabled: boolean) => void;
 
   [BackOut.FPFSS_ACTION]: (extId: string) => FpfssUser | undefined;
 }>

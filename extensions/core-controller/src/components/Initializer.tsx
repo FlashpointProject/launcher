@@ -1,20 +1,23 @@
-import { AddGameSidebarComponent } from 'flashpoint-launcher-renderer-ext/actions/main';
+import { addGameSidebarComponent, removeGameSidebarComponent } from 'flashpoint-launcher-renderer-ext/actions/main';
 import { useAppDispatch } from 'flashpoint-launcher-renderer-ext/hooks';
-import { useState } from 'react';
+import { useEffect } from 'react';
 
 export default function Initializer() {
-  const [initialized, setInitialized] = useState(false);
   const dispatch = useAppDispatch();
 
-  // Perform frontend init functions
-  if (!initialized) {
-    setInitialized(true);
-
-    dispatch(AddGameSidebarComponent({
+  useEffect(() => {
+    dispatch(addGameSidebarComponent({
       section: 'bottom',
       name: 'core_controller/ControllerSupport'
     }));
-  }
+
+    return () => {
+      dispatch(removeGameSidebarComponent({
+        section: 'bottom',
+        name: 'core_controller/ControllerSupport'
+      }));
+    };
+  });
 
   return <></>;
 }
