@@ -2179,6 +2179,12 @@ body {
   margin: 0 auto;
 }
 
+/* --- Left Sidebar --- */
+.leftsidebar {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
 
 /* ------ Playlist ------ */
 .playlist-list__message {

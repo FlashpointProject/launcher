@@ -8,11 +8,10 @@ import { axios, getCurationPostURL, getPlatformIconURL, openUrlInWindow } from '
 import { BackIn } from '@shared/back/types';
 import { EditCurationMeta } from '@shared/curate/OLD_types';
 import { eventResponseDebouncerFactory } from '@shared/eventResponseDebouncer';
-import { Task } from '@shared/interfaces';
 import { getFileServerURL } from '@shared/Util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { uuid } from '@shared/utils/uuid';
-import { AppPreferencesData, CurationState, GameLaunchOverride, TagSuggestion } from 'flashpoint-launcher';
+import { AppPreferencesData, CurationState, GameLaunchOverride, TagSuggestion, Task } from 'flashpoint-launcher';
 import * as path from 'node:path';
 import * as React from 'react';
 import { useShortcut } from 'react-keybind';

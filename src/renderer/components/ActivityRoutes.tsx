@@ -1,6 +1,6 @@
 import { Paths } from '@shared/Paths';
-import { CustomRoute } from 'flashpoint-launcher-renderer';
-import { Activity, ReactNode } from 'react';
+import { CustomRoute, StateWrapperProps } from 'flashpoint-launcher-renderer';
+import { Activity, ReactNode, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { DynamicComponent } from './DynamicComponent';
 import { CuratePage } from './pages/CuratePage';
@@ -58,7 +58,25 @@ function ActivityRoute({ path, children, exact }: ActivityRouteProps) {
     pathname.startsWith(path);
 
   return (
-    <Activity mode={showChildren ? 'visible' : 'hidden'}>
+    <StateWrapper show={showChildren}>
+      {children}
+    </StateWrapper>
+  );
+}
+
+export function StateWrapper({ show, children }: StateWrapperProps) {
+  const [shownOnce, setShownOnce] = useState(false);
+
+  if (!shownOnce && !show) {
+    return <></>;
+  }
+
+  if (!shownOnce && show) {
+    setShownOnce(true);
+  }
+
+  return (
+    <Activity mode={show ? 'visible' : 'hidden'}>
       {children}
     </Activity>
   );

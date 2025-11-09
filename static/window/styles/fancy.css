@@ -977,15 +977,23 @@ body {
   filter: drop-shadow(1px 1px 4px var(--layout__game-grid-icon-shadow));
 }
 
-
 /* Playlist Item */
+.leftsidebar-item,
 .playlist-list-item {
   background-color: var(--layout__primary-background);
   color: var(--layout__secondary-text-color);
 }
+.leftsidebar-item:nth-child(2n),
 .playlist-list-item:nth-child(2n) {
   background-color: var(--layout__playlist-list-item-even-background);
 }
+.leftsidebar-item--selected {
+  background-color: var(--layout__game-item-background-selected) !important;
+}
+.leftsidebar-item-title--selected {
+  color: var(--layout__playlist-list-item-hover-color);
+}
+.leftsidebar-item:hover,
 .playlist-list-item:hover,
 .playlist-list-item.playlist-list-item--drag-over {
   background-color: var(--layout__playlist-list-item-drag-over-background);

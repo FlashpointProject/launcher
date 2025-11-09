@@ -32,8 +32,8 @@ import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import { axios } from '../Util';
 import { LangContext } from '../util/lang';
-import { ActivityRoutes } from './ActivityRoutes';
-import { BrowsePageDisplayGrid } from './BrowsePageDisplay';
+import { ActivityRoutes, StateWrapper } from './ActivityRoutes';
+import { BrowsePageDisplayGrid, BrowsePageDisplayList } from './BrowsePageDisplay';
 import { Dialog } from './Dialog';
 import { GameComponentDropdownSelectField, GameComponentInputField } from './DisplayComponent';
 import { DynamicComponent } from './DynamicComponent';
@@ -44,6 +44,7 @@ import { Footer } from './Footer';
 import { SortableColumn } from './GameListHeader';
 import { Header } from './Header';
 import { HomePageBox } from './HomePageBox';
+import { LeftSidebar } from './LeftSidebar';
 import { AboutPage } from './pages/AboutPage';
 import { BrowsePage } from './pages/BrowsePage';
 import { ConfigPage } from './pages/ConfigPage';
@@ -439,10 +440,14 @@ function addExtIntercepts() {
     SizeProvider,
     RandomGames,
     BrowsePageDisplayGrid,
+    BrowsePageDisplayList,
+    LeftSidebar,
+    StateWrapper,
   } satisfies typeof import('flashpoint-launcher-renderer-ext/components');
 
   (window as any)['flashpoint-launcher-renderer-ext/hooks'] = {
     useNavigate,
+    useLocation,
     useAppDispatch,
     useAppSelector,
     useContextMenu,

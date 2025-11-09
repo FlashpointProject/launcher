@@ -1,6 +1,7 @@
 import { useAppSelector } from '@renderer/hooks/useAppSelector';
-import { logsActions, LogsState } from '@renderer/store/logs/slice';
+import { logsActions } from '@renderer/store/logs/slice';
 import { Subtract } from '@shared/interfaces';
+import { LogsState } from 'flashpoint-launcher-renderer';
 import { useDispatch } from 'react-redux';
 import { bindActionCreators, Dispatch } from 'redux';
 

@@ -146,12 +146,3 @@ export type SuggestionProps = (
 export type GamePropSuggestions = {
   [P in SuggestionProps]: string[];
 }
-
-export type Task = {
-  id: string;
-  name: string;
-  status: string;
-  finished: boolean;
-  error?: string;
-  progress?: number;
-}

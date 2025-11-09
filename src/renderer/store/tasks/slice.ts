@@ -1,10 +1,6 @@
-import { Task } from '@shared/interfaces';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-
-type TaskState = {
-  tasks: Task[];
-  taskBarOpen: boolean;
-}
+import { Task } from 'flashpoint-launcher';
+import { TaskState } from 'flashpoint-launcher-renderer';
 
 const initialState: TaskState = {
   tasks: [],

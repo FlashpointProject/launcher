@@ -2862,6 +2862,15 @@ declare module 'flashpoint-launcher' {
       extId: string;
       value: Contributions[T];
     }
+
+    type Task = {
+      id: string;
+      name: string;
+      status: string;
+      finished: boolean;
+      error?: string;
+      progress?: number;
+    }
 }
 
 declare module 'flashpoint-launcher-renderer' {
@@ -2882,6 +2891,7 @@ declare module 'flashpoint-launcher-renderer' {
     GameOfTheDay,
     GameOrderBy, GameOrderReverse,
     IExtensionDescription,
+    ILogEntry,
     ILogoSet,
     IService,
     ITheme,
@@ -2891,8 +2901,11 @@ declare module 'flashpoint-launcher-renderer' {
     Playlist,
     PlaylistGame,
     ResultsView,
-    Tag, ViewGame
+    Tag,
+    Task,
+    ViewGame,
   } from 'flashpoint-launcher';
+  import { ReactNode } from 'react';
 
   /** Game properties that will have suggestions gathered and displayed. */
   type SuggestionProps = (
@@ -2997,10 +3010,6 @@ declare module 'flashpoint-launcher-renderer' {
     isDragged: boolean;
   }
 
-  interface NavigateFunction {
-    (delta: number): void | Promise<void>;
-  }
-
   type GameListColumnInfoIcon = {
     headerComponent: string;
     rowComponent: string;
@@ -3017,19 +3026,29 @@ declare module 'flashpoint-launcher-renderer' {
   type GameListColumnInfo = GameListColumnInfoIcon | GameListColumnInfoNormal
 
   type CustomHeaderItemProps = {
+    /** CSS key for the header item */
     id?: string;
+    /** Name of tab */
     title: string;
+    /** URL pathname (e.g /help, /curate) */
     link: string;
   }
 
+  /** Custom Route to extension page */
   type CustomRoute = {
     headerItem?: {
+      /** CSS key for the header item */
       id: string;
+      /** Name of tab */
       title: string;
+      /** (Optional) Use a custom header item component */
       component?: string,
     };
+    /** URL pathname (e.g /help, /curate) */
     path: string;
+    /** Like React Activity, hides component instead of unmounting, saving the state. However does not preload page. */
     keepLoaded?: boolean;
+    /** Page component to route to */
     component: string;
   }
 
@@ -3111,12 +3130,6 @@ declare module 'flashpoint-launcher-renderer' {
     info:  LogFunc;
     warn:  LogFunc;
     error: LogFunc;
-  }
-
-  type Location = {
-    pathname: string;
-    search: string;
-    hash: string;
   }
 
   type HistoryState = {
@@ -3255,14 +3268,25 @@ declare module 'flashpoint-launcher-renderer' {
     extOrderables: ExtOrderable[];
   }
 
+  type LogsState = {
+    offset: number;
+    longestSource: number;
+    entries: ILogEntry[];
+  }
+
+  type TaskState = {
+    tasks: Task[];
+    taskBarOpen: boolean;
+  }
+
   type RootState = {
     curate: CurateState;
     fpfss: any;
     main: MainState;
     search: SearchState;
     tagCategories: TagCategory[];
-    tasks: any;
-    logs: any;
+    tasks: TaskState;
+    logs: LogsState;
     downloads: any;
     preferences: AppPreferencesData;
     history: HistoryState;
@@ -3341,6 +3365,25 @@ declare module 'flashpoint-launcher-renderer' {
     res: any;
   }
 
+  type LeftSidebarProps = {
+    items: LeftSidebarItem[];
+    rowHeight: number;
+    selected?: string;
+    onSelect?: (key: string) => void;
+  }
+
+  type LeftSidebarItem = {
+    key: string;
+    title: string;
+    icon?: JSX.Element;
+  }
+
+  type StateWrapperProps = {
+    // Show children
+    show: boolean;
+    children: ReactNode;
+  }
+
   declare global {
     interface Window {
       log: LogFuncs;
@@ -3374,37 +3417,48 @@ declare module 'flashpoint-launcher-renderer-ext/search' {
 declare module 'flashpoint-launcher-renderer-ext/components' {
   import {
     BrowsePageDisplayGridProps,
+    BrowsePageDisplayListProps,
     GameComponentDropdownSelectFieldProps,
     GameComponentInputFieldProps,
     HomePageBoxProps,
+    LeftSidebarProps,
     RandomGamesProps,
     SearchableSelectProps,
     SizeProviderProps,
-    SortableColumnProps
+    SortableColumnProps,
+    StateWrapperProps,
   } from 'flashpoint-launcher-renderer';
-  import { React } from 'react';
+  import { ComponentType } from 'react';
 
-  const GameComponentInputField: React.ComponentType<GameComponentInputFieldProps>;
-  const GameComponentDropdownSelectField: React.ComponentType<GameComponentDropdownSelectFieldProps>;
-  const SearchableSelect: React.ComponentType<SearchableSelectProps<any>>;
-  const SortableColumn: React.ComponentType<SortableColumnProps>;
-  const HomePageBox: React.ComponentType<HomePageBoxProps>;
-  const SizeProvider: React.ComponentType<SizeProviderProps>;
-  const RandomGames: React.ComponentType<RandomGamesProps>;
-  const BrowsePageDisplayGrid: React.ComponentType<BrowsePageDisplayGridProps>;
+  const GameComponentInputField: ComponentType<GameComponentInputFieldProps>;
+  const GameComponentDropdownSelectField: ComponentType<GameComponentDropdownSelectFieldProps>;
+  const SearchableSelect: ComponentType<SearchableSelectProps<any>>;
+  const SortableColumn: ComponentType<SortableColumnProps>;
+  const HomePageBox: ComponentType<HomePageBoxProps>;
+  /** Sets the --width and --height css properties for any children */
+  const SizeProvider: ComponentType<SizeProviderProps>;
+  const RandomGames: ComponentType<RandomGamesProps>;
+  const BrowsePageDisplayList: ComponentType<BrowsePageDisplayListProps>;
+  const BrowsePageDisplayGrid: ComponentType<BrowsePageDisplayGridProps>;
+  /** Generic Left Sidebar */
+  const LeftSidebar: ComponentType<LeftSidebarProps>;
+  /** Like React Activity, hides the component instead of unmounting it to keep its state, however it does not preload the component */
+  const StateWrapper: ComponentType<StateWrapperProps>;
 }
 
 declare module 'flashpoint-launcher-renderer-ext/hooks' {
   import { ThunkDispatch } from '@reduxjs/toolkit';
   import { LangContainer } from 'flashpoint-launcher';
-  import { MenuContextStateProps, NavigateFunction, RootState } from 'flashpoint-launcher-renderer';
-  import { TypedUseSelectorHook, } from 'react-redux';
+  import { MenuContextStateProps, RootState } from 'flashpoint-launcher-renderer';
+  import { TypedUseSelectorHook } from 'react-redux';
+  import { Location, NavigateFunction } from 'react-router-dom';
 
   const useNavigate: () => NavigateFunction;
+  const useLocation: () => Location;
   const useAppDispatch: () => ThunkDispatch;
   const useAppSelector: TypedUseSelectorHook<RootState>;
   const useContextMenu: () => MenuContextStateProps;
-  const useLocalization:() => LangContainer;
+  const useLocalization: () => LangContainer;
 }
 
 
