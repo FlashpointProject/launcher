@@ -1,13 +1,13 @@
 import { Barrier } from '@back/util/async';
 import { Disposable, dispose, newDisposable } from '@back/util/lifecycle';
 import { TernarySearchTree } from '@back/util/map';
+import { AppConfigData, Contributions, ExtensionContribution, ILogEntry } from 'flashpoint-launcher';
+import * as path from 'node:path';
 import { IExtension } from '../../shared/extensions/interfaces';
 import { scanExtensions, scanSystemExtensions } from './ExtensionsScanner';
 import { getExtensionEntry, newExtLog } from './ExtensionUtils';
-import { ExtensionContext, ExtensionData, ExtensionModule } from './types';
-import * as path from 'node:path';
-import { AppConfigData, Contributions, ExtensionContribution, ILogEntry } from 'flashpoint-launcher';
 import { installNodeInterceptor, InterceptorState } from './NodeInterceptor';
+import { ExtensionContext, ExtensionData, ExtensionModule } from './types';
 
 export class ExtensionService {
   /** Stores unchanging Extension data */
@@ -44,6 +44,19 @@ export class ExtensionService {
     const exts = await scanExtensions(this._configData, this._extensionPath);
     exts.forEach(e => this._extensions.push(e));
     this.installedExtensionsReady.open();
+  }
+
+  async scanForNewExtensions(): Promise<IExtension[]> {
+    if (!this.installedExtensionsReady.isOpen()) {
+      // Called before init complete, it's already scanning
+      return [];
+    }
+    const exts = (await scanExtensions(this._configData, this._extensionPath))
+    .filter(ext => this._extensions.findIndex(e => e.id === ext.id) === -1);
+    for (const ext of exts) {
+      this._extensions.push(ext);
+    }
+    return exts;
   }
 
   async installInterceptor(state: InterceptorState) {

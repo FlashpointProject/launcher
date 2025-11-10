@@ -227,7 +227,10 @@ export function MenuProvider({ children }: MenuContextProps) {
             onClick: () => {
               window.Shared.back.request(BackIn.GET_GAME, gameId)
               .then((game) => {
-                window.Shared.back.request(BackIn.RUN_COMMAND, contextButton.command, [game]);
+                window.Shared.back.request(BackIn.RUN_COMMAND, contextButton.command, game)
+                .catch((error) => {
+                  log.error('Launcher', `Failed to run Ext Game command '${contextButton.command}': ${error}`);
+                });
               });
             }
           });

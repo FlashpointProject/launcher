@@ -44,8 +44,24 @@
 
 .manager-extension-row {
   padding: 0.5rem;
+  display: flex;
+  flex-direction: row;
   color: var(--layout__game-item-color);
   background-color: var(--layout__primary-background);
+}
+
+.manager-extension-row-icon {
+  width: 3rem;
+  padding-right: 0.3rem;
+}
+
+.manager-extension-row-icon > * {
+  width: 100%;
+  max-height: 100%;
+}
+
+.manager-extension-row-content {
+  flex-grow: 1;
 }
 
 .manager-extension-row-top {

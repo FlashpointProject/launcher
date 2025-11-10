@@ -3,6 +3,7 @@
   "displayName": "Ruffle",
   "description": "Required for Ruffle playback of Flash games",
   "version": "1.0.0",
+  "icon": "icon.png",
   "main": "./dist/extension.js",
   "contributes": {
     "moduleFederation": [

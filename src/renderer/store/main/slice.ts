@@ -482,6 +482,14 @@ const mainSlice = createSlice({
           total: 0
         };
       }
+    },
+    addNewExtension(state: MainState, { payload }: PayloadAction<IExtensionDescription>) {
+      const existingIdx = state.extensions.findIndex(e => e.id === payload.id);
+      if (existingIdx === -1) {
+        state.extensions.push(payload);
+      } else {
+        state.extensions[existingIdx] = payload;
+      }
     }
   },
 });
@@ -514,6 +522,7 @@ export const { setMainState,
   setUpdateInfo,
   updatePlaylist,
   updateMetadataSource,
+  addNewExtension,
 } = mainSlice.actions;
 export default mainSlice.reducer;
 

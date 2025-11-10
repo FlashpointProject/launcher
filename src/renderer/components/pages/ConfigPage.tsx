@@ -1028,7 +1028,12 @@ function renderExtConfigProp(key: string, prop: ExtConfigurationProp, value: any
           title={prop.title}
           description={prop.description}
           value='Run'
-          onClick={() => window.Shared.back.request(BackIn.RUN_COMMAND, prop.command || '')}/>
+          onClick={() => {
+            window.Shared.back.request(BackIn.RUN_COMMAND, prop.command || '')
+            .catch((error) => {
+              log.error('Launcher', `Failed to run Ext Config command '${prop.command}': ${error}`);
+            });
+          }}/>
       );
     }
     case 'boolean':

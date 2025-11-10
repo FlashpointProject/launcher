@@ -419,7 +419,10 @@ export function CuratePage() {
   const disabled = !curation;
 
   const runExtCommand = (command: string) => {
-    window.Shared.back.send(BackIn.RUN_COMMAND, command, [curation, curate.selected]);
+    window.Shared.back.request(BackIn.RUN_COMMAND, command, curation, curate.selected)
+    .catch((error) => {
+      log.error('Launcher', `Failed to run Ext Curate command '${command}': ${error}`);
+    });
   };
 
   // Gen extension buttons

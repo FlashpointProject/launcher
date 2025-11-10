@@ -42,7 +42,7 @@ export default defineConfig({
         assetPrefix: 'auto',
         minify: false,
         cleanDistPath: {
-          keep: [/assets*/, /\.css/, /\.svg/, /templates*/],
+          keep: [/assets*/, /\.css/, /\.svg/, /\.png/, /templates*/],
         }
       },
     }

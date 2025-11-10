@@ -4,6 +4,7 @@
     "description": "Enables individual game mapping of controller to keyboard inputs",
     "version": "1.0.0",
     "main": "./dist/extension.js",
+    "icon": "icon.svg",
     "contributes": {
         "moduleFederation": [
             {

@@ -19,8 +19,8 @@ import * as fs from 'fs-extra';
 import * as http from 'http';
 import * as mime from 'mime';
 import { Progress, add, extractFull } from 'node-7z';
-import * as os from 'os';
 import * as path from 'node:path';
+import * as os from 'os';
 import 'reflect-metadata';
 import { genCurationWarnings, loadCurationFolder } from './curate/util';
 // Required for the DB Models to function
@@ -32,6 +32,7 @@ import {
   CURATIONS_FOLDER_WORKING, CURATION_META_FILENAMES
 } from '@shared/constants';
 import { formatString } from '@shared/utils/StringFormatter';
+import { ComponentStatus, IBackProcessInfo, ILogoSet, LangFileContent, RecursivePartial } from 'flashpoint-launcher';
 import { Tail } from 'tail';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, DISCORD_LINK, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE, WIKI_AV_TROUBLESHOOTING } from './constants';
@@ -52,6 +53,7 @@ import {
   registerInterceptor
 } from './extensions/NodeInterceptor';
 import { Command, RegisteredMiddleware } from './extensions/types';
+import { loadExtension } from './extensions/util';
 import { webgameContentRunner } from './flashpoint/WebgameContentRunner';
 import { GameDataProviderRaw } from './GameDataProvider';
 import { InstancedAbortController } from './InstancedAbortController';
@@ -73,7 +75,6 @@ import { LogFile } from './util/LogFile';
 import { logFactory } from './util/logging';
 import { createContainer, exit, getMacPATH, promiseSleep, runService } from './util/misc';
 import { uuid } from './util/uuid';
-import { ComponentStatus, IBackProcessInfo, ILogoSet, LangFileContent, RecursivePartial } from 'flashpoint-launcher';
 
 export const VERBOSE = {
   enabled: false
@@ -1100,12 +1101,12 @@ async function initialize() {
       });
 
       await ExtConfigFile.saveFile(path.join(state.config.flashpointPath, EXT_CONFIG_FILENAME), state.extConfig);
-      exts.filter(ext => !state.preferences.disabledExtensions.includes(ext.id)).forEach(ext => {
-        state.extensionsService.loadExtension(ext.id)
+      for (const ext of exts) {
+        await loadExtension(state, ext)
         .catch((error: any) => {
           log.error('Extensions', `[${ext.manifest.displayName || ext.manifest.name}] Error loading extension\n${error}`);
         });
-      });
+      }
     });
   })
   .then(() => {

@@ -5,9 +5,9 @@ import { loadCurationIndexImage } from '@back/curate/parse';
 import { duplicateCuration, genCurationWarnings, makeCurationFromGame, refreshCurationContent } from '@back/curate/util';
 import { saveCuration } from '@back/curate/write';
 import { downloadGameData } from '@back/download';
+import { installExtension as installExtensionUtil, unzipFile as unzipFileUtil } from '@back/extensions/util';
 import { genContentTree } from '@back/rust';
 import { BackState, StatusState } from '@back/types';
-import { pathTo7zBack } from '@back/util/SevenZip';
 import { awaitDialog } from '@back/util/dialog';
 import { clearDisposable, dispose, newDisposable, registerDisposable } from '@back/util/lifecycle';
 import {
@@ -33,7 +33,6 @@ import { formatString } from '@shared/utils/StringFormatter';
 import * as flashpoint from 'flashpoint-launcher';
 import { CurationTemplate, Game, IExtensionManifest, Task } from 'flashpoint-launcher';
 import * as fsExtra from 'fs-extra';
-import { extractFull } from 'node-7z';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as stream from 'stream';
@@ -90,18 +89,11 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
   };
 
   const unzipFile = (filePath: string, outDir: string, opts?: flashpoint.ZipExtractOptions): Promise<void> => {
-    return new Promise<void>((resolve, reject) => {
-      const { onProgress, onData } = opts || {};
-      const readable = extractFull(filePath, outDir, { $bin: pathTo7zBack(state.isDev, state.exePath), $progress: onProgress !== undefined });
-      readable.on('end', () => {
-        resolve();
-      });
-      if (onProgress) { readable.on('progress', onProgress); }
-      if (onData) { readable.on('data', onData); }
-      readable.on('error', (err) => {
-        reject(err);
-      });
-    });
+    return unzipFileUtil(state, filePath, outDir, opts);
+  };
+
+  const installExtension = (filePath: string) => {
+    return installExtensionUtil(state, filePath);
   };
 
   const registerDataProvider = (provider: flashpoint.GameDataProvider): void => {
@@ -692,7 +684,8 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     unloadExtension: unloadExtension,
     reloadExtension: reloadExtension,
     getExtensionFileURL: getExtensionFileURL,
-    unzipFile: unzipFile,
+    unzipFile,
+    installExtension,
     getExtConfigValue: getExtConfigValue,
     setExtConfigValue: setExtConfigValue,
     onExtConfigChange: state.apiEmitters.ext.onExtConfigChange.extEvent(extManifest.displayName || extManifest.name),

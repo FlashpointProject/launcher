@@ -76,6 +76,13 @@ declare module 'flashpoint-launcher' {
      */
   function unzipFile(filePath: string, outDir: string, opts?: ZipExtractOptions): Promise<void>;
 
+
+  /**
+   * Installs an extension from an archive file (zip, 7z etc)
+   * @param filePath Path to archive
+   */
+  function installExtension(filePath: string): Promise<void>;
+
   /**
      * Gets an extension configuration value given its key
      */
@@ -3360,11 +3367,6 @@ declare module 'flashpoint-launcher-renderer' {
     name: string;
   }
 
-  type RunCommandResponse = {
-    success: boolean;
-    res: any;
-  }
-
   type LeftSidebarProps = {
     items: LeftSidebarItem[];
     rowHeight: number;
@@ -3404,14 +3406,13 @@ declare module 'flashpoint-launcher-renderer' {
 
 declare module 'flashpoint-launcher-renderer-ext/utils' {
   import { Game } from 'flashpoint-launcher';
-  import { RunCommandResponse } from 'flashpoint-launcher-renderer';
   import { React } from 'react';
 
   const getExtensionFileURL: (extId: string, filePath: string) => string;
   const getFileServerURL: () => string;
   const getPointer: (event: React.MouseEvent<any>) => Pointer;
   const idToGame: (gameId: string) => Promise<Game | null>;
-  const runCommand: (command: string, args?: any[]) => Promise<RunCommandResponse>;
+  const runCommand: (command: string, ...args?: any[]) => Promise<any>;
   const setExtensionEnabled: (extId: string, enabled: boolean) => void;
 }
 

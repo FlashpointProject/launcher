@@ -438,7 +438,10 @@ export function BrowsePage(props: BrowsePageProps) {
               onClick: () => {
                 window.Shared.back.request(BackIn.GET_PLAYLIST, playlistId)
                 .then(playlist => {
-                  window.Shared.back.send(BackIn.RUN_COMMAND, contextButton.command, [playlist]);
+                  window.Shared.back.request(BackIn.RUN_COMMAND, contextButton.command, playlist)
+                  .catch((error) => {
+                    log.error('Launcher', `Failed to run Ext Playlist command '${contextButton.command}': ${error}`);
+                  });
                 });
               }
             });

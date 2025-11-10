@@ -9,7 +9,7 @@ import { setDownloaderState, updateDownloaderStatus, updateDownloaderTask, updat
 import { setFpfssUser } from '@renderer/store/fpfss/slice';
 import { pushHistory } from '@renderer/store/history/slice';
 import { addLogEntries, setEntries } from '@renderer/store/logs/slice';
-import { addCustomRoute, addGameSidebarComponent, addLoaded, cancelDialog, changeService, createDialog, openDynamicPage, removeCustomRoute, removeGameSidebarComponent, removeService, setExtOrderablesFromCallback, setMainState, setUpdateInfo, updateDialog, updateDialogField, updateMetadataSource } from '@renderer/store/main/slice';
+import { addCustomRoute, addGameSidebarComponent, addLoaded, addNewExtension, cancelDialog, changeService, createDialog, openDynamicPage, removeCustomRoute, removeGameSidebarComponent, removeService, setExtOrderablesFromCallback, setMainState, setUpdateInfo, updateDialog, updateDialogField, updateMetadataSource } from '@renderer/store/main/slice';
 import { setExtState, setPreferences, updatePreferences } from '@renderer/store/preferences/slice';
 import { addData, createViews, GENERAL_VIEW_ID, resetDropdownData } from '@renderer/store/search/slice';
 import store, { AppDispatch, RootState } from '@renderer/store/store';
@@ -420,8 +420,8 @@ function addExtIntercepts() {
       return `${getFileServerURL()}/extdata/${extId}/${filePath}`;
     },
     idToGame,
-    runCommand: (command, args) => {
-      return window.Shared.back.request(BackIn.RUN_COMMAND, command, args);
+    runCommand: (command: string, ...args: any[]) => {
+      return window.Shared.back.request(BackIn.RUN_COMMAND, command, ...args);
     },
     setExtensionEnabled,
   } satisfies typeof import('flashpoint-launcher-renderer-ext/utils');
@@ -951,6 +951,10 @@ function registerWebsocketListeners(dispatch: AppDispatch) {
       extId,
       enabled
     }));
+  });
+
+  window.Shared.back.register(BackOut.ADDED_EXTENSION, async (Event, ext) => {
+    dispatch(addNewExtension(ext));
   });
 
   window.Shared.back.request(BackIn.INIT_LISTEN)

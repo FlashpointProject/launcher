@@ -22,7 +22,7 @@ export default function Initializer() {
     return () => {
       dispatch(removeCustomRoute(customRoute));
     };
-  });
+  }, [dispatch]);
 
   return <></>;
 }

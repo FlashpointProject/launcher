@@ -264,7 +264,6 @@ export enum BackOut {
   DELETE_TAG_CATEGORY,
   TAG_CATEGORIES_CHANGE,
   QUIT,
-  RUN_COMMAND,
   UPLOAD_LOG,
   DEV_CONSOLE_CHANGE,
   OPEN_ALERT,
@@ -318,6 +317,7 @@ export enum BackOut {
 
   OPEN_DYNAMIC_PAGE,
 
+  ADDED_EXTENSION,
   UPDATE_EXTENSION_STATE,
 
   FPFSS_ACTION
@@ -434,7 +434,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.IMPORT_META_EDITS]: () => ImportMetaEditResult;
 
   // Extensions
-  [BackIn.RUN_COMMAND]: (command: string, args?: any[]) => RunCommandResponse;
+  [BackIn.RUN_COMMAND]: (command: string, ...args: any[]) => RunCommandResponse;
   [BackIn.DOWNLOAD_EXTENSION]: (downloadPath: string) => void;
   [BackIn.GET_MIDDLEWARE_CONFIG_SCHEMAS]: (mIds: MiddlewareVersionPair[]) => MiddlewareSchemasResponse;
   [BackIn.GET_MIDDLEWARE_DEFAULT_CONFIG]: (middlewareId: string, game: Game) => GameMiddlewareNewConfig;
@@ -529,7 +529,6 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.DELETE_TAG_CATEGORY]: (data: boolean) => void;
   [BackOut.TAG_CATEGORIES_CHANGE]: (cats: TagCategory[]) => void;
   [BackOut.QUIT]: () => void;
-  [BackOut.RUN_COMMAND]: (data: RunCommandResponse) => void;
   [BackOut.UPLOAD_LOG]: (getUrl: string | undefined) => void;
   [BackOut.DEV_CONSOLE_CHANGE]: (text: string) => void;
   [BackOut.OPEN_ALERT]: (text: string) => void;
@@ -586,6 +585,7 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
 
   [BackOut.OPEN_DYNAMIC_PAGE]: (componentName: string, props: any) => void;
 
+  [BackOut.ADDED_EXTENSION]: (ext: IExtensionDescription) => void;
   [BackOut.UPDATE_EXTENSION_STATE]: (extId: string, enabled: boolean) => void;
 
   [BackOut.FPFSS_ACTION]: (extId: string) => FpfssUser | undefined;

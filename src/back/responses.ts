@@ -2567,29 +2567,19 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
 
-  state.socketServer.register(BackIn.RUN_COMMAND, async (event, command, args = []) => {
+  state.socketServer.register(BackIn.RUN_COMMAND, async (event, command, ...args: any[]) => {
     // Find command
     const c = state.registry.commands.get(command);
     let res = undefined;
-    let success = false;
     if (c) {
       // Run Command
-      try {
-        res = await Promise.resolve(c.callback(...args));
-        success = true;
-      } catch (error) {
-        log.error('Launcher', `Error running Command (${command})\n${error}`);
-      }
+      res = await Promise.resolve(c.callback(...args));
     } else {
       log.error('Launcher', `Command requested but "${command}" not registered!`);
+      throw `Command requested but "${command}" not registered!`;
     }
     // Return response
-    const result = {
-      success: success,
-      res: res,
-    };
-    state.socketServer.send(event.client, BackOut.RUN_COMMAND, result);
-    return result;
+    return res;
   });
 
   state.socketServer.register(BackIn.SET_EXT_CONFIG_VALUE, async (event, key, value) => {

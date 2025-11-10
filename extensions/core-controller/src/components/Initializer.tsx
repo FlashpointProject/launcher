@@ -17,7 +17,7 @@ export default function Initializer() {
         name: 'core_controller/ControllerSupport'
       }));
     };
-  });
+  }, [dispatch]);
 
   return <></>;
 }
