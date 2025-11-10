@@ -185,6 +185,8 @@ export function App() {
         lastBrowsePage
       : lastBrowsePage;
 
+  const browsePageViewExists = useAppSelector(state => browsePageViewName ? browsePageViewName in state.search.views : false);
+
   React.useEffect(() => {
     setPageTitle(location.pathname);
   }, [location.pathname]);
@@ -336,7 +338,7 @@ export function App() {
                             <Route element={<NotFoundPage/>}/>
                           </Routes>
                           <Activity mode={isBrowsePage ? 'visible' : 'hidden'}>
-                            {browsePageViewName !== undefined && (
+                            {browsePageViewExists && browsePageViewName !== undefined && (
                               <BrowsePage
                                 viewName={browsePageViewName}
                                 sourceTable='browse-page'/>
