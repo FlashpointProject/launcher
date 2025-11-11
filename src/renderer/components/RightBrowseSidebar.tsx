@@ -326,7 +326,7 @@ export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
   const { isEditing } = currentView;
   const dispatch = useAppDispatch();
   const { openMenu } = useContextMenu();
-  const { openConfirmDialog } = useConfirmDialog();
+  const { confirmDialog, openConfirmDialog } = useConfirmDialog();
   const strings = allStrings.browse;
   const { game, playlist, gameRunning, library, fpfssEditMode, isExtreme,
     onGameLaunch, onEditGame, onUpdateActiveGameData, onDeselectPlaylist,
@@ -508,26 +508,15 @@ export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
       type: 'button',
       label: strings.uninstallGame,
       onClick: async () => {
-        if (activeData) {
-          if (!activeData.presentOnDisk) {
-            if (game.gameData) {
-              const gameData = game.gameData.find((gd) => gd.presentOnDisk);
-              if (gameData === undefined) {
-                alert('Broken uninstall logic, heckin confused');
-                return;
-              }
-            } else {
-              alert('Broken uninstall logic, heckin confused');
-              return;
-            }
-          }
-          const res = await openConfirmDialog({
-            message: allStrings.dialog.uninstallGame,
-            buttons: [allStrings.misc.yes, allStrings.misc.no],
-            cancelId: 1
-          });
-          if (res === 0) {
-            window.Shared.back.request(BackIn.UNINSTALL_GAME_DATA, activeData.id)
+        console.log('literally kys');
+        const res = await openConfirmDialog({
+          message: allStrings.dialog.uninstallGame,
+          buttons: [allStrings.misc.yes, allStrings.misc.no],
+          cancelId: 1
+        });
+        if (res === 0 && game.gameData !== undefined) {
+          for (const gameData of game.gameData) {
+            await window.Shared.back.request(BackIn.UNINSTALL_GAME_DATA, gameData.id)
             .catch(() => {
               alert(allStrings.dialog.unableToUninstallGameData);
             });
@@ -644,6 +633,7 @@ export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
       {/*   /> */}
       {/* )} */}
       <div className='browse-right-sidebar__top'>
+        {confirmDialog}
         {/* -- Title & Developer(s) -- */}
         <div className='browse-right-sidebar__section'>
           <div className='browse-right-sidebar__row'>

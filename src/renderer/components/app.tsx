@@ -11,7 +11,7 @@ import { pushHistory } from '@renderer/store/history/slice';
 import { addLogEntries, setEntries } from '@renderer/store/logs/slice';
 import { addCustomRoute, addGameSidebarComponent, addLoaded, addNewExtension, cancelDialog, changeService, createDialog, openDynamicPage, removeCustomRoute, removeGameSidebarComponent, removeService, setExtOrderablesFromCallback, setMainState, setUpdateInfo, updateDialog, updateDialogField, updateMetadataSource } from '@renderer/store/main/slice';
 import { setExtState, setPreferences, updatePreferences } from '@renderer/store/preferences/slice';
-import { addData, createViews, GENERAL_VIEW_ID, resetDropdownData } from '@renderer/store/search/slice';
+import { addData, createViews, GENERAL_VIEW_ID, resetDropdownData, updateGame } from '@renderer/store/search/slice';
 import store, { AppDispatch, RootState } from '@renderer/store/store';
 import { setTagCategories } from '@renderer/store/tagCategories/slice';
 import { addTask, setTask, setTaskBarOpen } from '@renderer/store/tasks/slice';
@@ -955,8 +955,12 @@ function registerWebsocketListeners(dispatch: AppDispatch) {
     }));
   });
 
-  window.Shared.back.register(BackOut.ADDED_EXTENSION, async (Event, ext) => {
+  window.Shared.back.register(BackOut.ADDED_EXTENSION, async (event, ext) => {
     dispatch(addNewExtension(ext));
+  });
+
+  window.Shared.back.register(BackOut.UPDATE_GAME, async (event, game) => {
+    dispatch(updateGame(game));
   });
 
   window.Shared.back.request(BackIn.INIT_LISTEN)

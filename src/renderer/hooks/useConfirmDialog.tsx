@@ -1,6 +1,6 @@
 import { ConfirmDialog, ConfirmDialogProps } from '@renderer/components/ConfirmDialog';
 import { FloatingContainer } from '@renderer/components/FloatingContainer';
-import { ReactNode, useState, Activity } from 'react';
+import { Activity, ReactNode, useState } from 'react';
 
 type ConfirmDialogState = {
   confirmDialog: ReactNode;
@@ -16,7 +16,10 @@ export function useConfirmDialog(): ConfirmDialogState {
       setIsOpen(true);
       setDialogProps({
         ...newDialogProps,
-        onResult: resolve
+        onResult: (res) => {
+          setIsOpen(false);
+          resolve(res);
+        }
       });
     });
   };

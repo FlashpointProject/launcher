@@ -320,6 +320,8 @@ export enum BackOut {
   ADDED_EXTENSION,
   UPDATE_EXTENSION_STATE,
 
+  UPDATE_GAME,
+
   FPFSS_ACTION
 }
 
@@ -341,7 +343,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.DELETE_GAME_DATA]: (gameDataId: number) => void;
   [BackIn.GET_SOURCES]: () => GameDataSource[];
   [BackIn.DOWNLOAD_GAME_DATA]: (gameDataId: number) => void;
-  [BackIn.UNINSTALL_GAME_DATA]: (id: number) => Game | null;
+  [BackIn.UNINSTALL_GAME_DATA]: (id: number) => void;
   [BackIn.IMPORT_GAME_DATA]: (gameId: string, path: string) => GameData;
   [BackIn.SAVE_GAME_DATAS]: (gameData: GameData[]) => void;
   [BackIn.GET_GAMES_TOTAL]: () => number;
@@ -587,6 +589,8 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
 
   [BackOut.ADDED_EXTENSION]: (ext: IExtensionDescription) => void;
   [BackOut.UPDATE_EXTENSION_STATE]: (extId: string, enabled: boolean) => void;
+
+  [BackOut.UPDATE_GAME]: (game: Game) => void;
 
   [BackOut.FPFSS_ACTION]: (extId: string) => FpfssUser | undefined;
 }>

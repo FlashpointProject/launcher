@@ -130,7 +130,6 @@ export const state: BackState = {
     [BackInit.EXTENSIONS]: false,
   },
   initEmitter: new EventEmitter() as any,
-  queries: {},
   log: [],
   serviceInfo: undefined,
   services: new Map<string, ManagedChildProcess>(),

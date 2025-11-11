@@ -6,6 +6,7 @@ import * as flashpoint from 'flashpoint-launcher';
 import { AppConfigData, AppExtConfigData, ComponentStatus, Game, GameOrderBy, GameOrderReverse, IBackProcessInfo, LangFile, PlatformAppPathSuggestions, TagCategory, ViewGame } from 'flashpoint-launcher';
 import { IncomingMessage, ServerResponse } from 'http';
 import * as WebSocket from 'ws';
+import { Downloader } from './Downloader';
 import { ApiEmitter } from './extensions/ApiEmitter';
 import { ExtensionService } from './extensions/ExtensionService';
 import { InterceptorState as ModuleInterceptorState } from './extensions/NodeInterceptor';
@@ -17,7 +18,6 @@ import { EventQueue } from './util/EventQueue';
 import { FileServer } from './util/FileServer';
 import { FolderWatcher } from './util/FolderWatcher';
 import { LogFile } from './util/LogFile';
-import { Downloader } from './Downloader';
 
 /** Contains most state for the back process. */
 export type BackState = {
@@ -52,7 +52,6 @@ export type BackState = {
   isHandling: boolean;
   init: { [key in BackInit]: boolean; };
   initEmitter: InitEmitter;
-  queries: Record<string, BackQueryChache>;
   log: flashpoint.ILogEntry[];
   serviceInfo?: ServiceFileData;
   services: Map<string, ManagedChildProcess>;

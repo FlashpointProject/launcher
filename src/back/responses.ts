@@ -260,7 +260,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     // Fetch GOTD file
     const gotdUrl = state.config.gotdUrl;
     const gotdPath = path.join(state.config.flashpointPath, 'Data', 'gotd.json');
-    const gotdDownload = new Promise((resolve, reject) => {
+    const gotdDownload = new Promise<void>((resolve, reject) => {
       const thumbnailWriter = fs.createWriteStream(gotdPath);
       console.log('downloading gotd');
       axios.get(gotdUrl, { responseType: 'stream' })
@@ -854,7 +854,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       //   info.game.activeGameConfigOwner = undefined;
       // }
       const savedGame = await fpDatabase.saveGame(game);
-      state.queries = {}; // Clear entire cache
+      broadcastGameUpdate(state, game.id);
       return savedGame;
     } catch (err) {
       console.error(err);
@@ -877,8 +877,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     // path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath),
     // path.join(state.config.flashpointPath, state.preferences.imageFolderPath),
     // path.join(state.config.flashpointPath, state.preferences.htdocsFolderPath));
-
-    state.queries = {}; // Clear entire cache
 
     return null;
   });
@@ -924,8 +922,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
           }
         } catch (e) { console.error(e); }
       }
-
-      state.queries = {}; // Clear entire cache
     }
 
     return result;
@@ -1049,28 +1045,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
   });
 
   state.socketServer.register(BackIn.GET_GAME, async (event, id) => {
-    const game = await fpDatabase.findGame(id);
-    if (game) {
-      const gameData = game.gameData?.find(d => d.id === game.activeDataId);
-      if (gameData) {
-        const gameDataFilename = getGameDataFilename(gameData);
-        try {
-          await fs.promises.access(path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, gameDataFilename), fs.constants.F_OK);
-          if (!gameData.presentOnDisk) {
-            gameData.presentOnDisk = true;
-            fpDatabase.saveGameData(gameData);
-          }
-        } catch (err) {
-          if (gameData.presentOnDisk) {
-            gameData.presentOnDisk = false;
-            fpDatabase.saveGameData(gameData);
-          }
-        }
-      }
-      await state.apiEmitters.games.onInterceptGetGame.fire(game);
-    }
-    return game;
-    // TODO: Reimplement game configs
+    return getGame(state, id);
   });
 
   state.socketServer.register(BackIn.GET_MIDDLEWARE_CONFIG_SCHEMAS, async (event, mIds) => {
@@ -1159,7 +1134,8 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         existingData.applicationPath = d.applicationPath;
         existingData.launchCommand = d.launchCommand;
         existingData.parameters = d.parameters;
-        return fpDatabase.saveGameData(existingData);
+        await fpDatabase.saveGameData(existingData);
+        broadcastGameUpdate(state, d.gameId);
       }
     }));
   });
@@ -1176,13 +1152,14 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
         gameData.presentOnDisk = false;
         onDidUninstallGameData.fire(gameData);
       }
+      await fpDatabase.deleteGameData(gameDataId);
       const game = await fpDatabase.findGame(gameData.gameId);
       if (game) {
         game.activeDataId = undefined;
         game.activeDataOnDisk = false;
         await fpDatabase.saveGame(game);
+        broadcastGameUpdate(state, game.id);
       }
-      await fpDatabase.deleteGameData(gameDataId);
     }
   });
 
@@ -1201,7 +1178,9 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
 
   state.socketServer.register(BackIn.UNINSTALL_GAME_DATA, async (event, id) => {
     const gameData = await fpDatabase.findGameDataById(id);
+    console.log('finding game data');
     if (gameData && gameData.presentOnDisk) {
+      console.log('found game data');
       const gameDataFilename = getGameDataFilename(gameData);
       await onWillUninstallGameData.fire(gameData);
       // Delete Game Data
@@ -1213,6 +1192,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
           throw error;
         }
       });
+      console.log('deleted file on disk');
       gameData.path = undefined;
       gameData.presentOnDisk = false;
       await fpDatabase.saveGameData(gameData);
@@ -1221,10 +1201,13 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       const game = await fpDatabase.findGame(gameData.gameId);
       if (game && game.activeDataId === gameData.id) {
         game.activeDataOnDisk = false;
-        return fpDatabase.saveGame(game);
+        await fpDatabase.saveGame(game);
+        broadcastGameUpdate(state, game.id);
+        console.log('updated game');
+      } else {
+        console.log('not active game data');
       }
     }
-    return null;
   });
 
   state.socketServer.register(BackIn.GET_SOURCES, async () => {
@@ -1813,7 +1796,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       for (const game of chunk) {
         await fpDatabase.deleteGame(game.id);
       }
-      state.queries = {}; // Reset search queries
     }
 
     // Remove tags from database
@@ -1879,7 +1861,6 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
           const alertString = formatString(state.languageContainer.dialog.errorImportingCuration, curation.folder) as string;
           state.socketServer.broadcast(BackOut.OPEN_ALERT, alertString);
         });
-        state.queries = {};
       } catch (e) {
         if (util.types.isNativeError(e)) {
           error = copyError(e);
@@ -2834,3 +2815,37 @@ export function changeServerFactory(state: BackState): (server?: string) => Prom
 export async function exitApp(state: BackState, beforeProcessExit?: () => void | Promise<void>) {
   return exit(state, beforeProcessExit);
 }
+
+async function broadcastGameUpdate(state: BackState, id: string) {
+  const game = await getGame(state, id);
+  if (game) {
+    state.socketServer.broadcast(BackOut.UPDATE_GAME, game);
+  } else {
+    log.error('Launcher', 'Game broadcast requested but no game found for ' + id);
+  }
+}
+
+async function getGame(state: BackState, id: string) {
+  const game = await fpDatabase.findGame(id);
+  if (game) {
+    const gameData = game.gameData?.find(d => d.id === game.activeDataId);
+    if (gameData) {
+      const gameDataFilename = getGameDataFilename(gameData);
+      try {
+        await fs.promises.access(path.join(state.config.flashpointPath, state.preferences.dataPacksFolderPath, gameDataFilename), fs.constants.F_OK);
+        if (!gameData.presentOnDisk) {
+          gameData.presentOnDisk = true;
+          fpDatabase.saveGameData(gameData);
+        }
+      } catch (err) {
+        if (gameData.presentOnDisk) {
+          gameData.presentOnDisk = false;
+          fpDatabase.saveGameData(gameData);
+        }
+      }
+    }
+    await state.apiEmitters.games.onInterceptGetGame.fire(game);
+  }
+  return game;
+}
+
