@@ -1,5 +1,4 @@
 import { SizeProviderProps } from 'flashpoint-launcher-renderer';
-import * as React from 'react';
 import { useEffect, useRef } from 'react';
 
 // Sets and updates the "--width" and "--height" CSS variables to match the prop values.
@@ -8,13 +7,13 @@ export function SizeProvider(props: SizeProviderProps) {
   // Update "--width"
   useEffect(() => {
     if (props.width) {
-      updateStyle(ref.current, '--width', props.width);
+      updateStyle(ref.current, '--width', typeof props.width === 'number' ? `${props.width}px` : props.width);
     }
   }, [props.width]);
   // Update "--height"
   useEffect(() => {
     if (props.height) {
-      updateStyle(ref.current, '--height', props.height);
+      updateStyle(ref.current, '--height', typeof props.height === 'number' ? `${props.height}px` : props.height);
     }
   }, [props.height]);
   // Render

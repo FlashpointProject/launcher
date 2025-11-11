@@ -1,16 +1,13 @@
-name: Build Status
+name: Test Status
 
 on:
   pull_request:
     branches: 
       - '*'
-  push:
-    branches:
-      - master
 
 jobs:
-  build:
-    name: Build
+  test:
+    name: Test
     runs-on: ubuntu-latest
 
     steps:
@@ -21,22 +18,14 @@ jobs:
         auth_header="$(git config --local --get http.https://github.com/.extraheader)"
         git submodule sync --recursive
         git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
-    - name: Use Node.js 20.x
-      uses: actions/setup-node@v1
+    - name: Use Node.js 22
+      uses: actions/setup-node@v4
       with:
-        node-version: 20.x
-    - uses: actions/cache@v3
-      id: cache
-      with:
-        path: | 
-          **/node_modules
-        key: ${{ runner.os }}-${{ hashFiles('package.json') }}
+        node-version: '22'
+        cache: 'npm'
     - name: Install Dependencies
-      run: npm install --force
-      if: steps.cache.outputs.cache-hit != 'true'
-      env:
-        CI: true
-    - name: npm build
-      run: npm run build
+      run: npm ci
+    - name: Test
+      run: npm test
       env:
         CI: true
