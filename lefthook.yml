@@ -37,8 +37,7 @@
 pre-push:
   commands:
     test:
-      glob: "*.test.{js,ts,jsx,tsx}"
-      run: npx jest {staged_files}
+      run: npx vitest run
 
 pre-commit:
   commands:

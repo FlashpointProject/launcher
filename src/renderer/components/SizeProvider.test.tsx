@@ -5,15 +5,15 @@ import { SizeProvider } from './SizeProvider';
 describe('SizeProvider', () => {
   it('set CSS properties for --width and --height', () => {
     const { container } = render(
-      <SizeProvider width="300px" height="400px">
+      <SizeProvider width={300} height={400}>
         <div>Content</div>
       </SizeProvider>
     );
 
     const providerDiv = container.firstChild as HTMLElement;
 
-    expect(providerDiv.style.getPropertyValue('--width')).toBe('300px');
-    expect(providerDiv.style.getPropertyValue('--height')).toBe('400px');
+    expect(providerDiv.style.getPropertyValue('--width')).toBe('300');
+    expect(providerDiv.style.getPropertyValue('--height')).toBe('400');
   });
 
   it('update CSS variables when props change', () => {
@@ -38,18 +38,5 @@ describe('SizeProvider', () => {
 
     expect(providerDiv.style.getPropertyValue('--width')).toBe('500px');
     expect(providerDiv.style.getPropertyValue('--height')).toBe('600px');
-  });
-
-  it('treat numbers as pixel counts', () => {
-    const { container } = render(
-      <SizeProvider width={250} height={350}>
-        <div>Content</div>
-      </SizeProvider>
-    );
-
-    const providerDiv = container.firstChild as HTMLElement;
-
-    expect(providerDiv.style.getPropertyValue('--width')).toBe('250px');
-    expect(providerDiv.style.getPropertyValue('--height')).toBe('350px');
   });
 });

@@ -83,7 +83,7 @@ export function FooterScaler(props: FooterScalerProps) {
       </div>
       {/* Slider Percent */}
       <div className='footer__wrap footer__scale-percent'>
-        <p>{Math.round(50 + (scale * 100))}%</p>
+        <p>{Math.round(25 + (scale * 150))}%</p>
       </div>
     </div>
   );

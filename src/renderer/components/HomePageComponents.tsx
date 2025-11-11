@@ -4,7 +4,7 @@ import { useAppDispatch, useAppSelector } from '@renderer/hooks/useAppSelector';
 import { useLocalization } from '@renderer/hooks/useLocalization';
 import { addRandomGames, RANDOM_GAME_ROW_COUNT, setMainState } from '@renderer/store/main/slice';
 import { GENERAL_VIEW_ID, searchActions, selectGame } from '@renderer/store/search/slice';
-import { findGameDragEventDataGrid, getExtremeIconURL, getGameImageURL, getPlatformIconURL, joinLibraryRoute } from '@renderer/Util';
+import { findGameDragEventDataGrid, getExtremeIconURL, getPlatformIconURL, joinLibraryRoute } from '@renderer/Util';
 import { idToGame } from '@renderer/util/async';
 import { BackIn } from '@shared/back/types';
 import { ARCADE, THEATRE } from '@shared/constants';
@@ -162,13 +162,9 @@ export function HomePageComponentGotd(props: HomePageComponentProps) {
                 <GameGridItem
                   game={loadedGotd}
                   key={loadedGotd.id}
-                  id={loadedGotd.id}
-                  title={loadedGotd.title}
                   upperIcons={extreme ? [getExtremeIconURL(logoVersion)] : []}
                   lowerIcons={getContentIcons(loadedGotd)}
                   extreme={extreme}
-                  thumbnail={getGameImageURL(loadedGotd.logoPath)}
-                  screenshot={getGameImageURL(loadedGotd.screenshotPath)}
                   screenshotPreviewMode={screenshotPreviewMode}
                   screenshotPreviewDelay={screenshotPreviewDelay}
                   hideExtremeScreenshots={hideExtremeScreenshots}

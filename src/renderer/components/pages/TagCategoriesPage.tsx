@@ -94,7 +94,7 @@ export function TagCategoriesPage() {
     }
   };
 
-  const rowHeight = calcScale(20, 40, scale);
+  const rowHeight = calcScale(30, scale);
 
   return (
     <div className='tags-page'>

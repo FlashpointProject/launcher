@@ -6,9 +6,9 @@ import { DownloadDetails } from './back/types';
 import { parseVariableString } from './utils/VariableString';
 import { throttle } from './utils/throttle';
 
-export function calcScale(min: number, max: number, scale: number): number {
-  if (min >= max) { return min; }
-  return min + ((max - min) * scale);
+export function calcScale(defValue: number, scale: number): number {
+  const scaler = 0.25 + scale * 1.5;
+  return defValue * scaler;
 }
 
 export function genFlatContentTree(contentTree: ContentTree): FlatContentTree {

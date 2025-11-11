@@ -108,7 +108,7 @@ export function BrowsePageDisplayGrid<T extends Content>(props: BrowsePageDispla
     }
   };
 
-  const height: number = calcScale(210, 390, scale);
+  const height: number = calcScale(300, scale);
   const width: number = (height * 0.666) | 0;
   const gameGridProps = {
     scrollCol: gridScrollCol,
@@ -208,7 +208,7 @@ export function BrowsePageDisplayList<T extends Content>(props: BrowsePageDispla
     }
   };
 
-  const height: number = calcScale(20, 40, scale);
+  const height: number = calcScale(30, scale);
 
   return (
     <GameList

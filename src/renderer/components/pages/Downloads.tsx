@@ -25,7 +25,7 @@ export function DownloadsPage() {
   const downloaderState = useAppSelector((state) => state.downloads);
   const scale = useAppSelector((state) => state.preferences.scaleValues.browse);
   const tasks = Object.values(downloaderState.tasks);
-  const rowHeight: number = calcScale(20, 40, scale);
+  const rowHeight: number = calcScale(30, scale);
 
   const onToggleState = () => {
     const newState: DownloaderStatus =

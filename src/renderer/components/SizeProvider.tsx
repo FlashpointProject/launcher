@@ -7,13 +7,13 @@ export function SizeProvider(props: SizeProviderProps) {
   // Update "--width"
   useEffect(() => {
     if (props.width) {
-      updateStyle(ref.current, '--width', typeof props.width === 'number' ? `${props.width}px` : props.width);
+      updateStyle(ref.current, '--width', props.width);
     }
   }, [props.width]);
   // Update "--height"
   useEffect(() => {
     if (props.height) {
-      updateStyle(ref.current, '--height', typeof props.height === 'number' ? `${props.height}px` : props.height);
+      updateStyle(ref.current, '--height', props.height);
     }
   }, [props.height]);
   // Render

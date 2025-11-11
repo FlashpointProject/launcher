@@ -1,9 +1,9 @@
+import { defaultMenuWidth, menuDefHeight } from '@renderer/context/MenuContext';
 import { useAppSelector } from '@renderer/hooks/useAppSelector';
 import { calcScale } from '@shared/Util';
+import { MenuItemSubmenu, MenuItemType } from 'flashpoint-launcher-renderer';
 import React, { useEffect, useRef, useState } from 'react';
 import { SizeProvider } from './SizeProvider';
-import { defaultMenuWidth, menuHeightMax, menuHeightMin } from '@renderer/context/MenuContext';
-import { MenuItemSubmenu, MenuItemType } from 'flashpoint-launcher-renderer';
 
 export type MenuProps = {
   items: MenuItemType[];
@@ -108,7 +108,7 @@ export function MenuItem(props: MenuItemType) {
 
 export function Menu(props: MenuProps) {
   const scale = useAppSelector(state => state.preferences.scaleValues.menuItem);
-  const menuItemHeight = Math.floor(calcScale(menuHeightMin, menuHeightMax, scale));
+  const menuItemHeight = Math.floor(calcScale(menuDefHeight, scale));
   const menuWidth = props.width ? props.width * (scale + 0.5) : defaultMenuWidth * (scale + 0.5);
 
   return (

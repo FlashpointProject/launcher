@@ -30,7 +30,7 @@ export function TagsPage() {
   const [isLocked, setIsLocked] = React.useState(false);
   const [isEditing, setIsEditing] = React.useState(false);
 
-  const rowHeight = calcScale(20, 40, scale);
+  const rowHeight = calcScale(30, scale);
 
   const updateCurrentTag = (tags: Tag[], tagId: number) => {
     window.Shared.back.request(BackIn.GET_TAG_BY_ID, tagId)

@@ -48,6 +48,7 @@
     "@stylistic/eslint-plugin": "4.2.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/dns-packet": "^5.6.5",
     "@types/eslint__js": "^8.42.3",
     "@types/follow-redirects": "1.8.0",

@@ -1,3 +1,4 @@
+import { getGameImageURL } from '@renderer/Util';
 import { ScreenshotPreviewMode } from '@shared/BrowsePageLayout';
 import { num } from '@shared/utils/Coerce';
 import { Content } from 'flashpoint-launcher';
@@ -7,17 +8,11 @@ import { GameDragEventData } from './pages/BrowsePage';
 
 export type GameGridItemProps<T extends Content> = Partial<GridCellProps> & {
   game?: T | Content;
-  id: string;
-  title: string;
   upperIcons: string[];
   lowerIcons: string[];
   extreme: boolean;
   /** Updates to clear platform icon cache */
   logoVersion: number;
-  /** Path to the game's thumbnail. */
-  thumbnail: string;
-  /** Path to the game's screenshot */
-  screenshot: string;
   /** If the cell can be dragged (defaults to false). */
   isDraggable?: boolean;
   /** If the cell is selected. */
@@ -52,7 +47,7 @@ export function GameGridItem<T extends Content>(props: GameGridItemProps<T>) {
     return () => clearTimeout(timeoutId); // Cleanup timeout on component unmount or if hover state changes
   }, [isHovered, screenshotPreviewDelay]);
 
-  const { rowIndex, id, title, lowerIcons, upperIcons, thumbnail, screenshot, extreme, isDraggable, isSelected, isDragged, style, onDrop } = props;
+  const { game, rowIndex, lowerIcons, upperIcons, extreme, isDraggable, isSelected, isDragged, style, onDrop } = props;
   // Get the platform icon path
   let willShowScreenshot = false;
   if (props.screenshotPreviewMode === ScreenshotPreviewMode.ALWAYS) {
@@ -70,10 +65,13 @@ export function GameGridItem<T extends Content>(props: GameGridItemProps<T>) {
   if (isDragged)  { className += ' game-grid-item--dragged';  }
 
   const attributes: any = {};
-  attributes[GameGridItem.idAttribute] = id;
+  attributes[GameGridItem.idAttribute] = game?.id;
   attributes[GameGridItem.indexAttribute] = rowIndex;
   attributes[GameGridItem.logoPathAttribute] = props.game?.logoPath;
   attributes[GameGridItem.screenshotPathAttribute] = props.game?.screenshotPath;
+
+  const thumbnail = game ? getGameImageURL(game.logoPath) : undefined;
+  const screenshot = game ? getGameImageURL(game.screenshotPath) : undefined;
 
   // Memoize render
   return (
@@ -107,8 +105,8 @@ export function GameGridItem<T extends Content>(props: GameGridItemProps<T>) {
           </div>
         </div>
       </div>
-      <div className='game-grid-item__title' title={title}>
-        <p className='game-grid-item__title__text'>{title}</p>
+      <div className='game-grid-item__title' title={game?.title}>
+        <p className='game-grid-item__title__text'>{game?.title}</p>
       </div>
     </li>
   );

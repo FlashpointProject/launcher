@@ -6,7 +6,7 @@ import { isGame } from '@shared/utils/misc';
 import { Content, Game } from 'flashpoint-launcher';
 import { RandomGamesProps } from 'flashpoint-launcher-renderer';
 import { useState } from 'react';
-import { findGameDragEventDataGrid, getExtremeIconURL, getGameImageURL, getPlatformIconURL } from '../Util';
+import { findGameDragEventDataGrid, getExtremeIconURL, getPlatformIconURL } from '../Util';
 import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
 import { SimpleButton } from './SimpleButton';
@@ -58,13 +58,9 @@ export function RandomGames(props: RandomGamesProps) {
       <GameGridItem
         game={game}
         key={game.id}
-        id={game.id}
-        title={game.title}
         upperIcons={extreme ? [getExtremeIconURL(logoVersion)] : []}
         lowerIcons={getContentIcons(game)}
         extreme={game ? game.tags.findIndex(t => extremeTags.includes(t.trim())) !== -1 : false}
-        thumbnail={getGameImageURL(game.logoPath)}
-        screenshot={getGameImageURL(game.screenshotPath)}
         screenshotPreviewMode={screenshotPreviewMode}
         screenshotPreviewDelay={screenshotPreviewDelay}
         hideExtremeScreenshots={hideExtremeScreenshots}

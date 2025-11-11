@@ -261,13 +261,9 @@ export class GameGrid<T extends Content> extends React.Component<GameGridProps<T
           { ...props }
           key={props.key}
           game={game}
-          id={game ? game.id : ''}
-          title={game ? game.title : ''}
           upperIcons={extreme ? [extremeIconPath] : []}
           lowerIcons={game ? getContentIcons(game) : []}
           extreme={extreme}
-          thumbnail={game ? getGameImageURL(game.logoPath) : ''}
-          screenshot={game ? getGameImageURL(game.screenshotPath) : ''}
           screenshotPreviewMode={this.props.screenshotPreviewMode}
           screenshotPreviewDelay={this.props.screenshotPreviewDelay}
           logoVersion={this.props.logoVersion}

@@ -13,8 +13,7 @@ import React, { createContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export const defaultMenuWidth = 230;
-export const menuHeightMin = 14;
-export const menuHeightMax = 38;
+export const menuDefHeight = 26;
 
 type MenuContextProps = {
   children?: React.ReactNode;
@@ -46,7 +45,7 @@ export function MenuProvider({ children }: MenuContextProps) {
   const imageFolderPath = useAppSelector(state => state.preferences.imageFolderPath);
   const extContextButtons = useAppSelector(state => state.main.contextButtons);
   const scale = useAppSelector(state => state.preferences.scaleValues.menuItem);
-  const menuItemHeight = Math.floor(calcScale(menuHeightMin, menuHeightMax, scale));
+  const menuItemHeight = Math.floor(calcScale(menuDefHeight, scale));
   const navigate = useNavigate();
 
   const createGameContextMenu = (gameId: string, logoPath: string, screenshotPath: string): MenuItemType[] => {

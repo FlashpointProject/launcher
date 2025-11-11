@@ -51,7 +51,7 @@ export function LogBox(props: LogBoxProps) {
   const scale = useAppSelector(state => state.preferences.scaleValues.logs);
   const levelFilters = useAppSelector(state => state.preferences.showLogLevel);
   const sourceFilters = useAppSelector(state => state.preferences.showLogSource);
-  const fontSize = Math.floor(calcScale(8, 24, scale));
+  const fontSize = Math.floor(calcScale(16, scale));
 
   const filteredLogs = props.logs.filter(l => levelFilters[l.logLevel as LogLevel]).filter(l => sourceFilters[l.source] !== false);
 
