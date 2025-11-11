@@ -778,7 +778,7 @@ export function ConfigPage() {
               description={strings.screenshotPreviewModeDesc}
               value={preferences.screenshotPreviewMode}
               items={screenshotPreviewModes}
-              onChange={onSetPreferenceEventFactory('defaultOpeningPage')}
+              onChange={onSetPreferenceEventFactory('screenshotPreviewMode')}
             />
             <ConfigBoxSelectInput
               title={strings.screenshotPreviewDelay}

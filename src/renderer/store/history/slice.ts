@@ -5,7 +5,7 @@ import { Location } from 'react-router-dom';
 import { RootState } from '../store';
 
 export type HistoryState = {
-  history: Location[];
+  history: Location<any>[];
   maxHistorySize: number;
 }
 

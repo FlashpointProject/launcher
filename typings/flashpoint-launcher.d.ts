@@ -3140,7 +3140,7 @@ declare module 'flashpoint-launcher-renderer' {
   }
 
   type HistoryState = {
-    history: Location[];
+    history: Location<any>[];
     maxHistorySize: number;
   }
 

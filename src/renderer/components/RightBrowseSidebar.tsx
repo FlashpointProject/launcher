@@ -940,7 +940,7 @@ export function RightBrowseSidebar(props: RightBrowseSidebarProps) {
                         </div>
                       </div>
                     ) :
-                      (isExtreme && showExtremeScreenshot) ? (
+                      (isExtreme && !showExtremeScreenshot) ? (
                         <div
                           className='browse-right-sidebar__row__screenshot-image--hidden'
                           onClick={() => setShowExtremeScreenshot(true)}>

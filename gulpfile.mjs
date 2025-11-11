@@ -1,16 +1,15 @@
 /* eslint-disable no-undef */
-import fs from 'fs-extra';
-import gulp from 'gulp';
-import builder from 'electron-builder';
-import tar from 'tar-fs';
-import zlib from 'zlib';
-import { parallel, series } from 'gulp';
-import { installExtensions, buildExtensions, watchExtensions } from './gulpfile.extensions.js';
-import { execSync } from 'child_process';
-import { promisify } from 'util';
 import { createRsbuild, loadConfig } from '@rsbuild/core';
-import { pipeline } from 'stream';
+import { execSync } from 'child_process';
+import builder from 'electron-builder';
+import fs from 'fs-extra';
+import gulp, { parallel, series } from 'gulp';
 import path from 'path';
+import { pipeline } from 'stream';
+import tar from 'tar-fs';
+import { promisify } from 'util';
+import zlib from 'zlib';
+import { buildExtensions, installExtensions, watchExtensions } from './gulpfile.extensions.js';
 
 // Promisify the pipeline function
 const pipelineAsync = promisify(pipeline);
@@ -312,7 +311,7 @@ async function buildRenderer() {
 
 function buildStatic() {
   return gulp
-  .src(config.static.src + '/**/*')
+  .src(config.static.src + '/**/*', { encoding: false })
   .pipe(gulp.dest(config.static.dest));
 }
 
@@ -511,3 +510,4 @@ export const nexusPack = series(
   nexusPackTask
 );
 export const extInstall = series(installExtensions)
+export const testStatic = series(buildStatic);
