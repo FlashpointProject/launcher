@@ -565,6 +565,7 @@ function registerWebsocketListeners(dispatch: AppDispatch) {
       for (const source of prefs.gameMetadataSources) {
         window.Shared.back.request(BackIn.PRE_UPDATE_INFO, source)
         .then((total) => {
+          console.log('found ' + total + ' updates');
           dispatch(setUpdateInfo({
             id: source.id,
             total

@@ -463,7 +463,6 @@ const mainSlice = createSlice({
     },
     setUpdateInfo(state: MainState, { payload }: PayloadAction<MetaUpdateAction>) {
       state.metadataUpdate[payload.id] = {
-        ready: true,
         total: payload.total,
       };
     },
@@ -477,7 +476,6 @@ const mainSlice = createSlice({
       // TODO: Make metadata update info stored per source
       if (payload.id in state.metadataUpdate) {
         state.metadataUpdate[payload.id] = {
-          ready: true,
           total: 0
         };
       }

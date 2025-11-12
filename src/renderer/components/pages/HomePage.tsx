@@ -6,10 +6,11 @@ import { setHomePageBoxOpen } from '@renderer/store/preferences/slice';
 import { launchGame } from '@renderer/Util';
 import { BackIn } from '@shared/back/types';
 import { formatString } from '@shared/utils/StringFormatter';
-import { GameLaunchOverride, GameMetadataSource } from 'flashpoint-launcher';
+import { GameLaunchOverride, GameMetadataSource, LangContainer, MetaUpdateInfo } from 'flashpoint-launcher';
 import { HomePageComponentProps } from 'flashpoint-launcher-renderer';
 import * as React from 'react';
 import { useState } from 'react';
+import { toast } from 'react-toastify';
 import { DynamicComponent } from '../DynamicComponent';
 import { SimpleButton } from '../SimpleButton';
 
@@ -72,111 +73,158 @@ function UpdateComponent() {
   const [updating, setUpdating] = useState(false);
   const strings = allStrings.home;
 
-  const onPressUpdate = (source: GameMetadataSource) => {
-    if (updating) {
-      return;
-    }
-    setUpdating(true);
-
-    const preUpdateInfo = metadataUpdate[source.id];
-
-    if (preUpdateInfo.total <= 0) {
-      // Fetch update info
-      window.Shared.back.request(BackIn.PRE_UPDATE_INFO, source)
-      .then((total) => {
-        dispatch(setUpdateInfo({
-          id: source.id,
-          total
-        }));
-      })
-      .finally(() => {
-        setUpdating(false);
-      });
-    } else {
-      // Do update
-      return window.Shared.back.request(BackIn.SYNC_ALL, source)
-      .catch((err) => {
-        log.error('Launcher', `Error updating metadata: ${err}`);
-      })
-      .finally(() => {
-        setUpdating(false);
-      });
-    }
+  const onApplyUpdate = async (source: GameMetadataSource) => {
+    return window.Shared.back.request(BackIn.SYNC_ALL, source)
+    .catch((err) => {
+      log.error('Launcher', `Error updating metadata: ${err}`);
+    });
   };
+
+  const onCheckForUpdate = async (source: GameMetadataSource) => {
+    return window.Shared.back.request(BackIn.PRE_UPDATE_INFO, source)
+    .then((total) => {
+      dispatch(setUpdateInfo({
+        id: source.id,
+        total
+      }));
+      return total;
+    })
+    .finally(() => {
+      setUpdating(false);
+    });
+  };
+
+  const onApplyUpdateRow = withUpdating(onApplyUpdate);
+  const onCheckUpdateRow = withUpdating(onCheckForUpdate);
 
   if (gameMetadataSources.length === 0) {
     return <></>;
   }
 
-  let updateReady = false;
+  let updateAvailable = false;
   for (const info of Object.values(metadataUpdate)) {
-    if (info.ready) {
-      updateReady = true;
+    if (info.total > 0) {
+      updateAvailable = true;
       break;
     }
   }
 
   // Collect individual blocks
   const updateBlocks: React.JSX.Element[] = gameMetadataSources.map(source => {
-    let preUpdateInfo = metadataUpdate[source.id];
-    if (preUpdateInfo === undefined) {
-      preUpdateInfo = {
-        ready: false,
-        total: 0
-      };
-    }
-    let button = <></>;
-    const updateText = preUpdateInfo.ready ? (
-      preUpdateInfo.total > 0 ? strings.update :
-        preUpdateInfo.total === -1 ? strings.error : strings.checkForUpdates
-    ) : strings.checkingUpdate;
+    const preUpdateInfo = metadataUpdate[source.id] as MetaUpdateInfo | undefined;
 
-    if (preUpdateInfo === undefined) {
-      button = <SimpleButton disabled={true} value={updateText}/>;
-    } else if (preUpdateInfo.ready && preUpdateInfo.total > 0) {
-      button = <SimpleButton value={updateText} onClick={() => onPressUpdate(source)}/>;
-    }
+    console.log(JSON.stringify(preUpdateInfo));
 
     return (
-      <div key={source.id}>
-        <div className='update-metadata-name'>
-          {source.name}
-        </div>
-        { preUpdateInfo.ready && preUpdateInfo.total > 0 && (
-          <div className='update-metadata-last'>
-            {formatString(strings.updatedGamesReady, (preUpdateInfo.total + 1).toString())}
-          </div>
-        )}
-        <div className='update-metadata-last'>
-          {`${strings.lastUpdated}: ${(new Date(source.games.actualUpdateTime)).toLocaleString()}`}
-        </div>
-        {button}
-      </div>
+      <UpdateRow
+        source={source}
+        preUpdateInfo={preUpdateInfo}
+        strings={allStrings}
+        busy={updating}
+        onApplyUpdate={() => onApplyUpdateRow(setUpdating, updating, source)}
+        onCheckForUpdate={() => onCheckUpdateRow(setUpdating, updating, source)}/>
     );
   });
 
-  if (updateReady) {
-    updateBlocks.unshift(
-      <div key={'meta-block'} className='update-metadata-button'>
-        <SimpleButton
-          className='update-metadata-button-inner'
-          value={strings.update}
-          disabled={updating}
-          onClick={async () => {
-            for (const info of Object.entries(metadataUpdate)) {
-              if (info[1].ready && info[1].total > 0) {
-                const source = gameMetadataSources.find(s => s.id === info[0]);
-                if (source) {
-                  await onPressUpdate(source);
+  updateBlocks.unshift(
+    <div key={'meta-block'} className='update-metadata-button'>
+      <SimpleButton
+        className='update-metadata-button-inner'
+        value={updateAvailable ? strings.update : strings.checkForUpdates}
+        disabled={updating}
+        onClick={async () => {
+          if (!updating) {
+            setUpdating(true);
+            let updated = false;
+            let total = -1;
+            for (const source of gameMetadataSources) {
+              const preUpdateInfo = metadataUpdate[source.id] as MetaUpdateInfo | undefined;
+              if (preUpdateInfo && preUpdateInfo.total > 0) {
+                updated = true;
+                await onApplyUpdate(source);
+              } else {
+                console.log('checking update');
+                const sourceTotal = await onCheckForUpdate(source);
+                if (total === -1) {
+                  total = sourceTotal;
+                } else {
+                  total += sourceTotal;
                 }
               }
             }
-          }} />
-      </div>
-    );
-  }
+            console.log(updated);
+            console.log(total);
+            if (!updated && total === 0) {
+              toast(strings.upToDate);
+            }
+            setUpdating(false);
+          }
+        }} />
+    </div>
+  );
 
   return <div className='update-metadata-box'>
     {updateBlocks}
   </div>;
+}
+
+type UpdateRowProps = {
+  strings: LangContainer,
+  source: GameMetadataSource;
+  preUpdateInfo?: MetaUpdateInfo;
+  busy: boolean;
+  onApplyUpdate: () => void;
+  onCheckForUpdate: () => Promise<number>;
+}
+
+function UpdateRow({ preUpdateInfo, strings, source, busy, onApplyUpdate, onCheckForUpdate }: UpdateRowProps) {
+  return (
+    <div key={source.id}>
+      <div className='update-metadata-name'>
+        {source.name}
+      </div>
+      { preUpdateInfo !== undefined && preUpdateInfo.total > 0 && (
+        <div className='update-metadata-last'>
+          {formatString(strings.home.updatedGamesReady, (preUpdateInfo.total + 1).toString())}
+        </div>
+      )}
+      <div className='update-metadata-last'>
+        {`${strings.home.lastUpdated}: ${(new Date(source.games.actualUpdateTime)).toLocaleString()}`}
+      </div>
+      <SimpleButton
+        disabled={busy || (preUpdateInfo === undefined)}
+        onClick={() => {
+          if (preUpdateInfo !== undefined) {
+            if (preUpdateInfo.total === 0) {
+              onCheckForUpdate()
+              .then((total) => {
+                if (total === 0) {
+                  toast(strings.home.upToDate);
+                }
+              });
+            } else {
+              onApplyUpdate();
+            }
+          }
+        }}
+        value={preUpdateInfo === undefined ? strings.home.checkingUpdate :
+          preUpdateInfo.total > 0 ? strings.home.update : strings.home.checkForUpdates
+        }/>
+    </div>
+  );
+}
+
+function withUpdating<T extends any[], R>(cb: (...args: T) => Promise<R>): (setUpdating: (val: boolean) => void, updating: boolean, ...args:T) => Promise<R> {
+  return async (setUpdating: (val: boolean) => void, updating: boolean, ...args: T): Promise<R> => {
+    if (!updating) {
+      setUpdating(true);
+      try {
+        return await cb(...args);
+      } finally {
+        setUpdating(false);
+      }
+    } else {
+      return Promise.reject(new Error('Operation already in progress'));
+    }
+  };
 }

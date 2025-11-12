@@ -2649,10 +2649,11 @@ declare module 'flashpoint-launcher' {
       state: ComponentState
     }
 
-    type MetaUpdateState = Record<string, {
-      ready: boolean;
+    type MetaUpdateInfo = {
       total: number;
-    }>
+    }
+
+    type MetaUpdateState = Record<string, MetaUpdateInfo>
 
     enum ProcessState {
       /** The process is not running. */
