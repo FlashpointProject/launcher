@@ -254,7 +254,7 @@ export class GameGrid<T extends Content> extends React.Component<GameGridProps<T
     const games = this.props.content;
     const index = props.rowIndex * this.columns + props.columnIndex;
     if (index < (resultsTotal || 0)) {
-      const game = games[index];
+      const game = games[index] as T | undefined;
       const extreme = isGame(game) ? game.tags.findIndex(t => this.props.extremeTags.includes(t.trim())) !== -1 : false;
       return (
         <GameGridItem

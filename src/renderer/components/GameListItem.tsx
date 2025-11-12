@@ -9,12 +9,6 @@ import { GameDragEventData } from './pages/BrowsePage';
 export type GameListItemProps = ListRowProps & {
   displaySettings: DisplaySettings;
   game?: Game;
-  id: string;
-  title: string;
-  platform: string;
-  tags: string[];
-  developer: string;
-  publisher: string;
   extreme: boolean;
   /** Don't render if extreme games is disabled, match header */
   showExtremeIcon: boolean;
@@ -37,7 +31,7 @@ export type GameListItemProps = ListRowProps & {
 };
 
 export function GameListItem(props: GameListItemProps) {
-  const { id, extreme, tagGroupIconBase64, isDraggable, isSelected, isDragged, extremeIconPath, showExtremeIcon, index, style, onDrop,
+  const { extreme, tagGroupIconBase64, isDraggable, isSelected, isDragged, extremeIconPath, showExtremeIcon, index, style, onDrop,
     onDragOver } = props;
   const game = props.game!;
   // Pick class names
@@ -47,7 +41,7 @@ export function GameListItem(props: GameListItemProps) {
   if (isDragged)       { className += ' game-list-item--dragged';  }
   // Set element attributes
   const attributes: any = {};
-  attributes[GameListItem.idAttribute] = id;
+  attributes[GameListItem.idAttribute] = props.game?.id;
   attributes[GameListItem.indexAttribute] = index;
   attributes[GameListItem.logoPathAttribute] = props.game?.logoPath;
   attributes[GameListItem.screenshotPathAttribute] = props.game?.screenshotPath;
@@ -67,7 +61,7 @@ export function GameListItem(props: GameListItemProps) {
       onDrop={onDrop}
       onDragOver={onDragOver}
       { ...attributes }>
-      { props.displaySettings.gameList.columns.filter(col => col.type === 'icon').map(col => {
+      { game !== undefined && props.displaySettings.gameList.columns.filter(col => col.type === 'icon').map(col => {
         return <DynamicComponent key={col.rowComponent} props={gameListComponentProps} name={col.rowComponent} />;
       })}
       { showExtremeIcon &&
@@ -86,7 +80,7 @@ export function GameListItem(props: GameListItemProps) {
           )))
       }
       <div className='game-list-item__right'>
-        { props.displaySettings.gameList.columns.filter(col => col.type === 'normal').map((col, idx) => {
+        { game !== undefined && props.displaySettings.gameList.columns.filter(col => col.type === 'normal').map((col, idx) => {
           return <div style={{ width: `${(col.weight / props.totalWeight) * 100}%` }}>
             <DynamicComponent key={idx} props={gameListComponentProps} name={col.rowComponent} />
           </div>;

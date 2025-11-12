@@ -190,11 +190,10 @@ export class GameList<T extends Content> extends React.Component<GameListProps<T
     const extremeIconPath = this.extremeIconPathMemo(this.props.logoVersion);
     const { selectedContentId, showExtremeIcon } = this.props;
     const index = props.index;
-    const game = games[index];
-    if (!isGame(game)) {
+    const game = games[index] as T | undefined;
+    if (game !== undefined && !isGame(game)) {
       return <div key={props.key} style={props.style}>Unsupported Content Render</div>;
     }
-    const platform = game.primaryPlatform;
     const tagGroupIcon = this.props.tagGroupIcons.find(tg => tg.tagFilter.find(t => game?.tags.includes(t)))?.iconBase64;
     const totalWeight = this.props.displaySettings.gameList.columns.reduce((prev, cur) => cur.type === 'normal' ? prev + cur.weight : prev, 0);
     const extreme = isGame(game) ? game.tags.findIndex(t => this.props.extremeTags.includes(t.trim())) !== -1 : false;
@@ -205,19 +204,13 @@ export class GameList<T extends Content> extends React.Component<GameListProps<T
         displaySettings={this.props.displaySettings}
         game={game}
         key={props.key}
-        id={game.id}
-        title={game.title}
-        platform={platform ? platform.trim() : ''}
-        tags={game.tags}
-        developer={game.developer}
-        publisher={game.publisher}
         extreme={extreme}
         extremeIconPath={extremeIconPath}
         showExtremeIcon={showExtremeIcon}
         tagGroupIconBase64={tagGroupIcon || ''}
         logoVersion={this.props.logoVersion}
         isDraggable={true}
-        isSelected={game.id === selectedContentId}
+        isSelected={game?.id === selectedContentId}
         totalWeight={totalWeight}
         isDragged={false} /> // Bugged render update
     );
