@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 import { createRsbuild, loadConfig } from '@rsbuild/core';
-import { execSync } from 'child_process';
+import { execSync, spawn } from 'child_process';
 import builder from 'electron-builder';
 import fs from 'fs-extra';
 import gulp, { parallel, series } from 'gulp';
@@ -212,15 +212,19 @@ async function watchElectronPreload() {
   });
 }
 
-async function watchNodeMain() {
-  const config = await loadConfig({ path: 'rsbuild-node.config.ts'});
-  const rsbuild = await createRsbuild({
-    rsbuildConfig: {
-      ...config.content
-    }
-  });
-  await rsbuild.build({
-    watch: true
+async function killProcess(proc) {
+  if (!proc || proc.killed) return;
+  
+  return new Promise((resolve) => {
+    proc.on('exit', resolve);
+    proc.kill('SIGTERM');
+    
+    // Force kill after timeout
+    setTimeout(() => {
+      if (!proc.killed) {
+        proc.kill('SIGKILL');
+      }
+    }, 3000);
   });
 }
 
@@ -229,11 +233,29 @@ async function watchBackend() {
   const config = await loadConfig({ path: 'rsbuild-back.config.ts'});
   const rsbuild = await createRsbuild({
     rsbuildConfig: {
-      ...config.content
+      ...config.content,
+    },
+  });
+  let backProc = null;
+  rsbuild.onAfterBuild(async () => {
+    // Restart backend after it's been built
+    console.log('Restarting Backend...');
+    if (backProc) {
+      console.log('Killing existing backend process...');
+      await killProcess(backProc);
+      backProc = null;
     }
+
+    backProc = spawn('node', [
+      '--inspect=9229',  // Enable debugging
+      'build/back/backend.js'
+    ], {
+      stdio: 'inherit',
+      env: { ...process.env, NODE_ENV: 'development' }
+    });
   });
   await rsbuild.build({
-    watch: true
+    watch: true,
   });
 }
 
@@ -254,14 +276,6 @@ function watchStaticTask() {
 }
 
 /* ------ Build ------ */
-
-async function buildNodeMain() {
-  const config = await loadConfig({ path: 'rsbuild-node.config.ts'});
-  const rsbuild = await createRsbuild({
-    rsbuildConfig: config.content
-  });
-  return rsbuild.build();
-}
 
 async function buildElectron() {
   const config = await loadConfig({ path: 'rsbuild-electron.config.ts'});
@@ -284,6 +298,7 @@ async function copyNativeModule() {
     for (const f of fs.readdirSync(path.resolve('node_modules/@fparchive', dir.name))) {
       if (f.endsWith('.node')) {
         const fullPath = path.resolve('node_modules/@fparchive/', dir.name, f);
+        await fs.promises.mkdir('build/back', { recursive: true });
         const destPath = path.resolve('build/back', f);
         fs.copyFileSync(fullPath, destPath);
         console.log('Copied native module ' + f);
@@ -468,7 +483,6 @@ export const build = series(
   installCrossDeps,
   buildStatic,
   parallel(
-    buildNodeMain,
     buildElectron,
     buildElectronPreload,
     buildBackend,
@@ -496,10 +510,9 @@ export const watchStatic = series(
   createVersionFile,
   installCrossDeps,
   buildStatic,
+  buildExtensions,
   parallel(
-    watchNodeMain,
     watchBackend,
-    watchExtensions,
     watchStaticTask,
   )
 );
@@ -510,4 +523,3 @@ export const nexusPack = series(
   nexusPackTask
 );
 export const extInstall = series(installExtensions)
-export const testStatic = series(buildStatic);

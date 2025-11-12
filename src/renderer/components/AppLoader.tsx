@@ -10,11 +10,25 @@ import { createErrorProxy } from '@shared/Util';
 import EventEmitter from 'node:events';
 import * as path from 'node:path';
 import { ReactNode, useState } from 'react';
+import { Spinner } from './Spinner';
 
 type AppLoaderProps = {
   children: ReactNode,
   data: InitRendererData,
 };
+
+async function waitForConnection(host: string): Promise<WebSocket> {
+  while (true) {
+    try {
+      const socket = await SocketClient.connect(WebSocket, host, 'flashpoint-launcher');
+      console.log('Initial connection established to backend');
+      return socket;
+    } catch (error) {
+      console.log('Initial connection failed to backend, waiting 5 seconds...');
+      await new Promise<void>(resolve => setTimeout(resolve, 5000));
+    }
+  }
+}
 
 const onInit = async (data: InitRendererData) => {
   // Store value(s)
@@ -22,7 +36,7 @@ const onInit = async (data: InitRendererData) => {
   window.Shared.backUrl = new URL(data.host);
   window.Shared.url = data.url;
   // Connect to the back
-  const socket = await SocketClient.connect(WebSocket, data.host, 'flashpoint-launcher');
+  const socket = await waitForConnection(data.host);
   window.Shared.back.url = data.host;
   window.Shared.back.secret = 'flashpoint-launcher';
   window.Shared.back.setSocket(socket);
@@ -152,18 +166,46 @@ window.Shared = {
 export function AppLoader(props: AppLoaderProps) {
   const [loaderInit, setLoaderInit] = useState(false);
   const [isInitDone, setIsInitDone] = useState(false);
+  const [initError, setInitError] = useState<string>();
+  const [showSpinner, setShowSpinner] = useState(false);
 
   if (!loaderInit) {
     setLoaderInit(true);
+    // Delay spinner for 800ms to prevent flashing during fast connections
+    setTimeout(() => {
+      setShowSpinner(true);
+    }, 800);
     // Run initialization script
     onInit(props.data)
     .then(() => {
       setIsInitDone(true);
+    })
+    .catch((error) => {
+      setInitError(`Error during init: ${error}`);
     });
   }
 
+  if (initError) {
+    return <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <div>{initError}</div>
+    </div>;
+  }
+
   if (!isInitDone) {
-    return (<div></div>);
+    return <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+      { showSpinner && (
+        <div className='splash-screen'>
+          <div className='splash-screen__logo'>
+            <Spinner/>
+          </div>
+          <div className='splash-screen__status-block'>
+            <div className='splash-screen__status-header'>
+              Connecting...
+            </div>
+          </div>
+        </div>
+      )}
+    </div>;
   }
 
   return (

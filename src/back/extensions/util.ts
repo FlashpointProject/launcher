@@ -57,7 +57,7 @@ export async function installExtension(state: BackState, filePath: string) {
 export async function unzipFile(state: BackState, filePath: string, outDir: string, opts?: ZipExtractOptions) {
   return new Promise<void>((resolve, reject) => {
     const { onProgress, onData } = opts || {};
-    const readable = extractFull(filePath, outDir, { $bin: pathTo7zBack(state.isDev, state.exePath), $progress: onProgress !== undefined });
+    const readable = extractFull(filePath, outDir, { $bin: pathTo7zBack(state.isDev, state.isElectron, state.exePath), $progress: onProgress !== undefined });
     readable.on('end', () => {
       resolve();
     });

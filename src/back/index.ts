@@ -33,6 +33,7 @@ import {
 } from '@shared/constants';
 import { formatString } from '@shared/utils/StringFormatter';
 import { ComponentStatus, IBackProcessInfo, ILogoSet, LangFileContent, RecursivePartial } from 'flashpoint-launcher';
+import { parseArgs } from 'node:util';
 import { Tail } from 'tail';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, DISCORD_LINK, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE, WIKI_AV_TROUBLESHOOTING } from './constants';
@@ -88,7 +89,7 @@ const DEFAULT_LOGO_PATH = 'window/images/Logos/404.png';
 type Required<T> = T extends undefined ? never : T;
 const send: Required<typeof process.send> = process.send
   ? process.send.bind(process)
-  : (() => { throw new Error('process.send is undefined.'); });
+  : (val: any) => true;
 
 const CONCURRENT_IMAGE_DOWNLOADS = 6;
 
@@ -98,6 +99,7 @@ export const state: BackState = {
   runInit: false,
   isExit: false,
   isDev: false,
+  isElectron: false,
   verbose: false,
   updateInProgress: false,
   logFile: createErrorProxy('logFile'),
@@ -276,25 +278,106 @@ async function main() {
     BackIn.IMPORT_META_EDITS,
   ]);
 
-  process.once('message', prepForInit);
+  const args = getArgs();
+  const config: BackInitArgs = {
+    configFolder: args['config-folder'],
+    isDev: args.dev,
+    verbose: args.verbose,
+    // On windows you have to wait for app to be ready before you call app.getLocale() (so it will be sent later)
+    localeCode: 'en',
+    exePath: args['exe-path'],
+    acceptRemote: args['accept-remote'],
+  };
+
+  prepForInit(config);
+  process.on('SIGTERM', () => { exit(state); });
+  process.on('SIGINT', () => { exit(state); });
   process.on('disconnect', () => { exit(state); }); // (Exit when the main process does)
 }
 
-async function prepForInit(message: any): Promise<void> {
+function getArgs() {
+  // Parse command line arguments
+  console.log(process.argv);
+  const { values: args } = parseArgs({
+    args: process.argv.slice(2),
+    options: {
+      'electron': {
+        type: 'boolean',
+        default: false
+      },
+      'config-folder': {
+        type: 'string',
+        short: 'c',
+        default: process.cwd()
+      },
+      'dev': {
+        type: 'boolean',
+        short: 'd',
+        default: process.env.NODE_ENV === 'development'
+      },
+      'verbose': {
+        type: 'boolean',
+        short: 'v',
+        default: false
+      },
+      'locale': {
+        type: 'string',
+        short: 'l',
+        default: 'en'
+      },
+      'exe-path': {
+        type: 'string',
+        short: 'e',
+        default: process.cwd()
+      },
+      'accept-remote': {
+        type: 'boolean',
+        short: 'r',
+        default: false
+      },
+      'help': {
+        type: 'boolean',
+        short: 'h'
+      }
+    },
+    allowPositionals: false
+  });
+
+  // Show help if requested
+  if (args.help) {
+    console.log(`
+  Usage: node index.js [options]
+  
+  Options:
+    --electron                  Running in Electron
+    -c, --config-folder <path>  Configuration folder path (default: current directory)
+    -d, --dev                   Enable development mode
+    -v, --verbose               Enable verbose logging
+    -l, --locale <code>         Locale code (default: en)
+    -e, --exe-path <path>       Executable path (default: current directory)
+    -r, --accept-remote         Accept remote connections
+    -h, --help                  Show this help message
+      `);
+    process.exit(0);
+  }
+
+  return args;
+}
+
+async function prepForInit(initConfig: BackInitArgs): Promise<void> {
   console.log(`--- Build Version: ${VERSION} ---`);
   console.log('Back - Initializing...');
 
-  const content: BackInitArgs = JSON.parse(message);
-  state.isDev = content.isDev;
-  state.verbose = content.verbose;
-  state.configFolder = content.configFolder;
-  state.localeCode = content.localeCode;
-  state.exePath = content.exePath;
-  state.acceptRemote = content.acceptRemote;
+  state.isDev = initConfig.isDev;
+  state.verbose = initConfig.verbose;
+  state.configFolder = initConfig.configFolder;
+  state.localeCode = initConfig.localeCode;
+  state.exePath = initConfig.exePath;
+  state.acceptRemote = initConfig.acceptRemote;
   state.logFile = new LogFile(
     state.isDev ?
       path.join(process.cwd(), 'launcher.log')
-      : path.join(process.platform == 'darwin' ? state.configFolder : path.dirname(content.exePath), 'launcher.log'));
+      : path.join(process.platform == 'darwin' ? state.configFolder : path.dirname(initConfig.exePath), 'launcher.log'));
 
   const addLog = (entry: flashpoint.ILogEntry): number => { return state.log.push(entry) - 1; };
   global.log = {
@@ -314,7 +397,7 @@ async function prepForInit(message: any): Promise<void> {
 
   // Set SevenZip binary path
   {
-    const basePath = state.isDev ? process.cwd() : path.dirname(state.exePath);
+    const basePath = (!state.isDev && state.isElectron) ? path.dirname(state.exePath) : process.cwd();
     switch (process.platform) {
       case 'darwin': state.sevenZipPath = path.join(basePath, 'extern/7zip-bin/mac', '7za'); break;
       case 'win32':  state.sevenZipPath = path.join(basePath, 'extern/7zip-bin/win', process.arch, '7za'); break;
@@ -495,7 +578,10 @@ async function prepForInit(message: any): Promise<void> {
   });
   state.languageWatcher.on('error', console.error);
   // On mac, exePath is Flashpoint.app/Contents/MacOS/flashpoint, and lang is at Flashpoint.app/Contents/lang.
-  const langFolder = path.join(state.isDev ? process.cwd() : process.platform == 'darwin' ? path.resolve(path.dirname(state.exePath), '..') : path.dirname(state.exePath), 'lang');
+  const langFolder = path.join((!state.isDev && state.isElectron) ?
+    process.platform == 'darwin' ? path.resolve(path.dirname(state.exePath), '..') : path.dirname(state.exePath) :
+    process.cwd(),
+  'lang');
   fs.stat(langFolder, (error) => {
     if (!error) { state.languageWatcher.watch(langFolder); }
     else {
@@ -1396,7 +1482,7 @@ function onFileServerRequestLogos(pathname: string, url: URL, req: http.Incoming
           }
         } catch { /** Let error drop to return default image instead */ }
         // File doesn't exist, serve default image
-        const basePath = state.isDev ? path.join(process.cwd(), 'build') : path.join(path.dirname(state.exePath), 'resources/app.asar/build');
+        const basePath = (!state.isDev && state.isElectron) ? path.join(path.dirname(state.exePath), 'resources/app.asar/build') : path.join(process.cwd(), 'build');
         const replacementFilePath = path.join(basePath, 'window/images/Logos', pathname);
         if (replacementFilePath.startsWith(basePath)) {
           fs.access(replacementFilePath, fs.constants.F_OK, (err) => {

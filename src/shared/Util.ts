@@ -7,7 +7,7 @@ import { parseVariableString } from './utils/VariableString';
 import { throttle } from './utils/throttle';
 
 export function calcScale(defValue: number, scale: number): number {
-  const scaler = 0.25 + scale * 1.5;
+  const scaler = 0.3 + scale * 1.4;
   return defValue * scaler;
 }
 

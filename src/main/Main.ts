@@ -1,9 +1,10 @@
 import { InitRendererChannel, InitRendererData } from '@shared/IPC';
 import { createErrorProxy } from '@shared/Util';
 import { SocketClient } from '@shared/back/SocketClient';
-import { BackIn, BackInitArgs, BackOut } from '@shared/back/types';
+import { BackIn, BackOut } from '@shared/back/types';
 import { APP_TITLE } from '@shared/constants';
 import { ChildProcess, fork } from 'child_process';
+import * as electron from 'electron';
 import { BrowserWindow, IpcMainEvent, app, dialog, ipcMain, session, shell } from 'electron';
 import installExtension, { REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS } from 'electron-devtools-installer';
 import { AppConfigData, AppPreferencesData } from 'flashpoint-launcher';
@@ -14,7 +15,6 @@ import { WebSocket } from 'ws';
 import * as Util from './Util';
 import { CustomIPC, WindowIPC } from './constants';
 import { Init } from './types';
-import * as electron from 'electron';
 
 const TIMEOUT_DELAY = 60_000;
 
@@ -223,7 +223,27 @@ export function main(init: Init): void {
         // Fork backend, init.rest will contain possible flashpoint:// message
         // Increase memory limit in dev instance (mostly for developer page functions)
         const env = Util.isDev ? Object.assign({ 'NODE_OPTIONS' : '--max-old-space-size=6144' }, process.env ) : process.env;
-        state.backProc = fork(path.join(__dirname, '../back/backend.js'), [init.rest], { detached: true, env, stdio: 'pipe' });
+        // On windows you have to wait for app to be ready before you call app.getLocale() (so it will be sent later)
+        let localeCode: string;
+        if (process.platform === 'win32' && !app.isReady()) {
+          localeCode = 'en';
+        } else {
+          localeCode = app.getLocale().toLowerCase();
+          state._sentLocaleCode = true;
+        }
+
+        const args: string[] = [
+          '--config-folder', state.mainFolderPath,
+          '--locale', localeCode,
+          '--exe-path', app.getPath('exe'),
+          '--electron',
+        ];
+        if (Util.isDev) { args.push('--dev'); }
+        if (init.args['verbose']) { args.push('--verbose'); }
+        if (init.args['host-remote']) { args.push('--accept-remote'); }
+        if (init.rest) { args.push(init.rest);}
+
+        state.backProc = fork(path.join(__dirname, '../back/backend.js'), args, { detached: true, env, stdio: 'pipe' });
         state.backProc.on('exit', (code) => {
           if (!code || code === 0) {
             console.log('Back proc exited cleanly, killing self.');
@@ -280,25 +300,6 @@ export function main(init: Init): void {
         };
         // Wait for process to prep, handle any queries, store config and prefs after finishing
         state.backProc.on('message', initHandler);
-        // On windows you have to wait for app to be ready before you call app.getLocale() (so it will be sent later)
-        let localeCode: string;
-        if (process.platform === 'win32' && !app.isReady()) {
-          localeCode = 'en';
-        } else {
-          localeCode = app.getLocale().toLowerCase();
-          state._sentLocaleCode = true;
-        }
-        // Send prep message
-        const msg: BackInitArgs = {
-          configFolder: state.mainFolderPath,
-          isDev: Util.isDev,
-          verbose: !!init.args['verbose'],
-          // On windows you have to wait for app to be ready before you call app.getLocale() (so it will be sent later)
-          localeCode: localeCode,
-          exePath: app.getPath('exe'),
-          acceptRemote: !!init.args['host-remote'],
-        };
-        state.backProc.send(JSON.stringify(msg));
       })
       .then(() => {
         if (!state.preferences) { throw new Error('Preferences not loaded by backend.'); }

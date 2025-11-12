@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "electron ./build/main/electron.js",
-    "start:back": "node ./build/node/index.js",
+    "start:back": "node ./build/back/backend.js",
     "start:web": "rsbuild dev",
     "build": "cross-env NODE_ENV=development gulp build",
     "build:prod": "gulp build",

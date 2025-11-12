@@ -1,7 +1,7 @@
 import * as path from 'node:path';
 
-function get7zExec(isDev: boolean, exePath: string): string {
-  const basePath = isDev ? process.cwd() : path.dirname(exePath);
+function get7zExec(isDev: boolean, isElectron: boolean, exePath: string): string {
+  const basePath = (!isDev && isElectron) ? path.dirname(exePath) : process.cwd();
   switch (process.platform) {
     case 'darwin':
       return path.join(basePath, '../extern/7zip-bin/mac', '7za');

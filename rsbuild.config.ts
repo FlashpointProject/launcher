@@ -1,7 +1,7 @@
 import { defineConfig } from '@rsbuild/core';
-import { pluginReact } from '@rsbuild/plugin-react';
 import { pluginBabel } from '@rsbuild/plugin-babel';
 import { pluginNodePolyfill } from '@rsbuild/plugin-node-polyfill';
+import { pluginReact } from '@rsbuild/plugin-react';
 
 export default defineConfig({
   source: {
@@ -22,7 +22,8 @@ export default defineConfig({
       name: './build/window',
       copyOnBuild: false,
       watch: true
-    }
+    },
+    open: '/flashpoint/renderer',
   },
   output: {
     target: 'web',

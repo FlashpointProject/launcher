@@ -262,8 +262,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
     const gotdPath = path.join(state.config.flashpointPath, 'Data', 'gotd.json');
     const gotdDownload = new Promise<void>((resolve, reject) => {
       const thumbnailWriter = fs.createWriteStream(gotdPath);
-      console.log('downloading gotd');
-      axios.get(gotdUrl, { responseType: 'stream' })
+      axios.get(gotdUrl, { timeout: 5000, responseType: 'stream' })
       .then((res) => {
         res.data.pipe(thumbnailWriter);
         thumbnailWriter.on('close', resolve);
@@ -2401,7 +2400,7 @@ export function registerRequestCallbacks(state: BackState, init: () => Promise<v
       await saveCuration(curPath, curation);
       await new Promise<void>((resolve) => {
         // Cast required until types fixed
-        return (add as any)(filePath, curPath, { recursive: true, exclude: [`!${FPFSS_INFO_FILENAME}`], $bin: pathTo7zBack(state.isDev, state.exePath) })
+        return (add as any)(filePath, curPath, { recursive: true, exclude: [`!${FPFSS_INFO_FILENAME}`], $bin: pathTo7zBack(state.isDev, state.isElectron, state.exePath) })
         .on('end', () => { resolve(); })
         .on('error', (error: any) => {
           log.error('Curate', error.message);

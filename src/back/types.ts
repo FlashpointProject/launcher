@@ -27,6 +27,7 @@ export type BackState = {
   runInit: boolean;
   isExit: boolean;
   isDev: boolean;
+  isElectron: boolean;
   updateInProgress: boolean;
   verbose: boolean;
   socketServer: SocketServer;
