@@ -2,6 +2,7 @@ import { parse_message_data, validate_socket_message } from '@shared/socket/shar
 import { api_handle_message, api_register, api_register_any, api_unregister, api_unregister_any, create_api, SocketAPIData } from '@shared/socket/SocketAPI';
 import { server_request, server_send, SocketServerClient } from '@shared/socket/SocketServer';
 import { BaseSocket, SocketResponseData } from '@shared/socket/types';
+import { EventEmitter } from 'events';
 import { BackIn, BackInTemplate, BackOut, BackOutTemplate } from './types';
 
 interface SocketConstructor<T> {
@@ -20,7 +21,7 @@ type Callback<T, U extends (...args: any[]) => any> = (event: T, ...args: Parame
 /** Callback that is registered to all messages. */
 type AnyCallback<T, U extends number> = (event: T, type: U, args: any[]) => void
 
-export class SocketClient<SOCKET extends BaseSocket> {
+export class SocketClient<SOCKET extends BaseSocket> extends EventEmitter {
   api: SocketAPIData<BackOut, BackOutTemplate, EVENT> = create_api();
 
   /** If true, do not attempt to reconnect */
@@ -51,6 +52,7 @@ export class SocketClient<SOCKET extends BaseSocket> {
     private onFatal?: () => void,
     public onStateChange?: (open: boolean) => void,
   ) {
+    super();
     this.socketCon = socketCon;
   }
 
@@ -72,6 +74,7 @@ export class SocketClient<SOCKET extends BaseSocket> {
     this.client.socket.onerror = this.onError.bind(this);
     this.client.socket.onclose = this.onClose.bind(this);
     this.client.socket.onopen = this.onOpen.bind(this);
+    this.emit('connected');
     this.ensureConnection();
   }
 

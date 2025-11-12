@@ -215,6 +215,7 @@ export enum BackIn {
   KEEP_ALIVE,
   PREP_RELOAD_WINDOW,
   IS_FLASHPOINT_PATH_VALID,
+  GET_START_TIME,
 
   // Dialogs
   DIALOG_RESPONSE,
@@ -478,6 +479,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.KEEP_ALIVE]: () => void;
   [BackIn.PREP_RELOAD_WINDOW]: () => void;
   [BackIn.IS_FLASHPOINT_PATH_VALID]: (path: string) => boolean;
+  [BackIn.GET_START_TIME]: () => number;
 
   // Downloader
   [BackIn.DOWNLOADER_GET_STATE]: () => DownloaderState;

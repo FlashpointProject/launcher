@@ -35,6 +35,20 @@ const onInit = async (data: InitRendererData) => {
   window.Shared.isBackRemote = data.isBackRemote;
   window.Shared.backUrl = new URL(data.host);
   window.Shared.url = data.url;
+
+  // Register connection listener
+  let startTime: number = 0;
+
+  window.Shared.back.on('connected', async () => {
+    const backStartTime = await window.Shared.back.request(BackIn.GET_START_TIME);
+    if (startTime === 0) {
+      startTime = backStartTime;
+    } else if (startTime !== backStartTime) {
+      // New backend proc, reload
+      window.location.reload();
+    }
+  });
+
   // Connect to the back
   const socket = await waitForConnection(data.host);
   window.Shared.back.url = data.host;
@@ -64,7 +78,7 @@ const onInit = async (data: InitRendererData) => {
       if (theme) { setTheme(theme); }
     }
   } else {
-    alert('No data given by host?');
+    throw 'No data given by host?';
   }
 
   window.log = {

@@ -94,6 +94,7 @@ const send: Required<typeof process.send> = process.send
 const CONCURRENT_IMAGE_DOWNLOADS = 6;
 
 export const state: BackState = {
+  startTime: Date.now(),
   readyForInit: false,
   ignoreQuit: false,
   runInit: false,
@@ -392,6 +393,9 @@ async function prepForInit(initConfig: BackInitArgs): Promise<void> {
   log.info('Launcher', `FPA Version: ${FPA_VERSION}`);
 
   state.socketServer.secret = 'flashpoint-launcher';
+  state.socketServer.register(BackIn.GET_START_TIME, () => {
+    return state.startTime;
+  });
 
   log.info('Launcher', 'Starting Flashpoint Launcher');
 

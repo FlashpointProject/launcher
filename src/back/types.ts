@@ -22,6 +22,7 @@ import { LogFile } from './util/LogFile';
 /** Contains most state for the back process. */
 export type BackState = {
   // @TODO Write comments for these properties
+  startTime: number;
   readyForInit: boolean;
   ignoreQuit: boolean; // Ignore quit calls from renderer
   runInit: boolean;
